@@ -17,7 +17,7 @@ use std::path::{Path, PathBuf};
 use ci_action_item_accounting::{
     FIXUPTASK_V2_CANDIDATE_JSONL_PATH, FIXUPTASK_V2_MAPPING_PATH,
     FIXUPTASK_V2_PROTECTED_FACTS_PATH, Verdict, collect_observed_frictions, evaluate,
-    evaluate_fixuptask_v2_materialized_gate, evaluate_keyed,
+    evaluate_fixuptask_v2_materialized_gate, evaluate_keyed, fixuptask_v2_digest,
 };
 use serde_json::{Value, json};
 
@@ -161,6 +161,17 @@ fn policy_gate_id_matches_the_crate_contract() {
 }
 
 #[test]
+fn live_action_item_gate_consumes_the_canonical_materialized_scm_snapshot() {
+    let root = repo_root();
+    let findings = evaluate_fixuptask_v2_materialized_gate(&root)
+        .expect("missing or unreadable canonical SCM facts must fail the action-item gate");
+    assert!(
+        findings.is_empty(),
+        "FixupTask v2 admission must be green before the legacy ledger changes: {findings:#?}"
+    );
+}
+
+#[test]
 fn fixuptask_v2_admission_is_wired_through_the_materialized_gate_inputs() {
     let root = std::env::temp_dir().join(format!(
         "ci-action-item-accounting-v2-gate-{}",
@@ -171,6 +182,7 @@ fn fixuptask_v2_admission_is_wired_through_the_materialized_gate_inputs() {
         FIXUPTASK_V2_CANDIDATE_JSONL_PATH,
         FIXUPTASK_V2_MAPPING_PATH,
         FIXUPTASK_V2_PROTECTED_FACTS_PATH,
+        ".omc/ultragoal/friction-ledger.jsonl",
     ] {
         std::fs::create_dir_all(root.join(path).parent().expect("input parent"))
             .expect("create materialized input parent");
@@ -188,9 +200,12 @@ fn fixuptask_v2_admission_is_wired_through_the_materialized_gate_inputs() {
         "{\"source\":\"scm:merge-base\",\"entries\":[{\"predecessor_id\":\"FRIC-1\",\"target_fixuptask_id\":\"F-V2-GATE\"}]}",
     )
     .expect("write candidate mapping");
+    std::fs::write(root.join(".omc/ultragoal/friction-ledger.jsonl"), "legacy")
+        .expect("write unchanged legacy ledger");
+    let digest = fixuptask_v2_digest(b"legacy");
     std::fs::write(
         root.join(FIXUPTASK_V2_PROTECTED_FACTS_PATH),
-        "{\"fixuptask_v2_admission\":{\"merge_base_rows\":[],\"predecessor_source\":\"scm:merge-base\",\"predecessor_ids\":[\"FRIC-1\"],\"evaluation_time\":\"2026-07-21T00:00:00Z\"}}",
+        format!("{{\"fixuptask_v2_admission\":{{\"merge_base\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"merge_base_tree\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"merge_base_rows\":[],\"predecessor_source\":\"scm:merge-base\",\"predecessor_ids\":[\"FRIC-1\"],\"evaluation_time\":\"2026-07-21T00:00:00Z\",\"legacy_ledger\":{{\"merge_base_blob\":\"cccccccccccccccccccccccccccccccccccccccc\",\"merge_base_digest\":\"{digest}\",\"candidate_digest\":\"{digest}\"}}}}}}"),
     )
     .expect("write SCM-materialized facts");
 

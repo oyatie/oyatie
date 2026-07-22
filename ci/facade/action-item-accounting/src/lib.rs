@@ -61,7 +61,7 @@ pub const GATE_ID: &str = "cloud-ci-friction-accounting";
 pub const FIXUPTASK_V2_CANDIDATE_JSONL_PATH: &str = "registry/fixuptasks.jsonl";
 pub const FIXUPTASK_V2_MAPPING_PATH: &str = "registry/fixuptask-v2-predecessor-mapping.json";
 pub const FIXUPTASK_V2_PROTECTED_FACTS_PATH: &str =
-    "ci/facade/scm-facts-snapshot/fixuptask-v2-admission.generated.json";
+    "ci/facade/scm-facts-snapshot/scm-volatile-facts.generated.json";
 
 /// The eight blocking violation codes, in canonical order.
 pub const VIOLATION_CODES: [&str; 8] = [
@@ -179,16 +179,41 @@ fn collect_json_input(root: &Path, path: &str) -> Result<Value, CollectError> {
     })
 }
 
+fn collect_optional_json_input(root: &Path, path: &str) -> Result<Option<Value>, CollectError> {
+    match fs::read_to_string(root.join(path)) {
+        Ok(text) => serde_json::from_str(&text)
+            .map(Some)
+            .map_err(|error| CollectError::Parse {
+                line: 1,
+                message: format!("parse {path}: {error}"),
+            }),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(None),
+        Err(error) => Err(CollectError::Io(format!("read {path}: {error}"))),
+    }
+}
+
+fn collect_optional_bytes(root: &Path, path: &str) -> Result<Option<Vec<u8>>, CollectError> {
+    match fs::read(root.join(path)) {
+        Ok(bytes) => Ok(Some(bytes)),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(None),
+        Err(error) => Err(CollectError::Io(format!("read {path}: {error}"))),
+    }
+}
+
 /// Runs the v2 admission extension from its real gate inputs. The protected facts MUST be the
 /// SCM-materializer sidecar; this adapter has no candidate parameter for a merge-base baseline.
 pub fn evaluate_fixuptask_v2_materialized_gate(
     root: &Path,
 ) -> Result<BTreeSet<Finding>, CollectError> {
     let candidate = collect_fixuptask_candidate_jsonl(root, FIXUPTASK_V2_CANDIDATE_JSONL_PATH)?;
-    let mapping = collect_json_input(root, FIXUPTASK_V2_MAPPING_PATH)?;
     let protected = collect_json_input(root, FIXUPTASK_V2_PROTECTED_FACTS_PATH)?;
+    let legacy = collect_optional_bytes(root, ".omc/ultragoal/friction-ledger.jsonl")?;
+    let mapping = collect_optional_json_input(root, FIXUPTASK_V2_MAPPING_PATH)?;
     Ok(evaluate_fixuptask_v2_admission(
-        &protected, &candidate, &mapping,
+        &protected,
+        &candidate,
+        legacy.as_deref(),
+        mapping.as_ref(),
     ))
 }
 
@@ -839,7 +864,8 @@ pub fn evaluate_fixuptasks_v2(merge_base: &Value, candidate: &Value) -> BTreeSet
 pub fn evaluate_fixuptask_v2_admission(
     protected_scm_facts: &Value,
     candidate_fixuptasks: &Value,
-    candidate_mapping: &Value,
+    candidate_legacy_ledger: Option<&[u8]>,
+    candidate_mapping: Option<&Value>,
 ) -> BTreeSet<Finding> {
     let mut findings = BTreeSet::new();
     let Some(facts) = protected_scm_facts
@@ -855,6 +881,9 @@ pub fn evaluate_fixuptask_v2_admission(
     };
     let allowed = BTreeSet::from([
         "merge_base_rows",
+        "merge_base",
+        "merge_base_tree",
+        "legacy_ledger",
         "predecessor_source",
         "predecessor_ids",
         "evaluation_time",
@@ -927,19 +956,69 @@ pub fn evaluate_fixuptask_v2_admission(
     if !findings.is_empty() {
         return findings;
     }
+    let Some(legacy) = facts.get("legacy_ledger").and_then(Value::as_object) else {
+        findings.insert(Finding::new(
+            "fixuptask_v2_protected_facts_malformed",
+            POLICY_KEY,
+            "protected SCM facts must bind the legacy ledger",
+        ));
+        return findings;
+    };
+    let Some(expected_digest) = legacy.get("candidate_digest").and_then(Value::as_str) else {
+        findings.insert(Finding::new(
+            "fixuptask_v2_protected_facts_malformed",
+            POLICY_KEY,
+            "protected SCM facts legacy ledger lacks candidate_digest",
+        ));
+        return findings;
+    };
+    let actual_digest = candidate_legacy_ledger.map(fixuptask_v2_digest);
+    let actual_digest = actual_digest.as_deref().unwrap_or("absent");
+    if actual_digest != expected_digest {
+        findings.insert(Finding::new(
+            "fixuptask_v2_protected_facts_stale",
+            POLICY_KEY,
+            "protected SCM facts do not describe the candidate legacy-ledger bytes",
+        ));
+        return findings;
+    }
     let merge_base = json!({ "rows": merge_base_rows });
     findings.extend(evaluate_fixuptasks_v2_at(
         &merge_base,
         candidate_fixuptasks,
         evaluation_time,
     ));
-    findings.extend(evaluate_friction_predecessor_mapping(
-        source,
-        &predecessor_ids,
-        candidate_mapping,
-        candidate_fixuptasks,
-    ));
+    let merge_base_digest = legacy
+        .get("merge_base_digest")
+        .and_then(Value::as_str)
+        .unwrap_or_default();
+    let cutover_proposed = actual_digest != merge_base_digest;
+    if cutover_proposed {
+        let Some(mapping) = candidate_mapping else {
+            findings.insert(Finding::new(
+                "friction_mapping_required_for_legacy_cutover",
+                POLICY_KEY,
+                "changing or deleting the legacy ledger requires a complete identity-only mapping",
+            ));
+            return findings;
+        };
+        findings.extend(evaluate_friction_predecessor_mapping(
+            source,
+            &predecessor_ids,
+            mapping,
+            candidate_fixuptasks,
+        ));
+    }
     findings
+}
+
+pub fn fixuptask_v2_digest(bytes: &[u8]) -> String {
+    let mut hash: u64 = 0xcbf2_9ce4_8422_2325;
+    for byte in bytes {
+        hash ^= u64::from(*byte);
+        hash = hash.wrapping_mul(0x0000_0100_0000_01b3);
+    }
+    format!("fnv1a64:{hash:016x}")
 }
 
 /// Checks an identity-only predecessor mapping. It deliberately accepts predecessor identifiers,
@@ -989,6 +1068,7 @@ pub fn evaluate_friction_predecessor_mapping(
         return findings;
     };
     let mut mapped = BTreeSet::new();
+    let mut targets = BTreeSet::new();
     for (index, entry) in entries.iter().enumerate() {
         let entry_key = format!("<mapping-entry-{index}>");
         let Some(entry_object) = entry.as_object() else {
@@ -1037,6 +1117,15 @@ pub fn evaluate_friction_predecessor_mapping(
                 "friction_mapping_missing_target_fixuptask",
                 predecessor_id,
                 "mapping target_fixuptask_id does not name a candidate FixupTask",
+            ));
+        }
+        if let Some(target_id) = target_id
+            && !targets.insert(target_id)
+        {
+            findings.insert(Finding::new(
+                "friction_mapping_duplicate_target_fixuptask_id",
+                target_id,
+                "each target FixupTask id must receive exactly one predecessor mapping",
             ));
         }
     }
@@ -1553,15 +1642,57 @@ mod tests {
 
     #[test]
     fn admission_adapter_uses_only_protected_scm_facts() {
-        let facts = json!({ "fixuptask_v2_admission": { "merge_base_rows": [{ "id": "F-LEGACY", "status": "legacy" }], "predecessor_source": "scm:merge-base", "predecessor_ids": ["FRIC-1"], "evaluation_time": "2026-07-21T00:00:00Z" } });
+        let digest = fixuptask_v2_digest(b"legacy");
+        let facts = json!({ "fixuptask_v2_admission": { "merge_base": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "merge_base_tree": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "merge_base_rows": [{ "id": "F-LEGACY", "status": "legacy" }], "predecessor_source": "scm:merge-base", "predecessor_ids": ["FRIC-1"], "evaluation_time": "2026-07-21T00:00:00Z", "legacy_ledger": { "merge_base_blob": "cccccccccccccccccccccccccccccccccccccccc", "merge_base_digest": digest, "candidate_digest": digest } } });
         let candidate = json!({ "rows": [{ "id": "F-LEGACY", "status": "legacy" }] });
         let mapping = json!({ "source": "scm:merge-base", "entries": [{ "predecessor_id": "FRIC-1", "target_fixuptask_id": "F-LEGACY" }] });
-        assert!(evaluate_fixuptask_v2_admission(&facts, &candidate, &mapping).is_empty());
+        assert!(
+            evaluate_fixuptask_v2_admission(&facts, &candidate, Some(b"legacy"), Some(&mapping))
+                .is_empty()
+        );
         let malformed = json!({ "fixuptask_v2_admission": { "merge_base_rows": [], "predecessor_source": "scm:merge-base", "predecessor_ids": ["FRIC-1", "FRIC-1"], "evaluation_time": "2026-07-21T00:00:00Z" } });
         assert!(
-            evaluate_fixuptask_v2_admission(&malformed, &candidate, &mapping)
+            evaluate_fixuptask_v2_admission(
+                &malformed,
+                &candidate,
+                Some(b"legacy"),
+                Some(&mapping)
+            )
+            .iter()
+            .any(|finding| finding.code == "fixuptask_v2_protected_facts_malformed")
+        );
+    }
+
+    #[test]
+    fn unchanged_legacy_ledger_needs_no_mapping_but_cutover_needs_a_bijection() {
+        let digest = fixuptask_v2_digest(b"legacy");
+        let facts = json!({ "fixuptask_v2_admission": { "merge_base": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "merge_base_tree": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "merge_base_rows": [], "predecessor_source": "scm:merge-base", "predecessor_ids": ["FRIC-1"], "evaluation_time": "2026-07-21T00:00:00Z", "legacy_ledger": { "merge_base_blob": "cccccccccccccccccccccccccccccccccccccccc", "merge_base_digest": digest, "candidate_digest": digest } } });
+        let candidate = json!({ "rows": [] });
+        assert!(
+            evaluate_fixuptask_v2_admission(&facts, &candidate, Some(b"legacy"), None).is_empty()
+        );
+        let mut cutover_facts = facts.clone();
+        cutover_facts["fixuptask_v2_admission"]["legacy_ledger"]["candidate_digest"] =
+            json!(fixuptask_v2_digest(b"changed"));
+        assert!(
+            evaluate_fixuptask_v2_admission(&cutover_facts, &candidate, Some(b"changed"), None)
                 .iter()
-                .any(|finding| finding.code == "fixuptask_v2_protected_facts_malformed")
+                .any(|finding| finding.code == "friction_mapping_required_for_legacy_cutover")
+        );
+    }
+
+    #[test]
+    fn predecessor_mapping_rejects_duplicate_targets() {
+        let predecessors = BTreeSet::from(["FRIC-1".to_owned(), "FRIC-2".to_owned()]);
+        let fixuptasks = json!({ "rows": [{ "id": "F-1" }] });
+        let mapping = json!({ "source": "scm", "entries": [
+            { "predecessor_id": "FRIC-1", "target_fixuptask_id": "F-1" },
+            { "predecessor_id": "FRIC-2", "target_fixuptask_id": "F-1" }
+        ] });
+        assert!(
+            evaluate_friction_predecessor_mapping("scm", &predecessors, &mapping, &fixuptasks)
+                .iter()
+                .any(|finding| finding.code == "friction_mapping_duplicate_target_fixuptask_id")
         );
     }
 

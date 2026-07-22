@@ -73,6 +73,8 @@ const SCHEMA: &str = "oya-ci/scm-facts/v2";
 
 /// The volatile-facts snapshot schema id (history-derived facts; never committed).
 const VOLATILE_SCHEMA: &str = "oya-ci/scm-volatile-facts/v1";
+const LEGACY_FRICTION_LEDGER_PATH: &str = ".omc/ultragoal/friction-ledger.jsonl";
+const FIXUPTASK_REGISTRY_PATH: &str = "registry/fixuptasks.jsonl";
 
 // The canonical repo-relative paths of the movable self-locations (the committed scm-facts face,
 // the untracked volatile-facts snapshot, the merge-base ratchet policy) are no longer compiled
@@ -219,7 +221,18 @@ fn run() -> Result<(), String> {
         volatile_out.unwrap_or_else(|| repo_root.join(resolver.candidate(PathId::VolatileFacts)));
 
     let source = GitCliScmFactsSource::new(repo_root.clone());
-    let emission = emit_scm_facts(&source)?;
+    let mut emission = emit_scm_facts(&source)?;
+    if merge_base_baseline {
+        let bootstrap_ref = frozen_base_ref
+            .as_deref()
+            .unwrap_or(DEFAULT_FROZEN_BOOTSTRAP_REF);
+        let admission = emit_fixuptask_v2_admission(
+            &repo_root,
+            bootstrap_ref,
+            emission.volatile["head_time_secs"].as_u64().unwrap_or(0),
+        )?;
+        emission.volatile["fixuptask_v2_admission"] = admission;
+    }
 
     // Build the faces as serde_json Values with BTreeMap-backed maps so the on-disk key order
     // is the canonical sorted order, then serialize through the producer's exact canonicalizer
@@ -335,8 +348,7 @@ const FROZEN_POLICY_SOURCE_CANDIDATE_BOOTSTRAP: &str = "candidate-bootstrap";
 const EMITTER_ANALYZER_LABEL: &str = "//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot";
 /// The `computed_by` provenance stamp: WHICH analysis produced this frozen reference. Records
 /// that the baseline was REGENERATED from the merge-base source (not read from a committed blob).
-const PROVENANCE_COMPUTED_BY: &str =
-    "oya-cloud-ci-scm-facts-emitter-app --merge-base-baseline (ADR-0616 regenerate-from-merge-base-source)";
+const PROVENANCE_COMPUTED_BY: &str = "oya-cloud-ci-scm-facts-emitter-app --merge-base-baseline (ADR-0616 regenerate-from-merge-base-source)";
 
 /// Assemble the frozen snapshot's `provenance` object (ADR-0616): the in-toto-style materials +
 /// subject that let the firewall AUDIT which merge-base tree the regenerated frozen reference was
@@ -1322,6 +1334,116 @@ fn git_show_file(repo_root: &Path, revision: &str, path: &str) -> Result<Option<
     String::from_utf8(output.stdout)
         .map(Some)
         .map_err(|e| format!("show {spec}: {e}"))
+}
+
+fn git_blob_id(repo_root: &Path, revision: &str, path: &str) -> Result<String, String> {
+    let spec = format!("{revision}:{path}");
+    let output = Command::new("git")
+        .arg("-C")
+        .arg(repo_root)
+        .args(["rev-parse", &spec])
+        .output()
+        .map_err(|error| format!("rev-parse {spec}: {error}"))?;
+    if !output.status.success() {
+        return Err(format!("legacy ledger blob {spec} is absent or unreadable"));
+    }
+    let blob = String::from_utf8_lossy(&output.stdout).trim().to_owned();
+    if blob.len() < 40 || !blob.bytes().all(|byte| byte.is_ascii_hexdigit()) {
+        return Err(format!("legacy ledger blob id is invalid: {blob:?}"));
+    }
+    Ok(blob)
+}
+
+fn fnv1a64_bytes(bytes: &[u8]) -> String {
+    let mut hash: u64 = 0xcbf2_9ce4_8422_2325;
+    for byte in bytes {
+        hash ^= u64::from(*byte);
+        hash = hash.wrapping_mul(0x0000_0100_0000_01b3);
+    }
+    format!("fnv1a64:{hash:016x}")
+}
+
+fn canonical_utc_from_epoch(seconds: u64) -> String {
+    // Howard Hinnant's civil-from-days conversion, UTC-only and dependency-free.
+    let days = seconds / 86_400;
+    let remainder = seconds % 86_400;
+    let z = i64::try_from(days).unwrap_or(i64::MAX) + 719_468;
+    let era = if z >= 0 { z } else { z - 146_096 } / 146_097;
+    let doe = z - era * 146_097;
+    let yoe = (doe - doe / 1_460 + doe / 36_524 - doe / 146_096) / 365;
+    let year = yoe + era * 400;
+    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+    let mp = (5 * doy + 2) / 153;
+    let day = doy - (153 * mp + 2) / 5 + 1;
+    let month = mp + if mp < 10 { 3 } else { -9 };
+    let year = year + if month <= 2 { 1 } else { 0 };
+    format!(
+        "{year:04}-{month:02}-{day:02}T{:02}:{:02}:{:02}Z",
+        remainder / 3_600,
+        (remainder / 60) % 60,
+        remainder % 60
+    )
+}
+
+fn jsonl_rows(text: &str) -> Result<Vec<Value>, String> {
+    text.lines()
+        .filter(|line| !line.trim().is_empty())
+        .map(|line| {
+            serde_json::from_str::<Value>(line).map_err(|error| format!("JSONL parse: {error}"))
+        })
+        .filter_map(|row| match row {
+            Ok(value) if value.get("_meta").is_some() && value.get("id").is_none() => None,
+            other => Some(other),
+        })
+        .collect()
+}
+
+fn emit_fixuptask_v2_admission(
+    repo_root: &Path,
+    bootstrap_ref: &str,
+    evaluation_seconds: u64,
+) -> Result<Value, String> {
+    let merge_base = git_merge_base(repo_root, bootstrap_ref)?;
+    let merge_base_tree = git_rev_parse_tree(repo_root, &merge_base)?;
+    let legacy = git_show_file(repo_root, &merge_base, LEGACY_FRICTION_LEDGER_PATH)?
+        .ok_or_else(|| "legacy friction ledger is absent at merge base".to_owned())?;
+    let legacy_rows = jsonl_rows(&legacy)?;
+    let predecessor_ids: BTreeSet<String> = legacy_rows
+        .iter()
+        .filter_map(|row| row.get("id").and_then(Value::as_str).map(str::to_owned))
+        .collect();
+    if predecessor_ids.len() != 189 {
+        return Err(format!(
+            "legacy friction ledger must bind exactly 189 unique predecessor ids, found {}",
+            predecessor_ids.len()
+        ));
+    }
+    let predecessor_list: Vec<String> = predecessor_ids.into_iter().collect();
+    let predecessor_digest = fnv1a64_bytes(predecessor_list.join("\n").as_bytes());
+    let candidate_legacy = std::fs::read(repo_root.join(LEGACY_FRICTION_LEDGER_PATH)).ok();
+    let candidate_present = candidate_legacy.is_some();
+    let candidate_digest = candidate_legacy
+        .as_deref()
+        .map(fnv1a64_bytes)
+        .unwrap_or_else(|| "absent".to_owned());
+    let fixuptasks = git_show_file(repo_root, &merge_base, FIXUPTASK_REGISTRY_PATH)?
+        .ok_or_else(|| "FixupTask registry is absent at merge base".to_owned())?;
+    Ok(json!({
+        "merge_base": merge_base,
+        "merge_base_tree": merge_base_tree,
+        "merge_base_rows": jsonl_rows(&fixuptasks)?,
+        "predecessor_source": format!("git:{merge_base}:{LEGACY_FRICTION_LEDGER_PATH}"),
+        "predecessor_ids": predecessor_list,
+        "evaluation_time": canonical_utc_from_epoch(evaluation_seconds),
+        "legacy_ledger": {
+            "path": LEGACY_FRICTION_LEDGER_PATH,
+            "merge_base_blob": git_blob_id(repo_root, &merge_base, LEGACY_FRICTION_LEDGER_PATH)?,
+            "merge_base_digest": fnv1a64_bytes(legacy.as_bytes()),
+            "predecessor_ids_digest": predecessor_digest,
+            "candidate_present": candidate_present,
+            "candidate_digest": candidate_digest,
+        }
+    }))
 }
 
 /// Stable seam for the scm-facts source. Git CLI is transitional implementation #1;
