@@ -88,6 +88,37 @@ fn rule1_bad_casing_blocks_in_strict_mode() {
     assert_eq!(findings[0].line, Some(3));
 }
 
+#[test]
+fn rule1_amended_adr_with_date_passes_strict_mode() {
+    let dir = tempfile::tempdir().unwrap();
+    write_file(
+        dir.path(),
+        "docs/decisions/ADR-0001-test.md",
+        "---\nid: ADR-0001\nstatus: Amended\namended_date: 2026-07-22\n---\n# body\n",
+    );
+
+    let result = validate(dir.path(), true);
+    assert!(result.is_ok(), "dated Amended ADR should pass: {result:?}");
+}
+
+#[test]
+fn rule1_amended_adr_without_date_blocks_in_strict_mode() {
+    let dir = tempfile::tempdir().unwrap();
+    write_file(
+        dir.path(),
+        "docs/decisions/ADR-0001-test.md",
+        "---\nid: ADR-0001\nstatus: Amended\n---\n# body\n",
+    );
+
+    let findings = validate(dir.path(), true).expect_err("undated Amended ADR must block");
+    assert!(
+        findings
+            .iter()
+            .any(|finding| finding.rule_violated == DocAxisRule::AdrAmendmentMetadata),
+        "expected amended-date finding: {findings:?}"
+    );
+}
+
 // ---------------------------------------------------------------------------
 // Rule 2 — No shadow ideas
 // ---------------------------------------------------------------------------

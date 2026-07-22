@@ -45,6 +45,12 @@ fn gen_masterplan_excludes_non_accepted_planning_adrs() {
         "Proposed",
         "Draft SolidJS experiment",
     );
+    write_adr(
+        &decisions_dir,
+        "ADR-1005-amended-leptos.md",
+        "Amended",
+        "Amended Leptos app-shell work remains live",
+    );
 
     let output_path = temp.join("docs/machine-readable/masterplan.generated.json");
     let output = Command::new(env!("CARGO_BIN_EXE_oya"))
@@ -69,8 +75,8 @@ fn gen_masterplan_excludes_non_accepted_planning_adrs() {
 
     let projection_text = fs::read_to_string(&output_path).expect("projection written");
     let projection: Value = serde_json::from_str(&projection_text).expect("projection json");
-    assert_eq!(projection["adr_count"], 3);
-    assert_eq!(projection["deliverable_count"], 3);
+    assert_eq!(projection["adr_count"], 4);
+    assert_eq!(projection["deliverable_count"], 4);
 
     let projected_ids: Vec<&str> = projection["milestones"][0]["adrs"]
         .as_array()
@@ -78,7 +84,10 @@ fn gen_masterplan_excludes_non_accepted_planning_adrs() {
         .iter()
         .map(|adr| adr["id"].as_str().expect("adr id"))
         .collect();
-    assert_eq!(projected_ids, vec!["ADR-1000", "ADR-1001", "ADR-1002"]);
+    assert_eq!(
+        projected_ids,
+        vec!["ADR-1000", "ADR-1001", "ADR-1002", "ADR-1005"]
+    );
     assert!(!projection_text.contains("ADR-1003"));
     assert!(!projection_text.contains("ADR-1004"));
     assert!(!projection_text.contains("SolidJS"));
@@ -126,12 +135,17 @@ fn live_masterplan_projection_excludes_superseded_solidjs_adr() {
 }
 
 fn write_adr(decisions_dir: &Path, file_name: &str, status: &str, description: &str) {
+    let amended_date = if status == "Amended" {
+        "amended_date: 2026-07-22\n"
+    } else {
+        ""
+    };
     fs::write(
         decisions_dir.join(file_name),
         format!(
             r#"---
 status: {status}
-planning_impact: true
+{amended_date}planning_impact: true
 milestone: M-FRONTEND
 depends_on: []
 deliverables:
@@ -143,6 +157,7 @@ deliverables:
 # {id}
 "#,
             id = &file_name[..8],
+            amended_date = amended_date,
         ),
     )
     .expect("ADR fixture written");

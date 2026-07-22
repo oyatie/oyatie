@@ -37,6 +37,7 @@ const REQUIRED_PHASE00_IPS: &[&str] = &[
 const ADR_STATUSES: &[&str] = &[
     "Proposed",
     "Accepted",
+    "Amended",
     "Superseded",
     "Deprecated",
     "Retracted",
@@ -337,6 +338,12 @@ fn lint_adr_shape(file: &Path) -> Result<String, String> {
             status = status.unwrap_or_else(|| "missing".to_string())
         ));
     };
+    if valid_status == "Amended" && !has_adr_amended_date(&text) {
+        return Err(format!(
+            "{file}: status Amended requires a non-empty amended_date",
+            file = file.display()
+        ));
+    }
     let found = adr_headings(&text);
     for section in ADR_SECTIONS {
         if !found
@@ -733,6 +740,14 @@ fn read_adr_status(text: &str) -> Option<String> {
         }
     }
     None
+}
+
+fn has_adr_amended_date(text: &str) -> bool {
+    text.lines().any(|line| {
+        line.trim()
+            .strip_prefix("amended_date:")
+            .is_some_and(|value| !value.trim().trim_matches('"').trim_matches('\'').is_empty())
+    })
 }
 
 fn clean_status(value: &str) -> Option<String> {

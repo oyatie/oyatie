@@ -35,6 +35,9 @@ pub enum AdrShapeFitnessError {
         path: String,
         status: String,
     },
+    MissingAmendedDate {
+        path: String,
+    },
     MissingSection {
         path: String,
         section: &'static str,
@@ -57,6 +60,12 @@ impl fmt::Display for AdrShapeFitnessError {
             Self::InvalidStatus { path, status } => {
                 write!(f, "{path}: invalid ADR status {status:?}")
             }
+            Self::MissingAmendedDate { path } => {
+                write!(
+                    f,
+                    "{path}: status Amended requires a non-empty amended_date"
+                )
+            }
             Self::MissingSection { path, section } => {
                 write!(f, "{path}: missing required section ## {section}")
             }
@@ -75,9 +84,10 @@ impl fmt::Display for AdrShapeFitnessError {
 impl std::error::Error for AdrShapeFitnessError {}
 
 const REQUIRED_SECTIONS: [&str; 3] = ["Context", "Decision", "Consequences"];
-const VALID_STATUSES: [&str; 5] = [
+const VALID_STATUSES: [&str; 6] = [
     "Proposed",
     "Accepted",
+    "Amended",
     "Superseded",
     "Deprecated",
     "Retracted",
@@ -113,6 +123,11 @@ fn validate_one(adr: &AdrDocument) -> Result<(), AdrShapeFitnessError> {
         return Err(AdrShapeFitnessError::InvalidStatus {
             path: adr.path.clone(),
             status,
+        });
+    }
+    if status == "Amended" && !has_amended_date(&adr.text) {
+        return Err(AdrShapeFitnessError::MissingAmendedDate {
+            path: adr.path.clone(),
         });
     }
 
@@ -181,6 +196,14 @@ fn extract_status(text: &str) -> Option<String> {
     None
 }
 
+fn has_amended_date(text: &str) -> bool {
+    text.lines().any(|line| {
+        line.trim()
+            .strip_prefix("amended_date:")
+            .is_some_and(|value| !value.trim().trim_matches('"').trim_matches('\'').is_empty())
+    })
+}
+
 fn clean_status(raw: &str) -> String {
     raw.trim()
         .trim_matches(|c: char| c == '*' || c == '`' || c == '.')
@@ -221,6 +244,26 @@ mod tests {
         let mut doc = valid_doc();
         doc.text = format!("---\nstatus: Accepted\n---\n\n{}", doc.text);
         assert!(validate_adr_shape_fitness(&[doc]).is_ok());
+    }
+
+    #[test]
+    fn accepts_amended_frontmatter_with_date() {
+        let mut doc = valid_doc();
+        doc.text = format!(
+            "---\nstatus: Amended\namended_date: 2026-07-22\n---\n\n{}",
+            doc.text
+        );
+        assert!(validate_adr_shape_fitness(&[doc]).is_ok());
+    }
+
+    #[test]
+    fn rejects_amended_frontmatter_without_date() {
+        let mut doc = valid_doc();
+        doc.text = format!("---\nstatus: Amended\n---\n\n{}", doc.text);
+        assert!(matches!(
+            validate_adr_shape_fitness(&[doc]),
+            Err(AdrShapeFitnessError::MissingAmendedDate { .. })
+        ));
     }
 
     #[test]
