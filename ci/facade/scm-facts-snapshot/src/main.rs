@@ -63,8 +63,25 @@ use std::process::Command;
 use ci_artifact_inventory_registry::to_canonical_json;
 use ci_path_resolver_adapters::{MOVE_MANIFEST_PATH, ManifestPathResolver, MoveManifest};
 use ci_path_resolver_ports::{FrozenRefSource, MergeBaseName, PathId, PathResolver};
+use corpus_doc_parser::census::{
+    CensusInput, CensusReceipt, CensusSource, CensusSourceKind, SELECTOR_ID, build_receipt,
+};
 use oya_check_brand_residue::forbidden_vocab::{VocabPolicy, matched_line_occurrences_with};
 use serde_json::{Value, json};
+use sha2::{Digest, Sha256};
+
+const ADR_CENSUS_RECEIPT_PATH: &str =
+    "ci/facade/artifact-inventory-registry/adr-census-parent-receipt.generated.json";
+const CENSUS_CORPUS_COMMIT: &str = "1fa09da22be819b062881eb59252f4dd4c6b550a";
+const CENSUS_REPOSITORY_TREE: &str = "d7b15539396db21b219d68779362850cce9afa8f";
+const CENSUS_DOCS_TREE: &str = "fbf3f8d4b9ecf30b2272f37871e8152a616eed5a";
+const CENSUS_DECISIONS_TREE: &str = "7c7c371697d2a7009e3d43b16235518d00ac33ea";
+const CENSUS_PARSER_COMMIT: &str = "a2b326eebd418ae970847b5e1bca3782c61c52ab";
+const CENSUS_PARSER_TREE: &str = "0cdece525bc54f83ec51d3ba67a4308d0ce43812";
+const CENSUS_PARSER_PATH: &str = "governance/corpus/doc-parser/src/lib.rs";
+const CENSUS_PARSER_BLOB: &str = "ab3884dbf4a657869fd87920b016cc4734a1c27f";
+const CENSUS_PARSER_SHA256: &str =
+    "e559419fdb11452f5d30312ce3baca6f22bd9a08b98f0e880bfe344c3420d62e";
 
 /// The scm-facts face schema id — bumped only on a breaking shape change.
 /// v2 (ADR-0552): history-volatile fields (`last_touch_commit`, `commit_author_ts_secs`,
@@ -132,6 +149,8 @@ fn run() -> Result<(), String> {
     let mut regen_baseline_verify: Option<PathBuf> = None;
     let mut merge_base_out: Option<PathBuf> = None;
     let mut provenance_producer: Option<String> = None;
+    let mut emit_adr_census_parent_receipt = false;
+    let mut adr_census_parent_receipt_out: Option<PathBuf> = None;
 
     let mut i = 0;
     while i < args.len() {
@@ -204,6 +223,16 @@ fn run() -> Result<(), String> {
                     return Err("--merge-base-out requires a path".to_owned());
                 }
             }
+            "--adr-census-parent-receipt" => emit_adr_census_parent_receipt = true,
+            "--adr-census-parent-receipt-out" => {
+                i += 1;
+                adr_census_parent_receipt_out = Some(
+                    args.get(i)
+                        .map(PathBuf::from)
+                        .ok_or("--adr-census-parent-receipt-out requires a path")?,
+                );
+                emit_adr_census_parent_receipt = true;
+            }
             other => return Err(format!("unknown argument {other}")),
         }
         i += 1;
@@ -217,6 +246,12 @@ fn run() -> Result<(), String> {
     let out = out.unwrap_or_else(|| repo_root.join(resolver.candidate(PathId::ScmFactsFace)));
     let volatile_out =
         volatile_out.unwrap_or_else(|| repo_root.join(resolver.candidate(PathId::VolatileFacts)));
+    if emit_adr_census_parent_receipt {
+        let output = adr_census_parent_receipt_out
+            .unwrap_or_else(|| repo_root.join(ADR_CENSUS_RECEIPT_PATH));
+        emit_fixed_adr_census_parent_receipt(&repo_root, &output)?;
+        return Ok(());
+    }
 
     let source = GitCliScmFactsSource::new(repo_root.clone());
     let emission = emit_scm_facts(&source)?;
@@ -262,6 +297,288 @@ fn run() -> Result<(), String> {
         );
     }
     Ok(())
+}
+
+/// Emits the permanently pinned P2 historical ADR-census receipt. This operation reads only
+/// named immutable Git objects; it never inspects the worktree, index, candidate, or base.
+fn emit_fixed_adr_census_parent_receipt(repo_root: &Path, output: &Path) -> Result<(), String> {
+    let bytes = build_fixed_adr_census_parent_receipt(repo_root)?;
+    let parent = output
+        .parent()
+        .ok_or("fixed census receipt output must have a parent directory")?;
+    std::fs::create_dir_all(parent)
+        .map_err(|error| format!("create fixed census receipt output directory: {error}"))?;
+    std::fs::write(output, bytes).map_err(|error| format!("write fixed census receipt: {error}"))
+}
+
+fn build_fixed_adr_census_parent_receipt(repo_root: &Path) -> Result<Vec<u8>, String> {
+    require_fixed_census_history(repo_root)?;
+    let parser_bytes = git_bytes(repo_root, &["cat-file", "blob", CENSUS_PARSER_BLOB])?;
+    if sha256_hex(&parser_bytes) != CENSUS_PARSER_SHA256 {
+        return Err("fixed census parser raw digest mismatch".to_owned());
+    }
+    let tree_lines = git_text(repo_root, &["ls-tree", CENSUS_DECISIONS_TREE])?;
+    let selected = select_direct_adr_blobs(&tree_lines)?;
+    if selected.len() != 429 {
+        return Err(format!(
+            "fixed decisions tree selected {} direct regular ADR blobs, expected 429",
+            selected.len()
+        ));
+    }
+    let mut decision_sources = Vec::with_capacity(selected.len());
+    for (name, blob_oid) in selected {
+        let path = format!("docs/decisions/{name}");
+        decision_sources.push(CensusSource {
+            kind: CensusSourceKind::Decision,
+            path,
+            blob_oid: blob_oid.clone(),
+            bytes: git_bytes(repo_root, &["cat-file", "blob", &blob_oid])?,
+        });
+    }
+    let receipt = build_receipt(&CensusInput {
+        repository_commit: CENSUS_CORPUS_COMMIT.to_owned(),
+        repository_tree: CENSUS_REPOSITORY_TREE.to_owned(),
+        docs_tree: CENSUS_DOCS_TREE.to_owned(),
+        selector_id: SELECTOR_ID.to_owned(),
+        parser_commit: CENSUS_PARSER_COMMIT.to_owned(),
+        parser_sources: vec![CensusSource {
+            kind: CensusSourceKind::Parser,
+            path: CENSUS_PARSER_PATH.to_owned(),
+            blob_oid: CENSUS_PARSER_BLOB.to_owned(),
+            bytes: parser_bytes,
+        }],
+        decision_sources,
+    })
+    .map_err(|error| format!("fixed census construction rejected: {error}"))?;
+    if receipt.entries().len() != 429
+        || receipt.parsed_count() != 184
+        || receipt.rejected_count() != 245
+        || receipt
+            .first_error_kind_totals()
+            .get("MissingRequiredField")
+            != Some(&142)
+        || receipt
+            .first_error_kind_totals()
+            .get("UnsupportedFrontmatterNesting")
+            != Some(&45)
+        || receipt.first_error_kind_totals().get("InvalidAdrReference") != Some(&28)
+        || receipt
+            .first_error_kind_totals()
+            .get("MissingLeadingFrontmatter")
+            != Some(&26)
+        || receipt.first_error_kind_totals().get("InvalidFrontmatter") != Some(&4)
+    {
+        return Err(format!(
+            "fixed census totals differ from the historical receipt contract: entries={} parsed={} rejected={} errors={:?}",
+            receipt.entries().len(),
+            receipt.parsed_count(),
+            receipt.rejected_count(),
+            receipt.first_error_kind_totals()
+        ));
+    }
+    project_fixed_census_receipt(&receipt)
+}
+
+fn project_fixed_census_receipt(receipt: &CensusReceipt) -> Result<Vec<u8>, String> {
+    let mut entry_json = Vec::with_capacity(receipt.entries().len());
+    let mut error_totals = BTreeMap::<&str, usize>::new();
+    for entry in receipt.entries() {
+        let first_error = if let Some(error) = entry.first_error() {
+            let projected_kind = project_fixed_diagnostic_kind(error.kind())?;
+            *error_totals.entry(projected_kind).or_default() += 1;
+            let span = error.span().map_or_else(
+                || "null".to_owned(),
+                |(start, end)| format!("[{start},{end}]"),
+            );
+            format!(
+                "{{\"kind\":{},\"raw\":{},\"span\":{span}}}",
+                json_string(projected_kind),
+                json_string(error.raw()),
+            )
+        } else {
+            "null".to_owned()
+        };
+        entry_json.push(format!(
+            "{{\"blob_oid\":{},\"first_error\":{first_error},\"outcome\":{},\"path\":{},\"sha256\":{}}}",
+            json_string(entry.blob_oid()),
+            json_string(entry.outcome()),
+            json_string(entry.path()),
+            json_string(entry.sha256()),
+        ));
+    }
+    let aggregate_fold = aggregate_projected_entries(entry_json.iter().map(String::as_str));
+    let errors = error_totals
+        .iter()
+        .map(|(kind, count)| format!("{}:{count}", json_string(kind)))
+        .collect::<Vec<_>>()
+        .join(",");
+    let parser_source = format!("{CENSUS_PARSER_PATH}:{CENSUS_PARSER_BLOB}:{CENSUS_PARSER_SHA256}");
+    let body = format!(
+        "\"aggregate_fold\":{},\"claim_ceiling\":{},\"decisions_tree\":{},\"diagnostic_policy\":{},\"docs_tree\":{},\"entries\":[{}],\"first_error_kinds\":{{{errors}}},\"parser_api\":{},\"parser_commit\":{},\"parser_parent_commit\":{},\"parser_source_hashes\":[{}],\"parser_tree\":{},\"parser_version\":{},\"repository_commit\":{},\"repository_tree\":{},\"selector\":{},\"totals\":{{\"parsed\":{},\"rejected\":{}}}",
+        json_string(&aggregate_fold),
+        json_string("BLOCKED/HOLD"),
+        json_string(CENSUS_DECISIONS_TREE),
+        json_string("first-error-only"),
+        json_string(CENSUS_DOCS_TREE),
+        entry_json.join(","),
+        json_string("corpus-doc-parser::parse_adr_decision"),
+        json_string(CENSUS_PARSER_COMMIT),
+        json_string(CENSUS_CORPUS_COMMIT),
+        json_string(&parser_source),
+        json_string(CENSUS_PARSER_TREE),
+        json_string("corpus-doc-parser-v1"),
+        json_string(CENSUS_CORPUS_COMMIT),
+        json_string(CENSUS_REPOSITORY_TREE),
+        json_string(SELECTOR_ID),
+        receipt.parsed_count(),
+        receipt.rejected_count(),
+    );
+    let canonical_digest = sha256_hex(body.as_bytes());
+    let receipt_json = format!(
+        "{{{body},\"canonical_digest\":{}}}",
+        json_string(&canonical_digest)
+    );
+    let outer = sha256_hex(receipt_json.as_bytes());
+    Ok(format!(
+        "{{\"outer_sha256\":{},\"receipt\":{receipt_json},\"schema\":{}}}\n",
+        json_string(&outer),
+        json_string("oya-ci/adr-census-parent-receipt/v1"),
+    )
+    .into_bytes())
+}
+
+fn project_fixed_diagnostic_kind(kind: &str) -> Result<&str, String> {
+    match kind {
+        "MissingRequiredField" => Ok("MissingRequiredField"),
+        "UnsupportedFrontmatterNesting" => Ok("UnsupportedNesting"),
+        "InvalidAdrReference" => Ok("InvalidAdrReference"),
+        "MissingLeadingFrontmatter" => Ok("MissingLeadingFrontmatter"),
+        "InvalidFrontmatter" => Ok("InvalidFrontmatter"),
+        other => Err(format!(
+            "fixed census diagnostic kind is outside the projection contract: {other}"
+        )),
+    }
+}
+
+fn aggregate_projected_entries<'a>(entries: impl Iterator<Item = &'a str>) -> String {
+    let mut digest = Sha256::new();
+    digest.update(b"oyatie:census:entry-fold:v1\\0");
+    for entry in entries {
+        digest.update((entry.len() as u64).to_be_bytes());
+        digest.update(entry.as_bytes());
+    }
+    format!("{:x}", digest.finalize())
+}
+
+fn json_string(value: &str) -> String {
+    serde_json::to_string(value).expect("serializing a string cannot fail")
+}
+
+fn select_direct_adr_blobs(tree_lines: &str) -> Result<Vec<(String, String)>, String> {
+    let mut selected = Vec::new();
+    let mut names = BTreeSet::new();
+    for line in tree_lines.lines() {
+        let (meta, name) = line
+            .split_once('\t')
+            .ok_or("invalid fixed decisions tree entry")?;
+        let fields = meta.split_whitespace().collect::<Vec<_>>();
+        if fields.len() != 3 {
+            return Err("invalid fixed decisions tree entry metadata".to_owned());
+        }
+        let looks_like_adr = name.starts_with("ADR-") && name.ends_with(".md");
+        let nested_adr = name.contains('/')
+            && name
+                .rsplit('/')
+                .next()
+                .is_some_and(|leaf| leaf.starts_with("ADR-") && leaf.ends_with(".md"));
+        if !looks_like_adr && !nested_adr {
+            continue;
+        }
+        if nested_adr {
+            return Err(format!("fixed selector exposed nested ADR path: {name}"));
+        }
+        if fields[0] != "100644" || fields[1] != "blob" {
+            return Err(format!("fixed ADR selector found non-regular blob: {name}"));
+        }
+        if fields[2].len() != 40
+            || !fields[2]
+                .bytes()
+                .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+        {
+            return Err(format!("fixed ADR selector found invalid blob OID: {name}"));
+        }
+        if !names.insert(name) {
+            return Err(format!("fixed ADR selector found duplicate path: {name}"));
+        }
+        selected.push((name.to_owned(), fields[2].to_owned()));
+    }
+    selected.sort_by(|left, right| left.0.as_bytes().cmp(right.0.as_bytes()));
+    Ok(selected)
+}
+
+fn require_fixed_census_history(repo_root: &Path) -> Result<(), String> {
+    for object in [CENSUS_CORPUS_COMMIT, CENSUS_PARSER_COMMIT] {
+        git_text(
+            repo_root,
+            &["cat-file", "-e", &format!("{object}^{{commit}}")],
+        )?;
+        git_text(repo_root, &["merge-base", "--is-ancestor", object, "HEAD"])?;
+    }
+    if git_text(
+        repo_root,
+        &["rev-parse", &format!("{CENSUS_PARSER_COMMIT}^")],
+    )?
+    .trim()
+        != CENSUS_CORPUS_COMMIT
+    {
+        return Err("fixed parser promotion parent is not the fixed corpus commit".to_owned());
+    }
+    for (spec, expected) in [
+        (
+            format!("{CENSUS_CORPUS_COMMIT}^{{tree}}"),
+            CENSUS_REPOSITORY_TREE,
+        ),
+        (format!("{CENSUS_CORPUS_COMMIT}:docs"), CENSUS_DOCS_TREE),
+        (
+            format!("{CENSUS_CORPUS_COMMIT}:docs/decisions"),
+            CENSUS_DECISIONS_TREE,
+        ),
+        (
+            format!("{CENSUS_PARSER_COMMIT}^{{tree}}"),
+            CENSUS_PARSER_TREE,
+        ),
+        (
+            format!("{CENSUS_PARSER_COMMIT}:{CENSUS_PARSER_PATH}"),
+            CENSUS_PARSER_BLOB,
+        ),
+    ] {
+        if git_text(repo_root, &["rev-parse", &spec])?.trim() != expected {
+            return Err(format!("fixed census object binding differs for {spec}"));
+        }
+    }
+    Ok(())
+}
+
+fn git_text(repo_root: &Path, args: &[&str]) -> Result<String, String> {
+    String::from_utf8(git_bytes(repo_root, args)?)
+        .map_err(|_| "git output was not UTF-8".to_owned())
+}
+
+fn git_bytes(repo_root: &Path, args: &[&str]) -> Result<Vec<u8>, String> {
+    let output = Command::new("git")
+        .args(args)
+        .current_dir(repo_root)
+        .output()
+        .map_err(|error| format!("run fixed census git command: {error}"))?;
+    if output.status.success() {
+        Ok(output.stdout)
+    } else {
+        Err(String::from_utf8_lossy(&output.stderr).trim().to_owned())
+    }
+}
+
+fn sha256_hex(bytes: &[u8]) -> String {
+    format!("{:x}", Sha256::digest(bytes))
 }
 
 // ---------------------------------------------------------------------------
@@ -335,8 +652,7 @@ const FROZEN_POLICY_SOURCE_CANDIDATE_BOOTSTRAP: &str = "candidate-bootstrap";
 const EMITTER_ANALYZER_LABEL: &str = "//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot";
 /// The `computed_by` provenance stamp: WHICH analysis produced this frozen reference. Records
 /// that the baseline was REGENERATED from the merge-base source (not read from a committed blob).
-const PROVENANCE_COMPUTED_BY: &str =
-    "oya-cloud-ci-scm-facts-emitter-app --merge-base-baseline (ADR-0616 regenerate-from-merge-base-source)";
+const PROVENANCE_COMPUTED_BY: &str = "oya-cloud-ci-scm-facts-emitter-app --merge-base-baseline (ADR-0616 regenerate-from-merge-base-source)";
 
 /// Assemble the frozen snapshot's `provenance` object (ADR-0616): the in-toto-style materials +
 /// subject that let the firewall AUDIT which merge-base tree the regenerated frozen reference was
@@ -3266,5 +3582,57 @@ exempt_stems = ["alpha"]
         assert!(err.contains("ADR-0616"), "{err}");
         assert!(err.contains("REGENERATED"), "{err}");
         assert!(err.contains("fail-closed"), "{err}");
+    }
+
+    #[test]
+    fn fixed_census_selector_rejects_nested_duplicate_and_non_regular_adrs() {
+        let oid = "1111111111111111111111111111111111111111";
+        assert!(
+            select_direct_adr_blobs(&format!("100644 blob {oid}\tsub/ADR-0001-nested.md\n"))
+                .unwrap_err()
+                .contains("nested")
+        );
+        assert!(
+            select_direct_adr_blobs(&format!(
+                "100644 blob {oid}\tADR-0001-a.md\n100644 blob {oid}\tADR-0001-a.md\n"
+            ))
+            .unwrap_err()
+            .contains("duplicate")
+        );
+        assert!(
+            select_direct_adr_blobs(&format!("040000 tree {oid}\tADR-0001-a.md\n"))
+                .unwrap_err()
+                .contains("non-regular")
+        );
+    }
+
+    #[test]
+    fn fixed_diagnostic_projection_changes_only_the_typed_kind() {
+        let raw = "payload mentions UnsupportedFrontmatterNesting and must remain byte-exact";
+        let projected = format!(
+            "{{\"kind\":{},\"raw\":{}}}",
+            json_string(project_fixed_diagnostic_kind("UnsupportedFrontmatterNesting").unwrap()),
+            json_string(raw)
+        );
+        assert!(projected.contains("\"kind\":\"UnsupportedNesting\""));
+        assert!(projected.contains(raw));
+        assert!(
+            project_fixed_diagnostic_kind("UnexpectedFutureDiagnostic").is_err(),
+            "the fixed projection must fail closed on a new parser diagnostic"
+        );
+    }
+
+    #[test]
+    fn fixed_census_receipt_is_deterministic_and_creates_output_parents() {
+        let root = discover_repo_root().unwrap();
+        let first = build_fixed_adr_census_parent_receipt(&root).unwrap();
+        let second = build_fixed_adr_census_parent_receipt(&root).unwrap();
+        assert_eq!(first, second);
+
+        let output_root = temp_repo_root("fixed-census-output-parent");
+        let output = output_root.join("nested/receipt.generated.json");
+        emit_fixed_adr_census_parent_receipt(&root, &output).unwrap();
+        assert_eq!(std::fs::read(&output).unwrap(), first);
+        let _ = std::fs::remove_dir_all(output_root);
     }
 }
