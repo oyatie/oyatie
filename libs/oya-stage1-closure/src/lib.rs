@@ -90,6 +90,9 @@ pub const ADMISSION_ENVELOPE_ALLOWED_FIELDS: [&str; 25] = [
     "extensions",
 ];
 
+/// The only permitted prefix for optional Stage-1 extension names.
+pub const STAGE1_NON_AUTHORITATIVE_EXTENSION_PREFIX: &str = "x-stage1-non-authoritative-";
+
 const STATES: [&str; 6] = [
     "HOLD_EPOCH_OPEN",
     "HOLD_EVIDENCE_COMPLETE",
@@ -441,6 +444,7 @@ fn grammar_findings(facts: &Value) -> BTreeSet<String> {
             }
         }
     }
+    validate_non_authoritative_extensions(facts, "protected facts", &mut findings);
     for field in ["subject_digest", "program_digest", "epoch_digest"] {
         if valid_subject_digest(facts.get(field)).is_none() {
             findings.insert(format!("{field} must be sha256-bound"));
@@ -772,20 +776,7 @@ pub fn validate_admission_envelope_shape(envelope: &Value) -> Report {
             }
         }
     }
-    if let Some(extensions) = envelope.get("extensions") {
-        match extensions.as_object() {
-            Some(extensions) => {
-                for field in extensions.keys() {
-                    if !field.starts_with("x-stage1-non-authoritative-") {
-                        findings.insert(format!("extensions rejects unknown field {field}"));
-                    }
-                }
-            }
-            None => {
-                findings.insert("extensions must be an object".to_owned());
-            }
-        }
-    }
+    validate_non_authoritative_extensions(envelope, "admission envelope", &mut findings);
     require_bool(
         envelope,
         "roadmap_planning_authorized",
@@ -1564,6 +1555,34 @@ fn validate_artifact_binding(value: &Value, field: &str, findings: &mut BTreeSet
         findings.insert(format!(
             "protected facts {field}.sha256 must be 64 hex bytes"
         ));
+    }
+    if let Some(binding) = value.as_object() {
+        for key in binding.keys() {
+            if !matches!(key.as_str(), "path" | "blob_oid" | "sha256") {
+                findings.insert(format!("{field} rejects unknown field {key}"));
+            }
+        }
+    }
+}
+
+fn validate_non_authoritative_extensions(
+    value: &Value,
+    subject: &str,
+    findings: &mut BTreeSet<String>,
+) {
+    let Some(extensions) = value.get("extensions") else {
+        return;
+    };
+    let Some(extensions) = extensions.as_object() else {
+        findings.insert(format!("{subject}.extensions must be an object"));
+        return;
+    };
+    for field in extensions.keys() {
+        if !field.starts_with(STAGE1_NON_AUTHORITATIVE_EXTENSION_PREFIX) {
+            findings.insert(format!(
+                "{subject}.extensions rejects unknown field {field}"
+            ));
+        }
     }
 }
 

@@ -3,9 +3,9 @@ use std::collections::BTreeSet;
 use serde_json::{Value, json};
 use stage1_closure::{
     ADMISSION_ENVELOPE_ALLOWED_FIELDS, ADMISSION_ENVELOPE_REQUIRED_FIELDS,
-    SOURCE_RECEIPT_REQUIRED_FIELDS, evaluate_epoch, evaluate_program, evaluate_source_epoch,
-    validate_admission_envelope_shape, validate_protected_facts_grammar,
-    validate_protected_facts_shape,
+    SOURCE_RECEIPT_REQUIRED_FIELDS, STAGE1_NON_AUTHORITATIVE_EXTENSION_PREFIX, evaluate_epoch,
+    evaluate_program, evaluate_source_epoch, validate_admission_envelope_shape,
+    validate_protected_facts_grammar, validate_protected_facts_shape,
 };
 
 const SUBJECT_DIGEST: &str =
@@ -448,6 +448,67 @@ fn source_epoch_fixture_matches_schema_and_parser_receipt_wire() {
             .any(|finding| finding.contains("unexpected")),
         "unexpected source receipt field must fail"
     );
+}
+
+#[test]
+fn nested_bindings_and_extensions_match_closed_schema_contracts() {
+    let source_epoch = pass_epoch();
+    let mut source_unknown_binding = source_epoch.clone();
+    source_unknown_binding["controls"][0]["receipt_refs"][0]["authority_source_ref"]["unexpected"] =
+        json!(true);
+    assert!(
+        evaluate_source_epoch(&program(), &source_unknown_binding)
+            .findings
+            .iter()
+            .any(
+                |finding| finding.contains("authority_source_ref rejects unknown field unexpected")
+            ),
+        "source authority binding must remain closed"
+    );
+
+    let mut protected_unknown_binding = grammar_facts();
+    protected_unknown_binding["source_epoch_binding"]["unexpected"] = json!(true);
+    assert!(
+        validate_protected_facts_grammar(&protected_unknown_binding)
+            .findings
+            .iter()
+            .any(
+                |finding| finding.contains("source_epoch_binding rejects unknown field unexpected")
+            ),
+        "protected-facts binding must remain closed"
+    );
+
+    let mut protected_unknown_receipt_binding = grammar_facts();
+    protected_unknown_receipt_binding["receipt_bindings"][0]["authority_source_ref"]["unexpected"] =
+        json!(true);
+    assert!(
+        validate_protected_facts_grammar(&protected_unknown_receipt_binding)
+            .findings
+            .iter()
+            .any(
+                |finding| finding.contains("authority_source_ref rejects unknown field unexpected")
+            ),
+        "protected receipt binding must remain closed"
+    );
+
+    let mut invalid_extensions = grammar_facts();
+    invalid_extensions["extensions"] = json!({"unqualified": true});
+    assert!(
+        validate_protected_facts_grammar(&invalid_extensions)
+            .findings
+            .iter()
+            .any(|finding| finding.contains("extensions rejects unknown field unqualified")),
+        "protected-facts extensions must use the non-authoritative prefix"
+    );
+
+    for schema_name in ["protected-facts", "admission-envelope"] {
+        let schema = schema(schema_name);
+        assert_eq!(
+            schema["properties"]["extensions"]["propertyNames"]["pattern"],
+            json!(format!("^{STAGE1_NON_AUTHORITATIVE_EXTENSION_PREFIX}")),
+            "{schema_name} extension prefix must match parser contract"
+        );
+    }
 }
 
 #[test]
