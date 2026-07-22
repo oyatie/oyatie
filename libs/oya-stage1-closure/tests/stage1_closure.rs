@@ -5,8 +5,8 @@ use stage1_closure::{
     ADMISSION_ENVELOPE_ALLOWED_FIELDS, ADMISSION_ENVELOPE_REQUIRED_FIELDS,
     PROTECTED_RECEIPT_BINDING_ALLOWED_FIELDS, SOURCE_RECEIPT_REQUIRED_FIELDS,
     STAGE1_NON_AUTHORITATIVE_EXTENSION_PREFIX, evaluate_epoch, evaluate_program,
-    evaluate_source_epoch, validate_admission_envelope_shape, validate_protected_facts_grammar,
-    validate_protected_facts_shape,
+    evaluate_protected_facts_linkage, evaluate_source_epoch, validate_admission_envelope_shape,
+    validate_protected_facts_grammar, validate_protected_facts_shape,
 };
 
 const SUBJECT_DIGEST: &str =
@@ -144,68 +144,115 @@ fn artifact_binding(path: &str) -> Value {
 }
 
 fn protected_facts(epoch: &Value) -> Value {
-    let mut receipt_bindings = Vec::new();
-    let mut add = |receipt: &Value, control_id: &str| {
-        let mut binding = receipt.clone();
-        let object = binding.as_object_mut().expect("receipt is an object");
-        object.insert("control_id".to_owned(), json!(control_id));
-        object.insert("independently_observed".to_owned(), json!(true));
-        object.insert(
-            "trust_root_authority_ref".to_owned(),
-            json!("authority://protected-parent"),
-        );
-        if matches!(control_id, "C06" | "C07" | "C08" | "C09" | "C10" | "C11") {
-            object.insert("qualification".to_owned(), json!("qualified-for-stage1"));
-            object.insert("scope".to_owned(), json!("stage1-closure"));
-        }
-        receipt_bindings.push(binding);
-    };
+    let mut facts = grammar_facts();
     for control in epoch["controls"].as_array().expect("controls") {
         let control_id = control["control_id"].as_str().expect("control id");
-        for receipt in control["receipt_refs"].as_array().expect("receipts") {
-            add(receipt, control_id);
+        let role = match control_id {
+            "C06" => Some("qualified-legal-compliance"),
+            "C07" => Some("affected-party-representation"),
+            "C08" => Some("operations-owner-capacity"),
+            "C09" => Some("security-evidence-custody"),
+            "C10" => Some("veto-owner-closure"),
+            "C11" => None,
+            "C15" => Some("qualified-planning-authority"),
+            _ => continue,
+        };
+        for receipt in control["receipt_refs"]
+            .as_array()
+            .expect("control receipts")
+        {
+            let role = role.or_else(|| match receipt["issuer_authority_class"].as_str() {
+                Some("machine-verifiable") => Some("machine-pilot-evidence"),
+                Some("qualified-human") => Some("qualified-pilot-authorization"),
+                _ => None,
+            });
+            map_protected_receipt(
+                &mut facts,
+                receipt,
+                control_id,
+                role.expect("known role"),
+                None,
+            );
         }
     }
     for lens in epoch["lenses"].as_array().expect("lenses") {
-        if lens["receipt_ref"].is_object() {
-            add(&lens["receipt_ref"], "C13");
-        }
-    }
-    if epoch["fresh_dissent"]["receipt_ref"].is_object() {
-        add(&epoch["fresh_dissent"]["receipt_ref"], "C14");
-    }
-    if epoch["context_free_exit"]["oracle_receipt_ref"].is_object() {
-        add(&epoch["context_free_exit"]["oracle_receipt_ref"], "C15");
-    }
-    if epoch["context_free_exit"]["blind_reader_receipt_ref"].is_object() {
-        add(
-            &epoch["context_free_exit"]["blind_reader_receipt_ref"],
-            "C15",
+        let lens_id = lens["lens_id"].as_str().expect("lens id");
+        map_protected_receipt(
+            &mut facts,
+            &lens["receipt_ref"],
+            "C13",
+            "independent-council",
+            Some(lens_id),
         );
     }
-    json!({
-        "schema_id": "oyatie/stage1-protected-facts/v1",
-        "protected_parent_verified": true,
-        "trust_root_authority_ref": "authority://protected-parent",
-        "protected_base_commit": "3333333333333333333333333333333333333333",
-        "candidate_commit": "4444444444444444444444444444444444444444",
-        "protected_base_tree": "5555555555555555555555555555555555555555",
-        "candidate_tree": "6666666666666666666666666666666666666666",
-        "subject_digest": SUBJECT_DIGEST,
-        "program_binding": artifact_binding("specs/masterplan.json"),
-        "schema_binding": artifact_binding("specs/stage1-evidence-epoch.schema.json"),
-        "policy_binding": artifact_binding("specs/stage1-closure-program.schema.json"),
-        "protected_base_repository": "github.com/jason931225/oyatie",
-        "candidate_repository": "github.com/jason931225/oyatie",
-        "parser_binding": artifact_binding("libs/oya-stage1-closure/src/lib.rs"),
-        "producer_binding": artifact_binding("libs/oya-ci-materializer-kernel/src/lib.rs"),
-        "evaluator_binding": artifact_binding("libs/oya-stage1-closure/src/lib.rs"),
-        "predecessor_epoch_binding": artifact_binding("specs/stage1-evidence-epoch.schema.json"),
-        "transition_receipt_binding": artifact_binding("specs/stage1-closure-program.schema.json"),
-        "immutable_successor_bundle": artifact_binding("specs/masterplan.json"),
-        "authority_chain_result": artifact_binding("specs/stage1-admission-envelope.schema.json"),
-        "receipt_bindings": receipt_bindings
-    })
+    map_protected_receipt(
+        &mut facts,
+        &epoch["fresh_dissent"]["receipt_ref"],
+        "C14",
+        "fresh-dissent",
+        None,
+    );
+    for (field, role) in [
+        ("oracle_receipt_ref", "deterministic-oracle"),
+        ("blind_reader_receipt_ref", "blind-cold-reader"),
+    ] {
+        map_protected_receipt(
+            &mut facts,
+            &epoch["context_free_exit"][field],
+            "C15",
+            role,
+            None,
+        );
+    }
+    facts
+}
+
+fn map_protected_receipt(
+    facts: &mut Value,
+    source: &Value,
+    control_id: &str,
+    role: &str,
+    lens_id: Option<&str>,
+) {
+    let binding = facts["receipt_bindings"]
+        .as_array_mut()
+        .expect("protected receipt bindings")
+        .iter_mut()
+        .find(|binding| {
+            binding["control_id"] == control_id
+                && binding["role"] == role
+                && lens_id.is_none_or(|lens_id| binding["lens_id"] == lens_id)
+        })
+        .expect("schema-valid protected receipt binding");
+    for field in [
+        "path",
+        "blob_oid",
+        "sha256",
+        "subject_digest",
+        "principal_id",
+        "issuer_authority_class",
+        "authority_source_ref",
+    ] {
+        binding[field] = source[field].clone();
+    }
+}
+
+fn protected_binding_mut<'a>(
+    facts: &'a mut Value,
+    control_id: &str,
+    role: &str,
+    lens_id: Option<&str>,
+) -> &'a mut Value {
+    facts["receipt_bindings"]
+        .as_array_mut()
+        .expect("protected receipt bindings")
+        .iter_mut()
+        .find(|binding| {
+            binding["control_id"] == control_id
+                && binding["role"] == role
+                && lens_id.is_none_or(|lens_id| binding["lens_id"] == lens_id)
+        })
+        .expect("protected receipt binding")
 }
 
 #[test]
@@ -213,6 +260,124 @@ fn canonical_program_and_open_hold_epoch_are_green() {
     let program = program();
     assert!(evaluate_program(&program).is_green());
     assert!(evaluate_epoch(&program, &hold_epoch()).is_green());
+}
+
+#[test]
+fn public_protected_facts_linkage_remains_non_authoritative_and_held() {
+    let epoch = pass_epoch();
+    let facts = protected_facts(&epoch);
+    assert!(
+        validate_protected_facts_grammar(&facts)
+            .findings
+            .iter()
+            .all(|finding| finding.contains("non-authoritative")),
+        "cross-link fixture must be schema-valid before linkage: {:?}",
+        validate_protected_facts_grammar(&facts).findings
+    );
+    let report = evaluate_protected_facts_linkage(&program(), &epoch, &facts);
+    assert!(
+        report
+            .findings
+            .iter()
+            .any(|finding| finding.contains("non-authoritative"))
+    );
+    assert!(
+        report
+            .findings
+            .iter()
+            .any(|finding| finding.contains("HOLD_EPOCH_OPEN"))
+    );
+    assert!(
+        report
+            .findings
+            .iter()
+            .all(|finding| !finding.starts_with("C13/") && !finding.starts_with("C15/")),
+        "C13/C15 linkage must be exercised by the public evaluator: {:?}",
+        report.findings
+    );
+}
+
+#[test]
+fn public_linkage_requires_unique_full_contextual_c13_and_c15_bindings() {
+    let epoch = pass_epoch();
+    let green = protected_facts(&epoch);
+    for field in [
+        "path",
+        "blob_oid",
+        "sha256",
+        "subject_digest",
+        "principal_id",
+        "issuer_authority_class",
+        "authority_source_ref",
+    ] {
+        let mut mutated = green.clone();
+        let binding =
+            protected_binding_mut(&mut mutated, "C13", "independent-council", Some("L01"));
+        binding[field] = json!("tampered");
+        let report = evaluate_protected_facts_linkage(&program(), &epoch, &mutated);
+        assert!(
+            report
+                .findings
+                .iter()
+                .any(|finding| finding.contains("C13/L01 source receipt lacks an exact")),
+            "tampered mapped field {field} must break C13 linkage: {:?}",
+            report.findings
+        );
+    }
+
+    let mut lens_permutation = green.clone();
+    protected_binding_mut(
+        &mut lens_permutation,
+        "C13",
+        "independent-council",
+        Some("L01"),
+    )["lens_id"] = json!("L02");
+    assert!(
+        evaluate_protected_facts_linkage(&program(), &epoch, &lens_permutation)
+            .findings
+            .iter()
+            .any(|finding| finding.contains("C13/L01 source receipt lacks an exact"))
+    );
+
+    let mut role_swap = green.clone();
+    protected_binding_mut(&mut role_swap, "C15", "deterministic-oracle", None)["role"] =
+        json!("blind-cold-reader");
+    assert!(
+        evaluate_protected_facts_linkage(&program(), &epoch, &role_swap)
+            .findings
+            .iter()
+            .any(|finding| finding
+                .contains("C15/deterministic-oracle source receipt lacks an exact"))
+    );
+
+    let mut missing_third_role = green.clone();
+    missing_third_role["receipt_bindings"]
+        .as_array_mut()
+        .expect("receipt bindings")
+        .retain(|binding| {
+            binding["control_id"] != "C15" || binding["role"] != "qualified-planning-authority"
+        });
+    assert!(
+        evaluate_protected_facts_linkage(&program(), &epoch, &missing_third_role)
+            .findings
+            .iter()
+            .any(|finding| finding
+                .contains("C15/qualified-planning-authority source receipt lacks an exact"))
+    );
+
+    let mut duplicate = green;
+    let duplicate_binding =
+        protected_binding_mut(&mut duplicate, "C13", "independent-council", Some("L01")).clone();
+    duplicate["receipt_bindings"]
+        .as_array_mut()
+        .expect("receipt bindings")
+        .push(duplicate_binding);
+    assert!(
+        evaluate_protected_facts_linkage(&program(), &epoch, &duplicate)
+            .findings
+            .iter()
+            .any(|finding| finding.contains("C13/L01 source receipt has multiple exact"))
+    );
 }
 
 #[test]
