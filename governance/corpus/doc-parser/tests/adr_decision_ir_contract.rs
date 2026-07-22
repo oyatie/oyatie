@@ -351,6 +351,23 @@ fn adr_ir_rejects_structured_metadata_forms_it_cannot_represent() {
 }
 
 #[test]
+fn adr_ir_rejects_block_scalars_in_affected_surface_categories() {
+    for marker in ["|", ">", "|-", ">+", "|2", ">-2"] {
+        let source = minimal_adr(&format!(
+            "id: ADR-0517\nstatus: Accepted\ndate: 2026-06-08\nowner: founder\naffected_surfaces:\n  crates: {marker}\n    - corpus-doc-parser\n"
+        ));
+        assert!(
+            matches!(
+                parse_adr_decision(&AdrParseInput::new(ADR_PATH, source)),
+                Err(AdrParseError::InvalidFrontmatter { ref message, .. })
+                    if message == "block scalar values are not supported for affected surface categories"
+            ),
+            "block scalar marker {marker:?} must fail closed instead of becoming a surface list"
+        );
+    }
+}
+
+#[test]
 fn adr_ir_uses_the_exact_first_h1_title_and_requires_repo_relative_paths() {
     let source = concat!(
         "---\n",
