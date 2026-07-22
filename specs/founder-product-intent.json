@@ -63,7 +63,11 @@
         "Use a game-engine operational-world mental model spanning revisioned state, stable entities, composable components and traits, explicit systems, durable events, distinct time semantics, deterministic preview and replay with declared limits, rebuildable projections, visual canonical-IR authoring, tenant boundaries, policy gates, audit, recovery, and dependency-aware scheduling.",
         "Make types first-class tenant, pack, or platform definitions that are extensible, customizable, configurable, no-code capable, composed instead of closed vendor enums, versioned and content-addressed, visually authored to canonical IR, template/default/constraint capable, policy-bound, compatibility-classified, previewable, and safely migratable.",
         "Keep legal authority, privacy, accounting, distributed consistency, irreversible external effects, and human accountability outside the game-state metaphor as separately governed constraints.",
-        "Record game-engine documentation URLs only as inactive source pointers pending fresh scope-specific qualified legal/JCR disposition."
+        "Record game-engine documentation URLs only as inactive source pointers pending fresh scope-specific qualified legal/JCR disposition.",
+        "Make the game-engine operational-world model and change-accounting record machine-validated founder intent rather than review-only prose.",
+        "Treat operational-world types as future extension vocabulary that cannot amend the current Accepted governance/knowledge-graph type_system without a separately Accepted immutable successor.",
+        "Retain already-retrieved external sources, including Palantir, only as harvested provenance with evidence eligibility false and unresolved legal/JCR disposition; preserve never-retrieved game-engine URLs as inactive uncollected non-evidence pointers.",
+        "Make C06 legal_jcr an explicit prerequisite to any C05 comparator satisfaction."
       ],
       "changed_outcomes": [],
       "removed_outcomes": [],
@@ -230,121 +234,241 @@
             "source_id": "google-sre-release-engineering",
             "url": "https://sre.google/sre-book/release-engineering/",
             "scope": "reproducible hermetic builds, intentional release-process change, review, serial and parallel workflow steps, progressive rollout, rollback, and exact release identity",
-            "adoption": "Use lifecycle-wide reproducibility, explicit policy, graph-derived parallelism, and risk-shaped rollout without copying Google-specific tooling."
+            "adoption": "Use lifecycle-wide reproducibility, explicit policy, graph-derived parallelism, and risk-shaped rollout without copying Google-specific tooling.",
+            "classification": "harvested-provenance",
+            "collection_status": "retrieved-before-qualified-legal-jcr-disposition",
+            "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
+            "evidence_eligible": false,
+            "automated_expansion_allowed": false,
+            "retention_rule": "Retained as harvested provenance, not admitted evidence; do not expand, analyze, cite, or use for a comparator claim until fresh scope-specific qualified legal/JCR disposition authorizes the exact use."
           },
           {
             "source_id": "buck2-why",
             "url": "https://buck2.build/docs/about/why/",
             "scope": "queryable target graphs, remote-execution-first actions, multi-language composition, incremental actions, and one dynamic dependency graph that permits precise invalidation and cross-phase parallelism",
-            "adoption": "Keep Buck2 as the current declared build-graph substrate and derive impact and parallel execution from explicit graph facts; do not treat any runner command or cache hit as independent admission authority."
+            "adoption": "Keep Buck2 as the current declared build-graph substrate and derive impact and parallel execution from explicit graph facts; do not treat any runner command or cache hit as independent admission authority.",
+            "classification": "harvested-provenance",
+            "collection_status": "retrieved-before-qualified-legal-jcr-disposition",
+            "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
+            "evidence_eligible": false,
+            "automated_expansion_allowed": false,
+            "retention_rule": "Retained as harvested provenance, not admitted evidence; do not expand, analyze, cite, or use for a comparator claim until fresh scope-specific qualified legal/JCR disposition authorizes the exact use."
           },
           {
             "source_id": "google-sre-canarying-releases",
             "url": "https://sre.google/workbook/canarying-releases/",
             "scope": "small changes, automated build/test/deploy, canary-control comparison, SLO and error-budget decisions, measurement, and rollback",
-            "adoption": "Separate merge evidence from runtime exposure and expand only through predeclared measurements, stop conditions, and retained results."
+            "adoption": "Separate merge evidence from runtime exposure and expand only through predeclared measurements, stop conditions, and retained results.",
+            "classification": "harvested-provenance",
+            "collection_status": "retrieved-before-qualified-legal-jcr-disposition",
+            "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
+            "evidence_eligible": false,
+            "automated_expansion_allowed": false,
+            "retention_rule": "Retained as harvested provenance, not admitted evidence; do not expand, analyze, cite, or use for a comparator claim until fresh scope-specific qualified legal/JCR disposition authorizes the exact use."
           },
           {
             "source_id": "slsa-v1-2",
             "url": "https://slsa.dev/spec/v1.2/requirements",
             "scope": "approved source and build tracks, provenance production, distribution, verification, and platform assessment",
-            "adoption": "Bind source and artifact identities to verifiable provenance; treat SLSA level claims as separately evidenced rather than implied."
+            "adoption": "Bind source and artifact identities to verifiable provenance; treat SLSA level claims as separately evidenced rather than implied.",
+            "classification": "harvested-provenance",
+            "collection_status": "retrieved-before-qualified-legal-jcr-disposition",
+            "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
+            "evidence_eligible": false,
+            "automated_expansion_allowed": false,
+            "retention_rule": "Retained as harvested provenance, not admitted evidence; do not expand, analyze, cite, or use for a comparator claim until fresh scope-specific qualified legal/JCR disposition authorizes the exact use."
           },
           {
             "source_id": "github-artifact-attestations",
             "url": "https://docs.github.com/en/actions/how-tos/secure-your-work/use-artifact-attestations/use-artifact-attestations",
             "scope": "build and SBOM attestations bound to artifact subjects and digests, permission-scoped issuance, storage, and later verification",
-            "adoption": "Use attestations only as one substrate-specific provenance carrier behind Oyatie's provider-neutral evidence contract; require independent verification and never infer readiness from attestation presence alone."
+            "adoption": "Use attestations only as one substrate-specific provenance carrier behind Oyatie's provider-neutral evidence contract; require independent verification and never infer readiness from attestation presence alone.",
+            "classification": "harvested-provenance",
+            "collection_status": "retrieved-before-qualified-legal-jcr-disposition",
+            "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
+            "evidence_eligible": false,
+            "automated_expansion_allowed": false,
+            "retention_rule": "Retained as harvested provenance, not admitted evidence; do not expand, analyze, cite, or use for a comparator claim until fresh scope-specific qualified legal/JCR disposition authorizes the exact use."
           },
           {
             "source_id": "github-actions-secure-use",
             "url": "https://docs.github.com/en/actions/reference/security/secure-use",
             "scope": "least-privilege workflow credentials, untrusted pull-request data, third-party action risk, secret exposure, and automation-created or automation-approved pull-request risk",
-            "adoption": "Keep candidate code and workflow artifacts untrusted, minimize token scope, isolate privileged evaluation, and prevent automation from creating its own independent approval or bypass path."
+            "adoption": "Keep candidate code and workflow artifacts untrusted, minimize token scope, isolate privileged evaluation, and prevent automation from creating its own independent approval or bypass path.",
+            "classification": "harvested-provenance",
+            "collection_status": "retrieved-before-qualified-legal-jcr-disposition",
+            "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
+            "evidence_eligible": false,
+            "automated_expansion_allowed": false,
+            "retention_rule": "Retained as harvested provenance, not admitted evidence; do not expand, analyze, cite, or use for a comparator claim until fresh scope-specific qualified legal/JCR disposition authorizes the exact use."
           },
           {
             "source_id": "nist-ssdf-1-1",
             "url": "https://csrc.nist.gov/pubs/sp/800/218/final",
             "scope": "secure-development practices integrated into each SDLC, vulnerability reduction, impact mitigation, root-cause prevention, and supplier communication",
-            "adoption": "Integrate security across the work graph and learning loop instead of attaching a scanner-only terminal step."
+            "adoption": "Integrate security across the work graph and learning loop instead of attaching a scanner-only terminal step.",
+            "classification": "harvested-provenance",
+            "collection_status": "retrieved-before-qualified-legal-jcr-disposition",
+            "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
+            "evidence_eligible": false,
+            "automated_expansion_allowed": false,
+            "retention_rule": "Retained as harvested provenance, not admitted evidence; do not expand, analyze, cite, or use for a comparator claim until fresh scope-specific qualified legal/JCR disposition authorizes the exact use."
           },
           {
             "source_id": "open-policy-agent-cicd",
             "url": "https://www.openpolicyagent.org/docs/cicd",
             "scope": "policy-as-code for repository, configuration, supply-chain, coverage, test-selection, and job-dependency checks",
-            "adoption": "Keep policy decisions versioned and testable while preserving Oyatie's owned engine, trusted-control, and no-tool-as-authority boundaries."
+            "adoption": "Keep policy decisions versioned and testable while preserving Oyatie's owned engine, trusted-control, and no-tool-as-authority boundaries.",
+            "classification": "harvested-provenance",
+            "collection_status": "retrieved-before-qualified-legal-jcr-disposition",
+            "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
+            "evidence_eligible": false,
+            "automated_expansion_allowed": false,
+            "retention_rule": "Retained as harvested provenance, not admitted evidence; do not expand, analyze, cite, or use for a comparator claim until fresh scope-specific qualified legal/JCR disposition authorizes the exact use."
           },
           {
             "source_id": "kubernetes-validating-admission-policy",
             "url": "https://kubernetes.io/docs/reference/access-authn-authz/validating-admission-policy/",
             "scope": "declarative in-process admission policy, bindings, validation actions, audit and warning modes, match conditions, and failure policy",
-            "adoption": "Use staged policy evaluation and explicit failure behavior as a reference pattern; do not equate cluster admission with repository or legal authority."
+            "adoption": "Use staged policy evaluation and explicit failure behavior as a reference pattern; do not equate cluster admission with repository or legal authority.",
+            "classification": "harvested-provenance",
+            "collection_status": "retrieved-before-qualified-legal-jcr-disposition",
+            "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
+            "evidence_eligible": false,
+            "automated_expansion_allowed": false,
+            "retention_rule": "Retained as harvested provenance, not admitted evidence; do not expand, analyze, cite, or use for a comparator claim until fresh scope-specific qualified legal/JCR disposition authorizes the exact use."
           },
           {
             "source_id": "argo-rollouts-analysis",
             "url": "https://argo-rollouts.readthedocs.io/en/stable/features/analysis/",
             "scope": "background and inline analysis, success and failure conditions, retention, inconclusive outcomes, experiments, pause, and abort",
-            "adoption": "Model runtime promotion as typed progressive exposure with explicit success, failure, inconclusive, pause, abort, and retention semantics."
+            "adoption": "Model runtime promotion as typed progressive exposure with explicit success, failure, inconclusive, pause, abort, and retention semantics.",
+            "classification": "harvested-provenance",
+            "collection_status": "retrieved-before-qualified-legal-jcr-disposition",
+            "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
+            "evidence_eligible": false,
+            "automated_expansion_allowed": false,
+            "retention_rule": "Retained as harvested provenance, not admitted evidence; do not expand, analyze, cite, or use for a comparator claim until fresh scope-specific qualified legal/JCR disposition authorizes the exact use."
           },
           {
             "source_id": "palantir-apollo-helm-rollouts",
             "url": "https://www.palantir.com/docs/apollo/core/helm-rollouts",
             "scope": "managed rollout readiness, failure-triggered rollback, no-wait iteration modes, scoped readiness timeouts, and image pre-pulling",
-            "adoption": "Use Apollo only as a minimum comparative baseline for explicit readiness, timeout, and rollback semantics; Oyatie must remain provider-neutral, evidence-typed, policy-governed, and measurably better on matched journeys rather than copying Apollo's product or manifest shape."
+            "adoption": "Use Apollo only as a minimum comparative baseline for explicit readiness, timeout, and rollback semantics; Oyatie must remain provider-neutral, evidence-typed, policy-governed, and measurably better on matched journeys rather than copying Apollo's product or manifest shape.",
+            "classification": "harvested-provenance",
+            "collection_status": "retrieved-before-qualified-legal-jcr-disposition",
+            "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
+            "evidence_eligible": false,
+            "automated_expansion_allowed": false,
+            "retention_rule": "Retained as harvested provenance, not admitted evidence; do not expand, analyze, cite, or use for a comparator claim until fresh scope-specific qualified legal/JCR disposition authorizes the exact use."
           },
           {
             "source_id": "palantir-foundry-building-pipelines",
             "url": "https://www.palantir.com/docs/foundry/building-pipelines/overview",
             "scope": "data-quality foundations, governed project structure, batch, incremental, and streaming pipeline choices, unit tests, branching, release, scheduling, and health checks",
-            "adoption": "Use as a minimum baseline for lifecycle-complete data-pipeline hygiene; Oyatie extends the graph through authority, policy, evidence, decisions, actions, recourse, runtime exposure, and realized outcomes rather than copying Foundry project or product structure."
+            "adoption": "Use as a minimum baseline for lifecycle-complete data-pipeline hygiene; Oyatie extends the graph through authority, policy, evidence, decisions, actions, recourse, runtime exposure, and realized outcomes rather than copying Foundry project or product structure.",
+            "classification": "harvested-provenance",
+            "collection_status": "retrieved-before-qualified-legal-jcr-disposition",
+            "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
+            "evidence_eligible": false,
+            "automated_expansion_allowed": false,
+            "retention_rule": "Retained as harvested provenance, not admitted evidence; do not expand, analyze, cite, or use for a comparator claim until fresh scope-specific qualified legal/JCR disposition authorizes the exact use."
           },
           {
             "source_id": "palantir-foundry-pipeline-management",
             "url": "https://www.palantir.com/docs/foundry/pipeline-builder/management-overview",
             "scope": "reusable parameters and custom functions, large-graph grouping, job and compute-profile grouping, checkpoints, selective visibility, and sampled previews",
-            "adoption": "Use as a minimum usability and compute-efficiency baseline while requiring one typed IR, semantic-preserving multiple views, full-population admission evidence, graph-derived concurrency, explicit authority, and portable non-vendor execution."
+            "adoption": "Use as a minimum usability and compute-efficiency baseline while requiring one typed IR, semantic-preserving multiple views, full-population admission evidence, graph-derived concurrency, explicit authority, and portable non-vendor execution.",
+            "classification": "harvested-provenance",
+            "collection_status": "retrieved-before-qualified-legal-jcr-disposition",
+            "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
+            "evidence_eligible": false,
+            "automated_expansion_allowed": false,
+            "retention_rule": "Retained as harvested provenance, not admitted evidence; do not expand, analyze, cite, or use for a comparator claim until fresh scope-specific qualified legal/JCR disposition authorizes the exact use."
           },
           {
             "source_id": "palantir-foundry-data-lineage",
             "url": "https://www.palantir.com/docs/foundry/data-lineage/overview",
             "scope": "interactive discovery of datasets, ancestors and descendants, schema, build freshness, producing code, shared snapshots, and lineage visualization",
-            "adoption": "Use data lineage as a minimum visibility baseline; Oyatie requires continuous source-to-observation-to-decision-to-authorized-action-to-outcome lineage with corrections, uncertainty, authority, custody, privacy, and recourse preserved."
+            "adoption": "Use data lineage as a minimum visibility baseline; Oyatie requires continuous source-to-observation-to-decision-to-authorized-action-to-outcome lineage with corrections, uncertainty, authority, custody, privacy, and recourse preserved.",
+            "classification": "harvested-provenance",
+            "collection_status": "retrieved-before-qualified-legal-jcr-disposition",
+            "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
+            "evidence_eligible": false,
+            "automated_expansion_allowed": false,
+            "retention_rule": "Retained as harvested provenance, not admitted evidence; do not expand, analyze, cite, or use for a comparator claim until fresh scope-specific qualified legal/JCR disposition authorizes the exact use."
           },
           {
             "source_id": "palantir-foundry-data-health",
             "url": "https://www.palantir.com/docs/foundry/observability/data-health",
             "scope": "scope-aware monitoring views, fine-grained resource health checks, dynamic coverage as resources change, alerting, and integration with operational response systems",
-            "adoption": "Use as a minimum resource-health baseline while requiring typed ownership, affected populations, outcome health, evidence freshness, noise budgets, diagnosis and recovery receipts, and fail-closed readiness for unowned or unmonitored material resources."
+            "adoption": "Use as a minimum resource-health baseline while requiring typed ownership, affected populations, outcome health, evidence freshness, noise budgets, diagnosis and recovery receipts, and fail-closed readiness for unowned or unmonitored material resources.",
+            "classification": "harvested-provenance",
+            "collection_status": "retrieved-before-qualified-legal-jcr-disposition",
+            "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
+            "evidence_eligible": false,
+            "automated_expansion_allowed": false,
+            "retention_rule": "Retained as harvested provenance, not admitted evidence; do not expand, analyze, cite, or use for a comparator claim until fresh scope-specific qualified legal/JCR disposition authorizes the exact use."
           },
           {
             "source_id": "palantir-foundry-aip-evals",
             "url": "https://www.palantir.com/docs/foundry/aip-evals/overview",
             "scope": "evaluation suites, target and evaluation functions, test cases, per-case and aggregate metrics, version comparison, model comparison, and variance across repeated runs",
-            "adoption": "Use as a minimum nondeterministic-evaluation baseline while preserving exact populations, disaggregated affected-party outcomes, refusal and recourse cases, evaluator disagreement, drift, draft-only model outputs, and a strict separation between evaluation evidence and authority."
+            "adoption": "Use as a minimum nondeterministic-evaluation baseline while preserving exact populations, disaggregated affected-party outcomes, refusal and recourse cases, evaluator disagreement, drift, draft-only model outputs, and a strict separation between evaluation evidence and authority.",
+            "classification": "harvested-provenance",
+            "collection_status": "retrieved-before-qualified-legal-jcr-disposition",
+            "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
+            "evidence_eligible": false,
+            "automated_expansion_allowed": false,
+            "retention_rule": "Retained as harvested provenance, not admitted evidence; do not expand, analyze, cite, or use for a comparator claim until fresh scope-specific qualified legal/JCR disposition authorizes the exact use."
           },
           {
             "source_id": "palantir-foundry-branching-release",
             "url": "https://www.palantir.com/docs/foundry/building-pipelines/branching-release-process",
             "scope": "conceptual product release units spanning multiple repositories and resources, protected production branches, development and feature branches, end-user verification, and retained collaboration evidence",
-            "adoption": "Use only as comparative release-process evidence; Oyatie retains one hyperscale monorepo, current plain-Git protected-PR admission, exact-head review, one required status, graph-derived impact, and independent runtime promotion rather than copying GitFlow or Foundry branch semantics."
+            "adoption": "Use only as comparative release-process evidence; Oyatie retains one hyperscale monorepo, current plain-Git protected-PR admission, exact-head review, one required status, graph-derived impact, and independent runtime promotion rather than copying GitFlow or Foundry branch semantics.",
+            "classification": "harvested-provenance",
+            "collection_status": "retrieved-before-qualified-legal-jcr-disposition",
+            "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
+            "evidence_eligible": false,
+            "automated_expansion_allowed": false,
+            "retention_rule": "Retained as harvested provenance, not admitted evidence; do not expand, analyze, cite, or use for a comparator claim until fresh scope-specific qualified legal/JCR disposition authorizes the exact use."
           },
           {
             "source_id": "google-sre-postmortem-culture",
             "url": "https://sre.google/sre-book/postmortem-culture/",
             "scope": "learning from failure through blameless analysis and tracked preventive actions",
-            "adoption": "Require attributable preventive actions and later effectiveness checks without using incident learning as personal performance scoring."
+            "adoption": "Require attributable preventive actions and later effectiveness checks without using incident learning as personal performance scoring.",
+            "classification": "harvested-provenance",
+            "collection_status": "retrieved-before-qualified-legal-jcr-disposition",
+            "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
+            "evidence_eligible": false,
+            "automated_expansion_allowed": false,
+            "retention_rule": "Retained as harvested provenance, not admitted evidence; do not expand, analyze, cite, or use for a comparator claim until fresh scope-specific qualified legal/JCR disposition authorizes the exact use."
           },
           {
             "source_id": "nist-ai-risk-management-framework",
             "url": "https://www.nist.gov/itl/ai-risk-management-framework",
             "scope": "voluntary, rights-preserving governance, mapping, measurement, and management of AI risk",
-            "adoption": "Keep agent and model outputs advisory evidence unless a versioned safety and authority contract promotes the exact use."
+            "adoption": "Keep agent and model outputs advisory evidence unless a versioned safety and authority contract promotes the exact use.",
+            "classification": "harvested-provenance",
+            "collection_status": "retrieved-before-qualified-legal-jcr-disposition",
+            "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
+            "evidence_eligible": false,
+            "automated_expansion_allowed": false,
+            "retention_rule": "Retained as harvested provenance, not admitted evidence; do not expand, analyze, cite, or use for a comparator claim until fresh scope-specific qualified legal/JCR disposition authorizes the exact use."
           },
           {
             "source_id": "github-merge-queue",
             "url": "https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-a-merge-queue",
             "scope": "queued pull-request retesting against the latest target branch and branch-protection compatibility",
-            "adoption": "Use only as comparative evidence for integration-candidate freshness; it does not claim a live Oyatie merge queue or replace ADR-0515 protected admission."
+            "adoption": "Use only as comparative evidence for integration-candidate freshness; it does not claim a live Oyatie merge queue or replace ADR-0515 protected admission.",
+            "classification": "harvested-provenance",
+            "collection_status": "retrieved-before-qualified-legal-jcr-disposition",
+            "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
+            "evidence_eligible": false,
+            "automated_expansion_allowed": false,
+            "retention_rule": "Retained as harvested provenance, not admitted evidence; do not expand, analyze, cite, or use for a comparator claim until fresh scope-specific qualified legal/JCR disposition authorizes the exact use."
           }
         ]
       },
@@ -380,6 +504,18 @@
         "policy-bound and compatibility-classified",
         "previewable before application",
         "reversibly migratable, or explicitly approved with a stated irreversible boundary, affected population, recourse, and rollback or compensation limit"
+      ],
+      "future_accepted_successor_requirements": [
+        "Stable logical EntityId and TypeId remain distinct from immutable revision digests; external aliases and merge, split, and rekey history remain explicit.",
+        "Component applicability, cardinality, precedence, conflict handling, and cycle detection are declared and fail closed when incomplete or conflicting.",
+        "Commands, decisions, events, observations, corrections, projections, and effects remain explicit distinct kinds rather than one overloaded record.",
+        "Preview is isolated from live effects and declares its clock, randomness, external I/O, uncertainty, and non-effect boundary.",
+        "Projections are rebuildable and non-authoritative; visual writes compile to canonical IR and declare round-trip loss.",
+        "Defaults retain provenance, templates create candidates rather than authority, and constraint conflicts fail closed.",
+        "Compatibility is classified independently across producer, consumer, stored-data, UI, policy, and authority boundaries.",
+        "Migrations freeze the affected population and require coexistence, dry-run, checkpoints, partial-failure recovery, refusal, and verification.",
+        "Unknown extensions are preserved where possible and every semantic loss is explicitly disclosed.",
+        "These are future Accepted-successor requirements only; they select no implementation, architecture, data model, framework, or roadmap."
       ]
     },
     "hard_limits": [
@@ -393,7 +529,8 @@
     "non_claims": [
       "No game-engine framework, ECS implementation, rendering stack, data model, or roadmap is selected by this intent.",
       "No implementation, migration, dispatch, production-readiness, determinism, or reversibility claim is made by this intent."
-    ]
+    ],
+    "governance_type_system_boundary": "Operational-world types are future extension vocabulary only. They must not replace, amend, rename, or reinterpret the current Accepted governance/knowledge-graph type_system without a separately Accepted immutable successor."
   },
   "stage1_entry_requirements": {
     "authority_status": "non-dispatching founder requirement vocabulary; no control is satisfied or assigned an owner by this artifact",
@@ -1810,7 +1947,8 @@
       "stop, rollback, correction, and follow-up effectiveness conditions"
     ],
     "population_rule": "No metric family counts as evidence until its protocol and denominator are populated for the frozen candidate. Aggregate improvement cannot hide a failing subgroup, transferred cost, or missing affected population.",
-    "claim_rule": "Every better, simpler, faster, safer, more complete, real-time, no-training, or end-to-end claim must name the participant population, journey, source set, conditions, comparator, measure, threshold, evaluator, evidence freshness, and known exclusions."
+    "claim_rule": "Every better, simpler, faster, safer, more complete, real-time, no-training, or end-to-end claim must name the participant population, journey, source set, conditions, comparator, measure, threshold, evaluator, evidence freshness, and known exclusions.",
+    "comparator_legal_jcr_prerequisite": "C05 comparator cannot be satisfied until C06 legal_jcr has a fresh scope-specific qualified legal/JCR disposition authorizing the applicable source collection, retention, and comparator use."
   },
   "future_specification_requirements": {
     "roadmap_admission": [
