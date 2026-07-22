@@ -301,6 +301,12 @@ pub fn evaluate_history_only_retirement_receipt(
         return findings;
     };
     closed_object(fact, FACT_FIELDS, "object_fact", &mut findings);
+    if fact.get("protected_base_ref").and_then(Value::as_str) != Some("origin/dev") {
+        fail(&mut findings, "object_fact.protected_base_ref");
+    }
+    for key in ["protected_receipt_blob_oid", "candidate_receipt_blob_oid"] {
+        let _ = oid(fact, key, &format!("object_fact.{key}"), &mut findings);
+    }
     if fact.get("artifact_id") != receipt.get("artifact_id") {
         fail(&mut findings, "object_fact.artifact_id");
     }
@@ -353,6 +359,9 @@ pub fn evaluate_history_only_retirement_receipts(corpus: &Value) -> BTreeSet<Fin
         fail(&mut findings, "retirement_receipts.receipts");
         return findings;
     };
+    if records.is_empty() {
+        fail(&mut findings, "retirement_receipts.receipts.empty");
+    }
     let mut paths = BTreeSet::new();
     let mut receipts = Vec::with_capacity(records.len());
     for (index, record) in records.iter().enumerate() {
@@ -423,7 +432,11 @@ pub fn evaluate_history_only_retirement_receipt_coverage(
         "new_receipt_paths",
         &mut findings,
     );
-    if protected != carried
+    if protected.is_empty()
+        || candidate.is_empty()
+        || carried.is_empty()
+        || new.is_empty()
+        || protected != carried
         || !carried.is_subset(&candidate)
         || !new.is_disjoint(&carried)
         || candidate != carried.union(&new).cloned().collect()
@@ -444,10 +457,16 @@ pub fn evaluate_history_only_retirement_receipt_coverage(
         &mut findings,
     );
     let required = validate_scopes(coverage, &mut findings);
+    if required.is_empty() {
+        fail(&mut findings, "retirement_receipt_coverage.scopes.empty");
+    }
     let object_facts = facts
         .get("retirement_receipt_object_facts")
         .and_then(Value::as_array)
         .map_or(&[][..], Vec::as_slice);
+    if object_facts.is_empty() {
+        fail(&mut findings, "retirement_receipt_object_facts.empty");
+    }
     let mut fact_artifacts = BTreeSet::new();
     for (index, fact) in object_facts.iter().enumerate() {
         closed_object(
@@ -1013,5 +1032,33 @@ mod tests {
             )
             .is_empty()
         );
+    }
+
+    #[test]
+    fn empty_contract_and_malformed_protected_bindings_fail_closed() {
+        let empty = json!({"receipts":[],"scm_facts":{"retirement_receipt_coverage":{"protected_base_ref":"origin/dev","current_epoch_commit_oid":NEW,"current_epoch_tree_oid":NEW_TREE,"protected_receipt_paths":[],"candidate_receipt_paths":[],"carried_receipt_paths":[],"new_receipt_paths":[],"scopes":[],"required_retired_paths":[]},"retirement_receipt_object_facts":[]}});
+        let findings = evaluate_history_only_retirement_receipts(&empty);
+        assert!(findings.contains(&Finding::new(
+            RETIREMENT_RECEIPT_CODE,
+            "retirement_receipts.receipts.empty"
+        )));
+
+        let receipt = receipt("idea-receipt", "ADR-0388", OLD, OLD_TREE, "docs/old.md");
+        let mut facts = json!({"retirement_receipt_object_facts":[fact("idea-receipt","evidence/ideas-receipt.json","ADR-0388","new",OLD,OLD_TREE)]});
+        facts["retirement_receipt_object_facts"][0]["protected_base_ref"] = json!("origin/main");
+        facts["retirement_receipt_object_facts"][0]["protected_receipt_blob_oid"] = json!(null);
+        let findings = evaluate_history_only_retirement_receipt(
+            "evidence/ideas-receipt.json",
+            &receipt,
+            &facts,
+        );
+        assert!(findings.contains(&Finding::new(
+            RETIREMENT_RECEIPT_CODE,
+            "object_fact.protected_base_ref"
+        )));
+        assert!(findings.contains(&Finding::new(
+            RETIREMENT_RECEIPT_CODE,
+            "object_fact.protected_receipt_blob_oid"
+        )));
     }
 }

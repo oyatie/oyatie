@@ -449,6 +449,9 @@ pub struct CrosswalkInputs {
     /// Shared values two generated faces must agree on (the catalog/contracts axes_count
     /// drift exhibit), face-name -> value.
     pub generated_face_axes: BTreeMap<String, i64>,
+    /// Declared materialized history-only receipt/fact corpus. The producer
+    /// passes it through unchanged; GATE-1 is its sole evaluator.
+    pub history_only_retirement_receipts: Value,
 }
 
 /// Build the GATE-1 `decision-crosswalk.generated.json` face. Pure + deterministic:
@@ -524,6 +527,10 @@ pub fn build_decision_crosswalk(inputs: &CrosswalkInputs) -> Result<Value, Produ
         Value::String(inputs.next_free_id.clone()),
     );
     root.insert("generated_face_axes".into(), Value::Object(axes));
+    root.insert(
+        "history_only_retirement_receipts".into(),
+        inputs.history_only_retirement_receipts.clone(),
+    );
     root.insert("decisions".into(), decisions_value);
     Ok(Value::Object(root))
 }
