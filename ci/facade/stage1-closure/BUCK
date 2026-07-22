@@ -1,0 +1,37 @@
+rust_library(
+    name = "ci-stage1-closure",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "ci_stage1_closure",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "ci-stage1-closure-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "ci_stage1_closure",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "ci-stage1-closure-contract",
+    srcs = glob(["tests/**/*.rs", "tests/**/*.json"]),
+    crate = "ci_stage1_closure_contract",
+    crate_root = "tests/stage1_closure.rs",
+    env = {
+        "OYA_STAGE1_PROGRAM_SCHEMA": "$(location //specs:stage1-closure-program.schema.json)",
+        "OYA_STAGE1_EPOCH_SCHEMA": "$(location //specs:stage1-evidence-epoch.schema.json)",
+    },
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-stage1-closure",
+        "third-party//:serde_json",
+    ],
+)

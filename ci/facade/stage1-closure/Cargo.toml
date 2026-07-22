@@ -1,0 +1,27 @@
+[package]
+name = "ci-stage1-closure"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[package.metadata.oya]
+bounded_context = "cloud-ci"
+kind = "shared"
+layer = "facade"
+purpose = "Pure mechanism-neutral Stage-1 evidence and planning-hold validator."
+
+[lib]
+name = "ci_stage1_closure"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+serde_json = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }
+
+[lints]
+workspace = true
