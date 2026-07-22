@@ -50,7 +50,7 @@ explicitly forbids everything else.
 
 | Axis | Canonical home | Auto-gen | Lifecycle rule |
 |---|---|---|---|
-| `IDEAS` (transient) | `docs/ideas/<topic>-<YYYY-MM-DD>.md` | no | MUST be either promoted to an ADR within 14 days of its date-stamp, OR archived to `docs/ideas/archive/` with a `superseded_by: ADR-NNNN` frontmatter field. Files that exceed the 14-day window without promotion or archival are gate violations. |
+| `IDEAS` (transient) | `docs/ideas/<topic>-<YYYY-MM-DD>.md` | no | MUST either remain within 14 days of its date-stamp or carry a `superseded_by: ADR-NNNN` frontmatter field naming the ADR that records its promotion. Files that exceed the 14-day window without this promotion record are gate violations. Expired or retired idea bodies MUST NOT be copied to `docs/ideas/archive/` or any current-tree archive directory: ordinary repository retention is Git-object history only. This rule makes no claim that Git history satisfies legal, regulatory, or contractual custody requirements; any stronger external custody requirement needs separately authorized controls outside this ADR. |
 
 ### Allowed `docs/` subdirectories
 
@@ -58,7 +58,6 @@ Only the following subdirectories are canonical under `docs/`:
 
 - `docs/decisions/`
 - `docs/ideas/`
-- `docs/ideas/archive/`
 - `docs/conventions/`
 - `docs/machine-readable/`
 - `docs/products/`
@@ -106,7 +105,12 @@ is a gate violation.
 
 ## Notes
 
-Completed in chore/doc-consolidation-2026-05-28 (PR coming): 3 idea-pagers promoted to ADR-0389/0390/0391; originals archived to docs/ideas/archive/; 11 Superseded/Deprecated ADRs archived to docs/decisions/archive/.
-(and any sibling idea-pagers) to formal ADRs (using the next available
-ADR id minted at promotion time) before the 14-day timer expires on
-2026-06-11.
+Historical note: the 2026-05-28 consolidation promoted three idea-pagers to
+ADR-0389/0390/0391. Its readable `docs/ideas/archive/` copies are retired by
+this amendment. They remain only as byte-preserved transition inputs until the
+separate atomic E10 cutover removes them after its validator, materializer,
+and preparation receipts; no new current-tree archive copy is authorized.
+Their ordinary repository provenance is Git-object history. The E10 removal
+establishes the current-tree-absence posture required for coherence with
+ADR-0619; this amendment does not dispatch work, release a claim, or alter
+its planning HOLD/nonclaims boundary.

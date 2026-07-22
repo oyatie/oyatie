@@ -49,6 +49,7 @@ rust_test(
     deps = [
         ":ci-cross-artifact-agreement",
         "//ci/facade/artifact-inventory-registry:ci-artifact-inventory-registry",
+        "//libs/oya-governance-adr-shape-kernel:oya-governance-adr-shape-kernel",
         "third-party//:serde_json",
     ],
 )
