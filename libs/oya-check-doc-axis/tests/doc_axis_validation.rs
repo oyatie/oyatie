@@ -6,6 +6,13 @@
 use std::fs;
 use std::path::Path;
 
+#[cfg(target_os = "linux")]
+use std::ffi::OsString;
+#[cfg(target_os = "linux")]
+use std::os::unix::ffi::OsStringExt;
+#[cfg(unix)]
+use std::os::unix::fs::{PermissionsExt, symlink};
+
 use oya_check_doc_axis::{DocAxisRule, validate};
 
 // ---------------------------------------------------------------------------
@@ -217,6 +224,14 @@ fn rule2_stale_idea_without_promotion_blocks() {
             .any(|f| f.rule_violated == DocAxisRule::ShadowIdea),
         "should have a ShadowIdea finding"
     );
+    let shadow = findings
+        .iter()
+        .find(|finding| finding.rule_violated == DocAxisRule::ShadowIdea)
+        .expect("shadow-idea finding");
+    assert!(
+        !shadow.suggested_fix.contains("docs/ideas/archive"),
+        "history-only policy must never recommend readable archive storage"
+    );
 }
 
 #[test]
@@ -240,6 +255,157 @@ fn rule2_stale_idea_with_valid_superseded_by_passes() {
         result.is_ok(),
         "idea with valid superseded_by should pass: {result:?}"
     );
+}
+
+#[test]
+fn rule2_archive_body_is_visible_as_an_open_noncompliant_transition() {
+    let dir = tempfile::tempdir().unwrap();
+    let root = dir.path();
+    write_file(
+        root,
+        "docs/ideas/archive/legacy-idea-2026-05-28.md",
+        "# exact transition input\n",
+    );
+
+    let report = validate(root, false)
+        .expect("an open transition remains nonblocking until the atomic E10 cutover");
+    assert_eq!(report.idea_archive_transition_inventory.len(), 1);
+    let warning = &report.idea_archive_transition_inventory[0];
+    assert_eq!(
+        warning.rule_violated,
+        DocAxisRule::IdeaArchiveOpenTransition
+    );
+    assert_eq!(warning.path, "docs/ideas/archive/legacy-idea-2026-05-28.md");
+    assert!(!warning.blocking);
+    assert!(
+        warning
+            .suggested_fix
+            .contains("open, noncompliant transition input")
+    );
+    assert!(warning.suggested_fix.contains("E10"));
+}
+
+#[test]
+fn rule2_archive_transition_stays_nonblocking_in_strict_mode() {
+    let dir = tempfile::tempdir().unwrap();
+    let root = dir.path();
+    write_file(
+        root,
+        "docs/ideas/archive/legacy-idea-2026-05-28.md",
+        "# exact transition input\n",
+    );
+
+    let report = validate(root, true)
+        .expect("strict ADR casing must not pre-empt the separately protected E10 cutover");
+    assert_eq!(report.idea_archive_transition_inventory.len(), 1);
+    assert_eq!(report.warnings, 1);
+}
+
+#[test]
+fn rule2_empty_or_absent_archive_has_no_transition_inventory() {
+    let absent = tempfile::tempdir().unwrap();
+    let report = validate(absent.path(), false).expect("absent archive should pass");
+    assert!(report.idea_archive_transition_inventory.is_empty());
+
+    let empty = tempfile::tempdir().unwrap();
+    fs::create_dir_all(empty.path().join("docs/ideas/archive")).unwrap();
+    let report = validate(empty.path(), false).expect("empty archive should pass");
+    assert!(report.idea_archive_transition_inventory.is_empty());
+}
+
+#[cfg(unix)]
+#[test]
+fn rule2_archive_root_symlink_is_inventoried_without_following_it() {
+    let dir = tempfile::tempdir().unwrap();
+    let outside = tempfile::tempdir().unwrap();
+    write_file(outside.path(), "outside.md", "# must not be followed\n");
+    fs::create_dir_all(dir.path().join("docs/ideas")).unwrap();
+    symlink(outside.path(), dir.path().join("docs/ideas/archive")).unwrap();
+
+    let report = validate(dir.path(), false).expect("transition inventory stays nonblocking");
+    assert_eq!(report.idea_archive_transition_inventory.len(), 1);
+    let finding = &report.idea_archive_transition_inventory[0];
+    assert_eq!(finding.path, "docs/ideas/archive");
+    assert!(finding.suggested_fix.contains("symbolic link"));
+    assert!(!finding.path.contains("outside.md"));
+}
+
+#[cfg(unix)]
+#[test]
+fn rule2_nested_and_dangling_archive_symlinks_are_not_followed() {
+    let dir = tempfile::tempdir().unwrap();
+    let outside = tempfile::tempdir().unwrap();
+    write_file(outside.path(), "outside.md", "# must not be followed\n");
+    let archive = dir.path().join("docs/ideas/archive");
+    fs::create_dir_all(&archive).unwrap();
+    symlink(outside.path(), archive.join("nested-link")).unwrap();
+    symlink("missing-target", archive.join("dangling-link")).unwrap();
+
+    let report = validate(dir.path(), false).expect("transition inventory stays nonblocking");
+    let paths = report
+        .idea_archive_transition_inventory
+        .iter()
+        .map(|finding| finding.path.as_str())
+        .collect::<Vec<_>>();
+    assert_eq!(
+        paths,
+        [
+            "docs/ideas/archive/dangling-link",
+            "docs/ideas/archive/nested-link"
+        ]
+    );
+    assert!(
+        report
+            .idea_archive_transition_inventory
+            .iter()
+            .all(|finding| finding.suggested_fix.contains("symbolic link"))
+    );
+}
+
+#[cfg(unix)]
+#[test]
+fn rule2_unreadable_archive_directory_is_explicit_inventory() {
+    let dir = tempfile::tempdir().unwrap();
+    let locked = dir.path().join("docs/ideas/archive/locked");
+    fs::create_dir_all(&locked).unwrap();
+    write_file(
+        dir.path(),
+        "docs/ideas/archive/locked/hidden.md",
+        "# hidden\n",
+    );
+    fs::set_permissions(&locked, fs::Permissions::from_mode(0o000)).unwrap();
+
+    let result = validate(dir.path(), false);
+    fs::set_permissions(&locked, fs::Permissions::from_mode(0o700)).unwrap();
+    let report = result.expect("transition inventory stays nonblocking");
+    let locked = report
+        .idea_archive_transition_inventory
+        .iter()
+        .find(|finding| finding.path == "docs/ideas/archive/locked")
+        .expect("unreadable directory must remain explicit");
+    assert!(locked.suggested_fix.contains("could not be enumerated"));
+}
+
+#[cfg(target_os = "linux")]
+#[test]
+fn rule2_non_utf8_archive_paths_have_distinct_deterministic_identities() {
+    let dir = tempfile::tempdir().unwrap();
+    let archive = dir.path().join("docs/ideas/archive");
+    fs::create_dir_all(&archive).unwrap();
+    fs::write(archive.join(OsString::from_vec(vec![0x80])), b"a").unwrap();
+    fs::write(archive.join(OsString::from_vec(vec![0x81])), b"b").unwrap();
+
+    let report = validate(dir.path(), false).expect("transition inventory stays nonblocking");
+    let paths = report
+        .idea_archive_transition_inventory
+        .iter()
+        .map(|finding| finding.path.as_str())
+        .collect::<Vec<_>>();
+    assert_eq!(paths.len(), 2);
+    assert_ne!(paths[0], paths[1]);
+    assert!(paths[0].starts_with("os-encoded-hex:"));
+    assert!(paths[1].starts_with("os-encoded-hex:"));
+    assert!(paths[0] < paths[1]);
 }
 
 // ---------------------------------------------------------------------------
