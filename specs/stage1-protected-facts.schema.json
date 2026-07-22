@@ -2,22 +2,17 @@
   "$id": "https://docs.oyatie.com/specs/stage1-protected-facts.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Stage1ProtectedFacts",
-  "description": "Closed protected-parent observation contract. This is intentionally not oya-ci/scm-facts/v2.",
+  "description": "Closed future authenticated-producer envelope. Shape validation is non-authoritative until signature and trust-root verification are implemented externally.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_id", "protected_parent_verified", "trust_root_authority_ref", "protected_base_repository", "candidate_repository", "protected_base_commit", "candidate_commit", "protected_base_tree", "candidate_tree", "program_binding", "parser_binding", "producer_binding", "evaluator_binding", "policy_binding", "schema_binding", "predecessor_epoch_binding", "transition_receipt_binding", "immutable_successor_bundle", "authority_chain_result", "receipt_bindings"],
+  "required": ["schema_id", "protected_base_repository", "candidate_repository", "protected_base_branch", "candidate_branch", "protected_base_commit", "candidate_commit", "protected_base_tree", "candidate_tree", "source_epoch_binding", "candidate_epoch_binding", "program_binding", "parser_binding", "producer_binding", "evaluator_binding", "policy_binding", "schema_binding", "predecessor_epoch_binding", "transition_receipt_binding", "immutable_successor_bundle", "authority_chain_result", "source_app_identity", "run_identity", "receipt_bindings", "envelope_signature", "trust_root_binding"],
   "properties": {
     "schema_id": {"const": "oyatie/stage1-protected-facts/v1"},
-    "protected_parent_verified": {"const": true},
-    "trust_root_authority_ref": {"type": "string", "minLength": 1},
-    "protected_base_repository": {"type": "string", "minLength": 1},
-    "candidate_repository": {"type": "string", "minLength": 1},
-    "protected_base_commit": {"$ref": "#/$defs/git_oid"}, "candidate_commit": {"$ref": "#/$defs/git_oid"},
-    "protected_base_tree": {"$ref": "#/$defs/git_oid"}, "candidate_tree": {"$ref": "#/$defs/git_oid"},
-    "program_binding": {"$ref": "#/$defs/binding"}, "parser_binding": {"$ref": "#/$defs/binding"}, "producer_binding": {"$ref": "#/$defs/binding"}, "evaluator_binding": {"$ref": "#/$defs/binding"}, "policy_binding": {"$ref": "#/$defs/binding"}, "schema_binding": {"$ref": "#/$defs/binding"}, "predecessor_epoch_binding": {"$ref": "#/$defs/binding"}, "transition_receipt_binding": {"$ref": "#/$defs/binding"}, "immutable_successor_bundle": {"$ref": "#/$defs/binding"},
-    "authority_chain_result": {"$ref": "#/$defs/binding"},
-    "receipt_bindings": {"type": "array"},
+    "protected_base_repository": {"$ref": "#/$defs/nonempty"}, "candidate_repository": {"$ref": "#/$defs/nonempty"}, "protected_base_branch": {"$ref": "#/$defs/nonempty"}, "candidate_branch": {"$ref": "#/$defs/nonempty"},
+    "protected_base_commit": {"$ref": "#/$defs/git_oid"}, "candidate_commit": {"$ref": "#/$defs/git_oid"}, "protected_base_tree": {"$ref": "#/$defs/git_oid"}, "candidate_tree": {"$ref": "#/$defs/git_oid"},
+    "source_epoch_binding": {"$ref": "#/$defs/binding"}, "candidate_epoch_binding": {"$ref": "#/$defs/binding"}, "program_binding": {"$ref": "#/$defs/binding"}, "parser_binding": {"$ref": "#/$defs/binding"}, "producer_binding": {"$ref": "#/$defs/binding"}, "evaluator_binding": {"$ref": "#/$defs/binding"}, "policy_binding": {"$ref": "#/$defs/binding"}, "schema_binding": {"$ref": "#/$defs/binding"}, "predecessor_epoch_binding": {"$ref": "#/$defs/binding"}, "transition_receipt_binding": {"$ref": "#/$defs/binding"}, "immutable_successor_bundle": {"$ref": "#/$defs/binding"}, "authority_chain_result": {"$ref": "#/$defs/binding"},
+    "source_app_identity": {"$ref": "#/$defs/binding"}, "run_identity": {"$ref": "#/$defs/binding"}, "receipt_bindings": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/receipt_binding"}}, "envelope_signature": {"$ref": "#/$defs/binding"}, "trust_root_binding": {"$ref": "#/$defs/binding"},
     "extensions": {"type": "object", "propertyNames": {"pattern": "^x-stage1-non-authoritative-"}, "additionalProperties": true}
   },
-  "$defs": {"git_oid": {"type": "string", "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$"}, "binding": {"type": "object", "additionalProperties": false, "required": ["path", "blob_oid", "sha256"], "properties": {"path": {"type": "string", "minLength": 1}, "blob_oid": {"$ref": "#/$defs/git_oid"}, "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}}}
+  "$defs": {"nonempty": {"type": "string", "minLength": 1}, "git_oid": {"type": "string", "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$"}, "binding": {"type": "object", "additionalProperties": false, "required": ["path", "blob_oid", "sha256"], "properties": {"path": {"$ref": "#/$defs/nonempty"}, "blob_oid": {"$ref": "#/$defs/git_oid"}, "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}, "role": {"enum": ["control", "lens", "dissent", "exit", "qualified-authority"]}}}, "receipt_binding": {"$ref": "#/$defs/binding"}}
 }
