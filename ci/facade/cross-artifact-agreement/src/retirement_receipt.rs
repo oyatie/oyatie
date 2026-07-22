@@ -4,6 +4,12 @@
 //! Its callers provide the receipt, declared SCM object facts, and declared coverage
 //! facts.  That boundary keeps a receipt check hermetic and prevents a current epoch
 //! from silently rebinding a carried protected receipt.
+//!
+//! This is a dormant foundation, not a live GATE-1 control: no receipt is promoted
+//! and its claim ceiling is HOLD(Planning). Test fixtures and direct callers are data,
+//! never admission authority. Activation is reserved for an atomic Git-boundary
+//! materializer cutover that derives actual origin/dev and candidate object hashes,
+//! absence/equivalence facts, and generated-face ownership.
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -999,22 +1005,33 @@ mod tests {
         );
         assert!(findings.is_empty(), "{findings:?}");
 
-        let corpus = json!({"decisions":[{"id":"ADR-0388","status":"Accepted","in_spec":true,"in_masterplan":true,"in_roadmap":true,"supersedes":[],"superseded_by":[]}],"history_only_retirement_receipts":{"receipts":[
+        let corpus = json!({"receipts":[
             {"receipt_path":idea_path,"receipt":idea},
             {"receipt_path":repo_path,"receipt":repo}
-        ],"scm_facts":facts}});
-        let report = crate::evaluate(&corpus);
-        assert!(report.violations.is_empty(), "{:?}", report.violations);
+        ],"scm_facts":facts});
+        assert!(evaluate_history_only_retirement_receipts(&corpus).is_empty());
+
+        let decisions = json!([{"id":"ADR-0388","status":"Accepted","in_spec":true,"in_masterplan":true,"in_roadmap":true,"supersedes":[],"superseded_by":[]}]);
+        let baseline_crosswalk = json!({"decisions": decisions});
+        let ordinary_crosswalk = json!({
+            "decisions": decisions,
+            "history_only_retirement_receipts": corpus
+        });
+        assert_eq!(
+            crate::evaluate(&ordinary_crosswalk),
+            crate::evaluate(&baseline_crosswalk),
+            "an undeclared retirement field must not influence ordinary crosswalk evaluation"
+        );
 
         let mut rebound = corpus;
-        rebound["history_only_retirement_receipts"]["scm_facts"]["retirement_receipt_object_facts"]
-            [0]["baseline_commit_oid"] = json!(NEW);
-        rebound["history_only_retirement_receipts"]["scm_facts"]["retirement_receipt_object_facts"]
-            [0]["baseline_tree_oid"] = json!(NEW_TREE);
+        rebound["scm_facts"]["retirement_receipt_object_facts"][0]["baseline_commit_oid"] =
+            json!(NEW);
+        rebound["scm_facts"]["retirement_receipt_object_facts"][0]["baseline_tree_oid"] =
+            json!(NEW_TREE);
         assert!(
-            crate::evaluate(&rebound)
-                .violations
-                .contains(RETIREMENT_RECEIPT_CODE)
+            evaluate_history_only_retirement_receipts(&rebound)
+                .iter()
+                .any(|finding| finding.code == RETIREMENT_RECEIPT_CODE)
         );
     }
     #[test]

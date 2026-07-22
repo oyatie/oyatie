@@ -3637,12 +3637,6 @@ fn collect_crosswalk_inputs(
             .collect(),
         next_free_id,
         generated_face_axes,
-        history_only_retirement_receipts: serde_json::from_str(&read_text(
-            &repo_root.join(
-                "ci/facade/artifact-inventory-registry/history-only-retirement-receipts.json",
-            ),
-        ))
-        .unwrap_or(Value::Null),
     }
 }
 
