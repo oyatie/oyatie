@@ -19,6 +19,7 @@ path = "src/main.rs"
 
 [dependencies]
 serde_json = { workspace = true }
+sha2 = { workspace = true }
 ci-path-resolver-ports = { path = "../../ports/path-resolver" }
 ci-path-resolver-adapters = { path = "../../adapters/path-resolver" }
 ci-artifact-inventory-registry = { path = "../artifact-inventory-registry" }

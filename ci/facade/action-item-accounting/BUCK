@@ -6,6 +6,7 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "third-party//:serde_json",
+        "third-party//:sha2",
     ],
 )
 
@@ -17,6 +18,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         "third-party//:serde_json",
+        "third-party//:sha2",
     ],
 )
 

@@ -44,6 +44,33 @@ fn load_json(path: &Path) -> Value {
     serde_json::from_str(&text).unwrap_or_else(|e| panic!("parse {}: {e}", path.display()))
 }
 
+fn materialized_fixuptask_v2_facts(candidate_ledger: &[u8]) -> Value {
+    let predecessor_ids: Vec<String> = (1..=189).map(|index| format!("FRIC-{index:03}")).collect();
+    let digest = fixuptask_v2_digest(candidate_ledger);
+    json!({ "fixuptask_v2_admission": {
+        "merge_base": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "merge_base_tree": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "merge_base_rows": [],
+        "predecessor_source": "git:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:.omc/ultragoal/friction-ledger.jsonl",
+        "predecessor_ids": predecessor_ids,
+        "evaluation_time": "2026-07-21T00:00:00Z",
+        "legacy_ledger": {
+            "path": ".omc/ultragoal/friction-ledger.jsonl",
+            "merge_base_blob": "cccccccccccccccccccccccccccccccccccccccc",
+            "merge_base_digest": digest,
+            "predecessor_ids_digest": fixuptask_v2_digest(
+                (1..=189)
+                    .map(|index| format!("FRIC-{index:03}"))
+                    .collect::<Vec<_>>()
+                    .join("\n")
+                    .as_bytes(),
+            ),
+            "candidate_present": true,
+            "candidate_digest": digest
+        }
+    }})
+}
+
 fn keys_for(
     findings: &BTreeSet<ci_action_item_accounting::Finding>,
     code: &str,
@@ -197,15 +224,15 @@ fn fixuptask_v2_admission_is_wired_through_the_materialized_gate_inputs() {
     .expect("write candidate JSONL");
     std::fs::write(
         root.join(FIXUPTASK_V2_MAPPING_PATH),
-        "{\"source\":\"scm:merge-base\",\"entries\":[{\"predecessor_id\":\"FRIC-1\",\"target_fixuptask_id\":\"F-V2-GATE\"}]}",
+        "{\"source\":\"git:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:.omc/ultragoal/friction-ledger.jsonl\",\"entries\":[{\"predecessor_id\":\"FRIC-1\",\"target_fixuptask_id\":\"F-V2-GATE\"}]}",
     )
     .expect("write candidate mapping");
     std::fs::write(root.join(".omc/ultragoal/friction-ledger.jsonl"), "legacy")
         .expect("write unchanged legacy ledger");
-    let digest = fixuptask_v2_digest(b"legacy");
     std::fs::write(
         root.join(FIXUPTASK_V2_PROTECTED_FACTS_PATH),
-        format!("{{\"fixuptask_v2_admission\":{{\"merge_base\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"merge_base_tree\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"merge_base_rows\":[],\"predecessor_source\":\"scm:merge-base\",\"predecessor_ids\":[\"FRIC-1\"],\"evaluation_time\":\"2026-07-21T00:00:00Z\",\"legacy_ledger\":{{\"merge_base_blob\":\"cccccccccccccccccccccccccccccccccccccccc\",\"merge_base_digest\":\"{digest}\",\"candidate_digest\":\"{digest}\"}}}}}}"),
+        serde_json::to_string(&materialized_fixuptask_v2_facts(b"legacy"))
+            .expect("serialize SCM-materialized facts"),
     )
     .expect("write SCM-materialized facts");
 
