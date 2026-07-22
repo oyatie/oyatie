@@ -25,6 +25,9 @@
 //! Usage:
 //!   oya-cloud-ci-scm-facts-emitter-app [--repo-root <path>] [--out <path>]
 //!       [--volatile-out <path>] [--merge-base-baseline] [--frozen-base-ref <ref>]
+//!       [--retirement-control-plane <repo-relative-path>]
+//!       [--retirement-facts-out <path>] [--protected-base-commit <oid>]
+//!       [--candidate-commit <oid>]
 //!
 //! Default `--repo-root` is discovered up-tree (the dir holding `specs/root-hub-pointers.json`),
 //! default `--out` is `<repo-root>/ci/facade/artifact-inventory-registry/scm-facts.generated.json`,
@@ -65,6 +68,8 @@ use ci_path_resolver_adapters::{MOVE_MANIFEST_PATH, ManifestPathResolver, MoveMa
 use ci_path_resolver_ports::{FrozenRefSource, MergeBaseName, PathId, PathResolver};
 use oya_check_brand_residue::forbidden_vocab::{VocabPolicy, matched_line_occurrences_with};
 use serde_json::{Value, json};
+
+mod retirement;
 
 /// The scm-facts face schema id — bumped only on a breaking shape change.
 /// v2 (ADR-0552): history-volatile fields (`last_touch_commit`, `commit_author_ts_secs`,
@@ -132,6 +137,12 @@ fn run() -> Result<(), String> {
     let mut regen_baseline_verify: Option<PathBuf> = None;
     let mut merge_base_out: Option<PathBuf> = None;
     let mut provenance_producer: Option<String> = None;
+    // E7 history-only retirement facts are opt-in and all-or-none. The generated face is
+    // controller-owned and untracked; ordinary scm-facts emission remains behavior-identical.
+    let mut retirement_control_plane: Option<String> = None;
+    let mut retirement_facts_out: Option<PathBuf> = None;
+    let mut protected_base_commit: Option<String> = None;
+    let mut candidate_commit: Option<String> = None;
 
     let mut i = 0;
     while i < args.len() {
@@ -204,6 +215,39 @@ fn run() -> Result<(), String> {
                     return Err("--merge-base-out requires a path".to_owned());
                 }
             }
+            "--retirement-control-plane" => {
+                i += 1;
+                retirement_control_plane = args.get(i).cloned();
+                if retirement_control_plane
+                    .as_deref()
+                    .is_none_or(str::is_empty)
+                {
+                    return Err(
+                        "--retirement-control-plane requires a repo-relative path".to_owned()
+                    );
+                }
+            }
+            "--retirement-facts-out" => {
+                i += 1;
+                retirement_facts_out = args.get(i).map(PathBuf::from);
+                if retirement_facts_out.is_none() {
+                    return Err("--retirement-facts-out requires a path".to_owned());
+                }
+            }
+            "--protected-base-commit" => {
+                i += 1;
+                protected_base_commit = args.get(i).cloned();
+                if protected_base_commit.as_deref().is_none_or(str::is_empty) {
+                    return Err("--protected-base-commit requires a commit oid".to_owned());
+                }
+            }
+            "--candidate-commit" => {
+                i += 1;
+                candidate_commit = args.get(i).cloned();
+                if candidate_commit.as_deref().is_none_or(str::is_empty) {
+                    return Err("--candidate-commit requires a commit oid".to_owned());
+                }
+            }
             other => return Err(format!("unknown argument {other}")),
         }
         i += 1;
@@ -237,6 +281,31 @@ fn run() -> Result<(), String> {
         out.display(),
         volatile_out.display()
     );
+
+    match (
+        retirement_control_plane.as_deref(),
+        retirement_facts_out.as_deref(),
+        protected_base_commit.as_deref(),
+        candidate_commit.as_deref(),
+    ) {
+        (Some(control_plane_path), Some(facts_out), Some(protected), Some(candidate)) => {
+            retirement::emit_history_only_retirement_facts(
+                &repo_root,
+                &retirement::RetirementMaterializationContext {
+                    control_plane_path,
+                    protected_base_commit: protected,
+                    candidate_commit: candidate,
+                },
+                facts_out,
+            )?;
+        }
+        (None, None, None, None) => {}
+        _ => {
+            return Err("--retirement-control-plane, --retirement-facts-out, \
+                 --protected-base-commit, and --candidate-commit are all-or-none"
+                .to_owned());
+        }
+    }
 
     if merge_base_baseline {
         let bootstrap_ref =
@@ -335,8 +404,7 @@ const FROZEN_POLICY_SOURCE_CANDIDATE_BOOTSTRAP: &str = "candidate-bootstrap";
 const EMITTER_ANALYZER_LABEL: &str = "//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot";
 /// The `computed_by` provenance stamp: WHICH analysis produced this frozen reference. Records
 /// that the baseline was REGENERATED from the merge-base source (not read from a committed blob).
-const PROVENANCE_COMPUTED_BY: &str =
-    "oya-cloud-ci-scm-facts-emitter-app --merge-base-baseline (ADR-0616 regenerate-from-merge-base-source)";
+const PROVENANCE_COMPUTED_BY: &str = "oya-cloud-ci-scm-facts-emitter-app --merge-base-baseline (ADR-0616 regenerate-from-merge-base-source)";
 
 /// Assemble the frozen snapshot's `provenance` object (ADR-0616): the in-toto-style materials +
 /// subject that let the firewall AUDIT which merge-base tree the regenerated frozen reference was
