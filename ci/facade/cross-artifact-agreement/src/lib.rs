@@ -6126,4 +6126,15 @@ mod tests {
         let complete = json!({"decisions":[{"id":"ADR-1","status":"Amended","in_spec":true,"in_masterplan":true,"in_roadmap":true}]});
         assert!(evaluate(&complete).violations.is_empty());
     }
+
+    #[test]
+    fn legacy_live_statuses_require_the_same_propagation_as_amended() {
+        for status in ["Accepted", "accepted", "Accepted (amendment)", "Amended"] {
+            let orphaned = json!({"decisions":[{"id":"ADR-1","status":status,"in_spec":false,"in_masterplan":false,"in_roadmap":false}]});
+            assert!(
+                evaluate(&orphaned).violations.contains("orphan_decision"),
+                "{status} must remain subject to live-decision propagation"
+            );
+        }
+    }
 }
