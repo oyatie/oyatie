@@ -25,17 +25,30 @@ fn admission_envelope() -> Value {
 }
 
 fn schema(relative: &str) -> Value {
-    let manifest_dir =
-        std::env::var("CARGO_MANIFEST_DIR").unwrap_or_else(|_| "libs/stage1-closure".to_owned());
-    let path = match relative {
-        "program" => std::env::var("OYA_STAGE1_PROGRAM_SCHEMA").unwrap_or_else(|_| {
-            format!("{manifest_dir}/../../specs/stage1-closure-program.schema.json")
-        }),
-        "epoch" => std::env::var("OYA_STAGE1_EPOCH_SCHEMA").unwrap_or_else(|_| {
-            format!("{manifest_dir}/../../specs/stage1-evidence-epoch.schema.json")
-        }),
+    let (environment, repository_path) = match relative {
+        "program" => (
+            "OYA_STAGE1_PROGRAM_SCHEMA",
+            "specs/stage1-closure-program.schema.json",
+        ),
+        "epoch" => (
+            "OYA_STAGE1_EPOCH_SCHEMA",
+            "specs/stage1-evidence-epoch.schema.json",
+        ),
+        "protected-facts" => (
+            "OYA_STAGE1_PROTECTED_FACTS_SCHEMA",
+            "specs/stage1-protected-facts.schema.json",
+        ),
+        "admission-envelope" => (
+            "OYA_STAGE1_ADMISSION_ENVELOPE_SCHEMA",
+            "specs/stage1-admission-envelope.schema.json",
+        ),
         _ => panic!("unknown schema fixture {relative}"),
     };
+    let path = std::env::var(environment).unwrap_or_else(|_| {
+        let manifest_dir = std::env::var("CARGO_MANIFEST_DIR")
+            .expect("schema input must be declared by Buck or Cargo");
+        format!("{manifest_dir}/../../{repository_path}")
+    });
     let source = std::fs::read_to_string(path).expect("schema is a declared readable input");
     serde_json::from_str(&source).expect("schema parses")
 }
@@ -598,13 +611,7 @@ fn red_incomplete_successor_and_pr_head_envelope_are_rejected() {
 #[test]
 fn admission_envelope_matches_schema_fields_and_remains_non_authoritative() {
     let envelope = admission_envelope();
-    let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").expect("manifest directory");
-    let schema_source = std::fs::read_to_string(format!(
-        "{manifest_dir}/../../specs/stage1-admission-envelope.schema.json"
-    ))
-    .expect("admission envelope schema is present");
-    let schema: Value =
-        serde_json::from_str(&schema_source).expect("admission envelope schema parses");
+    let schema = schema("admission-envelope");
     let mut schema_required = schema["required"]
         .as_array()
         .expect("schema required fields")
@@ -692,12 +699,7 @@ fn red_placeholder_facts_and_envelope_never_authorize() {
 
 #[test]
 fn red_authority_receipt_binding_requires_closed_identity_and_authority_fields() {
-    let source = std::fs::read_to_string(format!(
-        "{}/../../specs/stage1-protected-facts.schema.json",
-        std::env::var("CARGO_MANIFEST_DIR").expect("manifest directory")
-    ))
-    .expect("protected facts schema is present");
-    let schema: Value = serde_json::from_str(&source).expect("protected facts schema parses");
+    let schema = schema("protected-facts");
     let binding = &schema["$defs"]["authority_receipt_binding"];
     let required = binding["required"]
         .as_array()
@@ -728,12 +730,7 @@ fn red_authority_receipt_binding_requires_closed_identity_and_authority_fields()
 
 #[test]
 fn red_control_specific_authority_roles_and_cardinality_are_declared() {
-    let source = std::fs::read_to_string(format!(
-        "{}/../../specs/stage1-protected-facts.schema.json",
-        std::env::var("CARGO_MANIFEST_DIR").expect("manifest directory")
-    ))
-    .expect("protected facts schema is present");
-    let schema: Value = serde_json::from_str(&source).expect("protected facts schema parses");
+    let schema = schema("protected-facts");
     let binding_rules = schema["$defs"]["authority_receipt_binding"]["allOf"]
         .as_array()
         .expect("control role rules");
@@ -1087,11 +1084,7 @@ fn protected_facts_grammar_rejects_authority_cardinality_identity_and_digest_fai
 
 #[test]
 fn receipt_validation_has_no_legacy_authority_field_reads() {
-    let source = std::fs::read_to_string(format!(
-        "{}/src/lib.rs",
-        std::env::var("CARGO_MANIFEST_DIR").expect("manifest directory")
-    ))
-    .expect("library source");
+    let source = include_str!("../src/lib.rs");
     for legacy in [
         "issuer_".to_owned() + "id",
         "issuer_".to_owned() + "class",
