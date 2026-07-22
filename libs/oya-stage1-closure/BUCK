@@ -22,12 +22,14 @@ rust_test(
 
 rust_test(
     name = "stage1-closure-contract",
-    srcs = glob(["tests/**/*.rs", "tests/**/*.json"]),
+    srcs = glob(["src/lib.rs", "tests/**/*.rs", "tests/**/*.json"]),
     crate = "stage1_closure_contract",
     crate_root = "tests/stage1_closure.rs",
     env = {
         "OYA_STAGE1_PROGRAM_SCHEMA": "$(location //specs:stage1-closure-program.schema.json)",
         "OYA_STAGE1_EPOCH_SCHEMA": "$(location //specs:stage1-evidence-epoch.schema.json)",
+        "OYA_STAGE1_PROTECTED_FACTS_SCHEMA": "$(location //specs:stage1-protected-facts.schema.json)",
+        "OYA_STAGE1_ADMISSION_ENVELOPE_SCHEMA": "$(location //specs:stage1-admission-envelope.schema.json)",
     },
     visibility = ["PUBLIC"],
     deps = [
