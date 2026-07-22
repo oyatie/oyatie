@@ -114,6 +114,8 @@ fn pass_epoch() -> Value {
         "findings_resolved_or_carried": true,
         "receipt_ref": receipt("fresh-dissent-reviewer", "independent-dissent")
     });
+    epoch["controls"][12]["receipt_refs"] = json!([epoch["lenses"][0]["receipt_ref"].clone()]);
+    epoch["controls"][13]["receipt_refs"] = json!([epoch["fresh_dissent"]["receipt_ref"].clone()]);
     epoch["context_free_exit"] = json!({
         "status": "satisfied",
         "subject_digest": SUBJECT_DIGEST,
@@ -148,6 +150,7 @@ fn protected_facts(epoch: &Value) -> Value {
     for control in epoch["controls"].as_array().expect("controls") {
         let control_id = control["control_id"].as_str().expect("control id");
         let role = match control_id {
+            "C01" | "C02" | "C03" | "C04" | "C05" | "C12" => Some("machine-evidence"),
             "C06" => Some("qualified-legal-compliance"),
             "C07" => Some("affected-party-representation"),
             "C08" => Some("operations-owner-capacity"),
@@ -288,11 +291,11 @@ fn public_protected_facts_linkage_remains_non_authoritative_and_held() {
             .any(|finding| finding.contains("HOLD_EPOCH_OPEN"))
     );
     assert!(
-        report
-            .findings
-            .iter()
-            .all(|finding| !finding.starts_with("C13/") && !finding.starts_with("C15/")),
-        "C13/C15 linkage must be exercised by the public evaluator: {:?}",
+        report.findings.iter().all(|finding| {
+            finding.contains("external authenticated Stage-1 controller")
+                || finding.contains("protected-facts linkage is structural")
+        }),
+        "full source-to-protected linkage must have only intentional HOLD denials: {:?}",
         report.findings
     );
 }
@@ -1124,6 +1127,41 @@ fn grammar_receipt(
 fn grammar_facts() -> Value {
     let mut receipts = vec![
         grammar_receipt(
+            "C01",
+            "machine-evidence",
+            "machine-verifiable",
+            "machine-evidence",
+            "foundation-01",
+        ),
+        grammar_receipt(
+            "C02",
+            "machine-evidence",
+            "machine-verifiable",
+            "machine-evidence",
+            "foundation-02",
+        ),
+        grammar_receipt(
+            "C03",
+            "machine-evidence",
+            "machine-verifiable",
+            "machine-evidence",
+            "foundation-03",
+        ),
+        grammar_receipt(
+            "C04",
+            "machine-evidence",
+            "machine-verifiable",
+            "machine-evidence",
+            "foundation-04",
+        ),
+        grammar_receipt(
+            "C05",
+            "machine-evidence",
+            "machine-verifiable",
+            "machine-evidence",
+            "foundation-05",
+        ),
+        grammar_receipt(
             "C06",
             "qualified-legal-compliance",
             "qualified-human",
@@ -1178,6 +1216,13 @@ fn grammar_facts() -> Value {
             "independent-dissent",
             "fresh-independent-dissent",
             "dissent",
+        ),
+        grammar_receipt(
+            "C12",
+            "machine-evidence",
+            "machine-verifiable",
+            "machine-evidence",
+            "foundation-12",
         ),
         grammar_receipt(
             "C15",
@@ -1367,6 +1412,149 @@ fn protected_facts_grammar_rejects_authority_cardinality_identity_and_digest_fai
     mismatched_digest["receipt_bindings"][0]["program_digest"] =
         json!("sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc");
     assert!(!validate_protected_facts_grammar(&mismatched_digest).is_green());
+}
+
+#[test]
+fn schema_equivalent_closed_shapes_reject_locator_types_extra_records_and_unknown_keys() {
+    type Mutation = (&'static str, fn(&mut Value));
+
+    for (field, value) in [
+        ("path", json!(17)),
+        ("path", json!("")),
+        ("blob_oid", json!("not-an-oid")),
+        ("sha256", json!("not-a-digest")),
+    ] {
+        let mut facts = grammar_facts();
+        facts["receipt_bindings"][0][field] = value;
+        assert!(
+            validate_protected_facts_grammar(&facts)
+                .findings
+                .iter()
+                .any(|finding| finding.contains(field)),
+            "protected receipt {field} must use its schema shape"
+        );
+    }
+    let mut unsupported = grammar_facts();
+    unsupported["receipt_bindings"]
+        .as_array_mut()
+        .expect("bindings")
+        .push(grammar_receipt(
+            "C01",
+            "qualified-legal-compliance",
+            "machine-verifiable",
+            "machine-evidence",
+            "unsupported",
+        ));
+    assert!(
+        validate_protected_facts_grammar(&unsupported)
+            .findings
+            .iter()
+            .any(|finding| finding.contains("unsupported control/role/lens"))
+    );
+
+    let program_mutations: [Mutation; 7] = [
+        ("program", |value| value["unexpected"] = json!(true)),
+        ("transition", |value| {
+            value["transitions"][0]["unexpected"] = json!(true)
+        }),
+        ("group", |value| {
+            value["groups"][0]["unexpected"] = json!(true)
+        }),
+        ("program control", |value| {
+            value["controls"][0]["unexpected"] = json!(true)
+        }),
+        ("program lens", |value| {
+            value["lenses"][0]["unexpected"] = json!(true)
+        }),
+        ("candidate_effects", |value| {
+            value["candidate_effects"]["unexpected"] = json!(true)
+        }),
+        ("mutation_policy", |value| {
+            value["mutation_policy"]["unexpected"] = json!(true)
+        }),
+    ];
+    for (shape, mutate) in program_mutations {
+        let mut candidate = program();
+        mutate(&mut candidate);
+        assert!(
+            evaluate_program(&candidate)
+                .findings
+                .iter()
+                .any(|finding| finding.contains(shape) && finding.contains("unknown field"))
+        );
+    }
+
+    let epoch_mutations: [Mutation; 8] = [
+        ("epoch", |value| value["unexpected"] = json!(true)),
+        ("subject_binding", |value| {
+            value["subject_binding"]["unexpected"] = json!(true)
+        }),
+        ("planning", |value| {
+            value["planning"]["unexpected"] = json!(true)
+        }),
+        ("epoch control", |value| {
+            value["controls"][0]["unexpected"] = json!(true)
+        }),
+        ("epoch lens", |value| {
+            value["lenses"][0]["unexpected"] = json!(true)
+        }),
+        ("fresh_dissent", |value| {
+            value["fresh_dissent"]["unexpected"] = json!(true)
+        }),
+        ("immutable_successor", |value| {
+            value["immutable_successor"]["unexpected"] = json!(true)
+        }),
+        ("context_free_exit", |value| {
+            value["context_free_exit"]["unexpected"] = json!(true)
+        }),
+    ];
+    for (shape, mutate) in epoch_mutations {
+        let mut candidate = hold_epoch();
+        mutate(&mut candidate);
+        assert!(
+            evaluate_source_epoch(&program(), &candidate)
+                .findings
+                .iter()
+                .any(|finding| finding.contains(shape) && finding.contains("unknown field"))
+        );
+    }
+
+    let mut successor_ref = pass_epoch();
+    successor_ref["immutable_successor"]["facts_ref"]["unexpected"] = json!(true);
+    assert!(
+        evaluate_source_epoch(&program(), &successor_ref)
+            .findings
+            .iter()
+            .any(|finding| finding.contains("immutable_successor.facts_ref")
+                && finding.contains("unknown field"))
+    );
+
+    let mut open_successor_ref = hold_epoch();
+    open_successor_ref["immutable_successor"]["facts_ref"] = json!({"unexpected": true});
+    assert!(
+        evaluate_source_epoch(&program(), &open_successor_ref)
+            .findings
+            .iter()
+            .any(|finding| finding.contains("immutable_successor.facts_ref")
+                && finding.contains("unknown field"))
+    );
+
+    let mut blocker = hold_epoch();
+    blocker["blockers"] = json!([{
+        "control_id": "C06",
+        "input_class": "legal-review",
+        "required_qualification": "licensed-jcr-reviewer",
+        "scope": "stage1-closure",
+        "authority_source_ref": "authority://legal",
+        "reason": "review is pending",
+        "unexpected": true
+    }]);
+    assert!(
+        evaluate_source_epoch(&program(), &blocker)
+            .findings
+            .iter()
+            .any(|finding| finding.contains("blockers[0]") && finding.contains("unknown field"))
+    );
 }
 
 #[test]
