@@ -751,6 +751,14 @@ pub fn evaluate_history_only_retirement_receipt_coverage(
                                         .pointer("/baseline/tree_oid")
                                         .and_then(Value::as_str)
                                         != Some(preparation.baseline_tree_oid.as_str())
+                                    || predecessor.get("commit_oid").and_then(Value::as_str)
+                                        != Some(preparation.baseline_commit_oid.as_str())
+                                    || predecessor.get("tree_oid").and_then(Value::as_str)
+                                        != Some(preparation.baseline_tree_oid.as_str())
+                                    || predecessor.get("commit_oid")
+                                        == protected_context.get("candidate_commit_oid")
+                                    || predecessor.get("tree_oid")
+                                        == protected_context.get("candidate_tree_oid")
                             })
                     {
                         fail(&mut findings, "closed_carried_predecessor_link");
@@ -816,6 +824,10 @@ pub fn evaluate_history_only_retirement_receipt_coverage(
                         == protected_context.get("candidate_commit_oid")
                     || receipt.pointer("/baseline/tree_oid")
                         == protected_context.get("candidate_tree_oid")
+                    || fact.pointer("/predecessor_context/commit_oid")
+                        != receipt.pointer("/baseline/commit_oid")
+                    || fact.pointer("/predecessor_context/tree_oid")
+                        != receipt.pointer("/baseline/tree_oid")
                 {
                     fail(&mut findings, "closure_preparation_link");
                 }
@@ -2375,6 +2387,15 @@ mod tests {
             "a protected preparation must close through a separate linked receipt"
         );
 
+        let mut candidate_predecessor = corpus.clone();
+        candidate_predecessor["scm_facts"]["retirement_receipt_object_facts"][0]["predecessor_context"]
+            ["commit_oid"] = json!(NEW);
+        assert!(
+            evaluate_history_only_retirement_receipts(&candidate_predecessor).contains(
+                &Finding::new(RETIREMENT_RECEIPT_CODE, "closure_preparation_link")
+            )
+        );
+
         for (pointer, value) in [
             (
                 "/receipts/0/receipt/protected_preparation/receipt_blob_oid",
@@ -2560,6 +2581,14 @@ mod tests {
         let corpus = json!({"receipts":[{"receipt_path":RECEIPT_PATH,"receipt":receipt}],"scm_facts":{"retirement_receipt_coverage":{"protected_base_ref":"origin/dev","protected_receipt_paths":[RECEIPT_PATH],"candidate_receipt_paths":[RECEIPT_PATH],"carried_receipt_paths":[RECEIPT_PATH],"new_receipt_paths":[],"scopes":[{"scope_ref":"ADR-0363","scope_type":"amended-agentic-vcs-retirement","selectors":[selector],"required_retired_paths":[".omc/legacy-a.md"]}],"required_retired_paths":[".omc/legacy-a.md"]},"retirement_receipt_object_facts":[fact],"protected_scm_context":context,"retirement_control_plane_context":retirement_control_plane_context(true)}});
         let corpus_findings = evaluate_history_only_retirement_receipts(&corpus);
         assert!(corpus_findings.is_empty(), "{corpus_findings:?}");
+        let mut candidate_predecessor = corpus.clone();
+        candidate_predecessor["scm_facts"]["retirement_receipt_object_facts"][0]["predecessor_context"]
+            ["commit_oid"] = json!(NEW);
+        assert!(
+            evaluate_history_only_retirement_receipts(&candidate_predecessor).contains(
+                &Finding::new(RETIREMENT_RECEIPT_CODE, "closed_carried_predecessor_link")
+            )
+        );
         let mut missing_object_context = corpus;
         missing_object_context["scm_facts"]["protected_scm_context"]["protected_preparation_receipts"] =
             json!([]);
