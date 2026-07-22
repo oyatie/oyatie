@@ -1749,3 +1749,48 @@ fn founder_product_intent_rejects_open_type_governance_escape_and_comparator_byp
         finding.key == "benchmark_and_measurement_contract.comparator_admission"
     }));
 }
+
+#[test]
+fn founder_product_intent_rejects_pre_c06_palantir_retrieval_or_analysis() {
+    let root = repo_root();
+    let intent = load_json(&root.join("specs/founder-product-intent.json"));
+
+    let mut retrieved_source = intent.clone();
+    retrieved_source["founder_execution_authorization"]["pipeline_evolution_contract"]
+        ["research_basis"]["sources"]
+        .as_array_mut()
+        .expect("research sources")
+        .push(serde_json::json!({
+            "source_id": "palantir-foundry-retrieval",
+            "url": "https://www.palantir.com/docs/foundry/example",
+            "scope": "retrieved product capability",
+            "adoption": "analyzed comparative adoption",
+            "classification": "harvested-provenance",
+            "collection_status": "retrieved-before-qualified-legal-jcr-disposition",
+            "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
+            "evidence_eligible": false,
+            "automated_expansion_allowed": false,
+            "quarantine": {
+                "status": "harvested-provenance-not-admitted-evidence",
+                "preserved": true,
+                "evidence_eligible": false,
+                "automated_expansion_allowed": false,
+                "claim_allowed": false,
+                "legal_jcr_disposition": "unresolved"
+            }
+        }));
+    let retrieved_findings = evaluate_founder_product_intent_agreement(&retrieved_source);
+    assert!(retrieved_findings.iter().any(|finding| {
+        finding.key
+            == "founder_execution_authorization.pipeline_evolution_contract.research_basis.sources[palantir-foundry-retrieval]"
+    }));
+
+    let mut analyzed_pointer = intent;
+    analyzed_pointer["benchmark_and_measurement_contract"]["palantir_comparator_refs"][0]["state"] =
+        Value::String("retrieved-before-qualified-legal-jcr-disposition".to_owned());
+    let pointer_findings = evaluate_founder_product_intent_agreement(&analyzed_pointer);
+    assert!(pointer_findings.iter().any(|finding| {
+        finding.key
+            == "benchmark_and_measurement_contract.palantir_comparator_refs[palantir-apollo-helm-rollouts]"
+    }));
+}
