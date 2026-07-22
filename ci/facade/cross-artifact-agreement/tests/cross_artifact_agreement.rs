@@ -9,15 +9,17 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use ci_cross_artifact_agreement::{
-    AdrDecisionRecord, GateCoverageBaseline, RatchetReport, Verdict,
+    AdrDecisionRecord, GateCoverageBaseline, RETIREMENT_RECEIPT_VALIDATOR, RatchetReport, Verdict,
     derive_masterplan_md_projection, evaluate, evaluate_adr_index_projection_parity,
-    evaluate_adr_prose_frontmatter_status, evaluate_masterplan_plan_evidence_crosscheck,
-    evaluate_masterplan_projection_rederivation, evaluate_masterplan_read_surface_resurrections,
-    evaluate_masterplan_v2_authority, evaluate_masterplan_v2_entry_surfaces,
-    evaluate_masterplan_v2_evidence_state, evaluate_masterplan_v2_plan_evidence_drift,
+    evaluate_adr_prose_frontmatter_status, evaluate_history_only_retirement_receipt_coverage,
+    evaluate_history_only_retirement_receipt_with_decisions,
+    evaluate_masterplan_plan_evidence_crosscheck, evaluate_masterplan_projection_rederivation,
+    evaluate_masterplan_read_surface_resurrections, evaluate_masterplan_v2_authority,
+    evaluate_masterplan_v2_entry_surfaces, evaluate_masterplan_v2_evidence_state,
+    evaluate_masterplan_v2_history_only_retirement, evaluate_masterplan_v2_plan_evidence_drift,
     evaluate_masterplan_v2_program_coverage, evaluate_masterplan_v2_projection_freshness,
-    evaluate_masterplan_v2_ratification_digest, evaluate_masterplan_v2_read_contract_archives,
-    evaluate_masterplan_v2_sequencing, evaluate_registry_derived_policy_sync, ratchet,
+    evaluate_masterplan_v2_ratification_digest, evaluate_masterplan_v2_sequencing,
+    evaluate_registry_derived_policy_sync, ratchet,
 };
 use serde_json::Value;
 
@@ -49,11 +51,43 @@ fn producer_binary(root: &Path, producer_bin: Option<&str>) -> Result<PathBuf, S
     })
 }
 
+fn staged_admission_input(
+    root: &Path,
+    env_name: &str,
+    configured_path: Option<&str>,
+) -> Result<PathBuf, String> {
+    let Some(path) = configured_path else {
+        return Err(format!(
+            "FAIL-CLOSED: missing {env_name}; same-run staged admission input is required"
+        ));
+    };
+    if path.trim().is_empty() {
+        return Err(format!(
+            "FAIL-CLOSED: {env_name} must identify the same-run staged admission input"
+        ));
+    }
+    Ok(if Path::new(path).is_absolute() {
+        PathBuf::from(path)
+    } else {
+        root.join(path)
+    })
+}
+
 #[test]
 fn producer_binary_env_is_required_for_hermetic_gate() {
     let err = producer_binary(Path::new("/repo"), None)
         .expect_err("missing OYA_CI_PRODUCER_BIN must fail closed");
     assert!(err.contains("OYA_CI_PRODUCER_BIN"));
+}
+
+#[test]
+fn scm_face_env_is_required_for_out_of_graph_admission() {
+    for env_name in ["OYA_CI_SCM_FACTS_PATH", "OYA_CI_SCM_VOLATILE_FACTS_PATH"] {
+        let err = staged_admission_input(Path::new("/repo"), env_name, None)
+            .expect_err("missing same-run staged SCM input must fail closed");
+        assert!(err.contains(env_name));
+        assert!(err.contains("same-run staged admission input"));
+    }
 }
 
 fn fixture_dir() -> PathBuf {
@@ -336,7 +370,7 @@ fn masterplan_v2_plan_vs_evidence_drift_contract_is_green() {
 /// import must cross-check against RECORDED completion evidence. The
 /// resolution universe is the committed scm-facts face `tracked_paths` (the
 /// same declared input the producer reads), so a dangling evidence pointer, a
-/// ref at a retired (absorbed / archived-with-provenance) surface, or a
+/// ref at a retired (absorbed / retired-git-history-only) surface, or a
 /// verified 'done' claim without a merged commit / merged-PR record /
 /// tracked product-completion packet anywhere in the live masterplan turns
 /// this test RED.
@@ -523,14 +557,131 @@ fn masterplan_v2_projection_freshness_contract_is_green() {
     );
 }
 #[test]
-fn masterplan_v2_read_contract_archive_gate_is_green() {
+fn masterplan_v2_history_only_retirement_gate_is_green() {
     let root = repo_root();
     let masterplan = load_json(&root.join("specs/masterplan.json"));
-    let findings = evaluate_masterplan_v2_read_contract_archives(&masterplan);
+    let findings = evaluate_masterplan_v2_history_only_retirement(&masterplan);
     assert!(
         findings.is_empty(),
-        "archived stale read paths must only be referenced as provenance archives: {findings:?}"
+        "history-only retired paths must have no current-tree read references: {findings:?}"
     );
+}
+
+#[test]
+fn history_only_retirement_receipts_are_bound_to_protected_git_object_facts() {
+    let root = repo_root();
+    let retirement_policy = load_json(&root.join("specs/markdown-retirement-policy.json"));
+    let scm_facts_path = staged_admission_input(
+        &root,
+        "OYA_CI_SCM_FACTS_PATH",
+        std::env::var("OYA_CI_SCM_FACTS_PATH").ok().as_deref(),
+    )
+    .unwrap_or_else(|error| panic!("{error}"));
+    let volatile_facts_path = staged_admission_input(
+        &root,
+        "OYA_CI_SCM_VOLATILE_FACTS_PATH",
+        std::env::var("OYA_CI_SCM_VOLATILE_FACTS_PATH")
+            .ok()
+            .as_deref(),
+    )
+    .unwrap_or_else(|error| panic!("{error}"));
+    let scm_facts = load_json(&scm_facts_path);
+    let volatile_facts = load_json(&volatile_facts_path);
+    let registry = load_json(&root.join("registry/artifact-capabilities-registry.json"));
+    let decisions = load_json(&root.join("docs/machine-readable/decisions.json"));
+
+    let receipt_paths = retirement_policy
+        .pointer("/retention_rules/repository_history_only_contract/neutral_receipt_paths")
+        .and_then(serde_json::Value::as_array)
+        .expect("history-only policy must declare neutral_receipt_paths as an array");
+    assert!(
+        !receipt_paths.is_empty(),
+        "history-only policy must bind at least one neutral receipt"
+    );
+
+    let policy_paths = receipt_paths
+        .iter()
+        .map(|value| {
+            value
+                .as_str()
+                .expect("neutral_receipt_paths entries must be strings")
+        })
+        .collect::<BTreeSet<_>>();
+    assert_eq!(
+        policy_paths.len(),
+        receipt_paths.len(),
+        "neutral_receipt_paths must not contain duplicates"
+    );
+    let registry_paths = registry["rows"]
+        .as_array()
+        .expect("artifact registry rows")
+        .iter()
+        .filter(|row| {
+            row.pointer("/capability_overrides/validation/validator")
+                .and_then(Value::as_str)
+                == Some(RETIREMENT_RECEIPT_VALIDATOR)
+        })
+        .map(|row| {
+            row.get("artifact_path")
+                .and_then(Value::as_str)
+                .and_then(|path| path.strip_prefix('/'))
+                .expect("retirement receipt registry path")
+        })
+        .collect::<BTreeSet<_>>();
+    assert_eq!(
+        registry_paths, policy_paths,
+        "policy and registry must provide exact retirement-receipt coverage"
+    );
+    let object_fact_paths = volatile_facts["retirement_receipt_object_facts"]
+        .as_array()
+        .expect("retirement receipt object facts")
+        .iter()
+        .map(|fact| {
+            fact.get("receipt_path")
+                .and_then(Value::as_str)
+                .expect("retirement receipt object-fact path")
+        })
+        .collect::<BTreeSet<_>>();
+    assert_eq!(
+        object_fact_paths, policy_paths,
+        "protected object facts must exactly cover the policy receipt set"
+    );
+
+    let receipts = receipt_paths
+        .iter()
+        .map(|receipt_path| {
+            let receipt_path = receipt_path
+                .as_str()
+                .expect("neutral_receipt_paths entries must be strings");
+            (receipt_path, load_json(&root.join(receipt_path)))
+        })
+        .collect::<Vec<_>>();
+    let coverage_findings = evaluate_history_only_retirement_receipt_coverage(
+        &receipts
+            .iter()
+            .map(|(_, receipt)| receipt.clone())
+            .collect::<Vec<_>>(),
+        &volatile_facts,
+    );
+    assert!(
+        coverage_findings.is_empty(),
+        "protected-parent retirement coverage must exactly match all receipts: {coverage_findings:?}"
+    );
+
+    for (receipt_path, receipt) in receipts {
+        let findings = evaluate_history_only_retirement_receipt_with_decisions(
+            receipt_path,
+            &receipt,
+            &scm_facts,
+            &volatile_facts,
+            &registry,
+            &decisions,
+        );
+        assert!(
+            findings.is_empty(),
+            "history-only receipt {receipt_path} must be executable and candidate-bound: {findings:?}"
+        );
+    }
 }
 
 #[test]
@@ -617,10 +768,10 @@ fn masterplan_read_contract_entry_surface_fixtures_fail_closed() {
 
 /// Sub-AC 4.4 resurrection sweep, born-blocking over the live tree: every
 /// governed on-disk read surface (each `surface_dispositions` repo-file row
-/// dispositioned absorbed / archived-with-provenance / generated-projection —
-/// docs/MASTERPLAN.md, docs/ROADMAP.md, the retired planning specs, the
-/// repo-local provenance stores) must still carry its archive markers on
-/// disk. Stripping the archive front-matter from docs/ROADMAP.md, deleting
+/// dispositioned absorbed / retired-git-history-only / generated-projection —
+/// docs/MASTERPLAN.md, docs/ROADMAP.md, the retired planning specs, and the
+/// repo-local retired stores) must obey its disposition on disk. Keeping
+/// docs/ROADMAP.md in candidate HEAD, deleting
 /// the absorbed status from a retired spec, or re-filling any superseded
 /// authority with live-looking plan content turns this test RED. Tracked-tree
 /// membership comes from the committed scm-facts face, the same declared
@@ -654,12 +805,14 @@ fn masterplan_read_surface_resurrection_gate_is_green_on_live_tree() {
 fn live_read_surface_corpus(root: &Path, masterplan: &Value) -> Value {
     let scm_facts =
         load_json(&root.join("ci/facade/artifact-inventory-registry/scm-facts.generated.json"));
-    let tracked: BTreeSet<&str> = scm_facts["tracked_paths"]
+    let tracked_paths: Vec<String> = scm_facts["tracked_paths"]
         .as_array()
         .expect("committed scm-facts face must carry tracked_paths")
         .iter()
         .filter_map(Value::as_str)
+        .map(str::to_owned)
         .collect();
+    let tracked: BTreeSet<&str> = tracked_paths.iter().map(String::as_str).collect();
 
     let mut surfaces = Vec::new();
     let dispositions = masterplan["masterplan_v2"]["surface_dispositions"]
@@ -671,7 +824,7 @@ fn live_read_surface_corpus(root: &Path, masterplan: &Value) -> Value {
         };
         if !matches!(
             disposition,
-            "absorbed" | "archived-with-provenance" | "generated-projection"
+            "absorbed" | "retired-git-history-only" | "generated-projection"
         ) {
             continue;
         }
@@ -698,7 +851,7 @@ fn live_read_surface_corpus(root: &Path, masterplan: &Value) -> Value {
         surfaces.push(row);
     }
 
-    serde_json::json!({ "surfaces": surfaces })
+    serde_json::json!({ "tracked_paths": tracked_paths, "surfaces": surfaces })
 }
 
 /// Extract the leading `---` front-matter block from a Markdown file; when a
@@ -1202,11 +1355,17 @@ fn read_governed_citation_corpus(root: &Path) -> String {
     corpus
 }
 
-/// Run the producer to emit a single face to stdout, HERMETICALLY. The producer binary must be
-/// provided by `OYA_CI_PRODUCER_BIN`; missing env fails closed so tests cannot silently fall back to
-/// Cargo. The producer reads the materialized scm-facts face (a declared input); it never calls git.
+/// Run the producer to emit a single face to stdout. The executable is a declared Buck dependency;
+/// the de-committed SCM face is an explicit same-run staged admission input. Missing env fails
+/// closed so tests cannot silently fall back to Cargo or an implicit ambient face. The producer
+/// never calls git.
 fn run_producer_face(root: &Path, face: &str) -> Value {
-    let scm_facts = root.join("ci/facade/artifact-inventory-registry/scm-facts.generated.json");
+    let scm_facts = staged_admission_input(
+        root,
+        "OYA_CI_SCM_FACTS_PATH",
+        std::env::var("OYA_CI_SCM_FACTS_PATH").ok().as_deref(),
+    )
+    .unwrap_or_else(|error| panic!("{error}"));
     let producer_bin = std::env::var("OYA_CI_PRODUCER_BIN").ok();
     let bin = producer_binary(root, producer_bin.as_deref()).unwrap_or_else(|e| panic!("{e}"));
     let output = Command::new(bin)

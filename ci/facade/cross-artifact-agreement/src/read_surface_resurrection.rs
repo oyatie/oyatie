@@ -1,10 +1,10 @@
 //! Read-surface resurrection lane of the read-contract/entry-surface gate
 //! (masterplan v2 consolidation, Sub-AC 4.4).
 //!
-//! `evaluate_masterplan_v2_read_contract_archives` (lib.rs) proves the
-//! DECLARED read policy: an archived-with-provenance path may only be
-//! referenced through `provenance-archive` read contracts, projection rows,
-//! and read-path references. `evaluate_masterplan_v2_entry_surfaces` (lib.rs)
+//! `evaluate_masterplan_v2_history_only_retirement` (lib.rs) proves the
+//! DECLARED read policy: a `retired-git-history-only` path may not appear in
+//! read contracts, projection rows, or read-path references.
+//! `evaluate_masterplan_v2_entry_surfaces` (lib.rs)
 //! proves the BOUNDED entry surface: entry-surface read contracts equal
 //! exactly the root-hub allowlist and never revive a superseded entrypoint.
 //! This module closes the remaining hole — the ON-DISK surface itself. A
@@ -20,9 +20,8 @@
 //! - **missing canonical pointer** — a governed on-disk surface that no
 //!   longer points its readers at `/specs/masterplan.json`
 //!   (`canonical_authority:`/`absorbed_by:` line or field);
-//! - **missing archive read-timing declaration** — an
-//!   `archived-with-provenance` front-matter doc that drops its
-//!   `read_timing_class: provenance-archive` self-declaration;
+//! - **history-only surface still present** — a surface dispositioned
+//!   `retired-git-history-only` still has candidate-HEAD bytes;
 //! - **unaudited opaque data** — a governed data file (e.g. a `.jsonl`
 //!   provenance ledger) whose disposition row's `surface_class` does not
 //!   classify it as provenance/archive;
@@ -33,13 +32,15 @@
 //!   the sweep cannot prove archived is never admitted as archived.
 //!
 //! The evaluator is pure: the caller assembles the `read_surface_corpus`
-//! from the tree (tracked-path membership from the committed scm-facts face
-//! plus on-disk front-matter/JSON facts) — the evaluator itself does no I/O.
+//! from the tree (the complete tracked-path membership from the committed
+//! scm-facts face plus on-disk front-matter/JSON facts) — the evaluator itself
+//! does no I/O. The tracked-path list is also used to expand retired repo
+//! globs, so `.omc/**`-class surfaces cannot evade candidate-HEAD absence.
 //! The governed universe is derived MECHANICALLY from
 //! `masterplan_v2.surface_dispositions` (every repo-file row dispositioned
-//! `absorbed`, `archived-with-provenance`, or `generated-projection`), never
-//! from a hand list. Deleted surfaces (`exists: false`) are the strongest
-//! archive and pass. Carve-outs live as DATA, never as evaluator branches.
+//! `absorbed`, `retired-git-history-only`, or `generated-projection`), never
+//! from a hand list. History-only surfaces pass only with `exists: false`.
+//! Carve-outs live as DATA, never as evaluator branches.
 //! ADR-0083 Tier-3: production code carries no unwrap/expect/panic.
 
 use std::collections::BTreeMap;
@@ -60,20 +61,19 @@ pub const READ_SURFACE_RESURRECTION_VALIDATOR: &str =
 pub const RESURRECTION_CODE: &str = "masterplan_read_contract_invalid";
 
 const DISPOSITION_ABSORBED: &str = "absorbed";
-const DISPOSITION_ARCHIVED_WITH_PROVENANCE: &str = "archived-with-provenance";
+const DISPOSITION_RETIRED_GIT_HISTORY_ONLY: &str = "retired-git-history-only";
 const DISPOSITION_GENERATED_PROJECTION: &str = "generated-projection";
 
 /// Status markers that mechanically declare a surface non-live. Matches the
 /// stale-entrypoint marker vocabulary used by the entry-surface lane plus the
 /// explicit archive tokens the consolidation writes into retired specs.
-const NON_LIVE_STATUS_MARKERS: [&str; 7] = [
+const NON_LIVE_STATUS_MARKERS: [&str; 6] = [
     "not-live-plan-authority",
     "superseded",
     "retired",
     "provenance",
     "historical",
     "absorbed",
-    "archived",
 ];
 
 fn resurrection(key: &str) -> Finding {
@@ -85,7 +85,7 @@ fn resurrection(key: &str) -> Finding {
 struct GovernedSurface {
     /// The disposition row's `path` as written (violation-key display form).
     display_path: String,
-    /// `absorbed` | `archived-with-provenance` | `generated-projection`.
+    /// `absorbed` | `retired-git-history-only` | `generated-projection`.
     disposition: String,
     /// The disposition row's `surface_class` (empty when absent).
     surface_class: String,
@@ -96,6 +96,7 @@ struct GovernedSurface {
 /// `corpus` shape (assembled by the caller from the tree):
 /// ```jsonc
 /// {
+///   "tracked_paths": ["specs/masterplan.json", "docs/MASTERPLAN.md"],
 ///   "surfaces": [
 ///     { "path": "docs/ROADMAP.md", "exists": true,
 ///       "front_matter": "doc_class: RoadmapArchive\n…" },          // *.md
@@ -122,6 +123,13 @@ pub fn evaluate_masterplan_read_surface_resurrections(
     if governed.is_empty() {
         return findings;
     }
+    let retired_repo_globs =
+        history_only_retired_repo_glob_prefixes(v2.get("surface_dispositions"));
+    evaluate_retired_repo_glob_absence(
+        corpus.get("tracked_paths"),
+        &retired_repo_globs,
+        &mut findings,
+    );
 
     let Some(rows) = corpus.get("surfaces").and_then(Value::as_array) else {
         findings.insert(resurrection("<missing-read-surface-corpus>"));
@@ -167,7 +175,7 @@ pub fn evaluate_masterplan_read_surface_resurrections(
 
 /// Derive the governed on-disk read-surface universe from
 /// `surface_dispositions`: every row dispositioned `absorbed`,
-/// `archived-with-provenance`, or `generated-projection` whose path is a
+/// `retired-git-history-only`, or `generated-projection` whose path is a
 /// repo file path (no `#fragment`, no glob, not a home-directory store).
 fn governed_read_surfaces(
     surfaces: Option<&Value>,
@@ -184,7 +192,7 @@ fn governed_read_surfaces(
             continue;
         };
         if disposition != DISPOSITION_ABSORBED
-            && disposition != DISPOSITION_ARCHIVED_WITH_PROVENANCE
+            && disposition != DISPOSITION_RETIRED_GIT_HISTORY_ONLY
             && disposition != DISPOSITION_GENERATED_PROJECTION
         {
             continue;
@@ -218,16 +226,87 @@ fn is_repo_file_path(path: &str) -> bool {
     !path.contains('#') && !path.contains('*') && !path.trim_start().starts_with('~')
 }
 
+fn history_only_retired_repo_glob_prefixes(surfaces: Option<&Value>) -> BTreeMap<String, String> {
+    let mut prefixes = BTreeMap::new();
+    let Some(surfaces) = surfaces.and_then(Value::as_array) else {
+        return prefixes;
+    };
+
+    for surface in surfaces {
+        if non_empty_field(surface, "disposition") != Some(DISPOSITION_RETIRED_GIT_HISTORY_ONLY) {
+            continue;
+        }
+        let Some(path) = non_empty_field(surface, "path") else {
+            continue;
+        };
+        if path.contains('#') || path.trim_start().starts_with('~') {
+            continue;
+        }
+        let Some(prefix) = path.strip_suffix("/**") else {
+            continue;
+        };
+        let normalized = normalize_read_path_for_match(prefix);
+        if !normalized.is_empty() {
+            prefixes.insert(format!("{normalized}/"), path.to_owned());
+        }
+    }
+
+    prefixes
+}
+
+fn evaluate_retired_repo_glob_absence(
+    tracked_paths: Option<&Value>,
+    retired_repo_globs: &BTreeMap<String, String>,
+    findings: &mut BTreeSet<Finding>,
+) {
+    if retired_repo_globs.is_empty() {
+        return;
+    }
+    let Some(tracked_paths) = tracked_paths.and_then(Value::as_array) else {
+        findings.insert(resurrection("<missing-read-surface-tracked-paths>"));
+        return;
+    };
+
+    for (index, path) in tracked_paths.iter().enumerate() {
+        let Some(path) = path.as_str().filter(|path| !path.trim().is_empty()) else {
+            findings.insert(resurrection(&format!(
+                "read_surface_tracked_paths[{index}]"
+            )));
+            continue;
+        };
+        let normalized = normalize_read_path_for_match(path);
+        if retired_repo_globs
+            .keys()
+            .any(|prefix| normalized.starts_with(prefix))
+        {
+            findings.insert(resurrection(&format!(
+                "{path}.retired_git_history_only_surface_present"
+            )));
+        }
+    }
+}
+
 fn evaluate_surface_row(row: &Value, surface: &GovernedSurface, findings: &mut BTreeSet<Finding>) {
     let path = surface.display_path.as_str();
-    match row.get("exists").and_then(Value::as_bool) {
-        // A deleted surface is the strongest archive.
-        Some(false) => return,
-        Some(true) => {}
+    let exists = match row.get("exists").and_then(Value::as_bool) {
+        Some(exists) => exists,
         None => {
             findings.insert(resurrection(&format!("{path}.read_surface_corpus_exists")));
             return;
         }
+    };
+
+    if surface.disposition == DISPOSITION_RETIRED_GIT_HISTORY_ONLY {
+        if exists {
+            findings.insert(resurrection(&format!(
+                "{path}.retired_git_history_only_surface_present"
+            )));
+        }
+        return;
+    }
+
+    if !exists {
+        return;
     }
 
     if let Some(front_matter) = non_empty_field(row, "front_matter") {
@@ -271,15 +350,6 @@ fn evaluate_front_matter_facts(
         findings.insert(resurrection(&format!(
             "{path}.resurrected.canonical_authority"
         )));
-    }
-
-    if surface.disposition == DISPOSITION_ARCHIVED_WITH_PROVENANCE {
-        let declared_archive_timing = lines.contains(&"read_timing_class: provenance-archive");
-        if !declared_archive_timing {
-            findings.insert(resurrection(&format!(
-                "{path}.resurrected.provenance_archive_read_timing"
-            )));
-        }
     }
 }
 
@@ -372,28 +442,28 @@ mod tests {
                     },
                     {
                         "path": "docs/ROADMAP.md",
-                        "surface_class": "provenance-archive",
-                        "disposition": "archived-with-provenance"
+                        "surface_class": "retired-authority",
+                        "disposition": "retired-git-history-only"
                     },
                     {
                         "path": ".omc/ultragoal/friction-ledger.jsonl",
-                        "surface_class": "repo-local-operational-provenance",
-                        "disposition": "archived-with-provenance"
+                        "surface_class": "retired-harness-store",
+                        "disposition": "retired-git-history-only"
                     },
                     {
                         "path": ".omc/ultragoal/goals.json",
                         "surface_class": "missing-legacy-surface",
-                        "disposition": "archived-with-provenance"
+                        "disposition": "retired-git-history-only"
                     },
                     {
                         "path": ".omc/**",
-                        "surface_class": "repo-local-harness-store-provenance",
-                        "disposition": "archived-with-provenance"
+                        "surface_class": "retired-harness-store",
+                        "disposition": "retired-git-history-only"
                     },
                     {
                         "path": "~/.omx/**",
-                        "surface_class": "global-harness-store-provenance",
-                        "disposition": "archived-with-provenance"
+                        "surface_class": "retired-external-harness-store",
+                        "disposition": "retired-git-history-only"
                     }
                 ]
             }
@@ -410,6 +480,7 @@ mod tests {
 
     fn clean_corpus() -> Value {
         json!({
+            "tracked_paths": [],
             "surfaces": [
                 {
                     "path": "/specs/master-plan-sequencing.json",
@@ -431,13 +502,11 @@ mod tests {
                 },
                 {
                     "path": "docs/ROADMAP.md",
-                    "exists": true,
-                    "front_matter": archived_roadmap_front_matter()
+                    "exists": false
                 },
                 {
                     "path": ".omc/ultragoal/friction-ledger.jsonl",
-                    "exists": true,
-                    "opaque_data": true
+                    "exists": false
                 },
                 {
                     "path": ".omc/ultragoal/goals.json",
@@ -448,30 +517,28 @@ mod tests {
     }
 
     #[test]
-    fn clean_archive_sweep_is_green() {
+    fn clean_history_only_retirement_sweep_is_green() {
         let findings =
             evaluate_masterplan_read_surface_resurrections(&minimal_masterplan(), &clean_corpus());
         assert!(
             findings.is_empty(),
-            "genuinely archived on-disk surfaces must pass the sweep: {findings:?}"
+            "history-only retired surfaces absent from candidate HEAD must pass: {findings:?}"
         );
     }
 
     #[test]
-    fn resurrected_markdown_authority_fails_closed_per_missing_marker() {
+    fn resurrected_generated_markdown_authority_fails_closed_per_missing_marker() {
         let mut corpus = clean_corpus();
         for row in corpus["surfaces"].as_array_mut().expect("surfaces") {
-            if row["path"] == "docs/ROADMAP.md" {
-                // A live-looking roadmap: archive front-matter stripped.
-                row["front_matter"] = json!("doc_class: Roadmap\nstatus: Accepted\n");
+            if row["path"] == "docs/MASTERPLAN.md" {
+                row["front_matter"] = json!("doc_class: MasterPlan\nstatus: Accepted\n");
             }
         }
         let findings =
             evaluate_masterplan_read_surface_resurrections(&minimal_masterplan(), &corpus);
         for key in [
-            "docs/ROADMAP.md.resurrected.live_plan_authority",
-            "docs/ROADMAP.md.resurrected.canonical_authority",
-            "docs/ROADMAP.md.resurrected.provenance_archive_read_timing",
+            "docs/MASTERPLAN.md.resurrected.live_plan_authority",
+            "docs/MASTERPLAN.md.resurrected.canonical_authority",
         ] {
             assert!(
                 findings.contains(&Finding::new(RESURRECTION_CODE, key)),
@@ -481,17 +548,51 @@ mod tests {
     }
 
     #[test]
-    fn generated_projection_does_not_require_archive_read_timing() {
-        // docs/MASTERPLAN.md declares on-demand, not provenance-archive; the
-        // timing marker is only demanded from archived-with-provenance docs.
+    fn history_only_retirement_requires_candidate_head_absence() {
+        let masterplan = json!({
+            "masterplan_v2": {
+                "surface_dispositions": [{
+                    "path": "docs/ROADMAP.md",
+                    "surface_class": "retired-authority",
+                    "disposition": "retired-git-history-only"
+                }]
+            }
+        });
+        let corpus = json!({
+            "surfaces": [{
+                "path": "docs/ROADMAP.md",
+                "exists": true,
+                "front_matter": archived_roadmap_front_matter()
+            }]
+        });
+
+        let findings = evaluate_masterplan_read_surface_resurrections(&masterplan, &corpus);
+        assert!(findings.contains(&Finding::new(
+            RESURRECTION_CODE,
+            "docs/ROADMAP.md.retired_git_history_only_surface_present"
+        )));
+    }
+
+    #[test]
+    fn candidate_file_under_history_only_glob_fails_closed() {
+        let mut corpus = clean_corpus();
+        corpus["tracked_paths"] = json!([".omc/state/team/mailbox.json"]);
+
+        let findings =
+            evaluate_masterplan_read_surface_resurrections(&minimal_masterplan(), &corpus);
+        assert!(findings.contains(&Finding::new(
+            RESURRECTION_CODE,
+            ".omc/state/team/mailbox.json.retired_git_history_only_surface_present"
+        )));
+    }
+
+    #[test]
+    fn history_only_absence_requires_no_content_facts() {
         let findings =
             evaluate_masterplan_read_surface_resurrections(&minimal_masterplan(), &clean_corpus());
         assert!(
-            !findings.contains(&Finding::new(
-                RESURRECTION_CODE,
-                "docs/MASTERPLAN.md.resurrected.provenance_archive_read_timing"
-            )),
-            "generated projections must not be forced into provenance-archive timing"
+            findings.is_empty(),
+            "absent history-only rows need no readable content facts: {findings:?}"
         );
     }
 
@@ -598,7 +699,7 @@ mod tests {
     }
 
     #[test]
-    fn opaque_data_requires_provenance_surface_class() {
+    fn absorbed_opaque_data_requires_provenance_surface_class() {
         let mut masterplan = minimal_masterplan();
         for surface in masterplan["masterplan_v2"]["surface_dispositions"]
             .as_array_mut()
@@ -606,9 +707,17 @@ mod tests {
         {
             if surface["path"] == ".omc/ultragoal/friction-ledger.jsonl" {
                 surface["surface_class"] = json!("operational-data");
+                surface["disposition"] = json!("absorbed");
             }
         }
-        let findings = evaluate_masterplan_read_surface_resurrections(&masterplan, &clean_corpus());
+        let mut corpus = clean_corpus();
+        for row in corpus["surfaces"].as_array_mut().expect("surfaces") {
+            if row["path"] == ".omc/ultragoal/friction-ledger.jsonl" {
+                row["exists"] = json!(true);
+                row["opaque_data"] = json!(true);
+            }
+        }
+        let findings = evaluate_masterplan_read_surface_resurrections(&masterplan, &corpus);
         assert!(findings.contains(&Finding::new(
             RESURRECTION_CODE,
             ".omc/ultragoal/friction-ledger.jsonl.resurrected.opaque_surface_class"

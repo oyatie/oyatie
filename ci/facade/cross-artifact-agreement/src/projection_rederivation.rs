@@ -14,7 +14,7 @@
 //! - `docs/MASTERPLAN.md` — the generated human compatibility projection.
 //!   [`derive_masterplan_md_projection`] re-derives the FULL byte content from
 //!   masterplan v2 (canonical authority path, MPV2 id-namespace shape, and the
-//!   absorbed/archived plan-surface dispositions); any byte difference means
+//!   absorbed/retired plan-surface dispositions); any byte difference means
 //!   the projection is stale (masterplan moved, projection did not regenerate)
 //!   or hand-edited (projection moved without its source of truth).
 //! - flow-metrics ledger (`plan/fabric-loop/flow-metrics/passes/pass-*.json`)
@@ -65,7 +65,7 @@ pub const STALE_PROJECTION_CODE: &str = "masterplan_projection_stale";
 pub const MASTERPLAN_MD_PATH: &str = "docs/MASTERPLAN.md";
 
 const DISPOSITION_ABSORBED: &str = "absorbed";
-const DISPOSITION_ARCHIVED_WITH_PROVENANCE: &str = "archived-with-provenance";
+const DISPOSITION_RETIRED_GIT_HISTORY_ONLY: &str = "retired-git-history-only";
 const CARD_STATUSES: [&str; 5] = [
     "defined",
     "ready",
@@ -130,7 +130,7 @@ pub fn evaluate_masterplan_projection_rederivation(
 /// Re-derive the full canonical byte content of `docs/MASTERPLAN.md` from the
 /// masterplan v2 contract. Deterministic: template constants plus values read
 /// from `masterplan_v2` (canonical authority path, live work-item id-namespace
-/// shape, and the absorbed/archived former plan surfaces). Returns `Err` with
+/// shape, and the absorbed/retired former plan surfaces). Returns `Err` with
 /// the offending fragment when the masterplan lacks a required input — an
 /// underivable projection fails closed.
 pub fn derive_masterplan_md_projection(masterplan: &Value) -> Result<String, String> {
@@ -159,9 +159,9 @@ pub fn derive_masterplan_md_projection(masterplan: &Value) -> Result<String, Str
         .and_then(Value::as_u64)
         .filter(|width| (1..=16).contains(width))
         .ok_or_else(|| "live_work_item_id_space.numeric_width".to_owned())?;
-    let archived = archived_plan_surfaces(v2);
-    if archived.is_empty() {
-        return Err("masterplan_v2.surface_dispositions#archived-plan-surfaces".to_owned());
+    let former_surfaces = former_plan_surfaces(v2);
+    if former_surfaces.is_empty() {
+        return Err("masterplan_v2.surface_dispositions#former-plan-surfaces".to_owned());
     }
 
     let fragment = format!("{canonical}#masterplan_v2");
@@ -169,12 +169,12 @@ pub fn derive_masterplan_md_projection(masterplan: &Value) -> Result<String, Str
         "{id_prefix}{}",
         "#".repeat(usize::try_from(numeric_width).unwrap_or(4))
     );
-    let archived_list = archived
+    let former_surface_list = former_surfaces
         .iter()
         .map(|path| format!("`{path}`"))
         .collect::<Vec<_>>()
         .join(", ");
-    let companion_specs = archived
+    let companion_specs = former_surfaces
         .iter()
         .filter(|path| path.starts_with("/specs/"))
         .map(|path| format!("- {path}\n"))
@@ -223,9 +223,9 @@ This file is a human compatibility projection only. It is not a live plan author
 - Canonical plan authority: `{canonical}`\n\
 - Canonical fragment for this consolidation: `{fragment}`\n\
 - Live work-item ID namespace: `{namespace}`, validated by the cloud-ci cross-artifact agreement masterplan-v2 authority check.\n\
-- Former plan surfaces ({archived_list}, and legacy agent-harness runtime artifacts) are absorbed provenance or runtime data, not live plan authorities.\n\
+- Former plan surfaces ({former_surface_list}) are migration-only absorbed sources or Git-history-only retirements exactly as dispositioned by masterplan v2; none is live plan authority.\n\
 \n\
-Historical `.omc`/`.omx` planning prompts and local runtime stores may be forensically read only when a gate or masterplan v2 evidence reference asks for them. They never override `{canonical}`.\n\
+Retired surfaces are absent from candidate HEAD and recoverable only from exact Git object receipts. No current read contract may direct agents to retired `.omc`, `.omx`, `.gjc`, roadmap, or harness-store content.\n\
 \n\
 ## Projection Contract\n\
 \n\
@@ -235,11 +235,11 @@ Any update that adds roadmap content, work-item IDs, readiness status, or sequen
     ))
 }
 
-/// The absorbed/archived former plan surfaces that the human projection must
+/// The absorbed/retired former plan surfaces that the human projection must
 /// enumerate: `surface_dispositions` rows dispositioned `absorbed` or
-/// `archived-with-provenance` whose path is a concrete spec/doc plan surface
+/// `retired-git-history-only` whose path is a concrete spec/doc plan surface
 /// (no `#` fragment rows, no dot-directory harness stores). Sorted.
-fn archived_plan_surfaces(v2: &Value) -> Vec<String> {
+fn former_plan_surfaces(v2: &Value) -> Vec<String> {
     let Some(surfaces) = v2.get("surface_dispositions").and_then(Value::as_array) else {
         return Vec::new();
     };
@@ -251,7 +251,7 @@ fn archived_plan_surfaces(v2: &Value) -> Vec<String> {
                 .and_then(Value::as_str)
                 .is_some_and(|disposition| {
                     disposition == DISPOSITION_ABSORBED
-                        || disposition == DISPOSITION_ARCHIVED_WITH_PROVENANCE
+                        || disposition == DISPOSITION_RETIRED_GIT_HISTORY_ONLY
                 })
         })
         .filter_map(|surface| surface.get("path").and_then(Value::as_str))
@@ -741,8 +741,8 @@ mod tests {
                     {"path": "/specs/planning-closure-contract.json", "disposition": "absorbed"},
                     {"path": "/specs/planning-closure-status-closure-ledger.json", "disposition": "absorbed"},
                     {"path": "docs/MASTERPLAN.md", "disposition": "generated-projection"},
-                    {"path": "docs/ROADMAP.md", "disposition": "archived-with-provenance"},
-                    {"path": ".omc/**", "disposition": "archived-with-provenance"}
+                    {"path": "docs/ROADMAP.md", "disposition": "retired-git-history-only"},
+                    {"path": ".omc/**", "disposition": "retired-git-history-only"}
                 ],
                 "projection_freshness": {
                     "projections": [
@@ -799,6 +799,10 @@ mod tests {
         assert_eq!(first, second, "derivation must be deterministic");
         assert!(first.contains("`MPV2-####`"));
         assert!(first.contains("`/specs/master-plan-sequencing.json`, `/specs/planning-closure-contract.json`, `/specs/planning-closure-status-closure-ledger.json`, `docs/ROADMAP.md`"));
+        assert!(first.contains(
+            "Retired surfaces are absent from candidate HEAD and recoverable only from exact Git object receipts."
+        ));
+        assert!(!first.contains("may be forensically read"));
         assert!(
             !first.ends_with('\n'),
             "the on-disk projection carries no trailing newline"

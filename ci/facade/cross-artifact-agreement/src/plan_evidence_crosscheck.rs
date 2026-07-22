@@ -18,7 +18,7 @@
 //!   scm-facts face `tracked_paths`);
 //! - **evidence pointing at retired surfaces** — a ref whose path matches a
 //!   `surface_dispositions` row dispositioned `absorbed` or
-//!   `archived-with-provenance` (exact rows, `#fragment` rows, and `/**` glob
+//!   `retired-git-history-only` (exact rows, `#fragment` rows, and `/**` glob
 //!   rows), derived MECHANICALLY from the masterplan itself, never from a
 //!   hand list;
 //! - **malformed recorded-evidence refs** — a truncated `git:` sha, a
@@ -45,7 +45,7 @@ pub const PLAN_EVIDENCE_CROSSCHECK_VALIDATOR: &str =
 pub const UNRECORDED_EVIDENCE_CODE: &str = "masterplan_plan_evidence_unrecorded";
 
 const DISPOSITION_ABSORBED: &str = "absorbed";
-const DISPOSITION_ARCHIVED_WITH_PROVENANCE: &str = "archived-with-provenance";
+const DISPOSITION_RETIRED_GIT_HISTORY_ONLY: &str = "retired-git-history-only";
 const COMPLETION_PACKET_PREFIX: &str = "evidence/";
 const GIT_REF_SCHEME: &str = "git:";
 const SINGULAR_EVIDENCE_FIELDS: [&str; 5] = [
@@ -176,7 +176,7 @@ fn crosscheck_declaration_present(v2: &Value) -> bool {
 
 /// Derive the retired-surface matchers mechanically from
 /// `surface_dispositions`: every row dispositioned `absorbed` or
-/// `archived-with-provenance` retires its path as an evidence destination.
+/// `retired-git-history-only` retires its path as an evidence destination.
 fn retired_surfaces(v2: &Value) -> Vec<RetiredSurface> {
     let Some(surfaces) = v2.get("surface_dispositions").and_then(Value::as_array) else {
         return Vec::new();
@@ -189,7 +189,7 @@ fn retired_surfaces(v2: &Value) -> Vec<RetiredSurface> {
                 .and_then(Value::as_str)
                 .is_some_and(|disposition| {
                     disposition == DISPOSITION_ABSORBED
-                        || disposition == DISPOSITION_ARCHIVED_WITH_PROVENANCE
+                        || disposition == DISPOSITION_RETIRED_GIT_HISTORY_ONLY
                 })
         })
         .filter_map(|surface| surface.get("path").and_then(Value::as_str))
@@ -514,10 +514,10 @@ mod tests {
                 "surface_dispositions": [
                     {"path": "/specs/masterplan.json", "disposition": "canonical-authority"},
                     {"path": "/specs/masterplan.json#v1-legacy-fragments", "disposition": "absorbed"},
-                    {"path": "docs/ROADMAP.md", "disposition": "archived-with-provenance"},
-                    {"path": ".omc/**", "disposition": "archived-with-provenance"},
-                    {"path": "~/.gjc/**", "disposition": "archived-with-provenance"},
-                    {"path": "plan/legacy-notes.md", "disposition": "archived-with-provenance"}
+                    {"path": "docs/ROADMAP.md", "disposition": "retired-git-history-only"},
+                    {"path": ".omc/**", "disposition": "retired-git-history-only"},
+                    {"path": "~/.gjc/**", "disposition": "retired-git-history-only"},
+                    {"path": "plan/legacy-notes.md", "disposition": "retired-git-history-only"}
                 ],
                 "work_items": [
                     {

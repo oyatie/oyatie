@@ -1278,7 +1278,9 @@ dependencies = [
 name = "ci-cross-artifact-agreement"
 version = "0.1.0"
 dependencies = [
+ "oya-check-adr-index",
  "serde_json",
+ "sha2",
 ]
 
 [[package]]
@@ -1473,6 +1475,7 @@ dependencies = [
  "oya-ci-config-kernel",
  "oya-reorg-codemod-app",
  "serde_json",
+ "sha2",
 ]
 
 [[package]]

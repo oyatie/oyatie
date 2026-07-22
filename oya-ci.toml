@@ -105,11 +105,6 @@ value = "evidence/audit-chain.jsonl"
 reason = "append-only audit chain — NEVER rewritten"
 
 [[vocab.carve_outs]]
-kind = "path_exact"
-value = ".omc/ultragoal/friction-ledger.jsonl"
-reason = "append-only local lane friction ledger — records historical defect text and is not a product/governance vocabulary source"
-
-[[vocab.carve_outs]]
 kind = "path_suffix"
 value = ".generated.json"
 reason = "producer-generated faces record the tokens the gates track; a hand-edit is its own registry_drift RED"
@@ -141,7 +136,7 @@ registry = "specs/reachability-registry.json"
 
 [justification]
 adr_dir = "docs/decisions"
-roadmap = "specs/master-plan-sequencing.json"
+roadmap = "specs/masterplan.json"
 
 [owners]
 file_name = "OWNERS"

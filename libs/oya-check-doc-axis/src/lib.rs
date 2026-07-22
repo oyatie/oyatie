@@ -222,6 +222,19 @@ pub const IDEA_PROMOTION_DAYS: i64 = 14;
 /// Returns `Err(findings)` where at least one finding is blocking. Warnings
 /// are surfaced inside the `Ok(report)` path via `report.warnings`.
 pub fn validate(repo_root: &Path, strict: bool) -> ValidationResult {
+    let today = std::env::var("OYA_TODAY").unwrap_or_else(|_| today_ymd_from_system());
+    validate_at(repo_root, strict, &today)
+}
+
+/// Validate the doc-axis conventions using an explicit reference date.
+///
+/// This deterministic entry point is intended for callers that already own
+/// the clock, including parallel tests. `today` must use `YYYY-MM-DD` format.
+///
+/// # Errors
+/// Returns `Err(findings)` where at least one finding is blocking. Warnings
+/// are surfaced inside the `Ok(report)` path via `report.warnings`.
+pub fn validate_at(repo_root: &Path, strict: bool, today: &str) -> ValidationResult {
     let mut findings: Vec<DocAxisFinding> = Vec::new();
 
     let mut report = DocAxisReport {
@@ -233,7 +246,7 @@ pub fn validate(repo_root: &Path, strict: bool) -> ValidationResult {
     };
 
     check_adr_status_casing(repo_root, strict, &mut findings, &mut report);
-    check_shadow_ideas(repo_root, &mut findings, &mut report);
+    check_shadow_ideas(repo_root, today, &mut findings, &mut report);
     check_readable_archive_directories(repo_root, &mut findings, &mut report);
     check_docs_proliferation(repo_root, &mut findings, &mut report);
     check_catalog_manifest_drift(repo_root, &mut findings, &mut report);
@@ -325,6 +338,7 @@ fn find_bad_status(contents: &str) -> Option<(usize, String)> {
 
 fn check_shadow_ideas(
     repo_root: &Path,
+    today: &str,
     findings: &mut Vec<DocAxisFinding>,
     report: &mut DocAxisReport,
 ) {
@@ -353,7 +367,7 @@ fn check_shadow_ideas(
         let date_stamp = extract_date_from_idea_filename(&file_name);
         let age_days = date_stamp
             .as_deref()
-            .and_then(parse_ymd_to_days_ago)
+            .and_then(|date| days_between(today, date))
             .unwrap_or(0);
 
         if age_days <= IDEA_PROMOTION_DAYS {
@@ -392,18 +406,6 @@ fn extract_date_from_idea_filename(file_name: &str) -> Option<String> {
     } else {
         None
     }
-}
-
-/// Parse `YYYY-MM-DD` and return how many days ago that date was relative to
-/// "today". Uses a simple integer arithmetic approach against a fixed
-/// reference — in tests this is anchored to 2026-05-28. Returns `None` if
-/// the date cannot be parsed.
-///
-/// The reference date is read from the `OYA_TODAY` environment variable
-/// (format `YYYY-MM-DD`) so tests can override it without `SystemTime`.
-fn parse_ymd_to_days_ago(ymd: &str) -> Option<i64> {
-    let today_str = std::env::var("OYA_TODAY").unwrap_or_else(|_| today_ymd_from_system());
-    days_between(&today_str, ymd)
 }
 
 /// Returns today's date in `YYYY-MM-DD` using `SystemTime`.

@@ -57,6 +57,10 @@
         "sha256",
         "successor_refs",
         "readable_tracked_copy_retained"
+      ],
+      "neutral_receipt_paths": [
+        "evidence/goals/readable-idea-archive-retirement-closure-20260721.json",
+        "evidence/goals/repository-authority-history-only-retirement-closure-20260721.json"
       ]
     },
     "retire_via_json_migration": [
@@ -133,7 +137,7 @@
       "scope": "CONSTITUTION + DOC-CATALOG + MASTERPLAN + AGENTS docs/* → JSON",
       "deadline": "2026-06-30",
       "status": "overdue-needs-replan",
-      "reconciliation_note": "As of 2026-07-13, docs/AGENTS.md remains the live operating contract; DOC-CATALOG.md has no live machine-catalog producer/gate; docs/MASTERPLAN.md and docs/ROADMAP.md are thin projections. Promotion requires atomic producer/consumer/gate evidence.",
+      "reconciliation_note": "docs/AGENTS.md remains the live operating contract; DOC-CATALOG.md has no live machine-catalog producer/gate; docs/MASTERPLAN.md is a generated compatibility projection; docs/ROADMAP.md is retired from candidate HEAD with provenance available only through exact Git object receipts. Promotion requires atomic producer/consumer/gate evidence.",
       "files_count_estimated": 4,
       "prerequisite_for_operational": [
         "constitution.json schema",
