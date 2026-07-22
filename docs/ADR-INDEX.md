@@ -14,7 +14,7 @@ doc_status: published
 - **Total ADRs:** 430
 - **Numbering:** ADR-0001..ADR-0621 (non-contiguous; gaps: 0012, 0033, 0037, 0041, 0050, 0068, 0070..0082, 0084..0089, 0125..0127, 0224..0233, 0247, 0256, 0259..0262, 0264..0271, 0274..0275, 0277..0279, 0281..0283, 0285..0291, 0322..0323, 0327, 0342, 0345, 0385..0386, 0395..0396, 0398..0475, 0477, 0483..0505, 0574..0579, 0583..0585, 0594, 0601..0602, 0620)
 - **Next ADR number:** 0622
-- **Status counts:** Accepted 175, Accepted (amendment) 2, Amended 1, Proposed 148, Proposed (conditional: Accepted only after ADR-0377-D2 and ADR-0377-D3 code/tests pass) 1, Proposed (target: Accepted upon PR #143 merge to dev) 1, Superseded 35, accepted 34, deprecated 1, proposed 31, superseded 1
+- **Status counts:** Accepted 176, Accepted (amendment) 2, Amended 1, Proposed 147, Proposed (conditional: Accepted only after ADR-0377-D2 and ADR-0377-D3 code/tests pass) 1, Proposed (target: Accepted upon PR #143 merge to dev) 1, Superseded 35, accepted 34, deprecated 1, proposed 31, superseded 1
 - **Legacy retirement:** see [`ADR-LEGACY-REGRESSION-MAPPING.md`](ADR-LEGACY-REGRESSION-MAPPING.md).
 
 ## Full table (one row per ADR, sorted by ADR number)
@@ -450,7 +450,7 @@ doc_status: published
 | ADR-0617 | Proposed | The Living Monorepo Governance Graph | council-architecture | [`ADR-0617-living-monorepo-governance-graph.md`](decisions/ADR-0617-living-monorepo-governance-graph.md) |
 | ADR-0618 | Proposed | Contract-slice conformance gate scope boundary | council-architecture | [`ADR-0618-contract-slice-gate-scope-boundary.md`](decisions/ADR-0618-contract-slice-gate-scope-boundary.md) |
 | ADR-0619 | Accepted | Zero-live-context retirement of an external agent-harness brand | council-architecture | [`ADR-0619-zero-live-context-retirement-of-external-agent-harness-brand.md`](decisions/ADR-0619-zero-live-context-retirement-of-external-agent-harness-brand.md) |
-| ADR-0621 | Proposed | FixupTask v2 friction-ledger successor foundation | council-architecture | [`ADR-0621-fixuptask-v2-friction-ledger-successor-foundation.md`](decisions/ADR-0621-fixuptask-v2-friction-ledger-successor-foundation.md) |
+| ADR-0621 | Accepted | FixupTask v2 durable successor boundary | founder | [`ADR-0621-fixuptask-v2-friction-ledger-successor-foundation.md`](decisions/ADR-0621-fixuptask-v2-friction-ledger-successor-foundation.md) |
 
 ## Update protocol
 

@@ -156,7 +156,8 @@ jobs:
           - { crate: workspace-member-coverage, label: "gate: workspace-glob-coverage (ADR-0538)" }
           - { crate: build-target-parity,           label: "gate · target-parity (ADR-0540, test-wiring false-green)" }
           - { crate: hook-wiring,    label: "gate · enforcement-liveness (FRIC-012, hook mirror liveness)" }
-          - { crate: action-item-accounting,     label: "gate · friction-accounting (ADR-0544, closed-loop friction-ledger accounting)" }
+          - { crate: action-item-accounting, targets: "//ci/facade/action-item-accounting:fixuptask-v2-admission", label: "gate · FixupTask v2 durable admission (ADR-0621, protected registry digest)" }
+          - { crate: action-item-accounting, targets: "//ci/facade/action-item-accounting:legacy-friction-adapter", label: "gate · legacy friction adapter (transitional predecessor accounting)" }
           - { crate: canonical-json,          label: "gate · canonical-json (ADR-0546, deterministic JSON serialization)" }
           - { crate: parity-claim-evidence, label: "gate · hyperscaler-parity-taxonomy (cloud hyperscaler parity taxonomy, born-blocking)" }
           - { crate: resource-contract-conformance, label: "gate · cloud-resource-contracts (Rust/API replacement for P0 cloud-resource Python validators)" }
@@ -213,8 +214,7 @@ jobs:
         run: |
           set -euo pipefail
           buck2 test \
-            //ci/facade/${{ matrix.crate }}:ci-${{ matrix.crate }}-unittest \
-            //ci/facade/${{ matrix.crate }}:ci-${{ matrix.crate }}-gate
+            ${{ matrix.targets || format('//ci/facade/{0}:ci-{0}-unittest //ci/facade/{0}:ci-{0}-gate', matrix.crate) }}
 
   # ── freshness: first-diagnosis gate for the two stale-output failures from PR #662.
   #    Runs as its own fast job with no needs edge so stale Cargo.lock and stale generated faces

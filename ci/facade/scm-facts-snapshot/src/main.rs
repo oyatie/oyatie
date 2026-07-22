@@ -228,8 +228,14 @@ fn run() -> Result<(), String> {
         let bootstrap_ref = frozen_base_ref
             .as_deref()
             .unwrap_or(DEFAULT_FROZEN_BOOTSTRAP_REF);
+        let durable = emit_fixuptask_v2_durable_admission(
+            &repo_root,
+            bootstrap_ref,
+            controller_evaluation_time()?,
+        )?;
         let admission =
             emit_fixuptask_v2_admission(&repo_root, bootstrap_ref, controller_evaluation_time()?)?;
+        emission.volatile["fixuptask_v2_durable"] = durable;
         emission.volatile["fixuptask_v2_admission"] = admission;
     }
 
@@ -1402,6 +1408,30 @@ fn jsonl_rows(text: &str) -> Result<Vec<Value>, String> {
         .collect()
 }
 
+/// Emits the durable registry-only admission facts. This contract intentionally
+/// knows nothing about the transitional predecessor adapter.
+fn emit_fixuptask_v2_durable_admission(
+    repo_root: &Path,
+    bootstrap_ref: &str,
+    evaluation_time: String,
+) -> Result<Value, String> {
+    let merge_base = git_merge_base(repo_root, bootstrap_ref)?;
+    let merge_base_tree = git_rev_parse_tree(repo_root, &merge_base)?;
+    let base_registry = git_show_file(repo_root, &merge_base, FIXUPTASK_REGISTRY_PATH)?
+        .ok_or_else(|| "FixupTask registry is absent at merge base".to_owned())?;
+    let candidate_registry = std::fs::read(repo_root.join(FIXUPTASK_REGISTRY_PATH))
+        .map_err(|error| format!("read candidate FixupTask registry: {error}"))?;
+    Ok(json!({
+        "merge_base": merge_base,
+        "merge_base_tree": merge_base_tree,
+        "merge_base_rows": jsonl_rows(&base_registry)?,
+        "candidate_registry_digest": sha256_digest(&candidate_registry),
+        "evaluation_time": evaluation_time,
+    }))
+}
+
+/// Emits the removable predecessor adapter facts. This remains transitional
+/// until a qualified human supplies the migration population and cutover.
 fn emit_fixuptask_v2_admission(
     repo_root: &Path,
     bootstrap_ref: &str,

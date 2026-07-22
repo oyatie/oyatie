@@ -68,7 +68,8 @@ agent-wiring + catalog`.
 | `cloud-ci-target-parity` | rust-cargo-workspace | producer-face (`target_parity`) | `member_missing_buck` (frozen-empty), `member_test_code_without_rust_test_target` |
 | `cloud-ci-enforcement-liveness` | agent-wiring | producer-face (`enforcement_liveness`) | `hook_unwired_without_stub_marker` (frozen-empty), `hook_wiring_mirror_drift` (frozen-empty), `wired_hook_missing_file` (frozen-empty) |
 | `cloud-ci-freshness` | rust-cargo-workspace | frozen-empty-meta | `lock_missing_member_package`, `lock_stale_member_version`, `lock_orphan_path_package`, `generated_face_stale` |
-| `cloud-ci-friction-accounting` | governance | standalone self-test (own committed baseline) | `friction_policy_gate_id_mismatch` (frozen-empty), `friction_missing_required_field`, `friction_unknown_status` (frozen-empty), `friction_no_disposition` (born-blocking-clean), `friction_closed_without_evidence`, `friction_accepted_risk_without_evidence`, `friction_duplicate_primary_row` (frozen-empty), `friction_orphan_update_row` |
+| `cloud-ci-fixuptask-v2-admission` | governance | protected registry snapshot + candidate digest | `fixuptask_v2_protected_facts_missing`, `fixuptask_v2_protected_facts_malformed`, `fixuptask_v2_candidate_registry_digest_mismatch`, plus strict v2 lifecycle findings |
+| `cloud-ci-legacy-friction-adapter` | governance | standalone transitional self-test (own committed baseline) | predecessor-ledger accounting and identity-only migration findings; retained until qualified-human population and cutover evidence exist |
 | `cloud-ci-canonical-json` | governance | standalone self-test (zero baseline) | `json_not_canonical` (born-blocking-empty), `json_parse_error` (born-blocking-empty), `json_duplicate_key` (born-blocking-empty) |
 | `cloud-ci-embedded-asset-hermeticity` | hermeticity | standalone self-test (own committed baseline) | `embedded_asset_unmapped_include` (born-blocking frozen-empty), `embedded_asset_policy_gate_id_mismatch` (frozen-empty); non-blocking skips: `skip_non_literal_argument`, `skip_absolute_literal`, `skip_build_output_path`, `skip_no_owning_target`, `skip_buck_unparseable` |
 | `cloud-ci-kernel-purity` | rust-cargo-workspace | standalone self-test (born-blocking, no baseline) | `KP-TRANSIENT-DEP-CARGO` (born-blocking-clean), `KP-TRANSIENT-DEP-BUCK` (born-blocking-clean), `KP-UNRESOLVED-PATH-DEP` (born-blocking-clean), `KP-STALE-EXCEPTION`, `KP-EMPTY-SCAN`, `KP-POLICY-GATE-ID-MISMATCH` |
@@ -101,15 +102,12 @@ content commit for the lock). The cloud-ci freshness gate (ADR-0539) remains the
 enforcement backstop per the enforcement-layering doctrine; `--verify` is the automation-default
 local check (ADR-0548 D6) in front of it, never a substitute for it.
 
-`cloud-ci-friction-accounting` (ADR-0544) is a standalone born-blocking self-test, NOT a
-producer-face/raw-corpus gate routed through the central `gate-baseline.generated.json` firewall (the
-producer's `RawCorpusCollector` dispatch is hardwired to the single brand-residue collector). It runs
-as its `oya-cloud-ci-friction-accounting-app-gate` buck2 `rust_test` under the binding
-`buck2 test //cloud/cloud-ci/...` CI job (and a labeled per-crate matrix check), and owns its own
-reviewed shrink-only `friction-accounting-baseline.json` + ceilings (FRIC-1781112000 anti-laundering)
-rather than the central baseline. Same firewall *semantics* (frozen-empty + shrink-only legacy debt),
-local enforcement. All policy — the ledger path, the free-text status taxonomy, the evidence rules —
-is DATA in `friction-accounting-policy.json`, so the gate runs on any repo by repointing the policy.
+`cloud-ci-fixuptask-v2-admission` (ADR-0621) is the durable protected-registry gate. It validates
+the candidate registry digest plus merge-base rows and lifecycle contract without reading a
+predecessor corpus. `cloud-ci-legacy-friction-adapter` retains the former standalone accounting
+test, its reviewed shrink-only baseline, and identity-only cutover checks as an explicitly
+transitional gate. The durable gate is green without the predecessor body; no retirement, mapping
+population, or human-disposition claim follows from that green result.
 
 `cloud-ci-canonical-json` (ADR-0546) is a standalone born-blocking self-test, NOT a producer-face
 gate. It walks every tracked `*.json` under the policy's `governed_roots` (read-only filesystem),

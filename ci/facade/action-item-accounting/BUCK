@@ -22,6 +22,30 @@ rust_test(
     ],
 )
 
+rust_test(
+    name = "fixuptask-v2-admission",
+    srcs = glob(["tests/fixuptask_v2_admission.rs", "src/**/*.rs", "fixuptask-v2-schema.json"]),
+    crate = "ci_fixuptask_v2_admission",
+    crate_root = "tests/fixuptask_v2_admission.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-action-item-accounting",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "legacy-friction-adapter",
+    srcs = glob(["tests/friction_accounting.rs", "src/**/*.rs", "**/*.json"]),
+    crate = "ci_legacy_friction_adapter",
+    crate_root = "tests/friction_accounting.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-action-item-accounting",
+        "third-party//:serde_json",
+    ],
+)
+
 # ADR-0544 FRIC-total-accounting: Buck2-native, cargo-free live-corpus meta-gate over the friction
 # ledger. The test collects the policy-declared ledger, folds the event-sourced append rows, and
 # asserts the live corpus is born-blocking green on closure-integrity codes while legacy schema debt

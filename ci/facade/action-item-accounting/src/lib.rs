@@ -47,6 +47,14 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
+/// Durable FixupTask v2 admission. This module intentionally consumes only the
+/// protected registry snapshot and the candidate registry bytes.
+pub mod fixuptask_v2;
+
+/// Transitional predecessor-ledger accounting. It is intentionally isolated so
+/// it can be removed after the separately authorized migration/cutover.
+pub mod legacy_friction_adapter;
+
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::Path;
@@ -60,8 +68,8 @@ pub const GATE_ID: &str = "cloud-ci-friction-accounting";
 /// Candidate and protected inputs for the v2 admission extension. The protected-facts path is an
 /// untracked SCM-materializer output: CI owns its merge-base contents, never the candidate PR.
 pub const FIXUPTASK_V2_CANDIDATE_JSONL_PATH: &str = "registry/fixuptasks.jsonl";
-pub const FIXUPTASK_V2_MAPPING_PATH: &str = "registry/fixuptask-v2-predecessor-mapping.json";
-pub const FIXUPTASK_V2_PROTECTED_FACTS_PATH: &str =
+pub const LEGACY_FRICTION_MAPPING_PATH: &str = "registry/fixuptask-v2-predecessor-mapping.json";
+pub const LEGACY_FRICTION_PROTECTED_FACTS_PATH: &str =
     "ci/facade/scm-facts-snapshot/scm-volatile-facts.generated.json";
 
 /// The eight blocking violation codes, in canonical order.
@@ -203,14 +211,14 @@ fn collect_optional_bytes(root: &Path, path: &str) -> Result<Option<Vec<u8>>, Co
 
 /// Runs the v2 admission extension from its real gate inputs. The protected facts MUST be the
 /// SCM-materializer sidecar; this adapter has no candidate parameter for a merge-base baseline.
-pub fn evaluate_fixuptask_v2_materialized_gate(
+pub fn evaluate_legacy_friction_materialized_gate(
     root: &Path,
 ) -> Result<BTreeSet<Finding>, CollectError> {
     let candidate = collect_fixuptask_candidate_jsonl(root, FIXUPTASK_V2_CANDIDATE_JSONL_PATH)?;
-    let protected = collect_json_input(root, FIXUPTASK_V2_PROTECTED_FACTS_PATH)?;
+    let protected = collect_json_input(root, LEGACY_FRICTION_PROTECTED_FACTS_PATH)?;
     let legacy = collect_optional_bytes(root, ".omc/ultragoal/friction-ledger.jsonl")?;
-    let mapping = collect_optional_json_input(root, FIXUPTASK_V2_MAPPING_PATH)?;
-    Ok(evaluate_fixuptask_v2_admission(
+    let mapping = collect_optional_json_input(root, LEGACY_FRICTION_MAPPING_PATH)?;
+    Ok(evaluate_legacy_friction_admission(
         &protected,
         &candidate,
         legacy.as_deref(),
@@ -232,7 +240,7 @@ pub struct Finding {
 }
 
 impl Finding {
-    fn new(code: &str, key: &str, detail: impl Into<String>) -> Self {
+    pub(crate) fn new(code: &str, key: &str, detail: impl Into<String>) -> Self {
         Self {
             code: code.to_owned(),
             key: key.to_owned(),
@@ -863,7 +871,7 @@ pub fn evaluate_fixuptasks_v2_at(
 }
 
 /// Compatibility projection for callers that only need static contract validation. Admission
-/// callers MUST use [`evaluate_fixuptask_v2_admission`] so expiry is evaluated against protected
+/// callers MUST use the durable materialized gate so expiry is evaluated against protected
 /// CI facts rather than ambient wall-clock time.
 pub fn evaluate_fixuptasks_v2(merge_base: &Value, candidate: &Value) -> BTreeSet<Finding> {
     evaluate_fixuptasks_v2_at(merge_base, candidate, "9999-12-31T23:59:59Z")
@@ -872,7 +880,7 @@ pub fn evaluate_fixuptasks_v2(merge_base: &Value, candidate: &Value) -> BTreeSet
 /// Admission adapter. The candidate contributes only its proposed rows and mapping. Merge-base
 /// rows, predecessor source/ids, and evaluation time are derived from the protected SCM-facts
 /// envelope materialized by CI; malformed protected facts fail closed.
-pub fn evaluate_fixuptask_v2_admission(
+pub fn evaluate_legacy_friction_admission(
     protected_scm_facts: &Value,
     candidate_fixuptasks: &Value,
     candidate_legacy_ledger: Option<&[u8]>,
@@ -1812,12 +1820,12 @@ mod tests {
         let candidate = json!({ "rows": [{ "id": "F-LEGACY", "status": "legacy" }] });
         let mapping = json!({ "source": "git:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:.omc/ultragoal/friction-ledger.jsonl", "entries": [{ "predecessor_id": "FRIC-1", "target_fixuptask_id": "F-LEGACY" }] });
         assert!(
-            evaluate_fixuptask_v2_admission(&facts, &candidate, Some(b"legacy"), Some(&mapping))
+            evaluate_legacy_friction_admission(&facts, &candidate, Some(b"legacy"), Some(&mapping))
                 .is_empty()
         );
         let malformed = json!({ "fixuptask_v2_admission": { "merge_base_rows": [], "predecessor_source": "scm:merge-base", "predecessor_ids": ["FRIC-1", "FRIC-1"], "evaluation_time": "2026-07-21T00:00:00Z" } });
         assert!(
-            evaluate_fixuptask_v2_admission(
+            evaluate_legacy_friction_admission(
                 &malformed,
                 &candidate,
                 Some(b"legacy"),
@@ -1831,7 +1839,7 @@ mod tests {
         wrong_set_digest["fixuptask_v2_admission"]["legacy_ledger"]["predecessor_ids_digest"] =
             json!(fixuptask_v2_digest(b"wrong-set"));
         assert!(
-            evaluate_fixuptask_v2_admission(
+            evaluate_legacy_friction_admission(
                 &wrong_set_digest,
                 &candidate,
                 Some(b"legacy"),
@@ -1855,13 +1863,14 @@ mod tests {
         let facts = admission_facts(vec![], b"legacy");
         let candidate = json!({ "rows": [] });
         assert!(
-            evaluate_fixuptask_v2_admission(&facts, &candidate, Some(b"legacy"), None).is_empty()
+            evaluate_legacy_friction_admission(&facts, &candidate, Some(b"legacy"), None)
+                .is_empty()
         );
         let mut cutover_facts = facts.clone();
         cutover_facts["fixuptask_v2_admission"]["legacy_ledger"]["candidate_digest"] =
             json!(fixuptask_v2_digest(b"changed"));
         assert!(
-            evaluate_fixuptask_v2_admission(&cutover_facts, &candidate, Some(b"changed"), None)
+            evaluate_legacy_friction_admission(&cutover_facts, &candidate, Some(b"changed"), None)
                 .iter()
                 .any(|finding| finding.code == "friction_mapping_required_for_legacy_cutover")
         );

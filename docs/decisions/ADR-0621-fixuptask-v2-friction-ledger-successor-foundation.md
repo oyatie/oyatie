@@ -1,13 +1,13 @@
 ---
 id: ADR-0621
-title: "FixupTask v2 as the proposed durable successor foundation for friction-ledger accounting"
-status: Proposed
+title: "FixupTask v2 durable successor boundary"
+status: Accepted
 planning_impact: false
-deciders: []
-date: 2026-07-21
+deciders: [founder]
+date: 2026-07-22
 door: two-way
-owner: council-architecture
-supersedes: [ADR-0544, ADR-0558]
+owner: founder
+supersedes: []
 superseded_by: []
 amends: [ADR-0363, ADR-0515]
 amended_by: []
@@ -18,13 +18,17 @@ related_specs:
 milestone: W0
 ---
 
-# ADR-0621: FixupTask v2 friction-ledger successor foundation
+# ADR-0621: FixupTask v2 durable successor boundary
 
 ## Status
 
-**Proposed — 2026-07-21.** This is an implementable proposal only. It neither records
-qualified-human approval nor changes `HOLD(Planning)`: it must not dispatch roadmap work, curate
-predecessor dispositions, or promote any completion claim.
+**Accepted — 2026-07-22.** The founder, under qualified repository-only authority, accepts the
+durable registry-boundary implementation proven by its isolated gate. This acceptance does not
+authorize planning, roadmap dispatch, predecessor population, legal conclusions, affected-party
+consent, operations capacity, custody actions, pilot claims, or any irreversible cutover.
+
+`planning_impact: false` remains binding: **HOLD(Planning)** continues. No implementation-roadmap
+dispatch is authorized by this ADR, and no completion claim may be promoted from this foundation.
 
 ## Context
 
@@ -38,12 +42,17 @@ ADR-0619 requires Git history, rather than a readable in-tree archive, for retir
 context. Therefore a successor may carry only identities needed to prove a mapping, never copied
 friction prose, status history, evidence, or human disposition.
 
-## Proposed decision
+## Decision
 
-If accepted, this ADR would amend ADR-0363 and ADR-0515 to replace the friction-ledger bridge with
-the `registry/fixuptasks.jsonl` v2 contract enforced through the existing
-`ci/facade/action-item-accounting` Rust gate and its existing `oya-ci-required` workflow lane. It
-would supersede Proposed ADR-0544 and ADR-0558 rather than accepting either older proposal.
+Adopt the durable `registry/fixuptasks.jsonl` v2 contract as a distinct, protected-registry-digest
+admission boundary in `ci/facade/action-item-accounting`. Its materialized path consumes only the
+candidate registry and protected merge-base facts; it has no predecessor corpus, mapping, count,
+or archive-body dependency and is green when the legacy body is absent.
+
+The predecessor adapter remains a separately named transitional gate. It retains all predecessor
+path, census, identity-only mapping, and cutover checks until the qualified-human migration
+population exists. This ADR does **not** supersede ADR-0544 or ADR-0558: `supersedes: []` stays
+truthful until E10 has independently established and authorized that transition.
 
 The foundation is deliberately narrow:
 
@@ -57,8 +66,8 @@ The foundation is deliberately narrow:
 3. The predecessor mapping contains only `predecessor_id`, `target_fixuptask_id`, and a protected
    source identifier. It fails closed for source mismatch, omitted or duplicate predecessor IDs,
    and missing target FixupTasks. It does not carry readable predecessor text.
-4. The legacy ledger is neither deleted nor rewritten by this proposal. The 189 predecessor IDs
-   and all human disposition decisions remain a qualified-human migration responsibility.
+4. The legacy ledger is neither deleted nor rewritten by this decision. Its predecessor IDs and all
+   human disposition decisions remain a qualified-human migration responsibility.
 
 ## Consequences
 
@@ -77,15 +86,16 @@ The foundation is deliberately narrow:
 - A decision reference is intentionally not proof of qualified-human authority; independent review
   remains required before any state can be treated as authoritative.
 
-### Integration order
+### Integration order and authority boundary
 
-1. A qualified human selects and records the protected predecessor source plus the 189
+1. A qualified human selects and records the protected predecessor source plus the complete
    identity-only mappings.
 2. The same authority completes and reviews v2 fields for rows it chooses to create or modify.
 3. CI supplies the actual protected merge-base snapshot to the existing pure evaluator; it must not
    accept a candidate baseline artifact.
-4. Only after the preceding checks are live may ADR-0363's bridge retirement and the Proposed
-   ADR-0544/0558 supersession be considered for acceptance.
+4. Only after the preceding checks are live, independently reviewed, and accepted under the
+   appropriate authority may ADR-0363's bridge retirement and ADR-0544/0558 supersession be
+   considered in E10. This ADR grants neither action.
 
 ## Alternatives considered
 
@@ -98,7 +108,9 @@ The foundation is deliberately narrow:
 
 ## Verification
 
-The implementation must demonstrate RED and GREEN fixtures for new/modified validation,
-merge-base-only grandfathering, missing accountability, each constrained lifecycle state, omitted
-and duplicate predecessor IDs, source mismatch, and missing target FixupTasks. Targeted Cargo and
-Buck tests, formatting, clippy, and generated-face diff checks remain required before merge.
+The implementation demonstrates RED and GREEN fixtures for new/modified validation,
+merge-base-only grandfathering, missing accountability, each constrained lifecycle state, candidate
+registry-digest mismatch, and durable admission with no predecessor body. The transitional adapter
+continues to demonstrate omitted/duplicate predecessor identities, source mismatch, and missing
+target FixupTasks. Targeted Cargo and Buck tests, formatting, clippy, and generated-face diff
+checks remain required before merge.
