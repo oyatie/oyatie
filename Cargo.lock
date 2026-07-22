@@ -1508,6 +1508,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "ci-stage1-closure"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
 name = "ci-stale-artifact-detection"
 version = "0.1.0"
 dependencies = [

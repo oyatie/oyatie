@@ -1,0 +1,78 @@
+{
+  "schema_id": "oyatie/stage1-evidence-epoch/v1",
+  "epoch_id": "stage1-epoch-0001",
+  "program_ref": "/specs/masterplan.json#masterplan_v2.planning_entry_contract.stage1_closure_program",
+  "state": "HOLD_EPOCH_OPEN",
+  "subject_binding": {
+    "facts_schema": "oya-ci/scm-facts/v2",
+    "facts_field": "stage1_epoch_facts",
+    "required": true
+  },
+  "planning": {
+    "planning_state": "HOLD(Planning)",
+    "roadmap_planning_authorized": false,
+    "binding_plan_approval_allowed": false,
+    "implementation_dispatch_allowed": false
+  },
+  "controls": [
+    {"control_id": "C01", "status": "pending", "subject_digest": null, "receipt_refs": []},
+    {"control_id": "C02", "status": "pending", "subject_digest": null, "receipt_refs": []},
+    {"control_id": "C03", "status": "pending", "subject_digest": null, "receipt_refs": []},
+    {"control_id": "C04", "status": "pending", "subject_digest": null, "receipt_refs": []},
+    {"control_id": "C05", "status": "pending", "subject_digest": null, "receipt_refs": []},
+    {"control_id": "C06", "status": "pending", "subject_digest": null, "receipt_refs": []},
+    {"control_id": "C07", "status": "pending", "subject_digest": null, "receipt_refs": []},
+    {"control_id": "C08", "status": "pending", "subject_digest": null, "receipt_refs": []},
+    {"control_id": "C09", "status": "pending", "subject_digest": null, "receipt_refs": []},
+    {"control_id": "C10", "status": "pending", "subject_digest": null, "receipt_refs": []},
+    {"control_id": "C11", "status": "pending", "subject_digest": null, "receipt_refs": []},
+    {"control_id": "C12", "status": "pending", "subject_digest": null, "receipt_refs": []},
+    {"control_id": "C13", "status": "pending", "subject_digest": null, "receipt_refs": []},
+    {"control_id": "C14", "status": "pending", "subject_digest": null, "receipt_refs": []},
+    {"control_id": "C15", "status": "pending", "subject_digest": null, "receipt_refs": []}
+  ],
+  "lenses": [
+    {"lens_id": "L01", "status": "pending", "subject_digest": null, "reviewer_id": null, "receipt_ref": null},
+    {"lens_id": "L02", "status": "pending", "subject_digest": null, "reviewer_id": null, "receipt_ref": null},
+    {"lens_id": "L03", "status": "pending", "subject_digest": null, "reviewer_id": null, "receipt_ref": null},
+    {"lens_id": "L04", "status": "pending", "subject_digest": null, "reviewer_id": null, "receipt_ref": null},
+    {"lens_id": "L05", "status": "pending", "subject_digest": null, "reviewer_id": null, "receipt_ref": null},
+    {"lens_id": "L06", "status": "pending", "subject_digest": null, "reviewer_id": null, "receipt_ref": null},
+    {"lens_id": "L07", "status": "pending", "subject_digest": null, "reviewer_id": null, "receipt_ref": null},
+    {"lens_id": "L08", "status": "pending", "subject_digest": null, "reviewer_id": null, "receipt_ref": null},
+    {"lens_id": "L09", "status": "pending", "subject_digest": null, "reviewer_id": null, "receipt_ref": null},
+    {"lens_id": "L10", "status": "pending", "subject_digest": null, "reviewer_id": null, "receipt_ref": null},
+    {"lens_id": "L11", "status": "pending", "subject_digest": null, "reviewer_id": null, "receipt_ref": null},
+    {"lens_id": "L12", "status": "pending", "subject_digest": null, "reviewer_id": null, "receipt_ref": null},
+    {"lens_id": "L13", "status": "pending", "subject_digest": null, "reviewer_id": null, "receipt_ref": null},
+    {"lens_id": "L14", "status": "pending", "subject_digest": null, "reviewer_id": null, "receipt_ref": null},
+    {"lens_id": "L15", "status": "pending", "subject_digest": null, "reviewer_id": null, "receipt_ref": null},
+    {"lens_id": "L16", "status": "pending", "subject_digest": null, "reviewer_id": null, "receipt_ref": null}
+  ],
+  "fresh_dissent": {
+    "status": "pending",
+    "subject_digest": null,
+    "reviewer_id": null,
+    "fresh_context": false,
+    "prior_context_used": false,
+    "findings_resolved_or_carried": false,
+    "receipt_ref": null
+  },
+  "context_free_exit": {
+    "status": "pending",
+    "subject_digest": null,
+    "oracle_principal_id": null,
+    "blind_reader_principal_id": null,
+    "conversation_context_used": false,
+    "reproduced_verdict": null,
+    "oracle_receipt_ref": null,
+    "blind_reader_receipt_ref": null
+  },
+  "immutable_successor": {
+    "frozen": false,
+    "subject_digest": null,
+    "facts_ref": null
+  },
+  "blockers": [],
+  "claim_ceiling": "HOLD only; no roadmap planning, binding plan approval, or implementation dispatch is authorized."
+}
