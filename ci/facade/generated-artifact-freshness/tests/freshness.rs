@@ -357,6 +357,40 @@ fn determinism_canary_detects_masterplan_drift_when_product_graph_is_stable() {
 }
 
 #[test]
+fn determinism_canary_detects_board_sync_drift_when_other_projections_are_stable() {
+    let first = vec![
+        (
+            "board-sync.generated.json".to_owned(),
+            "first board\n".to_owned(),
+        ),
+        (
+            "masterplan.generated.json".to_owned(),
+            "stable plan\n".to_owned(),
+        ),
+    ];
+    let second = vec![
+        (
+            "board-sync.generated.json".to_owned(),
+            "second board\n".to_owned(),
+        ),
+        (
+            "masterplan.generated.json".to_owned(),
+            "stable plan\n".to_owned(),
+        ),
+    ];
+    let decommitted = BTreeSet::from([
+        "board-sync.generated.json".to_owned(),
+        "masterplan.generated.json".to_owned(),
+    ]);
+
+    let findings = evaluate_face_determinism(&first, &second, &decommitted);
+
+    assert_eq!(findings.len(), 1);
+    assert_eq!(findings[0].code, FindingCode::GeneratedFaceStale);
+    assert_eq!(findings[0].key, "board-sync.generated.json");
+}
+
+#[test]
 fn determinism_canary_ignores_committed_class_faces() {
     // The determinism canary is scoped to de-commit-class faces only.
     let first = vec![(
