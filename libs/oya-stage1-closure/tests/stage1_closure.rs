@@ -1558,6 +1558,128 @@ fn schema_equivalent_closed_shapes_reject_locator_types_extra_records_and_unknow
 }
 
 #[test]
+fn pending_epoch_requires_every_schema_member_before_hold_evaluation() {
+    fn assert_pending_invalid(epoch: &Value, label: &str) {
+        let report = evaluate_source_epoch(&program(), epoch);
+        assert!(
+            !report.is_green(),
+            "schema-invalid pending epoch was accepted: {label}"
+        );
+        assert!(
+            report
+                .findings
+                .iter()
+                .all(|finding| !finding.contains("external authenticated Stage-1 controller")),
+            "shape failure must be reported before controller HOLD: {label}: {:?}",
+            report.findings
+        );
+    }
+
+    assert!(evaluate_source_epoch(&program(), &hold_epoch()).is_green());
+
+    for field in ["immutable_successor", "blockers"] {
+        let mut candidate = hold_epoch();
+        candidate
+            .as_object_mut()
+            .expect("epoch object")
+            .remove(field);
+        assert_pending_invalid(&candidate, field);
+    }
+    for field in ["control_id", "status", "subject_digest", "receipt_refs"] {
+        let mut candidate = hold_epoch();
+        candidate["controls"][0]
+            .as_object_mut()
+            .expect("control")
+            .remove(field);
+        assert_pending_invalid(&candidate, field);
+    }
+    for (field, value) in [("subject_digest", json!(7)), ("receipt_refs", json!({}))] {
+        let mut candidate = hold_epoch();
+        candidate["controls"][0][field] = value;
+        assert_pending_invalid(&candidate, field);
+    }
+    for field in [
+        "lens_id",
+        "status",
+        "subject_digest",
+        "reviewer_id",
+        "receipt_ref",
+    ] {
+        let mut candidate = hold_epoch();
+        candidate["lenses"][0]
+            .as_object_mut()
+            .expect("lens")
+            .remove(field);
+        assert_pending_invalid(&candidate, field);
+    }
+    for field in [
+        "status",
+        "subject_digest",
+        "reviewer_id",
+        "fresh_context",
+        "prior_context_used",
+        "findings_resolved_or_carried",
+        "receipt_ref",
+    ] {
+        let mut candidate = hold_epoch();
+        candidate["fresh_dissent"]
+            .as_object_mut()
+            .expect("dissent")
+            .remove(field);
+        assert_pending_invalid(&candidate, field);
+    }
+    for field in [
+        "status",
+        "subject_digest",
+        "oracle_principal_id",
+        "blind_reader_principal_id",
+        "conversation_context_used",
+        "reproduced_verdict",
+        "oracle_receipt_ref",
+        "blind_reader_receipt_ref",
+    ] {
+        let mut candidate = hold_epoch();
+        candidate["context_free_exit"]
+            .as_object_mut()
+            .expect("exit")
+            .remove(field);
+        assert_pending_invalid(&candidate, field);
+    }
+    for field in ["frozen", "subject_digest", "facts_ref"] {
+        let mut candidate = hold_epoch();
+        candidate["immutable_successor"]
+            .as_object_mut()
+            .expect("successor")
+            .remove(field);
+        assert_pending_invalid(&candidate, field);
+    }
+    let mut candidate = hold_epoch();
+    candidate["blockers"] = json!([{
+        "control_id": "C06",
+        "input_class": "legal-review",
+        "required_qualification": "licensed-jcr-reviewer",
+        "scope": "stage1-closure",
+        "authority_source_ref": "authority://legal",
+        "reason": "review is pending"
+    }]);
+    for field in [
+        "control_id",
+        "input_class",
+        "required_qualification",
+        "scope",
+        "authority_source_ref",
+        "reason",
+    ] {
+        let mut mutation = candidate.clone();
+        mutation["blockers"][0]
+            .as_object_mut()
+            .expect("blocker")
+            .remove(field);
+        assert_pending_invalid(&mutation, field);
+    }
+}
+
+#[test]
 fn receipt_validation_has_no_legacy_authority_field_reads() {
     let source = include_str!("../src/lib.rs");
     for legacy in [

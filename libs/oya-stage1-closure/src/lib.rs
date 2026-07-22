@@ -401,6 +401,26 @@ fn evaluate_epoch_with_untrusted_shape(
         "epoch",
         &mut findings,
     );
+    require_object_fields(
+        epoch,
+        &[
+            "schema_id",
+            "epoch_id",
+            "program_ref",
+            "state",
+            "subject_binding",
+            "planning",
+            "controls",
+            "lenses",
+            "fresh_dissent",
+            "context_free_exit",
+            "immutable_successor",
+            "blockers",
+            "claim_ceiling",
+        ],
+        "epoch",
+        &mut findings,
+    );
 
     require_string(epoch, "schema_id", EPOCH_SCHEMA_ID, &mut findings);
     require_non_empty_string(epoch, "epoch_id", &mut findings);
@@ -420,20 +440,10 @@ fn evaluate_epoch_with_untrusted_shape(
     validate_planning(epoch.get("planning"), state, &mut findings);
     if let Some(blockers) = epoch.get("blockers").and_then(Value::as_array) {
         for (index, blocker) in blockers.iter().enumerate() {
-            reject_unknown_fields(
-                blocker,
-                &[
-                    "control_id",
-                    "input_class",
-                    "required_qualification",
-                    "scope",
-                    "authority_source_ref",
-                    "reason",
-                ],
-                &format!("blockers[{index}]"),
-                &mut findings,
-            );
+            validate_blocker_shape(blocker, index, &mut findings);
         }
+    } else {
+        findings.insert("blockers must be an array".to_owned());
     }
 
     let control_states = validate_epoch_controls(epoch.get("controls"), &mut findings);
@@ -1288,6 +1298,12 @@ fn validate_epoch_controls(
             "epoch control",
             findings,
         );
+        require_object_fields(
+            control,
+            &["control_id", "status", "subject_digest", "receipt_refs"],
+            &format!("controls.{id}"),
+            findings,
+        );
         let actual_id = control.get("control_id").and_then(Value::as_str);
         if actual_id != Some(*id) {
             findings.insert(format!("controls[{index}].control_id must equal {id}"));
@@ -1301,6 +1317,23 @@ fn validate_epoch_controls(
         if status.is_none_or(|candidate| !matches!(candidate, "pending" | "satisfied" | "blocked"))
         {
             findings.insert(format!("controls.{id}.status is invalid"));
+        }
+        require_nullable_subject_digest(
+            control,
+            "subject_digest",
+            &format!("controls.{id}"),
+            findings,
+        );
+        if !control.get("receipt_refs").is_some_and(Value::is_array) {
+            findings.insert(format!("controls.{id}.receipt_refs must be an array"));
+        } else if let Some(receipts) = control.get("receipt_refs").and_then(Value::as_array) {
+            for (receipt_index, receipt) in receipts.iter().enumerate() {
+                validate_source_receipt_shape(
+                    receipt,
+                    &format!("controls.{id}.receipt_refs[{receipt_index}]"),
+                    findings,
+                );
+            }
         }
         let mut state = EvidenceState {
             satisfied: status == Some("satisfied"),
@@ -1371,6 +1404,18 @@ fn validate_epoch_lenses(
             "epoch lens",
             findings,
         );
+        require_object_fields(
+            lens,
+            &[
+                "lens_id",
+                "status",
+                "subject_digest",
+                "reviewer_id",
+                "receipt_ref",
+            ],
+            &format!("lenses.{id}"),
+            findings,
+        );
         if lens.get("lens_id").and_then(Value::as_str) != Some(*id) {
             findings.insert(format!("lenses[{index}].lens_id must equal {id}"));
         }
@@ -1378,6 +1423,12 @@ fn validate_epoch_lenses(
         if status.is_none_or(|candidate| !matches!(candidate, "pending" | "satisfied" | "blocked"))
         {
             findings.insert(format!("lenses.{id}.status is invalid"));
+        }
+        require_nullable_subject_digest(lens, "subject_digest", &format!("lenses.{id}"), findings);
+        require_nullable_string(lens, "reviewer_id", &format!("lenses.{id}"), findings);
+        validate_nullable_receipt(lens, "receipt_ref", &format!("lenses.{id}"), findings);
+        for field in ["independent_from_author", "fresh_context"] {
+            validate_optional_boolean(lens, field, &format!("lenses.{id}"), findings);
         }
         let mut state = EvidenceState {
             satisfied: status == Some("satisfied"),
@@ -1453,10 +1504,34 @@ fn validate_fresh_dissent(value: Option<&Value>, findings: &mut BTreeSet<String>
         "fresh_dissent",
         findings,
     );
+    require_object_fields(
+        dissent,
+        &[
+            "status",
+            "subject_digest",
+            "reviewer_id",
+            "fresh_context",
+            "prior_context_used",
+            "findings_resolved_or_carried",
+            "receipt_ref",
+        ],
+        "fresh_dissent",
+        findings,
+    );
     let status = dissent.get("status").and_then(Value::as_str);
     if status.is_none_or(|candidate| !matches!(candidate, "pending" | "satisfied" | "blocked")) {
         findings.insert("fresh_dissent.status is invalid".to_owned());
     }
+    require_nullable_subject_digest(dissent, "subject_digest", "fresh_dissent", findings);
+    require_nullable_string(dissent, "reviewer_id", "fresh_dissent", findings);
+    for field in [
+        "fresh_context",
+        "prior_context_used",
+        "findings_resolved_or_carried",
+    ] {
+        require_boolean(dissent, field, "fresh_dissent", findings);
+    }
+    validate_nullable_receipt(dissent, "receipt_ref", "fresh_dissent", findings);
     let mut state = EvidenceState {
         satisfied: status == Some("satisfied"),
         blocked: status == Some("blocked"),
@@ -1515,6 +1590,14 @@ fn validate_immutable_successor(
         "immutable_successor",
         findings,
     );
+    require_object_fields(
+        successor,
+        &["frozen", "subject_digest", "facts_ref"],
+        "immutable_successor",
+        findings,
+    );
+    require_boolean(successor, "frozen", "immutable_successor", findings);
+    require_nullable_subject_digest(successor, "subject_digest", "immutable_successor", findings);
     let frozen = successor.get("frozen").and_then(Value::as_bool) == Some(true);
     let state = EvidenceState {
         satisfied: frozen,
@@ -1529,6 +1612,7 @@ fn validate_immutable_successor(
         "immutable_successor.facts_ref",
         findings,
     );
+    validate_nullable_successor_facts_ref(facts_ref, findings);
     if frozen {
         if state.subject_digest.is_none() {
             findings.insert("immutable_successor.subject_digest must be sha256-bound".to_owned());
@@ -1565,10 +1649,60 @@ fn validate_context_free_exit(
         "context_free_exit",
         findings,
     );
+    require_object_fields(
+        exit,
+        &[
+            "status",
+            "subject_digest",
+            "oracle_principal_id",
+            "blind_reader_principal_id",
+            "conversation_context_used",
+            "reproduced_verdict",
+            "oracle_receipt_ref",
+            "blind_reader_receipt_ref",
+        ],
+        "context_free_exit",
+        findings,
+    );
     let status = exit.get("status").and_then(Value::as_str);
     if status.is_none_or(|candidate| !matches!(candidate, "pending" | "satisfied" | "blocked")) {
         findings.insert("context_free_exit.status is invalid".to_owned());
     }
+    require_nullable_subject_digest(exit, "subject_digest", "context_free_exit", findings);
+    require_nullable_string(exit, "oracle_principal_id", "context_free_exit", findings);
+    require_nullable_string(
+        exit,
+        "blind_reader_principal_id",
+        "context_free_exit",
+        findings,
+    );
+    require_boolean(
+        exit,
+        "conversation_context_used",
+        "context_free_exit",
+        findings,
+    );
+    let valid_reproduced_verdict = match exit.get("reproduced_verdict") {
+        Some(Value::Null) => true,
+        Some(Value::String(value)) => matches!(
+            value.as_str(),
+            "PASS_CANDIDATE" | "BLOCKED_QUALIFIED_HUMAN_INPUT"
+        ),
+        _ => false,
+    };
+    if !valid_reproduced_verdict {
+        findings.insert(
+            "context_free_exit.reproduced_verdict must be PASS_CANDIDATE, BLOCKED_QUALIFIED_HUMAN_INPUT, or null"
+                .to_owned(),
+        );
+    }
+    validate_nullable_receipt(exit, "oracle_receipt_ref", "context_free_exit", findings);
+    validate_nullable_receipt(
+        exit,
+        "blind_reader_receipt_ref",
+        "context_free_exit",
+        findings,
+    );
     let mut state = EvidenceState {
         satisfied: status == Some("satisfied"),
         blocked: status == Some("blocked"),
@@ -1645,6 +1779,33 @@ fn validate_receipt(
     expected_class: &str,
     findings: &mut BTreeSet<String>,
 ) -> Option<String> {
+    validate_source_receipt_shape(receipt, path, findings);
+    if receipt.get("subject_digest").and_then(Value::as_str) != Some(expected_subject) {
+        findings.insert(format!(
+            "{path}.subject_digest must match the frozen subject"
+        ));
+    }
+    let principal_id = non_empty(receipt, "principal_id").map(str::to_owned);
+    let receipt_class = receipt
+        .get("issuer_authority_class")
+        .and_then(Value::as_str);
+    let valid_class = if expected_class == "machine-and-qualified-human" {
+        matches!(
+            receipt_class,
+            Some("machine-verifiable" | "qualified-human")
+        )
+    } else {
+        receipt_class == Some(expected_class)
+    };
+    if !valid_class {
+        findings.insert(format!(
+            "{path}.issuer_authority_class must equal {expected_class}"
+        ));
+    }
+    principal_id
+}
+
+fn validate_source_receipt_shape(receipt: &Value, path: &str, findings: &mut BTreeSet<String>) {
     if let Some(object) = receipt.as_object() {
         for field in object.keys() {
             if !SOURCE_RECEIPT_REQUIRED_FIELDS.contains(&field.as_str()) {
@@ -1652,6 +1813,7 @@ fn validate_receipt(
             }
         }
     }
+    require_object_fields(receipt, &SOURCE_RECEIPT_REQUIRED_FIELDS, path, findings);
     if non_empty(receipt, "path").is_none() {
         findings.insert(format!("{path}.path must be non-empty"));
     }
@@ -1668,31 +1830,6 @@ fn validate_receipt(
         .is_none_or(|value| !is_hex(value, 64))
     {
         findings.insert(format!("{path}.sha256 must be 64 hex bytes"));
-    }
-    if receipt.get("subject_digest").and_then(Value::as_str) != Some(expected_subject) {
-        findings.insert(format!(
-            "{path}.subject_digest must match the frozen subject"
-        ));
-    }
-    let principal_id = non_empty(receipt, "principal_id").map(str::to_owned);
-    if principal_id.is_none() {
-        findings.insert(format!("{path}.principal_id must be non-empty"));
-    }
-    let receipt_class = receipt
-        .get("issuer_authority_class")
-        .and_then(Value::as_str);
-    let valid_class = if expected_class == "machine-and-qualified-human" {
-        matches!(
-            receipt_class,
-            Some("machine-verifiable" | "qualified-human")
-        )
-    } else {
-        receipt_class == Some(expected_class)
-    };
-    if !valid_class {
-        findings.insert(format!(
-            "{path}.issuer_authority_class must equal {expected_class}"
-        ));
     }
     if !receipt
         .get("authority_source_ref")
@@ -1719,7 +1856,108 @@ fn validate_receipt(
             findings.insert(format!("{path}.{field} must be non-empty"));
         }
     }
-    principal_id
+}
+
+fn validate_nullable_receipt(
+    value: &Value,
+    field: &str,
+    subject: &str,
+    findings: &mut BTreeSet<String>,
+) {
+    let receipt = value.get(field).unwrap_or(&Value::Null);
+    if receipt.is_null() {
+        return;
+    }
+    if !receipt.is_object() {
+        findings.insert(format!("{subject}.{field} must be an object or null"));
+        return;
+    }
+    validate_source_receipt_shape(receipt, &format!("{subject}.{field}"), findings);
+}
+
+fn validate_nullable_successor_facts_ref(facts_ref: &Value, findings: &mut BTreeSet<String>) {
+    if facts_ref.is_null() {
+        return;
+    }
+    if !facts_ref.is_object() {
+        findings.insert("immutable_successor.facts_ref must be an object or null".to_owned());
+        return;
+    }
+    require_object_fields(
+        facts_ref,
+        &["path", "sha256"],
+        "immutable_successor.facts_ref",
+        findings,
+    );
+    require_non_empty_string(facts_ref, "path", findings);
+    if facts_ref
+        .get("sha256")
+        .and_then(Value::as_str)
+        .is_none_or(|value| !is_hex(value, 64))
+    {
+        findings.insert("immutable_successor.facts_ref.sha256 must be 64 hex bytes".to_owned());
+    }
+}
+
+fn require_object_fields(
+    value: &Value,
+    fields: &[&str],
+    subject: &str,
+    findings: &mut BTreeSet<String>,
+) {
+    let Some(object) = value.as_object() else {
+        findings.insert(format!("{subject} must be an object"));
+        return;
+    };
+    for field in fields {
+        if !object.contains_key(*field) {
+            findings.insert(format!("{subject}.{field} is required"));
+        }
+    }
+}
+
+fn require_nullable_subject_digest(
+    value: &Value,
+    field: &str,
+    subject: &str,
+    findings: &mut BTreeSet<String>,
+) {
+    if !value.get(field).is_some_and(|candidate| {
+        candidate.is_null() || valid_subject_digest(Some(candidate)).is_some()
+    }) {
+        findings.insert(format!("{subject}.{field} must be sha256-bound or null"));
+    }
+}
+
+fn require_nullable_string(
+    value: &Value,
+    field: &str,
+    subject: &str,
+    findings: &mut BTreeSet<String>,
+) {
+    if !value
+        .get(field)
+        .is_some_and(|candidate| candidate.is_null() || candidate.is_string())
+    {
+        findings.insert(format!("{subject}.{field} must be a string or null"));
+    }
+}
+
+fn require_boolean(value: &Value, field: &str, subject: &str, findings: &mut BTreeSet<String>) {
+    if !value.get(field).is_some_and(Value::is_boolean) {
+        findings.insert(format!("{subject}.{field} must be a boolean"));
+    }
+}
+
+fn validate_optional_boolean(
+    value: &Value,
+    field: &str,
+    subject: &str,
+    findings: &mut BTreeSet<String>,
+) {
+    if value.get(field).is_some() && !value.get(field).is_some_and(Value::is_boolean) {
+        findings.insert(format!("{subject}.{field} must be a boolean"));
+    }
 }
 
 fn validate_protected_parent_facts(
@@ -2313,6 +2551,31 @@ fn validate_state_progress(
                     findings.insert(format!("{path}.{field} must be a non-empty string"));
                 }
             }
+        }
+    }
+}
+
+fn validate_blocker_shape(blocker: &Value, index: usize, findings: &mut BTreeSet<String>) {
+    let path = format!("blockers[{index}]");
+    let fields = [
+        "control_id",
+        "input_class",
+        "required_qualification",
+        "scope",
+        "authority_source_ref",
+        "reason",
+    ];
+    reject_unknown_fields(blocker, &fields, &path, findings);
+    require_object_fields(blocker, &fields, &path, findings);
+    if !matches!(
+        blocker.get("control_id").and_then(Value::as_str),
+        Some("C06" | "C07" | "C08" | "C09" | "C10" | "C11")
+    ) {
+        findings.insert(format!("{path}.control_id must be C06-C11"));
+    }
+    for field in fields.iter().skip(1) {
+        if non_empty(blocker, field).is_none() {
+            findings.insert(format!("{path}.{field} must be a non-empty string"));
         }
     }
 }
