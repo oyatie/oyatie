@@ -196,7 +196,21 @@ pub struct IdeaArchiveObservedNode {
 pub struct IdeaArchiveVerifiedClosureProjection {
     /// Evidence-set ids verified closed by the protected validator.
     /// data_class: INTERNAL_ONLY
-    pub evidence_set_ids: BTreeSet<String>,
+    evidence_set_ids: BTreeSet<String>,
+}
+
+impl IdeaArchiveVerifiedClosureProjection {
+    /// Return the immutable evidence-set ids admitted by the protected validator.
+    #[must_use]
+    pub fn evidence_set_ids(&self) -> &BTreeSet<String> {
+        &self.evidence_set_ids
+    }
+
+    pub(crate) fn verified_adr_0388_history_only_retirement() -> Self {
+        Self {
+            evidence_set_ids: BTreeSet::from([HISTORY_ONLY_CLOSURE_EVIDENCE_SET_ID.to_owned()]),
+        }
+    }
 }
 
 /// Complete candidate observation required by the pure evaluator.
@@ -658,7 +672,7 @@ fn evaluate_history_only(
         }
     }
     let expected_evidence_sets = BTreeSet::from([HISTORY_ONLY_CLOSURE_EVIDENCE_SET_ID.to_owned()]);
-    if observation.verified_closure_projection.evidence_set_ids != expected_evidence_sets {
+    if observation.verified_closure_projection.evidence_set_ids() != &expected_evidence_sets {
         return Err(IdeaArchiveTransitionError::BaselineMismatch(
             "git-history-only requires the exact protected E7 closure evidence-set projection"
                 .to_owned(),
