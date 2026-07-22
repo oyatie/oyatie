@@ -40,8 +40,18 @@
   "retention_rules": {
     "idea_archive": {
       "policy_version": 1,
-      "mode": "current-tree-archive-compatible",
-      "transition": null
+      "mode": "history-only-preparation",
+      "transition": {
+        "state": "open",
+        "baseline_id": "IDEA-ARCHIVE-TRANSITION-2026-07-22-V1",
+        "manifest_path": "ci/facade/cross-artifact-agreement/src/idea-archive-transition-baseline.json",
+        "sha256": "df46f4ae9eea0c6a59831eb5a47126b6f24475ad499e48a993bda53561ff3d4c",
+        "exception_semantics": "exact-path-and-byte-identity-only",
+        "exception_expansion": "forbidden",
+        "authority_state": "non-authoritative-transition-inputs",
+        "completion_claim": false,
+        "required_successor_epochs": ["E6","E7","E9","E10"]
+      }
     },
     "survive_at_root_as_pointer_hubs": [
       "README.md",
