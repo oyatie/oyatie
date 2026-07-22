@@ -4,7 +4,7 @@ use corpus_doc_parser::census::{
 };
 
 const PARENT: &str = "e548d6f4035104e15ef6e290a4799d0ff3ee66e6";
-const CURRENT_PARSER_COMMIT: &str = "2e17f5d62e28c63eb3fdc2072d58918d134ace8b";
+const CURRENT_PARSER_COMMIT: &str = "56a169d7c4bf6da74ed48344c6918c418acc772d";
 
 fn source(path: &str, bytes: &[u8]) -> CensusSource {
     CensusSource {
