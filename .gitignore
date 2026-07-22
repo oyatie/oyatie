@@ -129,6 +129,11 @@ test-results/
 #   docs/machine-readable/masterplan.generated.json  (covered by **/*.generated.json above; not negated)
 # product-graph.html is a .html (not *.generated.json), so it needs an explicit ignore line:
 docs/architecture/product-graph.html
+
+# ADR-0620 de-commits the active-artifact semantic graph. The legacy filename does not carry
+# the generated suffix, so keep this controller-only materialization path explicitly ignored.
+registry/graph/active-artifact-contract-edges.json
+
 # ADR-0614 (amends ADR-0563; finishes the pure-derivation strangler for the LAST committed
 # reorg face): move-manifest.generated.json is NO LONGER excluded from the de-commit class — it
 # JOINS it. ADR-0563 originally made it the authoritative COMMITTED move-bijection; ADR-0614

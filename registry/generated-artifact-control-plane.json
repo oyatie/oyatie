@@ -266,6 +266,35 @@
       }
     },
     {
+      "artifact_id": "active-artifact-contract-edges",
+      "path": "registry/graph/active-artifact-contract-edges.json",
+      "artifact_class": "main-materialized-aggregate",
+      "materialization_mode": "not-tracked-in-git",
+      "merge_policy": "never-manual-merge-regenerate-from-source-tree",
+      "owner_team": "council-architecture + cloud-ci-platform",
+      "source_inputs": [
+        "registry/artifact-capabilities-registry.json",
+        "specs/active-machine-readable-artifact-contract.json",
+        "specs/artifact-profile-defaults.json",
+        "candidate tracked-path inventory"
+      ],
+      "final_tree_validation": "ADR-0620 de-commit class: this face is not tracked in git. The official generated-face materializer invokes the Buck-built active-artifact-contract producer against the exact candidate tree before consumers run. Complete semantic projection equality, exact canonical bytes, and independent regenerate-twice byte stability are required. Missing, malformed, incomplete, reordered, extra, re-tracked, or hand-edited output fails closed.",
+      "public_product_contract": "The active-artifact graph is a pure controller-materialized projection, never an independently editable authority or contributor merge surface.",
+      "generator": {
+        "runner": "buck2",
+        "generator_target": "//marketplace/facade/dev-cli:oya",
+        "operation_id": "emit-active-artifact-contract-graph-edges",
+        "parameters": {
+          "gate": "active-artifact-contract"
+        },
+        "input_contract": [
+          "repo-root",
+          "declared-source-inputs"
+        ],
+        "output_mode": "declared-artifact-path-write"
+      }
+    },
+    {
       "artifact_id": "architecture-product-graph-dashboard",
       "path": "docs/architecture/product-graph.html",
       "artifact_class": "main-materialized-aggregate",
@@ -489,6 +518,12 @@
       "rule_kind": "path_suffix",
       "pattern": "docs/architecture/product-graph.html",
       "description": "Controller-owned generated architecture dashboard materialized from machine-readable planning and architecture inputs."
+    },
+    {
+      "rule_id": "active-artifact-contract-graph-projection",
+      "rule_kind": "path_suffix",
+      "pattern": "registry/graph/active-artifact-contract-edges.json",
+      "description": "ADR-0620 controller-only active-artifact graph projection; the legacy filename lacks the .generated.json suffix, so its exact path is classified explicitly."
     },
     {
       "rule_id": "generated-directory-component",
