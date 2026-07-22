@@ -985,6 +985,13 @@ impl<'a> FrontmatterParser<'a> {
             if !valid_key(category) {
                 return Err(self.invalid("invalid affected surface category", start, line.len()));
             }
+            if is_block_scalar_marker(raw) {
+                return Err(self.invalid(
+                    "block scalar values are not supported for affected surface categories",
+                    start + 2 + category.len() + 1,
+                    raw.len(),
+                ));
+            }
             let values = field_value_list(parse_value(raw).map_err(|message| {
                 self.invalid(&message, start + 2 + category.len() + 1, raw.len())
             })?);
@@ -1101,6 +1108,13 @@ fn field_value_list(value: AdrFrontmatterValue) -> Vec<String> {
         AdrFrontmatterValue::List(values) => values,
         AdrFrontmatterValue::Null | AdrFrontmatterValue::Empty => Vec::new(),
     }
+}
+
+fn is_block_scalar_marker(raw: &str) -> bool {
+    matches!(
+        strip_comment(raw).trim_start().as_bytes().first(),
+        Some(b'|' | b'>')
+    )
 }
 
 fn parse_value(raw: &str) -> Result<AdrFrontmatterValue, String> {
