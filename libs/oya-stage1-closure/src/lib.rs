@@ -30,6 +30,66 @@ pub const SOURCE_RECEIPT_REQUIRED_FIELDS: [&str; 14] = [
     "signature_trust_root_binding",
 ];
 
+/// Canonical required fields of `oyatie/stage1-admission-envelope/v1`.
+///
+/// This parser-owned list is locked against the source schema by the admission-envelope fixture
+/// regression. It intentionally contains no protected-facts aliases.
+pub const ADMISSION_ENVELOPE_REQUIRED_FIELDS: [&str; 24] = [
+    "schema_id",
+    "repository",
+    "branch",
+    "base_commit",
+    "base_tree",
+    "pr_head_commit",
+    "pr_head_tree",
+    "postmerge_promoted_commit",
+    "postmerge_promoted_tree",
+    "facts_binding",
+    "program_binding",
+    "evaluator_binding",
+    "policy_binding",
+    "schema_binding",
+    "immutable_successor_binding",
+    "check_suite_binding",
+    "independent_review_binding",
+    "branch_protection_binding",
+    "postmerge_completion",
+    "envelope_signature",
+    "trust_root_binding",
+    "roadmap_planning_authorized",
+    "binding_plan_approval_allowed",
+    "implementation_dispatch_allowed",
+];
+
+/// Canonical allowed fields of `oyatie/stage1-admission-envelope/v1`.
+pub const ADMISSION_ENVELOPE_ALLOWED_FIELDS: [&str; 25] = [
+    "schema_id",
+    "repository",
+    "branch",
+    "base_commit",
+    "base_tree",
+    "pr_head_commit",
+    "pr_head_tree",
+    "postmerge_promoted_commit",
+    "postmerge_promoted_tree",
+    "facts_binding",
+    "program_binding",
+    "evaluator_binding",
+    "policy_binding",
+    "schema_binding",
+    "immutable_successor_binding",
+    "check_suite_binding",
+    "independent_review_binding",
+    "branch_protection_binding",
+    "postmerge_completion",
+    "envelope_signature",
+    "trust_root_binding",
+    "roadmap_planning_authorized",
+    "binding_plan_approval_allowed",
+    "implementation_dispatch_allowed",
+    "extensions",
+];
+
 const STATES: [&str; 6] = [
     "HOLD_EPOCH_OPEN",
     "HOLD_EVIDENCE_COMPLETE",
@@ -663,15 +723,26 @@ pub fn validate_admission_envelope_shape(envelope: &Value) -> Report {
         "oyatie/stage1-admission-envelope/v1",
         &mut findings,
     );
+    for field in ["repository", "branch"] {
+        require_non_empty_string(envelope, field, &mut findings);
+    }
     for field in [
-        "repository",
-        "branch",
         "base_commit",
         "base_tree",
         "pr_head_commit",
         "pr_head_tree",
         "postmerge_promoted_commit",
         "postmerge_promoted_tree",
+    ] {
+        if envelope
+            .get(field)
+            .and_then(Value::as_str)
+            .is_none_or(|value| !is_hex(value, 40) && !is_hex(value, 64))
+        {
+            findings.insert(format!("{field} must be a Git object identifier"));
+        }
+    }
+    for field in [
         "facts_binding",
         "program_binding",
         "evaluator_binding",
@@ -685,20 +756,34 @@ pub fn validate_admission_envelope_shape(envelope: &Value) -> Report {
         "envelope_signature",
         "trust_root_binding",
     ] {
-        if envelope.get(field).is_none() {
-            findings.insert(format!("{field} is required"));
-        }
+        validate_admission_binding(
+            envelope.get(field).unwrap_or(&Value::Null),
+            field,
+            &mut findings,
+        );
     }
     if envelope.get("postmerge_promoted_commit") == envelope.get("pr_head_commit") {
         findings.insert("postmerge_promoted_commit must not equal pr_head_commit".to_owned());
     }
-    for field in [
-        "protected_facts_binding",
-        "authority_chain_result",
-        "immutable_successor_bundle",
-    ] {
-        if !envelope.get(field).is_some_and(Value::is_object) {
-            findings.insert(format!("{field} must be an externally bound object"));
+    if let Some(object) = envelope.as_object() {
+        for field in object.keys() {
+            if !ADMISSION_ENVELOPE_ALLOWED_FIELDS.contains(&field.as_str()) {
+                findings.insert(format!("admission envelope rejects unknown field {field}"));
+            }
+        }
+    }
+    if let Some(extensions) = envelope.get("extensions") {
+        match extensions.as_object() {
+            Some(extensions) => {
+                for field in extensions.keys() {
+                    if !field.starts_with("x-stage1-non-authoritative-") {
+                        findings.insert(format!("extensions rejects unknown field {field}"));
+                    }
+                }
+            }
+            None => {
+                findings.insert("extensions must be an object".to_owned());
+            }
         }
     }
     require_bool(
@@ -719,8 +804,45 @@ pub fn validate_admission_envelope_shape(envelope: &Value) -> Report {
         false,
         &mut findings,
     );
+    report_with_admission_hold(findings)
+}
+
+fn report_with_admission_hold(mut findings: BTreeSet<String>) -> Report {
     findings.insert("admission-envelope structure is non-authoritative; authenticated external controller is unimplemented".to_owned());
     report(findings)
+}
+
+fn validate_admission_binding(value: &Value, field: &str, findings: &mut BTreeSet<String>) {
+    let Some(binding) = value.as_object() else {
+        findings.insert(format!("{field} must be a binding object"));
+        return;
+    };
+    if binding
+        .get("path")
+        .and_then(Value::as_str)
+        .is_none_or(|candidate| candidate.trim().is_empty())
+    {
+        findings.insert(format!("{field}.path must be a non-empty string"));
+    }
+    if binding
+        .get("blob_oid")
+        .and_then(Value::as_str)
+        .is_none_or(|candidate| !is_hex(candidate, 40) && !is_hex(candidate, 64))
+    {
+        findings.insert(format!("{field}.blob_oid must be a Git object identifier"));
+    }
+    if binding
+        .get("sha256")
+        .and_then(Value::as_str)
+        .is_none_or(|candidate| !is_hex(candidate, 64))
+    {
+        findings.insert(format!("{field}.sha256 must be 64 hex bytes"));
+    }
+    for key in binding.keys() {
+        if !matches!(key.as_str(), "path" | "blob_oid" | "sha256") {
+            findings.insert(format!("{field} rejects unknown field {key}"));
+        }
+    }
 }
 
 #[derive(Clone, Debug, Default)]

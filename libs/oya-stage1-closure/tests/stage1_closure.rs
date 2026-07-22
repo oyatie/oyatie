@@ -2,6 +2,7 @@ use std::collections::BTreeSet;
 
 use serde_json::{Value, json};
 use stage1_closure::{
+    ADMISSION_ENVELOPE_ALLOWED_FIELDS, ADMISSION_ENVELOPE_REQUIRED_FIELDS,
     SOURCE_RECEIPT_REQUIRED_FIELDS, evaluate_epoch, evaluate_program, evaluate_source_epoch,
     validate_admission_envelope_shape, validate_protected_facts_grammar,
     validate_protected_facts_shape,
@@ -16,6 +17,11 @@ fn program() -> Value {
 
 fn hold_epoch() -> Value {
     serde_json::from_str(include_str!("fixtures/hold-epoch.json")).expect("epoch fixture parses")
+}
+
+fn admission_envelope() -> Value {
+    serde_json::from_str(include_str!("fixtures/admission-envelope.json"))
+        .expect("admission envelope fixture parses")
 }
 
 fn schema(relative: &str) -> Value {
@@ -586,6 +592,86 @@ fn red_incomplete_successor_and_pr_head_envelope_are_rejected() {
             .findings
             .iter()
             .any(|finding| finding.contains("non-authoritative"))
+    );
+}
+
+#[test]
+fn admission_envelope_matches_schema_fields_and_remains_non_authoritative() {
+    let envelope = admission_envelope();
+    let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").expect("manifest directory");
+    let schema_source = std::fs::read_to_string(format!(
+        "{manifest_dir}/../../specs/stage1-admission-envelope.schema.json"
+    ))
+    .expect("admission envelope schema is present");
+    let schema: Value =
+        serde_json::from_str(&schema_source).expect("admission envelope schema parses");
+    let mut schema_required = schema["required"]
+        .as_array()
+        .expect("schema required fields")
+        .iter()
+        .map(|field| field.as_str().expect("required field string"))
+        .collect::<Vec<_>>();
+    let mut fixture_fields = envelope
+        .as_object()
+        .expect("fixture object")
+        .keys()
+        .map(String::as_str)
+        .collect::<Vec<_>>();
+    schema_required.sort_unstable();
+    fixture_fields.sort_unstable();
+    assert_eq!(
+        fixture_fields, schema_required,
+        "fixture has exactly schema-required fields"
+    );
+    let mut parser_required = ADMISSION_ENVELOPE_REQUIRED_FIELDS.to_vec();
+    parser_required.sort_unstable();
+    assert_eq!(
+        parser_required, schema_required,
+        "parser has exactly schema-required fields"
+    );
+    let mut schema_fields = schema["properties"]
+        .as_object()
+        .expect("schema properties")
+        .keys()
+        .map(String::as_str)
+        .collect::<Vec<_>>();
+    let mut parser_fields = ADMISSION_ENVELOPE_ALLOWED_FIELDS.to_vec();
+    schema_fields.sort_unstable();
+    parser_fields.sort_unstable();
+    assert_eq!(
+        parser_fields, schema_fields,
+        "parser has exactly schema-declared fields"
+    );
+
+    assert_eq!(
+        validate_admission_envelope_shape(&envelope).findings,
+        vec![
+            "admission-envelope structure is non-authoritative; authenticated external controller is unimplemented"
+        ]
+    );
+}
+
+#[test]
+fn admission_envelope_rejects_missing_and_unknown_canonical_fields() {
+    let mut missing = admission_envelope();
+    missing
+        .as_object_mut()
+        .expect("fixture object")
+        .remove("facts_binding");
+    assert!(
+        validate_admission_envelope_shape(&missing)
+            .findings
+            .iter()
+            .any(|finding| finding.contains("facts_binding"))
+    );
+
+    let mut unknown = admission_envelope();
+    unknown["protected_facts_binding"] = json!({});
+    assert!(
+        validate_admission_envelope_shape(&unknown)
+            .findings
+            .iter()
+            .any(|finding| finding.contains("unknown field protected_facts_binding"))
     );
 }
 
