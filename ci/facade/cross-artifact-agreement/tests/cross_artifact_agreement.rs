@@ -3,6 +3,8 @@
 // invariants.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
+mod idea_archive_transition;
+
 use std::collections::BTreeSet;
 use std::fs;
 use std::path::{Path, PathBuf};

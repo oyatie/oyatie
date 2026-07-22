@@ -607,6 +607,47 @@ fn shipped_pack_parses_and_matches_the_engine() {
 }
 
 #[test]
+fn archive_epoch_e4_inputs_seed_cross_artifact_agreement_gate_despite_docs_inert_mapping() {
+    // E4 archive inputs are cross-artifact-agreement inputs, even though the generic docs
+    // declaration is inert. Synthetic declarations union, so the narrow non-empty archive
+    // mapping contributes this gate while `docs/**` contributes no seed.
+    let mut dir = std::env::current_dir().expect("cwd");
+    let rel = PathBuf::from("ci/facade/affected-target-set/affected-set-policy.json");
+    let pack = loop {
+        let candidate = dir.join(&rel);
+        if candidate.is_file() {
+            break candidate;
+        }
+        assert!(
+            dir.pop(),
+            "failed to locate the shipped pack from the test cwd"
+        );
+    };
+    let policy = Policy::from_json(&fs::read_to_string(pack).expect("read shipped pack"))
+        .expect("shipped pack parses");
+    let expected =
+        vec!["root//ci/facade/cross-artifact-agreement:ci-cross-artifact-agreement-gate".into()];
+
+    for path in [
+        "docs/ideas/archive/e4-transition.md",
+        "specs/markdown-retirement-policy.json",
+    ] {
+        let changes = [Change::Present(path.into())];
+        let decision = resolve(
+            &plan_changes(&changes, &policy),
+            &owners(&[(path, &[])]),
+            &policy,
+        );
+        assert_eq!(
+            decision,
+            Decision::Affected {
+                seeds: expected.clone()
+            }
+        );
+    }
+}
+
+#[test]
 fn wrong_pack_for_engine_is_rejected() {
     let err = Policy::from_json(r#"{"gate_id": "cloud-ci-something-else"}"#).unwrap_err();
     assert!(format!("{err}").contains("wrong pack"));

@@ -1,0 +1,5 @@
+filegroup(
+    name = "idea-archive-candidate-tree",
+    srcs = glob(["archive/**"]),
+    visibility = ["PUBLIC"],
+)
