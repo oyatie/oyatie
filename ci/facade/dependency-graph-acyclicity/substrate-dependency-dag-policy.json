@@ -1,5 +1,0 @@
-{
-  "_comment": "cloud-ci-substrate-dependency-dag-acyclicity policy (DATA, not code). The Rust engine is a neutral graph validator; repo-specific adoption points live here. A different repo adopts this gate by pointing dag_path at its own substrate dependency DAG document.",
-  "gate_id": "cloud-ci-substrate-dependency-dag-acyclicity",
-  "dag_path": "specs/substrate-dependency-dag.json"
-}

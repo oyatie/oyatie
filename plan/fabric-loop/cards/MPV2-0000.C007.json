@@ -1,8 +1,0 @@
-{
-  "card_id": "MPV2-0000.C007",
-  "title": "Prefix-aware justification for registered fabric-loop trees (ADR-0555 resolver learns reachability-registered prefix anchors)",
-  "program_id": "P-FABRIC",
-  "depends_on": [],
-  "status": "defined",
-  "evidence_refs": []
-}

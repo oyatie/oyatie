@@ -1,9 +1,0 @@
-val	1	addresses
-val	2	connectivity
-val	3	hostname
-val	4	etcfiles
-parse	addresses	1
-parse	connectivity	2
-parse	hostname	3
-parse	etcfiles	4
-parse	__nope__	ERR

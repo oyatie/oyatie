@@ -1,2 +1,0 @@
-Pack implementation leak: this KR pack pulls shared logic from packs/jp/overlay,
-which cross-pack refusal must reject; cross-pack imports flow through Workflow.

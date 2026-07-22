@@ -1,5 +1,0 @@
-[buildscript]
-# Selects the k8s API version via CARGO_FEATURE_V1_* env vars.
-# run=true; CARGO_FEATURE_V1_35=1 and CARGO_FEATURE_LATEST=1 are injected
-# via manual env = {...} in the buildscript_run rule in third-party/BUCK after buckify.
-run = true

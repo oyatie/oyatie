@@ -1,2 +1,0 @@
-KR canonical base leak: this line hard-codes PIPA residency in the shared base,
-which ADR-0064 forbids because locale-specific logic must live in the pack.

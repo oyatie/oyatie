@@ -1,7 +1,0 @@
-rust_library(
-    name = "audit-emission-kernel",
-    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
-    crate = "audit_emission_kernel",
-    crate_root = "src/lib.rs",
-    visibility = ["PUBLIC"],
-)

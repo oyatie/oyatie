@@ -1,4 +1,0 @@
-[buildscript]
-# Runs lalrpop (as a build-dep library) to generate parser .rs files from grammar.lalrpop.
-# lalrpop is wired as a build-dep in Cargo.toml and will be compiled as a build script dep.
-run = true

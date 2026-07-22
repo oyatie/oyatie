@@ -1,3 +1,0 @@
-# cpufeatures uses libc::sysctlbyname on aarch64-apple targets for CPU feature detection.
-# reindeer doesn't resolve target-conditional deps; inject libc manually.
-extra_deps = [":libc-0.2"]
