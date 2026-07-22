@@ -7,3 +7,13 @@ export_file(
     name = "stage1-evidence-epoch.schema.json",
     visibility = ["PUBLIC"],
 )
+
+export_file(
+    name = "stage1-protected-facts.schema.json",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "stage1-admission-envelope.schema.json",
+    visibility = ["PUBLIC"],
+)

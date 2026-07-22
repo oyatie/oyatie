@@ -1,5 +1,8 @@
-use ci_stage1_closure::{evaluate_epoch, evaluate_epoch_with_protected_facts, evaluate_program};
 use serde_json::{Value, json};
+use stage1_closure::{
+    evaluate_epoch, evaluate_epoch_with_protected_facts, evaluate_postmerge_admission_envelope,
+    evaluate_program,
+};
 
 const SUBJECT_DIGEST: &str =
     "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
@@ -13,14 +16,14 @@ fn hold_epoch() -> Value {
 }
 
 fn schema(relative: &str) -> Value {
-    let manifest_dir = std::env::var("CARGO_MANIFEST_DIR")
-        .unwrap_or_else(|_| "ci/facade/stage1-closure".to_owned());
+    let manifest_dir =
+        std::env::var("CARGO_MANIFEST_DIR").unwrap_or_else(|_| "libs/stage1-closure".to_owned());
     let path = match relative {
         "program" => std::env::var("OYA_STAGE1_PROGRAM_SCHEMA").unwrap_or_else(|_| {
-            format!("{manifest_dir}/../../../specs/stage1-closure-program.schema.json")
+            format!("{manifest_dir}/../../specs/stage1-closure-program.schema.json")
         }),
         "epoch" => std::env::var("OYA_STAGE1_EPOCH_SCHEMA").unwrap_or_else(|_| {
-            format!("{manifest_dir}/../../../specs/stage1-evidence-epoch.schema.json")
+            format!("{manifest_dir}/../../specs/stage1-evidence-epoch.schema.json")
         }),
         _ => panic!("unknown schema fixture {relative}"),
     };
@@ -36,16 +39,13 @@ fn receipt(issuer_id: &str, issuer_class: &str) -> Value {
         "subject_digest": SUBJECT_DIGEST,
         "issuer_id": issuer_id,
         "issuer_class": issuer_class,
-        "authority_ref": format!("authority://{issuer_id}"),
-        "independently_verified": true
+        "authority_ref": format!("authority://{issuer_id}")
     })
 }
 
 fn pass_epoch() -> Value {
     let mut epoch = hold_epoch();
-    epoch["state"] = json!("PASS_PLANNING");
-    epoch["planning"]["planning_state"] = json!("PASS(Planning)");
-    epoch["planning"]["roadmap_planning_authorized"] = json!(true);
+    epoch["state"] = json!("PASS_CANDIDATE");
     let controls = epoch["controls"].as_array_mut().expect("controls array");
     let classes = [
         "machine-verifiable",
@@ -105,7 +105,7 @@ fn pass_epoch() -> Value {
         "oracle_principal_id": "exit-oracle",
         "blind_reader_principal_id": "blind-reader",
         "conversation_context_used": false,
-        "reproduced_verdict": "PASS_PLANNING",
+        "reproduced_verdict": "PASS_CANDIDATE",
         "oracle_receipt_ref": receipt("exit-oracle", "independent-oracle"),
         "blind_reader_receipt_ref": receipt("blind-reader", "independent-reader")
     });
@@ -152,27 +152,43 @@ fn protected_facts(epoch: &Value) -> Value {
         }
     }
     for lens in epoch["lenses"].as_array().expect("lenses") {
-        add(&lens["receipt_ref"], "C13");
+        if lens["receipt_ref"].is_object() {
+            add(&lens["receipt_ref"], "C13");
+        }
     }
-    add(&epoch["fresh_dissent"]["receipt_ref"], "C14");
-    add(&epoch["context_free_exit"]["oracle_receipt_ref"], "C15");
-    add(
-        &epoch["context_free_exit"]["blind_reader_receipt_ref"],
-        "C15",
-    );
+    if epoch["fresh_dissent"]["receipt_ref"].is_object() {
+        add(&epoch["fresh_dissent"]["receipt_ref"], "C14");
+    }
+    if epoch["context_free_exit"]["oracle_receipt_ref"].is_object() {
+        add(&epoch["context_free_exit"]["oracle_receipt_ref"], "C15");
+    }
+    if epoch["context_free_exit"]["blind_reader_receipt_ref"].is_object() {
+        add(
+            &epoch["context_free_exit"]["blind_reader_receipt_ref"],
+            "C15",
+        );
+    }
     json!({
-        "facts_schema": "oya-ci/scm-facts/v2",
+        "schema_id": "oyatie/stage1-protected-facts/v1",
         "protected_parent_verified": true,
         "trust_root_authority_ref": "authority://protected-parent",
-        "base_commit": "3333333333333333333333333333333333333333",
+        "protected_base_commit": "3333333333333333333333333333333333333333",
         "candidate_commit": "4444444444444444444444444444444444444444",
+        "protected_base_tree": "5555555555555555555555555555555555555555",
+        "candidate_tree": "6666666666666666666666666666666666666666",
         "subject_digest": SUBJECT_DIGEST,
         "program_binding": artifact_binding("specs/masterplan.json"),
         "schema_binding": artifact_binding("specs/stage1-evidence-epoch.schema.json"),
         "policy_binding": artifact_binding("specs/stage1-closure-program.schema.json"),
-        "parser_binding": artifact_binding("ci/facade/stage1-closure/src/lib.rs"),
-        "producer_binding": artifact_binding("infra/ci/materialize-cloud-ci-generated-faces.sh"),
-        "evaluator_binding": artifact_binding("ci/facade/stage1-closure/src/lib.rs"),
+        "protected_base_repository": "github.com/jason931225/oyatie",
+        "candidate_repository": "github.com/jason931225/oyatie",
+        "parser_binding": artifact_binding("libs/oya-stage1-closure/src/lib.rs"),
+        "producer_binding": artifact_binding("libs/oya-ci-materializer-kernel/src/lib.rs"),
+        "evaluator_binding": artifact_binding("libs/oya-stage1-closure/src/lib.rs"),
+        "predecessor_epoch_binding": artifact_binding("specs/stage1-evidence-epoch.schema.json"),
+        "transition_receipt_binding": artifact_binding("specs/stage1-closure-program.schema.json"),
+        "immutable_successor_bundle": artifact_binding("specs/masterplan.json"),
+        "authority_chain_result": artifact_binding("specs/stage1-admission-envelope.schema.json"),
         "receipt_bindings": receipt_bindings
     })
 }
@@ -217,12 +233,12 @@ fn legal_jcr_can_run_after_foundation_and_must_precede_comparator_satisfaction()
 fn shipped_schemas_lock_hold_and_pass_ceiling() {
     let program_schema = schema("program");
     assert_eq!(
-        program_schema["properties"]["pass_effects"]["properties"]["binding_plan_approval_allowed"]
+        program_schema["properties"]["candidate_effects"]["properties"]["binding_plan_approval_allowed"]
             ["const"],
         false
     );
     assert_eq!(
-        program_schema["properties"]["pass_effects"]["properties"]["implementation_dispatch_allowed"]
+        program_schema["properties"]["candidate_effects"]["properties"]["implementation_dispatch_allowed"]
             ["const"],
         false
     );
@@ -269,8 +285,8 @@ fn missing_control_and_duplicate_lens_are_red() {
 #[test]
 fn program_can_never_authorize_binding_approval_or_dispatch() {
     let mut candidate = program();
-    candidate["pass_effects"]["binding_plan_approval_allowed"] = json!(true);
-    candidate["pass_effects"]["implementation_dispatch_allowed"] = json!(true);
+    candidate["candidate_effects"]["binding_plan_approval_allowed"] = json!(true);
+    candidate["candidate_effects"]["implementation_dispatch_allowed"] = json!(true);
     let report = evaluate_program(&candidate);
     assert!(
         report
@@ -289,9 +305,7 @@ fn program_can_never_authorize_binding_approval_or_dispatch() {
 #[test]
 fn pass_requires_every_control_lens_dissent_successor_and_cold_exit() {
     let mut candidate = hold_epoch();
-    candidate["state"] = json!("PASS_PLANNING");
-    candidate["planning"]["planning_state"] = json!("PASS(Planning)");
-    candidate["planning"]["roadmap_planning_authorized"] = json!(true);
+    candidate["state"] = json!("PASS_CANDIDATE");
     let report = evaluate_epoch(&program(), &candidate);
     for required in [
         "C01",
@@ -394,7 +408,10 @@ fn qualified_human_blocker_requires_a_blocked_c06_through_c11_control_and_scope(
         "authority_ref": "authority://legal",
         "reason": "review is pending"
     }]);
-    assert!(evaluate_epoch(&program(), &candidate).is_green());
+    assert!(
+        evaluate_epoch_with_protected_facts(&program(), &candidate, &protected_facts(&candidate))
+            .is_green()
+    );
     candidate["blockers"][0]["control_id"] = json!("C01");
     let report = evaluate_epoch(&program(), &candidate);
     assert!(
@@ -432,4 +449,88 @@ fn pass_rejects_same_principal_council_or_context_using_exit() {
             .iter()
             .any(|item| item.contains("conversation_context_used"))
     );
+}
+
+#[test]
+fn red_candidate_self_authorization_and_intermediate_advance_without_protected_facts_are_rejected()
+{
+    let mut intermediate = hold_epoch();
+    intermediate["state"] = json!("HOLD_EVIDENCE_COMPLETE");
+    let missing = evaluate_epoch(&program(), &intermediate);
+    assert!(
+        missing
+            .findings
+            .iter()
+            .any(|finding| finding.contains("protected"))
+    );
+
+    let candidate = pass_epoch();
+    let mut facts = protected_facts(&candidate);
+    facts["protected_parent_verified"] = json!(false);
+    let report = evaluate_epoch_with_protected_facts(&program(), &candidate, &facts);
+    assert!(
+        report
+            .findings
+            .iter()
+            .any(|finding| finding.contains("protected_parent_verified"))
+    );
+}
+
+#[test]
+fn red_scm_facts_contamination_and_same_pr_authority_grammar_mutation_are_rejected() {
+    let mut epoch = hold_epoch();
+    epoch["subject_binding"]["facts_schema"] = json!("oya-ci/scm-facts/v2");
+    assert!(
+        evaluate_epoch(&program(), &epoch)
+            .findings
+            .iter()
+            .any(|finding| finding.contains("facts_schema"))
+    );
+
+    let mut mutated_program = program();
+    mutated_program["controls"][5]["authority_class"] =
+        json!("x-stage1-non-authoritative-self-declared");
+    assert!(
+        evaluate_program(&mutated_program)
+            .findings
+            .iter()
+            .any(|finding| finding.contains("authority_class"))
+    );
+}
+
+#[test]
+fn red_incomplete_successor_and_pr_head_envelope_are_rejected() {
+    let candidate = pass_epoch();
+    let mut facts = protected_facts(&candidate);
+    facts["immutable_successor_bundle"] = json!(null);
+    assert!(
+        evaluate_epoch_with_protected_facts(&program(), &candidate, &facts)
+            .findings
+            .iter()
+            .any(|finding| finding.contains("immutable_successor_bundle"))
+    );
+
+    let envelope = json!({
+        "schema_id": "oyatie/stage1-admission-envelope/v1",
+        "postmerge_promoted_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "pr_head_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "required_check_identity": "oya-ci-required",
+        "app_identity": "cloud-ci",
+        "protected_facts_binding": {}, "authority_chain_result": {}, "immutable_successor_bundle": {},
+        "roadmap_planning_authorized": true,
+        "binding_plan_approval_allowed": false,
+        "implementation_dispatch_allowed": false
+    });
+    assert!(
+        evaluate_postmerge_admission_envelope(&envelope)
+            .findings
+            .iter()
+            .any(|finding| finding.contains("must not equal pr_head_sha"))
+    );
+}
+
+#[test]
+fn red_no_ci_facade_registration_or_generated_face_hand_edit_surface_exists() {
+    assert!(!std::path::Path::new("ci/facade/stage1-closure").exists());
+    assert!(!std::path::Path::new("libs/oya-stage1-closure/scm-facts.generated.json").exists());
 }

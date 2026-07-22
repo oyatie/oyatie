@@ -1,0 +1,18 @@
+{
+  "$id": "https://docs.oyatie.com/specs/stage1-admission-envelope.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Stage1AdmissionEnvelope",
+  "description": "Future external post-merge-only admission envelope. No source epoch can create this authority.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_id", "postmerge_promoted_sha", "pr_head_sha", "required_check_identity", "app_identity", "protected_facts_binding", "authority_chain_result", "immutable_successor_bundle", "roadmap_planning_authorized", "binding_plan_approval_allowed", "implementation_dispatch_allowed"],
+  "properties": {
+    "schema_id": {"const": "oyatie/stage1-admission-envelope/v1"},
+    "postmerge_promoted_sha": {"type": "string", "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$"},
+    "pr_head_sha": {"type": "string", "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$"},
+    "required_check_identity": {"type": "string", "minLength": 1}, "app_identity": {"type": "string", "minLength": 1},
+    "protected_facts_binding": {"type": "object"}, "authority_chain_result": {"type": "object"}, "immutable_successor_bundle": {"type": "object"},
+    "roadmap_planning_authorized": {"const": true}, "binding_plan_approval_allowed": {"const": false}, "implementation_dispatch_allowed": {"const": false},
+    "extensions": {"type": "object", "propertyNames": {"pattern": "^x-stage1-non-authoritative-"}, "additionalProperties": true}
+  }
+}

@@ -5,7 +5,7 @@
     "created_at": "2026-07-22T00:00:00Z",
     "doc_class": "Machine-Readable-Spec",
     "owner_team": "platform-governance + platform-toolchain",
-    "purpose": "Shape-only structural contract for the mechanism-neutral pre-roadmap Stage-1 closure program. PASS semantic admission is mandatory ci-stage1-closure evaluator routing with independently supplied protected-parent facts.",
+    "purpose": "Shape-only structural contract for the dormant mechanism-neutral pre-roadmap Stage-1 closure program. Source evaluation can produce only PASS_CANDIDATE; effective PASS requires a separate post-merge admission envelope.",
     "status": "Proposed",
     "version": "1.0.0"
   },
@@ -24,7 +24,7 @@
       "uniqueItems": true
     },
     "terminal_states": {
-      "items": {"enum": ["PASS_PLANNING", "BLOCKED_QUALIFIED_HUMAN_INPUT"]},
+      "items": {"enum": ["PASS_CANDIDATE", "BLOCKED_QUALIFIED_HUMAN_INPUT"]},
       "maxItems": 2,
       "minItems": 2,
       "type": "array",
@@ -55,10 +55,10 @@
       "minItems": 16,
       "type": "array"
     },
-    "pass_effects": {
+    "candidate_effects": {
       "additionalProperties": false,
       "properties": {
-        "roadmap_planning_authorized": {"const": true},
+        "roadmap_planning_authorized": {"const": false},
         "binding_plan_approval_allowed": {"const": false},
         "implementation_dispatch_allowed": {"const": false}
       },
@@ -95,7 +95,7 @@
     "groups",
     "controls",
     "lenses",
-    "pass_effects",
+    "candidate_effects",
     "mutation_policy"
   ],
   "title": "Stage1ClosureProgram",
@@ -163,7 +163,7 @@
         "HOLD_EVIDENCE_COMPLETE",
         "HOLD_SUCCESSOR_FROZEN",
         "HOLD_EXIT_CANDIDATE",
-        "PASS_PLANNING",
+        "PASS_CANDIDATE",
         "BLOCKED_QUALIFIED_HUMAN_INPUT"
       ],
       "type": "string"

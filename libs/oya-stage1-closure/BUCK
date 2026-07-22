@@ -1,7 +1,7 @@
 rust_library(
-    name = "ci-stage1-closure",
+    name = "stage1-closure",
     srcs = glob(["src/**/*.rs"]),
-    crate = "ci_stage1_closure",
+    crate = "stage1_closure",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
@@ -10,9 +10,9 @@ rust_library(
 )
 
 rust_test(
-    name = "ci-stage1-closure-unittest",
+    name = "stage1-closure-unittest",
     srcs = glob(["src/**/*.rs"]),
-    crate = "ci_stage1_closure",
+    crate = "stage1_closure",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
@@ -21,9 +21,9 @@ rust_test(
 )
 
 rust_test(
-    name = "ci-stage1-closure-contract",
+    name = "stage1-closure-contract",
     srcs = glob(["tests/**/*.rs", "tests/**/*.json"]),
-    crate = "ci_stage1_closure_contract",
+    crate = "stage1_closure_contract",
     crate_root = "tests/stage1_closure.rs",
     env = {
         "OYA_STAGE1_PROGRAM_SCHEMA": "$(location //specs:stage1-closure-program.schema.json)",
@@ -31,7 +31,7 @@ rust_test(
     },
     visibility = ["PUBLIC"],
     deps = [
-        ":ci-stage1-closure",
+        ":stage1-closure",
         "third-party//:serde_json",
     ],
 )

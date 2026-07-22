@@ -58,8 +58,8 @@ and deliberately unable to authorize more than its narrow exit.
 
 The canonical program identity is `correct-way-forward-before-roadmap`. Its instance will live at
 `/specs/masterplan.json#masterplan_v2.planning_entry_contract.stage1_closure_program`; the schemas
-in this change define its structural wire contract and `ci/facade/stage1-closure` defines the pure
-semantic evaluator.
+in this change define its structural wire contract and `libs/oya-stage1-closure` defines the
+dormant pure semantic candidate evaluator. It is deliberately not registered as a cloud-ci gate.
 
 The exact control population is:
 
@@ -137,7 +137,7 @@ An evidence epoch has one of six states:
 2. `HOLD_EVIDENCE_COMPLETE`;
 3. `HOLD_SUCCESSOR_FROZEN`;
 4. `HOLD_EXIT_CANDIDATE`;
-5. `PASS_PLANNING`;
+5. `PASS_CANDIDATE`;
 6. `BLOCKED_QUALIFIED_HUMAN_INPUT`.
 
 The only success path is the ordered progression from state 1 through state 5. Each hold state can
@@ -145,7 +145,10 @@ terminate at state 6 when the remaining input is irreducibly qualified-human. An
 authority, evidence, parser, producer, policy, or subject mutation opens a new epoch; it does not
 rewrite or retroactively promote an earlier epoch.
 
-`PASS_PLANNING` authorizes only roadmap planning. Even at PASS:
+`PASS_CANDIDATE` is not effective `PASS(Planning)` and keeps all three source planning flags false.
+Only a future, independently operated post-merge admission envelope can derive effective
+`PASS(Planning)` from an exact promoted commit; it is not implemented or activated by this ADR.
+Even after that external derivation:
 
 - binding plan approval remains false;
 - implementation dispatch remains false;
@@ -158,11 +161,14 @@ The pipeline separates:
 
 1. **Source epoch.** A reviewed machine-readable record of control statuses and receipt references.
    It never asserts its own Git commit, tree, blob, or admission facts.
-2. **Same-run SCM facts.** The single Git-aware producer binds protected base, candidate commit and
-   tree, exact source blobs, schema/policy/parser/producer/evaluator digests, freshness facts, and
-   the frozen subject. Generated faces are materialized only by the canonical producer and are
-   never hand-edited.
-3. **Post-merge admission.** An external immutable envelope binds the promoted commit, required
+2. **Protected facts.** The closed `oyatie/stage1-protected-facts/v1` contract (not
+   `oya-ci/scm-facts/v2`) binds protected-base and candidate repository, commit, tree, source-path
+   and blob roles; program/parser/producer/evaluator/policy/schema digests; predecessor epoch and
+   transition receipt; immutable successor bundle; authority-chain result; trust root; and every
+   receipt binding. No producer is implemented or activated here. Generated faces remain materialized
+   only by the future canonical producer and are never hand-edited.
+3. **Post-merge admission.** A separate closed `oyatie/stage1-admission-envelope/v1` external
+   immutable envelope binds the promoted commit (which must differ from the PR head), required
    context and source App, review/protection result, run identity, rollout, rollback, observability,
    browser/user-story, release, and observation-harvest outcomes. It cannot mutate the source
    epoch or turn missing qualified authority into PASS.
@@ -175,11 +181,12 @@ control population that judges its own exit. Activation is staged:
 1. merge the dormant parser, producer, schemas, and evaluator under the prior protected policy;
 2. merge the exact program and first HOLD epoch;
 3. only a later candidate may present evidence, evaluated by protected-parent code and independently
-   supplied SCM facts under a declared trust-root authority;
-4. the final state-only transition may change the epoch pointer and verdict, but not the evaluator,
+   supplied protected facts under a declared trust-root authority;
+4. the final source-only transition may change the epoch pointer to `PASS_CANDIDATE`, but not the evaluator,
    schemas, control roster, lens roster, or qualification rules.
 
-The protected facts exact-bind every receipt path, blob OID, SHA-256, and frozen subject together
+Every source-state advancement beyond `HOLD_EPOCH_OPEN` requires protected facts. The protected
+facts exact-bind every receipt path, blob OID, SHA-256, and frozen subject together
 with the program, schema, policy, parser, producer, evaluator, protected base, and candidate.
 If a protected-parent tool is missing, fails to build, produces empty or mismatched output, or
 cannot bind those exact artifacts and trees, the result is HOLD or BLOCKED, never fallback PASS.
