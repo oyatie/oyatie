@@ -16,6 +16,8 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
+use oya_governance_adr_shape_kernel::is_live_decision_status;
+
 use crate::adr_planning_frontmatter::{PlanningAdr, read_planning_impact_adrs};
 
 const DEFAULT_DECISIONS_DIR: &str = "docs/decisions";
@@ -219,17 +221,17 @@ pub(crate) struct ProjectedDeliverable {
     pub(crate) verified_by: String,
 }
 
-/// Build the masterplan projection: keep only Accepted ADRs, topo-sort them by
+/// Build the masterplan projection: keep only live (Accepted or Amended) ADRs, topo-sort them by
 /// `depends_on`, then group by `milestone` (milestone order = first appearance
 /// in the topo-sorted list). Superseded/Proposed/Rejected ADRs are governance
 /// history or draft intent, not live masterplan work.
 pub(crate) fn generate_masterplan_projection(adrs: &[PlanningAdr]) -> MasterplanProjection {
-    let accepted: Vec<PlanningAdr> = adrs
+    let live: Vec<PlanningAdr> = adrs
         .iter()
-        .filter(|adr| is_accepted_planning_status(&adr.status))
+        .filter(|adr| is_live_decision_status(&adr.status))
         .cloned()
         .collect();
-    let ordered = topo_sort(&accepted);
+    let ordered = topo_sort(&live);
     let mut deliverable_count = 0usize;
     let mut milestone_order: Vec<String> = Vec::new();
     let mut grouped: BTreeMap<String, Vec<ProjectedAdr>> = BTreeMap::new();
@@ -275,15 +277,6 @@ pub(crate) fn generate_masterplan_projection(adrs: &[PlanningAdr]) -> Masterplan
         adr_count: ordered.len(),
         deliverable_count,
     }
-}
-
-fn is_accepted_planning_status(status: &str) -> bool {
-    let normalized = status.trim().to_ascii_lowercase();
-    normalized == "amended"
-        || normalized == "accepted"
-        || normalized
-            .strip_prefix("accepted")
-            .is_some_and(|suffix| suffix.trim_start().starts_with('('))
 }
 
 /// Stable, cycle-safe topological sort by `depends_on`. ADRs whose declared

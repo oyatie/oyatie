@@ -20,6 +20,7 @@ use ci_cross_artifact_agreement::{
     evaluate_masterplan_v2_read_contract_archives, evaluate_masterplan_v2_sequencing,
     evaluate_registry_derived_policy_sync, ratchet,
 };
+use oya_governance_adr_shape_kernel::is_live_decision_status;
 use serde_json::Value;
 
 /// Walk up to the repo root (the dir holding specs/root-hub-pointers.json), matching the
@@ -1376,9 +1377,7 @@ fn gate1_is_born_blocking_on_the_live_corpus() {
     let unpropagated = decisions
         .iter()
         .filter(|d| {
-            d["status"]
-                .as_str()
-                .is_some_and(|s| s.eq_ignore_ascii_case("accepted"))
+            d["status"].as_str().is_some_and(is_live_decision_status)
                 && (d["in_spec"].as_bool().unwrap_or(false)
                     || d["in_masterplan"].as_bool().unwrap_or(false)
                     || d["in_roadmap"].as_bool().unwrap_or(false))
@@ -1389,7 +1388,7 @@ fn gate1_is_born_blocking_on_the_live_corpus() {
         .count();
 
     eprintln!(
-        "BORN-BLOCKING live-corpus counts: decisions={} duplicate_ids={:?} id_mismatches={:?} phantom_citations={} next_free_id={next_free_id} axes={:?} unpropagated_decision={} violations={:?}",
+        "BORN-BLOCKING live-corpus counts: decisions={} duplicate_ids={:?} id_mismatches={:?} phantom_citations={} next_free_id={next_free_id} axes={:?} unpropagated_live_decision={} violations={:?}",
         decisions.len(),
         dup_ids,
         id_mismatches,

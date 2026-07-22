@@ -93,6 +93,31 @@ const VALID_STATUSES: [&str; 6] = [
     "Retracted",
 ];
 
+/// Whether an ADR lifecycle status remains live for planning and propagation.
+pub fn is_live_decision_status(status: &str) -> bool {
+    matches!(status.trim(), "Accepted" | "Amended")
+}
+
+/// Return the initial YAML frontmatter body, if the document has leading fences.
+pub fn initial_yaml_frontmatter(text: &str) -> Option<&str> {
+    let rest = text.strip_prefix("---\n")?;
+    let end = rest.find("\n---")?;
+    Some(&rest[..end])
+}
+
+/// Whether initial YAML frontmatter declares a valid `amended_date: YYYY-MM-DD`.
+pub fn has_canonical_amended_date(text: &str) -> bool {
+    initial_yaml_frontmatter(text).is_some_and(|frontmatter| {
+        frontmatter.lines().any(|line| {
+            let Some((key, value)) = line.split_once(':') else {
+                return false;
+            };
+            key == "amended_date"
+                && is_canonical_date(value.trim().trim_matches('"').trim_matches('\''))
+        })
+    })
+}
+
 pub fn validate_adr_shape_fitness(
     adrs: &[AdrDocument],
 ) -> Result<AdrShapeFitnessReport, AdrShapeFitnessError> {
@@ -125,7 +150,7 @@ fn validate_one(adr: &AdrDocument) -> Result<(), AdrShapeFitnessError> {
             status,
         });
     }
-    if status == "Amended" && !has_amended_date(&adr.text) {
+    if status == "Amended" && !has_canonical_amended_date(&adr.text) {
         return Err(AdrShapeFitnessError::MissingAmendedDate {
             path: adr.path.clone(),
         });
@@ -196,12 +221,34 @@ fn extract_status(text: &str) -> Option<String> {
     None
 }
 
-fn has_amended_date(text: &str) -> bool {
-    text.lines().any(|line| {
-        line.trim()
-            .strip_prefix("amended_date:")
-            .is_some_and(|value| !value.trim().trim_matches('"').trim_matches('\'').is_empty())
-    })
+fn is_canonical_date(value: &str) -> bool {
+    let bytes = value.as_bytes();
+    if bytes.len() != 10 || bytes[4] != b'-' || bytes[7] != b'-' {
+        return false;
+    }
+    if !bytes
+        .iter()
+        .enumerate()
+        .all(|(index, byte)| matches!(index, 4 | 7) || byte.is_ascii_digit())
+    {
+        return false;
+    }
+    let year = value[0..4].parse::<u16>().unwrap_or_default();
+    let month = value[5..7].parse::<u8>().unwrap_or_default();
+    let day = value[8..10].parse::<u8>().unwrap_or_default();
+    if year == 0 {
+        return false;
+    }
+    let max_day = match month {
+        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
+        4 | 6 | 9 | 11 => 30,
+        2 if (year.is_multiple_of(4) && !year.is_multiple_of(100)) || year.is_multiple_of(400) => {
+            29
+        }
+        2 => 28,
+        _ => return false,
+    };
+    day > 0 && day <= max_day
 }
 
 fn clean_status(raw: &str) -> String {
@@ -264,6 +311,34 @@ mod tests {
             validate_adr_shape_fitness(&[doc]),
             Err(AdrShapeFitnessError::MissingAmendedDate { .. })
         ));
+    }
+
+    #[test]
+    fn rejects_amended_date_outside_initial_frontmatter() {
+        let mut doc = valid_doc();
+        doc.text = format!(
+            "---\nstatus: Amended\n---\n\n```yaml\namended_date: 2026-07-22\n```\n\n{}",
+            doc.text
+        );
+        assert!(matches!(
+            validate_adr_shape_fitness(&[doc]),
+            Err(AdrShapeFitnessError::MissingAmendedDate { .. })
+        ));
+    }
+
+    #[test]
+    fn rejects_noncanonical_amended_dates() {
+        for amended_date in ["2026-7-22", "0000-01-01"] {
+            let mut doc = valid_doc();
+            doc.text = format!(
+                "---\nstatus: Amended\namended_date: {amended_date}\n---\n\n{}",
+                doc.text
+            );
+            assert!(matches!(
+                validate_adr_shape_fitness(&[doc]),
+                Err(AdrShapeFitnessError::MissingAmendedDate { .. })
+            ));
+        }
     }
 
     #[test]

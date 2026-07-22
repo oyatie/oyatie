@@ -7,6 +7,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
+use oya_governance_adr_shape_kernel::has_canonical_amended_date;
+
 const REQUIRED_ACCOUNT_CRATES: &[&str] = &[
     "oya-intelligence-account-kernel",
     "oya-intelligence-account-domain",
@@ -338,7 +340,7 @@ fn lint_adr_shape(file: &Path) -> Result<String, String> {
             status = status.unwrap_or_else(|| "missing".to_string())
         ));
     };
-    if valid_status == "Amended" && !has_adr_amended_date(&text) {
+    if valid_status == "Amended" && !has_canonical_amended_date(&text) {
         return Err(format!(
             "{file}: status Amended requires a non-empty amended_date",
             file = file.display()
@@ -740,14 +742,6 @@ fn read_adr_status(text: &str) -> Option<String> {
         }
     }
     None
-}
-
-fn has_adr_amended_date(text: &str) -> bool {
-    text.lines().any(|line| {
-        line.trim()
-            .strip_prefix("amended_date:")
-            .is_some_and(|value| !value.trim().trim_matches('"').trim_matches('\'').is_empty())
-    })
 }
 
 fn clean_status(value: &str) -> Option<String> {
