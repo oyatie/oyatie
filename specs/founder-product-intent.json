@@ -57,22 +57,16 @@
   },
   "change_accounting": [
     {
-      "version": "1.1.0",
-      "provenance": "direct founder directives in Codex task 019f80ef-bf93-77c2-a817-7bf77ee2f25c on 2026-07-21",
-      "added_outcomes": [
-        "Use a game-engine operational-world mental model spanning revisioned state, stable entities, composable components and traits, explicit systems, durable events, distinct time semantics, deterministic preview and replay with declared limits, rebuildable projections, visual canonical-IR authoring, tenant boundaries, policy gates, audit, recovery, and dependency-aware scheduling.",
-        "Make types first-class tenant, pack, or platform definitions that are extensible, customizable, configurable, no-code capable, composed instead of closed vendor enums, versioned and content-addressed, visually authored to canonical IR, template/default/constraint capable, policy-bound, compatibility-classified, previewable, and safely migratable.",
-        "Keep legal authority, privacy, accounting, distributed consistency, irreversible external effects, and human accountability outside the game-state metaphor as separately governed constraints.",
-        "Record game-engine documentation URLs only as inactive source pointers pending fresh scope-specific qualified legal/JCR disposition.",
-        "Make the game-engine operational-world model and change-accounting record machine-validated founder intent rather than review-only prose.",
-        "Treat operational-world types as future extension vocabulary that cannot amend the current Accepted governance/knowledge-graph type_system without a separately Accepted immutable successor.",
-        "Retain already-retrieved external sources, including Palantir, only as harvested provenance with evidence eligibility false and unresolved legal/JCR disposition; preserve never-retrieved game-engine URLs as inactive uncollected non-evidence pointers.",
-        "Make C06 legal_jcr an explicit prerequisite to any C05 comparator satisfaction."
-      ],
-      "changed_outcomes": [],
-      "removed_outcomes": [],
-      "relaxed_boundaries": [],
-      "review_status": "pending-independent-rereview-and-protected-admission"
+      "change_id": "founder-intent-operational-world-types-2026-07-21",
+      "subject": "founder-product-intent/operational-world-types",
+      "disposition": "proposed-future-nonbinding",
+      "claim_ceiling": "founder-intent-only-no-implementation-roadmap-or-authority",
+      "planning_state": "HOLD(Planning)",
+      "dispatch_allowed": false,
+      "roadmap_authorized": false,
+      "implementation_authorized": false,
+      "authority_effect": "none",
+      "evidence_eligible": false
     }
   ],
   "founder_execution_authorization": {
@@ -240,7 +234,14 @@
             "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
             "evidence_eligible": false,
             "automated_expansion_allowed": false,
-            "retention_rule": "Retained as harvested provenance, not admitted evidence; do not expand, analyze, cite, or use for a comparator claim until fresh scope-specific qualified legal/JCR disposition authorizes the exact use."
+            "quarantine": {
+              "status": "harvested-provenance-not-admitted-evidence",
+              "preserved": true,
+              "evidence_eligible": false,
+              "automated_expansion_allowed": false,
+              "claim_allowed": false,
+              "legal_jcr_disposition": "unresolved"
+            }
           },
           {
             "source_id": "buck2-why",
@@ -252,7 +253,14 @@
             "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
             "evidence_eligible": false,
             "automated_expansion_allowed": false,
-            "retention_rule": "Retained as harvested provenance, not admitted evidence; do not expand, analyze, cite, or use for a comparator claim until fresh scope-specific qualified legal/JCR disposition authorizes the exact use."
+            "quarantine": {
+              "status": "harvested-provenance-not-admitted-evidence",
+              "preserved": true,
+              "evidence_eligible": false,
+              "automated_expansion_allowed": false,
+              "claim_allowed": false,
+              "legal_jcr_disposition": "unresolved"
+            }
           },
           {
             "source_id": "google-sre-canarying-releases",
@@ -264,7 +272,14 @@
             "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
             "evidence_eligible": false,
             "automated_expansion_allowed": false,
-            "retention_rule": "Retained as harvested provenance, not admitted evidence; do not expand, analyze, cite, or use for a comparator claim until fresh scope-specific qualified legal/JCR disposition authorizes the exact use."
+            "quarantine": {
+              "status": "harvested-provenance-not-admitted-evidence",
+              "preserved": true,
+              "evidence_eligible": false,
+              "automated_expansion_allowed": false,
+              "claim_allowed": false,
+              "legal_jcr_disposition": "unresolved"
+            }
           },
           {
             "source_id": "slsa-v1-2",
@@ -276,7 +291,14 @@
             "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
             "evidence_eligible": false,
             "automated_expansion_allowed": false,
-            "retention_rule": "Retained as harvested provenance, not admitted evidence; do not expand, analyze, cite, or use for a comparator claim until fresh scope-specific qualified legal/JCR disposition authorizes the exact use."
+            "quarantine": {
+              "status": "harvested-provenance-not-admitted-evidence",
+              "preserved": true,
+              "evidence_eligible": false,
+              "automated_expansion_allowed": false,
+              "claim_allowed": false,
+              "legal_jcr_disposition": "unresolved"
+            }
           },
           {
             "source_id": "github-artifact-attestations",
@@ -288,7 +310,14 @@
             "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
             "evidence_eligible": false,
             "automated_expansion_allowed": false,
-            "retention_rule": "Retained as harvested provenance, not admitted evidence; do not expand, analyze, cite, or use for a comparator claim until fresh scope-specific qualified legal/JCR disposition authorizes the exact use."
+            "quarantine": {
+              "status": "harvested-provenance-not-admitted-evidence",
+              "preserved": true,
+              "evidence_eligible": false,
+              "automated_expansion_allowed": false,
+              "claim_allowed": false,
+              "legal_jcr_disposition": "unresolved"
+            }
           },
           {
             "source_id": "github-actions-secure-use",
@@ -300,7 +329,14 @@
             "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
             "evidence_eligible": false,
             "automated_expansion_allowed": false,
-            "retention_rule": "Retained as harvested provenance, not admitted evidence; do not expand, analyze, cite, or use for a comparator claim until fresh scope-specific qualified legal/JCR disposition authorizes the exact use."
+            "quarantine": {
+              "status": "harvested-provenance-not-admitted-evidence",
+              "preserved": true,
+              "evidence_eligible": false,
+              "automated_expansion_allowed": false,
+              "claim_allowed": false,
+              "legal_jcr_disposition": "unresolved"
+            }
           },
           {
             "source_id": "nist-ssdf-1-1",
@@ -312,7 +348,14 @@
             "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
             "evidence_eligible": false,
             "automated_expansion_allowed": false,
-            "retention_rule": "Retained as harvested provenance, not admitted evidence; do not expand, analyze, cite, or use for a comparator claim until fresh scope-specific qualified legal/JCR disposition authorizes the exact use."
+            "quarantine": {
+              "status": "harvested-provenance-not-admitted-evidence",
+              "preserved": true,
+              "evidence_eligible": false,
+              "automated_expansion_allowed": false,
+              "claim_allowed": false,
+              "legal_jcr_disposition": "unresolved"
+            }
           },
           {
             "source_id": "open-policy-agent-cicd",
@@ -324,7 +367,14 @@
             "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
             "evidence_eligible": false,
             "automated_expansion_allowed": false,
-            "retention_rule": "Retained as harvested provenance, not admitted evidence; do not expand, analyze, cite, or use for a comparator claim until fresh scope-specific qualified legal/JCR disposition authorizes the exact use."
+            "quarantine": {
+              "status": "harvested-provenance-not-admitted-evidence",
+              "preserved": true,
+              "evidence_eligible": false,
+              "automated_expansion_allowed": false,
+              "claim_allowed": false,
+              "legal_jcr_disposition": "unresolved"
+            }
           },
           {
             "source_id": "kubernetes-validating-admission-policy",
@@ -336,7 +386,14 @@
             "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
             "evidence_eligible": false,
             "automated_expansion_allowed": false,
-            "retention_rule": "Retained as harvested provenance, not admitted evidence; do not expand, analyze, cite, or use for a comparator claim until fresh scope-specific qualified legal/JCR disposition authorizes the exact use."
+            "quarantine": {
+              "status": "harvested-provenance-not-admitted-evidence",
+              "preserved": true,
+              "evidence_eligible": false,
+              "automated_expansion_allowed": false,
+              "claim_allowed": false,
+              "legal_jcr_disposition": "unresolved"
+            }
           },
           {
             "source_id": "argo-rollouts-analysis",
@@ -348,7 +405,14 @@
             "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
             "evidence_eligible": false,
             "automated_expansion_allowed": false,
-            "retention_rule": "Retained as harvested provenance, not admitted evidence; do not expand, analyze, cite, or use for a comparator claim until fresh scope-specific qualified legal/JCR disposition authorizes the exact use."
+            "quarantine": {
+              "status": "harvested-provenance-not-admitted-evidence",
+              "preserved": true,
+              "evidence_eligible": false,
+              "automated_expansion_allowed": false,
+              "claim_allowed": false,
+              "legal_jcr_disposition": "unresolved"
+            }
           },
           {
             "source_id": "palantir-apollo-helm-rollouts",
@@ -360,7 +424,14 @@
             "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
             "evidence_eligible": false,
             "automated_expansion_allowed": false,
-            "retention_rule": "Retained as harvested provenance, not admitted evidence; do not expand, analyze, cite, or use for a comparator claim until fresh scope-specific qualified legal/JCR disposition authorizes the exact use."
+            "quarantine": {
+              "status": "harvested-provenance-not-admitted-evidence",
+              "preserved": true,
+              "evidence_eligible": false,
+              "automated_expansion_allowed": false,
+              "claim_allowed": false,
+              "legal_jcr_disposition": "unresolved"
+            }
           },
           {
             "source_id": "palantir-foundry-building-pipelines",
@@ -372,7 +443,14 @@
             "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
             "evidence_eligible": false,
             "automated_expansion_allowed": false,
-            "retention_rule": "Retained as harvested provenance, not admitted evidence; do not expand, analyze, cite, or use for a comparator claim until fresh scope-specific qualified legal/JCR disposition authorizes the exact use."
+            "quarantine": {
+              "status": "harvested-provenance-not-admitted-evidence",
+              "preserved": true,
+              "evidence_eligible": false,
+              "automated_expansion_allowed": false,
+              "claim_allowed": false,
+              "legal_jcr_disposition": "unresolved"
+            }
           },
           {
             "source_id": "palantir-foundry-pipeline-management",
@@ -384,7 +462,14 @@
             "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
             "evidence_eligible": false,
             "automated_expansion_allowed": false,
-            "retention_rule": "Retained as harvested provenance, not admitted evidence; do not expand, analyze, cite, or use for a comparator claim until fresh scope-specific qualified legal/JCR disposition authorizes the exact use."
+            "quarantine": {
+              "status": "harvested-provenance-not-admitted-evidence",
+              "preserved": true,
+              "evidence_eligible": false,
+              "automated_expansion_allowed": false,
+              "claim_allowed": false,
+              "legal_jcr_disposition": "unresolved"
+            }
           },
           {
             "source_id": "palantir-foundry-data-lineage",
@@ -396,7 +481,14 @@
             "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
             "evidence_eligible": false,
             "automated_expansion_allowed": false,
-            "retention_rule": "Retained as harvested provenance, not admitted evidence; do not expand, analyze, cite, or use for a comparator claim until fresh scope-specific qualified legal/JCR disposition authorizes the exact use."
+            "quarantine": {
+              "status": "harvested-provenance-not-admitted-evidence",
+              "preserved": true,
+              "evidence_eligible": false,
+              "automated_expansion_allowed": false,
+              "claim_allowed": false,
+              "legal_jcr_disposition": "unresolved"
+            }
           },
           {
             "source_id": "palantir-foundry-data-health",
@@ -408,7 +500,14 @@
             "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
             "evidence_eligible": false,
             "automated_expansion_allowed": false,
-            "retention_rule": "Retained as harvested provenance, not admitted evidence; do not expand, analyze, cite, or use for a comparator claim until fresh scope-specific qualified legal/JCR disposition authorizes the exact use."
+            "quarantine": {
+              "status": "harvested-provenance-not-admitted-evidence",
+              "preserved": true,
+              "evidence_eligible": false,
+              "automated_expansion_allowed": false,
+              "claim_allowed": false,
+              "legal_jcr_disposition": "unresolved"
+            }
           },
           {
             "source_id": "palantir-foundry-aip-evals",
@@ -420,7 +519,14 @@
             "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
             "evidence_eligible": false,
             "automated_expansion_allowed": false,
-            "retention_rule": "Retained as harvested provenance, not admitted evidence; do not expand, analyze, cite, or use for a comparator claim until fresh scope-specific qualified legal/JCR disposition authorizes the exact use."
+            "quarantine": {
+              "status": "harvested-provenance-not-admitted-evidence",
+              "preserved": true,
+              "evidence_eligible": false,
+              "automated_expansion_allowed": false,
+              "claim_allowed": false,
+              "legal_jcr_disposition": "unresolved"
+            }
           },
           {
             "source_id": "palantir-foundry-branching-release",
@@ -432,7 +538,14 @@
             "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
             "evidence_eligible": false,
             "automated_expansion_allowed": false,
-            "retention_rule": "Retained as harvested provenance, not admitted evidence; do not expand, analyze, cite, or use for a comparator claim until fresh scope-specific qualified legal/JCR disposition authorizes the exact use."
+            "quarantine": {
+              "status": "harvested-provenance-not-admitted-evidence",
+              "preserved": true,
+              "evidence_eligible": false,
+              "automated_expansion_allowed": false,
+              "claim_allowed": false,
+              "legal_jcr_disposition": "unresolved"
+            }
           },
           {
             "source_id": "google-sre-postmortem-culture",
@@ -444,7 +557,14 @@
             "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
             "evidence_eligible": false,
             "automated_expansion_allowed": false,
-            "retention_rule": "Retained as harvested provenance, not admitted evidence; do not expand, analyze, cite, or use for a comparator claim until fresh scope-specific qualified legal/JCR disposition authorizes the exact use."
+            "quarantine": {
+              "status": "harvested-provenance-not-admitted-evidence",
+              "preserved": true,
+              "evidence_eligible": false,
+              "automated_expansion_allowed": false,
+              "claim_allowed": false,
+              "legal_jcr_disposition": "unresolved"
+            }
           },
           {
             "source_id": "nist-ai-risk-management-framework",
@@ -456,7 +576,14 @@
             "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
             "evidence_eligible": false,
             "automated_expansion_allowed": false,
-            "retention_rule": "Retained as harvested provenance, not admitted evidence; do not expand, analyze, cite, or use for a comparator claim until fresh scope-specific qualified legal/JCR disposition authorizes the exact use."
+            "quarantine": {
+              "status": "harvested-provenance-not-admitted-evidence",
+              "preserved": true,
+              "evidence_eligible": false,
+              "automated_expansion_allowed": false,
+              "claim_allowed": false,
+              "legal_jcr_disposition": "unresolved"
+            }
           },
           {
             "source_id": "github-merge-queue",
@@ -468,7 +595,14 @@
             "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
             "evidence_eligible": false,
             "automated_expansion_allowed": false,
-            "retention_rule": "Retained as harvested provenance, not admitted evidence; do not expand, analyze, cite, or use for a comparator claim until fresh scope-specific qualified legal/JCR disposition authorizes the exact use."
+            "quarantine": {
+              "status": "harvested-provenance-not-admitted-evidence",
+              "preserved": true,
+              "evidence_eligible": false,
+              "automated_expansion_allowed": false,
+              "claim_allowed": false,
+              "legal_jcr_disposition": "unresolved"
+            }
           }
         ]
       },
@@ -530,7 +664,19 @@
       "No game-engine framework, ECS implementation, rendering stack, data model, or roadmap is selected by this intent.",
       "No implementation, migration, dispatch, production-readiness, determinism, or reversibility claim is made by this intent."
     ],
-    "governance_type_system_boundary": "Operational-world types are future extension vocabulary only. They must not replace, amend, rename, or reinterpret the current Accepted governance/knowledge-graph type_system without a separately Accepted immutable successor."
+    "governance_type_system_boundary": {
+      "vocabulary_status": "future-extension-vocabulary-only",
+      "current_authority": "current-accepted-governance-knowledge-graph-type-system",
+      "prohibited_effects": [
+        "replace",
+        "amend",
+        "rename",
+        "reinterpret"
+      ],
+      "successor_requirement": "separately-accepted-immutable-successor",
+      "implementation_selected": false,
+      "roadmap_authorized": false
+    }
   },
   "stage1_entry_requirements": {
     "authority_status": "non-dispatching founder requirement vocabulary; no control is satisfied or assigned an owner by this artifact",
@@ -570,105 +716,150 @@
         "acceptance": "Every controlling decision has a corpus-qualified identity, coherent lifecycle and supersession edges, an explicit disposition, and no unresolved Accepted-authority conflict for the frozen candidate.",
         "required_evidence": "complete decision census, lifecycle graph, conflict ledger, source-path manifest, immutable successor receipts, and independently reproduced digests",
         "freshness": "invalidated by any governed decision-corpus, lifecycle, identity, or candidate-digest change",
-        "qualified_owner_status": "unresolved"
+        "qualified_owner_status": "unresolved",
+        "depends_on": []
       },
       {
         "id": "decision_parser_ir",
         "acceptance": "One fail-closed parser with explicit grammar, source spans, vector lifecycle fields, corpus-qualified identities, canonical IR, and deterministic projections parses the complete governed corpus without silent truncation or identity collision.",
         "required_evidence": "regression corpus, parser and IR versions, parse census, mutation tests, projection parity, and exact source/output digests",
         "freshness": "invalidated by parser, grammar, IR, projection producer, governed corpus, or candidate-digest change",
-        "qualified_owner_status": "unresolved"
+        "qualified_owner_status": "unresolved",
+        "depends_on": [
+          "adr_chronology"
+        ]
       },
       {
         "id": "corpus_archive_freshness",
         "acceptance": "The complete active authority corpus is enumerated, current projections reproduce, superseded authority is absent from every readable path, and provenance exists only in Git history where history-only retirement applies.",
         "required_evidence": "tracked-path census, fingerprint and token sweep, archive-resurrection regressions, producer freshness receipts, symlink checks, and Git object receipts",
         "freshness": "maximum age 24 hours and invalidated by any tracked-path, generated-face policy, corpus, or candidate-digest change",
-        "qualified_owner_status": "unresolved"
+        "qualified_owner_status": "unresolved",
+        "depends_on": [
+          "decision_parser_ir"
+        ]
       },
       {
         "id": "decision_population",
         "acceptance": "Every decision, participant role, journey class, authority holder, dependency, exception, and unresolved question in scope belongs to a frozen denominator with no silent exclusions.",
         "required_evidence": "population definition, inclusion and exclusion rules, completeness tests, orphan report, denominator digest, and independent census review",
         "freshness": "invalidated by population, scope, corpus, scenario, or candidate-digest change",
-        "qualified_owner_status": "unresolved"
-      },
-      {
-        "id": "comparator",
-        "acceptance": "Outcome-based comparisons cover the frozen scenario population across all continuity domains without copying a comparator taxonomy, feature list, implementation, or product shape.",
-        "required_evidence": "source inventory, retrieval timestamps, content digests, observed-inferred-unknown labels, matched conditions, measures, limitations, evaluator independence, and claim ledger",
-        "freshness": "maximum age 30 days and invalidated by source, comparator version, scenario, measure, legal scope, or candidate-digest change",
-        "qualified_owner_status": "unresolved"
+        "qualified_owner_status": "unresolved",
+        "depends_on": [
+          "corpus_archive_freshness"
+        ]
       },
       {
         "id": "legal_jcr",
         "acceptance": "A qualified legal or JCR authority has issued a scope-specific written disposition for every external source, benchmark use, data handling, and proposed evidence-retention action.",
         "required_evidence": "qualified principal identity, exact terms and source digests, use scope, restrictions, decision, effective time, expiry or review triggers, and protected receipt",
         "freshness": "invalidated by terms, source, jurisdiction, intended use, retention, distribution, or candidate-digest change",
-        "qualified_owner_status": "unresolved; this artifact makes no legal conclusion"
+        "qualified_owner_status": "unresolved; this artifact makes no legal conclusion",
+        "depends_on": [
+          "adr_chronology",
+          "decision_parser_ir",
+          "corpus_archive_freshness"
+        ]
+      },
+      {
+        "id": "comparator",
+        "acceptance": "Outcome-based comparisons cover the frozen scenario population across all continuity domains without copying a comparator taxonomy, feature list, implementation, or product shape.",
+        "required_evidence": "source inventory, retrieval timestamps, content digests, observed-inferred-unknown labels, matched conditions, measures, limitations, evaluator independence, and claim ledger",
+        "freshness": "maximum age 30 days and invalidated by source, comparator version, scenario, measure, legal scope, or candidate-digest change",
+        "qualified_owner_status": "unresolved",
+        "depends_on": [
+          "legal_jcr"
+        ]
       },
       {
         "id": "affected_party",
         "acceptance": "Affected parties and vulnerable populations are represented across routine, denied, erroneous, hostile, appealed, and recovery journeys, with independently reviewed notice, consent, privacy, fairness, accommodation, and recourse outcomes.",
         "required_evidence": "frozen affected-party population, accessible research protocol, dissent, harms and benefits ledger, mitigations, unresolved objections, and signed review receipts",
         "freshness": "maximum age 30 days and invalidated by scenario, population, policy, risk, or candidate-digest change",
-        "qualified_owner_status": "unresolved"
+        "qualified_owner_status": "unresolved",
+        "depends_on": [
+          "comparator"
+        ]
       },
       {
         "id": "operations",
         "acceptance": "Qualified operators can observe, contain, recover, roll back, reconcile, and support the frozen journeys under normal, degraded, disconnected, emergency, and hostile conditions without hidden manual authority.",
         "required_evidence": "operating model, ownership and escalation, SLO and budget assumptions, runbooks, failure exercises, observability receipts, rollback and reconciliation proof, and operator sign-off",
         "freshness": "invalidated by operating model, dependency, deployment, pilot, runbook, risk, or candidate-digest change",
-        "qualified_owner_status": "unresolved"
+        "qualified_owner_status": "unresolved",
+        "depends_on": [
+          "affected_party"
+        ]
       },
       {
         "id": "custody",
         "acceptance": "Every authority-bearing identity, credential, key, token, consent, delegation, and evidence store has qualified custody, immutable principal binding, least privilege, rotation, revocation, recovery, and separation of duties.",
         "required_evidence": "principal and custodian IDs, custody policy digest, ceremony or issuance receipt, access graph, rotation and revocation test, compromise recovery, and independent readback",
         "freshness": "invalidated immediately by principal, custodian, credential, key, policy, access, rotation, revocation, incident, or candidate-digest change",
-        "qualified_owner_status": "unresolved"
+        "qualified_owner_status": "unresolved",
+        "depends_on": [
+          "operations"
+        ]
       },
       {
         "id": "veto",
         "acceptance": "Named qualified principals can stop unsafe planning admission or downstream action through an independently exercised, observable, durable, and non-retaliatory veto path.",
         "required_evidence": "ratified veto policy, immutable principal IDs, scope and conflict rules, exercise and appeal simulation, audit receipt, and recovery from a vetoed candidate",
         "freshness": "invalidated by policy, principal, scope, escalation, appeal, exercise result, or candidate-digest change",
-        "qualified_owner_status": "unresolved"
+        "qualified_owner_status": "unresolved",
+        "depends_on": [
+          "custody"
+        ]
       },
       {
         "id": "pilot",
         "acceptance": "A bounded, ethically and legally cleared pilot over a frozen participant and scenario population demonstrates safe value, failure handling, recourse, operator readiness, reversibility, and measurable outcomes without using the pilot to infer universal coverage.",
         "required_evidence": "pilot protocol, approvals, participant and exclusion denominator, baselines, measures, incident and harms log, rollback, outcomes, dissent, and independent evaluation",
         "freshness": "maximum age 90 days and invalidated by material product, scenario, population, policy, operating, legal, safety, or candidate-digest change",
-        "qualified_owner_status": "unresolved"
+        "qualified_owner_status": "unresolved",
+        "depends_on": [
+          "veto"
+        ]
       },
       {
         "id": "immutable_successor",
         "acceptance": "A protected, content-addressed successor explicitly reconciles every controlling predecessor, changed outcome, removed outcome, open question, authority boundary, and dispatch prohibition under current ratified decision rights.",
         "required_evidence": "predecessor and successor digests, disposition matrix, qualified ratifications, protected admission receipt, rollback or supersession rule, and reproducible history",
         "freshness": "invalidated by successor bytes, predecessor set, ratification, authority policy, protected admission, or candidate-digest change",
-        "qualified_owner_status": "unresolved"
+        "qualified_owner_status": "unresolved",
+        "depends_on": [
+          "pilot"
+        ]
       },
       {
         "id": "council_16_lens",
         "acceptance": "A separately ratified sixteen-lens definition and qualified reviewer population produce sixteen independent, exact-candidate verdict receipts with conflicts, abstentions, minority views, and unresolved findings preserved.",
         "required_evidence": "immutable lens definition, qualification and independence policy, reviewer population, one receipt per lens, conflict and abstention ledger, synthesis rule, and exact-candidate digest",
         "freshness": "invalidated by lens, reviewer, qualification, independence, finding, resolution, synthesis, or candidate-digest change",
-        "qualified_owner_status": "unresolved; this artifact does not define or appoint the council"
+        "qualified_owner_status": "unresolved; this artifact does not define or appoint the council",
+        "depends_on": [
+          "immutable_successor"
+        ]
       },
       {
         "id": "fresh_dissent",
         "acceptance": "At least one qualified, independent reviewer who did not author the candidate and did not rely on prior conversational context conducts a post-freeze adversarial review whose disagreements remain visible and dispositioned without pressure to converge.",
         "required_evidence": "fresh-context declaration, reviewer qualification and independence, frozen input digest, dissent report, response and disposition ledger, and signed verdict",
         "freshness": "maximum age 7 days and invalidated by candidate, evidence set, reviewer conflict, dissent disposition, or control-state change",
-        "qualified_owner_status": "unresolved"
+        "qualified_owner_status": "unresolved",
+        "depends_on": [
+          "council_16_lens"
+        ]
       },
       {
         "id": "context_free_exit",
         "acceptance": "A fresh qualified reviewer can start only from the canonical root pointers, reproduce the candidate, evidence graph, fifteen control states, unresolved issues, and terminal decision without this task, hidden context, or author interpretation.",
         "required_evidence": "clean-room protocol, root entry points, environment and tool versions, reproduction transcript, digest readback, discrepancy ledger, and signed terminal verdict",
         "freshness": "maximum age 7 days and invalidated by root pointer, corpus, toolchain, evidence, control state, candidate, or terminal-decision change",
-        "qualified_owner_status": "unresolved"
+        "qualified_owner_status": "unresolved",
+        "depends_on": [
+          "fresh_dissent"
+        ]
       }
     ],
     "engineering_rules": [
@@ -1948,7 +2139,14 @@
     ],
     "population_rule": "No metric family counts as evidence until its protocol and denominator are populated for the frozen candidate. Aggregate improvement cannot hide a failing subgroup, transferred cost, or missing affected population.",
     "claim_rule": "Every better, simpler, faster, safer, more complete, real-time, no-training, or end-to-end claim must name the participant population, journey, source set, conditions, comparator, measure, threshold, evaluator, evidence freshness, and known exclusions.",
-    "comparator_legal_jcr_prerequisite": "C05 comparator cannot be satisfied until C06 legal_jcr has a fresh scope-specific qualified legal/JCR disposition authorizing the applicable source collection, retention, and comparator use."
+    "comparator_admission": {
+      "control_id": "comparator",
+      "legal_prerequisite_control_id": "legal_jcr",
+      "fresh_scope_specific_qualified_legal_jcr_required": true,
+      "evidence_eligible": false,
+      "claim_allowed": false,
+      "implementation_selected": false
+    }
   },
   "future_specification_requirements": {
     "roadmap_admission": [
