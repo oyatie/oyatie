@@ -32,7 +32,9 @@ dispatch is authorized by this ADR, and no completion claim may be promoted from
 
 ## Context
 
-ADR-0363 retains the friction-ledger bridge until a durable successor exists. The current
+ADR-0363's actual narrow bridge is retirement-marked local lane-liveness supervision until
+cloud-ci owns durable lane orchestration; it is not a friction-ledger successor or cutover
+authority. This ADR alone scopes the FixupTask successor conditions below. The current
 `registry/fixuptasks.jsonl` destination is append-only but has loose historical rows and no
 machine-checkable accountability lifecycle. Proposed ADR-0544 and ADR-0558 describe a
 friction-ledger-specific gate and structural merge driver, but neither is Accepted; retaining both
@@ -94,8 +96,8 @@ The foundation is deliberately narrow:
 3. CI supplies the actual protected merge-base snapshot to the existing pure evaluator; it must not
    accept a candidate baseline artifact.
 4. Only after the preceding checks are live, independently reviewed, and accepted under the
-   appropriate authority may ADR-0363's bridge retirement and ADR-0544/0558 supersession be
-   considered in E10. This ADR grants neither action.
+   appropriate authority may ADR-0621's separately authorized successor/cutover decision and
+   ADR-0544/0558 supersession be considered in E10. This ADR grants neither action.
 
 ## Alternatives considered
 
