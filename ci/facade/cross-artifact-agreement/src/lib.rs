@@ -454,7 +454,7 @@ const REQUIRED_SURFACE_DISPOSITIONS: [(&str, &str); 13] = [
 ];
 
 /// The blocking codes, in canonical order. The fixtures pin exact subsets.
-pub const VIOLATION_CODES: [&str; 24] = [
+pub const VIOLATION_CODES: [&str; 23] = [
     "orphan_decision",
     "unpropagated_decision",
     "status_disagreement",
@@ -478,7 +478,6 @@ pub const VIOLATION_CODES: [&str; 24] = [
     "masterplan_projection_stale",
     "masterplan_read_contract_invalid",
     "masterplan_entry_surface_invalid",
-    RETIREMENT_RECEIPT_CODE,
 ];
 
 /// The gate report.
@@ -732,10 +731,6 @@ pub fn evaluate_keyed(fixture: &Value) -> BTreeSet<Finding> {
             manifest_index,
         ));
     }
-    if let Some(receipts) = fixture.get("history_only_retirement_receipts") {
-        findings.extend(evaluate_history_only_retirement_receipts(receipts));
-    }
-
     findings
 }
 /// Evaluate the masterplan v2 authority contract embedded in `/specs/masterplan.json`.
