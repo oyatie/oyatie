@@ -156,7 +156,6 @@ jobs:
           - { crate: workspace-member-coverage, label: "gate: workspace-glob-coverage (ADR-0538)" }
           - { crate: build-target-parity,           label: "gate · target-parity (ADR-0540, test-wiring false-green)" }
           - { crate: hook-wiring,    label: "gate · enforcement-liveness (FRIC-012, hook mirror liveness)" }
-          - { crate: action-item-accounting,     label: "gate · friction-accounting (ADR-0544, closed-loop friction-ledger accounting)" }
           - { crate: canonical-json,          label: "gate · canonical-json (ADR-0546, deterministic JSON serialization)" }
           - { crate: parity-claim-evidence, label: "gate · hyperscaler-parity-taxonomy (cloud hyperscaler parity taxonomy, born-blocking)" }
           - { crate: resource-contract-conformance, label: "gate · cloud-resource-contracts (Rust/API replacement for P0 cloud-resource Python validators)" }

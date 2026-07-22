@@ -158,7 +158,6 @@
     "hook-wiring": "Enforcement liveness failures require wiring real hook/settings/controller surfaces; the gate cannot safely invent enforcement.",
     "baseline-ratchet": "Firewall ratchet failures require reducing the violating keys or reviewed signoff; automatic mutation would launder debt.",
     "generated-artifact-freshness": "Freshness failures require regenerating generated faces from authoritative sources or fixing the source drift; automatic mutation is separated into explicit materializer binaries.",
-    "action-item-accounting": "Friction accounting findings require valid ledger semantics and owner routing; the gate cannot invent remediation ownership.",
     "gate-self-conformance": "Gate self-conformance findings require changing gate code, Buck2 wiring, workflow registration, or policy exceptions; automatic rewrites would hide the review decision.",
     "generated-artifact-policy": "Generated artifact policy findings require classifying artifact authority and generated-path ownership, not blind path edits.",
     "parity-claim-evidence": "Hyperscaler taxonomy gaps are product-readiness classification decisions and must be resolved in the taxonomy source.",

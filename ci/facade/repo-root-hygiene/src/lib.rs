@@ -247,7 +247,7 @@ fn root_file_remediation(path: &str) -> String {
     format!(
         "tracked repo-root file `{path}` matches no allowlist rule. AUTO-FIX: if it is process \
          scratch, `git rm` it (and rely on the .gitignore root-scratch backstop) or relocate it \
-         under the repo's gitignored scratch home (e.g. `.omc/`); if it is a genuinely legitimate \
+         under an existing ignored scratch path; if it is a genuinely legitimate \
          root surface, add a reviewed allowlist rule to root-workspace-hygiene-policy.json \
          (allowed_root_files) — a DATA edit, never a scanner change."
     )
@@ -367,12 +367,11 @@ mod tests {
                 { "id": "license",        "kind": "prefix_dot", "value": "LICENSE" },
                 { "id": "buckconfig",     "kind": "prefix_dot", "value": ".buckconfig" }
             ],
-            "allowed_root_dirs": [".claude", ".codex", ".omc", "ci", "cloud", "libs", "docs"],
-            "restricted_tracked_roots": [".claude", ".codex", ".omc", ".omx"],
+            "allowed_root_dirs": [".claude", ".codex", "ci", "cloud", "libs", "docs"],
+            "restricted_tracked_roots": [".claude", ".codex", ".omx"],
             "allowed_tracked_paths": [
                 { "id": "claude-settings", "kind": "exact", "value": ".claude/settings.json" },
-                { "id": "codex-hooks", "kind": "exact", "value": ".codex/hooks.json" },
-                { "id": "omc-ultragoal-owners", "kind": "exact", "value": ".omc/ultragoal/OWNERS" }
+                { "id": "codex-hooks", "kind": "exact", "value": ".codex/hooks.json" }
             ]
         })
     }
@@ -392,7 +391,6 @@ mod tests {
                 ".buckconfig",
                 ".claude/settings.json",
                 ".codex/hooks.json",
-                ".omc/ultragoal/OWNERS",
                 "ci/facade/x/src/lib.rs",
                 "libs/oya-foo/Cargo.toml",
                 "docs/decisions/ADR-0600.md",
@@ -454,8 +452,8 @@ mod tests {
             .find(|f| f.key == "foo.log")
             .expect("finding for foo.log");
         assert!(
-            f.detail.contains("git rm") && f.detail.contains(".omc/"),
-            "remediation must name the concrete auto-fix (relocate to .omc/ or git rm); got: {}",
+            f.detail.contains("git rm") && f.detail.contains("ignored scratch path"),
+            "remediation must name the concrete auto-fix; got: {}",
             f.detail
         );
     }
@@ -484,7 +482,6 @@ mod tests {
             ".claude/worktrees/old-lane/marker",
             ".claude/settings.local.json",
             ".codex/.DS_Store",
-            ".omc/state/team/mailbox.json",
             ".omx/state/team/mailbox.json",
         ] {
             let findings = evaluate_keyed(&policy(), &observed(&[path]));
@@ -501,11 +498,7 @@ mod tests {
     fn explicit_shared_agent_config_paths_are_green() {
         let report = evaluate(
             &policy(),
-            &observed(&[
-                ".claude/settings.json",
-                ".codex/hooks.json",
-                ".omc/ultragoal/OWNERS",
-            ]),
+            &observed(&[".claude/settings.json", ".codex/hooks.json"]),
         );
         assert_eq!(
             report.verdict,
@@ -546,11 +539,11 @@ mod tests {
     fn tracked_path_allowlist_rejects_broad_match_kinds() {
         let mut bad = policy();
         bad["allowed_tracked_paths"] =
-            json!([{ "id": "broad-omc", "kind": "prefix", "value": ".omc/" }]);
+            json!([{ "id": "broad-runtime", "kind": "prefix", "value": ".omx/" }]);
         let findings = evaluate_keyed(&bad, &observed(&[]));
         assert!(
             findings.iter().any(|f| {
-                f.code == "root_workspace_policy_malformed_rule" && f.key == "broad-omc"
+                f.code == "root_workspace_policy_malformed_rule" && f.key == "broad-runtime"
             }),
             "runtime/state tracked path exceptions must stay exact; got {findings:#?}"
         );
