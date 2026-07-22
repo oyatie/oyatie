@@ -10,7 +10,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use serde_json::Value;
 
 #[test]
-fn gen_masterplan_excludes_noncanonical_live_status_variants() {
+fn gen_masterplan_preserves_exact_legacy_and_amended_live_statuses() {
     let temp = temp_dir("gen-masterplan-status-filter");
     let decisions_dir = temp.join("docs/decisions");
     fs::create_dir_all(&decisions_dir).expect("decisions dir created");
@@ -75,8 +75,8 @@ fn gen_masterplan_excludes_noncanonical_live_status_variants() {
 
     let projection_text = fs::read_to_string(&output_path).expect("projection written");
     let projection: Value = serde_json::from_str(&projection_text).expect("projection json");
-    assert_eq!(projection["adr_count"], 2);
-    assert_eq!(projection["deliverable_count"], 2);
+    assert_eq!(projection["adr_count"], 4);
+    assert_eq!(projection["deliverable_count"], 4);
 
     let projected_ids: Vec<&str> = projection["milestones"][0]["adrs"]
         .as_array()
@@ -84,9 +84,12 @@ fn gen_masterplan_excludes_noncanonical_live_status_variants() {
         .iter()
         .map(|adr| adr["id"].as_str().expect("adr id"))
         .collect();
-    assert_eq!(projected_ids, vec!["ADR-1000", "ADR-1005"]);
-    assert!(!projection_text.contains("ADR-1001"));
-    assert!(!projection_text.contains("ADR-1002"));
+    assert_eq!(
+        projected_ids,
+        vec!["ADR-1000", "ADR-1001", "ADR-1002", "ADR-1005"]
+    );
+    assert!(projection_text.contains("ADR-1001"));
+    assert!(projection_text.contains("ADR-1002"));
     assert!(!projection_text.contains("ADR-1003"));
     assert!(!projection_text.contains("ADR-1004"));
     assert!(!projection_text.contains("SolidJS"));

@@ -94,8 +94,14 @@ const VALID_STATUSES: [&str; 6] = [
 ];
 
 /// Whether an ADR lifecycle status remains live for planning and propagation.
+///
+/// `accepted` and `Accepted (amendment)` are legacy corpus forms preserved for
+/// compatibility; all other variants remain non-live until canonicalized.
 pub fn is_live_decision_status(status: &str) -> bool {
-    matches!(status.trim(), "Accepted" | "Amended")
+    matches!(
+        status.trim(),
+        "Accepted" | "accepted" | "Accepted (amendment)" | "Amended"
+    )
 }
 
 /// Return the initial YAML frontmatter body, if the document has leading fences.
@@ -301,6 +307,26 @@ mod tests {
             doc.text
         );
         assert!(validate_adr_shape_fitness(&[doc]).is_ok());
+    }
+
+    #[test]
+    fn recognizes_exact_live_statuses_including_legacy_forms() {
+        for status in ["Accepted", "accepted", "Accepted (amendment)", "Amended"] {
+            assert!(
+                is_live_decision_status(status),
+                "{status} should remain live"
+            );
+        }
+        for status in [
+            "Accepted amendment",
+            "accepted (amendment)",
+            "Amended (2026-07-22)",
+        ] {
+            assert!(
+                !is_live_decision_status(status),
+                "{status} must not be accepted by a broad match"
+            );
+        }
     }
 
     #[test]

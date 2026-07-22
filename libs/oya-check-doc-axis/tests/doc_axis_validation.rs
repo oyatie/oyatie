@@ -119,6 +119,23 @@ fn rule1_amended_adr_without_date_blocks_in_strict_mode() {
     );
 }
 
+#[test]
+fn rule1_amended_adr_with_noncanonical_or_body_date_blocks_in_strict_mode() {
+    for contents in [
+        "---\nid: ADR-0001\nstatus: Amended\namended_date: 2026-7-22\n---\n# body\n",
+        "---\nid: ADR-0001\nstatus: Amended\n---\n```yaml\namended_date: 2026-07-22\n```\n",
+    ] {
+        let dir = tempfile::tempdir().unwrap();
+        write_file(dir.path(), "docs/decisions/ADR-0001-test.md", contents);
+        let findings = validate(dir.path(), true).expect_err("invalid amended date must block");
+        assert!(
+            findings
+                .iter()
+                .any(|finding| finding.rule_violated == DocAxisRule::AdrAmendmentMetadata)
+        );
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Rule 2 — No shadow ideas
 // ---------------------------------------------------------------------------

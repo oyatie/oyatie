@@ -29,6 +29,8 @@ use std::collections::BTreeSet;
 use std::fs;
 use std::path::{Path, PathBuf};
 
+use oya_governance_adr_shape_kernel::has_canonical_amended_date;
+
 // ---------------------------------------------------------------------------
 // Public types
 // ---------------------------------------------------------------------------
@@ -289,7 +291,7 @@ fn check_adr_status_casing(
                 path: rel,
                 line: Some(line_num),
                 rule_violated: DocAxisRule::AdrAmendmentMetadata,
-                suggested_fix: "Add a non-empty `amended_date: YYYY-MM-DD` frontmatter field"
+                suggested_fix: "Add a canonical `amended_date: YYYY-MM-DD` frontmatter field"
                     .to_string(),
                 blocking: strict,
             });
@@ -325,12 +327,12 @@ fn find_bad_status(contents: &str) -> Option<(usize, String)> {
     None
 }
 
-/// Return the `status: Amended` line when its frontmatter lacks `amended_date:`.
+/// Return the `status: Amended` line when its initial YAML frontmatter lacks a
+/// canonical `amended_date: YYYY-MM-DD`.
 fn find_amended_without_date(contents: &str) -> Option<usize> {
     let mut in_frontmatter = false;
     let mut frontmatter_opened = false;
     let mut amended_status_line = None;
-    let mut has_amended_date = false;
     for (idx, line) in contents.lines().enumerate() {
         let trimmed = line.trim();
         if idx == 0 && trimmed == "---" {
@@ -350,13 +352,8 @@ fn find_amended_without_date(contents: &str) -> Option<usize> {
                 amended_status_line = Some(idx + 1);
             }
         }
-        if let Some(rest) = trimmed.strip_prefix("amended_date:")
-            && !rest.trim().trim_matches('"').trim_matches('\'').is_empty()
-        {
-            has_amended_date = true;
-        }
     }
-    amended_status_line.filter(|_| !has_amended_date)
+    amended_status_line.filter(|_| !has_canonical_amended_date(contents))
 }
 
 // ---------------------------------------------------------------------------
@@ -798,6 +795,17 @@ mod tests {
         assert_eq!(find_amended_without_date(missing), Some(3));
         let dated = "---\nid: ADR-0001\nstatus: Amended\namended_date: 2026-07-22\n---\n# body\n";
         assert_eq!(find_amended_without_date(dated), None);
+    }
+
+    #[test]
+    fn amended_status_requires_a_canonical_frontmatter_date() {
+        for doc in [
+            "---\nid: ADR-0001\nstatus: Amended\namended_date: 2026-7-22\n---\n# body\n",
+            "---\nid: ADR-0001\nstatus: Amended\n---\namended_date: 2026-07-22\n# body\n",
+            "---\nid: ADR-0001\nstatus: Amended\n---\n```yaml\namended_date: 2026-07-22\n```\n",
+        ] {
+            assert_eq!(find_amended_without_date(doc), Some(3));
+        }
     }
 
     #[test]

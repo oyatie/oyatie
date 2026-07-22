@@ -6,6 +6,7 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//libs/oya-check-adr-index:oya-check-adr-index",
+        "//libs/oya-governance-adr-shape-kernel:oya-governance-adr-shape-kernel",
         "third-party//:serde",
         "third-party//:serde_json",
         "third-party//:sha2",
@@ -20,6 +21,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         "//libs/oya-check-adr-index:oya-check-adr-index",
+        "//libs/oya-governance-adr-shape-kernel:oya-governance-adr-shape-kernel",
         "third-party//:serde",
         "third-party//:serde_json",
         "third-party//:sha2",

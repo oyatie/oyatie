@@ -77,6 +77,7 @@ rust_library(
         "//libs/oya-check-wasm-runtime-discipline:oya-check-wasm-runtime-discipline",
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
         "//libs/oya-governance-banned-primitives-kernel:oya-governance-banned-primitives-kernel",
+        "//libs/oya-governance-adr-shape-kernel:oya-governance-adr-shape-kernel",
         "//libs/oya-governance-gate-catalog-domain:oya-governance-gate-catalog-domain",
         "//oya/application/crates/oya-application-app:oya-application-app",
         "//audit/core/chain-domain:audit-chain-domain",
