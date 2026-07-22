@@ -9,9 +9,9 @@
 //! `specs/fixtures/cross-artifact-agreement/tc-*.json`.
 //!
 //! ## Blocking violation codes (the contract — literal strings the gate emits)
-//! - `orphan_decision`        — an Accepted decision reaches NO propagation face
+//! - `orphan_decision`        — a live Accepted/Amended decision reaches NO propagation face
 //!   (absent from spec AND masterplan AND roadmap): a decision nothing points at.
-//! - `unpropagated_decision`  — an Accepted decision reaches SOME but not ALL of its
+//! - `unpropagated_decision`  — a live Accepted/Amended decision reaches SOME but not ALL of its
 //!   required propagation faces (e.g. has an ADR + spec but no masterplan/roadmap node).
 //! - `status_disagreement`    — the decision's status disagrees across the faces that
 //!   record it (e.g. ADR `Accepted` while the roadmap node marks it `superseded`).
@@ -107,8 +107,11 @@ use serde::{
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 
+use oya_governance_adr_shape_kernel::is_live_decision_status;
+
 mod adr_index_projection_parity;
 mod gate_coverage_baseline;
+mod idea_archive_transition;
 mod plan_evidence_crosscheck;
 mod projection_rederivation;
 mod prose_frontmatter_status;
@@ -141,6 +144,14 @@ pub use adr_index_projection_parity::{
 // record set with the SAME type the ADR-index producer renders.
 pub use gate_coverage_baseline::{
     GATE_COVERAGE_RATCHET_VALIDATOR, GateCoverageBaseline, RatchetReport, ratchet,
+};
+pub use idea_archive_transition::{
+    IDEA_ARCHIVE_TRANSITION_VALIDATOR, IdeaArchiveBaseline, IdeaArchiveBaselineCapture,
+    IdeaArchiveBaselineEntry, IdeaArchiveCollectError, IdeaArchiveMode, IdeaArchiveObservation,
+    IdeaArchiveObservedNode, IdeaArchivePathKind, IdeaArchivePolicy, IdeaArchivePolicyError,
+    IdeaArchiveTransitionError, IdeaArchiveTransitionReport, IdeaArchiveVerifiedClosureProjection,
+    collect_idea_archive_observation, evaluate_idea_archive_transition,
+    immutable_idea_archive_baseline, parse_idea_archive_policy,
 };
 pub use oya_check_adr_index::AdrDecisionRecord;
 pub use prose_frontmatter_status::{
@@ -4014,15 +4025,16 @@ fn evaluate_decision(decision: &Value, findings: &mut BTreeSet<Finding>) {
         .unwrap_or("")
         .trim();
 
-    // Propagation is only required for live (Accepted) decisions. A Superseded/Proposed
-    // decision is not expected to carry masterplan/roadmap nodes.
-    let is_accepted = status.eq_ignore_ascii_case("accepted");
+    // Propagation is required for the exact lifecycle spellings recognized as live by
+    // the ADR shape kernel. Superseded/Proposed decisions are not expected to carry
+    // masterplan/roadmap nodes.
+    let is_live = is_live_decision_status(status);
 
     let in_spec = bool_field(decision, "in_spec");
     let in_masterplan = bool_field(decision, "in_masterplan");
     let in_roadmap = bool_field(decision, "in_roadmap");
 
-    if is_accepted {
+    if is_live {
         let reaches_any = in_spec || in_masterplan || in_roadmap;
         if !reaches_any {
             // Reaches no propagation face at all: a decision nothing points at.
@@ -6107,5 +6119,32 @@ mod tests {
         // status_disagreement: ADR Accepted, roadmap face says Superseded.
         assert!(evaluate(&json!({"decisions":[{"id":"ADR-1","status":"Accepted","in_spec":true,"in_masterplan":true,"in_roadmap":true,"face_statuses":{"roadmap":"Superseded"}}]}))
             .violations.contains("status_disagreement"));
+    }
+
+    #[test]
+    fn amended_decisions_require_the_same_propagation_as_accepted_decisions() {
+        let orphaned = json!({"decisions":[{"id":"ADR-1","status":"Amended","in_spec":false,"in_masterplan":false,"in_roadmap":false}]});
+        assert!(evaluate(&orphaned).violations.contains("orphan_decision"));
+
+        let partial = json!({"decisions":[{"id":"ADR-1","status":"Amended","in_spec":true,"in_masterplan":false,"in_roadmap":false}]});
+        assert!(
+            evaluate(&partial)
+                .violations
+                .contains("unpropagated_decision")
+        );
+
+        let complete = json!({"decisions":[{"id":"ADR-1","status":"Amended","in_spec":true,"in_masterplan":true,"in_roadmap":true}]});
+        assert!(evaluate(&complete).violations.is_empty());
+    }
+
+    #[test]
+    fn legacy_live_statuses_require_the_same_propagation_as_amended() {
+        for status in ["Accepted", "accepted", "Accepted (amendment)", "Amended"] {
+            let orphaned = json!({"decisions":[{"id":"ADR-1","status":status,"in_spec":false,"in_masterplan":false,"in_roadmap":false}]});
+            assert!(
+                evaluate(&orphaned).violations.contains("orphan_decision"),
+                "{status} must remain subject to live-decision propagation"
+            );
+        }
     }
 }
