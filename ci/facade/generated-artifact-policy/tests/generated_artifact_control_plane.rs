@@ -14,9 +14,9 @@ use std::path::PathBuf;
 use serde_json::{Value, json};
 
 use ci_generated_artifact_policy::{
-    FROZEN_REFERENCE_SOURCE_REGENERATE, Verdict, evaluate_keyed,
+    DiffPolicyViolation, FROZEN_REFERENCE_SOURCE_REGENERATE, Verdict, evaluate_keyed,
     evaluate_keyed_with_frozen_references, evaluate_with_frozen_references,
-    frozen_reference_face_paths_keyed,
+    frozen_reference_face_paths_keyed, generated_output_diff_policy_violations,
 };
 
 const MANIFEST_ENV: &str = "OYA_CI_GENERATED_ARTIFACT_MANIFEST";
@@ -218,6 +218,81 @@ fn live_generated_artifacts_are_declared_in_the_control_plane() {
         evaluate_with_frozen_references(&manifest, &scm_facts, &frozen_reference_paths).verdict,
         Verdict::Green,
         "generated-artifact control-plane findings: {findings:#?}"
+    );
+}
+
+#[test]
+fn active_artifact_contract_graph_is_controller_only_and_direct_edits_are_red() {
+    const GRAPH_ID: &str = "active-artifact-contract-edges";
+    const GRAPH_PATH: &str = "registry/graph/active-artifact-contract-edges.json";
+
+    let manifest = read_json(input_path(
+        MANIFEST_ENV,
+        "registry/generated-artifact-control-plane.json",
+    ));
+    let artifacts = manifest["artifacts"]
+        .as_array()
+        .expect("live generated-artifact manifest must contain artifacts");
+    let graph = artifacts
+        .iter()
+        .find(|artifact| artifact["artifact_id"].as_str() == Some(GRAPH_ID))
+        .expect("active artifact contract graph must be control-plane registered");
+
+    assert_eq!(graph["path"].as_str(), Some(GRAPH_PATH));
+    assert_eq!(
+        graph["materialization_mode"].as_str(),
+        Some("not-tracked-in-git")
+    );
+    assert_eq!(
+        graph["merge_policy"].as_str(),
+        Some("never-manual-merge-regenerate-from-source-tree")
+    );
+    assert_eq!(
+        graph["generator"]["generator_target"].as_str(),
+        Some("//marketplace/facade/dev-cli:oya")
+    );
+
+    assert!(
+        manifest["generated_path_rules"]
+            .as_array()
+            .is_some_and(|rules| rules.iter().any(|rule| {
+                rule["pattern"].as_str() == Some(GRAPH_PATH)
+                    && rule["rule_kind"].as_str() == Some("path_suffix")
+            }))
+    );
+
+    let registry = read_json(repo_root().join("registry/artifact-capabilities-registry.json"));
+    assert!(registry["rows"].as_array().is_some_and(|rows| {
+        !rows
+            .iter()
+            .any(|row| row["artifact_id"].as_str() == Some(GRAPH_ID))
+    }));
+
+    let diff = format!(
+        "A\t{GRAPH_PATH}\nM\t{GRAPH_PATH}\nR100\tstaging/old.json\t{GRAPH_PATH}\nC100\tstaging/copied.json\t{GRAPH_PATH}\n"
+    );
+    let (findings, violations) = generated_output_diff_policy_violations(&manifest, &diff);
+    assert_eq!(findings, BTreeSet::new());
+    assert_eq!(
+        violations,
+        vec![
+            DiffPolicyViolation {
+                status: "A".to_owned(),
+                path: GRAPH_PATH.to_owned()
+            },
+            DiffPolicyViolation {
+                status: "M".to_owned(),
+                path: GRAPH_PATH.to_owned()
+            },
+            DiffPolicyViolation {
+                status: "R100".to_owned(),
+                path: GRAPH_PATH.to_owned()
+            },
+            DiffPolicyViolation {
+                status: "C100".to_owned(),
+                path: GRAPH_PATH.to_owned()
+            },
+        ]
     );
 }
 
