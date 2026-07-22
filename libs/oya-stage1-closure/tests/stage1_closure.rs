@@ -521,3 +521,39 @@ fn red_placeholder_facts_and_envelope_never_authorize() {
     assert!(!validate_protected_facts_shape(&facts).is_green());
     assert!(!validate_admission_envelope_shape(&envelope).is_green());
 }
+
+#[test]
+fn red_authority_receipt_binding_requires_closed_identity_and_authority_fields() {
+    let source = std::fs::read_to_string(format!(
+        "{}/../../specs/stage1-protected-facts.schema.json",
+        std::env::var("CARGO_MANIFEST_DIR").expect("manifest directory")
+    ))
+    .expect("protected facts schema is present");
+    let schema: Value = serde_json::from_str(&source).expect("protected facts schema parses");
+    let binding = &schema["$defs"]["authority_receipt_binding"];
+    let required = binding["required"]
+        .as_array()
+        .expect("required authority fields");
+    for field in [
+        "role",
+        "control_id",
+        "principal_identity_binding",
+        "authority_source_ref",
+        "qualification",
+        "jurisdiction_scope",
+        "independence_observation",
+        "subject_binding",
+        "program_binding",
+        "epoch_binding",
+        "decision",
+        "validity",
+        "conflict_status",
+        "signature_trust_root_binding",
+        "path",
+        "blob_oid",
+        "sha256",
+    ] {
+        assert!(required.contains(&json!(field)), "missing required {field}");
+    }
+    assert_eq!(binding["additionalProperties"], false);
+}

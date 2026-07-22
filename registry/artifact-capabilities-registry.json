@@ -2674,6 +2674,16 @@
       "capability_overrides": {"verification": {"command": "jq empty specs/stage1-closure-program.schema.json"}, "provenance": {"current_author": "codex", "last_modified_at": "2026-07-22T00:00:00Z"}}
     },
     {
+      "artifact_id": "stage1-evidence-epoch-schema",
+      "artifact_path": "/specs/stage1-evidence-epoch.schema.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "council-architecture + platform-toolchain",
+      "purpose_short": "Dormant Proposed/HOLD Stage-1 source epoch shape; it cannot authorize roadmap planning or dispatch.",
+      "artifact_profile": "schema",
+      "capability_overrides": {"verification": {"command": "jq empty specs/stage1-evidence-epoch.schema.json"}, "provenance": {"current_author": "codex", "last_modified_at": "2026-07-22T00:00:00Z"}}
+    },
+    {
       "artifact_id": "stage1-protected-facts-schema",
       "artifact_path": "/specs/stage1-protected-facts.schema.json",
       "artifact_format": "json",
