@@ -109,10 +109,10 @@
         "input_class": {"minLength": 1, "type": "string"},
         "required_qualification": {"minLength": 1, "type": "string"},
         "scope": {"minLength": 1, "type": "string"},
-        "authority_ref": {"minLength": 1, "type": "string"},
+        "authority_source_ref": {"minLength": 1, "type": "string"},
         "reason": {"minLength": 1, "type": "string"}
       },
-      "required": ["control_id", "input_class", "required_qualification", "scope", "authority_ref", "reason"],
+      "required": ["control_id", "input_class", "required_qualification", "scope", "authority_source_ref", "reason"],
       "type": "object"
     },
     "context_free_exit": {
