@@ -557,3 +557,47 @@ fn red_authority_receipt_binding_requires_closed_identity_and_authority_fields()
     }
     assert_eq!(binding["additionalProperties"], false);
 }
+
+#[test]
+fn red_control_specific_authority_roles_and_cardinality_are_declared() {
+    let source = std::fs::read_to_string(format!(
+        "{}/../../specs/stage1-protected-facts.schema.json",
+        std::env::var("CARGO_MANIFEST_DIR").expect("manifest directory")
+    ))
+    .expect("protected facts schema is present");
+    let schema: Value = serde_json::from_str(&source).expect("protected facts schema parses");
+    let binding_rules = schema["$defs"]["authority_receipt_binding"]["allOf"]
+        .as_array()
+        .expect("control role rules");
+    for control in ["C06", "C07", "C08", "C09", "C10", "C13", "C14", "C15"] {
+        assert!(
+            binding_rules
+                .iter()
+                .any(|rule| rule.to_string().contains(control)),
+            "missing {control} rule"
+        );
+    }
+    let cardinality = schema["properties"]["receipt_bindings"]["allOf"]
+        .as_array()
+        .expect("receipt cardinality rules");
+    assert!(
+        cardinality
+            .iter()
+            .any(|rule| rule.to_string().contains("machine-pilot-evidence"))
+    );
+    assert!(
+        cardinality
+            .iter()
+            .any(|rule| rule.to_string().contains("qualified-pilot-authorization"))
+    );
+    assert!(
+        cardinality
+            .iter()
+            .any(|rule| rule.to_string().contains("L16"))
+    );
+    assert!(
+        cardinality
+            .iter()
+            .any(|rule| rule.to_string().contains("blind-cold-reader"))
+    );
+}
