@@ -38,6 +38,12 @@
   },
   "_synthetic_dependencies_note": "ADR-0554 round-6 (defect 2): every changed path must map to a buck2 owner() OR an explicit synthetic-dependency declaration here, otherwise it escalates to FULL (an unowned, undeclared path is derivation uncertainty — the old silent 'docs class — fine' default was a selector hole). Each key is a micro-glob; the value is the list of synthetic seed targets the path contributes (a whole-tree-scanner input declared as a graph edge). An EMPTY list is an explicit inert declaration: 'this class is not a buck2 graph input.' A declaration only applies when owner() is EMPTY — an owned instance (e.g. an include_str! markdown asset) is still seeded by owner(), so declaring docs inert never shadows a real owner. CONSERVATIVE by design: only clearly-inert, commonly-touched doc classes are declared, so a docs-only PR stays fast; EVERYTHING ELSE unowned (yaml/toml/json/txt config, unknown extensions) escalates to FULL until a class earns an evidence-backed declaration. Broadening this map is an optimization follow-up, never a soundness requirement.",
   "synthetic_dependencies": {
+    "docs/ideas/archive/**": [
+      "root//ci/facade/cross-artifact-agreement:ci-cross-artifact-agreement-gate"
+    ],
+    "specs/markdown-retirement-policy.json": [
+      "root//ci/facade/cross-artifact-agreement:ci-cross-artifact-agreement-gate"
+    ],
     "docs/**": [],
     "**/*.md": [],
     "**/*.mdx": []

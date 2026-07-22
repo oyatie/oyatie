@@ -1,0 +1,4 @@
+export_file(
+    name = "markdown-retirement-policy.json",
+    visibility = ["PUBLIC"],
+)

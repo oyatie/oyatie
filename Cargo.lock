@@ -1279,9 +1279,11 @@ name = "ci-cross-artifact-agreement"
 version = "0.1.0"
 dependencies = [
  "oya-check-adr-index",
+ "oya-governance-adr-shape-kernel",
  "serde",
  "serde_json",
  "sha2",
+ "tempfile",
 ]
 
 [[package]]
@@ -6323,6 +6325,7 @@ dependencies = [
 name = "oya-check-doc-axis"
 version = "0.1.0"
 dependencies = [
+ "oya-governance-adr-shape-kernel",
  "tempfile",
 ]
 
