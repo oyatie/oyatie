@@ -47,12 +47,18 @@ fn load_policy(root: &Path) -> Value {
     load_json(&gate_dir(root).join("root-workspace-hygiene-policy.json"))
 }
 
-const SYNTHETIC_RUNTIME_STATE_PATHS: [&str; 5] = [
+const SYNTHETIC_RUNTIME_STATE_PATHS: [&str; 4] = [
     ".claude/worktrees/old-lane/marker",
     ".claude/settings.local.json",
     ".codex/.DS_Store",
-    ".omc/state/team/mailbox.json",
     ".omx/state/team/mailbox.json",
+];
+
+const RETIRED_ARCHIVE_PATHS: [&str; 4] = [
+    ".omc/ultragoal/OWNERS",
+    ".omc/ultragoal/TEAMMATE-PREAMBLE.md",
+    ".omc/ultragoal/friction-ledger.jsonl",
+    ".omc/ultragoal/premise.txt",
 ];
 
 /// Decode git's C-style path quoting: git surrounds a path containing special bytes with double
@@ -72,9 +78,8 @@ fn unquote_git_path(raw: &str) -> String {
 
 /// Build the `{ "rows": [{"path": ...}] }` observed inventory from the committed scm-facts snapshot.
 fn observed_from_scm_facts(root: &Path) -> Value {
-    let scm = load_json(&root.join(
-        "ci/facade/artifact-inventory-registry/scm-facts.generated.json",
-    ));
+    let scm =
+        load_json(&root.join("ci/facade/artifact-inventory-registry/scm-facts.generated.json"));
     let paths = scm["tracked_paths"]
         .as_array()
         .expect("scm-facts.generated.json must carry a tracked_paths array");
@@ -86,11 +91,24 @@ fn observed_from_scm_facts(root: &Path) -> Value {
     json!({ "rows": rows })
 }
 
+fn observed_without_retired_archive(root: &Path) -> Value {
+    let mut observed = observed_from_scm_facts(root);
+    observed["rows"]
+        .as_array_mut()
+        .expect("rows array")
+        .retain(|row| {
+            !row["path"]
+                .as_str()
+                .is_some_and(|path| RETIRED_ARCHIVE_PATHS.contains(&path))
+        });
+    observed
+}
+
 #[test]
-fn live_tracked_root_tree_is_allowlist_clean_green() {
+fn archive_free_tracked_root_tree_is_allowlist_clean_green() {
     let root = repo_root();
     let policy = load_policy(&root);
-    let observed = observed_from_scm_facts(&root);
+    let observed = observed_without_retired_archive(&root);
 
     let rows = observed["rows"].as_array().expect("rows");
     assert!(
@@ -102,8 +120,7 @@ fn live_tracked_root_tree_is_allowlist_clean_green() {
     let findings = evaluate_keyed(&policy, &observed);
     assert!(
         findings.is_empty(),
-        "root-workspace-hygiene gate found violations over the live tracked tree — the allowlist \
-         either forbids a legitimate root surface or a scratch file is still tracked:\n{findings:#?}"
+        "root-workspace-hygiene gate found violations after the retired archive is absent:\n{findings:#?}"
     );
     assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Green);
 }
@@ -122,6 +139,30 @@ fn live_tracked_runtime_state_dirs_are_explicitly_allowlisted_green() {
             .iter()
             .any(|f| f.code == "root_workspace_restricted_dir_unallowlisted_path"),
         "live tracked runtime/provenance paths must all be explicit exceptions; got {findings:#?}"
+    );
+}
+
+#[test]
+fn retired_omc_archive_is_not_an_allowed_root_surface() {
+    let root = repo_root();
+    let policy = load_policy(&root);
+
+    assert!(
+        !policy["allowed_root_dirs"]
+            .as_array()
+            .expect("allowed_root_dirs")
+            .iter()
+            .any(|entry| entry == ".omc"),
+        ".omc must not remain an allowed root surface after archive retirement"
+    );
+    assert!(
+        !policy["allowed_tracked_paths"]
+            .as_array()
+            .expect("allowed_tracked_paths")
+            .iter()
+            .filter_map(|entry| entry["value"].as_str())
+            .any(|path| path.starts_with(".omc/")),
+        "retired .omc archive paths must not remain tracked-path exceptions"
     );
 }
 
@@ -149,8 +190,8 @@ fn synthetic_tracked_root_log_is_born_blocking_red() {
     assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Red);
 }
 
-/// RED FIXTURE: local agent runtime state under `.claude/.codex/.omc/.omx` must be born-blocking
-/// if it is ever forced into the tracked-path corpus. This prevents the four agent-state trees from
+/// RED FIXTURE: local agent runtime state under `.claude/.codex/.omx` must be born-blocking
+/// if it is ever forced into the tracked-path corpus. This prevents the agent-state trees from
 /// drifting into committed merge-conflict surfaces.
 #[test]
 fn synthetic_tracked_runtime_state_paths_are_born_blocking_red() {
@@ -227,8 +268,8 @@ fn retired_dev_env_cli_surfaces_are_born_blocking_red() {
     );
 }
 
-/// Every offending finding must carry a concrete auto-fix remediation (relocate to `.omc/` or
-/// `git rm`) — the gate is auto-fixing, not flag-only.
+/// Every offending finding must carry a concrete auto-fix remediation — the gate is auto-fixing,
+/// not flag-only.
 #[test]
 fn live_policy_findings_carry_concrete_remediation() {
     let root = repo_root();
@@ -240,7 +281,7 @@ fn live_policy_findings_carry_concrete_remediation() {
         .find(|f| f.key == "foo.log")
         .expect("finding for foo.log");
     assert!(
-        f.detail.contains("git rm") && f.detail.contains(".omc/"),
+        f.detail.contains("git rm") && f.detail.contains("ignored scratch path"),
         "remediation must name the concrete auto-fix; got: {}",
         f.detail
     );

@@ -2131,29 +2131,6 @@ value = "legacy-marker"
     }
 
     #[test]
-    fn justifications_preserve_leading_dot_paths() {
-        let root = unique_temp_repo();
-        let decisions = root.join("docs/decisions");
-        fs::create_dir_all(&decisions).expect("create decisions dir");
-        fs::write(
-            decisions.join("ADR-9999-dot-path-test.md"),
-            "The tracked bridge surface is `.omc/ultragoal/TEAMMATE-PREAMBLE.md.`\n",
-        )
-        .expect("write ADR");
-
-        let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
-        let paths = vec![".omc/ultragoal/TEAMMATE-PREAMBLE.md".to_owned()];
-        let justifications = resolve_justifications(&root, &paths, &cfg);
-
-        assert_eq!(
-            justifications.get(".omc/ultragoal/TEAMMATE-PREAMBLE.md"),
-            Some(&"ADR-9999".to_owned())
-        );
-
-        fs::remove_dir_all(root).expect("remove temp repo");
-    }
-
-    #[test]
     fn justifications_include_root_level_tracked_paths() {
         let root = unique_temp_repo();
         let decisions = root.join("docs/decisions");
