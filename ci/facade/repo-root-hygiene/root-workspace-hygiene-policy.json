@@ -32,7 +32,7 @@
     { "id": "editorconfig",          "kind": "exact",  "value": ".editorconfig",       "reason": "editor config (if present)" }
   ],
   "allowed_root_dirs": [
-    ".cargo", ".claude", ".codex", ".config", ".github",
+    ".cargo", ".claude", ".codex", ".config", ".github", ".omc",
     "audit", "benchmarks", "billing", "cell", "ci", "cloud", "comms",
     "compliance", "compute", "console", "contracts", "data", "docs",
     "evidence", "flags", "gateway", "governance", "iac", "iam", "infra",
@@ -42,7 +42,7 @@
     "third-party", "toolchains", "tools", "workflow"
   ],
   "restricted_tracked_roots": [
-    ".claude", ".codex", ".omx"
+    ".claude", ".codex", ".omc", ".omx"
   ],
   "allowed_tracked_paths": [
     { "id": "claude-project-settings",       "kind": "exact", "value": ".claude/settings.json",                     "reason": "tracked project hook/config mirror; local settings/worktrees remain ignored" },
@@ -50,13 +50,17 @@
     { "id": "claude-buck-package",          "kind": "exact", "value": ".claude/BUCK",                               "reason": "Buck package marker for reviewed .claude/settings.json hook-config corpus target; not runtime state" },
     { "id": "claude-owners-marker",          "kind": "exact", "value": ".claude/OWNERS",                             "reason": "ownership marker for reviewed .claude hook-config corpus metadata; not runtime state" },
     { "id": "codex-buck-package",           "kind": "exact", "value": ".codex/BUCK",                                "reason": "Buck package marker for reviewed .codex/hooks.json hook-config corpus target; not runtime state" },
-    { "id": "codex-owners-marker",           "kind": "exact", "value": ".codex/OWNERS",                              "reason": "ownership marker for reviewed .codex hook-config corpus metadata; not runtime state" }
+    { "id": "codex-owners-marker",           "kind": "exact", "value": ".codex/OWNERS",                              "reason": "ownership marker for reviewed .codex hook-config corpus metadata; not runtime state" },
+    { "id": "omc-ultragoal-owners",          "kind": "exact", "value": ".omc/ultragoal/OWNERS",                     "reason": "durable ultragoal ownership provenance" },
+    { "id": "omc-ultragoal-preamble",        "kind": "exact", "value": ".omc/ultragoal/TEAMMATE-PREAMBLE.md",       "reason": "durable ultragoal teammate preamble" },
+    { "id": "omc-ultragoal-friction-ledger", "kind": "exact", "value": ".omc/ultragoal/friction-ledger.jsonl",      "reason": "durable ultragoal friction provenance ledger" },
+    { "id": "omc-ultragoal-premise",         "kind": "exact", "value": ".omc/ultragoal/premise.txt",                "reason": "durable ultragoal premise handoff" }
   ],
   "product_contract": {
-    "auto_fix": "Every finding carries a concrete remediation per offending path: remove process scratch with `git rm` or relocate it under an existing ignored scratch path. A NEW legitimate root file is admitted by adding a reviewed allowlist rule here (a DATA edit), never a scanner change.",
+    "auto_fix": "Every finding carries a concrete remediation per offending path: relocate process scratch to `.omc/` (the gitignored scratch home) or `git rm` the file. A NEW legitimate root file is admitted by adding a reviewed allowlist rule here (a DATA edit), never a scanner change.",
     "portability": "The engine reads the allowlist + allowed-dir set as DATA. Another repository adopts the gate by replacing `allowed_root_files` / `allowed_root_dirs` with its own legitimate root surface; zero engine code changes.",
     "hermeticity": "Pure evaluator: the gate consumes the producer's git-ls-files snapshot (scm-facts) as DATA and a committed allowlist; no shell, no network, no clock, no rand, no filesystem access beyond declared inputs. Deterministic, buck2-built.",
-    "runtime_state_drift_control": "Agent/runtime roots are restricted tracked surfaces. `.claude` and `.codex` may carry reviewed shared hook config only; `.omx` is runtime state and has no tracked exceptions. Any new tracked path under those roots requires an explicit DATA allowlist rule, preventing silent drift and merge-conflict-prone state.",
+    "runtime_state_drift_control": "Agent/runtime roots are restricted tracked surfaces. `.claude` and `.codex` may carry reviewed shared hook config only; `.omc` may carry reviewed durable ultragoal provenance only; `.omx` is runtime state and has no tracked exceptions. Any new tracked path under those roots requires an explicit DATA allowlist rule, preventing silent drift and merge-conflict-prone state.",
     "relationship_to_scratch_denylist": "Complements (does not replace) cloud-ci-total-accounting `scratch_artifact`: the denylist is zero-tolerance on KNOWN scratch shapes; this allowlist is born-blocking on ANY unrecognized tracked root file (including unnamed scratch shapes), making committed root scratch structurally impossible."
   },
   "schema_version": "1.0.0"

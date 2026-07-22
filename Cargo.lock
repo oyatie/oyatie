@@ -1136,13 +1136,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ci-action-item-accounting"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
 name = "ci-affected-target-set"
 version = "0.1.0"
 dependencies = [
@@ -7313,15 +7306,6 @@ dependencies = [
  "toml 0.8.23",
  "tracing",
  "tracing-subscriber",
-]
-
-[[package]]
-name = "oya-friction-ledger-merge-driver-app"
-version = "0.1.0"
-dependencies = [
- "ci-action-item-accounting",
- "ci-canonical-json",
- "serde_json",
 ]
 
 [[package]]
