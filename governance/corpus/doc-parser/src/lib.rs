@@ -33,6 +33,7 @@
 #![forbid(unsafe_code)]
 
 mod adr;
+pub mod census;
 
 use std::fmt;
 

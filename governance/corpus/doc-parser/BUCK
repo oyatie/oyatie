@@ -22,6 +22,27 @@ rust_test(
     ],
 )
 
+rust_binary(
+    name = "adr-census",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/bin/adr-census.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":corpus-doc-parser",
+    ],
+)
+
+rust_test(
+    name = "corpus-doc-parser-adr-census-contract",
+    srcs = ["tests/adr_census_contract.rs"],
+    crate = "adr_census_contract",
+    crate_root = "tests/adr_census_contract.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":corpus-doc-parser",
+    ],
+)
+
 rust_test(
     name = "corpus-doc-parser-contract",
     srcs = [
