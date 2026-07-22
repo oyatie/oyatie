@@ -8,18 +8,18 @@
     "HOLD_EVIDENCE_COMPLETE",
     "HOLD_SUCCESSOR_FROZEN",
     "HOLD_EXIT_CANDIDATE",
-    "PASS_PLANNING",
+    "PASS_CANDIDATE",
     "BLOCKED_QUALIFIED_HUMAN_INPUT"
   ],
   "terminal_states": [
-    "PASS_PLANNING",
+    "PASS_CANDIDATE",
     "BLOCKED_QUALIFIED_HUMAN_INPUT"
   ],
   "transitions": [
     {"from": "HOLD_EPOCH_OPEN", "to": "HOLD_EVIDENCE_COMPLETE"},
     {"from": "HOLD_EVIDENCE_COMPLETE", "to": "HOLD_SUCCESSOR_FROZEN"},
     {"from": "HOLD_SUCCESSOR_FROZEN", "to": "HOLD_EXIT_CANDIDATE"},
-    {"from": "HOLD_EXIT_CANDIDATE", "to": "PASS_PLANNING"},
+    {"from": "HOLD_EXIT_CANDIDATE", "to": "PASS_CANDIDATE"},
     {"from": "HOLD_EPOCH_OPEN", "to": "BLOCKED_QUALIFIED_HUMAN_INPUT"},
     {"from": "HOLD_EVIDENCE_COMPLETE", "to": "BLOCKED_QUALIFIED_HUMAN_INPUT"},
     {"from": "HOLD_SUCCESSOR_FROZEN", "to": "BLOCKED_QUALIFIED_HUMAN_INPUT"},
@@ -69,8 +69,8 @@
     {"lens_id": "L15", "name": "maintainability_evolvability_and_deprecation"},
     {"lens_id": "L16", "name": "evidence_audit_governance_and_dissent"}
   ],
-  "pass_effects": {
-    "roadmap_planning_authorized": true,
+  "candidate_effects": {
+    "roadmap_planning_authorized": false,
     "binding_plan_approval_allowed": false,
     "implementation_dispatch_allowed": false
   },

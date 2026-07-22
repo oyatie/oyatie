@@ -1,5 +1,5 @@
 [package]
-name = "ci-stage1-closure"
+name = "stage1-closure"
 edition.workspace = true
 version.workspace = true
 rust-version.workspace = true
@@ -7,13 +7,13 @@ publish = false
 license = "Apache-2.0"
 
 [package.metadata.oya]
-bounded_context = "cloud-ci"
+bounded_context = "platform-governance"
 kind = "shared"
-layer = "facade"
-purpose = "Pure mechanism-neutral Stage-1 evidence and planning-hold validator."
+layer = "kernel"
+purpose = "Dormant pure Stage-1 evidence and planning-hold candidate validator."
 
 [lib]
-name = "ci_stage1_closure"
+name = "stage1_closure"
 path = "src/lib.rs"
 doctest = false
 

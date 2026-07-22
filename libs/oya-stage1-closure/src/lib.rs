@@ -7,7 +7,8 @@ use std::collections::{BTreeMap, BTreeSet};
 use serde_json::Value;
 
 const PROGRAM_SCHEMA_ID: &str = "oyatie/stage1-closure-program/v1";
-const EPOCH_SCHEMA_ID: &str = "oyatie/stage1-evidence-epoch/v1";
+const EPOCH_SCHEMA_ID: &str = "oyatie/stage1-evidence-epoch/v2";
+const PROTECTED_FACTS_SCHEMA_ID: &str = "oyatie/stage1-protected-facts/v1";
 const PROGRAM_ID: &str = "correct-way-forward-before-roadmap";
 const PROGRAM_REF: &str =
     "/specs/masterplan.json#masterplan_v2.planning_entry_contract.stage1_closure_program";
@@ -17,17 +18,17 @@ const STATES: [&str; 6] = [
     "HOLD_EVIDENCE_COMPLETE",
     "HOLD_SUCCESSOR_FROZEN",
     "HOLD_EXIT_CANDIDATE",
-    "PASS_PLANNING",
+    "PASS_CANDIDATE",
     "BLOCKED_QUALIFIED_HUMAN_INPUT",
 ];
 
-const TERMINAL_STATES: [&str; 2] = ["PASS_PLANNING", "BLOCKED_QUALIFIED_HUMAN_INPUT"];
+const TERMINAL_STATES: [&str; 2] = ["PASS_CANDIDATE", "BLOCKED_QUALIFIED_HUMAN_INPUT"];
 
 const TRANSITIONS: [(&str, &str); 8] = [
     ("HOLD_EPOCH_OPEN", "HOLD_EVIDENCE_COMPLETE"),
     ("HOLD_EVIDENCE_COMPLETE", "HOLD_SUCCESSOR_FROZEN"),
     ("HOLD_SUCCESSOR_FROZEN", "HOLD_EXIT_CANDIDATE"),
-    ("HOLD_EXIT_CANDIDATE", "PASS_PLANNING"),
+    ("HOLD_EXIT_CANDIDATE", "PASS_CANDIDATE"),
     ("HOLD_EPOCH_OPEN", "BLOCKED_QUALIFIED_HUMAN_INPUT"),
     ("HOLD_EVIDENCE_COMPLETE", "BLOCKED_QUALIFIED_HUMAN_INPUT"),
     ("HOLD_SUCCESSOR_FROZEN", "BLOCKED_QUALIFIED_HUMAN_INPUT"),
@@ -130,11 +131,11 @@ pub fn evaluate_program(program: &Value) -> Report {
     validate_program_controls(program.get("controls"), &mut findings);
     validate_program_lenses(program.get("lenses"), &mut findings);
 
-    let pass_effects = program.get("pass_effects").unwrap_or(&Value::Null);
+    let pass_effects = program.get("candidate_effects").unwrap_or(&Value::Null);
     require_bool(
         pass_effects,
         "roadmap_planning_authorized",
-        true,
+        false,
         &mut findings,
     );
     require_bool(
@@ -182,7 +183,8 @@ pub fn evaluate_epoch(program: &Value, epoch: &Value) -> Report {
 ///
 /// Source records may describe receipts, but only the separately supplied facts object can
 /// attest that the protected parent observed the candidate, trust root, artifacts, and receipt
-/// bytes. A `PASS_PLANNING` result is therefore impossible through [`evaluate_epoch`] alone.
+/// bytes. Source evaluation can reach only `PASS_CANDIDATE`; effective `PASS(Planning)` is
+/// deliberately outside this dormant library and requires a later post-merge admission envelope.
 #[must_use]
 pub fn evaluate_epoch_with_protected_facts(
     program: &Value,
@@ -233,6 +235,54 @@ pub fn evaluate_epoch_with_protected_facts(
     validate_protected_parent_facts(epoch, protected_facts, state, &mut findings);
     require_non_empty_string(epoch, "claim_ceiling", &mut findings);
 
+    report(findings)
+}
+
+/// Validates a future external post-merge envelope without deriving an effective planning PASS.
+/// The caller must be an independently trusted admission service; this pure library supplies no
+/// runtime, registration, or authority to create such an envelope.
+#[must_use]
+pub fn evaluate_postmerge_admission_envelope(envelope: &Value) -> Report {
+    let mut findings = BTreeSet::new();
+    require_string(
+        envelope,
+        "schema_id",
+        "oyatie/stage1-admission-envelope/v1",
+        &mut findings,
+    );
+    for field in [
+        "postmerge_promoted_sha",
+        "pr_head_sha",
+        "required_check_identity",
+        "app_identity",
+    ] {
+        require_non_empty_string(envelope, field, &mut findings);
+    }
+    if envelope.get("postmerge_promoted_sha") == envelope.get("pr_head_sha") {
+        findings.insert("postmerge_promoted_sha must not equal pr_head_sha".to_owned());
+    }
+    for field in [
+        "protected_facts_binding",
+        "authority_chain_result",
+        "immutable_successor_bundle",
+    ] {
+        if !envelope.get(field).is_some_and(Value::is_object) {
+            findings.insert(format!("{field} must be an externally bound object"));
+        }
+    }
+    require_bool(envelope, "roadmap_planning_authorized", true, &mut findings);
+    require_bool(
+        envelope,
+        "binding_plan_approval_allowed",
+        false,
+        &mut findings,
+    );
+    require_bool(
+        envelope,
+        "implementation_dispatch_allowed",
+        false,
+        &mut findings,
+    );
     report(findings)
 }
 
@@ -406,25 +456,15 @@ fn validate_program_lenses(value: Option<&Value>, findings: &mut BTreeSet<String
 
 fn validate_subject_binding(value: Option<&Value>, findings: &mut BTreeSet<String>) {
     let subject = value.unwrap_or(&Value::Null);
-    require_string(subject, "facts_schema", "oya-ci/scm-facts/v2", findings);
-    require_string(subject, "facts_field", "stage1_epoch_facts", findings);
+    require_string(subject, "facts_schema", PROTECTED_FACTS_SCHEMA_ID, findings);
+    require_string(subject, "facts_field", "protected_facts_ref", findings);
     require_bool(subject, "required", true, findings);
 }
 
-fn validate_planning(value: Option<&Value>, state: Option<&str>, findings: &mut BTreeSet<String>) {
+fn validate_planning(value: Option<&Value>, _state: Option<&str>, findings: &mut BTreeSet<String>) {
     let planning = value.unwrap_or(&Value::Null);
-    let pass = state == Some("PASS_PLANNING");
-    require_string(
-        planning,
-        "planning_state",
-        if pass {
-            "PASS(Planning)"
-        } else {
-            "HOLD(Planning)"
-        },
-        findings,
-    );
-    require_bool(planning, "roadmap_planning_authorized", pass, findings);
+    require_string(planning, "planning_state", "HOLD(Planning)", findings);
+    require_bool(planning, "roadmap_planning_authorized", false, findings);
     require_bool(planning, "binding_plan_approval_allowed", false, findings);
     require_bool(planning, "implementation_dispatch_allowed", false, findings);
 }
@@ -695,7 +735,7 @@ fn validate_context_free_exit(
         );
     }
     require_bool(exit, "conversation_context_used", false, findings);
-    require_string(exit, "reproduced_verdict", "PASS_PLANNING", findings);
+    require_string(exit, "reproduced_verdict", "PASS_CANDIDATE", findings);
     let Some(subject_digest) = state.subject_digest.as_deref() else {
         findings.insert("context_free_exit.subject_digest must be sha256-bound".to_owned());
         return state;
@@ -789,13 +829,6 @@ fn validate_receipt(
     if non_empty(receipt, "authority_ref").is_none() {
         findings.insert(format!("{path}.authority_ref must be non-empty"));
     }
-    if receipt
-        .get("independently_verified")
-        .and_then(Value::as_bool)
-        != Some(true)
-    {
-        findings.insert(format!("{path}.independently_verified must be true"));
-    }
     issuer_id
 }
 
@@ -805,14 +838,21 @@ fn validate_protected_parent_facts(
     state: Option<&str>,
     findings: &mut BTreeSet<String>,
 ) {
-    if state != Some("PASS_PLANNING") {
+    if state == Some("HOLD_EPOCH_OPEN") {
         return;
     }
 
-    require_string(facts, "facts_schema", "oya-ci/scm-facts/v2", findings);
+    require_string(facts, "schema_id", PROTECTED_FACTS_SCHEMA_ID, findings);
     require_bool(facts, "protected_parent_verified", true, findings);
     require_non_empty_string(facts, "trust_root_authority_ref", findings);
-    for field in ["base_commit", "candidate_commit"] {
+    require_non_empty_string(facts, "protected_base_repository", findings);
+    require_non_empty_string(facts, "candidate_repository", findings);
+    for field in [
+        "protected_base_commit",
+        "candidate_commit",
+        "protected_base_tree",
+        "candidate_tree",
+    ] {
         if facts
             .get(field)
             .and_then(Value::as_str)
@@ -830,6 +870,10 @@ fn validate_protected_parent_facts(
         "parser_binding",
         "producer_binding",
         "evaluator_binding",
+        "predecessor_epoch_binding",
+        "transition_receipt_binding",
+        "immutable_successor_bundle",
+        "authority_chain_result",
     ] {
         validate_artifact_binding(facts.get(field).unwrap_or(&Value::Null), field, findings);
     }
@@ -840,8 +884,9 @@ fn validate_protected_parent_facts(
     }
     let receipts = facts.get("receipt_bindings").and_then(Value::as_array);
     let Some(receipts) = receipts else {
-        findings
-            .insert("PASS_PLANNING requires independently supplied receipt_bindings".to_owned());
+        findings.insert(
+            "state advancement requires independently supplied receipt_bindings".to_owned(),
+        );
         return;
     };
 
@@ -890,8 +935,9 @@ fn validate_protected_parent_facts(
 
     for receipt in epoch_receipts(epoch) {
         if matching_protected_receipt(receipts, receipt).is_none() {
-            findings
-                .insert("PASS_PLANNING receipt lacks an exact protected-parent binding".to_owned());
+            findings.insert(
+                "state advancement receipt lacks an exact protected-parent binding".to_owned(),
+            );
         }
     }
 }
@@ -1035,7 +1081,7 @@ fn validate_state_progress(
         Some("HOLD_EVIDENCE_COMPLETE") => 11,
         Some("HOLD_SUCCESSOR_FROZEN") => 12,
         Some("HOLD_EXIT_CANDIDATE") => 14,
-        Some("PASS_PLANNING") => 15,
+        Some("PASS_CANDIDATE") => 15,
         _ => 0,
     };
     for (id, _, _) in CONTROLS.iter().take(required_control_count) {
@@ -1046,7 +1092,7 @@ fn validate_state_progress(
             ));
         }
     }
-    let exit_candidate = matches!(state, Some("HOLD_EXIT_CANDIDATE") | Some("PASS_PLANNING"));
+    let exit_candidate = matches!(state, Some("HOLD_EXIT_CANDIDATE") | Some("PASS_CANDIDATE"));
     if (matches!(state, Some("HOLD_SUCCESSOR_FROZEN")) || exit_candidate) && !successor.satisfied {
         findings.insert("state requires immutable_successor.frozen=true".to_owned());
     }
@@ -1063,8 +1109,8 @@ fn validate_state_progress(
             findings.insert("state requires satisfied fresh_dissent".to_owned());
         }
     }
-    if state == Some("PASS_PLANNING") && !exit.satisfied {
-        findings.insert("state PASS_PLANNING requires satisfied context_free_exit".to_owned());
+    if state == Some("PASS_CANDIDATE") && !exit.satisfied {
+        findings.insert("state PASS_CANDIDATE requires satisfied context_free_exit".to_owned());
     }
 
     let mut all_reviewers = lenses
@@ -1093,8 +1139,8 @@ fn validate_state_progress(
             "BLOCKED_QUALIFIED_HUMAN_INPUT requires at least one irreducible blocker".to_owned(),
         );
     }
-    if state == Some("PASS_PLANNING") && blocker_count != 0 {
-        findings.insert("PASS_PLANNING requires blockers to be empty".to_owned());
+    if state == Some("PASS_CANDIDATE") && blocker_count != 0 {
+        findings.insert("PASS_CANDIDATE requires blockers to be empty".to_owned());
     }
     if state == Some("BLOCKED_QUALIFIED_HUMAN_INPUT") {
         for (index, blocker) in blocker_records

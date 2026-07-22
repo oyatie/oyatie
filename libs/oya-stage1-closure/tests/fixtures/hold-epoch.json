@@ -1,11 +1,11 @@
 {
-  "schema_id": "oyatie/stage1-evidence-epoch/v1",
+  "schema_id": "oyatie/stage1-evidence-epoch/v2",
   "epoch_id": "stage1-epoch-0001",
   "program_ref": "/specs/masterplan.json#masterplan_v2.planning_entry_contract.stage1_closure_program",
   "state": "HOLD_EPOCH_OPEN",
   "subject_binding": {
-    "facts_schema": "oya-ci/scm-facts/v2",
-    "facts_field": "stage1_epoch_facts",
+    "facts_schema": "oyatie/stage1-protected-facts/v1",
+    "facts_field": "protected_facts_ref",
     "required": true
   },
   "planning": {
