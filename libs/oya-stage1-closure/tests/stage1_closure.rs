@@ -3,9 +3,10 @@ use std::collections::BTreeSet;
 use serde_json::{Value, json};
 use stage1_closure::{
     ADMISSION_ENVELOPE_ALLOWED_FIELDS, ADMISSION_ENVELOPE_REQUIRED_FIELDS,
-    SOURCE_RECEIPT_REQUIRED_FIELDS, STAGE1_NON_AUTHORITATIVE_EXTENSION_PREFIX, evaluate_epoch,
-    evaluate_program, evaluate_source_epoch, validate_admission_envelope_shape,
-    validate_protected_facts_grammar, validate_protected_facts_shape,
+    PROTECTED_RECEIPT_BINDING_ALLOWED_FIELDS, SOURCE_RECEIPT_REQUIRED_FIELDS,
+    STAGE1_NON_AUTHORITATIVE_EXTENSION_PREFIX, evaluate_epoch, evaluate_program,
+    evaluate_source_epoch, validate_admission_envelope_shape, validate_protected_facts_grammar,
+    validate_protected_facts_shape,
 };
 
 const SUBJECT_DIGEST: &str =
@@ -25,32 +26,23 @@ fn admission_envelope() -> Value {
 }
 
 fn schema(relative: &str) -> Value {
-    let (environment, repository_path) = match relative {
-        "program" => (
-            "OYA_STAGE1_PROGRAM_SCHEMA",
-            "specs/stage1-closure-program.schema.json",
-        ),
-        "epoch" => (
-            "OYA_STAGE1_EPOCH_SCHEMA",
-            "specs/stage1-evidence-epoch.schema.json",
-        ),
-        "protected-facts" => (
-            "OYA_STAGE1_PROTECTED_FACTS_SCHEMA",
-            "specs/stage1-protected-facts.schema.json",
-        ),
-        "admission-envelope" => (
-            "OYA_STAGE1_ADMISSION_ENVELOPE_SCHEMA",
-            "specs/stage1-admission-envelope.schema.json",
-        ),
+    let environment = match relative {
+        "program" => "OYA_STAGE1_PROGRAM_SCHEMA",
+        "epoch" => "OYA_STAGE1_EPOCH_SCHEMA",
+        "protected-facts" => "OYA_STAGE1_PROTECTED_FACTS_SCHEMA",
+        "admission-envelope" => "OYA_STAGE1_ADMISSION_ENVELOPE_SCHEMA",
         _ => panic!("unknown schema fixture {relative}"),
     };
-    let path = std::env::var(environment).unwrap_or_else(|_| {
-        let manifest_dir = std::env::var("CARGO_MANIFEST_DIR")
-            .expect("schema input must be declared by Buck or Cargo");
-        format!("{manifest_dir}/../../{repository_path}")
-    });
+    let path = declared_schema_path(environment, std::env::var(environment));
     let source = std::fs::read_to_string(path).expect("schema is a declared readable input");
     serde_json::from_str(&source).expect("schema parses")
+}
+
+fn declared_schema_path(
+    environment: &str,
+    declared_path: Result<String, std::env::VarError>,
+) -> String {
+    declared_path.unwrap_or_else(|_| panic!("{environment} must be explicitly declared"))
 }
 
 fn receipt(principal_id: &str, issuer_authority_class: &str) -> Value {
@@ -130,7 +122,7 @@ fn pass_epoch() -> Value {
         "conversation_context_used": false,
         "reproduced_verdict": "PASS_CANDIDATE",
         "oracle_receipt_ref": receipt("exit-oracle", "independent-oracle"),
-        "blind_reader_receipt_ref": receipt("blind-reader", "independent-reader")
+        "blind_reader_receipt_ref": receipt("blind-reader", "independent-oracle")
     });
     epoch["immutable_successor"] = json!({
         "frozen": true,
@@ -221,6 +213,15 @@ fn canonical_program_and_open_hold_epoch_are_green() {
     let program = program();
     assert!(evaluate_program(&program).is_green());
     assert!(evaluate_epoch(&program, &hold_epoch()).is_green());
+}
+
+#[test]
+#[should_panic(expected = "OYA_STAGE1_TEST_MISSING_SCHEMA must be explicitly declared")]
+fn schema_inputs_fail_closed_without_explicit_declarations() {
+    let _ = declared_schema_path(
+        "OYA_STAGE1_TEST_MISSING_SCHEMA",
+        Err(std::env::VarError::NotPresent),
+    );
 }
 
 #[test]
@@ -447,6 +448,32 @@ fn source_epoch_fixture_matches_schema_and_parser_receipt_wire() {
             .iter()
             .any(|finding| finding.contains("unexpected")),
         "unexpected source receipt field must fail"
+    );
+}
+
+#[test]
+fn c15_blind_reader_uses_independent_oracle_in_source_and_protected_bindings() {
+    let candidate = pass_epoch();
+    let blind_reader = &candidate["context_free_exit"]["blind_reader_receipt_ref"];
+    assert_eq!(
+        blind_reader["issuer_authority_class"],
+        json!("independent-oracle")
+    );
+    assert_eq!(
+        evaluate_source_epoch(&program(), &candidate).findings,
+        vec!["external authenticated Stage-1 controller and trust root are unimplemented; source evaluation cannot advance beyond HOLD_EPOCH_OPEN".to_owned()]
+    );
+
+    let facts = protected_facts(&candidate);
+    let protected_blind_reader = facts["receipt_bindings"]
+        .as_array()
+        .expect("protected bindings")
+        .iter()
+        .find(|binding| binding["principal_id"] == "blind-reader")
+        .expect("C15 blind-reader protected binding");
+    assert_eq!(
+        protected_blind_reader["issuer_authority_class"], blind_reader["issuer_authority_class"],
+        "protected binding must exactly preserve the C15 blind-reader authority class"
     );
 }
 
@@ -787,6 +814,40 @@ fn red_authority_receipt_binding_requires_closed_identity_and_authority_fields()
         assert!(required.contains(&json!(field)), "missing required {field}");
     }
     assert_eq!(binding["additionalProperties"], false);
+}
+
+#[test]
+fn protected_receipt_bindings_match_schema_allowed_fields_and_reject_legacy_fields() {
+    let schema = schema("protected-facts");
+    let mut schema_fields = schema["$defs"]["authority_receipt_binding"]["properties"]
+        .as_object()
+        .expect("protected receipt schema properties")
+        .keys()
+        .map(String::as_str)
+        .collect::<Vec<_>>();
+    let mut parser_fields = PROTECTED_RECEIPT_BINDING_ALLOWED_FIELDS.to_vec();
+    schema_fields.sort_unstable();
+    parser_fields.sort_unstable();
+    assert_eq!(parser_fields, schema_fields, "protected receipt wire drift");
+
+    for legacy_field in [
+        "issuer_id",
+        "issuer_class",
+        "trust_root_authority_ref",
+        "authority_ref",
+        "unexpected",
+    ] {
+        let mut facts = grammar_facts();
+        facts["receipt_bindings"][0][legacy_field] = json!(true);
+        assert!(
+            validate_protected_facts_grammar(&facts)
+                .findings
+                .iter()
+                .any(|finding| finding
+                    == &format!("protected receipt binding rejects unknown field {legacy_field}")),
+            "legacy protected receipt field {legacy_field} must fail closed"
+        );
+    }
 }
 
 #[test]

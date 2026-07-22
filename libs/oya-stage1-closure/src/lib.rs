@@ -30,6 +30,36 @@ pub const SOURCE_RECEIPT_REQUIRED_FIELDS: [&str; 14] = [
     "signature_trust_root_binding",
 ];
 
+/// Canonical allowed fields of a protected-parent authority receipt binding.
+pub const PROTECTED_RECEIPT_BINDING_ALLOWED_FIELDS: [&str; 26] = [
+    "role",
+    "control_id",
+    "lens_id",
+    "principal_identity_binding",
+    "issuer_authority_class",
+    "qualification_class",
+    "principal_id",
+    "subject_digest",
+    "program_digest",
+    "epoch_digest",
+    "authority_source_ref",
+    "qualification",
+    "jurisdiction_scope",
+    "independence_observation",
+    "subject_binding",
+    "program_binding",
+    "epoch_binding",
+    "decision",
+    "validity",
+    "expiry",
+    "revocation_status",
+    "conflict_status",
+    "signature_trust_root_binding",
+    "path",
+    "blob_oid",
+    "sha256",
+];
+
 /// Canonical required fields of `oyatie/stage1-admission-envelope/v1`.
 ///
 /// This parser-owned list is locked against the source schema by the admission-envelope fixture
@@ -454,6 +484,17 @@ fn grammar_findings(facts: &Value) -> BTreeSet<String> {
         findings.insert("receipt_bindings must be an array".to_owned());
         return findings;
     };
+    for receipt in receipts {
+        if let Some(object) = receipt.as_object() {
+            for field in object.keys() {
+                if !PROTECTED_RECEIPT_BINDING_ALLOWED_FIELDS.contains(&field.as_str()) {
+                    findings.insert(format!(
+                        "protected receipt binding rejects unknown field {field}"
+                    ));
+                }
+            }
+        }
+    }
     let required = [
         (
             "C06",
@@ -1317,7 +1358,7 @@ fn validate_context_free_exit(
             receipt,
             "context_free_exit.blind_reader_receipt_ref",
             subject_digest,
-            "independent-reader",
+            "independent-oracle",
             findings,
         )
         .as_deref()
