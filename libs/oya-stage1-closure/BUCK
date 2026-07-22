@@ -30,6 +30,7 @@ rust_test(
         "OYA_STAGE1_EPOCH_SCHEMA": "$(location //specs:stage1-evidence-epoch.schema.json)",
         "OYA_STAGE1_PROTECTED_FACTS_SCHEMA": "$(location //specs:stage1-protected-facts.schema.json)",
         "OYA_STAGE1_ADMISSION_ENVELOPE_SCHEMA": "$(location //specs:stage1-admission-envelope.schema.json)",
+        "OYA_STAGE1_ARTIFACT_CAPABILITIES_REGISTRY": "$(location //registry:artifact-capabilities-registry.json)",
     },
     visibility = ["PUBLIC"],
     deps = [
