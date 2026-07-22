@@ -27,6 +27,7 @@ sha2 = { workspace = true }
 # the SAME library code the `oya doc adr-index` step uses to re-render the
 # generated projections, instead of shelling out.
 oya-check-adr-index = { path = "../../../libs/oya-check-adr-index" }
+oya-governance-adr-shape-kernel = { path = "../../../libs/oya-governance-adr-shape-kernel" }
 
 [dev-dependencies]
 serde_json = { workspace = true }

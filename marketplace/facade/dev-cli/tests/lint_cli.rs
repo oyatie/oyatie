@@ -218,6 +218,26 @@ fn lint_adr_shape_accepts_amended_sources_and_rejects_missing_amended_date() {
         String::from_utf8_lossy(&output.stdout),
         String::from_utf8_lossy(&output.stderr)
     );
+    let code_fence_date = fixture.join("ADR-9998-amended-code-fence-date.md");
+    fs::write(
+        &code_fence_date,
+        "---\nid: ADR-9998\nstatus: Amended\n---\n# ADR-9998: fixture\n\n```yaml\namended_date: 2026-07-22\n```\n\n## Context\n\nfixture\n\n## Decision\n\nfixture\n\n## Consequences\n\nfixture\n",
+    )
+    .expect("code-fence fixture written");
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "lint",
+            "adr-shape",
+            code_fence_date.to_str().expect("fixture path is utf8"),
+        ])
+        .output()
+        .expect("ADR shape lint runs");
+    assert!(
+        !output.status.success(),
+        "code-fence amended_date must fail: stdout={} stderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
     fs::remove_dir_all(fixture).expect("fixture removed");
 }
 

@@ -9,9 +9,9 @@
 //! `specs/fixtures/cross-artifact-agreement/tc-*.json`.
 //!
 //! ## Blocking violation codes (the contract — literal strings the gate emits)
-//! - `orphan_decision`        — an Accepted decision reaches NO propagation face
+//! - `orphan_decision`        — a live (Accepted or Amended) decision reaches NO propagation face
 //!   (absent from spec AND masterplan AND roadmap): a decision nothing points at.
-//! - `unpropagated_decision`  — an Accepted decision reaches SOME but not ALL of its
+//! - `unpropagated_decision`  — a live (Accepted or Amended) decision reaches SOME but not ALL of its
 //!   required propagation faces (e.g. has an ADR + spec but no masterplan/roadmap node).
 //! - `status_disagreement`    — the decision's status disagrees across the faces that
 //!   record it (e.g. ADR `Accepted` while the roadmap node marks it `superseded`).
@@ -99,6 +99,8 @@
 #![forbid(unsafe_code)]
 
 use std::collections::{BTreeMap, BTreeSet};
+
+use oya_governance_adr_shape_kernel::is_live_decision_status;
 
 use serde::{
     Deserialize,
@@ -4014,15 +4016,15 @@ fn evaluate_decision(decision: &Value, findings: &mut BTreeSet<Finding>) {
         .unwrap_or("")
         .trim();
 
-    // Propagation is only required for live (Accepted) decisions. A Superseded/Proposed
+    // Propagation is only required for canonical live decisions. A Superseded/Proposed
     // decision is not expected to carry masterplan/roadmap nodes.
-    let is_accepted = status.eq_ignore_ascii_case("accepted");
+    let is_live = is_live_decision_status(status);
 
     let in_spec = bool_field(decision, "in_spec");
     let in_masterplan = bool_field(decision, "in_masterplan");
     let in_roadmap = bool_field(decision, "in_roadmap");
 
-    if is_accepted {
+    if is_live {
         let reaches_any = in_spec || in_masterplan || in_roadmap;
         if !reaches_any {
             // Reaches no propagation face at all: a decision nothing points at.
@@ -6107,5 +6109,21 @@ mod tests {
         // status_disagreement: ADR Accepted, roadmap face says Superseded.
         assert!(evaluate(&json!({"decisions":[{"id":"ADR-1","status":"Accepted","in_spec":true,"in_masterplan":true,"in_roadmap":true,"face_statuses":{"roadmap":"Superseded"}}]}))
             .violations.contains("status_disagreement"));
+    }
+
+    #[test]
+    fn amended_decisions_require_the_same_propagation_as_accepted_decisions() {
+        let orphaned = json!({"decisions":[{"id":"ADR-1","status":"Amended","in_spec":false,"in_masterplan":false,"in_roadmap":false}]});
+        assert!(evaluate(&orphaned).violations.contains("orphan_decision"));
+
+        let partial = json!({"decisions":[{"id":"ADR-1","status":"Amended","in_spec":true,"in_masterplan":false,"in_roadmap":false}]});
+        assert!(
+            evaluate(&partial)
+                .violations
+                .contains("unpropagated_decision")
+        );
+
+        let complete = json!({"decisions":[{"id":"ADR-1","status":"Amended","in_spec":true,"in_masterplan":true,"in_roadmap":true}]});
+        assert!(evaluate(&complete).violations.is_empty());
     }
 }

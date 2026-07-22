@@ -31,6 +31,7 @@ oya-intelligence-bypass-domain = { path = "../../../oya/intelligence/crates/oya-
 intelligence-cargo-prefix-domain = { path = "../../../intelligence/core/cargo-prefix-domain" }
 intelligence-catalog-domain = { path = "../../../intelligence/core/catalog-domain" }
 oya-governance-gate-catalog-domain = { path = "../../../libs/oya-governance-gate-catalog-domain" }
+oya-governance-adr-shape-kernel = { path = "../../../libs/oya-governance-adr-shape-kernel" }
 oya-check-claim-ceiling = { path = "../../../libs/oya-check-claim-ceiling" }
 oya-check-codeowners-mirror = { path = "../../../libs/oya-check-codeowners-mirror" }
 oya-check-cohesion = { path = "../../../libs/oya-check-cohesion" }

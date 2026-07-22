@@ -1279,6 +1279,7 @@ name = "ci-cross-artifact-agreement"
 version = "0.1.0"
 dependencies = [
  "oya-check-adr-index",
+ "oya-governance-adr-shape-kernel",
  "serde",
  "serde_json",
  "sha2",
@@ -5645,6 +5646,7 @@ dependencies = [
  "oya-check-vendor-recency",
  "oya-check-wasm-runtime-discipline",
  "oya-data-boundary-kernel",
+ "oya-governance-adr-shape-kernel",
  "oya-governance-banned-primitives-kernel",
  "oya-governance-gate-catalog-domain",
  "oya-intelligence-architecture-map-app",
