@@ -241,51 +241,9 @@ fn evaluate_epoch_with_untrusted_shape(
 /// producer, verifies signatures, or establishes authority.
 #[must_use]
 pub fn validate_protected_facts_shape(facts: &Value) -> Report {
-    let mut findings = BTreeSet::new();
-    require_string(facts, "schema_id", PROTECTED_FACTS_SCHEMA_ID, &mut findings);
+    let mut findings = grammar_findings(facts);
     for field in [
-        "protected_base_repository",
-        "candidate_repository",
-        "protected_base_branch",
-        "candidate_branch",
-        "protected_base_commit",
-        "candidate_commit",
-        "protected_base_tree",
-        "candidate_tree",
-        "source_epoch_binding",
-        "candidate_epoch_binding",
-        "program_binding",
-        "parser_binding",
-        "producer_binding",
-        "evaluator_binding",
-        "policy_binding",
-        "schema_binding",
-        "predecessor_epoch_binding",
-        "transition_receipt_binding",
         "immutable_successor_bundle",
-        "authority_chain_result",
-        "source_app_identity",
-        "run_identity",
-    ] {
-        if facts.get(field).is_none() {
-            findings.insert(format!("{field} is required"));
-        }
-    }
-    for field in [
-        "source_epoch_binding",
-        "candidate_epoch_binding",
-        "program_binding",
-        "parser_binding",
-        "producer_binding",
-        "evaluator_binding",
-        "policy_binding",
-        "schema_binding",
-        "predecessor_epoch_binding",
-        "transition_receipt_binding",
-        "immutable_successor_bundle",
-        "authority_chain_result",
-        "source_app_identity",
-        "run_identity",
         "envelope_signature",
         "trust_root_binding",
     ] {
@@ -295,6 +253,214 @@ pub fn validate_protected_facts_shape(facts: &Value) -> Report {
     }
     findings.insert("protected-facts structure is non-authoritative; authenticated producer and trust-root verification are unimplemented".to_owned());
     report(findings)
+}
+
+/// Pure, comparison-friendly protected-facts grammar validation. A green result only means that
+/// the supplied values conform to this local grammar; it never authenticates a producer, checks a
+/// signature or trust root, or authorizes planning or dispatch.
+#[must_use]
+pub fn validate_protected_facts_grammar(facts: &Value) -> Report {
+    report(grammar_findings(facts))
+}
+
+fn grammar_findings(facts: &Value) -> BTreeSet<String> {
+    let mut findings = BTreeSet::new();
+    require_string(facts, "schema_id", PROTECTED_FACTS_SCHEMA_ID, &mut findings);
+    for field in ["subject_digest", "program_digest", "epoch_digest"] {
+        if valid_subject_digest(facts.get(field)).is_none() {
+            findings.insert(format!("{field} must be sha256-bound"));
+        }
+    }
+    let Some(receipts) = facts.get("receipt_bindings").and_then(Value::as_array) else {
+        findings.insert("receipt_bindings must be an array".to_owned());
+        return findings;
+    };
+    let required = [
+        (
+            "C06",
+            "qualified-legal-compliance",
+            "qualified-human",
+            "legal-jcr",
+        ),
+        (
+            "C07",
+            "affected-party-representation",
+            "qualified-affected-party",
+            "affected-party-recourse",
+        ),
+        (
+            "C08",
+            "operations-owner-capacity",
+            "qualified-operations",
+            "named-operations-capacity",
+        ),
+        (
+            "C09",
+            "security-evidence-custody",
+            "qualified-custody",
+            "security-evidence-custody",
+        ),
+        (
+            "C10",
+            "veto-owner-closure",
+            "authorized-veto",
+            "exact-veto-owner",
+        ),
+        (
+            "C11",
+            "machine-pilot-evidence",
+            "machine-verifiable",
+            "machine-pilot-evidence",
+        ),
+        (
+            "C11",
+            "qualified-pilot-authorization",
+            "qualified-human",
+            "qualified-pilot-authorization",
+        ),
+        (
+            "C14",
+            "fresh-dissent",
+            "independent-dissent",
+            "fresh-independent-dissent",
+        ),
+        (
+            "C15",
+            "deterministic-oracle",
+            "independent-oracle",
+            "deterministic-oracle",
+        ),
+        (
+            "C15",
+            "blind-cold-reader",
+            "independent-oracle",
+            "blind-cold-reader",
+        ),
+        (
+            "C15",
+            "qualified-planning-authority",
+            "independent-oracle",
+            "qualified-planning-authority",
+        ),
+    ];
+    for (control, role, authority_class, qualification) in required {
+        let matching = receipts
+            .iter()
+            .filter(|receipt| {
+                receipt.get("control_id").and_then(Value::as_str) == Some(control)
+                    && receipt.get("role").and_then(Value::as_str) == Some(role)
+            })
+            .collect::<Vec<_>>();
+        if matching.len() != 1 {
+            findings.insert(format!("{control}/{role} requires exactly one receipt"));
+            continue;
+        }
+        let receipt = matching[0];
+        if receipt
+            .get("issuer_authority_class")
+            .and_then(Value::as_str)
+            != Some(authority_class)
+        {
+            findings.insert(format!(
+                "{control}/{role} issuer_authority_class must equal {authority_class}"
+            ));
+        }
+        if receipt.get("qualification_class").and_then(Value::as_str) != Some(qualification) {
+            findings.insert(format!(
+                "{control}/{role} qualification_class must equal {qualification}"
+            ));
+        }
+        if receipt.get("subject_digest") != facts.get("subject_digest")
+            || receipt.get("program_digest") != facts.get("program_digest")
+            || receipt.get("epoch_digest") != facts.get("epoch_digest")
+        {
+            findings.insert(format!(
+                "{control}/{role} must match subject/program/epoch digests"
+            ));
+        }
+        if receipt
+            .get("principal_id")
+            .and_then(Value::as_str)
+            .is_none_or(str::is_empty)
+        {
+            findings.insert(format!("{control}/{role} principal_id must be non-empty"));
+        }
+    }
+    let c11_count = receipts
+        .iter()
+        .filter(|receipt| receipt.get("control_id").and_then(Value::as_str) == Some("C11"))
+        .count();
+    if c11_count != 2 {
+        findings.insert("C11 permits exactly its machine and qualified-pilot receipts".to_owned());
+    }
+    let mut lens_principals = BTreeSet::new();
+    for lens in LENSES.map(|(lens, _)| lens) {
+        let matching = receipts
+            .iter()
+            .filter(|receipt| {
+                receipt.get("control_id").and_then(Value::as_str) == Some("C13")
+                    && receipt.get("lens_id").and_then(Value::as_str) == Some(lens)
+            })
+            .collect::<Vec<_>>();
+        if matching.len() != 1 {
+            findings.insert(format!(
+                "C13/{lens} requires exactly one independent lens receipt"
+            ));
+            continue;
+        }
+        let receipt = matching[0];
+        if receipt.get("role").and_then(Value::as_str) != Some("independent-council")
+            || receipt
+                .get("issuer_authority_class")
+                .and_then(Value::as_str)
+                != Some("independent-council")
+            || receipt.get("qualification_class").and_then(Value::as_str)
+                != Some("independent-lens-reviewer")
+        {
+            findings.insert(format!(
+                "C13/{lens} requires independent-council reviewer authority"
+            ));
+        }
+        if receipt.get("subject_digest") != facts.get("subject_digest")
+            || receipt.get("program_digest") != facts.get("program_digest")
+            || receipt.get("epoch_digest") != facts.get("epoch_digest")
+        {
+            findings.insert(format!(
+                "C13/{lens} must match subject/program/epoch digests"
+            ));
+        }
+        match receipt.get("principal_id").and_then(Value::as_str) {
+            Some(principal) if lens_principals.insert(principal) => {}
+            _ => {
+                findings.insert("C13 requires sixteen distinct principal_id values".to_owned());
+            }
+        }
+    }
+    if receipts
+        .iter()
+        .filter(|receipt| receipt.get("control_id").and_then(Value::as_str) == Some("C13"))
+        .count()
+        != 16
+    {
+        findings.insert("C13 permits exactly sixteen lens receipts".to_owned());
+    }
+    let c15_principals = receipts
+        .iter()
+        .filter(|receipt| receipt.get("control_id").and_then(Value::as_str) == Some("C15"))
+        .filter_map(|receipt| receipt.get("principal_id").and_then(Value::as_str))
+        .collect::<BTreeSet<_>>();
+    if c15_principals.len() != 3 {
+        findings.insert("C15 requires three distinct principal_id values".to_owned());
+    }
+    if receipts
+        .iter()
+        .filter(|receipt| receipt.get("control_id").and_then(Value::as_str) == Some("C15"))
+        .count()
+        != 3
+    {
+        findings.insert("C15 permits exactly three exit receipts".to_owned());
+    }
+    findings
 }
 
 /// Structural-only validation for a future post-merge admission envelope. It never derives an
@@ -923,6 +1089,8 @@ fn validate_protected_parent_facts(
     if state == Some("HOLD_EPOCH_OPEN") {
         return;
     }
+
+    findings.extend(grammar_findings(facts));
 
     require_string(facts, "schema_id", PROTECTED_FACTS_SCHEMA_ID, findings);
     require_non_empty_string(facts, "trust_root_authority_ref", findings);

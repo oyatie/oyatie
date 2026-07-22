@@ -1,7 +1,7 @@
 use serde_json::{Value, json};
 use stage1_closure::{
     evaluate_epoch, evaluate_program, validate_admission_envelope_shape,
-    validate_protected_facts_shape,
+    validate_protected_facts_grammar, validate_protected_facts_shape,
 };
 
 const SUBJECT_DIGEST: &str =
@@ -626,4 +626,179 @@ fn red_control_specific_authority_roles_and_cardinality_are_declared() {
             "duplicate {control}/{role} must fail"
         );
     }
+}
+
+fn grammar_receipt(
+    control: &str,
+    role: &str,
+    authority: &str,
+    qualification: &str,
+    principal: &str,
+) -> Value {
+    json!({
+        "control_id": control,
+        "role": role,
+        "issuer_authority_class": authority,
+        "qualification_class": qualification,
+        "principal_id": principal,
+        "subject_digest": SUBJECT_DIGEST,
+        "program_digest": SUBJECT_DIGEST,
+        "epoch_digest": SUBJECT_DIGEST
+    })
+}
+
+fn grammar_facts() -> Value {
+    let mut receipts = vec![
+        grammar_receipt(
+            "C06",
+            "qualified-legal-compliance",
+            "qualified-human",
+            "legal-jcr",
+            "legal",
+        ),
+        grammar_receipt(
+            "C07",
+            "affected-party-representation",
+            "qualified-affected-party",
+            "affected-party-recourse",
+            "affected",
+        ),
+        grammar_receipt(
+            "C08",
+            "operations-owner-capacity",
+            "qualified-operations",
+            "named-operations-capacity",
+            "operations",
+        ),
+        grammar_receipt(
+            "C09",
+            "security-evidence-custody",
+            "qualified-custody",
+            "security-evidence-custody",
+            "custody",
+        ),
+        grammar_receipt(
+            "C10",
+            "veto-owner-closure",
+            "authorized-veto",
+            "exact-veto-owner",
+            "veto",
+        ),
+        grammar_receipt(
+            "C11",
+            "machine-pilot-evidence",
+            "machine-verifiable",
+            "machine-pilot-evidence",
+            "pilot-machine",
+        ),
+        grammar_receipt(
+            "C11",
+            "qualified-pilot-authorization",
+            "qualified-human",
+            "qualified-pilot-authorization",
+            "pilot-human",
+        ),
+        grammar_receipt(
+            "C14",
+            "fresh-dissent",
+            "independent-dissent",
+            "fresh-independent-dissent",
+            "dissent",
+        ),
+        grammar_receipt(
+            "C15",
+            "deterministic-oracle",
+            "independent-oracle",
+            "deterministic-oracle",
+            "oracle",
+        ),
+        grammar_receipt(
+            "C15",
+            "blind-cold-reader",
+            "independent-oracle",
+            "blind-cold-reader",
+            "reader",
+        ),
+        grammar_receipt(
+            "C15",
+            "qualified-planning-authority",
+            "independent-oracle",
+            "qualified-planning-authority",
+            "planner",
+        ),
+    ];
+    for lens in 1..=16 {
+        receipts.push(grammar_receipt(
+            "C13",
+            "independent-council",
+            "independent-council",
+            "independent-lens-reviewer",
+            &format!("lens-{lens:02}"),
+        ));
+        receipts.last_mut().expect("lens receipt")["lens_id"] = json!(format!("L{lens:02}"));
+    }
+    json!({
+        "schema_id": "oyatie/stage1-protected-facts/v1",
+        "subject_digest": SUBJECT_DIGEST,
+        "program_digest": SUBJECT_DIGEST,
+        "epoch_digest": SUBJECT_DIGEST,
+        "receipt_bindings": receipts
+    })
+}
+
+#[test]
+fn protected_facts_grammar_rejects_authority_cardinality_identity_and_digest_failures() {
+    let green = grammar_facts();
+    assert!(validate_protected_facts_grammar(&green).is_green());
+    for index in 1..=4 {
+        let mut wrong_class = green.clone();
+        wrong_class["receipt_bindings"][index]["issuer_authority_class"] = json!("wrong-class");
+        assert!(!validate_protected_facts_grammar(&wrong_class).is_green());
+    }
+    for control in ["C06", "C07", "C08", "C09", "C10"] {
+        let mut missing = green.clone();
+        missing["receipt_bindings"]
+            .as_array_mut()
+            .expect("receipts")
+            .retain(|receipt| receipt["control_id"] != control);
+        assert!(!validate_protected_facts_grammar(&missing).is_green());
+    }
+    let mut missing_c14 = green.clone();
+    missing_c14["receipt_bindings"]
+        .as_array_mut()
+        .expect("receipts")
+        .retain(|receipt| receipt["control_id"] != "C14");
+    assert!(!validate_protected_facts_grammar(&missing_c14).is_green());
+    let mut extra_c11 = green.clone();
+    extra_c11["receipt_bindings"]
+        .as_array_mut()
+        .expect("receipts")
+        .push(grammar_receipt(
+            "C11",
+            "machine-pilot-evidence",
+            "machine-verifiable",
+            "machine-pilot-evidence",
+            "extra",
+        ));
+    assert!(!validate_protected_facts_grammar(&extra_c11).is_green());
+    let mut same_lens_principal = green.clone();
+    for receipt in same_lens_principal["receipt_bindings"]
+        .as_array_mut()
+        .expect("receipts")
+    {
+        if receipt["control_id"] == "C13" {
+            receipt["principal_id"] = json!("same");
+        }
+    }
+    assert!(!validate_protected_facts_grammar(&same_lens_principal).is_green());
+    let mut duplicate_exit_principal = green.clone();
+    duplicate_exit_principal["receipt_bindings"][9]["principal_id"] = json!("oracle");
+    assert!(!validate_protected_facts_grammar(&duplicate_exit_principal).is_green());
+    let mut unqualified_planner = green.clone();
+    unqualified_planner["receipt_bindings"][10]["qualification_class"] = json!("unqualified");
+    assert!(!validate_protected_facts_grammar(&unqualified_planner).is_green());
+    let mut mismatched_digest = green;
+    mismatched_digest["receipt_bindings"][0]["program_digest"] =
+        json!("sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc");
+    assert!(!validate_protected_facts_grammar(&mismatched_digest).is_green());
 }
