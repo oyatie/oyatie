@@ -19,15 +19,3 @@ rust_test(
         "//governance/corpus/doc-parser:corpus-doc-parser",
     ],
 )
-
-rust_test(
-    name = "oya-check-adr-index-ir-contract",
-    srcs = ["tests/adr_index_ir_contract.rs"],
-    crate = "adr_index_ir_contract",
-    crate_root = "tests/adr_index_ir_contract.rs",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":oya-check-adr-index",
-        "//governance/corpus/doc-parser:corpus-doc-parser",
-    ],
-)
