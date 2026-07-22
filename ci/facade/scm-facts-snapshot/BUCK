@@ -29,6 +29,7 @@ rust_binary(
         "//libs/oya-check-brand-residue:oya-check-brand-residue",
         "//libs/oya-ci-config:oya-ci-config-kernel",
         "third-party//:serde_json",
+        "third-party//:sha2",
     ],
 )
 

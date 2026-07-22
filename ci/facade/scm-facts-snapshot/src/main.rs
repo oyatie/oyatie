@@ -59,12 +59,14 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use ci_artifact_inventory_registry::to_canonical_json;
 use ci_path_resolver_adapters::{MOVE_MANIFEST_PATH, ManifestPathResolver, MoveManifest};
 use ci_path_resolver_ports::{FrozenRefSource, MergeBaseName, PathId, PathResolver};
 use oya_check_brand_residue::forbidden_vocab::{VocabPolicy, matched_line_occurrences_with};
 use serde_json::{Value, json};
+use sha2::{Digest, Sha256};
 
 /// The scm-facts face schema id — bumped only on a breaking shape change.
 /// v2 (ADR-0552): history-volatile fields (`last_touch_commit`, `commit_author_ts_secs`,
@@ -226,11 +228,8 @@ fn run() -> Result<(), String> {
         let bootstrap_ref = frozen_base_ref
             .as_deref()
             .unwrap_or(DEFAULT_FROZEN_BOOTSTRAP_REF);
-        let admission = emit_fixuptask_v2_admission(
-            &repo_root,
-            bootstrap_ref,
-            emission.volatile["head_time_secs"].as_u64().unwrap_or(0),
-        )?;
+        let admission =
+            emit_fixuptask_v2_admission(&repo_root, bootstrap_ref, controller_evaluation_time()?)?;
         emission.volatile["fixuptask_v2_admission"] = admission;
     }
 
@@ -1354,20 +1353,17 @@ fn git_blob_id(repo_root: &Path, revision: &str, path: &str) -> Result<String, S
     Ok(blob)
 }
 
-fn fnv1a64_bytes(bytes: &[u8]) -> String {
-    let mut hash: u64 = 0xcbf2_9ce4_8422_2325;
-    for byte in bytes {
-        hash ^= u64::from(*byte);
-        hash = hash.wrapping_mul(0x0000_0100_0000_01b3);
-    }
-    format!("fnv1a64:{hash:016x}")
+fn sha256_digest(bytes: &[u8]) -> String {
+    format!("sha256:{:x}", Sha256::digest(bytes))
 }
 
-fn canonical_utc_from_epoch(seconds: u64) -> String {
+fn canonical_utc_from_epoch(seconds: u64) -> Result<String, String> {
     // Howard Hinnant's civil-from-days conversion, UTC-only and dependency-free.
     let days = seconds / 86_400;
     let remainder = seconds % 86_400;
-    let z = i64::try_from(days).unwrap_or(i64::MAX) + 719_468;
+    let z = i64::try_from(days)
+        .map_err(|_| "controller evaluation time is outside the supported UTC range".to_owned())?
+        + 719_468;
     let era = if z >= 0 { z } else { z - 146_096 } / 146_097;
     let doe = z - era * 146_097;
     let yoe = (doe - doe / 1_460 + doe / 36_524 - doe / 146_096) / 365;
@@ -1377,12 +1373,20 @@ fn canonical_utc_from_epoch(seconds: u64) -> String {
     let day = doy - (153 * mp + 2) / 5 + 1;
     let month = mp + if mp < 10 { 3 } else { -9 };
     let year = year + if month <= 2 { 1 } else { 0 };
-    format!(
+    Ok(format!(
         "{year:04}-{month:02}-{day:02}T{:02}:{:02}:{:02}Z",
         remainder / 3_600,
         (remainder / 60) % 60,
         remainder % 60
-    )
+    ))
+}
+
+fn controller_evaluation_time() -> Result<String, String> {
+    let seconds = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map_err(|error| format!("controller clock precedes the Unix epoch: {error}"))?
+        .as_secs();
+    canonical_utc_from_epoch(seconds)
 }
 
 fn jsonl_rows(text: &str) -> Result<Vec<Value>, String> {
@@ -1401,7 +1405,7 @@ fn jsonl_rows(text: &str) -> Result<Vec<Value>, String> {
 fn emit_fixuptask_v2_admission(
     repo_root: &Path,
     bootstrap_ref: &str,
-    evaluation_seconds: u64,
+    evaluation_time: String,
 ) -> Result<Value, String> {
     let merge_base = git_merge_base(repo_root, bootstrap_ref)?;
     let merge_base_tree = git_rev_parse_tree(repo_root, &merge_base)?;
@@ -1419,12 +1423,12 @@ fn emit_fixuptask_v2_admission(
         ));
     }
     let predecessor_list: Vec<String> = predecessor_ids.into_iter().collect();
-    let predecessor_digest = fnv1a64_bytes(predecessor_list.join("\n").as_bytes());
+    let predecessor_digest = sha256_digest(predecessor_list.join("\n").as_bytes());
     let candidate_legacy = std::fs::read(repo_root.join(LEGACY_FRICTION_LEDGER_PATH)).ok();
     let candidate_present = candidate_legacy.is_some();
     let candidate_digest = candidate_legacy
         .as_deref()
-        .map(fnv1a64_bytes)
+        .map(sha256_digest)
         .unwrap_or_else(|| "absent".to_owned());
     let fixuptasks = git_show_file(repo_root, &merge_base, FIXUPTASK_REGISTRY_PATH)?
         .ok_or_else(|| "FixupTask registry is absent at merge base".to_owned())?;
@@ -1434,11 +1438,11 @@ fn emit_fixuptask_v2_admission(
         "merge_base_rows": jsonl_rows(&fixuptasks)?,
         "predecessor_source": format!("git:{merge_base}:{LEGACY_FRICTION_LEDGER_PATH}"),
         "predecessor_ids": predecessor_list,
-        "evaluation_time": canonical_utc_from_epoch(evaluation_seconds),
+        "evaluation_time": evaluation_time,
         "legacy_ledger": {
             "path": LEGACY_FRICTION_LEDGER_PATH,
             "merge_base_blob": git_blob_id(repo_root, &merge_base, LEGACY_FRICTION_LEDGER_PATH)?,
-            "merge_base_digest": fnv1a64_bytes(legacy.as_bytes()),
+            "merge_base_digest": sha256_digest(legacy.as_bytes()),
             "predecessor_ids_digest": predecessor_digest,
             "candidate_present": candidate_present,
             "candidate_digest": candidate_digest,
