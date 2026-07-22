@@ -31,15 +31,16 @@ fn schema(relative: &str) -> Value {
     serde_json::from_str(&source).expect("schema parses")
 }
 
-fn receipt(issuer_id: &str, issuer_class: &str) -> Value {
+fn receipt(principal_id: &str, issuer_authority_class: &str) -> Value {
     json!({
-        "path": format!("evidence/stage1/{issuer_id}.json"),
+        "path": format!("evidence/stage1/{principal_id}.json"),
         "blob_oid": "1111111111111111111111111111111111111111",
         "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
         "subject_digest": SUBJECT_DIGEST,
-        "issuer_id": issuer_id,
-        "issuer_class": issuer_class,
-        "authority_ref": format!("authority://{issuer_id}")
+        "principal_id": principal_id,
+        "issuer_authority_class": issuer_authority_class,
+        "authority_source_ref": artifact_binding(&format!("authority/{principal_id}")),
+        "qualification": "stage1", "jurisdiction_scope": "stage1", "independence_observation": "observed", "validity": "valid", "revocation_status": "not-revoked", "conflict_status": "none", "signature_trust_root_binding": "root"
     })
 }
 
@@ -365,7 +366,8 @@ fn pass_rejects_tampered_protected_receipt_and_half_of_c11() {
         .as_array_mut()
         .expect("bindings")
         .retain(|binding| {
-            binding["issuer_id"] != "issuer-C11-human" && binding["issuer_id"] != "reviewer-L01"
+            binding["principal_id"] != "issuer-C11-human"
+                && binding["principal_id"] != "reviewer-L01"
         });
     let report = validate_protected_facts_shape(&facts);
     assert!(

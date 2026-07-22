@@ -465,6 +465,27 @@ fn grammar_findings(facts: &Value) -> BTreeSet<String> {
                 &mut findings,
             );
         }
+        for field in [
+            "principal_identity_binding",
+            "authority_source_ref",
+            "qualification",
+            "jurisdiction_scope",
+            "independence_observation",
+            "subject_binding",
+            "program_binding",
+            "epoch_binding",
+            "validity",
+            "expiry",
+            "revocation_status",
+            "conflict_status",
+            "signature_trust_root_binding",
+        ] {
+            validate_artifact_binding(
+                receipt.get(field).unwrap_or(&Value::Null),
+                field,
+                &mut findings,
+            );
+        }
         if !matches!(
             receipt.get("decision").and_then(Value::as_str),
             Some("satisfied" | "blocked" | "abstained" | "dissent")
@@ -529,6 +550,27 @@ fn grammar_findings(facts: &Value) -> BTreeSet<String> {
             continue;
         }
         let receipt = matching[0];
+        for field in [
+            "principal_identity_binding",
+            "authority_source_ref",
+            "qualification",
+            "jurisdiction_scope",
+            "independence_observation",
+            "subject_binding",
+            "program_binding",
+            "epoch_binding",
+            "validity",
+            "expiry",
+            "revocation_status",
+            "conflict_status",
+            "signature_trust_root_binding",
+        ] {
+            validate_artifact_binding(
+                receipt.get(field).unwrap_or(&Value::Null),
+                field,
+                &mut findings,
+            );
+        }
         if receipt.get("role").and_then(Value::as_str) != Some("independent-council")
             || receipt
                 .get("issuer_authority_class")
