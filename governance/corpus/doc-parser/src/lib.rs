@@ -1724,7 +1724,14 @@ fn strip_comment(value: &str) -> &str {
             }
             continue;
         }
-        if character == '#' && quote.is_none() {
+        if character == '#'
+            && quote.is_none()
+            && (index == 0
+                || value[..index]
+                    .chars()
+                    .next_back()
+                    .is_some_and(char::is_whitespace))
+        {
             return &value[..index];
         }
     }
