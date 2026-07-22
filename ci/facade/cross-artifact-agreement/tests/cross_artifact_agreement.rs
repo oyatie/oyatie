@@ -11,14 +11,14 @@ use std::process::Command;
 use ci_cross_artifact_agreement::{
     AdrDecisionRecord, GateCoverageBaseline, RatchetReport, Verdict,
     derive_masterplan_md_projection, evaluate, evaluate_adr_index_projection_parity,
-    evaluate_adr_prose_frontmatter_status, evaluate_masterplan_plan_evidence_crosscheck,
-    evaluate_masterplan_projection_rederivation, evaluate_masterplan_read_surface_resurrections,
-    evaluate_masterplan_v2_authority, evaluate_masterplan_v2_entry_surfaces,
-    evaluate_masterplan_v2_evidence_state, evaluate_masterplan_v2_plan_evidence_drift,
-    evaluate_masterplan_v2_preplanning_candidate_facts, evaluate_masterplan_v2_program_coverage,
-    evaluate_masterplan_v2_projection_freshness, evaluate_masterplan_v2_ratification_digest,
-    evaluate_masterplan_v2_read_contract_archives, evaluate_masterplan_v2_sequencing,
-    evaluate_registry_derived_policy_sync, ratchet,
+    evaluate_adr_prose_frontmatter_status, evaluate_founder_product_intent_agreement,
+    evaluate_masterplan_plan_evidence_crosscheck, evaluate_masterplan_projection_rederivation,
+    evaluate_masterplan_read_surface_resurrections, evaluate_masterplan_v2_authority,
+    evaluate_masterplan_v2_entry_surfaces, evaluate_masterplan_v2_evidence_state,
+    evaluate_masterplan_v2_plan_evidence_drift, evaluate_masterplan_v2_preplanning_candidate_facts,
+    evaluate_masterplan_v2_program_coverage, evaluate_masterplan_v2_projection_freshness,
+    evaluate_masterplan_v2_ratification_digest, evaluate_masterplan_v2_read_contract_archives,
+    evaluate_masterplan_v2_sequencing, evaluate_registry_derived_policy_sync, ratchet,
 };
 use serde_json::Value;
 
@@ -1715,4 +1715,37 @@ fn gate_coverage_baseline_is_born_empty_and_wellformed() {
         "the gate-coverage baseline is born empty (born-advisory-green): {:?}",
         baseline.keys()
     );
+}
+
+#[test]
+fn founder_product_intent_is_nonbinding_and_green_on_its_own_contract() {
+    let root = repo_root();
+    let intent = load_json(&root.join("specs/founder-product-intent.json"));
+    let findings = evaluate_founder_product_intent_agreement(&intent);
+    assert!(
+        findings.is_empty(),
+        "founder intent must remain a structurally valid HOLD-only candidate: {findings:?}"
+    );
+}
+
+#[test]
+fn founder_product_intent_rejects_open_type_governance_escape_and_comparator_bypass() {
+    let root = repo_root();
+    let intent = load_json(&root.join("specs/founder-product-intent.json"));
+
+    let mut governance_escape = intent.clone();
+    governance_escape["game_engine_product_model"]["governance_type_system_boundary"]["exception"] =
+        Value::String("tenant type may amend Accepted authority".to_owned());
+    let governance_findings = evaluate_founder_product_intent_agreement(&governance_escape);
+    assert!(governance_findings.iter().any(|finding| {
+        finding.key == "game_engine_product_model.governance_type_system_boundary"
+    }));
+
+    let mut comparator_bypass = intent;
+    comparator_bypass["benchmark_and_measurement_contract"]["comparator_admission"]["exception"] =
+        Value::String("C05 may bypass C06 legal/JCR".to_owned());
+    let comparator_findings = evaluate_founder_product_intent_agreement(&comparator_bypass);
+    assert!(comparator_findings.iter().any(|finding| {
+        finding.key == "benchmark_and_measurement_contract.comparator_admission"
+    }));
 }

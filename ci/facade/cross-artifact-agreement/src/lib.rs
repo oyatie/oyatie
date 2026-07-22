@@ -108,6 +108,7 @@ use serde_json::Value;
 use sha2::{Digest, Sha256};
 
 mod adr_index_projection_parity;
+mod founder_product_intent;
 mod gate_coverage_baseline;
 mod plan_evidence_crosscheck;
 mod projection_rederivation;
@@ -115,6 +116,10 @@ mod prose_frontmatter_status;
 mod read_surface_resurrection;
 mod registry_policy_sync;
 
+pub use founder_product_intent::{
+    FOUNDER_PRODUCT_INTENT_PATH, FOUNDER_PRODUCT_INTENT_VALIDATOR,
+    evaluate_founder_product_intent_agreement,
+};
 pub use plan_evidence_crosscheck::{
     PLAN_EVIDENCE_CROSSCHECK_VALIDATOR, UNRECORDED_EVIDENCE_CODE,
     evaluate_masterplan_plan_evidence_crosscheck,

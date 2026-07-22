@@ -1,0 +1,2172 @@
+{
+  "$id": "https://docs.oyatie.com/specs/founder-product-intent.json",
+  "_meta": {
+    "created_at": "2026-07-21T18:38:35Z",
+    "doc_class": "Machine-Readable-Spec",
+    "admission_review": "council-architecture review required; qualified product authority remains unresolved and is not appointed by this artifact",
+    "owner_team": "founder",
+    "purpose": "Durable, mechanism-neutral statement of Oyatie's product ambition and the Stage-1 authority closure that must precede roadmap planning. This artifact records user-directed intent without ratifying architecture, approving a roadmap, authorizing implementation, or claiming readiness.",
+    "ratification_status": "user-directed-founder-intent-pending-council-architecture-review-and-separately-ratified-product-authority",
+    "spec_id": "OYA-FOUNDER-PRODUCT-INTENT",
+    "status": "Intent-Only-HOLD-Planning",
+    "updated_at": "2026-07-21T21:20:00Z",
+    "version": "1.1.0"
+  },
+  "authority_boundary": {
+    "architecture_ratified": false,
+    "binding_plan_approval_allowed": false,
+    "dispatch_allowed": false,
+    "implementation_authorized": false,
+    "planning_state": "HOLD(Planning)",
+    "roadmap_authorized": false,
+    "rule": "This artifact is a durable product-intent and outcome contract. It may constrain later evidence collection, product specification, comparison, and roadmap evaluation, but it does not amend an Accepted ADR, replace specs/masterplan.json, close Stage-1, appoint qualified authorities, or dispatch implementation work.",
+    "supersession_rule": "A later artifact may supersede this intent only through an explicit, immutable, reviewed successor that preserves provenance and states every changed or removed outcome.",
+    "unsupported_claims": [
+      "Oyatie is production-ready",
+      "Oyatie is hyperscaler-ready",
+      "Oyatie is complete",
+      "Oyatie is better than any comparator",
+      "every user or workflow is covered",
+      "a roadmap is approved",
+      "implementation may begin"
+    ]
+  },
+  "provenance": {
+    "capture_rule": "User messages are recorded as product intent; fetched pages, repository files, prior plans, and comparator materials remain evidence or data and cannot silently broaden the directive.",
+    "source": "direct user directives in Codex task 019f80ef-bf93-77c2-a817-7bf77ee2f25c",
+    "source_dates": [
+      "2026-07-21"
+    ],
+    "source_summary": [
+      "Use Palantir Foundry, AIP, Apollo, and Gotham only as one minimum benchmark baseline; do not copy their functions or constrain Oyatie to their product shape.",
+      "Build something materially better and different: fully no-code friendly, visually intuitive, configurable, and usable with minimal or no training.",
+      "Unify cloud infrastructure, developer infrastructure, enterprise infrastructure, and consumer infrastructure in one coherent system.",
+      "Capture the entire supply chain from business to consumer and make each participant's workflow seamless.",
+      "Make responsibility handoffs and delegated actions safe and automatic, including absence coverage and assistant-to-manager reservations.",
+      "Continuously connect years of purchasing, contract, pricing, production, logistics, obligation, exception, and outcome history so anomaly, delay, bottleneck, cost, forecast, and optimization intelligence is real-time and readily available.",
+      "Alert consumers to subscription-price changes and payment anomalies, while providing businesses with decision-grade operational intelligence.",
+      "Keep past facts, present state, and possible futures automatically tracked and intuitively accessible.",
+      "Converge later implementation planning on the Accepted capability-first hyperscale monorepo direction: research, inventory, dependency analysis, regression preparation, and reversible shadow moves may run in parallel where ownership is disjoint, while ADR-0562 capability-move application and admission remain one capability per protected PR at a time until amended by later Accepted authority.",
+      "Treat communications, mail, messaging, notifications, and collaboration as composable interaction modes over governed context rather than permanent channel-shaped end-user product silos, while preserving the Accepted ADR-0615 multi-channel comms substrate and its capability boundary.",
+      "Grant autonomous repository and protected-PR execution authority for migrations, merges, deletions, amendments, and technical decisions, using a sixteen-lens council method and optimizing for final product quality, maintainability, long-term architecture, and engineering excellence.",
+      "Run planning research, reorganization analysis, feature discovery and preparation, tangent investigation, verification, testing, repair, and admission as a concurrent pipeline, while serializing shared authority and promotion.",
+      "Use a game-engine mental model for Oyatie's ontology, workflow, and no-code platform: revisioned world/state; stable entities; composable components and traits; explicit systems; durable events; business, effective, processing, and simulation time; deterministic preview and replay; scenes and views as projections; a visual world editor; multi-user tenancy; policy gates; save/load/audit; compensation and rollback; and dependency-aware scheduling.",
+      "Treat types as first-class tenant, pack, or platform definitions: extensible, customizable, configurable, no-code, composed rather than closed vendor enums, versioned and content-addressed, visually authored to canonical IR, template/default/constraint capable, policy-bound, compatibility-classified, previewable, and reversibly migratable or explicitly approved when irreversible.",
+      "Do not reduce legal authority, privacy, accounting, distributed consistency, irreversible external effects, or human accountability to game state."
+    ]
+  },
+  "change_accounting": [
+    {
+      "change_id": "founder-intent-operational-world-types-2026-07-21",
+      "subject": "founder-product-intent/operational-world-types",
+      "disposition": "proposed-future-nonbinding",
+      "claim_ceiling": "founder-intent-only-no-implementation-roadmap-or-authority",
+      "planning_state": "HOLD(Planning)",
+      "dispatch_allowed": false,
+      "roadmap_authorized": false,
+      "implementation_authorized": false,
+      "authority_effect": "none",
+      "evidence_eligible": false
+    }
+  ],
+  "founder_execution_authorization": {
+    "source": "direct founder directive in Codex task 019f80ef-bf93-77c2-a817-7bf77ee2f25c at 2026-07-21T19:36:22Z",
+    "scope": "Oyatie repository, isolated worktrees, branches, protected pull requests, current documentation and decision surfaces, source and test code, generated-face producers, migration artifacts, and ordinary GitHub admission state placed in scope by the active goal.",
+    "authorized_actions": [
+      "make autonomous technical, architectural, sequencing, migration, maintenance, and repository-organization decisions",
+      "create, amend, supersede, migrate, or delete code, tests, specs, documentation, registries, and decision proposals when evidence supports the change",
+      "repair, review, push, merge, close, or supersede pull requests and branches through protected admission",
+      "perform exact-target destructive repository changes when deletion is the correct long-term outcome and Git history plus protected receipts preserve recovery",
+      "parallelize disjoint migration research, inventory, regression preparation, reversible shadow moves, and evidence lanes while serializing shared authority, generated projections, dependency order, protected merge admission, and ADR-0562 capability-move application one capability per protected PR",
+      "continue without routine founder intervention until a qualified terminal outcome or irreducible external authority blocker"
+    ],
+    "quality_order": [
+      "user and affected-party outcomes",
+      "correctness and safety",
+      "security, privacy, authority, and recourse",
+      "architectural coherence and hyperscale operability",
+      "maintainability, testability, simplicity, and deletion of accidental complexity",
+      "interoperability, portability, reversibility, and ecosystem health",
+      "reliability, observability, operations, cost, capacity, and energy",
+      "delivery speed after the preceding constraints are satisfied"
+    ],
+    "destructive_change_rule": "Resolve exact targets and dependencies read-only first; prefer deletion over misleading archives or compatibility fossils; preserve recovery in Git history; use regression-first proof, signed commits, protected exact-head review, green oya-ci-required, and post-merge receipts.",
+    "authority_boundary": "This authorization removes the need for routine permission handoffs inside the stated scope. It does not manufacture independent evidence, appoint a qualified legal or affected-party principal, grant external credentials not already available, waive safety or repository policy, turn advisory agents into qualified humans, or by itself set PASS(Planning) or dispatch an implementation roadmap.",
+    "hold_interaction": "Engineering, evidence, cleanup, admission, and migration-enabling work may proceed autonomously in the active gate sequence. HOLD(Planning) remains controlling until every Stage-1 entry requirement is independently satisfied and the qualified terminal authority issues PASS(Planning).",
+    "concurrency_pipeline": {
+      "parallel_lanes": [
+        "non-binding planning research and evidence collection",
+        "reorganization inventory, dependency analysis, migration design, and regression preparation",
+        "feature discovery, specification candidates, prototypes, and isolated implementation preparation",
+        "adjacent or tangent investigation that can change a decision or retire risk",
+        "verification, testing, adversarial review, repair, and exact-receipt production",
+        "protected admission of work already authorized by current Accepted authority"
+      ],
+      "serialization_points": [
+        "shared authority or canonical contract changes",
+        "generated projection materialization",
+        "dependency-order transitions and ADR-0562 capability-move application one capability per protected PR",
+        "overlapping file ownership",
+        "protected merge admission and promotion"
+      ],
+      "promotion_barrier": "Before qualified PASS(Planning), concurrent roadmap, reorganization, and new-feature work remains non-binding and isolated unless independently authorized by an already-Accepted decision. It cannot amend the controlling roadmap, become implementation dispatch, or merge a new unratified product direction into dev. After PASS(Planning), an independently approved roadmap may dispatch these lanes continuously with promotion serialized only where their contracts overlap."
+    },
+    "pipeline_evolution_contract": {
+      "outcome": "Treat the engineering and delivery pipeline as a versioned platform product that continuously improves safe throughput, evidence quality, developer experience, release reliability, recovery, and user outcomes without optimizing away its own controls.",
+      "implementation_claim_ceiling": "This contract defines the required operating model and evaluation bar. It does not claim every mechanism is implemented, live, production-ready, or authoritative. Each capability remains target, proposed, scaffolded, advisory, or gap evidence unless its own current lifecycle authority and exact runtime receipts prove otherwise.",
+      "authority_rule": "Current Accepted decisions and canonical root pointers govern pipeline behavior. Proposed, target, historical, generated, or merely implemented artifacts may supply bounded evidence and candidate ideas, but they do not become authority through use, test success, repetition, or agent inference. Any disagreement between lifecycle metadata, prose, implementation, live protection, and generated projections becomes a chronology or corpus finding and fails closed at the applicable claim boundary.",
+      "work_graph_contract": {
+        "required_fields": [
+          "stable_work_id",
+          "owner_principal_or_explicitly_unassigned",
+          "scope_and_owned_paths",
+          "dependencies_and_serialization_keys",
+          "risk_and_authority_class",
+          "acceptance_and_stop_conditions",
+          "verification_and_evidence_contract",
+          "claim_ceiling",
+          "freshness_and_invalidation_events",
+          "rollback_or_abandonment_path",
+          "state"
+        ],
+        "states": [
+          "proposed",
+          "ready",
+          "active",
+          "blocked",
+          "verified",
+          "admitted",
+          "stable",
+          "rejected",
+          "rolled_back",
+          "superseded",
+          "retired"
+        ],
+        "scheduling_rule": "Execute the dependency graph continuously: run ready, disjoint, reversible lanes concurrently; serialize by explicit dependency, shared path, authority, generated projection, integration candidate, or rollout boundary; and never infer readiness from queue position, age, or effort already spent."
+      },
+      "closed_loop": [
+        "observe outcomes, queues, failures, toil, misses, and user or service impact",
+        "form a bounded hypothesis with owner, affected population, expected benefit, risk, and stop condition",
+        "capture a reproducible baseline and immutable candidate inputs",
+        "add regression or policy tests before changing behavior",
+        "evaluate the change in isolated, shadow, or replay conditions",
+        "obtain independent adversarial and maintainability review",
+        "admit the exact candidate through protected policy",
+        "expand exposure progressively with predeclared signals and automatic stop or rollback",
+        "verify the stable outcome and unintended effects",
+        "record learning, retire ineffective complexity, and create owned preventive actions"
+      ],
+      "parallelism_rule": "Research, non-binding planning, graph analysis, affected-set computation, hermetic build and test shards, policy evaluation, provenance generation, migration preparation, isolated feature preparation, preproduction checks, and incident evidence collection may run concurrently when their inputs, ownership, authority, and side effects are disjoint.",
+      "serialization_rule": "Shared authority, canonical-contract change, dependency-graph transition, generated projection, integration-candidate creation, protected admission, rollout expansion, rollback, and changes to pipeline controls serialize at their governing boundary. ADR-0562 capability moves additionally remain one capability per protected pull request even when their inventories, tests, and shadow plans are prepared in parallel.",
+      "lifecycle_graph_rule": "Build, test, admission, artifact production, deployment preparation, and developer-environment verification project from one declared dependency and action graph. Runners and external systems are thin adapters; no runner may gain authority by reimplementing a narrower command subset or omitting a required graph edge.",
+      "generated_artifact_rule": "Generated faces are projections, never hand-edited authority. Every face declares its source, schema, producer, consumer, and lifecycle as either tracked or not-tracked-in-git. Change the human-owned source, schema, or producer; materialize through the registered controller before consumption; require independent regenerate-twice determinism and byte or declared semantic parity; reject stale, unregistered, manually altered, or re-tracked decommitted faces; and preserve exact source-to-output provenance. Parallelize disjoint face generation; serialize only the shared source, producer, registry, or output boundary rather than imposing a blanket global generation lock.",
+      "trusted_control_rule": "The candidate revision is untrusted data under test. Required-check definitions, policy and severity data, exception policy, trusted clocks, reviewer qualification, credentials, and admission mappings must come from a protected control state that the candidate cannot weaken, delete, replace, or self-approve. A candidate that changes a control is evaluated under the prior protected control and under the proposed successor before that successor can govern later candidates.",
+      "impact_rule": "Affected-set verification is derived from semantic symbols or typed artifact pointers plus the declared build, contract, policy, data, and runtime dependency graphs. Unknown, unowned, incomplete, conflicting, deleted, graph-changing, or stale impact evidence broadens verification to the applicable full universe or blocks; it never narrows the test claim. Integration and protected-dev candidates receive full-graph validation, and measured misses or over-selection feed the next policy revision.",
+      "demand_driven_execution_rule": "Each requested face or action evaluates only its declared transitive dependency slice, including declared policy, control, and input edges. The declared graph is the authority for reachability; no runner may eagerly compute unrelated faces as a prerequisite. Unknown, undeclared, incomplete, stale, conflicting, or graph-changing dependencies broaden evaluation to the applicable full universe or block; they never silently bypass a required dependency, narrow the claim, or mint a cache or admission result.",
+      "node_face_resource_evidence_contract": "For every executed node, requested face, and action, retain a typed, redacted evidence row bound to the exact subject, declared dependency slice, runner, environment, and attempt. Record cold and warm wall time, user and system CPU, max RSS, input bytes and bytes scanned, cache state, key identity, hit/miss and invalidation reason as applicable, I/O, queue wait and contention, and deterministic output hash or an explicit non-determinism classification with its claim ceiling. Measurements are evidence for capacity, correctness, and evolution; no numeric threshold is implied, and absent, malformed, or incomparable evidence cannot silently support a performance, cache, or admission claim.",
+      "test_and_evidence_rule": "Select unit, integration, contract, end-to-end, property, fuzz, security, privacy, accessibility, migration, rollback, and operational exercises from changed semantics, affected populations, risk, and claims. Every required tier records the command or method, runner, immutable inputs, environment, result, freshness, and artifacts; a rerun cannot convert a persistent failure into a pass, and a quarantine requires a scoped owner, expiry, evidence, and retirement condition.",
+      "failure_taxonomy_rule": "Classify code regression, policy violation, security or privacy finding, stale or invalid evidence, infrastructure failure, suspected flake, cancellation, and timeout separately. Preserve the first failing evidence, do not relabel infrastructure red as candidate green, and require a reproducible cause or bounded quarantine before a later attempt can supersede an earlier result.",
+      "diagnosability_rule": "Every run emits a typed, redacted, retained evidence packet that binds the exact subject, base, merge-base, attempt, phases, findings, artifact references, failure taxonomy, and reproduction path. First diagnosis must not depend on scraping ephemeral console logs or private tribal knowledge, and status projections never become a second merge authority.",
+      "automation_safety_governor": {
+        "AUTO": "Permitted only when deterministic, behavior-preserving, mechanically falsifiable, reversible, idempotent, reviewable, self-validating, and bounded by pre-image rollback. The detector and pure remediation proposal share one semantic kernel; applying writes is a separate least-privilege adapter. Automation may open a signed, exact, reviewable proposal but may never merge it, bypass a gate, self-approve, widen a baseline, or silently change authority.",
+        "ADVISE": "Use for semantics-changing or judgment-bearing proposals. The system may explain, simulate, compare, and prepare an exact candidate, but an independently authorized principal decides whether it stands.",
+        "GATE": "Use for irreversible or high-blast-radius effects, security, trust, access, money, rights, legal duties, one-way doors, unproven false-positive rates, or qualified judgment. Default to hold or refusal until the required authority and evidence exist.",
+        "classification_rule": "Every finding and remediation class has exactly one versioned tier as policy data. Safety decides the tier; convenience, implementation ease, frequency, or agent confidence does not. Promotion to a more autonomous tier requires a labeled corpus, zero unresolved safety failures, and independent exact-policy review."
+      },
+      "exception_rule": "A waiver, baseline, break-glass path, VEX statement, accepted risk, or temporary exclusion is scoped to immutable subjects and finding identities and carries a qualified owner and approver, rationale, compensating controls, issue and expiry times from a trusted clock, review cadence, audit receipt, and tested expiry behavior. Candidate-authored wildcard suppressions, permanent grants, silent skips, expired records, or same-candidate baseline growth fail closed.",
+      "security_and_supply_chain_rule": "Security applicability is derived from subject and service classifications; unknown applicability is blocking. Scanner or model output is untrusted evidence until normalized into typed findings tied to immutable source, artifact, tool and ruleset versions. Applicable artifacts carry dependency resolution, signed provenance, and SBOM or an explicit non-applicability reason; vulnerable, unsigned, ambiguous, stale, or exception-dependent artifacts follow the versioned severity and admission policy rather than a raw tool exit code.",
+      "continuous_vulnerability_invalidation_rule": "As a target operating invariant, a fresh vulnerability, compromised dependency or builder, revoked signature, changed exploitability assessment, expired VEX or waiver, or materially changed threat model re-evaluates already admitted and stable artifacts. The result may hold further promotion, quarantine distribution, require mitigation, trigger bounded rollback, or block continued operation according to separately ratified policy. This clause does not claim the current Proposed vulnerability-intelligence pipeline is live authority.",
+      "tenant_pipeline_isolation_rule": "Pipeline identity, credentials and secrets, runners, workspaces, caches, artifacts, logs and evidence, release ledgers, deploy targets, status callbacks, and audit events are tenant-scoped and default-deny across tenant boundaries. Negative cross-tenant fixtures, least-privilege workload identities, tenant-scoped encryption and retention, and tenant-scoped expiring break-glass receipts are required before an isolation claim; the present contract does not claim those Phase-0 gaps are closed.",
+      "merge_and_release_separation": "Merge admission proves only that the exact integration candidate satisfies repository policy. It does not prove runtime readiness. Runtime promotion separately requires an immutable artifact, environment and configuration identity, preproduction evidence, progressive cohorts, SLO and error-budget signals, observation windows, automatic stop or rollback, operational ownership, and post-promotion verification.",
+      "runtime_promotion_fail_closed_rule": "Every admitted artifact begins runtime evaluation in held, not eligible. Eligibility is a deterministic, non-LLM decision over fresh live evidence and independently controlled policy. Missing, stale, unparseable, inconclusive, evaluator-unavailable, replay-only, synthetic, or backfilled evidence remains held and cannot mint promotion authority; later valid evidence may supersede it only through a new attributable receipt.",
+      "current_protected_admission_rule": "While plain Git and protected GitHub pull requests remain the current substrate, a candidate may merge only when it is based on the current protected target, signed, conflict-free, independently reviewed at the exact head, free of unresolved review threads, and green in the single required oya-ci-required context. Merge state is serialized and re-read immediately before admission; any head, base, policy, review, or required-check change invalidates prior admission evidence.",
+      "post_merge_closure_rule": "A merge receipt is not product completion. Bind the promoted commit to required-context readback, rollout or explicit non-runtime scope, rollback or reversion path, observability and user-story evidence where applicable, release-governance impact, and preventive-learning or duplicate disposition. State the exact claim ceiling and keep downstream roadmap or readiness claims blocked unless their independent evidence contracts are satisfied.",
+      "resource_lineage_and_health_rule": "Every data source, transform, model, function, policy, agent, action, artifact, deployment, schedule, sync, and user-facing outcome participates in one typed, versioned lineage graph from source to effect and realized outcome. Classify source, input, intermediate, output, user-facing, and sink roles and derive schema, content, freshness, build, schedule, sync, latency, error, and outcome health from the declared graph and user expectation. The dynamically scoped monitoring follows additions, removals, ownership, permissions, and dependency changes; orphaned, unowned, or unmonitored material resources block the applicable readiness claim. Alerts bind severity, affected population, owner, runbook, diagnosis evidence, noise budget, and resolution receipt. A health projection is evidence and does not become authority or silently authorize promotion.",
+      "probabilistic_evaluation_rule": "Deterministic, statistical, agentic, and model-backed components use versioned evaluation suites over a frozen population with expected outcomes, refusal and recourse cases, repeated runs and variance, baselines, confidence and calibration where applicable, and exact model, prompt, tool, data, policy, and evaluator versions. Results remain disaggregated for safety, privacy, accessibility, subgroup and affected-party outcomes and preserve failures, inconclusive cases, evaluator disagreement, and drift. A passing evaluation never establishes authority, erases Accepted ADR-0219's draft-only model-output boundary, or substitutes for independent policy, legal, affected-party, operational, or runtime-promotion evidence.",
+      "promotion_state_machine": [
+        "proposed",
+        "verified",
+        "integrated_candidate",
+        "admitted",
+        "held",
+        "eligible",
+        "progressively_exposed",
+        "stable",
+        "rejected",
+        "rolled_back"
+      ],
+      "candidate_evidence_minimum": [
+        "immutable source, current base, merge-base, and integration revisions",
+        "owner, scope, risk class, and affected-set result",
+        "resolved dependencies, toolchain, build definition, and output digests",
+        "test, policy, security, privacy, supply-chain, and quality results",
+        "software bill of materials and verifiable provenance where applicable",
+        "rollout blast radius, signals, observation window, stop conditions, and known-good rollback target",
+        "issuer identities, claim ceiling, freshness, invalidation events, and reproduction method"
+      ],
+      "health_measures": [
+        "lead time and deployment frequency interpreted as trends rather than individual or team scorecards",
+        "change-failure rate, restore time, rollback success, and repeated-failure rate",
+        "service-level objective and error-budget consumption",
+        "queue age, review latency, flaky-test rate, cache correctness, and hermeticity failures",
+        "affected-set miss and over-selection rates plus full-graph reconciliation",
+        "false-green, false-red, control-escape, expired-exception, and stale-evidence rates",
+        "pipeline availability, cost, capacity, energy, and recovery from control-plane failure",
+        "developer task success, toil, cognitive load, and time to safe independent use",
+        "user outcome, safety, privacy, accessibility, recourse, cost, and operational-impact measures"
+      ],
+      "pipeline_slo_rule": "Version pipeline service-level objectives for availability, queue and execution latency, evidence durability, correctness, false-green and false-red escape rates, cache and graph integrity, admission recovery, and control-plane disaster recovery. Use error budgets to change exposure and repair priority; never spend them to bypass a safety, legal, custody, or authority gate.",
+      "capacity_rule": "Run the maximum safe useful concurrency derived from the ready work graph, disjoint ownership, dependency and rollout boundaries, reviewer and custody capacity, compute and cost budgets, and failure-domain isolation. Raw worker utilization, queue length, or idle capacity is not itself success; overload, review starvation, correlated failure, and control-plane saturation reduce concurrency automatically.",
+      "measurement_use_rule": "Pipeline measures are system-level learning signals and claim evidence. They must not be used as individual or team productivity rankings, promotion targets, or incentives that reward bypassing quality, safety, accessibility, privacy, recourse, documentation, or long-term maintainability.",
+      "learning_rule": "Incidents, near misses, failed changes, false greens, false reds, rollbacks, security findings, affected-set misses, and experiments produce attributable preventive actions with an owner, due condition, verification method, and later effectiveness check. Narrative alone is not closure; ineffective actions are revised or deleted, and obsolete mechanisms are removed from readable authority rather than archived beside current truth.",
+      "research_rule": "Before material pipeline changes, read the current controlling Oyatie authorities and fresh primary official sources relevant to the mechanism, record versions, retrieval times, scope, digests where permitted, limitations, and observed-versus-inferred claims, and keep external documentation as evidence rather than repository authority.",
+      "research_basis": {
+        "retrieved_at": "2026-07-21T20:49:16Z",
+        "claim_boundary": "These official sources are external evidence for the operating-model candidate. They do not override Oyatie authority, prove implementation, or authorize a roadmap. Revalidate the applicable sources before a material pipeline amendment.",
+        "sources": [
+          {
+            "source_id": "google-sre-release-engineering",
+            "url": "https://sre.google/sre-book/release-engineering/",
+            "scope": "reproducible hermetic builds, intentional release-process change, review, serial and parallel workflow steps, progressive rollout, rollback, and exact release identity",
+            "adoption": "Use lifecycle-wide reproducibility, explicit policy, graph-derived parallelism, and risk-shaped rollout without copying Google-specific tooling.",
+            "classification": "harvested-provenance",
+            "collection_status": "retrieved-before-qualified-legal-jcr-disposition",
+            "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
+            "evidence_eligible": false,
+            "automated_expansion_allowed": false,
+            "quarantine": {
+              "status": "harvested-provenance-not-admitted-evidence",
+              "preserved": true,
+              "evidence_eligible": false,
+              "automated_expansion_allowed": false,
+              "claim_allowed": false,
+              "legal_jcr_disposition": "unresolved"
+            }
+          },
+          {
+            "source_id": "buck2-why",
+            "url": "https://buck2.build/docs/about/why/",
+            "scope": "queryable target graphs, remote-execution-first actions, multi-language composition, incremental actions, and one dynamic dependency graph that permits precise invalidation and cross-phase parallelism",
+            "adoption": "Keep Buck2 as the current declared build-graph substrate and derive impact and parallel execution from explicit graph facts; do not treat any runner command or cache hit as independent admission authority.",
+            "classification": "harvested-provenance",
+            "collection_status": "retrieved-before-qualified-legal-jcr-disposition",
+            "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
+            "evidence_eligible": false,
+            "automated_expansion_allowed": false,
+            "quarantine": {
+              "status": "harvested-provenance-not-admitted-evidence",
+              "preserved": true,
+              "evidence_eligible": false,
+              "automated_expansion_allowed": false,
+              "claim_allowed": false,
+              "legal_jcr_disposition": "unresolved"
+            }
+          },
+          {
+            "source_id": "google-sre-canarying-releases",
+            "url": "https://sre.google/workbook/canarying-releases/",
+            "scope": "small changes, automated build/test/deploy, canary-control comparison, SLO and error-budget decisions, measurement, and rollback",
+            "adoption": "Separate merge evidence from runtime exposure and expand only through predeclared measurements, stop conditions, and retained results.",
+            "classification": "harvested-provenance",
+            "collection_status": "retrieved-before-qualified-legal-jcr-disposition",
+            "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
+            "evidence_eligible": false,
+            "automated_expansion_allowed": false,
+            "quarantine": {
+              "status": "harvested-provenance-not-admitted-evidence",
+              "preserved": true,
+              "evidence_eligible": false,
+              "automated_expansion_allowed": false,
+              "claim_allowed": false,
+              "legal_jcr_disposition": "unresolved"
+            }
+          },
+          {
+            "source_id": "slsa-v1-2",
+            "url": "https://slsa.dev/spec/v1.2/requirements",
+            "scope": "approved source and build tracks, provenance production, distribution, verification, and platform assessment",
+            "adoption": "Bind source and artifact identities to verifiable provenance; treat SLSA level claims as separately evidenced rather than implied.",
+            "classification": "harvested-provenance",
+            "collection_status": "retrieved-before-qualified-legal-jcr-disposition",
+            "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
+            "evidence_eligible": false,
+            "automated_expansion_allowed": false,
+            "quarantine": {
+              "status": "harvested-provenance-not-admitted-evidence",
+              "preserved": true,
+              "evidence_eligible": false,
+              "automated_expansion_allowed": false,
+              "claim_allowed": false,
+              "legal_jcr_disposition": "unresolved"
+            }
+          },
+          {
+            "source_id": "github-artifact-attestations",
+            "url": "https://docs.github.com/en/actions/how-tos/secure-your-work/use-artifact-attestations/use-artifact-attestations",
+            "scope": "build and SBOM attestations bound to artifact subjects and digests, permission-scoped issuance, storage, and later verification",
+            "adoption": "Use attestations only as one substrate-specific provenance carrier behind Oyatie's provider-neutral evidence contract; require independent verification and never infer readiness from attestation presence alone.",
+            "classification": "harvested-provenance",
+            "collection_status": "retrieved-before-qualified-legal-jcr-disposition",
+            "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
+            "evidence_eligible": false,
+            "automated_expansion_allowed": false,
+            "quarantine": {
+              "status": "harvested-provenance-not-admitted-evidence",
+              "preserved": true,
+              "evidence_eligible": false,
+              "automated_expansion_allowed": false,
+              "claim_allowed": false,
+              "legal_jcr_disposition": "unresolved"
+            }
+          },
+          {
+            "source_id": "github-actions-secure-use",
+            "url": "https://docs.github.com/en/actions/reference/security/secure-use",
+            "scope": "least-privilege workflow credentials, untrusted pull-request data, third-party action risk, secret exposure, and automation-created or automation-approved pull-request risk",
+            "adoption": "Keep candidate code and workflow artifacts untrusted, minimize token scope, isolate privileged evaluation, and prevent automation from creating its own independent approval or bypass path.",
+            "classification": "harvested-provenance",
+            "collection_status": "retrieved-before-qualified-legal-jcr-disposition",
+            "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
+            "evidence_eligible": false,
+            "automated_expansion_allowed": false,
+            "quarantine": {
+              "status": "harvested-provenance-not-admitted-evidence",
+              "preserved": true,
+              "evidence_eligible": false,
+              "automated_expansion_allowed": false,
+              "claim_allowed": false,
+              "legal_jcr_disposition": "unresolved"
+            }
+          },
+          {
+            "source_id": "nist-ssdf-1-1",
+            "url": "https://csrc.nist.gov/pubs/sp/800/218/final",
+            "scope": "secure-development practices integrated into each SDLC, vulnerability reduction, impact mitigation, root-cause prevention, and supplier communication",
+            "adoption": "Integrate security across the work graph and learning loop instead of attaching a scanner-only terminal step.",
+            "classification": "harvested-provenance",
+            "collection_status": "retrieved-before-qualified-legal-jcr-disposition",
+            "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
+            "evidence_eligible": false,
+            "automated_expansion_allowed": false,
+            "quarantine": {
+              "status": "harvested-provenance-not-admitted-evidence",
+              "preserved": true,
+              "evidence_eligible": false,
+              "automated_expansion_allowed": false,
+              "claim_allowed": false,
+              "legal_jcr_disposition": "unresolved"
+            }
+          },
+          {
+            "source_id": "open-policy-agent-cicd",
+            "url": "https://www.openpolicyagent.org/docs/cicd",
+            "scope": "policy-as-code for repository, configuration, supply-chain, coverage, test-selection, and job-dependency checks",
+            "adoption": "Keep policy decisions versioned and testable while preserving Oyatie's owned engine, trusted-control, and no-tool-as-authority boundaries.",
+            "classification": "harvested-provenance",
+            "collection_status": "retrieved-before-qualified-legal-jcr-disposition",
+            "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
+            "evidence_eligible": false,
+            "automated_expansion_allowed": false,
+            "quarantine": {
+              "status": "harvested-provenance-not-admitted-evidence",
+              "preserved": true,
+              "evidence_eligible": false,
+              "automated_expansion_allowed": false,
+              "claim_allowed": false,
+              "legal_jcr_disposition": "unresolved"
+            }
+          },
+          {
+            "source_id": "kubernetes-validating-admission-policy",
+            "url": "https://kubernetes.io/docs/reference/access-authn-authz/validating-admission-policy/",
+            "scope": "declarative in-process admission policy, bindings, validation actions, audit and warning modes, match conditions, and failure policy",
+            "adoption": "Use staged policy evaluation and explicit failure behavior as a reference pattern; do not equate cluster admission with repository or legal authority.",
+            "classification": "harvested-provenance",
+            "collection_status": "retrieved-before-qualified-legal-jcr-disposition",
+            "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
+            "evidence_eligible": false,
+            "automated_expansion_allowed": false,
+            "quarantine": {
+              "status": "harvested-provenance-not-admitted-evidence",
+              "preserved": true,
+              "evidence_eligible": false,
+              "automated_expansion_allowed": false,
+              "claim_allowed": false,
+              "legal_jcr_disposition": "unresolved"
+            }
+          },
+          {
+            "source_id": "argo-rollouts-analysis",
+            "url": "https://argo-rollouts.readthedocs.io/en/stable/features/analysis/",
+            "scope": "background and inline analysis, success and failure conditions, retention, inconclusive outcomes, experiments, pause, and abort",
+            "adoption": "Model runtime promotion as typed progressive exposure with explicit success, failure, inconclusive, pause, abort, and retention semantics.",
+            "classification": "harvested-provenance",
+            "collection_status": "retrieved-before-qualified-legal-jcr-disposition",
+            "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
+            "evidence_eligible": false,
+            "automated_expansion_allowed": false,
+            "quarantine": {
+              "status": "harvested-provenance-not-admitted-evidence",
+              "preserved": true,
+              "evidence_eligible": false,
+              "automated_expansion_allowed": false,
+              "claim_allowed": false,
+              "legal_jcr_disposition": "unresolved"
+            }
+          },
+          {
+            "source_id": "palantir-apollo-helm-rollouts",
+            "url": "https://www.palantir.com/docs/apollo/core/helm-rollouts",
+            "scope": "managed rollout readiness, failure-triggered rollback, no-wait iteration modes, scoped readiness timeouts, and image pre-pulling",
+            "adoption": "Use Apollo only as a minimum comparative baseline for explicit readiness, timeout, and rollback semantics; Oyatie must remain provider-neutral, evidence-typed, policy-governed, and measurably better on matched journeys rather than copying Apollo's product or manifest shape.",
+            "classification": "harvested-provenance",
+            "collection_status": "retrieved-before-qualified-legal-jcr-disposition",
+            "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
+            "evidence_eligible": false,
+            "automated_expansion_allowed": false,
+            "quarantine": {
+              "status": "harvested-provenance-not-admitted-evidence",
+              "preserved": true,
+              "evidence_eligible": false,
+              "automated_expansion_allowed": false,
+              "claim_allowed": false,
+              "legal_jcr_disposition": "unresolved"
+            }
+          },
+          {
+            "source_id": "palantir-foundry-building-pipelines",
+            "url": "https://www.palantir.com/docs/foundry/building-pipelines/overview",
+            "scope": "data-quality foundations, governed project structure, batch, incremental, and streaming pipeline choices, unit tests, branching, release, scheduling, and health checks",
+            "adoption": "Use as a minimum baseline for lifecycle-complete data-pipeline hygiene; Oyatie extends the graph through authority, policy, evidence, decisions, actions, recourse, runtime exposure, and realized outcomes rather than copying Foundry project or product structure.",
+            "classification": "harvested-provenance",
+            "collection_status": "retrieved-before-qualified-legal-jcr-disposition",
+            "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
+            "evidence_eligible": false,
+            "automated_expansion_allowed": false,
+            "quarantine": {
+              "status": "harvested-provenance-not-admitted-evidence",
+              "preserved": true,
+              "evidence_eligible": false,
+              "automated_expansion_allowed": false,
+              "claim_allowed": false,
+              "legal_jcr_disposition": "unresolved"
+            }
+          },
+          {
+            "source_id": "palantir-foundry-pipeline-management",
+            "url": "https://www.palantir.com/docs/foundry/pipeline-builder/management-overview",
+            "scope": "reusable parameters and custom functions, large-graph grouping, job and compute-profile grouping, checkpoints, selective visibility, and sampled previews",
+            "adoption": "Use as a minimum usability and compute-efficiency baseline while requiring one typed IR, semantic-preserving multiple views, full-population admission evidence, graph-derived concurrency, explicit authority, and portable non-vendor execution.",
+            "classification": "harvested-provenance",
+            "collection_status": "retrieved-before-qualified-legal-jcr-disposition",
+            "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
+            "evidence_eligible": false,
+            "automated_expansion_allowed": false,
+            "quarantine": {
+              "status": "harvested-provenance-not-admitted-evidence",
+              "preserved": true,
+              "evidence_eligible": false,
+              "automated_expansion_allowed": false,
+              "claim_allowed": false,
+              "legal_jcr_disposition": "unresolved"
+            }
+          },
+          {
+            "source_id": "palantir-foundry-data-lineage",
+            "url": "https://www.palantir.com/docs/foundry/data-lineage/overview",
+            "scope": "interactive discovery of datasets, ancestors and descendants, schema, build freshness, producing code, shared snapshots, and lineage visualization",
+            "adoption": "Use data lineage as a minimum visibility baseline; Oyatie requires continuous source-to-observation-to-decision-to-authorized-action-to-outcome lineage with corrections, uncertainty, authority, custody, privacy, and recourse preserved.",
+            "classification": "harvested-provenance",
+            "collection_status": "retrieved-before-qualified-legal-jcr-disposition",
+            "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
+            "evidence_eligible": false,
+            "automated_expansion_allowed": false,
+            "quarantine": {
+              "status": "harvested-provenance-not-admitted-evidence",
+              "preserved": true,
+              "evidence_eligible": false,
+              "automated_expansion_allowed": false,
+              "claim_allowed": false,
+              "legal_jcr_disposition": "unresolved"
+            }
+          },
+          {
+            "source_id": "palantir-foundry-data-health",
+            "url": "https://www.palantir.com/docs/foundry/observability/data-health",
+            "scope": "scope-aware monitoring views, fine-grained resource health checks, dynamic coverage as resources change, alerting, and integration with operational response systems",
+            "adoption": "Use as a minimum resource-health baseline while requiring typed ownership, affected populations, outcome health, evidence freshness, noise budgets, diagnosis and recovery receipts, and fail-closed readiness for unowned or unmonitored material resources.",
+            "classification": "harvested-provenance",
+            "collection_status": "retrieved-before-qualified-legal-jcr-disposition",
+            "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
+            "evidence_eligible": false,
+            "automated_expansion_allowed": false,
+            "quarantine": {
+              "status": "harvested-provenance-not-admitted-evidence",
+              "preserved": true,
+              "evidence_eligible": false,
+              "automated_expansion_allowed": false,
+              "claim_allowed": false,
+              "legal_jcr_disposition": "unresolved"
+            }
+          },
+          {
+            "source_id": "palantir-foundry-aip-evals",
+            "url": "https://www.palantir.com/docs/foundry/aip-evals/overview",
+            "scope": "evaluation suites, target and evaluation functions, test cases, per-case and aggregate metrics, version comparison, model comparison, and variance across repeated runs",
+            "adoption": "Use as a minimum nondeterministic-evaluation baseline while preserving exact populations, disaggregated affected-party outcomes, refusal and recourse cases, evaluator disagreement, drift, draft-only model outputs, and a strict separation between evaluation evidence and authority.",
+            "classification": "harvested-provenance",
+            "collection_status": "retrieved-before-qualified-legal-jcr-disposition",
+            "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
+            "evidence_eligible": false,
+            "automated_expansion_allowed": false,
+            "quarantine": {
+              "status": "harvested-provenance-not-admitted-evidence",
+              "preserved": true,
+              "evidence_eligible": false,
+              "automated_expansion_allowed": false,
+              "claim_allowed": false,
+              "legal_jcr_disposition": "unresolved"
+            }
+          },
+          {
+            "source_id": "palantir-foundry-branching-release",
+            "url": "https://www.palantir.com/docs/foundry/building-pipelines/branching-release-process",
+            "scope": "conceptual product release units spanning multiple repositories and resources, protected production branches, development and feature branches, end-user verification, and retained collaboration evidence",
+            "adoption": "Use only as comparative release-process evidence; Oyatie retains one hyperscale monorepo, current plain-Git protected-PR admission, exact-head review, one required status, graph-derived impact, and independent runtime promotion rather than copying GitFlow or Foundry branch semantics.",
+            "classification": "harvested-provenance",
+            "collection_status": "retrieved-before-qualified-legal-jcr-disposition",
+            "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
+            "evidence_eligible": false,
+            "automated_expansion_allowed": false,
+            "quarantine": {
+              "status": "harvested-provenance-not-admitted-evidence",
+              "preserved": true,
+              "evidence_eligible": false,
+              "automated_expansion_allowed": false,
+              "claim_allowed": false,
+              "legal_jcr_disposition": "unresolved"
+            }
+          },
+          {
+            "source_id": "google-sre-postmortem-culture",
+            "url": "https://sre.google/sre-book/postmortem-culture/",
+            "scope": "learning from failure through blameless analysis and tracked preventive actions",
+            "adoption": "Require attributable preventive actions and later effectiveness checks without using incident learning as personal performance scoring.",
+            "classification": "harvested-provenance",
+            "collection_status": "retrieved-before-qualified-legal-jcr-disposition",
+            "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
+            "evidence_eligible": false,
+            "automated_expansion_allowed": false,
+            "quarantine": {
+              "status": "harvested-provenance-not-admitted-evidence",
+              "preserved": true,
+              "evidence_eligible": false,
+              "automated_expansion_allowed": false,
+              "claim_allowed": false,
+              "legal_jcr_disposition": "unresolved"
+            }
+          },
+          {
+            "source_id": "nist-ai-risk-management-framework",
+            "url": "https://www.nist.gov/itl/ai-risk-management-framework",
+            "scope": "voluntary, rights-preserving governance, mapping, measurement, and management of AI risk",
+            "adoption": "Keep agent and model outputs advisory evidence unless a versioned safety and authority contract promotes the exact use.",
+            "classification": "harvested-provenance",
+            "collection_status": "retrieved-before-qualified-legal-jcr-disposition",
+            "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
+            "evidence_eligible": false,
+            "automated_expansion_allowed": false,
+            "quarantine": {
+              "status": "harvested-provenance-not-admitted-evidence",
+              "preserved": true,
+              "evidence_eligible": false,
+              "automated_expansion_allowed": false,
+              "claim_allowed": false,
+              "legal_jcr_disposition": "unresolved"
+            }
+          },
+          {
+            "source_id": "github-merge-queue",
+            "url": "https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-a-merge-queue",
+            "scope": "queued pull-request retesting against the latest target branch and branch-protection compatibility",
+            "adoption": "Use only as comparative evidence for integration-candidate freshness; it does not claim a live Oyatie merge queue or replace ADR-0515 protected admission.",
+            "classification": "harvested-provenance",
+            "collection_status": "retrieved-before-qualified-legal-jcr-disposition",
+            "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
+            "evidence_eligible": false,
+            "automated_expansion_allowed": false,
+            "quarantine": {
+              "status": "harvested-provenance-not-admitted-evidence",
+              "preserved": true,
+              "evidence_eligible": false,
+              "automated_expansion_allowed": false,
+              "claim_allowed": false,
+              "legal_jcr_disposition": "unresolved"
+            }
+          }
+        ]
+      },
+      "productization_and_portability_rule": "Keep reusable engine and contract semantics separate from repository-specific policy packs, credentials, host adapters, and tenant configuration. Independently version and digest the engine, policy pack, schema, runner adapter, toolchain, and evidence format; declare compatibility and migration; reproduce the decision from a fresh checkout and immutable inputs; and require equivalence evidence before a runner or host cutover. Support hermetic local, CI, deployment, and development-environment execution from the same declared graph, and avoid making any vendor, UI, CLI, or hosted control plane the only way to reproduce a decision.",
+      "pipeline_migration_rule": "Every pipeline replacement declares old and new authorities, compatibility and data migration, dual-run or shadow comparison where safe, cutover and rollback conditions, consumer migration, observation window, and deletion criteria. After verified cutover, remove the retired mechanism and its readable authority surfaces rather than maintaining an ambiguous archive or permanent compatibility path.",
+      "self_modification_boundary": "Automation may propose, implement in isolation, test, replay, and recommend pipeline changes. It may not self-approve or silently modify required checks, policy or credential authority, evidence semantics, branch protection, bypass rules, rollback authority, legal or qualified-human gates, or this boundary. Such changes require independent exact-candidate review, versioned authority, dual evaluation under the prior and proposed policies, staged exposure, and a tested recovery path."
+    }
+  },
+  "durable_goal": {
+    "north_star": "Enable people and organizations to describe, understand, coordinate, simulate, and safely improve real-world activity without writing code, while Oyatie continuously preserves the authorized context, evidence, history, policy, and responsibility required to turn intent into trustworthy outcomes.",
+    "outcome": "Difficult, tedious, fragmented work that currently requires teams of analysts, operators, integrators, administrators, and coordinators becomes a governed, explainable, continuously updated operational capability available to the person who needs it at the moment of decision.",
+    "quality_bar": "The system must be more intuitive, more continuous, more interoperable, more explainable, and safer to act through than the relevant alternatives under matched user journeys and conditions. No superiority claim is valid without a bounded comparator population and independent measurements.",
+    "scope": "Business-to-consumer and machine-to-human continuity across cloud, developer, enterprise, and consumer domains, including the data, workflow, policy, identity, communication, analytics, automation, and recourse needed for end-to-end outcomes.",
+    "time_horizon": "indefinite product direction; versioned as understanding and qualified evidence improve"
+  },
+  "game_engine_product_model": {
+    "status": "founder-intent-only; non-binding until independently reviewed and ratified",
+    "purpose": "Use game-engine concepts as a product-design mental model for a governed operational world, not as a claim that Oyatie is a game, a chosen implementation architecture, or a roadmap dispatch.",
+    "world_contract": [
+      "Model a revisioned world/state through stable entities, composable components and traits, explicit systems, and durable events.",
+      "Represent business, effective, processing, and simulation time explicitly; preserve their distinctions rather than deriving one silently from another.",
+      "Support deterministic preview and replay from declared inputs, versions, policies, and schedules, with uncertainty, external nondeterminism, and claim limits visible.",
+      "Treat scenes and views as contextual projections of governed state, and support a visual world editor that authors canonical representations rather than a separate opaque visual truth.",
+      "Support multi-user and tenant-scoped worlds, policy gates, save/load/audit, compensation and rollback where technically possible, and dependency-aware scheduling."
+    ],
+    "type_contract": {
+      "rule": "Types are first-class tenant, pack, or platform definitions, not a closed vendor enum or code-only implementation detail.",
+      "requirements": [
+        "extensible, customizable, configurable, and no-code capable",
+        "composed from stable definitions, components, traits, templates, defaults, and constraints rather than closed vendor enums",
+        "versioned and content-addressed with provenance",
+        "visually authored to canonical IR with round-trip traceability",
+        "policy-bound and compatibility-classified",
+        "previewable before application",
+        "reversibly migratable, or explicitly approved with a stated irreversible boundary, affected population, recourse, and rollback or compensation limit"
+      ],
+      "future_accepted_successor_requirements": [
+        "Stable logical EntityId and TypeId remain distinct from immutable revision digests; external aliases and merge, split, and rekey history remain explicit.",
+        "Component applicability, cardinality, precedence, conflict handling, and cycle detection are declared and fail closed when incomplete or conflicting.",
+        "Commands, decisions, events, observations, corrections, projections, and effects remain explicit distinct kinds rather than one overloaded record.",
+        "Preview is isolated from live effects and declares its clock, randomness, external I/O, uncertainty, and non-effect boundary.",
+        "Projections are rebuildable and non-authoritative; visual writes compile to canonical IR and declare round-trip loss.",
+        "Defaults retain provenance, templates create candidates rather than authority, and constraint conflicts fail closed.",
+        "Compatibility is classified independently across producer, consumer, stored-data, UI, policy, and authority boundaries.",
+        "Migrations freeze the affected population and require coexistence, dry-run, checkpoints, partial-failure recovery, refusal, and verification.",
+        "Unknown extensions are preserved where possible and every semantic loss is explicitly disclosed.",
+        "These are future Accepted-successor requirements only; they select no implementation, architecture, data model, framework, or roadmap."
+      ]
+    },
+    "hard_limits": [
+      "Legal authority is established by qualified principals and applicable law, never by a world-state transition.",
+      "Privacy, consent, purpose limitation, retention, residency, and deletion constraints bind the world model and cannot be reduced to state.",
+      "Accounting requires independently governed records, controls, reconciliation, and accountable sign-off; simulation or replay does not establish a financial fact.",
+      "Distributed consistency limits, partial failure, and external concurrency require explicit semantics; a deterministic local replay does not prove global consistency.",
+      "Irreversible external effects require separately established authority, policy, confirmation, and recourse; they are not made reversible by representation.",
+      "Human accountability, affected-party rights, explanation, approval, appeal, remedy, and legal recourse remain human and institutional obligations, not game mechanics."
+    ],
+    "non_claims": [
+      "No game-engine framework, ECS implementation, rendering stack, data model, or roadmap is selected by this intent.",
+      "No implementation, migration, dispatch, production-readiness, determinism, or reversibility claim is made by this intent."
+    ],
+    "governance_type_system_boundary": {
+      "vocabulary_status": "future-extension-vocabulary-only",
+      "current_authority": "current-accepted-governance-knowledge-graph-type-system",
+      "prohibited_effects": [
+        "replace",
+        "amend",
+        "rename",
+        "reinterpret"
+      ],
+      "successor_requirement": "separately-accepted-immutable-successor",
+      "implementation_selected": false,
+      "roadmap_authorized": false
+    }
+  },
+  "stage1_entry_requirements": {
+    "authority_status": "non-dispatching founder requirement vocabulary; no control is satisfied or assigned an owner by this artifact",
+    "namespace_rule": "These identifiers name product-intent entry requirements only. They are not masterplan work-item IDs, do not amend specs/masterplan.json, and become binding only through a separately reviewed closure contract admitted under current authority.",
+    "objective": "Complete Oyatie's mechanism-neutral Stage-1 evidence and authority closure before roadmap planning while preserving HOLD(Planning) and preventing implementation-roadmap dispatch.",
+    "receipt_contract": {
+      "required_fields": [
+        "control_id",
+        "candidate_commit",
+        "candidate_digest",
+        "corpus_scope_digest",
+        "evidence_ids",
+        "evidence_digests",
+        "qualified_owner_principal",
+        "independent_reviewer_principal",
+        "decision",
+        "recorded_at",
+        "valid_until_or_invalidation_events",
+        "claim_ceiling",
+        "signature_or_protected_receipt",
+        "reproduction_command_or_method"
+      ],
+      "allowed_decisions": [
+        "satisfied",
+        "unsatisfied",
+        "unknown",
+        "expired",
+        "superseded"
+      ],
+      "binding_rule": "A satisfied decision is valid only when every required field is present, every referenced digest reproduces, the owner and reviewer are qualified and independent under an already-ratified policy, and no invalidation event has occurred.",
+      "fail_closed_rule": "Missing, malformed, unverifiable, stale, self-appointed, author-only, group-only, or context-dependent evidence yields unknown or unsatisfied; it never yields satisfied.",
+      "aggregation_rule": "Planning entry is the conjunction of all fifteen independently satisfied controls at one frozen candidate digest. A summary, group status, majority, or inferred pass cannot substitute for an atomic receipt."
+    },
+    "controls": [
+      {
+        "id": "adr_chronology",
+        "acceptance": "Every controlling decision has a corpus-qualified identity, coherent lifecycle and supersession edges, an explicit disposition, and no unresolved Accepted-authority conflict for the frozen candidate.",
+        "required_evidence": "complete decision census, lifecycle graph, conflict ledger, source-path manifest, immutable successor receipts, and independently reproduced digests",
+        "freshness": "invalidated by any governed decision-corpus, lifecycle, identity, or candidate-digest change",
+        "qualified_owner_status": "unresolved",
+        "depends_on": []
+      },
+      {
+        "id": "decision_parser_ir",
+        "acceptance": "One fail-closed parser with explicit grammar, source spans, vector lifecycle fields, corpus-qualified identities, canonical IR, and deterministic projections parses the complete governed corpus without silent truncation or identity collision.",
+        "required_evidence": "regression corpus, parser and IR versions, parse census, mutation tests, projection parity, and exact source/output digests",
+        "freshness": "invalidated by parser, grammar, IR, projection producer, governed corpus, or candidate-digest change",
+        "qualified_owner_status": "unresolved",
+        "depends_on": [
+          "adr_chronology"
+        ]
+      },
+      {
+        "id": "corpus_archive_freshness",
+        "acceptance": "The complete active authority corpus is enumerated, current projections reproduce, superseded authority is absent from every readable path, and provenance exists only in Git history where history-only retirement applies.",
+        "required_evidence": "tracked-path census, fingerprint and token sweep, archive-resurrection regressions, producer freshness receipts, symlink checks, and Git object receipts",
+        "freshness": "maximum age 24 hours and invalidated by any tracked-path, generated-face policy, corpus, or candidate-digest change",
+        "qualified_owner_status": "unresolved",
+        "depends_on": [
+          "decision_parser_ir"
+        ]
+      },
+      {
+        "id": "decision_population",
+        "acceptance": "Every decision, participant role, journey class, authority holder, dependency, exception, and unresolved question in scope belongs to a frozen denominator with no silent exclusions.",
+        "required_evidence": "population definition, inclusion and exclusion rules, completeness tests, orphan report, denominator digest, and independent census review",
+        "freshness": "invalidated by population, scope, corpus, scenario, or candidate-digest change",
+        "qualified_owner_status": "unresolved",
+        "depends_on": [
+          "corpus_archive_freshness"
+        ]
+      },
+      {
+        "id": "legal_jcr",
+        "acceptance": "A qualified legal or JCR authority has issued a scope-specific written disposition for every external source, benchmark use, data handling, and proposed evidence-retention action.",
+        "required_evidence": "qualified principal identity, exact terms and source digests, use scope, restrictions, decision, effective time, expiry or review triggers, and protected receipt",
+        "freshness": "invalidated by terms, source, jurisdiction, intended use, retention, distribution, or candidate-digest change",
+        "qualified_owner_status": "unresolved; this artifact makes no legal conclusion",
+        "depends_on": [
+          "adr_chronology",
+          "decision_parser_ir",
+          "corpus_archive_freshness"
+        ]
+      },
+      {
+        "id": "comparator",
+        "acceptance": "Outcome-based comparisons cover the frozen scenario population across all continuity domains without copying a comparator taxonomy, feature list, implementation, or product shape.",
+        "required_evidence": "source inventory, retrieval timestamps, content digests, observed-inferred-unknown labels, matched conditions, measures, limitations, evaluator independence, and claim ledger",
+        "freshness": "maximum age 30 days and invalidated by source, comparator version, scenario, measure, legal scope, or candidate-digest change",
+        "qualified_owner_status": "unresolved",
+        "depends_on": [
+          "legal_jcr"
+        ]
+      },
+      {
+        "id": "affected_party",
+        "acceptance": "Affected parties and vulnerable populations are represented across routine, denied, erroneous, hostile, appealed, and recovery journeys, with independently reviewed notice, consent, privacy, fairness, accommodation, and recourse outcomes.",
+        "required_evidence": "frozen affected-party population, accessible research protocol, dissent, harms and benefits ledger, mitigations, unresolved objections, and signed review receipts",
+        "freshness": "maximum age 30 days and invalidated by scenario, population, policy, risk, or candidate-digest change",
+        "qualified_owner_status": "unresolved",
+        "depends_on": [
+          "comparator"
+        ]
+      },
+      {
+        "id": "operations",
+        "acceptance": "Qualified operators can observe, contain, recover, roll back, reconcile, and support the frozen journeys under normal, degraded, disconnected, emergency, and hostile conditions without hidden manual authority.",
+        "required_evidence": "operating model, ownership and escalation, SLO and budget assumptions, runbooks, failure exercises, observability receipts, rollback and reconciliation proof, and operator sign-off",
+        "freshness": "invalidated by operating model, dependency, deployment, pilot, runbook, risk, or candidate-digest change",
+        "qualified_owner_status": "unresolved",
+        "depends_on": [
+          "affected_party"
+        ]
+      },
+      {
+        "id": "custody",
+        "acceptance": "Every authority-bearing identity, credential, key, token, consent, delegation, and evidence store has qualified custody, immutable principal binding, least privilege, rotation, revocation, recovery, and separation of duties.",
+        "required_evidence": "principal and custodian IDs, custody policy digest, ceremony or issuance receipt, access graph, rotation and revocation test, compromise recovery, and independent readback",
+        "freshness": "invalidated immediately by principal, custodian, credential, key, policy, access, rotation, revocation, incident, or candidate-digest change",
+        "qualified_owner_status": "unresolved",
+        "depends_on": [
+          "operations"
+        ]
+      },
+      {
+        "id": "veto",
+        "acceptance": "Named qualified principals can stop unsafe planning admission or downstream action through an independently exercised, observable, durable, and non-retaliatory veto path.",
+        "required_evidence": "ratified veto policy, immutable principal IDs, scope and conflict rules, exercise and appeal simulation, audit receipt, and recovery from a vetoed candidate",
+        "freshness": "invalidated by policy, principal, scope, escalation, appeal, exercise result, or candidate-digest change",
+        "qualified_owner_status": "unresolved",
+        "depends_on": [
+          "custody"
+        ]
+      },
+      {
+        "id": "pilot",
+        "acceptance": "A bounded, ethically and legally cleared pilot over a frozen participant and scenario population demonstrates safe value, failure handling, recourse, operator readiness, reversibility, and measurable outcomes without using the pilot to infer universal coverage.",
+        "required_evidence": "pilot protocol, approvals, participant and exclusion denominator, baselines, measures, incident and harms log, rollback, outcomes, dissent, and independent evaluation",
+        "freshness": "maximum age 90 days and invalidated by material product, scenario, population, policy, operating, legal, safety, or candidate-digest change",
+        "qualified_owner_status": "unresolved",
+        "depends_on": [
+          "veto"
+        ]
+      },
+      {
+        "id": "immutable_successor",
+        "acceptance": "A protected, content-addressed successor explicitly reconciles every controlling predecessor, changed outcome, removed outcome, open question, authority boundary, and dispatch prohibition under current ratified decision rights.",
+        "required_evidence": "predecessor and successor digests, disposition matrix, qualified ratifications, protected admission receipt, rollback or supersession rule, and reproducible history",
+        "freshness": "invalidated by successor bytes, predecessor set, ratification, authority policy, protected admission, or candidate-digest change",
+        "qualified_owner_status": "unresolved",
+        "depends_on": [
+          "pilot"
+        ]
+      },
+      {
+        "id": "council_16_lens",
+        "acceptance": "A separately ratified sixteen-lens definition and qualified reviewer population produce sixteen independent, exact-candidate verdict receipts with conflicts, abstentions, minority views, and unresolved findings preserved.",
+        "required_evidence": "immutable lens definition, qualification and independence policy, reviewer population, one receipt per lens, conflict and abstention ledger, synthesis rule, and exact-candidate digest",
+        "freshness": "invalidated by lens, reviewer, qualification, independence, finding, resolution, synthesis, or candidate-digest change",
+        "qualified_owner_status": "unresolved; this artifact does not define or appoint the council",
+        "depends_on": [
+          "immutable_successor"
+        ]
+      },
+      {
+        "id": "fresh_dissent",
+        "acceptance": "At least one qualified, independent reviewer who did not author the candidate and did not rely on prior conversational context conducts a post-freeze adversarial review whose disagreements remain visible and dispositioned without pressure to converge.",
+        "required_evidence": "fresh-context declaration, reviewer qualification and independence, frozen input digest, dissent report, response and disposition ledger, and signed verdict",
+        "freshness": "maximum age 7 days and invalidated by candidate, evidence set, reviewer conflict, dissent disposition, or control-state change",
+        "qualified_owner_status": "unresolved",
+        "depends_on": [
+          "council_16_lens"
+        ]
+      },
+      {
+        "id": "context_free_exit",
+        "acceptance": "A fresh qualified reviewer can start only from the canonical root pointers, reproduce the candidate, evidence graph, fifteen control states, unresolved issues, and terminal decision without this task, hidden context, or author interpretation.",
+        "required_evidence": "clean-room protocol, root entry points, environment and tool versions, reproduction transcript, digest readback, discrepancy ledger, and signed terminal verdict",
+        "freshness": "maximum age 7 days and invalidated by root pointer, corpus, toolchain, evidence, control state, candidate, or terminal-decision change",
+        "qualified_owner_status": "unresolved",
+        "depends_on": [
+          "fresh_dissent"
+        ]
+      }
+    ],
+    "engineering_rules": [
+      "Use fresh origin/dev isolated worktrees.",
+      "Begin behavior changes with a regression that fails for the intended reason.",
+      "Never hand-edit a *.generated.json face.",
+      "Use plain git, SSH-signed commits, protected pull requests against dev, exact-head review, the single oya-ci-required context, and exact post-merge receipts.",
+      "Do not invent legal, custody, operational, affected-party, veto, pilot, reviewer, council, dissent, exit, or founder authority.",
+      "Keep binding plan approval and implementation dispatch false until separately proven and ratified."
+    ],
+    "requested_terminal_outcomes": [
+      "a candidate PASS(Planning) backed by independently satisfied control receipts, with implementation dispatch still false until a roadmap is separately approved and with issuance authority defined only by a later ratified closure contract",
+      "truthful blocker packet identifying the exact irreducible qualified-human role, decision, authority, receipt, freshness requirement, and verification path"
+    ],
+    "terminal_authority_rule": "This founder-intent spec can request terminal outcomes but cannot issue them. PASS(Planning), if ever available, must be issued by a separately ratified immutable closure contract under current decision rights."
+  },
+  "advisory_16_lens_council": {
+    "status": "founder-directed advisory decision method; pending separate Stage-1 definition, qualification, independence, population, and ratification",
+    "use_rule": "Every material plan, migration, deletion, architecture amendment, feature, capability, or admission decision must be challenged through all sixteen lenses against one frozen candidate. Findings, abstentions, conflicts, assumptions, uncertainty, dissent, and dispositions remain visible.",
+    "decision_rule": "The method seeks a coherent synthesis, not a feature-count vote. A hard safety, authority, legal, evidence, custody, operability, or context-free blocker cannot be outvoted. Advisory agent findings can improve engineering decisions but cannot satisfy a gate that requires an independent qualified human or institution.",
+    "lenses": [
+      {
+        "id": "L01-product-outcomes-and-north-star",
+        "question": "Does the change improve named participant outcomes and the typed no-code operational-world-model north star without adding orphan capability?"
+      },
+      {
+        "id": "L02-intuitive-ux-accessibility-and-adoption",
+        "question": "Can intended users succeed with minimal training across accessibility, language, device, connectivity, novice, expert, and exception conditions?"
+      },
+      {
+        "id": "L03-ontology-data-time-and-epistemics",
+        "question": "Are identity, meaning, lineage, time, fact, inference, causality, forecast, decision, action, and outcome typed and kept distinct?"
+      },
+      {
+        "id": "L04-architecture-boundaries-and-monorepo",
+        "question": "Does the change strengthen capability ownership, dependency direction, the distinct execution-profile and substrate-topology boundaries, hyperscale monorepo coherence, and freedom from mega-services or junk drawers?"
+      },
+      {
+        "id": "L05-distributed-systems-reliability-and-resilience",
+        "question": "Are consistency, idempotency, ordering, failure domains, degradation, recovery, rollback, reconciliation, and multi-region or disconnected behavior explicit?"
+      },
+      {
+        "id": "L06-security-identity-trust-and-custody",
+        "question": "Are principals, credentials, authority, least privilege, isolation, custody, revocation, compromise recovery, and supply-chain trust fail-closed?"
+      },
+      {
+        "id": "L07-privacy-consent-and-data-governance",
+        "question": "Are purpose, minimization, consent, personal-work boundaries, retention, correction, deletion, residency, disclosure, and audit rights enforceable?"
+      },
+      {
+        "id": "L08-legal-regulatory-and-jcr",
+        "question": "Are jurisdiction, terms, licenses, regulatory duties, records, external-source use, and qualified legal or JCR decisions explicit rather than inferred?"
+      },
+      {
+        "id": "L09-affected-party-safety-fairness-and-recourse",
+        "question": "Are harms, vulnerable populations, notice, accommodation, fairness, human review, appeal, veto, compensation, and recovery represented by affected parties?"
+      },
+      {
+        "id": "L10-developer-experience-maintainability-and-quality",
+        "question": "Is the solution understandable, testable, observable, documented, boring where possible, dependency-minimal, regression-locked, and sustainable for future teams?"
+      },
+      {
+        "id": "L11-cloud-platform-tenancy-and-sovereignty",
+        "question": "Does the platform support strong tenancy, policy continuity, global and local operation, sovereignty, portability, capacity, and provider-grade lifecycle management?"
+      },
+      {
+        "id": "L12-economics-finops-and-business-sustainability",
+        "question": "Are unit economics, cost attribution, pricing, capacity, energy, operator burden, incentives, ecosystem viability, and long-term service sustainability visible?"
+      },
+      {
+        "id": "L13-ecosystem-integration-portability-and-supply-chain",
+        "question": "Can the capability interoperate through open versioned contracts, preserve end-to-end business-to-consumer lineage, avoid lock-in, and coexist during incremental adoption?"
+      },
+      {
+        "id": "L14-migration-deprecation-compatibility-and-change",
+        "question": "Are dependency order, parallel lanes, compatibility windows, data and authority migration, deletion criteria, rollback, supersession, and operator communication safe?"
+      },
+      {
+        "id": "L15-adversarial-abuse-failure-and-dissent",
+        "question": "How can the proposal be exploited, misunderstood, bypassed, corrupted, captured, or fail under hostile and crisis conditions, and what dissent remains unresolved?"
+      },
+      {
+        "id": "L16-evidence-measurement-comparator-and-reproducibility",
+        "question": "Are populations, baselines, measures, comparator sources, digests, freshness, uncertainty, claim ceilings, audit receipts, and context-free reproduction sufficient?"
+      }
+    ],
+    "stage1_nonclaim": "This taxonomy is the founder-directed advisory method for ongoing work. It is not the independently ratified and populated council_16_lens control receipt required for PASS(Planning)."
+  },
+  "product_model": {
+    "category_boundary": "Many real-world activities contain pipelines, workflows, and ingestion, but the universal model must also represent state machines, events, negotiations, commitments, policies, exceptions, uncertainty, human judgment, and reversible action. Boxes and arrows alone are insufficient.",
+    "operational_loop": [
+      "sense",
+      "ingest",
+      "normalize",
+      "resolve identity and meaning",
+      "link context and lineage",
+      "understand current state",
+      "detect change, anomaly, risk, and opportunity",
+      "simulate possible futures",
+      "recommend options with reasons and uncertainty",
+      "authorize or obtain approval",
+      "act through governed workflows",
+      "verify outcomes",
+      "learn without rewriting history"
+    ],
+    "continuity_domains": [
+      {
+        "id": "cloud",
+        "scope": "compute, network, storage, identity, security, deployment, cost, capacity, resilience, observability, and multi-environment operation"
+      },
+      {
+        "id": "developer",
+        "scope": "requirements, design, source, build, test, release, runtime operation, incidents, evidence, and safe software change"
+      },
+      {
+        "id": "enterprise",
+        "scope": "people, customers, suppliers, finance, contracts, procurement, inventory, production, logistics, service, compliance, communication, and decisions"
+      },
+      {
+        "id": "consumer",
+        "scope": "personal identity, money, subscriptions, purchases, reservations, calendar, travel, household coordination, communications, consent, alerts, and recourse"
+      }
+    ],
+    "architectural_classification_mapping": {
+      "execution_profiles": {
+        "status": "current vocabulary subject to Stage-1 ADR chronology closure; not promoted here as an Accepted canonical plane taxonomy",
+        "values": [
+          "control",
+          "data",
+          "analytics"
+        ]
+      },
+      "substrate_topology": {
+        "authority": "Accepted ADR-0280",
+        "faces": [
+          "E0",
+          "B0",
+          "C0",
+          "C1",
+          "C2",
+          "G",
+          "R"
+        ]
+      },
+      "capability_ownership": {
+        "authority": "Accepted ADR-0562 as resolved by Accepted ADR-0615",
+        "faces": [
+          "core",
+          "ports",
+          "adapters",
+          "facade"
+        ]
+      },
+      "rule": "Cloud, developer, enterprise, and consumer are product continuity domains. Execution profiles, substrate topology, and capability ownership are orthogonal classifications and must not be collapsed. Every admitted outcome must state the applicable responsibilities and boundaries in each classification."
+    },
+    "authority_status_map": [
+      {
+        "topic": "substrate topology and static stability",
+        "source": "ADR-0280",
+        "status": "Accepted",
+        "rule": "Use the E0, B0, C0, C1, C2, G, and R face-aware topology and keep cell runtime free of synchronous global-management dependency."
+      },
+      {
+        "topic": "capability ownership and monorepo faces",
+        "source": "ADR-0562 as resolved by ADR-0615",
+        "status": "Accepted",
+        "rule": "Use capability ownership with core, ports, adapters, and facade, preserve the multi-channel comms substrate, and apply capability moves one protected PR at a time."
+      },
+      {
+        "topic": "sovereign provider and regional-pack failure",
+        "source": "ADR-0240",
+        "status": "Accepted",
+        "rule": "Data classes forbidden from secondary-provider fallback remain unavailable and emit a lawful brownout rather than violating sovereignty."
+      },
+      {
+        "topic": "air-gapped operation",
+        "source": "ADR-0164",
+        "status": "Accepted",
+        "rule": "No-egress operation requires in-cell registry, secrets, audit, telemetry, policy-supporting dependencies, update preparation, and recovery boundaries."
+      },
+      {
+        "topic": "control, data, and analytics execution profiles",
+        "source": "ADR-0004",
+        "status": "Proposed",
+        "rule": "This vocabulary may classify candidates but cannot be represented as Accepted canonical plane authority unless chronology closure ratifies an immutable successor."
+      }
+    ],
+    "cross_domain_continuity": [
+      "identity",
+      "authority",
+      "policy",
+      "consent",
+      "data",
+      "semantic meaning",
+      "temporal history",
+      "causal and dependency lineage",
+      "contract and obligation lineage",
+      "financial lineage",
+      "workflow state",
+      "observability",
+      "evidence",
+      "explanation",
+      "recourse"
+    ],
+    "system_quality_invariants": [
+      "One coherent experience and semantic contract without requiring one deployment, database, mega-service, or trust domain.",
+      "Tenant, organization, household, personal, device, and public boundaries remain explicit; cross-boundary continuity uses governed references and selective disclosure.",
+      "Global scale must coexist with sovereignty, residency, localization, accessibility, intermittent connectivity, and local or air-gapped operation.",
+      "Availability and automation degrade gracefully: stale, partial, denied, disconnected, and emergency states are modeled outcomes rather than hidden failures.",
+      "Every material effect declares delivery semantics, ordering and concurrency boundaries, retry identity, reconciliation ownership, idempotency or explicit non-idempotency, observability, attribution, compensation limits, and failure-domain bounds.",
+      "Execute-then-verify is prohibited for irreversible or externally non-compensatable effects unless a separately approved exception binds tested compensation, reconciliation, and stop conditions.",
+      "Open, versioned interfaces and portable semantic exports prevent lock-in and allow coexistence with existing systems during incremental adoption.",
+      "Cost, latency, energy, capacity, retention, and operational burden are first-class constraints, not post-hoc optimization concerns.",
+      "The same typed contract supports no-code users, expert operators, developers, and autonomous agents without giving any interface implicit authority.",
+      "Communications, mail, messaging, notifications, and collaboration are governed interaction modes over shared typed context, not permanent end-user product silos; Accepted ADR-0615's multi-channel comms substrate and capability boundary remain intact, and any package or repository migration remains separate ADR and roadmap work.",
+      "Schemas, policies, journeys, models, and automations evolve through explicit versions, compatibility rules, replay, migration, and rollback.",
+      "Security, privacy, safety, fairness, and recourse are product behavior and measurable outcomes, not documentation-only requirements."
+    ],
+    "portability_and_ecosystem_acceptance": [
+      "import and export round-trip preserves supported semantics, identities, versions, lineage, policy references, evidence bindings, and declared loss",
+      "open conformance suites validate contract shape, behavior, error semantics, and integrity proofs without privileged internal knowledge",
+      "version negotiation and schema evolution declare compatibility, deprecation, migration, rollback, and refusal behavior",
+      "selective disclosure and provenance qualify unverifiable or conflicting external claims rather than promoting them to fact",
+      "revocation and compromise handling propagates across provider, dependency, tenant, and customer boundaries",
+      "successful ecosystem exit is measured by portable artifacts, data, configuration, evidence, obligations, and successor continuity"
+    ],
+    "semantic_strata": [
+      {
+        "id": "descriptive",
+        "covers": "principals, entities, resources, relations, observations, events, typed state, context, and evidence"
+      },
+      {
+        "id": "temporal",
+        "covers": "occurred, observed, recorded, and effective time; valid intervals; correction; supersession; ordering; and freshness"
+      },
+      {
+        "id": "normative",
+        "covers": "policy, contract, authority, delegation, consent, obligation, prohibition, jurisdiction, rights, and recourse"
+      },
+      {
+        "id": "intentional",
+        "covers": "goals, requests, commitments, work, decisions, beneficiaries, and affected parties"
+      },
+      {
+        "id": "operative_and_epistemic",
+        "covers": "actions, effects, workflows, handoffs, exceptions, compensation, inference, causality, forecasts, scenarios, optimization proposals, and outcomes"
+      }
+    ],
+    "universal_primitives": [
+      {
+        "id": "actor",
+        "covers": [
+          "person",
+          "team",
+          "organization",
+          "service",
+          "device",
+          "agent"
+        ]
+      },
+      {
+        "id": "thing",
+        "covers": [
+          "product",
+          "material",
+          "asset",
+          "document",
+          "message",
+          "data",
+          "resource"
+        ]
+      },
+      {
+        "id": "relationship",
+        "covers": [
+          "ownership",
+          "membership",
+          "dependency",
+          "supply",
+          "coverage",
+          "representation"
+        ]
+      },
+      {
+        "id": "event_and_state",
+        "covers": [
+          "observation",
+          "change",
+          "milestone",
+          "current state",
+          "transition",
+          "exception"
+        ]
+      },
+      {
+        "id": "intent_and_commitment",
+        "covers": [
+          "goal",
+          "request",
+          "task",
+          "promise",
+          "contract",
+          "obligation",
+          "service level"
+        ]
+      },
+      {
+        "id": "flow_and_decision",
+        "covers": [
+          "pipeline",
+          "workflow",
+          "case",
+          "state machine",
+          "approval",
+          "negotiation",
+          "human judgment"
+        ]
+      },
+      {
+        "id": "policy_and_authority",
+        "covers": [
+          "permission",
+          "prohibition",
+          "consent",
+          "delegation",
+          "veto",
+          "purpose limitation",
+          "jurisdiction",
+          "recourse"
+        ]
+      },
+      {
+        "id": "measure_and_intelligence",
+        "covers": [
+          "metric",
+          "threshold",
+          "anomaly",
+          "forecast",
+          "scenario",
+          "constraint",
+          "optimization",
+          "confidence"
+        ]
+      },
+      {
+        "id": "evidence_and_action",
+        "covers": [
+          "source",
+          "lineage",
+          "explanation",
+          "recommendation",
+          "authorization",
+          "execution",
+          "verification",
+          "rollback"
+        ]
+      }
+    ]
+  },
+  "temporal_and_epistemic_contract": {
+    "time_states": [
+      {
+        "id": "past",
+        "rule": "Preserve versioned integrity and lineage for observations, transactions, decisions, contracts, corrections, and outcomes without assuming that source content must be retained forever. Corrections append or supersede with provenance. Lawful deletion may redact, irreversibly minimize, or cryptographically erase erasable content while retaining only the minimum lawful correction or deletion event and non-reconstructive digest; scoped, time-bounded legal holds are explicit exceptions."
+      },
+      {
+        "id": "present",
+        "rule": "Compute current state from explicit source versions and freshness. Show stale, partial, conflicting, late, or unavailable inputs rather than presenting them as current truth."
+      },
+      {
+        "id": "future",
+        "rule": "Keep forecasts, plans, scenarios, simulations, commitments, and optimization proposals distinguishable from observed facts. Every future view states assumptions, confidence, horizon, and invalidation conditions."
+      }
+    ],
+    "knowledge_classes": [
+      "source_assertion",
+      "reported_claim",
+      "computed_state",
+      "inferred_relationship",
+      "anomaly_signal",
+      "causal_hypothesis",
+      "causal_claim",
+      "forecast",
+      "scenario",
+      "recommendation",
+      "optimization_proposal",
+      "decision",
+      "authorized_action",
+      "verified_outcome"
+    ],
+    "typed_artifacts": [
+      {
+        "id": "SourceAssertion",
+        "knowledge_class": "source_assertion",
+        "minimum": "source principal or system, asserted content, subject, event, observed, recorded, and effective time where applicable, version, classification, purpose, retention and residency binding, and correction or deletion lineage"
+      },
+      {
+        "id": "ReportedClaim",
+        "knowledge_class": "reported_claim",
+        "minimum": "claimant, subject, asserted proposition, basis, event, observed, recorded, and effective time where applicable, confidence if supplied, corroboration status, dispute state, and provenance"
+      },
+      {
+        "id": "DerivedState",
+        "knowledge_class": "computed_state",
+        "minimum": "as-of and computation time, source cutoff, projection version, freshness, unresolved late events, epistemic status, and derivation receipt"
+      },
+      {
+        "id": "InferredRelationship",
+        "knowledge_class": "inferred_relationship",
+        "minimum": "subjects, relation, inference rule or model, source snapshot, valid and recorded time, confidence, limitations, contradiction state, and evidence"
+      },
+      {
+        "id": "AnomalySignal",
+        "knowledge_class": "anomaly_signal",
+        "minimum": "explicit baseline, deviation, sensitivity, confidence, expected impact, and false-positive recourse"
+      },
+      {
+        "id": "CausalHypothesis",
+        "knowledge_class": "causal_hypothesis",
+        "minimum": "candidate cause and effect, temporal scope, mechanism, assumptions, plausible alternatives, disconfirming evidence, confidence, and test or decision boundary"
+      },
+      {
+        "id": "CausalClaim",
+        "knowledge_class": "causal_claim",
+        "minimum": "qualified acceptance state, method, assumptions, confounders, counterfactual basis, temporal scope, confidence, limitations, reviewer, and supporting evidence"
+      },
+      {
+        "id": "Forecast",
+        "knowledge_class": "forecast",
+        "minimum": "model and data snapshot, horizon, interval, calibration, assumptions, and invalidation conditions"
+      },
+      {
+        "id": "Scenario",
+        "knowledge_class": "scenario",
+        "minimum": "declared assumptions, controlled changes, constraints, comparison baseline, and projected outcomes"
+      },
+      {
+        "id": "Recommendation",
+        "knowledge_class": "recommendation",
+        "minimum": "proposed option, intended outcome, rationale, alternatives, evidence, uncertainty, affected parties, authority required, expiry, and recourse"
+      },
+      {
+        "id": "OptimizationProposal",
+        "knowledge_class": "optimization_proposal",
+        "minimum": "objective, constraints, alternatives, predicted delta, tradeoffs, uncertainty, and required authority"
+      },
+      {
+        "id": "Decision",
+        "knowledge_class": "decision",
+        "minimum": "principal, rationale, evidence, alternatives, affected parties, approvals, and appeal or reconsideration path"
+      },
+      {
+        "id": "AuthorizedAction",
+        "knowledge_class": "authorized_action",
+        "minimum": "policy, delegation, consent, approval, idempotency, side effects, compensation, and audit receipt"
+      },
+      {
+        "id": "Outcome",
+        "knowledge_class": "verified_outcome",
+        "minimum": "realized effect linked to the proposal, decision, action, evidence, expected outcome, and discrepancy analysis"
+      }
+    ],
+    "mapping_rule": "Every knowledge class has exactly one explicit typed-artifact mapping in this contract. An artifact may reference another class but must not silently promote an assertion to fact, a hypothesis to causal claim, a recommendation to decision, or a decision to authorized action.",
+    "rule": "The interface and APIs must never collapse different knowledge classes into one undifferentiated truth. Users must be able to see what is asserted, corroborated, inferred, hypothesized, accepted, uncertain, expected, decided, authorized, and verified; all material artifacts bind applicable valid, event, observed, recorded, and effective time."
+  },
+  "experience_contract": {
+    "primary_mode": "Complete common and advanced user journeys must be buildable, operable, and understandable without writing code. Code is an optional extension surface, not a prerequisite for obtaining the promised outcomes.",
+    "no_code_lifecycle": [
+      "discover",
+      "connect_or_import",
+      "model",
+      "validate",
+      "simulate",
+      "publish",
+      "collaborate",
+      "observe",
+      "diagnose",
+      "change",
+      "migrate",
+      "roll_back",
+      "retire"
+    ],
+    "visual_language": [
+      "Use the representation best suited to the job: flow, timeline, graph, table, form, canvas, map, calendar, conversation, dashboard, or simulation.",
+      "One underlying semantic model must survive switching views without losing meaning, policy, lineage, or state.",
+      "Natural-language creation may accelerate configuration, but the resulting typed model, permissions, effects, and failure behavior must remain inspectable and editable visually.",
+      "Progressive disclosure must make simple consumer tasks simple without hiding the control required for complex enterprise operations.",
+      "Every automation must expose trigger, input, output, authority, policy, side effects, failure path, owner, and rollback or recourse."
+    ],
+    "usability_invariants": [
+      "minimal or no training for the bounded target journey",
+      "role-aware defaults without role stereotyping",
+      "accessible interaction and understandable language",
+      "safe preview, simulation, test data, and reversible publication",
+      "consistent identity and context across devices and surfaces",
+      "clear exception and recovery handling",
+      "why-this-alert and why-this-action explanations",
+      "user control over notification timing, channel, sensitivity, and escalation",
+      "no dark patterns, silent consent, or hidden delegation"
+    ],
+    "adoption_measurement_rule": "Measure task success, error recovery, assistance, abandonment, and time to independent success across novice, expert, assistive-technology, language, device, connectivity, and brownfield-import cohorts; a launch demonstration cannot establish minimal-training or no-code lifecycle claims."
+  },
+  "representative_scenarios": [
+    {
+      "id": "enterprise-supply-chain-history-to-action",
+      "actors": [
+        "buyer",
+        "supplier",
+        "contract owner",
+        "planner",
+        "production operator",
+        "logistics provider",
+        "finance analyst",
+        "decision maker"
+      ],
+      "intent": "Connect a company's purchase of an item used to produce a good with the governing contract, historical price, supplier performance, inventory, production batch, logistics, quality, demand, cost, and final outcome.",
+      "required_outputs": [
+        "price and term anomalies with supporting history",
+        "production or logistics delay detection and downstream impact",
+        "bottleneck and capacity explanations",
+        "contract, amendment, obligation, and related-cost traceability",
+        "forecast and what-if scenarios",
+        "optimization proposals with constraints, uncertainty, and approval requirements"
+      ],
+      "hard_cases": [
+        "late or corrected events",
+        "different units and currencies",
+        "supplier or item identity changes",
+        "contract versions and retroactive amendments",
+        "partial shipments and substitutions",
+        "conflicting source systems",
+        "missing causal evidence"
+      ]
+    },
+    {
+      "id": "demand-to-consumer-to-circularity",
+      "actors": [
+        "consumer",
+        "retailer or channel",
+        "brand or manufacturer",
+        "supplier",
+        "logistics and service provider",
+        "regulator or auditor"
+      ],
+      "intent": "Preserve one governed, role-appropriate continuity from demand and product design through sourcing, production, sale, delivery, use, service, recall, resale, return, reuse, and end-of-life without collapsing organizational or privacy boundaries.",
+      "required_outputs": [
+        "demand, availability, promise, provenance, cost, and sustainability context appropriate to each participant",
+        "lot, serial, version, component, contract, custody, and ownership lineage where required",
+        "consumer-facing delivery, warranty, repair, recall, return, and disposal options",
+        "supplier and production feedback from quality, service, return, and consumer outcomes",
+        "selective disclosure that proves required facts without exposing the entire upstream or downstream graph",
+        "correction and reconciliation when identity, custody, condition, or ownership records conflict"
+      ],
+      "hard_cases": [
+        "counterfeit or substituted components",
+        "multi-tier suppliers with incomplete disclosure",
+        "shared, repaired, refurbished, or resold goods",
+        "recalls spanning jurisdictions and owners",
+        "consumer privacy versus safety notification",
+        "conflicting sustainability or provenance claims"
+      ]
+    },
+    {
+      "id": "small-business-intent-to-cash-to-service",
+      "actors": [
+        "owner",
+        "employee",
+        "customer",
+        "supplier",
+        "accountant or advisor",
+        "payment and fulfillment provider"
+      ],
+      "intent": "Let a small organization express an outcome once and coordinate quote, order, procurement, staffing, delivery, payment, accounting, support, and renewal without assembling a specialist integration team.",
+      "required_outputs": [
+        "guided setup from ordinary business language",
+        "shared customer, product, price, obligation, inventory, work, cash, and service context",
+        "exceptions routed to the right person with the minimum necessary evidence",
+        "cash-flow, margin, capacity, and customer-impact visibility",
+        "portable data and workflows with no platform lock-in by obscurity",
+        "role growth from one-person operation to separation of duties without rebuilding the process"
+      ]
+    },
+    {
+      "id": "household-and-care-continuity",
+      "actors": [
+        "individual",
+        "family or trusted helper",
+        "care provider",
+        "school or community service",
+        "merchant or insurer"
+      ],
+      "intent": "Coordinate everyday household and care responsibilities across appointments, medications, documents, bills, purchases, transport, and emergencies while preserving dignity, consent, capacity, and personal boundaries.",
+      "required_outputs": [
+        "scoped delegation that distinguishes viewing, reminding, preparing, approving, paying, and acting",
+        "time-sensitive reminders and handoffs with offline and accessibility support",
+        "minimum-necessary disclosure for sensitive health, financial, identity, or family context",
+        "conflict detection across calendars, obligations, availability, and transport",
+        "revocation, emergency access, audit, correction, and recovery",
+        "safe handling when the subject's capacity, guardian, or consent changes"
+      ]
+    },
+    {
+      "id": "high-impact-service-eligibility-and-recourse",
+      "actors": [
+        "applicant or customer",
+        "case worker or service operator",
+        "decision owner",
+        "affected family or organization",
+        "auditor, regulator, or advocate"
+      ],
+      "intent": "Support a high-impact eligibility, benefit, credit, insurance, employment, or public-service decision without turning an inference into authority or hiding the path to human review.",
+      "required_outputs": [
+        "facts, policy, inference, recommendation, decision, and action shown as distinct artifacts",
+        "notice of material inputs, missing evidence, uncertainty, and applicable rule version",
+        "bias, accessibility, vulnerability, and disparate-impact evaluation appropriate to the decision",
+        "human review, correction, appeal, accommodation, and advocacy paths",
+        "effective-time and supersession handling when rules or circumstances change",
+        "tamper-evident evidence without unnecessary surveillance or indefinite retention"
+      ],
+      "hard_cases": [
+        "conflicting identity or household records",
+        "policy changes during an open case",
+        "protected or proxy attributes",
+        "language and disability barriers",
+        "urgent need before full evidence is available",
+        "adverse decision based on stale or corrected data"
+      ]
+    },
+    {
+      "id": "absence-continuity-handoff",
+      "actors": [
+        "absent person",
+        "authorized cover",
+        "manager",
+        "affected colleagues or customers"
+      ],
+      "intent": "When a person is unavailable, transfer the right work and minimum necessary context to an authorized cover without transferring excessive access or losing accountability.",
+      "required_outputs": [
+        "time-bounded responsibility reassignment",
+        "prioritized tasks, deadlines, dependencies, and related materials",
+        "policy-filtered messages, email, documents, and decisions",
+        "stakeholder notification and escalation",
+        "full audit, revocation, return handback, and unresolved-work reconciliation",
+        "absence handling that never reveals a medical reason unless independently authorized and necessary"
+      ]
+    },
+    {
+      "id": "delegated-reservation-and-calendar",
+      "actors": [
+        "principal",
+        "assistant or team member",
+        "restaurant",
+        "calendar participants"
+      ],
+      "intent": "Allow an authorized person to reserve on behalf of another while respecting identity, preferences, availability, spending policy, privacy, consent, and revocation.",
+      "required_outputs": [
+        "delegated authority proof",
+        "availability and preference-aware selection",
+        "reservation confirmation and calendar synchronization",
+        "conflict, change, cancellation, and no-show handling",
+        "clear distinction between requester, principal, payer, calendar owner, and attendee",
+        "free-busy-first calendar access and separately consented preferences or sensitive needs"
+      ]
+    },
+    {
+      "id": "compromised-delegation-and-cross-context-identity-abuse",
+      "actors": [
+        "principal",
+        "legitimate delegate",
+        "adversary or compromised account",
+        "resource owner",
+        "security and privacy operator",
+        "affected parties",
+        "auditor or investigator"
+      ],
+      "intent": "Detect and contain an attempt to reuse, forge, escalate, or replay delegated authority across personal, workplace, tenant, device, or organizational boundaries without silently harming the principal or affected parties.",
+      "required_outputs": [
+        "default denial when principal, scope, purpose, resource, time, context, or credential binding is missing or mismatched",
+        "immediate scoped revocation and containment that does not unnecessarily disable unrelated legitimate work",
+        "tamper-evident preservation of attempted and completed actions, policy versions, evidence, notifications, and operator decisions",
+        "minimum-necessary notice to the principal, legitimate delegate, resource owner, and affected parties with safe channels for a compromised account",
+        "correction, appeal, credential recovery, delegated-work reconciliation, compensation, and verified restoration",
+        "post-incident learning that tightens policy or detection without retroactively rewriting evidence or broadening surveillance"
+      ],
+      "hard_cases": [
+        "valid credential used outside its delegated purpose",
+        "compromised delegate attempting cross-tenant access",
+        "replayed approval after revocation or expiry",
+        "identity collision between personal and workplace contexts",
+        "malicious report intended to lock out a legitimate user",
+        "offline or emergency action whose authority cannot be refreshed"
+      ]
+    },
+    {
+      "id": "consumer-subscription-change",
+      "actors": [
+        "subscriber",
+        "merchant",
+        "payment provider"
+      ],
+      "intent": "Detect and explain a subscription price or term change before or when it affects the consumer.",
+      "required_outputs": [
+        "old and new price or term with effective date",
+        "source notice and contract or plan context",
+        "expected financial impact",
+        "renew, switch, negotiate, cancel, or ignore options when available",
+        "notification preferences, suppression, correction, and dispute path"
+      ]
+    },
+    {
+      "id": "consumer-payment-anomaly",
+      "actors": [
+        "account holder",
+        "merchant",
+        "issuer or payment provider"
+      ],
+      "intent": "Detect an unusual credit-card or account payment and help the consumer understand and resolve it without causing unjustified harm.",
+      "required_outputs": [
+        "reason for anomaly and confidence",
+        "known merchant, location, amount, timing, and recurring-payment context",
+        "verify, dispute, lock, contact, or monitor actions as authorized",
+        "false-positive correction and model feedback",
+        "privacy-preserving evidence and emergency escalation"
+      ]
+    },
+    {
+      "id": "decision-grade-operational-intelligence",
+      "actors": [
+        "operator",
+        "analyst",
+        "executive",
+        "affected party"
+      ],
+      "intent": "Make critical business decisions with current operational intelligence linked to underlying evidence, alternatives, uncertainty, constraints, and affected-party impact.",
+      "required_outputs": [
+        "decision-relevant state and trend",
+        "causal hypotheses separated from correlation",
+        "counterfactual and scenario comparison",
+        "policy, risk, cost, capacity, and customer impact",
+        "decision, approval, execution, outcome, and learning trace"
+      ]
+    },
+    {
+      "id": "cloud-and-developer-operational-continuity",
+      "actors": [
+        "developer",
+        "service owner",
+        "security operator",
+        "incident commander",
+        "customer"
+      ],
+      "intent": "Connect requirements and code changes to deployment, cost, reliability, security, incidents, rollback, customer impact, and future prevention without making users stitch together separate control planes.",
+      "required_outputs": [
+        "change-to-runtime lineage",
+        "cloud cost and capacity anomaly detection",
+        "incident impact and responsibility handoff",
+        "safe rollback or remediation proposals",
+        "customer, policy, evidence, and learning continuity"
+      ]
+    },
+    {
+      "id": "tenant-and-resource-lifecycle-to-verified-exit",
+      "actors": [
+        "tenant owner",
+        "platform administrator",
+        "resource owner",
+        "security and privacy operator",
+        "billing and capacity operator",
+        "auditor or regulator",
+        "successor provider"
+      ],
+      "intent": "Carry a tenant and its resources through onboarding, provisioning, quota and capacity admission, metering, operation, suspension, migration, offboarding, verified erasure, export, restore, and provider exit without tenant escape or loss of policy, custody, lineage, obligations, or recourse.",
+      "required_outputs": [
+        "identity, tenancy, residency, purpose, policy, quota, budget, and key-custody binding before provisioning",
+        "resource-intent, actual-state, cost, capacity, security, reliability, and audit continuity across lifecycle transitions",
+        "reversible suspension and migration with explicit unavailable or non-migratable state",
+        "portable export and independently verified restore of data, policy, identities, keys where transferable, configuration, adapters, audit, and lineage",
+        "qualified retention, legal-hold, erasure, deletion, and residual-data receipts",
+        "successful customer and provider exit with unresolved obligations and recourse visible"
+      ],
+      "hard_cases": [
+        "cross-tenant reference or cache escape",
+        "quota or capacity race during provisioning",
+        "suspension with safety-critical obligations",
+        "non-transferable keys or regulated records",
+        "partial export or restore",
+        "provider insolvency, abandonment, or disputed deletion"
+      ]
+    },
+    {
+      "id": "sovereign-pinned-region-and-provider-failure",
+      "actors": [
+        "sovereign tenant",
+        "regional or pack authority",
+        "platform and security operator",
+        "incident commander",
+        "auditor or regulator",
+        "affected user"
+      ],
+      "intent": "Preserve lawful operation and trustworthy evidence when a pinned region, provider, control path, or external network fails, including cases where failover would violate residency or no-egress rules and lawful brownout or unavailability is required.",
+      "required_outputs": [
+        "status-aware Accepted-authority map for residency, egress, pinning, failover, brownout, air-gap, custody, and recovery",
+        "in-cell registry, secrets, policy, audit, telemetry, support, update, and recovery behavior for disconnected operation",
+        "explicit denial or lawful brownout when a secondary location or provider is not authorized",
+        "policy and evidence continuity without a synchronous global-management dependency",
+        "controlled offline update, revocation, incident response, rollback, and later reconciliation",
+        "accessible affected-party notice, recourse, and verified recovery without leaking sovereign data"
+      ],
+      "hard_cases": [
+        "primary failure with prohibited secondary",
+        "stale local policy or revocation state",
+        "compromised offline update media",
+        "loss of external time, identity, certificate, or transparency services",
+        "capacity exhaustion during no-egress operation",
+        "conflicting regulator and continuity obligations"
+      ]
+    },
+    {
+      "id": "brownfield-accessible-first-outcome",
+      "actors": [
+        "novice user",
+        "domain expert",
+        "user of assistive technology",
+        "administrator or integrator",
+        "support operator"
+      ],
+      "intent": "Import an existing spreadsheet, form, legacy workflow, or SaaS process and reach a safe useful outcome without code, while preserving meaning, permissions, exceptions, and an escalation path for ambiguity.",
+      "required_outputs": [
+        "guided discovery and import with source and semantic mapping visible",
+        "accessible validation, simulation, correction, publication, observation, change, rollback, and retirement",
+        "plain-language errors with recoverable next steps and expert escalation",
+        "equivalent task outcomes across assistive technology, language, constrained device, and intermittent connectivity",
+        "measured assistance, abandonment, error-recovery, and time-to-independence denominators",
+        "portable exit that returns data, semantic contracts, versions, and evidence without lock-in"
+      ],
+      "hard_cases": [
+        "conflicting or incomplete imported schemas",
+        "legacy behavior that depends on undocumented exceptions",
+        "misconfigured authority or sensitive fields",
+        "low literacy or unfamiliar domain vocabulary",
+        "screen reader, keyboard-only, low-bandwidth, or offline use",
+        "safe handoff from novice to expert and back"
+      ]
+    },
+    {
+      "id": "ecosystem-provider-build-to-exit",
+      "actors": [
+        "independent software vendor",
+        "service or data provider",
+        "developer",
+        "security and compliance reviewer",
+        "marketplace operator",
+        "customer administrator",
+        "support operator"
+      ],
+      "intent": "Let an ecosystem provider onboard, model, build, validate, distribute, meter, operate, support, evolve, migrate, and exit a capability through open governed contracts without privileged internal knowledge or platform captivity.",
+      "required_outputs": [
+        "self-service discovery, conformance, test, simulation, review, publication, and rollback",
+        "versioned interface, event, semantic, policy, tenancy, billing, evidence, and support contracts",
+        "transparent metering, attribution, settlement, service levels, incident duties, and customer impact",
+        "portable artifacts, data, configuration, lineage, and successor or deprecation paths",
+        "supply-chain provenance, dependency risk, compromise containment, revocation, and recovery",
+        "measured provider onboarding effort, customer adoption, reliability, cost, portability, and successful exit"
+      ],
+      "hard_cases": [
+        "provider or dependency compromise",
+        "breaking schema or policy change",
+        "cross-tenant leakage attempt",
+        "disputed metering or settlement",
+        "provider insolvency or abandonment",
+        "customer migration while obligations and evidence remain active"
+      ]
+    },
+    {
+      "id": "pipeline-evidence-and-migration-governance-attack",
+      "actors": [
+        "malicious or compromised contributor",
+        "compromised dependency or tool",
+        "insider or colluding approver",
+        "independent reviewer",
+        "pipeline and security operator",
+        "tenant and affected party"
+      ],
+      "intent": "Detect, refuse, contain, and recover from attempts to poison evidence, manipulate an affected set, compromise a migration manifest or codemod, spoof a dependency or required check, capture governance, or expand a cross-tenant blast radius.",
+      "required_outputs": [
+        "candidate-bound provenance and independent reproduction of inputs, graph, policy, tests, generated projections, and outputs",
+        "fail-closed broadening when affected-set, identity, signature, dependency, or evidence state is unknown or inconsistent",
+        "separation of proposer, reviewer, policy issuer, credential custodian, promoter, and rollback authority",
+        "scoped containment and revocation that preserves forensic evidence and unaffected tenant operation",
+        "known-good restoration, rollback, replay, customer and affected-party notice, remedy, and verified recovery",
+        "fresh dissent and post-incident controls that cannot be suppressed by throughput or majority vote"
+      ],
+      "hard_cases": [
+        "malicious migration manifest or codemod",
+        "dependency or cache poisoning",
+        "forged or replayed required-check receipt",
+        "insider collusion and governance capture",
+        "evidence deletion or selective omission",
+        "cross-tenant compromise hidden by a narrow affected set"
+      ]
+    },
+    {
+      "id": "multi-party-disruption-and-recovery",
+      "actors": [
+        "consumer or customer",
+        "provider",
+        "supplier",
+        "carrier",
+        "insurer",
+        "support operator"
+      ],
+      "intent": "Coordinate a disruption such as a delayed trip, recalled product, failed delivery, or unavailable supplier across organizations while preserving consent, obligations, alternatives, compensation, and recourse.",
+      "required_outputs": [
+        "shared event and dependency context",
+        "role-specific impact and next actions",
+        "authorized rebooking, substitution, refund, or escalation",
+        "contractual and financial reconciliation",
+        "auditable resolution and unresolved exceptions"
+      ]
+    }
+  ],
+  "participant_and_journey_census": {
+    "roles": [
+      "requester_or_delegator",
+      "actor_or_operator",
+      "beneficiary",
+      "data_subject",
+      "resource_owner",
+      "decision_owner",
+      "approver",
+      "affected_party",
+      "counterparty_or_provider",
+      "payer",
+      "custodian",
+      "auditor_or_regulator_or_legal",
+      "on_call_operator",
+      "developer_or_integrator",
+      "agent_or_system",
+      "adversary_or_abuser"
+    ],
+    "required_variants": [
+      "routine",
+      "exception",
+      "crisis",
+      "denied",
+      "ambiguous",
+      "erroneous",
+      "hostile",
+      "partial",
+      "offline",
+      "stale",
+      "corrected",
+      "revoked",
+      "appealed",
+      "recovery"
+    ],
+    "coverage_dimensions": [
+      "personal_and_work_boundary",
+      "cross_organization",
+      "cross_tenant",
+      "jurisdiction",
+      "accessibility",
+      "language_and_localization",
+      "device_and_connectivity",
+      "age_and_vulnerability",
+      "high_impact_and_low_risk"
+    ],
+    "rule": "A universal or end-to-end claim is invalid until the relevant role, journey, variant, and coverage denominator is enumerated and independently evaluated."
+  },
+  "intelligence_and_automation_contract": {
+    "automation_classes": [
+      "observe_only",
+      "notify",
+      "recommend",
+      "prepare_for_approval",
+      "execute_within_delegated_limits",
+      "execute_then_verify",
+      "stop_and_escalate"
+    ],
+    "decision_rule": "Automation level is constrained by actor authority, risk, reversibility, confidence, affected-party rights, policy, jurisdiction, and the cost of a false positive or false negative. Confidence never establishes authority. Under Accepted ADR-0219, model output remains draft-only and cannot activate or execute an effect; execution requires independently established principal authority, capability policy, and runtime enforcement. Every action contract declares delivery semantics, ordering and concurrency boundary, retry identity, reconciliation owner, timeout behavior, and compensation limits. Execute-then-verify is forbidden for irreversible or externally non-compensatable effects unless a separately approved exception has a tested compensation and reconciliation path.",
+    "explanation_minimum": [
+      "what changed or is expected to change",
+      "why Oyatie believes it",
+      "which sources and versions support it",
+      "what is missing or uncertain",
+      "who or what is affected",
+      "which options are available",
+      "what authority and approval each option requires",
+      "how to correct, revoke, appeal, or recover"
+    ],
+    "learning_rule": "Feedback may improve models, defaults, and recommendations only under consent, privacy, tenancy, provenance, evaluation, and rollback controls. Learning must not retroactively alter source history or silently expand authority."
+  },
+  "data_and_lineage_contract": {
+    "ingestion_modes": [
+      "event stream",
+      "change data capture",
+      "batch import",
+      "API or protocol integration",
+      "document and message extraction",
+      "user entry",
+      "device or sensor observation",
+      "authorized external data"
+    ],
+    "requirements": [
+      "source identity, capture time, event time, ingestion time, version, and jurisdiction",
+      "schema and semantic mapping with unresolved ambiguity visible",
+      "entity resolution with merge, split, and correction history",
+      "contract, policy, consent, purpose, retention, residency, and jurisdiction binding for each material data use rather than only for each source",
+      "field- and relationship-level lineage where required by risk",
+      "freshness and completeness indicators",
+      "late, duplicate, conflicting, missing, and retracted data handling",
+      "tenant, purpose, and least-privilege access",
+      "portable export, correction, redaction, irreversible minimization or cryptographic erasure, deletion, and legal-hold behavior that separates integrity evidence from retained content",
+      "scoped and time-bounded legal holds with qualified authority, review triggers, release, and downstream propagation",
+      "replayable derivations for material decisions"
+    ],
+    "real_time_rule": "Real-time means fresh enough for the bounded decision and its risk, with explicit latency and staleness budgets. It does not mean pretending every source is instantaneous or complete."
+  },
+  "safety_rights_and_recourse": {
+    "invariants": [
+      "least privilege and purpose limitation",
+      "workload and agent principals remain distinct from user sessions and bind tenant, environment, issuer, audience, purpose, scope, expiry, and revocation epoch",
+      "explicit, scoped, time-bounded delegation",
+      "consent and affected-party representation where required",
+      "data minimization and jurisdiction-aware handling",
+      "separation of duties for high-impact actions",
+      "preview, approval, veto, stop, rollback, and break-glass controls proportional to risk",
+      "auditability without turning Oyatie into a surveillance system",
+      "correction, dispute, appeal, revocation, and human recourse",
+      "fairness and accessibility evaluation for affected populations",
+      "secure failure that preserves evidence and avoids unauthorized action"
+    ],
+    "affected_party_contract": {
+      "populations": [
+        "direct participant",
+        "indirectly affected person or organization",
+        "bystander",
+        "non-user data subject",
+        "worker or contractor",
+        "counterparty",
+        "community or public",
+        "vulnerable or protected subgroup",
+        "future or successor rights holder"
+      ],
+      "representation_rule": "Material journeys identify affected populations, power imbalances, conflicts of interest, and a legitimate representative independent of the proposing or benefiting party where representation is required. Advisory agents, generic role labels, and aggregate metrics are not affected-party representation.",
+      "minimum_rights": [
+        "timely accessible notice through a safe channel",
+        "understandable reasons, material inputs, uncertainty, authority, and expected effects",
+        "an empowered pause, review, correction, veto, appeal, and emergency-stop path appropriate to risk",
+        "non-retaliation and accommodation",
+        "human review with authority to change the outcome",
+        "remedy, restitution, financial compensation where applicable, restoration, and verified recovery",
+        "privacy-preserving evidence access and independent advocacy"
+      ],
+      "compensation_boundary": "Technical saga compensation reverses or reconciles system effects; it is not a substitute for restitution, financial compensation, remedy, apology, restored access or opportunity, legal recourse, or verified affected-party recovery.",
+      "measurement_rule": "Evaluate subgroup harm, disparate error and denial, notice comprehension, time and effort to obtain review, retaliation or abandonment, remedy completeness, restoration time, and recourse burden across the frozen affected population; averages cannot hide subgroup failure."
+    },
+    "anti_goals": [
+      "copying comparator features, implementation, information architecture, or proprietary content",
+      "building one mega-app, mega-schema, or mega-workflow graph",
+      "reducing every human activity to a linear pipeline",
+      "treating a node-and-edge canvas as the only interaction model",
+      "opaque scoring or autonomous action without inspectable reasons and authority",
+      "using AI output as authorization, legal truth, HR truth, or causal truth",
+      "centralizing data without policy, tenancy, portability, and deletion boundaries",
+      "ambient mailbox, calendar, financial, personal, or workplace authority",
+      "silent joins between personal and work identities or contexts",
+      "raw-copy handoff bundles when minimum-necessary governed projections will do",
+      "using automation to erase accountability or affected-party rights",
+      "making simple tasks complex to expose platform breadth",
+      "claiming universal coverage from a small set of showcase scenarios",
+      "treating correlation as proven causality",
+      "treating a forecast or recommendation as an observed fact",
+      "requiring code for the promised primary journeys",
+      "optimizing revenue, margin, engagement, delivery speed, or infrastructure cost by externalizing privacy, safety, accessibility, support, recourse, lock-in, labor, community, or environmental harm"
+    ],
+    "hidden_assumptions_to_test": [
+      "work ownership implies data access",
+      "coverage rosters are current and authorized",
+      "related communications can be identified accurately and explainably",
+      "all duties are delegable, reversible, and safe to transfer",
+      "actor, beneficiary, payer, and resource owner are the same principal",
+      "external providers support idempotent delegated actions and compensation",
+      "source data and contract versions are complete and current",
+      "each delay or anomaly has one identifiable cause",
+      "one visual grammar works equally well for every role",
+      "simplicity and unlimited configurability can coexist without progressive disclosure",
+      "public comparator documentation reveals the comparator's limits",
+      "consent, employment, consumer, financial, and legal obligations are uniform across jurisdictions"
+    ]
+  },
+  "economics_and_sustainability_contract": {
+    "authority_continuity": "Accepted ADR-0174 cost attribution, chargeback, anomaly, and evidence obligations and Accepted ADR-0199 per-tenant OpenCost and FOCUS-normalized substrate obligations remain controlling until an explicit Accepted successor reconciles them.",
+    "principals": [
+      "cost bearer",
+      "payer",
+      "customer or beneficiary",
+      "revenue recipient",
+      "subsidizer",
+      "ecosystem participant",
+      "worker or support operator",
+      "externality bearer",
+      "decision owner"
+    ],
+    "decision_fields": [
+      "fixed, marginal, variable, allocated, and opportunity cost",
+      "cost attribution coverage, uncertainty, and reconciliation error",
+      "price, value, affordability, subsidy, and distributional effect",
+      "capacity, utilization, headroom, reservation, and scale threshold",
+      "energy and emissions intensity with method and uncertainty",
+      "support, exception, incident, migration, portability, and recourse cost",
+      "partner payout, concentration, dependency, incentive conflict, and ecosystem viability",
+      "privacy, safety, accessibility, labor, community, and environmental externalities",
+      "stop, rollback, repricing, subsidy, or exit conditions"
+    ],
+    "decision_rule": "A financially attractive option is not admissible when its benefit depends on hiding, transferring, or making another principal absorb a material safety, privacy, accessibility, support, recourse, lock-in, labor, community, or environmental cost."
+  },
+  "benchmark_and_measurement_contract": {
+    "comparator_posture": "Palantir Foundry, AIP, Apollo, and Gotham are one user-supplied, URL-only minimum baseline among multiple relevant enterprise, infrastructure, workflow, analytics, and consumer comparators. Comparator evidence is harvest-only and subject to legal/JCR disposition; it is not a template or a product-scope denominator.",
+    "legal_boundary": "Do not scrape, copy, reverse engineer, or infer protected product shape. Until qualified legal/JCR disposition exists, preserve user-supplied comparator URLs without automated expansion and mark unsupported observations Unknown.",
+    "legal_source_refs": [
+      {
+        "accessed_at": "2026-07-21",
+        "disposition": "mutable source requiring fresh qualified legal/JCR interpretation before comparator collection",
+        "url": "https://www.palantir.com/terms-and-conditions/"
+      }
+    ],
+    "game_engine_comparator_refs": [
+      {
+        "source_id": "unity-entities-concepts",
+        "url": "https://docs.unity3d.com/Packages/com.unity.entities@1.0/manual/concepts-entities.html",
+        "declared_scope": "Unity entity-component-system concepts documentation pointer",
+        "classification": "inactive-source-pointer",
+        "collection_status": "uncollected-for-admitted-comparator-use",
+        "retrieved_at": null,
+        "source_version": "Unknown",
+        "content_digest": "Unknown",
+        "legal_jcr_disposition": "Unknown-uncollected-pending-fresh-scope-specific-qualified-legal-JCR-disposition",
+        "evidence_eligible": false,
+        "automated_expansion_allowed": false,
+        "use": "Pointer preservation only; do not retrieve, expand, analyze, or cite as admitted comparator evidence until qualified disposition exists; does not select Unity, copy its product shape, or authorize implementation."
+      },
+      {
+        "source_id": "unity-entities-subscenes",
+        "url": "https://docs.unity3d.com/Packages/com.unity.entities@1.0/manual/conversion-subscenes.html",
+        "declared_scope": "Unity SubScenes and entity-scene conversion documentation pointer",
+        "classification": "inactive-source-pointer",
+        "collection_status": "uncollected-for-admitted-comparator-use",
+        "retrieved_at": null,
+        "source_version": "Unknown",
+        "content_digest": "Unknown",
+        "legal_jcr_disposition": "Unknown-uncollected-pending-fresh-scope-specific-qualified-legal-JCR-disposition",
+        "evidence_eligible": false,
+        "automated_expansion_allowed": false,
+        "use": "Pointer preservation only; do not retrieve, expand, analyze, or cite as admitted comparator evidence until qualified disposition exists; does not select Unity, copy its product shape, or authorize implementation."
+      },
+      {
+        "source_id": "unreal-gameplay-framework",
+        "url": "https://dev.epicgames.com/documentation/en-us/unreal-engine/gameplay-framework-in-unreal-engine",
+        "declared_scope": "Unreal Gameplay Framework documentation pointer",
+        "classification": "inactive-source-pointer",
+        "collection_status": "uncollected-for-admitted-comparator-use",
+        "retrieved_at": null,
+        "source_version": "Unknown",
+        "content_digest": "Unknown",
+        "legal_jcr_disposition": "Unknown-uncollected-pending-fresh-scope-specific-qualified-legal-JCR-disposition",
+        "evidence_eligible": false,
+        "automated_expansion_allowed": false,
+        "use": "Pointer preservation only; do not retrieve, expand, analyze, or cite as admitted comparator evidence until qualified disposition exists; does not select Unreal, copy its product shape, or authorize implementation."
+      },
+      {
+        "source_id": "unreal-mass-entity",
+        "url": "https://dev.epicgames.com/documentation/en-us/unreal-engine/overview-of-mass-entity-in-unreal-engine",
+        "declared_scope": "Unreal Mass Entity documentation pointer",
+        "classification": "inactive-source-pointer",
+        "collection_status": "uncollected-for-admitted-comparator-use",
+        "retrieved_at": null,
+        "source_version": "Unknown",
+        "content_digest": "Unknown",
+        "legal_jcr_disposition": "Unknown-uncollected-pending-fresh-scope-specific-qualified-legal-JCR-disposition",
+        "evidence_eligible": false,
+        "automated_expansion_allowed": false,
+        "use": "Pointer preservation only; do not retrieve, expand, analyze, or cite as admitted comparator evidence until qualified disposition exists; does not select Unreal, copy its product shape, or authorize implementation."
+      },
+      {
+        "source_id": "unreal-statetree",
+        "url": "https://dev.epicgames.com/documentation/en-us/unreal-engine/overview-of-state-tree-in-unreal-engine",
+        "declared_scope": "Unreal StateTree documentation pointer",
+        "classification": "inactive-source-pointer",
+        "collection_status": "uncollected-for-admitted-comparator-use",
+        "retrieved_at": null,
+        "source_version": "Unknown",
+        "content_digest": "Unknown",
+        "legal_jcr_disposition": "Unknown-uncollected-pending-fresh-scope-specific-qualified-legal-JCR-disposition",
+        "evidence_eligible": false,
+        "automated_expansion_allowed": false,
+        "use": "Pointer preservation only; do not retrieve, expand, analyze, or cite as admitted comparator evidence until qualified disposition exists; does not select Unreal, copy its product shape, or authorize implementation."
+      },
+      {
+        "source_id": "bevy-ecs",
+        "url": "https://bevyengine.org/learn/quick-start/getting-started/ecs/",
+        "declared_scope": "Bevy ECS documentation pointer",
+        "classification": "inactive-source-pointer",
+        "collection_status": "uncollected-for-admitted-comparator-use",
+        "retrieved_at": null,
+        "source_version": "Unknown",
+        "content_digest": "Unknown",
+        "legal_jcr_disposition": "Unknown-uncollected-pending-fresh-scope-specific-qualified-legal-JCR-disposition",
+        "evidence_eligible": false,
+        "automated_expansion_allowed": false,
+        "use": "Pointer preservation only; do not retrieve, expand, analyze, or cite as admitted comparator evidence until qualified disposition exists; does not select Bevy, copy its product shape, or authorize implementation."
+      },
+      {
+        "source_id": "bevy-schedules",
+        "url": "https://bevyengine.org/learn/quick-start/getting-started/schedules/",
+        "declared_scope": "Bevy schedules documentation pointer",
+        "classification": "inactive-source-pointer",
+        "collection_status": "uncollected-for-admitted-comparator-use",
+        "retrieved_at": null,
+        "source_version": "Unknown",
+        "content_digest": "Unknown",
+        "legal_jcr_disposition": "Unknown-uncollected-pending-fresh-scope-specific-qualified-legal-JCR-disposition",
+        "evidence_eligible": false,
+        "automated_expansion_allowed": false,
+        "use": "Pointer preservation only; do not retrieve, expand, analyze, or cite as admitted comparator evidence until qualified disposition exists; does not select Bevy, copy its product shape, or authorize implementation."
+      },
+      {
+        "source_id": "bevy-time",
+        "url": "https://bevyengine.org/learn/quick-start/getting-started/time/",
+        "declared_scope": "Bevy time documentation pointer",
+        "classification": "inactive-source-pointer",
+        "collection_status": "uncollected-for-admitted-comparator-use",
+        "retrieved_at": null,
+        "source_version": "Unknown",
+        "content_digest": "Unknown",
+        "legal_jcr_disposition": "Unknown-uncollected-pending-fresh-scope-specific-qualified-legal-JCR-disposition",
+        "evidence_eligible": false,
+        "automated_expansion_allowed": false,
+        "use": "Pointer preservation only; do not retrieve, expand, analyze, or cite as admitted comparator evidence until qualified disposition exists; does not select Bevy, copy its product shape, or authorize implementation."
+      }
+    ],
+    "game_engine_comparator_rule": "These URLs are inactive source pointers only, not admitted comparator evidence. They may not be retrieved, expanded, analyzed, or used for a claim until a fresh scope-specific qualified legal/JCR disposition authorizes collection. Palantir remains the user-supplied minimum product baseline, not a template to copy; no pointer or comparator selects an implementation or expands product authority.",
+    "measurement_families": [
+      "time to first useful outcome",
+      "training time and assisted-completion rate",
+      "no-code journey completion rate",
+      "integration and change effort",
+      "data freshness, completeness, and lineage coverage",
+      "handoff loss and responsibility ambiguity",
+      "anomaly precision, recall, detection latency, and harmful false-positive rate",
+      "forecast calibration and scenario usefulness",
+      "decision lead time and outcome traceability",
+      "workflow exception recovery time",
+      "policy continuity and unauthorized-action rate",
+      "explanation comprehension and successful recourse",
+      "accessibility and localization task success",
+      "availability, resilience, recovery, portability, and operator burden",
+      "consumer trust, control, and notification usefulness",
+      "marginal and fully allocated cost per verified successful outcome",
+      "per-tenant and per-capability attribution coverage and reconciliation error",
+      "utilization, headroom, capacity-admission accuracy, and saturation risk",
+      "energy and emissions intensity with method and uncertainty",
+      "price-to-value, affordability, subsidy, and distributional effect",
+      "support, exception, incident, migration, and recourse cost",
+      "partner payout, concentration, portability, successful exit, and ecosystem viability",
+      "tenant escape, residency or egress violation, lifecycle rollback, and policy-continuity failure rates",
+      "export and restore success, recovery time objective, and verified deletion completeness"
+    ],
+    "measurement_protocol_minimum": [
+      "named participant and affected-party population with inclusion, exclusion, and subgroup denominators",
+      "named journey, variant, environment, data set, source versions, and candidate digest",
+      "baseline, comparator when applicable, hypothesis, measure definition, threshold, and decision rule",
+      "collection method, sampling, observation window, uncertainty, missingness, confounders, and limitations",
+      "independent evaluator identity, conflicts, reproduction method, evidence digest, freshness, and invalidation events",
+      "distributional effects, harmful false positives and negatives, recourse burden, cost bearers, and externalities",
+      "stop, rollback, correction, and follow-up effectiveness conditions"
+    ],
+    "population_rule": "No metric family counts as evidence until its protocol and denominator are populated for the frozen candidate. Aggregate improvement cannot hide a failing subgroup, transferred cost, or missing affected population.",
+    "claim_rule": "Every better, simpler, faster, safer, more complete, real-time, no-training, or end-to-end claim must name the participant population, journey, source set, conditions, comparator, measure, threshold, evaluator, evidence freshness, and known exclusions.",
+    "comparator_admission": {
+      "control_id": "comparator",
+      "legal_prerequisite_control_id": "legal_jcr",
+      "fresh_scope_specific_qualified_legal_jcr_required": true,
+      "evidence_eligible": false,
+      "claim_allowed": false,
+      "implementation_selected": false
+    }
+  },
+  "future_specification_requirements": {
+    "roadmap_admission": [
+      "Trace every roadmap outcome to one or more named user jobs and representative scenarios.",
+      "Define the role and journey denominator before claiming broad coverage.",
+      "Separate semantic capability from UI view, integration mechanism, and deployment mechanism.",
+      "Define success, failure, exception, recourse, security, privacy, accessibility, localization, and operations for each material journey.",
+      "Prove cross-domain continuity for identity, policy, data, lineage, observability, and recourse, and map every responsibility separately through the current execution-profile vocabulary, Accepted ADR-0280 substrate topology, and Accepted ADR-0562/0615 capability ownership faces.",
+      "Map admitted outcomes into the current Accepted capability-first hyperscale monorepo authority, including bounded ownership, dependency direction, generated-face policy, migration compatibility, rollout order, and rollback; this requirement does not itself authorize a reorganization wave.",
+      "Treat communications, mail, messaging, notifications, and collaboration as composable governed capabilities and interaction modes rather than preserving channel-shaped end-user product silos by default, while preserving Accepted ADR-0615's multi-channel comms substrate unless a later Accepted successor changes it.",
+      "Parallelize migration research, inventory, dependency analysis, regression preparation, and reversible shadow moves only where ownership and files are disjoint; under Accepted ADR-0562, apply and admit one capability move per protected PR at a time, and serialize shared authority, generated projections, dependency order, and promotion.",
+      "Include migration, portability, correction, deletion, rollback, and exit behavior.",
+      "Reject orphan features that do not improve a measured outcome or satisfy a binding obligation.",
+      "Keep implementation dispatch false until the resulting roadmap is independently reviewed and separately approved."
+    ],
+    "product_goal_exit": "This intent becomes roadmap-ready only after all Stage-1 atomic controls independently pass, the product and architecture authorities ratify an immutable successor, the scenario and participant denominator is explicit, comparator use has a fresh scope-specific qualified legal/JCR disposition, and a context-free reviewer can reproduce the reasoning and evidence without relying on this conversation."
+  },
+  "durability": {
+    "archive_policy": "Superseded goal prompts and contradictory planning directions must be removed from the active tree and preserved only in Git history. A readable archive directory is not an acceptable authority boundary.",
+    "known_retirement_debt": "Contradictory prior goal sources must have surviving invariants migrated and must then be deleted from the active tree. Their locations and contents must not be copied into this current goal; Git history is the only provenance store.",
+    "update_rule": "Material changes require a version bump, direct user or qualified product-authority provenance, explicit changed-outcome accounting, independent review, and protected admission. No update may silently relax HOLD(Planning), dispatch, safety, evidence, or recourse boundaries."
+  }
+}
