@@ -1,7 +1,10 @@
+use std::collections::BTreeSet;
+
 use serde_json::{Value, json};
 use stage1_closure::{
-    evaluate_epoch, evaluate_program, validate_admission_envelope_shape,
-    validate_protected_facts_grammar, validate_protected_facts_shape,
+    SOURCE_RECEIPT_REQUIRED_FIELDS, evaluate_epoch, evaluate_program, evaluate_source_epoch,
+    validate_admission_envelope_shape, validate_protected_facts_grammar,
+    validate_protected_facts_shape,
 };
 
 const SUBJECT_DIGEST: &str =
@@ -338,16 +341,93 @@ fn qualified_controls_cannot_be_satisfied_without_object_bound_authority_receipt
 }
 
 #[test]
-fn source_authored_receipts_can_never_yield_pass() {
+fn source_authored_receipts_are_held_for_external_authentication() {
     let candidate = pass_epoch();
     let report = evaluate_epoch(&program(), &candidate);
     assert!(
         report
             .findings
             .iter()
-            .any(|finding| finding.contains("independently supplied receipt_bindings")),
-        "source-only PASS must fail closed: {:?}",
+            .any(|finding| finding.contains("external authenticated Stage-1 controller")),
+        "source-only PASS must remain held: {:?}",
         report.findings
+    );
+}
+
+#[test]
+fn source_epoch_fixture_matches_schema_and_parser_receipt_wire() {
+    let epoch_schema = schema("epoch");
+    let complete = pass_epoch();
+    for field in epoch_schema["required"]
+        .as_array()
+        .expect("source epoch top-level required fields")
+    {
+        assert!(
+            complete
+                .get(field.as_str().expect("required field is a string"))
+                .is_some(),
+            "complete source epoch fixture omits required top-level field {field}"
+        );
+    }
+    let control_required = epoch_schema["$defs"]["control_evidence"]["required"]
+        .as_array()
+        .expect("source control required fields");
+    for control in complete["controls"].as_array().expect("complete controls") {
+        for field in control_required {
+            assert!(
+                control
+                    .get(field.as_str().expect("required field is a string"))
+                    .is_some(),
+                "complete source control fixture omits required field {field}"
+            );
+        }
+    }
+    let schema_required = epoch_schema["$defs"]["receipt_ref"]["required"]
+        .as_array()
+        .expect("source receipt required fields")
+        .iter()
+        .map(|field| field.as_str().expect("required field is a string"))
+        .collect::<BTreeSet<_>>();
+    let parser_required = SOURCE_RECEIPT_REQUIRED_FIELDS
+        .into_iter()
+        .collect::<BTreeSet<_>>();
+    assert_eq!(
+        schema_required, parser_required,
+        "source receipt wire drift"
+    );
+
+    let report = evaluate_source_epoch(&program(), &complete);
+    assert_eq!(
+        report.findings,
+        vec![
+            "external authenticated Stage-1 controller and trust root are unimplemented; source evaluation cannot advance beyond HOLD_EPOCH_OPEN".to_owned(),
+        ],
+        "complete source fixture must have no schema/parser wire mismatch findings"
+    );
+
+    for field in SOURCE_RECEIPT_REQUIRED_FIELDS {
+        let mut missing = complete.clone();
+        missing["controls"][0]["receipt_refs"][0]
+            .as_object_mut()
+            .expect("source receipt object")
+            .remove(field);
+        assert!(
+            evaluate_source_epoch(&program(), &missing)
+                .findings
+                .iter()
+                .any(|finding| finding.contains(field)),
+            "missing canonical source receipt field {field} must fail"
+        );
+    }
+
+    let mut unexpected = complete;
+    unexpected["controls"][0]["receipt_refs"][0]["unexpected"] = json!(true);
+    assert!(
+        evaluate_source_epoch(&program(), &unexpected)
+            .findings
+            .iter()
+            .any(|finding| finding.contains("unexpected")),
+        "unexpected source receipt field must fail"
     );
 }
 
