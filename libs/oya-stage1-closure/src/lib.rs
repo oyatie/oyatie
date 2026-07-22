@@ -241,6 +241,25 @@ impl Report {
 #[must_use]
 pub fn evaluate_program(program: &Value) -> Report {
     let mut findings = BTreeSet::new();
+    reject_unknown_fields(
+        program,
+        &[
+            "schema_id",
+            "program_id",
+            "mechanism_neutral",
+            "initial_state",
+            "states",
+            "terminal_states",
+            "transitions",
+            "groups",
+            "controls",
+            "lenses",
+            "candidate_effects",
+            "mutation_policy",
+        ],
+        "program",
+        &mut findings,
+    );
     require_string(program, "schema_id", PROGRAM_SCHEMA_ID, &mut findings);
     require_string(program, "program_id", PROGRAM_ID, &mut findings);
     require_bool(program, "mechanism_neutral", true, &mut findings);
@@ -253,6 +272,16 @@ pub fn evaluate_program(program: &Value) -> Report {
     validate_program_lenses(program.get("lenses"), &mut findings);
 
     let pass_effects = program.get("candidate_effects").unwrap_or(&Value::Null);
+    reject_unknown_fields(
+        pass_effects,
+        &[
+            "roadmap_planning_authorized",
+            "binding_plan_approval_allowed",
+            "implementation_dispatch_allowed",
+        ],
+        "candidate_effects",
+        &mut findings,
+    );
     require_bool(
         pass_effects,
         "roadmap_planning_authorized",
@@ -273,6 +302,16 @@ pub fn evaluate_program(program: &Value) -> Report {
     );
 
     let mutation_policy = program.get("mutation_policy").unwrap_or(&Value::Null);
+    reject_unknown_fields(
+        mutation_policy,
+        &[
+            "any_program_or_evidence_mutation_opens_new_epoch",
+            "prior_epoch_bytes_remain_only_in_authorized_object_history",
+            "readable_archive_allowed",
+        ],
+        "mutation_policy",
+        &mut findings,
+    );
     require_bool(
         mutation_policy,
         "any_program_or_evidence_mutation_opens_new_epoch",
@@ -342,6 +381,27 @@ fn evaluate_epoch_with_untrusted_shape(
         .map(|finding| format!("program.{finding}"))
         .collect();
 
+    reject_unknown_fields(
+        epoch,
+        &[
+            "schema_id",
+            "epoch_id",
+            "program_ref",
+            "state",
+            "subject_binding",
+            "planning",
+            "controls",
+            "lenses",
+            "fresh_dissent",
+            "context_free_exit",
+            "immutable_successor",
+            "blockers",
+            "claim_ceiling",
+        ],
+        "epoch",
+        &mut findings,
+    );
+
     require_string(epoch, "schema_id", EPOCH_SCHEMA_ID, &mut findings);
     require_non_empty_string(epoch, "epoch_id", &mut findings);
     require_string(epoch, "program_ref", PROGRAM_REF, &mut findings);
@@ -358,6 +418,23 @@ fn evaluate_epoch_with_untrusted_shape(
 
     validate_subject_binding(epoch.get("subject_binding"), &mut findings);
     validate_planning(epoch.get("planning"), state, &mut findings);
+    if let Some(blockers) = epoch.get("blockers").and_then(Value::as_array) {
+        for (index, blocker) in blockers.iter().enumerate() {
+            reject_unknown_fields(
+                blocker,
+                &[
+                    "control_id",
+                    "input_class",
+                    "required_qualification",
+                    "scope",
+                    "authority_source_ref",
+                    "reason",
+                ],
+                &format!("blockers[{index}]"),
+                &mut findings,
+            );
+        }
+    }
 
     let control_states = validate_epoch_controls(epoch.get("controls"), &mut findings);
     let lens_state = validate_epoch_lenses(epoch.get("lenses"), &mut findings);
@@ -528,8 +605,64 @@ fn grammar_findings(facts: &Value) -> BTreeSet<String> {
                 }
             }
         }
+        validate_protected_receipt_locator(receipt, &mut findings);
+        if !is_supported_protected_receipt(receipt) {
+            findings
+                .insert("protected receipt binding has unsupported control/role/lens".to_owned());
+        }
+        for field in [
+            "principal_identity_binding",
+            "authority_source_ref",
+            "qualification",
+            "jurisdiction_scope",
+            "independence_observation",
+            "subject_binding",
+            "program_binding",
+            "epoch_binding",
+            "validity",
+            "expiry",
+            "revocation_status",
+            "conflict_status",
+            "signature_trust_root_binding",
+        ] {
+            validate_artifact_binding(
+                receipt.get(field).unwrap_or(&Value::Null),
+                field,
+                &mut findings,
+            );
+        }
     }
     let required = [
+        (
+            "C01",
+            "machine-evidence",
+            "machine-verifiable",
+            "machine-evidence",
+        ),
+        (
+            "C02",
+            "machine-evidence",
+            "machine-verifiable",
+            "machine-evidence",
+        ),
+        (
+            "C03",
+            "machine-evidence",
+            "machine-verifiable",
+            "machine-evidence",
+        ),
+        (
+            "C04",
+            "machine-evidence",
+            "machine-verifiable",
+            "machine-evidence",
+        ),
+        (
+            "C05",
+            "machine-evidence",
+            "machine-verifiable",
+            "machine-evidence",
+        ),
         (
             "C06",
             "qualified-legal-compliance",
@@ -565,6 +698,12 @@ fn grammar_findings(facts: &Value) -> BTreeSet<String> {
             "machine-pilot-evidence",
             "machine-verifiable",
             "machine-pilot-evidence",
+        ),
+        (
+            "C12",
+            "machine-evidence",
+            "machine-verifiable",
+            "machine-evidence",
         ),
         (
             "C11",
@@ -970,6 +1109,7 @@ fn validate_transitions(value: Option<&Value>, findings: &mut BTreeSet<String>) 
     let actual = transitions
         .iter()
         .filter_map(|transition| {
+            reject_unknown_fields(transition, &["from", "to"], "transition", findings);
             Some((
                 transition.get("from")?.as_str()?,
                 transition.get("to")?.as_str()?,
@@ -994,6 +1134,12 @@ fn validate_groups(value: Option<&Value>, findings: &mut BTreeSet<String>) {
             findings.insert(format!("groups missing {group_id}"));
             continue;
         };
+        reject_unknown_fields(
+            group,
+            &["group_id", "owned_controls", "requires_controls"],
+            "group",
+            findings,
+        );
         if group.get("group_id").and_then(Value::as_str) != Some(*group_id) {
             findings.insert(format!("groups[{index}].group_id must equal {group_id}"));
         }
@@ -1030,6 +1176,12 @@ fn validate_program_controls(value: Option<&Value>, findings: &mut BTreeSet<Stri
             findings.insert(format!("controls missing {id}"));
             continue;
         };
+        reject_unknown_fields(
+            control,
+            &["control_id", "name", "authority_class"],
+            "program control",
+            findings,
+        );
         let actual_id = control.get("control_id").and_then(Value::as_str);
         if actual_id != Some(*id) {
             findings.insert(format!("controls[{index}].control_id must equal {id}"));
@@ -1064,6 +1216,7 @@ fn validate_program_lenses(value: Option<&Value>, findings: &mut BTreeSet<String
             findings.insert(format!("lenses missing {id}"));
             continue;
         };
+        reject_unknown_fields(lens, &["lens_id", "name"], "program lens", findings);
         let actual_id = lens.get("lens_id").and_then(Value::as_str);
         if actual_id != Some(*id) {
             findings.insert(format!("lenses[{index}].lens_id must equal {id}"));
@@ -1081,6 +1234,12 @@ fn validate_program_lenses(value: Option<&Value>, findings: &mut BTreeSet<String
 
 fn validate_subject_binding(value: Option<&Value>, findings: &mut BTreeSet<String>) {
     let subject = value.unwrap_or(&Value::Null);
+    reject_unknown_fields(
+        subject,
+        &["facts_schema", "facts_field", "required"],
+        "subject_binding",
+        findings,
+    );
     require_string(subject, "facts_schema", PROTECTED_FACTS_SCHEMA_ID, findings);
     require_string(subject, "facts_field", "protected_facts_ref", findings);
     require_bool(subject, "required", true, findings);
@@ -1088,6 +1247,17 @@ fn validate_subject_binding(value: Option<&Value>, findings: &mut BTreeSet<Strin
 
 fn validate_planning(value: Option<&Value>, _state: Option<&str>, findings: &mut BTreeSet<String>) {
     let planning = value.unwrap_or(&Value::Null);
+    reject_unknown_fields(
+        planning,
+        &[
+            "planning_state",
+            "roadmap_planning_authorized",
+            "binding_plan_approval_allowed",
+            "implementation_dispatch_allowed",
+        ],
+        "planning",
+        findings,
+    );
     require_string(planning, "planning_state", "HOLD(Planning)", findings);
     require_bool(planning, "roadmap_planning_authorized", false, findings);
     require_bool(planning, "binding_plan_approval_allowed", false, findings);
@@ -1112,6 +1282,12 @@ fn validate_epoch_controls(
             findings.insert(format!("controls missing {id}"));
             continue;
         };
+        reject_unknown_fields(
+            control,
+            &["control_id", "status", "subject_digest", "receipt_refs"],
+            "epoch control",
+            findings,
+        );
         let actual_id = control.get("control_id").and_then(Value::as_str);
         if actual_id != Some(*id) {
             findings.insert(format!("controls[{index}].control_id must equal {id}"));
@@ -1181,6 +1357,20 @@ fn validate_epoch_lenses(
             findings.insert(format!("lenses missing {id}"));
             continue;
         };
+        reject_unknown_fields(
+            lens,
+            &[
+                "lens_id",
+                "status",
+                "subject_digest",
+                "reviewer_id",
+                "independent_from_author",
+                "fresh_context",
+                "receipt_ref",
+            ],
+            "epoch lens",
+            findings,
+        );
         if lens.get("lens_id").and_then(Value::as_str) != Some(*id) {
             findings.insert(format!("lenses[{index}].lens_id must equal {id}"));
         }
@@ -1249,6 +1439,20 @@ fn validate_epoch_lenses(
 
 fn validate_fresh_dissent(value: Option<&Value>, findings: &mut BTreeSet<String>) -> EvidenceState {
     let dissent = value.unwrap_or(&Value::Null);
+    reject_unknown_fields(
+        dissent,
+        &[
+            "status",
+            "subject_digest",
+            "reviewer_id",
+            "fresh_context",
+            "prior_context_used",
+            "findings_resolved_or_carried",
+            "receipt_ref",
+        ],
+        "fresh_dissent",
+        findings,
+    );
     let status = dissent.get("status").and_then(Value::as_str);
     if status.is_none_or(|candidate| !matches!(candidate, "pending" | "satisfied" | "blocked")) {
         findings.insert("fresh_dissent.status is invalid".to_owned());
@@ -1305,6 +1509,12 @@ fn validate_immutable_successor(
     findings: &mut BTreeSet<String>,
 ) -> EvidenceState {
     let successor = value.unwrap_or(&Value::Null);
+    reject_unknown_fields(
+        successor,
+        &["frozen", "subject_digest", "facts_ref"],
+        "immutable_successor",
+        findings,
+    );
     let frozen = successor.get("frozen").and_then(Value::as_bool) == Some(true);
     let state = EvidenceState {
         satisfied: frozen,
@@ -1312,11 +1522,17 @@ fn validate_immutable_successor(
         subject_digest: valid_subject_digest(successor.get("subject_digest")),
         principals: BTreeSet::new(),
     };
+    let facts_ref = successor.get("facts_ref").unwrap_or(&Value::Null);
+    reject_unknown_fields(
+        facts_ref,
+        &["path", "sha256"],
+        "immutable_successor.facts_ref",
+        findings,
+    );
     if frozen {
         if state.subject_digest.is_none() {
             findings.insert("immutable_successor.subject_digest must be sha256-bound".to_owned());
         }
-        let facts_ref = successor.get("facts_ref").unwrap_or(&Value::Null);
         require_non_empty_string(facts_ref, "path", findings);
         if facts_ref
             .get("sha256")
@@ -1334,6 +1550,21 @@ fn validate_context_free_exit(
     findings: &mut BTreeSet<String>,
 ) -> EvidenceState {
     let exit = value.unwrap_or(&Value::Null);
+    reject_unknown_fields(
+        exit,
+        &[
+            "status",
+            "subject_digest",
+            "oracle_principal_id",
+            "blind_reader_principal_id",
+            "conversation_context_used",
+            "reproduced_verdict",
+            "oracle_receipt_ref",
+            "blind_reader_receipt_ref",
+        ],
+        "context_free_exit",
+        findings,
+    );
     let status = exit.get("status").and_then(Value::as_str);
     if status.is_none_or(|candidate| !matches!(candidate, "pending" | "satisfied" | "blocked")) {
         findings.insert("context_free_exit.status is invalid".to_owned());
@@ -1702,6 +1933,87 @@ fn validate_artifact_binding(value: &Value, field: &str, findings: &mut BTreeSet
     }
 }
 
+fn validate_protected_receipt_locator(receipt: &Value, findings: &mut BTreeSet<String>) {
+    if non_empty(receipt, "path").is_none() {
+        findings.insert("protected receipt binding.path must be a non-empty string".to_owned());
+    }
+    if receipt
+        .get("blob_oid")
+        .and_then(Value::as_str)
+        .is_none_or(|value| !is_hex(value, 40) && !is_hex(value, 64))
+    {
+        findings.insert(
+            "protected receipt binding.blob_oid must be a Git object identifier".to_owned(),
+        );
+    }
+    if receipt
+        .get("sha256")
+        .and_then(Value::as_str)
+        .is_none_or(|value| !is_hex(value, 64))
+    {
+        findings.insert("protected receipt binding.sha256 must be 64 hex bytes".to_owned());
+    }
+}
+
+fn is_supported_protected_receipt(receipt: &Value) -> bool {
+    let control = receipt.get("control_id").and_then(Value::as_str);
+    let role = receipt.get("role").and_then(Value::as_str);
+    let lens = receipt.get("lens_id").and_then(Value::as_str);
+    match (control, role) {
+        (Some("C01" | "C02" | "C03" | "C04" | "C05" | "C12"), Some("machine-evidence")) => {
+            lens.is_none()
+        }
+        (Some("C06"), Some("qualified-legal-compliance"))
+        | (Some("C07"), Some("affected-party-representation"))
+        | (Some("C08"), Some("operations-owner-capacity"))
+        | (Some("C09"), Some("security-evidence-custody"))
+        | (Some("C10"), Some("veto-owner-closure"))
+        | (Some("C11"), Some("machine-pilot-evidence" | "qualified-pilot-authorization"))
+        | (Some("C14"), Some("fresh-dissent"))
+        | (
+            Some("C15"),
+            Some("deterministic-oracle" | "blind-cold-reader" | "qualified-planning-authority"),
+        ) => lens.is_none(),
+        (Some("C13"), Some("independent-council")) => matches!(
+            lens,
+            Some(
+                "L01"
+                    | "L02"
+                    | "L03"
+                    | "L04"
+                    | "L05"
+                    | "L06"
+                    | "L07"
+                    | "L08"
+                    | "L09"
+                    | "L10"
+                    | "L11"
+                    | "L12"
+                    | "L13"
+                    | "L14"
+                    | "L15"
+                    | "L16"
+            )
+        ),
+        _ => false,
+    }
+}
+
+fn reject_unknown_fields(
+    value: &Value,
+    allowed: &[&str],
+    subject: &str,
+    findings: &mut BTreeSet<String>,
+) {
+    if let Some(object) = value.as_object() {
+        for field in object.keys() {
+            if !allowed.contains(&field.as_str()) {
+                findings.insert(format!("{subject} rejects unknown field {field}"));
+            }
+        }
+    }
+}
+
 fn validate_non_authoritative_extensions(
     value: &Value,
     subject: &str,
@@ -1789,6 +2101,7 @@ fn link_source_receipt(
 
 fn control_receipt_role(control_id: &str, receipt: &Value) -> Option<&'static str> {
     match control_id {
+        "C01" | "C02" | "C03" | "C04" | "C05" | "C12" => Some("machine-evidence"),
         "C06" => Some("qualified-legal-compliance"),
         "C07" => Some("affected-party-representation"),
         "C08" => Some("operations-owner-capacity"),
@@ -1833,7 +2146,11 @@ fn validate_receipt_binding(
         findings,
     );
     if matches!(control_id, "C06" | "C07" | "C08" | "C09" | "C10" | "C11") {
-        require_non_empty_string(binding, "qualification", findings);
+        validate_artifact_binding(
+            binding.get("qualification").unwrap_or(&Value::Null),
+            "qualification",
+            findings,
+        );
         validate_artifact_binding(
             binding.get("jurisdiction_scope").unwrap_or(&Value::Null),
             "jurisdiction_scope",
@@ -1954,6 +2271,19 @@ fn validate_state_progress(
             .enumerate()
         {
             let path = format!("blockers[{index}]");
+            reject_unknown_fields(
+                blocker,
+                &[
+                    "control_id",
+                    "input_class",
+                    "required_qualification",
+                    "scope",
+                    "authority_source_ref",
+                    "reason",
+                ],
+                &path,
+                findings,
+            );
             let control_id = blocker.get("control_id").and_then(Value::as_str);
             if !matches!(
                 control_id,
