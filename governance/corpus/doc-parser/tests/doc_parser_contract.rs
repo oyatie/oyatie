@@ -339,6 +339,17 @@ fn adr_ir_parses_crlf_quoted_commented_null_and_empty_forms_with_byte_spans() {
 }
 
 #[test]
+fn adr_ir_preserves_mid_token_hashes_in_plain_scalars() {
+    let source =
+        minimal_adr("id: ADR-0517\nstatus: Accepted\ndate: 2026-06-08\nowner: team#alpha\n");
+
+    let decision = parse_adr_decision(&AdrParseInput::new(ADR_PATH, source))
+        .expect("a mid-token hash is data, not a comment delimiter");
+
+    assert_eq!(decision.owner(), "team#alpha");
+}
+
+#[test]
 fn adr_ir_rejects_bad_indentation_and_unsupported_nesting() {
     let bad_indent = minimal_adr(
         "id: ADR-0517\nstatus: Accepted\ndate: 2026-06-08\nowner: founder\ndepends_on:\n - ADR-0516\n",
