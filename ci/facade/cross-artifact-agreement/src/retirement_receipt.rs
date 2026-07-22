@@ -596,6 +596,21 @@ pub fn evaluate_history_only_retirement_receipt_coverage(
                     .extend(input_paths(receipt, &mut findings));
             }
             (Some(path), Some("prepared-new")) if prepared.contains(path) => {
+                if receipt
+                    .pointer("/baseline/commit_oid")
+                    .and_then(Value::as_str)
+                    != protected_commit.as_deref()
+                    || receipt
+                        .pointer("/baseline/tree_oid")
+                        .and_then(Value::as_str)
+                        != protected_tree.as_deref()
+                    || fact.get("baseline_commit_oid").and_then(Value::as_str)
+                        != protected_commit.as_deref()
+                    || fact.get("baseline_tree_oid").and_then(Value::as_str)
+                        != protected_tree.as_deref()
+                {
+                    fail(&mut findings, "prepared_protected_baseline_binding");
+                }
                 let scope = receipt
                     .get("scope_ref")
                     .and_then(Value::as_str)
@@ -985,9 +1000,10 @@ fn required_string(value: &Value, key: &str, findings: &mut BTreeSet<Finding>) -
 }
 fn required_identifier(value: &Value, key: &str, findings: &mut BTreeSet<Finding>) {
     if !value.get(key).and_then(Value::as_str).is_some_and(|value| {
-        value
-            .bytes()
-            .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'-')
+        !value.is_empty()
+            && value
+                .bytes()
+                .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'-')
     }) {
         fail(findings, key);
     }
@@ -1485,6 +1501,23 @@ mod tests {
             .is_empty()
         );
 
+        let mut baseline_lockstep_receipt = prepared.clone();
+        baseline_lockstep_receipt["baseline"]["commit_oid"] = json!(NEW);
+        baseline_lockstep_receipt["baseline"]["tree_oid"] = json!(NEW_TREE);
+        let mut baseline_lockstep_facts = coverage.clone();
+        baseline_lockstep_facts["retirement_receipt_object_facts"][0]["baseline_commit_oid"] =
+            json!(NEW);
+        baseline_lockstep_facts["retirement_receipt_object_facts"][0]["baseline_tree_oid"] =
+            json!(NEW_TREE);
+        assert!(
+            !evaluate_history_only_retirement_receipt_coverage(
+                std::slice::from_ref(&baseline_lockstep_receipt),
+                &baseline_lockstep_facts
+            )
+            .is_empty(),
+            "prepared receipt and fact baselines must bind to protected SCM context"
+        );
+
         let mut candidate_rebound = coverage.clone();
         candidate_rebound["protected_scm_context"]["candidate_commit_oid"] = json!(OLD);
         assert!(
@@ -1539,6 +1572,36 @@ mod tests {
                 RETIREMENT_RECEIPT_CODE,
                 "receipt_scope_key_set"
             ))
+        );
+    }
+
+    #[test]
+    fn empty_artifact_identifier_fails_closed() {
+        let mut prepared = prepared_receipt(
+            "prepared-empty-id",
+            "ADR-0363",
+            OLD,
+            OLD_TREE,
+            "docs/old.md",
+        );
+        prepared["artifact_id"] = json!("");
+        let mut object_fact = fact(
+            "prepared-empty-id",
+            "evidence/prepared-empty-id.json",
+            "ADR-0363",
+            "prepared-new",
+            OLD,
+            OLD_TREE,
+            "docs/old.md",
+        );
+        object_fact["artifact_id"] = json!("");
+        assert!(
+            evaluate_history_only_retirement_receipt(
+                "evidence/prepared-empty-id.json",
+                &prepared,
+                &json!({"retirement_receipt_object_facts":[object_fact]})
+            )
+            .contains(&Finding::new(RETIREMENT_RECEIPT_CODE, "artifact_id"))
         );
     }
 
