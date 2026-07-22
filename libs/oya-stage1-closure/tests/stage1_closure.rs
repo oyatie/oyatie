@@ -885,3 +885,23 @@ fn protected_facts_grammar_rejects_authority_cardinality_identity_and_digest_fai
         json!("sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc");
     assert!(!validate_protected_facts_grammar(&mismatched_digest).is_green());
 }
+
+#[test]
+fn receipt_validation_has_no_legacy_authority_field_reads() {
+    let source = std::fs::read_to_string(format!(
+        "{}/src/lib.rs",
+        std::env::var("CARGO_MANIFEST_DIR").expect("manifest directory")
+    ))
+    .expect("library source");
+    for legacy in [
+        "issuer_".to_owned() + "id",
+        "issuer_".to_owned() + "class",
+        "trust_root_".to_owned() + "authority_ref",
+        "authority_".to_owned() + "ref",
+    ] {
+        assert!(
+            !source.contains(&legacy),
+            "legacy field read remains: {legacy}"
+        );
+    }
+}
