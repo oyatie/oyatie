@@ -1,3 +1,6 @@
+use corpus_doc_parser::census::{
+    CensusInput, CensusSource, CensusSourceKind, CensusViolation, SELECTOR_ID, build_receipt,
+};
 use corpus_doc_parser::{
     AdrFrontmatterValue, AdrParseError, AdrParseInput, DocNodeKind, DocParseError, DocParseInput,
     TaintReason, parse_adr_decision, parse_markdown_doc,
@@ -5,6 +8,137 @@ use corpus_doc_parser::{
 
 const ADR_FIXTURE: &str = include_str!("fixtures/adr-heading-reference.md");
 const ADVERSARIAL_FIXTURE: &str = include_str!("fixtures/adversarial-exfil.md");
+
+const OID_A: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+const OID_B: &str = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+
+fn census_source(path: &str, bytes: &[u8]) -> CensusSource {
+    CensusSource {
+        kind: CensusSourceKind::Decision,
+        path: path.to_owned(),
+        blob_oid: OID_A.to_owned(),
+        bytes: bytes.to_vec(),
+    }
+}
+
+fn census_input(decision_sources: Vec<CensusSource>) -> CensusInput {
+    CensusInput {
+        repository_commit: OID_A.to_owned(),
+        repository_tree: OID_B.to_owned(),
+        docs_tree: "cccccccccccccccccccccccccccccccccccccccc".to_owned(),
+        selector_id: SELECTOR_ID.to_owned(),
+        parser_commit: "dddddddddddddddddddddddddddddddddddddddd".to_owned(),
+        parser_sources: vec![CensusSource {
+            kind: CensusSourceKind::Parser,
+            path: "governance/corpus/doc-parser/src/lib.rs".to_owned(),
+            blob_oid: "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee".to_owned(),
+            bytes: include_bytes!("../src/lib.rs").to_vec(),
+        }],
+        decision_sources,
+    }
+}
+
+#[test]
+fn adr_census_builder_is_pure_deterministic_and_hold_bounded() {
+    let source = census_source(
+        "docs/decisions/ADR-0001-example.md",
+        b"---\nid: ADR-0001\nstatus: Proposed\ndate: 2026-01-01\nowner: corpus\n---\n\n# ADR-0001: Example\n",
+    );
+    let first = build_receipt(&census_input(vec![source.clone()]))
+        .expect("pure selected sources produce a receipt");
+    let second = build_receipt(&census_input(vec![source]))
+        .expect("the same immutable input is deterministic");
+
+    assert_eq!(first.canonical_bytes(), second.canonical_bytes());
+    assert_eq!(first.canonical_digest(), second.canonical_digest());
+    assert_eq!(first.parsed_count(), 1);
+    assert_eq!(first.rejected_count(), 0);
+    assert_eq!(first.entries()[0].blob_oid(), OID_A);
+    assert_eq!(first.claim_ceiling(), "BLOCKED/HOLD");
+}
+
+#[test]
+fn adr_census_receipt_uses_a_domain_and_length_framed_entry_fold() {
+    let source = census_source(
+        "docs/decisions/ADR-0001-example.md",
+        b"---\nid: ADR-0001\nstatus: Proposed\ndate: 2026-01-01\nowner: corpus\n---\n\n# ADR-0001: Example\n",
+    );
+    let receipt = build_receipt(&census_input(vec![source]))
+        .expect("a selected ADR produces a deterministic receipt");
+
+    assert_eq!(
+        receipt.aggregate_fold(),
+        "3a1b72ce1df5c06e90a958666d7d4835092eb5ac1e4d869f0a784f4e4fb1575a",
+        "the aggregate fold is a stable, domain-separated length-framed digest"
+    );
+}
+
+#[test]
+fn adr_census_builder_fails_closed_for_selector_duplicates_and_parser_mismatch() {
+    let source = census_source("docs/decisions/ADR-0001-example.md", b"not an ADR");
+    assert_eq!(
+        build_receipt(&census_input(vec![source.clone(), source])).unwrap_err(),
+        CensusViolation::DuplicatePath
+    );
+
+    assert_eq!(
+        build_receipt(&census_input(vec![census_source(
+            "docs/decisions/archive/ADR-0001-hidden.md",
+            b"not an ADR",
+        )]))
+        .unwrap_err(),
+        CensusViolation::SelectorPath
+    );
+
+    let mut input = census_input(vec![census_source(
+        "docs/decisions/ADR-0001-example.md",
+        b"not an ADR",
+    )]);
+    input.parser_sources[0].bytes.push(b'!');
+    assert_eq!(
+        build_receipt(&input).unwrap_err(),
+        CensusViolation::ParserSource
+    );
+}
+
+#[test]
+fn adr_census_builder_fails_closed_for_invalid_object_ids_and_wrong_source_roles() {
+    let source = census_source("docs/decisions/ADR-0001-example.md", b"not an ADR");
+    let mut invalid_object_id = census_input(vec![source.clone()]);
+    invalid_object_id.repository_commit = OID_A.to_uppercase();
+    assert_eq!(
+        build_receipt(&invalid_object_id).unwrap_err(),
+        CensusViolation::InvalidObjectId
+    );
+
+    let mut wrong_role = source;
+    wrong_role.kind = CensusSourceKind::Parser;
+    assert_eq!(
+        build_receipt(&census_input(vec![wrong_role])).unwrap_err(),
+        CensusViolation::SourceKind
+    );
+}
+
+#[test]
+fn adr_census_builder_retains_only_the_first_parser_error_with_its_source_span() {
+    let receipt = build_receipt(&census_input(vec![census_source(
+        "docs/decisions/ADR-0001-example.md",
+        b"---\nid: ADR-0002\nid: ADR-0001\n---\n# ADR-0001: Example\n",
+    )]))
+    .expect("parser errors remain deterministic diagnostic data");
+
+    let error = receipt.entries()[0]
+        .first_error()
+        .expect("rejected entry retains its first parser error");
+    assert_eq!(receipt.entries()[0].outcome(), "rejected");
+    assert_eq!(error.kind(), "DuplicateFrontmatterKey");
+    assert!(error.span().is_some());
+    assert!(error.raw().contains("duplicate ADR frontmatter key"));
+    assert_eq!(
+        receipt.first_error_kind_totals(),
+        &std::collections::BTreeMap::from([("DuplicateFrontmatterKey".to_owned(), 1)])
+    );
+}
 
 #[test]
 fn adr_fixture_produces_stable_heading_and_reference_ids() {
