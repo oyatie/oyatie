@@ -11,6 +11,8 @@ use stage1_closure::{
 
 const SUBJECT_DIGEST: &str =
     "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+const INTENTIONAL_PROTECTED_FACTS_FINDING: &str = "protected-facts grammar is non-authoritative; authenticated producer and trust-root verification are unimplemented";
+const INTENTIONAL_LINKAGE_HOLD_FINDING: &str = "protected-facts linkage is structural and non-authoritative; external authenticated controller and trust root are unimplemented, so Stage-1 remains HOLD_EPOCH_OPEN";
 
 fn program() -> Value {
     serde_json::from_str(include_str!("fixtures/program.json")).expect("program fixture parses")
@@ -267,7 +269,8 @@ fn canonical_program_and_open_hold_epoch_are_green() {
 
 #[test]
 fn public_protected_facts_linkage_remains_non_authoritative_and_held() {
-    let epoch = pass_epoch();
+    let mut epoch = pass_epoch();
+    epoch["state"] = json!("HOLD_EPOCH_OPEN");
     let facts = protected_facts(&epoch);
     let source_receipt_count = epoch["controls"]
         .as_array()
@@ -294,40 +297,14 @@ fn public_protected_facts_linkage_remains_non_authoritative_and_held() {
         33,
         "public fixture must retain exactly the required protected receipt population"
     );
-    assert!(
-        validate_protected_facts_grammar(&facts)
-            .findings
-            .iter()
-            .all(|finding| finding.contains("non-authoritative")),
-        "cross-link fixture must be schema-valid before linkage: {:?}",
-        validate_protected_facts_grammar(&facts).findings
-    );
-    let report = evaluate_protected_facts_linkage(&program(), &epoch, &facts);
-    assert!(
-        report
-            .findings
-            .iter()
-            .any(|finding| finding.contains("non-authoritative"))
-    );
-    assert!(
-        report
-            .findings
-            .iter()
-            .any(|finding| finding.contains("HOLD_EPOCH_OPEN"))
-    );
-    assert!(
-        report.findings.iter().all(|finding| {
-            finding.contains("external authenticated Stage-1 controller")
-                || finding.contains("protected-facts linkage is structural")
-        }),
-        "full source-to-protected linkage must have only intentional HOLD denials: {:?}",
-        report.findings
-    );
+    assert_only_intentional_protected_facts_findings(&facts);
+    assert_linkage_findings(&epoch, &facts, &[]);
 }
 
 #[test]
 fn public_linkage_requires_unique_full_contextual_c13_and_c15_bindings() {
-    let epoch = pass_epoch();
+    let mut epoch = pass_epoch();
+    epoch["state"] = json!("HOLD_EPOCH_OPEN");
     let green = protected_facts(&epoch);
     for field in [
         "path",
@@ -341,16 +318,28 @@ fn public_linkage_requires_unique_full_contextual_c13_and_c15_bindings() {
         let mut mutated = green.clone();
         let binding =
             protected_binding_mut(&mut mutated, "C13", "independent-council", Some("L01"));
-        binding[field] = json!("tampered");
-        let report = evaluate_protected_facts_linkage(&program(), &epoch, &mutated);
-        assert!(
-            report
-                .findings
-                .iter()
-                .any(|finding| finding.contains("C13/L01 source receipt lacks an exact")),
-            "tampered mapped field {field} must break C13 linkage: {:?}",
-            report.findings
-        );
+        binding[field] = match field {
+            "blob_oid" => json!("3333333333333333333333333333333333333333"),
+            "sha256" => {
+                json!("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")
+            }
+            "subject_digest" => {
+                json!("sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc")
+            }
+            "authority_source_ref" => artifact_binding("authority/tampered"),
+            _ => json!("tampered"),
+        };
+        let mut expected = vec![
+            "C13 source receipt lacks an exact protected-parent binding",
+            "C13/L01 source receipt lacks an exact protected-parent binding",
+        ];
+        if field == "issuer_authority_class" {
+            expected.push("C13/L01 requires independent-council reviewer authority");
+        }
+        if field == "subject_digest" {
+            expected.push("C13/L01 must match subject/program/epoch digests");
+        }
+        assert_linkage_findings(&epoch, &mutated, &expected);
     }
 
     let mut lens_permutation = green.clone();
@@ -360,22 +349,27 @@ fn public_linkage_requires_unique_full_contextual_c13_and_c15_bindings() {
         "independent-council",
         Some("L01"),
     )["lens_id"] = json!("L02");
-    assert!(
-        evaluate_protected_facts_linkage(&program(), &epoch, &lens_permutation)
-            .findings
-            .iter()
-            .any(|finding| finding.contains("C13/L01 source receipt lacks an exact"))
+    assert_linkage_findings(
+        &epoch,
+        &lens_permutation,
+        &[
+            "C13/L01 requires exactly one independent lens receipt",
+            "C13/L01 source receipt lacks an exact protected-parent binding",
+            "C13/L02 requires exactly one independent lens receipt",
+        ],
     );
 
     let mut role_swap = green.clone();
     protected_binding_mut(&mut role_swap, "C15", "deterministic-oracle", None)["role"] =
         json!("blind-cold-reader");
-    assert!(
-        evaluate_protected_facts_linkage(&program(), &epoch, &role_swap)
-            .findings
-            .iter()
-            .any(|finding| finding
-                .contains("C15/deterministic-oracle source receipt lacks an exact"))
+    assert_linkage_findings(
+        &epoch,
+        &role_swap,
+        &[
+            "C15/blind-cold-reader requires exactly one receipt",
+            "C15/deterministic-oracle requires exactly one receipt",
+            "C15/deterministic-oracle source receipt lacks an exact protected-parent binding",
+        ],
     );
 
     let mut missing_third_role = green.clone();
@@ -385,12 +379,15 @@ fn public_linkage_requires_unique_full_contextual_c13_and_c15_bindings() {
         .retain(|binding| {
             binding["control_id"] != "C15" || binding["role"] != "qualified-planning-authority"
         });
-    assert!(
-        evaluate_protected_facts_linkage(&program(), &epoch, &missing_third_role)
-            .findings
-            .iter()
-            .any(|finding| finding
-                .contains("C15/qualified-planning-authority source receipt lacks an exact"))
+    assert_linkage_findings(
+        &epoch,
+        &missing_third_role,
+        &[
+            "C15 permits exactly three exit receipts",
+            "C15 requires three distinct principal_id values",
+            "C15/qualified-planning-authority requires exactly one receipt",
+            "C15/qualified-planning-authority source receipt lacks an exact protected-parent binding",
+        ],
     );
 
     let mut duplicate = green;
@@ -400,11 +397,15 @@ fn public_linkage_requires_unique_full_contextual_c13_and_c15_bindings() {
         .as_array_mut()
         .expect("receipt bindings")
         .push(duplicate_binding);
-    assert!(
-        evaluate_protected_facts_linkage(&program(), &epoch, &duplicate)
-            .findings
-            .iter()
-            .any(|finding| finding.contains("C13/L01 source receipt has multiple exact"))
+    assert_linkage_findings(
+        &epoch,
+        &duplicate,
+        &[
+            "C13 permits exactly sixteen lens receipts",
+            "C13 source receipt has multiple exact protected-parent bindings",
+            "C13/L01 requires exactly one independent lens receipt",
+            "C13/L01 source receipt has multiple exact protected-parent bindings",
+        ],
     );
 }
 
@@ -1019,13 +1020,9 @@ fn protected_receipt_bindings_match_schema_allowed_fields_and_reject_legacy_fiel
     ] {
         let mut facts = grammar_facts();
         facts["receipt_bindings"][0][legacy_field] = json!(true);
-        assert!(
-            validate_protected_facts_grammar(&facts)
-                .findings
-                .iter()
-                .any(|finding| finding
-                    == &format!("protected receipt binding rejects unknown field {legacy_field}")),
-            "legacy protected receipt field {legacy_field} must fail closed"
+        assert_protected_facts_finding(
+            &facts,
+            &format!("protected receipt binding rejects unknown field {legacy_field}"),
         );
     }
 }
@@ -1311,22 +1308,51 @@ fn grammar_facts() -> Value {
 
 fn assert_only_intentional_protected_facts_findings(facts: &Value) {
     let report = validate_protected_facts_grammar(facts);
+    assert_eq!(
+        report.findings,
+        vec![INTENTIONAL_PROTECTED_FACTS_FINDING.to_owned()],
+        "valid protected facts must yield exactly the intentional non-authoritative finding"
+    );
     assert!(
-        report
-            .findings
+        normalized_findings(&report.findings, INTENTIONAL_PROTECTED_FACTS_FINDING).is_empty(),
+        "valid protected facts must have no structural findings after normalization"
+    );
+}
+
+fn normalized_findings(findings: &[String], intentional: &str) -> BTreeSet<String> {
+    let mut normalized = findings.iter().cloned().collect::<BTreeSet<_>>();
+    assert!(
+        normalized.remove(intentional),
+        "expected exactly one intentional finding {intentional:?}, got {findings:?}"
+    );
+    normalized
+}
+
+fn assert_protected_facts_findings(facts: &Value, expected: &[&str]) {
+    let report = validate_protected_facts_grammar(facts);
+    assert_eq!(
+        normalized_findings(&report.findings, INTENTIONAL_PROTECTED_FACTS_FINDING),
+        expected
             .iter()
-            .all(|finding| finding.contains("non-authoritative")),
-        "valid protected facts may only produce the intentional HOLD/non-authoritative finding: {:?}",
-        report.findings
+            .map(|finding| (*finding).to_owned())
+            .collect(),
+        "protected-facts structural findings must be exact"
     );
 }
 
 fn assert_protected_facts_finding(facts: &Value, expected: &str) {
-    let report = validate_protected_facts_grammar(facts);
-    assert!(
-        report.findings.iter().any(|finding| finding == expected),
-        "expected protected-facts finding {expected:?}, got {:?}",
-        report.findings
+    assert_protected_facts_findings(facts, &[expected]);
+}
+
+fn assert_linkage_findings(epoch: &Value, facts: &Value, expected: &[&str]) {
+    let report = evaluate_protected_facts_linkage(&program(), epoch, facts);
+    assert_eq!(
+        normalized_findings(&report.findings, INTENTIONAL_LINKAGE_HOLD_FINDING),
+        expected
+            .iter()
+            .map(|finding| (*finding).to_owned())
+            .collect(),
+        "protected-facts linkage structural findings must be exact"
     );
 }
 
@@ -1339,9 +1365,13 @@ fn protected_facts_grammar_rejects_authority_cardinality_identity_and_digest_fai
         .as_object_mut()
         .expect("facts")
         .remove("evaluator_binding");
-    assert_protected_facts_finding(
+    assert_protected_facts_findings(
         &missing_envelope_binding,
-        "protected facts evaluator_binding.blob_oid must be a Git object identifier",
+        &[
+            "path must be a non-empty string",
+            "protected facts evaluator_binding.blob_oid must be a Git object identifier",
+            "protected facts evaluator_binding.sha256 must be 64 hex bytes",
+        ],
     );
     let mut extra_field = green.clone();
     extra_field["unrecognized"] = json!(true);
@@ -1372,9 +1402,13 @@ fn protected_facts_grammar_rejects_authority_cardinality_identity_and_digest_fai
             .find(|receipt| receipt["control_id"] == "C13" && receipt["lens_id"] == "L01")
             .expect("L01 receipt");
         lens.as_object_mut().expect("receipt").remove(field);
-        assert_protected_facts_finding(
+        assert_protected_facts_findings(
             &missing,
-            &format!("protected facts {field}.blob_oid must be a Git object identifier"),
+            &[
+                "path must be a non-empty string",
+                &format!("protected facts {field}.blob_oid must be a Git object identifier"),
+                &format!("protected facts {field}.sha256 must be 64 hex bytes"),
+            ],
         );
     }
     for (control, role, authority) in [
@@ -1424,9 +1458,20 @@ fn protected_facts_grammar_rejects_authority_cardinality_identity_and_digest_fai
             .as_array_mut()
             .expect("receipts")
             .retain(|receipt| !(receipt["control_id"] == control && receipt["role"] == role));
-        assert_protected_facts_finding(
+        let mut expected = vec![format!("{control}/{role} requires exactly one receipt")];
+        if control == "C11" {
+            expected
+                .push("C11 permits exactly its machine and qualified-pilot receipts".to_owned());
+        }
+        if control == "C15" {
+            expected.extend([
+                "C15 permits exactly three exit receipts".to_owned(),
+                "C15 requires three distinct principal_id values".to_owned(),
+            ]);
+        }
+        assert_protected_facts_findings(
             &missing,
-            &format!("{control}/{role} requires exactly one receipt"),
+            &expected.iter().map(String::as_str).collect::<Vec<_>>(),
         );
     }
     let mut missing_c14 = green.clone();
@@ -1449,9 +1494,12 @@ fn protected_facts_grammar_rejects_authority_cardinality_identity_and_digest_fai
             "machine-pilot-evidence",
             "extra",
         ));
-    assert_protected_facts_finding(
+    assert_protected_facts_findings(
         &extra_c11,
-        "C11/machine-pilot-evidence requires exactly one receipt",
+        &[
+            "C11 permits exactly its machine and qualified-pilot receipts",
+            "C11/machine-pilot-evidence requires exactly one receipt",
+        ],
     );
     let mut duplicate_lens = green.clone();
     let duplicate_lens_binding = protected_binding_mut(
@@ -1465,9 +1513,12 @@ fn protected_facts_grammar_rejects_authority_cardinality_identity_and_digest_fai
         .as_array_mut()
         .expect("receipts")
         .push(duplicate_lens_binding);
-    assert_protected_facts_finding(
+    assert_protected_facts_findings(
         &duplicate_lens,
-        "C13/L01 requires exactly one independent lens receipt",
+        &[
+            "C13 permits exactly sixteen lens receipts",
+            "C13/L01 requires exactly one independent lens receipt",
+        ],
     );
     let mut duplicate_exit_role = green.clone();
     let duplicate_exit_binding = protected_binding_mut(
@@ -1481,9 +1532,12 @@ fn protected_facts_grammar_rejects_authority_cardinality_identity_and_digest_fai
         .as_array_mut()
         .expect("receipts")
         .push(duplicate_exit_binding);
-    assert_protected_facts_finding(
+    assert_protected_facts_findings(
         &duplicate_exit_role,
-        "C15/deterministic-oracle requires exactly one receipt",
+        &[
+            "C15 permits exactly three exit receipts",
+            "C15/deterministic-oracle requires exactly one receipt",
+        ],
     );
     let mut same_lens_principal = green.clone();
     for receipt in same_lens_principal["receipt_bindings"]
@@ -1558,9 +1612,20 @@ fn receipt_population_parity_rejects_each_missing_requirement_and_unsupported_pa
             .as_array_mut()
             .expect("bindings")
             .retain(|receipt| !(receipt["control_id"] == control && receipt["role"] == role));
-        assert_protected_facts_finding(
+        let mut expected = vec![format!("{control}/{role} requires exactly one receipt")];
+        if control == "C11" {
+            expected
+                .push("C11 permits exactly its machine and qualified-pilot receipts".to_owned());
+        }
+        if control == "C15" {
+            expected.extend([
+                "C15 permits exactly three exit receipts".to_owned(),
+                "C15 requires three distinct principal_id values".to_owned(),
+            ]);
+        }
+        assert_protected_facts_findings(
             &missing,
-            &format!("{control}/{role} requires exactly one receipt"),
+            &expected.iter().map(String::as_str).collect::<Vec<_>>(),
         );
     }
     for lens in 1..=16 {
@@ -1570,9 +1635,12 @@ fn receipt_population_parity_rejects_each_missing_requirement_and_unsupported_pa
             .as_array_mut()
             .expect("bindings")
             .retain(|receipt| !(receipt["control_id"] == "C13" && receipt["lens_id"] == lens));
-        assert_protected_facts_finding(
+        assert_protected_facts_findings(
             &missing,
-            &format!("C13/{lens} requires exactly one independent lens receipt"),
+            &[
+                "C13 permits exactly sixteen lens receipts",
+                &format!("C13/{lens} requires exactly one independent lens receipt"),
+            ],
         );
     }
 
@@ -1611,10 +1679,20 @@ fn receipt_population_parity_rejects_each_missing_requirement_and_unsupported_pa
                     "wrong-qualification",
                     "unsupported",
                 ));
-            assert_protected_facts_finding(
-                &unsupported,
-                "protected receipt binding has unsupported control/role/lens",
-            );
+            let mut expected = vec!["protected receipt binding has unsupported control/role/lens"];
+            if control == "C11" {
+                expected.push("C11 permits exactly its machine and qualified-pilot receipts");
+            }
+            if control == "C13" {
+                expected.push("C13 permits exactly sixteen lens receipts");
+            }
+            if control == "C15" {
+                expected.extend([
+                    "C15 permits exactly three exit receipts",
+                    "C15 requires three distinct principal_id values",
+                ]);
+            }
+            assert_protected_facts_findings(&unsupported, &expected);
         }
     }
     let mut unsupported_lens = green;
@@ -1625,9 +1703,12 @@ fn receipt_population_parity_rejects_each_missing_requirement_and_unsupported_pa
         .find(|receipt| receipt["control_id"] == "C13" && receipt["lens_id"] == "L01")
         .expect("C13/L01");
     receipt["lens_id"] = json!("L17");
-    assert_protected_facts_finding(
+    assert_protected_facts_findings(
         &unsupported_lens,
-        "protected receipt binding has unsupported control/role/lens",
+        &[
+            "C13/L01 requires exactly one independent lens receipt",
+            "protected receipt binding has unsupported control/role/lens",
+        ],
     );
 }
 
