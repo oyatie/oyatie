@@ -1,7 +1,8 @@
 ---
 id: ADR-0619
 title: "Zero-live-context retirement of an external agent-harness brand"
-status: Accepted
+status: Amended
+amended_date: 2026-07-22
 planning_impact: true
 deciders: founder
 date: 2026-07-20
@@ -23,7 +24,7 @@ milestone: W0
 
 ## Status
 
-**Accepted — 2026-07-20.** The founder directed immediate cessation and removal. This ADR
+**Accepted — 2026-07-20; amended — 2026-07-22.** The founder directed immediate cessation and removal. This ADR
 records that ruling, closes the readable-history exceptions in ADR-0335 D-30, D-34, and D-81,
 and removes the source-specific ingest introduced by Proposed ADR-0609. No later Accepted ADR
 reverses ADR-0335's retirement.
@@ -31,6 +32,19 @@ reverses ADR-0335's retirement.
 The forbidden lower-case ASCII token is identified by SHA-256
 8cfde6efdfc4ed5ab1f6acbbd1ba49bf31932f84d0a4c090eb41c7d151e8b180.
 The plaintext token is intentionally absent from this decision.
+
+### 2026-07-22 qualified authorization record
+
+- `directive_text`: `assume qualified authorization`
+- `source_type`: `direct-user-directive`
+- `scopes`: `founder-product-intent`, `architecture-decision`, `planning-HOLD`, `repository-disposition`
+- `effect`: repository ratification only.
+- `explicit_nonclaims`: external legal facts, affected-party consent, ops capacity, custody keys,
+  pilot results, and Stage-1 control satisfaction.
+
+This amendment records a repository-scoped authority interpretation only. It preserves the open
+planning HOLD, does not dispatch a wave or create a roadmap, and does not claim final absence
+before the atomic consumer-retirement and deletion change is complete.
 
 ## Context
 

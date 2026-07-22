@@ -1,6 +1,7 @@
 ---
 id: ADR-0363
-status: Accepted
+status: Amended
+amended_date: 2026-07-22
 planning_impact: true
 deciders: council-architecture, founder
 date: 2026-05-26
@@ -31,6 +32,12 @@ are retirement/migration wrappers rather than CI authority.
 **Current amendment — ADR-0515:** plain Git and protected GitHub PRs remain the live substrate;
 `oya-ci-required` is the sole merge-status authority. ADR-0513 is retained only as nonbinding
 history and does not amend this ADR's current meaning.
+
+**2026-07-22 history-only amendment:** the retirement-marked local lane bridge and its four tracked
+`.omc/ultragoal` support files (`OWNERS`, `TEAMMATE-PREAMBLE.md`, `friction-ledger.jsonl`, and
+`premise.txt`) are not current agent instructions or a default read surface. They remain in HEAD
+only as clearly historical provenance pending the atomic consumer-retirement and final-deletion
+change; this amendment does not claim that those files are already absent.
 
 ## Context
 
@@ -78,7 +85,10 @@ Narrow the toolchain to its **differentiated core while removing CLI authority**
 - **Let standard tools do their job:** cargo (fmt/check/clippy/nextest), cargo-deny (license/bans/advisories), Trivy/cosign/Syft (supply-chain), Opengrep, gitleaks — run natively as cloud-ci jobs/adapters, not re-wrapped as permanent `oya` CLI authority.
 - **Retire:** `oya vcs`, `oya git`, and any use of `oya verify`/`oya gate` as protected-branch CI producers.
 
-**Local lane-liveness bridge (FRIC-1781110000):** until cloud-ci owns durable lane orchestration, a retirement-marked local bridge may supervise headless agent lanes without becoming merge authority. The bridge surfaces are `tools/oya-lane-supervisor-app/BUCK`, `tools/oya-lane-supervisor-app/Cargo.toml`, `tools/oya-lane-supervisor-app/OWNERS`, `tools/oya-lane-supervisor-app/src/lib.rs`, `tools/oya-lane-supervisor-app/src/main.rs`, `registry/catalog/oya-lane-supervisor-app.yaml`, `registry/catalog/OWNERS`, `.omc/ultragoal/OWNERS`, `.omc/ultragoal/TEAMMATE-PREAMBLE.md`, `.omc/ultragoal/friction-ledger.jsonl`, `.omc/ultragoal/premise.txt`, and `.omc/ultragoal/review-verdict.txt`. They exist only to detect dead/stalled local lanes and preserve the plain-git protected-PR workflow; the durable destination remains cloud-ci/oya-ci required contexts.
+**Historical lane-liveness bridge (FRIC-1781110000):** the former retirement-marked local bridge
+and its four tracked `.omc/ultragoal` support files are provenance only and MUST NOT be read by
+default or used for new lanes. They remain tracked solely until the atomic consumer-retirement and
+final-deletion change; the durable destination remains cloud-ci/oya-ci required contexts.
 
 ### 5. Foundry → Intelligence absorption; Governance stays its own service
 - The legacy `microservices/foundry/` material is **absorbed into Intelligence** (active target `{oya,cloud}/intelligence/` per ADR-0131/ADR-0512 amendment: adapters, runtime, supervisor, eval, capability, rag, account, dashboard). The `foundry/` dir is retired; its docs/contracts/manifest are reconciled into Intelligence.

@@ -6799,7 +6799,7 @@
         "is_live_plan_authority": false,
         "absorbed_into": "/specs/masterplan.json#masterplan_v2",
         "work_item_id_policy": "harness-store-only-no-live-id-authority",
-        "provenance": "Repo-local .omc harness store is read-only forensic provenance; non-stale observations must be routed through MPV2 evidence refs or backlog cards before affecting status."
+        "provenance": "Repo-local .omc harness store is historical provenance only, retained in HEAD pending atomic consumer retirement and final deletion. It is not a default agent read surface; no observation from it affects status without independently recorded MPV2 evidence."
       },
       {
         "path": ".omc/ultragoal/friction-ledger.jsonl",
@@ -6808,7 +6808,7 @@
         "is_live_plan_authority": false,
         "absorbed_into": "/specs/masterplan.json#masterplan_v2",
         "work_item_id_policy": "observations-only-no-live-id-authority",
-        "provenance": "Repo-local ultragoal friction ledger may seed backlog evidence but cannot mint live plan ids."
+        "provenance": "Repo-local ultragoal friction ledger is historical provenance only, retained in HEAD pending atomic consumer retirement and final deletion. It is not a default agent read surface and cannot mint live plan ids or seed backlog evidence without independently recorded MPV2 evidence."
       },
       {
         "path": ".omx/**",
@@ -9073,6 +9073,27 @@
       "nonbinding_planning_discussion_allowed": true,
       "binding_plan_approval_allowed": false,
       "dispatch_allowed": false,
+      "qualified_authorization_record": {
+        "date": "2026-07-22",
+        "directive_text": "assume qualified authorization",
+        "source_type": "direct-user-directive",
+        "scopes": [
+          "founder-product-intent",
+          "architecture-decision",
+          "planning-HOLD",
+          "repository-disposition"
+        ],
+        "effect": "repository ratification only",
+        "explicit_nonclaims": [
+          "external legal facts",
+          "affected-party consent",
+          "ops capacity",
+          "custody keys",
+          "pilot results",
+          "Stage-1 control satisfaction"
+        ],
+        "hold_effect": "The directive records repository-scoped ratification only. It does not close the planning HOLD, allow binding plan approval, dispatch waves, or create a roadmap."
+      },
       "current_pr_candidate": "evidence/consolidation/preplanning-authority-closure-20260713.json",
       "current_pr_candidate_state": {
         "baseline_commit": "1d21a7fd5fbc29d6853b3863a6d2680e6ac44224",

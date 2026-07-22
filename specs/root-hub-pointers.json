@@ -5,7 +5,7 @@
     "audit_scope": "ADR index consolidation, spec hub gardening, direct root-hub coverage for top-level specs/*.json, and Wave 15-ZF master-plan pointer coverage for ADR-0346..0349.",
     "created_at": "2026-05-13T00:00:00Z",
     "doc_class": "Machine-Readable-Spec",
-    "last_audited": "2026-07-13",
+    "last_audited": "2026-07-22",
     "owner_team": "founder + platform-governance",
     "purpose": "Canonical machine-readable pointer registry. README.md + CLAUDE.md + AGENTS.md survive as authority/entry hubs; HANDOFF.md survives under the founder's 2026-06-08 exception as a thin fresh-session redirect only.",
     "spec_id": "EXE-ROOT-HUB-POINTERS",
@@ -21,7 +21,7 @@
   "agent_quick_start_protocol": {
     "step_1_read_authority": "Read entry_points.decision_principles + .agent_operating_contract + .masterplan + .markdown_retirement_policy + .gitops_vcs_replacement; entry_points.master_plan_sequencing is provenance/compatibility only after masterplan v2 authority consolidation.",
     "step_2_context_recall": "Prefer intelligence-native context once available (replaces prior Foundry framing per ADR-0335 Wave 15I); legacy icm recall-context is compatibility/provenance only and is never promotion authority.",
-    "step_3_oya_vcs_state_transition": "Canonical path is plain `git` + protected PR against dev. Merge readiness is reviewer APPROVE plus the single protected `oya-ci-required` context produced by the cloud-ci gate apps; legacy CI/`oya gate` output is bridge/local evidence only and never merge authority. The bespoke Oya VCS claim → work → verify → done → promote ratchet is RETIRED (provenance/historical only per ADR-0363); legacy grit/icm/rtk/vox/omx/omc surfaces are likewise read/provenance only.",
+    "step_3_oya_vcs_state_transition": "Canonical path is plain `git` + protected PR against dev. Merge readiness is reviewer APPROVE plus the single protected `oya-ci-required` context produced by the cloud-ci gate apps; legacy CI/`oya gate` output is bridge/local evidence only and never merge authority. The bespoke Oya VCS claim → work → verify → done → promote ratchet is RETIRED (provenance/historical only per ADR-0363); legacy grit/icm/rtk/vox/omx/omc surfaces are not default reads and may be consulted only as explicitly requested historical provenance.",
     "step_4_active_artifact_contract": "Every new artifact under applicable_paths_glob conforms to active-artifact-contract v3.0.0 + registers a row in artifact-capabilities-registry.",
     "step_5_independent_review": "Preserve multi-lens review discipline through independent reviewer-agent passes, PR Code Review evidence, typed quality-gate artifacts, and cloud-ci/oya-ci gate packets. The standalone multispectrum evidence-file/spec convention is retired with the external coordination / Oya VCS / Jenkins-adapter admission path; do not emit new evidence/multispectrum files.",
     "step_6_gitops_vcs_replacement": "Before broad multi-agent fan-out, treat /specs/gitops-vcs-replacement.json as provenance/historical input only: the bespoke Oya VCS claim coverage, ChangeBundle closeout, controller rebase, and retired ratchet mechanisms are superseded by ADR-0363/ADR-0515. Live merge readiness is plain git + protected PR against dev + reviewer APPROVE + the single protected `oya-ci-required` context. Legacy CI/`oya gate` output is bridge evidence only. Tide/prow-shaped admission language is historical unless reintroduced by a new accepted authority; cloud-ci gate apps own the required context."
@@ -299,7 +299,13 @@
       "current_path": "registry/catalog/oya-lane-supervisor-app.yaml",
       "kind": "registry",
       "migration_phase": "local-bridge-until-cloud-ci-lane-state",
-      "purpose": "Retirement-marked local bridge catalog row for the lane-supervisor app. Supporting local-only surfaces are .omc/ultragoal/OWNERS, .omc/ultragoal/TEAMMATE-PREAMBLE.md, .omc/ultragoal/friction-ledger.jsonl, .omc/ultragoal/premise.txt, .omc/ultragoal/review-verdict.txt, registry/catalog/OWNERS, and registry/catalog/oya-lane-supervisor-app.yaml. Merge authority remains in cloud-ci/oya-ci required contexts per ADR-0363.",
+      "purpose": "Historical bridge catalog row retained pending atomic consumer retirement and final deletion. Its former .omc/ultragoal support files are not agent entry surfaces or default reads; consult them only when an explicit provenance request names them. This is not an absence claim. Merge authority remains in cloud-ci/oya-ci required contexts per ADR-0363.",
+      "history_only_paths": [
+        ".omc/ultragoal/OWNERS",
+        ".omc/ultragoal/TEAMMATE-PREAMBLE.md",
+        ".omc/ultragoal/friction-ledger.jsonl",
+        ".omc/ultragoal/premise.txt"
+      ],
       "target_path_after_md_retirement": "cloud-ci durable lane orchestration state"
     },
     "reorg_codemod_bridge": {
