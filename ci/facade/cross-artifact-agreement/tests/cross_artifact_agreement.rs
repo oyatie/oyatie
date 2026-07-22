@@ -820,12 +820,10 @@ fn founder_product_intent_validator_is_fail_closed_for_operational_world_type_an
         ),
         (
             "comparator-precedes-legal-jcr",
-            "benchmark_and_measurement_contract.comparator_legal_jcr_prerequisite",
+            "benchmark_and_measurement_contract.comparator_admission",
             Box::new(|candidate| {
-                candidate["benchmark_and_measurement_contract"]["comparator_legal_jcr_prerequisite"] =
-                    Value::String(
-                        "C05 comparator may be satisfied before C06 legal_jcr.".to_owned(),
-                    );
+                candidate["benchmark_and_measurement_contract"]["comparator_admission"]["claim_allowed"] =
+                    Value::Bool(true);
             }),
         ),
         (
@@ -860,6 +858,126 @@ fn founder_product_intent_validator_is_fail_closed_for_operational_world_type_an
             Box::new(|candidate| {
                 candidate["authority_boundary"]["planning_state"] =
                     Value::String("PASS(Planning)".to_owned());
+            }),
+        ),
+    ];
+
+    for (name, expected_key, mutate) in cases {
+        let mut candidate = intent.clone();
+        mutate(&mut candidate);
+        let findings =
+            evaluate_founder_product_intent_agreement(&candidate, &root_hub, &registry, &graph);
+        assert!(
+            findings.iter().any(|finding| finding.key == expected_key),
+            "{name} must fail closed with {expected_key}: {findings:?}"
+        );
+    }
+}
+
+/// Stage-1 dependency order and every founder-intent nonclaim boundary are closed
+/// structures. Required prose may be retained for people, but it can never carry
+/// the permissive semantics that the machine gate must decide.
+#[test]
+fn founder_product_intent_validator_is_fail_closed_for_stage1_dependencies_and_contradictory_exceptions()
+ {
+    let root = repo_root();
+    let intent = load_json(&root.join("specs/founder-product-intent.json"));
+    let root_hub = load_json(&root.join("specs/root-hub-pointers.json"));
+    let registry = load_json(&root.join("registry/artifact-capabilities-registry.json"));
+    let graph = load_json(&root.join("registry/graph/active-artifact-contract-edges.json"));
+
+    let cases: [(&str, &str, JsonMutation); 8] = [
+        (
+            "missing-comparator-dependency",
+            "stage1_entry_requirements.controls[comparator].depends_on",
+            Box::new(|candidate| {
+                candidate["stage1_entry_requirements"]["controls"]
+                    .as_array_mut()
+                    .expect("Stage-1 controls")
+                    .iter_mut()
+                    .find(|control| control["id"].as_str() == Some("comparator"))
+                    .expect("comparator control")
+                    .as_object_mut()
+                    .expect("comparator control object")
+                    .remove("depends_on");
+            }),
+        ),
+        (
+            "reversed-legal-comparator-dependency",
+            "stage1_entry_requirements.controls.dependencies.order",
+            Box::new(|candidate| {
+                let controls = candidate["stage1_entry_requirements"]["controls"]
+                    .as_array_mut()
+                    .expect("Stage-1 controls");
+                let comparator = controls
+                    .iter_mut()
+                    .find(|control| control["id"].as_str() == Some("comparator"))
+                    .expect("comparator control");
+                comparator["depends_on"] = serde_json::json!(["legal_jcr"]);
+                let legal = controls
+                    .iter_mut()
+                    .find(|control| control["id"].as_str() == Some("legal_jcr"))
+                    .expect("legal/JCR control");
+                legal["depends_on"] = serde_json::json!(["comparator"]);
+            }),
+        ),
+        (
+            "unknown-dependency",
+            "stage1_entry_requirements.controls.dependencies.known_ids",
+            Box::new(|candidate| {
+                candidate["stage1_entry_requirements"]["controls"]
+                    .as_array_mut()
+                    .expect("Stage-1 controls")[0]["depends_on"] =
+                    serde_json::json!(["invented-control"]);
+            }),
+        ),
+        (
+            "cyclic-dependencies",
+            "stage1_entry_requirements.controls.dependencies.cycle",
+            Box::new(|candidate| {
+                let controls = candidate["stage1_entry_requirements"]["controls"]
+                    .as_array_mut()
+                    .expect("Stage-1 controls");
+                controls[0]["depends_on"] = serde_json::json!(["decision_parser_ir"]);
+                controls[1]["depends_on"] = serde_json::json!(["adr_chronology"]);
+            }),
+        ),
+        (
+            "type-boundary-exception-appended",
+            "game_engine_product_model.governance_type_system_boundary",
+            Box::new(|candidate| {
+                candidate["game_engine_product_model"]["governance_type_system_boundary"]["exception"] =
+                    Value::String("may amend Accepted authority".to_owned());
+            }),
+        ),
+        (
+            "comparator-rule-exception-appended",
+            "benchmark_and_measurement_contract.comparator_admission",
+            Box::new(|candidate| {
+                candidate["benchmark_and_measurement_contract"]["comparator_admission"]["exception"] =
+                    Value::String("C05 may bypass C06".to_owned());
+            }),
+        ),
+        (
+            "research-quarantine-exception-appended",
+            "founder_execution_authorization.pipeline_evolution_contract.research_basis.sources[palantir-apollo-helm-rollouts].quarantine",
+            Box::new(|candidate| {
+                let source = candidate["founder_execution_authorization"]
+                    ["pipeline_evolution_contract"]["research_basis"]["sources"]
+                    .as_array_mut()
+                    .expect("research sources")
+                    .iter_mut()
+                    .find(|source| source["source_id"].as_str() == Some("palantir-apollo-helm-rollouts"))
+                    .expect("Palantir source");
+                source["quarantine"]["exception"] = Value::Bool(true);
+            }),
+        ),
+        (
+            "change-accounting-exception-appended",
+            "change_accounting[0]",
+            Box::new(|candidate| {
+                candidate["change_accounting"][0]["exception"] =
+                    Value::String("dispatch may proceed".to_owned());
             }),
         ),
     ];

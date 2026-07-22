@@ -4,7 +4,7 @@
 //! non-dispatching, unresolved Stage-1 entry contract. It deliberately has no path
 //! that can mark a control satisfied or promote `HOLD(Planning)`.
 
-use std::collections::{BTreeSet, HashSet};
+use std::collections::{BTreeSet, HashMap, HashSet};
 
 use serde_json::{Value, json};
 
@@ -45,8 +45,8 @@ const STAGE1_CONTROL_IDS: [&str; 15] = [
     "decision_parser_ir",
     "corpus_archive_freshness",
     "decision_population",
-    "comparator",
     "legal_jcr",
+    "comparator",
     "affected_party",
     "operations",
     "custody",
@@ -276,6 +276,7 @@ pub fn evaluate_founder_product_intent_agreement(
                 break;
             }
         }
+        validate_stage1_control_dependencies(&mut findings, controls);
     }
     if !stage1
         .get("authority_status")
@@ -319,6 +320,104 @@ pub fn evaluate_founder_product_intent_agreement(
     validate_graph_edge(&mut findings, graph);
     validate_complete_graph_projection(&mut findings, registry, graph);
     findings
+}
+
+fn validate_stage1_control_dependencies(findings: &mut BTreeSet<Finding>, controls: &[Value]) {
+    let positions: HashMap<&str, usize> = controls
+        .iter()
+        .enumerate()
+        .filter_map(|(index, control)| {
+            control
+                .get("id")
+                .and_then(Value::as_str)
+                .map(|id| (id, index))
+        })
+        .collect();
+    let expected_ids: HashSet<&str> = STAGE1_CONTROL_IDS.into_iter().collect();
+    let mut graph: HashMap<&str, Vec<&str>> = HashMap::new();
+
+    for control in controls {
+        let Some(id) = control.get("id").and_then(Value::as_str) else {
+            continue;
+        };
+        let key = format!("stage1_entry_requirements.controls[{id}].depends_on");
+        let Some(dependencies) = control.get("depends_on").and_then(Value::as_array) else {
+            invalid(findings, &key);
+            continue;
+        };
+        let mut seen = HashSet::new();
+        let mut valid_dependencies = Vec::with_capacity(dependencies.len());
+        for dependency in dependencies {
+            let Some(dependency_id) = dependency.as_str() else {
+                invalid(findings, &key);
+                continue;
+            };
+            if !expected_ids.contains(dependency_id) || !positions.contains_key(dependency_id) {
+                invalid(
+                    findings,
+                    "stage1_entry_requirements.controls.dependencies.known_ids",
+                );
+                continue;
+            }
+            if dependency_id == id || !seen.insert(dependency_id) {
+                invalid(
+                    findings,
+                    "stage1_entry_requirements.controls.dependencies.self_or_duplicate",
+                );
+                continue;
+            }
+            if positions[dependency_id] >= positions[id] {
+                invalid(
+                    findings,
+                    "stage1_entry_requirements.controls.dependencies.order",
+                );
+            }
+            valid_dependencies.push(dependency_id);
+        }
+        graph.insert(id, valid_dependencies);
+        if id == "comparator" && !exact_string_values(control.get("depends_on"), &["legal_jcr"]) {
+            invalid(
+                findings,
+                "stage1_entry_requirements.controls[comparator].depends_on",
+            );
+        }
+    }
+    if has_stage1_dependency_cycle(&graph) {
+        invalid(
+            findings,
+            "stage1_entry_requirements.controls.dependencies.cycle",
+        );
+    }
+}
+
+fn has_stage1_dependency_cycle(graph: &HashMap<&str, Vec<&str>>) -> bool {
+    fn visit<'a>(
+        node: &'a str,
+        graph: &HashMap<&'a str, Vec<&'a str>>,
+        states: &mut HashMap<&'a str, u8>,
+    ) -> bool {
+        match states.get(node) {
+            Some(1) => return true,
+            Some(2) => return false,
+            _ => {}
+        }
+        states.insert(node, 1);
+        if graph.get(node).is_some_and(|dependencies| {
+            dependencies
+                .iter()
+                .any(|dependency| visit(dependency, graph, states))
+        }) {
+            return true;
+        }
+        states.insert(node, 2);
+        false
+    }
+
+    let mut states = HashMap::new();
+    graph
+        .keys()
+        .copied()
+        .any(|node| visit(node, graph, &mut states))
 }
 
 fn validate_operational_world_contract(findings: &mut BTreeSet<Finding>, model: &Value) {
@@ -402,18 +501,40 @@ fn validate_operational_world_contract(findings: &mut BTreeSet<Finding>, model: 
             "game_engine_product_model.type_contract.future_accepted_successor_requirements",
         );
     }
-    require_contains_all(
-        findings,
-        model,
-        "governance_type_system_boundary",
+    let boundary = &model["governance_type_system_boundary"];
+    if !exact_object_keys(
+        Some(boundary),
         &[
-            "future extension vocabulary only",
-            "must not replace, amend, rename, or reinterpret",
-            "current Accepted governance/knowledge-graph type_system",
-            "separately Accepted immutable successor",
+            "vocabulary_status",
+            "current_authority",
+            "prohibited_effects",
+            "successor_requirement",
+            "implementation_selected",
+            "roadmap_authorized",
         ],
-        "game_engine_product_model.governance_type_system_boundary",
-    );
+    ) || boundary.get("vocabulary_status").and_then(Value::as_str)
+        != Some("future-extension-vocabulary-only")
+        || boundary.get("current_authority").and_then(Value::as_str)
+            != Some("current-accepted-governance-knowledge-graph-type-system")
+        || !exact_string_values(
+            boundary.get("prohibited_effects"),
+            &["replace", "amend", "rename", "reinterpret"],
+        )
+        || boundary
+            .get("successor_requirement")
+            .and_then(Value::as_str)
+            != Some("separately-accepted-immutable-successor")
+        || boundary
+            .get("implementation_selected")
+            .and_then(Value::as_bool)
+            != Some(false)
+        || boundary.get("roadmap_authorized").and_then(Value::as_bool) != Some(false)
+    {
+        invalid(
+            findings,
+            "game_engine_product_model.governance_type_system_boundary",
+        );
+    }
     if !exact_string_values(
         model.get("hard_limits"),
         &[
@@ -440,41 +561,76 @@ fn validate_change_accounting(findings: &mut BTreeSet<Finding>, value: Option<&V
     }
     for (index, change) in changes.iter().enumerate() {
         let key = format!("change_accounting[{index}]");
-        for field in ["version", "provenance", "review_status"] {
-            if change
-                .get(field)
-                .and_then(Value::as_str)
-                .is_none_or(str::is_empty)
-            {
-                invalid(findings, &format!("{key}.{field}"));
-            }
-        }
-        for field in [
-            "added_outcomes",
-            "changed_outcomes",
-            "removed_outcomes",
-            "relaxed_boundaries",
-        ] {
-            if !change.get(field).is_some_and(Value::is_array) {
-                invalid(findings, &format!("{key}.{field}"));
-            }
+        if !exact_object_keys(
+            Some(change),
+            &[
+                "change_id",
+                "subject",
+                "disposition",
+                "claim_ceiling",
+                "planning_state",
+                "dispatch_allowed",
+                "roadmap_authorized",
+                "implementation_authorized",
+                "authority_effect",
+                "evidence_eligible",
+            ],
+        ) || change.get("change_id").and_then(Value::as_str)
+            != Some("founder-intent-operational-world-types-2026-07-21")
+            || change.get("subject").and_then(Value::as_str)
+                != Some("founder-product-intent/operational-world-types")
+            || change.get("disposition").and_then(Value::as_str)
+                != Some("proposed-future-nonbinding")
+            || change.get("claim_ceiling").and_then(Value::as_str)
+                != Some("founder-intent-only-no-implementation-roadmap-or-authority")
+            || change.get("planning_state").and_then(Value::as_str) != Some("HOLD(Planning)")
+            || change.get("dispatch_allowed").and_then(Value::as_bool) != Some(false)
+            || change.get("roadmap_authorized").and_then(Value::as_bool) != Some(false)
+            || change
+                .get("implementation_authorized")
+                .and_then(Value::as_bool)
+                != Some(false)
+            || change.get("authority_effect").and_then(Value::as_str) != Some("none")
+            || change.get("evidence_eligible").and_then(Value::as_bool) != Some(false)
+        {
+            invalid(findings, &key);
         }
     }
 }
 
 fn validate_comparator_contract(findings: &mut BTreeSet<Finding>, contract: &Value) {
-    require_contains_all(
-        findings,
-        contract,
-        "comparator_legal_jcr_prerequisite",
+    let admission = &contract["comparator_admission"];
+    if !exact_object_keys(
+        Some(admission),
         &[
-            "C05 comparator",
-            "cannot be satisfied",
-            "C06 legal_jcr",
-            "fresh scope-specific qualified legal/JCR disposition",
+            "control_id",
+            "legal_prerequisite_control_id",
+            "fresh_scope_specific_qualified_legal_jcr_required",
+            "evidence_eligible",
+            "claim_allowed",
+            "implementation_selected",
         ],
-        "benchmark_and_measurement_contract.comparator_legal_jcr_prerequisite",
-    );
+    ) || admission.get("control_id").and_then(Value::as_str) != Some("comparator")
+        || admission
+            .get("legal_prerequisite_control_id")
+            .and_then(Value::as_str)
+            != Some("legal_jcr")
+        || admission
+            .get("fresh_scope_specific_qualified_legal_jcr_required")
+            .and_then(Value::as_bool)
+            != Some(true)
+        || admission.get("evidence_eligible").and_then(Value::as_bool) != Some(false)
+        || admission.get("claim_allowed").and_then(Value::as_bool) != Some(false)
+        || admission
+            .get("implementation_selected")
+            .and_then(Value::as_bool)
+            != Some(false)
+    {
+        invalid(
+            findings,
+            "benchmark_and_measurement_contract.comparator_admission",
+        );
+    }
 
     let Some(pointers) = contract
         .get("game_engine_comparator_refs")
@@ -499,7 +655,24 @@ fn validate_comparator_contract(findings: &mut BTreeSet<Finding>, contract: &Val
             .unwrap_or("unknown");
         let key =
             format!("benchmark_and_measurement_contract.game_engine_comparator_refs[{source_id}]");
-        if pointer.get("classification").and_then(Value::as_str) != Some("inactive-source-pointer")
+        if !exact_object_keys(
+            Some(pointer),
+            &[
+                "source_id",
+                "url",
+                "declared_scope",
+                "classification",
+                "collection_status",
+                "retrieved_at",
+                "source_version",
+                "content_digest",
+                "legal_jcr_disposition",
+                "evidence_eligible",
+                "automated_expansion_allowed",
+                "use",
+            ],
+        ) || pointer.get("classification").and_then(Value::as_str)
+            != Some("inactive-source-pointer")
             || pointer.get("collection_status").and_then(Value::as_str)
                 != Some("uncollected-for-admitted-comparator-use")
             || pointer.get("retrieved_at") != Some(&Value::Null)
@@ -1078,7 +1251,21 @@ fn validate_research_basis(findings: &mut BTreeSet<Finding>, value: Option<&Valu
                 invalid(findings, &format!("{key}.{field}"));
             }
         }
-        if source.get("classification").and_then(Value::as_str) != Some("harvested-provenance")
+        if !exact_object_keys(
+            Some(source),
+            &[
+                "source_id",
+                "url",
+                "scope",
+                "adoption",
+                "classification",
+                "collection_status",
+                "legal_jcr_disposition",
+                "evidence_eligible",
+                "automated_expansion_allowed",
+                "quarantine",
+            ],
+        ) || source.get("classification").and_then(Value::as_str) != Some("harvested-provenance")
             || source.get("collection_status").and_then(Value::as_str)
                 != Some("retrieved-before-qualified-legal-jcr-disposition")
             || source.get("legal_jcr_disposition").and_then(Value::as_str)
@@ -1091,13 +1278,33 @@ fn validate_research_basis(findings: &mut BTreeSet<Finding>, value: Option<&Valu
         {
             invalid(findings, &format!("{key}.evidence_eligible"));
         }
-        require_contains_all(
-            findings,
-            source,
-            "retention_rule",
-            &["harvested provenance", "not admitted evidence"],
-            &format!("{key}.retention_rule"),
-        );
+        let quarantine = &source["quarantine"];
+        if !exact_object_keys(
+            Some(quarantine),
+            &[
+                "status",
+                "preserved",
+                "evidence_eligible",
+                "automated_expansion_allowed",
+                "claim_allowed",
+                "legal_jcr_disposition",
+            ],
+        ) || quarantine.get("status").and_then(Value::as_str)
+            != Some("harvested-provenance-not-admitted-evidence")
+            || quarantine.get("preserved").and_then(Value::as_bool) != Some(true)
+            || quarantine.get("evidence_eligible").and_then(Value::as_bool) != Some(false)
+            || quarantine
+                .get("automated_expansion_allowed")
+                .and_then(Value::as_bool)
+                != Some(false)
+            || quarantine.get("claim_allowed").and_then(Value::as_bool) != Some(false)
+            || quarantine
+                .get("legal_jcr_disposition")
+                .and_then(Value::as_str)
+                != Some("unresolved")
+        {
+            invalid(findings, &format!("{key}.quarantine"));
+        }
     }
 }
 
