@@ -1577,6 +1577,17 @@ fn pending_epoch_requires_every_schema_member_before_hold_evaluation() {
 
     assert!(evaluate_source_epoch(&program(), &hold_epoch()).is_green());
 
+    for epoch_id in [
+        json!(7),
+        json!("epoch-1"),
+        json!("stage1-epoch-"),
+        json!("stage1-epoch/a"),
+    ] {
+        let mut candidate = hold_epoch();
+        candidate["epoch_id"] = epoch_id;
+        assert_pending_invalid(&candidate, "epoch_id pattern");
+    }
+
     for field in ["immutable_successor", "blockers"] {
         let mut candidate = hold_epoch();
         candidate
@@ -1596,6 +1607,33 @@ fn pending_epoch_requires_every_schema_member_before_hold_evaluation() {
     for (field, value) in [("subject_digest", json!(7)), ("receipt_refs", json!({}))] {
         let mut candidate = hold_epoch();
         candidate["controls"][0][field] = value;
+        assert_pending_invalid(&candidate, field);
+    }
+    let mut pending_receipt = hold_epoch();
+    pending_receipt["controls"][0]["receipt_refs"] =
+        json!([receipt("pending-C01", "machine-verifiable")]);
+    assert!(evaluate_source_epoch(&program(), &pending_receipt).is_green());
+    for (field, value) in [
+        ("path", json!(7)),
+        ("blob_oid", json!("not-an-oid")),
+        ("sha256", json!("not-a-digest")),
+        ("subject_digest", json!(7)),
+        ("subject_digest", json!("sha256:not-a-digest")),
+        ("principal_id", json!(7)),
+        ("principal_id", json!("")),
+        ("issuer_authority_class", json!(7)),
+        ("issuer_authority_class", json!("")),
+        ("authority_source_ref", json!("not-an-object")),
+        ("qualification", json!(7)),
+        ("jurisdiction_scope", json!(7)),
+        ("independence_observation", json!(7)),
+        ("validity", json!(7)),
+        ("revocation_status", json!(7)),
+        ("conflict_status", json!(7)),
+        ("signature_trust_root_binding", json!(7)),
+    ] {
+        let mut candidate = pending_receipt.clone();
+        candidate["controls"][0]["receipt_refs"][0][field] = value;
         assert_pending_invalid(&candidate, field);
     }
     for field in [

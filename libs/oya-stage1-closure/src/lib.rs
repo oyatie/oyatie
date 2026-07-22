@@ -423,7 +423,13 @@ fn evaluate_epoch_with_untrusted_shape(
     );
 
     require_string(epoch, "schema_id", EPOCH_SCHEMA_ID, &mut findings);
-    require_non_empty_string(epoch, "epoch_id", &mut findings);
+    if !epoch
+        .get("epoch_id")
+        .and_then(Value::as_str)
+        .is_some_and(is_stage1_epoch_id)
+    {
+        findings.insert("epoch_id must match ^stage1-epoch-[A-Za-z0-9._-]+$".to_owned());
+    }
     require_string(epoch, "program_ref", PROGRAM_REF, &mut findings);
     let state = epoch.get("state").and_then(Value::as_str);
     if state.is_none_or(|candidate| !STATES.contains(&candidate)) {
@@ -1831,6 +1837,15 @@ fn validate_source_receipt_shape(receipt: &Value, path: &str, findings: &mut BTr
     {
         findings.insert(format!("{path}.sha256 must be 64 hex bytes"));
     }
+    if valid_subject_digest(receipt.get("subject_digest")).is_none() {
+        findings.insert(format!("{path}.subject_digest must be sha256-bound"));
+    }
+    if non_empty(receipt, "principal_id").is_none() {
+        findings.insert(format!("{path}.principal_id must be non-empty"));
+    }
+    if non_empty(receipt, "issuer_authority_class").is_none() {
+        findings.insert(format!("{path}.issuer_authority_class must be non-empty"));
+    }
     if !receipt
         .get("authority_source_ref")
         .is_some_and(Value::is_object)
@@ -2600,4 +2615,13 @@ fn non_empty<'a>(value: &'a Value, field: &str) -> Option<&'a str> {
 
 fn is_hex(value: &str, length: usize) -> bool {
     value.len() == length && value.bytes().all(|byte| byte.is_ascii_hexdigit())
+}
+
+fn is_stage1_epoch_id(value: &str) -> bool {
+    value.strip_prefix("stage1-epoch-").is_some_and(|suffix| {
+        !suffix.is_empty()
+            && suffix
+                .bytes()
+                .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'.' | b'_' | b'-'))
+    })
 }
