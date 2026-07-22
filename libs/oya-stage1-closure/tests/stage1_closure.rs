@@ -835,6 +835,37 @@ fn protected_facts_grammar_rejects_authority_cardinality_identity_and_digest_fai
             .iter()
             .any(|finding| finding.contains("unknown field"))
     );
+    for field in [
+        "principal_identity_binding",
+        "authority_source_ref",
+        "qualification",
+        "jurisdiction_scope",
+        "independence_observation",
+        "subject_binding",
+        "program_binding",
+        "epoch_binding",
+        "validity",
+        "expiry",
+        "revocation_status",
+        "conflict_status",
+        "signature_trust_root_binding",
+    ] {
+        let mut missing = green.clone();
+        let lens = missing["receipt_bindings"]
+            .as_array_mut()
+            .expect("receipts")
+            .iter_mut()
+            .find(|receipt| receipt["control_id"] == "C13" && receipt["lens_id"] == "L01")
+            .expect("L01 receipt");
+        lens.as_object_mut().expect("receipt").remove(field);
+        assert!(
+            validate_protected_facts_grammar(&missing)
+                .findings
+                .iter()
+                .any(|finding| finding.contains(field)),
+            "missing C13 {field} must fail"
+        );
+    }
     for index in 1..=4 {
         let mut wrong_class = green.clone();
         wrong_class["receipt_bindings"][index]["issuer_authority_class"] = json!("wrong-class");
