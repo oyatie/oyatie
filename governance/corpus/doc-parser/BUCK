@@ -36,3 +36,19 @@ rust_test(
         ":corpus-doc-parser",
     ],
 )
+
+rust_test(
+    name = "corpus-doc-parser-adr-ir-contract",
+    srcs = [
+        "tests/adr_decision_ir_contract.rs",
+        "tests/fixtures/adr-corpus-filename-relation.md",
+        "tests/fixtures/adr-corpus-generic-nested-metadata.md",
+        "tests/fixtures/adr-corpus-missing-required-date-owner.md",
+    ],
+    crate = "adr_decision_ir_contract",
+    crate_root = "tests/adr_decision_ir_contract.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":corpus-doc-parser",
+    ],
+)
