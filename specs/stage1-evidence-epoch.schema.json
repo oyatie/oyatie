@@ -239,18 +239,17 @@
         "blob_oid": {"pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$", "type": "string"},
         "sha256": {"pattern": "^[0-9a-f]{64}$", "type": "string"},
         "subject_digest": {"pattern": "^sha256:[0-9a-f]{64}$", "type": "string"},
-        "issuer_id": {"minLength": 1, "type": "string"},
-        "issuer_class": {"minLength": 1, "type": "string"},
-        "authority_ref": {"minLength": 1, "type": "string"}
+        "principal_id": {"minLength": 1, "type": "string"},
+        "issuer_authority_class": {"minLength": 1, "type": "string"},
+        "authority_source_ref": {"additionalProperties": false, "required": ["path", "blob_oid", "sha256"], "properties": {"path": {"minLength": 1, "type": "string"}, "blob_oid": {"pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$", "type": "string"}, "sha256": {"pattern": "^[0-9a-f]{64}$", "type": "string"}}, "type": "object"},
+        "qualification": {"minLength": 1, "type": "string"}, "jurisdiction_scope": {"minLength": 1, "type": "string"}, "independence_observation": {"minLength": 1, "type": "string"}, "validity": {"minLength": 1, "type": "string"}, "revocation_status": {"minLength": 1, "type": "string"}, "conflict_status": {"minLength": 1, "type": "string"}, "signature_trust_root_binding": {"minLength": 1, "type": "string"}
       },
       "required": [
         "path",
         "blob_oid",
         "sha256",
         "subject_digest",
-        "issuer_id",
-        "issuer_class",
-        "authority_ref"
+        "principal_id", "issuer_authority_class", "authority_source_ref", "qualification", "jurisdiction_scope", "independence_observation", "validity", "revocation_status", "conflict_status", "signature_trust_root_binding"
       ],
       "type": "object"
     },
