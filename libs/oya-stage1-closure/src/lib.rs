@@ -60,6 +60,17 @@ pub const PROTECTED_RECEIPT_BINDING_ALLOWED_FIELDS: [&str; 26] = [
     "sha256",
 ];
 
+/// Source receipt fields with an identical protected-parent identity representation.
+const SOURCE_PROTECTED_RECEIPT_IDENTITY_FIELDS: [&str; 7] = [
+    "path",
+    "blob_oid",
+    "sha256",
+    "subject_digest",
+    "principal_id",
+    "issuer_authority_class",
+    "authority_source_ref",
+];
+
 /// Canonical required fields of `oyatie/stage1-admission-envelope/v1`.
 ///
 /// This parser-owned list is locked against the source schema by the admission-envelope fixture
@@ -295,6 +306,29 @@ pub fn evaluate_epoch(program: &Value, epoch: &Value) -> Report {
 #[must_use]
 pub fn evaluate_source_epoch(program: &Value, epoch: &Value) -> Report {
     evaluate_epoch_with_untrusted_shape(program, epoch, None)
+}
+
+/// Structurally links a declared source epoch to declared protected facts.
+///
+/// This pure check never authenticates a producer, verifies a trust root, admits a candidate, or
+/// authorizes planning or dispatch. An external controller remains required and the Stage-1 hold
+/// remains in force.
+#[must_use]
+pub fn evaluate_protected_facts_linkage(
+    program: &Value,
+    epoch: &Value,
+    protected_facts: &Value,
+) -> Report {
+    let mut findings: BTreeSet<String> =
+        evaluate_epoch_with_untrusted_shape(program, epoch, Some(protected_facts))
+            .findings
+            .into_iter()
+            .collect();
+    findings.insert(
+        "protected-facts linkage is structural and non-authoritative; external authenticated controller and trust root are unimplemented, so Stage-1 remains HOLD_EPOCH_OPEN"
+            .to_owned(),
+    );
+    report(findings)
 }
 
 fn evaluate_epoch_with_untrusted_shape(
@@ -1535,13 +1569,15 @@ fn validate_protected_parent_facts(
             .map(Vec::as_slice)
             .unwrap_or_default();
         for receipt in source_receipts {
-            let Some(binding) = matching_protected_receipt(receipts, receipt) else {
-                findings.insert(format!(
-                    "controls.{control_id} receipt lacks an exact protected-parent binding"
-                ));
-                continue;
-            };
-            validate_receipt_binding(binding, control_id, subject, findings);
+            link_source_receipt(
+                receipts,
+                receipt,
+                control_id,
+                control_receipt_role(control_id, receipt),
+                None,
+                subject,
+                findings,
+            );
         }
         if control_id == "C11" && control.get("status").and_then(Value::as_str) == Some("satisfied")
         {
@@ -1550,14 +1586,32 @@ fn validate_protected_parent_facts(
                     .get("issuer_authority_class")
                     .and_then(Value::as_str)
                     == Some("machine-verifiable")
-                    && matching_protected_receipt(receipts, receipt).is_some()
+                    && matches!(
+                        matching_protected_receipt(
+                            receipts,
+                            receipt,
+                            control_id,
+                            control_receipt_role(control_id, receipt),
+                            None,
+                        ),
+                        ReceiptMatch::Unique(_)
+                    )
             });
             let human = source_receipts.iter().any(|receipt| {
                 receipt
                     .get("issuer_authority_class")
                     .and_then(Value::as_str)
                     == Some("qualified-human")
-                    && matching_protected_receipt(receipts, receipt).is_some()
+                    && matches!(
+                        matching_protected_receipt(
+                            receipts,
+                            receipt,
+                            control_id,
+                            control_receipt_role(control_id, receipt),
+                            None,
+                        ),
+                        ReceiptMatch::Unique(_)
+                    )
             });
             if !machine || !human {
                 findings.insert(
@@ -1568,11 +1622,53 @@ fn validate_protected_parent_facts(
         }
     }
 
-    for receipt in epoch_receipts(epoch) {
-        if matching_protected_receipt(receipts, receipt).is_none() {
-            findings.insert(
-                "state advancement receipt lacks an exact protected-parent binding".to_owned(),
-            );
+    if let Some(lenses) = epoch.get("lenses").and_then(Value::as_array) {
+        for lens in lenses {
+            let lens_id = lens.get("lens_id").and_then(Value::as_str);
+            if let Some(receipt) = lens.get("receipt_ref").filter(|receipt| !receipt.is_null()) {
+                link_source_receipt(
+                    receipts,
+                    receipt,
+                    "C13",
+                    Some("independent-council"),
+                    lens_id,
+                    subject,
+                    findings,
+                );
+            }
+        }
+    }
+    if let Some(receipt) = epoch
+        .get("fresh_dissent")
+        .and_then(|dissent| dissent.get("receipt_ref"))
+        .filter(|receipt| !receipt.is_null())
+    {
+        link_source_receipt(
+            receipts,
+            receipt,
+            "C14",
+            Some("fresh-dissent"),
+            None,
+            subject,
+            findings,
+        );
+    }
+    if let Some(exit) = epoch.get("context_free_exit") {
+        for (field, role) in [
+            ("oracle_receipt_ref", "deterministic-oracle"),
+            ("blind_reader_receipt_ref", "blind-cold-reader"),
+        ] {
+            if let Some(receipt) = exit.get(field).filter(|receipt| !receipt.is_null()) {
+                link_source_receipt(
+                    receipts,
+                    receipt,
+                    "C15",
+                    Some(role),
+                    None,
+                    subject,
+                    findings,
+                );
+            }
         }
     }
 }
@@ -1627,20 +1723,88 @@ fn validate_non_authoritative_extensions(
     }
 }
 
-fn matching_protected_receipt<'a>(bindings: &'a [Value], receipt: &Value) -> Option<&'a Value> {
-    bindings.iter().find(|binding| {
-        [
-            "path",
-            "blob_oid",
-            "sha256",
-            "subject_digest",
-            "principal_id",
-            "issuer_authority_class",
-            "authority_source_ref",
-        ]
+enum ReceiptMatch<'a> {
+    Missing,
+    Unique(&'a Value),
+    Ambiguous,
+}
+
+fn matching_protected_receipt<'a>(
+    bindings: &'a [Value],
+    receipt: &Value,
+    control_id: &str,
+    role: Option<&str>,
+    lens_id: Option<&str>,
+) -> ReceiptMatch<'a> {
+    let matches = bindings
         .iter()
-        .all(|field| binding.get(*field) == receipt.get(*field))
-    })
+        .filter(|binding| {
+            SOURCE_PROTECTED_RECEIPT_IDENTITY_FIELDS
+                .iter()
+                .all(|field| binding.get(*field) == receipt.get(*field))
+                && binding.get("control_id").and_then(Value::as_str) == Some(control_id)
+                && role.is_none_or(|role| binding.get("role").and_then(Value::as_str) == Some(role))
+                && lens_id.is_none_or(|lens_id| {
+                    binding.get("lens_id").and_then(Value::as_str) == Some(lens_id)
+                })
+        })
+        .collect::<Vec<_>>();
+    match matches.as_slice() {
+        [] => ReceiptMatch::Missing,
+        [binding] => ReceiptMatch::Unique(binding),
+        _ => ReceiptMatch::Ambiguous,
+    }
+}
+
+fn link_source_receipt(
+    bindings: &[Value],
+    receipt: &Value,
+    control_id: &str,
+    role: Option<&str>,
+    lens_id: Option<&str>,
+    expected_subject: Option<&str>,
+    findings: &mut BTreeSet<String>,
+) {
+    let label = match (lens_id, role) {
+        (Some(lens), _) => format!("{control_id}/{lens}"),
+        (_, Some(role)) => format!("{control_id}/{role}"),
+        _ => control_id.to_owned(),
+    };
+    match matching_protected_receipt(bindings, receipt, control_id, role, lens_id) {
+        ReceiptMatch::Unique(binding) => {
+            validate_receipt_binding(binding, control_id, expected_subject, findings);
+        }
+        ReceiptMatch::Missing => {
+            findings.insert(format!(
+                "{label} source receipt lacks an exact protected-parent binding"
+            ));
+        }
+        ReceiptMatch::Ambiguous => {
+            findings.insert(format!(
+                "{label} source receipt has multiple exact protected-parent bindings"
+            ));
+        }
+    };
+}
+
+fn control_receipt_role(control_id: &str, receipt: &Value) -> Option<&'static str> {
+    match control_id {
+        "C06" => Some("qualified-legal-compliance"),
+        "C07" => Some("affected-party-representation"),
+        "C08" => Some("operations-owner-capacity"),
+        "C09" => Some("security-evidence-custody"),
+        "C10" => Some("veto-owner-closure"),
+        "C11" => match receipt
+            .get("issuer_authority_class")
+            .and_then(Value::as_str)
+        {
+            Some("machine-verifiable") => Some("machine-pilot-evidence"),
+            Some("qualified-human") => Some("qualified-pilot-authorization"),
+            _ => None,
+        },
+        "C15" => Some("qualified-planning-authority"),
+        _ => None,
+    }
 }
 
 fn validate_receipt_binding(
@@ -1676,43 +1840,6 @@ fn validate_receipt_binding(
             findings,
         );
     }
-}
-
-fn epoch_receipts(epoch: &Value) -> Vec<&Value> {
-    let mut receipts = Vec::new();
-    if let Some(controls) = epoch.get("controls").and_then(Value::as_array) {
-        receipts.extend(
-            controls
-                .iter()
-                .filter_map(|control| control.get("receipt_refs")?.as_array())
-                .flatten(),
-        );
-    }
-    if let Some(lenses) = epoch.get("lenses").and_then(Value::as_array) {
-        receipts.extend(
-            lenses
-                .iter()
-                .filter_map(|lens| lens.get("receipt_ref"))
-                .filter(|receipt| !receipt.is_null()),
-        );
-    }
-    for field in ["fresh_dissent", "context_free_exit"] {
-        if let Some(value) = epoch.get(field) {
-            for receipt_field in [
-                "receipt_ref",
-                "oracle_receipt_ref",
-                "blind_reader_receipt_ref",
-            ] {
-                if let Some(receipt) = value
-                    .get(receipt_field)
-                    .filter(|receipt| !receipt.is_null())
-                {
-                    receipts.push(receipt);
-                }
-            }
-        }
-    }
-    receipts
 }
 
 fn validate_common_subject(
