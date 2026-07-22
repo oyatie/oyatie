@@ -114,6 +114,7 @@ mod projection_rederivation;
 mod prose_frontmatter_status;
 mod read_surface_resurrection;
 mod registry_policy_sync;
+mod retirement_receipt;
 
 pub use plan_evidence_crosscheck::{
     PLAN_EVIDENCE_CROSSCHECK_VALIDATOR, UNRECORDED_EVIDENCE_CODE,
@@ -126,6 +127,10 @@ pub use projection_rederivation::{
 pub use read_surface_resurrection::{
     READ_SURFACE_RESURRECTION_VALIDATOR, RESURRECTION_CODE,
     evaluate_masterplan_read_surface_resurrections,
+};
+pub use retirement_receipt::{
+    RETIREMENT_RECEIPT_CODE, RETIREMENT_RECEIPT_VALIDATOR,
+    evaluate_history_only_retirement_receipt, evaluate_history_only_retirement_receipt_coverage,
 };
 
 // Gate-coverage-gap advisory checks (born-advisory, enforce-no-regression vs a
