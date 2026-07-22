@@ -388,7 +388,7 @@ fn qualified_human_blocker_requires_a_blocked_c06_through_c11_control_and_scope(
         "input_class": "legal-review",
         "required_qualification": "licensed-jcr-reviewer",
         "scope": "stage1-closure",
-        "authority_ref": "authority://legal",
+        "authority_source_ref": "authority://legal",
         "reason": "review is pending"
     }]);
     assert!(!evaluate_epoch(&program(), &candidate).is_green());
