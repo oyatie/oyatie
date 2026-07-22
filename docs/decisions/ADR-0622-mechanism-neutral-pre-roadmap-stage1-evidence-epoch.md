@@ -166,7 +166,7 @@ The pipeline separates:
    It never asserts its own Git commit, tree, blob, or admission facts.
 2. **Protected facts.** The closed `oyatie/stage1-protected-facts/v1` contract (not
    `oya-ci/scm-facts/v2`) binds protected-base and candidate repository, commit, tree, source-path
-   and blob roles; program/parser/producer/evaluator/policy/schema digests; predecessor epoch and
+   and blob roles; program/parser/future-producer/evaluator/policy/schema digests; predecessor epoch and
    transition receipt; immutable successor bundle; authority-chain result; trust root; and every
    receipt binding. No producer is implemented or activated here. Generated faces remain materialized
    only by the future canonical producer and are never hand-edited.
@@ -181,7 +181,7 @@ The pipeline separates:
 A candidate tree is data under test. It cannot define the parser, producer, evaluator, policy, or
 control population that judges its own exit. Activation is staged:
 
-1. merge the dormant parser, producer, schemas, and evaluator under the prior protected policy;
+1. merge the dormant parser, grammar, schemas, and evaluator under the prior protected policy;
 2. merge the exact program and first HOLD epoch;
 3. only a later candidate may present evidence, evaluated by protected-parent code and independently
    supplied protected facts under a declared trust-root authority;
