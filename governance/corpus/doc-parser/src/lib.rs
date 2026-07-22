@@ -1,10 +1,11 @@
 //! Markdown/doc parser substrate skeleton for corpus graph doc nodes.
 //!
-//! ADR-0517 requires one owned content-addressed AST/doc substrate; ADR-0541
-//! requires documents and directives to become first-class corpus graph nodes.
-//! This crate is the first Markdown-only slice behind that direction: it owns
-//! stable node IDs for document headings and references without resolving links
-//! or executing Markdown content.
+//! Accepted ADR-0517 requires one owned content-addressed AST/doc substrate;
+//! proposed ADR-0541 explores documents and directives as first-class corpus
+//! graph nodes but is not binding authority. This crate is the first
+//! Markdown-only slice behind the accepted parser direction: it owns stable node
+//! IDs for document headings and references without resolving links or executing
+//! Markdown content.
 //!
 //! ## Threat model
 //!
@@ -31,11 +32,20 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
+mod adr;
+
 use std::fmt;
 
 use sha2::{Digest, Sha256};
 use work_area_tree_kernel::{
     NodeContentHash, NodeLocator, SourceSpan, WorkAreaHash, WorkAreaNodeId, WorkAreaTreeError,
+};
+
+pub use adr::{
+    AdrAffectedSurface, AdrByteSpan, AdrContentHash, AdrDecision, AdrDecision as AdrDecisionIr,
+    AdrDeliverable, AdrFrontmatterField, AdrFrontmatterValue, AdrId, AdrParseError, AdrParseInput,
+    AdrReference, AdrTenant, AdrTenantIdentity, CanonicalAdrId, TenantAdrDecision,
+    parse_adr_decision,
 };
 
 /// Parser version included in every node-id preimage.
