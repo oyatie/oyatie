@@ -11,7 +11,7 @@
       "path": "ci/facade/artifact-inventory-registry/adr-census-parent-receipt.generated.json",
       "artifact_class": "main-materialized-aggregate",
       "materialization_mode": "not-tracked-in-git",
-      "merge_policy": "never-manual-merge-controller-materialized",
+      "merge_policy": "never-manual-merge-regenerate-from-source-tree",
       "owner_team": "cloud-ci-platform",
       "source_inputs": [
         "corpus commit 1fa09da22be819b062881eb59252f4dd4c6b550a",
@@ -29,8 +29,8 @@
         "generator_target": "//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot",
         "operation_id": "emit-fixed-adr-census-parent-receipt",
         "parameters": {"operation": "adr-census-parent-receipt"},
-        "input_contract": ["fixed Git commits", "fixed Git trees", "fixed parser path/blob/raw SHA-256"],
-        "output_mode": "file"
+        "input_contract": ["repo-root", "declared-source-inputs", "full-depth-scm"],
+        "output_mode": "declared-artifact-path-write"
       }
     },
     {
