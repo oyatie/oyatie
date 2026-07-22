@@ -635,7 +635,7 @@ fn grammar_receipt(
     qualification: &str,
     principal: &str,
 ) -> Value {
-    json!({
+    let mut receipt = json!({
         "control_id": control,
         "role": role,
         "issuer_authority_class": authority,
@@ -644,7 +644,29 @@ fn grammar_receipt(
         "subject_digest": SUBJECT_DIGEST,
         "program_digest": SUBJECT_DIGEST,
         "epoch_digest": SUBJECT_DIGEST
-    })
+    });
+    for field in [
+        "principal_identity_binding",
+        "authority_source_ref",
+        "qualification",
+        "jurisdiction_scope",
+        "independence_observation",
+        "subject_binding",
+        "program_binding",
+        "epoch_binding",
+        "validity",
+        "expiry",
+        "revocation_status",
+        "conflict_status",
+        "signature_trust_root_binding",
+    ] {
+        receipt[field] = artifact_binding(&format!("evidence/{principal}/{field}"));
+    }
+    receipt["decision"] = json!("satisfied");
+    receipt["path"] = json!(format!("evidence/{principal}/receipt.json"));
+    receipt["blob_oid"] = json!("2222222222222222222222222222222222222222");
+    receipt["sha256"] = json!("dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd");
+    receipt
 }
 
 fn grammar_facts() -> Value {
@@ -737,19 +759,80 @@ fn grammar_facts() -> Value {
         ));
         receipts.last_mut().expect("lens receipt")["lens_id"] = json!(format!("L{lens:02}"));
     }
-    json!({
+    let mut facts = json!({
         "schema_id": "oyatie/stage1-protected-facts/v1",
         "subject_digest": SUBJECT_DIGEST,
         "program_digest": SUBJECT_DIGEST,
         "epoch_digest": SUBJECT_DIGEST,
         "receipt_bindings": receipts
-    })
+    });
+    for field in [
+        "source_epoch_binding",
+        "candidate_epoch_binding",
+        "program_binding",
+        "parser_binding",
+        "producer_binding",
+        "evaluator_binding",
+        "policy_binding",
+        "schema_binding",
+        "predecessor_epoch_binding",
+        "transition_receipt_binding",
+        "immutable_successor_bundle",
+        "authority_chain_result",
+        "source_app_identity",
+        "run_identity",
+        "envelope_signature",
+        "trust_root_binding",
+    ] {
+        facts[field] = artifact_binding(&format!("specs/{field}.json"));
+    }
+    for field in [
+        "protected_base_repository",
+        "candidate_repository",
+        "protected_base_branch",
+        "candidate_branch",
+    ] {
+        facts[field] = json!(format!("oyatie/{field}"));
+    }
+    for field in [
+        "protected_base_commit",
+        "candidate_commit",
+        "protected_base_tree",
+        "candidate_tree",
+    ] {
+        facts[field] = json!("2222222222222222222222222222222222222222");
+    }
+    facts
 }
 
 #[test]
 fn protected_facts_grammar_rejects_authority_cardinality_identity_and_digest_failures() {
     let green = grammar_facts();
-    assert!(validate_protected_facts_grammar(&green).is_green());
+    assert!(
+        validate_protected_facts_grammar(&green)
+            .findings
+            .iter()
+            .all(|finding| finding.contains("non-authoritative"))
+    );
+    let mut missing_envelope_binding = green.clone();
+    missing_envelope_binding
+        .as_object_mut()
+        .expect("facts")
+        .remove("evaluator_binding");
+    assert!(
+        validate_protected_facts_grammar(&missing_envelope_binding)
+            .findings
+            .iter()
+            .any(|finding| finding.contains("evaluator_binding"))
+    );
+    let mut extra_field = green.clone();
+    extra_field["unrecognized"] = json!(true);
+    assert!(
+        validate_protected_facts_grammar(&extra_field)
+            .findings
+            .iter()
+            .any(|finding| finding.contains("unknown field"))
+    );
     for index in 1..=4 {
         let mut wrong_class = green.clone();
         wrong_class["receipt_bindings"][index]["issuer_authority_class"] = json!("wrong-class");

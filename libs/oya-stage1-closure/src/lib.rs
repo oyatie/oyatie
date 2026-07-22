@@ -260,12 +260,100 @@ pub fn validate_protected_facts_shape(facts: &Value) -> Report {
 /// signature or trust root, or authorizes planning or dispatch.
 #[must_use]
 pub fn validate_protected_facts_grammar(facts: &Value) -> Report {
-    report(grammar_findings(facts))
+    let mut findings = grammar_findings(facts);
+    findings.insert("protected-facts grammar is non-authoritative; authenticated producer and trust-root verification are unimplemented".to_owned());
+    report(findings)
 }
 
 fn grammar_findings(facts: &Value) -> BTreeSet<String> {
     let mut findings = BTreeSet::new();
     require_string(facts, "schema_id", PROTECTED_FACTS_SCHEMA_ID, &mut findings);
+    let required_bindings = [
+        "source_epoch_binding",
+        "candidate_epoch_binding",
+        "program_binding",
+        "parser_binding",
+        "producer_binding",
+        "evaluator_binding",
+        "policy_binding",
+        "schema_binding",
+        "predecessor_epoch_binding",
+        "transition_receipt_binding",
+        "immutable_successor_bundle",
+        "authority_chain_result",
+        "source_app_identity",
+        "run_identity",
+        "envelope_signature",
+        "trust_root_binding",
+    ];
+    for field in [
+        "protected_base_repository",
+        "candidate_repository",
+        "protected_base_branch",
+        "candidate_branch",
+    ] {
+        require_non_empty_string(facts, field, &mut findings);
+    }
+    for field in [
+        "protected_base_commit",
+        "candidate_commit",
+        "protected_base_tree",
+        "candidate_tree",
+    ] {
+        if facts
+            .get(field)
+            .and_then(Value::as_str)
+            .is_none_or(|value| !is_hex(value, 40) && !is_hex(value, 64))
+        {
+            findings.insert(format!("{field} must be a Git object identifier"));
+        }
+    }
+    for field in required_bindings {
+        validate_artifact_binding(
+            facts.get(field).unwrap_or(&Value::Null),
+            field,
+            &mut findings,
+        );
+    }
+    let allowed = [
+        "schema_id",
+        "subject_digest",
+        "program_digest",
+        "epoch_digest",
+        "protected_base_repository",
+        "candidate_repository",
+        "protected_base_branch",
+        "candidate_branch",
+        "protected_base_commit",
+        "candidate_commit",
+        "protected_base_tree",
+        "candidate_tree",
+        "source_epoch_binding",
+        "candidate_epoch_binding",
+        "program_binding",
+        "parser_binding",
+        "producer_binding",
+        "evaluator_binding",
+        "policy_binding",
+        "schema_binding",
+        "predecessor_epoch_binding",
+        "transition_receipt_binding",
+        "immutable_successor_bundle",
+        "authority_chain_result",
+        "source_app_identity",
+        "run_identity",
+        "envelope_signature",
+        "trust_root_binding",
+        "receipt_bindings",
+        "extensions",
+    ];
+    if let Some(object) = facts.as_object() {
+        for key in object.keys() {
+            if !allowed.contains(&key.as_str()) {
+                findings.insert(format!("protected facts rejects unknown field {key}"));
+            }
+        }
+    }
     for field in ["subject_digest", "program_digest", "epoch_digest"] {
         if valid_subject_digest(facts.get(field)).is_none() {
             findings.insert(format!("{field} must be sha256-bound"));
@@ -356,6 +444,38 @@ fn grammar_findings(facts: &Value) -> BTreeSet<String> {
             continue;
         }
         let receipt = matching[0];
+        for field in [
+            "principal_identity_binding",
+            "authority_source_ref",
+            "qualification",
+            "jurisdiction_scope",
+            "independence_observation",
+            "subject_binding",
+            "program_binding",
+            "epoch_binding",
+            "validity",
+            "expiry",
+            "revocation_status",
+            "conflict_status",
+            "signature_trust_root_binding",
+        ] {
+            validate_artifact_binding(
+                receipt.get(field).unwrap_or(&Value::Null),
+                field,
+                &mut findings,
+            );
+        }
+        if !matches!(
+            receipt.get("decision").and_then(Value::as_str),
+            Some("satisfied" | "blocked" | "abstained" | "dissent")
+        ) {
+            findings.insert(format!("{control}/{role} decision must be declared"));
+        }
+        for field in ["path", "blob_oid", "sha256"] {
+            if receipt.get(field).is_none() {
+                findings.insert(format!("{control}/{role} {field} is required"));
+            }
+        }
         if receipt
             .get("issuer_authority_class")
             .and_then(Value::as_str)
