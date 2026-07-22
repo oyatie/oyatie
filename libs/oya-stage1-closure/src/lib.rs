@@ -421,6 +421,9 @@ fn evaluate_epoch_with_untrusted_shape(
         "epoch",
         &mut findings,
     );
+    if let Some(protected_facts) = protected_facts.filter(|facts| !facts.is_null()) {
+        findings.extend(grammar_findings(protected_facts));
+    }
 
     require_string(epoch, "schema_id", EPOCH_SCHEMA_ID, &mut findings);
     if !epoch
@@ -476,8 +479,16 @@ fn evaluate_epoch_with_untrusted_shape(
         epoch.get("blockers"),
         &mut findings,
     );
-    if let Some(protected_facts) = protected_facts {
-        validate_protected_parent_facts(epoch, protected_facts, state, &mut findings);
+    match protected_facts {
+        Some(protected_facts) if !protected_facts.is_null() => {
+            validate_protected_parent_facts(epoch, protected_facts, state, &mut findings);
+        }
+        Some(_) if state != Some("HOLD_EPOCH_OPEN") => {
+            findings.insert(
+                "state advancement requires independently supplied protected facts".to_owned(),
+            );
+        }
+        _ => {}
     }
     require_non_empty_string(epoch, "claim_ceiling", &mut findings);
 
@@ -1978,14 +1989,9 @@ fn validate_optional_boolean(
 fn validate_protected_parent_facts(
     epoch: &Value,
     facts: &Value,
-    state: Option<&str>,
+    _state: Option<&str>,
     findings: &mut BTreeSet<String>,
 ) {
-    if state == Some("HOLD_EPOCH_OPEN") {
-        return;
-    }
-    findings.extend(grammar_findings(facts));
-
     require_string(facts, "schema_id", PROTECTED_FACTS_SCHEMA_ID, findings);
     validate_artifact_binding(
         facts.get("trust_root_binding").unwrap_or(&Value::Null),
@@ -2614,7 +2620,10 @@ fn non_empty<'a>(value: &'a Value, field: &str) -> Option<&'a str> {
 }
 
 fn is_hex(value: &str, length: usize) -> bool {
-    value.len() == length && value.bytes().all(|byte| byte.is_ascii_hexdigit())
+    value.len() == length
+        && value
+            .bytes()
+            .all(|byte| byte.is_ascii_digit() || byte.is_ascii_lowercase())
 }
 
 fn is_stage1_epoch_id(value: &str) -> bool {

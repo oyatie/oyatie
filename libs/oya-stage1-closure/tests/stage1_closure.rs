@@ -1718,6 +1718,87 @@ fn pending_epoch_requires_every_schema_member_before_hold_evaluation() {
 }
 
 #[test]
+fn lowercase_hex_and_protected_facts_preflight_fail_closed_before_lifecycle() {
+    fn uppercase_first_hex(value: &str) -> String {
+        format!("A{}", &value[1..])
+    }
+
+    for (field, value) in [
+        (
+            "blob_oid",
+            uppercase_first_hex("1111111111111111111111111111111111111111"),
+        ),
+        (
+            "sha256",
+            uppercase_first_hex("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"),
+        ),
+        (
+            "subject_digest",
+            "sha256:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned(),
+        ),
+    ] {
+        let mut pending = hold_epoch();
+        pending["controls"][0]["receipt_refs"] =
+            json!([receipt("pending-C01", "machine-verifiable")]);
+        pending["controls"][0]["receipt_refs"][0][field] = json!(value);
+        assert!(!evaluate_source_epoch(&program(), &pending).is_green());
+    }
+
+    let mut successor = pass_epoch();
+    successor["immutable_successor"]["facts_ref"]["sha256"] = json!(uppercase_first_hex(
+        "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    ));
+    assert!(
+        evaluate_source_epoch(&program(), &successor)
+            .findings
+            .iter()
+            .any(|finding| finding.contains("immutable_successor.facts_ref.sha256"))
+    );
+
+    let mut epoch = pass_epoch();
+    epoch["state"] = json!("HOLD_EPOCH_OPEN");
+    let facts = protected_facts(&epoch);
+    let valid_hold = evaluate_protected_facts_linkage(&program(), &epoch, &facts);
+    assert!(
+        valid_hold
+            .findings
+            .iter()
+            .all(|finding| finding.contains("protected-facts linkage is structural")),
+        "valid HOLD linkage must be intentional only: {:?}",
+        valid_hold.findings
+    );
+
+    let mut malformed_binding = facts.clone();
+    malformed_binding["program_binding"]["blob_oid"] = json!(uppercase_first_hex(
+        "dddddddddddddddddddddddddddddddddddddddd"
+    ));
+    assert!(
+        evaluate_protected_facts_linkage(&program(), &epoch, &malformed_binding)
+            .findings
+            .iter()
+            .any(|finding| finding.contains("program_binding.blob_oid"))
+    );
+
+    let mut malformed_receipt = facts;
+    malformed_receipt["receipt_bindings"][0]["sha256"] = json!(uppercase_first_hex(
+        "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    ));
+    let report = evaluate_protected_facts_linkage(&program(), &epoch, &malformed_receipt);
+    assert!(
+        report
+            .findings
+            .iter()
+            .any(|finding| finding.contains("protected receipt binding.sha256"))
+    );
+    assert!(
+        report
+            .findings
+            .iter()
+            .all(|finding| !finding.contains("external authenticated Stage-1 controller"))
+    );
+}
+
+#[test]
 fn receipt_validation_has_no_legacy_authority_field_reads() {
     let source = include_str!("../src/lib.rs");
     for legacy in [
