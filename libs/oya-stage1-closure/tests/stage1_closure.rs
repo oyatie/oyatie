@@ -269,6 +269,31 @@ fn canonical_program_and_open_hold_epoch_are_green() {
 fn public_protected_facts_linkage_remains_non_authoritative_and_held() {
     let epoch = pass_epoch();
     let facts = protected_facts(&epoch);
+    let source_receipt_count = epoch["controls"]
+        .as_array()
+        .expect("controls")
+        .iter()
+        .map(|control| {
+            control["receipt_refs"]
+                .as_array()
+                .expect("control receipts")
+                .len()
+        })
+        .sum::<usize>()
+        + epoch["lenses"].as_array().expect("lenses").len()
+        + 3;
+    assert_eq!(
+        source_receipt_count, 35,
+        "public fixture receipt population"
+    );
+    assert_eq!(
+        facts["receipt_bindings"]
+            .as_array()
+            .expect("protected receipts")
+            .len(),
+        33,
+        "public fixture must retain exactly the required protected receipt population"
+    );
     assert!(
         validate_protected_facts_grammar(&facts)
             .findings
@@ -1019,59 +1044,40 @@ fn protected_receipt_bindings_match_schema_allowed_fields_and_reject_legacy_fiel
 }
 
 #[test]
-fn red_control_specific_authority_roles_and_cardinality_are_declared() {
+fn protected_facts_schema_has_full_rust_receipt_parity() {
     let schema = schema("protected-facts");
     let binding_rules = schema["$defs"]["authority_receipt_binding"]["allOf"]
         .as_array()
         .expect("control role rules");
-    for control in ["C06", "C07", "C08", "C09", "C10", "C13", "C14", "C15"] {
-        assert!(
-            binding_rules
-                .iter()
-                .any(|rule| rule.to_string().contains(control)),
-            "missing {control} rule"
-        );
-    }
+    assert!(binding_rules.iter().any(|rule| rule.get("oneOf").is_some()));
     let cardinality = schema["properties"]["receipt_bindings"]["allOf"]
         .as_array()
         .expect("receipt cardinality rules");
-    assert!(
-        cardinality
-            .iter()
-            .any(|rule| rule.to_string().contains("machine-pilot-evidence"))
-    );
-    assert!(
-        cardinality
-            .iter()
-            .any(|rule| rule.to_string().contains("qualified-pilot-authorization"))
-    );
-    assert!(
-        cardinality
-            .iter()
-            .any(|rule| rule.to_string().contains("L16"))
-    );
-    assert!(
-        cardinality
-            .iter()
-            .any(|rule| rule.to_string().contains("blind-cold-reader"))
-    );
-    let exact = schema["allOf"]
-        .as_array()
-        .expect("exact role cardinality rules");
-    for (control, role) in [
+    let required_pairs = [
+        ("C01", "machine-evidence"),
+        ("C02", "machine-evidence"),
+        ("C03", "machine-evidence"),
+        ("C04", "machine-evidence"),
+        ("C05", "machine-evidence"),
+        ("C06", "qualified-legal-compliance"),
+        ("C07", "affected-party-representation"),
+        ("C08", "operations-owner-capacity"),
+        ("C09", "security-evidence-custody"),
+        ("C10", "veto-owner-closure"),
         ("C11", "machine-pilot-evidence"),
         ("C11", "qualified-pilot-authorization"),
+        ("C12", "machine-evidence"),
+        ("C14", "fresh-dissent"),
         ("C15", "deterministic-oracle"),
         ("C15", "blind-cold-reader"),
         ("C15", "qualified-planning-authority"),
-    ] {
-        let rule = exact.iter().find(|rule| {
-            let receipt_bindings = &rule["properties"]["receipt_bindings"];
-            receipt_bindings["contains"]["properties"]["control_id"]["const"] == control
-                && receipt_bindings["contains"]["properties"]["role"]["const"] == role
+    ];
+    for (control, role) in required_pairs {
+        let rule = cardinality.iter().find(|rule| {
+            rule["contains"]["properties"]["control_id"]["const"].as_str() == Some(control)
+                && rule["contains"]["properties"]["role"]["const"].as_str() == Some(role)
         });
-        let receipt_bindings =
-            &rule.expect("exact control role rule")["properties"]["receipt_bindings"];
+        let receipt_bindings = rule.expect("exact control role rule");
         assert_eq!(
             receipt_bindings["minContains"], 1,
             "missing {control}/{role}"
@@ -1079,6 +1085,20 @@ fn red_control_specific_authority_roles_and_cardinality_are_declared() {
         assert_eq!(
             receipt_bindings["maxContains"], 1,
             "duplicate {control}/{role} must fail"
+        );
+    }
+    for lens in 1..=16 {
+        let lens = format!("L{lens:02}");
+        let rule = cardinality.iter().find(|rule| {
+            rule["contains"]["properties"]["control_id"]["const"].as_str() == Some("C13")
+                && rule["contains"]["properties"]["lens_id"]["const"].as_str()
+                    == Some(lens.as_str())
+        });
+        let receipt_bindings = rule.expect("exact C13 lens cardinality rule");
+        assert_eq!(receipt_bindings["minContains"], 1, "missing C13/{lens}");
+        assert_eq!(
+            receipt_bindings["maxContains"], 1,
+            "duplicate C13/{lens} must fail"
         );
     }
 }
@@ -1415,6 +1435,105 @@ fn protected_facts_grammar_rejects_authority_cardinality_identity_and_digest_fai
 }
 
 #[test]
+fn receipt_population_parity_rejects_each_missing_requirement_and_unsupported_pair() {
+    let required_pairs = [
+        ("C01", "machine-evidence"),
+        ("C02", "machine-evidence"),
+        ("C03", "machine-evidence"),
+        ("C04", "machine-evidence"),
+        ("C05", "machine-evidence"),
+        ("C06", "qualified-legal-compliance"),
+        ("C07", "affected-party-representation"),
+        ("C08", "operations-owner-capacity"),
+        ("C09", "security-evidence-custody"),
+        ("C10", "veto-owner-closure"),
+        ("C11", "machine-pilot-evidence"),
+        ("C11", "qualified-pilot-authorization"),
+        ("C12", "machine-evidence"),
+        ("C14", "fresh-dissent"),
+        ("C15", "deterministic-oracle"),
+        ("C15", "blind-cold-reader"),
+        ("C15", "qualified-planning-authority"),
+    ];
+    let green = grammar_facts();
+
+    for (control, role) in required_pairs {
+        let mut missing = green.clone();
+        missing["receipt_bindings"]
+            .as_array_mut()
+            .expect("bindings")
+            .retain(|receipt| !(receipt["control_id"] == control && receipt["role"] == role));
+        assert!(
+            !validate_protected_facts_grammar(&missing).is_green(),
+            "removing {control}/{role} must fail"
+        );
+    }
+    for lens in 1..=16 {
+        let lens = format!("L{lens:02}");
+        let mut missing = green.clone();
+        missing["receipt_bindings"]
+            .as_array_mut()
+            .expect("bindings")
+            .retain(|receipt| !(receipt["control_id"] == "C13" && receipt["lens_id"] == lens));
+        assert!(
+            !validate_protected_facts_grammar(&missing).is_green(),
+            "removing C13/{lens} must fail"
+        );
+    }
+
+    let supported = BTreeSet::from(required_pairs);
+    let roles = [
+        "machine-evidence",
+        "qualified-legal-compliance",
+        "affected-party-representation",
+        "operations-owner-capacity",
+        "security-evidence-custody",
+        "veto-owner-closure",
+        "machine-pilot-evidence",
+        "qualified-pilot-authorization",
+        "independent-council",
+        "fresh-dissent",
+        "deterministic-oracle",
+        "blind-cold-reader",
+        "qualified-planning-authority",
+    ];
+    for control_number in 1..=15 {
+        let control = format!("C{control_number:02}");
+        for role in roles {
+            if supported.contains(&(control.as_str(), role))
+                || (control == "C13" && role == "independent-council")
+            {
+                continue;
+            }
+            let mut unsupported = green.clone();
+            unsupported["receipt_bindings"]
+                .as_array_mut()
+                .expect("bindings")
+                .push(grammar_receipt(
+                    &control,
+                    role,
+                    "wrong-authority",
+                    "wrong-qualification",
+                    "unsupported",
+                ));
+            assert!(
+                !validate_protected_facts_grammar(&unsupported).is_green(),
+                "unsupported {control}/{role} must fail"
+            );
+        }
+    }
+    let mut unsupported_lens = green;
+    let receipt = unsupported_lens["receipt_bindings"]
+        .as_array_mut()
+        .expect("bindings")
+        .iter_mut()
+        .find(|receipt| receipt["control_id"] == "C13" && receipt["lens_id"] == "L01")
+        .expect("C13/L01");
+    receipt["lens_id"] = json!("L17");
+    assert!(!validate_protected_facts_grammar(&unsupported_lens).is_green());
+}
+
+#[test]
 fn schema_equivalent_closed_shapes_reject_locator_types_extra_records_and_unknown_keys() {
     type Mutation = (&'static str, fn(&mut Value));
 
@@ -1735,6 +1854,10 @@ fn lowercase_hex_and_protected_facts_preflight_fail_closed_before_lifecycle() {
         (
             "subject_digest",
             "sha256:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned(),
+        ),
+        (
+            "sha256",
+            "gbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb".to_owned(),
         ),
     ] {
         let mut pending = hold_epoch();

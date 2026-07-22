@@ -2623,7 +2623,7 @@ fn is_hex(value: &str, length: usize) -> bool {
     value.len() == length
         && value
             .bytes()
-            .all(|byte| byte.is_ascii_digit() || byte.is_ascii_lowercase())
+            .all(|byte| byte.is_ascii_digit() || matches!(byte, b'a'..=b'f'))
 }
 
 fn is_stage1_epoch_id(value: &str) -> bool {
