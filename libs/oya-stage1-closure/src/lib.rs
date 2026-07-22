@@ -980,7 +980,7 @@ fn validate_epoch_lenses(
                 != Some(reviewer_id)
             {
                 findings.insert(format!(
-                    "lenses.{id}.receipt_ref issuer_id must equal reviewer_id"
+                    "lenses.{id}.receipt_ref principal_id must equal reviewer_id"
                 ));
             }
             state.principals.insert(reviewer_id.to_owned());
@@ -1036,7 +1036,8 @@ fn validate_fresh_dissent(value: Option<&Value>, findings: &mut BTreeSet<String>
         != Some(reviewer_id)
     {
         findings.insert(
-            "fresh_dissent.receipt_ref issuer_id must equal fresh_dissent.reviewer_id".to_owned(),
+            "fresh_dissent.receipt_ref principal_id must equal fresh_dissent.reviewer_id"
+                .to_owned(),
         );
     }
     state
@@ -1122,7 +1123,7 @@ fn validate_context_free_exit(
             != Some(oracle)
         {
             findings.insert(
-                "context_free_exit.oracle_receipt_ref issuer_id must equal oracle_principal_id"
+                "context_free_exit.oracle_receipt_ref principal_id must equal oracle_principal_id"
                     .to_owned(),
             );
         }
@@ -1141,7 +1142,7 @@ fn validate_context_free_exit(
             != Some(blind_reader)
         {
             findings.insert(
-                "context_free_exit.blind_reader_receipt_ref issuer_id must equal blind_reader_principal_id"
+                "context_free_exit.blind_reader_receipt_ref principal_id must equal blind_reader_principal_id"
                     .to_owned(),
             );
         }
@@ -1178,11 +1179,13 @@ fn validate_receipt(
             "{path}.subject_digest must match the frozen subject"
         ));
     }
-    let issuer_id = non_empty(receipt, "issuer_id").map(str::to_owned);
-    if issuer_id.is_none() {
-        findings.insert(format!("{path}.issuer_id must be non-empty"));
+    let principal_id = non_empty(receipt, "principal_id").map(str::to_owned);
+    if principal_id.is_none() {
+        findings.insert(format!("{path}.principal_id must be non-empty"));
     }
-    let receipt_class = receipt.get("issuer_class").and_then(Value::as_str);
+    let receipt_class = receipt
+        .get("issuer_authority_class")
+        .and_then(Value::as_str);
     let valid_class = if expected_class == "machine-and-qualified-human" {
         matches!(
             receipt_class,
@@ -1192,12 +1195,17 @@ fn validate_receipt(
         receipt_class == Some(expected_class)
     };
     if !valid_class {
-        findings.insert(format!("{path}.issuer_class must equal {expected_class}"));
+        findings.insert(format!(
+            "{path}.issuer_authority_class must equal {expected_class}"
+        ));
     }
-    if non_empty(receipt, "authority_ref").is_none() {
-        findings.insert(format!("{path}.authority_ref must be non-empty"));
+    if !receipt
+        .get("authority_source_ref")
+        .is_some_and(Value::is_object)
+    {
+        findings.insert(format!("{path}.authority_source_ref must be bound"));
     }
-    issuer_id
+    principal_id
 }
 
 fn validate_protected_parent_facts(
@@ -1213,7 +1221,11 @@ fn validate_protected_parent_facts(
     findings.extend(grammar_findings(facts));
 
     require_string(facts, "schema_id", PROTECTED_FACTS_SCHEMA_ID, findings);
-    require_non_empty_string(facts, "trust_root_authority_ref", findings);
+    validate_artifact_binding(
+        facts.get("trust_root_binding").unwrap_or(&Value::Null),
+        "trust_root_binding",
+        findings,
+    );
     require_non_empty_string(facts, "protected_base_repository", findings);
     require_non_empty_string(facts, "candidate_repository", findings);
     for field in [
@@ -1286,11 +1298,17 @@ fn validate_protected_parent_facts(
         if control_id == "C11" && control.get("status").and_then(Value::as_str) == Some("satisfied")
         {
             let machine = source_receipts.iter().any(|receipt| {
-                receipt.get("issuer_class").and_then(Value::as_str) == Some("machine-verifiable")
+                receipt
+                    .get("issuer_authority_class")
+                    .and_then(Value::as_str)
+                    == Some("machine-verifiable")
                     && matching_protected_receipt(receipts, receipt).is_some()
             });
             let human = source_receipts.iter().any(|receipt| {
-                receipt.get("issuer_class").and_then(Value::as_str) == Some("qualified-human")
+                receipt
+                    .get("issuer_authority_class")
+                    .and_then(Value::as_str)
+                    == Some("qualified-human")
                     && matching_protected_receipt(receipts, receipt).is_some()
             });
             if !machine || !human {
@@ -1340,9 +1358,9 @@ fn matching_protected_receipt<'a>(bindings: &'a [Value], receipt: &Value) -> Opt
             "blob_oid",
             "sha256",
             "subject_digest",
-            "issuer_id",
-            "issuer_class",
-            "authority_ref",
+            "principal_id",
+            "issuer_authority_class",
+            "authority_source_ref",
         ]
         .iter()
         .all(|field| binding.get(*field) == receipt.get(*field))
@@ -1361,11 +1379,26 @@ fn validate_receipt_binding(
     if binding.get("subject_digest").and_then(Value::as_str) != expected_subject {
         findings.insert("protected receipt binding must match protected subject_digest".to_owned());
     }
-    require_bool(binding, "independently_observed", true, findings);
-    require_non_empty_string(binding, "trust_root_authority_ref", findings);
+    if !binding
+        .get("independence_observation")
+        .is_some_and(Value::is_object)
+    {
+        findings.insert("protected receipt binding must bind independence_observation".to_owned());
+    }
+    validate_artifact_binding(
+        binding
+            .get("signature_trust_root_binding")
+            .unwrap_or(&Value::Null),
+        "signature_trust_root_binding",
+        findings,
+    );
     if matches!(control_id, "C06" | "C07" | "C08" | "C09" | "C10" | "C11") {
         require_non_empty_string(binding, "qualification", findings);
-        require_non_empty_string(binding, "scope", findings);
+        validate_artifact_binding(
+            binding.get("jurisdiction_scope").unwrap_or(&Value::Null),
+            "jurisdiction_scope",
+            findings,
+        );
     }
 }
 
@@ -1540,7 +1573,7 @@ fn validate_state_progress(
                 "input_class",
                 "required_qualification",
                 "scope",
-                "authority_ref",
+                "authority_source_ref",
                 "reason",
             ] {
                 if non_empty(blocker, field).is_none() {
