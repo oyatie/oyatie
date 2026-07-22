@@ -14,7 +14,7 @@ doc_status: published
 - **Total ADRs:** 429
 - **Numbering:** ADR-0001..ADR-0619 (non-contiguous; gaps: 0012, 0033, 0037, 0041, 0050, 0068, 0070..0082, 0084..0089, 0125..0127, 0224..0233, 0247, 0256, 0259..0262, 0264..0271, 0274..0275, 0277..0279, 0281..0283, 0285..0291, 0322..0323, 0327, 0342, 0345, 0385..0386, 0395..0396, 0398..0475, 0477, 0483..0505, 0574..0579, 0583..0585, 0594, 0601..0602)
 - **Next ADR number:** 0620
-- **Status counts:** Accepted 175, Accepted (amendment) 2, Amended 1, Proposed 147, Proposed (conditional: Accepted only after ADR-0377-D2 and ADR-0377-D3 code/tests pass) 1, Proposed (target: Accepted upon PR #143 merge to dev) 1, Superseded 35, accepted 34, deprecated 1, proposed 31, superseded 1
+- **Status counts:** Accepted 174, Accepted (amendment) 2, Amended 2, Proposed 147, Proposed (conditional: Accepted only after ADR-0377-D2 and ADR-0377-D3 code/tests pass) 1, Proposed (target: Accepted upon PR #143 merge to dev) 1, Superseded 35, accepted 34, deprecated 1, proposed 31, superseded 1
 - **Legacy retirement:** see [`ADR-LEGACY-REGRESSION-MAPPING.md`](ADR-LEGACY-REGRESSION-MAPPING.md).
 
 ## Full table (one row per ADR, sorted by ADR number)
@@ -334,7 +334,7 @@ doc_status: published
 | ADR-0383 | Accepted | Observability stack reconciliation: keep Loki / Tempo / Mimir / Grafana under AGPL-3 | ops-platform | [`ADR-0383-observability-stack-reconciliation-loki-tempo-mimir-grafana.md`](decisions/ADR-0383-observability-stack-reconciliation-loki-tempo-mimir-grafana.md) |
 | ADR-0384 | Proposed | cloud-intelligence gateway Path B redesign: OAuth subscription-pool replacing static API-key pool | council-architecture | [`ADR-0384-llm-gateway-oauth-subscription-pool-redesign.md`](decisions/ADR-0384-llm-gateway-oauth-subscription-pool-redesign.md) |
 | ADR-0387 | Proposed | CI Webhook Gateway: GitHub → Jenkins → GitHub Commit-Status Bridge | council-architecture + ops-platform | [`ADR-0387-ci-webhook-gateway-github-actions-commit-status.md`](decisions/ADR-0387-ci-webhook-gateway-github-actions-commit-status.md) |
-| ADR-0388 | Accepted | Doc-axis convention to prevent doc sprawl | founder | [`ADR-0388-doc-axis-convention.md`](decisions/ADR-0388-doc-axis-convention.md) |
+| ADR-0388 | Amended | Doc-axis convention to prevent doc sprawl | founder | [`ADR-0388-doc-axis-convention.md`](decisions/ADR-0388-doc-axis-convention.md) |
 | ADR-0389 | Accepted | cloud-intelligence: Bedrock-on-Talos pattern as a cloud primitive | council-architecture | [`ADR-0389-cloud-intelligence-bedrock-pattern-cloud-primitive.md`](decisions/ADR-0389-cloud-intelligence-bedrock-pattern-cloud-primitive.md) |
 | ADR-0390 | Accepted | cloud-intelligence v1: request pipeline and proof layer | council-architecture | [`ADR-0390-cloud-intelligence-v1-request-pipeline-and-proof-layer.md`](decisions/ADR-0390-cloud-intelligence-v1-request-pipeline-and-proof-layer.md) |
 | ADR-0391 | Accepted | N-lane parallel safety proof and unified DevOps console | council-architecture | [`ADR-0391-n-lane-parallel-safety-proof-and-devops-console.md`](decisions/ADR-0391-n-lane-parallel-safety-proof-and-devops-console.md) |
