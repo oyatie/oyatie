@@ -199,5 +199,32 @@
       "agent-operating-contract projection lacks explicit promotion evidence"
     ],
     "stop_condition": "No Markdown class may be claimed retired until its replacement schema, producer, consumers, parity check, and live oya-ci-required enforcement are proven in a protected PR."
+  },
+  "history_only_cutover_2026_07_22": {
+    "directive_text": "assume qualified authorization",
+    "source_type": "direct-user-directive",
+    "effect": "repository ratification only",
+    "scopes": [
+      "founder-product-intent",
+      "architecture-decision",
+      "planning-HOLD",
+      "repository-disposition"
+    ],
+    "tracked_legacy_paths": [
+      ".omc/ultragoal/OWNERS",
+      ".omc/ultragoal/TEAMMATE-PREAMBLE.md",
+      ".omc/ultragoal/friction-ledger.jsonl",
+      ".omc/ultragoal/premise.txt"
+    ],
+    "tracked_legacy_state": "The four tracked .omc/ultragoal files remain historical provenance pending atomic consumer retirement and final deletion. They are not default agent reads; this record does not claim their absence.",
+    "nonclaims": [
+      "external legal facts",
+      "affected-party consent",
+      "ops capacity",
+      "custody keys",
+      "pilot results",
+      "Stage-1 control satisfaction"
+    ],
+    "hold_effect": "Repository ratification preserves the existing planning HOLD: no dispatch and no roadmap follow from this record."
   }
 }

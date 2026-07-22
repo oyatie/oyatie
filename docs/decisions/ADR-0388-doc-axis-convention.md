@@ -37,7 +37,7 @@ explicitly forbids everything else.
 
 | Axis | Canonical home | Auto-gen | Lifecycle rule |
 |---|---|---|---|
-| `DECISIONS` | `docs/decisions/ADR-NNNN-*.md` | no | Authoritative. Status field MUST be one of `Accepted`, `Proposed`, `Superseded`, `Deprecated`, or `Rejected` (exact case). |
+| `DECISIONS` | `docs/decisions/ADR-NNNN-*.md` | no | Authoritative. Status field MUST be one of `Accepted`, `Amended`, `Proposed`, `Superseded`, `Deprecated`, or `Rejected` (exact case). An Accepted decision amended in place records `amended_date`; amendment is not supersession. |
 | `PLANS` | `docs/machine-readable/masterplan.generated.json` | yes (`oya gen masterplan`) | Derived from ADRs with `planning_impact: true`. Never hand-edit. |
 | `INDEX` | `docs/ADR-INDEX.md` | yes (`oya doc adr-index`) | Derived. Never hand-edit. |
 | `SPECS-MS` | `microservices/<ms>/manifest.json` | no | Per-µservice. One file per service. |
@@ -80,7 +80,8 @@ is a gate violation (`no-shadow-docs` rule).
 ### ADR status casing
 
 The gate enforces case-sensitive status values. Allowed values are exactly:
-`Accepted`, `Proposed`, `Superseded`, `Deprecated`, `Rejected`.
+`Accepted`, `Amended`, `Proposed`, `Superseded`, `Deprecated`, `Rejected`. `Amended` requires
+an `amended_date` and does not imply a `superseded_by` relationship.
 
 For the current corpus of existing ADRs the status check emits **warnings**
 (not errors) unless `--strict` is passed. A follow-up sweep ADR + script will
