@@ -25,6 +25,7 @@ rust_test(
 rust_test(
     name = "corpus-doc-parser-contract",
     srcs = [
+        "src/lib.rs",
         "tests/doc_parser_contract.rs",
         "tests/fixtures/adr-heading-reference.md",
         "tests/fixtures/adversarial-exfil.md",
