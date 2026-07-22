@@ -34,6 +34,7 @@ const RECEIPT_FIELDS: &[&str] = &[
     "provenance",
     "verification_contract",
     "effects",
+    "protected_preparation",
 ];
 const AUTHORITY_FIELDS: &[&str] = &[
     "decisions",
@@ -68,6 +69,7 @@ const EFFECT_FIELDS: &[&str] = &[
     "roadmap_effect",
     "planning_hold_effect",
 ];
+const PROTECTED_PREPARATION_FIELDS: &[&str] = &["receipt_path", "receipt_blob_oid"];
 const FACT_FIELDS: &[&str] = &[
     "artifact_id",
     "receipt_path",
@@ -82,6 +84,8 @@ const FACT_FIELDS: &[&str] = &[
     "protected_registry_row_sha256",
     "candidate_registry_row_sha256",
     "retired_inputs",
+    "preparation_receipt_path",
+    "protected_preparation_receipt_blob_oid",
 ];
 const FACT_INPUT_FIELDS: &[&str] = &[
     "path",
@@ -120,7 +124,9 @@ const PROTECTED_SCM_CONTEXT_FIELDS: &[&str] = &[
     "candidate_tree_oid",
     "protected_base_is_ancestor_of_candidate",
     "prepared_receipt_paths",
+    "protected_preparation_receipts",
 ];
+const PROTECTED_PREPARATION_RECEIPT_FIELDS: &[&str] = &["receipt_path", "receipt_blob_oid"];
 const SCM_FACT_FIELDS: &[&str] = &[
     "retirement_receipt_coverage",
     "retirement_receipt_object_facts",
@@ -173,12 +179,6 @@ pub fn evaluate_history_only_retirement_receipt(
         receipt,
         "$schema",
         "https://json-schema.org/draft/2020-12/schema",
-        &mut findings,
-    );
-    exact(
-        receipt,
-        "artifact_type",
-        "migration-closure-receipt",
         &mut findings,
     );
     required_identifier(receipt, "artifact_id", &mut findings);
@@ -282,8 +282,64 @@ pub fn evaluate_history_only_retirement_receipt(
         fail(&mut findings, "object_fact.protected_base_ref");
     }
     let state = fact.get("receipt_state").and_then(Value::as_str);
-    if !matches!(state, Some("prepared-new" | "carried" | "closed-carried")) {
+    if !matches!(
+        state,
+        Some("prepared-new" | "closure-new" | "carried" | "closed-carried")
+    ) {
         fail(&mut findings, "object_fact.receipt_state");
+    }
+    let closure = state == Some("closure-new");
+    if closure {
+        if receipt.get("promoted_commit_oid").is_some()
+            || receipt.get("postmerge_success").is_some()
+        {
+            fail(&mut findings, "closure_claim_ceiling");
+        }
+        exact(
+            receipt,
+            "artifact_type",
+            "history-only-retirement-closure-receipt",
+            &mut findings,
+        );
+        let preparation = child(receipt, "protected_preparation");
+        closed_object(
+            preparation,
+            PROTECTED_PREPARATION_FIELDS,
+            "protected_preparation",
+            &mut findings,
+        );
+        let preparation_path = preparation
+            .get("receipt_path")
+            .and_then(Value::as_str)
+            .filter(|path| repo_path(path));
+        let preparation_blob = oid(
+            preparation,
+            "receipt_blob_oid",
+            "protected_preparation.receipt_blob_oid",
+            &mut findings,
+        );
+        if preparation_path.is_none()
+            || fact.get("preparation_receipt_path").and_then(Value::as_str) != preparation_path
+            || fact
+                .get("protected_preparation_receipt_blob_oid")
+                .and_then(Value::as_str)
+                != preparation_blob.as_deref()
+        {
+            fail(&mut findings, "closure_preparation_link");
+        }
+    } else {
+        exact(
+            receipt,
+            "artifact_type",
+            "migration-closure-receipt",
+            &mut findings,
+        );
+        if receipt.get("protected_preparation").is_some()
+            || fact.get("preparation_receipt_path").is_some()
+            || fact.get("protected_preparation_receipt_blob_oid").is_some()
+        {
+            fail(&mut findings, "closure_preparation_link");
+        }
     }
     let _ = oid(
         fact,
@@ -297,7 +353,7 @@ pub fn evaluate_history_only_retirement_receipt(
     ) {
         fail(&mut findings, "object_fact.candidate_registry_row_sha256");
     }
-    if state == Some("prepared-new") {
+    if matches!(state, Some("prepared-new" | "closure-new")) {
         if !fact
             .get("protected_receipt_blob_oid")
             .is_some_and(Value::is_null)
@@ -362,9 +418,6 @@ pub fn evaluate_history_only_retirement_receipts(corpus: &Value) -> BTreeSet<Fin
         fail(&mut findings, "retirement_receipts.receipts");
         return findings;
     };
-    if records.is_empty() {
-        fail(&mut findings, "retirement_receipts.receipts.empty");
-    }
     let mut paths = BTreeSet::new();
     let mut receipts = Vec::with_capacity(records.len());
     for (index, record) in records.iter().enumerate() {
@@ -401,8 +454,9 @@ pub fn evaluate_history_only_retirement_receipts(corpus: &Value) -> BTreeSet<Fin
 }
 
 /// Validate declared candidate-epoch partitioning and exact per-scope coverage.
-/// Preparation binds only materialized candidate commit/tree facts; carried records
-/// retain their immutable protected binding and never self-bind through a receipt.
+/// Preparation binds only materialized candidate commit/tree facts. A later closure
+/// is a distinct candidate receipt linked to a protected preparation blob; it never
+/// mutates or copies that protected preparation.
 pub fn evaluate_history_only_retirement_receipt_coverage(
     receipts: &[Value],
     facts: &Value,
@@ -442,6 +496,14 @@ pub fn evaluate_history_only_retirement_receipt_coverage(
         "new_receipt_paths",
         &mut findings,
     );
+    let protected_preparations = protected_preparation_receipts(
+        protected_context.get("protected_preparation_receipts"),
+        &mut findings,
+    );
+    let protected_preparation_paths = protected_preparations
+        .keys()
+        .cloned()
+        .collect::<BTreeSet<_>>();
     let candidate_commit = oid(
         protected_context,
         "candidate_commit_oid",
@@ -476,19 +538,11 @@ pub fn evaluate_history_only_retirement_receipt_coverage(
     {
         fail(&mut findings, "protected_scm_context.binding");
     }
-    if path_set(
-        protected_context.get("prepared_receipt_paths"),
-        "protected_scm_context.prepared_receipt_paths",
-        &mut findings,
-    ) != prepared
-    {
-        fail(
-            &mut findings,
-            "protected_scm_context.prepared_receipt_paths",
-        );
-    }
-    if candidate.is_empty()
-        || protected != carried
+    if protected
+        != carried
+            .union(&protected_preparation_paths)
+            .cloned()
+            .collect()
         || !carried.is_subset(&candidate)
         || !prepared.is_disjoint(&carried)
         || candidate != carried.union(&prepared).cloned().collect()
@@ -496,15 +550,18 @@ pub fn evaluate_history_only_retirement_receipt_coverage(
     {
         fail(&mut findings, "receipt_path_partition");
     }
+    if !protected_preparation_paths.is_disjoint(&candidate) {
+        fail(&mut findings, "protected_preparation_immutable");
+    }
     let required = validate_scopes(coverage, &mut findings);
-    if required.is_empty() {
+    if required.is_empty() && (!candidate.is_empty() || !protected.is_empty()) {
         fail(&mut findings, "retirement_receipt_coverage.scopes.empty");
     }
     let object_facts = facts
         .get("retirement_receipt_object_facts")
         .and_then(Value::as_array)
         .map_or(&[][..], Vec::as_slice);
-    if object_facts.is_empty() {
+    if object_facts.is_empty() && !candidate.is_empty() {
         fail(&mut findings, "retirement_receipt_object_facts.empty");
     }
     let mut fact_artifacts = BTreeSet::new();
@@ -540,8 +597,26 @@ pub fn evaluate_history_only_retirement_receipt_coverage(
     {
         fail(&mut findings, "object_fact_path_set");
     }
+    let prepared_fact_paths = object_facts
+        .iter()
+        .filter(|fact| fact.get("receipt_state").and_then(Value::as_str) == Some("prepared-new"))
+        .filter_map(|fact| fact.get("receipt_path").and_then(Value::as_str))
+        .map(str::to_owned)
+        .collect::<BTreeSet<_>>();
+    if path_set(
+        protected_context.get("prepared_receipt_paths"),
+        "protected_scm_context.prepared_receipt_paths",
+        &mut findings,
+    ) != prepared_fact_paths
+    {
+        fail(
+            &mut findings,
+            "protected_scm_context.prepared_receipt_paths",
+        );
+    }
     let mut carried_covered: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
     let mut prepared_covered: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    let mut closed_preparation_paths = BTreeSet::new();
     let receipt_artifacts = receipts
         .iter()
         .filter_map(|receipt| receipt.get("artifact_id").and_then(Value::as_str))
@@ -620,8 +695,48 @@ pub fn evaluate_history_only_retirement_receipt_coverage(
                     .or_default()
                     .extend(input_paths(receipt, &mut findings));
             }
+            (Some(path), Some("closure-new")) if prepared.contains(path) => {
+                let preparation = child(receipt, "protected_preparation");
+                let preparation_path = preparation.get("receipt_path").and_then(Value::as_str);
+                let preparation_blob = preparation.get("receipt_blob_oid").and_then(Value::as_str);
+                if preparation_path
+                    .and_then(|path| protected_preparations.get(path))
+                    .map(String::as_str)
+                    != preparation_blob
+                    || receipt
+                        .pointer("/baseline/commit_oid")
+                        .and_then(Value::as_str)
+                        != candidate_commit.as_deref()
+                    || receipt
+                        .pointer("/baseline/tree_oid")
+                        .and_then(Value::as_str)
+                        != candidate_tree.as_deref()
+                    || fact.get("baseline_commit_oid").and_then(Value::as_str)
+                        != candidate_commit.as_deref()
+                    || fact.get("baseline_tree_oid").and_then(Value::as_str)
+                        != candidate_tree.as_deref()
+                {
+                    fail(&mut findings, "closure_preparation_link");
+                }
+                if !preparation_path
+                    .is_some_and(|path| closed_preparation_paths.insert(path.to_owned()))
+                {
+                    fail(&mut findings, "closure_preparation_ambiguous");
+                }
+                let scope = receipt
+                    .get("scope_ref")
+                    .and_then(Value::as_str)
+                    .unwrap_or("");
+                prepared_covered
+                    .entry(scope.to_owned())
+                    .or_default()
+                    .extend(input_paths(receipt, &mut findings));
+            }
             _ => fail(&mut findings, "receipt_epoch_classification"),
         }
+    }
+    if closed_preparation_paths != protected_preparation_paths {
+        fail(&mut findings, "closure_preparation_ambiguous");
     }
     for (scope, expected) in required {
         let carried_paths = carried_covered.get(&scope).cloned().unwrap_or_default();
@@ -710,7 +825,18 @@ fn validate_state_claims(
     {
         fail(findings, "verification_contract.required_gates.exact_set");
     }
-    if effects.get("repository_effect").and_then(Value::as_str) != Some("history-only") {
+    if state == Some("closure-new") {
+        for (key, value) in [
+            ("repository_effect", "history-only"),
+            ("runtime_effect", "none"),
+            ("roadmap_effect", "none"),
+            ("planning_hold_effect", "HOLD(Planning)"),
+        ] {
+            if effects.get(key).and_then(Value::as_str) != Some(value) {
+                fail(findings, "closure_claim_ceiling");
+            }
+        }
+    } else if effects.get("repository_effect").and_then(Value::as_str) != Some("history-only") {
         fail(findings, "closure_repository_effect");
     }
 }
@@ -854,7 +980,8 @@ fn validate_inputs(
             && fact_input.get("candidate_mode").is_some_and(Value::is_null);
         if !no_equivalent_copy
             || (state == Some("prepared-new") && !candidate_matches)
-            || (matches!(state, Some("carried" | "closed-carried")) && !candidate_absent)
+            || (matches!(state, Some("closure-new" | "carried" | "closed-carried"))
+                && !candidate_absent)
         {
             fail(
                 findings,
@@ -1074,6 +1201,42 @@ fn path_set(
     }
     result
 }
+fn protected_preparation_receipts(
+    value: Option<&Value>,
+    findings: &mut BTreeSet<Finding>,
+) -> BTreeMap<String, String> {
+    let Some(receipts) = value.and_then(Value::as_array) else {
+        fail(findings, "protected_preparation_receipts");
+        return BTreeMap::new();
+    };
+    let mut result = BTreeMap::new();
+    for (index, receipt) in receipts.iter().enumerate() {
+        closed_object(
+            receipt,
+            PROTECTED_PREPARATION_RECEIPT_FIELDS,
+            &format!("protected_preparation_receipts[{index}]"),
+            findings,
+        );
+        let path = receipt
+            .get("receipt_path")
+            .and_then(Value::as_str)
+            .filter(|path| repo_path(path));
+        let blob = oid(
+            receipt,
+            "receipt_blob_oid",
+            &format!("protected_preparation_receipts[{index}].receipt_blob_oid"),
+            findings,
+        );
+        if let (Some(path), Some(blob)) = (path, blob) {
+            if result.insert(path.to_owned(), blob).is_some() {
+                fail(findings, "protected_preparation_receipts");
+            }
+        } else {
+            fail(findings, "protected_preparation_receipts");
+        }
+    }
+    result
+}
 fn string_set(
     value: Option<&Value>,
     finding: &str,
@@ -1182,7 +1345,48 @@ mod tests {
         json!({"artifact_id":id,"receipt_path":receipt_path,"protected_base_ref":"origin/dev","receipt_state":state,"scope_ref":scope,"scope_type":scope_type(scope).unwrap(),"baseline_commit_oid":commit,"baseline_tree_oid":tree,"protected_receipt_blob_oid":if prepared { Value::Null } else { json!(BLOB) },"candidate_receipt_blob_oid":BLOB,"protected_registry_row_sha256":if prepared { Value::Null } else { json!("sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa") },"candidate_registry_row_sha256":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","retired_inputs":[{"path":path,"predecessor_blob_oid":BLOB,"sha256":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","byte_count":1,"protected_path_exists":true,"protected_path_kind":"regular","protected_blob_oid":BLOB,"protected_sha256":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","protected_byte_count":1,"protected_mode":"100644","candidate_path_exists":prepared,"candidate_path_kind":if prepared { json!("regular") } else { Value::Null },"candidate_blob_oid":if prepared { json!(BLOB) } else { Value::Null },"candidate_sha256":if prepared { json!("sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa") } else { Value::Null },"candidate_byte_count":if prepared { json!(1) } else { Value::Null },"candidate_mode":if prepared { json!("100644") } else { Value::Null },"candidate_new_equivalent_paths":[],"candidate_equivalent_paths":[]} ]})
     }
     fn protected_scm_context(prepared_receipt_paths: &[&str]) -> Value {
-        json!({"protected_base_ref":"origin/dev","protected_base_commit_oid":OLD,"protected_base_tree_oid":OLD_TREE,"candidate_commit_oid":NEW,"candidate_tree_oid":NEW_TREE,"protected_base_is_ancestor_of_candidate":true,"prepared_receipt_paths":prepared_receipt_paths})
+        json!({"protected_base_ref":"origin/dev","protected_base_commit_oid":OLD,"protected_base_tree_oid":OLD_TREE,"candidate_commit_oid":NEW,"candidate_tree_oid":NEW_TREE,"protected_base_is_ancestor_of_candidate":true,"prepared_receipt_paths":prepared_receipt_paths,"protected_preparation_receipts":[]})
+    }
+    fn closure_receipt(
+        id: &str,
+        scope: &str,
+        path: &str,
+        preparation_receipt_path: &str,
+        preparation_receipt_blob_oid: &str,
+    ) -> Value {
+        let mut receipt = receipt(id, scope, NEW, NEW_TREE, path);
+        receipt["artifact_type"] = json!("history-only-retirement-closure-receipt");
+        receipt["protected_preparation"] = json!({
+            "receipt_path": preparation_receipt_path,
+            "receipt_blob_oid": preparation_receipt_blob_oid,
+        });
+        receipt
+    }
+    fn closure_fact(
+        id: &str,
+        receipt_path: &str,
+        scope: &str,
+        path: &str,
+        preparation_receipt_path: &str,
+        preparation_receipt_blob_oid: &str,
+    ) -> Value {
+        let mut fact = fact(id, receipt_path, scope, "closure-new", NEW, NEW_TREE, path);
+        fact["protected_receipt_blob_oid"] = Value::Null;
+        fact["protected_registry_row_sha256"] = Value::Null;
+        fact["preparation_receipt_path"] = json!(preparation_receipt_path);
+        fact["protected_preparation_receipt_blob_oid"] = json!(preparation_receipt_blob_oid);
+        fact
+    }
+    fn protected_scm_context_with_preparation(
+        preparation_receipt_path: &str,
+        preparation_receipt_blob_oid: &str,
+    ) -> Value {
+        let mut context = protected_scm_context(&[]);
+        context["protected_preparation_receipts"] = json!([{
+            "receipt_path": preparation_receipt_path,
+            "receipt_blob_oid": preparation_receipt_blob_oid,
+        }]);
+        context
     }
     #[test]
     fn carried_protected_idea_and_new_repository_authority_receipt_are_independently_admitted() {
@@ -1606,12 +1810,202 @@ mod tests {
     }
 
     #[test]
+    fn dormant_empty_corpus_is_valid_but_any_present_row_fails_closed() {
+        let empty = json!({
+            "receipts": [],
+            "scm_facts": {
+                "retirement_receipt_coverage": {
+                    "protected_base_ref": "origin/dev",
+                    "protected_receipt_paths": [],
+                    "candidate_receipt_paths": [],
+                    "carried_receipt_paths": [],
+                    "new_receipt_paths": [],
+                    "scopes": [],
+                    "required_retired_paths": []
+                },
+                "retirement_receipt_object_facts": [],
+                "protected_scm_context": protected_scm_context(&[])
+            }
+        });
+        assert!(
+            evaluate_history_only_retirement_receipts(&empty).is_empty(),
+            "the dormant no-receipt state must be valid"
+        );
+
+        let mut present = empty;
+        present["scm_facts"]["retirement_receipt_coverage"]["candidate_receipt_paths"] =
+            json!(["evidence/unbacked.json"]);
+        assert!(
+            !evaluate_history_only_retirement_receipts(&present).is_empty(),
+            "any declared receipt path requires a complete receipt row"
+        );
+    }
+
+    #[test]
+    fn protected_preparation_closes_only_through_a_distinct_linked_closure_receipt() {
+        const PREPARATION_PATH: &str = "evidence/prepared-authority.json";
+        const CLOSURE_PATH: &str = "evidence/closure-authority.json";
+        const PREPARATION_BLOB: &str = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+        let closure = closure_receipt(
+            "closure-authority",
+            "ADR-0363",
+            ".omc/legacy-a.md",
+            PREPARATION_PATH,
+            PREPARATION_BLOB,
+        );
+        let closure_object_fact = closure_fact(
+            "closure-authority",
+            CLOSURE_PATH,
+            "ADR-0363",
+            ".omc/legacy-a.md",
+            PREPARATION_PATH,
+            PREPARATION_BLOB,
+        );
+        let corpus = json!({
+            "receipts": [{"receipt_path": CLOSURE_PATH, "receipt": closure}],
+            "scm_facts": {
+                "retirement_receipt_coverage": {
+                    "protected_base_ref": "origin/dev",
+                    "protected_receipt_paths": [PREPARATION_PATH],
+                    "candidate_receipt_paths": [CLOSURE_PATH],
+                    "carried_receipt_paths": [],
+                    "new_receipt_paths": [CLOSURE_PATH],
+                    "scopes": [{
+                        "scope_ref": "ADR-0363",
+                        "scope_type": "amended-agentic-vcs-retirement",
+                        "selectors": [{
+                            "selector_type": "exact",
+                            "selector": ".omc/legacy-a.md",
+                            "protected_paths": [".omc/legacy-a.md"],
+                            "candidate_paths": [],
+                            "removed_paths": [".omc/legacy-a.md"],
+                            "surviving_paths": [],
+                            "candidate_only_paths": [],
+                            "external_assertion": "not-applicable"
+                        }],
+                        "required_retired_paths": [".omc/legacy-a.md"]
+                    }],
+                    "required_retired_paths": [".omc/legacy-a.md"]
+                },
+                "retirement_receipt_object_facts": [closure_object_fact],
+                "protected_scm_context": protected_scm_context_with_preparation(
+                    PREPARATION_PATH,
+                    PREPARATION_BLOB
+                )
+            }
+        });
+        assert!(
+            evaluate_history_only_retirement_receipts(&corpus).is_empty(),
+            "a protected preparation must close through a separate linked receipt"
+        );
+
+        for (pointer, value) in [
+            (
+                "/receipts/0/receipt/protected_preparation/receipt_blob_oid",
+                json!("cccccccccccccccccccccccccccccccccccccccc"),
+            ),
+            (
+                "/receipts/0/receipt/protected_preparation/receipt_path",
+                json!("evidence/missing-preparation.json"),
+            ),
+        ] {
+            let mut mutated = corpus.clone();
+            *mutated.pointer_mut(pointer).expect("fixture path") = value;
+            assert!(
+                evaluate_history_only_retirement_receipts(&mutated).contains(&Finding::new(
+                    RETIREMENT_RECEIPT_CODE,
+                    "closure_preparation_link"
+                )),
+                "closure mutation {pointer} must fail at closure_preparation_link"
+            );
+        }
+
+        let mut missing_link = corpus.clone();
+        missing_link["receipts"][0]["receipt"]["protected_preparation"] = json!({});
+        assert!(
+            evaluate_history_only_retirement_receipts(&missing_link).contains(&Finding::new(
+                RETIREMENT_RECEIPT_CODE,
+                "closure_preparation_link"
+            ))
+        );
+
+        for (pointer, value) in [
+            ("promoted_commit_oid", json!(NEW)),
+            ("postmerge_success", json!(true)),
+            ("effects.runtime_effect", json!("success")),
+        ] {
+            let mut mutated = corpus.clone();
+            let target = &mut mutated["receipts"][0]["receipt"];
+            if let Some((parent, key)) = pointer.rsplit_once('.') {
+                target[parent][key] = value;
+            } else {
+                target[pointer] = value;
+            }
+            assert!(
+                evaluate_history_only_retirement_receipts(&mutated).contains(&Finding::new(
+                    RETIREMENT_RECEIPT_CODE,
+                    "closure_claim_ceiling"
+                )),
+                "closure claim {pointer} must remain below the promotion ceiling"
+            );
+        }
+
+        let mut copied_preparation = corpus.clone();
+        copied_preparation["scm_facts"]["retirement_receipt_coverage"]["candidate_receipt_paths"] =
+            json!([PREPARATION_PATH, CLOSURE_PATH]);
+        copied_preparation["scm_facts"]["retirement_receipt_coverage"]["new_receipt_paths"] =
+            json!([PREPARATION_PATH, CLOSURE_PATH]);
+        assert!(
+            evaluate_history_only_retirement_receipts(&copied_preparation).contains(&Finding::new(
+                RETIREMENT_RECEIPT_CODE,
+                "protected_preparation_immutable"
+            ))
+        );
+
+        let mut duplicate = corpus.clone();
+        duplicate["receipts"]
+            .as_array_mut()
+            .expect("array")
+            .push(json!({
+                "receipt_path": "evidence/closure-authority-duplicate.json",
+                "receipt": closure_receipt(
+                    "closure-authority-duplicate",
+                    "ADR-0363",
+                    ".omc/legacy-a.md",
+                    PREPARATION_PATH,
+                    PREPARATION_BLOB
+                )
+            }));
+        duplicate["scm_facts"]["retirement_receipt_coverage"]["candidate_receipt_paths"] =
+            json!([CLOSURE_PATH, "evidence/closure-authority-duplicate.json"]);
+        duplicate["scm_facts"]["retirement_receipt_coverage"]["new_receipt_paths"] =
+            json!([CLOSURE_PATH, "evidence/closure-authority-duplicate.json"]);
+        duplicate["scm_facts"]["retirement_receipt_object_facts"]
+            .as_array_mut()
+            .expect("array")
+            .push(closure_fact(
+                "closure-authority-duplicate",
+                "evidence/closure-authority-duplicate.json",
+                "ADR-0363",
+                ".omc/legacy-a.md",
+                PREPARATION_PATH,
+                PREPARATION_BLOB,
+            ));
+        assert!(
+            evaluate_history_only_retirement_receipts(&duplicate).contains(&Finding::new(
+                RETIREMENT_RECEIPT_CODE,
+                "closure_preparation_ambiguous"
+            ))
+        );
+    }
+
+    #[test]
     fn empty_contract_and_malformed_protected_bindings_fail_closed() {
         let empty = json!({"receipts":[],"scm_facts":{"retirement_receipt_coverage":{"protected_base_ref":"origin/dev","current_epoch_commit_oid":NEW,"current_epoch_tree_oid":NEW_TREE,"protected_receipt_paths":[],"candidate_receipt_paths":[],"carried_receipt_paths":[],"new_receipt_paths":[],"scopes":[],"required_retired_paths":[]},"retirement_receipt_object_facts":[]}});
         let findings = evaluate_history_only_retirement_receipts(&empty);
         assert!(findings.contains(&Finding::new(
             RETIREMENT_RECEIPT_CODE,
-            "retirement_receipts.receipts.empty"
+            "retirement_receipt_coverage.unknown_field.current_epoch_commit_oid"
         )));
 
         let receipt = receipt("idea-receipt", "ADR-0388", OLD, OLD_TREE, "docs/old.md");
