@@ -15,9 +15,9 @@ use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
 use ci_action_item_accounting::{
-    FIXUPTASK_V2_CANDIDATE_JSONL_PATH, FIXUPTASK_V2_MAPPING_PATH,
-    FIXUPTASK_V2_PROTECTED_FACTS_PATH, Verdict, collect_observed_frictions, evaluate,
-    evaluate_fixuptask_v2_materialized_gate, evaluate_keyed, fixuptask_v2_digest,
+    FIXUPTASK_V2_CANDIDATE_JSONL_PATH, LEGACY_FRICTION_MAPPING_PATH,
+    LEGACY_FRICTION_PROTECTED_FACTS_PATH, Verdict, collect_observed_frictions, evaluate,
+    evaluate_keyed, evaluate_legacy_friction_materialized_gate, fixuptask_v2_digest,
 };
 use serde_json::{Value, json};
 
@@ -190,7 +190,7 @@ fn policy_gate_id_matches_the_crate_contract() {
 #[test]
 fn live_action_item_gate_consumes_the_canonical_materialized_scm_snapshot() {
     let root = repo_root();
-    let findings = evaluate_fixuptask_v2_materialized_gate(&root)
+    let findings = evaluate_legacy_friction_materialized_gate(&root)
         .expect("missing or unreadable canonical SCM facts must fail the action-item gate");
     assert!(
         findings.is_empty(),
@@ -207,8 +207,8 @@ fn fixuptask_v2_admission_is_wired_through_the_materialized_gate_inputs() {
     let _ = std::fs::remove_dir_all(&root);
     for path in [
         FIXUPTASK_V2_CANDIDATE_JSONL_PATH,
-        FIXUPTASK_V2_MAPPING_PATH,
-        FIXUPTASK_V2_PROTECTED_FACTS_PATH,
+        LEGACY_FRICTION_MAPPING_PATH,
+        LEGACY_FRICTION_PROTECTED_FACTS_PATH,
         ".omc/ultragoal/friction-ledger.jsonl",
     ] {
         std::fs::create_dir_all(root.join(path).parent().expect("input parent"))
@@ -223,21 +223,21 @@ fn fixuptask_v2_admission_is_wired_through_the_materialized_gate_inputs() {
     )
     .expect("write candidate JSONL");
     std::fs::write(
-        root.join(FIXUPTASK_V2_MAPPING_PATH),
+        root.join(LEGACY_FRICTION_MAPPING_PATH),
         "{\"source\":\"git:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:.omc/ultragoal/friction-ledger.jsonl\",\"entries\":[{\"predecessor_id\":\"FRIC-1\",\"target_fixuptask_id\":\"F-V2-GATE\"}]}",
     )
     .expect("write candidate mapping");
     std::fs::write(root.join(".omc/ultragoal/friction-ledger.jsonl"), "legacy")
         .expect("write unchanged legacy ledger");
     std::fs::write(
-        root.join(FIXUPTASK_V2_PROTECTED_FACTS_PATH),
+        root.join(LEGACY_FRICTION_PROTECTED_FACTS_PATH),
         serde_json::to_string(&materialized_fixuptask_v2_facts(b"legacy"))
             .expect("serialize SCM-materialized facts"),
     )
     .expect("write SCM-materialized facts");
 
     assert!(
-        evaluate_fixuptask_v2_materialized_gate(&root)
+        evaluate_legacy_friction_materialized_gate(&root)
             .expect("materialized adapter must read all three gate inputs")
             .is_empty()
     );
