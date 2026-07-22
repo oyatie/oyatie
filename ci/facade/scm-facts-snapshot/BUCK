@@ -28,10 +28,11 @@ rust_binary(
         # so carve-outs + case-folding are byte-identical to the producer's collect_brand_residue.
         "//libs/oya-check-brand-residue:oya-check-brand-residue",
         "//libs/oya-ci-config:oya-ci-config-kernel",
+        "third-party//:serde",
         "third-party//:serde_json",
+        "third-party//:sha2",
     ],
 )
-
 
 rust_test(
     name = "ci-scm-facts-snapshot-unittest",
@@ -53,6 +54,8 @@ rust_test(
         # file_level_manifest + crate_dir_pairs + move_manifest_value, then drives the relabel —
         # proving it FIRES for a real move (and FAILS if file_level_manifest enumerates-old).
         "//tools/oya-reorg-codemod-app:oya-reorg-codemod-app",
+        "third-party//:serde",
         "third-party//:serde_json",
+        "third-party//:sha2",
     ],
 )
