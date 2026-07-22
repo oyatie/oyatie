@@ -2702,6 +2702,24 @@
       "purpose_short": "Dormant future post-merge admission shape; cannot authorize planning in the current build.",
       "artifact_profile": "schema",
       "capability_overrides": {"verification": {"command": "jq empty specs/stage1-admission-envelope.schema.json"}, "provenance": {"current_author": "codex", "last_modified_at": "2026-07-22T00:00:00Z"}}
+    },
+    {
+      "artifact_id": "stage1-closure-manifest",
+      "artifact_path": "libs/oya-stage1-closure/Cargo.toml",
+      "artifact_format": "cargo-toml",
+      "contract_version": "v3.0.0",
+      "owner_team": "council-architecture + platform-toolchain",
+      "purpose_short": "Cargo manifest for the dormant Stage-1 HOLD-only candidate validator; it is not planning, CI, or admission authority.",
+      "artifact_profile": "registry",
+      "capability_overrides": {
+        "verification": {
+          "command": "cargo test -p stage1-closure --test stage1_closure -- --exact public_protected_facts_linkage_remains_non_authoritative_and_held"
+        },
+        "provenance": {
+          "current_author": "codex",
+          "last_modified_at": "2026-07-22T00:00:00Z"
+        }
+      }
     }
   ],
   "purpose": "Auto-backfilled purpose for artifact-capabilities-registry.json"

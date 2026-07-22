@@ -27,6 +27,37 @@ fn admission_envelope() -> Value {
         .expect("admission envelope fixture parses")
 }
 
+fn artifact_capabilities_registry() -> Value {
+    let environment = "OYA_STAGE1_ARTIFACT_CAPABILITIES_REGISTRY";
+    let path = declared_schema_path(environment, std::env::var(environment));
+    let source = std::fs::read_to_string(path).expect("registry is a declared readable input");
+    serde_json::from_str(&source).expect("registry parses")
+}
+
+fn has_canonical_stage1_manifest_registry_row(registry: &Value) -> bool {
+    let rows = registry["rows"].as_array();
+    let Some(rows) = rows else {
+        return false;
+    };
+    let matching = rows
+        .iter()
+        .filter(|row| row["artifact_path"] == "libs/oya-stage1-closure/Cargo.toml")
+        .collect::<Vec<_>>();
+    matching.len() == 1
+        && matching[0]["artifact_id"] == "stage1-closure-manifest"
+        && matching[0]["artifact_format"] == "cargo-toml"
+        && matching[0]["contract_version"] == "v3.0.0"
+        && matching[0]["owner_team"] == "council-architecture + platform-toolchain"
+        && matching[0]["artifact_profile"] == "registry"
+        && matching[0]["capability_overrides"]["verification"]["command"]
+            == "cargo test -p stage1-closure --test stage1_closure -- --exact public_protected_facts_linkage_remains_non_authoritative_and_held"
+        && matching[0]["capability_overrides"]["provenance"]["current_author"] == "codex"
+        && matching[0]["capability_overrides"]["provenance"]["last_modified_at"]
+            == "2026-07-22T00:00:00Z"
+        && matching[0]["purpose_short"]
+            == "Cargo manifest for the dormant Stage-1 HOLD-only candidate validator; it is not planning, CI, or admission authority."
+}
+
 fn schema(relative: &str) -> Value {
     let environment = match relative {
         "program" => "OYA_STAGE1_PROGRAM_SCHEMA",
@@ -299,6 +330,65 @@ fn public_protected_facts_linkage_remains_non_authoritative_and_held() {
     );
     assert_only_intentional_protected_facts_findings(&facts);
     assert_linkage_findings(&epoch, &facts, &[]);
+}
+
+#[test]
+fn stage1_manifest_has_a_closed_non_authoritative_registry_row() {
+    let registry = artifact_capabilities_registry();
+    assert!(has_canonical_stage1_manifest_registry_row(&registry));
+    let row = registry["rows"]
+        .as_array()
+        .expect("registry rows")
+        .iter()
+        .find(|row| row["artifact_path"] == "libs/oya-stage1-closure/Cargo.toml")
+        .expect("Stage-1 manifest registry row");
+    assert_eq!(row["artifact_id"], "stage1-closure-manifest");
+    assert_eq!(row["artifact_format"], "cargo-toml");
+    assert_eq!(row["contract_version"], "v3.0.0");
+    assert_eq!(
+        row["owner_team"],
+        "council-architecture + platform-toolchain"
+    );
+    assert_eq!(row["artifact_profile"], "registry");
+    assert_eq!(
+        row["capability_overrides"]["verification"]["command"],
+        "cargo test -p stage1-closure --test stage1_closure -- --exact public_protected_facts_linkage_remains_non_authoritative_and_held"
+    );
+    assert_eq!(
+        row["capability_overrides"]["provenance"]["current_author"],
+        "codex"
+    );
+    assert_eq!(
+        row["capability_overrides"]["provenance"]["last_modified_at"],
+        "2026-07-22T00:00:00Z"
+    );
+    assert_eq!(
+        row["purpose_short"],
+        "Cargo manifest for the dormant Stage-1 HOLD-only candidate validator; it is not planning, CI, or admission authority."
+    );
+
+    let mut removed = registry.clone();
+    removed["rows"]
+        .as_array_mut()
+        .expect("registry rows")
+        .retain(|row| row["artifact_path"] != "libs/oya-stage1-closure/Cargo.toml");
+    assert!(
+        !has_canonical_stage1_manifest_registry_row(&removed),
+        "removing the Stage-1 manifest row must fail the registry contract"
+    );
+
+    let mut malformed = registry;
+    malformed["rows"]
+        .as_array_mut()
+        .expect("registry rows")
+        .iter_mut()
+        .find(|row| row["artifact_path"] == "libs/oya-stage1-closure/Cargo.toml")
+        .expect("Stage-1 manifest registry row")["capability_overrides"]["verification"]["command"] =
+        json!("authoritative admission command");
+    assert!(
+        !has_canonical_stage1_manifest_registry_row(&malformed),
+        "malformed Stage-1 manifest row must fail the registry contract"
+    );
 }
 
 #[test]
