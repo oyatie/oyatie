@@ -131,6 +131,7 @@ pub use read_surface_resurrection::{
 pub use retirement_receipt::{
     RETIREMENT_RECEIPT_CODE, RETIREMENT_RECEIPT_VALIDATOR,
     evaluate_history_only_retirement_receipt, evaluate_history_only_retirement_receipt_coverage,
+    evaluate_history_only_retirement_receipts,
 };
 
 // Gate-coverage-gap advisory checks (born-advisory, enforce-no-regression vs a
@@ -453,7 +454,7 @@ const REQUIRED_SURFACE_DISPOSITIONS: [(&str, &str); 13] = [
 ];
 
 /// The blocking codes, in canonical order. The fixtures pin exact subsets.
-pub const VIOLATION_CODES: [&str; 23] = [
+pub const VIOLATION_CODES: [&str; 24] = [
     "orphan_decision",
     "unpropagated_decision",
     "status_disagreement",
@@ -477,6 +478,7 @@ pub const VIOLATION_CODES: [&str; 23] = [
     "masterplan_projection_stale",
     "masterplan_read_contract_invalid",
     "masterplan_entry_surface_invalid",
+    RETIREMENT_RECEIPT_CODE,
 ];
 
 /// The gate report.
@@ -729,6 +731,9 @@ pub fn evaluate_keyed(fixture: &Value) -> BTreeSet<Finding> {
             fixture,
             manifest_index,
         ));
+    }
+    if let Some(receipts) = fixture.get("history_only_retirement_receipts") {
+        findings.extend(evaluate_history_only_retirement_receipts(receipts));
     }
 
     findings
