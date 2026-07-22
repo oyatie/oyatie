@@ -600,4 +600,30 @@ fn red_control_specific_authority_roles_and_cardinality_are_declared() {
             .iter()
             .any(|rule| rule.to_string().contains("blind-cold-reader"))
     );
+    let exact = schema["allOf"]
+        .as_array()
+        .expect("exact role cardinality rules");
+    for (control, role) in [
+        ("C11", "machine-pilot-evidence"),
+        ("C11", "qualified-pilot-authorization"),
+        ("C15", "deterministic-oracle"),
+        ("C15", "blind-cold-reader"),
+        ("C15", "qualified-planning-authority"),
+    ] {
+        let rule = exact.iter().find(|rule| {
+            let receipt_bindings = &rule["properties"]["receipt_bindings"];
+            receipt_bindings["contains"]["properties"]["control_id"]["const"] == control
+                && receipt_bindings["contains"]["properties"]["role"]["const"] == role
+        });
+        let receipt_bindings =
+            &rule.expect("exact control role rule")["properties"]["receipt_bindings"];
+        assert_eq!(
+            receipt_bindings["minContains"], 1,
+            "missing {control}/{role}"
+        );
+        assert_eq!(
+            receipt_bindings["maxContains"], 1,
+            "duplicate {control}/{role} must fail"
+        );
+    }
 }
