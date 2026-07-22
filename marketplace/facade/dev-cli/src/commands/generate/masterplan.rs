@@ -279,7 +279,8 @@ pub(crate) fn generate_masterplan_projection(adrs: &[PlanningAdr]) -> Masterplan
 
 fn is_accepted_planning_status(status: &str) -> bool {
     let normalized = status.trim().to_ascii_lowercase();
-    normalized == "accepted"
+    normalized == "amended"
+        || normalized == "accepted"
         || normalized
             .strip_prefix("accepted")
             .is_some_and(|suffix| suffix.trim_start().starts_with('('))

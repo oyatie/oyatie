@@ -48,11 +48,13 @@ pub struct DocAxisFinding {
     pub blocking: bool,
 }
 
-/// The four doc-axis rule identifiers.
+/// The doc-axis rule identifiers.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum DocAxisRule {
-    /// Rule 1: ADR status field must be one of the five canonical values.
+    /// Rule 1: ADR status field must be canonical.
     AdrStatusCasing,
+    /// Rule 1: an Amended ADR must record its amendment date.
+    AdrAmendmentMetadata,
     /// Rule 2: idea-pager older than 14 days without promotion or archival.
     ShadowIdea,
     /// Rule 3: markdown file placed outside a canonical `docs/` subdirectory.
@@ -84,9 +86,10 @@ pub type ValidationResult = Result<DocAxisReport, Vec<DocAxisFinding>>;
 // Allowed canonical status values (Rule 1)
 // ---------------------------------------------------------------------------
 
-/// The five canonical ADR `status:` values (exact case, per ADR-0388).
+/// The six canonical ADR `status:` values (exact case, per ADR-0388).
 pub const ALLOWED_ADR_STATUSES: &[&str] = &[
     "Accepted",
+    "Amended",
     "Proposed",
     "Superseded",
     "Deprecated",
@@ -281,6 +284,15 @@ fn check_adr_status_casing(
                 ),
                 blocking: strict,
             });
+        } else if let Some(line_num) = find_amended_without_date(&contents) {
+            findings.push(DocAxisFinding {
+                path: rel,
+                line: Some(line_num),
+                rule_violated: DocAxisRule::AdrAmendmentMetadata,
+                suggested_fix: "Add a non-empty `amended_date: YYYY-MM-DD` frontmatter field"
+                    .to_string(),
+                blocking: strict,
+            });
         }
     }
 }
@@ -311,6 +323,40 @@ fn find_bad_status(contents: &str) -> Option<(usize, String)> {
         }
     }
     None
+}
+
+/// Return the `status: Amended` line when its frontmatter lacks `amended_date:`.
+fn find_amended_without_date(contents: &str) -> Option<usize> {
+    let mut in_frontmatter = false;
+    let mut frontmatter_opened = false;
+    let mut amended_status_line = None;
+    let mut has_amended_date = false;
+    for (idx, line) in contents.lines().enumerate() {
+        let trimmed = line.trim();
+        if idx == 0 && trimmed == "---" {
+            in_frontmatter = true;
+            frontmatter_opened = true;
+            continue;
+        }
+        if frontmatter_opened && trimmed == "---" && idx > 0 {
+            break;
+        }
+        if !in_frontmatter {
+            break;
+        }
+        if let Some(rest) = trimmed.strip_prefix("status:") {
+            let value = rest.trim().trim_matches('"').trim_matches('\'');
+            if value == "Amended" {
+                amended_status_line = Some(idx + 1);
+            }
+        }
+        if let Some(rest) = trimmed.strip_prefix("amended_date:")
+            && !rest.trim().trim_matches('"').trim_matches('\'').is_empty()
+        {
+            has_amended_date = true;
+        }
+    }
+    amended_status_line.filter(|_| !has_amended_date)
 }
 
 // ---------------------------------------------------------------------------
@@ -720,11 +766,12 @@ mod tests {
     #[test]
     fn allowed_statuses_are_canonical() {
         assert!(ALLOWED_ADR_STATUSES.contains(&"Accepted"));
+        assert!(ALLOWED_ADR_STATUSES.contains(&"Amended"));
         assert!(ALLOWED_ADR_STATUSES.contains(&"Proposed"));
         assert!(ALLOWED_ADR_STATUSES.contains(&"Superseded"));
         assert!(ALLOWED_ADR_STATUSES.contains(&"Deprecated"));
         assert!(ALLOWED_ADR_STATUSES.contains(&"Rejected"));
-        assert_eq!(ALLOWED_ADR_STATUSES.len(), 5);
+        assert_eq!(ALLOWED_ADR_STATUSES.len(), 6);
     }
 
     #[test]
@@ -743,6 +790,14 @@ mod tests {
             let doc = format!("---\nid: ADR-0001\nstatus: {status}\n---\n# body\n");
             assert_eq!(find_bad_status(&doc), None, "status {status} should pass");
         }
+    }
+
+    #[test]
+    fn amended_status_requires_amended_date() {
+        let missing = "---\nid: ADR-0001\nstatus: Amended\n---\n# body\n";
+        assert_eq!(find_amended_without_date(missing), Some(3));
+        let dated = "---\nid: ADR-0001\nstatus: Amended\namended_date: 2026-07-22\n---\n# body\n";
+        assert_eq!(find_amended_without_date(dated), None);
     }
 
     #[test]

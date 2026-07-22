@@ -165,6 +165,57 @@ fn lint_adr_shape_accepts_valid_adr() {
 }
 
 #[test]
+fn lint_adr_shape_accepts_amended_sources_and_rejects_missing_amended_date() {
+    for source in [
+        "docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md",
+        "docs/decisions/ADR-0619-zero-live-context-retirement-of-external-agent-harness-brand.md",
+    ] {
+        let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+            .current_dir(repo_root())
+            .args(["lint", "adr-shape", source])
+            .output()
+            .expect("ADR shape lint runs");
+        assert!(
+            output.status.success(),
+            "source={source} stdout={} stderr={}",
+            String::from_utf8_lossy(&output.stdout),
+            String::from_utf8_lossy(&output.stderr)
+        );
+    }
+
+    let fixture = std::env::temp_dir().join(format!(
+        "oya-lint-amended-{}-{}",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .expect("system time after epoch")
+            .as_nanos()
+    ));
+    fs::create_dir_all(&fixture).expect("fixture dir created");
+    let adr = fixture.join("ADR-9999-amended-without-date.md");
+    fs::write(
+        &adr,
+        "---\nid: ADR-9999\nstatus: Amended\n---\n# ADR-9999: fixture\n\n## Context\n\nfixture\n\n## Decision\n\nfixture\n\n## Consequences\n\nfixture\n",
+    )
+    .expect("fixture written");
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "lint",
+            "adr-shape",
+            adr.to_str().expect("fixture path is utf8"),
+        ])
+        .output()
+        .expect("ADR shape lint runs");
+    assert!(
+        !output.status.success(),
+        "missing amended_date must fail: stdout={} stderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    fs::remove_dir_all(fixture).expect("fixture removed");
+}
+
+#[test]
 fn lint_foundry_phase00_evidence_accepts_minimal_fixture() {
     let fixture = phase00_fixture_root();
     let output = Command::new(env!("CARGO_BIN_EXE_oya"))
