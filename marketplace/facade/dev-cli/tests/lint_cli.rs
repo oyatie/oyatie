@@ -168,6 +168,7 @@ fn lint_adr_shape_accepts_valid_adr() {
 fn lint_adr_shape_accepts_amended_sources_and_rejects_missing_amended_date() {
     for source in [
         "docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md",
+        "docs/decisions/ADR-0388-doc-axis-convention.md",
         "docs/decisions/ADR-0619-zero-live-context-retirement-of-external-agent-harness-brand.md",
     ] {
         let output = Command::new(env!("CARGO_BIN_EXE_oya"))
@@ -180,6 +181,11 @@ fn lint_adr_shape_accepts_amended_sources_and_rejects_missing_amended_date() {
             "source={source} stdout={} stderr={}",
             String::from_utf8_lossy(&output.stdout),
             String::from_utf8_lossy(&output.stderr)
+        );
+        assert!(
+            String::from_utf8_lossy(&output.stdout).contains("status=Amended"),
+            "source={source} stdout={}",
+            String::from_utf8_lossy(&output.stdout)
         );
     }
 
