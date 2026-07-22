@@ -1,4 +1,0 @@
-# ADR-0051 mobile-native product manifest.
-# current_wave: W-Foundry-Preview
-# empty_scope_rationale: ADR-0051 keeps W-Foundry-Preview, W-SaaS-Preview, and W-Workspace-Preview web-canonical; no per-product PRD has declared a native shell yet.
-product_id	axis	status	canonical_web_reference	target_matrix_ref	tech_stack_rationale_ref	store_policy_ref	store_policy_validator_passed	accessibility_audit_ref	accessibility_audit_passed	capability_parity_ref	capability_parity_passed	sbom_ref	native_binary_blobs_without_sbom	crash_free_sessions_bps	crash_free_regression_bps	cold_start_p99_ms

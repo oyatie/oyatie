@@ -1,9 +1,0 @@
-apiVersion: v2
-name: oya-cloud-k8s-csi-object
-description: Oyatie cloud-k8s CSI object controller for OCI Object Storage and SeaweedFS backends
-type: application
-version: 0.1.0
-appVersion: "0.1.0"
-maintainers:
-  - name: axis-cloud
-    email: axis-cloud@oyatie.com

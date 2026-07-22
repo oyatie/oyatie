@@ -1,8 +1,0 @@
-id: byp_adr_0348_sharding_automation
-pr_ref: gh:jason931225/oyatie#177
-crate_ref: oya-shuffle-sharding
-gate_bypassed: migration
-bypassing_actor: svc_wave15_zf21
-rationale: ADR-0348 doctrine-only propagation opens a time-boxed migration bypass until cellular topology supports AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING with manifest-declared sharding_automation and audit-chain emission.
-regression_window_days: 30
-created_at_epoch_days: 20594

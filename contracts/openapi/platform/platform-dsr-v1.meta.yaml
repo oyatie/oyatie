@@ -1,8 +1,0 @@
-tier: preview
-owner_team: platform-tenancy-identity
-version: 1.0.0
-sunset: none
-related_adrs:
-  - ADR-0003
-  - ADR-0008
-  - ADR-0037

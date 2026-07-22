@@ -1,7 +1,0 @@
-tier: preview
-owner_team: axis-foundry
-version: 1.0.0
-sunset: none
-related_adrs:
-  - ADR-0007
-  - ADR-0022

@@ -1,5 +1,0 @@
-syntax = "proto3";
-
-package oya.managed.k8s.cluster.lifecycle;
-
-// Placeholder proto3 surface for the managed-k8s-cluster-lifecycle microservice; live gRPC surfaces tracked in ADR-0376 follow-on lanes.

@@ -1,6 +1,0 @@
-[[account]]
-id = "gemini-example"
-provider_family = "Gemini"
-subscription_id = "sub-789"
-state = "Active"
-secret_ref = "sref://openbao/foundry/gemini/example-key"

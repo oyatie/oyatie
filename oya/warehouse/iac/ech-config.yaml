@@ -1,9 +1,0 @@
-apiVersion: oyatie.dev/v1
-kind: EchConfig
-metadata:
-  name: oya-warehouse-ech
-spec:
-  rotationCadenceDays: 90
-  httpsRecord: true
-  gracefulFallback: true
-  auditEventClass: EVT-WAREHOUSE-INBOUND_DELIVERY-ECH_ROTATED
