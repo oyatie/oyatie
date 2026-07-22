@@ -100,6 +100,10 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
+use serde::{
+    Deserialize,
+    de::{self, MapAccess, SeqAccess, Visitor},
+};
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 
@@ -156,6 +160,8 @@ const SEQUENCING_DERIVATION_MODE: &str = "zero-based-rederived-from-masterplan-v
 const DISPATCH_BLOCKED_STATE: &str = "blocked";
 const PREPLANNING_ENTRY_STATE: &str = "open";
 const PREPLANNING_BLOCKED_REASON: &str = "preplanning_authority_closure";
+const PREPLANNING_CANDIDATE_IDENTITY_POLICY: &str =
+    include_str!("preplanning-candidate-policy.json");
 const CLAIMED_DONE_UNVERIFIED_STATE: &str = "claimed-done-unverified";
 const EVIDENCE_ATTACHED_STATE: &str = "evidence-attached";
 const PROJECTION_FRESHNESS_VALIDATOR: &str =
@@ -166,6 +172,212 @@ const ENTRY_SURFACE_VALIDATOR: &str =
     "cloud-ci-cross-artifact-agreement/masterplan-v2-entry-surface";
 const ENTRY_SURFACE_ALLOWLIST_REF: &str =
     "/specs/root-hub-pointers.json#agent_entry_surface_allowlist";
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct PreplanningCandidatePolicy {
+    policy_id: String,
+    schema_version: u64,
+    purpose: String,
+    candidate_receipt_digest: String,
+    immutable_pull_request: PreplanningCandidateIdentity,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct PreplanningCandidateIdentity {
+    number: u64,
+    base_url: String,
+    candidate_state: String,
+    claim_ceiling: String,
+}
+
+struct DuplicateKeyFreeJson;
+
+impl<'de> Deserialize<'de> for DuplicateKeyFreeJson {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        deserializer.deserialize_any(DuplicateKeyFreeJsonVisitor)
+    }
+}
+
+struct DuplicateKeyFreeJsonVisitor;
+
+impl<'de> Visitor<'de> for DuplicateKeyFreeJsonVisitor {
+    type Value = DuplicateKeyFreeJson;
+
+    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("JSON without duplicate object keys")
+    }
+
+    fn visit_bool<E>(self, _value: bool) -> Result<Self::Value, E>
+    where
+        E: de::Error,
+    {
+        Ok(DuplicateKeyFreeJson)
+    }
+
+    fn visit_i64<E>(self, _value: i64) -> Result<Self::Value, E>
+    where
+        E: de::Error,
+    {
+        Ok(DuplicateKeyFreeJson)
+    }
+
+    fn visit_u64<E>(self, _value: u64) -> Result<Self::Value, E>
+    where
+        E: de::Error,
+    {
+        Ok(DuplicateKeyFreeJson)
+    }
+
+    fn visit_f64<E>(self, _value: f64) -> Result<Self::Value, E>
+    where
+        E: de::Error,
+    {
+        Ok(DuplicateKeyFreeJson)
+    }
+
+    fn visit_str<E>(self, _value: &str) -> Result<Self::Value, E>
+    where
+        E: de::Error,
+    {
+        Ok(DuplicateKeyFreeJson)
+    }
+
+    fn visit_none<E>(self) -> Result<Self::Value, E>
+    where
+        E: de::Error,
+    {
+        Ok(DuplicateKeyFreeJson)
+    }
+
+    fn visit_some<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        DuplicateKeyFreeJson::deserialize(deserializer)
+    }
+
+    fn visit_seq<A>(self, mut sequence: A) -> Result<Self::Value, A::Error>
+    where
+        A: SeqAccess<'de>,
+    {
+        while sequence.next_element::<DuplicateKeyFreeJson>()?.is_some() {}
+        Ok(DuplicateKeyFreeJson)
+    }
+
+    fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+    where
+        A: MapAccess<'de>,
+    {
+        let mut keys = BTreeSet::new();
+        while let Some(key) = map.next_key::<String>()? {
+            if !keys.insert(key.clone()) {
+                return Err(de::Error::custom(format!("duplicate object key: {key}")));
+            }
+            map.next_value::<DuplicateKeyFreeJson>()?;
+        }
+        Ok(DuplicateKeyFreeJson)
+    }
+}
+
+fn canonical_https_origin_and_path(value: &str) -> bool {
+    let Some(authority_and_path) = value.strip_prefix("https://") else {
+        return false;
+    };
+    if authority_and_path.contains(['@', '?', '#']) || authority_and_path.ends_with('/') {
+        return false;
+    }
+    let Some((authority, path)) = authority_and_path.split_once('/') else {
+        return false;
+    };
+    !authority.is_empty()
+        && !path.is_empty()
+        && !authority.chars().any(char::is_whitespace)
+        && !path.chars().any(char::is_whitespace)
+}
+
+fn preplanning_candidate_policy() -> Option<PreplanningCandidatePolicy> {
+    parse_preplanning_candidate_policy(PREPLANNING_CANDIDATE_IDENTITY_POLICY)
+}
+
+fn parse_preplanning_candidate_policy(policy_json: &str) -> Option<PreplanningCandidatePolicy> {
+    let mut duplicate_key_deserializer = serde_json::Deserializer::from_str(policy_json);
+    DuplicateKeyFreeJson::deserialize(&mut duplicate_key_deserializer).ok()?;
+    duplicate_key_deserializer.end().ok()?;
+    let policy: PreplanningCandidatePolicy = serde_json::from_str(policy_json).ok()?;
+    let identity = &policy.immutable_pull_request;
+    (policy.schema_version == 1
+        && !policy.policy_id.trim().is_empty()
+        && !policy.purpose.trim().is_empty()
+        && valid_sha256_digest(&policy.candidate_receipt_digest)
+        && identity.number > 0
+        && canonical_https_origin_and_path(&identity.base_url)
+        && !identity.candidate_state.trim().is_empty()
+        && !identity.claim_ceiling.trim().is_empty())
+    .then_some(policy)
+}
+
+fn valid_sha256_digest(value: &str) -> bool {
+    let Some(hex) = value.strip_prefix("sha256:") else {
+        return false;
+    };
+    hex.len() == 64
+        && hex
+            .bytes()
+            .all(|byte| byte.is_ascii_digit() || matches!(byte, b'a'..=b'f'))
+}
+
+/// Render JSON in a stable, recursively sorted form before binding it to a
+/// policy digest. This makes the receipt identity semantic rather than an
+/// artifact of object insertion order.
+fn canonical_json(value: &Value) -> Option<String> {
+    match value {
+        Value::Null | Value::Bool(_) | Value::Number(_) => Some(value.to_string()),
+        Value::String(_) => serde_json::to_string(value).ok(),
+        Value::Array(values) => values
+            .iter()
+            .map(canonical_json)
+            .collect::<Option<Vec<_>>>()
+            .map(|values| format!("[{}]", values.join(","))),
+        Value::Object(values) => {
+            let mut canonical_fields = BTreeMap::new();
+            for (key, value) in values {
+                canonical_fields.insert(serde_json::to_string(key).ok()?, canonical_json(value)?);
+            }
+            Some(format!(
+                "{{{}}}",
+                canonical_fields
+                    .into_iter()
+                    .map(|(key, value)| format!("{key}:{value}"))
+                    .collect::<Vec<_>>()
+                    .join(",")
+            ))
+        }
+    }
+}
+
+/// Bind the whole candidate record that may otherwise move in coordinated
+/// lockstep: the planning-state mirror, repository baseline, and complete
+/// time-scoped factual reconciliation (including review and protected-context
+/// receipts). The digest is fixed in separately reviewed policy data.
+fn preplanning_candidate_receipt_digest(
+    candidate_ref: &str,
+    state: &Value,
+    baseline: &Value,
+    receipt: &Value,
+) -> Option<String> {
+    let canonical = canonical_json(&serde_json::json!({
+        "candidate_evidence_ref": candidate_ref,
+        "planning_entry_contract_current_pr_candidate_state": state,
+        "repository_baseline": baseline,
+        "factual_reconciliation": receipt,
+    }))?;
+    Some(format!("sha256:{:x}", Sha256::digest(canonical.as_bytes())))
+}
 const PROJECTION_CLASS_READ: &str = "read-projection";
 const READ_CONTRACT_ARCHIVED_TIMING_CLASS: &str = "provenance-archive";
 const READ_CONTRACT_ENTRY_TIMING_CLASS: &str = "entry-surface";
@@ -1781,6 +1993,242 @@ pub fn evaluate_masterplan_v2_ratification_digest(
     }
 
     findings
+}
+
+/// Verify that the masterplan's current pre-planning PR facts agree with the
+/// cited, time-scoped evidence receipt without widening any authority claim.
+///
+/// The caller owns resolving `current_pr_candidate` to `candidate_evidence`.
+/// Missing or malformed facts fail closed as plan/evidence drift.
+pub fn evaluate_masterplan_v2_preplanning_candidate_facts(
+    masterplan: &Value,
+    candidate_evidence: &Value,
+) -> BTreeSet<Finding> {
+    let mut findings = BTreeSet::new();
+    let key = "masterplan_v2.planning_entry_contract.current_pr_candidate_state";
+
+    let disagreement = match preplanning_candidate_facts_agree(
+        masterplan,
+        candidate_evidence,
+        preplanning_candidate_policy().as_ref(),
+    ) {
+        Some(PreplanningCandidateAgreement::Agree) => None,
+        Some(PreplanningCandidateAgreement::ReceiptDigestMismatch) => {
+            Some("candidate_receipt_digest")
+        }
+        Some(PreplanningCandidateAgreement::FieldMismatch) => Some("field_mismatch"),
+        None => Some("missing_or_malformed"),
+    };
+
+    if let Some(reason) = disagreement {
+        findings.insert(Finding::new(
+            "masterplan_plan_evidence_drift",
+            &format!("{key}.{reason}"),
+        ));
+    }
+
+    findings
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum PreplanningCandidateAgreement {
+    Agree,
+    ReceiptDigestMismatch,
+    FieldMismatch,
+}
+
+fn preplanning_candidate_facts_agree(
+    masterplan: &Value,
+    candidate_evidence: &Value,
+    policy: Option<&PreplanningCandidatePolicy>,
+) -> Option<PreplanningCandidateAgreement> {
+    let policy = policy?;
+    let policy_identity = &policy.immutable_pull_request;
+    let contract = masterplan.pointer("/masterplan_v2/planning_entry_contract")?;
+    let state = contract.get("current_pr_candidate_state")?;
+    let baseline = candidate_evidence.pointer("/present/repository_baseline")?;
+    let receipt = candidate_evidence.pointer("/present/factual_reconciliation")?;
+    let immutable = receipt.get("immutable_pull_request_facts")?;
+    let review = receipt.get("github_approved_review_receipt")?;
+    let nonclosure = receipt.get("authority_gate_nonclosure")?;
+
+    let candidate_ref = non_empty_field(contract, "current_pr_candidate")?;
+    let contract_state = non_empty_field(contract, "state")?;
+    let binding_allowed = contract.get("binding_plan_approval_allowed")?.as_bool()?;
+    let dispatch_allowed = contract.get("dispatch_allowed")?.as_bool()?;
+
+    let state_baseline = non_empty_field(state, "baseline_commit")?;
+    let state_branch = non_empty_field(state, "branch")?;
+    let state_candidate = non_empty_field(state, "recorded_candidate_state")?;
+    let state_protected = state.get("protected_pr_against_dev")?.as_bool()?;
+    let state_green = state
+        .get("oya_ci_required_green_for_candidate")?
+        .as_bool()?;
+    let state_merged = state.get("merged_to_dev")?.as_bool()?;
+    let completion_recorded = state.get("completion_packet_recorded")?.as_bool()?;
+    let state_claim = non_empty_field(state, "claim_ceiling")?;
+    let state_first_commit = non_empty_field(state, "candidate_first_content_commit")?;
+    let state_final_head = non_empty_field(state, "candidate_final_head")?;
+    let state_base = non_empty_field(state, "candidate_base")?;
+    let state_merge = non_empty_field(state, "merge_commit")?;
+    let state_merged_at = non_empty_field(state, "merged_at")?;
+    let state_pr_number = state.get("protected_pr_number")?.as_u64()?;
+    let state_pr_url = non_empty_field(state, "protected_pr_url")?;
+    let state_queried_at = non_empty_field(state, "factual_reconciliation_queried_at")?;
+    let state_review_decision = non_empty_field(state, "github_review_decision")?;
+    let state_reviewer = non_empty_field(state, "github_approved_reviewer")?;
+    let qualified_human_proven = state.get("qualified_human_approval_proven")?.as_bool()?;
+
+    let baseline_head = non_empty_field(baseline, "head_at_snapshot")?;
+    let baseline_origin = non_empty_field(baseline, "origin_dev_at_snapshot")?;
+    let baseline_relation = non_empty_field(baseline, "baseline_relation")?;
+    let baseline_branch = non_empty_field(baseline, "branch")?;
+    let baseline_candidate = non_empty_field(baseline, "candidate_state")?;
+    let baseline_protected = baseline.get("protected_pr_against_dev")?.as_bool()?;
+    let baseline_green = baseline.get("candidate_oya_ci_required_green")?.as_bool()?;
+    let baseline_merged = baseline.get("merged_to_dev")?.as_bool()?;
+    let baseline_claim = non_empty_field(baseline, "claim_ceiling")?;
+    let baseline_first_commit = non_empty_field(baseline, "candidate_first_content_commit")?;
+    let baseline_pr_number = baseline.get("protected_pr_number")?.as_u64()?;
+    let baseline_pr_url = non_empty_field(baseline, "protected_pr_url")?;
+    let baseline_opened_head = non_empty_field(baseline, "pr_opened_on_head")?;
+    let baseline_final_head = non_empty_field(baseline, "pr_final_head")?;
+    let baseline_base = non_empty_field(baseline, "pr_base")?;
+    let baseline_merge = non_empty_field(baseline, "merge_commit")?;
+    let baseline_merged_at = non_empty_field(baseline, "merged_at")?;
+
+    let immutable_base_ref = non_empty_field(immutable, "base_ref")?;
+    let immutable_pr_number = immutable.get("number")?.as_u64()?;
+    let immutable_pr_url = non_empty_field(immutable, "url")?;
+    let immutable_base = non_empty_field(immutable, "base_sha")?;
+    let immutable_branch = non_empty_field(immutable, "head_ref")?;
+    let immutable_first_commit = non_empty_field(immutable, "first_content_commit_sha")?;
+    let immutable_candidate_state = non_empty_field(immutable, "candidate_state")?;
+    let immutable_head = non_empty_field(immutable, "head_sha")?;
+    let immutable_merge = non_empty_field(immutable, "merge_commit_sha")?;
+    let immutable_state = non_empty_field(immutable, "state")?;
+    let immutable_draft = immutable.get("draft")?.as_bool()?;
+    let immutable_merged_at = non_empty_field(immutable, "merged_at")?;
+    let immutable_review_decision = non_empty_field(immutable, "github_review_decision")?;
+    let immutable_origin_at_query = non_empty_field(immutable, "origin_dev_at_query")?;
+    let merge_is_ancestor = immutable
+        .get("merge_commit_is_ancestor_of_origin_dev_at_query")?
+        .as_bool()?;
+
+    let receipt_queried_at = non_empty_field(receipt, "queried_at")?;
+    let receipt_class = non_empty_field(receipt, "receipt_class")?;
+    let review_id = review.get("review_id")?.as_u64()?;
+    let review_state = non_empty_field(review, "state")?;
+    let reviewer = non_empty_field(review, "reviewer")?;
+    let review_commit = non_empty_field(review, "commit_sha")?;
+    let review_submitted_at = non_empty_field(review, "submitted_at")?;
+    let review_url = non_empty_field(review, "url")?;
+
+    let founder_gates = nonclosure
+        .get("founder_gates_closed_by_this_receipt")?
+        .as_array()?;
+    let human_gates = nonclosure
+        .get("qualified_human_gates_closed_by_this_receipt")?
+        .as_array()?;
+    let nonclosure_state = non_empty_field(nonclosure, "planning_entry_contract_state")?;
+    let nonclosure_binding = nonclosure.get("binding_plan_approval_allowed")?.as_bool()?;
+    let nonclosure_dispatch = nonclosure
+        .get("execution_wave_dispatch_allowed")?
+        .as_bool()?;
+    let phase0_complete = nonclosure.get("phase0_complete")?.as_bool()?;
+    let stage1_pass = nonclosure.get("stage1_pass_attested")?.as_bool()?;
+
+    let protected_receipts = receipt.get("protected_context_receipts")?.as_array()?;
+    let candidate_receipt_digest =
+        preplanning_candidate_receipt_digest(candidate_ref, state, baseline, receipt)?;
+
+    if candidate_receipt_digest != policy.candidate_receipt_digest {
+        return Some(PreplanningCandidateAgreement::ReceiptDigestMismatch);
+    }
+
+    let fields_agree = !candidate_ref.is_empty()
+        && contract_state == "open"
+        && !binding_allowed
+        && !dispatch_allowed
+        && state_baseline == baseline_base
+        && state_base == baseline_base
+        && baseline_base == immutable_base
+        && baseline_head == immutable_base
+        && baseline_origin == immutable_base
+        && !baseline_relation.is_empty()
+        && state_branch == baseline_branch
+        && baseline_branch == immutable_branch
+        && state_candidate == baseline_candidate
+        && baseline_candidate == immutable_candidate_state
+        && immutable_candidate_state == policy_identity.candidate_state
+        && state_protected
+        && state_protected == baseline_protected
+        && state_green
+        && state_green == baseline_green
+        && state_merged
+        && state_merged == baseline_merged
+        && !completion_recorded
+        && state_claim == baseline_claim
+        && baseline_claim == policy_identity.claim_ceiling
+        && state_first_commit == baseline_first_commit
+        && baseline_first_commit == baseline_opened_head
+        && baseline_first_commit == immutable_first_commit
+        && state_pr_number == baseline_pr_number
+        && baseline_pr_number == immutable_pr_number
+        && immutable_pr_number == policy_identity.number
+        && state_pr_url == baseline_pr_url
+        && baseline_pr_url == immutable_pr_url
+        && immutable_pr_url == format!("{}/{}", policy_identity.base_url, policy_identity.number)
+        && state_final_head == baseline_final_head
+        && baseline_final_head == immutable_head
+        && state_merge == baseline_merge
+        && baseline_merge == immutable_merge
+        && state_merged_at == baseline_merged_at
+        && baseline_merged_at == immutable_merged_at
+        && immutable_base_ref == "dev"
+        && immutable_state == "MERGED"
+        && !immutable_draft
+        && immutable_review_decision == "APPROVED"
+        && !immutable_origin_at_query.is_empty()
+        && merge_is_ancestor
+        && state_queried_at == receipt_queried_at
+        && receipt_class == "git-github-factual-state-only-non-authoritative-non-closure"
+        && review_id > 0
+        && review_state == "APPROVED"
+        && state_review_decision == immutable_review_decision
+        && state_reviewer == reviewer
+        && review_commit == baseline_final_head
+        && !review_submitted_at.is_empty()
+        && !review_url.is_empty()
+        && !qualified_human_proven
+        && founder_gates.is_empty()
+        && human_gates.is_empty()
+        && nonclosure_state == contract_state
+        && !nonclosure_binding
+        && !nonclosure_dispatch
+        && !phase0_complete
+        && !stage1_pass
+        && non_empty_string_array(nonclosure.get("founder_choices_still_blocking_binding_plan"))
+        && successful_protected_context_receipt(protected_receipts, baseline_final_head)
+        && successful_protected_context_receipt(protected_receipts, baseline_merge);
+
+    Some(if fields_agree {
+        PreplanningCandidateAgreement::Agree
+    } else {
+        PreplanningCandidateAgreement::FieldMismatch
+    })
+}
+
+fn successful_protected_context_receipt(receipts: &[Value], commit_sha: &str) -> bool {
+    receipts.iter().any(|entry| {
+        non_empty_field(entry, "commit_sha") == Some(commit_sha)
+            && non_empty_field(entry, "context") == Some("oya-ci-required")
+            && non_empty_field(entry, "status") == Some("completed")
+            && non_empty_field(entry, "conclusion") == Some("success")
+            && non_empty_field(entry, "started_at").is_some()
+            && non_empty_field(entry, "completed_at").is_some()
+            && non_empty_field(entry, "details_url").is_some()
+    })
 }
 
 fn recorded_masterplan_ratification_digest_matches(
@@ -3778,6 +4226,85 @@ fn str_array(value: &Value, field: &str) -> Vec<String> {
 mod tests {
     use super::*;
     use serde_json::json;
+
+    #[test]
+    fn preplanning_candidate_policy_rejects_malformed_missing_unknown_duplicate_zero_and_bad_base()
+    {
+        let valid = r#"{
+          "policy_id":"test-policy",
+          "schema_version":1,
+          "purpose":"test",
+          "candidate_receipt_digest":"sha256:0000000000000000000000000000000000000000000000000000000000000000",
+          "immutable_pull_request":{
+            "number":1340,
+            "base_url":"https://example.test/pull",
+            "candidate_state":"open",
+            "claim_ceiling":"does not close authority"
+          }
+        }"#;
+        assert!(parse_preplanning_candidate_policy(valid).is_some());
+        assert!(parse_preplanning_candidate_policy("{").is_none());
+        let mut missing: Value = serde_json::from_str(valid).unwrap();
+        missing["immutable_pull_request"]
+            .as_object_mut()
+            .unwrap()
+            .remove("claim_ceiling");
+        assert!(parse_preplanning_candidate_policy(&missing.to_string()).is_none());
+        assert!(
+            parse_preplanning_candidate_policy(&valid.replace(
+                "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+                "sha256:ABCDEF0000000000000000000000000000000000000000000000000000000000"
+            ))
+            .is_none()
+        );
+        assert!(
+            parse_preplanning_candidate_policy(&valid.replace(
+                "\"schema_version\":1,",
+                "\"schema_version\":1,\"extra\":true,"
+            ))
+            .is_none()
+        );
+        assert!(
+            parse_preplanning_candidate_policy(&valid.replace(
+                "\"schema_version\":1,",
+                "\"schema_version\":1,\"schema_version\":1,"
+            ))
+            .is_none()
+        );
+        assert!(
+            parse_preplanning_candidate_policy(
+                &valid.replace("\"number\":1340", "\"number\":1340,\"number\":1340")
+            )
+            .is_none()
+        );
+        assert!(
+            parse_preplanning_candidate_policy(&valid.replace("\"number\":1340", "\"number\":0"))
+                .is_none()
+        );
+        assert!(
+            parse_preplanning_candidate_policy(
+                &valid.replace("https://example.test/pull", "not-a-url")
+            )
+            .is_none()
+        );
+        for malformed_base in [
+            "https://",
+            "https://example.test",
+            "https://example.test/pull/",
+            "https://user@example.test/pull",
+            "https://example.test/pull?query=1",
+            "https://example.test/pull#fragment",
+            "http://example.test/pull",
+        ] {
+            assert!(
+                parse_preplanning_candidate_policy(
+                    &valid.replace("https://example.test/pull", malformed_base)
+                )
+                .is_none(),
+                "must reject non-canonical base URL: {malformed_base}"
+            );
+        }
+    }
 
     #[test]
     fn all_four_agree_is_green() {
