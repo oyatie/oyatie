@@ -83,6 +83,14 @@ fn parent_corpus_is_exactly_429_direct_child_adrs_and_tree_bound() {
 }
 
 #[test]
+fn git_adapter_rejects_a_corpus_commit_as_a_substitute_for_compiled_parser_source() {
+    assert_eq!(
+        census_from_git(PARENT, PARENT).unwrap_err(),
+        CensusViolation::ParserSource
+    );
+}
+
+#[test]
 fn repeated_census_has_identical_canonical_bytes_and_digest() {
     let input = input(vec![source(
         "docs/decisions/ADR-0001-example.md",
