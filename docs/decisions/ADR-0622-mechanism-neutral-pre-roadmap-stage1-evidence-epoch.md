@@ -145,7 +145,10 @@ terminate at state 6 when the remaining input is irreducibly qualified-human. An
 authority, evidence, parser, producer, policy, or subject mutation opens a new epoch; it does not
 rewrite or retroactively promote an earlier epoch.
 
-`PASS_CANDIDATE` is not effective `PASS(Planning)` and keeps all three source planning flags false.
+`PASS_CANDIDATE` is an explicitly non-authoritative structural candidate, not effective
+`PASS(Planning)`, and keeps all three source planning flags false. In the current dormant build,
+even that structural candidate is rejected because no authenticated external producer, signature
+verifier, trust-root verifier, or controller exists.
 Only a future, independently operated post-merge admission envelope can derive effective
 `PASS(Planning)` from an exact promoted commit; it is not implemented or activated by this ADR.
 Even after that external derivation:

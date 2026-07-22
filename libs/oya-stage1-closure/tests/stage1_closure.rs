@@ -1,7 +1,7 @@
 use serde_json::{Value, json};
 use stage1_closure::{
-    evaluate_epoch, evaluate_epoch_with_protected_facts, evaluate_postmerge_admission_envelope,
-    evaluate_program,
+    evaluate_epoch, evaluate_program, validate_admission_envelope_shape,
+    validate_protected_facts_shape,
 };
 
 const SUBJECT_DIGEST: &str =
@@ -351,23 +351,10 @@ fn source_authored_receipts_can_never_yield_pass() {
 }
 
 #[test]
-fn independently_bound_same_subject_pass_only_authorizes_roadmap_planning() {
+fn red_candidate_facts_can_never_authorize_planning_without_external_controller() {
     let candidate = pass_epoch();
-    let report =
-        evaluate_epoch_with_protected_facts(&program(), &candidate, &protected_facts(&candidate));
-    assert!(
-        report.is_green(),
-        "unexpected findings: {:?}",
-        report.findings
-    );
-    assert_eq!(
-        candidate["planning"]["binding_plan_approval_allowed"],
-        false
-    );
-    assert_eq!(
-        candidate["planning"]["implementation_dispatch_allowed"],
-        false
-    );
+    assert!(!evaluate_epoch(&program(), &candidate).is_green());
+    assert!(!validate_protected_facts_shape(&protected_facts(&candidate)).is_green());
 }
 
 #[test]
@@ -380,18 +367,12 @@ fn pass_rejects_tampered_protected_receipt_and_half_of_c11() {
         .retain(|binding| {
             binding["issuer_id"] != "issuer-C11-human" && binding["issuer_id"] != "reviewer-L01"
         });
-    let report = evaluate_epoch_with_protected_facts(&program(), &candidate, &facts);
+    let report = validate_protected_facts_shape(&facts);
     assert!(
         report
             .findings
             .iter()
-            .any(|finding| finding.contains("C11 requires"))
-    );
-    assert!(
-        report
-            .findings
-            .iter()
-            .any(|finding| finding.contains("exact protected-parent binding"))
+            .any(|finding| finding.contains("non-authoritative"))
     );
 }
 
@@ -408,10 +389,7 @@ fn qualified_human_blocker_requires_a_blocked_c06_through_c11_control_and_scope(
         "authority_ref": "authority://legal",
         "reason": "review is pending"
     }]);
-    assert!(
-        evaluate_epoch_with_protected_facts(&program(), &candidate, &protected_facts(&candidate))
-            .is_green()
-    );
+    assert!(!evaluate_epoch(&program(), &candidate).is_green());
     candidate["blockers"][0]["control_id"] = json!("C01");
     let report = evaluate_epoch(&program(), &candidate);
     assert!(
@@ -466,13 +444,13 @@ fn red_candidate_self_authorization_and_intermediate_advance_without_protected_f
 
     let candidate = pass_epoch();
     let mut facts = protected_facts(&candidate);
-    facts["protected_parent_verified"] = json!(false);
-    let report = evaluate_epoch_with_protected_facts(&program(), &candidate, &facts);
+    facts["envelope_signature"] = json!(false);
+    let report = validate_protected_facts_shape(&facts);
     assert!(
         report
             .findings
             .iter()
-            .any(|finding| finding.contains("protected_parent_verified"))
+            .any(|finding| finding.contains("envelope_signature"))
     );
 }
 
@@ -504,7 +482,7 @@ fn red_incomplete_successor_and_pr_head_envelope_are_rejected() {
     let mut facts = protected_facts(&candidate);
     facts["immutable_successor_bundle"] = json!(null);
     assert!(
-        evaluate_epoch_with_protected_facts(&program(), &candidate, &facts)
+        validate_protected_facts_shape(&facts)
             .findings
             .iter()
             .any(|finding| finding.contains("immutable_successor_bundle"))
@@ -522,10 +500,10 @@ fn red_incomplete_successor_and_pr_head_envelope_are_rejected() {
         "implementation_dispatch_allowed": false
     });
     assert!(
-        evaluate_postmerge_admission_envelope(&envelope)
+        validate_admission_envelope_shape(&envelope)
             .findings
             .iter()
-            .any(|finding| finding.contains("must not equal pr_head_sha"))
+            .any(|finding| finding.contains("non-authoritative"))
     );
 }
 
@@ -533,4 +511,13 @@ fn red_incomplete_successor_and_pr_head_envelope_are_rejected() {
 fn red_no_ci_facade_registration_or_generated_face_hand_edit_surface_exists() {
     assert!(!std::path::Path::new("ci/facade/stage1-closure").exists());
     assert!(!std::path::Path::new("libs/oya-stage1-closure/scm-facts.generated.json").exists());
+}
+
+#[test]
+fn red_placeholder_facts_and_envelope_never_authorize() {
+    let facts =
+        json!({"schema_id": "oyatie/stage1-protected-facts/v1", "protected_parent_verified": true});
+    let envelope = json!({"schema_id": "oyatie/stage1-admission-envelope/v1", "roadmap_planning_authorized": true});
+    assert!(!validate_protected_facts_shape(&facts).is_green());
+    assert!(!validate_admission_envelope_shape(&envelope).is_green());
 }

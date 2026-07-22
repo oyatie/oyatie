@@ -176,17 +176,10 @@ pub fn evaluate_program(program: &Value) -> Report {
 
 #[must_use]
 pub fn evaluate_epoch(program: &Value, epoch: &Value) -> Report {
-    evaluate_epoch_with_protected_facts(program, epoch, &Value::Null)
+    evaluate_epoch_with_untrusted_shape(program, epoch, &Value::Null)
 }
 
-/// Evaluates a Stage-1 epoch with independently supplied, protected-parent SCM facts.
-///
-/// Source records may describe receipts, but only the separately supplied facts object can
-/// attest that the protected parent observed the candidate, trust root, artifacts, and receipt
-/// bytes. Source evaluation can reach only `PASS_CANDIDATE`; effective `PASS(Planning)` is
-/// deliberately outside this dormant library and requires a later post-merge admission envelope.
-#[must_use]
-pub fn evaluate_epoch_with_protected_facts(
+fn evaluate_epoch_with_untrusted_shape(
     program: &Value,
     epoch: &Value,
     protected_facts: &Value,
@@ -203,6 +196,12 @@ pub fn evaluate_epoch_with_protected_facts(
     let state = epoch.get("state").and_then(Value::as_str);
     if state.is_none_or(|candidate| !STATES.contains(&candidate)) {
         findings.insert("state must be one canonical Stage-1 state".to_owned());
+    }
+    if state != Some("HOLD_EPOCH_OPEN") {
+        findings.insert(
+            "external authenticated Stage-1 controller and trust root are unimplemented; source evaluation cannot advance beyond HOLD_EPOCH_OPEN"
+                .to_owned(),
+        );
     }
 
     validate_subject_binding(epoch.get("subject_binding"), &mut findings);
@@ -238,11 +237,70 @@ pub fn evaluate_epoch_with_protected_facts(
     report(findings)
 }
 
-/// Validates a future external post-merge envelope without deriving an effective planning PASS.
-/// The caller must be an independently trusted admission service; this pure library supplies no
-/// runtime, registration, or authority to create such an envelope.
+/// Structural-only validation for a future protected-facts envelope. It never authenticates a
+/// producer, verifies signatures, or establishes authority.
 #[must_use]
-pub fn evaluate_postmerge_admission_envelope(envelope: &Value) -> Report {
+pub fn validate_protected_facts_shape(facts: &Value) -> Report {
+    let mut findings = BTreeSet::new();
+    require_string(facts, "schema_id", PROTECTED_FACTS_SCHEMA_ID, &mut findings);
+    for field in [
+        "protected_base_repository",
+        "candidate_repository",
+        "protected_base_branch",
+        "candidate_branch",
+        "protected_base_commit",
+        "candidate_commit",
+        "protected_base_tree",
+        "candidate_tree",
+        "source_epoch_binding",
+        "candidate_epoch_binding",
+        "program_binding",
+        "parser_binding",
+        "producer_binding",
+        "evaluator_binding",
+        "policy_binding",
+        "schema_binding",
+        "predecessor_epoch_binding",
+        "transition_receipt_binding",
+        "immutable_successor_bundle",
+        "authority_chain_result",
+        "source_app_identity",
+        "run_identity",
+    ] {
+        if facts.get(field).is_none() {
+            findings.insert(format!("{field} is required"));
+        }
+    }
+    for field in [
+        "source_epoch_binding",
+        "candidate_epoch_binding",
+        "program_binding",
+        "parser_binding",
+        "producer_binding",
+        "evaluator_binding",
+        "policy_binding",
+        "schema_binding",
+        "predecessor_epoch_binding",
+        "transition_receipt_binding",
+        "immutable_successor_bundle",
+        "authority_chain_result",
+        "source_app_identity",
+        "run_identity",
+        "envelope_signature",
+        "trust_root_binding",
+    ] {
+        if !facts.get(field).is_some_and(Value::is_object) {
+            findings.insert(format!("{field} must be a bound object"));
+        }
+    }
+    findings.insert("protected-facts structure is non-authoritative; authenticated producer and trust-root verification are unimplemented".to_owned());
+    report(findings)
+}
+
+/// Structural-only validation for a future post-merge admission envelope. It never derives an
+/// effective planning PASS; an external authenticated controller remains required.
+#[must_use]
+pub fn validate_admission_envelope_shape(envelope: &Value) -> Report {
     let mut findings = BTreeSet::new();
     require_string(
         envelope,
@@ -251,15 +309,33 @@ pub fn evaluate_postmerge_admission_envelope(envelope: &Value) -> Report {
         &mut findings,
     );
     for field in [
-        "postmerge_promoted_sha",
-        "pr_head_sha",
-        "required_check_identity",
-        "app_identity",
+        "repository",
+        "branch",
+        "base_commit",
+        "base_tree",
+        "pr_head_commit",
+        "pr_head_tree",
+        "postmerge_promoted_commit",
+        "postmerge_promoted_tree",
+        "facts_binding",
+        "program_binding",
+        "evaluator_binding",
+        "policy_binding",
+        "schema_binding",
+        "immutable_successor_binding",
+        "check_suite_binding",
+        "independent_review_binding",
+        "branch_protection_binding",
+        "postmerge_completion",
+        "envelope_signature",
+        "trust_root_binding",
     ] {
-        require_non_empty_string(envelope, field, &mut findings);
+        if envelope.get(field).is_none() {
+            findings.insert(format!("{field} is required"));
+        }
     }
-    if envelope.get("postmerge_promoted_sha") == envelope.get("pr_head_sha") {
-        findings.insert("postmerge_promoted_sha must not equal pr_head_sha".to_owned());
+    if envelope.get("postmerge_promoted_commit") == envelope.get("pr_head_commit") {
+        findings.insert("postmerge_promoted_commit must not equal pr_head_commit".to_owned());
     }
     for field in [
         "protected_facts_binding",
@@ -270,7 +346,12 @@ pub fn evaluate_postmerge_admission_envelope(envelope: &Value) -> Report {
             findings.insert(format!("{field} must be an externally bound object"));
         }
     }
-    require_bool(envelope, "roadmap_planning_authorized", true, &mut findings);
+    require_bool(
+        envelope,
+        "roadmap_planning_authorized",
+        false,
+        &mut findings,
+    );
     require_bool(
         envelope,
         "binding_plan_approval_allowed",
@@ -283,6 +364,7 @@ pub fn evaluate_postmerge_admission_envelope(envelope: &Value) -> Report {
         false,
         &mut findings,
     );
+    findings.insert("admission-envelope structure is non-authoritative; authenticated external controller is unimplemented".to_owned());
     report(findings)
 }
 
@@ -843,7 +925,6 @@ fn validate_protected_parent_facts(
     }
 
     require_string(facts, "schema_id", PROTECTED_FACTS_SCHEMA_ID, findings);
-    require_bool(facts, "protected_parent_verified", true, findings);
     require_non_empty_string(facts, "trust_root_authority_ref", findings);
     require_non_empty_string(facts, "protected_base_repository", findings);
     require_non_empty_string(facts, "candidate_repository", findings);
