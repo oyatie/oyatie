@@ -6210,6 +6210,9 @@ version = "0.1.0"
 [[package]]
 name = "oya-check-adr-index"
 version = "0.1.0"
+dependencies = [
+ "corpus-doc-parser",
+]
 
 [[package]]
 name = "oya-check-adr-placeholders"
