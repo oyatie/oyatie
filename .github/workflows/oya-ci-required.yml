@@ -69,7 +69,7 @@ jobs:
   #    regenerates it before gates consume it, then uploads it both as evidence AND as the
   #    faces source the mere-reader gate matrix legs download (ADR-0556 D5 QW-1).
   producer-regen:
-    name: producer-regen (accounting-registry)
+    name: producer-regen (generated-faces)
     runs-on: ubuntu-latest
     steps:
       # actions/checkout@v6.0.3 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
@@ -90,10 +90,10 @@ jobs:
         # actions/upload-artifact@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: accounting-faces
-          # Two upload roots -> the artifact is rooted at their least common ancestor
-          # (ci/facade/): the regenerated accounting faces PLUS the untracked
-          # volatile scm snapshot (ADR-0552) the staleness-reaper leg ages rows from. The
+          name: generated-faces
+          # Multiple upload roots -> the artifact is rooted at their least common ancestor
+          # (the repository root): regenerated accounting faces, the ADR-0620 graph projection,
+          # and the untracked volatile scm snapshot (ADR-0552) the staleness-reaper leg ages rows from. The
           # mere-reader gate matrix legs download this artifact instead of re-materializing
           # per leg (ADR-0556 D5 QW-1, gate-fleet-shared-graph same-run trusted reuse).
           # Deliberately NOT uploaded: the firewall's merge-base frozen baseline — its
@@ -102,6 +102,7 @@ jobs:
           path: |
             ci/facade/artifact-inventory-registry/*.generated.json
             ci/facade/scm-facts-snapshot/scm-volatile-facts.generated.json
+            registry/graph/active-artifact-contract-edges.json
           if-no-files-found: error
 
   # ── GATE LANES (reusable matrix). Every homogeneous gate is the SAME step — one
@@ -199,8 +200,8 @@ jobs:
         # actions/download-artifact@v8.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
-          name: accounting-faces
-          path: ci/facade
+          name: generated-faces
+          path: .
       - name: Install buck2 (digest-pinned prebuilt release)
         run: infra/ci/install-buck2.sh
       # Buck2/rustc still use the pinned workspace toolchain + components; provision it before
