@@ -210,6 +210,8 @@ const KNOWLEDGE_CLASS_MAPPINGS: [(&str, &str); 14] = [
     ("Outcome", "verified_outcome"),
 ];
 
+const PRE_C06_PALANTIR_STATE: &str = "not-retrieved-not-analyzed-prohibited-until-C06";
+
 /// Check the intent-only, non-dispatching founder product contract.
 ///
 /// This deliberately evaluates only the candidate spec. Root-hub, registry,
@@ -623,6 +625,46 @@ fn validate_comparator_contract(findings: &mut BTreeSet<Finding>, contract: &Val
             findings,
             "benchmark_and_measurement_contract.comparator_admission",
         );
+    }
+
+    let Some(palantir_pointers) = contract
+        .get("palantir_comparator_refs")
+        .and_then(Value::as_array)
+    else {
+        invalid(
+            findings,
+            "benchmark_and_measurement_contract.palantir_comparator_refs",
+        );
+        return;
+    };
+    if palantir_pointers.is_empty() {
+        invalid(
+            findings,
+            "benchmark_and_measurement_contract.palantir_comparator_refs",
+        );
+    }
+    let mut source_ids = HashSet::new();
+    let mut urls = HashSet::new();
+    for pointer in palantir_pointers {
+        let source_id = pointer
+            .get("source_id")
+            .and_then(Value::as_str)
+            .unwrap_or("unknown");
+        let key =
+            format!("benchmark_and_measurement_contract.palantir_comparator_refs[{source_id}]");
+        if !exact_object_keys(Some(pointer), &["source_id", "url", "state"])
+            || source_id.is_empty()
+            || !source_ids.insert(source_id)
+            || pointer
+                .get("url")
+                .and_then(Value::as_str)
+                .is_none_or(|url| {
+                    !url.starts_with("https://www.palantir.com/docs/") || !urls.insert(url)
+                })
+            || pointer.get("state").and_then(Value::as_str) != Some(PRE_C06_PALANTIR_STATE)
+        {
+            invalid(findings, &key);
+        }
     }
 
     let Some(pointers) = contract
@@ -1231,6 +1273,9 @@ fn validate_research_basis(findings: &mut BTreeSet<Finding>, value: Option<&Valu
             invalid(findings, &format!("{key}.url"));
             continue;
         };
+        if source_id.starts_with("palantir-") || url.starts_with("https://www.palantir.com/") {
+            invalid(findings, &key);
+        }
         if !url.starts_with("https://") || !urls.insert(url) {
             invalid(findings, &format!("{key}.url"));
         }

@@ -415,139 +415,6 @@
             }
           },
           {
-            "source_id": "palantir-apollo-helm-rollouts",
-            "url": "https://www.palantir.com/docs/apollo/core/helm-rollouts",
-            "scope": "managed rollout readiness, failure-triggered rollback, no-wait iteration modes, scoped readiness timeouts, and image pre-pulling",
-            "adoption": "Use Apollo only as a minimum comparative baseline for explicit readiness, timeout, and rollback semantics; Oyatie must remain provider-neutral, evidence-typed, policy-governed, and measurably better on matched journeys rather than copying Apollo's product or manifest shape.",
-            "classification": "harvested-provenance",
-            "collection_status": "retrieved-before-qualified-legal-jcr-disposition",
-            "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
-            "evidence_eligible": false,
-            "automated_expansion_allowed": false,
-            "quarantine": {
-              "status": "harvested-provenance-not-admitted-evidence",
-              "preserved": true,
-              "evidence_eligible": false,
-              "automated_expansion_allowed": false,
-              "claim_allowed": false,
-              "legal_jcr_disposition": "unresolved"
-            }
-          },
-          {
-            "source_id": "palantir-foundry-building-pipelines",
-            "url": "https://www.palantir.com/docs/foundry/building-pipelines/overview",
-            "scope": "data-quality foundations, governed project structure, batch, incremental, and streaming pipeline choices, unit tests, branching, release, scheduling, and health checks",
-            "adoption": "Use as a minimum baseline for lifecycle-complete data-pipeline hygiene; Oyatie extends the graph through authority, policy, evidence, decisions, actions, recourse, runtime exposure, and realized outcomes rather than copying Foundry project or product structure.",
-            "classification": "harvested-provenance",
-            "collection_status": "retrieved-before-qualified-legal-jcr-disposition",
-            "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
-            "evidence_eligible": false,
-            "automated_expansion_allowed": false,
-            "quarantine": {
-              "status": "harvested-provenance-not-admitted-evidence",
-              "preserved": true,
-              "evidence_eligible": false,
-              "automated_expansion_allowed": false,
-              "claim_allowed": false,
-              "legal_jcr_disposition": "unresolved"
-            }
-          },
-          {
-            "source_id": "palantir-foundry-pipeline-management",
-            "url": "https://www.palantir.com/docs/foundry/pipeline-builder/management-overview",
-            "scope": "reusable parameters and custom functions, large-graph grouping, job and compute-profile grouping, checkpoints, selective visibility, and sampled previews",
-            "adoption": "Use as a minimum usability and compute-efficiency baseline while requiring one typed IR, semantic-preserving multiple views, full-population admission evidence, graph-derived concurrency, explicit authority, and portable non-vendor execution.",
-            "classification": "harvested-provenance",
-            "collection_status": "retrieved-before-qualified-legal-jcr-disposition",
-            "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
-            "evidence_eligible": false,
-            "automated_expansion_allowed": false,
-            "quarantine": {
-              "status": "harvested-provenance-not-admitted-evidence",
-              "preserved": true,
-              "evidence_eligible": false,
-              "automated_expansion_allowed": false,
-              "claim_allowed": false,
-              "legal_jcr_disposition": "unresolved"
-            }
-          },
-          {
-            "source_id": "palantir-foundry-data-lineage",
-            "url": "https://www.palantir.com/docs/foundry/data-lineage/overview",
-            "scope": "interactive discovery of datasets, ancestors and descendants, schema, build freshness, producing code, shared snapshots, and lineage visualization",
-            "adoption": "Use data lineage as a minimum visibility baseline; Oyatie requires continuous source-to-observation-to-decision-to-authorized-action-to-outcome lineage with corrections, uncertainty, authority, custody, privacy, and recourse preserved.",
-            "classification": "harvested-provenance",
-            "collection_status": "retrieved-before-qualified-legal-jcr-disposition",
-            "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
-            "evidence_eligible": false,
-            "automated_expansion_allowed": false,
-            "quarantine": {
-              "status": "harvested-provenance-not-admitted-evidence",
-              "preserved": true,
-              "evidence_eligible": false,
-              "automated_expansion_allowed": false,
-              "claim_allowed": false,
-              "legal_jcr_disposition": "unresolved"
-            }
-          },
-          {
-            "source_id": "palantir-foundry-data-health",
-            "url": "https://www.palantir.com/docs/foundry/observability/data-health",
-            "scope": "scope-aware monitoring views, fine-grained resource health checks, dynamic coverage as resources change, alerting, and integration with operational response systems",
-            "adoption": "Use as a minimum resource-health baseline while requiring typed ownership, affected populations, outcome health, evidence freshness, noise budgets, diagnosis and recovery receipts, and fail-closed readiness for unowned or unmonitored material resources.",
-            "classification": "harvested-provenance",
-            "collection_status": "retrieved-before-qualified-legal-jcr-disposition",
-            "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
-            "evidence_eligible": false,
-            "automated_expansion_allowed": false,
-            "quarantine": {
-              "status": "harvested-provenance-not-admitted-evidence",
-              "preserved": true,
-              "evidence_eligible": false,
-              "automated_expansion_allowed": false,
-              "claim_allowed": false,
-              "legal_jcr_disposition": "unresolved"
-            }
-          },
-          {
-            "source_id": "palantir-foundry-aip-evals",
-            "url": "https://www.palantir.com/docs/foundry/aip-evals/overview",
-            "scope": "evaluation suites, target and evaluation functions, test cases, per-case and aggregate metrics, version comparison, model comparison, and variance across repeated runs",
-            "adoption": "Use as a minimum nondeterministic-evaluation baseline while preserving exact populations, disaggregated affected-party outcomes, refusal and recourse cases, evaluator disagreement, drift, draft-only model outputs, and a strict separation between evaluation evidence and authority.",
-            "classification": "harvested-provenance",
-            "collection_status": "retrieved-before-qualified-legal-jcr-disposition",
-            "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
-            "evidence_eligible": false,
-            "automated_expansion_allowed": false,
-            "quarantine": {
-              "status": "harvested-provenance-not-admitted-evidence",
-              "preserved": true,
-              "evidence_eligible": false,
-              "automated_expansion_allowed": false,
-              "claim_allowed": false,
-              "legal_jcr_disposition": "unresolved"
-            }
-          },
-          {
-            "source_id": "palantir-foundry-branching-release",
-            "url": "https://www.palantir.com/docs/foundry/building-pipelines/branching-release-process",
-            "scope": "conceptual product release units spanning multiple repositories and resources, protected production branches, development and feature branches, end-user verification, and retained collaboration evidence",
-            "adoption": "Use only as comparative release-process evidence; Oyatie retains one hyperscale monorepo, current plain-Git protected-PR admission, exact-head review, one required status, graph-derived impact, and independent runtime promotion rather than copying GitFlow or Foundry branch semantics.",
-            "classification": "harvested-provenance",
-            "collection_status": "retrieved-before-qualified-legal-jcr-disposition",
-            "legal_jcr_disposition": "unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition",
-            "evidence_eligible": false,
-            "automated_expansion_allowed": false,
-            "quarantine": {
-              "status": "harvested-provenance-not-admitted-evidence",
-              "preserved": true,
-              "evidence_eligible": false,
-              "automated_expansion_allowed": false,
-              "claim_allowed": false,
-              "legal_jcr_disposition": "unresolved"
-            }
-          },
-          {
             "source_id": "google-sre-postmortem-culture",
             "url": "https://sre.google/sre-book/postmortem-culture/",
             "scope": "learning from failure through blameless analysis and tracked preventive actions",
@@ -1978,13 +1845,43 @@
     "decision_rule": "A financially attractive option is not admissible when its benefit depends on hiding, transferring, or making another principal absorb a material safety, privacy, accessibility, support, recourse, lock-in, labor, community, or environmental cost."
   },
   "benchmark_and_measurement_contract": {
-    "comparator_posture": "Palantir Foundry, AIP, Apollo, and Gotham are one user-supplied, URL-only minimum baseline among multiple relevant enterprise, infrastructure, workflow, analytics, and consumer comparators. Comparator evidence is harvest-only and subject to legal/JCR disposition; it is not a template or a product-scope denominator.",
-    "legal_boundary": "Do not scrape, copy, reverse engineer, or infer protected product shape. Until qualified legal/JCR disposition exists, preserve user-supplied comparator URLs without automated expansion and mark unsupported observations Unknown.",
-    "legal_source_refs": [
+    "comparator_posture": "Palantir Foundry, AIP, Apollo, and Gotham are user-supplied minimum comparator subjects, not a template or product-scope denominator. Before C06, their documentation URLs are inert Unknown pointers only; no comparator evidence, product mapping, feature analysis, adoption inference, or implementation selection is permitted.",
+    "legal_boundary": "Do not retrieve, scrape, copy, reverse engineer, or infer protected product shape. Until a fresh scope-specific qualified legal/JCR disposition satisfies C06, preserve only user-supplied Palantir documentation URLs as not-retrieved, not-analyzed, prohibited pointers without automated expansion.",
+    "palantir_comparator_refs": [
       {
-        "accessed_at": "2026-07-21",
-        "disposition": "mutable source requiring fresh qualified legal/JCR interpretation before comparator collection",
-        "url": "https://www.palantir.com/terms-and-conditions/"
+        "source_id": "palantir-apollo-helm-rollouts",
+        "url": "https://www.palantir.com/docs/apollo/core/helm-rollouts",
+        "state": "not-retrieved-not-analyzed-prohibited-until-C06"
+      },
+      {
+        "source_id": "palantir-foundry-building-pipelines",
+        "url": "https://www.palantir.com/docs/foundry/building-pipelines/overview",
+        "state": "not-retrieved-not-analyzed-prohibited-until-C06"
+      },
+      {
+        "source_id": "palantir-foundry-pipeline-management",
+        "url": "https://www.palantir.com/docs/foundry/pipeline-builder/management-overview",
+        "state": "not-retrieved-not-analyzed-prohibited-until-C06"
+      },
+      {
+        "source_id": "palantir-foundry-data-lineage",
+        "url": "https://www.palantir.com/docs/foundry/data-lineage/overview",
+        "state": "not-retrieved-not-analyzed-prohibited-until-C06"
+      },
+      {
+        "source_id": "palantir-foundry-data-health",
+        "url": "https://www.palantir.com/docs/foundry/observability/data-health",
+        "state": "not-retrieved-not-analyzed-prohibited-until-C06"
+      },
+      {
+        "source_id": "palantir-foundry-aip-evals",
+        "url": "https://www.palantir.com/docs/foundry/aip-evals/overview",
+        "state": "not-retrieved-not-analyzed-prohibited-until-C06"
+      },
+      {
+        "source_id": "palantir-foundry-branching-release",
+        "url": "https://www.palantir.com/docs/foundry/building-pipelines/branching-release-process",
+        "state": "not-retrieved-not-analyzed-prohibited-until-C06"
       }
     ],
     "game_engine_comparator_refs": [
