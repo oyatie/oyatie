@@ -47,18 +47,12 @@ fn load_policy(root: &Path) -> Value {
     load_json(&gate_dir(root).join("root-workspace-hygiene-policy.json"))
 }
 
-const SYNTHETIC_RUNTIME_STATE_PATHS: [&str; 4] = [
+const SYNTHETIC_RUNTIME_STATE_PATHS: [&str; 5] = [
     ".claude/worktrees/old-lane/marker",
     ".claude/settings.local.json",
     ".codex/.DS_Store",
+    ".omc/state/team/mailbox.json",
     ".omx/state/team/mailbox.json",
-];
-
-const RETIRED_ARCHIVE_PATHS: [&str; 4] = [
-    ".omc/ultragoal/OWNERS",
-    ".omc/ultragoal/TEAMMATE-PREAMBLE.md",
-    ".omc/ultragoal/friction-ledger.jsonl",
-    ".omc/ultragoal/premise.txt",
 ];
 
 /// Decode git's C-style path quoting: git surrounds a path containing special bytes with double
@@ -91,24 +85,11 @@ fn observed_from_scm_facts(root: &Path) -> Value {
     json!({ "rows": rows })
 }
 
-fn observed_without_retired_archive(root: &Path) -> Value {
-    let mut observed = observed_from_scm_facts(root);
-    observed["rows"]
-        .as_array_mut()
-        .expect("rows array")
-        .retain(|row| {
-            !row["path"]
-                .as_str()
-                .is_some_and(|path| RETIRED_ARCHIVE_PATHS.contains(&path))
-        });
-    observed
-}
-
 #[test]
-fn archive_free_tracked_root_tree_is_allowlist_clean_green() {
+fn live_tracked_root_tree_is_allowlist_clean_green() {
     let root = repo_root();
     let policy = load_policy(&root);
-    let observed = observed_without_retired_archive(&root);
+    let observed = observed_from_scm_facts(&root);
 
     let rows = observed["rows"].as_array().expect("rows");
     assert!(
@@ -120,9 +101,30 @@ fn archive_free_tracked_root_tree_is_allowlist_clean_green() {
     let findings = evaluate_keyed(&policy, &observed);
     assert!(
         findings.is_empty(),
-        "root-workspace-hygiene gate found violations after the retired archive is absent:\n{findings:#?}"
+        "root-workspace-hygiene gate found violations over the live tracked tree — the allowlist \
+         either forbids a legitimate root surface or a scratch file is still tracked:\n{findings:#?}"
     );
     assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Green);
+}
+
+#[test]
+fn retired_consumers_are_absent_from_active_configuration() {
+    let root = repo_root();
+    for path in [
+        ".gitattributes",
+        "specs/capability-registry.json",
+        "docs/oya-ci/gate-catalog.md",
+        ".github/workflows/oya-ci-required.yml",
+    ] {
+        let contents = fs::read_to_string(root.join(path))
+            .unwrap_or_else(|error| panic!("read {path}: {error}"));
+        assert!(
+            !contents.contains("oya-friction-ledger-merge-driver-app")
+                && !contents.contains("cloud-ci-friction-accounting")
+                && !contents.contains("action-item-accounting"),
+            "retired consumer remains in {path}"
+        );
+    }
 }
 
 /// The live tracked agent/runtime surface must contain only explicit exceptions. Local worktrees,
@@ -139,30 +141,6 @@ fn live_tracked_runtime_state_dirs_are_explicitly_allowlisted_green() {
             .iter()
             .any(|f| f.code == "root_workspace_restricted_dir_unallowlisted_path"),
         "live tracked runtime/provenance paths must all be explicit exceptions; got {findings:#?}"
-    );
-}
-
-#[test]
-fn retired_omc_archive_is_not_an_allowed_root_surface() {
-    let root = repo_root();
-    let policy = load_policy(&root);
-
-    assert!(
-        !policy["allowed_root_dirs"]
-            .as_array()
-            .expect("allowed_root_dirs")
-            .iter()
-            .any(|entry| entry == ".omc"),
-        ".omc must not remain an allowed root surface after archive retirement"
-    );
-    assert!(
-        !policy["allowed_tracked_paths"]
-            .as_array()
-            .expect("allowed_tracked_paths")
-            .iter()
-            .filter_map(|entry| entry["value"].as_str())
-            .any(|path| path.starts_with(".omc/")),
-        "retired .omc archive paths must not remain tracked-path exceptions"
     );
 }
 
@@ -190,8 +168,8 @@ fn synthetic_tracked_root_log_is_born_blocking_red() {
     assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Red);
 }
 
-/// RED FIXTURE: local agent runtime state under `.claude/.codex/.omx` must be born-blocking
-/// if it is ever forced into the tracked-path corpus. This prevents the agent-state trees from
+/// RED FIXTURE: local agent runtime state under `.claude/.codex/.omc/.omx` must be born-blocking
+/// if it is ever forced into the tracked-path corpus. This prevents the four agent-state trees from
 /// drifting into committed merge-conflict surfaces.
 #[test]
 fn synthetic_tracked_runtime_state_paths_are_born_blocking_red() {
@@ -268,8 +246,8 @@ fn retired_dev_env_cli_surfaces_are_born_blocking_red() {
     );
 }
 
-/// Every offending finding must carry a concrete auto-fix remediation — the gate is auto-fixing,
-/// not flag-only.
+/// Every offending finding must carry a concrete auto-fix remediation (relocate to `.omc/` or
+/// `git rm`) — the gate is auto-fixing, not flag-only.
 #[test]
 fn live_policy_findings_carry_concrete_remediation() {
     let root = repo_root();
@@ -281,7 +259,7 @@ fn live_policy_findings_carry_concrete_remediation() {
         .find(|f| f.key == "foo.log")
         .expect("finding for foo.log");
     assert!(
-        f.detail.contains("git rm") && f.detail.contains("ignored scratch path"),
+        f.detail.contains("git rm") && f.detail.contains(".omc/"),
         "remediation must name the concrete auto-fix; got: {}",
         f.detail
     );
