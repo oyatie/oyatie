@@ -55,5 +55,6 @@ rust_test(
         # proving it FIRES for a real move (and FAILS if file_level_manifest enumerates-old).
         "//tools/oya-reorg-codemod-app:oya-reorg-codemod-app",
         "third-party//:serde_json",
+        "third-party//:sha2",
     ],
 )
