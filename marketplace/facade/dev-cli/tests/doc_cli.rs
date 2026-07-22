@@ -902,6 +902,90 @@ fn doc_adr_index_writes_then_checks_generated_artifacts() {
 }
 
 #[test]
+fn doc_adr_index_reconciles_amended_frontmatter_with_both_projections() {
+    let temp = temp_dir("doc-adr-index-amended-status");
+    let decisions = temp.join("decisions");
+    let source = decisions.join("ADR-0001-amended-decision.md");
+    fs::create_dir_all(&decisions).expect("decisions dir created");
+    fs::write(
+        &source,
+        "---\n\
+         id: ADR-0001\n\
+         title: Amended Decision Fixture\n\
+         status: Accepted\n\
+         date: 2026-07-20\n\
+         owner: council-architecture\n\
+         ---\n\n\
+         # ADR-0001: Amended Decision Fixture\n\n\
+         ## Context\n\n\
+         Fixture.\n",
+    )
+    .expect("accepted ADR written");
+    let index = temp.join("ADR-INDEX.md");
+    let machine = temp.join("decisions.json");
+    let args = [
+        "doc",
+        "adr-index",
+        "--decisions-dir",
+        decisions.to_str().expect("utf8 decisions"),
+        "--index",
+        index.to_str().expect("utf8 index"),
+        "--machine",
+        machine.to_str().expect("utf8 machine"),
+    ];
+
+    let initial = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(args.iter().copied().chain(["--write"]))
+        .output()
+        .expect("initial adr-index write runs");
+    assert!(
+        initial.status.success(),
+        "stderr={}",
+        String::from_utf8_lossy(&initial.stderr)
+    );
+
+    let amended = fs::read_to_string(&source)
+        .expect("source ADR readable")
+        .replace("status: Accepted", "status: Amended");
+    fs::write(&source, amended).expect("amended ADR written");
+
+    let stale = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(args)
+        .output()
+        .expect("adr-index detects stale projections");
+    assert!(!stale.status.success());
+    assert!(
+        String::from_utf8_lossy(&stale.stderr).contains("MarkdownDrift"),
+        "stderr={}",
+        String::from_utf8_lossy(&stale.stderr)
+    );
+
+    let regenerated = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(args.iter().copied().chain(["--write"]))
+        .output()
+        .expect("amended adr-index write runs");
+    assert!(
+        regenerated.status.success(),
+        "stderr={}",
+        String::from_utf8_lossy(&regenerated.stderr)
+    );
+    assert!(
+        fs::read_to_string(&index)
+            .expect("index readable")
+            .contains("| ADR-0001 | Amended |"),
+        "human index must project the parsed amended status"
+    );
+    assert!(
+        fs::read_to_string(&machine)
+            .expect("machine mirror readable")
+            .contains("\"status\": \"Amended\""),
+        "machine mirror must project the parsed amended status"
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
 fn doc_adr_index_accepts_decision_owner_frontmatter() {
     let temp = temp_dir("doc-adr-index-decision-owner");
     let decisions = temp.join("decisions");

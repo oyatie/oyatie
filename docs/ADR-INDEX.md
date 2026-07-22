@@ -14,7 +14,7 @@ doc_status: published
 - **Total ADRs:** 429
 - **Numbering:** ADR-0001..ADR-0619 (non-contiguous; gaps: 0012, 0033, 0037, 0041, 0050, 0068, 0070..0082, 0084..0089, 0125..0127, 0224..0233, 0247, 0256, 0259..0262, 0264..0271, 0274..0275, 0277..0279, 0281..0283, 0285..0291, 0322..0323, 0327, 0342, 0345, 0385..0386, 0395..0396, 0398..0475, 0477, 0483..0505, 0574..0579, 0583..0585, 0594, 0601..0602)
 - **Next ADR number:** 0620
-- **Status counts:** Accepted 175, Accepted (amendment) 2, Amended 1, Proposed 147, Proposed (conditional: Accepted only after ADR-0377-D2 and ADR-0377-D3 code/tests pass) 1, Proposed (target: Accepted upon PR #143 merge to dev) 1, Superseded 35, accepted 34, deprecated 1, proposed 31, superseded 1
+- **Status counts:** Accepted 173, Accepted (amendment) 2, Amended 3, Proposed 147, Proposed (conditional: Accepted only after ADR-0377-D2 and ADR-0377-D3 code/tests pass) 1, Proposed (target: Accepted upon PR #143 merge to dev) 1, Superseded 35, accepted 34, deprecated 1, proposed 31, superseded 1
 - **Legacy retirement:** see [`ADR-LEGACY-REGRESSION-MAPPING.md`](ADR-LEGACY-REGRESSION-MAPPING.md).
 
 ## Full table (one row per ADR, sorted by ADR number)
@@ -311,7 +311,7 @@ doc_status: published
 | ADR-0360 | Proposed | CI/CD pipeline optimization program — affected-target precision, gate-only overlay, warm shared cache, test sharding, pinned+signed agent image, speculative merge queue, content-addressed gate caching | council-architecture, ops-platform, axis-dev-cli, ops-sre-reliability | [`ADR-0360-ci-pipeline-optimization-program.md`](decisions/ADR-0360-ci-pipeline-optimization-program.md) |
 | ADR-0361 | Superseded | Execute the cloud-ci-native CI/CD revamp — license-vetted hyperscaler supply-chain stack, retire GitHub Actions, drop the parity gate (superseded by ADR-0515) | council-architecture, ops-platform, axis-dev-cli, ops-sre-reliability | [`ADR-0361-jenkins-native-cicd-revamp-execution.md`](decisions/ADR-0361-jenkins-native-cicd-revamp-execution.md) |
 | ADR-0362 | Accepted | Full grouping retirement (flat-only catalog) | council-architecture | [`ADR-0362-full-grouping-retirement-flat-only-catalog.md`](decisions/ADR-0362-full-grouping-retirement-flat-only-catalog.md) |
-| ADR-0363 | Accepted | Retire bespoke agentic-VCS; Foundry→Intelligence; `oya` is a governance-gate engine | council-architecture | [`ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md`](decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md) |
+| ADR-0363 | Amended | Retire bespoke agentic-VCS; Foundry→Intelligence; `oya` is a governance-gate engine | council-architecture | [`ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md`](decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md) |
 | ADR-0364 | Accepted | Generative ADR template; masterplan generated from the ADR log | council-architecture | [`ADR-0364-generative-adr-template-and-masterplan-generation.md`](decisions/ADR-0364-generative-adr-template-and-masterplan-generation.md) |
 | ADR-0365 | Accepted | Automated ADR lifecycle — research → consensus → ADR → auto-propagate | council-architecture | [`ADR-0365-automated-adr-lifecycle-and-propagation.md`](decisions/ADR-0365-automated-adr-lifecycle-and-propagation.md) |
 | ADR-0366 | Accepted | Agentic high-throughput, self-enforcing, self-repairing pipeline | council-architecture | [`ADR-0366-agentic-high-throughput-self-enforcing-pipeline.md`](decisions/ADR-0366-agentic-high-throughput-self-enforcing-pipeline.md) |
@@ -449,7 +449,7 @@ doc_status: published
 | ADR-0616 | Proposed | De-commit the firewall frozen-reference baseline | council-architecture | [`ADR-0616-de-commit-firewall-frozen-reference-baseline.md`](decisions/ADR-0616-de-commit-firewall-frozen-reference-baseline.md) |
 | ADR-0617 | Proposed | The Living Monorepo Governance Graph | council-architecture | [`ADR-0617-living-monorepo-governance-graph.md`](decisions/ADR-0617-living-monorepo-governance-graph.md) |
 | ADR-0618 | Proposed | Contract-slice conformance gate scope boundary | council-architecture | [`ADR-0618-contract-slice-gate-scope-boundary.md`](decisions/ADR-0618-contract-slice-gate-scope-boundary.md) |
-| ADR-0619 | Accepted | Zero-live-context retirement of an external agent-harness brand | council-architecture | [`ADR-0619-zero-live-context-retirement-of-external-agent-harness-brand.md`](decisions/ADR-0619-zero-live-context-retirement-of-external-agent-harness-brand.md) |
+| ADR-0619 | Amended | Zero-live-context retirement of an external agent-harness brand | council-architecture | [`ADR-0619-zero-live-context-retirement-of-external-agent-harness-brand.md`](decisions/ADR-0619-zero-live-context-retirement-of-external-agent-harness-brand.md) |
 
 ## Update protocol
 
