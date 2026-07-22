@@ -6261,7 +6261,7 @@
       "plan_evidence_crosscheck": {
         "validator": "cloud-ci-cross-artifact-agreement/masterplan-v2-plan-evidence-crosscheck",
         "violation_code": "masterplan_plan_evidence_unrecorded",
-        "rule": "Every masterplan work-item status claim and evidence-attached external claim is cross-checked against RECORDED completion evidence, failing closed on unevidenced verified completion and on evidence pointing at retired surfaces: a verified completion status must carry at least one recorded completion-evidence-class ref (merged commit git:<40-hex>, merged-PR / merged-commit / actions-run record under https://github.com/<owner>/<repo>/, or a tracked product-completion packet under evidence/); every path-class evidence ref must resolve inside the tracked-tree resolution universe; and no evidence ref may point at a surface_dispositions row dispositioned absorbed or archived-with-provenance (exact, #fragment, and /** glob rows, derived mechanically from this document).",
+        "rule": "Every masterplan work-item status claim and evidence-attached external claim is cross-checked against RECORDED completion evidence, failing closed on unevidenced verified completion and on evidence pointing at retired surfaces: a verified completion status must carry at least one recorded completion-evidence-class ref (merged commit git:<40-hex>, merged-PR / merged-commit / actions-run record under https://github.com/<owner>/<repo>/, or a tracked product-completion packet under evidence/); every path-class evidence ref must resolve inside the tracked-tree resolution universe; and no evidence ref may point at a surface_dispositions row dispositioned absorbed or retired-git-history-only (exact, #fragment, and /** glob rows, derived mechanically from this document).",
         "recorded_completion_evidence_classes": [
           "git:<40-hex-merged-commit-sha>",
           "https://github.com/<owner>/<repo>/pull/<n>",
@@ -6776,75 +6776,75 @@
       },
       {
         "path": "docs/ROADMAP.md",
-        "surface_class": "provenance-archive",
-        "disposition": "archived-with-provenance",
+        "surface_class": "retired-authority",
+        "disposition": "retired-git-history-only",
         "is_live_plan_authority": false,
         "absorbed_into": "/specs/masterplan.json#masterplan_v2",
-        "work_item_id_policy": "archived-no-live-id-authority",
-        "provenance": "Legacy roadmap prose is stale against accepted ADRs and masterplan v2; retained only as archived historical context."
+        "work_item_id_policy": "absent-no-live-id-authority",
+        "provenance": "Legacy roadmap prose was absorbed into masterplan v2 and deleted from candidate HEAD; neutral predecessor Git object receipts preserve provenance without a readable current-tree copy."
       },
       {
         "path": ".omc/ultragoal/goals.json",
         "surface_class": "missing-legacy-surface",
-        "disposition": "archived-with-provenance",
+        "disposition": "retired-git-history-only",
         "is_live_plan_authority": false,
         "absorbed_into": "/specs/masterplan.json#masterplan_v2",
         "work_item_id_policy": "absent-no-live-id-authority",
-        "provenance": "Expected legacy goal surface is absent from the tracked worktree; repo-local .omc/ultragoal files are provenance-only."
+        "provenance": "Expected legacy goal surface is absent from candidate HEAD; current-tree harness stores are forbidden and provenance is Git-history-only."
       },
       {
         "path": ".omc/**",
-        "surface_class": "repo-local-harness-store-provenance",
-        "disposition": "archived-with-provenance",
+        "surface_class": "retired-harness-store",
+        "disposition": "retired-git-history-only",
         "is_live_plan_authority": false,
         "absorbed_into": "/specs/masterplan.json#masterplan_v2",
-        "work_item_id_policy": "harness-store-only-no-live-id-authority",
-        "provenance": "Repo-local .omc harness store is read-only forensic provenance; non-stale observations must be routed through MPV2 evidence refs or backlog cards before affecting status."
+        "work_item_id_policy": "absent-no-live-id-authority",
+        "provenance": "Repo-local .omc harness stores are deleted from candidate HEAD; selected live obligations must be migrated to MPV2 evidence refs before deletion, while old bytes remain only in neutral Git history."
       },
       {
         "path": ".omc/ultragoal/friction-ledger.jsonl",
-        "surface_class": "repo-local-operational-provenance",
-        "disposition": "archived-with-provenance",
+        "surface_class": "retired-harness-store",
+        "disposition": "retired-git-history-only",
         "is_live_plan_authority": false,
         "absorbed_into": "/specs/masterplan.json#masterplan_v2",
-        "work_item_id_policy": "observations-only-no-live-id-authority",
-        "provenance": "Repo-local ultragoal friction ledger may seed backlog evidence but cannot mint live plan ids."
+        "work_item_id_policy": "absent-no-live-id-authority",
+        "provenance": "The retired ultragoal friction ledger is absent from candidate HEAD; actionable observations must already be represented in governed evidence or backlog records, with predecessor bytes available only from Git history."
       },
       {
         "path": ".omx/**",
-        "surface_class": "absent-or-retired-legacy-provenance",
-        "disposition": "archived-with-provenance",
+        "surface_class": "retired-harness-store",
+        "disposition": "retired-git-history-only",
         "is_live_plan_authority": false,
         "absorbed_into": "/specs/masterplan.json#masterplan_v2",
         "work_item_id_policy": "must-not-mint-live-work-item-ids",
-        "provenance": "No repo-local .omx surface is present in this worktree; historical references remain provenance only."
+        "provenance": "No repo-local .omx surface may exist in candidate HEAD; predecessor bytes are Git-history-only."
       },
       {
         "path": ".gjc/**",
-        "surface_class": "operational-runtime-state",
-        "disposition": "archived-with-provenance",
+        "surface_class": "retired-harness-store",
+        "disposition": "retired-git-history-only",
         "is_live_plan_authority": false,
         "absorbed_into": "/specs/masterplan.json#masterplan_v2",
-        "work_item_id_policy": "runtime-state-only-no-live-id-authority",
-        "provenance": "Workflow runtime state is repo-adjacent operational data, not masterplan authority."
+        "work_item_id_policy": "absent-no-live-id-authority",
+        "provenance": "No repo-local GJC harness state may exist in candidate HEAD; predecessor bytes are Git-history-only."
       },
       {
         "path": "~/.gjc/**",
-        "surface_class": "global-harness-store-provenance",
-        "disposition": "archived-with-provenance",
+        "surface_class": "retired-external-harness-store",
+        "disposition": "retired-git-history-only",
         "is_live_plan_authority": false,
         "absorbed_into": "/specs/masterplan.json#masterplan_v2",
-        "work_item_id_policy": "global-runtime-store-only-no-live-id-authority",
-        "provenance": "Global GJC runtime store is external harness state; it is forensic input only and cannot mint live plan ids or done status."
+        "work_item_id_policy": "forbidden-read-no-live-id-authority",
+        "provenance": "Global GJC runtime stores are outside repository authority and forbidden as planning inputs; no current-tree or agent read contract may reference them."
       },
       {
         "path": "~/.omx/**",
-        "surface_class": "global-harness-store-provenance",
-        "disposition": "archived-with-provenance",
+        "surface_class": "retired-external-harness-store",
+        "disposition": "retired-git-history-only",
         "is_live_plan_authority": false,
         "absorbed_into": "/specs/masterplan.json#masterplan_v2",
-        "work_item_id_policy": "global-runtime-store-only-no-live-id-authority",
-        "provenance": "Global OMX runtime store is external harness state; it is forensic input only and cannot mint live plan ids or done status."
+        "work_item_id_policy": "forbidden-read-no-live-id-authority",
+        "provenance": "Global OMX runtime stores are outside repository authority and forbidden as planning inputs; no current-tree or agent read contract may reference them."
       }
     ],
     "read_contracts": [
@@ -6892,14 +6892,6 @@
         ],
         "read_timing_class": "on-demand",
         "freshness_rule": "compatibility projection only; conflicts resolve to /specs/masterplan.json"
-      },
-      {
-        "path": "docs/ROADMAP.md",
-        "audience": [
-          "humans"
-        ],
-        "read_timing_class": "provenance-archive",
-        "freshness_rule": "archived historical roadmap; conflicts resolve to /specs/masterplan.json"
       },
       {
         "path": "docs/machine-readable/board-sync.generated.json",
@@ -7017,24 +7009,6 @@
             "ci/facade/cross-artifact-agreement/tests/cross_artifact_agreement.rs#masterplan_v2_projection_freshness_contract_is_green",
             "ci/facade/cross-artifact-agreement/src/projection_rederivation.rs#derive_masterplan_md_projection",
             "ci/facade/cross-artifact-agreement/tests/cross_artifact_agreement.rs#masterplan_projection_rederivation_gate_is_green_on_live_tree"
-          ]
-        },
-        {
-          "path": "docs/ROADMAP.md",
-          "projection_class": "read-projection",
-          "source_of_truth": "/specs/masterplan.json#masterplan_v2",
-          "freshness_gate": "cloud-ci-cross-artifact-agreement/masterplan-v2-projection-freshness",
-          "conflict_resolution": "/specs/masterplan.json#masterplan_v2",
-          "single_writer_mutation_path": "/specs/masterplan.json",
-          "read_timing_class": "provenance-archive",
-          "freshness_rule": "archived historical roadmap; conflicts resolve to /specs/masterplan.json",
-          "is_live_plan_authority": false,
-          "live_work_item_ids_allowed": false,
-          "status_claims_allowed_without_evidence": false,
-          "drift_policy": "fail-closed-on-conflict-or-manual-live-plan-content",
-          "evidence_refs": [
-            "ci/facade/cross-artifact-agreement/src/lib.rs#evaluate_masterplan_v2_projection_freshness",
-            "ci/facade/cross-artifact-agreement/tests/cross_artifact_agreement.rs#masterplan_v2_projection_freshness_contract_is_green"
           ]
         },
         {

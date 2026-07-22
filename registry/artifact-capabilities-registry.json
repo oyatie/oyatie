@@ -2679,10 +2679,10 @@
       "artifact_profile": "evidence-bundle",
       "capability_overrides": {
         "verification": {
-          "command": "python3 -m json.tool evidence/goals/readable-idea-archive-retirement-closure-20260721.json >/dev/null"
+          "command": "buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . && buck2 test //ci/facade/cross-artifact-agreement:ci-cross-artifact-agreement-gate"
         },
         "validation": {
-          "validator": "JSON syntax plus predecessor Git blob OID, SHA-256, successor, and absence checks"
+          "validator": "cloud-ci-cross-artifact-agreement/history-only-retirement-receipt"
         },
         "provenance": {
           "current_author": "codex",
@@ -2692,7 +2692,34 @@
       },
       "evidence_contract": {
         "verification": {
-          "command": "python3 -m json.tool evidence/goals/readable-idea-archive-retirement-closure-20260721.json >/dev/null"
+          "command": "buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . && buck2 test //ci/facade/cross-artifact-agreement:ci-cross-artifact-agreement-gate"
+        }
+      }
+    },
+    {
+      "artifact_id": "repository-authority-history-only-retirement-closure-20260721",
+      "artifact_path": "/evidence/goals/repository-authority-history-only-retirement-closure-20260721.json",
+      "artifact_format": "json",
+      "contract_version": "v0.1.0",
+      "owner_team": "council-architecture + platform-toolchain",
+      "purpose_short": "Neutral Git-object closure receipt for deleting the readable roadmap and retired harness stores from candidate HEAD without importing their content or promoting completion claims.",
+      "artifact_profile": "evidence-bundle",
+      "capability_overrides": {
+        "verification": {
+          "command": "buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . && buck2 test //ci/facade/cross-artifact-agreement:ci-cross-artifact-agreement-gate"
+        },
+        "validation": {
+          "validator": "cloud-ci-cross-artifact-agreement/history-only-retirement-receipt"
+        },
+        "provenance": {
+          "current_author": "codex",
+          "current_reviewed_by": "fresh exact-head review pending",
+          "last_modified_at": "2026-07-21T00:00:00Z"
+        }
+      },
+      "evidence_contract": {
+        "verification": {
+          "command": "buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . && buck2 test //ci/facade/cross-artifact-agreement:ci-cross-artifact-agreement-gate"
         }
       }
     }

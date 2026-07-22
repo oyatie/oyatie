@@ -6,7 +6,7 @@
 use std::fs;
 use std::path::Path;
 
-use oya_check_doc_axis::{DocAxisRule, validate};
+use oya_check_doc_axis::{DocAxisRule, validate, validate_at};
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -19,16 +19,6 @@ fn write_file(root: &Path, rel: &str, contents: &str) {
         fs::create_dir_all(parent).unwrap();
     }
     fs::write(path, contents).unwrap();
-}
-
-/// Set OYA_TODAY so date-sensitive tests are reproducible.
-/// SAFETY (Rust 2024): set_var is unsafe because it can race with reads from
-/// other threads. These tests are single-threaded per `cargo test --test-threads=1`
-/// expectation; the env-var is only read by the gate validator we call below.
-fn set_today(date: &str) {
-    unsafe {
-        std::env::set_var("OYA_TODAY", date);
-    }
 }
 
 // ---------------------------------------------------------------------------
@@ -94,7 +84,6 @@ fn rule1_bad_casing_blocks_in_strict_mode() {
 
 #[test]
 fn rule2_fresh_idea_passes() {
-    set_today("2026-05-28");
     let dir = tempfile::tempdir().unwrap();
     let root = dir.path();
     // File dated today — 0 days old, within the 14-day window.
@@ -103,13 +92,12 @@ fn rule2_fresh_idea_passes() {
         "docs/ideas/my-idea-2026-05-28.md",
         "---\ntitle: test\n---\n# idea\n",
     );
-    let result = validate(root, false);
+    let result = validate_at(root, false, "2026-05-28");
     assert!(result.is_ok(), "fresh idea should pass: {result:?}");
 }
 
 #[test]
 fn rule2_stale_idea_without_promotion_blocks() {
-    set_today("2026-06-15");
     let dir = tempfile::tempdir().unwrap();
     let root = dir.path();
     // File dated 2026-05-28 — 18 days old at 2026-06-15, over the limit.
@@ -118,7 +106,7 @@ fn rule2_stale_idea_without_promotion_blocks() {
         "docs/ideas/my-idea-2026-05-28.md",
         "---\ntitle: test\n---\n# no superseded_by\n",
     );
-    let result = validate(root, false);
+    let result = validate_at(root, false, "2026-06-15");
     assert!(result.is_err(), "stale idea without promotion should block");
     let findings = result.unwrap_err();
     assert!(
@@ -131,7 +119,6 @@ fn rule2_stale_idea_without_promotion_blocks() {
 
 #[test]
 fn rule2_stale_idea_with_valid_superseded_by_still_blocks_until_deleted_from_head() {
-    set_today("2026-06-15");
     let dir = tempfile::tempdir().unwrap();
     let root = dir.path();
     // The idea-pager cites ADR-0389, which actually exists.
@@ -145,7 +132,7 @@ fn rule2_stale_idea_with_valid_superseded_by_still_blocks_until_deleted_from_hea
         "docs/ideas/my-idea-2026-05-28.md",
         "---\ntitle: test\nsuperseded_by: ADR-0389\n---\n# promoted\n",
     );
-    let result = validate(root, false);
+    let result = validate_at(root, false, "2026-06-15");
     assert!(
         result.is_err(),
         "a promoted idea still present in candidate HEAD must block: {result:?}"
@@ -156,6 +143,31 @@ fn rule2_stale_idea_with_valid_superseded_by_still_blocks_until_deleted_from_hea
             .iter()
             .any(|finding| finding.rule_violated == DocAxisRule::ShadowIdea)
     );
+}
+
+#[test]
+fn rule2_reference_dates_are_independent_in_parallel() {
+    use std::sync::{Arc, Barrier};
+    use std::thread;
+
+    let barrier = Arc::new(Barrier::new(2));
+    let evaluate = |today: &'static str, expect_fresh: bool, barrier: Arc<Barrier>| {
+        thread::spawn(move || {
+            let dir = tempfile::tempdir().unwrap();
+            write_file(
+                dir.path(),
+                "docs/ideas/my-idea-2026-05-28.md",
+                "---\ntitle: test\n---\n# idea\n",
+            );
+            barrier.wait();
+            assert_eq!(validate_at(dir.path(), false, today).is_ok(), expect_fresh);
+        })
+    };
+
+    let fresh = evaluate("2026-05-28", true, Arc::clone(&barrier));
+    let stale = evaluate("2026-06-15", false, barrier);
+    fresh.join().unwrap();
+    stale.join().unwrap();
 }
 
 // ---------------------------------------------------------------------------

@@ -371,8 +371,7 @@ mod tests {
             "restricted_tracked_roots": [".claude", ".codex", ".omc", ".omx"],
             "allowed_tracked_paths": [
                 { "id": "claude-settings", "kind": "exact", "value": ".claude/settings.json" },
-                { "id": "codex-hooks", "kind": "exact", "value": ".codex/hooks.json" },
-                { "id": "omc-ultragoal-owners", "kind": "exact", "value": ".omc/ultragoal/OWNERS" }
+                { "id": "codex-hooks", "kind": "exact", "value": ".codex/hooks.json" }
             ]
         })
     }
@@ -392,7 +391,6 @@ mod tests {
                 ".buckconfig",
                 ".claude/settings.json",
                 ".codex/hooks.json",
-                ".omc/ultragoal/OWNERS",
                 "ci/facade/x/src/lib.rs",
                 "libs/oya-foo/Cargo.toml",
                 "docs/decisions/ADR-0600.md",
@@ -501,11 +499,7 @@ mod tests {
     fn explicit_shared_agent_config_paths_are_green() {
         let report = evaluate(
             &policy(),
-            &observed(&[
-                ".claude/settings.json",
-                ".codex/hooks.json",
-                ".omc/ultragoal/OWNERS",
-            ]),
+            &observed(&[".claude/settings.json", ".codex/hooks.json"]),
         );
         assert_eq!(
             report.verdict,

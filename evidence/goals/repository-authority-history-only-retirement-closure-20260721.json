@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "artifact_id": "repository-authority-history-only-retirement-closure-20260721",
+  "artifact_type": "migration-closure-receipt",
+  "status": "candidate-recorded-nonauthoritative",
+  "recorded_at": "2026-07-21",
+  "scope_ref": "artifact:masterplan",
+  "authority": {
+    "decisions": [
+      "ADR-0515",
+      "ADR-0619"
+    ],
+    "planning_state": "HOLD(Planning)",
+    "dispatch_authorized": false,
+    "completion_claims_promoted": 0
+  },
+  "baseline": {
+    "commit_oid": "11f431886384bf4d7610abf5706e762ac8a7524b",
+    "tree_oid": "b2528820fe0de0970a968c79b0e1801a7a17e029"
+  },
+  "retired_inputs": [
+    {
+      "path": "docs/ROADMAP.md",
+      "predecessor_blob_oid": "eff5e1e9550b9f48e819b278c6fa79c59b229766",
+      "sha256": "bc2eae9d58bc9ddbf4dddca227234fc41d3c009de179ed508de05467ea3c9e06",
+      "byte_count": 1032,
+      "successor_refs": [
+        "artifact:masterplan"
+      ],
+      "disposition": "retired-git-history-only"
+    },
+    {
+      "path": ".omc/ultragoal/OWNERS",
+      "predecessor_blob_oid": "4d5523fa27a5b0043f6f7cdc32513d65340b071e",
+      "sha256": "ccae9c135c65b8908627dd3eaa9851c87a6926810f54f85d288250ed00cde910",
+      "byte_count": 18,
+      "successor_refs": [
+        "ADR-0116"
+      ],
+      "disposition": "retired-git-history-only"
+    },
+    {
+      "path": ".omc/ultragoal/TEAMMATE-PREAMBLE.md",
+      "predecessor_blob_oid": "c11ba8dd23591a9c1b6d08ae0da26f176c479f87",
+      "sha256": "94a417d0c011dbe01e800f3a28a6c04de15ad22f3455c44f8d01881daa2a0ea9",
+      "byte_count": 11396,
+      "successor_refs": [
+        "ADR-0116"
+      ],
+      "disposition": "retired-git-history-only"
+    },
+    {
+      "path": ".omc/ultragoal/friction-ledger.jsonl",
+      "predecessor_blob_oid": "d666617e98c001d5a5b06f44767aa9c948856029",
+      "sha256": "bf216e7c4a17995f759bb9add200b6e2fe5c0c702ff94da86ed2b6f5722b108c",
+      "byte_count": 308335,
+      "successor_refs": [
+        "artifact:masterplan"
+      ],
+      "disposition": "retired-git-history-only"
+    },
+    {
+      "path": ".omc/ultragoal/premise.txt",
+      "predecessor_blob_oid": "f8e6b72c4ca9685844b89c8b15f4a1891569ad86",
+      "sha256": "15fdfb6ee944549ba6eae14c3a25129652978ae67bb9a4235564245e3a2fa064",
+      "byte_count": 459,
+      "successor_refs": [
+        "artifact:masterplan"
+      ],
+      "disposition": "retired-git-history-only"
+    }
+  ],
+  "provenance": {
+    "content_store": "authorized Git object history only",
+    "readable_tracked_copy_retained": false,
+    "readable_archive_directory_retained": false,
+    "tombstone_content_retained": false,
+    "receipt_reproduces_retired_content": false
+  },
+  "verification_contract": {
+    "expected_absent_paths": [
+      "docs/ROADMAP.md",
+      ".omc/ultragoal/OWNERS",
+      ".omc/ultragoal/TEAMMATE-PREAMBLE.md",
+      ".omc/ultragoal/friction-ledger.jsonl",
+      ".omc/ultragoal/premise.txt"
+    ],
+    "expected_tracked_readable_archive_directory_count": 0,
+    "required_gates": [
+      "cloud-ci-cross-artifact-agreement/history-only-retirement-receipt",
+      "cloud-ci-cross-artifact-agreement/masterplan-v2-history-only-retirement",
+      "cloud-ci-cross-artifact-agreement/masterplan-v2-read-surface-resurrection",
+      "cloud-ci-staleness-reaper/readable_archive_path",
+      "cloud-ci-staleness-reaper/retired_row_still_tracked",
+      "oya-check-doc-axis/ReadableArchiveDirectory"
+    ]
+  },
+  "effects": {
+    "repository_effect": "pending-protected-pr-admission",
+    "runtime_effect": "retired-read-surfaces-removed",
+    "roadmap_effect": "none",
+    "planning_hold_effect": "preserved"
+  }
+}

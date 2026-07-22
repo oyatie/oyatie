@@ -4,6 +4,7 @@
   "artifact_type": "migration-closure-receipt",
   "status": "candidate-recorded-nonauthoritative",
   "recorded_at": "2026-07-21",
+  "scope_ref": "ADR-0388",
   "authority": {
     "decisions": [
       "ADR-0388",
@@ -23,24 +24,30 @@
       "path": "docs/ideas/archive/cloud-intelligence-bedrock-on-talos-2026-05-28.md",
       "predecessor_blob_oid": "ffc3aafd802f57d7d6f69a248d90360deecbf9cd",
       "sha256": "2fad4ac166f3a410a0c7aeaef8632c0fe580f034da48f6be4e2bca642e304eca",
-      "bytes": 7180,
-      "successor_ref": "ADR-0389",
+      "byte_count": 7180,
+      "successor_refs": [
+        "ADR-0389"
+      ],
       "disposition": "promoted-source-copy-deleted-from-head"
     },
     {
       "path": "docs/ideas/archive/cloud-intelligence-v1-pipeline-2026-05-28.md",
       "predecessor_blob_oid": "4d05288a0b3c8585a478f843b824288ff35faf02",
       "sha256": "740ae04afc93c41240128c22e3bbf2e1ea84dc63f168ebd974a4f0972a72b2a8",
-      "bytes": 16014,
-      "successor_ref": "ADR-0390",
+      "byte_count": 16014,
+      "successor_refs": [
+        "ADR-0390"
+      ],
       "disposition": "promoted-source-copy-deleted-from-head"
     },
     {
       "path": "docs/ideas/archive/n-lane-parallel-safety-and-unified-devops-console-2026-05-28.md",
       "predecessor_blob_oid": "820fb46ef556bedaaef22f10e5669791b3143b0d",
       "sha256": "0a1d134ceb7267e1f8e3e7cc6d16a273da5f36266b53febbc4935b937719589f",
-      "bytes": 8553,
-      "successor_ref": "ADR-0391",
+      "byte_count": 8553,
+      "successor_refs": [
+        "ADR-0391"
+      ],
       "disposition": "promoted-source-copy-deleted-from-head"
     }
   ],
@@ -59,6 +66,9 @@
     ],
     "expected_tracked_readable_archive_directory_count": 0,
     "required_gates": [
+      "cloud-ci-cross-artifact-agreement/history-only-retirement-receipt",
+      "cloud-ci-cross-artifact-agreement/masterplan-v2-history-only-retirement",
+      "cloud-ci-cross-artifact-agreement/masterplan-v2-read-surface-resurrection",
       "cloud-ci-staleness-reaper/readable_archive_path",
       "cloud-ci-staleness-reaper/retired_row_still_tracked",
       "oya-check-doc-axis/ReadableArchiveDirectory"

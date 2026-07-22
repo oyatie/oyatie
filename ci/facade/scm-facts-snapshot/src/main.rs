@@ -2,16 +2,17 @@
 //!
 //! This is the ONE place in the oya-ci pipeline that is allowed to shell out to `git`. It runs
 //! OUTSIDE the buck2 action graph (a CI pre-step + a local regen hook), snapshots the four
-//! ambient git outputs the accounting producer used to derive itself, and writes them as the
-//! committed, content-addressed, registry-drift-protected `scm-facts.generated.json` face. The
-//! producer and every gate `rust_test` then consume that committed face as a DECLARED input, so
-//! no buck2 action ever calls git (OYA-CI-HERMETIC-EXECUTION-DESIGN §1.5, Option C).
+//! ambient git outputs the accounting producer used to derive itself, and writes the de-committed
+//! `scm-facts.generated.json` plus `scm-volatile-facts.generated.json` admission faces. The
+//! admission workflow materializes both immediately before the Buck gate consumes their explicit
+//! paths. They remain out-of-graph staged inputs—not hermetic Buck sources—so no cacheable action
+//! calls git and a standalone gate must not claim independent hermeticity.
 //!
 //! The git calls below are moved VERBATIM out of the producer's old `git_*` helpers so the
 //! facts are bit-for-bit what the live git calls produced — the make-or-break byte-parity
 //! guarantee: a producer reading this face regenerates the six faces byte-identically.
 //!
-//! STABLE vs VOLATILE facts (ADR-0552, fixes FRIC-1781234047). The COMMITTED face
+//! STABLE vs VOLATILE facts (ADR-0552, fixes FRIC-1781234047). The stable face
 //! (`scm-facts.generated.json`, schema v2) carries ONLY tree-derived stable facts
 //! (`tracked_paths`): a pure function of the committed TREE, so a squash-merge (which
 //! rewrites commit ids but preserves the tree) can never un-settle it. The HISTORY-derived
@@ -65,6 +66,7 @@ use ci_path_resolver_adapters::{MOVE_MANIFEST_PATH, ManifestPathResolver, MoveMa
 use ci_path_resolver_ports::{FrozenRefSource, MergeBaseName, PathId, PathResolver};
 use oya_check_brand_residue::forbidden_vocab::{VocabPolicy, matched_line_occurrences_with};
 use serde_json::{Value, json};
+use sha2::{Digest, Sha256};
 
 /// The scm-facts face schema id — bumped only on a breaking shape change.
 /// v2 (ADR-0552): history-volatile fields (`last_touch_commit`, `commit_author_ts_secs`,
@@ -220,15 +222,23 @@ fn run() -> Result<(), String> {
 
     let source = GitCliScmFactsSource::new(repo_root.clone());
     let emission = emit_scm_facts(&source)?;
+    let receipt_source = GitCliReceiptObjectFactsSource::new(repo_root.clone());
+    let receipt_object_facts = emit_retirement_receipt_object_facts(&receipt_source)?;
+    let receipt_coverage = emit_retirement_receipt_coverage(&receipt_source)?;
 
     // Build the faces as serde_json Values with BTreeMap-backed maps so the on-disk key order
     // is the canonical sorted order, then serialize through the producer's exact canonicalizer
-    // (to_string_pretty + trailing newline). The stable face is the committed merge surface;
-    // the volatile snapshot is untracked + gitignored (ADR-0552) and never byte-compared.
+    // (to_string_pretty + trailing newline). Both faces are untracked + gitignored,
+    // materialized immediately before admission, and never hand-edited. The stable face is
+    // tree-derived; the volatile face is history-derived.
     let text = to_canonical_json(&emission.value).map_err(|e| format!("serialize: {e}"))?;
     std::fs::write(&out, &text).map_err(|e| format!("{}: {e}", out.display()))?;
-    let volatile_text =
-        to_canonical_json(&emission.volatile).map_err(|e| format!("serialize volatile: {e}"))?;
+    let volatile_text = to_canonical_json(&with_retirement_receipt_object_facts(
+        emission.volatile,
+        receipt_object_facts,
+        receipt_coverage,
+    ))
+    .map_err(|e| format!("serialize volatile: {e}"))?;
     std::fs::write(&volatile_out, &volatile_text)
         .map_err(|e| format!("{}: {e}", volatile_out.display()))?;
     eprintln!(
@@ -1324,6 +1334,154 @@ fn git_show_file(repo_root: &Path, revision: &str, path: &str) -> Result<Option<
         .map_err(|e| format!("show {spec}: {e}"))
 }
 
+fn git_path_exists(repo_root: &Path, revision: &str, path: &str) -> Result<bool, String> {
+    let output = Command::new("git")
+        .arg("-C")
+        .arg(repo_root)
+        .args(["ls-tree", "-z", revision, "--", path])
+        .output()
+        .map_err(|error| format!("ls-tree {revision} {path}: {error}"))?;
+    if !output.status.success() {
+        return Err(format!(
+            "git ls-tree {revision} {path} failed (exit {:?}): {}",
+            output.status.code(),
+            String::from_utf8_lossy(&output.stderr).trim()
+        ));
+    }
+    Ok(!output.stdout.is_empty())
+}
+
+fn git_ls_tree_paths(repo_root: &Path, revision: &str) -> Result<Vec<String>, String> {
+    let output = Command::new("git")
+        .arg("-C")
+        .arg(repo_root)
+        .args(["ls-tree", "-r", "-z", "--name-only", revision])
+        .output()
+        .map_err(|error| format!("ls-tree {revision}: {error}"))?;
+    if !output.status.success() {
+        return Err(format!(
+            "git ls-tree -r --name-only {revision} failed (exit {:?}): {}",
+            output.status.code(),
+            String::from_utf8_lossy(&output.stderr).trim()
+        ));
+    }
+    output
+        .stdout
+        .split(|byte| *byte == 0)
+        .filter(|path| !path.is_empty())
+        .map(|path| {
+            std::str::from_utf8(path)
+                .map(str::to_owned)
+                .map_err(|error| format!("git ls-tree {revision} emitted non-UTF-8 path: {error}"))
+        })
+        .collect()
+}
+
+fn git_tree_blob_paths(
+    repo_root: &Path,
+    revision: &str,
+) -> Result<BTreeMap<String, Vec<String>>, String> {
+    let output = Command::new("git")
+        .arg("-C")
+        .arg(repo_root)
+        .args(["ls-tree", "-r", "-z", revision])
+        .output()
+        .map_err(|error| format!("ls-tree {revision}: {error}"))?;
+    if !output.status.success() {
+        return Err(format!(
+            "git ls-tree -r {revision} failed (exit {:?}): {}",
+            output.status.code(),
+            String::from_utf8_lossy(&output.stderr).trim()
+        ));
+    }
+
+    let mut paths_by_blob = BTreeMap::<String, Vec<String>>::new();
+    for entry in output
+        .stdout
+        .split(|byte| *byte == 0)
+        .filter(|entry| !entry.is_empty())
+    {
+        let entry = std::str::from_utf8(entry)
+            .map_err(|error| format!("git ls-tree {revision} emitted non-UTF-8 entry: {error}"))?;
+        let (metadata, path) = entry
+            .split_once('\t')
+            .ok_or_else(|| format!("git ls-tree {revision} emitted malformed entry {entry:?}"))?;
+        let mut fields = metadata.split_whitespace();
+        let _mode = fields.next();
+        let object_type = fields.next();
+        let oid = fields.next();
+        if fields.next().is_some() || object_type != Some("blob") {
+            continue;
+        }
+        let oid = oid.ok_or_else(|| {
+            format!("git ls-tree {revision} emitted blob without object id: {entry:?}")
+        })?;
+        validate_repo_relative_path(path, "candidate tree path")?;
+        paths_by_blob
+            .entry(oid.to_owned())
+            .or_default()
+            .push(path.to_owned());
+    }
+    Ok(paths_by_blob)
+}
+
+fn git_blob_at(repo_root: &Path, revision: &str, path: &str) -> Result<BlobObject, String> {
+    let spec = format!("{revision}:{path}");
+    let oid = Command::new("git")
+        .arg("-C")
+        .arg(repo_root)
+        .args(["rev-parse", &spec])
+        .output()
+        .map_err(|error| format!("rev-parse {spec}: {error}"))?;
+    if !oid.status.success() {
+        return Err(format!(
+            "git rev-parse {spec} failed (exit {:?}): {}",
+            oid.status.code(),
+            String::from_utf8_lossy(&oid.stderr).trim()
+        ));
+    }
+    let oid = String::from_utf8_lossy(&oid.stdout).trim().to_owned();
+    if oid.len() < 40 || !oid.chars().all(|character| character.is_ascii_hexdigit()) {
+        return Err(format!(
+            "git rev-parse {spec} produced a non-blob id: {oid:?}"
+        ));
+    }
+    let bytes = Command::new("git")
+        .arg("-C")
+        .arg(repo_root)
+        .args(["cat-file", "blob", &oid])
+        .output()
+        .map_err(|error| format!("cat-file blob {oid}: {error}"))?;
+    if !bytes.status.success() {
+        return Err(format!(
+            "git cat-file blob {oid} failed (exit {:?}): {}",
+            bytes.status.code(),
+            String::from_utf8_lossy(&bytes.stderr).trim()
+        ));
+    }
+    Ok(BlobObject {
+        oid,
+        bytes: bytes.stdout,
+    })
+}
+
+fn git_is_ancestor(repo_root: &Path, ancestor: &str, descendant: &str) -> Result<bool, String> {
+    let output = Command::new("git")
+        .arg("-C")
+        .arg(repo_root)
+        .args(["merge-base", "--is-ancestor", ancestor, descendant])
+        .output()
+        .map_err(|error| format!("merge-base --is-ancestor: {error}"))?;
+    match output.status.code() {
+        Some(0) => Ok(true),
+        Some(1) => Ok(false),
+        code => Err(format!(
+            "git merge-base --is-ancestor {ancestor} {descendant} failed (exit {code:?}): {}",
+            String::from_utf8_lossy(&output.stderr).trim()
+        )),
+    }
+}
+
 /// Stable seam for the scm-facts source. Git CLI is transitional implementation #1;
 /// a future bespoke SCM source should implement these same three primitives without
 /// changing the emitted v1 facts shape or producer/gate consumers.
@@ -1385,7 +1543,7 @@ fn emit_scm_facts(source: &impl ScmFactsSource) -> Result<ScmFactsEmission, Stri
         .collect();
     let all_commit_ts = source.revision_author_timestamps()?;
 
-    // STABLE vs VOLATILE (ADR-0552). The COMMITTED face is a pure function of the committed
+    // STABLE vs VOLATILE (ADR-0552). The de-committed stable face is a pure function of the
     // TREE STATE — `tracked_paths` only — so neither HEAD advancement, nor a faces-only
     // settle commit, nor a squash-merge (which rewrites every lane commit id but preserves
     // the tree) can change its bytes. Everything HISTORY-derived lives in the volatile
@@ -1419,6 +1577,614 @@ fn emit_scm_facts(source: &impl ScmFactsSource) -> Result<ScmFactsEmission, Stri
         volatile,
         tracked_paths_len,
     })
+}
+
+const HISTORY_ONLY_POLICY_PATH: &str = "specs/markdown-retirement-policy.json";
+const MASTERPLAN_PATH: &str = "specs/masterplan.json";
+const ARTIFACT_REGISTRY_PATH: &str = "registry/artifact-capabilities-registry.json";
+const PROTECTED_BASE_REF: &str = "origin/dev";
+const CANDIDATE_REVISION: &str = "HEAD";
+const MAX_RETIREMENT_RECEIPT_INPUTS: usize = 256;
+const RETIREMENT_RECEIPT_VALIDATOR: &str =
+    "cloud-ci-cross-artifact-agreement/history-only-retirement-receipt";
+const MASTERPLAN_SCOPE_REF: &str = "artifact:masterplan";
+const MASTERPLAN_SCOPE_TYPE: &str = "masterplan-retired-surfaces";
+const TRANSIENT_IDEAS_SCOPE_REF: &str = "ADR-0388";
+const TRANSIENT_IDEAS_SCOPE_TYPE: &str = "transient-ideas";
+const TRANSIENT_IDEAS_SELECTOR: &str = "docs/ideas/archive/**";
+
+struct BlobObject {
+    oid: String,
+    bytes: Vec<u8>,
+}
+
+trait ReceiptObjectFactsSource {
+    fn protected_merge_base(&self) -> Result<String, String>;
+    fn tree_oid(&self, revision: &str) -> Result<String, String>;
+    fn json_at(&self, revision: &str, path: &str) -> Result<Value, String>;
+    fn blob_at(&self, revision: &str, path: &str) -> Result<BlobObject, String>;
+    fn path_exists(&self, revision: &str, path: &str) -> Result<bool, String>;
+    fn tree_blob_paths(&self, revision: &str) -> Result<BTreeMap<String, Vec<String>>, String>;
+    fn tracked_paths(&self, revision: &str) -> Result<Vec<String>, String>;
+    fn is_ancestor(&self, ancestor: &str, descendant: &str) -> Result<bool, String>;
+}
+
+struct GitCliReceiptObjectFactsSource {
+    repo_root: PathBuf,
+}
+
+impl GitCliReceiptObjectFactsSource {
+    fn new(repo_root: PathBuf) -> Self {
+        Self { repo_root }
+    }
+}
+
+impl ReceiptObjectFactsSource for GitCliReceiptObjectFactsSource {
+    fn protected_merge_base(&self) -> Result<String, String> {
+        git_merge_base(&self.repo_root, PROTECTED_BASE_REF)
+    }
+
+    fn tree_oid(&self, revision: &str) -> Result<String, String> {
+        git_rev_parse_tree(&self.repo_root, revision)
+    }
+
+    fn json_at(&self, revision: &str, path: &str) -> Result<Value, String> {
+        let blob = git_blob_at(&self.repo_root, revision, path)?;
+        serde_json::from_slice(&blob.bytes)
+            .map_err(|error| format!("{revision}:{path}: malformed JSON: {error}"))
+    }
+
+    fn blob_at(&self, revision: &str, path: &str) -> Result<BlobObject, String> {
+        git_blob_at(&self.repo_root, revision, path)
+    }
+
+    fn path_exists(&self, revision: &str, path: &str) -> Result<bool, String> {
+        git_path_exists(&self.repo_root, revision, path)
+    }
+
+    fn tree_blob_paths(&self, revision: &str) -> Result<BTreeMap<String, Vec<String>>, String> {
+        git_tree_blob_paths(&self.repo_root, revision)
+    }
+
+    fn tracked_paths(&self, revision: &str) -> Result<Vec<String>, String> {
+        git_ls_tree_paths(&self.repo_root, revision)
+    }
+
+    fn is_ancestor(&self, ancestor: &str, descendant: &str) -> Result<bool, String> {
+        git_is_ancestor(&self.repo_root, ancestor, descendant)
+    }
+}
+
+#[derive(Debug)]
+struct ReceiptDescriptor {
+    artifact_id: String,
+    scope_ref: String,
+    scope_type: &'static str,
+    baseline_commit_oid: String,
+    retired_paths: Vec<String>,
+}
+
+#[derive(Debug, PartialEq, Eq)]
+struct ReceiptRegistryBinding {
+    artifact_id: String,
+    artifact_path: String,
+    validator: String,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+enum SelectorType {
+    Exact,
+    Glob,
+    External,
+}
+
+impl SelectorType {
+    fn as_str(self) -> &'static str {
+        match self {
+            Self::Exact => "exact",
+            Self::Glob => "glob",
+            Self::External => "external",
+        }
+    }
+}
+
+struct ReceiptEpochContext {
+    current_epoch_commit_oid: String,
+    current_epoch_tree_oid: String,
+    protected_receipt_paths: BTreeSet<String>,
+    candidate_receipt_paths: BTreeSet<String>,
+    carried_receipt_paths: BTreeSet<String>,
+    new_receipt_paths: BTreeSet<String>,
+}
+
+fn neutral_receipt_paths_from_policy(policy: &Value) -> Result<Option<Vec<String>>, String> {
+    let Some(contract) = policy
+        .get("retention_rules")
+        .and_then(|value| value.get("repository_history_only_contract"))
+    else {
+        return Ok(None);
+    };
+    let Some(paths) = contract.get("neutral_receipt_paths") else {
+        return Ok(None);
+    };
+    let paths = paths.as_array().ok_or_else(|| {
+        "repository_history_only_contract.neutral_receipt_paths must be an array".to_owned()
+    })?;
+    paths
+        .iter()
+        .enumerate()
+        .map(|(index, value)| {
+            let path = value.as_str().ok_or_else(|| {
+                format!(
+                    "repository_history_only_contract.neutral_receipt_paths[{index}] must be a string"
+                )
+            })?;
+            validate_repo_relative_path(path, "neutral receipt path")?;
+            Ok(path.to_owned())
+        })
+        .collect::<Result<Vec<_>, _>>()
+        .map(Some)
+}
+
+fn validate_repo_relative_path(path: &str, label: &str) -> Result<(), String> {
+    let parsed = Path::new(path);
+    if path.is_empty()
+        || path.len() > 1024
+        || parsed.is_absolute()
+        || path.starts_with('~')
+        || path.contains('\\')
+        || path.contains('*')
+        || path.contains('#')
+        || path
+            .split('/')
+            .any(|segment| segment.is_empty() || matches!(segment, "." | ".."))
+    {
+        return Err(format!(
+            "{label} must be a non-empty repository-relative path"
+        ));
+    }
+    Ok(())
+}
+
+fn receipt_epoch_context(
+    source: &impl ReceiptObjectFactsSource,
+) -> Result<ReceiptEpochContext, String> {
+    let current_epoch_commit_oid = source.protected_merge_base()?;
+    let current_epoch_tree_oid = source.tree_oid(&current_epoch_commit_oid)?;
+    let protected_receipt_paths = receipt_paths_at(source, &current_epoch_commit_oid)?;
+    let candidate_receipt_paths = receipt_paths_at(source, CANDIDATE_REVISION)?;
+    let carried_receipt_paths = protected_receipt_paths
+        .intersection(&candidate_receipt_paths)
+        .cloned()
+        .collect();
+    let new_receipt_paths = candidate_receipt_paths
+        .difference(&protected_receipt_paths)
+        .cloned()
+        .collect();
+    Ok(ReceiptEpochContext {
+        current_epoch_commit_oid,
+        current_epoch_tree_oid,
+        protected_receipt_paths,
+        candidate_receipt_paths,
+        carried_receipt_paths,
+        new_receipt_paths,
+    })
+}
+
+fn receipt_paths_at(
+    source: &impl ReceiptObjectFactsSource,
+    revision: &str,
+) -> Result<BTreeSet<String>, String> {
+    let policy = source.json_at(revision, HISTORY_ONLY_POLICY_PATH)?;
+    let paths = neutral_receipt_paths_from_policy(&policy)?.unwrap_or_default();
+    let mut unique = BTreeSet::new();
+    for path in paths {
+        if !unique.insert(path.clone()) {
+            return Err(format!(
+                "{revision}:{HISTORY_ONLY_POLICY_PATH}: duplicate neutral receipt path {path:?}"
+            ));
+        }
+    }
+    Ok(unique)
+}
+
+fn receipt_descriptor(receipt_path: &str, receipt: &Value) -> Result<ReceiptDescriptor, String> {
+    let artifact_id = receipt
+        .get("artifact_id")
+        .and_then(Value::as_str)
+        .filter(|value| !value.trim().is_empty())
+        .ok_or_else(|| format!("{receipt_path}: artifact_id must be a non-empty string"))?;
+    let scope_ref = receipt
+        .get("scope_ref")
+        .and_then(Value::as_str)
+        .ok_or_else(|| format!("{receipt_path}: scope_ref must be a string"))?;
+    let scope_type = scope_type_for_ref(scope_ref)
+        .ok_or_else(|| format!("{receipt_path}: unsupported scope_ref {scope_ref:?}"))?;
+    let baseline_commit_oid = receipt
+        .pointer("/baseline/commit_oid")
+        .and_then(Value::as_str)
+        .filter(|value| is_lower_hex_oid(value))
+        .ok_or_else(|| {
+            format!("{receipt_path}: baseline.commit_oid must be a lowercase Git OID")
+        })?;
+    let inputs = receipt
+        .get("retired_inputs")
+        .and_then(Value::as_array)
+        .ok_or_else(|| format!("{receipt_path}: retired_inputs must be an array"))?;
+    if inputs.is_empty() {
+        return Err(format!("{receipt_path}: retired_inputs must not be empty"));
+    }
+    if inputs.len() > MAX_RETIREMENT_RECEIPT_INPUTS {
+        return Err(format!(
+            "{receipt_path}: retired_inputs exceeds {MAX_RETIREMENT_RECEIPT_INPUTS} entries"
+        ));
+    }
+    let mut retired_paths = BTreeSet::new();
+    for (index, input) in inputs.iter().enumerate() {
+        let path = input.get("path").and_then(Value::as_str).ok_or_else(|| {
+            format!("{receipt_path}: retired_inputs[{index}].path must be a string")
+        })?;
+        validate_repo_relative_path(path, "retired input path")?;
+        if !retired_paths.insert(path.to_owned()) {
+            return Err(format!(
+                "{receipt_path}: duplicate retired input path {path:?}"
+            ));
+        }
+    }
+    Ok(ReceiptDescriptor {
+        artifact_id: artifact_id.to_owned(),
+        scope_ref: scope_ref.to_owned(),
+        scope_type,
+        baseline_commit_oid: baseline_commit_oid.to_owned(),
+        retired_paths: retired_paths.into_iter().collect(),
+    })
+}
+
+fn scope_type_for_ref(scope_ref: &str) -> Option<&'static str> {
+    match scope_ref {
+        MASTERPLAN_SCOPE_REF => Some(MASTERPLAN_SCOPE_TYPE),
+        TRANSIENT_IDEAS_SCOPE_REF => Some(TRANSIENT_IDEAS_SCOPE_TYPE),
+        _ => None,
+    }
+}
+
+fn is_lower_hex_oid(value: &str) -> bool {
+    value.len() == 40
+        && value
+            .bytes()
+            .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+}
+
+fn registry_binding_at(
+    source: &impl ReceiptObjectFactsSource,
+    revision: &str,
+    receipt_path: &str,
+) -> Result<Option<ReceiptRegistryBinding>, String> {
+    let registry = source.json_at(revision, ARTIFACT_REGISTRY_PATH)?;
+    let rows = registry
+        .get("rows")
+        .and_then(Value::as_array)
+        .ok_or_else(|| format!("{revision}:{ARTIFACT_REGISTRY_PATH}: rows must be an array"))?;
+    let expected_path = format!("/{receipt_path}");
+    let matches = rows
+        .iter()
+        .filter(|row| row.get("artifact_path").and_then(Value::as_str) == Some(&expected_path))
+        .collect::<Vec<_>>();
+    if matches.len() > 1 {
+        return Err(format!(
+            "{revision}:{ARTIFACT_REGISTRY_PATH}: duplicate rows for {expected_path}"
+        ));
+    }
+    let Some(row) = matches.first() else {
+        return Ok(None);
+    };
+    let artifact_id = row
+        .get("artifact_id")
+        .and_then(Value::as_str)
+        .ok_or_else(|| format!("{revision}:{expected_path}: artifact_id must be a string"))?;
+    let validator = row
+        .pointer("/capability_overrides/validation/validator")
+        .and_then(Value::as_str)
+        .ok_or_else(|| format!("{revision}:{expected_path}: validator must be a string"))?;
+    Ok(Some(ReceiptRegistryBinding {
+        artifact_id: artifact_id.to_owned(),
+        artifact_path: expected_path,
+        validator: validator.to_owned(),
+    }))
+}
+
+fn protected_masterplan_selectors(
+    masterplan: &Value,
+) -> Result<Vec<(SelectorType, String)>, String> {
+    let surfaces = masterplan
+        .pointer("/masterplan_v2/surface_dispositions")
+        .and_then(Value::as_array)
+        .ok_or_else(|| {
+            format!(
+                "protected baseline {MASTERPLAN_PATH} must contain masterplan_v2.surface_dispositions"
+            )
+        })?;
+    let mut selectors = BTreeSet::new();
+    for (index, surface) in surfaces.iter().enumerate() {
+        let disposition = surface
+            .get("disposition")
+            .and_then(Value::as_str)
+            .ok_or_else(|| {
+                format!(
+                    "protected baseline surface_dispositions[{index}].disposition must be a string"
+                )
+            })?;
+        if !matches!(
+            disposition,
+            "archived-with-provenance" | "retired-git-history-only"
+        ) {
+            continue;
+        }
+        let selector = surface.get("path").and_then(Value::as_str).ok_or_else(|| {
+            format!("protected baseline surface_dispositions[{index}].path must be a string")
+        })?;
+        let (selector_type, selector) = normalize_protected_selector(selector)?;
+        selectors.insert((selector_type, selector));
+    }
+    Ok(selectors.into_iter().collect())
+}
+
+fn normalize_protected_selector(selector: &str) -> Result<(SelectorType, String), String> {
+    if selector.contains('#') {
+        return Err(format!(
+            "protected retirement selector must not contain a fragment: {selector:?}"
+        ));
+    }
+    if let Some(external) = selector.strip_prefix("~/") {
+        let base = external.strip_suffix("/**").ok_or_else(|| {
+            format!("external retirement selector must be a recursive glob: {selector:?}")
+        })?;
+        validate_repo_relative_path(base, "external retirement selector")?;
+        return Ok((SelectorType::External, selector.to_owned()));
+    }
+    let selector = selector.strip_prefix('/').unwrap_or(selector);
+    if let Some(base) = selector.strip_suffix("/**") {
+        validate_repo_relative_path(base, "protected retirement glob")?;
+        Ok((SelectorType::Glob, selector.to_owned()))
+    } else {
+        validate_repo_relative_path(selector, "protected retirement exact selector")?;
+        Ok((SelectorType::Exact, selector.to_owned()))
+    }
+}
+
+fn selector_matches(selector_type: SelectorType, selector: &str, path: &str) -> bool {
+    match selector_type {
+        SelectorType::Exact => path == selector,
+        SelectorType::Glob => selector.strip_suffix("/**").is_some_and(|prefix| {
+            path == prefix
+                || path
+                    .strip_prefix(prefix)
+                    .is_some_and(|rest| rest.starts_with('/'))
+        }),
+        SelectorType::External => false,
+    }
+}
+
+fn selector_fact(
+    selector_type: SelectorType,
+    selector: &str,
+    protected_paths: &BTreeSet<String>,
+    candidate_paths: &BTreeSet<String>,
+) -> (Value, BTreeSet<String>) {
+    if selector_type == SelectorType::External {
+        return (
+            json!({
+                "selector_type": selector_type.as_str(),
+                "selector": selector,
+                "protected_paths": [],
+                "candidate_paths": [],
+                "removed_paths": [],
+                "surviving_paths": [],
+                "candidate_only_paths": [],
+                "external_assertion": "outside-repository-authority-not-inspected",
+            }),
+            BTreeSet::new(),
+        );
+    }
+    let protected = protected_paths
+        .iter()
+        .filter(|path| selector_matches(selector_type, selector, path))
+        .cloned()
+        .collect::<BTreeSet<_>>();
+    let candidate = candidate_paths
+        .iter()
+        .filter(|path| selector_matches(selector_type, selector, path))
+        .cloned()
+        .collect::<BTreeSet<_>>();
+    let removed = protected
+        .difference(&candidate)
+        .cloned()
+        .collect::<BTreeSet<_>>();
+    let surviving = protected
+        .intersection(&candidate)
+        .cloned()
+        .collect::<BTreeSet<_>>();
+    let candidate_only = candidate
+        .difference(&protected)
+        .cloned()
+        .collect::<BTreeSet<_>>();
+    (
+        json!({
+            "selector_type": selector_type.as_str(),
+            "selector": selector,
+            "protected_paths": protected,
+            "candidate_paths": candidate,
+            "removed_paths": removed,
+            "surviving_paths": surviving,
+            "candidate_only_paths": candidate_only,
+            "external_assertion": "not-applicable",
+        }),
+        removed,
+    )
+}
+
+fn emit_retirement_scope_facts(
+    source: &impl ReceiptObjectFactsSource,
+    current_epoch_commit_oid: &str,
+) -> Result<(Vec<Value>, BTreeSet<String>), String> {
+    let protected_paths = source
+        .tracked_paths(current_epoch_commit_oid)?
+        .into_iter()
+        .collect::<BTreeSet<_>>();
+    let candidate_paths = source
+        .tracked_paths(CANDIDATE_REVISION)?
+        .into_iter()
+        .collect::<BTreeSet<_>>();
+    let masterplan = source.json_at(current_epoch_commit_oid, MASTERPLAN_PATH)?;
+    let mut scopes = Vec::with_capacity(2);
+    let mut all_required = BTreeSet::new();
+
+    let mut masterplan_facts = Vec::new();
+    let mut masterplan_required = BTreeSet::new();
+    for (selector_type, selector) in protected_masterplan_selectors(&masterplan)? {
+        let (fact, removed) =
+            selector_fact(selector_type, &selector, &protected_paths, &candidate_paths);
+        masterplan_facts.push(fact);
+        masterplan_required.extend(removed);
+    }
+    all_required.extend(masterplan_required.iter().cloned());
+    scopes.push(json!({
+        "scope_ref": MASTERPLAN_SCOPE_REF,
+        "scope_type": MASTERPLAN_SCOPE_TYPE,
+        "selectors": masterplan_facts,
+        "required_retired_paths": masterplan_required,
+    }));
+
+    let (idea_fact, idea_required) = selector_fact(
+        SelectorType::Glob,
+        TRANSIENT_IDEAS_SELECTOR,
+        &protected_paths,
+        &candidate_paths,
+    );
+    all_required.extend(idea_required.iter().cloned());
+    scopes.push(json!({
+        "scope_ref": TRANSIENT_IDEAS_SCOPE_REF,
+        "scope_type": TRANSIENT_IDEAS_SCOPE_TYPE,
+        "selectors": [idea_fact],
+        "required_retired_paths": idea_required,
+    }));
+    Ok((scopes, all_required))
+}
+
+fn emit_retirement_receipt_object_facts(
+    source: &impl ReceiptObjectFactsSource,
+) -> Result<Vec<Value>, String> {
+    let epoch = receipt_epoch_context(source)?;
+    let candidate_blob_paths = source.tree_blob_paths(CANDIDATE_REVISION)?;
+    let mut facts = Vec::with_capacity(epoch.candidate_receipt_paths.len());
+    for receipt_path in &epoch.candidate_receipt_paths {
+        let receipt = source.json_at(CANDIDATE_REVISION, receipt_path)?;
+        let descriptor = receipt_descriptor(receipt_path, &receipt)?;
+        let candidate_receipt_blob = source.blob_at(CANDIDATE_REVISION, receipt_path)?;
+        let is_carried = epoch.carried_receipt_paths.contains(receipt_path);
+        let (receipt_epoch, protected_receipt_blob_oid, registry_binding_preserved) = if is_carried
+        {
+            let protected_receipt_blob =
+                source.blob_at(&epoch.current_epoch_commit_oid, receipt_path)?;
+            let protected_binding =
+                registry_binding_at(source, &epoch.current_epoch_commit_oid, receipt_path)?;
+            let candidate_binding = registry_binding_at(source, CANDIDATE_REVISION, receipt_path)?;
+            (
+                "carried",
+                Value::String(protected_receipt_blob.oid),
+                Value::Bool(
+                    protected_binding.is_some()
+                        && protected_binding == candidate_binding
+                        && candidate_binding.as_ref().is_some_and(|binding| {
+                            binding.artifact_id == descriptor.artifact_id
+                                && binding.validator == RETIREMENT_RECEIPT_VALIDATOR
+                        }),
+                ),
+            )
+        } else {
+            ("new", Value::Null, Value::Null)
+        };
+        let baseline_tree_oid = source.tree_oid(&descriptor.baseline_commit_oid)?;
+        let baseline_is_ancestor_of_current_epoch = source.is_ancestor(
+            &descriptor.baseline_commit_oid,
+            &epoch.current_epoch_commit_oid,
+        )?;
+        let baseline_blob_paths = source.tree_blob_paths(&descriptor.baseline_commit_oid)?;
+        let mut retired_inputs = Vec::new();
+        for path in &descriptor.retired_paths {
+            let blob = source.blob_at(&descriptor.baseline_commit_oid, path)?;
+            let sha256 = format!("{:x}", Sha256::digest(&blob.bytes));
+            let candidate_locations = candidate_blob_paths
+                .get(&blob.oid)
+                .cloned()
+                .unwrap_or_default()
+                .into_iter()
+                .collect::<BTreeSet<_>>();
+            let baseline_locations = baseline_blob_paths
+                .get(&blob.oid)
+                .cloned()
+                .unwrap_or_default()
+                .into_iter()
+                .collect::<BTreeSet<_>>();
+            let candidate_new_equivalent_paths = candidate_locations
+                .difference(&baseline_locations)
+                .cloned()
+                .collect::<Vec<_>>();
+            retired_inputs.push(json!({
+                "path": path,
+                "predecessor_blob_oid": blob.oid,
+                "sha256": sha256,
+                "byte_count": blob.bytes.len(),
+                "candidate_path_exists": source.path_exists(CANDIDATE_REVISION, path)?,
+                "candidate_new_equivalent_paths": candidate_new_equivalent_paths,
+            }));
+        }
+        facts.push(json!({
+            "artifact_id": descriptor.artifact_id,
+            "receipt_path": receipt_path,
+            "protected_base_ref": PROTECTED_BASE_REF,
+            "receipt_epoch": receipt_epoch,
+            "scope_ref": descriptor.scope_ref,
+            "scope_type": descriptor.scope_type,
+            "baseline_commit_oid": descriptor.baseline_commit_oid,
+            "baseline_tree_oid": baseline_tree_oid,
+            "baseline_is_ancestor_of_current_epoch": baseline_is_ancestor_of_current_epoch,
+            "protected_receipt_blob_oid": protected_receipt_blob_oid,
+            "candidate_receipt_blob_oid": candidate_receipt_blob.oid,
+            "protected_registry_binding_preserved": registry_binding_preserved,
+            "retired_inputs": retired_inputs,
+        }));
+    }
+    Ok(facts)
+}
+
+fn emit_retirement_receipt_coverage(
+    source: &impl ReceiptObjectFactsSource,
+) -> Result<Value, String> {
+    let epoch = receipt_epoch_context(source)?;
+    let (scopes, required_retired_paths) =
+        emit_retirement_scope_facts(source, &epoch.current_epoch_commit_oid)?;
+    Ok(json!({
+        "protected_base_ref": PROTECTED_BASE_REF,
+        "current_epoch_commit_oid": epoch.current_epoch_commit_oid,
+        "current_epoch_tree_oid": epoch.current_epoch_tree_oid,
+        "protected_receipt_paths": epoch.protected_receipt_paths,
+        "candidate_receipt_paths": epoch.candidate_receipt_paths,
+        "carried_receipt_paths": epoch.carried_receipt_paths,
+        "new_receipt_paths": epoch.new_receipt_paths,
+        "scopes": scopes,
+        "required_retired_paths": required_retired_paths,
+    }))
+}
+
+fn with_retirement_receipt_object_facts(
+    mut volatile: Value,
+    facts: Vec<Value>,
+    coverage: Value,
+) -> Value {
+    volatile["retirement_receipt_object_facts"] = Value::Array(facts);
+    volatile["retirement_receipt_coverage"] = coverage;
+    volatile
 }
 
 /// Walk up from cwd to the repo root (the dir holding `specs/root-hub-pointers.json`).
@@ -1641,6 +2407,261 @@ mod tests {
         }
     }
 
+    struct FakeBlobObject {
+        oid: String,
+        bytes: Vec<u8>,
+    }
+
+    impl FakeBlobObject {
+        fn new(oid: String, bytes: &[u8]) -> Self {
+            Self {
+                oid,
+                bytes: bytes.to_vec(),
+            }
+        }
+    }
+
+    struct FakeReceiptObjectFactsSource {
+        merge_base: String,
+        trees: BTreeMap<String, String>,
+        json_documents: BTreeMap<(String, String), Value>,
+        blobs: BTreeMap<(String, String), FakeBlobObject>,
+        tracked_paths_by_revision: BTreeMap<String, BTreeSet<String>>,
+        candidate_blobs: BTreeMap<String, Vec<String>>,
+        ancestor_pairs: BTreeSet<(String, String)>,
+    }
+
+    impl FakeReceiptObjectFactsSource {
+        fn without_configured_receipts() -> Self {
+            let merge_base = "b".repeat(40);
+            let mut source = Self {
+                merge_base: merge_base.clone(),
+                trees: BTreeMap::from([
+                    (merge_base.clone(), "c".repeat(40)),
+                    (CANDIDATE_REVISION.to_owned(), "d".repeat(40)),
+                ]),
+                json_documents: BTreeMap::new(),
+                blobs: BTreeMap::new(),
+                tracked_paths_by_revision: BTreeMap::from([
+                    (merge_base.clone(), BTreeSet::new()),
+                    (CANDIDATE_REVISION.to_owned(), BTreeSet::new()),
+                ]),
+                candidate_blobs: BTreeMap::new(),
+                ancestor_pairs: BTreeSet::from([(merge_base.clone(), merge_base.clone())]),
+            };
+            for revision in [&merge_base, CANDIDATE_REVISION] {
+                source.insert_json(
+                    revision,
+                    HISTORY_ONLY_POLICY_PATH,
+                    json!({"retention_rules": {"repository_history_only_contract": {}}}),
+                );
+                source.insert_json(revision, ARTIFACT_REGISTRY_PATH, json!({"rows": []}));
+            }
+            source.insert_json(
+                &merge_base,
+                MASTERPLAN_PATH,
+                json!({"masterplan_v2": {"surface_dispositions": []}}),
+            );
+            source
+        }
+
+        fn configured(
+            receipts: Vec<String>,
+            receipt_paths: BTreeMap<String, Vec<String>>,
+            blobs: BTreeMap<String, FakeBlobObject>,
+            candidate_paths: BTreeSet<String>,
+        ) -> Self {
+            let mut source = Self::without_configured_receipts();
+            let merge_base = source.merge_base.clone();
+            source.insert_json(
+                CANDIDATE_REVISION,
+                HISTORY_ONLY_POLICY_PATH,
+                json!({
+                    "retention_rules": {"repository_history_only_contract": {
+                        "neutral_receipt_paths": receipts
+                    }}
+                }),
+            );
+            for (receipt_path, retired_paths) in receipt_paths {
+                source.insert_json(
+                    CANDIDATE_REVISION,
+                    &receipt_path,
+                    json!({
+                        "artifact_id": "repository-authority-history-only-retirement-closure-20260721",
+                        "scope_ref": MASTERPLAN_SCOPE_REF,
+                        "baseline": {
+                            "commit_oid": merge_base,
+                            "tree_oid": "c".repeat(40)
+                        },
+                        "retired_inputs": retired_paths
+                            .iter()
+                            .map(|path| json!({"path": path}))
+                            .collect::<Vec<_>>()
+                    }),
+                );
+                source.insert_blob(
+                    CANDIDATE_REVISION,
+                    &receipt_path,
+                    FakeBlobObject::new("e".repeat(40), b"candidate receipt"),
+                );
+            }
+            for (path, blob) in blobs {
+                source.insert_blob(&merge_base, &path, blob);
+            }
+            source
+                .tracked_paths_by_revision
+                .entry(CANDIDATE_REVISION.to_owned())
+                .or_default()
+                .extend(candidate_paths);
+            source
+        }
+
+        fn malformed_configured_receipts() -> Self {
+            let mut source = Self::without_configured_receipts();
+            source.insert_json(
+                CANDIDATE_REVISION,
+                HISTORY_ONLY_POLICY_PATH,
+                json!({"retention_rules": {"repository_history_only_contract": {
+                    "neutral_receipt_paths": "malformed"
+                }}}),
+            );
+            source
+        }
+
+        fn insert_json(&mut self, revision: &str, path: &str, value: Value) {
+            self.json_documents
+                .insert((revision.to_owned(), path.to_owned()), value);
+            self.tracked_paths_by_revision
+                .entry(revision.to_owned())
+                .or_default()
+                .insert(path.to_owned());
+        }
+
+        fn insert_blob(&mut self, revision: &str, path: &str, blob: FakeBlobObject) {
+            self.blobs
+                .insert((revision.to_owned(), path.to_owned()), blob);
+            self.tracked_paths_by_revision
+                .entry(revision.to_owned())
+                .or_default()
+                .insert(path.to_owned());
+        }
+
+        fn make_receipt_carried_from(&mut self, baseline: &str) {
+            let receipt_path = "evidence/retirement.json";
+            let mut receipt = self
+                .json_documents
+                .get(&(CANDIDATE_REVISION.to_owned(), receipt_path.to_owned()))
+                .cloned()
+                .expect("candidate receipt");
+            receipt["baseline"]["commit_oid"] = json!(baseline);
+            receipt["baseline"]["tree_oid"] = json!("f".repeat(40));
+            self.json_documents.insert(
+                (CANDIDATE_REVISION.to_owned(), receipt_path.to_owned()),
+                receipt.clone(),
+            );
+            let merge_base = self.merge_base.clone();
+            self.insert_json(&merge_base, receipt_path, receipt);
+            self.insert_json(
+                &merge_base,
+                HISTORY_ONLY_POLICY_PATH,
+                json!({"retention_rules": {"repository_history_only_contract": {
+                    "neutral_receipt_paths": [receipt_path]
+                }}}),
+            );
+            let binding = json!({"rows": [{
+                "artifact_id": "repository-authority-history-only-retirement-closure-20260721",
+                "artifact_path": format!("/{receipt_path}"),
+                "capability_overrides": {"validation": {"validator": RETIREMENT_RECEIPT_VALIDATOR}}
+            }]});
+            self.insert_json(&merge_base, ARTIFACT_REGISTRY_PATH, binding.clone());
+            self.insert_json(CANDIDATE_REVISION, ARTIFACT_REGISTRY_PATH, binding);
+            self.insert_blob(
+                &merge_base,
+                receipt_path,
+                FakeBlobObject::new("e".repeat(40), b"candidate receipt"),
+            );
+            self.trees.insert(baseline.to_owned(), "f".repeat(40));
+            self.ancestor_pairs
+                .insert((baseline.to_owned(), merge_base));
+        }
+    }
+
+    impl ReceiptObjectFactsSource for FakeReceiptObjectFactsSource {
+        fn protected_merge_base(&self) -> Result<String, String> {
+            Ok(self.merge_base.clone())
+        }
+
+        fn tree_oid(&self, revision: &str) -> Result<String, String> {
+            self.trees
+                .get(revision)
+                .cloned()
+                .ok_or_else(|| format!("missing tree for {revision}"))
+        }
+
+        fn json_at(&self, revision: &str, path: &str) -> Result<Value, String> {
+            self.json_documents
+                .get(&(revision.to_owned(), path.to_owned()))
+                .cloned()
+                .ok_or_else(|| format!("missing JSON {revision}:{path}"))
+        }
+
+        fn blob_at(&self, revision: &str, path: &str) -> Result<BlobObject, String> {
+            let blob = self
+                .blobs
+                .get(&(revision.to_owned(), path.to_owned()))
+                .ok_or_else(|| format!("missing blob {revision}:{path}"))?;
+            Ok(BlobObject {
+                oid: blob.oid.clone(),
+                bytes: blob.bytes.clone(),
+            })
+        }
+
+        fn path_exists(&self, revision: &str, path: &str) -> Result<bool, String> {
+            Ok(self
+                .tracked_paths_by_revision
+                .get(revision)
+                .is_some_and(|paths| paths.contains(path)))
+        }
+
+        fn tree_blob_paths(&self, revision: &str) -> Result<BTreeMap<String, Vec<String>>, String> {
+            let mut by_blob = BTreeMap::<String, Vec<String>>::new();
+            for ((blob_revision, path), blob) in &self.blobs {
+                if blob_revision == revision {
+                    by_blob
+                        .entry(blob.oid.clone())
+                        .or_default()
+                        .push(path.clone());
+                }
+            }
+            if revision == CANDIDATE_REVISION {
+                for (oid, paths) in &self.candidate_blobs {
+                    by_blob
+                        .entry(oid.clone())
+                        .or_default()
+                        .extend(paths.clone());
+                }
+            }
+            for paths in by_blob.values_mut() {
+                paths.sort();
+                paths.dedup();
+            }
+            Ok(by_blob)
+        }
+
+        fn tracked_paths(&self, revision: &str) -> Result<Vec<String>, String> {
+            self.tracked_paths_by_revision
+                .get(revision)
+                .map(|paths| paths.iter().cloned().collect())
+                .ok_or_else(|| format!("missing tracked paths for {revision}"))
+        }
+
+        fn is_ancestor(&self, ancestor: &str, descendant: &str) -> Result<bool, String> {
+            Ok(self
+                .ancestor_pairs
+                .contains(&(ancestor.to_owned(), descendant.to_owned())))
+        }
+    }
+
     #[test]
     fn emit_scm_facts_uses_scm_source_primitives_without_behavior_change() {
         let source = FakeScmFactsSource {
@@ -1739,6 +2760,414 @@ mod tests {
         assert!(is_generated_class("Cargo.lock"));
         assert!(is_generated_class("docs/machine-readable/catalog.json"));
         assert!(!is_generated_class("ci/facade/app/src/main.rs"));
+    }
+
+    #[test]
+    fn receipt_object_facts_are_empty_when_neutral_receipt_paths_are_absent() {
+        let source = FakeReceiptObjectFactsSource::without_configured_receipts();
+
+        assert_eq!(
+            emit_retirement_receipt_object_facts(&source).unwrap(),
+            Vec::<Value>::new()
+        );
+    }
+
+    #[test]
+    fn neutral_receipt_paths_policy_parse_is_optional_and_fail_closed_when_present() {
+        assert_eq!(neutral_receipt_paths_from_policy(&json!({})).unwrap(), None);
+        assert_eq!(
+            neutral_receipt_paths_from_policy(&json!({
+                "retention_rules": {
+                    "repository_history_only_contract": {
+                        "neutral_receipt_paths": ["evidence/receipt.json"]
+                    }
+                }
+            }))
+            .unwrap(),
+            Some(vec!["evidence/receipt.json".to_owned()])
+        );
+        assert!(
+            neutral_receipt_paths_from_policy(&json!({
+                "retention_rules": {
+                    "repository_history_only_contract": {"neutral_receipt_paths": "bad"}
+                }
+            }))
+            .is_err()
+        );
+        for aliased in [
+            "./evidence/receipt.json",
+            "evidence//receipt.json",
+            "evidence/../receipt.json",
+            "evidence\\receipt.json",
+        ] {
+            assert!(
+                neutral_receipt_paths_from_policy(&json!({
+                    "retention_rules": {
+                        "repository_history_only_contract": {
+                            "neutral_receipt_paths": [aliased]
+                        }
+                    }
+                }))
+                .is_err(),
+                "aliased receipt path must fail closed: {aliased}"
+            );
+        }
+    }
+
+    #[test]
+    fn configured_receipt_object_facts_bind_the_protected_baseline_and_blob_bytes() {
+        let mut source = FakeReceiptObjectFactsSource::configured(
+            vec!["evidence/retirement.json".to_owned()],
+            BTreeMap::from([(
+                "evidence/retirement.json".to_owned(),
+                vec!["docs/ROADMAP.md".to_owned()],
+            )]),
+            BTreeMap::from([(
+                "docs/ROADMAP.md".to_owned(),
+                FakeBlobObject::new("a".repeat(40), b"retired bytes"),
+            )]),
+            BTreeSet::new(),
+        );
+
+        let facts = emit_retirement_receipt_object_facts(&source).unwrap();
+
+        assert_eq!(facts[0]["receipt_path"], "evidence/retirement.json");
+        assert_eq!(facts[0]["protected_base_ref"], "origin/dev");
+        assert_eq!(facts[0]["receipt_epoch"], "new");
+        assert_eq!(facts[0]["scope_ref"], "artifact:masterplan");
+        assert_eq!(facts[0]["scope_type"], "masterplan-retired-surfaces");
+        assert_eq!(facts[0]["baseline_commit_oid"], "b".repeat(40));
+        assert_eq!(facts[0]["baseline_tree_oid"], "c".repeat(40));
+        assert_eq!(facts[0]["retired_inputs"][0]["path"], "docs/ROADMAP.md");
+        assert_eq!(
+            facts[0]["retired_inputs"][0]["predecessor_blob_oid"],
+            "a".repeat(40)
+        );
+        assert_eq!(facts[0]["retired_inputs"][0]["byte_count"], 13);
+        assert_eq!(
+            facts[0]["retired_inputs"][0]["candidate_path_exists"],
+            false
+        );
+        assert_eq!(
+            facts[0]["retired_inputs"][0]["candidate_new_equivalent_paths"],
+            json!([])
+        );
+
+        source.candidate_blobs.insert(
+            "a".repeat(40),
+            vec!["docs/not-an-archive/roadmap-copy.md".to_owned()],
+        );
+        let copied_facts = emit_retirement_receipt_object_facts(&source).unwrap();
+        assert_eq!(
+            copied_facts[0]["retired_inputs"][0]["candidate_new_equivalent_paths"],
+            json!(["docs/not-an-archive/roadmap-copy.md"])
+        );
+    }
+
+    #[test]
+    fn protected_coverage_is_independent_of_candidate_receipt_configuration() {
+        let mut source = FakeReceiptObjectFactsSource::without_configured_receipts();
+        let merge_base = source.merge_base.clone();
+        source.insert_json(
+            &merge_base,
+            MASTERPLAN_PATH,
+            json!({"masterplan_v2": {"surface_dispositions": [{
+                "path": "docs/ROADMAP.md",
+                "disposition": "retired-git-history-only"
+            }]}}),
+        );
+        source
+            .tracked_paths_by_revision
+            .get_mut(&merge_base)
+            .unwrap()
+            .insert("docs/ROADMAP.md".to_owned());
+
+        let coverage = emit_retirement_receipt_coverage(&source).unwrap();
+
+        assert_eq!(coverage["protected_base_ref"], "origin/dev");
+        assert_eq!(coverage["current_epoch_commit_oid"], "b".repeat(40));
+        assert_eq!(coverage["current_epoch_tree_oid"], "c".repeat(40));
+        assert_eq!(coverage["protected_receipt_paths"], json!([]));
+        assert_eq!(coverage["candidate_receipt_paths"], json!([]));
+        assert_eq!(coverage["carried_receipt_paths"], json!([]));
+        assert_eq!(coverage["new_receipt_paths"], json!([]));
+        assert_eq!(
+            coverage["required_retired_paths"],
+            json!(["docs/ROADMAP.md"])
+        );
+        assert!(
+            emit_retirement_receipt_object_facts(&source)
+                .unwrap()
+                .is_empty(),
+            "candidate receipt configuration must not determine protected coverage"
+        );
+    }
+
+    #[test]
+    fn selector_facts_are_epoch_bound_deduplicated_and_scope_specific() {
+        let mut source = FakeReceiptObjectFactsSource::without_configured_receipts();
+        let merge_base = source.merge_base.clone();
+        source.insert_json(
+            &merge_base,
+            MASTERPLAN_PATH,
+            json!({
+                "masterplan_v2": {
+                    "surface_dispositions": [
+                        {"path": "docs/ROADMAP.md", "disposition": "retired-git-history-only"},
+                        {"path": ".omc/**", "disposition": "retired-git-history-only"},
+                        {"path": ".omc/ultragoal/premise.txt", "disposition": "retired-git-history-only"},
+                        {"path": ".omx/**", "disposition": "retired-git-history-only"},
+                        {"path": "specs/live.json", "disposition": "canonical-authority"},
+                        {"path": "~/.omx/**", "disposition": "retired-git-history-only"}
+                    ]
+                }
+            }),
+        );
+        source
+            .tracked_paths_by_revision
+            .get_mut(&merge_base)
+            .unwrap()
+            .extend([
+                ".omc/ultragoal/premise.txt".to_owned(),
+                "docs/ROADMAP.md".to_owned(),
+                "docs/ideas/archive/retired.md".to_owned(),
+                "specs/live.json".to_owned(),
+            ]);
+        source
+            .tracked_paths_by_revision
+            .get_mut(CANDIDATE_REVISION)
+            .unwrap()
+            .extend([
+                ".omc/new-resurrection.txt".to_owned(),
+                "docs/ROADMAP.md".to_owned(),
+                "specs/live.json".to_owned(),
+            ]);
+
+        let coverage = emit_retirement_receipt_coverage(&source).unwrap();
+        let scopes = coverage["scopes"].as_array().unwrap();
+        let masterplan_scope = &scopes[0];
+        let ideas_scope = &scopes[1];
+        let selectors = masterplan_scope["selectors"].as_array().unwrap();
+        let selector = |needle: &str| {
+            selectors
+                .iter()
+                .find(|fact| fact["selector"] == needle)
+                .unwrap()
+        };
+
+        assert_eq!(masterplan_scope["scope_ref"], MASTERPLAN_SCOPE_REF);
+        assert_eq!(masterplan_scope["scope_type"], MASTERPLAN_SCOPE_TYPE);
+        assert_eq!(
+            masterplan_scope["required_retired_paths"],
+            json!([".omc/ultragoal/premise.txt"]),
+            "the exact selector and overlapping glob must contribute one path"
+        );
+        assert_eq!(
+            selector(".omc/**")["candidate_only_paths"],
+            json!([".omc/new-resurrection.txt"])
+        );
+        assert_eq!(
+            selector("docs/ROADMAP.md")["surviving_paths"],
+            json!(["docs/ROADMAP.md"])
+        );
+        assert_eq!(selector(".omx/**")["protected_paths"], json!([]));
+        assert_eq!(selector(".omx/**")["candidate_paths"], json!([]));
+        assert_eq!(selector(".omx/**")["removed_paths"], json!([]));
+        assert_eq!(
+            selector("~/.omx/**")["external_assertion"],
+            "outside-repository-authority-not-inspected"
+        );
+        assert_eq!(selector("~/.omx/**")["protected_paths"], json!([]));
+
+        assert_eq!(ideas_scope["scope_ref"], TRANSIENT_IDEAS_SCOPE_REF);
+        assert_eq!(ideas_scope["scope_type"], TRANSIENT_IDEAS_SCOPE_TYPE);
+        assert_eq!(
+            ideas_scope["required_retired_paths"],
+            json!(["docs/ideas/archive/retired.md"])
+        );
+        assert_eq!(
+            coverage["required_retired_paths"],
+            json!([
+                ".omc/ultragoal/premise.txt",
+                "docs/ideas/archive/retired.md",
+            ])
+        );
+    }
+
+    #[test]
+    fn first_post_merge_epoch_carries_original_receipt_and_baseline_forward() {
+        let mut source = FakeReceiptObjectFactsSource::configured(
+            vec!["evidence/retirement.json".to_owned()],
+            BTreeMap::from([(
+                "evidence/retirement.json".to_owned(),
+                vec!["docs/ROADMAP.md".to_owned()],
+            )]),
+            BTreeMap::from([(
+                "docs/ROADMAP.md".to_owned(),
+                FakeBlobObject::new("a".repeat(40), b"retired bytes"),
+            )]),
+            BTreeSet::new(),
+        );
+        let original_baseline = "1".repeat(40);
+        source.make_receipt_carried_from(&original_baseline);
+        let merge_base = source.merge_base.clone();
+        source
+            .blobs
+            .remove(&(merge_base.clone(), "docs/ROADMAP.md".to_owned()));
+        source
+            .tracked_paths_by_revision
+            .get_mut(&merge_base)
+            .unwrap()
+            .remove("docs/ROADMAP.md");
+        source.insert_blob(
+            &original_baseline,
+            "docs/ROADMAP.md",
+            FakeBlobObject::new("a".repeat(40), b"retired bytes"),
+        );
+
+        let facts = emit_retirement_receipt_object_facts(&source).unwrap();
+        let coverage = emit_retirement_receipt_coverage(&source).unwrap();
+
+        assert_eq!(facts[0]["receipt_epoch"], "carried");
+        assert_eq!(facts[0]["baseline_commit_oid"], original_baseline);
+        assert_eq!(facts[0]["baseline_tree_oid"], "f".repeat(40));
+        assert_eq!(facts[0]["baseline_is_ancestor_of_current_epoch"], true);
+        assert_eq!(facts[0]["protected_receipt_blob_oid"], "e".repeat(40));
+        assert_eq!(facts[0]["candidate_receipt_blob_oid"], "e".repeat(40));
+        assert_eq!(facts[0]["protected_registry_binding_preserved"], true);
+        assert_eq!(
+            coverage["protected_receipt_paths"],
+            json!(["evidence/retirement.json"])
+        );
+        assert_eq!(
+            coverage["candidate_receipt_paths"],
+            json!(["evidence/retirement.json"])
+        );
+        assert_eq!(
+            coverage["carried_receipt_paths"],
+            json!(["evidence/retirement.json"])
+        );
+        assert_eq!(coverage["new_receipt_paths"], json!([]));
+    }
+
+    #[test]
+    fn carried_receipt_facts_expose_candidate_byte_and_registry_drift() {
+        let mut source = FakeReceiptObjectFactsSource::configured(
+            vec!["evidence/retirement.json".to_owned()],
+            BTreeMap::from([(
+                "evidence/retirement.json".to_owned(),
+                vec!["docs/ROADMAP.md".to_owned()],
+            )]),
+            BTreeMap::from([(
+                "docs/ROADMAP.md".to_owned(),
+                FakeBlobObject::new("a".repeat(40), b"retired bytes"),
+            )]),
+            BTreeSet::new(),
+        );
+        let original_baseline = "1".repeat(40);
+        source.make_receipt_carried_from(&original_baseline);
+        source.insert_blob(
+            &original_baseline,
+            "docs/ROADMAP.md",
+            FakeBlobObject::new("a".repeat(40), b"retired bytes"),
+        );
+        source.insert_blob(
+            CANDIDATE_REVISION,
+            "evidence/retirement.json",
+            FakeBlobObject::new("9".repeat(40), b"tampered candidate receipt"),
+        );
+        source.insert_json(
+            CANDIDATE_REVISION,
+            ARTIFACT_REGISTRY_PATH,
+            json!({"rows": []}),
+        );
+
+        let facts = emit_retirement_receipt_object_facts(&source).unwrap();
+
+        assert_eq!(facts[0]["receipt_epoch"], "carried");
+        assert_eq!(facts[0]["protected_receipt_blob_oid"], "e".repeat(40));
+        assert_eq!(facts[0]["candidate_receipt_blob_oid"], "9".repeat(40));
+        assert_eq!(facts[0]["protected_registry_binding_preserved"], false);
+    }
+
+    #[test]
+    fn protected_receipt_deletion_is_visible_in_the_epoch_partition() {
+        let mut source = FakeReceiptObjectFactsSource::configured(
+            vec!["evidence/retirement.json".to_owned()],
+            BTreeMap::from([(
+                "evidence/retirement.json".to_owned(),
+                vec!["docs/ROADMAP.md".to_owned()],
+            )]),
+            BTreeMap::from([(
+                "docs/ROADMAP.md".to_owned(),
+                FakeBlobObject::new("a".repeat(40), b"retired bytes"),
+            )]),
+            BTreeSet::new(),
+        );
+        source.make_receipt_carried_from(&"1".repeat(40));
+        source.insert_json(
+            CANDIDATE_REVISION,
+            HISTORY_ONLY_POLICY_PATH,
+            json!({"retention_rules": {"repository_history_only_contract": {}}}),
+        );
+
+        let coverage = emit_retirement_receipt_coverage(&source).unwrap();
+
+        assert_eq!(
+            coverage["protected_receipt_paths"],
+            json!(["evidence/retirement.json"])
+        );
+        assert_eq!(coverage["candidate_receipt_paths"], json!([]));
+        assert_eq!(coverage["carried_receipt_paths"], json!([]));
+        assert_eq!(coverage["new_receipt_paths"], json!([]));
+    }
+
+    #[test]
+    fn equivalent_copy_detection_subtracts_locations_from_the_original_baseline() {
+        let mut source = FakeReceiptObjectFactsSource::configured(
+            vec!["evidence/retirement.json".to_owned()],
+            BTreeMap::from([(
+                "evidence/retirement.json".to_owned(),
+                vec!["docs/ROADMAP.md".to_owned()],
+            )]),
+            BTreeMap::from([(
+                "docs/ROADMAP.md".to_owned(),
+                FakeBlobObject::new("a".repeat(40), b"same bytes"),
+            )]),
+            BTreeSet::new(),
+        );
+        let merge_base = source.merge_base.clone();
+        source.insert_blob(
+            &merge_base,
+            "other/OWNERS",
+            FakeBlobObject::new("a".repeat(40), b"same bytes"),
+        );
+        source.candidate_blobs.insert(
+            "a".repeat(40),
+            vec!["other/OWNERS".to_owned(), "new/OWNERS".to_owned()],
+        );
+
+        let facts = emit_retirement_receipt_object_facts(&source).unwrap();
+
+        assert_eq!(
+            facts[0]["retired_inputs"][0]["candidate_new_equivalent_paths"],
+            json!(["new/OWNERS"]),
+            "a pre-existing same-blob path is not a candidate resurrection"
+        );
+    }
+
+    #[test]
+    fn configured_missing_or_malformed_receipts_fail_closed() {
+        let missing = FakeReceiptObjectFactsSource::configured(
+            vec!["evidence/missing.json".to_owned()],
+            BTreeMap::new(),
+            BTreeMap::new(),
+            BTreeSet::new(),
+        );
+        assert!(emit_retirement_receipt_object_facts(&missing).is_err());
+
+        let malformed = FakeReceiptObjectFactsSource::malformed_configured_receipts();
+        assert!(emit_retirement_receipt_object_facts(&malformed).is_err());
     }
 
     const POLICY_TEXT: &str = r#"{

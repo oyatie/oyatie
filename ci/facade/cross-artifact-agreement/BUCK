@@ -35,11 +35,16 @@ rust_test(
     srcs = glob(["tests/**/*.rs"]),
     crate = "ci_cross_artifact_agreement_corpus",
     crate_root = "tests/cross_artifact_agreement.rs",
-    # HERMETIC: the test execs the buck2-BUILT producer binary (no `env!("CARGO")`, no `cargo
-    # run`). `$(exe ...)` makes buck2 build the producer and substitute its sandbox path here;
-    # the producer reads the committed scm-facts face (a declared input) — no action calls git.
+    # OUT-OF-GRAPH ADMISSION INPUTS: the producer executable is a declared Buck dependency, but
+    # the two SCM faces are deliberately de-committed and therefore are NOT hermetic Buck source
+    # inputs. The admission workflow and every registry verification command materialize both
+    # files immediately before this target runs. Explicit env paths prevent a standalone test from
+    # silently falling back to an old ambient face; this target must never be described as
+    # independently hermetic until a future staged-input rule makes the same-run files graph inputs.
     env = {
         "OYA_CI_PRODUCER_BIN": "$(exe //ci/facade/artifact-inventory-registry:oya-cloud-ci-accounting-registry-app-bin)",
+        "OYA_CI_SCM_FACTS_PATH": "ci/facade/artifact-inventory-registry/scm-facts.generated.json",
+        "OYA_CI_SCM_VOLATILE_FACTS_PATH": "ci/facade/scm-facts-snapshot/scm-volatile-facts.generated.json",
     },
     visibility = ["PUBLIC"],
     deps = [

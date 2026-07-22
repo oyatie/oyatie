@@ -88,8 +88,8 @@
       },
       {
         "path": "docs/ROADMAP.md",
-        "surface_class": "provenance-archive",
-        "disposition": "archived-with-provenance",
+        "surface_class": "retired-authority",
+        "disposition": "retired-git-history-only",
         "is_live_plan_authority": false,
         "absorbed_into": "/specs/masterplan.json#masterplan_v2",
         "work_item_id_policy": "archived-no-live-id-authority",
@@ -97,8 +97,8 @@
       },
       {
         "path": ".omc/ultragoal/goals.json",
-        "surface_class": "legacy-goal-provenance",
-        "disposition": "archived-with-provenance",
+        "surface_class": "missing-legacy-surface",
+        "disposition": "retired-git-history-only",
         "is_live_plan_authority": false,
         "absorbed_into": "/specs/masterplan.json#masterplan_v2",
         "work_item_id_policy": "archived-no-live-id-authority",
@@ -106,8 +106,8 @@
       },
       {
         "path": ".omc/**",
-        "surface_class": "repo-local-harness-store-provenance",
-        "disposition": "archived-with-provenance",
+        "surface_class": "retired-harness-store",
+        "disposition": "retired-git-history-only",
         "is_live_plan_authority": false,
         "absorbed_into": "/specs/masterplan.json#masterplan_v2",
         "work_item_id_policy": "harness-store-only-no-live-id-authority",
@@ -115,8 +115,8 @@
       },
       {
         "path": ".omx/**",
-        "surface_class": "repo-local-harness-store-provenance",
-        "disposition": "archived-with-provenance",
+        "surface_class": "retired-harness-store",
+        "disposition": "retired-git-history-only",
         "is_live_plan_authority": false,
         "absorbed_into": "/specs/masterplan.json#masterplan_v2",
         "work_item_id_policy": "harness-store-only-no-live-id-authority",
@@ -124,8 +124,8 @@
       },
       {
         "path": ".gjc/**",
-        "surface_class": "operational-runtime-state",
-        "disposition": "archived-with-provenance",
+        "surface_class": "retired-harness-store",
+        "disposition": "retired-git-history-only",
         "is_live_plan_authority": false,
         "absorbed_into": "/specs/masterplan.json#masterplan_v2",
         "work_item_id_policy": "runtime-state-only-no-live-id-authority",
@@ -133,8 +133,8 @@
       },
       {
         "path": "~/.gjc/**",
-        "surface_class": "global-harness-store-provenance",
-        "disposition": "archived-with-provenance",
+        "surface_class": "retired-external-harness-store",
+        "disposition": "retired-git-history-only",
         "is_live_plan_authority": false,
         "absorbed_into": "/specs/masterplan.json#masterplan_v2",
         "work_item_id_policy": "global-runtime-store-only-no-live-id-authority",
@@ -142,8 +142,8 @@
       },
       {
         "path": "~/.omx/**",
-        "surface_class": "global-harness-store-provenance",
-        "disposition": "archived-with-provenance",
+        "surface_class": "retired-external-harness-store",
+        "disposition": "retired-git-history-only",
         "is_live_plan_authority": false,
         "absorbed_into": "/specs/masterplan.json#masterplan_v2",
         "work_item_id_policy": "global-runtime-store-only-no-live-id-authority",
@@ -270,36 +270,6 @@
         "freshness_rule": "single-writer canonical authority"
       },
       {
-        "path": "/specs/master-plan-sequencing.json",
-        "audience": [
-          "agents",
-          "humans",
-          "cloud-ci-gates"
-        ],
-        "read_timing_class": "provenance-archive",
-        "freshness_rule": "read only as absorbed provenance; live sequencing is derived from masterplan_v2.dependency_edges"
-      },
-      {
-        "path": "/specs/planning-closure-contract.json",
-        "audience": [
-          "agents",
-          "humans",
-          "cloud-ci-gates"
-        ],
-        "read_timing_class": "provenance-archive",
-        "freshness_rule": "read only as absorbed provenance; live closure policy is masterplan_v2.evidence_state_policy"
-      },
-      {
-        "path": "/specs/planning-closure-status-closure-ledger.json",
-        "audience": [
-          "agents",
-          "humans",
-          "cloud-ci-gates"
-        ],
-        "read_timing_class": "provenance-archive",
-        "freshness_rule": "read only as absorbed provenance; live status evidence lives on masterplan_v2 work items"
-      },
-      {
         "path": "docs/MASTERPLAN.md",
         "audience": [
           "agents",
@@ -308,16 +278,6 @@
         ],
         "read_timing_class": "on-demand",
         "freshness_rule": "compatibility projection only; conflicts resolve to /specs/masterplan.json"
-      },
-      {
-        "path": "docs/ROADMAP.md",
-        "audience": [
-          "agents",
-          "humans",
-          "cloud-ci-gates"
-        ],
-        "read_timing_class": "provenance-archive",
-        "freshness_rule": "archived historical roadmap; conflicts resolve to /specs/masterplan.json"
       }
     ],
     "projection_freshness": {
@@ -325,57 +285,6 @@
       "validator": "cloud-ci-cross-artifact-agreement/masterplan-v2-projection-freshness",
       "single_writer_mutation_path": "/specs/masterplan.json",
       "projections": [
-        {
-          "path": "/specs/master-plan-sequencing.json",
-          "projection_class": "read-projection",
-          "source_of_truth": "/specs/masterplan.json#masterplan_v2",
-          "freshness_gate": "cloud-ci-cross-artifact-agreement/masterplan-v2-projection-freshness",
-          "conflict_resolution": "/specs/masterplan.json#masterplan_v2",
-          "single_writer_mutation_path": "/specs/masterplan.json",
-          "read_timing_class": "provenance-archive",
-          "freshness_rule": "read only as absorbed provenance; live sequencing is derived from masterplan_v2.dependency_edges",
-          "is_live_plan_authority": false,
-          "live_work_item_ids_allowed": false,
-          "status_claims_allowed_without_evidence": false,
-          "drift_policy": "fail-closed-on-conflict-or-manual-live-plan-content",
-          "evidence_refs": [
-            "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/lib.rs#evaluate_masterplan_v2_projection_freshness"
-          ]
-        },
-        {
-          "path": "/specs/planning-closure-contract.json",
-          "projection_class": "read-projection",
-          "source_of_truth": "/specs/masterplan.json#masterplan_v2",
-          "freshness_gate": "cloud-ci-cross-artifact-agreement/masterplan-v2-projection-freshness",
-          "conflict_resolution": "/specs/masterplan.json#masterplan_v2",
-          "single_writer_mutation_path": "/specs/masterplan.json",
-          "read_timing_class": "provenance-archive",
-          "freshness_rule": "read only as absorbed provenance; live closure policy is masterplan_v2.evidence_state_policy",
-          "is_live_plan_authority": false,
-          "live_work_item_ids_allowed": false,
-          "status_claims_allowed_without_evidence": false,
-          "drift_policy": "fail-closed-on-conflict-or-manual-live-plan-content",
-          "evidence_refs": [
-            "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/lib.rs#evaluate_masterplan_v2_projection_freshness"
-          ]
-        },
-        {
-          "path": "/specs/planning-closure-status-closure-ledger.json",
-          "projection_class": "read-projection",
-          "source_of_truth": "/specs/masterplan.json#masterplan_v2",
-          "freshness_gate": "cloud-ci-cross-artifact-agreement/masterplan-v2-projection-freshness",
-          "conflict_resolution": "/specs/masterplan.json#masterplan_v2",
-          "single_writer_mutation_path": "/specs/masterplan.json",
-          "read_timing_class": "provenance-archive",
-          "freshness_rule": "read only as absorbed provenance; live status evidence lives on masterplan_v2 work items",
-          "is_live_plan_authority": false,
-          "live_work_item_ids_allowed": false,
-          "status_claims_allowed_without_evidence": false,
-          "drift_policy": "fail-closed-on-conflict-or-manual-live-plan-content",
-          "evidence_refs": [
-            "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/lib.rs#evaluate_masterplan_v2_projection_freshness"
-          ]
-        },
         {
           "path": "docs/MASTERPLAN.md",
           "projection_class": "generated-projection",
@@ -385,23 +294,6 @@
           "single_writer_mutation_path": "/specs/masterplan.json",
           "read_timing_class": "on-demand",
           "freshness_rule": "compatibility projection only; conflicts resolve to /specs/masterplan.json",
-          "is_live_plan_authority": false,
-          "live_work_item_ids_allowed": false,
-          "status_claims_allowed_without_evidence": false,
-          "drift_policy": "fail-closed-on-conflict-or-manual-live-plan-content",
-          "evidence_refs": [
-            "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/lib.rs#evaluate_masterplan_v2_projection_freshness"
-          ]
-        },
-        {
-          "path": "docs/ROADMAP.md",
-          "projection_class": "read-projection",
-          "source_of_truth": "/specs/masterplan.json#masterplan_v2",
-          "freshness_gate": "cloud-ci-cross-artifact-agreement/masterplan-v2-projection-freshness",
-          "conflict_resolution": "/specs/masterplan.json#masterplan_v2",
-          "single_writer_mutation_path": "/specs/masterplan.json",
-          "read_timing_class": "provenance-archive",
-          "freshness_rule": "archived historical roadmap; conflicts resolve to /specs/masterplan.json",
           "is_live_plan_authority": false,
           "live_work_item_ids_allowed": false,
           "status_claims_allowed_without_evidence": false,
@@ -452,6 +344,7 @@
     }
   },
   "read_surface_corpus": {
+    "tracked_paths": [],
     "surfaces": [
       {
         "path": "/specs/master-plan-sequencing.json",

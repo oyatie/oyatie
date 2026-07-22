@@ -2,13 +2,7 @@
 **/target/
 # Local agent/runtime state is durable outside git only. Do not commit OMC/OMX
 # plans, sessions, checkpoints, HUD state, logs, or verification scratch.
-/.omc/*
-!/.omc/ultragoal/
-/.omc/ultragoal/*
-!/.omc/ultragoal/OWNERS
-!/.omc/ultragoal/TEAMMATE-PREAMBLE.md
-!/.omc/ultragoal/friction-ledger.jsonl
-!/.omc/ultragoal/premise.txt
+/.omc/
 /.omx/
 # Local GJC runtime/session state is never committed.
 # Specs/plans promoted to product authority belong in tracked specs/docs/registry files.

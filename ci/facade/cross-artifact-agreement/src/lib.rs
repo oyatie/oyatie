@@ -37,7 +37,7 @@
 //!   still claims live plan authority.
 //! - `masterplan_surface_disposition_incomplete` — a legacy plan/goal surface
 //!   or harness store from the ingest set lacks an explicit absorbed,
-//!   archived-with-provenance, or generated-projection disposition.
+//!   retired-git-history-only, or generated-projection disposition.
 //! - `masterplan_work_item_id_collision` — two masterplan v2 work items carry one
 //!   live work-item id.
 //! - `masterplan_external_live_work_item_id` — a live work item uses an id outside
@@ -61,7 +61,7 @@
 //!   RECORDED completion evidence: a verified 'done' claim carries no merged
 //!   commit / merged-PR / gate-run record or tracked product-completion
 //!   packet, an evidence ref dangles outside the tracked tree, points at a
-//!   retired (absorbed / archived-with-provenance) surface, or is a malformed
+//!   retired (absorbed / retired-git-history-only) surface, or is a malformed
 //!   recorded-evidence ref.
 //! - `masterplan_projection_freshness_invalid` — generated/read projections
 //!   derived from /specs/masterplan.json lack complete freshness coverage,
@@ -72,15 +72,10 @@
 //!   shard breaks its re-derivation invariants (canonical wire bytes,
 //!   contiguous 1-based pass_seq under canonical filenames, plan-DAG
 //!   referential agreement, completion-requires-evidence).
-//! - `masterplan_read_contract_invalid` — archived-with-provenance stale
-//!   read paths are referenced through a non-archive read contract or read
-//!   projection, or a superseded/stale plan authority (docs/MASTERPLAN.md,
-//!   docs/ROADMAP.md, the retired planning specs) is RESURRECTED on disk
-//!   outside the archive: a governed absorbed / archived-with-provenance /
-//!   generated-projection surface whose on-disk content no longer declares
-//!   itself non-live, drops its canonical-authority pointer or
-//!   provenance-archive read-timing declaration, or escapes the
-//!   read-surface sweep entirely.
+//! - `masterplan_read_contract_invalid` — a `retired-git-history-only`
+//!   path remains in a read contract/projection/reference or still exists in
+//!   candidate HEAD, or an absorbed/generated superseded plan surface is
+//!   RESURRECTED as live authority on disk.
 //! - `masterplan_entry_surface_invalid` — masterplan v2 entry-surface
 //!   read contracts drift from the bounded root-hub allowlist or revive a
 //!   superseded entrypoint.
@@ -110,6 +105,7 @@ mod projection_rederivation;
 mod prose_frontmatter_status;
 mod read_surface_resurrection;
 mod registry_policy_sync;
+mod retirement_receipt;
 
 pub use plan_evidence_crosscheck::{
     PLAN_EVIDENCE_CROSSCHECK_VALIDATOR, UNRECORDED_EVIDENCE_CODE,
@@ -122,6 +118,11 @@ pub use projection_rederivation::{
 pub use read_surface_resurrection::{
     READ_SURFACE_RESURRECTION_VALIDATOR, RESURRECTION_CODE,
     evaluate_masterplan_read_surface_resurrections,
+};
+pub use retirement_receipt::{
+    RETIREMENT_RECEIPT_CODE, RETIREMENT_RECEIPT_VALIDATOR,
+    evaluate_history_only_retirement_receipt, evaluate_history_only_retirement_receipt_coverage,
+    evaluate_history_only_retirement_receipt_with_decisions,
 };
 
 // Gate-coverage-gap advisory checks (born-advisory, enforce-no-regression vs a
@@ -167,7 +168,6 @@ const ENTRY_SURFACE_VALIDATOR: &str =
 const ENTRY_SURFACE_ALLOWLIST_REF: &str =
     "/specs/root-hub-pointers.json#agent_entry_surface_allowlist";
 const PROJECTION_CLASS_READ: &str = "read-projection";
-const READ_CONTRACT_ARCHIVED_TIMING_CLASS: &str = "provenance-archive";
 const READ_CONTRACT_ENTRY_TIMING_CLASS: &str = "entry-surface";
 const REQUIRED_PROGRAM_CLASSES: [&str; 8] = [
     "ontology",
@@ -199,12 +199,12 @@ const REQUIRED_OWNED_STACK_LADDER_RUNGS: [&str; 5] = [
 const MASTERPLAN_V2_REF: &str = "/specs/masterplan.json#masterplan_v2";
 const DISPOSITION_CANONICAL_AUTHORITY: &str = "canonical-authority";
 const DISPOSITION_ABSORBED: &str = "absorbed";
-const DISPOSITION_ARCHIVED_WITH_PROVENANCE: &str = "archived-with-provenance";
+const DISPOSITION_RETIRED_GIT_HISTORY_ONLY: &str = "retired-git-history-only";
 const DISPOSITION_GENERATED_PROJECTION: &str = "generated-projection";
 const ALLOWED_SURFACE_DISPOSITIONS: [&str; 4] = [
     DISPOSITION_CANONICAL_AUTHORITY,
     DISPOSITION_ABSORBED,
-    DISPOSITION_ARCHIVED_WITH_PROVENANCE,
+    DISPOSITION_RETIRED_GIT_HISTORY_ONLY,
     DISPOSITION_GENERATED_PROJECTION,
 ];
 const REQUIRED_SURFACE_DISPOSITIONS: [(&str, &str); 13] = [
@@ -223,20 +223,20 @@ const REQUIRED_SURFACE_DISPOSITIONS: [(&str, &str); 13] = [
         DISPOSITION_ABSORBED,
     ),
     ("docs/MASTERPLAN.md", DISPOSITION_GENERATED_PROJECTION),
-    ("docs/ROADMAP.md", DISPOSITION_ARCHIVED_WITH_PROVENANCE),
+    ("docs/ROADMAP.md", DISPOSITION_RETIRED_GIT_HISTORY_ONLY),
     (
         ".omc/ultragoal/goals.json",
-        DISPOSITION_ARCHIVED_WITH_PROVENANCE,
+        DISPOSITION_RETIRED_GIT_HISTORY_ONLY,
     ),
-    (".omc/**", DISPOSITION_ARCHIVED_WITH_PROVENANCE),
-    (".omx/**", DISPOSITION_ARCHIVED_WITH_PROVENANCE),
-    (".gjc/**", DISPOSITION_ARCHIVED_WITH_PROVENANCE),
-    ("~/.gjc/**", DISPOSITION_ARCHIVED_WITH_PROVENANCE),
-    ("~/.omx/**", DISPOSITION_ARCHIVED_WITH_PROVENANCE),
+    (".omc/**", DISPOSITION_RETIRED_GIT_HISTORY_ONLY),
+    (".omx/**", DISPOSITION_RETIRED_GIT_HISTORY_ONLY),
+    (".gjc/**", DISPOSITION_RETIRED_GIT_HISTORY_ONLY),
+    ("~/.gjc/**", DISPOSITION_RETIRED_GIT_HISTORY_ONLY),
+    ("~/.omx/**", DISPOSITION_RETIRED_GIT_HISTORY_ONLY),
 ];
 
 /// The blocking codes, in canonical order. The fixtures pin exact subsets.
-pub const VIOLATION_CODES: [&str; 23] = [
+pub const VIOLATION_CODES: [&str; 24] = [
     "orphan_decision",
     "unpropagated_decision",
     "status_disagreement",
@@ -260,6 +260,7 @@ pub const VIOLATION_CODES: [&str; 23] = [
     "masterplan_projection_stale",
     "masterplan_read_contract_invalid",
     "masterplan_entry_surface_invalid",
+    "history_only_retirement_receipt_invalid",
 ];
 
 /// The gate report.
@@ -487,7 +488,7 @@ pub fn evaluate_keyed(fixture: &Value) -> BTreeSet<Finding> {
             ));
         }
         if masterplan_read_contract_gate_present(fixture) {
-            findings.extend(evaluate_masterplan_v2_read_contract_archives(fixture));
+            findings.extend(evaluate_masterplan_v2_history_only_retirement(fixture));
         }
         if let Some(read_surface_corpus) = fixture.get("read_surface_corpus") {
             findings.extend(evaluate_masterplan_read_surface_resurrections(
@@ -782,14 +783,12 @@ fn masterplan_projection_freshness_present(masterplan: &Value) -> bool {
             .and_then(|v2| v2.get("read_contracts"))
             .is_some()
 }
-/// Evaluate the masterplan v2 read-contract archive guard.
+/// Evaluate the masterplan v2 history-only retirement guard.
 ///
-/// Stale read paths are the surfaces explicitly archived with provenance by the
-/// consolidation. Any surviving reference to such a path must be archive-only:
-/// a `read_contract`, projection freshness row, or explicit read-path reference
-/// that points at an archived path must carry `read_timing_class:
-/// provenance-archive`.
-pub fn evaluate_masterplan_v2_read_contract_archives(masterplan: &Value) -> BTreeSet<Finding> {
+/// A `retired-git-history-only` surface is absent from candidate HEAD and is
+/// recoverable only from its neutral Git object receipt. It may not appear in
+/// a read contract, projection-freshness row, or explicit read-path reference.
+pub fn evaluate_masterplan_v2_history_only_retirement(masterplan: &Value) -> BTreeSet<Finding> {
     let mut findings = BTreeSet::new();
 
     let Some(v2) = masterplan.get("masterplan_v2").and_then(Value::as_object) else {
@@ -800,20 +799,20 @@ pub fn evaluate_masterplan_v2_read_contract_archives(masterplan: &Value) -> BTre
         return findings;
     };
 
-    let archived_paths = archived_read_paths(v2.get("surface_dispositions"));
-    if archived_paths.is_empty() {
+    let retired_paths = history_only_retired_paths(v2.get("surface_dispositions"));
+    if retired_paths.is_empty() {
         return findings;
     }
 
-    evaluate_archived_read_contract_rows(v2.get("read_contracts"), &archived_paths, &mut findings);
-    evaluate_archived_projection_freshness_rows(
+    evaluate_retired_read_contract_rows(v2.get("read_contracts"), &retired_paths, &mut findings);
+    evaluate_retired_projection_freshness_rows(
         v2.get("projection_freshness"),
-        &archived_paths,
+        &retired_paths,
         &mut findings,
     );
-    evaluate_archived_explicit_read_path_references(
+    evaluate_retired_explicit_read_path_references(
         v2.get("read_path_references"),
-        &archived_paths,
+        &retired_paths,
         &mut findings,
     );
 
@@ -1109,14 +1108,14 @@ fn masterplan_read_contract_gate_present(masterplan: &Value) -> bool {
     })
 }
 
-fn archived_read_paths(surfaces: Option<&Value>) -> Vec<String> {
+fn history_only_retired_paths(surfaces: Option<&Value>) -> Vec<String> {
     let Some(surfaces) = surfaces.and_then(Value::as_array) else {
         return Vec::new();
     };
 
     let mut paths = BTreeSet::new();
     for surface in surfaces {
-        if non_empty_field(surface, "disposition") != Some(DISPOSITION_ARCHIVED_WITH_PROVENANCE) {
+        if non_empty_field(surface, "disposition") != Some(DISPOSITION_RETIRED_GIT_HISTORY_ONLY) {
             continue;
         }
         if let Some(path) = non_empty_field(surface, "path") {
@@ -1127,9 +1126,9 @@ fn archived_read_paths(surfaces: Option<&Value>) -> Vec<String> {
     paths.into_iter().collect()
 }
 
-fn evaluate_archived_read_contract_rows(
+fn evaluate_retired_read_contract_rows(
     read_contracts: Option<&Value>,
-    archived_paths: &[String],
+    retired_paths: &[String],
     findings: &mut BTreeSet<Finding>,
 ) {
     let Some(read_contracts) = read_contracts.and_then(Value::as_array) else {
@@ -1140,21 +1139,18 @@ fn evaluate_archived_read_contract_rows(
         let Some(path) = non_empty_field(contract, "path") else {
             continue;
         };
-        if read_path_is_archived(path, archived_paths)
-            && non_empty_field(contract, "read_timing_class")
-                != Some(READ_CONTRACT_ARCHIVED_TIMING_CLASS)
-        {
+        if read_path_is_retired(path, retired_paths) {
             findings.insert(Finding::new(
                 "masterplan_read_contract_invalid",
-                &format!("{path}.read_contract.read_timing_class"),
+                &format!("{path}.read_contract.forbidden"),
             ));
         }
     }
 }
 
-fn evaluate_archived_projection_freshness_rows(
+fn evaluate_retired_projection_freshness_rows(
     freshness: Option<&Value>,
-    archived_paths: &[String],
+    retired_paths: &[String],
     findings: &mut BTreeSet<Finding>,
 ) {
     let Some(rows) = freshness
@@ -1168,21 +1164,18 @@ fn evaluate_archived_projection_freshness_rows(
         let Some(path) = non_empty_field(row, "path") else {
             continue;
         };
-        if read_path_is_archived(path, archived_paths)
-            && non_empty_field(row, "read_timing_class")
-                != Some(READ_CONTRACT_ARCHIVED_TIMING_CLASS)
-        {
+        if read_path_is_retired(path, retired_paths) {
             findings.insert(Finding::new(
                 "masterplan_read_contract_invalid",
-                &format!("{path}.projection_freshness.read_timing_class"),
+                &format!("{path}.projection_freshness.forbidden"),
             ));
         }
     }
 }
 
-fn evaluate_archived_explicit_read_path_references(
+fn evaluate_retired_explicit_read_path_references(
     references: Option<&Value>,
-    archived_paths: &[String],
+    retired_paths: &[String],
     findings: &mut BTreeSet<Finding>,
 ) {
     let Some(references) = references.and_then(Value::as_array) else {
@@ -1195,34 +1188,29 @@ fn evaluate_archived_explicit_read_path_references(
         else {
             continue;
         };
-        let read_timing_class = non_empty_field(reference, "read_timing_class")
-            .or_else(|| non_empty_field(reference, "reference_timing_class"));
-
-        if read_path_is_archived(path, archived_paths)
-            && read_timing_class != Some(READ_CONTRACT_ARCHIVED_TIMING_CLASS)
-        {
+        if read_path_is_retired(path, retired_paths) {
             findings.insert(Finding::new(
                 "masterplan_read_contract_invalid",
-                &format!("{path}.read_path_references[{index}].read_timing_class"),
+                &format!("{path}.read_path_references[{index}].forbidden"),
             ));
         }
     }
 }
 
-fn read_path_is_archived(path: &str, archived_paths: &[String]) -> bool {
-    archived_paths
+fn read_path_is_retired(path: &str, retired_paths: &[String]) -> bool {
+    retired_paths
         .iter()
-        .any(|archived_path| archived_read_path_matches(path, archived_path))
+        .any(|retired_path| history_only_retired_path_matches(path, retired_path))
 }
 
-fn archived_read_path_matches(path: &str, archived_path: &str) -> bool {
+fn history_only_retired_path_matches(path: &str, retired_path: &str) -> bool {
     let path = normalize_read_path_for_match(path);
-    let archived_path = normalize_read_path_for_match(archived_path);
-    if path == archived_path {
+    let retired_path = normalize_read_path_for_match(retired_path);
+    if path == retired_path {
         return true;
     }
 
-    archived_path.strip_suffix("/**").is_some_and(|prefix| {
+    retired_path.strip_suffix("/**").is_some_and(|prefix| {
         path == prefix
             || path
                 .strip_prefix(prefix)
@@ -4596,7 +4584,7 @@ mod tests {
                 Some("docs/MASTERPLAN.md") => {
                     projection["source_of_truth"] = json!("/specs/master-plan-sequencing.json");
                 }
-                Some("docs/ROADMAP.md") => {
+                Some("/specs/master-plan-sequencing.json") => {
                     projection["live_work_item_ids_allowed"] = json!(true);
                 }
                 Some("docs/machine-readable/masterplan.generated.json") => {
@@ -4620,7 +4608,7 @@ mod tests {
         )));
         assert!(findings.contains(&Finding::new(
             "masterplan_projection_freshness_invalid",
-            "docs/ROADMAP.md.live_work_item_ids_allowed"
+            "/specs/master-plan-sequencing.json.live_work_item_ids_allowed"
         )));
         assert!(findings.contains(&Finding::new(
             "masterplan_projection_freshness_invalid",
@@ -4651,57 +4639,52 @@ mod tests {
         )));
     }
     #[test]
-    fn masterplan_v2_read_contract_archives_accept_archive_only_refs() {
-        let findings = evaluate_masterplan_v2_read_contract_archives(
+    fn masterplan_v2_history_only_retirement_accepts_no_read_refs() {
+        let findings = evaluate_masterplan_v2_history_only_retirement(
             &minimal_projection_freshness_masterplan(),
         );
         assert!(
             findings.is_empty(),
-            "archived stale read paths referenced only as provenance archives should be green: {findings:?}"
+            "history-only retired paths with no read references should be green: {findings:?}"
         );
     }
 
     #[test]
-    fn masterplan_v2_read_contract_archives_reject_non_archived_refs_to_stale_paths() {
-        let mut fixture = minimal_projection_freshness_masterplan();
+    fn history_only_retirement_rejects_every_read_surface_reference() {
+        let fixture = json!({
+            "masterplan_v2": {
+                "surface_dispositions": [{
+                    "path": "docs/ROADMAP.md",
+                    "disposition": "retired-git-history-only"
+                }],
+                "read_contracts": [{
+                    "path": "docs/ROADMAP.md",
+                    "read_timing_class": "provenance-archive"
+                }],
+                "projection_freshness": {
+                    "projections": [{
+                        "path": "docs/ROADMAP.md",
+                        "read_timing_class": "provenance-archive"
+                    }]
+                },
+                "read_path_references": [{
+                    "path": "docs/ROADMAP.md",
+                    "read_timing_class": "provenance-archive"
+                }]
+            }
+        });
 
-        for contract in fixture["masterplan_v2"]["read_contracts"]
-            .as_array_mut()
-            .unwrap()
-        {
-            if contract.get("path").and_then(Value::as_str) == Some("docs/ROADMAP.md") {
-                contract["read_timing_class"] = json!("on-demand");
-            }
+        let findings = evaluate_masterplan_v2_history_only_retirement(&fixture);
+        for key in [
+            "docs/ROADMAP.md.read_contract.forbidden",
+            "docs/ROADMAP.md.projection_freshness.forbidden",
+            "docs/ROADMAP.md.read_path_references[0].forbidden",
+        ] {
+            assert!(
+                findings.contains(&Finding::new("masterplan_read_contract_invalid", key)),
+                "history-only retirement must reject {key}: {findings:?}"
+            );
         }
-        for projection in fixture["masterplan_v2"]["projection_freshness"]["projections"]
-            .as_array_mut()
-            .unwrap()
-        {
-            if projection.get("path").and_then(Value::as_str) == Some("docs/ROADMAP.md") {
-                projection["read_timing_class"] = json!("on-demand");
-            }
-        }
-        fixture["masterplan_v2"]["read_path_references"] = json!([
-            {
-                "path": ".omc/ultragoal/goals.json",
-                "read_timing_class": "on-demand",
-                "source": "fixture stale runtime pointer"
-            }
-        ]);
-
-        let findings = evaluate_masterplan_v2_read_contract_archives(&fixture);
-        assert!(findings.contains(&Finding::new(
-            "masterplan_read_contract_invalid",
-            "docs/ROADMAP.md.read_contract.read_timing_class"
-        )));
-        assert!(findings.contains(&Finding::new(
-            "masterplan_read_contract_invalid",
-            "docs/ROADMAP.md.projection_freshness.read_timing_class"
-        )));
-        assert!(findings.contains(&Finding::new(
-            "masterplan_read_contract_invalid",
-            ".omc/ultragoal/goals.json.read_path_references[0].read_timing_class"
-        )));
     }
 
     #[test]
@@ -5391,11 +5374,6 @@ mod tests {
                 "compatibility projection only; conflicts resolve to /specs/masterplan.json"
             ),
             read_contract(
-                "docs/ROADMAP.md",
-                "provenance-archive",
-                "archived historical roadmap; conflicts resolve to /specs/masterplan.json"
-            ),
-            read_contract(
                 "docs/machine-readable/board-sync.generated.json",
                 "on-demand",
                 "generated planning projection; regenerate from /specs/masterplan.json through the projection freshness gate"
@@ -5413,7 +5391,6 @@ mod tests {
             "projections": [
                 projection_row("/specs/master-plan-sequencing.json", PROJECTION_CLASS_READ, "provenance-archive", "read only as absorbed provenance; live sequencing is derived from masterplan_v2.dependency_edges"),
                 projection_row("docs/MASTERPLAN.md", DISPOSITION_GENERATED_PROJECTION, "on-demand", "compatibility projection only; conflicts resolve to /specs/masterplan.json"),
-                projection_row("docs/ROADMAP.md", PROJECTION_CLASS_READ, "provenance-archive", "archived historical roadmap; conflicts resolve to /specs/masterplan.json"),
                 projection_row("docs/machine-readable/board-sync.generated.json", DISPOSITION_GENERATED_PROJECTION, "on-demand", "generated planning projection; regenerate from /specs/masterplan.json through the projection freshness gate"),
                 projection_row("docs/machine-readable/masterplan.generated.json", DISPOSITION_GENERATED_PROJECTION, "on-demand", "generated planning projection; regenerate from /specs/masterplan.json through the projection freshness gate")
             ]

@@ -72,9 +72,8 @@ fn unquote_git_path(raw: &str) -> String {
 
 /// Build the `{ "rows": [{"path": ...}] }` observed inventory from the committed scm-facts snapshot.
 fn observed_from_scm_facts(root: &Path) -> Value {
-    let scm = load_json(&root.join(
-        "ci/facade/artifact-inventory-registry/scm-facts.generated.json",
-    ));
+    let scm =
+        load_json(&root.join("ci/facade/artifact-inventory-registry/scm-facts.generated.json"));
     let paths = scm["tracked_paths"]
         .as_array()
         .expect("scm-facts.generated.json must carry a tracked_paths array");
@@ -175,6 +174,27 @@ fn synthetic_tracked_runtime_state_paths_are_born_blocking_red() {
         );
     }
     assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Red);
+}
+
+#[test]
+fn retired_ultragoal_surfaces_are_born_blocking_against_the_live_policy() {
+    let root = repo_root();
+    let policy = load_policy(&root);
+    for path in [
+        ".omc/ultragoal/OWNERS",
+        ".omc/ultragoal/TEAMMATE-PREAMBLE.md",
+        ".omc/ultragoal/friction-ledger.jsonl",
+        ".omc/ultragoal/premise.txt",
+    ] {
+        let findings = evaluate_keyed(&policy, &json!({ "rows": [{ "path": path }] }));
+        assert!(
+            findings.iter().any(|finding| {
+                finding.code == "root_workspace_restricted_dir_unallowlisted_path"
+                    && finding.key == path
+            }),
+            "{path} must stay retired from candidate HEAD; got {findings:#?}"
+        );
+    }
 }
 
 /// The exact root scratch this PR removes must each fail the live allowlist (regression guard:
