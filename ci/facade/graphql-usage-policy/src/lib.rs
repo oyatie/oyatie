@@ -506,7 +506,8 @@ fn adr_file_reverses_forbidding(
 
 /// Pure predicate: does an ADR document `body` carry frontmatter `status: Accepted` (case-insensitive)
 /// AND list `forbidding` in its frontmatter `supersedes:`, `amends:`, or `reverses:` field (parsed as
-/// a YAML list-or-scalar)? The reversal is required STRUCTURALLY in the frontmatter — a body-anywhere
+/// a YAML list-or-scalar)? This is intentionally stricter than generic decision liveness: an in-place
+/// `Amended` ADR does not newly authorize GraphQL. The reversal is required STRUCTURALLY in the frontmatter — a body-anywhere
 /// mention of the forbidding id (in `related:`, in prose, or in a phrase like "has not been
 /// superseded") does NOT satisfy the requirement. This prevents an attacker from citing the forbidding
 /// ADR in an unrelated field and claiming the reversal was present. Exposed for unit tests.
@@ -521,6 +522,7 @@ pub fn adr_is_accepted_and_reverses(body: &str, forbidding: &str) -> bool {
 /// `reverses:` field whose value (list-or-scalar) includes `forbidding`. Accepts both:
 /// - Inline scalar:  `supersedes: ADR-0565`
 /// - YAML list item: `supersedes:\n  - ADR-0565`
+///
 /// Values are compared case-sensitively (canonical `ADR-NNNN` form). A match in `related:` or
 /// any other frontmatter field does NOT satisfy the requirement.
 fn adr_frontmatter_reverses(body: &str, forbidding: &str) -> bool {
@@ -1661,6 +1663,11 @@ version = "7.0.0"
         // A Proposed ADR does not launder even if it claims to reverse the ban.
         assert!(!adr_is_accepted_and_reverses(
             "---\nid: ADR-0700\nstatus: Proposed\n---\nThis ADR reverses ADR-0565.\n",
+            "ADR-0565"
+        ));
+        // An in-place amendment remains live for planning, but cannot newly authorize GraphQL.
+        assert!(!adr_is_accepted_and_reverses(
+            "---\nid: ADR-0700\nstatus: Amended\nsupersedes:\n  - ADR-0565\n---\n",
             "ADR-0565"
         ));
         // An Accepted ADR that does not mention the forbidding id does not launder.
