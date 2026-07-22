@@ -72,15 +72,16 @@ const FACT_FIELDS: &[&str] = &[
     "artifact_id",
     "receipt_path",
     "protected_base_ref",
-    "receipt_epoch",
+    "receipt_state",
     "scope_ref",
     "scope_type",
     "baseline_commit_oid",
     "baseline_tree_oid",
-    "baseline_is_ancestor_of_current_epoch",
+    "protected_baseline_is_ancestor_of_candidate",
     "protected_receipt_blob_oid",
     "candidate_receipt_blob_oid",
-    "protected_registry_binding_preserved",
+    "protected_registry_row_sha256",
+    "candidate_registry_row_sha256",
     "retired_inputs",
 ];
 const FACT_INPUT_FIELDS: &[&str] = &[
@@ -88,13 +89,23 @@ const FACT_INPUT_FIELDS: &[&str] = &[
     "predecessor_blob_oid",
     "sha256",
     "byte_count",
+    "protected_path_exists",
+    "protected_path_kind",
+    "protected_blob_oid",
+    "protected_sha256",
+    "protected_byte_count",
+    "protected_mode",
     "candidate_path_exists",
+    "candidate_path_kind",
+    "candidate_blob_oid",
+    "candidate_sha256",
+    "candidate_byte_count",
+    "candidate_mode",
     "candidate_new_equivalent_paths",
+    "candidate_equivalent_paths",
 ];
 const COVERAGE_FIELDS: &[&str] = &[
     "protected_base_ref",
-    "current_epoch_commit_oid",
-    "current_epoch_tree_oid",
     "protected_receipt_paths",
     "candidate_receipt_paths",
     "carried_receipt_paths",
@@ -310,8 +321,45 @@ pub fn evaluate_history_only_retirement_receipt(
     if fact.get("protected_base_ref").and_then(Value::as_str) != Some("origin/dev") {
         fail(&mut findings, "object_fact.protected_base_ref");
     }
-    for key in ["protected_receipt_blob_oid", "candidate_receipt_blob_oid"] {
-        let _ = oid(fact, key, &format!("object_fact.{key}"), &mut findings);
+    let state = fact.get("receipt_state").and_then(Value::as_str);
+    if !matches!(state, Some("prepared-new" | "carried" | "closed-carried")) {
+        fail(&mut findings, "object_fact.receipt_state");
+    }
+    let _ = oid(
+        fact,
+        "candidate_receipt_blob_oid",
+        "object_fact.candidate_receipt_blob_oid",
+        &mut findings,
+    );
+    if !sha256(
+        fact.get("candidate_registry_row_sha256")
+            .and_then(Value::as_str),
+    ) {
+        fail(&mut findings, "object_fact.candidate_registry_row_sha256");
+    }
+    if state == Some("prepared-new") {
+        if !fact
+            .get("protected_receipt_blob_oid")
+            .is_some_and(Value::is_null)
+            || !fact
+                .get("protected_registry_row_sha256")
+                .is_some_and(Value::is_null)
+        {
+            fail(&mut findings, "prepared_new_protected_absent");
+        }
+    } else {
+        let _ = oid(
+            fact,
+            "protected_receipt_blob_oid",
+            "object_fact.protected_receipt_blob_oid",
+            &mut findings,
+        );
+        if !sha256(
+            fact.get("protected_registry_row_sha256")
+                .and_then(Value::as_str),
+        ) {
+            fail(&mut findings, "object_fact.protected_registry_row_sha256");
+        }
     }
     if fact.get("artifact_id") != receipt.get("artifact_id") {
         fail(&mut findings, "object_fact.artifact_id");
@@ -327,26 +375,20 @@ pub fn evaluate_history_only_retirement_receipt(
         fail(&mut findings, "object_fact.baseline");
     }
     if fact
-        .get("baseline_is_ancestor_of_current_epoch")
+        .get("protected_baseline_is_ancestor_of_candidate")
         .and_then(Value::as_bool)
         != Some(true)
-        || fact
-            .get("protected_registry_binding_preserved")
-            .and_then(Value::as_bool)
-            != Some(true)
     {
         fail(&mut findings, "object_fact.protected_binding");
     }
-    if fact
-        .get("protected_receipt_blob_oid")
-        .and_then(Value::as_str)
-        != fact
-            .get("candidate_receipt_blob_oid")
-            .and_then(Value::as_str)
+    if matches!(state, Some("carried" | "closed-carried"))
+        && (fact.get("protected_receipt_blob_oid") != fact.get("candidate_receipt_blob_oid")
+            || fact.get("protected_registry_row_sha256")
+                != fact.get("candidate_registry_row_sha256"))
     {
-        fail(&mut findings, "object_fact.receipt_blob_binding");
+        fail(&mut findings, "object_fact.immutable_carried_binding");
     }
-    validate_inputs(receipt, fact, &mut findings);
+    validate_inputs(receipt, fact, state, &mut findings);
     findings
 }
 
@@ -433,35 +475,20 @@ pub fn evaluate_history_only_retirement_receipt_coverage(
         "carried_receipt_paths",
         &mut findings,
     );
-    let new = path_set(
+    let prepared = path_set(
         coverage.get("new_receipt_paths"),
         "new_receipt_paths",
         &mut findings,
     );
-    if protected.is_empty()
-        || candidate.is_empty()
-        || carried.is_empty()
-        || new.is_empty()
+    if candidate.is_empty()
         || protected != carried
         || !carried.is_subset(&candidate)
-        || !new.is_disjoint(&carried)
-        || candidate != carried.union(&new).cloned().collect()
-        || protected.intersection(&new).next().is_some()
+        || !prepared.is_disjoint(&carried)
+        || candidate != carried.union(&prepared).cloned().collect()
+        || protected.intersection(&prepared).next().is_some()
     {
         fail(&mut findings, "receipt_path_partition");
     }
-    let current_commit = oid(
-        coverage,
-        "current_epoch_commit_oid",
-        "current_epoch_commit_oid",
-        &mut findings,
-    );
-    let current_tree = oid(
-        coverage,
-        "current_epoch_tree_oid",
-        "current_epoch_tree_oid",
-        &mut findings,
-    );
     let required = validate_scopes(coverage, &mut findings);
     if required.is_empty() {
         fail(&mut findings, "retirement_receipt_coverage.scopes.empty");
@@ -507,7 +534,7 @@ pub fn evaluate_history_only_retirement_receipt_coverage(
         fail(&mut findings, "object_fact_path_set");
     }
     let mut carried_covered: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
-    let mut new_covered: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    let mut prepared_covered: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
     let receipt_artifacts = receipts
         .iter()
         .filter_map(|receipt| receipt.get("artifact_id").and_then(Value::as_str))
@@ -528,18 +555,9 @@ pub fn evaluate_history_only_retirement_receipt_coverage(
             continue;
         };
         let path = fact.get("receipt_path").and_then(Value::as_str);
-        let epoch = fact.get("receipt_epoch").and_then(Value::as_str);
-        match (path, epoch) {
-            (Some(path), Some("carried")) if carried.contains(path) => {
-                if fact
-                    .get("protected_registry_binding_preserved")
-                    .and_then(Value::as_bool)
-                    != Some(true)
-                    || fact.get("protected_receipt_blob_oid")
-                        != fact.get("candidate_receipt_blob_oid")
-                {
-                    fail(&mut findings, "carried_protected_binding");
-                }
+        let state = fact.get("receipt_state").and_then(Value::as_str);
+        match (path, state) {
+            (Some(path), Some("carried" | "closed-carried")) if carried.contains(path) => {
                 if fact.get("protected_base_ref") != coverage.get("protected_base_ref")
                     || fact.get("scope_ref") != receipt.get("scope_ref")
                     || fact.get("scope_type").and_then(Value::as_str)
@@ -549,8 +567,6 @@ pub fn evaluate_history_only_retirement_receipt_coverage(
                             .and_then(scope_type)
                     || fact.get("baseline_commit_oid") != receipt.pointer("/baseline/commit_oid")
                     || fact.get("baseline_tree_oid") != receipt.pointer("/baseline/tree_oid")
-                    || (fact.get("baseline_commit_oid") == coverage.get("current_epoch_commit_oid")
-                        && fact.get("baseline_tree_oid") == coverage.get("current_epoch_tree_oid"))
                 {
                     fail(&mut findings, "carried_immutable_baseline_binding");
                 }
@@ -563,23 +579,12 @@ pub fn evaluate_history_only_retirement_receipt_coverage(
                     .or_default()
                     .extend(input_paths(receipt, &mut findings));
             }
-            (Some(path), Some("new")) if new.contains(path) => {
-                if receipt
-                    .pointer("/baseline/commit_oid")
-                    .and_then(Value::as_str)
-                    != current_commit.as_deref()
-                    || receipt
-                        .pointer("/baseline/tree_oid")
-                        .and_then(Value::as_str)
-                        != current_tree.as_deref()
-                {
-                    fail(&mut findings, "new_current_epoch_binding");
-                }
+            (Some(path), Some("prepared-new")) if prepared.contains(path) => {
                 let scope = receipt
                     .get("scope_ref")
                     .and_then(Value::as_str)
                     .unwrap_or("");
-                new_covered
+                prepared_covered
                     .entry(scope.to_owned())
                     .or_default()
                     .extend(input_paths(receipt, &mut findings));
@@ -592,15 +597,21 @@ pub fn evaluate_history_only_retirement_receipt_coverage(
         if !carried_paths.is_empty() && carried_paths != expected.0 {
             fail(&mut findings, &format!("carried_scope_coverage.{scope}"));
         }
-        let new_paths = new_covered.get(&scope).cloned().unwrap_or_default();
-        if (carried_paths.is_empty() || !new_paths.is_empty()) && new_paths != expected.1 {
-            fail(&mut findings, &format!("new_scope_coverage.{scope}"));
+        let prepared_paths = prepared_covered.get(&scope).cloned().unwrap_or_default();
+        if (carried_paths.is_empty() || !prepared_paths.is_empty()) && prepared_paths != expected.0
+        {
+            fail(&mut findings, &format!("prepared_scope_coverage.{scope}"));
         }
     }
     findings
 }
 
-fn validate_inputs(receipt: &Value, fact: &Value, findings: &mut BTreeSet<Finding>) {
+fn validate_inputs(
+    receipt: &Value,
+    fact: &Value,
+    state: Option<&str>,
+    findings: &mut BTreeSet<Finding>,
+) {
     let Some(inputs) = receipt.get("retired_inputs").and_then(Value::as_array) else {
         fail(findings, "retired_inputs");
         return;
@@ -666,16 +677,68 @@ fn validate_inputs(receipt: &Value, fact: &Value, findings: &mut BTreeSet<Findin
                 fail(findings, &format!("retired_inputs[{index}].{key}_mismatch"));
             }
         }
-        if fact_input
-            .get("candidate_path_exists")
+        let protected_matches = fact_input
+            .get("protected_path_exists")
             .and_then(Value::as_bool)
-            != Some(false)
-            || !path_set(
-                fact_input.get("candidate_new_equivalent_paths"),
-                "candidate_new_equivalent_paths",
+            == Some(true)
+            && fact_input
+                .get("protected_path_kind")
+                .and_then(Value::as_str)
+                == Some("regular")
+            && fact_input.get("protected_blob_oid") == input.get("predecessor_blob_oid")
+            && fact_input.get("protected_sha256") == input.get("sha256")
+            && fact_input.get("protected_byte_count") == input.get("byte_count")
+            && fact_input.get("protected_mode").and_then(Value::as_str) == Some("100644");
+        if !protected_matches {
+            fail(
+                findings,
+                &format!("retired_inputs[{index}].protected_body_binding"),
+            );
+        }
+        let no_equivalent_copy = path_set(
+            fact_input.get("candidate_new_equivalent_paths"),
+            "candidate_new_equivalent_paths",
+            findings,
+        )
+        .is_empty()
+            && path_set(
+                fact_input.get("candidate_equivalent_paths"),
+                "candidate_equivalent_paths",
                 findings,
             )
-            .is_empty()
+            .is_empty();
+        let candidate_matches = fact_input
+            .get("candidate_path_exists")
+            .and_then(Value::as_bool)
+            == Some(true)
+            && fact_input
+                .get("candidate_path_kind")
+                .and_then(Value::as_str)
+                == Some("regular")
+            && fact_input.get("candidate_blob_oid") == input.get("predecessor_blob_oid")
+            && fact_input.get("candidate_sha256") == input.get("sha256")
+            && fact_input.get("candidate_byte_count") == input.get("byte_count")
+            && fact_input.get("candidate_mode").and_then(Value::as_str) == Some("100644");
+        let candidate_absent = fact_input
+            .get("candidate_path_exists")
+            .and_then(Value::as_bool)
+            == Some(false)
+            && fact_input
+                .get("candidate_path_kind")
+                .is_some_and(Value::is_null)
+            && fact_input
+                .get("candidate_blob_oid")
+                .is_some_and(Value::is_null)
+            && fact_input
+                .get("candidate_sha256")
+                .is_some_and(Value::is_null)
+            && fact_input
+                .get("candidate_byte_count")
+                .is_some_and(Value::is_null)
+            && fact_input.get("candidate_mode").is_some_and(Value::is_null);
+        if !no_equivalent_copy
+            || (state == Some("prepared-new") && !candidate_matches)
+            || (matches!(state, Some("carried" | "closed-carried")) && !candidate_absent)
         {
             fail(
                 findings,
@@ -753,7 +816,6 @@ fn validate_scopes(
                 || !p
                     .union(&c)
                     .all(|path| selector_matches(kind, selector_value, path))
-                || !s.is_empty()
                 || !n.is_empty()
             {
                 fail(findings, &format!("scopes[{i}].selectors[{j}]"));
@@ -766,8 +828,11 @@ fn validate_scopes(
             "required_retired_paths",
             findings,
         );
-        if declared != removed {
+        if declared != protected {
             fail(findings, &format!("scopes[{i}].required_retired_paths"));
+        }
+        if !union.is_disjoint(&declared) {
+            fail(findings, "scope_retired_path_overlap");
         }
         union.extend(declared);
         result.insert(reference.to_owned(), (protected, removed));
@@ -860,6 +925,9 @@ fn valid_reference(value: &str) -> bool {
 fn scope_type(scope: &str) -> Option<&'static str> {
     match scope {
         "artifact:masterplan" => Some("masterplan-retired-surfaces"),
+        // ADR-0363 is the existing amended retirement authority; this remains
+        // distinct from ADR-0388's transient-idea scope.
+        "ADR-0363" => Some("amended-agentic-vcs-retirement"),
         "ADR-0388" => Some("transient-ideas"),
         _ => None,
     }
@@ -979,26 +1047,35 @@ mod tests {
         id: &str,
         receipt_path: &str,
         scope: &str,
-        epoch: &str,
+        state: &str,
         commit: &str,
         tree: &str,
+        path: &str,
     ) -> Value {
-        json!({"artifact_id":id,"receipt_path":receipt_path,"protected_base_ref":"origin/dev","receipt_epoch":epoch,"scope_ref":scope,"scope_type":scope_type(scope).unwrap(),"baseline_commit_oid":commit,"baseline_tree_oid":tree,"baseline_is_ancestor_of_current_epoch":true,"protected_receipt_blob_oid":BLOB,"candidate_receipt_blob_oid":BLOB,"protected_registry_binding_preserved":true,"retired_inputs":[{"path":"docs/old.md","predecessor_blob_oid":BLOB,"sha256":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","byte_count":1,"candidate_path_exists":false,"candidate_new_equivalent_paths":[]} ]})
+        let prepared = state == "prepared-new";
+        json!({"artifact_id":id,"receipt_path":receipt_path,"protected_base_ref":"origin/dev","receipt_state":state,"scope_ref":scope,"scope_type":scope_type(scope).unwrap(),"baseline_commit_oid":commit,"baseline_tree_oid":tree,"protected_baseline_is_ancestor_of_candidate":true,"protected_receipt_blob_oid":if prepared { Value::Null } else { json!(BLOB) },"candidate_receipt_blob_oid":BLOB,"protected_registry_row_sha256":if prepared { Value::Null } else { json!("sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa") },"candidate_registry_row_sha256":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","retired_inputs":[{"path":path,"predecessor_blob_oid":BLOB,"sha256":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","byte_count":1,"protected_path_exists":true,"protected_path_kind":"regular","protected_blob_oid":BLOB,"protected_sha256":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","protected_byte_count":1,"protected_mode":"100644","candidate_path_exists":prepared,"candidate_path_kind":if prepared { json!("regular") } else { Value::Null },"candidate_blob_oid":if prepared { json!(BLOB) } else { Value::Null },"candidate_sha256":if prepared { json!("sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa") } else { Value::Null },"candidate_byte_count":if prepared { json!(1) } else { Value::Null },"candidate_mode":if prepared { json!("100644") } else { Value::Null },"candidate_new_equivalent_paths":[],"candidate_equivalent_paths":[]} ]})
     }
     #[test]
     fn carried_protected_idea_and_new_repository_authority_receipt_are_independently_admitted() {
         let idea_path = "evidence/ideas-receipt.json";
         let repo_path = "evidence/repository-receipt.json";
-        let idea = receipt("idea-receipt", "ADR-0388", OLD, OLD_TREE, "docs/old.md");
+        let idea = receipt(
+            "idea-receipt",
+            "ADR-0388",
+            OLD,
+            OLD_TREE,
+            "docs/idea-old.md",
+        );
         let repo = receipt(
             "repository-receipt",
             "artifact:masterplan",
-            NEW,
-            NEW_TREE,
-            "docs/old.md",
+            OLD,
+            OLD_TREE,
+            "docs/masterplan-old.md",
         );
-        let selector = json!({"selector_type":"exact","selector":"docs/old.md","protected_paths":["docs/old.md"],"candidate_paths":[],"removed_paths":["docs/old.md"],"surviving_paths":[],"candidate_only_paths":[],"external_assertion":"not-applicable"});
-        let facts = json!({"retirement_receipt_coverage":{"protected_base_ref":"origin/dev","current_epoch_commit_oid":NEW,"current_epoch_tree_oid":NEW_TREE,"protected_receipt_paths":[idea_path],"candidate_receipt_paths":[idea_path,repo_path],"carried_receipt_paths":[idea_path],"new_receipt_paths":[repo_path],"scopes":[{"scope_ref":"ADR-0388","scope_type":"transient-ideas","selectors":[selector.clone()],"required_retired_paths":["docs/old.md"]},{"scope_ref":"artifact:masterplan","scope_type":"masterplan-retired-surfaces","selectors":[selector],"required_retired_paths":["docs/old.md"]}],"required_retired_paths":["docs/old.md"]},"retirement_receipt_object_facts":[fact("idea-receipt",idea_path,"ADR-0388","carried",OLD,OLD_TREE),fact("repository-receipt",repo_path,"artifact:masterplan","new",NEW,NEW_TREE)]});
+        let idea_selector = json!({"selector_type":"exact","selector":"docs/idea-old.md","protected_paths":["docs/idea-old.md"],"candidate_paths":[],"removed_paths":["docs/idea-old.md"],"surviving_paths":[],"candidate_only_paths":[],"external_assertion":"not-applicable"});
+        let repo_selector = json!({"selector_type":"exact","selector":"docs/masterplan-old.md","protected_paths":["docs/masterplan-old.md"],"candidate_paths":["docs/masterplan-old.md"],"removed_paths":[],"surviving_paths":["docs/masterplan-old.md"],"candidate_only_paths":[],"external_assertion":"not-applicable"});
+        let facts = json!({"retirement_receipt_coverage":{"protected_base_ref":"origin/dev","protected_receipt_paths":[idea_path],"candidate_receipt_paths":[idea_path,repo_path],"carried_receipt_paths":[idea_path],"new_receipt_paths":[repo_path],"scopes":[{"scope_ref":"ADR-0388","scope_type":"transient-ideas","selectors":[idea_selector],"required_retired_paths":["docs/idea-old.md"]},{"scope_ref":"artifact:masterplan","scope_type":"masterplan-retired-surfaces","selectors":[repo_selector],"required_retired_paths":["docs/masterplan-old.md"]}],"required_retired_paths":["docs/idea-old.md","docs/masterplan-old.md"]},"retirement_receipt_object_facts":[fact("idea-receipt",idea_path,"ADR-0388","carried",OLD,OLD_TREE,"docs/idea-old.md"),fact("repository-receipt",repo_path,"artifact:masterplan","prepared-new",OLD,OLD_TREE,"docs/masterplan-old.md")]});
         let findings = evaluate_history_only_retirement_receipt_coverage(
             &[idea.clone(), repo.clone()],
             &facts,
@@ -1009,7 +1086,8 @@ mod tests {
             {"receipt_path":idea_path,"receipt":idea},
             {"receipt_path":repo_path,"receipt":repo}
         ],"scm_facts":facts});
-        assert!(evaluate_history_only_retirement_receipts(&corpus).is_empty());
+        let corpus_findings = evaluate_history_only_retirement_receipts(&corpus);
+        assert!(corpus_findings.is_empty(), "{corpus_findings:?}");
 
         let decisions = json!([{"id":"ADR-0388","status":"Accepted","in_spec":true,"in_masterplan":true,"in_roadmap":true,"supersedes":[],"superseded_by":[]}]);
         let baseline_crosswalk = json!({"decisions": decisions});
@@ -1024,10 +1102,8 @@ mod tests {
         );
 
         let mut rebound = corpus;
-        rebound["scm_facts"]["retirement_receipt_object_facts"][0]["baseline_commit_oid"] =
-            json!(NEW);
-        rebound["scm_facts"]["retirement_receipt_object_facts"][0]["baseline_tree_oid"] =
-            json!(NEW_TREE);
+        rebound["scm_facts"]["retirement_receipt_object_facts"][0]["candidate_registry_row_sha256"] =
+            json!("sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
         assert!(
             evaluate_history_only_retirement_receipts(&rebound)
                 .iter()
@@ -1038,7 +1114,7 @@ mod tests {
     fn content_and_candidate_equivalent_copies_fail_closed() {
         let mut receipt = receipt("idea-receipt", "ADR-0388", OLD, OLD_TREE, "docs/old.md");
         receipt["retired_inputs"][0]["content"] = json!("forbidden");
-        let mut facts = json!({"retirement_receipt_object_facts":[fact("idea-receipt","evidence/ideas-receipt.json","ADR-0388","new",OLD,OLD_TREE)]});
+        let mut facts = json!({"retirement_receipt_object_facts":[fact("idea-receipt","evidence/ideas-receipt.json","ADR-0388","carried",OLD,OLD_TREE,"docs/old.md")]});
         facts["retirement_receipt_object_facts"][0]["retired_inputs"][0]["candidate_new_equivalent_paths"] =
             json!(["docs/copy.md"]);
         assert!(
@@ -1052,6 +1128,151 @@ mod tests {
     }
 
     #[test]
+    fn declared_state_facts_reject_false_green_mutations() {
+        // 13 prepared-new mutations plus 6 for each carried epoch: 25 false-green
+        // regressions over declared facts, with no fixture elevated to authority.
+        let receipt = receipt("state-receipt", "ADR-0363", OLD, OLD_TREE, "docs/old.md");
+        let prepared = fact(
+            "state-receipt",
+            "evidence/state-receipt.json",
+            "ADR-0363",
+            "prepared-new",
+            OLD,
+            OLD_TREE,
+            "docs/old.md",
+        );
+        assert!(
+            evaluate_history_only_retirement_receipt(
+                "evidence/state-receipt.json",
+                &receipt,
+                &json!({"retirement_receipt_object_facts":[prepared.clone()]})
+            )
+            .is_empty()
+        );
+
+        for (pointer, value) in [
+            ("/protected_receipt_blob_oid", json!(BLOB)),
+            (
+                "/protected_registry_row_sha256",
+                json!("sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
+            ),
+            ("/retired_inputs/0/protected_path_kind", json!("symlink")),
+            ("/retired_inputs/0/protected_blob_oid", json!(NEW)),
+            ("/retired_inputs/0/protected_mode", json!("160000")),
+            ("/retired_inputs/0/candidate_path_exists", json!(false)),
+            ("/retired_inputs/0/candidate_path_kind", json!("symlink")),
+            ("/retired_inputs/0/candidate_blob_oid", json!(NEW)),
+            (
+                "/retired_inputs/0/candidate_sha256",
+                json!("sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"),
+            ),
+            ("/retired_inputs/0/candidate_byte_count", json!(2)),
+            ("/retired_inputs/0/candidate_mode", json!("120000")),
+            (
+                "/retired_inputs/0/candidate_new_equivalent_paths",
+                json!(["docs/renamed.md"]),
+            ),
+            (
+                "/retired_inputs/0/candidate_equivalent_paths",
+                json!(["docs/pre-existing-copy.md"]),
+            ),
+        ] {
+            let mut mutated = prepared.clone();
+            *mutated.pointer_mut(pointer).expect("test fixture path") = value;
+            assert!(
+                !evaluate_history_only_retirement_receipt(
+                    "evidence/state-receipt.json",
+                    &receipt,
+                    &json!({"retirement_receipt_object_facts":[mutated]})
+                )
+                .is_empty(),
+                "prepared-new mutation {pointer} was accepted"
+            );
+        }
+
+        for state in ["carried", "closed-carried"] {
+            let carried = fact(
+                "state-receipt",
+                "evidence/state-receipt.json",
+                "ADR-0363",
+                state,
+                OLD,
+                OLD_TREE,
+                "docs/old.md",
+            );
+            assert!(
+                evaluate_history_only_retirement_receipt(
+                    "evidence/state-receipt.json",
+                    &receipt,
+                    &json!({"retirement_receipt_object_facts":[carried.clone()]})
+                )
+                .is_empty()
+            );
+            for (pointer, value) in [
+                ("/protected_receipt_blob_oid", json!(NEW)),
+                (
+                    "/protected_registry_row_sha256",
+                    json!(
+                        "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                    ),
+                ),
+                ("/protected_baseline_is_ancestor_of_candidate", json!(false)),
+                ("/retired_inputs/0/candidate_path_exists", json!(true)),
+                ("/retired_inputs/0/candidate_path_kind", json!("regular")),
+                (
+                    "/retired_inputs/0/candidate_equivalent_paths",
+                    json!(["docs/resurrected.md"]),
+                ),
+            ] {
+                let mut mutated = carried.clone();
+                *mutated.pointer_mut(pointer).expect("test fixture path") = value;
+                assert!(
+                    !evaluate_history_only_retirement_receipt(
+                        "evidence/state-receipt.json",
+                        &receipt,
+                        &json!({"retirement_receipt_object_facts":[mutated]})
+                    )
+                    .is_empty(),
+                    "{state} mutation {pointer} was accepted"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn carry_only_coverage_allows_no_prepared_receipts_and_rejects_scope_contamination() {
+        let carry_receipt = receipt("carry-only", "ADR-0363", OLD, OLD_TREE, "docs/old.md");
+        let receipt_path = "evidence/carry-only.json";
+        let selector = json!({"selector_type":"exact","selector":"docs/old.md","protected_paths":["docs/old.md"],"candidate_paths":[],"removed_paths":["docs/old.md"],"surviving_paths":[],"candidate_only_paths":[],"external_assertion":"not-applicable"});
+        let facts = json!({"retirement_receipt_coverage":{"protected_base_ref":"origin/dev","protected_receipt_paths":[receipt_path],"candidate_receipt_paths":[receipt_path],"carried_receipt_paths":[receipt_path],"new_receipt_paths":[],"scopes":[{"scope_ref":"ADR-0363","scope_type":"amended-agentic-vcs-retirement","selectors":[selector.clone()],"required_retired_paths":["docs/old.md"]}],"required_retired_paths":["docs/old.md"]},"retirement_receipt_object_facts":[fact("carry-only",receipt_path,"ADR-0363","closed-carried",OLD,OLD_TREE,"docs/old.md")]});
+        assert!(
+            evaluate_history_only_retirement_receipt_coverage(&[carry_receipt], &facts).is_empty()
+        );
+
+        let mut contaminated = facts;
+        contaminated["retirement_receipt_coverage"]["scopes"] = json!([
+            {"scope_ref":"ADR-0363","scope_type":"amended-agentic-vcs-retirement","selectors":[selector.clone()],"required_retired_paths":["docs/old.md"]},
+            {"scope_ref":"ADR-0388","scope_type":"transient-ideas","selectors":[selector],"required_retired_paths":["docs/old.md"]}
+        ]);
+        assert!(
+            evaluate_history_only_retirement_receipt_coverage(
+                &[receipt(
+                    "carry-only",
+                    "ADR-0363",
+                    OLD,
+                    OLD_TREE,
+                    "docs/old.md"
+                )],
+                &contaminated
+            )
+            .contains(&Finding::new(
+                RETIREMENT_RECEIPT_CODE,
+                "scope_retired_path_overlap"
+            ))
+        );
+    }
+
+    #[test]
     fn empty_contract_and_malformed_protected_bindings_fail_closed() {
         let empty = json!({"receipts":[],"scm_facts":{"retirement_receipt_coverage":{"protected_base_ref":"origin/dev","current_epoch_commit_oid":NEW,"current_epoch_tree_oid":NEW_TREE,"protected_receipt_paths":[],"candidate_receipt_paths":[],"carried_receipt_paths":[],"new_receipt_paths":[],"scopes":[],"required_retired_paths":[]},"retirement_receipt_object_facts":[]}});
         let findings = evaluate_history_only_retirement_receipts(&empty);
@@ -1061,7 +1282,7 @@ mod tests {
         )));
 
         let receipt = receipt("idea-receipt", "ADR-0388", OLD, OLD_TREE, "docs/old.md");
-        let mut facts = json!({"retirement_receipt_object_facts":[fact("idea-receipt","evidence/ideas-receipt.json","ADR-0388","new",OLD,OLD_TREE)]});
+        let mut facts = json!({"retirement_receipt_object_facts":[fact("idea-receipt","evidence/ideas-receipt.json","ADR-0388","carried",OLD,OLD_TREE,"docs/old.md")]});
         facts["retirement_receipt_object_facts"][0]["protected_base_ref"] = json!("origin/main");
         facts["retirement_receipt_object_facts"][0]["protected_receipt_blob_oid"] = json!(null);
         let findings = evaluate_history_only_retirement_receipt(
