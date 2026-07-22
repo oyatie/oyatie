@@ -625,13 +625,13 @@ fn diff_candidate_paths<'a>(status: &str, paths: &'a [&'a str]) -> Result<Vec<&'
 fn is_sanctioned_relocation(
     status: &str,
     candidate_paths: &[&str],
-    declared_artifact_paths: &BTreeSet<String>,
+    committed_artifact_paths: &BTreeSet<String>,
 ) -> bool {
-    let is_byte_identical_rename = matches!(status.chars().next(), Some('R') | Some('C'))
-        && status.get(1..) == Some("100");
+    let is_byte_identical_rename =
+        matches!(status.chars().next(), Some('R') | Some('C')) && status.get(1..) == Some("100");
     is_byte_identical_rename
         && candidate_paths.len() == 2
-        && declared_artifact_paths.contains(candidate_paths[1])
+        && committed_artifact_paths.contains(candidate_paths[1])
 }
 
 /// Productized bridge predicate for presubmit diff surfaces. The caller supplies a
@@ -677,6 +677,11 @@ pub fn generated_output_diff_policy_violations_with_ratchet_context(
         .iter()
         .map(|artifact| artifact.path.clone())
         .collect::<BTreeSet<_>>();
+    let committed_artifact_paths = declared
+        .iter()
+        .filter(|artifact| !is_decommit_materialization_mode(&artifact.materialization_mode))
+        .map(|artifact| artifact.path.clone())
+        .collect::<BTreeSet<_>>();
     let normal_source_merge_paths = diff_policy_allowed_generated_edit_paths(&declared);
     if !findings.is_empty() {
         return (findings, Vec::new());
@@ -701,7 +706,7 @@ pub fn generated_output_diff_policy_violations_with_ratchet_context(
                 // #828 deadlock defect. This is a relocation, not contributor-authored bytes: the
                 // relocated content is independently bound by the registry-drift / freshness gates
                 // (committed==regenerated), so a laundered relocation REDs there, not here.
-                if is_sanctioned_relocation(&status, &candidate_paths, &declared_artifact_paths) {
+                if is_sanctioned_relocation(&status, &candidate_paths, &committed_artifact_paths) {
                     continue;
                 }
                 diff_rows.extend(
