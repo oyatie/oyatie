@@ -96,6 +96,8 @@ const COVERAGE_FIELDS: &[&str] = &[
     "scopes",
     "required_retired_paths",
 ];
+const RECEIPT_CORPUS_FIELDS: &[&str] = &["receipts", "scm_facts"];
+const RECEIPT_RECORD_FIELDS: &[&str] = &["receipt_path", "receipt"];
 const SCOPE_FIELDS: &[&str] = &[
     "scope_ref",
     "scope_type",
@@ -336,6 +338,56 @@ pub fn evaluate_history_only_retirement_receipt(
     findings
 }
 
+/// Evaluate the path-bound receipt records carried by the fixture/gate corpus.
+/// The path is a declared input, never inferred from an ambient object-fact row.
+pub fn evaluate_history_only_retirement_receipts(corpus: &Value) -> BTreeSet<Finding> {
+    let mut findings = BTreeSet::new();
+    closed_object(
+        corpus,
+        RECEIPT_CORPUS_FIELDS,
+        "retirement_receipts",
+        &mut findings,
+    );
+    let scm_facts = child(corpus, "scm_facts");
+    let Some(records) = corpus.get("receipts").and_then(Value::as_array) else {
+        fail(&mut findings, "retirement_receipts.receipts");
+        return findings;
+    };
+    let mut paths = BTreeSet::new();
+    let mut receipts = Vec::with_capacity(records.len());
+    for (index, record) in records.iter().enumerate() {
+        closed_object(
+            record,
+            RECEIPT_RECORD_FIELDS,
+            &format!("retirement_receipts[{index}]"),
+            &mut findings,
+        );
+        let Some(path) = record
+            .get("receipt_path")
+            .and_then(Value::as_str)
+            .filter(|path| repo_path(path))
+        else {
+            fail(
+                &mut findings,
+                &format!("retirement_receipts[{index}].receipt_path"),
+            );
+            continue;
+        };
+        if !paths.insert(path.to_owned()) {
+            fail(&mut findings, "retirement_receipts.receipt_path_duplicate");
+        }
+        let receipt = child(record, "receipt");
+        findings.extend(evaluate_history_only_retirement_receipt(
+            path, receipt, scm_facts,
+        ));
+        receipts.push(receipt.clone());
+    }
+    findings.extend(evaluate_history_only_retirement_receipt_coverage(
+        &receipts, scm_facts,
+    ));
+    findings
+}
+
 /// Validate epoch partitioning and exact per-scope retirement coverage. Only new
 /// receipts bind the current epoch; carried receipts remain bound to their own
 /// protected baseline and immutable blob/registry facts.
@@ -371,7 +423,7 @@ pub fn evaluate_history_only_retirement_receipt_coverage(
         "new_receipt_paths",
         &mut findings,
     );
-    if !carried.is_subset(&protected)
+    if protected != carried
         || !carried.is_subset(&candidate)
         || !new.is_disjoint(&carried)
         || candidate != carried.union(&new).cloned().collect()
@@ -429,7 +481,8 @@ pub fn evaluate_history_only_retirement_receipt_coverage(
     {
         fail(&mut findings, "object_fact_path_set");
     }
-    let mut covered: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    let mut carried_covered: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    let mut new_covered: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
     let receipt_artifacts = receipts
         .iter()
         .filter_map(|receipt| receipt.get("artifact_id").and_then(Value::as_str))
@@ -462,6 +515,28 @@ pub fn evaluate_history_only_retirement_receipt_coverage(
                 {
                     fail(&mut findings, "carried_protected_binding");
                 }
+                if fact.get("protected_base_ref") != coverage.get("protected_base_ref")
+                    || fact.get("scope_ref") != receipt.get("scope_ref")
+                    || fact.get("scope_type").and_then(Value::as_str)
+                        != receipt
+                            .get("scope_ref")
+                            .and_then(Value::as_str)
+                            .and_then(scope_type)
+                    || fact.get("baseline_commit_oid") != receipt.pointer("/baseline/commit_oid")
+                    || fact.get("baseline_tree_oid") != receipt.pointer("/baseline/tree_oid")
+                    || (fact.get("baseline_commit_oid") == coverage.get("current_epoch_commit_oid")
+                        && fact.get("baseline_tree_oid") == coverage.get("current_epoch_tree_oid"))
+                {
+                    fail(&mut findings, "carried_immutable_baseline_binding");
+                }
+                let scope = receipt
+                    .get("scope_ref")
+                    .and_then(Value::as_str)
+                    .unwrap_or("");
+                carried_covered
+                    .entry(scope.to_owned())
+                    .or_default()
+                    .extend(input_paths(receipt, &mut findings));
             }
             (Some(path), Some("new")) if new.contains(path) => {
                 if receipt
@@ -479,7 +554,7 @@ pub fn evaluate_history_only_retirement_receipt_coverage(
                     .get("scope_ref")
                     .and_then(Value::as_str)
                     .unwrap_or("");
-                covered
+                new_covered
                     .entry(scope.to_owned())
                     .or_default()
                     .extend(input_paths(receipt, &mut findings));
@@ -488,8 +563,13 @@ pub fn evaluate_history_only_retirement_receipt_coverage(
         }
     }
     for (scope, expected) in required {
-        if covered.get(&scope).cloned().unwrap_or_default() != expected {
-            fail(&mut findings, &format!("scope_coverage.{scope}"));
+        let carried_paths = carried_covered.get(&scope).cloned().unwrap_or_default();
+        if !carried_paths.is_empty() && carried_paths != expected.0 {
+            fail(&mut findings, &format!("carried_scope_coverage.{scope}"));
+        }
+        let new_paths = new_covered.get(&scope).cloned().unwrap_or_default();
+        if (carried_paths.is_empty() || !new_paths.is_empty()) && new_paths != expected.1 {
+            fail(&mut findings, &format!("new_scope_coverage.{scope}"));
         }
     }
     findings
@@ -583,7 +663,7 @@ fn validate_inputs(receipt: &Value, fact: &Value, findings: &mut BTreeSet<Findin
 fn validate_scopes(
     coverage: &Value,
     findings: &mut BTreeSet<Finding>,
-) -> BTreeMap<String, BTreeSet<String>> {
+) -> BTreeMap<String, (BTreeSet<String>, BTreeSet<String>)> {
     let mut result = BTreeMap::new();
     let mut union = BTreeSet::new();
     let Some(scopes) = coverage.get("scopes").and_then(Value::as_array) else {
@@ -598,6 +678,7 @@ fn validate_scopes(
         {
             fail(findings, &format!("scopes[{i}].scope"));
         }
+        let mut protected = BTreeSet::new();
         let mut removed = BTreeSet::new();
         let selectors = scope
             .get("selectors")
@@ -653,16 +734,18 @@ fn validate_scopes(
                 fail(findings, &format!("scopes[{i}].selectors[{j}]"));
             }
             removed.extend(r);
+            protected.extend(p);
         }
         let declared = path_set(
             scope.get("required_retired_paths"),
             "required_retired_paths",
             findings,
         );
-        if declared != removed || declared.iter().any(|path| !union.insert(path.clone())) {
+        if declared != removed {
             fail(findings, &format!("scopes[{i}].required_retired_paths"));
         }
-        result.insert(reference.to_owned(), declared);
+        union.extend(declared);
+        result.insert(reference.to_owned(), (protected, removed));
     }
     if path_set(
         coverage.get("required_retired_paths"),
@@ -889,9 +972,31 @@ mod tests {
             NEW_TREE,
             "docs/old.md",
         );
-        let facts = json!({"retirement_receipt_coverage":{"protected_base_ref":"origin/dev","current_epoch_commit_oid":NEW,"current_epoch_tree_oid":NEW_TREE,"protected_receipt_paths":[idea_path],"candidate_receipt_paths":[idea_path,repo_path],"carried_receipt_paths":[idea_path],"new_receipt_paths":[repo_path],"scopes":[{"scope_ref":"ADR-0388","scope_type":"transient-ideas","selectors":[],"required_retired_paths":[]},{"scope_ref":"artifact:masterplan","scope_type":"masterplan-retired-surfaces","selectors":[{"selector_type":"exact","selector":"docs/old.md","protected_paths":["docs/old.md"],"candidate_paths":[],"removed_paths":["docs/old.md"],"surviving_paths":[],"candidate_only_paths":[],"external_assertion":"not-applicable"}],"required_retired_paths":["docs/old.md"]}],"required_retired_paths":["docs/old.md"]},"retirement_receipt_object_facts":[fact("idea-receipt",idea_path,"ADR-0388","carried",OLD,OLD_TREE),fact("repository-receipt",repo_path,"artifact:masterplan","new",NEW,NEW_TREE)]});
-        let findings = evaluate_history_only_retirement_receipt_coverage(&[idea, repo], &facts);
+        let selector = json!({"selector_type":"exact","selector":"docs/old.md","protected_paths":["docs/old.md"],"candidate_paths":[],"removed_paths":["docs/old.md"],"surviving_paths":[],"candidate_only_paths":[],"external_assertion":"not-applicable"});
+        let facts = json!({"retirement_receipt_coverage":{"protected_base_ref":"origin/dev","current_epoch_commit_oid":NEW,"current_epoch_tree_oid":NEW_TREE,"protected_receipt_paths":[idea_path],"candidate_receipt_paths":[idea_path,repo_path],"carried_receipt_paths":[idea_path],"new_receipt_paths":[repo_path],"scopes":[{"scope_ref":"ADR-0388","scope_type":"transient-ideas","selectors":[selector.clone()],"required_retired_paths":["docs/old.md"]},{"scope_ref":"artifact:masterplan","scope_type":"masterplan-retired-surfaces","selectors":[selector],"required_retired_paths":["docs/old.md"]}],"required_retired_paths":["docs/old.md"]},"retirement_receipt_object_facts":[fact("idea-receipt",idea_path,"ADR-0388","carried",OLD,OLD_TREE),fact("repository-receipt",repo_path,"artifact:masterplan","new",NEW,NEW_TREE)]});
+        let findings = evaluate_history_only_retirement_receipt_coverage(
+            &[idea.clone(), repo.clone()],
+            &facts,
+        );
         assert!(findings.is_empty(), "{findings:?}");
+
+        let corpus = json!({"decisions":[{"id":"ADR-0388","status":"Accepted","in_spec":true,"in_masterplan":true,"in_roadmap":true,"supersedes":[],"superseded_by":[]}],"history_only_retirement_receipts":{"receipts":[
+            {"receipt_path":idea_path,"receipt":idea},
+            {"receipt_path":repo_path,"receipt":repo}
+        ],"scm_facts":facts}});
+        let report = crate::evaluate(&corpus);
+        assert!(report.violations.is_empty(), "{:?}", report.violations);
+
+        let mut rebound = corpus;
+        rebound["history_only_retirement_receipts"]["scm_facts"]["retirement_receipt_object_facts"]
+            [0]["baseline_commit_oid"] = json!(NEW);
+        rebound["history_only_retirement_receipts"]["scm_facts"]["retirement_receipt_object_facts"]
+            [0]["baseline_tree_oid"] = json!(NEW_TREE);
+        assert!(
+            crate::evaluate(&rebound)
+                .violations
+                .contains(RETIREMENT_RECEIPT_CODE)
+        );
     }
     #[test]
     fn content_and_candidate_equivalent_copies_fail_closed() {
