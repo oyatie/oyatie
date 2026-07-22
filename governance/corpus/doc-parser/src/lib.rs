@@ -165,6 +165,10 @@ pub mod census {
             &self.path
         }
         #[must_use]
+        pub fn blob_oid(&self) -> &str {
+            &self.blob_oid
+        }
+        #[must_use]
         pub fn sha256(&self) -> &str {
             &self.sha256
         }
@@ -304,7 +308,7 @@ pub mod census {
             }
         }
         let entry_folds = entries.iter().map(entry_json).collect::<Vec<_>>();
-        let aggregate_fold = sha256_hex(entry_folds.iter().map(String::as_bytes));
+        let aggregate_fold = aggregate_entry_folds(entry_folds.iter().map(String::as_str));
         let body = canonical_body(
             input,
             &parser_sources,
@@ -431,12 +435,17 @@ pub mod census {
             .collect::<Vec<_>>()
             .join(",");
         format!(
-            "\"aggregate_fold\":\"{aggregate_fold}\",\"claim_ceiling\":\"BLOCKED/HOLD\",\"diagnostic_policy\":\"{DIAGNOSTIC_POLICY}\",\"docs_tree\":\"{}\",\"entries\":[{entries}],\"first_error_kinds\":{{{errors}}},\"parser_api\":\"{PARSER_API}\",\"parser_commit\":\"{}\",\"parser_source_hashes\":[{parser_hashes}],\"parser_version\":\"{DOC_PARSER_VERSION}\",\"repository_commit\":\"{}\",\"repository_tree\":\"{}\",\"selector\":\"{}\",\"totals\":{{\"parsed\":{parsed_count},\"rejected\":{rejected_count}}}",
-            input.docs_tree,
-            input.parser_commit,
-            input.repository_commit,
-            input.repository_tree,
-            input.selector_id,
+            "\"aggregate_fold\":{},\"claim_ceiling\":{},\"diagnostic_policy\":{},\"docs_tree\":{},\"entries\":[{entries}],\"first_error_kinds\":{{{errors}}},\"parser_api\":{},\"parser_commit\":{},\"parser_source_hashes\":[{parser_hashes}],\"parser_version\":{},\"repository_commit\":{},\"repository_tree\":{},\"selector\":{},\"totals\":{{\"parsed\":{parsed_count},\"rejected\":{rejected_count}}}",
+            json_string(aggregate_fold),
+            json_string("BLOCKED/HOLD"),
+            json_string(DIAGNOSTIC_POLICY),
+            json_string(&input.docs_tree),
+            json_string(PARSER_API),
+            json_string(&input.parser_commit),
+            json_string(DOC_PARSER_VERSION),
+            json_string(&input.repository_commit),
+            json_string(&input.repository_tree),
+            json_string(&input.selector_id),
         )
     }
 
@@ -456,12 +465,23 @@ pub mod census {
             },
         );
         format!(
-            "{{\"blob_oid\":\"{}\",\"first_error\":{error},\"outcome\":\"{}\",\"path\":{},\"sha256\":\"{}\"}}",
-            entry.blob_oid,
-            entry.outcome,
+            "{{\"blob_oid\":{},\"first_error\":{error},\"outcome\":{},\"path\":{},\"sha256\":{}}}",
+            json_string(&entry.blob_oid),
+            json_string(&entry.outcome),
             json_string(&entry.path),
-            entry.sha256
+            json_string(&entry.sha256)
         )
+    }
+
+    fn aggregate_entry_folds<'a>(entry_folds: impl Iterator<Item = &'a str>) -> String {
+        let mut digest = Sha256::new();
+        digest.update(b"oyatie:census:entry-fold:v1\\0");
+        for entry_fold in entry_folds {
+            let bytes = entry_fold.as_bytes();
+            digest.update((bytes.len() as u64).to_be_bytes());
+            digest.update(bytes);
+        }
+        format!("{:x}", digest.finalize())
     }
 
     fn source_digest(source: &CensusSource) -> String {

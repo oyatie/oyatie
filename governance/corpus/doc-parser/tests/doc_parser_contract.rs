@@ -53,7 +53,24 @@ fn adr_census_builder_is_pure_deterministic_and_hold_bounded() {
     assert_eq!(first.canonical_digest(), second.canonical_digest());
     assert_eq!(first.parsed_count(), 1);
     assert_eq!(first.rejected_count(), 0);
+    assert_eq!(first.entries()[0].blob_oid(), OID_A);
     assert_eq!(first.claim_ceiling(), "BLOCKED/HOLD");
+}
+
+#[test]
+fn adr_census_receipt_uses_a_domain_and_length_framed_entry_fold() {
+    let source = census_source(
+        "docs/decisions/ADR-0001-example.md",
+        b"---\nid: ADR-0001\nstatus: Proposed\ndate: 2026-01-01\nowner: corpus\n---\n\n# ADR-0001: Example\n",
+    );
+    let receipt = build_receipt(&census_input(vec![source]))
+        .expect("a selected ADR produces a deterministic receipt");
+
+    assert_eq!(
+        receipt.aggregate_fold(),
+        "3a1b72ce1df5c06e90a958666d7d4835092eb5ac1e4d869f0a784f4e4fb1575a",
+        "the aggregate fold is a stable, domain-separated length-framed digest"
+    );
 }
 
 #[test]
@@ -81,6 +98,24 @@ fn adr_census_builder_fails_closed_for_selector_duplicates_and_parser_mismatch()
     assert_eq!(
         build_receipt(&input).unwrap_err(),
         CensusViolation::ParserSource
+    );
+}
+
+#[test]
+fn adr_census_builder_fails_closed_for_invalid_object_ids_and_wrong_source_roles() {
+    let source = census_source("docs/decisions/ADR-0001-example.md", b"not an ADR");
+    let mut invalid_object_id = census_input(vec![source.clone()]);
+    invalid_object_id.repository_commit = OID_A.to_uppercase();
+    assert_eq!(
+        build_receipt(&invalid_object_id).unwrap_err(),
+        CensusViolation::InvalidObjectId
+    );
+
+    let mut wrong_role = source;
+    wrong_role.kind = CensusSourceKind::Parser;
+    assert_eq!(
+        build_receipt(&census_input(vec![wrong_role])).unwrap_err(),
+        CensusViolation::SourceKind
     );
 }
 
