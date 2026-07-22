@@ -161,6 +161,13 @@ pub struct CensusReceipt {
     canonical_bytes: Vec<u8>,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct CensusTotals {
+    parsed_count: usize,
+    rejected_count: usize,
+    first_error_kind_totals: BTreeMap<String, usize>,
+}
+
 impl CensusReceipt {
     #[must_use]
     pub fn repository_commit(&self) -> &str {
@@ -267,15 +274,18 @@ pub fn build_receipt(input: &CensusInput) -> Result<CensusReceipt, CensusViolati
                 .or_insert(0) += 1;
         }
     }
+    let totals = CensusTotals {
+        parsed_count,
+        rejected_count,
+        first_error_kind_totals,
+    };
     let body = canonical_body(
         input,
         &path_digest,
         &parser_hashes,
         &entries,
         &aggregate_fold,
-        parsed_count,
-        rejected_count,
-        &first_error_kind_totals,
+        &totals,
     );
     let canonical_digest = sha256_hex(std::iter::once(body.as_bytes()));
     let canonical_bytes =
@@ -287,9 +297,9 @@ pub fn build_receipt(input: &CensusInput) -> Result<CensusReceipt, CensusViolati
         selector_id: input.selector_id.clone(),
         parser_commit: input.parser_commit.clone(),
         entries,
-        parsed_count,
-        rejected_count,
-        first_error_kind_totals,
+        parsed_count: totals.parsed_count,
+        rejected_count: totals.rejected_count,
+        first_error_kind_totals: totals.first_error_kind_totals,
         aggregate_fold,
         canonical_digest,
         canonical_bytes,
@@ -442,9 +452,7 @@ fn canonical_body(
     parser_hashes: &[String],
     entries: &[CensusEntry],
     aggregate_fold: &str,
-    parsed_count: usize,
-    rejected_count: usize,
-    first_error_kind_totals: &BTreeMap<String, usize>,
+    totals: &CensusTotals,
 ) -> String {
     let parser_sources = parser_hashes
         .iter()
@@ -452,7 +460,8 @@ fn canonical_body(
         .collect::<Vec<_>>()
         .join(",");
     let entries = entries.iter().map(entry_json).collect::<Vec<_>>().join(",");
-    let first_error_kind_totals = first_error_kind_totals
+    let first_error_kind_totals = totals
+        .first_error_kind_totals
         .iter()
         .map(|(kind, count)| format!("{}:{count}", json_string(kind)))
         .collect::<Vec<_>>()
@@ -464,6 +473,8 @@ fn canonical_body(
         input.repository_commit,
         input.repository_tree,
         input.selector_id,
+        parsed_count = totals.parsed_count,
+        rejected_count = totals.rejected_count,
     )
 }
 
