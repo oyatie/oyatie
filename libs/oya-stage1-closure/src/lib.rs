@@ -12,6 +12,23 @@ const PROTECTED_FACTS_SCHEMA_ID: &str = "oyatie/stage1-protected-facts/v1";
 const PROGRAM_ID: &str = "correct-way-forward-before-roadmap";
 const PROGRAM_REF: &str =
     "/specs/masterplan.json#masterplan_v2.planning_entry_contract.stage1_closure_program";
+/// Canonical source-epoch receipt fields required by the parser and schema wire contract.
+pub const SOURCE_RECEIPT_REQUIRED_FIELDS: [&str; 14] = [
+    "path",
+    "blob_oid",
+    "sha256",
+    "subject_digest",
+    "principal_id",
+    "issuer_authority_class",
+    "authority_source_ref",
+    "qualification",
+    "jurisdiction_scope",
+    "independence_observation",
+    "validity",
+    "revocation_status",
+    "conflict_status",
+    "signature_trust_root_binding",
+];
 
 const STATES: [&str; 6] = [
     "HOLD_EPOCH_OPEN",
@@ -176,13 +193,21 @@ pub fn evaluate_program(program: &Value) -> Report {
 
 #[must_use]
 pub fn evaluate_epoch(program: &Value, epoch: &Value) -> Report {
-    evaluate_epoch_with_untrusted_shape(program, epoch, &Value::Null)
+    evaluate_epoch_with_untrusted_shape(program, epoch, Some(&Value::Null))
+}
+
+/// Evaluates the complete source-epoch record without assuming externally authenticated facts.
+///
+/// A valid source fixture remains held until the separate controller and trust-root path exists.
+#[must_use]
+pub fn evaluate_source_epoch(program: &Value, epoch: &Value) -> Report {
+    evaluate_epoch_with_untrusted_shape(program, epoch, None)
 }
 
 fn evaluate_epoch_with_untrusted_shape(
     program: &Value,
     epoch: &Value,
-    protected_facts: &Value,
+    protected_facts: Option<&Value>,
 ) -> Report {
     let mut findings: BTreeSet<String> = evaluate_program(program)
         .findings
@@ -231,7 +256,9 @@ fn evaluate_epoch_with_untrusted_shape(
         epoch.get("blockers"),
         &mut findings,
     );
-    validate_protected_parent_facts(epoch, protected_facts, state, &mut findings);
+    if let Some(protected_facts) = protected_facts {
+        validate_protected_parent_facts(epoch, protected_facts, state, &mut findings);
+    }
     require_non_empty_string(epoch, "claim_ceiling", &mut findings);
 
     report(findings)
@@ -1199,6 +1226,13 @@ fn validate_receipt(
     expected_class: &str,
     findings: &mut BTreeSet<String>,
 ) -> Option<String> {
+    if let Some(object) = receipt.as_object() {
+        for field in object.keys() {
+            if !SOURCE_RECEIPT_REQUIRED_FIELDS.contains(&field.as_str()) {
+                findings.insert(format!("{path} rejects unknown field {field}"));
+            }
+        }
+    }
     if non_empty(receipt, "path").is_none() {
         findings.insert(format!("{path}.path must be non-empty"));
     }
@@ -1246,6 +1280,25 @@ fn validate_receipt(
         .is_some_and(Value::is_object)
     {
         findings.insert(format!("{path}.authority_source_ref must be bound"));
+    } else {
+        validate_artifact_binding(
+            receipt.get("authority_source_ref").unwrap_or(&Value::Null),
+            &format!("{path}.authority_source_ref"),
+            findings,
+        );
+    }
+    for field in [
+        "qualification",
+        "jurisdiction_scope",
+        "independence_observation",
+        "validity",
+        "revocation_status",
+        "conflict_status",
+        "signature_trust_root_binding",
+    ] {
+        if non_empty(receipt, field).is_none() {
+            findings.insert(format!("{path}.{field} must be non-empty"));
+        }
     }
     principal_id
 }
@@ -1259,7 +1312,6 @@ fn validate_protected_parent_facts(
     if state == Some("HOLD_EPOCH_OPEN") {
         return;
     }
-
     findings.extend(grammar_findings(facts));
 
     require_string(facts, "schema_id", PROTECTED_FACTS_SCHEMA_ID, findings);
