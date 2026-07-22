@@ -3,7 +3,7 @@
 //! The pure receipt builder never reads the working tree. The thin CLI adapter supplies only
 //! tracked git blobs selected from an explicit, immutable commit.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 use std::io::{Read, Write};
 use std::process::{Command, Stdio};
@@ -16,6 +16,27 @@ use crate::{AdrByteSpan, AdrParseError, AdrParseInput, DOC_PARSER_VERSION, parse
 pub const SELECTOR_ID: &str = "docs-decisions-direct-adr-v1";
 const PARSER_API: &str = "corpus-doc-parser::parse_adr_decision";
 const DIAGNOSTIC_POLICY: &str = "first-error-only";
+
+/// The exact library source files compiled into this receipt builder.
+///
+/// Keep this manifest deliberately narrow: binaries are adapters, while these three files contain
+/// the parser and receipt logic executed by `build_receipt`.  The byte strings are embedded by the
+/// compiler, so a git object selected by `parser_commit` must match the executable rather than an
+/// ambient checkout.
+const COMPILED_PARSER_SOURCES: [(&str, &[u8]); 3] = [
+    (
+        "governance/corpus/doc-parser/src/adr.rs",
+        include_bytes!("adr.rs"),
+    ),
+    (
+        "governance/corpus/doc-parser/src/census.rs",
+        include_bytes!("census.rs"),
+    ),
+    (
+        "governance/corpus/doc-parser/src/lib.rs",
+        include_bytes!("lib.rs"),
+    ),
+];
 
 /// A git-backed input blob. Test callers may construct the same pure input without git.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -36,10 +57,13 @@ pub enum CensusSourceKind {
 /// Complete immutable input to the pure census builder.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CensusInput {
+    /// Immutable corpus commit whose ADR blobs are counted.
     pub repository_commit: String,
     pub repository_tree: String,
     pub docs_tree: String,
     pub selector_id: String,
+    /// Immutable commit whose parser source blobs must match the compiled executable.
+    pub parser_commit: String,
     pub parser_sources: Vec<CensusSource>,
     pub decision_sources: Vec<CensusSource>,
 }
@@ -127,7 +151,11 @@ pub struct CensusReceipt {
     repository_tree: String,
     docs_tree: String,
     selector_id: String,
+    parser_commit: String,
     entries: Vec<CensusEntry>,
+    parsed_count: usize,
+    rejected_count: usize,
+    first_error_kind_totals: BTreeMap<String, usize>,
     aggregate_fold: String,
     canonical_digest: String,
     canonical_bytes: Vec<u8>,
@@ -149,6 +177,22 @@ impl CensusReceipt {
     #[must_use]
     pub fn entries(&self) -> &[CensusEntry] {
         &self.entries
+    }
+    #[must_use]
+    pub fn parser_commit(&self) -> &str {
+        &self.parser_commit
+    }
+    #[must_use]
+    pub const fn parsed_count(&self) -> usize {
+        self.parsed_count
+    }
+    #[must_use]
+    pub const fn rejected_count(&self) -> usize {
+        self.rejected_count
+    }
+    #[must_use]
+    pub fn first_error_kind_totals(&self) -> &BTreeMap<String, usize> {
+        &self.first_error_kind_totals
     }
     #[must_use]
     pub fn aggregate_fold(&self) -> &str {
@@ -177,13 +221,14 @@ pub fn build_receipt(input: &CensusInput) -> Result<CensusReceipt, CensusViolati
     if !is_lower_hex_oid(&input.repository_commit)
         || !is_lower_hex_oid(&input.repository_tree)
         || !is_lower_hex_oid(&input.docs_tree)
+        || !is_lower_hex_oid(&input.parser_commit)
     {
         return Err(CensusViolation::InvalidObjectId);
     }
     if input.selector_id != SELECTOR_ID {
         return Err(CensusViolation::SelectorPath);
     }
-    validate_parser_sources(&input.parser_sources)?;
+    let parser_sources = validate_parser_sources(&input.parser_sources)?;
 
     let mut paths = BTreeSet::new();
     let mut sources = input.decision_sources.clone();
@@ -206,15 +251,31 @@ pub fn build_receipt(input: &CensusInput) -> Result<CensusReceipt, CensusViolati
     }
 
     let path_digest = sha256_hex(entries.iter().map(|entry| entry.path.as_bytes()));
-    let parser_hashes: Vec<_> = input.parser_sources.iter().map(source_digest).collect();
+    let parser_hashes: Vec<_> = parser_sources.iter().map(source_digest).collect();
     let entry_folds: Vec<String> = entries.iter().map(entry_json).collect();
     let aggregate_fold = sha256_hex(entry_folds.iter().map(String::as_bytes));
+    let parsed_count = entries
+        .iter()
+        .filter(|entry| entry.outcome == "parsed")
+        .count();
+    let rejected_count = entries.len() - parsed_count;
+    let mut first_error_kind_totals = BTreeMap::new();
+    for entry in &entries {
+        if let Some(error) = &entry.first_error {
+            *first_error_kind_totals
+                .entry(error.kind.clone())
+                .or_insert(0) += 1;
+        }
+    }
     let body = canonical_body(
         input,
         &path_digest,
         &parser_hashes,
         &entries,
         &aggregate_fold,
+        parsed_count,
+        rejected_count,
+        &first_error_kind_totals,
     );
     let canonical_digest = sha256_hex(std::iter::once(body.as_bytes()));
     let canonical_bytes =
@@ -224,7 +285,11 @@ pub fn build_receipt(input: &CensusInput) -> Result<CensusReceipt, CensusViolati
         repository_tree: input.repository_tree.clone(),
         docs_tree: input.docs_tree.clone(),
         selector_id: input.selector_id.clone(),
+        parser_commit: input.parser_commit.clone(),
         entries,
+        parsed_count,
+        rejected_count,
+        first_error_kind_totals,
         aggregate_fold,
         canonical_digest,
         canonical_bytes,
@@ -236,46 +301,70 @@ pub fn build_receipt(input: &CensusInput) -> Result<CensusReceipt, CensusViolati
 /// # Errors
 /// Rejects symbolic revisions, non-blobs, non-UTF-8 paths, duplicate or recursive selector paths,
 /// and any git failure. It never reads ambient working-tree files.
-pub fn census_from_git(commit: &str) -> Result<CensusReceipt, CensusViolation> {
-    if !is_lower_hex_oid(commit) {
+pub fn census_from_git(
+    corpus_commit: &str,
+    parser_commit: &str,
+) -> Result<CensusReceipt, CensusViolation> {
+    if !is_lower_hex_oid(corpus_commit) || !is_lower_hex_oid(parser_commit) {
         return Err(CensusViolation::InvalidCommit);
     }
-    let commit = git_text(["rev-parse", "--verify", &format!("{commit}^{{commit}}")])?;
-    if !is_lower_hex_oid(&commit) {
+    let corpus_commit = git_text([
+        "rev-parse",
+        "--verify",
+        &format!("{corpus_commit}^{{commit}}"),
+    ])?;
+    let parser_commit = git_text([
+        "rev-parse",
+        "--verify",
+        &format!("{parser_commit}^{{commit}}"),
+    ])?;
+    if !is_lower_hex_oid(&corpus_commit) || !is_lower_hex_oid(&parser_commit) {
         return Err(CensusViolation::InvalidCommit);
     }
-    let repository_tree = git_text(["rev-parse", &format!("{commit}^{{tree}}")])?;
-    let docs_tree = git_text(["rev-parse", &format!("{commit}:docs/decisions")])?;
-    let decision_sources = ls_tree_sources(&format!("{commit}:docs/decisions"), false)?;
-    let parser_sources = ls_tree_sources(&commit, true)?
-        .into_iter()
-        .filter(|source| source.path.starts_with("governance/corpus/doc-parser/src/"))
-        .collect();
+    let repository_tree = git_text(["rev-parse", &format!("{corpus_commit}^{{tree}}")])?;
+    let docs_tree = git_text(["rev-parse", &format!("{corpus_commit}:docs/decisions")])?;
+    let decision_sources = ls_tree_sources(&format!("{corpus_commit}:docs/decisions"), false)?;
+    let parser_sources = parser_sources_from_git(&parser_commit)?;
     build_receipt(&CensusInput {
-        repository_commit: commit,
+        repository_commit: corpus_commit,
         repository_tree,
         docs_tree,
         selector_id: SELECTOR_ID.to_owned(),
+        parser_commit,
         parser_sources,
         decision_sources,
     })
 }
 
-fn validate_parser_sources(sources: &[CensusSource]) -> Result<(), CensusViolation> {
-    if sources.is_empty() {
+fn validate_parser_sources(sources: &[CensusSource]) -> Result<Vec<CensusSource>, CensusViolation> {
+    if sources.len() != COMPILED_PARSER_SOURCES.len() {
         return Err(CensusViolation::ParserSource);
     }
-    let mut paths = BTreeSet::new();
-    for source in sources {
+    let mut normalized = sources.to_vec();
+    normalized.sort_by(|left, right| left.path.as_bytes().cmp(right.path.as_bytes()));
+    for (source, (expected_path, expected_bytes)) in normalized.iter().zip(COMPILED_PARSER_SOURCES)
+    {
         if source.kind != CensusSourceKind::Parser
-            || !source.path.starts_with("governance/corpus/doc-parser/src/")
+            || source.path != expected_path
             || !is_lower_hex_oid(&source.blob_oid)
-            || !paths.insert(source.path.clone())
+            || source.bytes.as_slice() != expected_bytes
         {
             return Err(CensusViolation::ParserSource);
         }
     }
-    Ok(())
+    Ok(normalized)
+}
+
+fn parser_sources_from_git(parser_commit: &str) -> Result<Vec<CensusSource>, CensusViolation> {
+    let expected_paths: BTreeSet<_> = COMPILED_PARSER_SOURCES
+        .iter()
+        .map(|(path, _)| *path)
+        .collect();
+    let sources: Vec<CensusSource> = ls_tree_sources(parser_commit, true)?
+        .into_iter()
+        .filter(|source| expected_paths.contains(source.path.as_str()))
+        .collect();
+    validate_parser_sources(&sources)
 }
 
 fn parse_entry(source: CensusSource) -> CensusEntry {
@@ -301,7 +390,7 @@ fn parse_entry(source: CensusSource) -> CensusEntry {
             path: source.path,
             blob_oid: source.blob_oid,
             sha256,
-            outcome: "error".to_owned(),
+            outcome: "rejected".to_owned(),
             first_error: Some(error),
         },
     }
@@ -353,6 +442,9 @@ fn canonical_body(
     parser_hashes: &[String],
     entries: &[CensusEntry],
     aggregate_fold: &str,
+    parsed_count: usize,
+    rejected_count: usize,
+    first_error_kind_totals: &BTreeMap<String, usize>,
 ) -> String {
     let parser_sources = parser_hashes
         .iter()
@@ -360,9 +452,18 @@ fn canonical_body(
         .collect::<Vec<_>>()
         .join(",");
     let entries = entries.iter().map(entry_json).collect::<Vec<_>>().join(",");
+    let first_error_kind_totals = first_error_kind_totals
+        .iter()
+        .map(|(kind, count)| format!("{}:{count}", json_string(kind)))
+        .collect::<Vec<_>>()
+        .join(",");
     format!(
-        "\"aggregate_fold\":\"{aggregate_fold}\",\"claim_ceiling\":\"BLOCKED/HOLD\",\"diagnostic_policy\":\"{DIAGNOSTIC_POLICY}\",\"docs_tree\":\"{}\",\"entries\":[{entries}],\"parser_api\":\"{PARSER_API}\",\"parser_source_hashes\":[{parser_sources}],\"parser_version\":\"{DOC_PARSER_VERSION}\",\"repository_commit\":\"{}\",\"repository_tree\":\"{}\",\"selector\":{{\"id\":\"{}\",\"path_digest\":\"{path_digest}\"}}",
-        input.docs_tree, input.repository_commit, input.repository_tree, input.selector_id,
+        "\"aggregate_fold\":\"{aggregate_fold}\",\"claim_ceiling\":\"BLOCKED/HOLD\",\"diagnostic_policy\":\"{DIAGNOSTIC_POLICY}\",\"docs_tree\":\"{}\",\"entries\":[{entries}],\"parser_api\":\"{PARSER_API}\",\"parser_commit\":\"{}\",\"parser_source_hashes\":[{parser_sources}],\"parser_version\":\"{DOC_PARSER_VERSION}\",\"repository_commit\":\"{}\",\"repository_tree\":\"{}\",\"selector\":{{\"id\":\"{}\",\"path_digest\":\"{path_digest}\"}},\"totals\":{{\"first_error_kinds\":{{{first_error_kind_totals}}},\"parsed\":{parsed_count},\"rejected\":{rejected_count}}}",
+        input.docs_tree,
+        input.parser_commit,
+        input.repository_commit,
+        input.repository_tree,
+        input.selector_id,
     )
 }
 

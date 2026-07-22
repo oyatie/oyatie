@@ -4,6 +4,7 @@ use corpus_doc_parser::census::{
 };
 
 const PARENT: &str = "e548d6f4035104e15ef6e290a4799d0ff3ee66e6";
+const CURRENT_PARSER_COMMIT: &str = "1965c8e4cfd8e1b94f10779c5e4fe362a7dfb4e2";
 
 fn source(path: &str, bytes: &[u8]) -> CensusSource {
     CensusSource {
@@ -20,23 +21,57 @@ fn input(sources: Vec<CensusSource>) -> CensusInput {
         repository_tree: "2222222222222222222222222222222222222222".to_owned(),
         docs_tree: "3333333333333333333333333333333333333333".to_owned(),
         selector_id: SELECTOR_ID.to_owned(),
-        parser_sources: vec![CensusSource {
-            kind: CensusSourceKind::Parser,
-            path: "governance/corpus/doc-parser/src/adr.rs".to_owned(),
-            blob_oid: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb".to_owned(),
-            bytes: b"parser source".to_vec(),
-        }],
+        parser_commit: "4444444444444444444444444444444444444444".to_owned(),
+        parser_sources: parser_sources(),
         decision_sources: sources,
     }
 }
 
+fn parser_sources() -> Vec<CensusSource> {
+    [
+        (
+            "governance/corpus/doc-parser/src/adr.rs",
+            include_bytes!("../src/adr.rs").as_slice(),
+        ),
+        (
+            "governance/corpus/doc-parser/src/census.rs",
+            include_bytes!("../src/census.rs").as_slice(),
+        ),
+        (
+            "governance/corpus/doc-parser/src/lib.rs",
+            include_bytes!("../src/lib.rs").as_slice(),
+        ),
+    ]
+    .into_iter()
+    .map(|(path, bytes)| CensusSource {
+        kind: CensusSourceKind::Parser,
+        path: path.to_owned(),
+        blob_oid: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb".to_owned(),
+        bytes: bytes.to_vec(),
+    })
+    .collect()
+}
+
 #[test]
 fn parent_corpus_is_exactly_429_direct_child_adrs_and_tree_bound() {
-    let receipt = census_from_git(PARENT).expect("parent corpus census succeeds");
+    let receipt = census_from_git(PARENT, CURRENT_PARSER_COMMIT)
+        .expect("parent corpus census succeeds with its compiled parser source");
 
     assert_eq!(receipt.repository_commit(), PARENT);
     assert_eq!(receipt.selector_id(), SELECTOR_ID);
     assert_eq!(receipt.entries().len(), 429);
+    assert_eq!(receipt.parsed_count(), 184);
+    assert_eq!(receipt.rejected_count(), 245);
+    assert_eq!(
+        receipt.first_error_kind_totals(),
+        &std::collections::BTreeMap::from([
+            ("InvalidAdrReference".to_owned(), 28),
+            ("InvalidFrontmatter".to_owned(), 4),
+            ("MissingLeadingFrontmatter".to_owned(), 26),
+            ("MissingRequiredField".to_owned(), 142),
+            ("UnsupportedFrontmatterNesting".to_owned(), 45),
+        ])
+    );
     assert!(
         receipt
             .entries()
@@ -122,15 +157,37 @@ fn parser_and_tree_bindings_change_the_canonical_digest() {
         before.canonical_digest(),
         build_receipt(&changed_tree).unwrap().canonical_digest()
     );
-    assert_ne!(
-        before.canonical_digest(),
-        build_receipt(&changed_parser).unwrap().canonical_digest()
+    assert_eq!(
+        build_receipt(&changed_parser).unwrap_err(),
+        CensusViolation::ParserSource
+    );
+}
+
+#[test]
+fn parser_manifest_is_permutation_invariant_and_mismatches_fail_closed() {
+    let original = input(vec![source(
+        "docs/decisions/ADR-0001-example.md",
+        b"not an adr",
+    )]);
+    let mut permuted = original.clone();
+    permuted.parser_sources.reverse();
+    assert_eq!(
+        build_receipt(&original).unwrap().canonical_bytes(),
+        build_receipt(&permuted).unwrap().canonical_bytes()
+    );
+
+    let mut mismatched = original;
+    mismatched.parser_sources[0].bytes.push(b'!');
+    assert_eq!(
+        build_receipt(&mismatched).unwrap_err(),
+        CensusViolation::ParserSource
     );
 }
 
 #[test]
 fn stale_193_and_236_counts_are_not_comparable_to_the_pinned_parent_corpus() {
-    let receipt = census_from_git(PARENT).expect("parent corpus census succeeds");
+    let receipt =
+        census_from_git(PARENT, CURRENT_PARSER_COMMIT).expect("parent corpus census succeeds");
     assert_ne!(receipt.entries().len(), 193);
     assert_ne!(receipt.entries().len(), 236);
 }
