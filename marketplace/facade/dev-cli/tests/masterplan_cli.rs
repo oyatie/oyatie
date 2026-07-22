@@ -122,6 +122,21 @@ fn live_masterplan_projection_excludes_superseded_solidjs_adr() {
     );
 
     let projection_text = fs::read_to_string(&output_path).expect("projection written");
+    let projection: Value = serde_json::from_str(&projection_text).expect("projection json");
+    let amended_ids: Vec<&str> = projection["milestones"]
+        .as_array()
+        .expect("milestones array")
+        .iter()
+        .flat_map(|milestone| milestone["adrs"].as_array().expect("adrs array").iter())
+        .filter(|adr| adr["status"] == "Amended")
+        .filter_map(|adr| adr["id"].as_str())
+        .filter(|id| matches!(*id, "ADR-0363" | "ADR-0388" | "ADR-0619"))
+        .collect();
+    assert_eq!(
+        amended_ids,
+        vec!["ADR-0363", "ADR-0388", "ADR-0619"],
+        "all amended planning ADRs remain in the live projection"
+    );
     assert!(
         !projection_text.contains("ADR-0372"),
         "superseded ADR-0372 must not appear in live generated masterplan"
