@@ -17,7 +17,7 @@ const INVALID_CODE: &str = "founder_product_intent_agreement_invalid";
 pub const FOUNDER_PRODUCT_INTENT_PATH: &str = "/specs/founder-product-intent.json";
 const AGENT_DURABLE_GOAL_HISTORY_ONLY_PROVENANCE_RULE: &str = "Historical source provenance is available only through Git history; the active tree must not contain or direct readers to a readable archive, manifest, or local compatibility copy.";
 
-const REQUIRED_SECTIONS: [&str; 18] = [
+const REQUIRED_SECTIONS: [&str; 20] = [
     "authority_boundary",
     "provenance",
     "founder_execution_authorization",
@@ -27,6 +27,8 @@ const REQUIRED_SECTIONS: [&str; 18] = [
     "benchmark_and_measurement_contract",
     "participant_and_journey_census",
     "product_model",
+    "game_engine_product_model",
+    "change_accounting",
     "experience_contract",
     "data_and_lineage_contract",
     "temporal_and_epistemic_contract",
@@ -250,6 +252,9 @@ pub fn evaluate_founder_product_intent_agreement(
         &mut findings,
         &intent["temporal_and_epistemic_contract"],
     );
+    validate_operational_world_contract(&mut findings, &intent["game_engine_product_model"]);
+    validate_change_accounting(&mut findings, intent.get("change_accounting"));
+    validate_comparator_contract(&mut findings, &intent["benchmark_and_measurement_contract"]);
 
     let stage1 = &intent["stage1_entry_requirements"];
     let controls = stage1.get("controls").and_then(Value::as_array);
@@ -314,6 +319,205 @@ pub fn evaluate_founder_product_intent_agreement(
     validate_graph_edge(&mut findings, graph);
     validate_complete_graph_projection(&mut findings, registry, graph);
     findings
+}
+
+fn validate_operational_world_contract(findings: &mut BTreeSet<Finding>, model: &Value) {
+    require_contains_all(
+        findings,
+        model,
+        "status",
+        &["founder-intent-only", "non-binding", "ratified"],
+        "game_engine_product_model.status",
+    );
+    require_contains_all(
+        findings,
+        model,
+        "purpose",
+        &[
+            "product-design mental model",
+            "not as a claim",
+            "roadmap dispatch",
+        ],
+        "game_engine_product_model.purpose",
+    );
+    if !exact_string_values(
+        model.get("world_contract"),
+        &[
+            "Model a revisioned world/state through stable entities, composable components and traits, explicit systems, and durable events.",
+            "Represent business, effective, processing, and simulation time explicitly; preserve their distinctions rather than deriving one silently from another.",
+            "Support deterministic preview and replay from declared inputs, versions, policies, and schedules, with uncertainty, external nondeterminism, and claim limits visible.",
+            "Treat scenes and views as contextual projections of governed state, and support a visual world editor that authors canonical representations rather than a separate opaque visual truth.",
+            "Support multi-user and tenant-scoped worlds, policy gates, save/load/audit, compensation and rollback where technically possible, and dependency-aware scheduling.",
+        ],
+    ) {
+        invalid(findings, "game_engine_product_model.world_contract");
+    }
+
+    let types = &model["type_contract"];
+    require_contains_all(
+        findings,
+        types,
+        "rule",
+        &[
+            "first-class",
+            "tenant, pack, or platform",
+            "not a closed vendor enum",
+        ],
+        "game_engine_product_model.type_contract.rule",
+    );
+    if !exact_string_values(
+        types.get("requirements"),
+        &[
+            "extensible, customizable, configurable, and no-code capable",
+            "composed from stable definitions, components, traits, templates, defaults, and constraints rather than closed vendor enums",
+            "versioned and content-addressed with provenance",
+            "visually authored to canonical IR with round-trip traceability",
+            "policy-bound and compatibility-classified",
+            "previewable before application",
+            "reversibly migratable, or explicitly approved with a stated irreversible boundary, affected population, recourse, and rollback or compensation limit",
+        ],
+    ) {
+        invalid(
+            findings,
+            "game_engine_product_model.type_contract.requirements",
+        );
+    }
+    if !exact_string_values(
+        types.get("future_accepted_successor_requirements"),
+        &[
+            "Stable logical EntityId and TypeId remain distinct from immutable revision digests; external aliases and merge, split, and rekey history remain explicit.",
+            "Component applicability, cardinality, precedence, conflict handling, and cycle detection are declared and fail closed when incomplete or conflicting.",
+            "Commands, decisions, events, observations, corrections, projections, and effects remain explicit distinct kinds rather than one overloaded record.",
+            "Preview is isolated from live effects and declares its clock, randomness, external I/O, uncertainty, and non-effect boundary.",
+            "Projections are rebuildable and non-authoritative; visual writes compile to canonical IR and declare round-trip loss.",
+            "Defaults retain provenance, templates create candidates rather than authority, and constraint conflicts fail closed.",
+            "Compatibility is classified independently across producer, consumer, stored-data, UI, policy, and authority boundaries.",
+            "Migrations freeze the affected population and require coexistence, dry-run, checkpoints, partial-failure recovery, refusal, and verification.",
+            "Unknown extensions are preserved where possible and every semantic loss is explicitly disclosed.",
+            "These are future Accepted-successor requirements only; they select no implementation, architecture, data model, framework, or roadmap.",
+        ],
+    ) {
+        invalid(
+            findings,
+            "game_engine_product_model.type_contract.future_accepted_successor_requirements",
+        );
+    }
+    require_contains_all(
+        findings,
+        model,
+        "governance_type_system_boundary",
+        &[
+            "future extension vocabulary only",
+            "must not replace, amend, rename, or reinterpret",
+            "current Accepted governance/knowledge-graph type_system",
+            "separately Accepted immutable successor",
+        ],
+        "game_engine_product_model.governance_type_system_boundary",
+    );
+    if !exact_string_values(
+        model.get("hard_limits"),
+        &[
+            "Legal authority is established by qualified principals and applicable law, never by a world-state transition.",
+            "Privacy, consent, purpose limitation, retention, residency, and deletion constraints bind the world model and cannot be reduced to state.",
+            "Accounting requires independently governed records, controls, reconciliation, and accountable sign-off; simulation or replay does not establish a financial fact.",
+            "Distributed consistency limits, partial failure, and external concurrency require explicit semantics; a deterministic local replay does not prove global consistency.",
+            "Irreversible external effects require separately established authority, policy, confirmation, and recourse; they are not made reversible by representation.",
+            "Human accountability, affected-party rights, explanation, approval, appeal, remedy, and legal recourse remain human and institutional obligations, not game mechanics.",
+        ],
+    ) {
+        invalid(findings, "game_engine_product_model.hard_limits");
+    }
+}
+
+fn validate_change_accounting(findings: &mut BTreeSet<Finding>, value: Option<&Value>) {
+    let Some(changes) = value.and_then(Value::as_array) else {
+        invalid(findings, "change_accounting");
+        return;
+    };
+    if changes.is_empty() {
+        invalid(findings, "change_accounting");
+        return;
+    }
+    for (index, change) in changes.iter().enumerate() {
+        let key = format!("change_accounting[{index}]");
+        for field in ["version", "provenance", "review_status"] {
+            if change
+                .get(field)
+                .and_then(Value::as_str)
+                .is_none_or(str::is_empty)
+            {
+                invalid(findings, &format!("{key}.{field}"));
+            }
+        }
+        for field in [
+            "added_outcomes",
+            "changed_outcomes",
+            "removed_outcomes",
+            "relaxed_boundaries",
+        ] {
+            if !change.get(field).is_some_and(Value::is_array) {
+                invalid(findings, &format!("{key}.{field}"));
+            }
+        }
+    }
+}
+
+fn validate_comparator_contract(findings: &mut BTreeSet<Finding>, contract: &Value) {
+    require_contains_all(
+        findings,
+        contract,
+        "comparator_legal_jcr_prerequisite",
+        &[
+            "C05 comparator",
+            "cannot be satisfied",
+            "C06 legal_jcr",
+            "fresh scope-specific qualified legal/JCR disposition",
+        ],
+        "benchmark_and_measurement_contract.comparator_legal_jcr_prerequisite",
+    );
+
+    let Some(pointers) = contract
+        .get("game_engine_comparator_refs")
+        .and_then(Value::as_array)
+    else {
+        invalid(
+            findings,
+            "benchmark_and_measurement_contract.game_engine_comparator_refs",
+        );
+        return;
+    };
+    if pointers.is_empty() {
+        invalid(
+            findings,
+            "benchmark_and_measurement_contract.game_engine_comparator_refs",
+        );
+    }
+    for pointer in pointers {
+        let source_id = pointer
+            .get("source_id")
+            .and_then(Value::as_str)
+            .unwrap_or("unknown");
+        let key =
+            format!("benchmark_and_measurement_contract.game_engine_comparator_refs[{source_id}]");
+        if pointer.get("classification").and_then(Value::as_str) != Some("inactive-source-pointer")
+            || pointer.get("collection_status").and_then(Value::as_str)
+                != Some("uncollected-for-admitted-comparator-use")
+            || pointer.get("retrieved_at") != Some(&Value::Null)
+            || pointer.get("source_version").and_then(Value::as_str) != Some("Unknown")
+            || pointer.get("content_digest").and_then(Value::as_str) != Some("Unknown")
+            || pointer.get("legal_jcr_disposition").and_then(Value::as_str)
+                != Some(
+                    "Unknown-uncollected-pending-fresh-scope-specific-qualified-legal-JCR-disposition",
+                )
+            || pointer.get("evidence_eligible").and_then(Value::as_bool) != Some(false)
+            || pointer
+                .get("automated_expansion_allowed")
+                .and_then(Value::as_bool)
+                != Some(false)
+        {
+            invalid(findings, &format!("{key}.evidence_eligible"));
+        }
+    }
 }
 
 fn validate_temporal_and_epistemic_contract(findings: &mut BTreeSet<Finding>, contract: &Value) {
@@ -838,11 +1042,11 @@ fn validate_research_basis(findings: &mut BTreeSet<Finding>, value: Option<&Valu
     let mut source_ids = HashSet::new();
     let mut urls = HashSet::new();
     for (index, source) in sources.iter().enumerate() {
-        let key = format!(
+        let index_key = format!(
             "founder_execution_authorization.pipeline_evolution_contract.research_basis.sources[{index}]"
         );
         let Some(source_id) = source.get("source_id").and_then(Value::as_str) else {
-            invalid(findings, &format!("{key}.source_id"));
+            invalid(findings, &format!("{index_key}.source_id"));
             continue;
         };
         if source_id.is_empty()
@@ -851,8 +1055,11 @@ fn validate_research_basis(findings: &mut BTreeSet<Finding>, value: Option<&Valu
             })
             || !source_ids.insert(source_id)
         {
-            invalid(findings, &format!("{key}.source_id"));
+            invalid(findings, &format!("{index_key}.source_id"));
         }
+        let key = format!(
+            "founder_execution_authorization.pipeline_evolution_contract.research_basis.sources[{source_id}]"
+        );
 
         let Some(url) = source.get("url").and_then(Value::as_str) else {
             invalid(findings, &format!("{key}.url"));
@@ -871,6 +1078,26 @@ fn validate_research_basis(findings: &mut BTreeSet<Finding>, value: Option<&Valu
                 invalid(findings, &format!("{key}.{field}"));
             }
         }
+        if source.get("classification").and_then(Value::as_str) != Some("harvested-provenance")
+            || source.get("collection_status").and_then(Value::as_str)
+                != Some("retrieved-before-qualified-legal-jcr-disposition")
+            || source.get("legal_jcr_disposition").and_then(Value::as_str)
+                != Some("unresolved-pending-fresh-scope-specific-qualified-legal-jcr-disposition")
+            || source.get("evidence_eligible").and_then(Value::as_bool) != Some(false)
+            || source
+                .get("automated_expansion_allowed")
+                .and_then(Value::as_bool)
+                != Some(false)
+        {
+            invalid(findings, &format!("{key}.evidence_eligible"));
+        }
+        require_contains_all(
+            findings,
+            source,
+            "retention_rule",
+            &["harvested provenance", "not admitted evidence"],
+            &format!("{key}.retention_rule"),
+        );
     }
 }
 

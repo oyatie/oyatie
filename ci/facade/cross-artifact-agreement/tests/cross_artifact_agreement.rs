@@ -764,6 +764,118 @@ fn founder_product_intent_validator_is_fail_closed_for_temporal_and_epistemic_dr
     }
 }
 
+/// The operational-world vocabulary is future-facing product intent, not a backdoor
+/// amendment of Accepted governance or a route around Stage-1 comparator controls.
+/// These mutations are deliberately data-only: the validator must reject each one
+/// without relying on a reviewer to reinterpret prose at admission time.
+#[test]
+fn founder_product_intent_validator_is_fail_closed_for_operational_world_type_and_comparator_drift()
+{
+    let root = repo_root();
+    let intent = load_json(&root.join("specs/founder-product-intent.json"));
+    let root_hub = load_json(&root.join("specs/root-hub-pointers.json"));
+    let registry = load_json(&root.join("registry/artifact-capabilities-registry.json"));
+    let graph = load_json(&root.join("registry/graph/active-artifact-contract-edges.json"));
+
+    let cases: [(&str, &str, JsonMutation); 8] = [
+        (
+            "game-engine-model-removed",
+            "game_engine_product_model",
+            Box::new(|candidate| {
+                candidate
+                    .as_object_mut()
+                    .expect("founder intent object")
+                    .remove("game_engine_product_model");
+            }),
+        ),
+        (
+            "change-accounting-removed",
+            "change_accounting",
+            Box::new(|candidate| {
+                candidate
+                    .as_object_mut()
+                    .expect("founder intent object")
+                    .remove("change_accounting");
+            }),
+        ),
+        (
+            "future-types-rewrite-accepted-authority",
+            "game_engine_product_model.governance_type_system_boundary",
+            Box::new(|candidate| {
+                candidate["game_engine_product_model"]["governance_type_system_boundary"] =
+                    Value::String(
+                        "Operational-world types replace the Accepted type_system.".to_owned(),
+                    );
+            }),
+        ),
+        (
+            "future-types-completeness-erased",
+            "game_engine_product_model.type_contract.future_accepted_successor_requirements",
+            Box::new(|candidate| {
+                candidate["game_engine_product_model"]["type_contract"]
+                    .as_object_mut()
+                    .expect("operational-world type contract")
+                    .remove("future_accepted_successor_requirements");
+            }),
+        ),
+        (
+            "comparator-precedes-legal-jcr",
+            "benchmark_and_measurement_contract.comparator_legal_jcr_prerequisite",
+            Box::new(|candidate| {
+                candidate["benchmark_and_measurement_contract"]["comparator_legal_jcr_prerequisite"] =
+                    Value::String(
+                        "C05 comparator may be satisfied before C06 legal_jcr.".to_owned(),
+                    );
+            }),
+        ),
+        (
+            "harvested-palantir-made-evidence",
+            "founder_execution_authorization.pipeline_evolution_contract.research_basis.sources[palantir-apollo-helm-rollouts].evidence_eligible",
+            Box::new(|candidate| {
+                let source = candidate["founder_execution_authorization"]
+                    ["pipeline_evolution_contract"]["research_basis"]["sources"]
+                    .as_array_mut()
+                    .expect("research sources")
+                    .iter_mut()
+                    .find(|source| source["source_id"].as_str() == Some("palantir-apollo-helm-rollouts"))
+                    .expect("Palantir harvested source");
+                source["evidence_eligible"] = Value::Bool(true);
+            }),
+        ),
+        (
+            "uncollected-engine-pointer-made-evidence",
+            "benchmark_and_measurement_contract.game_engine_comparator_refs[unity-entities-concepts].evidence_eligible",
+            Box::new(|candidate| {
+                candidate["benchmark_and_measurement_contract"]["game_engine_comparator_refs"]
+                    .as_array_mut()
+                    .expect("game-engine comparator references")
+                    .iter_mut()
+                    .find(|source| source["source_id"].as_str() == Some("unity-entities-concepts"))
+                    .expect("Unity pointer")["evidence_eligible"] = Value::Bool(true);
+            }),
+        ),
+        (
+            "hold-planning-erased",
+            "authority_boundary.planning_state",
+            Box::new(|candidate| {
+                candidate["authority_boundary"]["planning_state"] =
+                    Value::String("PASS(Planning)".to_owned());
+            }),
+        ),
+    ];
+
+    for (name, expected_key, mutate) in cases {
+        let mut candidate = intent.clone();
+        mutate(&mut candidate);
+        let findings =
+            evaluate_founder_product_intent_agreement(&candidate, &root_hub, &registry, &graph);
+        assert!(
+            findings.iter().any(|finding| finding.key == expected_key),
+            "{name} must fail closed with {expected_key}: {findings:?}"
+        );
+    }
+}
+
 /// Pipeline evolution is itself a safety-critical contract. These isolated RED
 /// mutations pin the structural controls that keep parallel work from turning
 /// into self-authorizing promotion or a weaker safety tier.
