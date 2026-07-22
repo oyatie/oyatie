@@ -1,23 +1,27 @@
 //! Doc-axis enforcement kernel (ADR-0388).
 //!
 //! Validates that the `docs/` tree and related registry artifacts stay within
-//! the seven canonical doc axes defined by ADR-0388. Four rules are checked:
+//! the seven canonical doc axes defined by ADR-0388. Five rules are checked:
 //!
 //! 1. **ADR status casing** — every `docs/decisions/ADR-*.md` frontmatter
-//!    `status:` value is one of the five allowed literals (case-sensitive).
+//!    `status:` value is one of the six allowed literals (case-sensitive).
 //!    Emits a warning (not an error) unless `strict` mode is enabled, because
 //!    the existing corpus of ~295 ADRs has inconsistent historical casing. A
 //!    follow-up normalisation sweep will promote this to an error.
 //!
-//! 2. **No shadow docs** — `docs/ideas/*.md` files whose filename date-stamp
+//! 2. **Amended ADR lifecycle** — every `status: Amended` ADR must declare a
+//!    canonical `amended_date: YYYY-MM-DD` in its initial frontmatter. This is
+//!    a strict-mode error while historical documents are being normalised.
+//!
+//! 3. **No shadow docs** — `docs/ideas/*.md` files whose filename date-stamp
 //!    is older than 14 days must be either archived (`docs/ideas/archive/`) or
 //!    carry a `superseded_by: ADR-NNNN` frontmatter field linking to a real
 //!    existing ADR file.
 //!
-//! 3. **No docs proliferation** — only the canonical subdirectories are
+//! 4. **No docs proliferation** — only the canonical subdirectories are
 //!    permitted under `docs/`. Any `.md` file placed outside them is an error.
 //!
-//! 4. **Catalog/manifest crate-claim consistency** — every crate listed in a
+//! 5. **Catalog/manifest crate-claim consistency** — every crate listed in a
 //!    microservice `manifest.json` `bounded_contexts[].crates[]` array must
 //!    have a corresponding file under `registry/catalog/<crate>.yaml`.
 
@@ -28,6 +32,8 @@
 use std::collections::BTreeSet;
 use std::fs;
 use std::path::{Path, PathBuf};
+
+use oya_governance_adr_shape_kernel::has_canonical_amended_date;
 
 // ---------------------------------------------------------------------------
 // Public types
@@ -48,16 +54,18 @@ pub struct DocAxisFinding {
     pub blocking: bool,
 }
 
-/// The four doc-axis rule identifiers.
+/// The five doc-axis rule identifiers.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum DocAxisRule {
-    /// Rule 1: ADR status field must be one of the five canonical values.
+    /// Rule 1: ADR status field must be one of the six canonical values.
     AdrStatusCasing,
-    /// Rule 2: idea-pager older than 14 days without promotion or archival.
+    /// Rule 2: amended ADRs require a canonical initial-frontmatter date.
+    AmendedDate,
+    /// Rule 3: idea-pager older than 14 days without promotion or archival.
     ShadowIdea,
-    /// Rule 3: markdown file placed outside a canonical `docs/` subdirectory.
+    /// Rule 4: markdown file placed outside a canonical `docs/` subdirectory.
     DocsProliferation,
-    /// Rule 4: crate claimed in manifest.json but missing from registry/catalog/.
+    /// Rule 5: crate claimed in manifest.json but missing from registry/catalog/.
     CatalogManifestDrift,
 }
 
@@ -84,9 +92,10 @@ pub type ValidationResult = Result<DocAxisReport, Vec<DocAxisFinding>>;
 // Allowed canonical status values (Rule 1)
 // ---------------------------------------------------------------------------
 
-/// The five canonical ADR `status:` values (exact case, per ADR-0388).
+/// The six canonical ADR `status:` values (exact case, per ADR-0388).
 pub const ALLOWED_ADR_STATUSES: &[&str] = &[
     "Accepted",
+    "Amended",
     "Proposed",
     "Superseded",
     "Deprecated",
@@ -272,7 +281,7 @@ fn check_adr_status_casing(
         let rel = repo_relative(repo_root, &path);
         if let Some((line_num, bad_value)) = find_bad_status(&contents) {
             findings.push(DocAxisFinding {
-                path: rel,
+                path: rel.clone(),
                 line: Some(line_num),
                 rule_violated: DocAxisRule::AdrStatusCasing,
                 suggested_fix: format!(
@@ -282,14 +291,48 @@ fn check_adr_status_casing(
                 blocking: strict,
             });
         }
+        if find_frontmatter_value(&contents, "status")
+            .is_some_and(|(_, status)| status == "Amended")
+            && !has_canonical_amended_date(&contents)
+        {
+            let line = find_frontmatter_value(&contents, "amended_date")
+                .map(|(line, _)| line)
+                .or_else(|| find_frontmatter_value(&contents, "status").map(|(line, _)| line));
+            findings.push(DocAxisFinding {
+                path: rel,
+                line,
+                rule_violated: DocAxisRule::AmendedDate,
+                suggested_fix: "Add `amended_date: YYYY-MM-DD` to the initial YAML frontmatter of this Amended ADR".to_string(),
+                blocking: strict,
+            });
+        }
     }
 }
 
 /// Scan `contents` for a `status:` frontmatter line with a non-canonical value.
 /// Returns `(1-based line number, bad value string)` on the first violation found.
 fn find_bad_status(contents: &str) -> Option<(usize, String)> {
+    let values = find_frontmatter_values(contents, "status");
+    if values.len() > 1 {
+        return Some((
+            values[1].0,
+            "ambiguous duplicate initial-frontmatter status fields".to_owned(),
+        ));
+    }
+    values.into_iter().next().and_then(|(line, value)| {
+        (!ALLOWED_ADR_STATUSES.contains(&value.as_str())).then_some((line, value))
+    })
+}
+
+/// Return an initial-frontmatter scalar field and its 1-based source line.
+fn find_frontmatter_value(contents: &str, field: &str) -> Option<(usize, String)> {
+    find_frontmatter_values(contents, field).into_iter().next()
+}
+
+fn find_frontmatter_values(contents: &str, field: &str) -> Vec<(usize, String)> {
     let mut in_frontmatter = false;
     let mut frontmatter_opened = false;
+    let mut values = Vec::new();
     for (idx, line) in contents.lines().enumerate() {
         let trimmed = line.trim();
         if idx == 0 && trimmed == "---" {
@@ -303,14 +346,15 @@ fn find_bad_status(contents: &str) -> Option<(usize, String)> {
         if !in_frontmatter {
             break;
         }
-        if let Some(rest) = trimmed.strip_prefix("status:") {
+        if let Some(rest) = line
+            .strip_prefix(field)
+            .and_then(|rest| rest.strip_prefix(':'))
+        {
             let value = rest.trim().trim_matches('"').trim_matches('\'');
-            if !ALLOWED_ADR_STATUSES.contains(&value) {
-                return Some((idx + 1, value.to_string()));
-            }
+            values.push((idx + 1, value.to_string()));
         }
     }
-    None
+    values
 }
 
 // ---------------------------------------------------------------------------
@@ -720,11 +764,12 @@ mod tests {
     #[test]
     fn allowed_statuses_are_canonical() {
         assert!(ALLOWED_ADR_STATUSES.contains(&"Accepted"));
+        assert!(ALLOWED_ADR_STATUSES.contains(&"Amended"));
         assert!(ALLOWED_ADR_STATUSES.contains(&"Proposed"));
         assert!(ALLOWED_ADR_STATUSES.contains(&"Superseded"));
         assert!(ALLOWED_ADR_STATUSES.contains(&"Deprecated"));
         assert!(ALLOWED_ADR_STATUSES.contains(&"Rejected"));
-        assert_eq!(ALLOWED_ADR_STATUSES.len(), 5);
+        assert_eq!(ALLOWED_ADR_STATUSES.len(), 6);
     }
 
     #[test]

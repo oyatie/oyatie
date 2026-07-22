@@ -6,6 +6,7 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//libs/oya-check-adr-index:oya-check-adr-index",
+        "//libs/oya-governance-adr-shape-kernel:oya-governance-adr-shape-kernel",
         "third-party//:serde",
         "third-party//:serde_json",
         "third-party//:sha2",
@@ -20,9 +21,11 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         "//libs/oya-check-adr-index:oya-check-adr-index",
+        "//libs/oya-governance-adr-shape-kernel:oya-governance-adr-shape-kernel",
         "third-party//:serde",
         "third-party//:serde_json",
         "third-party//:sha2",
+        "third-party//:tempfile",
     ],
 )
 
@@ -42,11 +45,17 @@ rust_test(
     # the producer reads the committed scm-facts face (a declared input) — no action calls git.
     env = {
         "OYA_CI_PRODUCER_BIN": "$(exe //ci/facade/artifact-inventory-registry:oya-cloud-ci-accounting-registry-app-bin)",
+        "OYA_IDEA_ARCHIVE_POLICY": "$(location //specs:markdown-retirement-policy.json)",
     },
+    resources = [
+        "//docs/ideas:idea-archive-candidate-tree",
+    ],
     visibility = ["PUBLIC"],
     deps = [
         ":ci-cross-artifact-agreement",
         "//ci/facade/artifact-inventory-registry:ci-artifact-inventory-registry",
+        "//libs/oya-governance-adr-shape-kernel:oya-governance-adr-shape-kernel",
+        "//specs:markdown-retirement-policy.json",
         "third-party//:serde_json",
     ],
 )

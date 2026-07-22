@@ -506,7 +506,8 @@ fn adr_file_reverses_forbidding(
 
 /// Pure predicate: does an ADR document `body` carry frontmatter `status: Accepted` (case-insensitive)
 /// AND list `forbidding` in its frontmatter `supersedes:`, `amends:`, or `reverses:` field (parsed as
-/// a YAML list-or-scalar)? The reversal is required STRUCTURALLY in the frontmatter — a body-anywhere
+/// a YAML list-or-scalar)? This is intentionally stricter than generic decision liveness: an in-place
+/// `Amended` ADR does not newly authorize GraphQL. The reversal is required STRUCTURALLY in the frontmatter — a body-anywhere
 /// mention of the forbidding id (in `related:`, in prose, or in a phrase like "has not been
 /// superseded") does NOT satisfy the requirement. This prevents an attacker from citing the forbidding
 /// ADR in an unrelated field and claiming the reversal was present. Exposed for unit tests.
@@ -521,6 +522,7 @@ pub fn adr_is_accepted_and_reverses(body: &str, forbidding: &str) -> bool {
 /// `reverses:` field whose value (list-or-scalar) includes `forbidding`. Accepts both:
 /// - Inline scalar:  `supersedes: ADR-0565`
 /// - YAML list item: `supersedes:\n  - ADR-0565`
+///
 /// Values are compared case-sensitively (canonical `ADR-NNNN` form). A match in `related:` or
 /// any other frontmatter field does NOT satisfy the requirement.
 fn adr_frontmatter_reverses(body: &str, forbidding: &str) -> bool {
@@ -579,9 +581,9 @@ fn adr_frontmatter_reverses(body: &str, forbidding: &str) -> bool {
 /// Whether the ADR frontmatter declares `status: Accepted` (case-insensitive on the value). Only the
 /// FIRST `---`…`---` YAML frontmatter block is scanned — a `status:` line inside a fenced code block
 /// or prose section does NOT count as the frontmatter status field. Accepts both bare and quoted
-/// values (`status: Accepted` and `status: "Accepted"`). A multi-value status
-/// (`Proposed | Accepted | ...`) only counts when the resolved single value is Accepted, so a
-/// not-yet-ratified `Proposed` does not launder.
+/// values (`status: Accepted` and `status: "Accepted"`). Exactly one top-level `status` key is
+/// required. A pipe-delimited multi-value status (`Proposed | Accepted | ...`) never counts; only a
+/// resolved single Accepted value can authorize, so a not-yet-ratified `Proposed` does not launder.
 fn adr_status_is_accepted(body: &str) -> bool {
     // Locate the first `---`…`---` YAML frontmatter block. The opening `---` must be the very first
     // line (standard Jekyll/Hugo convention). If no closing `---` is found, the entire header up to
@@ -591,15 +593,20 @@ fn adr_status_is_accepted(body: &str) -> bool {
     if first != "---" {
         return false;
     }
+    let mut accepted = None;
+    let mut status_count = 0usize;
     for line in lines {
         let trimmed = line.trim();
         if trimmed == "---" {
-            // End of frontmatter — status: field was not found.
-            return false;
+            return status_count == 1 && accepted == Some(true);
         }
-        let Some(rest) = trimmed.strip_prefix("status:") else {
+        let Some(rest) = line.strip_prefix("status:") else {
             continue;
         };
+        status_count += 1;
+        if status_count > 1 {
+            return false;
+        }
         let raw = rest.trim();
         // Strip optional surrounding quotes (`"Accepted"` or `'Accepted'`).
         let value = raw
@@ -612,9 +619,10 @@ fn adr_status_is_accepted(body: &str) -> bool {
         // A pipe-delimited status enum (`proposed | accepted | superseded`) is a TEMPLATE, not a
         // ratified value — it does not count as Accepted.
         if value.contains('|') {
-            return false;
+            accepted = Some(false);
+            continue;
         }
-        return value == "accepted";
+        accepted = Some(value == "accepted");
     }
     false
 }
@@ -1661,6 +1669,16 @@ version = "7.0.0"
         // A Proposed ADR does not launder even if it claims to reverse the ban.
         assert!(!adr_is_accepted_and_reverses(
             "---\nid: ADR-0700\nstatus: Proposed\n---\nThis ADR reverses ADR-0565.\n",
+            "ADR-0565"
+        ));
+        // An in-place amendment remains live for planning, but cannot newly authorize GraphQL.
+        assert!(!adr_is_accepted_and_reverses(
+            "---\nid: ADR-0700\nstatus: Amended\nsupersedes:\n  - ADR-0565\n---\n",
+            "ADR-0565"
+        ));
+        // Conflicting duplicate lifecycle keys cannot launder an authorization.
+        assert!(!adr_is_accepted_and_reverses(
+            "---\nid: ADR-0700\nstatus: Accepted\nstatus: Amended\nsupersedes:\n  - ADR-0565\n---\n",
             "ADR-0565"
         ));
         // An Accepted ADR that does not mention the forbidding id does not launder.
