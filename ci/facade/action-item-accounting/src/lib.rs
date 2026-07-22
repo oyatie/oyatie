@@ -51,9 +51,8 @@
 /// protected registry snapshot and the candidate registry bytes.
 pub mod fixuptask_v2;
 
-/// Transitional predecessor-ledger accounting. It is intentionally isolated so
-/// it can be removed after the separately authorized migration/cutover.
-pub mod legacy_friction_adapter;
+// The predecessor/friction implementation below is a legacy compatibility
+// surface.  It is not part of the independently compiled durable v2 target.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;

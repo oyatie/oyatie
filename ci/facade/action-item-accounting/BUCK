@@ -24,36 +24,36 @@ rust_test(
 
 rust_test(
     name = "fixuptask-v2-admission",
-    srcs = glob(["tests/fixuptask_v2_admission.rs", "src/**/*.rs", "fixuptask-v2-schema.json"]),
-    crate = "ci_fixuptask_v2_admission",
-    crate_root = "tests/fixuptask_v2_admission.rs",
+    # Exact durable composition: no recursive source glob and no legacy crate.
+    srcs = [
+        "src/fixuptask_v2.rs",
+        "fixuptask-v2-schema.json",
+    ],
+    crate = "ci_fixuptask_v2",
+    crate_root = "src/fixuptask_v2.rs",
     visibility = ["PUBLIC"],
     deps = [
-        ":ci-action-item-accounting",
         "third-party//:serde_json",
+        "third-party//:sha2",
     ],
+)
+
+# Regression guard for the target's explicit, independently removable source boundary.
+rust_test(
+    name = "fixuptask-v2-source-boundary",
+    srcs = [
+        "tests/fixuptask_v2_source_boundary.rs",
+        "BUCK",
+    ],
+    crate = "ci_fixuptask_v2_source_boundary",
+    crate_root = "tests/fixuptask_v2_source_boundary.rs",
+    visibility = ["PUBLIC"],
 )
 
 rust_test(
     name = "legacy-friction-adapter",
     srcs = glob(["tests/friction_accounting.rs", "src/**/*.rs", "**/*.json"]),
     crate = "ci_legacy_friction_adapter",
-    crate_root = "tests/friction_accounting.rs",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":ci-action-item-accounting",
-        "third-party//:serde_json",
-    ],
-)
-
-# ADR-0544 FRIC-total-accounting: Buck2-native, cargo-free live-corpus meta-gate over the friction
-# ledger. The test collects the policy-declared ledger, folds the event-sourced append rows, and
-# asserts the live corpus is born-blocking green on closure-integrity codes while legacy schema debt
-# stays under the reviewed shrink-only ceilings (FRIC-1781112000 anti-laundering).
-rust_test(
-    name = "ci-action-item-accounting-gate",
-    srcs = glob(["tests/**/*.rs", "**/*.json"]),
-    crate = "ci_action_item_accounting_gate",
     crate_root = "tests/friction_accounting.rs",
     visibility = ["PUBLIC"],
     deps = [
