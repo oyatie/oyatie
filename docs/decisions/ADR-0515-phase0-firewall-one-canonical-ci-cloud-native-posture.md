@@ -183,6 +183,10 @@ The Phase-0 false-green firewall is the substrate that makes merge-gate enforcem
      `docs/machine-readable/decisions.json` projections re-rendered through the
      `oya-check-adr-index` producer kernel, implementing the
      `docs/automation/adr-index-pipeline.md` regeneration promise without shelling out).
+     The same cross-artifact-agreement gate additionally consumes
+     `ci/facade/cross-artifact-agreement/src/preplanning-candidate-policy.json`, the
+     reviewed DATA policy binding the historical pre-planning candidate identity and
+     non-closure claim ceiling.
      The three checks are implemented as born-advisory submodules
      `ci/facade/cross-artifact-agreement/src/prose_frontmatter_status.rs`,
      `ci/facade/cross-artifact-agreement/src/registry_policy_sync.rs`, and

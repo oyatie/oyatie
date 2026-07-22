@@ -15,9 +15,10 @@ use ci_cross_artifact_agreement::{
     evaluate_masterplan_projection_rederivation, evaluate_masterplan_read_surface_resurrections,
     evaluate_masterplan_v2_authority, evaluate_masterplan_v2_entry_surfaces,
     evaluate_masterplan_v2_evidence_state, evaluate_masterplan_v2_plan_evidence_drift,
-    evaluate_masterplan_v2_program_coverage, evaluate_masterplan_v2_projection_freshness,
-    evaluate_masterplan_v2_ratification_digest, evaluate_masterplan_v2_read_contract_archives,
-    evaluate_masterplan_v2_sequencing, evaluate_registry_derived_policy_sync, ratchet,
+    evaluate_masterplan_v2_preplanning_candidate_facts, evaluate_masterplan_v2_program_coverage,
+    evaluate_masterplan_v2_projection_freshness, evaluate_masterplan_v2_ratification_digest,
+    evaluate_masterplan_v2_read_contract_archives, evaluate_masterplan_v2_sequencing,
+    evaluate_registry_derived_policy_sync, ratchet,
 };
 use serde_json::Value;
 
@@ -328,6 +329,227 @@ fn masterplan_v2_plan_vs_evidence_drift_contract_is_green() {
         masterplan["masterplan_v2"]["evidence_state_policy"]["validator"].as_str(),
         Some("cloud-ci-cross-artifact-agreement/masterplan-v2-plan-vs-evidence-drift"),
         "masterplan v2 must name the plan-vs-evidence drift validator as the evidence-state policy writer"
+    );
+}
+
+#[test]
+fn masterplan_v2_current_preplanning_candidate_matches_cited_evidence() {
+    let (masterplan, evidence) = live_preplanning_candidate_fixture();
+
+    let findings = evaluate_masterplan_v2_preplanning_candidate_facts(&masterplan, &evidence);
+    assert!(
+        findings.is_empty(),
+        "masterplan current-candidate facts must agree with their cited time-scoped receipt: {findings:?}"
+    );
+}
+
+#[test]
+fn preplanning_candidate_paired_missing_fields_fail_closed() {
+    let (mut masterplan, mut evidence) = live_preplanning_candidate_fixture();
+    masterplan["masterplan_v2"]["planning_entry_contract"]["current_pr_candidate_state"]
+        .as_object_mut()
+        .expect("current candidate state must be an object")
+        .remove("protected_pr_number");
+    evidence["present"]["repository_baseline"]
+        .as_object_mut()
+        .expect("repository baseline must be an object")
+        .remove("protected_pr_number");
+
+    assert_preplanning_candidate_drift_reason(&masterplan, &evidence, "missing_or_malformed");
+}
+
+#[test]
+fn preplanning_candidate_wrong_field_types_fail_closed() {
+    let (mut masterplan, mut evidence) = live_preplanning_candidate_fixture();
+    masterplan["masterplan_v2"]["planning_entry_contract"]["current_pr_candidate_state"]["protected_pr_number"] =
+        serde_json::json!("1340");
+    evidence["present"]["repository_baseline"]["protected_pr_number"] = serde_json::json!("1340");
+
+    assert_preplanning_candidate_drift(&masterplan, &evidence);
+}
+
+#[test]
+fn preplanning_candidate_contract_field_drift_has_a_keyed_reason() {
+    let (mut masterplan, evidence) = live_preplanning_candidate_fixture();
+    masterplan["masterplan_v2"]["planning_entry_contract"]["state"] = serde_json::json!("closed");
+
+    assert_preplanning_candidate_drift_reason(&masterplan, &evidence, "field_mismatch");
+}
+
+#[test]
+fn preplanning_candidate_baseline_must_match_immutable_pr_facts() {
+    let (mut masterplan, mut evidence) = live_preplanning_candidate_fixture();
+    let divergent_base = serde_json::json!("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+    masterplan["masterplan_v2"]["planning_entry_contract"]["current_pr_candidate_state"]["baseline_commit"] =
+        divergent_base.clone();
+    masterplan["masterplan_v2"]["planning_entry_contract"]["current_pr_candidate_state"]["candidate_base"] =
+        divergent_base.clone();
+    evidence["present"]["repository_baseline"]["pr_base"] = divergent_base;
+
+    assert_preplanning_candidate_drift(&masterplan, &evidence);
+}
+
+#[test]
+fn preplanning_candidate_review_must_be_approved_on_final_head() {
+    let (masterplan, mut evidence) = live_preplanning_candidate_fixture();
+    evidence["present"]["factual_reconciliation"]["github_approved_review_receipt"]["state"] =
+        serde_json::json!("CHANGES_REQUESTED");
+    evidence["present"]["factual_reconciliation"]["github_approved_review_receipt"]["commit_sha"] =
+        serde_json::json!("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+
+    assert_preplanning_candidate_drift(&masterplan, &evidence);
+}
+
+#[test]
+fn preplanning_candidate_pr_identity_cannot_move_in_lockstep() {
+    let (mut masterplan, mut evidence) = live_preplanning_candidate_fixture();
+    masterplan["masterplan_v2"]["planning_entry_contract"]["current_pr_candidate_state"]["protected_pr_number"] =
+        serde_json::json!(9999);
+    masterplan["masterplan_v2"]["planning_entry_contract"]["current_pr_candidate_state"]["protected_pr_url"] =
+        serde_json::json!("https://github.com/jason931225/oyatie/pull/9999");
+    evidence["present"]["repository_baseline"]["protected_pr_number"] = serde_json::json!(9999);
+    evidence["present"]["repository_baseline"]["protected_pr_url"] =
+        serde_json::json!("https://github.com/jason931225/oyatie/pull/9999");
+    evidence["present"]["factual_reconciliation"]["immutable_pull_request_facts"]["number"] =
+        serde_json::json!(9999);
+    evidence["present"]["factual_reconciliation"]["immutable_pull_request_facts"]["url"] =
+        serde_json::json!("https://github.com/jason931225/oyatie/pull/9999");
+
+    assert_preplanning_candidate_drift(&masterplan, &evidence);
+}
+
+#[test]
+fn preplanning_candidate_state_cannot_move_in_lockstep() {
+    let (mut masterplan, mut evidence) = live_preplanning_candidate_fixture();
+    let false_state = serde_json::json!("merged-and-all-authority-closed");
+    masterplan["masterplan_v2"]["planning_entry_contract"]["current_pr_candidate_state"]["recorded_candidate_state"] =
+        false_state.clone();
+    evidence["present"]["repository_baseline"]["candidate_state"] = false_state;
+    evidence["present"]["factual_reconciliation"]["immutable_pull_request_facts"]["candidate_state"] =
+        serde_json::json!("merged-and-all-authority-closed");
+
+    assert_preplanning_candidate_drift(&masterplan, &evidence);
+}
+
+#[test]
+fn preplanning_candidate_claim_ceiling_cannot_move_in_lockstep() {
+    let (mut masterplan, mut evidence) = live_preplanning_candidate_fixture();
+    let false_claim = serde_json::json!("PR #1340 closes every authority and product gate.");
+    masterplan["masterplan_v2"]["planning_entry_contract"]["current_pr_candidate_state"]["claim_ceiling"] =
+        false_claim.clone();
+    evidence["present"]["repository_baseline"]["claim_ceiling"] = false_claim;
+    evidence["present"]["factual_reconciliation"]["immutable_pull_request_facts"]["claim_ceiling"] =
+        serde_json::json!("PR #1340 closes every authority and product gate.");
+
+    assert_preplanning_candidate_drift(&masterplan, &evidence);
+}
+
+#[test]
+fn preplanning_candidate_first_commit_cannot_move_in_lockstep() {
+    let (mut masterplan, mut evidence) = live_preplanning_candidate_fixture();
+    let false_first_commit = serde_json::json!("cccccccccccccccccccccccccccccccccccccccc");
+    masterplan["masterplan_v2"]["planning_entry_contract"]["current_pr_candidate_state"]["candidate_first_content_commit"] =
+        false_first_commit.clone();
+    evidence["present"]["repository_baseline"]["candidate_first_content_commit"] =
+        false_first_commit.clone();
+    evidence["present"]["repository_baseline"]["pr_opened_on_head"] = false_first_commit;
+
+    assert_preplanning_candidate_drift(&masterplan, &evidence);
+}
+
+#[test]
+fn preplanning_candidate_final_head_cannot_move_in_lockstep_with_its_receipts() {
+    let (mut masterplan, mut evidence) = live_preplanning_candidate_fixture();
+    let false_head = serde_json::json!("dddddddddddddddddddddddddddddddddddddddd");
+    masterplan["masterplan_v2"]["planning_entry_contract"]["current_pr_candidate_state"]["candidate_final_head"] =
+        false_head.clone();
+    evidence["present"]["repository_baseline"]["pr_final_head"] = false_head.clone();
+    evidence["present"]["factual_reconciliation"]["immutable_pull_request_facts"]["head_sha"] =
+        false_head.clone();
+    evidence["present"]["factual_reconciliation"]["github_approved_review_receipt"]["commit_sha"] =
+        false_head.clone();
+    evidence["present"]["factual_reconciliation"]["protected_context_receipts"][0]["commit_sha"] =
+        false_head;
+
+    assert_preplanning_candidate_drift(&masterplan, &evidence);
+}
+
+#[test]
+fn preplanning_candidate_merge_sha_cannot_move_in_lockstep_with_its_receipt() {
+    let (mut masterplan, mut evidence) = live_preplanning_candidate_fixture();
+    let false_merge = serde_json::json!("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
+    masterplan["masterplan_v2"]["planning_entry_contract"]["current_pr_candidate_state"]["merge_commit"] =
+        false_merge.clone();
+    evidence["present"]["repository_baseline"]["merge_commit"] = false_merge.clone();
+    evidence["present"]["factual_reconciliation"]["immutable_pull_request_facts"]["merge_commit_sha"] =
+        false_merge.clone();
+    evidence["present"]["factual_reconciliation"]["protected_context_receipts"][1]["commit_sha"] =
+        false_merge;
+
+    assert_preplanning_candidate_drift(&masterplan, &evidence);
+}
+
+#[test]
+fn preplanning_candidate_review_receipt_cannot_mutate_in_lockstep() {
+    let (mut masterplan, mut evidence) = live_preplanning_candidate_fixture();
+    masterplan["masterplan_v2"]["planning_entry_contract"]["current_pr_candidate_state"]["github_approved_reviewer"] =
+        serde_json::json!("replacement-reviewer");
+    evidence["present"]["factual_reconciliation"]["github_approved_review_receipt"]["review_id"] =
+        serde_json::json!(999_999);
+    evidence["present"]["factual_reconciliation"]["github_approved_review_receipt"]["reviewer"] =
+        serde_json::json!("replacement-reviewer");
+    evidence["present"]["factual_reconciliation"]["github_approved_review_receipt"]["submitted_at"] =
+        serde_json::json!("2026-07-14T00:00:00Z");
+    evidence["present"]["factual_reconciliation"]["github_approved_review_receipt"]["url"] =
+        serde_json::json!("https://github.com/jason931225/oyatie/pull/1340#replacement");
+
+    assert_preplanning_candidate_drift(&masterplan, &evidence);
+}
+
+#[test]
+fn preplanning_candidate_protected_context_receipt_cannot_mutate() {
+    let (masterplan, mut evidence) = live_preplanning_candidate_fixture();
+    evidence["present"]["factual_reconciliation"]["protected_context_receipts"][0]["details_url"] =
+        serde_json::json!("https://github.com/jason931225/oyatie/actions/runs/replaced");
+
+    assert_preplanning_candidate_drift_reason(&masterplan, &evidence, "candidate_receipt_digest");
+}
+
+fn live_preplanning_candidate_fixture() -> (Value, Value) {
+    let root = repo_root();
+    let masterplan = load_json(&root.join("specs/masterplan.json"));
+    let evidence_ref =
+        masterplan["masterplan_v2"]["planning_entry_contract"]["current_pr_candidate"]
+            .as_str()
+            .expect("current_pr_candidate must cite a repository-relative evidence file");
+    let evidence = load_json(&root.join(evidence_ref));
+    (masterplan, evidence)
+}
+
+fn assert_preplanning_candidate_drift(masterplan: &Value, evidence: &Value) {
+    let findings = evaluate_masterplan_v2_preplanning_candidate_facts(masterplan, evidence);
+    assert!(
+        findings.iter().any(|finding| {
+            finding.code == "masterplan_plan_evidence_drift"
+                && finding.key.starts_with(
+                    "masterplan_v2.planning_entry_contract.current_pr_candidate_state.",
+                )
+        }),
+        "candidate drift must fail closed: {findings:?}"
+    );
+}
+
+fn assert_preplanning_candidate_drift_reason(masterplan: &Value, evidence: &Value, reason: &str) {
+    let findings = evaluate_masterplan_v2_preplanning_candidate_facts(masterplan, evidence);
+    assert!(
+        findings.iter().any(|finding| {
+            finding.code == "masterplan_plan_evidence_drift"
+                && finding.key
+                    == format!(
+                        "masterplan_v2.planning_entry_contract.current_pr_candidate_state.{reason}"
+                    )
+        }),
+        "candidate drift must identify reason {reason}: {findings:?}"
     );
 }
 
