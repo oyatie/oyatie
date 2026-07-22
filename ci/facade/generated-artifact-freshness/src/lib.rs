@@ -46,6 +46,9 @@ const BOARD_SYNC_PROJECTION_PATH: &str = "docs/machine-readable/board-sync.gener
 const MASTERPLAN_SOURCE_PATH: &str = "specs/masterplan.json";
 const ARCHITECTURE_PRODUCT_GRAPH_FACE: &str = "product-graph.html";
 const ARCHITECTURE_PRODUCT_GRAPH_PATH: &str = "docs/architecture/product-graph.html";
+const ACTIVE_ARTIFACT_CONTRACT_GRAPH_FACE: &str = "active-artifact-contract-edges.json";
+const ACTIVE_ARTIFACT_CONTRACT_GRAPH_PATH: &str =
+    "registry/graph/active-artifact-contract-edges.json";
 /// PR-owned / face-settle generated paths. Controller-owned generated artifacts that must be
 /// materialized on protected branches, such as `product-graph.html`, intentionally stay out of
 /// this list so contributor PRs do not acquire a new generated merge surface.
@@ -60,11 +63,12 @@ const GENERATED_FACE_PATHS: [&str; 7] = [
 ];
 /// Controller-owned generated artifacts whose freshness is proven by regeneration/determinism,
 /// but whose byte diffs are not staged by `oya-cloud-ci-face-settle` in contributor PRs.
-const CONTROLLER_MATERIALIZED_ARTIFACT_PATHS: [&str; 4] = [
+const CONTROLLER_MATERIALIZED_ARTIFACT_PATHS: [&str; 5] = [
     "ci/facade/artifact-inventory-registry/adr-census-parent-receipt.generated.json",
     MASTERPLAN_PROJECTION_PATH,
     BOARD_SYNC_PROJECTION_PATH,
     ARCHITECTURE_PRODUCT_GRAPH_PATH,
+    ACTIVE_ARTIFACT_CONTRACT_GRAPH_PATH,
 ];
 const EMITTER_TARGET: &str = "//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot";
 const PRODUCER_TARGET: &str =
@@ -429,6 +433,7 @@ fn materialize_generated_faces_with_tools(
     append_enforcement_liveness_corpus_args(&mut command, &tools.enforcement_liveness_corpus);
     command.current_dir(repo_root);
     run_status(&mut command, "materialize generated accounting faces")?;
+    materialize_active_artifact_contract_graph(tools, repo_root)?;
     materialize_masterplan_projection(tools, repo_root)?;
     materialize_board_sync_projection(repo_root)?;
     materialize_masterplan_md_projection(repo_root)?;
@@ -1258,6 +1263,7 @@ fn regenerate_all_faces(
         &tools.emitter,
         repo_root,
     )?);
+    regenerated.push(regenerate_active_artifact_contract_graph(tools, repo_root)?);
     regenerated.extend(regenerate_architecture_projection_faces(tools, repo_root)?);
     regenerated.sort_by(|left, right| left.0.cmp(&right.0));
     Ok(regenerated)
@@ -1292,6 +1298,27 @@ fn emit_adr_census_parent_receipt(
             .current_dir(repo_root),
         "materialize fixed historical ADR census receipt",
     )
+}
+
+fn regenerate_active_artifact_contract_graph(
+    tools: &FaceTools,
+    repo_root: &Path,
+) -> Result<(String, String), FreshnessError> {
+    let output = temporary_active_artifact_contract_graph_path();
+    let cleanup = TempFileCleanup {
+        path: output.clone(),
+    };
+    run_status(
+        Command::new(&tools.masterplan_generator)
+            .args(["gate", "validate", "active-artifact-contract"])
+            .arg("--emit-graph-edges")
+            .arg(&output)
+            .current_dir(repo_root),
+        "regenerate active-artifact-contract graph",
+    )?;
+    let bytes = read_to_string(&output)?;
+    drop(cleanup);
+    Ok((ACTIVE_ARTIFACT_CONTRACT_GRAPH_FACE.to_owned(), bytes))
 }
 
 fn regenerate_architecture_projection_faces(
@@ -1902,6 +1929,20 @@ fn materialize_masterplan_projection(
     )
 }
 
+fn materialize_active_artifact_contract_graph(
+    tools: &MaterializerTools,
+    repo_root: &Path,
+) -> Result<(), FreshnessError> {
+    run_status(
+        Command::new(&tools.masterplan_generator)
+            .args(["gate", "validate", "active-artifact-contract"])
+            .arg("--emit-graph-edges")
+            .arg(repo_root.join(ACTIVE_ARTIFACT_CONTRACT_GRAPH_PATH))
+            .current_dir(repo_root),
+        "materialize active-artifact-contract graph",
+    )
+}
+
 fn materialize_board_sync_projection(repo_root: &Path) -> Result<(), FreshnessError> {
     let source_path = repo_root.join(MASTERPLAN_PROJECTION_PATH);
     let source = read_to_string(&source_path)?;
@@ -2117,6 +2158,17 @@ fn temporary_adr_census_parent_receipt_path() -> PathBuf {
     };
     std::env::temp_dir().join(format!(
         "oya-ci-freshness-adr-census-parent-receipt-{}-{nanos}.generated.json",
+        std::process::id()
+    ))
+}
+
+fn temporary_active_artifact_contract_graph_path() -> PathBuf {
+    let nanos = match SystemTime::now().duration_since(UNIX_EPOCH) {
+        Ok(duration) => duration.as_nanos(),
+        Err(_) => 0,
+    };
+    std::env::temp_dir().join(format!(
+        "oya-ci-freshness-active-artifact-contract-{}-{nanos}.json",
         std::process::id()
     ))
 }
@@ -2675,7 +2727,7 @@ root//tools/hooks:top-level-hook-scripts buck-out/v2/gen/tools/hooks/__top-level
     }
 
     #[test]
-    fn architecture_projection_faces_are_controller_owned_not_pr_owned_face_paths() {
+    fn controller_projection_faces_are_not_pr_owned_face_paths() {
         let root = temp_root("oya-product-graph-controller-owned");
         std::fs::create_dir_all(root.join("registry")).expect("create registry dir");
         std::fs::write(
@@ -2701,6 +2753,10 @@ root//tools/hooks:top-level-hook-scripts buck-out/v2/gen/tools/hooks/__top-level
                     {
                         "path": "elsewhere/product-graph.html",
                         "materialization_mode": MAIN_BRANCH_MATERIALIZED_MODE
+                    },
+                    {
+                        "path": ACTIVE_ARTIFACT_CONTRACT_GRAPH_PATH,
+                        "materialization_mode": NOT_TRACKED_IN_GIT_MODE
                     }
                 ]
             })
@@ -2716,6 +2772,7 @@ root//tools/hooks:top-level-hook-scripts buck-out/v2/gen/tools/hooks/__top-level
         assert!(non_pr_owned.contains(MASTERPLAN_PROJECTION_FACE));
         assert!(non_pr_owned.contains(BOARD_SYNC_PROJECTION_FACE));
         assert!(non_pr_owned.contains(ARCHITECTURE_PRODUCT_GRAPH_FACE));
+        assert!(non_pr_owned.contains(ACTIVE_ARTIFACT_CONTRACT_GRAPH_FACE));
         assert!(!generated_paths.contains(&MASTERPLAN_PROJECTION_PATH.to_owned()));
         assert!(
             !generated_paths.contains(&format!("{FACES_DIR}/{ADR_CENSUS_PARENT_RECEIPT_FACE}"))
@@ -2855,7 +2912,7 @@ printf 'fresh graph\n' > "$out"
 
     #[cfg(unix)]
     #[test]
-    fn materializer_invokes_architecture_product_graph_generator() {
+    fn materializer_invokes_all_controller_projection_generators() {
         let root = temp_root("oya-materialize-faces");
         std::fs::create_dir_all(root.join("bin")).expect("create bin dir");
         let masterplan = derivable_masterplan();
@@ -2945,13 +3002,23 @@ if [ "$face" = "baseline" ]; then printf '{{"gates":{{}}}}\n'; fi
             &format!(
                 r#"#!/bin/sh
 set -eu
-printf 'masterplan %s\n' "$*" >> "{log_path}"
-test "$#" -eq 3
-test "$1" = "gen"
-test "$2" = "masterplan"
-test "$3" = "--write"
-mkdir -p docs/machine-readable
-printf '{{"milestones":[{{"milestone":"M-test","adrs":[{{"deliverables":[{{"id":"D-1","description":"test","status":"declared"}}]}}]}}],"adr_count":0,"deliverable_count":1,"generator":"test"}}\n' > docs/machine-readable/masterplan.generated.json
+printf 'oya %s\n' "$*" >> "{log_path}"
+if [ "$1" = "gen" ]; then
+  test "$#" -eq 3
+  test "$2" = "masterplan"
+  test "$3" = "--write"
+  mkdir -p docs/machine-readable
+  printf '{{"milestones":[{{"milestone":"M-test","adrs":[{{"deliverables":[{{"id":"D-1","description":"test","status":"declared"}}]}}]}}],"adr_count":0,"deliverable_count":1,"generator":"test"}}\n' > docs/machine-readable/masterplan.generated.json
+elif [ "$1" = "gate" ]; then
+  test "$2" = "validate"
+  test "$3" = "active-artifact-contract"
+  shift 3
+  test "$1" = "--emit-graph-edges"
+  mkdir -p "$(dirname "$2")"
+  printf '{{"edges":[]}}\n' > "$2"
+else
+  exit 2
+fi
 "#
             ),
         );
@@ -2999,8 +3066,11 @@ printf 'generated dashboard\n' > docs/architecture/product-graph.html
             .find("--adr-census-parent-receipt --adr-census-parent-receipt-out")
             .expect("fixed census receipt call");
         let producer_pos = calls.rfind("producer --repo-root").expect("producer call");
+        let active_graph_pos = calls
+            .find("oya gate validate active-artifact-contract --emit-graph-edges")
+            .expect("active-artifact graph generator call");
         let masterplan_pos = calls
-            .find("masterplan gen masterplan --write")
+            .find("oya gen masterplan --write")
             .expect("masterplan generator call");
         let architecture_pos = calls
             .find("architecture --write")
@@ -3008,8 +3078,14 @@ printf 'generated dashboard\n' > docs/architecture/product-graph.html
         assert!(codemod_pos < emitter_pos);
         assert!(emitter_pos < census_pos);
         assert!(census_pos < producer_pos);
-        assert!(producer_pos < masterplan_pos);
+        assert!(producer_pos < active_graph_pos);
+        assert!(active_graph_pos < masterplan_pos);
         assert!(masterplan_pos < architecture_pos);
+        assert_eq!(
+            std::fs::read_to_string(root.join(ACTIVE_ARTIFACT_CONTRACT_GRAPH_PATH))
+                .expect("active artifact contract graph materialized"),
+            "{\"edges\":[]}\n"
+        );
         assert!(calls.contains(&format!(
             "--enforcement-liveness-claude-settings {}",
             root.join("buck/declared/settings.json").display()
