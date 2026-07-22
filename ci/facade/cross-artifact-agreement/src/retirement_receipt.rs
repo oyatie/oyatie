@@ -160,7 +160,12 @@ const ADR_0388_PREPARATION_PATH: &str =
 const ADR_0388_CLOSURE_ARTIFACT_ID: &str = "adr-0388-transient-ideas-retirement-closure";
 const ADR_0388_CLOSURE_PATH: &str =
     "evidence/history-only-retirement/adr-0388-transient-ideas-closure.json";
-const PROTECTED_PREPARATION_RECEIPT_FIELDS: &[&str] = &["receipt_path", "receipt_blob_oid"];
+const PROTECTED_PREPARATION_RECEIPT_FIELDS: &[&str] = &[
+    "receipt_path",
+    "receipt_blob_oid",
+    "baseline_commit_oid",
+    "baseline_tree_oid",
+];
 const SCM_FACT_FIELDS: &[&str] = &[
     "retirement_receipt_coverage",
     "retirement_receipt_object_facts",
@@ -333,6 +338,7 @@ pub fn evaluate_history_only_retirement_receipt(
     }
     validate_predecessor_context(fact, state, receipt, &mut findings);
     validate_control_plane_entry(fact, scope.as_deref(), &mut findings);
+    validate_fixed_receipt_identity(receipt_path, receipt, fact, state, &mut findings);
     let closure = state == Some("closure-new");
     if closure {
         if receipt.get("promoted_commit_oid").is_some()
@@ -732,8 +738,20 @@ pub fn evaluate_history_only_retirement_receipt_coverage(
                     let blob = predecessor.get("receipt_blob_oid").and_then(Value::as_str);
                     if path
                         .and_then(|path| protected_preparations.get(path))
-                        .map(String::as_str)
+                        .map(|preparation| preparation.blob_oid.as_str())
                         != blob
+                        || path
+                            .and_then(|path| protected_preparations.get(path))
+                            .is_some_and(|preparation| {
+                                receipt
+                                    .pointer("/baseline/commit_oid")
+                                    .and_then(Value::as_str)
+                                    != Some(preparation.baseline_commit_oid.as_str())
+                                    || receipt
+                                        .pointer("/baseline/tree_oid")
+                                        .and_then(Value::as_str)
+                                        != Some(preparation.baseline_tree_oid.as_str())
+                            })
                     {
                         fail(&mut findings, "closed_carried_predecessor_link");
                     }
@@ -778,16 +796,26 @@ pub fn evaluate_history_only_retirement_receipt_coverage(
                 let preparation_blob = preparation.get("receipt_blob_oid").and_then(Value::as_str);
                 if preparation_path
                     .and_then(|path| protected_preparations.get(path))
-                    .map(String::as_str)
+                    .map(|preparation| preparation.blob_oid.as_str())
                     != preparation_blob
+                    || receipt
+                        .pointer("/baseline/commit_oid")
+                        .and_then(Value::as_str)
+                        != preparation_path
+                            .and_then(|path| protected_preparations.get(path))
+                            .map(|preparation| preparation.baseline_commit_oid.as_str())
+                    || receipt
+                        .pointer("/baseline/tree_oid")
+                        .and_then(Value::as_str)
+                        != preparation_path
+                            .and_then(|path| protected_preparations.get(path))
+                            .map(|preparation| preparation.baseline_tree_oid.as_str())
+                    || fact.get("baseline_commit_oid") != receipt.pointer("/baseline/commit_oid")
+                    || fact.get("baseline_tree_oid") != receipt.pointer("/baseline/tree_oid")
                     || receipt.pointer("/baseline/commit_oid")
-                        != fact.pointer("/predecessor_context/commit_oid")
+                        == protected_context.get("candidate_commit_oid")
                     || receipt.pointer("/baseline/tree_oid")
-                        != fact.pointer("/predecessor_context/tree_oid")
-                    || fact.get("baseline_commit_oid")
-                        != fact.pointer("/predecessor_context/commit_oid")
-                    || fact.get("baseline_tree_oid")
-                        != fact.pointer("/predecessor_context/tree_oid")
+                        == protected_context.get("candidate_tree_oid")
                 {
                     fail(&mut findings, "closure_preparation_link");
                 }
@@ -900,19 +928,22 @@ fn validate_state_claims(
     {
         fail(findings, "verification_contract.required_gates.exact_set");
     }
-    if state == Some("closure-new") {
-        for (key, value) in [
-            ("repository_effect", "history-only"),
-            ("runtime_effect", "none"),
-            ("roadmap_effect", "none"),
-            ("planning_hold_effect", "HOLD(Planning)"),
-        ] {
-            if effects.get(key).and_then(Value::as_str) != Some(value) {
-                fail(findings, "closure_claim_ceiling");
-            }
+    for (key, value) in [
+        ("repository_effect", "history-only"),
+        ("runtime_effect", "none"),
+        ("roadmap_effect", "none"),
+        ("planning_hold_effect", "HOLD(Planning)"),
+    ] {
+        if effects.get(key).and_then(Value::as_str) != Some(value) {
+            fail(
+                findings,
+                if state == Some("closure-new") {
+                    "closure_claim_ceiling"
+                } else {
+                    "retirement_no_effect_tuple"
+                },
+            );
         }
-    } else if effects.get("repository_effect").and_then(Value::as_str) != Some("history-only") {
-        fail(findings, "closure_repository_effect");
     }
 }
 
@@ -1232,6 +1263,38 @@ fn validate_fixed_control_plane_mapping(entry: &Value, findings: &mut BTreeSet<F
     }
 }
 
+fn validate_fixed_receipt_identity(
+    receipt_path: &str,
+    receipt: &Value,
+    fact: &Value,
+    state: Option<&str>,
+    findings: &mut BTreeSet<Finding>,
+) {
+    if receipt.get("scope_ref").and_then(Value::as_str) != Some("ADR-0388") {
+        return;
+    }
+    let (artifact_id, expected_path, requires_preparation_link) = match state {
+        Some("prepared-new") => (
+            ADR_0388_PREPARATION_ARTIFACT_ID,
+            ADR_0388_PREPARATION_PATH,
+            false,
+        ),
+        Some("closure-new" | "closed-carried") => {
+            (ADR_0388_CLOSURE_ARTIFACT_ID, ADR_0388_CLOSURE_PATH, true)
+        }
+        _ => return,
+    };
+    if receipt_path != expected_path
+        || receipt.get("artifact_id").and_then(Value::as_str) != Some(artifact_id)
+        || fact.get("receipt_path").and_then(Value::as_str) != Some(expected_path)
+        || (requires_preparation_link
+            && fact.get("preparation_receipt_path").and_then(Value::as_str)
+                != Some(ADR_0388_PREPARATION_PATH))
+    {
+        fail(findings, "adr_0388_fixed_receipt_identity");
+    }
+}
+
 fn control_plane_entry_digest(entry: &Value) -> Option<String> {
     crate::canonical_json(entry)
         .map(|canonical| format!("sha256:{:x}", Sha256::digest(canonical.as_bytes())))
@@ -1453,10 +1516,17 @@ fn path_set(
     }
     result
 }
+#[derive(Debug, Clone)]
+struct ProtectedPreparationReceipt {
+    blob_oid: String,
+    baseline_commit_oid: String,
+    baseline_tree_oid: String,
+}
+
 fn protected_preparation_receipts(
     value: Option<&Value>,
     findings: &mut BTreeSet<Finding>,
-) -> BTreeMap<String, String> {
+) -> BTreeMap<String, ProtectedPreparationReceipt> {
     let Some(receipts) = value.and_then(Value::as_array) else {
         fail(findings, "protected_preparation_receipts");
         return BTreeMap::new();
@@ -1479,8 +1549,32 @@ fn protected_preparation_receipts(
             &format!("protected_preparation_receipts[{index}].receipt_blob_oid"),
             findings,
         );
-        if let (Some(path), Some(blob)) = (path, blob) {
-            if result.insert(path.to_owned(), blob).is_some() {
+        let commit = oid(
+            receipt,
+            "baseline_commit_oid",
+            &format!("protected_preparation_receipts[{index}].baseline_commit_oid"),
+            findings,
+        );
+        let tree = oid(
+            receipt,
+            "baseline_tree_oid",
+            &format!("protected_preparation_receipts[{index}].baseline_tree_oid"),
+            findings,
+        );
+        if let (Some(path), Some(blob_oid), Some(baseline_commit_oid), Some(baseline_tree_oid)) =
+            (path, blob, commit, tree)
+        {
+            if result
+                .insert(
+                    path.to_owned(),
+                    ProtectedPreparationReceipt {
+                        blob_oid,
+                        baseline_commit_oid,
+                        baseline_tree_oid,
+                    },
+                )
+                .is_some()
+            {
                 fail(findings, "protected_preparation_receipts");
             }
         } else {
@@ -1755,6 +1849,8 @@ mod tests {
         context["protected_preparation_receipts"] = json!([{
             "receipt_path": preparation_receipt_path,
             "receipt_blob_oid": preparation_receipt_blob_oid,
+            "baseline_commit_oid": OLD,
+            "baseline_tree_oid": OLD_TREE,
         }]);
         context
     }
@@ -2412,6 +2508,19 @@ mod tests {
             .is_empty(),
             "post-E10 has both current trees absent while its predecessor remains object-bound"
         );
+        let mut effect_claim = receipt.clone();
+        effect_claim["effects"]["runtime_effect"] = json!("success");
+        assert!(
+            evaluate_history_only_retirement_receipt(
+                RECEIPT_PATH,
+                &effect_claim,
+                &json!({"retirement_receipt_object_facts":[fact.clone()]}),
+            )
+            .contains(&Finding::new(
+                RETIREMENT_RECEIPT_CODE,
+                "retirement_no_effect_tuple"
+            ))
+        );
 
         for (pointer, value) in [
             ("/retired_inputs/0/protected_path_exists", json!(true)),
@@ -2442,8 +2551,12 @@ mod tests {
 
         let selector = json!({"selector_type":"exact","selector":".omc/legacy-a.md","protected_paths":[],"predecessor_paths":[".omc/legacy-a.md"],"candidate_paths":[],"removed_paths":[],"surviving_paths":[],"candidate_only_paths":[],"external_assertion":"not-applicable"});
         let mut context = protected_scm_context(&[]);
-        context["protected_preparation_receipts"] =
-            json!([{"receipt_path":LINK_PATH,"receipt_blob_oid":BLOB}]);
+        context["protected_preparation_receipts"] = json!([{
+            "receipt_path":LINK_PATH,
+            "receipt_blob_oid":BLOB,
+            "baseline_commit_oid":OLD,
+            "baseline_tree_oid":OLD_TREE,
+        }]);
         let corpus = json!({"receipts":[{"receipt_path":RECEIPT_PATH,"receipt":receipt}],"scm_facts":{"retirement_receipt_coverage":{"protected_base_ref":"origin/dev","protected_receipt_paths":[RECEIPT_PATH],"candidate_receipt_paths":[RECEIPT_PATH],"carried_receipt_paths":[RECEIPT_PATH],"new_receipt_paths":[],"scopes":[{"scope_ref":"ADR-0363","scope_type":"amended-agentic-vcs-retirement","selectors":[selector],"required_retired_paths":[".omc/legacy-a.md"]}],"required_retired_paths":[".omc/legacy-a.md"]},"retirement_receipt_object_facts":[fact],"protected_scm_context":context,"retirement_control_plane_context":retirement_control_plane_context(true)}});
         let corpus_findings = evaluate_history_only_retirement_receipts(&corpus);
         assert!(corpus_findings.is_empty(), "{corpus_findings:?}");
@@ -2454,6 +2567,48 @@ mod tests {
             evaluate_history_only_retirement_receipts(&missing_object_context).contains(
                 &Finding::new(RETIREMENT_RECEIPT_CODE, "closed_carried_predecessor_link")
             )
+        );
+    }
+
+    #[test]
+    fn adr_0388_predeclared_receipt_identity_rejects_aliases() {
+        let receipt = prepared_receipt(
+            ADR_0388_PREPARATION_ARTIFACT_ID,
+            "ADR-0388",
+            OLD,
+            OLD_TREE,
+            "docs/idea-old.md",
+        );
+        let fact = fact(
+            ADR_0388_PREPARATION_ARTIFACT_ID,
+            ADR_0388_PREPARATION_PATH,
+            "ADR-0388",
+            "prepared-new",
+            OLD,
+            OLD_TREE,
+            "docs/idea-old.md",
+        );
+        assert!(
+            evaluate_history_only_retirement_receipt(
+                ADR_0388_PREPARATION_PATH,
+                &receipt,
+                &json!({"retirement_receipt_object_facts":[fact.clone()]}),
+            )
+            .is_empty()
+        );
+        let alias = "evidence/history-only-retirement/adr-0388-alias.json";
+        let mut alias_fact = fact;
+        alias_fact["receipt_path"] = json!(alias);
+        assert!(
+            evaluate_history_only_retirement_receipt(
+                alias,
+                &receipt,
+                &json!({"retirement_receipt_object_facts":[alias_fact]}),
+            )
+            .contains(&Finding::new(
+                RETIREMENT_RECEIPT_CODE,
+                "adr_0388_fixed_receipt_identity"
+            ))
         );
     }
 
