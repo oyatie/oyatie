@@ -189,6 +189,7 @@ ci/facade/baseline-ratchet/gate-baseline.merge-base.generated.json
 # materialized by the scm-facts emitter, so it can never be a committed face; CI
 # rematerializes it before gates consume it.
 ci/facade/scm-facts-snapshot/scm-volatile-facts.generated.json
+ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json
 
 # Dev-only Asterinas boot-harness receipts are regenerable run outputs (reference target/ logs); not committed.
 kernel/harness/*/receipts/
