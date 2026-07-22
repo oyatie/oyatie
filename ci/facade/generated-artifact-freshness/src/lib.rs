@@ -8,6 +8,7 @@ use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use ci_cross_artifact_agreement::{MASTERPLAN_MD_PATH, derive_masterplan_md_projection};
+use ci_planning_projection::render_board_sync_projection;
 use oya_workspace_members_kernel::resolve_member_dirs;
 
 mod rust_toolchain_drift;
@@ -36,6 +37,8 @@ const NOT_TRACKED_IN_GIT_MODE: &str = "not-tracked-in-git";
 const MAIN_BRANCH_MATERIALIZED_MODE: &str = "main-branch-materialized";
 const MASTERPLAN_PROJECTION_FACE: &str = "masterplan.generated.json";
 const MASTERPLAN_PROJECTION_PATH: &str = "docs/machine-readable/masterplan.generated.json";
+const BOARD_SYNC_PROJECTION_FACE: &str = "board-sync.generated.json";
+const BOARD_SYNC_PROJECTION_PATH: &str = "docs/machine-readable/board-sync.generated.json";
 const MASTERPLAN_SOURCE_PATH: &str = "specs/masterplan.json";
 const ARCHITECTURE_PRODUCT_GRAPH_FACE: &str = "product-graph.html";
 const ARCHITECTURE_PRODUCT_GRAPH_PATH: &str = "docs/architecture/product-graph.html";
@@ -53,8 +56,11 @@ const GENERATED_FACE_PATHS: [&str; 7] = [
 ];
 /// Controller-owned generated artifacts whose freshness is proven by regeneration/determinism,
 /// but whose byte diffs are not staged by `oya-cloud-ci-face-settle` in contributor PRs.
-const CONTROLLER_MATERIALIZED_ARTIFACT_PATHS: [&str; 2] =
-    [MASTERPLAN_PROJECTION_PATH, ARCHITECTURE_PRODUCT_GRAPH_PATH];
+const CONTROLLER_MATERIALIZED_ARTIFACT_PATHS: [&str; 3] = [
+    MASTERPLAN_PROJECTION_PATH,
+    BOARD_SYNC_PROJECTION_PATH,
+    ARCHITECTURE_PRODUCT_GRAPH_PATH,
+];
 const EMITTER_TARGET: &str = "//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot";
 const PRODUCER_TARGET: &str =
     "//ci/facade/artifact-inventory-registry:oya-cloud-ci-accounting-registry-app-bin";
@@ -381,6 +387,7 @@ fn materialize_generated_faces_with_tools(
     command.current_dir(repo_root);
     run_status(&mut command, "materialize generated accounting faces")?;
     materialize_masterplan_projection(tools, repo_root)?;
+    materialize_board_sync_projection(repo_root)?;
     materialize_masterplan_md_projection(repo_root)?;
     materialize_architecture_product_graph(tools, repo_root)
 }
@@ -935,6 +942,13 @@ pub fn read_committed_generated_faces(
             read_to_string(&masterplan)?,
         ));
     }
+    let board_sync = repo_root.join(BOARD_SYNC_PROJECTION_PATH);
+    if board_sync.exists() {
+        faces.push((
+            BOARD_SYNC_PROJECTION_FACE.to_owned(),
+            read_to_string(&board_sync)?,
+        ));
+    }
     faces.sort_by(|left, right| left.0.cmp(&right.0));
     Ok(faces)
 }
@@ -1153,11 +1167,20 @@ fn regenerate_architecture_projection_faces(
         "regenerate architecture product graph",
     )?;
     let masterplan_bytes = read_to_string(&masterplan)?;
+    let masterplan_value = serde_json::from_str(&masterplan_bytes).map_err(|error| {
+        FreshnessError::new(format!(
+            "parse regenerated masterplan projection {}: {error}",
+            masterplan.display()
+        ))
+    })?;
+    let board_sync_bytes = render_board_sync_projection(&masterplan_value)
+        .map_err(|error| FreshnessError::new(format!("render board-sync projection: {error}")))?;
     let product_graph_bytes = read_to_string(&output)?;
     drop(cleanup);
     drop(masterplan_cleanup);
     Ok(vec![
         (MASTERPLAN_PROJECTION_FACE.to_owned(), masterplan_bytes),
+        (BOARD_SYNC_PROJECTION_FACE.to_owned(), board_sync_bytes),
         (
             ARCHITECTURE_PRODUCT_GRAPH_FACE.to_owned(),
             product_graph_bytes,
@@ -1704,6 +1727,26 @@ fn materialize_masterplan_projection(
     )
 }
 
+fn materialize_board_sync_projection(repo_root: &Path) -> Result<(), FreshnessError> {
+    let source_path = repo_root.join(MASTERPLAN_PROJECTION_PATH);
+    let source = read_to_string(&source_path)?;
+    let masterplan = serde_json::from_str(&source).map_err(|error| {
+        FreshnessError::new(format!(
+            "parse masterplan projection {}: {error}",
+            source_path.display()
+        ))
+    })?;
+    let projection = render_board_sync_projection(&masterplan)
+        .map_err(|error| FreshnessError::new(format!("render board-sync projection: {error}")))?;
+    let output_path = repo_root.join(BOARD_SYNC_PROJECTION_PATH);
+    std::fs::write(&output_path, projection).map_err(|error| {
+        FreshnessError::new(format!(
+            "write board-sync projection {}: {error}",
+            output_path.display()
+        ))
+    })
+}
+
 fn materialize_masterplan_md_projection(repo_root: &Path) -> Result<(), FreshnessError> {
     let source_path = repo_root.join(MASTERPLAN_SOURCE_PATH);
     let source = std::fs::read_to_string(&source_path).map_err(|error| {
@@ -2147,6 +2190,71 @@ mod materialize_generated_faces_tests {
     }
 
     #[test]
+    fn board_sync_materialization_fails_closed_on_read_error() {
+        let root = temp_root("board-sync-read-error");
+
+        let error = materialize_board_sync_projection(&root)
+            .expect_err("missing masterplan projection must fail closed");
+
+        assert!(error.to_string().contains("read"));
+        assert!(!root.join(BOARD_SYNC_PROJECTION_PATH).exists());
+    }
+
+    #[test]
+    fn board_sync_materialization_fails_closed_on_parse_error() {
+        let root = temp_root("board-sync-parse-error");
+        std::fs::create_dir_all(
+            root.join(MASTERPLAN_PROJECTION_PATH)
+                .parent()
+                .expect("masterplan projection parent"),
+        )
+        .expect("create projection dir");
+        std::fs::write(root.join(MASTERPLAN_PROJECTION_PATH), "{")
+            .expect("write malformed masterplan projection");
+
+        let error = materialize_board_sync_projection(&root)
+            .expect_err("malformed masterplan projection must fail closed");
+
+        assert!(error.to_string().contains("parse masterplan projection"));
+        assert!(!root.join(BOARD_SYNC_PROJECTION_PATH).exists());
+    }
+
+    #[test]
+    fn board_sync_materialization_fails_closed_on_write_error() {
+        let root = temp_root("board-sync-write-error");
+        std::fs::create_dir_all(
+            root.join(MASTERPLAN_PROJECTION_PATH)
+                .parent()
+                .expect("masterplan projection parent"),
+        )
+        .expect("create projection dir");
+        std::fs::write(
+            root.join(MASTERPLAN_PROJECTION_PATH),
+            serde_json::to_vec(&serde_json::json!({
+                "milestones": [{
+                    "milestone": "M-ALPHA",
+                    "adrs": [{
+                        "deliverables": [{
+                            "id": "A-1",
+                            "description": "first item",
+                            "status": "declared"
+                        }]
+                    }]
+                }]
+            }))
+            .expect("serialize masterplan projection fixture"),
+        )
+        .expect("write masterplan projection fixture");
+        std::fs::create_dir(root.join(BOARD_SYNC_PROJECTION_PATH))
+            .expect("create directory at board projection path");
+
+        let error = materialize_board_sync_projection(&root)
+            .expect_err("unwritable board projection path must fail closed");
+
+        assert!(error.to_string().contains("write board-sync projection"));
+    }
+
+    #[test]
     fn parse_materialize_generated_faces_args_defaults_to_repo_root_dot() {
         let parsed = parse_materialize_generated_faces_args(Vec::new())
             .expect("empty args should use repository root default");
@@ -2316,6 +2424,10 @@ root//tools/hooks:top-level-hook-scripts buck-out/v2/gen/tools/hooks/__top-level
                         "materialization_mode": NOT_TRACKED_IN_GIT_MODE
                     },
                     {
+                        "path": BOARD_SYNC_PROJECTION_PATH,
+                        "materialization_mode": NOT_TRACKED_IN_GIT_MODE
+                    },
+                    {
                         "path": ARCHITECTURE_PRODUCT_GRAPH_PATH,
                         "materialization_mode": MAIN_BRANCH_MATERIALIZED_MODE
                     },
@@ -2334,6 +2446,7 @@ root//tools/hooks:top-level-hook-scripts buck-out/v2/gen/tools/hooks/__top-level
         let pr_owned_paths = pr_owned_generated_face_paths(&non_pr_owned);
 
         assert!(non_pr_owned.contains(MASTERPLAN_PROJECTION_FACE));
+        assert!(non_pr_owned.contains(BOARD_SYNC_PROJECTION_FACE));
         assert!(non_pr_owned.contains(ARCHITECTURE_PRODUCT_GRAPH_FACE));
         assert!(!generated_paths.contains(&MASTERPLAN_PROJECTION_PATH.to_owned()));
         assert!(!generated_paths.contains(&ARCHITECTURE_PRODUCT_GRAPH_PATH.to_owned()));
@@ -2353,6 +2466,8 @@ root//tools/hooks:top-level-hook-scripts buck-out/v2/gen/tools/hooks/__top-level
             .expect("write product graph");
         std::fs::write(root.join(MASTERPLAN_PROJECTION_PATH), "masterplan\n")
             .expect("write masterplan projection");
+        std::fs::write(root.join(BOARD_SYNC_PROJECTION_PATH), "board\n")
+            .expect("write board projection");
 
         let faces = read_committed_generated_faces(&root).expect("read committed generated faces");
 
@@ -2365,6 +2480,7 @@ root//tools/hooks:top-level-hook-scripts buck-out/v2/gen/tools/hooks/__top-level
             MASTERPLAN_PROJECTION_FACE.to_owned(),
             "masterplan\n".to_owned()
         )));
+        assert!(faces.contains(&(BOARD_SYNC_PROJECTION_FACE.to_owned(), "board\n".to_owned())));
     }
 
     #[cfg(unix)]
@@ -2398,7 +2514,7 @@ while [ "$#" -gt 0 ]; do
 done
 test -n "$out"
 mkdir -p "$(dirname "$out")"
-printf '{"milestones":[],"adr_count":0,"deliverable_count":0,"generator":"test"}\n' > "$out"
+printf '{"milestones":[{"milestone":"M-test","adrs":[{"deliverables":[{"id":"D-1","description":"test","status":"declared"}]}]}],"adr_count":0,"deliverable_count":1,"generator":"test"}\n' > "$out"
 "#,
         );
         let generator = root.join("bin/architecture-graph");
@@ -2441,8 +2557,12 @@ printf 'fresh graph\n' > "$out"
             vec![
                 (
                     MASTERPLAN_PROJECTION_FACE.to_owned(),
-                    "{\"milestones\":[],\"adr_count\":0,\"deliverable_count\":0,\"generator\":\"test\"}\n"
+                    "{\"milestones\":[{\"milestone\":\"M-test\",\"adrs\":[{\"deliverables\":[{\"id\":\"D-1\",\"description\":\"test\",\"status\":\"declared\"}]}]}],\"adr_count\":0,\"deliverable_count\":1,\"generator\":\"test\"}\n"
                         .to_owned(),
+                ),
+                (
+                    BOARD_SYNC_PROJECTION_FACE.to_owned(),
+                    "{\n  \"_generated\": \"GENERATED by `oya gen board-sync` from masterplan deliverables. Do not hand-edit.\",\n  \"github_projection\": {\n    \"exclusive_label_scopes\": [\n      \"state\",\n      \"owner\",\n      \"deliverable\",\n      \"milestone\"\n    ],\n    \"issue_identity\": \"deliverable_id\"\n  },\n  \"issues\": [\n    {\n      \"body\": \"Generated from masterplan deliverable `D-1`.\\n\\ntest\\n\\n<!-- oya-board-sync:D-1 -->\\n\",\n      \"deliverable_id\": \"D-1\",\n      \"labels\": [\n        \"state/declared\",\n        \"owner/unassigned\",\n        \"deliverable/d-1\",\n        \"milestone/m-test\"\n      ],\n      \"title\": \"D-1: test\"\n    }\n  ]\n}\n".to_owned(),
                 ),
                 (
                 ARCHITECTURE_PRODUCT_GRAPH_FACE.to_owned(),
@@ -2550,7 +2670,7 @@ test "$1" = "gen"
 test "$2" = "masterplan"
 test "$3" = "--write"
 mkdir -p docs/machine-readable
-printf '{{"milestones":[],"adr_count":0,"deliverable_count":0,"generator":"test"}}\n' > docs/machine-readable/masterplan.generated.json
+printf '{{"milestones":[{{"milestone":"M-test","adrs":[{{"deliverables":[{{"id":"D-1","description":"test","status":"declared"}}]}}]}}],"adr_count":0,"deliverable_count":1,"generator":"test"}}\n' > docs/machine-readable/masterplan.generated.json
 "#
             ),
         );
@@ -2624,7 +2744,12 @@ printf 'generated dashboard\n' > docs/architecture/product-graph.html
         assert_eq!(
             std::fs::read_to_string(root.join("docs/machine-readable/masterplan.generated.json"))
                 .expect("masterplan materialized"),
-            "{\"milestones\":[],\"adr_count\":0,\"deliverable_count\":0,\"generator\":\"test\"}\n"
+            "{\"milestones\":[{\"milestone\":\"M-test\",\"adrs\":[{\"deliverables\":[{\"id\":\"D-1\",\"description\":\"test\",\"status\":\"declared\"}]}]}],\"adr_count\":0,\"deliverable_count\":1,\"generator\":\"test\"}\n"
+        );
+        assert!(
+            std::fs::read_to_string(root.join(BOARD_SYNC_PROJECTION_PATH))
+                .expect("board-sync materialized")
+                .contains("\"deliverable_id\": \"D-1\"")
         );
         assert_eq!(
             std::fs::read_to_string(root.join(ci_cross_artifact_agreement::MASTERPLAN_MD_PATH))

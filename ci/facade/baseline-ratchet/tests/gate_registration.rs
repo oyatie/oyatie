@@ -32,11 +32,14 @@ use serde_json::Value;
 ///     source SSOTs (OWNERS/registry/ADR/catalog/reachability) to onboard a NEW crate. It is not a
 ///     gate lane and not a face-emitter — it is invoked ON DEMAND to register a crate, never in the
 ///     required fan-in (it would have nothing to assert and would mutate the tree under presubmit).
+///   - the planning-projection renderer: a pure library invoked by generated-artifact freshness to
+///     materialize the untracked board projection; it has no independent admission verdict.
 const PRODUCER_CRATE: &str = "artifact-inventory-registry";
-const NON_GATE_CRATES: [&str; 3] = [
+const NON_GATE_CRATES: [&str; 4] = [
     "artifact-inventory-registry",
     "scm-facts-snapshot",
     "crate-registration",
+    "planning-projection",
 ];
 
 /// Walk up from the test's working directory to the repo root (the dir holding the canonical
