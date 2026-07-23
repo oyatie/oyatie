@@ -538,6 +538,7 @@ fn check_shadow_ideas(
     report: &mut DocAxisReport,
 ) {
     let ideas_dir = repo_root.join("docs").join("ideas");
+    let archive_dir = ideas_dir.join("archive");
     let entries = match fs::read_dir(&ideas_dir) {
         Ok(e) => e,
         Err(_) => return,
