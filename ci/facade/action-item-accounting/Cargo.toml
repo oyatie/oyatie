@@ -10,12 +10,11 @@ license = "Apache-2.0"
 bounded_context = "cloud-ci"
 kind = "shared"
 layer = "app"
-purpose = "Cloud CI meta-gate enforcing closed-loop friction-ledger accounting: every friction row must terminate in a gate, an automation, or an explicit accepted-risk entry with evidence."
+purpose = "Cloud CI FixupTask v2 durable registry-admission gate plus removable transitional predecessor-ledger adapter."
 
-# cloud-ci-friction-accounting (ADR-0544): pure policy over the collected friction ledger. The crate
-# owns the read-only ledger collection; the pure evaluator folds the event-sourced append rows and
-# rejects schema-invalid, undisposed, or closed-without-evidence frictions. Born pack-shaped: all
-# repo-specifics live in friction-accounting-policy.json.
+# ADR-0621: the durable module binds candidate registry bytes to protected SCM facts and has no
+# predecessor-corpus dependency. The removable legacy adapter retains ADR-0544 accounting only
+# until qualified-human migration population and cutover are independently authorized.
 
 [lib]
 name = "ci_action_item_accounting"
@@ -24,6 +23,7 @@ doctest = false
 
 [dependencies]
 serde_json = { workspace = true }
+sha2 = { workspace = true }
 
 [lints]
 workspace = true

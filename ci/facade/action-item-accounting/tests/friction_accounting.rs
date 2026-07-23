@@ -15,7 +15,10 @@ use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
 use ci_action_item_accounting::{
-    Verdict, collect_observed_frictions, evaluate, evaluate_keyed,
+    FIXUPTASK_V2_CANDIDATE_JSONL_PATH, LEGACY_FRICTION_MAPPING_PATH,
+    LEGACY_FRICTION_PROTECTED_FACTS_PATH, Verdict, collect_observed_frictions, evaluate,
+    evaluate_keyed, evaluate_legacy_friction_admission, evaluate_legacy_friction_materialized_gate,
+    fixuptask_v2, fixuptask_v2_digest, legacy_friction_adapter,
 };
 use serde_json::{Value, json};
 
@@ -42,7 +45,37 @@ fn load_json(path: &Path) -> Value {
     serde_json::from_str(&text).unwrap_or_else(|e| panic!("parse {}: {e}", path.display()))
 }
 
-fn keys_for(findings: &BTreeSet<ci_action_item_accounting::Finding>, code: &str) -> BTreeSet<String> {
+fn materialized_fixuptask_v2_facts(candidate_ledger: &[u8]) -> Value {
+    let predecessor_ids: Vec<String> = (1..=189).map(|index| format!("FRIC-{index:03}")).collect();
+    let digest = fixuptask_v2_digest(candidate_ledger);
+    json!({ "fixuptask_v2_admission": {
+        "merge_base": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "merge_base_tree": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "merge_base_rows": [],
+        "predecessor_source": "git:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:.omc/ultragoal/friction-ledger.jsonl",
+        "predecessor_ids": predecessor_ids,
+        "evaluation_time": "2026-07-21T00:00:00Z",
+        "legacy_ledger": {
+            "path": ".omc/ultragoal/friction-ledger.jsonl",
+            "merge_base_blob": "cccccccccccccccccccccccccccccccccccccccc",
+            "merge_base_digest": digest,
+            "predecessor_ids_digest": fixuptask_v2_digest(
+                (1..=189)
+                    .map(|index| format!("FRIC-{index:03}"))
+                    .collect::<Vec<_>>()
+                    .join("\n")
+                    .as_bytes(),
+            ),
+            "candidate_present": true,
+            "candidate_digest": digest
+        }
+    }})
+}
+
+fn keys_for(
+    findings: &BTreeSet<ci_action_item_accounting::Finding>,
+    code: &str,
+) -> BTreeSet<String> {
     findings
         .iter()
         .filter(|finding| finding.code == code)
@@ -155,6 +188,90 @@ fn policy_gate_id_matches_the_crate_contract() {
     );
 }
 
+#[test]
+fn live_action_item_gate_consumes_the_canonical_materialized_scm_snapshot() {
+    let root = repo_root();
+    let findings = evaluate_legacy_friction_materialized_gate(&root)
+        .expect("missing or unreadable canonical SCM facts must fail the action-item gate");
+    assert!(
+        findings.is_empty(),
+        "FixupTask v2 admission must be green before the legacy ledger changes: {findings:#?}"
+    );
+}
+
+#[test]
+fn fixuptask_v2_admission_is_wired_through_the_materialized_gate_inputs() {
+    assert_eq!(
+        legacy_friction_adapter::GATE_ID,
+        "cloud-ci-legacy-friction-adapter"
+    );
+    let root = std::env::temp_dir().join(format!(
+        "ci-action-item-accounting-v2-gate-{}",
+        std::process::id()
+    ));
+    let _ = std::fs::remove_dir_all(&root);
+    for path in [
+        FIXUPTASK_V2_CANDIDATE_JSONL_PATH,
+        LEGACY_FRICTION_MAPPING_PATH,
+        LEGACY_FRICTION_PROTECTED_FACTS_PATH,
+        ".omc/ultragoal/friction-ledger.jsonl",
+    ] {
+        std::fs::create_dir_all(root.join(path).parent().expect("input parent"))
+            .expect("create materialized input parent");
+    }
+    std::fs::write(
+        root.join(FIXUPTASK_V2_CANDIDATE_JSONL_PATH),
+        concat!(
+            "{\"_meta\":\"registry header\"}\n",
+            "{\"id\":\"F-V2-GATE\",\"title\":\"gate fixture\",\"priority\":\"high\",\"status\":\"open\",\"source_session\":\"session\",\"source_change_id\":\"change\",\"named_in\":\"ADR-0621\",\"created_at\":\"2026-07-21T00:00:00Z\",\"accountable_owner\":\"owner\",\"accountable_role\":\"role\",\"acceptance_criteria\":\"criterion\",\"verification_path\":\"buck2 test\",\"blocker_for\":\"none\"}\n"
+        ),
+    )
+    .expect("write candidate JSONL");
+    std::fs::write(
+        root.join(LEGACY_FRICTION_MAPPING_PATH),
+        "{\"source\":\"git:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:.omc/ultragoal/friction-ledger.jsonl\",\"entries\":[{\"predecessor_id\":\"FRIC-1\",\"target_fixuptask_id\":\"F-V2-GATE\"}]}",
+    )
+    .expect("write candidate mapping");
+    std::fs::write(root.join(".omc/ultragoal/friction-ledger.jsonl"), "legacy")
+        .expect("write unchanged legacy ledger");
+    std::fs::write(
+        root.join(LEGACY_FRICTION_PROTECTED_FACTS_PATH),
+        serde_json::to_string(&materialized_fixuptask_v2_facts(b"legacy"))
+            .expect("serialize SCM-materialized facts"),
+    )
+    .expect("write SCM-materialized facts");
+
+    assert!(
+        legacy_friction_adapter::evaluate_materialized_gate(&root)
+            .expect("materialized adapter must read all three gate inputs")
+            .is_empty()
+    );
+    std::fs::remove_dir_all(root).expect("remove test inputs");
+}
+
+#[test]
+fn legacy_adapter_v2_findings_cannot_diverge_from_the_durable_kernel() {
+    let candidate = json!({ "rows": [7] });
+    let protected = materialized_fixuptask_v2_facts(b"legacy");
+    let legacy = evaluate_legacy_friction_admission(&protected, &candidate, Some(b"legacy"), None)
+        .into_iter()
+        .map(|finding| (finding.code, finding.key))
+        .collect::<BTreeSet<_>>();
+    let durable = fixuptask_v2::evaluate_fixuptasks_v2_at(
+        &json!({ "rows": [] }),
+        &candidate,
+        "2026-07-21T00:00:00Z",
+    )
+    .into_iter()
+    .map(|finding| (finding.code, finding.key))
+    .collect::<BTreeSet<_>>();
+
+    assert_eq!(
+        legacy, durable,
+        "legacy adapter must delegate v2 validation to the durable kernel"
+    );
+}
+
 // ---------------------------------------------------------------------------
 // RED fixtures: each violation class fails closed without touching the filesystem.
 // ---------------------------------------------------------------------------
@@ -186,8 +303,15 @@ fn red_unregistered_status_fails_closed() {
     let mut row = good_open("FRIC-NEW");
     row["status"] = json!("brand-new-unmapped-status");
     let findings = evaluate_keyed(&fixture_policy(), &json!({ "rows": [row] }));
-    assert!(findings.iter().any(|f| f.code == "friction_unknown_status" && f.key == "FRIC-NEW"));
-    assert_eq!(evaluate(&fixture_policy(), &json!({ "rows": [good_open("ok")] })).verdict, Verdict::Green);
+    assert!(
+        findings
+            .iter()
+            .any(|f| f.code == "friction_unknown_status" && f.key == "FRIC-NEW")
+    );
+    assert_eq!(
+        evaluate(&fixture_policy(), &json!({ "rows": [good_open("ok")] })).verdict,
+        Verdict::Green
+    );
 }
 
 #[test]
@@ -196,7 +320,11 @@ fn red_duplicate_primary_id_fails_closed() {
         &fixture_policy(),
         &json!({ "rows": [good_open("FRIC-DUP"), good_open("FRIC-DUP")] }),
     );
-    assert!(findings.iter().any(|f| f.code == "friction_duplicate_primary_row" && f.key == "FRIC-DUP"));
+    assert!(
+        findings
+            .iter()
+            .any(|f| f.code == "friction_duplicate_primary_row" && f.key == "FRIC-DUP")
+    );
 }
 
 #[test]
@@ -204,8 +332,16 @@ fn red_blank_enforcement_fix_fails_closed() {
     let mut row = good_open("FRIC-ND");
     row["enforcement_fix"] = json!("");
     let findings = evaluate_keyed(&fixture_policy(), &json!({ "rows": [row] }));
-    assert!(findings.iter().any(|f| f.code == "friction_no_disposition" && f.key == "FRIC-ND"));
-    assert!(findings.iter().any(|f| f.code == "friction_missing_required_field" && f.key == "FRIC-ND"));
+    assert!(
+        findings
+            .iter()
+            .any(|f| f.code == "friction_no_disposition" && f.key == "FRIC-ND")
+    );
+    assert!(
+        findings
+            .iter()
+            .any(|f| f.code == "friction_missing_required_field" && f.key == "FRIC-ND")
+    );
 }
 
 #[test]
@@ -213,7 +349,11 @@ fn red_closed_without_evidence_fails_closed() {
     let mut row = good_open("FRIC-CLOSED");
     row["status"] = json!("RESOLVED");
     let findings = evaluate_keyed(&fixture_policy(), &json!({ "rows": [row] }));
-    assert!(findings.iter().any(|f| f.code == "friction_closed_without_evidence" && f.key == "FRIC-CLOSED"));
+    assert!(
+        findings
+            .iter()
+            .any(|f| f.code == "friction_closed_without_evidence" && f.key == "FRIC-CLOSED")
+    );
 }
 
 #[test]
@@ -221,9 +361,11 @@ fn red_accepted_risk_without_evidence_fails_closed() {
     let mut row = good_open("FRIC-HELD");
     row["status"] = json!("escalated-to-leader-for-force-complete");
     let findings = evaluate_keyed(&fixture_policy(), &json!({ "rows": [row] }));
-    assert!(findings.iter().any(|f| {
-        f.code == "friction_accepted_risk_without_evidence" && f.key == "FRIC-HELD"
-    }));
+    assert!(
+        findings.iter().any(|f| {
+            f.code == "friction_accepted_risk_without_evidence" && f.key == "FRIC-HELD"
+        })
+    );
 }
 
 #[test]
@@ -275,8 +417,7 @@ fn red_baseline_is_shrink_only_new_debt_breaks_set_equality() {
         .map(|f| f.key.clone())
         .collect();
     // The "committed baseline" froze only the legacy debt key.
-    let frozen: BTreeSet<String> =
-        ["FRIC-LEGACY-DEBT".to_owned()].into_iter().collect();
+    let frozen: BTreeSet<String> = ["FRIC-LEGACY-DEBT".to_owned()].into_iter().collect();
     assert_ne!(
         measured, frozen,
         "a NEW closed-without-evidence key must break baseline set-equality, not be absorbed"
@@ -291,8 +432,9 @@ fn red_baseline_is_shrink_only_new_debt_breaks_set_equality() {
 fn violation_codes_const_covers_every_emitted_code() {
     // Guard against VIOLATION_CODES drifting from what the evaluator actually emits (review LOW-7):
     // exercise every code at least once and assert each emitted code is declared in the const.
-    let declared: BTreeSet<&str> =
-        ci_action_item_accounting::VIOLATION_CODES.into_iter().collect();
+    let declared: BTreeSet<&str> = ci_action_item_accounting::VIOLATION_CODES
+        .into_iter()
+        .collect();
     let mut bad_policy = fixture_policy();
     bad_policy["gate_id"] = json!("cloud-ci-wrong");
     let mut missing = good_open("FRIC-M");
@@ -317,5 +459,8 @@ fn violation_codes_const_covers_every_emitted_code() {
         );
     }
     // And confirm this fixture actually exercised most of the surface (no silent under-coverage).
-    assert!(emitted.len() >= 6, "expected broad code coverage, got {emitted:?}");
+    assert!(
+        emitted.len() >= 6,
+        "expected broad code coverage, got {emitted:?}"
+    );
 }

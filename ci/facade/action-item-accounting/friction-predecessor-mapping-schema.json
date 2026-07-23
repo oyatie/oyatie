@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/schemas/friction-predecessor-mapping.schema.json",
+  "title": "Identity-only friction predecessor mapping",
+  "description": "Maps predecessor friction identifiers to FixupTask identifiers. It intentionally contains no predecessor text, status, evidence, or disposition fields; Git history remains the only predecessor archive.",
+  "type": "object",
+  "required": ["source", "entries"],
+  "properties": {
+    "source": { "type": "string", "minLength": 1 },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["predecessor_id", "target_fixuptask_id"],
+        "properties": {
+          "predecessor_id": { "type": "string", "minLength": 1 },
+          "target_fixuptask_id": { "type": "string", "minLength": 1 }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}
