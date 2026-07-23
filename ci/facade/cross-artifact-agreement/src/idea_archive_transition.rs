@@ -1,8 +1,8 @@
 //! Policy-driven idea-archive transition evaluator.
 //!
-//! This module carries capability only. The live policy remains in
-//! `current-tree-archive-compatible`; no archive body is retired and no
-//! history-only completion is claimed by this code.
+//! This module evaluates the configured lifecycle policy but does not select or activate a
+//! lifecycle state itself. No archive body is retired and no history-only completion is claimed
+//! by this code.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
