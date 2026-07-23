@@ -2391,6 +2391,85 @@ mod tests {
                 .any(|finding| finding.code == RETIREMENT_RECEIPT_CODE)
         );
     }
+
+    #[test]
+    fn carried_exact_e4_and_new_masterplan_preparation_are_independently_admitted() {
+        let mut corpus = exact_adr_0388_corpus("closed-carried");
+        let repository_path = "evidence/masterplan-preparation.json";
+        let repository = prepared_receipt(
+            "masterplan-retirement-preparation",
+            "artifact:masterplan",
+            OLD,
+            OLD_TREE,
+            "specs/masterplan-retired-surface.json",
+        );
+        let repository_fact = fact(
+            "masterplan-retirement-preparation",
+            repository_path,
+            "artifact:masterplan",
+            "prepared-new",
+            OLD,
+            OLD_TREE,
+            "specs/masterplan-retired-surface.json",
+        );
+        let repository_selector = json!({
+            "selector_type": "exact",
+            "selector": "specs/masterplan-retired-surface.json",
+            "protected_paths": ["specs/masterplan-retired-surface.json"],
+            "predecessor_paths": ["specs/masterplan-retired-surface.json"],
+            "candidate_paths": ["specs/masterplan-retired-surface.json"],
+            "removed_paths": [],
+            "surviving_paths": ["specs/masterplan-retired-surface.json"],
+            "candidate_only_paths": [],
+            "external_assertion": "not-applicable"
+        });
+
+        corpus["receipts"]
+            .as_array_mut()
+            .expect("receipt corpus")
+            .push(json!({"receipt_path": repository_path, "receipt": repository}));
+        let scm_facts = corpus["scm_facts"].as_object_mut().expect("SCM facts");
+        let coverage = scm_facts
+            .get_mut("retirement_receipt_coverage")
+            .expect("coverage")
+            .as_object_mut()
+            .expect("coverage object");
+        coverage
+            .get_mut("candidate_receipt_paths")
+            .and_then(Value::as_array_mut)
+            .expect("candidate receipt paths")
+            .push(json!(repository_path));
+        coverage
+            .get_mut("new_receipt_paths")
+            .and_then(Value::as_array_mut)
+            .expect("new receipt paths")
+            .push(json!(repository_path));
+        coverage
+            .get_mut("required_retired_paths")
+            .and_then(Value::as_array_mut)
+            .expect("required retired paths")
+            .push(json!("specs/masterplan-retired-surface.json"));
+        coverage
+            .get_mut("scopes")
+            .and_then(Value::as_array_mut)
+            .expect("coverage scopes")
+            .push(json!({
+                "scope_ref": "artifact:masterplan",
+                "scope_type": "masterplan-retired-surfaces",
+                "selectors": [repository_selector],
+                "required_retired_paths": ["specs/masterplan-retired-surface.json"]
+            }));
+        scm_facts
+            .get_mut("retirement_receipt_object_facts")
+            .and_then(Value::as_array_mut)
+            .expect("object facts")
+            .push(repository_fact);
+        scm_facts["protected_scm_context"]["prepared_receipt_paths"] = json!([repository_path]);
+
+        let findings = evaluate_history_only_retirement_receipts(&corpus);
+        assert!(findings.is_empty(), "{findings:?}");
+    }
+
     #[test]
     fn content_and_candidate_equivalent_copies_fail_closed() {
         let mut receipt = receipt("idea-receipt", "ADR-0388", OLD, OLD_TREE, "docs/old.md");
