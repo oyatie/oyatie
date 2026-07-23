@@ -45,6 +45,7 @@ envelope; listing them here supplies traceable scope rather than activation auth
 - `libs/oya-stage1-closure/tests/fixtures/program.json`
 - `libs/oya-stage1-closure/tests/stage1_closure.rs`
 - `specs/BUCK`
+- `specs/masterplan.json`
 - `specs/stage1-admission-envelope.schema.json`
 - `specs/stage1-closure-program.schema.json`
 - `specs/stage1-evidence-epoch.schema.json`
