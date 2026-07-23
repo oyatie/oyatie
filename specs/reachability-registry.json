@@ -310,6 +310,14 @@
       "prefix": "specs/reachability-registry.json"
     },
     {
+      "anchor": "ADR-0388 amendment (E4 preparation): docs/ideas/BUCK and its narrow OWNERS marker expose only the byte-frozen, non-authoritative idea-archive candidate corpus to the cross-artifact evaluator; no archive closure or planning dispatch is implied.",
+      "prefix": "docs/ideas/"
+    },
+    {
+      "anchor": "ADR-0388 amendment (E4 preparation): specs/BUCK exports markdown-retirement-policy.json as the declared policy input to the cross-artifact evaluator; the policy remains preparation-only and non-authoritative.",
+      "prefix": "specs/BUCK"
+    },
+    {
       "anchor": "ADR-0067 governed-surface metadata for the docs portal boundary contract; exact-path registration for the non-crate OpenAPI metadata artifact.",
       "prefix": "contracts/ops-docs-v1.openapi.meta.yaml"
     },
