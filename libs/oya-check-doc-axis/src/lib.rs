@@ -1,7 +1,7 @@
 //! Doc-axis enforcement kernel (ADR-0388).
 //!
 //! Validates that the `docs/` tree and related registry artifacts stay within
-//! the seven canonical doc axes defined by ADR-0388. Five rules are checked:
+//! the seven canonical doc axes defined by ADR-0388. Six rules are checked:
 //!
 //! 1. **ADR status casing** — every `docs/decisions/ADR-*.md` frontmatter
 //!    `status:` value is one of the six allowed literals (case-sensitive).
@@ -19,10 +19,14 @@
 //!    tree. Archive placement is never compliance; the separate archive
 //!    transition gate owns the byte-frozen temporary inventory.
 //!
-//! 4. **No docs proliferation** — only the canonical subdirectories are
+//! 4. **Open archive transition inventory** — every current-tree node below
+//!    `docs/ideas/archive/` is surfaced as a retained nonblocking finding until
+//!    the protected E10 history-only cutover removes the frozen legacy corpus.
+//!
+//! 5. **No docs proliferation** — only the canonical subdirectories are
 //!    permitted under `docs/`. Any `.md` file placed outside them is an error.
 //!
-//! 5. **Catalog/manifest crate-claim consistency** — every crate listed in a
+//! 6. **Catalog/manifest crate-claim consistency** — every crate listed in a
 //!    microservice `manifest.json` `bounded_contexts[].crates[]` array must
 //!    have a corresponding file under `registry/catalog/<crate>.yaml`.
 
@@ -55,18 +59,20 @@ pub struct DocAxisFinding {
     pub blocking: bool,
 }
 
-/// The five doc-axis rule identifiers.
+/// The six doc-axis rule identifiers.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum DocAxisRule {
     /// Rule 1: ADR status field must be one of the six canonical values.
     AdrStatusCasing,
     /// Rule 2: amended ADRs require a canonical initial-frontmatter date.
     AmendedDate,
-    /// Rule 3: idea-pager older than 14 days without promotion or archival.
+    /// Rule 3: idea-pager older than 14 days without promotion to current authority.
     ShadowIdea,
-    /// Rule 4: markdown file placed outside a canonical `docs/` subdirectory.
+    /// Rule 4: readable idea-archive node retained only as an open transition input.
+    IdeaArchiveOpenTransition,
+    /// Rule 5: markdown file placed outside a canonical `docs/` subdirectory.
     DocsProliferation,
-    /// Rule 5: crate claimed in manifest.json but missing from registry/catalog/.
+    /// Rule 6: crate claimed in manifest.json but missing from registry/catalog/.
     CatalogManifestDrift,
 }
 
@@ -77,6 +83,10 @@ pub struct DocAxisReport {
     pub adrs_checked: usize,
     /// `docs/ideas/*.md` files inspected (excluding gate-owned transition inventory). data_class: INTERNAL_ONLY
     pub ideas_checked: usize,
+    /// Readable current-tree archive nodes retained only as open transition inputs.
+    /// Exact baseline identity and fail-closed byte enforcement remain owned by the
+    /// protected cross-artifact evaluator. data_class: INTERNAL_ONLY
+    pub idea_archive_transition_inventory: Vec<DocAxisFinding>,
     /// Canonical subdirectory check: markdown files inspected under `docs/`. data_class: INTERNAL_ONLY
     pub docs_files_checked: usize,
     /// Microservice manifest files inspected. data_class: INTERNAL_ONLY
@@ -232,18 +242,27 @@ pub fn validate(repo_root: &Path, strict: bool) -> ValidationResult {
     let mut report = DocAxisReport {
         adrs_checked: 0,
         ideas_checked: 0,
+        idea_archive_transition_inventory: Vec::new(),
         docs_files_checked: 0,
         manifests_checked: 0,
         warnings: 0,
     };
 
     check_adr_status_casing(repo_root, strict, &mut findings, &mut report);
+    check_open_idea_archive_transition(repo_root, &mut findings);
     check_shadow_ideas(repo_root, &mut findings, &mut report);
     check_docs_proliferation(repo_root, &mut findings, &mut report);
     check_catalog_manifest_drift(repo_root, &mut findings, &mut report);
 
     // Count warnings from non-blocking findings.
     report.warnings = findings.iter().filter(|f| !f.blocking).count();
+    report.idea_archive_transition_inventory = findings
+        .iter()
+        .filter(|finding| {
+            !finding.blocking && finding.rule_violated == DocAxisRule::IdeaArchiveOpenTransition
+        })
+        .cloned()
+        .collect();
 
     let blocking: Vec<DocAxisFinding> = findings.into_iter().filter(|f| f.blocking).collect();
     if blocking.is_empty() {
@@ -359,7 +378,158 @@ fn find_frontmatter_values(contents: &str, field: &str) -> Vec<(usize, String)> 
 }
 
 // ---------------------------------------------------------------------------
-// Rule 2 — No shadow ideas
+// Rule 4 — Open idea-archive transition inventory
+// ---------------------------------------------------------------------------
+
+fn check_open_idea_archive_transition(repo_root: &Path, findings: &mut Vec<DocAxisFinding>) {
+    let archive_dir = repo_root.join("docs").join("ideas").join("archive");
+    let mut nodes = Vec::new();
+    collect_archive_transition_nodes(&archive_dir, true, &mut nodes);
+    nodes.sort_by(|left, right| {
+        archive_relative_encoded(repo_root, &left.path)
+            .cmp(archive_relative_encoded(repo_root, &right.path))
+    });
+
+    for node in nodes {
+        findings.push(DocAxisFinding {
+            path: render_archive_inventory_path(repo_root, &node.path),
+            line: None,
+            rule_violated: DocAxisRule::IdeaArchiveOpenTransition,
+            suggested_fix: node.condition.suggested_fix().to_owned(),
+            blocking: false,
+        });
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum ArchiveInventoryCondition {
+    Present,
+    SymbolicLink,
+    MetadataUnavailable,
+    EnumerationIncomplete,
+}
+
+impl ArchiveInventoryCondition {
+    fn suggested_fix(self) -> &'static str {
+        match self {
+            Self::Present => {
+                "This readable current-tree node is an open, noncompliant transition input pending E10. Do not use docs/ideas/archive as a durable disposition; the protected history-only cutover must remove the frozen legacy corpus."
+            }
+            Self::SymbolicLink => {
+                "This current-tree symbolic link is an open, noncompliant transition input and was not followed. The protected history-only evaluator must reject it; E10 must remove it."
+            }
+            Self::MetadataUnavailable => {
+                "This current-tree transition path could not be inspected without masking filesystem state. The protected history-only evaluator must reject it; E10 must remove it."
+            }
+            Self::EnumerationIncomplete => {
+                "This current-tree transition directory could not be enumerated completely. The protected history-only evaluator must reject the incomplete inventory; E10 must remove it."
+            }
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct ArchiveInventoryNode {
+    path: PathBuf,
+    condition: ArchiveInventoryCondition,
+}
+
+fn collect_archive_transition_nodes(
+    path: &Path,
+    is_root: bool,
+    nodes: &mut Vec<ArchiveInventoryNode>,
+) {
+    let metadata = match fs::symlink_metadata(path) {
+        Ok(metadata) => metadata,
+        Err(error) if is_root && error.kind() == std::io::ErrorKind::NotFound => return,
+        Err(_) => {
+            nodes.push(ArchiveInventoryNode {
+                path: path.to_path_buf(),
+                condition: ArchiveInventoryCondition::MetadataUnavailable,
+            });
+            return;
+        }
+    };
+
+    let file_type = metadata.file_type();
+    if file_type.is_symlink() {
+        nodes.push(ArchiveInventoryNode {
+            path: path.to_path_buf(),
+            condition: ArchiveInventoryCondition::SymbolicLink,
+        });
+        return;
+    }
+    if !file_type.is_dir() {
+        nodes.push(ArchiveInventoryNode {
+            path: path.to_path_buf(),
+            condition: ArchiveInventoryCondition::Present,
+        });
+        return;
+    }
+
+    let entries = match fs::read_dir(path) {
+        Ok(entries) => entries,
+        Err(_) => {
+            nodes.push(ArchiveInventoryNode {
+                path: path.to_path_buf(),
+                condition: ArchiveInventoryCondition::EnumerationIncomplete,
+            });
+            return;
+        }
+    };
+    let mut children = Vec::new();
+    let mut enumeration_incomplete = false;
+    for entry in entries {
+        match entry {
+            Ok(entry) => children.push(entry.path()),
+            Err(_) => enumeration_incomplete = true,
+        }
+    }
+    if !is_root || enumeration_incomplete {
+        nodes.push(ArchiveInventoryNode {
+            path: path.to_path_buf(),
+            condition: if enumeration_incomplete {
+                ArchiveInventoryCondition::EnumerationIncomplete
+            } else {
+                ArchiveInventoryCondition::Present
+            },
+        });
+    }
+    for child in children {
+        collect_archive_transition_nodes(&child, false, nodes);
+    }
+}
+
+fn archive_relative_encoded<'a>(repo_root: &Path, path: &'a Path) -> &'a [u8] {
+    path.strip_prefix(repo_root)
+        .unwrap_or(path)
+        .as_os_str()
+        .as_encoded_bytes()
+}
+
+fn render_archive_inventory_path(repo_root: &Path, path: &Path) -> String {
+    let relative = path.strip_prefix(repo_root).unwrap_or(path);
+    match relative.to_str() {
+        Some(value) => value.replace('\\', "/"),
+        None => format!(
+            "os-encoded-hex:{}",
+            lower_hex(relative.as_os_str().as_encoded_bytes())
+        ),
+    }
+}
+
+fn lower_hex(bytes: &[u8]) -> String {
+    const DIGITS: &[u8; 16] = b"0123456789abcdef";
+    let mut result = String::with_capacity(bytes.len() * 2);
+    for byte in bytes {
+        result.push(DIGITS[(byte >> 4) as usize] as char);
+        result.push(DIGITS[(byte & 0x0f) as usize] as char);
+    }
+    result
+}
+
+// ---------------------------------------------------------------------------
+// Rule 3 — No shadow ideas
 // ---------------------------------------------------------------------------
 
 fn check_shadow_ideas(
@@ -446,7 +616,7 @@ fn check_shadow_ideas(
                 line: None,
                 rule_violated: DocAxisRule::ShadowIdea,
                 suggested_fix: format!(
-                        "Idea-pager is {age_days} days old (limit: {IDEA_PROMOTION_DAYS}). Promote to an ADR, add `superseded_by: ADR-NNNN`, and remove it from the current tree; archive placement is not compliance."
+                    "Idea-pager is {age_days} days old (limit: {IDEA_PROMOTION_DAYS}). Promote to an ADR, add `superseded_by: ADR-NNNN`, and remove it from the current tree; archive placement is not compliance."
                 ),
                 blocking: true,
             });
