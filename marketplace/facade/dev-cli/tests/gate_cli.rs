@@ -8316,6 +8316,39 @@ fn active_artifact_contract_graph_projection_is_complete_and_byte_exact() {
 }
 
 #[test]
+fn active_artifact_contract_graph_projection_escapes_vertical_tab_control_character() {
+    let temp = TempDirGuard::new("aac-graph-control-character");
+    let registry = write_aac_registry(
+        temp.path(),
+        serde_json::json!([
+            {
+                "artifact_id": "control\u{000b}character",
+                "artifact_path": "specs/active-machine-readable-artifact-contract.json",
+                "artifact_profile": "schema"
+            }
+        ]),
+    );
+    let generated_graph_path = temp.path().join("active-artifact-contract-edges.json");
+
+    let output = run_active_artifact_contract_gate_with_graph(&registry, &generated_graph_path);
+    assert!(
+        output.status.success(),
+        "valid registry strings must produce a graph\nstdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let generated_bytes = fs::read(&generated_graph_path).expect("generated graph readable");
+    let generated: serde_json::Value = serde_json::from_slice(&generated_bytes)
+        .expect("generated graph must remain valid JSON for every valid registry string");
+    assert_eq!(generated["edges"][0]["source"], "control\u{000b}character");
+    assert!(
+        !generated_bytes.contains(&0x0b),
+        "JSON output must escape raw control bytes"
+    );
+}
+
+#[test]
 fn active_artifact_contract_gate_rejects_untracked_artifact_path() {
     let temp = TempDirGuard::new("aac-untracked-path");
     let registry = write_aac_registry(
