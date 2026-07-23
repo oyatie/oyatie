@@ -2744,10 +2744,12 @@ out=""
 mbout=""
 censusout=""
 census=false
+merge_base_baseline=false
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --out) shift; out="$1" ;;
     --merge-base-out) shift; mbout="$1" ;;
+    --merge-base-baseline) merge_base_baseline=true ;;
     --adr-census-parent-receipt) census=true ;;
     --adr-census-parent-receipt-out) shift; censusout="$1" ;;
   esac
@@ -2762,6 +2764,11 @@ fi
 test -n "$out"
 mkdir -p "$(dirname "$out")"
 printf '{{"facts":[]}}\n' > "$out"
+if [ "$merge_base_baseline" = true ]; then
+  volatile="ci/facade/scm-facts-snapshot/scm-volatile-facts.generated.json"
+  mkdir -p "$(dirname "$volatile")"
+  printf '{{"fixuptask_v2_durable":{{"trusted":"merge-base"}},"fixuptask_v2_admission":{{"trusted":"merge-base"}}}}\n' > "$volatile"
+fi
 # ADR-0616 PR-1: publish the merge-base sha the cross-check materializes.
 if [ -n "$mbout" ]; then git rev-parse HEAD > "$mbout"; fi
 "#
@@ -2873,6 +2880,31 @@ printf 'generated dashboard\n' > docs/architecture/product-graph.html
         assert!(producer_pos < active_graph_pos);
         assert!(active_graph_pos < masterplan_pos);
         assert!(masterplan_pos < architecture_pos);
+        let protected_facts: serde_json::Value = serde_json::from_str(
+            &std::fs::read_to_string(
+                root.join("ci/facade/scm-facts-snapshot/scm-volatile-facts.generated.json"),
+            )
+            .expect("normal materializer must write the volatile SCM snapshot"),
+        )
+        .expect("protected SCM snapshot must be JSON");
+        assert_eq!(
+            protected_facts["fixuptask_v2_durable"]["trusted"], "merge-base",
+            "durable admission facts must come from the trusted merge-base materialization"
+        );
+        assert_eq!(
+            protected_facts["fixuptask_v2_admission"]["trusted"], "merge-base",
+            "legacy adapter facts must come from the trusted merge-base materialization"
+        );
+        assert_eq!(
+            calls
+                .lines()
+                .filter(|line| {
+                    line.starts_with("emitter ") && line.contains("--merge-base-baseline")
+                })
+                .count(),
+            2,
+            "both candidate and final trusted-SCM materializer invocations must carry the out-of-band merge-base baseline: {calls}"
+        );
         assert_eq!(
             std::fs::read_to_string(root.join(ACTIVE_ARTIFACT_CONTRACT_GRAPH_PATH))
                 .expect("active artifact contract graph materialized"),
