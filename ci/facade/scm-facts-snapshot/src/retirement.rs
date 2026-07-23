@@ -470,12 +470,23 @@ pub(crate) fn materialize_history_only_retirement_facts(
                     }),
                 ),
                 ReceiptStage::ClosureNew => {
+                    let (linked_path, linked_blob) = closure_preparation_link(&receipt)?;
+                    if linked_path != entry.preparation_receipt_path {
+                        return Err(format!(
+                            "closure {receipt_path} links unexpected preparation path"
+                        ));
+                    }
                     let protected_preparation = protected_entries
                         .get(&entry.preparation_receipt_path)
                         .ok_or_else(|| {
                             "closure is missing protected preparation receipt".to_owned()
                         })?;
                     require_regular(protected_preparation, "protected preparation receipt")?;
+                    if linked_blob != protected_preparation.oid {
+                        return Err(format!(
+                            "closure {receipt_path} links unexpected protected preparation blob"
+                        ));
+                    }
                     let preparation_bytes = source.read_blob(&protected_preparation.oid)?;
                     let preparation: Value = parse_closed_json(&preparation_bytes)?;
                     let (commit, tree) = receipt_baseline(&preparation)?;
@@ -2119,6 +2130,39 @@ mod tests {
                 assert_eq!(input["candidate_path_exists"], json!(false));
             }
         }
+    }
+
+    #[test]
+    fn closure_new_rejects_candidate_link_to_wrong_protected_preparation_blob() {
+        let mut source = fixture();
+        add_protected_control_plane(&mut source);
+        add_current_bodies(&mut source, PROTECTED);
+        let control = control_plane();
+        for (index, entry) in control.entries.iter().enumerate() {
+            let preparation_oid = oid(113 + index as u8);
+            add_receipt(
+                &mut source,
+                PROTECTED,
+                &entry.preparation_receipt_path,
+                preparation_oid.clone(),
+                &receipt_value(entry, false, None),
+            );
+            let linked_oid = if index == 0 {
+                oid(119)
+            } else {
+                preparation_oid
+            };
+            add_receipt(
+                &mut source,
+                CANDIDATE,
+                &entry.closure_receipt_path,
+                oid(120 + index as u8),
+                &receipt_value(entry, true, Some(&linked_oid)),
+            );
+        }
+
+        let error = materialize_history_only_retirement_facts(&source, &context()).unwrap_err();
+        assert!(error.contains("links unexpected protected preparation blob"));
     }
 
     #[test]
