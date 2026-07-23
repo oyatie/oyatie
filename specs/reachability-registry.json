@@ -432,6 +432,22 @@
     {
       "anchor": "ADR-0610: pre-registered frozen Policy-IR benchmark stage-0 artifacts (rubric = sole grade authority, fixture suite = graded corpus); evidence-admissibility pre-registration.",
       "prefix": "specs/policy-ir-benchmark-fixture-suite.json"
+    },
+    {
+      "anchor": "ADR-0613 E7: exact reviewed source contract for the typed history-only retirement controller; an evidence-preservation boundary only, with protected-null closure fields and HOLD(Planning) retained.",
+      "prefix": "registry/history-only-retirement-control-plane.json"
+    },
+    {
+      "anchor": "ADR-0613 E7: narrow cloud-ci-platform ownership marker for the history-only retirement controller input; it does not grant closure, promotion, or completion authority.",
+      "prefix": "registry/OWNERS"
+    },
+    {
+      "anchor": "ADR-0613 E7: exact schema for the immutable protected-null history-only retirement control plane; it is an evidence-preservation boundary and retains HOLD(Planning).",
+      "prefix": "specs/history-only-retirement-control-plane.schema.json"
+    },
+    {
+      "anchor": "ADR-0613 E7: exact schema for the ignored controller-produced history-only retirement facts projection; it is not a closure receipt and retains HOLD(Planning).",
+      "prefix": "specs/history-only-retirement-facts.schema.json"
     }
   ]
 }
