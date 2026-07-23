@@ -11644,6 +11644,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "stage1-closure"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
 name = "static_assertions"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

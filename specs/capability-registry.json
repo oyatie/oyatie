@@ -535,6 +535,7 @@
         "globs": [
           "libs/oya-check-*",
           "libs/oya-governance-*",
+          "libs/oya-stage1-closure",
           "tools/oya-governance-*",
           "governance/corpus/*"
         ]
