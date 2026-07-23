@@ -63,6 +63,23 @@ fn owners(entries: &[(&str, &[&str])]) -> BTreeMap<String, Vec<String>> {
         .collect()
 }
 
+/// Locates the shipped policy pack from a Buck2 test working directory.
+fn shipped_pack_path() -> PathBuf {
+    let mut dir = std::env::current_dir().expect("cwd");
+    let rel = PathBuf::from("ci/facade/affected-target-set/affected-set-policy.json");
+
+    loop {
+        let candidate = dir.join(&rel);
+        if candidate.is_file() {
+            return candidate;
+        }
+        assert!(
+            dir.pop(),
+            "failed to locate the shipped pack from the test cwd"
+        );
+    }
+}
+
 // ── The cf16525 class: out-of-scope source change MUST be in the decided set ─────────────
 
 #[test]
@@ -552,18 +569,7 @@ fn seeds_are_sorted_and_deduplicated() {
 fn shipped_pack_parses_and_matches_the_engine() {
     // Locate the shipped pack relative to the repo root (walk-up mirrors the firewall gate's
     // resolver; buck2 runs tests inside the repo).
-    let mut dir = std::env::current_dir().expect("cwd");
-    let rel = PathBuf::from("ci/facade/affected-target-set/affected-set-policy.json");
-    let pack = loop {
-        let candidate = dir.join(&rel);
-        if candidate.is_file() {
-            break candidate;
-        }
-        assert!(
-            dir.pop(),
-            "failed to locate the shipped pack from the test cwd"
-        );
-    };
+    let pack = shipped_pack_path();
     let bytes = fs::read_to_string(&pack).expect("read shipped pack");
     let p = Policy::from_json(&bytes).expect("shipped pack must satisfy the engine schema");
     assert_eq!(p.gate_id, GATE_ID);
@@ -611,18 +617,7 @@ fn archive_epoch_e4_inputs_seed_cross_artifact_agreement_gate_despite_docs_inert
     // E4 archive inputs are cross-artifact-agreement inputs, even though the generic docs
     // declaration is inert. Synthetic declarations union, so the narrow non-empty archive
     // mapping contributes this gate while `docs/**` contributes no seed.
-    let mut dir = std::env::current_dir().expect("cwd");
-    let rel = PathBuf::from("ci/facade/affected-target-set/affected-set-policy.json");
-    let pack = loop {
-        let candidate = dir.join(&rel);
-        if candidate.is_file() {
-            break candidate;
-        }
-        assert!(
-            dir.pop(),
-            "failed to locate the shipped pack from the test cwd"
-        );
-    };
+    let pack = shipped_pack_path();
     let policy = Policy::from_json(&fs::read_to_string(pack).expect("read shipped pack"))
         .expect("shipped pack parses");
     let expected =

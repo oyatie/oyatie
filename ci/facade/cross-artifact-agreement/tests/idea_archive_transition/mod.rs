@@ -113,25 +113,26 @@ fn policy_grammar_is_required_and_fail_closed() {
 }
 
 #[test]
-fn compatibility_requires_null_transition_and_preserves_current_behavior() {
+fn compatibility_requires_null_transition_and_freezes_the_immutable_baseline() {
     let parsed = parse_idea_archive_policy(&policy("current-tree-archive-compatible", Value::Null))
         .expect("compatibility policy parses");
     assert_eq!(parsed.mode, IdeaArchiveMode::CurrentTreeArchiveCompatible);
 
-    let observation = IdeaArchiveObservation {
-        archive_root_kind: IdeaArchivePathKind::Directory,
-        nodes: BTreeMap::from([(
-            "docs/ideas/archive/unrestricted-compatibility.md".to_owned(),
-            IdeaArchiveObservedNode {
-                kind: IdeaArchivePathKind::RegularFile,
-                sha256: Some("compatibility-does-not-freeze-the-corpus".to_owned()),
-                byte_length: Some(1),
-            },
-        )]),
-        exact_body_locations: BTreeMap::new(),
-        verified_closure_projection: IdeaArchiveVerifiedClosureProjection::default(),
-    };
-    assert!(evaluate_idea_archive_transition(&parsed, &observation).is_ok());
+    assert!(evaluate_idea_archive_transition(&parsed, &exact_preparation_observation()).is_ok());
+
+    let mut extra = exact_preparation_observation();
+    extra.nodes.insert(
+        "docs/ideas/archive/new-archive-body.md".to_owned(),
+        IdeaArchiveObservedNode {
+            kind: IdeaArchivePathKind::RegularFile,
+            sha256: Some("new".to_owned()),
+            byte_length: Some(3),
+        },
+    );
+    assert!(matches!(
+        evaluate_idea_archive_transition(&parsed, &extra),
+        Err(IdeaArchiveTransitionError::BaselineMismatch(_))
+    ));
 
     assert!(matches!(
         parse_idea_archive_policy(&policy(
@@ -428,6 +429,23 @@ fn live_gate_parse_collect_evaluate_path_is_mode_generic() {
     let observation =
         collect_idea_archive_observation(&root, IdeaArchiveVerifiedClosureProjection::default())
             .expect("collect live candidate-tree observation");
+    assert_eq!(
+        observation.archive_root_kind,
+        IdeaArchivePathKind::Directory
+    );
+    assert_eq!(observation.nodes.len(), baseline.entries.len());
+    for entry in &baseline.entries {
+        let path = format!("{}/{}", baseline.scope_root, entry.path);
+        assert_eq!(
+            observation.nodes.get(&path),
+            Some(&IdeaArchiveObservedNode {
+                kind: IdeaArchivePathKind::RegularFile,
+                sha256: Some(entry.sha256.clone()),
+                byte_length: Some(entry.byte_length),
+            }),
+            "collector observation drifted at {path}"
+        );
+    }
     let report = evaluate_idea_archive_transition(&policy, &observation)
         .expect("live archive policy must match the candidate tree");
     assert_eq!(report.mode, policy.mode);

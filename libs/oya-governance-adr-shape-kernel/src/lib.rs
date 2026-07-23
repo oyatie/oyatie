@@ -90,7 +90,7 @@ const VALID_STATUSES: [&str; 6] = [
     "Amended",
     "Superseded",
     "Deprecated",
-    "Retracted",
+    "Rejected",
 ];
 
 /// Whether an ADR lifecycle status remains live for propagation consumers.
@@ -118,7 +118,7 @@ pub fn has_canonical_amended_date(text: &str) -> bool {
     let Some(value) = values.next() else {
         return false;
     };
-    values.next().is_none() && is_canonical_date(value.trim().trim_matches('"').trim_matches('\''))
+    values.next().is_none() && is_canonical_date_scalar(value)
 }
 
 pub fn validate_adr_shape_fitness(
@@ -205,7 +205,7 @@ fn is_adr_filename(filename: &str) -> bool {
 }
 
 fn extract_status(text: &str) -> Option<String> {
-    let lifecycle_surface = if text.starts_with("---\n") {
+    let lifecycle_surface = if text.starts_with("---\n") || text.starts_with("---\r\n") {
         let (frontmatter, body) = split_initial_yaml_frontmatter(text)?;
         if let Some(status) = frontmatter_scalar_values(frontmatter, "status").next() {
             return Some(clean_status(status));
@@ -259,12 +259,34 @@ fn frontmatter_scalar_values<'a>(
 }
 
 fn split_initial_yaml_frontmatter(text: &str) -> Option<(&str, &str)> {
-    let rest = text.strip_prefix("---\n")?;
-    if let Some(end) = rest.find("\n---\n") {
-        return Some((&rest[..end], &rest[end + "\n---\n".len()..]));
+    let rest = text
+        .strip_prefix("---\r\n")
+        .or_else(|| text.strip_prefix("---\n"))?;
+    for delimiter in ["\r\n---\r\n", "\n---\n"] {
+        if let Some(end) = rest.find(delimiter) {
+            return Some((&rest[..end], &rest[end + delimiter.len()..]));
+        }
     }
-    let frontmatter = rest.strip_suffix("\n---")?;
-    Some((frontmatter, ""))
+    rest.strip_suffix("\r\n---")
+        .or_else(|| rest.strip_suffix("\n---"))
+        .map(|frontmatter| (frontmatter, ""))
+}
+
+fn is_canonical_date_scalar(value: &str) -> bool {
+    let value = value.trim();
+    let bytes = value.as_bytes();
+    let value = if matches!(bytes.first(), Some(b'"' | b'\'')) {
+        if bytes.len() < 2 || bytes.last() != bytes.first() {
+            return false;
+        }
+        &value[1..value.len() - 1]
+    } else {
+        if matches!(bytes.last(), Some(b'"' | b'\'')) {
+            return false;
+        }
+        value
+    };
+    is_canonical_date(value)
 }
 
 fn is_canonical_date(value: &str) -> bool {
@@ -345,6 +367,29 @@ mod tests {
         doc.text = format!(
             "---\nstatus: Amended\namended_date: 2026-07-22\n---\n\n{}",
             doc.text
+        );
+        assert!(validate_adr_shape_fitness(&[doc]).is_ok());
+    }
+
+    #[test]
+    fn rejects_amended_date_with_mismatched_quotes() {
+        let mut doc = valid_doc();
+        doc.text = format!(
+            "---\nstatus: Amended\namended_date: \"2026-07-22'\n---\n\n{}",
+            doc.text
+        );
+        assert!(matches!(
+            validate_adr_shape_fitness(&[doc]),
+            Err(AdrShapeFitnessError::MissingAmendedDate { .. })
+        ));
+    }
+
+    #[test]
+    fn accepts_amended_frontmatter_with_crlf_delimiters() {
+        let mut doc = valid_doc();
+        doc.text = format!(
+            "---\r\nstatus: Amended\r\namended_date: 2026-07-22\r\n---\r\n\r\n{}",
+            doc.text.replace('\n', "\r\n")
         );
         assert!(validate_adr_shape_fitness(&[doc]).is_ok());
     }
@@ -463,6 +508,20 @@ mod tests {
         doc.text = doc.text.replace("Accepted", "Maybe");
         assert!(matches!(
             validate_adr_shape_fitness(&[doc]),
+            Err(AdrShapeFitnessError::InvalidStatus { .. })
+        ));
+    }
+
+    #[test]
+    fn lifecycle_statuses_match_adr_0388() {
+        let mut rejected = valid_doc();
+        rejected.text = rejected.text.replace("Accepted", "Rejected");
+        assert!(validate_adr_shape_fitness(&[rejected]).is_ok());
+
+        let mut retracted = valid_doc();
+        retracted.text = retracted.text.replace("Accepted", "Retracted");
+        assert!(matches!(
+            validate_adr_shape_fitness(&[retracted]),
             Err(AdrShapeFitnessError::InvalidStatus { .. })
         ));
     }
