@@ -17,8 +17,8 @@ use std::path::{Path, PathBuf};
 use ci_action_item_accounting::{
     FIXUPTASK_V2_CANDIDATE_JSONL_PATH, LEGACY_FRICTION_MAPPING_PATH,
     LEGACY_FRICTION_PROTECTED_FACTS_PATH, Verdict, collect_observed_frictions, evaluate,
-    evaluate_keyed, evaluate_legacy_friction_materialized_gate, fixuptask_v2_digest,
-    legacy_friction_adapter,
+    evaluate_keyed, evaluate_legacy_friction_admission, evaluate_legacy_friction_materialized_gate,
+    fixuptask_v2, fixuptask_v2_digest, legacy_friction_adapter,
 };
 use serde_json::{Value, json};
 
@@ -247,6 +247,29 @@ fn fixuptask_v2_admission_is_wired_through_the_materialized_gate_inputs() {
             .is_empty()
     );
     std::fs::remove_dir_all(root).expect("remove test inputs");
+}
+
+#[test]
+fn legacy_adapter_v2_findings_cannot_diverge_from_the_durable_kernel() {
+    let candidate = json!({ "rows": [7] });
+    let protected = materialized_fixuptask_v2_facts(b"legacy");
+    let legacy = evaluate_legacy_friction_admission(&protected, &candidate, Some(b"legacy"), None)
+        .into_iter()
+        .map(|finding| (finding.code, finding.key))
+        .collect::<BTreeSet<_>>();
+    let durable = fixuptask_v2::evaluate_fixuptasks_v2_at(
+        &json!({ "rows": [] }),
+        &candidate,
+        "2026-07-21T00:00:00Z",
+    )
+    .into_iter()
+    .map(|finding| (finding.code, finding.key))
+    .collect::<BTreeSet<_>>();
+
+    assert_eq!(
+        legacy, durable,
+        "legacy adapter must delegate v2 validation to the durable kernel"
+    );
 }
 
 // ---------------------------------------------------------------------------
