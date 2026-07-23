@@ -3,7 +3,7 @@
 use std::process::ExitCode;
 
 use ci_generated_artifact_freshness::{
-    materialize_generated_faces_with_buck2, parse_materialize_generated_faces_args,
+    materialize_generated_faces_from_args, parse_materialize_generated_faces_args,
 };
 
 fn main() -> ExitCode {
@@ -15,7 +15,7 @@ fn main() -> ExitCode {
         }
     };
 
-    match materialize_generated_faces_with_buck2(&args.repo_root) {
+    match materialize_generated_faces_from_args(&args) {
         Ok(()) => ExitCode::SUCCESS,
         Err(error) => {
             eprintln!("{error}");

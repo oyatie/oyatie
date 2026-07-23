@@ -1,0 +1,139 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/history-only-retirement-control-plane.schema.json",
+  "schema_version": 1,
+  "canonical_name": "history-only-retirement-control-plane",
+  "planning_state": "HOLD(Planning)",
+  "dispatch_authorized": false,
+  "receipt_root": "evidence/history-only-retirement",
+  "predecessor_snapshot": {
+    "commit_oid": "1fa09da22be819b062881eb59252f4dd4c6b550a",
+    "tree_oid": "d7b15539396db21b219d68779362850cce9afa8f"
+  },
+  "entries": [
+    {
+      "evidence_set_id": "masterplan-retired-surfaces-history-only-retirement-v1",
+      "scope_ref": "artifact:masterplan",
+      "scope_type": "masterplan-retired-surfaces",
+      "selectors": [
+        {
+          "selector_type": "exact",
+          "selector": "docs/ROADMAP.md",
+          "expected_inputs": [
+            {
+              "path": "docs/ROADMAP.md",
+              "mode": "100644",
+              "predecessor_blob_oid": "eff5e1e9550b9f48e819b278c6fa79c59b229766",
+              "sha256": "sha256:bc2eae9d58bc9ddbf4dddca227234fc41d3c009de179ed508de05467ea3c9e06",
+              "byte_count": 1032
+            }
+          ]
+        }
+      ],
+      "preparation_artifact_id": "masterplan-retired-surfaces-retirement-preparation",
+      "preparation_receipt_path": "evidence/history-only-retirement/masterplan-retired-surfaces-preparation.json",
+      "closure_artifact_id": "masterplan-retired-surfaces-retirement-closure",
+      "closure_receipt_path": "evidence/history-only-retirement/masterplan-retired-surfaces-closure.json"
+    },
+    {
+      "evidence_set_id": "adr-0363-amended-agentic-vcs-history-only-retirement-v1",
+      "scope_ref": "ADR-0363",
+      "scope_type": "amended-agentic-vcs-retirement",
+      "selectors": [
+        {
+          "selector_type": "exact",
+          "selector": ".omc/ultragoal/OWNERS",
+          "expected_inputs": [
+            {
+              "path": ".omc/ultragoal/OWNERS",
+              "mode": "100644",
+              "predecessor_blob_oid": "4d5523fa27a5b0043f6f7cdc32513d65340b071e",
+              "sha256": "sha256:ccae9c135c65b8908627dd3eaa9851c87a6926810f54f85d288250ed00cde910",
+              "byte_count": 18
+            }
+          ]
+        },
+        {
+          "selector_type": "exact",
+          "selector": ".omc/ultragoal/TEAMMATE-PREAMBLE.md",
+          "expected_inputs": [
+            {
+              "path": ".omc/ultragoal/TEAMMATE-PREAMBLE.md",
+              "mode": "100644",
+              "predecessor_blob_oid": "c11ba8dd23591a9c1b6d08ae0da26f176c479f87",
+              "sha256": "sha256:94a417d0c011dbe01e800f3a28a6c04de15ad22f3455c44f8d01881daa2a0ea9",
+              "byte_count": 11396
+            }
+          ]
+        },
+        {
+          "selector_type": "exact",
+          "selector": ".omc/ultragoal/friction-ledger.jsonl",
+          "expected_inputs": [
+            {
+              "path": ".omc/ultragoal/friction-ledger.jsonl",
+              "mode": "100644",
+              "predecessor_blob_oid": "d666617e98c001d5a5b06f44767aa9c948856029",
+              "sha256": "sha256:bf216e7c4a17995f759bb9add200b6e2fe5c0c702ff94da86ed2b6f5722b108c",
+              "byte_count": 308335
+            }
+          ]
+        },
+        {
+          "selector_type": "exact",
+          "selector": ".omc/ultragoal/premise.txt",
+          "expected_inputs": [
+            {
+              "path": ".omc/ultragoal/premise.txt",
+              "mode": "100644",
+              "predecessor_blob_oid": "f8e6b72c4ca9685844b89c8b15f4a1891569ad86",
+              "sha256": "sha256:15fdfb6ee944549ba6eae14c3a25129652978ae67bb9a4235564245e3a2fa064",
+              "byte_count": 459
+            }
+          ]
+        }
+      ],
+      "preparation_artifact_id": "adr-0363-amended-agentic-vcs-retirement-preparation",
+      "preparation_receipt_path": "evidence/history-only-retirement/adr-0363-amended-agentic-vcs-preparation.json",
+      "closure_artifact_id": "adr-0363-amended-agentic-vcs-retirement-closure",
+      "closure_receipt_path": "evidence/history-only-retirement/adr-0363-amended-agentic-vcs-closure.json"
+    },
+    {
+      "evidence_set_id": "adr-0388-transient-ideas-history-only-retirement-v1",
+      "scope_ref": "ADR-0388",
+      "scope_type": "transient-ideas",
+      "selectors": [
+        {
+          "selector_type": "glob",
+          "selector": "docs/ideas/archive/**",
+          "expected_inputs": [
+            {
+              "path": "docs/ideas/archive/cloud-intelligence-bedrock-on-talos-2026-05-28.md",
+              "mode": "100644",
+              "predecessor_blob_oid": "ffc3aafd802f57d7d6f69a248d90360deecbf9cd",
+              "sha256": "sha256:2fad4ac166f3a410a0c7aeaef8632c0fe580f034da48f6be4e2bca642e304eca",
+              "byte_count": 7180
+            },
+            {
+              "path": "docs/ideas/archive/cloud-intelligence-v1-pipeline-2026-05-28.md",
+              "mode": "100644",
+              "predecessor_blob_oid": "4d05288a0b3c8585a478f843b824288ff35faf02",
+              "sha256": "sha256:740ae04afc93c41240128c22e3bbf2e1ea84dc63f168ebd974a4f0972a72b2a8",
+              "byte_count": 16014
+            },
+            {
+              "path": "docs/ideas/archive/n-lane-parallel-safety-and-unified-devops-console-2026-05-28.md",
+              "mode": "100644",
+              "predecessor_blob_oid": "820fb46ef556bedaaef22f10e5669791b3143b0d",
+              "sha256": "sha256:0a1d134ceb7267e1f8e3e7cc6d16a273da5f36266b53febbc4935b937719589f",
+              "byte_count": 8553
+            }
+          ]
+        }
+      ],
+      "preparation_artifact_id": "adr-0388-transient-ideas-retirement-preparation",
+      "preparation_receipt_path": "evidence/history-only-retirement/adr-0388-transient-ideas-preparation.json",
+      "closure_artifact_id": "adr-0388-transient-ideas-retirement-closure",
+      "closure_receipt_path": "evidence/history-only-retirement/adr-0388-transient-ideas-closure.json"
+    }
+  ]
+}

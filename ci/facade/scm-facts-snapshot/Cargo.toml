@@ -22,6 +22,7 @@ name = "oya-cloud-ci-adr-census-parent-receipt-gate"
 path = "src/bin/adr-census-parent-receipt-gate.rs"
 
 [dependencies]
+serde = { workspace = true }
 serde_json = { workspace = true }
 ci-path-resolver-ports = { path = "../../ports/path-resolver" }
 ci-path-resolver-adapters = { path = "../../adapters/path-resolver" }
