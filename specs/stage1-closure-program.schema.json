@@ -1,0 +1,264 @@
+{
+  "$id": "https://docs.oyatie.com/specs/stage1-closure-program.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "_meta": {
+    "created_at": "2026-07-22T00:00:00Z",
+    "doc_class": "Machine-Readable-Spec",
+    "owner_team": "platform-governance + platform-toolchain",
+    "purpose": "Shape-only structural contract for the dormant mechanism-neutral pre-roadmap Stage-1 closure program. Source evaluation can produce only PASS_CANDIDATE; effective PASS requires a separate post-merge admission envelope.",
+    "status": "Proposed",
+    "version": "1.0.0"
+  },
+  "additionalProperties": false,
+  "description": "Defines the exact A-G program, C01-C15 controls, L01-L16 lenses, fail-closed state graph, and PASS ceiling. It never supplies qualified-human authority or lets source-authored receipts yield PASS.",
+  "properties": {
+    "schema_id": {
+      "const": "oyatie/stage1-closure-program/v1"
+    },
+    "program_id": {
+      "const": "correct-way-forward-before-roadmap"
+    },
+    "mechanism_neutral": {
+      "const": true
+    },
+    "initial_state": {
+      "const": "HOLD_EPOCH_OPEN"
+    },
+    "states": {
+      "items": {
+        "$ref": "#/$defs/state"
+      },
+      "maxItems": 6,
+      "minItems": 6,
+      "type": "array",
+      "uniqueItems": true
+    },
+    "terminal_states": {
+      "items": {
+        "enum": [
+          "PASS_CANDIDATE",
+          "BLOCKED_QUALIFIED_HUMAN_INPUT"
+        ]
+      },
+      "maxItems": 2,
+      "minItems": 2,
+      "type": "array",
+      "uniqueItems": true
+    },
+    "transitions": {
+      "items": {
+        "$ref": "#/$defs/transition"
+      },
+      "maxItems": 8,
+      "minItems": 8,
+      "type": "array",
+      "uniqueItems": true
+    },
+    "groups": {
+      "items": {
+        "$ref": "#/$defs/group"
+      },
+      "maxItems": 7,
+      "minItems": 7,
+      "type": "array"
+    },
+    "controls": {
+      "items": {
+        "$ref": "#/$defs/control"
+      },
+      "maxItems": 15,
+      "minItems": 15,
+      "type": "array"
+    },
+    "lenses": {
+      "items": {
+        "$ref": "#/$defs/lens"
+      },
+      "maxItems": 16,
+      "minItems": 16,
+      "type": "array"
+    },
+    "candidate_effects": {
+      "additionalProperties": false,
+      "properties": {
+        "roadmap_planning_authorized": {
+          "const": false
+        },
+        "binding_plan_approval_allowed": {
+          "const": false
+        },
+        "implementation_dispatch_allowed": {
+          "const": false
+        }
+      },
+      "required": [
+        "roadmap_planning_authorized",
+        "binding_plan_approval_allowed",
+        "implementation_dispatch_allowed"
+      ],
+      "type": "object"
+    },
+    "mutation_policy": {
+      "additionalProperties": false,
+      "properties": {
+        "any_program_or_evidence_mutation_opens_new_epoch": {
+          "const": true
+        },
+        "prior_epoch_bytes_remain_only_in_authorized_object_history": {
+          "const": true
+        },
+        "readable_archive_allowed": {
+          "const": false
+        }
+      },
+      "required": [
+        "any_program_or_evidence_mutation_opens_new_epoch",
+        "prior_epoch_bytes_remain_only_in_authorized_object_history",
+        "readable_archive_allowed"
+      ],
+      "type": "object"
+    }
+  },
+  "required": [
+    "schema_id",
+    "program_id",
+    "mechanism_neutral",
+    "initial_state",
+    "states",
+    "terminal_states",
+    "transitions",
+    "groups",
+    "controls",
+    "lenses",
+    "candidate_effects",
+    "mutation_policy"
+  ],
+  "title": "Stage1ClosureProgram",
+  "type": "object",
+  "$defs": {
+    "authority_class": {
+      "enum": [
+        "machine-verifiable",
+        "qualified-human",
+        "qualified-affected-party",
+        "qualified-operations",
+        "qualified-custody",
+        "authorized-veto",
+        "machine-and-qualified-human",
+        "independent-council",
+        "independent-dissent",
+        "independent-oracle"
+      ],
+      "type": "string"
+    },
+    "control": {
+      "additionalProperties": false,
+      "properties": {
+        "control_id": {
+          "pattern": "^C(0[1-9]|1[0-5])$",
+          "type": "string"
+        },
+        "name": {
+          "minLength": 1,
+          "pattern": "^[a-z0-9_]+$",
+          "type": "string"
+        },
+        "authority_class": {
+          "$ref": "#/$defs/authority_class"
+        }
+      },
+      "required": [
+        "control_id",
+        "name",
+        "authority_class"
+      ],
+      "type": "object"
+    },
+    "control_id": {
+      "pattern": "^C(0[1-9]|1[0-5])$",
+      "type": "string"
+    },
+    "group": {
+      "additionalProperties": false,
+      "properties": {
+        "group_id": {
+          "enum": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F",
+            "G"
+          ]
+        },
+        "owned_controls": {
+          "items": {
+            "$ref": "#/$defs/control_id"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "requires_controls": {
+          "items": {
+            "$ref": "#/$defs/control_id"
+          },
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "group_id",
+        "owned_controls",
+        "requires_controls"
+      ],
+      "type": "object"
+    },
+    "lens": {
+      "additionalProperties": false,
+      "properties": {
+        "lens_id": {
+          "pattern": "^L(0[1-9]|1[0-6])$",
+          "type": "string"
+        },
+        "name": {
+          "minLength": 1,
+          "pattern": "^[a-z0-9_]+$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "lens_id",
+        "name"
+      ],
+      "type": "object"
+    },
+    "state": {
+      "enum": [
+        "HOLD_EPOCH_OPEN",
+        "HOLD_EVIDENCE_COMPLETE",
+        "HOLD_SUCCESSOR_FROZEN",
+        "HOLD_EXIT_CANDIDATE",
+        "PASS_CANDIDATE",
+        "BLOCKED_QUALIFIED_HUMAN_INPUT"
+      ],
+      "type": "string"
+    },
+    "transition": {
+      "additionalProperties": false,
+      "properties": {
+        "from": {
+          "$ref": "#/$defs/state"
+        },
+        "to": {
+          "$ref": "#/$defs/state"
+        }
+      },
+      "required": [
+        "from",
+        "to"
+      ],
+      "type": "object"
+    }
+  }
+}
