@@ -431,6 +431,34 @@
       "public_product_contract": "A hand-frozen no-regression port-placement baseline is governed by the control plane: it cannot be silently de-committed or recomputed, only reviewed-shrunk."
     },
     {
+      "artifact_id": "history-only-retirement-facts",
+      "path": "ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json",
+      "artifact_class": "scm-facts-boundary-snapshot",
+      "materialization_mode": "not-tracked-in-git",
+      "merge_policy": "never-manual-merge-regenerate-from-source-tree",
+      "owner_team": "cloud-ci-platform",
+      "source_inputs": [
+        "registry/history-only-retirement-control-plane.json",
+        "specs/history-only-retirement-control-plane.schema.json",
+        "specs/history-only-retirement-facts.schema.json",
+        "full-depth SCM checkout"
+      ],
+      "final_tree_validation": "This current-tree facts face is controller-produced and NOT tracked in git. The controller validates the immutable protected-null, candidate-exact-three control contract against the predecessor snapshot before materializing facts. It contains lifecycle and object/path/blob/hash/length observations only and cannot assert qualified closure.",
+      "public_product_contract": "History-only retirement facts are an ignored controller projection, never a contributor merge surface or closure receipt.",
+      "generator": {
+        "runner": "buck2",
+        "generator_target": "//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot",
+        "operation_id": "emit-history-only-retirement-facts",
+        "parameters": {},
+        "input_contract": [
+          "repo-root",
+          "full-depth-scm",
+          "declared-source-inputs"
+        ],
+        "output_mode": "declared-artifact-path-write"
+      }
+    },
+    {
       "artifact_id": "glossary-vocabulary-warning-allowlist-baseline",
       "path": "registry/glossary-vocabulary/warning-baseline.tsv",
       "artifact_class": "hand-curated-ratchet",
