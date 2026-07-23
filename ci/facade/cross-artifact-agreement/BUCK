@@ -62,5 +62,6 @@ rust_test(
         "//libs/oya-governance-adr-shape-kernel:oya-governance-adr-shape-kernel",
         "//specs:markdown-retirement-policy.json",
         "third-party//:serde_json",
+        "third-party//:sha2",
     ],
 )
