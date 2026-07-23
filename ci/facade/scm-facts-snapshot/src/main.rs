@@ -829,20 +829,30 @@ fn relabel_tier_dep_gate(
 ///    `None` in the attack-recipe unit tests (which pin the frozen-policy-wins resolution alone).
 /// 6. PROVENANCE (ADR-0616): `provenance` (built by the caller from `git rev-parse <merge_base>^{{tree}}`)
 ///    is embedded so the firewall can audit which immutable merge-base tree the regeneration ran over.
+struct MergeBaseSnapshotContext<'a> {
+    candidate_policy: &'a RatchetPolicy,
+    bootstrap_ref: &'a str,
+    merge_base: &'a str,
+    provenance: Value,
+}
+
 fn resolve_merge_base_baseline_snapshot<S, C>(
     source: &S,
     resolver: &dyn PathResolver,
-    candidate_policy: &RatchetPolicy,
-    bootstrap_ref: &str,
-    merge_base: &str,
+    context: MergeBaseSnapshotContext<'_>,
     regen_face: Option<&Value>,
     relabel: Option<&RelabelInputs<'_, C>>,
-    provenance: Value,
 ) -> Result<serde_json::Value, String>
 where
     S: FrozenRefSource,
     C: CandidateSource,
 {
+    let MergeBaseSnapshotContext {
+        candidate_policy,
+        bootstrap_ref,
+        merge_base,
+        provenance,
+    } = context;
     // MOVE-AWARE MERGE-BASE NAME (keystone unblock). The frozen ratchet policy is read AT the
     // merge-base under the name it bore THERE: the pre-move OLD name during the move PR, the NEW
     // name once the move is in merge-base history (straddle). The resolver is PRESENCE-VERIFIED in
@@ -1104,12 +1114,14 @@ fn emit_merge_base_baseline(
     let snapshot = resolve_merge_base_baseline_snapshot(
         &source,
         resolver,
-        &candidate_policy,
-        bootstrap_ref,
-        &merge_base,
+        MergeBaseSnapshotContext {
+            candidate_policy: &candidate_policy,
+            bootstrap_ref,
+            merge_base: &merge_base,
+            provenance,
+        },
         Some(&regen_face),
         Some(&relabel),
-        provenance,
     )?;
 
     let out = repo_root.join(&candidate_policy.out_path);
@@ -1768,12 +1780,14 @@ mod tests {
         resolve_merge_base_baseline_snapshot(
             source,
             resolver,
-            candidate_policy,
-            bootstrap_ref,
-            &merge_base,
+            MergeBaseSnapshotContext {
+                candidate_policy,
+                bootstrap_ref,
+                merge_base: &merge_base,
+                provenance: test_provenance(&merge_base),
+            },
             regen_face,
             relabel,
-            test_provenance(&merge_base),
         )
     }
 
