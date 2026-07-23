@@ -432,6 +432,14 @@
     {
       "anchor": "ADR-0610: pre-registered frozen Policy-IR benchmark stage-0 artifacts (rubric = sole grade authority, fixture suite = graded corpus); evidence-admissibility pre-registration.",
       "prefix": "specs/policy-ir-benchmark-fixture-suite.json"
+    },
+    {
+      "anchor": "ADR-0388: transient IDEAS-axis Buck target; the target declares enforcement wiring only and does not create archive-cutover authority.",
+      "prefix": "docs/ideas/"
+    },
+    {
+      "anchor": "ADR-0388: authoritative policy-data Buck target consumed by the IDEAS-axis enforcement validator; no planning or dispatch authority is created.",
+      "prefix": "specs/BUCK"
     }
   ]
 }
