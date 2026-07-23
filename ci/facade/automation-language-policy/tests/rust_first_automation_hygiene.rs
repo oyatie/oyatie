@@ -126,6 +126,39 @@ fn workflow_inline_shell_dimension_covers_dot_github_workflows() {
 }
 
 #[test]
+fn manual_dispatch_cannot_infer_a_retirement_protected_base_from_head_parent() {
+    let root = repo_root();
+    let workflow_path = root.join(".github/workflows/oya-ci-required.yml");
+    let workflow = fs::read_to_string(&workflow_path)
+        .unwrap_or_else(|e| panic!("read {}: {e}", workflow_path.display()));
+
+    assert!(
+        workflow.contains("workflow_dispatch:"),
+        "manual reruns remain an explicitly declared workflow surface"
+    );
+
+    let materialize = workflow
+        .split("- name: Materialize cloud-ci generated faces")
+        .nth(1)
+        .expect("producer materialization step");
+    let protected_sha = materialize
+        .find("EVENT_PROTECTED_SHA")
+        .expect("producer must declare an event-bound protected-base transport");
+    let fail_closed = materialize
+        .find("if [ -z \"${EVENT_PROTECTED_SHA}\" ]; then")
+        .expect("manual dispatch without an event-bound protected base must fail closed");
+    let inferred_parent = materialize
+        .find("protected_base_commit=\"$(git rev-parse HEAD^1)\"")
+        .expect("protected base is resolved only after transport validation");
+
+    assert!(
+        protected_sha < fail_closed && fail_closed < inferred_parent,
+        "the producer must reject workflow_dispatch before resolving HEAD^1; otherwise a normal \
+         multi-commit branch can synthesize retirement facts from an earlier candidate commit"
+    );
+}
+
+#[test]
 fn live_postgres_lane_emits_redacted_bootstrap_provenance_artifact() {
     let root = repo_root();
     let workflow_path = root.join(".github/workflows/oya-ci-required.yml");
