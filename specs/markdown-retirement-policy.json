@@ -38,6 +38,11 @@
     }
   },
   "retention_rules": {
+    "idea_archive": {
+      "policy_version": 1,
+      "mode": "current-tree-archive-compatible",
+      "transition": null
+    },
     "survive_at_root_as_pointer_hubs": [
       "README.md",
       "CLAUDE.md",

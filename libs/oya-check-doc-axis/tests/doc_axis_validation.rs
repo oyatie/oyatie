@@ -88,6 +88,95 @@ fn rule1_bad_casing_blocks_in_strict_mode() {
     assert_eq!(findings[0].line, Some(3));
 }
 
+#[test]
+fn rule1_amended_with_canonical_frontmatter_date_passes_strict_mode() {
+    let dir = tempfile::tempdir().unwrap();
+    let root = dir.path();
+    write_file(
+        root,
+        "docs/decisions/ADR-0001-test.md",
+        "---\nid: ADR-0001\nstatus: Amended\namended_date: 2026-07-22\n---\n# body\n",
+    );
+
+    let result = validate(root, true);
+    assert!(
+        result.is_ok(),
+        "canonical amended ADR should pass: {result:?}"
+    );
+}
+
+#[test]
+fn rule1_amended_without_initial_frontmatter_date_blocks_in_strict_mode() {
+    let dir = tempfile::tempdir().unwrap();
+    let root = dir.path();
+    write_file(
+        root,
+        "docs/decisions/ADR-0001-test.md",
+        "---\nid: ADR-0001\nstatus: Amended\n---\n# body\n\namended_date: 2026-07-22\n",
+    );
+
+    let result = validate(root, true);
+    let findings = result.expect_err("missing initial-frontmatter amended_date should block");
+    assert_eq!(findings.len(), 1);
+    assert_eq!(findings[0].rule_violated, DocAxisRule::AmendedDate);
+    assert!(findings[0].blocking);
+    assert_eq!(findings[0].line, Some(3));
+}
+
+#[test]
+fn rule1_amended_with_noncanonical_date_blocks_in_strict_mode() {
+    let dir = tempfile::tempdir().unwrap();
+    let root = dir.path();
+    write_file(
+        root,
+        "docs/decisions/ADR-0001-test.md",
+        "---\nid: ADR-0001\nstatus: Amended\namended_date: 2026-7-22\n---\n# body\n",
+    );
+
+    let result = validate(root, true);
+    let findings = result.expect_err("noncanonical amended_date should block");
+    assert_eq!(findings.len(), 1);
+    assert_eq!(findings[0].rule_violated, DocAxisRule::AmendedDate);
+    assert!(findings[0].blocking);
+    assert_eq!(findings[0].line, Some(4));
+}
+
+#[test]
+fn rule1_duplicate_amended_dates_block_in_strict_mode() {
+    let tmp = tempfile::tempdir().expect("tempdir");
+    write_file(
+        tmp.path(),
+        "docs/decisions/ADR-0001-test.md",
+        "---\nid: ADR-0001\nstatus: Amended\namended_date: 2026-07-22\namended_date: 2026-02-30\n---\n# body\n",
+    );
+
+    let result = validate(tmp.path(), true);
+    let findings = result.expect_err("duplicate amended_date fields should block");
+    assert!(
+        findings
+            .iter()
+            .any(|finding| finding.rule_violated == DocAxisRule::AmendedDate)
+    );
+}
+
+#[test]
+fn rule1_conflicting_duplicate_status_keys_block_in_strict_mode() {
+    let tmp = tempfile::tempdir().expect("tempdir");
+    write_file(
+        tmp.path(),
+        "docs/decisions/ADR-0001-test.md",
+        "---\nid: ADR-0001\nstatus: Amended\nstatus: Accepted\namended_date: 2026-07-22\n---\n# body\n",
+    );
+
+    let result = validate(tmp.path(), true);
+    let findings = result.expect_err("conflicting duplicate status keys should block");
+    assert!(
+        findings
+            .iter()
+            .any(|finding| finding.rule_violated == DocAxisRule::AdrStatusCasing)
+    );
+}
+
 // ---------------------------------------------------------------------------
 // Rule 2 — No shadow ideas
 // ---------------------------------------------------------------------------
@@ -122,16 +211,20 @@ fn rule2_stale_idea_without_promotion_blocks() {
     let result = validate(root, false);
     assert!(result.is_err(), "stale idea without promotion should block");
     let findings = result.unwrap_err();
+    let finding = findings
+        .iter()
+        .find(|finding| finding.rule_violated == DocAxisRule::ShadowIdea)
+        .expect("should have a ShadowIdea finding");
+    assert!(!finding.suggested_fix.contains("archive/"));
     assert!(
-        findings
-            .iter()
-            .any(|f| f.rule_violated == DocAxisRule::ShadowIdea),
-        "should have a ShadowIdea finding"
+        finding
+            .suggested_fix
+            .contains("remove it from the current tree")
     );
 }
 
 #[test]
-fn rule2_stale_idea_with_valid_superseded_by_passes() {
+fn rule2_stale_idea_with_valid_superseded_by_blocks_until_removed() {
     set_today("2026-06-15");
     let dir = tempfile::tempdir().unwrap();
     let root = dir.path();
@@ -147,10 +240,17 @@ fn rule2_stale_idea_with_valid_superseded_by_passes() {
         "---\ntitle: test\nsuperseded_by: ADR-0389\n---\n# promoted\n",
     );
     let result = validate(root, false);
+    let findings = result.expect_err("a promoted stale idea must leave the current tree");
+    let finding = findings
+        .iter()
+        .find(|finding| finding.rule_violated == DocAxisRule::ShadowIdea)
+        .expect("should have a ShadowIdea finding");
     assert!(
-        result.is_ok(),
-        "idea with valid superseded_by should pass: {result:?}"
+        finding
+            .suggested_fix
+            .contains("remove it from the current tree")
     );
+    assert!(!finding.suggested_fix.contains("archive/"));
 }
 
 // ---------------------------------------------------------------------------
