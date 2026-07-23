@@ -957,9 +957,10 @@ pub fn evaluate_history_only_retirement_receipt_coverage(
         .map(str::to_owned)
         .collect::<BTreeSet<_>>();
     let declared_scope_keys = required.keys().cloned().collect::<BTreeSet<_>>();
-    if receipt_scope_keys != declared_scope_keys {
+    if receipt_scope_keys != declared_scope_keys || receipt_scope_keys.len() != receipts.len() {
         fail(&mut findings, "receipt_scope_key_set");
     }
+    let mut scope_states = BTreeMap::new();
     for receipt in receipts {
         let id = receipt.get("artifact_id").and_then(Value::as_str);
         let fact = id.and_then(|id| {
@@ -979,6 +980,16 @@ pub fn evaluate_history_only_retirement_receipt_coverage(
         }
         let path = fact.get("receipt_path").and_then(Value::as_str);
         let state = fact.get("receipt_state").and_then(Value::as_str);
+        let scope = receipt
+            .get("scope_ref")
+            .and_then(Value::as_str)
+            .unwrap_or("");
+        if scope_states
+            .insert(scope.to_owned(), state.unwrap_or("").to_owned())
+            .is_some()
+        {
+            fail(&mut findings, "receipt_scope_key_set");
+        }
         match (path, state) {
             (Some(path), Some("carried" | "closed-carried")) if carried.contains(path) => {
                 if fact.get("protected_base_ref") != coverage.get("protected_base_ref")
@@ -1118,12 +1129,30 @@ pub fn evaluate_history_only_retirement_receipt_coverage(
         let carried_paths = carried_covered.get(&scope).cloned().unwrap_or_default();
         let prepared_paths = prepared_covered.get(&scope).cloned().unwrap_or_default();
         if carried_paths.is_empty() == prepared_paths.is_empty()
-            || (!carried_paths.is_empty() && carried_paths != expected.0)
-            || (!prepared_paths.is_empty() && prepared_paths != expected.0)
+            || (!carried_paths.is_empty() && carried_paths != expected.predecessor)
+            || (!prepared_paths.is_empty() && prepared_paths != expected.predecessor)
         {
             fail(
                 &mut findings,
                 &format!("scope_bidirectional_coverage.{scope}"),
+            );
+        }
+        let state = scope_states.get(&scope).map(String::as_str);
+        let predecessor_matches_diff = expected.selectors.iter().all(|selector| match state {
+            Some("prepared-new") => selector.predecessor == selector.surviving,
+            Some("carried" | "closure-new") => selector.predecessor == selector.removed,
+            // A closed carried receipt may be verified only against an immutable
+            // historical predecessor once both current trees no longer contain it.
+            Some("closed-carried") => {
+                selector.predecessor == selector.removed
+                    || (selector.protected.is_empty() && selector.candidate.is_empty())
+            }
+            _ => false,
+        });
+        if !predecessor_matches_diff {
+            fail(
+                &mut findings,
+                &format!("scope_diff_predecessor_binding.{scope}"),
             );
         }
     }
@@ -1603,10 +1632,23 @@ fn control_plane_entry_digest(entry: &Value) -> Option<String> {
         .map(|canonical| format!("sha256:{:x}", Sha256::digest(canonical.as_bytes())))
 }
 
+struct ScopeDiff {
+    predecessor: BTreeSet<String>,
+    selectors: Vec<SelectorDiff>,
+}
+
+struct SelectorDiff {
+    predecessor: BTreeSet<String>,
+    protected: BTreeSet<String>,
+    candidate: BTreeSet<String>,
+    removed: BTreeSet<String>,
+    surviving: BTreeSet<String>,
+}
+
 fn validate_scopes(
     coverage: &Value,
     findings: &mut BTreeSet<Finding>,
-) -> BTreeMap<String, (BTreeSet<String>, BTreeSet<String>)> {
+) -> BTreeMap<String, ScopeDiff> {
     let mut result = BTreeMap::new();
     let mut union = BTreeSet::new();
     let Some(scopes) = coverage.get("scopes").and_then(Value::as_array) else {
@@ -1622,11 +1664,11 @@ fn validate_scopes(
             fail(findings, &format!("scopes[{i}].scope"));
         }
         let mut predecessor = BTreeSet::new();
-        let mut removed = BTreeSet::new();
         let selectors = scope
             .get("selectors")
             .and_then(Value::as_array)
             .map_or(&[][..], Vec::as_slice);
+        let mut selector_diffs = Vec::with_capacity(selectors.len());
         for (j, selector) in selectors.iter().enumerate() {
             closed_object(
                 selector,
@@ -1681,7 +1723,13 @@ fn validate_scopes(
             {
                 fail(findings, &format!("scopes[{i}].selectors[{j}]"));
             }
-            removed.extend(r);
+            selector_diffs.push(SelectorDiff {
+                predecessor: predecessor_paths.clone(),
+                protected: p,
+                candidate: c,
+                removed: r.clone(),
+                surviving: s,
+            });
             predecessor.extend(predecessor_paths);
         }
         let declared = path_set(
@@ -1696,7 +1744,13 @@ fn validate_scopes(
             fail(findings, "scope_retired_path_overlap");
         }
         union.extend(declared);
-        result.insert(reference.to_owned(), (predecessor, removed));
+        result.insert(
+            reference.to_owned(),
+            ScopeDiff {
+                predecessor,
+                selectors: selector_diffs,
+            },
+        );
     }
     if path_set(
         coverage.get("required_retired_paths"),
@@ -1797,9 +1851,9 @@ fn scope_authority(scope: &str) -> Option<&'static str> {
 fn repo_path(path: &str) -> bool {
     !path.is_empty()
         && !path.starts_with('/')
-        && !path.contains("..")
-        && !path.contains("//")
-        && !path.starts_with("./")
+        && path
+            .split('/')
+            .all(|component| !component.is_empty() && component != "." && component != "..")
 }
 fn path_set(
     value: Option<&Value>,
@@ -3188,6 +3242,81 @@ mod tests {
                 "adr_0388_fixed_receipt_identity"
             ))
         );
+    }
+
+    #[test]
+    fn coverage_binds_prepared_predecessors_to_surviving_diff_paths() {
+        let receipt_path = "evidence/prepared-stale-path.json";
+        let receipt = prepared_receipt(
+            "prepared-stale-path",
+            "ADR-0363",
+            OLD,
+            OLD_TREE,
+            "docs/stale.md",
+        );
+        let fact = fact(
+            "prepared-stale-path",
+            receipt_path,
+            "ADR-0363",
+            "prepared-new",
+            OLD,
+            OLD_TREE,
+            "docs/stale.md",
+        );
+        let selector = json!({
+            "selector_type": "glob",
+            "selector": "docs/**",
+            "protected_paths": ["docs/live.md"],
+            "predecessor_paths": ["docs/stale.md"],
+            "candidate_paths": ["docs/live.md"],
+            "removed_paths": [],
+            "surviving_paths": ["docs/live.md"],
+            "candidate_only_paths": [],
+            "external_assertion": "not-applicable"
+        });
+        let facts = json!({
+            "retirement_receipt_coverage": {
+                "protected_base_ref": "origin/dev",
+                "protected_receipt_paths": [],
+                "candidate_receipt_paths": [receipt_path],
+                "carried_receipt_paths": [],
+                "new_receipt_paths": [receipt_path],
+                "scopes": [{
+                    "scope_ref": "ADR-0363",
+                    "scope_type": "amended-agentic-vcs-retirement",
+                    "selectors": [selector],
+                    "required_retired_paths": ["docs/stale.md"]
+                }],
+                "required_retired_paths": ["docs/stale.md"]
+            },
+            "retirement_receipt_object_facts": [fact],
+            "protected_scm_context": protected_scm_context(&[receipt_path]),
+            "retirement_control_plane_context": retirement_control_plane_context(true)
+        });
+        assert!(
+            evaluate_history_only_retirement_receipt_coverage(&[receipt], &facts).contains(
+                &Finding::new(
+                    RETIREMENT_RECEIPT_CODE,
+                    "scope_diff_predecessor_binding.ADR-0363"
+                )
+            )
+        );
+    }
+
+    #[test]
+    fn git_path_aliases_are_not_canonical_receipt_paths() {
+        for alias in [
+            ".",
+            "./docs/old.md",
+            "docs/./old.md",
+            "docs/old.md/",
+            "docs/.",
+        ] {
+            assert!(
+                !repo_path(alias),
+                "accepted noncanonical Git path alias: {alias}"
+            );
+        }
     }
 
     #[test]
