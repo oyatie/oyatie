@@ -61,3 +61,17 @@ rust_test(
         "third-party//:serde_json",
     ],
 )
+
+# Conventional gate identity required by the gate-self-conformance admission contract. The
+# separately named target above remains explicit workflow evidence for the transitional adapter.
+rust_test(
+    name = "ci-action-item-accounting-gate",
+    srcs = glob(["tests/friction_accounting.rs", "src/**/*.rs", "**/*.json"]),
+    crate = "ci_action_item_accounting_gate",
+    crate_root = "tests/friction_accounting.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-action-item-accounting",
+        "third-party//:serde_json",
+    ],
+)

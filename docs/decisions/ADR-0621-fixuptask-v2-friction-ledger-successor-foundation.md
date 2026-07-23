@@ -71,6 +71,19 @@ The foundation is deliberately narrow:
 4. The legacy ledger is neither deleted nor rewritten by this decision. Its predecessor IDs and all
    human disposition decisions remain a qualified-human migration responsibility.
 
+The accepted foundation accounts for these exact implementation surfaces:
+
+- `ci/facade/action-item-accounting/fixuptask-v2-schema.json`
+- `ci/facade/action-item-accounting/friction-predecessor-mapping-schema.json`
+- `ci/facade/action-item-accounting/src/fixuptask_v2.rs`
+- `ci/facade/action-item-accounting/src/legacy_friction_adapter.rs`
+- `ci/facade/action-item-accounting/tests/fixuptask_v2_admission.rs`
+- `ci/facade/action-item-accounting/tests/fixuptask_v2_source_boundary.rs`
+
+They inherit ownership from `ci/OWNERS` and reachability from the existing Cargo workspace member;
+this accounting records the already-accepted foundation only and does not change
+`planning_impact: false` or release **HOLD(Planning)**.
+
 ## Consequences
 
 ### Positive
