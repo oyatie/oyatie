@@ -1,0 +1,27 @@
+[package]
+name = "stage1-closure"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[package.metadata.oya]
+bounded_context = "platform-governance"
+kind = "shared"
+layer = "kernel"
+purpose = "Dormant pure Stage-1 evidence and planning-hold candidate validator."
+
+[lib]
+name = "stage1_closure"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+serde_json = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }
+
+[lints]
+workspace = true
