@@ -46,6 +46,11 @@ rust_test(
     env = {
         "OYA_CI_PRODUCER_BIN": "$(exe //ci/facade/artifact-inventory-registry:oya-cloud-ci-accounting-registry-app-bin)",
         "OYA_IDEA_ARCHIVE_POLICY": "$(location //specs:markdown-retirement-policy.json)",
+        # E7: exact controller-owned Git/object facts. Like the existing de-committed SCM-facts
+        # boundary, this face is materialized out-of-graph and is never a Buck source member. The
+        # consumer resolves this canonical repo-relative path and fails closed when bytes are
+        # absent; no empty or candidate-authored fallback is permitted.
+        "OYA_HISTORY_ONLY_RETIREMENT_FACTS": "ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json",
     },
     resources = [
         "//docs/ideas:idea-archive-candidate-tree",
@@ -57,5 +62,6 @@ rust_test(
         "//libs/oya-governance-adr-shape-kernel:oya-governance-adr-shape-kernel",
         "//specs:markdown-retirement-policy.json",
         "third-party//:serde_json",
+        "third-party//:sha2",
     ],
 )
