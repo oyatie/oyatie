@@ -4,6 +4,9 @@ rust_library(
     crate = "oya_check_adr_index",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
+    deps = [
+        "//governance/corpus/doc-parser:corpus-doc-parser",
+    ],
 )
 
 rust_test(
@@ -12,5 +15,7 @@ rust_test(
     crate = "oya_check_adr_index",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
-    deps = [],
+    deps = [
+        "//governance/corpus/doc-parser:corpus-doc-parser",
+    ],
 )

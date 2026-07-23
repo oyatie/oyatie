@@ -183,6 +183,10 @@ The Phase-0 false-green firewall is the substrate that makes merge-gate enforcem
      `docs/machine-readable/decisions.json` projections re-rendered through the
      `oya-check-adr-index` producer kernel, implementing the
      `docs/automation/adr-index-pipeline.md` regeneration promise without shelling out).
+     The same cross-artifact-agreement gate additionally consumes
+     `ci/facade/cross-artifact-agreement/src/preplanning-candidate-policy.json`, the
+     reviewed DATA policy binding the historical pre-planning candidate identity and
+     non-closure claim ceiling.
      The three checks are implemented as born-advisory submodules
      `ci/facade/cross-artifact-agreement/src/prose_frontmatter_status.rs`,
      `ci/facade/cross-artifact-agreement/src/registry_policy_sync.rs`, and
@@ -314,6 +318,45 @@ locks the regression contract. The packet fixture corpus includes
 GATE-4's review-admission fixture extension is likewise governed by this ADR: `specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-untrusted-review-authority-source.json`, `specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-standalone-multispectrum-review-evidence.json`, and `specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-missing-review-title-body-evidence.json` prove that review authority comes from trusted cloud-ci/oya-ci review packets, not target-only branch-protection shadows, retired standalone multispectrum files, or packets missing PR title/body binding.
 The GH #983 metadata packet implementation is the Rust binary `libs/oya-check-pr-traceability/src/bin/pr-traceability-admission.rs`, owned through `libs/oya-check-pr-traceability/OWNERS`; it is a PR title/body hygiene preflight and not the trusted review-producer closure for F-PR5-06. The binary's `--scaffold`/`--check`/`--all-violations` author workflow (scaffold an admission-passing body, edit, validate locally before opening the PR) is documented in `libs/oya-check-pr-traceability/README.md`.
 The total-accounting producer carries the paired author-side preflight for the `unjustified regressions` class (CI class-fix #4: every PR adding tracked files hit `[cloud-ci-total-accounting] unjustified regressions`, discoverable only after materializing scm-facts faces + running the firewall). The producer binary `ci/facade/artifact-inventory-registry/src/main.rs` gains a `--check-paths`/`--check-diff` mode that, for each ADDED tracked file, reports reachable?/justified? and the exact remediation — reusing the SAME resolvers + face-builder + firewall evaluator (no drift) and requiring NO materialized scm-facts face (the added set is the tracked universe). The pre-push author workflow is documented in `ci/facade/artifact-inventory-registry/README.md`.
+
+The board-projection de-commit follow-up registers the pure renderer below as a **non-gate**
+dependency of the generated-artifact controller/freshness path. This is file-accounting and CI
+wiring provenance only: it does not accept ADR-0377, authorize board actuation, authorize roadmap
+planning or implementation dispatch, or lift `HOLD(Planning)`.
+
+Its operational contract is fail closed:
+
+- **Success criteria:** for every admitted candidate tree, the controller reads the candidate's
+  materialized masterplan projection, renders a non-empty board projection in the approved legacy
+  byte format, and produces byte-identical output in two independent regenerations. The face stays
+  absent from Git tracking and contributor staging; successful rendering does not actuate a board.
+- **Failure criteria:** the same required-CI run is red when the masterplan projection is missing or
+  malformed, a deliverable is missing its identity, identities collide, rendering or writing fails,
+  regeneration omits the board face, or two regenerations differ. The controller must not publish a
+  partial projection, reuse a stale committed copy, or downgrade any such failure to advisory.
+- **SLO objective:** 100% of admitted heads pass regenerate-twice byte parity with zero tracked board
+  copies; at least 99.9% of controller materialization attempts complete within five seconds per
+  board face over a rolling 30-day window, measured from controller start to durable local write.
+  This is an objective for controller telemetry, not a claim that roadmap or board actuation is live.
+- **Failure modes and injection:** missing or malformed deliverables and duplicate identities are
+  injected by `board_sync_projection_rejects_a_masterplan_without_deliverables`,
+  `malformed_deliverable_entries_do_not_materialize_an_empty_projection`,
+  `malformed_deliverable_cannot_be_hidden_among_valid_deliverables`, and
+  `duplicate_deliverable_ids_fail_closed`; controller read, parse, and write failures are injected by
+  `board_sync_materialization_fails_closed_on_read_error`,
+  `board_sync_materialization_fails_closed_on_parse_error`, and
+  `board_sync_materialization_fails_closed_on_write_error`; legacy-format drift is caught
+  byte-for-byte by `board_sync_projection_is_byte_stable_and_uses_the_legacy_wire_shape`; missing
+  output and nondeterminism are injected by
+  `decommit_class_face_is_stale_when_regeneration_stops_producing_it` and
+  `determinism_canary_detects_board_sync_drift_when_other_projections_are_stable`. Each injected mode
+  must return a blocking error/finding and must not leave a tracked fallback face.
+
+- `ci/facade/planning-projection/BUCK`
+- `ci/facade/planning-projection/Cargo.toml`
+- `ci/facade/planning-projection/src/lib.rs`
+- `ci/facade/planning-projection/src/fixtures/board-sync-legacy-canonical.json`
+
 ### D3. Gates are Rust binaries run automatically — no CLI, no shell, declarative gitops
 - **Pipeline, not CLI** (D-CLOUD-NATIVE / D-GOVERNANCE-CENTRAL). All CI / governance / automation are
   **Rust gate binaries run by GitHub Actions** (live) and oya-ci (shadow readiness); evidence is
