@@ -22,6 +22,13 @@ fn hold_epoch() -> Value {
     serde_json::from_str(include_str!("fixtures/hold-epoch.json")).expect("epoch fixture parses")
 }
 
+fn masterplan() -> Value {
+    let environment = "OYA_STAGE1_MASTERPLAN";
+    let path = declared_schema_path(environment, std::env::var(environment));
+    let source = std::fs::read_to_string(path).expect("masterplan is a declared readable input");
+    serde_json::from_str(&source).expect("masterplan parses")
+}
+
 fn admission_envelope() -> Value {
     serde_json::from_str(include_str!("fixtures/admission-envelope.json"))
         .expect("admission envelope fixture parses")
@@ -296,6 +303,21 @@ fn canonical_program_and_open_hold_epoch_are_green() {
     let program = program();
     assert!(evaluate_program(&program).is_green());
     assert!(evaluate_epoch(&program, &hold_epoch()).is_green());
+}
+
+#[test]
+fn canonical_masterplan_program_and_fixture_cannot_drift() {
+    let canonical_program =
+        &masterplan()["masterplan_v2"]["planning_entry_contract"]["stage1_closure_program"];
+    assert!(
+        canonical_program.is_object(),
+        "masterplan must materialize the declared Stage-1 program"
+    );
+    assert_eq!(
+        canonical_program,
+        &program(),
+        "the Stage-1 fixture must exactly mirror the canonical masterplan program"
+    );
 }
 
 #[test]
