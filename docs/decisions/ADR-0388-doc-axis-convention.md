@@ -62,6 +62,12 @@ Its declared Buck package markers are `docs/ideas/BUCK` and `specs/BUCK`;
 `docs/ideas/OWNERS` is the narrow ownership marker for the ideas package. These
 paths supply no closure evidence and do not expand the admitted body set.
 
+The E6 receipt evaluator additionally lives at
+`ci/facade/cross-artifact-agreement/src/retirement_receipt.rs`. Its mixed
+carried/new-scope regression is part of the same enforcement-only surface: it
+accepts neither a new baseline body nor a completion, cutover, Stage-1 PASS,
+roadmap-planning, or implementation-dispatch claim.
+
 ### Current authoritative lifecycle
 
 This amendment is the current authority for the former transient-ideas archive
