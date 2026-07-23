@@ -2662,6 +2662,64 @@
           "command": "python3 -m json.tool evidence/goals/masterplan-v2-external-board-import-retirement-closure-20260720.json >/dev/null"
         }
       }
+    },
+    {
+      "artifact_id": "stage1-closure-program-schema",
+      "artifact_path": "/specs/stage1-closure-program.schema.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "council-architecture + platform-toolchain",
+      "purpose_short": "Dormant Stage-1 source-program shape; candidate-only and never planning authority.",
+      "artifact_profile": "schema",
+      "capability_overrides": {"verification": {"command": "jq empty specs/stage1-closure-program.schema.json"}, "provenance": {"current_author": "codex", "last_modified_at": "2026-07-22T00:00:00Z"}}
+    },
+    {
+      "artifact_id": "stage1-evidence-epoch-schema",
+      "artifact_path": "/specs/stage1-evidence-epoch.schema.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "council-architecture + platform-toolchain",
+      "purpose_short": "Dormant Proposed/HOLD Stage-1 source epoch shape; it cannot authorize roadmap planning or dispatch.",
+      "artifact_profile": "schema",
+      "capability_overrides": {"verification": {"command": "jq empty specs/stage1-evidence-epoch.schema.json"}, "provenance": {"current_author": "codex", "last_modified_at": "2026-07-22T00:00:00Z"}}
+    },
+    {
+      "artifact_id": "stage1-protected-facts-schema",
+      "artifact_path": "/specs/stage1-protected-facts.schema.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "council-architecture + platform-toolchain",
+      "purpose_short": "Dormant future authenticated-producer envelope shape; structural validation is non-authoritative.",
+      "artifact_profile": "schema",
+      "capability_overrides": {"verification": {"command": "jq empty specs/stage1-protected-facts.schema.json"}, "provenance": {"current_author": "codex", "last_modified_at": "2026-07-22T00:00:00Z"}}
+    },
+    {
+      "artifact_id": "stage1-admission-envelope-schema",
+      "artifact_path": "/specs/stage1-admission-envelope.schema.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "council-architecture + platform-toolchain",
+      "purpose_short": "Dormant future post-merge admission shape; cannot authorize planning in the current build.",
+      "artifact_profile": "schema",
+      "capability_overrides": {"verification": {"command": "jq empty specs/stage1-admission-envelope.schema.json"}, "provenance": {"current_author": "codex", "last_modified_at": "2026-07-22T00:00:00Z"}}
+    },
+    {
+      "artifact_id": "stage1-closure-manifest",
+      "artifact_path": "libs/oya-stage1-closure/Cargo.toml",
+      "artifact_format": "cargo-toml",
+      "contract_version": "v3.0.0",
+      "owner_team": "council-architecture + platform-toolchain",
+      "purpose_short": "Cargo manifest for the dormant Stage-1 HOLD-only candidate validator; it is not planning, CI, or admission authority.",
+      "artifact_profile": "registry",
+      "capability_overrides": {
+        "verification": {
+          "command": "cargo test -p stage1-closure --test stage1_closure -- --exact public_protected_facts_linkage_remains_non_authoritative_and_held"
+        },
+        "provenance": {
+          "current_author": "codex",
+          "last_modified_at": "2026-07-22T00:00:00Z"
+        }
+      }
     }
   ],
   "purpose": "Auto-backfilled purpose for artifact-capabilities-registry.json"

@@ -2,3 +2,28 @@ export_file(
     name = "markdown-retirement-policy.json",
     visibility = ["PUBLIC"],
 )
+
+export_file(
+    name = "masterplan.json",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "stage1-closure-program.schema.json",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "stage1-evidence-epoch.schema.json",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "stage1-protected-facts.schema.json",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "stage1-admission-envelope.schema.json",
+    visibility = ["PUBLIC"],
+)
