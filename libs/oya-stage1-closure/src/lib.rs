@@ -2634,3 +2634,28 @@ fn is_stage1_epoch_id(value: &str) -> bool {
                 .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'.' | b'_' | b'-'))
     })
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn cargo_unit_harness_remains_fail_closed_without_repository_inputs() {
+        let report = evaluate_program(&json!({}));
+
+        assert!(!report.is_green());
+        assert!(
+            report
+                .findings
+                .iter()
+                .any(|finding| finding.contains("schema_id"))
+        );
+        assert!(
+            report
+                .findings
+                .iter()
+                .any(|finding| { finding == "roadmap_planning_authorized must equal false" })
+        );
+    }
+}

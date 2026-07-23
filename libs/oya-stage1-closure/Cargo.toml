@@ -5,6 +5,10 @@ version.workspace = true
 rust-version.workspace = true
 publish = false
 license = "Apache-2.0"
+# The source contract suite is a Buck-owned hermetic target whose six repository
+# inputs are declared with $(location ...). Do not let Cargo auto-discover that
+# target without those inputs.
+autotests = false
 
 [package.metadata.oya]
 bounded_context = "platform-governance"
