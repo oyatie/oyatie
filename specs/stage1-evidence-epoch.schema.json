@@ -1,0 +1,643 @@
+{
+  "$id": "https://docs.oyatie.com/specs/stage1-evidence-epoch.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "_meta": {
+    "created_at": "2026-07-22T00:00:00Z",
+    "doc_class": "Machine-Readable-Spec",
+    "owner_team": "platform-governance + platform-toolchain",
+    "purpose": "Shape-only source-record contract for one immutable Stage-1 evidence epoch. Source records remain HOLD and may reach only PASS_CANDIDATE; effective PASS(Planning) requires a separate post-merge admission envelope.",
+    "status": "Proposed",
+    "version": "2.0.0"
+  },
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "state": {
+            "const": "PASS_CANDIDATE"
+          }
+        },
+        "required": [
+          "state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "planning": {
+            "properties": {
+              "planning_state": {
+                "const": "HOLD(Planning)"
+              },
+              "roadmap_planning_authorized": {
+                "const": false
+              },
+              "binding_plan_approval_allowed": {
+                "const": false
+              },
+              "implementation_dispatch_allowed": {
+                "const": false
+              }
+            }
+          },
+          "controls": {
+            "items": {
+              "properties": {
+                "status": {
+                  "const": "satisfied"
+                }
+              }
+            }
+          },
+          "lenses": {
+            "items": {
+              "properties": {
+                "status": {
+                  "const": "satisfied"
+                }
+              }
+            }
+          },
+          "fresh_dissent": {
+            "properties": {
+              "status": {
+                "const": "satisfied"
+              }
+            }
+          },
+          "context_free_exit": {
+            "properties": {
+              "status": {
+                "const": "satisfied"
+              }
+            }
+          },
+          "immutable_successor": {
+            "properties": {
+              "frozen": {
+                "const": true
+              }
+            }
+          },
+          "blockers": {
+            "maxItems": 0
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "planning": {
+            "properties": {
+              "planning_state": {
+                "const": "HOLD(Planning)"
+              },
+              "roadmap_planning_authorized": {
+                "const": false
+              },
+              "binding_plan_approval_allowed": {
+                "const": false
+              },
+              "implementation_dispatch_allowed": {
+                "const": false
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "state": {
+            "const": "BLOCKED_QUALIFIED_HUMAN_INPUT"
+          }
+        },
+        "required": [
+          "state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "blockers": {
+            "minItems": 1
+          }
+        }
+      }
+    }
+  ],
+  "description": "One current Stage-1 epoch. It is source-authored evidence input, not an admission or qualified-human authority generator.",
+  "properties": {
+    "schema_id": {
+      "const": "oyatie/stage1-evidence-epoch/v2"
+    },
+    "epoch_id": {
+      "minLength": 1,
+      "pattern": "^stage1-epoch-[A-Za-z0-9._-]+$",
+      "type": "string"
+    },
+    "program_ref": {
+      "const": "/specs/masterplan.json#masterplan_v2.planning_entry_contract.stage1_closure_program"
+    },
+    "state": {
+      "$ref": "#/$defs/state"
+    },
+    "subject_binding": {
+      "additionalProperties": false,
+      "properties": {
+        "facts_schema": {
+          "const": "oyatie/stage1-protected-facts/v1"
+        },
+        "facts_field": {
+          "const": "protected_facts_ref"
+        },
+        "required": {
+          "const": true
+        }
+      },
+      "required": [
+        "facts_schema",
+        "facts_field",
+        "required"
+      ],
+      "type": "object"
+    },
+    "planning": {
+      "$ref": "#/$defs/planning"
+    },
+    "controls": {
+      "items": {
+        "$ref": "#/$defs/control_evidence"
+      },
+      "maxItems": 15,
+      "minItems": 15,
+      "type": "array"
+    },
+    "lenses": {
+      "items": {
+        "$ref": "#/$defs/lens_evidence"
+      },
+      "maxItems": 16,
+      "minItems": 16,
+      "type": "array"
+    },
+    "fresh_dissent": {
+      "$ref": "#/$defs/fresh_dissent"
+    },
+    "context_free_exit": {
+      "$ref": "#/$defs/context_free_exit"
+    },
+    "immutable_successor": {
+      "$ref": "#/$defs/immutable_successor"
+    },
+    "blockers": {
+      "items": {
+        "$ref": "#/$defs/blocker"
+      },
+      "type": "array"
+    },
+    "claim_ceiling": {
+      "minLength": 1,
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_id",
+    "epoch_id",
+    "program_ref",
+    "state",
+    "subject_binding",
+    "planning",
+    "controls",
+    "lenses",
+    "fresh_dissent",
+    "context_free_exit",
+    "immutable_successor",
+    "blockers",
+    "claim_ceiling"
+  ],
+  "title": "Stage1EvidenceEpoch",
+  "type": "object",
+  "$defs": {
+    "blocker": {
+      "additionalProperties": false,
+      "properties": {
+        "control_id": {
+          "enum": [
+            "C06",
+            "C07",
+            "C08",
+            "C09",
+            "C10",
+            "C11"
+          ]
+        },
+        "input_class": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "required_qualification": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "scope": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "authority_source_ref": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "reason": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "control_id",
+        "input_class",
+        "required_qualification",
+        "scope",
+        "authority_source_ref",
+        "reason"
+      ],
+      "type": "object"
+    },
+    "context_free_exit": {
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "$ref": "#/$defs/status"
+        },
+        "subject_digest": {
+          "$ref": "#/$defs/nullable_subject_digest"
+        },
+        "oracle_principal_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "blind_reader_principal_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "conversation_context_used": {
+          "type": "boolean"
+        },
+        "reproduced_verdict": {
+          "enum": [
+            "PASS_CANDIDATE",
+            "BLOCKED_QUALIFIED_HUMAN_INPUT",
+            null
+          ]
+        },
+        "oracle_receipt_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/receipt_ref"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "blind_reader_receipt_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/receipt_ref"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "status",
+        "subject_digest",
+        "oracle_principal_id",
+        "blind_reader_principal_id",
+        "conversation_context_used",
+        "reproduced_verdict",
+        "oracle_receipt_ref",
+        "blind_reader_receipt_ref"
+      ],
+      "type": "object"
+    },
+    "control_evidence": {
+      "additionalProperties": false,
+      "properties": {
+        "control_id": {
+          "pattern": "^C(0[1-9]|1[0-5])$",
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/status"
+        },
+        "subject_digest": {
+          "$ref": "#/$defs/nullable_subject_digest"
+        },
+        "receipt_refs": {
+          "items": {
+            "$ref": "#/$defs/receipt_ref"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "control_id",
+        "status",
+        "subject_digest",
+        "receipt_refs"
+      ],
+      "type": "object"
+    },
+    "fresh_dissent": {
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "$ref": "#/$defs/status"
+        },
+        "subject_digest": {
+          "$ref": "#/$defs/nullable_subject_digest"
+        },
+        "reviewer_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "fresh_context": {
+          "type": "boolean"
+        },
+        "prior_context_used": {
+          "type": "boolean"
+        },
+        "findings_resolved_or_carried": {
+          "type": "boolean"
+        },
+        "receipt_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/receipt_ref"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "status",
+        "subject_digest",
+        "reviewer_id",
+        "fresh_context",
+        "prior_context_used",
+        "findings_resolved_or_carried",
+        "receipt_ref"
+      ],
+      "type": "object"
+    },
+    "immutable_successor": {
+      "additionalProperties": false,
+      "properties": {
+        "frozen": {
+          "type": "boolean"
+        },
+        "subject_digest": {
+          "$ref": "#/$defs/nullable_subject_digest"
+        },
+        "facts_ref": {
+          "anyOf": [
+            {
+              "additionalProperties": false,
+              "properties": {
+                "path": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sha256": {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "path",
+                "sha256"
+              ],
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "frozen",
+        "subject_digest",
+        "facts_ref"
+      ],
+      "type": "object"
+    },
+    "lens_evidence": {
+      "additionalProperties": false,
+      "properties": {
+        "lens_id": {
+          "pattern": "^L(0[1-9]|1[0-6])$",
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/status"
+        },
+        "subject_digest": {
+          "$ref": "#/$defs/nullable_subject_digest"
+        },
+        "reviewer_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "independent_from_author": {
+          "type": "boolean"
+        },
+        "fresh_context": {
+          "type": "boolean"
+        },
+        "receipt_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/receipt_ref"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "lens_id",
+        "status",
+        "subject_digest",
+        "reviewer_id",
+        "receipt_ref"
+      ],
+      "type": "object"
+    },
+    "nullable_subject_digest": {
+      "anyOf": [
+        {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "planning": {
+      "additionalProperties": false,
+      "properties": {
+        "planning_state": {
+          "const": "HOLD(Planning)"
+        },
+        "roadmap_planning_authorized": {
+          "const": false
+        },
+        "binding_plan_approval_allowed": {
+          "const": false
+        },
+        "implementation_dispatch_allowed": {
+          "const": false
+        }
+      },
+      "required": [
+        "planning_state",
+        "roadmap_planning_authorized",
+        "binding_plan_approval_allowed",
+        "implementation_dispatch_allowed"
+      ],
+      "type": "object"
+    },
+    "receipt_ref": {
+      "$comment": "Shape only: a source-authored receipt reference cannot establish PASS. The protected-parent evaluator must exact-match it against independently supplied facts and trust-root verification.",
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "blob_oid": {
+          "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "subject_digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "principal_id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "issuer_authority_class": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "authority_source_ref": {
+          "additionalProperties": false,
+          "required": [
+            "path",
+            "blob_oid",
+            "sha256"
+          ],
+          "properties": {
+            "path": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "blob_oid": {
+              "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$",
+              "type": "string"
+            },
+            "sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "qualification": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "jurisdiction_scope": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "independence_observation": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "validity": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "revocation_status": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "conflict_status": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "signature_trust_root_binding": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "blob_oid",
+        "sha256",
+        "subject_digest",
+        "principal_id",
+        "issuer_authority_class",
+        "authority_source_ref",
+        "qualification",
+        "jurisdiction_scope",
+        "independence_observation",
+        "validity",
+        "revocation_status",
+        "conflict_status",
+        "signature_trust_root_binding"
+      ],
+      "type": "object"
+    },
+    "state": {
+      "enum": [
+        "HOLD_EPOCH_OPEN",
+        "HOLD_EVIDENCE_COMPLETE",
+        "HOLD_SUCCESSOR_FROZEN",
+        "HOLD_EXIT_CANDIDATE",
+        "PASS_CANDIDATE",
+        "BLOCKED_QUALIFIED_HUMAN_INPUT"
+      ],
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "pending",
+        "satisfied",
+        "blocked"
+      ],
+      "type": "string"
+    }
+  }
+}
