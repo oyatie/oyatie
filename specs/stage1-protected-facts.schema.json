@@ -5,112 +5,1276 @@
   "description": "Closed future authenticated-producer envelope. Structural validation is non-authoritative until external signature and trust-root verification exists.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_id", "subject_digest", "program_digest", "epoch_digest", "protected_base_repository", "candidate_repository", "protected_base_branch", "candidate_branch", "protected_base_commit", "candidate_commit", "protected_base_tree", "candidate_tree", "source_epoch_binding", "candidate_epoch_binding", "program_binding", "parser_binding", "producer_binding", "evaluator_binding", "policy_binding", "schema_binding", "predecessor_epoch_binding", "transition_receipt_binding", "immutable_successor_bundle", "authority_chain_result", "source_app_identity", "run_identity", "receipt_bindings", "envelope_signature", "trust_root_binding"],
+  "required": [
+    "schema_id",
+    "subject_digest",
+    "program_digest",
+    "epoch_digest",
+    "protected_base_repository",
+    "candidate_repository",
+    "protected_base_branch",
+    "candidate_branch",
+    "protected_base_commit",
+    "candidate_commit",
+    "protected_base_tree",
+    "candidate_tree",
+    "source_epoch_binding",
+    "candidate_epoch_binding",
+    "program_binding",
+    "parser_binding",
+    "producer_binding",
+    "evaluator_binding",
+    "policy_binding",
+    "schema_binding",
+    "predecessor_epoch_binding",
+    "transition_receipt_binding",
+    "immutable_successor_bundle",
+    "authority_chain_result",
+    "source_app_identity",
+    "run_identity",
+    "receipt_bindings",
+    "envelope_signature",
+    "trust_root_binding"
+  ],
   "properties": {
-    "schema_id": {"const": "oyatie/stage1-protected-facts/v1"},
-    "subject_digest": {"$ref": "#/$defs/digest"},
-    "program_digest": {"$ref": "#/$defs/digest"},
-    "epoch_digest": {"$ref": "#/$defs/digest"},
-    "protected_base_repository": {"$ref": "#/$defs/text"},
-    "candidate_repository": {"$ref": "#/$defs/text"},
-    "protected_base_branch": {"$ref": "#/$defs/text"},
-    "candidate_branch": {"$ref": "#/$defs/text"},
-    "protected_base_commit": {"$ref": "#/$defs/oid"},
-    "candidate_commit": {"$ref": "#/$defs/oid"},
-    "protected_base_tree": {"$ref": "#/$defs/oid"},
-    "candidate_tree": {"$ref": "#/$defs/oid"},
-    "source_epoch_binding": {"$ref": "#/$defs/binding"},
-    "candidate_epoch_binding": {"$ref": "#/$defs/binding"},
-    "program_binding": {"$ref": "#/$defs/binding"},
-    "parser_binding": {"$ref": "#/$defs/binding"},
-    "producer_binding": {"$ref": "#/$defs/binding"},
-    "evaluator_binding": {"$ref": "#/$defs/binding"},
-    "policy_binding": {"$ref": "#/$defs/binding"},
-    "schema_binding": {"$ref": "#/$defs/binding"},
-    "predecessor_epoch_binding": {"$ref": "#/$defs/binding"},
-    "transition_receipt_binding": {"$ref": "#/$defs/binding"},
-    "immutable_successor_bundle": {"$ref": "#/$defs/binding"},
-    "authority_chain_result": {"$ref": "#/$defs/binding"},
-    "source_app_identity": {"$ref": "#/$defs/binding"},
-    "run_identity": {"$ref": "#/$defs/binding"},
-    "envelope_signature": {"$ref": "#/$defs/binding"},
-    "trust_root_binding": {"$ref": "#/$defs/binding"},
+    "schema_id": {
+      "const": "oyatie/stage1-protected-facts/v1"
+    },
+    "subject_digest": {
+      "$ref": "#/$defs/digest"
+    },
+    "program_digest": {
+      "$ref": "#/$defs/digest"
+    },
+    "epoch_digest": {
+      "$ref": "#/$defs/digest"
+    },
+    "protected_base_repository": {
+      "$ref": "#/$defs/text"
+    },
+    "candidate_repository": {
+      "$ref": "#/$defs/text"
+    },
+    "protected_base_branch": {
+      "$ref": "#/$defs/text"
+    },
+    "candidate_branch": {
+      "$ref": "#/$defs/text"
+    },
+    "protected_base_commit": {
+      "$ref": "#/$defs/oid"
+    },
+    "candidate_commit": {
+      "$ref": "#/$defs/oid"
+    },
+    "protected_base_tree": {
+      "$ref": "#/$defs/oid"
+    },
+    "candidate_tree": {
+      "$ref": "#/$defs/oid"
+    },
+    "source_epoch_binding": {
+      "$ref": "#/$defs/binding"
+    },
+    "candidate_epoch_binding": {
+      "$ref": "#/$defs/binding"
+    },
+    "program_binding": {
+      "$ref": "#/$defs/binding"
+    },
+    "parser_binding": {
+      "$ref": "#/$defs/binding"
+    },
+    "producer_binding": {
+      "$ref": "#/$defs/binding"
+    },
+    "evaluator_binding": {
+      "$ref": "#/$defs/binding"
+    },
+    "policy_binding": {
+      "$ref": "#/$defs/binding"
+    },
+    "schema_binding": {
+      "$ref": "#/$defs/binding"
+    },
+    "predecessor_epoch_binding": {
+      "$ref": "#/$defs/binding"
+    },
+    "transition_receipt_binding": {
+      "$ref": "#/$defs/binding"
+    },
+    "immutable_successor_bundle": {
+      "$ref": "#/$defs/binding"
+    },
+    "authority_chain_result": {
+      "$ref": "#/$defs/binding"
+    },
+    "source_app_identity": {
+      "$ref": "#/$defs/binding"
+    },
+    "run_identity": {
+      "$ref": "#/$defs/binding"
+    },
+    "envelope_signature": {
+      "$ref": "#/$defs/binding"
+    },
+    "trust_root_binding": {
+      "$ref": "#/$defs/binding"
+    },
     "receipt_bindings": {
       "type": "array",
-      "items": {"$ref": "#/$defs/authority_receipt_binding"},
+      "items": {
+        "$ref": "#/$defs/authority_receipt_binding"
+      },
       "allOf": [
-        {"contains": {"properties": {"control_id": {"const": "C01"}, "role": {"const": "machine-evidence"}}, "required": ["control_id", "role"]}, "minContains": 1, "maxContains": 1},
-        {"contains": {"properties": {"control_id": {"const": "C02"}, "role": {"const": "machine-evidence"}}, "required": ["control_id", "role"]}, "minContains": 1, "maxContains": 1},
-        {"contains": {"properties": {"control_id": {"const": "C03"}, "role": {"const": "machine-evidence"}}, "required": ["control_id", "role"]}, "minContains": 1, "maxContains": 1},
-        {"contains": {"properties": {"control_id": {"const": "C04"}, "role": {"const": "machine-evidence"}}, "required": ["control_id", "role"]}, "minContains": 1, "maxContains": 1},
-        {"contains": {"properties": {"control_id": {"const": "C05"}, "role": {"const": "machine-evidence"}}, "required": ["control_id", "role"]}, "minContains": 1, "maxContains": 1},
-        {"contains": {"properties": {"control_id": {"const": "C06"}, "role": {"const": "qualified-legal-compliance"}}, "required": ["control_id", "role"]}, "minContains": 1, "maxContains": 1},
-        {"contains": {"properties": {"control_id": {"const": "C07"}, "role": {"const": "affected-party-representation"}}, "required": ["control_id", "role"]}, "minContains": 1, "maxContains": 1},
-        {"contains": {"properties": {"control_id": {"const": "C08"}, "role": {"const": "operations-owner-capacity"}}, "required": ["control_id", "role"]}, "minContains": 1, "maxContains": 1},
-        {"contains": {"properties": {"control_id": {"const": "C09"}, "role": {"const": "security-evidence-custody"}}, "required": ["control_id", "role"]}, "minContains": 1, "maxContains": 1},
-        {"contains": {"properties": {"control_id": {"const": "C10"}, "role": {"const": "veto-owner-closure"}}, "required": ["control_id", "role"]}, "minContains": 1, "maxContains": 1},
-        {"contains": {"properties": {"control_id": {"const": "C11"}, "role": {"const": "machine-pilot-evidence"}}, "required": ["control_id", "role"]}, "minContains": 1, "maxContains": 1},
-        {"contains": {"properties": {"control_id": {"const": "C11"}, "role": {"const": "qualified-pilot-authorization"}}, "required": ["control_id", "role"]}, "minContains": 1, "maxContains": 1},
-        {"contains": {"properties": {"control_id": {"const": "C12"}, "role": {"const": "machine-evidence"}}, "required": ["control_id", "role"]}, "minContains": 1, "maxContains": 1},
-        {"contains": {"properties": {"control_id": {"const": "C14"}, "role": {"const": "fresh-dissent"}}, "required": ["control_id", "role"]}, "minContains": 1, "maxContains": 1},
-        {"contains": {"properties": {"control_id": {"const": "C15"}, "role": {"const": "deterministic-oracle"}}, "required": ["control_id", "role"]}, "minContains": 1, "maxContains": 1},
-        {"contains": {"properties": {"control_id": {"const": "C15"}, "role": {"const": "blind-cold-reader"}}, "required": ["control_id", "role"]}, "minContains": 1, "maxContains": 1},
-        {"contains": {"properties": {"control_id": {"const": "C15"}, "role": {"const": "qualified-planning-authority"}}, "required": ["control_id", "role"]}, "minContains": 1, "maxContains": 1},
-        {"contains": {"properties": {"control_id": {"const": "C13"}, "lens_id": {"const": "L01"}}, "required": ["control_id", "lens_id"]}, "minContains": 1, "maxContains": 1},
-        {"contains": {"properties": {"control_id": {"const": "C13"}, "lens_id": {"const": "L02"}}, "required": ["control_id", "lens_id"]}, "minContains": 1, "maxContains": 1},
-        {"contains": {"properties": {"control_id": {"const": "C13"}, "lens_id": {"const": "L03"}}, "required": ["control_id", "lens_id"]}, "minContains": 1, "maxContains": 1},
-        {"contains": {"properties": {"control_id": {"const": "C13"}, "lens_id": {"const": "L04"}}, "required": ["control_id", "lens_id"]}, "minContains": 1, "maxContains": 1},
-        {"contains": {"properties": {"control_id": {"const": "C13"}, "lens_id": {"const": "L05"}}, "required": ["control_id", "lens_id"]}, "minContains": 1, "maxContains": 1},
-        {"contains": {"properties": {"control_id": {"const": "C13"}, "lens_id": {"const": "L06"}}, "required": ["control_id", "lens_id"]}, "minContains": 1, "maxContains": 1},
-        {"contains": {"properties": {"control_id": {"const": "C13"}, "lens_id": {"const": "L07"}}, "required": ["control_id", "lens_id"]}, "minContains": 1, "maxContains": 1},
-        {"contains": {"properties": {"control_id": {"const": "C13"}, "lens_id": {"const": "L08"}}, "required": ["control_id", "lens_id"]}, "minContains": 1, "maxContains": 1},
-        {"contains": {"properties": {"control_id": {"const": "C13"}, "lens_id": {"const": "L09"}}, "required": ["control_id", "lens_id"]}, "minContains": 1, "maxContains": 1},
-        {"contains": {"properties": {"control_id": {"const": "C13"}, "lens_id": {"const": "L10"}}, "required": ["control_id", "lens_id"]}, "minContains": 1, "maxContains": 1},
-        {"contains": {"properties": {"control_id": {"const": "C13"}, "lens_id": {"const": "L11"}}, "required": ["control_id", "lens_id"]}, "minContains": 1, "maxContains": 1},
-        {"contains": {"properties": {"control_id": {"const": "C13"}, "lens_id": {"const": "L12"}}, "required": ["control_id", "lens_id"]}, "minContains": 1, "maxContains": 1},
-        {"contains": {"properties": {"control_id": {"const": "C13"}, "lens_id": {"const": "L13"}}, "required": ["control_id", "lens_id"]}, "minContains": 1, "maxContains": 1},
-        {"contains": {"properties": {"control_id": {"const": "C13"}, "lens_id": {"const": "L14"}}, "required": ["control_id", "lens_id"]}, "minContains": 1, "maxContains": 1},
-        {"contains": {"properties": {"control_id": {"const": "C13"}, "lens_id": {"const": "L15"}}, "required": ["control_id", "lens_id"]}, "minContains": 1, "maxContains": 1},
-        {"contains": {"properties": {"control_id": {"const": "C13"}, "lens_id": {"const": "L16"}}, "required": ["control_id", "lens_id"]}, "minContains": 1, "maxContains": 1}
+        {
+          "contains": {
+            "properties": {
+              "control_id": {
+                "const": "C01"
+              },
+              "role": {
+                "const": "machine-evidence"
+              }
+            },
+            "required": [
+              "control_id",
+              "role"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "properties": {
+              "control_id": {
+                "const": "C02"
+              },
+              "role": {
+                "const": "machine-evidence"
+              }
+            },
+            "required": [
+              "control_id",
+              "role"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "properties": {
+              "control_id": {
+                "const": "C03"
+              },
+              "role": {
+                "const": "machine-evidence"
+              }
+            },
+            "required": [
+              "control_id",
+              "role"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "properties": {
+              "control_id": {
+                "const": "C04"
+              },
+              "role": {
+                "const": "machine-evidence"
+              }
+            },
+            "required": [
+              "control_id",
+              "role"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "properties": {
+              "control_id": {
+                "const": "C05"
+              },
+              "role": {
+                "const": "machine-evidence"
+              }
+            },
+            "required": [
+              "control_id",
+              "role"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "properties": {
+              "control_id": {
+                "const": "C06"
+              },
+              "role": {
+                "const": "qualified-legal-compliance"
+              }
+            },
+            "required": [
+              "control_id",
+              "role"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "properties": {
+              "control_id": {
+                "const": "C07"
+              },
+              "role": {
+                "const": "affected-party-representation"
+              }
+            },
+            "required": [
+              "control_id",
+              "role"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "properties": {
+              "control_id": {
+                "const": "C08"
+              },
+              "role": {
+                "const": "operations-owner-capacity"
+              }
+            },
+            "required": [
+              "control_id",
+              "role"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "properties": {
+              "control_id": {
+                "const": "C09"
+              },
+              "role": {
+                "const": "security-evidence-custody"
+              }
+            },
+            "required": [
+              "control_id",
+              "role"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "properties": {
+              "control_id": {
+                "const": "C10"
+              },
+              "role": {
+                "const": "veto-owner-closure"
+              }
+            },
+            "required": [
+              "control_id",
+              "role"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "properties": {
+              "control_id": {
+                "const": "C11"
+              },
+              "role": {
+                "const": "machine-pilot-evidence"
+              }
+            },
+            "required": [
+              "control_id",
+              "role"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "properties": {
+              "control_id": {
+                "const": "C11"
+              },
+              "role": {
+                "const": "qualified-pilot-authorization"
+              }
+            },
+            "required": [
+              "control_id",
+              "role"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "properties": {
+              "control_id": {
+                "const": "C12"
+              },
+              "role": {
+                "const": "machine-evidence"
+              }
+            },
+            "required": [
+              "control_id",
+              "role"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "properties": {
+              "control_id": {
+                "const": "C14"
+              },
+              "role": {
+                "const": "fresh-dissent"
+              }
+            },
+            "required": [
+              "control_id",
+              "role"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "properties": {
+              "control_id": {
+                "const": "C15"
+              },
+              "role": {
+                "const": "deterministic-oracle"
+              }
+            },
+            "required": [
+              "control_id",
+              "role"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "properties": {
+              "control_id": {
+                "const": "C15"
+              },
+              "role": {
+                "const": "blind-cold-reader"
+              }
+            },
+            "required": [
+              "control_id",
+              "role"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "properties": {
+              "control_id": {
+                "const": "C15"
+              },
+              "role": {
+                "const": "qualified-planning-authority"
+              }
+            },
+            "required": [
+              "control_id",
+              "role"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "properties": {
+              "control_id": {
+                "const": "C13"
+              },
+              "lens_id": {
+                "const": "L01"
+              }
+            },
+            "required": [
+              "control_id",
+              "lens_id"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "properties": {
+              "control_id": {
+                "const": "C13"
+              },
+              "lens_id": {
+                "const": "L02"
+              }
+            },
+            "required": [
+              "control_id",
+              "lens_id"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "properties": {
+              "control_id": {
+                "const": "C13"
+              },
+              "lens_id": {
+                "const": "L03"
+              }
+            },
+            "required": [
+              "control_id",
+              "lens_id"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "properties": {
+              "control_id": {
+                "const": "C13"
+              },
+              "lens_id": {
+                "const": "L04"
+              }
+            },
+            "required": [
+              "control_id",
+              "lens_id"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "properties": {
+              "control_id": {
+                "const": "C13"
+              },
+              "lens_id": {
+                "const": "L05"
+              }
+            },
+            "required": [
+              "control_id",
+              "lens_id"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "properties": {
+              "control_id": {
+                "const": "C13"
+              },
+              "lens_id": {
+                "const": "L06"
+              }
+            },
+            "required": [
+              "control_id",
+              "lens_id"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "properties": {
+              "control_id": {
+                "const": "C13"
+              },
+              "lens_id": {
+                "const": "L07"
+              }
+            },
+            "required": [
+              "control_id",
+              "lens_id"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "properties": {
+              "control_id": {
+                "const": "C13"
+              },
+              "lens_id": {
+                "const": "L08"
+              }
+            },
+            "required": [
+              "control_id",
+              "lens_id"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "properties": {
+              "control_id": {
+                "const": "C13"
+              },
+              "lens_id": {
+                "const": "L09"
+              }
+            },
+            "required": [
+              "control_id",
+              "lens_id"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "properties": {
+              "control_id": {
+                "const": "C13"
+              },
+              "lens_id": {
+                "const": "L10"
+              }
+            },
+            "required": [
+              "control_id",
+              "lens_id"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "properties": {
+              "control_id": {
+                "const": "C13"
+              },
+              "lens_id": {
+                "const": "L11"
+              }
+            },
+            "required": [
+              "control_id",
+              "lens_id"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "properties": {
+              "control_id": {
+                "const": "C13"
+              },
+              "lens_id": {
+                "const": "L12"
+              }
+            },
+            "required": [
+              "control_id",
+              "lens_id"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "properties": {
+              "control_id": {
+                "const": "C13"
+              },
+              "lens_id": {
+                "const": "L13"
+              }
+            },
+            "required": [
+              "control_id",
+              "lens_id"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "properties": {
+              "control_id": {
+                "const": "C13"
+              },
+              "lens_id": {
+                "const": "L14"
+              }
+            },
+            "required": [
+              "control_id",
+              "lens_id"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "properties": {
+              "control_id": {
+                "const": "C13"
+              },
+              "lens_id": {
+                "const": "L15"
+              }
+            },
+            "required": [
+              "control_id",
+              "lens_id"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "properties": {
+              "control_id": {
+                "const": "C13"
+              },
+              "lens_id": {
+                "const": "L16"
+              }
+            },
+            "required": [
+              "control_id",
+              "lens_id"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        }
       ]
     },
-    "extensions": {"type": "object", "propertyNames": {"pattern": "^x-stage1-non-authoritative-"}}
+    "extensions": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^x-stage1-non-authoritative-"
+      }
+    }
   },
   "$defs": {
-    "text": {"type": "string", "minLength": 1},
-    "oid": {"type": "string", "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$"},
-    "digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
-    "binding": {"type": "object", "additionalProperties": false, "required": ["path", "blob_oid", "sha256"], "properties": {"path": {"$ref": "#/$defs/text"}, "blob_oid": {"$ref": "#/$defs/oid"}, "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}},
+    "text": {
+      "type": "string",
+      "minLength": 1
+    },
+    "oid": {
+      "type": "string",
+      "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$"
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "blob_oid",
+        "sha256"
+      ],
+      "properties": {
+        "path": {
+          "$ref": "#/$defs/text"
+        },
+        "blob_oid": {
+          "$ref": "#/$defs/oid"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
     "authority_receipt_binding": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["role", "control_id", "principal_identity_binding", "issuer_authority_class", "qualification_class", "principal_id", "subject_digest", "program_digest", "epoch_digest", "authority_source_ref", "qualification", "jurisdiction_scope", "independence_observation", "subject_binding", "program_binding", "epoch_binding", "decision", "validity", "expiry", "revocation_status", "conflict_status", "signature_trust_root_binding", "path", "blob_oid", "sha256"],
+      "required": [
+        "role",
+        "control_id",
+        "principal_identity_binding",
+        "issuer_authority_class",
+        "qualification_class",
+        "principal_id",
+        "subject_digest",
+        "program_digest",
+        "epoch_digest",
+        "authority_source_ref",
+        "qualification",
+        "jurisdiction_scope",
+        "independence_observation",
+        "subject_binding",
+        "program_binding",
+        "epoch_binding",
+        "decision",
+        "validity",
+        "expiry",
+        "revocation_status",
+        "conflict_status",
+        "signature_trust_root_binding",
+        "path",
+        "blob_oid",
+        "sha256"
+      ],
       "properties": {
-        "role": {"enum": ["machine-evidence", "qualified-legal-compliance", "affected-party-representation", "operations-owner-capacity", "security-evidence-custody", "veto-owner-closure", "machine-pilot-evidence", "qualified-pilot-authorization", "independent-council", "fresh-dissent", "deterministic-oracle", "blind-cold-reader", "qualified-planning-authority"]},
-        "control_id": {"type": "string", "pattern": "^C(0[1-9]|1[0-5])$"},
-        "lens_id": {"type": "string", "pattern": "^L(0[1-9]|1[0-6])$"},
-        "principal_identity_binding": {"$ref": "#/$defs/binding"}, "issuer_authority_class": {"$ref": "#/$defs/text"}, "qualification_class": {"$ref": "#/$defs/text"}, "principal_id": {"$ref": "#/$defs/text"},
-        "subject_digest": {"$ref": "#/$defs/digest"}, "program_digest": {"$ref": "#/$defs/digest"}, "epoch_digest": {"$ref": "#/$defs/digest"},
-        "authority_source_ref": {"$ref": "#/$defs/binding"}, "qualification": {"$ref": "#/$defs/binding"}, "jurisdiction_scope": {"$ref": "#/$defs/binding"}, "independence_observation": {"$ref": "#/$defs/binding"}, "subject_binding": {"$ref": "#/$defs/binding"}, "program_binding": {"$ref": "#/$defs/binding"}, "epoch_binding": {"$ref": "#/$defs/binding"},
-        "decision": {"enum": ["satisfied", "blocked", "abstained", "dissent"]}, "validity": {"$ref": "#/$defs/binding"}, "expiry": {"$ref": "#/$defs/binding"}, "revocation_status": {"$ref": "#/$defs/binding"}, "conflict_status": {"$ref": "#/$defs/binding"}, "signature_trust_root_binding": {"$ref": "#/$defs/binding"},
-        "path": {"$ref": "#/$defs/text"}, "blob_oid": {"$ref": "#/$defs/oid"}, "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        "role": {
+          "enum": [
+            "machine-evidence",
+            "qualified-legal-compliance",
+            "affected-party-representation",
+            "operations-owner-capacity",
+            "security-evidence-custody",
+            "veto-owner-closure",
+            "machine-pilot-evidence",
+            "qualified-pilot-authorization",
+            "independent-council",
+            "fresh-dissent",
+            "deterministic-oracle",
+            "blind-cold-reader",
+            "qualified-planning-authority"
+          ]
+        },
+        "control_id": {
+          "type": "string",
+          "pattern": "^C(0[1-9]|1[0-5])$"
+        },
+        "lens_id": {
+          "type": "string",
+          "pattern": "^L(0[1-9]|1[0-6])$"
+        },
+        "principal_identity_binding": {
+          "$ref": "#/$defs/binding"
+        },
+        "issuer_authority_class": {
+          "$ref": "#/$defs/text"
+        },
+        "qualification_class": {
+          "$ref": "#/$defs/text"
+        },
+        "principal_id": {
+          "$ref": "#/$defs/text"
+        },
+        "subject_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "program_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "epoch_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "authority_source_ref": {
+          "$ref": "#/$defs/binding"
+        },
+        "qualification": {
+          "$ref": "#/$defs/binding"
+        },
+        "jurisdiction_scope": {
+          "$ref": "#/$defs/binding"
+        },
+        "independence_observation": {
+          "$ref": "#/$defs/binding"
+        },
+        "subject_binding": {
+          "$ref": "#/$defs/binding"
+        },
+        "program_binding": {
+          "$ref": "#/$defs/binding"
+        },
+        "epoch_binding": {
+          "$ref": "#/$defs/binding"
+        },
+        "decision": {
+          "enum": [
+            "satisfied",
+            "blocked",
+            "abstained",
+            "dissent"
+          ]
+        },
+        "validity": {
+          "$ref": "#/$defs/binding"
+        },
+        "expiry": {
+          "$ref": "#/$defs/binding"
+        },
+        "revocation_status": {
+          "$ref": "#/$defs/binding"
+        },
+        "conflict_status": {
+          "$ref": "#/$defs/binding"
+        },
+        "signature_trust_root_binding": {
+          "$ref": "#/$defs/binding"
+        },
+        "path": {
+          "$ref": "#/$defs/text"
+        },
+        "blob_oid": {
+          "$ref": "#/$defs/oid"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
       },
       "allOf": [
-        {"oneOf": [
-          {"properties": {"control_id": {"enum": ["C01", "C02", "C03", "C04", "C05", "C12"]}, "role": {"const": "machine-evidence"}, "issuer_authority_class": {"const": "machine-verifiable"}, "qualification_class": {"const": "machine-evidence"}}, "required": ["control_id", "role", "issuer_authority_class", "qualification_class"], "not": {"required": ["lens_id"]}},
-          {"properties": {"control_id": {"const": "C06"}, "role": {"const": "qualified-legal-compliance"}, "issuer_authority_class": {"const": "qualified-human"}, "qualification_class": {"const": "legal-jcr"}}, "required": ["control_id", "role", "issuer_authority_class", "qualification_class"], "not": {"required": ["lens_id"]}},
-          {"properties": {"control_id": {"const": "C07"}, "role": {"const": "affected-party-representation"}, "issuer_authority_class": {"const": "qualified-affected-party"}, "qualification_class": {"const": "affected-party-recourse"}}, "required": ["control_id", "role", "issuer_authority_class", "qualification_class"], "not": {"required": ["lens_id"]}},
-          {"properties": {"control_id": {"const": "C08"}, "role": {"const": "operations-owner-capacity"}, "issuer_authority_class": {"const": "qualified-operations"}, "qualification_class": {"const": "named-operations-capacity"}}, "required": ["control_id", "role", "issuer_authority_class", "qualification_class"], "not": {"required": ["lens_id"]}},
-          {"properties": {"control_id": {"const": "C09"}, "role": {"const": "security-evidence-custody"}, "issuer_authority_class": {"const": "qualified-custody"}, "qualification_class": {"const": "security-evidence-custody"}}, "required": ["control_id", "role", "issuer_authority_class", "qualification_class"], "not": {"required": ["lens_id"]}},
-          {"properties": {"control_id": {"const": "C10"}, "role": {"const": "veto-owner-closure"}, "issuer_authority_class": {"const": "authorized-veto"}, "qualification_class": {"const": "exact-veto-owner"}}, "required": ["control_id", "role", "issuer_authority_class", "qualification_class"], "not": {"required": ["lens_id"]}},
-          {"properties": {"control_id": {"const": "C11"}, "role": {"const": "machine-pilot-evidence"}, "issuer_authority_class": {"const": "machine-verifiable"}, "qualification_class": {"const": "machine-pilot-evidence"}}, "required": ["control_id", "role", "issuer_authority_class", "qualification_class"], "not": {"required": ["lens_id"]}},
-          {"properties": {"control_id": {"const": "C11"}, "role": {"const": "qualified-pilot-authorization"}, "issuer_authority_class": {"const": "qualified-human"}, "qualification_class": {"const": "qualified-pilot-authorization"}}, "required": ["control_id", "role", "issuer_authority_class", "qualification_class"], "not": {"required": ["lens_id"]}},
-          {"properties": {"control_id": {"const": "C13"}, "role": {"const": "independent-council"}, "issuer_authority_class": {"const": "independent-council"}, "qualification_class": {"const": "independent-lens-reviewer"}, "lens_id": {"enum": ["L01", "L02", "L03", "L04", "L05", "L06", "L07", "L08", "L09", "L10", "L11", "L12", "L13", "L14", "L15", "L16"]}}, "required": ["control_id", "role", "issuer_authority_class", "qualification_class", "lens_id"]},
-          {"properties": {"control_id": {"const": "C14"}, "role": {"const": "fresh-dissent"}, "issuer_authority_class": {"const": "independent-dissent"}, "qualification_class": {"const": "fresh-independent-dissent"}}, "required": ["control_id", "role", "issuer_authority_class", "qualification_class"], "not": {"required": ["lens_id"]}},
-          {"properties": {"control_id": {"const": "C15"}, "role": {"const": "deterministic-oracle"}, "issuer_authority_class": {"const": "independent-oracle"}, "qualification_class": {"const": "deterministic-oracle"}}, "required": ["control_id", "role", "issuer_authority_class", "qualification_class"], "not": {"required": ["lens_id"]}},
-          {"properties": {"control_id": {"const": "C15"}, "role": {"const": "blind-cold-reader"}, "issuer_authority_class": {"const": "independent-oracle"}, "qualification_class": {"const": "blind-cold-reader"}}, "required": ["control_id", "role", "issuer_authority_class", "qualification_class"], "not": {"required": ["lens_id"]}},
-          {"properties": {"control_id": {"const": "C15"}, "role": {"const": "qualified-planning-authority"}, "issuer_authority_class": {"const": "independent-oracle"}, "qualification_class": {"const": "qualified-planning-authority"}}, "required": ["control_id", "role", "issuer_authority_class", "qualification_class"], "not": {"required": ["lens_id"]}}
-        ]}
+        {
+          "oneOf": [
+            {
+              "properties": {
+                "control_id": {
+                  "enum": [
+                    "C01",
+                    "C02",
+                    "C03",
+                    "C04",
+                    "C05",
+                    "C12"
+                  ]
+                },
+                "role": {
+                  "const": "machine-evidence"
+                },
+                "issuer_authority_class": {
+                  "const": "machine-verifiable"
+                },
+                "qualification_class": {
+                  "const": "machine-evidence"
+                }
+              },
+              "required": [
+                "control_id",
+                "role",
+                "issuer_authority_class",
+                "qualification_class"
+              ],
+              "not": {
+                "required": [
+                  "lens_id"
+                ]
+              }
+            },
+            {
+              "properties": {
+                "control_id": {
+                  "const": "C06"
+                },
+                "role": {
+                  "const": "qualified-legal-compliance"
+                },
+                "issuer_authority_class": {
+                  "const": "qualified-human"
+                },
+                "qualification_class": {
+                  "const": "legal-jcr"
+                }
+              },
+              "required": [
+                "control_id",
+                "role",
+                "issuer_authority_class",
+                "qualification_class"
+              ],
+              "not": {
+                "required": [
+                  "lens_id"
+                ]
+              }
+            },
+            {
+              "properties": {
+                "control_id": {
+                  "const": "C07"
+                },
+                "role": {
+                  "const": "affected-party-representation"
+                },
+                "issuer_authority_class": {
+                  "const": "qualified-affected-party"
+                },
+                "qualification_class": {
+                  "const": "affected-party-recourse"
+                }
+              },
+              "required": [
+                "control_id",
+                "role",
+                "issuer_authority_class",
+                "qualification_class"
+              ],
+              "not": {
+                "required": [
+                  "lens_id"
+                ]
+              }
+            },
+            {
+              "properties": {
+                "control_id": {
+                  "const": "C08"
+                },
+                "role": {
+                  "const": "operations-owner-capacity"
+                },
+                "issuer_authority_class": {
+                  "const": "qualified-operations"
+                },
+                "qualification_class": {
+                  "const": "named-operations-capacity"
+                }
+              },
+              "required": [
+                "control_id",
+                "role",
+                "issuer_authority_class",
+                "qualification_class"
+              ],
+              "not": {
+                "required": [
+                  "lens_id"
+                ]
+              }
+            },
+            {
+              "properties": {
+                "control_id": {
+                  "const": "C09"
+                },
+                "role": {
+                  "const": "security-evidence-custody"
+                },
+                "issuer_authority_class": {
+                  "const": "qualified-custody"
+                },
+                "qualification_class": {
+                  "const": "security-evidence-custody"
+                }
+              },
+              "required": [
+                "control_id",
+                "role",
+                "issuer_authority_class",
+                "qualification_class"
+              ],
+              "not": {
+                "required": [
+                  "lens_id"
+                ]
+              }
+            },
+            {
+              "properties": {
+                "control_id": {
+                  "const": "C10"
+                },
+                "role": {
+                  "const": "veto-owner-closure"
+                },
+                "issuer_authority_class": {
+                  "const": "authorized-veto"
+                },
+                "qualification_class": {
+                  "const": "exact-veto-owner"
+                }
+              },
+              "required": [
+                "control_id",
+                "role",
+                "issuer_authority_class",
+                "qualification_class"
+              ],
+              "not": {
+                "required": [
+                  "lens_id"
+                ]
+              }
+            },
+            {
+              "properties": {
+                "control_id": {
+                  "const": "C11"
+                },
+                "role": {
+                  "const": "machine-pilot-evidence"
+                },
+                "issuer_authority_class": {
+                  "const": "machine-verifiable"
+                },
+                "qualification_class": {
+                  "const": "machine-pilot-evidence"
+                }
+              },
+              "required": [
+                "control_id",
+                "role",
+                "issuer_authority_class",
+                "qualification_class"
+              ],
+              "not": {
+                "required": [
+                  "lens_id"
+                ]
+              }
+            },
+            {
+              "properties": {
+                "control_id": {
+                  "const": "C11"
+                },
+                "role": {
+                  "const": "qualified-pilot-authorization"
+                },
+                "issuer_authority_class": {
+                  "const": "qualified-human"
+                },
+                "qualification_class": {
+                  "const": "qualified-pilot-authorization"
+                }
+              },
+              "required": [
+                "control_id",
+                "role",
+                "issuer_authority_class",
+                "qualification_class"
+              ],
+              "not": {
+                "required": [
+                  "lens_id"
+                ]
+              }
+            },
+            {
+              "properties": {
+                "control_id": {
+                  "const": "C13"
+                },
+                "role": {
+                  "const": "independent-council"
+                },
+                "issuer_authority_class": {
+                  "const": "independent-council"
+                },
+                "qualification_class": {
+                  "const": "independent-lens-reviewer"
+                },
+                "lens_id": {
+                  "enum": [
+                    "L01",
+                    "L02",
+                    "L03",
+                    "L04",
+                    "L05",
+                    "L06",
+                    "L07",
+                    "L08",
+                    "L09",
+                    "L10",
+                    "L11",
+                    "L12",
+                    "L13",
+                    "L14",
+                    "L15",
+                    "L16"
+                  ]
+                }
+              },
+              "required": [
+                "control_id",
+                "role",
+                "issuer_authority_class",
+                "qualification_class",
+                "lens_id"
+              ]
+            },
+            {
+              "properties": {
+                "control_id": {
+                  "const": "C14"
+                },
+                "role": {
+                  "const": "fresh-dissent"
+                },
+                "issuer_authority_class": {
+                  "const": "independent-dissent"
+                },
+                "qualification_class": {
+                  "const": "fresh-independent-dissent"
+                }
+              },
+              "required": [
+                "control_id",
+                "role",
+                "issuer_authority_class",
+                "qualification_class"
+              ],
+              "not": {
+                "required": [
+                  "lens_id"
+                ]
+              }
+            },
+            {
+              "properties": {
+                "control_id": {
+                  "const": "C15"
+                },
+                "role": {
+                  "const": "deterministic-oracle"
+                },
+                "issuer_authority_class": {
+                  "const": "independent-oracle"
+                },
+                "qualification_class": {
+                  "const": "deterministic-oracle"
+                }
+              },
+              "required": [
+                "control_id",
+                "role",
+                "issuer_authority_class",
+                "qualification_class"
+              ],
+              "not": {
+                "required": [
+                  "lens_id"
+                ]
+              }
+            },
+            {
+              "properties": {
+                "control_id": {
+                  "const": "C15"
+                },
+                "role": {
+                  "const": "blind-cold-reader"
+                },
+                "issuer_authority_class": {
+                  "const": "independent-oracle"
+                },
+                "qualification_class": {
+                  "const": "blind-cold-reader"
+                }
+              },
+              "required": [
+                "control_id",
+                "role",
+                "issuer_authority_class",
+                "qualification_class"
+              ],
+              "not": {
+                "required": [
+                  "lens_id"
+                ]
+              }
+            },
+            {
+              "properties": {
+                "control_id": {
+                  "const": "C15"
+                },
+                "role": {
+                  "const": "qualified-planning-authority"
+                },
+                "issuer_authority_class": {
+                  "const": "independent-oracle"
+                },
+                "qualification_class": {
+                  "const": "qualified-planning-authority"
+                }
+              },
+              "required": [
+                "control_id",
+                "role",
+                "issuer_authority_class",
+                "qualification_class"
+              ],
+              "not": {
+                "required": [
+                  "lens_id"
+                ]
+              }
+            }
+          ]
+        }
       ]
     }
   }

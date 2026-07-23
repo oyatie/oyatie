@@ -30,6 +30,26 @@ issue a qualified-human decision, or authorize roadmap or implementation dispatc
 promotion and control-plane activation require later protected changes carrying the authority and
 admission evidence defined here.
 
+## Governed surfaces
+
+This proposed, dormant contract governs only the following exact source artifacts. They remain
+non-authoritative until a later protected promotion admits a separately operated producer and
+envelope; listing them here supplies traceable scope rather than activation authority.
+
+- `libs/oya-stage1-closure/OWNERS`
+- `libs/oya-stage1-closure/BUCK`
+- `libs/oya-stage1-closure/Cargo.toml`
+- `libs/oya-stage1-closure/src/lib.rs`
+- `libs/oya-stage1-closure/tests/fixtures/admission-envelope.json`
+- `libs/oya-stage1-closure/tests/fixtures/hold-epoch.json`
+- `libs/oya-stage1-closure/tests/fixtures/program.json`
+- `libs/oya-stage1-closure/tests/stage1_closure.rs`
+- `specs/BUCK`
+- `specs/stage1-admission-envelope.schema.json`
+- `specs/stage1-closure-program.schema.json`
+- `specs/stage1-evidence-epoch.schema.json`
+- `specs/stage1-protected-facts.schema.json`
+
 ## Context
 
 The current `masterplan_v2.planning_entry_contract` correctly keeps binding planning and execution
