@@ -18,6 +18,7 @@ use ci_action_item_accounting::{
     FIXUPTASK_V2_CANDIDATE_JSONL_PATH, LEGACY_FRICTION_MAPPING_PATH,
     LEGACY_FRICTION_PROTECTED_FACTS_PATH, Verdict, collect_observed_frictions, evaluate,
     evaluate_keyed, evaluate_legacy_friction_materialized_gate, fixuptask_v2_digest,
+    legacy_friction_adapter,
 };
 use serde_json::{Value, json};
 
@@ -200,6 +201,10 @@ fn live_action_item_gate_consumes_the_canonical_materialized_scm_snapshot() {
 
 #[test]
 fn fixuptask_v2_admission_is_wired_through_the_materialized_gate_inputs() {
+    assert_eq!(
+        legacy_friction_adapter::GATE_ID,
+        "cloud-ci-legacy-friction-adapter"
+    );
     let root = std::env::temp_dir().join(format!(
         "ci-action-item-accounting-v2-gate-{}",
         std::process::id()
@@ -237,7 +242,7 @@ fn fixuptask_v2_admission_is_wired_through_the_materialized_gate_inputs() {
     .expect("write SCM-materialized facts");
 
     assert!(
-        evaluate_legacy_friction_materialized_gate(&root)
+        legacy_friction_adapter::evaluate_materialized_gate(&root)
             .expect("materialized adapter must read all three gate inputs")
             .is_empty()
     );

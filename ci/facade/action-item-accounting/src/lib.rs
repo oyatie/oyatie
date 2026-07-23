@@ -51,6 +51,9 @@
 /// protected registry snapshot and the candidate registry bytes.
 pub mod fixuptask_v2;
 
+/// Transitional predecessor-ledger adapter, kept separate from the durable v2 gate.
+pub mod legacy_friction_adapter;
+
 // The predecessor/friction implementation below is a legacy compatibility
 // surface.  It is not part of the independently compiled durable v2 target.
 

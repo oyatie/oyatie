@@ -239,6 +239,18 @@ fn validate_row(contract: &Contract, row: &Value, id: &str, findings: &mut BTree
             ));
         }
     }
+    for field in object
+        .keys()
+        .filter(|field| contract.properties.contains(*field))
+    {
+        if non_blank(row, field).is_none() {
+            findings.insert(Finding::new(
+                "fixuptask_v2_invalid_field",
+                id,
+                format!("schema field `{field}` must be a non-blank string"),
+            ));
+        }
+    }
     for field in &contract.date_fields {
         if let Some(value) = non_blank(row, field)
             && canonical_timestamp(value).is_none()
@@ -477,6 +489,33 @@ mod tests {
         let facts = json!({ "fixuptask_v2_durable": { "merge_base": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "merge_base_tree": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "merge_base_rows": [], "candidate_registry_digest": fixuptask_v2_digest(bytes), "evaluation_time": "2026-07-21T00:00:00Z" }});
         assert!(evaluate_admission(&facts, &candidate, bytes).is_empty());
     }
+
+    #[test]
+    fn durable_admission_rejects_non_string_optional_schema_fields() {
+        let candidate = json!({ "rows": [{
+            "id": "FT-1",
+            "title": "x",
+            "priority": "high",
+            "status": "open",
+            "source_session": "s",
+            "source_change_id": "c",
+            "named_in": "ADR-0621",
+            "created_at": "2026-07-21T00:00:00Z",
+            "accountable_owner": "o",
+            "accountable_role": "r",
+            "acceptance_criteria": "a",
+            "verification_path": "v",
+            "blocker_for": "none",
+            "accepted_risk_evidence": false
+        }] });
+
+        assert!(
+            evaluate_fixuptasks_v2_at(&json!({ "rows": [] }), &candidate, "2026-07-21T00:00:00Z",)
+                .iter()
+                .any(|finding| finding.code == "fixuptask_v2_invalid_field")
+        );
+    }
+
     fn collect_fixuptask_candidate_jsonl_from_bytes(bytes: &[u8]) -> Result<Value, CollectError> {
         let line = std::str::from_utf8(bytes).map_err(|error| CollectError::Parse {
             line: 1,
