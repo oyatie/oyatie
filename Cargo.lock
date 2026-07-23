@@ -1480,10 +1480,12 @@ dependencies = [
  "ci-baseline-ratchet",
  "ci-path-resolver-adapters",
  "ci-path-resolver-ports",
+ "corpus-doc-parser",
  "oya-check-brand-residue",
  "oya-ci-config-kernel",
  "oya-reorg-codemod-app",
  "serde_json",
+ "sha2",
 ]
 
 [[package]]

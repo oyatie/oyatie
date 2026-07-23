@@ -17,6 +17,10 @@ license = "Apache-2.0"
 name = "oya-cloud-ci-scm-facts-emitter-app"
 path = "src/main.rs"
 
+[[bin]]
+name = "oya-cloud-ci-adr-census-parent-receipt-gate"
+path = "src/bin/adr-census-parent-receipt-gate.rs"
+
 [dependencies]
 serde_json = { workspace = true }
 ci-path-resolver-ports = { path = "../../ports/path-resolver" }
@@ -30,6 +34,8 @@ ci-artifact-inventory-registry = { path = "../artifact-inventory-registry" }
 ci-baseline-ratchet = { path = "../baseline-ratchet" }
 oya-check-brand-residue = { path = "../../../libs/oya-check-brand-residue" }
 oya-ci-config-kernel = { path = "../../../libs/oya-ci-config" }
+corpus-doc-parser = { path = "../../../governance/corpus/doc-parser" }
+sha2 = { workspace = true }
 
 [dev-dependencies]
 oya-reorg-codemod-app = { path = "../../../tools/oya-reorg-codemod-app" }

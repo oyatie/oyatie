@@ -156,6 +156,11 @@ Issue #901's affected-set progress helper is part of that same enforcement subst
 ci/facade/affected-target-set/src/bin/oya-cloud-ci-step-telemetry.rs
 reports long Buck2 phase/status/elapsed telemetry for operator visibility; it does not change the required-check verdict model.
 
+The fixed historical ADR-census parent-receipt validator is likewise part of this Buck-live Rust
+substrate. `ci/facade/scm-facts-snapshot/src/bin/adr-census-parent-receipt-gate.rs` validates only
+the immutable controller-materialized historical receipt; it carries no planning-closure,
+roadmap-dispatch, current-authority, or product-readiness claim.
+
 ## Decision
 
 ### D1. The Phase-0 firewall is the enforcement substrate

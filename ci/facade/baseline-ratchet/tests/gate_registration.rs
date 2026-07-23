@@ -35,9 +35,8 @@ use serde_json::Value;
 ///   - the planning-projection renderer: a pure library invoked by generated-artifact freshness to
 ///     materialize the untracked board projection; it has no independent admission verdict.
 const PRODUCER_CRATE: &str = "artifact-inventory-registry";
-const NON_GATE_CRATES: [&str; 4] = [
+const NON_GATE_CRATES: [&str; 3] = [
     "artifact-inventory-registry",
-    "scm-facts-snapshot",
     "crate-registration",
     "planning-projection",
 ];
@@ -410,6 +409,35 @@ fn every_gate_crate_is_registered_in_oya_ci_required_workflow() {
         gates.display(),
         wf.display(),
         missing
+    );
+}
+
+#[test]
+fn fixed_census_receipt_is_a_buck_live_face_gate_not_a_cargo_only_false_green() {
+    let root = repo_root();
+    let workflow = read_to_string(&workflow_path(&root));
+    let buck = read_to_string(&root.join("ci/facade/scm-facts-snapshot/BUCK"));
+    let gate_matrix_entry = "crate: scm-facts-snapshot,";
+    let download_step = workflow
+        .find("Download regenerated faces")
+        .expect("gate matrix must download controller-generated faces");
+    let test_step = workflow
+        .find("buck2 test ${{ matrix.crate }}")
+        .expect("gate matrix must execute Buck tests");
+
+    assert!(workflow.contains(gate_matrix_entry));
+    assert!(
+        download_step < test_step,
+        "the live face must be downloaded before validation"
+    );
+    assert!(
+        buck.contains("name = \"ci-scm-facts-snapshot-gate\"")
+            && buck.contains("src/bin/adr-census-parent-receipt-gate.rs"),
+        "the matrix target must execute the fixed-receipt live validator under Buck"
+    );
+    assert!(
+        workflow.contains("//ci/facade/${{ matrix.crate }}:ci-${{ matrix.crate }}-gate"),
+        "a Cargo-only test command is not required-CI authority"
     );
 }
 
