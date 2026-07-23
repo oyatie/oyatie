@@ -544,10 +544,15 @@ pub fn evaluate_idea_archive_transition(
 ) -> Result<IdeaArchiveTransitionReport, IdeaArchiveTransitionError> {
     let baseline = immutable_idea_archive_baseline()?;
     match policy.mode {
-        IdeaArchiveMode::CurrentTreeArchiveCompatible => Ok(IdeaArchiveTransitionReport {
-            mode: policy.mode,
-            preparation_nonauthority_paths: BTreeSet::new(),
-        }),
+        IdeaArchiveMode::CurrentTreeArchiveCompatible => {
+            // Compatibility preserves the exact readable transition inventory; it never
+            // authorizes the archive to grow or treats archive placement as compliance.
+            let report = evaluate_preparation(&baseline, observation)?;
+            Ok(IdeaArchiveTransitionReport {
+                mode: policy.mode,
+                preparation_nonauthority_paths: report.preparation_nonauthority_paths,
+            })
+        }
         IdeaArchiveMode::HistoryOnlyPreparation => {
             if policy.transition != Some(IdeaArchiveTransitionBinding::Preparation) {
                 return Err(IdeaArchiveTransitionError::BaselineMismatch(

@@ -14,9 +14,10 @@
 //!    a strict-mode error while historical documents are being normalised.
 //!
 //! 3. **No shadow docs** — `docs/ideas/*.md` files whose filename date-stamp
-//!    is older than 14 days must be either archived (`docs/ideas/archive/`) or
-//!    carry a `superseded_by: ADR-NNNN` frontmatter field linking to a real
-//!    existing ADR file.
+//!    is older than 14 days must carry a `superseded_by: ADR-NNNN` frontmatter
+//!    field linking to a real existing ADR file and then leave the current
+//!    tree. Archive placement is never compliance; the separate archive
+//!    transition gate owns the byte-frozen temporary inventory.
 //!
 //! 4. **No docs proliferation** — only the canonical subdirectories are
 //!    permitted under `docs/`. Any `.md` file placed outside them is an error.
@@ -74,7 +75,7 @@ pub enum DocAxisRule {
 pub struct DocAxisReport {
     /// `docs/decisions/ADR-*.md` files inspected. data_class: INTERNAL_ONLY
     pub adrs_checked: usize,
-    /// `docs/ideas/*.md` files inspected (excluding archive/). data_class: INTERNAL_ONLY
+    /// `docs/ideas/*.md` files inspected (excluding gate-owned transition inventory). data_class: INTERNAL_ONLY
     pub ideas_checked: usize,
     /// Canonical subdirectory check: markdown files inspected under `docs/`. data_class: INTERNAL_ONLY
     pub docs_files_checked: usize,
@@ -379,6 +380,8 @@ fn check_shadow_ideas(
 
     for entry in entries.flatten() {
         let path = entry.path();
+        // The cross-artifact archive-transition gate owns this exact byte-frozen inventory.
+        // Skipping it here does not make archive placement compliant.
         if path.starts_with(&archive_dir) {
             continue;
         }
@@ -407,8 +410,7 @@ fn check_shadow_ideas(
         }
 
         // Over 14 days: must have superseded_by in frontmatter pointing to a
-        // real ADR, OR be moved to archive (archive check is implicit — files
-        // in archive/ are skipped above).
+        // real ADR, then leave the current tree. Moving it to an archive is not compliance.
         let contents = match fs::read_to_string(&path) {
             Ok(c) => c,
             Err(_) => continue,
@@ -427,15 +429,24 @@ fn check_shadow_ideas(
                     ),
                     blocking: true,
                 });
+            } else {
+                findings.push(DocAxisFinding {
+                    path: rel,
+                    line: None,
+                    rule_violated: DocAxisRule::ShadowIdea,
+                    suggested_fix: format!(
+                        "Idea-pager is {age_days} days old and already promoted by {adr_id}; remove it from the current tree. Archive placement is not compliance."
+                    ),
+                    blocking: true,
+                });
             }
-            // Otherwise the citation is valid — file is promoted.
         } else {
             findings.push(DocAxisFinding {
                 path: rel,
                 line: None,
                 rule_violated: DocAxisRule::ShadowIdea,
                 suggested_fix: format!(
-                    "Idea-pager is {age_days} days old (limit: {IDEA_PROMOTION_DAYS}). Promote to an ADR and add `superseded_by: ADR-NNNN`, or move to docs/ideas/archive/."
+                        "Idea-pager is {age_days} days old (limit: {IDEA_PROMOTION_DAYS}). Promote to an ADR, add `superseded_by: ADR-NNNN`, and remove it from the current tree; archive placement is not compliance."
                 ),
                 blocking: true,
             });

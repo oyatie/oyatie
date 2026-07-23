@@ -211,16 +211,20 @@ fn rule2_stale_idea_without_promotion_blocks() {
     let result = validate(root, false);
     assert!(result.is_err(), "stale idea without promotion should block");
     let findings = result.unwrap_err();
+    let finding = findings
+        .iter()
+        .find(|finding| finding.rule_violated == DocAxisRule::ShadowIdea)
+        .expect("should have a ShadowIdea finding");
+    assert!(!finding.suggested_fix.contains("archive/"));
     assert!(
-        findings
-            .iter()
-            .any(|f| f.rule_violated == DocAxisRule::ShadowIdea),
-        "should have a ShadowIdea finding"
+        finding
+            .suggested_fix
+            .contains("remove it from the current tree")
     );
 }
 
 #[test]
-fn rule2_stale_idea_with_valid_superseded_by_passes() {
+fn rule2_stale_idea_with_valid_superseded_by_blocks_until_removed() {
     set_today("2026-06-15");
     let dir = tempfile::tempdir().unwrap();
     let root = dir.path();
@@ -236,10 +240,17 @@ fn rule2_stale_idea_with_valid_superseded_by_passes() {
         "---\ntitle: test\nsuperseded_by: ADR-0389\n---\n# promoted\n",
     );
     let result = validate(root, false);
+    let findings = result.expect_err("a promoted stale idea must leave the current tree");
+    let finding = findings
+        .iter()
+        .find(|finding| finding.rule_violated == DocAxisRule::ShadowIdea)
+        .expect("should have a ShadowIdea finding");
     assert!(
-        result.is_ok(),
-        "idea with valid superseded_by should pass: {result:?}"
+        finding
+            .suggested_fix
+            .contains("remove it from the current tree")
     );
+    assert!(!finding.suggested_fix.contains("archive/"));
 }
 
 // ---------------------------------------------------------------------------
