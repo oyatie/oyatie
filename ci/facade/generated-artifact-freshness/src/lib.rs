@@ -1317,8 +1317,82 @@ fn regenerate_active_artifact_contract_graph(
         "regenerate active-artifact-contract graph",
     )?;
     let bytes = read_to_string(&output)?;
+    validate_active_artifact_contract_graph(&bytes)?;
     drop(cleanup);
     Ok((ACTIVE_ARTIFACT_CONTRACT_GRAPH_FACE.to_owned(), bytes))
+}
+
+fn validate_active_artifact_contract_graph(source: &str) -> Result<(), FreshnessError> {
+    let graph: serde_json::Value = serde_json::from_str(source).map_err(|error| {
+        FreshnessError::new(format!(
+            "parse regenerated active-artifact-contract graph: {error}"
+        ))
+    })?;
+    let graph = graph.as_object().ok_or_else(|| {
+        FreshnessError::new("regenerated active-artifact-contract graph must be a JSON object")
+    })?;
+    if graph.get("$schema_ref").and_then(serde_json::Value::as_str)
+        != Some("specs/knowledge-graph-schema.json")
+    {
+        return Err(FreshnessError::new(
+            "regenerated active-artifact-contract graph has unexpected $schema_ref",
+        ));
+    }
+    if graph
+        .get("_artifact_id")
+        .and_then(serde_json::Value::as_str)
+        != Some("active-artifact-contract-edges")
+    {
+        return Err(FreshnessError::new(
+            "regenerated active-artifact-contract graph has unexpected _artifact_id",
+        ));
+    }
+    let edges = graph
+        .get("edges")
+        .and_then(serde_json::Value::as_array)
+        .ok_or_else(|| {
+            FreshnessError::new("regenerated active-artifact-contract graph edges must be an array")
+        })?;
+    for (index, edge) in edges.iter().enumerate() {
+        let edge = edge.as_object().ok_or_else(|| {
+            FreshnessError::new(format!(
+                "regenerated active-artifact-contract graph edge {index} must be an object"
+            ))
+        })?;
+        if edge.len() != 3
+            || !edge.contains_key("source")
+            || !edge.contains_key("target")
+            || !edge.contains_key("edge_type")
+        {
+            return Err(FreshnessError::new(format!(
+                "regenerated active-artifact-contract graph edge {index} must contain exactly source, target, and edge_type"
+            )));
+        }
+        if edge
+            .get("source")
+            .and_then(serde_json::Value::as_str)
+            .is_none()
+        {
+            return Err(FreshnessError::new(format!(
+                "regenerated active-artifact-contract graph edge {index} source must be a string"
+            )));
+        }
+        if edge
+            .get("target")
+            .and_then(serde_json::Value::as_str)
+            .is_none()
+        {
+            return Err(FreshnessError::new(format!(
+                "regenerated active-artifact-contract graph edge {index} target must be a string"
+            )));
+        }
+        if edge.get("edge_type").and_then(serde_json::Value::as_str) != Some("declares") {
+            return Err(FreshnessError::new(format!(
+                "regenerated active-artifact-contract graph edge {index} edge_type must be declares"
+            )));
+        }
+    }
+    Ok(())
 }
 
 fn regenerate_architecture_projection_faces(
@@ -1933,14 +2007,17 @@ fn materialize_active_artifact_contract_graph(
     tools: &MaterializerTools,
     repo_root: &Path,
 ) -> Result<(), FreshnessError> {
+    let output_path = repo_root.join(ACTIVE_ARTIFACT_CONTRACT_GRAPH_PATH);
     run_status(
         Command::new(&tools.masterplan_generator)
             .args(["gate", "validate", "active-artifact-contract"])
             .arg("--emit-graph-edges")
-            .arg(repo_root.join(ACTIVE_ARTIFACT_CONTRACT_GRAPH_PATH))
+            .arg(&output_path)
             .current_dir(repo_root),
         "materialize active-artifact-contract graph",
-    )
+    )?;
+    let graph = read_to_string(&output_path)?;
+    validate_active_artifact_contract_graph(&graph)
 }
 
 fn materialize_board_sync_projection(repo_root: &Path) -> Result<(), FreshnessError> {
@@ -2783,6 +2860,53 @@ root//tools/hooks:top-level-hook-scripts buck-out/v2/gen/tools/hooks/__top-level
     }
 
     #[test]
+    fn active_artifact_contract_graph_validation_rejects_malformed_json() {
+        let malformed = "{\"$schema_ref\":\"specs/knowledge-graph-schema.json\",\"_artifact_id\":\"active-artifact-contract-edges\",\"edges\":[{\"source\":\"control\u{000b}character\",\"target\":\"schema\",\"edge_type\":\"declares\"}]}";
+
+        let error = validate_active_artifact_contract_graph(malformed).unwrap_err();
+
+        assert!(
+            error
+                .to_string()
+                .contains("parse regenerated active-artifact-contract graph")
+        );
+    }
+
+    #[test]
+    fn active_artifact_contract_graph_validation_rejects_invalid_edge_shape() {
+        let invalid = serde_json::json!({
+            "$schema_ref": "specs/knowledge-graph-schema.json",
+            "_artifact_id": "active-artifact-contract-edges",
+            "edges": [{
+                "source": 42,
+                "target": "schema",
+                "edge_type": "declares"
+            }]
+        })
+        .to_string();
+
+        let error = validate_active_artifact_contract_graph(&invalid).unwrap_err();
+
+        assert!(error.to_string().contains("edge 0 source must be a string"));
+    }
+
+    #[test]
+    fn active_artifact_contract_graph_validation_accepts_escaped_control_characters() {
+        let valid = serde_json::json!({
+            "$schema_ref": "specs/knowledge-graph-schema.json",
+            "_artifact_id": "active-artifact-contract-edges",
+            "edges": [{
+                "source": "control\u{000b}character",
+                "target": "schema",
+                "edge_type": "declares"
+            }]
+        })
+        .to_string();
+
+        validate_active_artifact_contract_graph(&valid).expect("escaped graph is valid");
+    }
+
+    #[test]
     fn read_committed_generated_faces_includes_architecture_projection_faces() {
         let root = temp_root("oya-committed-faces");
         std::fs::create_dir_all(root.join(FACES_DIR)).expect("create faces dir");
@@ -3015,7 +3139,7 @@ elif [ "$1" = "gate" ]; then
   shift 3
   test "$1" = "--emit-graph-edges"
   mkdir -p "$(dirname "$2")"
-  printf '{{"edges":[]}}\n' > "$2"
+  printf '{{"$schema_ref":"specs/knowledge-graph-schema.json","_artifact_id":"active-artifact-contract-edges","edges":[]}}\n' > "$2"
 else
   exit 2
 fi
@@ -3084,7 +3208,7 @@ printf 'generated dashboard\n' > docs/architecture/product-graph.html
         assert_eq!(
             std::fs::read_to_string(root.join(ACTIVE_ARTIFACT_CONTRACT_GRAPH_PATH))
                 .expect("active artifact contract graph materialized"),
-            "{\"edges\":[]}\n"
+            "{\"$schema_ref\":\"specs/knowledge-graph-schema.json\",\"_artifact_id\":\"active-artifact-contract-edges\",\"edges\":[]}\n"
         );
         assert!(calls.contains(&format!(
             "--enforcement-liveness-claude-settings {}",

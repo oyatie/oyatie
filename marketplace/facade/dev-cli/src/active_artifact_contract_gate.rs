@@ -649,17 +649,20 @@ fn write_graph_edges(path: &Path, edges: &[(String, String, String)]) -> Result<
             format!("graph edges dir unwriteable {}: {error}", parent.display())
         })?;
     }
-    let edges_json: String = edges
+    let edges_json = edges
         .iter()
         .map(|(src, tgt, edge)| {
-            format!(
-                "    {{ \"source\": \"{}\", \"target\": \"{}\", \"edge_type\": \"{}\" }}",
-                escape_json(src),
-                escape_json(tgt),
-                escape_json(edge)
-            )
+            let source = serde_json::to_string(src)
+                .map_err(|error| format!("graph edge source JSON serialize failed: {error}"))?;
+            let target = serde_json::to_string(tgt)
+                .map_err(|error| format!("graph edge target JSON serialize failed: {error}"))?;
+            let edge_type = serde_json::to_string(edge)
+                .map_err(|error| format!("graph edge type JSON serialize failed: {error}"))?;
+            Ok(format!(
+                "    {{ \"source\": {source}, \"target\": {target}, \"edge_type\": {edge_type} }}"
+            ))
         })
-        .collect::<Vec<_>>()
+        .collect::<Result<Vec<_>, String>>()?
         .join(",\n");
     let body = format!(
         "{{\n  \"$schema_ref\": \"specs/knowledge-graph-schema.json\",\n  \"_artifact_id\": \"active-artifact-contract-edges\",\n  \"_meta\": {{ \"emitter\": \"oya-dev-cli gate validate active-artifact-contract\", \"layer\": \"semantic\", \"purpose\": \"Generated graph edges that connect active machine-readable artifacts to their declared schemas, registries, templates, and ledgers.\" }},\n  \"edges\": [\n{}\n  ]\n}}\n",
@@ -668,15 +671,6 @@ fn write_graph_edges(path: &Path, edges: &[(String, String, String)]) -> Result<
     fs::write(path, body)
         .map_err(|error| format!("graph edges write failed {}: {error}", path.display()))?;
     Ok(())
-}
-
-fn escape_json(value: &str) -> String {
-    value
-        .replace('\\', "\\\\")
-        .replace('"', "\\\"")
-        .replace('\n', "\\n")
-        .replace('\r', "\\r")
-        .replace('\t', "\\t")
 }
 
 #[cfg(test)]
