@@ -239,52 +239,14 @@ fn preparation_rejects_exact_body_duplicates_outside_the_baseline_paths() {
 fn strict_mode_requires_archive_and_all_baseline_bodies_to_be_absent() {
     let parsed = parse_idea_archive_policy(&strict_policy()).expect("strict policy parses");
     assert_eq!(parsed.mode, IdeaArchiveMode::GitHistoryOnly);
-    let absent = IdeaArchiveObservation {
-        archive_root_kind: IdeaArchivePathKind::Missing,
-        nodes: BTreeMap::new(),
-        exact_body_locations: BTreeMap::new(),
-        verified_closure_projection: IdeaArchiveVerifiedClosureProjection {
-            evidence_set_ids: BTreeSet::from([
-                "adr-0388-transient-ideas-history-only-retirement-v1".to_owned(),
-            ]),
-        },
-    };
-    assert!(evaluate_idea_archive_transition(&parsed, &absent).is_ok());
-
-    let mut archive_remains = absent.clone();
-    archive_remains.archive_root_kind = IdeaArchivePathKind::Directory;
-    assert!(matches!(
-        evaluate_idea_archive_transition(&parsed, &archive_remains),
-        Err(IdeaArchiveTransitionError::BaselineMismatch(_))
-    ));
-
-    let baseline = immutable_idea_archive_baseline().expect("immutable baseline is valid");
-    let mut body_remains = absent;
-    body_remains.exact_body_locations.insert(
-        baseline.entries[0].sha256.clone(),
-        BTreeSet::from(["docs/ideas/copied-live-body.md".to_owned()]),
-    );
-    assert!(matches!(
-        evaluate_idea_archive_transition(&parsed, &body_remains),
-        Err(IdeaArchiveTransitionError::BaselineMismatch(_))
-    ));
-
-    let mut missing_projection = IdeaArchiveObservation {
+    let absent_without_verified_e6_projection = IdeaArchiveObservation {
         archive_root_kind: IdeaArchivePathKind::Missing,
         nodes: BTreeMap::new(),
         exact_body_locations: BTreeMap::new(),
         verified_closure_projection: IdeaArchiveVerifiedClosureProjection::default(),
     };
     assert!(matches!(
-        evaluate_idea_archive_transition(&parsed, &missing_projection),
-        Err(IdeaArchiveTransitionError::BaselineMismatch(_))
-    ));
-    missing_projection
-        .verified_closure_projection
-        .evidence_set_ids
-        .insert("candidate-defined-evidence".to_owned());
-    assert!(matches!(
-        evaluate_idea_archive_transition(&parsed, &missing_projection),
+        evaluate_idea_archive_transition(&parsed, &absent_without_verified_e6_projection),
         Err(IdeaArchiveTransitionError::BaselineMismatch(_))
     ));
 

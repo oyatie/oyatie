@@ -135,3 +135,30 @@ fn freshness_shellout_exception_has_cutover_note() {
                 .unwrap_or(false)
     }));
 }
+
+#[test]
+fn adr0620_decommit_exceptions_are_explicitly_baselined() {
+    let policy = load_policy(&repo_root());
+    let exceptions = policy["hermetic_exceptions"]
+        .as_array()
+        .expect("hermetic exceptions array");
+    let freshness = exceptions
+        .iter()
+        .filter(|row| row["gate"] == "generated-artifact-freshness")
+        .collect::<Vec<_>>();
+
+    assert!(freshness.iter().any(|row| {
+        row["max_occurrences_by_token"]["Command::new"] == 26
+            && row["cutover_note"]
+                .as_str()
+                .unwrap_or_default()
+                .contains("ADR-0620")
+    }));
+    assert!(freshness.iter().any(|row| {
+        row["max_occurrences"] == 10
+            && row["cutover_note"]
+                .as_str()
+                .unwrap_or_default()
+                .contains("ADR-0620")
+    }));
+}

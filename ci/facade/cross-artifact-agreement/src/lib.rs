@@ -117,6 +117,7 @@ mod projection_rederivation;
 mod prose_frontmatter_status;
 mod read_surface_resurrection;
 mod registry_policy_sync;
+mod retirement_receipt;
 
 pub use plan_evidence_crosscheck::{
     PLAN_EVIDENCE_CROSSCHECK_VALIDATOR, UNRECORDED_EVIDENCE_CODE,
@@ -161,6 +162,12 @@ pub use prose_frontmatter_status::{
 pub use registry_policy_sync::{
     REGISTRY_POLICY_DESYNC_CODE, REGISTRY_POLICY_SYNC_VALIDATOR,
     evaluate_registry_derived_policy_sync,
+};
+pub use retirement_receipt::{
+    HistoryOnlyRetirementClosureEvaluation, RETIREMENT_RECEIPT_CODE, RETIREMENT_RECEIPT_VALIDATOR,
+    evaluate_and_project_history_only_retirement_closures,
+    evaluate_history_only_retirement_receipt, evaluate_history_only_retirement_receipt_coverage,
+    evaluate_history_only_retirement_receipts,
 };
 /// The gate id, matching the buck2 target + the §5.2 contract.
 pub const GATE_ID: &str = "cloud-ci-cross-artifact-agreement";

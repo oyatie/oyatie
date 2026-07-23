@@ -16,6 +16,9 @@ pub use rust_toolchain_drift::{evaluate_rust_toolchain_drift, read_pinned_rust_t
 
 pub const LOCK_REMEDIATION_COMMAND: &str = "cargo metadata >/dev/null";
 pub const FACE_REMEDIATION_COMMAND: &str = "buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .";
+const RETIREMENT_CONTROL_PLANE_PATH: &str = "registry/history-only-retirement-control-plane.json";
+const RETIREMENT_FACTS_PATH: &str =
+    "ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json";
 pub const FACE_SETTLE_PROTOCOL: &str = "commit content changes first; faces regenerate from the TRACKED TREE STATE (ADR-0552: committed faces carry no history-derived data, so commit ids never enter them); never mix content and regenerated faces in one commit; then run the materialize command; commit only PR-owned generated face diffs; controller-owned generated faces are materialized by cloud-ci/integration controllers, not contributor PRs; then run oya-cloud-ci-face-settle --verify as the LAST step before EVERY push";
 pub const FACE_VERIFY_REMEDIATION_COMMAND: &str = "oya-cloud-ci-face-settle --settle --commit";
 pub const FACE_SETTLE_COMMIT_COMMAND: &str =
@@ -43,6 +46,9 @@ const BOARD_SYNC_PROJECTION_PATH: &str = "docs/machine-readable/board-sync.gener
 const MASTERPLAN_SOURCE_PATH: &str = "specs/masterplan.json";
 const ARCHITECTURE_PRODUCT_GRAPH_FACE: &str = "product-graph.html";
 const ARCHITECTURE_PRODUCT_GRAPH_PATH: &str = "docs/architecture/product-graph.html";
+const ACTIVE_ARTIFACT_CONTRACT_GRAPH_FACE: &str = "active-artifact-contract-edges.json";
+const ACTIVE_ARTIFACT_CONTRACT_GRAPH_PATH: &str =
+    "registry/graph/active-artifact-contract-edges.json";
 /// PR-owned / face-settle generated paths. Controller-owned generated artifacts that must be
 /// materialized on protected branches, such as `product-graph.html`, intentionally stay out of
 /// this list so contributor PRs do not acquire a new generated merge surface.
@@ -57,11 +63,12 @@ const GENERATED_FACE_PATHS: [&str; 7] = [
 ];
 /// Controller-owned generated artifacts whose freshness is proven by regeneration/determinism,
 /// but whose byte diffs are not staged by `oya-cloud-ci-face-settle` in contributor PRs.
-const CONTROLLER_MATERIALIZED_ARTIFACT_PATHS: [&str; 4] = [
+const CONTROLLER_MATERIALIZED_ARTIFACT_PATHS: [&str; 5] = [
     "ci/facade/artifact-inventory-registry/adr-census-parent-receipt.generated.json",
     MASTERPLAN_PROJECTION_PATH,
     BOARD_SYNC_PROJECTION_PATH,
     ARCHITECTURE_PRODUCT_GRAPH_PATH,
+    ACTIVE_ARTIFACT_CONTRACT_GRAPH_PATH,
 ];
 const EMITTER_TARGET: &str = "//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot";
 const PRODUCER_TARGET: &str =
@@ -187,6 +194,15 @@ pub struct FaceSettleArgs {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MaterializeGeneratedFacesArgs {
     pub repo_root: PathBuf,
+    pub retirement: Option<RetirementMaterializeArgs>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RetirementMaterializeArgs {
+    pub control_plane_path: String,
+    pub facts_out: PathBuf,
+    pub protected_base_commit: String,
+    pub candidate_commit: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
@@ -369,16 +385,38 @@ pub fn run_face_settle_with_buck2(
 
 pub fn materialize_generated_faces_with_buck2(repo_root: &Path) -> Result<(), FreshnessError> {
     let tools = build_materializer_tools(repo_root)?;
-    materialize_generated_faces_with_tools(&tools, repo_root)
+    let retirement = effective_retirement_materialization(repo_root, None);
+    materialize_generated_faces_with_tools(&tools, repo_root, retirement.as_ref())
+}
+
+pub fn materialize_generated_faces_from_args(
+    args: &MaterializeGeneratedFacesArgs,
+) -> Result<(), FreshnessError> {
+    let tools = build_materializer_tools(&args.repo_root)?;
+    let retirement =
+        effective_retirement_materialization(&args.repo_root, args.retirement.as_ref());
+    materialize_generated_faces_with_tools(&tools, &args.repo_root, retirement.as_ref())
+}
+
+fn effective_retirement_materialization(
+    _repo_root: &Path,
+    explicit: Option<&RetirementMaterializeArgs>,
+) -> Option<RetirementMaterializeArgs> {
+    // The protected base is an admission fact, not a graph heuristic. In particular, HEAD^1 on a
+    // normal multi-commit PR is an earlier candidate commit, not the protected branch. The
+    // producer workflow supplies event-bound, verified OIDs; any caller without that transport
+    // must leave retirement facts absent rather than materializing a misleading dormant receipt.
+    explicit.cloned()
 }
 
 fn materialize_generated_faces_with_tools(
     tools: &MaterializerTools,
     repo_root: &Path,
+    retirement: Option<&RetirementMaterializeArgs>,
 ) -> Result<(), FreshnessError> {
     materialize_move_manifest(tools, repo_root)?;
     let scm_facts = repo_root.join(FACES_DIR).join(SCM_FACTS_FACE);
-    emit_materialized_scm_facts(tools, repo_root, &scm_facts)?;
+    emit_materialized_scm_facts(tools, repo_root, &scm_facts, retirement)?;
     emit_adr_census_parent_receipt(
         &tools.emitter,
         repo_root,
@@ -395,6 +433,7 @@ fn materialize_generated_faces_with_tools(
     append_enforcement_liveness_corpus_args(&mut command, &tools.enforcement_liveness_corpus);
     command.current_dir(repo_root);
     run_status(&mut command, "materialize generated accounting faces")?;
+    materialize_active_artifact_contract_graph(tools, repo_root)?;
     materialize_masterplan_projection(tools, repo_root)?;
     materialize_board_sync_projection(repo_root)?;
     materialize_masterplan_md_projection(repo_root)?;
@@ -405,6 +444,10 @@ pub fn parse_materialize_generated_faces_args(
     args: Vec<String>,
 ) -> Result<MaterializeGeneratedFacesArgs, FreshnessError> {
     let mut repo_root = PathBuf::from(".");
+    let mut retirement_control_plane: Option<String> = None;
+    let mut retirement_facts_out: Option<PathBuf> = None;
+    let mut protected_base_commit: Option<String> = None;
+    let mut candidate_commit: Option<String> = None;
     let mut iter = args.into_iter();
     while let Some(arg) = iter.next() {
         match arg.as_str() {
@@ -415,6 +458,38 @@ pub fn parse_materialize_generated_faces_args(
                     ));
                 };
                 repo_root = PathBuf::from(value);
+            }
+            "--retirement-control-plane" => {
+                let Some(value) = iter.next() else {
+                    return Err(FreshnessError::new(
+                        "materialize generated faces: --retirement-control-plane requires a repo-relative path",
+                    ));
+                };
+                retirement_control_plane = Some(value);
+            }
+            "--retirement-facts-out" => {
+                let Some(value) = iter.next() else {
+                    return Err(FreshnessError::new(
+                        "materialize generated faces: --retirement-facts-out requires a path",
+                    ));
+                };
+                retirement_facts_out = Some(PathBuf::from(value));
+            }
+            "--protected-base-commit" => {
+                let Some(value) = iter.next() else {
+                    return Err(FreshnessError::new(
+                        "materialize generated faces: --protected-base-commit requires a commit oid",
+                    ));
+                };
+                protected_base_commit = Some(value);
+            }
+            "--candidate-commit" => {
+                let Some(value) = iter.next() else {
+                    return Err(FreshnessError::new(
+                        "materialize generated faces: --candidate-commit requires a commit oid",
+                    ));
+                };
+                candidate_commit = Some(value);
             }
             "--help" | "-h" => {
                 return Err(FreshnessError::new(materialize_generated_faces_usage()));
@@ -427,11 +502,54 @@ pub fn parse_materialize_generated_faces_args(
             }
         }
     }
-    Ok(MaterializeGeneratedFacesArgs { repo_root })
+    let retirement = match (
+        retirement_control_plane,
+        retirement_facts_out,
+        protected_base_commit,
+        candidate_commit,
+    ) {
+        (
+            Some(control_plane_path),
+            Some(facts_out),
+            Some(protected_base_commit),
+            Some(candidate_commit),
+        ) => {
+            if control_plane_path != RETIREMENT_CONTROL_PLANE_PATH {
+                return Err(FreshnessError::new(
+                    "materialize generated faces: retirement control-plane path is not canonical",
+                ));
+            }
+            if facts_out.as_path() != Path::new(RETIREMENT_FACTS_PATH) {
+                return Err(FreshnessError::new(
+                    "materialize generated faces: retirement facts output path is not canonical",
+                ));
+            }
+            Some(RetirementMaterializeArgs {
+                control_plane_path,
+                facts_out,
+                protected_base_commit,
+                candidate_commit,
+            })
+        }
+        (None, None, None, None) => None,
+        _ => {
+            return Err(FreshnessError::new(
+                "materialize generated faces: --retirement-control-plane, \
+                 --retirement-facts-out, --protected-base-commit, and --candidate-commit \
+                 are all-or-none",
+            ));
+        }
+    };
+    Ok(MaterializeGeneratedFacesArgs {
+        repo_root,
+        retirement,
+    })
 }
 
 pub fn materialize_generated_faces_usage() -> &'static str {
-    "usage: oya-cloud-ci-materialize-generated-faces [--repo-root <path>]"
+    "usage: oya-cloud-ci-materialize-generated-faces [--repo-root <path>] \
+     [--retirement-control-plane <repo-relative-path> --retirement-facts-out <path> \
+     --protected-base-commit <oid> --candidate-commit <oid>]"
 }
 
 pub fn parse_face_settle_args(args: Vec<String>) -> Result<FaceSettleArgs, FreshnessError> {
@@ -1145,6 +1263,7 @@ fn regenerate_all_faces(
         &tools.emitter,
         repo_root,
     )?);
+    regenerated.push(regenerate_active_artifact_contract_graph(tools, repo_root)?);
     regenerated.extend(regenerate_architecture_projection_faces(tools, repo_root)?);
     regenerated.sort_by(|left, right| left.0.cmp(&right.0));
     Ok(regenerated)
@@ -1179,6 +1298,101 @@ fn emit_adr_census_parent_receipt(
             .current_dir(repo_root),
         "materialize fixed historical ADR census receipt",
     )
+}
+
+fn regenerate_active_artifact_contract_graph(
+    tools: &FaceTools,
+    repo_root: &Path,
+) -> Result<(String, String), FreshnessError> {
+    let output = temporary_active_artifact_contract_graph_path();
+    let cleanup = TempFileCleanup {
+        path: output.clone(),
+    };
+    run_status(
+        Command::new(&tools.masterplan_generator)
+            .args(["gate", "validate", "active-artifact-contract"])
+            .arg("--emit-graph-edges")
+            .arg(&output)
+            .current_dir(repo_root),
+        "regenerate active-artifact-contract graph",
+    )?;
+    let bytes = read_to_string(&output)?;
+    validate_active_artifact_contract_graph(&bytes)?;
+    drop(cleanup);
+    Ok((ACTIVE_ARTIFACT_CONTRACT_GRAPH_FACE.to_owned(), bytes))
+}
+
+fn validate_active_artifact_contract_graph(source: &str) -> Result<(), FreshnessError> {
+    let graph: serde_json::Value = serde_json::from_str(source).map_err(|error| {
+        FreshnessError::new(format!(
+            "parse regenerated active-artifact-contract graph: {error}"
+        ))
+    })?;
+    let graph = graph.as_object().ok_or_else(|| {
+        FreshnessError::new("regenerated active-artifact-contract graph must be a JSON object")
+    })?;
+    if graph.get("$schema_ref").and_then(serde_json::Value::as_str)
+        != Some("specs/knowledge-graph-schema.json")
+    {
+        return Err(FreshnessError::new(
+            "regenerated active-artifact-contract graph has unexpected $schema_ref",
+        ));
+    }
+    if graph
+        .get("_artifact_id")
+        .and_then(serde_json::Value::as_str)
+        != Some("active-artifact-contract-edges")
+    {
+        return Err(FreshnessError::new(
+            "regenerated active-artifact-contract graph has unexpected _artifact_id",
+        ));
+    }
+    let edges = graph
+        .get("edges")
+        .and_then(serde_json::Value::as_array)
+        .ok_or_else(|| {
+            FreshnessError::new("regenerated active-artifact-contract graph edges must be an array")
+        })?;
+    for (index, edge) in edges.iter().enumerate() {
+        let edge = edge.as_object().ok_or_else(|| {
+            FreshnessError::new(format!(
+                "regenerated active-artifact-contract graph edge {index} must be an object"
+            ))
+        })?;
+        if edge.len() != 3
+            || !edge.contains_key("source")
+            || !edge.contains_key("target")
+            || !edge.contains_key("edge_type")
+        {
+            return Err(FreshnessError::new(format!(
+                "regenerated active-artifact-contract graph edge {index} must contain exactly source, target, and edge_type"
+            )));
+        }
+        if edge
+            .get("source")
+            .and_then(serde_json::Value::as_str)
+            .is_none()
+        {
+            return Err(FreshnessError::new(format!(
+                "regenerated active-artifact-contract graph edge {index} source must be a string"
+            )));
+        }
+        if edge
+            .get("target")
+            .and_then(serde_json::Value::as_str)
+            .is_none()
+        {
+            return Err(FreshnessError::new(format!(
+                "regenerated active-artifact-contract graph edge {index} target must be a string"
+            )));
+        }
+        if edge.get("edge_type").and_then(serde_json::Value::as_str) != Some("declares") {
+            return Err(FreshnessError::new(format!(
+                "regenerated active-artifact-contract graph edge {index} edge_type must be declares"
+            )));
+        }
+    }
+    Ok(())
 }
 
 fn regenerate_architecture_projection_faces(
@@ -1576,6 +1790,7 @@ fn emit_materialized_scm_facts(
     tools: &MaterializerTools,
     repo_root: &Path,
     scm_facts: &Path,
+    retirement: Option<&RetirementMaterializeArgs>,
 ) -> Result<(), FreshnessError> {
     // Phase 1: publish the merge-base sha (the emitter owns it — the single git boundary — and the
     // materializer materializes EXACTLY that source tree, never recomputing it). This same call
@@ -1584,17 +1799,20 @@ fn emit_materialized_scm_facts(
     let merge_base_cleanup = TempFileCleanup {
         path: merge_base_file.clone(),
     };
+    let mut candidate_emission = Command::new(&tools.emitter);
+    candidate_emission
+        .args(["--repo-root"])
+        .arg(repo_root)
+        .args(["--out"])
+        .arg(scm_facts)
+        .arg("--merge-base-baseline")
+        .args(["--merge-base-out"])
+        .arg(&merge_base_file);
+    append_retirement_materialization_args(&mut candidate_emission, retirement);
+    candidate_emission.current_dir(repo_root);
     run_status(
-        Command::new(&tools.emitter)
-            .args(["--repo-root"])
-            .arg(repo_root)
-            .args(["--out"])
-            .arg(scm_facts)
-            .arg("--merge-base-baseline")
-            .args(["--merge-base-out"])
-            .arg(&merge_base_file)
-            .current_dir(repo_root),
-        "publish merge-base for frozen-baseline regeneration",
+        &mut candidate_emission,
+        "publish merge-base and candidate retirement facts for frozen-baseline regeneration",
     )?;
     let merge_base = read_merge_base(&merge_base_file)?;
 
@@ -1653,6 +1871,20 @@ fn emit_materialized_scm_facts(
     drop(worktree_cleanup);
     drop(merge_base_cleanup);
     Ok(())
+}
+
+fn append_retirement_materialization_args(
+    command: &mut Command,
+    retirement: Option<&RetirementMaterializeArgs>,
+) {
+    if let Some(retirement) = retirement {
+        command
+            .args(["--retirement-control-plane", &retirement.control_plane_path])
+            .args(["--retirement-facts-out"])
+            .arg(&retirement.facts_out)
+            .args(["--protected-base-commit", &retirement.protected_base_commit])
+            .args(["--candidate-commit", &retirement.candidate_commit]);
+    }
 }
 
 /// Validate + read the merge-base sha the emitter published.
@@ -1769,6 +2001,23 @@ fn materialize_masterplan_projection(
             .current_dir(repo_root),
         "materialize masterplan projection",
     )
+}
+
+fn materialize_active_artifact_contract_graph(
+    tools: &MaterializerTools,
+    repo_root: &Path,
+) -> Result<(), FreshnessError> {
+    let output_path = repo_root.join(ACTIVE_ARTIFACT_CONTRACT_GRAPH_PATH);
+    run_status(
+        Command::new(&tools.masterplan_generator)
+            .args(["gate", "validate", "active-artifact-contract"])
+            .arg("--emit-graph-edges")
+            .arg(&output_path)
+            .current_dir(repo_root),
+        "materialize active-artifact-contract graph",
+    )?;
+    let graph = read_to_string(&output_path)?;
+    validate_active_artifact_contract_graph(&graph)
 }
 
 fn materialize_board_sync_projection(repo_root: &Path) -> Result<(), FreshnessError> {
@@ -1986,6 +2235,17 @@ fn temporary_adr_census_parent_receipt_path() -> PathBuf {
     };
     std::env::temp_dir().join(format!(
         "oya-ci-freshness-adr-census-parent-receipt-{}-{nanos}.generated.json",
+        std::process::id()
+    ))
+}
+
+fn temporary_active_artifact_contract_graph_path() -> PathBuf {
+    let nanos = match SystemTime::now().duration_since(UNIX_EPOCH) {
+        Ok(duration) => duration.as_nanos(),
+        Err(_) => 0,
+    };
+    std::env::temp_dir().join(format!(
+        "oya-ci-freshness-active-artifact-contract-{}-{nanos}.json",
         std::process::id()
     ))
 }
@@ -2315,6 +2575,7 @@ mod materialize_generated_faces_tests {
             .expect("empty args should use repository root default");
 
         assert_eq!(parsed.repo_root, PathBuf::from("."));
+        assert_eq!(parsed.retirement, None);
     }
 
     #[test]
@@ -2326,6 +2587,82 @@ mod materialize_generated_faces_tests {
         .expect("parse explicit repository root");
 
         assert_eq!(parsed.repo_root, PathBuf::from("/tmp/oyatie"));
+        assert_eq!(parsed.retirement, None);
+    }
+
+    #[test]
+    fn parse_materialize_generated_faces_args_accepts_exact_retirement_transport() {
+        let parsed = parse_materialize_generated_faces_args(vec![
+            "--retirement-control-plane".to_owned(),
+            "registry/history-only-retirement-control-plane.json".to_owned(),
+            "--retirement-facts-out".to_owned(),
+            "ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json".to_owned(),
+            "--protected-base-commit".to_owned(),
+            "1111111111111111111111111111111111111111".to_owned(),
+            "--candidate-commit".to_owned(),
+            "2222222222222222222222222222222222222222".to_owned(),
+        ])
+        .expect("parse exact retirement transport");
+
+        assert_eq!(
+            parsed.retirement,
+            Some(RetirementMaterializeArgs {
+                control_plane_path: "registry/history-only-retirement-control-plane.json"
+                    .to_owned(),
+                facts_out: PathBuf::from(
+                    "ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json",
+                ),
+                protected_base_commit: "1111111111111111111111111111111111111111".to_owned(),
+                candidate_commit: "2222222222222222222222222222222222222222".to_owned(),
+            })
+        );
+    }
+
+    #[test]
+    fn parse_materialize_generated_faces_args_rejects_partial_retirement_transport() {
+        let error = parse_materialize_generated_faces_args(vec![
+            "--retirement-control-plane".to_owned(),
+            "registry/history-only-retirement-control-plane.json".to_owned(),
+        ])
+        .expect_err("partial retirement transport must fail closed");
+
+        assert!(error.to_string().contains("all-or-none"));
+    }
+
+    #[test]
+    fn retirement_transport_is_appended_only_when_explicit() {
+        let retirement = RetirementMaterializeArgs {
+            control_plane_path: "registry/history-only-retirement-control-plane.json".to_owned(),
+            facts_out: PathBuf::from(
+                "ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json",
+            ),
+            protected_base_commit: "1111111111111111111111111111111111111111".to_owned(),
+            candidate_commit: "2222222222222222222222222222222222222222".to_owned(),
+        };
+        let mut candidate = Command::new("emitter");
+        append_retirement_materialization_args(&mut candidate, Some(&retirement));
+        let candidate_args = candidate
+            .get_args()
+            .map(|arg| arg.to_string_lossy().into_owned())
+            .collect::<Vec<_>>();
+        assert!(candidate_args.contains(&"--retirement-control-plane".to_owned()));
+        assert!(candidate_args.contains(&retirement.candidate_commit));
+
+        let mut frozen = Command::new("emitter");
+        append_retirement_materialization_args(&mut frozen, None);
+        assert_eq!(frozen.get_args().count(), 0);
+    }
+
+    #[test]
+    fn multi_commit_local_materialization_does_not_infer_head_parent_as_protected_base() {
+        let root = temp_root("retirement-auto-materialization");
+        std::fs::create_dir_all(root.join("registry")).expect("create registry");
+        std::fs::write(root.join(RETIREMENT_CONTROL_PLANE_PATH), "{}")
+            .expect("write control-plane marker");
+
+        // A control-plane file may be present in a normal multi-commit contributor checkout.
+        // That topology has no event-bound protected base, and must never turn HEAD^1 into one.
+        assert_eq!(effective_retirement_materialization(&root, None), None);
     }
 
     #[test]
@@ -2467,7 +2804,7 @@ root//tools/hooks:top-level-hook-scripts buck-out/v2/gen/tools/hooks/__top-level
     }
 
     #[test]
-    fn architecture_projection_faces_are_controller_owned_not_pr_owned_face_paths() {
+    fn controller_projection_faces_are_not_pr_owned_face_paths() {
         let root = temp_root("oya-product-graph-controller-owned");
         std::fs::create_dir_all(root.join("registry")).expect("create registry dir");
         std::fs::write(
@@ -2493,6 +2830,10 @@ root//tools/hooks:top-level-hook-scripts buck-out/v2/gen/tools/hooks/__top-level
                     {
                         "path": "elsewhere/product-graph.html",
                         "materialization_mode": MAIN_BRANCH_MATERIALIZED_MODE
+                    },
+                    {
+                        "path": ACTIVE_ARTIFACT_CONTRACT_GRAPH_PATH,
+                        "materialization_mode": NOT_TRACKED_IN_GIT_MODE
                     }
                 ]
             })
@@ -2508,6 +2849,7 @@ root//tools/hooks:top-level-hook-scripts buck-out/v2/gen/tools/hooks/__top-level
         assert!(non_pr_owned.contains(MASTERPLAN_PROJECTION_FACE));
         assert!(non_pr_owned.contains(BOARD_SYNC_PROJECTION_FACE));
         assert!(non_pr_owned.contains(ARCHITECTURE_PRODUCT_GRAPH_FACE));
+        assert!(non_pr_owned.contains(ACTIVE_ARTIFACT_CONTRACT_GRAPH_FACE));
         assert!(!generated_paths.contains(&MASTERPLAN_PROJECTION_PATH.to_owned()));
         assert!(
             !generated_paths.contains(&format!("{FACES_DIR}/{ADR_CENSUS_PARENT_RECEIPT_FACE}"))
@@ -2515,6 +2857,53 @@ root//tools/hooks:top-level-hook-scripts buck-out/v2/gen/tools/hooks/__top-level
         assert!(!generated_paths.contains(&ARCHITECTURE_PRODUCT_GRAPH_PATH.to_owned()));
         assert!(!pr_owned_paths.contains(&MASTERPLAN_PROJECTION_PATH.to_owned()));
         assert!(!pr_owned_paths.contains(&ARCHITECTURE_PRODUCT_GRAPH_PATH.to_owned()));
+    }
+
+    #[test]
+    fn active_artifact_contract_graph_validation_rejects_malformed_json() {
+        let malformed = "{\"$schema_ref\":\"specs/knowledge-graph-schema.json\",\"_artifact_id\":\"active-artifact-contract-edges\",\"edges\":[{\"source\":\"control\u{000b}character\",\"target\":\"schema\",\"edge_type\":\"declares\"}]}";
+
+        let error = validate_active_artifact_contract_graph(malformed).unwrap_err();
+
+        assert!(
+            error
+                .to_string()
+                .contains("parse regenerated active-artifact-contract graph")
+        );
+    }
+
+    #[test]
+    fn active_artifact_contract_graph_validation_rejects_invalid_edge_shape() {
+        let invalid = serde_json::json!({
+            "$schema_ref": "specs/knowledge-graph-schema.json",
+            "_artifact_id": "active-artifact-contract-edges",
+            "edges": [{
+                "source": 42,
+                "target": "schema",
+                "edge_type": "declares"
+            }]
+        })
+        .to_string();
+
+        let error = validate_active_artifact_contract_graph(&invalid).unwrap_err();
+
+        assert!(error.to_string().contains("edge 0 source must be a string"));
+    }
+
+    #[test]
+    fn active_artifact_contract_graph_validation_accepts_escaped_control_characters() {
+        let valid = serde_json::json!({
+            "$schema_ref": "specs/knowledge-graph-schema.json",
+            "_artifact_id": "active-artifact-contract-edges",
+            "edges": [{
+                "source": "control\u{000b}character",
+                "target": "schema",
+                "edge_type": "declares"
+            }]
+        })
+        .to_string();
+
+        validate_active_artifact_contract_graph(&valid).expect("escaped graph is valid");
     }
 
     #[test]
@@ -2647,7 +3036,7 @@ printf 'fresh graph\n' > "$out"
 
     #[cfg(unix)]
     #[test]
-    fn materializer_invokes_architecture_product_graph_generator() {
+    fn materializer_invokes_all_controller_projection_generators() {
         let root = temp_root("oya-materialize-faces");
         std::fs::create_dir_all(root.join("bin")).expect("create bin dir");
         let masterplan = derivable_masterplan();
@@ -2737,13 +3126,23 @@ if [ "$face" = "baseline" ]; then printf '{{"gates":{{}}}}\n'; fi
             &format!(
                 r#"#!/bin/sh
 set -eu
-printf 'masterplan %s\n' "$*" >> "{log_path}"
-test "$#" -eq 3
-test "$1" = "gen"
-test "$2" = "masterplan"
-test "$3" = "--write"
-mkdir -p docs/machine-readable
-printf '{{"milestones":[{{"milestone":"M-test","adrs":[{{"deliverables":[{{"id":"D-1","description":"test","status":"declared"}}]}}]}}],"adr_count":0,"deliverable_count":1,"generator":"test"}}\n' > docs/machine-readable/masterplan.generated.json
+printf 'oya %s\n' "$*" >> "{log_path}"
+if [ "$1" = "gen" ]; then
+  test "$#" -eq 3
+  test "$2" = "masterplan"
+  test "$3" = "--write"
+  mkdir -p docs/machine-readable
+  printf '{{"milestones":[{{"milestone":"M-test","adrs":[{{"deliverables":[{{"id":"D-1","description":"test","status":"declared"}}]}}]}}],"adr_count":0,"deliverable_count":1,"generator":"test"}}\n' > docs/machine-readable/masterplan.generated.json
+elif [ "$1" = "gate" ]; then
+  test "$2" = "validate"
+  test "$3" = "active-artifact-contract"
+  shift 3
+  test "$1" = "--emit-graph-edges"
+  mkdir -p "$(dirname "$2")"
+  printf '{{"$schema_ref":"specs/knowledge-graph-schema.json","_artifact_id":"active-artifact-contract-edges","edges":[]}}\n' > "$2"
+else
+  exit 2
+fi
 "#
             ),
         );
@@ -2781,7 +3180,7 @@ printf 'generated dashboard\n' > docs/architecture/product-graph.html
         // publishes its sha as the merge-base).
         init_git_repo(&root);
 
-        materialize_generated_faces_with_tools(&tools, &root)
+        materialize_generated_faces_with_tools(&tools, &root, None)
             .expect("materialize faces and architecture product graph");
 
         let calls = std::fs::read_to_string(&log).expect("read call log");
@@ -2791,8 +3190,11 @@ printf 'generated dashboard\n' > docs/architecture/product-graph.html
             .find("--adr-census-parent-receipt --adr-census-parent-receipt-out")
             .expect("fixed census receipt call");
         let producer_pos = calls.rfind("producer --repo-root").expect("producer call");
+        let active_graph_pos = calls
+            .find("oya gate validate active-artifact-contract --emit-graph-edges")
+            .expect("active-artifact graph generator call");
         let masterplan_pos = calls
-            .find("masterplan gen masterplan --write")
+            .find("oya gen masterplan --write")
             .expect("masterplan generator call");
         let architecture_pos = calls
             .find("architecture --write")
@@ -2800,8 +3202,14 @@ printf 'generated dashboard\n' > docs/architecture/product-graph.html
         assert!(codemod_pos < emitter_pos);
         assert!(emitter_pos < census_pos);
         assert!(census_pos < producer_pos);
-        assert!(producer_pos < masterplan_pos);
+        assert!(producer_pos < active_graph_pos);
+        assert!(active_graph_pos < masterplan_pos);
         assert!(masterplan_pos < architecture_pos);
+        assert_eq!(
+            std::fs::read_to_string(root.join(ACTIVE_ARTIFACT_CONTRACT_GRAPH_PATH))
+                .expect("active artifact contract graph materialized"),
+            "{\"$schema_ref\":\"specs/knowledge-graph-schema.json\",\"_artifact_id\":\"active-artifact-contract-edges\",\"edges\":[]}\n"
+        );
         assert!(calls.contains(&format!(
             "--enforcement-liveness-claude-settings {}",
             root.join("buck/declared/settings.json").display()
