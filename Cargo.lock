@@ -1280,6 +1280,7 @@ name = "ci-cross-artifact-agreement"
 version = "0.1.0"
 dependencies = [
  "oya-check-adr-index",
+ "serde",
  "serde_json",
  "sha2",
 ]
@@ -1339,6 +1340,7 @@ name = "ci-generated-artifact-freshness"
 version = "0.1.0"
 dependencies = [
  "ci-cross-artifact-agreement",
+ "ci-planning-projection",
  "oya-workspace-members-kernel",
  "serde_json",
  "toml 0.8.23",
@@ -1426,6 +1428,13 @@ dependencies = [
 [[package]]
 name = "ci-path-resolver-ports"
 version = "0.1.0"
+
+[[package]]
+name = "ci-planning-projection"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
 
 [[package]]
 name = "ci-policy-deploy-parity"
@@ -6204,6 +6213,9 @@ version = "0.1.0"
 [[package]]
 name = "oya-check-adr-index"
 version = "0.1.0"
+dependencies = [
+ "corpus-doc-parser",
+]
 
 [[package]]
 name = "oya-check-adr-placeholders"

@@ -20,6 +20,7 @@ path = "src/lib.rs"
 doctest = false
 
 [dependencies]
+serde = { workspace = true }
 serde_json = { workspace = true }
 sha2 = { workspace = true }
 # The ADR-index producer kernel (pure, std-only): gate-coverage check 3/3 invokes

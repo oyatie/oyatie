@@ -1,10 +1,23 @@
 //! Foundry ADR index generation fitness kernel.
+//!
+//! The [`AdrDecisionIr`] renderer in this crate is a dormant foundation, not
+//! the admitted ADR-index production path. The current decision corpus is not
+//! yet fully parseable by the strict IR, and existing consumers still use the
+//! transitional [`AdrDecisionRecord`] adapter. A successfully parsed subset
+//! must never be rendered or described as the authoritative index. Planning
+//! remains on HOLD until corpus population, consumer cutover, projection
+//! parity, and independent admission gates are satisfied.
 // ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::{BTreeMap, BTreeSet};
 
+use corpus_doc_parser::AdrDecisionIr;
+
+/// Transitional projection retained for callers that have not yet adopted the
+/// canonical parser IR. New producers should pass [`AdrDecisionIr`] through
+/// [`generate_adr_index_from_ir`] instead of parsing or assembling this record.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct AdrDecisionRecord {
     pub number: u16,                // data_class: INTERNAL_ONLY
@@ -44,6 +57,40 @@ pub enum AdrIndexError {
     JsonDrift,
 }
 
+/// Render the stable ADR index faces from canonical parsed decisions.
+///
+/// This function performs no filesystem access and no metadata parsing. It
+/// preserves lifecycle spelling and typed relation order from the parser IR.
+/// It is not the live producer while the IR remains dormant: callers must not
+/// pass a parseable subset of the current corpus as though it were complete.
+pub fn generate_adr_index_from_ir<I>(decisions: I) -> Result<AdrIndexArtifacts, AdrIndexError>
+where
+    I: IntoIterator<Item = AdrDecisionIr>,
+{
+    let records = decisions
+        .into_iter()
+        .map(project_ir_record)
+        .collect::<Result<Vec<_>, _>>()?;
+    generate_adr_index(records)
+}
+
+/// Compare current index faces with deterministic rendering of canonical IR.
+pub fn validate_adr_index_from_ir<I>(
+    decisions: I,
+    current_markdown: &str,
+    current_json: &str,
+) -> Result<AdrIndexReport, AdrIndexError>
+where
+    I: IntoIterator<Item = AdrDecisionIr>,
+{
+    let artifacts = generate_adr_index_from_ir(decisions)?;
+    validate_rendered_artifacts(artifacts, current_markdown, current_json)
+}
+
+/// Compatibility renderer for existing record-producing consumers.
+///
+/// Canonical ADR parsing belongs to `corpus-doc-parser`; this adapter remains
+/// compile-compatible while those out-of-crate consumers migrate to the IR.
 pub fn generate_adr_index<I>(records: I) -> Result<AdrIndexArtifacts, AdrIndexError>
 where
     I: IntoIterator<Item = AdrDecisionRecord>,
@@ -77,6 +124,14 @@ where
     I: IntoIterator<Item = AdrDecisionRecord>,
 {
     let artifacts = generate_adr_index(records)?;
+    validate_rendered_artifacts(artifacts, current_markdown, current_json)
+}
+
+fn validate_rendered_artifacts(
+    artifacts: AdrIndexArtifacts,
+    current_markdown: &str,
+    current_json: &str,
+) -> Result<AdrIndexReport, AdrIndexError> {
     if normalize_text(current_markdown) != normalize_text(&artifacts.markdown) {
         return Err(AdrIndexError::MarkdownDrift);
     }
@@ -84,6 +139,34 @@ where
         return Err(AdrIndexError::JsonDrift);
     }
     Ok(artifacts.report)
+}
+
+fn project_ir_record(decision: AdrDecisionIr) -> Result<AdrDecisionRecord, AdrIndexError> {
+    let Some(index_path) = decision.source_path().strip_prefix("docs/") else {
+        return Err(AdrIndexError::InvalidRecord {
+            id: decision.id().as_str().to_owned(),
+            reason: "canonical IR source path must start with docs/".to_owned(),
+        });
+    };
+    Ok(AdrDecisionRecord {
+        number: decision.id().number(),
+        id: decision.id().as_str().to_owned(),
+        title: decision.title().to_owned(),
+        status: decision.status().to_owned(),
+        owner: decision.owner().to_owned(),
+        date: decision.date().to_owned(),
+        path: index_path.to_owned(),
+        supersedes: relation_ids(decision.supersedes()),
+        superseded_by: relation_ids(decision.superseded_by()),
+        related: relation_ids(decision.related()),
+    })
+}
+
+fn relation_ids(references: &[corpus_doc_parser::AdrReference]) -> Vec<String> {
+    references
+        .iter()
+        .map(|reference| reference.id().as_str().to_owned())
+        .collect()
 }
 
 fn normalized_records<I>(records: I) -> Result<Vec<AdrDecisionRecord>, AdrIndexError>
@@ -608,5 +691,71 @@ mod tests {
             superseded_by: vec![],
             related: vec![],
         }
+    }
+}
+
+#[cfg(test)]
+mod adr_ir_contract_tests {
+    use super::*;
+    use corpus_doc_parser::{AdrParseInput, parse_adr_decision};
+
+    fn decision(number: u16, status: &str) -> corpus_doc_parser::AdrDecisionIr {
+        let id = format!("ADR-{number:04}");
+        let source = format!(
+            "---\nid: {id}\nstatus: {status}\ndate: 2026-06-08\nowner: council-architecture\nsupersedes: []\nsuperseded_by: []\namends: []\namended_by: []\ndepends_on: []\nrelated: []\n---\n\n# {id}: Decision {number}\n"
+        );
+        parse_adr_decision(&AdrParseInput::new(
+            format!("docs/decisions/{id}-decision-{number}.md"),
+            source,
+        ))
+        .expect("fixture decision parses")
+    }
+
+    #[test]
+    fn index_is_a_deterministic_renderer_over_canonical_adr_ir() {
+        let first = generate_adr_index_from_ir([decision(2, "Accepted"), decision(1, "Proposed")])
+            .expect("IR renders");
+        let second = generate_adr_index_from_ir([decision(1, "Proposed"), decision(2, "Accepted")])
+            .expect("equivalent IR renders");
+
+        assert_eq!(first, second, "input ordering cannot alter generated bytes");
+        assert!(first.markdown.contains("Proposed 1"));
+        assert!(first.markdown.contains("Accepted 1"));
+        assert!(first.json.contains("\"adr\": \"ADR-0001\""));
+        assert!(first.json.contains("\"adr\": \"ADR-0002\""));
+        assert!(
+            first
+                .json
+                .contains("\"path\": \"decisions/ADR-0001-decision-1.md\"")
+        );
+        assert!(!first.json.contains("\"path\": \"docs/decisions/"));
+    }
+
+    #[test]
+    fn index_preserves_lifecycle_status_spelling_from_ir() {
+        let artifacts =
+            generate_adr_index_from_ir([decision(1, "Accepted (amendment)")]).expect("IR renders");
+
+        assert_eq!(
+            artifacts.report.status_counts.get("Accepted (amendment)"),
+            Some(&1)
+        );
+        assert!(
+            artifacts
+                .json
+                .contains("\"status\": \"Accepted (amendment)\"")
+        );
+    }
+
+    #[test]
+    fn index_validation_compares_current_artifacts_to_ir_rendering() {
+        let records = [decision(1, "Proposed"), decision(3, "Accepted")];
+        let artifacts = generate_adr_index_from_ir(records.clone()).expect("IR renders");
+
+        let report = validate_adr_index_from_ir(records, &artifacts.markdown, &artifacts.json)
+            .expect("matching artifacts validate");
+
+        assert_eq!(report.gaps, ["ADR-0002"]);
+        assert_eq!(report.next_adr, "ADR-0004");
     }
 }
