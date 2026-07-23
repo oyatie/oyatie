@@ -136,7 +136,10 @@ impl std::fmt::Display for CollectError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             CollectError::ResolveMembers(message) => {
-                write!(f, "no-graphql-without-adr resolve workspace members: {message}")
+                write!(
+                    f,
+                    "no-graphql-without-adr resolve workspace members: {message}"
+                )
             }
             CollectError::Io(message) => write!(f, "no-graphql-without-adr io: {message}"),
         }
@@ -229,8 +232,8 @@ pub fn collect_graphql_artifacts(root: &Path, policy: &Value) -> Result<Value, C
         validated_authorizing_adrs(root, policy, forbidding_adr.as_deref())?;
 
     // --- (1) EVERY Cargo.toml in the candidate tree (members AND non-members) ---
-    let member_dirs =
-        resolve_member_dirs(root).map_err(|error| CollectError::ResolveMembers(error.to_string()))?;
+    let member_dirs = resolve_member_dirs(root)
+        .map_err(|error| CollectError::ResolveMembers(error.to_string()))?;
     let members_found = member_dirs.len();
     let root_workspace_deps = read_root_workspace_deps(root)?;
     let mut manifest_paths: Vec<String> = Vec::new();
@@ -243,7 +246,10 @@ pub fn collect_graphql_artifacts(root: &Path, policy: &Value) -> Result<Value, C
             Ok(text) => text,
             Err(ref e) if e.kind() == std::io::ErrorKind::NotFound => continue,
             Err(e) => {
-                return Err(CollectError::Io(format!("read {}: {e}", cargo_path.display())));
+                return Err(CollectError::Io(format!(
+                    "read {}: {e}",
+                    cargo_path.display()
+                )));
             }
         };
         let deps = parse_manifest_dep_names_with_workspace(&text, &root_workspace_deps);
@@ -260,7 +266,14 @@ pub fn collect_graphql_artifacts(root: &Path, policy: &Value) -> Result<Value, C
 
     // --- (2) GraphQL schema files anywhere in the candidate tree ---
     let mut schema_files: Vec<Value> = Vec::new();
-    collect_schema_files(root, root, &exts, &excluded, forbidding_adr.as_deref(), &mut schema_files)?;
+    collect_schema_files(
+        root,
+        root,
+        &exts,
+        &excluded,
+        forbidding_adr.as_deref(),
+        &mut schema_files,
+    )?;
     schema_files.sort_by(|a, b| {
         a.get("path")
             .and_then(Value::as_str)
@@ -307,8 +320,15 @@ fn read_root_workspace_deps(root: &Path) -> Result<WorkspaceDeps, CollectError> 
     let cargo_path = root.join("Cargo.toml");
     let text = match fs::read_to_string(&cargo_path) {
         Ok(text) => text,
-        Err(ref e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(WorkspaceDeps::default()),
-        Err(e) => return Err(CollectError::Io(format!("read {}: {e}", cargo_path.display()))),
+        Err(ref e) if e.kind() == std::io::ErrorKind::NotFound => {
+            return Ok(WorkspaceDeps::default());
+        }
+        Err(e) => {
+            return Err(CollectError::Io(format!(
+                "read {}: {e}",
+                cargo_path.display()
+            )));
+        }
     };
     Ok(parse_root_workspace_deps(&text))
 }
@@ -485,8 +505,9 @@ fn adr_file_reverses_forbidding(
     };
     let prefix = format!("{id}-");
     for entry in entries {
-        let entry = entry
-            .map_err(|e| CollectError::Io(format!("read entry in {}: {e}", decisions_dir.display())))?;
+        let entry = entry.map_err(|e| {
+            CollectError::Io(format!("read entry in {}: {e}", decisions_dir.display()))
+        })?;
         let name = entry.file_name();
         let name = name.to_string_lossy();
         if !(name.starts_with(&prefix) && name.ends_with(".md")) {
@@ -496,7 +517,10 @@ fn adr_file_reverses_forbidding(
             Ok(body) => body,
             Err(ref e) if e.kind() == std::io::ErrorKind::NotFound => continue,
             Err(e) => {
-                return Err(CollectError::Io(format!("read {}: {e}", entry.path().display())));
+                return Err(CollectError::Io(format!(
+                    "read {}: {e}",
+                    entry.path().display()
+                )));
             }
         };
         return Ok(adr_is_accepted_and_reverses(&body, forbidding));
@@ -542,7 +566,8 @@ fn adr_frontmatter_reverses(body: &str, forbidding: &str) -> bool {
             return false;
         }
         // A new top-level key (not indented, ends with `:` or `: value`) resets list context.
-        let is_top_level_key = !line.starts_with(' ') && !line.starts_with('\t') && trimmed.contains(':');
+        let is_top_level_key =
+            !line.starts_with(' ') && !line.starts_with('\t') && trimmed.contains(':');
         if is_top_level_key {
             in_reversal_list = REVERSAL_FIELDS.iter().any(|f| trimmed.starts_with(f));
             // Check for inline scalar: `supersedes: ADR-0565`
@@ -551,7 +576,8 @@ fn adr_frontmatter_reverses(body: &str, forbidding: &str) -> bool {
                 let scalar = trimmed[field_end..].trim();
                 // Strip optional surrounding quotes.
                 let scalar = scalar
-                    .strip_prefix('"').and_then(|s| s.strip_suffix('"'))
+                    .strip_prefix('"')
+                    .and_then(|s| s.strip_suffix('"'))
                     .or_else(|| scalar.strip_prefix('\'').and_then(|s| s.strip_suffix('\'')))
                     .unwrap_or(scalar)
                     .trim();
@@ -566,7 +592,8 @@ fn adr_frontmatter_reverses(body: &str, forbidding: &str) -> bool {
             let item = trimmed.strip_prefix("- ").unwrap_or("").trim();
             // Strip optional quotes.
             let item = item
-                .strip_prefix('"').and_then(|s| s.strip_suffix('"'))
+                .strip_prefix('"')
+                .and_then(|s| s.strip_suffix('"'))
                 .or_else(|| item.strip_prefix('\'').and_then(|s| s.strip_suffix('\'')))
                 .unwrap_or(item)
                 .trim();
@@ -727,8 +754,16 @@ pub fn parse_manifest_dep_names_with_workspace(
     if let Some(targets) = doc.get("target").and_then(toml::Value::as_table) {
         for target_cfg in targets.values() {
             collect_dep_table_names(target_cfg.get("dependencies"), workspace_deps, &mut names);
-            collect_dep_table_names(target_cfg.get("dev-dependencies"), workspace_deps, &mut names);
-            collect_dep_table_names(target_cfg.get("build-dependencies"), workspace_deps, &mut names);
+            collect_dep_table_names(
+                target_cfg.get("dev-dependencies"),
+                workspace_deps,
+                &mut names,
+            );
+            collect_dep_table_names(
+                target_cfg.get("build-dependencies"),
+                workspace_deps,
+                &mut names,
+            );
         }
     }
     names
@@ -761,7 +796,11 @@ fn raw_text_dep_names(text: &str, workspace_deps: &WorkspaceDeps) -> BTreeSet<St
 fn raw_crate_name_words(text: &str) -> impl Iterator<Item = String> + '_ {
     // Split on any character that is NOT alphanumeric, `-`, or `_`.
     text.split(|c: char| !c.is_ascii_alphanumeric() && c != '-' && c != '_')
-        .filter(|s| s.len() >= 2 && s.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'-' || b == b'_'))
+        .filter(|s| {
+            s.len() >= 2
+                && s.bytes()
+                    .all(|b| b.is_ascii_alphanumeric() || b == b'-' || b == b'_')
+        })
         .map(str::to_owned)
 }
 
@@ -807,7 +846,9 @@ fn collect_dep_table_names(
             .and_then(|t| t.get("workspace").and_then(toml::Value::as_bool))
             == Some(true);
         let real = if inherits_workspace {
-            workspace_deps.real_name(dep_key).unwrap_or(dep_key.as_str())
+            workspace_deps
+                .real_name(dep_key)
+                .unwrap_or(dep_key.as_str())
         } else {
             spec_table
                 .and_then(|t| t.get("package").and_then(toml::Value::as_str))
@@ -828,7 +869,12 @@ fn collect_lock_packages(root: &Path, forbidding_adr: Option<&str>) -> Result<Va
         Err(ref e) if e.kind() == std::io::ErrorKind::NotFound => {
             return Ok(json!({ "present": false, "packages": [], "cited_adrs": [] }));
         }
-        Err(e) => return Err(CollectError::Io(format!("read {}: {e}", lock_path.display()))),
+        Err(e) => {
+            return Err(CollectError::Io(format!(
+                "read {}: {e}",
+                lock_path.display()
+            )));
+        }
     };
     let packages = parse_lock_package_names(&text);
     let cited = cited_authorizing_adrs(&text, forbidding_adr);
@@ -869,9 +915,13 @@ fn raw_lock_package_names(text: &str) -> BTreeSet<String> {
     for line in text.lines() {
         let trimmed = line.trim();
         // Match `name = "…"` or `name = '…'`
-        let Some(rest) = trimmed.strip_prefix("name") else { continue; };
+        let Some(rest) = trimmed.strip_prefix("name") else {
+            continue;
+        };
         let rest = rest.trim_start();
-        let Some(rest) = rest.strip_prefix('=') else { continue; };
+        let Some(rest) = rest.strip_prefix('=') else {
+            continue;
+        };
         let rest = rest.trim();
         let value = if let Some(inner) = rest.strip_prefix('"').and_then(|s| s.strip_suffix('"')) {
             inner
@@ -995,7 +1045,10 @@ fn collect_build_graph_schema_globs(
             if line.trim_start().starts_with('#') {
                 continue;
             }
-            if let Some(glob) = forbidden_globs.iter().find(|glob| line.contains(glob.as_str())) {
+            if let Some(glob) = forbidden_globs
+                .iter()
+                .find(|glob| line.contains(glob.as_str()))
+            {
                 out.push(json!({
                     "path": rel_str,
                     "line": line_idx + 1,
@@ -1213,7 +1266,10 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
             .get("path")
             .and_then(Value::as_str)
             .unwrap_or("<unknown-path>");
-        let launders = file.get("cited_adrs").map(&cites_validated).unwrap_or(false);
+        let launders = file
+            .get("cited_adrs")
+            .map(&cites_validated)
+            .unwrap_or(false);
         if launders {
             continue;
         }
@@ -1242,7 +1298,10 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
             .get("glob")
             .and_then(Value::as_str)
             .unwrap_or("**/*.graphql");
-        let launders = entry.get("cited_adrs").map(&cites_validated).unwrap_or(false);
+        let launders = entry
+            .get("cited_adrs")
+            .map(&cites_validated)
+            .unwrap_or(false);
         if launders {
             continue;
         }
@@ -1257,9 +1316,15 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
 
     // --- forbidden GraphQL crates in the resolved Cargo.lock graph (transitive catch) ---
     if let Some(lock) = observed.get("lock") {
-        let present = lock.get("present").and_then(Value::as_bool).unwrap_or(false);
+        let present = lock
+            .get("present")
+            .and_then(Value::as_bool)
+            .unwrap_or(false);
         if present {
-            let lock_launders = lock.get("cited_adrs").map(&cites_validated).unwrap_or(false);
+            let lock_launders = lock
+                .get("cited_adrs")
+                .map(&cites_validated)
+                .unwrap_or(false);
             let packages = lock
                 .get("packages")
                 .and_then(Value::as_array)
@@ -1346,7 +1411,13 @@ mod tests {
 
     /// The full observed shape. `valid` is the set the COLLECTOR validated (allowlist ∩ real
     /// Accepted-reversing ADR); the pure evaluator launders an artifact only if it cites one of these.
-    fn observed_full(members: u64, valid: &[&str], manifests: Value, schema_files: Value, lock: Value) -> Value {
+    fn observed_full(
+        members: u64,
+        valid: &[&str],
+        manifests: Value,
+        schema_files: Value,
+        lock: Value,
+    ) -> Value {
         json!({
             "workspace_members_found": members,
             "valid_authorizing_adrs": valid,
@@ -1358,7 +1429,13 @@ mod tests {
 
     /// Convenience: no validated authorizing ids, no lock packages.
     fn observed(members: u64, manifests: Value, schema_files: Value) -> Value {
-        observed_full(members, &[], manifests, schema_files, json!({"present": false, "packages": [], "cited_adrs": []}))
+        observed_full(
+            members,
+            &[],
+            manifests,
+            schema_files,
+            json!({"present": false, "packages": [], "cited_adrs": []}),
+        )
     }
 
     #[test]
@@ -1374,8 +1451,13 @@ mod tests {
         );
         assert_eq!(report.verdict, Verdict::Green, "clean tree ⇒ green");
         assert!(report.violations.is_empty());
-        assert!(render_findings(&evaluate_keyed(&policy(), &observed(500, json!([]), json!([]))))
-            .contains("passed"));
+        assert!(
+            render_findings(&evaluate_keyed(
+                &policy(),
+                &observed(500, json!([]), json!([]))
+            ))
+            .contains("passed")
+        );
     }
 
     #[test]
@@ -1391,8 +1473,14 @@ mod tests {
             .find(|f| f.code == "NGQL-FORBIDDEN-LIB")
             .unwrap_or_else(|| panic!("async-graphql must be RED: {findings:?}"));
         assert_eq!(f.key, "oya/studio/graphql/Cargo.toml:async-graphql");
-        assert!(f.detail.contains("ADR-0565"), "remediation must name the forbidding ADR: {f:?}");
-        assert!(f.detail.contains("Remove the dependency"), "remediation must say how to fix: {f:?}");
+        assert!(
+            f.detail.contains("ADR-0565"),
+            "remediation must name the forbidding ADR: {f:?}"
+        );
+        assert!(
+            f.detail.contains("Remove the dependency"),
+            "remediation must say how to fix: {f:?}"
+        );
         assert_eq!(evaluate(&policy(), &observed).verdict, Verdict::Red);
     }
 
@@ -1405,7 +1493,9 @@ mod tests {
         );
         let findings = evaluate_keyed(&policy(), &observed);
         assert!(
-            findings.iter().any(|f| f.code == "NGQL-FORBIDDEN-LIB" && f.key.ends_with("apollo-router")),
+            findings
+                .iter()
+                .any(|f| f.code == "NGQL-FORBIDDEN-LIB" && f.key.ends_with("apollo-router")),
             "a prefixed apollo-* crate must be RED: {findings:?}"
         );
     }
@@ -1460,7 +1550,10 @@ mod tests {
             !findings.iter().any(|f| f.code == "NGQL-FORBIDDEN-LIB"),
             "a validated-ADR-cited GraphQL lib must be allowed: {findings:?}"
         );
-        assert_eq!(evaluate(&policy_allowing(&["ADR-0700"]), &observed).verdict, Verdict::Green);
+        assert_eq!(
+            evaluate(&policy_allowing(&["ADR-0700"]), &observed).verdict,
+            Verdict::Green
+        );
     }
 
     #[test]
@@ -1472,7 +1565,10 @@ mod tests {
             json!([{"path": "oya/analytics/contracts/graphql-v2.graphql", "cited_adrs": ["ADR-0700"]}]),
             json!({"present": false, "packages": [], "cited_adrs": []}),
         );
-        assert_eq!(evaluate(&policy_allowing(&["ADR-0700"]), &observed).verdict, Verdict::Green);
+        assert_eq!(
+            evaluate(&policy_allowing(&["ADR-0700"]), &observed).verdict,
+            Verdict::Green
+        );
     }
 
     #[test]
@@ -1514,8 +1610,11 @@ mod tests {
         assert!(cited_authorizing_adrs("see ADR-0565", Some("ADR-0565")).is_empty());
         // Citing a DIFFERENT (reversing) id is collected (but still must be VALIDATED to launder).
         assert!(
-            cited_authorizing_adrs("reintroduced per ADR-0700 reversing ADR-0565", Some("ADR-0565"))
-                .contains("ADR-0700")
+            cited_authorizing_adrs(
+                "reintroduced per ADR-0700 reversing ADR-0565",
+                Some("ADR-0565")
+            )
+            .contains("ADR-0700")
         );
     }
 
@@ -1550,7 +1649,10 @@ mod tests {
             json!([]),
             json!({"present": true, "packages": ["async-graphql"], "cited_adrs": ["ADR-0700"]}),
         );
-        assert_eq!(evaluate(&policy_allowing(&["ADR-0700"]), &observed).verdict, Verdict::Green);
+        assert_eq!(
+            evaluate(&policy_allowing(&["ADR-0700"]), &observed).verdict,
+            Verdict::Green
+        );
     }
 
     #[test]
@@ -1567,7 +1669,11 @@ mod tests {
         let mut p = policy();
         p["gate_id"] = Value::from("wrong-id");
         let findings = evaluate_keyed(&p, &observed(500, json!([]), json!([])));
-        assert!(findings.iter().any(|f| f.code == "NGQL-POLICY-GATE-ID-MISMATCH"));
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.code == "NGQL-POLICY-GATE-ID-MISMATCH")
+        );
     }
 
     #[test]
@@ -1607,7 +1713,10 @@ cynic = "3"
 "#;
         let names = parse_manifest_dep_names(manifest);
         // The rename is denied on the REAL crate name.
-        assert!(names.contains("async-graphql"), "rename must resolve to real name: {names:?}");
+        assert!(
+            names.contains("async-graphql"),
+            "rename must resolve to real name: {names:?}"
+        );
         assert!(names.contains("juniper"));
         assert!(names.contains("graphql-parser"));
         assert!(names.contains("cynic"));
@@ -1641,7 +1750,10 @@ serde = { workspace = true }
             "{{ workspace = true }} on a renamed workspace dep must resolve to the real name: {names:?}"
         );
         assert!(names.contains("serde"));
-        assert!(!names.contains("gqlrt"), "the workspace rename key must NOT be denied on: {names:?}");
+        assert!(
+            !names.contains("gqlrt"),
+            "the workspace rename key must NOT be denied on: {names:?}"
+        );
     }
 
     #[test]
@@ -1708,7 +1820,10 @@ version = "7.0.0"
         // `ADR-05650` (a typo of the forbidding ADR-0565) is a DIFFERENT id; it is collected as a
         // citation but is not in the validated set, so it cannot launder.
         let cited = cited_authorizing_adrs("authorized per ADR-05650", Some("ADR-0565"));
-        assert!(cited.contains("ADR-05650"), "the typo is a distinct citation: {cited:?}");
+        assert!(
+            cited.contains("ADR-05650"),
+            "the typo is a distinct citation: {cited:?}"
+        );
         let observed = observed(
             500,
             json!([{"member_path": "cloud/gw", "deps": ["async-graphql"], "cited_adrs": ["ADR-05650"]}]),
@@ -1728,8 +1843,10 @@ version = "7.0.0"
             json!([{"member_path": "a", "deps": ["juniper"], "cited_adrs": []}]),
             json!([{"path": "b.graphql", "cited_adrs": []}]),
         );
-        let projected: BTreeSet<String> =
-            evaluate_keyed(&policy(), &obs).into_iter().map(|f| f.code).collect();
+        let projected: BTreeSet<String> = evaluate_keyed(&policy(), &obs)
+            .into_iter()
+            .map(|f| f.code)
+            .collect();
         assert_eq!(evaluate(&policy(), &obs).violations, projected);
     }
 
@@ -1776,7 +1893,8 @@ version = "7.0.0"
     #[test]
     fn malformed_lock_without_forbidden_crate_is_green() {
         // Fix 1 GREEN: a Cargo.lock that fails to parse but has no forbidden crate name must remain GREEN.
-        let malformed = "version = BROKEN\n\n[[package]]\nname = \"serde\"\nversion = \"1.0.0\"\n[[BROKEN\n";
+        let malformed =
+            "version = BROKEN\n\n[[package]]\nname = \"serde\"\nversion = \"1.0.0\"\n[[BROKEN\n";
         let names = parse_lock_package_names(malformed);
         assert!(
             !names.contains("async-graphql"),
@@ -1831,7 +1949,10 @@ version = "7.0.0"
     fn status_accepted_case_insensitive_validates() {
         // Case-insensitive: `status: accepted` (lowercase) must validate.
         let body = "---\nid: ADR-0700\nstatus: accepted\n---\n";
-        assert!(adr_status_is_accepted(body), "lowercase 'accepted' must validate");
+        assert!(
+            adr_status_is_accepted(body),
+            "lowercase 'accepted' must validate"
+        );
     }
 
     // --- Fix 4: adr_is_accepted_and_reverses requires structural supersedes in frontmatter ---
@@ -1862,28 +1983,40 @@ version = "7.0.0"
     fn frontmatter_supersedes_list_validates() {
         // Fix 4 GREEN: frontmatter `supersedes:\n  - ADR-0565` validates correctly.
         let body = "---\nid: ADR-0700\nstatus: Accepted\nsupersedes:\n  - ADR-0565\n---\n";
-        assert!(adr_is_accepted_and_reverses(body, "ADR-0565"), "supersedes list must validate");
+        assert!(
+            adr_is_accepted_and_reverses(body, "ADR-0565"),
+            "supersedes list must validate"
+        );
     }
 
     #[test]
     fn frontmatter_amends_field_validates() {
         // Fix 4 GREEN: `amends: ADR-0565` (inline scalar) validates.
         let body = "---\nid: ADR-0700\nstatus: Accepted\namends: ADR-0565\n---\n";
-        assert!(adr_is_accepted_and_reverses(body, "ADR-0565"), "amends scalar must validate");
+        assert!(
+            adr_is_accepted_and_reverses(body, "ADR-0565"),
+            "amends scalar must validate"
+        );
     }
 
     #[test]
     fn frontmatter_reverses_field_validates() {
         // Fix 4 GREEN: `reverses:\n  - ADR-0565` validates.
         let body = "---\nid: ADR-0700\nstatus: Accepted\nreverses:\n  - ADR-0565\n---\n";
-        assert!(adr_is_accepted_and_reverses(body, "ADR-0565"), "reverses list must validate");
+        assert!(
+            adr_is_accepted_and_reverses(body, "ADR-0565"),
+            "reverses list must validate"
+        );
     }
 
     #[test]
     fn frontmatter_supersedes_inline_scalar_validates() {
         // Fix 4 GREEN: `supersedes: ADR-0565` (inline scalar, no list) validates.
         let body = "---\nid: ADR-0700\nstatus: Accepted\nsupersedes: ADR-0565\n---\n";
-        assert!(adr_is_accepted_and_reverses(body, "ADR-0565"), "supersedes inline scalar must validate");
+        assert!(
+            adr_is_accepted_and_reverses(body, "ADR-0565"),
+            "supersedes inline scalar must validate"
+        );
     }
 
     #[test]
