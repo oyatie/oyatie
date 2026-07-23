@@ -156,7 +156,7 @@ jobs:
           - { crate: workspace-member-coverage, label: "gate: workspace-glob-coverage (ADR-0538)" }
           - { crate: build-target-parity,           label: "gate · target-parity (ADR-0540, test-wiring false-green)" }
           - { crate: hook-wiring,    label: "gate · enforcement-liveness (FRIC-012, hook mirror liveness)" }
-          - { crate: action-item-accounting, targets: "//ci/facade/action-item-accounting:fixuptask-v2-admission", label: "gate · FixupTask v2 durable admission (ADR-0621, protected registry digest)" }
+          - { crate: action-item-accounting, targets: "//ci/facade/action-item-accounting:fixuptask-v2-admission //ci/facade/action-item-accounting:fixuptask-v2-materialized-gate //ci/facade/action-item-accounting:fixuptask-v2-source-boundary", label: "gate · FixupTask v2 durable admission (ADR-0621, protected registry digest)" }
           - { crate: action-item-accounting, targets: "//ci/facade/action-item-accounting:legacy-friction-adapter", label: "gate · legacy friction adapter (transitional predecessor accounting)" }
           - { crate: canonical-json,          label: "gate · canonical-json (ADR-0546, deterministic JSON serialization)" }
           - { crate: parity-claim-evidence, label: "gate · hyperscaler-parity-taxonomy (cloud hyperscaler parity taxonomy, born-blocking)" }

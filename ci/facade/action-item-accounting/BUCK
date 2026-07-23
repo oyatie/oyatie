@@ -38,6 +38,20 @@ rust_test(
     ],
 )
 
+# Executes the durable filesystem adapter against the registry and protected facts materialized in
+# the CI workspace. The pure target above remains the independently removable kernel boundary.
+rust_test(
+    name = "fixuptask-v2-materialized-gate",
+    srcs = ["tests/fixuptask_v2_admission.rs"],
+    crate = "ci_fixuptask_v2_materialized_gate",
+    crate_root = "tests/fixuptask_v2_admission.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-action-item-accounting",
+        "third-party//:serde_json",
+    ],
+)
+
 # Regression guard for the target's explicit, independently removable source boundary.
 rust_test(
     name = "fixuptask-v2-source-boundary",

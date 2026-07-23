@@ -515,155 +515,12 @@ pub fn evaluate(policy: &Value, observed: &Value) -> Report {
     Report::from_findings(&evaluate_keyed(policy, observed))
 }
 
-/// The canonical v2 row contract. The evaluator parses this embedded JSON Schema rather than
-/// duplicating its required fields or lifecycle conditionals in Rust. Keep the schema and gate in
-/// the same crate so a changed schema cannot silently weaken admission.
-const FIXUPTASK_V2_SCHEMA: &str = include_str!("../fixuptask-v2-schema.json");
-
-#[derive(Debug)]
-struct FixupTaskV2Contract {
-    required: BTreeSet<String>,
-    properties: BTreeSet<String>,
-    statuses: BTreeSet<String>,
-    conditionals: BTreeMap<String, BTreeSet<String>>,
-    date_time_fields: BTreeSet<String>,
-}
-
-fn fixuptask_v2_contract() -> Result<FixupTaskV2Contract, String> {
-    let schema: Value = serde_json::from_str(FIXUPTASK_V2_SCHEMA)
-        .map_err(|error| format!("embedded FixupTask v2 schema is invalid JSON: {error}"))?;
-    if schema.get("additionalProperties").and_then(Value::as_bool) != Some(false) {
-        return Err("FixupTask v2 schema must close candidate row properties".to_owned());
-    }
-    let strings = |value: Option<&Value>, label: &str| -> Result<BTreeSet<String>, String> {
-        value
-            .and_then(Value::as_array)
-            .ok_or_else(|| format!("FixupTask v2 schema {label} must be an array"))?
-            .iter()
-            .map(|item| {
-                item.as_str()
-                    .filter(|value| !value.is_empty())
-                    .map(str::to_owned)
-                    .ok_or_else(|| format!("FixupTask v2 schema {label} contains non-string"))
-            })
-            .collect()
-    };
-    let required = strings(schema.get("required"), "required")?;
-    let properties_object = schema
-        .get("properties")
-        .and_then(Value::as_object)
-        .ok_or_else(|| "FixupTask v2 schema properties must be an object".to_owned())?;
-    let properties = properties_object.keys().cloned().collect();
-    if !required.is_subset(&properties) {
-        return Err("FixupTask v2 schema required field is not a declared property".to_owned());
-    }
-    let date_time_fields = properties_object
-        .iter()
-        .filter_map(|(field, definition)| {
-            (definition.get("format").and_then(Value::as_str) == Some("date-time"))
-                .then_some(field.clone())
-        })
-        .collect();
-    let statuses = strings(
-        schema
-            .get("properties")
-            .and_then(|value| value.get("status"))
-            .and_then(|value| value.get("enum")),
-        "properties.status.enum",
-    )?;
-    let mut conditionals = BTreeMap::new();
-    for conditional in schema
-        .get("allOf")
-        .and_then(Value::as_array)
-        .ok_or_else(|| "FixupTask v2 schema allOf must be an array".to_owned())?
-    {
-        let status = conditional
-            .get("if")
-            .and_then(|value| value.get("properties"))
-            .and_then(|value| value.get("status"))
-            .and_then(|value| value.get("const"))
-            .and_then(Value::as_str)
-            .ok_or_else(|| "FixupTask v2 lifecycle condition must select status".to_owned())?;
-        let fields = strings(
-            conditional
-                .get("then")
-                .and_then(|value| value.get("required")),
-            "lifecycle then.required",
-        )?;
-        if !fields.is_subset(&properties) {
-            return Err("FixupTask v2 lifecycle field is not a declared property".to_owned());
-        }
-        conditionals.insert(status.to_owned(), fields);
-    }
-    Ok(FixupTaskV2Contract {
-        required,
-        properties,
-        statuses,
-        conditionals,
-        date_time_fields,
-    })
-}
-
 fn object_rows(value: &Value) -> Vec<&Value> {
     value
         .get("rows")
         .and_then(Value::as_array)
         .map(|rows| rows.iter().filter(|row| row.is_object()).collect())
         .unwrap_or_default()
-}
-
-fn rows<'a>(
-    value: &'a Value,
-    scope: &str,
-    findings: &mut BTreeSet<Finding>,
-) -> Option<Vec<&'a Value>> {
-    let Some(rows) = value.get("rows").and_then(Value::as_array) else {
-        findings.insert(Finding::new(
-            "fixuptask_v2_rows_not_array",
-            scope,
-            "FixupTask document must contain a `rows` array",
-        ));
-        return None;
-    };
-    Some(rows.iter().collect())
-}
-
-fn canonical_timestamp(value: &str) -> Option<(i32, u32, u32, u32, u32, u32)> {
-    let bytes = value.as_bytes();
-    if bytes.len() != 20
-        || bytes[4] != b'-'
-        || bytes[7] != b'-'
-        || bytes[10] != b'T'
-        || bytes[13] != b':'
-        || bytes[16] != b':'
-        || bytes[19] != b'Z'
-        || !bytes
-            .iter()
-            .enumerate()
-            .filter(|(index, _)| ![4, 7, 10, 13, 16, 19].contains(index))
-            .all(|(_, byte)| byte.is_ascii_digit())
-    {
-        return None;
-    }
-    let parse = |start, end| value[start..end].parse::<u32>().ok();
-    let (year, month, day, hour, minute, second) = (
-        i32::try_from(parse(0, 4)?).ok()?,
-        parse(5, 7)?,
-        parse(8, 10)?,
-        parse(11, 13)?,
-        parse(14, 16)?,
-        parse(17, 19)?,
-    );
-    let leap = year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
-    let days = match month {
-        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
-        4 | 6 | 9 | 11 => 30,
-        2 if leap => 29,
-        2 => 28,
-        _ => return None,
-    };
-    (day >= 1 && day <= days && hour < 24 && minute < 60 && second < 60)
-        .then_some((year, month, day, hour, minute, second))
 }
 
 fn is_sha256_digest(value: &str) -> bool {
@@ -674,95 +531,6 @@ fn is_sha256_digest(value: &str) -> bool {
         && hex
             .bytes()
             .all(|byte| byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase())
-}
-
-fn validate_v2_row(
-    contract: &FixupTaskV2Contract,
-    row: &Value,
-    id: &str,
-    evaluation_time: Option<(i32, u32, u32, u32, u32, u32)>,
-    findings: &mut BTreeSet<Finding>,
-) {
-    let Some(object) = row.as_object() else {
-        findings.insert(Finding::new(
-            "fixuptask_v2_malformed_row",
-            id,
-            "candidate row must be an object",
-        ));
-        return;
-    };
-    for field in &contract.required {
-        if non_blank_str(row, field).is_none() {
-            findings.insert(Finding::new(
-                "fixuptask_v2_schema_required_field",
-                id,
-                format!("candidate row missing non-blank `{field}` required by schema"),
-            ));
-        }
-    }
-    for field in object.keys() {
-        if !contract.properties.contains(field) {
-            findings.insert(Finding::new(
-                "fixuptask_v2_extra_field",
-                id,
-                format!("candidate row contains schema-forbidden field `{field}`"),
-            ));
-        }
-    }
-    for (field, value) in object {
-        if contract.properties.contains(field)
-            && non_blank_str(&json!({ field: value }), field).is_none()
-        {
-            findings.insert(Finding::new(
-                "fixuptask_v2_invalid_field",
-                id,
-                format!("schema field `{field}` must be a non-blank string"),
-            ));
-        }
-    }
-    for field in &contract.date_time_fields {
-        if let Some(value) = non_blank_str(row, field)
-            && canonical_timestamp(value).is_none()
-        {
-            findings.insert(Finding::new(
-                "fixuptask_v2_invalid_datetime",
-                id,
-                format!("schema date-time field `{field}` must be canonical UTC RFC3339 `YYYY-MM-DDTHH:MM:SSZ`"),
-            ));
-        }
-    }
-    let status = non_blank_str(row, "status");
-    if !status.is_some_and(|value| contract.statuses.contains(value)) {
-        findings.insert(Finding::new(
-            "fixuptask_v2_unknown_status",
-            id,
-            "new or modified FixupTask status is not in the schema enum",
-        ));
-        return;
-    }
-    let Some(status) = status else { return };
-    if let Some(required) = contract.conditionals.get(status) {
-        for field in required {
-            if non_blank_str(row, field).is_none() {
-                findings.insert(Finding::new(
-                    "fixuptask_v2_lifecycle_required_field",
-                    id,
-                    format!("status requires non-blank `{field}` by schema"),
-                ));
-            }
-        }
-    }
-    if status == "accepted-risk" {
-        let expires = non_blank_str(row, "accepted_risk_expires_at");
-        let parsed = expires.and_then(canonical_timestamp);
-        if parsed.is_some() && evaluation_time.is_some_and(|now| parsed <= Some(now)) {
-            findings.insert(Finding::new(
-                "fixuptask_v2_accepted_risk_expired",
-                id,
-                "accepted-risk expiry is at or before the explicitly supplied evaluation time",
-            ));
-        }
-    }
 }
 
 /// Validates the strict FixupTask v2 contract for rows introduced or changed relative to a
@@ -776,100 +544,10 @@ pub fn evaluate_fixuptasks_v2_at(
     candidate: &Value,
     evaluation_time: &str,
 ) -> BTreeSet<Finding> {
-    let mut findings = BTreeSet::new();
-    let contract = match fixuptask_v2_contract() {
-        Ok(contract) => contract,
-        Err(error) => {
-            findings.insert(Finding::new(
-                "fixuptask_v2_contract_invalid",
-                POLICY_KEY,
-                error,
-            ));
-            return findings;
-        }
-    };
-    let evaluation_time = match canonical_timestamp(evaluation_time) {
-        Some(timestamp) => Some(timestamp),
-        None => {
-            findings.insert(Finding::new(
-                "fixuptask_v2_invalid_evaluation_time",
-                POLICY_KEY,
-                "evaluation time must be canonical UTC RFC3339 `YYYY-MM-DDTHH:MM:SSZ`",
-            ));
-            None
-        }
-    };
-    let mut base_by_id: BTreeMap<&str, &Value> = BTreeMap::new();
-    let mut duplicate_base_ids = BTreeSet::new();
-    for row in rows(merge_base, "<protected-merge-base>", &mut findings).unwrap_or_default() {
-        if !row.is_object() {
-            findings.insert(Finding::new(
-                "fixuptask_v2_protected_malformed_row",
-                "<protected-merge-base>",
-                "protected merge-base row must be an object",
-            ));
-            continue;
-        }
-        let Some(id) = non_blank_str(row, "id") else {
-            findings.insert(Finding::new(
-                "fixuptask_v2_protected_malformed_row",
-                "<protected-merge-base>",
-                "protected merge-base row carries no non-blank id",
-            ));
-            continue;
-        };
-        if base_by_id.insert(id, row).is_some() {
-            duplicate_base_ids.insert(id);
-            findings.insert(Finding::new(
-                "fixuptask_v2_protected_duplicate_id",
-                id,
-                "protected merge-base must not contain duplicate FixupTask identities",
-            ));
-        }
-    }
-
-    let mut candidate_ids = BTreeSet::new();
-    for row in rows(candidate, "<candidate>", &mut findings).unwrap_or_default() {
-        if !row.is_object() {
-            findings.insert(Finding::new(
-                "fixuptask_v2_malformed_row",
-                "<row-without-id>",
-                "candidate row must be an object",
-            ));
-            continue;
-        }
-        let Some(id) = non_blank_str(row, "id") else {
-            findings.insert(Finding::new(
-                "fixuptask_v2_missing_id",
-                "<row-without-id>",
-                "candidate FixupTask row carries no non-blank `id`",
-            ));
-            continue;
-        };
-        if !candidate_ids.insert(id) {
-            findings.insert(Finding::new(
-                "fixuptask_v2_duplicate_id",
-                id,
-                "candidate FixupTask ids must be unique",
-            ));
-        }
-        let unchanged_legacy = !duplicate_base_ids.contains(id)
-            && base_by_id.get(id).is_some_and(|base_row| *base_row == row);
-        if unchanged_legacy {
-            continue;
-        }
-        validate_v2_row(&contract, row, id, evaluation_time, &mut findings);
-    }
-    for id in base_by_id.keys() {
-        if !candidate_ids.contains(*id) {
-            findings.insert(Finding::new(
-                "fixuptask_v2_row_deleted",
-                id,
-                "candidate deletes a protected merge-base row; FixupTask v2 is append-only",
-            ));
-        }
-    }
-    findings
+    fixuptask_v2::evaluate_fixuptasks_v2_at(merge_base, candidate, evaluation_time)
+        .into_iter()
+        .map(|finding| Finding::new(&finding.code, &finding.key, finding.detail))
+        .collect()
 }
 
 /// Compatibility projection for callers that only need static contract validation. Admission
@@ -1740,25 +1418,6 @@ mod tests {
     }
 
     #[test]
-    fn fixuptask_v2_schema_stays_aligned_with_the_pure_kernel_contract() {
-        let contract = fixuptask_v2_contract().expect("embedded schema is a complete contract");
-        assert!(contract.required.contains("accountable_owner"));
-        assert!(contract.required.contains("blocker_for"));
-        assert_eq!(contract.statuses.len(), 5);
-        assert_eq!(
-            contract.date_time_fields,
-            BTreeSet::from([
-                "accepted_risk_expires_at".to_owned(),
-                "created_at".to_owned(),
-                "resolved_at".to_owned(),
-            ])
-        );
-        assert_eq!(contract.conditionals["resolved"].len(), 3);
-        assert_eq!(contract.conditionals["accepted-risk"].len(), 3);
-        assert_eq!(contract.conditionals["blocked"].len(), 1);
-    }
-
-    #[test]
     fn fixuptask_v2_rejects_deletion_malformed_rows_and_extra_fields() {
         let base = json!({ "rows": [{ "id": "F-KEEP", "status": "legacy" }] });
         let candidate = json!({ "rows": [null, { "id": "F-NEW", "title": "x", "priority": "p", "status": "open", "source_session": "s", "source_change_id": "c", "named_in": "n", "created_at": "2026-07-21T00:00:00Z", "accountable_owner": "o", "accountable_role": "r", "acceptance_criteria": "a", "verification_path": "v", "blocker_for": "b", "forged": "no" }] });
@@ -1768,7 +1427,7 @@ mod tests {
             .map(|finding| finding.code.as_str())
             .collect();
         assert!(codes.contains("fixuptask_v2_row_deleted"));
-        assert!(codes.contains("fixuptask_v2_malformed_row"));
+        assert!(codes.contains("fixuptask_v2_missing_id"));
         assert!(codes.contains("fixuptask_v2_extra_field"));
     }
 
