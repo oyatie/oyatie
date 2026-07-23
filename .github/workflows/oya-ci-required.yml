@@ -19,8 +19,8 @@
 # Go-live executed 2026-06-08 (founder-authorized "fully autonomous through both"): the blocking
 # triggers below are paired with making `oya-ci-required` the required status context on `dev`
 # branch protection (FIREWALL-GO-LIVE-RUNBOOK Part 2). This is the SINGLE canonical required CI
-# check — green IFF every constituent gate lane is green. workflow_dispatch retained for manual
-# re-runs / verification.
+# check — green IFF every constituent gate lane is green. workflow_dispatch remains available only
+# to prove the no-authoritative-base branch fails closed; it cannot synthesize retirement facts.
 
 name: oya-ci-required
 
@@ -92,12 +92,17 @@ jobs:
           set -euo pipefail
           rustup toolchain install
           rustc --version
+          # The protected base is a GitHub event fact. workflow_dispatch has no PR, push, or
+          # merge-group base SHA, so HEAD^1 would be an untrusted graph guess on a normal
+          # multi-commit branch. Do not materialize retirement facts without that authority.
+          if [ -z "${EVENT_PROTECTED_SHA}" ]; then
+            echo "refusing retirement materialization: event lacks an authoritative protected-base SHA" >&2
+            exit 1
+          fi
           candidate_commit="$(git rev-parse HEAD)"
           protected_base_commit="$(git rev-parse HEAD^1)"
           test "${candidate_commit}" = "${EVENT_CANDIDATE_SHA}"
-          if [ -n "${EVENT_PROTECTED_SHA}" ]; then
-            test "${protected_base_commit}" = "${EVENT_PROTECTED_SHA}"
-          fi
+          test "${protected_base_commit}" = "${EVENT_PROTECTED_SHA}"
           buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- \
             --repo-root . \
             --retirement-control-plane registry/history-only-retirement-control-plane.json \
