@@ -54,6 +54,14 @@ open and non-authoritative until the required successor epochs E6, E7, E9, and
 E10 have supplied their own qualifying evidence; this amendment itself does
 not supply or claim that evidence.
 
+The preparation-only evaluator surface is limited to
+`ci/facade/cross-artifact-agreement/src/idea-archive-transition-baseline.json`,
+`ci/facade/cross-artifact-agreement/src/idea_archive_transition.rs`, and
+`ci/facade/cross-artifact-agreement/tests/idea_archive_transition/mod.rs`.
+Its declared Buck package markers are `docs/ideas/BUCK` and `specs/BUCK`;
+`docs/ideas/OWNERS` is the narrow ownership marker for the ideas package. These
+paths supply no closure evidence and do not expand the admitted body set.
+
 ### Current authoritative lifecycle
 
 This amendment is the current authority for the former transient-ideas archive
