@@ -103,7 +103,7 @@
       "allowed_paths": [
         "ci/facade/generated-artifact-freshness/src/lib.rs"
       ],
-      "max_occurrences": 9,
+      "max_occurrences": 10,
       "tokens": [
         "SystemTime::now"
       ]

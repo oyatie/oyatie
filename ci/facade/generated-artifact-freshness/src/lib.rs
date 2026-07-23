@@ -60,7 +60,7 @@ const GENERATED_FACE_PATHS: [&str; 7] = [
 ];
 /// Controller-owned generated artifacts whose freshness is proven by regeneration/determinism,
 /// but whose byte diffs are not staged by `oya-cloud-ci-face-settle` in contributor PRs.
-const CONTROLLER_MATERIALIZED_ARTIFACT_PATHS: [&str; 4] = [
+const CONTROLLER_MATERIALIZED_ARTIFACT_PATHS: [&str; 5] = [
     "ci/facade/artifact-inventory-registry/adr-census-parent-receipt.generated.json",
     MASTERPLAN_PROJECTION_PATH,
     BOARD_SYNC_PROJECTION_PATH,
