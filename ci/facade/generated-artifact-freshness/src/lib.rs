@@ -395,23 +395,14 @@ pub fn materialize_generated_faces_from_args(
 }
 
 fn effective_retirement_materialization(
-    repo_root: &Path,
+    _repo_root: &Path,
     explicit: Option<&RetirementMaterializeArgs>,
 ) -> Option<RetirementMaterializeArgs> {
-    explicit.cloned().or_else(|| {
-        repo_root
-            .join(RETIREMENT_CONTROL_PLANE_PATH)
-            .is_file()
-            .then(|| RetirementMaterializeArgs {
-                control_plane_path: RETIREMENT_CONTROL_PLANE_PATH.to_owned(),
-                facts_out: PathBuf::from(RETIREMENT_FACTS_PATH),
-                // Symbolic refs are resolved and exact-checked inside the single Git boundary.
-                // Admission supplies event-bound OIDs explicitly; these defaults keep local and
-                // per-job materialization complete without making this orchestrator call Git.
-                protected_base_commit: "HEAD^1".to_owned(),
-                candidate_commit: "HEAD".to_owned(),
-            })
-    })
+    // The protected base is an admission fact, not a graph heuristic. In particular, HEAD^1 on a
+    // normal multi-commit PR is an earlier candidate commit, not the protected branch. The
+    // producer workflow supplies event-bound, verified OIDs; any caller without that transport
+    // must leave retirement facts absent rather than materializing a misleading dormant receipt.
+    explicit.cloned()
 }
 
 fn materialize_generated_faces_with_tools(
@@ -2534,18 +2525,15 @@ mod materialize_generated_faces_tests {
     }
 
     #[test]
-    fn tracked_retirement_control_plane_enables_symbolic_local_materialization() {
+    fn multi_commit_local_materialization_does_not_infer_head_parent_as_protected_base() {
         let root = temp_root("retirement-auto-materialization");
         std::fs::create_dir_all(root.join("registry")).expect("create registry");
         std::fs::write(root.join(RETIREMENT_CONTROL_PLANE_PATH), "{}")
             .expect("write control-plane marker");
 
-        let retirement = effective_retirement_materialization(&root, None)
-            .expect("tracked control plane should enable retirement materialization");
-        assert_eq!(retirement.control_plane_path, RETIREMENT_CONTROL_PLANE_PATH);
-        assert_eq!(retirement.facts_out, PathBuf::from(RETIREMENT_FACTS_PATH));
-        assert_eq!(retirement.protected_base_commit, "HEAD^1");
-        assert_eq!(retirement.candidate_commit, "HEAD");
+        // A control-plane file may be present in a normal multi-commit contributor checkout.
+        // That topology has no event-bound protected base, and must never turn HEAD^1 into one.
+        assert_eq!(effective_retirement_materialization(&root, None), None);
     }
 
     #[test]
