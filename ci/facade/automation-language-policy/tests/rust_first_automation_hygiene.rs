@@ -317,8 +317,14 @@ fn live_non_rust_exceptions_match_frozen_baseline_green() {
         findings.is_empty(),
         "non-Rust-exception dimension found shrink-only violations: \
          {findings:#?}\n  unbaselined (new beyond baseline) = {:?}\n  stale (baselined but gone) = {:?}",
-        keys_for(&findings, "rust_first_automation_unbaselined_non_rust_exception"),
-        keys_for(&findings, "rust_first_automation_non_rust_exception_baseline_stale"),
+        keys_for(
+            &findings,
+            "rust_first_automation_unbaselined_non_rust_exception"
+        ),
+        keys_for(
+            &findings,
+            "rust_first_automation_non_rust_exception_baseline_stale"
+        ),
     );
 
     let codes_len = baseline["codes"]["rust_first_automation_unbaselined_non_rust_exception"]
