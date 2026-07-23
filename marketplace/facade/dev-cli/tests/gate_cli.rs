@@ -8235,6 +8235,119 @@ fn run_active_artifact_contract_gate_with_evidence(
         .expect("gate command runs")
 }
 
+fn run_active_artifact_contract_gate_with_graph(
+    registry: &Path,
+    graph: &Path,
+) -> std::process::Output {
+    Command::new(env!("CARGO_BIN_EXE_oya"))
+        .current_dir(active_artifact_contract_repo_root())
+        .args([
+            "gate",
+            "validate",
+            "active-artifact-contract",
+            "--registry",
+            registry.to_str().expect("utf8 registry path"),
+            "--emit-graph-edges",
+            graph.to_str().expect("utf8 graph path"),
+        ])
+        .output()
+        .expect("gate command runs")
+}
+
+#[test]
+fn active_artifact_contract_graph_projection_is_complete_and_byte_exact() {
+    let root = active_artifact_contract_repo_root();
+    let registry_path = root.join("registry/artifact-capabilities-registry.json");
+    let temp = TempDirGuard::new("aac-live-graph-projection");
+    let generated_graph_path = temp.path().join("active-artifact-contract-edges.json");
+
+    let output =
+        run_active_artifact_contract_gate_with_graph(&registry_path, &generated_graph_path);
+    assert!(
+        output.status.success(),
+        "registered active-artifact-contract producer must materialize the live graph\nstdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let registry: serde_json::Value =
+        serde_json::from_slice(&fs::read(&registry_path).expect("live artifact registry readable"))
+            .expect("live artifact registry parses");
+    let rows = registry["rows"]
+        .as_array()
+        .expect("live artifact registry rows array");
+    let expected_edges: Vec<serde_json::Value> = rows
+        .iter()
+        .map(|row| {
+            serde_json::json!({
+                "source": row["artifact_id"].as_str().expect("row artifact_id"),
+                "target": row["artifact_profile"].as_str().expect("row artifact_profile"),
+                "edge_type": "declares"
+            })
+        })
+        .collect();
+    let generated_bytes = fs::read(&generated_graph_path).expect("generated graph readable");
+    let generated: serde_json::Value =
+        serde_json::from_slice(&generated_bytes).expect("generated graph parses");
+    assert_eq!(generated["edges"], serde_json::Value::Array(expected_edges));
+
+    let expected_edge_lines = rows
+        .iter()
+        .map(|row| {
+            let source =
+                serde_json::to_string(row["artifact_id"].as_str().expect("row artifact_id"))
+                    .expect("serialize artifact id");
+            let target = serde_json::to_string(
+                row["artifact_profile"]
+                    .as_str()
+                    .expect("row artifact_profile"),
+            )
+            .expect("serialize artifact profile");
+            format!(
+                "    {{ \"source\": {source}, \"target\": {target}, \"edge_type\": \"declares\" }}"
+            )
+        })
+        .collect::<Vec<_>>()
+        .join(",\n");
+    let expected_bytes = format!(
+        "{{\n  \"$schema_ref\": \"specs/knowledge-graph-schema.json\",\n  \"_artifact_id\": \"active-artifact-contract-edges\",\n  \"_meta\": {{ \"emitter\": \"oya-dev-cli gate validate active-artifact-contract\", \"layer\": \"semantic\", \"purpose\": \"Generated graph edges that connect active machine-readable artifacts to their declared schemas, registries, templates, and ledgers.\" }},\n  \"edges\": [\n{expected_edge_lines}\n  ]\n}}\n"
+    ).into_bytes();
+    assert_eq!(generated_bytes, expected_bytes);
+}
+
+#[test]
+fn active_artifact_contract_graph_projection_escapes_vertical_tab_control_character() {
+    let temp = TempDirGuard::new("aac-graph-control-character");
+    let registry = write_aac_registry(
+        temp.path(),
+        serde_json::json!([
+            {
+                "artifact_id": "control\u{000b}character",
+                "artifact_path": "specs/active-machine-readable-artifact-contract.json",
+                "artifact_profile": "schema"
+            }
+        ]),
+    );
+    let generated_graph_path = temp.path().join("active-artifact-contract-edges.json");
+
+    let output = run_active_artifact_contract_gate_with_graph(&registry, &generated_graph_path);
+    assert!(
+        output.status.success(),
+        "valid registry strings must produce a graph\nstdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let generated_bytes = fs::read(&generated_graph_path).expect("generated graph readable");
+    let generated: serde_json::Value = serde_json::from_slice(&generated_bytes)
+        .expect("generated graph must remain valid JSON for every valid registry string");
+    assert_eq!(generated["edges"][0]["source"], "control\u{000b}character");
+    assert!(
+        !generated_bytes.contains(&0x0b),
+        "JSON output must escape raw control bytes"
+    );
+}
+
 #[test]
 fn active_artifact_contract_gate_rejects_untracked_artifact_path() {
     let temp = TempDirGuard::new("aac-untracked-path");

@@ -23,6 +23,7 @@ use ci_cross_artifact_agreement::{
     evaluate_registry_derived_policy_sync, ratchet,
 };
 use serde_json::Value;
+use sha2::{Digest, Sha256};
 
 /// Walk up to the repo root (the dir holding specs/root-hub-pointers.json), matching the
 /// existing kernel-test convention.
@@ -66,6 +67,340 @@ fn fixture_dir() -> PathBuf {
 fn load_json(path: &PathBuf) -> Value {
     let text = fs::read_to_string(path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
     serde_json::from_str(&text).unwrap_or_else(|e| panic!("parse {}: {e}", path.display()))
+}
+
+fn prefixed_sha256(bytes: &[u8]) -> String {
+    format!("sha256:{:x}", Sha256::digest(bytes))
+}
+
+fn validate_history_only_retirement_facts_binding(
+    facts: &Value,
+    control_plane_bytes: &[u8],
+) -> Result<(), String> {
+    fn object<'a>(
+        value: &'a Value,
+        context: &str,
+    ) -> Result<&'a serde_json::Map<String, Value>, String> {
+        value
+            .as_object()
+            .ok_or_else(|| format!("{context} must be an object"))
+    }
+
+    fn array<'a>(value: Option<&'a Value>, context: &str) -> Result<&'a Vec<Value>, String> {
+        value
+            .and_then(Value::as_array)
+            .ok_or_else(|| format!("{context} must be an array"))
+    }
+
+    fn exact_keys(
+        object: &serde_json::Map<String, Value>,
+        expected: &[&str],
+        context: &str,
+    ) -> Result<(), String> {
+        let actual = object.keys().map(String::as_str).collect::<BTreeSet<_>>();
+        let expected = expected.iter().copied().collect::<BTreeSet<_>>();
+        if actual != expected {
+            return Err(format!("{context} has unexpected key set: {actual:?}"));
+        }
+        Ok(())
+    }
+
+    let root = object(facts, "history-only retirement facts")?;
+    exact_keys(
+        root,
+        &["receipts", "scm_facts"],
+        "history-only retirement facts",
+    )?;
+    let receipts = array(
+        root.get("receipts"),
+        "history-only retirement facts.receipts",
+    )?;
+    let scm_facts = object(
+        root.get("scm_facts")
+            .ok_or_else(|| "history-only retirement facts has no scm_facts".to_owned())?,
+        "history-only retirement facts.scm_facts",
+    )?;
+    exact_keys(
+        scm_facts,
+        &[
+            "retirement_receipt_coverage",
+            "retirement_receipt_object_facts",
+            "protected_scm_context",
+            "retirement_control_plane_context",
+        ],
+        "history-only retirement facts.scm_facts",
+    )?;
+
+    let coverage = object(
+        scm_facts
+            .get("retirement_receipt_coverage")
+            .ok_or_else(|| "retirement facts has no receipt coverage".to_owned())?,
+        "retirement_receipt_coverage",
+    )?;
+    let object_facts = array(
+        scm_facts.get("retirement_receipt_object_facts"),
+        "retirement_receipt_object_facts",
+    )?;
+    let protected_context = object(
+        scm_facts
+            .get("protected_scm_context")
+            .ok_or_else(|| "retirement facts has no protected SCM context".to_owned())?,
+        "protected_scm_context",
+    )?;
+    for field in [
+        "protected_base_is_ancestor_of_candidate",
+        "protected_base_is_candidate_first_parent",
+        "predecessor_commit_exists",
+        "predecessor_tree_exists",
+        "predecessor_commit_tree_bound",
+        "predecessor_is_ancestor_of_protected_base",
+    ] {
+        if protected_context.get(field).and_then(Value::as_bool) != Some(true) {
+            return Err(format!("protected_scm_context.{field} must be true"));
+        }
+    }
+
+    let context = object(
+        scm_facts
+            .get("retirement_control_plane_context")
+            .ok_or_else(|| "retirement facts has no control-plane context".to_owned())?,
+        "retirement_control_plane_context",
+    )?;
+    exact_keys(
+        context,
+        &[
+            "control_plane_path",
+            "receipt_root",
+            "bootstrap",
+            "lifecycle_state",
+            "protected_control_plane_blob_oid",
+            "protected_control_plane_sha256",
+            "protected_control_plane_byte_count",
+            "candidate_control_plane_blob_oid",
+            "candidate_control_plane_sha256",
+            "candidate_control_plane_byte_count",
+            "control_plane_entries",
+            "control_plane_entry_hashes",
+            "protected_receipt_root_paths",
+            "candidate_receipt_root_paths",
+            "unexpected_protected_receipt_paths",
+            "unexpected_candidate_receipt_paths",
+        ],
+        "retirement_control_plane_context",
+    )?;
+    if context.get("control_plane_path").and_then(Value::as_str)
+        != Some("registry/history-only-retirement-control-plane.json")
+    {
+        return Err("retirement facts references a non-canonical control-plane path".to_owned());
+    }
+
+    let control_plane: Value = serde_json::from_slice(control_plane_bytes)
+        .map_err(|error| format!("parse history-only retirement control plane: {error}"))?;
+    let control = object(&control_plane, "history-only retirement control plane")?;
+    exact_keys(
+        control,
+        &[
+            "$schema",
+            "schema_version",
+            "canonical_name",
+            "planning_state",
+            "dispatch_authorized",
+            "receipt_root",
+            "predecessor_snapshot",
+            "entries",
+        ],
+        "history-only retirement control plane",
+    )?;
+    if control.get("planning_state").and_then(Value::as_str) != Some("HOLD(Planning)")
+        || control.get("dispatch_authorized").and_then(Value::as_bool) != Some(false)
+    {
+        return Err(
+            "history-only retirement control plane must preserve HOLD(Planning) and deny dispatch"
+                .to_owned(),
+        );
+    }
+    if context.get("receipt_root") != control.get("receipt_root") {
+        return Err("retirement facts receipt root does not match the control plane".to_owned());
+    }
+
+    let expected_byte_count = u64::try_from(control_plane_bytes.len())
+        .map_err(|_| "control-plane byte count does not fit u64".to_owned())?;
+    if context
+        .get("candidate_control_plane_byte_count")
+        .and_then(Value::as_u64)
+        != Some(expected_byte_count)
+    {
+        return Err("candidate control-plane byte count does not match source bytes".to_owned());
+    }
+    let expected_sha256 = prefixed_sha256(control_plane_bytes);
+    if context
+        .get("candidate_control_plane_sha256")
+        .and_then(Value::as_str)
+        != Some(expected_sha256.as_str())
+    {
+        return Err("candidate control-plane digest does not match source bytes".to_owned());
+    }
+    let control_entries = array(
+        control.get("entries"),
+        "history-only retirement control plane.entries",
+    )?;
+    if control_entries.len() != 3 {
+        return Err(
+            "history-only retirement control plane must contain exactly three entries".to_owned(),
+        );
+    }
+    if context.get("control_plane_entries") != control.get("entries")
+        || protected_context.get("control_plane_entries") != control.get("entries")
+    {
+        return Err("retirement facts control-plane entries do not match the source".to_owned());
+    }
+    for field in [
+        "unexpected_protected_receipt_paths",
+        "unexpected_candidate_receipt_paths",
+    ] {
+        if !array(context.get(field), field)?.is_empty() {
+            return Err(format!("retirement facts reports {field}"));
+        }
+    }
+
+    let lifecycle = context
+        .get("lifecycle_state")
+        .and_then(Value::as_str)
+        .ok_or_else(|| "retirement facts has no lifecycle_state".to_owned())?;
+    let bootstrap = context
+        .get("bootstrap")
+        .and_then(Value::as_bool)
+        .ok_or_else(|| "retirement facts has no bootstrap flag".to_owned())?;
+    match lifecycle {
+        "dormant" => {
+            if !bootstrap || !receipts.is_empty() || !object_facts.is_empty() {
+                return Err(
+                    "dormant retirement facts must be bootstrap-only with no receipts".to_owned(),
+                );
+            }
+            for field in [
+                "protected_receipt_paths",
+                "candidate_receipt_paths",
+                "carried_receipt_paths",
+                "new_receipt_paths",
+                "scopes",
+                "required_retired_paths",
+            ] {
+                if !array(coverage.get(field), field)?.is_empty() {
+                    return Err(format!("dormant retirement coverage contains {field}"));
+                }
+            }
+            for field in [
+                "protected_control_plane_blob_oid",
+                "protected_control_plane_sha256",
+                "protected_control_plane_byte_count",
+            ] {
+                if !context.get(field).is_some_and(Value::is_null) {
+                    return Err(format!("dormant retirement facts must null {field}"));
+                }
+            }
+        }
+        "prepared-new" | "closure-new" | "closed-carried" => {
+            if bootstrap || receipts.len() != 3 || object_facts.len() != 3 {
+                return Err(
+                    "active retirement facts must carry exactly three receipts and object facts"
+                        .to_owned(),
+                );
+            }
+        }
+        other => return Err(format!("unknown retirement lifecycle state {other:?}")),
+    }
+    Ok(())
+}
+
+fn dormant_history_only_binding_fixture(control_plane_bytes: &[u8]) -> Value {
+    let control_plane: Value =
+        serde_json::from_slice(control_plane_bytes).expect("fixture control plane parses");
+    let entries = control_plane["entries"].clone();
+    serde_json::json!({
+        "receipts": [],
+        "scm_facts": {
+            "retirement_receipt_coverage": {
+                "protected_base_ref": "origin/dev",
+                "protected_receipt_paths": [],
+                "candidate_receipt_paths": [],
+                "carried_receipt_paths": [],
+                "new_receipt_paths": [],
+                "scopes": [],
+                "required_retired_paths": []
+            },
+            "retirement_receipt_object_facts": [],
+            "protected_scm_context": {
+                "protected_base_is_ancestor_of_candidate": true,
+                "protected_base_is_candidate_first_parent": true,
+                "predecessor_commit_exists": true,
+                "predecessor_tree_exists": true,
+                "predecessor_commit_tree_bound": true,
+                "predecessor_is_ancestor_of_protected_base": true,
+                "control_plane_entries": entries
+            },
+            "retirement_control_plane_context": {
+                "control_plane_path": "registry/history-only-retirement-control-plane.json",
+                "receipt_root": "evidence/history-only-retirement",
+                "bootstrap": true,
+                "lifecycle_state": "dormant",
+                "protected_control_plane_blob_oid": null,
+                "protected_control_plane_sha256": null,
+                "protected_control_plane_byte_count": null,
+                "candidate_control_plane_blob_oid": "1111111111111111111111111111111111111111",
+                "candidate_control_plane_sha256": prefixed_sha256(control_plane_bytes),
+                "candidate_control_plane_byte_count": control_plane_bytes.len(),
+                "control_plane_entries": entries,
+                "control_plane_entry_hashes": [],
+                "protected_receipt_root_paths": [],
+                "candidate_receipt_root_paths": [],
+                "unexpected_protected_receipt_paths": [],
+                "unexpected_candidate_receipt_paths": []
+            }
+        }
+    })
+}
+
+#[test]
+fn history_only_retirement_binding_rejects_candidate_control_plane_drift() {
+    let control_plane = br#"{"$schema":"schema","schema_version":1,"canonical_name":"history-only-retirement-control-plane","planning_state":"HOLD(Planning)","dispatch_authorized":false,"receipt_root":"evidence/history-only-retirement","predecessor_snapshot":{},"entries":[{"scope_ref":"one"},{"scope_ref":"two"},{"scope_ref":"three"}]}"#;
+    let mut facts = dormant_history_only_binding_fixture(control_plane);
+    facts["scm_facts"]["retirement_control_plane_context"]["candidate_control_plane_byte_count"] =
+        serde_json::json!(control_plane.len() + 1);
+
+    let error = validate_history_only_retirement_facts_binding(&facts, control_plane)
+        .expect_err("candidate control-plane byte drift must fail closed");
+    assert!(error.contains("byte count"), "unexpected error: {error}");
+}
+
+#[test]
+fn history_only_retirement_binding_accepts_controller_materialized_dormant_facts() {
+    let control_plane = br#"{"$schema":"schema","schema_version":1,"canonical_name":"history-only-retirement-control-plane","planning_state":"HOLD(Planning)","dispatch_authorized":false,"receipt_root":"evidence/history-only-retirement","predecessor_snapshot":{},"entries":[{"scope_ref":"one"},{"scope_ref":"two"},{"scope_ref":"three"}]}"#;
+    let facts = dormant_history_only_binding_fixture(control_plane);
+    validate_history_only_retirement_facts_binding(&facts, control_plane)
+        .expect("controller-bound dormant facts must validate");
+}
+
+#[test]
+fn live_history_only_retirement_facts_are_bound_to_the_controller_control_plane() {
+    let root = repo_root();
+    let relative_path = std::env::var("OYA_HISTORY_ONLY_RETIREMENT_FACTS")
+        .expect("FAIL-CLOSED: OYA_HISTORY_ONLY_RETIREMENT_FACTS must name the materialized face");
+    assert_eq!(
+        relative_path, "ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json",
+        "history-only retirement facts must use the canonical controller-owned path"
+    );
+    let facts_path = root.join(&relative_path);
+    let facts_bytes = fs::read(&facts_path)
+        .unwrap_or_else(|error| panic!("read materialized {}: {error}", facts_path.display()));
+    let facts: Value = serde_json::from_slice(&facts_bytes)
+        .unwrap_or_else(|error| panic!("parse materialized {}: {error}", facts_path.display()));
+    let control_plane_path = root.join("registry/history-only-retirement-control-plane.json");
+    let control_plane_bytes = fs::read(&control_plane_path)
+        .unwrap_or_else(|error| panic!("read {}: {error}", control_plane_path.display()));
+
+    validate_history_only_retirement_facts_binding(&facts, &control_plane_bytes)
+        .unwrap_or_else(|error| panic!("history-only retirement facts binding failed: {error}"));
 }
 
 fn expected_violations(fixture: &Value) -> BTreeSet<String> {

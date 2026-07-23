@@ -25,6 +25,9 @@
 //! Usage:
 //!   oya-cloud-ci-scm-facts-emitter-app [--repo-root <path>] [--out <path>]
 //!       [--volatile-out <path>] [--merge-base-baseline] [--frozen-base-ref <ref>]
+//!       [--retirement-control-plane <repo-relative-path>]
+//!       [--retirement-facts-out <path>] [--protected-base-commit <oid>]
+//!       [--candidate-commit <oid>]
 //!
 //! Default `--repo-root` is discovered up-tree (the dir holding `specs/root-hub-pointers.json`),
 //! default `--out` is `<repo-root>/ci/facade/artifact-inventory-registry/scm-facts.generated.json`,
@@ -82,6 +85,8 @@ const CENSUS_PARSER_PATH: &str = "governance/corpus/doc-parser/src/lib.rs";
 const CENSUS_PARSER_BLOB: &str = "ab3884dbf4a657869fd87920b016cc4734a1c27f";
 const CENSUS_PARSER_SHA256: &str =
     "e559419fdb11452f5d30312ce3baca6f22bd9a08b98f0e880bfe344c3420d62e";
+
+mod retirement;
 
 /// The scm-facts face schema id — bumped only on a breaking shape change.
 /// v2 (ADR-0552): history-volatile fields (`last_touch_commit`, `commit_author_ts_secs`,
@@ -151,6 +156,12 @@ fn run() -> Result<(), String> {
     let mut provenance_producer: Option<String> = None;
     let mut emit_adr_census_parent_receipt = false;
     let mut adr_census_parent_receipt_out: Option<PathBuf> = None;
+    // E7 history-only retirement facts are opt-in and all-or-none. The generated face is
+    // controller-owned and untracked; ordinary scm-facts emission remains behavior-identical.
+    let mut retirement_control_plane: Option<String> = None;
+    let mut retirement_facts_out: Option<PathBuf> = None;
+    let mut protected_base_commit: Option<String> = None;
+    let mut candidate_commit: Option<String> = None;
 
     let mut i = 0;
     while i < args.len() {
@@ -233,6 +244,39 @@ fn run() -> Result<(), String> {
                 );
                 emit_adr_census_parent_receipt = true;
             }
+            "--retirement-control-plane" => {
+                i += 1;
+                retirement_control_plane = args.get(i).cloned();
+                if retirement_control_plane
+                    .as_deref()
+                    .is_none_or(str::is_empty)
+                {
+                    return Err(
+                        "--retirement-control-plane requires a repo-relative path".to_owned()
+                    );
+                }
+            }
+            "--retirement-facts-out" => {
+                i += 1;
+                retirement_facts_out = args.get(i).map(PathBuf::from);
+                if retirement_facts_out.is_none() {
+                    return Err("--retirement-facts-out requires a path".to_owned());
+                }
+            }
+            "--protected-base-commit" => {
+                i += 1;
+                protected_base_commit = args.get(i).cloned();
+                if protected_base_commit.as_deref().is_none_or(str::is_empty) {
+                    return Err("--protected-base-commit requires a commit oid".to_owned());
+                }
+            }
+            "--candidate-commit" => {
+                i += 1;
+                candidate_commit = args.get(i).cloned();
+                if candidate_commit.as_deref().is_none_or(str::is_empty) {
+                    return Err("--candidate-commit requires a commit oid".to_owned());
+                }
+            }
             other => return Err(format!("unknown argument {other}")),
         }
         i += 1;
@@ -272,6 +316,31 @@ fn run() -> Result<(), String> {
         out.display(),
         volatile_out.display()
     );
+
+    match (
+        retirement_control_plane.as_deref(),
+        retirement_facts_out.as_deref(),
+        protected_base_commit.as_deref(),
+        candidate_commit.as_deref(),
+    ) {
+        (Some(control_plane_path), Some(facts_out), Some(protected), Some(candidate)) => {
+            retirement::emit_history_only_retirement_facts(
+                &repo_root,
+                &retirement::RetirementMaterializationContext {
+                    control_plane_path,
+                    protected_base_commit: protected,
+                    candidate_commit: candidate,
+                },
+                facts_out,
+            )?;
+        }
+        (None, None, None, None) => {}
+        _ => {
+            return Err("--retirement-control-plane, --retirement-facts-out, \
+                 --protected-base-commit, and --candidate-commit are all-or-none"
+                .to_owned());
+        }
+    }
 
     if merge_base_baseline {
         let bootstrap_ref =
