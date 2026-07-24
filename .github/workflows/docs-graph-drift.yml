@@ -73,7 +73,7 @@ jobs:
         run: |
           set -euo pipefail
           infra/ci/install-buck2.sh
-          export PATH="/tmp/oya-ci-buck2-2026-06-01:${PATH}"
+          PATH="$(tail -n1 "${GITHUB_PATH}"):${PATH}"; export PATH
           rustc --version
           # masterplan.generated.json (ADR-0613 de-commit) is absent from a fresh checkout;
           # materialize it (and the other on-demand faces) from SSOT before the generator and its
