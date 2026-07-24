@@ -2176,6 +2176,32 @@ value = "legacy-marker"
         fs::remove_dir_all(root).expect("remove temp repo");
     }
 
+    #[test]
+    fn collect_repo_inputs_excludes_configured_third_party_scm_path() {
+        let root = unique_temp_repo();
+        let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
+        let excluded_path = "third-party/vendored/lib.rs".to_owned();
+
+        assert!(
+            is_path_excluded(&excluded_path, &cfg),
+            "fixture path must be covered by the configured exclusion"
+        );
+        let (inputs, _) = collect_repo_inputs(
+            &root,
+            &cfg,
+            &ScmFacts {
+                tracked_paths: vec![excluded_path.clone()],
+            },
+        )
+        .expect("collect repo inputs");
+
+        assert!(
+            !inputs.tracked_paths.contains(&excluded_path),
+            "configured excluded SCM path must never enter RepoInputs"
+        );
+        fs::remove_dir_all(root).expect("remove temp repo");
+    }
+
     /// FRIC #1328 — the verdict a pre-push author-side check-mode invocation would print for
     /// `path`, computed via `check_added_paths`. `find` panics if the path is absent.
     fn check_verdict(root: &Path, path: &str) -> AddedPathVerdict {
@@ -4114,7 +4140,12 @@ fn collect_repo_inputs(
     cfg: &oya_ci_config_kernel::OyaCiConfig,
     scm_facts: &ScmFacts,
 ) -> Result<(RepoInputs, OwnersIntegrity), CliError> {
-    let tracked_paths = scm_facts.tracked_paths.clone();
+    let tracked_paths: Vec<String> = scm_facts
+        .tracked_paths
+        .iter()
+        .filter(|path| !is_path_excluded(path, cfg))
+        .cloned()
+        .collect();
     let owners_resolution = resolve_owners(repo_root, &tracked_paths, cfg);
     let reachability = resolve_reachability(repo_root, &tracked_paths, cfg)?;
     let justifications = resolve_justifications(repo_root, &tracked_paths, cfg);

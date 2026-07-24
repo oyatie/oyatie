@@ -44,6 +44,14 @@ This ADR is **amended/extended in place** (no tombstone; git history preserves t
 ADR-0392 remains an UPSTREAM `depends_on` of the hermetic execution model (ADR-0525). The Buck2 +
 Reindeer + NativeLink decision below is unchanged.
 
+## Implementation note (2026-07-24; no planning or generator authority expansion)
+
+The repository-owned, fail-closed semantic overlay for Reindeer output is implemented at
+`tools/buck/apply-thirdparty-patches.py`, with its exact regression surface at
+`tools/buck/tests/test_apply_thirdparty_patches.py` and narrow ownership at
+`tools/buck/OWNERS`. These source surfaces implement Decision 2 through the canonical
+regeneration wrapper; they do not authorize manual edits to `third-party/BUCK`.
+
 ## Date
 
 2026-05-29
