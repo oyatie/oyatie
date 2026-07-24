@@ -907,9 +907,7 @@
         "predecessor_tree_exists",
         "predecessor_commit_tree_bound",
         "predecessor_is_ancestor_of_protected_base",
-        "prepared_receipt_paths",
-        "protected_preparation_receipts",
-        "control_plane_entries"
+        "protected_preparation_receipts"
       ],
       "properties": {
         "protected_base_ref": {
@@ -956,9 +954,6 @@
         "predecessor_is_ancestor_of_protected_base": {
           "const": true
         },
-        "prepared_receipt_paths": {
-          "$ref": "#/$defs/repo_paths"
-        },
         "protected_preparation_receipts": {
           "type": "array",
           "maxItems": 3,
@@ -966,9 +961,6 @@
           "items": {
             "$ref": "#/$defs/protected_preparation_receipt"
           }
-        },
-        "control_plane_entries": {
-          "$ref": "#/$defs/exact_three_control_plane_entries"
         }
       },
       "additionalProperties": false

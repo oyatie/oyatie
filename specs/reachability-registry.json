@@ -434,19 +434,19 @@
       "prefix": "specs/policy-ir-benchmark-fixture-suite.json"
     },
     {
-      "anchor": "ADR-0613 E7: exact reviewed source contract for the typed history-only retirement controller; an evidence-preservation boundary only, with protected-null closure fields and HOLD(Planning) retained.",
+      "anchor": "HOLD(Planning) E7 implementation contract: exact source input for the typed history-only retirement observer; this reachability row records implementation provenance only and grants no closure, promotion, dispatch, or completion authority.",
       "prefix": "registry/history-only-retirement/control-plane.json"
     },
     {
-      "anchor": "ADR-0613 E7: narrow cloud-ci-platform ownership marker for the history-only retirement controller input; it does not grant closure, promotion, or completion authority.",
+      "anchor": "HOLD(Planning) E7 implementation contract: narrow cloud-ci-platform ownership marker for the history-only retirement observer input; it grants no closure, promotion, dispatch, or completion authority.",
       "prefix": "registry/history-only-retirement/OWNERS"
     },
     {
-      "anchor": "ADR-0613 E7: exact schema for the immutable protected-null history-only retirement control plane; it is an evidence-preservation boundary and retains HOLD(Planning).",
+      "anchor": "HOLD(Planning) E7 implementation contract: exact schema for the immutable history-only retirement observer input; it records implementation shape only and grants no authority.",
       "prefix": "specs/history-only-retirement-control-plane.schema.json"
     },
     {
-      "anchor": "ADR-0613 E7: exact schema for the ignored controller-produced history-only retirement facts projection; it is not a closure receipt and retains HOLD(Planning).",
+      "anchor": "HOLD(Planning) E7 implementation contract: exact schema for the ignored controller-produced history-only retirement facts projection; it is not a closure receipt or authority source.",
       "prefix": "specs/history-only-retirement-facts.schema.json"
     }
   ]

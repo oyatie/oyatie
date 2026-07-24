@@ -916,9 +916,7 @@ pub(crate) fn materialize_history_only_retirement_facts(
                 "predecessor_tree_exists": true,
                 "predecessor_commit_tree_bound": true,
                 "predecessor_is_ancestor_of_protected_base": true,
-                "prepared_receipt_paths": new_receipt_paths,
                 "protected_preparation_receipts": protected_preparations,
-                "control_plane_entries": control_plane_entries,
             },
             "retirement_control_plane_context": {
                 "control_plane_path": CONTROL_PLANE_PATH,
@@ -1268,8 +1266,10 @@ fn validate_event_identity(
             }
         }
         "merge_group" => {
-            if !event_ref.starts_with("refs/heads/gh-readonly-queue/") {
-                return Err("merge_group event ref must be a merge queue ref".to_owned());
+            if !event_ref.starts_with("refs/heads/gh-readonly-queue/dev/") {
+                return Err(
+                    "merge_group event ref must be refs/heads/gh-readonly-queue/dev/...".to_owned(),
+                );
             }
             if subject != evaluated {
                 return Err("merge_group subject must equal evaluated commit".to_owned());
@@ -2113,6 +2113,43 @@ mod tests {
         }
     }
 
+    fn assert_public_consumer_accepts(source: &FakeSource, facts: &Value) {
+        let raw_receipts = facts["receipts"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(
+                |metadata| ci_cross_artifact_agreement::RawHistoryOnlyRetirementReceipt {
+                    receipt_path: metadata["receipt_path"].as_str().unwrap(),
+                    bytes: source
+                        .blobs
+                        .get(metadata["candidate_receipt_blob_oid"].as_str().unwrap())
+                        .unwrap(),
+                },
+            )
+            .collect::<Vec<_>>();
+        let control_plane_bytes = source
+            .blobs
+            .get(
+                facts["scm_facts"]["retirement_control_plane_context"]
+                    ["candidate_control_plane_blob_oid"]
+                    .as_str()
+                    .unwrap(),
+            )
+            .unwrap();
+        let evaluation = ci_cross_artifact_agreement::
+            evaluate_and_project_history_only_retirement_facts_with_control_plane(
+                facts,
+                &raw_receipts,
+                control_plane_bytes,
+            );
+        assert!(
+            evaluation.findings.is_empty(),
+            "producer/consumer semantic drift: {:?}",
+            evaluation.findings
+        );
+    }
+
     #[test]
     fn event_identity_rejects_pr_parent_order_extra_parent_and_subject_aliases() {
         let mut source = fixture();
@@ -2464,6 +2501,11 @@ mod tests {
                 assert_eq!(input["candidate_new_equivalent_paths"], json!([]));
             }
         }
+        let protected_context = facts["scm_facts"]["protected_scm_context"]
+            .as_object()
+            .unwrap();
+        assert!(!protected_context.contains_key("prepared_receipt_paths"));
+        assert!(!protected_context.contains_key("control_plane_entries"));
         let rendered = to_canonical_json(&facts).unwrap();
         assert!(!rendered.contains("closure_projection"));
         assert!(!rendered.contains("verdict"));
@@ -2488,40 +2530,7 @@ mod tests {
         }
 
         let facts = materialize_history_only_retirement_facts(&source, &context()).unwrap();
-        let raw_receipts = facts["receipts"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .map(
-                |metadata| ci_cross_artifact_agreement::RawHistoryOnlyRetirementReceipt {
-                    receipt_path: metadata["receipt_path"].as_str().unwrap(),
-                    bytes: source
-                        .blobs
-                        .get(metadata["candidate_receipt_blob_oid"].as_str().unwrap())
-                        .unwrap(),
-                },
-            )
-            .collect::<Vec<_>>();
-        let control_plane_bytes = source
-            .blobs
-            .get(
-                facts["scm_facts"]["retirement_control_plane_context"]
-                    ["candidate_control_plane_blob_oid"]
-                    .as_str()
-                    .unwrap(),
-            )
-            .unwrap();
-        let evaluation = ci_cross_artifact_agreement::
-            evaluate_and_project_history_only_retirement_facts_with_control_plane(
-                &facts,
-                &raw_receipts,
-                control_plane_bytes,
-            );
-        assert!(
-            evaluation.findings.is_empty(),
-            "producer/consumer semantic drift: {:?}",
-            evaluation.findings
-        );
+        assert_public_consumer_accepts(&source, &facts);
     }
 
     #[test]
@@ -2682,6 +2691,7 @@ mod tests {
                 assert_eq!(input["candidate_path_exists"], json!(false));
             }
         }
+        assert_public_consumer_accepts(&source, &facts);
     }
 
     #[test]

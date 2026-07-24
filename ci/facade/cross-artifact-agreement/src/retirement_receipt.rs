@@ -160,9 +160,7 @@ const PROTECTED_SCM_CONTEXT_FIELDS: &[&str] = &[
     "predecessor_tree_exists",
     "predecessor_commit_tree_bound",
     "predecessor_is_ancestor_of_protected_base",
-    "prepared_receipt_paths",
     "protected_preparation_receipts",
-    "control_plane_entries",
 ];
 const PREDECESSOR_CONTEXT_FIELDS: &[&str] = &[
     "source",
@@ -918,13 +916,7 @@ fn validate_candidate_control_plane_source(
                 .zip(CONTROL_PLANE_SCOPE_ORDER)
                 .all(|(entry, scope)| entry.get("scope_ref").and_then(Value::as_str) == Some(scope))
     });
-    if !raw_entries_are_canonical
-        || raw_entries_value != face_entries.cloned()
-        || raw_entries_value
-            != facts
-                .pointer("/scm_facts/protected_scm_context/control_plane_entries")
-                .cloned()
-    {
+    if !raw_entries_are_canonical || raw_entries_value != face_entries.cloned() {
         fail(
             findings,
             "retirement_control_plane_context.candidate_raw_entries",
@@ -1388,22 +1380,19 @@ pub fn evaluate_history_only_retirement_receipt_coverage(
     {
         fail(&mut findings, "object_fact_path_set");
     }
-    let prepared_fact_paths = object_facts
+    let new_fact_paths = object_facts
         .iter()
-        .filter(|fact| fact.get("receipt_state").and_then(Value::as_str) == Some("prepared-new"))
+        .filter(|fact| {
+            matches!(
+                fact.get("receipt_state").and_then(Value::as_str),
+                Some("prepared-new" | "closure-new")
+            )
+        })
         .filter_map(|fact| fact.get("receipt_path").and_then(Value::as_str))
         .map(str::to_owned)
         .collect::<BTreeSet<_>>();
-    if path_set(
-        protected_context.get("prepared_receipt_paths"),
-        "protected_scm_context.prepared_receipt_paths",
-        &mut findings,
-    ) != prepared_fact_paths
-    {
-        fail(
-            &mut findings,
-            "protected_scm_context.prepared_receipt_paths",
-        );
+    if prepared != new_fact_paths {
+        fail(&mut findings, "new_receipt_paths.object_fact_state");
     }
     let materialized_control_entries = control_plane_entries(
         retirement_control_plane_context.get("control_plane_entries"),
@@ -2702,12 +2691,8 @@ mod tests {
         fact["control_plane_entry_sha256"] = json!(digest);
         fact
     }
-    fn protected_scm_context(prepared_receipt_paths: &[&str]) -> Value {
-        let controls = ["ADR-0363", "ADR-0388", "artifact:masterplan"]
-            .into_iter()
-            .map(test_control_entry)
-            .collect::<Vec<_>>();
-        json!({"protected_base_ref":"origin/dev","protected_base_commit_oid":OLD,"protected_base_tree_oid":OLD_TREE,"evaluated_commit_oid":NEW,"evaluated_tree_oid":NEW_TREE,"subject_commit_oid":NEW,"subject_tree_oid":NEW_TREE,"scm_event_name":"push","subject_relationship":"evaluated-self","protected_base_is_ancestor_of_evaluated":true,"protected_base_is_evaluated_first_parent":true,"subject_is_evaluated_second_parent":false,"predecessor_commit_oid":OLD,"predecessor_tree_oid":OLD_TREE,"predecessor_commit_exists":true,"predecessor_tree_exists":true,"predecessor_commit_tree_bound":true,"predecessor_is_ancestor_of_protected_base":true,"prepared_receipt_paths":prepared_receipt_paths,"protected_preparation_receipts":[],"control_plane_entries":controls})
+    fn protected_scm_context() -> Value {
+        json!({"protected_base_ref":"origin/dev","protected_base_commit_oid":OLD,"protected_base_tree_oid":OLD_TREE,"evaluated_commit_oid":NEW,"evaluated_tree_oid":NEW_TREE,"subject_commit_oid":NEW,"subject_tree_oid":NEW_TREE,"scm_event_name":"push","subject_relationship":"evaluated-self","protected_base_is_ancestor_of_evaluated":true,"protected_base_is_evaluated_first_parent":true,"subject_is_evaluated_second_parent":false,"predecessor_commit_oid":OLD,"predecessor_tree_oid":OLD_TREE,"predecessor_commit_exists":true,"predecessor_tree_exists":true,"predecessor_commit_tree_bound":true,"predecessor_is_ancestor_of_protected_base":true,"protected_preparation_receipts":[]})
     }
     fn retirement_control_plane_context(active: bool) -> Value {
         let controls = ["ADR-0363", "ADR-0388", "artifact:masterplan"]
@@ -2782,7 +2767,7 @@ mod tests {
         preparation_receipt_path: &str,
         preparation_receipt_blob_oid: &str,
     ) -> Value {
-        let mut context = protected_scm_context(&[]);
+        let mut context = protected_scm_context();
         context["protected_preparation_receipts"] = json!([{
             "receipt_path": preparation_receipt_path,
             "receipt_blob_oid": preparation_receipt_blob_oid,
@@ -2932,7 +2917,7 @@ mod tests {
             })
             .collect::<Vec<_>>();
         let mut context = if state == "prepared-new" {
-            protected_scm_context(&[receipt_path])
+            protected_scm_context()
         } else {
             protected_scm_context_with_preparation(ADR_0388_PREPARATION_PATH, BLOB)
         };
@@ -3066,8 +3051,6 @@ mod tests {
             .and_then(Value::as_array_mut)
             .expect("object facts")
             .push(repository_fact);
-        scm_facts["protected_scm_context"]["prepared_receipt_paths"] = json!([repository_path]);
-
         let findings = evaluate_history_only_retirement_receipts(&corpus);
         assert!(findings.is_empty(), "{findings:?}");
     }
@@ -3214,7 +3197,7 @@ mod tests {
         let carry_receipt = receipt("carry-only", "ADR-0363", OLD, OLD_TREE, "docs/old.md");
         let receipt_path = "evidence/carry-only.json";
         let selector = json!({"selector_type":"exact","selector":"docs/old.md","protected_paths":["docs/old.md"],"predecessor_paths":["docs/old.md"],"candidate_paths":[],"removed_paths":["docs/old.md"],"surviving_paths":[],"candidate_only_paths":[],"external_assertion":false});
-        let facts = json!({"retirement_receipt_coverage":{"protected_base_ref":"origin/dev","protected_receipt_paths":[receipt_path],"candidate_receipt_paths":[receipt_path],"carried_receipt_paths":[receipt_path],"new_receipt_paths":[],"scopes":[{"scope_ref":"ADR-0363","scope_type":"amended-agentic-vcs-retirement","selectors":[selector.clone()],"required_retired_paths":["docs/old.md"]}],"required_retired_paths":["docs/old.md"]},"retirement_receipt_object_facts":[fact("carry-only",receipt_path,"ADR-0363","carried",OLD,OLD_TREE,"docs/old.md")],"protected_scm_context":protected_scm_context(&[]),"retirement_control_plane_context":retirement_control_plane_context(true)});
+        let facts = json!({"retirement_receipt_coverage":{"protected_base_ref":"origin/dev","protected_receipt_paths":[receipt_path],"candidate_receipt_paths":[receipt_path],"carried_receipt_paths":[receipt_path],"new_receipt_paths":[],"scopes":[{"scope_ref":"ADR-0363","scope_type":"amended-agentic-vcs-retirement","selectors":[selector.clone()],"required_retired_paths":["docs/old.md"]}],"required_retired_paths":["docs/old.md"]},"retirement_receipt_object_facts":[fact("carry-only",receipt_path,"ADR-0363","carried",OLD,OLD_TREE,"docs/old.md")],"protected_scm_context":protected_scm_context(),"retirement_control_plane_context":retirement_control_plane_context(true)});
         assert!(
             evaluate_history_only_retirement_receipt_coverage(&[carry_receipt], &facts).contains(
                 &Finding::new(
@@ -3337,7 +3320,7 @@ mod tests {
         }
 
         let selector = json!({"selector_type":"exact","selector":".omc/legacy-a.md","protected_paths":[".omc/legacy-a.md"],"predecessor_paths":[".omc/legacy-a.md"],"candidate_paths":[".omc/legacy-a.md"],"removed_paths":[],"surviving_paths":[".omc/legacy-a.md"],"candidate_only_paths":[],"external_assertion":false});
-        let coverage = json!({"retirement_receipt_coverage":{"protected_base_ref":"origin/dev","protected_receipt_paths":[],"candidate_receipt_paths":["evidence/prepared-authority.json"],"carried_receipt_paths":[],"new_receipt_paths":["evidence/prepared-authority.json"],"scopes":[{"scope_ref":"ADR-0363","scope_type":"amended-agentic-vcs-retirement","selectors":[selector],"required_retired_paths":[".omc/legacy-a.md"]}],"required_retired_paths":[".omc/legacy-a.md"]},"retirement_receipt_object_facts":[prepared_fact],"protected_scm_context":protected_scm_context(&["evidence/prepared-authority.json"]),"retirement_control_plane_context":retirement_control_plane_context(true)});
+        let coverage = json!({"retirement_receipt_coverage":{"protected_base_ref":"origin/dev","protected_receipt_paths":[],"candidate_receipt_paths":["evidence/prepared-authority.json"],"carried_receipt_paths":[],"new_receipt_paths":["evidence/prepared-authority.json"],"scopes":[{"scope_ref":"ADR-0363","scope_type":"amended-agentic-vcs-retirement","selectors":[selector],"required_retired_paths":[".omc/legacy-a.md"]}],"required_retired_paths":[".omc/legacy-a.md"]},"retirement_receipt_object_facts":[prepared_fact],"protected_scm_context":protected_scm_context(),"retirement_control_plane_context":retirement_control_plane_context(true)});
         assert!(
             evaluate_history_only_retirement_receipt_coverage(
                 std::slice::from_ref(&prepared),
@@ -3484,7 +3467,7 @@ mod tests {
                     "required_retired_paths": []
                 },
                 "retirement_receipt_object_facts": [],
-                "protected_scm_context": protected_scm_context(&[]),
+                "protected_scm_context": protected_scm_context(),
                 "retirement_control_plane_context": retirement_control_plane_context(false)
             }
         });
@@ -3752,7 +3735,7 @@ mod tests {
         }
 
         let selector = json!({"selector_type":"exact","selector":".omc/legacy-a.md","protected_paths":[],"predecessor_paths":[".omc/legacy-a.md"],"candidate_paths":[],"removed_paths":[],"surviving_paths":[],"candidate_only_paths":[],"external_assertion":false});
-        let mut context = protected_scm_context(&[]);
+        let mut context = protected_scm_context();
         context["protected_preparation_receipts"] = json!([{
             "receipt_path":LINK_PATH,
             "receipt_blob_oid":BLOB,
@@ -3870,7 +3853,7 @@ mod tests {
                 "required_retired_paths": ["docs/stale.md"]
             },
             "retirement_receipt_object_facts": [fact],
-            "protected_scm_context": protected_scm_context(&[receipt_path]),
+            "protected_scm_context": protected_scm_context(),
             "retirement_control_plane_context": retirement_control_plane_context(true)
         });
         assert!(
@@ -4025,7 +4008,6 @@ mod tests {
         for pointer in [
             "/scm_facts/retirement_control_plane_context/protected_control_plane_blob_oid",
             "/scm_facts/retirement_control_plane_context/candidate_control_plane_blob_oid",
-            "/scm_facts/protected_scm_context/control_plane_entries",
             "/scm_facts/retirement_control_plane_context/control_plane_entries",
         ] {
             let mut absent = corpus.clone();
@@ -4132,7 +4114,7 @@ mod tests {
                     "scm_facts": {
                         "retirement_receipt_coverage": {"protected_base_ref":"origin/dev","protected_receipt_paths":[],"candidate_receipt_paths":[],"carried_receipt_paths":[],"new_receipt_paths":[],"scopes":[],"required_retired_paths":[]},
                         "retirement_receipt_object_facts": [],
-                        "protected_scm_context": protected_scm_context(&[]),
+                        "protected_scm_context": protected_scm_context(),
                         "retirement_control_plane_context": retirement_control_plane_context(false)
                     }
                 })
@@ -4181,7 +4163,7 @@ mod tests {
                     "required_retired_paths": []
                 },
                 "retirement_receipt_object_facts": [],
-                "protected_scm_context": protected_scm_context(&[]),
+                "protected_scm_context": protected_scm_context(),
                 "retirement_control_plane_context": retirement_control_plane_context(false)
             }
         });
@@ -4239,7 +4221,7 @@ mod tests {
             "scm_facts": {
                 "retirement_receipt_coverage": {"protected_base_ref":"origin/dev","protected_receipt_paths":[],"candidate_receipt_paths":[],"carried_receipt_paths":[],"new_receipt_paths":[],"scopes":[],"required_retired_paths":[]},
                 "retirement_receipt_object_facts": [],
-                "protected_scm_context": protected_scm_context(&[]),
+                "protected_scm_context": protected_scm_context(),
                 "retirement_control_plane_context": retirement_control_plane_context(false)
             }
         });
@@ -4532,7 +4514,7 @@ mod tests {
             "scm_facts": {
                 "retirement_receipt_coverage": {"protected_base_ref":"origin/dev","protected_receipt_paths":[],"candidate_receipt_paths":[],"carried_receipt_paths":[],"new_receipt_paths":[],"scopes":[],"required_retired_paths":[]},
                 "retirement_receipt_object_facts": [],
-                "protected_scm_context": protected_scm_context(&[]),
+                "protected_scm_context": protected_scm_context(),
                 "retirement_control_plane_context": retirement_control_plane_context(false)
             }
         });

@@ -122,18 +122,6 @@ is out of ADR-0613 scope; ADR-0614 records that later proposal and implementatio
   gen` LOCAL BRIDGE commands, not wired into `oya-ci-required.yml` or `registry/quality/lanes.yaml`
   — feedback-only per the CLI-retirement doctrine, never merge authority.
 
-### E7 history-only retirement facts — implementation boundary, HOLD(Planning)
-
-The controller may materialize a typed, ignored observation projection for the three declared
-history-only retirement scopes. Its implementation surface is
-`ci/facade/scm-facts-snapshot/src/retirement.rs`, with reviewed source contracts
-`registry/history-only-retirement/control-plane.json`, `registry/history-only-retirement/OWNERS`,
-`specs/history-only-retirement-control-plane.schema.json`, and
-`specs/history-only-retirement-facts.schema.json`. This is an evidence-preservation boundary only:
-protected-null closure fields remain null and the facts face is not a contributor merge surface,
-closure receipt, promotion, or completion claim. E7 therefore remains HOLD(Planning) until a
-separate, accepted authority and its required evidence close that state.
-
 ## Alternatives considered
 
 - **De-commit all three faces (include move-manifest).** Rejected for this ADR because the then-live

@@ -231,9 +231,7 @@ fn installed_dormant_history_only_facts_fixture(control_plane_bytes: &[u8]) -> V
                 "predecessor_tree_exists": true,
                 "predecessor_commit_tree_bound": true,
                 "predecessor_is_ancestor_of_protected_base": true,
-                "prepared_receipt_paths": [],
-                "protected_preparation_receipts": [],
-                "control_plane_entries": entries
+                "protected_preparation_receipts": []
             },
             "retirement_control_plane_context": {
                 "control_plane_path": "registry/history-only-retirement/control-plane.json",
@@ -290,9 +288,9 @@ fn retirement_sources_do_not_silently_amend_accepted_adr_0613() {
     let reachability: Value =
         serde_json::from_slice(&fs::read(root.join("specs/reachability-registry.json")).unwrap())
             .expect("parse reachability registry");
-    let rows = reachability["born_reachability"]
+    let rows = reachability["registered"]
         .as_array()
-        .expect("born_reachability rows");
+        .expect("registered reachability rows");
     for prefix in [
         "registry/history-only-retirement/control-plane.json",
         "registry/history-only-retirement/OWNERS",
