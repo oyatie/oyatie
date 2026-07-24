@@ -3718,6 +3718,114 @@ mod tests {
     }
 
     #[test]
+    fn control_plane_identity_is_path_hash_and_size_bound() {
+        let corpus = exact_adr_0388_corpus("closure-new");
+        for (pointer, value) in [
+            (
+                "/scm_facts/retirement_control_plane_context/control_plane_path",
+                json!("registry/history-only-retirement/other-control-plane.json"),
+            ),
+            (
+                "/scm_facts/retirement_control_plane_context/protected_control_plane_sha256",
+                json!("sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"),
+            ),
+            (
+                "/scm_facts/retirement_control_plane_context/candidate_control_plane_sha256",
+                json!("sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"),
+            ),
+            (
+                "/scm_facts/retirement_control_plane_context/protected_control_plane_byte_count",
+                json!(2),
+            ),
+            (
+                "/scm_facts/retirement_control_plane_context/candidate_control_plane_byte_count",
+                json!(2),
+            ),
+        ] {
+            let mut drifted = corpus.clone();
+            *drifted.pointer_mut(pointer).expect("fixture pointer") = value;
+            assert!(
+                evaluate_and_project_history_only_retirement_closures(&drifted)
+                    .projection
+                    .is_none(),
+                "{pointer} mutation must fail"
+            );
+        }
+
+        for pointer in [
+            "/scm_facts/retirement_control_plane_context/control_plane_path",
+            "/scm_facts/retirement_control_plane_context/protected_control_plane_sha256",
+            "/scm_facts/retirement_control_plane_context/candidate_control_plane_sha256",
+            "/scm_facts/retirement_control_plane_context/protected_control_plane_byte_count",
+            "/scm_facts/retirement_control_plane_context/candidate_control_plane_byte_count",
+        ] {
+            let mut omitted = corpus.clone();
+            *omitted.pointer_mut(pointer).expect("fixture pointer") = Value::Null;
+            assert!(
+                evaluate_and_project_history_only_retirement_closures(&omitted)
+                    .projection
+                    .is_none(),
+                "{pointer} omission must fail"
+            );
+        }
+    }
+
+    #[test]
+    fn unknown_verdict_or_pass_claims_are_rejected() {
+        for claim in ["verdict", "pass"] {
+            let mut corpus = exact_adr_0388_corpus("closure-new");
+            corpus["receipts"][0]["receipt"][claim] = json!(true);
+            assert!(
+                evaluate_and_project_history_only_retirement_closures(&corpus)
+                    .projection
+                    .is_none(),
+                "unknown {claim} claim must fail"
+            );
+        }
+    }
+
+    #[test]
+    fn protected_and_candidate_nonregular_retired_inputs_fail_closed() {
+        for field in ["protected_mode", "candidate_mode"] {
+            for mode in ["100755", "120000", "160000"] {
+                let mut corpus = exact_adr_0388_corpus("prepared-new");
+                corpus["scm_facts"]["retirement_receipt_object_facts"][0]["retired_inputs"][0]
+                    [field] = json!(mode);
+                assert!(
+                    evaluate_and_project_history_only_retirement_closures(&corpus)
+                        .projection
+                        .is_none(),
+                    "{field}={mode} must fail"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn retirement_evaluation_is_deterministic_for_each_valid_lifecycle() {
+        for state in ["dormant", "prepared-new", "closure-new", "closed-carried"] {
+            let corpus = if state == "dormant" {
+                json!({
+                    "receipts": [],
+                    "scm_facts": {
+                        "retirement_receipt_coverage": {"protected_base_ref":"origin/dev","protected_receipt_paths":[],"candidate_receipt_paths":[],"carried_receipt_paths":[],"new_receipt_paths":[],"scopes":[],"required_retired_paths":[]},
+                        "retirement_receipt_object_facts": [],
+                        "protected_scm_context": protected_scm_context(&[]),
+                        "retirement_control_plane_context": retirement_control_plane_context(false)
+                    }
+                })
+            } else {
+                exact_adr_0388_corpus(state)
+            };
+            assert_eq!(
+                evaluate_and_project_history_only_retirement_closures(&corpus),
+                evaluate_and_project_history_only_retirement_closures(&corpus),
+                "{state} evaluation must be deterministic"
+            );
+        }
+    }
+
+    #[test]
     fn executable_and_symlink_retired_inputs_fail_closed() {
         let corpus = exact_adr_0388_corpus("closure-new");
         for (field, value) in [
