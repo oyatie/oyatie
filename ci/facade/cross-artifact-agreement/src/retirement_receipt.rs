@@ -4028,6 +4028,9 @@ mod tests {
         let mut corpus = exact_adr_0388_corpus(state);
         let receipt = corpus["receipts"][0]["receipt"].take();
         let bytes = serde_json::to_vec(&receipt).expect("serialize raw receipt");
+        let candidate_digest = format!("sha256:{:x}", Sha256::digest(&bytes));
+        corpus["scm_facts"]["retirement_receipt_object_facts"][0]["candidate_registry_row_sha256"] =
+            json!(candidate_digest);
         let fact = &corpus["scm_facts"]["retirement_receipt_object_facts"][0];
         corpus["receipts"] = json!([{
             "receipt_path": fact["receipt_path"],
@@ -4077,6 +4080,50 @@ mod tests {
         let extra = evaluate_and_project_history_only_retirement_facts(&facts, &[raw, extra]);
         assert!(!extra.findings.is_empty());
         assert!(extra.projection.is_none());
+    }
+
+    #[test]
+    fn lifecycle_context_contradictions_fail_closed_through_both_entry_points() {
+        for (pointer, value) in [
+            (
+                "/scm_facts/retirement_control_plane_context/bootstrap",
+                json!(true),
+            ),
+            (
+                "/scm_facts/retirement_control_plane_context/lifecycle_state",
+                json!("dormant"),
+            ),
+            (
+                "/scm_facts/retirement_control_plane_context/lifecycle_state",
+                json!("carried"),
+            ),
+            (
+                "/scm_facts/retirement_control_plane_context/lifecycle_state",
+                json!("prepared-new"),
+            ),
+        ] {
+            let mut corpus = exact_adr_0388_corpus("closure-new");
+            *corpus.pointer_mut(pointer).expect("fixture pointer") = value.clone();
+            assert!(
+                evaluate_and_project_history_only_retirement_closures(&corpus)
+                    .projection
+                    .is_none(),
+                "{pointer}={value} must not project from the receipt corpus"
+            );
+
+            let (mut facts, bytes) = canonical_facts_and_raw("closure-new");
+            *facts.pointer_mut(pointer).expect("fixture pointer") = value;
+            let raw = RawHistoryOnlyRetirementReceipt {
+                receipt_path: ADR_0388_CLOSURE_PATH,
+                bytes: &bytes,
+            };
+            assert!(
+                evaluate_and_project_history_only_retirement_facts(&facts, &[raw])
+                    .projection
+                    .is_none(),
+                "{pointer} must not project from facts plus raw bytes"
+            );
+        }
     }
 
     #[test]
