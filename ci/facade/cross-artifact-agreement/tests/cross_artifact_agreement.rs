@@ -12,8 +12,8 @@ use std::process::Command;
 
 use ci_cross_artifact_agreement::{
     AdrDecisionRecord, GateCoverageBaseline, RatchetReport, RawHistoryOnlyRetirementReceipt,
-    Verdict, derive_masterplan_md_projection, evaluate, evaluate_adr_index_projection_parity,
-    evaluate_adr_prose_frontmatter_status,
+    Verdict, derive_masterplan_md_projection, evaluate, evaluate_adr_0515_preparation_facts,
+    evaluate_adr_index_projection_parity, evaluate_adr_prose_frontmatter_status,
     evaluate_and_project_history_only_retirement_facts_with_control_plane,
     evaluate_masterplan_plan_evidence_crosscheck, evaluate_masterplan_projection_rederivation,
     evaluate_masterplan_read_surface_resurrections, evaluate_masterplan_v2_authority,
@@ -854,6 +854,27 @@ fn live_history_only_retirement_facts_are_bound_to_the_controller_control_plane(
             .evidence_set_ids()
             .is_empty(),
         "dormant live facts must not project a closure"
+    );
+}
+
+#[test]
+fn live_adr_0515_preparation_facts_remain_non_claiming() {
+    let root = repo_root();
+    let relative_path = std::env::var("OYA_ADR_0515_PREPARATION_FACTS")
+        .expect("FAIL-CLOSED: OYA_ADR_0515_PREPARATION_FACTS must name the materialized face");
+    assert_eq!(
+        relative_path,
+        "ci/facade/scm-facts-snapshot/adr-0515-history-only-retirement-facts.generated.json"
+    );
+    let path = root.join(relative_path);
+    let facts: Value = serde_json::from_slice(
+        &fs::read(&path).unwrap_or_else(|error| panic!("read {}: {error}", path.display())),
+    )
+    .unwrap_or_else(|error| panic!("parse {}: {error}", path.display()));
+    let findings = evaluate_adr_0515_preparation_facts(&facts);
+    assert!(
+        findings.is_empty(),
+        "ADR-0515 preparation facts must remain HOLD-only and non-claiming: {findings:?}"
     );
 }
 

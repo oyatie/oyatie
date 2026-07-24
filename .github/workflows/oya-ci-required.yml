@@ -110,6 +110,7 @@ jobs:
             ci/facade/artifact-inventory-registry/*.generated.json
             ci/facade/scm-facts-snapshot/scm-volatile-facts.generated.json
             ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json
+            ci/facade/scm-facts-snapshot/adr-0515-history-only-retirement-facts.generated.json
             registry/graph/active-artifact-contract-edges.json
           if-no-files-found: error
 

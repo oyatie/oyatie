@@ -490,6 +490,18 @@
       }
     },
     {
+      "artifact_id": "adr-0515-history-only-retirement-facts",
+      "path": "ci/facade/scm-facts-snapshot/adr-0515-history-only-retirement-facts.generated.json",
+      "artifact_class": "scm-facts-boundary-snapshot",
+      "materialization_mode": "not-tracked-in-git",
+      "merge_policy": "never-manual-merge-regenerate-from-source-tree",
+      "owner_team": "cloud-ci-platform",
+      "source_inputs": ["registry/history-only-retirement/adr-0515-ci-adr-cluster-control-plane.json", "specs/adr-0515-history-only-retirement-control-plane.schema.json", "specs/adr-0515-history-only-retirement-facts.schema.json", ".github/workflows/oya-ci-required.yml", "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md", "full-depth SCM checkout"],
+      "final_tree_validation": "Preparation-only controller projection. It is ignored, untracked, typed non-content metadata; it proves no closure, authority, dispatch, or ratification.",
+      "public_product_contract": "ADR-0515 preparation facts are controller-produced non-claiming evidence.",
+      "generator": {"runner":"buck2","generator_target":"//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot","operation_id":"emit-adr-0515-preparation-facts","parameters":{},"input_contract":["repo-root","full-depth-scm","declared-source-inputs"],"output_mode":"declared-artifact-path-write"}
+    },
+    {
       "artifact_id": "glossary-vocabulary-warning-allowlist-baseline",
       "path": "registry/glossary-vocabulary/warning-baseline.tsv",
       "artifact_class": "hand-curated-ratchet",

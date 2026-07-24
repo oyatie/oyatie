@@ -58,6 +58,205 @@ const ADR_0388_CLOSURE_ID: &str = "adr-0388-transient-ideas-retirement-closure";
 const ADR_0388_CLOSURE_PATH: &str =
     "evidence/history-only-retirement/adr-0388-transient-ideas-closure.json";
 
+const ADR_0515_SUPERSEDED_CI_CLUSTER: [&str; 7] = [
+    "ADR-0124", "ADR-0349", "ADR-0359", "ADR-0361", "ADR-0511", "ADR-0513", "ADR-0514",
+];
+
+/// Parses the surviving ADR-0515 front-matter as an immutable lineage boundary.
+///
+/// This intentionally accepts no arbitrary historical identifier: the one-scope
+/// preparation profile may only bind the cluster ADR-0515 itself supersedes.
+pub(crate) fn parse_adr_0515_supersedes(bytes: &[u8]) -> Result<BTreeSet<String>, String> {
+    let text =
+        std::str::from_utf8(bytes).map_err(|_| "ADR-0515 source must be valid UTF-8".to_owned())?;
+    let mut lines = text.lines();
+    if lines.next() != Some("---") {
+        return Err("ADR-0515 source has no front-matter".to_owned());
+    }
+    let mut id = None;
+    let mut supersedes = None;
+    for line in lines.by_ref() {
+        if line == "---" {
+            break;
+        }
+        if let Some(value) = line.strip_prefix("id:") {
+            id = Some(value.trim());
+        }
+        if let Some(value) = line.strip_prefix("supersedes:") {
+            supersedes = Some(value.trim());
+        }
+    }
+    if id != Some("ADR-0515") {
+        return Err("source is not ADR-0515".to_owned());
+    }
+    let values = supersedes
+        .ok_or_else(|| "ADR-0515 supersedes is absent".to_owned())?
+        .strip_prefix('[')
+        .and_then(|value| value.strip_suffix(']'))
+        .ok_or_else(|| "ADR-0515 supersedes must be an inline list".to_owned())?;
+    let parsed = values
+        .split(',')
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .map(str::to_owned)
+        .collect::<BTreeSet<_>>();
+    let expected = ADR_0515_SUPERSEDED_CI_CLUSTER
+        .into_iter()
+        .map(str::to_owned)
+        .collect::<BTreeSet<_>>();
+    if parsed != expected {
+        return Err("ADR-0515 supersedes is not the fixed CI cluster lineage".to_owned());
+    }
+    Ok(parsed)
+}
+
+const ADR_0515_PREPARATION_CONTROL_PATH: &str =
+    "registry/history-only-retirement/adr-0515-ci-adr-cluster-control-plane.json";
+pub const ADR_0515_PREPARATION_FACTS_PATH: &str =
+    "ci/facade/scm-facts-snapshot/adr-0515-history-only-retirement-facts.generated.json";
+
+/// Materializes non-content proof metadata for the one-scope ADR-0515 preparation profile.
+///
+/// It observes immutable Git blobs and reports any exact readable in-tree copy.  It does not
+/// create a closure receipt, alter live documents, or make an authority decision.
+pub fn materialize_adr_0515_preparation_facts(repo_root: &Path) -> Result<Value, String> {
+    let control_bytes = std::fs::read(repo_root.join(ADR_0515_PREPARATION_CONTROL_PATH))
+        .map_err(|error| format!("read ADR-0515 preparation control plane: {error}"))?;
+    let control: Value = parse_closed_json(&control_bytes)?;
+    let source = control
+        .pointer("/source_adr/path")
+        .and_then(Value::as_str)
+        .ok_or_else(|| "ADR-0515 preparation source path is absent".to_owned())?;
+    let source_bytes = std::fs::read(repo_root.join(source))
+        .map_err(|error| format!("read ADR-0515 preparation source: {error}"))?;
+    let lineage = parse_adr_0515_supersedes(&source_bytes)?;
+    let declared = control
+        .pointer("/source_adr/supersedes")
+        .and_then(Value::as_array)
+        .ok_or_else(|| "ADR-0515 preparation lineage is absent".to_owned())?
+        .iter()
+        .map(|value| value.as_str().map(str::to_owned))
+        .collect::<Option<BTreeSet<_>>>()
+        .ok_or_else(|| "ADR-0515 preparation lineage is not strings".to_owned())?;
+    if declared != lineage {
+        return Err("ADR-0515 preparation lineage does not bind the surviving ADR".to_owned());
+    }
+    if control.pointer("/planning_state").and_then(Value::as_str) != Some("HOLD(Planning)")
+        || control.pointer("/planning_impact").and_then(Value::as_bool) != Some(false)
+        || control
+            .pointer("/dispatch_authorized")
+            .and_then(Value::as_bool)
+            != Some(false)
+        || control.pointer("/authority_claim").and_then(Value::as_str) != Some("none")
+    {
+        return Err("ADR-0515 preparation control is not a non-dispatch HOLD".to_owned());
+    }
+    let predecessor = control
+        .pointer("/predecessor_snapshot/commit_oid")
+        .and_then(Value::as_str)
+        .ok_or_else(|| "ADR-0515 preparation predecessor commit is absent".to_owned())?;
+    let expected_tree = control
+        .pointer("/predecessor_snapshot/tree_oid")
+        .and_then(Value::as_str)
+        .ok_or_else(|| "ADR-0515 preparation predecessor tree is absent".to_owned())?;
+    validate_oid(predecessor, "ADR-0515 preparation predecessor commit")?;
+    validate_oid(expected_tree, "ADR-0515 preparation predecessor tree")?;
+    let git = GitCliRetirementObjectSource::new(repo_root.to_path_buf());
+    let resolved = git.resolve_commit(predecessor)?;
+    if resolved != predecessor || git.tree_for_commit(predecessor)? != expected_tree {
+        return Err("ADR-0515 preparation predecessor Git binding changed".to_owned());
+    }
+    let predecessor_entries = entries_by_path(git.tree_entries(predecessor)?)?;
+    let candidate_entries = entries_by_path(git.tree_entries("HEAD")?)?;
+    if !git.is_ancestor(predecessor, "HEAD")? {
+        return Err("ADR-0515 preparation predecessor is not an ancestor of HEAD".to_owned());
+    }
+    let selectors = control
+        .pointer("/scope/selectors")
+        .and_then(Value::as_array)
+        .filter(|selectors| selectors.len() == ADR_0515_SUPERSEDED_CI_CLUSTER.len())
+        .ok_or_else(|| "ADR-0515 preparation requires exactly seven selectors".to_owned())?;
+    let mut facts = Vec::with_capacity(selectors.len());
+    let mut seen_ids = BTreeSet::new();
+    let mut predecessor_bodies = BTreeMap::new();
+    for selector in selectors {
+        let adr_id = required_value_string(selector.get("adr_id"), "selector.adr_id")?;
+        if !lineage.contains(adr_id) || !seen_ids.insert(adr_id.to_owned()) {
+            return Err("ADR-0515 preparation selector is outside its lineage".to_owned());
+        }
+        let path = required_value_string(selector.get("path"), "selector.path")?;
+        validate_repo_path(path)?;
+        let expected_oid = required_value_string(
+            selector.get("predecessor_blob_oid"),
+            "selector.predecessor_blob_oid",
+        )?;
+        let expected_sha = required_value_string(selector.get("sha256"), "selector.sha256")?;
+        let expected_size = selector
+            .get("byte_count")
+            .and_then(Value::as_u64)
+            .ok_or_else(|| "selector.byte_count is absent".to_owned())?;
+        let entry = predecessor_entries
+            .get(path)
+            .ok_or_else(|| format!("ADR-0515 predecessor selector is absent: {path}"))?;
+        require_regular(entry, "ADR-0515 predecessor selector")?;
+        if entry.oid != expected_oid || entry.mode != "100644" {
+            return Err(format!(
+                "ADR-0515 predecessor selector binding changed: {path}"
+            ));
+        }
+        let bytes = git.read_blob(&entry.oid)?;
+        if sha256_digest(&bytes) != expected_sha || bytes.len() as u64 != expected_size {
+            return Err(format!(
+                "ADR-0515 predecessor raw-byte binding changed: {path}"
+            ));
+        }
+        let live = candidate_entries
+            .get(path)
+            .filter(|entry| entry.is_regular_blob())
+            .is_some();
+        if !live {
+            return Err(format!(
+                "ADR-0515 preparation live selector is absent: {path}"
+            ));
+        }
+        predecessor_bodies.insert(path.to_owned(), bytes);
+        facts.push(json!({"adr_id":adr_id,"path":path,"predecessor_blob_oid":expected_oid,"sha256":expected_sha,"byte_count":expected_size,"live_body_exists":true,"exact_readable_copies":[]}));
+    }
+    if seen_ids != lineage {
+        return Err("ADR-0515 preparation selector population is incomplete".to_owned());
+    }
+    let copies = build_equivalence_index(
+        &git,
+        &predecessor_bodies,
+        &BTreeMap::new(),
+        &candidate_entries,
+    )?;
+    for fact in &mut facts {
+        let path = required_value_string(fact.get("path"), "object fact path")?;
+        fact["exact_readable_copies"] =
+            json!(copies.candidate.get(path).cloned().unwrap_or_default());
+    }
+    Ok(
+        json!({"profile":"adr-0515-superseded-ci-cluster-preparation","planning_state":"HOLD(Planning)","planning_impact":false,"dispatch_authorized":false,"authority_claim":"none","source_adr":{"id":"ADR-0515","supersedes":lineage},"predecessor_snapshot":{"commit_oid":predecessor,"tree_oid":expected_tree},"object_facts":facts,"closure_contract":control["closure_contract"]}),
+    )
+}
+
+pub fn emit_adr_0515_preparation_facts(repo_root: &Path) -> Result<(), String> {
+    let output = repo_root.join(ADR_0515_PREPARATION_FACTS_PATH);
+    let ignored = Command::new("git")
+        .args(["-C"])
+        .arg(repo_root)
+        .args(["check-ignore", "-q", ADR_0515_PREPARATION_FACTS_PATH])
+        .status()
+        .map_err(|e| format!("check ADR-0515 facts ignore boundary: {e}"))?;
+    if !ignored.success() {
+        return Err("ADR-0515 preparation facts must be ignored".to_owned());
+    }
+    let facts = materialize_adr_0515_preparation_facts(repo_root)?;
+    let text = to_canonical_json(&facts).map_err(|error| error.to_string())?;
+    std::fs::write(output, text).map_err(|e| format!("write ADR-0515 preparation facts: {e}"))
+}
+
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 struct RetirementControlPlane {
@@ -2191,6 +2390,19 @@ impl<'de> Visitor<'de> for DuplicateKeyFreeJsonVisitor {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn adr_0515_lineage_parser_rejects_a_non_lineage_historical_adr() {
+        let error = parse_adr_0515_supersedes(
+            b"---\nid: ADR-0515\nsupersedes: [ADR-0124, ADR-0349, ADR-9999]\n---\n",
+        )
+        .expect_err("only the ADR-0515 CI cluster may be named by the preparation profile");
+
+        assert!(
+            error.contains("ADR-0515 supersedes"),
+            "unexpected error: {error}"
+        );
+    }
     use std::cell::RefCell;
 
     const PREDECESSOR: &str = "1111111111111111111111111111111111111111";
