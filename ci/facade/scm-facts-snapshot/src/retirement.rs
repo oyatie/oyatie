@@ -2462,18 +2462,30 @@ mod tests {
             .as_array()
             .unwrap()
             .iter()
-            .map(|metadata| ci_cross_artifact_agreement::RawHistoryOnlyRetirementReceipt {
-                receipt_path: metadata["receipt_path"].as_str().unwrap(),
-                bytes: source
-                    .blobs
-                    .get(metadata["candidate_receipt_blob_oid"].as_str().unwrap())
-                    .unwrap(),
-            })
+            .map(
+                |metadata| ci_cross_artifact_agreement::RawHistoryOnlyRetirementReceipt {
+                    receipt_path: metadata["receipt_path"].as_str().unwrap(),
+                    bytes: source
+                        .blobs
+                        .get(metadata["candidate_receipt_blob_oid"].as_str().unwrap())
+                        .unwrap(),
+                },
+            )
             .collect::<Vec<_>>();
-        let evaluation =
-            ci_cross_artifact_agreement::evaluate_and_project_history_only_retirement_facts(
+        let control_plane_bytes = source
+            .blobs
+            .get(
+                facts["scm_facts"]["retirement_control_plane_context"]
+                    ["candidate_control_plane_blob_oid"]
+                    .as_str()
+                    .unwrap(),
+            )
+            .unwrap();
+        let evaluation = ci_cross_artifact_agreement::
+            evaluate_and_project_history_only_retirement_facts_with_control_plane(
                 &facts,
                 &raw_receipts,
+                control_plane_bytes,
             );
         assert!(
             evaluation.findings.is_empty(),
