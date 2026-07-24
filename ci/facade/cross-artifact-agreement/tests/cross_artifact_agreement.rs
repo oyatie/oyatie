@@ -85,10 +85,21 @@ fn workflow_job<'a>(workflow: &'a str, job_name: &str) -> &'a str {
         .find(&marker)
         .unwrap_or_else(|| panic!("workflow job {job_name}"));
     let tail = &workflow[start..];
-    let end = tail[marker.len()..]
-        .find("\n  ")
-        .map(|offset| marker.len() + offset)
-        .unwrap_or(tail.len());
+    let mut cursor = marker.len();
+    let end = loop {
+        let Some(offset) = tail[cursor..].find("\n  ") else {
+            break tail.len();
+        };
+        let candidate = cursor + offset;
+        if tail
+            .as_bytes()
+            .get(candidate + 3)
+            .is_some_and(u8::is_ascii_alphanumeric)
+        {
+            break candidate;
+        }
+        cursor = candidate + 3;
+    };
     &tail[..end]
 }
 
