@@ -69,7 +69,6 @@ agent-wiring + catalog`.
 | `cloud-ci-enforcement-liveness` | agent-wiring | producer-face (`enforcement_liveness`) | `hook_unwired_without_stub_marker` (frozen-empty), `hook_wiring_mirror_drift` (frozen-empty), `wired_hook_missing_file` (frozen-empty) |
 | `cloud-ci-freshness` | rust-cargo-workspace | frozen-empty-meta | `lock_missing_member_package`, `lock_stale_member_version`, `lock_orphan_path_package`, `generated_face_stale` |
 | `cloud-ci-friction-accounting` | governance | standalone self-test (own committed baseline) | `friction_policy_gate_id_mismatch` (frozen-empty), `friction_missing_required_field`, `friction_unknown_status` (frozen-empty), `friction_no_disposition` (born-blocking-clean), `friction_closed_without_evidence`, `friction_accepted_risk_without_evidence`, `friction_duplicate_primary_row` (frozen-empty), `friction_orphan_update_row` |
-| `prototype-fixuptask-v2-admission` | governance | prototype / nonbinding (ADR-0622 Proposed; nonbinding; not dispatched by `oya-ci-required`) | prospective protected-registry digest and strict lifecycle findings; it is not a live admission gate |
 | `cloud-ci-canonical-json` | governance | standalone self-test (zero baseline) | `json_not_canonical` (born-blocking-empty), `json_parse_error` (born-blocking-empty), `json_duplicate_key` (born-blocking-empty) |
 | `cloud-ci-embedded-asset-hermeticity` | hermeticity | standalone self-test (own committed baseline) | `embedded_asset_unmapped_include` (born-blocking frozen-empty), `embedded_asset_policy_gate_id_mismatch` (frozen-empty); non-blocking skips: `skip_non_literal_argument`, `skip_absolute_literal`, `skip_build_output_path`, `skip_no_owning_target`, `skip_buck_unparseable` |
 | `cloud-ci-kernel-purity` | rust-cargo-workspace | standalone self-test (born-blocking, no baseline) | `KP-TRANSIENT-DEP-CARGO` (born-blocking-clean), `KP-TRANSIENT-DEP-BUCK` (born-blocking-clean), `KP-UNRESOLVED-PATH-DEP` (born-blocking-clean), `KP-STALE-EXCEPTION`, `KP-EMPTY-SCAN`, `KP-POLICY-GATE-ID-MISMATCH` |
@@ -111,10 +110,6 @@ reviewed shrink-only `friction-accounting-baseline.json` + ceilings (FRIC-178111
 rather than the central baseline. Same firewall *semantics* (frozen-empty + shrink-only legacy debt),
 local enforcement. All policy — the ledger path, the free-text status taxonomy, the evidence rules —
 is DATA in `friction-accounting-policy.json`, so the gate runs on any repo by repointing the policy.
-
-`prototype-fixuptask-v2-admission` is ADR-0622 Proposed work only: nonbinding and not dispatched by
-`oya-ci-required`. Its durable targets may be exercised in isolated development verification, but
-cannot claim live admission, replacement, or cutover until qualified authority accepts the ADR.
 
 `cloud-ci-canonical-json` (ADR-0546) is a standalone born-blocking self-test, NOT a producer-face
 gate. It walks every tracked `*.json` under the policy's `governed_roots` (read-only filesystem),
