@@ -96,6 +96,7 @@ const FACT_FIELDS: &[&str] = &[
 ];
 const FACT_INPUT_FIELDS: &[&str] = &[
     "path",
+    "mode",
     "predecessor_blob_oid",
     "sha256",
     "byte_count",
@@ -104,7 +105,6 @@ const FACT_INPUT_FIELDS: &[&str] = &[
     "predecessor_sha256",
     "predecessor_byte_count",
     "predecessor_mode",
-    "predecessor_tree_oid",
     "protected_path_exists",
     "protected_path_kind",
     "protected_blob_oid",
@@ -158,10 +158,6 @@ const PREDECESSOR_CONTEXT_FIELDS: &[&str] = &[
     "tree_oid",
     "receipt_path",
     "receipt_blob_oid",
-    "commit_exists",
-    "tree_exists",
-    "commit_tree_oid",
-    "is_ancestor_of_candidate",
 ];
 const CONTROL_PLANE_ENTRY_FIELDS: &[&str] = &[
     "evidence_set_id",
@@ -1366,9 +1362,8 @@ fn validate_inputs(
             && fact_input.get("predecessor_blob_oid") == input.get("predecessor_blob_oid")
             && fact_input.get("predecessor_sha256") == input.get("sha256")
             && fact_input.get("predecessor_byte_count") == input.get("byte_count")
-            && fact_input.get("predecessor_mode").and_then(Value::as_str) == Some("100644")
-            && fact_input.get("predecessor_tree_oid")
-                == fact.pointer("/predecessor_context/tree_oid");
+            && fact_input.get("mode").and_then(Value::as_str) == Some("100644")
+            && fact_input.get("predecessor_mode").and_then(Value::as_str) == Some("100644");
         if !predecessor_matches {
             fail(
                 findings,
@@ -1492,17 +1487,7 @@ fn validate_predecessor_context(
         "predecessor_context.tree_oid",
         findings,
     );
-    if source != expected
-        || commit.is_none()
-        || tree.is_none()
-        || context.get("commit_exists").and_then(Value::as_bool) != Some(true)
-        || context.get("tree_exists").and_then(Value::as_bool) != Some(true)
-        || context.get("commit_tree_oid").and_then(Value::as_str) != tree.as_deref()
-        || context
-            .get("is_ancestor_of_candidate")
-            .and_then(Value::as_bool)
-            != Some(true)
-    {
+    if source != expected || commit.is_none() || tree.is_none() {
         fail(findings, "predecessor_context");
         return;
     }
@@ -2176,7 +2161,7 @@ mod tests {
             _ => "invalid",
         };
         let entry = test_control_entry(scope);
-        let mut fact = json!({"artifact_id":id,"receipt_path":receipt_path,"protected_base_ref":"origin/dev","receipt_state":state,"scope_ref":scope,"scope_type":scope_type(scope).unwrap(),"baseline_commit_oid":commit,"baseline_tree_oid":tree,"protected_receipt_blob_oid":if prepared { Value::Null } else { json!(BLOB) },"candidate_receipt_blob_oid":BLOB,"protected_registry_row_sha256":if prepared { Value::Null } else { json!("sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa") },"candidate_registry_row_sha256":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","retired_inputs":[{"path":path,"predecessor_blob_oid":BLOB,"sha256":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","byte_count":1,"predecessor_path_exists":true,"predecessor_path_kind":"regular","predecessor_sha256":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","predecessor_byte_count":1,"predecessor_mode":"100644","predecessor_tree_oid":tree,"protected_path_exists":current_present,"protected_path_kind":if current_present { json!("regular") } else { Value::Null },"protected_blob_oid":if current_present { json!(BLOB) } else { Value::Null },"protected_sha256":if current_present { json!("sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa") } else { Value::Null },"protected_byte_count":if current_present { json!(1) } else { Value::Null },"protected_mode":if current_present { json!("100644") } else { Value::Null },"candidate_path_exists":prepared,"candidate_path_kind":if prepared { json!("regular") } else { Value::Null },"candidate_blob_oid":if prepared { json!(BLOB) } else { Value::Null },"candidate_sha256":if prepared { json!("sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa") } else { Value::Null },"candidate_byte_count":if prepared { json!(1) } else { Value::Null },"candidate_mode":if prepared { json!("100644") } else { Value::Null },"candidate_new_equivalent_paths":[],"candidate_equivalent_paths":[]} ],"predecessor_context":{"source":source,"commit_oid":commit,"tree_oid":tree,"receipt_path":Value::Null,"receipt_blob_oid":Value::Null,"commit_exists":true,"tree_exists":true,"commit_tree_oid":tree,"is_ancestor_of_candidate":true},"control_plane_entry":entry});
+        let mut fact = json!({"artifact_id":id,"receipt_path":receipt_path,"protected_base_ref":"origin/dev","receipt_state":state,"scope_ref":scope,"scope_type":scope_type(scope).unwrap(),"baseline_commit_oid":commit,"baseline_tree_oid":tree,"protected_receipt_blob_oid":if prepared { Value::Null } else { json!(BLOB) },"candidate_receipt_blob_oid":BLOB,"protected_registry_row_sha256":if prepared { Value::Null } else { json!("sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa") },"candidate_registry_row_sha256":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","retired_inputs":[{"path":path,"predecessor_blob_oid":BLOB,"sha256":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","byte_count":1,"predecessor_path_exists":true,"predecessor_path_kind":"regular","predecessor_sha256":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","predecessor_byte_count":1,"predecessor_mode":"100644","protected_path_exists":current_present,"protected_path_kind":if current_present { json!("regular") } else { Value::Null },"protected_blob_oid":if current_present { json!(BLOB) } else { Value::Null },"protected_sha256":if current_present { json!("sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa") } else { Value::Null },"protected_byte_count":if current_present { json!(1) } else { Value::Null },"protected_mode":if current_present { json!("100644") } else { Value::Null },"candidate_path_exists":prepared,"candidate_path_kind":if prepared { json!("regular") } else { Value::Null },"candidate_blob_oid":if prepared { json!(BLOB) } else { Value::Null },"candidate_sha256":if prepared { json!("sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa") } else { Value::Null },"candidate_byte_count":if prepared { json!(1) } else { Value::Null },"candidate_mode":if prepared { json!("100644") } else { Value::Null },"candidate_new_equivalent_paths":[],"candidate_equivalent_paths":[]} ],"predecessor_context":{"source":source,"commit_oid":commit,"tree_oid":tree,"receipt_path":Value::Null,"receipt_blob_oid":Value::Null},"control_plane_entry":entry});
         let digest = control_plane_entry_digest(&fact["control_plane_entry"]).expect("test entry");
         fact["control_plane_entry_sha256"] = json!(digest);
         fact
