@@ -8,6 +8,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::sync::atomic::{AtomicU64, Ordering};
 
 use ci_artifact_inventory_registry::to_canonical_json;
 use serde::de::{self, MapAccess, SeqAccess, Visitor};
@@ -24,6 +25,7 @@ const CONTROL_PLANE_SCHEMA: &str =
 const CONTROL_PLANE_NAME: &str = "history-only-retirement-control-plane";
 const RECEIPT_ROOT: &str = "evidence/history-only-retirement";
 const PROTECTED_BASE_REF: &str = "origin/dev";
+static NEXT_ATOMIC_WRITE_ID: AtomicU64 = AtomicU64::new(0);
 
 const MASTERPLAN_EVIDENCE_SET_ID: &str = "masterplan-retired-surfaces-history-only-retirement-v1";
 const MASTERPLAN_PREPARATION_ID: &str = "masterplan-retired-surfaces-retirement-preparation";
@@ -239,12 +241,104 @@ pub(crate) fn emit_history_only_retirement_facts(
     let value = materialize_history_only_retirement_facts(&source, context)?;
     let bytes = to_canonical_json(&value)
         .map_err(|error| format!("serialize history-only retirement facts: {error}"))?;
-    if let Some(parent) = output_path.parent() {
-        std::fs::create_dir_all(parent)
-            .map_err(|error| format!("create {}: {error}", parent.display()))?;
+    write_ignored_regular_file(repo_root, &output_path, bytes.as_bytes())
+}
+
+fn write_ignored_regular_file(
+    repo_root: &Path,
+    output_path: &Path,
+    bytes: &[u8],
+) -> Result<(), String> {
+    let parent = output_path
+        .parent()
+        .ok_or_else(|| "retirement facts output has no parent directory".to_owned())?;
+    ensure_real_output_parent(repo_root, parent)?;
+    match std::fs::symlink_metadata(parent) {
+        Ok(metadata) if metadata.file_type().is_symlink() || !metadata.is_dir() => {
+            return Err(format!(
+                "retirement facts output parent {} is not a real directory",
+                parent.display()
+            ));
+        }
+        Ok(_) => {}
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+            std::fs::create_dir_all(parent)
+                .map_err(|error| format!("create {}: {error}", parent.display()))?
+        }
+        Err(error) => return Err(format!("inspect {}: {error}", parent.display())),
     }
-    std::fs::write(&output_path, bytes)
-        .map_err(|error| format!("write {}: {error}", output_path.display()))
+    match std::fs::symlink_metadata(output_path) {
+        Ok(metadata) if metadata.file_type().is_symlink() || !metadata.is_file() => {
+            return Err(format!(
+                "retirement facts output {} must be a regular file",
+                output_path.display()
+            ));
+        }
+        Ok(_) => {}
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+        Err(error) => return Err(format!("inspect {}: {error}", output_path.display())),
+    }
+    let temporary = (0..32)
+        .map(|_| {
+            output_path.with_extension(format!(
+                "tmp-{}-{}",
+                std::process::id(),
+                NEXT_ATOMIC_WRITE_ID.fetch_add(1, Ordering::Relaxed)
+            ))
+        })
+        .find_map(|path| {
+            match std::fs::OpenOptions::new()
+                .write(true)
+                .create_new(true)
+                .open(&path)
+            {
+                Ok(file) => Some(Ok((path, file))),
+                Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => None,
+                Err(error) => Some(Err(format!("create {}: {error}", path.display()))),
+            }
+        })
+        .ok_or_else(|| {
+            format!(
+                "create temporary retirement facts output beside {}",
+                output_path.display()
+            )
+        })??;
+    let (temporary, mut file) = temporary;
+    use std::io::Write;
+    let result = (|| {
+        file.write_all(bytes)
+            .map_err(|error| format!("write {}: {error}", temporary.display()))?;
+        file.sync_all()
+            .map_err(|error| format!("sync {}: {error}", temporary.display()))?;
+        std::fs::rename(&temporary, output_path)
+            .map_err(|error| format!("replace {}: {error}", output_path.display()))
+    })();
+    if result.is_err() {
+        let _ = std::fs::remove_file(&temporary);
+    }
+    result
+}
+
+fn ensure_real_output_parent(repo_root: &Path, parent: &Path) -> Result<(), String> {
+    let relative = parent
+        .strip_prefix(repo_root)
+        .map_err(|_| "retirement facts output escapes repo root".to_owned())?;
+    let mut current = repo_root.to_path_buf();
+    for component in relative.components() {
+        current.push(component);
+        match std::fs::symlink_metadata(&current) {
+            Ok(metadata) if metadata.file_type().is_symlink() || !metadata.is_dir() => {
+                return Err(format!(
+                    "retirement facts output parent component {} is not a real directory",
+                    current.display()
+                ));
+            }
+            Ok(_) => {}
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+            Err(error) => return Err(format!("inspect {}: {error}", current.display())),
+        }
+    }
+    Ok(())
 }
 
 fn canonical_generated_facts_output_path(
@@ -328,6 +422,9 @@ pub(crate) fn materialize_history_only_retirement_facts(
     }
     let predecessor_entries = entries_by_path(source.tree_entries(&predecessor)?)?;
     validate_predecessor_inputs(source, &control_plane, &predecessor_entries)?;
+    validate_selector_coverage(&control_plane, &predecessor_entries, "predecessor")?;
+    validate_selector_coverage(&control_plane, &protected_entries, "protected")?;
+    validate_selector_coverage(&control_plane, &candidate_entries, "candidate")?;
 
     let protected_control = protected_entries.get(CONTROL_PLANE_PATH);
     let bootstrap = protected_control.is_none();
@@ -489,6 +586,12 @@ pub(crate) fn materialize_history_only_retirement_facts(
                     }
                     let preparation_bytes = source.read_blob(&protected_preparation.oid)?;
                     let preparation: Value = parse_closed_json(&preparation_bytes)?;
+                    validate_receipt_identity(
+                        ReceiptStage::PreparedNew,
+                        entry,
+                        &entry.preparation_receipt_path,
+                        &preparation,
+                    )?;
                     let (commit, tree) = receipt_baseline(&preparation)?;
                     require_predecessor_baseline(
                         &commit,
@@ -522,7 +625,8 @@ pub(crate) fn materialize_history_only_retirement_facts(
                             "closure {receipt_path} links unexpected preparation path"
                         ));
                     }
-                    let (commit, tree) = find_linked_preparation(source, &protected, path, blob)?;
+                    let (commit, tree) =
+                        find_linked_preparation(source, &protected, path, blob, entry)?;
                     require_predecessor_baseline(
                         &commit,
                         &tree,
@@ -947,6 +1051,41 @@ fn validate_predecessor_inputs(
     Ok(())
 }
 
+fn validate_selector_coverage(
+    control: &RetirementControlPlane,
+    entries: &BTreeMap<String, TreeEntry>,
+    tree_role: &str,
+) -> Result<(), String> {
+    for selector in control.entries.iter().flat_map(|entry| &entry.selectors) {
+        let expected = selector
+            .expected_inputs
+            .iter()
+            .map(|input| input.path.as_str())
+            .collect::<BTreeSet<_>>();
+        for path in entries
+            .keys()
+            .filter(|path| selector_matches_path(selector, path))
+        {
+            if !expected.contains(path.as_str()) {
+                return Err(format!(
+                    "retirement selector coverage rejects unlisted {tree_role} path {path}"
+                ));
+            }
+        }
+    }
+    Ok(())
+}
+
+fn selector_matches_path(selector: &ControlSelector, path: &str) -> bool {
+    match selector.selector_type.as_str() {
+        "exact" => selector.selector == path,
+        "glob" => selector.selector.strip_suffix("/**").is_some_and(|prefix| {
+            path.starts_with(prefix) && path.as_bytes().get(prefix.len()) == Some(&b'/')
+        }),
+        _ => false,
+    }
+}
+
 fn validate_receipt_identity(
     stage: ReceiptStage,
     control: &ControlPlaneEntry,
@@ -1218,13 +1357,18 @@ fn find_linked_preparation(
     protected_commit: &str,
     path: &str,
     blob_oid: &str,
+    control: &ControlPlaneEntry,
 ) -> Result<(String, String), String> {
     let blob_bytes = source.read_blob(blob_oid)?;
     let preparation: Value = parse_closed_json(&blob_bytes)?;
+    validate_receipt_identity(ReceiptStage::PreparedNew, control, path, &preparation)?;
     let baseline = receipt_baseline(&preparation)?;
     for commit in source.commits_touching_path(protected_commit, path)? {
         let entries = entries_by_path(source.tree_entries(&commit)?)?;
-        if entries.get(path).is_some_and(|entry| entry.oid == blob_oid) {
+        if entries
+            .get(path)
+            .is_some_and(|entry| entry.oid == blob_oid && entry.is_regular_blob())
+        {
             return Ok(baseline);
         }
     }
@@ -2052,6 +2196,42 @@ mod tests {
         std::fs::remove_dir_all(root).unwrap();
     }
 
+    #[cfg(unix)]
+    #[test]
+    fn ignored_output_symlink_is_rejected_without_touching_its_target() {
+        use std::os::unix::fs::symlink;
+
+        let root = temp_git_repo("ignored-output-symlink");
+        let output = root.join("facts.json");
+        let outside = root.join("outside.json");
+        std::fs::write(&outside, b"outside bytes").unwrap();
+        symlink(&outside, &output).unwrap();
+
+        let error = write_ignored_regular_file(&root, &output, b"replacement").unwrap_err();
+        assert!(error.contains("must be a regular file"));
+        assert_eq!(std::fs::read(&outside).unwrap(), b"outside bytes");
+        std::fs::remove_dir_all(root).unwrap();
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn intermediate_output_symlink_is_rejected_without_touching_its_target() {
+        use std::os::unix::fs::symlink;
+
+        let root = temp_git_repo("intermediate-output-symlink");
+        let outside = root.join("outside");
+        std::fs::create_dir(&outside).unwrap();
+        let target = outside.join("facts.json");
+        std::fs::write(&target, b"outside bytes").unwrap();
+        symlink(&outside, root.join("ci")).unwrap();
+        let output = root.join("ci/facts.json");
+
+        let error = write_ignored_regular_file(&root, &output, b"replacement").unwrap_err();
+        assert!(error.contains("not a real directory"));
+        assert_eq!(std::fs::read(&target).unwrap(), b"outside bytes");
+        std::fs::remove_dir_all(root).unwrap();
+    }
+
     #[test]
     fn prepared_new_rejects_receipt_baseline_other_than_control_plane_predecessor() {
         let mut source = fixture();
@@ -2444,6 +2624,42 @@ mod tests {
         );
         let error = materialize_history_only_retirement_facts(&source, &context()).unwrap_err();
         assert!(error.contains("must declare mode 100644"));
+    }
+
+    #[test]
+    fn selector_rejects_unexpected_matching_candidate_path() {
+        let mut source = fixture();
+        source.trees.get_mut(CANDIDATE).unwrap().push(TreeEntry {
+            mode: "100644".to_owned(),
+            kind: "blob".to_owned(),
+            oid: oid(201),
+            path: "docs/ideas/archive/unlisted.md".to_owned(),
+        });
+        source.blobs.insert(oid(201), b"unlisted".to_vec());
+
+        let error = materialize_history_only_retirement_facts(&source, &context()).unwrap_err();
+        assert!(
+            error.contains("selector coverage"),
+            "unexpected error: {error}"
+        );
+    }
+
+    #[test]
+    fn selector_rejects_unexpected_matching_predecessor_or_protected_path() {
+        for tree in [PREDECESSOR, PROTECTED] {
+            let mut source = fixture();
+            source.trees.get_mut(tree).unwrap().push(TreeEntry {
+                mode: "100644".to_owned(),
+                kind: "blob".to_owned(),
+                oid: oid(if tree == PREDECESSOR { 202 } else { 203 }),
+                path: "docs/ideas/archive/unlisted.md".to_owned(),
+            });
+            let error = materialize_history_only_retirement_facts(&source, &context()).unwrap_err();
+            assert!(
+                error.contains("selector coverage"),
+                "unexpected error: {error}"
+            );
+        }
     }
 
     #[test]
