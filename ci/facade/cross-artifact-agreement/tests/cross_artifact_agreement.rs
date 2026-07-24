@@ -189,7 +189,7 @@ fn validate_history_only_retirement_facts_binding(
         "retirement_control_plane_context",
     )?;
     if context.get("control_plane_path").and_then(Value::as_str)
-        != Some("registry/history-only-retirement-control-plane.json")
+        != Some("registry/history-only-retirement/control-plane.json")
     {
         return Err("retirement facts references a non-canonical control-plane path".to_owned());
     }
@@ -340,7 +340,7 @@ fn dormant_history_only_binding_fixture(control_plane_bytes: &[u8]) -> Value {
                 "control_plane_entries": entries
             },
             "retirement_control_plane_context": {
-                "control_plane_path": "registry/history-only-retirement-control-plane.json",
+                "control_plane_path": "registry/history-only-retirement/control-plane.json",
                 "receipt_root": "evidence/history-only-retirement",
                 "bootstrap": true,
                 "lifecycle_state": "dormant",
@@ -395,7 +395,7 @@ fn live_history_only_retirement_facts_are_bound_to_the_controller_control_plane(
         .unwrap_or_else(|error| panic!("read materialized {}: {error}", facts_path.display()));
     let facts: Value = serde_json::from_slice(&facts_bytes)
         .unwrap_or_else(|error| panic!("parse materialized {}: {error}", facts_path.display()));
-    let control_plane_path = root.join("registry/history-only-retirement-control-plane.json");
+    let control_plane_path = root.join("registry/history-only-retirement/control-plane.json");
     let control_plane_bytes = fs::read(&control_plane_path)
         .unwrap_or_else(|error| panic!("read {}: {error}", control_plane_path.display()));
 

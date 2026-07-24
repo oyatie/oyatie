@@ -173,7 +173,7 @@ fn history_only_retirement_facts_is_the_exact_controller_owned_untracked_face() 
     assert_eq!(
         row.get("source_inputs"),
         Some(&json!([
-            "registry/history-only-retirement-control-plane.json",
+            "registry/history-only-retirement/control-plane.json",
             "specs/history-only-retirement-control-plane.schema.json",
             "specs/history-only-retirement-facts.schema.json",
             "full-depth SCM checkout"

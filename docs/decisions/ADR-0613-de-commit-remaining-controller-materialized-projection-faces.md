@@ -127,7 +127,7 @@ is out of ADR-0613 scope; ADR-0614 records that later proposal and implementatio
 The controller may materialize a typed, ignored observation projection for the three declared
 history-only retirement scopes. Its implementation surface is
 `ci/facade/scm-facts-snapshot/src/retirement.rs`, with reviewed source contracts
-`registry/history-only-retirement-control-plane.json`, `registry/OWNERS`,
+`registry/history-only-retirement/control-plane.json`, `registry/history-only-retirement/OWNERS`,
 `specs/history-only-retirement-control-plane.schema.json`, and
 `specs/history-only-retirement-facts.schema.json`. This is an evidence-preservation boundary only:
 protected-null closure fields remain null and the facts face is not a contributor merge surface,
