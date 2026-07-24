@@ -49,6 +49,26 @@ class OverlayTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "aws-lc-rs-1-build-script-run"):
             OVERLAY.apply(psm_rule())
 
+    def test_refuses_a_corrupt_aws_dep_overlay(self) -> None:
+        source = buildscript_rule("aws-lc-rs-1-build-script-run").replace(
+            '        "CARGO_PKG_VERSION_PRE": "",',
+            '''        "CARGO_PKG_VERSION_PRE": "",
+        "DEP_AWS_LC_0_41_0_INCLUDE": "wrong",''',
+        ) + psm_rule()
+
+        with self.assertRaisesRegex(ValueError, "incomplete or corrupt DEP overlay"):
+            OVERLAY.apply(source)
+
+    def test_refuses_a_partial_aws_dep_overlay_without_include(self) -> None:
+        source = buildscript_rule("aws-lc-rs-1-build-script-run").replace(
+            '        "CARGO_PKG_VERSION_PRE": "",',
+            '''        "CARGO_PKG_VERSION_PRE": "",
+        "DEP_AWS_LC_0_41_0_LIBCRYPTO": "aws_lc_0_41_0_crypto",''',
+        ) + psm_rule()
+
+        with self.assertRaisesRegex(ValueError, "incomplete or corrupt DEP overlay"):
+            OVERLAY.apply(source)
+
     def test_refuses_unexpected_psm_shape(self) -> None:
         source = buildscript_rule("aws-lc-rs-1-build-script-run") + '''cxx_library(
     name = "psm-0.1-psm_asm",
@@ -57,6 +77,19 @@ class OverlayTests(unittest.TestCase):
 '''
 
         with self.assertRaisesRegex(ValueError, "unexpected generated preprocessor flags"):
+            OVERLAY.apply(source)
+
+    def test_refuses_a_partial_psm_platform_overlay(self) -> None:
+        source = buildscript_rule("aws-lc-rs-1-build-script-run") + '''cxx_library(
+    name = "psm-0.1-psm_asm",
+    preprocessor_flags = select({
+        "prelude//os:linux": [],
+        "DEFAULT": [],
+    }),
+)
+'''
+
+        with self.assertRaisesRegex(ValueError, "incomplete or corrupt platform overlay"):
             OVERLAY.apply(source)
 
 
