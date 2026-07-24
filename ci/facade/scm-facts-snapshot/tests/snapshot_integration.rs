@@ -4,11 +4,9 @@
 //! a real filesystem or Git boundary that Buck2 must schedule independently.
 
 use std::io::Read;
-use std::os::unix::process::CommandExt;
 use std::path::{Path, PathBuf};
-use std::process::{Command, Output, Stdio};
+use std::process::Command;
 use std::sync::atomic::{AtomicU64, Ordering};
-use std::time::{Duration, Instant};
 
 use ci_path_resolver_adapters::MOVE_MANIFEST_PATH;
 use ci_path_resolver_adapters::MOVE_MANIFEST_SCHEMA;
@@ -48,73 +46,23 @@ fn temp_git_repo(label: &str) -> PathBuf {
         std::process::id()
     ));
     std::fs::create_dir(&root).expect("create isolated SCM facts integration repository");
-    git_success(&root, ["init", "--quiet"]);
+    let status = Command::new("git")
+        .args(["init", "--quiet"])
+        .current_dir(&root)
+        .status()
+        .expect("run git init");
+    assert!(status.success(), "git init must succeed");
     git_success(&root, ["config", "user.email", "scm-facts@example.test"]);
     git_success(&root, ["config", "user.name", "SCM Facts Integration"]);
     root
 }
 
-fn bounded_output(command: &mut Command, operation: &str) -> Output {
-    const COMMAND_TIMEOUT: Duration = Duration::from_secs(10);
-    const CLEANUP_TIMEOUT: Duration = Duration::from_secs(5);
-
-    command
-        .process_group(0)
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped());
-    let mut child = command.spawn().expect("spawn bounded integration command");
-    let process_group = child.id();
-    let deadline = Instant::now() + COMMAND_TIMEOUT;
-    loop {
-        if child
-            .try_wait()
-            .expect("poll bounded integration command")
-            .is_some()
-        {
-            return child
-                .wait_with_output()
-                .expect("collect bounded integration command output");
-        }
-        if Instant::now() >= deadline {
-            let group_killed = Command::new("/bin/kill")
-                .args(["-KILL", &format!("-{process_group}")])
-                .output()
-                .is_ok_and(|output| output.status.success());
-            if !group_killed {
-                let _ = child.kill();
-            }
-            let cleanup_deadline = Instant::now() + CLEANUP_TIMEOUT;
-            while Instant::now() < cleanup_deadline {
-                if child
-                    .try_wait()
-                    .expect("poll bounded integration command cleanup")
-                    .is_some()
-                {
-                    let output = child
-                        .wait_with_output()
-                        .expect("collect bounded integration command timeout output");
-                    panic!(
-                        "{operation} exceeded {} seconds:\nstdout={}\nstderr={}",
-                        COMMAND_TIMEOUT.as_secs(),
-                        String::from_utf8_lossy(&output.stdout),
-                        String::from_utf8_lossy(&output.stderr)
-                    );
-                }
-                std::thread::sleep(Duration::from_millis(10));
-            }
-            panic!(
-                "{operation} exceeded {} seconds and process group {process_group} did not exit",
-                COMMAND_TIMEOUT.as_secs()
-            );
-        }
-        std::thread::sleep(Duration::from_millis(10));
-    }
-}
-
 fn git_success<const N: usize>(root: &Path, args: [&str; N]) {
-    let mut command = Command::new("git");
-    command.args(args).current_dir(root);
-    let output = bounded_output(&mut command, "Git fixture command");
+    let output = Command::new("git")
+        .args(args)
+        .current_dir(root)
+        .output()
+        .expect("run Git fixture command");
     assert!(
         output.status.success(),
         "Git fixture command failed: {}",
@@ -123,9 +71,11 @@ fn git_success<const N: usize>(root: &Path, args: [&str; N]) {
 }
 
 fn git_stdout<const N: usize>(root: &Path, args: [&str; N]) -> String {
-    let mut command = Command::new("git");
-    command.args(args).current_dir(root);
-    let output = bounded_output(&mut command, "Git fixture command");
+    let output = Command::new("git")
+        .args(args)
+        .current_dir(root)
+        .output()
+        .expect("run Git fixture command");
     assert!(
         output.status.success(),
         "Git fixture command failed: {}",

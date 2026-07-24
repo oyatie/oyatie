@@ -24,7 +24,6 @@ path = "src/bin/adr-census-parent-receipt-gate.rs"
 [dependencies]
 serde = { workspace = true }
 serde_json = { workspace = true }
-sha2 = { workspace = true }
 ci-path-resolver-ports = { path = "../../ports/path-resolver" }
 ci-path-resolver-adapters = { path = "../../adapters/path-resolver" }
 ci-artifact-inventory-registry = { path = "../artifact-inventory-registry" }
@@ -37,6 +36,7 @@ ci-baseline-ratchet = { path = "../baseline-ratchet" }
 oya-check-brand-residue = { path = "../../../libs/oya-check-brand-residue" }
 oya-ci-config-kernel = { path = "../../../libs/oya-ci-config" }
 corpus-doc-parser = { path = "../../../governance/corpus/doc-parser" }
+sha2 = { workspace = true }
 rustix = { workspace = true }
 
 [dev-dependencies]
