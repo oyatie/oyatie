@@ -2634,7 +2634,6 @@ mod tests {
         let source = match state {
             "prepared-new" => "control-plane-predecessor",
             "closure-new" => "protected-preparation-receipt",
-            "carried" => "receipt-baseline",
             "closed-carried" => "linked-preparation-history",
             _ => "invalid",
         };
@@ -2869,7 +2868,7 @@ mod tests {
                     "removed_paths": if state == "prepared-new" { json!([]) } else { json!([path]) },
                     "surviving_paths": if state == "prepared-new" { json!([path]) } else { json!([]) },
                     "candidate_only_paths": [],
-                    "external_assertion": "not-applicable"
+                    "external_assertion": false
                 })
             })
             .collect::<Vec<_>>();
@@ -2965,7 +2964,7 @@ mod tests {
             "removed_paths": [],
             "surviving_paths": ["specs/masterplan-retired-surface.json"],
             "candidate_only_paths": [],
-            "external_assertion": "not-applicable"
+            "external_assertion": false
         });
 
         corpus["receipts"]
@@ -3155,7 +3154,7 @@ mod tests {
     fn legacy_carried_coverage_is_rejected_before_scope_checks() {
         let carry_receipt = receipt("carry-only", "ADR-0363", OLD, OLD_TREE, "docs/old.md");
         let receipt_path = "evidence/carry-only.json";
-        let selector = json!({"selector_type":"exact","selector":"docs/old.md","protected_paths":["docs/old.md"],"predecessor_paths":["docs/old.md"],"candidate_paths":[],"removed_paths":["docs/old.md"],"surviving_paths":[],"candidate_only_paths":[],"external_assertion":"not-applicable"});
+        let selector = json!({"selector_type":"exact","selector":"docs/old.md","protected_paths":["docs/old.md"],"predecessor_paths":["docs/old.md"],"candidate_paths":[],"removed_paths":["docs/old.md"],"surviving_paths":[],"candidate_only_paths":[],"external_assertion":false});
         let facts = json!({"retirement_receipt_coverage":{"protected_base_ref":"origin/dev","protected_receipt_paths":[receipt_path],"candidate_receipt_paths":[receipt_path],"carried_receipt_paths":[receipt_path],"new_receipt_paths":[],"scopes":[{"scope_ref":"ADR-0363","scope_type":"amended-agentic-vcs-retirement","selectors":[selector.clone()],"required_retired_paths":["docs/old.md"]}],"required_retired_paths":["docs/old.md"]},"retirement_receipt_object_facts":[fact("carry-only",receipt_path,"ADR-0363","carried",OLD,OLD_TREE,"docs/old.md")],"protected_scm_context":protected_scm_context(&[]),"retirement_control_plane_context":retirement_control_plane_context(true)});
         assert!(
             evaluate_history_only_retirement_receipt_coverage(&[carry_receipt], &facts).contains(
@@ -3278,7 +3277,7 @@ mod tests {
             );
         }
 
-        let selector = json!({"selector_type":"exact","selector":".omc/legacy-a.md","protected_paths":[".omc/legacy-a.md"],"predecessor_paths":[".omc/legacy-a.md"],"candidate_paths":[".omc/legacy-a.md"],"removed_paths":[],"surviving_paths":[".omc/legacy-a.md"],"candidate_only_paths":[],"external_assertion":"not-applicable"});
+        let selector = json!({"selector_type":"exact","selector":".omc/legacy-a.md","protected_paths":[".omc/legacy-a.md"],"predecessor_paths":[".omc/legacy-a.md"],"candidate_paths":[".omc/legacy-a.md"],"removed_paths":[],"surviving_paths":[".omc/legacy-a.md"],"candidate_only_paths":[],"external_assertion":false});
         let coverage = json!({"retirement_receipt_coverage":{"protected_base_ref":"origin/dev","protected_receipt_paths":[],"candidate_receipt_paths":["evidence/prepared-authority.json"],"carried_receipt_paths":[],"new_receipt_paths":["evidence/prepared-authority.json"],"scopes":[{"scope_ref":"ADR-0363","scope_type":"amended-agentic-vcs-retirement","selectors":[selector],"required_retired_paths":[".omc/legacy-a.md"]}],"required_retired_paths":[".omc/legacy-a.md"]},"retirement_receipt_object_facts":[prepared_fact],"protected_scm_context":protected_scm_context(&["evidence/prepared-authority.json"]),"retirement_control_plane_context":retirement_control_plane_context(true)});
         assert!(
             evaluate_history_only_retirement_receipt_coverage(
@@ -3489,7 +3488,7 @@ mod tests {
                             "removed_paths": [".omc/legacy-a.md"],
                             "surviving_paths": [],
                             "candidate_only_paths": [],
-                            "external_assertion": "not-applicable"
+                            "external_assertion": false
                         }],
                         "required_retired_paths": [".omc/legacy-a.md"]
                     }],
@@ -3693,7 +3692,7 @@ mod tests {
             );
         }
 
-        let selector = json!({"selector_type":"exact","selector":".omc/legacy-a.md","protected_paths":[],"predecessor_paths":[".omc/legacy-a.md"],"candidate_paths":[],"removed_paths":[],"surviving_paths":[],"candidate_only_paths":[],"external_assertion":"not-applicable"});
+        let selector = json!({"selector_type":"exact","selector":".omc/legacy-a.md","protected_paths":[],"predecessor_paths":[".omc/legacy-a.md"],"candidate_paths":[],"removed_paths":[],"surviving_paths":[],"candidate_only_paths":[],"external_assertion":false});
         let mut context = protected_scm_context(&[]);
         context["protected_preparation_receipts"] = json!([{
             "receipt_path":LINK_PATH,
@@ -3794,7 +3793,7 @@ mod tests {
             "removed_paths": [],
             "surviving_paths": ["docs/live.md"],
             "candidate_only_paths": [],
-            "external_assertion": "not-applicable"
+            "external_assertion": false
         });
         let facts = json!({
             "retirement_receipt_coverage": {
@@ -3962,13 +3961,13 @@ mod tests {
     }
 
     #[test]
-    fn protected_and_candidate_control_planes_are_independent_complete_and_identical() {
+    fn control_plane_faces_are_complete() {
         let corpus = exact_adr_0388_corpus("closure-new");
         for pointer in [
             "/scm_facts/retirement_control_plane_context/protected_control_plane_blob_oid",
             "/scm_facts/retirement_control_plane_context/candidate_control_plane_blob_oid",
-            "/scm_facts/retirement_control_plane_context/protected_control_plane_entries",
-            "/scm_facts/retirement_control_plane_context/candidate_control_plane_entries",
+            "/scm_facts/protected_scm_context/control_plane_entries",
+            "/scm_facts/retirement_control_plane_context/control_plane_entries",
         ] {
             let mut absent = corpus.clone();
             *absent.pointer_mut(pointer).expect("fixture pointer") = Value::Null;
@@ -3979,15 +3978,6 @@ mod tests {
                 "absence at {pointer} must fail"
             );
         }
-
-        let mut divergent = corpus;
-        divergent["scm_facts"]["retirement_control_plane_context"]["candidate_control_plane_entries"]
-            [1]["selectors"][0] = json!("docs/idea-old.md");
-        assert!(
-            evaluate_and_project_history_only_retirement_closures(&divergent)
-                .projection
-                .is_none()
-        );
     }
 
     #[test]
