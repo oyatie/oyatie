@@ -4099,6 +4099,19 @@ mod tests {
             assert!(evaluation.projection.is_none());
         }
 
+        let mut drifted_fact_digest = facts.clone();
+        drifted_fact_digest["scm_facts"]["retirement_receipt_object_facts"][0]["candidate_registry_row_sha256"] =
+            json!("sha256:0000000000000000000000000000000000000000000000000000000000000000");
+        let evaluation = evaluate_and_project_history_only_retirement_facts(
+            &drifted_fact_digest,
+            &[raw.clone()],
+        );
+        assert!(
+            !evaluation.findings.is_empty(),
+            "object-fact candidate registry digest drift was accepted"
+        );
+        assert!(evaluation.projection.is_none());
+
         let mut unknown_key = facts.clone();
         unknown_key["receipts"][0]["unexpected"] = json!(true);
         assert!(!evaluate_history_only_retirement_facts(&unknown_key, &[raw]).is_empty());
