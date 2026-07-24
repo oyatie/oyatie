@@ -608,6 +608,7 @@ fn broad_workflow_consumers_require_the_producer_artifact_and_keep_the_merge_bas
     for binding in [
         "git cat-file -e \"${merge_base}:registry/history-only-retirement/control-plane.json\"",
         "git rev-list --parents -n 1 \"${merge_base}\"",
+        "read -r -a merge_base_line <<< \"${merge_base_parents}\"",
         "git rev-parse \"${merge_base}^1\"",
         "--retirement-control-plane registry/history-only-retirement/control-plane.json",
         "--retirement-facts-out ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json",
@@ -620,8 +621,10 @@ fn broad_workflow_consumers_require_the_producer_artifact_and_keep_the_merge_bas
         assert_occurs_exactly_once(baseline, binding);
     }
     assert!(
-        !baseline.contains("accounting-faces") && !baseline.contains("cp ci/facade"),
-        "the clean merge-base worktree must never receive candidate accounting faces"
+        !baseline.contains("accounting-faces")
+            && !baseline.contains("cp ci/facade")
+            && !baseline.contains("set -- ${merge_base_parents}"),
+        "the clean merge-base worktree must never receive candidate faces or split Git identity through shell globbing"
     );
 }
 
