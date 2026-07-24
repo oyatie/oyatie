@@ -91,10 +91,19 @@ rust_test(
     crate = "ci_scm_facts_snapshot_integration",
     crate_root = "tests/snapshot_integration.rs",
     visibility = ["PUBLIC"],
+    # The integration suite crosses the one sanctioned ambient-Git boundary by
+    # execing the Buck-built emitter against disposable repositories. Keeping
+    # the emitter path injected by Buck prevents a Cargo fallback from
+    # accidentally becoming part of gate evidence.
+    env = {
+        "OYA_CI_SCM_FACTS_EMITTER_BIN": "$(exe :ci-scm-facts-snapshot)",
+    },
     deps = [
         ":ci-scm-facts-snapshot-lib",
+        "//ci/facade/action-item-accounting:ci-action-item-accounting",
         "//ci/ports/path-resolver:ci-path-resolver-ports",
         "//ci/adapters/path-resolver:ci-path-resolver-adapters",
         "third-party//:serde_json",
+        "third-party//:sha2",
     ],
 )
