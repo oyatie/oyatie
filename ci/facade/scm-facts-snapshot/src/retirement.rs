@@ -403,6 +403,16 @@ pub(crate) fn materialize_history_only_retirement_facts(
         ));
     }
 
+    for (label, requested) in [
+        (
+            "requested protected base commit",
+            context.protected_base_commit,
+        ),
+        ("requested evaluated commit", context.evaluated_commit),
+        ("requested subject commit", context.subject_commit),
+    ] {
+        validate_oid(requested, label)?;
+    }
     let candidate = source.resolve_commit(context.evaluated_commit)?;
     let head = source.resolve_commit("HEAD")?;
     if candidate != head {
@@ -412,6 +422,14 @@ pub(crate) fn materialize_history_only_retirement_facts(
     }
     let protected = source.resolve_commit(context.protected_base_commit)?;
     let subject = source.resolve_commit(context.subject_commit)?;
+    if protected != context.protected_base_commit
+        || candidate != context.evaluated_commit
+        || subject != context.subject_commit
+    {
+        return Err(
+            "requested retirement event identity must equal resolved commit identity".to_owned(),
+        );
+    }
     validate_event_identity(
         source,
         context.scm_event_name,
@@ -2022,6 +2040,21 @@ mod tests {
             context.subject_commit = PREDECESSOR;
             assert!(materialize_history_only_retirement_facts(&source, &context).is_err());
         }
+    }
+
+    #[test]
+    fn event_identity_rejects_revision_aliases_and_noncanonical_oids() {
+        let mut source = fixture();
+        source
+            .commits
+            .insert("alias".to_owned(), CANDIDATE.to_owned());
+        let mut context = context();
+        context.evaluated_commit = "alias";
+        assert!(materialize_history_only_retirement_facts(&source, &context).is_err());
+
+        let mut context = context();
+        context.protected_base_commit = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+        assert!(materialize_history_only_retirement_facts(&source, &context).is_err());
     }
 
     #[test]

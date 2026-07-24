@@ -474,6 +474,10 @@ fn retirement_workflow_transports_distinct_event_identity_fields() {
             "workflow must transport {required}"
         );
     }
+    assert!(
+        !workflow.contains("git rev-parse HEAD^1"),
+        "protected base must be bound to the GitHub event, not inferred from HEAD^1"
+    );
 }
 
 #[test]
