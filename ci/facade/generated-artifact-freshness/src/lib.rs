@@ -2571,6 +2571,29 @@ mod materialize_generated_faces_tests {
     }
 
     #[test]
+    fn parse_materialize_generated_faces_args_requires_event_base_ref() {
+        let error = parse_materialize_generated_faces_args(vec![
+            "--retirement-control-plane".to_owned(),
+            "registry/history-only-retirement/control-plane.json".to_owned(),
+            "--retirement-facts-out".to_owned(),
+            "ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json".to_owned(),
+            "--protected-base-commit".to_owned(),
+            "1111111111111111111111111111111111111111".to_owned(),
+            "--evaluated-commit".to_owned(),
+            "2222222222222222222222222222222222222222".to_owned(),
+            "--scm-event-name".to_owned(),
+            "pull_request".to_owned(),
+            "--scm-event-ref".to_owned(),
+            "refs/pull/123/merge".to_owned(),
+            "--subject-commit".to_owned(),
+            "3333333333333333333333333333333333333333".to_owned(),
+        ])
+        .expect_err("retirement transport without the event base ref must fail closed");
+
+        assert!(error.to_string().contains("all-or-none"));
+    }
+
+    #[test]
     fn parse_materialize_generated_faces_args_rejects_empty_event_identity_values() {
         for flag in [
             "--scm-event-name",
