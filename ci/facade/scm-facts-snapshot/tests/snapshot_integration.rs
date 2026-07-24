@@ -14,8 +14,8 @@ use ci_scm_facts_snapshot::{
     discover_repo_root, emit_fixed_adr_census_parent_receipt, load_vocab_policy,
     output_path_resolver,
     retirement::{
-        GENERATED_FACTS_PATH, RetirementMaterializationContext, emit_history_only_retirement_facts,
-        write_canonical_retirement_facts,
+        CanonicalRetirementFactsWriter, GENERATED_FACTS_PATH, RetirementMaterializationContext,
+        emit_history_only_retirement_facts, write_canonical_retirement_facts,
     },
 };
 use serde_json::json;
@@ -167,14 +167,19 @@ fn intermediate_output_symlinks_are_rejected_without_touching_targets() {
 
 #[cfg(unix)]
 #[test]
-fn canonical_writer_rejects_parent_directory_swapped_to_symlink() {
+fn canonical_writer_stays_bound_to_open_parent_after_ancestor_swap() {
     use std::os::unix::fs::symlink;
 
     let root = temp_git_repo("canonical-output-parent-swap");
     configure_ignored_canonical_facts(&root);
     let original_ci = root.join("ci");
-    std::fs::create_dir_all(&original_ci).expect("create original canonical parent");
-    std::fs::rename(&original_ci, root.join("ci-before-swap")).expect("move original parent");
+    let captured_output =
+        original_ci.join("facade/scm-facts-snapshot/history-only-retirement-facts.generated.json");
+    std::fs::create_dir_all(captured_output.parent().expect("captured output parent"))
+        .expect("create canonical parent");
+    let writer = CanonicalRetirementFactsWriter::open(&root)
+        .expect("open canonical writer before the ancestor swap");
+    std::fs::rename(&original_ci, root.join("ci-captured")).expect("move opened ancestor");
 
     let outside = root.join("outside");
     let target =
@@ -184,15 +189,19 @@ fn canonical_writer_rejects_parent_directory_swapped_to_symlink() {
     std::fs::write(&target, b"outside bytes").expect("write outside target");
     symlink(&outside, &original_ci).expect("swap canonical parent to symlink");
 
-    let error = write_canonical_retirement_facts(&root, b"replacement")
-        .expect_err("swapped canonical parent must fail closed");
-    assert!(
-        error.contains("not a real directory"),
-        "unexpected error: {error}"
-    );
+    writer
+        .write(b"captured bytes")
+        .expect("writer must finalize through its captured directory fd");
     assert_eq!(
         std::fs::read(&target).expect("read outside target"),
         b"outside bytes"
+    );
+    assert_eq!(
+        std::fs::read(root.join(
+            "ci-captured/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json"
+        ))
+        .expect("read captured output"),
+        b"captured bytes"
     );
     std::fs::remove_dir_all(root).expect("remove integration fixture");
 }
