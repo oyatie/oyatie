@@ -917,6 +917,38 @@ fn wait_for_path(path: &Path, timeout: Duration) {
     assert!(path.exists(), "timed out waiting for {}", path.display());
 }
 
+fn wait_for_numeric_pid(path: &Path, timeout: Duration) -> u32 {
+    let deadline = Instant::now() + timeout;
+    while Instant::now() < deadline {
+        if let Ok(contents) = fs::read_to_string(path)
+            && let Ok(pid) = contents.trim().parse::<u32>()
+            && pid > 0
+        {
+            return pid;
+        }
+        thread::sleep(Duration::from_millis(10));
+    }
+    panic!("timed out waiting for numeric PID in {}", path.display());
+}
+
+fn wait_for_process_exit(pid: u32, timeout: Duration) {
+    let pid = pid.to_string();
+    let deadline = Instant::now() + timeout;
+    while Instant::now() < deadline {
+        let alive = Command::new("/bin/kill")
+            .args(["-0", &pid])
+            .output()
+            .expect("probe process")
+            .status
+            .success();
+        if !alive {
+            return;
+        }
+        thread::sleep(Duration::from_millis(10));
+    }
+    panic!("process {pid} remained alive after termination");
+}
+
 fn spawn_retry_server(payload: Vec<u8>) -> (u16, thread::JoinHandle<usize>) {
     let listener = TcpListener::bind("127.0.0.1:0").expect("bind local retry fixture");
     listener
@@ -1340,12 +1372,10 @@ fn buck2_installer_times_out_without_writes_then_recovers_after_holder_is_killed
         .env("PAYLOAD", &payload);
     let mut holder = holder.spawn().expect("spawn lock holder");
     wait_for_path(&marker_dir.join("curl-holder"), Duration::from_secs(15));
-    wait_for_path(
+    let holder_child_pid = wait_for_numeric_pid(
         &marker_dir.join("holder-child-pid"),
         Duration::from_secs(15),
     );
-    let holder_child_pid =
-        fs::read_to_string(marker_dir.join("holder-child-pid")).expect("read holder child PID");
 
     let contender = installer_command(&root, &bin, &install_dir, "asset.zst", &digest)
         .env("BUCK2_INSTALL_LOCK_TIMEOUT_SECONDS", "1")
@@ -1377,9 +1407,14 @@ fn buck2_installer_times_out_without_writes_then_recovers_after_holder_is_killed
         .env("PAYLOAD", &payload)
         .output()
         .expect("run crash-recovery successor");
-    let _ = Command::new("/bin/kill")
-        .args(["-KILL", holder_child_pid.trim()])
+    let cleanup_status = Command::new("/bin/kill")
+        .args(["-KILL", &holder_child_pid.to_string()])
         .status();
+    assert!(
+        cleanup_status.expect("terminate holder child").success(),
+        "holder child must still be live until explicit cleanup"
+    );
+    wait_for_process_exit(holder_child_pid, Duration::from_secs(5));
     assert_success(successor);
     assert!(marker_dir.join("curl-successor").exists());
     assert_eq!(
