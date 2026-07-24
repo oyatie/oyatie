@@ -7,6 +7,7 @@
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
+use std::collections::BTreeSet;
 use std::fmt;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -18,6 +19,384 @@ pub struct AdrDocument {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AdrShapeFitnessReport {
     pub adrs_checked: usize, // data_class: INTERNAL_ONLY
+}
+
+/// Deterministic, non-admissible migration diagnostic. data_class: INTERNAL_ONLY
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct AdrShapeFinding {
+    pub path: String,
+    pub code: &'static str,
+    pub message: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AdrShapeAuditReport {
+    pub adrs_checked: usize,            // data_class: INTERNAL_ONLY
+    pub findings: Vec<AdrShapeFinding>, // data_class: INTERNAL_ONLY
+}
+
+const FRONTMATTER_FIELDS: [&str; 9] = [
+    "id",
+    "title",
+    "status",
+    "date",
+    "supersedes",
+    "superseded_by",
+    "owner",
+    "related",
+    "bominal_source",
+];
+
+/// Parse the published ADR Markdown shape and collect every migration finding.
+/// This is diagnostic only: callers must not treat a clean report as admission authority.
+pub fn audit_adr_shape_fitness(adrs: &[AdrDocument]) -> AdrShapeAuditReport {
+    let mut findings = Vec::new();
+    for adr in adrs {
+        findings.extend(audit_one(adr));
+    }
+    findings.sort();
+    AdrShapeAuditReport {
+        adrs_checked: adrs.len(),
+        findings,
+    }
+}
+
+#[derive(Debug)]
+struct MarkdownSection<'a> {
+    level: usize,
+    title: &'a str,
+    line_start: usize,
+    start: usize,
+    end: usize,
+}
+
+fn markdown_sections(text: &str) -> Vec<MarkdownSection<'_>> {
+    let mut headings = Vec::new();
+    let mut fence: Option<(char, usize)> = None;
+    let mut offset = 0;
+    for line in text.split_inclusive('\n') {
+        let leading_spaces = line.bytes().take_while(|byte| *byte == b' ').count();
+        if leading_spaces > 3 || line.as_bytes().get(leading_spaces) == Some(&b'\t') {
+            offset += line.len();
+            continue;
+        }
+        let trimmed = &line[leading_spaces..];
+        let marker = trimmed.chars().next();
+        let marker_len = marker.map_or(0, |marker| {
+            trimmed
+                .chars()
+                .take_while(|character| *character == marker)
+                .count()
+        });
+        if let Some((open_marker, open_len)) = fence {
+            if marker == Some(open_marker)
+                && marker_len >= open_len
+                && trimmed[marker_len..].trim().is_empty()
+            {
+                fence = None;
+            }
+            offset += line.len();
+            continue;
+        }
+        if matches!(marker, Some('`' | '~')) && marker_len >= 3 {
+            fence = marker.map(|marker| (marker, marker_len));
+            offset += line.len();
+            continue;
+        }
+        {
+            let hashes = trimmed
+                .chars()
+                .take_while(|character| *character == '#')
+                .count();
+            if (1..=6).contains(&hashes) && trimmed.as_bytes().get(hashes) == Some(&b' ') {
+                headings.push(MarkdownSection {
+                    level: hashes,
+                    title: trimmed[hashes + 1..].trim(),
+                    line_start: offset,
+                    start: offset + line.len(),
+                    end: text.len(),
+                });
+            }
+        }
+        offset += line.len();
+    }
+    for index in 0..headings.len() {
+        let level = headings[index].level;
+        headings[index].end = headings[index + 1..]
+            .iter()
+            .find(|next| next.level <= level)
+            .map_or(text.len(), |next| next.line_start);
+    }
+    headings
+}
+
+fn table_columns(line: &str) -> Vec<String> {
+    line.replace("\\|", "¦")
+        .split('|')
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .map(|value| value.replace('¦', "|"))
+        .collect()
+}
+
+fn audit_one(adr: &AdrDocument) -> Vec<AdrShapeFinding> {
+    let sections = markdown_sections(&adr.text);
+    let mut findings = Vec::new();
+    let add = |findings: &mut Vec<AdrShapeFinding>, code, message: String| {
+        findings.push(AdrShapeFinding {
+            path: adr.path.clone(),
+            code,
+            message,
+        })
+    };
+    let table = sections
+        .iter()
+        .find(|section| section.level == 2 && section.title.eq_ignore_ascii_case("Frontmatter"));
+    let mut fields = BTreeSet::<String>::new();
+    if let Some(section) = table {
+        for line in adr.text[section.start..section.end].lines() {
+            let columns = table_columns(line);
+            if let [field, value] = columns.as_slice() {
+                let field = field.trim_matches('*');
+                if FRONTMATTER_FIELDS.contains(&field) {
+                    let sentinel =
+                        matches!(field, "supersedes" | "superseded_by" | "related") && value == "-";
+                    if !sentinel && value.trim().is_empty() {
+                        add(
+                            &mut findings,
+                            "ADR_FRONTMATTER_EMPTY",
+                            format!("frontmatter field {field} is empty"),
+                        );
+                    }
+                    if !fields.insert(field.to_owned()) {
+                        add(
+                            &mut findings,
+                            "ADR_FRONTMATTER_DUPLICATE",
+                            format!("frontmatter field {field} is duplicated"),
+                        );
+                    }
+                }
+            }
+        }
+    } else {
+        add(
+            &mut findings,
+            "ADR_FRONTMATTER_MISSING",
+            "missing required ## Frontmatter table".to_owned(),
+        );
+    }
+    for field in FRONTMATTER_FIELDS {
+        if !fields.contains(field) {
+            add(
+                &mut findings,
+                "ADR_FRONTMATTER_FIELD_MISSING",
+                format!("missing frontmatter field {field}"),
+            );
+        }
+    }
+    if let Some(section) = table {
+        let status = adr.text[section.start..section.end]
+            .lines()
+            .find_map(|line| {
+                let columns = table_columns(line);
+                match columns.as_slice() {
+                    [field, value] if field.trim_matches('*') == "status" => Some(value.clone()),
+                    _ => None,
+                }
+            });
+        if let Some(status) = status
+            && !matches!(
+                status.as_str(),
+                "Accepted"
+                    | "accepted"
+                    | "Proposed"
+                    | "proposed"
+                    | "Amended"
+                    | "Superseded"
+                    | "Deprecated"
+                    | "Rejected"
+                    | "Accepted (amendment)"
+            )
+        {
+            add(
+                &mut findings,
+                "ADR_STATUS_INVALID",
+                format!("unsupported lifecycle status {status:?}"),
+            );
+        }
+    }
+    for title in [
+        "Context",
+        "Decision",
+        "Consequences",
+        "Clean Architecture Impact",
+        "Alternatives Considered",
+        "References",
+    ] {
+        if !sections
+            .iter()
+            .any(|section| section.level == 2 && section.title.eq_ignore_ascii_case(title))
+        {
+            add(
+                &mut findings,
+                "ADR_SECTION_MISSING",
+                format!("missing ## {title}"),
+            );
+        }
+    }
+    let mut previous = None;
+    for title in [
+        "Context",
+        "Decision",
+        "Consequences",
+        "Clean Architecture Impact",
+        "Alternatives Considered",
+        "References",
+    ] {
+        let position = sections
+            .iter()
+            .position(|section| section.level == 2 && section.title.eq_ignore_ascii_case(title));
+        if let (Some(previous), Some(position)) = (previous, position)
+            && position < previous
+        {
+            add(
+                &mut findings,
+                "ADR_SECTION_OUT_OF_ORDER",
+                format!("## {title} appears out of canonical order"),
+            );
+        }
+        if let Some(position) = position {
+            previous = Some(position);
+        }
+    }
+    if let Some(consequences) = sections
+        .iter()
+        .find(|section| section.level == 2 && section.title.eq_ignore_ascii_case("Consequences"))
+    {
+        for title in [
+            "Concrete file and crate changes",
+            "Integration via Workflow + Ontology",
+            "Positive",
+            "Negative",
+            "Operational",
+        ] {
+            let nested = sections.iter().any(|section| {
+                section.level == 3
+                    && section.start >= consequences.start
+                    && section.start < consequences.end
+                    && section.title.eq_ignore_ascii_case(title)
+            });
+            if !nested {
+                add(
+                    &mut findings,
+                    "ADR_CONSEQUENCE_MISNESTED_OR_MISSING",
+                    format!("missing ### {title} under ## Consequences"),
+                );
+            }
+        }
+    }
+    if let Some(impact) = sections.iter().find(|section| {
+        section.level == 2
+            && section
+                .title
+                .eq_ignore_ascii_case("Clean Architecture Impact")
+    }) {
+        let body = &adr.text[impact.start..impact.end];
+        for lane in CLEAN_ARCHITECTURE_LANES {
+            if !body.lines().any(|line| {
+                let columns = table_columns(line);
+                columns.len() == 3
+                    && columns[0]
+                        .trim_start_matches('`')
+                        .split('`')
+                        .next()
+                        .is_some_and(|label| label == lane)
+            }) {
+                add(
+                    &mut findings,
+                    "ADR_CLEAN_ARCHITECTURE_LANE_MISSING",
+                    format!("missing Clean Architecture row {lane}"),
+                );
+            }
+        }
+    }
+    if let Some(alternatives) = sections.iter().find(|section| {
+        section.level == 2
+            && section
+                .title
+                .eq_ignore_ascii_case("Alternatives Considered")
+    }) {
+        let items: Vec<_> = sections
+            .iter()
+            .filter(|section| {
+                section.level == 3
+                    && section.start >= alternatives.start
+                    && section.start < alternatives.end
+            })
+            .collect();
+        if items.is_empty() {
+            let body = &adr.text[alternatives.start..alternatives.end];
+            let mut current = None;
+            let mut fields = BTreeSet::new();
+            for line in body.lines().chain(std::iter::once("**END**")) {
+                if line.trim_start().starts_with("**Alternative") {
+                    if let Some(name) = current.take() {
+                        for field in ["Description", "Pros", "Cons", "Reason rejected"] {
+                            if !fields.contains(field) {
+                                add(
+                                    &mut findings,
+                                    "ADR_ALTERNATIVE_FIELD_MISSING",
+                                    format!("alternative {name:?} is missing {field}"),
+                                );
+                            }
+                        }
+                    }
+                    current = Some(line.trim().to_owned());
+                    fields.clear();
+                } else if current.is_some() {
+                    for field in ["Description", "Pros", "Cons", "Reason rejected"] {
+                        if line.trim_start_matches(['-', '*', ' ']).starts_with(field) {
+                            fields.insert(field);
+                        }
+                    }
+                }
+            }
+            if let Some(name) = current {
+                for field in ["Description", "Pros", "Cons", "Reason rejected"] {
+                    if !fields.contains(field) {
+                        add(
+                            &mut findings,
+                            "ADR_ALTERNATIVE_FIELD_MISSING",
+                            format!("alternative {name:?} is missing {field}"),
+                        );
+                    }
+                }
+            } else {
+                add(
+                    &mut findings,
+                    "ADR_ALTERNATIVE_MISSING",
+                    "Alternatives Considered has no ### or bold Alternative item".to_owned(),
+                );
+            }
+        } else {
+            for item in items {
+                let body = &adr.text[item.start..item.end];
+                for field in ["Description", "Pros", "Cons", "Reason rejected"] {
+                    if !body
+                        .lines()
+                        .any(|line| line.trim_start_matches(['-', '*', ' ']).starts_with(field))
+                    {
+                        add(
+                            &mut findings,
+                            "ADR_ALTERNATIVE_FIELD_MISSING",
+                            format!("alternative {:?} is missing {field}", item.title),
+                        );
+                    }
+                }
+            }
+        }
+    }
+    findings
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -38,6 +417,16 @@ pub enum AdrShapeFitnessError {
     MissingAmendedDate {
         path: String,
     },
+    MalformedFrontmatter {
+        path: String,
+    },
+    DuplicateFrontmatterField {
+        path: String,
+        field: String,
+    },
+    MissingBominalDeclaration {
+        path: String,
+    },
     MissingSection {
         path: String,
         section: &'static str,
@@ -46,6 +435,14 @@ pub enum AdrShapeFitnessError {
         path: String,
         previous: &'static str,
         current: &'static str,
+    },
+    MissingCleanArchitectureLane {
+        path: String,
+        lane: &'static str,
+    },
+    MalformedAlternative {
+        path: String,
+        missing: &'static str,
     },
 }
 
@@ -66,6 +463,18 @@ impl fmt::Display for AdrShapeFitnessError {
                     "{path}: status Amended requires a canonical amended_date"
                 )
             }
+            Self::MalformedFrontmatter { path } => {
+                write!(f, "{path}: malformed initial YAML frontmatter")
+            }
+            Self::DuplicateFrontmatterField { path, field } => {
+                write!(f, "{path}: duplicate initial-frontmatter field {field:?}")
+            }
+            Self::MissingBominalDeclaration { path } => {
+                write!(
+                    f,
+                    "{path}: missing Bominal inheritance-or-override declaration"
+                )
+            }
             Self::MissingSection { path, section } => {
                 write!(f, "{path}: missing required section ## {section}")
             }
@@ -77,13 +486,46 @@ impl fmt::Display for AdrShapeFitnessError {
                 f,
                 "{path}: required sections out of order; ## {current} appears before ## {previous}"
             ),
+            Self::MissingCleanArchitectureLane { path, lane } => {
+                write!(f, "{path}: missing Clean Architecture Impact lane {lane:?}")
+            }
+            Self::MalformedAlternative { path, missing } => {
+                write!(f, "{path}: alternative is missing required {missing}")
+            }
         }
     }
 }
 
 impl std::error::Error for AdrShapeFitnessError {}
 
-const REQUIRED_SECTIONS: [&str; 3] = ["Context", "Decision", "Consequences"];
+const REQUIRED_SECTIONS: [&str; 11] = [
+    "Context",
+    "Decision",
+    "Consequences",
+    "Concrete file and crate changes",
+    "Integration via Workflow + Ontology",
+    "Positive",
+    "Negative",
+    "Operational",
+    "Clean Architecture Impact",
+    "Alternatives Considered",
+    "References",
+];
+const ORDERED_SECTIONS: [&str; 5] = [
+    "Context",
+    "Decision",
+    "Consequences",
+    "Alternatives Considered",
+    "References",
+];
+const CLEAN_ARCHITECTURE_LANES: [&str; 6] = [
+    "dependency-direction",
+    "cross-product-refusal",
+    "port-location",
+    "layer-correctness",
+    "composition-root-only",
+    "sdk-kernel-only",
+];
 const VALID_STATUSES: [&str; 6] = [
     "Proposed",
     "Accepted",
@@ -139,19 +581,16 @@ fn validate_one(adr: &AdrDocument) -> Result<(), AdrShapeFitnessError> {
             path: adr.path.clone(),
         });
     }
-    if !adr.text.lines().any(|line| line.starts_with("# ADR-")) {
+    let Some(_title) = adr.text.lines().find(|line| line.starts_with("# ADR-")) else {
         return Err(AdrShapeFitnessError::MissingTitle {
             path: adr.path.clone(),
         });
-    }
-    if initial_frontmatter_scalar_values(&adr.text, "status").count() > 1 {
-        return Err(AdrShapeFitnessError::InvalidStatus {
+    };
+    let frontmatter = validated_frontmatter(adr)?;
+    let status = extract_status(&adr.text, frontmatter).ok_or_else(|| {
+        AdrShapeFitnessError::MissingStatus {
             path: adr.path.clone(),
-            status: "ambiguous duplicate initial-frontmatter status fields".to_owned(),
-        });
-    }
-    let status = extract_status(&adr.text).ok_or_else(|| AdrShapeFitnessError::MissingStatus {
-        path: adr.path.clone(),
+        }
     })?;
     if !VALID_STATUSES.contains(&status.as_str()) {
         return Err(AdrShapeFitnessError::InvalidStatus {
@@ -165,13 +604,30 @@ fn validate_one(adr: &AdrDocument) -> Result<(), AdrShapeFitnessError> {
         });
     }
 
+    if !has_bominal_declaration(frontmatter, &adr.text) {
+        return Err(AdrShapeFitnessError::MissingBominalDeclaration {
+            path: adr.path.clone(),
+        });
+    }
+
     let headings = section_headings(&adr.text);
+    for section in REQUIRED_SECTIONS {
+        if !headings
+            .iter()
+            .any(|heading| heading.eq_ignore_ascii_case(section))
+        {
+            return Err(AdrShapeFitnessError::MissingSection {
+                path: adr.path.clone(),
+                section,
+            });
+        }
+    }
     let mut previous_index = None;
     let mut previous_section = None;
-    for section in REQUIRED_SECTIONS {
+    for section in ORDERED_SECTIONS {
         let index = headings
             .iter()
-            .position(|heading| heading == section)
+            .position(|heading| heading.eq_ignore_ascii_case(section))
             .ok_or_else(|| AdrShapeFitnessError::MissingSection {
                 path: adr.path.clone(),
                 section,
@@ -188,7 +644,90 @@ fn validate_one(adr: &AdrDocument) -> Result<(), AdrShapeFitnessError> {
         previous_index = Some(index);
         previous_section = Some(section);
     }
+    validate_clean_architecture_lanes(adr, &headings)?;
+    validate_alternatives(adr, &headings)?;
     Ok(())
+}
+
+fn validated_frontmatter<'a>(
+    adr: &'a AdrDocument,
+) -> Result<Option<&'a str>, AdrShapeFitnessError> {
+    let Some(frontmatter) = initial_yaml_frontmatter(&adr.text) else {
+        if adr.text.starts_with("---\n") || adr.text.starts_with("---\r\n") {
+            return Err(AdrShapeFitnessError::MalformedFrontmatter {
+                path: adr.path.clone(),
+            });
+        }
+        return Ok(None);
+    };
+    let mut fields = BTreeSet::new();
+    for line in frontmatter
+        .lines()
+        .filter(|line| !line.starts_with(char::is_whitespace))
+    {
+        let Some((field, _)) = line.split_once(':') else {
+            continue;
+        };
+        if !fields.insert(field) {
+            return Err(AdrShapeFitnessError::DuplicateFrontmatterField {
+                path: adr.path.clone(),
+                field: field.to_owned(),
+            });
+        }
+    }
+    Ok(Some(frontmatter))
+}
+
+fn has_bominal_declaration(frontmatter: Option<&str>, text: &str) -> bool {
+    frontmatter
+        .into_iter()
+        .flat_map(|frontmatter| frontmatter_scalar_values(frontmatter, "bominal_source"))
+        .any(|value| !value.is_empty())
+        || text
+            .lines()
+            .any(|line| line.trim_start().starts_with("| **bominal_source** |"))
+}
+
+fn validate_clean_architecture_lanes(
+    adr: &AdrDocument,
+    _headings: &[String],
+) -> Result<(), AdrShapeFitnessError> {
+    let section_text = section_body(&adr.text, "Clean Architecture Impact");
+    for lane in CLEAN_ARCHITECTURE_LANES {
+        if !section_text.contains(lane) {
+            return Err(AdrShapeFitnessError::MissingCleanArchitectureLane {
+                path: adr.path.clone(),
+                lane,
+            });
+        }
+    }
+    Ok(())
+}
+
+fn validate_alternatives(
+    adr: &AdrDocument,
+    _headings: &[String],
+) -> Result<(), AdrShapeFitnessError> {
+    let alternatives = section_body(&adr.text, "Alternatives Considered");
+    for required in ["Description", "Pros", "Cons", "Reason rejected"] {
+        if !alternatives.lines().any(|line| {
+            line.trim_start_matches(['-', '*', ' '])
+                .starts_with(required)
+        }) {
+            return Err(AdrShapeFitnessError::MalformedAlternative {
+                path: adr.path.clone(),
+                missing: required,
+            });
+        }
+    }
+    Ok(())
+}
+
+fn section_body<'a>(text: &'a str, section: &str) -> &'a str {
+    markdown_sections(text)
+        .into_iter()
+        .find(|heading| heading.level == 2 && heading.title.eq_ignore_ascii_case(section))
+        .map_or("", |heading| &text[heading.start..heading.end])
 }
 
 fn is_adr_filename(filename: &str) -> bool {
@@ -204,13 +743,12 @@ fn is_adr_filename(filename: &str) -> bool {
         && slug.len() > 3
 }
 
-fn extract_status(text: &str) -> Option<String> {
-    let lifecycle_surface = if text.starts_with("---\n") || text.starts_with("---\r\n") {
-        let (frontmatter, body) = split_initial_yaml_frontmatter(text)?;
+fn extract_status(text: &str, frontmatter: Option<&str>) -> Option<String> {
+    let lifecycle_surface = if let Some(frontmatter) = frontmatter {
         if let Some(status) = frontmatter_scalar_values(frontmatter, "status").next() {
             return Some(clean_status(status));
         }
-        body
+        return None;
     } else {
         text
     };
@@ -330,10 +868,10 @@ fn clean_status(raw: &str) -> String {
 }
 
 fn section_headings(text: &str) -> Vec<String> {
-    text.lines()
-        .filter_map(|line| line.strip_prefix("## "))
-        .map(str::trim)
-        .map(ToOwned::to_owned)
+    markdown_sections(text)
+        .into_iter()
+        .filter(|heading| matches!(heading.level, 2 | 3))
+        .map(|heading| heading.title.trim().to_owned())
         .collect()
 }
 
@@ -344,7 +882,7 @@ mod tests {
     fn valid_doc() -> AdrDocument {
         AdrDocument {
             path: "docs/decisions/ADR-0008-data-use-boundary.md".to_string(),
-            text: "# ADR-0008: Data Use Boundary\n\n> **Status:** Accepted\n\n## Context\nA\n\n## Decision\nB\n\n## Consequences\nC\n".to_string(),
+            text: "# ADR-0008: Enforce Data Use Boundary\n\n## Frontmatter\n| **bominal_source** | no Bominal equivalent |\n\n> **Status:** Accepted\n\n## Context\nA\n\n## Decision\nB\n\n## Consequences\n\n### Concrete file and crate changes\n| Path / Crate | Change type | BNF v4.1 name | Layer |\n| --- | --- | --- | --- |\n| `libs/example/` | update | `oya-example-kernel` | kernel |\n\n### Integration via Workflow + Ontology\nNot applicable; the integration point is documented in the affected service PRD.\n\n### Positive\n- A\n\n### Negative\n- B\n\n### Operational\n- C\n\n## Clean Architecture Impact\n| Lane | Impact | Action required |\n| --- | --- | --- |\n| `dependency-direction` | Not affected | none |\n| `cross-product-refusal` | Not affected | none |\n| `port-location` | Not affected | none |\n| `layer-correctness` | Not affected | none |\n| `composition-root-only` | Not affected | none |\n| `sdk-kernel-only` | Not affected | none |\n\n## Alternatives Considered\n### Alternative 1 — Existing parser\n- Description: A\n- Pros: B\n- Cons: C\n- Reason rejected: D\n\n## References\n- ADR-0056\n".to_string(),
         }
     }
 
@@ -461,7 +999,7 @@ mod tests {
         );
         assert!(matches!(
             validate_adr_shape_fitness(&[doc]),
-            Err(AdrShapeFitnessError::MissingAmendedDate { .. })
+            Err(AdrShapeFitnessError::DuplicateFrontmatterField { .. })
         ));
     }
 
@@ -474,7 +1012,7 @@ mod tests {
         );
         assert!(matches!(
             validate_adr_shape_fitness(&[doc]),
-            Err(AdrShapeFitnessError::InvalidStatus { .. })
+            Err(AdrShapeFitnessError::DuplicateFrontmatterField { .. })
         ));
     }
 
@@ -529,7 +1067,7 @@ mod tests {
     #[test]
     fn rejects_missing_consequences() {
         let mut doc = valid_doc();
-        doc.text = doc.text.replace("\n## Consequences\nC\n", "");
+        doc.text = doc.text.replace("## Consequences\n\n", "");
         assert!(matches!(
             validate_adr_shape_fitness(&[doc]),
             Err(AdrShapeFitnessError::MissingSection {
@@ -542,10 +1080,19 @@ mod tests {
     #[test]
     fn rejects_out_of_order_sections() {
         let mut doc = valid_doc();
-        doc.text = "# ADR-0008: Data Use Boundary\n\n> **Status:** Accepted\n\n## Decision\nB\n\n## Context\nA\n\n## Consequences\nC\n".to_string();
+        let context = "## Context\nA\n\n";
+        let decision = "## Decision\nB\n\n";
+        doc.text = doc.text.replace(context, "").replace(decision, "");
+        doc.text = doc.text.replace(
+            "## Consequences\n",
+            &format!("{decision}{context}## Consequences\n"),
+        );
         assert!(matches!(
             validate_adr_shape_fitness(&[doc]),
             Err(AdrShapeFitnessError::SectionsOutOfOrder { .. })
         ));
     }
 }
+
+#[cfg(test)]
+mod template_contract_tests;
