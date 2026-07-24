@@ -3661,4 +3661,146 @@ mod tests {
         assert!(!include_str!("retirement_receipt.rs").contains(&retired_staleness_gate));
         assert!(!include_str!("retirement_receipt.rs").contains(&retired_doc_axis_gate));
     }
+
+    fn canonical_facts_and_raw(state: &str) -> (Value, Vec<u8>, Value) {
+        let mut corpus = exact_adr_0388_corpus(state);
+        let receipt = corpus["receipts"][0]["receipt"].take();
+        let bytes = serde_json::to_vec(&receipt).expect("serialize raw receipt");
+        let fact = &corpus["scm_facts"]["retirement_receipt_object_facts"][0];
+        corpus["receipts"] = json!([{
+            "receipt_path": fact["receipt_path"],
+            "artifact_id": fact["artifact_id"],
+            "scope_ref": fact["scope_ref"],
+            "receipt_state": fact["receipt_state"],
+            "candidate_receipt_blob_oid": fact["candidate_receipt_blob_oid"],
+            "candidate_receipt_sha256": format!("sha256:{:x}", Sha256::digest(&bytes)),
+            "baseline_commit_oid": fact["baseline_commit_oid"],
+            "baseline_tree_oid": fact["baseline_tree_oid"]
+        }]);
+        (corpus, bytes, receipt)
+    }
+
+    #[test]
+    fn facts_and_raw_adapter_requires_an_exact_path_bound_raw_set() {
+        let (facts, bytes, document) = canonical_facts_and_raw("closure-new");
+        let raw = RawHistoryOnlyRetirementReceipt {
+            receipt_path: ADR_0388_CLOSURE_PATH,
+            bytes: &bytes,
+            document: &document,
+            blob_oid: BLOB,
+        };
+        let valid = evaluate_and_project_history_only_retirement_facts(&facts, &[raw.clone()]);
+        assert!(valid.findings.is_empty(), "{:?}", valid.findings);
+        assert_eq!(
+            valid
+                .projection
+                .expect("validated closure projection")
+                .evidence_set_ids(),
+            &BTreeSet::from([ADR_0388_EVIDENCE_SET_ID.to_owned()])
+        );
+
+        let missing = evaluate_and_project_history_only_retirement_facts(&facts, &[]);
+        assert!(!missing.findings.is_empty());
+        assert!(missing.projection.is_none());
+
+        let extra = RawHistoryOnlyRetirementReceipt {
+            receipt_path: "evidence/history-only-retirement/extra.json",
+            ..raw
+        };
+        let extra = evaluate_and_project_history_only_retirement_facts(&facts, &[raw, extra]);
+        assert!(!extra.findings.is_empty());
+        assert!(extra.projection.is_none());
+    }
+
+    #[test]
+    fn facts_and_raw_adapter_binds_bytes_document_metadata_and_object_facts() {
+        let (facts, bytes, document) = canonical_facts_and_raw("closure-new");
+        let raw = RawHistoryOnlyRetirementReceipt {
+            receipt_path: ADR_0388_CLOSURE_PATH,
+            bytes: &bytes,
+            document: &document,
+            blob_oid: BLOB,
+        };
+        for pointer in [
+            "/receipts/0/candidate_receipt_sha256",
+            "/receipts/0/artifact_id",
+            "/receipts/0/scope_ref",
+            "/receipts/0/receipt_state",
+            "/receipts/0/baseline_commit_oid",
+            "/receipts/0/baseline_tree_oid",
+        ] {
+            let mut drifted = facts.clone();
+            let replacement = if pointer.ends_with("sha256") {
+                json!("sha256:0000000000000000000000000000000000000000000000000000000000000000")
+            } else if pointer.ends_with("artifact_id") {
+                json!("wrong-artifact")
+            } else if pointer.ends_with("scope_ref") {
+                json!("ADR-0363")
+            } else if pointer.ends_with("receipt_state") {
+                json!("prepared-new")
+            } else {
+                json!(NEW)
+            };
+            *drifted.pointer_mut(pointer).expect("fixture pointer") = replacement;
+            let evaluation =
+                evaluate_and_project_history_only_retirement_facts(&drifted, &[raw.clone()]);
+            assert!(
+                !evaluation.findings.is_empty(),
+                "{pointer} drift was accepted"
+            );
+            assert!(evaluation.projection.is_none());
+        }
+
+        let mut unknown_key = facts.clone();
+        unknown_key["receipts"][0]["unexpected"] = json!(true);
+        assert!(!evaluate_history_only_retirement_facts(&unknown_key, &[raw]).is_empty());
+    }
+
+    #[test]
+    fn facts_and_raw_adapter_rejects_legacy_carried_and_keeps_dormant_nonclaiming() {
+        let bootstrap = json!({
+            "receipts": [],
+            "scm_facts": {
+                "retirement_receipt_coverage": {"protected_base_ref":"origin/dev","protected_receipt_paths":[],"candidate_receipt_paths":[],"carried_receipt_paths":[],"new_receipt_paths":[],"scopes":[],"required_retired_paths":[]},
+                "retirement_receipt_object_facts": [],
+                "protected_scm_context": protected_scm_context(&[]),
+                "retirement_control_plane_context": retirement_control_plane_context(false)
+            }
+        });
+        for installed in [false, true] {
+            let mut facts = bootstrap.clone();
+            if installed {
+                let context = &mut facts["scm_facts"]["retirement_control_plane_context"];
+                context["bootstrap"] = json!(false);
+                context["protected_control_plane_blob_oid"] = json!(BLOB);
+                context["protected_control_plane_sha256"] = json!(
+                    "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                );
+                context["protected_control_plane_byte_count"] = json!(1);
+            }
+            let evaluation = evaluate_and_project_history_only_retirement_facts(&facts, &[]);
+            assert!(evaluation.findings.is_empty(), "{:?}", evaluation.findings);
+            assert!(
+                evaluation
+                    .projection
+                    .expect("dormant projection")
+                    .evidence_set_ids()
+                    .is_empty()
+            );
+        }
+
+        let (mut legacy, bytes, document) = canonical_facts_and_raw("closed-carried");
+        legacy["receipts"][0]["receipt_state"] = json!("carried");
+        legacy["scm_facts"]["retirement_receipt_object_facts"][0]["receipt_state"] =
+            json!("carried");
+        let raw = RawHistoryOnlyRetirementReceipt {
+            receipt_path: ADR_0388_CLOSURE_PATH,
+            bytes: &bytes,
+            document: &document,
+            blob_oid: BLOB,
+        };
+        let evaluation = evaluate_and_project_history_only_retirement_facts(&legacy, &[raw]);
+        assert!(!evaluation.findings.is_empty());
+        assert!(evaluation.projection.is_none());
+    }
 }
