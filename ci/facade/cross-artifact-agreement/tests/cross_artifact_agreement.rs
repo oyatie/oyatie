@@ -13,7 +13,7 @@ use std::process::Command;
 use ci_cross_artifact_agreement::{
     AdrDecisionRecord, GateCoverageBaseline, RatchetReport, RawHistoryOnlyRetirementReceipt,
     Verdict, derive_masterplan_md_projection, evaluate, evaluate_adr_index_projection_parity,
-    evaluate_adr_prose_frontmatter_status, evaluate_and_project_history_only_retirement_facts,
+    evaluate_adr_prose_frontmatter_status,
     evaluate_and_project_history_only_retirement_facts_with_control_plane,
     evaluate_masterplan_plan_evidence_crosscheck, evaluate_masterplan_projection_rederivation,
     evaluate_masterplan_read_surface_resurrections, evaluate_masterplan_v2_authority,
@@ -421,6 +421,60 @@ fn production_evaluator_rejects_malformed_or_duplicate_control_plane_hash_rows()
         );
         assert!(evaluation.projection.is_none());
     }
+}
+
+#[test]
+fn production_evaluator_rejects_duplicate_raw_control_plane_keys() {
+    let canonical =
+        fs::read_to_string(repo_root().join("registry/history-only-retirement/control-plane.json"))
+            .expect("read canonical retirement control plane");
+    let duplicate = canonical.replacen('{', "{\"schema_version\":1,", 1);
+    let facts = installed_dormant_history_only_facts_fixture(duplicate.as_bytes());
+
+    let evaluation = evaluate_and_project_history_only_retirement_facts_with_control_plane(
+        &facts,
+        &[],
+        duplicate.as_bytes(),
+    );
+    assert!(
+        evaluation.findings.iter().any(|finding| {
+            finding.key == "retirement_control_plane_context.candidate_raw_parse"
+        }),
+        "duplicate raw control-plane keys must fail closed: {:?}",
+        evaluation.findings
+    );
+    assert!(evaluation.projection.is_none());
+}
+
+#[test]
+fn production_evaluator_accepts_dormant_bootstrap_without_a_protected_blob_claim() {
+    let control_plane =
+        fs::read(repo_root().join("registry/history-only-retirement/control-plane.json"))
+            .expect("read canonical retirement control plane");
+    let mut facts = installed_dormant_history_only_facts_fixture(&control_plane);
+    let context = &mut facts["scm_facts"]["retirement_control_plane_context"];
+    context["bootstrap"] = serde_json::json!(true);
+    context["protected_control_plane_blob_oid"] = Value::Null;
+    context["protected_control_plane_sha256"] = Value::Null;
+    context["protected_control_plane_byte_count"] = Value::Null;
+
+    let evaluation = evaluate_and_project_history_only_retirement_facts_with_control_plane(
+        &facts,
+        &[],
+        &control_plane,
+    );
+    assert!(
+        evaluation.findings.is_empty(),
+        "bootstrap raw-source facts must remain non-claiming and valid: {:?}",
+        evaluation.findings
+    );
+    assert!(
+        evaluation
+            .projection
+            .expect("validated dormant bootstrap projection")
+            .evidence_set_ids()
+            .is_empty()
+    );
 }
 
 #[test]

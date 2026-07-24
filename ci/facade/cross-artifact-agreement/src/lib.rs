@@ -165,8 +165,7 @@ pub use registry_policy_sync::{
 };
 pub use retirement_receipt::{
     HistoryOnlyRetirementClosureEvaluation, RETIREMENT_RECEIPT_CODE, RETIREMENT_RECEIPT_VALIDATOR,
-    RawHistoryOnlyRetirementReceipt, evaluate_and_project_history_only_retirement_closures,
-    evaluate_and_project_history_only_retirement_facts,
+    RawHistoryOnlyRetirementReceipt,
     evaluate_and_project_history_only_retirement_facts_with_control_plane,
     evaluate_history_only_retirement_facts, evaluate_history_only_retirement_receipt,
     evaluate_history_only_retirement_receipt_coverage, evaluate_history_only_retirement_receipts,

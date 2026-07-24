@@ -34,6 +34,8 @@ const RETIREMENT_CONTROL_PLANE_FIELDS: &[&str] = &[
     "entries",
 ];
 const PREDECESSOR_SNAPSHOT_FIELDS: &[&str] = &["commit_oid", "tree_oid"];
+const CONTROL_PLANE_ENTRY_HASH_FIELDS: &[&str] = &["scope_ref", "sha256"];
+const CONTROL_PLANE_SCOPE_ORDER: [&str; 3] = ["artifact:masterplan", "ADR-0363", "ADR-0388"];
 
 const RECEIPT_FIELDS: &[&str] = &[
     "$schema",
@@ -755,7 +757,7 @@ pub struct HistoryOnlyRetirementClosureEvaluation {
 /// exact ADR-0388 `closure-new` or `closed-carried` corpus yields the singleton
 /// E4 evidence-set projection. Invalid input yields findings and no projection.
 #[must_use]
-pub fn evaluate_and_project_history_only_retirement_closures(
+fn evaluate_and_project_history_only_retirement_closures(
     corpus: &Value,
 ) -> HistoryOnlyRetirementClosureEvaluation {
     let findings = evaluate_history_only_retirement_receipts(corpus);
@@ -791,7 +793,7 @@ pub fn evaluate_and_project_history_only_retirement_closures(
 
 /// Validate the canonical metadata-plus-raw-documents inputs before projection.
 #[must_use]
-pub fn evaluate_and_project_history_only_retirement_facts(
+fn evaluate_and_project_history_only_retirement_facts(
     facts: &Value,
     raw_receipts: &[RawHistoryOnlyRetirementReceipt<'_>],
 ) -> HistoryOnlyRetirementClosureEvaluation {
@@ -909,7 +911,15 @@ fn validate_candidate_control_plane_source(
     let face = facts.pointer("/scm_facts/retirement_control_plane_context");
     let face_entries = face.and_then(|value| value.get("control_plane_entries"));
     let raw_entries_value = raw_entries.map(|entries| Value::Array(entries.clone()));
-    if raw_entries_value != face_entries.cloned()
+    let raw_entries_are_canonical = raw_entries.is_some_and(|entries| {
+        entries.len() == CONTROL_PLANE_SCOPE_ORDER.len()
+            && entries
+                .iter()
+                .zip(CONTROL_PLANE_SCOPE_ORDER)
+                .all(|(entry, scope)| entry.get("scope_ref").and_then(Value::as_str) == Some(scope))
+    });
+    if !raw_entries_are_canonical
+        || raw_entries_value != face_entries.cloned()
         || raw_entries_value
             != facts
                 .pointer("/scm_facts/protected_scm_context/control_plane_entries")
@@ -922,6 +932,7 @@ fn validate_candidate_control_plane_source(
         return;
     }
     let mut raw_hashes = BTreeSet::new();
+    let mut raw_hash_rows = Vec::new();
     for entry in raw_entries.unwrap_or_default() {
         let Some(scope) = entry.get("scope_ref").and_then(Value::as_str) else {
             fail(
@@ -937,28 +948,36 @@ fn validate_candidate_control_plane_source(
             );
             continue;
         };
-        if !raw_hashes.insert((scope.to_owned(), digest)) {
+        let hash_row = (scope.to_owned(), digest);
+        if !raw_hashes.insert(hash_row.clone()) {
             fail(
                 findings,
                 "retirement_control_plane_context.candidate_raw_entries",
             );
+        } else {
+            raw_hash_rows.push(hash_row);
         }
     }
-    let face_hashes = face
+    let face_hashes_are_canonical = face
         .and_then(|value| value.get("control_plane_entry_hashes"))
         .and_then(Value::as_array)
-        .map(|rows| {
-            rows.iter()
-                .filter_map(|row| {
-                    Some((
-                        row.get("scope_ref")?.as_str()?.to_owned(),
-                        row.get("sha256")?.as_str()?.to_owned(),
-                    ))
-                })
-                .collect::<BTreeSet<_>>()
-        })
-        .unwrap_or_default();
-    if raw_hashes != face_hashes {
+        .is_some_and(|rows| {
+            rows.len() == raw_hash_rows.len()
+                && rows.iter().zip(&raw_hash_rows).all(
+                    |(row, (expected_scope, expected_digest))| {
+                        row.as_object().is_some_and(|object| {
+                            object.len() == CONTROL_PLANE_ENTRY_HASH_FIELDS.len()
+                                && object.keys().all(|key| {
+                                    CONTROL_PLANE_ENTRY_HASH_FIELDS.contains(&key.as_str())
+                                })
+                        }) && row.get("scope_ref").and_then(Value::as_str)
+                            == Some(expected_scope.as_str())
+                            && row.get("sha256").and_then(Value::as_str)
+                                == Some(expected_digest.as_str())
+                    },
+                )
+        });
+    if !face_hashes_are_canonical {
         fail(
             findings,
             "retirement_control_plane_context.candidate_raw_hashes",
