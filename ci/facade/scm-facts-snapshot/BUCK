@@ -5,10 +5,11 @@
 # registry-drift-protected scm-facts.generated.json face. ADR-0604 de-commit class: the face is
 # NOT tracked in git and NOT a buck source member; the producer + every gate rust_test consume
 # the materialized on-disk face from the repo root, so no buck2 action ever calls git.
-rust_binary(
-    name = "ci-scm-facts-snapshot",
-    srcs = glob(["src/**/*.rs"]),
-    crate_root = "src/main.rs",
+rust_library(
+    name = "ci-scm-facts-snapshot-lib",
+    srcs = ["src/lib.rs", "src/retirement.rs"],
+    crate = "ci_scm_facts_snapshot",
+    crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
         # Move-aware path resolution (keystone unblock): the candidate/current seed + the
@@ -29,11 +30,20 @@ rust_binary(
         "//libs/oya-check-brand-residue:oya-check-brand-residue",
         "//libs/oya-ci-config:oya-ci-config-kernel",
         "//governance/corpus/doc-parser:corpus-doc-parser",
+        "third-party//:serde",
         "third-party//:serde_json",
         "third-party//:sha2",
+        "third-party//:rustix",
     ],
 )
 
+rust_binary(
+    name = "ci-scm-facts-snapshot",
+    srcs = ["src/main.rs"],
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [":ci-scm-facts-snapshot-lib"],
+)
 
 rust_test(
     name = "ci-scm-facts-snapshot-gate",
@@ -45,8 +55,12 @@ rust_test(
 
 rust_test(
     name = "ci-scm-facts-snapshot-unittest",
-    srcs = glob(["src/**/*.rs"]),
-    crate_root = "src/main.rs",
+    # Keep this small suite constrained to the library sources. The binary entrypoint and
+    # fixed-receipt gate are separately compiled targets, while real Git/filesystem boundary
+    # coverage lives only in :ci-scm-facts-snapshot-integration.
+    srcs = ["src/lib.rs", "src/retirement.rs"],
+    crate = "ci_scm_facts_snapshot",
+    crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
         "//ci/ports/path-resolver:ci-path-resolver-ports",
@@ -64,7 +78,23 @@ rust_test(
         # file_level_manifest + crate_dir_pairs + move_manifest_value, then drives the relabel —
         # proving it FIRES for a real move (and FAILS if file_level_manifest enumerates-old).
         "//tools/oya-reorg-codemod-app:oya-reorg-codemod-app",
+        "third-party//:serde",
         "third-party//:serde_json",
         "third-party//:sha2",
+        "third-party//:rustix",
+    ],
+)
+
+rust_test(
+    name = "ci-scm-facts-snapshot-integration",
+    srcs = ["tests/snapshot_integration.rs"],
+    crate = "ci_scm_facts_snapshot_integration",
+    crate_root = "tests/snapshot_integration.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-scm-facts-snapshot-lib",
+        "//ci/ports/path-resolver:ci-path-resolver-ports",
+        "//ci/adapters/path-resolver:ci-path-resolver-adapters",
+        "third-party//:serde_json",
     ],
 )

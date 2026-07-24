@@ -26,8 +26,7 @@ const SCM_FACTS_ENV: &str = "OYA_CI_GENERATED_ARTIFACT_SCM_FACTS";
 // set (ADR-0551 `frozen_reference.face_path`). Adopters override the location; the default is the
 // committed oyatie firewall policy.
 const RATCHET_POLICY_ENV: &str = "OYA_CI_GENERATED_ARTIFACT_RATCHET_POLICY";
-const RATCHET_POLICY_DEFAULT_PATH: &str =
-    "ci/facade/baseline-ratchet/ratchet-policy.json";
+const RATCHET_POLICY_DEFAULT_PATH: &str = "ci/facade/baseline-ratchet/ratchet-policy.json";
 
 fn repo_root() -> PathBuf {
     let mut dir = std::env::current_dir().expect("current_dir");
@@ -129,6 +128,86 @@ fn live_schema_accepts_manifest_materialization_modes() {
             "{artifact_id} uses merge_policy {merge_policy:?} not declared by specs/generated-artifact-control-plane.schema.json"
         );
     }
+}
+
+#[test]
+fn history_only_retirement_facts_is_the_exact_controller_owned_untracked_face() {
+    let manifest = read_json(input_path(
+        MANIFEST_ENV,
+        "registry/generated-artifact-control-plane.json",
+    ));
+    let artifacts = manifest
+        .get("artifacts")
+        .and_then(Value::as_array)
+        .expect("live generated-artifact manifest must contain artifacts");
+    let matching = artifacts
+        .iter()
+        .filter(|artifact| {
+            artifact.get("artifact_id").and_then(Value::as_str)
+                == Some("history-only-retirement-facts")
+        })
+        .collect::<Vec<_>>();
+
+    assert_eq!(
+        matching.len(),
+        1,
+        "history-only retirement facts must be registered exactly once"
+    );
+    let row = matching[0];
+    assert_eq!(
+        row.get("path").and_then(Value::as_str),
+        Some("ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json")
+    );
+    assert_eq!(
+        row.get("artifact_class").and_then(Value::as_str),
+        Some("scm-facts-boundary-snapshot")
+    );
+    assert_eq!(
+        row.get("materialization_mode").and_then(Value::as_str),
+        Some("not-tracked-in-git")
+    );
+    assert_eq!(
+        row.get("merge_policy").and_then(Value::as_str),
+        Some("never-manual-merge-regenerate-from-source-tree")
+    );
+    assert_eq!(
+        row.get("source_inputs"),
+        Some(&json!([
+            "registry/history-only-retirement/control-plane.json",
+            "specs/history-only-retirement-control-plane.schema.json",
+            "specs/history-only-retirement-facts.schema.json",
+            ".github/workflows/oya-ci-required.yml",
+            "full-depth SCM checkout"
+        ]))
+    );
+    assert_eq!(
+        row.pointer("/generator/runner").and_then(Value::as_str),
+        Some("buck2")
+    );
+    assert_eq!(
+        row.pointer("/generator/generator_target")
+            .and_then(Value::as_str),
+        Some("//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot")
+    );
+    assert_eq!(
+        row.pointer("/generator/operation_id")
+            .and_then(Value::as_str),
+        Some("emit-history-only-retirement-facts")
+    );
+    assert_eq!(
+        row.pointer("/generator/output_mode")
+            .and_then(Value::as_str),
+        Some("declared-artifact-path-write")
+    );
+    assert_eq!(
+        row.pointer("/generator/input_contract"),
+        Some(&json!([
+            "repo-root",
+            "full-depth-scm",
+            "scm-event-identity",
+            "declared-source-inputs"
+        ]))
+    );
 }
 
 #[test]

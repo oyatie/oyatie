@@ -19,8 +19,8 @@
 # Go-live executed 2026-06-08 (founder-authorized "fully autonomous through both"): the blocking
 # triggers below are paired with making `oya-ci-required` the required status context on `dev`
 # branch protection (FIREWALL-GO-LIVE-RUNBOOK Part 2). This is the SINGLE canonical required CI
-# check — green IFF every constituent gate lane is green. workflow_dispatch retained for manual
-# re-runs / verification.
+# check — green IFF every constituent gate lane is green. workflow_dispatch remains available only
+# to prove the no-authoritative-base branch fails closed; it cannot synthesize retirement facts.
 
 name: oya-ci-required
 
@@ -48,6 +48,7 @@ on:
     branches: [dev]
     types: [opened, reopened, synchronize, ready_for_review]
   merge_group:
+    types: [checks_requested]
 
 permissions:
   contents: read
@@ -85,7 +86,19 @@ jobs:
       - name: Install buck2 (digest-pinned prebuilt release)
         run: infra/ci/install-buck2.sh
       - name: Materialize cloud-ci generated faces
-        run: rustup toolchain install && rustc --version && buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .
+        env:
+          EVENT_EVALUATED_SHA: ${{ github.sha }}
+          EVENT_PULL_REQUEST_BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
+          EVENT_PUSH_BEFORE_SHA: ${{ github.event.before || '' }}
+          EVENT_PUSH_AFTER_SHA: ${{ github.event.after || '' }}
+          EVENT_MERGE_GROUP_BASE_SHA: ${{ github.event.merge_group.base_sha || '' }}
+          EVENT_MERGE_GROUP_HEAD_SHA: ${{ github.event.merge_group.head_sha || '' }}
+          EVENT_PULL_REQUEST_HEAD_SHA: ${{ github.event.pull_request.head.sha || '' }}
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_REF: ${{ github.ref }}
+          EVENT_PULL_REQUEST_BASE_REF: ${{ github.event.pull_request.base.ref || '' }}
+          EVENT_MERGE_GROUP_BASE_REF: ${{ github.event.merge_group.base_ref || '' }}
+        run: rustup toolchain install && rustc --version && buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . --github-event
       - name: Upload regenerated faces
         # actions/upload-artifact@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
@@ -102,6 +115,7 @@ jobs:
           path: |
             ci/facade/artifact-inventory-registry/*.generated.json
             ci/facade/scm-facts-snapshot/scm-volatile-facts.generated.json
+            ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json
           if-no-files-found: error
 
   # ── GATE LANES (reusable matrix). Every homogeneous gate is the SAME step — one
@@ -215,7 +229,7 @@ jobs:
           set -euo pipefail
           buck2 test \
             //ci/facade/${{ matrix.crate }}:ci-${{ matrix.crate }}-unittest \
-            //ci/facade/${{ matrix.crate }}:ci-${{ matrix.crate }}-gate
+            //ci/facade/${{ matrix.crate }}:ci-${{ matrix.crate }}-gate ${{ matrix.crate == 'scm-facts-snapshot' && '//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot-integration' || '' }}
 
   # ── freshness: first-diagnosis gate for the two stale-output failures from PR #662.
   #    Runs as its own fast job with no needs edge so stale Cargo.lock and stale generated faces
@@ -395,6 +409,7 @@ jobs:
   #    here. This lane feeds the same fan-in as the targeted Buck2 gate matrix above.
   buck2:
     name: buck2 (hermetic build + affected gate tests)
+    needs: producer-regen
     runs-on: ubuntu-latest
     steps:
       # actions/checkout@v6.0.3 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
@@ -404,6 +419,15 @@ jobs:
           # Full history: the materialization step below runs the emitter, which derives
           # last_touch via `git log --name-only`; a shallow checkout collapses it (PM1).
           fetch-depth: 0
+      # Reuse the event-bound retirement face produced from the candidate checkout. The bare
+      # materializer below remains for this job's other generated faces; it receives no
+      # retirement tuple and therefore cannot replace this controller-owned face.
+      - name: Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)
+        # actions/download-artifact@v8.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: accounting-faces
+          path: ci/facade
       # buck2 is the BUILD TOOL, installed as a prebuilt release.
       # The adapter edge is immutable at CI time: release tag selects the asset, SHA-256 pins
       # the bytes, and CI verifies the digest before decompression/execution. Bump together.
@@ -575,6 +599,7 @@ jobs:
   #    flag-day requirement). Pack-shaped per ADR-0548 R0: all repo facts live in affected-set-policy.json.
   gate-affected-target-set:
     name: "gate · affected-set (ADR-0554, binding workspace coverage)"
+    needs: producer-regen
     runs-on: ubuntu-latest
     # SAFETY RAIL (ADR-0554 D7; re-derived round-6): bound the full-workspace rebuild so a
     # runaway/exhaustion (a wedged buck2 action, a non-terminating compile) cannot burn the runner
@@ -597,6 +622,15 @@ jobs:
           # Full history: the merge-base diff anchor + the materialization boundary both
           # derive from git history; a shallow checkout collapses them (PM1).
           fetch-depth: 0
+      # The broad candidate run consumes the producer's event-bound retirement face. Its bare
+      # materializer below is retained solely for per-job faces and cannot synthesize retirement
+      # facts without the complete explicit tuple.
+      - name: Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)
+        # actions/download-artifact@v8.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: accounting-faces
+          path: ci/facade
       - name: Install buck2 (digest-pinned prebuilt release)
         run: infra/ci/install-buck2.sh
       # Warm the pinned toolchain across runs (ADR-0556 D5 QW-4); rustup still resolves and
@@ -771,9 +805,20 @@ jobs:
           (
             cd "${mb_tree}"
             rustup toolchain install
-            # Materialize merge-base generated faces IN the clean worktree (merge-base-owned; the
-            # `buck2 run` rebuilds the materializer from merge-base source, so faces are consistent).
-            buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .
+            # Materialize merge-base faces in the clean historical tree. The historical binary owns
+            # epoch dispatch: new capability verifies authority; legacy bare mode must emit no receipt.
+            historical_help_status=0
+            historical_help="$(buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --help 2>&1)" || historical_help_status=$?
+            (( historical_help_status == 0 || historical_help_status == 2 )) || { echo "historical materializer capability probe failed: status=${historical_help_status}"; exit 1; }
+            grep -Fq "usage: oya-cloud-ci-materialize-generated-faces" <<<"${historical_help}" || { echo "historical materializer capability probe returned no usage contract"; exit 1; }
+            historical_retirement_args=()
+            if grep -Fq -- "--historical-merge-base <oid>" <<<"${historical_help}"; then
+              historical_retirement_args=(--historical-merge-base "${merge_base}")
+            fi
+            buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . "${historical_retirement_args[@]}"
+            (( ${#historical_retirement_args[@]} == 0 )) || [[ -f ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json && ! -L ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json ]] || { echo "historical materializer capability emitted no regular retirement facts"; exit 1; }
+            (( ${#historical_retirement_args[@]} == 0 )) || jq -e 'type == "object" and (.receipts | type == "array") and (.scm_facts | type == "object")' ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json >/dev/null || { echo "historical materializer capability emitted malformed retirement facts"; exit 1; }
+            (( ${#historical_retirement_args[@]} != 0 )) || [[ ! -e ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json && ! -L ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json ]] || { echo "legacy historical materializer unexpectedly emitted retirement facts"; exit 1; }
             # BUILD baseline: whole merge-base workspace keep-going. The build is EXPECTED to be
             # non-zero (dev carries pre-existing breakage) — that IS the baseline, not a failure, so
             # its exit code is never propagated.

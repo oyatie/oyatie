@@ -22,6 +22,7 @@ name = "oya-cloud-ci-adr-census-parent-receipt-gate"
 path = "src/bin/adr-census-parent-receipt-gate.rs"
 
 [dependencies]
+serde = { workspace = true }
 serde_json = { workspace = true }
 ci-path-resolver-ports = { path = "../../ports/path-resolver" }
 ci-path-resolver-adapters = { path = "../../adapters/path-resolver" }
@@ -36,6 +37,7 @@ oya-check-brand-residue = { path = "../../../libs/oya-check-brand-residue" }
 oya-ci-config-kernel = { path = "../../../libs/oya-ci-config" }
 corpus-doc-parser = { path = "../../../governance/corpus/doc-parser" }
 sha2 = { workspace = true }
+rustix = { workspace = true }
 
 [dev-dependencies]
 oya-reorg-codemod-app = { path = "../../../tools/oya-reorg-codemod-app" }

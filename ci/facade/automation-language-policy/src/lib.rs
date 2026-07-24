@@ -18,7 +18,7 @@ use toml::Value as TomlValue;
 
 pub const GATE_ID: &str = "cloud-ci-rust-first-automation-hygiene";
 
-pub const VIOLATION_CODES: [&str; 14] = [
+pub const VIOLATION_CODES: [&str; 18] = [
     "rust_first_automation_gate_id_mismatch",
     "rust_first_automation_exception_duplicate",
     "rust_first_automation_exception_missing_field",
@@ -32,6 +32,10 @@ pub const VIOLATION_CODES: [&str; 14] = [
     // baseline of today's accepted legacy-bridge inline shell.
     "rust_first_automation_unbaselined_workflow_inline_shell",
     "rust_first_automation_workflow_inline_shell_baseline_stale",
+    "rust_first_automation_workflow_inline_shell_missing_step_name",
+    "rust_first_automation_workflow_inline_shell_duplicate_step_name",
+    "rust_first_automation_workflow_inline_shell_line_count_growth",
+    "rust_first_automation_workflow_inline_shell_baseline_malformed",
     // Non-Rust-exception SHRINK-ONLY dimension: the file scan permits a non-Rust file iff it has an
     // exceptions[] entry (any-allowlisted-ok). These two codes additionally freeze the EXCEPTION SET
     // shrink-only against a review-visible baseline, so a NEW .py/.sh bridge cannot be admitted by
@@ -214,16 +218,16 @@ pub fn collect_observed_non_rust_automation(
 // to shell that lives INSIDE a `.yml` workflow as a `run:` step: the file is a `.yml`, so the
 // extension scan never flags it, and the gate never parses the YAML body. pipeline-glue(a) closes
 // that blind spot by parsing the policy-declared workflow globs with a real YAML parser and
-// emitting one keyed observation per (file, job, step) that carries an inline `run:` block. The
-// keyed observations are ratcheted shrink-only against a FROZEN baseline (policy-as-data, born
-// pack-shaped) of today's accepted legacy-bridge inline shell.
+// emitting one keyed observation per (file, job, required unique step name) that carries an inline
+// `run:` block and its non-empty `shell_lines`. Schema-v2 ratchets both values exactly against the
+// embedded FROZEN baseline (policy-as-data): a new/grown entry blocks, while a removed/shrunk entry
+// makes the baseline stale until the same reviewed change shrinks it.
 
-/// The stable key for a single inline-shell observation: `<workflow-relpath>::<job-id>::step-<N>`
-/// where `N` is the 0-based index of the step within its job's `steps` array. This is the finest
-/// defensible keyed unit (per file, per job, per step) so shrink is provable per-step and the
-/// total-accounting/ratchet machinery applies uniformly.
-fn workflow_shell_key(rel: &str, job: &str, step_index: usize) -> String {
-    format!("{rel}::{job}::step-{step_index}")
+/// The stable key for a single inline-shell observation: `<workflow-relpath>::<job-id>::<name>`.
+/// A workflow `run:` step is required to have a unique non-empty `name`, so inserting an unrelated
+/// step cannot renumber accepted debt or silently transfer its baseline allowance.
+fn workflow_shell_key(rel: &str, job: &str, name: &str) -> String {
+    format!("{rel}::{job}::{name}")
 }
 
 /// Count the inline-shell lines in a `run:` scalar. Block scalars (`run: |` / `run: >`) and
@@ -295,15 +299,39 @@ fn extract_inline_shell_steps(rel: &str, doc: &YamlValue, rows: &mut Vec<Value>)
         let Some(steps) = steps.as_sequence() else {
             return;
         };
-        for (index, step) in steps.iter().enumerate() {
+        let mut names = BTreeSet::new();
+        for step in steps {
             let Some(run) = step.get("run").and_then(YamlValue::as_str) else {
                 continue;
             };
+            let Some(name) = step
+                .get("name")
+                .and_then(YamlValue::as_str)
+                .map(str::trim)
+                .filter(|name| !name.is_empty())
+            else {
+                rows.push(json!({
+                    "identity_error": "missing_name",
+                    "file": rel,
+                    "job": job,
+                }));
+                continue;
+            };
+            if !names.insert(name.to_owned()) {
+                rows.push(json!({
+                    "identity_error": "duplicate_name",
+                    "key": workflow_shell_key(rel, job, name),
+                    "file": rel,
+                    "job": job,
+                    "name": name,
+                }));
+                continue;
+            }
             rows.push(json!({
-                "key": workflow_shell_key(rel, job, index),
+                "key": workflow_shell_key(rel, job, name),
                 "file": rel,
                 "job": job,
-                "step_index": index,
+                "name": name,
                 "shell_lines": shell_line_count(run),
             }));
         }
@@ -383,77 +411,166 @@ fn workflow_string_array(block: Option<&Value>, key: &str) -> Result<Vec<String>
 }
 
 /// The set of inline-shell keys observed in the live workflow corpus.
-fn observed_workflow_shell_keys(
+fn observed_workflow_shell_entries(
     observed: &Value,
     findings: &mut BTreeSet<Finding>,
-) -> BTreeSet<String> {
-    let mut keys = BTreeSet::new();
+) -> BTreeMap<String, usize> {
+    let mut entries = BTreeMap::new();
     for row in observed
         .get("steps")
         .and_then(Value::as_array)
         .into_iter()
         .flatten()
     {
-        match string_field(row, "key").filter(|k| !k.is_empty()) {
-            Some(key) => {
-                keys.insert(key.to_owned());
+        match row.get("identity_error").and_then(Value::as_str) {
+            Some("missing_name") => {
+                let key = format!(
+                    "{}::{}",
+                    string_field(row, "file").unwrap_or("<unknown-file>"),
+                    string_field(row, "job").unwrap_or("<unknown-job>")
+                );
+                findings.insert(Finding::new(
+                    "rust_first_automation_workflow_inline_shell_missing_step_name",
+                    &key,
+                    "workflow run step missing required non-empty unique `name`",
+                ));
             }
-            None => {
+            Some("duplicate_name") => {
+                let key = string_field(row, "key")
+                    .unwrap_or("<observed-workflow-step>")
+                    .to_owned();
+                findings.insert(Finding::new(
+                    "rust_first_automation_workflow_inline_shell_duplicate_step_name",
+                    &key,
+                    "workflow run step name is duplicated within its job",
+                ));
+            }
+            Some(_) => {
                 findings.insert(Finding::new(
                     "rust_first_automation_observed_path_missing_field",
                     "<observed-workflow-step>",
-                    "observed workflow inline-shell row missing non-empty `key`",
+                    "observed workflow inline-shell row has an unknown identity error",
                 ));
             }
+            None => match (
+                string_field(row, "key").filter(|k| !k.is_empty()),
+                row.get("shell_lines").and_then(Value::as_u64),
+            ) {
+                (Some(key), Some(lines)) => {
+                    entries.insert(key.to_owned(), lines as usize);
+                }
+                _ => {
+                    findings.insert(Finding::new(
+                        "rust_first_automation_observed_path_missing_field",
+                        "<observed-workflow-step>",
+                        "observed workflow inline-shell row missing non-empty `key` or `shell_lines`",
+                    ));
+                }
+            },
         }
     }
-    keys
+    entries
 }
 
-/// The frozen baseline keys for the workflow-inline-shell code, read from the baseline face's
-/// `codes.rust_first_automation_unbaselined_workflow_inline_shell` array.
-fn baseline_workflow_shell_keys(baseline: &Value) -> BTreeSet<String> {
-    baseline
+/// The frozen named-step entries for the workflow-inline-shell code, read from the baseline face's
+/// `codes.rust_first_automation_unbaselined_workflow_inline_shell` array. Every entry must carry
+/// an exact non-empty key and measured `shell_lines`; malformed or duplicate rows fail closed.
+fn baseline_workflow_shell_entries(
+    baseline: &Value,
+    findings: &mut BTreeSet<Finding>,
+) -> BTreeMap<String, usize> {
+    let mut entries = BTreeMap::new();
+    let Some(values) = baseline
         .get("codes")
         .and_then(|codes| codes.get("rust_first_automation_unbaselined_workflow_inline_shell"))
         .and_then(Value::as_array)
-        .map(|values| {
-            values
-                .iter()
-                .filter_map(Value::as_str)
-                .map(str::to_owned)
-                .collect()
-        })
-        .unwrap_or_default()
+    else {
+        findings.insert(Finding::new(
+            "rust_first_automation_workflow_inline_shell_baseline_malformed",
+            "<workflow-inline-shell-baseline>",
+            "workflow inline-shell baseline must contain a codes array of named entries",
+        ));
+        return entries;
+    };
+    for value in values {
+        let Some(key) = value
+            .get("key")
+            .and_then(Value::as_str)
+            .filter(|key| !key.is_empty())
+        else {
+            findings.insert(Finding::new(
+                "rust_first_automation_workflow_inline_shell_baseline_malformed",
+                "<workflow-inline-shell-baseline>",
+                "workflow inline-shell baseline entry missing non-empty `key`",
+            ));
+            continue;
+        };
+        let Some(lines) = value.get("shell_lines").and_then(Value::as_u64) else {
+            findings.insert(Finding::new(
+                "rust_first_automation_workflow_inline_shell_baseline_malformed",
+                key,
+                "workflow inline-shell baseline entry missing unsigned `shell_lines`",
+            ));
+            continue;
+        };
+        if entries.insert(key.to_owned(), lines as usize).is_some() {
+            findings.insert(Finding::new(
+                "rust_first_automation_workflow_inline_shell_baseline_malformed",
+                key,
+                "workflow inline-shell baseline contains duplicate named-step key",
+            ));
+        }
+    }
+    entries
 }
 
 /// Pure evaluator for the workflow-inline-shell dimension. `observed` is the scanner output shaped
-/// as `{ "steps": [{"key": "..."}] }`; `baseline` is the frozen keyed baseline face. Shrink-only:
+/// as `{ "steps": [{"key": "...", "shell_lines": N}] }`; `baseline` is the frozen named-step
+/// baseline face. Exact shrink-only:
 ///   - any observed key NOT in the baseline ⇒ `rust_first_automation_unbaselined_workflow_inline_shell`
 ///     (a NEW inline-shell step beyond the accepted legacy-bridge debt is born-blocking);
 ///   - any baseline key NOT observed ⇒ `rust_first_automation_workflow_inline_shell_baseline_stale`
-///     (a retired step must shrink the baseline in the same PR, mirroring the file-scan stale code).
+///     (a retired step must shrink the baseline in the same PR, mirroring the file-scan stale code);
+///   - line-count growth is born-blocking and line-count shrink makes the frozen baseline stale,
+///     preventing a prior ceiling from permitting later regrowth.
 pub fn evaluate_workflow_inline_shell_keyed(
     observed: &Value,
     baseline: &Value,
 ) -> BTreeSet<Finding> {
     let mut findings = BTreeSet::new();
-    let baseline_keys = baseline_workflow_shell_keys(baseline);
-    let observed_keys = observed_workflow_shell_keys(observed, &mut findings);
+    let baseline_entries = baseline_workflow_shell_entries(baseline, &mut findings);
+    let observed_entries = observed_workflow_shell_entries(observed, &mut findings);
 
-    for key in &observed_keys {
-        if !baseline_keys.contains(key) {
-            findings.insert(Finding::new(
+    for (key, observed_lines) in &observed_entries {
+        match baseline_entries.get(key) {
+            None => {
+                findings.insert(Finding::new(
                 "rust_first_automation_unbaselined_workflow_inline_shell",
                 key,
                 "new inline shell inside workflow YAML beyond the frozen legacy-bridge baseline; \
                  productize it as a Rust/Buck2 step or extend the reviewed baseline (shrink-only)",
             ));
+            }
+            Some(baseline_lines) if observed_lines > baseline_lines => {
+                findings.insert(Finding::new(
+                    "rust_first_automation_workflow_inline_shell_line_count_growth",
+                    key,
+                    format!("workflow inline-shell line count grew from frozen baseline {baseline_lines} to {observed_lines}; only shrink is allowed"),
+                ));
+            }
+            Some(baseline_lines) if observed_lines < baseline_lines => {
+                findings.insert(Finding::new(
+                    "rust_first_automation_workflow_inline_shell_baseline_stale",
+                    key,
+                    format!("workflow inline-shell line count shrank from frozen baseline {baseline_lines} to {observed_lines}; shrink the baseline in this PR"),
+                ));
+            }
+            Some(_) => {}
         }
     }
 
-    for key in &baseline_keys {
-        if !observed_keys.contains(key) {
+    for key in baseline_entries.keys() {
+        if !observed_entries.contains_key(key) {
             findings.insert(Finding::new(
                 "rust_first_automation_workflow_inline_shell_baseline_stale",
                 key,
@@ -1298,13 +1415,13 @@ mod tests {
     // ───────────────── workflow-inline-shell evaluator unit tests (pipeline-glue(a)) ─────────────
 
     fn shell_observed(keys: &[&str]) -> Value {
-        json!({"steps": keys.iter().map(|k| json!({"key": k})).collect::<Vec<_>>()})
+        json!({"steps": keys.iter().map(|k| json!({"key": k, "shell_lines": 1})).collect::<Vec<_>>()})
     }
 
     fn shell_baseline(keys: &[&str]) -> Value {
         json!({"codes": {
             "rust_first_automation_unbaselined_workflow_inline_shell":
-                keys.iter().map(|k| json!(k)).collect::<Vec<_>>()
+                keys.iter().map(|k| json!({"key": k, "shell_lines": 1})).collect::<Vec<_>>()
         }})
     }
 
@@ -1348,23 +1465,95 @@ mod tests {
     }
 
     #[test]
-    fn extract_inline_shell_steps_skips_uses_and_keys_per_step() {
+    fn extract_inline_shell_steps_skips_uses_and_keys_per_unique_name() {
         let doc: YamlValue = serde_yaml::from_str(
-            "jobs:\n  build:\n    steps:\n      - uses: actions/checkout@v4\n      - run: echo one\n      - run: |\n          echo two\n          echo three\n",
+            "jobs:\n  build:\n    steps:\n      - uses: actions/checkout@v4\n      - name: First shell\n        run: echo one\n      - name: Second shell\n        run: |\n          echo two\n          echo three\n",
         )
         .unwrap();
         let mut rows = Vec::new();
         extract_inline_shell_steps(".github/workflows/x.yml", &doc, &mut rows);
         let keys: Vec<&str> = rows.iter().filter_map(|r| r["key"].as_str()).collect();
-        // step-0 is the `uses:` step (no run) → skipped; step-1 and step-2 are run steps.
+        // The `uses:` step has no run block; run steps are keyed by their required names.
         assert_eq!(
             keys,
             vec![
-                ".github/workflows/x.yml::build::step-1",
-                ".github/workflows/x.yml::build::step-2"
+                ".github/workflows/x.yml::build::First shell",
+                ".github/workflows/x.yml::build::Second shell"
             ]
         );
         assert_eq!(rows[1]["shell_lines"].as_u64(), Some(2));
+    }
+
+    #[test]
+    fn workflow_shell_missing_or_duplicate_named_run_step_fails_closed() {
+        let doc: YamlValue = serde_yaml::from_str(
+            "jobs:\n  build:\n    steps:\n      - run: echo unnamed\n      - name: Duplicate\n        run: echo one\n      - name: Duplicate\n        run: echo two\n",
+        )
+        .unwrap();
+        let mut rows = Vec::new();
+        extract_inline_shell_steps(".github/workflows/x.yml", &doc, &mut rows);
+        let findings = evaluate_workflow_inline_shell_keyed(
+            &json!({"steps": rows}),
+            &shell_baseline(&[".github/workflows/x.yml::build::Duplicate"]),
+        );
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.code == "rust_first_automation_workflow_inline_shell_missing_step_name")
+        );
+        assert!(
+            findings.iter().any(
+                |f| f.code == "rust_first_automation_workflow_inline_shell_duplicate_step_name"
+            )
+        );
+    }
+
+    #[test]
+    fn workflow_shell_line_count_growth_beyond_frozen_baseline_is_red() {
+        let findings = evaluate_workflow_inline_shell_keyed(
+            &json!({"steps": [{"key": "a.yml::job::Named shell", "shell_lines": 2}]}),
+            &json!({"codes": {"rust_first_automation_unbaselined_workflow_inline_shell": [
+                {"key": "a.yml::job::Named shell", "shell_lines": 1}
+            ]}}),
+        );
+        assert!(findings.iter().any(|f| {
+            f.code == "rust_first_automation_workflow_inline_shell_line_count_growth"
+                && f.key == "a.yml::job::Named shell"
+        }));
+    }
+
+    #[test]
+    fn workflow_shell_line_count_shrink_requires_baseline_shrink() {
+        let findings = evaluate_workflow_inline_shell_keyed(
+            &json!({"steps": [{"key": "a.yml::job::Named shell", "shell_lines": 1}]}),
+            &json!({"codes": {"rust_first_automation_unbaselined_workflow_inline_shell": [
+                {"key": "a.yml::job::Named shell", "shell_lines": 2}
+            ]}}),
+        );
+        assert!(findings.iter().any(|f| {
+            f.code == "rust_first_automation_workflow_inline_shell_baseline_stale"
+                && f.key == "a.yml::job::Named shell"
+        }));
+    }
+
+    #[test]
+    fn workflow_shell_malformed_or_duplicate_baseline_entries_fail_closed() {
+        let findings = evaluate_workflow_inline_shell_keyed(
+            &shell_observed(&["a.yml::job::Named shell"]),
+            &json!({"codes": {"rust_first_automation_unbaselined_workflow_inline_shell": [
+                {"key": "a.yml::job::Named shell", "shell_lines": 1},
+                {"key": "a.yml::job::Named shell", "shell_lines": 1},
+                {"key": "a.yml::job::Broken"}
+            ]}}),
+        );
+        assert!(findings.iter().any(|f| {
+            f.code == "rust_first_automation_workflow_inline_shell_baseline_malformed"
+                && f.key == "a.yml::job::Named shell"
+        }));
+        assert!(findings.iter().any(|f| {
+            f.code == "rust_first_automation_workflow_inline_shell_baseline_malformed"
+                && f.key == "a.yml::job::Broken"
+        }));
     }
 
     #[test]

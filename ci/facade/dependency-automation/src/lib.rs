@@ -1,9 +1,11 @@
-//! ADR-0535 dependency-automation gate.
+//! ADR-0535 dependency-automation gate and canonical Reindeer overlay capability.
 //!
 //! This gate keeps dependency updates on the owned cloud-ci path instead of reintroducing a
 //! third-party bot config. The policy source is root `oya-deps.toml`: a small closed-schema DATA
 //! contract consumed by the future in-house Rust bump-bot. The gate is deliberately filesystem-only
 //! and VCS-free so it runs the same way under GitHub Actions today and the owned runner later.
+//! The sibling overlay module is a local, fail-closed generator bridge invoked by the canonical
+//! `scripts/ci/regen-third-party.sh`; it does not carry merge authority.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
@@ -12,6 +14,13 @@ use std::fs;
 use std::path::Path;
 
 use toml::Value;
+
+mod third_party_overlay;
+
+pub use third_party_overlay::{
+    ThirdPartyOverlay, ThirdPartyOverlayError, apply_third_party_buck_overlay,
+    apply_third_party_buck_overlay_file,
+};
 
 pub const GATE_ID: &str = "cloud-ci-dependency-automation";
 pub const CONFIG_PATH: &str = "oya-deps.toml";

@@ -2662,6 +2662,55 @@
           "command": "python3 -m json.tool evidence/goals/masterplan-v2-external-board-import-retirement-closure-20260720.json >/dev/null"
         }
       }
+    },
+    {
+      "artifact_id": "history-only-retirement-control-plane-schema",
+      "artifact_path": "/specs/history-only-retirement-control-plane.schema.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "cloud-ci-platform",
+      "purpose_short": "Fail-closed schema for the immutable protected-null, exact-three history-only retirement control plane.",
+      "artifact_profile": "schema",
+      "capability_overrides": {
+        "enforcement": {"lane_id": "history-only-retirement-control-plane"},
+        "verification": {"command": "python3 -m json.tool specs/history-only-retirement-control-plane.schema.json >/dev/null"},
+        "validation": {"validator": "JSON Schema Draft 2020-12 plus scm-facts history-only retirement materializer"},
+        "autogen": {"generator": "not-applicable; schema is source-authored"},
+        "provenance": {"current_author": "codex", "current_reviewed_by": "pending code-review", "last_modified_at": "2026-07-22T00:00:00Z"}
+      }
+    },
+    {
+      "artifact_id": "history-only-retirement-facts-schema",
+      "artifact_path": "/specs/history-only-retirement-facts.schema.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "cloud-ci-platform",
+      "purpose_short": "Schema for the ignored controller-produced history-only retirement facts projection.",
+      "artifact_profile": "schema",
+      "capability_overrides": {
+        "enforcement": {"lane_id": "history-only-retirement-control-plane"},
+        "verification": {"command": "python3 -m json.tool specs/history-only-retirement-facts.schema.json >/dev/null"},
+        "validation": {"validator": "JSON Schema Draft 2020-12 plus scm-facts history-only retirement materializer"},
+        "autogen": {"generator": "not-applicable; schema is source-authored"},
+        "provenance": {"current_author": "codex", "current_reviewed_by": "pending code-review", "last_modified_at": "2026-07-22T00:00:00Z"}
+      }
+    },
+    {
+      "artifact_id": "history-only-retirement-control-plane",
+      "artifact_path": "/registry/history-only-retirement/control-plane.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "cloud-ci-platform",
+      "purpose_short": "Immutable protected-null controller input for the three declared history-only retirement scopes.",
+      "artifact_profile": "registry",
+      "capability_overrides": {
+        "enforcement": {"lane_id": "history-only-retirement-control-plane"},
+        "verification": {"command": "python3 -m json.tool registry/history-only-retirement/control-plane.json >/dev/null"},
+        "validation": {"validator": "specs/history-only-retirement-control-plane.schema.json plus scm-facts history-only retirement materializer"},
+        "autogen": {"generator": "not-applicable; controller input is source-authored"},
+        "selfheal": {"healer": "not-applicable; immutable predecessor facts require reviewed replacement authority"},
+        "provenance": {"current_author": "codex", "current_reviewed_by": "pending code-review", "last_modified_at": "2026-07-22T00:00:00Z"}
+      }
     }
   ],
   "purpose": "Auto-backfilled purpose for artifact-capabilities-registry.json"

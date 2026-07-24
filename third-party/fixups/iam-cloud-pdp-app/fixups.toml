@@ -1,0 +1,3 @@
+[buildscript]
+# Generates the PDP's gRPC Rust bindings.
+run = true

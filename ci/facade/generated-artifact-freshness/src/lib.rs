@@ -16,6 +16,9 @@ pub use rust_toolchain_drift::{evaluate_rust_toolchain_drift, read_pinned_rust_t
 
 pub const LOCK_REMEDIATION_COMMAND: &str = "cargo metadata >/dev/null";
 pub const FACE_REMEDIATION_COMMAND: &str = "buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .";
+const RETIREMENT_CONTROL_PLANE_PATH: &str = "registry/history-only-retirement/control-plane.json";
+const RETIREMENT_FACTS_PATH: &str =
+    "ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json";
 pub const FACE_SETTLE_PROTOCOL: &str = "commit content changes first; faces regenerate from the TRACKED TREE STATE (ADR-0552: committed faces carry no history-derived data, so commit ids never enter them); never mix content and regenerated faces in one commit; then run the materialize command; commit only PR-owned generated face diffs; controller-owned generated faces are materialized by cloud-ci/integration controllers, not contributor PRs; then run oya-cloud-ci-face-settle --verify as the LAST step before EVERY push";
 pub const FACE_VERIFY_REMEDIATION_COMMAND: &str = "oya-cloud-ci-face-settle --settle --commit";
 pub const FACE_SETTLE_COMMIT_COMMAND: &str =
@@ -187,6 +190,44 @@ pub struct FaceSettleArgs {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MaterializeGeneratedFacesArgs {
     pub repo_root: PathBuf,
+    pub retirement_mode: RetirementMaterializationMode,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum RetirementMaterializationMode {
+    None,
+    ExplicitTuple(RetirementMaterializeArgs),
+    GitHubActionsEvent,
+    HistoricalDevPush { expected_head: String },
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RetirementMaterializeArgs {
+    pub control_plane_path: String,
+    pub facts_out: PathBuf,
+    pub protected_base_commit: String,
+    pub evaluated_commit: String,
+    pub scm_event_name: String,
+    pub scm_event_ref: String,
+    pub scm_event_base_ref: String,
+    pub subject_commit: String,
+}
+
+/// GitHub event facts supplied explicitly by the workflow environment. Selection is pure so the
+/// event precedence and missing-authority policy remain independently testable.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct GitHubEventMaterializationFacts {
+    pub evaluated_sha: String,
+    pub pull_request_base_sha: Option<String>,
+    pub push_before_sha: Option<String>,
+    pub merge_group_base_sha: Option<String>,
+    pub push_after_sha: Option<String>,
+    pub merge_group_head_sha: Option<String>,
+    pub pull_request_head_sha: Option<String>,
+    pub event_name: String,
+    pub event_ref: String,
+    pub pull_request_base_ref: Option<String>,
+    pub merge_group_base_ref: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
@@ -369,16 +410,177 @@ pub fn run_face_settle_with_buck2(
 
 pub fn materialize_generated_faces_with_buck2(repo_root: &Path) -> Result<(), FreshnessError> {
     let tools = build_materializer_tools(repo_root)?;
-    materialize_generated_faces_with_tools(&tools, repo_root)
+    let retirement = effective_retirement_materialization(repo_root, None);
+    materialize_generated_faces_with_tools(&tools, repo_root, retirement.as_ref(), None)
+}
+
+pub fn materialize_generated_faces_from_args(
+    args: &MaterializeGeneratedFacesArgs,
+) -> Result<(), FreshnessError> {
+    let tools = build_materializer_tools(&args.repo_root)?;
+    let (retirement, historical_dev_push) = match &args.retirement_mode {
+        RetirementMaterializationMode::None => (None, None),
+        RetirementMaterializationMode::ExplicitTuple(retirement) => {
+            (Some(retirement.clone()), None)
+        }
+        RetirementMaterializationMode::GitHubActionsEvent => {
+            let facts = github_event_materialization_facts_from_environment();
+            let retirement = retirement_materialization_from_github_event_facts(&facts)?;
+            (Some(retirement), None)
+        }
+        RetirementMaterializationMode::HistoricalDevPush { expected_head } => {
+            (None, Some(expected_head.as_str()))
+        }
+    };
+    materialize_generated_faces_with_tools(
+        &tools,
+        &args.repo_root,
+        retirement.as_ref(),
+        historical_dev_push,
+    )
+}
+
+pub fn retirement_materialization_from_github_event_facts(
+    facts: &GitHubEventMaterializationFacts,
+) -> Result<RetirementMaterializeArgs, FreshnessError> {
+    let evaluated_commit = required_event_fact("EVENT_EVALUATED_SHA", &facts.evaluated_sha)?;
+    let scm_event_name = required_event_fact("EVENT_NAME", &facts.event_name)?;
+    let scm_event_ref = required_event_fact("EVENT_REF", &facts.event_ref)?;
+    let (protected_base_commit, scm_event_base_ref, subject_commit) = match scm_event_name {
+        "pull_request" => (
+            required_optional_event_fact(
+                "EVENT_PULL_REQUEST_BASE_SHA",
+                facts.pull_request_base_sha.as_deref(),
+            )?,
+            required_optional_event_fact(
+                "EVENT_PULL_REQUEST_BASE_REF",
+                facts.pull_request_base_ref.as_deref(),
+            )?,
+            required_optional_event_fact(
+                "EVENT_PULL_REQUEST_HEAD_SHA",
+                facts.pull_request_head_sha.as_deref(),
+            )?,
+        ),
+        "push" => {
+            let after = required_optional_event_fact(
+                "EVENT_PUSH_AFTER_SHA",
+                facts.push_after_sha.as_deref(),
+            )?;
+            if after != evaluated_commit {
+                return Err(FreshnessError::new(
+                    "materialize generated faces: push EVENT_PUSH_AFTER_SHA does not match EVENT_EVALUATED_SHA",
+                ));
+            }
+            (
+                required_optional_event_fact(
+                    "EVENT_PUSH_BEFORE_SHA",
+                    facts.push_before_sha.as_deref(),
+                )?,
+                scm_event_ref,
+                evaluated_commit,
+            )
+        }
+        "merge_group" => {
+            let head = required_optional_event_fact(
+                "EVENT_MERGE_GROUP_HEAD_SHA",
+                facts.merge_group_head_sha.as_deref(),
+            )?;
+            if head != evaluated_commit {
+                return Err(FreshnessError::new(
+                    "materialize generated faces: merge_group EVENT_MERGE_GROUP_HEAD_SHA does not match EVENT_EVALUATED_SHA",
+                ));
+            }
+            (
+                required_optional_event_fact(
+                    "EVENT_MERGE_GROUP_BASE_SHA",
+                    facts.merge_group_base_sha.as_deref(),
+                )?,
+                required_optional_event_fact(
+                    "EVENT_MERGE_GROUP_BASE_REF",
+                    facts.merge_group_base_ref.as_deref(),
+                )?,
+                evaluated_commit,
+            )
+        }
+        unsupported => {
+            return Err(FreshnessError::new(format!(
+                "materialize generated faces: unsupported GitHub event {unsupported:?}"
+            )));
+        }
+    };
+    Ok(RetirementMaterializeArgs {
+        control_plane_path: RETIREMENT_CONTROL_PLANE_PATH.to_owned(),
+        facts_out: PathBuf::from(RETIREMENT_FACTS_PATH),
+        protected_base_commit: protected_base_commit.to_owned(),
+        evaluated_commit: evaluated_commit.to_owned(),
+        scm_event_name: scm_event_name.to_owned(),
+        scm_event_ref: scm_event_ref.to_owned(),
+        scm_event_base_ref: scm_event_base_ref.to_owned(),
+        subject_commit: subject_commit.to_owned(),
+    })
+}
+
+fn github_event_materialization_facts_from_environment() -> GitHubEventMaterializationFacts {
+    GitHubEventMaterializationFacts {
+        evaluated_sha: std::env::var("EVENT_EVALUATED_SHA").unwrap_or_default(),
+        pull_request_base_sha: optional_environment("EVENT_PULL_REQUEST_BASE_SHA"),
+        push_before_sha: optional_environment("EVENT_PUSH_BEFORE_SHA"),
+        merge_group_base_sha: optional_environment("EVENT_MERGE_GROUP_BASE_SHA"),
+        push_after_sha: optional_environment("EVENT_PUSH_AFTER_SHA"),
+        merge_group_head_sha: optional_environment("EVENT_MERGE_GROUP_HEAD_SHA"),
+        pull_request_head_sha: optional_environment("EVENT_PULL_REQUEST_HEAD_SHA"),
+        event_name: std::env::var("EVENT_NAME").unwrap_or_default(),
+        event_ref: std::env::var("EVENT_REF").unwrap_or_default(),
+        pull_request_base_ref: optional_environment("EVENT_PULL_REQUEST_BASE_REF"),
+        merge_group_base_ref: optional_environment("EVENT_MERGE_GROUP_BASE_REF"),
+    }
+}
+
+fn optional_environment(name: &str) -> Option<String> {
+    std::env::var(name).ok().filter(|value| !value.is_empty())
+}
+
+fn required_event_fact<'a>(name: &str, value: &'a str) -> Result<&'a str, FreshnessError> {
+    (!value.is_empty())
+        .then_some(value)
+        .ok_or_else(|| FreshnessError::new(format!("materialize generated faces: {name} is empty")))
+}
+
+fn required_optional_event_fact<'a>(
+    name: &str,
+    value: Option<&'a str>,
+) -> Result<&'a str, FreshnessError> {
+    value
+        .filter(|value| !value.is_empty())
+        .ok_or_else(|| FreshnessError::new(format!("materialize generated faces: {name} is empty")))
+}
+
+fn effective_retirement_materialization(
+    _repo_root: &Path,
+    explicit: Option<&RetirementMaterializeArgs>,
+) -> Option<RetirementMaterializeArgs> {
+    // The protected base is an admission fact, not a graph heuristic. In particular, HEAD^1 on a
+    // normal multi-commit PR is an earlier candidate commit, not the protected branch. The
+    // producer workflow supplies event-bound, verified OIDs; any caller without that transport
+    // must leave retirement facts absent rather than materializing a misleading dormant receipt.
+    explicit.cloned()
 }
 
 fn materialize_generated_faces_with_tools(
     tools: &MaterializerTools,
     repo_root: &Path,
+    retirement: Option<&RetirementMaterializeArgs>,
+    historical_dev_push: Option<&str>,
 ) -> Result<(), FreshnessError> {
     materialize_move_manifest(tools, repo_root)?;
     let scm_facts = repo_root.join(FACES_DIR).join(SCM_FACTS_FACE);
-    emit_materialized_scm_facts(tools, repo_root, &scm_facts)?;
+    emit_materialized_scm_facts(
+        tools,
+        repo_root,
+        &scm_facts,
+        retirement,
+        historical_dev_push,
+    )?;
     emit_adr_census_parent_receipt(
         &tools.emitter,
         repo_root,
@@ -405,6 +607,16 @@ pub fn parse_materialize_generated_faces_args(
     args: Vec<String>,
 ) -> Result<MaterializeGeneratedFacesArgs, FreshnessError> {
     let mut repo_root = PathBuf::from(".");
+    let mut retirement_control_plane: Option<String> = None;
+    let mut retirement_facts_out: Option<PathBuf> = None;
+    let mut protected_base_commit: Option<String> = None;
+    let mut evaluated_commit: Option<String> = None;
+    let mut scm_event_name: Option<String> = None;
+    let mut scm_event_ref: Option<String> = None;
+    let mut scm_event_base_ref: Option<String> = None;
+    let mut subject_commit: Option<String> = None;
+    let mut github_event = false;
+    let mut historical_merge_base: Option<String> = None;
     let mut iter = args.into_iter();
     while let Some(arg) = iter.next() {
         match arg.as_str() {
@@ -415,6 +627,79 @@ pub fn parse_materialize_generated_faces_args(
                     ));
                 };
                 repo_root = PathBuf::from(value);
+            }
+            "--retirement-control-plane" => {
+                let Some(value) = iter.next() else {
+                    return Err(FreshnessError::new(
+                        "materialize generated faces: --retirement-control-plane requires a repo-relative path",
+                    ));
+                };
+                retirement_control_plane = Some(value);
+            }
+            "--retirement-facts-out" => {
+                let Some(value) = iter.next() else {
+                    return Err(FreshnessError::new(
+                        "materialize generated faces: --retirement-facts-out requires a path",
+                    ));
+                };
+                retirement_facts_out = Some(PathBuf::from(value));
+            }
+            "--protected-base-commit" => {
+                let Some(value) = iter.next().filter(|value| !value.is_empty()) else {
+                    return Err(FreshnessError::new(
+                        "materialize generated faces: --protected-base-commit requires a commit oid",
+                    ));
+                };
+                protected_base_commit = Some(value);
+            }
+            "--evaluated-commit" => {
+                let Some(value) = iter.next().filter(|value| !value.is_empty()) else {
+                    return Err(FreshnessError::new(
+                        "materialize generated faces: --evaluated-commit requires a commit oid",
+                    ));
+                };
+                evaluated_commit = Some(value);
+            }
+            "--scm-event-name" => {
+                let Some(value) = iter.next().filter(|value| !value.is_empty()) else {
+                    return Err(FreshnessError::new(
+                        "materialize generated faces: --scm-event-name requires an event name",
+                    ));
+                };
+                scm_event_name = Some(value);
+            }
+            "--scm-event-ref" => {
+                let Some(value) = iter.next().filter(|value| !value.is_empty()) else {
+                    return Err(FreshnessError::new(
+                        "materialize generated faces: --scm-event-ref requires an event ref",
+                    ));
+                };
+                scm_event_ref = Some(value);
+            }
+            "--scm-event-base-ref" => {
+                let Some(value) = iter.next().filter(|value| !value.is_empty()) else {
+                    return Err(FreshnessError::new(
+                        "materialize generated faces: --scm-event-base-ref requires an event base ref",
+                    ));
+                };
+                scm_event_base_ref = Some(value);
+            }
+            "--subject-commit" => {
+                let Some(value) = iter.next().filter(|value| !value.is_empty()) else {
+                    return Err(FreshnessError::new(
+                        "materialize generated faces: --subject-commit requires a commit oid",
+                    ));
+                };
+                subject_commit = Some(value);
+            }
+            "--github-event" => github_event = true,
+            "--historical-merge-base" => {
+                let Some(value) = iter.next().filter(|value| !value.is_empty()) else {
+                    return Err(FreshnessError::new(
+                        "materialize generated faces: --historical-merge-base requires a commit oid",
+                    ));
+                };
+                historical_merge_base = Some(value);
             }
             "--help" | "-h" => {
                 return Err(FreshnessError::new(materialize_generated_faces_usage()));
@@ -427,11 +712,86 @@ pub fn parse_materialize_generated_faces_args(
             }
         }
     }
-    Ok(MaterializeGeneratedFacesArgs { repo_root })
+    let retirement = match (
+        retirement_control_plane,
+        retirement_facts_out,
+        protected_base_commit,
+        evaluated_commit,
+        scm_event_name,
+        scm_event_ref,
+        scm_event_base_ref,
+        subject_commit,
+    ) {
+        (
+            Some(control_plane_path),
+            Some(facts_out),
+            Some(protected_base_commit),
+            Some(evaluated_commit),
+            Some(scm_event_name),
+            Some(scm_event_ref),
+            Some(scm_event_base_ref),
+            Some(subject_commit),
+        ) => {
+            if control_plane_path != RETIREMENT_CONTROL_PLANE_PATH {
+                return Err(FreshnessError::new(
+                    "materialize generated faces: retirement control-plane path is not canonical",
+                ));
+            }
+            if facts_out.as_path() != Path::new(RETIREMENT_FACTS_PATH) {
+                return Err(FreshnessError::new(
+                    "materialize generated faces: retirement facts output path is not canonical",
+                ));
+            }
+            Some(RetirementMaterializeArgs {
+                control_plane_path,
+                facts_out,
+                protected_base_commit,
+                evaluated_commit,
+                scm_event_name,
+                scm_event_ref,
+                scm_event_base_ref,
+                subject_commit,
+            })
+        }
+        (None, None, None, None, None, None, None, None) => None,
+        _ => {
+            return Err(FreshnessError::new(
+                "materialize generated faces: --retirement-control-plane, \
+                 --retirement-facts-out, --protected-base-commit, --evaluated-commit, \
+                 --scm-event-name, --scm-event-ref, --scm-event-base-ref, and \
+                 --subject-commit are all-or-none",
+            ));
+        }
+    };
+    if usize::from(retirement.is_some())
+        + usize::from(github_event)
+        + usize::from(historical_merge_base.is_some())
+        > 1
+    {
+        return Err(FreshnessError::new(
+            "materialize generated faces: explicit retirement transport, --github-event, and --historical-merge-base are mutually exclusive",
+        ));
+    }
+    Ok(MaterializeGeneratedFacesArgs {
+        repo_root,
+        retirement_mode: if let Some(retirement) = retirement {
+            RetirementMaterializationMode::ExplicitTuple(retirement)
+        } else if github_event {
+            RetirementMaterializationMode::GitHubActionsEvent
+        } else if let Some(expected_head) = historical_merge_base {
+            RetirementMaterializationMode::HistoricalDevPush { expected_head }
+        } else {
+            RetirementMaterializationMode::None
+        },
+    })
 }
 
 pub fn materialize_generated_faces_usage() -> &'static str {
-    "usage: oya-cloud-ci-materialize-generated-faces [--repo-root <path>]"
+    "usage: oya-cloud-ci-materialize-generated-faces [--repo-root <path>] \
+     [--github-event | --historical-merge-base <oid> | \
+     [--retirement-control-plane <repo-relative-path> --retirement-facts-out <path> \
+     --protected-base-commit <oid> --evaluated-commit <oid> --scm-event-name <name> \
+     --scm-event-ref <ref> --scm-event-base-ref <ref> --subject-commit <oid>]]"
 }
 
 pub fn parse_face_settle_args(args: Vec<String>) -> Result<FaceSettleArgs, FreshnessError> {
@@ -1576,6 +1936,8 @@ fn emit_materialized_scm_facts(
     tools: &MaterializerTools,
     repo_root: &Path,
     scm_facts: &Path,
+    retirement: Option<&RetirementMaterializeArgs>,
+    historical_dev_push: Option<&str>,
 ) -> Result<(), FreshnessError> {
     // Phase 1: publish the merge-base sha (the emitter owns it — the single git boundary — and the
     // materializer materializes EXACTLY that source tree, never recomputing it). This same call
@@ -1584,17 +1946,23 @@ fn emit_materialized_scm_facts(
     let merge_base_cleanup = TempFileCleanup {
         path: merge_base_file.clone(),
     };
+    let mut candidate_emission = Command::new(&tools.emitter);
+    candidate_emission
+        .args(["--repo-root"])
+        .arg(repo_root)
+        .args(["--out"])
+        .arg(scm_facts)
+        .arg("--merge-base-baseline")
+        .args(["--merge-base-out"])
+        .arg(&merge_base_file);
+    append_retirement_materialization_args(&mut candidate_emission, retirement);
+    if let Some(expected_head) = historical_dev_push {
+        candidate_emission.args(["--historical-dev-push", expected_head]);
+    }
+    candidate_emission.current_dir(repo_root);
     run_status(
-        Command::new(&tools.emitter)
-            .args(["--repo-root"])
-            .arg(repo_root)
-            .args(["--out"])
-            .arg(scm_facts)
-            .arg("--merge-base-baseline")
-            .args(["--merge-base-out"])
-            .arg(&merge_base_file)
-            .current_dir(repo_root),
-        "publish merge-base for frozen-baseline regeneration",
+        &mut candidate_emission,
+        "publish merge-base and candidate retirement facts for frozen-baseline regeneration",
     )?;
     let merge_base = read_merge_base(&merge_base_file)?;
 
@@ -1653,6 +2021,24 @@ fn emit_materialized_scm_facts(
     drop(worktree_cleanup);
     drop(merge_base_cleanup);
     Ok(())
+}
+
+fn append_retirement_materialization_args(
+    command: &mut Command,
+    retirement: Option<&RetirementMaterializeArgs>,
+) {
+    if let Some(retirement) = retirement {
+        command
+            .args(["--retirement-control-plane", &retirement.control_plane_path])
+            .args(["--retirement-facts-out"])
+            .arg(&retirement.facts_out)
+            .args(["--protected-base-commit", &retirement.protected_base_commit])
+            .args(["--evaluated-commit", &retirement.evaluated_commit])
+            .args(["--scm-event-name", &retirement.scm_event_name])
+            .args(["--scm-event-ref", &retirement.scm_event_ref])
+            .args(["--scm-event-base-ref", &retirement.scm_event_base_ref])
+            .args(["--subject-commit", &retirement.subject_commit]);
+    }
 }
 
 /// Validate + read the merge-base sha the emitter published.
@@ -2315,6 +2701,7 @@ mod materialize_generated_faces_tests {
             .expect("empty args should use repository root default");
 
         assert_eq!(parsed.repo_root, PathBuf::from("."));
+        assert_eq!(parsed.retirement_mode, RetirementMaterializationMode::None);
     }
 
     #[test]
@@ -2326,6 +2713,374 @@ mod materialize_generated_faces_tests {
         .expect("parse explicit repository root");
 
         assert_eq!(parsed.repo_root, PathBuf::from("/tmp/oyatie"));
+        assert_eq!(parsed.retirement_mode, RetirementMaterializationMode::None);
+    }
+
+    #[test]
+    fn github_event_materialization_selects_pr_tuple_and_rejects_missing_protected_base() {
+        let facts = GitHubEventMaterializationFacts {
+            evaluated_sha: "2222222222222222222222222222222222222222".to_owned(),
+            pull_request_base_sha: Some("1111111111111111111111111111111111111111".to_owned()),
+            push_before_sha: None,
+            merge_group_base_sha: None,
+            push_after_sha: None,
+            merge_group_head_sha: None,
+            pull_request_head_sha: Some("3333333333333333333333333333333333333333".to_owned()),
+            event_name: "pull_request".to_owned(),
+            event_ref: "refs/pull/123/merge".to_owned(),
+            pull_request_base_ref: Some("dev".to_owned()),
+            merge_group_base_ref: None,
+        };
+
+        assert_eq!(
+            retirement_materialization_from_github_event_facts(&facts)
+                .expect("PR event tuple must be selected"),
+            RetirementMaterializeArgs {
+                control_plane_path: RETIREMENT_CONTROL_PLANE_PATH.to_owned(),
+                facts_out: PathBuf::from(RETIREMENT_FACTS_PATH),
+                protected_base_commit: "1111111111111111111111111111111111111111".to_owned(),
+                evaluated_commit: "2222222222222222222222222222222222222222".to_owned(),
+                scm_event_name: "pull_request".to_owned(),
+                scm_event_ref: "refs/pull/123/merge".to_owned(),
+                scm_event_base_ref: "dev".to_owned(),
+                subject_commit: "3333333333333333333333333333333333333333".to_owned(),
+            }
+        );
+
+        let missing_authority = GitHubEventMaterializationFacts {
+            pull_request_base_sha: None,
+            push_before_sha: None,
+            merge_group_base_sha: None,
+            ..facts.clone()
+        };
+        let error = retirement_materialization_from_github_event_facts(&missing_authority)
+            .expect_err("event without a protected base must fail closed");
+        assert!(error.to_string().contains("EVENT_PULL_REQUEST_BASE_SHA"));
+
+        let mismatched_push = GitHubEventMaterializationFacts {
+            pull_request_base_sha: None,
+            push_before_sha: Some("1111111111111111111111111111111111111111".to_owned()),
+            push_after_sha: Some("4444444444444444444444444444444444444444".to_owned()),
+            pull_request_head_sha: None,
+            event_name: "push".to_owned(),
+            event_ref: "refs/heads/dev".to_owned(),
+            pull_request_base_ref: None,
+            merge_group_base_ref: None,
+            ..facts
+        };
+        let error = retirement_materialization_from_github_event_facts(&mismatched_push)
+            .expect_err("push after must bind the evaluated SHA");
+        assert!(error.to_string().contains("EVENT_PUSH_AFTER_SHA"));
+    }
+
+    #[test]
+    fn github_event_materialization_selects_the_event_scoped_provider_tuple() {
+        let pr = GitHubEventMaterializationFacts {
+            evaluated_sha: "2222222222222222222222222222222222222222".to_owned(),
+            pull_request_base_sha: Some("1111111111111111111111111111111111111111".to_owned()),
+            push_before_sha: None,
+            merge_group_base_sha: None,
+            push_after_sha: None,
+            merge_group_head_sha: None,
+            pull_request_head_sha: Some("3333333333333333333333333333333333333333".to_owned()),
+            event_name: "pull_request".to_owned(),
+            event_ref: "refs/pull/123/merge".to_owned(),
+            pull_request_base_ref: Some("dev".to_owned()),
+            merge_group_base_ref: None,
+        };
+
+        for missing in [
+            GitHubEventMaterializationFacts {
+                pull_request_base_sha: None,
+                ..pr.clone()
+            },
+            GitHubEventMaterializationFacts {
+                pull_request_head_sha: None,
+                ..pr.clone()
+            },
+            GitHubEventMaterializationFacts {
+                pull_request_base_ref: None,
+                ..pr.clone()
+            },
+        ] {
+            retirement_materialization_from_github_event_facts(&missing)
+                .expect_err("each required PR authority fact must fail closed when absent");
+        }
+
+        let pr_synchronize_payload = GitHubEventMaterializationFacts {
+            push_before_sha: Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned()),
+            push_after_sha: Some("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb".to_owned()),
+            ..pr.clone()
+        };
+        assert_eq!(
+            retirement_materialization_from_github_event_facts(&pr_synchronize_payload)
+                .expect("PR synchronize payload must ignore its top-level before/after fields"),
+            retirement_materialization_from_github_event_facts(&pr)
+                .expect("complete PR tuple must be selected")
+        );
+
+        let push = GitHubEventMaterializationFacts {
+            evaluated_sha: "2222222222222222222222222222222222222222".to_owned(),
+            pull_request_base_sha: None,
+            push_before_sha: Some("1111111111111111111111111111111111111111".to_owned()),
+            merge_group_base_sha: None,
+            push_after_sha: Some("2222222222222222222222222222222222222222".to_owned()),
+            merge_group_head_sha: None,
+            pull_request_head_sha: None,
+            event_name: "push".to_owned(),
+            event_ref: "refs/heads/dev".to_owned(),
+            pull_request_base_ref: None,
+            merge_group_base_ref: None,
+        };
+        let push_tuple = retirement_materialization_from_github_event_facts(&push)
+            .expect("complete push tuple must be selected");
+        assert_eq!(
+            push_tuple.protected_base_commit,
+            "1111111111111111111111111111111111111111"
+        );
+        assert_eq!(push_tuple.subject_commit, push.evaluated_sha);
+
+        let push_with_irrelevant_pr_facts = GitHubEventMaterializationFacts {
+            pull_request_base_sha: pr.pull_request_base_sha.clone(),
+            pull_request_head_sha: pr.pull_request_head_sha.clone(),
+            pull_request_base_ref: pr.pull_request_base_ref.clone(),
+            ..push.clone()
+        };
+        assert_eq!(
+            retirement_materialization_from_github_event_facts(&push_with_irrelevant_pr_facts)
+                .expect("push must select only its provider tuple"),
+            retirement_materialization_from_github_event_facts(&push)
+                .expect("complete push tuple must be selected")
+        );
+
+        let merge_group = GitHubEventMaterializationFacts {
+            evaluated_sha: "2222222222222222222222222222222222222222".to_owned(),
+            pull_request_base_sha: None,
+            push_before_sha: None,
+            merge_group_base_sha: Some("1111111111111111111111111111111111111111".to_owned()),
+            push_after_sha: None,
+            merge_group_head_sha: Some("2222222222222222222222222222222222222222".to_owned()),
+            pull_request_head_sha: None,
+            event_name: "merge_group".to_owned(),
+            event_ref: "refs/heads/gh-readonly-queue/dev/pr-123-abc".to_owned(),
+            pull_request_base_ref: None,
+            merge_group_base_ref: Some("refs/heads/dev".to_owned()),
+        };
+        let merge_group_tuple = retirement_materialization_from_github_event_facts(&merge_group)
+            .expect("complete merge-group tuple must be selected");
+        assert_eq!(
+            merge_group_tuple.protected_base_commit,
+            "1111111111111111111111111111111111111111"
+        );
+        assert_eq!(merge_group_tuple.scm_event_base_ref, "refs/heads/dev");
+        assert_eq!(merge_group_tuple.subject_commit, merge_group.evaluated_sha);
+
+        for invalid in [
+            GitHubEventMaterializationFacts {
+                merge_group_base_sha: None,
+                ..merge_group.clone()
+            },
+            GitHubEventMaterializationFacts {
+                merge_group_head_sha: None,
+                ..merge_group.clone()
+            },
+            GitHubEventMaterializationFacts {
+                merge_group_base_ref: None,
+                ..merge_group.clone()
+            },
+            GitHubEventMaterializationFacts {
+                merge_group_head_sha: Some("4444444444444444444444444444444444444444".to_owned()),
+                ..merge_group.clone()
+            },
+            GitHubEventMaterializationFacts {
+                event_name: "workflow_dispatch".to_owned(),
+                ..merge_group.clone()
+            },
+            GitHubEventMaterializationFacts {
+                event_name: "unknown".to_owned(),
+                ..merge_group.clone()
+            },
+        ] {
+            retirement_materialization_from_github_event_facts(&invalid).expect_err(
+                "missing, mismatched, and unsupported provider tuples must fail closed",
+            );
+        }
+
+        let merge_group_with_irrelevant_push_facts = GitHubEventMaterializationFacts {
+            push_before_sha: Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned()),
+            push_after_sha: Some("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb".to_owned()),
+            ..merge_group.clone()
+        };
+        assert_eq!(
+            retirement_materialization_from_github_event_facts(
+                &merge_group_with_irrelevant_push_facts
+            )
+            .expect("merge group must select only its provider tuple"),
+            retirement_materialization_from_github_event_facts(&merge_group)
+                .expect("complete merge-group tuple must be selected")
+        );
+    }
+
+    #[test]
+    fn parse_materialize_generated_faces_args_rejects_mixed_retirement_modes() {
+        let error = parse_materialize_generated_faces_args(vec![
+            "--github-event".to_owned(),
+            "--historical-merge-base".to_owned(),
+            "1111111111111111111111111111111111111111".to_owned(),
+        ])
+        .expect_err("mixed retirement transports must fail closed");
+        assert!(error.to_string().contains("mutually exclusive"));
+    }
+
+    #[test]
+    fn parse_materialize_generated_faces_args_accepts_exact_retirement_transport() {
+        let parsed = parse_materialize_generated_faces_args(vec![
+            "--retirement-control-plane".to_owned(),
+            "registry/history-only-retirement/control-plane.json".to_owned(),
+            "--retirement-facts-out".to_owned(),
+            "ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json".to_owned(),
+            "--protected-base-commit".to_owned(),
+            "1111111111111111111111111111111111111111".to_owned(),
+            "--evaluated-commit".to_owned(),
+            "2222222222222222222222222222222222222222".to_owned(),
+            "--scm-event-name".to_owned(),
+            "pull_request".to_owned(),
+            "--scm-event-ref".to_owned(),
+            "refs/pull/123/merge".to_owned(),
+            "--scm-event-base-ref".to_owned(),
+            "dev".to_owned(),
+            "--subject-commit".to_owned(),
+            "3333333333333333333333333333333333333333".to_owned(),
+        ])
+        .expect("parse exact retirement transport");
+
+        assert_eq!(
+            parsed.retirement_mode,
+            RetirementMaterializationMode::ExplicitTuple(RetirementMaterializeArgs {
+                control_plane_path: "registry/history-only-retirement/control-plane.json"
+                    .to_owned(),
+                facts_out: PathBuf::from(
+                    "ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json",
+                ),
+                protected_base_commit: "1111111111111111111111111111111111111111".to_owned(),
+                evaluated_commit: "2222222222222222222222222222222222222222".to_owned(),
+                scm_event_name: "pull_request".to_owned(),
+                scm_event_ref: "refs/pull/123/merge".to_owned(),
+                scm_event_base_ref: "dev".to_owned(),
+                subject_commit: "3333333333333333333333333333333333333333".to_owned(),
+            })
+        );
+    }
+
+    #[test]
+    fn parse_materialize_generated_faces_args_rejects_partial_retirement_transport() {
+        let error = parse_materialize_generated_faces_args(vec![
+            "--retirement-control-plane".to_owned(),
+            "registry/history-only-retirement/control-plane.json".to_owned(),
+        ])
+        .expect_err("partial retirement transport must fail closed");
+
+        assert!(error.to_string().contains("all-or-none"));
+    }
+
+    #[test]
+    fn parse_materialize_generated_faces_args_requires_event_base_ref() {
+        let error = parse_materialize_generated_faces_args(vec![
+            "--retirement-control-plane".to_owned(),
+            "registry/history-only-retirement/control-plane.json".to_owned(),
+            "--retirement-facts-out".to_owned(),
+            "ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json".to_owned(),
+            "--protected-base-commit".to_owned(),
+            "1111111111111111111111111111111111111111".to_owned(),
+            "--evaluated-commit".to_owned(),
+            "2222222222222222222222222222222222222222".to_owned(),
+            "--scm-event-name".to_owned(),
+            "pull_request".to_owned(),
+            "--scm-event-ref".to_owned(),
+            "refs/pull/123/merge".to_owned(),
+            "--subject-commit".to_owned(),
+            "3333333333333333333333333333333333333333".to_owned(),
+        ])
+        .expect_err("retirement transport without the event base ref must fail closed");
+
+        assert!(error.to_string().contains("all-or-none"));
+    }
+
+    #[test]
+    fn parse_materialize_generated_faces_args_rejects_empty_event_identity_values() {
+        for flag in [
+            "--protected-base-commit",
+            "--evaluated-commit",
+            "--scm-event-name",
+            "--scm-event-ref",
+            "--scm-event-base-ref",
+            "--subject-commit",
+        ] {
+            let error =
+                parse_materialize_generated_faces_args(vec![flag.to_owned(), String::new()])
+                    .expect_err("empty event identity argument must fail closed");
+            assert!(error.to_string().contains("requires"));
+        }
+    }
+
+    #[test]
+    fn retirement_transport_is_appended_only_when_explicit() {
+        let retirement = RetirementMaterializeArgs {
+            control_plane_path: "registry/history-only-retirement/control-plane.json".to_owned(),
+            facts_out: PathBuf::from(
+                "ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json",
+            ),
+            protected_base_commit: "1111111111111111111111111111111111111111".to_owned(),
+            evaluated_commit: "2222222222222222222222222222222222222222".to_owned(),
+            scm_event_name: "pull_request".to_owned(),
+            scm_event_ref: "refs/pull/123/merge".to_owned(),
+            scm_event_base_ref: "dev".to_owned(),
+            subject_commit: "3333333333333333333333333333333333333333".to_owned(),
+        };
+        let mut candidate = Command::new("emitter");
+        append_retirement_materialization_args(&mut candidate, Some(&retirement));
+        let candidate_args = candidate
+            .get_args()
+            .map(|arg| arg.to_string_lossy().into_owned())
+            .collect::<Vec<_>>();
+        assert!(candidate_args.contains(&"--retirement-control-plane".to_owned()));
+        assert!(candidate_args.contains(&retirement.evaluated_commit));
+        assert_eq!(
+            candidate_args
+                .iter()
+                .filter(|arg| arg.as_str() == "--scm-event-ref")
+                .count(),
+            1,
+            "the event ref must be forwarded once"
+        );
+        assert!(candidate_args.contains(&retirement.scm_event_ref));
+        assert_eq!(
+            candidate_args
+                .iter()
+                .filter(|arg| arg.as_str() == "--scm-event-base-ref")
+                .count(),
+            1,
+            "the event base ref must be forwarded once"
+        );
+        assert!(candidate_args.contains(&retirement.scm_event_base_ref));
+        assert!(candidate_args.contains(&retirement.subject_commit));
+
+        let mut frozen = Command::new("emitter");
+        append_retirement_materialization_args(&mut frozen, None);
+        assert_eq!(frozen.get_args().count(), 0);
+    }
+
+    #[test]
+    fn multi_commit_local_materialization_does_not_infer_head_parent_as_protected_base() {
+        let root = temp_root("retirement-auto-materialization");
+        std::fs::create_dir_all(root.join("registry/history-only-retirement"))
+            .expect("create retirement control-plane directory");
+        std::fs::write(root.join(RETIREMENT_CONTROL_PLANE_PATH), "{}")
+            .expect("write control-plane marker");
+
+        // A control-plane file may be present in a normal multi-commit contributor checkout.
+        // That topology has no event-bound protected base, and must never turn HEAD^1 into one.
+        assert_eq!(effective_retirement_materialization(&root, None), None);
     }
 
     #[test]
@@ -2781,7 +3536,7 @@ printf 'generated dashboard\n' > docs/architecture/product-graph.html
         // publishes its sha as the merge-base).
         init_git_repo(&root);
 
-        materialize_generated_faces_with_tools(&tools, &root)
+        materialize_generated_faces_with_tools(&tools, &root, None, None)
             .expect("materialize faces and architecture product graph");
 
         let calls = std::fs::read_to_string(&log).expect("read call log");

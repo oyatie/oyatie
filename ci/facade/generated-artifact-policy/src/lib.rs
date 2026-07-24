@@ -145,10 +145,11 @@ const GENERATOR_OUTPUT_MODES: [&str; 3] = [
     "controller-materialized",
 ];
 
-const GENERATOR_INPUT_CONTRACTS: [&str; 4] = [
+const GENERATOR_INPUT_CONTRACTS: [&str; 5] = [
     "repo-root",
     "declared-source-inputs",
     "scm-facts-snapshot",
+    "scm-event-identity",
     "full-depth-scm",
 ];
 
@@ -2834,6 +2835,28 @@ mod tests {
                     || f.code == "generated_artifact_declared_path_not_tracked"
             }),
             "not-tracked-in-git boundary snapshot must be green; findings: {findings:#?}"
+        );
+        assert_eq!(evaluate(&manifest, &scm_facts).verdict, Verdict::Green);
+    }
+
+    #[test]
+    fn scm_event_identity_is_an_allowed_generator_input_contract() {
+        let mut scm_artifact = scm_facts_boundary("out/scm-facts.generated.json");
+        scm_artifact["materialization_mode"] = json!("not-tracked-in-git");
+        scm_artifact["merge_policy"] = json!("never-manual-merge-regenerate-from-source-tree");
+        scm_artifact["generator"]["input_contract"] =
+            json!(["repo-root", "full-depth-scm", "scm-event-identity"]);
+        let manifest = manifest(vec![scm_artifact]);
+        let scm_facts = scm(&[]);
+
+        let findings = evaluate_keyed(&manifest, &scm_facts);
+
+        assert!(
+            !findings.iter().any(|finding| {
+                finding.code == "generated_artifact_manifest_generator_input_contract_unknown"
+                    && finding.key == "cloud-ci-scm-facts-boundary-snapshot.scm-event-identity"
+            }),
+            "provider-event identity is a declared SCM generator input contract: {findings:#?}"
         );
         assert_eq!(evaluate(&manifest, &scm_facts).verdict, Verdict::Green);
     }

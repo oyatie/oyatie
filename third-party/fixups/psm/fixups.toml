@@ -29,10 +29,10 @@ compiler_flags = ["-xassembler-with-cpp"]
 # (_rust_psm_stack_pointer); ELF -> undecorated (rust_psm_stack_pointer). On the aarch64-linux
 # gate the darwin value emits the Mach-O symbol while linux-ELF rustc references the undecorated
 # one -> `ld.lld: undefined symbol: rust_psm_stack_pointer` at the rust_binary final link (#96/#78).
-# The generated third-party/BUCK psm-0.1-psm_asm is HAND-PATCHED to a per-OS select
-# (prelude//os:linux -> -DCFG_TARGET_OS_linux; DEFAULT -> -DCFG_TARGET_OS_darwin). PROVEN green
-# on aarch64-linux. `reindeer buckify` WILL wipe that select -> re-apply post-buckify (same
-# durable-DEP-propagation class as openssl #91 / aws-lc-sys #93).
+# The canonical regeneration wrapper rewrites this exact baseline to a fail-closed
+# per-OS select (prelude//os:linux -> -DCFG_TARGET_OS_linux; DEFAULT ->
+# -DCFG_TARGET_OS_darwin). It validates the complete generated rule and refuses
+# partial or unexpected shapes. Proven green on aarch64-linux.
 preprocessor_flags = [
     "-DCFG_TARGET_OS_darwin",
     "-DCFG_TARGET_ARCH_aarch64",

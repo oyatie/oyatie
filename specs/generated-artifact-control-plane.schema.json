@@ -391,6 +391,7 @@
               "repo-root",
               "declared-source-inputs",
               "scm-facts-snapshot",
+              "scm-event-identity",
               "full-depth-scm"
             ]
           }
