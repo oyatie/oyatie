@@ -3,6 +3,7 @@
 //! These tests deliberately stay out of the small unit target: each crosses
 //! a real filesystem or Git boundary that Buck2 must schedule independently.
 
+use std::io::Read;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -16,7 +17,7 @@ use ci_scm_facts_snapshot::{
     output_path_resolver,
     retirement::{
         GENERATED_FACTS_PATH, RetirementMaterializationContext, emit_history_only_retirement_facts,
-        historical_dev_push_context, write_canonical_retirement_facts,
+        historical_dev_push_context, visit_git_blobs, write_canonical_retirement_facts,
     },
 };
 use serde_json::json;
@@ -118,6 +119,128 @@ fn configure_ignored_canonical_facts(root: &Path) {
         format!("/{GENERATED_FACTS_PATH}\n"),
     )
     .expect("ignore canonical retirement facts output");
+}
+
+fn assert_git_blob_batch_recovers(root: &Path, blob_oid: &str, expected: &[u8]) {
+    let mut visited = Vec::new();
+    visit_git_blobs(root, &[blob_oid.to_owned()], &mut |oid, size, reader| {
+        let mut bytes = Vec::new();
+        reader
+            .read_to_end(&mut bytes)
+            .map_err(|error| format!("read recovery blob: {error}"))?;
+        visited.push((oid.to_owned(), size, bytes));
+        Ok(())
+    })
+    .expect("a valid batch call must succeed after an error");
+    assert_eq!(
+        visited,
+        vec![(
+            blob_oid.to_owned(),
+            expected.len() as u64,
+            expected.to_vec()
+        )]
+    );
+}
+
+#[test]
+fn git_blob_batch_streams_requested_objects_with_exact_bytes() {
+    let root = temp_git_repo("blob-batch");
+    std::fs::write(root.join("first"), vec![b'x'; 128 * 1024]).expect("write large first blob");
+    std::fs::write(root.join("second"), b"second body\0").expect("write second blob");
+    commit_all(&root, "blob batch fixture");
+    let first_oid = git_stdout(&root, ["rev-parse", "HEAD:first"]);
+    let second_oid = git_stdout(&root, ["rev-parse", "HEAD:second"]);
+
+    let mut visited = Vec::new();
+    visit_git_blobs(
+        &root,
+        &[first_oid.clone(), second_oid.clone()],
+        &mut |oid, size, reader| {
+            if oid == first_oid {
+                visited.push((oid.to_owned(), size, Vec::new()));
+                return Ok(());
+            }
+            let mut bytes = Vec::new();
+            reader
+                .read_to_end(&mut bytes)
+                .map_err(|error| format!("read streamed blob: {error}"))?;
+            visited.push((oid.to_owned(), size, bytes));
+            Ok(())
+        },
+    )
+    .expect("stream exact blobs through the production Git batch boundary");
+
+    assert_eq!(
+        visited,
+        vec![
+            (first_oid, (128 * 1024) as u64, Vec::new()),
+            (
+                second_oid,
+                b"second body\0".len() as u64,
+                b"second body\0".to_vec()
+            ),
+        ]
+    );
+    std::fs::remove_dir_all(root).expect("remove blob batch fixture");
+}
+
+#[test]
+fn git_blob_batch_fails_closed_and_recovers_after_each_error() {
+    let root = temp_git_repo("blob-batch-errors");
+    std::fs::write(root.join("blob"), b"exact body").expect("write blob");
+    std::fs::create_dir(root.join("tree")).expect("create tree");
+    std::fs::write(root.join("tree/child"), b"child").expect("write tree child");
+    commit_all(&root, "blob batch errors fixture");
+    let blob_oid = git_stdout(&root, ["rev-parse", "HEAD:blob"]);
+    let tree_oid = git_stdout(&root, ["rev-parse", "HEAD:tree"]);
+
+    let mut calls = 0;
+    visit_git_blobs(&root, &[], &mut |_, _, _| {
+        calls += 1;
+        Ok(())
+    })
+    .expect("empty batch is a no-op");
+    assert_eq!(calls, 0);
+
+    let invalid = visit_git_blobs(&root, &["not-an-oid".to_owned()], &mut |_, _, _| Ok(()))
+        .expect_err("invalid OID must fail before transport");
+    assert!(
+        invalid.contains("lowercase SHA-1"),
+        "unexpected error: {invalid}"
+    );
+    assert_git_blob_batch_recovers(&root, &blob_oid, b"exact body");
+
+    let missing = visit_git_blobs(
+        &root,
+        &["0000000000000000000000000000000000000000".to_owned()],
+        &mut |_, _, _| Ok(()),
+    )
+    .expect_err("missing object header must fail");
+    assert!(
+        missing.contains("unexpected header"),
+        "unexpected error: {missing}"
+    );
+    assert_git_blob_batch_recovers(&root, &blob_oid, b"exact body");
+
+    let non_blob = visit_git_blobs(&root, &[tree_oid], &mut |_, _, _| Ok(()))
+        .expect_err("tree object header must fail");
+    assert!(
+        non_blob.contains("unexpected header"),
+        "unexpected error: {non_blob}"
+    );
+    assert_git_blob_batch_recovers(&root, &blob_oid, b"exact body");
+
+    let visitor = visit_git_blobs(&root, &[blob_oid.clone()], &mut |_, _, _| {
+        Err("visitor rejected body".to_owned())
+    })
+    .expect_err("visitor error must propagate");
+    assert!(
+        visitor.contains("visitor rejected body"),
+        "unexpected error: {visitor}"
+    );
+    assert_git_blob_batch_recovers(&root, &blob_oid, b"exact body");
+
+    std::fs::remove_dir_all(root).expect("remove blob batch error fixture");
 }
 
 #[test]

@@ -6,8 +6,9 @@
 //! retired body into the generated face.
 
 use std::collections::{BTreeMap, BTreeSet};
+use std::io::{Cursor, Read, Write};
 use std::path::{Path, PathBuf};
-use std::process::Command;
+use std::process::{Command, Stdio};
 use std::sync::atomic::{AtomicU64, Ordering};
 
 use ci_artifact_inventory_registry::to_canonical_json;
@@ -30,6 +31,7 @@ const CONTROL_PLANE_SCHEMA: &str =
 const CONTROL_PLANE_NAME: &str = "history-only-retirement-control-plane";
 const RECEIPT_ROOT: &str = "evidence/history-only-retirement";
 const PROTECTED_BASE_REF: &str = "origin/dev";
+const CAT_FILE_HEADER_LIMIT: usize = 128;
 static NEXT_ATOMIC_WRITE_ID: AtomicU64 = AtomicU64::new(0);
 
 const MASTERPLAN_EVIDENCE_SET_ID: &str = "masterplan-retired-surfaces-history-only-retirement-v1";
@@ -130,6 +132,24 @@ pub(crate) trait RetirementObjectSource {
     fn is_ancestor(&self, ancestor: &str, descendant: &str) -> Result<bool, String>;
     fn tree_entries(&self, commit_oid: &str) -> Result<Vec<TreeEntry>, String>;
     fn read_blob(&self, blob_oid: &str) -> Result<Vec<u8>, String>;
+    /// Visit the requested blobs without requiring callers to retain their bodies.
+    ///
+    /// Sources with an efficient streaming object protocol should override this. The
+    /// default keeps test doubles and non-Git sources correct while preserving the
+    /// bounded-memory contract for callers.
+    fn visit_blobs(
+        &self,
+        blob_oids: &[String],
+        visit: &mut dyn FnMut(&str, u64, &mut dyn Read) -> Result<(), String>,
+    ) -> Result<(), String> {
+        for blob_oid in blob_oids {
+            let bytes = self.read_blob(blob_oid)?;
+            let size = bytes.len() as u64;
+            let mut reader = Cursor::new(bytes);
+            visit(blob_oid, size, &mut reader)?;
+        }
+        Ok(())
+    }
     fn commits_touching_path(&self, commit_oid: &str, path: &str) -> Result<Vec<String>, String>;
 }
 
@@ -158,6 +178,138 @@ impl GitCliRetirementObjectSource {
         }
         Ok(output.stdout)
     }
+}
+
+/// Stream exact Git blob bodies through one `git cat-file --batch` process.
+///
+/// Public solely so the package's dedicated integration target can exercise
+/// this real Git boundary through the production implementation. It is not an
+/// admission-authority API.
+pub fn visit_git_blobs(
+    repo_root: &Path,
+    blob_oids: &[String],
+    visit: &mut dyn FnMut(&str, u64, &mut dyn Read) -> Result<(), String>,
+) -> Result<(), String> {
+    for blob_oid in blob_oids {
+        validate_oid(blob_oid, "retirement blob")?;
+    }
+    if blob_oids.is_empty() {
+        return Ok(());
+    }
+
+    let mut child = Command::new("git")
+        .arg("-C")
+        .arg(repo_root)
+        .args(["cat-file", "--batch"])
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .map_err(|error| format!("stream retirement blobs: {error}"))?;
+    let stderr = child
+        .stderr
+        .take()
+        .map(|mut stderr| {
+            std::thread::spawn(move || {
+                let mut bytes = Vec::new();
+                stderr.read_to_end(&mut bytes).map(|_| bytes)
+            })
+        })
+        .ok_or_else(|| "stream retirement blobs: stderr unavailable".to_owned())?;
+    let mut result = (|| {
+        let mut stdin = child
+            .stdin
+            .take()
+            .ok_or_else(|| "stream retirement blobs: stdin unavailable".to_owned())?;
+        let mut stdout = child
+            .stdout
+            .take()
+            .ok_or_else(|| "stream retirement blobs: stdout unavailable".to_owned())?;
+        for blob_oid in blob_oids {
+            stdin
+                .write_all(blob_oid.as_bytes())
+                .and_then(|()| stdin.write_all(b"\n"))
+                .and_then(|()| stdin.flush())
+                .map_err(|error| format!("stream retirement blobs: write {blob_oid}: {error}"))?;
+
+            let mut header = Vec::new();
+            loop {
+                let mut byte = [0_u8; 1];
+                stdout.read_exact(&mut byte).map_err(|error| {
+                    format!("stream retirement blobs: read header for {blob_oid}: {error}")
+                })?;
+                if byte == [b'\n'] {
+                    break;
+                }
+                if header.len() == CAT_FILE_HEADER_LIMIT {
+                    return Err(format!(
+                        "stream retirement blobs: header exceeds {CAT_FILE_HEADER_LIMIT} bytes for {blob_oid}"
+                    ));
+                }
+                header.push(byte[0]);
+            }
+            let header = std::str::from_utf8(&header).map_err(|error| {
+                format!("stream retirement blobs: non-UTF-8 header for {blob_oid}: {error}")
+            })?;
+            let expected_prefix = format!("{blob_oid} blob ");
+            let size = header
+                .strip_prefix(&expected_prefix)
+                .ok_or_else(|| {
+                    format!("stream retirement blobs: unexpected header for {blob_oid}: {header}")
+                })?
+                .parse::<u64>()
+                .map_err(|error| {
+                    format!("stream retirement blobs: invalid size for {blob_oid}: {error}")
+                })?;
+            let mut body = (&mut stdout).take(size);
+            visit(blob_oid, size, &mut body)?;
+            std::io::copy(&mut body, &mut std::io::sink()).map_err(|error| {
+                format!("stream retirement blobs: drain body for {blob_oid}: {error}")
+            })?;
+            if body.limit() != 0 {
+                return Err(format!(
+                    "stream retirement blobs: body ended early for {blob_oid} after {} of {size} bytes",
+                    size - body.limit()
+                ));
+            }
+            let mut terminator = [0_u8; 1];
+            stdout.read_exact(&mut terminator).map_err(|error| {
+                format!("stream retirement blobs: read terminator for {blob_oid}: {error}")
+            })?;
+            if terminator != [b'\n'] {
+                return Err(format!(
+                    "stream retirement blobs: missing body terminator for {blob_oid}"
+                ));
+            }
+        }
+        drop(stdin);
+        let status = child
+            .wait()
+            .map_err(|error| format!("stream retirement blobs: wait: {error}"))?;
+        if !status.success() {
+            return Err(format!(
+                "stream retirement blobs: git exited {:?}",
+                status.code(),
+            ));
+        }
+        Ok(())
+    })();
+    if result.is_err() {
+        let _ = child.kill();
+        let _ = child.wait();
+    }
+    let stderr = stderr
+        .join()
+        .map_err(|_| "stream retirement blobs: stderr reader panicked".to_owned())?
+        .map_err(|error| format!("stream retirement blobs: read stderr: {error}"))?;
+    if let Err(error) = &mut result {
+        let diagnostics = String::from_utf8_lossy(&stderr).trim().to_owned();
+        if !diagnostics.is_empty() {
+            error.push_str(": ");
+            error.push_str(&diagnostics);
+        }
+    }
+    result
 }
 
 impl RetirementObjectSource for GitCliRetirementObjectSource {
@@ -236,6 +388,14 @@ impl RetirementObjectSource for GitCliRetirementObjectSource {
 
     fn read_blob(&self, blob_oid: &str) -> Result<Vec<u8>, String> {
         self.git(&["cat-file", "blob", blob_oid], "read retirement blob")
+    }
+
+    fn visit_blobs(
+        &self,
+        blob_oids: &[String],
+        visit: &mut dyn FnMut(&str, u64, &mut dyn Read) -> Result<(), String>,
+    ) -> Result<(), String> {
+        visit_git_blobs(&self.repo_root, blob_oids, visit)
     }
 
     fn commits_touching_path(&self, commit_oid: &str, path: &str) -> Result<Vec<String>, String> {
@@ -635,7 +795,8 @@ pub(crate) fn materialize_history_only_retirement_facts(
         return Err("retirement predecessor is not an ancestor of protected base".to_owned());
     }
     let predecessor_entries = entries_by_path(source.tree_entries(&predecessor)?)?;
-    validate_predecessor_inputs(source, &control_plane, &predecessor_entries)?;
+    let predecessor_input_bodies =
+        validate_predecessor_inputs(source, &control_plane, &predecessor_entries)?;
     validate_selector_coverage(&control_plane, &predecessor_entries, "predecessor")?;
     validate_selector_coverage(&control_plane, &protected_entries, "protected")?;
     validate_selector_coverage(&control_plane, &candidate_entries, "candidate")?;
@@ -666,6 +827,17 @@ pub(crate) fn materialize_history_only_retirement_facts(
     if bootstrap && active_receipt_population {
         return Err("retirement bootstrap may not add receipts".to_owned());
     }
+    let equivalence_index = active_receipt_population
+        .then(|| {
+            build_equivalence_index(
+                source,
+                &predecessor_input_bodies,
+                &protected_entries,
+                &candidate_entries,
+            )
+        })
+        .transpose()?
+        .unwrap_or_default();
 
     let protected_receipt_inventory = receipt_root_inventory(&protected_entries);
     let candidate_receipt_inventory = receipt_root_inventory(&candidate_entries);
@@ -724,9 +896,9 @@ pub(crate) fn materialize_history_only_retirement_facts(
                     input_fact(
                         source,
                         input,
-                        &predecessor_entries,
                         &protected_entries,
                         &candidate_entries,
+                        &equivalence_index,
                     )
                 })
                 .collect::<Result<Vec<_>, _>>()?;
@@ -1264,7 +1436,8 @@ fn validate_predecessor_inputs(
     source: &impl RetirementObjectSource,
     control: &RetirementControlPlane,
     predecessor_entries: &BTreeMap<String, TreeEntry>,
-) -> Result<(), String> {
+) -> Result<BTreeMap<String, Vec<u8>>, String> {
+    let mut bodies = BTreeMap::new();
     for input in control
         .entries
         .iter()
@@ -1288,8 +1461,14 @@ fn validate_predecessor_inputs(
                 input.path
             ));
         }
+        if bodies.insert(input.path.clone(), bytes).is_some() {
+            return Err(format!(
+                "retirement predecessor input population duplicates {}",
+                input.path
+            ));
+        }
     }
-    Ok(())
+    Ok(bodies)
 }
 
 fn validate_selector_coverage(
@@ -1433,20 +1612,22 @@ fn validate_receipt_identity(
 fn input_fact(
     source: &impl RetirementObjectSource,
     input: &ExpectedInput,
-    predecessor: &BTreeMap<String, TreeEntry>,
     protected: &BTreeMap<String, TreeEntry>,
     candidate: &BTreeMap<String, TreeEntry>,
+    equivalence_index: &EquivalenceIndex,
 ) -> Result<Value, String> {
-    let predecessor_entry = predecessor
-        .get(&input.path)
-        .ok_or_else(|| format!("predecessor input {} disappeared", input.path))?;
     let protected_snapshot = path_snapshot(source, protected.get(&input.path))?;
     let candidate_snapshot = path_snapshot(source, candidate.get(&input.path))?;
-    let predecessor_bytes = source.read_blob(&predecessor_entry.oid)?;
-    let candidate_equivalent_paths =
-        equivalent_paths(source, candidate, &input.path, &predecessor_bytes)?;
-    let protected_equivalent_paths =
-        equivalent_paths(source, protected, &input.path, &predecessor_bytes)?;
+    let candidate_equivalent_paths = equivalence_index
+        .candidate
+        .get(&input.path)
+        .cloned()
+        .unwrap_or_default();
+    let protected_equivalent_paths = equivalence_index
+        .protected
+        .get(&input.path)
+        .cloned()
+        .unwrap_or_default();
     let candidate_new_equivalent_paths = candidate_equivalent_paths
         .iter()
         .filter(|path| !protected_equivalent_paths.contains(path))
@@ -1516,29 +1697,103 @@ fn path_snapshot(
     })
 }
 
-fn equivalent_paths(
+#[derive(Debug, Default)]
+struct EquivalenceIndex {
+    protected: BTreeMap<String, Vec<String>>,
+    candidate: BTreeMap<String, Vec<String>>,
+}
+
+fn build_equivalence_index(
     source: &impl RetirementObjectSource,
-    entries: &BTreeMap<String, TreeEntry>,
-    original_path: &str,
-    expected_bytes: &[u8],
-) -> Result<Vec<String>, String> {
-    let expected_hash = sha256_digest(expected_bytes);
-    let expected_len = expected_bytes.len();
-    let mut paths = Vec::new();
-    for entry in entries.values().filter(|entry| entry.kind == "blob") {
-        if entry.path == original_path {
-            continue;
-        }
-        let bytes = source.read_blob(&entry.oid)?;
-        if bytes.len() == expected_len
-            && sha256_digest(&bytes) == expected_hash
-            && bytes == expected_bytes
-        {
-            paths.push(entry.path.clone());
+    predecessor_bodies: &BTreeMap<String, Vec<u8>>,
+    protected: &BTreeMap<String, TreeEntry>,
+    candidate: &BTreeMap<String, TreeEntry>,
+) -> Result<EquivalenceIndex, String> {
+    let mut paths_by_oid = BTreeMap::<String, (Vec<String>, Vec<String>)>::new();
+    for (entries, tree_paths) in [(protected, 0_usize), (candidate, 1_usize)] {
+        for entry in entries.values().filter(|entry| entry.kind == "blob") {
+            let tree_paths_by_oid = paths_by_oid.entry(entry.oid.clone()).or_default();
+            match tree_paths {
+                0 => tree_paths_by_oid.0.push(entry.path.clone()),
+                _ => tree_paths_by_oid.1.push(entry.path.clone()),
+            }
         }
     }
-    paths.sort();
-    Ok(paths)
+    let mut index = EquivalenceIndex {
+        protected: predecessor_bodies
+            .keys()
+            .cloned()
+            .map(|path| (path, Vec::new()))
+            .collect(),
+        candidate: predecessor_bodies
+            .keys()
+            .cloned()
+            .map(|path| (path, Vec::new()))
+            .collect(),
+    };
+    let blob_oids = paths_by_oid.keys().cloned().collect::<Vec<_>>();
+    let targets_by_size = predecessor_bodies
+        .iter()
+        .map(|(path, bytes)| {
+            (
+                bytes.len() as u64,
+                path.as_str(),
+                sha256_digest(bytes),
+                bytes.as_slice(),
+            )
+        })
+        .fold(BTreeMap::<u64, Vec<_>>::new(), |mut targets, target| {
+            targets.entry(target.0).or_default().push(target);
+            targets
+        });
+    source.visit_blobs(&blob_oids, &mut |blob_oid, size, reader| {
+        let Some(targets) = targets_by_size.get(&size) else {
+            return Ok(());
+        };
+        let mut bytes = Vec::new();
+        reader
+            .read_to_end(&mut bytes)
+            .map_err(|error| format!("retirement read streamed blob {blob_oid}: {error}"))?;
+        let hash = sha256_digest(&bytes);
+        for (_, input_path, expected_hash, expected_bytes) in targets {
+            if hash != *expected_hash || bytes != *expected_bytes {
+                continue;
+            }
+            let (protected_paths, candidate_paths) = paths_by_oid
+                .get(blob_oid)
+                .ok_or_else(|| format!("retirement streamed unknown blob {blob_oid}"))?;
+            index
+                .protected
+                .get_mut(*input_path)
+                .expect("equivalence index has every predecessor input")
+                .extend(
+                    protected_paths
+                        .iter()
+                        .filter(|path| path.as_str() != *input_path)
+                        .cloned(),
+                );
+            index
+                .candidate
+                .get_mut(*input_path)
+                .expect("equivalence index has every predecessor input")
+                .extend(
+                    candidate_paths
+                        .iter()
+                        .filter(|path| path.as_str() != *input_path)
+                        .cloned(),
+                );
+        }
+        Ok(())
+    })?;
+    for paths in index
+        .protected
+        .values_mut()
+        .chain(index.candidate.values_mut())
+    {
+        paths.sort();
+        paths.dedup();
+    }
+    Ok(index)
 }
 
 fn coverage_scope(
@@ -1936,6 +2191,7 @@ impl<'de> Visitor<'de> for DuplicateKeyFreeJsonVisitor {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::cell::RefCell;
 
     const PREDECESSOR: &str = "1111111111111111111111111111111111111111";
     const PREDECESSOR_TREE: &str = "2222222222222222222222222222222222222222";
@@ -1952,6 +2208,7 @@ mod tests {
         ancestry: BTreeSet<(String, String)>,
         trees: BTreeMap<String, Vec<TreeEntry>>,
         blobs: BTreeMap<String, Vec<u8>>,
+        read_counts: RefCell<BTreeMap<String, usize>>,
         history: BTreeMap<String, Vec<String>>,
     }
 
@@ -1986,6 +2243,11 @@ mod tests {
                 .ok_or_else(|| format!("missing entries {commit_oid}"))
         }
         fn read_blob(&self, blob_oid: &str) -> Result<Vec<u8>, String> {
+            *self
+                .read_counts
+                .borrow_mut()
+                .entry(blob_oid.to_owned())
+                .or_default() += 1;
             self.blobs
                 .get(blob_oid)
                 .cloned()
@@ -2172,6 +2434,7 @@ mod tests {
                 (CANDIDATE.to_owned(), candidate_entries),
             ]),
             blobs,
+            read_counts: RefCell::new(BTreeMap::new()),
             history: BTreeMap::new(),
         }
     }
@@ -3248,11 +3511,38 @@ mod tests {
             );
         }
         let roadmap = control.entries[0].selectors[0].expected_inputs[0].clone();
+        let copied_roadmap_oid = oid(179);
+        source.blobs.insert(
+            copied_roadmap_oid.clone(),
+            source.blobs[&roadmap.predecessor_blob_oid].clone(),
+        );
+        for commit in [PROTECTED, CANDIDATE] {
+            source.trees.get_mut(commit).unwrap().extend([
+                TreeEntry {
+                    mode: "100755".to_owned(),
+                    kind: "blob".to_owned(),
+                    oid: copied_roadmap_oid.clone(),
+                    path: "copied/roadmap-body-a".to_owned(),
+                },
+                TreeEntry {
+                    mode: "100755".to_owned(),
+                    kind: "blob".to_owned(),
+                    oid: copied_roadmap_oid.clone(),
+                    path: "copied/roadmap-body-b".to_owned(),
+                },
+            ]);
+        }
+        let owners = control.entries[1].selectors[0].expected_inputs[0].clone();
+        let copied_owners_oid = oid(182);
+        source.blobs.insert(
+            copied_owners_oid.clone(),
+            source.blobs[&owners.predecessor_blob_oid].clone(),
+        );
         source.trees.get_mut(CANDIDATE).unwrap().push(TreeEntry {
             mode: "100755".to_owned(),
             kind: "blob".to_owned(),
-            oid: roadmap.predecessor_blob_oid,
-            path: "copied/roadmap-body".to_owned(),
+            oid: copied_owners_oid,
+            path: "copied/owners-body".to_owned(),
         });
 
         let facts = materialize_history_only_retirement_facts(&source, &context()).unwrap();
@@ -3266,12 +3556,88 @@ mod tests {
             .unwrap();
         assert_eq!(
             roadmap_fact["candidate_equivalent_paths"],
-            json!(["copied/roadmap-body"])
+            json!(["copied/roadmap-body-a", "copied/roadmap-body-b"])
+        );
+        assert_eq!(roadmap_fact["candidate_new_equivalent_paths"], json!([]));
+        let owners_fact = facts["scm_facts"]["retirement_receipt_object_facts"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|fact| fact["scope_ref"] == json!("ADR-0363"))
+            .and_then(|fact| fact["retired_inputs"].as_array())
+            .and_then(|inputs| {
+                inputs
+                    .iter()
+                    .find(|input| input["path"] == json!(owners.path))
+            })
+            .unwrap();
+        assert_eq!(
+            owners_fact["candidate_equivalent_paths"],
+            json!(["copied/owners-body"])
         );
         assert_eq!(
-            roadmap_fact["candidate_new_equivalent_paths"],
-            json!(["copied/roadmap-body"])
+            owners_fact["candidate_new_equivalent_paths"],
+            json!(["copied/owners-body"])
         );
+    }
+
+    #[test]
+    fn equivalence_scan_visits_each_filler_oid_once_for_full_input_population() {
+        let mut source = fixture();
+        add_protected_control_plane(&mut source);
+        add_current_bodies(&mut source, PROTECTED);
+        let control = control_plane();
+        for (index, entry) in control.entries.iter().enumerate() {
+            let preparation_oid = oid(160 + index as u8);
+            add_receipt(
+                &mut source,
+                PROTECTED,
+                &entry.preparation_receipt_path,
+                preparation_oid.clone(),
+                &receipt_value(entry, false, None),
+            );
+            add_receipt(
+                &mut source,
+                CANDIDATE,
+                &entry.closure_receipt_path,
+                oid(170 + index as u8),
+                &receipt_value(entry, true, Some(&preparation_oid)),
+            );
+        }
+        let protected_filler_oid = oid(180);
+        let shared_filler_oid = oid(181);
+        source
+            .blobs
+            .insert(protected_filler_oid.clone(), b"protected filler".to_vec());
+        source
+            .blobs
+            .insert(shared_filler_oid.clone(), b"shared filler".to_vec());
+        source.trees.get_mut(PROTECTED).unwrap().extend([
+            TreeEntry {
+                mode: "100644".to_owned(),
+                kind: "blob".to_owned(),
+                oid: protected_filler_oid.clone(),
+                path: "filler/protected".to_owned(),
+            },
+            TreeEntry {
+                mode: "100644".to_owned(),
+                kind: "blob".to_owned(),
+                oid: shared_filler_oid.clone(),
+                path: "filler/shared-protected".to_owned(),
+            },
+        ]);
+        source.trees.get_mut(CANDIDATE).unwrap().push(TreeEntry {
+            mode: "100644".to_owned(),
+            kind: "blob".to_owned(),
+            oid: shared_filler_oid.clone(),
+            path: "filler/shared-candidate".to_owned(),
+        });
+
+        materialize_history_only_retirement_facts(&source, &context()).unwrap();
+
+        let reads = source.read_counts.borrow();
+        assert_eq!(reads.get(&protected_filler_oid), Some(&1));
+        assert_eq!(reads.get(&shared_filler_oid), Some(&1));
     }
 
     #[test]

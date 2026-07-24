@@ -45,13 +45,30 @@ fn load_policy(root: &Path) -> Value {
 }
 
 fn named_workflow_step<'a>(workflow: &'a str, name: &str) -> &'a str {
-    let marker = format!("      - name: {name}");
+    let marker = format!("      - name: {name}\n");
     let start = workflow
         .find(&marker)
         .unwrap_or_else(|| panic!("workflow step {name}"));
     let tail = &workflow[start..];
     let end = tail.find("\n      - name: ").unwrap_or(tail.len());
     &tail[..end]
+}
+
+#[test]
+fn named_workflow_step_requires_an_exact_name_boundary() {
+    let workflow = "\
+jobs:
+  gate:
+    steps:
+      - name: Materialize cloud-ci generated faces (out-of-graph boundary)
+        run: echo wrong
+      - name: Materialize cloud-ci generated faces
+        run: echo right
+";
+
+    let step = named_workflow_step(workflow, "Materialize cloud-ci generated faces");
+    assert!(step.contains("echo right"));
+    assert!(!step.contains("echo wrong"));
 }
 
 fn assert_occurs_exactly_once(haystack: &str, needle: &str) {
