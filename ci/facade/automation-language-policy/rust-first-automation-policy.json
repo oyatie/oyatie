@@ -484,7 +484,7 @@
         },
         {
           "key": ".github/workflows/oya-ci-required.yml::gate-affected-target-set::Materialize merge-base build + test baselines when affected-set needs FULL",
-          "shell_lines": 80
+          "shell_lines": 91
         },
         {
           "key": ".github/workflows/oya-ci-required.yml::gate-affected-target-set::Pre-provision pinned rust toolchain and PR metadata preflight",

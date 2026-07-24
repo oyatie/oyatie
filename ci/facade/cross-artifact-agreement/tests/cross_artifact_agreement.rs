@@ -710,9 +710,63 @@ fn broad_workflow_consumers_require_the_producer_artifact_and_keep_the_merge_bas
         affected,
         "Materialize merge-base build + test baselines when affected-set needs FULL",
     );
-    assert_occurs_exactly_once(
-        baseline,
-        "buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . --historical-merge-base \"${merge_base}\"",
+    let help_status = "historical_help_status=0";
+    let help_probe = "historical_help=\"$(buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --help 2>&1)\" || historical_help_status=$?";
+    let help_status_guard = "(( historical_help_status == 0 || historical_help_status == 2 )) || { echo \"historical materializer capability probe failed: status=${historical_help_status}\"; exit 1; }";
+    let usage_guard = "grep -Fq \"usage: oya-cloud-ci-materialize-generated-faces\" <<<\"${historical_help}\" || { echo \"historical materializer capability probe returned no usage contract\"; exit 1; }";
+    let compatibility_mode = "historical_retirement_args=()";
+    let capability_guard =
+        "if grep -Fq -- \"--historical-merge-base <oid>\" <<<\"${historical_help}\"; then";
+    let historical_mode = "historical_retirement_args=(--historical-merge-base \"${merge_base}\")";
+    let materialize = "buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . \"${historical_retirement_args[@]}\"";
+    let capability_presence = "(( ${#historical_retirement_args[@]} == 0 )) || [[ -f ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json && ! -L ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json ]] || { echo \"historical materializer capability emitted no regular retirement facts\"; exit 1; }";
+    let capability_parse = "(( ${#historical_retirement_args[@]} == 0 )) || jq -e 'type == \"object\" and (.receipts | type == \"array\") and (.scm_facts | type == \"object\")' ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json >/dev/null || { echo \"historical materializer capability emitted malformed retirement facts\"; exit 1; }";
+    let legacy_absence = "(( ${#historical_retirement_args[@]} != 0 )) || [[ ! -e ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json && ! -L ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json ]] || { echo \"legacy historical materializer unexpectedly emitted retirement facts\"; exit 1; }";
+    for contract in [
+        help_status,
+        help_probe,
+        help_status_guard,
+        usage_guard,
+        compatibility_mode,
+        capability_guard,
+        historical_mode,
+        materialize,
+        capability_presence,
+        capability_parse,
+        legacy_absence,
+    ] {
+        assert_eq!(
+            baseline
+                .lines()
+                .filter(|line| line.trim() == contract)
+                .count(),
+            1,
+            "{contract:?} must be an exact line exactly once in the producer step"
+        );
+    }
+    assert!(
+        baseline.find(help_status) < baseline.find(help_probe)
+            && baseline.find(help_probe) < baseline.find(help_status_guard)
+            && baseline.find(help_status_guard) < baseline.find(usage_guard)
+            && baseline.find(usage_guard) < baseline.find(compatibility_mode)
+            && baseline.find(compatibility_mode) < baseline.find(capability_guard)
+            && baseline.find(capability_guard) < baseline.find(historical_mode)
+            && baseline.find(historical_mode) < baseline.find(materialize)
+            && baseline.find(materialize) < baseline.find(capability_presence)
+            && baseline.find(capability_presence) < baseline.find(capability_parse)
+            && baseline.find(capability_parse) < baseline.find(legacy_absence),
+        "the merge-base materializer must dispatch from the historical executable's actual CLI capability, never from candidate-era path assumptions"
+    );
+    let materialize_line = baseline
+        .lines()
+        .find(|line| line.contains(materialize))
+        .expect("the merge-base materializer command must remain present");
+    assert!(
+        !materialize_line.contains("|| true")
+            && !baseline.contains(
+            "buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . --historical-merge-base \"${merge_base}\""
+        ),
+        "capability probing must not swallow a materialization failure or invoke a candidate-only flag unconditionally"
     );
     for legacy_topology_shell in [
         "git cat-file",

@@ -805,9 +805,20 @@ jobs:
           (
             cd "${mb_tree}"
             rustup toolchain install
-            # Materialize merge-base faces in the clean historical tree. The Rust mode verifies
-            # control-plane/topology/first-parent authority; older bases retain bare bootstrap.
-            buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . --historical-merge-base "${merge_base}"
+            # Materialize merge-base faces in the clean historical tree. The historical binary owns
+            # epoch dispatch: new capability verifies authority; legacy bare mode must emit no receipt.
+            historical_help_status=0
+            historical_help="$(buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --help 2>&1)" || historical_help_status=$?
+            (( historical_help_status == 0 || historical_help_status == 2 )) || { echo "historical materializer capability probe failed: status=${historical_help_status}"; exit 1; }
+            grep -Fq "usage: oya-cloud-ci-materialize-generated-faces" <<<"${historical_help}" || { echo "historical materializer capability probe returned no usage contract"; exit 1; }
+            historical_retirement_args=()
+            if grep -Fq -- "--historical-merge-base <oid>" <<<"${historical_help}"; then
+              historical_retirement_args=(--historical-merge-base "${merge_base}")
+            fi
+            buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . "${historical_retirement_args[@]}"
+            (( ${#historical_retirement_args[@]} == 0 )) || [[ -f ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json && ! -L ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json ]] || { echo "historical materializer capability emitted no regular retirement facts"; exit 1; }
+            (( ${#historical_retirement_args[@]} == 0 )) || jq -e 'type == "object" and (.receipts | type == "array") and (.scm_facts | type == "object")' ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json >/dev/null || { echo "historical materializer capability emitted malformed retirement facts"; exit 1; }
+            (( ${#historical_retirement_args[@]} != 0 )) || [[ ! -e ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json && ! -L ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json ]] || { echo "legacy historical materializer unexpectedly emitted retirement facts"; exit 1; }
             # BUILD baseline: whole merge-base workspace keep-going. The build is EXPECTED to be
             # non-zero (dev carries pre-existing breakage) — that IS the baseline, not a failure, so
             # its exit code is never propagated.
