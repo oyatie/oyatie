@@ -224,6 +224,13 @@ impl<'de> Deserialize<'de> for DuplicateKeyFreeJson {
 
 struct DuplicateKeyFreeJsonVisitor;
 
+pub(crate) fn parse_duplicate_key_free_json(bytes: &[u8]) -> Option<Value> {
+    let mut deserializer = serde_json::Deserializer::from_slice(bytes);
+    DuplicateKeyFreeJson::deserialize(&mut deserializer).ok()?;
+    deserializer.end().ok()?;
+    serde_json::from_slice(bytes).ok()
+}
+
 impl<'de> Visitor<'de> for DuplicateKeyFreeJsonVisitor {
     type Value = DuplicateKeyFreeJson;
 

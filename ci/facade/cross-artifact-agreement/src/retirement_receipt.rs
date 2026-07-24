@@ -25,6 +25,8 @@ pub const RETIREMENT_RECEIPT_VALIDATOR: &str =
     "cloud-ci-cross-artifact-agreement/history-only-retirement-receipt";
 pub const RETIREMENT_RECEIPT_CODE: &str = "history_only_retirement_receipt_invalid";
 
+const RETIREMENT_CONTROL_PLANE_PATH: &str = "registry/history-only-retirement/control-plane.json";
+
 const RECEIPT_FIELDS: &[&str] = &[
     "$schema",
     "artifact_id",
@@ -490,7 +492,7 @@ pub fn evaluate_history_only_retirement_receipt(
     {
         fail(&mut findings, "object_fact.baseline");
     }
-    if matches!(state, Some("carried" | "closed-carried"))
+    if state == Some("closed-carried")
         && (fact.get("protected_receipt_blob_oid") != fact.get("candidate_receipt_blob_oid")
             || fact.get("protected_registry_row_sha256")
                 != fact.get("candidate_registry_row_sha256"))
@@ -654,7 +656,7 @@ pub fn evaluate_history_only_retirement_facts(
         let Some(raw) = raw_by_path.get(path) else {
             continue;
         };
-        if !matches!(serde_json::from_slice::<Value>(raw.bytes), Ok(ref parsed) if parsed == raw.document)
+        if !matches!(crate::parse_duplicate_key_free_json(raw.bytes), Some(ref parsed) if parsed == raw.document)
         {
             fail(
                 &mut findings,
@@ -691,6 +693,8 @@ pub fn evaluate_history_only_retirement_facts(
             || fact_matches[0].get("receipt_state") != metadata.get("receipt_state")
             || fact_matches[0].get("candidate_receipt_blob_oid")
                 != metadata.get("candidate_receipt_blob_oid")
+            || fact_matches[0].get("candidate_registry_row_sha256")
+                != metadata.get("candidate_receipt_sha256")
             || fact_matches[0].get("baseline_commit_oid") != metadata.get("baseline_commit_oid")
             || fact_matches[0].get("baseline_tree_oid") != metadata.get("baseline_tree_oid")
         {
@@ -1652,7 +1656,7 @@ fn validate_inputs(
         let current_state_matches = match state {
             Some("prepared-new") => protected_matches && candidate_matches,
             Some("closure-new") => protected_matches && candidate_absent,
-            Some("carried" | "closed-carried") => protected_absent && candidate_absent,
+            Some("closed-carried") => protected_absent && candidate_absent,
             _ => false,
         };
         if !no_equivalent_copy || !current_state_matches {
@@ -1696,7 +1700,6 @@ fn validate_predecessor_context(
     let expected = match state {
         Some("prepared-new") => Some("current-protected-base"),
         Some("closure-new") => Some("protected-preparation-receipt"),
-        Some("carried") => Some("receipt-baseline"),
         Some("closed-carried") => Some("linked-preparation-history"),
         _ => None,
     };
@@ -1721,7 +1724,7 @@ fn validate_predecessor_context(
     let no_link = context_receipt_path.is_some_and(Value::is_null)
         && context_receipt_blob.is_some_and(Value::is_null);
     match state {
-        Some("prepared-new" | "carried") => {
+        Some("prepared-new") => {
             if !no_link
                 || context.get("commit_oid") != baseline.get("commit_oid")
                 || context.get("tree_oid") != baseline.get("tree_oid")
@@ -2221,6 +2224,14 @@ fn validate_retirement_control_plane_context(
     object_facts: &[Value],
     findings: &mut BTreeSet<Finding>,
 ) {
+    if context.get("control_plane_path").and_then(Value::as_str)
+        != Some(RETIREMENT_CONTROL_PLANE_PATH)
+    {
+        fail(
+            findings,
+            "retirement_control_plane_context.control_plane_path",
+        );
+    }
     let protected_entries = context
         .get("control_plane_entries")
         .and_then(Value::as_array)
@@ -2237,29 +2248,41 @@ fn validate_retirement_control_plane_context(
         );
     }
     let protected_oid = context.get("protected_control_plane_blob_oid");
+    let protected_sha256 = context.get("protected_control_plane_sha256");
     let protected_bytes = context.get("protected_control_plane_byte_count");
     let candidate_oid = context.get("candidate_control_plane_blob_oid");
+    let candidate_sha256 = context.get("candidate_control_plane_sha256");
     let candidate_bytes = context.get("candidate_control_plane_byte_count");
     let empty = receipts.is_empty() && object_facts.is_empty();
-    let null_pair = |oid: Option<&Value>, bytes: Option<&Value>| {
-        oid.is_some_and(Value::is_null) && bytes.is_some_and(Value::is_null)
+    let null_binding = |oid: Option<&Value>, sha256: Option<&Value>, bytes: Option<&Value>| {
+        oid.is_some_and(Value::is_null)
+            && sha256.is_some_and(Value::is_null)
+            && bytes.is_some_and(Value::is_null)
     };
-    let immutable_pair = || {
+    let candidate_binding = || {
+        oid_value(candidate_oid)
+            && sha256(candidate_sha256.and_then(Value::as_str))
+            && candidate_bytes.and_then(Value::as_u64).is_some()
+    };
+    let immutable_binding = || {
         oid_value(protected_oid)
-            && oid_value(candidate_oid)
             && protected_oid == candidate_oid
+            && sha256(protected_sha256.and_then(Value::as_str))
+            && protected_sha256 == candidate_sha256
             && protected_bytes.and_then(Value::as_u64).is_some()
             && candidate_bytes.and_then(Value::as_u64) == protected_bytes.and_then(Value::as_u64)
     };
     if empty {
         if context.get("bootstrap").and_then(Value::as_bool) == Some(true) {
-            if !null_pair(protected_oid, protected_bytes) {
+            if !null_binding(protected_oid, protected_sha256, protected_bytes)
+                || !candidate_binding()
+            {
                 fail(findings, "retirement_control_plane_context.dormant_empty");
             }
-        } else if !immutable_pair() {
+        } else if !immutable_binding() {
             fail(findings, "retirement_control_plane_context.dormant_empty");
         }
-    } else if !immutable_pair() {
+    } else if !immutable_binding() {
         fail(
             findings,
             "retirement_control_plane_context.immutable_blob_binding",
