@@ -4,7 +4,7 @@ use std::collections::BTreeSet;
 use std::fs;
 use std::io::{Read, Write};
 use std::net::TcpListener;
-use std::os::unix::fs::PermissionsExt;
+use std::os::unix::{fs::PermissionsExt, process::CommandExt};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
 use std::thread;
@@ -881,6 +881,10 @@ fn installer_command(
     command
 }
 
+fn installer_content_dir(install_dir: &Path, digest: &str) -> PathBuf {
+    install_dir.join(format!("sha256-{}", digest.to_ascii_lowercase()))
+}
+
 fn assert_success(output: Output) {
     assert!(
         output.status.success(),
@@ -897,6 +901,20 @@ fn install_host_shims(bin: &Path, zstd_body: &str, curl_body: &str) {
     );
     write_executable(&bin.join("zstd"), zstd_body);
     write_executable(&bin.join("curl"), curl_body);
+    if cfg!(target_os = "macos") {
+        write_executable(
+            &bin.join("flock"),
+            "#!/usr/bin/env bash\nset -euo pipefail\ntimeout=\"\"; fd=\"\"\nwhile [ \"$#\" -gt 0 ]; do case \"$1\" in -x) shift ;; -w) timeout=\"$2\"; shift 2 ;; *) fd=\"$1\"; shift ;; esac; done\nexec /usr/bin/lockf -s -t \"$timeout\" \"$fd\"\n",
+        );
+    }
+}
+
+fn wait_for_path(path: &Path, timeout: Duration) {
+    let deadline = Instant::now() + timeout;
+    while !path.exists() && Instant::now() < deadline {
+        thread::sleep(Duration::from_millis(10));
+    }
+    assert!(path.exists(), "timed out waiting for {}", path.display());
 }
 
 fn spawn_retry_server(payload: Vec<u8>) -> (u16, thread::JoinHandle<usize>) {
@@ -907,7 +925,7 @@ fn spawn_retry_server(payload: Vec<u8>) -> (u16, thread::JoinHandle<usize>) {
     let port = listener.local_addr().expect("fixture address").port();
     let handle = thread::spawn(move || {
         let mut requests = 0;
-        let deadline = Instant::now() + Duration::from_secs(5);
+        let deadline = Instant::now() + Duration::from_secs(20);
         while requests < 8 && Instant::now() < deadline {
             let (mut stream, _) = match listener.accept() {
                 Ok(connection) => connection,
@@ -922,7 +940,7 @@ fn spawn_retry_server(payload: Vec<u8>) -> (u16, thread::JoinHandle<usize>) {
             requests += 1;
             if requests <= 6 {
                 stream
-                    .write_all(b"HTTP/1.1 504 Gateway Timeout\r\nRetry-After: 0\r\nContent-Length: 0\r\nConnection: close\r\n\r\n")
+                    .write_all(b"HTTP/1.1 504 Gateway Timeout\r\nRetry-After: 1\r\nContent-Length: 0\r\nConnection: close\r\n\r\n")
                     .expect("write 504 fixture response");
             } else {
                 let headers = format!(
@@ -955,7 +973,7 @@ fn buck2_installer_retries_cache_hits_and_digest_mismatches_fail_closed() {
     install_host_shims(
         &bin,
         "#!/usr/bin/env bash\nset -euo pipefail\ninput=\"\"; output=\"\"\nwhile [ \"$#\" -gt 0 ]; do case \"$1\" in -o) output=\"$2\"; shift 2 ;; -d|-f) shift ;; *) input=\"$1\"; shift ;; esac; done\ncp \"$input\" \"$output\"\n",
-        "#!/usr/bin/env bash\nset -euo pipefail\nprintf '%s\\n' \"$@\" > \"$CURL_ARGS_LOG\"\nargs=()\nfor arg in \"$@\"; do case \"$arg\" in https://github.com/facebook/buck2/releases/download/*) args+=(\"http://127.0.0.1:$BUCK2_TEST_PORT/fixture\") ;; *) args+=(\"$arg\") ;; esac; done\nfor _ in {1..7}; do \"$REAL_CURL\" \"${args[@]}\" --retry-delay 0 --retry 0 && exit 0; done\nexit 22\n",
+        "#!/usr/bin/env bash\nset -euo pipefail\nprintf '%s\\n' \"$@\" > \"$CURL_ARGS_LOG\"\nargs=()\nfor arg in \"$@\"; do case \"$arg\" in https://github.com/facebook/buck2/releases/download/*) args+=(\"http://127.0.0.1:$BUCK2_TEST_PORT/fixture\") ;; *) args+=(\"$arg\") ;; esac; done\nexec \"$REAL_CURL\" \"${args[@]}\" --retry-delay 1\n",
     );
     let install_dir = fixture.path().join("install");
     let output = installer_command(&root, &bin, &install_dir, "fixture.zst", &digest)
@@ -985,12 +1003,14 @@ fn buck2_installer_retries_cache_hits_and_digest_mismatches_fail_closed() {
         );
     }
 
+    let mismatch_digest = "0".repeat(64);
+    let mismatch_install_dir = fixture.path().join("mismatch");
     let mismatch = installer_command(
         &root,
         &bin,
-        &fixture.path().join("mismatch"),
+        &mismatch_install_dir,
         "fixture.zst",
-        &"0".repeat(64),
+        &mismatch_digest,
     )
     .env("BUCK2_TEST_PORT", port.to_string())
     .env("CURL_ARGS_LOG", &args_log)
@@ -1001,9 +1021,10 @@ fn buck2_installer_retries_cache_hits_and_digest_mismatches_fail_closed() {
         !mismatch.status.success(),
         "digest mismatch must fail closed"
     );
-    assert!(!fixture.path().join("mismatch/fixture.zst").exists());
+    let mismatch_content_dir = installer_content_dir(&mismatch_install_dir, &mismatch_digest);
+    assert!(!mismatch_content_dir.join("fixture.zst").exists());
     assert!(
-        fs::read_dir(fixture.path().join("mismatch"))
+        fs::read_dir(&mismatch_content_dir)
             .expect("mismatch dir")
             .all(|entry| !entry
                 .expect("dir entry")
@@ -1022,47 +1043,102 @@ fn buck2_installer_retries_cache_hits_and_digest_mismatches_fail_closed() {
         .output()
         .expect("run cache-hit fixture");
     assert_success(cache);
+    assert!(
+        installer_content_dir(&install_dir, &digest)
+            .join(".buck2-install.lock")
+            .is_file()
+    );
 }
 
 #[test]
-fn buck2_installer_preserves_prior_binary_on_zstd_failure_and_serializes_contenders() {
+fn buck2_installer_rejects_invalid_lock_timeouts_before_downloader_side_effects() {
     let root = repo_root();
-    let fixture = TestDir::new("transaction");
+    let fixture = TestDir::new("invalid-lock-timeout");
     let bin = fixture.path().join("bin");
     fs::create_dir_all(&bin).expect("create shim bin");
-    let payload_a = fixture.path().join("payload-a");
-    let payload_b = fixture.path().join("payload-b");
-    fs::write(&payload_a, b"#!/usr/bin/env bash\necho binary-a\n").expect("write payload a");
-    fs::write(&payload_b, b"#!/usr/bin/env bash\necho binary-b\n").expect("write payload b");
-    let curl_body = "#!/usr/bin/env bash\nset -euo pipefail\nout=\"\"; url=\"\"\nwhile [ \"$#\" -gt 0 ]; do case \"$1\" in -o) out=\"$2\"; shift 2 ;; *) url=\"$1\"; shift ;; esac; done\nmkdir \"$CRITICAL_DIR/curl\" || exit 75\nsleep 1\ncase \"$url\" in *asset-a*) cp \"$PAYLOAD_A\" \"$out\" ;; *asset-b*) cp \"$PAYLOAD_B\" \"$out\" ;; *) cp \"$PAYLOAD_A\" \"$out\" ;; esac\nrmdir \"$CRITICAL_DIR/curl\"\n";
+    install_host_shims(
+        &bin,
+        "#!/usr/bin/env bash\nexit 99\n",
+        "#!/usr/bin/env bash\necho called > \"$CURL_MARKER\"\nexit 99\n",
+    );
+    let install_dir = fixture.path().join("install");
+    fs::create_dir_all(&install_dir).expect("create install dir");
+    fs::write(install_dir.join("buck2"), b"prior-binary").expect("seed prior binary");
+    for invalid in ["0", "", "-1", "not-a-number"] {
+        let marker = fixture.path().join(format!("curl-{invalid:?}"));
+        let output = installer_command(&root, &bin, &install_dir, "fixture.zst", &"0".repeat(64))
+            .env("BUCK2_INSTALL_LOCK_TIMEOUT_SECONDS", invalid)
+            .env("CURL_MARKER", &marker)
+            .output()
+            .expect("run invalid timeout fixture");
+        assert!(
+            !output.status.success(),
+            "invalid timeout {invalid:?} must fail"
+        );
+        assert!(String::from_utf8_lossy(&output.stderr).contains("must be a positive integer"));
+        assert!(!marker.exists(), "invalid timeout {invalid:?} invoked curl");
+        assert_eq!(
+            fs::read(install_dir.join("buck2")).expect("prior binary"),
+            b"prior-binary"
+        );
+    }
+}
+
+#[test]
+fn buck2_installer_rejects_malformed_digests_before_creating_content_paths() {
+    let root = repo_root();
+    let fixture = TestDir::new("invalid-digest");
+    let bin = fixture.path().join("bin");
+    fs::create_dir_all(&bin).expect("create shim bin");
+    let install_dir = fixture.path().join("install");
+    let marker = fixture.path().join("curl-called");
+    install_host_shims(
+        &bin,
+        "#!/usr/bin/env bash\nexit 99\n",
+        "#!/usr/bin/env bash\ntouch \"$CURL_MARKER\"\nexit 99\n",
+    );
+    for invalid in ["", "../escape", &"a".repeat(63), &"g".repeat(64)] {
+        let output = installer_command(&root, &bin, &install_dir, "fixture.zst", invalid)
+            .env("CURL_MARKER", &marker)
+            .output()
+            .expect("run invalid digest fixture");
+        assert!(!output.status.success(), "invalid digest must fail");
+        assert!(
+            String::from_utf8_lossy(&output.stderr)
+                .contains("must be exactly 64 hexadecimal characters")
+        );
+        assert!(!marker.exists(), "invalid digest invoked curl");
+        assert!(
+            !install_dir.exists(),
+            "invalid digest created install content"
+        );
+    }
+}
+
+#[test]
+fn buck2_installer_serializes_same_digest_and_preserves_prior_binary_on_zstd_failure() {
+    let root = repo_root();
+    let fixture = TestDir::new("same-digest");
+    let bin = fixture.path().join("bin");
+    fs::create_dir_all(&bin).expect("create shim bin");
+    let payload = fixture.path().join("payload");
+    fs::write(&payload, b"#!/usr/bin/env bash\necho binary-a\n").expect("write payload");
+    let digest = sha256(&payload);
+    let curl_body = "#!/usr/bin/env bash\nset -euo pipefail\nout=\"\"\nwhile [ \"$#\" -gt 0 ]; do case \"$1\" in -o) out=\"$2\"; shift 2 ;; *) shift ;; esac; done\nmkdir \"$CRITICAL_DIR/curl\" || exit 75\nsleep 1\ncp \"$PAYLOAD\" \"$out\"\nrmdir \"$CRITICAL_DIR/curl\"\n";
     let zstd_body = "#!/usr/bin/env bash\nset -euo pipefail\ninput=\"\"; output=\"\"\nwhile [ \"$#\" -gt 0 ]; do case \"$1\" in -o) output=\"$2\"; shift 2 ;; -d|-f) shift ;; *) input=\"$1\"; shift ;; esac; done\nmkdir \"$CRITICAL_DIR/zstd\" || exit 76\nsleep 1\ncp \"$input\" \"$output\"\nrmdir \"$CRITICAL_DIR/zstd\"\n";
     install_host_shims(&bin, zstd_body, curl_body);
     let install_dir = fixture.path().join("install");
     let critical = fixture.path().join("critical");
     fs::create_dir_all(&critical).expect("create critical fixture dir");
-    let mut first = installer_command(
-        &root,
-        &bin,
-        &install_dir,
-        "asset-a.zst",
-        &sha256(&payload_a),
-    );
+    let mut first = installer_command(&root, &bin, &install_dir, "asset.zst", &digest);
     first
-        .env("PAYLOAD_A", &payload_a)
-        .env("PAYLOAD_B", &payload_b)
+        .env("PAYLOAD", &payload)
         .env("CRITICAL_DIR", &critical);
     let mut first = first.spawn().expect("spawn first installer");
     thread::sleep(Duration::from_millis(100));
-    let mut second = installer_command(
-        &root,
-        &bin,
-        &install_dir,
-        "asset-b.zst",
-        &sha256(&payload_b),
-    );
+    let mut second = installer_command(&root, &bin, &install_dir, "asset.zst", &digest);
     second
-        .env("PAYLOAD_A", &payload_a)
-        .env("PAYLOAD_B", &payload_b)
+        .env("PAYLOAD", &payload)
         .env("CRITICAL_DIR", &critical);
     let second = second.spawn().expect("spawn second installer");
     assert!(
@@ -1077,14 +1153,14 @@ fn buck2_installer_preserves_prior_binary_on_zstd_failure_and_serializes_contend
             .success(),
         "second installer must succeed"
     );
-    let binary = fs::read(install_dir.join("buck2")).expect("promoted binary");
-    assert!(
-        binary == fs::read(&payload_a).expect("read payload a")
-            || binary == fs::read(&payload_b).expect("read payload b")
+    let content_dir = installer_content_dir(&install_dir, &digest);
+    assert_eq!(
+        fs::read(content_dir.join("buck2")).expect("promoted binary"),
+        fs::read(&payload).expect("read payload")
     );
-    assert!(!install_dir.join(".buck2-install.lock").exists());
+    assert!(content_dir.join(".buck2-install.lock").is_file());
     assert!(
-        fs::read_dir(&install_dir)
+        fs::read_dir(&content_dir)
             .expect("install dir")
             .all(|entry| !entry
                 .expect("dir entry")
@@ -1094,34 +1170,159 @@ fn buck2_installer_preserves_prior_binary_on_zstd_failure_and_serializes_contend
     );
 
     write_executable(&bin.join("zstd"), "#!/usr/bin/env bash\nexit 70\n");
-    fs::write(install_dir.join("buck2"), b"previous-binary").expect("seed prior binary");
-    let failed = installer_command(
-        &root,
-        &bin,
-        &install_dir,
-        "asset-a.zst",
-        &sha256(&payload_a),
-    )
-    .env("PAYLOAD_A", &payload_a)
-    .env("PAYLOAD_B", &payload_b)
-    .env("CRITICAL_DIR", &critical)
-    .output()
-    .expect("run zstd failure fixture");
+    fs::write(content_dir.join("buck2"), b"previous-binary").expect("seed prior binary");
+    let failed = installer_command(&root, &bin, &install_dir, "asset.zst", &digest)
+        .env("PAYLOAD", &payload)
+        .env("CRITICAL_DIR", &critical)
+        .output()
+        .expect("run zstd failure fixture");
     assert!(
         !failed.status.success(),
         "zstd failure must fail the installer"
     );
     assert_eq!(
-        fs::read(install_dir.join("buck2")).expect("prior binary"),
+        fs::read(content_dir.join("buck2")).expect("prior binary"),
         b"previous-binary"
     );
     assert!(
-        fs::read_dir(&install_dir)
+        fs::read_dir(&content_dir)
             .expect("install dir")
             .all(|entry| !entry
                 .expect("dir entry")
                 .file_name()
                 .to_string_lossy()
                 .contains("buck2.part."))
+    );
+}
+
+#[test]
+fn buck2_installer_allows_different_digests_to_install_concurrently() {
+    let root = repo_root();
+    let fixture = TestDir::new("different-digests");
+    let bin = fixture.path().join("bin");
+    fs::create_dir_all(&bin).expect("create shim bin");
+    let payload_a = fixture.path().join("payload-a");
+    let payload_b = fixture.path().join("payload-b");
+    fs::write(&payload_a, b"#!/usr/bin/env bash\necho binary-a\n").expect("write payload a");
+    fs::write(&payload_b, b"#!/usr/bin/env bash\necho binary-b\n").expect("write payload b");
+    let digest_a = sha256(&payload_a);
+    let digest_b = sha256(&payload_b);
+    let curl_body = "#!/usr/bin/env bash\nset -euo pipefail\nout=\"\"; url=\"\"\nwhile [ \"$#\" -gt 0 ]; do case \"$1\" in -o) out=\"$2\"; shift 2 ;; *) url=\"$1\"; shift ;; esac; done\ncase \"$url\" in *asset-a*) id=a; payload=\"$PAYLOAD_A\" ;; *asset-b*) id=b; payload=\"$PAYLOAD_B\" ;; *) exit 78 ;; esac\ntouch \"$BARRIER/$id\"\nattempt=0\nuntil [ -f \"$BARRIER/a\" ] && [ -f \"$BARRIER/b\" ]; do attempt=$((attempt + 1)); [ \"$attempt\" -lt 500 ] || exit 77; sleep 0.01; done\ncp \"$payload\" \"$out\"\n";
+    let zstd_body = "#!/usr/bin/env bash\nset -euo pipefail\ninput=\"\"; output=\"\"\nwhile [ \"$#\" -gt 0 ]; do case \"$1\" in -o) output=\"$2\"; shift 2 ;; -d|-f) shift ;; *) input=\"$1\"; shift ;; esac; done\ncp \"$input\" \"$output\"\n";
+    install_host_shims(&bin, zstd_body, curl_body);
+    let install_dir = fixture.path().join("install");
+    let barrier = fixture.path().join("barrier");
+    fs::create_dir_all(&barrier).expect("create barrier");
+
+    let mut first = installer_command(&root, &bin, &install_dir, "asset-a.zst", &digest_a);
+    first
+        .env("PAYLOAD_A", &payload_a)
+        .env("PAYLOAD_B", &payload_b)
+        .env("BARRIER", &barrier);
+    let mut second = installer_command(&root, &bin, &install_dir, "asset-b.zst", &digest_b);
+    second
+        .env("PAYLOAD_A", &payload_a)
+        .env("PAYLOAD_B", &payload_b)
+        .env("BARRIER", &barrier);
+    let first = first.spawn().expect("spawn first digest installer");
+    let second = second.spawn().expect("spawn second digest installer");
+    assert_success(
+        first
+            .wait_with_output()
+            .expect("wait first digest installer"),
+    );
+    assert_success(
+        second
+            .wait_with_output()
+            .expect("wait second digest installer"),
+    );
+    assert_eq!(
+        fs::read(installer_content_dir(&install_dir, &digest_a).join("buck2"))
+            .expect("digest A binary"),
+        fs::read(&payload_a).expect("payload A")
+    );
+    assert_eq!(
+        fs::read(installer_content_dir(&install_dir, &digest_b).join("buck2"))
+            .expect("digest B binary"),
+        fs::read(&payload_b).expect("payload B")
+    );
+}
+
+#[test]
+fn buck2_installer_times_out_without_writes_then_recovers_after_holder_is_killed() {
+    let root = repo_root();
+    let fixture = TestDir::new("crash-recovery");
+    let bin = fixture.path().join("bin");
+    fs::create_dir_all(&bin).expect("create shim bin");
+    let payload = fixture.path().join("payload");
+    fs::write(&payload, b"#!/usr/bin/env bash\necho recovered\n").expect("write payload");
+    let digest = sha256(&payload);
+    let marker_dir = fixture.path().join("markers");
+    fs::create_dir_all(&marker_dir).expect("create marker directory");
+    let curl_body = "#!/usr/bin/env bash\nset -euo pipefail\nout=\"\"\nwhile [ \"$#\" -gt 0 ]; do case \"$1\" in -o) out=\"$2\"; shift 2 ;; *) shift ;; esac; done\ntouch \"$MARKER_DIR/curl-$INSTANCE\"\nif [ \"$INSTANCE\" = holder ]; then sleep 30; fi\ncp \"$PAYLOAD\" \"$out\"\n";
+    let zstd_body = "#!/usr/bin/env bash\nset -euo pipefail\ninput=\"\"; output=\"\"\nwhile [ \"$#\" -gt 0 ]; do case \"$1\" in -o) output=\"$2\"; shift 2 ;; -d|-f) shift ;; *) input=\"$1\"; shift ;; esac; done\ncp \"$input\" \"$output\"\n";
+    install_host_shims(&bin, zstd_body, curl_body);
+    let install_dir = fixture.path().join("install");
+    let content_dir = installer_content_dir(&install_dir, &digest);
+    fs::create_dir_all(&content_dir).expect("create content directory");
+    fs::write(content_dir.join("buck2"), b"prior-binary").expect("seed prior binary");
+
+    let mut holder = installer_command(&root, &bin, &install_dir, "asset.zst", &digest);
+    holder
+        .env("INSTANCE", "holder")
+        .env("MARKER_DIR", &marker_dir)
+        .env("PAYLOAD", &payload)
+        .process_group(0);
+    let mut holder = holder.spawn().expect("spawn lock holder");
+    let holder_group = holder.id();
+    wait_for_path(&marker_dir.join("curl-holder"), Duration::from_secs(5));
+
+    let contender = installer_command(&root, &bin, &install_dir, "asset.zst", &digest)
+        .env("BUCK2_INSTALL_LOCK_TIMEOUT_SECONDS", "1")
+        .env("INSTANCE", "contender")
+        .env("MARKER_DIR", &marker_dir)
+        .env("PAYLOAD", &payload)
+        .output()
+        .expect("run timed contender");
+    assert!(
+        !contender.status.success(),
+        "live-owner contender must time out"
+    );
+    assert!(
+        String::from_utf8_lossy(&contender.stderr)
+            .contains("Timed out waiting for Buck2 installer lock")
+    );
+    assert!(!marker_dir.join("curl-contender").exists());
+    assert_eq!(
+        fs::read(content_dir.join("buck2")).expect("prior binary"),
+        b"prior-binary"
+    );
+
+    holder.kill().expect("kill installer shell");
+    let _ = holder.wait();
+    let successor = installer_command(&root, &bin, &install_dir, "asset.zst", &digest)
+        .env("BUCK2_INSTALL_LOCK_TIMEOUT_SECONDS", "2")
+        .env("INSTANCE", "successor")
+        .env("MARKER_DIR", &marker_dir)
+        .env("PAYLOAD", &payload)
+        .output()
+        .expect("run crash-recovery successor");
+    let _ = Command::new("/bin/kill")
+        .args(["-KILL", &format!("-{holder_group}")])
+        .status();
+    assert_success(successor);
+    assert!(marker_dir.join("curl-successor").exists());
+    assert_eq!(
+        fs::read(content_dir.join("buck2")).expect("recovered binary"),
+        fs::read(&payload).expect("payload")
+    );
+    assert!(
+        fs::read_dir(&content_dir)
+            .expect("content directory")
+            .all(|entry| !entry
+                .expect("content entry")
+                .file_name()
+                .to_string_lossy()
+                .contains(".part."))
     );
 }
