@@ -27,7 +27,8 @@
 //!       [--volatile-out <path>] [--merge-base-baseline] [--frozen-base-ref <ref>]
 //!       [--retirement-control-plane <repo-relative-path>]
 //!       [--retirement-facts-out <path>] [--protected-base-commit <oid>]
-//!       [--candidate-commit <oid>]
+//!       [--evaluated-commit <oid>] [--scm-event-name <name>]
+//!       [--scm-event-ref <ref>] [--subject-commit <oid>]
 //!
 //! Default `--repo-root` is discovered up-tree (the dir holding `specs/root-hub-pointers.json`),
 //! default `--out` is `<repo-root>/ci/facade/artifact-inventory-registry/scm-facts.generated.json`,
@@ -171,6 +172,7 @@ fn run() -> Result<(), String> {
     let mut protected_base_commit: Option<String> = None;
     let mut evaluated_commit: Option<String> = None;
     let mut scm_event_name: Option<String> = None;
+    let mut scm_event_ref: Option<String> = None;
     let mut subject_commit: Option<String> = None;
 
     let mut i = 0;
@@ -294,6 +296,13 @@ fn run() -> Result<(), String> {
                     return Err("--scm-event-name requires an event name".to_owned());
                 }
             }
+            "--scm-event-ref" => {
+                i += 1;
+                scm_event_ref = args.get(i).cloned();
+                if scm_event_ref.as_deref().is_none_or(str::is_empty) {
+                    return Err("--scm-event-ref requires an event ref".to_owned());
+                }
+            }
             "--subject-commit" => {
                 i += 1;
                 subject_commit = args.get(i).cloned();
@@ -347,6 +356,7 @@ fn run() -> Result<(), String> {
         protected_base_commit.as_deref(),
         evaluated_commit.as_deref(),
         scm_event_name.as_deref(),
+        scm_event_ref.as_deref(),
         subject_commit.as_deref(),
     ) {
         (
@@ -355,6 +365,7 @@ fn run() -> Result<(), String> {
             Some(protected),
             Some(evaluated),
             Some(event),
+            Some(event_ref),
             Some(subject),
         ) => {
             retirement::emit_history_only_retirement_facts(
@@ -364,15 +375,16 @@ fn run() -> Result<(), String> {
                     protected_base_commit: protected,
                     evaluated_commit: evaluated,
                     scm_event_name: event,
+                    scm_event_ref: event_ref,
                     subject_commit: subject,
                 },
                 facts_out,
             )?;
         }
-        (None, None, None, None, None, None) => {}
+        (None, None, None, None, None, None, None) => {}
         _ => {
             return Err("--retirement-control-plane, --retirement-facts-out, \
-                 --protected-base-commit, --evaluated-commit, --scm-event-name, and --subject-commit are all-or-none"
+                 --protected-base-commit, --evaluated-commit, --scm-event-name, --scm-event-ref, and --subject-commit are all-or-none"
                 .to_owned());
         }
     }

@@ -260,6 +260,7 @@ pub struct RetirementMaterializationContext<'a> {
     pub protected_base_commit: &'a str,
     pub evaluated_commit: &'a str,
     pub scm_event_name: &'a str,
+    pub scm_event_ref: &'a str,
     pub subject_commit: &'a str,
 }
 
@@ -445,6 +446,7 @@ pub(crate) fn materialize_history_only_retirement_facts(
     validate_event_identity(
         source,
         context.scm_event_name,
+        context.scm_event_ref,
         &protected,
         &candidate,
         &subject,
@@ -1149,12 +1151,16 @@ fn validate_selector_coverage(
 fn validate_event_identity(
     source: &impl RetirementObjectSource,
     event: &str,
+    event_ref: &str,
     protected: &str,
     evaluated: &str,
     subject: &str,
 ) -> Result<(), String> {
     match event {
         "pull_request" => {
+            if !event_ref.starts_with("refs/pull/") {
+                return Err("pull_request event ref must be a pull request ref".to_owned());
+            }
             let parents = source.parents(evaluated)?;
             if parents != [protected.to_owned(), subject.to_owned()] {
                 return Err("pull_request evaluated commit parents must be exactly [protected base, subject]".to_owned());
@@ -1163,9 +1169,26 @@ fn validate_event_identity(
                 return Err("pull_request subject must not equal evaluated merge commit".to_owned());
             }
         }
-        "push" | "merge_group" if subject == evaluated => {}
-        "push" | "merge_group" => {
-            return Err("push and merge_group subject must equal evaluated commit".to_owned());
+        "push" => {
+            if event_ref != "refs/heads/dev" {
+                return Err("push event ref must be refs/heads/dev".to_owned());
+            }
+            if subject != evaluated {
+                return Err("push subject must equal evaluated commit".to_owned());
+            }
+            if source.parents(evaluated)? != [protected.to_owned()] {
+                return Err(
+                    "push evaluated commit parents must be exactly [protected base]".to_owned(),
+                );
+            }
+        }
+        "merge_group" => {
+            if !event_ref.starts_with("refs/heads/gh-readonly-queue/") {
+                return Err("merge_group event ref must be a merge queue ref".to_owned());
+            }
+            if subject != evaluated {
+                return Err("merge_group subject must equal evaluated commit".to_owned());
+            }
         }
         _ => {
             return Err(
@@ -1761,6 +1784,7 @@ mod tests {
     const PROTECTED_TREE: &str = "4444444444444444444444444444444444444444";
     const CANDIDATE: &str = "5555555555555555555555555555555555555555";
     const CANDIDATE_TREE: &str = "6666666666666666666666666666666666666666";
+    const OTHER_COMMIT: &str = "7777777777777777777777777777777777777777";
     #[derive(Clone)]
     struct FakeSource {
         commits: BTreeMap<String, String>,
@@ -1999,6 +2023,7 @@ mod tests {
             protected_base_commit: PROTECTED,
             evaluated_commit: CANDIDATE,
             scm_event_name: "push",
+            scm_event_ref: "refs/heads/dev",
             subject_commit: CANDIDATE,
         }
     }
@@ -2008,6 +2033,7 @@ mod tests {
         let mut source = fixture();
         let mut context = context();
         context.scm_event_name = "pull_request";
+        context.scm_event_ref = "refs/pull/123/merge";
         context.subject_commit = PREDECESSOR;
         source.parents = vec![PROTECTED.to_owned(), PREDECESSOR.to_owned()];
         assert!(materialize_history_only_retirement_facts(&source, &context).is_ok());
@@ -2032,6 +2058,11 @@ mod tests {
             let source = fixture();
             let mut context = context();
             context.scm_event_name = event;
+            context.scm_event_ref = if event == "push" {
+                "refs/heads/dev"
+            } else {
+                "refs/heads/gh-readonly-queue/dev/pr-123"
+            };
             context.subject_commit = PREDECESSOR;
             assert!(materialize_history_only_retirement_facts(&source, &context).is_err());
         }
@@ -2047,6 +2078,64 @@ mod tests {
         assert!(
             error.contains("push evaluated commit parents"),
             "unexpected error: {error}"
+        );
+    }
+
+    #[test]
+    fn event_identity_rejects_non_dev_push_ref() {
+        let mut context = context();
+        context.scm_event_ref = "refs/heads/contributor";
+
+        let error = materialize_history_only_retirement_facts(&fixture(), &context)
+            .expect_err("pushes outside dev must fail closed");
+        assert!(
+            error.contains("refs/heads/dev"),
+            "unexpected error: {error}"
+        );
+    }
+
+    #[test]
+    fn event_identity_rejects_evaluated_commit_away_from_head() {
+        let mut source = fixture();
+        source
+            .commits
+            .insert(OTHER_COMMIT.to_owned(), OTHER_COMMIT.to_owned());
+        let mut context = context();
+        context.evaluated_commit = OTHER_COMMIT;
+
+        let error = materialize_history_only_retirement_facts(&source, &context)
+            .expect_err("evaluated commit must resolve to HEAD");
+        assert!(
+            error.contains("not exact HEAD"),
+            "unexpected error: {error}"
+        );
+    }
+
+    #[test]
+    fn event_identity_rejects_push_with_provider_first_parent_mismatch() {
+        let mut source = fixture();
+        source.first_parent = PREDECESSOR.to_owned();
+
+        let error = materialize_history_only_retirement_facts(&source, &context)
+            .expect_err("push first parent must equal provider protected SHA");
+        assert!(
+            error.contains("not candidate first parent"),
+            "unexpected error: {error}"
+        );
+    }
+
+    #[test]
+    fn merge_group_keeps_evaluated_self_without_contributor_identity() {
+        let source = fixture();
+        let mut context = context();
+        context.scm_event_name = "merge_group";
+        context.scm_event_ref = "refs/heads/gh-readonly-queue/dev/pr-123";
+
+        let facts = materialize_history_only_retirement_facts(&source, &context)
+            .expect("merge-group evaluated-self topology remains valid");
+        assert!(
+            !facts.to_string().contains("contributor"),
+            "merge-group facts must not invent a contributor field"
         );
     }
 

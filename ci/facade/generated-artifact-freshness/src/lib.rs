@@ -200,6 +200,7 @@ pub struct RetirementMaterializeArgs {
     pub protected_base_commit: String,
     pub evaluated_commit: String,
     pub scm_event_name: String,
+    pub scm_event_ref: String,
     pub subject_commit: String,
 }
 
@@ -446,6 +447,7 @@ pub fn parse_materialize_generated_faces_args(
     let mut protected_base_commit: Option<String> = None;
     let mut evaluated_commit: Option<String> = None;
     let mut scm_event_name: Option<String> = None;
+    let mut scm_event_ref: Option<String> = None;
     let mut subject_commit: Option<String> = None;
     let mut iter = args.into_iter();
     while let Some(arg) = iter.next() {
@@ -498,6 +500,14 @@ pub fn parse_materialize_generated_faces_args(
                 };
                 scm_event_name = Some(value);
             }
+            "--scm-event-ref" => {
+                let Some(value) = iter.next().filter(|value| !value.is_empty()) else {
+                    return Err(FreshnessError::new(
+                        "materialize generated faces: --scm-event-ref requires an event ref",
+                    ));
+                };
+                scm_event_ref = Some(value);
+            }
             "--subject-commit" => {
                 let Some(value) = iter.next().filter(|value| !value.is_empty()) else {
                     return Err(FreshnessError::new(
@@ -523,6 +533,7 @@ pub fn parse_materialize_generated_faces_args(
         protected_base_commit,
         evaluated_commit,
         scm_event_name,
+        scm_event_ref,
         subject_commit,
     ) {
         (
@@ -531,6 +542,7 @@ pub fn parse_materialize_generated_faces_args(
             Some(protected_base_commit),
             Some(evaluated_commit),
             Some(scm_event_name),
+            Some(scm_event_ref),
             Some(subject_commit),
         ) => {
             if control_plane_path != RETIREMENT_CONTROL_PLANE_PATH {
@@ -549,15 +561,16 @@ pub fn parse_materialize_generated_faces_args(
                 protected_base_commit,
                 evaluated_commit,
                 scm_event_name,
+                scm_event_ref,
                 subject_commit,
             })
         }
-        (None, None, None, None, None, None) => None,
+        (None, None, None, None, None, None, None) => None,
         _ => {
             return Err(FreshnessError::new(
                 "materialize generated faces: --retirement-control-plane, \
-                 --retirement-facts-out, --protected-base-commit, --evaluated-commit, --scm-event-name, and --subject-commit \
-                 are all-or-none",
+                 --retirement-facts-out, --protected-base-commit, --evaluated-commit, \
+                 --scm-event-name, --scm-event-ref, and --subject-commit are all-or-none",
             ));
         }
     };
@@ -570,7 +583,7 @@ pub fn parse_materialize_generated_faces_args(
 pub fn materialize_generated_faces_usage() -> &'static str {
     "usage: oya-cloud-ci-materialize-generated-faces [--repo-root <path>] \
      [--retirement-control-plane <repo-relative-path> --retirement-facts-out <path> \
-     --protected-base-commit <oid> --evaluated-commit <oid> --scm-event-name <name> --subject-commit <oid>]"
+     --protected-base-commit <oid> --evaluated-commit <oid> --scm-event-name <name> --scm-event-ref <ref> --subject-commit <oid>]"
 }
 
 pub fn parse_face_settle_args(args: Vec<String>) -> Result<FaceSettleArgs, FreshnessError> {
@@ -1810,6 +1823,7 @@ fn append_retirement_materialization_args(
             .args(["--protected-base-commit", &retirement.protected_base_commit])
             .args(["--evaluated-commit", &retirement.evaluated_commit])
             .args(["--scm-event-name", &retirement.scm_event_name])
+            .args(["--scm-event-ref", &retirement.scm_event_ref])
             .args(["--subject-commit", &retirement.subject_commit]);
     }
 }

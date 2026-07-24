@@ -31,6 +31,7 @@ fn context() -> RetirementMaterializationContext<'static> {
         protected_base_commit: PROTECTED,
         evaluated_commit: CANDIDATE,
         scm_event_name: "push",
+        scm_event_ref: "refs/heads/dev",
         subject_commit: CANDIDATE,
     }
 }

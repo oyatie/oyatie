@@ -90,12 +90,13 @@ jobs:
           EVENT_PROTECTED_SHA: ${{ github.event.pull_request.base.sha || github.event.before || github.event.merge_group.base_sha || '' }}
           EVENT_SUBJECT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
           EVENT_NAME: ${{ github.event_name }}
+          EVENT_REF: ${{ github.ref }}
         run: |
           set -euo pipefail
           rustup toolchain install
           rustc --version
           # The protected base is a GitHub event fact. workflow_dispatch has no PR, push, or
-          # merge-group base SHA, so HEAD^1 would be an untrusted graph guess on a normal
+          # merge-group base SHA, so a graph-parent lookup would be an untrusted guess on a normal
           # multi-commit branch. Do not materialize retirement facts without that authority.
           if [ -z "${EVENT_PROTECTED_SHA}" ]; then
             echo "refusing retirement materialization: event lacks an authoritative protected-base SHA" >&2
@@ -112,6 +113,7 @@ jobs:
             --protected-base-commit "${protected_base_commit}" \
             --evaluated-commit "${evaluated_commit}" \
             --scm-event-name "${EVENT_NAME}" \
+            --scm-event-ref "${EVENT_REF}" \
             --subject-commit "${subject_commit}"
       - name: Upload regenerated faces
         # actions/upload-artifact@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
