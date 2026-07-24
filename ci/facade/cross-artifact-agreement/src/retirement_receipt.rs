@@ -23,6 +23,17 @@ pub const RETIREMENT_RECEIPT_VALIDATOR: &str =
 pub const RETIREMENT_RECEIPT_CODE: &str = "history_only_retirement_receipt_invalid";
 
 const RETIREMENT_CONTROL_PLANE_PATH: &str = "registry/history-only-retirement/control-plane.json";
+const RETIREMENT_CONTROL_PLANE_FIELDS: &[&str] = &[
+    "$schema",
+    "schema_version",
+    "canonical_name",
+    "planning_state",
+    "dispatch_authorized",
+    "receipt_root",
+    "predecessor_snapshot",
+    "entries",
+];
+const PREDECESSOR_SNAPSHOT_FIELDS: &[&str] = &["commit_oid", "tree_oid"];
 
 const RECEIPT_FIELDS: &[&str] = &[
     "$schema",
@@ -854,7 +865,14 @@ fn validate_candidate_control_plane_source(
         ("planning_state", "HOLD(Planning)"),
         ("receipt_root", "evidence/history-only-retirement"),
     ];
-    if raw.get("schema_version").and_then(Value::as_u64) != Some(1)
+    let raw_header_is_closed = raw.as_object().is_some_and(|object| {
+        object.len() == RETIREMENT_CONTROL_PLANE_FIELDS.len()
+            && object
+                .keys()
+                .all(|key| RETIREMENT_CONTROL_PLANE_FIELDS.contains(&key.as_str()))
+    });
+    if !raw_header_is_closed
+        || raw.get("schema_version").and_then(Value::as_u64) != Some(1)
         || raw.get("dispatch_authorized") != Some(&Value::Bool(false))
         || expected_header
             .iter()
@@ -863,6 +881,28 @@ fn validate_candidate_control_plane_source(
         fail(
             findings,
             "retirement_control_plane_context.candidate_raw_header",
+        );
+    }
+    let raw_predecessor = raw.get("predecessor_snapshot");
+    let materialized_predecessor = facts.pointer("/scm_facts/protected_scm_context");
+    let raw_predecessor_is_closed =
+        raw_predecessor
+            .and_then(Value::as_object)
+            .is_some_and(|object| {
+                object.len() == PREDECESSOR_SNAPSHOT_FIELDS.len()
+                    && object
+                        .keys()
+                        .all(|key| PREDECESSOR_SNAPSHOT_FIELDS.contains(&key.as_str()))
+            });
+    if !raw_predecessor_is_closed
+        || raw_predecessor.and_then(|value| value.get("commit_oid"))
+            != materialized_predecessor.and_then(|value| value.get("predecessor_commit_oid"))
+        || raw_predecessor.and_then(|value| value.get("tree_oid"))
+            != materialized_predecessor.and_then(|value| value.get("predecessor_tree_oid"))
+    {
+        fail(
+            findings,
+            "retirement_control_plane_context.candidate_raw_predecessor_binding",
         );
     }
     let raw_entries = raw.get("entries").and_then(Value::as_array);

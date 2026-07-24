@@ -193,6 +193,12 @@ fn installed_dormant_history_only_facts_fixture(control_plane_bytes: &[u8]) -> V
     let control_plane_sha256 = prefixed_sha256(control_plane_bytes);
     let control_plane_byte_count = control_plane_bytes.len();
     let control_plane_blob_oid = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+    let predecessor_commit_oid = control_plane["predecessor_snapshot"]["commit_oid"]
+        .as_str()
+        .expect("fixture predecessor commit");
+    let predecessor_tree_oid = control_plane["predecessor_snapshot"]["tree_oid"]
+        .as_str()
+        .expect("fixture predecessor tree");
     serde_json::json!({
         "receipts": [],
         "scm_facts": {
@@ -219,8 +225,8 @@ fn installed_dormant_history_only_facts_fixture(control_plane_bytes: &[u8]) -> V
                 "protected_base_is_ancestor_of_evaluated": true,
                 "protected_base_is_evaluated_first_parent": true,
                 "subject_is_evaluated_second_parent": false,
-                "predecessor_commit_oid": "1111111111111111111111111111111111111111",
-                "predecessor_tree_oid": "2222222222222222222222222222222222222222",
+                "predecessor_commit_oid": predecessor_commit_oid,
+                "predecessor_tree_oid": predecessor_tree_oid,
                 "predecessor_commit_exists": true,
                 "predecessor_tree_exists": true,
                 "predecessor_commit_tree_bound": true,
