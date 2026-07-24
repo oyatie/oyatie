@@ -7,20 +7,20 @@ mod idea_archive_transition;
 
 use std::collections::BTreeSet;
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::{Component, Path, PathBuf};
 use std::process::Command;
 
 use ci_cross_artifact_agreement::{
-    AdrDecisionRecord, GateCoverageBaseline, RatchetReport, Verdict,
-    derive_masterplan_md_projection, evaluate, evaluate_adr_index_projection_parity,
-    evaluate_adr_prose_frontmatter_status, evaluate_masterplan_plan_evidence_crosscheck,
-    evaluate_masterplan_projection_rederivation, evaluate_masterplan_read_surface_resurrections,
-    evaluate_masterplan_v2_authority, evaluate_masterplan_v2_entry_surfaces,
-    evaluate_masterplan_v2_evidence_state, evaluate_masterplan_v2_plan_evidence_drift,
-    evaluate_masterplan_v2_preplanning_candidate_facts, evaluate_masterplan_v2_program_coverage,
-    evaluate_masterplan_v2_projection_freshness, evaluate_masterplan_v2_ratification_digest,
-    evaluate_masterplan_v2_read_contract_archives, evaluate_masterplan_v2_sequencing,
-    evaluate_registry_derived_policy_sync, ratchet,
+    AdrDecisionRecord, GateCoverageBaseline, RatchetReport, RawHistoryOnlyRetirementReceipt,
+    Verdict, derive_masterplan_md_projection, evaluate, evaluate_adr_index_projection_parity,
+    evaluate_adr_prose_frontmatter_status, evaluate_and_project_history_only_retirement_facts,
+    evaluate_masterplan_plan_evidence_crosscheck, evaluate_masterplan_projection_rederivation,
+    evaluate_masterplan_read_surface_resurrections, evaluate_masterplan_v2_authority,
+    evaluate_masterplan_v2_entry_surfaces, evaluate_masterplan_v2_evidence_state,
+    evaluate_masterplan_v2_plan_evidence_drift, evaluate_masterplan_v2_preplanning_candidate_facts,
+    evaluate_masterplan_v2_program_coverage, evaluate_masterplan_v2_projection_freshness,
+    evaluate_masterplan_v2_ratification_digest, evaluate_masterplan_v2_read_contract_archives,
+    evaluate_masterplan_v2_sequencing, evaluate_registry_derived_policy_sync, ratchet,
 };
 use serde_json::Value;
 use sha2::{Digest, Sha256};
@@ -71,6 +71,33 @@ fn load_json(path: &PathBuf) -> Value {
 
 fn prefixed_sha256(bytes: &[u8]) -> String {
     format!("sha256:{:x}", Sha256::digest(bytes))
+}
+
+fn declared_raw_history_only_receipts(root: &Path, facts: &Value) -> Vec<(String, Vec<u8>, Value)> {
+    facts["receipts"]
+        .as_array()
+        .expect("history-only facts receipts array")
+        .iter()
+        .map(|metadata| {
+            let receipt_path = metadata["receipt_path"]
+                .as_str()
+                .expect("history-only receipt metadata path");
+            assert!(
+                Path::new(receipt_path)
+                    .components()
+                    .all(|component| matches!(component, Component::Normal(_))),
+                "history-only receipt path must be repo-relative and canonical: {receipt_path}"
+            );
+            let path = root.join(receipt_path);
+            let bytes = fs::read(&path).unwrap_or_else(|error| {
+                panic!("read declared raw receipt {}: {error}", path.display())
+            });
+            let document: Value = serde_json::from_slice(&bytes).unwrap_or_else(|error| {
+                panic!("parse declared raw receipt {}: {error}", path.display())
+            });
+            (receipt_path.to_owned(), bytes, document)
+        })
+        .collect()
 }
 
 fn validate_history_only_retirement_facts_binding(
@@ -341,6 +368,75 @@ fn validate_history_only_retirement_facts_binding(
     Ok(())
 }
 
+fn validate_history_only_retirement_control_plane_binding(
+    facts: &Value,
+    control_plane_bytes: &[u8],
+) -> Result<(), String> {
+    let control_plane: Value = serde_json::from_slice(control_plane_bytes)
+        .map_err(|error| format!("parse history-only retirement control plane: {error}"))?;
+    let expected_control_keys = BTreeSet::from([
+        "$schema",
+        "schema_version",
+        "canonical_name",
+        "planning_state",
+        "dispatch_authorized",
+        "receipt_root",
+        "predecessor_snapshot",
+        "entries",
+    ]);
+    let actual_control_keys = control_plane
+        .as_object()
+        .ok_or_else(|| "history-only retirement control plane must be an object".to_owned())?
+        .keys()
+        .map(String::as_str)
+        .collect::<BTreeSet<_>>();
+    if actual_control_keys != expected_control_keys {
+        return Err("history-only retirement control plane has an unexpected key set".to_owned());
+    }
+
+    let context = facts
+        .pointer("/scm_facts/retirement_control_plane_context")
+        .and_then(Value::as_object)
+        .ok_or_else(|| "history-only retirement facts has no control-plane context".to_owned())?;
+    let expected_context_keys = BTreeSet::from([
+        "control_plane_path",
+        "receipt_root",
+        "bootstrap",
+        "lifecycle_state",
+        "protected_control_plane_blob_oid",
+        "protected_control_plane_sha256",
+        "protected_control_plane_byte_count",
+        "candidate_control_plane_blob_oid",
+        "candidate_control_plane_sha256",
+        "candidate_control_plane_byte_count",
+        "control_plane_entries",
+        "control_plane_entry_hashes",
+        "protected_receipt_root_paths",
+        "candidate_receipt_root_paths",
+        "unexpected_protected_receipt_paths",
+        "unexpected_candidate_receipt_paths",
+    ]);
+    let actual_context_keys = context.keys().map(String::as_str).collect::<BTreeSet<_>>();
+    let expected_sha256 = prefixed_sha256(control_plane_bytes);
+    if actual_context_keys != expected_context_keys
+        || context.get("control_plane_path").and_then(Value::as_str)
+            != Some("registry/history-only-retirement/control-plane.json")
+        || context.get("receipt_root") != control_plane.get("receipt_root")
+        || context.get("control_plane_entries") != control_plane.get("entries")
+        || context
+            .get("candidate_control_plane_byte_count")
+            .and_then(Value::as_u64)
+            != u64::try_from(control_plane_bytes.len()).ok()
+        || context
+            .get("candidate_control_plane_sha256")
+            .and_then(Value::as_str)
+            != Some(expected_sha256.as_str())
+    {
+        return Err("history-only control-plane source binding drifted".to_owned());
+    }
+    Ok(())
+}
+
 fn dormant_history_only_binding_fixture(control_plane_bytes: &[u8]) -> Value {
     let control_plane: Value =
         serde_json::from_slice(control_plane_bytes).expect("fixture control plane parses");
@@ -408,7 +504,7 @@ fn history_only_retirement_binding_rejects_candidate_control_plane_drift() {
     facts["scm_facts"]["retirement_control_plane_context"]["candidate_control_plane_byte_count"] =
         serde_json::json!(control_plane.len() + 1);
 
-    let error = validate_history_only_retirement_facts_binding(&facts, control_plane)
+    let error = validate_history_only_retirement_control_plane_binding(&facts, control_plane)
         .expect_err("candidate control-plane byte drift must fail closed");
     assert!(error.contains("byte count"), "unexpected error: {error}");
 }
@@ -417,7 +513,7 @@ fn history_only_retirement_binding_rejects_candidate_control_plane_drift() {
 fn history_only_retirement_binding_accepts_controller_materialized_dormant_facts() {
     let control_plane = br#"{"$schema":"schema","schema_version":1,"canonical_name":"history-only-retirement-control-plane","planning_state":"HOLD(Planning)","dispatch_authorized":false,"receipt_root":"evidence/history-only-retirement","predecessor_snapshot":{},"entries":[{"scope_ref":"one"},{"scope_ref":"two"},{"scope_ref":"three"}]}"#;
     let facts = dormant_history_only_binding_fixture(control_plane);
-    validate_history_only_retirement_facts_binding(&facts, control_plane)
+    validate_history_only_retirement_control_plane_binding(&facts, control_plane)
         .expect("controller-bound dormant facts must validate");
 }
 
@@ -498,8 +594,36 @@ fn live_history_only_retirement_facts_are_bound_to_the_controller_control_plane(
     let control_plane_bytes = fs::read(&control_plane_path)
         .unwrap_or_else(|error| panic!("read {}: {error}", control_plane_path.display()));
 
-    validate_history_only_retirement_facts_binding(&facts, &control_plane_bytes)
-        .unwrap_or_else(|error| panic!("history-only retirement facts binding failed: {error}"));
+    validate_history_only_retirement_control_plane_binding(&facts, &control_plane_bytes)
+        .unwrap_or_else(|error| {
+            panic!("history-only retirement control-plane binding failed: {error}")
+        });
+
+    let raw_storage = declared_raw_history_only_receipts(&root, &facts);
+    let raw_receipts = raw_storage
+        .iter()
+        .map(
+            |(receipt_path, bytes, document)| RawHistoryOnlyRetirementReceipt {
+                receipt_path,
+                bytes,
+                document,
+            },
+        )
+        .collect::<Vec<_>>();
+    let evaluation = evaluate_and_project_history_only_retirement_facts(&facts, &raw_receipts);
+    assert!(
+        evaluation.findings.is_empty(),
+        "history-only facts plus declared raw receipts failed: {:?}",
+        evaluation.findings
+    );
+    assert!(
+        evaluation
+            .projection
+            .expect("validated history-only projection")
+            .evidence_set_ids()
+            .is_empty(),
+        "dormant live facts must not project a closure"
+    );
 }
 
 fn expected_violations(fixture: &Value) -> BTreeSet<String> {

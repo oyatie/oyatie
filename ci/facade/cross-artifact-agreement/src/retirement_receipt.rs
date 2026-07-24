@@ -208,6 +208,16 @@ const RETIREMENT_CONTROL_PLANE_CONTEXT_FIELDS: &[&str] = &[
 ];
 const RECEIPT_CORPUS_FIELDS: &[&str] = &["receipts", "scm_facts"];
 const RECEIPT_RECORD_FIELDS: &[&str] = &["receipt_path", "receipt"];
+const RECEIPT_METADATA_FIELDS: &[&str] = &[
+    "receipt_path",
+    "artifact_id",
+    "scope_ref",
+    "receipt_state",
+    "candidate_receipt_blob_oid",
+    "candidate_receipt_sha256",
+    "baseline_commit_oid",
+    "baseline_tree_oid",
+];
 const SCOPE_FIELDS: &[&str] = &[
     "scope_ref",
     "scope_type",
@@ -238,6 +248,18 @@ const REQUIRED_GATES: &[&str] = &[
     RETIREMENT_RECEIPT_VALIDATOR,
     IDEA_ARCHIVE_TRANSITION_VALIDATOR,
 ];
+
+/// A candidate receipt supplied separately from the generated metadata face.
+///
+/// The materializer owns the blob identity; callers provide the exact source bytes
+/// and their parsed JSON document.  Keeping this out of the generated face prevents
+/// retired-content bodies from becoming a second generated-artifact authority.
+#[derive(Clone, Debug)]
+pub struct RawHistoryOnlyRetirementReceipt<'a> {
+    pub receipt_path: &'a str,
+    pub bytes: &'a [u8],
+    pub document: &'a Value,
+}
 
 /// Validate one receipt against only declared facts. `scm_facts` must be the
 /// materialized object-fact face, never a live SCM query.
@@ -358,7 +380,7 @@ pub fn evaluate_history_only_retirement_receipt(
     let state = fact.get("receipt_state").and_then(Value::as_str);
     if !matches!(
         state,
-        Some("prepared-new" | "closure-new" | "carried" | "closed-carried")
+        Some("prepared-new" | "closure-new" | "closed-carried")
     ) {
         fail(&mut findings, "object_fact.receipt_state");
     }
@@ -528,7 +550,166 @@ pub fn evaluate_history_only_retirement_receipts(corpus: &Value) -> BTreeSet<Fin
     findings.extend(evaluate_history_only_retirement_receipt_coverage(
         &receipts, scm_facts,
     ));
-    validate_adr_0388_e4_bindings(corpus, &mut findings);
+    validate_adr_0388_e4_bindings(&receipts, scm_facts, &mut findings);
+    findings
+}
+
+/// Evaluate the canonical generated facts face together with separately loaded,
+/// path-bound candidate receipt documents.  The generated `receipts` array is
+/// metadata-only: it never carries a raw receipt body.
+pub fn evaluate_history_only_retirement_facts(
+    facts: &Value,
+    raw_receipts: &[RawHistoryOnlyRetirementReceipt<'_>],
+) -> BTreeSet<Finding> {
+    let mut findings = BTreeSet::new();
+    closed_object(
+        facts,
+        RECEIPT_CORPUS_FIELDS,
+        "history_only_retirement_facts",
+        &mut findings,
+    );
+    let scm_facts = child(facts, "scm_facts");
+    closed_object(scm_facts, SCM_FACT_FIELDS, "scm_facts", &mut findings);
+    let Some(metadata) = facts.get("receipts").and_then(Value::as_array) else {
+        fail(&mut findings, "history_only_retirement_facts.receipts");
+        return findings;
+    };
+
+    let mut metadata_by_path = BTreeMap::new();
+    for (index, row) in metadata.iter().enumerate() {
+        closed_object(
+            row,
+            RECEIPT_METADATA_FIELDS,
+            &format!("history_only_retirement_facts.receipts[{index}]"),
+            &mut findings,
+        );
+        let Some(path) = row
+            .get("receipt_path")
+            .and_then(Value::as_str)
+            .filter(|path| repo_path(path))
+        else {
+            fail(&mut findings, "history_only_retirement_facts.receipt_path");
+            continue;
+        };
+        if metadata_by_path.insert(path, row).is_some() {
+            fail(
+                &mut findings,
+                "history_only_retirement_facts.receipt_path_duplicate",
+            );
+        }
+        required_identifier(row, "artifact_id", &mut findings);
+        required_string(row, "scope_ref", &mut findings);
+        if !matches!(
+            row.get("receipt_state").and_then(Value::as_str),
+            Some("prepared-new" | "closure-new" | "closed-carried")
+        ) {
+            fail(&mut findings, "history_only_retirement_facts.receipt_state");
+        }
+        let _ = oid(
+            row,
+            "candidate_receipt_blob_oid",
+            "history_only_retirement_facts.candidate_receipt_blob_oid",
+            &mut findings,
+        );
+        if !sha256(row.get("candidate_receipt_sha256").and_then(Value::as_str)) {
+            fail(
+                &mut findings,
+                "history_only_retirement_facts.candidate_receipt_sha256",
+            );
+        }
+        let _ = oid(
+            row,
+            "baseline_commit_oid",
+            "history_only_retirement_facts.baseline_commit_oid",
+            &mut findings,
+        );
+        let _ = oid(
+            row,
+            "baseline_tree_oid",
+            "history_only_retirement_facts.baseline_tree_oid",
+            &mut findings,
+        );
+    }
+
+    let mut raw_by_path = BTreeMap::new();
+    for raw in raw_receipts {
+        if !repo_path(raw.receipt_path) || raw_by_path.insert(raw.receipt_path, raw).is_some() {
+            fail(
+                &mut findings,
+                "history_only_retirement_facts.raw_receipt_path",
+            );
+        }
+    }
+    if metadata_by_path.keys().copied().collect::<BTreeSet<_>>()
+        != raw_by_path.keys().copied().collect::<BTreeSet<_>>()
+    {
+        fail(
+            &mut findings,
+            "history_only_retirement_facts.raw_receipt_path_set",
+        );
+    }
+
+    let mut documents = Vec::with_capacity(raw_receipts.len());
+    for (path, metadata) in metadata_by_path {
+        let Some(raw) = raw_by_path.get(path) else {
+            continue;
+        };
+        if !matches!(serde_json::from_slice::<Value>(raw.bytes), Ok(ref parsed) if parsed == raw.document)
+        {
+            fail(
+                &mut findings,
+                "history_only_retirement_facts.raw_receipt_document_bytes",
+            );
+        }
+        let digest = format!("sha256:{:x}", Sha256::digest(raw.bytes));
+        if metadata
+            .get("candidate_receipt_sha256")
+            .and_then(Value::as_str)
+            != Some(digest.as_str())
+            || metadata.get("artifact_id") != raw.document.get("artifact_id")
+            || metadata.get("scope_ref") != raw.document.get("scope_ref")
+            || metadata.get("baseline_commit_oid") != raw.document.pointer("/baseline/commit_oid")
+            || metadata.get("baseline_tree_oid") != raw.document.pointer("/baseline/tree_oid")
+        {
+            fail(
+                &mut findings,
+                "history_only_retirement_facts.raw_receipt_metadata_binding",
+            );
+        }
+        let fact_matches = scm_facts
+            .pointer("/retirement_receipt_object_facts")
+            .and_then(Value::as_array)
+            .map(|rows| {
+                rows.iter()
+                    .filter(|fact| fact.get("receipt_path").and_then(Value::as_str) == Some(path))
+                    .collect::<Vec<_>>()
+            })
+            .unwrap_or_default();
+        if fact_matches.len() != 1
+            || fact_matches[0].get("artifact_id") != metadata.get("artifact_id")
+            || fact_matches[0].get("scope_ref") != metadata.get("scope_ref")
+            || fact_matches[0].get("receipt_state") != metadata.get("receipt_state")
+            || fact_matches[0].get("candidate_receipt_blob_oid")
+                != metadata.get("candidate_receipt_blob_oid")
+            || fact_matches[0].get("baseline_commit_oid") != metadata.get("baseline_commit_oid")
+            || fact_matches[0].get("baseline_tree_oid") != metadata.get("baseline_tree_oid")
+        {
+            fail(
+                &mut findings,
+                "history_only_retirement_facts.object_fact_metadata_binding",
+            );
+        }
+        findings.extend(evaluate_history_only_retirement_receipt(
+            path,
+            raw.document,
+            scm_facts,
+        ));
+        documents.push(raw.document.clone());
+    }
+    findings.extend(evaluate_history_only_retirement_receipt_coverage(
+        &documents, scm_facts,
+    ));
+    validate_adr_0388_e4_bindings(&documents, scm_facts, &mut findings);
     findings
 }
 
@@ -582,7 +763,46 @@ pub fn evaluate_and_project_history_only_retirement_closures(
     }
 }
 
-fn validate_adr_0388_e4_bindings(corpus: &Value, findings: &mut BTreeSet<Finding>) {
+/// Validate the canonical metadata-plus-raw-documents inputs before projection.
+#[must_use]
+pub fn evaluate_and_project_history_only_retirement_facts(
+    facts: &Value,
+    raw_receipts: &[RawHistoryOnlyRetirementReceipt<'_>],
+) -> HistoryOnlyRetirementClosureEvaluation {
+    let findings = evaluate_history_only_retirement_facts(facts, raw_receipts);
+    if !findings.is_empty() {
+        return HistoryOnlyRetirementClosureEvaluation {
+            findings,
+            projection: None,
+        };
+    }
+    let has_verified_adr_0388_closure = facts
+        .pointer("/scm_facts/retirement_receipt_object_facts")
+        .and_then(Value::as_array)
+        .is_some_and(|rows| {
+            rows.iter().any(|fact| {
+                fact.get("scope_ref").and_then(Value::as_str) == Some("ADR-0388")
+                    && matches!(
+                        fact.get("receipt_state").and_then(Value::as_str),
+                        Some("closure-new" | "closed-carried")
+                    )
+            })
+        });
+    HistoryOnlyRetirementClosureEvaluation {
+        findings,
+        projection: Some(if has_verified_adr_0388_closure {
+            IdeaArchiveVerifiedClosureProjection::verified_adr_0388_history_only_retirement()
+        } else {
+            IdeaArchiveVerifiedClosureProjection::default()
+        }),
+    }
+}
+
+fn validate_adr_0388_e4_bindings(
+    receipts: &[Value],
+    scm_facts: &Value,
+    findings: &mut BTreeSet<Finding>,
+) {
     let Ok(baseline) = immutable_idea_archive_baseline() else {
         fail(findings, "adr_0388_e4_baseline");
         return;
@@ -599,17 +819,12 @@ fn validate_adr_0388_e4_bindings(corpus: &Value, findings: &mut BTreeSet<Finding
             )
         })
         .collect::<Vec<_>>();
-    let receipts = corpus
-        .get("receipts")
-        .and_then(Value::as_array)
-        .map_or(&[][..], Vec::as_slice);
-    let facts = corpus
-        .pointer("/scm_facts/retirement_receipt_object_facts")
+    let facts = scm_facts
+        .get("retirement_receipt_object_facts")
         .and_then(Value::as_array)
         .map_or(&[][..], Vec::as_slice);
     let adr_receipts = receipts
         .iter()
-        .filter_map(|record| record.get("receipt"))
         .filter(|receipt| receipt.get("scope_ref").and_then(Value::as_str) == Some("ADR-0388"))
         .collect::<Vec<_>>();
     let adr_facts = facts
@@ -632,7 +847,7 @@ fn validate_adr_0388_e4_bindings(corpus: &Value, findings: &mut BTreeSet<Finding
         .iter()
         .map(|(path, _, _, _)| path.clone())
         .collect::<BTreeSet<_>>();
-    let coverage = child(child(corpus, "scm_facts"), "retirement_receipt_coverage");
+    let coverage = child(scm_facts, "retirement_receipt_coverage");
     let scopes = coverage
         .get("scopes")
         .and_then(Value::as_array)
@@ -657,8 +872,8 @@ fn validate_adr_0388_e4_bindings(corpus: &Value, findings: &mut BTreeSet<Finding
     }
 
     for entries in [
-        corpus.pointer("/scm_facts/protected_scm_context/control_plane_entries"),
-        corpus.pointer("/scm_facts/retirement_control_plane_context/control_plane_entries"),
+        scm_facts.pointer("/protected_scm_context/control_plane_entries"),
+        scm_facts.pointer("/retirement_control_plane_context/control_plane_entries"),
     ] {
         let Some(adr_entry) = entries.and_then(Value::as_array).and_then(|entries| {
             entries
@@ -775,6 +990,16 @@ pub fn evaluate_history_only_retirement_receipt_coverage(
         "retirement_control_plane_context",
         &mut findings,
     );
+    if facts
+        .get("retirement_receipt_object_facts")
+        .and_then(Value::as_array)
+        .is_some_and(|rows| {
+            rows.iter()
+                .any(|row| row.get("receipt_state").and_then(Value::as_str) == Some("carried"))
+        })
+    {
+        fail(&mut findings, "retirement_receipt_coverage.legacy_carried");
+    }
     let protected = path_set(
         coverage.get("protected_receipt_paths"),
         "protected_receipt_paths",
@@ -2539,7 +2764,7 @@ mod tests {
 
     #[test]
     fn declared_state_facts_reject_false_green_mutations() {
-        // 13 prepared-new mutations plus 6 for each carried epoch: 25 false-green
+        // Prepared-new and closed-carried mutations regress over declared facts.
         // regressions over declared facts, with no fixture elevated to authority.
         let prepared_claim =
             prepared_receipt("state-receipt", "ADR-0363", OLD, OLD_TREE, "docs/old.md");
@@ -2602,7 +2827,7 @@ mod tests {
             );
         }
 
-        for state in ["carried", "closed-carried"] {
+        for state in ["closed-carried"] {
             let mut carried = fact(
                 "state-receipt",
                 "evidence/state-receipt.json",
@@ -2658,13 +2883,18 @@ mod tests {
     }
 
     #[test]
-    fn carry_only_coverage_allows_no_prepared_receipts_and_rejects_scope_contamination() {
+    fn legacy_carried_coverage_is_rejected_before_scope_checks() {
         let carry_receipt = receipt("carry-only", "ADR-0363", OLD, OLD_TREE, "docs/old.md");
         let receipt_path = "evidence/carry-only.json";
         let selector = json!({"selector_type":"exact","selector":"docs/old.md","protected_paths":["docs/old.md"],"predecessor_paths":["docs/old.md"],"candidate_paths":[],"removed_paths":["docs/old.md"],"surviving_paths":[],"candidate_only_paths":[],"external_assertion":"not-applicable"});
         let facts = json!({"retirement_receipt_coverage":{"protected_base_ref":"origin/dev","protected_receipt_paths":[receipt_path],"candidate_receipt_paths":[receipt_path],"carried_receipt_paths":[receipt_path],"new_receipt_paths":[],"scopes":[{"scope_ref":"ADR-0363","scope_type":"amended-agentic-vcs-retirement","selectors":[selector.clone()],"required_retired_paths":["docs/old.md"]}],"required_retired_paths":["docs/old.md"]},"retirement_receipt_object_facts":[fact("carry-only",receipt_path,"ADR-0363","carried",OLD,OLD_TREE,"docs/old.md")],"protected_scm_context":protected_scm_context(&[]),"retirement_control_plane_context":retirement_control_plane_context(true)});
         assert!(
-            evaluate_history_only_retirement_receipt_coverage(&[carry_receipt], &facts).is_empty()
+            evaluate_history_only_retirement_receipt_coverage(&[carry_receipt], &facts).contains(
+                &Finding::new(
+                    RETIREMENT_RECEIPT_CODE,
+                    "retirement_receipt_coverage.legacy_carried"
+                )
+            )
         );
 
         let mut contaminated = facts;
@@ -2934,6 +3164,10 @@ mod tests {
         assert!(
             evaluate_history_only_retirement_receipts(&empty).is_empty(),
             "the dormant no-receipt state must be valid"
+        );
+        assert!(
+            evaluate_history_only_retirement_facts(&empty, &[]).is_empty(),
+            "the canonical metadata face admits a dormant state with no raw documents"
         );
 
         let mut present = empty;
@@ -3687,17 +3921,24 @@ mod tests {
             receipt_path: ADR_0388_CLOSURE_PATH,
             bytes: &bytes,
             document: &document,
-            blob_oid: BLOB,
         };
-        let valid = evaluate_and_project_history_only_retirement_facts(&facts, &[raw.clone()]);
-        assert!(valid.findings.is_empty(), "{:?}", valid.findings);
-        assert_eq!(
-            valid
-                .projection
-                .expect("validated closure projection")
-                .evidence_set_ids(),
-            &BTreeSet::from([ADR_0388_EVIDENCE_SET_ID.to_owned()])
-        );
+        for state in ["closure-new", "closed-carried"] {
+            let (facts, bytes, document) = canonical_facts_and_raw(state);
+            let raw = RawHistoryOnlyRetirementReceipt {
+                receipt_path: ADR_0388_CLOSURE_PATH,
+                bytes: &bytes,
+                document: &document,
+            };
+            let valid = evaluate_and_project_history_only_retirement_facts(&facts, &[raw]);
+            assert!(valid.findings.is_empty(), "{state}: {:?}", valid.findings);
+            assert_eq!(
+                valid
+                    .projection
+                    .expect("validated closure projection")
+                    .evidence_set_ids(),
+                &BTreeSet::from([ADR_0388_EVIDENCE_SET_ID.to_owned()])
+            );
+        }
 
         let missing = evaluate_and_project_history_only_retirement_facts(&facts, &[]);
         assert!(!missing.findings.is_empty());
@@ -3719,7 +3960,6 @@ mod tests {
             receipt_path: ADR_0388_CLOSURE_PATH,
             bytes: &bytes,
             document: &document,
-            blob_oid: BLOB,
         };
         for pointer in [
             "/receipts/0/candidate_receipt_sha256",
@@ -3754,6 +3994,20 @@ mod tests {
         let mut unknown_key = facts.clone();
         unknown_key["receipts"][0]["unexpected"] = json!(true);
         assert!(!evaluate_history_only_retirement_facts(&unknown_key, &[raw]).is_empty());
+
+        let mut tampered_bytes_facts = facts;
+        let tampered_bytes = br#"{}"#;
+        tampered_bytes_facts["receipts"][0]["candidate_receipt_sha256"] =
+            json!(format!("sha256:{:x}", Sha256::digest(tampered_bytes)));
+        let tampered = RawHistoryOnlyRetirementReceipt {
+            receipt_path: ADR_0388_CLOSURE_PATH,
+            bytes: tampered_bytes,
+            document: &document,
+        };
+        assert!(
+            !evaluate_history_only_retirement_facts(&tampered_bytes_facts, &[tampered]).is_empty(),
+            "raw bytes that do not encode the supplied receipt document were accepted"
+        );
     }
 
     #[test]
@@ -3797,7 +4051,6 @@ mod tests {
             receipt_path: ADR_0388_CLOSURE_PATH,
             bytes: &bytes,
             document: &document,
-            blob_oid: BLOB,
         };
         let evaluation = evaluate_and_project_history_only_retirement_facts(&legacy, &[raw]);
         assert!(!evaluation.findings.is_empty());
