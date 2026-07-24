@@ -301,6 +301,57 @@ fn production_evaluator_accepts_installed_dormant_facts() {
 }
 
 #[test]
+fn production_evaluator_rejects_candidate_control_plane_extensions() {
+    let canonical =
+        fs::read(repo_root().join("registry/history-only-retirement/control-plane.json"))
+            .expect("read canonical retirement control plane");
+    let mut extended: Value =
+        serde_json::from_slice(&canonical).expect("parse canonical retirement control plane");
+    extended["unexpected_candidate_authority"] = serde_json::json!(true);
+    let extended_bytes =
+        serde_json::to_vec(&extended).expect("serialize extended retirement control plane");
+    let facts = installed_dormant_history_only_facts_fixture(&extended_bytes);
+
+    let evaluation = evaluate_and_project_history_only_retirement_facts_with_control_plane(
+        &facts,
+        &[],
+        &extended_bytes,
+    );
+    assert!(
+        evaluation.findings.iter().any(|finding| {
+            finding.key == "retirement_control_plane_context.candidate_raw_header"
+        }),
+        "unexpected raw control-plane fields must fail closed: {:?}",
+        evaluation.findings
+    );
+    assert!(evaluation.projection.is_none());
+}
+
+#[test]
+fn production_evaluator_rejects_candidate_predecessor_drift() {
+    let control_plane =
+        fs::read(repo_root().join("registry/history-only-retirement/control-plane.json"))
+            .expect("read canonical retirement control plane");
+    let mut facts = installed_dormant_history_only_facts_fixture(&control_plane);
+    facts["scm_facts"]["protected_scm_context"]["predecessor_commit_oid"] =
+        serde_json::json!("5555555555555555555555555555555555555555");
+
+    let evaluation = evaluate_and_project_history_only_retirement_facts_with_control_plane(
+        &facts,
+        &[],
+        &control_plane,
+    );
+    assert!(
+        evaluation.findings.iter().any(|finding| {
+            finding.key == "retirement_control_plane_context.candidate_raw_predecessor_binding"
+        }),
+        "raw predecessor identity must bind the materialized SCM context: {:?}",
+        evaluation.findings
+    );
+    assert!(evaluation.projection.is_none());
+}
+
+#[test]
 fn history_only_retirement_control_plane_declares_workflow_and_event_identity_inputs() {
     let manifest = load_json(&repo_root().join("registry/generated-artifact-control-plane.json"));
     let row = manifest["artifacts"]
