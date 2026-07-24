@@ -4132,6 +4132,35 @@ mod tests {
     }
 
     #[test]
+    fn facts_and_raw_adapter_rejects_duplicate_json_keys() {
+        let (mut facts, bytes, document) = canonical_facts_and_raw("closure-new");
+        let artifact_id = document["artifact_id"]
+            .as_str()
+            .expect("fixture artifact id");
+        let original = format!(r#""artifact_id":"{artifact_id}""#);
+        let duplicate = format!(r#"{original},"artifact_id":"{artifact_id}""#);
+        let duplicate_bytes = String::from_utf8(bytes)
+            .expect("fixture JSON")
+            .replacen(&original, &duplicate, 1)
+            .into_bytes();
+        let digest = format!("sha256:{:x}", Sha256::digest(&duplicate_bytes));
+        facts["receipts"][0]["candidate_receipt_sha256"] = json!(digest);
+        facts["scm_facts"]["retirement_receipt_object_facts"][0]["candidate_registry_row_sha256"] =
+            facts["receipts"][0]["candidate_receipt_sha256"].clone();
+        let raw = RawHistoryOnlyRetirementReceipt {
+            receipt_path: ADR_0388_CLOSURE_PATH,
+            bytes: &duplicate_bytes,
+            document: &document,
+        };
+        let evaluation = evaluate_and_project_history_only_retirement_facts(&facts, &[raw]);
+        assert!(
+            !evaluation.findings.is_empty(),
+            "duplicate-key bytes were accepted as the supplied receipt document"
+        );
+        assert!(evaluation.projection.is_none());
+    }
+
+    #[test]
     fn facts_and_raw_adapter_rejects_legacy_carried_and_keeps_dormant_nonclaiming() {
         let bootstrap = json!({
             "receipts": [],
