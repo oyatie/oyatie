@@ -5,7 +5,7 @@
 # `reindeer buckify` regenerates third-party/BUCK from Cargo.lock + the static
 # third-party/fixups/*/fixups.toml. But several cross-platform-correctness edits
 # CANNOT be expressed in TOML/reindeer fixups (per-OS `select()`s and `$(location ...)`
-# macros), so a BARE `reindeer buckify` SILENTLY re-breaks the aarch64-linux build by
+# macros), so a bare `reindeer buckify` would silently re-break the aarch64-linux build by
 # re-introducing darwin-hardcoded values:
 #   - aws-lc-sys  LDFLAGS=-nostartfiles  (build-script feature-test double-CRT, #93)
 #   - openssl     DEP_OPENSSL_* per-OS select() (E0425 EVP_idea_*, #91)
@@ -14,36 +14,32 @@
 #   - aws-lc-sys  DEP_AWS_LC_*_INCLUDE = $(location ...) link env
 # (See docs/decisions/ADR-0514 + the per-crate notes in third-party/fixups/*.)
 #
-# This wrapper runs buckify THEN re-applies those hand-edits from a captured patch,
-# so the regen is reproducible and the Linux build stays green. ALWAYS regenerate via
-# this script, never bare `reindeer buckify`.
-#
-# When the underlying crate set changes (add/update/remove a dep), the patch may no
-# longer apply (context drift). In that case: run `reindeer buckify`, re-apply the
-# hand-edits by hand (search the fixups/* notes), confirm the aarch64-linux build is
-# green, then re-capture the patch:
-#     reindeer buckify
-#     # ... re-apply hand-edits, verify green ...
-#     git diff -R -- third-party/BUCK > scripts/ci/third-party-buckify-handedits.patch
+# This wrapper runs buckify THEN applies a semantic, fail-closed overlay. The overlay
+# uses rule names and required anchors, never hunk offsets, so dependency churn cannot
+# silently produce a partially patched generated face. ALWAYS regenerate via this script.
 #
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 
-PATCH="scripts/ci/third-party-buckify-handedits.patch"
+REINDEER_REV="681727ce"
+OVERLAY="tools/buck/apply-thirdparty-patches.py"
 
 command -v reindeer >/dev/null 2>&1 || { echo "ERROR: reindeer not found on PATH (cargo install reindeer)"; exit 1; }
-[ -f "$PATCH" ] || { echo "ERROR: missing $PATCH"; exit 1; }
+[ -f "$OVERLAY" ] || { echo "ERROR: missing $OVERLAY"; exit 1; }
+
+# Reindeer does not expose its git revision through `--version`. The cargo-install
+# receipt is therefore the authoritative local provenance check for this generated
+# face. A different generator revision may produce a different rule graph.
+if ! cargo install --list 2>/dev/null | grep -Fq "reindeer v0.0.0 (https://github.com/facebookincubator/reindeer#$REINDEER_REV)"; then
+  echo "ERROR: required reindeer revision $REINDEER_REV is not installed"
+  exit 1
+fi
 
 echo "[regen-third-party] reindeer buckify ..."
 reindeer buckify
 
-echo "[regen-third-party] re-applying cross-platform hand-edits ($PATCH) ..."
-if ! git apply "$PATCH"; then
-  echo "ERROR: hand-edits patch failed to apply — the dep set likely changed."
-  echo "       Re-apply the fixups/* hand-edits by hand, verify the aarch64-linux build,"
-  echo "       then re-capture: git diff -R -- third-party/BUCK > $PATCH"
-  exit 1
-fi
+echo "[regen-third-party] applying semantic cross-platform overlay ($OVERLAY) ..."
+python3 "$OVERLAY"
 
 echo "[regen-third-party] done. The per-OS select()s + LDFLAGS + \$(location) DEP env are restored."
 echo "[regen-third-party] Review: git diff third-party/BUCK should reflect ONLY intended dep changes."

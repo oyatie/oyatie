@@ -8,6 +8,11 @@
 # Workspace Cargo.toml (workspace root)
 manifest_path = "Cargo.toml"
 
+# A missing decision for any build script can truncate dependency traversal and
+# leave a stale generated graph.  Every such script must therefore have an
+# explicit fixup rather than merely producing a warning.
+unresolved_fixup_error = true
+
 # Output directory for generated BUCK rules
 third_party_dir = "third-party"
 
@@ -45,4 +50,3 @@ generated_file_header = """
 ## Run `reindeer buckify` to regenerate.
 ##
 """
-

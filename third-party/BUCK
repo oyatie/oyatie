@@ -958,6 +958,7 @@ cargo.rust_library(
         "CARGO_PKG_VERSION_MINOR": "6",
         "CARGO_PKG_VERSION_PATCH": "0",
         "CARGO_PKG_VERSION_PRE": "",
+        "OUT_DIR": "$(location :async-io-2-build-script-run[out_dir])",
     },
     platform = {
         "windows-gnu": dict(
@@ -967,6 +968,7 @@ cargo.rust_library(
             deps = [":windows-sys-0.61"],
         ),
     },
+    rustc_flags = ["@$(location :async-io-2-build-script-run[rustc_flags])"],
     visibility = [],
     deps = [
         ":cfg-if-1",
@@ -978,6 +980,38 @@ cargo.rust_library(
         ":rustix-1",
         ":slab-0.4",
     ],
+)
+
+cargo.rust_binary(
+    name = "async-io-2-build-script-build",
+    srcs = [":async-io-2.6.0.crate"],
+    crate = "build_script_build",
+    crate_root = "async-io-2.6.0.crate/build.rs",
+    edition = "2021",
+    env = {
+        "CARGO_MANIFEST_DIR": "async-io-2.6.0.crate",
+        "CARGO_PKG_NAME": "async-io",
+        "CARGO_PKG_VERSION": "2.6.0",
+        "CARGO_PKG_VERSION_MAJOR": "2",
+        "CARGO_PKG_VERSION_MINOR": "6",
+        "CARGO_PKG_VERSION_PATCH": "0",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
+    visibility = [],
+    deps = [":autocfg-1"],
+)
+
+buildscript_run(
+    name = "async-io-2-build-script-run",
+    package_name = "async-io",
+    buildscript_rule = ":async-io-2-build-script-build",
+    env = {
+        "CARGO_PKG_VERSION_MAJOR": "2",
+        "CARGO_PKG_VERSION_MINOR": "6",
+        "CARGO_PKG_VERSION_PATCH": "0",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
+    version = "2.6.0",
 )
 
 http_archive(
@@ -12179,15 +12213,6 @@ cxx_library(
     compiler_flags = ["-xassembler-with-cpp"],
     preferred_linkage = "static",
     preprocessor_flags = select({
-        # psm.h decorates the stack-manipulation asm symbol PER OS: darwin/macos/ios ->
-        # Mach-O leading underscore (_rust_psm_stack_pointer); ELF -> undecorated. The
-        # reindeer fixup hardcoded -DCFG_TARGET_OS_darwin, so on the aarch64-linux gate the
-        # asm emitted the Mach-O symbol while linux-ELF rustc references the undecorated
-        # rust_psm_stack_pointer -> `ld.lld: undefined symbol: rust_psm_stack_pointer` at the
-        # rust_binary final link (#96/#78). Per-OS select fixes it. PROVEN: cloud-intelligence-app
-        # links green on aarch64-linux with -DCFG_TARGET_OS_linux. NOTE: `reindeer buckify`
-        # regenerates from the static fixup and WILL wipe this select (TOML can't express it) --
-        # re-apply post-buckify (see third-party/fixups/psm/fixups.toml).
         "prelude//os:linux": [
             "-DCFG_TARGET_OS_linux",
             "-DCFG_TARGET_ARCH_aarch64",
@@ -13473,6 +13498,12 @@ cargo.rust_library(
     deps = [":nom-7"],
 )
 
+alias(
+    name = "rustix",
+    actual = ":rustix-1",
+    visibility = ["PUBLIC"],
+)
+
 http_archive(
     name = "rustix-1.1.4.crate",
     sha256 = "b6fe4565b9518b83ef4f91bb47ce29620ca828bd32cb7e408f0062e9930ba190",
@@ -13499,6 +13530,7 @@ cargo.rust_library(
     },
     features = [
         "alloc",
+        "default",
         "fs",
         "net",
         "std",
@@ -13506,7 +13538,6 @@ cargo.rust_library(
     platform = {
         "linux-arm64": dict(
             features = [
-                "default",
                 "event",
                 "pipe",
                 "process",
@@ -13516,7 +13547,6 @@ cargo.rust_library(
         ),
         "linux-x86_64": dict(
             features = [
-                "default",
                 "event",
                 "pipe",
                 "process",
@@ -13526,7 +13556,6 @@ cargo.rust_library(
         ),
         "macos-arm64": dict(
             features = [
-                "default",
                 "event",
                 "pipe",
                 "process",
@@ -13539,7 +13568,6 @@ cargo.rust_library(
         ),
         "macos-x86_64": dict(
             features = [
-                "default",
                 "event",
                 "pipe",
                 "process",
@@ -13585,6 +13613,7 @@ cargo.rust_binary(
     },
     features = [
         "alloc",
+        "default",
         "fs",
         "net",
         "std",
@@ -13592,7 +13621,6 @@ cargo.rust_binary(
     platform = {
         "linux-arm64": dict(
             features = [
-                "default",
                 "event",
                 "pipe",
                 "process",
@@ -13601,7 +13629,6 @@ cargo.rust_binary(
         ),
         "linux-x86_64": dict(
             features = [
-                "default",
                 "event",
                 "pipe",
                 "process",
@@ -13610,7 +13637,6 @@ cargo.rust_binary(
         ),
         "macos-arm64": dict(
             features = [
-                "default",
                 "event",
                 "pipe",
                 "process",
@@ -13619,7 +13645,6 @@ cargo.rust_binary(
         ),
         "macos-x86_64": dict(
             features = [
-                "default",
                 "event",
                 "pipe",
                 "process",
@@ -13648,6 +13673,7 @@ buildscript_run(
     },
     features = [
         "alloc",
+        "default",
         "fs",
         "net",
         "std",
@@ -13655,7 +13681,6 @@ buildscript_run(
     platform = {
         "linux-arm64": dict(
             features = [
-                "default",
                 "event",
                 "pipe",
                 "process",
@@ -13664,7 +13689,6 @@ buildscript_run(
         ),
         "linux-x86_64": dict(
             features = [
-                "default",
                 "event",
                 "pipe",
                 "process",
@@ -13673,7 +13697,6 @@ buildscript_run(
         ),
         "macos-arm64": dict(
             features = [
-                "default",
                 "event",
                 "pipe",
                 "process",
@@ -13682,7 +13705,6 @@ buildscript_run(
         ),
         "macos-x86_64": dict(
             features = [
-                "default",
                 "event",
                 "pipe",
                 "process",
@@ -13728,6 +13750,7 @@ cargo.rust_library(
         "aws_lc_rs",
         "log",
         "logging",
+        "prefer-post-quantum",
         "std",
         "tls12",
     ],
@@ -13766,6 +13789,7 @@ cargo.rust_binary(
         "aws_lc_rs",
         "log",
         "logging",
+        "prefer-post-quantum",
         "std",
         "tls12",
     ],
@@ -13787,6 +13811,7 @@ buildscript_run(
         "aws_lc_rs",
         "log",
         "logging",
+        "prefer-post-quantum",
         "std",
         "tls12",
     ],
@@ -16161,6 +16186,41 @@ cargo.rust_library(
         "CARGO_PKG_VERSION_MINOR": "0",
         "CARGO_PKG_VERSION_PATCH": "109",
         "CARGO_PKG_VERSION_PRE": "",
+        "OUT_DIR": "$(location :syn-1-build-script-run[out_dir])",
+    },
+    features = [
+        "clone-impls",
+        "default",
+        "derive",
+        "full",
+        "parsing",
+        "printing",
+        "proc-macro",
+        "quote",
+    ],
+    rustc_flags = ["@$(location :syn-1-build-script-run[rustc_flags])"],
+    visibility = [],
+    deps = [
+        ":proc-macro2-1",
+        ":quote-1",
+        ":unicode-ident-1",
+    ],
+)
+
+cargo.rust_binary(
+    name = "syn-1-build-script-build",
+    srcs = [":syn-1.0.109.crate"],
+    crate = "build_script_build",
+    crate_root = "syn-1.0.109.crate/build.rs",
+    edition = "2018",
+    env = {
+        "CARGO_MANIFEST_DIR": "syn-1.0.109.crate",
+        "CARGO_PKG_NAME": "syn",
+        "CARGO_PKG_VERSION": "1.0.109",
+        "CARGO_PKG_VERSION_MAJOR": "1",
+        "CARGO_PKG_VERSION_MINOR": "0",
+        "CARGO_PKG_VERSION_PATCH": "109",
+        "CARGO_PKG_VERSION_PRE": "",
     },
     features = [
         "clone-impls",
@@ -16173,11 +16233,29 @@ cargo.rust_library(
         "quote",
     ],
     visibility = [],
-    deps = [
-        ":proc-macro2-1",
-        ":quote-1",
-        ":unicode-ident-1",
+)
+
+buildscript_run(
+    name = "syn-1-build-script-run",
+    package_name = "syn",
+    buildscript_rule = ":syn-1-build-script-build",
+    env = {
+        "CARGO_PKG_VERSION_MAJOR": "1",
+        "CARGO_PKG_VERSION_MINOR": "0",
+        "CARGO_PKG_VERSION_PATCH": "109",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
+    features = [
+        "clone-impls",
+        "default",
+        "derive",
+        "full",
+        "parsing",
+        "printing",
+        "proc-macro",
+        "quote",
     ],
+    version = "1.0.109",
 )
 
 alias(

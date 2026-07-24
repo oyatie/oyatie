@@ -11035,7 +11035,7 @@ dependencies = [
 name = "secrets-kms-openbao"
 version = "0.1.0"
 dependencies = [
- "base64 0.21.7",
+ "base64 0.22.1",
  "oya-data-boundary-kernel",
  "secrets-kms-domain",
  "secrets-kms-enclave",
