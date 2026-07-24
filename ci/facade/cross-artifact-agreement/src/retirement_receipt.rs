@@ -1,15 +1,12 @@
 //! Pure, declared-input validation for history-only retirement receipts.
 //!
 //! This module never reads Git, the filesystem, process state, or ambient time.
-//! Its callers provide the receipt, candidate-authored retirement facts, and a separate
-//! `protected_scm_context` materialized at the Git trust boundary. That boundary keeps a
-//! receipt check hermetic and prevents candidate data from defining both sides of a proof.
+//! Its callers provide the receipt, materialized retirement facts, and (for live use) the exact
+//! candidate control-plane bytes from the Git trust boundary. The raw-source entrypoint keeps
+//! the check hermetic while binding face entries and digests to that parsed candidate object.
 //!
-//! This is a dormant foundation, not a live GATE-1 control: no receipt is promoted
-//! and its claim ceiling is HOLD(Planning). Test fixtures and direct callers are data,
-//! never admission authority. Activation is reserved for an atomic Git-boundary
-//! materializer cutover that derives actual origin/dev and candidate object hashes,
-//! absence/equivalence facts, and generated-face ownership.
+//! This validator preserves HOLD(Planning) and makes no admission or completion claim.
+//! Test fixtures and direct callers are data, never admission authority.
 
 use std::collections::{BTreeMap, BTreeSet};
 
