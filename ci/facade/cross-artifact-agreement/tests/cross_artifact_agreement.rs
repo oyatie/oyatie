@@ -79,6 +79,23 @@ fn named_workflow_step<'a>(workflow: &'a str, name: &str) -> &'a str {
     &tail[..end]
 }
 
+fn workflow_job<'a>(workflow: &'a str, job_name: &str) -> &'a str {
+    let marker = format!("  {job_name}:\n");
+    let start = workflow
+        .find(&marker)
+        .unwrap_or_else(|| panic!("workflow job {job_name}"));
+    let tail = &workflow[start..];
+    let end = tail[marker.len()..]
+        .find("\n  ")
+        .map(|offset| marker.len() + offset)
+        .unwrap_or(tail.len());
+    &tail[..end]
+}
+
+fn named_job_step<'a>(job: &'a str, name: &str) -> &'a str {
+    named_workflow_step(job, name)
+}
+
 fn assert_occurs_exactly_once(haystack: &str, needle: &str) {
     assert_eq!(
         haystack.match_indices(needle).count(),
@@ -420,6 +437,64 @@ fn retirement_workflow_producer_step_transports_each_event_and_cli_binding_once(
     assert!(
         !producer.contains("HEAD^1"),
         "protected base must be bound to the GitHub event, not inferred from HEAD^1"
+    );
+}
+
+#[test]
+fn broad_workflow_consumers_require_the_producer_artifact_and_keep_the_merge_base_historical() {
+    let workflow = fs::read_to_string(repo_root().join(".github/workflows/oya-ci-required.yml"))
+        .expect("read oya-ci-required workflow");
+    let download_commit = "actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c";
+
+    for (job_name, broad_step) in [
+        ("buck2", "buck2 build + test (//ci/..., hermetic — binding)"),
+        (
+            "gate-affected-target-set",
+            "Binding affected-set build + test (cone-binding; FULL tier = build-health ratchet)",
+        ),
+    ] {
+        let job = workflow_job(&workflow, job_name);
+        assert_occurs_exactly_once(job, "needs: producer-regen");
+        let download = named_job_step(
+            job,
+            "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)",
+        );
+        assert_occurs_exactly_once(
+            job,
+            "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)",
+        );
+        assert_occurs_exactly_once(download, download_commit);
+        assert_occurs_exactly_once(download, "name: accounting-faces");
+        assert_occurs_exactly_once(download, "path: ci/facade");
+        assert!(
+            job.find("Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)")
+                < job.find(broad_step),
+            "{job_name} must download producer faces before its broad test"
+        );
+    }
+
+    let affected = workflow_job(&workflow, "gate-affected-target-set");
+    let baseline = named_job_step(
+        affected,
+        "Materialize merge-base build + test baselines when affected-set needs FULL",
+    );
+    for binding in [
+        "git cat-file -e \"${merge_base}:registry/history-only-retirement/control-plane.json\"",
+        "git rev-list --parents -n 1 \"${merge_base}\"",
+        "git rev-parse \"${merge_base}^1\"",
+        "--retirement-control-plane registry/history-only-retirement/control-plane.json",
+        "--retirement-facts-out ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json",
+        "--protected-base-commit \"${merge_base_protected_base}\"",
+        "--evaluated-commit \"${merge_base}\"",
+        "--scm-event-name push",
+        "--scm-event-ref refs/heads/dev",
+        "--subject-commit \"${merge_base}\"",
+    ] {
+        assert_occurs_exactly_once(baseline, binding);
+    }
+    assert!(
+        !baseline.contains("accounting-faces") && !baseline.contains("cp ci/facade"),
+        "the clean merge-base worktree must never receive candidate accounting faces"
     );
 }
 
