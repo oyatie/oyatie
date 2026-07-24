@@ -13,6 +13,7 @@ use oya_cloud_ci_rust_first_automation_hygiene_app::{
     evaluate_non_rust_exception_baseline_keyed, evaluate_workflow_inline_shell_keyed,
 };
 use serde_json::{Value, json};
+use serde_yaml::Value as YamlValue;
 
 fn repo_root() -> PathBuf {
     let mut dir = std::env::current_dir().expect("current_dir");
@@ -42,6 +43,100 @@ fn load_json(path: &Path) -> Value {
 
 fn load_policy(root: &Path) -> Value {
     load_json(&policy_path(root))
+}
+
+fn named_workflow_step<'a>(workflow: &'a YamlValue, job_id: &str, name: &str) -> &'a YamlValue {
+    let steps = workflow
+        .get("jobs")
+        .and_then(|jobs| jobs.get(job_id))
+        .and_then(|job| job.get("steps"))
+        .and_then(YamlValue::as_sequence)
+        .unwrap_or_else(|| panic!("workflow job {job_id} must contain a steps sequence"));
+    let matches = steps
+        .iter()
+        .filter(|step| step.get("name").and_then(YamlValue::as_str) == Some(name))
+        .collect::<Vec<_>>();
+    assert_eq!(
+        matches.len(),
+        1,
+        "expected exactly one workflow step {name:?} in job {job_id:?}, found {}",
+        matches.len()
+    );
+    matches[0]
+}
+
+#[test]
+fn named_workflow_step_requires_an_exact_name_boundary() {
+    let workflow = "\
+jobs:
+  gate:
+    steps:
+      - name: Materialize cloud-ci generated faces (out-of-graph boundary)
+        run: echo wrong
+      - name: Materialize cloud-ci generated faces
+        run: echo right
+";
+
+    let workflow: YamlValue = serde_yaml::from_str(workflow).expect("parse workflow fixture");
+    let step = named_workflow_step(&workflow, "gate", "Materialize cloud-ci generated faces");
+    assert_eq!(
+        step.get("run").and_then(YamlValue::as_str),
+        Some("echo right")
+    );
+}
+
+#[test]
+fn named_workflow_step_is_scoped_to_the_requested_job() {
+    let workflow = "\
+jobs:
+  unrelated:
+    steps:
+      - name: Materialize cloud-ci generated faces
+        run: echo wrong-job
+  gate-affected-target-set:
+    steps:
+      - name: Materialize cloud-ci generated faces
+        run: echo right-job
+";
+
+    let workflow: YamlValue = serde_yaml::from_str(workflow).expect("parse workflow fixture");
+    let step = named_workflow_step(
+        &workflow,
+        "gate-affected-target-set",
+        "Materialize cloud-ci generated faces",
+    );
+    assert_eq!(
+        step.get("run").and_then(YamlValue::as_str),
+        Some("echo right-job")
+    );
+}
+
+#[test]
+fn named_workflow_step_rejects_duplicate_exact_names_inside_the_requested_job() {
+    let workflow: YamlValue = serde_yaml::from_str(
+        "\
+jobs:
+  producer-regen:
+    steps:
+      - name: Materialize cloud-ci generated faces
+        run: echo one
+      - name: Materialize cloud-ci generated faces
+        run: echo two
+",
+    )
+    .expect("parse workflow fixture");
+
+    let result = std::panic::catch_unwind(|| {
+        named_workflow_step(
+            &workflow,
+            "producer-regen",
+            "Materialize cloud-ci generated faces",
+        )
+    });
+    assert!(
+        result.is_err(),
+        "duplicate exact step names must fail closed"
+    );
 }
 
 fn keys_for(findings: &BTreeSet<Finding>, code: &str) -> BTreeSet<String> {
@@ -86,6 +181,53 @@ fn fixture_proves_unregistered_script_fails_closed() {
     }));
 }
 
+#[test]
+fn thirdparty_python_overlay_is_retired_into_owned_rust() {
+    let root = repo_root();
+    let policy = load_policy(&root);
+    let paths = [
+        "tools/buck/apply-thirdparty-patches.py",
+        "tools/buck/tests/test_apply_thirdparty_patches.py",
+    ];
+    let exceptions = policy["exceptions"].as_array().expect("exceptions array");
+    let baseline = policy["non_rust_exception_baseline"]["codes"]
+        ["rust_first_automation_unbaselined_non_rust_exception"]
+        .as_array()
+        .expect("non-Rust exception baseline array");
+
+    for path in paths {
+        assert!(
+            !root.join(path).exists(),
+            "retired Python overlay surface must be absent: {path}"
+        );
+        assert!(
+            !exceptions
+                .iter()
+                .any(|row| row["path"].as_str() == Some(path)),
+            "retired Python overlay must not remain exceptioned: {path}"
+        );
+        assert!(
+            !baseline.iter().any(|value| value.as_str() == Some(path)),
+            "retired Python overlay must shrink from the frozen baseline: {path}"
+        );
+    }
+    assert!(
+        root.join("ci/facade/dependency-automation/src/third_party_overlay.rs")
+            .is_file(),
+        "the semantic overlay must live in the owned Rust dependency-automation capability"
+    );
+    let wrapper = exceptions
+        .iter()
+        .find(|row| row["path"].as_str() == Some("scripts/ci/regen-third-party.sh"))
+        .expect("remaining Reindeer wrapper exception");
+    assert!(
+        wrapper["reason"]
+            .as_str()
+            .is_some_and(|reason| reason.contains("owned Rust/Buck2")),
+        "remaining wrapper debt must distinguish the Rust-owned overlay: {wrapper:#?}"
+    );
+}
+
 // ───────────────────────── workflow-inline-shell dimension (pipeline-glue(a)) ─────────────────────
 
 /// The `.github/workflows` surface MUST be in the gate's scan scope: the policy declares it as a
@@ -122,6 +264,101 @@ fn workflow_inline_shell_dimension_covers_dot_github_workflows() {
                 .is_some_and(|f| f.starts_with(".github/workflows/"))),
         "scanner must surface inline-shell steps under .github/workflows; got {} steps",
         steps.len()
+    );
+}
+
+#[test]
+fn retirement_event_transport_delegates_provider_tuple_to_rust_materializer_without_shell_topology()
+{
+    let root = repo_root();
+    let workflow_path = root.join(".github/workflows/oya-ci-required.yml");
+    let workflow = fs::read_to_string(&workflow_path)
+        .unwrap_or_else(|e| panic!("read {}: {e}", workflow_path.display()));
+    let workflow_doc: YamlValue = serde_yaml::from_str(&workflow)
+        .unwrap_or_else(|e| panic!("parse {}: {e}", workflow_path.display()));
+
+    assert!(
+        workflow.contains("workflow_dispatch:"),
+        "manual reruns remain an explicitly declared workflow surface"
+    );
+
+    let materialize = named_workflow_step(
+        &workflow_doc,
+        "producer-regen",
+        "Materialize cloud-ci generated faces",
+    );
+    let env = materialize
+        .get("env")
+        .unwrap_or_else(|| panic!("producer materializer must declare env"));
+    for (key, binding) in [
+        ("EVENT_EVALUATED_SHA", "${{ github.sha }}"),
+        (
+            "EVENT_PULL_REQUEST_BASE_SHA",
+            "${{ github.event.pull_request.base.sha || '' }}",
+        ),
+        ("EVENT_PUSH_BEFORE_SHA", "${{ github.event.before || '' }}"),
+        ("EVENT_PUSH_AFTER_SHA", "${{ github.event.after || '' }}"),
+        (
+            "EVENT_MERGE_GROUP_BASE_SHA",
+            "${{ github.event.merge_group.base_sha || '' }}",
+        ),
+        (
+            "EVENT_MERGE_GROUP_HEAD_SHA",
+            "${{ github.event.merge_group.head_sha || '' }}",
+        ),
+        (
+            "EVENT_PULL_REQUEST_HEAD_SHA",
+            "${{ github.event.pull_request.head.sha || '' }}",
+        ),
+        ("EVENT_NAME", "${{ github.event_name }}"),
+        ("EVENT_REF", "${{ github.ref }}"),
+        (
+            "EVENT_PULL_REQUEST_BASE_REF",
+            "${{ github.event.pull_request.base.ref || '' }}",
+        ),
+        (
+            "EVENT_MERGE_GROUP_BASE_REF",
+            "${{ github.event.merge_group.base_ref || '' }}",
+        ),
+    ] {
+        assert_eq!(
+            env.get(key).and_then(YamlValue::as_str),
+            Some(binding),
+            "producer materializer env binding drifted for {key}"
+        );
+    }
+    let run = materialize
+        .get("run")
+        .and_then(YamlValue::as_str)
+        .expect("producer materializer must be a Rust-owned run step");
+    assert!(
+        run.contains("buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . --github-event"),
+        "the one-line Rust materializer must own provider-tuple interpretation"
+    );
+    for forbidden in ["if [", "case ", "git ", "HEAD^", "rev-list", "cat-file"] {
+        assert!(
+            !run.contains(forbidden),
+            "producer shell must not own branching or git topology command {forbidden:?}"
+        );
+    }
+}
+
+#[test]
+fn retirement_control_plane_has_a_dedicated_owners_boundary() {
+    let root = repo_root();
+    let control_plane_root = root.join("registry/history-only-retirement");
+
+    assert!(
+        control_plane_root.join("control-plane.json").is_file(),
+        "the retirement control plane must live in its dedicated registry subtree"
+    );
+    assert!(
+        control_plane_root.join("OWNERS").is_file(),
+        "the retirement control plane must have a nearest-ancestor OWNERS boundary"
+    );
+    assert!(
+        !root.join("registry/OWNERS").exists(),
+        "the retirement control plane must not introduce registry-root blanket ownership"
     );
 }
 
@@ -221,20 +458,20 @@ fn new_inline_shell_beyond_baseline_is_born_blocking_red() {
     let baseline = json!({
         "codes": {
             "rust_first_automation_unbaselined_workflow_inline_shell": [
-                ".github/workflows/oya-ci-required.yml::buck2::step-1"
+                {"key": ".github/workflows/oya-ci-required.yml::buck2::Named shell", "shell_lines": 1}
             ]
         }
     });
     // Baselined key is present (accepted) + a NEW unbaselined key injected.
     let observed = json!({"steps": [
-        {"key": ".github/workflows/oya-ci-required.yml::buck2::step-1"},
-        {"key": ".github/workflows/oya-ci-required.yml::buck2::step-99-NEW-SHELL"}
+        {"key": ".github/workflows/oya-ci-required.yml::buck2::Named shell", "shell_lines": 1},
+        {"key": ".github/workflows/oya-ci-required.yml::buck2::New shell", "shell_lines": 1}
     ]});
     let findings = evaluate_workflow_inline_shell_keyed(&observed, &baseline);
     assert!(
         findings.iter().any(|finding| {
             finding.code == "rust_first_automation_unbaselined_workflow_inline_shell"
-                && finding.key == ".github/workflows/oya-ci-required.yml::buck2::step-99-NEW-SHELL"
+                && finding.key == ".github/workflows/oya-ci-required.yml::buck2::New shell"
         }),
         "a new inline-shell step beyond baseline must be born-blocking with its key surfaced; got \
          {findings:#?}"
@@ -242,7 +479,7 @@ fn new_inline_shell_beyond_baseline_is_born_blocking_red() {
     // The accepted baselined key must NOT be flagged (no false positive).
     assert!(
         !findings.iter().any(|finding| {
-            finding.key == ".github/workflows/oya-ci-required.yml::buck2::step-1"
+            finding.key == ".github/workflows/oya-ci-required.yml::buck2::Named shell"
         }),
         "an accepted baselined key must not be flagged"
     );
@@ -255,7 +492,7 @@ fn retired_baselined_inline_shell_is_stale_red() {
     let baseline = json!({
         "codes": {
             "rust_first_automation_unbaselined_workflow_inline_shell": [
-                ".github/workflows/docs-graph-drift.yml::docs-graph-drift::step-3"
+                {"key": ".github/workflows/docs-graph-drift.yml::docs-graph-drift::Named shell", "shell_lines": 1}
             ]
         }
     });
@@ -263,7 +500,8 @@ fn retired_baselined_inline_shell_is_stale_red() {
     let findings = evaluate_workflow_inline_shell_keyed(&observed, &baseline);
     assert!(findings.iter().any(|finding| {
         finding.code == "rust_first_automation_workflow_inline_shell_baseline_stale"
-            && finding.key == ".github/workflows/docs-graph-drift.yml::docs-graph-drift::step-3"
+            && finding.key
+                == ".github/workflows/docs-graph-drift.yml::docs-graph-drift::Named shell"
     }));
 }
 
@@ -284,8 +522,14 @@ fn live_non_rust_exceptions_match_frozen_baseline_green() {
         findings.is_empty(),
         "non-Rust-exception dimension found shrink-only violations: \
          {findings:#?}\n  unbaselined (new beyond baseline) = {:?}\n  stale (baselined but gone) = {:?}",
-        keys_for(&findings, "rust_first_automation_unbaselined_non_rust_exception"),
-        keys_for(&findings, "rust_first_automation_non_rust_exception_baseline_stale"),
+        keys_for(
+            &findings,
+            "rust_first_automation_unbaselined_non_rust_exception"
+        ),
+        keys_for(
+            &findings,
+            "rust_first_automation_non_rust_exception_baseline_stale"
+        ),
     );
 
     let codes_len = baseline["codes"]["rust_first_automation_unbaselined_non_rust_exception"]

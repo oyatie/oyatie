@@ -5,24 +5,26 @@
 
 mod idea_archive_transition;
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::{Component, Path, PathBuf};
 use std::process::Command;
 
 use ci_cross_artifact_agreement::{
-    AdrDecisionRecord, GateCoverageBaseline, RatchetReport, Verdict,
-    derive_masterplan_md_projection, evaluate, evaluate_adr_index_projection_parity,
-    evaluate_adr_prose_frontmatter_status, evaluate_masterplan_plan_evidence_crosscheck,
-    evaluate_masterplan_projection_rederivation, evaluate_masterplan_read_surface_resurrections,
-    evaluate_masterplan_v2_authority, evaluate_masterplan_v2_entry_surfaces,
-    evaluate_masterplan_v2_evidence_state, evaluate_masterplan_v2_plan_evidence_drift,
-    evaluate_masterplan_v2_preplanning_candidate_facts, evaluate_masterplan_v2_program_coverage,
-    evaluate_masterplan_v2_projection_freshness, evaluate_masterplan_v2_ratification_digest,
-    evaluate_masterplan_v2_read_contract_archives, evaluate_masterplan_v2_sequencing,
-    evaluate_registry_derived_policy_sync, ratchet,
+    AdrDecisionRecord, GateCoverageBaseline, RatchetReport, RawHistoryOnlyRetirementReceipt,
+    Verdict, derive_masterplan_md_projection, evaluate, evaluate_adr_index_projection_parity,
+    evaluate_adr_prose_frontmatter_status,
+    evaluate_and_project_history_only_retirement_facts_with_control_plane,
+    evaluate_masterplan_plan_evidence_crosscheck, evaluate_masterplan_projection_rederivation,
+    evaluate_masterplan_read_surface_resurrections, evaluate_masterplan_v2_authority,
+    evaluate_masterplan_v2_entry_surfaces, evaluate_masterplan_v2_evidence_state,
+    evaluate_masterplan_v2_plan_evidence_drift, evaluate_masterplan_v2_preplanning_candidate_facts,
+    evaluate_masterplan_v2_program_coverage, evaluate_masterplan_v2_projection_freshness,
+    evaluate_masterplan_v2_ratification_digest, evaluate_masterplan_v2_read_contract_archives,
+    evaluate_masterplan_v2_sequencing, evaluate_registry_derived_policy_sync, ratchet,
 };
 use serde_json::Value;
+use sha2::{Digest, Sha256};
 
 /// Walk up to the repo root (the dir holding specs/root-hub-pointers.json), matching the
 /// existing kernel-test convention.
@@ -66,6 +68,781 @@ fn fixture_dir() -> PathBuf {
 fn load_json(path: &PathBuf) -> Value {
     let text = fs::read_to_string(path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
     serde_json::from_str(&text).unwrap_or_else(|e| panic!("parse {}: {e}", path.display()))
+}
+
+fn named_workflow_step<'a>(workflow: &'a str, name: &str) -> &'a str {
+    let marker = format!("      - name: {name}");
+    let start = workflow
+        .find(&marker)
+        .unwrap_or_else(|| panic!("workflow step {name}"));
+    let tail = &workflow[start..];
+    let end = tail.find("\n      - name: ").unwrap_or(tail.len());
+    &tail[..end]
+}
+
+fn workflow_job<'a>(workflow: &'a str, job_name: &str) -> &'a str {
+    let marker = format!("  {job_name}:\n");
+    let start = workflow
+        .find(&marker)
+        .unwrap_or_else(|| panic!("workflow job {job_name}"));
+    let tail = &workflow[start..];
+    let mut cursor = marker.len();
+    let end = loop {
+        let Some(offset) = tail[cursor..].find("\n  ") else {
+            break tail.len();
+        };
+        let candidate = cursor + offset;
+        if tail
+            .as_bytes()
+            .get(candidate + 3)
+            .is_some_and(u8::is_ascii_alphanumeric)
+        {
+            break candidate;
+        }
+        cursor = candidate + 3;
+    };
+    &tail[..end]
+}
+
+fn named_job_step<'a>(job: &'a str, name: &str) -> &'a str {
+    named_workflow_step(job, name)
+}
+
+fn assert_occurs_exactly_once(haystack: &str, needle: &str) {
+    assert_eq!(
+        haystack.match_indices(needle).count(),
+        1,
+        "{needle:?} must occur exactly once in the producer step"
+    );
+}
+
+fn prefixed_sha256(bytes: &[u8]) -> String {
+    format!("sha256:{:x}", Sha256::digest(bytes))
+}
+
+fn canonical_json(value: &Value) -> String {
+    match value {
+        Value::Null | Value::Bool(_) | Value::Number(_) => value.to_string(),
+        Value::String(_) => serde_json::to_string(value).expect("serialize fixture string"),
+        Value::Array(values) => format!(
+            "[{}]",
+            values
+                .iter()
+                .map(canonical_json)
+                .collect::<Vec<_>>()
+                .join(",")
+        ),
+        Value::Object(values) => {
+            let ordered = values.iter().collect::<BTreeMap<_, _>>();
+            format!(
+                "{{{}}}",
+                ordered
+                    .into_iter()
+                    .map(|(key, value)| format!(
+                        "{}:{}",
+                        serde_json::to_string(key).expect("serialize fixture key"),
+                        canonical_json(value)
+                    ))
+                    .collect::<Vec<_>>()
+                    .join(",")
+            )
+        }
+    }
+}
+
+fn declared_raw_history_only_receipts(root: &Path, facts: &Value) -> Vec<(String, Vec<u8>)> {
+    facts["receipts"]
+        .as_array()
+        .expect("history-only facts receipts array")
+        .iter()
+        .map(|metadata| {
+            let receipt_path = metadata["receipt_path"]
+                .as_str()
+                .expect("history-only receipt metadata path");
+            assert!(
+                Path::new(receipt_path)
+                    .components()
+                    .all(|component| matches!(component, Component::Normal(_))),
+                "history-only receipt path must be repo-relative and canonical: {receipt_path}"
+            );
+            let path = root.join(receipt_path);
+            let bytes = fs::read(&path).unwrap_or_else(|error| {
+                panic!("read declared raw receipt {}: {error}", path.display())
+            });
+            (receipt_path.to_owned(), bytes)
+        })
+        .collect()
+}
+
+fn installed_dormant_history_only_facts_fixture(control_plane_bytes: &[u8]) -> Value {
+    let control_plane: Value =
+        serde_json::from_slice(control_plane_bytes).expect("fixture control plane parses");
+    let entries = control_plane["entries"]
+        .as_array()
+        .expect("fixture control-plane entries")
+        .clone();
+    let entry_hashes = entries
+        .iter()
+        .map(|entry| {
+            serde_json::json!({
+                "scope_ref": entry["scope_ref"],
+                "sha256": prefixed_sha256(canonical_json(entry).as_bytes())
+            })
+        })
+        .collect::<Vec<_>>();
+    let control_plane_sha256 = prefixed_sha256(control_plane_bytes);
+    let control_plane_byte_count = control_plane_bytes.len();
+    let control_plane_blob_oid = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+    let predecessor_commit_oid = control_plane["predecessor_snapshot"]["commit_oid"]
+        .as_str()
+        .expect("fixture predecessor commit");
+    let predecessor_tree_oid = control_plane["predecessor_snapshot"]["tree_oid"]
+        .as_str()
+        .expect("fixture predecessor tree");
+    serde_json::json!({
+        "receipts": [],
+        "scm_facts": {
+            "retirement_receipt_coverage": {
+                "protected_base_ref": "origin/dev",
+                "protected_receipt_paths": [],
+                "candidate_receipt_paths": [],
+                "carried_receipt_paths": [],
+                "new_receipt_paths": [],
+                "scopes": [],
+                "required_retired_paths": []
+            },
+            "retirement_receipt_object_facts": [],
+            "protected_scm_context": {
+                "protected_base_ref": "origin/dev",
+                "protected_base_commit_oid": "1111111111111111111111111111111111111111",
+                "protected_base_tree_oid": "2222222222222222222222222222222222222222",
+                "evaluated_commit_oid": "3333333333333333333333333333333333333333",
+                "evaluated_tree_oid": "4444444444444444444444444444444444444444",
+                "subject_commit_oid": "3333333333333333333333333333333333333333",
+                "subject_tree_oid": "4444444444444444444444444444444444444444",
+                "scm_event_name": "push",
+                "subject_relationship": "evaluated-self",
+                "protected_base_is_ancestor_of_evaluated": true,
+                "protected_base_is_evaluated_first_parent": true,
+                "subject_is_evaluated_second_parent": false,
+                "predecessor_commit_oid": predecessor_commit_oid,
+                "predecessor_tree_oid": predecessor_tree_oid,
+                "predecessor_commit_exists": true,
+                "predecessor_tree_exists": true,
+                "predecessor_commit_tree_bound": true,
+                "predecessor_is_ancestor_of_protected_base": true,
+                "protected_preparation_receipts": []
+            },
+            "retirement_control_plane_context": {
+                "control_plane_path": "registry/history-only-retirement/control-plane.json",
+                "receipt_root": "evidence/history-only-retirement",
+                "bootstrap": false,
+                "protected_control_plane_blob_oid": control_plane_blob_oid,
+                "protected_control_plane_sha256": control_plane_sha256,
+                "protected_control_plane_byte_count": control_plane_byte_count,
+                "candidate_control_plane_blob_oid": control_plane_blob_oid,
+                "candidate_control_plane_sha256": control_plane_sha256,
+                "candidate_control_plane_byte_count": control_plane_byte_count,
+                "control_plane_entries": entries,
+                "control_plane_entry_hashes": entry_hashes,
+                "protected_receipt_root_paths": [],
+                "candidate_receipt_root_paths": [],
+                "unexpected_protected_receipt_paths": [],
+                "unexpected_candidate_receipt_paths": []
+            }
+        }
+    })
+}
+
+#[test]
+fn protected_scm_context_excludes_candidate_authored_facts() {
+    let control_plane =
+        fs::read(repo_root().join("registry/history-only-retirement/control-plane.json"))
+            .expect("read canonical retirement control plane");
+    let facts = installed_dormant_history_only_facts_fixture(&control_plane);
+    let protected_context = facts["scm_facts"]["protected_scm_context"]
+        .as_object()
+        .expect("protected SCM context object");
+
+    for candidate_field in ["prepared_receipt_paths", "control_plane_entries"] {
+        assert!(
+            !protected_context.contains_key(candidate_field),
+            "{candidate_field} is candidate-authored and must not be labeled protected"
+        );
+    }
+}
+
+#[test]
+fn retirement_sources_do_not_silently_amend_accepted_adr_0613() {
+    let root = repo_root();
+    let adr = fs::read_to_string(root.join(
+        "docs/decisions/ADR-0613-de-commit-remaining-controller-materialized-projection-faces.md",
+    ))
+    .expect("read accepted ADR-0613");
+    assert!(
+        !adr.contains("### E7 history-only retirement facts"),
+        "implementation provenance must not silently widen an Accepted ADR"
+    );
+
+    let reachability: Value =
+        serde_json::from_slice(&fs::read(root.join("specs/reachability-registry.json")).unwrap())
+            .expect("parse reachability registry");
+    let rows = reachability["registered"]
+        .as_array()
+        .expect("registered reachability rows");
+    for prefix in [
+        "ci/facade/scm-facts-snapshot/src/retirement.rs",
+        "registry/history-only-retirement/control-plane.json",
+        "registry/history-only-retirement/OWNERS",
+        "specs/history-only-retirement-control-plane.schema.json",
+        "specs/history-only-retirement-facts.schema.json",
+    ] {
+        let anchor = rows
+            .iter()
+            .find(|row| row["prefix"].as_str() == Some(prefix))
+            .and_then(|row| row["anchor"].as_str())
+            .unwrap_or_else(|| panic!("reachability anchor for {prefix}"));
+        assert!(
+            !anchor.contains("ADR-0613"),
+            "{prefix} must not claim an unrecorded ADR-0613 amendment"
+        );
+        assert!(
+            anchor.contains("HOLD(Planning)"),
+            "{prefix} must retain the authority ceiling"
+        );
+    }
+}
+
+#[test]
+fn production_evaluator_rejects_installed_dormant_control_plane_byte_drift() {
+    let control_plane =
+        fs::read(repo_root().join("registry/history-only-retirement/control-plane.json"))
+            .expect("read canonical retirement control plane");
+    let mut facts = installed_dormant_history_only_facts_fixture(&control_plane);
+    facts["scm_facts"]["retirement_control_plane_context"]["candidate_control_plane_byte_count"] =
+        serde_json::json!(control_plane.len() + 1);
+
+    let evaluation = evaluate_and_project_history_only_retirement_facts_with_control_plane(
+        &facts,
+        &[],
+        &control_plane,
+    );
+    assert!(
+        evaluation.findings.iter().any(|finding| {
+            finding.key == "retirement_control_plane_context.candidate_raw_binding"
+        }),
+        "candidate control-plane byte drift must fail closed through the production evaluator: {:?}",
+        evaluation.findings
+    );
+    assert!(evaluation.projection.is_none());
+}
+
+#[test]
+fn production_evaluator_accepts_installed_dormant_facts() {
+    let control_plane =
+        fs::read(repo_root().join("registry/history-only-retirement/control-plane.json"))
+            .expect("read canonical retirement control plane");
+    let facts = installed_dormant_history_only_facts_fixture(&control_plane);
+    let evaluation = evaluate_and_project_history_only_retirement_facts_with_control_plane(
+        &facts,
+        &[],
+        &control_plane,
+    );
+    assert!(
+        evaluation.findings.is_empty(),
+        "controller-bound dormant facts must validate through the production evaluator: {:?}",
+        evaluation.findings
+    );
+    assert!(
+        evaluation
+            .projection
+            .expect("validated dormant projection")
+            .evidence_set_ids()
+            .is_empty()
+    );
+}
+
+#[test]
+fn production_evaluator_rejects_candidate_control_plane_extensions() {
+    let canonical =
+        fs::read(repo_root().join("registry/history-only-retirement/control-plane.json"))
+            .expect("read canonical retirement control plane");
+    let mut extended: Value =
+        serde_json::from_slice(&canonical).expect("parse canonical retirement control plane");
+    extended["unexpected_candidate_authority"] = serde_json::json!(true);
+    let extended_bytes =
+        serde_json::to_vec(&extended).expect("serialize extended retirement control plane");
+    let facts = installed_dormant_history_only_facts_fixture(&extended_bytes);
+
+    let evaluation = evaluate_and_project_history_only_retirement_facts_with_control_plane(
+        &facts,
+        &[],
+        &extended_bytes,
+    );
+    assert!(
+        evaluation.findings.iter().any(|finding| {
+            finding.key == "retirement_control_plane_context.candidate_raw_header"
+        }),
+        "unexpected raw control-plane fields must fail closed: {:?}",
+        evaluation.findings
+    );
+    assert!(evaluation.projection.is_none());
+}
+
+#[test]
+fn production_evaluator_rejects_candidate_predecessor_drift() {
+    let control_plane =
+        fs::read(repo_root().join("registry/history-only-retirement/control-plane.json"))
+            .expect("read canonical retirement control plane");
+    let mut facts = installed_dormant_history_only_facts_fixture(&control_plane);
+    facts["scm_facts"]["protected_scm_context"]["predecessor_commit_oid"] =
+        serde_json::json!("5555555555555555555555555555555555555555");
+
+    let evaluation = evaluate_and_project_history_only_retirement_facts_with_control_plane(
+        &facts,
+        &[],
+        &control_plane,
+    );
+    assert!(
+        evaluation.findings.iter().any(|finding| {
+            finding.key == "retirement_control_plane_context.candidate_raw_predecessor_binding"
+        }),
+        "raw predecessor identity must bind the materialized SCM context: {:?}",
+        evaluation.findings
+    );
+    assert!(evaluation.projection.is_none());
+}
+
+#[test]
+fn production_evaluator_rejects_candidate_control_plane_entry_reordering() {
+    let canonical =
+        fs::read(repo_root().join("registry/history-only-retirement/control-plane.json"))
+            .expect("read canonical retirement control plane");
+    let mut reordered: Value =
+        serde_json::from_slice(&canonical).expect("parse canonical retirement control plane");
+    reordered["entries"]
+        .as_array_mut()
+        .expect("control-plane entries")
+        .swap(0, 1);
+    let reordered_bytes =
+        serde_json::to_vec(&reordered).expect("serialize reordered retirement control plane");
+    let facts = installed_dormant_history_only_facts_fixture(&reordered_bytes);
+
+    let evaluation = evaluate_and_project_history_only_retirement_facts_with_control_plane(
+        &facts,
+        &[],
+        &reordered_bytes,
+    );
+    assert!(
+        evaluation.findings.iter().any(|finding| {
+            finding.key == "retirement_control_plane_context.candidate_raw_entries"
+        }),
+        "canonical control-plane entry order must fail closed: {:?}",
+        evaluation.findings
+    );
+    assert!(evaluation.projection.is_none());
+}
+
+#[test]
+fn production_evaluator_rejects_malformed_or_duplicate_control_plane_hash_rows() {
+    let control_plane =
+        fs::read(repo_root().join("registry/history-only-retirement/control-plane.json"))
+            .expect("read canonical retirement control plane");
+    let facts = installed_dormant_history_only_facts_fixture(&control_plane);
+
+    let mut malformed = facts.clone();
+    malformed["scm_facts"]["retirement_control_plane_context"]["control_plane_entry_hashes"][0]["unexpected"] =
+        serde_json::json!(true);
+    let mut duplicate = facts;
+    let duplicate_row =
+        duplicate["scm_facts"]["retirement_control_plane_context"]["control_plane_entry_hashes"][0]
+            .clone();
+    duplicate["scm_facts"]["retirement_control_plane_context"]["control_plane_entry_hashes"]
+        .as_array_mut()
+        .expect("control-plane hash rows")
+        .push(duplicate_row);
+
+    for drifted in [&malformed, &duplicate] {
+        let evaluation = evaluate_and_project_history_only_retirement_facts_with_control_plane(
+            drifted,
+            &[],
+            &control_plane,
+        );
+        assert!(
+            evaluation.findings.iter().any(|finding| {
+                finding.key == "retirement_control_plane_context.candidate_raw_hashes"
+            }),
+            "malformed or duplicate control-plane hash rows must fail closed: {:?}",
+            evaluation.findings
+        );
+        assert!(evaluation.projection.is_none());
+    }
+}
+
+#[test]
+fn production_evaluator_rejects_reordered_control_plane_hash_rows() {
+    let control_plane =
+        fs::read(repo_root().join("registry/history-only-retirement/control-plane.json"))
+            .expect("read canonical retirement control plane");
+    let mut reordered = installed_dormant_history_only_facts_fixture(&control_plane);
+    reordered["scm_facts"]["retirement_control_plane_context"]["control_plane_entry_hashes"]
+        .as_array_mut()
+        .expect("control-plane hash rows")
+        .swap(0, 1);
+
+    let evaluation = evaluate_and_project_history_only_retirement_facts_with_control_plane(
+        &reordered,
+        &[],
+        &control_plane,
+    );
+    assert!(
+        evaluation.findings.iter().any(|finding| {
+            finding.key == "retirement_control_plane_context.candidate_raw_hashes"
+        }),
+        "reordered control-plane hash rows must fail closed: {:?}",
+        evaluation.findings
+    );
+    assert!(evaluation.projection.is_none());
+}
+
+#[test]
+fn production_evaluator_rejects_duplicate_raw_control_plane_keys() {
+    let canonical =
+        fs::read_to_string(repo_root().join("registry/history-only-retirement/control-plane.json"))
+            .expect("read canonical retirement control plane");
+    let duplicate = canonical.replacen('{', "{\"schema_version\":1,", 1);
+    let facts = installed_dormant_history_only_facts_fixture(duplicate.as_bytes());
+
+    let evaluation = evaluate_and_project_history_only_retirement_facts_with_control_plane(
+        &facts,
+        &[],
+        duplicate.as_bytes(),
+    );
+    assert!(
+        evaluation.findings.iter().any(|finding| {
+            finding.key == "retirement_control_plane_context.candidate_raw_parse"
+        }),
+        "duplicate raw control-plane keys must fail closed: {:?}",
+        evaluation.findings
+    );
+    assert!(evaluation.projection.is_none());
+}
+
+#[test]
+fn production_evaluator_accepts_dormant_bootstrap_without_a_protected_blob_claim() {
+    let control_plane =
+        fs::read(repo_root().join("registry/history-only-retirement/control-plane.json"))
+            .expect("read canonical retirement control plane");
+    let mut facts = installed_dormant_history_only_facts_fixture(&control_plane);
+    let context = &mut facts["scm_facts"]["retirement_control_plane_context"];
+    context["bootstrap"] = serde_json::json!(true);
+    context["protected_control_plane_blob_oid"] = Value::Null;
+    context["protected_control_plane_sha256"] = Value::Null;
+    context["protected_control_plane_byte_count"] = Value::Null;
+
+    let evaluation = evaluate_and_project_history_only_retirement_facts_with_control_plane(
+        &facts,
+        &[],
+        &control_plane,
+    );
+    assert!(
+        evaluation.findings.is_empty(),
+        "bootstrap raw-source facts must remain non-claiming and valid: {:?}",
+        evaluation.findings
+    );
+    assert!(
+        evaluation
+            .projection
+            .expect("validated dormant bootstrap projection")
+            .evidence_set_ids()
+            .is_empty()
+    );
+}
+
+#[test]
+fn history_only_retirement_control_plane_declares_workflow_and_event_identity_inputs() {
+    let manifest = load_json(&repo_root().join("registry/generated-artifact-control-plane.json"));
+    let row = manifest["artifacts"]
+        .as_array()
+        .and_then(|rows| {
+            rows.iter().find(|row| {
+                row.get("artifact_id").and_then(Value::as_str)
+                    == Some("history-only-retirement-facts")
+            })
+        })
+        .expect("history-only retirement facts control-plane row");
+    let inputs = row["source_inputs"]
+        .as_array()
+        .expect("history-only retirement source inputs array");
+    for required in [
+        ".github/workflows/oya-ci-required.yml",
+        "specs/history-only-retirement-facts.schema.json",
+    ] {
+        assert!(
+            inputs.iter().any(|input| input.as_str() == Some(required)),
+            "source_inputs must declare {required}"
+        );
+    }
+    let contract = row["generator"]["input_contract"]
+        .as_array()
+        .expect("history-only retirement generator input contract array");
+    assert!(
+        contract
+            .iter()
+            .any(|input| input.as_str() == Some("scm-event-identity")),
+        "generator input contract must declare scm-event-identity"
+    );
+}
+
+#[test]
+fn retirement_workflow_producer_step_transports_each_event_and_cli_binding_once() {
+    let workflow = fs::read_to_string(repo_root().join(".github/workflows/oya-ci-required.yml"))
+        .expect("read oya-ci-required workflow");
+    assert_occurs_exactly_once(&workflow, "merge_group:\n    types: [checks_requested]");
+    let producer = named_workflow_step(&workflow, "Materialize cloud-ci generated faces");
+
+    for (key, binding) in [
+        (
+            "EVENT_EVALUATED_SHA:",
+            "EVENT_EVALUATED_SHA: ${{ github.sha }}",
+        ),
+        (
+            "EVENT_PULL_REQUEST_BASE_SHA:",
+            "EVENT_PULL_REQUEST_BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}",
+        ),
+        (
+            "EVENT_PULL_REQUEST_HEAD_SHA:",
+            "EVENT_PULL_REQUEST_HEAD_SHA: ${{ github.event.pull_request.head.sha || '' }}",
+        ),
+        (
+            "EVENT_PUSH_BEFORE_SHA:",
+            "EVENT_PUSH_BEFORE_SHA: ${{ github.event.before || '' }}",
+        ),
+        (
+            "EVENT_PUSH_AFTER_SHA:",
+            "EVENT_PUSH_AFTER_SHA: ${{ github.event.after || '' }}",
+        ),
+        (
+            "EVENT_MERGE_GROUP_BASE_SHA:",
+            "EVENT_MERGE_GROUP_BASE_SHA: ${{ github.event.merge_group.base_sha || '' }}",
+        ),
+        (
+            "EVENT_MERGE_GROUP_HEAD_SHA:",
+            "EVENT_MERGE_GROUP_HEAD_SHA: ${{ github.event.merge_group.head_sha || '' }}",
+        ),
+        ("EVENT_NAME:", "EVENT_NAME: ${{ github.event_name }}"),
+        ("EVENT_REF:", "EVENT_REF: ${{ github.ref }}"),
+        (
+            "EVENT_PULL_REQUEST_BASE_REF:",
+            "EVENT_PULL_REQUEST_BASE_REF: ${{ github.event.pull_request.base.ref || '' }}",
+        ),
+        (
+            "EVENT_MERGE_GROUP_BASE_REF:",
+            "EVENT_MERGE_GROUP_BASE_REF: ${{ github.event.merge_group.base_ref || '' }}",
+        ),
+    ] {
+        assert_occurs_exactly_once(producer, key);
+        assert_occurs_exactly_once(producer, binding);
+    }
+    assert_occurs_exactly_once(
+        producer,
+        "run: rustup toolchain install && rustc --version && buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . --github-event",
+    );
+    for legacy_binding in [
+        "EVENT_PROTECTED_SHA:",
+        "EVENT_SUBJECT_SHA:",
+        "EVENT_BASE_REF:",
+        "--retirement-control-plane",
+        "--retirement-facts-out",
+        "--protected-base-commit",
+        "--evaluated-commit",
+        "--scm-event-name",
+        "--scm-event-ref",
+        "--scm-event-base-ref",
+        "--subject-commit",
+        "git rev-list",
+        "git rev-parse",
+        "git cat-file",
+        "HEAD^1",
+    ] {
+        assert!(
+            !producer.contains(legacy_binding),
+            "candidate materialization must pass the complete GitHub event tuple to Rust, not retain legacy manual identity binding {legacy_binding:?}"
+        );
+    }
+}
+
+#[test]
+fn broad_workflow_consumers_require_the_producer_artifact_and_keep_the_merge_base_historical() {
+    let workflow = fs::read_to_string(repo_root().join(".github/workflows/oya-ci-required.yml"))
+        .expect("read oya-ci-required workflow");
+    let download_commit = "actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c";
+
+    for (job_name, broad_step) in [
+        ("buck2", "buck2 build + test (//ci/..., hermetic — binding)"),
+        (
+            "gate-affected-target-set",
+            "Binding affected-set build + test (cone-binding; FULL tier = build-health ratchet)",
+        ),
+    ] {
+        let job = workflow_job(&workflow, job_name);
+        assert_occurs_exactly_once(job, "needs: producer-regen");
+        let download = named_job_step(
+            job,
+            "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)",
+        );
+        assert_occurs_exactly_once(
+            job,
+            "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)",
+        );
+        assert_occurs_exactly_once(download, download_commit);
+        assert_occurs_exactly_once(download, "name: accounting-faces");
+        assert_occurs_exactly_once(download, "path: ci/facade");
+        assert!(
+            job.find("Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)")
+                < job.find(broad_step),
+            "{job_name} must download producer faces before its broad test"
+        );
+    }
+
+    let affected = workflow_job(&workflow, "gate-affected-target-set");
+    let baseline = named_job_step(
+        affected,
+        "Materialize merge-base build + test baselines when affected-set needs FULL",
+    );
+    let help_status = "historical_help_status=0";
+    let help_probe = "historical_help=\"$(buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --help 2>&1)\" || historical_help_status=$?";
+    let help_status_guard = "(( historical_help_status == 0 || historical_help_status == 2 )) || { echo \"historical materializer capability probe failed: status=${historical_help_status}\"; exit 1; }";
+    let usage_guard = "grep -Fq \"usage: oya-cloud-ci-materialize-generated-faces\" <<<\"${historical_help}\" || { echo \"historical materializer capability probe returned no usage contract\"; exit 1; }";
+    let compatibility_mode = "historical_retirement_args=()";
+    let capability_guard =
+        "if grep -Fq -- \"--historical-merge-base <oid>\" <<<\"${historical_help}\"; then";
+    let historical_mode = "historical_retirement_args=(--historical-merge-base \"${merge_base}\")";
+    let materialize = "buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . \"${historical_retirement_args[@]}\"";
+    let capability_presence = "(( ${#historical_retirement_args[@]} == 0 )) || [[ -f ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json && ! -L ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json ]] || { echo \"historical materializer capability emitted no regular retirement facts\"; exit 1; }";
+    let capability_parse = "(( ${#historical_retirement_args[@]} == 0 )) || jq -e 'type == \"object\" and (.receipts | type == \"array\") and (.scm_facts | type == \"object\")' ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json >/dev/null || { echo \"historical materializer capability emitted malformed retirement facts\"; exit 1; }";
+    let legacy_absence = "(( ${#historical_retirement_args[@]} != 0 )) || [[ ! -e ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json && ! -L ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json ]] || { echo \"legacy historical materializer unexpectedly emitted retirement facts\"; exit 1; }";
+    for contract in [
+        help_status,
+        help_probe,
+        help_status_guard,
+        usage_guard,
+        compatibility_mode,
+        capability_guard,
+        historical_mode,
+        materialize,
+        capability_presence,
+        capability_parse,
+        legacy_absence,
+    ] {
+        assert_eq!(
+            baseline
+                .lines()
+                .filter(|line| line.trim() == contract)
+                .count(),
+            1,
+            "{contract:?} must be an exact line exactly once in the producer step"
+        );
+    }
+    assert!(
+        baseline.find(help_status) < baseline.find(help_probe)
+            && baseline.find(help_probe) < baseline.find(help_status_guard)
+            && baseline.find(help_status_guard) < baseline.find(usage_guard)
+            && baseline.find(usage_guard) < baseline.find(compatibility_mode)
+            && baseline.find(compatibility_mode) < baseline.find(capability_guard)
+            && baseline.find(capability_guard) < baseline.find(historical_mode)
+            && baseline.find(historical_mode) < baseline.find(materialize)
+            && baseline.find(materialize) < baseline.find(capability_presence)
+            && baseline.find(capability_presence) < baseline.find(capability_parse)
+            && baseline.find(capability_parse) < baseline.find(legacy_absence),
+        "the merge-base materializer must dispatch from the historical executable's actual CLI capability, never from candidate-era path assumptions"
+    );
+    let materialize_line = baseline
+        .lines()
+        .find(|line| line.contains(materialize))
+        .expect("the merge-base materializer command must remain present");
+    assert!(
+        !materialize_line.contains("|| true")
+            && !baseline.contains(
+            "buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . --historical-merge-base \"${merge_base}\""
+        ),
+        "capability probing must not swallow a materialization failure or invoke a candidate-only flag unconditionally"
+    );
+    for legacy_topology_shell in [
+        "git cat-file",
+        "git rev-list",
+        "git rev-parse",
+        "HEAD^1",
+        "read -r -a",
+        "set -- ${merge_base_parents}",
+        "merge_base_parents",
+        "merge_base_protected_base",
+        "--retirement-control-plane",
+        "--retirement-facts-out",
+        "--protected-base-commit",
+        "--evaluated-commit",
+        "--scm-event-name",
+        "--scm-event-ref",
+        "--scm-event-base-ref",
+        "--subject-commit",
+    ] {
+        assert!(
+            !baseline.contains(legacy_topology_shell),
+            "historical materialization must delegate topology and event identity to Rust, not retain shell authority {legacy_topology_shell:?}"
+        );
+    }
+    assert!(
+        !baseline.contains("accounting-faces")
+            && !baseline.contains("cp ci/facade")
+            && !baseline.contains("set -- ${merge_base_parents}"),
+        "the clean merge-base worktree must never receive candidate faces or split Git identity through shell globbing"
+    );
+}
+
+#[test]
+fn live_history_only_retirement_facts_are_bound_to_the_controller_control_plane() {
+    let root = repo_root();
+    let relative_path = std::env::var("OYA_HISTORY_ONLY_RETIREMENT_FACTS")
+        .expect("FAIL-CLOSED: OYA_HISTORY_ONLY_RETIREMENT_FACTS must name the materialized face");
+    assert_eq!(
+        relative_path, "ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json",
+        "history-only retirement facts must use the canonical controller-owned path"
+    );
+    let facts_path = root.join(&relative_path);
+    let facts_bytes = fs::read(&facts_path)
+        .unwrap_or_else(|error| panic!("read materialized {}: {error}", facts_path.display()));
+    let facts: Value = serde_json::from_slice(&facts_bytes)
+        .unwrap_or_else(|error| panic!("parse materialized {}: {error}", facts_path.display()));
+    let control_plane_path = root.join("registry/history-only-retirement/control-plane.json");
+    let control_plane_bytes = fs::read(&control_plane_path)
+        .unwrap_or_else(|error| panic!("read {}: {error}", control_plane_path.display()));
+
+    let raw_storage = declared_raw_history_only_receipts(&root, &facts);
+    let raw_receipts = raw_storage
+        .iter()
+        .map(|(receipt_path, bytes)| RawHistoryOnlyRetirementReceipt {
+            receipt_path,
+            bytes,
+        })
+        .collect::<Vec<_>>();
+    let evaluation = evaluate_and_project_history_only_retirement_facts_with_control_plane(
+        &facts,
+        &raw_receipts,
+        &control_plane_bytes,
+    );
+    assert!(
+        evaluation.findings.is_empty(),
+        "history-only facts plus declared raw receipts failed: {:?}",
+        evaluation.findings
+    );
+    assert!(
+        evaluation
+            .projection
+            .expect("validated history-only projection")
+            .evidence_set_ids()
+            .is_empty(),
+        "dormant live facts must not project a closure"
+    );
 }
 
 fn expected_violations(fixture: &Value) -> BTreeSet<String> {

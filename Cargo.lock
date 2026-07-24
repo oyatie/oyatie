@@ -1486,6 +1486,8 @@ dependencies = [
  "oya-check-brand-residue",
  "oya-ci-config-kernel",
  "oya-reorg-codemod-app",
+ "rustix",
+ "serde",
  "serde_json",
  "sha2",
 ]
@@ -11032,7 +11034,7 @@ dependencies = [
 name = "secrets-kms-openbao"
 version = "0.1.0"
 dependencies = [
- "base64 0.21.7",
+ "base64 0.22.1",
  "oya-data-boundary-kernel",
  "secrets-kms-domain",
  "secrets-kms-enclave",
