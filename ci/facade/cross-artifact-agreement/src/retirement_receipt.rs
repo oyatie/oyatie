@@ -3568,6 +3568,34 @@ mod tests {
     }
 
     #[test]
+    fn installed_dormant_is_nonclaiming_and_projects_nothing() {
+        let mut corpus = json!({
+            "receipts": [],
+            "scm_facts": {
+                "retirement_receipt_coverage": {"protected_base_ref":"origin/dev","protected_receipt_paths":[],"candidate_receipt_paths":[],"carried_receipt_paths":[],"new_receipt_paths":[],"scopes":[],"required_retired_paths":[]},
+                "retirement_receipt_object_facts": [],
+                "protected_scm_context": protected_scm_context(&[]),
+                "retirement_control_plane_context": retirement_control_plane_context(false)
+            }
+        });
+        let context = &mut corpus["scm_facts"]["retirement_control_plane_context"];
+        context["bootstrap"] = json!(false);
+        context["protected_control_plane_blob_oid"] = json!(BLOB);
+        context["protected_control_plane_sha256"] =
+            json!("sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+        context["protected_control_plane_byte_count"] = json!(1);
+        let evaluation = evaluate_and_project_history_only_retirement_closures(&corpus);
+        assert!(evaluation.findings.is_empty(), "{:?}", evaluation.findings);
+        assert!(
+            evaluation
+                .projection
+                .expect("installed dormant")
+                .evidence_set_ids()
+                .is_empty()
+        );
+    }
+
+    #[test]
     fn predeclared_control_row_cannot_forge_strict_mode_projection() {
         let mut prepared = exact_adr_0388_corpus("prepared-new");
         prepared["scm_facts"]["retirement_receipt_object_facts"][0]["receipt_state"] =
