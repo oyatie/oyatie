@@ -6,6 +6,8 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "third-party//:serde_json",
+        "third-party//:serde",
+        "third-party//:sha2",
     ],
 )
 
@@ -17,16 +19,72 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         "third-party//:serde_json",
+        "third-party//:serde",
+        "third-party//:sha2",
     ],
 )
 
-# ADR-0544 FRIC-total-accounting: Buck2-native, cargo-free live-corpus meta-gate over the friction
-# ledger. The test collects the policy-declared ledger, folds the event-sourced append rows, and
-# asserts the live corpus is born-blocking green on closure-integrity codes while legacy schema debt
-# stays under the reviewed shrink-only ceilings (FRIC-1781112000 anti-laundering).
+rust_test(
+    name = "fixuptask-v2-admission",
+    # Exact durable composition: no recursive source glob and no legacy crate.
+    srcs = [
+        "src/fixuptask_v2.rs",
+        "fixuptask-v2-schema.json",
+    ],
+    crate = "ci_fixuptask_v2",
+    crate_root = "src/fixuptask_v2.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde_json",
+        "third-party//:serde",
+        "third-party//:sha2",
+    ],
+)
+
+# Executes the durable filesystem adapter against the registry and protected facts materialized in
+# the CI workspace. The pure target above remains the independently removable kernel boundary.
+rust_test(
+    name = "fixuptask-v2-materialized-gate",
+    srcs = ["tests/fixuptask_v2_admission.rs"],
+    crate = "ci_fixuptask_v2_materialized_gate",
+    crate_root = "tests/fixuptask_v2_admission.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-action-item-accounting",
+        "third-party//:serde_json",
+    ],
+)
+
+# Regression guard for the target's explicit, independently removable source boundary.
+rust_test(
+    name = "fixuptask-v2-source-boundary",
+    srcs = [
+        "tests/fixuptask_v2_source_boundary.rs",
+        "BUCK",
+        "Cargo.toml",
+    ],
+    crate = "ci_fixuptask_v2_source_boundary",
+    crate_root = "tests/fixuptask_v2_source_boundary.rs",
+    visibility = ["PUBLIC"],
+)
+
+rust_test(
+    name = "legacy-friction-adapter",
+    srcs = glob(["tests/friction_accounting.rs", "src/**/*.rs", "**/*.json"]),
+    crate = "ci_legacy_friction_adapter",
+    crate_root = "tests/friction_accounting.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-action-item-accounting",
+        "third-party//:serde_json",
+    ],
+)
+
+# Conventional gate identity required by the gate-self-conformance admission contract. The
+# separately named target above remains explicit workflow evidence for the transitional adapter.
 rust_test(
     name = "ci-action-item-accounting-gate",
-    srcs = glob(["tests/**/*.rs", "**/*.json"]),
+    srcs = glob(["tests/friction_accounting.rs", "src/**/*.rs", "**/*.json"]),
     crate = "ci_action_item_accounting_gate",
     crate_root = "tests/friction_accounting.rs",
     visibility = ["PUBLIC"],
