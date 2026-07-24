@@ -52,9 +52,10 @@ The bounded design is:
 3. A separately named legacy adapter owns any predecessor source, identity-only
    mapping, or qualified-human population work. The durable target has none of
    those source dependencies.
-4. The existing required workflow dispatches independently named unit, materialized,
-   source-boundary, and legacy-adapter targets. No new workflow and no hand-edited
-   generated face are introduced.
+4. Independently named unit, materialized, source-boundary, and legacy-adapter
+   targets provide isolated prototype verification. They are not required-CI admission
+   while this ADR remains Proposed; no new workflow or hand-edited generated face is
+   introduced.
 
 ## Limits and next authority boundary
 

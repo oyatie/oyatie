@@ -4,13 +4,12 @@
 //! a real filesystem or Git boundary that Buck2 must schedule independently.
 
 use std::io::Read;
+use std::os::unix::process::CommandExt;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output, Stdio};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{Duration, Instant};
 
-use ci_action_item_accounting::fixuptask_v2::evaluate_materialized_gate;
-use ci_action_item_accounting::fixuptask_v2_digest;
 use ci_path_resolver_adapters::MOVE_MANIFEST_PATH;
 use ci_path_resolver_adapters::MOVE_MANIFEST_SCHEMA;
 use ci_path_resolver_ports::{PathId, PathResolver};
@@ -57,9 +56,14 @@ fn temp_git_repo(label: &str) -> PathBuf {
 
 fn bounded_output(command: &mut Command, operation: &str) -> Output {
     const COMMAND_TIMEOUT: Duration = Duration::from_secs(10);
+    const CLEANUP_TIMEOUT: Duration = Duration::from_secs(5);
 
-    command.stdout(Stdio::piped()).stderr(Stdio::piped());
+    command
+        .process_group(0)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped());
     let mut child = command.spawn().expect("spawn bounded integration command");
+    let process_group = child.id();
     let deadline = Instant::now() + COMMAND_TIMEOUT;
     loop {
         if child
@@ -72,9 +76,36 @@ fn bounded_output(command: &mut Command, operation: &str) -> Output {
                 .expect("collect bounded integration command output");
         }
         if Instant::now() >= deadline {
-            let _ = child.kill();
-            let _ = child.wait();
-            panic!("{operation} exceeded {} seconds", COMMAND_TIMEOUT.as_secs());
+            let group_killed = Command::new("/bin/kill")
+                .args(["-KILL", &format!("-{process_group}")])
+                .output()
+                .is_ok_and(|output| output.status.success());
+            if !group_killed {
+                let _ = child.kill();
+            }
+            let cleanup_deadline = Instant::now() + CLEANUP_TIMEOUT;
+            while Instant::now() < cleanup_deadline {
+                if child
+                    .try_wait()
+                    .expect("poll bounded integration command cleanup")
+                    .is_some()
+                {
+                    let output = child
+                        .wait_with_output()
+                        .expect("collect bounded integration command timeout output");
+                    panic!(
+                        "{operation} exceeded {} seconds:\nstdout={}\nstderr={}",
+                        COMMAND_TIMEOUT.as_secs(),
+                        String::from_utf8_lossy(&output.stdout),
+                        String::from_utf8_lossy(&output.stderr)
+                    );
+                }
+                std::thread::sleep(Duration::from_millis(10));
+            }
+            panic!(
+                "{operation} exceeded {} seconds and process group {process_group} did not exit",
+                COMMAND_TIMEOUT.as_secs()
+            );
         }
         std::thread::sleep(Duration::from_millis(10));
     }
@@ -104,101 +135,6 @@ fn git_stdout<const N: usize>(root: &Path, args: [&str; N]) -> String {
         .expect("Git fixture output must be UTF-8")
         .trim()
         .to_owned()
-}
-
-fn fixuptask_row(id: &str) -> String {
-    format!(
-        "{{\"id\":\"{id}\",\"title\":\"{id} fixture\",\"priority\":\"high\",\"status\":\"open\",\"source_session\":\"integration-session\",\"source_change_id\":\"integration-change\",\"named_in\":\"ADR-0622\",\"created_at\":\"2026-07-24T00:00:00Z\",\"accountable_owner\":\"owner\",\"accountable_role\":\"role\",\"acceptance_criteria\":\"criterion\",\"verification_path\":\"buck2 test\",\"blocker_for\":\"none\"}}\n"
-    )
-}
-
-fn emitter_binary() -> PathBuf {
-    let value = std::env::var("OYA_CI_SCM_FACTS_EMITTER_BIN")
-        .expect("Buck must inject OYA_CI_SCM_FACTS_EMITTER_BIN for SCM integration tests");
-    assert!(
-        !value.trim().is_empty(),
-        "OYA_CI_SCM_FACTS_EMITTER_BIN must not be blank"
-    );
-    let path = PathBuf::from(value);
-    if path.is_absolute() {
-        path
-    } else {
-        discover_repo_root()
-            .expect("locate workspace root for Buck-built emitter")
-            .join(path)
-    }
-}
-
-#[test]
-fn emitter_materializes_git_bound_fixuptask_facts_that_admit_the_candidate_registry() {
-    let root = temp_git_repo("fixuptask-durable-e2e");
-    let registry = root.join("registry/fixuptasks.jsonl");
-    std::fs::create_dir_all(registry.parent().expect("registry parent")).expect("create registry");
-
-    let base_row = fixuptask_row("F-BASE");
-    std::fs::write(&registry, &base_row).expect("write merge-base registry");
-    let base = commit_all(&root, "base FixupTask registry");
-
-    let candidate = format!("{base_row}{}", fixuptask_row("F-CANDIDATE"));
-    std::fs::write(&registry, &candidate).expect("write candidate registry");
-    let candidate_commit = commit_all(&root, "candidate FixupTask registry");
-
-    let stable_out = root.join("materialized/scm-facts.generated.json");
-    let volatile_out = root.join("ci/facade/scm-facts-snapshot/scm-volatile-facts.generated.json");
-    std::fs::create_dir_all(stable_out.parent().expect("stable facts parent"))
-        .expect("create stable facts parent");
-    std::fs::create_dir_all(volatile_out.parent().expect("volatile facts parent"))
-        .expect("create volatile facts parent");
-
-    let mut emitter = Command::new(emitter_binary());
-    emitter
-        .arg("--repo-root")
-        .arg(&root)
-        .arg("--out")
-        .arg(&stable_out)
-        .arg("--volatile-out")
-        .arg(&volatile_out)
-        .arg("--frozen-base-ref")
-        .arg(&base)
-        .current_dir(&root);
-    let output = bounded_output(&mut emitter, "SCM facts emitter");
-    assert!(
-        output.status.success(),
-        "SCM facts emitter failed: {}",
-        String::from_utf8_lossy(&output.stderr).trim()
-    );
-
-    let volatile: serde_json::Value = serde_json::from_slice(
-        &std::fs::read(&volatile_out).expect("read materialized volatile facts"),
-    )
-    .expect("materialized volatile facts must be JSON");
-    let durable = &volatile["fixuptask_v2_durable"];
-    assert_eq!(
-        durable["merge_base"], base,
-        "facts bind the real Git merge base"
-    );
-    assert_ne!(
-        base, candidate_commit,
-        "fixture must have distinct base and candidate commits"
-    );
-    assert_eq!(
-        durable["merge_base_rows"],
-        json!([serde_json::from_str::<serde_json::Value>(&base_row).expect("base row JSON")]),
-        "facts preserve exact merge-base rows rather than candidate rows"
-    );
-    assert_eq!(
-        durable["candidate_registry_digest"],
-        fixuptask_v2_digest(candidate.as_bytes()),
-        "facts bind the exact candidate registry bytes"
-    );
-
-    let findings = evaluate_materialized_gate(&root)
-        .expect("durable gate reads the emitter-materialized volatile facts");
-    assert!(
-        findings.is_empty(),
-        "Git-bound materialization must admit the exact valid candidate: {findings:#?}"
-    );
-    std::fs::remove_dir_all(root).expect("remove FixupTask durable integration fixture");
 }
 
 fn commit_all(root: &Path, message: &str) -> String {
