@@ -33,6 +33,7 @@ fn context() -> RetirementMaterializationContext<'static> {
         evaluated_commit: CANDIDATE,
         scm_event_name: "push",
         scm_event_ref: "refs/heads/dev",
+        scm_event_base_ref: "refs/heads/dev",
         subject_commit: CANDIDATE,
     }
 }

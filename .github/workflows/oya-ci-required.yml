@@ -91,6 +91,7 @@ jobs:
           EVENT_SUBJECT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
           EVENT_NAME: ${{ github.event_name }}
           EVENT_REF: ${{ github.ref }}
+          EVENT_BASE_REF: ${{ github.event.pull_request.base.ref || github.event.merge_group.base_ref || github.ref || '' }}
         run: |
           set -euo pipefail
           rustup toolchain install
@@ -114,6 +115,7 @@ jobs:
             --evaluated-commit "${evaluated_commit}" \
             --scm-event-name "${EVENT_NAME}" \
             --scm-event-ref "${EVENT_REF}" \
+            --scm-event-base-ref "${EVENT_BASE_REF}" \
             --subject-commit "${subject_commit}"
       - name: Upload regenerated faces
         # actions/upload-artifact@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
@@ -853,6 +855,7 @@ jobs:
                 --evaluated-commit "${merge_base}" \
                 --scm-event-name push \
                 --scm-event-ref refs/heads/dev \
+                --scm-event-base-ref refs/heads/dev \
                 --subject-commit "${merge_base}"
             else
               buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .

@@ -265,6 +265,7 @@ pub struct RetirementMaterializationContext<'a> {
     pub evaluated_commit: &'a str,
     pub scm_event_name: &'a str,
     pub scm_event_ref: &'a str,
+    pub scm_event_base_ref: &'a str,
     pub subject_commit: &'a str,
 }
 
@@ -532,6 +533,7 @@ pub(crate) fn materialize_history_only_retirement_facts(
         source,
         context.scm_event_name,
         context.scm_event_ref,
+        context.scm_event_base_ref,
         &protected,
         &candidate,
         &subject,
@@ -1235,12 +1237,16 @@ fn validate_event_identity(
     source: &impl RetirementObjectSource,
     event: &str,
     event_ref: &str,
+    event_base_ref: &str,
     protected: &str,
     evaluated: &str,
     subject: &str,
 ) -> Result<(), String> {
     match event {
         "pull_request" => {
+            if event_base_ref != "dev" {
+                return Err("pull_request protected base ref must be dev".to_owned());
+            }
             if !event_ref.starts_with("refs/pull/") {
                 return Err("pull_request event ref must be a pull request ref".to_owned());
             }
@@ -1253,6 +1259,9 @@ fn validate_event_identity(
             }
         }
         "push" => {
+            if event_base_ref != "refs/heads/dev" {
+                return Err("push protected base ref must be refs/heads/dev".to_owned());
+            }
             if event_ref != "refs/heads/dev" {
                 return Err("push event ref must be refs/heads/dev".to_owned());
             }
@@ -1266,6 +1275,9 @@ fn validate_event_identity(
             }
         }
         "merge_group" => {
+            if event_base_ref != "refs/heads/dev" {
+                return Err("merge_group protected base ref must be refs/heads/dev".to_owned());
+            }
             if !event_ref.starts_with("refs/heads/gh-readonly-queue/dev/") {
                 return Err(
                     "merge_group event ref must be refs/heads/gh-readonly-queue/dev/...".to_owned(),
@@ -2109,6 +2121,7 @@ mod tests {
             evaluated_commit: CANDIDATE,
             scm_event_name: "push",
             scm_event_ref: "refs/heads/dev",
+            scm_event_base_ref: "refs/heads/dev",
             subject_commit: CANDIDATE,
         }
     }
@@ -2156,6 +2169,7 @@ mod tests {
         let mut context = context();
         context.scm_event_name = "pull_request";
         context.scm_event_ref = "refs/pull/123/merge";
+        context.scm_event_base_ref = "dev";
         context.subject_commit = PREDECESSOR;
         source.parents = vec![PROTECTED.to_owned(), PREDECESSOR.to_owned()];
         assert!(materialize_history_only_retirement_facts(&source, &context).is_ok());
@@ -2213,6 +2227,33 @@ mod tests {
         assert!(
             error.contains("refs/heads/dev"),
             "unexpected error: {error}"
+        );
+    }
+
+    #[test]
+    fn event_identity_rejects_non_dev_provider_base_refs() {
+        let mut push_context = context();
+        push_context.scm_event_base_ref = "refs/heads/release";
+        let push_error = materialize_history_only_retirement_facts(&fixture(), &push_context)
+            .expect_err("push provider base ref must bind exactly to dev");
+        assert!(
+            push_error.contains("protected base ref"),
+            "unexpected error: {push_error}"
+        );
+
+        let mut source = fixture();
+        source.parents = vec![PROTECTED.to_owned(), PREDECESSOR.to_owned()];
+        let mut pull_request_context = context();
+        pull_request_context.scm_event_name = "pull_request";
+        pull_request_context.scm_event_ref = "refs/pull/123/merge";
+        pull_request_context.scm_event_base_ref = "release";
+        pull_request_context.subject_commit = PREDECESSOR;
+        let pull_request_error =
+            materialize_history_only_retirement_facts(&source, &pull_request_context)
+                .expect_err("pull-request provider base ref must bind exactly to dev");
+        assert!(
+            pull_request_error.contains("protected base ref"),
+            "unexpected error: {pull_request_error}"
         );
     }
 
@@ -2297,6 +2338,7 @@ mod tests {
         let mut context = context();
         context.scm_event_name = "merge_group";
         context.scm_event_ref = "refs/heads/gh-readonly-queue/dev/release/pr-123";
+        context.scm_event_base_ref = "refs/heads/dev/release";
 
         let error = materialize_history_only_retirement_facts(&source, &context)
             .expect_err("a merge group for dev/release must not be labeled origin/dev");

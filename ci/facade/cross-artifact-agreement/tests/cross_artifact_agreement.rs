@@ -616,6 +616,10 @@ fn retirement_workflow_producer_step_transports_each_event_and_cli_binding_once(
         ),
         ("EVENT_NAME:", "EVENT_NAME: ${{ github.event_name }}"),
         ("EVENT_REF:", "EVENT_REF: ${{ github.ref }}"),
+        (
+            "EVENT_BASE_REF:",
+            "EVENT_BASE_REF: ${{ github.event.pull_request.base.ref || github.event.merge_group.base_ref || github.ref || '' }}",
+        ),
     ] {
         assert_occurs_exactly_once(producer, key);
         assert_occurs_exactly_once(producer, binding);
@@ -639,6 +643,10 @@ fn retirement_workflow_producer_step_transports_each_event_and_cli_binding_once(
         ),
         ("--scm-event-name", "--scm-event-name \"${EVENT_NAME}\""),
         ("--scm-event-ref", "--scm-event-ref \"${EVENT_REF}\""),
+        (
+            "--scm-event-base-ref",
+            "--scm-event-base-ref \"${EVENT_BASE_REF}\"",
+        ),
         ("--subject-commit", "--subject-commit \"${subject_commit}\""),
     ] {
         assert_occurs_exactly_once(producer, flag);
@@ -699,6 +707,7 @@ fn broad_workflow_consumers_require_the_producer_artifact_and_keep_the_merge_bas
         "--evaluated-commit \"${merge_base}\"",
         "--scm-event-name push",
         "--scm-event-ref refs/heads/dev",
+        "--scm-event-base-ref refs/heads/dev",
         "--subject-commit \"${merge_base}\"",
     ] {
         assert_occurs_exactly_once(baseline, binding);
