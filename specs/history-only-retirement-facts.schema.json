@@ -93,8 +93,38 @@
               },
               "retirement_control_plane_context": {
                 "oneOf": [
-                  {"properties":{"bootstrap":{"const":true},"protected_control_plane_blob_oid":{"type":"null"},"protected_control_plane_sha256":{"type":"null"},"protected_control_plane_byte_count":{"type":"null"}}},
-                  {"properties":{"bootstrap":{"const":false},"protected_control_plane_blob_oid":{"$ref":"#/$defs/oid"},"protected_control_plane_sha256":{"$ref":"#/$defs/sha256"},"protected_control_plane_byte_count":{"$ref":"#/$defs/byte_count"}}}
+                  {
+                    "properties": {
+                      "bootstrap": {
+                        "const": true
+                      },
+                      "protected_control_plane_blob_oid": {
+                        "type": "null"
+                      },
+                      "protected_control_plane_sha256": {
+                        "type": "null"
+                      },
+                      "protected_control_plane_byte_count": {
+                        "type": "null"
+                      }
+                    }
+                  },
+                  {
+                    "properties": {
+                      "bootstrap": {
+                        "const": false
+                      },
+                      "protected_control_plane_blob_oid": {
+                        "$ref": "#/$defs/oid"
+                      },
+                      "protected_control_plane_sha256": {
+                        "$ref": "#/$defs/sha256"
+                      },
+                      "protected_control_plane_byte_count": {
+                        "$ref": "#/$defs/byte_count"
+                      }
+                    }
+                  }
                 ]
               }
             }
@@ -911,17 +941,34 @@
         "evaluated_tree_oid": {
           "$ref": "#/$defs/oid"
         },
-        "subject_commit_oid": { "$ref": "#/$defs/oid" },
-        "subject_tree_oid": { "$ref": "#/$defs/oid" },
-        "scm_event_name": { "enum": ["pull_request", "push", "merge_group"] },
-        "subject_relationship": { "enum": ["pull-request-head", "evaluated-self"] },
+        "subject_commit_oid": {
+          "$ref": "#/$defs/oid"
+        },
+        "subject_tree_oid": {
+          "$ref": "#/$defs/oid"
+        },
+        "scm_event_name": {
+          "enum": [
+            "pull_request",
+            "push",
+            "merge_group"
+          ]
+        },
+        "subject_relationship": {
+          "enum": [
+            "pull-request-head",
+            "evaluated-self"
+          ]
+        },
         "protected_base_is_ancestor_of_evaluated": {
           "const": true
         },
         "protected_base_is_evaluated_first_parent": {
           "const": true
         },
-        "subject_is_evaluated_second_parent": { "type": "boolean" },
+        "subject_is_evaluated_second_parent": {
+          "type": "boolean"
+        },
         "predecessor_commit_oid": {
           "$ref": "#/$defs/oid"
         },
