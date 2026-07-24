@@ -358,6 +358,72 @@ fn production_evaluator_rejects_candidate_predecessor_drift() {
 }
 
 #[test]
+fn production_evaluator_rejects_candidate_control_plane_entry_reordering() {
+    let canonical =
+        fs::read(repo_root().join("registry/history-only-retirement/control-plane.json"))
+            .expect("read canonical retirement control plane");
+    let mut reordered: Value =
+        serde_json::from_slice(&canonical).expect("parse canonical retirement control plane");
+    reordered["entries"]
+        .as_array_mut()
+        .expect("control-plane entries")
+        .swap(0, 1);
+    let reordered_bytes =
+        serde_json::to_vec(&reordered).expect("serialize reordered retirement control plane");
+    let facts = installed_dormant_history_only_facts_fixture(&reordered_bytes);
+
+    let evaluation = evaluate_and_project_history_only_retirement_facts_with_control_plane(
+        &facts,
+        &[],
+        &reordered_bytes,
+    );
+    assert!(
+        evaluation.findings.iter().any(|finding| {
+            finding.key == "retirement_control_plane_context.candidate_raw_entries"
+        }),
+        "canonical control-plane entry order must fail closed: {:?}",
+        evaluation.findings
+    );
+    assert!(evaluation.projection.is_none());
+}
+
+#[test]
+fn production_evaluator_rejects_malformed_or_duplicate_control_plane_hash_rows() {
+    let control_plane =
+        fs::read(repo_root().join("registry/history-only-retirement/control-plane.json"))
+            .expect("read canonical retirement control plane");
+    let facts = installed_dormant_history_only_facts_fixture(&control_plane);
+
+    let mut malformed = facts.clone();
+    malformed["scm_facts"]["retirement_control_plane_context"]["control_plane_entry_hashes"][0]["unexpected"] =
+        serde_json::json!(true);
+    let mut duplicate = facts;
+    let duplicate_row =
+        duplicate["scm_facts"]["retirement_control_plane_context"]["control_plane_entry_hashes"][0]
+            .clone();
+    duplicate["scm_facts"]["retirement_control_plane_context"]["control_plane_entry_hashes"]
+        .as_array_mut()
+        .expect("control-plane hash rows")
+        .push(duplicate_row);
+
+    for drifted in [&malformed, &duplicate] {
+        let evaluation = evaluate_and_project_history_only_retirement_facts_with_control_plane(
+            drifted,
+            &[],
+            &control_plane,
+        );
+        assert!(
+            evaluation.findings.iter().any(|finding| {
+                finding.key == "retirement_control_plane_context.candidate_raw_hashes"
+            }),
+            "malformed or duplicate control-plane hash rows must fail closed: {:?}",
+            evaluation.findings
+        );
+        assert!(evaluation.projection.is_none());
+    }
+}
+
+#[test]
 fn history_only_retirement_control_plane_declares_workflow_and_event_identity_inputs() {
     let manifest = load_json(&repo_root().join("registry/generated-artifact-control-plane.json"));
     let row = manifest["artifacts"]
