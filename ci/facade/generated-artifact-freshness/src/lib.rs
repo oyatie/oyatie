@@ -46,6 +46,11 @@ const BOARD_SYNC_PROJECTION_PATH: &str = "docs/machine-readable/board-sync.gener
 const MASTERPLAN_SOURCE_PATH: &str = "specs/masterplan.json";
 const ARCHITECTURE_PRODUCT_GRAPH_FACE: &str = "product-graph.html";
 const ARCHITECTURE_PRODUCT_GRAPH_PATH: &str = "docs/architecture/product-graph.html";
+const ACTIVE_ARTIFACT_CONTRACT_GRAPH_PATH: &str =
+    "registry/graph/active-artifact-contract-edges.json";
+const ACTIVE_ARTIFACT_CONTRACT_GRAPH_FACE: &str = "active-artifact-contract-edges.json";
+const SCM_VOLATILE_FACTS_PATH: &str =
+    "ci/facade/scm-facts-snapshot/scm-volatile-facts.generated.json";
 /// PR-owned / face-settle generated paths. Controller-owned generated artifacts that must be
 /// materialized on protected branches, such as `product-graph.html`, intentionally stay out of
 /// this list so contributor PRs do not acquire a new generated merge surface.
@@ -60,11 +65,12 @@ const GENERATED_FACE_PATHS: [&str; 7] = [
 ];
 /// Controller-owned generated artifacts whose freshness is proven by regeneration/determinism,
 /// but whose byte diffs are not staged by `oya-cloud-ci-face-settle` in contributor PRs.
-const CONTROLLER_MATERIALIZED_ARTIFACT_PATHS: [&str; 4] = [
+const CONTROLLER_MATERIALIZED_ARTIFACT_PATHS: [&str; 5] = [
     "ci/facade/artifact-inventory-registry/adr-census-parent-receipt.generated.json",
     MASTERPLAN_PROJECTION_PATH,
     BOARD_SYNC_PROJECTION_PATH,
     ARCHITECTURE_PRODUCT_GRAPH_PATH,
+    ACTIVE_ARTIFACT_CONTRACT_GRAPH_PATH,
 ];
 const EMITTER_TARGET: &str = "//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot";
 const PRODUCER_TARGET: &str =
@@ -600,7 +606,10 @@ fn materialize_generated_faces_with_tools(
     materialize_masterplan_projection(tools, repo_root)?;
     materialize_board_sync_projection(repo_root)?;
     materialize_masterplan_md_projection(repo_root)?;
-    materialize_architecture_product_graph(tools, repo_root)
+    materialize_architecture_product_graph(tools, repo_root)?;
+    materialize_active_artifact_contract_graph(tools, repo_root)?;
+    verify_materialized_upload_outputs(repo_root, retirement)?;
+    Ok(())
 }
 
 pub fn parse_materialize_generated_faces_args(
@@ -1382,14 +1391,14 @@ pub type RegeneratedFaces = Vec<(String, String)>;
 
 pub fn regenerate_faces_with_buck2(repo_root: &Path) -> Result<RegeneratedFaces, FreshnessError> {
     let tools = build_face_tools(repo_root)?;
-    let scm_facts = temporary_scm_facts_path();
+    let scm_facts = temporary_scm_facts_path()?;
     let cleanup = TempFileCleanup {
         path: scm_facts.clone(),
     };
     // The volatile snapshot is routed to its own temp path too: this regeneration exists
     // only to byte-compare the COMMITTED faces, and `--verify` is contractually read-only —
     // it must not rewrite the checkout's materialized scm-volatile-facts snapshot.
-    let volatile_facts = temporary_volatile_facts_path();
+    let volatile_facts = temporary_volatile_facts_path()?;
     let volatile_cleanup = TempFileCleanup {
         path: volatile_facts.clone(),
     };
@@ -1409,11 +1418,11 @@ pub fn regenerate_faces_twice_with_buck2(
     repo_root: &Path,
 ) -> Result<(RegeneratedFaces, RegeneratedFaces), FreshnessError> {
     let tools = build_face_tools(repo_root)?;
-    let scm_facts = temporary_scm_facts_path();
+    let scm_facts = temporary_scm_facts_path()?;
     let cleanup = TempFileCleanup {
         path: scm_facts.clone(),
     };
-    let volatile_facts = temporary_volatile_facts_path();
+    let volatile_facts = temporary_volatile_facts_path()?;
     let volatile_cleanup = TempFileCleanup {
         path: volatile_facts.clone(),
     };
@@ -1506,15 +1515,151 @@ fn regenerate_all_faces(
         repo_root,
     )?);
     regenerated.extend(regenerate_architecture_projection_faces(tools, repo_root)?);
+    regenerated.push(regenerate_active_artifact_contract_graph(tools, repo_root)?);
     regenerated.sort_by(|left, right| left.0.cmp(&right.0));
     Ok(regenerated)
+}
+
+fn regenerate_active_artifact_contract_graph(
+    tools: &FaceTools,
+    repo_root: &Path,
+) -> Result<(String, String), FreshnessError> {
+    let output = temporary_active_artifact_contract_graph_path()?;
+    let cleanup = TempFileCleanup {
+        path: output.clone(),
+    };
+    run_active_artifact_contract_graph_generator(&tools.masterplan_generator, repo_root, &output)?;
+    let bytes = read_to_string(&output)?;
+    drop(cleanup);
+    Ok((ACTIVE_ARTIFACT_CONTRACT_GRAPH_FACE.to_owned(), bytes))
+}
+
+fn materialize_active_artifact_contract_graph(
+    tools: &MaterializerTools,
+    repo_root: &Path,
+) -> Result<(), FreshnessError> {
+    let destination = repo_root.join(ACTIVE_ARTIFACT_CONTRACT_GRAPH_PATH);
+    assert_non_symlink_parent_and_leaf(repo_root, &destination)?;
+    let staging = exclusive_sibling_staging_path(&destination)?;
+    let cleanup = TempFileCleanup {
+        path: staging.clone(),
+    };
+    run_active_artifact_contract_graph_generator(&tools.masterplan_generator, repo_root, &staging)?;
+    assert_regular_non_symlink_file(&staging, "active-artifact graph staging output")?;
+    std::fs::rename(&staging, &destination).map_err(|error| {
+        FreshnessError::new(format!(
+            "install active-artifact graph {}: {error}",
+            destination.display()
+        ))
+    })?;
+    drop(cleanup);
+    Ok(())
+}
+
+fn run_active_artifact_contract_graph_generator(
+    generator: &Path,
+    repo_root: &Path,
+    output: &Path,
+) -> Result<(), FreshnessError> {
+    let mut command = masterplan_generator_command(generator, repo_root);
+    run_status(
+        command
+            .args([
+                "gate",
+                "validate",
+                "active-artifact-contract",
+                "--emit-graph-edges",
+            ])
+            .arg(output),
+        "materialize active-artifact contract graph",
+    )
+}
+
+fn assert_non_symlink_parent_and_leaf(repo_root: &Path, path: &Path) -> Result<(), FreshnessError> {
+    let relative = path.strip_prefix(repo_root).map_err(|error| {
+        FreshnessError::new(format!(
+            "active-artifact graph path outside repo root: {error}"
+        ))
+    })?;
+    let mut current = repo_root.to_path_buf();
+    for component in relative.components() {
+        current.push(component);
+        match std::fs::symlink_metadata(&current) {
+            Ok(metadata) if metadata.file_type().is_symlink() => {
+                return Err(FreshnessError::new(format!(
+                    "active-artifact graph path contains symlink {}",
+                    current.display()
+                )));
+            }
+            Ok(metadata) if current != path && !metadata.is_dir() => {
+                return Err(FreshnessError::new(format!(
+                    "active-artifact graph parent is not a directory {}",
+                    current.display()
+                )));
+            }
+            Ok(_) => {}
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+            Err(error) => {
+                return Err(FreshnessError::new(format!(
+                    "inspect active-artifact graph path {}: {error}",
+                    current.display()
+                )));
+            }
+        }
+    }
+    Ok(())
+}
+
+fn exclusive_sibling_staging_path(destination: &Path) -> Result<PathBuf, FreshnessError> {
+    let parent = destination
+        .parent()
+        .ok_or_else(|| FreshnessError::new("active-artifact graph destination has no parent"))?;
+    std::fs::create_dir_all(parent).map_err(|error| {
+        FreshnessError::new(format!(
+            "create active-artifact graph parent {}: {error}",
+            parent.display()
+        ))
+    })?;
+    exclusive_temporary_path_in(parent, ".active-artifact-contract-edges", ".tmp")
+}
+
+fn assert_regular_non_symlink_file(path: &Path, label: &str) -> Result<(), FreshnessError> {
+    let metadata = std::fs::symlink_metadata(path).map_err(|error| {
+        FreshnessError::new(format!("inspect {label} {}: {error}", path.display()))
+    })?;
+    if metadata.file_type().is_symlink() || !metadata.is_file() {
+        return Err(FreshnessError::new(format!(
+            "{label} must be a regular non-symlink file: {}",
+            path.display()
+        )));
+    }
+    Ok(())
+}
+
+fn verify_materialized_upload_outputs(
+    repo_root: &Path,
+    retirement: Option<&RetirementMaterializeArgs>,
+) -> Result<(), FreshnessError> {
+    let Some(retirement) = retirement else {
+        return Ok(());
+    };
+    let mut paths = vec![
+        repo_root.join("ci/facade/artifact-inventory-registry/accounting-registry.generated.json"),
+        repo_root.join(SCM_VOLATILE_FACTS_PATH),
+        repo_root.join(ACTIVE_ARTIFACT_CONTRACT_GRAPH_PATH),
+    ];
+    paths.push(repo_root.join(&retirement.facts_out));
+    for path in paths {
+        assert_regular_non_symlink_file(&path, "materialized upload output")?;
+    }
+    Ok(())
 }
 
 fn regenerate_adr_census_parent_receipt(
     emitter: &Path,
     repo_root: &Path,
 ) -> Result<(String, String), FreshnessError> {
-    let output = temporary_adr_census_parent_receipt_path();
+    let output = temporary_adr_census_parent_receipt_path()?;
     let cleanup = TempFileCleanup {
         path: output.clone(),
     };
@@ -1545,19 +1690,18 @@ fn regenerate_architecture_projection_faces(
     tools: &FaceTools,
     repo_root: &Path,
 ) -> Result<RegeneratedFaces, FreshnessError> {
-    let masterplan = temporary_masterplan_path();
+    let masterplan = temporary_masterplan_path()?;
     let masterplan_cleanup = TempFileCleanup {
         path: masterplan.clone(),
     };
-    let output = temporary_product_graph_path();
+    let output = temporary_product_graph_path()?;
     let cleanup = TempFileCleanup {
         path: output.clone(),
     };
     run_status(
-        Command::new(&tools.masterplan_generator)
+        masterplan_generator_command(&tools.masterplan_generator, repo_root)
             .args(["gen", "masterplan", "--write", "--output"])
-            .arg(&masterplan)
-            .current_dir(repo_root),
+            .arg(&masterplan),
         "regenerate masterplan projection for architecture product graph",
     )?;
     run_status(
@@ -1942,7 +2086,7 @@ fn emit_materialized_scm_facts(
     // Phase 1: publish the merge-base sha (the emitter owns it — the single git boundary — and the
     // materializer materializes EXACTLY that source tree, never recomputing it). This same call
     // writes the candidate scm-facts face (--out).
-    let merge_base_file = temporary_merge_base_path();
+    let merge_base_file = temporary_merge_base_path()?;
     let merge_base_cleanup = TempFileCleanup {
         path: merge_base_file.clone(),
     };
@@ -1971,22 +2115,23 @@ fn emit_materialized_scm_facts(
     // AUTHORITATIVE frozen snapshot — the regeneration IS the frozen reference (replacing the retired
     // `git show <merge_base>:<face>` committed-blob read), the determinism canary proves the producer
     // is reproducible, and provenance binds it to the merge-base tree. FAIL-CLOSED throughout.
-    let worktree = temporary_worktree_path();
+    let worktree = temporary_worktree_path()?;
     let worktree_cleanup = WorktreeCleanup {
         repo_root: repo_root.to_path_buf(),
-        path: worktree.clone(),
+        path: worktree.path.clone(),
+        reservation: worktree.reservation,
     };
-    add_merge_base_worktree(repo_root, &merge_base, &worktree)?;
+    add_merge_base_worktree(repo_root, &merge_base, &worktree.path)?;
 
-    let regen_first = regenerate_frozen_baseline_from_merge_base_source(tools, &worktree)?;
-    let regen_second = regenerate_frozen_baseline_from_merge_base_source(tools, &worktree)?;
+    let regen_first = regenerate_frozen_baseline_from_merge_base_source(tools, &worktree.path)?;
+    let regen_second = regenerate_frozen_baseline_from_merge_base_source(tools, &worktree.path)?;
 
-    let regen_face_file = temporary_regen_baseline_path();
+    let regen_face_file = temporary_regen_baseline_path()?;
     let regen_face_cleanup = TempFileCleanup {
         path: regen_face_file.clone(),
     };
     write_regen_baseline(&regen_face_file, &regen_first)?;
-    let regen_verify_file = temporary_regen_baseline_verify_path();
+    let regen_verify_file = temporary_regen_baseline_verify_path()?;
     let regen_verify_cleanup = TempFileCleanup {
         path: regen_verify_file.clone(),
     };
@@ -2014,7 +2159,7 @@ fn emit_materialized_scm_facts(
 
     // Reuse the SAME merge-base worktree (still open) to materialize the ratchet-baseline
     // merge-base-content face — a plain filesystem read, not a new git boundary.
-    materialize_ratchet_merge_base_contents(repo_root, &worktree)?;
+    materialize_ratchet_merge_base_contents(repo_root, &worktree.path)?;
 
     drop(regen_verify_cleanup);
     drop(regen_face_cleanup);
@@ -2098,11 +2243,11 @@ fn regenerate_frozen_baseline_from_merge_base_source(
 ) -> Result<String, FreshnessError> {
     // Merge-base scm-facts (STABLE tracked-paths over the mb tree) via the emitter; volatile facts
     // are routed to a throwaway temp path (this regeneration is read-only w.r.t. the checkout).
-    let mb_scm_facts = temporary_scm_facts_path();
+    let mb_scm_facts = temporary_scm_facts_path()?;
     let mb_scm_facts_cleanup = TempFileCleanup {
         path: mb_scm_facts.clone(),
     };
-    let mb_volatile = temporary_volatile_facts_path();
+    let mb_volatile = temporary_volatile_facts_path()?;
     let mb_volatile_cleanup = TempFileCleanup {
         path: mb_volatile.clone(),
     };
@@ -2150,11 +2295,19 @@ fn materialize_masterplan_projection(
     repo_root: &Path,
 ) -> Result<(), FreshnessError> {
     run_status(
-        Command::new(&tools.masterplan_generator)
-            .args(["gen", "masterplan", "--write"])
-            .current_dir(repo_root),
+        masterplan_generator_command(&tools.masterplan_generator, repo_root).args([
+            "gen",
+            "masterplan",
+            "--write",
+        ]),
         "materialize masterplan projection",
     )
+}
+
+fn masterplan_generator_command(generator: &Path, repo_root: &Path) -> Command {
+    let mut command = Command::new(generator);
+    command.current_dir(repo_root);
+    command
 }
 
 fn materialize_board_sync_projection(repo_root: &Path) -> Result<(), FreshnessError> {
@@ -2321,110 +2474,137 @@ fn command_failed(context: &str, output: &std::process::Output) -> FreshnessErro
     ))
 }
 
-fn temporary_scm_facts_path() -> PathBuf {
-    let nanos = match SystemTime::now().duration_since(UNIX_EPOCH) {
-        Ok(duration) => duration.as_nanos(),
-        Err(_) => 0,
-    };
-    std::env::temp_dir().join(format!(
-        "oya-ci-freshness-scm-facts-{}-{nanos}.json",
-        std::process::id()
-    ))
+fn temporary_path_current_system_time() -> SystemTime {
+    SystemTime::now()
 }
 
-fn temporary_volatile_facts_path() -> PathBuf {
-    let nanos = match SystemTime::now().duration_since(UNIX_EPOCH) {
-        Ok(duration) => duration.as_nanos(),
-        Err(_) => 0,
-    };
-    std::env::temp_dir().join(format!(
-        "oya-ci-freshness-scm-volatile-facts-{}-{nanos}.json",
-        std::process::id()
-    ))
+fn epoch_nanos(now: SystemTime) -> Result<u128, FreshnessError> {
+    now.duration_since(UNIX_EPOCH)
+        .map(|duration| duration.as_nanos())
+        .map_err(|_| {
+            FreshnessError::new(
+                "system clock precedes UNIX_EPOCH; refusing predictable temporary path",
+            )
+        })
 }
 
-fn temporary_masterplan_path() -> PathBuf {
-    let nanos = match SystemTime::now().duration_since(UNIX_EPOCH) {
-        Ok(duration) => duration.as_nanos(),
-        Err(_) => 0,
-    };
-    std::env::temp_dir().join(format!(
-        "oya-ci-freshness-masterplan-{}-{nanos}.generated.json",
-        std::process::id()
-    ))
+fn exclusive_temporary_file_path(
+    label: &str,
+    suffix: &str,
+    now: SystemTime,
+) -> Result<PathBuf, FreshnessError> {
+    exclusive_temporary_path_at(&std::env::temp_dir(), label, suffix, now)
 }
 
-fn temporary_product_graph_path() -> PathBuf {
-    let nanos = match SystemTime::now().duration_since(UNIX_EPOCH) {
-        Ok(duration) => duration.as_nanos(),
-        Err(_) => 0,
-    };
-    std::env::temp_dir().join(format!(
-        "oya-ci-freshness-product-graph-{}-{nanos}.html",
-        std::process::id()
-    ))
+fn exclusive_temporary_file(label: &str, suffix: &str) -> Result<PathBuf, FreshnessError> {
+    exclusive_temporary_file_path(label, suffix, temporary_path_current_system_time())
 }
 
-fn temporary_adr_census_parent_receipt_path() -> PathBuf {
-    let nanos = match SystemTime::now().duration_since(UNIX_EPOCH) {
-        Ok(duration) => duration.as_nanos(),
-        Err(_) => 0,
-    };
-    std::env::temp_dir().join(format!(
-        "oya-ci-freshness-adr-census-parent-receipt-{}-{nanos}.generated.json",
-        std::process::id()
-    ))
+fn exclusive_temporary_path_in(
+    parent: &Path,
+    label: &str,
+    suffix: &str,
+) -> Result<PathBuf, FreshnessError> {
+    exclusive_temporary_path_at(parent, label, suffix, temporary_path_current_system_time())
+}
+
+fn exclusive_temporary_path_at(
+    parent: &Path,
+    label: &str,
+    suffix: &str,
+    now: SystemTime,
+) -> Result<PathBuf, FreshnessError> {
+    let path = parent.join(format!(
+        "{label}-{}-{}{}",
+        std::process::id(),
+        epoch_nanos(now)?,
+        suffix
+    ));
+    std::fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(&path)
+        .map_err(|error| {
+            FreshnessError::new(format!(
+                "reserve exclusive temporary path {}: {error}",
+                path.display()
+            ))
+        })?;
+    Ok(path)
+}
+
+fn exclusive_temporary_directory(label: &str) -> Result<PathBuf, FreshnessError> {
+    let path = std::env::temp_dir().join(format!(
+        "{label}-{}-{}",
+        std::process::id(),
+        epoch_nanos(temporary_path_current_system_time())?
+    ));
+    std::fs::create_dir(&path).map_err(|error| {
+        FreshnessError::new(format!(
+            "reserve exclusive temporary directory {}: {error}",
+            path.display()
+        ))
+    })?;
+    Ok(path)
+}
+
+fn temporary_scm_facts_path() -> Result<PathBuf, FreshnessError> {
+    exclusive_temporary_file("oya-ci-freshness-scm-facts", ".json")
+}
+
+fn temporary_active_artifact_contract_graph_path() -> Result<PathBuf, FreshnessError> {
+    exclusive_temporary_file("oya-ci-freshness-active-artifact-contract-edges", ".json")
+}
+
+fn temporary_volatile_facts_path() -> Result<PathBuf, FreshnessError> {
+    exclusive_temporary_file("oya-ci-freshness-scm-volatile-facts", ".json")
+}
+
+fn temporary_masterplan_path() -> Result<PathBuf, FreshnessError> {
+    exclusive_temporary_file("oya-ci-freshness-masterplan", ".generated.json")
+}
+
+fn temporary_product_graph_path() -> Result<PathBuf, FreshnessError> {
+    exclusive_temporary_file("oya-ci-freshness-product-graph", ".html")
+}
+
+fn temporary_adr_census_parent_receipt_path() -> Result<PathBuf, FreshnessError> {
+    exclusive_temporary_file(
+        "oya-ci-freshness-adr-census-parent-receipt",
+        ".generated.json",
+    )
 }
 
 /// ADR-0616: the file the emitter publishes the computed merge-base sha to, so the regeneration
 /// materializes exactly that source tree without recomputing the merge-base.
-fn temporary_merge_base_path() -> PathBuf {
-    let nanos = match SystemTime::now().duration_since(UNIX_EPOCH) {
-        Ok(duration) => duration.as_nanos(),
-        Err(_) => 0,
-    };
-    std::env::temp_dir().join(format!(
-        "oya-ci-freshness-merge-base-{}-{nanos}.txt",
-        std::process::id()
-    ))
+fn temporary_merge_base_path() -> Result<PathBuf, FreshnessError> {
+    exclusive_temporary_file("oya-ci-freshness-merge-base", ".txt")
 }
 
 /// ADR-0616: the throwaway file the regenerated frozen baseline (from the merge-base source) is
 /// written to before the emitter turns it into the authoritative frozen snapshot.
-fn temporary_regen_baseline_path() -> PathBuf {
-    let nanos = match SystemTime::now().duration_since(UNIX_EPOCH) {
-        Ok(duration) => duration.as_nanos(),
-        Err(_) => 0,
-    };
-    std::env::temp_dir().join(format!(
-        "oya-ci-freshness-regen-baseline-{}-{nanos}.generated.json",
-        std::process::id()
-    ))
+fn temporary_regen_baseline_path() -> Result<PathBuf, FreshnessError> {
+    exclusive_temporary_file("oya-ci-freshness-regen-baseline", ".generated.json")
 }
 
 /// ADR-0616: the throwaway file the SECOND (determinism-twin) regeneration is written to, so the
 /// emitter can assert the two regenerations project identically (the determinism canary).
-fn temporary_regen_baseline_verify_path() -> PathBuf {
-    let nanos = match SystemTime::now().duration_since(UNIX_EPOCH) {
-        Ok(duration) => duration.as_nanos(),
-        Err(_) => 0,
-    };
-    std::env::temp_dir().join(format!(
-        "oya-ci-freshness-regen-baseline-verify-{}-{nanos}.generated.json",
-        std::process::id()
-    ))
+fn temporary_regen_baseline_verify_path() -> Result<PathBuf, FreshnessError> {
+    exclusive_temporary_file("oya-ci-freshness-regen-baseline-verify", ".generated.json")
+}
+
+struct TemporaryWorktree {
+    path: PathBuf,
+    reservation: PathBuf,
 }
 
 /// ADR-0616: the isolated linked worktree the merge-base SOURCE tree is checked out into.
-fn temporary_worktree_path() -> PathBuf {
-    let nanos = match SystemTime::now().duration_since(UNIX_EPOCH) {
-        Ok(duration) => duration.as_nanos(),
-        Err(_) => 0,
-    };
-    std::env::temp_dir().join(format!(
-        "oya-ci-freshness-mb-worktree-{}-{nanos}",
-        std::process::id()
-    ))
+fn temporary_worktree_path() -> Result<TemporaryWorktree, FreshnessError> {
+    let reservation = exclusive_temporary_directory("oya-ci-freshness-mb-worktree")?;
+    Ok(TemporaryWorktree {
+        path: reservation.join("checkout"),
+        reservation,
+    })
 }
 
 struct TempFileCleanup {
@@ -2442,6 +2622,7 @@ impl Drop for TempFileCleanup {
 struct WorktreeCleanup {
     repo_root: PathBuf,
     path: PathBuf,
+    reservation: PathBuf,
 }
 
 impl Drop for WorktreeCleanup {
@@ -2458,6 +2639,7 @@ impl Drop for WorktreeCleanup {
             .arg(&self.repo_root)
             .args(["worktree", "prune"])
             .output();
+        let _ = std::fs::remove_dir_all(&self.reservation);
     }
 }
 
@@ -2543,6 +2725,233 @@ mod materialize_generated_faces_tests {
         permissions.set_mode(0o755);
         std::fs::set_permissions(&tmp, permissions).expect("chmod temporary executable");
         std::fs::rename(&tmp, path).expect("install executable");
+    }
+
+    #[cfg(unix)]
+    fn graph_materializer_tools(root: &Path, log: &Path) -> MaterializerTools {
+        let generator = root.join("bin/oya");
+        std::fs::create_dir_all(generator.parent().expect("generator parent"))
+            .expect("create generator parent");
+        write_executable(
+            &generator,
+            &format!(
+                "#!/bin/sh\nset -eu\nprintf 'generator %s\\n' \"$*\" >> \"{}\"\nprintf '{{\"edges\":[]}}\\n' > \"$5\"\n",
+                log.display()
+            ),
+        );
+        MaterializerTools {
+            emitter: PathBuf::from("/unused-emitter"),
+            producer: PathBuf::from("/unused-producer"),
+            codemod: PathBuf::from("/unused-codemod"),
+            masterplan_generator: generator,
+            architecture_graph_generator: PathBuf::from("/unused-architecture-generator"),
+            enforcement_liveness_corpus: EnforcementLivenessCorpusPaths {
+                claude_settings: root.join("unused-settings"),
+                codex_hooks: root.join("unused-hooks"),
+                hooks_dir: root.join("unused-hooks-dir"),
+            },
+        }
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn active_artifact_graph_materialization_rejects_symlinked_parent_before_generator_mutation() {
+        use std::os::unix::fs::symlink;
+
+        let root = temp_root("oya-active-graph-parent-symlink");
+        let outside = temp_root("oya-active-graph-parent-symlink-outside");
+        std::fs::create_dir_all(root.join("registry")).expect("create registry parent");
+        std::fs::create_dir_all(&outside).expect("create outside directory");
+        let outside_target = outside.join("active-artifact-contract-edges.json");
+        std::fs::write(&outside_target, "outside stays unchanged\n").expect("write outside target");
+        symlink(&outside, root.join("registry/graph")).expect("symlink graph parent");
+        let log = root.join("generator.log");
+        let tools = graph_materializer_tools(&root, &log);
+
+        let error = materialize_active_artifact_contract_graph(&tools, &root)
+            .expect_err("symlinked parent must fail closed");
+
+        assert!(error.to_string().contains("contains symlink"), "{error}");
+        assert!(
+            !log.exists(),
+            "generator must not run before parent validation"
+        );
+        assert_eq!(
+            std::fs::read_to_string(&outside_target).expect("read outside target"),
+            "outside stays unchanged\n"
+        );
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn active_artifact_graph_materialization_rejects_symlinked_leaf_before_generator_mutation() {
+        use std::os::unix::fs::symlink;
+
+        let root = temp_root("oya-active-graph-leaf-symlink");
+        let outside = temp_root("oya-active-graph-leaf-symlink-outside");
+        std::fs::create_dir_all(root.join("registry/graph")).expect("create graph parent");
+        std::fs::create_dir_all(&outside).expect("create outside directory");
+        let outside_target = outside.join("active-artifact-contract-edges.json");
+        std::fs::write(&outside_target, "outside stays unchanged\n").expect("write outside target");
+        symlink(
+            &outside_target,
+            root.join(ACTIVE_ARTIFACT_CONTRACT_GRAPH_PATH),
+        )
+        .expect("symlink graph leaf");
+        let log = root.join("generator.log");
+        let tools = graph_materializer_tools(&root, &log);
+
+        let error = materialize_active_artifact_contract_graph(&tools, &root)
+            .expect_err("symlinked leaf must fail closed");
+
+        assert!(error.to_string().contains("contains symlink"), "{error}");
+        assert!(
+            !log.exists(),
+            "generator must not run before leaf validation"
+        );
+        assert_eq!(
+            std::fs::read_to_string(&outside_target).expect("read outside target"),
+            "outside stays unchanged\n"
+        );
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn active_artifact_graph_materialization_atomically_replaces_the_destination() {
+        let root = temp_root("oya-active-graph-atomic-replace");
+        let destination = root.join(ACTIVE_ARTIFACT_CONTRACT_GRAPH_PATH);
+        std::fs::create_dir_all(destination.parent().expect("graph parent"))
+            .expect("create graph parent");
+        std::fs::write(&destination, "old graph\n").expect("write old graph");
+        let log = root.join("generator.log");
+        let tools = graph_materializer_tools(&root, &log);
+
+        materialize_active_artifact_contract_graph(&tools, &root)
+            .expect("materialize graph through an exclusive sibling");
+
+        assert_eq!(
+            std::fs::read_to_string(&destination).expect("read installed graph"),
+            "{\"edges\":[]}\n"
+        );
+        let calls = std::fs::read_to_string(&log).expect("read generator calls");
+        assert!(
+            calls.starts_with(
+                "generator gate validate active-artifact-contract --emit-graph-edges "
+            ),
+            "unexpected generator invocation: {calls:?}"
+        );
+        assert_eq!(calls.lines().count(), 1, "generator must run exactly once");
+        let staging = std::fs::read_dir(destination.parent().expect("graph parent"))
+            .expect("read graph parent")
+            .filter_map(Result::ok)
+            .map(|entry| entry.file_name().to_string_lossy().into_owned())
+            .filter(|name| name.starts_with(".active-artifact-contract-edges-"))
+            .collect::<Vec<_>>();
+        assert!(
+            staging.is_empty(),
+            "successful publication must remove staging files: {staging:?}"
+        );
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn active_artifact_graph_materialization_preserves_the_destination_on_generator_failure() {
+        let root = temp_root("oya-active-graph-atomic-failure");
+        let destination = root.join(ACTIVE_ARTIFACT_CONTRACT_GRAPH_PATH);
+        std::fs::create_dir_all(destination.parent().expect("graph parent"))
+            .expect("create graph parent");
+        std::fs::write(&destination, "known-good graph\n").expect("write known-good graph");
+        let log = root.join("generator.log");
+        let tools = graph_materializer_tools(&root, &log);
+        write_executable(
+            &tools.masterplan_generator,
+            "#!/bin/sh\nset -eu\nprintf 'partial graph\\n' > \"$5\"\nexit 17\n",
+        );
+
+        let error = materialize_active_artifact_contract_graph(&tools, &root)
+            .expect_err("generator failure must fail closed");
+
+        assert!(
+            error
+                .to_string()
+                .contains("materialize active-artifact contract graph failed"),
+            "{error}"
+        );
+        assert_eq!(
+            std::fs::read_to_string(&destination).expect("read preserved graph"),
+            "known-good graph\n"
+        );
+        let staging = std::fs::read_dir(destination.parent().expect("graph parent"))
+            .expect("read graph parent")
+            .filter_map(Result::ok)
+            .map(|entry| entry.file_name().to_string_lossy().into_owned())
+            .filter(|name| name.starts_with(".active-artifact-contract-edges-"))
+            .collect::<Vec<_>>();
+        assert!(
+            staging.is_empty(),
+            "failed publication must remove staging files: {staging:?}"
+        );
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn active_artifact_graph_regeneration_is_bound_to_the_determinism_canary() {
+        let root = temp_root("oya-active-graph-determinism");
+        std::fs::create_dir_all(root.join("bin")).expect("create bin dir");
+        let counter = root.join("counter");
+        let generator = root.join("bin/oya");
+        write_executable(
+            &generator,
+            &format!(
+                "#!/bin/sh\nset -eu\ncount=0\nif [ -f \"{}\" ]; then count=\"$(cat \"{}\")\"; fi\ncount=$((count + 1))\nprintf '%s\\n' \"$count\" > \"{}\"\nprintf '{{\"run\":%s}}\\n' \"$count\" > \"$5\"\n",
+                counter.display(),
+                counter.display(),
+                counter.display()
+            ),
+        );
+        let tools = FaceTools {
+            emitter: PathBuf::from("/unused-emitter"),
+            producer: PathBuf::from("/unused-producer"),
+            masterplan_generator: generator,
+            architecture_graph_generator: PathBuf::from("/unused-architecture-generator"),
+            enforcement_liveness_corpus: EnforcementLivenessCorpusPaths {
+                claude_settings: root.join("unused-settings"),
+                codex_hooks: root.join("unused-hooks"),
+                hooks_dir: root.join("unused-hooks-dir"),
+            },
+        };
+
+        let first = vec![
+            regenerate_active_artifact_contract_graph(&tools, &root)
+                .expect("first graph regeneration"),
+        ];
+        let second = vec![
+            regenerate_active_artifact_contract_graph(&tools, &root)
+                .expect("second graph regeneration"),
+        ];
+        let decommitted = BTreeSet::from([ACTIVE_ARTIFACT_CONTRACT_GRAPH_FACE.to_owned()]);
+
+        let findings = evaluate_face_determinism(&first, &second, &decommitted);
+
+        assert_eq!(findings.len(), 1, "{findings:#?}");
+        assert_eq!(findings[0].code, FindingCode::GeneratedFaceStale);
+        assert_eq!(findings[0].key, ACTIVE_ARTIFACT_CONTRACT_GRAPH_FACE);
+        assert!(findings[0].detail.contains("not deterministic"));
+    }
+
+    #[test]
+    fn exclusive_temporary_file_rejects_pre_epoch_clock_without_predictable_path() {
+        let before_epoch = UNIX_EPOCH
+            .checked_sub(std::time::Duration::from_secs(1))
+            .expect("system time supports pre-epoch fixture");
+
+        let error = exclusive_temporary_file_path("clock", ".tmp", before_epoch)
+            .expect_err("pre-epoch clocks must fail closed");
+
+        assert_eq!(
+            error.to_string(),
+            "system clock precedes UNIX_EPOCH; refusing predictable temporary path"
+        );
     }
 
     fn derivable_masterplan() -> serde_json::Value {
@@ -3493,12 +3902,20 @@ if [ "$face" = "baseline" ]; then printf '{{"gates":{{}}}}\n'; fi
                 r#"#!/bin/sh
 set -eu
 printf 'masterplan %s\n' "$*" >> "{log_path}"
-test "$#" -eq 3
-test "$1" = "gen"
-test "$2" = "masterplan"
-test "$3" = "--write"
-mkdir -p docs/machine-readable
-printf '{{"milestones":[{{"milestone":"M-test","adrs":[{{"deliverables":[{{"id":"D-1","description":"test","status":"declared"}}]}}]}}],"adr_count":0,"deliverable_count":1,"generator":"test"}}\n' > docs/machine-readable/masterplan.generated.json
+if [ "$1" = "gate" ]; then
+  test "$2" = "validate"
+  test "$3" = "active-artifact-contract"
+  test "$4" = "--emit-graph-edges"
+  mkdir -p "$(dirname "$5")"
+  printf '{{"edges":[]}}\n' > "$5"
+else
+  test "$#" -eq 3
+  test "$1" = "gen"
+  test "$2" = "masterplan"
+  test "$3" = "--write"
+  mkdir -p docs/machine-readable
+  printf '{{"milestones":[{{"milestone":"M-test","adrs":[{{"deliverables":[{{"id":"D-1","description":"test","status":"declared"}}]}}]}}],"adr_count":0,"deliverable_count":1,"generator":"test"}}\n' > docs/machine-readable/masterplan.generated.json
+fi
 "#
             ),
         );
@@ -3552,11 +3969,15 @@ printf 'generated dashboard\n' > docs/architecture/product-graph.html
         let architecture_pos = calls
             .find("architecture --write")
             .expect("architecture generator call");
+        let active_graph_pos = calls
+            .find("masterplan gate validate active-artifact-contract --emit-graph-edges")
+            .expect("active-artifact graph generator call");
         assert!(codemod_pos < emitter_pos);
         assert!(emitter_pos < census_pos);
         assert!(census_pos < producer_pos);
         assert!(producer_pos < masterplan_pos);
         assert!(masterplan_pos < architecture_pos);
+        assert!(architecture_pos < active_graph_pos);
         assert!(calls.contains(&format!(
             "--enforcement-liveness-claude-settings {}",
             root.join("buck/declared/settings.json").display()
@@ -3598,6 +4019,11 @@ printf 'generated dashboard\n' > docs/architecture/product-graph.html
             std::fs::read_to_string(root.join("docs/architecture/product-graph.html"))
                 .expect("product graph materialized"),
             "generated dashboard\n"
+        );
+        assert_eq!(
+            std::fs::read_to_string(root.join(ACTIVE_ARTIFACT_CONTRACT_GRAPH_PATH))
+                .expect("active-artifact graph materialized"),
+            "{\"edges\":[]}\n"
         );
     }
 
