@@ -13,10 +13,7 @@ amended_by: []
 depends_on: [ADR-0069, ADR-0388, ADR-0515, ADR-0517, ADR-0522, ADR-0619]
 amends: []
 related: [ADR-0363, ADR-0516, ADR-0565, ADR-0613, ADR-0614, ADR-0616, ADR-0617]
-related_specs:
-  - /specs/masterplan.json
-  - /specs/stage1-closure-program.schema.json
-  - /specs/stage1-evidence-epoch.schema.json
+related_specs: []
 milestone: W0
 ---
 
@@ -24,17 +21,19 @@ milestone: W0
 
 ## Status
 
-**Proposed — 2026-07-22.** This decision installs a dormant, pure contract and regression corpus.
-It does not amend Accepted authority, close the current planning hold, accept any unresolved ADR,
-issue a qualified-human decision, or authorize roadmap or implementation dispatch. Lifecycle
-promotion and control-plane activation require later protected changes carrying the authority and
-admission evidence defined here.
+**Proposed — 2026-07-22.** This decision records a mechanism-neutral contract proposal and a
+history-only prototype. It does not install an executable contract, amend Accepted authority, close
+the current planning hold, accept any unresolved ADR, issue a qualified-human decision, or
+authorize roadmap or implementation dispatch. Adoption requires an authenticated qualified
+acceptance of the control population and its admission role, followed by a fresh protected
+implementation.
 
 ## Governed surfaces
 
-This proposed, dormant contract governs only the following exact source artifacts. They remain
-non-authoritative until a later protected promotion admits a separately operated producer and
-envelope; listing them here supplies traceable scope rather than activation authority.
+The historical prototype used the following paths. They are intentionally absent from the final
+tree because Buck2's protected full-workspace build and test universes could otherwise make a
+Proposed mechanism admission-bearing. The paths describe proposed scope only; they are not current
+authority or current implementation.
 
 - `libs/oya-stage1-closure/OWNERS`
 - `libs/oya-stage1-closure/BUCK`
@@ -77,10 +76,11 @@ and deliberately unable to authorize more than its narrow exit.
 
 ### 1. One exact Stage-1 program
 
-The canonical program identity is `correct-way-forward-before-roadmap`. Its instance will live at
-`/specs/masterplan.json#masterplan_v2.planning_entry_contract.stage1_closure_program`; the schemas
-in this change define its structural wire contract and `libs/oya-stage1-closure` defines the
-dormant pure semantic candidate evaluator. It is deliberately not registered as a cloud-ci gate.
+The proposed canonical program identity is `correct-way-forward-before-roadmap`. If separately
+accepted, its instance could live at
+`/specs/masterplan.json#masterplan_v2.planning_entry_contract.stage1_closure_program`, with closed
+schemas and a pure semantic evaluator. No such masterplan field, schema, library, registry row,
+root-hub pointer, or cloud-CI gate exists in the final tree of this proposal.
 
 The exact control population is:
 
@@ -167,9 +167,9 @@ authority, evidence, parser, producer, policy, or subject mutation opens a new e
 rewrite or retroactively promote an earlier epoch.
 
 `PASS_CANDIDATE` is an explicitly non-authoritative structural candidate, not effective
-`PASS(Planning)`, and keeps all three source planning flags false. In the current dormant build,
-even that structural candidate is rejected because no authenticated external producer, signature
-verifier, trust-root verifier, or controller exists.
+`PASS(Planning)`, and keeps all three source planning flags false. The history-only prototype
+rejected even that structural candidate because no authenticated external producer, signature
+verifier, trust-root verifier, or controller existed.
 Only a future, independently operated post-merge admission envelope can derive effective
 `PASS(Planning)` from an exact promoted commit; it is not implemented or activated by this ADR.
 Even after that external derivation:
@@ -200,7 +200,7 @@ The pipeline separates:
 ### 6. Protected-parent interpretation
 
 A candidate tree is data under test. It cannot define the parser, producer, evaluator, policy, or
-control population that judges its own exit. Activation is staged:
+control population that judges its own exit. Any accepted activation would be staged:
 
 1. merge the dormant parser, grammar, schemas, and evaluator under the prior protected policy;
 2. merge the exact program and first HOLD epoch;
@@ -258,13 +258,15 @@ count, disposition, and successor references without copying retired content.
 
 ## Consequences
 
-- The current planning hold becomes an executable state machine rather than a prose convention.
-- Evidence can accumulate in parallel while authority joins remain fail-closed.
-- A later PASS is reproducible without conversation history and cannot smuggle implementation
-  authorization through a planning exit.
-- Qualified humans remain necessary only where their authority is substantively irreducible.
-- The first implementation adds a small pure crate and schemas; it does not add a service, CLI,
-  generated merge surface, or new required status context.
+- If accepted and freshly implemented, the current planning hold could become an executable state
+  machine rather than a prose convention.
+- Evidence could accumulate in parallel while authority joins remain fail-closed.
+- A later PASS would be reproducible without conversation history and could not smuggle
+  implementation authorization through a planning exit.
+- Qualified humans would remain necessary only where their authority is substantively
+  irreducible.
+- The evaluated prototype is preserved only in signed PR history. It is not a current library,
+  schema, registry, masterplan, root-hub, generated merge surface, or required admission rule.
 - Until this ADR is Accepted and its staged activation is admitted, current authority remains the
   existing open hold.
 
@@ -294,17 +296,13 @@ Rejected. Stage-1 exits only into roadmap planning; approval and dispatch are se
 
 ## Verification
 
-1. RED tests precede the pure evaluator implementation.
-2. Program validation requires exact ordered states, transition graph, A-G groups, C01-C15
-   controls, and L01-L16 lenses.
-3. HOLD fixtures are green only with roadmap, binding approval, and dispatch false.
-4. PASS fixtures are green only when all controls and lenses share one frozen subject, qualified
-   receipts exist, the successor is immutable, fresh dissent is independently preserved, and a
-   distinct blind reader reproduces the exit without conversation context.
-5. PASS still leaves binding approval and implementation dispatch false.
-6. Missing or duplicate controls, lenses, reviewers, receipts, subject digests, or SCM facts fail.
-7. Cargo, Buck, formatting, clippy, generated-artifact policy, and cross-artifact integration are
-   green before activation.
-8. No `*.generated.json` is added or modified by hand.
-9. Protected PR review, zero unresolved threads, branch protection, and the single required
-   `oya-ci-required` context remain mandatory; post-merge admission is recorded separately.
+The history-only prototype was developed regression-first and exercised the exact ordered states,
+transition graph, A-G groups, C01-C15 controls, L01-L16 lenses, HOLD invariants, qualified-receipt
+joins, immutable successor, fresh dissent, and context-free exit. Those receipts demonstrate
+design feasibility only.
+
+After qualified acceptance, a fresh implementation must re-establish all RED and GREEN evidence,
+formatting, static analysis, generated-artifact policy, cross-artifact integration, independent
+review, zero unresolved threads, branch protection, and the single required `oya-ci-required`
+context. No `*.generated.json` may be added or modified by hand. The historical prototype cannot
+be resurrected or treated as current authority.

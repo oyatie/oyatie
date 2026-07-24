@@ -2,8 +2,3 @@ export_file(
     name = "generated-artifact-control-plane.json",
     visibility = ["PUBLIC"],
 )
-
-export_file(
-    name = "artifact-capabilities-registry.json",
-    visibility = ["PUBLIC"],
-)
