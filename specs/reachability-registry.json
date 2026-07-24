@@ -266,10 +266,6 @@
       "prefix": "specs/OWNERS"
     },
     {
-      "anchor": "ADR-0623 proposed dormant Stage-1 closure candidate: exact Buck export package for the four structural schemas, which remains a build input only and confers no planning, admission, or dispatch authority.",
-      "prefix": "specs/BUCK"
-    },
-    {
       "anchor": "ADR-0515 run-observability packet amendment: the canonical cloud-ci/oya-ci required-context status packet schema is the reviewed machine-readable contract consumed by the firewall run-observability validator and its fixture corpus.",
       "prefix": "specs/cloud-ci-run-observability-packet.schema.json"
     },
@@ -336,10 +332,6 @@
     {
       "anchor": "ADR-0123 authority-cohesion gate ownership seed; exact-path registration for the non-code OWNERS artifact that owns the root-hub fixture corpus.",
       "prefix": "libs/oya-check-authority-cohesion/OWNERS"
-    },
-    {
-      "anchor": "ADR-0623 proposed dormant Stage-1 closure candidate: the narrow validator subtree is cargo-member reachable for its source, while this explicit prefix also reaches its ownership marker and data fixtures without asserting CI, planning, admission, or dispatch authority.",
-      "prefix": "libs/oya-stage1-closure/"
     },
     {
       "anchor": "ADR-0008 Data Use Boundary policy-gate ownership seed; exact-path registration keeps the non-code OWNERS artifact reachable without broadening all libs.",
