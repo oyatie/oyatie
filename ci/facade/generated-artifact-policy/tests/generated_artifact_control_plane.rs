@@ -199,6 +199,15 @@ fn history_only_retirement_facts_is_the_exact_controller_owned_untracked_face() 
             .and_then(Value::as_str),
         Some("declared-artifact-path-write")
     );
+    assert_eq!(
+        row.pointer("/generator/input_contract"),
+        Some(&json!([
+            "repo-root",
+            "full-depth-scm",
+            "scm-event-identity",
+            "declared-source-inputs"
+        ]))
+    );
 }
 
 #[test]
