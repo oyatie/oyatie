@@ -2,7 +2,9 @@ use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use oya_governance_adr_shape_kernel::{AdrDocument, validate_adr_shape_fitness};
+use oya_governance_adr_shape_kernel::{
+    AdrDocument, audit_adr_shape_fitness, validate_adr_shape_fitness,
+};
 
 fn main() {
     if let Err(error) = run() {
@@ -13,7 +15,34 @@ fn main() {
 
 fn run() -> Result<(), String> {
     let paths = input_paths()?;
-    let documents = paths
+    run_paths(&paths)
+}
+
+fn run_paths(paths: &[PathBuf]) -> Result<(), String> {
+    let documents = load_documents(paths)?;
+    print!("{}", audit_output(&documents));
+    Ok(())
+}
+
+fn audit_output(documents: &[AdrDocument]) -> String {
+    let report = audit_adr_shape_fitness(&documents);
+    let mut output = String::new();
+    for finding in &report.findings {
+        output.push_str(&format!(
+            "{}\t{}\t{}\n",
+            finding.path, finding.code, finding.message
+        ));
+    }
+    output.push_str(&format!(
+        "adr-shape diagnostic: adrs_checked={} findings={}\n",
+        report.adrs_checked,
+        report.findings.len()
+    ));
+    output
+}
+
+fn load_documents(paths: &[PathBuf]) -> Result<Vec<AdrDocument>, String> {
+    paths
         .iter()
         .map(|path| {
             let text =
@@ -23,10 +52,92 @@ fn run() -> Result<(), String> {
                 text,
             })
         })
-        .collect::<Result<Vec<_>, String>>()?;
-    let report = validate_adr_shape_fitness(&documents).map_err(|error| error.to_string())?;
-    println!("adr-shape ok: adrs_checked={}", report.adrs_checked);
-    Ok(())
+        .collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn loads_and_validates_a_filesystem_fixture() {
+        let path = PathBuf::from(
+            "tools/oya-governance-adr-shape-app/tests/ADR-9001-enforce-filesystem-adr-validation.md",
+        );
+        let documents = load_documents(&[path]).expect("fixture is readable");
+        assert_eq!(documents.len(), 1);
+        let result = validate_adr_shape_fitness(&documents);
+        assert!(result.is_ok(), "{result:?}");
+        let output = audit_output(&documents);
+        assert!(output.ends_with("\n"));
+        assert!(output.contains("findings=0"), "{output}");
+        assert!(output.contains("adr-shape diagnostic:"));
+    }
+
+    #[test]
+    fn production_audit_output_handles_the_canonical_template_without_panicking() {
+        let paths = [PathBuf::from("docs/templates/adr-template.md")];
+        assert!(run_paths(&paths).is_ok());
+        let documents = load_documents(&paths).expect("canonical template is readable");
+        let report = audit_adr_shape_fitness(&documents);
+        assert_eq!(report.findings.len(), 1);
+        assert_eq!(report.findings[0].code, "ADR_STATUS_INVALID");
+        let output = audit_output(&documents);
+        assert!(output.contains("adr-shape diagnostic:"));
+        assert!(
+            output
+                .lines()
+                .last()
+                .is_some_and(|line| line.starts_with("adr-shape diagnostic:"))
+        );
+    }
+
+    #[test]
+    fn production_audit_output_is_sorted_for_adversarial_documents() {
+        let documents = vec![
+            AdrDocument {
+                path: "z.md".to_owned(),
+                text: "# ADR-9999: Z\n".to_owned(),
+            },
+            AdrDocument {
+                path: "a.md".to_owned(),
+                text: "# ADR-0001: A\n\n   ````md\n## Context\n~~~\n## Decision\n   ````\n"
+                    .to_owned(),
+            },
+        ];
+        let output = audit_output(&documents);
+        assert!(
+            output
+                .lines()
+                .next()
+                .is_some_and(|line| line.starts_with("a.md\t"))
+        );
+        assert!(output.contains("ADR_SECTION_MISSING"));
+    }
+
+    #[test]
+    fn executable_path_rejects_four_space_indented_pseudo_structure() {
+        let paths = [PathBuf::from(
+            "tools/oya-governance-adr-shape-app/tests/ADR-9002-four-space-indented-structure.md",
+        )];
+        assert!(run_paths(&paths).is_ok());
+        let documents = load_documents(&paths).expect("adversarial fixture is readable");
+        let output = audit_output(&documents);
+        assert!(output.contains("ADR_FRONTMATTER_MISSING"));
+        assert!(output.contains("ADR_SECTION_MISSING"));
+    }
+
+    #[test]
+    fn executable_path_keeps_trailing_text_fence_closer_open() {
+        let paths = [PathBuf::from(
+            "tools/oya-governance-adr-shape-app/tests/ADR-9003-trailing-fence-closer-structure.md",
+        )];
+        assert!(run_paths(&paths).is_ok());
+        let documents = load_documents(&paths).expect("adversarial fixture is readable");
+        let output = audit_output(&documents);
+        assert!(output.contains("ADR_FRONTMATTER_MISSING"));
+        assert!(output.contains("ADR_SECTION_MISSING"));
+    }
 }
 
 fn input_paths() -> Result<Vec<PathBuf>, String> {
