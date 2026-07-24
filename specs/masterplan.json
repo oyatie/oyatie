@@ -9190,7 +9190,324 @@
         "the sequencing digest differs from sha256:a6ddc2a8f372c71aa31f9a7e84087d8d2de84c283baee0c8746e054d58564c3c without a fresh founder ratification record",
         "any dispatched_waves entry exists before all prior conditions close"
       ],
-      "closure_rule": "A later protected evidence-bearing amendment must extend the cross-artifact evaluator with the closed-state proof contract and may then set state=closed, binding_plan_approval_allowed=true, and dispatch_allowed=true only after every entry condition is proven. The current evaluator deliberately accepts only the open hold. Until the transition lands, the exact terminal state is blocked-preplanning-authority-closure, not ready or complete."
+      "closure_rule": "A later protected evidence-bearing amendment must extend the cross-artifact evaluator with the closed-state proof contract and may then set state=closed, binding_plan_approval_allowed=true, and dispatch_allowed=true only after every entry condition is proven. The current evaluator deliberately accepts only the open hold. Until the transition lands, the exact terminal state is blocked-preplanning-authority-closure, not ready or complete.",
+      "stage1_closure_program": {
+        "schema_id": "oyatie/stage1-closure-program/v1",
+        "program_id": "correct-way-forward-before-roadmap",
+        "mechanism_neutral": true,
+        "initial_state": "HOLD_EPOCH_OPEN",
+        "states": [
+          "HOLD_EPOCH_OPEN",
+          "HOLD_EVIDENCE_COMPLETE",
+          "HOLD_SUCCESSOR_FROZEN",
+          "HOLD_EXIT_CANDIDATE",
+          "PASS_CANDIDATE",
+          "BLOCKED_QUALIFIED_HUMAN_INPUT"
+        ],
+        "terminal_states": [
+          "PASS_CANDIDATE",
+          "BLOCKED_QUALIFIED_HUMAN_INPUT"
+        ],
+        "transitions": [
+          {
+            "from": "HOLD_EPOCH_OPEN",
+            "to": "HOLD_EVIDENCE_COMPLETE"
+          },
+          {
+            "from": "HOLD_EVIDENCE_COMPLETE",
+            "to": "HOLD_SUCCESSOR_FROZEN"
+          },
+          {
+            "from": "HOLD_SUCCESSOR_FROZEN",
+            "to": "HOLD_EXIT_CANDIDATE"
+          },
+          {
+            "from": "HOLD_EXIT_CANDIDATE",
+            "to": "PASS_CANDIDATE"
+          },
+          {
+            "from": "HOLD_EPOCH_OPEN",
+            "to": "BLOCKED_QUALIFIED_HUMAN_INPUT"
+          },
+          {
+            "from": "HOLD_EVIDENCE_COMPLETE",
+            "to": "BLOCKED_QUALIFIED_HUMAN_INPUT"
+          },
+          {
+            "from": "HOLD_SUCCESSOR_FROZEN",
+            "to": "BLOCKED_QUALIFIED_HUMAN_INPUT"
+          },
+          {
+            "from": "HOLD_EXIT_CANDIDATE",
+            "to": "BLOCKED_QUALIFIED_HUMAN_INPUT"
+          }
+        ],
+        "groups": [
+          {
+            "group_id": "A",
+            "owned_controls": [
+              "C01",
+              "C02",
+              "C03"
+            ],
+            "requires_controls": []
+          },
+          {
+            "group_id": "B",
+            "owned_controls": [
+              "C04",
+              "C05"
+            ],
+            "requires_controls": [
+              "C01",
+              "C02",
+              "C03"
+            ]
+          },
+          {
+            "group_id": "C",
+            "owned_controls": [
+              "C10",
+              "C11"
+            ],
+            "requires_controls": [
+              "C01",
+              "C02",
+              "C03",
+              "C04",
+              "C05",
+              "C06",
+              "C07",
+              "C08",
+              "C09"
+            ]
+          },
+          {
+            "group_id": "D",
+            "owned_controls": [
+              "C06",
+              "C07",
+              "C08",
+              "C09"
+            ],
+            "requires_controls": [
+              "C01",
+              "C02",
+              "C03"
+            ]
+          },
+          {
+            "group_id": "E",
+            "owned_controls": [],
+            "requires_controls": [
+              "C04",
+              "C05",
+              "C06",
+              "C07",
+              "C08",
+              "C09",
+              "C10",
+              "C11"
+            ]
+          },
+          {
+            "group_id": "F",
+            "owned_controls": [
+              "C12",
+              "C13",
+              "C14"
+            ],
+            "requires_controls": [
+              "C01",
+              "C02",
+              "C03",
+              "C04",
+              "C05",
+              "C06",
+              "C07",
+              "C08",
+              "C09",
+              "C10",
+              "C11"
+            ]
+          },
+          {
+            "group_id": "G",
+            "owned_controls": [
+              "C15"
+            ],
+            "requires_controls": [
+              "C01",
+              "C02",
+              "C03",
+              "C04",
+              "C05",
+              "C06",
+              "C07",
+              "C08",
+              "C09",
+              "C10",
+              "C11",
+              "C12",
+              "C13",
+              "C14"
+            ]
+          }
+        ],
+        "controls": [
+          {
+            "control_id": "C01",
+            "name": "controlling_adr_chronology",
+            "authority_class": "machine-verifiable"
+          },
+          {
+            "control_id": "C02",
+            "name": "canonical_parser_ir",
+            "authority_class": "machine-verifiable"
+          },
+          {
+            "control_id": "C03",
+            "name": "corpus_archive_freshness",
+            "authority_class": "machine-verifiable"
+          },
+          {
+            "control_id": "C04",
+            "name": "decision_population",
+            "authority_class": "machine-verifiable"
+          },
+          {
+            "control_id": "C05",
+            "name": "comparator",
+            "authority_class": "machine-verifiable"
+          },
+          {
+            "control_id": "C06",
+            "name": "legal_jcr",
+            "authority_class": "qualified-human"
+          },
+          {
+            "control_id": "C07",
+            "name": "affected_party",
+            "authority_class": "qualified-affected-party"
+          },
+          {
+            "control_id": "C08",
+            "name": "operations",
+            "authority_class": "qualified-operations"
+          },
+          {
+            "control_id": "C09",
+            "name": "custody",
+            "authority_class": "qualified-custody"
+          },
+          {
+            "control_id": "C10",
+            "name": "veto",
+            "authority_class": "authorized-veto"
+          },
+          {
+            "control_id": "C11",
+            "name": "pilot",
+            "authority_class": "machine-and-qualified-human"
+          },
+          {
+            "control_id": "C12",
+            "name": "immutable_successor",
+            "authority_class": "machine-verifiable"
+          },
+          {
+            "control_id": "C13",
+            "name": "sixteen_lens_council",
+            "authority_class": "independent-council"
+          },
+          {
+            "control_id": "C14",
+            "name": "fresh_dissent",
+            "authority_class": "independent-dissent"
+          },
+          {
+            "control_id": "C15",
+            "name": "context_free_exit",
+            "authority_class": "independent-oracle"
+          }
+        ],
+        "lenses": [
+          {
+            "lens_id": "L01",
+            "name": "product_and_user_value"
+          },
+          {
+            "lens_id": "L02",
+            "name": "intuitive_no_code_ux_and_accessibility"
+          },
+          {
+            "lens_id": "L03",
+            "name": "ontology_data_and_temporal_semantics"
+          },
+          {
+            "lens_id": "L04",
+            "name": "workflow_automation_and_compensation"
+          },
+          {
+            "lens_id": "L05",
+            "name": "architecture_modularity_and_hyperscale"
+          },
+          {
+            "lens_id": "L06",
+            "name": "cloud_platform_and_enterprise_infrastructure"
+          },
+          {
+            "lens_id": "L07",
+            "name": "developer_build_release_and_supply_chain"
+          },
+          {
+            "lens_id": "L08",
+            "name": "reliability_operations_and_observability"
+          },
+          {
+            "lens_id": "L09",
+            "name": "security_identity_and_abuse_resistance"
+          },
+          {
+            "lens_id": "L10",
+            "name": "privacy_residency_and_data_governance"
+          },
+          {
+            "lens_id": "L11",
+            "name": "legal_regulatory_and_jcr"
+          },
+          {
+            "lens_id": "L12",
+            "name": "affected_party_safety_and_ethics"
+          },
+          {
+            "lens_id": "L13",
+            "name": "economics_finops_and_business_viability"
+          },
+          {
+            "lens_id": "L14",
+            "name": "interoperability_supply_chain_and_ecosystem"
+          },
+          {
+            "lens_id": "L15",
+            "name": "maintainability_evolvability_and_deprecation"
+          },
+          {
+            "lens_id": "L16",
+            "name": "evidence_audit_governance_and_dissent"
+          }
+        ],
+        "candidate_effects": {
+          "roadmap_planning_authorized": false,
+          "binding_plan_approval_allowed": false,
+          "implementation_dispatch_allowed": false
+        },
+        "mutation_policy": {
+          "any_program_or_evidence_mutation_opens_new_epoch": true,
+          "prior_epoch_bytes_remain_only_in_authorized_object_history": true,
+          "readable_archive_allowed": false
+        }
+      }
     },
     "non_claims": [
       "Sub-AC 4 records the founder-ratification decision for the re-derived sequencing (see masterplan_v2.sequencing.founder_ratification and evidence/goals/masterplan-v2-sequencing-founder-ratification-20260702.json); it does not claim E2E loop execution, and no execution wave has dispatched.",
