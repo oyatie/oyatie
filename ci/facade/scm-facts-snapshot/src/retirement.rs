@@ -273,18 +273,33 @@ pub fn emit_history_only_retirement_facts(
     context: &RetirementMaterializationContext<'_>,
     output_path: &Path,
 ) -> Result<(), String> {
-    let output_path = canonical_generated_facts_output_path(repo_root, output_path)?;
+    canonical_generated_facts_output_path(repo_root, output_path)?;
     let source = GitCliRetirementObjectSource::new(repo_root.to_path_buf());
     let value = materialize_history_only_retirement_facts(&source, context)?;
     let bytes = to_canonical_json(&value)
         .map_err(|error| format!("serialize history-only retirement facts: {error}"))?;
-    write_ignored_regular_file(repo_root, &output_path, bytes.as_bytes())
+    write_canonical_retirement_facts(repo_root, bytes.as_bytes())
+}
+
+/// Atomically write the canonical ignored retirement-facts file.
+///
+/// Public only for the package-local integration target's filesystem defenses.
+/// The path is intentionally not caller-controlled: this seam can write only
+/// [`GENERATED_FACTS_PATH`], after rerunning the ignore/untracked boundary.
+pub fn write_canonical_retirement_facts(repo_root: &Path, bytes: &[u8]) -> Result<(), String> {
+    let output_path =
+        canonical_generated_facts_output_path(repo_root, Path::new(GENERATED_FACTS_PATH))?;
+    write_ignored_regular_file(repo_root, &output_path, bytes)
 }
 
 /// Atomically write a verified ignored regular file.
 ///
-/// Public only for the package-local integration target's symlink defenses.
-pub fn write_ignored_regular_file(
+/// This private helper receives only the canonical output resolved by
+/// `write_canonical_retirement_facts`. It revalidates the parent immediately
+/// before rename; without descriptor-relative rename in the current workspace,
+/// the remaining OS scheduling window is documented and fails closed whenever
+/// the parent identity changes before finalization.
+fn write_ignored_regular_file(
     repo_root: &Path,
     output_path: &Path,
     bytes: &[u8],
@@ -307,6 +322,7 @@ pub fn write_ignored_regular_file(
         }
         Err(error) => return Err(format!("inspect {}: {error}", parent.display())),
     }
+    let parent_identity = output_parent_identity(parent)?;
     match std::fs::symlink_metadata(output_path) {
         Ok(metadata) if metadata.file_type().is_symlink() || !metadata.is_file() => {
             return Err(format!(
@@ -350,6 +366,7 @@ pub fn write_ignored_regular_file(
             .map_err(|error| format!("write {}: {error}", temporary.display()))?;
         file.sync_all()
             .map_err(|error| format!("sync {}: {error}", temporary.display()))?;
+        verify_output_parent_identity(parent, &parent_identity)?;
         std::fs::rename(&temporary, output_path)
             .map_err(|error| format!("replace {}: {error}", output_path.display()))
     })();
@@ -357,6 +374,56 @@ pub fn write_ignored_regular_file(
         let _ = std::fs::remove_file(&temporary);
     }
     result
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct OutputParentIdentity {
+    canonical_path: PathBuf,
+    #[cfg(unix)]
+    device: u64,
+    #[cfg(unix)]
+    inode: u64,
+}
+
+fn output_parent_identity(parent: &Path) -> Result<OutputParentIdentity, String> {
+    let metadata = std::fs::symlink_metadata(parent)
+        .map_err(|error| format!("inspect {}: {error}", parent.display()))?;
+    if metadata.file_type().is_symlink() || !metadata.is_dir() {
+        return Err(format!(
+            "retirement facts output parent {} is not a real directory",
+            parent.display()
+        ));
+    }
+    let canonical_path = std::fs::canonicalize(parent)
+        .map_err(|error| format!("canonicalize {}: {error}", parent.display()))?;
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::MetadataExt;
+
+        Ok(OutputParentIdentity {
+            canonical_path,
+            device: metadata.dev(),
+            inode: metadata.ino(),
+        })
+    }
+    #[cfg(not(unix))]
+    {
+        Ok(OutputParentIdentity { canonical_path })
+    }
+}
+
+fn verify_output_parent_identity(
+    parent: &Path,
+    expected: &OutputParentIdentity,
+) -> Result<(), String> {
+    let actual = output_parent_identity(parent)?;
+    if &actual != expected {
+        return Err(format!(
+            "retirement facts output parent {} changed before atomic rename",
+            parent.display()
+        ));
+    }
+    Ok(())
 }
 
 fn ensure_real_output_parent(repo_root: &Path, parent: &Path) -> Result<(), String> {
@@ -385,7 +452,11 @@ fn canonical_generated_facts_output_path(
     repo_root: &Path,
     output_path: &Path,
 ) -> Result<PathBuf, String> {
-    if output_path != Path::new(GENERATED_FACTS_PATH) {
+    if output_path != Path::new(GENERATED_FACTS_PATH)
+        || !output_path
+            .components()
+            .all(|component| matches!(component, std::path::Component::Normal(_)))
+    {
         return Err(format!(
             "retirement facts output must be the exact canonical repo-relative generated facts path {GENERATED_FACTS_PATH}"
         ));
