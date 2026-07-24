@@ -1649,6 +1649,9 @@ fn verify_materialized_upload_outputs(
         repo_root.join(ACTIVE_ARTIFACT_CONTRACT_GRAPH_PATH),
     ];
     paths.push(repo_root.join(&retirement.facts_out));
+    paths.push(repo_root.join(
+        "ci/facade/scm-facts-snapshot/adr-0515-history-only-retirement-facts.generated.json",
+    ));
     for path in paths {
         assert_regular_non_symlink_file(&path, "materialized upload output")?;
     }
@@ -2097,6 +2100,7 @@ fn emit_materialized_scm_facts(
         .args(["--out"])
         .arg(scm_facts)
         .arg("--merge-base-baseline")
+        .arg("--adr-0515-preparation-facts")
         .args(["--merge-base-out"])
         .arg(&merge_base_file);
     append_retirement_materialization_args(&mut candidate_emission, retirement);

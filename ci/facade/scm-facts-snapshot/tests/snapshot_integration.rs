@@ -17,10 +17,11 @@ use ci_scm_facts_snapshot::{
     output_path_resolver,
     retirement::{
         GENERATED_FACTS_PATH, RetirementMaterializationContext, emit_history_only_retirement_facts,
-        historical_dev_push_context, visit_git_blobs, write_canonical_retirement_facts,
+        historical_dev_push_context, materialize_adr_0515_preparation_facts, visit_git_blobs,
+        write_canonical_retirement_facts,
     },
 };
-use serde_json::json;
+use serde_json::{Value, json};
 
 static NEXT_TEMP_REPO_ID: AtomicU64 = AtomicU64::new(0);
 
@@ -37,6 +38,270 @@ fn context() -> RetirementMaterializationContext<'static> {
         scm_event_base_ref: "refs/heads/dev",
         subject_commit: CANDIDATE,
     }
+}
+
+#[test]
+fn adr_0515_preparation_profile_binds_immutable_predecessor_blobs_without_closure() {
+    let root = discover_repo_root().expect("discover repository root");
+    let facts = materialize_adr_0515_preparation_facts(&root)
+        .expect("ADR-0515 preparation profile must scan exact immutable blobs");
+
+    assert_eq!(facts["planning_state"], "HOLD(Planning)");
+    assert_eq!(facts["authority_claim"], "none");
+    assert_eq!(facts["object_facts"].as_array().map(Vec::len), Some(7));
+    assert!(
+        facts["object_facts"]
+            .as_array()
+            .expect("object facts")
+            .iter()
+            .all(|fact| {
+                fact["exact_readable_copies"]
+                    .as_array()
+                    .is_some_and(Vec::is_empty)
+            })
+    );
+    assert_eq!(
+        facts["closure_contract"]["status"],
+        "not-created-by-preparation"
+    );
+}
+
+fn schema_accepts_fixed_array(schema: &Value, actual: &Value, fields: &[&str]) -> bool {
+    let Some(expected) = schema["prefixItems"].as_array() else {
+        return false;
+    };
+    let Some(actual) = actual.as_array() else {
+        return false;
+    };
+
+    schema["items"] == Value::Bool(false)
+        && actual.len() == expected.len()
+        && expected.iter().zip(actual).all(|(expected, actual)| {
+            if fields.is_empty() {
+                expected["const"] == *actual
+            } else {
+                fields
+                    .iter()
+                    .all(|field| expected["properties"][field]["const"] == actual[*field])
+            }
+        })
+}
+
+fn schema_accepts_adr_0515_preparation(
+    schema: &Value,
+    document: &Value,
+    rows_schema: &Value,
+    rows: &Value,
+    tuple_fields: &[&str],
+    require_empty_copies: bool,
+) -> bool {
+    let predecessor_schema = &schema["properties"]["predecessor_snapshot"];
+    let predecessor = &document["predecessor_snapshot"];
+    let source_schema = &schema["properties"]["source_adr"]["properties"];
+    predecessor_schema["properties"]["commit_oid"]["const"] == predecessor["commit_oid"]
+        && predecessor_schema["properties"]["tree_oid"]["const"] == predecessor["tree_oid"]
+        && schema_accepts_fixed_array(
+            &source_schema["supersedes"],
+            &document["source_adr"]["supersedes"],
+            &[],
+        )
+        && schema_accepts_fixed_array(rows_schema, rows, tuple_fields)
+        && (!require_empty_copies
+            || rows.as_array().is_some_and(|rows| {
+                rows.iter().enumerate().all(|(index, row)| {
+                    rows_schema["prefixItems"][index]["properties"]["exact_readable_copies"]
+                        ["maxItems"]
+                        == Value::from(0)
+                        && row["exact_readable_copies"]
+                            .as_array()
+                            .is_some_and(Vec::is_empty)
+                })
+            }))
+}
+
+#[test]
+fn adr_0515_preparation_schemas_reject_fabricated_historical_bindings() {
+    let root = discover_repo_root().expect("discover repository root");
+    let control_schema: Value = serde_json::from_slice(
+        &std::fs::read(
+            root.join("specs/adr-0515-history-only-retirement-control-plane.schema.json"),
+        )
+        .expect("read control-plane schema"),
+    )
+    .expect("parse control-plane schema");
+    let facts_schema: Value = serde_json::from_slice(
+        &std::fs::read(root.join("specs/adr-0515-history-only-retirement-facts.schema.json"))
+            .expect("read facts schema"),
+    )
+    .expect("parse facts schema");
+    let control: Value =
+        serde_json::from_slice(
+            &std::fs::read(root.join(
+                "registry/history-only-retirement/adr-0515-ci-adr-cluster-control-plane.json",
+            ))
+            .expect("read ADR-0515 control plane"),
+        )
+        .expect("parse ADR-0515 control plane");
+    let facts = materialize_adr_0515_preparation_facts(&root)
+        .expect("materialize ADR-0515 preparation facts");
+
+    let control_fields = [
+        "adr_id",
+        "path",
+        "mode",
+        "predecessor_blob_oid",
+        "sha256",
+        "byte_count",
+    ];
+    let facts_fields = [
+        "adr_id",
+        "path",
+        "predecessor_blob_oid",
+        "sha256",
+        "byte_count",
+    ];
+    assert!(schema_accepts_adr_0515_preparation(
+        &control_schema,
+        &control,
+        &control_schema["properties"]["scope"]["properties"]["selectors"],
+        &control["scope"]["selectors"],
+        &control_fields,
+        false,
+    ));
+    assert!(schema_accepts_adr_0515_preparation(
+        &facts_schema,
+        &facts,
+        &facts_schema["properties"]["object_facts"],
+        &facts["object_facts"],
+        &facts_fields,
+        true,
+    ));
+
+    for (schema, document, rows_schema, rows_pointer, fields, copies) in [
+        (
+            &control_schema,
+            &control,
+            &control_schema["properties"]["scope"]["properties"]["selectors"],
+            "/scope/selectors",
+            &control_fields[..],
+            false,
+        ),
+        (
+            &facts_schema,
+            &facts,
+            &facts_schema["properties"]["object_facts"],
+            "/object_facts",
+            &facts_fields[..],
+            true,
+        ),
+    ] {
+        for predecessor_field in ["commit_oid", "tree_oid"] {
+            let mut forged = document.clone();
+            forged["predecessor_snapshot"][predecessor_field] = json!("forged");
+            assert!(
+                !schema_accepts_adr_0515_preparation(
+                    schema,
+                    &forged,
+                    rows_schema,
+                    forged.pointer(rows_pointer).expect("schema rows"),
+                    fields,
+                    copies,
+                ),
+                "schema accepted forged predecessor {predecessor_field} for {rows_pointer}",
+            );
+        }
+
+        for field in fields {
+            for index in 0..7 {
+                let mut forged = document.clone();
+                forged.pointer_mut(rows_pointer).expect("schema rows")[index][*field] =
+                    if *field == "byte_count" {
+                        json!(0)
+                    } else {
+                        json!("forged")
+                    };
+                assert!(
+                    !schema_accepts_adr_0515_preparation(
+                        schema,
+                        &forged,
+                        rows_schema,
+                        forged.pointer(rows_pointer).expect("schema rows"),
+                        fields,
+                        copies,
+                    ),
+                    "schema accepted forged {field} for {rows_pointer}[{index}]",
+                );
+            }
+        }
+
+        for alteration in ["extra", "omitted", "reordered"] {
+            let mut forged = document.clone();
+            let rows = forged
+                .pointer_mut(rows_pointer)
+                .expect("schema rows")
+                .as_array_mut()
+                .expect("schema rows are arrays");
+            match alteration {
+                "extra" => rows.push(rows[0].clone()),
+                "omitted" => {
+                    rows.pop();
+                }
+                "reordered" => rows.swap(0, 1),
+                _ => unreachable!(),
+            }
+            assert!(
+                !schema_accepts_adr_0515_preparation(
+                    schema,
+                    &forged,
+                    rows_schema,
+                    forged.pointer(rows_pointer).expect("schema rows"),
+                    fields,
+                    copies,
+                ),
+                "schema accepted {alteration} {rows_pointer}",
+            );
+        }
+
+        for alteration in ["extra", "omitted", "reordered"] {
+            let mut forged = document.clone();
+            let supersedes = forged["source_adr"]["supersedes"]
+                .as_array_mut()
+                .expect("supersession set is an array");
+            match alteration {
+                "extra" => supersedes.push(json!("ADR-forged")),
+                "omitted" => {
+                    supersedes.pop();
+                }
+                "reordered" => supersedes.swap(0, 1),
+                _ => unreachable!(),
+            }
+            assert!(
+                !schema_accepts_adr_0515_preparation(
+                    schema,
+                    &forged,
+                    rows_schema,
+                    forged.pointer(rows_pointer).expect("schema rows"),
+                    fields,
+                    copies,
+                ),
+                "schema accepted {alteration} supersession set for {rows_pointer}",
+            );
+        }
+    }
+
+    let mut copied = facts.clone();
+    copied["object_facts"][0]["exact_readable_copies"] = json!(["docs/copied-adr.md"]);
+    assert!(
+        !schema_accepts_adr_0515_preparation(
+            &facts_schema,
+            &copied,
+            &facts_schema["properties"]["object_facts"],
+            &copied["object_facts"],
+            &facts_fields,
+            true,
+        ),
+        "facts schema accepted a readable copy",
+    );
 }
 
 fn temp_git_repo(label: &str) -> PathBuf {

@@ -109,6 +109,7 @@ use sha2::{Digest, Sha256};
 
 use oya_governance_adr_shape_kernel::is_live_decision_status;
 
+mod adr_0515_preparation;
 mod adr_index_projection_parity;
 mod gate_coverage_baseline;
 mod idea_archive_transition;
@@ -137,6 +138,9 @@ pub use read_surface_resurrection::{
 // contract). Each closes a #1327 review class no §5.2 code keys on: prose vs
 // front-matter status, capability-registry vs derived gate policy, and
 // generated ADR-index projection parity.
+pub use adr_0515_preparation::{
+    ADR_0515_PREPARATION_CODE, ADR_0515_PREPARATION_VALIDATOR, evaluate_adr_0515_preparation_facts,
+};
 pub use adr_index_projection_parity::{
     ADR_INDEX_MD_PATH, ADR_INDEX_PARITY_VALIDATOR, ADR_INDEX_PROJECTION_STALE_CODE,
     DECISIONS_JSON_PATH, evaluate_adr_index_projection_parity,

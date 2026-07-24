@@ -51,6 +51,7 @@ rust_test(
         # consumer resolves this canonical repo-relative path and fails closed when bytes are
         # absent; no empty or candidate-authored fallback is permitted.
         "OYA_HISTORY_ONLY_RETIREMENT_FACTS": "ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json",
+        "OYA_ADR_0515_PREPARATION_FACTS": "ci/facade/scm-facts-snapshot/adr-0515-history-only-retirement-facts.generated.json",
     },
     resources = [
         "//docs/ideas:idea-archive-candidate-tree",

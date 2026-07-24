@@ -176,6 +176,7 @@ fn run() -> Result<(), String> {
     let mut scm_event_base_ref: Option<String> = None;
     let mut subject_commit: Option<String> = None;
     let mut historical_dev_push: Option<String> = None;
+    let mut emit_adr_0515_preparation_facts = false;
 
     let mut i = 0;
     while i < args.len() {
@@ -249,6 +250,7 @@ fn run() -> Result<(), String> {
                 }
             }
             "--adr-census-parent-receipt" => emit_adr_census_parent_receipt = true,
+            "--adr-0515-preparation-facts" => emit_adr_0515_preparation_facts = true,
             "--adr-census-parent-receipt-out" => {
                 i += 1;
                 adr_census_parent_receipt_out = Some(
@@ -365,6 +367,9 @@ fn run() -> Result<(), String> {
         out.display(),
         volatile_out.display()
     );
+    if emit_adr_0515_preparation_facts {
+        retirement::emit_adr_0515_preparation_facts(&repo_root)?;
+    }
 
     if let Some(expected_head) = historical_dev_push.as_deref() {
         if retirement_control_plane.is_some()
