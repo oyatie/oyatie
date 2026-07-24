@@ -5,7 +5,7 @@
 
 mod idea_archive_transition;
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Component, Path, PathBuf};
 use std::process::Command;
@@ -69,8 +69,56 @@ fn load_json(path: &PathBuf) -> Value {
     serde_json::from_str(&text).unwrap_or_else(|e| panic!("parse {}: {e}", path.display()))
 }
 
+fn named_workflow_step<'a>(workflow: &'a str, name: &str) -> &'a str {
+    let marker = format!("      - name: {name}");
+    let start = workflow
+        .find(&marker)
+        .unwrap_or_else(|| panic!("workflow step {name}"));
+    let tail = &workflow[start..];
+    let end = tail.find("\n      - name: ").unwrap_or(tail.len());
+    &tail[..end]
+}
+
+fn assert_occurs_exactly_once(haystack: &str, needle: &str) {
+    assert_eq!(
+        haystack.match_indices(needle).count(),
+        1,
+        "{needle:?} must occur exactly once in the producer step"
+    );
+}
+
 fn prefixed_sha256(bytes: &[u8]) -> String {
     format!("sha256:{:x}", Sha256::digest(bytes))
+}
+
+fn canonical_json(value: &Value) -> String {
+    match value {
+        Value::Null | Value::Bool(_) | Value::Number(_) => value.to_string(),
+        Value::String(_) => serde_json::to_string(value).expect("serialize fixture string"),
+        Value::Array(values) => format!(
+            "[{}]",
+            values
+                .iter()
+                .map(canonical_json)
+                .collect::<Vec<_>>()
+                .join(",")
+        ),
+        Value::Object(values) => {
+            let ordered = values.iter().collect::<BTreeMap<_, _>>();
+            format!(
+                "{{{}}}",
+                ordered
+                    .into_iter()
+                    .map(|(key, value)| format!(
+                        "{}:{}",
+                        serde_json::to_string(key).expect("serialize fixture key"),
+                        canonical_json(value)
+                    ))
+                    .collect::<Vec<_>>()
+                    .join(",")
+            )
+        }
+    }
 }
 
 fn declared_raw_history_only_receipts(root: &Path, facts: &Value) -> Vec<(String, Vec<u8>)> {
@@ -166,10 +214,25 @@ fn validate_history_only_retirement_control_plane_binding(
     Ok(())
 }
 
-fn dormant_history_only_binding_fixture(control_plane_bytes: &[u8]) -> Value {
+fn installed_dormant_history_only_facts_fixture(control_plane_bytes: &[u8]) -> Value {
     let control_plane: Value =
         serde_json::from_slice(control_plane_bytes).expect("fixture control plane parses");
-    let entries = control_plane["entries"].clone();
+    let entries = control_plane["entries"]
+        .as_array()
+        .expect("fixture control-plane entries")
+        .clone();
+    let entry_hashes = entries
+        .iter()
+        .map(|entry| {
+            serde_json::json!({
+                "scope_ref": entry["scope_ref"],
+                "sha256": prefixed_sha256(canonical_json(entry).as_bytes())
+            })
+        })
+        .collect::<Vec<_>>();
+    let control_plane_sha256 = prefixed_sha256(control_plane_bytes);
+    let control_plane_byte_count = control_plane_bytes.len();
+    let control_plane_blob_oid = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
     serde_json::json!({
         "receipts": [],
         "scm_facts": {
@@ -202,21 +265,23 @@ fn dormant_history_only_binding_fixture(control_plane_bytes: &[u8]) -> Value {
                 "predecessor_tree_exists": true,
                 "predecessor_commit_tree_bound": true,
                 "predecessor_is_ancestor_of_protected_base": true,
+                "prepared_receipt_paths": [],
+                "protected_preparation_receipts": [],
                 "control_plane_entries": entries
             },
             "retirement_control_plane_context": {
                 "control_plane_path": "registry/history-only-retirement/control-plane.json",
                 "receipt_root": "evidence/history-only-retirement",
-                "bootstrap": true,
+                "bootstrap": false,
                 "lifecycle_state": "dormant",
-                "protected_control_plane_blob_oid": null,
-                "protected_control_plane_sha256": null,
-                "protected_control_plane_byte_count": null,
-                "candidate_control_plane_blob_oid": "1111111111111111111111111111111111111111",
-                "candidate_control_plane_sha256": prefixed_sha256(control_plane_bytes),
-                "candidate_control_plane_byte_count": control_plane_bytes.len(),
+                "protected_control_plane_blob_oid": control_plane_blob_oid,
+                "protected_control_plane_sha256": control_plane_sha256,
+                "protected_control_plane_byte_count": control_plane_byte_count,
+                "candidate_control_plane_blob_oid": control_plane_blob_oid,
+                "candidate_control_plane_sha256": control_plane_sha256,
+                "candidate_control_plane_byte_count": control_plane_byte_count,
                 "control_plane_entries": entries,
-                "control_plane_entry_hashes": [],
+                "control_plane_entry_hashes": entry_hashes,
                 "protected_receipt_root_paths": [],
                 "candidate_receipt_root_paths": [],
                 "unexpected_protected_receipt_paths": [],
@@ -227,23 +292,45 @@ fn dormant_history_only_binding_fixture(control_plane_bytes: &[u8]) -> Value {
 }
 
 #[test]
-fn history_only_retirement_binding_rejects_candidate_control_plane_drift() {
-    let control_plane = br#"{"$schema":"schema","schema_version":1,"canonical_name":"history-only-retirement-control-plane","planning_state":"HOLD(Planning)","dispatch_authorized":false,"receipt_root":"evidence/history-only-retirement","predecessor_snapshot":{},"entries":[{"scope_ref":"one"},{"scope_ref":"two"},{"scope_ref":"three"}]}"#;
-    let mut facts = dormant_history_only_binding_fixture(control_plane);
+fn production_evaluator_rejects_installed_dormant_control_plane_byte_drift() {
+    let control_plane =
+        fs::read(repo_root().join("registry/history-only-retirement/control-plane.json"))
+            .expect("read canonical retirement control plane");
+    let mut facts = installed_dormant_history_only_facts_fixture(&control_plane);
     facts["scm_facts"]["retirement_control_plane_context"]["candidate_control_plane_byte_count"] =
         serde_json::json!(control_plane.len() + 1);
 
-    let error = validate_history_only_retirement_control_plane_binding(&facts, control_plane)
-        .expect_err("candidate control-plane byte drift must fail closed");
-    assert!(error.contains("byte count"), "unexpected error: {error}");
+    let evaluation = evaluate_and_project_history_only_retirement_facts(&facts, &[]);
+    assert!(
+        evaluation
+            .findings
+            .iter()
+            .any(|finding| { finding.key == "retirement_control_plane_context.dormant_empty" }),
+        "candidate control-plane byte drift must fail closed through the production evaluator: {:?}",
+        evaluation.findings
+    );
+    assert!(evaluation.projection.is_none());
 }
 
 #[test]
-fn history_only_retirement_binding_accepts_controller_materialized_dormant_facts() {
-    let control_plane = br#"{"$schema":"schema","schema_version":1,"canonical_name":"history-only-retirement-control-plane","planning_state":"HOLD(Planning)","dispatch_authorized":false,"receipt_root":"evidence/history-only-retirement","predecessor_snapshot":{},"entries":[{"scope_ref":"one"},{"scope_ref":"two"},{"scope_ref":"three"}]}"#;
-    let facts = dormant_history_only_binding_fixture(control_plane);
-    validate_history_only_retirement_control_plane_binding(&facts, control_plane)
-        .expect("controller-bound dormant facts must validate");
+fn production_evaluator_accepts_installed_dormant_facts() {
+    let control_plane =
+        fs::read(repo_root().join("registry/history-only-retirement/control-plane.json"))
+            .expect("read canonical retirement control plane");
+    let facts = installed_dormant_history_only_facts_fixture(&control_plane);
+    let evaluation = evaluate_and_project_history_only_retirement_facts(&facts, &[]);
+    assert!(
+        evaluation.findings.is_empty(),
+        "controller-bound dormant facts must validate through the production evaluator: {:?}",
+        evaluation.findings
+    );
+    assert!(
+        evaluation
+            .projection
+            .expect("validated dormant projection")
+            .evidence_set_ids()
+            .is_empty()
+    );
 }
 
 #[test]
@@ -282,25 +369,56 @@ fn history_only_retirement_control_plane_declares_workflow_and_event_identity_in
 }
 
 #[test]
-fn retirement_workflow_transports_distinct_event_identity_fields() {
+fn retirement_workflow_producer_step_transports_each_event_and_cli_binding_once() {
     let workflow = fs::read_to_string(repo_root().join(".github/workflows/oya-ci-required.yml"))
         .expect("read oya-ci-required workflow");
-    for required in [
-        "EVENT_EVALUATED_SHA: ${{ github.sha }}",
-        "EVENT_PROTECTED_SHA: ${{ github.event.pull_request.base.sha || github.event.before || github.event.merge_group.base_sha || '' }}",
-        "EVENT_SUBJECT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}",
-        "EVENT_NAME: ${{ github.event_name }}",
-        "--evaluated-commit \"${evaluated_commit}\"",
-        "--scm-event-name \"${EVENT_NAME}\"",
-        "--subject-commit \"${subject_commit}\"",
+    let producer = named_workflow_step(&workflow, "Materialize cloud-ci generated faces");
+
+    for (key, binding) in [
+        (
+            "EVENT_EVALUATED_SHA:",
+            "EVENT_EVALUATED_SHA: ${{ github.sha }}",
+        ),
+        (
+            "EVENT_PROTECTED_SHA:",
+            "EVENT_PROTECTED_SHA: ${{ github.event.pull_request.base.sha || github.event.before || github.event.merge_group.base_sha || '' }}",
+        ),
+        (
+            "EVENT_SUBJECT_SHA:",
+            "EVENT_SUBJECT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}",
+        ),
+        ("EVENT_NAME:", "EVENT_NAME: ${{ github.event_name }}"),
+        ("EVENT_REF:", "EVENT_REF: ${{ github.ref }}"),
     ] {
-        assert!(
-            workflow.contains(required),
-            "workflow must transport {required}"
-        );
+        assert_occurs_exactly_once(producer, key);
+        assert_occurs_exactly_once(producer, binding);
+    }
+    for (flag, binding) in [
+        (
+            "--retirement-control-plane",
+            "--retirement-control-plane registry/history-only-retirement/control-plane.json",
+        ),
+        (
+            "--retirement-facts-out",
+            "--retirement-facts-out ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json",
+        ),
+        (
+            "--protected-base-commit",
+            "--protected-base-commit \"${protected_base_commit}\"",
+        ),
+        (
+            "--evaluated-commit",
+            "--evaluated-commit \"${evaluated_commit}\"",
+        ),
+        ("--scm-event-name", "--scm-event-name \"${EVENT_NAME}\""),
+        ("--scm-event-ref", "--scm-event-ref \"${EVENT_REF}\""),
+        ("--subject-commit", "--subject-commit \"${subject_commit}\""),
+    ] {
+        assert_occurs_exactly_once(producer, flag);
+        assert_occurs_exactly_once(producer, binding);
     }
     assert!(
-        !workflow.contains("git rev-parse HEAD^1"),
+        !producer.contains("HEAD^1"),
         "protected base must be bound to the GitHub event, not inferred from HEAD^1"
     );
 }

@@ -208,7 +208,7 @@ fn canonical_writer_stays_bound_to_open_parent_after_ancestor_swap() {
 }
 
 #[test]
-fn filesystem_backed_resolvers_and_receipt_output_remain_deterministic() {
+fn baseline_output_path_resolver_rejects_missing_move_manifest() {
     let absent_root = temp_repo_root("missing-resolver-manifest");
     let absent_error = output_path_resolver(&absent_root, true)
         .expect_err("baseline resolver must reject an absent move manifest");
@@ -217,8 +217,11 @@ fn filesystem_backed_resolvers_and_receipt_output_remain_deterministic() {
         "unexpected missing-manifest error: {absent_error}"
     );
     std::fs::remove_dir_all(absent_root).expect("remove absent-manifest fixture");
+}
 
-    let root = temp_repo_root("resolver");
+#[test]
+fn vocab_policy_loads_filesystem_carve_out() {
+    let root = temp_repo_root("vocab-policy");
     std::fs::write(
         root.join("oya-ci.toml"),
         "\n[[vocab.carve_outs]]\nkind = \"line_contains_ci\"\nvalue = \"structural-marker\"\nexempt_stems = [\"alpha\"]\n",
@@ -231,7 +234,24 @@ fn filesystem_backed_resolvers_and_receipt_output_remain_deterministic() {
             .iter()
             .any(|rule| rule.value == "structural-marker")
     );
+    std::fs::remove_dir_all(root).expect("remove vocab-policy fixture");
+}
 
+#[test]
+fn candidate_output_path_resolver_uses_current_canonical_path_without_manifest() {
+    let root = temp_repo_root("candidate-resolver");
+    assert_eq!(
+        output_path_resolver(&root, false)
+            .expect("candidate resolver")
+            .candidate(PathId::ScmFactsFace),
+        ci_path_resolver_ports::canonical_current(PathId::ScmFactsFace),
+    );
+    std::fs::remove_dir_all(root).expect("remove candidate-resolver fixture");
+}
+
+#[test]
+fn baseline_output_path_resolver_uses_materialized_move_manifest() {
+    let root = temp_repo_root("baseline-resolver");
     let manifest_path = root.join(MOVE_MANIFEST_PATH);
     std::fs::create_dir_all(manifest_path.parent().expect("manifest parent")).expect("mkdir");
     std::fs::write(
@@ -245,23 +265,31 @@ fn filesystem_backed_resolvers_and_receipt_output_remain_deterministic() {
     )
     .expect("write manifest");
     assert_eq!(
-        output_path_resolver(&root, false)
-            .expect("candidate resolver")
-            .candidate(PathId::ScmFactsFace),
-        ci_path_resolver_ports::canonical_current(PathId::ScmFactsFace),
-    );
-    assert_eq!(
         output_path_resolver(&root, true)
             .expect("baseline resolver")
             .candidate(PathId::ScmFactsFace),
         "relocated/scm-facts.generated.json",
     );
+    std::fs::remove_dir_all(root).expect("remove baseline-resolver fixture");
+}
 
+#[test]
+fn repository_discovery_finds_root_authority_pointer() {
+    let root = discover_repo_root().expect("discover repository root");
+    assert!(
+        root.join("specs/root-hub-pointers.json").is_file(),
+        "discovered repository root must contain the authority pointer"
+    );
+}
+
+#[test]
+fn fixed_adr_census_parent_receipt_emission_matches_builder_bytes() {
+    let output_root = temp_repo_root("fixed-adr-census-receipt");
     let repo_root = discover_repo_root().expect("discover repository root");
     let first = ci_scm_facts_snapshot::build_fixed_adr_census_parent_receipt(&repo_root)
         .expect("build fixed receipt");
-    let output = root.join("nested/receipt.generated.json");
+    let output = output_root.join("nested/receipt.generated.json");
     emit_fixed_adr_census_parent_receipt(&repo_root, &output).expect("emit fixed receipt");
     assert_eq!(std::fs::read(&output).expect("read emitted receipt"), first);
-    std::fs::remove_dir_all(root).expect("remove integration fixture");
+    std::fs::remove_dir_all(output_root).expect("remove receipt-output fixture");
 }

@@ -44,6 +44,24 @@ fn load_policy(root: &Path) -> Value {
     load_json(&policy_path(root))
 }
 
+fn named_workflow_step<'a>(workflow: &'a str, name: &str) -> &'a str {
+    let marker = format!("      - name: {name}");
+    let start = workflow
+        .find(&marker)
+        .unwrap_or_else(|| panic!("workflow step {name}"));
+    let tail = &workflow[start..];
+    let end = tail.find("\n      - name: ").unwrap_or(tail.len());
+    &tail[..end]
+}
+
+fn assert_occurs_exactly_once(haystack: &str, needle: &str) {
+    assert_eq!(
+        haystack.match_indices(needle).count(),
+        1,
+        "{needle:?} must occur exactly once in the producer step"
+    );
+}
+
 fn keys_for(findings: &BTreeSet<Finding>, code: &str) -> BTreeSet<String> {
     findings
         .iter()
@@ -137,10 +155,50 @@ fn retirement_event_transport_is_bound_to_provider_facts_without_head_parent_inf
         "manual reruns remain an explicitly declared workflow surface"
     );
 
-    let materialize = workflow
-        .split("- name: Materialize cloud-ci generated faces")
-        .nth(1)
-        .expect("producer materialization step");
+    let materialize = named_workflow_step(&workflow, "Materialize cloud-ci generated faces");
+    for (key, binding) in [
+        (
+            "EVENT_EVALUATED_SHA:",
+            "EVENT_EVALUATED_SHA: ${{ github.sha }}",
+        ),
+        (
+            "EVENT_PROTECTED_SHA:",
+            "EVENT_PROTECTED_SHA: ${{ github.event.pull_request.base.sha || github.event.before || github.event.merge_group.base_sha || '' }}",
+        ),
+        (
+            "EVENT_SUBJECT_SHA:",
+            "EVENT_SUBJECT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}",
+        ),
+        ("EVENT_NAME:", "EVENT_NAME: ${{ github.event_name }}"),
+        ("EVENT_REF:", "EVENT_REF: ${{ github.ref }}"),
+    ] {
+        assert_occurs_exactly_once(materialize, key);
+        assert_occurs_exactly_once(materialize, binding);
+    }
+    for (flag, binding) in [
+        (
+            "--retirement-control-plane",
+            "--retirement-control-plane registry/history-only-retirement/control-plane.json",
+        ),
+        (
+            "--retirement-facts-out",
+            "--retirement-facts-out ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json",
+        ),
+        (
+            "--protected-base-commit",
+            "--protected-base-commit \"${protected_base_commit}\"",
+        ),
+        (
+            "--evaluated-commit",
+            "--evaluated-commit \"${evaluated_commit}\"",
+        ),
+        ("--scm-event-name", "--scm-event-name \"${EVENT_NAME}\""),
+        ("--scm-event-ref", "--scm-event-ref \"${EVENT_REF}\""),
+        ("--subject-commit", "--subject-commit \"${subject_commit}\""),
+    ] {
+        assert_occurs_exactly_once(materialize, flag);
+        assert_occurs_exactly_once(materialize, binding);
+    }
     let protected_sha = materialize
         .find("EVENT_PROTECTED_SHA")
         .expect("producer must declare an event-bound protected-base transport");
@@ -163,8 +221,8 @@ fn retirement_event_transport_is_bound_to_provider_facts_without_head_parent_inf
         "the provider event ref must be declared before materialization validation"
     );
     assert!(
-        materialize.contains("--scm-event-ref \"${EVENT_REF}\"") && !materialize.contains("HEAD^1"),
-        "the producer must forward the provider event ref and never infer protected ancestry from HEAD^1"
+        !materialize.contains("HEAD^1"),
+        "the producer must never infer protected ancestry from HEAD^1"
     );
 }
 
