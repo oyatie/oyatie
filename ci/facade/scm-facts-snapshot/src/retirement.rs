@@ -2292,6 +2292,21 @@ mod tests {
     }
 
     #[test]
+    fn event_identity_rejects_merge_group_nested_dev_branch_collision() {
+        let source = fixture();
+        let mut context = context();
+        context.scm_event_name = "merge_group";
+        context.scm_event_ref = "refs/heads/gh-readonly-queue/dev/release/pr-123";
+
+        let error = materialize_history_only_retirement_facts(&source, &context)
+            .expect_err("a merge group for dev/release must not be labeled origin/dev");
+        assert!(
+            error.contains("protected base ref"),
+            "unexpected error: {error}"
+        );
+    }
+
+    #[test]
     fn event_identity_rejects_revision_aliases_and_noncanonical_oids() {
         let mut source = fixture();
         source
