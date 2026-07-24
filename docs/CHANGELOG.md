@@ -5,6 +5,19 @@ doc_status: published
 
 # Changelog
 
+## 2026-07-24 — ADR-0622 Proposed FixupTask v2 successor foundation
+
+- **doc.adr_index** (Tier 1, added): recorded ADR-0622 as a Proposed,
+  planning-neutral successor-foundation decision while keeping its executable
+  prototype out of the current authority tree and preserving `HOLD(Planning)`.
+  - Authors: `@jason931225`
+  - ADRs cited: ADR-0622
+  - Related lanes: `oya-check-adr-index`, `oya-governance-adr-shape`,
+    `ci-cross-artifact-agreement`
+  - PR: #1363; exact-head admission, protected squash/merge,
+    `oya-ci-required`, and post-merge evidence remain pending and will be
+    recorded in the PR evidence packet.
+
 ## 2026-07-13 — Pre-planning authority consolidation
 
 - Reconciled the root authority chain around `specs/root-hub-pointers.json`,
