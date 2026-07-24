@@ -10,12 +10,13 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use ci_path_resolver_adapters::MOVE_MANIFEST_PATH;
 use ci_path_resolver_adapters::MOVE_MANIFEST_SCHEMA;
 use ci_path_resolver_ports::{PathId, PathResolver};
+use ci_scm_facts_snapshot::retirement::CanonicalRetirementFactsWriter;
 use ci_scm_facts_snapshot::{
     discover_repo_root, emit_fixed_adr_census_parent_receipt, load_vocab_policy,
     output_path_resolver,
     retirement::{
-        CanonicalRetirementFactsWriter, GENERATED_FACTS_PATH, RetirementMaterializationContext,
-        emit_history_only_retirement_facts, write_canonical_retirement_facts,
+        GENERATED_FACTS_PATH, RetirementMaterializationContext, emit_history_only_retirement_facts,
+        write_canonical_retirement_facts,
     },
 };
 use serde_json::json;

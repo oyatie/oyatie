@@ -33,6 +33,7 @@ rust_library(
         "third-party//:serde",
         "third-party//:serde_json",
         "third-party//:sha2",
+        "third-party//:rustix-1",
     ],
 )
 
@@ -80,6 +81,7 @@ rust_test(
         "third-party//:serde",
         "third-party//:serde_json",
         "third-party//:sha2",
+        "third-party//:rustix-1",
     ],
 )
 

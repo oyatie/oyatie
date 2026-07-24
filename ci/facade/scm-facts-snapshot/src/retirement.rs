@@ -11,6 +11,10 @@ use std::process::Command;
 use std::sync::atomic::{AtomicU64, Ordering};
 
 use ci_artifact_inventory_registry::to_canonical_json;
+#[cfg(unix)]
+use rustix::fd::OwnedFd;
+#[cfg(unix)]
+use rustix::fs::{AtFlags, FileType, Mode, OFlags};
 use serde::de::{self, MapAccess, SeqAccess, Visitor};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
@@ -281,169 +285,179 @@ pub fn emit_history_only_retirement_facts(
     write_canonical_retirement_facts(repo_root, bytes.as_bytes())
 }
 
+/// A Unix capability bound to the canonical retirement-facts parent directory.
+///
+/// It owns the opened directory descriptor, so its finalization remains bound
+/// to that directory even if a pathname ancestor is replaced after [`Self::open`].
+#[cfg(unix)]
+pub struct CanonicalRetirementFactsWriter {
+    directory: OwnedFd,
+}
+
+#[cfg(unix)]
+impl CanonicalRetirementFactsWriter {
+    /// Open the fixed canonical retirement-facts parent without following symlinks.
+    pub fn open(repo_root: &Path) -> Result<Self, String> {
+        canonical_generated_facts_output_path(repo_root, Path::new(GENERATED_FACTS_PATH))?;
+        Ok(Self {
+            directory: open_canonical_retirement_facts_parent(repo_root)?,
+        })
+    }
+
+    /// Atomically replace only the fixed canonical facts basename through this directory fd.
+    pub fn write(&self, bytes: &[u8]) -> Result<(), String> {
+        const FINAL_NAME: &str = "history-only-retirement-facts.generated.json";
+        ensure_regular_or_absent(&self.directory, FINAL_NAME)?;
+        let (temporary_name, temporary) = create_temporary_file(&self.directory)?;
+
+        let result = (|| {
+            write_all(&temporary, bytes)?;
+            rustix::fs::fsync(&temporary)
+                .map_err(|error| format!("sync retirement facts temporary file: {error}"))?;
+            rustix::fs::renameat(
+                &self.directory,
+                &temporary_name,
+                &self.directory,
+                FINAL_NAME,
+            )
+            .map_err(|error| format!("replace retirement facts output: {error}"))?;
+            rustix::fs::fsync(&self.directory)
+                .map_err(|error| format!("sync retirement facts directory: {error}"))
+        })();
+        if result.is_err() {
+            let _ = rustix::fs::unlinkat(&self.directory, &temporary_name, AtFlags::empty());
+        }
+        result
+    }
+}
+
+/// Non-Unix placeholder that preserves the public API while failing closed.
+#[cfg(not(unix))]
+pub struct CanonicalRetirementFactsWriter;
+
+#[cfg(not(unix))]
+impl CanonicalRetirementFactsWriter {
+    /// The descriptor-relative writer is unavailable on this platform.
+    pub fn open(_repo_root: &Path) -> Result<Self, String> {
+        Err("canonical retirement facts writer requires Unix dirfd support".to_owned())
+    }
+
+    /// The descriptor-relative writer is unavailable on this platform.
+    pub fn write(&self, _bytes: &[u8]) -> Result<(), String> {
+        Err("canonical retirement facts writer requires Unix dirfd support".to_owned())
+    }
+}
+
 /// Atomically write the canonical ignored retirement-facts file.
 ///
 /// Public only for the package-local integration target's filesystem defenses.
 /// The path is intentionally not caller-controlled: this seam can write only
 /// [`GENERATED_FACTS_PATH`], after rerunning the ignore/untracked boundary.
+#[cfg(unix)]
 pub fn write_canonical_retirement_facts(repo_root: &Path, bytes: &[u8]) -> Result<(), String> {
-    let output_path =
-        canonical_generated_facts_output_path(repo_root, Path::new(GENERATED_FACTS_PATH))?;
-    write_ignored_regular_file(repo_root, &output_path, bytes)
+    CanonicalRetirementFactsWriter::open(repo_root)?.write(bytes)
 }
 
-/// Atomically write a verified ignored regular file.
-///
-/// This private helper receives only the canonical output resolved by
-/// `write_canonical_retirement_facts`. It revalidates the parent immediately
-/// before rename; without descriptor-relative rename in the current workspace,
-/// the remaining OS scheduling window is documented and fails closed whenever
-/// the parent identity changes before finalization.
-fn write_ignored_regular_file(
-    repo_root: &Path,
-    output_path: &Path,
-    bytes: &[u8],
-) -> Result<(), String> {
-    let parent = output_path
-        .parent()
-        .ok_or_else(|| "retirement facts output has no parent directory".to_owned())?;
-    ensure_real_output_parent(repo_root, parent)?;
-    match std::fs::symlink_metadata(parent) {
-        Ok(metadata) if metadata.file_type().is_symlink() || !metadata.is_dir() => {
-            return Err(format!(
-                "retirement facts output parent {} is not a real directory",
-                parent.display()
-            ));
-        }
-        Ok(_) => {}
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
-            std::fs::create_dir_all(parent)
-                .map_err(|error| format!("create {}: {error}", parent.display()))?
-        }
-        Err(error) => return Err(format!("inspect {}: {error}", parent.display())),
+#[cfg(not(unix))]
+pub fn write_canonical_retirement_facts(_repo_root: &Path, _bytes: &[u8]) -> Result<(), String> {
+    CanonicalRetirementFactsWriter::open(_repo_root)?.write(_bytes)
+}
+
+#[cfg(unix)]
+fn open_canonical_retirement_facts_parent(repo_root: &Path) -> Result<OwnedFd, String> {
+    let mut directory = rustix::fs::openat(
+        rustix::fs::CWD,
+        repo_root,
+        OFlags::RDONLY | OFlags::DIRECTORY | OFlags::NOFOLLOW | OFlags::CLOEXEC,
+        Mode::empty(),
+    )
+    .map_err(|error| format!("open retirement facts repository directory: {error}"))?;
+    for component in ["ci", "facade", "scm-facts-snapshot"] {
+        directory = open_or_create_directory_at(&directory, component)?;
     }
-    let parent_identity = output_parent_identity(parent)?;
-    match std::fs::symlink_metadata(output_path) {
-        Ok(metadata) if metadata.file_type().is_symlink() || !metadata.is_file() => {
-            return Err(format!(
-                "retirement facts output {} must be a regular file",
-                output_path.display()
-            ));
-        }
-        Ok(_) => {}
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
-        Err(error) => return Err(format!("inspect {}: {error}", output_path.display())),
+    Ok(directory)
+}
+
+#[cfg(unix)]
+fn open_or_create_directory_at(parent: &OwnedFd, name: &str) -> Result<OwnedFd, String> {
+    if name.contains('\0') {
+        return Err(format!("retirement facts directory contains NUL: {name:?}"));
     }
-    let temporary = (0..32)
-        .map(|_| {
-            output_path.with_extension(format!(
-                "tmp-{}-{}",
-                std::process::id(),
-                NEXT_ATOMIC_WRITE_ID.fetch_add(1, Ordering::Relaxed)
-            ))
-        })
-        .find_map(|path| {
-            match std::fs::OpenOptions::new()
-                .write(true)
-                .create_new(true)
-                .open(&path)
-            {
-                Ok(file) => Some(Ok((path, file))),
-                Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => None,
-                Err(error) => Some(Err(format!("create {}: {error}", path.display()))),
+    match rustix::fs::openat(
+        parent,
+        name,
+        OFlags::RDONLY | OFlags::DIRECTORY | OFlags::NOFOLLOW | OFlags::CLOEXEC,
+        Mode::empty(),
+    ) {
+        Ok(directory) => Ok(directory),
+        Err(error) if error == rustix::io::Errno::NOENT => {
+            match rustix::fs::mkdirat(parent, name, Mode::from_bits_retain(0o755)) {
+                Ok(()) | Err(rustix::io::Errno::EXIST) => {}
+                Err(error) => {
+                    return Err(format!(
+                        "create retirement facts directory {name:?}: {error}"
+                    ));
+                }
             }
-        })
-        .ok_or_else(|| {
-            format!(
-                "create temporary retirement facts output beside {}",
-                output_path.display()
+            rustix::fs::openat(
+                parent,
+                name,
+                OFlags::RDONLY | OFlags::DIRECTORY | OFlags::NOFOLLOW | OFlags::CLOEXEC,
+                Mode::empty(),
             )
-        })??;
-    let (temporary, mut file) = temporary;
-    use std::io::Write;
-    let result = (|| {
-        file.write_all(bytes)
-            .map_err(|error| format!("write {}: {error}", temporary.display()))?;
-        file.sync_all()
-            .map_err(|error| format!("sync {}: {error}", temporary.display()))?;
-        verify_output_parent_identity(parent, &parent_identity)?;
-        std::fs::rename(&temporary, output_path)
-            .map_err(|error| format!("replace {}: {error}", output_path.display()))
-    })();
-    if result.is_err() {
-        let _ = std::fs::remove_file(&temporary);
-    }
-    result
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-struct OutputParentIdentity {
-    canonical_path: PathBuf,
-    #[cfg(unix)]
-    device: u64,
-    #[cfg(unix)]
-    inode: u64,
-}
-
-fn output_parent_identity(parent: &Path) -> Result<OutputParentIdentity, String> {
-    let metadata = std::fs::symlink_metadata(parent)
-        .map_err(|error| format!("inspect {}: {error}", parent.display()))?;
-    if metadata.file_type().is_symlink() || !metadata.is_dir() {
-        return Err(format!(
-            "retirement facts output parent {} is not a real directory",
-            parent.display()
-        ));
-    }
-    let canonical_path = std::fs::canonicalize(parent)
-        .map_err(|error| format!("canonicalize {}: {error}", parent.display()))?;
-    #[cfg(unix)]
-    {
-        use std::os::unix::fs::MetadataExt;
-
-        Ok(OutputParentIdentity {
-            canonical_path,
-            device: metadata.dev(),
-            inode: metadata.ino(),
-        })
-    }
-    #[cfg(not(unix))]
-    {
-        Ok(OutputParentIdentity { canonical_path })
-    }
-}
-
-fn verify_output_parent_identity(
-    parent: &Path,
-    expected: &OutputParentIdentity,
-) -> Result<(), String> {
-    let actual = output_parent_identity(parent)?;
-    if &actual != expected {
-        return Err(format!(
-            "retirement facts output parent {} changed before atomic rename",
-            parent.display()
-        ));
-    }
-    Ok(())
-}
-
-fn ensure_real_output_parent(repo_root: &Path, parent: &Path) -> Result<(), String> {
-    let relative = parent
-        .strip_prefix(repo_root)
-        .map_err(|_| "retirement facts output escapes repo root".to_owned())?;
-    let mut current = repo_root.to_path_buf();
-    for component in relative.components() {
-        current.push(component);
-        match std::fs::symlink_metadata(&current) {
-            Ok(metadata) if metadata.file_type().is_symlink() || !metadata.is_dir() => {
-                return Err(format!(
-                    "retirement facts output parent component {} is not a real directory",
-                    current.display()
-                ));
-            }
-            Ok(_) => {}
-            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
-            Err(error) => return Err(format!("inspect {}: {error}", current.display())),
+            .map_err(|error| format!("open retirement facts directory {name:?}: {error}"))
         }
+        Err(error) if error == rustix::io::Errno::NOTDIR || error == rustix::io::Errno::LOOP => {
+            Err(format!(
+                "retirement facts directory {name:?} is not a real directory"
+            ))
+        }
+        Err(error) => Err(format!("open retirement facts directory {name:?}: {error}")),
+    }
+}
+
+#[cfg(unix)]
+fn ensure_regular_or_absent(directory: &OwnedFd, name: &str) -> Result<(), String> {
+    match rustix::fs::statat(directory, name, AtFlags::SYMLINK_NOFOLLOW) {
+        Ok(stat) if !FileType::from_raw_mode(stat.st_mode).is_file() => {
+            Err("retirement facts output must be a regular file".to_owned())
+        }
+        Ok(_) | Err(rustix::io::Errno::NOENT) => Ok(()),
+        Err(error) => Err(format!("inspect retirement facts output: {error}")),
+    }
+}
+
+#[cfg(unix)]
+fn create_temporary_file(directory: &OwnedFd) -> Result<(String, OwnedFd), String> {
+    for _ in 0..32 {
+        let name = format!(
+            ".retirement-facts-{}-{}",
+            std::process::id(),
+            NEXT_ATOMIC_WRITE_ID.fetch_add(1, Ordering::Relaxed)
+        );
+        match rustix::fs::openat(
+            directory,
+            &name,
+            OFlags::WRONLY | OFlags::CREATE | OFlags::EXCL | OFlags::CLOEXEC | OFlags::NOFOLLOW,
+            Mode::from_bits_retain(0o600),
+        ) {
+            Ok(file) => return Ok((name, file)),
+            Err(rustix::io::Errno::EXIST) => continue,
+            Err(error) => return Err(format!("create retirement facts temporary file: {error}")),
+        }
+    }
+    Err("exhausted retirement facts temporary file names".to_owned())
+}
+
+#[cfg(unix)]
+fn write_all(file: &OwnedFd, mut bytes: &[u8]) -> Result<(), String> {
+    while !bytes.is_empty() {
+        let written = rustix::io::write(file, bytes)
+            .map_err(|error| format!("write retirement facts temporary file: {error}"))?;
+        if written == 0 {
+            return Err("write retirement facts temporary file made no progress".to_owned());
+        }
+        bytes = &bytes[written..];
     }
     Ok(())
 }
@@ -451,7 +465,7 @@ fn ensure_real_output_parent(repo_root: &Path, parent: &Path) -> Result<(), Stri
 fn canonical_generated_facts_output_path(
     repo_root: &Path,
     output_path: &Path,
-) -> Result<PathBuf, String> {
+) -> Result<(), String> {
     if output_path != Path::new(GENERATED_FACTS_PATH)
         || !output_path
             .components()
@@ -467,7 +481,7 @@ fn canonical_generated_facts_output_path(
         .status()
         .map_err(|error| format!("check retirement facts output ignore boundary: {error}"))?;
     match status.code() {
-        Some(0) => Ok(repo_root.join(GENERATED_FACTS_PATH)),
+        Some(0) => Ok(()),
         Some(1) => Err(format!(
             "retirement facts output {GENERATED_FACTS_PATH} must be ignored and untracked"
         )),
