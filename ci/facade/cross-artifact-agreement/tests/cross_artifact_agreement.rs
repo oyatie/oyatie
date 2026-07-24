@@ -258,6 +258,64 @@ fn installed_dormant_history_only_facts_fixture(control_plane_bytes: &[u8]) -> V
 }
 
 #[test]
+fn protected_scm_context_excludes_candidate_authored_facts() {
+    let control_plane =
+        fs::read(repo_root().join("registry/history-only-retirement/control-plane.json"))
+            .expect("read canonical retirement control plane");
+    let facts = installed_dormant_history_only_facts_fixture(&control_plane);
+    let protected_context = facts["scm_facts"]["protected_scm_context"]
+        .as_object()
+        .expect("protected SCM context object");
+
+    for candidate_field in ["prepared_receipt_paths", "control_plane_entries"] {
+        assert!(
+            !protected_context.contains_key(candidate_field),
+            "{candidate_field} is candidate-authored and must not be labeled protected"
+        );
+    }
+}
+
+#[test]
+fn retirement_sources_do_not_silently_amend_accepted_adr_0613() {
+    let root = repo_root();
+    let adr = fs::read_to_string(root.join(
+        "docs/decisions/ADR-0613-de-commit-remaining-controller-materialized-projection-faces.md",
+    ))
+    .expect("read accepted ADR-0613");
+    assert!(
+        !adr.contains("### E7 history-only retirement facts"),
+        "implementation provenance must not silently widen an Accepted ADR"
+    );
+
+    let reachability: Value =
+        serde_json::from_slice(&fs::read(root.join("specs/reachability-registry.json")).unwrap())
+            .expect("parse reachability registry");
+    let rows = reachability["born_reachability"]
+        .as_array()
+        .expect("born_reachability rows");
+    for prefix in [
+        "registry/history-only-retirement/control-plane.json",
+        "registry/history-only-retirement/OWNERS",
+        "specs/history-only-retirement-control-plane.schema.json",
+        "specs/history-only-retirement-facts.schema.json",
+    ] {
+        let anchor = rows
+            .iter()
+            .find(|row| row["prefix"].as_str() == Some(prefix))
+            .and_then(|row| row["anchor"].as_str())
+            .unwrap_or_else(|| panic!("reachability anchor for {prefix}"));
+        assert!(
+            !anchor.contains("ADR-0613"),
+            "{prefix} must not claim an unrecorded ADR-0613 amendment"
+        );
+        assert!(
+            anchor.contains("HOLD(Planning)"),
+            "{prefix} must retain the authority ceiling"
+        );
+    }
+}
+
+#[test]
 fn production_evaluator_rejects_installed_dormant_control_plane_byte_drift() {
     let control_plane =
         fs::read(repo_root().join("registry/history-only-retirement/control-plane.json"))

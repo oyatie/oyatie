@@ -2225,6 +2225,36 @@ mod tests {
     }
 
     #[test]
+    fn event_identity_rejects_merge_group_for_non_dev_target() {
+        let source = fixture();
+        let mut context = context();
+        context.scm_event_name = "merge_group";
+        context.scm_event_ref = "refs/heads/gh-readonly-queue/release/pr-123";
+
+        let error = materialize_history_only_retirement_facts(&source, &context)
+            .expect_err("merge groups targeting a branch other than dev must fail closed");
+        assert!(
+            error.contains("refs/heads/gh-readonly-queue/dev/"),
+            "unexpected error: {error}"
+        );
+    }
+
+    #[test]
+    fn event_identity_rejects_merge_group_dev_prefix_collision() {
+        let source = fixture();
+        let mut context = context();
+        context.scm_event_name = "merge_group";
+        context.scm_event_ref = "refs/heads/gh-readonly-queue/devil/pr-123";
+
+        let error = materialize_history_only_retirement_facts(&source, &context)
+            .expect_err("merge-group target matching must preserve the dev path separator");
+        assert!(
+            error.contains("refs/heads/gh-readonly-queue/dev/"),
+            "unexpected error: {error}"
+        );
+    }
+
+    #[test]
     fn event_identity_rejects_revision_aliases_and_noncanonical_oids() {
         let mut source = fixture();
         source
