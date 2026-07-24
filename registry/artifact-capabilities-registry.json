@@ -2832,7 +2832,7 @@
       "artifact_profile": "registry",
       "capability_overrides": {
         "verification": {
-          "command": "cargo test -p stage1-closure --test stage1_closure -- --exact public_protected_facts_linkage_remains_non_authoritative_and_held"
+          "command": "buck2 test //libs/oya-stage1-closure:stage1-closure-contract"
         },
         "provenance": {
           "current_author": "codex",

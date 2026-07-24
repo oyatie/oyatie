@@ -57,7 +57,7 @@ fn has_canonical_stage1_manifest_registry_row(registry: &Value) -> bool {
         && matching[0]["owner_team"] == "council-architecture + platform-toolchain"
         && matching[0]["artifact_profile"] == "registry"
         && matching[0]["capability_overrides"]["verification"]["command"]
-            == "cargo test -p stage1-closure --test stage1_closure -- --exact public_protected_facts_linkage_remains_non_authoritative_and_held"
+            == "buck2 test //libs/oya-stage1-closure:stage1-closure-contract"
         && matching[0]["capability_overrides"]["provenance"]["current_author"] == "codex"
         && matching[0]["capability_overrides"]["provenance"]["last_modified_at"]
             == "2026-07-22T00:00:00Z"
@@ -375,7 +375,7 @@ fn stage1_manifest_has_a_closed_non_authoritative_registry_row() {
     assert_eq!(row["artifact_profile"], "registry");
     assert_eq!(
         row["capability_overrides"]["verification"]["command"],
-        "cargo test -p stage1-closure --test stage1_closure -- --exact public_protected_facts_linkage_remains_non_authoritative_and_held"
+        "buck2 test //libs/oya-stage1-closure:stage1-closure-contract"
     );
     assert_eq!(
         row["capability_overrides"]["provenance"]["current_author"],
