@@ -40,6 +40,7 @@ sha2 = { workspace = true }
 rustix = { version = "1.1.4", features = ["fs"] }
 
 [dev-dependencies]
+ci-cross-artifact-agreement = { path = "../cross-artifact-agreement" }
 oya-reorg-codemod-app = { path = "../../../tools/oya-reorg-codemod-app" }
 
 [lints]

@@ -2440,6 +2440,49 @@ mod tests {
     }
 
     #[test]
+    fn prepared_new_contract_regression_validates_public_consumer_without_drift_findings() {
+        // Cross-crate contract regression: this remains a producer unit test because the
+        // narrow FakeSource seam is private; it deliberately does not exercise Git/filesystem.
+        let mut source = fixture();
+        add_protected_control_plane(&mut source);
+        add_current_bodies(&mut source, PROTECTED);
+        add_current_bodies(&mut source, CANDIDATE);
+        for (index, entry) in control_plane().entries.iter().enumerate() {
+            add_receipt(
+                &mut source,
+                CANDIDATE,
+                &entry.preparation_receipt_path,
+                oid(100 + index as u8),
+                &receipt_value(entry, false, None),
+            );
+        }
+
+        let facts = materialize_history_only_retirement_facts(&source, &context()).unwrap();
+        let raw_receipts = facts["receipts"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|metadata| ci_cross_artifact_agreement::RawHistoryOnlyRetirementReceipt {
+                receipt_path: metadata["receipt_path"].as_str().unwrap(),
+                bytes: source
+                    .blobs
+                    .get(metadata["candidate_receipt_blob_oid"].as_str().unwrap())
+                    .unwrap(),
+            })
+            .collect::<Vec<_>>();
+        let evaluation =
+            ci_cross_artifact_agreement::evaluate_and_project_history_only_retirement_facts(
+                &facts,
+                &raw_receipts,
+            );
+        assert!(
+            evaluation.findings.is_empty(),
+            "producer/consumer semantic drift: {:?}",
+            evaluation.findings
+        );
+    }
+
+    #[test]
     fn prepared_new_never_projects_raw_receipt_bodies_or_authority_lookalikes() {
         let mut source = fixture();
         add_protected_control_plane(&mut source);
