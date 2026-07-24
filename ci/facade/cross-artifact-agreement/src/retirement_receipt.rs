@@ -193,12 +193,22 @@ const SCM_FACT_FIELDS: &[&str] = &[
     "retirement_control_plane_context",
 ];
 const RETIREMENT_CONTROL_PLANE_CONTEXT_FIELDS: &[&str] = &[
+    "control_plane_path",
+    "receipt_root",
+    "bootstrap",
+    "lifecycle_state",
     "protected_control_plane_blob_oid",
+    "protected_control_plane_sha256",
     "protected_control_plane_byte_count",
     "candidate_control_plane_blob_oid",
+    "candidate_control_plane_sha256",
     "candidate_control_plane_byte_count",
-    "protected_control_plane_entries",
-    "candidate_control_plane_entries",
+    "control_plane_entries",
+    "control_plane_entry_hashes",
+    "protected_receipt_root_paths",
+    "candidate_receipt_root_paths",
+    "unexpected_protected_receipt_paths",
+    "unexpected_candidate_receipt_paths",
 ];
 const RECEIPT_CORPUS_FIELDS: &[&str] = &["receipts", "scm_facts"];
 const RECEIPT_RECORD_FIELDS: &[&str] = &["receipt_path", "receipt"];
@@ -652,10 +662,7 @@ fn validate_adr_0388_e4_bindings(corpus: &Value, findings: &mut BTreeSet<Finding
 
     for entries in [
         corpus.pointer("/scm_facts/protected_scm_context/control_plane_entries"),
-        corpus
-            .pointer("/scm_facts/retirement_control_plane_context/protected_control_plane_entries"),
-        corpus
-            .pointer("/scm_facts/retirement_control_plane_context/candidate_control_plane_entries"),
+        corpus.pointer("/scm_facts/retirement_control_plane_context/control_plane_entries"),
     ] {
         let Some(adr_entry) = entries.and_then(Value::as_array).and_then(|entries| {
             entries
@@ -945,15 +952,11 @@ pub fn evaluate_history_only_retirement_receipt_coverage(
             "protected_scm_context.prepared_receipt_paths",
         );
     }
-    let protected_control_entries = control_plane_entries(
-        retirement_control_plane_context.get("protected_control_plane_entries"),
+    let materialized_control_entries = control_plane_entries(
+        retirement_control_plane_context.get("control_plane_entries"),
         &mut findings,
     );
-    let candidate_control_entries = control_plane_entries(
-        retirement_control_plane_context.get("candidate_control_plane_entries"),
-        &mut findings,
-    );
-    if candidate_control_entries != protected_control_entries {
+    if materialized_control_entries != protected_control_entries {
         fail(
             &mut findings,
             "retirement_control_plane_context.independent_entry_binding",
@@ -2009,11 +2012,7 @@ fn validate_retirement_control_plane_context(
     findings: &mut BTreeSet<Finding>,
 ) {
     let protected_entries = context
-        .get("protected_control_plane_entries")
-        .and_then(Value::as_array)
-        .map_or(&[][..], Vec::as_slice);
-    let candidate_entries = context
-        .get("candidate_control_plane_entries")
+        .get("control_plane_entries")
         .and_then(Value::as_array)
         .map_or(&[][..], Vec::as_slice);
     let scopes = protected_entries
@@ -2021,10 +2020,7 @@ fn validate_retirement_control_plane_context(
         .filter_map(|entry| entry.get("scope_ref").and_then(Value::as_str))
         .collect::<BTreeSet<_>>();
     let expected = BTreeSet::from(["ADR-0363", "ADR-0388", "artifact:masterplan"]);
-    if scopes != expected
-        || protected_entries.len() != expected.len()
-        || candidate_entries != protected_entries
-    {
+    if scopes != expected || protected_entries.len() != expected.len() {
         fail(
             findings,
             "retirement_control_plane_context.fixed_three_scope_rows",
@@ -2038,17 +2034,22 @@ fn validate_retirement_control_plane_context(
     let null_pair = |oid: Option<&Value>, bytes: Option<&Value>| {
         oid.is_some_and(Value::is_null) && bytes.is_some_and(Value::is_null)
     };
+    let immutable_pair = || {
+        oid_value(protected_oid)
+            && oid_value(candidate_oid)
+            && protected_oid == candidate_oid
+            && protected_bytes.and_then(Value::as_u64).is_some()
+            && candidate_bytes.and_then(Value::as_u64) == protected_bytes.and_then(Value::as_u64)
+    };
     if empty {
-        if !null_pair(protected_oid, protected_bytes) || !null_pair(candidate_oid, candidate_bytes)
-        {
+        if context.get("bootstrap").and_then(Value::as_bool) == Some(true) {
+            if !null_pair(protected_oid, protected_bytes) {
+                fail(findings, "retirement_control_plane_context.dormant_empty");
+            }
+        } else if !immutable_pair() {
             fail(findings, "retirement_control_plane_context.dormant_empty");
         }
-    } else if !oid_value(protected_oid)
-        || !oid_value(candidate_oid)
-        || protected_oid != candidate_oid
-        || protected_bytes.and_then(Value::as_u64).is_none()
-        || candidate_bytes.and_then(Value::as_u64) != protected_bytes.and_then(Value::as_u64)
-    {
+    } else if !immutable_pair() {
         fail(
             findings,
             "retirement_control_plane_context.immutable_blob_binding",
@@ -2192,7 +2193,7 @@ mod tests {
             .into_iter()
             .map(test_control_entry)
             .collect::<Vec<_>>();
-        json!({"protected_control_plane_blob_oid":if active { json!(BLOB) } else { Value::Null },"protected_control_plane_byte_count":if active { json!(1) } else { Value::Null },"candidate_control_plane_blob_oid":if active { json!(BLOB) } else { Value::Null },"candidate_control_plane_byte_count":if active { json!(1) } else { Value::Null },"protected_control_plane_entries":controls,"candidate_control_plane_entries":controls})
+        json!({"control_plane_path":"registry/history-only-retirement/control-plane.json","receipt_root":"evidence/history-only-retirement","bootstrap":!active,"lifecycle_state":if active { "prepared-new" } else { "dormant" },"protected_control_plane_blob_oid":if active { json!(BLOB) } else { Value::Null },"protected_control_plane_sha256":if active { json!("sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa") } else { Value::Null },"protected_control_plane_byte_count":if active { json!(1) } else { Value::Null },"candidate_control_plane_blob_oid":if active { json!(BLOB) } else { json!(BLOB) },"candidate_control_plane_sha256":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","candidate_control_plane_byte_count":1,"control_plane_entries":controls,"control_plane_entry_hashes":[],"protected_receipt_root_paths":[],"candidate_receipt_root_paths":[],"unexpected_protected_receipt_paths":[],"unexpected_candidate_receipt_paths":[]})
     }
     fn test_control_entry(scope: &str) -> Value {
         let adr_0388 = scope == "ADR-0388";
@@ -2398,17 +2399,7 @@ mod tests {
         } else {
             protected_scm_context_with_preparation(ADR_0388_PREPARATION_PATH, BLOB)
         };
-        let control_entries = ["ADR-0363", "ADR-0388", "artifact:masterplan"]
-            .into_iter()
-            .map(test_control_entry)
-            .collect::<Vec<_>>();
-        let mut control_context = retirement_control_plane_context(true);
-        control_context
-            .as_object_mut()
-            .expect("control object")
-            .remove("control_plane_entries");
-        control_context["protected_control_plane_entries"] = json!(control_entries);
-        control_context["candidate_control_plane_entries"] = json!(control_entries);
+        let control_context = retirement_control_plane_context(true);
 
         json!({
             "receipts": [{"receipt_path": receipt_path, "receipt": receipt}],
