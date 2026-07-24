@@ -6,7 +6,7 @@ use std::io::{Read, Write};
 use std::net::TcpListener;
 use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
-use std::process::{Command, Output};
+use std::process::{Child, Command, Output, Stdio};
 use std::thread;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
@@ -931,22 +931,164 @@ fn wait_for_numeric_pid(path: &Path, timeout: Duration) -> u32 {
     panic!("timed out waiting for numeric PID in {}", path.display());
 }
 
-fn wait_for_process_exit(pid: u32, timeout: Duration) {
+fn process_is_alive(pid: u32) -> bool {
     let pid = pid.to_string();
+    Command::new("/bin/kill")
+        .args(["-0", &pid])
+        .output()
+        .expect("probe process")
+        .status
+        .success()
+}
+
+fn process_exits_within(pid: u32, timeout: Duration) -> bool {
     let deadline = Instant::now() + timeout;
     while Instant::now() < deadline {
-        let alive = Command::new("/bin/kill")
-            .args(["-0", &pid])
-            .output()
-            .expect("probe process")
-            .status
-            .success();
-        if !alive {
-            return;
+        if !process_is_alive(pid) {
+            return true;
         }
         thread::sleep(Duration::from_millis(10));
     }
-    panic!("process {pid} remained alive after termination");
+    !process_is_alive(pid)
+}
+
+struct HolderProcessGuard {
+    installer: Option<Child>,
+    worker_pid: Option<u32>,
+    worker_termination_signaled: bool,
+}
+
+impl HolderProcessGuard {
+    fn new(installer: Child) -> Self {
+        Self {
+            installer: Some(installer),
+            worker_pid: None,
+            worker_termination_signaled: false,
+        }
+    }
+
+    fn record_worker(&mut self, worker_pid: u32) {
+        self.worker_pid = Some(worker_pid);
+        self.worker_termination_signaled = false;
+    }
+
+    fn terminate_installer(&mut self) {
+        let installer = self.installer.as_mut().expect("live installer holder");
+        installer.kill().expect("kill installer shell");
+        installer.wait().expect("wait for killed installer shell");
+        self.installer = None;
+    }
+
+    fn signal_worker_termination(&mut self) {
+        let worker_pid = self.worker_pid.expect("recorded holder worker");
+        let status = Command::new("/bin/kill")
+            .args(["-KILL", &worker_pid.to_string()])
+            .status()
+            .expect("terminate holder worker");
+        assert!(
+            status.success(),
+            "holder worker must still be live until explicit cleanup"
+        );
+        self.worker_termination_signaled = true;
+    }
+
+    fn confirm_worker_exit(&mut self) {
+        let worker_pid = self.worker_pid.expect("recorded holder worker");
+        assert!(
+            process_exits_within(worker_pid, Duration::from_secs(5)),
+            "holder worker {worker_pid} remained alive after termination"
+        );
+        self.worker_pid = None;
+        self.worker_termination_signaled = false;
+    }
+}
+
+impl Drop for HolderProcessGuard {
+    fn drop(&mut self) {
+        if let Some(installer) = self.installer.as_mut() {
+            let _ = installer.kill();
+            let _ = installer.wait();
+        }
+        if let Some(worker_pid) = self.worker_pid {
+            if !self.worker_termination_signaled {
+                let _ = Command::new("/bin/kill")
+                    .args(["-KILL", &worker_pid.to_string()])
+                    .output();
+            }
+            let _ = process_exits_within(worker_pid, Duration::from_secs(5));
+        }
+    }
+}
+
+struct CapturedChildGuard {
+    child: Option<Child>,
+}
+
+impl CapturedChildGuard {
+    fn spawn(command: &mut Command, label: &str) -> Self {
+        let child = command
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()
+            .unwrap_or_else(|error| panic!("spawn {label}: {error}"));
+        Self { child: Some(child) }
+    }
+
+    fn wait_with_output(mut self, timeout: Duration, label: &str) -> Output {
+        let deadline = Instant::now() + timeout;
+        loop {
+            let status = self
+                .child
+                .as_mut()
+                .expect("captured child")
+                .try_wait()
+                .unwrap_or_else(|error| panic!("poll {label}: {error}"));
+            if let Some(status) = status {
+                let mut child = self.child.take().expect("completed captured child");
+                let mut stdout = Vec::new();
+                let mut stderr = Vec::new();
+                child
+                    .stdout
+                    .take()
+                    .expect("captured stdout")
+                    .read_to_end(&mut stdout)
+                    .unwrap_or_else(|error| panic!("read {label} stdout: {error}"));
+                child
+                    .stderr
+                    .take()
+                    .expect("captured stderr")
+                    .read_to_end(&mut stderr)
+                    .unwrap_or_else(|error| panic!("read {label} stderr: {error}"));
+                return Output {
+                    status,
+                    stdout,
+                    stderr,
+                };
+            }
+            if Instant::now() >= deadline {
+                let mut child = self.child.take().expect("timed captured child");
+                let _ = child.kill();
+                let output = child
+                    .wait_with_output()
+                    .unwrap_or_else(|error| panic!("collect timed-out {label}: {error}"));
+                panic!(
+                    "{label} exceeded {timeout:?}:\nstdout={}\nstderr={}",
+                    String::from_utf8_lossy(&output.stdout),
+                    String::from_utf8_lossy(&output.stderr)
+                );
+            }
+            thread::sleep(Duration::from_millis(10));
+        }
+    }
+}
+
+impl Drop for CapturedChildGuard {
+    fn drop(&mut self) {
+        if let Some(child) = self.child.as_mut() {
+            let _ = child.kill();
+            let _ = child.wait();
+        }
+    }
 }
 
 fn spawn_retry_server(payload: Vec<u8>) -> (u16, thread::JoinHandle<usize>) {
@@ -1370,20 +1512,23 @@ fn buck2_installer_times_out_without_writes_then_recovers_after_holder_is_killed
         .env("INSTANCE", "holder")
         .env("MARKER_DIR", &marker_dir)
         .env("PAYLOAD", &payload);
-    let mut holder = holder.spawn().expect("spawn lock holder");
+    let holder = holder.spawn().expect("spawn lock holder");
+    let mut holder = HolderProcessGuard::new(holder);
     wait_for_path(&marker_dir.join("curl-holder"), Duration::from_secs(15));
     let holder_child_pid = wait_for_numeric_pid(
         &marker_dir.join("holder-child-pid"),
         Duration::from_secs(15),
     );
+    holder.record_worker(holder_child_pid);
 
-    let contender = installer_command(&root, &bin, &install_dir, "asset.zst", &digest)
+    let mut contender_command = installer_command(&root, &bin, &install_dir, "asset.zst", &digest);
+    contender_command
         .env("BUCK2_INSTALL_LOCK_TIMEOUT_SECONDS", "1")
         .env("INSTANCE", "contender")
         .env("MARKER_DIR", &marker_dir)
-        .env("PAYLOAD", &payload)
-        .output()
-        .expect("run timed contender");
+        .env("PAYLOAD", &payload);
+    let contender = CapturedChildGuard::spawn(&mut contender_command, "timed contender")
+        .wait_with_output(Duration::from_secs(5), "timed contender");
     assert!(
         !contender.status.success(),
         "live-owner contender must time out"
@@ -1398,23 +1543,18 @@ fn buck2_installer_times_out_without_writes_then_recovers_after_holder_is_killed
         b"prior-binary"
     );
 
-    holder.kill().expect("kill installer shell");
-    let _ = holder.wait();
-    let successor = installer_command(&root, &bin, &install_dir, "asset.zst", &digest)
+    holder.terminate_installer();
+    let mut successor_command = installer_command(&root, &bin, &install_dir, "asset.zst", &digest);
+    successor_command
         .env("BUCK2_INSTALL_LOCK_TIMEOUT_SECONDS", "2")
         .env("INSTANCE", "successor")
         .env("MARKER_DIR", &marker_dir)
-        .env("PAYLOAD", &payload)
-        .output()
-        .expect("run crash-recovery successor");
-    let cleanup_status = Command::new("/bin/kill")
-        .args(["-KILL", &holder_child_pid.to_string()])
-        .status();
-    assert!(
-        cleanup_status.expect("terminate holder child").success(),
-        "holder child must still be live until explicit cleanup"
-    );
-    wait_for_process_exit(holder_child_pid, Duration::from_secs(5));
+        .env("PAYLOAD", &payload);
+    let successor = CapturedChildGuard::spawn(&mut successor_command, "crash-recovery successor");
+    wait_for_path(&marker_dir.join("curl-successor"), Duration::from_secs(5));
+    holder.signal_worker_termination();
+    let successor = successor.wait_with_output(Duration::from_secs(15), "crash-recovery successor");
+    holder.confirm_worker_exit();
     assert_success(successor);
     assert!(marker_dir.join("curl-successor").exists());
     assert_eq!(
