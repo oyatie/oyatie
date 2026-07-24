@@ -773,6 +773,10 @@ quote = "1.0"
 # enters Cargo.lock. Deliberately NOT the rustsec/cargo-lock crates: those pull libgit2-C + a
 # network index, defeating rust-purity + hermeticity.
 semver = "1.0"
+# Descriptor-relative filesystem operations for the canonical retirement-facts
+# writer. Keep this direct so reindeer emits the public `third-party//:rustix`
+# alias consumed by first-party Buck2 targets.
+rustix = { version = "1.1.4", features = ["fs"] }
 libc = "0.2"
 prost = "0.14.3"
 protoc-bin-vendored = "3.2.0"

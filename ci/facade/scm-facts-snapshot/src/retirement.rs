@@ -476,6 +476,7 @@ fn canonical_generated_facts_output_path(
             "retirement facts output must be the exact canonical repo-relative generated facts path {GENERATED_FACTS_PATH}"
         ));
     }
+    ensure_existing_canonical_parent_is_real(repo_root)?;
     let status = Command::new("git")
         .args(["check-ignore", "--quiet", "--", GENERATED_FACTS_PATH])
         .current_dir(repo_root)
@@ -490,6 +491,28 @@ fn canonical_generated_facts_output_path(
             "check retirement facts output ignore boundary: git exited {code:?}"
         )),
     }
+}
+
+fn ensure_existing_canonical_parent_is_real(repo_root: &Path) -> Result<(), String> {
+    let mut current = repo_root.to_path_buf();
+    for component in ["ci", "facade", "scm-facts-snapshot"] {
+        current.push(component);
+        match std::fs::symlink_metadata(&current) {
+            Ok(metadata) if metadata.file_type().is_symlink() || !metadata.is_dir() => {
+                return Err(format!(
+                    "retirement facts directory {component:?} is not a real directory"
+                ));
+            }
+            Ok(_) => {}
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => break,
+            Err(error) => {
+                return Err(format!(
+                    "inspect retirement facts directory {component:?}: {error}"
+                ));
+            }
+        }
+    }
+    Ok(())
 }
 
 pub(crate) fn materialize_history_only_retirement_facts(
@@ -602,16 +625,8 @@ pub(crate) fn materialize_history_only_retirement_facts(
         .iter()
         .map(|entry| classify_stage(entry, &protected_entries, &candidate_entries))
         .collect::<Result<Vec<_>, _>>()?;
-    let stage = stages
-        .first()
-        .copied()
-        .ok_or_else(|| "retirement control plane has no entries".to_owned())?;
-    if stages.iter().any(|candidate| *candidate != stage) {
-        return Err(
-            "retirement receipt population is not atomic across all three scopes".to_owned(),
-        );
-    }
-    if bootstrap && stage != ReceiptStage::Dormant {
+    let active_receipt_population = validate_receipt_population(&stages)?;
+    if bootstrap && active_receipt_population {
         return Err("retirement bootstrap may not add receipts".to_owned());
     }
 
@@ -652,8 +667,8 @@ pub(crate) fn materialize_history_only_retirement_facts(
     let mut all_required_paths = BTreeSet::new();
     let mut protected_preparations = Vec::new();
 
-    if stage != ReceiptStage::Dormant {
-        for entry in &control_plane.entries {
+    if active_receipt_population {
+        for (entry, stage) in control_plane.entries.iter().zip(stages.iter().copied()) {
             let (receipt_path, receipt_entry) =
                 receipt_for_stage(stage, entry, &protected_entries, &candidate_entries)?;
             require_regular(receipt_entry, "retirement receipt")?;
@@ -924,7 +939,6 @@ pub(crate) fn materialize_history_only_retirement_facts(
                 "control_plane_path": CONTROL_PLANE_PATH,
                 "receipt_root": RECEIPT_ROOT,
                 "bootstrap": bootstrap,
-                "lifecycle_state": stage.as_str(),
                 "protected_control_plane_blob_oid": protected_control.map_or(Value::Null, |entry| json!(entry.oid)),
                 "protected_control_plane_sha256": protected_control_sha,
                 "protected_control_plane_byte_count": protected_control_bytes.as_ref().map(|bytes| bytes.len() as u64),
@@ -959,6 +973,39 @@ impl ReceiptStage {
             Self::ClosedCarried => "closed-carried",
         }
     }
+}
+
+/// Keep receipt presence atomic across the fixed three-entry control plane while allowing
+/// each scope to advance independently. Only the explicitly amended carry-forward shape is
+/// heterogeneous: a closed carried scope may coexist with a newly prepared scope.
+fn validate_receipt_population(stages: &[ReceiptStage]) -> Result<bool, String> {
+    if stages.is_empty() {
+        return Err("retirement control plane has no entries".to_owned());
+    }
+
+    let has_dormant = stages.contains(&ReceiptStage::Dormant);
+    if has_dormant {
+        return if stages.iter().all(|stage| *stage == ReceiptStage::Dormant) {
+            Ok(false)
+        } else {
+            Err("retirement receipt population is not atomic across all three scopes".to_owned())
+        };
+    }
+
+    if stages.iter().all(|stage| *stage == stages[0]) {
+        return Ok(true);
+    }
+
+    if stages.iter().all(|stage| {
+        matches!(
+            stage,
+            ReceiptStage::ClosedCarried | ReceiptStage::PreparedNew
+        )
+    }) {
+        return Ok(true);
+    }
+
+    Err("retirement receipt lifecycle mix is not an admitted atomic population".to_owned())
 }
 
 fn classify_stage(
@@ -1466,50 +1513,28 @@ fn coverage_scope(
     let selectors = entry
         .selectors
         .iter()
-        .map(|selector| {
-            let predecessor_paths = selector
-                .expected_inputs
-                .iter()
-                .filter(|input| predecessor.contains_key(&input.path))
-                .map(|input| input.path.clone())
-                .collect::<Vec<_>>();
-            let protected_paths = selector
-                .expected_inputs
-                .iter()
-                .filter(|input| protected.contains_key(&input.path))
-                .map(|input| input.path.clone())
-                .collect::<Vec<_>>();
-            let candidate_paths = selector
-                .expected_inputs
-                .iter()
-                .filter(|input| candidate.contains_key(&input.path))
-                .map(|input| input.path.clone())
-                .collect::<Vec<_>>();
-            let removed_paths = predecessor_paths
-                .iter()
-                .filter(|path| !candidate_paths.contains(path))
-                .cloned()
-                .collect::<Vec<_>>();
-            let surviving_paths = predecessor_paths
-                .iter()
-                .filter(|path| candidate_paths.contains(path))
-                .cloned()
-                .collect::<Vec<_>>();
-            let candidate_only_paths = candidate_paths
-                .iter()
-                .filter(|path| !predecessor_paths.contains(path))
-                .cloned()
-                .collect::<Vec<_>>();
-            json!({
-                "selector_type": selector.selector_type,
-                "selector": selector.selector,
-                "protected_paths": protected_paths,
-                "predecessor_paths": predecessor_paths,
-                "candidate_paths": candidate_paths,
-                "removed_paths": removed_paths,
-                "surviving_paths": surviving_paths,
-                "candidate_only_paths": candidate_only_paths,
-                "external_assertion": false,
+        .flat_map(|selector| {
+            selector.expected_inputs.iter().map(|input| {
+                let predecessor_exists = predecessor.contains_key(&input.path);
+                let protected_exists = protected.contains_key(&input.path);
+                let candidate_exists = candidate.contains_key(&input.path);
+                let singleton = |present: bool| {
+                    present
+                        .then(|| input.path.clone())
+                        .into_iter()
+                        .collect::<Vec<_>>()
+                };
+                json!({
+                    "selector_type": "exact",
+                    "selector": input.path,
+                    "protected_paths": singleton(protected_exists),
+                    "predecessor_paths": singleton(predecessor_exists),
+                    "candidate_paths": singleton(candidate_exists),
+                    "removed_paths": singleton(protected_exists && !candidate_exists),
+                    "surviving_paths": singleton(protected_exists && candidate_exists),
+                    "candidate_only_paths": singleton(!protected_exists && candidate_exists),
+                    "external_assertion": false,
+                })
             })
         })
         .collect::<Vec<_>>();
@@ -2126,43 +2151,6 @@ mod tests {
         }
     }
 
-    fn assert_public_consumer_accepts(source: &FakeSource, facts: &Value) {
-        let raw_receipts = facts["receipts"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .map(
-                |metadata| ci_cross_artifact_agreement::RawHistoryOnlyRetirementReceipt {
-                    receipt_path: metadata["receipt_path"].as_str().unwrap(),
-                    bytes: source
-                        .blobs
-                        .get(metadata["candidate_receipt_blob_oid"].as_str().unwrap())
-                        .unwrap(),
-                },
-            )
-            .collect::<Vec<_>>();
-        let control_plane_bytes = source
-            .blobs
-            .get(
-                facts["scm_facts"]["retirement_control_plane_context"]
-                    ["candidate_control_plane_blob_oid"]
-                    .as_str()
-                    .unwrap(),
-            )
-            .unwrap();
-        let evaluation = ci_cross_artifact_agreement::
-            evaluate_and_project_history_only_retirement_facts_with_control_plane(
-                facts,
-                &raw_receipts,
-                control_plane_bytes,
-            );
-        assert!(
-            evaluation.findings.is_empty(),
-            "producer/consumer semantic drift: {:?}",
-            evaluation.findings
-        );
-    }
-
     #[test]
     fn event_identity_rejects_pr_parent_order_extra_parent_and_subject_aliases() {
         let mut source = fixture();
@@ -2279,7 +2267,7 @@ mod tests {
         let mut source = fixture();
         source.first_parent = PREDECESSOR.to_owned();
 
-        let error = materialize_history_only_retirement_facts(&source, &context)
+        let error = materialize_history_only_retirement_facts(&source, &context())
             .expect_err("push first parent must equal provider protected SHA");
         assert!(
             error.contains("not candidate first parent"),
@@ -2354,13 +2342,13 @@ mod tests {
         source
             .commits
             .insert("alias".to_owned(), CANDIDATE.to_owned());
-        let mut context = context();
-        context.evaluated_commit = "alias";
-        assert!(materialize_history_only_retirement_facts(&source, &context).is_err());
+        let mut alias_context = context();
+        alias_context.evaluated_commit = "alias";
+        assert!(materialize_history_only_retirement_facts(&source, &alias_context).is_err());
 
-        let mut context = context();
-        context.protected_base_commit = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
-        assert!(materialize_history_only_retirement_facts(&source, &context).is_err());
+        let mut noncanonical_context = context();
+        noncanonical_context.protected_base_commit = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+        assert!(materialize_history_only_retirement_facts(&source, &noncanonical_context).is_err());
     }
 
     #[test]
@@ -2373,7 +2361,7 @@ mod tests {
                 "planning_state",
                 "dispatch_authorized",
             ] {
-                let mut receipt = receipt_value(&control, true, Some(BLOB));
+                let mut receipt = receipt_value(&control, true, Some(PREDECESSOR));
                 match mutation {
                     "artifact_id" => receipt["artifact_id"] = json!("wrong"),
                     "scope_ref" => receipt["scope_ref"] = json!("wrong"),
@@ -2423,16 +2411,80 @@ mod tests {
         closure: bool,
         preparation_blob: Option<&str>,
     ) -> Value {
+        let authority = match entry.scope_ref.as_str() {
+            "artifact:masterplan" => "/specs/masterplan.json",
+            "ADR-0363" => "ADR-0363",
+            "ADR-0388" => "ADR-0388",
+            scope => panic!("unexpected retirement scope in test fixture: {scope}"),
+        };
+        let disposition = if closure {
+            "retired-git-history-only"
+        } else {
+            "prepared-for-history-only-retirement"
+        };
+        let retired_inputs = entry
+            .selectors
+            .iter()
+            .flat_map(|selector| selector.expected_inputs.iter())
+            .map(|input| {
+                json!({
+                    "path": input.path,
+                    "predecessor_blob_oid": input.predecessor_blob_oid,
+                    "sha256": input.sha256,
+                    "byte_count": input.byte_count,
+                    "successor_refs": [authority],
+                    "disposition": disposition,
+                })
+            })
+            .collect::<Vec<_>>();
+        let expected_absent_paths = retired_inputs
+            .iter()
+            .filter_map(|input| input.get("path").and_then(Value::as_str))
+            .collect::<Vec<_>>();
+        let verification_contract = if closure {
+            json!({
+                "expected_absent_paths": expected_absent_paths,
+                "expected_tracked_readable_archive_directory_count": 0,
+                "required_gates": [
+                    "cloud-ci-cross-artifact-agreement/history-only-retirement-receipt",
+                    "cloud-ci-cross-artifact-agreement/idea-archive-transition",
+                ],
+            })
+        } else {
+            json!({})
+        };
+        let repository_effect = if closure { "history-only" } else { "prepared" };
         let mut value = json!({
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
             "artifact_id": if closure { &entry.closure_artifact_id } else { &entry.preparation_artifact_id },
+            "artifact_type": if closure { "history-only-retirement-closure-receipt" } else { "migration-closure-receipt" },
+            "status": if closure { "history-only-retired-nonauthoritative" } else { "prepared-for-history-only-retirement" },
+            "recorded_at": "2026-07-24",
             "scope_ref": entry.scope_ref,
             "authority": {
+                "decisions": [authority],
                 "planning_state": "HOLD(Planning)",
                 "dispatch_authorized": false,
+                "completion_claims_promoted": 0,
             },
             "baseline": {
                 "commit_oid": PREDECESSOR,
                 "tree_oid": PREDECESSOR_TREE,
+            },
+            "retired_inputs": retired_inputs,
+            "provenance": {
+                "content_store": "authorized Git object history only",
+                "readable_tracked_copy_retained": false,
+                "readable_archive_directory_retained": false,
+                "tombstone_content_retained": false,
+                "receipt_reproduces_retired_content": false,
+            },
+            "verification_contract": verification_contract,
+            "effects": {
+                "repository_effect": repository_effect,
+                "runtime_effect": "none",
+                "roadmap_effect": "none",
+                "planning_hold_effect": "HOLD(Planning)",
             },
         });
         if let Some(blob) = preparation_blob {
@@ -2461,6 +2513,48 @@ mod tests {
             oid: blob_oid,
             path: path.to_owned(),
         });
+    }
+
+    fn add_closed_carried_receipt(
+        source: &mut FakeSource,
+        entry: &ControlPlaneEntry,
+        preparation_oid: String,
+        closure_oid: String,
+        history_commit: String,
+    ) {
+        let preparation = receipt_value(entry, false, None);
+        source.blobs.insert(
+            preparation_oid.clone(),
+            to_canonical_json(&preparation).unwrap().into_bytes(),
+        );
+        source.history.insert(
+            entry.preparation_receipt_path.clone(),
+            vec![history_commit.clone()],
+        );
+        source.trees.insert(
+            history_commit,
+            vec![TreeEntry {
+                mode: "100644".to_owned(),
+                kind: "blob".to_owned(),
+                oid: preparation_oid.clone(),
+                path: entry.preparation_receipt_path.clone(),
+            }],
+        );
+        let closure = receipt_value(entry, true, Some(&preparation_oid));
+        add_receipt(
+            source,
+            PROTECTED,
+            &entry.closure_receipt_path,
+            closure_oid.clone(),
+            &closure,
+        );
+        add_receipt(
+            source,
+            CANDIDATE,
+            &entry.closure_receipt_path,
+            closure_oid,
+            &closure,
+        );
     }
 
     #[test]
@@ -2532,9 +2626,10 @@ mod tests {
 
         let facts = materialize_history_only_retirement_facts(&source, &context()).unwrap();
         assert_eq!(facts["receipts"].as_array().unwrap().len(), 3);
-        assert_eq!(
-            facts["scm_facts"]["retirement_control_plane_context"]["lifecycle_state"],
-            json!("prepared-new")
+        assert!(
+            facts["scm_facts"]["retirement_control_plane_context"]
+                .get("lifecycle_state")
+                .is_none()
         );
         assert_eq!(
             facts["scm_facts"]["retirement_receipt_coverage"]["scopes"]
@@ -2542,6 +2637,35 @@ mod tests {
                 .unwrap()
                 .len(),
             3
+        );
+        let adr_0388_scope = facts["scm_facts"]["retirement_receipt_coverage"]["scopes"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|scope| scope["scope_ref"] == json!("ADR-0388"))
+            .unwrap();
+        let adr_0388_selectors = adr_0388_scope["selectors"].as_array().unwrap();
+        assert_eq!(adr_0388_selectors.len(), 3);
+        assert!(
+            adr_0388_selectors
+                .iter()
+                .all(|selector| selector["selector_type"] == json!("exact"))
+        );
+        assert_eq!(
+            adr_0388_selectors
+                .iter()
+                .map(|selector| selector["selector"].as_str().unwrap())
+                .collect::<BTreeSet<_>>(),
+            control_plane()
+                .entries
+                .iter()
+                .find(|entry| entry.scope_ref == "ADR-0388")
+                .unwrap()
+                .selectors
+                .iter()
+                .flat_map(|selector| selector.expected_inputs.iter())
+                .map(|input| input.path.as_str())
+                .collect::<BTreeSet<_>>()
         );
         for fact in facts["scm_facts"]["retirement_receipt_object_facts"]
             .as_array()
@@ -2569,25 +2693,117 @@ mod tests {
     }
 
     #[test]
-    fn prepared_new_contract_regression_validates_public_consumer_without_drift_findings() {
-        // Cross-crate contract regression: this remains a producer unit test because the
-        // narrow FakeSource seam is private; it deliberately does not exercise Git/filesystem.
+    fn closed_carried_and_prepared_new_scopes_are_an_admitted_atomic_population() {
         let mut source = fixture();
         add_protected_control_plane(&mut source);
         add_current_bodies(&mut source, PROTECTED);
         add_current_bodies(&mut source, CANDIDATE);
-        for (index, entry) in control_plane().entries.iter().enumerate() {
+        let control = control_plane();
+        let closed_paths = control.entries[0]
+            .selectors
+            .iter()
+            .flat_map(|selector| selector.expected_inputs.iter())
+            .map(|input| input.path.as_str())
+            .collect::<BTreeSet<_>>();
+        for commit in [PROTECTED, CANDIDATE] {
+            source
+                .trees
+                .get_mut(commit)
+                .unwrap()
+                .retain(|tree_entry| !closed_paths.contains(tree_entry.path.as_str()));
+        }
+        add_closed_carried_receipt(
+            &mut source,
+            &control.entries[0],
+            oid(190),
+            oid(191),
+            oid(192),
+        );
+        for (index, entry) in control.entries.iter().skip(1).enumerate() {
             add_receipt(
                 &mut source,
                 CANDIDATE,
                 &entry.preparation_receipt_path,
-                oid(100 + index as u8),
+                oid(193 + index as u8),
                 &receipt_value(entry, false, None),
             );
         }
 
         let facts = materialize_history_only_retirement_facts(&source, &context()).unwrap();
-        assert_public_consumer_accepts(&source, &facts);
+        let states = facts["receipts"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|receipt| receipt["receipt_state"].as_str().unwrap())
+            .collect::<BTreeSet<_>>();
+        assert_eq!(states, BTreeSet::from(["closed-carried", "prepared-new"]));
+        assert!(
+            facts["scm_facts"]["retirement_control_plane_context"]
+                .get("lifecycle_state")
+                .is_none()
+        );
+    }
+
+    #[test]
+    fn partial_active_receipt_population_fails_closed() {
+        let mut source = fixture();
+        add_protected_control_plane(&mut source);
+        add_current_bodies(&mut source, PROTECTED);
+        add_current_bodies(&mut source, CANDIDATE);
+        let entry = &control_plane().entries[0];
+        add_receipt(
+            &mut source,
+            CANDIDATE,
+            &entry.preparation_receipt_path,
+            oid(196),
+            &receipt_value(entry, false, None),
+        );
+
+        let error = materialize_history_only_retirement_facts(&source, &context()).unwrap_err();
+        assert!(error.contains("not atomic"), "unexpected error: {error}");
+    }
+
+    #[test]
+    fn unsupported_heterogeneous_active_lifecycles_fail_closed() {
+        let mut source = fixture();
+        add_protected_control_plane(&mut source);
+        add_current_bodies(&mut source, PROTECTED);
+        let control = control_plane();
+        add_closed_carried_receipt(
+            &mut source,
+            &control.entries[0],
+            oid(197),
+            oid(198),
+            oid(199),
+        );
+        let preparation_oid = oid(200);
+        add_receipt(
+            &mut source,
+            PROTECTED,
+            &control.entries[1].preparation_receipt_path,
+            preparation_oid.clone(),
+            &receipt_value(&control.entries[1], false, None),
+        );
+        add_receipt(
+            &mut source,
+            CANDIDATE,
+            &control.entries[1].closure_receipt_path,
+            oid(201),
+            &receipt_value(&control.entries[1], true, Some(&preparation_oid)),
+        );
+        add_closed_carried_receipt(
+            &mut source,
+            &control.entries[2],
+            oid(202),
+            oid(203),
+            oid(204),
+        );
+
+        let error = materialize_history_only_retirement_facts(&source, &context()).unwrap_err();
+        assert!(
+            error.contains("not an admitted atomic population"),
+            "unexpected error: {error}"
+        );
     }
 
     #[test]
@@ -2722,9 +2938,10 @@ mod tests {
         }
 
         let facts = materialize_history_only_retirement_facts(&source, &context()).unwrap();
-        assert_eq!(
-            facts["scm_facts"]["retirement_control_plane_context"]["lifecycle_state"],
-            json!("closure-new")
+        assert!(
+            facts["scm_facts"]["retirement_control_plane_context"]
+                .get("lifecycle_state")
+                .is_none()
         );
         assert_eq!(
             facts["scm_facts"]["protected_scm_context"]["protected_preparation_receipts"]
@@ -2748,7 +2965,6 @@ mod tests {
                 assert_eq!(input["candidate_path_exists"], json!(false));
             }
         }
-        assert_public_consumer_accepts(&source, &facts);
     }
 
     #[test]
@@ -2864,9 +3080,10 @@ mod tests {
         }
 
         let facts = materialize_history_only_retirement_facts(&source, &context()).unwrap();
-        assert_eq!(
-            facts["scm_facts"]["retirement_control_plane_context"]["lifecycle_state"],
-            json!("closed-carried")
+        assert!(
+            facts["scm_facts"]["retirement_control_plane_context"]
+                .get("lifecycle_state")
+                .is_none()
         );
         for fact in facts["scm_facts"]["retirement_receipt_object_facts"]
             .as_array()

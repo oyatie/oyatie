@@ -237,7 +237,6 @@ fn installed_dormant_history_only_facts_fixture(control_plane_bytes: &[u8]) -> V
                 "control_plane_path": "registry/history-only-retirement/control-plane.json",
                 "receipt_root": "evidence/history-only-retirement",
                 "bootstrap": false,
-                "lifecycle_state": "dormant",
                 "protected_control_plane_blob_oid": control_plane_blob_oid,
                 "protected_control_plane_sha256": control_plane_sha256,
                 "protected_control_plane_byte_count": control_plane_byte_count,

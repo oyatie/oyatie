@@ -51,26 +51,12 @@
     {
       "if": {
         "properties": {
-          "scm_facts": {
-            "properties": {
-              "retirement_control_plane_context": {
-                "properties": {
-                  "lifecycle_state": {
-                    "const": "dormant"
-                  }
-                },
-                "required": [
-                  "lifecycle_state"
-                ]
-              }
-            },
-            "required": [
-              "retirement_control_plane_context"
-            ]
+          "receipts": {
+            "maxItems": 0
           }
         },
         "required": [
-          "scm_facts"
+          "receipts"
         ]
       },
       "then": {
@@ -1071,7 +1057,6 @@
         "control_plane_path",
         "receipt_root",
         "bootstrap",
-        "lifecycle_state",
         "protected_control_plane_blob_oid",
         "protected_control_plane_sha256",
         "protected_control_plane_byte_count",
@@ -1094,14 +1079,6 @@
         },
         "bootstrap": {
           "type": "boolean"
-        },
-        "lifecycle_state": {
-          "enum": [
-            "dormant",
-            "prepared-new",
-            "closure-new",
-            "closed-carried"
-          ]
         },
         "protected_control_plane_blob_oid": {
           "$ref": "#/$defs/nullable_oid"

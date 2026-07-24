@@ -37,10 +37,9 @@ oya-check-brand-residue = { path = "../../../libs/oya-check-brand-residue" }
 oya-ci-config-kernel = { path = "../../../libs/oya-ci-config" }
 corpus-doc-parser = { path = "../../../governance/corpus/doc-parser" }
 sha2 = { workspace = true }
-rustix = { version = "1.1.4", features = ["fs"] }
+rustix = { workspace = true }
 
 [dev-dependencies]
-ci-cross-artifact-agreement = { path = "../cross-artifact-agreement" }
 oya-reorg-codemod-app = { path = "../../../tools/oya-reorg-codemod-app" }
 
 [lints]

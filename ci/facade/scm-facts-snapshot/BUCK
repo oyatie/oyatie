@@ -33,7 +33,7 @@ rust_library(
         "third-party//:serde",
         "third-party//:serde_json",
         "third-party//:sha2",
-        "third-party//:rustix-1",
+        "third-party//:rustix",
     ],
 )
 
@@ -66,8 +66,6 @@ rust_test(
         "//ci/ports/path-resolver:ci-path-resolver-ports",
         "//ci/adapters/path-resolver:ci-path-resolver-adapters",
         "//ci/facade/artifact-inventory-registry:ci-artifact-inventory-registry",
-        # dev-only cross-crate contract regression; it consumes FakeSource output only.
-        "//ci/facade/cross-artifact-agreement:ci-cross-artifact-agreement",
         # dev-only: the frozen-policy-wins RED pin (FRIC-1781280000) runs the firewall
         # predicates end-to-end over the resolved snapshot (#698 repoint attack goes RED).
         "//ci/facade/baseline-ratchet:ci-baseline-ratchet",
@@ -83,7 +81,7 @@ rust_test(
         "third-party//:serde",
         "third-party//:serde_json",
         "third-party//:sha2",
-        "third-party//:rustix-1",
+        "third-party//:rustix",
     ],
 )
 

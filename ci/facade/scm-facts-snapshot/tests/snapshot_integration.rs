@@ -159,7 +159,10 @@ fn intermediate_output_symlinks_are_rejected_without_touching_targets() {
 
     let error = write_canonical_retirement_facts(&root, b"replacement")
         .expect_err("intermediate symlink must fail closed");
-    assert!(error.contains("not a real directory"));
+    assert!(
+        error.contains("not a real directory"),
+        "unexpected intermediate-symlink error: {error}"
+    );
     assert_eq!(
         std::fs::read(&target).expect("read outside target"),
         b"outside bytes"
@@ -212,7 +215,8 @@ fn canonical_writer_stays_bound_to_open_parent_after_ancestor_swap() {
 fn baseline_output_path_resolver_rejects_missing_move_manifest() {
     let absent_root = temp_repo_root("missing-resolver-manifest");
     let absent_error = output_path_resolver(&absent_root, true)
-        .expect_err("baseline resolver must reject an absent move manifest");
+        .err()
+        .expect("baseline resolver must reject an absent move manifest");
     assert!(
         absent_error.contains("move-manifest absent/unreadable"),
         "unexpected missing-manifest error: {absent_error}"

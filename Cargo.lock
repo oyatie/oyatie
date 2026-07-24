@@ -1480,7 +1480,6 @@ version = "0.1.0"
 dependencies = [
  "ci-artifact-inventory-registry",
  "ci-baseline-ratchet",
- "ci-cross-artifact-agreement",
  "ci-path-resolver-adapters",
  "ci-path-resolver-ports",
  "corpus-doc-parser",
