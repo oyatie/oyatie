@@ -7,7 +7,7 @@ BUCK2_INSTALL_DIR="${BUCK2_INSTALL_DIR:-/tmp/oya-ci-buck2-${BUCK2_RELEASE}}"
 
 case "$(uname -s)-$(uname -m)" in
   Linux-x86_64)
-    BUCK2_ASSET="${BUCK2_ASSET:-buck2-x86_64-unknown-linux-gnu.zst}"
+    BUCK2_ASSET="${BUCK2_ASSET-buck2-x86_64-unknown-linux-gnu.zst}"
     BUCK2_SHA256="${BUCK2_SHA256-4dd9ae54c87fdcf795101074f8788232af55523885135d5e3358c77365993555}"
     ;;
   *)
@@ -32,6 +32,12 @@ if [ "${lock_timeout_seconds}" -eq 0 ]; then
   echo "BUCK2_INSTALL_LOCK_TIMEOUT_SECONDS must be a positive integer." >&2
   exit 1
 fi
+case "${BUCK2_ASSET}" in
+  ''|'.'|'..'|*[!0-9A-Za-z._-]*)
+    echo "BUCK2_ASSET must be a safe release-asset filename." >&2
+    exit 1
+    ;;
+esac
 case "${BUCK2_SHA256}" in
   *[!0-9a-fA-F]*|'')
     echo "BUCK2_SHA256 must be exactly 64 hexadecimal characters." >&2
@@ -89,11 +95,10 @@ echo "${BUCK2_SHA256}  ${asset_path}" | sha256sum -c -
 binary_temp="$(mktemp "${binary_path}.part.XXXXXX")"
 zstd -d -f "${asset_path}" -o "${binary_temp}" 9>&-
 chmod +x "${binary_temp}"
+"${binary_temp}" --version 9>&-
 mv -f -- "${binary_temp}" "${binary_path}"
 binary_temp=""
 
 if [ -n "${GITHUB_PATH:-}" ]; then
   echo "${content_dir}" >> "${GITHUB_PATH}"
 fi
-
-"${binary_path}" --version 9>&-

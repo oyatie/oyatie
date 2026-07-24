@@ -4,7 +4,7 @@ use std::collections::BTreeSet;
 use std::fs;
 use std::io::{Read, Write};
 use std::net::TcpListener;
-use std::os::unix::{fs::PermissionsExt, process::CommandExt};
+use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
 use std::thread;
@@ -877,7 +877,7 @@ fn installer_command(
         .env("BUCK2_RELEASE", "fixture")
         .env("BUCK2_ASSET", asset)
         .env("BUCK2_SHA256", digest)
-        .env("BUCK2_INSTALL_LOCK_TIMEOUT_SECONDS", "5");
+        .env("BUCK2_INSTALL_LOCK_TIMEOUT_SECONDS", "15");
     command
 }
 
@@ -1116,6 +1116,45 @@ fn buck2_installer_rejects_malformed_digests_before_creating_content_paths() {
 }
 
 #[test]
+fn buck2_installer_rejects_malformed_assets_before_creating_content_paths() {
+    let root = repo_root();
+    let fixture = TestDir::new("invalid-asset");
+    let bin = fixture.path().join("bin");
+    fs::create_dir_all(&bin).expect("create shim bin");
+    let install_dir = fixture.path().join("install");
+    let marker = fixture.path().join("curl-called");
+    install_host_shims(
+        &bin,
+        "#!/usr/bin/env bash\nexit 99\n",
+        "#!/usr/bin/env bash\ntouch \"$CURL_MARKER\"\nexit 99\n",
+    );
+    let digest = "0".repeat(64);
+    for invalid in [
+        "",
+        ".",
+        "..",
+        "../escape.zst",
+        "asset*.zst",
+        "asset name.zst",
+    ] {
+        let output = installer_command(&root, &bin, &install_dir, invalid, &digest)
+            .env("CURL_MARKER", &marker)
+            .output()
+            .expect("run invalid asset fixture");
+        assert!(!output.status.success(), "invalid asset must fail");
+        assert!(
+            String::from_utf8_lossy(&output.stderr)
+                .contains("must be a safe release-asset filename")
+        );
+        assert!(!marker.exists(), "invalid asset invoked curl");
+        assert!(
+            !install_dir.exists(),
+            "invalid asset created install content"
+        );
+    }
+}
+
+#[test]
 fn buck2_installer_serializes_same_digest_and_preserves_prior_binary_on_zstd_failure() {
     let root = repo_root();
     let fixture = TestDir::new("same-digest");
@@ -1179,6 +1218,33 @@ fn buck2_installer_serializes_same_digest_and_preserves_prior_binary_on_zstd_fai
     assert!(
         !failed.status.success(),
         "zstd failure must fail the installer"
+    );
+    assert_eq!(
+        fs::read(content_dir.join("buck2")).expect("prior binary"),
+        b"previous-binary"
+    );
+    assert!(
+        fs::read_dir(&content_dir)
+            .expect("install dir")
+            .all(|entry| !entry
+                .expect("dir entry")
+                .file_name()
+                .to_string_lossy()
+                .contains("buck2.part."))
+    );
+
+    write_executable(
+        &bin.join("zstd"),
+        "#!/usr/bin/env bash\nset -euo pipefail\noutput=\"\"\nwhile [ \"$#\" -gt 0 ]; do case \"$1\" in -o) output=\"$2\"; shift 2 ;; *) shift ;; esac; done\nprintf '#!/usr/bin/env bash\\nexit 41\\n' > \"$output\"\n",
+    );
+    let invalid_candidate = installer_command(&root, &bin, &install_dir, "asset.zst", &digest)
+        .env("PAYLOAD", &payload)
+        .env("CRITICAL_DIR", &critical)
+        .output()
+        .expect("run invalid candidate fixture");
+    assert!(
+        !invalid_candidate.status.success(),
+        "candidate failing its version probe must fail the installer"
     );
     assert_eq!(
         fs::read(content_dir.join("buck2")).expect("prior binary"),
@@ -1259,7 +1325,7 @@ fn buck2_installer_times_out_without_writes_then_recovers_after_holder_is_killed
     let digest = sha256(&payload);
     let marker_dir = fixture.path().join("markers");
     fs::create_dir_all(&marker_dir).expect("create marker directory");
-    let curl_body = "#!/usr/bin/env bash\nset -euo pipefail\nout=\"\"\nwhile [ \"$#\" -gt 0 ]; do case \"$1\" in -o) out=\"$2\"; shift 2 ;; *) shift ;; esac; done\ntouch \"$MARKER_DIR/curl-$INSTANCE\"\nif [ \"$INSTANCE\" = holder ]; then sleep 30; fi\ncp \"$PAYLOAD\" \"$out\"\n";
+    let curl_body = "#!/usr/bin/env bash\nset -euo pipefail\nout=\"\"\nwhile [ \"$#\" -gt 0 ]; do case \"$1\" in -o) out=\"$2\"; shift 2 ;; *) shift ;; esac; done\ntouch \"$MARKER_DIR/curl-$INSTANCE\"\nif [ \"$INSTANCE\" = holder ]; then echo \"$$\" > \"$MARKER_DIR/holder-child-pid\"; exec sleep 30; fi\ncp \"$PAYLOAD\" \"$out\"\n";
     let zstd_body = "#!/usr/bin/env bash\nset -euo pipefail\ninput=\"\"; output=\"\"\nwhile [ \"$#\" -gt 0 ]; do case \"$1\" in -o) output=\"$2\"; shift 2 ;; -d|-f) shift ;; *) input=\"$1\"; shift ;; esac; done\ncp \"$input\" \"$output\"\n";
     install_host_shims(&bin, zstd_body, curl_body);
     let install_dir = fixture.path().join("install");
@@ -1271,11 +1337,15 @@ fn buck2_installer_times_out_without_writes_then_recovers_after_holder_is_killed
     holder
         .env("INSTANCE", "holder")
         .env("MARKER_DIR", &marker_dir)
-        .env("PAYLOAD", &payload)
-        .process_group(0);
+        .env("PAYLOAD", &payload);
     let mut holder = holder.spawn().expect("spawn lock holder");
-    let holder_group = holder.id();
-    wait_for_path(&marker_dir.join("curl-holder"), Duration::from_secs(5));
+    wait_for_path(&marker_dir.join("curl-holder"), Duration::from_secs(15));
+    wait_for_path(
+        &marker_dir.join("holder-child-pid"),
+        Duration::from_secs(15),
+    );
+    let holder_child_pid =
+        fs::read_to_string(marker_dir.join("holder-child-pid")).expect("read holder child PID");
 
     let contender = installer_command(&root, &bin, &install_dir, "asset.zst", &digest)
         .env("BUCK2_INSTALL_LOCK_TIMEOUT_SECONDS", "1")
@@ -1308,7 +1378,7 @@ fn buck2_installer_times_out_without_writes_then_recovers_after_holder_is_killed
         .output()
         .expect("run crash-recovery successor");
     let _ = Command::new("/bin/kill")
-        .args(["-KILL", &format!("-{holder_group}")])
+        .args(["-KILL", holder_child_pid.trim()])
         .status();
     assert_success(successor);
     assert!(marker_dir.join("curl-successor").exists());
