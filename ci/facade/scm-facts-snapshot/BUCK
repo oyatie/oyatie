@@ -96,6 +96,5 @@ rust_test(
         "//ci/ports/path-resolver:ci-path-resolver-ports",
         "//ci/adapters/path-resolver:ci-path-resolver-adapters",
         "third-party//:serde_json",
-        "third-party//:sha2",
     ],
 )
