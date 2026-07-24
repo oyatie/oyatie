@@ -35,7 +35,7 @@ predecessor context to remain in Git history rather than a readable in-tree
 archive. A successor can therefore carry only identity-level mapping facts; it
 must not copy predecessor prose, evidence, status history, or human disposition.
 
-## Proposed decision
+## Decision
 
 If separately accepted under qualified authority, the existing cloud-CI Rust lane
 could enforce a durable FixupTask v2 contract. This proposal does not amend or
@@ -58,7 +58,7 @@ The bounded design is:
    or workflow surface may be presented as nonbinding while this ADR remains
    Proposed. The prototype is history-only evidence, not admission authority.
 
-## Limits and next authority boundary
+## Consequences
 
 This proposal neither migrates nor classifies predecessor rows; it neither creates
 human decisions nor judges their qualification. The first non-automatable join is
