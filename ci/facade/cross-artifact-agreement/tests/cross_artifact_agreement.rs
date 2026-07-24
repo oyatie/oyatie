@@ -388,7 +388,7 @@ fn production_evaluator_rejects_candidate_control_plane_entry_reordering() {
 }
 
 #[test]
-fn production_evaluator_rejects_malformed_or_duplicate_control_plane_hash_rows() {
+fn production_evaluator_rejects_malformed_duplicate_or_reordered_control_plane_hash_rows() {
     let control_plane =
         fs::read(repo_root().join("registry/history-only-retirement/control-plane.json"))
             .expect("read canonical retirement control plane");
@@ -405,8 +405,13 @@ fn production_evaluator_rejects_malformed_or_duplicate_control_plane_hash_rows()
         .as_array_mut()
         .expect("control-plane hash rows")
         .push(duplicate_row);
+    let mut reordered = installed_dormant_history_only_facts_fixture(&control_plane);
+    reordered["scm_facts"]["retirement_control_plane_context"]["control_plane_entry_hashes"]
+        .as_array_mut()
+        .expect("control-plane hash rows")
+        .swap(0, 1);
 
-    for drifted in [&malformed, &duplicate] {
+    for drifted in [&malformed, &duplicate, &reordered] {
         let evaluation = evaluate_and_project_history_only_retirement_facts_with_control_plane(
             drifted,
             &[],
@@ -416,7 +421,7 @@ fn production_evaluator_rejects_malformed_or_duplicate_control_plane_hash_rows()
             evaluation.findings.iter().any(|finding| {
                 finding.key == "retirement_control_plane_context.candidate_raw_hashes"
             }),
-            "malformed or duplicate control-plane hash rows must fail closed: {:?}",
+            "malformed, duplicate, or reordered control-plane hash rows must fail closed: {:?}",
             evaluation.findings
         );
         assert!(evaluation.projection.is_none());
