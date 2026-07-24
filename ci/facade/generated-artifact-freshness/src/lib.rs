@@ -16,7 +16,7 @@ pub use rust_toolchain_drift::{evaluate_rust_toolchain_drift, read_pinned_rust_t
 
 pub const LOCK_REMEDIATION_COMMAND: &str = "cargo metadata >/dev/null";
 pub const FACE_REMEDIATION_COMMAND: &str = "buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .";
-const RETIREMENT_CONTROL_PLANE_PATH: &str = "registry/history-only-retirement-control-plane.json";
+const RETIREMENT_CONTROL_PLANE_PATH: &str = "registry/history-only-retirement/control-plane.json";
 const RETIREMENT_FACTS_PATH: &str =
     "ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json";
 pub const FACE_SETTLE_PROTOCOL: &str = "commit content changes first; faces regenerate from the TRACKED TREE STATE (ADR-0552: committed faces carry no history-derived data, so commit ids never enter them); never mix content and regenerated faces in one commit; then run the materialize command; commit only PR-owned generated face diffs; controller-owned generated faces are materialized by cloud-ci/integration controllers, not contributor PRs; then run oya-cloud-ci-face-settle --verify as the LAST step before EVERY push";
@@ -2465,7 +2465,7 @@ mod materialize_generated_faces_tests {
     fn parse_materialize_generated_faces_args_accepts_exact_retirement_transport() {
         let parsed = parse_materialize_generated_faces_args(vec![
             "--retirement-control-plane".to_owned(),
-            "registry/history-only-retirement-control-plane.json".to_owned(),
+            "registry/history-only-retirement/control-plane.json".to_owned(),
             "--retirement-facts-out".to_owned(),
             "ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json".to_owned(),
             "--protected-base-commit".to_owned(),
@@ -2478,7 +2478,7 @@ mod materialize_generated_faces_tests {
         assert_eq!(
             parsed.retirement,
             Some(RetirementMaterializeArgs {
-                control_plane_path: "registry/history-only-retirement-control-plane.json"
+                control_plane_path: "registry/history-only-retirement/control-plane.json"
                     .to_owned(),
                 facts_out: PathBuf::from(
                     "ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json",
@@ -2493,7 +2493,7 @@ mod materialize_generated_faces_tests {
     fn parse_materialize_generated_faces_args_rejects_partial_retirement_transport() {
         let error = parse_materialize_generated_faces_args(vec![
             "--retirement-control-plane".to_owned(),
-            "registry/history-only-retirement-control-plane.json".to_owned(),
+            "registry/history-only-retirement/control-plane.json".to_owned(),
         ])
         .expect_err("partial retirement transport must fail closed");
 
@@ -2503,7 +2503,7 @@ mod materialize_generated_faces_tests {
     #[test]
     fn retirement_transport_is_appended_only_when_explicit() {
         let retirement = RetirementMaterializeArgs {
-            control_plane_path: "registry/history-only-retirement-control-plane.json".to_owned(),
+            control_plane_path: "registry/history-only-retirement/control-plane.json".to_owned(),
             facts_out: PathBuf::from(
                 "ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json",
             ),
@@ -2527,7 +2527,8 @@ mod materialize_generated_faces_tests {
     #[test]
     fn multi_commit_local_materialization_does_not_infer_head_parent_as_protected_base() {
         let root = temp_root("retirement-auto-materialization");
-        std::fs::create_dir_all(root.join("registry")).expect("create registry");
+        std::fs::create_dir_all(root.join("registry/history-only-retirement"))
+            .expect("create retirement control-plane directory");
         std::fs::write(root.join(RETIREMENT_CONTROL_PLANE_PATH), "{}")
             .expect("write control-plane marker");
 

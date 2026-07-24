@@ -1095,7 +1095,7 @@
       ],
       "properties": {
         "control_plane_path": {
-          "const": "registry/history-only-retirement-control-plane.json"
+          "const": "registry/history-only-retirement/control-plane.json"
         },
         "receipt_root": {
           "const": "evidence/history-only-retirement"

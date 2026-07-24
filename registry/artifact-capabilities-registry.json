@@ -2697,7 +2697,7 @@
     },
     {
       "artifact_id": "history-only-retirement-control-plane",
-      "artifact_path": "/registry/history-only-retirement-control-plane.json",
+      "artifact_path": "/registry/history-only-retirement/control-plane.json",
       "artifact_format": "json",
       "contract_version": "v3.0.0",
       "owner_team": "cloud-ci-platform",
@@ -2705,7 +2705,7 @@
       "artifact_profile": "registry",
       "capability_overrides": {
         "enforcement": {"lane_id": "history-only-retirement-control-plane"},
-        "verification": {"command": "python3 -m json.tool registry/history-only-retirement-control-plane.json >/dev/null"},
+        "verification": {"command": "python3 -m json.tool registry/history-only-retirement/control-plane.json >/dev/null"},
         "validation": {"validator": "specs/history-only-retirement-control-plane.schema.json plus scm-facts history-only retirement materializer"},
         "autogen": {"generator": "not-applicable; controller input is source-authored"},
         "selfheal": {"healer": "not-applicable; immutable predecessor facts require reviewed replacement authority"},

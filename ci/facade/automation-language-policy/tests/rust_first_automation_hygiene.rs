@@ -159,6 +159,25 @@ fn manual_dispatch_cannot_infer_a_retirement_protected_base_from_head_parent() {
 }
 
 #[test]
+fn retirement_control_plane_has_a_dedicated_owners_boundary() {
+    let root = repo_root();
+    let control_plane_root = root.join("registry/history-only-retirement");
+
+    assert!(
+        control_plane_root.join("control-plane.json").is_file(),
+        "the retirement control plane must live in its dedicated registry subtree"
+    );
+    assert!(
+        control_plane_root.join("OWNERS").is_file(),
+        "the retirement control plane must have a nearest-ancestor OWNERS boundary"
+    );
+    assert!(
+        !root.join("registry/OWNERS").exists(),
+        "the retirement control plane must not introduce registry-root blanket ownership"
+    );
+}
+
+#[test]
 fn live_postgres_lane_emits_redacted_bootstrap_provenance_artifact() {
     let root = repo_root();
     let workflow_path = root.join(".github/workflows/oya-ci-required.yml");

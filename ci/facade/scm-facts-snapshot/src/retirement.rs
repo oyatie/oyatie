@@ -15,7 +15,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 
-pub(crate) const CONTROL_PLANE_PATH: &str = "registry/history-only-retirement-control-plane.json";
+pub(crate) const CONTROL_PLANE_PATH: &str = "registry/history-only-retirement/control-plane.json";
 pub(crate) const GENERATED_FACTS_PATH: &str =
     "ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json";
 

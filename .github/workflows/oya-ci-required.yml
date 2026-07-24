@@ -105,7 +105,7 @@ jobs:
           test "${protected_base_commit}" = "${EVENT_PROTECTED_SHA}"
           buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- \
             --repo-root . \
-            --retirement-control-plane registry/history-only-retirement-control-plane.json \
+            --retirement-control-plane registry/history-only-retirement/control-plane.json \
             --retirement-facts-out ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json \
             --protected-base-commit "${protected_base_commit}" \
             --candidate-commit "${candidate_commit}"
