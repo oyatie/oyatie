@@ -104,6 +104,52 @@ fn fixture_proves_unregistered_script_fails_closed() {
     }));
 }
 
+#[test]
+fn thirdparty_patch_overlay_and_test_exceptions_are_atomic_non_authoritative_pair() {
+    let policy = load_policy(&repo_root());
+    let paths = [
+        "tools/buck/apply-thirdparty-patches.py",
+        "tools/buck/tests/test_apply_thirdparty_patches.py",
+    ];
+    let exceptions = policy["exceptions"].as_array().expect("exceptions array");
+    let baseline = policy["non_rust_exception_baseline"]["codes"]
+        ["rust_first_automation_unbaselined_non_rust_exception"]
+        .as_array()
+        .expect("non-Rust exception baseline array");
+
+    let paired_rows: Vec<&Value> = paths
+        .iter()
+        .map(|path| {
+            let rows: Vec<&Value> = exceptions
+                .iter()
+                .filter(|row| row["path"].as_str() == Some(*path))
+                .collect();
+            assert_eq!(rows.len(), 1, "{path} must have exactly one exception row");
+            assert!(
+                baseline.iter().any(|value| value.as_str() == Some(*path)),
+                "{path} must be frozen in the non-Rust exception baseline"
+            );
+            rows[0]
+        })
+        .collect();
+
+    let replacement = paired_rows[0]["replacement"].as_str().expect("replacement");
+    for row in paired_rows {
+        assert_eq!(row["status"].as_str(), Some("temporary_legacy_bridge"));
+        assert!(
+            row["reason"]
+                .as_str()
+                .is_some_and(|reason| reason.contains("no independent authority")),
+            "paired exception must declare no independent authority: {row:#?}"
+        );
+        assert_eq!(row["replacement"].as_str(), Some(replacement));
+        assert!(
+            replacement.contains("Rust Buck2 cloud-ci gate"),
+            "paired exception must share a Rust/Buck2 replacement"
+        );
+    }
+}
+
 // ───────────────────────── workflow-inline-shell dimension (pipeline-glue(a)) ─────────────────────
 
 /// The `.github/workflows` surface MUST be in the gate's scan scope: the policy declares it as a
@@ -144,7 +190,8 @@ fn workflow_inline_shell_dimension_covers_dot_github_workflows() {
 }
 
 #[test]
-fn retirement_event_transport_is_bound_to_provider_facts_without_head_parent_inference() {
+fn retirement_event_transport_delegates_provider_tuple_to_rust_materializer_without_shell_topology()
+{
     let root = repo_root();
     let workflow_path = root.join(".github/workflows/oya-ci-required.yml");
     let workflow = fs::read_to_string(&workflow_path)
@@ -162,68 +209,53 @@ fn retirement_event_transport_is_bound_to_provider_facts_without_head_parent_inf
             "EVENT_EVALUATED_SHA: ${{ github.sha }}",
         ),
         (
-            "EVENT_PROTECTED_SHA:",
-            "EVENT_PROTECTED_SHA: ${{ github.event.pull_request.base.sha || github.event.before || github.event.merge_group.base_sha || '' }}",
+            "EVENT_PULL_REQUEST_BASE_SHA:",
+            "EVENT_PULL_REQUEST_BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}",
         ),
         (
-            "EVENT_SUBJECT_SHA:",
-            "EVENT_SUBJECT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}",
+            "EVENT_PUSH_BEFORE_SHA:",
+            "EVENT_PUSH_BEFORE_SHA: ${{ github.event.before || '' }}",
+        ),
+        (
+            "EVENT_PUSH_AFTER_SHA:",
+            "EVENT_PUSH_AFTER_SHA: ${{ github.event.after || '' }}",
+        ),
+        (
+            "EVENT_MERGE_GROUP_BASE_SHA:",
+            "EVENT_MERGE_GROUP_BASE_SHA: ${{ github.event.merge_group.base_sha || '' }}",
+        ),
+        (
+            "EVENT_MERGE_GROUP_HEAD_SHA:",
+            "EVENT_MERGE_GROUP_HEAD_SHA: ${{ github.event.merge_group.head_sha || '' }}",
+        ),
+        (
+            "EVENT_PULL_REQUEST_HEAD_SHA:",
+            "EVENT_PULL_REQUEST_HEAD_SHA: ${{ github.event.pull_request.head.sha || '' }}",
         ),
         ("EVENT_NAME:", "EVENT_NAME: ${{ github.event_name }}"),
         ("EVENT_REF:", "EVENT_REF: ${{ github.ref }}"),
+        (
+            "EVENT_PULL_REQUEST_BASE_REF:",
+            "EVENT_PULL_REQUEST_BASE_REF: ${{ github.event.pull_request.base.ref || '' }}",
+        ),
+        (
+            "EVENT_MERGE_GROUP_BASE_REF:",
+            "EVENT_MERGE_GROUP_BASE_REF: ${{ github.event.merge_group.base_ref || '' }}",
+        ),
     ] {
         assert_occurs_exactly_once(materialize, key);
         assert_occurs_exactly_once(materialize, binding);
     }
-    for (flag, binding) in [
-        (
-            "--retirement-control-plane",
-            "--retirement-control-plane registry/history-only-retirement/control-plane.json",
-        ),
-        (
-            "--retirement-facts-out",
-            "--retirement-facts-out ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json",
-        ),
-        (
-            "--protected-base-commit",
-            "--protected-base-commit \"${protected_base_commit}\"",
-        ),
-        (
-            "--evaluated-commit",
-            "--evaluated-commit \"${evaluated_commit}\"",
-        ),
-        ("--scm-event-name", "--scm-event-name \"${EVENT_NAME}\""),
-        ("--scm-event-ref", "--scm-event-ref \"${EVENT_REF}\""),
-        ("--subject-commit", "--subject-commit \"${subject_commit}\""),
-    ] {
-        assert_occurs_exactly_once(materialize, flag);
-        assert_occurs_exactly_once(materialize, binding);
+    assert!(
+        materialize.contains("buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . --github-event"),
+        "the one-line Rust materializer must own provider-tuple interpretation"
+    );
+    for forbidden in ["if [", "case ", "git ", "HEAD^", "rev-list", "cat-file"] {
+        assert!(
+            !materialize.contains(forbidden),
+            "producer shell must not own branching or git topology command {forbidden:?}"
+        );
     }
-    let protected_sha = materialize
-        .find("EVENT_PROTECTED_SHA")
-        .expect("producer must declare an event-bound protected-base transport");
-    let event_ref = materialize
-        .find("EVENT_REF: ${{ github.ref }}")
-        .expect("producer must transport the provider event ref");
-    let fail_closed = materialize
-        .find("if [ -z \"${EVENT_PROTECTED_SHA}\" ]; then")
-        .expect("manual dispatch without an event-bound protected base must fail closed");
-    let evaluated_head = materialize
-        .find("evaluated_commit=\"$(git rev-parse HEAD)\"")
-        .expect("evaluated commit must be resolved from checked-out HEAD");
-
-    assert!(
-        protected_sha < fail_closed && fail_closed < evaluated_head,
-        "the producer must reject workflow_dispatch before using provider-bound event facts"
-    );
-    assert!(
-        event_ref < fail_closed,
-        "the provider event ref must be declared before materialization validation"
-    );
-    assert!(
-        !materialize.contains("HEAD^1"),
-        "the producer must never infer protected ancestry from HEAD^1"
-    );
 }
 
 #[test]
@@ -341,20 +373,20 @@ fn new_inline_shell_beyond_baseline_is_born_blocking_red() {
     let baseline = json!({
         "codes": {
             "rust_first_automation_unbaselined_workflow_inline_shell": [
-                ".github/workflows/oya-ci-required.yml::buck2::step-1"
+                {"key": ".github/workflows/oya-ci-required.yml::buck2::Named shell", "shell_lines": 1}
             ]
         }
     });
     // Baselined key is present (accepted) + a NEW unbaselined key injected.
     let observed = json!({"steps": [
-        {"key": ".github/workflows/oya-ci-required.yml::buck2::step-1"},
-        {"key": ".github/workflows/oya-ci-required.yml::buck2::step-99-NEW-SHELL"}
+        {"key": ".github/workflows/oya-ci-required.yml::buck2::Named shell", "shell_lines": 1},
+        {"key": ".github/workflows/oya-ci-required.yml::buck2::New shell", "shell_lines": 1}
     ]});
     let findings = evaluate_workflow_inline_shell_keyed(&observed, &baseline);
     assert!(
         findings.iter().any(|finding| {
             finding.code == "rust_first_automation_unbaselined_workflow_inline_shell"
-                && finding.key == ".github/workflows/oya-ci-required.yml::buck2::step-99-NEW-SHELL"
+                && finding.key == ".github/workflows/oya-ci-required.yml::buck2::New shell"
         }),
         "a new inline-shell step beyond baseline must be born-blocking with its key surfaced; got \
          {findings:#?}"
@@ -362,7 +394,7 @@ fn new_inline_shell_beyond_baseline_is_born_blocking_red() {
     // The accepted baselined key must NOT be flagged (no false positive).
     assert!(
         !findings.iter().any(|finding| {
-            finding.key == ".github/workflows/oya-ci-required.yml::buck2::step-1"
+            finding.key == ".github/workflows/oya-ci-required.yml::buck2::Named shell"
         }),
         "an accepted baselined key must not be flagged"
     );
@@ -375,7 +407,7 @@ fn retired_baselined_inline_shell_is_stale_red() {
     let baseline = json!({
         "codes": {
             "rust_first_automation_unbaselined_workflow_inline_shell": [
-                ".github/workflows/docs-graph-drift.yml::docs-graph-drift::step-3"
+                {"key": ".github/workflows/docs-graph-drift.yml::docs-graph-drift::Named shell", "shell_lines": 1}
             ]
         }
     });
@@ -383,7 +415,8 @@ fn retired_baselined_inline_shell_is_stale_red() {
     let findings = evaluate_workflow_inline_shell_keyed(&observed, &baseline);
     assert!(findings.iter().any(|finding| {
         finding.code == "rust_first_automation_workflow_inline_shell_baseline_stale"
-            && finding.key == ".github/workflows/docs-graph-drift.yml::docs-graph-drift::step-3"
+            && finding.key
+                == ".github/workflows/docs-graph-drift.yml::docs-graph-drift::Named shell"
     }));
 }
 

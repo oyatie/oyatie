@@ -598,6 +598,7 @@ fn history_only_retirement_control_plane_declares_workflow_and_event_identity_in
 fn retirement_workflow_producer_step_transports_each_event_and_cli_binding_once() {
     let workflow = fs::read_to_string(repo_root().join(".github/workflows/oya-ci-required.yml"))
         .expect("read oya-ci-required workflow");
+    assert_occurs_exactly_once(&workflow, "merge_group:\n    types: [checks_requested]");
     let producer = named_workflow_step(&workflow, "Materialize cloud-ci generated faces");
 
     for (key, binding) in [
@@ -606,55 +607,69 @@ fn retirement_workflow_producer_step_transports_each_event_and_cli_binding_once(
             "EVENT_EVALUATED_SHA: ${{ github.sha }}",
         ),
         (
-            "EVENT_PROTECTED_SHA:",
-            "EVENT_PROTECTED_SHA: ${{ github.event.pull_request.base.sha || github.event.before || github.event.merge_group.base_sha || '' }}",
+            "EVENT_PULL_REQUEST_BASE_SHA:",
+            "EVENT_PULL_REQUEST_BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}",
         ),
         (
-            "EVENT_SUBJECT_SHA:",
-            "EVENT_SUBJECT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}",
+            "EVENT_PULL_REQUEST_HEAD_SHA:",
+            "EVENT_PULL_REQUEST_HEAD_SHA: ${{ github.event.pull_request.head.sha || '' }}",
+        ),
+        (
+            "EVENT_PUSH_BEFORE_SHA:",
+            "EVENT_PUSH_BEFORE_SHA: ${{ github.event.before || '' }}",
+        ),
+        (
+            "EVENT_PUSH_AFTER_SHA:",
+            "EVENT_PUSH_AFTER_SHA: ${{ github.event.after || '' }}",
+        ),
+        (
+            "EVENT_MERGE_GROUP_BASE_SHA:",
+            "EVENT_MERGE_GROUP_BASE_SHA: ${{ github.event.merge_group.base_sha || '' }}",
+        ),
+        (
+            "EVENT_MERGE_GROUP_HEAD_SHA:",
+            "EVENT_MERGE_GROUP_HEAD_SHA: ${{ github.event.merge_group.head_sha || '' }}",
         ),
         ("EVENT_NAME:", "EVENT_NAME: ${{ github.event_name }}"),
         ("EVENT_REF:", "EVENT_REF: ${{ github.ref }}"),
         (
-            "EVENT_BASE_REF:",
-            "EVENT_BASE_REF: ${{ github.event.pull_request.base.ref || github.event.merge_group.base_ref || github.ref || '' }}",
+            "EVENT_PULL_REQUEST_BASE_REF:",
+            "EVENT_PULL_REQUEST_BASE_REF: ${{ github.event.pull_request.base.ref || '' }}",
+        ),
+        (
+            "EVENT_MERGE_GROUP_BASE_REF:",
+            "EVENT_MERGE_GROUP_BASE_REF: ${{ github.event.merge_group.base_ref || '' }}",
         ),
     ] {
         assert_occurs_exactly_once(producer, key);
         assert_occurs_exactly_once(producer, binding);
     }
-    for (flag, binding) in [
-        (
-            "--retirement-control-plane",
-            "--retirement-control-plane registry/history-only-retirement/control-plane.json",
-        ),
-        (
-            "--retirement-facts-out",
-            "--retirement-facts-out ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json",
-        ),
-        (
-            "--protected-base-commit",
-            "--protected-base-commit \"${protected_base_commit}\"",
-        ),
-        (
-            "--evaluated-commit",
-            "--evaluated-commit \"${evaluated_commit}\"",
-        ),
-        ("--scm-event-name", "--scm-event-name \"${EVENT_NAME}\""),
-        ("--scm-event-ref", "--scm-event-ref \"${EVENT_REF}\""),
-        (
-            "--scm-event-base-ref",
-            "--scm-event-base-ref \"${EVENT_BASE_REF}\"",
-        ),
-        ("--subject-commit", "--subject-commit \"${subject_commit}\""),
-    ] {
-        assert_occurs_exactly_once(producer, flag);
-        assert_occurs_exactly_once(producer, binding);
-    }
-    assert!(
-        !producer.contains("HEAD^1"),
-        "protected base must be bound to the GitHub event, not inferred from HEAD^1"
+    assert_occurs_exactly_once(
+        producer,
+        "run: rustup toolchain install && rustc --version && buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . --github-event",
     );
+    for legacy_binding in [
+        "EVENT_PROTECTED_SHA:",
+        "EVENT_SUBJECT_SHA:",
+        "EVENT_BASE_REF:",
+        "--retirement-control-plane",
+        "--retirement-facts-out",
+        "--protected-base-commit",
+        "--evaluated-commit",
+        "--scm-event-name",
+        "--scm-event-ref",
+        "--scm-event-base-ref",
+        "--subject-commit",
+        "git rev-list",
+        "git rev-parse",
+        "git cat-file",
+        "HEAD^1",
+    ] {
+        assert!(
+            !producer.contains(legacy_binding),
+            "candidate materialization must pass the complete GitHub event tuple to Rust, not retain legacy manual identity binding {legacy_binding:?}"
+        );
+    }
 }
 
 #[test]
@@ -695,21 +710,32 @@ fn broad_workflow_consumers_require_the_producer_artifact_and_keep_the_merge_bas
         affected,
         "Materialize merge-base build + test baselines when affected-set needs FULL",
     );
-    for binding in [
-        "git cat-file -e \"${merge_base}:registry/history-only-retirement/control-plane.json\"",
-        "git rev-list --parents -n 1 \"${merge_base}\"",
-        "read -r -a merge_base_line <<< \"${merge_base_parents}\"",
-        "git rev-parse \"${merge_base}^1\"",
-        "--retirement-control-plane registry/history-only-retirement/control-plane.json",
-        "--retirement-facts-out ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json",
-        "--protected-base-commit \"${merge_base_protected_base}\"",
-        "--evaluated-commit \"${merge_base}\"",
-        "--scm-event-name push",
-        "--scm-event-ref refs/heads/dev",
-        "--scm-event-base-ref refs/heads/dev",
-        "--subject-commit \"${merge_base}\"",
+    assert_occurs_exactly_once(
+        baseline,
+        "buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . --historical-merge-base \"${merge_base}\"",
+    );
+    for legacy_topology_shell in [
+        "git cat-file",
+        "git rev-list",
+        "git rev-parse",
+        "HEAD^1",
+        "read -r -a",
+        "set -- ${merge_base_parents}",
+        "merge_base_parents",
+        "merge_base_protected_base",
+        "--retirement-control-plane",
+        "--retirement-facts-out",
+        "--protected-base-commit",
+        "--evaluated-commit",
+        "--scm-event-name",
+        "--scm-event-ref",
+        "--scm-event-base-ref",
+        "--subject-commit",
     ] {
-        assert_occurs_exactly_once(baseline, binding);
+        assert!(
+            !baseline.contains(legacy_topology_shell),
+            "historical materialization must delegate topology and event identity to Rust, not retain shell authority {legacy_topology_shell:?}"
+        );
     }
     assert!(
         !baseline.contains("accounting-faces")

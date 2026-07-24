@@ -269,6 +269,43 @@ pub struct RetirementMaterializationContext<'a> {
     pub subject_commit: &'a str,
 }
 
+/// Derive the only historical dev-push tuple accepted for a clean merge-base worktree.
+/// Absence of the control plane preserves bootstrap materialization; all present-control-plane
+/// topologies bind an exact expected head and exactly one first parent.
+pub fn historical_dev_push_context(
+    repo_root: &Path,
+    expected_head: &str,
+) -> Result<Option<(String, String)>, String> {
+    let source = GitCliRetirementObjectSource::new(repo_root.to_path_buf());
+    historical_dev_push_context_from_source(&source, expected_head)
+}
+
+fn historical_dev_push_context_from_source(
+    source: &impl RetirementObjectSource,
+    expected_head: &str,
+) -> Result<Option<(String, String)>, String> {
+    let evaluated = source.resolve_commit(expected_head)?;
+    if evaluated != expected_head {
+        return Err("historical dev-push expected head does not resolve exactly".to_owned());
+    }
+    if !source
+        .tree_entries(&evaluated)?
+        .iter()
+        .any(|entry| entry.path == CONTROL_PLANE_PATH)
+    {
+        return Ok(None);
+    }
+    let parents = source.parents(&evaluated)?;
+    if parents.len() != 1 {
+        return Err("historical dev-push requires exactly one parent".to_owned());
+    }
+    let first_parent = source.first_parent(&evaluated)?;
+    if first_parent != parents[0] {
+        return Err("historical dev-push first-parent resolution drifted".to_owned());
+    }
+    Ok(Some((evaluated, first_parent)))
+}
+
 /// Materialize facts through the sanctioned Git boundary.
 ///
 /// This is public for the package-local integration target; it emits facts and
@@ -2137,6 +2174,38 @@ mod tests {
             blobs,
             history: BTreeMap::new(),
         }
+    }
+
+    #[test]
+    fn historical_dev_push_context_fails_closed_on_head_and_parent_topology() {
+        let source = fixture();
+        assert_eq!(
+            historical_dev_push_context_from_source(&source, CANDIDATE).expect("tuple"),
+            Some((CANDIDATE.to_owned(), PROTECTED.to_owned()))
+        );
+        assert!(historical_dev_push_context_from_source(&source, "HEAD").is_err());
+
+        let mut zero_parent = fixture();
+        zero_parent.parents.clear();
+        assert!(historical_dev_push_context_from_source(&zero_parent, CANDIDATE).is_err());
+
+        let mut multiple_parent = fixture();
+        multiple_parent.parents.push(PREDECESSOR.to_owned());
+        assert!(historical_dev_push_context_from_source(&multiple_parent, CANDIDATE).is_err());
+
+        let mut first_parent_drift = fixture();
+        first_parent_drift.first_parent = PREDECESSOR.to_owned();
+        assert!(historical_dev_push_context_from_source(&first_parent_drift, CANDIDATE).is_err());
+    }
+
+    #[test]
+    fn historical_dev_push_context_allows_control_plane_absent_bootstrap() {
+        let mut source = fixture();
+        source.trees.insert(CANDIDATE.to_owned(), Vec::new());
+        assert_eq!(
+            historical_dev_push_context_from_source(&source, CANDIDATE).expect("bootstrap"),
+            None
+        );
     }
 
     fn context() -> RetirementMaterializationContext<'static> {

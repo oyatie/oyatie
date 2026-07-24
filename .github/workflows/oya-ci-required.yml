@@ -48,6 +48,7 @@ on:
     branches: [dev]
     types: [opened, reopened, synchronize, ready_for_review]
   merge_group:
+    types: [checks_requested]
 
 permissions:
   contents: read
@@ -87,36 +88,17 @@ jobs:
       - name: Materialize cloud-ci generated faces
         env:
           EVENT_EVALUATED_SHA: ${{ github.sha }}
-          EVENT_PROTECTED_SHA: ${{ github.event.pull_request.base.sha || github.event.before || github.event.merge_group.base_sha || '' }}
-          EVENT_SUBJECT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          EVENT_PULL_REQUEST_BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
+          EVENT_PUSH_BEFORE_SHA: ${{ github.event.before || '' }}
+          EVENT_PUSH_AFTER_SHA: ${{ github.event.after || '' }}
+          EVENT_MERGE_GROUP_BASE_SHA: ${{ github.event.merge_group.base_sha || '' }}
+          EVENT_MERGE_GROUP_HEAD_SHA: ${{ github.event.merge_group.head_sha || '' }}
+          EVENT_PULL_REQUEST_HEAD_SHA: ${{ github.event.pull_request.head.sha || '' }}
           EVENT_NAME: ${{ github.event_name }}
           EVENT_REF: ${{ github.ref }}
-          EVENT_BASE_REF: ${{ github.event.pull_request.base.ref || github.event.merge_group.base_ref || github.ref || '' }}
-        run: |
-          set -euo pipefail
-          rustup toolchain install
-          rustc --version
-          # The protected base is a GitHub event fact. workflow_dispatch has no PR, push, or
-          # merge-group base SHA, so a graph-parent lookup would be an untrusted guess on a normal
-          # multi-commit branch. Do not materialize retirement facts without that authority.
-          if [ -z "${EVENT_PROTECTED_SHA}" ]; then
-            echo "refusing retirement materialization: event lacks an authoritative protected-base SHA" >&2
-            exit 1
-          fi
-          evaluated_commit="$(git rev-parse HEAD)"
-          test "${evaluated_commit}" = "${EVENT_EVALUATED_SHA}"
-          protected_base_commit="${EVENT_PROTECTED_SHA}"
-          subject_commit="${EVENT_SUBJECT_SHA}"
-          buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- \
-            --repo-root . \
-            --retirement-control-plane registry/history-only-retirement/control-plane.json \
-            --retirement-facts-out ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json \
-            --protected-base-commit "${protected_base_commit}" \
-            --evaluated-commit "${evaluated_commit}" \
-            --scm-event-name "${EVENT_NAME}" \
-            --scm-event-ref "${EVENT_REF}" \
-            --scm-event-base-ref "${EVENT_BASE_REF}" \
-            --subject-commit "${subject_commit}"
+          EVENT_PULL_REQUEST_BASE_REF: ${{ github.event.pull_request.base.ref || '' }}
+          EVENT_MERGE_GROUP_BASE_REF: ${{ github.event.merge_group.base_ref || '' }}
+        run: rustup toolchain install && rustc --version && buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . --github-event
       - name: Upload regenerated faces
         # actions/upload-artifact@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
@@ -247,12 +229,7 @@ jobs:
           set -euo pipefail
           buck2 test \
             //ci/facade/${{ matrix.crate }}:ci-${{ matrix.crate }}-unittest \
-            //ci/facade/${{ matrix.crate }}:ci-${{ matrix.crate }}-gate
-      - name: buck2 test SCM facts integration boundary
-        if: matrix.crate == 'scm-facts-snapshot'
-        run: |
-          set -euo pipefail
-          buck2 test //ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot-integration
+            //ci/facade/${{ matrix.crate }}:ci-${{ matrix.crate }}-gate ${{ matrix.crate == 'scm-facts-snapshot' && '//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot-integration' || '' }}
 
   # ── freshness: first-diagnosis gate for the two stale-output failures from PR #662.
   #    Runs as its own fast job with no needs edge so stale Cargo.lock and stale generated faces
@@ -828,38 +805,9 @@ jobs:
           (
             cd "${mb_tree}"
             rustup toolchain install
-            # Materialize merge-base-generated faces ONLY from the clean historical Git object
-            # state. Never copy the candidate accounting artifact into this worktree: its
-            # controller event tuple belongs to candidate HEAD, not the frozen baseline. When the
-            # historical tree has the retirement control plane, derive a historical dev-push tuple
-            # from that exact object: evaluated=subject=merge_base and protected=its sole parent.
-            # A merge commit or malformed topology has no unambiguous historical protected base,
-            # so fail closed rather than laundering candidate facts into the baseline. Older bases
-            # that predate the control plane retain bare bootstrap materialization.
-            if git cat-file -e "${merge_base}:registry/history-only-retirement/control-plane.json"; then
-              merge_base_parents="$(git rev-list --parents -n 1 "${merge_base}")"
-              read -r -a merge_base_line <<< "${merge_base_parents}"
-              test "${#merge_base_line[@]}" -eq 2 \
-                || { echo "merge-base retirement materialization requires exactly one parent" >&2; exit 1; }
-              test "${merge_base_line[0]}" = "${merge_base}" \
-                || { echo "merge-base topology did not resolve the requested Git object" >&2; exit 1; }
-              merge_base_protected_base="$(git rev-parse "${merge_base}^1")"
-              test "${merge_base_protected_base}" = "${merge_base_line[1]}" \
-                || { echo "merge-base first-parent resolution drifted" >&2; exit 1; }
-              git cat-file -e "${merge_base_protected_base}^{commit}"
-              buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- \
-                --repo-root . \
-                --retirement-control-plane registry/history-only-retirement/control-plane.json \
-                --retirement-facts-out ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json \
-                --protected-base-commit "${merge_base_protected_base}" \
-                --evaluated-commit "${merge_base}" \
-                --scm-event-name push \
-                --scm-event-ref refs/heads/dev \
-                --scm-event-base-ref refs/heads/dev \
-                --subject-commit "${merge_base}"
-            else
-              buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .
-            fi
+            # Materialize merge-base faces in the clean historical tree. The Rust mode verifies
+            # control-plane/topology/first-parent authority; older bases retain bare bootstrap.
+            buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . --historical-merge-base "${merge_base}"
             # BUILD baseline: whole merge-base workspace keep-going. The build is EXPECTED to be
             # non-zero (dev carries pre-existing breakage) — that IS the baseline, not a failure, so
             # its exit code is never propagated.

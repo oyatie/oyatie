@@ -16,7 +16,7 @@ use ci_scm_facts_snapshot::{
     output_path_resolver,
     retirement::{
         GENERATED_FACTS_PATH, RetirementMaterializationContext, emit_history_only_retirement_facts,
-        write_canonical_retirement_facts,
+        historical_dev_push_context, write_canonical_retirement_facts,
     },
 };
 use serde_json::json;
@@ -51,7 +51,52 @@ fn temp_git_repo(label: &str) -> PathBuf {
         .status()
         .expect("run git init");
     assert!(status.success(), "git init must succeed");
+    git_success(&root, ["config", "user.email", "scm-facts@example.test"]);
+    git_success(&root, ["config", "user.name", "SCM Facts Integration"]);
     root
+}
+
+fn git_success<const N: usize>(root: &Path, args: [&str; N]) {
+    let output = Command::new("git")
+        .args(args)
+        .current_dir(root)
+        .output()
+        .expect("run Git fixture command");
+    assert!(
+        output.status.success(),
+        "Git fixture command failed: {}",
+        String::from_utf8_lossy(&output.stderr).trim()
+    );
+}
+
+fn git_stdout<const N: usize>(root: &Path, args: [&str; N]) -> String {
+    let output = Command::new("git")
+        .args(args)
+        .current_dir(root)
+        .output()
+        .expect("run Git fixture command");
+    assert!(
+        output.status.success(),
+        "Git fixture command failed: {}",
+        String::from_utf8_lossy(&output.stderr).trim()
+    );
+    String::from_utf8(output.stdout)
+        .expect("Git fixture output must be UTF-8")
+        .trim()
+        .to_owned()
+}
+
+fn commit_all(root: &Path, message: &str) -> String {
+    git_success(root, ["add", "--all"]);
+    git_success(root, ["commit", "--quiet", "-m", message]);
+    git_stdout(root, ["rev-parse", "HEAD"])
+}
+
+fn write_control_plane(root: &Path) {
+    let control_plane = root.join("registry/history-only-retirement/control-plane.json");
+    std::fs::create_dir_all(control_plane.parent().expect("control-plane parent"))
+        .expect("create control-plane parent");
+    std::fs::write(control_plane, b"{}\n").expect("write control-plane fixture");
 }
 
 fn temp_repo_root(test_name: &str) -> PathBuf {
@@ -207,6 +252,97 @@ fn canonical_writer_stays_bound_to_open_parent_after_ancestor_swap() {
         ))
         .expect("read captured output"),
         b"captured bytes"
+    );
+    std::fs::remove_dir_all(root).expect("remove integration fixture");
+}
+
+#[test]
+fn historical_dev_push_context_accepts_exact_head_with_control_plane_and_one_parent() {
+    let root = temp_git_repo("historical-dev-push-exact-head");
+    std::fs::write(root.join("base.txt"), b"base\n").expect("write base fixture");
+    let parent = commit_all(&root, "base");
+    write_control_plane(&root);
+    let head = commit_all(&root, "add control plane");
+
+    assert_eq!(
+        historical_dev_push_context(&root, &head).expect("accept exact one-parent head"),
+        Some((head, parent))
+    );
+    std::fs::remove_dir_all(root).expect("remove integration fixture");
+}
+
+#[test]
+fn historical_dev_push_context_rejects_non_exact_head_alias() {
+    let root = temp_git_repo("historical-dev-push-alias");
+    std::fs::write(root.join("base.txt"), b"base\n").expect("write base fixture");
+    commit_all(&root, "base");
+    write_control_plane(&root);
+    commit_all(&root, "add control plane");
+
+    let error = historical_dev_push_context(&root, "HEAD")
+        .expect_err("symbolic head alias must not satisfy immutable expected-head input");
+    assert!(
+        error.contains("does not resolve exactly"),
+        "unexpected error: {error}"
+    );
+    std::fs::remove_dir_all(root).expect("remove integration fixture");
+}
+
+#[test]
+fn historical_dev_push_context_rejects_root_commit_with_control_plane() {
+    let root = temp_git_repo("historical-dev-push-root");
+    write_control_plane(&root);
+    let head = commit_all(&root, "root control plane");
+
+    let error = historical_dev_push_context(&root, &head)
+        .expect_err("control-plane root commit must not have an implicit protected parent");
+    assert!(
+        error.contains("exactly one parent"),
+        "unexpected error: {error}"
+    );
+    std::fs::remove_dir_all(root).expect("remove integration fixture");
+}
+
+#[test]
+fn historical_dev_push_context_rejects_merge_commit_with_control_plane() {
+    let root = temp_git_repo("historical-dev-push-merge");
+    std::fs::write(root.join("base.txt"), b"base\n").expect("write base fixture");
+    commit_all(&root, "base");
+    let primary_branch = git_stdout(&root, ["symbolic-ref", "--short", "HEAD"]);
+
+    git_success(&root, ["checkout", "--quiet", "-b", "side"]);
+    std::fs::write(root.join("side.txt"), b"side\n").expect("write side fixture");
+    commit_all(&root, "side change");
+
+    git_success(&root, ["checkout", "--quiet", &primary_branch]);
+    write_control_plane(&root);
+    commit_all(&root, "add control plane");
+    git_success(
+        &root,
+        ["merge", "--quiet", "--no-ff", "side", "-m", "merge side"],
+    );
+    let merge_head = git_stdout(&root, ["rev-parse", "HEAD"]);
+
+    let error = historical_dev_push_context(&root, &merge_head)
+        .expect_err("control-plane merge commit must not choose an ambiguous protected parent");
+    assert!(
+        error.contains("exactly one parent"),
+        "unexpected error: {error}"
+    );
+    std::fs::remove_dir_all(root).expect("remove integration fixture");
+}
+
+#[test]
+fn historical_dev_push_context_returns_bootstrap_when_control_plane_is_absent() {
+    let root = temp_git_repo("historical-dev-push-bootstrap");
+    std::fs::write(root.join("base.txt"), b"base\n").expect("write base fixture");
+    commit_all(&root, "base");
+    std::fs::write(root.join("candidate.txt"), b"candidate\n").expect("write candidate fixture");
+    let head = commit_all(&root, "candidate without control plane");
+
+    assert_eq!(
+        historical_dev_push_context(&root, &head).expect("bootstrap remains permitted"),
+        None
     );
     std::fs::remove_dir_all(root).expect("remove integration fixture");
 }

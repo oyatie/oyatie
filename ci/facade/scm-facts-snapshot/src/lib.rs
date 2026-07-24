@@ -175,6 +175,7 @@ fn run() -> Result<(), String> {
     let mut scm_event_ref: Option<String> = None;
     let mut scm_event_base_ref: Option<String> = None;
     let mut subject_commit: Option<String> = None;
+    let mut historical_dev_push: Option<String> = None;
 
     let mut i = 0;
     while i < args.len() {
@@ -318,6 +319,13 @@ fn run() -> Result<(), String> {
                     return Err("--subject-commit requires a commit oid".to_owned());
                 }
             }
+            "--historical-dev-push" => {
+                i += 1;
+                historical_dev_push = args.get(i).cloned();
+                if historical_dev_push.as_deref().is_none_or(str::is_empty) {
+                    return Err("--historical-dev-push requires an expected head".to_owned());
+                }
+            }
             other => return Err(format!("unknown argument {other}")),
         }
         i += 1;
@@ -358,46 +366,80 @@ fn run() -> Result<(), String> {
         volatile_out.display()
     );
 
-    match (
-        retirement_control_plane.as_deref(),
-        retirement_facts_out.as_deref(),
-        protected_base_commit.as_deref(),
-        evaluated_commit.as_deref(),
-        scm_event_name.as_deref(),
-        scm_event_ref.as_deref(),
-        scm_event_base_ref.as_deref(),
-        subject_commit.as_deref(),
-    ) {
-        (
-            Some(control_plane_path),
-            Some(facts_out),
-            Some(protected),
-            Some(evaluated),
-            Some(event),
-            Some(event_ref),
-            Some(event_base_ref),
-            Some(subject),
-        ) => {
+    if let Some(expected_head) = historical_dev_push.as_deref() {
+        if retirement_control_plane.is_some()
+            || retirement_facts_out.is_some()
+            || protected_base_commit.is_some()
+            || evaluated_commit.is_some()
+            || scm_event_name.is_some()
+            || scm_event_ref.is_some()
+            || scm_event_base_ref.is_some()
+            || subject_commit.is_some()
+        {
+            return Err(
+                "--historical-dev-push is mutually exclusive with explicit retirement transport"
+                    .to_owned(),
+            );
+        }
+        if let Some((evaluated, protected)) =
+            retirement::historical_dev_push_context(&repo_root, expected_head)?
+        {
             retirement::emit_history_only_retirement_facts(
                 &repo_root,
                 &retirement::RetirementMaterializationContext {
-                    control_plane_path,
-                    protected_base_commit: protected,
-                    evaluated_commit: evaluated,
-                    scm_event_name: event,
-                    scm_event_ref: event_ref,
-                    scm_event_base_ref: event_base_ref,
-                    subject_commit: subject,
+                    control_plane_path: retirement::CONTROL_PLANE_PATH,
+                    protected_base_commit: &protected,
+                    evaluated_commit: &evaluated,
+                    scm_event_name: "push",
+                    scm_event_ref: "refs/heads/dev",
+                    scm_event_base_ref: "refs/heads/dev",
+                    subject_commit: &evaluated,
                 },
-                facts_out,
+                Path::new(retirement::GENERATED_FACTS_PATH),
             )?;
         }
-        (None, None, None, None, None, None, None, None) => {}
-        _ => {
-            return Err("--retirement-control-plane, --retirement-facts-out, \
+    } else {
+        match (
+            retirement_control_plane.as_deref(),
+            retirement_facts_out.as_deref(),
+            protected_base_commit.as_deref(),
+            evaluated_commit.as_deref(),
+            scm_event_name.as_deref(),
+            scm_event_ref.as_deref(),
+            scm_event_base_ref.as_deref(),
+            subject_commit.as_deref(),
+        ) {
+            (
+                Some(control_plane_path),
+                Some(facts_out),
+                Some(protected),
+                Some(evaluated),
+                Some(event),
+                Some(event_ref),
+                Some(event_base_ref),
+                Some(subject),
+            ) => {
+                retirement::emit_history_only_retirement_facts(
+                    &repo_root,
+                    &retirement::RetirementMaterializationContext {
+                        control_plane_path,
+                        protected_base_commit: protected,
+                        evaluated_commit: evaluated,
+                        scm_event_name: event,
+                        scm_event_ref: event_ref,
+                        scm_event_base_ref: event_base_ref,
+                        subject_commit: subject,
+                    },
+                    facts_out,
+                )?;
+            }
+            (None, None, None, None, None, None, None, None) => {}
+            _ => {
+                return Err("--retirement-control-plane, --retirement-facts-out, \
                  --protected-base-commit, --evaluated-commit, --scm-event-name, --scm-event-ref, \
                  --scm-event-base-ref, and --subject-commit are all-or-none"
-                .to_owned());
+                    .to_owned());
+            }
         }
     }
 
