@@ -10,7 +10,7 @@ license = "Apache-2.0"
 bounded_context = "cloud-ci"
 kind = "shared"
 layer = "app"
-purpose = "Cloud CI gate enforcing ADR-0535 dependency automation: repo-owned oya-deps.toml closed-schema policy, no Renovate/Dependabot config, and Rust pin alignment across root toolchain, workspace MSRV, container builder, and Buck2 toolchain notes."
+purpose = "Cloud CI gate enforcing ADR-0535 dependency automation plus the fail-closed Rust semantic overlay used by canonical Reindeer regeneration: repo-owned oya-deps.toml closed-schema policy, no Renovate/Dependabot config, Rust pin alignment across root toolchain, workspace MSRV, container builder, and Buck2 toolchain notes, and exact third-party/BUCK overlay validation."
 
 [lib]
 name = "ci_dependency_automation"

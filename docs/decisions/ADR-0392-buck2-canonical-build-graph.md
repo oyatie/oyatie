@@ -47,10 +47,13 @@ Reindeer + NativeLink decision below is unchanged.
 ## Implementation note (2026-07-24; no planning or generator authority expansion)
 
 The repository-owned, fail-closed semantic overlay for Reindeer output is implemented at
-`tools/buck/apply-thirdparty-patches.py`, with its exact regression surface at
-`tools/buck/tests/test_apply_thirdparty_patches.py` and narrow ownership at
-`tools/buck/OWNERS`. These source surfaces implement Decision 2 through the canonical
-regeneration wrapper; they do not authorize manual edits to `third-party/BUCK`.
+`ci/facade/dependency-automation/src/third_party_overlay.rs`, with pure regressions beside the
+module, filesystem/live-face regressions in
+`ci/facade/dependency-automation/tests/dependency_automation.rs`, and narrow ownership at
+`ci/facade/dependency-automation/OWNERS`. The canonical regeneration wrapper invokes the existing
+`//ci/facade/dependency-automation:oya-cloud-ci-dependency-automation-app-bin` Buck2 target. These
+surfaces implement Decision 2 as a local generator bridge; they do not expand merge authority or
+authorize manual edits to `third-party/BUCK`.
 
 ## Date
 

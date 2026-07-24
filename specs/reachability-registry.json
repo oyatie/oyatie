@@ -26,10 +26,6 @@
       "prefix": ".codex/OWNERS"
     },
     {
-      "anchor": "ADR-0392 Decision 2 + ADR-0555: reviewed source and regression surfaces for the fail-closed Reindeer semantic overlay; generated third-party/BUCK remains generator-owned and is never hand-edited.",
-      "prefix": "tools/buck/"
-    },
-    {
       "anchor": "ADR-0600: Buck package marker for the reviewed tools/hooks enforcement-liveness script corpus target.",
       "prefix": "tools/hooks/BUCK"
     },

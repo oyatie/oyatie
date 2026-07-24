@@ -19,7 +19,7 @@ set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 
 REINDEER_REV="681727ced54a853977ac495e147ac54e1c0db115"
-OVERLAY="tools/buck/apply-thirdparty-patches.py"
+OVERLAY_TARGET="//ci/facade/dependency-automation:oya-cloud-ci-dependency-automation-app-bin"
 BUCK_FACE="third-party/BUCK"
 
 REINDEER_BIN="$(command -v reindeer || true)"
@@ -39,7 +39,6 @@ except OSError as error:
     raise SystemExit(2)
 PY
 )"
-[ -f "$OVERLAY" ] || { echo "ERROR: missing $OVERLAY"; exit 1; }
 
 # Reindeer does not expose its git revision through `--version`. Bind the exact
 # executable selected from PATH to the full-revision Cargo receipt in that same
@@ -91,8 +90,8 @@ trap 'rm -f "$TEMP_FACE"' EXIT
 echo "[regen-third-party] rendering with pinned reindeer $REINDEER_REV ..."
 "$REINDEER_BIN" buckify --stdout >"$TEMP_FACE"
 
-echo "[regen-third-party] applying exact semantic overlay ($OVERLAY) ..."
-python3 "$OVERLAY" --buck-file "$TEMP_FACE"
+echo "[regen-third-party] applying exact Rust/Buck2 semantic overlay ($OVERLAY_TARGET) ..."
+buck2 run "$OVERLAY_TARGET" -- apply-third-party-overlay --buck-file "$TEMP_FACE"
 
 chmod 0644 "$TEMP_FACE"
 if [ -f "$BUCK_FACE" ] && cmp -s "$TEMP_FACE" "$BUCK_FACE"; then

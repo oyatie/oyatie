@@ -13,6 +13,7 @@ use oya_cloud_ci_rust_first_automation_hygiene_app::{
     evaluate_non_rust_exception_baseline_keyed, evaluate_workflow_inline_shell_keyed,
 };
 use serde_json::{Value, json};
+use serde_yaml::Value as YamlValue;
 
 fn repo_root() -> PathBuf {
     let mut dir = std::env::current_dir().expect("current_dir");
@@ -44,14 +45,24 @@ fn load_policy(root: &Path) -> Value {
     load_json(&policy_path(root))
 }
 
-fn named_workflow_step<'a>(workflow: &'a str, name: &str) -> &'a str {
-    let marker = format!("      - name: {name}\n");
-    let start = workflow
-        .find(&marker)
-        .unwrap_or_else(|| panic!("workflow step {name}"));
-    let tail = &workflow[start..];
-    let end = tail.find("\n      - name: ").unwrap_or(tail.len());
-    &tail[..end]
+fn named_workflow_step<'a>(workflow: &'a YamlValue, job_id: &str, name: &str) -> &'a YamlValue {
+    let steps = workflow
+        .get("jobs")
+        .and_then(|jobs| jobs.get(job_id))
+        .and_then(|job| job.get("steps"))
+        .and_then(YamlValue::as_sequence)
+        .unwrap_or_else(|| panic!("workflow job {job_id} must contain a steps sequence"));
+    let matches = steps
+        .iter()
+        .filter(|step| step.get("name").and_then(YamlValue::as_str) == Some(name))
+        .collect::<Vec<_>>();
+    assert_eq!(
+        matches.len(),
+        1,
+        "expected exactly one workflow step {name:?} in job {job_id:?}, found {}",
+        matches.len()
+    );
+    matches[0]
 }
 
 #[test]
@@ -66,16 +77,65 @@ jobs:
         run: echo right
 ";
 
-    let step = named_workflow_step(workflow, "Materialize cloud-ci generated faces");
-    assert!(step.contains("echo right"));
-    assert!(!step.contains("echo wrong"));
+    let workflow: YamlValue = serde_yaml::from_str(workflow).expect("parse workflow fixture");
+    let step = named_workflow_step(&workflow, "gate", "Materialize cloud-ci generated faces");
+    assert_eq!(
+        step.get("run").and_then(YamlValue::as_str),
+        Some("echo right")
+    );
 }
 
-fn assert_occurs_exactly_once(haystack: &str, needle: &str) {
+#[test]
+fn named_workflow_step_is_scoped_to_the_requested_job() {
+    let workflow = "\
+jobs:
+  unrelated:
+    steps:
+      - name: Materialize cloud-ci generated faces
+        run: echo wrong-job
+  gate-affected-target-set:
+    steps:
+      - name: Materialize cloud-ci generated faces
+        run: echo right-job
+";
+
+    let workflow: YamlValue = serde_yaml::from_str(workflow).expect("parse workflow fixture");
+    let step = named_workflow_step(
+        &workflow,
+        "gate-affected-target-set",
+        "Materialize cloud-ci generated faces",
+    );
     assert_eq!(
-        haystack.match_indices(needle).count(),
-        1,
-        "{needle:?} must occur exactly once in the producer step"
+        step.get("run").and_then(YamlValue::as_str),
+        Some("echo right-job")
+    );
+}
+
+#[test]
+fn named_workflow_step_rejects_duplicate_exact_names_inside_the_requested_job() {
+    let workflow: YamlValue = serde_yaml::from_str(
+        "\
+jobs:
+  producer-regen:
+    steps:
+      - name: Materialize cloud-ci generated faces
+        run: echo one
+      - name: Materialize cloud-ci generated faces
+        run: echo two
+",
+    )
+    .expect("parse workflow fixture");
+
+    let result = std::panic::catch_unwind(|| {
+        named_workflow_step(
+            &workflow,
+            "producer-regen",
+            "Materialize cloud-ci generated faces",
+        )
+    });
+    assert!(
+        result.is_err(),
+        "duplicate exact step names must fail closed"
     );
 }
 
@@ -122,8 +182,9 @@ fn fixture_proves_unregistered_script_fails_closed() {
 }
 
 #[test]
-fn thirdparty_patch_overlay_and_test_exceptions_are_atomic_non_authoritative_pair() {
-    let policy = load_policy(&repo_root());
+fn thirdparty_python_overlay_is_retired_into_owned_rust() {
+    let root = repo_root();
+    let policy = load_policy(&root);
     let paths = [
         "tools/buck/apply-thirdparty-patches.py",
         "tools/buck/tests/test_apply_thirdparty_patches.py",
@@ -134,37 +195,37 @@ fn thirdparty_patch_overlay_and_test_exceptions_are_atomic_non_authoritative_pai
         .as_array()
         .expect("non-Rust exception baseline array");
 
-    let paired_rows: Vec<&Value> = paths
-        .iter()
-        .map(|path| {
-            let rows: Vec<&Value> = exceptions
-                .iter()
-                .filter(|row| row["path"].as_str() == Some(*path))
-                .collect();
-            assert_eq!(rows.len(), 1, "{path} must have exactly one exception row");
-            assert!(
-                baseline.iter().any(|value| value.as_str() == Some(*path)),
-                "{path} must be frozen in the non-Rust exception baseline"
-            );
-            rows[0]
-        })
-        .collect();
-
-    let replacement = paired_rows[0]["replacement"].as_str().expect("replacement");
-    for row in paired_rows {
-        assert_eq!(row["status"].as_str(), Some("temporary_legacy_bridge"));
+    for path in paths {
         assert!(
-            row["reason"]
-                .as_str()
-                .is_some_and(|reason| reason.contains("no independent authority")),
-            "paired exception must declare no independent authority: {row:#?}"
+            !root.join(path).exists(),
+            "retired Python overlay surface must be absent: {path}"
         );
-        assert_eq!(row["replacement"].as_str(), Some(replacement));
         assert!(
-            replacement.contains("Rust Buck2 cloud-ci gate"),
-            "paired exception must share a Rust/Buck2 replacement"
+            !exceptions
+                .iter()
+                .any(|row| row["path"].as_str() == Some(path)),
+            "retired Python overlay must not remain exceptioned: {path}"
+        );
+        assert!(
+            !baseline.iter().any(|value| value.as_str() == Some(path)),
+            "retired Python overlay must shrink from the frozen baseline: {path}"
         );
     }
+    assert!(
+        root.join("ci/facade/dependency-automation/src/third_party_overlay.rs")
+            .is_file(),
+        "the semantic overlay must live in the owned Rust dependency-automation capability"
+    );
+    let wrapper = exceptions
+        .iter()
+        .find(|row| row["path"].as_str() == Some("scripts/ci/regen-third-party.sh"))
+        .expect("remaining Reindeer wrapper exception");
+    assert!(
+        wrapper["reason"]
+            .as_str()
+            .is_some_and(|reason| reason.contains("owned Rust/Buck2")),
+        "remaining wrapper debt must distinguish the Rust-owned overlay: {wrapper:#?}"
+    );
 }
 
 // ───────────────────────── workflow-inline-shell dimension (pipeline-glue(a)) ─────────────────────
@@ -213,63 +274,70 @@ fn retirement_event_transport_delegates_provider_tuple_to_rust_materializer_with
     let workflow_path = root.join(".github/workflows/oya-ci-required.yml");
     let workflow = fs::read_to_string(&workflow_path)
         .unwrap_or_else(|e| panic!("read {}: {e}", workflow_path.display()));
+    let workflow_doc: YamlValue = serde_yaml::from_str(&workflow)
+        .unwrap_or_else(|e| panic!("parse {}: {e}", workflow_path.display()));
 
     assert!(
         workflow.contains("workflow_dispatch:"),
         "manual reruns remain an explicitly declared workflow surface"
     );
 
-    let materialize = named_workflow_step(&workflow, "Materialize cloud-ci generated faces");
+    let materialize = named_workflow_step(
+        &workflow_doc,
+        "producer-regen",
+        "Materialize cloud-ci generated faces",
+    );
+    let env = materialize
+        .get("env")
+        .unwrap_or_else(|| panic!("producer materializer must declare env"));
     for (key, binding) in [
+        ("EVENT_EVALUATED_SHA", "${{ github.sha }}"),
         (
-            "EVENT_EVALUATED_SHA:",
-            "EVENT_EVALUATED_SHA: ${{ github.sha }}",
+            "EVENT_PULL_REQUEST_BASE_SHA",
+            "${{ github.event.pull_request.base.sha || '' }}",
+        ),
+        ("EVENT_PUSH_BEFORE_SHA", "${{ github.event.before || '' }}"),
+        ("EVENT_PUSH_AFTER_SHA", "${{ github.event.after || '' }}"),
+        (
+            "EVENT_MERGE_GROUP_BASE_SHA",
+            "${{ github.event.merge_group.base_sha || '' }}",
         ),
         (
-            "EVENT_PULL_REQUEST_BASE_SHA:",
-            "EVENT_PULL_REQUEST_BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}",
+            "EVENT_MERGE_GROUP_HEAD_SHA",
+            "${{ github.event.merge_group.head_sha || '' }}",
         ),
         (
-            "EVENT_PUSH_BEFORE_SHA:",
-            "EVENT_PUSH_BEFORE_SHA: ${{ github.event.before || '' }}",
+            "EVENT_PULL_REQUEST_HEAD_SHA",
+            "${{ github.event.pull_request.head.sha || '' }}",
+        ),
+        ("EVENT_NAME", "${{ github.event_name }}"),
+        ("EVENT_REF", "${{ github.ref }}"),
+        (
+            "EVENT_PULL_REQUEST_BASE_REF",
+            "${{ github.event.pull_request.base.ref || '' }}",
         ),
         (
-            "EVENT_PUSH_AFTER_SHA:",
-            "EVENT_PUSH_AFTER_SHA: ${{ github.event.after || '' }}",
-        ),
-        (
-            "EVENT_MERGE_GROUP_BASE_SHA:",
-            "EVENT_MERGE_GROUP_BASE_SHA: ${{ github.event.merge_group.base_sha || '' }}",
-        ),
-        (
-            "EVENT_MERGE_GROUP_HEAD_SHA:",
-            "EVENT_MERGE_GROUP_HEAD_SHA: ${{ github.event.merge_group.head_sha || '' }}",
-        ),
-        (
-            "EVENT_PULL_REQUEST_HEAD_SHA:",
-            "EVENT_PULL_REQUEST_HEAD_SHA: ${{ github.event.pull_request.head.sha || '' }}",
-        ),
-        ("EVENT_NAME:", "EVENT_NAME: ${{ github.event_name }}"),
-        ("EVENT_REF:", "EVENT_REF: ${{ github.ref }}"),
-        (
-            "EVENT_PULL_REQUEST_BASE_REF:",
-            "EVENT_PULL_REQUEST_BASE_REF: ${{ github.event.pull_request.base.ref || '' }}",
-        ),
-        (
-            "EVENT_MERGE_GROUP_BASE_REF:",
-            "EVENT_MERGE_GROUP_BASE_REF: ${{ github.event.merge_group.base_ref || '' }}",
+            "EVENT_MERGE_GROUP_BASE_REF",
+            "${{ github.event.merge_group.base_ref || '' }}",
         ),
     ] {
-        assert_occurs_exactly_once(materialize, key);
-        assert_occurs_exactly_once(materialize, binding);
+        assert_eq!(
+            env.get(key).and_then(YamlValue::as_str),
+            Some(binding),
+            "producer materializer env binding drifted for {key}"
+        );
     }
+    let run = materialize
+        .get("run")
+        .and_then(YamlValue::as_str)
+        .expect("producer materializer must be a Rust-owned run step");
     assert!(
-        materialize.contains("buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . --github-event"),
+        run.contains("buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . --github-event"),
         "the one-line Rust materializer must own provider-tuple interpretation"
     );
     for forbidden in ["if [", "case ", "git ", "HEAD^", "rev-list", "cat-file"] {
         assert!(
-            !materialize.contains(forbidden),
+            !run.contains(forbidden),
             "producer shell must not own branching or git topology command {forbidden:?}"
         );
     }
