@@ -106,20 +106,10 @@
                 "maxItems": 0
               },
               "retirement_control_plane_context": {
-                "properties": {
-                  "bootstrap": {
-                    "const": true
-                  },
-                  "protected_control_plane_blob_oid": {
-                    "type": "null"
-                  },
-                  "protected_control_plane_sha256": {
-                    "type": "null"
-                  },
-                  "protected_control_plane_byte_count": {
-                    "type": "null"
-                  }
-                }
+                "oneOf": [
+                  {"properties":{"bootstrap":{"const":true},"protected_control_plane_blob_oid":{"type":"null"},"protected_control_plane_sha256":{"type":"null"},"protected_control_plane_byte_count":{"type":"null"}}},
+                  {"properties":{"bootstrap":{"const":false},"protected_control_plane_blob_oid":{"$ref":"#/$defs/oid"},"protected_control_plane_sha256":{"$ref":"#/$defs/sha256"},"protected_control_plane_byte_count":{"$ref":"#/$defs/byte_count"}}}
+                ]
               }
             }
           }
