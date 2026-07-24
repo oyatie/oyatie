@@ -253,14 +253,13 @@ const REQUIRED_GATES: &[&str] = &[
 
 /// A candidate receipt supplied separately from the generated metadata face.
 ///
-/// The materializer owns the blob identity; callers provide the exact source bytes
-/// and their parsed JSON document.  Keeping this out of the generated face prevents
-/// retired-content bodies from becoming a second generated-artifact authority.
+/// The materializer owns the blob identity; callers provide only the exact source bytes.
+/// The evaluator strictly parses those bytes, preventing a second representation from
+/// becoming a separate authority.
 #[derive(Clone, Debug)]
 pub struct RawHistoryOnlyRetirementReceipt<'a> {
     pub receipt_path: &'a str,
     pub bytes: &'a [u8],
-    pub document: &'a Value,
 }
 
 /// Validate one receipt against only declared facts. `scm_facts` must be the
@@ -656,22 +655,22 @@ pub fn evaluate_history_only_retirement_facts(
         let Some(raw) = raw_by_path.get(path) else {
             continue;
         };
-        if !matches!(crate::parse_duplicate_key_free_json(raw.bytes), Some(ref parsed) if parsed == raw.document)
-        {
+        let Some(document) = crate::parse_duplicate_key_free_json(raw.bytes) else {
             fail(
                 &mut findings,
                 "history_only_retirement_facts.raw_receipt_document_bytes",
             );
-        }
+            continue;
+        };
         let digest = format!("sha256:{:x}", Sha256::digest(raw.bytes));
         if metadata
             .get("candidate_receipt_sha256")
             .and_then(Value::as_str)
             != Some(digest.as_str())
-            || metadata.get("artifact_id") != raw.document.get("artifact_id")
-            || metadata.get("scope_ref") != raw.document.get("scope_ref")
-            || metadata.get("baseline_commit_oid") != raw.document.pointer("/baseline/commit_oid")
-            || metadata.get("baseline_tree_oid") != raw.document.pointer("/baseline/tree_oid")
+            || metadata.get("artifact_id") != document.get("artifact_id")
+            || metadata.get("scope_ref") != document.get("scope_ref")
+            || metadata.get("baseline_commit_oid") != document.pointer("/baseline/commit_oid")
+            || metadata.get("baseline_tree_oid") != document.pointer("/baseline/tree_oid")
         {
             fail(
                 &mut findings,
@@ -704,11 +703,9 @@ pub fn evaluate_history_only_retirement_facts(
             );
         }
         findings.extend(evaluate_history_only_retirement_receipt(
-            path,
-            raw.document,
-            scm_facts,
+            path, &document, scm_facts,
         ));
-        documents.push(raw.document.clone());
+        documents.push(document);
     }
     findings.extend(evaluate_history_only_retirement_receipt_coverage(
         &documents, scm_facts,
@@ -1244,7 +1241,7 @@ pub fn evaluate_history_only_retirement_receipt_coverage(
             fail(&mut findings, "receipt_scope_key_set");
         }
         match (path, state) {
-            (Some(path), Some("carried" | "closed-carried")) if carried.contains(path) => {
+            (Some(path), Some("closed-carried")) if carried.contains(path) => {
                 if fact.get("protected_base_ref") != coverage.get("protected_base_ref")
                     || fact.get("scope_ref") != receipt.get("scope_ref")
                     || fact.get("scope_type").and_then(Value::as_str)
@@ -1393,7 +1390,7 @@ pub fn evaluate_history_only_retirement_receipt_coverage(
         let state = scope_states.get(&scope).map(String::as_str);
         let predecessor_matches_diff = expected.selectors.iter().all(|selector| match state {
             Some("prepared-new") => selector.predecessor == selector.surviving,
-            Some("carried" | "closure-new") => selector.predecessor == selector.removed,
+            Some("closure-new") => selector.predecessor == selector.removed,
             // A closed carried receipt may be verified only against an immutable
             // historical predecessor once both current trees no longer contain it.
             Some("closed-carried") => {
@@ -4027,7 +4024,7 @@ mod tests {
         assert!(!include_str!("retirement_receipt.rs").contains(&retired_doc_axis_gate));
     }
 
-    fn canonical_facts_and_raw(state: &str) -> (Value, Vec<u8>, Value) {
+    fn canonical_facts_and_raw(state: &str) -> (Value, Vec<u8>) {
         let mut corpus = exact_adr_0388_corpus(state);
         let receipt = corpus["receipts"][0]["receipt"].take();
         let bytes = serde_json::to_vec(&receipt).expect("serialize raw receipt");
@@ -4042,23 +4039,21 @@ mod tests {
             "baseline_commit_oid": fact["baseline_commit_oid"],
             "baseline_tree_oid": fact["baseline_tree_oid"]
         }]);
-        (corpus, bytes, receipt)
+        (corpus, bytes)
     }
 
     #[test]
     fn facts_and_raw_adapter_requires_an_exact_path_bound_raw_set() {
-        let (facts, bytes, document) = canonical_facts_and_raw("closure-new");
+        let (facts, bytes) = canonical_facts_and_raw("closure-new");
         let raw = RawHistoryOnlyRetirementReceipt {
             receipt_path: ADR_0388_CLOSURE_PATH,
             bytes: &bytes,
-            document: &document,
         };
         for state in ["closure-new", "closed-carried"] {
-            let (facts, bytes, document) = canonical_facts_and_raw(state);
+            let (facts, bytes) = canonical_facts_and_raw(state);
             let raw = RawHistoryOnlyRetirementReceipt {
                 receipt_path: ADR_0388_CLOSURE_PATH,
                 bytes: &bytes,
-                document: &document,
             };
             let valid = evaluate_and_project_history_only_retirement_facts(&facts, &[raw]);
             assert!(valid.findings.is_empty(), "{state}: {:?}", valid.findings);
@@ -4086,11 +4081,10 @@ mod tests {
 
     #[test]
     fn facts_and_raw_adapter_binds_bytes_document_metadata_and_object_facts() {
-        let (facts, bytes, document) = canonical_facts_and_raw("closure-new");
+        let (facts, bytes) = canonical_facts_and_raw("closure-new");
         let raw = RawHistoryOnlyRetirementReceipt {
             receipt_path: ADR_0388_CLOSURE_PATH,
             bytes: &bytes,
-            document: &document,
         };
         for pointer in [
             "/receipts/0/candidate_receipt_sha256",
@@ -4146,7 +4140,6 @@ mod tests {
         let tampered = RawHistoryOnlyRetirementReceipt {
             receipt_path: ADR_0388_CLOSURE_PATH,
             bytes: tampered_bytes,
-            document: &document,
         };
         assert!(
             !evaluate_history_only_retirement_facts(&tampered_bytes_facts, &[tampered]).is_empty(),
@@ -4156,7 +4149,8 @@ mod tests {
 
     #[test]
     fn facts_and_raw_adapter_rejects_duplicate_json_keys() {
-        let (mut facts, bytes, document) = canonical_facts_and_raw("closure-new");
+        let (mut facts, bytes) = canonical_facts_and_raw("closure-new");
+        let document = crate::parse_duplicate_key_free_json(&bytes).expect("fixture JSON");
         let artifact_id = document["artifact_id"]
             .as_str()
             .expect("fixture artifact id");
@@ -4173,7 +4167,6 @@ mod tests {
         let raw = RawHistoryOnlyRetirementReceipt {
             receipt_path: ADR_0388_CLOSURE_PATH,
             bytes: &duplicate_bytes,
-            document: &document,
         };
         let evaluation = evaluate_and_project_history_only_retirement_facts(&facts, &[raw]);
         assert!(
@@ -4216,14 +4209,13 @@ mod tests {
             );
         }
 
-        let (mut legacy, bytes, document) = canonical_facts_and_raw("closed-carried");
+        let (mut legacy, bytes) = canonical_facts_and_raw("closed-carried");
         legacy["receipts"][0]["receipt_state"] = json!("carried");
         legacy["scm_facts"]["retirement_receipt_object_facts"][0]["receipt_state"] =
             json!("carried");
         let raw = RawHistoryOnlyRetirementReceipt {
             receipt_path: ADR_0388_CLOSURE_PATH,
             bytes: &bytes,
-            document: &document,
         };
         let evaluation = evaluate_and_project_history_only_retirement_facts(&legacy, &[raw]);
         assert!(!evaluation.findings.is_empty());

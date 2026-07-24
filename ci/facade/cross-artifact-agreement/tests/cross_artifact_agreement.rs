@@ -73,7 +73,7 @@ fn prefixed_sha256(bytes: &[u8]) -> String {
     format!("sha256:{:x}", Sha256::digest(bytes))
 }
 
-fn declared_raw_history_only_receipts(root: &Path, facts: &Value) -> Vec<(String, Vec<u8>, Value)> {
+fn declared_raw_history_only_receipts(root: &Path, facts: &Value) -> Vec<(String, Vec<u8>)> {
     facts["receipts"]
         .as_array()
         .expect("history-only facts receipts array")
@@ -92,10 +92,7 @@ fn declared_raw_history_only_receipts(root: &Path, facts: &Value) -> Vec<(String
             let bytes = fs::read(&path).unwrap_or_else(|error| {
                 panic!("read declared raw receipt {}: {error}", path.display())
             });
-            let document: Value = serde_json::from_slice(&bytes).unwrap_or_else(|error| {
-                panic!("parse declared raw receipt {}: {error}", path.display())
-            });
-            (receipt_path.to_owned(), bytes, document)
+            (receipt_path.to_owned(), bytes)
         })
         .collect()
 }
@@ -334,13 +331,10 @@ fn live_history_only_retirement_facts_are_bound_to_the_controller_control_plane(
     let raw_storage = declared_raw_history_only_receipts(&root, &facts);
     let raw_receipts = raw_storage
         .iter()
-        .map(
-            |(receipt_path, bytes, document)| RawHistoryOnlyRetirementReceipt {
-                receipt_path,
-                bytes,
-                document,
-            },
-        )
+        .map(|(receipt_path, bytes)| RawHistoryOnlyRetirementReceipt {
+            receipt_path,
+            bytes,
+        })
         .collect::<Vec<_>>();
     let evaluation = evaluate_and_project_history_only_retirement_facts(&facts, &raw_receipts);
     assert!(
