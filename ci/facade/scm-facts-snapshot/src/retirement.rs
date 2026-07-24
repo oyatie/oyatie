@@ -2038,6 +2038,19 @@ mod tests {
     }
 
     #[test]
+    fn event_identity_rejects_push_merge_topology() {
+        let mut source = fixture();
+        source.parents = vec![PROTECTED.to_owned(), PREDECESSOR.to_owned()];
+
+        let error = materialize_history_only_retirement_facts(&source, &context())
+            .expect_err("push must not accept a direct merge topology");
+        assert!(
+            error.contains("push evaluated commit parents"),
+            "unexpected error: {error}"
+        );
+    }
+
+    #[test]
     fn event_identity_rejects_revision_aliases_and_noncanonical_oids() {
         let mut source = fixture();
         source

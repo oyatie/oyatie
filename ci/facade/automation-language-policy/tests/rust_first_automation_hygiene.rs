@@ -126,7 +126,7 @@ fn workflow_inline_shell_dimension_covers_dot_github_workflows() {
 }
 
 #[test]
-fn manual_dispatch_cannot_infer_a_retirement_protected_base_from_head_parent() {
+fn retirement_event_transport_is_bound_to_provider_facts_without_head_parent_inference() {
     let root = repo_root();
     let workflow_path = root.join(".github/workflows/oya-ci-required.yml");
     let workflow = fs::read_to_string(&workflow_path)
@@ -144,17 +144,27 @@ fn manual_dispatch_cannot_infer_a_retirement_protected_base_from_head_parent() {
     let protected_sha = materialize
         .find("EVENT_PROTECTED_SHA")
         .expect("producer must declare an event-bound protected-base transport");
+    let event_ref = materialize
+        .find("EVENT_REF: ${{ github.ref }}")
+        .expect("producer must transport the provider event ref");
     let fail_closed = materialize
         .find("if [ -z \"${EVENT_PROTECTED_SHA}\" ]; then")
         .expect("manual dispatch without an event-bound protected base must fail closed");
-    let inferred_parent = materialize
-        .find("protected_base_commit=\"$(git rev-parse HEAD^1)\"")
-        .expect("protected base is resolved only after transport validation");
+    let evaluated_head = materialize
+        .find("evaluated_commit=\"$(git rev-parse HEAD)\"")
+        .expect("evaluated commit must be resolved from checked-out HEAD");
 
     assert!(
-        protected_sha < fail_closed && fail_closed < inferred_parent,
-        "the producer must reject workflow_dispatch before resolving HEAD^1; otherwise a normal \
-         multi-commit branch can synthesize retirement facts from an earlier candidate commit"
+        protected_sha < fail_closed && fail_closed < evaluated_head,
+        "the producer must reject workflow_dispatch before using provider-bound event facts"
+    );
+    assert!(
+        event_ref < fail_closed,
+        "the provider event ref must be declared before materialization validation"
+    );
+    assert!(
+        materialize.contains("--scm-event-ref \"${EVENT_REF}\"") && !materialize.contains("HEAD^1"),
+        "the producer must forward the provider event ref and never infer protected ancestry from HEAD^1"
     );
 }
 

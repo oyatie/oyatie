@@ -2502,6 +2502,8 @@ mod materialize_generated_faces_tests {
             "2222222222222222222222222222222222222222".to_owned(),
             "--scm-event-name".to_owned(),
             "pull_request".to_owned(),
+            "--scm-event-ref".to_owned(),
+            "refs/pull/123/merge".to_owned(),
             "--subject-commit".to_owned(),
             "3333333333333333333333333333333333333333".to_owned(),
         ])
@@ -2518,6 +2520,7 @@ mod materialize_generated_faces_tests {
                 protected_base_commit: "1111111111111111111111111111111111111111".to_owned(),
                 evaluated_commit: "2222222222222222222222222222222222222222".to_owned(),
                 scm_event_name: "pull_request".to_owned(),
+                scm_event_ref: "refs/pull/123/merge".to_owned(),
                 subject_commit: "3333333333333333333333333333333333333333".to_owned(),
             })
         );
@@ -2536,7 +2539,7 @@ mod materialize_generated_faces_tests {
 
     #[test]
     fn parse_materialize_generated_faces_args_rejects_empty_event_identity_values() {
-        for flag in ["--scm-event-name", "--subject-commit"] {
+        for flag in ["--scm-event-name", "--scm-event-ref", "--subject-commit"] {
             let error =
                 parse_materialize_generated_faces_args(vec![flag.to_owned(), String::new()])
                     .expect_err("empty event identity argument must fail closed");
@@ -2554,6 +2557,7 @@ mod materialize_generated_faces_tests {
             protected_base_commit: "1111111111111111111111111111111111111111".to_owned(),
             evaluated_commit: "2222222222222222222222222222222222222222".to_owned(),
             scm_event_name: "pull_request".to_owned(),
+            scm_event_ref: "refs/pull/123/merge".to_owned(),
             subject_commit: "3333333333333333333333333333333333333333".to_owned(),
         };
         let mut candidate = Command::new("emitter");
@@ -2564,6 +2568,15 @@ mod materialize_generated_faces_tests {
             .collect::<Vec<_>>();
         assert!(candidate_args.contains(&"--retirement-control-plane".to_owned()));
         assert!(candidate_args.contains(&retirement.evaluated_commit));
+        assert_eq!(
+            candidate_args
+                .iter()
+                .filter(|arg| arg.as_str() == "--scm-event-ref")
+                .count(),
+            1,
+            "the event ref must be forwarded once"
+        );
+        assert!(candidate_args.contains(&retirement.scm_event_ref));
         assert!(candidate_args.contains(&retirement.subject_commit));
 
         let mut frozen = Command::new("emitter");
