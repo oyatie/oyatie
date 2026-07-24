@@ -15,7 +15,7 @@ use ci_scm_facts_snapshot::{
     output_path_resolver,
     retirement::{
         GENERATED_FACTS_PATH, RetirementMaterializationContext, emit_history_only_retirement_facts,
-        write_ignored_regular_file,
+        write_canonical_retirement_facts,
     },
 };
 use serde_json::json;
@@ -65,6 +65,14 @@ fn temp_repo_root(test_name: &str) -> PathBuf {
     root
 }
 
+fn configure_ignored_canonical_facts(root: &Path) {
+    std::fs::write(
+        root.join(".gitignore"),
+        format!("/{GENERATED_FACTS_PATH}\n"),
+    )
+    .expect("ignore canonical retirement facts output");
+}
+
 #[test]
 fn emitter_rejects_canonical_generated_facts_path_when_tracked() {
     let root = temp_git_repo("tracked-output");
@@ -96,18 +104,32 @@ fn emitter_rejects_canonical_generated_facts_path_when_tracked() {
     std::fs::remove_dir_all(root).expect("remove integration fixture");
 }
 
+#[test]
+fn emitter_rejects_lexical_retirement_facts_path_escapes() {
+    let root = temp_git_repo("lexical-output-escape");
+    let error = emit_history_only_retirement_facts(&root, &context(), Path::new("../outside.json"))
+        .expect_err("retirement facts must accept only their canonical repo-relative path");
+    assert!(
+        error.contains("exact canonical repo-relative"),
+        "unexpected error: {error}"
+    );
+    std::fs::remove_dir_all(root).expect("remove integration fixture");
+}
+
 #[cfg(unix)]
 #[test]
 fn output_symlinks_are_rejected_without_touching_targets() {
     use std::os::unix::fs::symlink;
 
     let root = temp_git_repo("output-symlink");
-    let output = root.join("facts.json");
+    configure_ignored_canonical_facts(&root);
+    let output = root.join(GENERATED_FACTS_PATH);
+    std::fs::create_dir_all(output.parent().expect("output parent")).expect("mkdir");
     let outside = root.join("outside.json");
     std::fs::write(&outside, b"outside bytes").expect("write outside target");
     symlink(&outside, &output).expect("link output");
 
-    let error = write_ignored_regular_file(&root, &output, b"replacement")
+    let error = write_canonical_retirement_facts(&root, b"replacement")
         .expect_err("output symlink must fail closed");
     assert!(error.contains("must be a regular file"));
     assert_eq!(
@@ -123,16 +145,51 @@ fn intermediate_output_symlinks_are_rejected_without_touching_targets() {
     use std::os::unix::fs::symlink;
 
     let root = temp_git_repo("intermediate-output-symlink");
+    configure_ignored_canonical_facts(&root);
     let outside = root.join("outside");
     std::fs::create_dir(&outside).expect("create outside directory");
-    let target = outside.join("facts.json");
+    let target =
+        outside.join("facade/scm-facts-snapshot/history-only-retirement-facts.generated.json");
+    std::fs::create_dir_all(target.parent().expect("outside target parent"))
+        .expect("create outside target parent");
     std::fs::write(&target, b"outside bytes").expect("write outside target");
     symlink(&outside, root.join("ci")).expect("link intermediate directory");
-    let output = root.join("ci/facts.json");
 
-    let error = write_ignored_regular_file(&root, &output, b"replacement")
+    let error = write_canonical_retirement_facts(&root, b"replacement")
         .expect_err("intermediate symlink must fail closed");
     assert!(error.contains("not a real directory"));
+    assert_eq!(
+        std::fs::read(&target).expect("read outside target"),
+        b"outside bytes"
+    );
+    std::fs::remove_dir_all(root).expect("remove integration fixture");
+}
+
+#[cfg(unix)]
+#[test]
+fn canonical_writer_rejects_parent_directory_swapped_to_symlink() {
+    use std::os::unix::fs::symlink;
+
+    let root = temp_git_repo("canonical-output-parent-swap");
+    configure_ignored_canonical_facts(&root);
+    let original_ci = root.join("ci");
+    std::fs::create_dir_all(&original_ci).expect("create original canonical parent");
+    std::fs::rename(&original_ci, root.join("ci-before-swap")).expect("move original parent");
+
+    let outside = root.join("outside");
+    let target =
+        outside.join("facade/scm-facts-snapshot/history-only-retirement-facts.generated.json");
+    std::fs::create_dir_all(target.parent().expect("outside target parent"))
+        .expect("create outside target parent");
+    std::fs::write(&target, b"outside bytes").expect("write outside target");
+    symlink(&outside, &original_ci).expect("swap canonical parent to symlink");
+
+    let error = write_canonical_retirement_facts(&root, b"replacement")
+        .expect_err("swapped canonical parent must fail closed");
+    assert!(
+        error.contains("not a real directory"),
+        "unexpected error: {error}"
+    );
     assert_eq!(
         std::fs::read(&target).expect("read outside target"),
         b"outside bytes"
