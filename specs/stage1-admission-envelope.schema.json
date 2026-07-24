@@ -1,0 +1,145 @@
+{
+  "$id": "https://docs.oyatie.com/specs/stage1-admission-envelope.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Stage1AdmissionEnvelope",
+  "description": "Closed future post-merge envelope. This dormant repository schema cannot authenticate it or authorize planning.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_id",
+    "repository",
+    "branch",
+    "base_commit",
+    "base_tree",
+    "pr_head_commit",
+    "pr_head_tree",
+    "postmerge_promoted_commit",
+    "postmerge_promoted_tree",
+    "facts_binding",
+    "program_binding",
+    "evaluator_binding",
+    "policy_binding",
+    "schema_binding",
+    "immutable_successor_binding",
+    "check_suite_binding",
+    "independent_review_binding",
+    "branch_protection_binding",
+    "postmerge_completion",
+    "envelope_signature",
+    "trust_root_binding",
+    "roadmap_planning_authorized",
+    "binding_plan_approval_allowed",
+    "implementation_dispatch_allowed"
+  ],
+  "properties": {
+    "schema_id": {
+      "const": "oyatie/stage1-admission-envelope/v1"
+    },
+    "repository": {
+      "type": "string",
+      "minLength": 1
+    },
+    "branch": {
+      "type": "string",
+      "minLength": 1
+    },
+    "base_commit": {
+      "$ref": "#/$defs/oid"
+    },
+    "base_tree": {
+      "$ref": "#/$defs/oid"
+    },
+    "pr_head_commit": {
+      "$ref": "#/$defs/oid"
+    },
+    "pr_head_tree": {
+      "$ref": "#/$defs/oid"
+    },
+    "postmerge_promoted_commit": {
+      "$ref": "#/$defs/oid"
+    },
+    "postmerge_promoted_tree": {
+      "$ref": "#/$defs/oid"
+    },
+    "facts_binding": {
+      "$ref": "#/$defs/binding"
+    },
+    "program_binding": {
+      "$ref": "#/$defs/binding"
+    },
+    "evaluator_binding": {
+      "$ref": "#/$defs/binding"
+    },
+    "policy_binding": {
+      "$ref": "#/$defs/binding"
+    },
+    "schema_binding": {
+      "$ref": "#/$defs/binding"
+    },
+    "immutable_successor_binding": {
+      "$ref": "#/$defs/binding"
+    },
+    "check_suite_binding": {
+      "$ref": "#/$defs/binding"
+    },
+    "independent_review_binding": {
+      "$ref": "#/$defs/binding"
+    },
+    "branch_protection_binding": {
+      "$ref": "#/$defs/binding"
+    },
+    "postmerge_completion": {
+      "$ref": "#/$defs/binding"
+    },
+    "envelope_signature": {
+      "$ref": "#/$defs/binding"
+    },
+    "trust_root_binding": {
+      "$ref": "#/$defs/binding"
+    },
+    "roadmap_planning_authorized": {
+      "const": false
+    },
+    "binding_plan_approval_allowed": {
+      "const": false
+    },
+    "implementation_dispatch_allowed": {
+      "const": false
+    },
+    "extensions": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^x-stage1-non-authoritative-"
+      },
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "oid": {
+      "type": "string",
+      "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$"
+    },
+    "binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "blob_oid",
+        "sha256"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "blob_oid": {
+          "$ref": "#/$defs/oid"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    }
+  }
+}
