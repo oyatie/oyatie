@@ -24,14 +24,38 @@ esac
 mkdir -p "${BUCK2_INSTALL_DIR}"
 asset_path="${BUCK2_INSTALL_DIR}/${BUCK2_ASSET}"
 binary_path="${BUCK2_INSTALL_DIR}/buck2"
+lock_path="${BUCK2_INSTALL_DIR}/.buck2-install.lock"
 asset_temp=""
 binary_temp=""
+lock_acquired=0
 
 cleanup_partials() {
   [ -z "${asset_temp}" ] || rm -f -- "${asset_temp}"
   [ -z "${binary_temp}" ] || rm -f -- "${binary_temp}"
+  [ "${lock_acquired}" -eq 0 ] || rmdir -- "${lock_path}" 2>/dev/null || true
 }
 trap cleanup_partials EXIT
+
+lock_timeout_seconds="${BUCK2_INSTALL_LOCK_TIMEOUT_SECONDS:-180}"
+case "${lock_timeout_seconds}" in
+  ''|*[!0-9]*)
+    echo "BUCK2_INSTALL_LOCK_TIMEOUT_SECONDS must be a positive integer." >&2
+    exit 1
+    ;;
+esac
+if [ "${lock_timeout_seconds}" -eq 0 ]; then
+  echo "BUCK2_INSTALL_LOCK_TIMEOUT_SECONDS must be a positive integer." >&2
+  exit 1
+fi
+lock_deadline=$((SECONDS + lock_timeout_seconds))
+while ! mkdir "${lock_path}" 2>/dev/null; do
+  if [ "${SECONDS}" -ge "${lock_deadline}" ]; then
+    echo "Timed out waiting for Buck2 installer lock: ${lock_path}" >&2
+    exit 1
+  fi
+  sleep 1
+done
+lock_acquired=1
 
 # Cache-hit fast path (ADR-0556 D5 QW-4: the tool binary is a digest-pinned INPUT, not a build
 # output — warm-eligible velocity). If the compressed release asset is already present (e.g.

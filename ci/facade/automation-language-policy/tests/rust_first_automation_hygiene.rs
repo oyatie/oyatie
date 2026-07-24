@@ -2,7 +2,13 @@
 
 use std::collections::BTreeSet;
 use std::fs;
+use std::io::{Read, Write};
+use std::net::TcpListener;
+use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
+use std::process::{Command, Output};
+use std::thread;
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use oya_cloud_ci_rust_first_automation_hygiene_app::{
     Finding, Verdict, collect_observed_cli_package_authority,
@@ -786,5 +792,336 @@ fn fixture_proves_infrastructure_cli_package_fails_closed() {
                 && finding.key == "infra/example/Cargo.toml::infra-fix-cli"
         }),
         "new infrastructure CLI package must fail closed; got {findings:#?}"
+    );
+}
+
+// ───────────────────────── Buck2 installer transaction regressions ─────────────────────────
+
+struct TestDir(PathBuf);
+
+impl TestDir {
+    fn new(label: &str) -> Self {
+        let nonce = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("clock after Unix epoch")
+            .as_nanos();
+        let path = std::env::temp_dir().join(format!(
+            "oya-buck2-installer-{label}-{}-{nonce}",
+            std::process::id()
+        ));
+        fs::create_dir_all(&path).expect("create test directory");
+        Self(path)
+    }
+
+    fn path(&self) -> &Path {
+        &self.0
+    }
+}
+
+impl Drop for TestDir {
+    fn drop(&mut self) {
+        let _ = fs::remove_dir_all(&self.0);
+    }
+}
+
+fn write_executable(path: &Path, body: &str) {
+    fs::write(path, body).unwrap_or_else(|error| panic!("write {}: {error}", path.display()));
+    let mut permissions = fs::metadata(path)
+        .unwrap_or_else(|error| panic!("metadata {}: {error}", path.display()))
+        .permissions();
+    permissions.set_mode(0o755);
+    fs::set_permissions(path, permissions)
+        .unwrap_or_else(|error| panic!("chmod {}: {error}", path.display()));
+}
+
+fn sha256(path: &Path) -> String {
+    let output = Command::new("sha256sum")
+        .arg(path)
+        .output()
+        .expect("run sha256sum");
+    assert!(output.status.success(), "sha256sum failed: {output:?}");
+    String::from_utf8(output.stdout)
+        .expect("sha256sum UTF-8")
+        .split_whitespace()
+        .next()
+        .expect("sha256sum digest")
+        .to_owned()
+}
+
+fn find_command(name: &str) -> PathBuf {
+    std::env::split_paths(&std::env::var_os("PATH").expect("PATH"))
+        .map(|dir| dir.join(name))
+        .find(|path| path.is_file())
+        .unwrap_or_else(|| panic!("required command not found: {name}"))
+}
+
+fn shim_path(bin: &Path) -> std::ffi::OsString {
+    let mut paths = vec![bin.to_path_buf()];
+    paths.extend(std::env::split_paths(
+        &std::env::var_os("PATH").expect("PATH"),
+    ));
+    std::env::join_paths(paths).expect("join PATH")
+}
+
+fn installer_command(
+    root: &Path,
+    bin: &Path,
+    install_dir: &Path,
+    asset: &str,
+    digest: &str,
+) -> Command {
+    let mut command = Command::new(root.join("infra/ci/install-buck2.sh"));
+    command
+        .env("PATH", shim_path(bin))
+        .env("BUCK2_INSTALL_DIR", install_dir)
+        .env("BUCK2_RELEASE", "fixture")
+        .env("BUCK2_ASSET", asset)
+        .env("BUCK2_SHA256", digest)
+        .env("BUCK2_INSTALL_LOCK_TIMEOUT_SECONDS", "5");
+    command
+}
+
+fn assert_success(output: Output) {
+    assert!(
+        output.status.success(),
+        "installer failed:\nstdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+fn install_host_shims(bin: &Path, zstd_body: &str, curl_body: &str) {
+    write_executable(
+        &bin.join("uname"),
+        "#!/usr/bin/env bash\ncase \"$1\" in -s) echo Linux ;; -m) echo x86_64 ;; *) exit 2 ;; esac\n",
+    );
+    write_executable(&bin.join("zstd"), zstd_body);
+    write_executable(&bin.join("curl"), curl_body);
+}
+
+fn spawn_retry_server(payload: Vec<u8>) -> (u16, thread::JoinHandle<usize>) {
+    let listener = TcpListener::bind("127.0.0.1:0").expect("bind local retry fixture");
+    listener
+        .set_nonblocking(true)
+        .expect("make retry fixture nonblocking");
+    let port = listener.local_addr().expect("fixture address").port();
+    let handle = thread::spawn(move || {
+        let mut requests = 0;
+        let deadline = Instant::now() + Duration::from_secs(5);
+        while requests < 8 && Instant::now() < deadline {
+            let (mut stream, _) = match listener.accept() {
+                Ok(connection) => connection,
+                Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => {
+                    thread::sleep(Duration::from_millis(5));
+                    continue;
+                }
+                Err(error) => panic!("accept fixture request: {error}"),
+            };
+            let mut request = [0_u8; 1024];
+            let _ = stream.read(&mut request);
+            requests += 1;
+            if requests <= 6 {
+                stream
+                    .write_all(b"HTTP/1.1 504 Gateway Timeout\r\nRetry-After: 0\r\nContent-Length: 0\r\nConnection: close\r\n\r\n")
+                    .expect("write 504 fixture response");
+            } else {
+                let headers = format!(
+                    "HTTP/1.1 200 OK\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
+                    payload.len()
+                );
+                stream
+                    .write_all(headers.as_bytes())
+                    .expect("write 200 headers");
+                stream.write_all(&payload).expect("write payload");
+            }
+        }
+        requests
+    });
+    (port, handle)
+}
+
+#[test]
+fn buck2_installer_retries_cache_hits_and_digest_mismatches_fail_closed() {
+    let root = repo_root();
+    let fixture = TestDir::new("retry");
+    let bin = fixture.path().join("bin");
+    fs::create_dir_all(&bin).expect("create shim bin");
+    let payload = b"#!/usr/bin/env bash\necho fixture buck2\n".to_vec();
+    let payload_path = fixture.path().join("payload");
+    fs::write(&payload_path, &payload).expect("write payload");
+    let digest = sha256(&payload_path);
+    let (port, server) = spawn_retry_server(payload);
+    let args_log = fixture.path().join("curl-args");
+    install_host_shims(
+        &bin,
+        "#!/usr/bin/env bash\nset -euo pipefail\ninput=\"\"; output=\"\"\nwhile [ \"$#\" -gt 0 ]; do case \"$1\" in -o) output=\"$2\"; shift 2 ;; -d|-f) shift ;; *) input=\"$1\"; shift ;; esac; done\ncp \"$input\" \"$output\"\n",
+        "#!/usr/bin/env bash\nset -euo pipefail\nprintf '%s\\n' \"$@\" > \"$CURL_ARGS_LOG\"\nargs=()\nfor arg in \"$@\"; do case \"$arg\" in https://github.com/facebook/buck2/releases/download/*) args+=(\"http://127.0.0.1:$BUCK2_TEST_PORT/fixture\") ;; *) args+=(\"$arg\") ;; esac; done\nfor _ in {1..7}; do \"$REAL_CURL\" \"${args[@]}\" --retry-delay 0 --retry 0 && exit 0; done\nexit 22\n",
+    );
+    let install_dir = fixture.path().join("install");
+    let output = installer_command(&root, &bin, &install_dir, "fixture.zst", &digest)
+        .env("BUCK2_TEST_PORT", port.to_string())
+        .env("CURL_ARGS_LOG", &args_log)
+        .env("REAL_CURL", find_command("curl"))
+        .output()
+        .expect("run retry fixture");
+    assert_success(output);
+    assert_eq!(
+        fs::read_to_string(&args_log)
+            .expect("read curl args")
+            .contains("--retry-delay"),
+        false
+    );
+    let args = fs::read_to_string(&args_log).expect("read curl args");
+    for required in [
+        "--retry\n8\n",
+        "--retry-all-errors\n",
+        "--retry-max-time\n180\n",
+        "--connect-timeout\n20\n",
+        "--max-time\n60\n",
+    ] {
+        assert!(
+            args.contains(required),
+            "missing required curl arguments {required:?}: {args}"
+        );
+    }
+
+    let mismatch = installer_command(
+        &root,
+        &bin,
+        &fixture.path().join("mismatch"),
+        "fixture.zst",
+        &"0".repeat(64),
+    )
+    .env("BUCK2_TEST_PORT", port.to_string())
+    .env("CURL_ARGS_LOG", &args_log)
+    .env("REAL_CURL", find_command("curl"))
+    .output()
+    .expect("run digest mismatch fixture");
+    assert!(
+        !mismatch.status.success(),
+        "digest mismatch must fail closed"
+    );
+    assert!(!fixture.path().join("mismatch/fixture.zst").exists());
+    assert!(
+        fs::read_dir(fixture.path().join("mismatch"))
+            .expect("mismatch dir")
+            .all(|entry| !entry
+                .expect("dir entry")
+                .file_name()
+                .to_string_lossy()
+                .contains(".part."))
+    );
+    assert_eq!(
+        server.join().expect("retry server"),
+        8,
+        "six 504s then two successful fixture responses"
+    );
+
+    write_executable(&bin.join("curl"), "#!/usr/bin/env bash\nexit 99\n");
+    let cache = installer_command(&root, &bin, &install_dir, "fixture.zst", &digest)
+        .output()
+        .expect("run cache-hit fixture");
+    assert_success(cache);
+}
+
+#[test]
+fn buck2_installer_preserves_prior_binary_on_zstd_failure_and_serializes_contenders() {
+    let root = repo_root();
+    let fixture = TestDir::new("transaction");
+    let bin = fixture.path().join("bin");
+    fs::create_dir_all(&bin).expect("create shim bin");
+    let payload_a = fixture.path().join("payload-a");
+    let payload_b = fixture.path().join("payload-b");
+    fs::write(&payload_a, b"#!/usr/bin/env bash\necho binary-a\n").expect("write payload a");
+    fs::write(&payload_b, b"#!/usr/bin/env bash\necho binary-b\n").expect("write payload b");
+    let curl_body = "#!/usr/bin/env bash\nset -euo pipefail\nout=\"\"; url=\"\"\nwhile [ \"$#\" -gt 0 ]; do case \"$1\" in -o) out=\"$2\"; shift 2 ;; *) url=\"$1\"; shift ;; esac; done\nmkdir \"$CRITICAL_DIR/curl\" || exit 75\nsleep 1\ncase \"$url\" in *asset-a*) cp \"$PAYLOAD_A\" \"$out\" ;; *asset-b*) cp \"$PAYLOAD_B\" \"$out\" ;; *) cp \"$PAYLOAD_A\" \"$out\" ;; esac\nrmdir \"$CRITICAL_DIR/curl\"\n";
+    let zstd_body = "#!/usr/bin/env bash\nset -euo pipefail\ninput=\"\"; output=\"\"\nwhile [ \"$#\" -gt 0 ]; do case \"$1\" in -o) output=\"$2\"; shift 2 ;; -d|-f) shift ;; *) input=\"$1\"; shift ;; esac; done\nmkdir \"$CRITICAL_DIR/zstd\" || exit 76\nsleep 1\ncp \"$input\" \"$output\"\nrmdir \"$CRITICAL_DIR/zstd\"\n";
+    install_host_shims(&bin, zstd_body, curl_body);
+    let install_dir = fixture.path().join("install");
+    let critical = fixture.path().join("critical");
+    fs::create_dir_all(&critical).expect("create critical fixture dir");
+    let mut first = installer_command(
+        &root,
+        &bin,
+        &install_dir,
+        "asset-a.zst",
+        &sha256(&payload_a),
+    );
+    first
+        .env("PAYLOAD_A", &payload_a)
+        .env("PAYLOAD_B", &payload_b)
+        .env("CRITICAL_DIR", &critical);
+    let mut first = first.spawn().expect("spawn first installer");
+    thread::sleep(Duration::from_millis(100));
+    let mut second = installer_command(
+        &root,
+        &bin,
+        &install_dir,
+        "asset-b.zst",
+        &sha256(&payload_b),
+    );
+    second
+        .env("PAYLOAD_A", &payload_a)
+        .env("PAYLOAD_B", &payload_b)
+        .env("CRITICAL_DIR", &critical);
+    let second = second.spawn().expect("spawn second installer");
+    assert!(
+        first.wait().expect("wait first").success(),
+        "first installer must succeed"
+    );
+    assert!(
+        second
+            .wait_with_output()
+            .expect("wait second")
+            .status
+            .success(),
+        "second installer must succeed"
+    );
+    let binary = fs::read(install_dir.join("buck2")).expect("promoted binary");
+    assert!(
+        binary == fs::read(&payload_a).expect("read payload a")
+            || binary == fs::read(&payload_b).expect("read payload b")
+    );
+    assert!(!install_dir.join(".buck2-install.lock").exists());
+    assert!(
+        fs::read_dir(&install_dir)
+            .expect("install dir")
+            .all(|entry| !entry
+                .expect("dir entry")
+                .file_name()
+                .to_string_lossy()
+                .contains(".part."))
+    );
+
+    write_executable(&bin.join("zstd"), "#!/usr/bin/env bash\nexit 70\n");
+    fs::write(install_dir.join("buck2"), b"previous-binary").expect("seed prior binary");
+    let failed = installer_command(
+        &root,
+        &bin,
+        &install_dir,
+        "asset-a.zst",
+        &sha256(&payload_a),
+    )
+    .env("PAYLOAD_A", &payload_a)
+    .env("PAYLOAD_B", &payload_b)
+    .env("CRITICAL_DIR", &critical)
+    .output()
+    .expect("run zstd failure fixture");
+    assert!(
+        !failed.status.success(),
+        "zstd failure must fail the installer"
+    );
+    assert_eq!(
+        fs::read(install_dir.join("buck2")).expect("prior binary"),
+        b"previous-binary"
+    );
+    assert!(
+        fs::read_dir(&install_dir)
+            .expect("install dir")
+            .all(|entry| !entry
+                .expect("dir entry")
+                .file_name()
+                .to_string_lossy()
+                .contains("buck2.part."))
     );
 }
