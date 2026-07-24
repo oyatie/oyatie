@@ -6,15 +6,15 @@
   },
   "_metadata": {
     "source": "docs/decisions",
-    "total_adrs": 430,
-    "numbering": "ADR-0001..ADR-0620 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0037, ADR-0041, ADR-0050, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089, ADR-0125..ADR-0127, ADR-0224..ADR-0233, ADR-0247, ADR-0256, ADR-0259..ADR-0262, ADR-0264..ADR-0271, ADR-0274..ADR-0275, ADR-0277..ADR-0279, ADR-0281..ADR-0283, ADR-0285..ADR-0291, ADR-0322..ADR-0323, ADR-0327, ADR-0342, ADR-0345, ADR-0385..ADR-0386, ADR-0395..ADR-0396, ADR-0398..ADR-0475, ADR-0477, ADR-0483..ADR-0505, ADR-0574..ADR-0579, ADR-0583..ADR-0585, ADR-0594, ADR-0601..ADR-0602)",
+    "total_adrs": 431,
+    "numbering": "ADR-0001..ADR-0621 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0037, ADR-0041, ADR-0050, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089, ADR-0125..ADR-0127, ADR-0224..ADR-0233, ADR-0247, ADR-0256, ADR-0259..ADR-0262, ADR-0264..ADR-0271, ADR-0274..ADR-0275, ADR-0277..ADR-0279, ADR-0281..ADR-0283, ADR-0285..ADR-0291, ADR-0322..ADR-0323, ADR-0327, ADR-0342, ADR-0345, ADR-0385..ADR-0386, ADR-0395..ADR-0396, ADR-0398..ADR-0475, ADR-0477, ADR-0483..ADR-0505, ADR-0574..ADR-0579, ADR-0583..ADR-0585, ADR-0594, ADR-0601..ADR-0602)",
     "gaps": ["ADR-0012", "ADR-0033", "ADR-0037", "ADR-0041", "ADR-0050", "ADR-0068", "ADR-0070..ADR-0082", "ADR-0084..ADR-0089", "ADR-0125..ADR-0127", "ADR-0224..ADR-0233", "ADR-0247", "ADR-0256", "ADR-0259..ADR-0262", "ADR-0264..ADR-0271", "ADR-0274..ADR-0275", "ADR-0277..ADR-0279", "ADR-0281..ADR-0283", "ADR-0285..ADR-0291", "ADR-0322..ADR-0323", "ADR-0327", "ADR-0342", "ADR-0345", "ADR-0385..ADR-0386", "ADR-0395..ADR-0396", "ADR-0398..ADR-0475", "ADR-0477", "ADR-0483..ADR-0505", "ADR-0574..ADR-0579", "ADR-0583..ADR-0585", "ADR-0594", "ADR-0601..ADR-0602"],
-    "next_adr": "ADR-0621",
+    "next_adr": "ADR-0622",
     "status_counts": {
       "Accepted": 174,
       "Accepted (amendment)": 2,
       "Amended": 2,
-      "Proposed": 148,
+      "Proposed": 149,
       "Proposed (conditional: Accepted only after ADR-0377-D2 and ADR-0377-D3 code/tests pass)": 1,
       "Proposed (target: Accepted upon PR #143 merge to dev)": 1,
       "Superseded": 35,
@@ -5184,6 +5184,18 @@
       "supersedes": [],
       "superseded_by": [],
       "related": ["ADR-0116", "ADR-0363", "ADR-0610", "ADR-0618"]
+    },
+    {
+      "adr": "ADR-0621",
+      "number": 621,
+      "title": "De-commit the active-artifact-contract graph projection",
+      "status": "Proposed",
+      "owner": "council-architecture + cloud-ci-platform",
+      "date": "2026-07-24",
+      "path": "decisions/ADR-0621-de-commit-active-artifact-contract-graph-projection.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0539", "ADR-0595", "ADR-0597", "ADR-0613"]
     }
   ]
 }

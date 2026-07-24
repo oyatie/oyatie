@@ -649,34 +649,29 @@ fn write_graph_edges(path: &Path, edges: &[(String, String, String)]) -> Result<
             format!("graph edges dir unwriteable {}: {error}", parent.display())
         })?;
     }
-    let edges_json: String = edges
+    let edges = edges
         .iter()
-        .map(|(src, tgt, edge)| {
-            format!(
-                "    {{ \"source\": \"{}\", \"target\": \"{}\", \"edge_type\": \"{}\" }}",
-                escape_json(src),
-                escape_json(tgt),
-                escape_json(edge)
-            )
+        .map(|(source, target, edge_type)| {
+            json!({ "source": source, "target": target, "edge_type": edge_type })
         })
-        .collect::<Vec<_>>()
-        .join(",\n");
+        .collect::<Vec<_>>();
     let body = format!(
-        "{{\n  \"$schema_ref\": \"specs/knowledge-graph-schema.json\",\n  \"_artifact_id\": \"active-artifact-contract-edges\",\n  \"_meta\": {{ \"emitter\": \"oya-dev-cli gate validate active-artifact-contract\", \"layer\": \"semantic\", \"purpose\": \"Generated graph edges that connect active machine-readable artifacts to their declared schemas, registries, templates, and ledgers.\" }},\n  \"edges\": [\n{}\n  ]\n}}\n",
-        edges_json
+        "{}\n",
+        serde_json::to_string_pretty(&json!({
+            "$schema_ref": "specs/knowledge-graph-schema.json",
+            "_artifact_id": "active-artifact-contract-edges",
+            "_meta": {
+                "emitter": "oya-dev-cli gate validate active-artifact-contract",
+                "layer": "semantic",
+                "purpose": "Generated graph edges that connect active machine-readable artifacts to their declared schemas, registries, templates, and ledgers."
+            },
+            "edges": edges,
+        }))
+        .map_err(|error| format!("graph edges JSON serialize failed: {error}"))?
     );
     fs::write(path, body)
         .map_err(|error| format!("graph edges write failed {}: {error}", path.display()))?;
     Ok(())
-}
-
-fn escape_json(value: &str) -> String {
-    value
-        .replace('\\', "\\\\")
-        .replace('"', "\\\"")
-        .replace('\n', "\\n")
-        .replace('\r', "\\r")
-        .replace('\t', "\\t")
 }
 
 #[cfg(test)]
@@ -749,6 +744,48 @@ mod tests {
             "specs/active-machine-readable-artifact-contract.json"
         );
         assert_eq!(parsed.capabilities.len(), 9);
+    }
+
+    #[test]
+    fn graph_edge_emission_serializes_vertical_tab_as_valid_json() {
+        let temp = std::env::temp_dir().join(format!(
+            "active-artifact-contract-graph-{}",
+            std::process::id()
+        ));
+        let _ = fs::remove_file(&temp);
+        write_graph_edges(
+            &temp,
+            &[(
+                "source\u{000b}".to_owned(),
+                "target".to_owned(),
+                "declares".to_owned(),
+            )],
+        )
+        .expect("graph edges write");
+        let emitted = fs::read_to_string(&temp).expect("graph edges read");
+        let parsed: Value = serde_json::from_str(&emitted).expect("canonical graph JSON");
+        assert_eq!(parsed["edges"][0]["source"], "source\u{000b}");
+        let expected = format!(
+            "{}\n",
+            serde_json::to_string_pretty(&json!({
+                "$schema_ref": "specs/knowledge-graph-schema.json",
+                "_artifact_id": "active-artifact-contract-edges",
+                "_meta": {
+                    "emitter": "oya-dev-cli gate validate active-artifact-contract",
+                    "layer": "semantic",
+                    "purpose": "Generated graph edges that connect active machine-readable artifacts to their declared schemas, registries, templates, and ledgers."
+                },
+                "edges": [{
+                    "source": "source\u{000b}",
+                    "target": "target",
+                    "edge_type": "declares"
+                }]
+            }))
+            .expect("canonical graph projection serializes")
+        );
+        assert_eq!(emitted, expected);
+        assert!(emitted.contains("\\u000b"));
+        fs::remove_file(temp).ok();
     }
 
     #[test]

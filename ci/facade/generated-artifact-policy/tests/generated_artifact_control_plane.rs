@@ -211,6 +211,73 @@ fn history_only_retirement_facts_is_the_exact_controller_owned_untracked_face() 
 }
 
 #[test]
+fn active_artifact_contract_graph_is_the_exact_controller_owned_untracked_face() {
+    let manifest = read_json(input_path(
+        MANIFEST_ENV,
+        "registry/generated-artifact-control-plane.json",
+    ));
+    let artifacts = manifest["artifacts"]
+        .as_array()
+        .expect("live generated-artifact manifest must contain artifacts");
+    let matching = artifacts
+        .iter()
+        .filter(|artifact| {
+            artifact["artifact_id"].as_str() == Some("active-artifact-contract-edges")
+        })
+        .collect::<Vec<_>>();
+
+    assert_eq!(
+        matching.len(),
+        1,
+        "graph projection must be registered exactly once"
+    );
+    let row = matching[0];
+    assert_eq!(
+        row["path"].as_str(),
+        Some("registry/graph/active-artifact-contract-edges.json")
+    );
+    assert_eq!(
+        row["materialization_mode"].as_str(),
+        Some("not-tracked-in-git")
+    );
+    assert_eq!(
+        row["merge_policy"].as_str(),
+        Some("never-manual-merge-regenerate-from-source-tree")
+    );
+    assert_eq!(
+        row.pointer("/generator/runner").and_then(Value::as_str),
+        Some("buck2")
+    );
+    assert_eq!(
+        row.pointer("/generator/generator_target")
+            .and_then(Value::as_str),
+        Some("//marketplace/facade/dev-cli:oya")
+    );
+    assert_eq!(
+        row.pointer("/generator/operation_id")
+            .and_then(Value::as_str),
+        Some("emit-active-artifact-contract-graph-edges")
+    );
+    assert_eq!(
+        row.pointer("/generator/output_mode")
+            .and_then(Value::as_str),
+        Some("declared-artifact-path-write")
+    );
+    assert!(
+        manifest["generated_path_rules"]
+            .as_array()
+            .expect("path rules")
+            .iter()
+            .any(|rule| {
+                rule["rule_kind"].as_str() == Some("path_suffix")
+                    && rule["pattern"].as_str()
+                        == Some("registry/graph/active-artifact-contract-edges.json")
+            }),
+        "the graph projection requires an exact generated-path rule"
+    );
+}
+
+#[test]
 fn live_generated_artifacts_are_declared_in_the_control_plane() {
     let manifest = read_json(input_path(
         MANIFEST_ENV,

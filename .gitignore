@@ -130,6 +130,9 @@ test-results/
 #   docs/machine-readable/masterplan.generated.json  (covered by **/*.generated.json above; not negated)
 # product-graph.html is a .html (not *.generated.json), so it needs an explicit ignore line:
 docs/architecture/product-graph.html
+# ADR-0621: active-artifact-contract graph edges are controller-materialized from
+# committed contract sources and must never be hand-merged as a readable authority face.
+registry/graph/active-artifact-contract-edges.json
 # ADR-0614 (amends ADR-0563; finishes the pure-derivation strangler for the LAST committed
 # reorg face): move-manifest.generated.json is NO LONGER excluded from the de-commit class — it
 # JOINS it. ADR-0563 originally made it the authoritative COMMITTED move-bijection; ADR-0614

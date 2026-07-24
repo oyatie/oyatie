@@ -677,8 +677,20 @@ fn broad_workflow_consumers_require_the_producer_artifact_and_keep_the_merge_bas
     let workflow = fs::read_to_string(repo_root().join(".github/workflows/oya-ci-required.yml"))
         .expect("read oya-ci-required workflow");
     let download_commit = "actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c";
+    let producer = workflow_job(&workflow, "producer-regen");
+    let upload = named_job_step(producer, "Upload regenerated faces");
+    assert_occurs_exactly_once(upload, "name: generated-faces");
+    for path in [
+        "ci/facade/artifact-inventory-registry/*.generated.json",
+        "ci/facade/scm-facts-snapshot/scm-volatile-facts.generated.json",
+        "ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json",
+        "registry/graph/active-artifact-contract-edges.json",
+    ] {
+        assert_occurs_exactly_once(upload, path);
+    }
 
     for (job_name, broad_step) in [
+        ("gate", "buck2 test ${{ matrix.crate }}"),
         ("buck2", "buck2 build + test (//ci/..., hermetic — binding)"),
         (
             "gate-affected-target-set",
@@ -696,8 +708,8 @@ fn broad_workflow_consumers_require_the_producer_artifact_and_keep_the_merge_bas
             "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)",
         );
         assert_occurs_exactly_once(download, download_commit);
-        assert_occurs_exactly_once(download, "name: accounting-faces");
-        assert_occurs_exactly_once(download, "path: ci/facade");
+        assert_occurs_exactly_once(download, "name: generated-faces");
+        assert_occurs_exactly_once(download, "path: .");
         assert!(
             job.find("Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)")
                 < job.find(broad_step),

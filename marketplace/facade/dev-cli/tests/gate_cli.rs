@@ -8235,6 +8235,110 @@ fn run_active_artifact_contract_gate_with_evidence(
         .expect("gate command runs")
 }
 
+fn run_active_artifact_contract_gate_with_graph_edges(
+    registry: &Path,
+    graph_edges: &Path,
+) -> std::process::Output {
+    Command::new(env!("CARGO_BIN_EXE_oya"))
+        .current_dir(active_artifact_contract_repo_root())
+        .args([
+            "gate",
+            "validate",
+            "active-artifact-contract",
+            "--registry",
+            registry.to_str().expect("utf8 registry path"),
+            "--emit-graph-edges",
+            graph_edges.to_str().expect("utf8 graph edges path"),
+        ])
+        .output()
+        .expect("gate command runs")
+}
+
+#[test]
+fn active_artifact_contract_gate_emits_canonical_graph_edge_json_bytes() {
+    let temp = TempDirGuard::new("aac-graph-edges-canonical-json");
+    let graph_edges = temp
+        .path()
+        .join("graph/active-artifact-contract-edges.json");
+    let registry = write_aac_registry(
+        temp.path(),
+        serde_json::json!([
+            {
+                "artifact_id": "active-artifact-contract-spec",
+                "artifact_path": "specs/active-machine-readable-artifact-contract.json",
+                "artifact_profile": "schema"
+            }
+        ]),
+    );
+
+    let output = run_active_artifact_contract_gate_with_graph_edges(&registry, &graph_edges);
+
+    assert!(
+        output.status.success(),
+        "graph edge emission must succeed\nstdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let emitted = fs::read_to_string(&graph_edges).expect("graph edges readable");
+    let expected = format!(
+        "{}\n",
+        serde_json::to_string_pretty(&serde_json::json!({
+            "$schema_ref": "specs/knowledge-graph-schema.json",
+            "_artifact_id": "active-artifact-contract-edges",
+            "_meta": {
+                "emitter": "oya-dev-cli gate validate active-artifact-contract",
+                "layer": "semantic",
+                "purpose": "Generated graph edges that connect active machine-readable artifacts to their declared schemas, registries, templates, and ledgers."
+            },
+            "edges": [{
+                "source": "active-artifact-contract-spec",
+                "target": "schema",
+                "edge_type": "declares"
+            }]
+        }))
+        .expect("canonical graph projection serializes")
+    );
+    assert_eq!(
+        emitted, expected,
+        "graph edge bytes must be canonical serde JSON"
+    );
+}
+
+#[test]
+fn active_artifact_contract_gate_escapes_vertical_tabs_in_graph_edge_json() {
+    let temp = TempDirGuard::new("aac-graph-edges-vertical-tab");
+    let graph_edges = temp.path().join("active-artifact-contract-edges.json");
+    let registry = write_aac_registry(
+        temp.path(),
+        serde_json::json!([
+            {
+                "artifact_id": "source\u{000b}",
+                "artifact_path": "specs/active-machine-readable-artifact-contract.json",
+                "artifact_profile": "target\u{000b}",
+                "capabilities": aac_capabilities("planned", None, &["foundation-prerequisite"], None)
+            }
+        ]),
+    );
+
+    let output = run_active_artifact_contract_gate_with_graph_edges(&registry, &graph_edges);
+
+    assert!(
+        output.status.success(),
+        "graph edge emission must accept vertical tabs\nstdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let emitted = fs::read_to_string(&graph_edges).expect("graph edges readable");
+    let parsed: serde_json::Value =
+        serde_json::from_str(&emitted).expect("graph edges must parse as JSON");
+    assert_eq!(parsed["edges"][0]["source"], "source\u{000b}");
+    assert_eq!(parsed["edges"][0]["target"], "target\u{000b}");
+    assert!(
+        emitted.contains("\\u000b"),
+        "vertical tab must use a JSON unicode escape; emitted={emitted:?}"
+    );
+}
+
 #[test]
 fn active_artifact_contract_gate_rejects_untracked_artifact_path() {
     let temp = TempDirGuard::new("aac-untracked-path");

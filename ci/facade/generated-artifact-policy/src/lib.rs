@@ -626,13 +626,13 @@ fn diff_candidate_paths<'a>(status: &str, paths: &'a [&'a str]) -> Result<Vec<&'
 fn is_sanctioned_relocation(
     status: &str,
     candidate_paths: &[&str],
-    declared_artifact_paths: &BTreeSet<String>,
+    committed_artifact_paths: &BTreeSet<String>,
 ) -> bool {
-    let is_byte_identical_rename = matches!(status.chars().next(), Some('R') | Some('C'))
-        && status.get(1..) == Some("100");
+    let is_byte_identical_rename =
+        matches!(status.chars().next(), Some('R') | Some('C')) && status.get(1..) == Some("100");
     is_byte_identical_rename
         && candidate_paths.len() == 2
-        && declared_artifact_paths.contains(candidate_paths[1])
+        && committed_artifact_paths.contains(candidate_paths[1])
 }
 
 /// Productized bridge predicate for presubmit diff surfaces. The caller supplies a
@@ -678,6 +678,11 @@ pub fn generated_output_diff_policy_violations_with_ratchet_context(
         .iter()
         .map(|artifact| artifact.path.clone())
         .collect::<BTreeSet<_>>();
+    let committed_artifact_paths = declared
+        .iter()
+        .filter(|artifact| !is_decommit_materialization_mode(&artifact.materialization_mode))
+        .map(|artifact| artifact.path.clone())
+        .collect::<BTreeSet<_>>();
     let normal_source_merge_paths = diff_policy_allowed_generated_edit_paths(&declared);
     if !findings.is_empty() {
         return (findings, Vec::new());
@@ -702,7 +707,7 @@ pub fn generated_output_diff_policy_violations_with_ratchet_context(
                 // #828 deadlock defect. This is a relocation, not contributor-authored bytes: the
                 // relocated content is independently bound by the registry-drift / freshness gates
                 // (committed==regenerated), so a laundered relocation REDs there, not here.
-                if is_sanctioned_relocation(&status, &candidate_paths, &declared_artifact_paths) {
+                if is_sanctioned_relocation(&status, &candidate_paths, &committed_artifact_paths) {
                     continue;
                 }
                 diff_rows.extend(
@@ -783,7 +788,9 @@ struct RatchetRow {
 /// Parse a ratchet-baseline file's content into its normalized rows plus its per-group ceiling
 /// map (`_provenance.ceilings`, present on 2 of the 5 known formats; absent elsewhere, in which
 /// case the ceiling check in [`validate_ratchet_diff`] is a no-op for that content).
-fn parse_ratchet_content(content: &str) -> Result<(Vec<RatchetRow>, BTreeMap<String, u64>), String> {
+fn parse_ratchet_content(
+    content: &str,
+) -> Result<(Vec<RatchetRow>, BTreeMap<String, u64>), String> {
     match serde_json::from_str::<Value>(content) {
         Ok(value) => parse_ratchet_json(&value),
         Err(_) => Ok((parse_ratchet_tsv(content), BTreeMap::new())),
@@ -941,11 +948,17 @@ fn validate_ratchet_diff(
 
     let mut before_by_group: BTreeMap<&str, Vec<&RatchetRow>> = BTreeMap::new();
     for row in &before_rows {
-        before_by_group.entry(row.group.as_str()).or_default().push(row);
+        before_by_group
+            .entry(row.group.as_str())
+            .or_default()
+            .push(row);
     }
     let mut after_by_group: BTreeMap<&str, Vec<&RatchetRow>> = BTreeMap::new();
     for row in &after_rows {
-        after_by_group.entry(row.group.as_str()).or_default().push(row);
+        after_by_group
+            .entry(row.group.as_str())
+            .or_default()
+            .push(row);
     }
 
     let mut groups: BTreeSet<&str> = BTreeSet::new();
@@ -1529,7 +1542,8 @@ fn collect_frozen_reference_face_path(
     // a committed-git-blob reference — it is regenerated from the merge-base source, so it is
     // EXEMPT from the must-stay-committed set (and MAY be de-committed). Data-driven: the exemption
     // is the policy `source` field, no hardcoded path.
-    if frozen_reference.get("source").and_then(Value::as_str) == Some(FROZEN_REFERENCE_SOURCE_REGENERATE)
+    if frozen_reference.get("source").and_then(Value::as_str)
+        == Some(FROZEN_REFERENCE_SOURCE_REGENERATE)
     {
         return;
     }
@@ -2118,7 +2132,10 @@ mod tests {
         // gate-baseline.generated.json) relocates BYTE-IDENTICALLY (R100). It is a relocation of
         // already-accepted bytes, not contributor-authored content; the content re-keying happens
         // in post-merge main-branch materialization.
-        let manifest = manifest(vec![artifact("frozen-ref", "ci/facade/frozen.generated.json")]);
+        let manifest = manifest(vec![artifact(
+            "frozen-ref",
+            "ci/facade/frozen.generated.json",
+        )]);
         let diff = "R100\tcloud/old/frozen.generated.json\tci/facade/frozen.generated.json\n";
         let (findings, violations) = generated_output_diff_policy_violations(&manifest, diff);
         assert!(findings.is_empty(), "no findings expected: {findings:#?}");
@@ -2135,7 +2152,10 @@ mod tests {
         // declared destination. This is what stops a move from laundering frozen-baseline bytes
         // (mode flips / tolerated-key adds) that no downstream gate byte-verifies for a
         // main-branch-materialized face.
-        let manifest = manifest(vec![artifact("frozen-ref", "ci/facade/frozen.generated.json")]);
+        let manifest = manifest(vec![artifact(
+            "frozen-ref",
+            "ci/facade/frozen.generated.json",
+        )]);
         let diff = "R098\tcloud/old/frozen.generated.json\tci/facade/frozen.generated.json\n";
         let (findings, violations) = generated_output_diff_policy_violations(&manifest, diff);
         assert!(findings.is_empty());
@@ -2148,10 +2168,35 @@ mod tests {
     }
 
     #[test]
+    fn diff_policy_relocation_exemption_rejects_decommitted_destinations() {
+        for status in ["R100", "C100"] {
+            let path = "ci/facade/decommitted.generated.json";
+            let mut face = artifact("decommitted-face", path);
+            face["materialization_mode"] = json!(NOT_TRACKED_IN_GIT_MODE);
+            face["merge_policy"] = json!(NOT_TRACKED_IN_GIT_MODE);
+            let manifest = manifest(vec![face]);
+            let diff = format!("{status}\told/generated.json\t{path}\n");
+            let (findings, violations) = generated_output_diff_policy_violations(&manifest, &diff);
+
+            assert!(
+                findings.is_empty(),
+                "manifest must remain valid: {findings:#?}"
+            );
+            assert!(
+                violations.iter().any(|violation| violation.path == path),
+                "{status} relocation into an uncommitted destination must remain blocked: {violations:#?}"
+            );
+        }
+    }
+
+    #[test]
     fn diff_policy_still_rejects_a_plain_modify_of_a_declared_artifact() {
         // The relocation exemption is renames/copies ONLY — a plain modify of a declared generated
         // artifact remains contributor-authored bytes and a violation.
-        let manifest = manifest(vec![artifact("frozen-ref", "ci/facade/frozen.generated.json")]);
+        let manifest = manifest(vec![artifact(
+            "frozen-ref",
+            "ci/facade/frozen.generated.json",
+        )]);
         let diff = "M\tci/facade/frozen.generated.json\n";
         let (findings, violations) = generated_output_diff_policy_violations(&manifest, diff);
         assert!(findings.is_empty());
@@ -2184,7 +2229,10 @@ mod tests {
             "codes":{"skip_non_literal_argument":
                 ["intelligence/core/openapi-domain/src/lib.rs:6088"]}}"#;
         let mut ratchet_contents = BTreeMap::new();
-        ratchet_contents.insert(path.to_owned(), (merge_base.to_owned(), candidate.to_owned()));
+        ratchet_contents.insert(
+            path.to_owned(),
+            (merge_base.to_owned(), candidate.to_owned()),
+        );
         let move_plan_pairs = vec![(
             "oya/intelligence/crates/oya-intelligence-openapi-domain".to_owned(),
             "intelligence/core/openapi-domain".to_owned(),
@@ -2195,7 +2243,10 @@ mod tests {
             &ratchet_contents,
             &move_plan_pairs,
         );
-        assert!(findings.is_empty(), "no manifest findings expected: {findings:#?}");
+        assert!(
+            findings.is_empty(),
+            "no manifest findings expected: {findings:#?}"
+        );
         assert!(
             violations.is_empty(),
             "the #1335 openapi-domain move-plan-backed relabel must be allowed: {violations:#?}"
@@ -2224,7 +2275,10 @@ mod tests {
     fn diff_policy_rejects_other_merge_policies_on_plain_modify() {
         // RED preserved: `normal-source-merge` is the ONLY merge_policy this predicate widens.
         // Every other declared policy (regenerate-only here) keeps blocking a plain modify.
-        let mut face = artifact("regenerate-only", "ci/facade/regenerate-only.generated.json");
+        let mut face = artifact(
+            "regenerate-only",
+            "ci/facade/regenerate-only.generated.json",
+        );
         face["merge_policy"] = json!("never-manual-merge-regenerate-from-source-tree");
         let manifest = manifest(vec![face]);
         let diff = "M\tci/facade/regenerate-only.generated.json\n";
@@ -2370,7 +2424,10 @@ mod tests {
         // control-plane-declared artifact is not a sanctioned relocation — it must remain a
         // violation (bounds the exemption so a rename cannot introduce an undeclared generated
         // output).
-        let manifest = manifest(vec![artifact("frozen-ref", "ci/facade/frozen.generated.json")]);
+        let manifest = manifest(vec![artifact(
+            "frozen-ref",
+            "ci/facade/frozen.generated.json",
+        )]);
         let diff = "R100\tci/facade/frozen.generated.json\tci/facade/undeclared.generated.json\n";
         let (findings, violations) = generated_output_diff_policy_violations(&manifest, diff);
         assert!(findings.is_empty());

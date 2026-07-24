@@ -103,19 +103,14 @@ jobs:
         # actions/upload-artifact@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: accounting-faces
-          # Two upload roots -> the artifact is rooted at their least common ancestor
-          # (ci/facade/): the regenerated accounting faces PLUS the untracked
-          # volatile scm snapshot (ADR-0552) the staleness-reaper leg ages rows from. The
-          # mere-reader gate matrix legs download this artifact instead of re-materializing
-          # per leg (ADR-0556 D5 QW-1, gate-fleet-shared-graph same-run trusted reuse).
-          # Deliberately NOT uploaded: the firewall's merge-base frozen baseline — its
-          # materialization is per-job by design (ADR-0551 frozen-policy-wins) and must
-          # never become a shareable artifact.
+          name: generated-faces
+          # A single repository-rooted artifact preserves every controller-owned output's
+          # declared path for all consuming jobs.
           path: |
             ci/facade/artifact-inventory-registry/*.generated.json
             ci/facade/scm-facts-snapshot/scm-volatile-facts.generated.json
             ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json
+            registry/graph/active-artifact-contract-edges.json
           if-no-files-found: error
 
   # ── GATE LANES (reusable matrix). Every homogeneous gate is the SAME step — one
@@ -213,8 +208,8 @@ jobs:
         # actions/download-artifact@v8.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
-          name: accounting-faces
-          path: ci/facade
+          name: generated-faces
+          path: .
       - name: Install buck2 (digest-pinned prebuilt release)
         run: infra/ci/install-buck2.sh
       # Buck2/rustc still use the pinned workspace toolchain + components; provision it before
@@ -426,8 +421,8 @@ jobs:
         # actions/download-artifact@v8.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
-          name: accounting-faces
-          path: ci/facade
+          name: generated-faces
+          path: .
       # buck2 is the BUILD TOOL, installed as a prebuilt release.
       # The adapter edge is immutable at CI time: release tag selects the asset, SHA-256 pins
       # the bytes, and CI verifies the digest before decompression/execution. Bump together.
@@ -629,8 +624,8 @@ jobs:
         # actions/download-artifact@v8.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
-          name: accounting-faces
-          path: ci/facade
+          name: generated-faces
+          path: .
       - name: Install buck2 (digest-pinned prebuilt release)
         run: infra/ci/install-buck2.sh
       # Warm the pinned toolchain across runs (ADR-0556 D5 QW-4); rustup still resolves and
