@@ -70,9 +70,9 @@ rust_test(
 
 rust_test(
     name = "legacy-friction-adapter",
-    srcs = glob(["tests/friction_accounting.rs", "src/**/*.rs", "**/*.json"]),
+    srcs = ["tests/legacy_friction_adapter.rs"],
     crate = "ci_legacy_friction_adapter",
-    crate_root = "tests/friction_accounting.rs",
+    crate_root = "tests/legacy_friction_adapter.rs",
     visibility = ["PUBLIC"],
     deps = [
         ":ci-action-item-accounting",
@@ -84,7 +84,7 @@ rust_test(
 # separately named target above remains explicit workflow evidence for the transitional adapter.
 rust_test(
     name = "ci-action-item-accounting-gate",
-    srcs = glob(["tests/friction_accounting.rs", "src/**/*.rs", "**/*.json"]),
+    srcs = ["tests/friction_accounting.rs"],
     crate = "ci_action_item_accounting_gate",
     crate_root = "tests/friction_accounting.rs",
     visibility = ["PUBLIC"],

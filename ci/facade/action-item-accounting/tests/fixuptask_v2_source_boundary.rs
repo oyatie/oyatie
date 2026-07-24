@@ -4,12 +4,16 @@ const BUCK: &str = include_str!("../BUCK");
 const CARGO: &str = include_str!("../Cargo.toml");
 
 fn target(name: &str) -> &'static str {
-    let start = BUCK.find(&format!("name = \"{name}\"")).expect(name);
-    let end = BUCK[start..]
+    target_in(BUCK, name)
+}
+
+fn target_in<'a>(source: &'a str, name: &str) -> &'a str {
+    let start = source.find(&format!("name = \"{name}\"")).expect(name);
+    let end = source[start..]
         .find("\n)")
         .map(|offset| start + offset)
         .expect("target end");
-    &BUCK[start..end]
+    &source[start..end]
 }
 
 fn repo_root() -> std::path::PathBuf {
@@ -65,12 +69,52 @@ fn proposed_v2_targets_are_not_dispatched_by_required_ci() {
 }
 
 #[test]
+fn conventional_required_gate_does_not_execute_proposed_v2_or_adapter_tests() {
+    let target = target("ci-action-item-accounting-gate");
+    assert!(target.contains("\"tests/friction_accounting.rs\""));
+    assert!(!target.contains("glob("));
+    assert!(
+        !target.contains("fixuptask-v2")
+            && !target.contains("legacy-friction-adapter")
+            && !target.contains("legacy_friction_adapter"),
+        "the ADR-0544 required gate must not execute ADR-0622 Proposed v2 or adapter tests"
+    );
+}
+
+#[test]
+fn required_scm_integration_excludes_nonbinding_v2_integration() {
+    let root = repo_root();
+    let workflow = std::fs::read_to_string(root.join(".github/workflows/oya-ci-required.yml"))
+        .expect("required workflow");
+    assert!(workflow.contains("//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot-integration"));
+    assert!(!workflow.contains("fixuptask-v2-scm-integration"));
+
+    let scm_buck = std::fs::read_to_string(root.join("ci/facade/scm-facts-snapshot/BUCK"))
+        .expect("scm facts snapshot BUCK");
+    let target = target_in(&scm_buck, "ci-scm-facts-snapshot-integration");
+    assert!(!target.contains("fixuptask_v2_scm_integration"));
+    assert!(!target.contains("fixuptask-v2-scm-integration"));
+}
+
+#[test]
 fn catalog_marks_v2_as_nonbinding_prototype() {
     let catalog = std::fs::read_to_string(repo_root().join("docs/oya-ci/gate-catalog.md"))
         .expect("gate catalog");
     assert!(catalog.contains("`prototype-fixuptask-v2-admission`"));
     assert!(catalog.contains("ADR-0622 Proposed; nonbinding; not dispatched by `oya-ci-required`"));
     assert!(!catalog.contains("`cloud-ci-fixuptask-v2-admission` |"));
+}
+
+#[test]
+fn proposed_adr_does_not_claim_required_ci_dispatch() {
+    let adr = std::fs::read_to_string(
+        repo_root()
+            .join("docs/decisions/ADR-0622-fixuptask-v2-friction-ledger-successor-foundation.md"),
+    )
+    .expect("ADR-0622");
+    assert!(!adr.contains("existing required workflow dispatches"));
+    assert!(adr.contains("isolated prototype verification"));
+    assert!(adr.contains("not required-CI admission"));
 }
 
 #[test]

@@ -101,7 +101,6 @@ const SCHEMA: &str = "oya-ci/scm-facts/v2";
 
 /// The volatile-facts snapshot schema id (history-derived facts; never committed).
 const VOLATILE_SCHEMA: &str = "oya-ci/scm-volatile-facts/v1";
-const FIXUPTASK_REGISTRY_PATH: &str = "registry/fixuptasks.jsonl";
 
 // The canonical repo-relative paths of the movable self-locations (the committed scm-facts face,
 // the untracked volatile-facts snapshot, the merge-base ratchet policy) are no longer compiled
@@ -348,12 +347,7 @@ fn run() -> Result<(), String> {
     }
 
     let source = GitCliScmFactsSource::new(repo_root.clone());
-    let mut emission = emit_scm_facts(&source)?;
-    let bootstrap_ref = frozen_base_ref
-        .as_deref()
-        .unwrap_or(DEFAULT_FROZEN_BOOTSTRAP_REF);
-    emission.volatile["fixuptask_v2_durable"] =
-        emit_fixuptask_v2_durable_facts(&repo_root, bootstrap_ref, &emission.volatile)?;
+    let emission = emit_scm_facts(&source)?;
 
     // Build the faces as serde_json Values with BTreeMap-backed maps so the on-disk key order
     // is the canonical sorted order, then serialize through the producer's exact canonicalizer
@@ -1824,67 +1818,6 @@ fn git_show_file(repo_root: &Path, revision: &str, path: &str) -> Result<Option<
         .map_err(|e| format!("show {spec}: {e}"))
 }
 
-fn canonical_utc_from_epoch(seconds: u64) -> String {
-    let days = seconds / 86_400;
-    let remainder = seconds % 86_400;
-    let z = i64::try_from(days).unwrap_or(i64::MAX) + 719_468;
-    let era = if z >= 0 { z } else { z - 146_096 } / 146_097;
-    let doe = z - era * 146_097;
-    let yoe = (doe - doe / 1_460 + doe / 36_524 - doe / 146_096) / 365;
-    let year = yoe + era * 400;
-    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
-    let mp = (5 * doy + 2) / 153;
-    let day = doy - (153 * mp + 2) / 5 + 1;
-    let month = mp + if mp < 10 { 3 } else { -9 };
-    let year = year + if month <= 2 { 1 } else { 0 };
-    format!(
-        "{year:04}-{month:02}-{day:02}T{:02}:{:02}:{:02}Z",
-        remainder / 3_600,
-        (remainder % 3_600) / 60,
-        remainder % 60
-    )
-}
-
-fn jsonl_rows(text: &str) -> Result<Vec<Value>, String> {
-    let mut rows = Vec::new();
-    for (index, line) in text.lines().enumerate() {
-        if line.trim().is_empty() {
-            continue;
-        }
-        let value: Value = serde_json::from_str(line)
-            .map_err(|error| format!("FixupTask merge-base row {}: {error}", index + 1))?;
-        if value.get("_meta").is_some() && value.get("id").is_none() {
-            continue;
-        }
-        rows.push(value);
-    }
-    Ok(rows)
-}
-
-fn emit_fixuptask_v2_durable_facts(
-    repo_root: &Path,
-    bootstrap_ref: &str,
-    volatile: &Value,
-) -> Result<Value, String> {
-    let merge_base = git_merge_base(repo_root, bootstrap_ref)?;
-    let merge_base_tree = git_rev_parse_tree(repo_root, &merge_base)?;
-    let merge_base_registry = git_show_file(repo_root, &merge_base, FIXUPTASK_REGISTRY_PATH)?
-        .ok_or_else(|| format!("{FIXUPTASK_REGISTRY_PATH} is absent at merge base {merge_base}"))?;
-    let candidate = std::fs::read(repo_root.join(FIXUPTASK_REGISTRY_PATH))
-        .map_err(|error| format!("read {FIXUPTASK_REGISTRY_PATH}: {error}"))?;
-    let evaluation_seconds = volatile
-        .get("head_time_secs")
-        .and_then(Value::as_u64)
-        .ok_or_else(|| "volatile SCM facts omit head_time_secs".to_owned())?;
-    Ok(json!({
-        "merge_base": merge_base,
-        "merge_base_tree": merge_base_tree,
-        "merge_base_rows": jsonl_rows(&merge_base_registry)?,
-        "candidate_registry_digest": format!("sha256:{:x}", Sha256::digest(candidate)),
-        "evaluation_time": canonical_utc_from_epoch(evaluation_seconds),
-    }))
-}
-
 /// Stable seam for the scm-facts source. Git CLI is transitional implementation #1;
 /// a future bespoke SCM source should implement these same three primitives without
 /// changing the emitted v1 facts shape or producer/gate consumers.
@@ -2096,102 +2029,6 @@ fn git_last_touch(repo_root: &Path) -> Result<BTreeMap<String, String>, String> 
 mod tests {
     use super::*;
     use ci_path_resolver_adapters::MOVE_MANIFEST_SCHEMA;
-
-    fn fixture_git(repo: &Path, args: &[&str]) -> String {
-        let output = std::process::Command::new("git")
-            .arg("-C")
-            .arg(repo)
-            .args(args)
-            .output()
-            .expect("run fixture git command");
-        assert!(
-            output.status.success(),
-            "git {args:?}: {}",
-            String::from_utf8_lossy(&output.stderr)
-        );
-        String::from_utf8(output.stdout)
-            .expect("fixture git stdout")
-            .trim()
-            .to_owned()
-    }
-
-    fn fixture_repo(name: &str) -> PathBuf {
-        let nonce = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .expect("clock after epoch")
-            .as_nanos();
-        let repo = std::env::temp_dir().join(format!(
-            "ci-scm-facts-snapshot-{name}-{}-{nonce}",
-            std::process::id()
-        ));
-        std::fs::create_dir_all(&repo).expect("create fixture repo");
-        fixture_git(&repo, &["init", "-q"]);
-        fixture_git(&repo, &["config", "user.email", "fixture@example.invalid"]);
-        fixture_git(&repo, &["config", "user.name", "fixture"]);
-        repo
-    }
-
-    fn commit_fixture(repo: &Path, message: &str) {
-        fixture_git(repo, &["add", "."]);
-        fixture_git(repo, &["commit", "-qm", message]);
-    }
-
-    #[test]
-    fn fixuptask_durable_facts_bind_merge_base_rows_candidate_bytes_and_timestamp() {
-        let repo = fixture_repo("fixuptask-facts");
-        let registry = repo.join(FIXUPTASK_REGISTRY_PATH);
-        std::fs::create_dir_all(registry.parent().expect("registry parent"))
-            .expect("create registry parent");
-        std::fs::write(
-            &registry,
-            "{\"_meta\":\"registry header\"}\n{\"id\":\"FX-001\",\"status\":\"open\"}\n",
-        )
-        .expect("write merge-base registry");
-        commit_fixture(&repo, "base registry");
-        let base = fixture_git(&repo, &["rev-parse", "HEAD"]);
-
-        let candidate = b"{\"_meta\":\"registry header\"}\n{\"id\":\"FX-001\",\"status\":\"open\"}\n{\"id\":\"FX-002\",\"status\":\"done\"}\n";
-        std::fs::write(&registry, candidate).expect("write candidate registry");
-        commit_fixture(&repo, "candidate registry");
-
-        let facts = emit_fixuptask_v2_durable_facts(
-            &repo,
-            &base,
-            &json!({ "head_time_secs": 1_704_164_645 }),
-        )
-        .expect("durable facts");
-        assert_eq!(facts["merge_base"], base);
-        assert_eq!(
-            facts["merge_base_rows"],
-            json!([{ "id": "FX-001", "status": "open" }])
-        );
-        assert_eq!(
-            facts["candidate_registry_digest"],
-            format!("sha256:{:x}", Sha256::digest(candidate))
-        );
-        assert_eq!(facts["evaluation_time"], "2024-01-02T03:04:05Z");
-        std::fs::remove_dir_all(repo).expect("remove fixture repo");
-    }
-
-    #[test]
-    fn fixuptask_durable_facts_fail_when_merge_base_lacks_registry() {
-        let repo = fixture_repo("fixuptask-missing-registry");
-        std::fs::write(repo.join("README"), "base without registry\n").expect("write base");
-        commit_fixture(&repo, "base without registry");
-        let base = fixture_git(&repo, &["rev-parse", "HEAD"]);
-        let registry = repo.join(FIXUPTASK_REGISTRY_PATH);
-        std::fs::create_dir_all(registry.parent().expect("registry parent"))
-            .expect("create registry parent");
-        std::fs::write(&registry, "{\"id\":\"FX-001\",\"status\":\"open\"}\n")
-            .expect("write candidate registry");
-        commit_fixture(&repo, "candidate registry");
-
-        let error = emit_fixuptask_v2_durable_facts(&repo, &base, &json!({ "head_time_secs": 0 }))
-            .expect_err("merge-base registry absence must fail closed");
-        assert!(error.contains(FIXUPTASK_REGISTRY_PATH));
-        assert!(error.contains("absent at merge base"));
-        std::fs::remove_dir_all(repo).expect("remove fixture repo");
-    }
 
     /// A fake candidate tree (task #64 relabel tests): tracked-path existence + per-path
     /// content, both supplied by the test (mirrors RepointAttackRepo style for the frozen side).
