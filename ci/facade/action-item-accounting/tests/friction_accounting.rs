@@ -14,7 +14,9 @@
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
-use ci_action_item_accounting::{Verdict, collect_observed_frictions, evaluate, evaluate_keyed};
+use ci_action_item_accounting::{
+    Verdict, collect_observed_frictions, evaluate, evaluate_keyed,
+};
 use serde_json::{Value, json};
 
 fn repo_root() -> PathBuf {
@@ -40,10 +42,7 @@ fn load_json(path: &Path) -> Value {
     serde_json::from_str(&text).unwrap_or_else(|e| panic!("parse {}: {e}", path.display()))
 }
 
-fn keys_for(
-    findings: &BTreeSet<ci_action_item_accounting::Finding>,
-    code: &str,
-) -> BTreeSet<String> {
+fn keys_for(findings: &BTreeSet<ci_action_item_accounting::Finding>, code: &str) -> BTreeSet<String> {
     findings
         .iter()
         .filter(|finding| finding.code == code)
@@ -187,15 +186,8 @@ fn red_unregistered_status_fails_closed() {
     let mut row = good_open("FRIC-NEW");
     row["status"] = json!("brand-new-unmapped-status");
     let findings = evaluate_keyed(&fixture_policy(), &json!({ "rows": [row] }));
-    assert!(
-        findings
-            .iter()
-            .any(|f| f.code == "friction_unknown_status" && f.key == "FRIC-NEW")
-    );
-    assert_eq!(
-        evaluate(&fixture_policy(), &json!({ "rows": [good_open("ok")] })).verdict,
-        Verdict::Green
-    );
+    assert!(findings.iter().any(|f| f.code == "friction_unknown_status" && f.key == "FRIC-NEW"));
+    assert_eq!(evaluate(&fixture_policy(), &json!({ "rows": [good_open("ok")] })).verdict, Verdict::Green);
 }
 
 #[test]
@@ -204,11 +196,7 @@ fn red_duplicate_primary_id_fails_closed() {
         &fixture_policy(),
         &json!({ "rows": [good_open("FRIC-DUP"), good_open("FRIC-DUP")] }),
     );
-    assert!(
-        findings
-            .iter()
-            .any(|f| f.code == "friction_duplicate_primary_row" && f.key == "FRIC-DUP")
-    );
+    assert!(findings.iter().any(|f| f.code == "friction_duplicate_primary_row" && f.key == "FRIC-DUP"));
 }
 
 #[test]
@@ -216,16 +204,8 @@ fn red_blank_enforcement_fix_fails_closed() {
     let mut row = good_open("FRIC-ND");
     row["enforcement_fix"] = json!("");
     let findings = evaluate_keyed(&fixture_policy(), &json!({ "rows": [row] }));
-    assert!(
-        findings
-            .iter()
-            .any(|f| f.code == "friction_no_disposition" && f.key == "FRIC-ND")
-    );
-    assert!(
-        findings
-            .iter()
-            .any(|f| f.code == "friction_missing_required_field" && f.key == "FRIC-ND")
-    );
+    assert!(findings.iter().any(|f| f.code == "friction_no_disposition" && f.key == "FRIC-ND"));
+    assert!(findings.iter().any(|f| f.code == "friction_missing_required_field" && f.key == "FRIC-ND"));
 }
 
 #[test]
@@ -233,11 +213,7 @@ fn red_closed_without_evidence_fails_closed() {
     let mut row = good_open("FRIC-CLOSED");
     row["status"] = json!("RESOLVED");
     let findings = evaluate_keyed(&fixture_policy(), &json!({ "rows": [row] }));
-    assert!(
-        findings
-            .iter()
-            .any(|f| f.code == "friction_closed_without_evidence" && f.key == "FRIC-CLOSED")
-    );
+    assert!(findings.iter().any(|f| f.code == "friction_closed_without_evidence" && f.key == "FRIC-CLOSED"));
 }
 
 #[test]
@@ -245,11 +221,9 @@ fn red_accepted_risk_without_evidence_fails_closed() {
     let mut row = good_open("FRIC-HELD");
     row["status"] = json!("escalated-to-leader-for-force-complete");
     let findings = evaluate_keyed(&fixture_policy(), &json!({ "rows": [row] }));
-    assert!(
-        findings.iter().any(|f| {
-            f.code == "friction_accepted_risk_without_evidence" && f.key == "FRIC-HELD"
-        })
-    );
+    assert!(findings.iter().any(|f| {
+        f.code == "friction_accepted_risk_without_evidence" && f.key == "FRIC-HELD"
+    }));
 }
 
 #[test]
@@ -301,7 +275,8 @@ fn red_baseline_is_shrink_only_new_debt_breaks_set_equality() {
         .map(|f| f.key.clone())
         .collect();
     // The "committed baseline" froze only the legacy debt key.
-    let frozen: BTreeSet<String> = ["FRIC-LEGACY-DEBT".to_owned()].into_iter().collect();
+    let frozen: BTreeSet<String> =
+        ["FRIC-LEGACY-DEBT".to_owned()].into_iter().collect();
     assert_ne!(
         measured, frozen,
         "a NEW closed-without-evidence key must break baseline set-equality, not be absorbed"
@@ -316,9 +291,8 @@ fn red_baseline_is_shrink_only_new_debt_breaks_set_equality() {
 fn violation_codes_const_covers_every_emitted_code() {
     // Guard against VIOLATION_CODES drifting from what the evaluator actually emits (review LOW-7):
     // exercise every code at least once and assert each emitted code is declared in the const.
-    let declared: BTreeSet<&str> = ci_action_item_accounting::VIOLATION_CODES
-        .into_iter()
-        .collect();
+    let declared: BTreeSet<&str> =
+        ci_action_item_accounting::VIOLATION_CODES.into_iter().collect();
     let mut bad_policy = fixture_policy();
     bad_policy["gate_id"] = json!("cloud-ci-wrong");
     let mut missing = good_open("FRIC-M");
@@ -343,8 +317,5 @@ fn violation_codes_const_covers_every_emitted_code() {
         );
     }
     // And confirm this fixture actually exercised most of the surface (no silent under-coverage).
-    assert!(
-        emitted.len() >= 6,
-        "expected broad code coverage, got {emitted:?}"
-    );
+    assert!(emitted.len() >= 6, "expected broad code coverage, got {emitted:?}");
 }

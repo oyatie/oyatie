@@ -52,10 +52,11 @@ The bounded design is:
 3. A separately named legacy adapter owns any predecessor source, identity-only
    mapping, or qualified-human population work. The durable target has none of
    those source dependencies.
-4. Independently named unit, materialized, source-boundary, and legacy-adapter
-   targets provide isolated prototype verification. They are not required-CI admission
-   while this ADR remains Proposed; no new workflow or hand-edited generated face is
-   introduced.
+4. An executable prototype was evaluated in intermediate PR commits and is
+   intentionally absent from the final tree. The protected Buck2 admission
+   universes can select any landed target, so no executable, schema, gate-catalog,
+   or workflow surface may be presented as nonbinding while this ADR remains
+   Proposed. The prototype is history-only evidence, not admission authority.
 
 ## Limits and next authority boundary
 
@@ -67,9 +68,10 @@ identity-only mapping. Until that evidence exists, the truthful terminal state i
 
 ## Verification
 
-The implementation must preserve RED and GREEN coverage for protected-input
-absence/staleness, new and modified lifecycle validation, merge-base-only
-grandfathering, and the explicit Buck source boundary. ADR projections are emitted
-only through the sanctioned Buck2 producer. Targeted Buck2 tests, formatting,
-clippy, generated-face policy checks, and protected admission remain required
-before any future merge.
+After qualified acceptance, a fresh implementation PR must restore RED and GREEN
+coverage for protected-input absence/staleness, new and modified lifecycle
+validation, merge-base-only grandfathering, and the explicit Buck source boundary.
+ADR projections are emitted only through the sanctioned Buck2 producer. The
+history-only prototype may inform that work but cannot be resurrected or treated
+as current authority without a fresh review, protected admission, and the accepted
+decision receipt.
