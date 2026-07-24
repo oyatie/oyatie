@@ -7,8 +7,8 @@ BUCK2_INSTALL_DIR="${BUCK2_INSTALL_DIR:-/tmp/oya-ci-buck2-${BUCK2_RELEASE}}"
 
 case "$(uname -s)-$(uname -m)" in
   Linux-x86_64)
-    BUCK2_ASSET="${BUCK2_ASSET:-buck2-x86_64-unknown-linux-gnu.zst}"
-    BUCK2_SHA256="${BUCK2_SHA256:-4dd9ae54c87fdcf795101074f8788232af55523885135d5e3358c77365993555}"
+    BUCK2_ASSET="${BUCK2_ASSET-buck2-x86_64-unknown-linux-gnu.zst}"
+    BUCK2_SHA256="${BUCK2_SHA256-4dd9ae54c87fdcf795101074f8788232af55523885135d5e3358c77365993555}"
     ;;
   *)
     if [ "${OYA_CI_ALLOW_AMBIENT_BUCK2:-}" = "1" ] && command -v buck2 >/dev/null 2>&1; then
@@ -21,19 +21,70 @@ case "$(uname -s)-$(uname -m)" in
     ;;
 esac
 
-mkdir -p "${BUCK2_INSTALL_DIR}"
+lock_timeout_seconds="${BUCK2_INSTALL_LOCK_TIMEOUT_SECONDS-180}"
+case "${lock_timeout_seconds}" in
+  ''|*[!0-9]*)
+    echo "BUCK2_INSTALL_LOCK_TIMEOUT_SECONDS must be a positive integer." >&2
+    exit 1
+    ;;
+esac
+if [ "${lock_timeout_seconds}" -eq 0 ]; then
+  echo "BUCK2_INSTALL_LOCK_TIMEOUT_SECONDS must be a positive integer." >&2
+  exit 1
+fi
+case "${BUCK2_ASSET}" in
+  ''|'.'|'..'|*[!0-9A-Za-z._-]*)
+    echo "BUCK2_ASSET must be a safe release-asset filename." >&2
+    exit 1
+    ;;
+esac
+case "${BUCK2_SHA256}" in
+  *[!0-9a-fA-F]*|'')
+    echo "BUCK2_SHA256 must be exactly 64 hexadecimal characters." >&2
+    exit 1
+    ;;
+esac
+if [ "${#BUCK2_SHA256}" -ne 64 ]; then
+  echo "BUCK2_SHA256 must be exactly 64 hexadecimal characters." >&2
+  exit 1
+fi
+BUCK2_SHA256="$(printf '%s' "${BUCK2_SHA256}" | tr '[:upper:]' '[:lower:]')"
+
+content_dir="${BUCK2_INSTALL_DIR}/sha256-${BUCK2_SHA256}"
+mkdir -p "${content_dir}"
+asset_path="${content_dir}/${BUCK2_ASSET}"
+binary_path="${content_dir}/buck2"
+lock_path="${content_dir}/.buck2-install.lock"
+asset_temp=""
+binary_temp=""
+
+cleanup_partials() {
+  [ -z "${asset_temp}" ] || rm -f -- "${asset_temp}"
+  [ -z "${binary_temp}" ] || rm -f -- "${binary_temp}"
+}
+trap cleanup_partials EXIT
+
+exec 9>"${lock_path}"
+if ! flock -x -w "${lock_timeout_seconds}" 9; then
+  echo "Timed out waiting for Buck2 installer lock: ${lock_path}" >&2
+  exit 1
+fi
+rm -f -- "${asset_path}.part."* "${binary_path}.part."*
 
 # Cache-hit fast path (ADR-0556 D5 QW-4: the tool binary is a digest-pinned INPUT, not a build
 # output — warm-eligible velocity). If the compressed release asset is already present (e.g.
 # restored by actions/cache) and its bytes match the pinned SHA-256, skip the network download.
 # A present-but-mismatching asset is discarded and re-downloaded.
-asset_path="${BUCK2_INSTALL_DIR}/${BUCK2_ASSET}"
 if [ -f "${asset_path}" ] \
   && echo "${BUCK2_SHA256}  ${asset_path}" | sha256sum -c - >/dev/null 2>&1; then
   echo "buck2 release asset cache hit (SHA-256 verified): ${asset_path} — skipping download." >&2
 else
-  rm -f "${asset_path}"
-  curl --retry 5 --retry-all-errors --retry-delay 2 --connect-timeout 20 -fsSL "https://github.com/facebook/buck2/releases/download/${BUCK2_RELEASE}/${BUCK2_ASSET}" -o "${asset_path}"
+  rm -f -- "${asset_path}"
+  asset_temp="$(mktemp "${asset_path}.part.XXXXXX")"
+  curl --retry 8 --retry-all-errors --retry-max-time 180 --connect-timeout 20 --max-time 60 -fsSL "https://github.com/facebook/buck2/releases/download/${BUCK2_RELEASE}/${BUCK2_ASSET}" -o "${asset_temp}" 9>&-
+  echo "${BUCK2_SHA256}  ${asset_temp}" | sha256sum -c -
+  mv -f -- "${asset_temp}" "${asset_path}"
+  asset_temp=""
 fi
 
 # Integrity is non-negotiable (ADR-0556: the SHA check is the integrity anchor that makes the
@@ -41,11 +92,13 @@ fi
 # be decompressed and executed — cached and fresh paths alike — and the executable is ALWAYS
 # re-derived from those verified bytes (never trusted as a loose cached binary).
 echo "${BUCK2_SHA256}  ${asset_path}" | sha256sum -c -
-zstd -d -f "${asset_path}" -o "${BUCK2_INSTALL_DIR}/buck2"
-chmod +x "${BUCK2_INSTALL_DIR}/buck2"
+binary_temp="$(mktemp "${binary_path}.part.XXXXXX")"
+zstd -d -f "${asset_path}" -o "${binary_temp}" 9>&-
+chmod +x "${binary_temp}"
+"${binary_temp}" --version 9>&-
+mv -f -- "${binary_temp}" "${binary_path}"
+binary_temp=""
 
 if [ -n "${GITHUB_PATH:-}" ]; then
-  echo "${BUCK2_INSTALL_DIR}" >> "${GITHUB_PATH}"
+  echo "${content_dir}" >> "${GITHUB_PATH}"
 fi
-
-"${BUCK2_INSTALL_DIR}/buck2" --version
