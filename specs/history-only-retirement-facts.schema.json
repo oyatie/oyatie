@@ -902,10 +902,15 @@
         "protected_base_ref",
         "protected_base_commit_oid",
         "protected_base_tree_oid",
-        "candidate_commit_oid",
-        "candidate_tree_oid",
-        "protected_base_is_ancestor_of_candidate",
-        "protected_base_is_candidate_first_parent",
+        "evaluated_commit_oid",
+        "evaluated_tree_oid",
+        "subject_commit_oid",
+        "subject_tree_oid",
+        "scm_event_name",
+        "subject_relationship",
+        "protected_base_is_ancestor_of_evaluated",
+        "protected_base_is_evaluated_first_parent",
+        "subject_is_evaluated_second_parent",
         "predecessor_commit_oid",
         "predecessor_tree_oid",
         "predecessor_commit_exists",
@@ -926,18 +931,23 @@
         "protected_base_tree_oid": {
           "$ref": "#/$defs/oid"
         },
-        "candidate_commit_oid": {
+        "evaluated_commit_oid": {
           "$ref": "#/$defs/oid"
         },
-        "candidate_tree_oid": {
+        "evaluated_tree_oid": {
           "$ref": "#/$defs/oid"
         },
-        "protected_base_is_ancestor_of_candidate": {
+        "subject_commit_oid": { "$ref": "#/$defs/oid" },
+        "subject_tree_oid": { "$ref": "#/$defs/oid" },
+        "scm_event_name": { "enum": ["pull_request", "push", "merge_group"] },
+        "subject_relationship": { "enum": ["pull-request-head", "evaluated-self"] },
+        "protected_base_is_ancestor_of_evaluated": {
           "const": true
         },
-        "protected_base_is_candidate_first_parent": {
+        "protected_base_is_evaluated_first_parent": {
           "const": true
         },
+        "subject_is_evaluated_second_parent": { "type": "boolean" },
         "predecessor_commit_oid": {
           "$ref": "#/$defs/oid"
         },

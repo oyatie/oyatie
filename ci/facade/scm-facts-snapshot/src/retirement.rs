@@ -121,6 +121,7 @@ pub(crate) trait RetirementObjectSource {
     fn resolve_commit(&self, revision: &str) -> Result<String, String>;
     fn tree_for_commit(&self, commit_oid: &str) -> Result<String, String>;
     fn first_parent(&self, commit_oid: &str) -> Result<String, String>;
+    fn parents(&self, commit_oid: &str) -> Result<Vec<String>, String>;
     fn is_ancestor(&self, ancestor: &str, descendant: &str) -> Result<bool, String>;
     fn tree_entries(&self, commit_oid: &str) -> Result<Vec<TreeEntry>, String>;
     fn read_blob(&self, blob_oid: &str) -> Result<Vec<u8>, String>;
@@ -182,6 +183,30 @@ impl RetirementObjectSource for GitCliRetirementObjectSource {
         parse_oid_text(&output, "resolved retirement first parent")
     }
 
+    fn parents(&self, commit_oid: &str) -> Result<Vec<String>, String> {
+        let output = self.git(
+            &["rev-list", "--parents", "-n", "1", commit_oid],
+            "resolve retirement parents",
+        )?;
+        let line = String::from_utf8(output)
+            .map_err(|error| format!("retirement parents are not UTF-8: {error}"))?;
+        let mut fields = line.split_whitespace();
+        let commit = fields
+            .next()
+            .ok_or_else(|| "retirement parents are empty".to_owned())?;
+        if commit != commit_oid {
+            return Err(
+                "retirement parent list does not bind the requested evaluated commit".to_owned(),
+            );
+        }
+        fields
+            .map(|parent| {
+                validate_oid(parent, "retirement parent")?;
+                Ok(parent.to_owned())
+            })
+            .collect()
+    }
+
     fn is_ancestor(&self, ancestor: &str, descendant: &str) -> Result<bool, String> {
         let status = Command::new("git")
             .arg("-C")
@@ -228,7 +253,9 @@ impl RetirementObjectSource for GitCliRetirementObjectSource {
 pub(crate) struct RetirementMaterializationContext<'a> {
     pub(crate) control_plane_path: &'a str,
     pub(crate) protected_base_commit: &'a str,
-    pub(crate) candidate_commit: &'a str,
+    pub(crate) evaluated_commit: &'a str,
+    pub(crate) scm_event_name: &'a str,
+    pub(crate) subject_commit: &'a str,
 }
 
 pub(crate) fn emit_history_only_retirement_facts(
@@ -376,7 +403,7 @@ pub(crate) fn materialize_history_only_retirement_facts(
         ));
     }
 
-    let candidate = source.resolve_commit(context.candidate_commit)?;
+    let candidate = source.resolve_commit(context.evaluated_commit)?;
     let head = source.resolve_commit("HEAD")?;
     if candidate != head {
         return Err(format!(
@@ -384,6 +411,14 @@ pub(crate) fn materialize_history_only_retirement_facts(
         ));
     }
     let protected = source.resolve_commit(context.protected_base_commit)?;
+    let subject = source.resolve_commit(context.subject_commit)?;
+    validate_event_identity(
+        source,
+        context.scm_event_name,
+        &protected,
+        &candidate,
+        &subject,
+    )?;
     let first_parent = source.first_parent(&candidate)?;
     if protected != first_parent {
         return Err(format!(
@@ -749,10 +784,15 @@ pub(crate) fn materialize_history_only_retirement_facts(
                 "protected_base_ref": PROTECTED_BASE_REF,
                 "protected_base_commit_oid": protected,
                 "protected_base_tree_oid": protected_tree,
-                "candidate_commit_oid": candidate,
-                "candidate_tree_oid": candidate_tree,
-                "protected_base_is_ancestor_of_candidate": true,
-                "protected_base_is_candidate_first_parent": true,
+                "evaluated_commit_oid": candidate,
+                "evaluated_tree_oid": candidate_tree,
+                "subject_commit_oid": subject,
+                "subject_tree_oid": source.tree_for_commit(&subject)?,
+                "scm_event_name": context.scm_event_name,
+                "subject_relationship": if context.scm_event_name == "pull_request" { "pull-request-head" } else { "evaluated-self" },
+                "protected_base_is_ancestor_of_evaluated": true,
+                "protected_base_is_evaluated_first_parent": true,
+                "subject_is_evaluated_second_parent": context.scm_event_name == "pull_request",
                 "predecessor_commit_oid": predecessor,
                 "predecessor_tree_oid": predecessor_tree,
                 "predecessor_commit_exists": true,
@@ -1071,6 +1111,36 @@ fn validate_selector_coverage(
                     "retirement selector coverage rejects unlisted {tree_role} path {path}"
                 ));
             }
+        }
+    }
+    Ok(())
+}
+
+fn validate_event_identity(
+    source: &impl RetirementObjectSource,
+    event: &str,
+    protected: &str,
+    evaluated: &str,
+    subject: &str,
+) -> Result<(), String> {
+    match event {
+        "pull_request" => {
+            let parents = source.parents(evaluated)?;
+            if parents != [protected.to_owned(), subject.to_owned()] {
+                return Err("pull_request evaluated commit parents must be exactly [protected base, subject]".to_owned());
+            }
+            if subject == evaluated {
+                return Err("pull_request subject must not equal evaluated merge commit".to_owned());
+            }
+        }
+        "push" | "merge_group" if subject == evaluated => {}
+        "push" | "merge_group" => {
+            return Err("push and merge_group subject must equal evaluated commit".to_owned());
+        }
+        _ => {
+            return Err(
+                "retirement SCM event must be pull_request, push, or merge_group".to_owned(),
+            );
         }
     }
     Ok(())
@@ -1669,6 +1739,7 @@ mod tests {
     struct FakeSource {
         commits: BTreeMap<String, String>,
         first_parent: String,
+        parents: Vec<String>,
         ancestry: BTreeSet<(String, String)>,
         trees: BTreeMap<String, Vec<TreeEntry>>,
         blobs: BTreeMap<String, Vec<u8>>,
@@ -1690,6 +1761,9 @@ mod tests {
         }
         fn first_parent(&self, _commit_oid: &str) -> Result<String, String> {
             Ok(self.first_parent.clone())
+        }
+        fn parents(&self, _commit_oid: &str) -> Result<Vec<String>, String> {
+            Ok(self.parents.clone())
         }
         fn is_ancestor(&self, ancestor: &str, descendant: &str) -> Result<bool, String> {
             Ok(self
@@ -1891,6 +1965,7 @@ mod tests {
                 (format!("tree:{PREDECESSOR}"), PREDECESSOR_TREE.to_owned()),
             ]),
             first_parent: PROTECTED.to_owned(),
+            parents: vec![PROTECTED.to_owned()],
             ancestry: BTreeSet::from([
                 (PROTECTED.to_owned(), CANDIDATE.to_owned()),
                 (PREDECESSOR.to_owned(), PROTECTED.to_owned()),
@@ -1909,7 +1984,71 @@ mod tests {
         RetirementMaterializationContext {
             control_plane_path: CONTROL_PLANE_PATH,
             protected_base_commit: PROTECTED,
-            candidate_commit: CANDIDATE,
+            evaluated_commit: CANDIDATE,
+            scm_event_name: "push",
+            subject_commit: CANDIDATE,
+        }
+    }
+
+    #[test]
+    fn event_identity_rejects_pr_parent_order_extra_parent_and_subject_aliases() {
+        let mut source = fixture();
+        let mut context = context();
+        context.scm_event_name = "pull_request";
+        context.subject_commit = PREDECESSOR;
+        source.parents = vec![PROTECTED.to_owned(), PREDECESSOR.to_owned()];
+        assert!(materialize_history_only_retirement_facts(&source, &context).is_ok());
+
+        for parents in [
+            vec![PREDECESSOR.to_owned(), PROTECTED.to_owned()],
+            vec![
+                PROTECTED.to_owned(),
+                PREDECESSOR.to_owned(),
+                CANDIDATE.to_owned(),
+            ],
+            vec![PROTECTED.to_owned(), CANDIDATE.to_owned()],
+        ] {
+            source.parents = parents;
+            assert!(materialize_history_only_retirement_facts(&source, &context).is_err());
+        }
+    }
+
+    #[test]
+    fn event_identity_rejects_nonself_push_and_merge_group_subjects() {
+        for event in ["push", "merge_group"] {
+            let source = fixture();
+            let mut context = context();
+            context.scm_event_name = event;
+            context.subject_commit = PREDECESSOR;
+            assert!(materialize_history_only_retirement_facts(&source, &context).is_err());
+        }
+    }
+
+    #[test]
+    fn closure_and_closed_carried_identity_mutations_fail_closed() {
+        let control = control_plane().entries.remove(0);
+        for stage in [ReceiptStage::ClosureNew, ReceiptStage::ClosedCarried] {
+            for mutation in [
+                "artifact_id",
+                "scope_ref",
+                "planning_state",
+                "dispatch_authorized",
+            ] {
+                let mut receipt = receipt_value(&control, true, Some(BLOB));
+                match mutation {
+                    "artifact_id" => receipt["artifact_id"] = json!("wrong"),
+                    "scope_ref" => receipt["scope_ref"] = json!("wrong"),
+                    "planning_state" => receipt["authority"]["planning_state"] = json!("ACTIVE"),
+                    "dispatch_authorized" => {
+                        receipt["authority"]["dispatch_authorized"] = json!(true)
+                    }
+                    _ => unreachable!(),
+                }
+                assert!(
+                    validate_receipt_identity(stage, &control, "receipt.json", &receipt).is_err(),
+                    "{stage:?} must reject mutated {mutation}"
+                );
+            }
         }
     }
 

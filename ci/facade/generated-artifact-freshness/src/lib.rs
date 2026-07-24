@@ -198,7 +198,9 @@ pub struct RetirementMaterializeArgs {
     pub control_plane_path: String,
     pub facts_out: PathBuf,
     pub protected_base_commit: String,
-    pub candidate_commit: String,
+    pub evaluated_commit: String,
+    pub scm_event_name: String,
+    pub subject_commit: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
@@ -442,7 +444,9 @@ pub fn parse_materialize_generated_faces_args(
     let mut retirement_control_plane: Option<String> = None;
     let mut retirement_facts_out: Option<PathBuf> = None;
     let mut protected_base_commit: Option<String> = None;
-    let mut candidate_commit: Option<String> = None;
+    let mut evaluated_commit: Option<String> = None;
+    let mut scm_event_name: Option<String> = None;
+    let mut subject_commit: Option<String> = None;
     let mut iter = args.into_iter();
     while let Some(arg) = iter.next() {
         match arg.as_str() {
@@ -478,13 +482,29 @@ pub fn parse_materialize_generated_faces_args(
                 };
                 protected_base_commit = Some(value);
             }
-            "--candidate-commit" => {
+            "--evaluated-commit" => {
                 let Some(value) = iter.next() else {
                     return Err(FreshnessError::new(
-                        "materialize generated faces: --candidate-commit requires a commit oid",
+                        "materialize generated faces: --evaluated-commit requires a commit oid",
                     ));
                 };
-                candidate_commit = Some(value);
+                evaluated_commit = Some(value);
+            }
+            "--scm-event-name" => {
+                let Some(value) = iter.next().filter(|value| !value.is_empty()) else {
+                    return Err(FreshnessError::new(
+                        "materialize generated faces: --scm-event-name requires an event name",
+                    ));
+                };
+                scm_event_name = Some(value);
+            }
+            "--subject-commit" => {
+                let Some(value) = iter.next().filter(|value| !value.is_empty()) else {
+                    return Err(FreshnessError::new(
+                        "materialize generated faces: --subject-commit requires a commit oid",
+                    ));
+                };
+                subject_commit = Some(value);
             }
             "--help" | "-h" => {
                 return Err(FreshnessError::new(materialize_generated_faces_usage()));
@@ -501,13 +521,17 @@ pub fn parse_materialize_generated_faces_args(
         retirement_control_plane,
         retirement_facts_out,
         protected_base_commit,
-        candidate_commit,
+        evaluated_commit,
+        scm_event_name,
+        subject_commit,
     ) {
         (
             Some(control_plane_path),
             Some(facts_out),
             Some(protected_base_commit),
-            Some(candidate_commit),
+            Some(evaluated_commit),
+            Some(scm_event_name),
+            Some(subject_commit),
         ) => {
             if control_plane_path != RETIREMENT_CONTROL_PLANE_PATH {
                 return Err(FreshnessError::new(
@@ -523,14 +547,16 @@ pub fn parse_materialize_generated_faces_args(
                 control_plane_path,
                 facts_out,
                 protected_base_commit,
-                candidate_commit,
+                evaluated_commit,
+                scm_event_name,
+                subject_commit,
             })
         }
-        (None, None, None, None) => None,
+        (None, None, None, None, None, None) => None,
         _ => {
             return Err(FreshnessError::new(
                 "materialize generated faces: --retirement-control-plane, \
-                 --retirement-facts-out, --protected-base-commit, and --candidate-commit \
+                 --retirement-facts-out, --protected-base-commit, --evaluated-commit, --scm-event-name, and --subject-commit \
                  are all-or-none",
             ));
         }
@@ -544,7 +570,7 @@ pub fn parse_materialize_generated_faces_args(
 pub fn materialize_generated_faces_usage() -> &'static str {
     "usage: oya-cloud-ci-materialize-generated-faces [--repo-root <path>] \
      [--retirement-control-plane <repo-relative-path> --retirement-facts-out <path> \
-     --protected-base-commit <oid> --candidate-commit <oid>]"
+     --protected-base-commit <oid> --evaluated-commit <oid> --scm-event-name <name> --subject-commit <oid>]"
 }
 
 pub fn parse_face_settle_args(args: Vec<String>) -> Result<FaceSettleArgs, FreshnessError> {
@@ -1782,7 +1808,9 @@ fn append_retirement_materialization_args(
             .args(["--retirement-facts-out"])
             .arg(&retirement.facts_out)
             .args(["--protected-base-commit", &retirement.protected_base_commit])
-            .args(["--candidate-commit", &retirement.candidate_commit]);
+            .args(["--evaluated-commit", &retirement.evaluated_commit])
+            .args(["--scm-event-name", &retirement.scm_event_name])
+            .args(["--subject-commit", &retirement.subject_commit]);
     }
 }
 
@@ -2470,8 +2498,12 @@ mod materialize_generated_faces_tests {
             "ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json".to_owned(),
             "--protected-base-commit".to_owned(),
             "1111111111111111111111111111111111111111".to_owned(),
-            "--candidate-commit".to_owned(),
+            "--evaluated-commit".to_owned(),
             "2222222222222222222222222222222222222222".to_owned(),
+            "--scm-event-name".to_owned(),
+            "pull_request".to_owned(),
+            "--subject-commit".to_owned(),
+            "3333333333333333333333333333333333333333".to_owned(),
         ])
         .expect("parse exact retirement transport");
 
@@ -2484,7 +2516,9 @@ mod materialize_generated_faces_tests {
                     "ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json",
                 ),
                 protected_base_commit: "1111111111111111111111111111111111111111".to_owned(),
-                candidate_commit: "2222222222222222222222222222222222222222".to_owned(),
+                evaluated_commit: "2222222222222222222222222222222222222222".to_owned(),
+                scm_event_name: "pull_request".to_owned(),
+                subject_commit: "3333333333333333333333333333333333333333".to_owned(),
             })
         );
     }
@@ -2501,6 +2535,16 @@ mod materialize_generated_faces_tests {
     }
 
     #[test]
+    fn parse_materialize_generated_faces_args_rejects_empty_event_identity_values() {
+        for flag in ["--scm-event-name", "--subject-commit"] {
+            let error =
+                parse_materialize_generated_faces_args(vec![flag.to_owned(), String::new()])
+                    .expect_err("empty event identity argument must fail closed");
+            assert!(error.to_string().contains("requires"));
+        }
+    }
+
+    #[test]
     fn retirement_transport_is_appended_only_when_explicit() {
         let retirement = RetirementMaterializeArgs {
             control_plane_path: "registry/history-only-retirement/control-plane.json".to_owned(),
@@ -2508,7 +2552,9 @@ mod materialize_generated_faces_tests {
                 "ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json",
             ),
             protected_base_commit: "1111111111111111111111111111111111111111".to_owned(),
-            candidate_commit: "2222222222222222222222222222222222222222".to_owned(),
+            evaluated_commit: "2222222222222222222222222222222222222222".to_owned(),
+            scm_event_name: "pull_request".to_owned(),
+            subject_commit: "3333333333333333333333333333333333333333".to_owned(),
         };
         let mut candidate = Command::new("emitter");
         append_retirement_materialization_args(&mut candidate, Some(&retirement));
@@ -2517,7 +2563,8 @@ mod materialize_generated_faces_tests {
             .map(|arg| arg.to_string_lossy().into_owned())
             .collect::<Vec<_>>();
         assert!(candidate_args.contains(&"--retirement-control-plane".to_owned()));
-        assert!(candidate_args.contains(&retirement.candidate_commit));
+        assert!(candidate_args.contains(&retirement.evaluated_commit));
+        assert!(candidate_args.contains(&retirement.subject_commit));
 
         let mut frozen = Command::new("emitter");
         append_retirement_materialization_args(&mut frozen, None);

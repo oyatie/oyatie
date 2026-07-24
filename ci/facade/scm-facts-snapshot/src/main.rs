@@ -161,7 +161,9 @@ fn run() -> Result<(), String> {
     let mut retirement_control_plane: Option<String> = None;
     let mut retirement_facts_out: Option<PathBuf> = None;
     let mut protected_base_commit: Option<String> = None;
-    let mut candidate_commit: Option<String> = None;
+    let mut evaluated_commit: Option<String> = None;
+    let mut scm_event_name: Option<String> = None;
+    let mut subject_commit: Option<String> = None;
 
     let mut i = 0;
     while i < args.len() {
@@ -270,11 +272,25 @@ fn run() -> Result<(), String> {
                     return Err("--protected-base-commit requires a commit oid".to_owned());
                 }
             }
-            "--candidate-commit" => {
+            "--evaluated-commit" => {
                 i += 1;
-                candidate_commit = args.get(i).cloned();
-                if candidate_commit.as_deref().is_none_or(str::is_empty) {
-                    return Err("--candidate-commit requires a commit oid".to_owned());
+                evaluated_commit = args.get(i).cloned();
+                if evaluated_commit.as_deref().is_none_or(str::is_empty) {
+                    return Err("--evaluated-commit requires a commit oid".to_owned());
+                }
+            }
+            "--scm-event-name" => {
+                i += 1;
+                scm_event_name = args.get(i).cloned();
+                if scm_event_name.as_deref().is_none_or(str::is_empty) {
+                    return Err("--scm-event-name requires an event name".to_owned());
+                }
+            }
+            "--subject-commit" => {
+                i += 1;
+                subject_commit = args.get(i).cloned();
+                if subject_commit.as_deref().is_none_or(str::is_empty) {
+                    return Err("--subject-commit requires a commit oid".to_owned());
                 }
             }
             other => return Err(format!("unknown argument {other}")),
@@ -321,23 +337,34 @@ fn run() -> Result<(), String> {
         retirement_control_plane.as_deref(),
         retirement_facts_out.as_deref(),
         protected_base_commit.as_deref(),
-        candidate_commit.as_deref(),
+        evaluated_commit.as_deref(),
+        scm_event_name.as_deref(),
+        subject_commit.as_deref(),
     ) {
-        (Some(control_plane_path), Some(facts_out), Some(protected), Some(candidate)) => {
+        (
+            Some(control_plane_path),
+            Some(facts_out),
+            Some(protected),
+            Some(evaluated),
+            Some(event),
+            Some(subject),
+        ) => {
             retirement::emit_history_only_retirement_facts(
                 &repo_root,
                 &retirement::RetirementMaterializationContext {
                     control_plane_path,
                     protected_base_commit: protected,
-                    candidate_commit: candidate,
+                    evaluated_commit: evaluated,
+                    scm_event_name: event,
+                    subject_commit: subject,
                 },
                 facts_out,
             )?;
         }
-        (None, None, None, None) => {}
+        (None, None, None, None, None, None) => {}
         _ => {
             return Err("--retirement-control-plane, --retirement-facts-out, \
-                 --protected-base-commit, and --candidate-commit are all-or-none"
+                 --protected-base-commit, --evaluated-commit, --scm-event-name, and --subject-commit are all-or-none"
                 .to_owned());
         }
     }

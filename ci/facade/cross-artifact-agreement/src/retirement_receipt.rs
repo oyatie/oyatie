@@ -133,18 +133,24 @@ const PROTECTED_SCM_CONTEXT_FIELDS: &[&str] = &[
     "protected_base_ref",
     "protected_base_commit_oid",
     "protected_base_tree_oid",
-    "candidate_commit_oid",
-    "candidate_tree_oid",
-    "protected_base_is_ancestor_of_candidate",
+    "evaluated_commit_oid",
+    "evaluated_tree_oid",
+    "subject_commit_oid",
+    "subject_tree_oid",
+    "scm_event_name",
+    "subject_relationship",
+    "protected_base_is_ancestor_of_evaluated",
+    "protected_base_is_evaluated_first_parent",
+    "subject_is_evaluated_second_parent",
+    "predecessor_commit_oid",
+    "predecessor_tree_oid",
+    "predecessor_commit_exists",
+    "predecessor_tree_exists",
+    "predecessor_commit_tree_bound",
+    "predecessor_is_ancestor_of_protected_base",
     "prepared_receipt_paths",
     "protected_preparation_receipts",
     "control_plane_entries",
-    "protected_base_commit_exists",
-    "protected_base_tree_exists",
-    "protected_base_commit_tree_oid",
-    "candidate_commit_exists",
-    "candidate_tree_exists",
-    "candidate_commit_tree_oid",
 ];
 const PREDECESSOR_CONTEXT_FIELDS: &[&str] = &[
     "source",
@@ -794,16 +800,16 @@ pub fn evaluate_history_only_retirement_receipt_coverage(
         .keys()
         .cloned()
         .collect::<BTreeSet<_>>();
-    let candidate_commit = oid(
+    let evaluated_commit = oid(
         protected_context,
-        "candidate_commit_oid",
-        "protected_scm_context.candidate_commit_oid",
+        "evaluated_commit_oid",
+        "protected_scm_context.evaluated_commit_oid",
         &mut findings,
     );
-    let candidate_tree = oid(
+    let evaluated_tree = oid(
         protected_context,
-        "candidate_tree_oid",
-        "protected_scm_context.candidate_tree_oid",
+        "evaluated_tree_oid",
+        "protected_scm_context.evaluated_tree_oid",
         &mut findings,
     );
     let protected_commit = oid(
@@ -818,33 +824,52 @@ pub fn evaluate_history_only_retirement_receipt_coverage(
         "protected_scm_context.protected_base_tree_oid",
         &mut findings,
     );
+    let subject_commit = oid(
+        protected_context,
+        "subject_commit_oid",
+        "protected_scm_context.subject_commit_oid",
+        &mut findings,
+    );
+    let subject_tree = oid(
+        protected_context,
+        "subject_tree_oid",
+        "protected_scm_context.subject_tree_oid",
+        &mut findings,
+    );
+    let event = protected_context
+        .get("scm_event_name")
+        .and_then(Value::as_str);
+    let relationship = protected_context
+        .get("subject_relationship")
+        .and_then(Value::as_str);
+    let event_identity_valid = match event {
+        Some("pull_request") => {
+            relationship == Some("pull-request-head")
+                && protected_context.get("subject_is_evaluated_second_parent")
+                    == Some(&Value::Bool(true))
+                && subject_commit != evaluated_commit
+        }
+        Some("push") | Some("merge_group") => {
+            relationship == Some("evaluated-self")
+                && protected_context.get("subject_is_evaluated_second_parent")
+                    == Some(&Value::Bool(false))
+                && subject_commit == evaluated_commit
+                && subject_tree == evaluated_tree
+        }
+        _ => false,
+    };
     if protected_context.get("protected_base_ref") != coverage.get("protected_base_ref")
         || protected_context
-            .get("protected_base_is_ancestor_of_candidate")
+            .get("protected_base_is_ancestor_of_evaluated")
             .and_then(Value::as_bool)
             != Some(true)
         || protected_context
-            .get("protected_base_commit_exists")
+            .get("protected_base_is_evaluated_first_parent")
             .and_then(Value::as_bool)
             != Some(true)
-        || protected_context
-            .get("protected_base_tree_exists")
-            .and_then(Value::as_bool)
-            != Some(true)
-        || protected_context.get("protected_base_commit_tree_oid")
-            != protected_context.get("protected_base_tree_oid")
-        || protected_context
-            .get("candidate_commit_exists")
-            .and_then(Value::as_bool)
-            != Some(true)
-        || protected_context
-            .get("candidate_tree_exists")
-            .and_then(Value::as_bool)
-            != Some(true)
-        || protected_context.get("candidate_commit_tree_oid")
-            != protected_context.get("candidate_tree_oid")
+        || !event_identity_valid
         || (!prepared.is_empty()
-            && (candidate_commit == protected_commit || candidate_tree == protected_tree))
+            && (evaluated_commit == protected_commit || evaluated_tree == protected_tree))
     {
         fail(&mut findings, "protected_scm_context.binding");
     }
@@ -1028,9 +1053,9 @@ pub fn evaluate_history_only_retirement_receipt_coverage(
                                     || predecessor.get("tree_oid").and_then(Value::as_str)
                                         != Some(preparation.baseline_tree_oid.as_str())
                                     || predecessor.get("commit_oid")
-                                        == protected_context.get("candidate_commit_oid")
+                                        == protected_context.get("evaluated_commit_oid")
                                     || predecessor.get("tree_oid")
-                                        == protected_context.get("candidate_tree_oid")
+                                        == protected_context.get("evaluated_tree_oid")
                             })
                     {
                         fail(&mut findings, "closed_carried_predecessor_link");
@@ -1093,9 +1118,9 @@ pub fn evaluate_history_only_retirement_receipt_coverage(
                     || fact.get("baseline_commit_oid") != receipt.pointer("/baseline/commit_oid")
                     || fact.get("baseline_tree_oid") != receipt.pointer("/baseline/tree_oid")
                     || receipt.pointer("/baseline/commit_oid")
-                        == protected_context.get("candidate_commit_oid")
+                        == protected_context.get("evaluated_commit_oid")
                     || receipt.pointer("/baseline/tree_oid")
-                        == protected_context.get("candidate_tree_oid")
+                        == protected_context.get("evaluated_tree_oid")
                     || fact.pointer("/predecessor_context/commit_oid")
                         != receipt.pointer("/baseline/commit_oid")
                     || fact.pointer("/predecessor_context/tree_oid")
@@ -2160,7 +2185,7 @@ mod tests {
             .into_iter()
             .map(test_control_entry)
             .collect::<Vec<_>>();
-        json!({"protected_base_ref":"origin/dev","protected_base_commit_oid":OLD,"protected_base_tree_oid":OLD_TREE,"candidate_commit_oid":NEW,"candidate_tree_oid":NEW_TREE,"protected_base_is_ancestor_of_candidate":true,"prepared_receipt_paths":prepared_receipt_paths,"protected_preparation_receipts":[],"control_plane_entries":controls,"protected_base_commit_exists":true,"protected_base_tree_exists":true,"protected_base_commit_tree_oid":OLD_TREE,"candidate_commit_exists":true,"candidate_tree_exists":true,"candidate_commit_tree_oid":NEW_TREE})
+        json!({"protected_base_ref":"origin/dev","protected_base_commit_oid":OLD,"protected_base_tree_oid":OLD_TREE,"evaluated_commit_oid":NEW,"evaluated_tree_oid":NEW_TREE,"subject_commit_oid":NEW,"subject_tree_oid":NEW_TREE,"scm_event_name":"push","subject_relationship":"evaluated-self","protected_base_is_ancestor_of_evaluated":true,"protected_base_is_evaluated_first_parent":true,"subject_is_evaluated_second_parent":false,"predecessor_commit_oid":OLD,"predecessor_tree_oid":OLD_TREE,"predecessor_commit_exists":true,"predecessor_tree_exists":true,"predecessor_commit_tree_bound":true,"predecessor_is_ancestor_of_protected_base":true,"prepared_receipt_paths":prepared_receipt_paths,"protected_preparation_receipts":[],"control_plane_entries":controls})
     }
     fn retirement_control_plane_context(active: bool) -> Value {
         let controls = ["ADR-0363", "ADR-0388", "artifact:masterplan"]
@@ -2373,12 +2398,6 @@ mod tests {
         } else {
             protected_scm_context_with_preparation(ADR_0388_PREPARATION_PATH, BLOB)
         };
-        context["protected_base_commit_exists"] = json!(true);
-        context["protected_base_tree_exists"] = json!(true);
-        context["protected_base_commit_tree_oid"] = json!(OLD_TREE);
-        context["candidate_commit_exists"] = json!(true);
-        context["candidate_tree_exists"] = json!(true);
-        context["candidate_commit_tree_oid"] = json!(NEW_TREE);
         let control_entries = ["ADR-0363", "ADR-0388", "artifact:masterplan"]
             .into_iter()
             .map(test_control_entry)
@@ -2811,7 +2830,7 @@ mod tests {
         );
 
         let mut candidate_rebound = coverage.clone();
-        candidate_rebound["protected_scm_context"]["candidate_commit_oid"] = json!(OLD);
+        candidate_rebound["protected_scm_context"]["evaluated_commit_oid"] = json!(OLD);
         assert!(
             evaluate_history_only_retirement_receipt_coverage(
                 std::slice::from_ref(&prepared),
@@ -2823,7 +2842,7 @@ mod tests {
             ))
         );
         let mut ancestry_rebound = coverage.clone();
-        ancestry_rebound["protected_scm_context"]["protected_base_is_ancestor_of_candidate"] =
+        ancestry_rebound["protected_scm_context"]["protected_base_is_ancestor_of_evaluated"] =
             json!(false);
         assert!(
             evaluate_history_only_retirement_receipt_coverage(
@@ -2835,14 +2854,33 @@ mod tests {
                 "protected_scm_context.binding"
             ))
         );
+        for (field, value) in [
+            ("scm_event_name", json!("unknown")),
+            ("subject_relationship", json!("pull-request-head")),
+            ("subject_is_evaluated_second_parent", json!(true)),
+        ] {
+            let mut mismatched = coverage.clone();
+            mismatched["protected_scm_context"][field] = value;
+            assert!(
+                evaluate_history_only_retirement_receipt_coverage(
+                    std::slice::from_ref(&prepared),
+                    &mismatched
+                )
+                .contains(&Finding::new(
+                    RETIREMENT_RECEIPT_CODE,
+                    "protected_scm_context.binding"
+                )),
+                "event identity mismatch for {field} must fail closed"
+            );
+        }
         let mut candidate_self_proof = coverage.clone();
-        candidate_self_proof["retirement_receipt_coverage"]["candidate_commit_oid"] = json!(OLD);
-        candidate_self_proof["retirement_receipt_coverage"]["candidate_tree_oid"] = json!(OLD_TREE);
-        candidate_self_proof["retirement_receipt_object_facts"][0]["candidate_commit_oid"] =
+        candidate_self_proof["retirement_receipt_coverage"]["evaluated_commit_oid"] = json!(OLD);
+        candidate_self_proof["retirement_receipt_coverage"]["evaluated_tree_oid"] = json!(OLD_TREE);
+        candidate_self_proof["retirement_receipt_object_facts"][0]["evaluated_commit_oid"] =
             json!(OLD);
-        candidate_self_proof["retirement_receipt_object_facts"][0]["candidate_tree_oid"] =
+        candidate_self_proof["retirement_receipt_object_facts"][0]["evaluated_tree_oid"] =
             json!(OLD_TREE);
-        candidate_self_proof["retirement_receipt_object_facts"][0]["protected_base_is_ancestor_of_candidate"] =
+        candidate_self_proof["retirement_receipt_object_facts"][0]["protected_base_is_ancestor_of_evaluated"] =
             json!(false);
         assert!(
             !evaluate_history_only_retirement_receipt_coverage(

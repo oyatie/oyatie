@@ -86,8 +86,10 @@ jobs:
         run: infra/ci/install-buck2.sh
       - name: Materialize cloud-ci generated faces
         env:
-          EVENT_CANDIDATE_SHA: ${{ github.sha }}
+          EVENT_EVALUATED_SHA: ${{ github.sha }}
           EVENT_PROTECTED_SHA: ${{ github.event.pull_request.base.sha || github.event.before || github.event.merge_group.base_sha || '' }}
+          EVENT_SUBJECT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
           set -euo pipefail
           rustup toolchain install
@@ -99,16 +101,18 @@ jobs:
             echo "refusing retirement materialization: event lacks an authoritative protected-base SHA" >&2
             exit 1
           fi
-          candidate_commit="$(git rev-parse HEAD)"
-          protected_base_commit="$(git rev-parse HEAD^1)"
-          test "${candidate_commit}" = "${EVENT_CANDIDATE_SHA}"
-          test "${protected_base_commit}" = "${EVENT_PROTECTED_SHA}"
+          evaluated_commit="$(git rev-parse HEAD)"
+          test "${evaluated_commit}" = "${EVENT_EVALUATED_SHA}"
+          protected_base_commit="${EVENT_PROTECTED_SHA}"
+          subject_commit="${EVENT_SUBJECT_SHA}"
           buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- \
             --repo-root . \
             --retirement-control-plane registry/history-only-retirement/control-plane.json \
             --retirement-facts-out ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json \
             --protected-base-commit "${protected_base_commit}" \
-            --candidate-commit "${candidate_commit}"
+            --evaluated-commit "${evaluated_commit}" \
+            --scm-event-name "${EVENT_NAME}" \
+            --subject-commit "${subject_commit}"
       - name: Upload regenerated faces
         # actions/upload-artifact@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a

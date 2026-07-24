@@ -441,6 +441,7 @@
         "registry/history-only-retirement/control-plane.json",
         "specs/history-only-retirement-control-plane.schema.json",
         "specs/history-only-retirement-facts.schema.json",
+        ".github/workflows/oya-ci-required.yml",
         "full-depth SCM checkout"
       ],
       "final_tree_validation": "This current-tree facts face is controller-produced and NOT tracked in git. The controller validates the immutable protected-null, candidate-exact-three control contract against the predecessor snapshot before materializing facts. It contains lifecycle and object/path/blob/hash/length observations only and cannot assert qualified closure.",
@@ -453,6 +454,7 @@
         "input_contract": [
           "repo-root",
           "full-depth-scm",
+          "scm-event-identity",
           "declared-source-inputs"
         ],
         "output_mode": "declared-artifact-path-write"

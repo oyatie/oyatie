@@ -148,8 +148,8 @@ fn validate_history_only_retirement_facts_binding(
         "protected_scm_context",
     )?;
     for field in [
-        "protected_base_is_ancestor_of_candidate",
-        "protected_base_is_candidate_first_parent",
+        "protected_base_is_ancestor_of_evaluated",
+        "protected_base_is_evaluated_first_parent",
         "predecessor_commit_exists",
         "predecessor_tree_exists",
         "predecessor_commit_tree_bound",
@@ -158,6 +158,34 @@ fn validate_history_only_retirement_facts_binding(
         if protected_context.get(field).and_then(Value::as_bool) != Some(true) {
             return Err(format!("protected_scm_context.{field} must be true"));
         }
+    }
+    let event = protected_context
+        .get("scm_event_name")
+        .and_then(Value::as_str);
+    let relationship = protected_context
+        .get("subject_relationship")
+        .and_then(Value::as_str);
+    let event_identity_valid = match event {
+        Some("pull_request") => {
+            relationship == Some("pull-request-head")
+                && protected_context.get("subject_is_evaluated_second_parent")
+                    == Some(&Value::Bool(true))
+                && protected_context.get("subject_commit_oid")
+                    != protected_context.get("evaluated_commit_oid")
+        }
+        Some("push") | Some("merge_group") => {
+            relationship == Some("evaluated-self")
+                && protected_context.get("subject_is_evaluated_second_parent")
+                    == Some(&Value::Bool(false))
+                && protected_context.get("subject_commit_oid")
+                    == protected_context.get("evaluated_commit_oid")
+                && protected_context.get("subject_tree_oid")
+                    == protected_context.get("evaluated_tree_oid")
+        }
+        _ => false,
+    };
+    if !event_identity_valid {
+        return Err("protected_scm_context has invalid event/subject identity".to_owned());
     }
 
     let context = object(
@@ -331,8 +359,20 @@ fn dormant_history_only_binding_fixture(control_plane_bytes: &[u8]) -> Value {
             },
             "retirement_receipt_object_facts": [],
             "protected_scm_context": {
-                "protected_base_is_ancestor_of_candidate": true,
-                "protected_base_is_candidate_first_parent": true,
+                "protected_base_ref": "origin/dev",
+                "protected_base_commit_oid": "1111111111111111111111111111111111111111",
+                "protected_base_tree_oid": "2222222222222222222222222222222222222222",
+                "evaluated_commit_oid": "3333333333333333333333333333333333333333",
+                "evaluated_tree_oid": "4444444444444444444444444444444444444444",
+                "subject_commit_oid": "3333333333333333333333333333333333333333",
+                "subject_tree_oid": "4444444444444444444444444444444444444444",
+                "scm_event_name": "push",
+                "subject_relationship": "evaluated-self",
+                "protected_base_is_ancestor_of_evaluated": true,
+                "protected_base_is_evaluated_first_parent": true,
+                "subject_is_evaluated_second_parent": false,
+                "predecessor_commit_oid": "1111111111111111111111111111111111111111",
+                "predecessor_tree_oid": "2222222222222222222222222222222222222222",
                 "predecessor_commit_exists": true,
                 "predecessor_tree_exists": true,
                 "predecessor_commit_tree_bound": true,
@@ -379,6 +419,61 @@ fn history_only_retirement_binding_accepts_controller_materialized_dormant_facts
     let facts = dormant_history_only_binding_fixture(control_plane);
     validate_history_only_retirement_facts_binding(&facts, control_plane)
         .expect("controller-bound dormant facts must validate");
+}
+
+#[test]
+fn history_only_retirement_control_plane_declares_workflow_and_event_identity_inputs() {
+    let manifest = load_json(&repo_root().join("registry/generated-artifact-control-plane.json"));
+    let row = manifest["artifacts"]
+        .as_array()
+        .and_then(|rows| {
+            rows.iter().find(|row| {
+                row.get("artifact_id").and_then(Value::as_str)
+                    == Some("history-only-retirement-facts")
+            })
+        })
+        .expect("history-only retirement facts control-plane row");
+    let inputs = row["source_inputs"]
+        .as_array()
+        .expect("history-only retirement source inputs array");
+    for required in [
+        ".github/workflows/oya-ci-required.yml",
+        "specs/history-only-retirement-facts.schema.json",
+    ] {
+        assert!(
+            inputs.iter().any(|input| input.as_str() == Some(required)),
+            "source_inputs must declare {required}"
+        );
+    }
+    let contract = row["generator"]["input_contract"]
+        .as_array()
+        .expect("history-only retirement generator input contract array");
+    assert!(
+        contract
+            .iter()
+            .any(|input| input.as_str() == Some("scm-event-identity")),
+        "generator input contract must declare scm-event-identity"
+    );
+}
+
+#[test]
+fn retirement_workflow_transports_distinct_event_identity_fields() {
+    let workflow = fs::read_to_string(repo_root().join(".github/workflows/oya-ci-required.yml"))
+        .expect("read oya-ci-required workflow");
+    for required in [
+        "EVENT_EVALUATED_SHA: ${{ github.sha }}",
+        "EVENT_PROTECTED_SHA: ${{ github.event.pull_request.base.sha || github.event.before || github.event.merge_group.base_sha || '' }}",
+        "EVENT_SUBJECT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}",
+        "EVENT_NAME: ${{ github.event_name }}",
+        "--evaluated-commit \"${evaluated_commit}\"",
+        "--scm-event-name \"${EVENT_NAME}\"",
+        "--subject-commit \"${subject_commit}\"",
+    ] {
+        assert!(
+            workflow.contains(required),
+            "workflow must transport {required}"
+        );
+    }
 }
 
 #[test]
