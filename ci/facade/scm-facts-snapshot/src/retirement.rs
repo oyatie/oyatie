@@ -17,7 +17,8 @@ use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 
 pub(crate) const CONTROL_PLANE_PATH: &str = "registry/history-only-retirement/control-plane.json";
-pub(crate) const GENERATED_FACTS_PATH: &str =
+/// Canonical untracked generated-facts path, exposed for the integration contract.
+pub const GENERATED_FACTS_PATH: &str =
     "ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json";
 
 const CONTROL_PLANE_SCHEMA: &str =
@@ -249,16 +250,24 @@ impl RetirementObjectSource for GitCliRetirementObjectSource {
     }
 }
 
+/// Runtime context accepted by the facts materializer.
+///
+/// Public solely so the package-local integration target can exercise the
+/// real Git boundary without duplicating production materialization logic.
 #[derive(Debug, Clone)]
-pub(crate) struct RetirementMaterializationContext<'a> {
-    pub(crate) control_plane_path: &'a str,
-    pub(crate) protected_base_commit: &'a str,
-    pub(crate) evaluated_commit: &'a str,
-    pub(crate) scm_event_name: &'a str,
-    pub(crate) subject_commit: &'a str,
+pub struct RetirementMaterializationContext<'a> {
+    pub control_plane_path: &'a str,
+    pub protected_base_commit: &'a str,
+    pub evaluated_commit: &'a str,
+    pub scm_event_name: &'a str,
+    pub subject_commit: &'a str,
 }
 
-pub(crate) fn emit_history_only_retirement_facts(
+/// Materialize facts through the sanctioned Git boundary.
+///
+/// This is public for the package-local integration target; it emits facts and
+/// never produces a PASS or dispatch decision.
+pub fn emit_history_only_retirement_facts(
     repo_root: &Path,
     context: &RetirementMaterializationContext<'_>,
     output_path: &Path,
@@ -271,7 +280,10 @@ pub(crate) fn emit_history_only_retirement_facts(
     write_ignored_regular_file(repo_root, &output_path, bytes.as_bytes())
 }
 
-fn write_ignored_regular_file(
+/// Atomically write a verified ignored regular file.
+///
+/// Public only for the package-local integration target's symlink defenses.
+pub fn write_ignored_regular_file(
     repo_root: &Path,
     output_path: &Path,
     bytes: &[u8],
@@ -1743,16 +1755,12 @@ impl<'de> Visitor<'de> for DuplicateKeyFreeJsonVisitor {
 mod tests {
     use super::*;
 
-    use std::sync::atomic::{AtomicU64, Ordering};
-
     const PREDECESSOR: &str = "1111111111111111111111111111111111111111";
     const PREDECESSOR_TREE: &str = "2222222222222222222222222222222222222222";
     const PROTECTED: &str = "3333333333333333333333333333333333333333";
     const PROTECTED_TREE: &str = "4444444444444444444444444444444444444444";
     const CANDIDATE: &str = "5555555555555555555555555555555555555555";
     const CANDIDATE_TREE: &str = "6666666666666666666666666666666666666666";
-    static NEXT_TEMP_REPO_ID: AtomicU64 = AtomicU64::new(0);
-
     #[derive(Clone)]
     struct FakeSource {
         commits: BTreeMap<String, String>,
@@ -1811,19 +1819,6 @@ mod tests {
 
     fn oid(byte: u8) -> String {
         format!("{byte:040x}")
-    }
-
-    fn temp_git_repo(label: &str) -> PathBuf {
-        let id = NEXT_TEMP_REPO_ID.fetch_add(1, Ordering::Relaxed);
-        let root = std::env::temp_dir().join(format!("oya-e7-{label}-{}-{id}", std::process::id()));
-        std::fs::create_dir(&root).expect("create isolated E7 test repository");
-        let status = Command::new("git")
-            .args(["init", "--quiet"])
-            .current_dir(&root)
-            .status()
-            .expect("run git init");
-        assert!(status.success(), "git init must succeed");
-        root
     }
 
     fn input(path: &str, bytes: &[u8], blob_oid: String) -> ExpectedInput {
@@ -2335,73 +2330,6 @@ mod tests {
                 "unexpected error for {output_path:?}: {error}"
             );
         }
-    }
-
-    #[test]
-    fn emitter_rejects_canonical_generated_facts_path_when_tracked() {
-        let root = temp_git_repo("tracked-output");
-        let output_path = root.join(GENERATED_FACTS_PATH);
-        std::fs::create_dir_all(output_path.parent().unwrap()).unwrap();
-        std::fs::write(
-            root.join(".gitignore"),
-            format!("/{GENERATED_FACTS_PATH}\n"),
-        )
-        .unwrap();
-        std::fs::write(&output_path, b"{}\n").unwrap();
-        let status = Command::new("git")
-            .args(["add", "-f", "--", GENERATED_FACTS_PATH])
-            .current_dir(&root)
-            .status()
-            .unwrap();
-        assert!(
-            status.success(),
-            "force-add canonical generated facts fixture"
-        );
-
-        let error =
-            emit_history_only_retirement_facts(&root, &context(), Path::new(GENERATED_FACTS_PATH))
-                .unwrap_err();
-        assert!(
-            error.contains("must be ignored and untracked"),
-            "unexpected tracked-path error: {error}"
-        );
-        std::fs::remove_dir_all(root).unwrap();
-    }
-
-    #[cfg(unix)]
-    #[test]
-    fn ignored_output_symlink_is_rejected_without_touching_its_target() {
-        use std::os::unix::fs::symlink;
-
-        let root = temp_git_repo("ignored-output-symlink");
-        let output = root.join("facts.json");
-        let outside = root.join("outside.json");
-        std::fs::write(&outside, b"outside bytes").unwrap();
-        symlink(&outside, &output).unwrap();
-
-        let error = write_ignored_regular_file(&root, &output, b"replacement").unwrap_err();
-        assert!(error.contains("must be a regular file"));
-        assert_eq!(std::fs::read(&outside).unwrap(), b"outside bytes");
-        std::fs::remove_dir_all(root).unwrap();
-    }
-
-    #[cfg(unix)]
-    #[test]
-    fn intermediate_output_symlink_is_rejected_without_touching_its_target() {
-        use std::os::unix::fs::symlink;
-
-        let root = temp_git_repo("intermediate-output-symlink");
-        let outside = root.join("outside");
-        std::fs::create_dir(&outside).unwrap();
-        let target = outside.join("facts.json");
-        std::fs::write(&target, b"outside bytes").unwrap();
-        symlink(&outside, root.join("ci")).unwrap();
-        let output = root.join("ci/facts.json");
-
-        let error = write_ignored_regular_file(&root, &output, b"replacement").unwrap_err();
-        assert!(error.contains("not a real directory"));
-        assert_eq!(std::fs::read(&target).unwrap(), b"outside bytes");
-        std::fs::remove_dir_all(root).unwrap();
     }
 
     #[test]

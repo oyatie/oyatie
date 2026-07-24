@@ -244,6 +244,11 @@ jobs:
           buck2 test \
             //ci/facade/${{ matrix.crate }}:ci-${{ matrix.crate }}-unittest \
             //ci/facade/${{ matrix.crate }}:ci-${{ matrix.crate }}-gate
+      - name: buck2 test SCM facts integration boundary
+        if: matrix.crate == 'scm-facts-snapshot'
+        run: |
+          set -euo pipefail
+          buck2 test //ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot-integration
 
   # ── freshness: first-diagnosis gate for the two stale-output failures from PR #662.
   #    Runs as its own fast job with no needs edge so stale Cargo.lock and stale generated faces
