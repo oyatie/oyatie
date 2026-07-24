@@ -836,13 +836,13 @@ jobs:
             # that predate the control plane retain bare bootstrap materialization.
             if git cat-file -e "${merge_base}:registry/history-only-retirement/control-plane.json"; then
               merge_base_parents="$(git rev-list --parents -n 1 "${merge_base}")"
-              set -- ${merge_base_parents}
-              test "$#" -eq 2 \
+              read -r -a merge_base_line <<< "${merge_base_parents}"
+              test "${#merge_base_line[@]}" -eq 2 \
                 || { echo "merge-base retirement materialization requires exactly one parent" >&2; exit 1; }
-              test "$1" = "${merge_base}" \
+              test "${merge_base_line[0]}" = "${merge_base}" \
                 || { echo "merge-base topology did not resolve the requested Git object" >&2; exit 1; }
               merge_base_protected_base="$(git rev-parse "${merge_base}^1")"
-              test "${merge_base_protected_base}" = "$2" \
+              test "${merge_base_protected_base}" = "${merge_base_line[1]}" \
                 || { echo "merge-base first-parent resolution drifted" >&2; exit 1; }
               git cat-file -e "${merge_base_protected_base}^{commit}"
               buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- \
