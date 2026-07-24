@@ -434,6 +434,10 @@
       "prefix": "specs/policy-ir-benchmark-fixture-suite.json"
     },
     {
+      "anchor": "HOLD(Planning) E7 implementation contract: Rust producer for the ignored history-only retirement observation face; this source path records implementation provenance only and grants no closure, promotion, dispatch, or completion authority.",
+      "prefix": "ci/facade/scm-facts-snapshot/src/retirement.rs"
+    },
+    {
       "anchor": "HOLD(Planning) E7 implementation contract: exact source input for the typed history-only retirement observer; this reachability row records implementation provenance only and grants no closure, promotion, dispatch, or completion authority.",
       "prefix": "registry/history-only-retirement/control-plane.json"
     },

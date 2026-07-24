@@ -292,6 +292,7 @@ fn retirement_sources_do_not_silently_amend_accepted_adr_0613() {
         .as_array()
         .expect("registered reachability rows");
     for prefix in [
+        "ci/facade/scm-facts-snapshot/src/retirement.rs",
         "registry/history-only-retirement/control-plane.json",
         "registry/history-only-retirement/OWNERS",
         "specs/history-only-retirement-control-plane.schema.json",
