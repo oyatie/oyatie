@@ -2251,6 +2251,41 @@ fn validate_retirement_control_plane_context(
     let candidate_sha256 = context.get("candidate_control_plane_sha256");
     let candidate_bytes = context.get("candidate_control_plane_byte_count");
     let empty = receipts.is_empty() && object_facts.is_empty();
+    let lifecycle_state = context.get("lifecycle_state").and_then(Value::as_str);
+    let bootstrap = context.get("bootstrap").and_then(Value::as_bool);
+    let receipts_match_lifecycle = receipts.iter().all(|receipt| {
+        let Some(artifact_id) = receipt.get("artifact_id").and_then(Value::as_str) else {
+            return false;
+        };
+        let matching_facts = object_facts
+            .iter()
+            .filter(|fact| fact.get("artifact_id").and_then(Value::as_str) == Some(artifact_id))
+            .collect::<Vec<_>>();
+        matching_facts.len() == 1
+            && matching_facts[0]
+                .get("receipt_state")
+                .and_then(Value::as_str)
+                == lifecycle_state
+    });
+    let lifecycle_matches = match lifecycle_state {
+        Some("dormant") => empty && matches!(bootstrap, Some(true | false)),
+        Some("prepared-new" | "closure-new" | "closed-carried") => {
+            bootstrap == Some(false)
+                && !receipts.is_empty()
+                && !object_facts.is_empty()
+                && object_facts.iter().all(|fact| {
+                    fact.get("receipt_state").and_then(Value::as_str) == lifecycle_state
+                })
+                && receipts_match_lifecycle
+        }
+        _ => false,
+    };
+    if !lifecycle_matches {
+        fail(
+            findings,
+            "retirement_control_plane_context.lifecycle_binding",
+        );
+    }
     let null_binding = |oid: Option<&Value>, sha256: Option<&Value>, bytes: Option<&Value>| {
         oid.is_some_and(Value::is_null)
             && sha256.is_some_and(Value::is_null)
@@ -2630,7 +2665,8 @@ mod tests {
         } else {
             protected_scm_context_with_preparation(ADR_0388_PREPARATION_PATH, BLOB)
         };
-        let control_context = retirement_control_plane_context(true);
+        let mut control_context = retirement_control_plane_context(true);
+        control_context["lifecycle_state"] = json!(state);
 
         json!({
             "receipts": [{"receipt_path": receipt_path, "receipt": receipt}],
@@ -3219,7 +3255,7 @@ mod tests {
             PREPARATION_PATH,
             PREPARATION_BLOB,
         );
-        let corpus = json!({
+        let mut corpus = json!({
             "receipts": [{"receipt_path": CLOSURE_PATH, "receipt": closure}],
             "scm_facts": {
                 "retirement_receipt_coverage": {
@@ -3254,6 +3290,8 @@ mod tests {
                 "retirement_control_plane_context": retirement_control_plane_context(true)
             }
         });
+        corpus["scm_facts"]["retirement_control_plane_context"]["lifecycle_state"] =
+            json!("closure-new");
         assert!(
             evaluate_history_only_retirement_receipts(&corpus).is_empty(),
             "a protected preparation must close through a separate linked receipt"
@@ -3450,7 +3488,9 @@ mod tests {
             "baseline_commit_oid":OLD,
             "baseline_tree_oid":OLD_TREE,
         }]);
-        let corpus = json!({"receipts":[{"receipt_path":RECEIPT_PATH,"receipt":receipt}],"scm_facts":{"retirement_receipt_coverage":{"protected_base_ref":"origin/dev","protected_receipt_paths":[RECEIPT_PATH],"candidate_receipt_paths":[RECEIPT_PATH],"carried_receipt_paths":[RECEIPT_PATH],"new_receipt_paths":[],"scopes":[{"scope_ref":"ADR-0363","scope_type":"amended-agentic-vcs-retirement","selectors":[selector],"required_retired_paths":[".omc/legacy-a.md"]}],"required_retired_paths":[".omc/legacy-a.md"]},"retirement_receipt_object_facts":[fact],"protected_scm_context":context,"retirement_control_plane_context":retirement_control_plane_context(true)}});
+        let mut corpus = json!({"receipts":[{"receipt_path":RECEIPT_PATH,"receipt":receipt}],"scm_facts":{"retirement_receipt_coverage":{"protected_base_ref":"origin/dev","protected_receipt_paths":[RECEIPT_PATH],"candidate_receipt_paths":[RECEIPT_PATH],"carried_receipt_paths":[RECEIPT_PATH],"new_receipt_paths":[],"scopes":[{"scope_ref":"ADR-0363","scope_type":"amended-agentic-vcs-retirement","selectors":[selector],"required_retired_paths":[".omc/legacy-a.md"]}],"required_retired_paths":[".omc/legacy-a.md"]},"retirement_receipt_object_facts":[fact],"protected_scm_context":context,"retirement_control_plane_context":retirement_control_plane_context(true)}});
+        corpus["scm_facts"]["retirement_control_plane_context"]["lifecycle_state"] =
+            json!("closed-carried");
         let corpus_findings = evaluate_history_only_retirement_receipts(&corpus);
         assert!(corpus_findings.is_empty(), "{corpus_findings:?}");
         let mut candidate_predecessor = corpus.clone();
