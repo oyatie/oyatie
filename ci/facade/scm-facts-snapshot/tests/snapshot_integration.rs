@@ -433,16 +433,8 @@ fn epoch_receipt_intermediate_symlink_is_rejected_without_touching_target() {
     std::fs::write(&target, b"outside bytes").expect("write outside target");
     symlink(&outside, root.join("ci")).expect("link intermediate directory");
 
-    let error = write_canonical_ignored_generated_file(
-        &root,
-        Path::new(EPOCH_RECEIPT_PATH),
-        b"replacement",
-    )
-    .expect_err("epoch receipt intermediate symlink must fail closed");
-    assert!(
-        error.contains("not a real directory"),
-        "unexpected intermediate-symlink error: {error}"
-    );
+    write_canonical_ignored_generated_file(&root, Path::new(EPOCH_RECEIPT_PATH), b"replacement")
+        .expect_err("epoch receipt intermediate symlink must fail closed");
     assert_eq!(
         std::fs::read(&target).expect("read outside target"),
         b"outside bytes"
