@@ -589,6 +589,44 @@ pub fn evaluate_workflow_inline_shell_keyed(
     findings
 }
 
+/// Enforce the immutable merge-base workflow baseline as an anti-expansion ceiling. A candidate
+/// may remove an accepted shell step or reduce its line count, but it may not add a baseline key
+/// or raise a line-count ceiling to waive newly introduced workflow shell debt.
+pub fn validate_workflow_inline_shell_baseline_ceiling(
+    candidate_baseline: &Value,
+    protected_baseline: &Value,
+) -> BTreeSet<Finding> {
+    let mut findings = BTreeSet::new();
+    let candidate_entries = baseline_workflow_shell_entries(candidate_baseline, &mut findings);
+    let protected_entries = baseline_workflow_shell_entries(protected_baseline, &mut findings);
+
+    for (key, candidate_lines) in candidate_entries {
+        match protected_entries.get(&key) {
+            None => {
+                findings.insert(Finding::new(
+                    "rust_first_automation_unbaselined_workflow_inline_shell",
+                    &key,
+                    "candidate workflow inline-shell baseline adds a key beyond the immutable \
+                     merge-base ceiling",
+                ));
+            }
+            Some(protected_lines) if candidate_lines > *protected_lines => {
+                findings.insert(Finding::new(
+                    "rust_first_automation_workflow_inline_shell_line_count_growth",
+                    &key,
+                    format!(
+                        "candidate workflow inline-shell baseline raises the immutable merge-base \
+                         ceiling from {protected_lines} to {candidate_lines}"
+                    ),
+                ));
+            }
+            Some(_) => {}
+        }
+    }
+
+    findings
+}
+
 /// The frozen baseline exception paths, read from the baseline face's
 /// `codes.rust_first_automation_unbaselined_non_rust_exception` array.
 fn baseline_non_rust_exception_keys(baseline: &Value) -> BTreeSet<String> {
@@ -660,6 +698,28 @@ pub fn evaluate_non_rust_exception_baseline_keyed(
     }
 
     findings
+}
+
+/// Enforce the immutable merge-base non-Rust exception baseline as an anti-expansion ceiling. A
+/// candidate may remove an exception and shrink its matching baseline in the same PR, but may not
+/// add a baseline path to waive a new exception.
+pub fn validate_non_rust_exception_baseline_ceiling(
+    candidate_baseline: &Value,
+    protected_baseline: &Value,
+) -> BTreeSet<Finding> {
+    let candidate_keys = baseline_non_rust_exception_keys(candidate_baseline);
+    let protected_keys = baseline_non_rust_exception_keys(protected_baseline);
+    candidate_keys
+        .difference(&protected_keys)
+        .map(|key| {
+            Finding::new(
+                "rust_first_automation_unbaselined_non_rust_exception",
+                key,
+                "candidate non-Rust exception baseline adds a path beyond the immutable merge-base \
+                 ceiling",
+            )
+        })
+        .collect()
 }
 
 // ───────────────────────── merge-base frozen exception baseline ─────────────────────────────

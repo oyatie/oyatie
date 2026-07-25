@@ -19,6 +19,7 @@ use oya_cloud_ci_rust_first_automation_hygiene_app::{
     evaluate_non_rust_exception_baseline_keyed, evaluate_workflow_inline_shell_keyed,
     load_non_rust_exception_baseline_from_merge_base,
     load_workflow_inline_shell_baseline_from_merge_base,
+    validate_non_rust_exception_baseline_ceiling, validate_workflow_inline_shell_baseline_ceiling,
 };
 use serde_json::{Value, json};
 use serde_yaml::Value as YamlValue;
@@ -430,9 +431,10 @@ fn live_postgres_lane_emits_redacted_bootstrap_provenance_artifact() {
 fn live_workflow_inline_shell_matches_frozen_baseline_green() {
     let root = repo_root();
     let policy = load_policy(&root);
-    let baseline = load_workflow_inline_shell_baseline_from_merge_base(&root).expect(
+    let protected_baseline = load_workflow_inline_shell_baseline_from_merge_base(&root).expect(
         "read the workflow inline-shell baseline from the immutable merge-base policy tree",
     );
+    let candidate_baseline = &policy["workflow_inline_shell_baseline"];
 
     let observed = collect_observed_workflow_inline_shell(&root, &policy)
         .expect("read-only workflow scan should not need temp files or cleanup");
@@ -442,7 +444,12 @@ fn live_workflow_inline_shell_matches_frozen_baseline_green() {
         "expected a non-empty live workflow inline-shell inventory (the blind spot is real)"
     );
 
-    let findings = evaluate_workflow_inline_shell_keyed(&observed, &baseline);
+    let mut findings =
+        validate_workflow_inline_shell_baseline_ceiling(candidate_baseline, &protected_baseline);
+    findings.extend(evaluate_workflow_inline_shell_keyed(
+        &observed,
+        candidate_baseline,
+    ));
     assert!(
         findings.is_empty(),
         "workflow inline-shell dimension found shrink-only violations over {steps} observed steps: \
@@ -459,11 +466,12 @@ fn live_workflow_inline_shell_matches_frozen_baseline_green() {
 
     // The committed keys_total provenance must match the actual baseline key array length — a cheap
     // tripwire against a hand-edited baseline whose provenance count drifts from its `codes` array.
-    let codes_len = baseline["codes"]["rust_first_automation_unbaselined_workflow_inline_shell"]
-        .as_array()
-        .expect("baseline codes array")
-        .len();
-    let provenance_total = baseline["_provenance"]["keys_total"]
+    let codes_len =
+        candidate_baseline["codes"]["rust_first_automation_unbaselined_workflow_inline_shell"]
+            .as_array()
+            .expect("baseline codes array")
+            .len();
+    let provenance_total = candidate_baseline["_provenance"]["keys_total"]
         .as_u64()
         .expect("baseline _provenance.keys_total") as usize;
     assert_eq!(
@@ -537,10 +545,16 @@ fn retired_baselined_inline_shell_is_stale_red() {
 fn live_non_rust_exceptions_match_frozen_baseline_green() {
     let root = repo_root();
     let policy = load_policy(&root);
-    let baseline = load_non_rust_exception_baseline_from_merge_base(&root)
+    let protected_baseline = load_non_rust_exception_baseline_from_merge_base(&root)
         .expect("read the non-Rust exception baseline from the immutable merge-base policy tree");
+    let candidate_baseline = &policy["non_rust_exception_baseline"];
 
-    let findings = evaluate_non_rust_exception_baseline_keyed(&policy, &baseline);
+    let mut findings =
+        validate_non_rust_exception_baseline_ceiling(candidate_baseline, &protected_baseline);
+    findings.extend(evaluate_non_rust_exception_baseline_keyed(
+        &policy,
+        candidate_baseline,
+    ));
     assert!(
         findings.is_empty(),
         "non-Rust-exception dimension found shrink-only violations: \
@@ -555,11 +569,12 @@ fn live_non_rust_exceptions_match_frozen_baseline_green() {
         ),
     );
 
-    let codes_len = baseline["codes"]["rust_first_automation_unbaselined_non_rust_exception"]
-        .as_array()
-        .expect("baseline codes array")
-        .len();
-    let provenance_total = baseline["_provenance"]["keys_total"]
+    let codes_len =
+        candidate_baseline["codes"]["rust_first_automation_unbaselined_non_rust_exception"]
+            .as_array()
+            .expect("baseline codes array")
+            .len();
+    let provenance_total = candidate_baseline["_provenance"]["keys_total"]
         .as_u64()
         .expect("baseline _provenance.keys_total") as usize;
     assert_eq!(
@@ -638,7 +653,10 @@ fn candidate_policy_cannot_self_waive_new_exception_by_editing_its_baseline() {
 
     let baseline = load_non_rust_exception_baseline_from_merge_base(root)
         .expect("load immutable protected-base baseline");
-    let findings = evaluate_non_rust_exception_baseline_keyed(&candidate_policy, &baseline);
+    let findings = validate_non_rust_exception_baseline_ceiling(
+        &candidate_policy["non_rust_exception_baseline"],
+        &baseline,
+    );
     assert!(
         findings.iter().any(|finding| {
             finding.code == "rust_first_automation_unbaselined_non_rust_exception"
@@ -739,7 +757,10 @@ fn candidate_workflow_shell_cannot_self_waive_by_editing_its_baseline() {
 
     let baseline = load_workflow_inline_shell_baseline_from_merge_base(root)
         .expect("load immutable protected-base workflow baseline");
-    let findings = evaluate_workflow_inline_shell_keyed(&observed, &baseline);
+    let findings = validate_workflow_inline_shell_baseline_ceiling(
+        &candidate_policy["workflow_inline_shell_baseline"],
+        &baseline,
+    );
     assert!(
         findings.iter().any(|finding| {
             finding.code == "rust_first_automation_unbaselined_workflow_inline_shell"
@@ -776,6 +797,169 @@ fn immutable_baseline_loader_fails_closed_when_ref_or_policy_object_is_missing()
     assert!(
         load_workflow_inline_shell_baseline_from_merge_base(root).is_err(),
         "missing merge-base policy object must fail closed"
+    );
+}
+
+/// A candidate may retire a non-Rust exception and shrink its matching baseline in the same PR.
+/// The merge-base baseline is only an anti-expansion ceiling, not a requirement to retain debt.
+#[test]
+fn candidate_non_rust_baseline_removal_below_merge_base_ceiling_is_green() {
+    let temp = TestDir::new("automation-policy-removal-below-merge-base");
+    let root = temp.path();
+    let path = policy_path(root);
+    fs::create_dir_all(path.parent().expect("policy parent")).expect("create policy directory");
+    run_git(root, ["init"]);
+    run_git(
+        root,
+        ["config", "user.email", "automation-policy@example.test"],
+    );
+    run_git(root, ["config", "user.name", "automation policy test"]);
+
+    let protected_policy = json!({
+        "exceptions": [
+            {"path": "scripts/accepted.sh"},
+            {"path": "scripts/retired.sh"}
+        ],
+        "non_rust_exception_baseline": {"codes": {
+            "rust_first_automation_unbaselined_non_rust_exception": [
+                "scripts/accepted.sh", "scripts/retired.sh"
+            ]
+        }}
+    });
+    fs::write(
+        &path,
+        serde_json::to_vec(&protected_policy).expect("serialize protected policy"),
+    )
+    .expect("write protected policy");
+    run_git(root, ["add", "."]);
+    run_git(root, ["commit", "-m", "protected policy"]);
+    let protected_commit = run_git(root, ["rev-parse", "HEAD"]);
+    run_git(
+        root,
+        [
+            "update-ref",
+            "refs/remotes/origin/dev",
+            protected_commit.trim(),
+        ],
+    );
+
+    let candidate_policy = json!({
+        "exceptions": [{"path": "scripts/accepted.sh"}],
+        "non_rust_exception_baseline": {"codes": {
+            "rust_first_automation_unbaselined_non_rust_exception": ["scripts/accepted.sh"]
+        }}
+    });
+    fs::write(
+        &path,
+        serde_json::to_vec(&candidate_policy).expect("serialize candidate policy"),
+    )
+    .expect("write candidate policy");
+
+    let protected_baseline = load_non_rust_exception_baseline_from_merge_base(root)
+        .expect("load immutable protected-base baseline");
+    let ceiling_findings = validate_non_rust_exception_baseline_ceiling(
+        &candidate_policy["non_rust_exception_baseline"],
+        &protected_baseline,
+    );
+    let synchronization_findings = evaluate_non_rust_exception_baseline_keyed(
+        &candidate_policy,
+        &candidate_policy["non_rust_exception_baseline"],
+    );
+    assert!(
+        ceiling_findings.is_empty() && synchronization_findings.is_empty(),
+        "synchronized candidate baseline removal must be admitted: ceiling={ceiling_findings:#?}, \
+         synchronization={synchronization_findings:#?}"
+    );
+}
+
+/// A candidate may reduce a workflow shell block and lower its matching baseline line count in the
+/// same PR. The immutable merge-base count is an anti-regrowth ceiling, not a retention floor.
+#[test]
+fn candidate_workflow_line_count_reduction_below_merge_base_ceiling_is_green() {
+    let temp = TestDir::new("automation-policy-workflow-reduction-below-merge-base");
+    let root = temp.path();
+    let path = policy_path(root);
+    let workflows = root.join(".github/workflows");
+    fs::create_dir_all(path.parent().expect("policy parent")).expect("create policy directory");
+    fs::create_dir_all(&workflows).expect("create workflow directory");
+    run_git(root, ["init"]);
+    run_git(
+        root,
+        ["config", "user.email", "automation-policy@example.test"],
+    );
+    run_git(root, ["config", "user.name", "automation policy test"]);
+
+    let scan = json!({"workflow_inline_shell": {
+        "enabled": true,
+        "roots": [".github/workflows"],
+        "extensions": [".yml"]
+    }});
+    let key = ".github/workflows/required.yml::gate::Reduced shell";
+    let protected_policy = json!({
+        "scan": scan,
+        "workflow_inline_shell_baseline": {"codes": {
+            "rust_first_automation_unbaselined_workflow_inline_shell": [
+                {"key": key, "shell_lines": 2}
+            ]
+        }}
+    });
+    fs::write(
+        &path,
+        serde_json::to_vec(&protected_policy).expect("serialize protected policy"),
+    )
+    .expect("write protected policy");
+    fs::write(
+        workflows.join("required.yml"),
+        "jobs:\n  gate:\n    steps:\n      - name: Reduced shell\n        run: |\n          echo first\n          echo second\n",
+    )
+    .expect("write protected workflow");
+    run_git(root, ["add", "."]);
+    run_git(root, ["commit", "-m", "protected policy"]);
+    let protected_commit = run_git(root, ["rev-parse", "HEAD"]);
+    run_git(
+        root,
+        [
+            "update-ref",
+            "refs/remotes/origin/dev",
+            protected_commit.trim(),
+        ],
+    );
+
+    let candidate_policy = json!({
+        "scan": protected_policy["scan"],
+        "workflow_inline_shell_baseline": {"codes": {
+            "rust_first_automation_unbaselined_workflow_inline_shell": [
+                {"key": key, "shell_lines": 1}
+            ]
+        }}
+    });
+    fs::write(
+        &path,
+        serde_json::to_vec(&candidate_policy).expect("serialize candidate policy"),
+    )
+    .expect("write candidate policy");
+    fs::write(
+        workflows.join("required.yml"),
+        "jobs:\n  gate:\n    steps:\n      - name: Reduced shell\n        run: echo first\n",
+    )
+    .expect("write candidate workflow");
+
+    let protected_baseline = load_workflow_inline_shell_baseline_from_merge_base(root)
+        .expect("load immutable protected-base workflow baseline");
+    let observed = collect_observed_workflow_inline_shell(root, &candidate_policy)
+        .expect("scan candidate workflow");
+    let ceiling_findings = validate_workflow_inline_shell_baseline_ceiling(
+        &candidate_policy["workflow_inline_shell_baseline"],
+        &protected_baseline,
+    );
+    let synchronization_findings = evaluate_workflow_inline_shell_keyed(
+        &observed,
+        &candidate_policy["workflow_inline_shell_baseline"],
+    );
+    assert!(
+        ceiling_findings.is_empty() && synchronization_findings.is_empty(),
+        "synchronized line-count reduction must be admitted: ceiling={ceiling_findings:#?}, \
+         synchronization={synchronization_findings:#?}"
     );
 }
 
