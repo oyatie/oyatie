@@ -505,27 +505,12 @@ impl CanonicalRetirementFactsWriter {
     /// Atomically replace only the fixed canonical facts basename through this directory fd.
     pub fn write(&self, bytes: &[u8]) -> Result<(), String> {
         const FINAL_NAME: &str = "history-only-retirement-facts.generated.json";
-        ensure_regular_or_absent(&self.directory, FINAL_NAME)?;
-        let (temporary_name, temporary) = create_temporary_file(&self.directory)?;
-
-        let result = (|| {
-            write_all(&temporary, bytes)?;
-            rustix::fs::fsync(&temporary)
-                .map_err(|error| format!("sync retirement facts temporary file: {error}"))?;
-            rustix::fs::renameat(
-                &self.directory,
-                &temporary_name,
-                &self.directory,
-                FINAL_NAME,
-            )
-            .map_err(|error| format!("replace retirement facts output: {error}"))?;
-            rustix::fs::fsync(&self.directory)
-                .map_err(|error| format!("sync retirement facts directory: {error}"))
-        })();
-        if result.is_err() {
-            let _ = rustix::fs::unlinkat(&self.directory, &temporary_name, AtFlags::empty());
-        }
-        result
+        atomic_replace_ignored_generated_file(
+            &self.directory,
+            FINAL_NAME,
+            ".retirement-facts",
+            bytes,
+        )
     }
 }
 
@@ -627,9 +612,17 @@ fn ensure_regular_or_absent(directory: &OwnedFd, name: &str) -> Result<(), Strin
 
 #[cfg(unix)]
 fn create_temporary_file(directory: &OwnedFd) -> Result<(String, OwnedFd), String> {
+    create_temporary_file_with_prefix(directory, ".retirement-facts")
+}
+
+#[cfg(unix)]
+fn create_temporary_file_with_prefix(
+    directory: &OwnedFd,
+    prefix: &str,
+) -> Result<(String, OwnedFd), String> {
     for _ in 0..32 {
         let name = format!(
-            ".retirement-facts-{}-{}",
+            "{prefix}-{}-{}",
             std::process::id(),
             NEXT_ATOMIC_WRITE_ID.fetch_add(1, Ordering::Relaxed)
         );
@@ -645,6 +638,143 @@ fn create_temporary_file(directory: &OwnedFd) -> Result<(String, OwnedFd), Strin
         }
     }
     Err("exhausted retirement facts temporary file names".to_owned())
+}
+
+/// Descriptor-relative, no-follow atomic write for another canonical ignored generated face.
+///
+/// The supplied path must be a normal, repo-relative path below `repo_root`, must be ignored and
+/// untracked, and is opened component-by-component without following links. This is deliberately
+/// available only to sibling controller-owned writers, not arbitrary callers.
+#[cfg(unix)]
+pub struct CanonicalIgnoredGeneratedWriter {
+    directory: OwnedFd,
+    final_name: String,
+}
+
+#[cfg(unix)]
+impl CanonicalIgnoredGeneratedWriter {
+    /// Opens the fixed canonical output directory without following any path component links.
+    pub fn open(repo_root: &Path, relative_path: &Path) -> Result<Self, String> {
+        let (parent_components, final_name) =
+            canonical_ignored_generated_path(repo_root, relative_path)?;
+        let mut directory = rustix::fs::openat(
+            rustix::fs::CWD,
+            repo_root,
+            OFlags::RDONLY | OFlags::DIRECTORY | OFlags::NOFOLLOW | OFlags::CLOEXEC,
+            Mode::empty(),
+        )
+        .map_err(|error| format!("open ignored generated repository directory: {error}"))?;
+        for component in parent_components {
+            directory = open_or_create_directory_at(&directory, component)?;
+        }
+        Ok(Self {
+            directory,
+            final_name: final_name.to_owned(),
+        })
+    }
+
+    /// Atomically replaces the fixed canonical basename through the already-open directory fd.
+    pub fn write(&self, bytes: &[u8]) -> Result<(), String> {
+        atomic_replace_ignored_generated_file(
+            &self.directory,
+            &self.final_name,
+            ".ignored-generated",
+            bytes,
+        )
+    }
+}
+
+#[cfg(unix)]
+pub fn write_canonical_ignored_generated_file(
+    repo_root: &Path,
+    relative_path: &Path,
+    bytes: &[u8],
+) -> Result<(), String> {
+    CanonicalIgnoredGeneratedWriter::open(repo_root, relative_path)?.write(bytes)
+}
+
+#[cfg(not(unix))]
+pub fn write_canonical_ignored_generated_file(
+    _repo_root: &Path,
+    _relative_path: &Path,
+    _bytes: &[u8],
+) -> Result<(), String> {
+    Err("canonical ignored generated writer requires Unix dirfd support".to_owned())
+}
+
+#[cfg(unix)]
+fn atomic_replace_ignored_generated_file(
+    directory: &OwnedFd,
+    final_name: &str,
+    temporary_prefix: &str,
+    bytes: &[u8],
+) -> Result<(), String> {
+    ensure_regular_or_absent(directory, final_name)?;
+    let (temporary_name, temporary) =
+        create_temporary_file_with_prefix(directory, temporary_prefix)?;
+    let result = (|| {
+        write_all(&temporary, bytes)?;
+        rustix::fs::fsync(&temporary)
+            .map_err(|error| format!("sync ignored generated temporary file: {error}"))?;
+        rustix::fs::renameat(directory, &temporary_name, directory, final_name)
+            .map_err(|error| format!("replace ignored generated output: {error}"))?;
+        rustix::fs::fsync(directory)
+            .map_err(|error| format!("sync ignored generated directory: {error}"))
+    })();
+    if result.is_err() {
+        let _ = rustix::fs::unlinkat(directory, &temporary_name, AtFlags::empty());
+    }
+    result
+}
+
+#[cfg(unix)]
+fn canonical_ignored_generated_path<'a>(
+    repo_root: &Path,
+    relative_path: &'a Path,
+) -> Result<(Vec<&'a str>, &'a str), String> {
+    let components = relative_path
+        .components()
+        .map(|component| match component {
+            std::path::Component::Normal(value) => value
+                .to_str()
+                .ok_or_else(|| "ignored generated path is not UTF-8".to_owned()),
+            _ => Err("ignored generated path must be normal and repo-relative".to_owned()),
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+    let (final_name, parents) = components
+        .split_last()
+        .ok_or_else(|| "ignored generated path must name a file".to_owned())?;
+    let status = Command::new("git")
+        .args(["check-ignore", "--quiet", "--"])
+        .arg(relative_path)
+        .current_dir(repo_root)
+        .status()
+        .map_err(|error| format!("check ignored generated output boundary: {error}"))?;
+    if status.code() != Some(0) {
+        return Err(format!(
+            "ignored generated output {} must be ignored and untracked",
+            relative_path.display()
+        ));
+    }
+    let tracked_status = Command::new("git")
+        .args(["ls-files", "--error-unmatch", "--"])
+        .arg(relative_path)
+        .current_dir(repo_root)
+        .status()
+        .map_err(|error| format!("check tracked generated output boundary: {error}"))?;
+    if tracked_status.code() == Some(0) {
+        return Err(format!(
+            "ignored generated output {} must be untracked",
+            relative_path.display()
+        ));
+    }
+    if tracked_status.code() != Some(1) {
+        return Err(format!(
+            "check tracked generated output boundary exited with {:?}",
+            tracked_status.code()
+        ));
+    }
+    Ok((parents.to_vec(), final_name))
 }
 
 #[cfg(unix)]
