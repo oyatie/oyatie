@@ -11,21 +11,27 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use ci_path_resolver_adapters::MOVE_MANIFEST_PATH;
 use ci_path_resolver_adapters::MOVE_MANIFEST_SCHEMA;
 use ci_path_resolver_ports::{PathId, PathResolver};
-use ci_scm_facts_snapshot::retirement::CanonicalRetirementFactsWriter;
+use ci_scm_facts_snapshot::retirement::{
+    CanonicalIgnoredGeneratedWriter, CanonicalRetirementFactsWriter,
+    write_canonical_ignored_generated_file,
+};
 use ci_scm_facts_snapshot::{
-    discover_repo_root, emit_fixed_adr_census_parent_receipt, load_vocab_policy,
-    output_path_resolver,
+    discover_repo_root, dormant_p3_epoch_fingerprint, emit_adr_census_epoch_receipt,
+    load_vocab_policy, output_path_resolver,
     retirement::{
         GENERATED_FACTS_PATH, RetirementMaterializationContext, emit_history_only_retirement_facts,
         historical_dev_push_context, visit_git_blobs, write_canonical_retirement_facts,
     },
 };
 use serde_json::json;
+use sha2::Digest;
 
 static NEXT_TEMP_REPO_ID: AtomicU64 = AtomicU64::new(0);
 
 const PROTECTED: &str = "3333333333333333333333333333333333333333";
 const CANDIDATE: &str = "5555555555555555555555555555555555555555";
+const EPOCH_RECEIPT_PATH: &str =
+    "ci/facade/artifact-inventory-registry/adr-census-epoch-receipt.generated.json";
 
 fn context() -> RetirementMaterializationContext<'static> {
     RetirementMaterializationContext {
@@ -93,6 +99,88 @@ fn commit_all(root: &Path, message: &str) -> String {
     git_stdout(root, ["rev-parse", "HEAD"])
 }
 
+const P3_PROTECTED_SOURCE_PATHS: &[&str] = &[
+    "ci/facade/scm-facts-snapshot/BUCK",
+    "ci/facade/scm-facts-snapshot/Cargo.toml",
+    "ci/facade/scm-facts-snapshot/src/bin/adr-census-epoch-receipt-gate.rs",
+    "ci/facade/scm-facts-snapshot/src/lib.rs",
+    "ci/facade/scm-facts-snapshot/src/main.rs",
+    "ci/facade/scm-facts-snapshot/src/retirement.rs",
+    "governance/corpus/doc-parser/BUCK",
+    "governance/corpus/doc-parser/Cargo.toml",
+    "governance/corpus/doc-parser/src/lib.rs",
+    "governance/corpus/doc-parser/tests/fixtures/adr-heading-reference.md",
+    "governance/corpus/doc-parser/tests/fixtures/adversarial-exfil.md",
+    "governance/corpus/work-area-tree-kernel/BUCK",
+    "governance/corpus/work-area-tree-kernel/Cargo.toml",
+    "governance/corpus/work-area-tree-kernel/src/lib.rs",
+    "specs/adr-census-epoch-control-plane.schema.json",
+    "specs/adr-census-epoch-receipt.schema.json",
+];
+
+fn write_fixture_file(root: &Path, path: &str, bytes: &[u8]) {
+    let destination = root.join(path);
+    std::fs::create_dir_all(destination.parent().expect("fixture file parent"))
+        .expect("create fixture file parent");
+    std::fs::write(destination, bytes).expect("write fixture file");
+}
+
+fn p3_identity_fixture(label: &str) -> PathBuf {
+    let source_root = discover_repo_root().expect("discover source repository root");
+    let root = temp_git_repo(label);
+    for path in P3_PROTECTED_SOURCE_PATHS {
+        write_fixture_file(
+            &root,
+            path,
+            &std::fs::read(source_root.join(path)).expect("read protected source fixture"),
+        );
+    }
+    write_fixture_file(
+        &root,
+        "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
+        &std::fs::read(source_root.join(
+            "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
+        ))
+        .expect("read selected ADR fixture"),
+    );
+    write_fixture_file(&root, "docs/README.md", b"unselected documentation\n");
+    write_fixture_file(
+        &root,
+        "docs/decisions/nested/ADR-9999-unselected.md",
+        b"nested and therefore unselected\n",
+    );
+    write_fixture_file(
+        &root,
+        "registry/adr-census-epoch/control-plane.json",
+        br#"{
+  "$schema": "https://docs.oyatie.com/schemas/adr-census-epoch-control-plane.schema.json",
+  "schema_version": 1,
+  "canonical_name": "adr-census-epoch-control-plane",
+  "receipt_path": "ci/facade/artifact-inventory-registry/adr-census-epoch-receipt.generated.json",
+  "active_epoch": "P2"
+}
+"#,
+    );
+    write_fixture_file(&root, ".buckconfig", b"[cells]\n  root = .\n");
+    write_fixture_file(
+        &root,
+        "rust-toolchain.toml",
+        b"[toolchain]\nchannel = \"stable\"\n",
+    );
+    write_fixture_file(&root, "third-party/BUCK", b"# third-party\n");
+    write_fixture_file(&root, "toolchains/BUCK", b"# toolchains\n");
+    commit_all(&root, "seed P3 identity fixture");
+    root
+}
+
+fn mutate_fixture_and_commit(root: &Path, path: &str, mutation: &[u8]) {
+    let destination = root.join(path);
+    let mut bytes = std::fs::read(&destination).expect("read fixture mutation target");
+    bytes.extend_from_slice(mutation);
+    std::fs::write(destination, bytes).expect("write fixture mutation target");
+    commit_all(root, "mutate P3 identity input");
+}
+
 fn write_control_plane(root: &Path) {
     let control_plane = root.join("registry/history-only-retirement/control-plane.json");
     std::fs::create_dir_all(control_plane.parent().expect("control-plane parent"))
@@ -119,6 +207,11 @@ fn configure_ignored_canonical_facts(root: &Path) {
         format!("/{GENERATED_FACTS_PATH}\n"),
     )
     .expect("ignore canonical retirement facts output");
+}
+
+fn configure_ignored_epoch_receipt(root: &Path) {
+    std::fs::write(root.join(".gitignore"), "**/*.generated.json\n")
+        .expect("ignore canonical ADR census epoch receipt output");
 }
 
 fn assert_git_blob_batch_recovers(root: &Path, blob_oid: &str, expected: &[u8]) {
@@ -379,6 +472,100 @@ fn canonical_writer_stays_bound_to_open_parent_after_ancestor_swap() {
     std::fs::remove_dir_all(root).expect("remove integration fixture");
 }
 
+#[cfg(unix)]
+#[test]
+fn epoch_receipt_leaf_symlink_is_rejected_without_touching_target() {
+    use std::os::unix::fs::symlink;
+
+    let root = temp_git_repo("epoch-receipt-leaf-symlink");
+    configure_ignored_epoch_receipt(&root);
+    let output = root.join(EPOCH_RECEIPT_PATH);
+    std::fs::create_dir_all(output.parent().expect("epoch receipt parent"))
+        .expect("create epoch receipt parent");
+    let outside = root.join("outside.json");
+    std::fs::write(&outside, b"outside bytes").expect("write outside target");
+    symlink(&outside, &output).expect("link epoch receipt output");
+
+    let error = write_canonical_ignored_generated_file(
+        &root,
+        Path::new(EPOCH_RECEIPT_PATH),
+        b"replacement",
+    )
+    .expect_err("epoch receipt leaf symlink must fail closed");
+    assert!(error.contains("must be a regular file"));
+    assert_eq!(
+        std::fs::read(&outside).expect("read outside target"),
+        b"outside bytes"
+    );
+    std::fs::remove_dir_all(root).expect("remove integration fixture");
+}
+
+#[cfg(unix)]
+#[test]
+fn epoch_receipt_intermediate_symlink_is_rejected_without_touching_target() {
+    use std::os::unix::fs::symlink;
+
+    let root = temp_git_repo("epoch-receipt-intermediate-symlink");
+    configure_ignored_epoch_receipt(&root);
+    let outside = root.join("outside");
+    std::fs::create_dir(&outside).expect("create outside directory");
+    let target =
+        outside.join("facade/artifact-inventory-registry/adr-census-epoch-receipt.generated.json");
+    std::fs::create_dir_all(target.parent().expect("outside target parent"))
+        .expect("create outside target parent");
+    std::fs::write(&target, b"outside bytes").expect("write outside target");
+    symlink(&outside, root.join("ci")).expect("link intermediate directory");
+
+    write_canonical_ignored_generated_file(&root, Path::new(EPOCH_RECEIPT_PATH), b"replacement")
+        .expect_err("epoch receipt intermediate symlink must fail closed");
+    assert_eq!(
+        std::fs::read(&target).expect("read outside target"),
+        b"outside bytes"
+    );
+    std::fs::remove_dir_all(root).expect("remove integration fixture");
+}
+
+#[cfg(unix)]
+#[test]
+fn epoch_receipt_writer_stays_bound_to_open_parent_after_ancestor_swap() {
+    use std::os::unix::fs::symlink;
+
+    let root = temp_git_repo("epoch-receipt-parent-swap");
+    configure_ignored_epoch_receipt(&root);
+    let original_ci = root.join("ci");
+    let captured_output = original_ci
+        .join("facade/artifact-inventory-registry/adr-census-epoch-receipt.generated.json");
+    std::fs::create_dir_all(captured_output.parent().expect("captured output parent"))
+        .expect("create canonical parent");
+    let writer = CanonicalIgnoredGeneratedWriter::open(&root, Path::new(EPOCH_RECEIPT_PATH))
+        .expect("open epoch receipt writer before the ancestor swap");
+    std::fs::rename(&original_ci, root.join("ci-captured")).expect("move opened ancestor");
+
+    let outside = root.join("outside");
+    let target =
+        outside.join("facade/artifact-inventory-registry/adr-census-epoch-receipt.generated.json");
+    std::fs::create_dir_all(target.parent().expect("outside target parent"))
+        .expect("create outside target parent");
+    std::fs::write(&target, b"outside bytes").expect("write outside target");
+    symlink(&outside, &original_ci).expect("swap canonical parent to symlink");
+
+    writer
+        .write(b"captured bytes")
+        .expect("writer must finalize through its captured directory fd");
+    assert_eq!(
+        std::fs::read(&target).expect("read outside target"),
+        b"outside bytes"
+    );
+    assert_eq!(
+        std::fs::read(root.join(
+            "ci-captured/facade/artifact-inventory-registry/adr-census-epoch-receipt.generated.json"
+        ))
+        .expect("read captured output"),
+        b"captured bytes"
+    );
+    std::fs::remove_dir_all(root).expect("remove integration fixture");
+}
+
 #[test]
 fn historical_dev_push_context_accepts_exact_head_with_control_plane_and_one_parent() {
     let root = temp_git_repo("historical-dev-push-exact-head");
@@ -547,13 +734,219 @@ fn repository_discovery_finds_root_authority_pointer() {
 }
 
 #[test]
-fn fixed_adr_census_parent_receipt_emission_matches_builder_bytes() {
-    let output_root = temp_repo_root("fixed-adr-census-receipt");
+fn active_p2_epoch_emission_preserves_the_fixed_historical_receipt() {
+    let output_root = temp_repo_root("active-p2-adr-census-epoch");
     let repo_root = discover_repo_root().expect("discover repository root");
-    let first = ci_scm_facts_snapshot::build_fixed_adr_census_parent_receipt(&repo_root)
-        .expect("build fixed receipt");
-    let output = output_root.join("nested/receipt.generated.json");
-    emit_fixed_adr_census_parent_receipt(&repo_root, &output).expect("emit fixed receipt");
-    assert_eq!(std::fs::read(&output).expect("read emitted receipt"), first);
-    std::fs::remove_dir_all(output_root).expect("remove receipt-output fixture");
+    let output = output_root.join("nested/adr-census-epoch-receipt.generated.json");
+    emit_adr_census_epoch_receipt(&repo_root, &output).expect("emit active P2 epoch receipt");
+    let receipt = std::fs::read(&output).expect("read active P2 receipt");
+    assert_eq!(
+        format!("{:x}", sha2::Sha256::digest(&receipt)),
+        "0f22621954fe0f7718a79616769bfe1ed4660851bab8890d69e98038080e2b0a"
+    );
+    let value: serde_json::Value = serde_json::from_slice(&receipt).expect("parse receipt");
+    assert_eq!(
+        value["outer_sha256"],
+        "c3c4195f440fbf7825101dcf303fea9d8aec9d2ce7a77bd3ec25d8411dfdf528"
+    );
+    assert_eq!(
+        value["receipt"]["canonical_digest"],
+        "7a8eb3848e3b5d1dd148595b5210f2a059fac582db9e5607cf54be2f502b24d8"
+    );
+    assert_eq!(
+        value["receipt"]["aggregate_fold"],
+        "2aeb7459f61b6f216b4eee75164bcfb85e405bbe8ca74cf180e5492b09c99507"
+    );
+    let mut tampered = receipt;
+    tampered[0] ^= 1;
+    std::fs::write(&output, tampered).expect("write tampered P2 receipt");
+    assert!(ci_scm_facts_snapshot::validate_adr_census_epoch_receipt(&repo_root, &output).is_err());
+    std::fs::remove_dir_all(output_root).expect("remove epoch receipt fixture");
+}
+
+#[test]
+fn adr_census_epoch_receipt_schema_types_every_digest_and_oid_pattern() {
+    let repo_root = discover_repo_root().expect("discover repository root");
+    let schema_path = repo_root.join("specs/adr-census-epoch-receipt.schema.json");
+    let schema: serde_json::Value = serde_json::from_slice(
+        &std::fs::read(&schema_path).expect("read ADR census epoch receipt schema"),
+    )
+    .expect("parse ADR census epoch receipt schema");
+
+    for path in [
+        "/properties/outer_sha256",
+        "/$defs/receipt/properties/canonical_digest",
+        "/$defs/core/properties/corpus_content_digest",
+        "/$defs/execution/properties/action_source_set_digest",
+        "/$defs/execution/properties/producer_gate_source_set_digest",
+        "/$defs/execution/properties/toolchain_input_digest",
+        "/$defs/producer_gate_source/properties/blob_oid",
+        "/$defs/producer_gate_source/properties/sha256",
+        "/$defs/toolchain_source/properties/blob_oid",
+        "/$defs/toolchain_source/properties/sha256",
+        "/$defs/parser/properties/source_set_digest",
+        "/$defs/parser_source/properties/blob_oid",
+        "/$defs/parser_source/properties/sha256",
+        "/$defs/source/properties/blob_oid",
+        "/$defs/source/properties/sha256",
+    ] {
+        let property = schema
+            .pointer(path)
+            .unwrap_or_else(|| panic!("schema property must exist at {path}"));
+        assert!(
+            property.get("pattern").is_some(),
+            "schema property must retain its format guard at {path}"
+        );
+        assert_eq!(
+            property.get("type").and_then(serde_json::Value::as_str),
+            Some("string"),
+            "numeric and boolean values must be rejected before pattern evaluation at {path}"
+        );
+    }
+
+    for removed_path in [
+        "/$defs/core/properties/decisions_tree",
+        "/$defs/core/properties/docs_tree",
+    ] {
+        assert!(
+            schema.pointer(removed_path).is_none(),
+            "P3 projected core must not carry broad tree identity at {removed_path}"
+        );
+    }
+    let protected = schema
+        .pointer("/$defs/execution_source_closure/properties/producer_gate")
+        .expect("protected source closure schema");
+    assert_eq!(protected["minItems"], 16);
+    assert_eq!(protected["maxItems"], 16);
+    let paths = schema
+        .pointer("/$defs/producer_gate_source/properties/path/enum")
+        .and_then(serde_json::Value::as_array)
+        .expect("protected source path enum");
+    for required_path in [
+        "specs/adr-census-epoch-control-plane.schema.json",
+        "specs/adr-census-epoch-receipt.schema.json",
+    ] {
+        assert!(
+            paths
+                .iter()
+                .any(|value| value.as_str() == Some(required_path)),
+            "P3 protected source closure must bind {required_path}"
+        );
+    }
+}
+
+#[test]
+fn dormant_p3_identity_is_bounded_to_selected_inputs() {
+    let unchanged_inputs = [
+        (
+            "pointer-only-p2-to-p3",
+            "registry/adr-census-epoch/control-plane.json",
+            b"\n".as_slice(),
+        ),
+        (
+            "unrelated-docs",
+            "docs/README.md",
+            b"unrelated\n".as_slice(),
+        ),
+        (
+            "nested-unselected-decision",
+            "docs/decisions/nested/ADR-9999-unselected.md",
+            b"nested\n".as_slice(),
+        ),
+    ];
+    for (label, path, mutation) in unchanged_inputs {
+        let root = p3_identity_fixture(label);
+        let baseline = dormant_p3_epoch_fingerprint(&root).expect("build baseline P3 fingerprint");
+        if path == "registry/adr-census-epoch/control-plane.json" {
+            std::fs::write(
+                root.join(path),
+                br#"{
+  "$schema": "https://docs.oyatie.com/schemas/adr-census-epoch-control-plane.schema.json",
+  "schema_version": 1,
+  "canonical_name": "adr-census-epoch-control-plane",
+  "receipt_path": "ci/facade/artifact-inventory-registry/adr-census-epoch-receipt.generated.json",
+  "active_epoch": "P3"
+}
+"#,
+            )
+            .expect("write pointer-only P3 transition");
+            commit_all(&root, "pointer-only P2 to P3");
+        } else {
+            mutate_fixture_and_commit(&root, path, mutation);
+        }
+        assert_eq!(
+            dormant_p3_epoch_fingerprint(&root).expect("rebuild unchanged P3 fingerprint"),
+            baseline,
+            "{label} must not perturb the dormant P3 projection bytes"
+        );
+        std::fs::remove_dir_all(root).expect("remove unchanged identity fixture");
+    }
+
+    for (label, path) in [
+        (
+            "direct-adr",
+            "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
+        ),
+        ("producer-gate", "ci/facade/scm-facts-snapshot/src/main.rs"),
+        (
+            "control-schema",
+            "specs/adr-census-epoch-control-plane.schema.json",
+        ),
+        (
+            "receipt-schema",
+            "specs/adr-census-epoch-receipt.schema.json",
+        ),
+        ("toolchain", ".buckconfig"),
+    ] {
+        let root = p3_identity_fixture(label);
+        let baseline = dormant_p3_epoch_fingerprint(&root).expect("build baseline P3 fingerprint");
+        mutate_fixture_and_commit(&root, path, b"\nP3 identity mutation\n");
+        assert_ne!(
+            dormant_p3_epoch_fingerprint(&root).expect("rebuild changed P3 fingerprint"),
+            baseline,
+            "{label} must change the P3 identity after recompilation"
+        );
+        std::fs::remove_dir_all(root).expect("remove changed identity fixture");
+    }
+
+    let root = p3_identity_fixture("parser-source-mismatch");
+    mutate_fixture_and_commit(
+        &root,
+        "governance/corpus/doc-parser/src/lib.rs",
+        b"\nP3 parser source mismatch\n",
+    );
+    let error = dormant_p3_epoch_fingerprint(&root)
+        .expect_err("a Git parser source mismatch must fail closed before identity is claimed");
+    assert!(error.contains("parser source set is invalid"), "{error}");
+    std::fs::remove_dir_all(root).expect("remove parser source mismatch fixture");
+}
+
+#[test]
+fn adr_0515_chronology_names_the_complete_live_amendment_and_epoch_gate_boundary() {
+    let repo_root = discover_repo_root().expect("discover repository root");
+    let adr =
+        std::fs::read_to_string(repo_root.join(
+            "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
+        ))
+        .expect("read ADR-0515");
+    assert!(adr.contains(
+        "amended_by: [ADR-0516, ADR-0519, ADR-0526, ADR-0527, ADR-0528, ADR-0529, ADR-0530, ADR-0624]"
+    ));
+    assert!(
+        !adr.contains("adr-census-parent-receipt-gate.rs"),
+        "ADR-0515 must not name the retired parent-only gate as live"
+    );
+    let normalized_adr = adr.split_whitespace().collect::<Vec<_>>().join(" ");
+    for required_statement in [
+        "adr-census-epoch-receipt-gate",
+        "P2 remains active",
+        "P3 remains dormant",
+        "sole protected `oya-ci-required` context",
+        "does not authorize planning dispatch",
+    ] {
+        assert!(
+            normalized_adr.contains(required_statement),
+            "ADR-0515 must retain the live epoch-gate boundary: {required_statement}"
+        );
+    }
 }
