@@ -11,6 +11,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::io::Read;
 use std::path::{Path, PathBuf};
+use std::process::Command;
 
 use serde_json::{Value, json};
 use serde_yaml::Value as YamlValue;
@@ -18,7 +19,13 @@ use toml::Value as TomlValue;
 
 pub const GATE_ID: &str = "cloud-ci-rust-first-automation-hygiene";
 
-pub const VIOLATION_CODES: [&str; 18] = [
+/// The protected branch used to freeze exception debt. This is deliberately not policy data:
+/// candidate policy must not be able to repoint the frozen reference it is checked against.
+const PROTECTED_BASE_REF: &str = "origin/dev";
+const POLICY_REPO_PATH: &str =
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json";
+
+pub const VIOLATION_CODES: [&str; 19] = [
     "rust_first_automation_gate_id_mismatch",
     "rust_first_automation_exception_duplicate",
     "rust_first_automation_exception_missing_field",
@@ -55,6 +62,9 @@ pub const VIOLATION_CODES: [&str; 18] = [
     // canonical role is a CLI. Gate binaries and controllers stay `*-app`; local CLIs are retired
     // bridge surfaces, not the new cloud-native path.
     "rust_first_automation_cli_package_authority",
+    // Candidate policy must not narrow the merge-base scan surface to hide new debt while
+    // shrinking its matching baseline.
+    "rust_first_automation_scan_scope_narrowing",
 ];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -582,6 +592,44 @@ pub fn evaluate_workflow_inline_shell_keyed(
     findings
 }
 
+/// Enforce the immutable merge-base workflow baseline as an anti-expansion ceiling. A candidate
+/// may remove an accepted shell step or reduce its line count, but it may not add a baseline key
+/// or raise a line-count ceiling to waive newly introduced workflow shell debt.
+pub fn validate_workflow_inline_shell_baseline_ceiling(
+    candidate_baseline: &Value,
+    protected_baseline: &Value,
+) -> BTreeSet<Finding> {
+    let mut findings = BTreeSet::new();
+    let candidate_entries = baseline_workflow_shell_entries(candidate_baseline, &mut findings);
+    let protected_entries = baseline_workflow_shell_entries(protected_baseline, &mut findings);
+
+    for (key, candidate_lines) in candidate_entries {
+        match protected_entries.get(&key) {
+            None => {
+                findings.insert(Finding::new(
+                    "rust_first_automation_unbaselined_workflow_inline_shell",
+                    &key,
+                    "candidate workflow inline-shell baseline adds a key beyond the immutable \
+                     merge-base ceiling",
+                ));
+            }
+            Some(protected_lines) if candidate_lines > *protected_lines => {
+                findings.insert(Finding::new(
+                    "rust_first_automation_workflow_inline_shell_line_count_growth",
+                    &key,
+                    format!(
+                        "candidate workflow inline-shell baseline raises the immutable merge-base \
+                         ceiling from {protected_lines} to {candidate_lines}"
+                    ),
+                ));
+            }
+            Some(_) => {}
+        }
+    }
+
+    findings
+}
+
 /// The frozen baseline exception paths, read from the baseline face's
 /// `codes.rust_first_automation_unbaselined_non_rust_exception` array.
 fn baseline_non_rust_exception_keys(baseline: &Value) -> BTreeSet<String> {
@@ -653,6 +701,235 @@ pub fn evaluate_non_rust_exception_baseline_keyed(
     }
 
     findings
+}
+
+/// Enforce the immutable merge-base non-Rust exception baseline as an anti-expansion ceiling. A
+/// candidate may remove an exception and shrink its matching baseline in the same PR, but may not
+/// add a baseline path to waive a new exception.
+pub fn validate_non_rust_exception_baseline_ceiling(
+    candidate_baseline: &Value,
+    protected_baseline: &Value,
+) -> BTreeSet<Finding> {
+    let candidate_keys = baseline_non_rust_exception_keys(candidate_baseline);
+    let protected_keys = baseline_non_rust_exception_keys(protected_baseline);
+    candidate_keys
+        .difference(&protected_keys)
+        .map(|key| {
+            Finding::new(
+                "rust_first_automation_unbaselined_non_rust_exception",
+                key,
+                "candidate non-Rust exception baseline adds a path beyond the immutable merge-base \
+                 ceiling",
+            )
+        })
+        .collect()
+}
+
+/// Enforce the immutable merge-base scan configuration as an anti-narrowing ceiling. Candidate
+/// policy may broaden detection by adding scan terms or removing exclusions, but must preserve all
+/// protected scan coverage and enabled dimensions. This applies recursively to every data-driven
+/// scan block, including future dimensions that follow the same arrays/bools convention.
+pub fn validate_scan_scope_ceiling(
+    candidate_scan: &Value,
+    protected_scan: &Value,
+) -> BTreeSet<Finding> {
+    let mut findings = BTreeSet::new();
+    validate_scan_scope_node(candidate_scan, protected_scan, "scan", &mut findings);
+    findings
+}
+
+fn scan_scope_finding(findings: &mut BTreeSet<Finding>, key: &str, message: impl Into<String>) {
+    findings.insert(Finding::new(
+        "rust_first_automation_scan_scope_narrowing",
+        key,
+        message,
+    ));
+}
+
+fn scan_string_set(value: &Value) -> Option<BTreeSet<String>> {
+    value
+        .as_array()?
+        .iter()
+        .map(|item| item.as_str().map(str::to_owned))
+        .collect()
+}
+
+fn validate_scan_scope_node(
+    candidate: &Value,
+    protected: &Value,
+    path: &str,
+    findings: &mut BTreeSet<Finding>,
+) {
+    match protected {
+        Value::Object(protected_fields) => {
+            let Some(candidate_fields) = candidate.as_object() else {
+                scan_scope_finding(
+                    findings,
+                    path,
+                    "candidate scan configuration must retain the protected object",
+                );
+                return;
+            };
+            for (key, protected_value) in protected_fields {
+                if key == "_comment" {
+                    continue;
+                }
+                let child_path = format!("{path}.{key}");
+                let candidate_value = candidate_fields.get(key).unwrap_or(&Value::Null);
+                validate_scan_scope_node(candidate_value, protected_value, &child_path, findings);
+            }
+        }
+        Value::Array(_) => {
+            let Some(protected_values) = scan_string_set(protected) else {
+                scan_scope_finding(findings, path, "protected scan array must contain strings");
+                return;
+            };
+            let Some(candidate_values) = scan_string_set(candidate) else {
+                scan_scope_finding(
+                    findings,
+                    path,
+                    "candidate scan configuration must retain the protected string array",
+                );
+                return;
+            };
+            if path.ends_with("exclude_prefixes") {
+                if candidate_values
+                    .difference(&protected_values)
+                    .next()
+                    .is_some()
+                {
+                    scan_scope_finding(
+                        findings,
+                        path,
+                        "candidate scan exclusions may shrink but must not add a protected-scope \
+                         blind spot",
+                    );
+                }
+            } else if protected_values
+                .difference(&candidate_values)
+                .next()
+                .is_some()
+            {
+                scan_scope_finding(
+                    findings,
+                    path,
+                    "candidate scan terms must retain every protected detection term",
+                );
+            }
+        }
+        Value::Bool(protected_enabled) if path.ends_with(".enabled") => {
+            if *protected_enabled && candidate.as_bool() != Some(true) {
+                scan_scope_finding(
+                    findings,
+                    path,
+                    "candidate policy must not disable a protected scan dimension",
+                );
+            }
+        }
+        _ if candidate != protected => {
+            scan_scope_finding(
+                findings,
+                path,
+                "candidate scan scalar must retain the protected configuration",
+            );
+        }
+        _ => {}
+    }
+}
+
+// ───────────────────────── merge-base frozen exception baseline ─────────────────────────────
+
+/// Narrow Git-object seam for the immutable baseline. Mirroring the repository's other frozen
+/// reference gates keeps candidate filesystem reads out of the allowance source.
+trait FrozenPolicySource {
+    fn merge_base(&self, base_ref: &str) -> Result<String, String>;
+    fn show_file(&self, revision: &str, path: &str) -> Result<String, String>;
+}
+
+struct GitCliFrozenPolicySource<'a> {
+    repo_root: &'a Path,
+}
+
+impl FrozenPolicySource for GitCliFrozenPolicySource<'_> {
+    fn merge_base(&self, base_ref: &str) -> Result<String, String> {
+        git_stdout(self.repo_root, &["merge-base", base_ref, "HEAD"])
+    }
+
+    fn show_file(&self, revision: &str, path: &str) -> Result<String, String> {
+        let output = Command::new("git")
+            .args(["show", &format!("{revision}:{path}")])
+            .current_dir(self.repo_root)
+            .output()
+            .map_err(|error| format!("run git show for frozen automation policy: {error}"))?;
+        if output.status.success() {
+            String::from_utf8(output.stdout)
+                .map_err(|error| format!("frozen automation policy is not UTF-8: {error}"))
+        } else {
+            Err(format!(
+                "read frozen automation policy {revision}:{path}: {}",
+                String::from_utf8_lossy(&output.stderr).trim()
+            ))
+        }
+    }
+}
+
+fn git_stdout(repo_root: &Path, args: &[&str]) -> Result<String, String> {
+    let output = Command::new("git")
+        .args(args)
+        .current_dir(repo_root)
+        .output()
+        .map_err(|error| format!("run git for frozen automation policy: {error}"))?;
+    if !output.status.success() {
+        return Err(format!(
+            "frozen automation policy Git command failed: {}",
+            String::from_utf8_lossy(&output.stderr).trim()
+        ));
+    }
+    String::from_utf8(output.stdout)
+        .map(|value| value.trim().to_owned())
+        .map_err(|error| format!("frozen automation policy Git output is not UTF-8: {error}"))
+}
+
+fn frozen_policy_field(source: &impl FrozenPolicySource, field: &str) -> Result<Value, String> {
+    let merge_base = source.merge_base(PROTECTED_BASE_REF)?;
+    let policy = source.show_file(&merge_base, POLICY_REPO_PATH)?;
+    let policy: Value = serde_json::from_str(&policy)
+        .map_err(|error| format!("parse frozen automation policy: {error}"))?;
+    policy
+        .get(field)
+        .cloned()
+        .ok_or_else(|| format!("frozen automation policy missing {field}"))
+}
+
+/// Load the non-Rust exception allowlist baseline from the immutable merge-base tree.
+///
+/// The candidate policy remains the observed exception set, but its accompanying baseline is
+/// intentionally ignored. A new exception can therefore only become accepted after a distinct
+/// protected-base change carries that baseline forward.
+pub fn load_non_rust_exception_baseline_from_merge_base(repo_root: &Path) -> Result<Value, String> {
+    frozen_policy_field(
+        &GitCliFrozenPolicySource { repo_root },
+        "non_rust_exception_baseline",
+    )
+}
+
+/// Load the workflow inline-shell baseline from the immutable merge-base tree.
+///
+/// Candidate workflow contents remain the observed corpus, but the candidate's matching baseline
+/// is intentionally ignored. A new inline shell can therefore only become accepted after a
+/// distinct protected-base change carries that baseline forward.
+pub fn load_workflow_inline_shell_baseline_from_merge_base(
+    repo_root: &Path,
+) -> Result<Value, String> {
+    frozen_policy_field(
+        &GitCliFrozenPolicySource { repo_root },
+        "workflow_inline_shell_baseline",
+    )
+}
+
+/// Load the protected scan configuration from the immutable merge-base tree.
+pub fn load_scan_from_merge_base(repo_root: &Path) -> Result<Value, String> {
+    frozen_policy_field(&GitCliFrozenPolicySource { repo_root }, "scan")
 }
 
 // ─────────────────────────── forbidden workflow `uses:` dimension ───────────────────────────

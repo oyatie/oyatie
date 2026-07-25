@@ -17,6 +17,10 @@ use oya_cloud_ci_rust_first_automation_hygiene_app::{
     evaluate_cli_package_authority, evaluate_forbidden_workflow_uses,
     evaluate_interpreter_command_authority, evaluate_keyed,
     evaluate_non_rust_exception_baseline_keyed, evaluate_workflow_inline_shell_keyed,
+    load_non_rust_exception_baseline_from_merge_base, load_scan_from_merge_base,
+    load_workflow_inline_shell_baseline_from_merge_base,
+    validate_non_rust_exception_baseline_ceiling, validate_scan_scope_ceiling,
+    validate_workflow_inline_shell_baseline_ceiling,
 };
 use serde_json::{Value, json};
 use serde_yaml::Value as YamlValue;
@@ -49,6 +53,20 @@ fn load_json(path: &Path) -> Value {
 
 fn load_policy(root: &Path) -> Value {
     load_json(&policy_path(root))
+}
+
+fn run_git<const N: usize>(root: &Path, args: [&str; N]) -> String {
+    let output = Command::new("git")
+        .args(args)
+        .current_dir(root)
+        .output()
+        .expect("run git fixture command");
+    assert!(
+        output.status.success(),
+        "git fixture command failed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    String::from_utf8(output.stdout).expect("git fixture output is UTF-8")
 }
 
 fn named_workflow_step<'a>(workflow: &'a YamlValue, job_id: &str, name: &str) -> &'a YamlValue {
@@ -274,6 +292,19 @@ fn workflow_inline_shell_dimension_covers_dot_github_workflows() {
 }
 
 #[test]
+fn live_scan_scope_does_not_narrow_the_immutable_merge_base_configuration() {
+    let root = repo_root();
+    let policy = load_policy(&root);
+    let protected_scan =
+        load_scan_from_merge_base(&root).expect("read immutable merge-base scan configuration");
+    let findings = validate_scan_scope_ceiling(&policy["scan"], &protected_scan);
+    assert!(
+        findings.is_empty(),
+        "candidate scan scope must not narrow the immutable merge-base configuration: {findings:#?}"
+    );
+}
+
+#[test]
 fn retirement_event_transport_delegates_provider_tuple_to_rust_materializer_without_shell_topology()
 {
     let root = repo_root();
@@ -414,9 +445,10 @@ fn live_postgres_lane_emits_redacted_bootstrap_provenance_artifact() {
 fn live_workflow_inline_shell_matches_frozen_baseline_green() {
     let root = repo_root();
     let policy = load_policy(&root);
-    // The frozen keyed baseline is folded INTO the policy (`workflow_inline_shell_baseline`) so it
-    // lives in an already-accounted gate face and adds zero new tracked accounting rows.
-    let baseline = &policy["workflow_inline_shell_baseline"];
+    let protected_baseline = load_workflow_inline_shell_baseline_from_merge_base(&root).expect(
+        "read the workflow inline-shell baseline from the immutable merge-base policy tree",
+    );
+    let candidate_baseline = &policy["workflow_inline_shell_baseline"];
 
     let observed = collect_observed_workflow_inline_shell(&root, &policy)
         .expect("read-only workflow scan should not need temp files or cleanup");
@@ -426,7 +458,12 @@ fn live_workflow_inline_shell_matches_frozen_baseline_green() {
         "expected a non-empty live workflow inline-shell inventory (the blind spot is real)"
     );
 
-    let findings = evaluate_workflow_inline_shell_keyed(&observed, &baseline);
+    let mut findings =
+        validate_workflow_inline_shell_baseline_ceiling(candidate_baseline, &protected_baseline);
+    findings.extend(evaluate_workflow_inline_shell_keyed(
+        &observed,
+        candidate_baseline,
+    ));
     assert!(
         findings.is_empty(),
         "workflow inline-shell dimension found shrink-only violations over {steps} observed steps: \
@@ -443,11 +480,12 @@ fn live_workflow_inline_shell_matches_frozen_baseline_green() {
 
     // The committed keys_total provenance must match the actual baseline key array length — a cheap
     // tripwire against a hand-edited baseline whose provenance count drifts from its `codes` array.
-    let codes_len = baseline["codes"]["rust_first_automation_unbaselined_workflow_inline_shell"]
-        .as_array()
-        .expect("baseline codes array")
-        .len();
-    let provenance_total = baseline["_provenance"]["keys_total"]
+    let codes_len =
+        candidate_baseline["codes"]["rust_first_automation_unbaselined_workflow_inline_shell"]
+            .as_array()
+            .expect("baseline codes array")
+            .len();
+    let provenance_total = candidate_baseline["_provenance"]["keys_total"]
         .as_u64()
         .expect("baseline _provenance.keys_total") as usize;
     assert_eq!(
@@ -521,9 +559,16 @@ fn retired_baselined_inline_shell_is_stale_red() {
 fn live_non_rust_exceptions_match_frozen_baseline_green() {
     let root = repo_root();
     let policy = load_policy(&root);
-    let baseline = &policy["non_rust_exception_baseline"];
+    let protected_baseline = load_non_rust_exception_baseline_from_merge_base(&root)
+        .expect("read the non-Rust exception baseline from the immutable merge-base policy tree");
+    let candidate_baseline = &policy["non_rust_exception_baseline"];
 
-    let findings = evaluate_non_rust_exception_baseline_keyed(&policy, baseline);
+    let mut findings =
+        validate_non_rust_exception_baseline_ceiling(candidate_baseline, &protected_baseline);
+    findings.extend(evaluate_non_rust_exception_baseline_keyed(
+        &policy,
+        candidate_baseline,
+    ));
     assert!(
         findings.is_empty(),
         "non-Rust-exception dimension found shrink-only violations: \
@@ -538,17 +583,601 @@ fn live_non_rust_exceptions_match_frozen_baseline_green() {
         ),
     );
 
-    let codes_len = baseline["codes"]["rust_first_automation_unbaselined_non_rust_exception"]
-        .as_array()
-        .expect("baseline codes array")
-        .len();
-    let provenance_total = baseline["_provenance"]["keys_total"]
+    let codes_len =
+        candidate_baseline["codes"]["rust_first_automation_unbaselined_non_rust_exception"]
+            .as_array()
+            .expect("baseline codes array")
+            .len();
+    let provenance_total = candidate_baseline["_provenance"]["keys_total"]
         .as_u64()
         .expect("baseline _provenance.keys_total") as usize;
     assert_eq!(
         codes_len, provenance_total,
         "baseline _provenance.keys_total ({provenance_total}) must equal the codes array length \
          ({codes_len})"
+    );
+}
+
+/// Regression for #1190: a candidate must not add both an exception and that exception to its
+/// local baseline.  The baseline is loaded by Git object ID from the merge-base tree, so only a
+/// separately protected change can admit an additional exception.
+#[test]
+fn candidate_policy_cannot_self_waive_new_exception_by_editing_its_baseline() {
+    let temp = TestDir::new("automation-policy-merge-base");
+    let root = temp.path();
+    let path = policy_path(root);
+    fs::create_dir_all(path.parent().expect("policy parent")).expect("create policy directory");
+    run_git(root, ["init"]);
+    run_git(
+        root,
+        ["config", "user.email", "automation-policy@example.test"],
+    );
+    run_git(root, ["config", "user.name", "automation policy test"]);
+
+    let protected_policy = json!({
+        "exceptions": [{"path": "scripts/accepted.sh"}],
+        "non_rust_exception_baseline": {"codes": {
+            "rust_first_automation_unbaselined_non_rust_exception": ["scripts/accepted.sh"]
+        }}
+    });
+    fs::write(
+        &path,
+        serde_json::to_vec(&protected_policy).expect("serialize protected policy"),
+    )
+    .expect("write protected policy");
+    run_git(root, ["add", "."]);
+    run_git(root, ["commit", "-m", "protected policy"]);
+    let protected_commit = run_git(root, ["rev-parse", "HEAD"]);
+    run_git(
+        root,
+        [
+            "update-ref",
+            "refs/remotes/origin/dev",
+            protected_commit.trim(),
+        ],
+    );
+
+    let candidate_policy = json!({
+        "exceptions": [
+            {"path": "scripts/accepted.sh"},
+            {"path": "scripts/candidate-self-waiver.sh"}
+        ],
+        "non_rust_exception_baseline": {"codes": {
+            "rust_first_automation_unbaselined_non_rust_exception": [
+                "scripts/accepted.sh",
+                "scripts/candidate-self-waiver.sh"
+            ]
+        }}
+    });
+    fs::write(
+        &path,
+        serde_json::to_vec(&candidate_policy).expect("serialize candidate policy"),
+    )
+    .expect("write candidate policy");
+
+    let vulnerable_candidate_baseline = &candidate_policy["non_rust_exception_baseline"];
+    assert!(
+        evaluate_non_rust_exception_baseline_keyed(
+            &candidate_policy,
+            vulnerable_candidate_baseline
+        )
+        .is_empty(),
+        "control: the candidate-controlled baseline demonstrates the pre-#1190 self-waiver"
+    );
+
+    let baseline = load_non_rust_exception_baseline_from_merge_base(root)
+        .expect("load immutable protected-base baseline");
+    let findings = validate_non_rust_exception_baseline_ceiling(
+        &candidate_policy["non_rust_exception_baseline"],
+        &baseline,
+    );
+    assert!(
+        findings.iter().any(|finding| {
+            finding.code == "rust_first_automation_unbaselined_non_rust_exception"
+                && finding.key == "scripts/candidate-self-waiver.sh"
+        }),
+        "candidate policy plus candidate baseline must not self-waive: {findings:#?}"
+    );
+}
+
+/// Regression for #1190: workflow inline shell debt is equally candidate-controlled when its
+/// baseline comes from the candidate policy. The baseline must instead be read from the immutable
+/// merge-base policy tree, so a candidate workflow plus a matching candidate baseline cannot waive
+/// its own new shell step.
+#[test]
+fn candidate_workflow_shell_cannot_self_waive_by_editing_its_baseline() {
+    let temp = TestDir::new("automation-policy-workflow-merge-base");
+    let root = temp.path();
+    let path = policy_path(root);
+    let workflows = root.join(".github/workflows");
+    fs::create_dir_all(path.parent().expect("policy parent")).expect("create policy directory");
+    fs::create_dir_all(&workflows).expect("create workflow directory");
+    run_git(root, ["init"]);
+    run_git(
+        root,
+        ["config", "user.email", "automation-policy@example.test"],
+    );
+    run_git(root, ["config", "user.name", "automation policy test"]);
+
+    let scan = json!({
+        "workflow_inline_shell": {
+            "enabled": true,
+            "roots": [".github/workflows"],
+            "extensions": [".yml"]
+        }
+    });
+    let accepted_key = ".github/workflows/required.yml::gate::Accepted shell";
+    let protected_policy = json!({
+        "scan": scan,
+        "workflow_inline_shell_baseline": {"codes": {
+            "rust_first_automation_unbaselined_workflow_inline_shell": [
+                {"key": accepted_key, "shell_lines": 1}
+            ]
+        }}
+    });
+    fs::write(
+        &path,
+        serde_json::to_vec(&protected_policy).expect("serialize protected policy"),
+    )
+    .expect("write protected policy");
+    fs::write(
+        workflows.join("required.yml"),
+        "jobs:\n  gate:\n    steps:\n      - name: Accepted shell\n        run: echo accepted\n",
+    )
+    .expect("write protected workflow");
+    run_git(root, ["add", "."]);
+    run_git(root, ["commit", "-m", "protected policy"]);
+    let protected_commit = run_git(root, ["rev-parse", "HEAD"]);
+    run_git(
+        root,
+        [
+            "update-ref",
+            "refs/remotes/origin/dev",
+            protected_commit.trim(),
+        ],
+    );
+
+    let candidate_key = ".github/workflows/required.yml::gate::Candidate self waiver";
+    let candidate_policy = json!({
+        "scan": protected_policy["scan"],
+        "workflow_inline_shell_baseline": {"codes": {
+            "rust_first_automation_unbaselined_workflow_inline_shell": [
+                {"key": accepted_key, "shell_lines": 1},
+                {"key": candidate_key, "shell_lines": 1}
+            ]
+        }}
+    });
+    fs::write(
+        &path,
+        serde_json::to_vec(&candidate_policy).expect("serialize candidate policy"),
+    )
+    .expect("write candidate policy");
+    fs::write(
+        workflows.join("required.yml"),
+        "jobs:\n  gate:\n    steps:\n      - name: Accepted shell\n        run: echo accepted\n      - name: Candidate self waiver\n        run: echo candidate\n",
+    )
+    .expect("write candidate workflow");
+
+    let observed = collect_observed_workflow_inline_shell(root, &candidate_policy)
+        .expect("scan candidate workflow");
+    assert!(
+        evaluate_workflow_inline_shell_keyed(
+            &observed,
+            &candidate_policy["workflow_inline_shell_baseline"]
+        )
+        .is_empty(),
+        "control: the candidate-controlled baseline demonstrates the pre-#1190 self-waiver"
+    );
+
+    let baseline = load_workflow_inline_shell_baseline_from_merge_base(root)
+        .expect("load immutable protected-base workflow baseline");
+    let findings = validate_workflow_inline_shell_baseline_ceiling(
+        &candidate_policy["workflow_inline_shell_baseline"],
+        &baseline,
+    );
+    assert!(
+        findings.iter().any(|finding| {
+            finding.code == "rust_first_automation_unbaselined_workflow_inline_shell"
+                && finding.key == candidate_key
+        }),
+        "candidate workflow plus candidate baseline must not self-waive: {findings:#?}"
+    );
+}
+
+#[test]
+fn immutable_baseline_loader_fails_closed_when_ref_or_policy_object_is_missing() {
+    let temp = TestDir::new("automation-policy-missing-frozen-object");
+    let root = temp.path();
+    fs::write(root.join("README"), "unrelated commit\n").expect("write unrelated file");
+    run_git(root, ["init"]);
+    run_git(
+        root,
+        ["config", "user.email", "automation-policy@example.test"],
+    );
+    run_git(root, ["config", "user.name", "automation policy test"]);
+    run_git(root, ["add", "."]);
+    run_git(root, ["commit", "-m", "unrelated commit"]);
+
+    assert!(
+        load_workflow_inline_shell_baseline_from_merge_base(root).is_err(),
+        "missing origin/dev must fail closed"
+    );
+
+    let commit = run_git(root, ["rev-parse", "HEAD"]);
+    run_git(
+        root,
+        ["update-ref", "refs/remotes/origin/dev", commit.trim()],
+    );
+    assert!(
+        load_workflow_inline_shell_baseline_from_merge_base(root).is_err(),
+        "missing merge-base policy object must fail closed"
+    );
+}
+
+/// Regression for #1190: candidate-owned scan scope must not hide both a new workflow inline
+/// shell and a non-Rust script while candidate baselines shrink to match the narrowed scan.
+#[test]
+fn candidate_scan_scope_cannot_hide_new_action_shell_or_non_rust_script() {
+    let temp = TestDir::new("automation-policy-scan-scope-merge-base");
+    let root = temp.path();
+    let path = policy_path(root);
+    fs::create_dir_all(path.parent().expect("policy parent")).expect("create policy directory");
+    fs::create_dir_all(root.join(".github/actions")).expect("create action directory");
+    fs::create_dir_all(root.join("scripts")).expect("create script directory");
+    run_git(root, ["init"]);
+    run_git(
+        root,
+        ["config", "user.email", "automation-policy@example.test"],
+    );
+    run_git(root, ["config", "user.name", "automation policy test"]);
+
+    let protected_policy = json!({
+        "scan": {
+            "roots": ["scripts"],
+            "exclude_prefixes": [],
+            "non_rust_extensions": [".sh"],
+            "workflow_inline_shell": {
+                "enabled": true,
+                "roots": [".github/actions"],
+                "extensions": [".yml"]
+            }
+        },
+        "exceptions": [],
+        "non_rust_exception_baseline": {"codes": {
+            "rust_first_automation_unbaselined_non_rust_exception": []
+        }},
+        "workflow_inline_shell_baseline": {"codes": {
+            "rust_first_automation_unbaselined_workflow_inline_shell": []
+        }}
+    });
+    fs::write(
+        &path,
+        serde_json::to_vec(&protected_policy).expect("serialize protected policy"),
+    )
+    .expect("write protected policy");
+    run_git(root, ["add", "."]);
+    run_git(root, ["commit", "-m", "protected policy"]);
+    let protected_commit = run_git(root, ["rev-parse", "HEAD"]);
+    run_git(
+        root,
+        [
+            "update-ref",
+            "refs/remotes/origin/dev",
+            protected_commit.trim(),
+        ],
+    );
+
+    let candidate_policy = json!({
+        "scan": {
+            "roots": [],
+            "exclude_prefixes": ["scripts/"],
+            "non_rust_extensions": [],
+            "workflow_inline_shell": {
+                "enabled": false,
+                "roots": [],
+                "extensions": []
+            }
+        },
+        "exceptions": [],
+        "non_rust_exception_baseline": {"codes": {
+            "rust_first_automation_unbaselined_non_rust_exception": []
+        }},
+        "workflow_inline_shell_baseline": {"codes": {
+            "rust_first_automation_unbaselined_workflow_inline_shell": []
+        }}
+    });
+    fs::write(
+        &path,
+        serde_json::to_vec(&candidate_policy).expect("serialize candidate policy"),
+    )
+    .expect("write candidate policy");
+    fs::write(
+        root.join(".github/actions/hidden.yml"),
+        "runs:\n  steps:\n    - name: Hidden shell\n      run: echo hidden\n",
+    )
+    .expect("write hidden action");
+    fs::write(root.join("scripts/hidden.sh"), "#!/bin/sh\necho hidden\n")
+        .expect("write hidden script");
+
+    let observed_scripts = collect_observed_non_rust_automation(root, &candidate_policy)
+        .expect("candidate scan succeeds while hiding script");
+    let observed_shell = collect_observed_workflow_inline_shell(root, &candidate_policy)
+        .expect("candidate scan succeeds while hiding action shell");
+    assert!(
+        evaluate_non_rust_exception_baseline_keyed(
+            &candidate_policy,
+            &candidate_policy["non_rust_exception_baseline"]
+        )
+        .is_empty()
+            && evaluate_workflow_inline_shell_keyed(
+                &observed_shell,
+                &candidate_policy["workflow_inline_shell_baseline"]
+            )
+            .is_empty()
+            && observed_scripts["rows"]
+                .as_array()
+                .is_some_and(Vec::is_empty),
+        "control: candidate-owned scope plus narrowed baselines hides both additions"
+    );
+
+    let protected_scan =
+        load_scan_from_merge_base(root).expect("load immutable protected-base scan configuration");
+    let findings = validate_scan_scope_ceiling(&candidate_policy["scan"], &protected_scan);
+    assert!(
+        findings.iter().any(|finding| {
+            finding.code == "rust_first_automation_scan_scope_narrowing"
+                && finding.key == "scan.workflow_inline_shell.enabled"
+        }) && findings.iter().any(|finding| {
+            finding.code == "rust_first_automation_scan_scope_narrowing"
+                && finding.key == "scan.roots"
+        }) && findings.iter().any(|finding| {
+            finding.code == "rust_first_automation_scan_scope_narrowing"
+                && finding.key == "scan.exclude_prefixes"
+        }),
+        "immutable scope must reject the candidate self-waiver: {findings:#?}"
+    );
+}
+
+#[test]
+fn candidate_scan_scope_may_broaden_coverage() {
+    let protected_scan = json!({
+        "roots": ["scripts"],
+        "exclude_prefixes": ["target/"],
+        "non_rust_extensions": [".sh"],
+        "workflow_inline_shell": {
+            "enabled": true,
+            "roots": [".github/workflows"],
+            "extensions": [".yml"]
+        }
+    });
+    let candidate_scan = json!({
+        "roots": ["scripts", "tools"],
+        "exclude_prefixes": [],
+        "non_rust_extensions": [".sh", ".py"],
+        "workflow_inline_shell": {
+            "enabled": true,
+            "roots": [".github/workflows", ".github/actions"],
+            "extensions": [".yml", ".yaml"]
+        }
+    });
+    let findings = validate_scan_scope_ceiling(&candidate_scan, &protected_scan);
+    assert!(
+        findings.is_empty(),
+        "candidate scan broadening must remain permitted: {findings:#?}"
+    );
+}
+
+/// A candidate may retire a non-Rust exception and shrink its matching baseline in the same PR.
+/// The merge-base baseline is only an anti-expansion ceiling, not a requirement to retain debt.
+#[test]
+fn candidate_non_rust_baseline_removal_below_merge_base_ceiling_is_green() {
+    let temp = TestDir::new("automation-policy-removal-below-merge-base");
+    let root = temp.path();
+    let path = policy_path(root);
+    fs::create_dir_all(path.parent().expect("policy parent")).expect("create policy directory");
+    run_git(root, ["init"]);
+    run_git(
+        root,
+        ["config", "user.email", "automation-policy@example.test"],
+    );
+    run_git(root, ["config", "user.name", "automation policy test"]);
+
+    let protected_policy = json!({
+        "exceptions": [
+            {"path": "scripts/accepted.sh"},
+            {"path": "scripts/retired.sh"}
+        ],
+        "non_rust_exception_baseline": {"codes": {
+            "rust_first_automation_unbaselined_non_rust_exception": [
+                "scripts/accepted.sh", "scripts/retired.sh"
+            ]
+        }}
+    });
+    fs::write(
+        &path,
+        serde_json::to_vec(&protected_policy).expect("serialize protected policy"),
+    )
+    .expect("write protected policy");
+    run_git(root, ["add", "."]);
+    run_git(root, ["commit", "-m", "protected policy"]);
+    let protected_commit = run_git(root, ["rev-parse", "HEAD"]);
+    run_git(
+        root,
+        [
+            "update-ref",
+            "refs/remotes/origin/dev",
+            protected_commit.trim(),
+        ],
+    );
+
+    let candidate_policy = json!({
+        "exceptions": [{"path": "scripts/accepted.sh"}],
+        "non_rust_exception_baseline": {"codes": {
+            "rust_first_automation_unbaselined_non_rust_exception": ["scripts/accepted.sh"]
+        }}
+    });
+    fs::write(
+        &path,
+        serde_json::to_vec(&candidate_policy).expect("serialize candidate policy"),
+    )
+    .expect("write candidate policy");
+
+    let protected_baseline = load_non_rust_exception_baseline_from_merge_base(root)
+        .expect("load immutable protected-base baseline");
+    let ceiling_findings = validate_non_rust_exception_baseline_ceiling(
+        &candidate_policy["non_rust_exception_baseline"],
+        &protected_baseline,
+    );
+    let synchronization_findings = evaluate_non_rust_exception_baseline_keyed(
+        &candidate_policy,
+        &candidate_policy["non_rust_exception_baseline"],
+    );
+    assert!(
+        ceiling_findings.is_empty() && synchronization_findings.is_empty(),
+        "synchronized candidate baseline removal must be admitted: ceiling={ceiling_findings:#?}, \
+         synchronization={synchronization_findings:#?}"
+    );
+}
+
+/// A candidate may reduce a workflow shell block and lower its matching baseline line count in the
+/// same PR. The immutable merge-base count is an anti-regrowth ceiling, not a retention floor.
+#[test]
+fn candidate_workflow_line_count_reduction_below_merge_base_ceiling_is_green() {
+    let temp = TestDir::new("automation-policy-workflow-reduction-below-merge-base");
+    let root = temp.path();
+    let path = policy_path(root);
+    let workflows = root.join(".github/workflows");
+    fs::create_dir_all(path.parent().expect("policy parent")).expect("create policy directory");
+    fs::create_dir_all(&workflows).expect("create workflow directory");
+    run_git(root, ["init"]);
+    run_git(
+        root,
+        ["config", "user.email", "automation-policy@example.test"],
+    );
+    run_git(root, ["config", "user.name", "automation policy test"]);
+
+    let scan = json!({"workflow_inline_shell": {
+        "enabled": true,
+        "roots": [".github/workflows"],
+        "extensions": [".yml"]
+    }});
+    let key = ".github/workflows/required.yml::gate::Reduced shell";
+    let protected_policy = json!({
+        "scan": scan,
+        "workflow_inline_shell_baseline": {"codes": {
+            "rust_first_automation_unbaselined_workflow_inline_shell": [
+                {"key": key, "shell_lines": 2}
+            ]
+        }}
+    });
+    fs::write(
+        &path,
+        serde_json::to_vec(&protected_policy).expect("serialize protected policy"),
+    )
+    .expect("write protected policy");
+    fs::write(
+        workflows.join("required.yml"),
+        "jobs:\n  gate:\n    steps:\n      - name: Reduced shell\n        run: |\n          echo first\n          echo second\n",
+    )
+    .expect("write protected workflow");
+    run_git(root, ["add", "."]);
+    run_git(root, ["commit", "-m", "protected policy"]);
+    let protected_commit = run_git(root, ["rev-parse", "HEAD"]);
+    run_git(
+        root,
+        [
+            "update-ref",
+            "refs/remotes/origin/dev",
+            protected_commit.trim(),
+        ],
+    );
+
+    let candidate_policy = json!({
+        "scan": protected_policy["scan"],
+        "workflow_inline_shell_baseline": {"codes": {
+            "rust_first_automation_unbaselined_workflow_inline_shell": [
+                {"key": key, "shell_lines": 1}
+            ]
+        }}
+    });
+    fs::write(
+        &path,
+        serde_json::to_vec(&candidate_policy).expect("serialize candidate policy"),
+    )
+    .expect("write candidate policy");
+    fs::write(
+        workflows.join("required.yml"),
+        "jobs:\n  gate:\n    steps:\n      - name: Reduced shell\n        run: echo first\n",
+    )
+    .expect("write candidate workflow");
+
+    let protected_baseline = load_workflow_inline_shell_baseline_from_merge_base(root)
+        .expect("load immutable protected-base workflow baseline");
+    let observed = collect_observed_workflow_inline_shell(root, &candidate_policy)
+        .expect("scan candidate workflow");
+    let ceiling_findings = validate_workflow_inline_shell_baseline_ceiling(
+        &candidate_policy["workflow_inline_shell_baseline"],
+        &protected_baseline,
+    );
+    let synchronization_findings = evaluate_workflow_inline_shell_keyed(
+        &observed,
+        &candidate_policy["workflow_inline_shell_baseline"],
+    );
+    assert!(
+        ceiling_findings.is_empty() && synchronization_findings.is_empty(),
+        "synchronized line-count reduction must be admitted: ceiling={ceiling_findings:#?}, \
+         synchronization={synchronization_findings:#?}"
+    );
+}
+
+#[test]
+fn exception_added_by_prior_protected_change_is_accepted() {
+    let temp = TestDir::new("automation-policy-prior-protected-change");
+    let root = temp.path();
+    let path = policy_path(root);
+    fs::create_dir_all(path.parent().expect("policy parent")).expect("create policy directory");
+    run_git(root, ["init"]);
+    run_git(
+        root,
+        ["config", "user.email", "automation-policy@example.test"],
+    );
+    run_git(root, ["config", "user.name", "automation policy test"]);
+
+    let protected_policy = json!({
+        "exceptions": [
+            {"path": "scripts/accepted.sh"},
+            {"path": "scripts/prior-protected-change.sh"}
+        ],
+        "non_rust_exception_baseline": {"codes": {
+            "rust_first_automation_unbaselined_non_rust_exception": [
+                "scripts/accepted.sh",
+                "scripts/prior-protected-change.sh"
+            ]
+        }}
+    });
+    fs::write(
+        &path,
+        serde_json::to_vec(&protected_policy).expect("serialize protected policy"),
+    )
+    .expect("write protected policy");
+    run_git(root, ["add", "."]);
+    run_git(root, ["commit", "-m", "prior protected policy"]);
+    let protected_commit = run_git(root, ["rev-parse", "HEAD"]);
+    run_git(
+        root,
+        [
+            "update-ref",
+            "refs/remotes/origin/dev",
+            protected_commit.trim(),
+        ],
+    );
+
+    let baseline = load_non_rust_exception_baseline_from_merge_base(root)
+        .expect("load prior protected baseline");
+    let findings = evaluate_non_rust_exception_baseline_keyed(&protected_policy, &baseline);
+    assert!(
+        findings.is_empty(),
+        "an exception admitted by the prior protected tree must be accepted: {findings:#?}"
     );
 }
 
