@@ -111,6 +111,9 @@ acquire_mkdir_lock() {
       rmdir -- "${lock_dir}" 2>/dev/null || true
       continue
     fi
+    if [ "$(date +%s)" -ge "${deadline}" ] && [ -z "${owner_pid}" ]; then
+      rmdir -- "${lock_dir}" 2>/dev/null && continue
+    fi
     if [ "$(date +%s)" -ge "${deadline}" ]; then
       echo "Timed out waiting for Buck2 installer lock: ${lock_path}" >&2
       exit 1
