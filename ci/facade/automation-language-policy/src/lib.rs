@@ -25,7 +25,7 @@ const PROTECTED_BASE_REF: &str = "origin/dev";
 const POLICY_REPO_PATH: &str =
     "ci/facade/automation-language-policy/rust-first-automation-policy.json";
 
-pub const VIOLATION_CODES: [&str; 18] = [
+pub const VIOLATION_CODES: [&str; 19] = [
     "rust_first_automation_gate_id_mismatch",
     "rust_first_automation_exception_duplicate",
     "rust_first_automation_exception_missing_field",
@@ -62,6 +62,9 @@ pub const VIOLATION_CODES: [&str; 18] = [
     // canonical role is a CLI. Gate binaries and controllers stay `*-app`; local CLIs are retired
     // bridge surfaces, not the new cloud-native path.
     "rust_first_automation_cli_package_authority",
+    // Candidate policy must not narrow the merge-base scan surface to hide new debt while
+    // shrinking its matching baseline.
+    "rust_first_automation_scan_scope_narrowing",
 ];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -722,6 +725,118 @@ pub fn validate_non_rust_exception_baseline_ceiling(
         .collect()
 }
 
+/// Enforce the immutable merge-base scan configuration as an anti-narrowing ceiling. Candidate
+/// policy may broaden detection by adding scan terms or removing exclusions, but must preserve all
+/// protected scan coverage and enabled dimensions. This applies recursively to every data-driven
+/// scan block, including future dimensions that follow the same arrays/bools convention.
+pub fn validate_scan_scope_ceiling(
+    candidate_scan: &Value,
+    protected_scan: &Value,
+) -> BTreeSet<Finding> {
+    let mut findings = BTreeSet::new();
+    validate_scan_scope_node(candidate_scan, protected_scan, "scan", &mut findings);
+    findings
+}
+
+fn scan_scope_finding(findings: &mut BTreeSet<Finding>, key: &str, message: impl Into<String>) {
+    findings.insert(Finding::new(
+        "rust_first_automation_scan_scope_narrowing",
+        key,
+        message,
+    ));
+}
+
+fn scan_string_set(value: &Value) -> Option<BTreeSet<String>> {
+    value
+        .as_array()?
+        .iter()
+        .map(|item| item.as_str().map(str::to_owned))
+        .collect()
+}
+
+fn validate_scan_scope_node(
+    candidate: &Value,
+    protected: &Value,
+    path: &str,
+    findings: &mut BTreeSet<Finding>,
+) {
+    match protected {
+        Value::Object(protected_fields) => {
+            let Some(candidate_fields) = candidate.as_object() else {
+                scan_scope_finding(
+                    findings,
+                    path,
+                    "candidate scan configuration must retain the protected object",
+                );
+                return;
+            };
+            for (key, protected_value) in protected_fields {
+                if key == "_comment" {
+                    continue;
+                }
+                let child_path = format!("{path}.{key}");
+                let candidate_value = candidate_fields.get(key).unwrap_or(&Value::Null);
+                validate_scan_scope_node(candidate_value, protected_value, &child_path, findings);
+            }
+        }
+        Value::Array(_) => {
+            let Some(protected_values) = scan_string_set(protected) else {
+                scan_scope_finding(findings, path, "protected scan array must contain strings");
+                return;
+            };
+            let Some(candidate_values) = scan_string_set(candidate) else {
+                scan_scope_finding(
+                    findings,
+                    path,
+                    "candidate scan configuration must retain the protected string array",
+                );
+                return;
+            };
+            if path.ends_with("exclude_prefixes") {
+                if candidate_values
+                    .difference(&protected_values)
+                    .next()
+                    .is_some()
+                {
+                    scan_scope_finding(
+                        findings,
+                        path,
+                        "candidate scan exclusions may shrink but must not add a protected-scope \
+                         blind spot",
+                    );
+                }
+            } else if protected_values
+                .difference(&candidate_values)
+                .next()
+                .is_some()
+            {
+                scan_scope_finding(
+                    findings,
+                    path,
+                    "candidate scan terms must retain every protected detection term",
+                );
+            }
+        }
+        Value::Bool(protected_enabled) if path.ends_with(".enabled") => {
+            if *protected_enabled && candidate.as_bool() != Some(true) {
+                scan_scope_finding(
+                    findings,
+                    path,
+                    "candidate policy must not disable a protected scan dimension",
+                );
+            }
+        }
+        _ if candidate != protected => {
+            scan_scope_finding(
+                findings,
+                path,
+                "candidate scan scalar must retain the protected configuration",
+            );
+        }
+        _ => {}
+    }
+}
+
 // ───────────────────────── merge-base frozen exception baseline ─────────────────────────────
 
 /// Narrow Git-object seam for the immutable baseline. Mirroring the repository's other frozen
@@ -775,18 +890,15 @@ fn git_stdout(repo_root: &Path, args: &[&str]) -> Result<String, String> {
         .map_err(|error| format!("frozen automation policy Git output is not UTF-8: {error}"))
 }
 
-fn frozen_policy_baseline(
-    source: &impl FrozenPolicySource,
-    baseline_field: &str,
-) -> Result<Value, String> {
+fn frozen_policy_field(source: &impl FrozenPolicySource, field: &str) -> Result<Value, String> {
     let merge_base = source.merge_base(PROTECTED_BASE_REF)?;
     let policy = source.show_file(&merge_base, POLICY_REPO_PATH)?;
     let policy: Value = serde_json::from_str(&policy)
         .map_err(|error| format!("parse frozen automation policy: {error}"))?;
     policy
-        .get(baseline_field)
+        .get(field)
         .cloned()
-        .ok_or_else(|| format!("frozen automation policy missing {baseline_field}"))
+        .ok_or_else(|| format!("frozen automation policy missing {field}"))
 }
 
 /// Load the non-Rust exception allowlist baseline from the immutable merge-base tree.
@@ -795,7 +907,7 @@ fn frozen_policy_baseline(
 /// intentionally ignored. A new exception can therefore only become accepted after a distinct
 /// protected-base change carries that baseline forward.
 pub fn load_non_rust_exception_baseline_from_merge_base(repo_root: &Path) -> Result<Value, String> {
-    frozen_policy_baseline(
+    frozen_policy_field(
         &GitCliFrozenPolicySource { repo_root },
         "non_rust_exception_baseline",
     )
@@ -809,10 +921,15 @@ pub fn load_non_rust_exception_baseline_from_merge_base(repo_root: &Path) -> Res
 pub fn load_workflow_inline_shell_baseline_from_merge_base(
     repo_root: &Path,
 ) -> Result<Value, String> {
-    frozen_policy_baseline(
+    frozen_policy_field(
         &GitCliFrozenPolicySource { repo_root },
         "workflow_inline_shell_baseline",
     )
+}
+
+/// Load the protected scan configuration from the immutable merge-base tree.
+pub fn load_scan_from_merge_base(repo_root: &Path) -> Result<Value, String> {
+    frozen_policy_field(&GitCliFrozenPolicySource { repo_root }, "scan")
 }
 
 // ─────────────────────────── forbidden workflow `uses:` dimension ───────────────────────────

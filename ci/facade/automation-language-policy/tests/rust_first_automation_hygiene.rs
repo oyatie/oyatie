@@ -17,9 +17,10 @@ use oya_cloud_ci_rust_first_automation_hygiene_app::{
     evaluate_cli_package_authority, evaluate_forbidden_workflow_uses,
     evaluate_interpreter_command_authority, evaluate_keyed,
     evaluate_non_rust_exception_baseline_keyed, evaluate_workflow_inline_shell_keyed,
-    load_non_rust_exception_baseline_from_merge_base,
+    load_non_rust_exception_baseline_from_merge_base, load_scan_from_merge_base,
     load_workflow_inline_shell_baseline_from_merge_base,
-    validate_non_rust_exception_baseline_ceiling, validate_workflow_inline_shell_baseline_ceiling,
+    validate_non_rust_exception_baseline_ceiling, validate_scan_scope_ceiling,
+    validate_workflow_inline_shell_baseline_ceiling,
 };
 use serde_json::{Value, json};
 use serde_yaml::Value as YamlValue;
@@ -287,6 +288,19 @@ fn workflow_inline_shell_dimension_covers_dot_github_workflows() {
                 .is_some_and(|f| f.starts_with(".github/workflows/"))),
         "scanner must surface inline-shell steps under .github/workflows; got {} steps",
         steps.len()
+    );
+}
+
+#[test]
+fn live_scan_scope_does_not_narrow_the_immutable_merge_base_configuration() {
+    let root = repo_root();
+    let policy = load_policy(&root);
+    let protected_scan =
+        load_scan_from_merge_base(&root).expect("read immutable merge-base scan configuration");
+    let findings = validate_scan_scope_ceiling(&policy["scan"], &protected_scan);
+    assert!(
+        findings.is_empty(),
+        "candidate scan scope must not narrow the immutable merge-base configuration: {findings:#?}"
     );
 }
 
@@ -797,6 +811,159 @@ fn immutable_baseline_loader_fails_closed_when_ref_or_policy_object_is_missing()
     assert!(
         load_workflow_inline_shell_baseline_from_merge_base(root).is_err(),
         "missing merge-base policy object must fail closed"
+    );
+}
+
+/// Regression for #1190: candidate-owned scan scope must not hide both a new workflow inline
+/// shell and a non-Rust script while candidate baselines shrink to match the narrowed scan.
+#[test]
+fn candidate_scan_scope_cannot_hide_new_action_shell_or_non_rust_script() {
+    let temp = TestDir::new("automation-policy-scan-scope-merge-base");
+    let root = temp.path();
+    let path = policy_path(root);
+    fs::create_dir_all(path.parent().expect("policy parent")).expect("create policy directory");
+    fs::create_dir_all(root.join(".github/actions")).expect("create action directory");
+    fs::create_dir_all(root.join("scripts")).expect("create script directory");
+    run_git(root, ["init"]);
+    run_git(
+        root,
+        ["config", "user.email", "automation-policy@example.test"],
+    );
+    run_git(root, ["config", "user.name", "automation policy test"]);
+
+    let protected_policy = json!({
+        "scan": {
+            "roots": ["scripts"],
+            "exclude_prefixes": [],
+            "non_rust_extensions": [".sh"],
+            "workflow_inline_shell": {
+                "enabled": true,
+                "roots": [".github/actions"],
+                "extensions": [".yml"]
+            }
+        },
+        "exceptions": [],
+        "non_rust_exception_baseline": {"codes": {
+            "rust_first_automation_unbaselined_non_rust_exception": []
+        }},
+        "workflow_inline_shell_baseline": {"codes": {
+            "rust_first_automation_unbaselined_workflow_inline_shell": []
+        }}
+    });
+    fs::write(
+        &path,
+        serde_json::to_vec(&protected_policy).expect("serialize protected policy"),
+    )
+    .expect("write protected policy");
+    run_git(root, ["add", "."]);
+    run_git(root, ["commit", "-m", "protected policy"]);
+    let protected_commit = run_git(root, ["rev-parse", "HEAD"]);
+    run_git(
+        root,
+        [
+            "update-ref",
+            "refs/remotes/origin/dev",
+            protected_commit.trim(),
+        ],
+    );
+
+    let candidate_policy = json!({
+        "scan": {
+            "roots": [],
+            "exclude_prefixes": ["scripts/"],
+            "non_rust_extensions": [],
+            "workflow_inline_shell": {
+                "enabled": false,
+                "roots": [],
+                "extensions": []
+            }
+        },
+        "exceptions": [],
+        "non_rust_exception_baseline": {"codes": {
+            "rust_first_automation_unbaselined_non_rust_exception": []
+        }},
+        "workflow_inline_shell_baseline": {"codes": {
+            "rust_first_automation_unbaselined_workflow_inline_shell": []
+        }}
+    });
+    fs::write(
+        &path,
+        serde_json::to_vec(&candidate_policy).expect("serialize candidate policy"),
+    )
+    .expect("write candidate policy");
+    fs::write(
+        root.join(".github/actions/hidden.yml"),
+        "runs:\n  steps:\n    - name: Hidden shell\n      run: echo hidden\n",
+    )
+    .expect("write hidden action");
+    fs::write(root.join("scripts/hidden.sh"), "#!/bin/sh\necho hidden\n")
+        .expect("write hidden script");
+
+    let observed_scripts = collect_observed_non_rust_automation(root, &candidate_policy)
+        .expect("candidate scan succeeds while hiding script");
+    let observed_shell = collect_observed_workflow_inline_shell(root, &candidate_policy)
+        .expect("candidate scan succeeds while hiding action shell");
+    assert!(
+        evaluate_non_rust_exception_baseline_keyed(
+            &candidate_policy,
+            &candidate_policy["non_rust_exception_baseline"]
+        )
+        .is_empty()
+            && evaluate_workflow_inline_shell_keyed(
+                &observed_shell,
+                &candidate_policy["workflow_inline_shell_baseline"]
+            )
+            .is_empty()
+            && observed_scripts["rows"]
+                .as_array()
+                .is_some_and(Vec::is_empty),
+        "control: candidate-owned scope plus narrowed baselines hides both additions"
+    );
+
+    let protected_scan =
+        load_scan_from_merge_base(root).expect("load immutable protected-base scan configuration");
+    let findings = validate_scan_scope_ceiling(&candidate_policy["scan"], &protected_scan);
+    assert!(
+        findings.iter().any(|finding| {
+            finding.code == "rust_first_automation_scan_scope_narrowing"
+                && finding.key == "scan.workflow_inline_shell.enabled"
+        }) && findings.iter().any(|finding| {
+            finding.code == "rust_first_automation_scan_scope_narrowing"
+                && finding.key == "scan.roots"
+        }) && findings.iter().any(|finding| {
+            finding.code == "rust_first_automation_scan_scope_narrowing"
+                && finding.key == "scan.exclude_prefixes"
+        }),
+        "immutable scope must reject the candidate self-waiver: {findings:#?}"
+    );
+}
+
+#[test]
+fn candidate_scan_scope_may_broaden_coverage() {
+    let protected_scan = json!({
+        "roots": ["scripts"],
+        "exclude_prefixes": ["target/"],
+        "non_rust_extensions": [".sh"],
+        "workflow_inline_shell": {
+            "enabled": true,
+            "roots": [".github/workflows"],
+            "extensions": [".yml"]
+        }
+    });
+    let candidate_scan = json!({
+        "roots": ["scripts", "tools"],
+        "exclude_prefixes": [],
+        "non_rust_extensions": [".sh", ".py"],
+        "workflow_inline_shell": {
+            "enabled": true,
+            "roots": [".github/workflows", ".github/actions"],
+            "extensions": [".yml", ".yaml"]
+        }
+    });
+    let findings = validate_scan_scope_ceiling(&candidate_scan, &protected_scan);
+    assert!(
+        findings.is_empty(),
+        "candidate scan broadening must remain permitted: {findings:#?}"
     );
 }
 
