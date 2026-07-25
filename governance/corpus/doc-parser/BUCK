@@ -37,3 +37,19 @@ rust_test(
         ":corpus-doc-parser",
     ],
 )
+
+rust_test(
+    name = "corpus-doc-parser-authority-envelope-integration",
+    srcs = [
+        "src/lib.rs",
+        "tests/adr_authority_envelope_integration.rs",
+        "//docs/decisions:adr-0515-source",
+    ],
+    crate = "adr_authority_envelope_integration",
+    crate_root = "tests/adr_authority_envelope_integration.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":corpus-doc-parser",
+        "third-party//:sha2",
+    ],
+)
