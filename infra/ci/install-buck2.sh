@@ -64,17 +64,25 @@ lock_path="${content_dir}/.buck2-install.lock"
 lock_dir="${lock_path}.d"
 asset_temp=""
 binary_temp=""
+mkdir_lock_held=0
 
 cleanup_partials() {
   [ -z "${asset_temp}" ] || rm -f -- "${asset_temp}"
   [ -z "${binary_temp}" ] || rm -f -- "${binary_temp}"
 }
-trap cleanup_partials EXIT
 
 release_mkdir_lock() {
+  [ "${mkdir_lock_held}" -eq 1 ] || return 0
   rm -f -- "${lock_dir}/owner-pid"
   rmdir -- "${lock_dir}" 2>/dev/null || true
+  mkdir_lock_held=0
 }
+
+cleanup_on_exit() {
+  cleanup_partials
+  release_mkdir_lock
+}
+trap cleanup_on_exit EXIT
 
 acquire_mkdir_lock() {
   local deadline owner_pid
@@ -95,8 +103,8 @@ acquire_mkdir_lock() {
     fi
     sleep 1
   done
+  mkdir_lock_held=1
   printf '%s\n' "$$" > "${lock_dir}/owner-pid"
-  trap 'release_mkdir_lock' EXIT
 }
 
 if [ "${BUCK2_INSTALL_FORCE_NO_FLOCK:-}" != "1" ] && command -v flock >/dev/null 2>&1; then

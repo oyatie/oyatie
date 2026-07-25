@@ -2093,6 +2093,7 @@ fn buck2_installer_serializes_same_digest_and_preserves_prior_binary_on_zstd_fai
     write_executable(&bin.join("zstd"), "#!/usr/bin/env bash\nexit 70\n");
     fs::write(content_dir.join("buck2"), b"previous-binary").expect("seed prior binary");
     let failed = installer_command(&root, &bin, &install_dir, "asset.zst", &digest)
+        .env("BUCK2_INSTALL_FORCE_NO_FLOCK", "1")
         .env("PAYLOAD", &payload)
         .env("CRITICAL_DIR", &critical)
         .output()
@@ -2113,6 +2114,10 @@ fn buck2_installer_serializes_same_digest_and_preserves_prior_binary_on_zstd_fai
                 .file_name()
                 .to_string_lossy()
                 .contains("buck2.part."))
+    );
+    assert!(
+        !content_dir.join(".buck2-install.lock.d").exists(),
+        "failed no-flock installation must release its shared lock"
     );
 
     write_executable(
