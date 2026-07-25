@@ -699,26 +699,38 @@ fn live_postgres_split_lanes_are_both_required_by_fan_in() {
 }
 
 #[test]
-fn windows_workspace_resolver_differential_is_a_required_fan_in_input() {
+fn windows_workspace_resolver_differential_is_a_buck2_matrix_leg() {
     let root = repo_root();
     let wf = workflow_path(&root);
     let workflow =
         fs::read_to_string(&wf).unwrap_or_else(|e| panic!("read workflow {}: {e}", wf.display()));
 
-    let windows_job = workflow_job(&workflow, "windows-workspace-member-resolver");
+    let gate_job = workflow_job(&workflow, "gate");
     assert!(
-        windows_job.contains("runs-on: windows-latest"),
-        "the Windows workspace-resolver lane must run on a real Windows runner"
+        gate_job.contains("runs-on: ${{ matrix.os || 'ubuntu-latest' }}"),
+        "the reusable gate matrix must select its runner from the matrix"
     );
     assert!(
-        windows_job.contains(
-            "cargo test --locked -p oya-workspace-members-kernel --test cargo_differential"
+        gate_job.contains("os: windows-latest")
+            && gate_job.contains(
+                "targets: \"//libs/oya-workspace-members-kernel:oya-workspace-members-kernel-cargo-differential\""
+            ),
+        "the Windows matrix leg must execute the workspace resolver Cargo differential Buck2 target"
+    );
+    assert!(
+        gate_job.contains(
+            "targets=\"${{ matrix.targets || format('//ci/facade/{0}:ci-{0}-unittest //ci/facade/{0}:ci-{0}-gate {1}', matrix.crate, matrix.crate == 'scm-facts-snapshot' && '//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot-integration' || '') }}\""
         ),
-        "the Windows workspace-resolver lane must execute the Cargo differential fixture"
+        "the matrix must invoke its optional exact Buck2 target instead of direct Cargo"
     );
     assert!(
-        fan_in_mentions_job(fan_in_block(&workflow), "windows-workspace-member-resolver"),
-        "the single oya-ci-required fan-in must include the Windows workspace-resolver lane"
+        !workflow.contains("\n  windows-workspace-member-resolver:")
+            && !gate_job.contains("cargo test --locked -p oya-workspace-members-kernel"),
+        "the Windows differential must stay inside the Buck2 target, not add a direct Cargo job"
+    );
+    assert!(
+        fan_in_mentions_job(fan_in_block(&workflow), "gate"),
+        "the Windows matrix leg must remain under the single oya-ci-required fan-in"
     );
 }
 

@@ -337,7 +337,7 @@
   },
   "schema_version": "1.4.0",
   "workflow_inline_shell_baseline": {
-    "_comment": "FROZEN exact named-step baseline of accepted workflow inline shell. Each entry is {key, shell_lines}, keyed as <workflow-relpath>::<job-id>::<required unique run-step name>. Both the named key set and shell_lines are exact shrink-accounted: a new key or line-count growth is born-blocking; a removed key or line-count shrink makes this baseline stale until it shrinks in the same reviewed PR. Missing or duplicate names and malformed or duplicate baseline rows fail closed. The initial schema-v2 baseline was mechanically migrated from exact origin/dev commit 30dd46c4dd7d12c085b77332d9ac5035d583edcf; later reviewed additions remain counted here with their measured non-empty shell lines.",
+    "_comment": "FROZEN exact named-step baseline of accepted workflow inline shell. Each entry is {key, shell_lines}, keyed as <workflow-relpath>::<job-id>::<required unique run-step name>. Both the named key set and shell_lines are exact shrink-accounted: a new key or line-count growth is born-blocking; a removed key or line-count shrink makes this baseline stale until it shrinks in the same reviewed PR. Missing or duplicate run-step names and malformed or duplicate baseline rows fail closed. This schema-v2 baseline was mechanically migrated from exact origin/dev commit 30dd46c4dd7d12c085b77332d9ac5035d583edcf, preserving its accepted 58 workflow run steps and measured non-empty shell line counts.",
     "_provenance": {
       "authority": "pipeline-glue(a): rust-first ratchet workflow-inline-shell go-live; door:one-way",
       "baseline_schema_version": 2,
@@ -349,9 +349,9 @@
         ".github/workflows/cache-integrity-canary.yml": 12,
         ".github/workflows/check-substrates.yml": 5,
         ".github/workflows/docs-graph-drift.yml": 1,
-        ".github/workflows/oya-ci-required.yml": 41
+        ".github/workflows/oya-ci-required.yml": 40
       },
-      "keys_total": 59,
+      "keys_total": 58,
       "migration": "v1 positional step-N keys migrated mechanically from exact origin/dev base to required unique named-step keys with measured shell_lines; v2 is exact shrink-accounted."
     },
     "codes": {
@@ -541,10 +541,6 @@
           "shell_lines": 1
         },
         {
-          "key": ".github/workflows/oya-ci-required.yml::windows-workspace-member-resolver::Cargo differential — Windows resolver inspection error",
-          "shell_lines": 1
-        },
-        {
           "key": ".github/workflows/oya-ci-required.yml::gate-live-postgres-facades::Install postgresql-client for the bootstrap",
           "shell_lines": 4
         },
@@ -582,7 +578,7 @@
         },
         {
           "key": ".github/workflows/oya-ci-required.yml::oya-ci-required::Fan-in verdict (green IFF every gate lane is green)",
-          "shell_lines": 28
+          "shell_lines": 26
         },
         {
           "key": ".github/workflows/oya-ci-required.yml::producer-regen::Install buck2 (digest-pinned prebuilt release)",

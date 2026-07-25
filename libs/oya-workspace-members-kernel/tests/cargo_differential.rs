@@ -61,6 +61,14 @@ fn cyclic_directory_symlink_inspection_error_matches_cargo_success() {
     std::fs::create_dir_all(root.join("members")).expect("create member root");
     symlink_dir("loop", root.join("members/loop")).expect("create cyclic directory symlink");
 
+    let inspection_error = std::fs::metadata(root.join("members/loop"))
+        .expect_err("the cyclic directory symlink must fail filesystem inspection");
+    assert_eq!(
+        inspection_error.raw_os_error(),
+        Some(1921),
+        "the fixture must specifically exercise ERROR_CANT_RESOLVE_FILENAME"
+    );
+
     let cargo = cargo_metadata(&root);
     assert!(
         cargo.status.success(),
