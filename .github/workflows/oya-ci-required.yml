@@ -147,7 +147,7 @@ jobs:
     # "gate · <discipline>", not a bare "gate (crate)". Adding a gate = one `include` line
     # (crate + label); the gate_registration meta-test enforces every gate crate is listed.
     name: ${{ matrix.label }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os || 'ubuntu-latest' }}
     strategy:
       fail-fast: false
       matrix:
@@ -194,6 +194,7 @@ jobs:
           - { crate: automation-language-policy, label: "gate · rust-first automation hygiene (cloud-native infra anti-patterns: scripts, workflow shell, retired interpreters, and new CLI packages)" }
           - { crate: gate-self-conformance, label: "gate · gate-self-conformance (GH #777, pipeline-as-product 7-property bar over every gate)" }
           - { crate: scm-facts-snapshot, label: "gate · fixed ADR census parent receipt (P2 historical evidence)" }
+          - { targets: "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel-cargo-differential", os: windows-latest, label: "gate · Windows workspace resolver differential (ERROR_CANT_RESOLVE_FILENAME)" }
     steps:
       # actions/checkout@v6.0.3 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
@@ -211,20 +212,24 @@ jobs:
           name: generated-faces
           path: .
       - name: Install buck2 (digest-pinned prebuilt release)
+        shell: bash
         run: infra/ci/install-buck2.sh
       # Buck2/rustc still use the pinned workspace toolchain + components; provision it before
       # the test action starts to avoid concurrent rustup writes inside parallel Buck2 actions.
       - name: Pre-provision pinned Rust toolchain for Buck2 gate tests
+        shell: bash
         run: |
           set -euo pipefail
           rustup toolchain install
           rustc --version
       - name: buck2 test ${{ matrix.crate }}
+        shell: bash
+        # Default matrix legs expand to //ci/facade/${{ matrix.crate }}:ci-${{ matrix.crate }}-gate.
         run: |
           set -euo pipefail
-          buck2 test \
-            //ci/facade/${{ matrix.crate }}:ci-${{ matrix.crate }}-unittest \
-            //ci/facade/${{ matrix.crate }}:ci-${{ matrix.crate }}-gate ${{ matrix.crate == 'scm-facts-snapshot' && '//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot-integration' || '' }}
+          targets="${{ matrix.targets || format('//ci/facade/{0}:ci-{0}-unittest //ci/facade/{0}:ci-{0}-gate {1}', matrix.crate, matrix.crate == 'scm-facts-snapshot' && '//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot-integration' || '') }}"
+          test -n "${targets}" && buck2 test \
+            ${targets}
 
   # ── freshness: first-diagnosis gate for the two stale-output failures from PR #662.
   #    Runs as its own fast job with no needs edge so stale Cargo.lock and stale generated faces
@@ -1192,22 +1197,6 @@ jobs:
           retention-days: 30
           if-no-files-found: warn
 
-  # Windows-only Cargo boundary differential for ERROR_CANT_RESOLVE_FILENAME (1921).
-  # This is a constituent input to the same fan-in below: it adds no protected context.
-  # The fixture invokes Cargo metadata to compare Cargo's own cyclic-symlink expansion with
-  # the in-process resolver, so it deliberately uses Cargo rather than a second Buck2 lane.
-  windows-workspace-member-resolver:
-    name: windows workspace-member resolver differential (ERROR_CANT_RESOLVE_FILENAME)
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
-        with:
-          persist-credentials: false
-      - name: Cargo differential — Windows resolver inspection error
-        run: cargo test --locked -p oya-workspace-members-kernel --test cargo_differential
-
-
-
   # ── THE FAN-IN. This is the single required context branch protection keys on. It has NO
   #    command of its own (Principle 1 — it NEVER re-runs a narrower subset): it is green IFF
   #    every gate lane above is green. `needs:` lists EVERY gate job; the gate-registration
@@ -1226,7 +1215,6 @@ jobs:
       - gate-affected-target-set       # binding workspace coverage: affected cone or fail-closed full run (ADR-0554)
       - gate-live-postgres-adapters # #901: durable adapter RLS / CDC / SCIM tests against isolated live Postgres
       - gate-live-postgres-facades  # #901: durable facade tenant lifecycle / SCIM tests against isolated live Postgres
-      - windows-workspace-member-resolver # Windows ERROR_CANT_RESOLVE_FILENAME differential, under this same authority
     steps:
       - name: Fan-in verdict (green IFF every gate lane is green)
         run: |
@@ -1240,7 +1228,6 @@ jobs:
           echo "  affected-set      = ${{ needs.gate-affected-target-set.result }}"
           echo "  live-postgres/adapters = ${{ needs.gate-live-postgres-adapters.result }}"
           echo "  live-postgres/facades  = ${{ needs.gate-live-postgres-facades.result }}"
-          echo "  Windows resolver differential = ${{ needs.windows-workspace-member-resolver.result }}"
           # A matrix job's aggregate `.result` is success IFF ALL legs succeeded, failure if any
           # leg failed, skipped if it never ran — so one check covers every gate in the matrix.
           if [ "${{ needs.gate.result }}" = "success" ] \
@@ -1251,8 +1238,7 @@ jobs:
             && [ "${{ needs.buck2.result }}" = "success" ] \
             && [ "${{ needs.gate-affected-target-set.result }}" = "success" ] \
             && [ "${{ needs.gate-live-postgres-adapters.result }}" = "success" ] \
-            && [ "${{ needs.gate-live-postgres-facades.result }}" = "success" ] \
-            && [ "${{ needs.windows-workspace-member-resolver.result }}" = "success" ]; then
+            && [ "${{ needs.gate-live-postgres-facades.result }}" = "success" ]; then
             echo "oya-ci-required: GREEN — every constituent gate lane passed."
             exit 0
           fi
