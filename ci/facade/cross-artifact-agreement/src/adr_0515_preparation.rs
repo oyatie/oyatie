@@ -393,6 +393,14 @@ mod tests {
     }
 
     #[test]
+    fn keyed_evaluation_includes_preparation_findings_when_present() {
+        let mut facts = valid();
+        facts["authority_claim"] = json!("qualified-human");
+        let findings = crate::evaluate_keyed(&json!({"adr_0515_preparation_facts": facts}));
+        assert!(findings.contains(&Finding::new(ADR_0515_PREPARATION_CODE, "authority_claim")));
+    }
+
+    #[test]
     fn unknown_contract_fields_fail_closed() {
         let mut facts = valid();
         facts["unreviewed_extension"] = json!(true);
