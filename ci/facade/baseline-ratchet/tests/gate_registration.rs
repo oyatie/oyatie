@@ -718,14 +718,19 @@ fn windows_workspace_resolver_differential_is_a_buck2_matrix_leg() {
         "the Windows matrix leg must execute the workspace resolver Cargo differential Buck2 target"
     );
     assert!(
-        gate_job.contains(
-            "targets=\"${{ matrix.targets || format('//ci/facade/{0}:ci-{0}-unittest //ci/facade/{0}:ci-{0}-gate {1}', matrix.crate, matrix.crate == 'scm-facts-snapshot' && '//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot-integration' || '') }}\""
-        ),
-        "the matrix must invoke its optional exact Buck2 target instead of direct Cargo"
+        gate_job.contains("shell: pwsh") && gate_job.contains("$IsWindows"),
+        "the shared matrix step must use PowerShell, which is native on Windows and avoids Bash/MSYS rewriting"
     );
     assert!(
-        gate_job.contains("VsDevCmd.bat"),
-        "the Windows Buck2 lane must initialize the MSVC environment before compiling the differential target"
+        gate_job.contains("[string]::IsNullOrWhiteSpace($targets)")
+            && gate_job.contains("cmd.exe /d /s /c")
+            && gate_job.contains("call `\"%ProgramFiles%\\Microsoft Visual Studio\\2022\\Enterprise\\Common7\\Tools\\VsDevCmd.bat`\"")
+            && gate_job.contains("buck2 test $targets"),
+        "the Windows-native path must reject an empty target, initialize MSVC, and run the exact Buck2 target"
+    );
+    assert!(
+        !gate_job.contains("shell: bash\n        # Default matrix legs expand"),
+        "the Windows Buck2 path must not be routed through Bash/MSYS"
     );
     assert!(
         !workflow.contains("\n  windows-workspace-member-resolver:")
