@@ -184,7 +184,7 @@ fn workflow_job(workflow: &str, job_name: &str) -> String {
     for line in workflow.lines() {
         if line == anchor {
             found = true;
-        } else if found && line.starts_with("  ") && !line.starts_with("    ") {
+        } else if found && !line.trim().is_empty() && !line.starts_with("    ") {
             break;
         }
         if found {
@@ -193,6 +193,87 @@ fn workflow_job(workflow: &str, job_name: &str) -> String {
     }
     assert!(found, "workflow job `{job_name}` not found");
     lines.join("\n")
+}
+
+/// Extract structural YAML step blocks. YAML mapping keys may be ordered arbitrarily, and
+/// comments are never interpreted as fields.
+fn workflow_steps(gate_job: &str) -> Vec<Vec<&str>> {
+    let mut steps = Vec::new();
+    let mut current = Vec::new();
+
+    for line in gate_job.lines() {
+        if line.starts_with("      - ") {
+            if !current.is_empty() {
+                steps.push(current);
+            }
+            current = vec![line];
+        } else if !current.is_empty() {
+            current.push(line);
+        }
+    }
+    if !current.is_empty() {
+        steps.push(current);
+    }
+
+    steps
+}
+
+fn step_runs_buck2_test(step: &[&str]) -> bool {
+    step.iter()
+        .filter_map(|line| {
+            line.strip_prefix("      - run:")
+                .or_else(|| line.strip_prefix("        run:"))
+        })
+        .any(|run| run.contains("buck2 test"))
+}
+
+fn buck2_matrix_step_uses_pwsh(gate_job: &str) -> bool {
+    let mut buck2_steps = workflow_steps(gate_job)
+        .into_iter()
+        .filter(|step| step_runs_buck2_test(step));
+    let Some(step) = buck2_steps.next() else {
+        return false;
+    };
+
+    buck2_steps.next().is_none()
+        && step
+            .iter()
+            .any(|line| *line == "      - shell: pwsh" || *line == "        shell: pwsh")
+}
+
+#[test]
+fn workflow_job_does_not_swallow_less_indented_or_top_level_content() {
+    let workflow = "jobs:\n  gate:\n    runs-on: ubuntu-latest\n    steps: []\n\nname: unrelated top-level workflow name\n  unrelated-job:\n    runs-on: ubuntu-latest\n";
+
+    let gate = workflow_job(workflow, "gate");
+
+    assert!(gate.contains("runs-on: ubuntu-latest"));
+    assert!(
+        !gate.contains("name: unrelated top-level workflow name")
+            && !gate.contains("unrelated-job:"),
+        "a workflow job must end at every nonblank line with indentation below its body, including a column-zero top-level key"
+    );
+}
+
+#[test]
+fn buck2_matrix_step_requires_pwsh_structurally_regardless_of_key_order() {
+    let reordered = "  gate:\n    steps:\n      - shell: pwsh\n        # shell: bash must remain a comment, not a field\n        name: buck2 test ${{ matrix.crate }}\n        run: buck2 test\n";
+    let dummy_named_pwsh_with_bash_buck_run = "  gate:\n    steps:\n      - name: buck2 test ${{ matrix.crate }}\n        shell: pwsh\n        run: Write-Host dummy\n      - name: actual execution\n        shell: bash\n        run: buck2 test $targets\n";
+    let two_buck_runs = "  gate:\n    steps:\n      - name: first\n        shell: pwsh\n        run: buck2 test first\n      - name: second\n        shell: pwsh\n        run: buck2 test second\n";
+
+    assert!(buck2_matrix_step_uses_pwsh(reordered));
+    assert!(
+        !buck2_matrix_step_uses_pwsh(&reordered.replace("shell: pwsh", "shell: bash")),
+        "the exact Buck2 matrix-test step must reject Bash even when its shell key precedes name"
+    );
+    assert!(
+        !buck2_matrix_step_uses_pwsh(dummy_named_pwsh_with_bash_buck_run),
+        "a dummy named PowerShell step must not mask a differently named Bash step that actually runs Buck2"
+    );
+    assert!(
+        !buck2_matrix_step_uses_pwsh(two_buck_runs),
+        "the gate job must expose exactly one structural Buck2 test step"
+    );
 }
 
 const WINDOWS_RESOLVER_DIFFERENTIAL_TARGET: &str =
@@ -939,8 +1020,12 @@ fn windows_workspace_resolver_differential_is_a_buck2_matrix_leg() {
         "the Windows matrix leg must pair exactly `os: windows-latest` with the exact resolver differential Buck2 target: {windows_entry}"
     );
     assert!(
-        gate_job.contains("shell: pwsh") && gate_job.contains("$IsWindows"),
-        "the shared matrix step must use PowerShell, which is native on Windows and avoids Bash/MSYS rewriting"
+        buck2_matrix_step_uses_pwsh(&gate_job) && gate_job.contains("$IsWindows"),
+        "the exact Buck2 matrix-test step must use PowerShell, which is native on Windows and avoids Bash/MSYS rewriting"
+    );
+    assert!(
+        !buck2_matrix_step_uses_pwsh(&gate_job.replace("shell: pwsh", "shell: bash")),
+        "changing the exact Buck2 matrix-test step to Bash must be rejected without relying on comment text or YAML key ordering"
     );
     assert!(
         gate_job.contains("[string]::IsNullOrWhiteSpace($targets)")
@@ -952,10 +1037,6 @@ fn windows_workspace_resolver_differential_is_a_buck2_matrix_leg() {
             && windows_branch_discovers_msvc_toolchain(&gate_job)
             && windows_branch_has_buck_execution_receipt(&gate_job),
         "the non-Windows path must splat separate Buck2 arguments while Windows rejects an empty exact target, discovers the installed MSVC toolchain without a version/edition assumption, captures and prints the Buck receipt, and fails closed unless it contains Build ID plus a passing test summary"
-    );
-    assert!(
-        !gate_job.contains("shell: bash\n        # Default matrix legs expand"),
-        "the Windows Buck2 path must not be routed through Bash/MSYS"
     );
     assert!(
         !workflow.contains("\n  windows-workspace-member-resolver:")
@@ -1119,12 +1200,29 @@ fn windows_buck2_toolchain_uses_prelude_msvc_defaults() {
     let toolchains = fs::read_to_string(root.join("toolchains/BUCK"))
         .expect("read system toolchain declarations");
 
+    assert!(
+        toolchains.contains("CXX_TOOLCHAIN_CONFIG = {")
+            && toolchains.contains("**CXX_TOOLCHAIN_CONFIG"),
+        "both C++ toolchain declarations must consume one shared platform configuration"
+    );
     for field in ["compiler", "compiler_type", "linker", "archiver"] {
         assert!(
-            toolchains.contains(&format!("{field} = None if host_info().os.is_windows else")),
-            "Windows must retain the prelude MSVC {field} default instead of overriding it with a Unix path"
+            toolchains.contains(&format!(
+                "\"{field}\": None if host_info().os.is_windows else"
+            )),
+            "the shared C++ toolchain configuration must own the Windows prelude MSVC {field} default"
         );
     }
+    assert_eq!(
+        toolchains.matches("**CXX_TOOLCHAIN_CONFIG").count(),
+        2,
+        "both `cxx` and `cxx_no_default_deps` must consume the same configuration exactly once"
+    );
+    assert_eq!(
+        toolchains.matches("host_info().os.is_windows").count(),
+        4,
+        "platform conditionals belong only in the shared configuration, never duplicated per toolchain declaration"
+    );
 }
 
 #[test]

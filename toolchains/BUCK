@@ -16,13 +16,17 @@ system_rust_toolchain(
 # Absolute Unix compiler paths keep the prelude build-script cc-shim independent of PATH on
 # Darwin/Linux. Windows must retain the prelude MSVC defaults; overriding them with Unix paths
 # makes every Rust target that links a C build script fail before its tests can run.
+CXX_TOOLCHAIN_CONFIG = {
+    "compiler": None if host_info().os.is_windows else "/usr/bin/clang",
+    "compiler_type": None if host_info().os.is_windows else "clang",
+    "linker": None if host_info().os.is_windows else "/usr/bin/clang",
+    "archiver": None if host_info().os.is_windows else "/usr/bin/ar",
+}
+
 system_cxx_toolchain(
     name = "cxx",
-    compiler = None if host_info().os.is_windows else "/usr/bin/clang",
-    compiler_type = None if host_info().os.is_windows else "clang",
-    linker = None if host_info().os.is_windows else "/usr/bin/clang",
-    archiver = None if host_info().os.is_windows else "/usr/bin/ar",
     visibility = ["PUBLIC"],
+    **CXX_TOOLCHAIN_CONFIG
 )
 
 # REQUIRED by the prelude: prelude//decls/toolchains_common.bzl `_cxx_toolchain()`
@@ -32,11 +36,8 @@ system_cxx_toolchain(
 # the affected-gate query) fails with "Unknown target cxx_no_default_deps". Mirror :cxx.
 system_cxx_toolchain(
     name = "cxx_no_default_deps",
-    compiler = None if host_info().os.is_windows else "/usr/bin/clang",
-    compiler_type = None if host_info().os.is_windows else "clang",
-    linker = None if host_info().os.is_windows else "/usr/bin/clang",
-    archiver = None if host_info().os.is_windows else "/usr/bin/ar",
     visibility = ["PUBLIC"],
+    **CXX_TOOLCHAIN_CONFIG
 )
 
 system_genrule_toolchain(

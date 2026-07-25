@@ -2329,6 +2329,42 @@ fn buck2_installer_times_out_without_writes_then_recovers_after_holder_is_killed
 }
 
 #[test]
+fn buck2_installer_recovers_an_ownerless_no_flock_lock_directory() {
+    let root = repo_root();
+    let fixture = TestDir::new("ownerless-no-flock-lock");
+    let bin = fixture.path().join("bin");
+    fs::create_dir_all(&bin).expect("create shim bin");
+    let payload = fixture.path().join("payload");
+    fs::write(&payload, b"#!/usr/bin/env bash\necho recovered\n").expect("write payload");
+    let digest = sha256(&payload);
+    install_host_shims(
+        &bin,
+        "#!/usr/bin/env bash\nset -euo pipefail\ninput=\"\"; output=\"\"\nwhile [ \"$#\" -gt 0 ]; do case \"$1\" in -o) output=\"$2\"; shift 2 ;; -d|-f) shift ;; *) input=\"$1\"; shift ;; esac; done\ncp \"$input\" \"$output\"\n",
+        "#!/usr/bin/env bash\nset -euo pipefail\nout=\"\"\nwhile [ \"$#\" -gt 0 ]; do case \"$1\" in -o) out=\"$2\"; shift 2 ;; *) shift ;; esac; done\ncp \"$PAYLOAD\" \"$out\"\n",
+    );
+    let install_dir = fixture.path().join("install");
+    let content_dir = installer_content_dir(&install_dir, &digest);
+    fs::create_dir_all(content_dir.join(".buck2-install.lock.d"))
+        .expect("construct ownerless lock directory");
+
+    let output = installer_command(&root, &bin, &install_dir, "asset.zst", &digest)
+        .env("BUCK2_INSTALL_FORCE_NO_FLOCK", "1")
+        .env("BUCK2_INSTALL_LOCK_TIMEOUT_SECONDS", "1")
+        .env("PAYLOAD", &payload)
+        .output()
+        .expect("run ownerless-lock recovery fixture");
+    assert_success(output);
+    assert_eq!(
+        fs::read(content_dir.join("buck2")).expect("recovered binary"),
+        fs::read(&payload).expect("payload")
+    );
+    assert!(
+        !content_dir.join(".buck2-install.lock.d").exists(),
+        "recovered no-flock installation must release the ownerless lock"
+    );
+}
+
+#[test]
 fn buck2_installer_writes_a_native_windows_path_for_github_path() {
     let root = repo_root();
     let fixture = TestDir::new("windows-github-path");

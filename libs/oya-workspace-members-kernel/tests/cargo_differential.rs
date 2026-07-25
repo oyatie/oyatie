@@ -49,11 +49,58 @@ fn cargo_metadata(root: &Path) -> std::process::Output {
         .expect("spawn Cargo metadata for hermetic fixture")
 }
 
-fn cargo_workspace_member_dirs(root: &Path, metadata: &str) -> BTreeSet<String> {
-    let root = root
-        .canonicalize()
-        .expect("canonicalize fixture root for Cargo metadata paths");
+#[cfg(unix)]
+fn failed_exit_status() -> std::process::ExitStatus {
+    use std::os::unix::process::ExitStatusExt;
+
+    std::process::ExitStatus::from_raw(1 << 8)
+}
+
+#[cfg(windows)]
+fn failed_exit_status() -> std::process::ExitStatus {
+    use std::os::windows::process::ExitStatusExt;
+
+    std::process::ExitStatus::from_raw(1)
+}
+
+#[test]
+fn cargo_metadata_uses_workspace_root_prefix_and_preserves_member_identity() {
+    let root = fixture_root("reported-workspace-root");
+    let metadata = r#"{
+        "workspace_root": "/cargo-reported-workspace-root",
+        "workspace_members": ["link 0.1.0 (path+file:///cargo-reported-workspace-root/members/link)"],
+        "packages": [{
+            "id": "link 0.1.0 (path+file:///cargo-reported-workspace-root/members/link)",
+            "manifest_path": "/cargo-reported-workspace-root/members/link/Cargo.toml"
+        }]
+    }"#;
+
+    assert_eq!(
+        cargo_workspace_member_dirs(metadata),
+        BTreeSet::from(["members/link".to_owned()])
+    );
+
+    let _ = std::fs::remove_dir_all(root);
+}
+
+#[test]
+fn missing_member_manifest_accepts_windows_separators_without_cargo_wording() {
+    let cargo = std::process::Output {
+        status: failed_exit_status(),
+        stdout: Vec::new(),
+        stderr: b"error: could not read C:\\workspace\\members\\not-a-crate\\Cargo.toml".to_vec(),
+    };
+
+    assert_cargo_missing_member_manifest(&cargo, "members/not-a-crate/Cargo.toml");
+}
+
+fn cargo_workspace_member_dirs(metadata: &str) -> BTreeSet<String> {
     let metadata: Value = serde_json::from_str(metadata).expect("Cargo metadata must be JSON");
+    let workspace_root = PathBuf::from(
+        metadata["workspace_root"]
+            .as_str()
+            .expect("Cargo metadata workspace root"),
+    );
     let workspace_members = metadata["workspace_members"]
         .as_array()
         .expect("Cargo metadata workspace_members array")
@@ -78,8 +125,8 @@ fn cargo_workspace_member_dirs(root: &Path, metadata: &str) -> BTreeSet<String> 
             manifest
                 .parent()
                 .expect("manifest has parent")
-                .strip_prefix(&root)
-                .expect("Cargo metadata manifest lies under fixture root")
+                .strip_prefix(&workspace_root)
+                .expect("Cargo metadata manifest lies under its workspace root")
                 .to_string_lossy()
                 .replace('\\', "/")
         })
@@ -93,7 +140,6 @@ fn assert_cargo_metadata_matches_owned_resolver(root: &Path, cargo: std::process
         String::from_utf8_lossy(&cargo.stderr)
     );
     let cargo_members = cargo_workspace_member_dirs(
-        root,
         &String::from_utf8(cargo.stdout).expect("Cargo metadata stdout UTF-8"),
     );
     let owned_members = resolve_member_dirs(root)
@@ -108,11 +154,7 @@ fn assert_cargo_missing_member_manifest(cargo: &std::process::Output, member_man
         !cargo.status.success(),
         "Cargo must reject missing member manifest"
     );
-    let cargo_error = String::from_utf8_lossy(&cargo.stderr);
-    assert!(
-        cargo_error.contains("failed to load manifest for workspace member"),
-        "Cargo failure must report the workspace-member manifest class: {cargo_error}"
-    );
+    let cargo_error = String::from_utf8_lossy(&cargo.stderr).replace('\\', "/");
     assert!(
         cargo_error.contains(member_manifest),
         "Cargo failure must name the missing member manifest: {cargo_error}"

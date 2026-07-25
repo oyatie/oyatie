@@ -124,6 +124,9 @@ not introduce new Workflow events or Ontology writes.
 - Buck2 remains the primary local verification surface for the changed crates and gate targets.
 - `cargo metadata --format-version 1 --no-deps` is permitted only for the required member-set
   equivalence proof and lock refresh.
+- The Buck-owned Cargo differential accepts the Windows
+  `ERROR_CANT_RESOLVE_FILENAME` (`Win32 1921`) cyclic-symlink inspection result while proving that
+  Cargo metadata still resolves the workspace.
 - The gate is born-blocking through `gate-baseline.generated.json`; the current clean root glob
   corpus freezes empty for `workspace_member_explicit_path` and reports any future explicit member
   entry as new debt.
@@ -142,6 +145,7 @@ not introduce new Workflow events or Ontology writes.
 ## Verification
 
 - `buck2 test //libs/oya-workspace-members-kernel:oya-workspace-members-kernel-unittest`
+- `buck2 test //libs/oya-workspace-members-kernel:oya-workspace-members-kernel-cargo-differential`
 - `buck2 test //ci/facade/workspace-member-coverage:oya-cloud-ci-workspace-glob-coverage-app-unittest`
 - `buck2 test //ci/facade/workspace-member-coverage:oya-cloud-ci-workspace-glob-coverage-app-gate`
 - `buck2 test //ci/facade/artifact-inventory-registry:oya-cloud-ci-accounting-registry-app-bin-unittest`
