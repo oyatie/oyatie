@@ -9,6 +9,12 @@ case "$(uname -s)-$(uname -m)" in
   Linux-x86_64)
     BUCK2_ASSET="${BUCK2_ASSET-buck2-x86_64-unknown-linux-gnu.zst}"
     BUCK2_SHA256="${BUCK2_SHA256-4dd9ae54c87fdcf795101074f8788232af55523885135d5e3358c77365993555}"
+    BUCK2_BINARY_NAME="buck2"
+    ;;
+  MINGW*-x86_64)
+    BUCK2_ASSET="${BUCK2_ASSET-buck2-x86_64-pc-windows-msvc.exe.zst}"
+    BUCK2_SHA256="${BUCK2_SHA256-b3229a6e5cce50f6561dc251bf7f20e902b20c983dcdc293adefd5bba437cae3}"
+    BUCK2_BINARY_NAME="buck2.exe"
     ;;
   *)
     if [ "${OYA_CI_ALLOW_AMBIENT_BUCK2:-}" = "1" ] && command -v buck2 >/dev/null 2>&1; then
@@ -53,7 +59,7 @@ BUCK2_SHA256="$(printf '%s' "${BUCK2_SHA256}" | tr '[:upper:]' '[:lower:]')"
 content_dir="${BUCK2_INSTALL_DIR}/sha256-${BUCK2_SHA256}"
 mkdir -p "${content_dir}"
 asset_path="${content_dir}/${BUCK2_ASSET}"
-binary_path="${content_dir}/buck2"
+binary_path="${content_dir}/${BUCK2_BINARY_NAME}"
 lock_path="${content_dir}/.buck2-install.lock"
 asset_temp=""
 binary_temp=""
@@ -64,10 +70,14 @@ cleanup_partials() {
 }
 trap cleanup_partials EXIT
 
-exec 9>"${lock_path}"
-if ! flock -x -w "${lock_timeout_seconds}" 9; then
-  echo "Timed out waiting for Buck2 installer lock: ${lock_path}" >&2
-  exit 1
+if command -v flock >/dev/null 2>&1; then
+  exec 9>"${lock_path}"
+  if ! flock -x -w "${lock_timeout_seconds}" 9; then
+    echo "Timed out waiting for Buck2 installer lock: ${lock_path}" >&2
+    exit 1
+  fi
+else
+  echo "flock unavailable; proceeding without a shared Buck2 installer lock." >&2
 fi
 rm -f -- "${asset_path}.part."* "${binary_path}.part."*
 
