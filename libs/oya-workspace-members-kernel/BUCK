@@ -19,3 +19,15 @@ rust_test(
         "third-party//:toml",
     ],
 )
+
+rust_test(
+    name = "oya-workspace-members-kernel-cargo-differential",
+    srcs = ["tests/cargo_differential.rs"],
+    crate = "oya_workspace_members_kernel_cargo_differential",
+    crate_root = "tests/cargo_differential.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-workspace-members-kernel",
+        "third-party//:serde_json",
+    ],
+)

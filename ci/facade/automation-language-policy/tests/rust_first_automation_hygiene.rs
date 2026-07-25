@@ -2093,6 +2093,7 @@ fn buck2_installer_serializes_same_digest_and_preserves_prior_binary_on_zstd_fai
     write_executable(&bin.join("zstd"), "#!/usr/bin/env bash\nexit 70\n");
     fs::write(content_dir.join("buck2"), b"previous-binary").expect("seed prior binary");
     let failed = installer_command(&root, &bin, &install_dir, "asset.zst", &digest)
+        .env("BUCK2_INSTALL_FORCE_NO_FLOCK", "1")
         .env("PAYLOAD", &payload)
         .env("CRITICAL_DIR", &critical)
         .output()
@@ -2113,6 +2114,10 @@ fn buck2_installer_serializes_same_digest_and_preserves_prior_binary_on_zstd_fai
                 .file_name()
                 .to_string_lossy()
                 .contains("buck2.part."))
+    );
+    assert!(
+        !content_dir.join(".buck2-install.lock.d").exists(),
+        "failed no-flock installation must release its shared lock"
     );
 
     write_executable(
@@ -2140,6 +2145,42 @@ fn buck2_installer_serializes_same_digest_and_preserves_prior_binary_on_zstd_fai
                 .file_name()
                 .to_string_lossy()
                 .contains("buck2.part."))
+    );
+}
+
+#[test]
+fn buck2_installer_serializes_same_digest_without_flock() {
+    let root = repo_root();
+    let fixture = TestDir::new("same-digest-no-flock");
+    let bin = fixture.path().join("bin");
+    fs::create_dir_all(&bin).expect("create shim bin");
+    let payload = fixture.path().join("payload");
+    fs::write(&payload, b"#!/usr/bin/env bash\necho binary-a\n").expect("write payload");
+    let digest = sha256(&payload);
+    let curl_body = "#!/usr/bin/env bash\nset -euo pipefail\nout=\"\"\nwhile [ \"$#\" -gt 0 ]; do case \"$1\" in -o) out=\"$2\"; shift 2 ;; *) shift ;; esac; done\nmkdir \"$CRITICAL_DIR/curl\" || exit 75\nsleep 1\ncp \"$PAYLOAD\" \"$out\"\nrmdir \"$CRITICAL_DIR/curl\"\n";
+    let zstd_body = "#!/usr/bin/env bash\nset -euo pipefail\ninput=\"\"; output=\"\"\nwhile [ \"$#\" -gt 0 ]; do case \"$1\" in -o) output=\"$2\"; shift 2 ;; -d|-f) shift ;; *) input=\"$1\"; shift ;; esac; done\nmkdir \"$CRITICAL_DIR/zstd\" || exit 76\nsleep 1\ncp \"$input\" \"$output\"\nrmdir \"$CRITICAL_DIR/zstd\"\n";
+    install_host_shims(&bin, zstd_body, curl_body);
+    let install_dir = fixture.path().join("install");
+    let critical = fixture.path().join("critical");
+    fs::create_dir_all(&critical).expect("create critical fixture dir");
+    let mut first = installer_command(&root, &bin, &install_dir, "asset.zst", &digest);
+    first
+        .env("BUCK2_INSTALL_FORCE_NO_FLOCK", "1")
+        .env("PAYLOAD", &payload)
+        .env("CRITICAL_DIR", &critical);
+    let mut second = installer_command(&root, &bin, &install_dir, "asset.zst", &digest);
+    second
+        .env("BUCK2_INSTALL_FORCE_NO_FLOCK", "1")
+        .env("PAYLOAD", &payload)
+        .env("CRITICAL_DIR", &critical);
+    let first = first.spawn().expect("spawn first installer");
+    let second = second.spawn().expect("spawn second installer");
+    assert_success(first.wait_with_output().expect("wait first"));
+    assert_success(second.wait_with_output().expect("wait second"));
+    assert_eq!(
+        fs::read(installer_content_dir(&install_dir, &digest).join("buck2"))
+            .expect("promoted binary"),
+        fs::read(&payload).expect("read payload")
     );
 }
 
@@ -2217,6 +2258,7 @@ fn buck2_installer_times_out_without_writes_then_recovers_after_holder_is_killed
 
     let mut holder = installer_command(&root, &bin, &install_dir, "asset.zst", &digest);
     holder
+        .env("BUCK2_INSTALL_FORCE_NO_FLOCK", "1")
         .env("INSTANCE", "holder")
         .env("MARKER_DIR", &marker_dir)
         .env("PAYLOAD", &payload);
@@ -2231,6 +2273,7 @@ fn buck2_installer_times_out_without_writes_then_recovers_after_holder_is_killed
 
     let mut contender_command = installer_command(&root, &bin, &install_dir, "asset.zst", &digest);
     contender_command
+        .env("BUCK2_INSTALL_FORCE_NO_FLOCK", "1")
         .env("BUCK2_INSTALL_LOCK_TIMEOUT_SECONDS", "1")
         .env("INSTANCE", "contender")
         .env("MARKER_DIR", &marker_dir)
@@ -2255,6 +2298,7 @@ fn buck2_installer_times_out_without_writes_then_recovers_after_holder_is_killed
     holder.terminate_installer();
     let mut successor_command = installer_command(&root, &bin, &install_dir, "asset.zst", &digest);
     successor_command
+        .env("BUCK2_INSTALL_FORCE_NO_FLOCK", "1")
         .env("BUCK2_INSTALL_LOCK_TIMEOUT_SECONDS", "2")
         .env("INSTANCE", "successor")
         .env("MARKER_DIR", &marker_dir)
@@ -2281,5 +2325,121 @@ fn buck2_installer_times_out_without_writes_then_recovers_after_holder_is_killed
                 .file_name()
                 .to_string_lossy()
                 .contains(".part."))
+    );
+}
+
+#[test]
+fn buck2_installer_recovers_an_ownerless_no_flock_lock_directory() {
+    let root = repo_root();
+    let fixture = TestDir::new("ownerless-no-flock-lock");
+    let bin = fixture.path().join("bin");
+    fs::create_dir_all(&bin).expect("create shim bin");
+    let payload = fixture.path().join("payload");
+    fs::write(&payload, b"#!/usr/bin/env bash\necho recovered\n").expect("write payload");
+    let digest = sha256(&payload);
+    install_host_shims(
+        &bin,
+        "#!/usr/bin/env bash\nset -euo pipefail\ninput=\"\"; output=\"\"\nwhile [ \"$#\" -gt 0 ]; do case \"$1\" in -o) output=\"$2\"; shift 2 ;; -d|-f) shift ;; *) input=\"$1\"; shift ;; esac; done\ncp \"$input\" \"$output\"\n",
+        "#!/usr/bin/env bash\nset -euo pipefail\nout=\"\"\nwhile [ \"$#\" -gt 0 ]; do case \"$1\" in -o) out=\"$2\"; shift 2 ;; *) shift ;; esac; done\ncp \"$PAYLOAD\" \"$out\"\n",
+    );
+    let install_dir = fixture.path().join("install");
+    let content_dir = installer_content_dir(&install_dir, &digest);
+    fs::create_dir_all(content_dir.join(".buck2-install.lock.d"))
+        .expect("construct ownerless lock directory");
+
+    let output = installer_command(&root, &bin, &install_dir, "asset.zst", &digest)
+        .env("BUCK2_INSTALL_FORCE_NO_FLOCK", "1")
+        .env("BUCK2_INSTALL_LOCK_TIMEOUT_SECONDS", "1")
+        .env("PAYLOAD", &payload)
+        .output()
+        .expect("run ownerless-lock recovery fixture");
+    assert_success(output);
+    assert_eq!(
+        fs::read(content_dir.join("buck2")).expect("recovered binary"),
+        fs::read(&payload).expect("payload")
+    );
+    assert!(
+        !content_dir.join(".buck2-install.lock.d").exists(),
+        "recovered no-flock installation must release the ownerless lock"
+    );
+}
+
+#[test]
+fn buck2_installer_writes_a_native_windows_path_for_github_path() {
+    let root = repo_root();
+    let fixture = TestDir::new("windows-github-path");
+    let bin = fixture.path().join("bin");
+    fs::create_dir_all(&bin).expect("create shim bin");
+    let payload = fixture.path().join("buck2.exe.fixture");
+    fs::write(&payload, b"#!/usr/bin/env bash\necho fixture buck2.exe\n")
+        .expect("write fixture Buck2 executable");
+    let digest = sha256(&payload);
+    let github_path = fixture.path().join("github-path");
+    let runner_temp_posix = fixture.path().join("runner-temp");
+
+    write_executable(
+        &bin.join("uname"),
+        "#!/usr/bin/env bash\ncase \"$1\" in -s) echo MINGW64_NT-10.0 ;; -m) echo x86_64 ;; *) exit 2 ;; esac\n",
+    );
+    write_executable(
+        &bin.join("curl"),
+        "#!/usr/bin/env bash\nset -euo pipefail\nout=\"\"\nwhile [ \"$#\" -gt 0 ]; do case \"$1\" in -o) out=\"$2\"; shift 2 ;; *) shift ;; esac; done\ncp \"$PAYLOAD\" \"$out\"\n",
+    );
+    write_executable(
+        &bin.join("zstd"),
+        "#!/usr/bin/env bash\nset -euo pipefail\ninput=\"\"; output=\"\"\nwhile [ \"$#\" -gt 0 ]; do case \"$1\" in -o) output=\"$2\"; shift 2 ;; -d|-f) shift ;; *) input=\"$1\"; shift ;; esac; done\ncp \"$input\" \"$output\"\n",
+    );
+    write_executable(
+        &bin.join("cygpath"),
+        r#"#!/usr/bin/env bash
+set -euo pipefail
+mode="$1"; shift
+[ "$1" = -- ] && shift
+case "$mode" in
+  -u)
+    [ "$1" = "$RUNNER_TEMP" ] || exit 88
+    printf '%s\n' "$RUNNER_TEMP_POSIX"
+    ;;
+  -w)
+    case "$1" in
+      "$RUNNER_TEMP_POSIX"/*)
+        suffix="${1#"$RUNNER_TEMP_POSIX"/}"
+        win_suffix="$(printf '%s' "$suffix" | sed 's|/|\\|g')"
+        printf '%s\\%s\n' "$RUNNER_TEMP_WIN" "$win_suffix"
+        ;;
+      *) exit 88 ;;
+    esac
+    ;;
+  *) exit 88 ;;
+esac
+"#,
+    );
+
+    let output = Command::new(root.join("infra/ci/install-buck2.sh"))
+        .env("PATH", shim_path(&bin))
+        .env("BUCK2_RELEASE", "fixture")
+        .env("BUCK2_ASSET", "fixture.zst")
+        .env("BUCK2_SHA256", &digest)
+        .env("BUCK2_INSTALL_LOCK_TIMEOUT_SECONDS", "15")
+        .env("PAYLOAD", &payload)
+        .env("RUNNER_TEMP", r"D:\a\_temp")
+        .env("RUNNER_TEMP_POSIX", &runner_temp_posix)
+        .env("RUNNER_TEMP_WIN", r"D:\a\_temp")
+        .env("GITHUB_PATH", &github_path)
+        .output()
+        .expect("run Windows installer fixture");
+    assert_success(output);
+
+    let content_dir = runner_temp_posix
+        .join("oya-ci-buck2-fixture")
+        .join(format!("sha256-{digest}"));
+    assert_eq!(
+        fs::read(content_dir.join("buck2.exe")).expect("installed Windows Buck2 executable"),
+        fs::read(&payload).expect("fixture Buck2 executable"),
+    );
+    assert_eq!(
+        fs::read_to_string(&github_path).expect("read GitHub PATH file"),
+        format!("D:\\a\\_temp\\oya-ci-buck2-fixture\\sha256-{digest}\n"),
+        "native Windows consumers must receive a Win32 path, never Git Bash's POSIX path",
     );
 }
