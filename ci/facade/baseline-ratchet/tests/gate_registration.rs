@@ -300,6 +300,42 @@ fn windows_branch_is_buck_only(gate_job: &str) -> bool {
     vsdevcmd < buck2 && !contains_direct_cargo_executable(&branch)
 }
 
+/// The hosted Windows image may change Visual Studio major version, edition, or install root.
+/// Resolve the current MSVC installation with Microsoft's bundled `vswhere.exe`, fail closed
+/// when either discovery executable is absent, and only then hand the derived `VsDevCmd.bat`
+/// path to the native Buck command.
+fn windows_branch_discovers_msvc_toolchain(gate_job: &str) -> bool {
+    let Some(branch) = windows_branch(gate_job) else {
+        return false;
+    };
+    let branch = branch.replace("''", "'");
+    let required_in_order = [
+        "$vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\\Installer\\vswhere.exe'",
+        "Test-Path -LiteralPath $vswhere -PathType Leaf",
+        "$vsInstallCandidates = @(& $vswhere -latest -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath)",
+        "$vswhereExitCode = $LASTEXITCODE",
+        "if ($vswhereExitCode -ne 0) { exit $vswhereExitCode }",
+        "$vsInstall = $vsInstallCandidates | Select-Object -First 1",
+        "[string]::IsNullOrWhiteSpace($vsInstall)",
+        "$vsDevCmd = Join-Path $vsInstall 'Common7\\Tools\\VsDevCmd.bat'",
+        "Test-Path -LiteralPath $vsDevCmd -PathType Leaf",
+        "$windowsBuckCommand = \"call `\"$vsDevCmd`\" -arch=amd64 -host_arch=amd64 >nul && buck2 test $targets\"",
+        "cmd.exe /d /s /c $windowsBuckCommand",
+    ];
+
+    let mut cursor = 0usize;
+    for required in required_in_order {
+        let Some(relative_index) = branch[cursor..].find(required) else {
+            return false;
+        };
+        cursor += relative_index + required.len();
+    }
+
+    !branch.contains("Microsoft Visual Studio\\2022")
+        && !branch.contains("Microsoft Visual Studio\\2026")
+        && !branch.contains("%ProgramFiles%")
+}
+
 fn has_positive_buck_test_pass_summary(receipt: &str) -> bool {
     receipt.lines().any(|line| {
         let Some(rest) = line.strip_prefix("Tests finished:") else {
@@ -913,8 +949,9 @@ fn windows_workspace_resolver_differential_is_a_buck2_matrix_leg() {
             && !gate_job.contains("else { & buck2 test $targets }")
             && gate_job.contains("cmd.exe /d /s /c")
             && windows_branch_is_buck_only(&gate_job)
+            && windows_branch_discovers_msvc_toolchain(&gate_job)
             && windows_branch_has_buck_execution_receipt(&gate_job),
-        "the non-Windows path must splat separate Buck2 arguments while Windows rejects an empty exact target, initializes MSVC, captures and prints the Buck receipt, and fails closed unless it contains Build ID plus a passing test summary"
+        "the non-Windows path must splat separate Buck2 arguments while Windows rejects an empty exact target, discovers the installed MSVC toolchain without a version/edition assumption, captures and prints the Buck receipt, and fails closed unless it contains Build ID plus a passing test summary"
     );
     assert!(
         !gate_job.contains("shell: bash\n        # Default matrix legs expand"),
@@ -982,6 +1019,45 @@ fn windows_workspace_resolver_registration_rejects_split_or_direct_cargo_mutatio
             "if ($IsWindows) { call `\"VsDevCmd.bat`\" && buck2 test $targets; cargo.exe\n test } else { }",
         ),
         "cargo.exe followed by a newline is still a direct Cargo invocation"
+    );
+
+    let discovered_toolchain_branch = "if ($IsWindows) { $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\\Installer\\vswhere.exe'; if (-not (Test-Path -LiteralPath $vswhere -PathType Leaf)) { exit 1 }; $vsInstallCandidates = @(& $vswhere -latest -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath); $vswhereExitCode = $LASTEXITCODE; if ($vswhereExitCode -ne 0) { exit $vswhereExitCode }; $vsInstall = $vsInstallCandidates | Select-Object -First 1; if ([string]::IsNullOrWhiteSpace($vsInstall)) { exit 1 }; $vsDevCmd = Join-Path $vsInstall 'Common7\\Tools\\VsDevCmd.bat'; if (-not (Test-Path -LiteralPath $vsDevCmd -PathType Leaf)) { exit 1 }; $windowsBuckCommand = \"call `\"$vsDevCmd`\" -arch=amd64 -host_arch=amd64 >nul && buck2 test $targets\"; cmd.exe /d /s /c $windowsBuckCommand } else { }";
+    assert!(windows_branch_discovers_msvc_toolchain(
+        discovered_toolchain_branch
+    ));
+    assert!(
+        !windows_branch_discovers_msvc_toolchain(&discovered_toolchain_branch.replace(
+            "Microsoft Visual Studio\\Installer\\vswhere.exe",
+            "Microsoft Visual Studio\\2022\\Enterprise\\Common7\\Tools\\VsDevCmd.bat"
+        )),
+        "a hard-coded Visual Studio major version and edition must not satisfy discovery"
+    );
+    assert!(
+        !windows_branch_discovers_msvc_toolchain(&discovered_toolchain_branch.replace(
+            "Test-Path -LiteralPath $vsDevCmd -PathType Leaf",
+            "Test-Path -LiteralPath $vsDevCmd"
+        )),
+        "the discovered developer-command path must be a real file"
+    );
+    assert!(
+        !windows_branch_discovers_msvc_toolchain(&discovered_toolchain_branch.replace(
+            "-requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 ",
+            ""
+        )),
+        "Visual Studio discovery must require the MSVC x64/x86 tool component"
+    );
+    assert!(
+        !windows_branch_discovers_msvc_toolchain(
+            &discovered_toolchain_branch.replace("$vswhereExitCode = $LASTEXITCODE; ", "")
+        ),
+        "the vswhere exit code must be captured immediately after discovery"
+    );
+    assert!(
+        !windows_branch_discovers_msvc_toolchain(&discovered_toolchain_branch.replace(
+            "cmd.exe /d /s /c $windowsBuckCommand",
+            "Invoke-Expression $windowsBuckCommand"
+        )),
+        "the discovered batch environment and Buck2 test must stay in one native cmd process"
     );
 
     let receipt_branch = "if ($IsWindows) { $windowsBuckReceipt = Join-Path $env:RUNNER_TEMP 'buck2-windows-receipt.log'; cmd.exe /d /s /c \"call `\"VsDevCmd.bat`\" && buck2 test $targets\" 2>&1 | Tee-Object -FilePath $windowsBuckReceipt; $windowsBuckExitCode = $LASTEXITCODE; Write-Host \"Windows Buck2 cmd exit code: $windowsBuckExitCode\"; Get-Content -Path $windowsBuckReceipt; $windowsBuckReceiptText = Get-Content -Path $windowsBuckReceipt -Raw; $windowsBuckPassed = $windowsBuckReceiptText -match '(?m)^Tests finished:\\s*(?:\\x1b\\[[0-9;]*m)?Pass\\s+[1-9][0-9]*\\b'; if (-not ($windowsBuckReceiptText.Contains('Build ID:') -and $windowsBuckPassed)) { exit 1 }; if ($windowsBuckExitCode -ne 0) { exit $windowsBuckExitCode } } else { }";
