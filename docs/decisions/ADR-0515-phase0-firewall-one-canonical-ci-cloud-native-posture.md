@@ -10,6 +10,7 @@ supersedes: [ADR-0124, ADR-0349, ADR-0359, ADR-0361, ADR-0511, ADR-0513, ADR-051
 superseded_by: []
 depends_on: [ADR-0392]
 amends: [ADR-0092, ADR-0363]
+amended_by: [ADR-0516, ADR-0519, ADR-0526, ADR-0527, ADR-0528, ADR-0529, ADR-0530, ADR-0624]
 related:
   - ADR-0111
   - ADR-0116
@@ -156,10 +157,11 @@ Issue #901's affected-set progress helper is part of that same enforcement subst
 ci/facade/affected-target-set/src/bin/oya-cloud-ci-step-telemetry.rs
 reports long Buck2 phase/status/elapsed telemetry for operator visibility; it does not change the required-check verdict model.
 
-The fixed historical ADR-census parent-receipt validator is likewise part of this Buck-live Rust
-substrate. `ci/facade/scm-facts-snapshot/src/bin/adr-census-parent-receipt-gate.rs` validates only
-the immutable controller-materialized historical receipt; it carries no planning-closure,
-roadmap-dispatch, current-authority, or product-readiness claim.
+The live ADR-census epoch validator is likewise part of this Buck-live Rust substrate.
+`ci/facade/scm-facts-snapshot/src/bin/adr-census-epoch-receipt-gate.rs` keeps P2 active with its
+immutable historical receipt while P3 remains dormant as a deterministic, non-materializing policy
+check. It runs beneath the sole protected `oya-ci-required` context and does not authorize planning
+dispatch, current-authority, roadmap-dispatch, or product-readiness claims.
 
 ## Decision
 
@@ -611,6 +613,14 @@ preserves the pre-amendment body. The refinements:
 - **ADR-0528** adds `remediate()` to the gate contract (WS-D) this ADR established.
 
 None of these reverses a decision of ADR-0515; it is the governing floor the fabric builds upon.
+
+## Census epoch admission boundary (ADR-0624 amendment)
+
+ADR-0624 adds the live `adr-census-epoch-receipt-gate` as a Rust gate beneath the sole protected
+`oya-ci-required` context. P2 remains active and its historical receipt remains fixed; P3 remains
+dormant and is exercised only as a deterministic, non-materializing policy check. This amendment
+does not add another required context, select or activate P3, bypass `oya-ci-required`, or authorize
+planning dispatch.
 
 ---
 *Accepted 2026-06-07 (founder-ruled; door:one-way). Authority: D-CICD-AUTHORITY · ONE CANONICAL CI · D-CLOUD-NATIVE · D-GOVERNANCE-CENTRAL · D-MULTISPECTRUM-RETIRED · D-SSOT-CURRENT-TRUTH · D-SEQUENCE · D-DOCTRINE (decision-record-oyatie-canon.md). Plan: CICD-DESIGN-PLAN.md (ralplan-APPROVED). Reciprocal `superseded_by` edges written on 0124/0349/0359/0361/0511/0513/0514; 0092 amended; ADR-0392 is the Buck2 dependency and ADR-0525 carries the later CI/CD refinement. Refined (not superseded) 2026-06-08 by the WAVE-1 fabric cluster ADR-0516/0519/0522/0523/0525/0526/0527/0528/0529/0530. D-SSOT-CURRENT-TRUTH still requires hard deletion with git history as the archive. The repository's present retention of superseded ADR files is implementation drift, not a silent amendment; changing that rule requires a higher Accepted founder-ratified ADR.*
