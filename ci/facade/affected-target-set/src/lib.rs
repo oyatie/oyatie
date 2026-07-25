@@ -809,11 +809,34 @@ pub fn build_health_baseline_artifact_name(merge_base_sha: &str) -> Result<Strin
     Ok(format!("build-health-baseline-{sha}"))
 }
 
+/// Expected trusted dev-push artifact name for a normalized test-health baseline.
+pub fn test_health_baseline_artifact_name(merge_base_sha: &str) -> Result<String, String> {
+    let sha = merge_base_sha.trim();
+    let _ = build_health_baseline_artifact_name(sha)?;
+    Ok(format!("test-health-baseline-{sha}"))
+}
+
 /// Select the trusted push-to-dev workflow run whose head SHA is the exact merge-base.
 pub fn trusted_dev_push_run_id(
     runs_json: &str,
     merge_base_sha: &str,
 ) -> Result<Option<u64>, String> {
+    trusted_dev_push_run(runs_json, merge_base_sha).map(|run| run.map(|trusted_run| trusted_run.id))
+}
+
+/// Exact trusted workflow-run provenance used by the baseline-pair selector.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TrustedDevPushRun {
+    pub id: u64,
+    pub repository_id: u64,
+}
+
+fn trusted_dev_push_runs(
+    runs_json: &str,
+    merge_base_sha: &str,
+) -> Result<Vec<TrustedDevPushRun>, String> {
+    const REQUIRED_WORKFLOW_PATH: &str = ".github/workflows/oya-ci-required.yml";
+
     let sha = merge_base_sha.trim();
     let _ = build_health_baseline_artifact_name(sha)?;
     let payload: Value = serde_json::from_str(runs_json)
@@ -823,21 +846,68 @@ pub fn trusted_dev_push_run_id(
         .and_then(Value::as_array)
         .ok_or("workflow-runs payload has no `workflow_runs` array")?;
 
+    let mut trusted_runs = Vec::new();
     for run in runs {
-        if run.get("head_sha").and_then(Value::as_str) == Some(sha)
+        let exact_trusted_run = run.get("head_sha").and_then(Value::as_str) == Some(sha)
             && run.get("event").and_then(Value::as_str) == Some("push")
             && run.get("head_branch").and_then(Value::as_str) == Some("dev")
+            && run.get("status").and_then(Value::as_str) == Some("completed")
             && run.get("conclusion").and_then(Value::as_str) == Some("success")
-        {
-            return run
-                .get("id")
-                .and_then(Value::as_u64)
-                .map(Some)
-                .ok_or("matching trusted workflow run has no numeric `id`".to_owned());
+            && run.get("path").and_then(Value::as_str) == Some(REQUIRED_WORKFLOW_PATH);
+        if !exact_trusted_run {
+            continue;
         }
+
+        let repository_id = run
+            .pointer("/repository/id")
+            .and_then(Value::as_u64)
+            .ok_or("matching trusted workflow run has no numeric `repository.id`")?;
+        let head_repository_id = run
+            .pointer("/head_repository/id")
+            .and_then(Value::as_u64)
+            .ok_or("matching trusted workflow run has no numeric `head_repository.id`")?;
+        if repository_id != head_repository_id {
+            return Err(format!(
+                "matching workflow run head repository {head_repository_id} does not match trusted repository {repository_id}"
+            ));
+        }
+        let id = run
+            .get("id")
+            .and_then(Value::as_u64)
+            .ok_or("matching trusted workflow run has no numeric `id`")?;
+        trusted_runs.push(TrustedDevPushRun { id, repository_id });
     }
 
-    Ok(None)
+    trusted_runs.sort_unstable_by_key(|run| std::cmp::Reverse(run.id));
+    if trusted_runs.windows(2).any(|pair| pair[0].id == pair[1].id) {
+        return Err(
+            "workflow-runs payload contains a duplicate trusted workflow run id".to_owned(),
+        );
+    }
+    if let Some(repository_id) = trusted_runs.first().map(|run| run.repository_id)
+        && trusted_runs
+            .iter()
+            .any(|run| run.repository_id != repository_id)
+    {
+        return Err(
+            "trusted workflow runs span multiple repository identities; refusing ambiguous provenance"
+                .to_owned(),
+        );
+    }
+
+    Ok(trusted_runs)
+}
+
+/// Select the newest exact successful `oya-ci-required` push-to-dev run.
+///
+/// Canonical ordering is descending immutable GitHub run ID, independent of API payload order.
+/// The #1323 pair selector can continue to an older trusted rerun if the newest run lacks a
+/// complete BUILD + TEST pair.
+pub fn trusted_dev_push_run(
+    runs_json: &str,
+    merge_base_sha: &str,
+) -> Result<Option<TrustedDevPushRun>, String> {
+    trusted_dev_push_runs(runs_json, merge_base_sha).map(|runs| runs.into_iter().next())
 }
 
 /// Select the unexpired exact-name build-health baseline artifact from a trusted run.
@@ -872,6 +942,178 @@ pub fn trusted_build_health_baseline_artifact_id(
     Ok(None)
 }
 
+/// Metadata for one selected immutable GitHub Actions artifact.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TrustedBaselineArtifact {
+    pub id: u64,
+    pub name: String,
+}
+
+/// Atomic BUILD + TEST baseline pair from one exact trusted dev-push run.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TrustedBaselineSelection {
+    pub merge_base_sha: String,
+    pub run_id: u64,
+    pub repository_id: u64,
+    pub build_artifact: TrustedBaselineArtifact,
+    pub test_artifact: TrustedBaselineArtifact,
+}
+
+fn trusted_artifact_for_run(
+    artifacts: &[Value],
+    expected_name: &str,
+    run: &TrustedDevPushRun,
+    merge_base_sha: &str,
+) -> Result<Option<TrustedBaselineArtifact>, String> {
+    let mut matching = Vec::new();
+    for artifact in artifacts
+        .iter()
+        .filter(|artifact| artifact.get("name").and_then(Value::as_str) == Some(expected_name))
+    {
+        let workflow_run = artifact.get("workflow_run").ok_or_else(|| {
+            format!("artifact `{expected_name}` has no `workflow_run` provenance")
+        })?;
+        let artifact_run_id = workflow_run
+            .get("id")
+            .and_then(Value::as_u64)
+            .ok_or_else(|| format!("artifact `{expected_name}` has no numeric workflow run id"))?;
+        if artifact_run_id == run.id {
+            matching.push(artifact);
+        }
+    }
+    if matching.len() > 1 {
+        return Err(format!(
+            "workflow-artifacts payload contains duplicate exact-name artifact `{expected_name}` for trusted workflow run {}",
+            run.id
+        ));
+    }
+    let Some(artifact) = matching.first().copied() else {
+        return Ok(None);
+    };
+    if artifact
+        .get("expired")
+        .and_then(Value::as_bool)
+        .unwrap_or(true)
+    {
+        return Ok(None);
+    }
+
+    let workflow_run = artifact
+        .get("workflow_run")
+        .ok_or_else(|| format!("artifact `{expected_name}` has no `workflow_run` provenance"))?;
+    if workflow_run.get("head_sha").and_then(Value::as_str) != Some(merge_base_sha) {
+        return Err(format!(
+            "artifact `{expected_name}` head SHA does not match merge-base `{merge_base_sha}`"
+        ));
+    }
+    if workflow_run.get("head_branch").and_then(Value::as_str) != Some("dev") {
+        return Err(format!(
+            "artifact `{expected_name}` was not produced from the trusted `dev` branch"
+        ));
+    }
+    let repository_id = workflow_run
+        .get("repository_id")
+        .and_then(Value::as_u64)
+        .ok_or_else(|| format!("artifact `{expected_name}` has no numeric `repository_id`"))?;
+    let head_repository_id = workflow_run
+        .get("head_repository_id")
+        .and_then(Value::as_u64)
+        .ok_or_else(|| format!("artifact `{expected_name}` has no numeric `head_repository_id`"))?;
+    if repository_id != run.repository_id || head_repository_id != run.repository_id {
+        return Err(format!(
+            "artifact `{expected_name}` repository provenance does not match trusted repository {}",
+            run.repository_id
+        ));
+    }
+
+    let id = artifact
+        .get("id")
+        .and_then(Value::as_u64)
+        .ok_or_else(|| format!("artifact `{expected_name}` has no numeric `id`"))?;
+    Ok(Some(TrustedBaselineArtifact {
+        id,
+        name: expected_name.to_owned(),
+    }))
+}
+
+fn validate_exact_artifact_run_membership(
+    artifacts: &[Value],
+    expected_names: &[&str],
+    trusted_runs: &[TrustedDevPushRun],
+) -> Result<(), String> {
+    let trusted_run_ids: BTreeSet<u64> = trusted_runs.iter().map(|run| run.id).collect();
+    for artifact in artifacts.iter().filter(|artifact| {
+        artifact
+            .get("name")
+            .and_then(Value::as_str)
+            .is_some_and(|name| expected_names.contains(&name))
+    }) {
+        let Some(name) = artifact.get("name").and_then(Value::as_str) else {
+            continue;
+        };
+        let artifact_run_id = artifact
+            .pointer("/workflow_run/id")
+            .and_then(Value::as_u64)
+            .ok_or_else(|| format!("artifact `{name}` has no numeric workflow run id"))?;
+        if !trusted_run_ids.contains(&artifact_run_id) {
+            return Err(format!(
+                "artifact `{name}` workflow run {artifact_run_id} is not an exact trusted dev-push run"
+            ));
+        }
+    }
+    Ok(())
+}
+
+/// Select an atomic trusted BUILD + TEST baseline pair for the exact merge-base.
+///
+/// Missing or expired artifacts return `Ok(None)` so the workflow can execute its clean-worktree
+/// cold fallback. Malformed or mismatched provenance is an error, never a fallback.
+pub fn select_trusted_baseline_artifacts(
+    runs_json: &str,
+    artifacts_json: &str,
+    merge_base_sha: &str,
+) -> Result<Option<TrustedBaselineSelection>, String> {
+    let sha = merge_base_sha.trim();
+    let build_name = build_health_baseline_artifact_name(sha)?;
+    let test_name = test_health_baseline_artifact_name(sha)?;
+    let trusted_runs = trusted_dev_push_runs(runs_json, sha)?;
+    if trusted_runs.is_empty() {
+        return Ok(None);
+    }
+    let payload: Value = serde_json::from_str(artifacts_json)
+        .map_err(|e| format!("workflow-artifacts payload is not valid JSON: {e}"))?;
+    let artifacts = payload
+        .get("artifacts")
+        .and_then(Value::as_array)
+        .ok_or("workflow-artifacts payload has no `artifacts` array")?;
+    validate_exact_artifact_run_membership(
+        artifacts,
+        &[build_name.as_str(), test_name.as_str()],
+        &trusted_runs,
+    )?;
+
+    for run in trusted_runs {
+        let Some(build_artifact) = trusted_artifact_for_run(artifacts, &build_name, &run, sha)?
+        else {
+            continue;
+        };
+        let Some(test_artifact) = trusted_artifact_for_run(artifacts, &test_name, &run, sha)?
+        else {
+            continue;
+        };
+
+        return Ok(Some(TrustedBaselineSelection {
+            merge_base_sha: sha.to_owned(),
+            run_id: run.id,
+            repository_id: run.repository_id,
+            build_artifact,
+            test_artifact,
+        }));
+    }
+
+    Ok(None)
+}
+
 /// Validate a trusted build-health baseline artifact payload after provenance selection.
 ///
 /// Returns the number of build-report results. Empty/invalid reports are refused because an empty
@@ -893,6 +1135,26 @@ pub fn validate_trusted_build_health_baseline_artifact(
     }
     Ok(report.len())
 }
+
+/// Validate a trusted normalized test-health baseline artifact after provenance selection.
+pub fn validate_trusted_test_health_baseline_artifact(
+    artifact_name: &str,
+    merge_base_sha: &str,
+    report_json: &str,
+) -> Result<usize, String> {
+    let expected = test_health_baseline_artifact_name(merge_base_sha)?;
+    if artifact_name != expected {
+        return Err(format!(
+            "test-health baseline artifact name `{artifact_name}` does not match expected `{expected}`"
+        ));
+    }
+    let report = parse_build_report(report_json)?;
+    if report.is_empty() {
+        return Err("test-health baseline artifact has an empty `results` object".to_owned());
+    }
+    Ok(report.len())
+}
+
 /// The build-health verdict: regressions BLOCK, pre-existing failures are GRANDFATHERED.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BuildHealthVerdict {
@@ -1307,7 +1569,17 @@ mod tests {
             "workflow_runs": [
                 {"id": 11, "head_sha": "fedcba9876543210fedcba9876543210fedcba98", "event": "push", "head_branch": "dev", "conclusion": "success"},
                 {"id": 12, "head_sha": "0123456789abcdef0123456789abcdef01234567", "event": "pull_request", "head_branch": "dev", "conclusion": "success"},
-                {"id": 13, "head_sha": "0123456789abcdef0123456789abcdef01234567", "event": "push", "head_branch": "dev", "conclusion": "success"}
+                {
+                    "id": 13,
+                    "head_sha": "0123456789abcdef0123456789abcdef01234567",
+                    "event": "push",
+                    "head_branch": "dev",
+                    "status": "completed",
+                    "conclusion": "success",
+                    "path": ".github/workflows/oya-ci-required.yml",
+                    "repository": {"id": 99},
+                    "head_repository": {"id": 99}
+                }
             ]
         }"#;
         assert_eq!(trusted_dev_push_run_id(runs, sha), Ok(Some(13)));
@@ -1323,6 +1595,44 @@ mod tests {
             ]
         }"#;
         assert_eq!(trusted_dev_push_run_id(runs, sha), Ok(None));
+    }
+
+    #[test]
+    fn strict_trusted_run_rejects_wrong_workflow_and_repository() {
+        let sha = "0123456789abcdef0123456789abcdef01234567";
+        let wrong_workflow = json!({
+            "workflow_runs": [{
+                "id": 13,
+                "head_sha": sha,
+                "event": "push",
+                "head_branch": "dev",
+                "status": "completed",
+                "conclusion": "success",
+                "path": ".github/workflows/untrusted.yml",
+                "repository": {"id": 99},
+                "head_repository": {"id": 99}
+            }]
+        });
+        assert_eq!(
+            trusted_dev_push_run(&wrong_workflow.to_string(), sha),
+            Ok(None)
+        );
+
+        let fork_head = json!({
+            "workflow_runs": [{
+                "id": 13,
+                "head_sha": sha,
+                "event": "push",
+                "head_branch": "dev",
+                "status": "completed",
+                "conclusion": "success",
+                "path": ".github/workflows/oya-ci-required.yml",
+                "repository": {"id": 99},
+                "head_repository": {"id": 100}
+            }]
+        });
+        let err = trusted_dev_push_run(&fork_head.to_string(), sha).unwrap_err();
+        assert!(err.contains("does not match trusted repository"), "{err}");
     }
 
     #[test]
@@ -1357,6 +1667,130 @@ mod tests {
             Ok(None)
         );
     }
+
+    fn trusted_pair_payloads() -> (String, String) {
+        let sha = "0123456789abcdef0123456789abcdef01234567";
+        let run_id = 30_144_110_793_u64;
+        let repository_id = 1_236_575_706_u64;
+        let runs = json!({
+            "workflow_runs": [{
+                "id": run_id,
+                "head_sha": sha,
+                "event": "push",
+                "head_branch": "dev",
+                "status": "completed",
+                "conclusion": "success",
+                "path": ".github/workflows/oya-ci-required.yml",
+                "repository": {"id": repository_id},
+                "head_repository": {"id": repository_id}
+            }]
+        });
+        let artifact = |id: u64, name: String| {
+            json!({
+                "id": id,
+                "name": name,
+                "expired": false,
+                "workflow_run": {
+                    "id": run_id,
+                    "head_sha": sha,
+                    "head_branch": "dev",
+                    "repository_id": repository_id,
+                    "head_repository_id": repository_id
+                }
+            })
+        };
+        let artifacts = json!({
+            "artifacts": [
+                artifact(41, build_health_baseline_artifact_name(sha).unwrap()),
+                artifact(42, test_health_baseline_artifact_name(sha).unwrap())
+            ]
+        });
+        (runs.to_string(), artifacts.to_string())
+    }
+
+    #[test]
+    fn trusted_baseline_pair_is_atomic_and_exact() {
+        let sha = "0123456789abcdef0123456789abcdef01234567";
+        let (runs, artifacts) = trusted_pair_payloads();
+        let selected = select_trusted_baseline_artifacts(&runs, &artifacts, sha)
+            .unwrap()
+            .expect("trusted pair");
+        assert_eq!(selected.merge_base_sha, sha);
+        assert_eq!(selected.run_id, 30_144_110_793);
+        assert_eq!(selected.repository_id, 1_236_575_706);
+        assert_eq!(selected.build_artifact.id, 41);
+        assert_eq!(selected.test_artifact.id, 42);
+    }
+
+    #[test]
+    fn trusted_reruns_are_order_independent_and_use_the_newest_complete_pair() {
+        let sha = "0123456789abcdef0123456789abcdef01234567";
+        let (runs, artifacts) = trusted_pair_payloads();
+        let mut payload: Value = serde_json::from_str(&runs).unwrap();
+        let old_run = payload["workflow_runs"][0].clone();
+        let mut newer_incomplete_run = old_run.clone();
+        newer_incomplete_run["id"] = json!(30_144_110_794_u64);
+        payload["workflow_runs"]
+            .as_array_mut()
+            .unwrap()
+            .push(newer_incomplete_run);
+
+        let canonical = trusted_dev_push_run(&payload.to_string(), sha)
+            .unwrap()
+            .expect("newest trusted run");
+        assert_eq!(canonical.id, 30_144_110_794);
+
+        let selected = select_trusted_baseline_artifacts(&payload.to_string(), &artifacts, sha)
+            .unwrap()
+            .expect("older complete pair");
+        assert_eq!(selected.run_id, 30_144_110_793);
+
+        payload["workflow_runs"].as_array_mut().unwrap().reverse();
+        let reversed = select_trusted_baseline_artifacts(&payload.to_string(), &artifacts, sha)
+            .unwrap()
+            .expect("order-independent pair");
+        assert_eq!(reversed, selected);
+    }
+
+    #[test]
+    fn duplicate_trusted_run_id_is_rejected() {
+        let sha = "0123456789abcdef0123456789abcdef01234567";
+        let (runs, _) = trusted_pair_payloads();
+        let mut payload: Value = serde_json::from_str(&runs).unwrap();
+        let duplicate = payload["workflow_runs"][0].clone();
+        payload["workflow_runs"]
+            .as_array_mut()
+            .unwrap()
+            .push(duplicate);
+        let err = trusted_dev_push_run(&payload.to_string(), sha).unwrap_err();
+        assert!(err.contains("duplicate trusted workflow run id"), "{err}");
+    }
+
+    #[test]
+    fn trusted_baseline_pair_rejects_duplicate_exact_name() {
+        let sha = "0123456789abcdef0123456789abcdef01234567";
+        let (runs, artifacts) = trusted_pair_payloads();
+        let mut payload: Value = serde_json::from_str(&artifacts).unwrap();
+        let duplicate = payload["artifacts"][0].clone();
+        payload["artifacts"].as_array_mut().unwrap().push(duplicate);
+        let err = select_trusted_baseline_artifacts(&runs, &payload.to_string(), sha).unwrap_err();
+        assert!(err.contains("duplicate exact-name"), "{err}");
+    }
+
+    #[test]
+    fn trusted_test_health_artifact_requires_exact_non_empty_report() {
+        let sha = "0123456789abcdef0123456789abcdef01234567";
+        let name = test_health_baseline_artifact_name(sha).unwrap();
+        let report = r#"{"results":{"root//a:a":{"success":"SUCCESS"}}}"#;
+        assert_eq!(
+            validate_trusted_test_health_baseline_artifact(&name, sha, report),
+            Ok(1)
+        );
+        let err = validate_trusted_test_health_baseline_artifact(&name, sha, r#"{"results":{}}"#)
+            .unwrap_err();
+        assert!(err.contains("empty `results`"), "{err}");
+    }
+
     #[test]
     fn build_health_regression_blocks_grandfathered_does_not() {
         // baseline (merge-base) red: {blake3, sqlx}. head red: {blake3, sqlx, NEW}.
