@@ -763,6 +763,20 @@ pub fn emit_adr_census_epoch_receipt(repo_root: &Path, output: &Path) -> Result<
         CensusEpoch::P2 => build_fixed_adr_census_parent_receipt(repo_root)?,
         CensusEpoch::P3 => build_p3_adr_census_epoch_receipt(repo_root)?,
     };
+    let canonical = repo_root.join(ADR_CENSUS_EPOCH_RECEIPT_PATH);
+    if output == canonical {
+        return retirement::write_canonical_ignored_generated_file(
+            repo_root,
+            Path::new(ADR_CENSUS_EPOCH_RECEIPT_PATH),
+            &bytes,
+        );
+    }
+    if output.starts_with(repo_root) {
+        return Err(format!(
+            "ADR census epoch receipt output inside the repository must be the exact canonical path {}",
+            canonical.display()
+        ));
+    }
     let parent = output
         .parent()
         .ok_or("ADR census epoch receipt output must have a parent directory")?;

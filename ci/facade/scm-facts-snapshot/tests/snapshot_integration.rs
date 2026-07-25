@@ -11,7 +11,10 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use ci_path_resolver_adapters::MOVE_MANIFEST_PATH;
 use ci_path_resolver_adapters::MOVE_MANIFEST_SCHEMA;
 use ci_path_resolver_ports::{PathId, PathResolver};
-use ci_scm_facts_snapshot::retirement::CanonicalRetirementFactsWriter;
+use ci_scm_facts_snapshot::retirement::{
+    CanonicalIgnoredGeneratedWriter, CanonicalRetirementFactsWriter,
+    write_canonical_ignored_generated_file,
+};
 use ci_scm_facts_snapshot::{
     discover_repo_root, emit_adr_census_epoch_receipt, load_vocab_policy, output_path_resolver,
     retirement::{
@@ -26,6 +29,8 @@ static NEXT_TEMP_REPO_ID: AtomicU64 = AtomicU64::new(0);
 
 const PROTECTED: &str = "3333333333333333333333333333333333333333";
 const CANDIDATE: &str = "5555555555555555555555555555555555555555";
+const EPOCH_RECEIPT_PATH: &str =
+    "ci/facade/artifact-inventory-registry/adr-census-epoch-receipt.generated.json";
 
 fn context() -> RetirementMaterializationContext<'static> {
     RetirementMaterializationContext {
@@ -119,6 +124,11 @@ fn configure_ignored_canonical_facts(root: &Path) {
         format!("/{GENERATED_FACTS_PATH}\n"),
     )
     .expect("ignore canonical retirement facts output");
+}
+
+fn configure_ignored_epoch_receipt(root: &Path) {
+    std::fs::write(root.join(".gitignore"), "**/*.generated.json\n")
+        .expect("ignore canonical ADR census epoch receipt output");
 }
 
 fn assert_git_blob_batch_recovers(root: &Path, blob_oid: &str, expected: &[u8]) {
@@ -372,6 +382,108 @@ fn canonical_writer_stays_bound_to_open_parent_after_ancestor_swap() {
     assert_eq!(
         std::fs::read(root.join(
             "ci-captured/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json"
+        ))
+        .expect("read captured output"),
+        b"captured bytes"
+    );
+    std::fs::remove_dir_all(root).expect("remove integration fixture");
+}
+
+#[cfg(unix)]
+#[test]
+fn epoch_receipt_leaf_symlink_is_rejected_without_touching_target() {
+    use std::os::unix::fs::symlink;
+
+    let root = temp_git_repo("epoch-receipt-leaf-symlink");
+    configure_ignored_epoch_receipt(&root);
+    let output = root.join(EPOCH_RECEIPT_PATH);
+    std::fs::create_dir_all(output.parent().expect("epoch receipt parent"))
+        .expect("create epoch receipt parent");
+    let outside = root.join("outside.json");
+    std::fs::write(&outside, b"outside bytes").expect("write outside target");
+    symlink(&outside, &output).expect("link epoch receipt output");
+
+    let error = write_canonical_ignored_generated_file(
+        &root,
+        Path::new(EPOCH_RECEIPT_PATH),
+        b"replacement",
+    )
+    .expect_err("epoch receipt leaf symlink must fail closed");
+    assert!(error.contains("must be a regular file"));
+    assert_eq!(
+        std::fs::read(&outside).expect("read outside target"),
+        b"outside bytes"
+    );
+    std::fs::remove_dir_all(root).expect("remove integration fixture");
+}
+
+#[cfg(unix)]
+#[test]
+fn epoch_receipt_intermediate_symlink_is_rejected_without_touching_target() {
+    use std::os::unix::fs::symlink;
+
+    let root = temp_git_repo("epoch-receipt-intermediate-symlink");
+    configure_ignored_epoch_receipt(&root);
+    let outside = root.join("outside");
+    std::fs::create_dir(&outside).expect("create outside directory");
+    let target =
+        outside.join("facade/artifact-inventory-registry/adr-census-epoch-receipt.generated.json");
+    std::fs::create_dir_all(target.parent().expect("outside target parent"))
+        .expect("create outside target parent");
+    std::fs::write(&target, b"outside bytes").expect("write outside target");
+    symlink(&outside, root.join("ci")).expect("link intermediate directory");
+
+    let error = write_canonical_ignored_generated_file(
+        &root,
+        Path::new(EPOCH_RECEIPT_PATH),
+        b"replacement",
+    )
+    .expect_err("epoch receipt intermediate symlink must fail closed");
+    assert!(
+        error.contains("not a real directory"),
+        "unexpected intermediate-symlink error: {error}"
+    );
+    assert_eq!(
+        std::fs::read(&target).expect("read outside target"),
+        b"outside bytes"
+    );
+    std::fs::remove_dir_all(root).expect("remove integration fixture");
+}
+
+#[cfg(unix)]
+#[test]
+fn epoch_receipt_writer_stays_bound_to_open_parent_after_ancestor_swap() {
+    use std::os::unix::fs::symlink;
+
+    let root = temp_git_repo("epoch-receipt-parent-swap");
+    configure_ignored_epoch_receipt(&root);
+    let original_ci = root.join("ci");
+    let captured_output = original_ci
+        .join("facade/artifact-inventory-registry/adr-census-epoch-receipt.generated.json");
+    std::fs::create_dir_all(captured_output.parent().expect("captured output parent"))
+        .expect("create canonical parent");
+    let writer = CanonicalIgnoredGeneratedWriter::open(&root, Path::new(EPOCH_RECEIPT_PATH))
+        .expect("open epoch receipt writer before the ancestor swap");
+    std::fs::rename(&original_ci, root.join("ci-captured")).expect("move opened ancestor");
+
+    let outside = root.join("outside");
+    let target =
+        outside.join("facade/artifact-inventory-registry/adr-census-epoch-receipt.generated.json");
+    std::fs::create_dir_all(target.parent().expect("outside target parent"))
+        .expect("create outside target parent");
+    std::fs::write(&target, b"outside bytes").expect("write outside target");
+    symlink(&outside, &original_ci).expect("swap canonical parent to symlink");
+
+    writer
+        .write(b"captured bytes")
+        .expect("writer must finalize through its captured directory fd");
+    assert_eq!(
+        std::fs::read(&target).expect("read outside target"),
+        b"outside bytes"
+    );
+    assert_eq!(
+        std::fs::read(root.join(
+            "ci-captured/facade/artifact-inventory-registry/adr-census-epoch-receipt.generated.json"
         ))
         .expect("read captured output"),
         b"captured bytes"
