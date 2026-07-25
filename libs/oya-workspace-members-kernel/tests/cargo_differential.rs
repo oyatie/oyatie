@@ -86,6 +86,39 @@ fn cargo_workspace_member_dirs(root: &Path, metadata: &str) -> BTreeSet<String> 
         .collect()
 }
 
+fn assert_cargo_metadata_matches_owned_resolver(root: &Path, cargo: std::process::Output) {
+    assert!(
+        cargo.status.success(),
+        "Cargo metadata must resolve fixture: {}",
+        String::from_utf8_lossy(&cargo.stderr)
+    );
+    let cargo_members = cargo_workspace_member_dirs(
+        root,
+        &String::from_utf8(cargo.stdout).expect("Cargo metadata stdout UTF-8"),
+    );
+    let owned_members = resolve_member_dirs(root)
+        .expect("owned resolver must resolve fixture")
+        .into_iter()
+        .collect::<BTreeSet<_>>();
+    assert_eq!(owned_members, cargo_members);
+}
+
+fn assert_cargo_missing_member_manifest(cargo: &std::process::Output, member_manifest: &str) {
+    assert!(
+        !cargo.status.success(),
+        "Cargo must reject missing member manifest"
+    );
+    let cargo_error = String::from_utf8_lossy(&cargo.stderr);
+    assert!(
+        cargo_error.contains("failed to load manifest for workspace member"),
+        "Cargo failure must report the workspace-member manifest class: {cargo_error}"
+    );
+    assert!(
+        cargo_error.contains(member_manifest),
+        "Cargo failure must name the missing member manifest: {cargo_error}"
+    );
+}
+
 #[test]
 fn cargo_metadata_workspace_members_match_owned_resolver() {
     let root = fixture_root("metadata-members");
@@ -104,21 +137,7 @@ fn cargo_metadata_workspace_members_match_owned_resolver() {
         &crate_manifest("excluded"),
     );
 
-    let cargo = cargo_metadata(&root);
-    assert!(
-        cargo.status.success(),
-        "Cargo metadata must resolve fixture: {}",
-        String::from_utf8_lossy(&cargo.stderr)
-    );
-    let cargo_members = cargo_workspace_member_dirs(
-        &root,
-        &String::from_utf8(cargo.stdout).expect("Cargo metadata stdout UTF-8"),
-    );
-    let owned_members = resolve_member_dirs(&root)
-        .expect("owned resolver must resolve fixture")
-        .into_iter()
-        .collect::<BTreeSet<_>>();
-    assert_eq!(owned_members, cargo_members);
+    assert_cargo_metadata_matches_owned_resolver(&root, cargo_metadata(&root));
 
     let _ = std::fs::remove_dir_all(root);
 }
@@ -145,17 +164,7 @@ fn cyclic_directory_symlink_inspection_error_matches_cargo_success() {
         "the fixture must specifically exercise ERROR_CANT_RESOLVE_FILENAME"
     );
 
-    let cargo = cargo_metadata(&root);
-    assert!(
-        cargo.status.success(),
-        "Cargo must skip ERROR_CANT_RESOLVE_FILENAME while expanding member globs: {}",
-        String::from_utf8_lossy(&cargo.stderr)
-    );
-    assert_eq!(
-        resolve_member_dirs(&root)
-            .expect("owned resolver must match Cargo's skipped inspection error"),
-        Vec::<String>::new()
-    );
+    assert_cargo_metadata_matches_owned_resolver(&root, cargo_metadata(&root));
 
     let _ = std::fs::remove_dir_all(root);
 }
@@ -176,16 +185,7 @@ fn directory_symlink_member_matches_cargo_success() {
     std::fs::create_dir_all(root.join("members")).expect("create member root");
     symlink("../real", root.join("members/link")).expect("create directory symlink");
 
-    let cargo = cargo_metadata(&root);
-    assert!(
-        cargo.status.success(),
-        "Cargo must resolve the directory symlink fixture: {}",
-        String::from_utf8_lossy(&cargo.stderr)
-    );
-    assert_eq!(
-        resolve_member_dirs(&root).expect("owned resolver must match Cargo success"),
-        vec!["members/link".to_owned()]
-    );
+    assert_cargo_metadata_matches_owned_resolver(&root, cargo_metadata(&root));
 
     let _ = std::fs::remove_dir_all(root);
 }
@@ -206,15 +206,7 @@ fn symlink_to_directory_without_manifest_matches_cargo_failure() {
     symlink("../real", root.join("members/link")).expect("create directory symlink");
 
     let cargo = cargo_metadata(&root);
-    assert!(
-        !cargo.status.success(),
-        "Cargo must reject a symlink member directory without Cargo.toml"
-    );
-    let cargo_error = String::from_utf8_lossy(&cargo.stderr);
-    assert!(
-        cargo_error.contains("members/link/Cargo.toml"),
-        "Cargo failure must name the missing member manifest: {cargo_error}"
-    );
+    assert_cargo_missing_member_manifest(&cargo, "members/link/Cargo.toml");
     assert_eq!(
         resolve_member_dirs(&root),
         Err(ResolveError::MissingManifests(vec![
@@ -236,15 +228,7 @@ fn unexcluded_missing_manifest_matches_cargo_failure() {
     std::fs::create_dir_all(root.join("members/not-a-crate")).expect("create invalid member");
 
     let cargo = cargo_metadata(&root);
-    assert!(
-        !cargo.status.success(),
-        "Cargo must reject an unexcluded member directory without Cargo.toml"
-    );
-    let cargo_error = String::from_utf8_lossy(&cargo.stderr);
-    assert!(
-        cargo_error.contains("members/not-a-crate/Cargo.toml"),
-        "Cargo failure must name the missing member manifest: {cargo_error}"
-    );
+    assert_cargo_missing_member_manifest(&cargo, "members/not-a-crate/Cargo.toml");
     assert_eq!(
         resolve_member_dirs(&root),
         Err(ResolveError::MissingManifests(vec![
