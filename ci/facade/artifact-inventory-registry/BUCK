@@ -1,6 +1,6 @@
 rust_library(
     name = "ci-artifact-inventory-registry",
-    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"], exclude = ["**/*.generated.json"]),
     crate = "ci_artifact_inventory_registry",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
@@ -28,7 +28,7 @@ rust_library(
 
 rust_test(
     name = "ci-artifact-inventory-registry-unittest",
-    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"], exclude = ["**/*.generated.json"]),
     crate = "ci_artifact_inventory_registry",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
@@ -54,7 +54,7 @@ rust_test(
 
 rust_binary(
     name = "oya-cloud-ci-accounting-registry-app-bin",
-    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"], exclude = ["**/*.generated.json"]),
     crate_root = "src/main.rs",
     visibility = ["PUBLIC"],
     deps = [
@@ -84,7 +84,7 @@ rust_binary(
 
 rust_test(
     name = "oya-cloud-ci-accounting-registry-app-bin-unittest",
-    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"], exclude = ["**/*.generated.json"]),
     crate = "oya_cloud_ci_accounting_registry_app_bin_tests",
     crate_root = "src/main.rs",
     visibility = ["PUBLIC"],
