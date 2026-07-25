@@ -89,6 +89,8 @@ invocation, and no duplicated glob expansion.
 |---|---|---|---|
 | `Cargo.toml` | update root workspace members/exclude | - | - |
 | `libs/oya-workspace-members-kernel/` | create canonical resolver kernel | `oya-workspace-members-kernel` | kernel |
+| `libs/oya-workspace-members-kernel/tests/cargo_differential.rs` | add hermetic Cargo-boundary differential fixtures, including the Windows `ERROR_CANT_RESOLVE_FILENAME` case | `oya-workspace-members-kernel` | kernel test |
+| `libs/oya-workspace-members-kernel/OWNERS` | register narrow `cloud-ci-platform` ownership for the resolver and its differential fixtures | - | ownership data |
 | `marketplace/facade/dev-cli/src/workspace_manifest.rs` | migrate parser to kernel | `marketplace-dev-cli` | cli |
 | `marketplace/facade/dev-cli/src/workspace_topology_gate.rs` | consume expanded members and skip nested workspaces | `marketplace-dev-cli` | cli |
 | `tools/oya-xtask-metadata-augment-app/src/metadata.rs` | migrate metadata member enumeration to kernel | `oya-xtask-metadata-augment-app` | app |
@@ -122,6 +124,9 @@ not introduce new Workflow events or Ontology writes.
 - Buck2 remains the primary local verification surface for the changed crates and gate targets.
 - `cargo metadata --format-version 1 --no-deps` is permitted only for the required member-set
   equivalence proof and lock refresh.
+- The Buck-owned Cargo differential accepts the Windows
+  `ERROR_CANT_RESOLVE_FILENAME` (`Win32 1921`) cyclic-symlink inspection result while proving that
+  Cargo metadata still resolves the workspace.
 - The gate is born-blocking through `gate-baseline.generated.json`; the current clean root glob
   corpus freezes empty for `workspace_member_explicit_path` and reports any future explicit member
   entry as new debt.
@@ -140,6 +145,7 @@ not introduce new Workflow events or Ontology writes.
 ## Verification
 
 - `buck2 test //libs/oya-workspace-members-kernel:oya-workspace-members-kernel-unittest`
+- `buck2 test //libs/oya-workspace-members-kernel:oya-workspace-members-kernel-cargo-differential`
 - `buck2 test //ci/facade/workspace-member-coverage:oya-cloud-ci-workspace-glob-coverage-app-unittest`
 - `buck2 test //ci/facade/workspace-member-coverage:oya-cloud-ci-workspace-glob-coverage-app-gate`
 - `buck2 test //ci/facade/artifact-inventory-registry:oya-cloud-ci-accounting-registry-app-bin-unittest`

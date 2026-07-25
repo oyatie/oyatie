@@ -5,7 +5,8 @@
 //! and asserts:
 //!   (a) `cargo metadata` resolves post-move (and would buck2-resolve; the BUCK labels are
 //!       rewritten and asserted textually);
-//!   (b) the inverse restores the tree BYTE-IDENTICALLY;
+//!   (b) the inverse restores every file and symlink BYTE-IDENTICALLY; empty-directory
+//!       provenance across independent `apply_plan` calls is intentionally out of scope;
 //!   (c) the dry-run gate PASSES a clean move and FAILS a move that would break resolution.
 //!
 //! No real capability is moved; the fixture is a throwaway temp tree.
@@ -16,7 +17,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 
 use oya_reorg_codemod_app::model::{CrateMove, MovePlan};
 use oya_reorg_codemod_app::oracle;
-use oya_reorg_codemod_app::plan::{apply_plan, ApplyOptions};
+use oya_reorg_codemod_app::plan::{ApplyOptions, apply_plan};
 
 static COUNTER: AtomicU64 = AtomicU64::new(0);
 
@@ -43,27 +44,159 @@ fn r(root: &Path, rel: &str) -> String {
     std::fs::read_to_string(root.join(rel)).unwrap()
 }
 
-/// Snapshot every first-party file (Cargo.toml/BUCK/*.rs + .buckconfig) as (rel -> bytes)
-/// for byte-identity comparison across the round trip.
-fn snapshot_tree(root: &Path) -> BTreeMap<String, Vec<u8>> {
+/// Snapshot entry type and content. Symlinks retain their raw link target and are never followed.
+#[derive(Clone, Debug, PartialEq, Eq)]
+enum SnapshotEntry {
+    Directory,
+    File(Vec<u8>),
+    Symlink(PathBuf),
+}
+
+/// Snapshot the full fixture tree for byte-and-type comparison without following symlinks.
+fn snapshot_tree(root: &Path) -> BTreeMap<String, SnapshotEntry> {
     let mut out = BTreeMap::new();
     let mut stack = vec![root.to_path_buf()];
     while let Some(dir) = stack.pop() {
         for entry in std::fs::read_dir(&dir).unwrap().flatten() {
             let path = entry.path();
             let name = path.file_name().and_then(|s| s.to_str()).unwrap_or("");
-            if path.is_dir() {
+            let metadata = std::fs::symlink_metadata(&path).unwrap();
+            let rel = path
+                .strip_prefix(root)
+                .unwrap()
+                .to_string_lossy()
+                .replace('\\', "/");
+            if metadata.file_type().is_symlink() {
+                out.insert(
+                    rel,
+                    SnapshotEntry::Symlink(std::fs::read_link(&path).unwrap()),
+                );
+            } else if metadata.is_dir() {
                 if name == ".git" || name == "target" {
                     continue;
                 }
+                out.insert(rel, SnapshotEntry::Directory);
                 stack.push(path);
             } else {
-                let rel = path.strip_prefix(root).unwrap().to_string_lossy().replace('\\', "/");
-                out.insert(rel, std::fs::read(&path).unwrap());
+                out.insert(rel, SnapshotEntry::File(std::fs::read(&path).unwrap()));
             }
         }
     }
     out
+}
+
+fn non_directory_entries(
+    snapshot: &BTreeMap<String, SnapshotEntry>,
+) -> BTreeMap<String, SnapshotEntry> {
+    snapshot
+        .iter()
+        .filter(|(_, entry)| !matches!(entry, SnapshotEntry::Directory))
+        .map(|(path, entry)| (path.clone(), entry.clone()))
+        .collect()
+}
+
+#[cfg(unix)]
+#[test]
+fn snapshot_tree_models_files_directories_and_dangling_symlinks_without_following_them() {
+    use std::os::unix::fs::symlink;
+
+    let root = tmp_root("snapshot-model");
+    w(&root, "file.txt", "file bytes\n");
+    w(&root, "target-dir/inside.txt", "must not be followed\n");
+    std::fs::create_dir_all(root.join("empty-dir")).unwrap();
+    symlink("file.txt", root.join("file-link")).unwrap();
+    symlink("target-dir", root.join("directory-link")).unwrap();
+    symlink("missing-target", root.join("dangling-link")).unwrap();
+
+    let snapshot = snapshot_tree(&root);
+    assert_eq!(
+        snapshot.get("file.txt"),
+        Some(&SnapshotEntry::File(b"file bytes\n".to_vec()))
+    );
+    assert_eq!(snapshot.get("empty-dir"), Some(&SnapshotEntry::Directory));
+    assert_eq!(
+        snapshot.get("file-link"),
+        Some(&SnapshotEntry::Symlink(PathBuf::from("file.txt")))
+    );
+    assert_eq!(
+        snapshot.get("directory-link"),
+        Some(&SnapshotEntry::Symlink(PathBuf::from("target-dir")))
+    );
+    assert_eq!(
+        snapshot.get("dangling-link"),
+        Some(&SnapshotEntry::Symlink(PathBuf::from("missing-target")))
+    );
+    assert!(
+        !snapshot.contains_key("directory-link/inside.txt"),
+        "snapshot must not follow a symlinked directory"
+    );
+
+    let _ = std::fs::remove_dir_all(&root);
+}
+
+#[test]
+fn validation_failure_preserves_the_entire_tree_snapshot() {
+    let root = tmp_root("validation-no-mutation");
+    w(
+        &root,
+        "Cargo.toml",
+        "[workspace]\nmembers = [\"crates/*\", \"libs/*\"]\nresolver = \"2\"\n",
+    );
+    w(
+        &root,
+        "crates/oya-widget/Cargo.toml",
+        "[package]\nname = \"oya-widget\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
+    );
+    w(
+        &root,
+        "crates/oya-widget/src/lib.rs",
+        "pub fn widget() {}\n",
+    );
+    w(
+        &root,
+        "docs/unchanged.md",
+        "unrelated file stays byte-identical\n",
+    );
+    std::fs::create_dir_all(root.join("libs/missing-manifest"))
+        .expect("create invalid workspace member");
+    std::fs::create_dir_all(root.join("preexisting-empty-dir"))
+        .expect("create pre-existing empty directory");
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::symlink;
+
+        w(&root, "symlink-target/file.txt", "target bytes\n");
+        symlink("docs/unchanged.md", root.join("file-link")).expect("create file symlink");
+        symlink("symlink-target", root.join("directory-link")).expect("create directory symlink");
+        symlink("missing-target", root.join("dangling-link")).expect("create dangling symlink");
+    }
+
+    let plan = MovePlan {
+        capability: "widget".to_owned(),
+        moves: vec![CrateMove {
+            old_path: "crates/oya-widget".to_owned(),
+            new_path: "widget/core/widget".to_owned(),
+            old_cargo_name: "oya-widget".to_owned(),
+            new_cargo_name: "widget-domain".to_owned(),
+        }],
+        artifacts: vec![],
+    };
+    let before = snapshot_tree(&root);
+
+    let error = apply_plan(&root, &plan, &ApplyOptions { use_git_mv: false })
+        .expect_err("invalid workspace membership must fail before any codemod write");
+
+    assert!(
+        error.to_string().contains("libs/missing-manifest"),
+        "the resolver failure must retain its matched path: {error}"
+    );
+    assert_eq!(
+        snapshot_tree(&root),
+        before,
+        "validation failure must preserve files, empty directories, and symlinks exactly"
+    );
+
+    let _ = std::fs::remove_dir_all(root);
 }
 
 /// The synthetic capability tree:
@@ -248,8 +381,41 @@ fn forward_move_recomputes_paths_and_resolves() {
     let _ = std::fs::remove_dir_all(&root);
 }
 
+#[cfg(unix)]
 #[test]
-fn inverse_restores_byte_identically() {
+fn successful_apply_does_not_follow_an_outside_root_directory_symlink() {
+    use std::os::unix::fs::symlink;
+
+    let root = tmp_root("outside-root-symlink");
+    let outside = tmp_root("outside-root-sentinel");
+    build_fixture(&root);
+    w(
+        &outside,
+        "sentinel.rs",
+        "use oya_cap_core::engine;\npub fn sentinel() { engine(); }\n",
+    );
+    let sentinel_before = r(&outside, "sentinel.rs");
+    symlink(&outside, root.join("outside-root")).expect("create outside-root symlink");
+
+    apply_plan(
+        &root,
+        &capability_plan(),
+        &ApplyOptions { use_git_mv: false },
+    )
+    .expect("ordinary fixture move must succeed");
+
+    assert_eq!(
+        r(&outside, "sentinel.rs"),
+        sentinel_before,
+        "successful apply must not rewrite files reached only through an outside-root symlink"
+    );
+
+    let _ = std::fs::remove_dir_all(&root);
+    let _ = std::fs::remove_dir_all(&outside);
+}
+
+#[test]
+fn inverse_restores_file_and_symlink_content_but_not_empty_directory_provenance() {
     let root = tmp_root("inv");
     build_fixture(&root);
     let before = snapshot_tree(&root);
@@ -262,17 +428,10 @@ fn inverse_restores_byte_identically() {
 
     let after = snapshot_tree(&root);
     assert_eq!(
-        before.keys().collect::<Vec<_>>(),
-        after.keys().collect::<Vec<_>>(),
-        "file set must be identical after round trip"
+        non_directory_entries(&before),
+        non_directory_entries(&after),
+        "files and symlink targets must be identical after inverse; empty-directory provenance is not tracked across independent apply calls"
     );
-    for (path, bytes) in &before {
-        assert_eq!(
-            after.get(path),
-            Some(bytes),
-            "file {path} not byte-identical after inverse"
-        );
-    }
 
     // And cargo still resolves the restored tree.
     let snap = oracle::capture_snapshot(&root, false);

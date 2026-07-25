@@ -338,11 +338,19 @@ fn cargo_skips_symlink_target_error(error: &std::io::Error) -> bool {
         return true;
     }
     #[cfg(windows)]
-    if error.raw_os_error() == Some(1921) {
+    if is_windows_filesystem_loop_error_code(error.raw_os_error()) {
         return true;
     }
 
     false
+}
+
+/// Win32's `ERROR_CANT_RESOLVE_FILENAME` is how `metadata` reports a cyclic symlink.
+/// Keep this pure so the platform-specific branch has a host-independent regression test.
+#[must_use]
+#[cfg(any(windows, test))]
+fn is_windows_filesystem_loop_error_code(raw_os_error: Option<i32>) -> bool {
+    raw_os_error == Some(1921)
 }
 
 /// Match one path component against a single-segment glob containing zero or more `*`
@@ -689,6 +697,13 @@ mod tests {
                 "member pattern: {member}"
             );
         }
+    }
+
+    #[test]
+    fn windows_filesystem_loop_error_code_is_recognized_without_windows_host() {
+        assert!(is_windows_filesystem_loop_error_code(Some(1921)));
+        assert!(!is_windows_filesystem_loop_error_code(Some(40)));
+        assert!(!is_windows_filesystem_loop_error_code(None));
     }
 
     #[test]
