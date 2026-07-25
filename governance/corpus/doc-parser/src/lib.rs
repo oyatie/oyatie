@@ -1423,6 +1423,116 @@ impl AdrDecision {
     }
 }
 
+/// One uninterpreted top-level ADR frontmatter field retained for provenance.
+///
+/// This type deliberately exposes only the original field spelling and its byte
+/// range. Consumers must not infer authority, lifecycle, or decision semantics
+/// from opaque metadata.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AdrOpaqueFrontmatterField {
+    key: String,
+    span: AdrByteSpan,
+    raw_bytes: Vec<u8>,
+}
+
+impl AdrOpaqueFrontmatterField {
+    #[must_use]
+    pub fn key(&self) -> &str {
+        &self.key
+    }
+
+    #[must_use]
+    pub const fn span(&self) -> AdrByteSpan {
+        self.span
+    }
+
+    #[must_use]
+    pub fn raw_bytes(&self) -> &[u8] {
+        &self.raw_bytes
+    }
+}
+
+/// Minimal, authority-neutral envelope for ADR provenance consumers.
+///
+/// The envelope authenticates complete source bytes and projects only `id`,
+/// `status`, and ordered `supersedes` references. Every other top-level field
+/// remains opaque source data; this is intentionally not an [`AdrDecision`] and
+/// must never be used to populate the strict decision IR or its census.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AdrAuthorityEnvelope {
+    source_path: String,
+    frontmatter_span: AdrByteSpan,
+    id: AdrId,
+    status: String,
+    supersedes: Vec<AdrReference>,
+    opaque_fields: Vec<AdrOpaqueFrontmatterField>,
+    canonical_bytes: Vec<u8>,
+    content_hash: AdrContentHash,
+}
+
+impl AdrAuthorityEnvelope {
+    #[must_use]
+    pub fn source_path(&self) -> &str {
+        &self.source_path
+    }
+
+    /// Exact byte range of the leading frontmatter, including both fences.
+    #[must_use]
+    pub const fn frontmatter_span(&self) -> AdrByteSpan {
+        self.frontmatter_span
+    }
+
+    #[must_use]
+    pub const fn id(&self) -> &AdrId {
+        &self.id
+    }
+
+    #[must_use]
+    pub fn status(&self) -> &str {
+        &self.status
+    }
+
+    #[must_use]
+    pub fn supersedes(&self) -> &[AdrReference] {
+        &self.supersedes
+    }
+
+    #[must_use]
+    pub fn opaque_fields(&self) -> &[AdrOpaqueFrontmatterField] {
+        &self.opaque_fields
+    }
+
+    #[must_use]
+    pub fn opaque_field(&self, key: &str) -> Option<&AdrOpaqueFrontmatterField> {
+        self.opaque_fields.iter().find(|field| field.key == key)
+    }
+
+    #[must_use]
+    pub fn canonical_bytes(&self) -> &[u8] {
+        &self.canonical_bytes
+    }
+
+    #[must_use]
+    pub const fn content_hash(&self) -> &AdrContentHash {
+        &self.content_hash
+    }
+}
+
+#[derive(Debug, Clone)]
+struct AuthorityEnvelopeField {
+    key: String,
+    span: AdrByteSpan,
+    value_span: AdrByteSpan,
+    first_line_value: String,
+    first_line_end: usize,
+}
+
+#[derive(Debug, Clone)]
+struct AuthorityEnvelopeFrontmatter {
+    fields: Vec<AuthorityEnvelopeField>,
+    span: AdrByteSpan,
+}
+
 /// Fail-closed parsing errors for ADR frontmatter.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum AdrParseError {
@@ -1603,6 +1713,258 @@ pub fn parse_adr_decision(input: &AdrParseInput) -> Result<AdrDecision, AdrParse
         canonical_bytes,
         content_hash: AdrContentHash(bytes),
     })
+}
+
+/// Parse an immutable ADR authority envelope without constructing a decision IR.
+///
+/// The parser accepts arbitrary nested metadata as opaque bytes, while failing
+/// closed for malformed fences, duplicate top-level keys, or malformed selected
+/// fields. It deliberately does not validate or project any metadata other than
+/// the identity, lifecycle spelling, and ordered supersession references.
+///
+/// # Errors
+/// Returns an error when the source path, leading/closing frontmatter fence,
+/// top-level field surface, or selected field shape is invalid.
+pub fn parse_adr_authority_envelope(
+    input: &AdrParseInput,
+) -> Result<AdrAuthorityEnvelope, AdrParseError> {
+    validate_source_path(input.source_path())?;
+    let frontmatter = parse_authority_envelope_fields(input.source())?;
+    let fields = &frontmatter.fields;
+    let id_field = require_authority_field(fields, "id")?;
+    let id = AdrId(authority_scalar(input.source(), id_field)?);
+    if !is_adr_id(id.as_str()) {
+        return Err(AdrParseError::InvalidAdrId {
+            value: id.0,
+            span: id_field.value_span,
+        });
+    }
+    validate_id_matches_path(&id, input.source_path())?;
+    let status = authority_scalar(input.source(), require_authority_field(fields, "status")?)?;
+    let supersedes = fields
+        .iter()
+        .find(|field| field.key == "supersedes")
+        .map(|field| authority_supersedes(input.source(), field))
+        .transpose()?
+        .unwrap_or_default();
+
+    let opaque_fields = fields
+        .iter()
+        .filter(|field| !matches!(field.key.as_str(), "id" | "status" | "supersedes"))
+        .map(|field| {
+            let start = field.span.start as usize;
+            let end = field.span.end as usize;
+            AdrOpaqueFrontmatterField {
+                key: field.key.clone(),
+                span: field.span,
+                raw_bytes: input.source().as_bytes()[start..end].to_vec(),
+            }
+        })
+        .collect();
+    let canonical_bytes = input.source().as_bytes().to_vec();
+    let digest = Sha256::digest(&canonical_bytes);
+    let mut bytes = [0_u8; 32];
+    bytes.copy_from_slice(&digest);
+    Ok(AdrAuthorityEnvelope {
+        source_path: input.source_path().to_owned(),
+        frontmatter_span: frontmatter.span,
+        id,
+        status,
+        supersedes,
+        opaque_fields,
+        canonical_bytes,
+        content_hash: AdrContentHash(bytes),
+    })
+}
+
+fn parse_authority_envelope_fields(
+    source: &str,
+) -> Result<AuthorityEnvelopeFrontmatter, AdrParseError> {
+    if !source.starts_with("---\n") && !source.starts_with("---\r\n") {
+        return Err(AdrParseError::MissingLeadingFrontmatter);
+    }
+    let mut cursor = next_line(source, 0).2;
+    let mut fields: Vec<AuthorityEnvelopeField> = Vec::new();
+    while cursor < source.len() {
+        let (line, start, next) = next_line(source, cursor);
+        let line = line.trim_end_matches('\r');
+        if line == "---" {
+            if let Some(previous) = fields.last_mut() {
+                previous.span.end = start as u64;
+            }
+            return Ok(AuthorityEnvelopeFrontmatter {
+                fields,
+                span: span(0, next),
+            });
+        }
+        if line.starts_with('\t') {
+            return Err(AdrParseError::InvalidFrontmatter {
+                message: "tabs are not supported".to_owned(),
+                span: span(start, start + line.len()),
+            });
+        }
+        if line.starts_with(' ') {
+            let indentation = line
+                .bytes()
+                .take_while(|byte| matches!(byte, b' ' | b'\t'))
+                .count();
+            if line.as_bytes()[..indentation].contains(&b'\t') {
+                return Err(AdrParseError::InvalidFrontmatter {
+                    message: "tabs are not supported".to_owned(),
+                    span: span(start, start + line.len()),
+                });
+            }
+            if indentation < 2 || !indentation.is_multiple_of(2) {
+                return Err(AdrParseError::InvalidFrontmatter {
+                    message: "indentation must be a multiple of two spaces".to_owned(),
+                    span: span(start, start + line.len()),
+                });
+            }
+            if fields.is_empty() {
+                return Err(AdrParseError::InvalidFrontmatter {
+                    message: "frontmatter must begin with a top-level key".to_owned(),
+                    span: span(start, start + line.len()),
+                });
+            }
+            cursor = next;
+            continue;
+        }
+        if line.is_empty() || line.starts_with('#') {
+            if fields.is_empty() {
+                return Err(AdrParseError::InvalidFrontmatter {
+                    message: "frontmatter must begin with a top-level key".to_owned(),
+                    span: span(start, start + line.len()),
+                });
+            }
+            cursor = next;
+            continue;
+        }
+        let Some((key, raw_value)) = line.split_once(':') else {
+            return Err(AdrParseError::InvalidFrontmatter {
+                message: "expected key: value".to_owned(),
+                span: span(start, start + line.len()),
+            });
+        };
+        if !valid_key(key) {
+            return Err(AdrParseError::InvalidFrontmatter {
+                message: "invalid key".to_owned(),
+                span: span(start, start + line.len()),
+            });
+        }
+        if fields.iter().any(|field| field.key == key) {
+            return Err(AdrParseError::DuplicateFrontmatterKey {
+                key: key.to_owned(),
+                span: span(start, start + line.len()),
+            });
+        }
+        if let Some(previous) = fields.last_mut() {
+            previous.span.end = start as u64;
+        }
+        let first_line_end = next;
+        fields.push(AuthorityEnvelopeField {
+            key: key.to_owned(),
+            span: span(start, source.len()),
+            value_span: span(start + key.len() + 1, start + line.len()),
+            first_line_value: raw_value.to_owned(),
+            first_line_end,
+        });
+        cursor = next;
+    }
+    Err(AdrParseError::UnterminatedFrontmatter)
+}
+
+fn require_authority_field<'a>(
+    fields: &'a [AuthorityEnvelopeField],
+    key: &str,
+) -> Result<&'a AuthorityEnvelopeField, AdrParseError> {
+    fields.iter().find(|field| field.key == key).ok_or_else(|| {
+        AdrParseError::MissingRequiredField {
+            key: key.to_owned(),
+        }
+    })
+}
+
+fn authority_scalar(source: &str, field: &AuthorityEnvelopeField) -> Result<String, AdrParseError> {
+    if source[field.first_line_end..field.span.end as usize]
+        .lines()
+        .any(|line| !line.trim().is_empty() && !line.trim_start().starts_with('#'))
+    {
+        return Err(AdrParseError::InvalidFrontmatter {
+            message: format!("{} must be a non-empty scalar", field.key),
+            span: field.span,
+        });
+    }
+    let value = parse_value(&field.first_line_value).map_err(|message| {
+        AdrParseError::InvalidFrontmatter {
+            message,
+            span: field.value_span,
+        }
+    })?;
+    match value {
+        AdrFrontmatterValue::Scalar(value) if !value.is_empty() => Ok(value),
+        _ => Err(AdrParseError::InvalidFrontmatter {
+            message: format!("{} must be a non-empty scalar", field.key),
+            span: field.value_span,
+        }),
+    }
+}
+
+fn authority_supersedes(
+    source: &str,
+    field: &AuthorityEnvelopeField,
+) -> Result<Vec<AdrReference>, AdrParseError> {
+    let nested = &source[field.first_line_end..field.span.end as usize];
+    let value = parse_value(&field.first_line_value).map_err(|message| {
+        AdrParseError::InvalidFrontmatter {
+            message,
+            span: field.value_span,
+        }
+    })?;
+    let values = if nested.trim().is_empty() {
+        field_value_list(value)
+    } else {
+        if !matches!(value, AdrFrontmatterValue::Empty) {
+            return Err(AdrParseError::InvalidFrontmatter {
+                message: "supersedes block list requires an empty parent value".to_owned(),
+                span: field.value_span,
+            });
+        }
+        let mut values = Vec::new();
+        for line in nested.lines() {
+            let line = line.trim_end_matches('\r');
+            let trimmed = line.trim();
+            if trimmed.is_empty() || trimmed.starts_with('#') {
+                continue;
+            }
+            let Some(raw) = line.strip_prefix("  - ") else {
+                return Err(AdrParseError::UnsupportedFrontmatterNesting { span: field.span });
+            };
+            values.push(parse_scalar(raw).map_err(|message| {
+                AdrParseError::InvalidFrontmatter {
+                    message,
+                    span: field.span,
+                }
+            })?);
+        }
+        values
+    };
+    values
+        .into_iter()
+        .map(|value| {
+            if !is_adr_id(&value) {
+                return Err(AdrParseError::InvalidAdrReference {
+                    key: "supersedes".to_owned(),
+                    value,
+                    span: field.span,
+                });
+            }
+            Ok(AdrReference {
+                id: AdrId(value.clone()),
+                raw_value: value,
+                field_span: field.span,
+            })
+        })
+        .collect()
 }
 
 fn require_scalar<'a>(
