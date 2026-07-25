@@ -13,14 +13,14 @@ use ci_path_resolver_adapters::MOVE_MANIFEST_SCHEMA;
 use ci_path_resolver_ports::{PathId, PathResolver};
 use ci_scm_facts_snapshot::retirement::CanonicalRetirementFactsWriter;
 use ci_scm_facts_snapshot::{
-    discover_repo_root, emit_fixed_adr_census_parent_receipt, load_vocab_policy,
-    output_path_resolver,
+    discover_repo_root, emit_adr_census_epoch_receipt, load_vocab_policy, output_path_resolver,
     retirement::{
         GENERATED_FACTS_PATH, RetirementMaterializationContext, emit_history_only_retirement_facts,
         historical_dev_push_context, visit_git_blobs, write_canonical_retirement_facts,
     },
 };
 use serde_json::json;
+use sha2::Digest;
 
 static NEXT_TEMP_REPO_ID: AtomicU64 = AtomicU64::new(0);
 
@@ -547,13 +547,32 @@ fn repository_discovery_finds_root_authority_pointer() {
 }
 
 #[test]
-fn fixed_adr_census_parent_receipt_emission_matches_builder_bytes() {
-    let output_root = temp_repo_root("fixed-adr-census-receipt");
+fn active_p2_epoch_emission_preserves_the_fixed_historical_receipt() {
+    let output_root = temp_repo_root("active-p2-adr-census-epoch");
     let repo_root = discover_repo_root().expect("discover repository root");
-    let first = ci_scm_facts_snapshot::build_fixed_adr_census_parent_receipt(&repo_root)
-        .expect("build fixed receipt");
-    let output = output_root.join("nested/receipt.generated.json");
-    emit_fixed_adr_census_parent_receipt(&repo_root, &output).expect("emit fixed receipt");
-    assert_eq!(std::fs::read(&output).expect("read emitted receipt"), first);
-    std::fs::remove_dir_all(output_root).expect("remove receipt-output fixture");
+    let output = output_root.join("nested/adr-census-epoch-receipt.generated.json");
+    emit_adr_census_epoch_receipt(&repo_root, &output).expect("emit active P2 epoch receipt");
+    let receipt = std::fs::read(&output).expect("read active P2 receipt");
+    assert_eq!(
+        format!("{:x}", sha2::Sha256::digest(&receipt)),
+        "0f22621954fe0f7718a79616769bfe1ed4660851bab8890d69e98038080e2b0a"
+    );
+    let value: serde_json::Value = serde_json::from_slice(&receipt).expect("parse receipt");
+    assert_eq!(
+        value["outer_sha256"],
+        "c3c4195f440fbf7825101dcf303fea9d8aec9d2ce7a77bd3ec25d8411dfdf528"
+    );
+    assert_eq!(
+        value["receipt"]["canonical_digest"],
+        "7a8eb3848e3b5d1dd148595b5210f2a059fac582db9e5607cf54be2f502b24d8"
+    );
+    assert_eq!(
+        value["receipt"]["aggregate_fold"],
+        "2aeb7459f61b6f216b4eee75164bcfb85e405bbe8ca74cf180e5492b09c99507"
+    );
+    let mut tampered = receipt;
+    tampered[0] ^= 1;
+    std::fs::write(&output, tampered).expect("write tampered P2 receipt");
+    assert!(ci_scm_facts_snapshot::validate_adr_census_epoch_receipt(&repo_root, &output).is_err());
+    std::fs::remove_dir_all(output_root).expect("remove epoch receipt fixture");
 }

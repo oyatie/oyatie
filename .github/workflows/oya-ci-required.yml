@@ -193,7 +193,7 @@ jobs:
           - { crate: topology-manifest-contract, label: "gate · cell-topology-manifest-contract (CELL-001R manifest contract)" }
           - { crate: automation-language-policy, label: "gate · rust-first automation hygiene (cloud-native infra anti-patterns: scripts, workflow shell, retired interpreters, and new CLI packages)" }
           - { crate: gate-self-conformance, label: "gate · gate-self-conformance (GH #777, pipeline-as-product 7-property bar over every gate)" }
-          - { crate: scm-facts-snapshot, label: "gate · fixed ADR census parent receipt (P2 historical evidence)" }
+          - { crate: scm-facts-snapshot, label: "gate · ADR census epoch receipt (P2 active; P3 dormant)" }
     steps:
       # actions/checkout@v6.0.3 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10

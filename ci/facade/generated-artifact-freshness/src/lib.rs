@@ -26,7 +26,7 @@ pub const FACE_SETTLE_COMMIT_COMMAND: &str =
 const FACE_SETTLE_COMMIT_MESSAGE: &str = "chore: settle generated cloud-ci faces";
 const FACES_DIR: &str = "ci/facade/artifact-inventory-registry";
 const SCM_FACTS_FACE: &str = "scm-facts.generated.json";
-const ADR_CENSUS_PARENT_RECEIPT_FACE: &str = "adr-census-parent-receipt.generated.json";
+const ADR_CENSUS_EPOCH_RECEIPT_FACE: &str = "adr-census-epoch-receipt.generated.json";
 const ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS: &str = ".claude/settings.json";
 const ENFORCEMENT_LIVENESS_CODEX_HOOKS: &str = ".codex/hooks.json";
 const ENFORCEMENT_LIVENESS_HOOKS_DIR: &str = "tools/hooks";
@@ -66,7 +66,7 @@ const GENERATED_FACE_PATHS: [&str; 7] = [
 /// Controller-owned generated artifacts whose freshness is proven by regeneration/determinism,
 /// but whose byte diffs are not staged by `oya-cloud-ci-face-settle` in contributor PRs.
 const CONTROLLER_MATERIALIZED_ARTIFACT_PATHS: [&str; 5] = [
-    "ci/facade/artifact-inventory-registry/adr-census-parent-receipt.generated.json",
+    "ci/facade/artifact-inventory-registry/adr-census-epoch-receipt.generated.json",
     MASTERPLAN_PROJECTION_PATH,
     BOARD_SYNC_PROJECTION_PATH,
     ARCHITECTURE_PRODUCT_GRAPH_PATH,
@@ -587,12 +587,12 @@ fn materialize_generated_faces_with_tools(
         retirement,
         historical_dev_push,
     )?;
-    emit_adr_census_parent_receipt(
+    emit_adr_census_epoch_receipt(
         &tools.emitter,
         repo_root,
         &repo_root
             .join(FACES_DIR)
-            .join(ADR_CENSUS_PARENT_RECEIPT_FACE),
+            .join(ADR_CENSUS_EPOCH_RECEIPT_FACE),
     )?;
     let mut command = Command::new(&tools.producer);
     command
@@ -1510,7 +1510,7 @@ fn regenerate_all_faces(
     scm_facts: &Path,
 ) -> Result<RegeneratedFaces, FreshnessError> {
     let mut regenerated = regenerate_producer_faces(tools, repo_root, scm_facts)?;
-    regenerated.push(regenerate_adr_census_parent_receipt(
+    regenerated.push(regenerate_adr_census_epoch_receipt(
         &tools.emitter,
         repo_root,
     )?);
@@ -1655,21 +1655,21 @@ fn verify_materialized_upload_outputs(
     Ok(())
 }
 
-fn regenerate_adr_census_parent_receipt(
+fn regenerate_adr_census_epoch_receipt(
     emitter: &Path,
     repo_root: &Path,
 ) -> Result<(String, String), FreshnessError> {
-    let output = temporary_adr_census_parent_receipt_path()?;
+    let output = temporary_adr_census_epoch_receipt_path()?;
     let cleanup = TempFileCleanup {
         path: output.clone(),
     };
-    emit_adr_census_parent_receipt(emitter, repo_root, &output)?;
+    emit_adr_census_epoch_receipt(emitter, repo_root, &output)?;
     let bytes = read_to_string(&output)?;
     drop(cleanup);
-    Ok((ADR_CENSUS_PARENT_RECEIPT_FACE.to_owned(), bytes))
+    Ok((ADR_CENSUS_EPOCH_RECEIPT_FACE.to_owned(), bytes))
 }
 
-fn emit_adr_census_parent_receipt(
+fn emit_adr_census_epoch_receipt(
     emitter: &Path,
     repo_root: &Path,
     output: &Path,
@@ -1678,11 +1678,11 @@ fn emit_adr_census_parent_receipt(
         Command::new(emitter)
             .args(["--repo-root"])
             .arg(repo_root)
-            .arg("--adr-census-parent-receipt")
-            .arg("--adr-census-parent-receipt-out")
+            .arg("--adr-census-epoch-receipt")
+            .arg("--adr-census-epoch-receipt-out")
             .arg(output)
             .current_dir(repo_root),
-        "materialize fixed historical ADR census receipt",
+        "materialize ADR census epoch receipt",
     )
 }
 
@@ -2568,9 +2568,9 @@ fn temporary_product_graph_path() -> Result<PathBuf, FreshnessError> {
     exclusive_temporary_file("oya-ci-freshness-product-graph", ".html")
 }
 
-fn temporary_adr_census_parent_receipt_path() -> Result<PathBuf, FreshnessError> {
+fn temporary_adr_census_epoch_receipt_path() -> Result<PathBuf, FreshnessError> {
     exclusive_temporary_file(
-        "oya-ci-freshness-adr-census-parent-receipt",
+        "oya-ci-freshness-adr-census-epoch-receipt",
         ".generated.json",
     )
 }
@@ -3639,7 +3639,7 @@ root//tools/hooks:top-level-hook-scripts buck-out/v2/gen/tools/hooks/__top-level
             serde_json::json!({
                 "artifacts": [
                     {
-                        "path": "ci/facade/artifact-inventory-registry/adr-census-parent-receipt.generated.json",
+                        "path": "ci/facade/artifact-inventory-registry/adr-census-epoch-receipt.generated.json",
                         "materialization_mode": NOT_TRACKED_IN_GIT_MODE
                     },
                     {
@@ -3668,13 +3668,13 @@ root//tools/hooks:top-level-hook-scripts buck-out/v2/gen/tools/hooks/__top-level
         let generated_paths = generated_face_paths();
         let pr_owned_paths = pr_owned_generated_face_paths(&non_pr_owned);
 
-        assert!(non_pr_owned.contains(ADR_CENSUS_PARENT_RECEIPT_FACE));
+        assert!(non_pr_owned.contains(ADR_CENSUS_EPOCH_RECEIPT_FACE));
         assert!(non_pr_owned.contains(MASTERPLAN_PROJECTION_FACE));
         assert!(non_pr_owned.contains(BOARD_SYNC_PROJECTION_FACE));
         assert!(non_pr_owned.contains(ARCHITECTURE_PRODUCT_GRAPH_FACE));
         assert!(!generated_paths.contains(&MASTERPLAN_PROJECTION_PATH.to_owned()));
         assert!(
-            !generated_paths.contains(&format!("{FACES_DIR}/{ADR_CENSUS_PARENT_RECEIPT_FACE}"))
+            !generated_paths.contains(&format!("{FACES_DIR}/{ADR_CENSUS_EPOCH_RECEIPT_FACE}"))
         );
         assert!(!generated_paths.contains(&ARCHITECTURE_PRODUCT_GRAPH_PATH.to_owned()));
         assert!(!pr_owned_paths.contains(&MASTERPLAN_PROJECTION_PATH.to_owned()));
@@ -3855,8 +3855,8 @@ while [ "$#" -gt 0 ]; do
   case "$1" in
     --out) shift; out="$1" ;;
     --merge-base-out) shift; mbout="$1" ;;
-    --adr-census-parent-receipt) census=true ;;
-    --adr-census-parent-receipt-out) shift; censusout="$1" ;;
+    --adr-census-epoch-receipt) census=true ;;
+    --adr-census-epoch-receipt-out) shift; censusout="$1" ;;
   esac
   shift || true
 done
@@ -3960,8 +3960,8 @@ printf 'generated dashboard\n' > docs/architecture/product-graph.html
         let codemod_pos = calls.find("codemod manifest").expect("codemod call");
         let emitter_pos = calls.find("emitter --repo-root").expect("emitter call");
         let census_pos = calls
-            .find("--adr-census-parent-receipt --adr-census-parent-receipt-out")
-            .expect("fixed census receipt call");
+            .find("--adr-census-epoch-receipt --adr-census-epoch-receipt-out")
+            .expect("census epoch receipt call");
         let producer_pos = calls.rfind("producer --repo-root").expect("producer call");
         let masterplan_pos = calls
             .find("masterplan gen masterplan --write")
@@ -3995,8 +3995,8 @@ printf 'generated dashboard\n' > docs/architecture/product-graph.html
             root.join(ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS).display()
         )));
         assert_eq!(
-            std::fs::read_to_string(root.join(FACES_DIR).join(ADR_CENSUS_PARENT_RECEIPT_FACE))
-                .expect("fixed census receipt materialized"),
+            std::fs::read_to_string(root.join(FACES_DIR).join(ADR_CENSUS_EPOCH_RECEIPT_FACE))
+                .expect("census epoch receipt materialized"),
             "{\"fixed\":\"receipt\"}\n"
         );
         assert_eq!(
