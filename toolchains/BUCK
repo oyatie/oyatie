@@ -13,18 +13,15 @@ system_rust_toolchain(
     visibility = ["PUBLIC"],
 )
 
-# Absolute compiler paths (not bare "clang") so the prelude's build-script cc-shim
-# resolves the compiler regardless of the action PATH — root cause of the Linux
-# `exec failed ['clang' ... FileNotFoundError`. /usr/bin/clang + /usr/bin/ar exist on
-# BOTH darwin-arm64 and linux-arm64 → cross-platform-correct. With this, the prelude
-# injects CC/CXX/AR into build scripts (ring/aws-lc-sys/openssl-sys), so their fixups
-# must NOT hardcode per-OS CC. (Hermetic step later: absolute host paths -> cell artifacts.)
+# Absolute Unix compiler paths keep the prelude build-script cc-shim independent of PATH on
+# Darwin/Linux. Windows must retain the prelude MSVC defaults; overriding them with Unix paths
+# makes every Rust target that links a C build script fail before its tests can run.
 system_cxx_toolchain(
     name = "cxx",
-    compiler = "/usr/bin/clang",
-    compiler_type = "clang",
-    linker = "/usr/bin/clang",
-    archiver = "/usr/bin/ar",
+    compiler = None if host_info().os.is_windows else "/usr/bin/clang",
+    compiler_type = None if host_info().os.is_windows else "clang",
+    linker = None if host_info().os.is_windows else "/usr/bin/clang",
+    archiver = None if host_info().os.is_windows else "/usr/bin/ar",
     visibility = ["PUBLIC"],
 )
 
@@ -35,10 +32,10 @@ system_cxx_toolchain(
 # the affected-gate query) fails with "Unknown target cxx_no_default_deps". Mirror :cxx.
 system_cxx_toolchain(
     name = "cxx_no_default_deps",
-    compiler = "/usr/bin/clang",
-    compiler_type = "clang",
-    linker = "/usr/bin/clang",
-    archiver = "/usr/bin/ar",
+    compiler = None if host_info().os.is_windows else "/usr/bin/clang",
+    compiler_type = None if host_info().os.is_windows else "clang",
+    linker = None if host_info().os.is_windows else "/usr/bin/clang",
+    archiver = None if host_info().os.is_windows else "/usr/bin/ar",
     visibility = ["PUBLIC"],
 )
 
