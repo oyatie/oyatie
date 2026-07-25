@@ -348,6 +348,7 @@ fn cargo_skips_symlink_target_error(error: &std::io::Error) -> bool {
 /// Win32's `ERROR_CANT_RESOLVE_FILENAME` is how `metadata` reports a cyclic symlink.
 /// Keep this pure so the platform-specific branch has a host-independent regression test.
 #[must_use]
+#[cfg(any(windows, test))]
 fn is_windows_filesystem_loop_error_code(raw_os_error: Option<i32>) -> bool {
     raw_os_error == Some(1921)
 }

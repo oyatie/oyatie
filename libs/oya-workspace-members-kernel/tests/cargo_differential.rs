@@ -3,11 +3,13 @@
 //! These are integration tests because they exercise the external Cargo boundary. The kernel's
 //! unit tests remain pure and cover its own error classification independently.
 
+use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::sync::atomic::{AtomicU64, Ordering};
 
 use oya_workspace_members_kernel::{ResolveError, resolve_member_dirs};
+use serde_json::Value;
 
 static COUNTER: AtomicU64 = AtomicU64::new(0);
 
@@ -45,6 +47,80 @@ fn cargo_metadata(root: &Path) -> std::process::Output {
         .current_dir(root)
         .output()
         .expect("spawn Cargo metadata for hermetic fixture")
+}
+
+fn cargo_workspace_member_dirs(root: &Path, metadata: &str) -> BTreeSet<String> {
+    let root = root
+        .canonicalize()
+        .expect("canonicalize fixture root for Cargo metadata paths");
+    let metadata: Value = serde_json::from_str(metadata).expect("Cargo metadata must be JSON");
+    let workspace_members = metadata["workspace_members"]
+        .as_array()
+        .expect("Cargo metadata workspace_members array")
+        .iter()
+        .map(|id| id.as_str().expect("workspace member package ID"))
+        .collect::<BTreeSet<_>>();
+    metadata["packages"]
+        .as_array()
+        .expect("Cargo metadata packages array")
+        .iter()
+        .filter(|package| {
+            package["id"]
+                .as_str()
+                .is_some_and(|id| workspace_members.contains(id))
+        })
+        .map(|package| {
+            let manifest = PathBuf::from(
+                package["manifest_path"]
+                    .as_str()
+                    .expect("workspace package manifest path"),
+            );
+            manifest
+                .parent()
+                .expect("manifest has parent")
+                .strip_prefix(&root)
+                .expect("Cargo metadata manifest lies under fixture root")
+                .to_string_lossy()
+                .replace('\\', "/")
+        })
+        .collect()
+}
+
+#[test]
+fn cargo_metadata_workspace_members_match_owned_resolver() {
+    let root = fixture_root("metadata-members");
+    write(
+        &root,
+        "Cargo.toml",
+        "[workspace]\nmembers = [\"members/*\"]\nexclude = [\"members/excluded\"]\nresolver = \"2\"\n",
+    );
+    write(&root, "members/one/Cargo.toml", &crate_manifest("one"));
+    write(&root, "members/one/src/lib.rs", "pub fn one() {}\n");
+    write(&root, "members/two/Cargo.toml", &crate_manifest("two"));
+    write(&root, "members/two/src/lib.rs", "pub fn two() {}\n");
+    write(
+        &root,
+        "members/excluded/Cargo.toml",
+        &crate_manifest("excluded"),
+    );
+
+    let cargo = cargo_metadata(&root);
+    assert!(
+        cargo.status.success(),
+        "Cargo metadata must resolve fixture: {}",
+        String::from_utf8_lossy(&cargo.stderr)
+    );
+    let cargo_members = cargo_workspace_member_dirs(
+        &root,
+        &String::from_utf8(cargo.stdout).expect("Cargo metadata stdout UTF-8"),
+    );
+    let owned_members = resolve_member_dirs(&root)
+        .expect("owned resolver must resolve fixture")
+        .into_iter()
+        .collect::<BTreeSet<_>>();
+    assert_eq!(owned_members, cargo_members);
+
+    let _ = std::fs::remove_dir_all(root);
 }
 
 #[cfg(windows)]
@@ -134,6 +210,11 @@ fn symlink_to_directory_without_manifest_matches_cargo_failure() {
         !cargo.status.success(),
         "Cargo must reject a symlink member directory without Cargo.toml"
     );
+    let cargo_error = String::from_utf8_lossy(&cargo.stderr);
+    assert!(
+        cargo_error.contains("members/link/Cargo.toml"),
+        "Cargo failure must name the missing member manifest: {cargo_error}"
+    );
     assert_eq!(
         resolve_member_dirs(&root),
         Err(ResolveError::MissingManifests(vec![
@@ -158,6 +239,11 @@ fn unexcluded_missing_manifest_matches_cargo_failure() {
     assert!(
         !cargo.status.success(),
         "Cargo must reject an unexcluded member directory without Cargo.toml"
+    );
+    let cargo_error = String::from_utf8_lossy(&cargo.stderr);
+    assert!(
+        cargo_error.contains("members/not-a-crate/Cargo.toml"),
+        "Cargo failure must name the missing member manifest: {cargo_error}"
     );
     assert_eq!(
         resolve_member_dirs(&root),
