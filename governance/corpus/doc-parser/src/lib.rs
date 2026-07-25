@@ -706,6 +706,7 @@ impl From<WorkAreaTreeError> for DocParseError {
 /// Returns [`DocParseError`] when provenance is invalid or frontmatter is malformed.
 pub fn parse_markdown_doc(input: &DocParseInput) -> Result<ParsedDocument, DocParseError> {
     let content_start = content_start_after_frontmatter(input.source())?;
+    validate_document_source_path(input.source_path())?;
     let work_area_hash = WorkAreaHash::from_bytes(sha256_frame(&[
         b"work-area",
         DOC_PARSER_VERSION.as_bytes(),
@@ -779,6 +780,22 @@ pub fn parse_markdown_doc(input: &DocParseInput) -> Result<ParsedDocument, DocPa
     }
 
     Ok(ParsedDocument { nodes })
+}
+
+/// Validate provenance even when the source produces no document nodes.
+///
+/// `NodeLocator` owns the canonical repository-relative path contract. The
+/// temporary span is only used to invoke that contract and is never surfaced
+/// in a parsed document.
+fn validate_document_source_path(source_path: &str) -> Result<(), DocParseError> {
+    let validation_span = SourceSpan::new(0, 1)?;
+    match NodeLocator::new(source_path, validation_span) {
+        Ok(_) => Ok(()),
+        Err(WorkAreaTreeError::InvalidArtifactPath(path)) => {
+            Err(DocParseError::InvalidSourcePath(path))
+        }
+        Err(error) => Err(DocParseError::NodeIdentity(error)),
+    }
 }
 
 fn content_start_after_frontmatter(source: &str) -> Result<usize, DocParseError> {
@@ -2282,4 +2299,53 @@ fn unescape_double(value: &str) -> Result<String, String> {
         });
     }
     Ok(output)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{DocParseError, DocParseInput, parse_markdown_doc};
+
+    #[test]
+    fn zero_structure_documents_still_require_a_valid_provenance_path() {
+        let valid = parse_markdown_doc(&DocParseInput::new(
+            "tenant",
+            "docs/decisions/ADR-0001.md",
+            "",
+        ))
+        .expect("an empty document with canonical provenance remains valid");
+        assert!(valid.nodes().is_empty());
+
+        for path in [
+            "",
+            "/docs/decisions/ADR-0001.md",
+            "docs/decisions/../private.md",
+        ] {
+            assert!(matches!(
+                parse_markdown_doc(&DocParseInput::new("tenant", path, "")),
+                Err(DocParseError::InvalidSourcePath(rejected)) if rejected == path
+            ));
+        }
+
+        assert!(matches!(
+            parse_markdown_doc(&DocParseInput::new(
+                "tenant",
+                "docs/decisions/../private.md",
+                "plain prose without a heading or reference",
+            )),
+            Err(DocParseError::InvalidSourcePath(rejected))
+                if rejected == "docs/decisions/../private.md"
+        ));
+    }
+
+    #[test]
+    fn malformed_frontmatter_precedes_invalid_path_validation() {
+        assert_eq!(
+            parse_markdown_doc(&DocParseInput::new(
+                "tenant",
+                "docs/decisions/../private.md",
+                "---\nid: ADR-0001\n",
+            )),
+            Err(DocParseError::MalformedFrontmatter)
+        );
+    }
 }
