@@ -17,6 +17,7 @@ use oya_cloud_ci_rust_first_automation_hygiene_app::{
     evaluate_cli_package_authority, evaluate_forbidden_workflow_uses,
     evaluate_interpreter_command_authority, evaluate_keyed,
     evaluate_non_rust_exception_baseline_keyed, evaluate_workflow_inline_shell_keyed,
+    load_non_rust_exception_baseline_from_merge_base,
 };
 use serde_json::{Value, json};
 use serde_yaml::Value as YamlValue;
@@ -49,6 +50,20 @@ fn load_json(path: &Path) -> Value {
 
 fn load_policy(root: &Path) -> Value {
     load_json(&policy_path(root))
+}
+
+fn run_git<const N: usize>(root: &Path, args: [&str; N]) -> String {
+    let output = Command::new("git")
+        .args(args)
+        .current_dir(root)
+        .output()
+        .expect("run git fixture command");
+    assert!(
+        output.status.success(),
+        "git fixture command failed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    String::from_utf8(output.stdout).expect("git fixture output is UTF-8")
 }
 
 fn named_workflow_step<'a>(workflow: &'a YamlValue, job_id: &str, name: &str) -> &'a YamlValue {
@@ -521,9 +536,10 @@ fn retired_baselined_inline_shell_is_stale_red() {
 fn live_non_rust_exceptions_match_frozen_baseline_green() {
     let root = repo_root();
     let policy = load_policy(&root);
-    let baseline = &policy["non_rust_exception_baseline"];
+    let baseline = load_non_rust_exception_baseline_from_merge_base(&root)
+        .expect("read the non-Rust exception baseline from the immutable merge-base policy tree");
 
-    let findings = evaluate_non_rust_exception_baseline_keyed(&policy, baseline);
+    let findings = evaluate_non_rust_exception_baseline_keyed(&policy, &baseline);
     assert!(
         findings.is_empty(),
         "non-Rust-exception dimension found shrink-only violations: \
@@ -549,6 +565,136 @@ fn live_non_rust_exceptions_match_frozen_baseline_green() {
         codes_len, provenance_total,
         "baseline _provenance.keys_total ({provenance_total}) must equal the codes array length \
          ({codes_len})"
+    );
+}
+
+/// Regression for #1190: a candidate must not add both an exception and that exception to its
+/// local baseline.  The baseline is loaded by Git object ID from the merge-base tree, so only a
+/// separately protected change can admit an additional exception.
+#[test]
+fn candidate_policy_cannot_self_waive_new_exception_by_editing_its_baseline() {
+    let temp = TestDir::new("automation-policy-merge-base");
+    let root = temp.path();
+    let path = policy_path(root);
+    fs::create_dir_all(path.parent().expect("policy parent")).expect("create policy directory");
+    run_git(root, ["init"]);
+    run_git(
+        root,
+        ["config", "user.email", "automation-policy@example.test"],
+    );
+    run_git(root, ["config", "user.name", "automation policy test"]);
+
+    let protected_policy = json!({
+        "exceptions": [{"path": "scripts/accepted.sh"}],
+        "non_rust_exception_baseline": {"codes": {
+            "rust_first_automation_unbaselined_non_rust_exception": ["scripts/accepted.sh"]
+        }}
+    });
+    fs::write(
+        &path,
+        serde_json::to_vec(&protected_policy).expect("serialize protected policy"),
+    )
+    .expect("write protected policy");
+    run_git(root, ["add", "."]);
+    run_git(root, ["commit", "-m", "protected policy"]);
+    let protected_commit = run_git(root, ["rev-parse", "HEAD"]);
+    run_git(
+        root,
+        [
+            "update-ref",
+            "refs/remotes/origin/dev",
+            protected_commit.trim(),
+        ],
+    );
+
+    let candidate_policy = json!({
+        "exceptions": [
+            {"path": "scripts/accepted.sh"},
+            {"path": "scripts/candidate-self-waiver.sh"}
+        ],
+        "non_rust_exception_baseline": {"codes": {
+            "rust_first_automation_unbaselined_non_rust_exception": [
+                "scripts/accepted.sh",
+                "scripts/candidate-self-waiver.sh"
+            ]
+        }}
+    });
+    fs::write(
+        &path,
+        serde_json::to_vec(&candidate_policy).expect("serialize candidate policy"),
+    )
+    .expect("write candidate policy");
+
+    let vulnerable_candidate_baseline = &candidate_policy["non_rust_exception_baseline"];
+    assert!(
+        evaluate_non_rust_exception_baseline_keyed(
+            &candidate_policy,
+            vulnerable_candidate_baseline
+        )
+        .is_empty(),
+        "control: the candidate-controlled baseline demonstrates the pre-#1190 self-waiver"
+    );
+
+    let baseline = load_non_rust_exception_baseline_from_merge_base(root)
+        .expect("load immutable protected-base baseline");
+    let findings = evaluate_non_rust_exception_baseline_keyed(&candidate_policy, &baseline);
+    assert!(
+        findings.iter().any(|finding| {
+            finding.code == "rust_first_automation_unbaselined_non_rust_exception"
+                && finding.key == "scripts/candidate-self-waiver.sh"
+        }),
+        "candidate policy plus candidate baseline must not self-waive: {findings:#?}"
+    );
+}
+
+#[test]
+fn exception_added_by_prior_protected_change_is_accepted() {
+    let temp = TestDir::new("automation-policy-prior-protected-change");
+    let root = temp.path();
+    let path = policy_path(root);
+    fs::create_dir_all(path.parent().expect("policy parent")).expect("create policy directory");
+    run_git(root, ["init"]);
+    run_git(
+        root,
+        ["config", "user.email", "automation-policy@example.test"],
+    );
+    run_git(root, ["config", "user.name", "automation policy test"]);
+
+    let protected_policy = json!({
+        "exceptions": [
+            {"path": "scripts/accepted.sh"},
+            {"path": "scripts/prior-protected-change.sh"}
+        ],
+        "non_rust_exception_baseline": {"codes": {
+            "rust_first_automation_unbaselined_non_rust_exception": [
+                "scripts/accepted.sh",
+                "scripts/prior-protected-change.sh"
+            ]
+        }}
+    });
+    fs::write(
+        &path,
+        serde_json::to_vec(&protected_policy).expect("serialize protected policy"),
+    )
+    .expect("write protected policy");
+    run_git(root, ["add", "."]);
+    run_git(root, ["commit", "-m", "prior protected policy"]);
+    let protected_commit = run_git(root, ["rev-parse", "HEAD"]);
+    run_git(
+        root,
+        [
+            "update-ref",
+            "refs/remotes/origin/dev",
+            protected_commit.trim(),
+        ],
+    );
+
+    let baseline = load_non_rust_exception_baseline_from_merge_base(root)
+        .expect("load prior protected baseline");
+    let findings = evaluate_non_rust_exception_baseline_keyed(&protected_policy, &baseline);
+    assert!(
+        findings.is_empty(),
+        "an exception admitted by the prior protected tree must be accepted: {findings:#?}"
     );
 }
 

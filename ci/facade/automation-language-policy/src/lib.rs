@@ -11,12 +11,19 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::io::Read;
 use std::path::{Path, PathBuf};
+use std::process::Command;
 
 use serde_json::{Value, json};
 use serde_yaml::Value as YamlValue;
 use toml::Value as TomlValue;
 
 pub const GATE_ID: &str = "cloud-ci-rust-first-automation-hygiene";
+
+/// The protected branch used to freeze exception debt. This is deliberately not policy data:
+/// candidate policy must not be able to repoint the frozen reference it is checked against.
+const PROTECTED_BASE_REF: &str = "origin/dev";
+const POLICY_REPO_PATH: &str =
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json";
 
 pub const VIOLATION_CODES: [&str; 18] = [
     "rust_first_automation_gate_id_mismatch",
@@ -653,6 +660,79 @@ pub fn evaluate_non_rust_exception_baseline_keyed(
     }
 
     findings
+}
+
+// ───────────────────────── merge-base frozen exception baseline ─────────────────────────────
+
+/// Narrow Git-object seam for the immutable baseline. Mirroring the repository's other frozen
+/// reference gates keeps candidate filesystem reads out of the allowance source.
+trait FrozenPolicySource {
+    fn merge_base(&self, base_ref: &str) -> Result<String, String>;
+    fn show_file(&self, revision: &str, path: &str) -> Result<Option<String>, String>;
+}
+
+struct GitCliFrozenPolicySource<'a> {
+    repo_root: &'a Path,
+}
+
+impl FrozenPolicySource for GitCliFrozenPolicySource<'_> {
+    fn merge_base(&self, base_ref: &str) -> Result<String, String> {
+        git_stdout(self.repo_root, &["merge-base", base_ref, "HEAD"])
+    }
+
+    fn show_file(&self, revision: &str, path: &str) -> Result<Option<String>, String> {
+        let output = Command::new("git")
+            .args(["show", &format!("{revision}:{path}")])
+            .current_dir(self.repo_root)
+            .output()
+            .map_err(|error| format!("run git show for frozen automation policy: {error}"))?;
+        if output.status.success() {
+            String::from_utf8(output.stdout)
+                .map(Some)
+                .map_err(|error| format!("frozen automation policy is not UTF-8: {error}"))
+        } else {
+            Ok(None)
+        }
+    }
+}
+
+fn git_stdout(repo_root: &Path, args: &[&str]) -> Result<String, String> {
+    let output = Command::new("git")
+        .args(args)
+        .current_dir(repo_root)
+        .output()
+        .map_err(|error| format!("run git for frozen automation policy: {error}"))?;
+    if !output.status.success() {
+        return Err(format!(
+            "frozen automation policy Git command failed: {}",
+            String::from_utf8_lossy(&output.stderr).trim()
+        ));
+    }
+    String::from_utf8(output.stdout)
+        .map(|value| value.trim().to_owned())
+        .map_err(|error| format!("frozen automation policy Git output is not UTF-8: {error}"))
+}
+
+fn frozen_non_rust_exception_baseline(source: &impl FrozenPolicySource) -> Result<Value, String> {
+    let merge_base = source.merge_base(PROTECTED_BASE_REF)?;
+    let policy = source
+        .show_file(&merge_base, POLICY_REPO_PATH)?
+        .ok_or_else(|| format!("frozen automation policy missing at merge-base {merge_base}"))?;
+    let policy: Value = serde_json::from_str(&policy)
+        .map_err(|error| format!("parse frozen automation policy: {error}"))?;
+    policy
+        .get("non_rust_exception_baseline")
+        .cloned()
+        .ok_or_else(|| "frozen automation policy missing non_rust_exception_baseline".to_owned())
+}
+
+/// Load the non-Rust exception allowlist baseline from the immutable merge-base tree.
+///
+/// The candidate policy remains the observed exception set, but its accompanying baseline is
+/// intentionally ignored. A new exception can therefore only become accepted after a distinct
+/// protected-base change carries that baseline forward.
+pub fn load_non_rust_exception_baseline_from_merge_base(repo_root: &Path) -> Result<Value, String> {
+    frozen_non_rust_exception_baseline(&GitCliFrozenPolicySource { repo_root })
 }
 
 // ─────────────────────────── forbidden workflow `uses:` dimension ───────────────────────────
