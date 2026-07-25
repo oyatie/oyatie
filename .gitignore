@@ -106,7 +106,7 @@ test-results/
 #   ci/facade/artifact-inventory-registry/enforcement-liveness.generated.json
 #   ci/facade/artifact-inventory-registry/ttl-policy.generated.json
 #   ci/facade/artifact-inventory-registry/scm-facts.generated.json
-#   ci/facade/artifact-inventory-registry/adr-census-parent-receipt.generated.json
+#   ci/facade/artifact-inventory-registry/adr-census-epoch-receipt.generated.json
 # ADR-0597 (completes the ADR-0595 strangler): scm-facts.generated.json was the LAST committed
 # pure-derivation face. It was kept committed in #828 only because it is a declared hermetic input
 # to ~20 gate tests; those consumers now materialize it on demand (CI producer-regen uploads the
