@@ -66,6 +66,60 @@ fn snapshot_tree(root: &Path) -> BTreeMap<String, Vec<u8>> {
     out
 }
 
+#[test]
+fn validation_failure_preserves_the_entire_tree_byte_for_byte() {
+    let root = tmp_root("validation-no-mutation");
+    w(
+        &root,
+        "Cargo.toml",
+        "[workspace]\nmembers = [\"crates/*\", \"libs/*\"]\nresolver = \"2\"\n",
+    );
+    w(
+        &root,
+        "crates/oya-widget/Cargo.toml",
+        "[package]\nname = \"oya-widget\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
+    );
+    w(
+        &root,
+        "crates/oya-widget/src/lib.rs",
+        "pub fn widget() {}\n",
+    );
+    w(
+        &root,
+        "docs/unchanged.md",
+        "unrelated file stays byte-identical\n",
+    );
+    std::fs::create_dir_all(root.join("libs/missing-manifest"))
+        .expect("create invalid workspace member");
+
+    let plan = MovePlan {
+        capability: "widget".to_owned(),
+        moves: vec![CrateMove {
+            old_path: "crates/oya-widget".to_owned(),
+            new_path: "widget/core/widget".to_owned(),
+            old_cargo_name: "oya-widget".to_owned(),
+            new_cargo_name: "widget-domain".to_owned(),
+        }],
+        artifacts: vec![],
+    };
+    let before = snapshot_tree(&root);
+
+    let error = apply_plan(&root, &plan, &ApplyOptions { use_git_mv: false })
+        .expect_err("invalid workspace membership must fail before any codemod write");
+
+    assert!(
+        error.to_string().contains("libs/missing-manifest"),
+        "the resolver failure must retain its matched path: {error}"
+    );
+    assert_eq!(
+        snapshot_tree(&root),
+        before,
+        "validation failure must leave every fixture file byte-identical"
+    );
+
+    let _ = std::fs::remove_dir_all(root);
+}
+
 /// The synthetic capability tree:
 ///   crates/oya-cap-core/      (engine)   depends on libs/oya-shared-kernel via ../../libs/...
 ///   crates/oya-cap-app/       (facade)   depends on oya-cap-core (sibling, ../oya-cap-core)
