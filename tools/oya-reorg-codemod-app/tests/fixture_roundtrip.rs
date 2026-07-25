@@ -17,7 +17,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 
 use oya_reorg_codemod_app::model::{CrateMove, MovePlan};
 use oya_reorg_codemod_app::oracle;
-use oya_reorg_codemod_app::plan::{apply_plan, ApplyOptions};
+use oya_reorg_codemod_app::plan::{ApplyOptions, apply_plan};
 
 static COUNTER: AtomicU64 = AtomicU64::new(0);
 
@@ -61,9 +61,16 @@ fn snapshot_tree(root: &Path) -> BTreeMap<String, SnapshotEntry> {
             let path = entry.path();
             let name = path.file_name().and_then(|s| s.to_str()).unwrap_or("");
             let metadata = std::fs::symlink_metadata(&path).unwrap();
-            let rel = path.strip_prefix(root).unwrap().to_string_lossy().replace('\\', "/");
+            let rel = path
+                .strip_prefix(root)
+                .unwrap()
+                .to_string_lossy()
+                .replace('\\', "/");
             if metadata.file_type().is_symlink() {
-                out.insert(rel, SnapshotEntry::Symlink(std::fs::read_link(&path).unwrap()));
+                out.insert(
+                    rel,
+                    SnapshotEntry::Symlink(std::fs::read_link(&path).unwrap()),
+                );
             } else if metadata.is_dir() {
                 if name == ".git" || name == "target" {
                     continue;
@@ -102,11 +109,23 @@ fn snapshot_tree_models_files_directories_and_dangling_symlinks_without_followin
     symlink("missing-target", root.join("dangling-link")).unwrap();
 
     let snapshot = snapshot_tree(&root);
-    assert_eq!(snapshot.get("file.txt"), Some(&SnapshotEntry::File(b"file bytes\n".to_vec())));
+    assert_eq!(
+        snapshot.get("file.txt"),
+        Some(&SnapshotEntry::File(b"file bytes\n".to_vec()))
+    );
     assert_eq!(snapshot.get("empty-dir"), Some(&SnapshotEntry::Directory));
-    assert_eq!(snapshot.get("file-link"), Some(&SnapshotEntry::Symlink(PathBuf::from("file.txt"))));
-    assert_eq!(snapshot.get("directory-link"), Some(&SnapshotEntry::Symlink(PathBuf::from("target-dir"))));
-    assert_eq!(snapshot.get("dangling-link"), Some(&SnapshotEntry::Symlink(PathBuf::from("missing-target"))));
+    assert_eq!(
+        snapshot.get("file-link"),
+        Some(&SnapshotEntry::Symlink(PathBuf::from("file.txt")))
+    );
+    assert_eq!(
+        snapshot.get("directory-link"),
+        Some(&SnapshotEntry::Symlink(PathBuf::from("target-dir")))
+    );
+    assert_eq!(
+        snapshot.get("dangling-link"),
+        Some(&SnapshotEntry::Symlink(PathBuf::from("missing-target")))
+    );
     assert!(
         !snapshot.contains_key("directory-link/inside.txt"),
         "snapshot must not follow a symlinked directory"
@@ -378,8 +397,12 @@ fn successful_apply_does_not_follow_an_outside_root_directory_symlink() {
     let sentinel_before = r(&outside, "sentinel.rs");
     symlink(&outside, root.join("outside-root")).expect("create outside-root symlink");
 
-    apply_plan(&root, &capability_plan(), &ApplyOptions { use_git_mv: false })
-        .expect("ordinary fixture move must succeed");
+    apply_plan(
+        &root,
+        &capability_plan(),
+        &ApplyOptions { use_git_mv: false },
+    )
+    .expect("ordinary fixture move must succeed");
 
     assert_eq!(
         r(&outside, "sentinel.rs"),
