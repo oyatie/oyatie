@@ -739,6 +739,20 @@ fn windows_workspace_resolver_differential_is_a_buck2_matrix_leg() {
 }
 
 #[test]
+fn windows_buck2_toolchain_uses_prelude_msvc_defaults() {
+    let root = repo_root();
+    let toolchains = fs::read_to_string(root.join("toolchains/BUCK"))
+        .expect("read system toolchain declarations");
+
+    for field in ["compiler", "compiler_type", "linker", "archiver"] {
+        assert!(
+            toolchains.contains(&format!("{field} = None if host_info().os.is_windows else")),
+            "Windows must retain the prelude MSVC {field} default instead of overriding it with a Unix path"
+        );
+    }
+}
+
+#[test]
 fn affected_set_long_step_telemetry_wraps_long_running_phases() {
     let root = repo_root();
     let wf = workflow_path(&root);
