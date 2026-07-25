@@ -288,13 +288,16 @@ fn windows_branch_is_buck_only(gate_job: &str) -> bool {
     let Some(branch) = windows_branch(gate_job) else {
         return false;
     };
+    // YAML single-quoted scalars escape a literal PowerShell quote as `''`; normalize that
+    // presentation detail before enforcing the executed-script receipt contract.
+    let branch = branch.replace("''", "'");
     let Some(vsdevcmd) = branch.find("VsDevCmd.bat") else {
         return false;
     };
     let Some(buck2) = branch.find("buck2 test $targets") else {
         return false;
     };
-    vsdevcmd < buck2 && !contains_direct_cargo_executable(branch)
+    vsdevcmd < buck2 && !contains_direct_cargo_executable(&branch)
 }
 
 /// The Windows cmd handoff is only a real Buck execution when it leaves a receipt with both
@@ -304,6 +307,9 @@ fn windows_branch_has_buck_execution_receipt(gate_job: &str) -> bool {
     let Some(branch) = windows_branch(gate_job) else {
         return false;
     };
+    // YAML single-quoted scalars escape a literal PowerShell quote as `''`; normalize that
+    // presentation detail before enforcing the executed-script receipt contract.
+    let branch = branch.replace("''", "'");
 
     let receipt_assignment =
         "$windowsBuckReceipt = Join-Path $env:RUNNER_TEMP 'buck2-windows-receipt.log'";
@@ -864,7 +870,9 @@ fn windows_workspace_resolver_differential_is_a_buck2_matrix_leg() {
     let workflow =
         fs::read_to_string(&wf).unwrap_or_else(|e| panic!("read workflow {}: {e}", wf.display()));
 
-    let gate_job = workflow_job(&workflow, "gate");
+    // YAML single-quoted workflow scalars escape PowerShell's literal quote as `''`; inspect
+    // the decoded script shape so the guard validates execution semantics, not YAML spelling.
+    let gate_job = workflow_job(&workflow, "gate").replace("''", "'");
     assert!(
         gate_job.contains("runs-on: ${{ matrix.os || 'ubuntu-latest' }}"),
         "the reusable gate matrix must select its runner from the matrix"
