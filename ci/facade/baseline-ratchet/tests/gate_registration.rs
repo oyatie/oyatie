@@ -300,6 +300,25 @@ fn windows_branch_is_buck_only(gate_job: &str) -> bool {
     vsdevcmd < buck2 && !contains_direct_cargo_executable(&branch)
 }
 
+fn has_positive_buck_test_pass_summary(receipt: &str) -> bool {
+    receipt.lines().any(|line| {
+        let Some(rest) = line.strip_prefix("Tests finished:") else {
+            return false;
+        };
+        let mut rest = rest.trim_start();
+        while let Some(ansi) = rest.strip_prefix("\u{1b}[") {
+            let Some(end) = ansi.find('m') else {
+                return false;
+            };
+            rest = ansi[end + 1..].trim_start();
+        }
+        let Some(count) = rest.strip_prefix("Pass").map(str::trim_start) else {
+            return false;
+        };
+        matches!(count.chars().next(), Some('1'..='9'))
+    })
+}
+
 /// The Windows cmd handoff is only a real Buck execution when it leaves a receipt with both
 /// Buck's build identifier and its successful-test summary.  `cmd.exe` can otherwise return a
 /// successful shell invocation while the intended Buck command was never observably run.
@@ -319,7 +338,7 @@ fn windows_branch_has_buck_execution_receipt(gate_job: &str) -> bool {
     let print = "Get-Content -Path $windowsBuckReceipt";
     let read = "$windowsBuckReceiptText = Get-Content -Path $windowsBuckReceipt -Raw";
     let build_id = ".Contains('Build ID:')";
-    let pass_summary = ".Contains('Tests finished: Pass')";
+    let positive_pass_summary = "$windowsBuckPassed = $windowsBuckReceiptText -match '(?m)^Tests finished:\\s*(?:\\x1b\\[[0-9;]*m)?Pass\\s+[1-9][0-9]*\\b'";
     let exit_propagation = "if ($windowsBuckExitCode -ne 0) { exit $windowsBuckExitCode }";
 
     let Some(receipt_assignment_index) = branch.find(receipt_assignment) else {
@@ -343,7 +362,7 @@ fn windows_branch_has_buck_execution_receipt(gate_job: &str) -> bool {
     let Some(build_id_index) = branch.find(build_id) else {
         return false;
     };
-    let Some(pass_summary_index) = branch.find(pass_summary) else {
+    let Some(positive_pass_summary_index) = branch.find(positive_pass_summary) else {
         return false;
     };
     let Some(exit_propagation_index) = branch.find(exit_propagation) else {
@@ -355,8 +374,8 @@ fn windows_branch_has_buck_execution_receipt(gate_job: &str) -> bool {
         && exit_capture_index < exit_print_index
         && exit_print_index < print_index
         && print_index < read_index
-        && read_index < build_id_index
-        && build_id_index < pass_summary_index
+        && read_index < positive_pass_summary_index
+        && positive_pass_summary_index < build_id_index
         && exit_capture_index < exit_propagation_index
 }
 
@@ -965,8 +984,26 @@ fn windows_workspace_resolver_registration_rejects_split_or_direct_cargo_mutatio
         "cargo.exe followed by a newline is still a direct Cargo invocation"
     );
 
-    let receipt_branch = "if ($IsWindows) { $windowsBuckReceipt = Join-Path $env:RUNNER_TEMP 'buck2-windows-receipt.log'; cmd.exe /d /s /c \"call `\"VsDevCmd.bat`\" && buck2 test $targets\" 2>&1 | Tee-Object -FilePath $windowsBuckReceipt; $windowsBuckExitCode = $LASTEXITCODE; Write-Host \"Windows Buck2 cmd exit code: $windowsBuckExitCode\"; Get-Content -Path $windowsBuckReceipt; $windowsBuckReceiptText = Get-Content -Path $windowsBuckReceipt -Raw; if (-not ($windowsBuckReceiptText.Contains('Build ID:') -and $windowsBuckReceiptText.Contains('Tests finished: Pass'))) { exit 1 }; if ($windowsBuckExitCode -ne 0) { exit $windowsBuckExitCode } } else { }";
+    let receipt_branch = "if ($IsWindows) { $windowsBuckReceipt = Join-Path $env:RUNNER_TEMP 'buck2-windows-receipt.log'; cmd.exe /d /s /c \"call `\"VsDevCmd.bat`\" && buck2 test $targets\" 2>&1 | Tee-Object -FilePath $windowsBuckReceipt; $windowsBuckExitCode = $LASTEXITCODE; Write-Host \"Windows Buck2 cmd exit code: $windowsBuckExitCode\"; Get-Content -Path $windowsBuckReceipt; $windowsBuckReceiptText = Get-Content -Path $windowsBuckReceipt -Raw; $windowsBuckPassed = $windowsBuckReceiptText -match '(?m)^Tests finished:\\s*(?:\\x1b\\[[0-9;]*m)?Pass\\s+[1-9][0-9]*\\b'; if (-not ($windowsBuckReceiptText.Contains('Build ID:') -and $windowsBuckPassed)) { exit 1 }; if ($windowsBuckExitCode -ne 0) { exit $windowsBuckExitCode } } else { }";
     assert!(windows_branch_has_buck_execution_receipt(receipt_branch));
+    assert!(has_positive_buck_test_pass_summary(
+        "Tests finished: Pass 1"
+    ));
+    assert!(has_positive_buck_test_pass_summary(
+        "Tests finished: Pass 12"
+    ));
+    assert!(has_positive_buck_test_pass_summary(
+        "Tests finished: \u{1b}[mPass 1"
+    ));
+    assert!(!has_positive_buck_test_pass_summary(
+        "Tests finished: Pass 0"
+    ));
+    assert!(!has_positive_buck_test_pass_summary(
+        "Tests finished: Fail 1"
+    ));
+    assert!(!has_positive_buck_test_pass_summary(
+        "Buck completed without a summary"
+    ));
     assert!(
         !windows_branch_has_buck_execution_receipt(
             &receipt_branch.replace("$windowsBuckExitCode = $LASTEXITCODE; ", "")
@@ -980,11 +1017,10 @@ fn windows_workspace_resolver_registration_rejects_split_or_direct_cargo_mutatio
         "a cmd prompt without Buck's Build ID is a false-green execution receipt"
     );
     assert!(
-        !windows_branch_has_buck_execution_receipt(&receipt_branch.replace(
-            ".Contains('Tests finished: Pass')",
-            ".Contains('Tests finished: Fail')"
-        )),
-        "a receipt without a passing Buck test summary must fail closed"
+        !windows_branch_has_buck_execution_receipt(
+            &receipt_branch.replace("[1-9][0-9]*", "[0-9]*")
+        ),
+        "the Windows receipt regex must reject Pass 0 rather than accepting any numeric count"
     );
     assert!(
         !windows_branch_has_buck_execution_receipt(
