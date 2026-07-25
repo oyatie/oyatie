@@ -177,6 +177,24 @@ fn fan_in_block(workflow: &str) -> &str {
     &workflow[idx..]
 }
 
+fn workflow_job(workflow: &str, job_name: &str) -> String {
+    let anchor = format!("  {job_name}:");
+    let mut found = false;
+    let mut lines = Vec::new();
+    for line in workflow.lines() {
+        if line == anchor {
+            found = true;
+        } else if found && line.starts_with("  ") && !line.starts_with("    ") {
+            break;
+        }
+        if found {
+            lines.push(line);
+        }
+    }
+    assert!(found, "workflow job `{job_name}` not found");
+    lines.join("\n")
+}
+
 fn fan_in_mentions_job(fan_in_block: &str, job: &str) -> bool {
     fan_in_block
         .lines()
@@ -677,6 +695,30 @@ fn live_postgres_split_lanes_are_both_required_by_fan_in() {
     assert!(
         !live_postgres_split_fan_in_is_complete(&without_facades),
         "missing facade sublane must be detected as fan-in incomplete"
+    );
+}
+
+#[test]
+fn windows_workspace_resolver_differential_is_a_required_fan_in_input() {
+    let root = repo_root();
+    let wf = workflow_path(&root);
+    let workflow =
+        fs::read_to_string(&wf).unwrap_or_else(|e| panic!("read workflow {}: {e}", wf.display()));
+
+    let windows_job = workflow_job(&workflow, "windows-workspace-member-resolver");
+    assert!(
+        windows_job.contains("runs-on: windows-latest"),
+        "the Windows workspace-resolver lane must run on a real Windows runner"
+    );
+    assert!(
+        windows_job.contains(
+            "cargo test --locked -p oya-workspace-members-kernel --test cargo_differential"
+        ),
+        "the Windows workspace-resolver lane must execute the Cargo differential fixture"
+    );
+    assert!(
+        fan_in_mentions_job(fan_in_block(&workflow), "windows-workspace-member-resolver"),
+        "the single oya-ci-required fan-in must include the Windows workspace-resolver lane"
     );
 }
 

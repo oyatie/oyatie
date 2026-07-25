@@ -35,10 +35,45 @@ fn crate_manifest(name: &str) -> String {
 
 fn cargo_metadata(root: &Path) -> std::process::Output {
     Command::new(std::env::var_os("CARGO").unwrap_or_else(|| "cargo".into()))
-        .args(["metadata", "--no-deps", "--format-version", "1"])
+        .args([
+            "metadata",
+            "--offline",
+            "--no-deps",
+            "--format-version",
+            "1",
+        ])
         .current_dir(root)
         .output()
         .expect("spawn Cargo metadata for hermetic fixture")
+}
+
+#[cfg(windows)]
+#[test]
+fn cyclic_directory_symlink_inspection_error_matches_cargo_success() {
+    use std::os::windows::fs::symlink_dir;
+
+    let root = fixture_root("windows-cyclic-directory-symlink");
+    write(
+        &root,
+        "Cargo.toml",
+        "[workspace]\nmembers = [\"members/*\"]\nresolver = \"2\"\n",
+    );
+    std::fs::create_dir_all(root.join("members")).expect("create member root");
+    symlink_dir("loop", root.join("members/loop")).expect("create cyclic directory symlink");
+
+    let cargo = cargo_metadata(&root);
+    assert!(
+        cargo.status.success(),
+        "Cargo must skip ERROR_CANT_RESOLVE_FILENAME while expanding member globs: {}",
+        String::from_utf8_lossy(&cargo.stderr)
+    );
+    assert_eq!(
+        resolve_member_dirs(&root)
+            .expect("owned resolver must match Cargo's skipped inspection error"),
+        Vec::<String>::new()
+    );
+
+    let _ = std::fs::remove_dir_all(root);
 }
 
 #[cfg(unix)]
