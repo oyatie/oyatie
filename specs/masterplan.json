@@ -6253,6 +6253,22 @@
         "validator": "cloud-ci-cross-artifact-agreement/masterplan-v2-authority"
       }
     },
+    "accepted_decision_propagation_dispositions": {
+      "authority_note": "Gate-facing lifecycle propagation only for Accepted decisions whose planning_impact is false. These markers do not bind planning authority, approve a plan, mint or order work-item IDs, authorize execution-wave dispatch, or prove rollout.",
+      "decisions": [
+        {
+          "id": "ADR-0624",
+          "lifecycle_state": "Accepted",
+          "planning_impact": false,
+          "sequencing_effect": "none",
+          "binding_plan_approval_effect": "none",
+          "execution_dispatch_effect": "none",
+          "hold_state": "HOLD(Planning)",
+          "disposition_ref": "/specs/master-plan-sequencing.json#_metadata.accepted_decision_propagation_dispositions",
+          "note": "Immutable ADR-census epoch-transition lifecycle propagation only. P2 remains active, P3 remains dormant, and Stage-1 planning and dispatch remain blocked."
+        }
+      ]
+    },
     "evidence_state_policy": {
       "status_claims_require_evidence_refs": true,
       "evidence_attached_completion_state": "evidence-attached",

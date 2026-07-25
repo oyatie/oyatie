@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/schemas/adr-census-epoch-control-plane.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schema_version",
+    "canonical_name",
+    "receipt_path",
+    "active_epoch"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "https://docs.oyatie.com/schemas/adr-census-epoch-control-plane.schema.json"
+    },
+    "schema_version": {
+      "const": 1
+    },
+    "canonical_name": {
+      "const": "adr-census-epoch-control-plane"
+    },
+    "receipt_path": {
+      "const": "ci/facade/artifact-inventory-registry/adr-census-epoch-receipt.generated.json"
+    },
+    "active_epoch": {
+      "enum": [
+        "P2",
+        "P3"
+      ]
+    }
+  }
+}
