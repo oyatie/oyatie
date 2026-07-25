@@ -195,6 +195,56 @@ fn workflow_job(workflow: &str, job_name: &str) -> String {
     lines.join("\n")
 }
 
+const WINDOWS_RESOLVER_DIFFERENTIAL_TARGET: &str =
+    "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel-cargo-differential";
+
+/// The matrix currently uses compact YAML objects, so keep this deliberately narrow parser
+/// coupled to that stable workflow shape.  The important invariant is that the Windows runner
+/// and its one permitted target live in the same `matrix.include` entry; independent substring
+/// checks could pair fields from two different legs and silently accept a false-green split.
+fn windows_resolver_matrix_entry(gate_job: &str) -> Option<&str> {
+    gate_job.lines().map(str::trim).find(|line| {
+        line.starts_with("- {")
+            && line.contains("os: windows-latest")
+            && line.contains(WINDOWS_RESOLVER_DIFFERENTIAL_TARGET)
+    })
+}
+
+fn is_exact_windows_resolver_matrix_entry(entry: &str) -> bool {
+    entry.starts_with("- {")
+        && entry.ends_with('}')
+        && entry.contains("os: windows-latest")
+        && entry.contains(&format!(
+            "targets: \"{WINDOWS_RESOLVER_DIFFERENTIAL_TARGET}\""
+        ))
+        && !entry.contains("cargo test")
+        && !entry.contains("cargo.exe")
+}
+
+/// The Windows branch must provision MSVC before Buck2, and must never introduce a direct
+/// Cargo executable.  The target itself owns the resolver/Cargo differential under Buck2.
+fn windows_branch_is_buck_only(gate_job: &str) -> bool {
+    let Some(start) = gate_job.find("if ($IsWindows) {") else {
+        return false;
+    };
+    let Some(end) = gate_job[start..].find("} else {") else {
+        return false;
+    };
+    let branch = &gate_job[start..start + end];
+    let Some(vsdevcmd) = branch.find("VsDevCmd.bat") else {
+        return false;
+    };
+    let Some(buck2) = branch.find("buck2 test $targets") else {
+        return false;
+    };
+    let lower = branch.to_ascii_lowercase();
+    vsdevcmd < buck2
+        && !lower.contains("cargo.exe")
+        && !lower.contains("cargo ")
+        && !lower.contains("cargo;")
+        && !lower.contains("cargo&")
+}
+
 fn fan_in_mentions_job(fan_in_block: &str, job: &str) -> bool {
     fan_in_block
         .lines()
@@ -710,12 +760,11 @@ fn windows_workspace_resolver_differential_is_a_buck2_matrix_leg() {
         gate_job.contains("runs-on: ${{ matrix.os || 'ubuntu-latest' }}"),
         "the reusable gate matrix must select its runner from the matrix"
     );
+    let windows_entry = windows_resolver_matrix_entry(&gate_job)
+        .expect("the Windows resolver differential must be one matrix.include entry");
     assert!(
-        gate_job.contains("os: windows-latest")
-            && gate_job.contains(
-                "targets: \"//libs/oya-workspace-members-kernel:oya-workspace-members-kernel-cargo-differential\""
-            ),
-        "the Windows matrix leg must execute the workspace resolver Cargo differential Buck2 target"
+        is_exact_windows_resolver_matrix_entry(windows_entry),
+        "the Windows matrix leg must pair exactly `os: windows-latest` with the exact resolver differential Buck2 target: {windows_entry}"
     );
     assert!(
         gate_job.contains("shell: pwsh") && gate_job.contains("$IsWindows"),
@@ -727,8 +776,7 @@ fn windows_workspace_resolver_differential_is_a_buck2_matrix_leg() {
             && gate_job.contains("& buck2 test @targetArgs")
             && !gate_job.contains("else { & buck2 test $targets }")
             && gate_job.contains("cmd.exe /d /s /c")
-            && gate_job.contains("call `\"%ProgramFiles%\\Microsoft Visual Studio\\2022\\Enterprise\\Common7\\Tools\\VsDevCmd.bat`\"")
-            && gate_job.contains("buck2 test $targets"),
+            && windows_branch_is_buck_only(&gate_job),
         "the non-Windows path must splat separate Buck2 arguments while Windows rejects an empty exact target, initializes MSVC, and runs it"
     );
     assert!(
@@ -744,6 +792,36 @@ fn windows_workspace_resolver_differential_is_a_buck2_matrix_leg() {
         fan_in_mentions_job(fan_in_block(&workflow), "gate"),
         "the Windows matrix leg must remain under the single oya-ci-required fan-in"
     );
+}
+
+#[test]
+fn windows_workspace_resolver_registration_rejects_split_or_direct_cargo_mutations() {
+    let valid = format!(
+        "- {{ targets: \"{WINDOWS_RESOLVER_DIFFERENTIAL_TARGET}\", os: windows-latest, label: \"Windows\" }}"
+    );
+    assert!(is_exact_windows_resolver_matrix_entry(&valid));
+    assert!(!is_exact_windows_resolver_matrix_entry(
+        &valid.replace("os: windows-latest", "os: ubuntu-latest")
+    ));
+    assert!(!is_exact_windows_resolver_matrix_entry(&valid.replace(
+        WINDOWS_RESOLVER_DIFFERENTIAL_TARGET,
+        "//libs/oya-workspace-members-kernel:wrong-target"
+    )));
+    assert!(!is_exact_windows_resolver_matrix_entry(&format!(
+        "{valid} cargo test"
+    )));
+
+    let branch = "if ($IsWindows) { call `\"VsDevCmd.bat`\" && buck2 test $targets } else { }";
+    assert!(windows_branch_is_buck_only(branch));
+    assert!(!windows_branch_is_buck_only(
+        &branch.replace("VsDevCmd.bat`\" && buck2", "buck2")
+    ));
+    assert!(!windows_branch_is_buck_only(
+        &branch.replace("buck2 test", "cargo test")
+    ));
+    assert!(!windows_branch_is_buck_only(
+        &branch.replace("buck2 test", "cargo.exe test")
+    ));
 }
 
 #[test]
