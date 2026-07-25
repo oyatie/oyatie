@@ -20,6 +20,258 @@ pub struct AdrShapeFitnessReport {
     pub adrs_checked: usize, // data_class: INTERNAL_ONLY
 }
 
+/// A deterministic structural observation. It is deliberately not an
+/// admission decision, lifecycle transition, or authority assertion.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct AdrShapeFinding {
+    pub path: String,       // data_class: INTERNAL_ONLY
+    pub code: &'static str, // data_class: INTERNAL_ONLY
+    pub message: String,    // data_class: INTERNAL_ONLY
+}
+
+/// Diagnostic-only output for corpus migration inventory.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AdrShapeAuditReport {
+    pub adrs_checked: usize,            // data_class: INTERNAL_ONLY
+    pub findings: Vec<AdrShapeFinding>, // data_class: INTERNAL_ONLY
+}
+
+const DIAGNOSTIC_REQUIRED_SECTIONS: [&str; 4] =
+    ["Context", "Decision", "Decision Drivers", "Consequences"];
+
+/// Return sorted, reproducible structural findings for the supplied corpus.
+///
+/// This function intentionally has no admission semantics: a zero-finding
+/// report does not authorize a status change, planning, dispatch, or closure.
+pub fn audit_adr_shape_fitness(adrs: &[AdrDocument]) -> AdrShapeAuditReport {
+    let mut findings = Vec::new();
+    for adr in adrs {
+        findings.extend(audit_one(adr));
+    }
+    findings.sort();
+    AdrShapeAuditReport {
+        adrs_checked: adrs.len(),
+        findings,
+    }
+}
+
+#[derive(Debug)]
+struct MarkdownHeading<'a> {
+    level: usize,
+    title: &'a str,
+}
+
+struct VisibleMarkdownLine<'a> {
+    content: &'a str,
+    is_quoted: bool,
+}
+
+fn markdown_headings(text: &str) -> Vec<MarkdownHeading<'_>> {
+    let mut headings = Vec::new();
+    for line in visible_markdown_lines(text)
+        .into_iter()
+        .filter(|line| !line.is_quoted)
+    {
+        let hashes = line
+            .content
+            .chars()
+            .take_while(|character| *character == '#')
+            .count();
+        if (1..=6).contains(&hashes) && line.content.as_bytes().get(hashes) == Some(&b' ') {
+            headings.push(MarkdownHeading {
+                level: hashes,
+                title: line.content[hashes + 1..].trim(),
+            });
+        }
+    }
+    headings
+}
+
+/// Lines that remain visible after Markdown code-block and indented-code
+/// handling. Both heading and status extraction use this state machine.
+fn visible_markdown_lines(text: &str) -> Vec<VisibleMarkdownLine<'_>> {
+    let mut lines = Vec::new();
+    let mut open_fence: Option<(char, usize)> = None;
+
+    for line in text.lines() {
+        let Some((content, is_quoted)) = normalized_fence_line(line) else {
+            continue;
+        };
+        let marker = content.chars().next();
+        let marker_len = marker.map_or(0, |candidate| {
+            content
+                .chars()
+                .take_while(|character| *character == candidate)
+                .count()
+        });
+        if let Some((open_marker, minimum_len)) = open_fence {
+            if marker == Some(open_marker)
+                && marker_len >= minimum_len
+                && content[marker_len..].trim().is_empty()
+            {
+                open_fence = None;
+            }
+            continue;
+        }
+        if matches!(marker, Some('`' | '~')) && marker_len >= 3 {
+            open_fence = marker.map(|candidate| (candidate, marker_len));
+            continue;
+        }
+        lines.push(VisibleMarkdownLine { content, is_quoted });
+    }
+    lines
+}
+
+fn normalized_fence_line(mut line: &str) -> Option<(&str, bool)> {
+    let mut is_quoted = false;
+    loop {
+        let indentation = line.bytes().take_while(|byte| *byte == b' ').count();
+        if indentation > 3 || line.as_bytes().get(indentation) == Some(&b'\t') {
+            return None;
+        }
+        let trimmed = &line[indentation..];
+        let Some(rest) = trimmed.strip_prefix('>') else {
+            return Some((trimmed, is_quoted));
+        };
+        is_quoted = true;
+        line = rest.strip_prefix(' ').unwrap_or(rest);
+    }
+}
+
+fn audit_one(adr: &AdrDocument) -> Vec<AdrShapeFinding> {
+    let headings = markdown_headings(&adr.text);
+    let mut findings = Vec::new();
+    let mut add = |code, message: String| {
+        findings.push(AdrShapeFinding {
+            path: adr.path.clone(),
+            code,
+            message,
+        });
+    };
+
+    let titles = headings
+        .iter()
+        .filter(|heading| heading.level == 2)
+        .map(|heading| heading.title)
+        .collect::<Vec<_>>();
+    for section in DIAGNOSTIC_REQUIRED_SECTIONS {
+        let count = titles
+            .iter()
+            .filter(|title| title.eq_ignore_ascii_case(section))
+            .count();
+        if count == 0 {
+            add("ADR_SECTION_MISSING", format!("missing ## {section}"));
+        } else if count > 1 {
+            add(
+                "ADR_SECTION_DUPLICATE",
+                format!("duplicate ## {section} headings"),
+            );
+        }
+    }
+    let positions = DIAGNOSTIC_REQUIRED_SECTIONS.map(|section| {
+        titles
+            .iter()
+            .position(|title| title.eq_ignore_ascii_case(section))
+    });
+    for pair in positions.windows(2) {
+        if let [Some(previous), Some(current)] = pair
+            && current < previous
+        {
+            add(
+                "ADR_SECTION_OUT_OF_ORDER",
+                "required sections are not in Context -> Decision -> Decision Drivers -> Consequences order"
+                    .to_owned(),
+            );
+            break;
+        }
+    }
+    if headings.iter().any(|heading| {
+        heading.level != 2
+            && DIAGNOSTIC_REQUIRED_SECTIONS
+                .iter()
+                .any(|section| heading.title.eq_ignore_ascii_case(section))
+    }) {
+        add(
+            "ADR_SECTION_MISNESTED",
+            "required ADR section is not an H2 heading".to_owned(),
+        );
+    }
+
+    let driver_position = headings.iter().position(|heading| {
+        heading.level == 2 && heading.title.eq_ignore_ascii_case("Decision Drivers")
+    });
+    let decision_position = headings
+        .iter()
+        .position(|heading| heading.level == 2 && heading.title.eq_ignore_ascii_case("Decision"));
+    let consequences_position = headings.iter().position(|heading| {
+        heading.level == 2 && heading.title.eq_ignore_ascii_case("Consequences")
+    });
+    if !matches!(
+        (decision_position, driver_position, consequences_position),
+        (Some(decision), Some(drivers), Some(consequences)) if decision < drivers && drivers < consequences
+    ) {
+        add(
+            "ADR_DECISION_DRIVERS_MISNESTED_OR_MISSING",
+            "## Decision Drivers must be an H2 between ## Decision and ## Consequences".to_owned(),
+        );
+    }
+
+    match diagnostic_status(&adr.text) {
+        None => add(
+            "ADR_STATUS_MISSING_MIGRATION_INVENTORY",
+            "missing visible lifecycle status; inventory only".to_owned(),
+        ),
+        Some(status) if canonical_status(status).is_none() => add(
+            "ADR_STATUS_MIGRATION_INVENTORY",
+            format!("unrecognized or legacy status {status:?}; inventory only"),
+        ),
+        Some(status) if canonical_status(status) != Some(status) => add(
+            "ADR_STATUS_MIGRATION_INVENTORY",
+            format!("non-canonical status spelling {status:?}; inventory only"),
+        ),
+        _ => {}
+    }
+    findings
+}
+
+fn diagnostic_status(text: &str) -> Option<&str> {
+    let body = if let Some((frontmatter, body)) = split_initial_yaml_frontmatter(text) {
+        if let Some(status) = top_level_status_scalar(frontmatter) {
+            return Some(status);
+        }
+        body
+    } else {
+        text
+    };
+    visible_markdown_lines(body).into_iter().find_map(|line| {
+        line.content
+            .trim()
+            .strip_prefix("**Status:**")
+            .map(str::trim)
+    })
+}
+
+fn top_level_status_scalar(frontmatter: &str) -> Option<&str> {
+    frontmatter.lines().find_map(|line| {
+        (!line.starts_with(char::is_whitespace))
+            .then(|| line.strip_prefix("status:").map(str::trim))
+            .flatten()
+            .filter(|value| !value.is_empty() && *value != "|" && *value != ">")
+    })
+}
+
+fn canonical_status(status: &str) -> Option<&'static str> {
+    match status {
+        "Proposed" => Some("Proposed"),
+        "Accepted" => Some("Accepted"),
+        "Amended" => Some("Amended"),
+        "Superseded" => Some("Superseded"),
+        "Deprecated" => Some("Deprecated"),
+        "Rejected" => Some("Rejected"),
+        _ => None,
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum AdrShapeFitnessError {
     InvalidFilename {
@@ -257,6 +509,9 @@ fn frontmatter_scalar_values<'a>(
         (key == field).then_some(value.trim())
     })
 }
+
+#[cfg(test)]
+mod template_contract_tests;
 
 fn split_initial_yaml_frontmatter(text: &str) -> Option<(&str, &str)> {
     let rest = text

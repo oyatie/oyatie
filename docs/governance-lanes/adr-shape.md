@@ -62,3 +62,17 @@ pub fn validate_adr_shape_fitness(
     Ok(AdrShapeFitnessReport { adrs_checked: adrs.len() })
 }
 ```
+
+## Diagnostic-only output
+
+The default app invocation remains the blocking validation path:
+`buck2 run //tools/oya-governance-adr-shape-app:oya-governance-adr-shape-app`.
+Its explicit-path form is blocking as well. The sorted migration inventory is
+available only with `--diagnostic`, for example
+`buck2 run //tools/oya-governance-adr-shape-app:oya-governance-adr-shape-app -- --diagnostic`.
+Diagnostic output is not admission authority. A clean report does not accept
+an ADR, normalize lifecycle state, authorize planning, dispatch work, or close
+a Stage-1 gate. Noncanonical or legacy status spelling is inventory only. Unit
+parser tests and filesystem fixtures are intentionally separate; no-argument
+diagnostic corpus discovery is lexical-path ordered for byte-stable repeated
+observations.
