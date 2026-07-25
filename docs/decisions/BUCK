@@ -1,0 +1,5 @@
+filegroup(
+    name = "adr-0515-source",
+    srcs = ["ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md"],
+    visibility = ["//governance/corpus/doc-parser:"],
+)
