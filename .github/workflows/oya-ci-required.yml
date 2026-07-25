@@ -54,6 +54,22 @@ permissions:
   contents: read
   actions: read
 
+# The Rust-owned event parser validates this complete provider tuple before any candidate-tree
+# materializer or census receipt can select a commit. workflow_dispatch intentionally supplies an
+# unsupported event name and empty authority fields, which fails closed in that parser.
+env:
+  EVENT_EVALUATED_SHA: ${{ github.sha }}
+  EVENT_PULL_REQUEST_BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
+  EVENT_PUSH_BEFORE_SHA: ${{ github.event.before || '' }}
+  EVENT_PUSH_AFTER_SHA: ${{ github.event.after || '' }}
+  EVENT_MERGE_GROUP_BASE_SHA: ${{ github.event.merge_group.base_sha || '' }}
+  EVENT_MERGE_GROUP_HEAD_SHA: ${{ github.event.merge_group.head_sha || '' }}
+  EVENT_PULL_REQUEST_HEAD_SHA: ${{ github.event.pull_request.head.sha || '' }}
+  EVENT_NAME: ${{ github.event_name }}
+  EVENT_REF: ${{ github.ref }}
+  EVENT_PULL_REQUEST_BASE_REF: ${{ github.event.pull_request.base.ref || '' }}
+  EVENT_MERGE_GROUP_BASE_REF: ${{ github.event.merge_group.base_ref || '' }}
+
 # Surface-all: every gate lane runs to completion even if a sibling fails. The fan-in job
 # collects the join. Matrix legs run one Buck2 target each, so a leg failure cannot hide a sibling.
 # PR supersession is different: an older head SHA can never satisfy branch protection after a newer
@@ -86,18 +102,6 @@ jobs:
       - name: Install buck2 (digest-pinned prebuilt release)
         run: infra/ci/install-buck2.sh
       - name: Materialize cloud-ci generated faces
-        env:
-          EVENT_EVALUATED_SHA: ${{ github.sha }}
-          EVENT_PULL_REQUEST_BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
-          EVENT_PUSH_BEFORE_SHA: ${{ github.event.before || '' }}
-          EVENT_PUSH_AFTER_SHA: ${{ github.event.after || '' }}
-          EVENT_MERGE_GROUP_BASE_SHA: ${{ github.event.merge_group.base_sha || '' }}
-          EVENT_MERGE_GROUP_HEAD_SHA: ${{ github.event.merge_group.head_sha || '' }}
-          EVENT_PULL_REQUEST_HEAD_SHA: ${{ github.event.pull_request.head.sha || '' }}
-          EVENT_NAME: ${{ github.event_name }}
-          EVENT_REF: ${{ github.ref }}
-          EVENT_PULL_REQUEST_BASE_REF: ${{ github.event.pull_request.base.ref || '' }}
-          EVENT_MERGE_GROUP_BASE_REF: ${{ github.event.merge_group.base_ref || '' }}
         run: rustup toolchain install && rustc --version && buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . --github-event
       - name: Upload regenerated faces
         # actions/upload-artifact@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
@@ -193,7 +197,7 @@ jobs:
           - { crate: topology-manifest-contract, label: "gate · cell-topology-manifest-contract (CELL-001R manifest contract)" }
           - { crate: automation-language-policy, label: "gate · rust-first automation hygiene (cloud-native infra anti-patterns: scripts, workflow shell, retired interpreters, and new CLI packages)" }
           - { crate: gate-self-conformance, label: "gate · gate-self-conformance (GH #777, pipeline-as-product 7-property bar over every gate)" }
-          - { crate: scm-facts-snapshot, label: "gate · fixed ADR census parent receipt (P2 historical evidence)" }
+          - { crate: scm-facts-snapshot, label: "gate · ADR census epoch receipt (P2 active; P3 dormant)" }
           - { targets: "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel-cargo-differential", os: windows-latest, label: "gate · Windows workspace resolver differential (ERROR_CANT_RESOLVE_FILENAME)" }
     steps:
       # actions/checkout@v6.0.3 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
@@ -225,7 +229,7 @@ jobs:
       - name: buck2 test ${{ matrix.crate }}
         shell: pwsh
         # Default matrix legs expand to //ci/facade/${{ matrix.crate }}:ci-${{ matrix.crate }}-gate.
-        run: '$targets = "${{ matrix.targets || format(''//ci/facade/{0}:ci-{0}-unittest //ci/facade/{0}:ci-{0}-gate {1}'', matrix.crate, matrix.crate == ''scm-facts-snapshot'' && ''//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot-integration'' || '''') }}"; if ([string]::IsNullOrWhiteSpace($targets)) { exit 1 }; if ($IsWindows) { $vswhere = Join-Path ${env:ProgramFiles(x86)} ''Microsoft Visual Studio\Installer\vswhere.exe''; if (-not (Test-Path -LiteralPath $vswhere -PathType Leaf)) { Write-Error "vswhere is missing: $vswhere"; exit 1 }; $vsInstallCandidates = @(& $vswhere -latest -products ''*'' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath); $vswhereExitCode = $LASTEXITCODE; if ($vswhereExitCode -ne 0) { exit $vswhereExitCode }; $vsInstall = $vsInstallCandidates | Select-Object -First 1; if ([string]::IsNullOrWhiteSpace($vsInstall)) { Write-Error ''No Visual Studio instance with the MSVC x64/x86 tool component was found''; exit 1 }; $vsDevCmd = Join-Path $vsInstall ''Common7\Tools\VsDevCmd.bat''; if (-not (Test-Path -LiteralPath $vsDevCmd -PathType Leaf)) { Write-Error "VsDevCmd.bat is missing: $vsDevCmd"; exit 1 }; Write-Host "Visual Studio developer command: $vsDevCmd"; $windowsBuckCommand = "call `"$vsDevCmd`" -arch=amd64 -host_arch=amd64 >nul && buck2 test $targets"; $windowsBuckReceipt = Join-Path $env:RUNNER_TEMP ''buck2-windows-receipt.log''; & cmd.exe /d /s /c $windowsBuckCommand 2>&1 | Tee-Object -FilePath $windowsBuckReceipt; $windowsBuckExitCode = $LASTEXITCODE; Write-Host "Windows Buck2 cmd exit code: $windowsBuckExitCode"; Get-Content -Path $windowsBuckReceipt; $windowsBuckReceiptText = Get-Content -Path $windowsBuckReceipt -Raw; if ($windowsBuckExitCode -ne 0) { exit $windowsBuckExitCode }; $windowsBuckPassed = $windowsBuckReceiptText -match ''(?m)^Tests finished:\s*(?:\x1b\[[0-9;]*m)?Pass\s+[1-9][0-9]*\b''; if (-not ($windowsBuckReceiptText.Contains(''Build ID:'') -and $windowsBuckPassed)) { Write-Error ''Windows Buck2 execution receipt is missing Build ID or a positive passing test summary''; exit 1 } } else { $targetArgs = $targets -split ''\s+'' | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }; & buck2 test @targetArgs; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE } }'
+        run: '$targets = "${{ matrix.targets || format(''//ci/facade/{0}:ci-{0}-unittest //ci/facade/{0}:ci-{0}-gate {1}'', matrix.crate, matrix.crate == ''scm-facts-snapshot'' && ''//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot-integration'' || '''') }}"; if ([string]::IsNullOrWhiteSpace($targets)) { exit 1 }; if ($IsWindows) { $vswhere = Join-Path ${env:ProgramFiles(x86)} ''Microsoft Visual Studio\Installer\vswhere.exe''; if (-not (Test-Path -LiteralPath $vswhere -PathType Leaf)) { Write-Error "vswhere is missing: $vswhere"; exit 1 }; $vsInstallCandidates = @(& $vswhere -latest -products ''*'' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath); $vswhereExitCode = $LASTEXITCODE; if ($vswhereExitCode -ne 0) { exit $vswhereExitCode }; $vsInstall = $vsInstallCandidates | Select-Object -First 1; if ([string]::IsNullOrWhiteSpace($vsInstall)) { Write-Error ''No Visual Studio instance with the MSVC x64/x86 tool component was found''; exit 1 }; $vsDevCmd = Join-Path $vsInstall ''Common7\Tools\VsDevCmd.bat''; if (-not (Test-Path -LiteralPath $vsDevCmd -PathType Leaf)) { Write-Error "VsDevCmd.bat is missing: $vsDevCmd"; exit 1 }; Write-Host "Visual Studio developer command: $vsDevCmd"; $windowsBuckCommand = "call `"$vsDevCmd`" -arch=amd64 -host_arch=amd64 >nul && buck2 test $targets"; $windowsBuckReceipt = Join-Path $env:RUNNER_TEMP ''buck2-windows-receipt.log''; & cmd.exe /d /s /c $windowsBuckCommand 2>&1 | Tee-Object -FilePath $windowsBuckReceipt; $windowsBuckExitCode = $LASTEXITCODE; Write-Host "Windows Buck2 cmd exit code: $windowsBuckExitCode"; Get-Content -Path $windowsBuckReceipt; $windowsBuckReceiptText = Get-Content -Path $windowsBuckReceipt -Raw; if ($windowsBuckExitCode -ne 0) { exit $windowsBuckExitCode }; $windowsBuckPassed = $windowsBuckReceiptText -match ''(?m)^Tests finished:\s*(?:\x1b\[[0-9;]*m)?Pass\s+[1-9][0-9]*\b''; if (-not ($windowsBuckReceiptText.Contains(''Build ID:'') -and $windowsBuckPassed)) { Write-Error ''Windows Buck2 execution receipt is missing Build ID or a positive passing test summary''; exit 1 } } else { $targetArgs = $targets -split ''\s+'' | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }; & buck2 test @targetArgs; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; if ("${{ matrix.crate }}" -eq "scm-facts-snapshot") { & buck2 run //ci/facade/scm-facts-snapshot:adr-census-epoch-receipt-gate-bin -- --repo-root . --github-event; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE } } }'
 
   # ── freshness: first-diagnosis gate for the two stale-output failures from PR #662.
   #    Runs as its own fast job with no needs edge so stale Cargo.lock and stale generated faces
@@ -261,7 +265,7 @@ jobs:
         run: |
           set -euo pipefail
           freshness_bin="$(buck2 build //ci/facade/generated-artifact-freshness:oya-cloud-ci-freshness-app-bin --show-output | awk '{print $2}')"
-          "${freshness_bin}" --repo-root .
+          "${freshness_bin}" --repo-root . --github-event
 
   # ── registry-drift: materialized workspace == regenerated byte-equal. Starts at t=0 alongside
   #    producer-regen; it rematerializes in-job so it is hermetic and self-contained. The
@@ -291,7 +295,7 @@ jobs:
         run: |
           rustup toolchain install
           rustc --version
-          buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .
+          buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . --github-event
           buck2 test //ci/facade/inventory-registry-drift:ci-inventory-registry-drift-gate
 
   # ── cloud-ci-firewall: the baseline ratchet (blocks only NEW debt) + the gate-registration
@@ -320,7 +324,7 @@ jobs:
       # This lane therefore KEEPS its own materialization (ADR-0556 D5 cold-must-stay list);
       # it is never converted to artifact reuse.
       - name: Materialize cloud-ci generated faces
-        run: rustup toolchain install && rustc --version && buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .
+        run: rustup toolchain install && rustc --version && buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . --github-event
       - name: buck2 test cloud-ci-firewall
         run: |
           set -euo pipefail
@@ -364,7 +368,6 @@ jobs:
           rustc --version
       - name: Reject non-deletion generated output edits
         env:
-          EVENT_NAME: ${{ github.event_name }}
           BASE_REF: ${{ github.base_ref || 'dev' }}
         run: |
           set -euo pipefail
@@ -384,7 +387,7 @@ jobs:
           #     CONTENT of every normal-source-merge artifact, read from the materializer's OWN
           #     merge-base worktree checkout (the one sanctioned git boundary) so the policy gate
           #     itself never calls git (ci-gate-self-conformance hermeticity).
-          "${materializer_bin}" --repo-root .
+          "${materializer_bin}" --repo-root . --github-event
           # --find-renames is REQUIRED, not cosmetic: the policy's sanctioned-relocation exemption
           # only accepts byte-identical (R100) renames of declared generated artifacts (a capability
           # move relocating the firewall's frozen gate-baseline). Without explicit rename detection a
@@ -530,7 +533,7 @@ jobs:
       # by design (ADR-0551) and deliberately absent from the producer-regen artifact; this
       # step is the sanctioned boundary that feeds ALL declared generated inputs to the graph.
       - name: Materialize cloud-ci generated faces (out-of-graph boundary)
-        run: buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .
+        run: buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . --github-event
       # The hermetic gate: buck2 BUILDS every cloud-ci target (proves the env!CARGO eradication —
       # these targets could not compile under buck2 before) and TESTS them (the gate rust_tests
       # run green, fully hermetic, with verdicts identical to the targeted gate matrix). This is the
@@ -643,7 +646,6 @@ jobs:
       # racing a cold rustup install collide on shared download state.
       - name: Pre-provision pinned rust toolchain and PR metadata preflight
         env:
-          EVENT_NAME: ${{ github.event_name }}
           PR_NUMBER: ${{ github.event.pull_request.number || '' }}
           # Live-fetch token (same read-scoped github.token precedent as the merge-base
           # baseline step below): the pull_request event payload freezes title/body at
@@ -710,7 +712,7 @@ jobs:
       # baseline (ADR-0551), and this lane's own build-health baseline below is per-job by
       # design (ADR-0554 round-3).
       - name: Materialize cloud-ci generated faces (out-of-graph boundary)
-        run: buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .
+        run: buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . --github-event
       - name: Fetch base ref for the merge-base anchor
         if: ${{ github.event_name == 'pull_request' }}
         env:
@@ -837,7 +839,6 @@ jobs:
           )
       - name: Binding affected-set build + test (cone-binding; FULL tier = build-health ratchet)
         env:
-          EVENT_NAME: ${{ github.event_name }}
           BASE_REF: ${{ github.base_ref || 'dev' }}
         run: |
           set -euo pipefail

@@ -167,6 +167,27 @@
       "purpose": "Control plane: one row per machine-readable artifact + artifact_profile + capability_overrides.",
       "target_path_after_md_retirement": "same"
     },
+    "adr_census_epoch_control_plane": {
+      "current_path": "/registry/adr-census-epoch/control-plane.json",
+      "kind": "registry",
+      "migration_phase": "P2 bootstrap active; P3 dormant",
+      "purpose": "Non-authoritative pointer-only selector for the active ADR census epoch. Protected producer and gate code retain the immutable P2 replay and dormant P3 successor semantics; this descriptor supplies no executor or source identity.",
+      "target_path_after_md_retirement": "same"
+    },
+    "adr_census_epoch_control_plane_schema": {
+      "current_path": "/specs/adr-census-epoch-control-plane.schema.json",
+      "kind": "schema",
+      "migration_phase": "P2 bootstrap active; P3 dormant",
+      "purpose": "Fail-closed schema for the pointer-only ADR census epoch selector; protected producer and gate code, not mutable descriptor fields, bind replay and successor execution identities. It makes no planning or closure claim.",
+      "target_path_after_md_retirement": "same"
+    },
+    "adr_census_epoch_receipt_schema": {
+      "current_path": "/specs/adr-census-epoch-receipt.schema.json",
+      "kind": "schema",
+      "migration_phase": "P2 bootstrap active; P3 dormant",
+      "purpose": "Fail-closed schema for ignored controller-produced ADR census epoch receipts; receipt validity does not authorize planning, dispatch, or closure.",
+      "target_path_after_md_retirement": "same"
+    },
     "artifact_profile_defaults": {
       "current_path": "/specs/artifact-profile-defaults.json",
       "kind": "spec",
