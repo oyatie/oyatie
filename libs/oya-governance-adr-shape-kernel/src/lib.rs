@@ -243,12 +243,15 @@ fn diagnostic_status(text: &str) -> Option<&str> {
     } else {
         text
     };
-    visible_markdown_lines(body).into_iter().find_map(|line| {
-        line.content
-            .trim()
-            .strip_prefix("**Status:**")
-            .map(str::trim)
-    })
+    visible_markdown_lines(body)
+        .into_iter()
+        .filter(|line| !line.is_quoted)
+        .find_map(|line| {
+            line.content
+                .trim()
+                .strip_prefix("**Status:**")
+                .map(str::trim)
+        })
 }
 
 fn top_level_status_scalar(frontmatter: &str) -> Option<&str> {
@@ -857,7 +860,7 @@ mod tests {
     fn diagnostic_reports_legacy_status_as_migration_inventory_not_live_acceptance() {
         let report = audit_adr_shape_fitness(&[document(
             "docs/decisions/ADR-9004-legacy-status.md",
-            "# ADR-9004: Preserve status evidence\n\n> **Status:** accepted (historical)\n\n## Context\nA\n\n## Decision\nB\n\n## Decision Drivers\n- C\n\n## Consequences\nD\n",
+            "# ADR-9004: Preserve status evidence\n\n**Status:** accepted (historical)\n\n## Context\nA\n\n## Decision\nB\n\n## Decision Drivers\n- C\n\n## Consequences\nD\n",
         )]);
 
         assert!(
@@ -941,7 +944,7 @@ mod tests {
     fn diagnostic_uses_visible_body_status_when_frontmatter_omits_status() {
         let report = audit_adr_shape_fitness(&[document(
             "docs/decisions/ADR-9010-frontmatter-body-status.md",
-            "---\nid: ADR-9010\n---\n\n# ADR-9010: Body status fallback\n\n> **Status:** Accepted\n\n## Context\nA\n\n## Decision\nB\n\n## Decision Drivers\n- C\n\n## Consequences\nD\n",
+            "---\nid: ADR-9010\n---\n\n# ADR-9010: Body status fallback\n\n**Status:** Accepted\n\n## Context\nA\n\n## Decision\nB\n\n## Decision Drivers\n- C\n\n## Consequences\nD\n",
         )]);
 
         assert!(
@@ -968,7 +971,7 @@ mod tests {
     }
 
     #[test]
-    fn diagnostic_does_not_promote_fully_quoted_pseudo_adr_sections() {
+    fn diagnostic_does_not_promote_fully_quoted_pseudo_adr_sections_or_status() {
         let report = audit_adr_shape_fitness(&[document(
             "docs/decisions/ADR-9012-quoted-pseudo-adr.md",
             "> # ADR-9012: Quoted pseudo ADR\n>\n> **Status:** Proposed\n>\n> ## Context\n> A\n>\n> ## Decision\n> B\n>\n> ## Decision Drivers\n> - C\n>\n> ## Consequences\n> D\n",
@@ -981,7 +984,7 @@ mod tests {
             }));
         }
         assert!(
-            !report
+            report
                 .findings
                 .iter()
                 .any(|finding| finding.code == "ADR_STATUS_MISSING_MIGRATION_INVENTORY")
