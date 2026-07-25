@@ -11,10 +11,10 @@ doc_status: published
 
 ## At-a-glance
 
-- **Total ADRs:** 432
-- **Numbering:** ADR-0001..ADR-0622 (non-contiguous; gaps: 0012, 0033, 0037, 0041, 0050, 0068, 0070..0082, 0084..0089, 0125..0127, 0224..0233, 0247, 0256, 0259..0262, 0264..0271, 0274..0275, 0277..0279, 0281..0283, 0285..0291, 0322..0323, 0327, 0342, 0345, 0385..0386, 0395..0396, 0398..0475, 0477, 0483..0505, 0574..0579, 0583..0585, 0594, 0601..0602)
-- **Next ADR number:** 0623
-- **Status counts:** Accepted 174, Accepted (amendment) 2, Amended 2, Proposed 150, Proposed (conditional: Accepted only after ADR-0377-D2 and ADR-0377-D3 code/tests pass) 1, Proposed (target: Accepted upon PR #143 merge to dev) 1, Superseded 35, accepted 34, deprecated 1, proposed 31, superseded 1
+- **Total ADRs:** 433
+- **Numbering:** ADR-0001..ADR-0623 (non-contiguous; gaps: 0012, 0033, 0037, 0041, 0050, 0068, 0070..0082, 0084..0089, 0125..0127, 0224..0233, 0247, 0256, 0259..0262, 0264..0271, 0274..0275, 0277..0279, 0281..0283, 0285..0291, 0322..0323, 0327, 0342, 0345, 0385..0386, 0395..0396, 0398..0475, 0477, 0483..0505, 0574..0579, 0583..0585, 0594, 0601..0602)
+- **Next ADR number:** 0624
+- **Status counts:** Accepted 174, Accepted (amendment) 2, Amended 2, Proposed 151, Proposed (conditional: Accepted only after ADR-0377-D2 and ADR-0377-D3 code/tests pass) 1, Proposed (target: Accepted upon PR #143 merge to dev) 1, Superseded 35, accepted 34, deprecated 1, proposed 31, superseded 1
 - **Legacy retirement:** see [`ADR-LEGACY-REGRESSION-MAPPING.md`](ADR-LEGACY-REGRESSION-MAPPING.md).
 
 ## Full table (one row per ADR, sorted by ADR number)
@@ -453,11 +453,12 @@ doc_status: published
 | ADR-0620 | Proposed | Pre-admission inventory provenance for history-only retirement observation surfaces | cloud-ci-platform | [`ADR-0620-pre-admission-inventory-provenance-for-history-only-retirement-observation-surfaces.md`](decisions/ADR-0620-pre-admission-inventory-provenance-for-history-only-retirement-observation-surfaces.md) |
 | ADR-0621 | Proposed | De-commit the active-artifact-contract graph projection | council-architecture + cloud-ci-platform | [`ADR-0621-de-commit-active-artifact-contract-graph-projection.md`](decisions/ADR-0621-de-commit-active-artifact-contract-graph-projection.md) |
 | ADR-0622 | Proposed | Define a nonbinding FixupTask v2 successor foundation | council-architecture | [`ADR-0622-fixuptask-v2-friction-ledger-successor-foundation.md`](decisions/ADR-0622-fixuptask-v2-friction-ledger-successor-foundation.md) |
+| ADR-0623 | Proposed | Keep the pre-roadmap Stage-1 evidence epoch mechanism-neutral | council-architecture | [`ADR-0623-mechanism-neutral-pre-roadmap-stage1-evidence-epoch.md`](decisions/ADR-0623-mechanism-neutral-pre-roadmap-stage1-evidence-epoch.md) |
 
 ## Update protocol
 
 - Per-event + monthly per `doc.adr_index` row in [`DOC-CATALOG.md`](DOC-CATALOG.md).
-- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0623), unless an explicit reserved-number ADR is being filled.
+- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0624), unless an explicit reserved-number ADR is being filled.
 - Per-ADR amendments preserve the original ADR number; the amended ADR cites its original date and links to the amending PR.
 - Supersession is recorded in the per-ADR header and mirrored here on regeneration.
 
@@ -501,6 +502,6 @@ The directory is intentionally non-contiguous. Every existing `docs/decisions/AD
 
 ## Sources scanned
 
-- `decisions/` directory listing — 432 ADR files (sorted ascending)
+- `decisions/` directory listing — 433 ADR files (sorted ascending)
 - [`machine-readable/decisions.json`](machine-readable/decisions.json) — generated machine mirror
 - [`DOC-CATALOG.md`](DOC-CATALOG.md) — owner / cadence / dependent docs / validation checks
