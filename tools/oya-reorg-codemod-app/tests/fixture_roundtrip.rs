@@ -362,6 +362,35 @@ fn forward_move_recomputes_paths_and_resolves() {
     let _ = std::fs::remove_dir_all(&root);
 }
 
+#[cfg(unix)]
+#[test]
+fn successful_apply_does_not_follow_an_outside_root_directory_symlink() {
+    use std::os::unix::fs::symlink;
+
+    let root = tmp_root("outside-root-symlink");
+    let outside = tmp_root("outside-root-sentinel");
+    build_fixture(&root);
+    w(
+        &outside,
+        "sentinel.rs",
+        "use oya_cap_core::engine;\npub fn sentinel() { engine(); }\n",
+    );
+    let sentinel_before = r(&outside, "sentinel.rs");
+    symlink(&outside, root.join("outside-root")).expect("create outside-root symlink");
+
+    apply_plan(&root, &capability_plan(), &ApplyOptions { use_git_mv: false })
+        .expect("ordinary fixture move must succeed");
+
+    assert_eq!(
+        r(&outside, "sentinel.rs"),
+        sentinel_before,
+        "successful apply must not rewrite files reached only through an outside-root symlink"
+    );
+
+    let _ = std::fs::remove_dir_all(&root);
+    let _ = std::fs::remove_dir_all(&outside);
+}
+
 #[test]
 fn inverse_restores_file_and_symlink_content_but_not_empty_directory_provenance() {
     let root = tmp_root("inv");
