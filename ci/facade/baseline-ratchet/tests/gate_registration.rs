@@ -723,10 +723,13 @@ fn windows_workspace_resolver_differential_is_a_buck2_matrix_leg() {
     );
     assert!(
         gate_job.contains("[string]::IsNullOrWhiteSpace($targets)")
+            && gate_job.contains("$targetArgs = $targets -split '\\s+' | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }")
+            && gate_job.contains("& buck2 test @targetArgs")
+            && !gate_job.contains("else { & buck2 test $targets }")
             && gate_job.contains("cmd.exe /d /s /c")
             && gate_job.contains("call `\"%ProgramFiles%\\Microsoft Visual Studio\\2022\\Enterprise\\Common7\\Tools\\VsDevCmd.bat`\"")
             && gate_job.contains("buck2 test $targets"),
-        "the Windows-native path must reject an empty target, initialize MSVC, and run the exact Buck2 target"
+        "the non-Windows path must splat separate Buck2 arguments while Windows rejects an empty exact target, initializes MSVC, and runs it"
     );
     assert!(
         !gate_job.contains("shell: bash\n        # Default matrix legs expand"),
