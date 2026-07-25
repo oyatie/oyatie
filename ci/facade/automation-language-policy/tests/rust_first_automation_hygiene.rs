@@ -2327,3 +2327,83 @@ fn buck2_installer_times_out_without_writes_then_recovers_after_holder_is_killed
                 .contains(".part."))
     );
 }
+
+#[test]
+fn buck2_installer_writes_a_native_windows_path_for_github_path() {
+    let root = repo_root();
+    let fixture = TestDir::new("windows-github-path");
+    let bin = fixture.path().join("bin");
+    fs::create_dir_all(&bin).expect("create shim bin");
+    let payload = fixture.path().join("buck2.exe.fixture");
+    fs::write(&payload, b"#!/usr/bin/env bash\necho fixture buck2.exe\n")
+        .expect("write fixture Buck2 executable");
+    let digest = sha256(&payload);
+    let github_path = fixture.path().join("github-path");
+    let runner_temp_posix = fixture.path().join("runner-temp");
+
+    write_executable(
+        &bin.join("uname"),
+        "#!/usr/bin/env bash\ncase \"$1\" in -s) echo MINGW64_NT-10.0 ;; -m) echo x86_64 ;; *) exit 2 ;; esac\n",
+    );
+    write_executable(
+        &bin.join("curl"),
+        "#!/usr/bin/env bash\nset -euo pipefail\nout=\"\"\nwhile [ \"$#\" -gt 0 ]; do case \"$1\" in -o) out=\"$2\"; shift 2 ;; *) shift ;; esac; done\ncp \"$PAYLOAD\" \"$out\"\n",
+    );
+    write_executable(
+        &bin.join("zstd"),
+        "#!/usr/bin/env bash\nset -euo pipefail\ninput=\"\"; output=\"\"\nwhile [ \"$#\" -gt 0 ]; do case \"$1\" in -o) output=\"$2\"; shift 2 ;; -d|-f) shift ;; *) input=\"$1\"; shift ;; esac; done\ncp \"$input\" \"$output\"\n",
+    );
+    write_executable(
+        &bin.join("cygpath"),
+        r#"#!/usr/bin/env bash
+set -euo pipefail
+mode="$1"; shift
+[ "$1" = -- ] && shift
+case "$mode" in
+  -u)
+    [ "$1" = "$RUNNER_TEMP" ] || exit 88
+    printf '%s\n' "$RUNNER_TEMP_POSIX"
+    ;;
+  -w)
+    case "$1" in
+      "$RUNNER_TEMP_POSIX"/*)
+        suffix="${1#"$RUNNER_TEMP_POSIX"/}"
+        win_suffix="$(printf '%s' "$suffix" | sed 's|/|\\|g')"
+        printf '%s\\%s\n' "$RUNNER_TEMP_WIN" "$win_suffix"
+        ;;
+      *) exit 88 ;;
+    esac
+    ;;
+  *) exit 88 ;;
+esac
+"#,
+    );
+
+    let output = Command::new(root.join("infra/ci/install-buck2.sh"))
+        .env("PATH", shim_path(&bin))
+        .env("BUCK2_RELEASE", "fixture")
+        .env("BUCK2_ASSET", "fixture.zst")
+        .env("BUCK2_SHA256", &digest)
+        .env("BUCK2_INSTALL_LOCK_TIMEOUT_SECONDS", "15")
+        .env("PAYLOAD", &payload)
+        .env("RUNNER_TEMP", r"D:\a\_temp")
+        .env("RUNNER_TEMP_POSIX", &runner_temp_posix)
+        .env("RUNNER_TEMP_WIN", r"D:\a\_temp")
+        .env("GITHUB_PATH", &github_path)
+        .output()
+        .expect("run Windows installer fixture");
+    assert_success(output);
+
+    let content_dir = runner_temp_posix
+        .join("oya-ci-buck2-fixture")
+        .join(format!("sha256-{digest}"));
+    assert_eq!(
+        fs::read(content_dir.join("buck2.exe")).expect("installed Windows Buck2 executable"),
+        fs::read(&payload).expect("fixture Buck2 executable"),
+    );
+    assert_eq!(
+        fs::read_to_string(&github_path).expect("read GitHub PATH file"),
+        format!("D:\\a\\_temp\\oya-ci-buck2-fixture\\sha256-{digest}\n"),
+        "native Windows consumers must receive a Win32 path, never Git Bash's POSIX path",
+    );
+}
