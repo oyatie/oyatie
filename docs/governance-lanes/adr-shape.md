@@ -62,3 +62,16 @@ pub fn validate_adr_shape_fitness(
     Ok(AdrShapeFitnessReport { adrs_checked: adrs.len() })
 }
 ```
+
+## Diagnostic audit API
+
+The retirement-marked app remains only the blocking validation path:
+`buck2 run //tools/oya-governance-adr-shape-app:oya-governance-adr-shape-app`.
+Its explicit-path form is blocking as well. Migration-inventory consumers call
+the public Rust `audit_adr_shape_fitness(&[AdrDocument])` API and own their input
+loading and output presentation.
+
+The sorted API findings are not admission authority. A clean report does not
+accept an ADR, normalize lifecycle state, authorize planning, dispatch work, or
+close a Stage-1 gate. Noncanonical or legacy status spelling is inventory only.
+Unit parser tests and filesystem fixtures are intentionally separate.
