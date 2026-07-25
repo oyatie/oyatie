@@ -668,7 +668,7 @@ pub fn evaluate_non_rust_exception_baseline_keyed(
 /// reference gates keeps candidate filesystem reads out of the allowance source.
 trait FrozenPolicySource {
     fn merge_base(&self, base_ref: &str) -> Result<String, String>;
-    fn show_file(&self, revision: &str, path: &str) -> Result<Option<String>, String>;
+    fn show_file(&self, revision: &str, path: &str) -> Result<String, String>;
 }
 
 struct GitCliFrozenPolicySource<'a> {
@@ -680,7 +680,7 @@ impl FrozenPolicySource for GitCliFrozenPolicySource<'_> {
         git_stdout(self.repo_root, &["merge-base", base_ref, "HEAD"])
     }
 
-    fn show_file(&self, revision: &str, path: &str) -> Result<Option<String>, String> {
+    fn show_file(&self, revision: &str, path: &str) -> Result<String, String> {
         let output = Command::new("git")
             .args(["show", &format!("{revision}:{path}")])
             .current_dir(self.repo_root)
@@ -688,10 +688,12 @@ impl FrozenPolicySource for GitCliFrozenPolicySource<'_> {
             .map_err(|error| format!("run git show for frozen automation policy: {error}"))?;
         if output.status.success() {
             String::from_utf8(output.stdout)
-                .map(Some)
                 .map_err(|error| format!("frozen automation policy is not UTF-8: {error}"))
         } else {
-            Ok(None)
+            Err(format!(
+                "read frozen automation policy {revision}:{path}: {}",
+                String::from_utf8_lossy(&output.stderr).trim()
+            ))
         }
     }
 }
@@ -713,17 +715,18 @@ fn git_stdout(repo_root: &Path, args: &[&str]) -> Result<String, String> {
         .map_err(|error| format!("frozen automation policy Git output is not UTF-8: {error}"))
 }
 
-fn frozen_non_rust_exception_baseline(source: &impl FrozenPolicySource) -> Result<Value, String> {
+fn frozen_policy_baseline(
+    source: &impl FrozenPolicySource,
+    baseline_field: &str,
+) -> Result<Value, String> {
     let merge_base = source.merge_base(PROTECTED_BASE_REF)?;
-    let policy = source
-        .show_file(&merge_base, POLICY_REPO_PATH)?
-        .ok_or_else(|| format!("frozen automation policy missing at merge-base {merge_base}"))?;
+    let policy = source.show_file(&merge_base, POLICY_REPO_PATH)?;
     let policy: Value = serde_json::from_str(&policy)
         .map_err(|error| format!("parse frozen automation policy: {error}"))?;
     policy
-        .get("non_rust_exception_baseline")
+        .get(baseline_field)
         .cloned()
-        .ok_or_else(|| "frozen automation policy missing non_rust_exception_baseline".to_owned())
+        .ok_or_else(|| format!("frozen automation policy missing {baseline_field}"))
 }
 
 /// Load the non-Rust exception allowlist baseline from the immutable merge-base tree.
@@ -732,7 +735,24 @@ fn frozen_non_rust_exception_baseline(source: &impl FrozenPolicySource) -> Resul
 /// intentionally ignored. A new exception can therefore only become accepted after a distinct
 /// protected-base change carries that baseline forward.
 pub fn load_non_rust_exception_baseline_from_merge_base(repo_root: &Path) -> Result<Value, String> {
-    frozen_non_rust_exception_baseline(&GitCliFrozenPolicySource { repo_root })
+    frozen_policy_baseline(
+        &GitCliFrozenPolicySource { repo_root },
+        "non_rust_exception_baseline",
+    )
+}
+
+/// Load the workflow inline-shell baseline from the immutable merge-base tree.
+///
+/// Candidate workflow contents remain the observed corpus, but the candidate's matching baseline
+/// is intentionally ignored. A new inline shell can therefore only become accepted after a
+/// distinct protected-base change carries that baseline forward.
+pub fn load_workflow_inline_shell_baseline_from_merge_base(
+    repo_root: &Path,
+) -> Result<Value, String> {
+    frozen_policy_baseline(
+        &GitCliFrozenPolicySource { repo_root },
+        "workflow_inline_shell_baseline",
+    )
 }
 
 // ─────────────────────────── forbidden workflow `uses:` dimension ───────────────────────────
