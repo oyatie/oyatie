@@ -1454,7 +1454,7 @@ impl AdrOpaqueFrontmatterField {
 
 /// Minimal, authority-neutral envelope for ADR provenance consumers.
 ///
-/// The envelope authenticates complete source bytes and projects only `id`,
+/// The envelope integrity-binds complete source bytes and projects only `id`,
 /// `status`, and ordered `supersedes` references. Every other top-level field
 /// remains opaque source data; this is intentionally not an [`AdrDecision`] and
 /// must never be used to populate the strict decision IR or its census.
