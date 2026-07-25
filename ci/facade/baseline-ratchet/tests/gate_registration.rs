@@ -221,28 +221,80 @@ fn is_exact_windows_resolver_matrix_entry(entry: &str) -> bool {
         && !entry.contains("cargo.exe")
 }
 
+/// Extract the complete outer PowerShell `if ($IsWindows) { ... }` branch. Nested `if`/`else`
+/// pairs are legal in the workflow command, so a textual `} else {` delimiter is not a safe
+/// branch boundary. Quoted command text may contain braces without affecting block depth.
+fn windows_branch(gate_job: &str) -> Option<&str> {
+    let start = gate_job.find("if ($IsWindows)")?;
+    let open = gate_job[start..].find('{')? + start;
+    let bytes = gate_job.as_bytes();
+    let mut depth = 0usize;
+    let mut quote = None;
+    let mut index = open;
+
+    while index < bytes.len() {
+        let byte = bytes[index];
+        if let Some(delimiter) = quote {
+            if delimiter == b'"' && byte == b'`' {
+                index += 2;
+                continue;
+            }
+            if byte == delimiter {
+                if delimiter == b'\'' && bytes.get(index + 1) == Some(&b'\'') {
+                    index += 2;
+                    continue;
+                }
+                quote = None;
+            }
+            index += 1;
+            continue;
+        }
+
+        if byte == b'`' {
+            index += 2;
+            continue;
+        }
+
+        match byte {
+            b'\'' | b'"' => quote = Some(byte),
+            b'{' => depth += 1,
+            b'}' => {
+                depth = depth.checked_sub(1)?;
+                if depth == 0 {
+                    return Some(&gate_job[start..=index]);
+                }
+            }
+            _ => {}
+        }
+        index += 1;
+    }
+    None
+}
+
+/// True when the PowerShell source contains a direct `cargo` or `cargo.exe` executable token.
+/// Delimiters include every non-command-word character, so tabs and newlines cannot bypass it,
+/// while similarly named commands such as `cargo-fmt` remain distinct.
+fn contains_direct_cargo_executable(branch: &str) -> bool {
+    branch
+        .split(|character: char| {
+            !character.is_ascii_alphanumeric() && !matches!(character, '.' | '_' | '-')
+        })
+        .any(|token| token.eq_ignore_ascii_case("cargo") || token.eq_ignore_ascii_case("cargo.exe"))
+}
+
 /// The Windows branch must provision MSVC before Buck2, and must never introduce a direct
-/// Cargo executable.  The target itself owns the resolver/Cargo differential under Buck2.
+/// Cargo executable. The target itself owns the resolver/Cargo differential under Buck2.
 fn windows_branch_is_buck_only(gate_job: &str) -> bool {
-    let Some(start) = gate_job.find("if ($IsWindows) {") else {
+    let Some(branch) = windows_branch(gate_job) else {
         return false;
     };
-    let Some(end) = gate_job[start..].find("} else {") else {
-        return false;
-    };
-    let branch = &gate_job[start..start + end];
     let Some(vsdevcmd) = branch.find("VsDevCmd.bat") else {
         return false;
     };
     let Some(buck2) = branch.find("buck2 test $targets") else {
         return false;
     };
-    let lower = branch.to_ascii_lowercase();
-    vsdevcmd < buck2
-        && !lower.contains("cargo.exe")
-        && !lower.contains("cargo ")
-        && !lower.contains("cargo;")
-        && !lower.contains("cargo&")
+    vsdevcmd < buck2 && !contains_direct_cargo_executable(branch)
 }
 
 fn fan_in_mentions_job(fan_in_block: &str, job: &str) -> bool {
@@ -822,6 +874,30 @@ fn windows_workspace_resolver_registration_rejects_split_or_direct_cargo_mutatio
     assert!(!windows_branch_is_buck_only(
         &branch.replace("buck2 test", "cargo.exe test")
     ));
+    assert!(windows_branch_is_buck_only(
+        "if ($IsWindows) { call `\"VsDevCmd.bat`\" && buck2 test $targets; cargo-fmt --version } else { }"
+    ));
+    assert!(windows_branch_is_buck_only(
+        "if ($IsWindows) { Write-Host '} else {'; call `\"VsDevCmd.bat`\" && buck2 test $targets } else { }"
+    ));
+    assert!(
+        !windows_branch_is_buck_only(
+            "if ($IsWindows) { call `\"VsDevCmd.bat`\" && buck2 test $targets; if ($nested) { Write-Host nested } else { cargo\t test } } else { }",
+        ),
+        "a nested else must not truncate the Windows branch before a direct Cargo invocation"
+    );
+    assert!(
+        !windows_branch_is_buck_only(
+            "if ($IsWindows) { call `\"VsDevCmd.bat`\" && buck2 test $targets; cargo\t test } else { }",
+        ),
+        "Cargo followed by whitespace other than a literal space is still a direct Cargo invocation"
+    );
+    assert!(
+        !windows_branch_is_buck_only(
+            "if ($IsWindows) { call `\"VsDevCmd.bat`\" && buck2 test $targets; cargo.exe\n test } else { }",
+        ),
+        "cargo.exe followed by a newline is still a direct Cargo invocation"
+    );
 }
 
 #[test]
