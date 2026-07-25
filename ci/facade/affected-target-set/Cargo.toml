@@ -38,6 +38,10 @@ path = "src/bin/oya-cloud-ci-build-health.rs"
 name = "oya-cloud-ci-step-telemetry"
 path = "src/bin/oya-cloud-ci-step-telemetry.rs"
 
+[[bin]]
+name = "oya-cloud-ci-trusted-baseline-selector"
+path = "src/bin/oya-cloud-ci-trusted-baseline-selector.rs"
+
 [dependencies]
 serde_json = { workspace = true }
 

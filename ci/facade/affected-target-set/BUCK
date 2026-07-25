@@ -35,6 +35,20 @@ rust_binary(
     ],
 )
 
+# GH #1323 trusted-baseline fast path. This binary is deliberately network-free:
+# the workflow supplies immutable GitHub API JSON and the owned Rust selector
+# emits a deterministic SELECTED/FALLBACK/ERROR decision.
+rust_binary(
+    name = "oya-cloud-ci-trusted-baseline-selector-bin",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/bin/oya-cloud-ci-trusted-baseline-selector.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-affected-target-set",
+        "third-party//:serde_json",
+    ],
+)
+
 # Adapter-only visibility helper for GH #901: wraps long-running workflow commands and prints
 # phase + elapsed-seconds heartbeats while preserving the wrapped command's exit status.
 rust_binary(
@@ -55,6 +69,22 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":ci-affected-target-set",
+    ],
+)
+
+# Process-boundary integration tests for the #1323 selector. Unit tests for the
+# pure selection kernel remain in src/lib.rs.
+rust_test(
+    name = "oya-cloud-ci-trusted-baseline-selector-integration",
+    srcs = ["tests/trusted_baseline_selector.rs"],
+    crate = "oya_cloud_ci_trusted_baseline_selector_integration",
+    crate_root = "tests/trusted_baseline_selector.rs",
+    env = {
+        "OYA_TRUSTED_BASELINE_SELECTOR_BIN": "$(exe :oya-cloud-ci-trusted-baseline-selector-bin)",
+    },
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde_json",
     ],
 )
 
