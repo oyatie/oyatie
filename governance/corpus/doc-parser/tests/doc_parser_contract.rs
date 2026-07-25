@@ -3,7 +3,7 @@ use corpus_doc_parser::census::{
 };
 use corpus_doc_parser::{
     AdrFrontmatterValue, AdrParseError, AdrParseInput, DocNodeKind, DocParseError, DocParseInput,
-    TaintReason, parse_adr_decision, parse_markdown_doc,
+    TaintReason, parse_adr_authority_envelope, parse_adr_decision, parse_markdown_doc,
 };
 
 const ADR_FIXTURE: &str = include_str!("fixtures/adr-heading-reference.md");
@@ -793,4 +793,168 @@ fn current_corpus_migration_defects_remain_named_and_fail_closed() {
         parse_adr_decision(&AdrParseInput::new(ADR_PATH, LEGACY_GENERIC_NESTING)),
         Err(AdrParseError::UnsupportedFrontmatterNesting { .. })
     ));
+}
+
+#[test]
+fn authority_envelope_retains_nested_metadata_as_opaque_exact_source_data() {
+    let source = concat!(
+        "---\r\n",
+        "id: ADR-0515\r\n",
+        "title: \"Phase-0 firewall\"\r\n",
+        "status: Accepted\r\n",
+        "deciders: founder, council-architecture\r\n",
+        "supersedes: [ADR-0124, ADR-0349]\r\n",
+        "affected_surfaces:\r\n",
+        "  crates:\r\n",
+        "    - oya-cloud-ci-firewall-app\r\n",
+        "session_context:\r\n",
+        "  basis: >\r\n",
+        "    Preserve this as opaque provenance.\r\n",
+        "---\r\n",
+        "\r\n",
+        "# ADR-0515: Authority envelope fixture\r\n",
+    );
+    let input = AdrParseInput::new("docs/decisions/ADR-0515-phase0-firewall.md", source);
+
+    assert!(matches!(
+        parse_adr_decision(&input),
+        Err(AdrParseError::UnsupportedFrontmatterNesting { .. })
+    ));
+
+    let envelope = parse_adr_authority_envelope(&input)
+        .expect("nested metadata remains opaque rather than entering the strict decision IR");
+    assert_eq!(envelope.source_path(), input.source_path());
+    assert_eq!(envelope.id().as_str(), "ADR-0515");
+    assert_eq!(envelope.status(), "Accepted");
+    assert_eq!(
+        envelope
+            .supersedes()
+            .iter()
+            .map(|reference| reference.id().as_str())
+            .collect::<Vec<_>>(),
+        ["ADR-0124", "ADR-0349"]
+    );
+    assert_eq!(envelope.canonical_bytes(), source.as_bytes());
+    assert_eq!(envelope.content_hash().to_hex().len(), 64);
+    assert_eq!(
+        &source[envelope.frontmatter_span().start() as usize
+            ..envelope.frontmatter_span().end() as usize],
+        concat!(
+            "---\r\n",
+            "id: ADR-0515\r\n",
+            "title: \"Phase-0 firewall\"\r\n",
+            "status: Accepted\r\n",
+            "deciders: founder, council-architecture\r\n",
+            "supersedes: [ADR-0124, ADR-0349]\r\n",
+            "affected_surfaces:\r\n",
+            "  crates:\r\n",
+            "    - oya-cloud-ci-firewall-app\r\n",
+            "session_context:\r\n",
+            "  basis: >\r\n",
+            "    Preserve this as opaque provenance.\r\n",
+            "---\r\n",
+        ),
+        "the frontmatter span includes both CRLF fences and no body bytes"
+    );
+
+    let affected = envelope
+        .opaque_field("affected_surfaces")
+        .expect("nested field is retained as opaque provenance");
+    assert_eq!(
+        &source[affected.span().start() as usize..affected.span().end() as usize],
+        std::str::from_utf8(affected.raw_bytes()).expect("source is UTF-8"),
+        "opaque provenance is an exact source slice including CRLF and nested data"
+    );
+    assert!(affected.raw_bytes().starts_with(b"affected_surfaces:\r\n"));
+    assert!(
+        affected
+            .raw_bytes()
+            .ends_with(b"    - oya-cloud-ci-firewall-app\r\n")
+    );
+    assert!(envelope.opaque_field("session_context").is_some());
+    assert!(envelope.opaque_field("title").is_some());
+    assert!(envelope.opaque_field("deciders").is_some());
+}
+
+#[test]
+fn authority_envelope_rejects_bad_fences_duplicate_top_level_keys_and_selected_shapes() {
+    let path = "docs/decisions/ADR-0515-phase0-firewall.md";
+    for source in [
+        "id: ADR-0515\nstatus: Accepted\n---\n",
+        "---\nid: ADR-0515\nstatus: Accepted\n",
+        "---\nid: ADR-0515\nid: ADR-0515\nstatus: Accepted\n---\n",
+        "---\nid: [ADR-0515]\nstatus: Accepted\n---\n",
+        "---\nid: ADR-0515\nstatus:\n  Accepted\n---\n",
+        "---\nid: ADR-0515\nstatus: Accepted\nsupersedes:\n  invalid: ADR-0124\n---\n",
+    ] {
+        assert!(
+            parse_adr_authority_envelope(&AdrParseInput::new(path, source)).is_err(),
+            "authority envelope must fail closed for {source:?}"
+        );
+    }
+}
+
+#[test]
+fn authority_envelope_frontmatter_span_includes_lf_fences_and_rejects_non_contract_indentation() {
+    let path = "docs/decisions/ADR-0515-phase0-firewall.md";
+    let source = concat!(
+        "---\n",
+        "id: ADR-0515\n",
+        "status: Accepted\n",
+        "metadata:\n",
+        "  nested: retained\n",
+        "---\n",
+        "# body stays outside the provenance span\n",
+    );
+    let envelope = parse_adr_authority_envelope(&AdrParseInput::new(path, source))
+        .expect("two-space nested opaque metadata is contract-valid");
+    assert_eq!(
+        &source[envelope.frontmatter_span().start() as usize
+            ..envelope.frontmatter_span().end() as usize],
+        "---\nid: ADR-0515\nstatus: Accepted\nmetadata:\n  nested: retained\n---\n"
+    );
+
+    for invalid in [
+        "---\nid: ADR-0515\nstatus: Accepted\nmetadata:\n nested: one-space\n---\n",
+        "---\nid: ADR-0515\nstatus: Accepted\nmetadata:\n   nested: three-space\n---\n",
+        "---\nid: ADR-0515\nstatus: Accepted\nmetadata:\n\tnested: tab\n---\n",
+        "---\nid: ADR-0515\nstatus: Accepted\nmetadata:\n  \tnested: mixed-tab\n---\n",
+    ] {
+        assert!(
+            parse_adr_authority_envelope(&AdrParseInput::new(path, invalid)).is_err(),
+            "invalid indentation must fail before opaque retention: {invalid:?}"
+        );
+    }
+}
+
+#[test]
+fn authority_envelope_preserves_ordered_block_supersedes_without_promoting_other_metadata() {
+    let source = concat!(
+        "---\n",
+        "id: ADR-0515\n",
+        "status: Accepted (amendment)\n",
+        "supersedes:\n",
+        "  - ADR-0124\n",
+        "  - ADR-0349\n",
+        "deciders:\n",
+        "  primary: founder\n",
+        "---\n",
+    );
+    let envelope = parse_adr_authority_envelope(&AdrParseInput::new(
+        "docs/decisions/ADR-0515-phase0-firewall.md",
+        source,
+    ))
+    .expect("the selected block-list shape is supported");
+
+    assert_eq!(envelope.status(), "Accepted (amendment)");
+    assert_eq!(
+        envelope
+            .supersedes()
+            .iter()
+            .map(|reference| reference.id().as_str())
+            .collect::<Vec<_>>(),
+        ["ADR-0124", "ADR-0349"]
+    );
+    assert_eq!(envelope.opaque_fields().len(), 1);
+    assert_eq!(envelope.opaque_fields()[0].key(), "deciders");
 }
