@@ -1192,6 +1192,20 @@ jobs:
           retention-days: 30
           if-no-files-found: warn
 
+  # Windows-only Cargo boundary differential for ERROR_CANT_RESOLVE_FILENAME (1921).
+  # This is a constituent input to the same fan-in below: it adds no protected context.
+  # The fixture invokes Cargo metadata to compare Cargo's own cyclic-symlink expansion with
+  # the in-process resolver, so it deliberately uses Cargo rather than a second Buck2 lane.
+  windows-workspace-member-resolver:
+    name: windows workspace-member resolver differential (ERROR_CANT_RESOLVE_FILENAME)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          persist-credentials: false
+      - name: Cargo differential — Windows resolver inspection error
+        run: cargo test --locked -p oya-workspace-members-kernel --test cargo_differential
+
 
 
   # ── THE FAN-IN. This is the single required context branch protection keys on. It has NO
@@ -1212,6 +1226,7 @@ jobs:
       - gate-affected-target-set       # binding workspace coverage: affected cone or fail-closed full run (ADR-0554)
       - gate-live-postgres-adapters # #901: durable adapter RLS / CDC / SCIM tests against isolated live Postgres
       - gate-live-postgres-facades  # #901: durable facade tenant lifecycle / SCIM tests against isolated live Postgres
+      - windows-workspace-member-resolver # Windows ERROR_CANT_RESOLVE_FILENAME differential, under this same authority
     steps:
       - name: Fan-in verdict (green IFF every gate lane is green)
         run: |
@@ -1225,6 +1240,7 @@ jobs:
           echo "  affected-set      = ${{ needs.gate-affected-target-set.result }}"
           echo "  live-postgres/adapters = ${{ needs.gate-live-postgres-adapters.result }}"
           echo "  live-postgres/facades  = ${{ needs.gate-live-postgres-facades.result }}"
+          echo "  Windows resolver differential = ${{ needs.windows-workspace-member-resolver.result }}"
           # A matrix job's aggregate `.result` is success IFF ALL legs succeeded, failure if any
           # leg failed, skipped if it never ran — so one check covers every gate in the matrix.
           if [ "${{ needs.gate.result }}" = "success" ] \
@@ -1235,7 +1251,8 @@ jobs:
             && [ "${{ needs.buck2.result }}" = "success" ] \
             && [ "${{ needs.gate-affected-target-set.result }}" = "success" ] \
             && [ "${{ needs.gate-live-postgres-adapters.result }}" = "success" ] \
-            && [ "${{ needs.gate-live-postgres-facades.result }}" = "success" ]; then
+            && [ "${{ needs.gate-live-postgres-facades.result }}" = "success" ] \
+            && [ "${{ needs.windows-workspace-member-resolver.result }}" = "success" ]; then
             echo "oya-ci-required: GREEN — every constituent gate lane passed."
             exit 0
           fi
