@@ -10,7 +10,7 @@ rust_binary(
 
 rust_test(
     name = "oya-governance-adr-shape-app-integration",
-    srcs = glob(["src/**/*.rs", "tests/**/*.md"]),
+    srcs = glob(["src/**/*.rs"]),
     crate_root = "src/main.rs",
     visibility = ["PUBLIC"],
     deps = [
