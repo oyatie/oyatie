@@ -225,7 +225,7 @@ jobs:
       - name: buck2 test ${{ matrix.crate }}
         shell: pwsh
         # Default matrix legs expand to //ci/facade/${{ matrix.crate }}:ci-${{ matrix.crate }}-gate.
-        run: $targets = "${{ matrix.targets || format('//ci/facade/{0}:ci-{0}-unittest //ci/facade/{0}:ci-{0}-gate {1}', matrix.crate, matrix.crate == 'scm-facts-snapshot' && '//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot-integration' || '') }}"; if ([string]::IsNullOrWhiteSpace($targets)) { exit 1 }; if ($IsWindows) { & cmd.exe /d /s /c "call `"%ProgramFiles%\Microsoft Visual Studio\2022\Enterprise\Common7\Tools\VsDevCmd.bat`" -arch=x64 -host_arch=x64 >nul && buck2 test $targets" } else { & buck2 test $targets }; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+        run: $targets = "${{ matrix.targets || format('//ci/facade/{0}:ci-{0}-unittest //ci/facade/{0}:ci-{0}-gate {1}', matrix.crate, matrix.crate == 'scm-facts-snapshot' && '//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot-integration' || '') }}"; if ([string]::IsNullOrWhiteSpace($targets)) { exit 1 }; if ($IsWindows) { & cmd.exe /d /s /c "call `"%ProgramFiles%\Microsoft Visual Studio\2022\Enterprise\Common7\Tools\VsDevCmd.bat`" -arch=x64 -host_arch=x64 >nul && buck2 test $targets" } else { $targetArgs = $targets -split '\s+' | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }; & buck2 test @targetArgs }; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
   # ── freshness: first-diagnosis gate for the two stale-output failures from PR #662.
   #    Runs as its own fast job with no needs edge so stale Cargo.lock and stale generated faces
