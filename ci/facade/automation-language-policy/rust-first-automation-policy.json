@@ -562,7 +562,7 @@
         },
         {
           "key": ".github/workflows/oya-ci-required.yml::gate::buck2 test ${{ matrix.crate }}",
-          "shell_lines": 4
+          "shell_lines": 1
         },
         {
           "key": ".github/workflows/oya-ci-required.yml::generated-output-diff-policy::Install buck2 (digest-pinned prebuilt release)",
