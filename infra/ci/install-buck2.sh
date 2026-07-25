@@ -3,15 +3,29 @@
 set -euo pipefail
 
 BUCK2_RELEASE="${BUCK2_RELEASE:-2026-06-01}"
-BUCK2_INSTALL_DIR="${BUCK2_INSTALL_DIR:-/tmp/oya-ci-buck2-${BUCK2_RELEASE}}"
+BUCK2_INSTALL_DIR="${BUCK2_INSTALL_DIR:-}"
+windows_github_path=0
 
 case "$(uname -s)-$(uname -m)" in
   Linux-x86_64)
+    BUCK2_INSTALL_DIR="${BUCK2_INSTALL_DIR:-/tmp/oya-ci-buck2-${BUCK2_RELEASE}}"
     BUCK2_ASSET="${BUCK2_ASSET-buck2-x86_64-unknown-linux-gnu.zst}"
     BUCK2_SHA256="${BUCK2_SHA256-4dd9ae54c87fdcf795101074f8788232af55523885135d5e3358c77365993555}"
     BUCK2_BINARY_NAME="buck2"
     ;;
   MINGW*-x86_64)
+    windows_github_path=1
+    if [ -z "${BUCK2_INSTALL_DIR}" ]; then
+      if [ -z "${RUNNER_TEMP:-}" ] || ! command -v cygpath >/dev/null 2>&1; then
+        echo "Windows pinned Buck2 installation requires RUNNER_TEMP and cygpath." >&2
+        exit 1
+      fi
+      if ! runner_temp_posix="$(cygpath -u -- "${RUNNER_TEMP}")" || [ -z "${runner_temp_posix}" ]; then
+        echo "Failed to convert RUNNER_TEMP to a Git Bash path for Windows Buck2 installation." >&2
+        exit 1
+      fi
+      BUCK2_INSTALL_DIR="${runner_temp_posix}/oya-ci-buck2-${BUCK2_RELEASE}"
+    fi
     BUCK2_ASSET="${BUCK2_ASSET-buck2-x86_64-pc-windows-msvc.exe.zst}"
     BUCK2_SHA256="${BUCK2_SHA256-b3229a6e5cce50f6561dc251bf7f20e902b20c983dcdc293adefd5bba437cae3}"
     BUCK2_BINARY_NAME="buck2.exe"
@@ -147,5 +161,19 @@ mv -f -- "${binary_temp}" "${binary_path}"
 binary_temp=""
 
 if [ -n "${GITHUB_PATH:-}" ]; then
-  echo "${content_dir}" >> "${GITHUB_PATH}"
+  github_path_entry="${content_dir}"
+  if [ "${windows_github_path}" -eq 1 ]; then
+    if ! github_path_entry="$(cygpath -w -- "${content_dir}")" || [ -z "${github_path_entry}" ]; then
+      echo "Failed to convert the Windows Buck2 installation path for GITHUB_PATH." >&2
+      exit 1
+    fi
+    case "${github_path_entry}" in
+      [A-Za-z]:\\*|\\\\*) ;;
+      *)
+        echo "cygpath did not produce a native Windows path for GITHUB_PATH." >&2
+        exit 1
+        ;;
+    esac
+  fi
+  echo "${github_path_entry}" >> "${GITHUB_PATH}"
 fi
