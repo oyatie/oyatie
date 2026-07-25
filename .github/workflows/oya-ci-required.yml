@@ -228,8 +228,8 @@ jobs:
         run: |
           set -euo pipefail
           targets="${{ matrix.targets || format('//ci/facade/{0}:ci-{0}-unittest //ci/facade/{0}:ci-{0}-gate {1}', matrix.crate, matrix.crate == 'scm-facts-snapshot' && '//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot-integration' || '') }}"
-          test -n "${targets}" && buck2 test \
-            ${targets}
+          test -n "${targets}" && ${{ matrix.os == 'windows-latest' && 'cmd.exe /D /S /C "call \"%ProgramFiles%\Microsoft Visual Studio\2022\Enterprise\Common7\Tools\VsDevCmd.bat\" -arch=x64 -host_arch=x64 >nul &&' || '' }} buck2 test \
+            ${targets}${{ matrix.os == 'windows-latest' && '"' || '' }}
 
   # ── freshness: first-diagnosis gate for the two stale-output failures from PR #662.
   #    Runs as its own fast job with no needs edge so stale Cargo.lock and stale generated faces

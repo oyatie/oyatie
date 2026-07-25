@@ -338,6 +338,10 @@
       "prefix": "libs/oya-data-boundary-kernel/OWNERS"
     },
     {
+      "anchor": "ADR-0538 workspace-member resolver ownership seed: the exact OWNERS marker registers narrow cloud-ci-platform stewardship for the Cargo-boundary differential fixtures without broadening all libs.",
+      "prefix": "libs/oya-workspace-members-kernel/OWNERS"
+    },
+    {
       "anchor": "ADR-0555 D3: reindeer-vendored third-party tree — a DERIVED class regenerated from Cargo.lock (drift impossible by regeneration); its accounting is the lockfile + buckification, not per-file mentions",
       "prefix": "third-party/"
     },

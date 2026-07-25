@@ -724,6 +724,10 @@ fn windows_workspace_resolver_differential_is_a_buck2_matrix_leg() {
         "the matrix must invoke its optional exact Buck2 target instead of direct Cargo"
     );
     assert!(
+        gate_job.contains("VsDevCmd.bat"),
+        "the Windows Buck2 lane must initialize the MSVC environment before compiling the differential target"
+    );
+    assert!(
         !workflow.contains("\n  windows-workspace-member-resolver:")
             && !gate_job.contains("cargo test --locked -p oya-workspace-members-kernel"),
         "the Windows differential must stay inside the Buck2 target, not add a direct Cargo job"
