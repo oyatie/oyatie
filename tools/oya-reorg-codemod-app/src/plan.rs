@@ -670,7 +670,9 @@ fn move_dir(
 }
 
 /// Walk the repo for first-party source files (Cargo.toml, BUCK, *.rs), skipping vendored,
-/// VCS, and build-output trees. Returns sorted repo-relative forward-slash paths.
+/// VCS, build-output, and symlinked trees. Symlinks are never followed: a repository-local
+/// link can otherwise escape the repository root or form a traversal cycle. Returns sorted
+/// repo-relative forward-slash paths.
 fn walk_repo_files(repo_root: &Path) -> Result<Vec<String>, CodemodError> {
     const SKIP_DIRS: [&str; 7] = [
         ".git",
@@ -695,7 +697,14 @@ fn walk_repo_files(repo_root: &Path) -> Result<Vec<String>, CodemodError> {
         children.sort();
         for path in children {
             let name = path.file_name().and_then(|s| s.to_str()).unwrap_or("");
-            if path.is_dir() {
+            let metadata = std::fs::symlink_metadata(&path).map_err(|e| CodemodError::Io {
+                context: format!("symlink_metadata {}", path.display()),
+                message: e.to_string(),
+            })?;
+            if metadata.file_type().is_symlink() {
+                continue;
+            }
+            if metadata.is_dir() {
                 if !SKIP_DIRS.contains(&name) {
                     stack.push(path);
                 }
