@@ -12,6 +12,7 @@ use std::process::{Command, Stdio};
 use std::sync::atomic::{AtomicU64, Ordering};
 
 use ci_artifact_inventory_registry::to_canonical_json;
+use corpus_doc_parser::{AdrParseInput, parse_adr_authority_envelope};
 #[cfg(unix)]
 use rustix::fd::OwnedFd;
 #[cfg(unix)]
@@ -57,6 +58,352 @@ const ADR_0388_PREPARATION_PATH: &str =
 const ADR_0388_CLOSURE_ID: &str = "adr-0388-transient-ideas-retirement-closure";
 const ADR_0388_CLOSURE_PATH: &str =
     "evidence/history-only-retirement/adr-0388-transient-ideas-closure.json";
+
+const ADR_0515_SUPERSEDED_CI_CLUSTER: [&str; 7] = [
+    "ADR-0124", "ADR-0349", "ADR-0359", "ADR-0361", "ADR-0511", "ADR-0513", "ADR-0514",
+];
+const ADR_0515_SOURCE_PATH: &str =
+    "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md";
+const ADR_0515_PREPARATION_SCHEMA: &str =
+    "https://docs.oyatie.com/schemas/adr-0515-history-only-retirement-control-plane.schema.json";
+const ADR_0515_PREPARATION_NAME: &str =
+    "adr-0515-ci-adr-cluster-history-only-retirement-control-plane";
+const ADR_0515_SCOPE_REF: &str = "ADR-0515/superseded-ci-cluster";
+const ADR_0515_SCOPE_TYPE: &str = "adr-0515-superseded-ci-cluster";
+const ADR_0515_PREPARATION_ARTIFACT: &str =
+    "evidence/history-only-retirement/adr-0515-superseded-ci-cluster-preparation.json";
+const ADR_0515_CLOSURE_RECEIPT: &str =
+    "evidence/history-only-retirement/adr-0515-superseded-ci-cluster-closure.json";
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct Adr0515PreparationControl {
+    #[serde(rename = "$schema")]
+    schema: String,
+    schema_version: u64,
+    canonical_name: String,
+    planning_state: String,
+    planning_impact: bool,
+    dispatch_authorized: bool,
+    authority_claim: String,
+    source_adr: Adr0515SourceAdr,
+    predecessor_snapshot: CommitTree,
+    scope: Adr0515Scope,
+    preparation_artifact: String,
+    closure_contract: Adr0515ClosureContract,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct Adr0515SourceAdr {
+    path: String,
+    id: String,
+    supersedes: Vec<String>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct Adr0515Scope {
+    scope_ref: String,
+    scope_type: String,
+    selector_type: String,
+    selectors: Vec<Adr0515Selector>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct Adr0515Selector {
+    adr_id: String,
+    path: String,
+    mode: String,
+    predecessor_blob_oid: String,
+    sha256: String,
+    byte_count: u64,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct Adr0515ClosureContract {
+    required: bool,
+    receipt_path: String,
+    status: String,
+}
+
+struct Adr0515SelectorBinding {
+    adr_id: &'static str,
+    path: &'static str,
+    predecessor_blob_oid: &'static str,
+    sha256: &'static str,
+    byte_count: u64,
+}
+
+const ADR_0515_SELECTOR_BINDINGS: [Adr0515SelectorBinding; 7] = [
+    Adr0515SelectorBinding {
+        adr_id: "ADR-0124",
+        path: "docs/decisions/ADR-0124-own-merge-queue-webhook-driven.md",
+        predecessor_blob_oid: "c3af0c22453e58749aa7173c11167e0fb66e1412",
+        sha256: "sha256:d57d67d3502ca013ba4e1b67fec77eb902609c2897331ac8c851c76c70ad45f8",
+        byte_count: 10228,
+    },
+    Adr0515SelectorBinding {
+        adr_id: "ADR-0349",
+        path: "docs/decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md",
+        predecessor_blob_oid: "313f75b8d6d7cad21f76d6afa1807c22587da198",
+        sha256: "sha256:c63967bb8d8255d5b13ca9f880e7dbd05782ed46cf51042c94b80ff4742895c2",
+        byte_count: 107783,
+    },
+    Adr0515SelectorBinding {
+        adr_id: "ADR-0359",
+        path: "docs/decisions/ADR-0359-jenkins-completely-replaces-github-actions.md",
+        predecessor_blob_oid: "d173ecaf58df93d76bca53d191dbaddfa8b7b115",
+        sha256: "sha256:206818ac56bfb5a2589dd2fb51b38045fce314c05b3d0472db223c9b1cc4ba7c",
+        byte_count: 4143,
+    },
+    Adr0515SelectorBinding {
+        adr_id: "ADR-0361",
+        path: "docs/decisions/ADR-0361-jenkins-native-cicd-revamp-execution.md",
+        predecessor_blob_oid: "55a4e35b6652fea476729137676e84dc1eabbe6c",
+        sha256: "sha256:ab1129a35dba587f3d9910bf48f0d6078bc9d072cb0c76ca47504980efb23dc6",
+        byte_count: 4688,
+    },
+    Adr0515SelectorBinding {
+        adr_id: "ADR-0511",
+        path: "docs/decisions/ADR-0511-ci-orchestration-argo-workflows-supersede-jenkins.md",
+        predecessor_blob_oid: "71c94bfcf4af408b78a6469330fda078809685b9",
+        sha256: "sha256:b3ba611721739b47c58aad68dd7337de0c1ca321752de2c9ed1ba15ead0723f6",
+        byte_count: 13740,
+    },
+    Adr0515SelectorBinding {
+        adr_id: "ADR-0513",
+        path: "docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md",
+        predecessor_blob_oid: "1964ccc1e440bcffdcc90f7bef8d617d6df8329f",
+        sha256: "sha256:823ea8c0c18e51863bdd8a20e490df639a69d9b005d809a761e97ed56a448ac4",
+        byte_count: 7750,
+    },
+    Adr0515SelectorBinding {
+        adr_id: "ADR-0514",
+        path: "docs/decisions/ADR-0514-build-ci-cd-pipeline-target-architecture-hyperscaler-remediation.md",
+        predecessor_blob_oid: "92e60c3cacafee6f8c4942598ec10ff5ac8ed593",
+        sha256: "sha256:b6704250a0f35277ff5f808a5f70c3a99ac9de4c4e59e76467609b01f663b4fa",
+        byte_count: 15773,
+    },
+];
+
+/// Parses the surviving ADR-0515 front-matter as an immutable lineage boundary.
+///
+/// This intentionally accepts no arbitrary historical identifier: the one-scope
+/// preparation profile may only bind the cluster ADR-0515 itself supersedes.
+pub(crate) fn parse_adr_0515_supersedes(bytes: &[u8]) -> Result<Vec<String>, String> {
+    parse_adr_0515_source(ADR_0515_SOURCE_PATH, bytes)
+}
+
+fn parse_adr_0515_source(path: &str, bytes: &[u8]) -> Result<Vec<String>, String> {
+    if path != ADR_0515_SOURCE_PATH {
+        return Err("ADR-0515 source path drifted".to_owned());
+    }
+    let source =
+        std::str::from_utf8(bytes).map_err(|_| "ADR-0515 source must be valid UTF-8".to_owned())?;
+    let envelope = parse_adr_authority_envelope(&AdrParseInput::new(path, source))
+        .map_err(|error| format!("ADR-0515 authority envelope rejected frontmatter: {error}"))?;
+    if envelope.source_path() != ADR_0515_SOURCE_PATH || envelope.id().as_str() != "ADR-0515" {
+        return Err("ADR-0515 source identity drifted".to_owned());
+    }
+    if envelope.status() != "Accepted" {
+        return Err("ADR-0515 source is not Accepted".to_owned());
+    }
+    let lineage = envelope
+        .supersedes()
+        .iter()
+        .map(|reference| reference.id().as_str().to_owned())
+        .collect::<Vec<_>>();
+    if lineage != ADR_0515_SUPERSEDED_CI_CLUSTER.map(str::to_owned) {
+        return Err("ADR-0515 supersedes is not the fixed ordered CI cluster lineage".to_owned());
+    }
+    Ok(lineage)
+}
+
+fn parse_adr_0515_preparation_control(bytes: &[u8]) -> Result<Adr0515PreparationControl, String> {
+    let value = parse_closed_json(bytes)?;
+    let control = serde_json::from_value::<Adr0515PreparationControl>(value)
+        .map_err(|error| format!("ADR-0515 preparation control shape is invalid: {error}"))?;
+    if control.schema != ADR_0515_PREPARATION_SCHEMA
+        || control.schema_version != 1
+        || control.canonical_name != ADR_0515_PREPARATION_NAME
+        || control.planning_state != "HOLD(Planning)"
+        || control.planning_impact
+        || control.dispatch_authorized
+        || control.authority_claim != "none"
+    {
+        return Err("ADR-0515 preparation control root constants drifted".to_owned());
+    }
+    if control.source_adr.path != ADR_0515_SOURCE_PATH
+        || control.source_adr.id != "ADR-0515"
+        || control.source_adr.supersedes != ADR_0515_SUPERSEDED_CI_CLUSTER.map(str::to_owned)
+    {
+        return Err("ADR-0515 preparation control source constants drifted".to_owned());
+    }
+    if control.predecessor_snapshot.commit_oid != "1fa09da22be819b062881eb59252f4dd4c6b550a"
+        || control.predecessor_snapshot.tree_oid != "d7b15539396db21b219d68779362850cce9afa8f"
+    {
+        return Err("ADR-0515 preparation control predecessor constants drifted".to_owned());
+    }
+    if control.scope.scope_ref != ADR_0515_SCOPE_REF
+        || control.scope.scope_type != ADR_0515_SCOPE_TYPE
+        || control.scope.selector_type != "exact"
+        || control.scope.selectors.len() != ADR_0515_SELECTOR_BINDINGS.len()
+    {
+        return Err("ADR-0515 preparation control scope constants drifted".to_owned());
+    }
+    for (selector, expected) in control
+        .scope
+        .selectors
+        .iter()
+        .zip(ADR_0515_SELECTOR_BINDINGS.iter())
+    {
+        if selector.adr_id != expected.adr_id
+            || selector.path != expected.path
+            || selector.mode != "100644"
+            || selector.predecessor_blob_oid != expected.predecessor_blob_oid
+            || selector.sha256 != expected.sha256
+            || selector.byte_count != expected.byte_count
+        {
+            return Err("ADR-0515 preparation control selector constants drifted".to_owned());
+        }
+    }
+    if control.preparation_artifact != ADR_0515_PREPARATION_ARTIFACT
+        || !control.closure_contract.required
+        || control.closure_contract.receipt_path != ADR_0515_CLOSURE_RECEIPT
+        || control.closure_contract.status != "not-created-by-preparation"
+    {
+        return Err("ADR-0515 preparation control closure constants drifted".to_owned());
+    }
+    Ok(control)
+}
+
+const ADR_0515_PREPARATION_CONTROL_PATH: &str =
+    "registry/history-only-retirement/adr-0515-ci-adr-cluster-control-plane.json";
+pub const ADR_0515_PREPARATION_FACTS_PATH: &str =
+    "ci/facade/scm-facts-snapshot/adr-0515-history-only-retirement-facts.generated.json";
+
+/// Materializes non-content proof metadata for the one-scope ADR-0515 preparation profile.
+///
+/// It observes immutable Git blobs and reports any exact readable in-tree copy.  It does not
+/// create a closure receipt, alter live documents, or make an authority decision.
+pub fn materialize_adr_0515_preparation_facts(repo_root: &Path) -> Result<Value, String> {
+    let control_bytes = std::fs::read(repo_root.join(ADR_0515_PREPARATION_CONTROL_PATH))
+        .map_err(|error| format!("read ADR-0515 preparation control plane: {error}"))?;
+    let control = parse_adr_0515_preparation_control(&control_bytes)?;
+    let predecessor = control.predecessor_snapshot.commit_oid.as_str();
+    let expected_tree = control.predecessor_snapshot.tree_oid.as_str();
+    validate_oid(predecessor, "ADR-0515 preparation predecessor commit")?;
+    validate_oid(expected_tree, "ADR-0515 preparation predecessor tree")?;
+    let git = GitCliRetirementObjectSource::new(repo_root.to_path_buf());
+    let resolved = git.resolve_commit(predecessor)?;
+    if resolved != predecessor || git.tree_for_commit(predecessor)? != expected_tree {
+        return Err("ADR-0515 preparation predecessor Git binding changed".to_owned());
+    }
+    let predecessor_entries = entries_by_path(git.tree_entries(predecessor)?)?;
+    let candidate_entries = entries_by_path(git.tree_entries("HEAD")?)?;
+    let source_entry = candidate_entries
+        .get(ADR_0515_SOURCE_PATH)
+        .ok_or_else(|| "ADR-0515 source is absent from exact HEAD tree".to_owned())?;
+    require_regular(source_entry, "ADR-0515 source")?;
+    let source_bytes = git.read_blob(&source_entry.oid)?;
+    let lineage = parse_adr_0515_supersedes(&source_bytes)?;
+    let expected_lineage = ADR_0515_SUPERSEDED_CI_CLUSTER.map(str::to_owned).to_vec();
+    if control.source_adr.supersedes != expected_lineage || lineage != expected_lineage {
+        return Err(
+            "ADR-0515 preparation lineage does not bind the exact ordered source population"
+                .to_owned(),
+        );
+    }
+    if !git.is_ancestor(predecessor, "HEAD")? {
+        return Err("ADR-0515 preparation predecessor is not an ancestor of HEAD".to_owned());
+    }
+    let selectors = &control.scope.selectors;
+    let mut facts = Vec::with_capacity(selectors.len());
+    let mut seen_ids = BTreeSet::new();
+    let mut predecessor_bodies = BTreeMap::new();
+    for (index, selector) in selectors.iter().enumerate() {
+        let adr_id = selector.adr_id.as_str();
+        if ADR_0515_SUPERSEDED_CI_CLUSTER.get(index) != Some(&adr_id)
+            || lineage.get(index).map(String::as_str) != Some(adr_id)
+            || !seen_ids.insert(adr_id.to_owned())
+        {
+            return Err("ADR-0515 preparation selector is outside its lineage".to_owned());
+        }
+        let path = selector.path.as_str();
+        validate_repo_path(path)?;
+        let expected_oid = selector.predecessor_blob_oid.as_str();
+        let expected_sha = selector.sha256.as_str();
+        let expected_size = selector.byte_count;
+        let entry = predecessor_entries
+            .get(path)
+            .ok_or_else(|| format!("ADR-0515 predecessor selector is absent: {path}"))?;
+        require_regular(entry, "ADR-0515 predecessor selector")?;
+        if entry.oid != expected_oid || entry.mode != "100644" {
+            return Err(format!(
+                "ADR-0515 predecessor selector binding changed: {path}"
+            ));
+        }
+        let bytes = git.read_blob(&entry.oid)?;
+        if sha256_digest(&bytes) != expected_sha || bytes.len() as u64 != expected_size {
+            return Err(format!(
+                "ADR-0515 predecessor raw-byte binding changed: {path}"
+            ));
+        }
+        let live = candidate_entries
+            .get(path)
+            .filter(|entry| entry.is_regular_blob())
+            .is_some();
+        if !live {
+            return Err(format!(
+                "ADR-0515 preparation live selector is absent: {path}"
+            ));
+        }
+        predecessor_bodies.insert(path.to_owned(), bytes);
+        facts.push(json!({"adr_id":adr_id,"path":path,"predecessor_blob_oid":expected_oid,"sha256":expected_sha,"byte_count":expected_size,"live_body_exists":true,"exact_readable_copies":[]}));
+    }
+    if seen_ids != lineage.into_iter().collect() {
+        return Err("ADR-0515 preparation selector population is incomplete".to_owned());
+    }
+    let copies = build_equivalence_index(
+        &git,
+        &predecessor_bodies,
+        &BTreeMap::new(),
+        &candidate_entries,
+    )?;
+    for fact in &mut facts {
+        let path = required_value_string(fact.get("path"), "object fact path")?;
+        fact["exact_readable_copies"] =
+            json!(copies.candidate.get(path).cloned().unwrap_or_default());
+    }
+    Ok(
+        json!({"profile":"adr-0515-superseded-ci-cluster-preparation","planning_state":"HOLD(Planning)","planning_impact":false,"dispatch_authorized":false,"authority_claim":"none","source_adr":{"id":"ADR-0515","supersedes":ADR_0515_SUPERSEDED_CI_CLUSTER},"predecessor_snapshot":{"commit_oid":predecessor,"tree_oid":expected_tree},"object_facts":facts,"closure_contract":{"required":true,"receipt_path":ADR_0515_CLOSURE_RECEIPT,"status":"not-created-by-preparation"}}),
+    )
+}
+
+pub fn emit_adr_0515_preparation_facts(repo_root: &Path) -> Result<(), String> {
+    let output = repo_root.join(ADR_0515_PREPARATION_FACTS_PATH);
+    let ignored = Command::new("git")
+        .args(["-C"])
+        .arg(repo_root)
+        .args(["check-ignore", "-q", ADR_0515_PREPARATION_FACTS_PATH])
+        .status()
+        .map_err(|e| format!("check ADR-0515 facts ignore boundary: {e}"))?;
+    if !ignored.success() {
+        return Err("ADR-0515 preparation facts must be ignored".to_owned());
+    }
+    let facts = materialize_adr_0515_preparation_facts(repo_root)?;
+    let text = to_canonical_json(&facts).map_err(|error| error.to_string())?;
+    // The generated face is an ignored controller output; use the same
+    // descriptor-relative, no-follow atomic writer as the existing retirement
+    // facts instead of following an attacker-controlled output pathname.
+    if output != repo_root.join(ADR_0515_PREPARATION_FACTS_PATH) {
+        return Err("ADR-0515 preparation output path drifted".to_owned());
+    }
+    write_canonical_adr_0515_preparation_facts(repo_root, text.as_bytes())
+}
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -505,7 +852,19 @@ impl CanonicalRetirementFactsWriter {
     /// Atomically replace only the fixed canonical facts basename through this directory fd.
     pub fn write(&self, bytes: &[u8]) -> Result<(), String> {
         const FINAL_NAME: &str = "history-only-retirement-facts.generated.json";
-        ensure_regular_or_absent(&self.directory, FINAL_NAME)?;
+        self.write_named(FINAL_NAME, bytes)
+    }
+
+    /// Atomically replace the independently declared ADR-0515 preparation face.
+    pub fn write_adr_0515_preparation(&self, bytes: &[u8]) -> Result<(), String> {
+        self.write_named(
+            "adr-0515-history-only-retirement-facts.generated.json",
+            bytes,
+        )
+    }
+
+    fn write_named(&self, final_name: &str, bytes: &[u8]) -> Result<(), String> {
+        ensure_regular_or_absent(&self.directory, final_name)?;
         let (temporary_name, temporary) = create_temporary_file(&self.directory)?;
 
         let result = (|| {
@@ -516,7 +875,7 @@ impl CanonicalRetirementFactsWriter {
                 &self.directory,
                 &temporary_name,
                 &self.directory,
-                FINAL_NAME,
+                final_name,
             )
             .map_err(|error| format!("replace retirement facts output: {error}"))?;
             rustix::fs::fsync(&self.directory)
@@ -554,6 +913,22 @@ impl CanonicalRetirementFactsWriter {
 #[cfg(unix)]
 pub fn write_canonical_retirement_facts(repo_root: &Path, bytes: &[u8]) -> Result<(), String> {
     CanonicalRetirementFactsWriter::open(repo_root)?.write(bytes)
+}
+
+#[cfg(unix)]
+fn write_canonical_adr_0515_preparation_facts(
+    repo_root: &Path,
+    bytes: &[u8],
+) -> Result<(), String> {
+    CanonicalRetirementFactsWriter::open(repo_root)?.write_adr_0515_preparation(bytes)
+}
+
+#[cfg(not(unix))]
+fn write_canonical_adr_0515_preparation_facts(
+    _repo_root: &Path,
+    _bytes: &[u8],
+) -> Result<(), String> {
+    Err("ADR-0515 preparation facts writer requires Unix dirfd support".to_owned())
 }
 
 #[cfg(not(unix))]
@@ -2191,6 +2566,95 @@ impl<'de> Visitor<'de> for DuplicateKeyFreeJsonVisitor {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn adr_0515_source(frontmatter: &str) -> Vec<u8> {
+        format!("---\n{frontmatter}\n---\n\n# ADR-0515: Canonical CI\n").into_bytes()
+    }
+
+    #[test]
+    fn adr_0515_lineage_parser_rejects_a_non_lineage_historical_adr() {
+        let error = parse_adr_0515_supersedes(
+            &adr_0515_source("id: ADR-0515\nstatus: Accepted\ndate: 2026-06-08\nowner: council-architecture\nsupersedes: [ADR-0124, ADR-0349, ADR-9999]"),
+        )
+        .expect_err("only the ADR-0515 CI cluster may be named by the preparation profile");
+
+        assert!(
+            error.contains("ADR-0515 supersedes"),
+            "unexpected error: {error}"
+        );
+    }
+
+    #[test]
+    fn adr_0515_source_parser_rejects_duplicate_and_unterminated_frontmatter() {
+        for source in [
+            adr_0515_source("id: ADR-0515\nid: ADR-0515\nstatus: Accepted\ndate: 2026-06-08\nowner: council-architecture\nsupersedes: [ADR-0124, ADR-0349, ADR-0359, ADR-0361, ADR-0511, ADR-0513, ADR-0514]"),
+            b"---\nid: ADR-0515\nstatus: Accepted\ndate: 2026-06-08\nowner: council-architecture\nsupersedes: [ADR-0124, ADR-0349, ADR-0359, ADR-0361, ADR-0511, ADR-0513, ADR-0514]\n".to_vec(),
+        ] {
+            assert!(parse_adr_0515_supersedes(&source).is_err());
+        }
+    }
+
+    #[test]
+    fn adr_0515_source_parser_rejects_reordered_lineage() {
+        let source = adr_0515_source(
+            "id: ADR-0515\nstatus: Accepted\ndate: 2026-06-08\nowner: council-architecture\nsupersedes: [ADR-0349, ADR-0124, ADR-0359, ADR-0361, ADR-0511, ADR-0513, ADR-0514]",
+        );
+        assert!(parse_adr_0515_supersedes(&source).is_err());
+    }
+
+    #[test]
+    fn adr_0515_source_parser_rejects_wrong_status_and_path() {
+        let wrong_status = adr_0515_source(
+            "id: ADR-0515\nstatus: Proposed\ndate: 2026-06-08\nowner: council-architecture\nsupersedes: [ADR-0124, ADR-0349, ADR-0359, ADR-0361, ADR-0511, ADR-0513, ADR-0514]",
+        );
+        assert!(parse_adr_0515_supersedes(&wrong_status).is_err());
+        let valid = adr_0515_source(
+            "id: ADR-0515\nstatus: Accepted\ndate: 2026-06-08\nowner: council-architecture\nsupersedes: [ADR-0124, ADR-0349, ADR-0359, ADR-0361, ADR-0511, ADR-0513, ADR-0514]",
+        );
+        assert!(parse_adr_0515_source("docs/decisions/ADR-0515-alias.md", &valid).is_err());
+    }
+
+    fn adr_0515_control_value() -> Value {
+        json!({
+            "$schema": ADR_0515_PREPARATION_SCHEMA,
+            "schema_version": 1,
+            "canonical_name": ADR_0515_PREPARATION_NAME,
+            "planning_state": "HOLD(Planning)",
+            "planning_impact": false,
+            "dispatch_authorized": false,
+            "authority_claim": "none",
+            "source_adr": {"path": ADR_0515_SOURCE_PATH, "id": "ADR-0515", "supersedes": ADR_0515_SUPERSEDED_CI_CLUSTER},
+            "predecessor_snapshot": {"commit_oid": "1fa09da22be819b062881eb59252f4dd4c6b550a", "tree_oid": "d7b15539396db21b219d68779362850cce9afa8f"},
+            "scope": {"scope_ref": ADR_0515_SCOPE_REF, "scope_type": ADR_0515_SCOPE_TYPE, "selector_type": "exact", "selectors": ADR_0515_SELECTOR_BINDINGS.iter().map(|binding| json!({"adr_id": binding.adr_id, "path": binding.path, "mode": "100644", "predecessor_blob_oid": binding.predecessor_blob_oid, "sha256": binding.sha256, "byte_count": binding.byte_count})).collect::<Vec<_>>()},
+            "preparation_artifact": ADR_0515_PREPARATION_ARTIFACT,
+            "closure_contract": {"required": true, "receipt_path": ADR_0515_CLOSURE_RECEIPT, "status": "not-created-by-preparation"}
+        })
+    }
+
+    #[test]
+    fn adr_0515_control_rejects_unknown_and_root_source_scope_closure_mutations() {
+        let mut unknown = adr_0515_control_value();
+        unknown["unreviewed_extension"] = json!(true);
+        assert!(serde_json::from_value::<Adr0515PreparationControl>(unknown).is_err());
+
+        for (pointer, replacement) in [
+            ("/planning_state", json!("OPEN")),
+            (
+                "/source_adr/path",
+                json!("docs/decisions/ADR-0515-alias.md"),
+            ),
+            ("/scope/scope_type", json!("forged")),
+            ("/closure_contract/status", json!("created")),
+        ] {
+            let mut control = adr_0515_control_value();
+            *control.pointer_mut(pointer).expect("fixture path") = replacement;
+            let bytes = serde_json::to_vec(&control).expect("serialize fixture");
+            assert!(
+                parse_adr_0515_preparation_control(&bytes).is_err(),
+                "{pointer}"
+            );
+        }
+    }
     use std::cell::RefCell;
 
     const PREDECESSOR: &str = "1111111111111111111111111111111111111111";
