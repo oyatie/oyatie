@@ -61,6 +61,7 @@ mkdir -p "${content_dir}"
 asset_path="${content_dir}/${BUCK2_ASSET}"
 binary_path="${content_dir}/${BUCK2_BINARY_NAME}"
 lock_path="${content_dir}/.buck2-install.lock"
+lock_dir="${lock_path}.d"
 asset_temp=""
 binary_temp=""
 
@@ -70,14 +71,42 @@ cleanup_partials() {
 }
 trap cleanup_partials EXIT
 
-if command -v flock >/dev/null 2>&1; then
+release_mkdir_lock() {
+  rm -f -- "${lock_dir}/owner-pid"
+  rmdir -- "${lock_dir}" 2>/dev/null || true
+}
+
+acquire_mkdir_lock() {
+  local deadline owner_pid
+  deadline=$(( $(date +%s) + lock_timeout_seconds ))
+  while ! mkdir "${lock_dir}" 2>/dev/null; do
+    owner_pid=""
+    if [ -r "${lock_dir}/owner-pid" ]; then
+      owner_pid="$(cat "${lock_dir}/owner-pid" 2>/dev/null || true)"
+    fi
+    if [ -n "${owner_pid}" ] && ! kill -0 "${owner_pid}" 2>/dev/null; then
+      rm -f -- "${lock_dir}/owner-pid"
+      rmdir -- "${lock_dir}" 2>/dev/null || true
+      continue
+    fi
+    if [ "$(date +%s)" -ge "${deadline}" ]; then
+      echo "Timed out waiting for Buck2 installer lock: ${lock_path}" >&2
+      exit 1
+    fi
+    sleep 1
+  done
+  printf '%s\n' "$$" > "${lock_dir}/owner-pid"
+  trap 'release_mkdir_lock' EXIT
+}
+
+if [ "${BUCK2_INSTALL_FORCE_NO_FLOCK:-}" != "1" ] && command -v flock >/dev/null 2>&1; then
   exec 9>"${lock_path}"
   if ! flock -x -w "${lock_timeout_seconds}" 9; then
     echo "Timed out waiting for Buck2 installer lock: ${lock_path}" >&2
     exit 1
   fi
 else
-  echo "flock unavailable; proceeding without a shared Buck2 installer lock." >&2
+  acquire_mkdir_lock
 fi
 rm -f -- "${asset_path}.part."* "${binary_path}.part."*
 

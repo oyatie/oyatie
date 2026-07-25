@@ -2144,6 +2144,42 @@ fn buck2_installer_serializes_same_digest_and_preserves_prior_binary_on_zstd_fai
 }
 
 #[test]
+fn buck2_installer_serializes_same_digest_without_flock() {
+    let root = repo_root();
+    let fixture = TestDir::new("same-digest-no-flock");
+    let bin = fixture.path().join("bin");
+    fs::create_dir_all(&bin).expect("create shim bin");
+    let payload = fixture.path().join("payload");
+    fs::write(&payload, b"#!/usr/bin/env bash\necho binary-a\n").expect("write payload");
+    let digest = sha256(&payload);
+    let curl_body = "#!/usr/bin/env bash\nset -euo pipefail\nout=\"\"\nwhile [ \"$#\" -gt 0 ]; do case \"$1\" in -o) out=\"$2\"; shift 2 ;; *) shift ;; esac; done\nmkdir \"$CRITICAL_DIR/curl\" || exit 75\nsleep 1\ncp \"$PAYLOAD\" \"$out\"\nrmdir \"$CRITICAL_DIR/curl\"\n";
+    let zstd_body = "#!/usr/bin/env bash\nset -euo pipefail\ninput=\"\"; output=\"\"\nwhile [ \"$#\" -gt 0 ]; do case \"$1\" in -o) output=\"$2\"; shift 2 ;; -d|-f) shift ;; *) input=\"$1\"; shift ;; esac; done\nmkdir \"$CRITICAL_DIR/zstd\" || exit 76\nsleep 1\ncp \"$input\" \"$output\"\nrmdir \"$CRITICAL_DIR/zstd\"\n";
+    install_host_shims(&bin, zstd_body, curl_body);
+    let install_dir = fixture.path().join("install");
+    let critical = fixture.path().join("critical");
+    fs::create_dir_all(&critical).expect("create critical fixture dir");
+    let mut first = installer_command(&root, &bin, &install_dir, "asset.zst", &digest);
+    first
+        .env("BUCK2_INSTALL_FORCE_NO_FLOCK", "1")
+        .env("PAYLOAD", &payload)
+        .env("CRITICAL_DIR", &critical);
+    let mut second = installer_command(&root, &bin, &install_dir, "asset.zst", &digest);
+    second
+        .env("BUCK2_INSTALL_FORCE_NO_FLOCK", "1")
+        .env("PAYLOAD", &payload)
+        .env("CRITICAL_DIR", &critical);
+    let first = first.spawn().expect("spawn first installer");
+    let second = second.spawn().expect("spawn second installer");
+    assert_success(first.wait_with_output().expect("wait first"));
+    assert_success(second.wait_with_output().expect("wait second"));
+    assert_eq!(
+        fs::read(installer_content_dir(&install_dir, &digest).join("buck2"))
+            .expect("promoted binary"),
+        fs::read(&payload).expect("read payload")
+    );
+}
+
+#[test]
 fn buck2_installer_allows_different_digests_to_install_concurrently() {
     let root = repo_root();
     let fixture = TestDir::new("different-digests");
@@ -2217,6 +2253,7 @@ fn buck2_installer_times_out_without_writes_then_recovers_after_holder_is_killed
 
     let mut holder = installer_command(&root, &bin, &install_dir, "asset.zst", &digest);
     holder
+        .env("BUCK2_INSTALL_FORCE_NO_FLOCK", "1")
         .env("INSTANCE", "holder")
         .env("MARKER_DIR", &marker_dir)
         .env("PAYLOAD", &payload);
@@ -2231,6 +2268,7 @@ fn buck2_installer_times_out_without_writes_then_recovers_after_holder_is_killed
 
     let mut contender_command = installer_command(&root, &bin, &install_dir, "asset.zst", &digest);
     contender_command
+        .env("BUCK2_INSTALL_FORCE_NO_FLOCK", "1")
         .env("BUCK2_INSTALL_LOCK_TIMEOUT_SECONDS", "1")
         .env("INSTANCE", "contender")
         .env("MARKER_DIR", &marker_dir)
@@ -2255,6 +2293,7 @@ fn buck2_installer_times_out_without_writes_then_recovers_after_holder_is_killed
     holder.terminate_installer();
     let mut successor_command = installer_command(&root, &bin, &install_dir, "asset.zst", &digest);
     successor_command
+        .env("BUCK2_INSTALL_FORCE_NO_FLOCK", "1")
         .env("BUCK2_INSTALL_LOCK_TIMEOUT_SECONDS", "2")
         .env("INSTANCE", "successor")
         .env("MARKER_DIR", &marker_dir)

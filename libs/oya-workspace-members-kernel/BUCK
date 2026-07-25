@@ -28,5 +28,6 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":oya-workspace-members-kernel",
+        "third-party//:serde_json",
     ],
 )
