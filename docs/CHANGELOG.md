@@ -5,6 +5,20 @@ doc_status: published
 
 # Changelog
 
+## 2026-07-24 — ADR-0623 Proposed mechanism-neutral Stage-1 evidence epoch
+
+- **doc.adr_index** (Tier 1, added): recorded ADR-0623 as a Proposed,
+  planning-neutral description of the C01–C15, A–G, sixteen-lens, fresh-dissent,
+  immutable-successor, and context-free-exit evidence population while preserving
+  `HOLD(Planning)` and keeping the historical executable prototype only in Git history.
+  - Authors: `@jason931225`
+  - ADRs cited: ADR-0623
+  - Related lanes: `oya-check-adr-index`, `oya-governance-adr-shape`,
+    `ci-cross-artifact-agreement`
+  - PR: #1364; exact-head admission, protected squash/merge,
+    `oya-ci-required`, and post-merge evidence remain pending and will be
+    recorded in the PR evidence packet.
+
 ## 2026-07-24 — ADR-0622 Proposed FixupTask v2 successor foundation
 
 - **doc.adr_index** (Tier 1, added): recorded ADR-0622 as a Proposed,
