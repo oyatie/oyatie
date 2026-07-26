@@ -2,7 +2,7 @@
 # Install the digest-pinned Buck2 release used by the canonical cloud-ci bridge.
 set -euo pipefail
 
-BUCK2_RELEASE="${BUCK2_RELEASE:-2026-06-01}"
+BUCK2_RELEASE="${BUCK2_RELEASE:-2026-07-15}"
 BUCK2_INSTALL_DIR="${BUCK2_INSTALL_DIR:-}"
 windows_github_path=0
 
@@ -10,7 +10,7 @@ case "$(uname -s)-$(uname -m)" in
   Linux-x86_64)
     BUCK2_INSTALL_DIR="${BUCK2_INSTALL_DIR:-/tmp/oya-ci-buck2-${BUCK2_RELEASE}}"
     BUCK2_ASSET="${BUCK2_ASSET-buck2-x86_64-unknown-linux-gnu.zst}"
-    BUCK2_SHA256="${BUCK2_SHA256-4dd9ae54c87fdcf795101074f8788232af55523885135d5e3358c77365993555}"
+    BUCK2_SHA256="${BUCK2_SHA256-ecc3d807dd0b0feff1a423688bd598263b8339d223e685578a87196456c19d95}"
     BUCK2_BINARY_NAME="buck2"
     ;;
   MINGW*-x86_64)
@@ -27,7 +27,7 @@ case "$(uname -s)-$(uname -m)" in
       BUCK2_INSTALL_DIR="${runner_temp_posix}/oya-ci-buck2-${BUCK2_RELEASE}"
     fi
     BUCK2_ASSET="${BUCK2_ASSET-buck2-x86_64-pc-windows-msvc.exe.zst}"
-    BUCK2_SHA256="${BUCK2_SHA256-b3229a6e5cce50f6561dc251bf7f20e902b20c983dcdc293adefd5bba437cae3}"
+    BUCK2_SHA256="${BUCK2_SHA256-719324109a8c5f9f95d9f1f6895ec500505eebcc466b193fa46e05f243276e59}"
     BUCK2_BINARY_NAME="buck2.exe"
     ;;
   *)

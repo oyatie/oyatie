@@ -64,11 +64,11 @@ jobs:
         # actions/cache@v5.0.5 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
         with:
-          path: /tmp/oya-ci-buck2-2026-06-01
+          path: /tmp/oya-ci-buck2-2026-07-15
           # The cached asset is always SHA-256 verified by infra/ci/install-buck2.sh before execution.
-          key: docs-graph-drift-${{ runner.os }}-buck2-2026-06-01-4dd9ae54c87fdcf795101074f8788232af55523885135d5e3358c77365993555
+          key: docs-graph-drift-${{ runner.os }}-buck2-2026-07-15-ecc3d807dd0b0feff1a423688bd598263b8339d223e685578a87196456c19d95
           restore-keys: |
-            docs-graph-drift-${{ runner.os }}-buck2-2026-06-01-
+            docs-graph-drift-${{ runner.os }}-buck2-2026-07-15-
       - name: Materialize de-committed inputs, build + test the generator
         run: |
           set -euo pipefail
