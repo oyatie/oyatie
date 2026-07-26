@@ -58,12 +58,12 @@ data:
       batch: {}
       memory_limiter: { check_interval: 5s, limit_percentage: 80, spike_limit_percentage: 25 }
     exporters:
-      prometheusremotewrite:
+      prometheus_remote_write:
         endpoint: http://victoriametrics.oya-observability.svc.cluster.local:8428/api/v1/write
       debug: { verbosity: basic }
     service:
       pipelines:
-        metrics: { receivers: [otlp], processors: [memory_limiter, batch], exporters: [prometheusremotewrite] }
+        metrics: { receivers: [otlp], processors: [memory_limiter, batch], exporters: [prometheus_remote_write] }
         traces:  { receivers: [otlp], processors: [memory_limiter, batch], exporters: [debug] }
         logs:    { receivers: [otlp], processors: [memory_limiter, batch], exporters: [debug] }
 ---
@@ -122,7 +122,7 @@ spec:
       securityContext: { runAsNonRoot: true, runAsUser: 472, fsGroup: 472, seccompProfile: { type: RuntimeDefault } }
       containers:
         - name: grafana
-          image: grafana/grafana:11.4.0
+          image: grafana/grafana:11.6.16
           env:
             - name: GF_SECURITY_ADMIN_PASSWORD
               valueFrom: { secretKeyRef: { name: oya-grafana-admin, key: password } }
