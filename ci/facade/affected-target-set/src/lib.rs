@@ -794,28 +794,81 @@ pub fn failing_targets(report: &BTreeMap<String, TargetBuildStatus>) -> BTreeSet
         .collect()
 }
 
-/// Expected trusted dev-push artifact name for a build-health baseline produced at `merge_base_sha`.
+/// The ONLY workflow whose push-to-dev runs may publish a trusted merge-base baseline (ADR-0515
+/// single required context). Bound into run selection so the artifact NAME alone is never enough.
+pub const REQUIRED_CONTEXT_WORKFLOW_PATH: &str = ".github/workflows/oya-ci-required.yml";
+
+/// Which merge-base health baseline an artifact carries (GH #1323/#899, ADR-0554 D8).
 ///
-/// The consumer workflow still validates GitHub Actions provenance (push-to-dev, successful
-/// `oya-ci-required` run, exact `head_sha`) before download. This pure helper pins the artifact name
-/// and SHA shape so stale/wrong artifacts cannot be confused with an exact merge-base baseline.
-pub fn build_health_baseline_artifact_name(merge_base_sha: &str) -> Result<String, String> {
+/// A FULL-tier PR needs BOTH: a target that BUILDS can still FAIL its tests, and buck2's
+/// `--build-report` records BUILD status only — so the two baselines are distinct artifacts with
+/// distinct names, produced by the same trusted push-to-dev run.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum BaselineKind {
+    /// `buck2 build //... --keep-going --build-report` results.
+    Build,
+    /// `buck2 test //...` per-target verdicts, normalized to the build-report shape.
+    Test,
+}
+
+impl BaselineKind {
+    /// The artifact-name discriminator: `build-health-baseline-<sha>` / `test-health-baseline-<sha>`.
+    pub const fn prefix(self) -> &'static str {
+        match self {
+            Self::Build => "build",
+            Self::Test => "test",
+        }
+    }
+
+    /// Parse the CLI spelling. Unknown values fail closed (no silent default kind).
+    pub fn parse(raw: &str) -> Result<Self, String> {
+        match raw {
+            "build" => Ok(Self::Build),
+            "test" => Ok(Self::Test),
+            other => Err(format!("baseline kind must be `build` or `test`, got `{other}`")),
+        }
+    }
+}
+
+/// Reject anything that is not a full 40-char hex object id (fail-closed: an abbreviated or
+/// symbolic ref could resolve differently across runs, so it must never name a baseline).
+fn validated_merge_base_sha(merge_base_sha: &str) -> Result<&str, String> {
     let sha = merge_base_sha.trim();
     if sha.len() != 40 || !sha.as_bytes().iter().all(u8::is_ascii_hexdigit) {
         return Err(format!(
             "merge-base SHA must be a 40-character hex object id, got `{merge_base_sha}`"
         ));
     }
-    Ok(format!("build-health-baseline-{sha}"))
+    Ok(sha)
+}
+
+/// Expected trusted dev-push artifact name for a `kind` baseline produced at `merge_base_sha`.
+///
+/// The consumer workflow still validates GitHub Actions provenance (push-to-dev, successful
+/// `oya-ci-required` run, exact `head_sha`) before download. This pure helper pins the artifact name
+/// and SHA shape so stale/wrong artifacts cannot be confused with an exact merge-base baseline.
+pub fn baseline_artifact_name(
+    kind: BaselineKind,
+    merge_base_sha: &str,
+) -> Result<String, String> {
+    let sha = validated_merge_base_sha(merge_base_sha)?;
+    Ok(format!("{}-health-baseline-{sha}", kind.prefix()))
 }
 
 /// Select the trusted push-to-dev workflow run whose head SHA is the exact merge-base.
+///
+/// ANTI-LAUNDERING: every accepted property comes from GitHub Actions PROVENANCE, never from
+/// anything a candidate PR controls — the run must be an `event=push` on `head_branch=dev` that
+/// `conclusion=success`ed, its `head_sha` must be the EXACT merge-base, and its `path` must be the
+/// canonical required-context workflow file. Binding `path` matters: without it, any other
+/// workflow on dev could publish an artifact under the expected name and be selected, which is
+/// exactly the "trust the name" hole the D6 anti-laundering paragraph forbids.
 pub fn trusted_dev_push_run_id(
     runs_json: &str,
     merge_base_sha: &str,
+    expected_workflow_path: &str,
 ) -> Result<Option<u64>, String> {
-    let sha = merge_base_sha.trim();
-    let _ = build_health_baseline_artifact_name(sha)?;
+    let sha = validated_merge_base_sha(merge_base_sha)?;
     let payload: Value = serde_json::from_str(runs_json)
         .map_err(|e| format!("workflow-runs payload is not valid JSON: {e}"))?;
     let runs = payload
@@ -828,6 +881,7 @@ pub fn trusted_dev_push_run_id(
             && run.get("event").and_then(Value::as_str) == Some("push")
             && run.get("head_branch").and_then(Value::as_str) == Some("dev")
             && run.get("conclusion").and_then(Value::as_str) == Some("success")
+            && run.get("path").and_then(Value::as_str) == Some(expected_workflow_path)
         {
             return run
                 .get("id")
@@ -840,8 +894,8 @@ pub fn trusted_dev_push_run_id(
     Ok(None)
 }
 
-/// Select the unexpired exact-name build-health baseline artifact from a trusted run.
-pub fn trusted_build_health_baseline_artifact_id(
+/// Select the unexpired exact-name health baseline artifact from a trusted run.
+pub fn trusted_baseline_artifact_id(
     artifacts_json: &str,
     artifact_name: &str,
 ) -> Result<Option<u64>, String> {
@@ -872,24 +926,33 @@ pub fn trusted_build_health_baseline_artifact_id(
     Ok(None)
 }
 
-/// Validate a trusted build-health baseline artifact payload after provenance selection.
+/// Validate a trusted health baseline artifact payload after provenance selection.
 ///
-/// Returns the number of build-report results. Empty/invalid reports are refused because an empty
+/// `artifact_name` is the name the GitHub API reports for the artifact id that was actually
+/// downloaded — checking it here closes the "selected one artifact, downloaded another" loop
+/// against a live server response rather than against a locally-computed string.
+///
+/// Returns the number of report results. Empty/invalid reports are refused because an empty
 /// baseline would launder every head failure into "brand-new but unproven" ambiguity.
-pub fn validate_trusted_build_health_baseline_artifact(
+pub fn validate_trusted_baseline_artifact(
+    kind: BaselineKind,
     artifact_name: &str,
     merge_base_sha: &str,
     report_json: &str,
 ) -> Result<usize, String> {
-    let expected = build_health_baseline_artifact_name(merge_base_sha)?;
+    let expected = baseline_artifact_name(kind, merge_base_sha)?;
     if artifact_name != expected {
         return Err(format!(
-            "build-health baseline artifact name `{artifact_name}` does not match expected `{expected}`"
+            "{}-health baseline artifact name `{artifact_name}` does not match expected `{expected}`",
+            kind.prefix()
         ));
     }
     let report = parse_build_report(report_json)?;
     if report.is_empty() {
-        return Err("build-health baseline artifact has an empty `results` object".to_owned());
+        return Err(format!(
+            "{}-health baseline artifact has an empty `results` object",
+            kind.prefix()
+        ));
     }
     Ok(report.len())
 }
@@ -1260,14 +1323,53 @@ mod tests {
         assert_eq!(failing_targets(&report), set(&["root//b:b", "root//c:c"]));
     }
     #[test]
+    fn trusted_baseline_artifact_names_are_kind_scoped() {
+        let sha = "0123456789abcdef0123456789abcdef01234567";
+        assert_eq!(
+            baseline_artifact_name(BaselineKind::Build, sha).unwrap(),
+            format!("build-health-baseline-{sha}")
+        );
+        assert_eq!(
+            baseline_artifact_name(BaselineKind::Test, sha).unwrap(),
+            format!("test-health-baseline-{sha}")
+        );
+        // The two kinds must never collide — a test baseline can never be served as a build one.
+        assert_ne!(
+            baseline_artifact_name(BaselineKind::Build, sha).unwrap(),
+            baseline_artifact_name(BaselineKind::Test, sha).unwrap()
+        );
+        assert!(BaselineKind::parse("build").is_ok());
+        assert!(BaselineKind::parse("test").is_ok());
+        assert!(BaselineKind::parse("Build").is_err());
+        assert!(BaselineKind::parse("").is_err());
+    }
+
+    #[test]
     fn trusted_build_health_artifact_accepts_exact_non_empty_baseline() {
         let sha = "0123456789abcdef0123456789abcdef01234567";
-        let name = build_health_baseline_artifact_name(sha).unwrap();
+        let name = baseline_artifact_name(BaselineKind::Build, sha).unwrap();
         let json = r#"{"results":{"root//a:a":{"success":"SUCCESS"}}}"#;
         assert_eq!(
-            validate_trusted_build_health_baseline_artifact(&name, sha, json),
+            validate_trusted_baseline_artifact(BaselineKind::Build, &name, sha, json),
             Ok(1)
         );
+    }
+
+    #[test]
+    fn trusted_test_health_artifact_accepts_exact_non_empty_baseline() {
+        let sha = "0123456789abcdef0123456789abcdef01234567";
+        let name = baseline_artifact_name(BaselineKind::Test, sha).unwrap();
+        // The test baseline is the normalizer's build-report-shaped output.
+        let json = r#"{"results":{"root//a:a-unittest":{"success":"SUCCESS"},"root//b:b-unittest":{"success":"FAIL"}}}"#;
+        assert_eq!(
+            validate_trusted_baseline_artifact(BaselineKind::Test, &name, sha, json),
+            Ok(2)
+        );
+        // A build-named artifact must NOT validate as the test baseline (kind confusion).
+        let build_name = baseline_artifact_name(BaselineKind::Build, sha).unwrap();
+        let err = validate_trusted_baseline_artifact(BaselineKind::Test, &build_name, sha, json)
+            .unwrap_err();
+        assert!(err.contains("does not match expected"), "{err}");
     }
 
     #[test]
@@ -1275,29 +1377,44 @@ mod tests {
         let sha = "0123456789abcdef0123456789abcdef01234567";
         let stale = "build-health-baseline-89abcdef0123456789abcdef0123456789abcdef";
         let json = r#"{"results":{"root//a:a":{"success":"SUCCESS"}}}"#;
-        let err = validate_trusted_build_health_baseline_artifact(stale, sha, json).unwrap_err();
+        let err = validate_trusted_baseline_artifact(BaselineKind::Build, stale, sha, json)
+            .unwrap_err();
         assert!(err.contains("does not match expected"), "{err}");
     }
 
     #[test]
     fn trusted_build_health_artifact_rejects_invalid_or_empty_report() {
         let sha = "0123456789abcdef0123456789abcdef01234567";
-        let name = build_health_baseline_artifact_name(sha).unwrap();
+        let name = baseline_artifact_name(BaselineKind::Build, sha).unwrap();
 
         let invalid =
-            validate_trusted_build_health_baseline_artifact(&name, sha, "not json").unwrap_err();
+            validate_trusted_baseline_artifact(BaselineKind::Build, &name, sha, "not json")
+                .unwrap_err();
         assert!(invalid.contains("not valid JSON"), "{invalid}");
 
-        let empty =
-            validate_trusted_build_health_baseline_artifact(&name, sha, r#"{"results":{}}"#)
-                .unwrap_err();
+        let empty = validate_trusted_baseline_artifact(
+            BaselineKind::Build,
+            &name,
+            sha,
+            r#"{"results":{}}"#,
+        )
+        .unwrap_err();
         assert!(empty.contains("empty `results`"), "{empty}");
+
+        // A truncated/garbage download with no `results` object at all is refused too.
+        let shapeless =
+            validate_trusted_baseline_artifact(BaselineKind::Build, &name, sha, r#"{"ok":true}"#)
+                .unwrap_err();
+        assert!(shapeless.contains("no `results` object"), "{shapeless}");
     }
 
     #[test]
     fn trusted_build_health_artifact_rejects_bad_sha_shape() {
-        let err = build_health_baseline_artifact_name("dev").unwrap_err();
+        let err = baseline_artifact_name(BaselineKind::Build, "dev").unwrap_err();
         assert!(err.contains("40-character hex"), "{err}");
+        // An abbreviated SHA is rejected as well — it could resolve differently across runs.
+        let abbrev = baseline_artifact_name(BaselineKind::Test, "0123456").unwrap_err();
+        assert!(abbrev.contains("40-character hex"), "{abbrev}");
     }
 
     #[test]
@@ -1305,12 +1422,15 @@ mod tests {
         let sha = "0123456789abcdef0123456789abcdef01234567";
         let runs = r#"{
             "workflow_runs": [
-                {"id": 11, "head_sha": "fedcba9876543210fedcba9876543210fedcba98", "event": "push", "head_branch": "dev", "conclusion": "success"},
-                {"id": 12, "head_sha": "0123456789abcdef0123456789abcdef01234567", "event": "pull_request", "head_branch": "dev", "conclusion": "success"},
-                {"id": 13, "head_sha": "0123456789abcdef0123456789abcdef01234567", "event": "push", "head_branch": "dev", "conclusion": "success"}
+                {"id": 11, "head_sha": "fedcba9876543210fedcba9876543210fedcba98", "event": "push", "head_branch": "dev", "conclusion": "success", "path": ".github/workflows/oya-ci-required.yml"},
+                {"id": 12, "head_sha": "0123456789abcdef0123456789abcdef01234567", "event": "pull_request", "head_branch": "dev", "conclusion": "success", "path": ".github/workflows/oya-ci-required.yml"},
+                {"id": 13, "head_sha": "0123456789abcdef0123456789abcdef01234567", "event": "push", "head_branch": "dev", "conclusion": "success", "path": ".github/workflows/oya-ci-required.yml"}
             ]
         }"#;
-        assert_eq!(trusted_dev_push_run_id(runs, sha), Ok(Some(13)));
+        assert_eq!(
+            trusted_dev_push_run_id(runs, sha, REQUIRED_CONTEXT_WORKFLOW_PATH),
+            Ok(Some(13))
+        );
     }
 
     #[test]
@@ -1318,11 +1438,47 @@ mod tests {
         let sha = "0123456789abcdef0123456789abcdef01234567";
         let runs = r#"{
             "workflow_runs": [
-                {"id": 12, "head_sha": "0123456789abcdef0123456789abcdef01234567", "event": "push", "head_branch": "feature", "conclusion": "success"},
-                {"id": 13, "head_sha": "0123456789abcdef0123456789abcdef01234567", "event": "push", "head_branch": "dev", "conclusion": "failure"}
+                {"id": 12, "head_sha": "0123456789abcdef0123456789abcdef01234567", "event": "push", "head_branch": "feature", "conclusion": "success", "path": ".github/workflows/oya-ci-required.yml"},
+                {"id": 13, "head_sha": "0123456789abcdef0123456789abcdef01234567", "event": "push", "head_branch": "dev", "conclusion": "failure", "path": ".github/workflows/oya-ci-required.yml"}
             ]
         }"#;
-        assert_eq!(trusted_dev_push_run_id(runs, sha), Ok(None));
+        assert_eq!(
+            trusted_dev_push_run_id(runs, sha, REQUIRED_CONTEXT_WORKFLOW_PATH),
+            Ok(None)
+        );
+    }
+
+    #[test]
+    fn trusted_push_run_selection_rejects_a_different_workflow_on_the_same_sha() {
+        // ANTI-LAUNDERING: a green push-to-dev run of SOME OTHER workflow at the exact merge-base
+        // must NOT be trusted — otherwise any workflow could publish the expected artifact name.
+        let sha = "0123456789abcdef0123456789abcdef01234567";
+        let runs = r#"{
+            "workflow_runs": [
+                {"id": 14, "head_sha": "0123456789abcdef0123456789abcdef01234567", "event": "push", "head_branch": "dev", "conclusion": "success", "path": ".github/workflows/attacker-lane.yml"},
+                {"id": 15, "head_sha": "0123456789abcdef0123456789abcdef01234567", "event": "push", "head_branch": "dev", "conclusion": "success"}
+            ]
+        }"#;
+        assert_eq!(
+            trusted_dev_push_run_id(runs, sha, REQUIRED_CONTEXT_WORKFLOW_PATH),
+            Ok(None)
+        );
+    }
+
+    #[test]
+    fn trusted_push_run_selection_refuses_malformed_input_fail_closed() {
+        let sha = "0123456789abcdef0123456789abcdef01234567";
+        assert!(
+            trusted_dev_push_run_id("not json", sha, REQUIRED_CONTEXT_WORKFLOW_PATH).is_err()
+        );
+        assert!(
+            trusted_dev_push_run_id(r#"{"ok":true}"#, sha, REQUIRED_CONTEXT_WORKFLOW_PATH)
+                .is_err()
+        );
+        assert!(
+            trusted_dev_push_run_id(r#"{"workflow_runs":[]}"#, "HEAD", REQUIRED_CONTEXT_WORKFLOW_PATH)
+                .is_err()
+        );
     }
 
     #[test]
@@ -1330,15 +1486,23 @@ mod tests {
         let artifacts = r#"{
             "artifacts": [
                 {"id": 21, "name": "build-health-baseline-fedcba9876543210fedcba9876543210fedcba98", "expired": false},
-                {"id": 22, "name": "build-health-baseline-0123456789abcdef0123456789abcdef01234567", "expired": false}
+                {"id": 22, "name": "build-health-baseline-0123456789abcdef0123456789abcdef01234567", "expired": false},
+                {"id": 23, "name": "test-health-baseline-0123456789abcdef0123456789abcdef01234567", "expired": false}
             ]
         }"#;
         assert_eq!(
-            trusted_build_health_baseline_artifact_id(
+            trusted_baseline_artifact_id(
                 artifacts,
                 "build-health-baseline-0123456789abcdef0123456789abcdef01234567",
             ),
             Ok(Some(22))
+        );
+        assert_eq!(
+            trusted_baseline_artifact_id(
+                artifacts,
+                "test-health-baseline-0123456789abcdef0123456789abcdef01234567",
+            ),
+            Ok(Some(23))
         );
     }
 
@@ -1346,11 +1510,11 @@ mod tests {
     fn trusted_baseline_artifact_selection_falls_back_on_missing_or_stale() {
         let artifact_name = "build-health-baseline-0123456789abcdef0123456789abcdef01234567";
         assert_eq!(
-            trusted_build_health_baseline_artifact_id(r#"{"artifacts":[]}"#, artifact_name),
+            trusted_baseline_artifact_id(r#"{"artifacts":[]}"#, artifact_name),
             Ok(None)
         );
         assert_eq!(
-            trusted_build_health_baseline_artifact_id(
+            trusted_baseline_artifact_id(
                 r#"{"artifacts":[{"id":22,"name":"build-health-baseline-0123456789abcdef0123456789abcdef01234567","expired":true}]}"#,
                 artifact_name,
             ),

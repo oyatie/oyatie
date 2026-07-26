@@ -25,14 +25,22 @@
 #![forbid(unsafe_code)]
 
 use std::fs;
-use std::process::ExitCode;
+use std::path::{Path, PathBuf};
+use std::process::{Command, ExitCode, Stdio};
 
 use ci_affected_target_set::{
-    BuildHealthVerdict, build_health_verdict, failing_targets, parse_build_report,
-    parse_test_verdicts, test_verdicts_to_report_value,
+    BaselineKind, BuildHealthVerdict, REQUIRED_CONTEXT_WORKFLOW_PATH, baseline_artifact_name,
+    build_health_verdict, failing_targets, parse_build_report, parse_test_verdicts,
+    test_verdicts_to_report_value, trusted_baseline_artifact_id, trusted_dev_push_run_id,
+    validate_trusted_baseline_artifact,
 };
 
 const LOG: &str = "build-health";
+
+/// Exit code meaning "no trusted baseline is available — fall back to the cold merge-base
+/// rebuild". Distinct from 2 (bad arguments) purely for operator legibility; the workflow falls
+/// back on ANY non-zero, which is the fail-closed default.
+const NO_TRUSTED_BASELINE: u8 = 3;
 
 struct Args {
     baseline_report: String,
@@ -106,10 +114,263 @@ fn run_normalize(console_path: &str, out_path: &str) -> ExitCode {
     ExitCode::SUCCESS
 }
 
+/// The value that follows `flag` in `raw`, if present.
+fn flag_value<'a>(raw: &'a [String], flag: &str) -> Option<&'a str> {
+    raw.iter()
+        .position(|a| a == flag)
+        .and_then(|i| raw.get(i + 1))
+        .map(String::as_str)
+}
+
+fn require<'a>(raw: &'a [String], flag: &str) -> Result<&'a str, String> {
+    flag_value(raw, flag).ok_or_else(|| format!("{flag} <value> is required"))
+}
+
+/// TRUSTED-BASELINE CONSUMER (GH #1323/#899; the ADR-0554 D8 cross-run consumer).
+///
+/// The merge-base of a PR IS a `dev` commit, and its push-to-dev `oya-ci-required` run already
+/// built AND tested the whole workspace and published both baselines as artifacts. Rebuilding them
+/// cold in a clean worktree is the FULL tier's wall-clock bottleneck — 31m16s of a measured 68m57s
+/// job on PR #1376. When the published pair validates, we download it and the cold rebuild is
+/// skipped entirely.
+///
+/// OWNED-RUST, NOT WORKFLOW SHELL: the whole sequence — list runs, select the trusted one, select
+/// each artifact, download, unzip, validate — lives here rather than in the workflow's `run:`
+/// block. The crate gains no HTTP client and no new dependency; it drives the already-installed
+/// `gh` and `unzip` as subprocesses, exactly the composition-root pattern the sibling affected-set
+/// binary uses for `git` and `buck2`. Keeping it here also keeps the rust-first inline-shell
+/// ratchet honest: the workflow grows a handful of lines instead of ~35.
+///
+/// ANTI-LAUNDERING (the D6 guarantees, preserved and tightened): a baseline is accepted ONLY from
+/// a GitHub Actions run whose PROVENANCE proves the candidate could not have produced it —
+/// `event=push`, `head_branch=dev`, `conclusion=success`, `path` = the single required-context
+/// workflow file, and `head_sha` EXACTLY the merge-base. The artifact NAME is never sufficient on
+/// its own; it is additionally checked against the name the API reports for the id actually
+/// downloaded, and the payload must parse to a non-empty build-report `results` map. ANY doubt at
+/// ANY step exits non-zero with the partial outputs deleted, and the workflow then runs the
+/// untouched cold rebuild.
+///
+/// Usage: `--trusted-baseline --merge-base <sha> --repo <owner/name> --out-dir <dir>`.
+fn trusted_baseline_exit(raw: &[String]) -> u8 {
+    match reuse_trusted_baselines(raw) {
+        Ok(()) => 0,
+        Err(TrustedBaselineOutcome::Unavailable(why)) => {
+            eprintln!(
+                "{LOG}: NO TRUSTED BASELINE — {why}; the cold merge-base rebuild runs instead"
+            );
+            NO_TRUSTED_BASELINE
+        }
+        Err(TrustedBaselineOutcome::Refused(why)) => {
+            eprintln!(
+                "{LOG}: TRUSTED BASELINE REFUSED — {why}; the cold merge-base rebuild runs instead"
+            );
+            2
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Eq)]
+enum TrustedBaselineOutcome {
+    /// No baseline exists for this merge-base (normal: first push, expired retention, red dev).
+    Unavailable(String),
+    /// A baseline exists but failed a provenance/shape check, or an input/subprocess was bad.
+    Refused(String),
+}
+
+use TrustedBaselineOutcome::{Refused, Unavailable};
+
+/// `owner/name`, restricted to the characters GitHub actually allows, so a hostile value can never
+/// smuggle extra path or query segments into the API routes built below.
+fn validated_repo(repo: &str) -> Result<&str, TrustedBaselineOutcome> {
+    let mut parts = repo.split('/');
+    let ok = matches!((parts.next(), parts.next(), parts.next()), (Some(o), Some(n), None)
+        if !o.is_empty()
+            && !n.is_empty()
+            && repo
+                .chars()
+                .all(|c| c.is_ascii_alphanumeric() || matches!(c, '-' | '_' | '.' | '/')));
+    if ok {
+        Ok(repo)
+    } else {
+        Err(Refused(format!("`{repo}` is not a valid <owner>/<name> repository")))
+    }
+}
+
+/// PURE: which workflow run may be trusted for `merge_base`, given the runs payload.
+fn select_trusted_run(runs_json: &str, merge_base: &str) -> Result<u64, TrustedBaselineOutcome> {
+    match trusted_dev_push_run_id(runs_json, merge_base, REQUIRED_CONTEXT_WORKFLOW_PATH)
+        .map_err(Refused)?
+    {
+        Some(id) => Ok(id),
+        None => Err(Unavailable(format!(
+            "no successful push-to-dev `{REQUIRED_CONTEXT_WORKFLOW_PATH}` run at merge-base {merge_base}"
+        ))),
+    }
+}
+
+/// PURE: which artifact of a trusted run carries the `kind` baseline for `merge_base`.
+fn select_trusted_artifact(
+    artifacts_json: &str,
+    kind: BaselineKind,
+    merge_base: &str,
+) -> Result<(u64, String), TrustedBaselineOutcome> {
+    let name = baseline_artifact_name(kind, merge_base).map_err(Refused)?;
+    match trusted_baseline_artifact_id(artifacts_json, &name).map_err(Refused)? {
+        Some(id) => Ok((id, name)),
+        None => Err(Unavailable(format!(
+            "the trusted run published no unexpired `{name}` artifact"
+        ))),
+    }
+}
+
+/// PURE: may the downloaded payload be used as the `kind` baseline? `artifact_name` is what the
+/// API reports for the id that was actually fetched, not a locally-recomputed string.
+fn accept_downloaded_baseline(
+    kind: BaselineKind,
+    artifact_name: &str,
+    merge_base: &str,
+    report_json: &str,
+) -> Result<usize, TrustedBaselineOutcome> {
+    validate_trusted_baseline_artifact(kind, artifact_name, merge_base, report_json)
+        .map_err(Refused)
+}
+
+/// Run `gh api <route>` and return stdout. A non-zero status (404, no token, rate limit) is a
+/// refusal, never a silent empty payload.
+fn gh_api(route: &str) -> Result<String, TrustedBaselineOutcome> {
+    let out = Command::new("gh")
+        .args(["api", route])
+        .stdin(Stdio::null())
+        .output()
+        .map_err(|e| Refused(format!("could not execute `gh api {route}`: {e}")))?;
+    if !out.status.success() {
+        return Err(Refused(format!(
+            "`gh api {route}` exited with {}: {}",
+            out.status,
+            String::from_utf8_lossy(&out.stderr).trim()
+        )));
+    }
+    String::from_utf8(out.stdout).map_err(|e| Refused(format!("`gh api {route}` output is not UTF-8: {e}")))
+}
+
+/// Stream a subprocess's stdout straight to `dest` (artifact zips are binary, and `unzip -p`
+/// output can be large — neither belongs in memory).
+fn capture_to_file(
+    program: &str,
+    args: &[&str],
+    dest: &Path,
+) -> Result<(), TrustedBaselineOutcome> {
+    let file = fs::File::create(dest)
+        .map_err(|e| Refused(format!("could not create `{}`: {e}", dest.display())))?;
+    let status = Command::new(program)
+        .args(args)
+        .stdin(Stdio::null())
+        .stdout(Stdio::from(file))
+        .status()
+        .map_err(|e| Refused(format!("could not execute `{program}`: {e}")))?;
+    if !status.success() {
+        return Err(Refused(format!(
+            "`{program} {}` exited with {status}",
+            args.join(" ")
+        )));
+    }
+    Ok(())
+}
+
+/// Download and validate ONE kind of baseline into `out_dir/<kind>-health-baseline.json`.
+fn fetch_one_baseline(
+    repo: &str,
+    merge_base: &str,
+    run_id: u64,
+    artifacts_json: &str,
+    kind: BaselineKind,
+    out_dir: &Path,
+) -> Result<PathBuf, TrustedBaselineOutcome> {
+    let (artifact_id, expected_name) = select_trusted_artifact(artifacts_json, kind, merge_base)?;
+    // The name the API reports for the id we are about to download closes the "selected one
+    // artifact, fetched another" loop against a live server response.
+    let meta = gh_api(&format!("repos/{repo}/actions/artifacts/{artifact_id}"))?;
+    let reported_name = serde_json::from_str::<serde_json::Value>(&meta)
+        .ok()
+        .and_then(|v| v.get("name").and_then(|n| n.as_str()).map(str::to_owned))
+        .ok_or_else(|| {
+            Refused(format!("artifact {artifact_id} metadata carries no string `name`"))
+        })?;
+
+    let zip = out_dir.join(format!("trusted-{}-health-baseline.zip", kind.prefix()));
+    capture_to_file(
+        "gh",
+        &["api", &format!("repos/{repo}/actions/artifacts/{artifact_id}/zip")],
+        &zip,
+    )?;
+    let report = out_dir.join(format!("{}-health-baseline.json", kind.prefix()));
+    capture_to_file("unzip", &["-p", &zip.display().to_string()], &report)?;
+    let _ = fs::remove_file(&zip);
+
+    let payload = fs::read_to_string(&report)
+        .map_err(|e| Refused(format!("cannot read `{}`: {e}", report.display())))?;
+    let count = accept_downloaded_baseline(kind, &reported_name, merge_base, &payload)?;
+    println!(
+        "{LOG}: trusted {} baseline VALID — {count} target result(s) from `{expected_name}` \
+         (artifact {artifact_id} of run {run_id}) -> {}",
+        kind.prefix(),
+        report.display()
+    );
+    Ok(report)
+}
+
+fn reuse_trusted_baselines(raw: &[String]) -> Result<(), TrustedBaselineOutcome> {
+    let merge_base = require(raw, "--merge-base").map_err(Refused)?;
+    let repo = validated_repo(require(raw, "--repo").map_err(Refused)?)?;
+    let out_dir = PathBuf::from(require(raw, "--out-dir").map_err(Refused)?);
+
+    let runs = gh_api(&format!(
+        "repos/{repo}/actions/workflows/oya-ci-required.yml/runs?event=push&branch=dev&status=success&head_sha={merge_base}&per_page=20"
+    ))?;
+    let run_id = select_trusted_run(&runs, merge_base)?;
+    let artifacts = gh_api(&format!(
+        "repos/{repo}/actions/runs/{run_id}/artifacts?per_page=100"
+    ))?;
+
+    // BOTH halves must validate. A build-only pair is worthless: the FULL tier's merge-base
+    // `buck2 test //...` would rebuild the workspace anyway, so a partial reuse saves nothing and
+    // would leave the test ratchet without its baseline.
+    //
+    // STRICTNESS NOTE: a dev tip only publishes these after passing admission, where ANY failure
+    // hard-fails — so a reused baseline's failure set is empty and the FULL tier grandfathers
+    // nothing. That is the SAFE direction (a reused baseline can never be laxer than a rebuilt
+    // one), but it does differ from the cold path, which can observe env-dependent merge-base
+    // failures and grandfather them. A PR blocked here is being told the truth: the merge-base
+    // was proven green, so the failure is new.
+    let mut written = Vec::new();
+    for kind in [BaselineKind::Build, BaselineKind::Test] {
+        match fetch_one_baseline(repo, merge_base, run_id, &artifacts, kind, &out_dir) {
+            Ok(path) => written.push(path),
+            Err(e) => {
+                // Fail closed: never leave a partial baseline where the cold path's `test -s`
+                // guard could mistake it for a freshly rebuilt one.
+                for path in &written {
+                    let _ = fs::remove_file(path);
+                }
+                let _ = fs::remove_file(out_dir.join(format!("{}-health-baseline.json", kind.prefix())));
+                return Err(e);
+            }
+        }
+    }
+    println!(
+        "{LOG}: trusted merge-base baseline pair REUSED from run {run_id} at {merge_base} — the \
+         cold merge-base rebuild is skipped"
+    );
+    Ok(())
+}
+
 fn main() -> ExitCode {
     // Early NORMALIZE mode: `--normalize-test-console <console> --normalize-out <report.json>`.
     // Handled before the ratchet arg parse because it needs neither baseline nor head report.
     let raw: Vec<String> = std::env::args().skip(1).collect();
+    if raw.iter().any(|a| a == "--trusted-baseline") {
+        return ExitCode::from(trusted_baseline_exit(&raw));
+    }
     if let Some(idx) = raw.iter().position(|a| a == "--normalize-test-console") {
         let console = raw.get(idx + 1).cloned();
         let out = raw
@@ -241,3 +502,207 @@ fn report(verdict: &BuildHealthVerdict, baseline_total: usize, head_total: usize
         }
     }
 }
+
+/// Fail-closed seams of the trusted-baseline consumer. These cover the DECISION layer, which is
+/// where every acceptance is made; the `gh`/`unzip` subprocess plumbing around it carries no
+/// verdict of its own — a non-zero status from either is an unconditional refusal.
+#[cfg(test)]
+mod trusted_baseline_tests {
+    use super::*;
+
+    const SHA: &str = "0123456789abcdef0123456789abcdef01234567";
+    const OTHER_SHA: &str = "fedcba9876543210fedcba9876543210fedcba98";
+
+    fn run_entry(id: u64, sha: &str, event: &str, branch: &str, conclusion: &str) -> String {
+        format!(
+            r#"{{"id":{id},"head_sha":"{sha}","event":"{event}","head_branch":"{branch}","conclusion":"{conclusion}","path":".github/workflows/oya-ci-required.yml"}}"#
+        )
+    }
+
+    fn runs(entries: &[String]) -> String {
+        format!(r#"{{"workflow_runs":[{}]}}"#, entries.join(","))
+    }
+
+    fn is_unavailable(o: &TrustedBaselineOutcome) -> bool {
+        matches!(o, Unavailable(_))
+    }
+
+    fn is_refused(o: &TrustedBaselineOutcome) -> bool {
+        matches!(o, Refused(_))
+    }
+
+    #[test]
+    fn selects_the_exact_merge_base_dev_push_run() {
+        let payload = runs(&[
+            run_entry(11, OTHER_SHA, "push", "dev", "success"),
+            run_entry(13, SHA, "push", "dev", "success"),
+        ]);
+        assert_eq!(select_trusted_run(&payload, SHA), Ok(13));
+    }
+
+    #[test]
+    fn wrong_sha_wrong_event_wrong_branch_and_red_runs_are_all_unavailable() {
+        // Each entry is a distinct rejected provenance shape; none may be selected.
+        let payload = runs(&[
+            run_entry(11, OTHER_SHA, "push", "dev", "success"),
+            run_entry(12, SHA, "pull_request", "dev", "success"),
+            run_entry(13, SHA, "push", "feature", "success"),
+            run_entry(14, SHA, "push", "dev", "failure"),
+        ]);
+        let err = select_trusted_run(&payload, SHA).unwrap_err();
+        assert!(is_unavailable(&err), "{err:?}");
+    }
+
+    #[test]
+    fn a_foreign_workflow_at_the_exact_merge_base_is_never_trusted() {
+        // ANTI-LAUNDERING: without the workflow-path binding, a green dev push of ANY other
+        // workflow could publish an artifact under the expected name and have it accepted.
+        let payload = format!(
+            r#"{{"workflow_runs":[{{"id":14,"head_sha":"{SHA}","event":"push","head_branch":"dev","conclusion":"success","path":".github/workflows/some-other-lane.yml"}}]}}"#
+        );
+        let err = select_trusted_run(&payload, SHA).unwrap_err();
+        assert!(is_unavailable(&err), "{err:?}");
+    }
+
+    #[test]
+    fn malformed_run_payloads_and_bad_sha_shapes_are_refused() {
+        for payload in ["not json at all", r#"{"ok":true}"#, ""] {
+            let err = select_trusted_run(payload, SHA).unwrap_err();
+            assert!(is_refused(&err), "payload {payload:?} -> {err:?}");
+        }
+        // An abbreviated SHA could resolve differently across runs — never a baseline key.
+        let err = select_trusted_run(r#"{"workflow_runs":[]}"#, "0123456").unwrap_err();
+        assert!(is_refused(&err), "{err:?}");
+    }
+
+    #[test]
+    fn artifact_selection_is_kind_scoped_and_ignores_other_commits() {
+        let artifacts = format!(
+            r#"{{"artifacts":[
+                {{"id":21,"name":"build-health-baseline-{OTHER_SHA}","expired":false}},
+                {{"id":22,"name":"build-health-baseline-{SHA}","expired":false}},
+                {{"id":23,"name":"test-health-baseline-{SHA}","expired":false}}
+            ]}}"#
+        );
+        assert_eq!(
+            select_trusted_artifact(&artifacts, BaselineKind::Build, SHA),
+            Ok((22, format!("build-health-baseline-{SHA}")))
+        );
+        assert_eq!(
+            select_trusted_artifact(&artifacts, BaselineKind::Test, SHA),
+            Ok((23, format!("test-health-baseline-{SHA}")))
+        );
+    }
+
+    #[test]
+    fn expired_or_absent_artifacts_are_unavailable() {
+        let expired = format!(
+            r#"{{"artifacts":[{{"id":22,"name":"build-health-baseline-{SHA}","expired":true}}]}}"#
+        );
+        let err = select_trusted_artifact(&expired, BaselineKind::Build, SHA).unwrap_err();
+        assert!(is_unavailable(&err), "expired must not be reused: {err:?}");
+
+        // The BUILD half exists but the TEST half was never published (the pre-#1323 state): the
+        // pair is incomplete, so the FULL tier must still rebuild cold.
+        let build_only = format!(
+            r#"{{"artifacts":[{{"id":22,"name":"build-health-baseline-{SHA}","expired":false}}]}}"#
+        );
+        let err = select_trusted_artifact(&build_only, BaselineKind::Test, SHA).unwrap_err();
+        assert!(is_unavailable(&err), "missing test half: {err:?}");
+
+        let err = select_trusted_artifact(r#"{"artifacts":[]}"#, BaselineKind::Build, SHA)
+            .unwrap_err();
+        assert!(is_unavailable(&err), "{err:?}");
+    }
+
+    #[test]
+    fn malformed_artifact_payloads_are_refused() {
+        for payload in ["not json", r#"{"ok":true}"#] {
+            let err = select_trusted_artifact(payload, BaselineKind::Build, SHA).unwrap_err();
+            assert!(is_refused(&err), "payload {payload:?} -> {err:?}");
+        }
+    }
+
+    #[test]
+    fn a_well_formed_exact_name_report_is_accepted() {
+        let report = r#"{"results":{"root//a:a":{"success":"SUCCESS"},"root//b:b":{"success":"FAIL"}}}"#;
+        let name = format!("build-health-baseline-{SHA}");
+        assert_eq!(
+            accept_downloaded_baseline(BaselineKind::Build, &name, SHA, report),
+            Ok(2)
+        );
+    }
+
+    #[test]
+    fn downloads_that_do_not_match_the_selection_are_refused() {
+        let report = r#"{"results":{"root//a:a":{"success":"SUCCESS"}}}"#;
+
+        // A name for a DIFFERENT commit: what arrived is not what was selected.
+        let stale = format!("build-health-baseline-{OTHER_SHA}");
+        let err =
+            accept_downloaded_baseline(BaselineKind::Build, &stale, SHA, report).unwrap_err();
+        assert!(is_refused(&err), "stale name: {err:?}");
+
+        // A build-named artifact must never satisfy the TEST baseline slot.
+        let build_name = format!("build-health-baseline-{SHA}");
+        let err =
+            accept_downloaded_baseline(BaselineKind::Test, &build_name, SHA, report).unwrap_err();
+        assert!(is_refused(&err), "kind confusion: {err:?}");
+    }
+
+    #[test]
+    fn malformed_truncated_and_empty_reports_are_refused() {
+        let name = format!("build-health-baseline-{SHA}");
+        // `<html>` stands in for an error page landing where a zip entry was expected; the empty
+        // string for a download that produced no bytes; `{"results":{}}` for the laundering hole
+        // an empty baseline would open (every head failure would look pre-existing).
+        for payload in [
+            "<html>404</html>",
+            "",
+            r#"{"ok":true}"#,
+            r#"{"results":{}}"#,
+            r#"{"results":{"root//a:a":{"success":"SUCCESS"}"#,
+        ] {
+            let err =
+                accept_downloaded_baseline(BaselineKind::Build, &name, SHA, payload).unwrap_err();
+            assert!(is_refused(&err), "payload {payload:?} -> {err:?}");
+        }
+    }
+
+    #[test]
+    fn repository_slugs_are_validated_before_they_reach_an_api_route() {
+        assert_eq!(validated_repo("oyatie/oyatie"), Ok("oyatie/oyatie"));
+        assert_eq!(validated_repo("owner-1/repo_name.rs"), Ok("owner-1/repo_name.rs"));
+        for bad in [
+            "",
+            "noslash",
+            "owner/",
+            "/repo",
+            "owner/repo/extra",
+            "owner/repo?per_page=1",
+            "owner/repo#frag",
+            "owner/re po",
+        ] {
+            assert!(validated_repo(bad).is_err(), "`{bad}` must be refused");
+        }
+    }
+
+    #[test]
+    fn missing_arguments_exit_non_zero_so_the_workflow_falls_back() {
+        // The fail-closed contract the workflow depends on: anything short of a fully validated
+        // pair exits non-zero, and the cold rebuild runs.
+        let argv: Vec<String> = ["--trusted-baseline", "--merge-base", SHA]
+            .iter()
+            .map(|s| (*s).to_owned())
+            .collect();
+        assert_eq!(trusted_baseline_exit(&argv), 2);
+        assert_eq!(trusted_baseline_exit(&[]), 2);
+    }
+
+    #[test]
+    fn unavailability_and_refusal_map_to_distinct_non_zero_exits() {
+        assert_ne!(NO_TRUSTED_BASELINE, 0);
+        assert_ne!(NO_TRUSTED_BASELINE, 2);
+    }
+}
+
