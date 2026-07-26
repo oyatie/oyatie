@@ -131,6 +131,89 @@ fn live_schema_accepts_manifest_materialization_modes() {
 }
 
 #[test]
+fn census_epoch_receipt_declares_every_active_historical_and_event_identity_input() {
+    let manifest = read_json(input_path(
+        MANIFEST_ENV,
+        "registry/generated-artifact-control-plane.json",
+    ));
+    let artifacts = manifest
+        .get("artifacts")
+        .and_then(Value::as_array)
+        .expect("live generated-artifact manifest must contain artifacts");
+    let matching = artifacts
+        .iter()
+        .filter(|artifact| {
+            artifact.get("artifact_id").and_then(Value::as_str)
+                == Some("cloud-ci-adr-census-epoch-receipt")
+        })
+        .collect::<Vec<_>>();
+    assert_eq!(
+        matching.len(),
+        1,
+        "ADR census epoch receipt must be registered exactly once"
+    );
+
+    let source_inputs = matching[0]
+        .get("source_inputs")
+        .and_then(Value::as_array)
+        .expect("ADR census epoch receipt must declare source inputs")
+        .iter()
+        .map(|value| {
+            value
+                .as_str()
+                .expect("ADR census epoch source input must be a string")
+        })
+        .collect::<BTreeSet<_>>();
+    for required in [
+        "registry/adr-census-epoch/control-plane.json",
+        "specs/adr-census-epoch-control-plane.schema.json",
+        "specs/adr-census-epoch-receipt.schema.json",
+        "historical implementation commit afff4dade737b1833153c4f45d8defdfa2b328a8",
+        "corpus commit 1fa09da22be819b062881eb59252f4dd4c6b550a",
+        "repository tree d7b15539396db21b219d68779362850cce9afa8f",
+        "docs tree fbf3f8d4b9ecf30b2272f37871e8152a616eed5a",
+        "decisions tree 7c7c371697d2a7009e3d43b16235518d00ac33ea",
+        "parser commit a2b326eebd418ae970847b5e1bca3782c61c52ab",
+        "parser tree 0cdece525bc54f83ec51d3ba67a4308d0ce43812",
+        "parser blob ab3884dbf4a657869fd87920b016cc4734a1c27f",
+        ".github/workflows/oya-ci-required.yml",
+    ] {
+        assert!(
+            source_inputs.contains(required),
+            "ADR census epoch receipt must declare active historical or event transport input {required}"
+        );
+    }
+
+    let input_contract = matching[0]["generator"]["input_contract"]
+        .as_array()
+        .expect("ADR census epoch generator must declare an input contract")
+        .iter()
+        .map(|value| {
+            value
+                .as_str()
+                .expect("ADR census epoch generator input must be a string")
+        })
+        .collect::<BTreeSet<_>>();
+    assert!(
+        input_contract.contains("scm-event-identity"),
+        "ADR census epoch generator must declare controller-supplied SCM event identity"
+    );
+
+    let final_tree_validation = matching[0]["final_tree_validation"]
+        .as_str()
+        .expect("ADR census epoch receipt must declare final-tree validation");
+    for required in [
+        "selects the immutable revision",
+        "excluded from the squash-stable P2 receipt core",
+    ] {
+        assert!(
+            final_tree_validation.contains(required),
+            "ADR census epoch validation contract must state that event identity {required}"
+        );
+    }
+}
+
+#[test]
 fn history_only_retirement_facts_is_the_exact_controller_owned_untracked_face() {
     let manifest = read_json(input_path(
         MANIFEST_ENV,

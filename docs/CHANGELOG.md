@@ -5,6 +5,27 @@ doc_status: published
 
 # Changelog
 
+## 2026-07-24 — ADR-0624 Accepted immutable ADR census epoch transition
+
+- **doc.adr_index** (Tier 1, added): accepted the four-step protected merge train
+  for exact historical P2 replay, dormant P3 protection, later pointer-only P3
+  activation, and post-proof P2 cleanup.
+  - The mutable control plane selects only an already-protected epoch; the
+    protected producer and gate own and derive parser, selector, execution, and
+    predecessor identity.
+  - The receipt core is content-addressed and squash-stable, excludes commit and
+    full-tree self-reference, keeps generated faces producer-only, and preserves
+    `BLOCKED/HOLD`, `planning_impact: false`, and `HOLD(Planning)`.
+  - Old implementation and receipt bytes remain only in Git history; no readable
+    archive directory is allowed.
+  - Authors: `@jason931225`
+  - ADRs cited: ADR-0515, ADR-0525, ADR-0552, ADR-0595, ADR-0597, ADR-0613,
+    ADR-0619, ADR-0623, ADR-0624
+  - Related lanes: `oya-check-adr-index`, `oya-governance-adr-shape`,
+    `ci-cross-artifact-agreement`, `ci-scm-facts-snapshot`
+  - Protected admission and post-merge product-completion evidence remain
+    pending and will be recorded in the PR evidence packet.
+
 ## 2026-07-24 — ADR-0623 Proposed mechanism-neutral Stage-1 evidence epoch
 
 - **doc.adr_index** (Tier 1, added): recorded ADR-0623 as a Proposed,

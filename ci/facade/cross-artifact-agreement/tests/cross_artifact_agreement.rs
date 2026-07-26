@@ -595,11 +595,10 @@ fn history_only_retirement_control_plane_declares_workflow_and_event_identity_in
 }
 
 #[test]
-fn retirement_workflow_producer_step_transports_each_event_and_cli_binding_once() {
+fn retirement_workflow_transports_the_provider_tuple_once_and_all_candidate_regenerators_use_it() {
     let workflow = fs::read_to_string(repo_root().join(".github/workflows/oya-ci-required.yml"))
         .expect("read oya-ci-required workflow");
     assert_occurs_exactly_once(&workflow, "merge_group:\n    types: [checks_requested]");
-    let producer = named_workflow_step(&workflow, "Materialize cloud-ci generated faces");
 
     for (key, binding) in [
         (
@@ -641,12 +640,47 @@ fn retirement_workflow_producer_step_transports_each_event_and_cli_binding_once(
             "EVENT_MERGE_GROUP_BASE_REF: ${{ github.event.merge_group.base_ref || '' }}",
         ),
     ] {
-        assert_occurs_exactly_once(producer, key);
-        assert_occurs_exactly_once(producer, binding);
+        assert_occurs_exactly_once(&workflow, key);
+        assert_occurs_exactly_once(&workflow, binding);
     }
-    assert_occurs_exactly_once(
-        producer,
-        "run: rustup toolchain install && rustc --version && buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . --github-event",
+    let producer = named_workflow_step(&workflow, "Materialize cloud-ci generated faces");
+    assert_occurs_exactly_once(producer, "--github-event");
+    for command in [
+        "buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . --github-event",
+        "\"${freshness_bin}\" --repo-root . --github-event",
+        "\"${materializer_bin}\" --repo-root . --github-event",
+    ] {
+        assert!(
+            workflow.contains(command),
+            "missing event-bound candidate command {command:?}"
+        );
+    }
+    let candidate_materializer_lines = workflow
+        .lines()
+        .filter(|line| {
+            line.contains("oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .")
+                && !line.contains("--help")
+                && !line.contains("historical_retirement_args")
+        })
+        .collect::<Vec<_>>();
+    assert_eq!(
+        candidate_materializer_lines.len(),
+        5,
+        "all live candidate materializer invocations must be enumerated"
+    );
+    for line in candidate_materializer_lines {
+        assert!(
+            line.contains("--github-event"),
+            "candidate materializer must be provider-event-bound: {line}"
+        );
+    }
+    let census_gate = named_workflow_step(&workflow, "buck2 test ${{ matrix.crate }}");
+    assert!(
+        census_gate.contains("if (\"${{ matrix.crate }}\" -eq \"scm-facts-snapshot\")")
+            && census_gate.contains(
+                "buck2 run //ci/facade/scm-facts-snapshot:adr-census-epoch-receipt-gate-bin -- --repo-root . --github-event"
+            ),
+        "the scm-facts matrix leg must independently validate the event-bound census receipt without adding a second workflow shell surface"
     );
     for legacy_binding in [
         "EVENT_PROTECTED_SHA:",
@@ -1972,6 +2006,84 @@ fn masterplan_v2_sequencing_is_zero_based_and_founder_ratification_recorded() {
         dispatch["allowed_without_founder_ratification"].as_bool(),
         Some(false),
         "execution-wave dispatch must never be allowed without founder ratification"
+    );
+}
+
+#[test]
+fn adr_0624_is_explicitly_nonbinding_and_preserves_preplanning_hold() {
+    let root = repo_root();
+    let masterplan = load_json(&root.join("specs/masterplan.json"));
+    let sequencing = load_json(&root.join("specs/master-plan-sequencing.json"));
+    let control_plane = load_json(&root.join("registry/adr-census-epoch/control-plane.json"));
+    let planning = &masterplan["planning_authority"];
+    let contract = &masterplan["masterplan_v2"]["planning_entry_contract"];
+    let dispatch = &masterplan["masterplan_v2"]["sequencing"]["execution_wave_dispatch"];
+    let dispositions =
+        &masterplan["masterplan_v2"]["accepted_decision_propagation_dispositions"]["decisions"];
+
+    let adr_0624 = dispositions
+        .as_array()
+        .expect("accepted decision propagation dispositions must be an array")
+        .iter()
+        .find(|decision| decision["id"] == "ADR-0624")
+        .expect("ADR-0624 must have an explicit masterplan nonbinding disposition");
+    let sequencing_adr_0624 = sequencing["_metadata"]["accepted_decision_propagation_dispositions"]
+        ["decisions"]
+        .as_array()
+        .expect("sequencing decision propagation dispositions must be an array")
+        .iter()
+        .find(|decision| decision["id"] == "ADR-0624")
+        .expect("ADR-0624 must have an explicit historical-sidecar disposition");
+
+    assert!(
+        !planning["bound_adrs"]
+            .as_array()
+            .expect("planning_authority.bound_adrs must be an array")
+            .iter()
+            .any(|id| id == "ADR-0624"),
+        "ADR-0624 has planning_impact:false and must not become bound planning authority"
+    );
+    assert_eq!(adr_0624["lifecycle_state"].as_str(), Some("Accepted"));
+    assert_eq!(adr_0624["planning_impact"].as_bool(), Some(false));
+    assert_eq!(adr_0624["sequencing_effect"].as_str(), Some("none"));
+    assert_eq!(
+        adr_0624["binding_plan_approval_effect"].as_str(),
+        Some("none")
+    );
+    assert_eq!(adr_0624["execution_dispatch_effect"].as_str(), Some("none"));
+    assert_eq!(adr_0624["hold_state"].as_str(), Some("HOLD(Planning)"));
+    assert_eq!(
+        adr_0624["disposition_ref"].as_str(),
+        Some(
+            "/specs/master-plan-sequencing.json#_metadata.accepted_decision_propagation_dispositions"
+        )
+    );
+    assert_eq!(
+        sequencing_adr_0624["disposition_ref"].as_str(),
+        Some("/specs/masterplan.json#masterplan_v2.accepted_decision_propagation_dispositions")
+    );
+    assert_eq!(
+        sequencing_adr_0624["hold_state"].as_str(),
+        Some("HOLD(Planning)")
+    );
+
+    assert_eq!(control_plane["active_epoch"].as_str(), Some("P2"));
+    assert_eq!(contract["state"].as_str(), Some("open"));
+    assert_eq!(
+        contract["binding_plan_approval_allowed"].as_bool(),
+        Some(false)
+    );
+    assert_eq!(contract["dispatch_allowed"].as_bool(), Some(false));
+    assert_eq!(dispatch["state"].as_str(), Some("blocked"));
+    assert_eq!(
+        dispatch["blocked_reason"].as_str(),
+        Some("preplanning_authority_closure")
+    );
+    assert!(
+        dispatch["dispatched_waves"]
+            .as_array()
+            .is_some_and(|waves| waves.is_empty()),
+        "no execution wave may dispatch while HOLD(Planning) remains open"
     );
 }
 
