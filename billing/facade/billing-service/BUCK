@@ -26,9 +26,9 @@ rust_test(
 
 rust_test(
     name = "billing-service-integration-test",
-    srcs = glob(["tests/invoice_service.rs"]),
-    crate = "billing_service_invoice_service_integration_test",
-    crate_root = "tests/invoice_service.rs",
+    srcs = ["src/main.rs"],
+    crate = "billing_service_main_integration_test",
+    crate_root = "src/main.rs",
     visibility = ["PUBLIC"],
     deps = [
         ":billing-service",
