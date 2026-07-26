@@ -304,13 +304,12 @@ fn fetch_one_baseline(
         &["api", &format!("repos/{repo}/actions/artifacts/{artifact_id}/zip")],
         &zip,
     )?;
-    // ADR-0523 irreducible glue: the Actions artifact API serves ONLY a zip, and this crate takes
-    // no new dependency, so extraction is delegated to `unzip` (present on ubuntu-latest). It is
-    // the one external tool here without prior repo use — deliberately kept to a NON-CRITICAL
-    // position: if it is missing or fails, `capture_to_file` refuses, the pair is abandoned, and
-    // the cold rebuild runs. Absence therefore costs wall-clock, never correctness. Retire it when
-    // an owned inflate lands; do NOT swap in `gh run download`, which selects by NAME and would
-    // discard the artifact-ID binding established above.
+    // The artifact API serves ONLY a zip and this crate takes no new dependency, so extraction is
+    // delegated to `unzip`. Declared, with the full justification and cutover, as a path- and
+    // count-scoped hermetic exception in ci/facade/gate-self-conformance/gate-self-conformance-policy.json
+    // (gate `affected-target-set`, token `Command::new`) — that row is the single source of truth.
+    // Operationally: a missing or failing `unzip` refuses here, so the pair is abandoned and the
+    // cold rebuild runs — absence costs wall-clock, never correctness.
     let report = out_dir.join(format!("{}-health-baseline.json", kind.prefix()));
     capture_to_file("unzip", &["-p", &zip.display().to_string()], &report)?;
     let _ = fs::remove_file(&zip);
