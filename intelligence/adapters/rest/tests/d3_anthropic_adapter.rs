@@ -9,7 +9,9 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use intelligence_kernel::{SeatId, TenantId};
-use intelligence_rest::{AnthropicAdapter, RestAdapterError, SecretProviderStore};
+use intelligence_rest::{
+    AnthropicAdapter, RestAdapterError, SecretProviderFuture, SecretProviderStore,
+};
 
 // ---------------------------------------------------------------------------
 // Test helpers
@@ -37,40 +39,56 @@ impl StubSecretStore {
 }
 
 impl SecretProviderStore for StubSecretStore {
-    fn fetch_refresh_token(&self, handle: &str) -> Result<String, RestAdapterError> {
-        self.stored
-            .lock()
-            .unwrap()
-            .get(handle)
-            .cloned()
-            .ok_or(RestAdapterError::SecretNotFound)
+    fn fetch_refresh_token<'a>(&'a self, handle: &'a str) -> SecretProviderFuture<'a, String> {
+        Box::pin(async move {
+            self.stored
+                .lock()
+                .unwrap()
+                .get(handle)
+                .cloned()
+                .ok_or(RestAdapterError::SecretNotFound)
+        })
     }
 
-    fn store_refresh_token(&self, handle: &str, plaintext: &str) -> Result<(), RestAdapterError> {
-        if plaintext.is_empty() {
-            return Err(RestAdapterError::InvalidSecret);
-        }
-        self.stored
-            .lock()
-            .unwrap()
-            .insert(handle.to_string(), plaintext.to_string());
-        Ok(())
+    fn store_refresh_token<'a>(
+        &'a self,
+        handle: &'a str,
+        plaintext: &'a str,
+    ) -> SecretProviderFuture<'a, ()> {
+        Box::pin(async move {
+            if plaintext.is_empty() {
+                return Err(RestAdapterError::InvalidSecret);
+            }
+            self.stored
+                .lock()
+                .unwrap()
+                .insert(handle.to_string(), plaintext.to_string());
+            Ok(())
+        })
     }
 }
 
 struct FailingSecretStore;
 
 impl SecretProviderStore for FailingSecretStore {
-    fn fetch_refresh_token(&self, _handle: &str) -> Result<String, RestAdapterError> {
-        Err(RestAdapterError::SecretStoreUnavailable(
-            "secret provider unavailable".to_string(),
-        ))
+    fn fetch_refresh_token<'a>(&'a self, _handle: &'a str) -> SecretProviderFuture<'a, String> {
+        Box::pin(async {
+            Err(RestAdapterError::SecretStoreUnavailable(
+                "secret provider unavailable".to_string(),
+            ))
+        })
     }
 
-    fn store_refresh_token(&self, _handle: &str, _plaintext: &str) -> Result<(), RestAdapterError> {
-        Err(RestAdapterError::SecretStoreUnavailable(
-            "secret provider unavailable".to_string(),
-        ))
+    fn store_refresh_token<'a>(
+        &'a self,
+        _handle: &'a str,
+        _plaintext: &'a str,
+    ) -> SecretProviderFuture<'a, ()> {
+        Box::pin(async {
+            Err(RestAdapterError::SecretStoreUnavailable(
+                "secret provider unavailable".to_string(),
+            ))
+        })
     }
 }
 
@@ -134,38 +152,40 @@ async fn d3_exchange_authorization_code_returns_network_error_without_server() {
 }
 
 /// D3-4: StubSecretStore returns SecretNotFound for unknown handle.
-#[test]
-fn d3_secret_store_returns_not_found_for_unknown_handle() {
+#[tokio::test]
+async fn d3_secret_store_returns_not_found_for_unknown_handle() {
     let store = StubSecretStore::new();
-    let err = store.fetch_refresh_token("unknown").unwrap_err();
+    let err = store.fetch_refresh_token("unknown").await.unwrap_err();
     assert_eq!(err, RestAdapterError::SecretNotFound);
 }
 
 /// D3-5: StubSecretStore rejects empty plaintext.
-#[test]
-fn d3_secret_store_rejects_empty_plaintext() {
+#[tokio::test]
+async fn d3_secret_store_rejects_empty_plaintext() {
     let store = StubSecretStore::new();
-    let err = store.store_refresh_token("handle-1", "").unwrap_err();
+    let err = store.store_refresh_token("handle-1", "").await.unwrap_err();
     assert_eq!(err, RestAdapterError::InvalidSecret);
 }
 
 /// D3-6: StubSecretStore round-trips a stored token.
-#[test]
-fn d3_secret_store_roundtrips_token() {
+#[tokio::test]
+async fn d3_secret_store_roundtrips_token() {
     let store = StubSecretStore::new();
     store
         .store_refresh_token("handle-rt", "my-refresh-token")
+        .await
         .unwrap();
-    let fetched = store.fetch_refresh_token("handle-rt").unwrap();
+    let fetched = store.fetch_refresh_token("handle-rt").await.unwrap();
     assert_eq!(fetched, "my-refresh-token");
 }
 
 /// D3-7: FailingSecretStore returns SecretStoreUnavailable (simulates vault
 /// sealed / network-partition scenario).
-#[test]
-fn d3_failing_secret_store_returns_unavailable() {
+#[tokio::test]
+async fn d3_failing_secret_store_returns_unavailable() {
     let err = FailingSecretStore
         .fetch_refresh_token("any-handle")
+        .await
         .unwrap_err();
     assert!(
         matches!(err, RestAdapterError::SecretStoreUnavailable(_)),

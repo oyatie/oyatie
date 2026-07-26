@@ -22,11 +22,18 @@ struct StubStore {
 }
 
 impl SecretProviderStore for StubStore {
-    fn fetch_refresh_token(&self, _: &str) -> Result<String, RestAdapterError> {
-        Ok(self.token.clone())
+    fn fetch_refresh_token<'a>(
+        &'a self,
+        _: &'a str,
+    ) -> intelligence_rest::SecretProviderFuture<'a, String> {
+        Box::pin(async move { Ok(self.token.clone()) })
     }
-    fn store_refresh_token(&self, _: &str, _: &str) -> Result<(), RestAdapterError> {
-        Ok(())
+    fn store_refresh_token<'a>(
+        &'a self,
+        _: &'a str,
+        _: &'a str,
+    ) -> intelligence_rest::SecretProviderFuture<'a, ()> {
+        Box::pin(async { Ok(()) })
     }
 }
 
