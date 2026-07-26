@@ -48,8 +48,8 @@ jobs:
     name: oya-check-substrate-dependency-dag-acyclicity
     runs-on: ubuntu-latest
     steps:
-      # actions/checkout@v6.0.3 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+      # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
           fetch-depth: 0
