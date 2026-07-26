@@ -1,0 +1,21 @@
+[package]
+name = "os-kubernetes-domain"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "Port of the Talos Kubernetes subsystem: kubelet config, static pods, control-plane bootstrap, manifests, and k8s COSI controllers."
+
+[lib]
+name = "os_kubernetes_domain"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+os-kernel = { path = "../kernel" }
+os-runtime-cri-domain = { path = "../runtime-cri-domain" }
+os-secrets-domain = { path = "../secrets-domain" }
+
+[lints]
+workspace = true

@@ -1,0 +1,36 @@
+[package]
+name = "os-init-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "A real Linux PID 1 (init) for the operating-system Talos-in-Rust port: mounts the core virtual filesystems, parses a Talos machine config, sets the hostname, reaps children, and powers the machine off."
+
+[lib]
+name = "os_init_app"
+path = "src/lib.rs"
+doctest = false
+
+[[bin]]
+name = "init"
+path = "src/main.rs"
+
+[[bin]]
+name = "svc"
+path = "src/svc.rs"
+
+[dependencies]
+libc = "0.2"
+os-block-domain = { path = "../block-domain" }
+os-controllers-domain = { path = "../controllers-domain" }
+os-cosi-domain = { path = "../cosi-domain" }
+os-kernel = { path = "../kernel" }
+os-machine-config-domain = { path = "../machine-config-domain" }
+os-machined-domain = { path = "../machined-domain" }
+os-network-domain = { path = "../network-domain" }
+os-platform-domain = { path = "../platform-domain" }
+os-runtime-cri-domain = { path = "../runtime-cri-domain" }
+
+[lints]
+workspace = true

@@ -1,0 +1,253 @@
+{
+  "_comment": "",
+  "capability": "os",
+  "moves": [
+    {
+      "old_path": "cloud/cloud-os/crates/oya-cloud-os-apid-domain",
+      "new_path": "os/core/apid-domain",
+      "old_cargo_name": "oya-cloud-os-apid-domain",
+      "new_cargo_name": "os-apid-domain"
+    },
+    {
+      "old_path": "cloud/cloud-os/crates/oya-cloud-os-archiver-domain",
+      "new_path": "os/core/archiver-domain",
+      "old_cargo_name": "oya-cloud-os-archiver-domain",
+      "new_cargo_name": "os-archiver-domain"
+    },
+    {
+      "old_path": "cloud/cloud-os/crates/oya-cloud-os-block-domain",
+      "new_path": "os/core/block-domain",
+      "old_cargo_name": "oya-cloud-os-block-domain",
+      "new_cargo_name": "os-block-domain"
+    },
+    {
+      "old_path": "cloud/cloud-os/crates/oya-cloud-os-board-domain",
+      "new_path": "os/core/board-domain",
+      "old_cargo_name": "oya-cloud-os-board-domain",
+      "new_cargo_name": "os-board-domain"
+    },
+    {
+      "old_path": "cloud/cloud-os/crates/oya-cloud-os-cluster-domain",
+      "new_path": "os/core/cluster-domain",
+      "old_cargo_name": "oya-cloud-os-cluster-domain",
+      "new_cargo_name": "os-cluster-domain"
+    },
+    {
+      "old_path": "cloud/cloud-os/crates/oya-cloud-os-cluster-mgmt-domain",
+      "new_path": "os/core/cluster-mgmt-domain",
+      "old_cargo_name": "oya-cloud-os-cluster-mgmt-domain",
+      "new_cargo_name": "os-cluster-mgmt-domain"
+    },
+    {
+      "old_path": "cloud/cloud-os/crates/oya-cloud-os-conditions-domain",
+      "new_path": "os/core/conditions-domain",
+      "old_cargo_name": "oya-cloud-os-conditions-domain",
+      "new_cargo_name": "os-conditions-domain"
+    },
+    {
+      "old_path": "cloud/cloud-os/crates/oya-cloud-os-config-docs-domain",
+      "new_path": "os/core/config-docs-domain",
+      "old_cargo_name": "oya-cloud-os-config-docs-domain",
+      "new_cargo_name": "os-config-docs-domain"
+    },
+    {
+      "old_path": "cloud/cloud-os/crates/oya-cloud-os-config-v1alpha1-domain",
+      "new_path": "os/core/config-v1alpha1-domain",
+      "old_cargo_name": "oya-cloud-os-config-v1alpha1-domain",
+      "new_cargo_name": "os-config-v1alpha1-domain"
+    },
+    {
+      "old_path": "cloud/cloud-os/crates/oya-cloud-os-controllers-domain",
+      "new_path": "os/core/controllers-domain",
+      "old_cargo_name": "oya-cloud-os-controllers-domain",
+      "new_cargo_name": "os-controllers-domain"
+    },
+    {
+      "old_path": "cloud/cloud-os/crates/oya-cloud-os-cosi-domain",
+      "new_path": "os/core/cosi-domain",
+      "old_cargo_name": "oya-cloud-os-cosi-domain",
+      "new_cargo_name": "os-cosi-domain"
+    },
+    {
+      "old_path": "cloud/cloud-os/crates/oya-cloud-os-difftest-app",
+      "new_path": "os/harness/difftest-app",
+      "old_cargo_name": "oya-cloud-os-difftest-app",
+      "new_cargo_name": "os-difftest-app"
+    },
+    {
+      "old_path": "cloud/cloud-os/crates/oya-cloud-os-etcd-domain",
+      "new_path": "os/core/etcd-domain",
+      "old_cargo_name": "oya-cloud-os-etcd-domain",
+      "new_cargo_name": "os-etcd-domain"
+    },
+    {
+      "old_path": "cloud/cloud-os/crates/oya-cloud-os-events-logging-domain",
+      "new_path": "os/core/events-logging-domain",
+      "old_cargo_name": "oya-cloud-os-events-logging-domain",
+      "new_cargo_name": "os-events-logging-domain"
+    },
+    {
+      "old_path": "cloud/cloud-os/crates/oya-cloud-os-extensions-domain",
+      "new_path": "os/core/extensions-domain",
+      "old_cargo_name": "oya-cloud-os-extensions-domain",
+      "new_cargo_name": "os-extensions-domain"
+    },
+    {
+      "old_path": "cloud/cloud-os/crates/oya-cloud-os-hardware-domain",
+      "new_path": "os/core/hardware-domain",
+      "old_cargo_name": "oya-cloud-os-hardware-domain",
+      "new_cargo_name": "os-hardware-domain"
+    },
+    {
+      "old_path": "cloud/cloud-os/crates/oya-cloud-os-imager-domain",
+      "new_path": "os/core/imager-domain",
+      "old_cargo_name": "oya-cloud-os-imager-domain",
+      "new_cargo_name": "os-imager-domain"
+    },
+    {
+      "old_path": "cloud/cloud-os/crates/oya-cloud-os-init-app",
+      "new_path": "os/core/init-app",
+      "old_cargo_name": "oya-cloud-os-init-app",
+      "new_cargo_name": "os-init-app"
+    },
+    {
+      "old_path": "cloud/cloud-os/crates/oya-cloud-os-install-domain",
+      "new_path": "os/core/install-domain",
+      "old_cargo_name": "oya-cloud-os-install-domain",
+      "new_cargo_name": "os-install-domain"
+    },
+    {
+      "old_path": "cloud/cloud-os/crates/oya-cloud-os-k8s-control-domain",
+      "new_path": "os/core/k8s-control-domain",
+      "old_cargo_name": "oya-cloud-os-k8s-control-domain",
+      "new_cargo_name": "os-k8s-control-domain"
+    },
+    {
+      "old_path": "cloud/cloud-os/crates/oya-cloud-os-kernel",
+      "new_path": "os/core/kernel",
+      "old_cargo_name": "oya-cloud-os-kernel",
+      "new_cargo_name": "os-kernel"
+    },
+    {
+      "old_path": "cloud/cloud-os/crates/oya-cloud-os-kubelet-domain",
+      "new_path": "os/core/kubelet-domain",
+      "old_cargo_name": "oya-cloud-os-kubelet-domain",
+      "new_cargo_name": "os-kubelet-domain"
+    },
+    {
+      "old_path": "cloud/cloud-os/crates/oya-cloud-os-kubernetes-domain",
+      "new_path": "os/core/kubernetes-domain",
+      "old_cargo_name": "oya-cloud-os-kubernetes-domain",
+      "new_cargo_name": "os-kubernetes-domain"
+    },
+    {
+      "old_path": "cloud/cloud-os/crates/oya-cloud-os-kubespan-domain",
+      "new_path": "os/core/kubespan-domain",
+      "old_cargo_name": "oya-cloud-os-kubespan-domain",
+      "new_cargo_name": "os-kubespan-domain"
+    },
+    {
+      "old_path": "cloud/cloud-os/crates/oya-cloud-os-machine-config-domain",
+      "new_path": "os/core/machine-config-domain",
+      "old_cargo_name": "oya-cloud-os-machine-config-domain",
+      "new_cargo_name": "os-machine-config-domain"
+    },
+    {
+      "old_path": "cloud/cloud-os/crates/oya-cloud-os-machined-domain",
+      "new_path": "os/core/machined-domain",
+      "old_cargo_name": "oya-cloud-os-machined-domain",
+      "new_cargo_name": "os-machined-domain"
+    },
+    {
+      "old_path": "cloud/cloud-os/crates/oya-cloud-os-maintenance-domain",
+      "new_path": "os/core/maintenance-domain",
+      "old_cargo_name": "oya-cloud-os-maintenance-domain",
+      "new_cargo_name": "os-maintenance-domain"
+    },
+    {
+      "old_path": "cloud/cloud-os/crates/oya-cloud-os-meta-domain",
+      "new_path": "os/core/meta-domain",
+      "old_cargo_name": "oya-cloud-os-meta-domain",
+      "new_cargo_name": "os-meta-domain"
+    },
+    {
+      "old_path": "cloud/cloud-os/crates/oya-cloud-os-network-domain",
+      "new_path": "os/core/network-domain",
+      "old_cargo_name": "oya-cloud-os-network-domain",
+      "new_cargo_name": "os-network-domain"
+    },
+    {
+      "old_path": "cloud/cloud-os/crates/oya-cloud-os-perf-domain",
+      "new_path": "os/core/perf-domain",
+      "old_cargo_name": "oya-cloud-os-perf-domain",
+      "new_cargo_name": "os-perf-domain"
+    },
+    {
+      "old_path": "cloud/cloud-os/crates/oya-cloud-os-platform-domain",
+      "new_path": "os/core/platform-domain",
+      "old_cargo_name": "oya-cloud-os-platform-domain",
+      "new_cargo_name": "os-platform-domain"
+    },
+    {
+      "old_path": "cloud/cloud-os/crates/oya-cloud-os-proto-api",
+      "new_path": "os/core/proto-api",
+      "old_cargo_name": "oya-cloud-os-proto-api",
+      "new_cargo_name": "os-proto-api"
+    },
+    {
+      "old_path": "cloud/cloud-os/crates/oya-cloud-os-resources-domain",
+      "new_path": "os/core/resources-domain",
+      "old_cargo_name": "oya-cloud-os-resources-domain",
+      "new_cargo_name": "os-resources-domain"
+    },
+    {
+      "old_path": "cloud/cloud-os/crates/oya-cloud-os-runtime-cri-domain",
+      "new_path": "os/core/runtime-cri-domain",
+      "old_cargo_name": "oya-cloud-os-runtime-cri-domain",
+      "new_cargo_name": "os-runtime-cri-domain"
+    },
+    {
+      "old_path": "cloud/cloud-os/crates/oya-cloud-os-secrets-domain",
+      "new_path": "os/core/secrets-domain",
+      "old_cargo_name": "oya-cloud-os-secrets-domain",
+      "new_cargo_name": "os-secrets-domain"
+    },
+    {
+      "old_path": "cloud/cloud-os/crates/oya-cloud-os-security-domain",
+      "new_path": "os/core/security-domain",
+      "old_cargo_name": "oya-cloud-os-security-domain",
+      "new_cargo_name": "os-security-domain"
+    },
+    {
+      "old_path": "cloud/cloud-os/crates/oya-cloud-os-siderolink-domain",
+      "new_path": "os/core/siderolink-domain",
+      "old_cargo_name": "oya-cloud-os-siderolink-domain",
+      "new_cargo_name": "os-siderolink-domain"
+    },
+    {
+      "old_path": "cloud/cloud-os/crates/oya-cloud-os-syslogd-domain",
+      "new_path": "os/core/syslogd-domain",
+      "old_cargo_name": "oya-cloud-os-syslogd-domain",
+      "new_cargo_name": "os-syslogd-domain"
+    },
+    {
+      "old_path": "cloud/cloud-os/crates/oya-cloud-os-time-domain",
+      "new_path": "os/core/time-domain",
+      "old_cargo_name": "oya-cloud-os-time-domain",
+      "new_cargo_name": "os-time-domain"
+    },
+    {
+      "old_path": "cloud/cloud-os/crates/oya-cloud-os-trustd-domain",
+      "new_path": "os/core/trustd-domain",
+      "old_cargo_name": "oya-cloud-os-trustd-domain",
+      "new_cargo_name": "os-trustd-domain"
+    },
+    {
+      "old_path": "cloud/cloud-os/crates/oya-cloud-os-upgrade-domain",
+      "new_path": "os/core/upgrade-domain",
+      "old_cargo_name": "oya-cloud-os-upgrade-domain",
+      "new_cargo_name": "os-upgrade-domain"
+    }
+  ],
+  "artifacts": []
+}

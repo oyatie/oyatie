@@ -1,0 +1,22 @@
+[package]
+name = "os-machined-domain"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+
+[lib]
+name = "os_machined_domain"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+os-block-domain = { path = "../block-domain" }
+os-cosi-domain = { path = "../cosi-domain" }
+os-kernel = { path = "../kernel" }
+os-runtime-cri-domain = { path = "../runtime-cri-domain" }
+
+[lints]
+workspace = true

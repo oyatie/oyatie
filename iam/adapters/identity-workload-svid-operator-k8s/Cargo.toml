@@ -5,7 +5,7 @@ version.workspace = true
 rust-version.workspace = true
 publish = false
 license = "Apache-2.0"
-description = "Transient kube-rs adapter for the SVID-delivery operator (G002 slice-1b-iii-c; ADR-0561, ADR-0506, ADR-0510): executes the pure operator-kernel Action by minting a real ECDSA-P256 X.509-SVID for the PDP platform identity via the unchanged trustd issuer (oya-cloud-os-trustd-domain), and projects it as a kubernetes.io/tls Secret named EXACTLY oya-cloud-iam-pdp-svid (tls.crt/tls.key/ca.crt) in the byte-for-byte shape MtlsContext::from_path consumes. kube-rs/k8s-openapi are isolated here (ADR-0510 transient) until the owned cloud-k8s port cutover; the cloud-kms sealing-root swap stays deferred behind the SigningBackend seam (ADR-0561 D4/D5)."
+description = "Transient kube-rs adapter for the SVID-delivery operator (G002 slice-1b-iii-c; ADR-0561, ADR-0506, ADR-0510): executes the pure operator-kernel Action by minting a real ECDSA-P256 X.509-SVID for the PDP platform identity via the unchanged trustd issuer (os-trustd-domain), and projects it as a kubernetes.io/tls Secret named EXACTLY oya-cloud-iam-pdp-svid (tls.crt/tls.key/ca.crt) in the byte-for-byte shape MtlsContext::from_path consumes. kube-rs/k8s-openapi are isolated here (ADR-0510 transient) until the owned cloud-k8s port cutover; the cloud-kms sealing-root swap stays deferred behind the SigningBackend seam (ADR-0561 D4/D5)."
 
 # Transient kube-rs adapter for the SVID-delivery operator. ADR-0510-marked:
 # kube-rs/k8s-openapi are isolated here until the owned cloud-k8s port cutover.
@@ -18,7 +18,7 @@ doctest = false
 [dependencies]
 iam-identity-workload-svid-operator-kernel = { path = "../../core/identity-workload-svid-operator-kernel" }
 iam-identity-workload-svid-kernel = { path = "../../core/identity-workload-svid-kernel" }
-oya-cloud-os-trustd-domain = { path = "../../../cloud/cloud-os/crates/oya-cloud-os-trustd-domain" }
+os-trustd-domain = { path = "../../../os/core/trustd-domain" }
 base64 = { version = "0.22", default-features = false, features = ["std"] }
 futures = "0.3"
 kube = { workspace = true }

@@ -1,0 +1,21 @@
+[package]
+name = "os-k8s-control-domain"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "Kubernetes control plane static pod and PKI management for the operating-system Talos port."
+
+[lib]
+name = "os_k8s_control_domain"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+os-kernel = { path = "../kernel" }
+os-kubelet-domain = { path = "../kubelet-domain" }
+os-runtime-cri-domain = { path = "../runtime-cri-domain" }
+
+[lints]
+workspace = true

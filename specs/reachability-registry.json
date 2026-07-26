@@ -375,7 +375,7 @@
     },
     {
       "anchor": "ADR-0561 ownership seed: the cloud-os trustd-domain crate's OWNERS marker (axis-cloud-platform) — added with slice-1b-i's der.rs so the trustd crate's new real-X.509 source is born owned",
-      "prefix": "cloud/cloud-os/crates/oya-cloud-os-trustd-domain/OWNERS"
+      "prefix": "os/core/trustd-domain/OWNERS"
     },
     {
       "anchor": "ADR-0537 step-0 root ceremony port: ownership marker for the cloud runbook subtree that carries the redacted root-of-trust ceremony draft.",

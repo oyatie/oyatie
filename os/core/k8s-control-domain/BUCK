@@ -1,0 +1,39 @@
+rust_library(
+    name = "os-k8s-control-domain",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "os_k8s_control_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//os/core/kernel:os-kernel",
+        "//os/core/kubelet-domain:os-kubelet-domain",
+        "//os/core/runtime-cri-domain:os-runtime-cri-domain",
+    ],
+)
+
+rust_test(
+    name = "os-k8s-control-domain-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt", "testdata/**"]),
+    crate = "os_k8s_control_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//os/core/kernel:os-kernel",
+        "//os/core/kubelet-domain:os-kubelet-domain",
+        "//os/core/runtime-cri-domain:os-runtime-cri-domain",
+    ],
+)
+
+rust_test(
+    name = "os-k8s-control-domain-integration",
+    srcs = glob(["tests/**/*.rs"]),
+    crate = "cri_kubelet_static_pod",
+    crate_root = "tests/cri_kubelet_static_pod.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":os-k8s-control-domain",
+        "//os/core/kernel:os-kernel",
+        "//os/core/kubelet-domain:os-kubelet-domain",
+        "//os/core/runtime-cri-domain:os-runtime-cri-domain",
+    ],
+)
