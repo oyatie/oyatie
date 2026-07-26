@@ -1204,8 +1204,14 @@ pub mod chronology {
     /// as nonbinding and their logical edges are excluded from enforcement.
     ///
     /// # Errors
-    /// Returns a fail-closed error when caller input cannot faithfully represent
-    /// distinct source documents because it repeats a source path.
+    /// Returns a fail-closed error when the roster is empty, names an invalid or
+    /// duplicate ADR identifier, or cannot faithfully represent distinct source
+    /// documents because it repeats a source path. These conditions map to
+    /// [`ChronologyViolation::EmptyRoster`], [`ChronologyViolation::InvalidRosterId`],
+    /// [`ChronologyViolation::DuplicateRosterId`], and
+    /// [`ChronologyViolation::DuplicateSourcePath`] respectively. Invalid roster
+    /// input prevents evaluation, and this evaluator never releases `HOLD(Planning)`,
+    /// including after a valid roster is supplied.
     pub fn evaluate_controlling_adr_chronology(
         input: ChronologyInput<'_>,
     ) -> Result<ChronologyReport, ChronologyViolation> {
@@ -1416,9 +1422,9 @@ pub mod chronology {
 
     fn lifecycle_cycles(edges: &BTreeMap<&str, BTreeSet<&str>>) -> Vec<ChronologyFinding> {
         let mut cycles = BTreeSet::new();
+        let reversed = reverse_edges(edges);
         for start in edges.keys() {
             let forward = reachable(edges, start);
-            let reversed = reverse_edges(edges);
             let backward = reachable(&reversed, start);
             let members = forward
                 .intersection(&backward)
