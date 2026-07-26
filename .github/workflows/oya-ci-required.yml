@@ -664,10 +664,14 @@ jobs:
             pr_title="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq '.title')"
             body_path="${RUNNER_TEMP}/pull-request-body.md"
             gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq '.body // ""' > "${body_path}"
+            # --all-violations reports EVERY problem in one run. Without it the
+            # validator stops at the first, so an author with three problems pays
+            # three full CI cycles to learn three string literals.
             buck2 run //libs/oya-check-pr-traceability:pr-traceability-admission-bin -- \
               --pr-title "${pr_title}" \
               --pr-body "${body_path}" \
-              --require-code-review
+              --require-code-review \
+              --all-violations
           fi
       # Restore buck-out read-only (ADR-0554 D9). Same stable per-dependency/toolchain-set key as the buck2
       # lane: warmth is 100% in buck-out/v2/cache + buck-out/v2/art (path-relocatable); ~/.buck2
