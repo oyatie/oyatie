@@ -801,23 +801,40 @@ fn canonical_ignored_generated_path<'a>(
         .args(["check-ignore", "--quiet", "--"])
         .arg(relative_path)
         .current_dir(repo_root);
-    let status = super::command_status_with_timeout(
+    // Capture git's stderr on both boundary probes. `check-ignore` and `ls-files` report a
+    // genuine policy answer through their exit CODE and a fault (`fatal: not a git
+    // repository`, a stale index lock) only on stderr — with stderr discarded, a fault is
+    // indistinguishable from the policy violation and gets reported as one.
+    let (status, ignored_suffix) = super::command_status_with_captured_stderr(
         ignored_command,
         super::P2_HISTORICAL_GIT_TIMEOUT,
         "check ignored generated output boundary",
     )?;
-    if status.code() != Some(0) {
-        return Err(format!(
-            "ignored generated output {} must be ignored and untracked",
-            relative_path.display()
-        ));
+    // Three arms, not two: `check-ignore --quiet` answers 0 = ignored, 1 = NOT ignored, and
+    // 128 = git itself faulted (no repository, a stale `index.lock`, a broken gitfile).
+    // Collapsing 1 and 128 into "not ignored" reports a git fault to the consuming gate as a
+    // POLICY VIOLATION — a wrong answer, not merely a terse one. Same shape as
+    // `canonical_generated_facts_output_path` and `is_ancestor`.
+    match status.code() {
+        Some(0) => {}
+        Some(1) => {
+            return Err(format!(
+                "ignored generated output {} must be ignored and untracked{ignored_suffix}",
+                relative_path.display()
+            ));
+        }
+        code => {
+            return Err(format!(
+                "check ignored generated output boundary exited with {code:?}{ignored_suffix}"
+            ));
+        }
     }
     let mut tracked_command = Command::new("git");
     tracked_command
         .args(["ls-files", "--error-unmatch", "--"])
         .arg(relative_path)
         .current_dir(repo_root);
-    let tracked_status = super::command_status_with_timeout(
+    let (tracked_status, tracked_suffix) = super::command_status_with_captured_stderr(
         tracked_command,
         super::P2_HISTORICAL_GIT_TIMEOUT,
         "check tracked generated output boundary",
@@ -830,7 +847,7 @@ fn canonical_ignored_generated_path<'a>(
     }
     if tracked_status.code() != Some(1) {
         return Err(format!(
-            "check tracked generated output boundary exited with {:?}",
+            "check tracked generated output boundary exited with {:?}{tracked_suffix}",
             tracked_status.code()
         ));
     }
