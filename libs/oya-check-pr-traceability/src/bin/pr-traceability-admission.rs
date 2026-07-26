@@ -42,6 +42,21 @@ fn main() -> ExitCode {
         }
         Err(message) => {
             eprintln!("PR review admission failed: {message}");
+            // Name the remedy in the failure itself. The required shape is not
+            // guessable — it is a fixed set of section headings and field labels
+            // that this binary can emit verbatim — and `gh pr create --body`
+            // bypasses .github/pull_request_template.md, so a CLI author
+            // otherwise rediscovers one literal per CI round trip.
+            eprintln!("\nThe exact required shape is available from this binary:");
+            eprintln!(
+                "  buck2 run //libs/oya-check-pr-traceability:pr-traceability-admission-bin -- --scaffold"
+            );
+            eprintln!("\nValidate a body locally before pushing (same code path as CI):");
+            eprintln!(
+                "  buck2 run //libs/oya-check-pr-traceability:pr-traceability-admission-bin -- \\"
+            );
+            eprintln!("    --pr-title \"<title>\" --pr-body <path> --require-code-review");
+            eprintln!("\nAdd --all-violations to see every problem at once instead of the first.");
             ExitCode::FAILURE
         }
     }
