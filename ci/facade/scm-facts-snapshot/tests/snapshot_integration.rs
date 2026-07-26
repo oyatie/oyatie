@@ -270,9 +270,55 @@ fn git_stdout<const N: usize>(root: &Path, args: [&str; N]) -> String {
         .to_owned()
 }
 
+fn head_topology(root: &Path) -> Vec<String> {
+    git_stdout(root, ["rev-list", "--parents", "-n", "1", "HEAD"])
+        .split_whitespace()
+        .map(str::to_owned)
+        .collect()
+}
+
+fn source_candidate_revision(root: &Path) -> String {
+    let topology = head_topology(root);
+    match topology.as_slice() {
+        [evaluated, _parent] => evaluated.clone(),
+        [evaluated, protected, subject] => {
+            select_census_event_from_event(
+                root,
+                protected,
+                evaluated,
+                "pull_request",
+                "refs/pull/1/merge",
+                "dev",
+                subject,
+            )
+            .expect("two-parent source checkout must be an exact synthetic PR topology");
+            subject.clone()
+        }
+        _ => panic!(
+            "source checkout must be a linear candidate or exact synthetic PR merge: {topology:?}"
+        ),
+    }
+}
+
 fn commit_all(root: &Path, message: &str) -> String {
     git_success(root, ["add", "--all"]);
     git_success(root, ["commit", "--quiet", "-m", message]);
+    git_stdout(root, ["rev-parse", "HEAD"])
+}
+
+fn commit_paths_allow_empty(root: &Path, paths: &[&str], message: &str) -> String {
+    let output = Command::new("git")
+        .args(["add", "--"])
+        .args(paths)
+        .current_dir(root)
+        .output()
+        .expect("stage bounded Git fixture paths");
+    assert!(
+        output.status.success(),
+        "Git fixture path staging failed: {}",
+        String::from_utf8_lossy(&output.stderr).trim()
+    );
+    git_success(root, ["commit", "--quiet", "--allow-empty", "-m", message]);
     git_stdout(root, ["rev-parse", "HEAD"])
 }
 
@@ -371,6 +417,7 @@ fn p3_identity_fixture(label: &str) -> PathBuf {
 
 fn p3_history_fixture(label: &str) -> PathBuf {
     let source_root = discover_repo_root().expect("discover source repository root");
+    let source_candidate = source_candidate_revision(&source_root);
     let root = temp_path(label);
     let output = Command::new("git")
         .args(["clone", "--quiet", "--shared", "--no-checkout"])
@@ -385,7 +432,10 @@ fn p3_history_fixture(label: &str) -> PathBuf {
     );
     git_success(&root, ["config", "user.email", "scm-facts@example.test"]);
     git_success(&root, ["config", "user.name", "SCM Facts Integration"]);
-    git_success(&root, ["checkout", "--quiet", "--detach", "HEAD"]);
+    git_success(
+        &root,
+        ["checkout", "--quiet", "--detach", &source_candidate],
+    );
     for path in P3_PROTECTED_SOURCE_PATHS {
         write_fixture_file(
             &root,
@@ -393,7 +443,11 @@ fn p3_history_fixture(label: &str) -> PathBuf {
             &std::fs::read(source_root.join(path)).expect("read protected source fixture"),
         );
     }
-    commit_all(&root, "bind current P3 policy to historical P2 ancestry");
+    commit_paths_allow_empty(
+        &root,
+        P3_PROTECTED_SOURCE_PATHS,
+        "bind current P3 policy to historical P2 ancestry",
+    );
     root
 }
 
@@ -962,7 +1016,35 @@ fn active_p2_epoch_emission_preserves_the_fixed_historical_receipt() {
     let output_root = temp_repo_root("active-p2-adr-census-epoch");
     let repo_root = discover_repo_root().expect("discover repository root");
     let output = output_root.join("nested/adr-census-epoch-receipt.generated.json");
-    emit_adr_census_epoch_receipt(&repo_root, &output).expect("emit active P2 epoch receipt");
+    let topology = head_topology(&repo_root);
+    let event = match topology.as_slice() {
+        [_evaluated, _parent] => None,
+        [evaluated, protected, subject] => {
+            let selection = select_census_event_from_event(
+                &repo_root,
+                protected,
+                evaluated,
+                "pull_request",
+                "refs/pull/1/merge",
+                "dev",
+                subject,
+            )
+            .expect("synthetic PR checkout must select its exact subject");
+            Some(
+                validate_census_event_transition(&selection)
+                    .expect("synthetic PR checkout must preserve a pointer-only P2 transition"),
+            )
+        }
+        _ => panic!(
+            "source checkout must be a linear candidate or exact synthetic PR merge: {topology:?}"
+        ),
+    };
+    match event.as_ref() {
+        Some(event) => emit_adr_census_epoch_receipt_for_event(event, &output)
+            .expect("emit event-bound active P2 epoch receipt"),
+        None => emit_adr_census_epoch_receipt(&repo_root, &output)
+            .expect("emit local active P2 epoch receipt"),
+    }
     let receipt = std::fs::read(&output).expect("read active P2 receipt");
     assert_eq!(
         format!("{:x}", sha2::Sha256::digest(&receipt)),
@@ -984,7 +1066,14 @@ fn active_p2_epoch_emission_preserves_the_fixed_historical_receipt() {
     let mut tampered = receipt;
     tampered[0] ^= 1;
     std::fs::write(&output, tampered).expect("write tampered P2 receipt");
-    assert!(ci_scm_facts_snapshot::validate_adr_census_epoch_receipt(&repo_root, &output).is_err());
+    match event.as_ref() {
+        Some(event) => {
+            assert!(validate_adr_census_epoch_receipt_for_event(event, &output).is_err())
+        }
+        None => assert!(
+            ci_scm_facts_snapshot::validate_adr_census_epoch_receipt(&repo_root, &output).is_err()
+        ),
+    }
     std::fs::remove_dir_all(output_root).expect("remove epoch receipt fixture");
 }
 
