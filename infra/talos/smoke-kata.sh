@@ -29,7 +29,7 @@ spec:
   runtimeClassName: kata-cloud-hypervisor
   containers:
     - name: nginx
-      image: nginx:1.27-alpine
+      image: nginx:1.29-alpine
       resources:
         requests: { cpu: 100m, memory: 64Mi }
         limits:   { cpu: 500m, memory: 256Mi }

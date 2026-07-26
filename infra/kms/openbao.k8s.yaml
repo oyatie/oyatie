@@ -62,7 +62,7 @@ spec:
         seccompProfile: { type: RuntimeDefault }
       containers:
         - name: openbao
-          image: ghcr.io/openbao/openbao:2.5.0
+          image: ghcr.io/openbao/openbao:2.6.1
           imagePullPolicy: IfNotPresent
           args: ["server", "-config=/openbao/config/openbao.hcl"]
           ports:
