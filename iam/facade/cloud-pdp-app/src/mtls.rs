@@ -52,8 +52,8 @@ use iam_identity_workload_svid_kernel::{
     SvidVerifier, TenantBindingError, VerifyError, bind_caller_tenant,
 };
 use iam_identity_workload_svid_trustd::TrustdSvidVerifier;
-use oya_cloud_os_trustd_domain::TrustBundle;
-use oya_cloud_os_trustd_domain::signer::SigningBackend;
+use os_trustd_domain::TrustBundle;
+use os_trustd_domain::signer::SigningBackend;
 use tonic::{Code, Status};
 
 /// Why the mTLS PEP refused to come up. Boot-fatal: the caller (composition
@@ -326,13 +326,13 @@ impl<'a, S: SigningBackend> SpiffeCallerAuth<'a, S> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_cloud_os_trustd_domain::JoinToken;
-    use oya_cloud_os_trustd_domain::ca::{CertificateAuthority, CertificateSigningRequest};
-    use oya_cloud_os_trustd_domain::certificate::{CertUsage, Certificate};
-    use oya_cloud_os_trustd_domain::der;
-    use oya_cloud_os_trustd_domain::service::{CertificateRequest, SecurityService};
-    use oya_cloud_os_trustd_domain::signer::EcdsaP256Signer;
-    use oya_cloud_os_trustd_domain::x509::KeyPair;
+    use os_trustd_domain::JoinToken;
+    use os_trustd_domain::ca::{CertificateAuthority, CertificateSigningRequest};
+    use os_trustd_domain::certificate::{CertUsage, Certificate};
+    use os_trustd_domain::der;
+    use os_trustd_domain::service::{CertificateRequest, SecurityService};
+    use os_trustd_domain::signer::EcdsaP256Signer;
+    use os_trustd_domain::x509::KeyPair;
 
     const JOIN_TOKEN: &str = "clusterid.clustersecret";
 
@@ -553,7 +553,7 @@ mod tests {
     #[test]
     fn no_pin_pep_is_plain_tcp_only_and_mtls_cannot_build_it_without_a_cell() {
         use crate::mtls_transport::MtlsContext;
-        use oya_cloud_os_trustd_domain::x509::{DistinguishedName, SubjectAltNames, Validity};
+        use os_trustd_domain::x509::{DistinguishedName, SubjectAltNames, Validity};
 
         // Residual TRUE fact: the no-pin PEP (plain-TCP path) does not reject on the
         // cell axis. This is acceptable ONLY because mTLS can never reach it.

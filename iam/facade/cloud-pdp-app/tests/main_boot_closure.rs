@@ -40,13 +40,13 @@ use iam_cloud_pdp_app::mtls_transport::{MtlsContext, MtlsMaterialError};
 use iam_cloud_pdp_app::server::{self, BootError};
 use iam_cloud_pdp_kernel::PdpConfig;
 
-use oya_cloud_os_trustd_domain::JoinToken;
-use oya_cloud_os_trustd_domain::ca::{CertificateAuthority, CertificateSigningRequest};
-use oya_cloud_os_trustd_domain::certificate::CertUsage;
-use oya_cloud_os_trustd_domain::der;
-use oya_cloud_os_trustd_domain::service::{CertificateRequest, SecurityService};
-use oya_cloud_os_trustd_domain::signer::EcdsaP256Signer;
-use oya_cloud_os_trustd_domain::x509::KeyPair;
+use os_trustd_domain::JoinToken;
+use os_trustd_domain::ca::{CertificateAuthority, CertificateSigningRequest};
+use os_trustd_domain::certificate::CertUsage;
+use os_trustd_domain::der;
+use os_trustd_domain::service::{CertificateRequest, SecurityService};
+use os_trustd_domain::signer::EcdsaP256Signer;
+use os_trustd_domain::x509::KeyPair;
 
 const JOIN_TOKEN: &str = "clusterid.clustersecret";
 

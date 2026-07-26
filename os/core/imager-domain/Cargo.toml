@@ -1,0 +1,19 @@
+[package]
+name = "os-imager-domain"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "Boot asset and installer image generation for the operating-system Talos port."
+
+[lib]
+name = "os_imager_domain"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+os-kernel = { path = "../kernel" }
+
+[lints]
+workspace = true

@@ -1,0 +1,19 @@
+[package]
+name = "os-time-domain"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "Port of the Talos time subsystem: SNTP/NTP client, TimeService API, clock sync status/adjustment, and the time COSI controllers that gate cluster bootstrap on synced time."
+
+[lib]
+name = "os_time_domain"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+os-kernel = { path = "../kernel" }
+
+[lints]
+workspace = true

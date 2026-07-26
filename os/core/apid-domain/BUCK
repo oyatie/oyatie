@@ -1,0 +1,23 @@
+rust_library(
+    name = "os-apid-domain",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "os_apid_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//os/core/kernel:os-kernel",
+        "//os/core/proto-api:os-proto-api",
+    ],
+)
+
+rust_test(
+    name = "os-apid-domain-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt", "testdata/**"]),
+    crate = "os_apid_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//os/core/kernel:os-kernel",
+        "//os/core/proto-api:os-proto-api",
+    ],
+)

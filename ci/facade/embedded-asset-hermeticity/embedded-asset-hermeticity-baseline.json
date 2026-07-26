@@ -43,7 +43,7 @@
       "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/src/user.rs:92"
     ],
     "skip_no_owning_target": [
-      "cloud/cloud-os/crates/oya-cloud-os-init-app/tests/boot_config_address.rs:8",
+      "os/core/init-app/tests/boot_config_address.rs:8",
       "libs/oya-shared-platform-contracts-kernel/tests/cedar_policy_validation.rs:18",
       "libs/oya-shared-platform-contracts-kernel/tests/cedar_policy_validation.rs:19",
       "libs/oya-shared-platform-contracts-kernel/tests/cedar_policy_validation.rs:20"

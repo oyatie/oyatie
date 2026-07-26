@@ -525,7 +525,8 @@
         "_comment": "cloud-os node OS (Talos-class), rung 1.",
         "meta_dir": "os/",
         "current_dirs": [
-          "cloud/cloud-os"
+          "cloud/cloud-os",
+          "os"
         ]
       }
     ],

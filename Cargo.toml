@@ -11,7 +11,6 @@ members = [
   # oya-prefixed (enforced by the born-blocking cargo-prefix gate), so non-crate sibling
   # dirs (scripts, completions, vendored trees) can never break `cargo` resolution.
   "libs/oya-*",
-  "cloud/*/crates/oya-*",
   "oya/*/crates/oya-*",
   "oya/office/oya-*",
   "tools/oya-*",
@@ -351,6 +350,20 @@ members = [
   # one glob, satisfying ADR-0538's glob-only members contract (no explicit-path members). The one
   # buck2-only gate (ci/facade/automation-language-policy, no Cargo.toml) is excluded below.
   "ci/*/*",
+  # Meta-directory home (ADR-0562 §1 meta_directories + ADR-0615): the `os/` rung-1 node
+  # operating system (cloud-os, Talos-class) absorbs the former cloud/cloud-os crates at
+  # os/<face>/<leaf>. `os/` is a META directory with owns_crates: true — NOT a capability — so it
+  # carries no capability-registry membership glob; the closed registry maps it via
+  # membership_lint_coverage.meta_directory_absorbs. Faces are core (the 40 node-OS runtime
+  # engines) and harness (the one integration-test-only crate, mirroring the landed
+  # kernel/harness/asterinas-real-boot precedent). The leaf is de-branded (ADR-0532/0533: cargo
+  # names os-apid-domain / os-kernel / os-init-app / os-difftest-app / ...), so the leaf segment
+  # stays a bare `*`. `os/*/*` is a 3-segment glob matching both faces (os/core/<leaf>,
+  # os/harness/<leaf>) with one glob, satisfying ADR-0538's glob-only members contract (no
+  # explicit-path members). This glob MUST be added BEFORE the codemod runs: without it the
+  # codemod appends literal-path members, which is `workspace_member_explicit_path` — a
+  # frozen_empty violation that cannot be baselined.
+  "os/*/*",
 ]
 exclude = [
   # cloud/cloud-kernel is a SEPARATE no_std bare-metal workspace (its own [workspace]
