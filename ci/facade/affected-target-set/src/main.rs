@@ -18,13 +18,14 @@
 use std::collections::BTreeMap;
 use std::fs;
 use std::io::Write as _;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::{Command, ExitCode, ExitStatus, Stdio};
 use std::thread;
 use std::time::{Duration, Instant};
 
 use ci_affected_target_set::{
-    Decision, GATE_ID, GatePhaseOutcome, PathClass, Plan, Policy, affected_set_operator_artifact,
+    BASELINE_PROVENANCE_FILENAME, Decision, GATE_ID, GatePhaseOutcome, PathClass, Plan, Policy,
+    affected_set_operator_artifact,
     build_health_verdict, failing_targets, failing_test_targets, long_step_telemetry_line,
     parse_build_report, parse_name_status_z, parse_test_verdicts, plan_changes, resolve,
     test_verdicts_to_report_value,
@@ -65,6 +66,9 @@ struct ArtifactContext {
     resolved_base_ref: String,
     resolved_head_ref: String,
     baseline_report_present: bool,
+    /// Sidecar written by the trusted-baseline consumer; `None` means the baseline was rebuilt
+    /// cold in this job. Label only — never consulted by the verdict.
+    baseline_provenance: Option<serde_json::Value>,
 }
 
 #[derive(PartialEq, Eq, Clone, Copy)]
@@ -469,7 +473,21 @@ fn build_artifact_context(args: &Args, base: &str) -> Result<Option<ArtifactCont
         resolved_base_ref: resolve_git_ref(base)?,
         resolved_head_ref: resolve_git_ref(&args.head)?,
         baseline_report_present: args.baseline_report.is_some(),
+        baseline_provenance: args.baseline_report.as_deref().and_then(read_baseline_provenance),
     }))
+}
+
+/// Read the trusted-baseline consumer's sidecar from the directory holding `baseline_report`.
+///
+/// PRESENT => the FULL tier is grandfathering against a REUSED push-to-dev baseline (empty
+/// failure set, nothing grandfathered). ABSENT => the baseline was rebuilt cold in this job and
+/// may grandfather env-dependent merge-base failures. A malformed sidecar reads as absent: it is
+/// a provenance LABEL for the operator artifact and must never influence the verdict itself.
+fn read_baseline_provenance(baseline_report: &str) -> Option<serde_json::Value> {
+    let sidecar = Path::new(baseline_report)
+        .parent()?
+        .join(BASELINE_PROVENANCE_FILENAME);
+    serde_json::from_str(&fs::read_to_string(sidecar).ok()?).ok()
 }
 
 fn resolve_git_ref(reference: &str) -> Result<String, String> {
@@ -496,6 +514,7 @@ fn maybe_write_decision_artifact(
         &context.resolved_base_ref,
         &context.resolved_head_ref,
         context.baseline_report_present,
+        context.baseline_provenance.as_ref(),
         decision,
         phases,
     );
