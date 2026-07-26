@@ -823,16 +823,23 @@ axum = { version = "0.8", default-features = false, features = ["http1", "json",
 reqwest = { version = "0.13", default-features = false, features = ["json", "rustls", "blocking"] }
 # Tower middleware stack — utility layer for axum/hyper service composition.
 tower = { version = "0.5", default-features = false, features = ["util"] }
-# RustCrypto SHA-2 + constant-time comparison. OSI-clean (MIT/Apache-2.0); no
-# ring/aws-lc-rs dependency.
+# RustCrypto SHA-2. OSI-clean (MIT/Apache-2.0); no ring/aws-lc-rs dependency.
 #
-# `hmac` was removed here rather than bumped to 0.13: it had ZERO consumers — no
-# member crate declared it and no source referenced it. Its stated purpose,
-# ci-webhook-gateway signature verification, is served by the ed25519 adapter
-# (oya-ci-webhook-gateway-ed25519-adapter) instead. It remains in Cargo.lock as a
-# transitive dependency of hkdf, so nothing about the resolved graph changes.
+# `hmac` and `subtle` were both removed here rather than bumped, because neither
+# had a consumer. The REASON matters and the earlier note recorded it wrongly:
+# ci-webhook-gateway has NOT moved to ed25519. It still verifies HMAC-SHA256, and
+# prefers it (oya/ci-webhook-gateway/src/receiver.rs: "HMAC-SHA256 (preferred) or
+# ed25519"). Both crates are unused because that gateway HAND-ROLLS the primitives
+# on top of `sha2`:
+#   - RFC 2104 HMAC in signature.rs `hmac_sha256` ("using only sha2 — no hmac dep")
+#   - constant-time compare in signature.rs `ct_eq_bytes` ("no subtle dep")
+# That is a deliberate-looking choice with no recorded rationale, and it is
+# tracked as a defect, not endorsed here: registry/fixuptasks.jsonl F-HSA-O8 and
+# F-QUAL-CONSTTIME already cover hand-rolled constant-time comparison across the
+# repo, and F-SEC-WEBHOOK-HMAC (added with this change) covers the hand-rolled MAC.
+# Removing the declarations does not change the resolved graph: `hmac` remains in
+# Cargo.lock via hkdf and sqlx-core.
 sha2 = "0.10"
-subtle = "2.6"
 
 # Real X.509 issuance (rcgen) + parsing (x509-parser) for the workload-identity
 # X.509-SVID trust substrate (G002 slice-1b-i; ADR-0561, ADR-0506). BOTH are
