@@ -158,6 +158,13 @@ Ship the **tiered** design (option c), evaluated against the alternatives below:
   policy pack (all repo facts as DATA).
 - `ci/facade/affected-target-set/tests/affected_set.rs` — RED-class +
   fail-closed seam fixtures.
+- `ci/facade/affected-target-set/tests/github_consumer_coverage.rs` — the `.github/**`
+  synthetic-seed completeness gate: `.github/**` has no `owner()` (a whole-tree-scanner input,
+  not a declared src), so its cone exists only through the `synthetic_dependencies` declaration.
+  The gate derives the consuming packages FROM THE TREE and fails closed when one is missing
+  from the pack, so the declared seed list cannot silently rot into the false-green the reverted
+  inert (`[]`) declaration produced. The scanned class (`.github`) is a repo fact and lives in
+  this test, not in the neutral kernel (ADR-0548 R0).
 - `ci/facade/affected-target-set/BUCK` /
   `ci/facade/affected-target-set/Cargo.toml` — buck2-primary target
   wiring with cargo target parity (ADR-0540).
