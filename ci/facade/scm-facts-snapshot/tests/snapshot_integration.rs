@@ -245,9 +245,24 @@ fn temp_git_repo(label: &str) -> PathBuf {
         .status()
         .expect("run git init");
     assert!(status.success(), "git init must succeed");
-    git_success(&root, ["config", "user.email", "scm-facts@example.test"]);
-    git_success(&root, ["config", "user.name", "SCM Facts Integration"]);
+    configure_fixture_repo(&root);
     root
+}
+
+/// Give a fixture repository a committer identity and no background Git maintenance.
+///
+/// With default config, `git commit` spawns `git maintenance run --auto --quiet --detach`, which
+/// daemonizes and keeps writing under `<root>/.git/objects` (its `maintenance.lock`, then any
+/// repack output) after `git commit` has already returned. Teardown's single-pass
+/// `remove_dir_all` reads each directory once and never retries, so an entry the daemon creates
+/// between that read and the `rmdir` surfaces as a spurious `DirectoryNotEmpty`. Disabling
+/// maintenance per fixture removes the concurrent writer instead of retrying around it;
+/// `gc.auto` covers Git versions old enough to run `git gc --auto` directly.
+fn configure_fixture_repo(root: &Path) {
+    git_success(root, ["config", "user.email", "scm-facts@example.test"]);
+    git_success(root, ["config", "user.name", "SCM Facts Integration"]);
+    git_success(root, ["config", "maintenance.auto", "false"]);
+    git_success(root, ["config", "gc.auto", "0"]);
 }
 
 fn git_success<const N: usize>(root: &Path, args: [&str; N]) {
@@ -440,8 +455,7 @@ fn p3_history_fixture(label: &str) -> PathBuf {
         "clone P3 history fixture failed: {}",
         String::from_utf8_lossy(&output.stderr).trim()
     );
-    git_success(&root, ["config", "user.email", "scm-facts@example.test"]);
-    git_success(&root, ["config", "user.name", "SCM Facts Integration"]);
+    configure_fixture_repo(&root);
     git_success(
         &root,
         ["checkout", "--quiet", "--detach", &source_candidate],
