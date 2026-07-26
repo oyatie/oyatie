@@ -59,6 +59,7 @@ fn run() -> Result<ExitCode, String> {
         "dry-run" => cmd_dry_run(rest),
         "snapshot" => cmd_snapshot(rest),
         "manifest" => cmd_manifest(rest),
+        "prove" => cmd_prove(rest),
         "" | "-h" | "--help" => {
             print_usage();
             Ok(ExitCode::SUCCESS)
@@ -255,6 +256,52 @@ fn cmd_dry_run(args: &[String]) -> Result<ExitCode, String> {
         // Distinct unclean exit code (2) so a gate can tell "tool error" from "move unclean".
         Ok(ExitCode::from(2))
     }
+}
+
+/// `prove --plan <plan.json> [--repo-root <p>] [--with-buck]`: prove the LANDED move preserved
+/// the build graph. Reconstructs the pre-move tree by inverse-applying the plan in a shadow and
+/// diffs both graphs under the bijection. Exit 0 = equivalent (a full rebuild would prove
+/// nothing more), 2 = NOT proven (differences listed, or a checker was unavailable). Fail-closed:
+/// an unproven graph never exits 0.
+fn cmd_prove(args: &[String]) -> Result<ExitCode, String> {
+    // Split off the repeatable `--allow <label>` pairs before the shared parser sees them; it
+    // rejects unknown flags (correctly — a typo'd flag must never be silently ignored).
+    let mut declared: Vec<String> = Vec::new();
+    let mut passthrough: Vec<String> = Vec::new();
+    let mut i = 0;
+    while i < args.len() {
+        if args[i] == "--allow" {
+            let value = args
+                .get(i + 1)
+                .ok_or_else(|| "--allow requires a value".to_string())?;
+            declared.push(value.clone());
+            i += 2;
+            continue;
+        }
+        passthrough.push(args[i].clone());
+        i += 1;
+    }
+    let opts = parse_common(&passthrough)?;
+    let plan = load_plan(&opts.plan, opts.revert)?;
+    let verdict = oracle::prove_move(&opts.repo_root, &plan, opts.with_buck, &declared)
+        .map_err(|e: CodemodError| e.to_string())?;
+    println!(
+        "{}",
+        to_canonical_json(&json!({
+            "equivalent": verdict.equivalent,
+            "cargo_checked": verdict.cargo_checked,
+            "buck_checked": verdict.buck_checked,
+            "only_before": verdict.only_before,
+            "only_after": verdict.only_after,
+            "declared": declared,
+            "detail": verdict.detail,
+        }))
+    );
+    Ok(if verdict.equivalent {
+        ExitCode::SUCCESS
+    } else {
+        ExitCode::from(2)
+    })
 }
 
 fn cmd_snapshot(args: &[String]) -> Result<ExitCode, String> {
@@ -464,6 +511,7 @@ fn print_usage() {
          \x20 oya-reorg-codemod dry-run  --plan <plan.json> [--repo-root <p>] [--revert] [--with-buck] [--keep-shadow]\n\
          \x20 oya-reorg-codemod snapshot [--repo-root <p>] [--with-buck]\n\
          \x20 oya-reorg-codemod manifest [--plan <plan.json>] [--repo-root <p>] [--out <p>]\n\
+         \x20 oya-reorg-codemod prove    --plan <plan.json> [--repo-root <p>] [--with-buck] [--allow <label>]...\n\
          \n\
          Local bridge ONLY; merge authority stays in cloud-ci/oya-ci. Ships UNUSED until the\n\
          strangler invokes it. dry-run exits 0=clean, 2=unclean (fail-closed)."

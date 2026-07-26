@@ -12,8 +12,16 @@
 //!    (the rust-analyzer-equivalent). PASS proves the move is clean WITHOUT landing it; FAIL
 //!    is fail-closed (the move would break resolution).
 //!
+//! 3. **Graph equivalence** ([`prove_graph_equivalence`]): diff a BEFORE snapshot against an
+//!    AFTER snapshot under the plan's bijection. A pure relocation must yield the same targets
+//!    and the same dependency edges, only renamed. When that holds, the move needs no
+//!    full-workspace rebuild to be trusted — which is the difference between a set comparison
+//!    and building 900+ crates twice. Capturing snapshots without ever diffing them proves
+//!    nothing, so this is what makes (1) load-bearing rather than decorative.
+//!
 //! The dry-run is the safety gate. The engine refuses to land a move whose dry-run fails.
 
+use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -212,6 +220,247 @@ fn copy_tree(src: &Path, dest: &Path, skip: &[&str]) -> Result<(), CodemodError>
     Ok(())
 }
 
+/// The verdict of a graph-equivalence proof across a move.
+///
+/// A pure relocation must not change the build graph: the same targets with the same dependency
+/// edges, renamed by the plan's bijection. When that holds, a move PR needs no full-workspace
+/// rebuild — the equivalence IS the proof, and it costs a set comparison instead of ~60 minutes
+/// of building and testing 900+ crates twice.
+#[derive(Debug, Clone, Default)]
+pub struct GraphEquivalence {
+    /// True iff every checked graph is isomorphic under the plan's bijection.
+    pub equivalent: bool,
+    /// False when the before/after snapshots could not both be read (fail-closed: never
+    /// `equivalent` without evidence).
+    pub cargo_checked: bool,
+    pub buck_checked: bool,
+    /// Present in the relabelled BEFORE graph, absent from AFTER (a target/package the move lost).
+    pub only_before: Vec<String>,
+    /// Present in AFTER, absent from the relabelled BEFORE (a target/package the move invented).
+    pub only_after: Vec<String>,
+    /// Human-readable account of what was and was not proven.
+    pub detail: String,
+}
+
+/// Prove that `after` is the same build graph as `before` modulo the plan's bijection.
+///
+/// FAIL-CLOSED: any snapshot that did not resolve, or a buck2 that was unavailable on either
+/// side, yields `equivalent: false` with the reason in `detail`. An unproven graph is never
+/// reported as equivalent — that is the whole point, and it is the failure mode that makes the
+/// codemod's own dry-run oracle untrustworthy when buck2 is off PATH.
+/// `declared` names differences the author has justified in the plan/ADR (e.g. build targets the
+/// codemod deliberately does not rename). A declared entry only ever REMOVES a reported
+/// difference — it can never make an unchecked graph look checked, and an undeclared difference
+/// still fails. Declaring is therefore auditable: the list is the complete set of ways this move
+/// changed the graph.
+pub fn prove_graph_equivalence(
+    before: &GreenSnapshot,
+    after: &GreenSnapshot,
+    plan: &MovePlan,
+    declared: &[String],
+) -> GraphEquivalence {
+    let dirs: Vec<(String, String)> = plan
+        .moves
+        .iter()
+        .map(|m| (m.old_path.clone(), m.new_path.clone()))
+        .collect();
+    let names: Vec<(String, String)> = plan
+        .moves
+        .iter()
+        .map(|m| (m.old_cargo_name.clone(), m.new_cargo_name.clone()))
+        .collect();
+
+    let mut out = GraphEquivalence::default();
+    let mut notes: Vec<String> = Vec::new();
+    let mut only_before: BTreeSet<String> = BTreeSet::new();
+    let mut only_after: BTreeSet<String> = BTreeSet::new();
+
+    // ---- cargo: package name -> its first-party dependency names, bijection applied ----
+    if before.cargo_ok && after.cargo_ok {
+        match (
+            cargo_package_edges(&before.cargo_metadata),
+            cargo_package_edges(&after.cargo_metadata),
+        ) {
+            (Some(b), Some(a)) => {
+                let relabelled: BTreeSet<String> = b
+                    .iter()
+                    .map(|edge| relabel_cargo_edge(edge, &names))
+                    .collect();
+                only_before.extend(relabelled.difference(&a).map(|s| format!("cargo:{s}")));
+                only_after.extend(a.difference(&relabelled).map(|s| format!("cargo:{s}")));
+                out.cargo_checked = true;
+                notes.push(format!(
+                    "cargo: {} packages before, {} after",
+                    b.len(),
+                    a.len()
+                ));
+            }
+            _ => notes.push("cargo: metadata did not parse; equivalence NOT proven".to_owned()),
+        }
+    } else {
+        notes.push("cargo: a snapshot did not resolve; equivalence NOT proven".to_owned());
+    }
+
+    // ---- buck2: the target label set, bijection applied ----
+    if before.buck_available && after.buck_available && before.buck_ok && after.buck_ok {
+        let b: BTreeSet<String> = buck_labels(&before.buck_targets)
+            .into_iter()
+            .map(|l| relabel_buck_label(&l, &dirs, &names))
+            .collect();
+        let a: BTreeSet<String> = buck_labels(&after.buck_targets).into_iter().collect();
+        only_before.extend(b.difference(&a).map(|s| format!("buck:{s}")));
+        only_after.extend(a.difference(&b).map(|s| format!("buck:{s}")));
+        out.buck_checked = true;
+        notes.push(format!("buck2: {} targets before, {} after", b.len(), a.len()));
+    } else {
+        notes.push(
+            "buck2: unavailable or a snapshot did not resolve; equivalence NOT proven".to_owned(),
+        );
+    }
+
+    let is_declared = |s: &String| declared.iter().any(|d| s.contains(d.as_str()));
+    let declared_hits = only_before.iter().filter(|s| is_declared(s)).count()
+        + only_after.iter().filter(|s| is_declared(s)).count();
+    if declared_hits > 0 {
+        notes.push(format!("{declared_hits} declared difference(s) excluded"));
+    }
+    out.only_before = only_before.into_iter().filter(|s| !is_declared(s)).collect();
+    out.only_after = only_after.into_iter().filter(|s| !is_declared(s)).collect();
+    // Both graphs must have been checked AND agree. A cargo-only proof is not a graph proof:
+    // cargo cannot see buck2-only targets (tests, bins, genrules), which is exactly where a
+    // relocation breaks.
+    out.equivalent = out.cargo_checked
+        && out.buck_checked
+        && out.only_before.is_empty()
+        && out.only_after.is_empty();
+    if !out.equivalent && out.only_before.is_empty() && out.only_after.is_empty() {
+        notes.push("no differences found, but not every graph was checked".to_owned());
+    }
+    out.detail = notes.join("; ");
+    out
+}
+
+/// Prove a LANDED move preserved the build graph, with no saved snapshot required.
+///
+/// Captures AFTER at `repo_root`, then reconstructs BEFORE by INVERSE-applying the plan into a
+/// throwaway shadow, and diffs the two under the bijection. The reconstruction is what makes
+/// this usable in CI on a candidate tree: the pre-move graph is derived from the post-move tree
+/// plus the plan, so nothing has to be carried across runs.
+///
+/// A `true` verdict means a full-workspace rebuild proves nothing this comparison has not
+/// already proven — the targets and edges are identical modulo renaming.
+pub fn prove_move(
+    repo_root: &Path,
+    plan: &MovePlan,
+    run_buck: bool,
+    declared: &[String],
+) -> Result<GraphEquivalence, CodemodError> {
+    plan.validate()?;
+    let after = capture_snapshot(repo_root, run_buck);
+    let shadow = make_shadow(repo_root)?;
+    let reconstructed = apply_plan(&shadow, &plan.inverse(), &ApplyOptions { use_git_mv: false });
+    let verdict = match reconstructed {
+        Ok(_) => {
+            let before = capture_snapshot(&shadow, run_buck);
+            prove_graph_equivalence(&before, &after, plan, declared)
+        }
+        Err(error) => GraphEquivalence {
+            detail: format!("could not reconstruct the pre-move tree: {error}"),
+            ..GraphEquivalence::default()
+        },
+    };
+    let _ = std::fs::remove_dir_all(&shadow);
+    Ok(verdict)
+}
+
+/// Split `buck2 targets //...` stdout into target labels, ignoring blank/non-label lines.
+fn buck_labels(stdout: &str) -> Vec<String> {
+    stdout
+        .lines()
+        .map(str::trim)
+        .filter(|l| !l.is_empty() && l.contains("//") && l.contains(':'))
+        .map(str::to_owned)
+        .collect()
+}
+
+/// Apply the move bijection to a buck2 label `cell//package/path:target`.
+fn relabel_buck_label(
+    label: &str,
+    dirs: &[(String, String)],
+    names: &[(String, String)],
+) -> String {
+    let Some((cell_pkg, target)) = label.rsplit_once(':') else {
+        return label.to_owned();
+    };
+    let (cell, pkg) = match cell_pkg.split_once("//") {
+        Some((c, p)) => (c, p),
+        None => ("", cell_pkg),
+    };
+    let new_pkg = remap_prefix(pkg, dirs, '/');
+    let new_target = remap_prefix(target, names, '-');
+    format!("{cell}//{new_pkg}:{new_target}")
+}
+
+/// Longest-match-first prefix remap. `value` maps when it equals `old` or begins with
+/// `old` followed by `sep` — so `a/b` and `a/b/c` both remap under `a/b`, while `a/bc` does not.
+/// Longest-first matters: a plan may move both `x` and `x/y`, and the wrong order silently
+/// produces a path that never existed.
+fn remap_prefix(value: &str, pairs: &[(String, String)], sep: char) -> String {
+    let mut best: Option<(&str, &str)> = None;
+    for (old, new) in pairs {
+        let matches = value == old.as_str()
+            || (value.len() > old.len()
+                && value.starts_with(old.as_str())
+                && value[old.len()..].starts_with(sep));
+        if matches && best.is_none_or(|(b, _)| old.len() > b.len()) {
+            best = Some((old.as_str(), new.as_str()));
+        }
+    }
+    match best {
+        Some((old, new)) => format!("{new}{}", &value[old.len()..]),
+        None => value.to_owned(),
+    }
+}
+
+/// Reduce `cargo metadata --no-deps` stdout to `name|dep,dep,...` rows: the package set plus its
+/// first-party dependency edges. Paths are deliberately excluded — relocating IS the change, so
+/// comparing paths would always differ; names carry the bijection and the edges carry the graph.
+fn cargo_package_edges(metadata: &str) -> Option<BTreeSet<String>> {
+    let value: serde_json::Value = serde_json::from_str(metadata).ok()?;
+    let packages = value.get("packages")?.as_array()?;
+    let mut out = BTreeSet::new();
+    for pkg in packages {
+        let name = pkg.get("name")?.as_str()?;
+        let mut deps: Vec<&str> = pkg
+            .get("dependencies")
+            .and_then(|d| d.as_array())
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|d| d.get("name").and_then(|n| n.as_str()))
+                    .collect()
+            })
+            .unwrap_or_default();
+        deps.sort_unstable();
+        deps.dedup();
+        out.insert(format!("{name}|{}", deps.join(",")));
+    }
+    Some(out)
+}
+
+/// Apply the name bijection to a `name|dep,dep` row (both sides of the edge).
+fn relabel_cargo_edge(edge: &str, names: &[(String, String)]) -> String {
+    let (name, deps) = edge.split_once('|').unwrap_or((edge, ""));
+    let new_name = remap_prefix(name, names, '-');
+    let new_deps: Vec<String> = deps
+        .split(',')
+        .filter(|d| !d.is_empty())
+        .map(|d| remap_prefix(d, names, '-'))
+        .collect();
+    let mut sorted = new_deps;
+    sorted.sort();
+    format!("{new_name}|{}", sorted.join(","))
+}
+
 /// True if `bin` is resolvable on PATH.
 fn which(bin: &str) -> bool {
     if let Ok(path) = std::env::var("PATH") {
@@ -346,5 +595,189 @@ mod tests {
         );
         assert!(!report.cargo_ok);
         let _ = std::fs::remove_dir_all(&root);
+    }
+
+    // ---- graph-equivalence proof ----------------------------------------------------------
+
+    fn os_plan() -> MovePlan {
+        MovePlan {
+            capability: "os".to_string(),
+            moves: vec![CrateMove {
+                old_path: "cloud/cloud-os/crates/oya-cloud-os-apid-domain".to_string(),
+                new_path: "os/core/apid-domain".to_string(),
+                old_cargo_name: "oya-cloud-os-apid-domain".to_string(),
+                new_cargo_name: "os-apid-domain".to_string(),
+            }],
+            artifacts: vec![],
+        }
+    }
+
+    fn snapshot(cargo: &str, buck: &str) -> GreenSnapshot {
+        GreenSnapshot {
+            cargo_metadata: cargo.to_string(),
+            buck_targets: buck.to_string(),
+            cargo_ok: true,
+            buck_ok: true,
+            buck_available: true,
+        }
+    }
+
+    const BEFORE_CARGO: &str = r#"{"packages":[
+        {"name":"oya-cloud-os-apid-domain","dependencies":[{"name":"serde"}]},
+        {"name":"iam-pdp","dependencies":[{"name":"oya-cloud-os-apid-domain"}]}]}"#;
+    const AFTER_CARGO: &str = r#"{"packages":[
+        {"name":"os-apid-domain","dependencies":[{"name":"serde"}]},
+        {"name":"iam-pdp","dependencies":[{"name":"os-apid-domain"}]}]}"#;
+    const BEFORE_BUCK: &str = "\
+root//cloud/cloud-os/crates/oya-cloud-os-apid-domain:oya-cloud-os-apid-domain
+root//cloud/cloud-os/crates/oya-cloud-os-apid-domain:oya-cloud-os-apid-domain-unittest
+root//iam/facade/pdp:iam-pdp";
+    const AFTER_BUCK: &str = "\
+root//os/core/apid-domain:os-apid-domain
+root//os/core/apid-domain:os-apid-domain-unittest
+root//iam/facade/pdp:iam-pdp";
+
+    #[test]
+    fn pure_relocation_is_graph_equivalent_under_the_bijection() {
+        let out = prove_graph_equivalence(
+            &snapshot(BEFORE_CARGO, BEFORE_BUCK),
+            &snapshot(AFTER_CARGO, AFTER_BUCK),
+            &os_plan(),
+            &[],
+        );
+        assert!(out.equivalent, "expected equivalence; detail={}", out.detail);
+        assert!(out.cargo_checked && out.buck_checked);
+        assert!(out.only_before.is_empty() && out.only_after.is_empty());
+    }
+
+    #[test]
+    fn a_dropped_target_breaks_equivalence() {
+        // The unittest target vanished — exactly the class a relocation silently loses.
+        let after_buck = "root//os/core/apid-domain:os-apid-domain\nroot//iam/facade/pdp:iam-pdp";
+        let out = prove_graph_equivalence(
+            &snapshot(BEFORE_CARGO, BEFORE_BUCK),
+            &snapshot(AFTER_CARGO, after_buck),
+            &os_plan(),
+            &[],
+        );
+        assert!(!out.equivalent);
+        assert!(
+            out.only_before
+                .iter()
+                .any(|s| s.contains("os-apid-domain-unittest")),
+            "expected the dropped unittest target to be named; got {:?}",
+            out.only_before
+        );
+    }
+
+    #[test]
+    fn an_invented_target_breaks_equivalence() {
+        let after_buck = format!("{AFTER_BUCK}\nroot//os/core/apid-domain:sneaky-extra");
+        let out = prove_graph_equivalence(
+            &snapshot(BEFORE_CARGO, BEFORE_BUCK),
+            &snapshot(AFTER_CARGO, &after_buck),
+            &os_plan(),
+            &[],
+        );
+        assert!(!out.equivalent);
+        assert!(out.only_after.iter().any(|s| s.contains("sneaky-extra")));
+    }
+
+    #[test]
+    fn a_rewired_dependency_edge_breaks_equivalence() {
+        // Same target set, but a referrer lost its edge — invisible to a label-only comparison.
+        let after_cargo = r#"{"packages":[
+            {"name":"os-apid-domain","dependencies":[{"name":"serde"}]},
+            {"name":"iam-pdp","dependencies":[]}]}"#;
+        let out = prove_graph_equivalence(
+            &snapshot(BEFORE_CARGO, BEFORE_BUCK),
+            &snapshot(after_cargo, AFTER_BUCK),
+            &os_plan(),
+            &[],
+        );
+        assert!(!out.equivalent, "a dropped dep edge must break equivalence");
+        assert!(out.only_before.iter().any(|s| s.starts_with("cargo:iam-pdp")));
+    }
+
+    #[test]
+    fn missing_buck2_fails_closed_and_is_never_equivalent() {
+        let mut before = snapshot(BEFORE_CARGO, BEFORE_BUCK);
+        let mut after = snapshot(AFTER_CARGO, AFTER_BUCK);
+        before.buck_available = false;
+        after.buck_available = false;
+        let out = prove_graph_equivalence(&before, &after, &os_plan(), &[]);
+        assert!(
+            !out.equivalent,
+            "cargo-only agreement must NOT be reported as a graph proof"
+        );
+        assert!(!out.buck_checked);
+        assert!(out.detail.contains("buck2"));
+    }
+
+    #[test]
+    fn a_declared_difference_is_excluded_but_an_undeclared_one_still_fails() {
+        // The codemod deliberately never renames a `-bin` sibling, so that label legitimately
+        // differs across a move. Declaring it must clear it — and must NOT clear anything else.
+        let after_buck = "\
+root//os/core/apid-domain:os-apid-domain
+root//os/core/apid-domain:os-apid-domain-unittest
+root//os/core/apid-domain:oya-cloud-os-apid-domain-bin
+root//iam/facade/pdp:iam-pdp";
+        let before_buck = format!("{BEFORE_BUCK}\nroot//cloud/cloud-os/crates/oya-cloud-os-apid-domain:oya-cloud-os-apid-domain-bin");
+
+        let undeclared = prove_graph_equivalence(
+            &snapshot(BEFORE_CARGO, &before_buck),
+            &snapshot(AFTER_CARGO, after_buck),
+            &os_plan(),
+            &[],
+        );
+        assert!(!undeclared.equivalent, "undeclared bin rename must fail");
+
+        let declared = prove_graph_equivalence(
+            &snapshot(BEFORE_CARGO, &before_buck),
+            &snapshot(AFTER_CARGO, after_buck),
+            &os_plan(),
+            // BOTH sides must be declared: the expected (relabelled) label AND the actual one.
+            // Declaring only one leaves the other reported, which is the honest behaviour — a
+            // retained name is two facts, not one.
+            &[
+                "os-apid-domain-bin".to_string(),
+                "oya-cloud-os-apid-domain-bin".to_string(),
+            ],
+        );
+        assert!(
+            declared.equivalent,
+            "declaring the retained bin name should clear it; detail={}",
+            declared.detail
+        );
+        assert!(declared.detail.contains("declared difference"));
+
+        // A declaration must not launder an unrelated difference.
+        let with_extra = format!("{after_buck}\nroot//os/core/apid-domain:sneaky");
+        let still_fails = prove_graph_equivalence(
+            &snapshot(BEFORE_CARGO, &before_buck),
+            &snapshot(AFTER_CARGO, &with_extra),
+            &os_plan(),
+            &[
+                "os-apid-domain-bin".to_string(),
+                "oya-cloud-os-apid-domain-bin".to_string(),
+            ],
+        );
+        assert!(!still_fails.equivalent);
+        assert!(still_fails.only_after.iter().any(|s| s.contains("sneaky")));
+    }
+
+    #[test]
+    fn remap_is_longest_match_first_and_respects_separators() {
+        let pairs = vec![
+            ("a".to_string(), "X".to_string()),
+            ("a/b".to_string(), "Y".to_string()),
+        ];
+        // longest wins, so a/b/c must not become X/b/c
+        assert_eq!(remap_prefix("a/b/c", &pairs, '/'), "Y/c");
+        assert_eq!(remap_prefix("a/z", &pairs, '/'), "X/z");
+        // a separator boundary is required: `ab` is not under `a`
+        assert_eq!(remap_prefix("ab", &pairs, '/'), "ab");
+        assert_eq!(remap_prefix("a", &pairs, '/'), "X");
     }
 }
