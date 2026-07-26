@@ -21,7 +21,7 @@ path = "src/main.rs"
 default = ["csr"]
 csr = ["dep:console_error_panic_hook", "dep:wasm-bindgen", "leptos/csr"]
 hydrate = ["dep:console_error_panic_hook", "dep:wasm-bindgen", "leptos/hydrate"]
-ssr = ["leptos/ssr"]
+ssr = ["dep:any_spawner", "dep:axum", "dep:tokio", "leptos/ssr"]
 
 [dependencies]
 console_error_panic_hook = { version = "=0.1.7", optional = true }
@@ -30,7 +30,13 @@ oya-shared-oidc-client-kernel = { path = "../../../../libs/oya-shared-oidc-clien
 oya-shared-platform-contracts-kernel = { path = "../../../../libs/oya-shared-platform-contracts-kernel" }
 serde = { workspace = true }
 serde_json = { workspace = true }
+axum = { workspace = true, optional = true }
+any_spawner = { workspace = true, optional = true }
+tokio = { workspace = true, features = ["fs", "sync"], optional = true }
 wasm-bindgen = { version = "=0.2.121", optional = true }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+leptos_axum = { workspace = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 wasm-bindgen-futures = "=0.4.71"

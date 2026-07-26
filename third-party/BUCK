@@ -323,6 +323,12 @@ cargo.rust_library(
     ],
 )
 
+alias(
+    name = "any_spawner",
+    actual = ":any_spawner-0.3",
+    visibility = ["PUBLIC"],
+)
+
 http_archive(
     name = "any_spawner-0.3.0.crate",
     sha256 = "1384d3fe1eecb464229fcf6eebb72306591c56bf27b373561489458a7c73027d",
@@ -348,12 +354,14 @@ cargo.rust_library(
     },
     features = [
         "futures-executor",
+        "tokio",
         "wasm-bindgen",
     ],
     visibility = [],
     deps = [
         ":futures-0.3",
         ":thiserror-2",
+        ":tokio-1",
         ":wasm-bindgen-futures-0.4",
     ],
 )
@@ -1781,14 +1789,25 @@ cargo.rust_library(
         "CARGO_PKG_VERSION_PRE": "",
     },
     features = [
+        "default",
+        "form",
         "http1",
         "json",
+        "matched-path",
+        "multipart",
+        "original-uri",
+        "query",
         "tokio",
+        "tower-log",
+        "tracing",
+        "ws",
     ],
     visibility = [],
     deps = [
         ":axum-core-0.5",
+        ":base64-0.22",
         ":bytes-1",
+        ":form_urlencoded-1",
         ":futures-util-0.3",
         ":http-1",
         ":http-body-1",
@@ -1799,16 +1818,21 @@ cargo.rust_library(
         ":matchit-0.8",
         ":memchr-2",
         ":mime-0.3",
+        ":multer-3",
         ":percent-encoding-2",
         ":pin-project-lite-0.2",
         ":serde_core-1",
         ":serde_json-1",
         ":serde_path_to_error-0.1",
+        ":serde_urlencoded-0.7",
+        ":sha1-0.10",
         ":sync_wrapper-1",
         ":tokio-1",
+        ":tokio-tungstenite-0.29",
         ":tower-0.5",
         ":tower-layer-0.3",
         ":tower-service-0.3",
+        ":tracing-0.1",
     ],
 )
 
@@ -1835,6 +1859,7 @@ cargo.rust_library(
         "CARGO_PKG_VERSION_PATCH": "6",
         "CARGO_PKG_VERSION_PRE": "",
     },
+    features = ["tracing"],
     visibility = [],
     deps = [
         ":bytes-1",
@@ -1847,6 +1872,7 @@ cargo.rust_library(
         ":sync_wrapper-1",
         ":tower-layer-0.3",
         ":tower-service-0.3",
+        ":tracing-0.1",
     ],
 )
 
@@ -4703,6 +4729,37 @@ cargo.rust_library(
 )
 
 http_archive(
+    name = "encoding_rs-0.8.35.crate",
+    sha256 = "75030f3c4f45dafd7586dd6780965a8c7e8e285a5ecb86713e63a79c5b2766f3",
+    strip_prefix = "encoding_rs-0.8.35",
+    urls = ["https://static.crates.io/crates/encoding_rs/0.8.35/download"],
+    visibility = [],
+)
+
+cargo.rust_library(
+    name = "encoding_rs-0.8",
+    srcs = [":encoding_rs-0.8.35.crate"],
+    crate = "encoding_rs",
+    crate_root = "encoding_rs-0.8.35.crate/src/lib.rs",
+    edition = "2018",
+    env = {
+        "CARGO_MANIFEST_DIR": "encoding_rs-0.8.35.crate",
+        "CARGO_PKG_NAME": "encoding_rs",
+        "CARGO_PKG_VERSION": "0.8.35",
+        "CARGO_PKG_VERSION_MAJOR": "0",
+        "CARGO_PKG_VERSION_MINOR": "8",
+        "CARGO_PKG_VERSION_PATCH": "35",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
+    features = [
+        "alloc",
+        "default",
+    ],
+    visibility = [],
+    deps = [":cfg-if-1"],
+)
+
+http_archive(
     name = "enum-ordinalize-4.3.2.crate",
     sha256 = "4a1091a7bb1f8f2c4b28f1fe2cef4980ca2d410a3d727d67ecc3178c9b0800f0",
     strip_prefix = "enum-ordinalize-4.3.2",
@@ -6540,6 +6597,32 @@ cargo.rust_library(
 )
 
 http_archive(
+    name = "http-range-header-0.4.2.crate",
+    sha256 = "9171a2ea8a68358193d15dd5d70c1c10a2afc3e7e4c5bc92bc9f025cebd7359c",
+    strip_prefix = "http-range-header-0.4.2",
+    urls = ["https://static.crates.io/crates/http-range-header/0.4.2/download"],
+    visibility = [],
+)
+
+cargo.rust_library(
+    name = "http-range-header-0.4",
+    srcs = [":http-range-header-0.4.2.crate"],
+    crate = "http_range_header",
+    crate_root = "http-range-header-0.4.2.crate/src/lib.rs",
+    edition = "2018",
+    env = {
+        "CARGO_MANIFEST_DIR": "http-range-header-0.4.2.crate",
+        "CARGO_PKG_NAME": "http-range-header",
+        "CARGO_PKG_VERSION": "0.4.2",
+        "CARGO_PKG_VERSION_MAJOR": "0",
+        "CARGO_PKG_VERSION_MINOR": "4",
+        "CARGO_PKG_VERSION_PATCH": "2",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
+    visibility = [],
+)
+
+http_archive(
     name = "httparse-1.10.1.crate",
     sha256 = "6dbf3de79e51f3d586ab4cb9d5c3e2c14aa28ed23d180cf89b4df0454a69cc87",
     strip_prefix = "httparse-1.10.1",
@@ -6712,14 +6795,17 @@ cargo.rust_library(
         "CARGO_PKG_VERSION_PATCH": "0",
         "CARGO_PKG_VERSION_PRE": "",
     },
+    features = ["browser"],
     visibility = [],
     deps = [
         ":futures-0.3",
+        ":js-sys-0.3",
         ":once_cell-1",
         ":or_poisoned-0.1",
         ":pin-project-lite-0.2",
         ":serde-1",
         ":throw_error-0.3",
+        ":wasm-bindgen-0.2",
     ],
 )
 
@@ -7457,6 +7543,32 @@ cargo.rust_library(
         "CARGO_PKG_VERSION_PRE": "",
     },
     features = ["iter"],
+    visibility = [],
+)
+
+http_archive(
+    name = "inventory-0.3.24.crate",
+    sha256 = "a4f0c30c76f2f4ccee3fe55a2435f691ca00c0e4bd87abe4f4a851b1d4dac39b",
+    strip_prefix = "inventory-0.3.24",
+    urls = ["https://static.crates.io/crates/inventory/0.3.24/download"],
+    visibility = [],
+)
+
+cargo.rust_library(
+    name = "inventory-0.3",
+    srcs = [":inventory-0.3.24.crate"],
+    crate = "inventory",
+    crate_root = "inventory-0.3.24.crate/src/lib.rs",
+    edition = "2021",
+    env = {
+        "CARGO_MANIFEST_DIR": "inventory-0.3.24.crate",
+        "CARGO_PKG_NAME": "inventory",
+        "CARGO_PKG_VERSION": "0.3.24",
+        "CARGO_PKG_VERSION_MAJOR": "0",
+        "CARGO_PKG_VERSION_MINOR": "3",
+        "CARGO_PKG_VERSION_PATCH": "24",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
     visibility = [],
 )
 
@@ -8407,14 +8519,23 @@ cargo.rust_library(
         "CARGO_PKG_VERSION_PRE": "",
         "OUT_DIR": "$(location :leptos-0.8-build-script-run[out_dir])",
     },
-    features = ["csr"],
+    features = [
+        "base64",
+        "csr",
+        "hydration",
+        "nonce",
+        "rand",
+        "ssr",
+    ],
     rustc_flags = ["@$(location :leptos-0.8-build-script-run[rustc_flags])"],
     visibility = [],
     deps = [
         ":any_spawner-0.3",
+        ":base64-0.22",
         ":cfg-if-1",
         ":either_of-0.1",
         ":futures-0.3",
+        ":getrandom-0.4",
         ":hydration_context-0.3",
         ":leptos_config-0.8",
         ":leptos_dom-0.8",
@@ -8424,6 +8545,7 @@ cargo.rust_library(
         ":oco_ref-0.2",
         ":or_poisoned-0.1",
         ":paste-1",
+        ":rand-0.9",
         ":reactive_graph-0.2",
         ":rustc-hash-2",
         ":send_wrapper-0.6",
@@ -8459,7 +8581,14 @@ cargo.rust_binary(
         "CARGO_PKG_VERSION_PATCH": "19",
         "CARGO_PKG_VERSION_PRE": "",
     },
-    features = ["csr"],
+    features = [
+        "base64",
+        "csr",
+        "hydration",
+        "nonce",
+        "rand",
+        "ssr",
+    ],
     visibility = [],
     deps = [":rustc_version-0.4"],
 )
@@ -8474,8 +8603,65 @@ buildscript_run(
         "CARGO_PKG_VERSION_PATCH": "19",
         "CARGO_PKG_VERSION_PRE": "",
     },
-    features = ["csr"],
+    features = [
+        "base64",
+        "csr",
+        "hydration",
+        "nonce",
+        "rand",
+        "ssr",
+    ],
     version = "0.8.19",
+)
+
+alias(
+    name = "leptos_axum",
+    actual = ":leptos_axum-0.8",
+    visibility = ["PUBLIC"],
+)
+
+http_archive(
+    name = "leptos_axum-0.8.9.crate",
+    sha256 = "d2ac7734eed700b0170dffbfc93b03491ed1f306622d79625323a21ed0eedac0",
+    strip_prefix = "leptos_axum-0.8.9",
+    urls = ["https://static.crates.io/crates/leptos_axum/0.8.9/download"],
+    visibility = [],
+)
+
+cargo.rust_library(
+    name = "leptos_axum-0.8",
+    srcs = [":leptos_axum-0.8.9.crate"],
+    crate = "leptos_axum",
+    crate_root = "leptos_axum-0.8.9.crate/src/lib.rs",
+    edition = "2021",
+    env = {
+        "CARGO_MANIFEST_DIR": "leptos_axum-0.8.9.crate",
+        "CARGO_PKG_NAME": "leptos_axum",
+        "CARGO_PKG_VERSION": "0.8.9",
+        "CARGO_PKG_VERSION_MAJOR": "0",
+        "CARGO_PKG_VERSION_MINOR": "8",
+        "CARGO_PKG_VERSION_PATCH": "9",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
+    features = ["default"],
+    visibility = [],
+    deps = [
+        ":any_spawner-0.3",
+        ":axum-0.8",
+        ":futures-0.3",
+        ":hydration_context-0.3",
+        ":leptos-0.8",
+        ":leptos_integration_utils-0.8",
+        ":leptos_macro-0.8",
+        ":leptos_meta-0.8",
+        ":leptos_router-0.8",
+        ":or_poisoned-0.1",
+        ":server_fn-0.8",
+        ":tachys-0.2",
+        ":tokio-1",
+        ":tower-0.5",
+        ":tower-http-0.6",
+    ],
 )
 
 http_archive(
@@ -8534,7 +8720,10 @@ cargo.rust_library(
         "CARGO_PKG_VERSION_PATCH": "8",
         "CARGO_PKG_VERSION_PRE": "",
     },
-    features = ["default"],
+    features = [
+        "default",
+        "hydration",
+    ],
     visibility = [],
     deps = [
         ":js-sys-0.3",
@@ -8586,6 +8775,41 @@ cargo.rust_library(
 )
 
 http_archive(
+    name = "leptos_integration_utils-0.8.8.crate",
+    sha256 = "c097f89cd9aa606297672f56fa5bdda09f01609a9f4eefaccdbb5ab5afea4279",
+    strip_prefix = "leptos_integration_utils-0.8.8",
+    urls = ["https://static.crates.io/crates/leptos_integration_utils/0.8.8/download"],
+    visibility = [],
+)
+
+cargo.rust_library(
+    name = "leptos_integration_utils-0.8",
+    srcs = [":leptos_integration_utils-0.8.8.crate"],
+    crate = "leptos_integration_utils",
+    crate_root = "leptos_integration_utils-0.8.8.crate/src/lib.rs",
+    edition = "2021",
+    env = {
+        "CARGO_MANIFEST_DIR": "leptos_integration_utils-0.8.8.crate",
+        "CARGO_PKG_NAME": "leptos_integration_utils",
+        "CARGO_PKG_VERSION": "0.8.8",
+        "CARGO_PKG_VERSION_MAJOR": "0",
+        "CARGO_PKG_VERSION_MINOR": "8",
+        "CARGO_PKG_VERSION_PATCH": "8",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
+    visibility = [],
+    deps = [
+        ":futures-0.3",
+        ":hydration_context-0.3",
+        ":leptos-0.8",
+        ":leptos_config-0.8",
+        ":leptos_meta-0.8",
+        ":leptos_router-0.8",
+        ":reactive_graph-0.2",
+    ],
+)
+
+http_archive(
     name = "leptos_macro-0.8.16.crate",
     sha256 = "9360df573fb57582384a8b7640a3de94ce6501d49be3b69f637cf11a42da484b",
     strip_prefix = "leptos_macro-0.8.16",
@@ -8609,7 +8833,11 @@ cargo.rust_library(
         "CARGO_PKG_VERSION_PRE": "",
         "OUT_DIR": "$(location :leptos_macro-0.8-build-script-run[out_dir])",
     },
-    features = ["csr"],
+    features = [
+        "axum",
+        "csr",
+        "ssr",
+    ],
     proc_macro = True,
     rustc_flags = ["@$(location :leptos_macro-0.8-build-script-run[rustc_flags])"],
     visibility = [],
@@ -8647,7 +8875,11 @@ cargo.rust_binary(
         "CARGO_PKG_VERSION_PATCH": "16",
         "CARGO_PKG_VERSION_PRE": "",
     },
-    features = ["csr"],
+    features = [
+        "axum",
+        "csr",
+        "ssr",
+    ],
     visibility = [],
     deps = [":rustc_version-0.4"],
 )
@@ -8662,8 +8894,166 @@ buildscript_run(
         "CARGO_PKG_VERSION_PATCH": "16",
         "CARGO_PKG_VERSION_PRE": "",
     },
-    features = ["csr"],
+    features = [
+        "axum",
+        "csr",
+        "ssr",
+    ],
     version = "0.8.16",
+)
+
+http_archive(
+    name = "leptos_meta-0.8.6.crate",
+    sha256 = "6c3efe657b4c55ed2e078922786ffe20acfb71767c3dd913767b09a35c75c890",
+    strip_prefix = "leptos_meta-0.8.6",
+    urls = ["https://static.crates.io/crates/leptos_meta/0.8.6/download"],
+    visibility = [],
+)
+
+cargo.rust_library(
+    name = "leptos_meta-0.8",
+    srcs = [":leptos_meta-0.8.6.crate"],
+    crate = "leptos_meta",
+    crate_root = "leptos_meta-0.8.6.crate/src/lib.rs",
+    edition = "2021",
+    env = {
+        "CARGO_MANIFEST_DIR": "leptos_meta-0.8.6.crate",
+        "CARGO_PKG_NAME": "leptos_meta",
+        "CARGO_PKG_VERSION": "0.8.6",
+        "CARGO_PKG_VERSION_MAJOR": "0",
+        "CARGO_PKG_VERSION_MINOR": "8",
+        "CARGO_PKG_VERSION_PATCH": "6",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
+    features = [
+        "default",
+        "nonce",
+        "ssr",
+    ],
+    visibility = [],
+    deps = [
+        ":futures-0.3",
+        ":indexmap-2",
+        ":leptos-0.8",
+        ":or_poisoned-0.1",
+        ":send_wrapper-0.6",
+        ":wasm-bindgen-0.2",
+        ":web-sys-0.3",
+    ],
+)
+
+http_archive(
+    name = "leptos_router-0.8.13.crate",
+    sha256 = "c15158449162e099e2273442f7fd9b924f5cefd935d52af5755ec62aa819fa52",
+    strip_prefix = "leptos_router-0.8.13",
+    urls = ["https://static.crates.io/crates/leptos_router/0.8.13/download"],
+    visibility = [],
+)
+
+cargo.rust_library(
+    name = "leptos_router-0.8",
+    srcs = [":leptos_router-0.8.13.crate"],
+    crate = "leptos_router",
+    crate_root = "leptos_router-0.8.13.crate/src/lib.rs",
+    edition = "2021",
+    env = {
+        "CARGO_MANIFEST_DIR": "leptos_router-0.8.13.crate",
+        "CARGO_PKG_NAME": "leptos_router",
+        "CARGO_PKG_VERSION": "0.8.13",
+        "CARGO_PKG_VERSION_MAJOR": "0",
+        "CARGO_PKG_VERSION_MINOR": "8",
+        "CARGO_PKG_VERSION_PATCH": "13",
+        "CARGO_PKG_VERSION_PRE": "",
+        "OUT_DIR": "$(location :leptos_router-0.8-build-script-run[out_dir])",
+    },
+    features = ["ssr"],
+    rustc_flags = ["@$(location :leptos_router-0.8-build-script-run[rustc_flags])"],
+    visibility = [],
+    deps = [
+        ":any_spawner-0.3",
+        ":either_of-0.1",
+        ":futures-0.3",
+        ":gloo-net-0.6",
+        ":js-sys-0.3",
+        ":leptos-0.8",
+        ":leptos_router_macro-0.8",
+        ":or_poisoned-0.1",
+        ":percent-encoding-2",
+        ":reactive_graph-0.2",
+        ":send_wrapper-0.6",
+        ":tachys-0.2",
+        ":thiserror-2",
+        ":url-2",
+        ":wasm-bindgen-0.2",
+        ":web-sys-0.3",
+    ],
+)
+
+cargo.rust_binary(
+    name = "leptos_router-0.8-build-script-build",
+    srcs = [":leptos_router-0.8.13.crate"],
+    crate = "build_script_build",
+    crate_root = "leptos_router-0.8.13.crate/build.rs",
+    edition = "2021",
+    env = {
+        "CARGO_MANIFEST_DIR": "leptos_router-0.8.13.crate",
+        "CARGO_PKG_NAME": "leptos_router",
+        "CARGO_PKG_VERSION": "0.8.13",
+        "CARGO_PKG_VERSION_MAJOR": "0",
+        "CARGO_PKG_VERSION_MINOR": "8",
+        "CARGO_PKG_VERSION_PATCH": "13",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
+    features = ["ssr"],
+    visibility = [],
+    deps = [":rustc_version-0.4"],
+)
+
+buildscript_run(
+    name = "leptos_router-0.8-build-script-run",
+    package_name = "leptos_router",
+    buildscript_rule = ":leptos_router-0.8-build-script-build",
+    env = {
+        "CARGO_PKG_VERSION_MAJOR": "0",
+        "CARGO_PKG_VERSION_MINOR": "8",
+        "CARGO_PKG_VERSION_PATCH": "13",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
+    features = ["ssr"],
+    version = "0.8.13",
+)
+
+http_archive(
+    name = "leptos_router_macro-0.8.6.crate",
+    sha256 = "409c0bd99f986c3cfa1a4db2443c835bc602ded1a12784e22ecb28c3ed5a2ae2",
+    strip_prefix = "leptos_router_macro-0.8.6",
+    urls = ["https://static.crates.io/crates/leptos_router_macro/0.8.6/download"],
+    visibility = [],
+)
+
+cargo.rust_library(
+    name = "leptos_router_macro-0.8",
+    srcs = [":leptos_router_macro-0.8.6.crate"],
+    crate = "leptos_router_macro",
+    crate_root = "leptos_router_macro-0.8.6.crate/src/lib.rs",
+    edition = "2021",
+    env = {
+        "CARGO_MANIFEST_DIR": "leptos_router_macro-0.8.6.crate",
+        "CARGO_PKG_NAME": "leptos_router_macro",
+        "CARGO_PKG_VERSION": "0.8.6",
+        "CARGO_PKG_VERSION_MAJOR": "0",
+        "CARGO_PKG_VERSION_MINOR": "8",
+        "CARGO_PKG_VERSION_PATCH": "6",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
+    proc_macro = True,
+    visibility = [],
+    deps = [
+        ":proc-macro-error2-2",
+        ":proc-macro2-1",
+        ":quote-1",
+        ":syn-2",
+    ],
 )
 
 http_archive(
@@ -8689,7 +9079,11 @@ cargo.rust_library(
         "CARGO_PKG_VERSION_PATCH": "7",
         "CARGO_PKG_VERSION_PRE": "",
     },
-    features = ["tachys"],
+    features = [
+        "hydration",
+        "ssr",
+        "tachys",
+    ],
     visibility = [],
     deps = [
         ":any_spawner-0.3",
@@ -9402,6 +9796,70 @@ cargo.rust_library(
 )
 
 http_archive(
+    name = "mime_guess-2.0.5.crate",
+    sha256 = "f7c44f8e672c00fe5308fa235f821cb4198414e1c77935c1ab6948d3fd78550e",
+    strip_prefix = "mime_guess-2.0.5",
+    urls = ["https://static.crates.io/crates/mime_guess/2.0.5/download"],
+    visibility = [],
+)
+
+cargo.rust_library(
+    name = "mime_guess-2",
+    srcs = [":mime_guess-2.0.5.crate"],
+    crate = "mime_guess",
+    crate_root = "mime_guess-2.0.5.crate/src/lib.rs",
+    edition = "2015",
+    env = {
+        "CARGO_MANIFEST_DIR": "mime_guess-2.0.5.crate",
+        "CARGO_PKG_NAME": "mime_guess",
+        "CARGO_PKG_VERSION": "2.0.5",
+        "CARGO_PKG_VERSION_MAJOR": "2",
+        "CARGO_PKG_VERSION_MINOR": "0",
+        "CARGO_PKG_VERSION_PATCH": "5",
+        "CARGO_PKG_VERSION_PRE": "",
+        "OUT_DIR": "$(location :mime_guess-2-build-script-run[out_dir])",
+    },
+    rustc_flags = ["@$(location :mime_guess-2-build-script-run[rustc_flags])"],
+    visibility = [],
+    deps = [
+        ":mime-0.3",
+        ":unicase-2",
+    ],
+)
+
+cargo.rust_binary(
+    name = "mime_guess-2-build-script-build",
+    srcs = [":mime_guess-2.0.5.crate"],
+    crate = "build_script_build",
+    crate_root = "mime_guess-2.0.5.crate/build.rs",
+    edition = "2015",
+    env = {
+        "CARGO_MANIFEST_DIR": "mime_guess-2.0.5.crate",
+        "CARGO_PKG_NAME": "mime_guess",
+        "CARGO_PKG_VERSION": "2.0.5",
+        "CARGO_PKG_VERSION_MAJOR": "2",
+        "CARGO_PKG_VERSION_MINOR": "0",
+        "CARGO_PKG_VERSION_PATCH": "5",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
+    visibility = [],
+    deps = [":unicase-2"],
+)
+
+buildscript_run(
+    name = "mime_guess-2-build-script-run",
+    package_name = "mime_guess",
+    buildscript_rule = ":mime_guess-2-build-script-build",
+    env = {
+        "CARGO_PKG_VERSION_MAJOR": "2",
+        "CARGO_PKG_VERSION_MINOR": "0",
+        "CARGO_PKG_VERSION_PATCH": "5",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
+    version = "2.0.5",
+)
+
+http_archive(
     name = "minimal-lexical-0.2.1.crate",
     sha256 = "68354c5c6bd36d73ff3feceb05efa59b6acb7626617f4962be322a825e61f79a",
     strip_prefix = "minimal-lexical-0.2.1",
@@ -9477,6 +9935,79 @@ cargo.rust_library(
         ),
     },
     visibility = [],
+)
+
+http_archive(
+    name = "multer-3.1.0.crate",
+    sha256 = "83e87776546dc87511aa5ee218730c92b666d7264ab6ed41f9d215af9cd5224b",
+    strip_prefix = "multer-3.1.0",
+    urls = ["https://static.crates.io/crates/multer/3.1.0/download"],
+    visibility = [],
+)
+
+cargo.rust_library(
+    name = "multer-3",
+    srcs = [":multer-3.1.0.crate"],
+    crate = "multer",
+    crate_root = "multer-3.1.0.crate/src/lib.rs",
+    edition = "2018",
+    env = {
+        "CARGO_MANIFEST_DIR": "multer-3.1.0.crate",
+        "CARGO_PKG_NAME": "multer",
+        "CARGO_PKG_VERSION": "3.1.0",
+        "CARGO_PKG_VERSION_MAJOR": "3",
+        "CARGO_PKG_VERSION_MINOR": "1",
+        "CARGO_PKG_VERSION_PATCH": "0",
+        "CARGO_PKG_VERSION_PRE": "",
+        "OUT_DIR": "$(location :multer-3-build-script-run[out_dir])",
+    },
+    features = ["default"],
+    rustc_flags = ["@$(location :multer-3-build-script-run[rustc_flags])"],
+    visibility = [],
+    deps = [
+        ":bytes-1",
+        ":encoding_rs-0.8",
+        ":futures-util-0.3",
+        ":http-1",
+        ":httparse-1",
+        ":memchr-2",
+        ":mime-0.3",
+        ":spin-0.9",
+    ],
+)
+
+cargo.rust_binary(
+    name = "multer-3-build-script-build",
+    srcs = [":multer-3.1.0.crate"],
+    crate = "build_script_build",
+    crate_root = "multer-3.1.0.crate/build.rs",
+    edition = "2018",
+    env = {
+        "CARGO_MANIFEST_DIR": "multer-3.1.0.crate",
+        "CARGO_PKG_NAME": "multer",
+        "CARGO_PKG_VERSION": "3.1.0",
+        "CARGO_PKG_VERSION_MAJOR": "3",
+        "CARGO_PKG_VERSION_MINOR": "1",
+        "CARGO_PKG_VERSION_PATCH": "0",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
+    features = ["default"],
+    visibility = [],
+    deps = [":version_check-0.9"],
+)
+
+buildscript_run(
+    name = "multer-3-build-script-run",
+    package_name = "multer",
+    buildscript_rule = ":multer-3-build-script-build",
+    env = {
+        "CARGO_PKG_VERSION_MAJOR": "3",
+        "CARGO_PKG_VERSION_MINOR": "1",
+        "CARGO_PKG_VERSION_PATCH": "0",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
+    features = ["default"],
+    version = "3.1.0",
 )
 
 http_archive(
@@ -12564,6 +13095,7 @@ cargo.rust_library(
     },
     features = [
         "alloc",
+        "default",
         "os_rng",
         "small_rng",
         "std",
@@ -12808,6 +13340,7 @@ cargo.rust_library(
     features = [
         "effects",
         "hydration",
+        "sandboxed-arenas",
         "serde",
     ],
     rustc_flags = ["@$(location :reactive_graph-0.2-build-script-run[rustc_flags])"],
@@ -12848,6 +13381,7 @@ cargo.rust_binary(
     features = [
         "effects",
         "hydration",
+        "sandboxed-arenas",
         "serde",
     ],
     visibility = [],
@@ -12867,6 +13401,7 @@ buildscript_run(
     features = [
         "effects",
         "hydration",
+        "sandboxed-arenas",
         "serde",
     ],
     version = "0.2.14",
@@ -14928,6 +15463,38 @@ cargo.rust_library(
 )
 
 http_archive(
+    name = "serde_urlencoded-0.7.1.crate",
+    sha256 = "d3491c14715ca2294c4d6a88f15e84739788c1d030eed8c110436aafdaa2f3fd",
+    strip_prefix = "serde_urlencoded-0.7.1",
+    urls = ["https://static.crates.io/crates/serde_urlencoded/0.7.1/download"],
+    visibility = [],
+)
+
+cargo.rust_library(
+    name = "serde_urlencoded-0.7",
+    srcs = [":serde_urlencoded-0.7.1.crate"],
+    crate = "serde_urlencoded",
+    crate_root = "serde_urlencoded-0.7.1.crate/src/lib.rs",
+    edition = "2018",
+    env = {
+        "CARGO_MANIFEST_DIR": "serde_urlencoded-0.7.1.crate",
+        "CARGO_PKG_NAME": "serde_urlencoded",
+        "CARGO_PKG_VERSION": "0.7.1",
+        "CARGO_PKG_VERSION_MAJOR": "0",
+        "CARGO_PKG_VERSION_MINOR": "7",
+        "CARGO_PKG_VERSION_PATCH": "1",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
+    visibility = [],
+    deps = [
+        ":form_urlencoded-1",
+        ":itoa-1",
+        ":ryu-1",
+        ":serde-1",
+    ],
+)
+
+http_archive(
     name = "serde_with-3.20.0.crate",
     sha256 = "e72c1c2cb7b223fafb600a619537a871c2818583d619401b785e7c0b746ccde2",
     strip_prefix = "serde_with-3.20.0",
@@ -15062,12 +15629,18 @@ cargo.rust_library(
         "OUT_DIR": "$(location :server_fn-0.8-build-script-run[out_dir])",
     },
     features = [
+        "axum",
+        "axum-no-default",
         "browser",
         "form-redirects",
+        "generic",
+        "inventory",
+        "ssr",
     ],
     rustc_flags = ["@$(location :server_fn-0.8-build-script-run[rustc_flags])"],
     visibility = [],
     deps = [
+        ":axum-0.8",
         ":base64-0.22",
         ":bytes-1",
         ":const-str-1",
@@ -15075,6 +15648,9 @@ cargo.rust_library(
         ":futures-0.3",
         ":gloo-net-0.6",
         ":http-1",
+        ":http-body-util-0.1",
+        ":hyper-1",
+        ":inventory-0.3",
         ":js-sys-0.3",
         ":or_poisoned-0.1",
         ":pin-project-lite-0.2",
@@ -15086,6 +15662,9 @@ cargo.rust_library(
         ":server_fn_macro_default-0.8",
         ":thiserror-2",
         ":throw_error-0.3",
+        ":tokio-1",
+        ":tower-0.5",
+        ":tower-layer-0.3",
         ":url-2",
         ":wasm-bindgen-0.2",
         ":wasm-bindgen-futures-0.4",
@@ -15111,8 +15690,13 @@ cargo.rust_binary(
         "CARGO_PKG_VERSION_PRE": "",
     },
     features = [
+        "axum",
+        "axum-no-default",
         "browser",
         "form-redirects",
+        "generic",
+        "inventory",
+        "ssr",
     ],
     visibility = [],
     deps = [":rustc_version-0.4"],
@@ -15129,8 +15713,13 @@ buildscript_run(
         "CARGO_PKG_VERSION_PRE": "",
     },
     features = [
+        "axum",
+        "axum-no-default",
         "browser",
         "form-redirects",
+        "generic",
+        "inventory",
+        "ssr",
     ],
     version = "0.8.12",
 )
@@ -15159,6 +15748,10 @@ cargo.rust_library(
         "CARGO_PKG_VERSION_PRE": "",
         "OUT_DIR": "$(location :server_fn_macro-0.8-build-script-run[out_dir])",
     },
+    features = [
+        "axum",
+        "ssr",
+    ],
     rustc_flags = ["@$(location :server_fn_macro-0.8-build-script-run[rustc_flags])"],
     visibility = [],
     deps = [
@@ -15186,6 +15779,10 @@ cargo.rust_binary(
         "CARGO_PKG_VERSION_PATCH": "10",
         "CARGO_PKG_VERSION_PRE": "",
     },
+    features = [
+        "axum",
+        "ssr",
+    ],
     visibility = [],
     deps = [":rustc_version-0.4"],
 )
@@ -15200,6 +15797,10 @@ buildscript_run(
         "CARGO_PKG_VERSION_PATCH": "10",
         "CARGO_PKG_VERSION_PRE": "",
     },
+    features = [
+        "axum",
+        "ssr",
+    ],
     version = "0.8.10",
 )
 
@@ -15231,6 +15832,41 @@ cargo.rust_library(
     deps = [
         ":server_fn_macro-0.8",
         ":syn-2",
+    ],
+)
+
+http_archive(
+    name = "sha1-0.10.6.crate",
+    sha256 = "e3bf829a2d51ab4a5ddf1352d8470c140cadc8301b2ae1789db023f01cedd6ba",
+    strip_prefix = "sha1-0.10.6",
+    urls = ["https://static.crates.io/crates/sha1/0.10.6/download"],
+    visibility = [],
+)
+
+cargo.rust_library(
+    name = "sha1-0.10",
+    srcs = [":sha1-0.10.6.crate"],
+    crate = "sha1",
+    crate_root = "sha1-0.10.6.crate/src/lib.rs",
+    edition = "2018",
+    env = {
+        "CARGO_MANIFEST_DIR": "sha1-0.10.6.crate",
+        "CARGO_PKG_NAME": "sha1",
+        "CARGO_PKG_VERSION": "0.10.6",
+        "CARGO_PKG_VERSION_MAJOR": "0",
+        "CARGO_PKG_VERSION_MINOR": "10",
+        "CARGO_PKG_VERSION_PATCH": "6",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
+    features = [
+        "default",
+        "std",
+    ],
+    visibility = [],
+    deps = [
+        ":cfg-if-1",
+        ":cpufeatures-0.2",
+        ":digest-0.10",
     ],
 )
 
@@ -15739,6 +16375,36 @@ cargo.rust_library(
             deps = [":windows-sys-0.61"],
         ),
     },
+    visibility = [],
+)
+
+http_archive(
+    name = "spin-0.9.9.crate",
+    sha256 = "3763264f6b73151db08c50ff20d7d8a0b8796e021cdea7ceedad07b80155fa0e",
+    strip_prefix = "spin-0.9.9",
+    urls = ["https://static.crates.io/crates/spin/0.9.9/download"],
+    visibility = [],
+)
+
+cargo.rust_library(
+    name = "spin-0.9",
+    srcs = [":spin-0.9.9.crate"],
+    crate = "spin",
+    crate_root = "spin-0.9.9.crate/src/lib.rs",
+    edition = "2015",
+    env = {
+        "CARGO_MANIFEST_DIR": "spin-0.9.9.crate",
+        "CARGO_PKG_NAME": "spin",
+        "CARGO_PKG_VERSION": "0.9.9",
+        "CARGO_PKG_VERSION_MAJOR": "0",
+        "CARGO_PKG_VERSION_MINOR": "9",
+        "CARGO_PKG_VERSION_PATCH": "9",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
+    features = [
+        "mutex",
+        "spin_mutex",
+    ],
     visibility = [],
 )
 
@@ -16442,6 +17108,7 @@ cargo.rust_library(
         "oco",
         "reactive_graph",
         "reactive_stores",
+        "ssr",
         "testing",
     ],
     rustc_flags = ["@$(location :tachys-0.2-build-script-run[rustc_flags])"],
@@ -16493,6 +17160,7 @@ cargo.rust_binary(
         "oco",
         "reactive_graph",
         "reactive_stores",
+        "ssr",
         "testing",
     ],
     visibility = [],
@@ -16514,6 +17182,7 @@ buildscript_run(
         "oco",
         "reactive_graph",
         "reactive_stores",
+        "ssr",
         "testing",
     ],
     version = "0.2.15",
@@ -17278,6 +17947,44 @@ cargo.rust_library(
 )
 
 http_archive(
+    name = "tokio-tungstenite-0.29.0.crate",
+    sha256 = "8f72a05e828585856dacd553fba484c242c46e391fb0e58917c942ee9202915c",
+    strip_prefix = "tokio-tungstenite-0.29.0",
+    urls = ["https://static.crates.io/crates/tokio-tungstenite/0.29.0/download"],
+    visibility = [],
+)
+
+cargo.rust_library(
+    name = "tokio-tungstenite-0.29",
+    srcs = [":tokio-tungstenite-0.29.0.crate"],
+    crate = "tokio_tungstenite",
+    crate_root = "tokio-tungstenite-0.29.0.crate/src/lib.rs",
+    edition = "2018",
+    env = {
+        "CARGO_MANIFEST_DIR": "tokio-tungstenite-0.29.0.crate",
+        "CARGO_PKG_NAME": "tokio-tungstenite",
+        "CARGO_PKG_VERSION": "0.29.0",
+        "CARGO_PKG_VERSION_MAJOR": "0",
+        "CARGO_PKG_VERSION_MINOR": "29",
+        "CARGO_PKG_VERSION_PATCH": "0",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
+    features = [
+        "connect",
+        "default",
+        "handshake",
+        "stream",
+    ],
+    visibility = [],
+    deps = [
+        ":futures-util-0.3",
+        ":log-0.4",
+        ":tokio-1",
+        ":tungstenite-0.29",
+    ],
+)
+
+http_archive(
     name = "tokio-util-0.7.18.crate",
     sha256 = "9ae9cec805b01e8fc3fd2fe289f89149a9b66dd16786abd8b19cfa7b48cb0098",
     strip_prefix = "tokio-util-0.7.18",
@@ -17776,6 +18483,7 @@ cargo.rust_library(
         "limit",
         "load",
         "load-shed",
+        "log",
         "make",
         "pin-project-lite",
         "ready-cache",
@@ -17832,9 +18540,16 @@ cargo.rust_library(
         "base64",
         "default",
         "follow-redirect",
+        "fs",
+        "futures-core",
         "futures-util",
+        "httpdate",
         "map-response-body",
         "mime",
+        "mime_guess",
+        "percent-encoding",
+        "set-status",
+        "tokio-util",
         "tower",
         "trace",
         "tracing",
@@ -17846,11 +18561,19 @@ cargo.rust_library(
         ":base64-0.22",
         ":bitflags-2",
         ":bytes-1",
+        ":futures-core-0.3",
         ":futures-util-0.3",
         ":http-1",
         ":http-body-1",
+        ":http-body-util-0.1",
+        ":http-range-header-0.4",
+        ":httpdate-1",
         ":mime-0.3",
+        ":mime_guess-2",
+        ":percent-encoding-2",
         ":pin-project-lite-0.2",
+        ":tokio-1",
+        ":tokio-util-0.7",
         ":tower-0.5",
         ":tower-layer-0.3",
         ":tower-service-0.3",
@@ -18177,6 +18900,49 @@ cargo.rust_library(
         "CARGO_PKG_VERSION_PRE": "",
     },
     visibility = [],
+)
+
+http_archive(
+    name = "tungstenite-0.29.0.crate",
+    sha256 = "6c01152af293afb9c7c2a57e4b559c5620b421f6d133261c60dd2d0cdb38e6b8",
+    strip_prefix = "tungstenite-0.29.0",
+    urls = ["https://static.crates.io/crates/tungstenite/0.29.0/download"],
+    visibility = [],
+)
+
+cargo.rust_library(
+    name = "tungstenite-0.29",
+    srcs = [":tungstenite-0.29.0.crate"],
+    crate = "tungstenite",
+    crate_root = "tungstenite-0.29.0.crate/src/lib.rs",
+    edition = "2021",
+    env = {
+        "CARGO_MANIFEST_DIR": "tungstenite-0.29.0.crate",
+        "CARGO_PKG_NAME": "tungstenite",
+        "CARGO_PKG_VERSION": "0.29.0",
+        "CARGO_PKG_VERSION_MAJOR": "0",
+        "CARGO_PKG_VERSION_MINOR": "29",
+        "CARGO_PKG_VERSION_PATCH": "0",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
+    features = [
+        "data-encoding",
+        "handshake",
+        "http",
+        "httparse",
+        "sha1",
+    ],
+    visibility = [],
+    deps = [
+        ":bytes-1",
+        ":data-encoding-2",
+        ":http-1",
+        ":httparse-1",
+        ":log-0.4",
+        ":rand-0.9",
+        ":sha1-0.10",
+        ":thiserror-2",
+    ],
 )
 
 http_archive(
