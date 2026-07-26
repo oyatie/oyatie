@@ -1566,6 +1566,23 @@ fn validate_exact_p2_receipt(bytes: &[u8]) -> Result<(), String> {
     Ok(())
 }
 
+/// Supervise a child for its exit status alone, discarding both of its streams.
+///
+/// This has ZERO production callers. Every nested child must be able to explain its own
+/// failure, so they all route through [`command_status_with_captured_stderr`] instead.
+///
+/// It is NOT the primitive that variant is built on — both are thin wrappers over the shared
+/// [`command_status_with_timeout_stderr`], differing only in the sink they supply. What this
+/// one still uniquely provides is a null-sink supervision path for tests, so the
+/// zero-parent-storage property is assertable at all:
+/// `status_only_sustained_output_uses_no_parent_owned_storage` pins that a null sink allocates
+/// nothing. Stated plainly, since it is easy to over-read: that test covers THIS wrapper and no
+/// production path. The production path deliberately does take a temporary file, and its own
+/// storage contract — one child's stderr, outside every worktree, unlinked before the call
+/// returns — is documented on [`command_status_with_captured_stderr`] and pinned by
+/// `captured_stderr_suffix_reads_only_the_bounded_tail` plus the two capture-reaches-the-caller
+/// tests. The shared no-deadlock-on-a-chatty-child property is pinned through this wrapper by
+/// `test large-output child`, and holds for the captured variant by construction.
 #[doc(hidden)]
 pub fn command_status_with_timeout(
     command: Command,
@@ -1682,6 +1699,18 @@ fn historical_p2_toolchain_command(historical_root: &Path) -> Command {
 /// or reported. Diagnosis should not transcribe a whole toolchain-install log into
 /// a gate failure, nor cap what the child may write and risk losing the line that
 /// explains the fault.
+///
+/// # Accepted ceiling
+///
+/// This bounds the READ, not the FILE. A child may still write an arbitrarily large sink,
+/// and the largest producer here is by far the nested `buck2 run` Rust build, whose stderr
+/// is every rustc diagnostic of a full compile. The trade is deliberate: the sink lives in
+/// the system temp directory and is unlinked before the call returns, so peak cost is one
+/// child's stderr volume on a filesystem that already has to hold this path's entire
+/// historical worktree and Buck2 output. Bounding the write instead would truncate the
+/// build's own diagnostics, which is precisely the evidence this capture exists to keep.
+/// If the temp filesystem ever becomes the binding constraint, the upgrade is a bounded
+/// ring buffer that keeps the last N bytes as the child writes — not a smaller read.
 const CAPTURED_STDERR_TAIL_BYTES: u64 = 4096;
 
 /// Render the tail of a captured-stderr log as an error suffix.
@@ -1691,8 +1720,13 @@ const CAPTURED_STDERR_TAIL_BYTES: u64 = 4096;
 /// on any byte boundary — the buffer is `Vec<u8>`, not `str`, `saturating_sub`
 /// bounds the start, and `from_utf8_lossy` substitutes U+FFFD for a split
 /// codepoint.
+///
+/// The wording names no particular child: every nested process this file supervises
+/// routes through the same capture, and "no child stderr captured" stays true whether
+/// the child said nothing or never started, which "the child's stderr was empty" would
+/// not.
 fn captured_stderr_suffix(log_path: &Path) -> String {
-    const UNAVAILABLE: &str = "; no rustup stderr captured";
+    const UNAVAILABLE: &str = "; no child stderr captured";
 
     let Ok(mut file) = std::fs::File::open(log_path) else {
         return UNAVAILABLE.to_owned();
@@ -1719,7 +1753,65 @@ fn captured_stderr_suffix(log_path: &Path) -> String {
     if text.is_empty() {
         return UNAVAILABLE.to_owned();
     }
-    format!("; rustup stderr (last {CAPTURED_STDERR_TAIL_BYTES} bytes): {text}")
+    format!("; child stderr (last {CAPTURED_STDERR_TAIL_BYTES} bytes): {text}")
+}
+
+/// Supervise a nested child with its stderr captured, returning the status alongside the
+/// suffix to append to any error derived from it.
+///
+/// This is the ONE mechanism by which a nested failure in this file becomes diagnosable.
+/// Every nested process here used to run with [`Stdio::null`] stderr, so a failure could
+/// reach a CI log as nothing but an exit code: `dev` was red for an hour on
+/// `exact historical P2 materializer failed with status exit status: 3` and root-causing it
+/// took a five-commit bisect. Callers keep their own status mapping — several read
+/// `status.code()` rather than `success()` — but every error they derive carries `suffix`,
+/// and supervision errors (spawn, poll, timeout) already carry it when this returns `Err`.
+///
+/// The sink is a FILE, not a pipe: [`command_status_with_timeout_stderr`] never drains the
+/// child's streams, so a pipe would deadlock as soon as a chatty child filled it — the
+/// condition `test large-output child` pins.
+///
+/// # Storage
+///
+/// The sink is a temporary file OUTSIDE any repository or worktree, unlinked before this
+/// returns, so peak cost is one child's stderr volume. Placing it under the caller's tree —
+/// as the first version of this capture did — would drop an untracked file into exactly the
+/// tree whose contents the children here are computing over.
+#[doc(hidden)]
+pub fn command_status_with_captured_stderr(
+    command: Command,
+    timeout: Duration,
+    label: &str,
+) -> Result<(ExitStatus, String), String> {
+    let log_path = std::env::temp_dir().join(format!(
+        "oya-nested-stderr-{}-{}.log",
+        std::process::id(),
+        unix_timestamp_nanos()?
+    ));
+    // `create_new` (O_CREAT|O_EXCL) rather than `create` (O_CREAT|O_TRUNC): the path is in a
+    // world-writable directory, so a plain create would happily adopt a file another user
+    // pre-created there — including a symlink pointing at something this process may write.
+    // O_EXCL refuses instead, and the pid+nanos name makes a legitimate collision impossible.
+    let log = std::fs::File::options()
+        .write(true)
+        .create_new(true)
+        .open(&log_path)
+        .map_err(|error| format!("{label}: create stderr log {}: {error}", log_path.display()))?;
+    let outcome = command_status_with_timeout_stderr(command, timeout, label, Stdio::from(log));
+
+    // Read the capture BEFORE cleanup and REGARDLESS of outcome. Returning early on the
+    // supervision error would strand the message on exactly the paths that need it most —
+    // on a timeout, "what was the child doing?" is the entire question.
+    let suffix = captured_stderr_suffix(&log_path);
+    // Best-effort unlink. The sink is in the system temp directory, so a leftover cannot
+    // reach any gate's view of a repository; failing producer-regen because a diagnostic
+    // could not remove its own scratch file would cost far more than it protects.
+    let _ = std::fs::remove_file(&log_path);
+
+    match outcome {
+        Ok(status) => Ok((status, suffix)),
+        Err(error) => Err(format!("{error}{suffix}")),
+    }
 }
 
 /// Install the toolchain the historical worktree pins, serially, before Buck2 runs.
@@ -1742,53 +1834,30 @@ fn captured_stderr_suffix(log_path: &Path) -> String {
 ///
 /// # Storage
 ///
-/// This is the one caller that opts into a stderr sink, so it is the one place
-/// where supervising a child allocates parent-owned storage. The invariant pinned
-/// by `status_only_sustained_output_uses_no_parent_owned_storage` still holds for
-/// [`command_status_with_timeout`], which allocates nothing; the sink here is the
-/// caller's file, written inside the temp worktree and unlinked before returning.
+/// Supervising this child allocates parent-owned storage, because it captures stderr. The
+/// invariant pinned by `status_only_sustained_output_uses_no_parent_owned_storage` still
+/// holds for [`command_status_with_timeout`], which allocates nothing; the sink here is
+/// [`command_status_with_captured_stderr`]'s temporary file, outside the worktree and
+/// unlinked before the call returns.
 fn preprovision_historical_p2_toolchain(historical_root: &Path) -> Result<(), String> {
     const LABEL: &str = "exact historical P2 toolchain pre-provision";
-    let command = historical_p2_toolchain_command(historical_root);
-
-    // Capture stderr rather than discarding it. The failure this routine exists
-    // to prevent reached its gate as a bare `exit status: 3` with rustup's actual
-    // message thrown away; emitting that same opacity from the fix for it would
-    // be a poor trade. `historical_root` is the worktree we just created, so it
-    // is known-writable and a create failure here is a genuine error, not a
-    // condition to route around.
-    let log_path = historical_root.join("p2-toolchain-preprovision.stderr.log");
-    let log = std::fs::File::create(&log_path)
-        .map_err(|error| format!("{LABEL}: create stderr log {}: {error}", log_path.display()))?;
-    let outcome = command_status_with_timeout_stderr(
-        command,
+    // Capture stderr rather than discarding it. The failure this routine exists to prevent
+    // reached its gate as a bare `exit status: 3` with rustup's actual message thrown away;
+    // emitting that same opacity from the fix for it would be a poor trade.
+    let (status, suffix) = command_status_with_captured_stderr(
+        historical_p2_toolchain_command(historical_root),
         P2_HISTORICAL_TOOLCHAIN_TIMEOUT,
         LABEL,
-        Stdio::from(log),
-    );
-
-    // Read the capture BEFORE cleanup and REGARDLESS of outcome. Returning early
-    // on the supervision error would strand the message on exactly the paths that
-    // need it most — a 10-minute timeout is the case where "what was rustup
-    // doing?" is the whole question.
-    let suffix = captured_stderr_suffix(&log_path);
-    let cleanup = std::fs::remove_file(&log_path);
-
-    match outcome {
-        Err(error) => Err(format!("{error}{suffix}")),
-        // Only the success path propagates a cleanup failure. A leftover untracked
-        // file at the worktree root would otherwise persist into a Buck2 build
-        // whose output bytes are checked against a hardcoded sha256 — low
-        // probability, high consequence, so it is not swallowed.
-        Ok(status) if status.success() => cleanup
-            .map_err(|error| format!("{LABEL}: remove stderr log {}: {error}", log_path.display())),
-        // On a genuine failure the cleanup result is dropped on purpose: it must
-        // not mask the fault being reported.
-        Ok(status) => Err(format!("{LABEL} failed with status {status}{suffix}")),
+    )?;
+    if status.success() {
+        Ok(())
+    } else {
+        Err(format!("{LABEL} failed with status {status}{suffix}"))
     }
 }
 
 fn run_historical_p2_materializer(historical_root: &Path, output: &Path) -> Result<(), String> {
+    const LABEL: &str = "exact historical P2 materializer";
     let worktree_nonce = historical_root
         .file_name()
         .and_then(|name| name.to_str())
@@ -1811,20 +1880,17 @@ fn run_historical_p2_materializer(historical_root: &Path, output: &Path) -> Resu
         ])
         .current_dir(historical_root);
     remove_outer_buck_process_state(&mut command);
-    let operation = command_status_with_timeout(
-        command,
-        P2_HISTORICAL_MATERIALIZER_TIMEOUT,
-        "exact historical P2 materializer",
-    )
-    .and_then(|status| {
-        if status.success() {
-            Ok(())
-        } else {
-            Err(format!(
-                "exact historical P2 materializer failed with status {status}"
-            ))
-        }
-    });
+    // The nested Buck2 build is the child whose silence cost an hour of red `dev`: its own
+    // compile errors, and the errors of the emitter it runs, exist only on its stderr.
+    let operation =
+        command_status_with_captured_stderr(command, P2_HISTORICAL_MATERIALIZER_TIMEOUT, LABEL)
+            .and_then(|(status, suffix)| {
+                if status.success() {
+                    Ok(())
+                } else {
+                    Err(format!("{LABEL} failed with status {status}{suffix}"))
+                }
+            });
     finish_with_cleanup(
         operation,
         || shutdown_historical_p2_buck(historical_root, &isolation),
@@ -1838,7 +1904,7 @@ fn shutdown_historical_p2_buck(historical_root: &Path, isolation: &str) -> Resul
         .args(["--isolation-dir", isolation, "kill"])
         .current_dir(historical_root);
     remove_outer_buck_process_state(&mut command);
-    let status = command_status_with_timeout(
+    let (status, suffix) = command_status_with_captured_stderr(
         command,
         P2_HISTORICAL_BUCK_SHUTDOWN_TIMEOUT,
         "exact historical P2 Buck daemon shutdown",
@@ -1846,7 +1912,7 @@ fn shutdown_historical_p2_buck(historical_root: &Path, isolation: &str) -> Resul
     if status.success() {
         Ok(())
     } else {
-        Err(format!("Buck shutdown failed with status {status}"))
+        Err(format!("Buck shutdown failed with status {status}{suffix}"))
     }
 }
 
@@ -1870,11 +1936,15 @@ fn is_outer_buck_process_state(key: &OsStr) -> bool {
 fn run_git(repo_root: &Path, args: &[&str], operation: &str) -> Result<(), String> {
     let mut command = Command::new("git");
     command.args(args).current_dir(repo_root);
-    let status = command_status_with_timeout(command, P2_HISTORICAL_GIT_TIMEOUT, operation)?;
+    // git puts its whole explanation on stderr — `fatal: <path> already exists`,
+    // `fatal: invalid reference`, a stale lock — and none of it is recoverable from the
+    // exit code, which is 128 for all of them.
+    let (status, suffix) =
+        command_status_with_captured_stderr(command, P2_HISTORICAL_GIT_TIMEOUT, operation)?;
     if status.success() {
         Ok(())
     } else {
-        Err(format!("{operation} failed with status {status}"))
+        Err(format!("{operation} failed with status {status}{suffix}"))
     }
 }
 
@@ -1882,7 +1952,7 @@ fn unix_timestamp_nanos() -> Result<u128, String> {
     std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .map(|duration| duration.as_nanos())
-        .map_err(|error| format!("derive P2 historical worktree nonce: {error}"))
+        .map_err(|error| format!("derive unique temporary path nonce: {error}"))
 }
 
 fn json_string(value: &str) -> String {
@@ -2419,10 +2489,21 @@ fn git_bytes(repo_root: &Path, args: &[&str]) -> Result<Vec<u8>, String> {
         .output()
         .map_err(|error| format!("run fixed census git command: {error}"))?;
     if output.status.success() {
-        Ok(output.stdout)
-    } else {
-        Err(String::from_utf8_lossy(&output.stderr).trim().to_owned())
+        return Ok(output.stdout);
     }
+    // git's stderr IS the diagnosis whenever it wrote one, so it is returned verbatim. But a
+    // git that fails SILENTLY (killed by the OOM reaper, dying on a closed stderr) would
+    // otherwise make this return `Err("")` — an empty error string, which reaches the caller
+    // as a failure with nothing in it at all. Fall back to the status so no failure on this
+    // path can ever be reported as silence.
+    let stderr = String::from_utf8_lossy(&output.stderr).trim().to_owned();
+    if stderr.is_empty() {
+        return Err(format!(
+            "fixed census git command failed with no stderr: {}",
+            output.status
+        ));
+    }
+    Err(stderr)
 }
 
 fn sha256_hex(bytes: &[u8]) -> String {
@@ -3618,7 +3699,11 @@ fn git_commit_timestamps(repo_root: &Path) -> Result<BTreeMap<String, u64>, Stri
         .output()
         .map_err(|e| format!("log timestamps: {e}"))?;
     if !output.status.success() {
-        return Err(format!("log timestamps exit {:?}", output.status.code()));
+        return Err(format!(
+            "log timestamps exit {:?}: {}",
+            output.status.code(),
+            String::from_utf8_lossy(&output.stderr).trim()
+        ));
     }
     let mut map = BTreeMap::new();
     for line in String::from_utf8_lossy(&output.stdout).lines() {
@@ -3640,7 +3725,11 @@ fn git_ls_files(repo_root: &Path) -> Result<Vec<String>, String> {
         .output()
         .map_err(|e| format!("ls-files: {e}"))?;
     if !output.status.success() {
-        return Err(format!("ls-files exit {:?}", output.status.code()));
+        return Err(format!(
+            "ls-files exit {:?}: {}",
+            output.status.code(),
+            String::from_utf8_lossy(&output.stderr).trim()
+        ));
     }
     let mut paths: Vec<String> = String::from_utf8_lossy(&output.stdout)
         .lines()
@@ -3680,7 +3769,11 @@ fn git_last_touch(repo_root: &Path) -> Result<BTreeMap<String, String>, String> 
         .output()
         .map_err(|e| format!("log: {e}"))?;
     if !output.status.success() {
-        return Err(format!("log exit {:?}", output.status.code()));
+        return Err(format!(
+            "log exit {:?}: {}",
+            output.status.code(),
+            String::from_utf8_lossy(&output.stderr).trim()
+        ));
     }
     let mut map: BTreeMap<String, String> = BTreeMap::new();
     let mut current: Option<String> = None;
@@ -5479,10 +5572,10 @@ mod tests {
         let log = root.join("captured.log");
 
         // Missing file, and a zero-byte file, must both read as "nothing captured"
-        // rather than claiming rustup produced empty output.
-        assert_eq!(captured_stderr_suffix(&log), "; no rustup stderr captured");
+        // rather than claiming the child produced empty output.
+        assert_eq!(captured_stderr_suffix(&log), "; no child stderr captured");
         std::fs::write(&log, b"").expect("write empty log");
-        assert_eq!(captured_stderr_suffix(&log), "; no rustup stderr captured");
+        assert_eq!(captured_stderr_suffix(&log), "; no child stderr captured");
 
         // Shorter than the bound: the whole content comes back.
         std::fs::write(&log, b"boom").expect("write short log");

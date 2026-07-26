@@ -17,9 +17,9 @@ use ci_scm_facts_snapshot::retirement::{
     write_canonical_ignored_generated_file,
 };
 use ci_scm_facts_snapshot::{
-    command_status_with_timeout, discover_repo_root, dormant_p3_epoch_fingerprint,
-    emit_adr_census_epoch_receipt, emit_adr_census_epoch_receipt_for_event, load_vocab_policy,
-    output_path_resolver,
+    command_status_with_captured_stderr, command_status_with_timeout, discover_repo_root,
+    dormant_p3_epoch_fingerprint, emit_adr_census_epoch_receipt,
+    emit_adr_census_epoch_receipt_for_event, load_vocab_policy, output_path_resolver,
     retirement::{
         GENERATED_FACTS_PATH, RetirementMaterializationContext, emit_history_only_retirement_facts,
         historical_dev_push_context, visit_git_blobs, write_canonical_retirement_facts,
@@ -117,18 +117,76 @@ fn status_only_sustained_output_uses_no_parent_owned_storage() {
     };
     maximum_storage = maximum_storage.max(directory_bytes(&root));
     assert!(status.success(), "status-only storage probe must pass");
-    // This invariant is scoped to `command_status_with_timeout`, which supplies
-    // its own null stderr and therefore allocates nothing. The sibling
-    // `command_status_with_timeout_stderr` takes a caller-chosen sink, and
-    // `preprovision_historical_p2_toolchain` is the one caller that passes a file
-    // — that storage is the caller's, is written inside the temp worktree, and is
-    // unlinked before the call returns. Adding a second storage-taking caller
-    // means revisiting this assertion's scope.
+    // This invariant is scoped to `command_status_with_timeout`, which supplies its own
+    // null stderr and therefore allocates nothing. Stated plainly, because the name reads
+    // broader than the coverage: that wrapper has NO production callers, so this assertion
+    // covers no production path. Every caller that must be able to explain a nested failure
+    // goes through `command_status_with_captured_stderr` instead, which deliberately DOES
+    // take a temporary file — one child's stderr volume, outside any worktree, unlinked
+    // before the call returns. What survives here is narrow and still worth keeping: proof
+    // that the shared supervision loop costs nothing when a caller genuinely wants no sink.
+    // It is not a repository-wide prohibition on capturing stderr, and it is NOT evidence
+    // about the path production actually takes.
     assert_eq!(
         maximum_storage, 0,
         "status-only command supervision must never allocate parent-owned output storage"
     );
     std::fs::remove_dir_all(root).expect("remove status-only storage fixture root");
+}
+
+/// A nested child that fails must reach the caller with its own stderr, not just a status.
+///
+/// This is the regression that cost twice in one day: `dev` red for an hour on
+/// `... failed with status exit status: 3` and nothing else. The marker is written ONLY to
+/// the child's stderr, so this test fails outright if the sink goes back to `Stdio::null`.
+#[test]
+fn captured_stderr_reaches_the_caller_when_a_nested_child_fails() {
+    let executable = std::env::current_exe().expect("resolve current integration-test executable");
+    let mut command = Command::new(executable);
+    command
+        .args(["--exact", "status_only_command_child_helper", "--nocapture"])
+        .env("OYA_CI_COMMAND_CHILD_MODE", "stderr-then-fail");
+
+    let (status, suffix) =
+        command_status_with_captured_stderr(command, Duration::from_secs(30), "test failing child")
+            .expect("a child that exits non-zero is supervised successfully, not an error");
+    assert_eq!(status.code(), Some(11));
+    assert!(
+        suffix.contains("NESTED-STDERR-MARKER"),
+        "failing child's stderr must reach the caller, got: {suffix}"
+    );
+}
+
+/// The timeout path must carry the capture too.
+///
+/// A timeout is where partial stderr is most diagnostic — "what was the child doing for ten
+/// minutes?" is the whole question — and it is the path an early `?` most easily strands.
+#[test]
+fn captured_stderr_reaches_the_caller_when_a_nested_child_times_out() {
+    let executable = std::env::current_exe().expect("resolve current integration-test executable");
+    let root = temp_path("stderr-hang-child");
+    std::fs::create_dir(&root).expect("create stderr-hang fixture root");
+    let mut command = Command::new(executable);
+    command
+        .args(["--exact", "status_only_command_child_helper", "--nocapture"])
+        .env("OYA_CI_COMMAND_CHILD_MODE", "stderr-then-hang")
+        .env("OYA_CI_COMMAND_CHILD_ROOT", &root);
+
+    let error =
+        command_status_with_captured_stderr(command, Duration::from_secs(3), "test hanging child")
+            .expect_err("a child that outlives its deadline must be an error");
+    assert!(error.contains("test hanging child timed out"), "{error}");
+    assert!(
+        error.contains("NESTED-STDERR-MARKER"),
+        "timed-out child's partial stderr must survive the early return, got: {error}"
+    );
+    // The child announces itself on stderr before hanging, so reaching the assertions above
+    // proves the capture was flushed to the sink and read, not merely that the child started.
+    assert!(
+        root.join("started").is_file(),
+        "hanging child must start before termination"
+    );
+    std::fs::remove_dir_all(root).expect("remove stderr-hang fixture root");
 }
 
 #[test]
@@ -163,6 +221,29 @@ fn status_only_command_child_helper() {
                 std::thread::sleep(Duration::from_millis(10));
             }
             std::fs::write(root.join("survived"), b"survived").expect("write survivor sentinel");
+        }
+        Ok("stderr-then-fail") => {
+            let mut stderr = std::io::stderr();
+            stderr
+                .write_all(b"NESTED-STDERR-MARKER: the child explained itself here\n")
+                .and_then(|()| stderr.flush())
+                .expect("write helper stderr");
+            std::process::exit(11);
+        }
+        Ok("stderr-then-hang") => {
+            let root = PathBuf::from(
+                std::env::var_os("OYA_CI_COMMAND_CHILD_ROOT")
+                    .expect("hanging child root must be supplied"),
+            );
+            std::fs::write(root.join("started"), b"started").expect("write started sentinel");
+            let mut stderr = std::io::stderr();
+            stderr
+                .write_all(b"NESTED-STDERR-MARKER: still working when the deadline passed\n")
+                .and_then(|()| stderr.flush())
+                .expect("write helper stderr");
+            // Self-bounded: a supervisor that failed to terminate this must not leave a
+            // process running for the life of the test runner.
+            std::thread::sleep(Duration::from_secs(60));
         }
         Ok("large-output") => {
             let payload = vec![b'x'; 256 * 1024];
@@ -674,6 +755,47 @@ fn emitter_rejects_canonical_generated_facts_path_when_tracked() {
         "unexpected error: {error}"
     );
     std::fs::remove_dir_all(root).expect("remove integration fixture");
+}
+
+/// A git FAULT on the ignore probe must not be reported as a policy violation.
+///
+/// `git check-ignore --quiet` answers 0 = ignored, 1 = NOT ignored, 128 = git itself failed.
+/// The probe used to test `!= Some(0)`, collapsing 1 and 128, so a stale `index.lock` or a
+/// broken repository reached the consuming gate as "must be ignored and untracked" — a wrong
+/// answer ABOUT THE CANDIDATE TREE, manufactured from a fault in the tool asking the question.
+/// This gates `producer-regen`, so that wrong answer reds every job downstream of it.
+///
+/// The fixture is a directory holding a `.git` REGULAR FILE containing garbage: git stops its
+/// upward repository walk at any `.git` entry, so this faults with exit 128 no matter where the
+/// temp directory sits — including inside a real repository's tree, which a "no repository
+/// above here" fixture cannot promise (buck2 may root TMPDIR under `buck-out`, where the
+/// enclosing repo would answer 1 and the test would silently stop testing anything).
+#[cfg(unix)]
+#[test]
+fn ignore_probe_distinguishes_a_git_fault_from_a_policy_violation() {
+    let root = temp_path("ignore-probe-fault");
+    std::fs::create_dir(&root).expect("create ignore-probe fault fixture root");
+    std::fs::write(root.join(".git"), b"not a gitfile").expect("write broken gitfile");
+
+    let error = CanonicalIgnoredGeneratedWriter::open(&root, Path::new(EPOCH_RECEIPT_PATH))
+        .map(|_| ())
+        .expect_err("a faulting ignore probe must fail closed");
+
+    assert!(
+        error.contains("check ignored generated output boundary exited with Some(128)"),
+        "a git fault must be reported as a fault, got: {error}"
+    );
+    assert!(
+        !error.contains("must be ignored and untracked"),
+        "a git fault must NOT be reported as a policy violation, got: {error}"
+    );
+    // Also proves the capture is wired on THIS probe: the fault is only ever explained on
+    // git's stderr, so an error carrying it could not have come from a discarded sink.
+    assert!(
+        error.contains("child stderr"),
+        "the fault must carry git's own explanation, got: {error}"
+    );
+    std::fs::remove_dir_all(root).expect("remove ignore-probe fault fixture root");
 }
 
 #[test]
