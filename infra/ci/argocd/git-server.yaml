@@ -64,7 +64,7 @@ spec:
         seccompProfile: { type: RuntimeDefault }
       initContainers:
         - name: seed-repo
-          image: alpine/git:2.47.2
+          image: alpine/git:2.54.0
           command: ["/bin/sh", "-c"]
           args:
             - |
