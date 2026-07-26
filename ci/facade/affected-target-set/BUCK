@@ -69,8 +69,6 @@ rust_test(
     ],
 )
 
-# ADR-0554 decision fixtures: pins the cf16525 false-green class (out-of-scope source must land
-# in the decided set) + every fail-closed seam (escape->FULL, deletion->FULL, unowned->REFUSE).
 # `.github/**` synthetic-seed completeness gate. `.github/**` has no buck2 owner() (it is a
 # whole-tree-scanner INPUT, not a declared src), so the affected cone reaches its real consumers
 # only through the synthetic_dependencies declaration. This target proves the declaration reaches
@@ -87,6 +85,8 @@ rust_test(
     ],
 )
 
+# ADR-0554 decision fixtures: pins the cf16525 false-green class (out-of-scope source must land
+# in the decided set) + every fail-closed seam (escape->FULL, deletion->FULL, unowned->REFUSE).
 rust_test(
     name = "ci-affected-target-set-fixtures",
     srcs = glob(["tests/**/*.rs", "**/*.json"]),
