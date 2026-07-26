@@ -1,4 +1,4 @@
-//! # oya-stream-boundary-kernel
+//! # messaging-stream-boundary-kernel
 //!
 //! The owned ORDERED-STREAM surface — second of the three single-concern
 //! messaging surfaces (ADR-0536 D-13 queue/stream/bus trichotomy;
@@ -14,7 +14,7 @@
 //!   log from there (the audit/metering re-derivation primitive).
 //!
 //! # Naming justification
-//! `oya-stream-boundary-kernel` follows BNF v4.1:
+//! `messaging-stream-boundary-kernel` follows BNF v4.1:
 //! `oya-<topic:stream-boundary>-<layer:kernel>`, mirroring
 //! `oya-data-boundary-kernel` (owned substrate surfaces carry the owned
 //! name `oya-stream`, never a vendor name).

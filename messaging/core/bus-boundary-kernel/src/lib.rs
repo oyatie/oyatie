@@ -1,4 +1,4 @@
-//! # oya-bus-boundary-kernel
+//! # messaging-bus-boundary-kernel
 //!
 //! The owned EVENT-BUS surface — third of the three single-concern
 //! messaging surfaces (ADR-0536 D-13 queue/stream/bus trichotomy;
@@ -14,7 +14,7 @@
 //!   horizontally without double-processing).
 //!
 //! # Naming justification
-//! `oya-bus-boundary-kernel` follows BNF v4.1:
+//! `messaging-bus-boundary-kernel` follows BNF v4.1:
 //! `oya-<topic:bus-boundary>-<layer:kernel>`, mirroring
 //! `oya-data-boundary-kernel` (owned substrate surfaces carry the owned
 //! name `oya-bus`, never a vendor name).
