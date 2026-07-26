@@ -46,8 +46,13 @@
     ],
     "docs/**": [],
     "**/*.md": [],
-    "**/*.mdx": []
+    "**/*.mdx": [],
+    ".github/**": [],
+    ".gitignore": [],
+    ".gitattributes": [],
+    "**/OWNERS": []
   },
+  "_inert_class_evidence": "Each class below EARNED its declaration under the evidence bar in _synthetic_dependencies_note, verified 2026-07-26 against this buck2 binary at dev 0ac6e765. Method: `buck2 uquery 'owner(<path>)'` on representative members + a repo-wide grep of every BUCK file for the class. (1) .github/** — owner() EMPTY for .github/workflows/oya-ci-required.yml and .github/branch-protection.yaml; no BUCK file references .github. Workflow YAML decides HOW CI runs, never which buck2 targets exist, so it cannot change graph semantics; a changed workflow still runs its own changed self. (2) .gitignore + .gitattributes — owner() EMPTY; no BUCK reference. Specifically checked the one way these COULD matter — whether buck2 consults .gitignore when expanding glob(), which would make an ignore edit a graph input: it does not. buck2's ignore mechanism is the [project] ignore buckconfig key (this repo declares no [project] section, so buck2 uses its own defaults), and the only .gitignore strings in the buck2 binary belong to `buck2 init`, which WRITES one. (3) **/OWNERS — review-routing metadata, no BUCK reference. THE SAFETY PROPERTY IS UNCHANGED for all four: a declaration applies ONLY when owner() is empty, so if any of these classes is ever wired into the graph (an include_str! asset, a glob), owner() seeds it and this declaration never shadows the real owner. WHY IT MATTERS: before this, a one-line .gitignore or workflow edit was unowned+undeclared and escalated to the FULL tier — the same ~120-minute budgeted merge-base-plus-candidate run as a workspace-wide refactor. That tax fell hardest on the smallest changes and is a direct incremental-work deterrent.",
   "default_base_ref": "origin/dev",
   "product_contract": {
     "born_pack_shaped": "The escape-trigger classes, owner-required classes, universe, full-run patterns, cell roots, and base ref are DATA here; the Rust kernel hardcodes no repo path nor any oyatie string (R0, ADR-0548). The kernel DOES fix the decision SEMANTICS — RefuseUnowned > Full > Affected > NoGraphTargets dominance, derivation-uncertainty-escalates-to-full, owner() on every existing changed file regardless of extension — that contract is the engine, not a per-repo pack value.",
