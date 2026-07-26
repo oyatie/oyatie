@@ -574,15 +574,6 @@
         "globs": [
           "libs/oya-data-*"
         ]
-      },
-      {
-        "_comment": "The event-bus / messaging substrate primitives dissolve into the messaging capability home (ADR-0280 messaging node; bus/queue/stream boundary kernels are the per-key-ordering/backpressure seam). The substrate-kernel FLOOR has landed at messaging/core/substrate-kernel (de-brand strangler MOVE-1, ADR-0562/0532/0533) — self-owned by the messaging capability dir, so its libs/ membership glob is retired.",
-        "capability": "messaging",
-        "globs": [
-          "libs/oya-bus-boundary-kernel",
-          "libs/oya-queue-boundary-kernel",
-          "libs/oya-stream-boundary-kernel"
-        ]
       }
     ],
     "frozen_unmapped_baseline": {

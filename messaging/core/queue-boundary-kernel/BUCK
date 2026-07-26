@@ -1,7 +1,7 @@
 rust_library(
-    name = "oya-queue-boundary-kernel",
+    name = "messaging-queue-boundary-kernel",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
-    crate = "oya_queue_boundary_kernel",
+    crate = "messaging_queue_boundary_kernel",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
@@ -10,9 +10,9 @@ rust_library(
 )
 
 rust_test(
-    name = "oya-queue-boundary-kernel-unittest",
+    name = "messaging-queue-boundary-kernel-unittest",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
-    crate = "oya_queue_boundary_kernel",
+    crate = "messaging_queue_boundary_kernel",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [

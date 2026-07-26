@@ -1,5 +1,5 @@
 [package]
-name = "oya-bus-boundary-kernel"
+name = "messaging-stream-boundary-kernel"
 edition.workspace = true
 version.workspace = true
 rust-version.workspace = true
@@ -7,10 +7,10 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
-messaging-substrate-kernel = { path = "../../messaging/core/substrate-kernel" }
+messaging-substrate-kernel = { path = "../substrate-kernel" }
 
 [lib]
-name = "oya_bus_boundary_kernel"
+name = "messaging_stream_boundary_kernel"
 path = "src/lib.rs"
 doctest = false
 

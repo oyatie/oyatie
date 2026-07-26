@@ -1,4 +1,4 @@
-//! # oya-queue-boundary-kernel
+//! # messaging-queue-boundary-kernel
 //!
 //! The owned WORK-QUEUE surface — first of the three single-concern
 //! messaging surfaces (ADR-0536 D-13 queue/stream/bus trichotomy;
@@ -15,7 +15,7 @@
 //!   instead of redelivering forever (SQS redrive policy).
 //!
 //! # Naming justification
-//! `oya-queue-boundary-kernel` follows BNF v4.1:
+//! `messaging-queue-boundary-kernel` follows BNF v4.1:
 //! `oya-<topic:queue-boundary>-<layer:kernel>`, mirroring
 //! `oya-data-boundary-kernel` (owned substrate surfaces carry the owned
 //! name `oya-queue`, never a vendor name).
