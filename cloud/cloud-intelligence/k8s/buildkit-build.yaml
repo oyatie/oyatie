@@ -72,14 +72,32 @@ spec:
               #
               # Two-major bump from v2.4.1 (2024-10-03, ~22 months stale).
               #
-              # SIGNATURE FORMAT IS NOT BACKWARD COMPATIBLE. v3 writes the new
-              # bundle format; a v2 cosign cannot even discover it. Verified
-              # against a local registry with no egress: v2.4.1 and v2.5.0 both
-              # exit 10 "no signatures found" on a v3-signed image, v3.1.2 exits
-              # 0. Anything verifying images signed here MUST be cosign v3+.
-              # `oya/intelligence/iac/helm/eval/baseline-store/values.yaml` still
-              # pins cosign v2.5.0; it was not established to verify these images,
-              # but it cannot verify them if it does.
+              # WHAT A VERIFIER OF THESE SIGNATURES NEEDS — both conditions:
+              #   1. cosign v3+. A v2 client cannot discover a v3 signature at
+              #      all. Verified against a local registry with no egress:
+              #      v2.4.1 and v2.5.0 both exit 10 "no signatures found" on a
+              #      v3-signed image; v3.1.2 exits 0. (v3 writing its new bundle
+              #      format is the likely mechanism, but what was PROVEN is the
+              #      effect: the tag is written and a v2 client cannot read it.)
+              #   2. `--insecure-ignore-tlog`, or TUF egress. Because signing
+              #      below passes --tlog-upload=false there is NO Rekor entry, and
+              #      `verify` requires one by default (--insecure-ignore-tlog
+              #      defaults to false). A v3 verifier WITHOUT this flag still
+              #      exits 1. Stating only "use v3+" would send someone straight
+              #      into that failure.
+              #
+              # Security properties deliberately given up, so this is a decision
+              # and not an accident: no transparency-log entry, and — because
+              # --use-signing-config=false also drops the TSA path — no signed
+              # timestamp, so a signature cannot be bound to a point in time if
+              # this key is later rotated or compromised. That is a defensible
+              # trade for in-cluster signing with no egress; it is a real change
+              # from what v2 was configured to do.
+              #
+              # `oya/intelligence/iac/helm/eval/baseline-store/values.yaml` pins
+              # cosign v2.5.0 for a sidecar literally named cosignVerifier, and
+              # configures rekorPublicLog/rekorMirror — which will find no Rekor
+              # entry for these images. Tracked F-SEC-COSIGN-VERIFIER-SKEW.
               #
               # v3 defaults to fetching a signing config from the sigstore TUF
               # repo, so `sign` fails closed without egress. The two flags below
