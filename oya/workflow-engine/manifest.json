@@ -253,7 +253,7 @@
     "clickhouse": "24.3\"  # ClickHouse 24.3 LTS per docs/standards/workflow-engine-substrate.md",
     "postgres": "16.0\"  # Postgres 16 LTS line per docs/standards/workflow-engine-substrate.md",
     "valkey": "8.1\"  # Valkey 8.1 (RESP wire-compatible) per docs/standards/workflow-engine-substrate.md",
-    "rust": "1.96.0"
+    "rust": "1.97.1"
   },
   "adrs": [
     {

@@ -258,7 +258,7 @@ Rules:
 |---|---|
 | Primary language | Rust |
 | Rust edition | 2024 |
-| Minimum supported Rust version | 1.96.0 unless implementation source verification requires a later version |
+| Minimum supported Rust version | 1.97.1 unless implementation source verification requires a later version |
 | Workspace model | Cargo workspace, resolver 2, shared dependency and lint baselines |
 | Async runtime | Tokio 1 |
 | HTTP backbone | Hyper 1 plus hyper-util 0.1 |

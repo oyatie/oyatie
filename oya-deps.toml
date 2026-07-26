@@ -19,7 +19,7 @@ merge_authority = "oya-ci-required"
 
 [rust]
 channel = "stable"
-pin = "1.96.0"
+pin = "1.97.1"
 update_policy = "latest-stable"
 drift_guard = "cloud/cloud-ci/gates/oya-cloud-ci-freshness-app/src/rust_toolchain_drift.rs"
 exclusions = ["cloud/cloud-kernel/"]

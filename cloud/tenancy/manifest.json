@@ -207,7 +207,7 @@
     "citus": "12.1.0\"  # Citus LTS line per docs/standards/observability-slo.md",
     "patroni": "3.3.0\"  # Patroni LTS line",
     "postgres": "16.3\"  # Postgres LTS line per docs/standards/observability-slo.md",
-    "rust": "1.96.0"
+    "rust": "1.97.1"
   },
   "adrs": [
     {

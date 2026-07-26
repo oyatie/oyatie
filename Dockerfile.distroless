@@ -14,7 +14,7 @@
 
 ARG TARGET=x86_64-unknown-linux-musl
 ARG BIN_NAME=oya-intelligence-runtime
-ARG RUST_VERSION=1.96.0
+ARG RUST_VERSION=1.97.1
 
 # --- Stage 1: musl builder ------------------------------------------------
 FROM rust:${RUST_VERSION}-alpine AS builder
