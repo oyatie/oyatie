@@ -1140,7 +1140,16 @@ pub fn test_verdicts_to_report_value(verdicts: &BTreeMap<String, TestStatus>) ->
 /// Directory names never walked when deriving consumers: VCS + build scratch. Generic to any
 /// buck2/cargo repo (R0: no repo-specific path lives in this kernel — the scanned class is a
 /// PARAMETER, and the class root itself is skipped as a consequence of that parameter).
-const CONSUMER_SCAN_SKIP_DIRS: [&str; 4] = [".git", "buck-out", "target", "node_modules"];
+/// Directories the consumer scan never descends into.
+///
+/// `.claude` is tracked (it carries BUCK/OWNERS/settings.json) but also hosts the per-lane
+/// isolated worktrees the operating contract mandates. Those are full nested repo copies, so
+/// scanning them derives packages like `.claude/worktrees/agent-*/ci/facade/...` that no
+/// declaration will ever list, and the gate REDs on tens of thousands of files that are not
+/// this checkout. The direction is fail-closed, but a gate that REDs bogusly is how someone
+/// gets talked into weakening the scan — which is precisely how the reverted #1389 happened.
+const CONSUMER_SCAN_SKIP_DIRS: [&str; 5] =
+    [".git", ".claude", "buck-out", "target", "node_modules"];
 
 /// One derived consumer of a whole-tree-scanner path class: the buck2 package that can produce a
 /// test verdict, and the file whose quote-anchored path literal put it there.
