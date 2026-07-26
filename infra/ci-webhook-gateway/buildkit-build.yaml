@@ -180,11 +180,21 @@ spec:
               # which would silently break the verification chain.
               DIGEST=$(jq -r '."containerimage.digest"' /tmp/buildkit-meta.json)
               # cosign is not present in moby/buildkit; download a pinned release.
-              # cosign v2.4.1 linux/amd64 SHA256 (sigstore upstream release):
-              #   8b24b946dd5809c6bd93de08033bcf6bc0ed7d336b7785787c080f574b89249b
+              # cosign v3.1.2 linux/amd64 SHA256, taken from the upstream
+              # cosign_checksums.txt for the v3.1.2 release AND independently
+              # recomputed from the downloaded asset (both agree):
+              #   f7622ed3cf22e55e1ae6377c080979ff77a22da9981c11df222a2e444991e7cf
+              #
+              # Two-major bump from v2.4.1 (2024-10-03, ~22 months stale). v3
+              # changed the `sign` flag surface — `--yes` and `--tlog-upload` are
+              # gone, `--upload`/`--signing-config`/`--trusted-root` are new — but
+              # this step invokes only `sign --key <key> <image@digest>`, and
+              # `--key` is still present in v3.1.2 (verified by running
+              # `cosign sign --help` from the pinned binary). Anything that grows
+              # this invocation must re-check that flag surface.
               curl -fsSL -o /tmp/cosign \
-                https://github.com/sigstore/cosign/releases/download/v2.4.1/cosign-linux-amd64
-              echo "8b24b946dd5809c6bd93de08033bcf6bc0ed7d336b7785787c080f574b89249b  /tmp/cosign" | sha256sum -c -
+                https://github.com/sigstore/cosign/releases/download/v3.1.2/cosign-linux-amd64
+              echo "f7622ed3cf22e55e1ae6377c080979ff77a22da9981c11df222a2e444991e7cf  /tmp/cosign" | sha256sum -c -
               chmod +x /tmp/cosign
               /tmp/cosign sign --key oya-ci/cosign-key \
                 "registry.oya-registry.svc.cluster.local:5000/ci-webhook-gateway@${DIGEST}"
