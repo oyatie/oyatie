@@ -37,7 +37,27 @@
     "": "//"
   },
   "_synthetic_dependencies_note": "ADR-0554 round-6 (defect 2): every changed path must map to a buck2 owner() OR an explicit synthetic-dependency declaration here, otherwise it escalates to FULL (an unowned, undeclared path is derivation uncertainty — the old silent 'docs class — fine' default was a selector hole). Each key is a micro-glob; the value is the list of synthetic seed targets the path contributes (a whole-tree-scanner input declared as a graph edge). An EMPTY list is an explicit inert declaration: 'this class is not a buck2 graph input.' A declaration only applies when owner() is EMPTY — an owned instance (e.g. an include_str! markdown asset) is still seeded by owner(), so declaring docs inert never shadows a real owner. CONSERVATIVE by design: only clearly-inert, commonly-touched doc classes are declared, so a docs-only PR stays fast; EVERYTHING ELSE unowned (yaml/toml/json/txt config, unknown extensions) escalates to FULL until a class earns an evidence-backed declaration. Broadening this map is an optimization follow-up, never a soundness requirement.",
+  "_github_seed_note": "`.github/**` is the canonical whole-tree-scanner input: owner() is empty for it BY DEFINITION (it is nobody's declared src), which is the PREMISE of a synthetic declaration, not evidence of inertness. Two cheaper shapes were tried and reverted. (1) Declaring it INERT (`[]`) is a FALSE GREEN — a dozen gate tests read `.github/**` at runtime by climbing from cwd to a repo-root marker, and a workflow-only PR resolved to NoGraphTargets and walked past the no-new-shell ratchet (PR #1389, reverted by #1391). (2) Making it OWNED (export_file + $(location)) is subtler but also wrong: resolve() SHORT-CIRCUITS on a non-empty owner() (`seeds.extend(owners); continue`) and never reaches synthetic_seeds(), so owning these paths permanently DISABLES this mechanism for them and narrows the cone to the export's own rdeps. The seeds below are PACKAGE patterns, not individual targets: a package pattern is robust to target renames and is a strict SUPERSET of the specific test targets that read the tree — over-seeding costs build time, under-seeding is a merge-authority hole. The list is not hand-trusted: ci-affected-target-set-github-consumer-coverage derives the consumer set FROM THE TREE (a quote-anchored `.github` path literal in a .rs/.json under a rust_test-bearing buck2 package) and fails closed on any package missing here, so consumer N+1 cannot land unwired. `.gitignore`, `.gitattributes` and `**/OWNERS` are deliberately NOT declared — no consumer was verified for them, so they keep escalating to FULL (the safe default). ONE seed is deliberately un-derivable and must not be deleted just because the completeness gate stays green without it: root//ci/facade/artifact-inventory-registry: (the accounting producer) names no `.github` literal at all — it consumes `git ls-files` verbatim, so every tracked `.github` path becomes an accounting row and an add/remove/edit there can flip ci-baseline-ratchet-gate through the frozen baseline + signoff. Its cone was measured to be a strict subset of the derived seeds' cone (zero added targets), so pinning it makes that coverage explicit at zero build cost instead of accidental.",
   "synthetic_dependencies": {
+    ".github/**": [
+      "root//ci/facade/affected-target-set:",
+      "root//ci/facade/artifact-inventory-registry:",
+      "root//ci/facade/automation-language-policy:",
+      "root//ci/facade/baseline-ratchet:",
+      "root//ci/facade/build-cache-policy:",
+      "root//ci/facade/cross-artifact-agreement:",
+      "root//ci/facade/dependency-automation:",
+      "root//ci/facade/gate-self-conformance:",
+      "root//ci/facade/generated-artifact-freshness:",
+      "root//ci/facade/generated-artifact-policy:",
+      "root//ci/facade/repo-root-hygiene:",
+      "root//ci/facade/supply-chain-audit:",
+      "root//libs/oya-check-doc-catalog:",
+      "root//libs/oya-check-image-signing-discipline:",
+      "root//libs/oya-check-slsa-l3-evidence-grounded:",
+      "root//libs/oya-governance-gate-catalog-domain:",
+      "root//marketplace/facade/dev-cli:"
+    ],
     "docs/ideas/archive/**": [
       "root//ci/facade/cross-artifact-agreement:ci-cross-artifact-agreement-gate"
     ],

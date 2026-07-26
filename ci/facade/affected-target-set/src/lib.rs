@@ -38,6 +38,8 @@
 #![forbid(unsafe_code)]
 
 use std::collections::{BTreeMap, BTreeSet};
+use std::fs;
+use std::path::Path;
 
 use serde_json::{Value, json};
 
@@ -1133,6 +1135,148 @@ pub fn test_verdicts_to_report_value(verdicts: &BTreeMap<String, TestStatus>) ->
         })
         .collect();
     json!({ "results": results })
+}
+
+/// Directory names never walked when deriving consumers: VCS + build scratch. Generic to any
+/// buck2/cargo repo (R0: no repo-specific path lives in this kernel — the scanned class is a
+/// PARAMETER, and the class root itself is skipped as a consequence of that parameter).
+const CONSUMER_SCAN_SKIP_DIRS: [&str; 4] = [".git", "buck-out", "target", "node_modules"];
+
+/// One derived consumer of a whole-tree-scanner path class: the buck2 package that can produce a
+/// test verdict, and the file whose quote-anchored path literal put it there.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PathLiteralConsumer {
+    /// Repo-root-relative package directory, e.g. `ci/facade/baseline-ratchet`.
+    pub package: String,
+    /// Repo-root-relative path of the first file in the package naming a `class_dir` path.
+    pub evidence: String,
+}
+
+/// Derive, FROM THE TREE, the buck2 packages whose test verdict a change under `class_dir` can
+/// flip — the accountability check for a `synthetic_dependencies` seed list.
+///
+/// A hand-maintained seed list rots silently: consumer N+1 lands unwired and the affected cone
+/// narrows with nothing going red — the same class of hand-maintained safety property that
+/// produced the reverted `[]`-inert declaration for `.github/**`.
+///
+/// `class_dir` is the repo-root-relative directory whose consumers are wanted (the caller's repo
+/// fact, e.g. `.github`). The needle is a double quote immediately followed by `class_dir`, i.e.
+/// a Rust/JSON string literal that STARTS at that path. Prose mentions (`` `.github/x.yml` `` in
+/// a doc comment or a JSON `_comment`) are not quote-anchored and so do not match — the wanted
+/// discrimination, and why no comment-stripping is needed for either language.
+///
+/// A package qualifies when BOTH hold:
+/// 1. some `.rs`/`.json` file under it contains that needle; and
+/// 2. its buildfile declares at least one `rust_test` — only a package that can produce a
+///    verdict can produce a FALSE-GREEN one. Data-only packages (`specs/`, `registry/`) are full
+///    of such strings and are excluded here mechanically, with no allowlist to maintain.
+///
+/// `class_dir` itself is never walked: its files are the SUBJECT of the declaration, never a
+/// consumer of it.
+///
+/// Deliberately CONSERVATIVE: literal presence, not a proven filesystem read. A package that
+/// merely embeds the string is over-seeded, which costs build time; missing one is a
+/// merge-authority hole. Over-seeding is the safe direction, so no "mentions-only" exemption
+/// list exists — there is no hand-maintained judgement anywhere in this derivation.
+pub fn scan_path_literal_consumers(
+    root: &Path,
+    class_dir: &str,
+) -> Result<Vec<PathLiteralConsumer>, String> {
+    let needle = format!("\"{class_dir}");
+    let mut hits: BTreeMap<String, String> = BTreeMap::new();
+    collect_path_literal_files(root, root, class_dir, &needle, &mut hits)?;
+    Ok(hits
+        .into_iter()
+        .filter_map(|(package, evidence)| {
+            package_declares_rust_test(root, &package)
+                .then_some(PathLiteralConsumer { package, evidence })
+        })
+        .collect())
+}
+
+/// Recursive half of [`scan_path_literal_consumers`]: records `package -> first evidence file`
+/// for every `.rs`/`.json` containing `needle`. Both are repo-root-relative, `/`-separated.
+fn collect_path_literal_files(
+    root: &Path,
+    dir: &Path,
+    class_dir: &str,
+    needle: &str,
+    hits: &mut BTreeMap<String, String>,
+) -> Result<(), String> {
+    let entries =
+        fs::read_dir(dir).map_err(|e| format!("read_dir {}: {e}", dir.display()))?;
+    for entry in entries {
+        let entry = entry.map_err(|e| format!("dir entry under {}: {e}", dir.display()))?;
+        let path = entry.path();
+        let name = entry.file_name().to_string_lossy().into_owned();
+        let file_type = entry
+            .file_type()
+            .map_err(|e| format!("file_type {}: {e}", path.display()))?;
+        if file_type.is_symlink() {
+            continue;
+        }
+        if file_type.is_dir() {
+            let is_class_root = rel_slash_path(root, &path) == class_dir;
+            if !is_class_root && !CONSUMER_SCAN_SKIP_DIRS.contains(&name.as_str()) {
+                collect_path_literal_files(root, &path, class_dir, needle, hits)?;
+            }
+            continue;
+        }
+        if !(name.ends_with(".rs") || name.ends_with(".json")) {
+            continue;
+        }
+        // Unreadable/non-UTF-8 sources cannot be proven inert, so they are skipped only because
+        // they cannot carry a Rust/JSON string literal at all.
+        let Ok(text) = fs::read_to_string(&path) else {
+            continue;
+        };
+        if !text.contains(needle) {
+            continue;
+        }
+        let Some(package) = enclosing_buck_package(root, &path) else {
+            continue;
+        };
+        let rel = rel_slash_path(root, &path);
+        hits.entry(package).or_insert(rel);
+    }
+    Ok(())
+}
+
+/// The nearest ancestor directory of `path` (at or below `root`) holding a buildfile, as a
+/// repo-root-relative `/`-separated dir. Buildfile precedence mirrors
+/// `package_definition_basenames`: `BUCK.v2` shadows `BUCK`.
+fn enclosing_buck_package(root: &Path, path: &Path) -> Option<String> {
+    let mut dir = path.parent()?;
+    loop {
+        if dir.join("BUCK.v2").is_file() || dir.join("BUCK").is_file() {
+            return Some(rel_slash_path(root, dir));
+        }
+        if dir == root {
+            return None;
+        }
+        dir = dir.parent()?;
+    }
+}
+
+/// True iff the package's buildfile declares a `rust_test` — the packages that can go green.
+fn package_declares_rust_test(root: &Path, package: &str) -> bool {
+    let dir = root.join(package);
+    for basename in ["BUCK.v2", "BUCK"] {
+        if let Ok(text) = fs::read_to_string(dir.join(basename)) {
+            return text.contains("rust_test(");
+        }
+    }
+    false
+}
+
+/// Repo-root-relative, `/`-separated rendering of `path` (Windows lanes run these gates too).
+fn rel_slash_path(root: &Path, path: &Path) -> String {
+    path.strip_prefix(root)
+        .unwrap_or(path)
+        .components()
+        .map(|c| c.as_os_str().to_string_lossy().into_owned())
+        .collect::<Vec<_>>()
+        .join("/")
 }
 
 #[cfg(test)]
