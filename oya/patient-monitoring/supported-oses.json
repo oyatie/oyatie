@@ -2,7 +2,7 @@
   "$schema": "https://docs.oyatie.com/schemas/microservice-supported-oses.schema.json",
   "microservice": "patient-monitoring",
   "date": "2026-05-21",
-  "rust_toolchain": "1.96.0-stable",
+  "rust_toolchain": "1.97.1-stable",
   "rust_msrv": "1.83.0",
   "kernel_min_versions": {
     "linux": "6.6-lts",

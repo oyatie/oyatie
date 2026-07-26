@@ -208,7 +208,7 @@ mod tests {
     }
 
     const CANONICAL_DOCKERFILE: &str = "\
-FROM rust:1.96.0-slim AS builder
+FROM rust:1.97.1-slim AS builder
 WORKDIR /build
 COPY . .
 RUN cargo build --release --target x86_64-unknown-linux-musl

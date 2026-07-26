@@ -79,7 +79,7 @@ Source: `microservices/itsm/performance-benchmark-numbers-2026-05-20.md` §3 + �
 
 ## First 30 minutes — running ITSM locally
 
-Pre-reqs: Rust 1.96.0+ (stable), OpenTofu, Docker, Kustomize.
+Pre-reqs: Rust 1.97.1+ (stable), OpenTofu, Docker, Kustomize.
 
 1. Clone repo.
 2. From the repo root: `cd microservices/itsm && cargo build`.

@@ -45,7 +45,7 @@ The workspace ships in Rust. This standard governs every `oya-*` crate.
 Per the current Rust stable release:
 
 - The workspace MUST pin `rust-toolchain.toml` to the current stable release
-  (currently **1.96.0**).
+  (currently **1.97.1**).
 - This supersedes the old ≥30-day Rust soak rule for the toolchain pin: stable
   Rust releases may carry Cargo/security fixes, so the workspace follows the
   upstream stable channel and lets CI prove compatibility immediately.

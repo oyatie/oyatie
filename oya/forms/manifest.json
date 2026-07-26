@@ -233,7 +233,7 @@
     "postgres": "1.0.0",
     "prometheus": "2.55",
     "valkey": "1.0.0",
-    "rust": "1.96.0"
+    "rust": "1.97.1"
   },
   "adrs": [
     {

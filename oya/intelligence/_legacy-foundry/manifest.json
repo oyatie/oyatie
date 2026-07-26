@@ -987,7 +987,7 @@
     "clickhouse": "24.3",
     "postgres": "16.4.0",
     "redis": "7.4.1\"   # LTS line; verify-at-deploy",
-    "rust": "1.96.0"
+    "rust": "1.97.1"
   },
   "adrs": [
     {

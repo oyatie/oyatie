@@ -250,7 +250,7 @@
   "lts_pins": {
     "istio": "1.24.1\"                # Istio Ambient LTS pin (ADR-0148 Tier-2 baseline)",
     "postgres": "16.2",
-    "rust": "1.96.0"
+    "rust": "1.97.1"
   },
   "adrs": [
     {
