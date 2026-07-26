@@ -36,7 +36,7 @@ use intelligence_openbao_adapter::OpenBaoTransitStore;
 use intelligence_rest::{
     AppState, BearerBinding, ConfiguredBearerIngressAuthenticator,
     ConfiguredBearerMapIngressAuthenticator, EventSinkFanout, IngressPrincipalAuthenticator,
-    PoolRegistry, RestAdapterError, SecretProviderStore,
+    PoolRegistry, RestAdapterError, SecretProviderFuture, SecretProviderStore,
 };
 use oya_shared_olap_clickhouse_adapter::ClickHouseConfig;
 use tracing::info;
@@ -657,24 +657,32 @@ impl Default for InProcessSecretStore {
 }
 
 impl SecretProviderStore for InProcessSecretStore {
-    fn fetch_refresh_token(&self, handle: &str) -> Result<String, RestAdapterError> {
-        self.map
-            .lock()
-            .map_err(|_| RestAdapterError::SecretStoreUnavailable("lock poisoned".to_string()))?
-            .get(handle)
-            .cloned()
-            .ok_or(RestAdapterError::SecretNotFound)
+    fn fetch_refresh_token<'a>(&'a self, handle: &'a str) -> SecretProviderFuture<'a, String> {
+        Box::pin(async move {
+            self.map
+                .lock()
+                .map_err(|_| RestAdapterError::SecretStoreUnavailable("lock poisoned".to_string()))?
+                .get(handle)
+                .cloned()
+                .ok_or(RestAdapterError::SecretNotFound)
+        })
     }
 
-    fn store_refresh_token(&self, handle: &str, plaintext: &str) -> Result<(), RestAdapterError> {
-        if plaintext.is_empty() {
-            return Err(RestAdapterError::InvalidSecret);
-        }
-        self.map
-            .lock()
-            .map_err(|_| RestAdapterError::SecretStoreUnavailable("lock poisoned".to_string()))?
-            .insert(handle.to_string(), plaintext.to_string());
-        Ok(())
+    fn store_refresh_token<'a>(
+        &'a self,
+        handle: &'a str,
+        plaintext: &'a str,
+    ) -> SecretProviderFuture<'a, ()> {
+        Box::pin(async move {
+            if plaintext.is_empty() {
+                return Err(RestAdapterError::InvalidSecret);
+            }
+            self.map
+                .lock()
+                .map_err(|_| RestAdapterError::SecretStoreUnavailable("lock poisoned".to_string()))?
+                .insert(handle.to_string(), plaintext.to_string());
+            Ok(())
+        })
     }
 }
 
@@ -769,32 +777,30 @@ pub fn build_app(config: AppConfig) -> Result<Arc<AppState>, AppBuildError> {
             "invalid ingress principal tenant: {ingress_principal_tenant:?}"
         ))
     })?;
-    let ingress_authenticator: Arc<dyn IngressPrincipalAuthenticator> = if config
-        .ingress_bearer_map
-        .is_empty()
-    {
-        // Single-tenant (unchanged): the configured bearer bound to this
-        // service's own (or override) tenant. Empty token => every request 401.
-        Arc::new(ConfiguredBearerIngressAuthenticator::new(
-            config.ingress_bearer_token.clone().unwrap_or_default(),
-            ingress_principal_tenant,
-        ))
-    } else {
-        // Multi-tenant (AUTH-005 increment-3): each (tenant, token) binds a
-        // bearer to a VERIFIED principal tenant. x-agent-id stays caller-supplied
-        // (intra-tenant label), so the verified agent is None here.
-        Arc::new(ConfiguredBearerMapIngressAuthenticator::new(
-            config
-                .ingress_bearer_map
-                .iter()
-                .map(|(tenant, token)| BearerBinding {
-                    token: token.clone(),
-                    tenant: tenant.clone(),
-                    agent: None,
-                })
-                .collect(),
-        ))
-    };
+    let ingress_authenticator: Arc<dyn IngressPrincipalAuthenticator> =
+        if config.ingress_bearer_map.is_empty() {
+            // Single-tenant (unchanged): the configured bearer bound to this
+            // service's own (or override) tenant. Empty token => every request 401.
+            Arc::new(ConfiguredBearerIngressAuthenticator::new(
+                config.ingress_bearer_token.clone().unwrap_or_default(),
+                ingress_principal_tenant,
+            ))
+        } else {
+            // Multi-tenant (AUTH-005 increment-3): each (tenant, token) binds a
+            // bearer to a VERIFIED principal tenant. x-agent-id stays caller-supplied
+            // (intra-tenant label), so the verified agent is None here.
+            Arc::new(ConfiguredBearerMapIngressAuthenticator::new(
+                config
+                    .ingress_bearer_map
+                    .iter()
+                    .map(|(tenant, token)| BearerBinding {
+                        token: token.clone(),
+                        tenant: tenant.clone(),
+                        agent: None,
+                    })
+                    .collect(),
+            ))
+        };
 
     // Build AppState (uses the shared reqwest::Client for upstream proxy calls).
     let state = AppState::new_with_pool_registry(
@@ -1539,25 +1545,25 @@ mod tests {
         }
     }
 
-    #[test]
-    fn in_process_secret_store_roundtrips() {
+    #[tokio::test]
+    async fn in_process_secret_store_roundtrips() {
         let store = InProcessSecretStore::new();
         store.preload("h1", "rt-1");
-        let fetched = store.fetch_refresh_token("h1").unwrap();
+        let fetched = store.fetch_refresh_token("h1").await.unwrap();
         assert_eq!(fetched, "rt-1");
     }
 
-    #[test]
-    fn in_process_secret_store_not_found() {
+    #[tokio::test]
+    async fn in_process_secret_store_not_found() {
         let store = InProcessSecretStore::new();
-        let err = store.fetch_refresh_token("missing").unwrap_err();
+        let err = store.fetch_refresh_token("missing").await.unwrap_err();
         assert_eq!(err, RestAdapterError::SecretNotFound);
     }
 
-    #[test]
-    fn in_process_secret_store_rejects_empty_plaintext() {
+    #[tokio::test]
+    async fn in_process_secret_store_rejects_empty_plaintext() {
         let store = InProcessSecretStore::new();
-        let err = store.store_refresh_token("h1", "").unwrap_err();
+        let err = store.store_refresh_token("h1", "").await.unwrap_err();
         assert_eq!(err, RestAdapterError::InvalidSecret);
     }
 }

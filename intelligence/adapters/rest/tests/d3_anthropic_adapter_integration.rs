@@ -20,9 +20,7 @@ use intelligence_kernel::{
     AgentId, AuthzDecision, AuthzRequest, OAuthSubscription, Provider, SeatId, SeatOutcome,
     SelectionStrategy, SubscriptionId, SubscriptionPool, SubscriptionState, TenantId,
 };
-use intelligence_rest::{
-    AnthropicAdapter, ProxyRequest, RestAdapterError, SecretProviderStore,
-};
+use intelligence_rest::{AnthropicAdapter, ProxyRequest, RestAdapterError, SecretProviderStore};
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -33,11 +31,18 @@ struct StubStore {
 }
 
 impl SecretProviderStore for StubStore {
-    fn fetch_refresh_token(&self, _: &str) -> Result<String, RestAdapterError> {
-        Ok(self.token.clone())
+    fn fetch_refresh_token<'a>(
+        &'a self,
+        _: &'a str,
+    ) -> intelligence_rest::SecretProviderFuture<'a, String> {
+        Box::pin(async move { Ok(self.token.clone()) })
     }
-    fn store_refresh_token(&self, _: &str, _: &str) -> Result<(), RestAdapterError> {
-        Ok(())
+    fn store_refresh_token<'a>(
+        &'a self,
+        _: &'a str,
+        _: &'a str,
+    ) -> intelligence_rest::SecretProviderFuture<'a, ()> {
+        Box::pin(async { Ok(()) })
     }
 }
 
@@ -203,16 +208,26 @@ async fn upstream_429_maps_to_rate_limited_outcome() {
     let pool_ref = make_pool("t-429", "seat-429");
     let gate = struct_allow_gate();
     let agent = AgentId::new("agent-429").unwrap();
-    let lease =
-        SubscriptionPool::lease(&pool_ref, &TenantId::new("t-429").unwrap(), &agent, &gate, Instant::now())
-            .unwrap();
+    let lease = SubscriptionPool::lease(
+        &pool_ref,
+        &TenantId::new("t-429").unwrap(),
+        &agent,
+        &gate,
+        Instant::now(),
+    )
+    .unwrap();
     let sid = lease.seat_id().clone();
     lease
         .complete(SeatOutcome::RateLimited429, Instant::now())
         .unwrap();
 
-    let result2 =
-        SubscriptionPool::lease(&pool_ref, &TenantId::new("t-429").unwrap(), &agent, &gate, Instant::now());
+    let result2 = SubscriptionPool::lease(
+        &pool_ref,
+        &TenantId::new("t-429").unwrap(),
+        &agent,
+        &gate,
+        Instant::now(),
+    );
     assert!(
         result2.is_err(),
         "seat {sid:?} should be in cooldown after RateLimited429"
@@ -257,15 +272,25 @@ async fn upstream_401_invalid_grant_causes_refresh_error() {
     let pool_ref = make_pool("t-401", "seat-401");
     let gate = struct_allow_gate();
     let agent = AgentId::new("agent-401").unwrap();
-    let lease =
-        SubscriptionPool::lease(&pool_ref, &TenantId::new("t-401").unwrap(), &agent, &gate, Instant::now())
-            .unwrap();
+    let lease = SubscriptionPool::lease(
+        &pool_ref,
+        &TenantId::new("t-401").unwrap(),
+        &agent,
+        &gate,
+        Instant::now(),
+    )
+    .unwrap();
     lease
         .complete(SeatOutcome::RefreshFailed, Instant::now())
         .unwrap();
 
-    let result2 =
-        SubscriptionPool::lease(&pool_ref, &TenantId::new("t-401").unwrap(), &agent, &gate, Instant::now());
+    let result2 = SubscriptionPool::lease(
+        &pool_ref,
+        &TenantId::new("t-401").unwrap(),
+        &agent,
+        &gate,
+        Instant::now(),
+    );
     assert!(
         result2.is_err(),
         "seat should be in cooldown after RefreshFailed"

@@ -34,6 +34,7 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::{BTreeMap, HashMap};
+use std::future::Future;
 use std::pin::Pin;
 use std::sync::{Arc, Mutex};
 use std::task::{Context, Poll};
@@ -52,9 +53,7 @@ use futures::StreamExt as _;
 use intelligence_codex_adapter::{
     CodexAdapter, CodexAdapterError, CodexProxyRequest, CodexProxyResponse, OpenAiApiKeyAdapter,
 };
-use intelligence_gemini_adapter::{
-    GeminiAdapterError, GeminiApiKeyAdapter, GeminiProxyResponse,
-};
+use intelligence_gemini_adapter::{GeminiAdapterError, GeminiApiKeyAdapter, GeminiProxyResponse};
 use intelligence_kernel::model_routing::{
     BackendClass, ModelRouter, ModelRoutingError, ProtocolShape, RoutePolicy, RouteRequest,
     RoutingDecision,
@@ -130,18 +129,29 @@ impl std::error::Error for RestAdapterError {}
 ///
 /// Transient backing stores live behind adapter crates; core request handling
 /// depends only on this port.
+/// Object-safe future returned by [`SecretProviderStore`].
+///
+/// The lifetime is tied to the store and input references, retaining dynamic
+/// dispatch while allowing production secret providers to perform async I/O.
+pub type SecretProviderFuture<'a, T> =
+    Pin<Box<dyn Future<Output = Result<T, RestAdapterError>> + Send + 'a>>;
+
 pub trait SecretProviderStore: Send + Sync {
     /// Fetch and decrypt the refresh token identified by `handle`.
-    fn fetch_refresh_token(&self, handle: &str) -> Result<String, RestAdapterError>;
+    fn fetch_refresh_token<'a>(&'a self, handle: &'a str) -> SecretProviderFuture<'a, String>;
 
     /// Envelope-encrypt `plaintext` and store it under `handle`.
-    fn store_refresh_token(&self, handle: &str, plaintext: &str) -> Result<(), RestAdapterError>;
+    fn store_refresh_token<'a>(
+        &'a self,
+        handle: &'a str,
+        plaintext: &'a str,
+    ) -> SecretProviderFuture<'a, ()>;
 
     /// Lightweight health probe for readiness. In-memory test stores are ready
     /// by default; production adapters override this to touch the owned
     /// secret-provider port.
-    fn readiness_probe(&self) -> Result<(), RestAdapterError> {
-        Ok(())
+    fn readiness_probe(&self) -> SecretProviderFuture<'_, ()> {
+        Box::pin(async { Ok(()) })
     }
 }
 
@@ -467,7 +477,8 @@ impl<S: SecretProviderStore> AnthropicAdapter<S> {
             .map_err(|e| RestAdapterError::OAuthRefreshFailed(e.to_string()))?;
         let handle = format!("{}/{}", tenant_id.as_str(), seat_id.as_str());
         self.secret_store
-            .store_refresh_token(&handle, &token_resp.refresh_token)?;
+            .store_refresh_token(&handle, &token_resp.refresh_token)
+            .await?;
         Ok(handle)
     }
 
@@ -486,12 +497,12 @@ impl<S: SecretProviderStore> AnthropicAdapter<S> {
     ) -> Result<String, RestAdapterError> {
         let current_refresh = self
             .secret_store
-            .fetch_refresh_token(refresh_token_handle)?;
+            .fetch_refresh_token(refresh_token_handle)
+            .await?;
 
         let url = format!("{}/v1/oauth/token", self.base_url);
         let client_id = self.client_id.clone();
         let handle = refresh_token_handle.to_string();
-        let secret_store_ref: &S = &self.secret_store;
 
         debug!(
             handle = refresh_token_handle,
@@ -538,7 +549,13 @@ impl<S: SecretProviderStore> AnthropicAdapter<S> {
         if !new_refresh.is_empty() {
             // Rotate refresh token in secret store (best-effort for followers — leader
             // already stored it; followers store again which is idempotent).
-            let _ = secret_store_ref.store_refresh_token(&handle, new_refresh);
+            if let Err(error) = self
+                .secret_store
+                .store_refresh_token(&handle, new_refresh)
+                .await
+            {
+                warn!(?error, handle = %handle, "failed to rotate refreshed OAuth token");
+            }
         }
 
         Ok(access_token)
@@ -1377,22 +1394,20 @@ impl AppState {
         // test may override the binding via `with_ingress_authenticator` so a
         // cross-tenant principal is expressible. An empty token => every
         // data-plane request 401 (fail-closed).
-        let ingress_authenticator: Arc<dyn IngressPrincipalAuthenticator> = Arc::new(
-            ConfiguredBearerIngressAuthenticator::new(
+        let ingress_authenticator: Arc<dyn IngressPrincipalAuthenticator> =
+            Arc::new(ConfiguredBearerIngressAuthenticator::new(
                 ingress_bearer_token.unwrap_or_default(),
                 tenant_id.clone(),
-            ),
-        );
+            ));
         // Default admin authenticator: the configured admin bearer bound to this
         // service's own tenant (the administered tenant). An empty token => every
         // tenant-scoped admin request 401 (fail-closed); the verified admin tenant
         // (never `x-oya-admin-tenant`) then drives the tenant-isolation guard + gate.
-        let admin_authenticator: Arc<dyn AdminPrincipalAuthenticator> = Arc::new(
-            ConfiguredBearerAdminAuthenticator::new(
+        let admin_authenticator: Arc<dyn AdminPrincipalAuthenticator> =
+            Arc::new(ConfiguredBearerAdminAuthenticator::new(
                 admin_bearer_token.clone().unwrap_or_default(),
                 tenant_id.clone(),
-            ),
-        );
+            ));
         Ok(Self {
             pool,
             pool_registry,
@@ -1620,8 +1635,9 @@ impl IngressPrincipalAuthenticator for ConfiguredBearerMapIngressAuthenticator {
                 matched = Some(binding);
             }
         }
-        matched
-            .map(|binding| VerifiedIngressPrincipal::new(binding.tenant.clone(), binding.agent.clone()))
+        matched.map(|binding| {
+            VerifiedIngressPrincipal::new(binding.tenant.clone(), binding.agent.clone())
+        })
     }
 }
 
@@ -2253,7 +2269,11 @@ async fn handle_proxy(
             CredentialMode::ApiKey => {
                 // API-key seats resolve the provider key from the opaque handle
                 // and MUST NOT trigger an OAuth refresh.
-                let api_key = match state.secret_store.fetch_refresh_token(&credential_handle) {
+                let api_key = match state
+                    .secret_store
+                    .fetch_refresh_token(&credential_handle)
+                    .await
+                {
                     Ok(key) => key,
                     Err(_) => {
                         let _ = lease.complete(SeatOutcome::RefreshFailed, Instant::now());
@@ -2305,7 +2325,11 @@ async fn handle_proxy(
             CredentialMode::ApiKey => {
                 // API-key seats resolve the provider key from the opaque handle
                 // and MUST NOT trigger an OAuth refresh.
-                match state.secret_store.fetch_refresh_token(&credential_handle) {
+                match state
+                    .secret_store
+                    .fetch_refresh_token(&credential_handle)
+                    .await
+                {
                     Ok(api_key) => {
                         adapter
                             .proxy_with_api_key(&state.http_client, &proxy_request, &api_key)
@@ -2714,35 +2738,35 @@ async fn handle_openai_compatible_proxy(
     };
     let lease_context =
         match acquire_provider_lease(&state, Provider::Codex, principal.tenant(), &agent_id) {
-        Ok(context) => context,
-        Err(LeaseError::Forbidden) => {
-            return openai_error_response(
-                StatusCode::FORBIDDEN,
-                "policy_error",
-                "forbidden_by_policy",
-                "request was denied by policy",
-                None,
-            );
-        }
-        Err(LeaseError::NoEligibleSeat) => {
-            return openai_error_response(
-                StatusCode::SERVICE_UNAVAILABLE,
-                "unavailable_error",
-                "no_eligible_provider_seat",
-                "no eligible OpenAI-compatible provider seat is available",
-                Some(1),
-            );
-        }
-        Err(LeaseError::Internal) => {
-            return openai_error_response(
-                StatusCode::INTERNAL_SERVER_ERROR,
-                "server_error",
-                "provider_pool_error",
-                "provider pool state could not be read",
-                None,
-            );
-        }
-    };
+            Ok(context) => context,
+            Err(LeaseError::Forbidden) => {
+                return openai_error_response(
+                    StatusCode::FORBIDDEN,
+                    "policy_error",
+                    "forbidden_by_policy",
+                    "request was denied by policy",
+                    None,
+                );
+            }
+            Err(LeaseError::NoEligibleSeat) => {
+                return openai_error_response(
+                    StatusCode::SERVICE_UNAVAILABLE,
+                    "unavailable_error",
+                    "no_eligible_provider_seat",
+                    "no eligible OpenAI-compatible provider seat is available",
+                    Some(1),
+                );
+            }
+            Err(LeaseError::Internal) => {
+                return openai_error_response(
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "server_error",
+                    "provider_pool_error",
+                    "provider pool state could not be read",
+                    None,
+                );
+            }
+        };
 
     // OAuth-subscription Codex seats route through the ChatGPT session OAuth
     // flow + Codex data endpoint (subscription pooling). API-key seats fall
@@ -2765,6 +2789,7 @@ async fn handle_openai_compatible_proxy(
     let api_key = match state
         .secret_store
         .fetch_refresh_token(&lease_context.credential_handle)
+        .await
     {
         Ok(api_key) => api_key,
         Err(_) => {
@@ -2920,6 +2945,7 @@ async fn handle_codex_oauth_subscription_proxy(
     let refresh_token = match state
         .secret_store
         .fetch_refresh_token(&lease_context.credential_handle)
+        .await
     {
         Ok(token) => token,
         Err(_) => {
@@ -3110,31 +3136,31 @@ async fn handle_gemini_adapter_proxy(
 ) -> Response {
     let lease_context =
         match acquire_provider_lease(&state, Provider::Gemini, principal_tenant, &agent_id) {
-        Ok(context) => context,
-        Err(LeaseError::Forbidden) => {
-            return gemini_adapter_error_to_response(GeminiAdapterError::InvalidRequest(
-                "request was denied by policy".to_string(),
-            ));
-        }
-        Err(LeaseError::NoEligibleSeat) => {
-            return openai_error_response(
-                StatusCode::SERVICE_UNAVAILABLE,
-                "unavailable_error",
-                "no_eligible_provider_seat",
-                "no eligible Gemini provider seat is available",
-                Some(1),
-            );
-        }
-        Err(LeaseError::Internal) => {
-            return openai_error_response(
-                StatusCode::INTERNAL_SERVER_ERROR,
-                "server_error",
-                "provider_pool_error",
-                "provider pool state could not be read",
-                None,
-            );
-        }
-    };
+            Ok(context) => context,
+            Err(LeaseError::Forbidden) => {
+                return gemini_adapter_error_to_response(GeminiAdapterError::InvalidRequest(
+                    "request was denied by policy".to_string(),
+                ));
+            }
+            Err(LeaseError::NoEligibleSeat) => {
+                return openai_error_response(
+                    StatusCode::SERVICE_UNAVAILABLE,
+                    "unavailable_error",
+                    "no_eligible_provider_seat",
+                    "no eligible Gemini provider seat is available",
+                    Some(1),
+                );
+            }
+            Err(LeaseError::Internal) => {
+                return openai_error_response(
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "server_error",
+                    "provider_pool_error",
+                    "provider pool state could not be read",
+                    None,
+                );
+            }
+        };
 
     if lease_context.credential_mode != CredentialMode::ApiKey {
         let _ = lease_context
@@ -3152,6 +3178,7 @@ async fn handle_gemini_adapter_proxy(
     let api_key = match state
         .secret_store
         .fetch_refresh_token(&lease_context.credential_handle)
+        .await
     {
         Ok(api_key) => api_key,
         Err(_) => {
@@ -3378,7 +3405,7 @@ async fn handle_admin_status(State(state): State<Arc<AppState>>, headers: Header
         .lock()
         .map(|pool| pool.has_eligible_seat(Instant::now()))
         .unwrap_or(false);
-    let secret_provider_ready = state.secret_store.readiness_probe().is_ok();
+    let secret_provider_ready = state.secret_store.readiness_probe().await.is_ok();
     let route_controller_ready = state.pool_registry.pool_count_for(principal.tenant()) > 0;
     let model_inventory_ready = true;
     let credential_worker_ready = default_data_plane_ready && secret_provider_ready;
@@ -3993,7 +4020,7 @@ async fn handle_readyz(State(state): State<Arc<AppState>>) -> impl IntoResponse 
     if !has_default_data_plane_pool {
         return StatusCode::SERVICE_UNAVAILABLE;
     }
-    if state.secret_store.readiness_probe().is_err() {
+    if state.secret_store.readiness_probe().await.is_err() {
         return StatusCode::SERVICE_UNAVAILABLE;
     }
     StatusCode::OK
@@ -4001,7 +4028,7 @@ async fn handle_readyz(State(state): State<Arc<AppState>>) -> impl IntoResponse 
 
 /// GET /metrics handler — Prometheus text exposition from live gateway state.
 async fn handle_metrics(State(state): State<Arc<AppState>>) -> impl IntoResponse {
-    let secret_provider_ready = state.secret_store.readiness_probe().is_ok();
+    let secret_provider_ready = state.secret_store.readiness_probe().await.is_ok();
     let default_pool_ready = state
         .pool
         .lock()
@@ -4074,15 +4101,19 @@ struct ArcSecretStore {
 }
 
 impl SecretProviderStore for ArcSecretStore {
-    fn fetch_refresh_token(&self, handle: &str) -> Result<String, RestAdapterError> {
+    fn fetch_refresh_token<'a>(&'a self, handle: &'a str) -> SecretProviderFuture<'a, String> {
         self.inner.fetch_refresh_token(handle)
     }
 
-    fn store_refresh_token(&self, handle: &str, plaintext: &str) -> Result<(), RestAdapterError> {
+    fn store_refresh_token<'a>(
+        &'a self,
+        handle: &'a str,
+        plaintext: &'a str,
+    ) -> SecretProviderFuture<'a, ()> {
         self.inner.store_refresh_token(handle, plaintext)
     }
 
-    fn readiness_probe(&self) -> Result<(), RestAdapterError> {
+    fn readiness_probe(&self) -> SecretProviderFuture<'_, ()> {
         self.inner.readiness_probe()
     }
 }
@@ -4102,10 +4133,7 @@ mod tests {
     struct AllowGate;
 
     impl AuthzGate for AllowGate {
-        fn decide(
-            &self,
-            _request: &intelligence_kernel::AuthzRequest<'_>,
-        ) -> AuthzDecision {
+        fn decide(&self, _request: &intelligence_kernel::AuthzRequest<'_>) -> AuthzDecision {
             AuthzDecision::Allow
         }
     }
@@ -4113,10 +4141,7 @@ mod tests {
     struct ForbidGate;
 
     impl AuthzGate for ForbidGate {
-        fn decide(
-            &self,
-            _request: &intelligence_kernel::AuthzRequest<'_>,
-        ) -> AuthzDecision {
+        fn decide(&self, _request: &intelligence_kernel::AuthzRequest<'_>) -> AuthzDecision {
             AuthzDecision::Forbid
         }
     }
@@ -4188,26 +4213,28 @@ mod tests {
     }
 
     impl SecretProviderStore for MemorySecretStore {
-        fn fetch_refresh_token(&self, _handle: &str) -> Result<String, RestAdapterError> {
-            Ok("test-refresh-token".to_string())
+        fn fetch_refresh_token<'a>(&'a self, _handle: &'a str) -> SecretProviderFuture<'a, String> {
+            Box::pin(async { Ok("test-refresh-token".to_string()) })
         }
 
-        fn store_refresh_token(
-            &self,
-            _handle: &str,
-            _plaintext: &str,
-        ) -> Result<(), RestAdapterError> {
-            Ok(())
+        fn store_refresh_token<'a>(
+            &'a self,
+            _handle: &'a str,
+            _plaintext: &'a str,
+        ) -> SecretProviderFuture<'a, ()> {
+            Box::pin(async { Ok(()) })
         }
 
-        fn readiness_probe(&self) -> Result<(), RestAdapterError> {
-            if self.ready {
-                Ok(())
-            } else {
-                Err(RestAdapterError::SecretStoreUnavailable(
-                    "test secret store unavailable".to_string(),
-                ))
-            }
+        fn readiness_probe(&self) -> SecretProviderFuture<'_, ()> {
+            Box::pin(async move {
+                if self.ready {
+                    Ok(())
+                } else {
+                    Err(RestAdapterError::SecretStoreUnavailable(
+                        "test secret store unavailable".to_string(),
+                    ))
+                }
+            })
         }
     }
 
@@ -4216,17 +4243,19 @@ mod tests {
     }
 
     impl SecretProviderStore for RecordingSecretStore {
-        fn fetch_refresh_token(&self, handle: &str) -> Result<String, RestAdapterError> {
-            self.handles.lock().unwrap().push(handle.to_string());
-            Ok("test-refresh-token".to_string())
+        fn fetch_refresh_token<'a>(&'a self, handle: &'a str) -> SecretProviderFuture<'a, String> {
+            Box::pin(async move {
+                self.handles.lock().unwrap().push(handle.to_string());
+                Ok("test-refresh-token".to_string())
+            })
         }
 
-        fn store_refresh_token(
-            &self,
-            _handle: &str,
-            _plaintext: &str,
-        ) -> Result<(), RestAdapterError> {
-            Ok(())
+        fn store_refresh_token<'a>(
+            &'a self,
+            _handle: &'a str,
+            _plaintext: &'a str,
+        ) -> SecretProviderFuture<'a, ()> {
+            Box::pin(async { Ok(()) })
         }
     }
 
@@ -4881,10 +4910,7 @@ mod tests {
         let body = runtimes.into_body().collect().await.unwrap().to_bytes();
         let runtime_json: serde_json::Value = serde_json::from_slice(&body).unwrap();
         assert_eq!(runtime_json["runtimes"][0]["tenant_id"], "tenant-a");
-        assert_eq!(
-            runtime_json["runtimes"][0]["name"],
-            "dogfood-fable-runtime"
-        );
+        assert_eq!(runtime_json["runtimes"][0]["name"], "dogfood-fable-runtime");
         assert_eq!(
             runtime_json["workflow_statuses"][0]["tenant_id"],
             "tenant-a"

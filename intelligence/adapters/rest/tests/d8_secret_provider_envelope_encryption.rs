@@ -4,7 +4,7 @@
 //! secret-provider/KMS port. Concrete backing engines are transient adapters;
 //! here we use in-process mocks that demonstrate the expected semantics.
 
-use intelligence_rest::{RestAdapterError, SecretProviderStore};
+use intelligence_rest::{RestAdapterError, SecretProviderFuture, SecretProviderStore};
 use std::collections::HashMap;
 use std::sync::Mutex;
 
@@ -27,24 +27,32 @@ impl InProcessSecretStore {
 }
 
 impl SecretProviderStore for InProcessSecretStore {
-    fn fetch_refresh_token(&self, handle: &str) -> Result<String, RestAdapterError> {
-        self.map
-            .lock()
-            .unwrap()
-            .get(handle)
-            .cloned()
-            .ok_or(RestAdapterError::SecretNotFound)
+    fn fetch_refresh_token<'a>(&'a self, handle: &'a str) -> SecretProviderFuture<'a, String> {
+        Box::pin(async move {
+            self.map
+                .lock()
+                .unwrap()
+                .get(handle)
+                .cloned()
+                .ok_or(RestAdapterError::SecretNotFound)
+        })
     }
 
-    fn store_refresh_token(&self, handle: &str, plaintext: &str) -> Result<(), RestAdapterError> {
-        if plaintext.is_empty() {
-            return Err(RestAdapterError::InvalidSecret);
-        }
-        self.map
-            .lock()
-            .unwrap()
-            .insert(handle.to_string(), plaintext.to_string());
-        Ok(())
+    fn store_refresh_token<'a>(
+        &'a self,
+        handle: &'a str,
+        plaintext: &'a str,
+    ) -> SecretProviderFuture<'a, ()> {
+        Box::pin(async move {
+            if plaintext.is_empty() {
+                return Err(RestAdapterError::InvalidSecret);
+            }
+            self.map
+                .lock()
+                .unwrap()
+                .insert(handle.to_string(), plaintext.to_string());
+            Ok(())
+        })
     }
 }
 
@@ -52,16 +60,24 @@ impl SecretProviderStore for InProcessSecretStore {
 struct UnavailableSecretProviderStore;
 
 impl SecretProviderStore for UnavailableSecretProviderStore {
-    fn fetch_refresh_token(&self, _handle: &str) -> Result<String, RestAdapterError> {
-        Err(RestAdapterError::SecretStoreUnavailable(
-            "ErrSecretProviderUnavailable".to_string(),
-        ))
+    fn fetch_refresh_token<'a>(&'a self, _handle: &'a str) -> SecretProviderFuture<'a, String> {
+        Box::pin(async {
+            Err(RestAdapterError::SecretStoreUnavailable(
+                "ErrSecretProviderUnavailable".to_string(),
+            ))
+        })
     }
 
-    fn store_refresh_token(&self, _handle: &str, _plaintext: &str) -> Result<(), RestAdapterError> {
-        Err(RestAdapterError::SecretStoreUnavailable(
-            "ErrSecretProviderUnavailable".to_string(),
-        ))
+    fn store_refresh_token<'a>(
+        &'a self,
+        _handle: &'a str,
+        _plaintext: &'a str,
+    ) -> SecretProviderFuture<'a, ()> {
+        Box::pin(async {
+            Err(RestAdapterError::SecretStoreUnavailable(
+                "ErrSecretProviderUnavailable".to_string(),
+            ))
+        })
     }
 }
 
@@ -70,74 +86,85 @@ impl SecretProviderStore for UnavailableSecretProviderStore {
 // ---------------------------------------------------------------------------
 
 /// D8-1: Store then fetch returns the same plaintext value.
-#[test]
-fn d8_store_and_fetch_roundtrip() {
+#[tokio::test]
+async fn d8_store_and_fetch_roundtrip() {
     let store = InProcessSecretStore::new();
     store
         .store_refresh_token("handle-rt-1", "rt-plaintext-value")
+        .await
         .unwrap();
-    let fetched = store.fetch_refresh_token("handle-rt-1").unwrap();
+    let fetched = store.fetch_refresh_token("handle-rt-1").await.unwrap();
     assert_eq!(fetched, "rt-plaintext-value");
 }
 
 /// D8-2: Fetching an unknown handle returns SecretNotFound.
-#[test]
-fn d8_fetch_unknown_handle_returns_not_found() {
+#[tokio::test]
+async fn d8_fetch_unknown_handle_returns_not_found() {
     let store = InProcessSecretStore::new();
-    let err = store.fetch_refresh_token("nonexistent-handle").unwrap_err();
+    let err = store
+        .fetch_refresh_token("nonexistent-handle")
+        .await
+        .unwrap_err();
     assert_eq!(err, RestAdapterError::SecretNotFound);
 }
 
 /// D8-3: Storing empty plaintext is rejected with InvalidSecret.
-#[test]
-fn d8_store_empty_plaintext_rejected() {
+#[tokio::test]
+async fn d8_store_empty_plaintext_rejected() {
     let store = InProcessSecretStore::new();
-    let err = store.store_refresh_token("handle-rt-1", "").unwrap_err();
+    let err = store
+        .store_refresh_token("handle-rt-1", "")
+        .await
+        .unwrap_err();
     assert_eq!(err, RestAdapterError::InvalidSecret);
 }
 
 /// D8-4: Re-storing under the same handle overwrites the previous value
 /// (token rotation — each refresh cycle writes the new token to the same
 /// handle).
-#[test]
-fn d8_overwrite_rotates_token() {
+#[tokio::test]
+async fn d8_overwrite_rotates_token() {
     let store = InProcessSecretStore::new();
     store
         .store_refresh_token("handle-seat-001", "rt-v1")
+        .await
         .unwrap();
     store
         .store_refresh_token("handle-seat-001", "rt-v2")
+        .await
         .unwrap();
-    let fetched = store.fetch_refresh_token("handle-seat-001").unwrap();
+    let fetched = store.fetch_refresh_token("handle-seat-001").await.unwrap();
     assert_eq!(fetched, "rt-v2");
 }
 
 /// D8-5: Multiple handles are independent (different seats do not share
 /// refresh tokens).
-#[test]
-fn d8_handles_are_independent() {
+#[tokio::test]
+async fn d8_handles_are_independent() {
     let store = InProcessSecretStore::new();
     store
         .store_refresh_token("handle-seat-001", "rt-seat-001")
+        .await
         .unwrap();
     store
         .store_refresh_token("handle-seat-002", "rt-seat-002")
+        .await
         .unwrap();
     assert_eq!(
-        store.fetch_refresh_token("handle-seat-001").unwrap(),
+        store.fetch_refresh_token("handle-seat-001").await.unwrap(),
         "rt-seat-001"
     );
     assert_eq!(
-        store.fetch_refresh_token("handle-seat-002").unwrap(),
+        store.fetch_refresh_token("handle-seat-002").await.unwrap(),
         "rt-seat-002"
     );
 }
 
 /// D8-6: Unavailable secret-provider returns SecretStoreUnavailable on fetch.
-#[test]
-fn d8_unavailable_secret_provider_fetch_returns_unavailable() {
+#[tokio::test]
+async fn d8_unavailable_secret_provider_fetch_returns_unavailable() {
     let store = UnavailableSecretProviderStore;
-    let err = store.fetch_refresh_token("any").unwrap_err();
+    let err = store.fetch_refresh_token("any").await.unwrap_err();
     assert!(
         matches!(err, RestAdapterError::SecretStoreUnavailable(_)),
         "expected SecretStoreUnavailable, got {err:?}"
@@ -145,10 +172,13 @@ fn d8_unavailable_secret_provider_fetch_returns_unavailable() {
 }
 
 /// D8-7: Unavailable secret-provider returns SecretStoreUnavailable on store.
-#[test]
-fn d8_unavailable_secret_provider_store_returns_unavailable() {
+#[tokio::test]
+async fn d8_unavailable_secret_provider_store_returns_unavailable() {
     let store = UnavailableSecretProviderStore;
-    let err = store.store_refresh_token("any", "token-value").unwrap_err();
+    let err = store
+        .store_refresh_token("any", "token-value")
+        .await
+        .unwrap_err();
     assert!(
         matches!(err, RestAdapterError::SecretStoreUnavailable(_)),
         "expected SecretStoreUnavailable, got {err:?}"

@@ -35,11 +35,18 @@ struct StubStore {
 }
 
 impl SecretProviderStore for StubStore {
-    fn fetch_refresh_token(&self, _: &str) -> Result<String, RestAdapterError> {
-        Ok(self.token.clone())
+    fn fetch_refresh_token<'a>(
+        &'a self,
+        _: &'a str,
+    ) -> intelligence_rest::SecretProviderFuture<'a, String> {
+        Box::pin(async move { Ok(self.token.clone()) })
     }
-    fn store_refresh_token(&self, _: &str, _: &str) -> Result<(), RestAdapterError> {
-        Ok(())
+    fn store_refresh_token<'a>(
+        &'a self,
+        _: &'a str,
+        _: &'a str,
+    ) -> intelligence_rest::SecretProviderFuture<'a, ()> {
+        Box::pin(async { Ok(()) })
     }
 }
 
@@ -299,11 +306,31 @@ async fn sse4_lease_held_during_stream_third_request_503() {
     let agent = AgentId::new("agent-sse4").unwrap();
 
     // Acquire leases for seats 1 and 2 (simulate 2 active SSE streams).
-    let lease1 = SubscriptionPool::lease(&pool_ref, &TenantId::new(tenant).unwrap(), &agent, &gate, Instant::now()).unwrap();
-    let lease2 = SubscriptionPool::lease(&pool_ref, &TenantId::new(tenant).unwrap(), &agent, &gate, Instant::now()).unwrap();
+    let lease1 = SubscriptionPool::lease(
+        &pool_ref,
+        &TenantId::new(tenant).unwrap(),
+        &agent,
+        &gate,
+        Instant::now(),
+    )
+    .unwrap();
+    let lease2 = SubscriptionPool::lease(
+        &pool_ref,
+        &TenantId::new(tenant).unwrap(),
+        &agent,
+        &gate,
+        Instant::now(),
+    )
+    .unwrap();
 
     // Third request should fail — both seats are in use.
-    let result3 = SubscriptionPool::lease(&pool_ref, &TenantId::new(tenant).unwrap(), &agent, &gate, Instant::now());
+    let result3 = SubscriptionPool::lease(
+        &pool_ref,
+        &TenantId::new(tenant).unwrap(),
+        &agent,
+        &gate,
+        Instant::now(),
+    );
     assert!(
         result3.is_err(),
         "third lease must fail while two SSE streams hold seats"
@@ -320,7 +347,13 @@ async fn sse4_lease_held_during_stream_third_request_503() {
     lease1.complete(SeatOutcome::Ok, Instant::now()).unwrap();
 
     // Now the 3rd request should succeed.
-    let result4 = SubscriptionPool::lease(&pool_ref, &TenantId::new(tenant).unwrap(), &agent, &gate, Instant::now());
+    let result4 = SubscriptionPool::lease(
+        &pool_ref,
+        &TenantId::new(tenant).unwrap(),
+        &agent,
+        &gate,
+        Instant::now(),
+    );
     assert!(
         result4.is_ok(),
         "lease should succeed after one SSE stream completes"
@@ -344,7 +377,14 @@ async fn sse5_mid_stream_error_seat_outcome_server_error() {
     let gate = AlwaysAllow;
     let agent = AgentId::new("agent-sse5").unwrap();
 
-    let lease = SubscriptionPool::lease(&pool_ref, &TenantId::new(tenant).unwrap(), &agent, &gate, Instant::now()).unwrap();
+    let lease = SubscriptionPool::lease(
+        &pool_ref,
+        &TenantId::new(tenant).unwrap(),
+        &agent,
+        &gate,
+        Instant::now(),
+    )
+    .unwrap();
 
     // Build a stream that yields one Ok chunk then one Err chunk.
     let err_stream: intelligence_rest::BoxStream<Result<Bytes, RestAdapterError>> =
@@ -370,9 +410,27 @@ async fn sse5_mid_stream_error_seat_outcome_server_error() {
     // The pool should now reject a new lease for this seat because it's in Cooldown.
     // (Both seats were available initially; one is now in Cooldown after the error.)
     // We attempt to grab both seats — at least one attempt will get a Cooldown error.
-    let r1 = SubscriptionPool::lease(&pool_ref, &TenantId::new(tenant).unwrap(), &agent, &gate, Instant::now());
-    let r2 = SubscriptionPool::lease(&pool_ref, &TenantId::new(tenant).unwrap(), &agent, &gate, Instant::now());
-    let r3 = SubscriptionPool::lease(&pool_ref, &TenantId::new(tenant).unwrap(), &agent, &gate, Instant::now());
+    let r1 = SubscriptionPool::lease(
+        &pool_ref,
+        &TenantId::new(tenant).unwrap(),
+        &agent,
+        &gate,
+        Instant::now(),
+    );
+    let r2 = SubscriptionPool::lease(
+        &pool_ref,
+        &TenantId::new(tenant).unwrap(),
+        &agent,
+        &gate,
+        Instant::now(),
+    );
+    let r3 = SubscriptionPool::lease(
+        &pool_ref,
+        &TenantId::new(tenant).unwrap(),
+        &agent,
+        &gate,
+        Instant::now(),
+    );
     // At most one seat remains active (seat 2 was never leased above).
     // The errored seat is in Cooldown; the remaining seat may or may not be available.
     // We just verify that at least one of the three attempts fails (pool is not full
@@ -398,14 +456,37 @@ async fn sse6_client_drop_releases_lease_cleanly() {
     let gate = AlwaysAllow;
     let agent = AgentId::new("agent-sse6").unwrap();
 
-    let lease = SubscriptionPool::lease(&pool_ref, &TenantId::new(tenant).unwrap(), &agent, &gate, Instant::now()).unwrap();
+    let lease = SubscriptionPool::lease(
+        &pool_ref,
+        &TenantId::new(tenant).unwrap(),
+        &agent,
+        &gate,
+        Instant::now(),
+    )
+    .unwrap();
 
     // Verify that while the lease is held, the other seat is available but
     // not the leased one (pool has 2 seats; 1 is now in use).
-    let lease2 = SubscriptionPool::lease(&pool_ref, &TenantId::new(tenant).unwrap(), &agent, &gate, Instant::now()).unwrap();
+    let lease2 = SubscriptionPool::lease(
+        &pool_ref,
+        &TenantId::new(tenant).unwrap(),
+        &agent,
+        &gate,
+        Instant::now(),
+    )
+    .unwrap();
 
     // Both seats taken — 3rd should fail.
-    assert!(SubscriptionPool::lease(&pool_ref, &TenantId::new(tenant).unwrap(), &agent, &gate, Instant::now()).is_err());
+    assert!(
+        SubscriptionPool::lease(
+            &pool_ref,
+            &TenantId::new(tenant).unwrap(),
+            &agent,
+            &gate,
+            Instant::now()
+        )
+        .is_err()
+    );
 
     // Build an infinite stream that never yields None.
     let infinite_stream: intelligence_rest::BoxStream<Result<Bytes, RestAdapterError>> =
@@ -422,7 +503,13 @@ async fn sse6_client_drop_releases_lease_cleanly() {
 
     // After drop, the previously-leased seat should be Available again
     // (SeatOutcome::Released has no penalty).
-    let result = SubscriptionPool::lease(&pool_ref, &TenantId::new(tenant).unwrap(), &agent, &gate, Instant::now());
+    let result = SubscriptionPool::lease(
+        &pool_ref,
+        &TenantId::new(tenant).unwrap(),
+        &agent,
+        &gate,
+        Instant::now(),
+    );
     assert!(
         result.is_ok(),
         "seat should be available again after dropped SseStreamWithLease"

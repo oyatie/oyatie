@@ -125,6 +125,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":intelligence-rest",
+        "third-party//:tokio",
     ],
 )
 
@@ -190,4 +191,3 @@ rust_test(
         "third-party//:tokio",
     ],
 )
-
