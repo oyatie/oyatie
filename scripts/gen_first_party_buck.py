@@ -46,6 +46,26 @@ BUILDSCRIPT_OVERRIDES = {
     },
 }
 
+# Package-specific native build-graph requirements that Cargo metadata cannot express.
+# These are generator inputs, never hand-maintained BUCK output.
+RUST_RULE_OVERRIDES = {
+    "oya-application-shell-frontend": {
+        "rustc_flags": ["--cfg", 'feature="ssr"'],
+        "integration_tests": [
+            {
+                "name": "oya-application-shell-frontend-live-server-integration",
+                "src": "tests/live_server.rs",
+                "extra_srcs": ["src/app.rs", "src/lib.rs"],
+                "crate": "oya_application_shell_frontend_live_server",
+                "deps": [
+                    ":oya-application-shell-frontend",
+                    "third-party//:tokio",
+                ],
+            },
+        ],
+    },
+}
+
 
 def load_third_party_names(repo_root: Path) -> tuple[list[str], set[str]]:
     """Return (all_target_names, public_alias_names) from third-party/BUCK."""
@@ -229,6 +249,7 @@ def generate_buck_content(
     lines = []
 
     buildscript_info = BUILDSCRIPT_OVERRIDES.get(name, {})
+    rule_override = RUST_RULE_OVERRIDES.get(name, {})
     has_buildscript = buildscript_info.get("has_buildscript", False)
     is_proto = buildscript_info.get("proto", False)
 
@@ -253,6 +274,8 @@ def generate_buck_content(
         if extra_attrs:
             for attr in extra_attrs:
                 out.append(f'    {attr}')
+        if rule_override.get("rustc_flags"):
+            out.append(f'    rustc_flags = {json.dumps(rule_override["rustc_flags"])},')
         out.append(f'    visibility = ["PUBLIC"],')
         if deps_lines:
             out.append(f'    deps = [')
@@ -337,6 +360,8 @@ def generate_buck_content(
         lines.append(f'    crate_root = "{bin_crate_root}",')
         if edition != "2024":
             lines.append(f'    edition = "{edition}",')
+        if rule_override.get("rustc_flags"):
+            lines.append(f'    rustc_flags = {json.dumps(rule_override["rustc_flags"])},')
         lines.append(f'    visibility = ["PUBLIC"],')
         # For binaries in lib+bin crates, always emit deps so the lib is included
         bin_deps = []
@@ -348,6 +373,26 @@ def generate_buck_content(
             for d in bin_deps:
                 lines.append(d)
             lines.append(f'    ],')
+        lines.append(")")
+
+    for integration_test in rule_override.get("integration_tests", []):
+        if lines:
+            lines.append("")
+        lines.append("rust_test(")
+        lines.append(f'    name = "{integration_test["name"]}",')
+        test_srcs = [integration_test["src"], *integration_test.get("extra_srcs", [])]
+        lines.append(f'    srcs = {json.dumps(test_srcs)},')
+        lines.append(f'    crate = "{integration_test["crate"]}",')
+        lines.append(f'    crate_root = "{integration_test["src"]}",')
+        if edition != "2024":
+            lines.append(f'    edition = "{edition}",')
+        if rule_override.get("rustc_flags"):
+            lines.append(f'    rustc_flags = {json.dumps(rule_override["rustc_flags"])},')
+        lines.append('    visibility = ["PUBLIC"],')
+        lines.append("    deps = [")
+        for dependency in integration_test["deps"]:
+            lines.append(f'        "{dependency}",')
+        lines.append("    ],")
         lines.append(")")
 
     if not lib_target and not bin_targets:
