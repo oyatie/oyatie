@@ -85,6 +85,17 @@ const TEST_ARTIFACT_SHA256: &str =
     "c3c49717514288b70d1efe74929f5531a4b3a7610cb2fdf821c6b62f08683014";
 const TEST_MISMATCH_ARTIFACT_PATH: &str =
     "target/oya-cloud-iac/module-archives/oyatie-digest-mismatch-opentofu-0.1.0.zip";
+// libtest runs `#[test]`s as parallel threads in one process, and `fs::write` is
+// `File::create` (truncate to 0) + `write_all`. Two tests sharing one fixture path
+// let one test's request-time sha256 read land inside the other's truncate window,
+// digest-mismatching into a 409. Every test that writes archive bytes therefore owns
+// its own path. The bytes stay identical, so TEST_ARTIFACT_SHA256 covers all of them.
+// The archive must sit directly under the local module-archive root (a subdirectory is
+// rejected by `validate_archive_file`), so the path is made unique by file name.
+const TEST_BEARER_ARTIFACT_PATH: &str =
+    "target/oya-cloud-iac/module-archives/oyatie-bearer-artifact-opentofu-0.1.0.zip";
+const TEST_PDP_DENIED_ARTIFACT_PATH: &str =
+    "target/oya-cloud-iac/module-archives/oyatie-pdp-denied-artifact-opentofu-0.1.0.zip";
 
 fn registry() -> ModuleRegistry {
     let mut registry = ModuleRegistry::default();
@@ -197,7 +208,7 @@ fn serve_refuses_without_bearer_and_principal() {
 fn module_registry_and_artifact_paths_require_verified_bearer_while_health_is_public() {
     fs::create_dir_all("target/oya-cloud-iac/module-archives")
         .expect("create local artifact fixture directory");
-    fs::write(TEST_ARTIFACT_PATH, b"deterministic-local-archive-fixture")
+    fs::write(TEST_BEARER_ARTIFACT_PATH, b"deterministic-local-archive-fixture")
         .expect("write local artifact fixture bytes");
 
     let release_index = format!(
@@ -205,14 +216,14 @@ fn module_registry_and_artifact_paths_require_verified_bearer_while_health_is_pu
           "modules": [
             {{
               "namespace": "oyatie",
-              "name": "unit-artifact",
+              "name": "bearer-artifact",
               "system": "opentofu",
               "version": "0.1.0",
               "source_path": "microservices/cloud-iac/tofu/modules/vpc",
-              "archive_file": "{TEST_ARTIFACT_PATH}",
+              "archive_file": "{TEST_BEARER_ARTIFACT_PATH}",
               "archive_sha256": "{TEST_ARTIFACT_SHA256}",
               "archive_media_type": "archive/zip",
-              "evidence_ref": "evidence://cloud-iac/modules/unit-artifact/0.1.0/local-request-auth"
+              "evidence_ref": "evidence://cloud-iac/modules/bearer-artifact/0.1.0/local-request-auth"
             }}
           ]
         }}"#
@@ -231,9 +242,9 @@ fn module_registry_and_artifact_paths_require_verified_bearer_while_health_is_pu
 
     for path in [
         OPENTOFU_SERVICE_DISCOVERY_PATH,
-        "/v1/modules/oyatie/unit-artifact/opentofu/versions",
-        "/v1/modules/oyatie/unit-artifact/opentofu/0.1.0/download",
-        "/artifacts/modules/oyatie-unit-artifact-opentofu-0.1.0.zip",
+        "/v1/modules/oyatie/bearer-artifact/opentofu/versions",
+        "/v1/modules/oyatie/bearer-artifact/opentofu/0.1.0/download",
+        "/artifacts/modules/oyatie-bearer-artifact-opentofu-0.1.0.zip",
     ] {
         let missing = dispatch_cloud_iac_app_request(&service, http_request(HttpMethod::Get, path));
         assert_eq!(missing.status, 401, "{path} should require a verified bearer");
@@ -263,7 +274,7 @@ fn module_registry_and_artifact_paths_require_verified_bearer_while_health_is_pu
         &service,
         http_request_with_auth(
             HttpMethod::Get,
-            "/artifacts/modules/oyatie-unit-artifact-opentofu-0.1.0.zip",
+            "/artifacts/modules/oyatie-bearer-artifact-opentofu-0.1.0.zip",
             TEST_BEARER,
         ),
     );
@@ -278,22 +289,25 @@ fn module_registry_and_artifact_paths_require_verified_bearer_while_health_is_pu
 fn artifact_route_denies_when_pdp_denies_download_surface() {
     fs::create_dir_all("target/oya-cloud-iac/module-archives")
         .expect("create local artifact fixture directory");
-    fs::write(TEST_ARTIFACT_PATH, b"deterministic-local-archive-fixture")
-        .expect("write local artifact fixture bytes");
+    fs::write(
+        TEST_PDP_DENIED_ARTIFACT_PATH,
+        b"deterministic-local-archive-fixture",
+    )
+    .expect("write local artifact fixture bytes");
 
     let release_index = format!(
         r#"{{
           "modules": [
             {{
               "namespace": "oyatie",
-              "name": "unit-artifact",
+              "name": "pdp-denied-artifact",
               "system": "opentofu",
               "version": "0.1.0",
               "source_path": "microservices/cloud-iac/tofu/modules/vpc",
-              "archive_file": "{TEST_ARTIFACT_PATH}",
+              "archive_file": "{TEST_PDP_DENIED_ARTIFACT_PATH}",
               "archive_sha256": "{TEST_ARTIFACT_SHA256}",
               "archive_media_type": "archive/zip",
-              "evidence_ref": "evidence://cloud-iac/modules/unit-artifact/0.1.0/local-deny"
+              "evidence_ref": "evidence://cloud-iac/modules/pdp-denied-artifact/0.1.0/local-deny"
             }}
           ]
         }}"#
@@ -323,7 +337,7 @@ fn artifact_route_denies_when_pdp_denies_download_surface() {
         &service,
         http_request_with_auth(
             HttpMethod::Get,
-            "/artifacts/modules/oyatie-unit-artifact-opentofu-0.1.0.zip",
+            "/artifacts/modules/oyatie-pdp-denied-artifact-opentofu-0.1.0.zip",
             TEST_BEARER,
         ),
     );
