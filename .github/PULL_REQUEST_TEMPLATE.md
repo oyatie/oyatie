@@ -64,6 +64,6 @@ leave the PENDING placeholder; the reviewer/evidence producer replaces it before
 
 - Target reviewer evidence producer: `oya-pr-review` (not live cloud admission enforcement until `F-PR5-06` closes; requires a trusted server-side/cloud-ci producer)
 - Reviewer agent: `<rust-reviewer | typescript-reviewer | python-reviewer | database-reviewer | security-reviewer | privacy-reviewer | tdd-guide | silent-failure-hunter | doc-updater | doc-style-reviewer | capability-reviewer | perf-reviewer>`
-- Verdict: <APPROVE | REQUEST CHANGES | PENDING — reviewer/evidence producer must replace before merge>
+- Verdict: pending  <!-- reviewer replaces with: approved (or requests-changes) before merge -->
 - Resolved items: `<list>`
 - Deferred items: `<list with owners + follow-up issue refs>`

@@ -33,6 +33,7 @@ fn main() -> ExitCode {
         return ExitCode::SUCCESS;
     }
 
+    let all_violations_requested = args.all_violations;
     match run(args) {
         Ok((sections, code_review_present)) => {
             println!(
@@ -45,7 +46,7 @@ fn main() -> ExitCode {
             // Name the remedy in the failure itself. The required shape is not
             // guessable — it is a fixed set of section headings and field labels
             // that this binary can emit verbatim — and `gh pr create --body`
-            // bypasses .github/pull_request_template.md, so a CLI author
+            // bypasses .github/PULL_REQUEST_TEMPLATE.md, so a CLI author
             // otherwise rediscovers one literal per CI round trip.
             eprintln!("\nThe exact required shape is available from this binary:");
             eprintln!(
@@ -56,7 +57,11 @@ fn main() -> ExitCode {
                 "  buck2 run //libs/oya-check-pr-traceability:pr-traceability-admission-bin -- \\"
             );
             eprintln!("    --pr-title \"<title>\" --pr-body <path> --require-code-review");
-            eprintln!("\nAdd --all-violations to see every problem at once instead of the first.");
+            if !all_violations_requested {
+                eprintln!(
+                    "\nAdd --all-violations to see every problem at once instead of the first."
+                );
+            }
             ExitCode::FAILURE
         }
     }
