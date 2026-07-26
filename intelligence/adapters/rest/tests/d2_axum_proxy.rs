@@ -4,6 +4,8 @@
 //! and that the adapter methods return proper error types (no longer todo!()).
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
+use axum::body::Body;
+use axum::http::Request;
 use intelligence_kernel::{
     AgentId, AuthzDecision, AuthzGate, AuthzRequest, EventSink, LlmGatewayEvent, OAuthSubscription,
     Provider, SeatId, SelectionStrategy, SubscriptionId, SubscriptionPool, SubscriptionState,
@@ -13,8 +15,6 @@ use intelligence_rest::{
     AnthropicAdapter, AppState, BearerBinding, ConfiguredBearerMapIngressAuthenticator,
     PoolRegistry, ProxyRequest, ProxyResponse, RestAdapterError, SecretProviderStore, build_router,
 };
-use axum::body::Body;
-use axum::http::Request;
 use std::collections::{BTreeMap, HashSet};
 use std::sync::{Arc, Mutex};
 use tower::ServiceExt as _;
@@ -32,11 +32,18 @@ impl intelligence_kernel::AuthzGate for AlwaysAllowGate {
 
 struct StubSecretStore;
 impl SecretProviderStore for StubSecretStore {
-    fn fetch_refresh_token(&self, _handle: &str) -> Result<String, RestAdapterError> {
-        Ok("stub-refresh-token".to_string())
+    fn fetch_refresh_token<'a>(
+        &'a self,
+        _handle: &'a str,
+    ) -> intelligence_rest::SecretProviderFuture<'a, String> {
+        Box::pin(async { Ok("stub-refresh-token".to_string()) })
     }
-    fn store_refresh_token(&self, _handle: &str, _plaintext: &str) -> Result<(), RestAdapterError> {
-        Ok(())
+    fn store_refresh_token<'a>(
+        &'a self,
+        _handle: &'a str,
+        _plaintext: &'a str,
+    ) -> intelligence_rest::SecretProviderFuture<'a, ()> {
+        Box::pin(async { Ok(()) })
     }
 }
 

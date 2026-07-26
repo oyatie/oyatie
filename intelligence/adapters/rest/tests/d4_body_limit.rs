@@ -23,8 +23,8 @@ use intelligence_kernel::{
 };
 use intelligence_rest::{
     AppState, ConfiguredBearerAdminAuthenticator, ConfiguredBearerIngressAuthenticator, EventSink,
-    LlmGatewayEvent, PoolRegistry,
-    RestAdapterError, SecretProviderStore, TokenRefreshSingleflight, build_router,
+    LlmGatewayEvent, PoolRegistry, RestAdapterError, SecretProviderStore, TokenRefreshSingleflight,
+    build_router,
 };
 use tower::ServiceExt; // for `oneshot`
 
@@ -46,11 +46,18 @@ impl EventSink for NoopSink {
 
 struct StubStore;
 impl SecretProviderStore for StubStore {
-    fn fetch_refresh_token(&self, _: &str) -> Result<String, RestAdapterError> {
-        Ok("stub-token".to_string())
+    fn fetch_refresh_token<'a>(
+        &'a self,
+        _: &'a str,
+    ) -> intelligence_rest::SecretProviderFuture<'a, String> {
+        Box::pin(async { Ok("stub-token".to_string()) })
     }
-    fn store_refresh_token(&self, _: &str, _: &str) -> Result<(), RestAdapterError> {
-        Ok(())
+    fn store_refresh_token<'a>(
+        &'a self,
+        _: &'a str,
+        _: &'a str,
+    ) -> intelligence_rest::SecretProviderFuture<'a, ()> {
+        Box::pin(async { Ok(()) })
     }
 }
 
@@ -185,7 +192,11 @@ impl AuthzGate for CrossTenantForbidGate {
 
 fn make_pool_for(tenant: &str) -> Arc<Mutex<SubscriptionPool>> {
     let t = TenantId::new(tenant).unwrap();
-    let mut pool = SubscriptionPool::new(t.clone(), Provider::Anthropic, SelectionStrategy::RoundRobin);
+    let mut pool = SubscriptionPool::new(
+        t.clone(),
+        Provider::Anthropic,
+        SelectionStrategy::RoundRobin,
+    );
     pool.add_seat(OAuthSubscription::new(
         t.clone(),
         SeatId::new("seat-1").unwrap(),
@@ -243,12 +254,17 @@ fn messages_request(bearer: Option<&str>) -> Request<Body> {
 #[tokio::test]
 async fn cross_tenant_ingress_principal_gets_no_seat() {
     let server = MockServer::start();
-    let state =
-        make_cross_tenant_state(server.base_url(), "tenant-a").with_ingress_authenticator(Arc::new(
-            ConfiguredBearerIngressAuthenticator::new("ingress-b", TenantId::new("tenant-b").unwrap()),
-        ));
+    let state = make_cross_tenant_state(server.base_url(), "tenant-a").with_ingress_authenticator(
+        Arc::new(ConfiguredBearerIngressAuthenticator::new(
+            "ingress-b",
+            TenantId::new("tenant-b").unwrap(),
+        )),
+    );
     let app = build_router(Arc::new(state));
-    let resp = app.oneshot(messages_request(Some("ingress-b"))).await.unwrap();
+    let resp = app
+        .oneshot(messages_request(Some("ingress-b")))
+        .await
+        .unwrap();
     assert_eq!(
         resp.status(),
         StatusCode::SERVICE_UNAVAILABLE,
@@ -272,23 +288,34 @@ async fn same_tenant_ingress_principal_is_allowed() {
             .header("content-type", "application/json")
             .body(r#"{"id":"msg-1","type":"message"}"#);
     });
-    let state =
-        make_cross_tenant_state(server.base_url(), "tenant-a").with_ingress_authenticator(Arc::new(
-            ConfiguredBearerIngressAuthenticator::new("ingress-a", TenantId::new("tenant-a").unwrap()),
-        ));
+    let state = make_cross_tenant_state(server.base_url(), "tenant-a").with_ingress_authenticator(
+        Arc::new(ConfiguredBearerIngressAuthenticator::new(
+            "ingress-a",
+            TenantId::new("tenant-a").unwrap(),
+        )),
+    );
     let app = build_router(Arc::new(state));
-    let resp = app.oneshot(messages_request(Some("ingress-a"))).await.unwrap();
-    assert_eq!(resp.status(), StatusCode::OK, "same-tenant must reach lease/proxy");
+    let resp = app
+        .oneshot(messages_request(Some("ingress-a")))
+        .await
+        .unwrap();
+    assert_eq!(
+        resp.status(),
+        StatusCode::OK,
+        "same-tenant must reach lease/proxy"
+    );
 }
 
 /// No bearer => 401 (default-deny before authz).
 #[tokio::test]
 async fn absent_bearer_is_unauthorized() {
     let server = MockServer::start();
-    let state =
-        make_cross_tenant_state(server.base_url(), "tenant-a").with_ingress_authenticator(Arc::new(
-            ConfiguredBearerIngressAuthenticator::new("ingress-a", TenantId::new("tenant-a").unwrap()),
-        ));
+    let state = make_cross_tenant_state(server.base_url(), "tenant-a").with_ingress_authenticator(
+        Arc::new(ConfiguredBearerIngressAuthenticator::new(
+            "ingress-a",
+            TenantId::new("tenant-a").unwrap(),
+        )),
+    );
     let app = build_router(Arc::new(state));
     let resp = app.oneshot(messages_request(None)).await.unwrap();
     assert_eq!(resp.status(), StatusCode::UNAUTHORIZED);
@@ -298,12 +325,17 @@ async fn absent_bearer_is_unauthorized() {
 #[tokio::test]
 async fn wrong_bearer_is_unauthorized() {
     let server = MockServer::start();
-    let state =
-        make_cross_tenant_state(server.base_url(), "tenant-a").with_ingress_authenticator(Arc::new(
-            ConfiguredBearerIngressAuthenticator::new("ingress-a", TenantId::new("tenant-a").unwrap()),
-        ));
+    let state = make_cross_tenant_state(server.base_url(), "tenant-a").with_ingress_authenticator(
+        Arc::new(ConfiguredBearerIngressAuthenticator::new(
+            "ingress-a",
+            TenantId::new("tenant-a").unwrap(),
+        )),
+    );
     let app = build_router(Arc::new(state));
-    let resp = app.oneshot(messages_request(Some("wrong-token"))).await.unwrap();
+    let resp = app
+        .oneshot(messages_request(Some("wrong-token")))
+        .await
+        .unwrap();
     assert_eq!(resp.status(), StatusCode::UNAUTHORIZED);
 }
 
@@ -378,7 +410,11 @@ async fn admin_cross_tenant_register_is_forbidden() {
         .oneshot(admin_register_request("tenant-b", Some("admin-a")))
         .await
         .unwrap();
-    assert_eq!(resp.status(), StatusCode::FORBIDDEN, "cross-tenant admin must be 403");
+    assert_eq!(
+        resp.status(),
+        StatusCode::FORBIDDEN,
+        "cross-tenant admin must be 403"
+    );
 }
 
 /// Missing admin bearer => 401.
@@ -410,14 +446,23 @@ async fn admin_path_consults_gate_and_fails_closed() {
     let state = make_admin_state(
         "tenant-a",
         Some("admin-a"),
-        Arc::new(RecordingForbidGate { called: Arc::clone(&called) }),
+        Arc::new(RecordingForbidGate {
+            called: Arc::clone(&called),
+        }),
     );
     let resp = build_router(state)
         .oneshot(admin_register_request("tenant-a", Some("admin-a")))
         .await
         .unwrap();
-    assert_eq!(resp.status(), StatusCode::FORBIDDEN, "gate Forbid must deny");
-    assert!(*called.lock().unwrap(), "gate must be consulted on admin path");
+    assert_eq!(
+        resp.status(),
+        StatusCode::FORBIDDEN,
+        "gate Forbid must deny"
+    );
+    assert!(
+        *called.lock().unwrap(),
+        "gate must be consulted on admin path"
+    );
 }
 
 /// /admin/v1/accounts scoped to verified tenant — must not expose tenant-b rows.
@@ -480,5 +525,8 @@ async fn admin_accounts_scoped_to_verified_tenant() {
     assert_eq!(resp.status(), StatusCode::OK);
     let body = resp.into_body().collect().await.unwrap().to_bytes();
     let s = std::str::from_utf8(&body).unwrap();
-    assert!(!s.contains("tenant-b"), "admin-a must not see tenant-b accounts; got: {s}");
+    assert!(
+        !s.contains("tenant-b"),
+        "admin-a must not see tenant-b accounts; got: {s}"
+    );
 }
