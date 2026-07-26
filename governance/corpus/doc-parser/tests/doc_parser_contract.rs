@@ -3,7 +3,10 @@ use corpus_doc_parser::census::{
 };
 use corpus_doc_parser::{
     AdrFrontmatterValue, AdrParseError, AdrParseInput, DocNodeKind, DocParseError, DocParseInput,
-    TaintReason, parse_adr_decision, parse_markdown_doc,
+    TaintReason, chronology::ChronologyDisposition, chronology::ChronologyFinding,
+    chronology::ChronologyInput, chronology::ChronologyViolation,
+    chronology::evaluate_controlling_adr_chronology as evaluate_input, parse_adr_decision,
+    parse_markdown_doc,
 };
 
 const ADR_FIXTURE: &str = include_str!("fixtures/adr-heading-reference.md");
@@ -381,6 +384,433 @@ fn minimal_adr(frontmatter: &str) -> String {
     format!(
         "---\n{frontmatter}---\n\n# ADR-0517: One owned parser\n\nBody prose mentions ADR-9999 but does not create an edge.\n"
     )
+}
+
+fn chronology_adr(id: &str, status: &str, date: &str, relationships: &str) -> (String, String) {
+    (
+        format!("docs/decisions/{id}-chronology-fixture.md"),
+        format!(
+            "---\nid: {id}\nstatus: {status}\ndate: {date}\nowner: governance\n{relationships}---\n\n# {id}: Chronology fixture\n"
+        ),
+    )
+}
+
+fn parse_chronology_adr(
+    id: &str,
+    status: &str,
+    date: &str,
+    relationships: &str,
+) -> corpus_doc_parser::AdrDecision {
+    let (path, source) = chronology_adr(id, status, date, relationships);
+    parse_adr_decision(&AdrParseInput::new(path, source)).expect("chronology fixture parses")
+}
+
+fn parse_chronology_adr_at_path(
+    path: &str,
+    id: &str,
+    status: &str,
+    date: &str,
+    relationships: &str,
+) -> corpus_doc_parser::AdrDecision {
+    let (_, source) = chronology_adr(id, status, date, relationships);
+    parse_adr_decision(&AdrParseInput::new(path, source)).expect("chronology fixture parses")
+}
+
+fn roster(ids: &[&str]) -> Vec<String> {
+    ids.iter().map(|id| (*id).to_owned()).collect()
+}
+
+fn evaluate_controlling_adr_chronology(
+    decisions: &[corpus_doc_parser::AdrDecision],
+    controlling_ids: &[String],
+) -> Result<corpus_doc_parser::chronology::ChronologyReport, ChronologyViolation> {
+    evaluate_input(ChronologyInput {
+        decisions,
+        controlling_ids,
+    })
+}
+
+#[test]
+fn controlling_adr_chronology_table_drives_all_relationship_directions() {
+    for (relation, reciprocal) in [
+        ("amends", "amended_by"),
+        ("amended_by", "amends"),
+        ("supersedes", "superseded_by"),
+        ("superseded_by", "supersedes"),
+    ] {
+        let logical_relation = if matches!(relation, "amends" | "supersedes") {
+            relation
+        } else {
+            reciprocal
+        };
+        let source = parse_chronology_adr(
+            "ADR-0001",
+            "Accepted",
+            "2026-01-02",
+            &format!("{relation}: [ADR-0002]\n"),
+        );
+        let target = parse_chronology_adr(
+            "ADR-0002",
+            "Amended",
+            "2026-01-02",
+            &format!("{reciprocal}: [ADR-0001]\n"),
+        );
+        let report = evaluate_controlling_adr_chronology(
+            &[source.clone(), target.clone()],
+            &roster(&["ADR-0001"]),
+        )
+        .expect("same-day reciprocal lifecycle relationship is valid");
+        assert!(
+            report.findings().is_empty(),
+            "{relation} must allow same-day lifecycle records"
+        );
+
+        let missing_reciprocal = evaluate_controlling_adr_chronology(
+            &[
+                source.clone(),
+                parse_chronology_adr("ADR-0002", "Amended", "2026-01-02", ""),
+            ],
+            &roster(&["ADR-0001"]),
+        )
+        .expect("parsed population remains representable");
+        assert!(missing_reciprocal.findings().iter().any(|finding| matches!(finding, ChronologyFinding::ReciprocalMismatch { relation: actual, .. } if actual == logical_relation)));
+
+        let (source_date, target_date) = if matches!(relation, "amends" | "supersedes") {
+            ("2026-01-01", "2026-01-02")
+        } else {
+            ("2026-01-02", "2026-01-01")
+        };
+        let invalid_source = parse_chronology_adr(
+            "ADR-0001",
+            "Accepted",
+            source_date,
+            &format!("{relation}: [ADR-0002]\n"),
+        );
+        let invalid_target = parse_chronology_adr(
+            "ADR-0002",
+            "Amended",
+            target_date,
+            &format!("{reciprocal}: [ADR-0001]\n"),
+        );
+        let invalid_date = evaluate_controlling_adr_chronology(
+            &[invalid_source, invalid_target],
+            &roster(&["ADR-0001"]),
+        )
+        .expect("parsed population remains representable");
+        assert!(invalid_date.findings().iter().any(|finding| matches!(finding, ChronologyFinding::DateContradiction { relation: actual, .. } if actual == logical_relation)));
+    }
+}
+
+#[test]
+fn controlling_adr_chronology_roster_population_and_status_contract_is_fail_closed() {
+    let accepted = parse_chronology_adr("ADR-0001", "Accepted", "2026-01-01", "");
+    for status in ["Accepted", "Amended", "Accepted (amendment)"] {
+        let decision = parse_chronology_adr("ADR-0001", status, "2026-01-01", "");
+        assert!(
+            evaluate_controlling_adr_chronology(&[decision], &roster(&["ADR-0001"]))
+                .expect("allowlisted status is binding")
+                .findings()
+                .is_empty()
+        );
+    }
+    for status in ["accepted", "\"Accepted \""] {
+        let decision = parse_chronology_adr("ADR-0001", status, "2026-01-01", "");
+        let report = evaluate_controlling_adr_chronology(&[decision], &roster(&["ADR-0001"]))
+            .expect("near-spelling remains representable");
+        assert_eq!(report.disposition(), ChronologyDisposition::Blocked);
+        assert!(
+            report
+                .findings()
+                .iter()
+                .any(|finding| matches!(finding, ChronologyFinding::NonBindingController { .. }))
+        );
+    }
+    assert_eq!(
+        evaluate_controlling_adr_chronology(&[accepted.clone()], &[]).unwrap_err(),
+        ChronologyViolation::EmptyRoster
+    );
+    assert!(matches!(
+        evaluate_controlling_adr_chronology(&[accepted.clone()], &roster(&["ADR-1"])),
+        Err(ChronologyViolation::InvalidRosterId { .. })
+    ));
+    assert!(matches!(
+        evaluate_controlling_adr_chronology(
+            &[accepted.clone()],
+            &roster(&["ADR-0001", "ADR-0001"])
+        ),
+        Err(ChronologyViolation::DuplicateRosterId { .. })
+    ));
+    assert_eq!(
+        evaluate_controlling_adr_chronology(&[accepted.clone()], &roster(&["ADR-9999"]))
+            .expect("missing roster member is a deterministic finding")
+            .findings(),
+        &[ChronologyFinding::MissingRosterId {
+            id: "ADR-9999".into()
+        }]
+    );
+    assert!(matches!(
+        evaluate_controlling_adr_chronology(&[accepted.clone(), accepted], &roster(&["ADR-0001"])),
+        Err(ChronologyViolation::DuplicateSourcePath { .. })
+    ));
+}
+
+#[test]
+fn controlling_adr_chronology_normalizes_nonbinding_edges_and_unrostered_sources() {
+    for (raw_relation, relation_on_proposed, logical_relation) in [
+        ("amends", true, "amends"),
+        ("supersedes", true, "supersedes"),
+        ("amended_by", false, "amends"),
+        ("superseded_by", false, "supersedes"),
+    ] {
+        let root_edges = if relation_on_proposed {
+            "".to_owned()
+        } else {
+            format!("{raw_relation}: [ADR-0002]\n")
+        };
+        let proposed_edges = if relation_on_proposed {
+            format!("{raw_relation}: [ADR-0001]\n")
+        } else {
+            "".to_owned()
+        };
+        let root = parse_chronology_adr("ADR-0001", "Accepted", "2026-01-01", &root_edges);
+        let proposed = parse_chronology_adr("ADR-0002", "Proposed", "2026-01-01", &proposed_edges);
+        let report = evaluate_controlling_adr_chronology(&[root, proposed], &roster(&["ADR-0001"]))
+            .expect("nonbinding logical source is representable");
+        assert!(report.findings().iter().any(|finding| matches!(finding, ChronologyFinding::NonBindingLifecycleEdge { source_id, relation, .. } if source_id == "ADR-0002" && relation == logical_relation)));
+        assert!(!report.findings().iter().any(|finding| matches!(finding, ChronologyFinding::ReciprocalMismatch { source_id, .. } if source_id == "ADR-0002")));
+    }
+
+    let root = parse_chronology_adr("ADR-0001", "Accepted", "2026-01-01", "");
+    let historical = parse_chronology_adr(
+        "ADR-0002",
+        "Superseded",
+        "2026-01-02",
+        "amends: [ADR-0003]\n",
+    );
+    let proposed_target = parse_chronology_adr(
+        "ADR-0003",
+        "Proposed",
+        "2026-01-01",
+        "amended_by: [ADR-0002]\n",
+    );
+    let report = evaluate_controlling_adr_chronology(
+        &[root, historical, proposed_target],
+        &roster(&["ADR-0001"]),
+    )
+    .expect("unrostered Superseded source and Proposed target are representable");
+    assert!(!report.findings().iter().any(|finding| matches!(finding, ChronologyFinding::ReciprocalMismatch { source_id, .. } if source_id == "ADR-0002")));
+
+    let missing =
+        parse_chronology_adr("ADR-0001", "Accepted", "2026-01-01", "amends: [ADR-9999]\n");
+    assert!(evaluate_controlling_adr_chronology(&[missing], &roster(&["ADR-0001"]))
+        .expect("missing target is a finding")
+        .findings()
+        .iter()
+        .any(|finding| matches!(finding, ChronologyFinding::MissingTargetId { target_id, .. } if target_id == "ADR-9999")));
+}
+
+#[test]
+fn nonbinding_forward_edges_precede_self_and_missing_target_failures() {
+    for status in ["Proposed", "Conditional"] {
+        for relation in ["amends", "supersedes"] {
+            for target_id in ["ADR-0002", "ADR-9999"] {
+                let root = parse_chronology_adr("ADR-0001", "Accepted", "2026-01-01", "");
+                let nonbinding = parse_chronology_adr(
+                    "ADR-0002",
+                    status,
+                    "2026-01-01",
+                    &format!("{relation}: [{target_id}]\n"),
+                );
+                let report = evaluate_controlling_adr_chronology(
+                    &[root, nonbinding],
+                    &roster(&["ADR-0001"]),
+                )
+                .expect("known nonbinding forward source is representable");
+                assert_eq!(report.disposition(), ChronologyDisposition::PreparedUnbound);
+                assert_eq!(
+                    report
+                        .findings()
+                        .iter()
+                        .filter(|finding| matches!(finding, ChronologyFinding::NonBindingLifecycleEdge { relation: actual, target_id: actual_target, .. } if actual == relation && actual_target == target_id))
+                        .count(),
+                    1
+                );
+                assert!(!report.findings().iter().any(|finding| matches!(
+                    finding,
+                    ChronologyFinding::SelfReference { .. }
+                        | ChronologyFinding::MissingTargetId { .. }
+                        | ChronologyFinding::ReciprocalMismatch { .. }
+                        | ChronologyFinding::DateContradiction { .. }
+                        | ChronologyFinding::LifecycleCycle { .. }
+                )));
+            }
+        }
+    }
+
+    for relation in ["amended_by", "superseded_by"] {
+        let target = parse_chronology_adr(
+            "ADR-0001",
+            "Accepted",
+            "2026-01-01",
+            &format!("{relation}: [ADR-9999]\n"),
+        );
+        let report = evaluate_controlling_adr_chronology(&[target], &roster(&["ADR-0001"]))
+            .expect("unresolved inverse logical source is a finding");
+        assert_eq!(report.disposition(), ChronologyDisposition::Blocked);
+        assert!(report.findings().iter().any(|finding| matches!(finding, ChronologyFinding::MissingTargetId { relation: actual, target_id, .. } if actual == relation && target_id == "ADR-9999")));
+    }
+}
+
+#[test]
+fn controlling_adr_chronology_keeps_full_population_provenance_and_detects_cycles() {
+    let accepted = parse_chronology_adr_at_path(
+        "docs/decisions/ADR-0001-accepted.md",
+        "ADR-0001",
+        "Accepted",
+        "2026-01-01",
+        "amends: [ADR-0002]\n",
+    );
+    let proposed_duplicate = parse_chronology_adr_at_path(
+        "docs/decisions/ADR-0001-proposed.md",
+        "ADR-0001",
+        "Proposed",
+        "2026-01-01",
+        "",
+    );
+    let proposed_one = parse_chronology_adr_at_path(
+        "docs/decisions/ADR-0003-proposed-a.md",
+        "ADR-0003",
+        "Proposed",
+        "2026-01-01",
+        "",
+    );
+    let proposed_two = parse_chronology_adr_at_path(
+        "docs/decisions/ADR-0003-proposed-b.md",
+        "ADR-0003",
+        "Proposed",
+        "2026-01-01",
+        "",
+    );
+    let target = parse_chronology_adr(
+        "ADR-0002",
+        "Accepted",
+        "2026-01-01",
+        "amended_by: [ADR-0001]\n",
+    );
+    let report = evaluate_controlling_adr_chronology(
+        &[
+            accepted,
+            proposed_duplicate,
+            proposed_one,
+            proposed_two,
+            target,
+        ],
+        &roster(&["ADR-0001", "ADR-0002"]),
+    )
+    .expect("distinct source paths are representable");
+    assert!(report.findings().iter().any(|finding| matches!(finding, ChronologyFinding::DuplicateTargetId { target_id, source_paths } if target_id == "ADR-0001" && source_paths.len() == 2)));
+    assert_eq!(report.findings().iter().filter(|finding| matches!(finding, ChronologyFinding::NonBindingDecision { id, source_path, .. } if id == "ADR-0003" && source_path.contains("proposed"))).count(), 2);
+
+    let first = parse_chronology_adr(
+        "ADR-0004",
+        "Accepted",
+        "2026-01-01",
+        "amends: [ADR-0005]\nsuperseded_by: [ADR-0005]\n",
+    );
+    let second = parse_chronology_adr(
+        "ADR-0005",
+        "Accepted",
+        "2026-01-01",
+        "amended_by: [ADR-0004]\nsupersedes: [ADR-0004]\n",
+    );
+    let cycle =
+        evaluate_controlling_adr_chronology(&[first, second], &roster(&["ADR-0004", "ADR-0005"]))
+            .expect("cycle fixture is representable");
+    assert_eq!(
+        cycle.findings(),
+        &[ChronologyFinding::LifecycleCycle {
+            ids: vec!["ADR-0004".into(), "ADR-0005".into()]
+        }]
+    );
+}
+
+#[test]
+fn controlling_adr_chronology_preserves_hold_and_only_cycles_forward_amends_and_supersedes() {
+    let accepted = parse_chronology_adr("ADR-0001", "Accepted", "2026-01-01", "");
+    let nonbinding = parse_chronology_adr_at_path(
+        "docs/decisions/ADR-0002-proposed.md",
+        "ADR-0002",
+        "Proposed",
+        "2026-01-01",
+        "amends: [ADR-0001]\n",
+    );
+    let prepared = evaluate_controlling_adr_chronology(
+        &[accepted.clone(), nonbinding.clone()],
+        &roster(&["ADR-0001"]),
+    )
+    .expect("nonbinding supporting ADR is representable");
+    assert_eq!(prepared.claim_ceiling(), "BLOCKED/HOLD");
+    assert_eq!(
+        prepared.disposition(),
+        ChronologyDisposition::PreparedUnbound
+    );
+    assert!(prepared.findings().iter().any(|finding| matches!(finding, ChronologyFinding::NonBindingLifecycleEdge { source_id, relation, .. } if source_id == "ADR-0002" && relation == "amends")));
+
+    let blocked =
+        evaluate_controlling_adr_chronology(&[accepted, nonbinding], &roster(&["ADR-0002"]))
+            .expect("rostered nonbinding ADR is representable but blocking");
+    assert_eq!(blocked.disposition(), ChronologyDisposition::Blocked);
+    assert!(blocked.findings().iter().any(|finding| matches!(finding, ChronologyFinding::NonBindingController { id, .. } if id == "ADR-0002")));
+
+    let cycle_cases = [
+        ("amends: [ADR-0001]\n", "", vec!["ADR-0001"]),
+        (
+            "amends: [ADR-0002]\n",
+            "amends: [ADR-0001]\n",
+            vec!["ADR-0001", "ADR-0002"],
+        ),
+        (
+            "amends: [ADR-0002]\n",
+            "supersedes: [ADR-0001]\n",
+            vec!["ADR-0001", "ADR-0002"],
+        ),
+    ];
+    for (first_edges, second_edges, ids) in cycle_cases {
+        let first = parse_chronology_adr("ADR-0001", "Accepted", "2026-01-01", first_edges);
+        let second = parse_chronology_adr("ADR-0002", "Accepted", "2026-01-01", second_edges);
+        let report = evaluate_controlling_adr_chronology(
+            &[first, second],
+            &roster(&["ADR-0001", "ADR-0002"]),
+        )
+        .expect("cycle fixture is representable");
+        if ids.len() == 1 {
+            assert!(
+                report
+                    .findings()
+                    .iter()
+                    .any(|finding| matches!(finding, ChronologyFinding::SelfReference { .. }))
+            );
+        } else {
+            assert!(report.findings().iter().any(|finding| matches!(finding, ChronologyFinding::LifecycleCycle { ids: actual } if actual == &ids.iter().map(|id| (*id).to_owned()).collect::<Vec<_>>())));
+        }
+    }
+
+    let first = parse_chronology_adr("ADR-0001", "Accepted", "2026-01-01", "amends: [ADR-0002]\n");
+    let second = parse_chronology_adr(
+        "ADR-0002",
+        "Accepted",
+        "2026-01-01",
+        "supersedes: [ADR-0003]\n",
+    );
+    let third = parse_chronology_adr("ADR-0003", "Accepted", "2026-01-01", "amends: [ADR-0001]\n");
+    let ids = roster(&["ADR-0001", "ADR-0002", "ADR-0003"]);
+    let forward =
+        evaluate_controlling_adr_chronology(&[first.clone(), second.clone(), third.clone()], &ids)
+            .expect("three-node fixture is representable");
+    let reversed = evaluate_controlling_adr_chronology(&[third, second, first], &ids)
+        .expect("permutation is representable");
+    assert_eq!(forward, reversed);
+    assert!(forward.findings().iter().any(|finding| matches!(finding, ChronologyFinding::LifecycleCycle { ids } if ids == &vec![String::from("ADR-0001"), String::from("ADR-0002"), String::from("ADR-0003")])));
 }
 
 #[test]
