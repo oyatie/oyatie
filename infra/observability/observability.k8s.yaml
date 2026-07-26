@@ -29,7 +29,7 @@ spec:
       securityContext: { runAsNonRoot: true, runAsUser: 1000, fsGroup: 1000, seccompProfile: { type: RuntimeDefault } }
       containers:
         - name: vmsingle
-          image: victoriametrics/victoria-metrics:v1.111.0
+          image: victoriametrics/victoria-metrics:v1.148.0
           args: ["-storageDataPath=/vmdata", "-retentionPeriod=30d", "-httpListenAddr=:8428"]
           ports: [{ name: http, containerPort: 8428 }]
           securityContext: { allowPrivilegeEscalation: false, capabilities: { drop: ["ALL"] } }
@@ -79,7 +79,7 @@ spec:
       securityContext: { runAsNonRoot: true, runAsUser: 10001, seccompProfile: { type: RuntimeDefault } }
       containers:
         - name: otel-collector
-          image: otel/opentelemetry-collector-contrib:0.119.0
+          image: otel/opentelemetry-collector-contrib:0.157.0
           args: ["--config=/etc/otel/config.yaml"]
           ports: [{ name: otlp-grpc, containerPort: 4317 }, { name: otlp-http, containerPort: 4318 }]
           securityContext: { allowPrivilegeEscalation: false, capabilities: { drop: ["ALL"] } }

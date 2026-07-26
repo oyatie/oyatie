@@ -70,7 +70,7 @@ spec:
           effect: NoSchedule
       containers:
         - name: buildkitd
-          image: moby/buildkit:v0.18.2-rootless
+          image: moby/buildkit:v0.31.2-rootless
           args:
             - --addr=tcp://0.0.0.0:1234
             - --addr=unix:///run/user/1000/buildkit/buildkitd.sock
@@ -158,7 +158,7 @@ spec:
       containers:
         - name: buildctl
           # Same image as buildkitd — contains both daemon + client binaries.
-          image: moby/buildkit:v0.18.2-rootless
+          image: moby/buildkit:v0.31.2-rootless
           workingDir: /workspace
           command: ["/bin/sh", "-c"]
           args:
