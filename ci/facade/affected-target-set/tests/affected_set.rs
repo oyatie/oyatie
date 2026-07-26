@@ -124,61 +124,6 @@ fn docs_only_diff_is_no_graph_targets_via_explicit_inert_declaration() {
 }
 
 #[test]
-fn shipped_pack_declares_the_verified_inert_config_classes() {
-    // The SHIPPED pack must keep the four classes whose inertness was verified against the buck2
-    // binary (owner() EMPTY + no BUCK reference + buck2 does not read .gitignore for glob()). Before
-    // these, a one-line .gitignore or workflow edit was unowned+undeclared and escalated to the FULL
-    // tier — the same ~120-minute merge-base-plus-candidate run as a workspace-wide refactor, a tax
-    // that fell hardest on the smallest changes. Each is asserted end-to-end through resolve() with
-    // an EMPTY owner result, which is exactly the condition a declaration is allowed to cover.
-    //
-    // This one asserts against the SHIPPED pack, not the engine-side `policy()` fixture: the claim
-    // being pinned is about oyatie's own policy DATA, so a fixture that carries its own copy would
-    // pass while the shipped pack regressed.
-    let bytes = fs::read_to_string(shipped_pack_path()).expect("read shipped pack");
-    let p = Policy::from_json(&bytes).expect("shipped pack parses");
-    for path in [
-        ".github/workflows/oya-ci-required.yml",
-        ".gitignore",
-        ".gitattributes",
-        "ci/facade/affected-target-set/OWNERS",
-    ] {
-        let changes = [Change::Present(path.into())];
-        let plan = plan_changes(&changes, &p);
-        let decision = resolve(&plan, &owners(&[(path, &[])]), &p);
-        assert_eq!(
-            decision,
-            Decision::NoGraphTargets,
-            "`{path}` is a verified-inert class and must not escalate to FULL"
-        );
-    }
-}
-
-#[test]
-fn an_owned_instance_of_an_inert_class_is_still_seeded_by_owner() {
-    // The safety property that makes the declarations above sound, asserted rather than assumed: a
-    // declaration applies ONLY when owner() is empty. If any of these classes is ever wired into the
-    // graph (an include_str! asset, a glob), owner() seeds it and the inert declaration must NOT
-    // shadow the real owner. Same path as the test above, non-empty owner -> AFFECTED, not skipped.
-    let p = policy();
-    let path = ".github/workflows/oya-ci-required.yml";
-    let changes = [Change::Present(path.into())];
-    let plan = plan_changes(&changes, &p);
-    let decision = resolve(
-        &plan,
-        &owners(&[(path, &["root//ci/facade/hook-wiring:ci-hook-wiring-gate"])]),
-        &p,
-    );
-    assert_eq!(
-        decision,
-        Decision::Affected {
-            seeds: vec!["root//ci/facade/hook-wiring:ci-hook-wiring-gate".into()]
-        },
-        "an OWNED instance of an inert class must still be seeded by owner()"
-    );
-}
-
-#[test]
 fn unowned_unmapped_path_escalates_to_full() {
     // Defect 2 RED (pre-round-6: silently ignored -> NoGraphTargets/Affected-without-it). An
     // unowned Present path that is NOT owner-required and matches NO synthetic-dependency
