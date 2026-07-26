@@ -94,7 +94,9 @@ spec:
               # no egress. That issue is CLOSED by PR #4613 and has NOT been
               # re-verified against the v3.1.2 pinned here — so treat it as a
               # thing to check, not a known defect. The offline recipe, if it
-              # does bite: --trusted-root <staged trusted_root.json> --offline=true.
+              # does bite: --trusted-root <staged trusted_root.json>
+              # --offline=true --new-bundle-format=false (these images are
+              # v3-signed, so that last flag is the one likely to matter).
               #
               # Security properties deliberately given up, so this is a decision
               # and not an accident: no transparency-log entry, so these
