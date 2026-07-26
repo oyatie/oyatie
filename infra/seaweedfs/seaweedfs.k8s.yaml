@@ -97,7 +97,7 @@ spec:
           effect: NoSchedule
       containers:
         - name: seaweedfs
-          image: chrislusf/seaweedfs:3.79
+          image: chrislusf/seaweedfs:3.99
           # All-in-one: master + volume + filer + bucket-api gateway in one
           # process (`-s3` is SeaweedFS's CLI flag for the gateway — that
           # naming is its own namespace, not ours). The S3-compatible identity

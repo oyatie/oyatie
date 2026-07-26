@@ -19,6 +19,14 @@ metadata:
   namespace: oya-kms
 data:
   openbao.hcl: |
+    # VERSION CONSTRAINT — do NOT bump the openbao image past 2.6.x on the
+    # "non-major bumps are a routine chore" rule. Verified by running the pinned
+    # image against this exact config:
+    #   [WARN] storage.file: the file physical backend is deprecated; use
+    #          bao operator migrate to move to a supported storage backend by v2.7.0
+    # v2.7.0 is a MINOR, so the next routine bump removes the backend this KMS
+    # substrate stores its data on. Migrating (raft) must land FIRST; tracked as
+    # F-SEC-OPENBAO-FILE-BACKEND in registry/fixuptasks.jsonl.
     storage "file" { path = "/openbao/data" }   # barrier-encrypted at rest
     listener "tcp" {
       address     = "0.0.0.0:8200"
