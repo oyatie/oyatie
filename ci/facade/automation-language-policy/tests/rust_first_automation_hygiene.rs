@@ -319,14 +319,9 @@ fn retirement_event_transport_delegates_provider_tuple_to_rust_materializer_with
         "manual reruns remain an explicitly declared workflow surface"
     );
 
-    let materialize = named_workflow_step(
-        &workflow_doc,
-        "producer-regen",
-        "Materialize cloud-ci generated faces",
-    );
-    let env = materialize
+    let env = workflow_doc
         .get("env")
-        .unwrap_or_else(|| panic!("producer materializer must declare env"));
+        .unwrap_or_else(|| panic!("workflow must declare one inherited provider-event env"));
     for (key, binding) in [
         ("EVENT_EVALUATED_SHA", "${{ github.sha }}"),
         (
@@ -361,9 +356,14 @@ fn retirement_event_transport_delegates_provider_tuple_to_rust_materializer_with
         assert_eq!(
             env.get(key).and_then(YamlValue::as_str),
             Some(binding),
-            "producer materializer env binding drifted for {key}"
+            "workflow provider-event env binding drifted for {key}"
         );
     }
+    let materialize = named_workflow_step(
+        &workflow_doc,
+        "producer-regen",
+        "Materialize cloud-ci generated faces",
+    );
     let run = materialize
         .get("run")
         .and_then(YamlValue::as_str)
@@ -376,6 +376,31 @@ fn retirement_event_transport_delegates_provider_tuple_to_rust_materializer_with
         assert!(
             !run.contains(forbidden),
             "producer shell must not own branching or git topology command {forbidden:?}"
+        );
+    }
+
+    let census_gate = named_workflow_step(&workflow_doc, "gate", "buck2 test ${{ matrix.crate }}");
+    let census_gate_run = census_gate
+        .get("run")
+        .and_then(YamlValue::as_str)
+        .expect("scm-facts census receipt gate must be a Rust-owned run step");
+    assert!(
+        census_gate_run.contains(
+            "buck2 run //ci/facade/scm-facts-snapshot:adr-census-epoch-receipt-gate-bin -- --repo-root . --github-event"
+        ),
+        "the live scm-facts census receipt gate must retain provider-event identity"
+    );
+
+    for line in workflow.lines().filter(|line| {
+        (line.contains("oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .")
+            && !line.contains("--help")
+            && !line.contains("historical_retirement_args"))
+            || line.contains("\"${freshness_bin}\" --repo-root .")
+            || line.contains("\"${materializer_bin}\" --repo-root .")
+    }) {
+        assert!(
+            line.contains("--github-event"),
+            "every live candidate regeneration must delegate event identity to Rust: {line}"
         );
     }
 }

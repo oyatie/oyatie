@@ -456,6 +456,10 @@
     {
       "anchor": "HOLD(Planning) E7 implementation contract: exact schema for the ignored controller-produced history-only retirement facts projection; it is not a closure receipt or authority source.",
       "prefix": "specs/history-only-retirement-facts.schema.json"
+    },
+    {
+      "anchor": "HOLD(Planning) ADR-0624 implementation contract: narrow cloud-ci-platform ownership marker for the ADR census epoch pointer; it grants no closure, promotion, planning approval, dispatch, or completion authority.",
+      "prefix": "registry/adr-census-epoch/OWNERS"
     }
   ]
 }

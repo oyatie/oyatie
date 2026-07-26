@@ -732,7 +732,7 @@ fn every_gate_crate_is_registered_in_oya_ci_required_workflow() {
 }
 
 #[test]
-fn fixed_census_receipt_is_a_buck_live_face_gate_not_a_cargo_only_false_green() {
+fn census_epoch_receipt_is_a_buck_live_face_gate_not_a_cargo_only_false_green() {
     let root = repo_root();
     let workflow = read_to_string(&workflow_path(&root));
     let buck = read_to_string(&root.join("ci/facade/scm-facts-snapshot/BUCK"));
@@ -751,8 +751,8 @@ fn fixed_census_receipt_is_a_buck_live_face_gate_not_a_cargo_only_false_green() 
     );
     assert!(
         buck.contains("name = \"ci-scm-facts-snapshot-gate\"")
-            && buck.contains("src/bin/adr-census-parent-receipt-gate.rs"),
-        "the matrix target must execute the fixed-receipt live validator under Buck"
+            && buck.contains("src/bin/adr-census-epoch-receipt-gate.rs"),
+        "the matrix target must execute the census-epoch receipt live validator under Buck"
     );
     assert!(
         workflow.contains("//ci/facade/${{ matrix.crate }}:ci-${{ matrix.crate }}-gate"),

@@ -61,8 +61,10 @@
 #![forbid(unsafe_code)]
 
 use std::collections::{BTreeMap, BTreeSet};
+use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
-use std::process::Command;
+use std::process::{Child, Command, ExitStatus, Stdio};
+use std::time::{Duration, Instant};
 
 use ci_artifact_inventory_registry::to_canonical_json;
 use ci_path_resolver_adapters::{MOVE_MANIFEST_PATH, ManifestPathResolver, MoveManifest};
@@ -71,6 +73,7 @@ use corpus_doc_parser::census::{
     CensusInput, CensusReceipt, CensusSource, CensusSourceKind, SELECTOR_ID, build_receipt,
 };
 use oya_check_brand_residue::forbidden_vocab::{VocabPolicy, matched_line_occurrences_with};
+use serde::Deserialize;
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 
@@ -84,8 +87,275 @@ const CENSUS_PARSER_COMMIT: &str = "a2b326eebd418ae970847b5e1bca3782c61c52ab";
 const CENSUS_PARSER_TREE: &str = "0cdece525bc54f83ec51d3ba67a4308d0ce43812";
 const CENSUS_PARSER_PATH: &str = "governance/corpus/doc-parser/src/lib.rs";
 const CENSUS_PARSER_BLOB: &str = "ab3884dbf4a657869fd87920b016cc4734a1c27f";
-const CENSUS_PARSER_SHA256: &str =
-    "e559419fdb11452f5d30312ce3baca6f22bd9a08b98f0e880bfe344c3420d62e";
+const P2_HISTORICAL_MATERIALIZER_TIMEOUT: Duration = Duration::from_secs(30 * 60);
+const P2_HISTORICAL_GIT_TIMEOUT: Duration = Duration::from_secs(5 * 60);
+const P2_HISTORICAL_BUCK_SHUTDOWN_TIMEOUT: Duration = Duration::from_secs(30);
+const CHILD_PROCESS_POLL_INTERVAL: Duration = Duration::from_millis(50);
+/// The P2 producer implementation and its parser dependency graph are executed from this exact
+/// historical tree. Keeping the old source only in Git history prevents present parser changes
+/// from being represented as an historical P2 execution.
+const P2_HISTORICAL_IMPLEMENTATION_COMMIT: &str = "afff4dade737b1833153c4f45d8defdfa2b328a8";
+
+/// The stable, controller-owned generated face for the append-only ADR census epochs.
+pub const ADR_CENSUS_EPOCH_RECEIPT_PATH: &str =
+    "ci/facade/artifact-inventory-registry/adr-census-epoch-receipt.generated.json";
+const ADR_CENSUS_EPOCH_CONTROL_PATH: &str = "registry/adr-census-epoch/control-plane.json";
+const P3_PRODUCER_GATE_SOURCE_PATHS: &[&str] = &[
+    "ci/facade/scm-facts-snapshot/BUCK",
+    "ci/facade/scm-facts-snapshot/Cargo.toml",
+    "ci/facade/scm-facts-snapshot/src/bin/adr-census-epoch-receipt-gate.rs",
+    "ci/facade/scm-facts-snapshot/src/lib.rs",
+    "ci/facade/scm-facts-snapshot/src/main.rs",
+    "ci/facade/scm-facts-snapshot/src/retirement.rs",
+    "governance/corpus/doc-parser/BUCK",
+    "governance/corpus/doc-parser/Cargo.toml",
+    "governance/corpus/doc-parser/src/lib.rs",
+    "governance/corpus/doc-parser/tests/fixtures/adr-heading-reference.md",
+    "governance/corpus/doc-parser/tests/fixtures/adversarial-exfil.md",
+    "governance/corpus/work-area-tree-kernel/BUCK",
+    "governance/corpus/work-area-tree-kernel/Cargo.toml",
+    "governance/corpus/work-area-tree-kernel/src/lib.rs",
+    "specs/adr-census-epoch-control-plane.schema.json",
+    "specs/adr-census-epoch-receipt.schema.json",
+];
+const P3_TOOLCHAIN_INPUT_PATHS: &[&str] = &[
+    ".buckconfig",
+    "rust-toolchain.toml",
+    "third-party/BUCK",
+    "toolchains/BUCK",
+];
+
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq)]
+enum CensusEpoch {
+    P2,
+    P3,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct CensusEpochControl {
+    #[serde(rename = "$schema")]
+    schema: String,
+    schema_version: u32,
+    canonical_name: String,
+    active_epoch: CensusEpoch,
+    receipt_path: String,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct CensusEpochDescriptor {
+    epoch: CensusEpoch,
+    receipt_schema: String,
+    materialization: String,
+    claim_ceiling: String,
+    #[serde(default)]
+    selector: Option<CensusSelector>,
+    #[serde(default)]
+    parser: Option<CensusParserDescriptor>,
+    #[serde(default)]
+    execution: Option<CensusExecutionDescriptor>,
+    #[serde(default)]
+    predecessor: Option<CensusPredecessor>,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct CensusSelector {
+    id: String,
+    root: String,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct CensusParserDescriptor {
+    api: String,
+    version: String,
+    diagnostic_policy: String,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct CensusExecutionDescriptor {
+    buck_target: String,
+    buck_config: String,
+    toolchain_inputs: String,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct CensusPredecessor {
+    epoch: CensusEpoch,
+    outer_sha256: String,
+    canonical_digest: String,
+    aggregate_fold: String,
+    disposition: String,
+}
+
+struct ParsedCensusEpochControl {
+    active_epoch: CensusEpoch,
+}
+
+fn parse_adr_census_epoch_control(bytes: &[u8]) -> Result<ParsedCensusEpochControl, String> {
+    let control: CensusEpochControl = serde_json::from_slice(bytes)
+        .map_err(|error| format!("ADR census epoch control parse: {error}"))?;
+    if control.schema
+        != "https://docs.oyatie.com/schemas/adr-census-epoch-control-plane.schema.json"
+        || control.schema_version != 1
+        || control.canonical_name != "adr-census-epoch-control-plane"
+        || control.receipt_path != ADR_CENSUS_EPOCH_RECEIPT_PATH
+    {
+        return Err("ADR census epoch control has invalid fixed fields".to_owned());
+    }
+    Ok(ParsedCensusEpochControl {
+        active_epoch: control.active_epoch,
+    })
+}
+
+fn canonical_adr_census_epoch_control(epoch: CensusEpoch) -> Vec<u8> {
+    let epoch = match epoch {
+        CensusEpoch::P2 => "P2",
+        CensusEpoch::P3 => "P3",
+    };
+    format!(
+        concat!(
+            "{{\n",
+            "  \"$schema\": \"https://docs.oyatie.com/schemas/adr-census-epoch-control-plane.schema.json\",\n",
+            "  \"schema_version\": 1,\n",
+            "  \"canonical_name\": \"adr-census-epoch-control-plane\",\n",
+            "  \"receipt_path\": \"ci/facade/artifact-inventory-registry/adr-census-epoch-receipt.generated.json\",\n",
+            "  \"active_epoch\": \"{}\"\n",
+            "}}\n"
+        ),
+        epoch
+    )
+    .into_bytes()
+}
+
+fn require_canonical_adr_census_epoch_control(
+    bytes: &[u8],
+    epoch: CensusEpoch,
+) -> Result<(), String> {
+    if bytes == canonical_adr_census_epoch_control(epoch) {
+        Ok(())
+    } else {
+        Err(format!(
+            "ADR census epoch {epoch:?} control is not the canonical pointer-only document"
+        ))
+    }
+}
+
+fn validate_epoch_descriptor(descriptor: &CensusEpochDescriptor) -> Result<(), String> {
+    if descriptor.claim_ceiling != "BLOCKED/HOLD" {
+        return Err("ADR census epoch claim ceiling must remain BLOCKED/HOLD".to_owned());
+    }
+    match descriptor.epoch {
+        CensusEpoch::P2 => {
+            if descriptor.receipt_schema != "oya-ci/adr-census-parent-receipt/v1"
+                || descriptor.materialization != "fixed-historical"
+                || descriptor.selector.is_some()
+                || descriptor.parser.is_some()
+                || descriptor.execution.is_some()
+                || descriptor.predecessor.is_some()
+            {
+                return Err("P2 descriptor differs from fixed historical contract".to_owned());
+            }
+        }
+        CensusEpoch::P3 => {
+            if descriptor.receipt_schema != "oya-ci/adr-census-epoch-receipt/v2"
+                || descriptor.materialization != "head-tree"
+            {
+                return Err("P3 descriptor has unsupported receipt materialization".to_owned());
+            }
+            let selector = descriptor.selector.as_ref().ok_or("P3 selector absent")?;
+            if selector.id != SELECTOR_ID || selector.root != "docs/decisions" {
+                return Err("P3 selector differs from the direct ADR contract".to_owned());
+            }
+            let parser = descriptor.parser.as_ref().ok_or("P3 parser absent")?;
+            if parser.api != "corpus-doc-parser::parse_adr_decision"
+                || parser.version != "corpus-doc-parser-v1"
+                || parser.diagnostic_policy != "first-error-only"
+            {
+                return Err("P3 parser contract invalid".to_owned());
+            }
+            let execution = descriptor
+                .execution
+                .as_ref()
+                .ok_or("P3 execution provenance absent")?;
+            if execution.buck_target.is_empty()
+                || execution.buck_config.is_empty()
+                || execution.toolchain_inputs.is_empty()
+            {
+                return Err("P3 execution provenance has an empty field".to_owned());
+            }
+            let predecessor = descriptor
+                .predecessor
+                .as_ref()
+                .ok_or("P3 P2 predecessor absent")?;
+            if predecessor.epoch != CensusEpoch::P2
+                || predecessor.outer_sha256
+                    != "c3c4195f440fbf7825101dcf303fea9d8aec9d2ce7a77bd3ec25d8411dfdf528"
+                || predecessor.canonical_digest
+                    != "7a8eb3848e3b5d1dd148595b5210f2a059fac582db9e5607cf54be2f502b24d8"
+                || predecessor.aggregate_fold
+                    != "2aeb7459f61b6f216b4eee75164bcfb85e405bbe8ca74cf180e5492b09c99507"
+                || predecessor.disposition != "git-history-only"
+            {
+                return Err(
+                    "P3 predecessor is not the immutable P2 history-only receipt".to_owned(),
+                );
+            }
+        }
+    }
+    Ok(())
+}
+
+fn protected_p3_epoch_descriptor() -> CensusEpochDescriptor {
+    CensusEpochDescriptor {
+        epoch: CensusEpoch::P3,
+        receipt_schema: "oya-ci/adr-census-epoch-receipt/v2".to_owned(),
+        materialization: "head-tree".to_owned(),
+        claim_ceiling: "BLOCKED/HOLD".to_owned(),
+        selector: Some(CensusSelector {
+            id: SELECTOR_ID.to_owned(),
+            root: "docs/decisions".to_owned(),
+        }),
+        parser: Some(CensusParserDescriptor {
+            api: "corpus-doc-parser::parse_adr_decision".to_owned(),
+            version: "corpus-doc-parser-v1".to_owned(),
+            diagnostic_policy: "first-error-only".to_owned(),
+        }),
+        execution: Some(CensusExecutionDescriptor {
+            buck_target: "//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot".to_owned(),
+            buck_config: "default".to_owned(),
+            toolchain_inputs: "rust".to_owned(),
+        }),
+        predecessor: Some(CensusPredecessor {
+            epoch: CensusEpoch::P2,
+            outer_sha256: "c3c4195f440fbf7825101dcf303fea9d8aec9d2ce7a77bd3ec25d8411dfdf528"
+                .to_owned(),
+            canonical_digest: "7a8eb3848e3b5d1dd148595b5210f2a059fac582db9e5607cf54be2f502b24d8"
+                .to_owned(),
+            aggregate_fold: "2aeb7459f61b6f216b4eee75164bcfb85e405bbe8ca74cf180e5492b09c99507"
+                .to_owned(),
+            disposition: "git-history-only".to_owned(),
+        }),
+    }
+}
+
+fn require_lower_hex(value: &str, length: usize, label: &str) -> Result<(), String> {
+    if value.len() == length
+        && value
+            .bytes()
+            .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+    {
+        Ok(())
+    } else {
+        Err(format!(
+            "{label} must be {length} lowercase hexadecimal characters"
+        ))
+    }
+}
 
 /// Retirement materialization boundary.
 ///
@@ -165,6 +435,8 @@ fn run() -> Result<(), String> {
     let mut provenance_producer: Option<String> = None;
     let mut emit_adr_census_parent_receipt = false;
     let mut adr_census_parent_receipt_out: Option<PathBuf> = None;
+    let mut emit_adr_census_epoch_receipt_requested = false;
+    let mut adr_census_epoch_receipt_out: Option<PathBuf> = None;
     // E7 history-only retirement facts are opt-in and all-or-none. The generated face is
     // controller-owned and untracked; ordinary scm-facts emission remains behavior-identical.
     let mut retirement_control_plane: Option<String> = None;
@@ -258,6 +530,16 @@ fn run() -> Result<(), String> {
                 );
                 emit_adr_census_parent_receipt = true;
             }
+            "--adr-census-epoch-receipt" => emit_adr_census_epoch_receipt_requested = true,
+            "--adr-census-epoch-receipt-out" => {
+                i += 1;
+                adr_census_epoch_receipt_out = Some(
+                    args.get(i)
+                        .map(PathBuf::from)
+                        .ok_or("--adr-census-epoch-receipt-out requires a path")?,
+                );
+                emit_adr_census_epoch_receipt_requested = true;
+            }
             "--retirement-control-plane" => {
                 i += 1;
                 retirement_control_plane = args.get(i).cloned();
@@ -343,6 +625,31 @@ fn run() -> Result<(), String> {
         let output = adr_census_parent_receipt_out
             .unwrap_or_else(|| repo_root.join(ADR_CENSUS_RECEIPT_PATH));
         emit_fixed_adr_census_parent_receipt(&repo_root, &output)?;
+        return Ok(());
+    }
+    if emit_adr_census_epoch_receipt_requested {
+        let output = adr_census_epoch_receipt_out
+            .unwrap_or_else(|| repo_root.join(ADR_CENSUS_EPOCH_RECEIPT_PATH));
+        let selection = match (
+            protected_base_commit.as_deref(),
+            evaluated_commit.as_deref(),
+            scm_event_name.as_deref(),
+            scm_event_ref.as_deref(),
+            scm_event_base_ref.as_deref(),
+            subject_commit.as_deref(),
+        ) {
+            (None, None, None, None, None, None) => {
+                emit_adr_census_epoch_receipt(&repo_root, &output)?;
+                return Ok(());
+            }
+            (Some(protected), Some(evaluated), Some(event), Some(event_ref), Some(event_base_ref), Some(subject)) =>
+                select_census_event_from_event(
+                    &repo_root, protected, evaluated, event, event_ref, event_base_ref, subject,
+                )?,
+            _ => return Err("--protected-base-commit, --evaluated-commit, --scm-event-name, --scm-event-ref, --scm-event-base-ref, and --subject-commit are all-or-none for ADR census receipt emission".to_owned()),
+        };
+        let validated = validate_census_event_transition(&selection)?;
+        emit_adr_census_epoch_receipt_for_event(&validated, &output)?;
         return Ok(());
     }
 
@@ -469,6 +776,595 @@ fn run() -> Result<(), String> {
     Ok(())
 }
 
+/// Materialize the active append-only census epoch. P2 is intentionally preserved verbatim;
+/// P3 is dormant until its parser and descriptor are promoted together.
+pub fn emit_adr_census_epoch_receipt(repo_root: &Path, output: &Path) -> Result<(), String> {
+    let repo_root = canonical_repo_root(repo_root)?;
+    let revision = resolve_head_revision(&repo_root)?;
+    emit_adr_census_epoch_receipt_at_revisions(&repo_root, output, &revision, &revision)
+}
+
+/// Emit the active receipt from one validated controller event boundary.
+///
+/// The opaque validated value preserves the distinction between the subject revision that owns
+/// transition history and the evaluated candidate tree that owns P3 content identity.
+pub fn emit_adr_census_epoch_receipt_for_event(
+    selection: &ValidatedCensusEventSelection,
+    output: &Path,
+) -> Result<(), String> {
+    emit_adr_census_epoch_receipt_at_revisions(
+        &selection.repo_root,
+        output,
+        &selection.history_revision,
+        &selection.content_revision,
+    )
+}
+
+fn emit_adr_census_epoch_receipt_at_revisions(
+    repo_root: &Path,
+    output: &Path,
+    history_revision: &str,
+    content_revision: &str,
+) -> Result<(), String> {
+    let repo_root = canonical_repo_root(repo_root)?;
+    let history_revision =
+        resolve_exact_revision(&repo_root, history_revision, "ADR census history revision")?;
+    let content_revision =
+        resolve_exact_revision(&repo_root, content_revision, "ADR census content revision")?;
+    let control_bytes = git_bytes(
+        &repo_root,
+        &[
+            "show",
+            &format!("{history_revision}:{}", ADR_CENSUS_EPOCH_CONTROL_PATH),
+        ],
+    )?;
+    let control = parse_adr_census_epoch_control(&control_bytes)?;
+    require_canonical_adr_census_epoch_control(&control_bytes, control.active_epoch)?;
+    validate_census_epoch_control_history(&repo_root, &history_revision, control.active_epoch)?;
+    let bytes = match control.active_epoch {
+        CensusEpoch::P2 => {
+            build_fixed_adr_census_parent_receipt_at_revision(&repo_root, &history_revision)?
+        }
+        CensusEpoch::P3 => {
+            build_p3_adr_census_epoch_receipt_at_revision(&repo_root, &content_revision)?
+        }
+    };
+    match classify_epoch_receipt_output(&repo_root, output)? {
+        EpochReceiptOutput::Canonical => retirement::write_canonical_ignored_generated_file(
+            &repo_root,
+            Path::new(ADR_CENSUS_EPOCH_RECEIPT_PATH),
+            &bytes,
+        ),
+        EpochReceiptOutput::External(output) => std::fs::write(output, bytes)
+            .map_err(|error| format!("write ADR census epoch receipt: {error}")),
+    }
+}
+
+/// Immutable controller event boundary retained through census transition validation.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CensusEventSelection {
+    repo_root: PathBuf,
+    protected_base_commit: String,
+    history_revision: String,
+    content_revision: String,
+}
+
+/// Validated controller boundary required by every event-bound census operation.
+///
+/// Fields remain private so a caller cannot discard the protected/history/content relationship
+/// and then invoke an operation with a free-form revision.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ValidatedCensusEventSelection {
+    repo_root: PathBuf,
+    history_revision: String,
+    content_revision: String,
+}
+
+/// Derive and retain the sole CI event boundary allowed to select the census control plane. This
+/// is deliberately the same fully-validated tuple used by history-only retirement materialization.
+pub fn select_census_event_from_event(
+    repo_root: &Path,
+    protected_base_commit: &str,
+    evaluated_commit: &str,
+    scm_event_name: &str,
+    scm_event_ref: &str,
+    scm_event_base_ref: &str,
+    subject_commit: &str,
+) -> Result<CensusEventSelection, String> {
+    let repo_root = canonical_repo_root(repo_root)?;
+    let selected_revision = retirement::census_revision_from_event(
+        &repo_root,
+        &retirement::RetirementMaterializationContext {
+            control_plane_path: retirement::CONTROL_PLANE_PATH,
+            protected_base_commit,
+            evaluated_commit,
+            scm_event_name,
+            scm_event_ref,
+            scm_event_base_ref,
+            subject_commit,
+        },
+    )?;
+    Ok(CensusEventSelection {
+        repo_root,
+        protected_base_commit: protected_base_commit.to_owned(),
+        history_revision: selected_revision,
+        content_revision: evaluated_commit.to_owned(),
+    })
+}
+
+/// Enforce the complete candidate boundary for P2/P3 activation and rollback.
+///
+/// Commit-local history validation remains necessary, but is not sufficient: a multi-commit
+/// candidate must not change protected policy in one commit and flip the pointer in another.
+pub fn validate_census_event_transition(
+    selection: &CensusEventSelection,
+) -> Result<ValidatedCensusEventSelection, String> {
+    let repo_root = &selection.repo_root;
+    let protected = resolve_exact_revision(
+        repo_root,
+        &selection.protected_base_commit,
+        "ADR census protected base",
+    )?;
+    let content = resolve_exact_revision(
+        repo_root,
+        &selection.content_revision,
+        "ADR census content revision",
+    )?;
+    let history = resolve_exact_revision(
+        repo_root,
+        &selection.history_revision,
+        "ADR census history revision",
+    )?;
+    let validated = ValidatedCensusEventSelection {
+        repo_root: repo_root.clone(),
+        history_revision: history.clone(),
+        content_revision: content.clone(),
+    };
+
+    let history_control = git_show_file(repo_root, &history, ADR_CENSUS_EPOCH_CONTROL_PATH)?;
+    let content_control = git_show_file(repo_root, &content, ADR_CENSUS_EPOCH_CONTROL_PATH)?;
+    if history_control != content_control {
+        return Err("ADR census history and content control-plane pointers differ".to_owned());
+    }
+    let protected_control = git_show_file(repo_root, &protected, ADR_CENSUS_EPOCH_CONTROL_PATH)?;
+    let (Some(protected_control), Some(history_control)) = (protected_control, history_control)
+    else {
+        return Ok(validated);
+    };
+    let protected_parsed = parse_adr_census_epoch_control(protected_control.as_bytes())?;
+    require_canonical_adr_census_epoch_control(
+        protected_control.as_bytes(),
+        protected_parsed.active_epoch,
+    )?;
+    let history_parsed = parse_adr_census_epoch_control(history_control.as_bytes())?;
+    require_canonical_adr_census_epoch_control(
+        history_control.as_bytes(),
+        history_parsed.active_epoch,
+    )?;
+    if protected_parsed.active_epoch == history_parsed.active_epoch {
+        return Ok(validated);
+    }
+
+    let changed = git_text(
+        repo_root,
+        &["diff", "--name-only", &protected, &content, "--"],
+    )?;
+    if changed.lines().collect::<Vec<_>>() != [ADR_CENSUS_EPOCH_CONTROL_PATH] {
+        return Err(
+            "ADR census epoch candidate transition may change only the control-plane pointer"
+                .to_owned(),
+        );
+    }
+    Ok(validated)
+}
+
+/// Validate the single active epoch receipt selected by the immutable local HEAD control pointer.
+/// This local wrapper never consults worktree control data.
+pub fn validate_adr_census_epoch_receipt(repo_root: &Path, path: &Path) -> Result<(), String> {
+    let repo_root = canonical_repo_root(repo_root)?;
+    let revision = resolve_head_revision(&repo_root)?;
+    validate_adr_census_epoch_receipt_at_revisions(&repo_root, path, &revision, &revision)
+}
+
+pub fn validate_adr_census_epoch_receipt_for_event(
+    selection: &ValidatedCensusEventSelection,
+    path: &Path,
+) -> Result<(), String> {
+    validate_adr_census_epoch_receipt_at_revisions(
+        &selection.repo_root,
+        path,
+        &selection.history_revision,
+        &selection.content_revision,
+    )
+}
+
+fn validate_adr_census_epoch_receipt_at_revisions(
+    repo_root: &Path,
+    path: &Path,
+    history_revision: &str,
+    content_revision: &str,
+) -> Result<(), String> {
+    let repo_root = canonical_repo_root(repo_root)?;
+    let history_revision =
+        resolve_exact_revision(&repo_root, history_revision, "ADR census history revision")?;
+    let content_revision =
+        resolve_exact_revision(&repo_root, content_revision, "ADR census content revision")?;
+    let control_bytes = git_bytes(
+        &repo_root,
+        &[
+            "show",
+            &format!("{history_revision}:{}", ADR_CENSUS_EPOCH_CONTROL_PATH),
+        ],
+    )?;
+    let control = parse_adr_census_epoch_control(&control_bytes)?;
+    require_canonical_adr_census_epoch_control(&control_bytes, control.active_epoch)?;
+    validate_census_epoch_control_history(&repo_root, &history_revision, control.active_epoch)?;
+    let bytes =
+        std::fs::read(path).map_err(|error| format!("read active ADR census receipt: {error}"))?;
+    match control.active_epoch {
+        CensusEpoch::P2 => validate_exact_p2_receipt(&bytes),
+        CensusEpoch::P3 => {
+            validate_p3_epoch_receipt_at_revision(&repo_root, &content_revision, &bytes)
+        }
+    }
+}
+
+fn validate_census_epoch_control_history(
+    repo_root: &Path,
+    revision: &str,
+    active_epoch: CensusEpoch,
+) -> Result<(), String> {
+    let history = git_text(
+        repo_root,
+        &[
+            "log",
+            "--first-parent",
+            "--format=%H",
+            revision,
+            "--",
+            ADR_CENSUS_EPOCH_CONTROL_PATH,
+        ],
+    )?;
+    let changes = history
+        .lines()
+        .filter(|line| !line.is_empty())
+        .collect::<Vec<_>>();
+    let transition = changes
+        .first()
+        .copied()
+        .ok_or("ADR census epoch control has no first-parent history")?;
+    require_lower_hex(transition, 40, "ADR census epoch control transition commit")?;
+    let transition_bytes = git_show_file(repo_root, transition, ADR_CENSUS_EPOCH_CONTROL_PATH)?
+        .ok_or("ADR census epoch control absent at its latest transition")?;
+    let transition_control = parse_adr_census_epoch_control(transition_bytes.as_bytes())?;
+    if transition_control.active_epoch != active_epoch {
+        return Err("ADR census epoch HEAD differs from its latest control transition".to_owned());
+    }
+    require_canonical_adr_census_epoch_control(transition_bytes.as_bytes(), active_epoch)?;
+
+    let parent_line = git_text(repo_root, &["rev-list", "--parents", "-n", "1", transition])?;
+    let parent = parse_census_epoch_transition_parent(transition, &parent_line)?;
+    let Some(parent) = parent else {
+        validate_census_epoch_transition_shape(active_epoch, None, changes.len(), &[])?;
+        return require_fixed_census_history(repo_root, revision);
+    };
+    match git_show_file(repo_root, &parent, ADR_CENSUS_EPOCH_CONTROL_PATH)? {
+        None => {
+            validate_census_epoch_transition_shape(active_epoch, None, changes.len(), &[])?;
+        }
+        Some(parent_bytes) => {
+            let parent_control = parse_adr_census_epoch_control(parent_bytes.as_bytes())?;
+            require_canonical_adr_census_epoch_control(
+                parent_bytes.as_bytes(),
+                parent_control.active_epoch,
+            )?;
+            let changed = git_text(repo_root, &["diff", "--name-only", &parent, transition])?;
+            let changed_paths = changed.lines().collect::<Vec<_>>();
+            validate_census_epoch_transition_shape(
+                active_epoch,
+                Some(parent_control.active_epoch),
+                changes.len(),
+                &changed_paths,
+            )?;
+        }
+    }
+    require_fixed_census_history(repo_root, revision)
+}
+
+fn parse_census_epoch_transition_parent(
+    transition: &str,
+    parent_line: &str,
+) -> Result<Option<String>, String> {
+    let lines = parent_line
+        .lines()
+        .filter(|line| !line.is_empty())
+        .collect::<Vec<_>>();
+    if lines.len() != 1 {
+        return Err(
+            "ADR census epoch transition parent query must return exactly one record".to_owned(),
+        );
+    }
+    let fields = lines[0].split_ascii_whitespace().collect::<Vec<_>>();
+    let observed_transition = fields
+        .first()
+        .copied()
+        .ok_or("ADR census epoch transition parent record is empty")?;
+    require_lower_hex(
+        observed_transition,
+        40,
+        "ADR census epoch transition record commit",
+    )?;
+    if observed_transition != transition {
+        return Err(
+            "ADR census epoch transition parent record names a different commit".to_owned(),
+        );
+    }
+    match fields.get(1..) {
+        Some([]) => Ok(None),
+        Some([parent]) => {
+            require_lower_hex(parent, 40, "ADR census epoch transition parent")?;
+            Ok(Some((*parent).to_owned()))
+        }
+        Some(_) => Err("ADR census epoch transition must not be a merge commit".to_owned()),
+        None => unreachable!("the transition field was already present"),
+    }
+}
+
+fn validate_census_epoch_transition_shape(
+    active_epoch: CensusEpoch,
+    parent_epoch: Option<CensusEpoch>,
+    transition_count: usize,
+    changed_paths: &[&str],
+) -> Result<(), String> {
+    let Some(parent_epoch) = parent_epoch else {
+        if active_epoch == CensusEpoch::P2 && transition_count == 1 {
+            return Ok(());
+        }
+        return Err(
+            "only the first P2 bootstrap may introduce the ADR census epoch control".to_owned(),
+        );
+    };
+    let expected_parent = match active_epoch {
+        CensusEpoch::P2 => CensusEpoch::P3,
+        CensusEpoch::P3 => CensusEpoch::P2,
+    };
+    if parent_epoch != expected_parent {
+        return Err(format!(
+            "ADR census epoch transition must be {expected_parent:?} to {active_epoch:?}"
+        ));
+    }
+    if changed_paths != [ADR_CENSUS_EPOCH_CONTROL_PATH] {
+        return Err(
+            "ADR census epoch transition may change only the control-plane pointer".to_owned(),
+        );
+    }
+    Ok(())
+}
+
+fn validate_p3_epoch_receipt_structure(bytes: &[u8]) -> Result<(), String> {
+    let outer: Value = serde_json::from_slice(bytes)
+        .map_err(|error| format!("parse P3 epoch receipt: {error}"))?;
+    let object = outer
+        .as_object()
+        .ok_or("P3 epoch wrapper must be an object")?;
+    if object.len() != 3
+        || object.get("schema").and_then(Value::as_str)
+            != Some("oya-ci/adr-census-epoch-receipt/v2")
+    {
+        return Err("P3 epoch wrapper schema or keys differ".to_owned());
+    }
+    let receipt = object.get("receipt").ok_or("P3 epoch receipt absent")?;
+    let receipt_text = serde_json::to_string(&p3_sorted_json(receipt.clone()))
+        .map_err(|error| format!("serialize P3 epoch receipt: {error}"))?;
+    let outer_digest = object
+        .get("outer_sha256")
+        .and_then(Value::as_str)
+        .ok_or("P3 outer digest absent")?;
+    require_lower_hex(outer_digest, 64, "P3 outer digest")?;
+    if outer_digest != sha256_hex(receipt_text.as_bytes()) {
+        return Err("P3 outer digest mismatch".to_owned());
+    }
+    let receipt = receipt.as_object().ok_or("P3 receipt must be an object")?;
+    if receipt.len() != 2
+        || !receipt.contains_key("canonical_digest")
+        || !receipt.contains_key("core")
+    {
+        return Err("P3 receipt keys differ".to_owned());
+    }
+    let core = receipt
+        .get("core")
+        .and_then(Value::as_object)
+        .ok_or("P3 core absent")?;
+    if core.contains_key("docs_tree") || core.contains_key("decisions_tree") {
+        return Err("P3 core must not project broad documentation tree identity".to_owned());
+    }
+    if core.get("claim_ceiling").and_then(Value::as_str) != Some("BLOCKED/HOLD")
+        || core.get("selector").and_then(Value::as_str) != Some(SELECTOR_ID)
+        || core
+            .get("predecessor")
+            .and_then(Value::as_object)
+            .and_then(|p| p.get("disposition"))
+            .and_then(Value::as_str)
+            != Some("git-history-only")
+    {
+        return Err("P3 core authority ceiling or predecessor differs".to_owned());
+    }
+    let sources = core
+        .get("sources")
+        .and_then(Value::as_object)
+        .ok_or("P3 sources absent")?;
+    if sources.is_empty() {
+        return Err("P3 sources must not be empty".to_owned());
+    }
+    for source in sources.values() {
+        let source = source.as_object().ok_or("P3 source must be an object")?;
+        if source.len() != 5
+            || source.get("mode").and_then(Value::as_str) != Some("100644")
+            || source.get("path").and_then(Value::as_str).is_none()
+            || source.get("byte_count").and_then(Value::as_u64).is_none()
+        {
+            return Err("P3 source fields differ".to_owned());
+        }
+        require_lower_hex(
+            source
+                .get("blob_oid")
+                .and_then(Value::as_str)
+                .ok_or("P3 source blob absent")?,
+            40,
+            "P3 source blob",
+        )?;
+        require_lower_hex(
+            source
+                .get("sha256")
+                .and_then(Value::as_str)
+                .ok_or("P3 source SHA absent")?,
+            64,
+            "P3 source SHA",
+        )?;
+    }
+    Ok(())
+}
+
+fn validate_p3_epoch_receipt_at_revision(
+    repo_root: &Path,
+    revision: &str,
+    bytes: &[u8],
+) -> Result<(), String> {
+    validate_p3_epoch_receipt_structure(bytes)?;
+    let expected = build_p3_adr_census_epoch_receipt_at_revision(repo_root, revision)?;
+    if bytes != expected {
+        return Err(
+            "P3 receipt does not equal exact revision-derived canonical projection".to_owned(),
+        );
+    }
+    Ok(())
+}
+
+/// Exercise the protected P3 policy without changing the active epoch pointer.
+///
+/// The bootstrap gate uses this to prove P3 is deterministic and fully derivable from immutable
+/// selected revision inputs while P2 remains the only active admission receipt.
+pub fn validate_dormant_p3_epoch_policy(repo_root: &Path) -> Result<(), String> {
+    let repo_root = canonical_repo_root(repo_root)?;
+    let revision = resolve_head_revision(&repo_root)?;
+    validate_dormant_p3_epoch_policy_at_revision(&repo_root, &revision)
+}
+
+pub fn validate_dormant_p3_epoch_policy_for_event(
+    selection: &ValidatedCensusEventSelection,
+) -> Result<(), String> {
+    validate_dormant_p3_epoch_policy_at_revision(&selection.repo_root, &selection.content_revision)
+}
+
+fn validate_dormant_p3_epoch_policy_at_revision(
+    repo_root: &Path,
+    revision: &str,
+) -> Result<(), String> {
+    let repo_root = canonical_repo_root(repo_root)?;
+    let revision = resolve_exact_revision(&repo_root, revision, "ADR census revision")?;
+    let first = build_p3_adr_census_epoch_receipt_at_revision(&repo_root, &revision)?;
+    let second = build_p3_adr_census_epoch_receipt_at_revision(&repo_root, &revision)?;
+    if first != second {
+        return Err("dormant P3 policy is nondeterministic".to_owned());
+    }
+    validate_p3_epoch_receipt_structure(&first)
+}
+
+/// Return the identity of the dormant P3 projection without selecting P3 or writing a face.
+///
+/// This is verification-only: the active epoch remains controlled exclusively by the canonical
+/// pointer, and the sole protected admission context remains `oya-ci-required`.
+pub fn dormant_p3_epoch_fingerprint(repo_root: &Path) -> Result<String, String> {
+    Ok(sha256_hex(&build_p3_adr_census_epoch_receipt(repo_root)?))
+}
+
+fn build_p3_adr_census_epoch_receipt(repo_root: &Path) -> Result<Vec<u8>, String> {
+    let revision = resolve_head_revision(repo_root)?;
+    build_p3_adr_census_epoch_receipt_at_revision(repo_root, &revision)
+}
+
+fn build_p3_adr_census_epoch_receipt_at_revision(
+    repo_root: &Path,
+    revision: &str,
+) -> Result<Vec<u8>, String> {
+    let descriptor = protected_p3_epoch_descriptor();
+    validate_epoch_descriptor(&descriptor)?;
+    let selector = descriptor.selector.as_ref().ok_or("P3 selector absent")?;
+    let parser = descriptor.parser.as_ref().ok_or("P3 parser absent")?;
+    let execution = descriptor
+        .execution
+        .as_ref()
+        .ok_or("P3 execution provenance absent")?;
+    let predecessor = descriptor
+        .predecessor
+        .as_ref()
+        .ok_or("P3 P2 predecessor absent")?;
+    let docs_tree = git_text(repo_root, &["rev-parse", &format!("{revision}:docs")])?;
+    let head_commit = git_text(repo_root, &["rev-parse", revision])?;
+    let head_tree = git_text(repo_root, &["rev-parse", &format!("{revision}^{{tree}}")])?;
+    let selected = select_head_direct_adr_blobs(repo_root, revision, selector)?;
+    let mut decision_sources = Vec::with_capacity(selected.len());
+    let mut p3_entries = Vec::with_capacity(selected.len());
+    for (path, mode, blob_oid, bytes) in selected {
+        let sha256 = sha256_hex(&bytes);
+        p3_entries.push((path.clone(), mode, blob_oid.clone(), sha256, bytes.len()));
+        decision_sources.push(CensusSource {
+            kind: CensusSourceKind::Decision,
+            path,
+            blob_oid,
+            bytes,
+        });
+    }
+    let mut parser_sources = Vec::with_capacity(1);
+    let parser_path = CENSUS_PARSER_PATH;
+    let parser_blob = git_text(
+        repo_root,
+        &["rev-parse", &format!("{revision}:{parser_path}")],
+    )?;
+    let parser_blob = parser_blob.trim().to_owned();
+    require_lower_hex(&parser_blob, 40, "P3 derived parser blob")?;
+    let parser_bytes = git_bytes(repo_root, &["cat-file", "blob", &parser_blob])?;
+    let parser_projection = vec![json!({
+        "byte_count": parser_bytes.len(),
+        "blob_oid": parser_blob,
+        "path": parser_path,
+        "sha256": sha256_hex(&parser_bytes),
+    })];
+    parser_sources.push(CensusSource {
+        kind: CensusSourceKind::Parser,
+        path: parser_path.to_owned(),
+        blob_oid: parser_blob,
+        bytes: parser_bytes,
+    });
+    let producer_gate_sources =
+        build_p3_git_source_closure(repo_root, revision, P3_PRODUCER_GATE_SOURCE_PATHS)?;
+    let toolchain_sources =
+        build_p3_git_source_closure(repo_root, revision, P3_TOOLCHAIN_INPUT_PATHS)?;
+    let receipt = build_receipt(&CensusInput {
+        repository_commit: head_commit.trim().to_owned(),
+        repository_tree: head_tree.trim().to_owned(),
+        docs_tree: docs_tree.trim().to_owned(),
+        selector_id: selector.id.clone(),
+        parser_commit: head_commit.trim().to_owned(),
+        parser_sources,
+        decision_sources,
+    })
+    .map_err(|error| format!("P3 census construction rejected: {error}"))?;
+    project_p3_census_receipt(
+        &receipt,
+        &p3_entries,
+        parser,
+        execution,
+        predecessor,
+        &descriptor.receipt_schema,
+        &descriptor.claim_ceiling,
+        &selector.id,
+        &parser_projection,
+        &producer_gate_sources,
+        &toolchain_sources,
+    )
+}
+
 /// Emits the permanently pinned P2 historical ADR-census receipt. This operation reads only
 /// named immutable Git objects; it never inspects the worktree, index, candidate, or base.
 ///
@@ -487,217 +1383,703 @@ pub fn emit_fixed_adr_census_parent_receipt(repo_root: &Path, output: &Path) -> 
 ///
 /// Public for the package-local integration target's determinism assertion.
 pub fn build_fixed_adr_census_parent_receipt(repo_root: &Path) -> Result<Vec<u8>, String> {
-    require_fixed_census_history(repo_root)?;
-    let parser_bytes = git_bytes(repo_root, &["cat-file", "blob", CENSUS_PARSER_BLOB])?;
-    if sha256_hex(&parser_bytes) != CENSUS_PARSER_SHA256 {
-        return Err("fixed census parser raw digest mismatch".to_owned());
-    }
-    let tree_lines = git_text(repo_root, &["ls-tree", CENSUS_DECISIONS_TREE])?;
-    let selected = select_direct_adr_blobs(&tree_lines)?;
-    if selected.len() != 429 {
-        return Err(format!(
-            "fixed decisions tree selected {} direct regular ADR blobs, expected 429",
-            selected.len()
-        ));
-    }
-    let mut decision_sources = Vec::with_capacity(selected.len());
-    for (name, blob_oid) in selected {
-        let path = format!("docs/decisions/{name}");
-        decision_sources.push(CensusSource {
-            kind: CensusSourceKind::Decision,
-            path,
-            blob_oid: blob_oid.clone(),
-            bytes: git_bytes(repo_root, &["cat-file", "blob", &blob_oid])?,
-        });
-    }
-    let receipt = build_receipt(&CensusInput {
-        repository_commit: CENSUS_CORPUS_COMMIT.to_owned(),
-        repository_tree: CENSUS_REPOSITORY_TREE.to_owned(),
-        docs_tree: CENSUS_DOCS_TREE.to_owned(),
-        selector_id: SELECTOR_ID.to_owned(),
-        parser_commit: CENSUS_PARSER_COMMIT.to_owned(),
-        parser_sources: vec![CensusSource {
-            kind: CensusSourceKind::Parser,
-            path: CENSUS_PARSER_PATH.to_owned(),
-            blob_oid: CENSUS_PARSER_BLOB.to_owned(),
-            bytes: parser_bytes,
-        }],
-        decision_sources,
-    })
-    .map_err(|error| format!("fixed census construction rejected: {error}"))?;
-    if receipt.entries().len() != 429
-        || receipt.parsed_count() != 184
-        || receipt.rejected_count() != 245
-        || receipt
-            .first_error_kind_totals()
-            .get("MissingRequiredField")
-            != Some(&142)
-        || receipt
-            .first_error_kind_totals()
-            .get("UnsupportedFrontmatterNesting")
-            != Some(&45)
-        || receipt.first_error_kind_totals().get("InvalidAdrReference") != Some(&28)
-        || receipt
-            .first_error_kind_totals()
-            .get("MissingLeadingFrontmatter")
-            != Some(&26)
-        || receipt.first_error_kind_totals().get("InvalidFrontmatter") != Some(&4)
-    {
-        return Err(format!(
-            "fixed census totals differ from the historical receipt contract: entries={} parsed={} rejected={} errors={:?}",
-            receipt.entries().len(),
-            receipt.parsed_count(),
-            receipt.rejected_count(),
-            receipt.first_error_kind_totals()
-        ));
-    }
-    project_fixed_census_receipt(&receipt)
+    let revision = resolve_head_revision(repo_root)?;
+    build_fixed_adr_census_parent_receipt_at_revision(repo_root, &revision)
 }
 
-fn project_fixed_census_receipt(receipt: &CensusReceipt) -> Result<Vec<u8>, String> {
-    let mut entry_json = Vec::with_capacity(receipt.entries().len());
-    let mut error_totals = BTreeMap::<&str, usize>::new();
-    for entry in receipt.entries() {
-        let first_error = if let Some(error) = entry.first_error() {
-            let projected_kind = project_fixed_diagnostic_kind(error.kind())?;
-            *error_totals.entry(projected_kind).or_default() += 1;
-            let span = error.span().map_or_else(
-                || "null".to_owned(),
-                |(start, end)| format!("[{start},{end}]"),
-            );
-            format!(
-                "{{\"kind\":{},\"raw\":{},\"span\":{span}}}",
-                json_string(projected_kind),
-                json_string(error.raw()),
-            )
-        } else {
-            "null".to_owned()
-        };
-        entry_json.push(format!(
-            "{{\"blob_oid\":{},\"first_error\":{first_error},\"outcome\":{},\"path\":{},\"sha256\":{}}}",
-            json_string(entry.blob_oid()),
-            json_string(entry.outcome()),
-            json_string(entry.path()),
-            json_string(entry.sha256()),
-        ));
-    }
-    let aggregate_fold = aggregate_projected_entries(entry_json.iter().map(String::as_str));
-    let errors = error_totals
-        .iter()
-        .map(|(kind, count)| format!("{}:{count}", json_string(kind)))
-        .collect::<Vec<_>>()
-        .join(",");
-    let parser_source = format!("{CENSUS_PARSER_PATH}:{CENSUS_PARSER_BLOB}:{CENSUS_PARSER_SHA256}");
-    let body = format!(
-        "\"aggregate_fold\":{},\"claim_ceiling\":{},\"decisions_tree\":{},\"diagnostic_policy\":{},\"docs_tree\":{},\"entries\":[{}],\"first_error_kinds\":{{{errors}}},\"parser_api\":{},\"parser_commit\":{},\"parser_parent_commit\":{},\"parser_source_hashes\":[{}],\"parser_tree\":{},\"parser_version\":{},\"repository_commit\":{},\"repository_tree\":{},\"selector\":{},\"totals\":{{\"parsed\":{},\"rejected\":{}}}",
-        json_string(&aggregate_fold),
-        json_string("BLOCKED/HOLD"),
-        json_string(CENSUS_DECISIONS_TREE),
-        json_string("first-error-only"),
-        json_string(CENSUS_DOCS_TREE),
-        entry_json.join(","),
-        json_string("corpus-doc-parser::parse_adr_decision"),
-        json_string(CENSUS_PARSER_COMMIT),
-        json_string(CENSUS_CORPUS_COMMIT),
-        json_string(&parser_source),
-        json_string(CENSUS_PARSER_TREE),
-        json_string("corpus-doc-parser-v1"),
-        json_string(CENSUS_CORPUS_COMMIT),
-        json_string(CENSUS_REPOSITORY_TREE),
-        json_string(SELECTOR_ID),
-        receipt.parsed_count(),
-        receipt.rejected_count(),
-    );
-    let canonical_digest = sha256_hex(body.as_bytes());
-    let receipt_json = format!(
-        "{{{body},\"canonical_digest\":{}}}",
-        json_string(&canonical_digest)
-    );
-    let outer = sha256_hex(receipt_json.as_bytes());
-    Ok(format!(
-        "{{\"outer_sha256\":{},\"receipt\":{receipt_json},\"schema\":{}}}\n",
-        json_string(&outer),
-        json_string("oya-ci/adr-census-parent-receipt/v1"),
+fn build_fixed_adr_census_parent_receipt_at_revision(
+    repo_root: &Path,
+    revision: &str,
+) -> Result<Vec<u8>, String> {
+    let revision = resolve_exact_revision(repo_root, revision, "ADR census revision")?;
+    build_fixed_adr_census_parent_receipt_from_historical_implementation(repo_root, &revision)
+}
+
+fn build_fixed_adr_census_parent_receipt_from_historical_implementation(
+    repo_root: &Path,
+    revision: &str,
+) -> Result<Vec<u8>, String> {
+    git_text(
+        repo_root,
+        &[
+            "cat-file",
+            "-e",
+            &format!("{P2_HISTORICAL_IMPLEMENTATION_COMMIT}^{{commit}}"),
+        ],
+    )?;
+    git_text(
+        repo_root,
+        &[
+            "merge-base",
+            "--is-ancestor",
+            P2_HISTORICAL_IMPLEMENTATION_COMMIT,
+            revision,
+        ],
+    )?;
+    let nonce = format!("{}-{}", std::process::id(), unix_timestamp_nanos()?);
+    let root = std::env::temp_dir().join(format!("oya-p2-history-{nonce}"));
+    let output = root.join("adr-census-parent-receipt.generated.json");
+    let worktree = HistoricalP2Worktree::create(repo_root, root.clone())?;
+    let result = run_historical_p2_materializer(&root, &output)
+        .and_then(|()| {
+            std::fs::read(&output)
+                .map_err(|error| format!("read exact historical P2 receipt: {error}"))
+        })
+        .and_then(|bytes| validate_exact_p2_receipt(&bytes).map(|()| bytes));
+    let mut worktree = worktree;
+    finish_with_cleanup(
+        result,
+        || worktree.remove(),
+        "remove exact historical P2 worktree",
     )
-    .into_bytes())
 }
 
-fn project_fixed_diagnostic_kind(kind: &str) -> Result<&str, String> {
-    match kind {
-        "MissingRequiredField" => Ok("MissingRequiredField"),
-        "UnsupportedFrontmatterNesting" => Ok("UnsupportedNesting"),
-        "InvalidAdrReference" => Ok("InvalidAdrReference"),
-        "MissingLeadingFrontmatter" => Ok("MissingLeadingFrontmatter"),
-        "InvalidFrontmatter" => Ok("InvalidFrontmatter"),
-        other => Err(format!(
-            "fixed census diagnostic kind is outside the projection contract: {other}"
-        )),
+struct HistoricalP2Worktree {
+    repo_root: PathBuf,
+    root: PathBuf,
+    removed: bool,
+}
+
+impl HistoricalP2Worktree {
+    fn create(repo_root: &Path, root: PathBuf) -> Result<Self, String> {
+        let mut worktree = Self {
+            repo_root: repo_root.to_owned(),
+            root,
+            removed: false,
+        };
+        let result = run_git(
+            repo_root,
+            &[
+                "worktree",
+                "add",
+                "--detach",
+                "--quiet",
+                &worktree.root.to_string_lossy(),
+                P2_HISTORICAL_IMPLEMENTATION_COMMIT,
+            ],
+            "create exact historical P2 worktree",
+        );
+        match result {
+            Ok(()) => Ok(worktree),
+            Err(error) => {
+                let error = finish_with_cleanup(
+                    Err::<(), _>(error),
+                    || worktree.remove(),
+                    "clean partial historical P2 worktree",
+                )
+                .expect_err("failed worktree creation must remain an error");
+                Err(error)
+            }
+        }
+    }
+
+    fn remove(&mut self) -> Result<(), String> {
+        if self.removed {
+            return Ok(());
+        }
+        let remove = run_git(
+            &self.repo_root,
+            &[
+                "worktree",
+                "remove",
+                "--force",
+                &self.root.to_string_lossy(),
+            ],
+            "remove exact historical P2 worktree",
+        );
+        if remove.is_ok() {
+            self.removed = true;
+            return Ok(());
+        }
+
+        let filesystem = if self.root.exists() {
+            std::fs::remove_dir_all(&self.root).map_err(|error| {
+                format!(
+                    "remove exact historical P2 worktree directory {}: {error}",
+                    self.root.display()
+                )
+            })
+        } else {
+            Ok(())
+        };
+        let prune = run_git(
+            &self.repo_root,
+            &["worktree", "prune"],
+            "prune partial historical P2 worktree",
+        );
+        match (filesystem, prune) {
+            (Ok(()), Ok(())) => {
+                self.removed = true;
+                Ok(())
+            }
+            (filesystem, prune) => {
+                let mut message =
+                    remove.expect_err("failed worktree removal must retain its error");
+                if let Err(error) = filesystem {
+                    message.push_str("; ");
+                    message.push_str(&error);
+                }
+                if let Err(error) = prune {
+                    message.push_str("; ");
+                    message.push_str(&error);
+                }
+                Err(message)
+            }
+        }
     }
 }
 
-fn aggregate_projected_entries<'a>(entries: impl Iterator<Item = &'a str>) -> String {
-    let mut digest = Sha256::new();
-    digest.update(b"oyatie:census:entry-fold:v1\\0");
-    for entry in entries {
-        digest.update((entry.len() as u64).to_be_bytes());
-        digest.update(entry.as_bytes());
+impl Drop for HistoricalP2Worktree {
+    fn drop(&mut self) {
+        let _ = self.remove();
     }
-    format!("{:x}", digest.finalize())
+}
+
+fn validate_exact_p2_receipt(bytes: &[u8]) -> Result<(), String> {
+    if sha256_hex(bytes) != "0f22621954fe0f7718a79616769bfe1ed4660851bab8890d69e98038080e2b0a" {
+        return Err("exact historical P2 whole-file digest differs".to_owned());
+    }
+    let value: Value = serde_json::from_slice(bytes)
+        .map_err(|error| format!("parse exact historical P2 receipt: {error}"))?;
+    if value.get("schema").and_then(Value::as_str) != Some("oya-ci/adr-census-parent-receipt/v1")
+        || value.get("outer_sha256").and_then(Value::as_str)
+            != Some("c3c4195f440fbf7825101dcf303fea9d8aec9d2ce7a77bd3ec25d8411dfdf528")
+        || value
+            .get("receipt")
+            .and_then(Value::as_object)
+            .and_then(|receipt| receipt.get("canonical_digest"))
+            .and_then(Value::as_str)
+            != Some("7a8eb3848e3b5d1dd148595b5210f2a059fac582db9e5607cf54be2f502b24d8")
+        || value
+            .get("receipt")
+            .and_then(Value::as_object)
+            .and_then(|receipt| receipt.get("aggregate_fold"))
+            .and_then(Value::as_str)
+            != Some("2aeb7459f61b6f216b4eee75164bcfb85e405bbe8ca74cf180e5492b09c99507")
+    {
+        return Err("exact historical P2 receipt digest contract differs".to_owned());
+    }
+    Ok(())
+}
+
+#[doc(hidden)]
+pub fn command_status_with_timeout(
+    mut command: Command,
+    timeout: Duration,
+    label: &str,
+) -> Result<ExitStatus, String> {
+    let mut child = command
+        .stdin(Stdio::null())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .spawn()
+        .map_err(|error| format!("{label}: spawn: {error}"))?;
+    drop(command);
+    let started = Instant::now();
+
+    loop {
+        match child.try_wait() {
+            Ok(Some(status)) => return Ok(status),
+            Ok(None) => {}
+            Err(error) => {
+                let mut message = format!("{label}: poll: {error}");
+                append_termination_result(&mut message, terminate_and_reap(&mut child));
+                return Err(message);
+            }
+        }
+        if started.elapsed() >= timeout {
+            let mut message = format!("{label} timed out after {} ms", timeout.as_millis());
+            append_termination_result(&mut message, terminate_and_reap(&mut child));
+            return Err(message);
+        }
+        let remaining = timeout.saturating_sub(started.elapsed());
+        std::thread::sleep(std::cmp::min(CHILD_PROCESS_POLL_INTERVAL, remaining));
+    }
+}
+
+fn terminate_and_reap(child: &mut Child) -> Result<(), String> {
+    let kill_error = child.kill().err();
+    match child.wait() {
+        Ok(_) => match kill_error {
+            Some(error) => Err(format!("kill returned {error}; direct child was reaped")),
+            None => Ok(()),
+        },
+        Err(wait_error) => match kill_error {
+            Some(kill_error) => Err(format!(
+                "kill returned {kill_error}; direct-child reap was not confirmed: {wait_error}"
+            )),
+            None => Err(format!(
+                "direct-child reap was not confirmed after termination: {wait_error}"
+            )),
+        },
+    }
+}
+
+fn append_termination_result(message: &mut String, termination: Result<(), String>) {
+    match termination {
+        Ok(()) => message.push_str("; direct child terminated and reaped"),
+        Err(error) => {
+            message.push_str("; ");
+            message.push_str(&error);
+        }
+    }
+}
+
+fn finish_with_cleanup<T>(
+    operation: Result<T, String>,
+    cleanup: impl FnOnce() -> Result<(), String>,
+    cleanup_label: &str,
+) -> Result<T, String> {
+    match (operation, cleanup()) {
+        (Ok(value), Ok(())) => Ok(value),
+        (Err(error), Ok(())) => Err(error),
+        (Ok(_), Err(cleanup_error)) => Err(format!("{cleanup_label}: {cleanup_error}")),
+        (Err(error), Err(cleanup_error)) => {
+            Err(format!("{error}; {cleanup_label}: {cleanup_error}"))
+        }
+    }
+}
+
+fn run_historical_p2_materializer(historical_root: &Path, output: &Path) -> Result<(), String> {
+    let worktree_nonce = historical_root
+        .file_name()
+        .and_then(|name| name.to_str())
+        .ok_or("exact historical P2 worktree has no UTF-8 nonce")?;
+    let isolation = format!("p2-historical-{worktree_nonce}");
+    let output = output.to_string_lossy().into_owned();
+    let mut command = Command::new("buck2");
+    command
+        .args([
+            "--isolation-dir",
+            &isolation,
+            "run",
+            "//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot",
+            "--",
+            "--repo-root",
+            historical_root.to_string_lossy().as_ref(),
+            "--adr-census-parent-receipt-out",
+            &output,
+        ])
+        .current_dir(historical_root);
+    remove_outer_buck_process_state(&mut command);
+    let operation = command_status_with_timeout(
+        command,
+        P2_HISTORICAL_MATERIALIZER_TIMEOUT,
+        "exact historical P2 materializer",
+    )
+    .and_then(|status| {
+        if status.success() {
+            Ok(())
+        } else {
+            Err(format!(
+                "exact historical P2 materializer failed with status {status}"
+            ))
+        }
+    });
+    finish_with_cleanup(
+        operation,
+        || shutdown_historical_p2_buck(historical_root, &isolation),
+        "shut down exact historical P2 Buck daemon",
+    )
+}
+
+fn shutdown_historical_p2_buck(historical_root: &Path, isolation: &str) -> Result<(), String> {
+    let mut command = Command::new("buck2");
+    command
+        .args(["--isolation-dir", isolation, "kill"])
+        .current_dir(historical_root);
+    remove_outer_buck_process_state(&mut command);
+    let status = command_status_with_timeout(
+        command,
+        P2_HISTORICAL_BUCK_SHUTDOWN_TIMEOUT,
+        "exact historical P2 Buck daemon shutdown",
+    )?;
+    if status.success() {
+        Ok(())
+    } else {
+        Err(format!("Buck shutdown failed with status {status}"))
+    }
+}
+
+fn remove_outer_buck_process_state(command: &mut Command) {
+    let explicit_keys = command
+        .get_envs()
+        .map(|(key, _)| key.to_os_string())
+        .collect::<Vec<_>>();
+    for key in std::env::vars_os().map(|(key, _)| key).chain(explicit_keys) {
+        if is_outer_buck_process_state(&key) {
+            command.env_remove(key);
+        }
+    }
+}
+
+fn is_outer_buck_process_state(key: &OsStr) -> bool {
+    let normalized = key.to_string_lossy().to_ascii_uppercase();
+    normalized == "BUCK2" || normalized.starts_with("BUCK2_") || normalized == "BUCK_ISOLATION_DIR"
+}
+
+fn run_git(repo_root: &Path, args: &[&str], operation: &str) -> Result<(), String> {
+    let mut command = Command::new("git");
+    command.args(args).current_dir(repo_root);
+    let status = command_status_with_timeout(command, P2_HISTORICAL_GIT_TIMEOUT, operation)?;
+    if status.success() {
+        Ok(())
+    } else {
+        Err(format!("{operation} failed with status {status}"))
+    }
+}
+
+fn unix_timestamp_nanos() -> Result<u128, String> {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|duration| duration.as_nanos())
+        .map_err(|error| format!("derive P2 historical worktree nonce: {error}"))
 }
 
 fn json_string(value: &str) -> String {
     serde_json::to_string(value).expect("serializing a string cannot fail")
 }
 
-fn select_direct_adr_blobs(tree_lines: &str) -> Result<Vec<(String, String)>, String> {
-    let mut selected = Vec::new();
-    let mut names = BTreeSet::new();
-    for line in tree_lines.lines() {
-        let (meta, name) = line
-            .split_once('\t')
-            .ok_or("invalid fixed decisions tree entry")?;
-        let fields = meta.split_whitespace().collect::<Vec<_>>();
-        if fields.len() != 3 {
-            return Err("invalid fixed decisions tree entry metadata".to_owned());
+fn read_p3_git_blobs(repo_root: &Path, blob_oids: &[String]) -> Result<Vec<Vec<u8>>, String> {
+    let mut bodies = Vec::with_capacity(blob_oids.len());
+    retirement::visit_git_blobs(repo_root, blob_oids, &mut |blob_oid, size, reader| {
+        let expected_oid = blob_oids
+            .get(bodies.len())
+            .ok_or("P3 Git blob batch returned more bodies than requested")?;
+        if blob_oid != expected_oid {
+            return Err(format!(
+                "P3 Git blob batch returned {blob_oid} while expecting {expected_oid}"
+            ));
         }
-        let looks_like_adr = name.starts_with("ADR-") && name.ends_with(".md");
-        let nested_adr = name.contains('/')
-            && name
-                .rsplit('/')
-                .next()
-                .is_some_and(|leaf| leaf.starts_with("ADR-") && leaf.ends_with(".md"));
-        if !looks_like_adr && !nested_adr {
-            continue;
+        let expected_len = usize::try_from(size)
+            .map_err(|_| format!("P3 Git blob {blob_oid} exceeds addressable memory"))?;
+        let mut bytes = Vec::with_capacity(expected_len);
+        reader
+            .read_to_end(&mut bytes)
+            .map_err(|error| format!("read P3 Git blob {blob_oid}: {error}"))?;
+        if bytes.len() != expected_len {
+            return Err(format!(
+                "P3 Git blob {blob_oid} ended at {} of {expected_len} bytes",
+                bytes.len()
+            ));
         }
-        if nested_adr {
-            return Err(format!("fixed selector exposed nested ADR path: {name}"));
-        }
-        if fields[0] != "100644" || fields[1] != "blob" {
-            return Err(format!("fixed ADR selector found non-regular blob: {name}"));
-        }
-        if fields[2].len() != 40
-            || !fields[2]
-                .bytes()
-                .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
-        {
-            return Err(format!("fixed ADR selector found invalid blob OID: {name}"));
-        }
-        if !names.insert(name) {
-            return Err(format!("fixed ADR selector found duplicate path: {name}"));
-        }
-        selected.push((name.to_owned(), fields[2].to_owned()));
+        bodies.push(bytes);
+        Ok(())
+    })?;
+    if bodies.len() != blob_oids.len() {
+        return Err(format!(
+            "P3 Git blob batch returned {} of {} requested bodies",
+            bodies.len(),
+            blob_oids.len()
+        ));
     }
-    selected.sort_by(|left, right| left.0.as_bytes().cmp(right.0.as_bytes()));
-    Ok(selected)
+    Ok(bodies)
 }
 
-fn require_fixed_census_history(repo_root: &Path) -> Result<(), String> {
+type P3SelectedAdrBlob = (String, String, String, Vec<u8>);
+
+fn select_head_direct_adr_blobs(
+    repo_root: &Path,
+    revision: &str,
+    selector: &CensusSelector,
+) -> Result<Vec<P3SelectedAdrBlob>, String> {
+    let entries = git_bytes(
+        repo_root,
+        &["ls-tree", "-r", "-z", revision, "--", &selector.root],
+    )?;
+    let prefix = format!("{}/", selector.root);
+    let mut selected = Vec::new();
+    for record in git_nul_records(&entries, "P3 selector tree")? {
+        let (meta, path) = parse_p3_git_tree_record(record, "P3 selector")?;
+        let fields = meta.split_whitespace().collect::<Vec<_>>();
+        if fields.len() != 3 || !path.starts_with(&prefix) {
+            return Err("P3 selector returned malformed tree metadata".to_owned());
+        }
+        let leaf = path.strip_prefix(&prefix).expect("checked prefix");
+        if !leaf.starts_with("ADR-") || !leaf.ends_with(".md") || leaf.contains('/') {
+            continue;
+        }
+        if !path.is_ascii() {
+            return Err("P3 selector path must be ASCII".to_owned());
+        }
+        if fields[0] != "100644" || fields[1] != "blob" {
+            return Err(format!("P3 selector found non-regular ADR blob: {path}"));
+        }
+        require_lower_hex(fields[2], 40, "P3 ADR blob")?;
+        selected.push((path.to_owned(), fields[0].to_owned(), fields[2].to_owned()));
+    }
+    selected.sort_by(|left, right| left.0.as_bytes().cmp(right.0.as_bytes()));
+    if selected
+        .windows(2)
+        .any(|pair| pair[0].0.as_bytes() >= pair[1].0.as_bytes())
+    {
+        return Err("P3 selector yielded duplicate or unordered ADR paths".to_owned());
+    }
+    let blob_oids = selected
+        .iter()
+        .map(|(_, _, blob_oid)| blob_oid.clone())
+        .collect::<Vec<_>>();
+    let bodies = read_p3_git_blobs(repo_root, &blob_oids)?;
+    Ok(selected
+        .into_iter()
+        .zip(bodies)
+        .map(|((path, mode, blob_oid), bytes)| (path, mode, blob_oid, bytes))
+        .collect())
+}
+
+fn parse_p3_git_source_tree_entries(
+    paths: &[&str],
+    tree_entries: &[u8],
+) -> Result<Vec<(String, String)>, String> {
+    let expected = paths.iter().copied().collect::<BTreeSet<_>>();
+    let mut resolved = BTreeMap::<String, (String, String)>::new();
+    for record in git_nul_records(tree_entries, "P3 declared source tree")? {
+        let (metadata, resolved_path) = parse_p3_git_tree_record(record, "P3 declared source")?;
+        if !expected.contains(resolved_path) {
+            return Err(format!(
+                "P3 declared source tree returned unexpected path: {resolved_path}"
+            ));
+        }
+        let fields = metadata.split_whitespace().collect::<Vec<_>>();
+        if fields.len() != 3 || fields[0] != "100644" || fields[1] != "blob" {
+            return Err(format!(
+                "P3 declared source is not the exact regular blob: {resolved_path}"
+            ));
+        }
+        require_lower_hex(fields[2], 40, "P3 declared source blob")?;
+        if resolved
+            .insert(
+                resolved_path.to_owned(),
+                (fields[0].to_owned(), fields[2].to_owned()),
+            )
+            .is_some()
+        {
+            return Err(format!(
+                "P3 declared source resolved more than once: {resolved_path}"
+            ));
+        }
+    }
+
+    paths
+        .iter()
+        .map(|path| {
+            resolved
+                .remove(*path)
+                .ok_or_else(|| format!("P3 declared source is absent from HEAD: {path}"))
+        })
+        .collect()
+}
+
+fn git_nul_records<'a>(bytes: &'a [u8], label: &str) -> Result<Vec<&'a [u8]>, String> {
+    if bytes.is_empty() {
+        return Ok(Vec::new());
+    }
+    let body = bytes
+        .strip_suffix(&[0])
+        .ok_or_else(|| format!("{label} is not NUL-terminated"))?;
+    let records = body.split(|byte| *byte == 0).collect::<Vec<_>>();
+    if records.iter().any(|record| record.is_empty()) {
+        return Err(format!("{label} contains an empty record"));
+    }
+    Ok(records)
+}
+
+fn parse_p3_git_tree_record<'a>(
+    record: &'a [u8],
+    label: &str,
+) -> Result<(&'a str, &'a str), String> {
+    let tab = record
+        .iter()
+        .position(|byte| *byte == b'\t')
+        .ok_or_else(|| format!("{label} tree entry is malformed"))?;
+    let metadata = std::str::from_utf8(&record[..tab])
+        .map_err(|_| format!("{label} tree metadata is not valid UTF-8"))?;
+    let path = std::str::from_utf8(&record[tab + 1..])
+        .map_err(|_| format!("{label} path is not valid UTF-8"))?;
+    Ok((metadata, path))
+}
+
+fn build_p3_git_source_closure(
+    repo_root: &Path,
+    revision: &str,
+    paths: &[&str],
+) -> Result<Vec<Value>, String> {
+    if paths
+        .windows(2)
+        .any(|pair| pair[0].as_bytes() >= pair[1].as_bytes())
+    {
+        return Err("P3 declared source paths must be strictly byte-sorted".to_owned());
+    }
+    if paths.is_empty() {
+        return Ok(Vec::new());
+    }
+    let mut args = vec!["ls-tree", "-z", revision, "--"];
+    args.extend(paths.iter().copied());
+    let tree_entries = git_bytes(repo_root, &args)?;
+    let resolved = parse_p3_git_source_tree_entries(paths, &tree_entries)?;
+    let blob_oids = resolved
+        .iter()
+        .map(|(_, blob_oid)| blob_oid.clone())
+        .collect::<Vec<_>>();
+    let bodies = read_p3_git_blobs(repo_root, &blob_oids)?;
+    let mut sources = Vec::with_capacity(paths.len());
+    for ((path, (mode, blob_oid)), bytes) in paths.iter().zip(resolved).zip(bodies) {
+        sources.push(json!({
+            "byte_count": bytes.len(),
+            "blob_oid": blob_oid,
+            "mode": mode,
+            "path": path,
+            "sha256": sha256_hex(&bytes),
+        }));
+    }
+    Ok(sources)
+}
+
+fn p3_sorted_json(value: Value) -> Value {
+    match value {
+        Value::Object(object) => {
+            let sorted = object
+                .into_iter()
+                .map(|(key, value)| (key, p3_sorted_json(value)))
+                .collect::<BTreeMap<_, _>>();
+            Value::Object(sorted.into_iter().collect())
+        }
+        Value::Array(values) => {
+            Value::Array(values.into_iter().map(p3_sorted_json).collect::<Vec<_>>())
+        }
+        scalar => scalar,
+    }
+}
+
+fn p3_projection_digest(domain: &str, value: &Value) -> Result<String, String> {
+    let canonical = serde_json::to_string(&p3_sorted_json(value.clone()))
+        .map_err(|error| format!("serialize P3 {domain} projection: {error}"))?;
+    Ok(sha256_hex(
+        format!("oyatie:adr-census:p3:{domain}:v1\0{canonical}").as_bytes(),
+    ))
+}
+
+#[allow(clippy::too_many_arguments)]
+fn project_p3_census_receipt(
+    receipt: &CensusReceipt,
+    selected: &[(String, String, String, String, usize)],
+    parser: &CensusParserDescriptor,
+    execution: &CensusExecutionDescriptor,
+    predecessor: &CensusPredecessor,
+    receipt_schema: &str,
+    claim_ceiling: &str,
+    selector: &str,
+    parser_sources: &[Value],
+    producer_gate_sources: &[Value],
+    toolchain_sources: &[Value],
+) -> Result<Vec<u8>, String> {
+    let mut sources = BTreeMap::new();
+    for (path, mode, blob_oid, sha256, byte_count) in selected {
+        sources.insert(
+            path.clone(),
+            json!({
+                "byte_count": byte_count,
+                "blob_oid": blob_oid,
+                "mode": mode,
+                "path": path,
+                "sha256": sha256,
+            }),
+        );
+    }
+    let mut entries = Vec::with_capacity(receipt.entries().len());
+    let mut errors = BTreeMap::<String, u64>::new();
+    for entry in receipt.entries() {
+        let first_error = entry.first_error().map(|error| {
+            *errors.entry(error.kind().to_owned()).or_default() += 1;
+            json!({"kind": error.kind(), "raw": error.raw(), "span": error.span()})
+        });
+        entries.push(json!({
+            "outcome": entry.outcome(),
+            "path": entry.path(),
+            "first_error": first_error,
+        }));
+    }
+    let parser_source_set_digest =
+        p3_projection_digest("parser-source-set", &json!(parser_sources))?;
+    let corpus_content_digest = p3_projection_digest("corpus-content", &json!(sources))?;
+    let producer_gate_source_set_digest =
+        p3_projection_digest("producer-gate-source-set", &json!(producer_gate_sources))?;
+    let toolchain_input_digest =
+        p3_projection_digest("toolchain-input-set", &json!(toolchain_sources))?;
+    let action_source_set_digest = p3_projection_digest(
+        "declared-action",
+        &json!({
+            "buck_config": execution.buck_config,
+            "buck_target": execution.buck_target,
+            "producer_gate_source_set_digest": &producer_gate_source_set_digest,
+            "toolchain_input_digest": &toolchain_input_digest,
+            "toolchain_inputs": execution.toolchain_inputs,
+        }),
+    )?;
+    let value = p3_sorted_json(json!({
+        "claim_ceiling": claim_ceiling,
+        "corpus_content_digest": corpus_content_digest,
+        "diagnostic_policy": parser.diagnostic_policy,
+        "entries": entries,
+        "epoch": "P3",
+        "execution": {
+            "action_source_set_digest": action_source_set_digest,
+            "buck_config": execution.buck_config,
+            "buck_target": execution.buck_target,
+            "producer_gate_source_set_digest": producer_gate_source_set_digest,
+            "source_closure": {
+                "producer_gate": producer_gate_sources,
+                "toolchain": toolchain_sources,
+            },
+            "toolchain_input_digest": toolchain_input_digest,
+            "toolchain_inputs": execution.toolchain_inputs,
+        },
+        "first_error_kinds": errors,
+        "materialization": "head-tree",
+        "parser": {
+            "api": parser.api,
+            "source_closure": parser_sources,
+            "source_set_digest": parser_source_set_digest,
+            "version": parser.version,
+        },
+        "predecessor": {
+            "aggregate_fold": predecessor.aggregate_fold,
+            "canonical_digest": predecessor.canonical_digest,
+            "disposition": predecessor.disposition,
+            "epoch": "P2",
+            "outer_sha256": predecessor.outer_sha256,
+        },
+        "receipt_schema": receipt_schema,
+        "selector": selector,
+        "sources": sources,
+        "totals": {"parsed": receipt.parsed_count(), "rejected": receipt.rejected_count()},
+    }));
+    let canonical = serde_json::to_string(&value)
+        .map_err(|error| format!("serialize P3 canonical receipt: {error}"))?;
+    let canonical_digest = sha256_hex(canonical.as_bytes());
+    let receipt_json = format!(
+        "{{\"canonical_digest\":{},\"core\":{canonical}}}",
+        json_string(&canonical_digest)
+    );
+    let outer = sha256_hex(receipt_json.as_bytes());
+    Ok(format!(
+        "{{\"outer_sha256\":{},\"receipt\":{receipt_json},\"schema\":{}}}\n",
+        json_string(&outer),
+        json_string("oya-ci/adr-census-epoch-receipt/v2"),
+    )
+    .into_bytes())
+}
+
+fn require_fixed_census_history(repo_root: &Path, revision: &str) -> Result<(), String> {
     for object in [CENSUS_CORPUS_COMMIT, CENSUS_PARSER_COMMIT] {
         git_text(
             repo_root,
             &["cat-file", "-e", &format!("{object}^{{commit}}")],
         )?;
-        git_text(repo_root, &["merge-base", "--is-ancestor", object, "HEAD"])?;
+        git_text(
+            repo_root,
+            &["merge-base", "--is-ancestor", object, revision],
+        )?;
     }
     if git_text(
         repo_root,
@@ -737,6 +2119,148 @@ fn require_fixed_census_history(repo_root: &Path) -> Result<(), String> {
 fn git_text(repo_root: &Path, args: &[&str]) -> Result<String, String> {
     String::from_utf8(git_bytes(repo_root, args)?)
         .map_err(|_| "git output was not UTF-8".to_owned())
+}
+
+fn canonical_repo_root(repo_root: &Path) -> Result<PathBuf, String> {
+    std::fs::canonicalize(repo_root).map_err(|error| {
+        format!(
+            "canonicalize repository root {}: {error}",
+            repo_root.display()
+        )
+    })
+}
+
+#[derive(Debug, PartialEq, Eq)]
+enum EpochReceiptOutput {
+    Canonical,
+    External(PathBuf),
+}
+
+fn classify_epoch_receipt_output(
+    repo_root: &Path,
+    output: &Path,
+) -> Result<EpochReceiptOutput, String> {
+    let lexical_output = normalize_epoch_receipt_output(repo_root, output)?;
+    let canonical = repo_root.join(ADR_CENSUS_EPOCH_RECEIPT_PATH);
+
+    // Preserve lexical canonical intent so a symlinked canonical ancestor can never downgrade the
+    // write to the plain external-output path. The canonical writer owns the dirfd-based
+    // no-follow checks and must be the component that rejects that topology.
+    if lexical_output == canonical {
+        return Ok(EpochReceiptOutput::Canonical);
+    }
+    if lexical_output.starts_with(repo_root) {
+        return Err(format!(
+            "ADR census epoch receipt output inside the repository must be the exact canonical path {}",
+            canonical.display()
+        ));
+    }
+
+    // Resolve the existing (or newly created) external parent before the containment decision.
+    // This closes the inverse alias: a path that is lexically outside but resolves through a
+    // symlink into the repository is not an external output.
+    let resolved_output = resolve_epoch_receipt_output_parent(&lexical_output)?;
+    if resolved_output.starts_with(repo_root) {
+        return Err(format!(
+            "ADR census epoch receipt output resolves inside the repository and must be the exact canonical path {}",
+            canonical.display()
+        ));
+    }
+    Ok(EpochReceiptOutput::External(resolved_output))
+}
+
+fn normalize_epoch_receipt_output(repo_root: &Path, output: &Path) -> Result<PathBuf, String> {
+    let absolute = if output.is_absolute() {
+        output.to_path_buf()
+    } else {
+        repo_root.join(output)
+    };
+    let mut normalized = PathBuf::new();
+    for component in absolute.components() {
+        match component {
+            std::path::Component::Prefix(prefix) => normalized.push(prefix.as_os_str()),
+            std::path::Component::RootDir => normalized.push(component.as_os_str()),
+            std::path::Component::CurDir => {}
+            std::path::Component::Normal(segment) => normalized.push(segment),
+            std::path::Component::ParentDir => {
+                if !normalized.pop() {
+                    return Err(
+                        "ADR census epoch receipt output escapes its filesystem root".to_owned(),
+                    );
+                }
+            }
+        }
+    }
+    if normalized.file_name().is_none() {
+        return Err("ADR census epoch receipt output must have a file name".to_owned());
+    }
+    Ok(normalized)
+}
+
+fn resolve_epoch_receipt_output_parent(output: &Path) -> Result<PathBuf, String> {
+    let parent = output
+        .parent()
+        .ok_or("ADR census epoch receipt output must have a parent directory")?;
+    if !parent.exists() {
+        std::fs::create_dir_all(parent).map_err(|error| {
+            format!(
+                "create ADR census epoch receipt output parent {}: {error}",
+                parent.display()
+            )
+        })?;
+    }
+    let parent = std::fs::canonicalize(parent).map_err(|error| {
+        format!(
+            "canonicalize ADR census epoch receipt output parent {}: {error}",
+            parent.display()
+        )
+    })?;
+    let resolved = parent.join(
+        output
+            .file_name()
+            .ok_or("ADR census epoch receipt output must have a file name")?,
+    );
+    match std::fs::symlink_metadata(&resolved) {
+        Ok(metadata) if metadata.file_type().is_symlink() => {
+            return Err(format!(
+                "ADR census epoch receipt external output must not be a symlink: {}",
+                resolved.display()
+            ));
+        }
+        Ok(metadata) if !metadata.is_file() => {
+            return Err(format!(
+                "ADR census epoch receipt external output must be a regular file or absent: {}",
+                resolved.display()
+            ));
+        }
+        Ok(_) => {}
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+        Err(error) => {
+            return Err(format!(
+                "inspect ADR census epoch receipt external output {}: {error}",
+                resolved.display()
+            ));
+        }
+    }
+    Ok(resolved)
+}
+
+fn resolve_exact_revision(repo_root: &Path, revision: &str, label: &str) -> Result<String, String> {
+    require_lower_hex(revision, 40, label)?;
+    let resolved = git_text(repo_root, &["rev-parse", &format!("{revision}^{{commit}}")])?;
+    let resolved = resolved.trim();
+    require_lower_hex(resolved, 40, label)?;
+    if resolved != revision {
+        return Err(format!("{label} must resolve to its exact immutable oid"));
+    }
+    Ok(resolved.to_owned())
+}
+
+fn resolve_head_revision(repo_root: &Path) -> Result<String, String> {
+    let revision = git_text(repo_root, &["rev-parse", "HEAD^{commit}"])?;
+    let revision = revision.trim();
+    require_lower_hex(revision, 40, "ADR census HEAD revision")?;
+    Ok(revision.to_owned())
 }
 
 fn git_bytes(repo_root: &Path, args: &[&str]) -> Result<Vec<u8>, String> {
@@ -3673,40 +5197,518 @@ mod tests {
     }
 
     #[test]
-    fn fixed_census_selector_rejects_nested_duplicate_and_non_regular_adrs() {
-        let oid = "1111111111111111111111111111111111111111";
-        assert!(
-            select_direct_adr_blobs(&format!("100644 blob {oid}\tsub/ADR-0001-nested.md\n"))
-                .unwrap_err()
-                .contains("nested")
+    fn census_epoch_control_rejects_unknown_fields_and_keeps_p2_active() {
+        let valid = r#"{
+          "$schema":"https://docs.oyatie.com/schemas/adr-census-epoch-control-plane.schema.json",
+          "schema_version":1,
+          "canonical_name":"adr-census-epoch-control-plane",
+          "active_epoch":"P2",
+          "receipt_path":"ci/facade/artifact-inventory-registry/adr-census-epoch-receipt.generated.json"
+        }"#;
+        let control = parse_adr_census_epoch_control(valid.as_bytes()).expect("valid control");
+        assert_eq!(control.active_epoch, CensusEpoch::P2);
+
+        let unknown = valid.replacen(
+            "\"active_epoch\":\"P2\",",
+            "\"active_epoch\":\"P2\",\"unexpected\":true,",
+            1,
         );
-        assert!(
-            select_direct_adr_blobs(&format!(
-                "100644 blob {oid}\tADR-0001-a.md\n100644 blob {oid}\tADR-0001-a.md\n"
-            ))
-            .unwrap_err()
-            .contains("duplicate")
+        assert!(parse_adr_census_epoch_control(unknown.as_bytes()).is_err());
+    }
+
+    #[test]
+    fn census_epoch_controls_are_canonical_and_pointer_only() {
+        let p2 = canonical_adr_census_epoch_control(CensusEpoch::P2);
+        let p3 = canonical_adr_census_epoch_control(CensusEpoch::P3);
+        assert_eq!(
+            parse_adr_census_epoch_control(&p2)
+                .expect("canonical P2 control")
+                .active_epoch,
+            CensusEpoch::P2
         );
+        assert_eq!(
+            parse_adr_census_epoch_control(&p3)
+                .expect("canonical P3 control")
+                .active_epoch,
+            CensusEpoch::P3
+        );
+        assert_eq!(
+            String::from_utf8(p2.clone())
+                .expect("P2 UTF-8")
+                .replacen("\"P2\"", "\"P3\"", 1)
+                .into_bytes(),
+            p3,
+            "P2 and P3 controls may differ only at the active epoch pointer"
+        );
+        let reformatted = String::from_utf8(p2)
+            .expect("P2 UTF-8")
+            .replace("  \"active_epoch\"", "    \"active_epoch\"");
         assert!(
-            select_direct_adr_blobs(&format!("040000 tree {oid}\tADR-0001-a.md\n"))
-                .unwrap_err()
-                .contains("non-regular")
+            require_canonical_adr_census_epoch_control(reformatted.as_bytes(), CensusEpoch::P2)
+                .is_err(),
+            "semantic equivalence must not bypass the canonical pointer-only document"
         );
     }
 
     #[test]
-    fn fixed_diagnostic_projection_changes_only_the_typed_kind() {
-        let raw = "payload mentions UnsupportedFrontmatterNesting and must remain byte-exact";
-        let projected = format!(
-            "{{\"kind\":{},\"raw\":{}}}",
-            json_string(project_fixed_diagnostic_kind("UnsupportedFrontmatterNesting").unwrap()),
-            json_string(raw)
-        );
-        assert!(projected.contains("\"kind\":\"UnsupportedNesting\""));
-        assert!(projected.contains(raw));
+    fn census_epoch_transition_shape_supports_later_commits_and_pointer_only_rollback() {
+        validate_census_epoch_transition_shape(CensusEpoch::P2, None, 1, &[])
+            .expect("initial P2 bootstrap");
+        validate_census_epoch_transition_shape(
+            CensusEpoch::P3,
+            Some(CensusEpoch::P2),
+            2,
+            &[ADR_CENSUS_EPOCH_CONTROL_PATH],
+        )
+        .expect("P2 to P3 activation");
+        validate_census_epoch_transition_shape(
+            CensusEpoch::P2,
+            Some(CensusEpoch::P3),
+            3,
+            &[ADR_CENSUS_EPOCH_CONTROL_PATH],
+        )
+        .expect("P3 to P2 rollback");
+
         assert!(
-            project_fixed_diagnostic_kind("UnexpectedFutureDiagnostic").is_err(),
-            "the fixed projection must fail closed on a new parser diagnostic"
+            validate_census_epoch_transition_shape(
+                CensusEpoch::P3,
+                Some(CensusEpoch::P3),
+                3,
+                &[ADR_CENSUS_EPOCH_CONTROL_PATH],
+            )
+            .is_err()
         );
+        assert!(
+            validate_census_epoch_transition_shape(
+                CensusEpoch::P3,
+                Some(CensusEpoch::P2),
+                2,
+                &[
+                    ADR_CENSUS_EPOCH_CONTROL_PATH,
+                    "governance/corpus/doc-parser/src/lib.rs"
+                ],
+            )
+            .is_err()
+        );
+        assert!(validate_census_epoch_transition_shape(CensusEpoch::P3, None, 1, &[]).is_err());
+    }
+
+    #[test]
+    fn census_epoch_transition_parent_parser_accepts_root_and_single_parent_only() {
+        const TRANSITION: &str = "1111111111111111111111111111111111111111";
+        const PARENT: &str = "2222222222222222222222222222222222222222";
+        const SECOND_PARENT: &str = "3333333333333333333333333333333333333333";
+
+        assert_eq!(
+            parse_census_epoch_transition_parent(TRANSITION, &format!("{TRANSITION}\n"))
+                .expect("root transition"),
+            None
+        );
+        assert_eq!(
+            parse_census_epoch_transition_parent(TRANSITION, &format!("{TRANSITION} {PARENT}\n"))
+                .expect("single-parent transition"),
+            Some(PARENT.to_owned())
+        );
+        assert!(
+            parse_census_epoch_transition_parent(
+                TRANSITION,
+                &format!("{TRANSITION} {PARENT} {SECOND_PARENT}\n")
+            )
+            .expect_err("merge transition must fail")
+            .contains("must not be a merge commit")
+        );
+    }
+
+    #[test]
+    fn historical_buck_commands_remove_only_outer_buck_process_state() {
+        let mut command = Command::new("buck2");
+        command
+            .env("BUCK2_WRAPPER_UUID", "outer")
+            .env("BUCK_ISOLATION_DIR", "outer")
+            .env("PATH", "fixture-path")
+            .env("SSL_CERT_FILE", "fixture-cert");
+
+        remove_outer_buck_process_state(&mut command);
+        let overrides = command
+            .get_envs()
+            .map(|(key, value)| {
+                (
+                    key.to_string_lossy().into_owned(),
+                    value.map(|value| value.to_string_lossy().into_owned()),
+                )
+            })
+            .collect::<BTreeMap<_, _>>();
+
+        assert_eq!(overrides.get("BUCK2_WRAPPER_UUID"), Some(&None));
+        assert_eq!(overrides.get("BUCK_ISOLATION_DIR"), Some(&None));
+        assert_eq!(
+            overrides.get("PATH"),
+            Some(&Some("fixture-path".to_owned()))
+        );
+        assert_eq!(
+            overrides.get("SSL_CERT_FILE"),
+            Some(&Some("fixture-cert".to_owned()))
+        );
+        assert!(is_outer_buck_process_state(OsStr::new("buck2")));
+        assert!(is_outer_buck_process_state(OsStr::new("buck2_daemon_uuid")));
+        assert!(!is_outer_buck_process_state(OsStr::new("CARGO_HOME")));
+        assert!(!is_outer_buck_process_state(OsStr::new("SystemRoot")));
+    }
+
+    #[test]
+    fn protected_p3_descriptor_rejects_policy_laundering() {
+        let descriptor = protected_p3_epoch_descriptor();
+        validate_epoch_descriptor(&descriptor).expect("protected P3 descriptor");
+
+        let mut changed = descriptor.clone();
+        changed.claim_ceiling = "PASS".to_owned();
+        assert!(validate_epoch_descriptor(&changed).is_err());
+
+        let mut changed = descriptor.clone();
+        changed.execution = None;
+        assert!(validate_epoch_descriptor(&changed).is_err());
+
+        let mut changed = descriptor;
+        changed
+            .predecessor
+            .as_mut()
+            .expect("protected predecessor")
+            .disposition = "readable-archive".to_owned();
+        assert!(validate_epoch_descriptor(&changed).is_err());
+    }
+
+    #[test]
+    fn p3_declared_source_sets_are_strictly_sorted_and_domain_separated() {
+        for paths in [P3_PRODUCER_GATE_SOURCE_PATHS, P3_TOOLCHAIN_INPUT_PATHS] {
+            assert!(
+                paths
+                    .windows(2)
+                    .all(|pair| pair[0].as_bytes() < pair[1].as_bytes())
+            );
+        }
+        let projection = json!([{"path":"a","sha256":"b"}]);
+        assert_ne!(
+            p3_projection_digest("parser-source-set", &projection).expect("parser digest"),
+            p3_projection_digest("producer-gate-source-set", &projection).expect("producer digest")
+        );
+    }
+
+    #[test]
+    fn p3_git_source_tree_parser_requires_the_exact_declared_set() {
+        const OID_A: &str = "1111111111111111111111111111111111111111";
+        const OID_B: &str = "2222222222222222222222222222222222222222";
+        let paths = ["a/BUCK", "b/Cargo.toml"];
+        let exact = format!("100644 blob {OID_A}\ta/BUCK\0100644 blob {OID_B}\tb/Cargo.toml\0");
+        assert_eq!(
+            parse_p3_git_source_tree_entries(&paths, exact.as_bytes())
+                .expect("exact declared tree"),
+            vec![
+                ("100644".to_owned(), OID_A.to_owned()),
+                ("100644".to_owned(), OID_B.to_owned()),
+            ]
+        );
+
+        let duplicate = format!("100644 blob {OID_A}\ta/BUCK\0100644 blob {OID_B}\ta/BUCK\0");
+        assert!(
+            parse_p3_git_source_tree_entries(&paths, duplicate.as_bytes())
+                .expect_err("duplicate declared path must fail")
+                .contains("resolved more than once")
+        );
+
+        let unexpected = format!("100644 blob {OID_A}\ta/BUCK\0100644 blob {OID_B}\tc/README.md\0");
+        assert!(
+            parse_p3_git_source_tree_entries(&paths, unexpected.as_bytes())
+                .expect_err("unexpected path must fail")
+                .contains("unexpected path")
+        );
+
+        let missing = format!("100644 blob {OID_A}\ta/BUCK\0");
+        assert!(
+            parse_p3_git_source_tree_entries(&paths, missing.as_bytes())
+                .expect_err("missing declared path must fail")
+                .contains("absent from HEAD")
+        );
+    }
+
+    #[test]
+    fn p3_sorted_json_recursively_sorts_objects_without_reordering_arrays() {
+        let mut nested = serde_json::Map::new();
+        nested.insert("z".to_owned(), json!(2));
+        nested.insert("a".to_owned(), json!(1));
+        let mut root = serde_json::Map::new();
+        root.insert("z".to_owned(), json!({"b": 2, "a": 1}));
+        root.insert(
+            "a".to_owned(),
+            Value::Array(vec![Value::Object(nested), json!({"d": 4, "c": 3})]),
+        );
+
+        let sorted = p3_sorted_json(Value::Object(root));
+        assert_eq!(
+            serde_json::to_string(&sorted).expect("serialize recursively sorted P3 JSON"),
+            r#"{"a":[{"a":1,"z":2},{"c":3,"d":4}],"z":{"a":1,"b":2}}"#
+        );
+    }
+
+    #[test]
+    fn p3_declared_source_tree_parser_accepts_nul_delimited_raw_records() {
+        const OID_A: &str = "1111111111111111111111111111111111111111";
+        const OID_B: &str = "2222222222222222222222222222222222222222";
+        let entries = format!("100644 blob {OID_A}\ta/BUCK\0100644 blob {OID_B}\tb/Cargo.toml\0");
+
+        assert_eq!(
+            parse_p3_git_source_tree_entries(&["a/BUCK", "b/Cargo.toml"], entries.as_bytes())
+                .expect("NUL-delimited declared source records"),
+            vec![
+                ("100644".to_owned(), OID_A.to_owned()),
+                ("100644".to_owned(), OID_B.to_owned()),
+            ]
+        );
+    }
+
+    #[test]
+    fn p3_declared_source_tree_parser_rejects_malformed_nul_delimited_records() {
+        const OID: &str = "1111111111111111111111111111111111111111";
+        let entries = format!("100644 blob {OID}\0");
+
+        assert!(
+            parse_p3_git_source_tree_entries(&["a/BUCK"], entries.as_bytes())
+                .expect_err("a record without its path separator must fail")
+                .contains("malformed")
+        );
+    }
+
+    #[test]
+    fn p3_tree_record_parser_rejects_non_utf8_paths_with_a_named_error() {
+        const OID: &str = "1111111111111111111111111111111111111111";
+        let mut record = format!("100644 blob {OID}\t").into_bytes();
+        record.extend_from_slice(&[0xff, b'.', b'm', b'd']);
+
+        assert_eq!(
+            parse_p3_git_tree_record(&record, "P3 selector")
+                .expect_err("non-UTF-8 selector path must fail"),
+            "P3 selector path is not valid UTF-8"
+        );
+    }
+
+    fn valid_p3_epoch_receipt_for_structure_test() -> Vec<u8> {
+        let receipt = json!({
+            "canonical_digest": "not-validated-by-structure",
+            "core": {
+                "claim_ceiling": "BLOCKED/HOLD",
+                "selector": SELECTOR_ID,
+                "predecessor": {"disposition": "git-history-only"},
+                "sources": {
+                    "fixture": {
+                        "mode": "100644",
+                        "path": "fixture.rs",
+                        "byte_count": 1,
+                        "blob_oid": "1111111111111111111111111111111111111111",
+                        "sha256": "2222222222222222222222222222222222222222222222222222222222222222"
+                    }
+                }
+            }
+        });
+        let receipt_text = serde_json::to_string(&p3_sorted_json(receipt.clone()))
+            .expect("serialize valid structure receipt");
+        serde_json::to_vec(&json!({
+            "outer_sha256": sha256_hex(receipt_text.as_bytes()),
+            "receipt": receipt,
+            "schema": "oya-ci/adr-census-epoch-receipt/v2"
+        }))
+        .expect("serialize valid structure wrapper")
+    }
+
+    #[test]
+    fn p3_structure_validation_rejects_a_well_formed_but_wrong_outer_digest() {
+        let mut wrapper: Value =
+            serde_json::from_slice(&valid_p3_epoch_receipt_for_structure_test())
+                .expect("valid P3 wrapper fixture");
+        wrapper["outer_sha256"] = Value::String(
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned(),
+        );
+
+        let error = validate_p3_epoch_receipt_structure(
+            &serde_json::to_vec(&wrapper).expect("serialize wrong-digest wrapper"),
+        )
+        .expect_err("a well-formed but wrong outer digest must fail");
+        assert!(error.contains("outer digest mismatch"), "{error}");
+    }
+
+    #[test]
+    fn p3_structure_validation_rejects_a_broad_docs_tree_projection() {
+        let mut wrapper: Value =
+            serde_json::from_slice(&valid_p3_epoch_receipt_for_structure_test())
+                .expect("valid P3 wrapper fixture");
+        wrapper["receipt"]["core"]["docs_tree"] = Value::String("a".repeat(40));
+        let receipt_text = serde_json::to_string(&p3_sorted_json(wrapper["receipt"].clone()))
+            .expect("serialize modified P3 receipt");
+        wrapper["outer_sha256"] = Value::String(sha256_hex(receipt_text.as_bytes()));
+
+        let error = validate_p3_epoch_receipt_structure(
+            &serde_json::to_vec(&wrapper).expect("serialize broad-docs wrapper"),
+        )
+        .expect_err("a broad docs tree projection must fail");
+        assert!(
+            error.contains("must not project broad documentation tree identity"),
+            "{error}"
+        );
+    }
+
+    #[test]
+    fn p3_structure_validation_rejects_a_broad_decisions_tree_projection() {
+        let mut wrapper: Value =
+            serde_json::from_slice(&valid_p3_epoch_receipt_for_structure_test())
+                .expect("valid P3 wrapper fixture");
+        wrapper["receipt"]["core"]["decisions_tree"] = Value::String("b".repeat(40));
+        let receipt_text = serde_json::to_string(&p3_sorted_json(wrapper["receipt"].clone()))
+            .expect("serialize modified P3 receipt");
+        wrapper["outer_sha256"] = Value::String(sha256_hex(receipt_text.as_bytes()));
+
+        let error = validate_p3_epoch_receipt_structure(
+            &serde_json::to_vec(&wrapper).expect("serialize broad-decisions wrapper"),
+        )
+        .expect_err("a broad decisions tree projection must fail");
+        assert!(
+            error.contains("must not project broad documentation tree identity"),
+            "{error}"
+        );
+    }
+
+    #[test]
+    fn p3_structure_validation_does_not_require_a_repository() {
+        let error = validate_p3_epoch_receipt_structure(b"{}")
+            .expect_err("an incomplete wrapper must fail structurally");
+        assert!(error.contains("wrapper schema or keys differ"), "{error}");
+    }
+
+    #[test]
+    fn epoch_receipt_output_classifier_normalizes_aliases_and_rejects_repo_variants() {
+        let sandbox = std::env::temp_dir().join(format!(
+            "oya-epoch-output-normalization-{}-{}",
+            std::process::id(),
+            unix_timestamp_nanos().expect("normalization test nonce")
+        ));
+        let repo_root = sandbox.join("repo");
+        std::fs::create_dir_all(&repo_root).expect("create normalization repository root");
+        let repo_root = canonical_repo_root(&repo_root).expect("canonicalize repository root");
+        let canonical = repo_root.join(ADR_CENSUS_EPOCH_RECEIPT_PATH);
+
+        assert_eq!(
+            classify_epoch_receipt_output(
+                &repo_root,
+                Path::new(
+                    "./ci/facade/artifact-inventory-registry/adr-census-epoch-receipt.generated.json"
+                ),
+            )
+            .expect("relative canonical output"),
+            EpochReceiptOutput::Canonical
+        );
+        assert_eq!(
+            classify_epoch_receipt_output(&repo_root, &canonical)
+                .expect("absolute canonical output"),
+            EpochReceiptOutput::Canonical
+        );
+        assert!(
+            classify_epoch_receipt_output(&repo_root, &repo_root.join("other.generated.json"))
+                .expect_err("noncanonical repository output must fail closed")
+                .contains("exact canonical path")
+        );
+        std::fs::remove_dir_all(&sandbox).expect("remove normalization fixture");
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn epoch_receipt_output_classifier_rejects_external_symlink_alias_into_repo() {
+        use std::os::unix::fs::symlink;
+
+        let sandbox = std::env::temp_dir().join(format!(
+            "oya-epoch-output-classifier-{}-{}",
+            std::process::id(),
+            unix_timestamp_nanos().expect("classifier test nonce")
+        ));
+        let repo_root = sandbox.join("repo");
+        std::fs::create_dir_all(&repo_root).expect("create classifier repository root");
+        let repo_root = canonical_repo_root(&repo_root).expect("canonicalize classifier root");
+        let outside_alias = sandbox.join("outside-alias");
+        symlink(&repo_root, &outside_alias).expect("create external alias into repository");
+
+        let error =
+            classify_epoch_receipt_output(&repo_root, &outside_alias.join("other.generated.json"))
+                .expect_err("external symlink alias into repository must fail closed");
+        assert!(
+            error.contains("resolves inside the repository"),
+            "unexpected classifier error: {error}"
+        );
+        std::fs::remove_dir_all(&sandbox).expect("remove classifier fixture");
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn epoch_receipt_output_classifier_rejects_external_leaf_symlink_into_repo() {
+        use std::os::unix::fs::symlink;
+
+        let sandbox = std::env::temp_dir().join(format!(
+            "oya-epoch-output-leaf-{}-{}",
+            std::process::id(),
+            unix_timestamp_nanos().expect("leaf test nonce")
+        ));
+        let repo_root = sandbox.join("repo");
+        let outside = sandbox.join("outside");
+        std::fs::create_dir_all(&repo_root).expect("create leaf repository root");
+        std::fs::create_dir_all(&outside).expect("create external output root");
+        let repo_root = canonical_repo_root(&repo_root).expect("canonicalize leaf root");
+        let protected_target = repo_root.join("protected.json");
+        std::fs::write(&protected_target, b"protected").expect("write protected target");
+        let output = outside.join("receipt.json");
+        symlink(&protected_target, &output).expect("create external leaf alias into repository");
+
+        let error = classify_epoch_receipt_output(&repo_root, &output)
+            .expect_err("external leaf symlink into repository must fail closed");
+        assert!(
+            error.contains("must not be a symlink"),
+            "unexpected leaf classifier error: {error}"
+        );
+        assert_eq!(
+            std::fs::read(&protected_target).expect("read protected target"),
+            b"protected"
+        );
+        std::fs::remove_dir_all(&sandbox).expect("remove leaf classifier fixture");
+    }
+
+    #[test]
+    fn cleanup_runs_and_its_failure_cannot_be_masked() {
+        let cleanup_ran = std::cell::Cell::new(false);
+        let error = finish_with_cleanup(
+            Err::<(), _>("primary failure".to_owned()),
+            || {
+                cleanup_ran.set(true);
+                Err("cleanup failure".to_owned())
+            },
+            "test cleanup",
+        )
+        .expect_err("both failures must remain visible");
+        assert!(
+            cleanup_ran.get(),
+            "cleanup must run after a primary failure"
+        );
+        assert!(error.contains("primary failure"), "{error}");
+        assert!(error.contains("test cleanup: cleanup failure"), "{error}");
+
+        let error = finish_with_cleanup(
+            Ok(()),
+            || Err("cleanup-only failure".to_owned()),
+            "test cleanup",
+        )
+        .expect_err("cleanup failure must turn primary success into failure");
+        assert!(
+            error.contains("test cleanup: cleanup-only failure"),
+            "{error}"
+        );
+    }
+
+    #[test]
+    fn exact_p2_validator_rejects_forged_or_truncated_receipts() {
+        assert!(validate_exact_p2_receipt(b"{}").is_err());
+        assert!(validate_exact_p2_receipt(b"{\"outer_sha256\":\"c3c4195f440fbf7825101dcf303fea9d8aec9d2ce7a77bd3ec25d8411dfdf528\"}").is_err());
     }
 }

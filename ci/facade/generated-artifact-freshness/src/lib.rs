@@ -26,7 +26,7 @@ pub const FACE_SETTLE_COMMIT_COMMAND: &str =
 const FACE_SETTLE_COMMIT_MESSAGE: &str = "chore: settle generated cloud-ci faces";
 const FACES_DIR: &str = "ci/facade/artifact-inventory-registry";
 const SCM_FACTS_FACE: &str = "scm-facts.generated.json";
-const ADR_CENSUS_PARENT_RECEIPT_FACE: &str = "adr-census-parent-receipt.generated.json";
+const ADR_CENSUS_EPOCH_RECEIPT_FACE: &str = "adr-census-epoch-receipt.generated.json";
 const ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS: &str = ".claude/settings.json";
 const ENFORCEMENT_LIVENESS_CODEX_HOOKS: &str = ".codex/hooks.json";
 const ENFORCEMENT_LIVENESS_HOOKS_DIR: &str = "tools/hooks";
@@ -66,7 +66,7 @@ const GENERATED_FACE_PATHS: [&str; 7] = [
 /// Controller-owned generated artifacts whose freshness is proven by regeneration/determinism,
 /// but whose byte diffs are not staged by `oya-cloud-ci-face-settle` in contributor PRs.
 const CONTROLLER_MATERIALIZED_ARTIFACT_PATHS: [&str; 5] = [
-    "ci/facade/artifact-inventory-registry/adr-census-parent-receipt.generated.json",
+    "ci/facade/artifact-inventory-registry/adr-census-epoch-receipt.generated.json",
     MASTERPLAN_PROJECTION_PATH,
     BOARD_SYNC_PROJECTION_PATH,
     ARCHITECTURE_PRODUCT_GRAPH_PATH,
@@ -197,6 +197,12 @@ pub struct FaceSettleArgs {
 pub struct MaterializeGeneratedFacesArgs {
     pub repo_root: PathBuf,
     pub retirement_mode: RetirementMaterializationMode,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct FreshnessCheckArgs {
+    pub repo_root: PathBuf,
+    pub github_event: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -364,6 +370,25 @@ pub fn evaluate_lock_freshness(
 }
 
 pub fn check_repo(repo_root: &Path) -> Result<CheckReport, FreshnessError> {
+    check_repo_with_retirement(repo_root, None)
+}
+
+pub fn check_repo_from_args(args: &FreshnessCheckArgs) -> Result<CheckReport, FreshnessError> {
+    let retirement = args
+        .github_event
+        .then(|| {
+            retirement_materialization_from_github_event_facts(
+                &github_event_materialization_facts_from_environment(),
+            )
+        })
+        .transpose()?;
+    check_repo_with_retirement(&args.repo_root, retirement.as_ref())
+}
+
+fn check_repo_with_retirement(
+    repo_root: &Path,
+    retirement: Option<&RetirementMaterializeArgs>,
+) -> Result<CheckReport, FreshnessError> {
     let decommitted = read_decommitted_face_names(repo_root);
     // Determinism canary: for non-PR-owned faces there is no contributor-branch byte copy to
     // trust, so regenerate the producer faces a SECOND time (from the SAME scm-facts) and require
@@ -371,10 +396,11 @@ pub fn check_repo(repo_root: &Path) -> Result<CheckReport, FreshnessError> {
     // When every face is PR-owned, take the single-pass path so committed-byte parity pays no
     // extra regeneration cost.
     if decommitted.is_empty() {
-        let regenerated_faces = regenerate_faces_with_buck2(repo_root)?;
+        let regenerated_faces = regenerate_faces_with_buck2_with_retirement(repo_root, retirement)?;
         return check_repo_with_regenerated_faces(repo_root, regenerated_faces);
     }
-    let (first_pass, second_pass) = regenerate_faces_twice_with_buck2(repo_root)?;
+    let (first_pass, second_pass) =
+        regenerate_faces_twice_with_buck2_with_retirement(repo_root, retirement)?;
     let determinism_findings = evaluate_face_determinism(&first_pass, &second_pass, &decommitted);
     let mut report = check_repo_with_regenerated_faces(repo_root, first_pass)?;
     report.findings.extend(determinism_findings);
@@ -587,12 +613,13 @@ fn materialize_generated_faces_with_tools(
         retirement,
         historical_dev_push,
     )?;
-    emit_adr_census_parent_receipt(
+    emit_adr_census_epoch_receipt(
         &tools.emitter,
         repo_root,
         &repo_root
             .join(FACES_DIR)
-            .join(ADR_CENSUS_PARENT_RECEIPT_FACE),
+            .join(ADR_CENSUS_EPOCH_RECEIPT_FACE),
+        retirement,
     )?;
     let mut command = Command::new(&tools.producer);
     command
@@ -610,6 +637,40 @@ fn materialize_generated_faces_with_tools(
     materialize_active_artifact_contract_graph(tools, repo_root)?;
     verify_materialized_upload_outputs(repo_root, retirement)?;
     Ok(())
+}
+
+pub fn parse_freshness_check_args(args: Vec<String>) -> Result<FreshnessCheckArgs, FreshnessError> {
+    let mut repo_root = PathBuf::from(".");
+    let mut github_event = false;
+    let mut iter = args.into_iter();
+    while let Some(arg) = iter.next() {
+        match arg.as_str() {
+            "--repo-root" => {
+                let Some(value) = iter.next().filter(|value| !value.is_empty()) else {
+                    return Err(FreshnessError::new(
+                        "freshness gate: --repo-root requires a path",
+                    ));
+                };
+                repo_root = PathBuf::from(value);
+            }
+            "--github-event" => github_event = true,
+            "--help" | "-h" => return Err(FreshnessError::new(freshness_check_usage())),
+            other => {
+                return Err(FreshnessError::new(format!(
+                    "freshness gate: unknown argument {other:?}; {}",
+                    freshness_check_usage()
+                )));
+            }
+        }
+    }
+    Ok(FreshnessCheckArgs {
+        repo_root,
+        github_event,
+    })
+}
+
+pub fn freshness_check_usage() -> &'static str {
+    "usage: oya-cloud-ci-freshness-app [--repo-root <path>] [--github-event]"
 }
 
 pub fn parse_materialize_generated_faces_args(
@@ -1390,6 +1451,13 @@ fn file_basename(path: &str) -> &str {
 pub type RegeneratedFaces = Vec<(String, String)>;
 
 pub fn regenerate_faces_with_buck2(repo_root: &Path) -> Result<RegeneratedFaces, FreshnessError> {
+    regenerate_faces_with_buck2_with_retirement(repo_root, None)
+}
+
+fn regenerate_faces_with_buck2_with_retirement(
+    repo_root: &Path,
+    retirement: Option<&RetirementMaterializeArgs>,
+) -> Result<RegeneratedFaces, FreshnessError> {
     let tools = build_face_tools(repo_root)?;
     let scm_facts = temporary_scm_facts_path()?;
     let cleanup = TempFileCleanup {
@@ -1403,7 +1471,7 @@ pub fn regenerate_faces_with_buck2(repo_root: &Path) -> Result<RegeneratedFaces,
         path: volatile_facts.clone(),
     };
     emit_scm_facts(&tools, repo_root, &scm_facts, &volatile_facts)?;
-    let regenerated = regenerate_all_faces(&tools, repo_root, &scm_facts)?;
+    let regenerated = regenerate_all_faces(&tools, repo_root, &scm_facts, retirement)?;
     drop(cleanup);
     drop(volatile_cleanup);
     Ok(regenerated)
@@ -1417,6 +1485,13 @@ pub fn regenerate_faces_with_buck2(repo_root: &Path) -> Result<RegeneratedFaces,
 pub fn regenerate_faces_twice_with_buck2(
     repo_root: &Path,
 ) -> Result<(RegeneratedFaces, RegeneratedFaces), FreshnessError> {
+    regenerate_faces_twice_with_buck2_with_retirement(repo_root, None)
+}
+
+fn regenerate_faces_twice_with_buck2_with_retirement(
+    repo_root: &Path,
+    retirement: Option<&RetirementMaterializeArgs>,
+) -> Result<(RegeneratedFaces, RegeneratedFaces), FreshnessError> {
     let tools = build_face_tools(repo_root)?;
     let scm_facts = temporary_scm_facts_path()?;
     let cleanup = TempFileCleanup {
@@ -1427,8 +1502,8 @@ pub fn regenerate_faces_twice_with_buck2(
         path: volatile_facts.clone(),
     };
     emit_scm_facts(&tools, repo_root, &scm_facts, &volatile_facts)?;
-    let first = regenerate_all_faces(&tools, repo_root, &scm_facts)?;
-    let second = regenerate_all_faces(&tools, repo_root, &scm_facts)?;
+    let first = regenerate_all_faces(&tools, repo_root, &scm_facts, retirement)?;
+    let second = regenerate_all_faces(&tools, repo_root, &scm_facts, retirement)?;
     drop(cleanup);
     drop(volatile_cleanup);
     Ok((first, second))
@@ -1440,17 +1515,16 @@ fn emit_scm_facts(
     scm_facts: &Path,
     volatile_facts: &Path,
 ) -> Result<(), FreshnessError> {
-    run_status(
-        Command::new(&tools.emitter)
-            .args(["--repo-root"])
-            .arg(repo_root)
-            .args(["--out"])
-            .arg(scm_facts)
-            .args(["--volatile-out"])
-            .arg(volatile_facts)
-            .current_dir(repo_root),
-        "run scm-facts emitter",
-    )
+    let mut command = Command::new(&tools.emitter);
+    command
+        .args(["--repo-root"])
+        .arg(repo_root)
+        .args(["--out"])
+        .arg(scm_facts)
+        .args(["--volatile-out"])
+        .arg(volatile_facts);
+    command.current_dir(repo_root);
+    run_status(&mut command, "run scm-facts emitter")
 }
 
 fn regenerate_producer_faces(
@@ -1508,11 +1582,13 @@ fn regenerate_all_faces(
     tools: &FaceTools,
     repo_root: &Path,
     scm_facts: &Path,
+    retirement: Option<&RetirementMaterializeArgs>,
 ) -> Result<RegeneratedFaces, FreshnessError> {
     let mut regenerated = regenerate_producer_faces(tools, repo_root, scm_facts)?;
-    regenerated.push(regenerate_adr_census_parent_receipt(
+    regenerated.push(regenerate_adr_census_epoch_receipt(
         &tools.emitter,
         repo_root,
+        retirement,
     )?);
     regenerated.extend(regenerate_architecture_projection_faces(tools, repo_root)?);
     regenerated.push(regenerate_active_artifact_contract_graph(tools, repo_root)?);
@@ -1655,35 +1731,47 @@ fn verify_materialized_upload_outputs(
     Ok(())
 }
 
-fn regenerate_adr_census_parent_receipt(
+fn regenerate_adr_census_epoch_receipt(
     emitter: &Path,
     repo_root: &Path,
+    retirement: Option<&RetirementMaterializeArgs>,
 ) -> Result<(String, String), FreshnessError> {
-    let output = temporary_adr_census_parent_receipt_path()?;
+    let output = temporary_adr_census_epoch_receipt_path()?;
     let cleanup = TempFileCleanup {
         path: output.clone(),
     };
-    emit_adr_census_parent_receipt(emitter, repo_root, &output)?;
+    emit_adr_census_epoch_receipt(emitter, repo_root, &output, retirement)?;
     let bytes = read_to_string(&output)?;
     drop(cleanup);
-    Ok((ADR_CENSUS_PARENT_RECEIPT_FACE.to_owned(), bytes))
+    Ok((ADR_CENSUS_EPOCH_RECEIPT_FACE.to_owned(), bytes))
 }
 
-fn emit_adr_census_parent_receipt(
+fn emit_adr_census_epoch_receipt(
     emitter: &Path,
     repo_root: &Path,
     output: &Path,
+    retirement: Option<&RetirementMaterializeArgs>,
 ) -> Result<(), FreshnessError> {
-    run_status(
-        Command::new(emitter)
-            .args(["--repo-root"])
-            .arg(repo_root)
-            .arg("--adr-census-parent-receipt")
-            .arg("--adr-census-parent-receipt-out")
-            .arg(output)
-            .current_dir(repo_root),
-        "materialize fixed historical ADR census receipt",
-    )
+    let mut command = adr_census_epoch_receipt_command(emitter, repo_root, output, retirement);
+    command.current_dir(repo_root);
+    run_status(&mut command, "materialize ADR census epoch receipt")
+}
+
+fn adr_census_epoch_receipt_command(
+    emitter: &Path,
+    repo_root: &Path,
+    output: &Path,
+    retirement: Option<&RetirementMaterializeArgs>,
+) -> Command {
+    let mut command = Command::new(emitter);
+    command
+        .args(["--repo-root"])
+        .arg(repo_root)
+        .arg("--adr-census-epoch-receipt")
+        .arg("--adr-census-epoch-receipt-out")
+        .arg(output);
+    append_census_event_identity_args(&mut command, retirement);
+    command
 }
 
 fn regenerate_architecture_projection_faces(
@@ -2186,6 +2274,24 @@ fn append_retirement_materialization_args(
     }
 }
 
+/// The freshness gate is read-only: it needs the exact event identity to select the census
+/// revision, but must never receive the retirement control-plane/output flags that authorize the
+/// SCM emitter to write a retirement-facts artifact.
+fn append_census_event_identity_args(
+    command: &mut Command,
+    retirement: Option<&RetirementMaterializeArgs>,
+) {
+    if let Some(retirement) = retirement {
+        command
+            .args(["--protected-base-commit", &retirement.protected_base_commit])
+            .args(["--evaluated-commit", &retirement.evaluated_commit])
+            .args(["--scm-event-name", &retirement.scm_event_name])
+            .args(["--scm-event-ref", &retirement.scm_event_ref])
+            .args(["--scm-event-base-ref", &retirement.scm_event_base_ref])
+            .args(["--subject-commit", &retirement.subject_commit]);
+    }
+}
+
 /// Validate + read the merge-base sha the emitter published.
 fn read_merge_base(merge_base_file: &Path) -> Result<String, FreshnessError> {
     let merge_base = read_to_string(merge_base_file)?.trim().to_owned();
@@ -2568,9 +2674,9 @@ fn temporary_product_graph_path() -> Result<PathBuf, FreshnessError> {
     exclusive_temporary_file("oya-ci-freshness-product-graph", ".html")
 }
 
-fn temporary_adr_census_parent_receipt_path() -> Result<PathBuf, FreshnessError> {
+fn temporary_adr_census_epoch_receipt_path() -> Result<PathBuf, FreshnessError> {
     exclusive_temporary_file(
-        "oya-ci-freshness-adr-census-parent-receipt",
+        "oya-ci-freshness-adr-census-epoch-receipt",
         ".generated.json",
     )
 }
@@ -3480,6 +3586,72 @@ mod materialize_generated_faces_tests {
     }
 
     #[test]
+    fn freshness_check_parser_requires_explicit_github_event_transport() {
+        let local =
+            parse_freshness_check_args(vec!["--repo-root".to_owned(), "/tmp/oyatie".to_owned()])
+                .expect("local freshness parse");
+        assert_eq!(local.repo_root, PathBuf::from("/tmp/oyatie"));
+        assert!(!local.github_event);
+
+        let event = parse_freshness_check_args(vec!["--github-event".to_owned()])
+            .expect("event freshness parse");
+        assert!(event.github_event);
+
+        let error = parse_freshness_check_args(vec!["--historical-merge-base".to_owned()])
+            .expect_err("freshness must not accept historical transport");
+        assert!(error.to_string().contains("unknown argument"));
+    }
+
+    #[test]
+    fn census_epoch_receipt_command_forwards_only_explicit_retirement_transport() {
+        let retirement = RetirementMaterializeArgs {
+            control_plane_path: RETIREMENT_CONTROL_PLANE_PATH.to_owned(),
+            facts_out: PathBuf::from(RETIREMENT_FACTS_PATH),
+            protected_base_commit: "1111111111111111111111111111111111111111".to_owned(),
+            evaluated_commit: "2222222222222222222222222222222222222222".to_owned(),
+            scm_event_name: "pull_request".to_owned(),
+            scm_event_ref: "refs/pull/123/merge".to_owned(),
+            scm_event_base_ref: "dev".to_owned(),
+            subject_commit: "3333333333333333333333333333333333333333".to_owned(),
+        };
+        let candidate = adr_census_epoch_receipt_command(
+            Path::new("emitter"),
+            Path::new("/repo"),
+            Path::new("/tmp/receipt.json"),
+            Some(&retirement),
+        );
+        let args = candidate
+            .get_args()
+            .map(|arg| arg.to_string_lossy().into_owned())
+            .collect::<Vec<_>>();
+        assert!(
+            args.windows(2)
+                .any(|pair| { pair == ["--subject-commit", retirement.subject_commit.as_str()] })
+        );
+        assert!(
+            args.windows(2).any(|pair| {
+                pair == ["--evaluated-commit", retirement.evaluated_commit.as_str()]
+            })
+        );
+        assert!(
+            !args.iter().any(|arg| arg == "--retirement-facts-out"),
+            "freshness receipt regeneration must not write retirement facts"
+        );
+
+        let local = adr_census_epoch_receipt_command(
+            Path::new("emitter"),
+            Path::new("/repo"),
+            Path::new("/tmp/receipt.json"),
+            None,
+        );
+        assert!(
+            !local
+                .get_args()
+                .any(|arg| arg == "--subject-commit" || arg == "--evaluated-commit")
+        );
+    }
+
+    #[test]
     fn multi_commit_local_materialization_does_not_infer_head_parent_as_protected_base() {
         let root = temp_root("retirement-auto-materialization");
         std::fs::create_dir_all(root.join("registry/history-only-retirement"))
@@ -3639,7 +3811,7 @@ root//tools/hooks:top-level-hook-scripts buck-out/v2/gen/tools/hooks/__top-level
             serde_json::json!({
                 "artifacts": [
                     {
-                        "path": "ci/facade/artifact-inventory-registry/adr-census-parent-receipt.generated.json",
+                        "path": "ci/facade/artifact-inventory-registry/adr-census-epoch-receipt.generated.json",
                         "materialization_mode": NOT_TRACKED_IN_GIT_MODE
                     },
                     {
@@ -3668,14 +3840,12 @@ root//tools/hooks:top-level-hook-scripts buck-out/v2/gen/tools/hooks/__top-level
         let generated_paths = generated_face_paths();
         let pr_owned_paths = pr_owned_generated_face_paths(&non_pr_owned);
 
-        assert!(non_pr_owned.contains(ADR_CENSUS_PARENT_RECEIPT_FACE));
+        assert!(non_pr_owned.contains(ADR_CENSUS_EPOCH_RECEIPT_FACE));
         assert!(non_pr_owned.contains(MASTERPLAN_PROJECTION_FACE));
         assert!(non_pr_owned.contains(BOARD_SYNC_PROJECTION_FACE));
         assert!(non_pr_owned.contains(ARCHITECTURE_PRODUCT_GRAPH_FACE));
         assert!(!generated_paths.contains(&MASTERPLAN_PROJECTION_PATH.to_owned()));
-        assert!(
-            !generated_paths.contains(&format!("{FACES_DIR}/{ADR_CENSUS_PARENT_RECEIPT_FACE}"))
-        );
+        assert!(!generated_paths.contains(&format!("{FACES_DIR}/{ADR_CENSUS_EPOCH_RECEIPT_FACE}")));
         assert!(!generated_paths.contains(&ARCHITECTURE_PRODUCT_GRAPH_PATH.to_owned()));
         assert!(!pr_owned_paths.contains(&MASTERPLAN_PROJECTION_PATH.to_owned()));
         assert!(!pr_owned_paths.contains(&ARCHITECTURE_PRODUCT_GRAPH_PATH.to_owned()));
@@ -3855,8 +4025,8 @@ while [ "$#" -gt 0 ]; do
   case "$1" in
     --out) shift; out="$1" ;;
     --merge-base-out) shift; mbout="$1" ;;
-    --adr-census-parent-receipt) census=true ;;
-    --adr-census-parent-receipt-out) shift; censusout="$1" ;;
+    --adr-census-epoch-receipt) census=true ;;
+    --adr-census-epoch-receipt-out) shift; censusout="$1" ;;
   esac
   shift || true
 done
@@ -3960,8 +4130,8 @@ printf 'generated dashboard\n' > docs/architecture/product-graph.html
         let codemod_pos = calls.find("codemod manifest").expect("codemod call");
         let emitter_pos = calls.find("emitter --repo-root").expect("emitter call");
         let census_pos = calls
-            .find("--adr-census-parent-receipt --adr-census-parent-receipt-out")
-            .expect("fixed census receipt call");
+            .find("--adr-census-epoch-receipt --adr-census-epoch-receipt-out")
+            .expect("census epoch receipt call");
         let producer_pos = calls.rfind("producer --repo-root").expect("producer call");
         let masterplan_pos = calls
             .find("masterplan gen masterplan --write")
@@ -3995,8 +4165,8 @@ printf 'generated dashboard\n' > docs/architecture/product-graph.html
             root.join(ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS).display()
         )));
         assert_eq!(
-            std::fs::read_to_string(root.join(FACES_DIR).join(ADR_CENSUS_PARENT_RECEIPT_FACE))
-                .expect("fixed census receipt materialized"),
+            std::fs::read_to_string(root.join(FACES_DIR).join(ADR_CENSUS_EPOCH_RECEIPT_FACE))
+                .expect("census epoch receipt materialized"),
             "{\"fixed\":\"receipt\"}\n"
         );
         assert_eq!(

@@ -2627,6 +2627,48 @@ status: Accepted
         fs::remove_dir_all(root).expect("remove temp repo");
     }
 
+    #[test]
+    fn masterplan_propagation_is_bound_or_explicitly_nonbinding_never_a_narrative_mention() {
+        let masterplan = serde_json::json!({
+            "planning_authority": {
+                "bound_adrs": ["ADR-0001"]
+            },
+            "masterplan_v2": {
+                "accepted_decision_propagation_dispositions": {
+                    "decisions": [{
+                        "id": "ADR-0002",
+                        "lifecycle_state": "Accepted",
+                        "planning_impact": false,
+                        "sequencing_effect": "none",
+                        "binding_plan_approval_effect": "none",
+                        "execution_dispatch_effect": "none",
+                        "hold_state": "HOLD(Planning)",
+                        "disposition_ref": "/specs/master-plan-sequencing.json#_metadata.accepted_decision_propagation_dispositions"
+                    }]
+                },
+                "narrative": "ADR-0003 is mentioned only as prose"
+            }
+        });
+        let text = serde_json::to_string(&masterplan).expect("serialize masterplan fixture");
+
+        assert!(masterplan_propagates_decision(&text, "ADR-0001"));
+        assert!(masterplan_propagates_decision(&text, "ADR-0002"));
+        assert!(
+            !masterplan_propagates_decision(&text, "ADR-0003"),
+            "a narrative mention must not satisfy masterplan propagation"
+        );
+
+        let mut laundered = masterplan;
+        laundered["masterplan_v2"]["accepted_decision_propagation_dispositions"]["decisions"][0]
+            ["disposition_ref"] =
+            serde_json::json!("/specs/masterplan.json#planning_authority.bound_adrs");
+        let text = serde_json::to_string(&laundered).expect("serialize laundered fixture");
+        assert!(
+            !masterplan_propagates_decision(&text, "ADR-0002"),
+            "a nonbinding marker must not point into binding planning authority"
+        );
+    }
+
     /// The token scanner accepts exactly-four-digit ids and rejects longer digit runs.
     #[test]
     fn adr_citation_tokens_match_exactly_four_digits() {
@@ -3544,6 +3586,50 @@ fn collect_bound_adrs(value: &Value, out: &mut BTreeSet<String>) {
     }
 }
 
+fn masterplan_propagated_decisions(masterplan: &str) -> BTreeSet<String> {
+    let Ok(value) = serde_json::from_str::<Value>(masterplan) else {
+        return BTreeSet::new();
+    };
+    let mut propagated = BTreeSet::new();
+    collect_bound_adrs(&value, &mut propagated);
+    let lifecycle_only = value
+        .pointer(
+            "/masterplan_v2/accepted_decision_propagation_dispositions/decisions",
+        )
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+        .filter(|decision| {
+            decision
+                .get("lifecycle_state")
+                .and_then(Value::as_str)
+                .is_some_and(|state| state.eq_ignore_ascii_case("accepted"))
+                && decision.get("planning_impact").and_then(Value::as_bool) == Some(false)
+                && decision.get("sequencing_effect").and_then(Value::as_str) == Some("none")
+                && decision
+                    .get("binding_plan_approval_effect")
+                    .and_then(Value::as_str)
+                    == Some("none")
+                && decision
+                    .get("execution_dispatch_effect")
+                    .and_then(Value::as_str)
+                    == Some("none")
+                && decision.get("hold_state").and_then(Value::as_str)
+                    == Some("HOLD(Planning)")
+                && decision.get("disposition_ref").and_then(Value::as_str)
+                    == Some(
+                        "/specs/master-plan-sequencing.json#_metadata.accepted_decision_propagation_dispositions",
+                    )
+        })
+        .filter_map(|decision| decision.get("id").and_then(Value::as_str));
+    propagated.extend(lifecycle_only.map(str::to_owned));
+    propagated
+}
+
+fn masterplan_propagates_decision(masterplan: &str, decision_id: &str) -> bool {
+    masterplan_propagated_decisions(masterplan).contains(decision_id)
+}
+
 /// Collect the GATE-1 cross-artifact facts from the live corpus: ADR front-matter
 /// (status + reciprocal supersession edges), spec/masterplan/roadmap presence, the
 /// duplicate-id collision (two files carrying one id), the phantom citation edges
@@ -3609,6 +3695,7 @@ fn collect_crosswalk_inputs(
         &cfg.reachability.masterplan,
         &masterplan,
     );
+    let propagated_masterplan_decisions = masterplan_propagated_decisions(&masterplan);
 
     let mut decisions: Vec<DecisionCrosswalkRow> = Vec::new();
     let mut duplicate_ids: Vec<String> = Vec::new();
@@ -3622,7 +3709,7 @@ fn collect_crosswalk_inputs(
         let body = sorted.first().map(|p| read_text(p)).unwrap_or_default();
         let status = front_matter_field(&body, "status").unwrap_or_default();
         let in_spec = id_in_spec_corpus(repo_root, id);
-        let in_masterplan = masterplan.contains(id.as_str());
+        let in_masterplan = propagated_masterplan_decisions.contains(id);
         let in_roadmap = roadmap.contains(id.as_str());
         decisions.push(DecisionCrosswalkRow {
             id: id.clone(),

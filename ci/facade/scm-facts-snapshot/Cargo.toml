@@ -18,8 +18,8 @@ name = "oya-cloud-ci-scm-facts-emitter-app"
 path = "src/main.rs"
 
 [[bin]]
-name = "oya-cloud-ci-adr-census-parent-receipt-gate"
-path = "src/bin/adr-census-parent-receipt-gate.rs"
+name = "oya-cloud-ci-adr-census-epoch-receipt-gate"
+path = "src/bin/adr-census-epoch-receipt-gate.rs"
 
 [dependencies]
 serde = { workspace = true }

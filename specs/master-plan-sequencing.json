@@ -53,6 +53,15 @@
           "sequencing_effect": "none",
           "disposition_ref": "/specs/masterplan.json#masterplan_v2.planning_authority.bound_adrs",
           "note": "Accepted hard-retirement propagation only; this marker records lifecycle propagation without restoring the retired source as an authority or adding independent sequencing. Implementation closure is recorded by /evidence/goals/masterplan-v2-external-board-import-retirement-closure-20260720.json."
+        },
+        {
+          "id": "ADR-0624",
+          "lifecycle_state": "Accepted",
+          "planning_impact": false,
+          "sequencing_effect": "none",
+          "disposition_ref": "/specs/masterplan.json#masterplan_v2.accepted_decision_propagation_dispositions",
+          "hold_state": "HOLD(Planning)",
+          "note": "Immutable ADR-census epoch-transition lifecycle propagation only. This marker adds no plan work, approves no roadmap, dispatches no implementation, and preserves P2 active plus P3 dormant under HOLD(Planning)."
         }
       ],
       "evidence": "/evidence/consolidation/preplanning-authority-closure-20260713.json"

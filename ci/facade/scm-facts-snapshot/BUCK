@@ -47,10 +47,18 @@ rust_binary(
 
 rust_test(
     name = "ci-scm-facts-snapshot-gate",
-    srcs = ["src/bin/adr-census-parent-receipt-gate.rs"],
-    crate_root = "src/bin/adr-census-parent-receipt-gate.rs",
+    srcs = ["src/bin/adr-census-epoch-receipt-gate.rs"],
+    crate_root = "src/bin/adr-census-epoch-receipt-gate.rs",
     visibility = ["PUBLIC"],
-    deps = ["third-party//:serde_json", "third-party//:sha2"],
+    deps = [":ci-scm-facts-snapshot-lib"],
+)
+
+rust_binary(
+    name = "adr-census-epoch-receipt-gate-bin",
+    srcs = ["src/bin/adr-census-epoch-receipt-gate.rs"],
+    crate_root = "src/bin/adr-census-epoch-receipt-gate.rs",
+    visibility = ["PUBLIC"],
+    deps = [":ci-scm-facts-snapshot-lib"],
 )
 
 rust_test(
@@ -96,5 +104,6 @@ rust_test(
         "//ci/ports/path-resolver:ci-path-resolver-ports",
         "//ci/adapters/path-resolver:ci-path-resolver-adapters",
         "third-party//:serde_json",
+        "third-party//:sha2",
     ],
 )

@@ -39,7 +39,6 @@
   "_sign_off_additions": {
     "cloud-ci-total-accounting": {
       "unjustified": [
-        "ci/facade/baseline-ratchet/tests/gate_registration.rs",
         "docs/standards/image-discipline.md",
         "docs/standards/security-review.md",
         "iam/adapters/pdp-cedar/BUCK",
@@ -286,6 +285,16 @@
         "registry/stores/design-store.json",
         "registry/stores/instructions-store.json",
         "registry/stores/registry-store.json"
+      ]
+    },
+    {
+      "date": "2026-07-25",
+      "retired_by": "oya-cloud-ci-firewall-signoff-fixer --fix (mechanical inert-entry retirement, FRIC-1781280001)",
+      "rationale": "ADR-0624 justifies this PR-change path, so its unjustified exemption is inert and must retire rather than remain a standing re-introduction ticket. (FRIC-1781280001 inert-door detector; ADR-0551 hardening.)",
+      "gate": "cloud-ci-total-accounting",
+      "code": "unjustified",
+      "keys": [
+        "ci/facade/baseline-ratchet/tests/gate_registration.rs"
       ]
     }
   ]

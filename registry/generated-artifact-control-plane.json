@@ -7,13 +7,18 @@
   "public_product_contract": "Any repository adopting oya-ci can provide this manifest plus an SCM-facts snapshot to the Rust gate. GitHub Actions is a bridge runner; the policy is CI-provider-neutral, hermetic, and suitable for native cloud-ci execution. Generated outputs matching generated_path_rules are ignored by default; any force-added generated output must be declared here with owner, generator, materialization mode, and non-source merge policy.",
   "artifacts": [
     {
-      "artifact_id": "cloud-ci-adr-census-parent-receipt",
-      "path": "ci/facade/artifact-inventory-registry/adr-census-parent-receipt.generated.json",
+      "artifact_id": "cloud-ci-adr-census-epoch-receipt",
+      "path": "ci/facade/artifact-inventory-registry/adr-census-epoch-receipt.generated.json",
       "artifact_class": "main-materialized-aggregate",
       "materialization_mode": "not-tracked-in-git",
       "merge_policy": "never-manual-merge-regenerate-from-source-tree",
       "owner_team": "cloud-ci-platform",
       "source_inputs": [
+        "registry/adr-census-epoch/control-plane.json",
+        "specs/adr-census-epoch-control-plane.schema.json",
+        "specs/adr-census-epoch-receipt.schema.json",
+        ".github/workflows/oya-ci-required.yml",
+        "historical implementation commit afff4dade737b1833153c4f45d8defdfa2b328a8",
         "corpus commit 1fa09da22be819b062881eb59252f4dd4c6b550a",
         "repository tree d7b15539396db21b219d68779362850cce9afa8f",
         "docs tree fbf3f8d4b9ecf30b2272f37871e8152a616eed5a",
@@ -22,14 +27,14 @@
         "parser tree 0cdece525bc54f83ec51d3ba67a4308d0ce43812",
         "parser blob ab3884dbf4a657869fd87920b016cc4734a1c27f"
       ],
-      "final_tree_validation": "Controller materializes the receipt from the declared fixed historical Git objects only; both commits must exist and be ancestors of HEAD, the parser commit must have the corpus commit as its exact parent, and every tree/path/blob/raw-digest binding must match. It never reads candidate, base, index, worktree ADR documents, events, or ambient environment.",
-      "public_product_contract": "A non-authoritative fixed historical ADR census receipt. It preserves HOLD(Planning) and makes no completeness, roadmap, dispatch, or closure claim.",
+      "final_tree_validation": "The controller materializes the active P2 epoch only by exact historical implementation replay from its declared immutable Git objects; every P2 binding must match. Controller-supplied SCM event identity selects the immutable revision and is excluded from the squash-stable P2 receipt core. P3 is a protected dormant successor contract and cannot activate or alter P2 until its separate pointer-only activation. The P2 replay never reads candidate, base, index, worktree ADR documents, events, or ambient environment as census input.",
+      "public_product_contract": "A non-authoritative ADR census epoch receipt. P2 is the active exact historical replay; P3 is protected and dormant. It preserves HOLD(Planning) and makes no completeness, roadmap, dispatch, or closure claim.",
       "generator": {
         "runner": "buck2",
         "generator_target": "//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot",
-        "operation_id": "emit-fixed-adr-census-parent-receipt",
-        "parameters": {"operation": "adr-census-parent-receipt"},
-        "input_contract": ["repo-root", "declared-source-inputs", "full-depth-scm"],
+        "operation_id": "emit-adr-census-epoch-receipt",
+        "parameters": {"operation": "adr-census-epoch-receipt", "active_epoch": "P2", "successor_epoch": "P3-dormant"},
+        "input_contract": ["repo-root", "declared-source-inputs", "full-depth-scm", "scm-event-identity"],
         "output_mode": "declared-artifact-path-write"
       }
     },

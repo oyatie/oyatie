@@ -2664,6 +2664,55 @@
       }
     },
     {
+      "artifact_id": "adr-census-epoch-control-plane-schema",
+      "artifact_path": "/specs/adr-census-epoch-control-plane.schema.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "cloud-ci-platform",
+      "purpose_short": "Fail-closed source-authored schema for the non-authoritative pointer-only ADR census epoch selector; protected code owns replay and successor identities.",
+      "artifact_profile": "schema",
+      "capability_overrides": {
+        "enforcement": {"lane_id": "adr-census-epoch-control-plane"},
+        "verification": {"command": "buck2 test //ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot-gate"},
+        "validation": {"validator": "JSON Schema Draft 2020-12 plus scm-facts census epoch parser"},
+        "autogen": {"generator": "not-applicable; schema is source-authored"},
+        "provenance": {"current_author": "codex", "current_reviewed_by": "pending code-review", "last_modified_at": "2026-07-24T00:00:00Z"}
+      }
+    },
+    {
+      "artifact_id": "adr-census-epoch-receipt-schema",
+      "artifact_path": "/specs/adr-census-epoch-receipt.schema.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "cloud-ci-platform",
+      "purpose_short": "Fail-closed source-authored schema for ignored controller-produced ADR census epoch receipts; it preserves HOLD(Planning).",
+      "artifact_profile": "schema",
+      "capability_overrides": {
+        "enforcement": {"lane_id": "adr-census-epoch-control-plane"},
+        "verification": {"command": "buck2 test //ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot-gate"},
+        "validation": {"validator": "JSON Schema Draft 2020-12 plus scm-facts census epoch receipt gate"},
+        "autogen": {"generator": "not-applicable; schema is source-authored"},
+        "provenance": {"current_author": "codex", "current_reviewed_by": "pending code-review", "last_modified_at": "2026-07-24T00:00:00Z"}
+      }
+    },
+    {
+      "artifact_id": "adr-census-epoch-control-plane",
+      "artifact_path": "/registry/adr-census-epoch/control-plane.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "cloud-ci-platform",
+      "purpose_short": "Source-authored pointer-only selector for immutable ADR census epochs; protected producer and gate code own P2 replay and dormant P3 successor identities.",
+      "artifact_profile": "registry",
+      "capability_overrides": {
+        "enforcement": {"lane_id": "adr-census-epoch-control-plane"},
+        "verification": {"command": "buck2 test //ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot-gate"},
+        "validation": {"validator": "specs/adr-census-epoch-control-plane.schema.json plus scm-facts census epoch parser"},
+        "autogen": {"generator": "not-applicable; controller input is source-authored"},
+        "selfheal": {"healer": "not-applicable; immutable epoch replacement requires reviewed successor authority"},
+        "provenance": {"current_author": "codex", "current_reviewed_by": "pending code-review", "last_modified_at": "2026-07-24T00:00:00Z"}
+      }
+    },
+    {
       "artifact_id": "history-only-retirement-control-plane-schema",
       "artifact_path": "/specs/history-only-retirement-control-plane.schema.json",
       "artifact_format": "json",
