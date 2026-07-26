@@ -1659,6 +1659,50 @@ fn finish_with_cleanup<T>(
     }
 }
 
+/// Build (but do not run) the pre-provision command.
+///
+/// Split out so the load-bearing details — that this runs `rustup toolchain
+/// install` with the *worktree* as cwd, which is the only reason rustup resolves
+/// the historical pin rather than the outer checkout's — are assertable without
+/// spawning rustup.
+fn historical_p2_toolchain_command(historical_root: &Path) -> Command {
+    let mut command = Command::new("rustup");
+    command
+        .arg("toolchain")
+        .arg("install")
+        .current_dir(historical_root);
+    remove_outer_buck_process_state(&mut command);
+    command
+}
+
+/// How much of a captured stderr log is carried into an error message.
+///
+/// The READ is bounded; the file itself is not. Diagnosis should not transcribe a
+/// whole toolchain-install log into a gate failure, but neither should it cap what
+/// the child may write and risk truncating the very line that explains the fault.
+const CAPTURED_STDERR_TAIL_BYTES: usize = 4096;
+
+/// Render the tail of a captured-stderr log as an error suffix.
+///
+/// Deliberately infallible: this runs while reporting a failure, and a diagnostic
+/// that can itself fail would mask the fault it exists to explain. Slicing is safe
+/// on any byte boundary — the buffer is `Vec<u8>`, not `str`, `saturating_sub`
+/// bounds the start, and `from_utf8_lossy` substitutes U+FFFD for a split
+/// codepoint.
+fn captured_stderr_suffix(log_path: &Path) -> String {
+    std::fs::read(log_path)
+        .ok()
+        .map(|bytes| {
+            let start = bytes.len().saturating_sub(CAPTURED_STDERR_TAIL_BYTES);
+            String::from_utf8_lossy(&bytes[start..]).trim().to_owned()
+        })
+        .filter(|text| !text.is_empty())
+        .map_or_else(
+            || "; rustup stderr was empty".to_owned(),
+            |text| format!("; rustup stderr (last {CAPTURED_STDERR_TAIL_BYTES} bytes): {text}"),
+        )
+}
+
 /// Install the toolchain the historical worktree pins, serially, before Buck2 runs.
 ///
 /// The historical commit carries its own `rust-toolchain.toml`, which is NOT the
@@ -1676,28 +1720,14 @@ fn finish_with_cleanup<T>(
 /// the toolchain is present. This is the same serialization the CI workflow already
 /// performs for the current pin — done here so it holds for every caller, including
 /// local runs, rather than only where a workflow remembered to add a step.
-/// Build (but do not run) the pre-provision command.
 ///
-/// Split out so the load-bearing details — that this runs `rustup toolchain
-/// install` with the *worktree* as cwd, which is the only reason rustup resolves
-/// the historical pin rather than the outer checkout's — are assertable without
-/// spawning rustup.
-fn historical_p2_toolchain_command(historical_root: &Path) -> Command {
-    let mut command = Command::new("rustup");
-    command
-        .arg("toolchain")
-        .arg("install")
-        .current_dir(historical_root);
-    remove_outer_buck_process_state(&mut command);
-    command
-}
-
-/// Tail of a child's captured stderr carried into an error message.
+/// # Storage
 ///
-/// Bounded because the point is diagnosis, not transcription: an unbounded read
-/// would put a full toolchain-install log into a gate failure.
-const CAPTURED_STDERR_TAIL_BYTES: usize = 4096;
-
+/// This is the one caller that opts into a stderr sink, so it is the one place
+/// where supervising a child allocates parent-owned storage. The invariant pinned
+/// by `status_only_sustained_output_uses_no_parent_owned_storage` still holds for
+/// [`command_status_with_timeout`], which allocates nothing; the sink here is the
+/// caller's file, written inside the temp worktree and unlinked before returning.
 fn preprovision_historical_p2_toolchain(historical_root: &Path) -> Result<(), String> {
     const LABEL: &str = "exact historical P2 toolchain pre-provision";
     let command = historical_p2_toolchain_command(historical_root);
@@ -1711,30 +1741,32 @@ fn preprovision_historical_p2_toolchain(historical_root: &Path) -> Result<(), St
     let log_path = historical_root.join("p2-toolchain-preprovision.stderr.log");
     let log = std::fs::File::create(&log_path)
         .map_err(|error| format!("{LABEL}: create stderr log {}: {error}", log_path.display()))?;
-    let status = command_status_with_timeout_stderr(
+    let outcome = command_status_with_timeout_stderr(
         command,
         P2_HISTORICAL_TOOLCHAIN_TIMEOUT,
         LABEL,
         Stdio::from(log),
-    )?;
-    if status.success() {
-        let _ = std::fs::remove_file(&log_path);
-        return Ok(());
-    }
+    );
 
-    let detail = std::fs::read(&log_path)
-        .ok()
-        .map(|bytes| {
-            let start = bytes.len().saturating_sub(CAPTURED_STDERR_TAIL_BYTES);
-            String::from_utf8_lossy(&bytes[start..]).trim().to_owned()
-        })
-        .filter(|text| !text.is_empty())
-        .map_or_else(
-            || "; rustup stderr was empty".to_owned(),
-            |text| format!("; rustup stderr (last {CAPTURED_STDERR_TAIL_BYTES} bytes): {text}"),
-        );
-    let _ = std::fs::remove_file(&log_path);
-    Err(format!("{LABEL} failed with status {status}{detail}"))
+    // Read the capture BEFORE cleanup and REGARDLESS of outcome. Returning early
+    // on the supervision error would strand the message on exactly the paths that
+    // need it most — a 10-minute timeout is the case where "what was rustup
+    // doing?" is the whole question.
+    let suffix = captured_stderr_suffix(&log_path);
+    let cleanup = std::fs::remove_file(&log_path);
+
+    match outcome {
+        Err(error) => Err(format!("{error}{suffix}")),
+        // Only the success path propagates a cleanup failure. A leftover untracked
+        // file at the worktree root would otherwise persist into a Buck2 build
+        // whose output bytes are checked against a hardcoded sha256 — low
+        // probability, high consequence, so it is not swallowed.
+        Ok(status) if status.success() => cleanup
+            .map_err(|error| format!("{LABEL}: remove stderr log {}: {error}", log_path.display())),
+        // On a genuine failure the cleanup result is dropped on purpose: it must
+        // not mask the fault being reported.
+        Ok(status) => Err(format!("{LABEL} failed with status {status}{suffix}")),
+    }
 }
 
 fn run_historical_p2_materializer(historical_root: &Path, output: &Path) -> Result<(), String> {
@@ -5435,6 +5467,14 @@ mod tests {
         // installed rather than the outer checkout's. If this regresses, the
         // symptom is the opaque exit-3 gate failure this routine exists to stop.
         assert_eq!(command.get_current_dir(), Some(worktree));
+
+        // NOT asserted here: that outer Buck2 process state is stripped. The
+        // sibling test can pin that because it constructs its own Command and
+        // sets the keys first; `remove_outer_buck_process_state` only strips keys
+        // already present in the ambient env or explicitly set, so asserting it
+        // through this constructor is vacuous unless the test mutates process
+        // env — which is flaky under a parallel runner. A vacuous assertion reads
+        // as coverage without being coverage, so it is omitted deliberately.
     }
 
     #[test]
