@@ -71,7 +71,13 @@ fn issuer_metadata_includes_required_oidc_fields() {
     assert!(meta.userinfo_endpoint.is_some());
     assert!(
         meta.response_types_supported.contains(&"code".to_owned()),
-        "code flow must be supported"
+        "authorization-code response type is reserved for future provider metadata"
+    );
+    assert!(
+        !meta
+            .response_types_supported
+            .contains(&"id_token".to_owned()),
+        "implicit flow must not be declared"
     );
     assert!(
         meta.scopes_supported.contains(&"openid".to_owned()),
@@ -657,7 +663,8 @@ fn verification_key_retired_reject() {
 #[test]
 fn verification_key_not_yet_active_reject() {
     // NotYetActive keys are hard-rejected.
-    let keys = vec![SigningKey::provision("k-pre", Algorithm::Rs256, rsa_components()).expect("ok")];
+    let keys =
+        vec![SigningKey::provision("k-pre", Algorithm::Rs256, rsa_components()).expect("ok")];
     let grace = VerificationGrace::new(VERIFICATION_GRACE_SECONDS).expect("ok");
     assert!(select_verification_key(&keys, "k-pre", 2_000, grace).is_none());
 }
