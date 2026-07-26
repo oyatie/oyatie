@@ -1,7 +1,7 @@
 rust_library(
-    name = "oya-bus-boundary-kernel",
+    name = "messaging-stream-boundary-kernel",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
-    crate = "oya_bus_boundary_kernel",
+    crate = "messaging_stream_boundary_kernel",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
@@ -10,9 +10,9 @@ rust_library(
 )
 
 rust_test(
-    name = "oya-bus-boundary-kernel-unittest",
+    name = "messaging-stream-boundary-kernel-unittest",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
-    crate = "oya_bus_boundary_kernel",
+    crate = "messaging_stream_boundary_kernel",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
