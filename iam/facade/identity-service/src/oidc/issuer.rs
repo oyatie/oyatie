@@ -1,10 +1,9 @@
 //! OIDC issuer delivery surface over `oya-identity-oidc-issuer-kernel`.
 //!
-//! RFC 8414 discovery (`/.well-known/openid-configuration`) + RFC 7517 JWKS
-//! publication (`/oauth/v2/keys`, the kernel's canonical `jwks_uri` path) + an
-//! RFC 9068 access-token mint use-case. The kernel owns every policy decision
-//! (claim validation, TTL ceilings, key lifecycle, JWKS filtering); this
-//! module only serializes and signs.
+//! RFC 7517 JWKS publication (`/oauth/v2/keys`, the kernel's canonical
+//! `jwks_uri` path) + an RFC 9068 access-token mint use-case. The kernel owns
+//! every policy decision (claim validation, TTL ceilings, key lifecycle, JWKS
+//! filtering); this module only serializes and signs.
 //!
 //! ## Signing custody (G02 attach point)
 //! [`Es256FileSigner`] implements the kernel's [`JwsSigner`] PORT over a
@@ -20,20 +19,15 @@ use aws_lc_rs::signature::{ECDSA_P256_SHA256_FIXED_SIGNING, EcdsaKeyPair, KeyPai
 use axum::Json;
 use axum::Router;
 use axum::extract::State;
-use axum::http::StatusCode;
-use axum::response::{IntoResponse, Response};
 use axum::routing::get;
 use base64::Engine as _;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 
 use iam_identity_oidc_issuer_kernel::{
     AccessTokenClaims, AccessTokenSpec, Algorithm, Audience, IssuerError, IssuerUrl, JwsSigner,
-    Signature, SigningKey, Subject, build_access_token_claims, build_issuer_metadata, build_jwks,
-    current_signing_key,
+    Signature, SigningKey, Subject, build_access_token_claims, build_jwks, current_signing_key,
 };
 
-/// `GET` — RFC 8414 / OIDC discovery document.
-pub const DISCOVERY_ROUTE: &str = "/.well-known/openid-configuration";
 /// `GET` — published JWKS (the kernel's canonical `jwks_uri` path).
 pub const JWKS_ROUTE: &str = "/oauth/v2/keys";
 /// `GET` — legacy JWKS alias retained during client migration.
@@ -234,37 +228,6 @@ fn access_token_claims_json(claims: &AccessTokenClaims) -> serde_json::Value {
 /// Shared handle for the issuer routes.
 pub type SharedIssuerState = Arc<IssuerState>;
 
-/// Serve the discovery document. Only endpoints this delivery surface
-/// actually mounts are advertised: the kernel metadata also carries
-/// `authorization_endpoint`/`token_endpoint`/`userinfo_endpoint`, but no such
-/// routes exist here (plane-3 workload identity publishes keys; it hosts no
-/// human authorization code flow), and advertising endpoints that 404 is
-/// worse than omitting them — RFC 8414 §2 scopes metadata claims to
-/// supported capabilities. Known tension: OIDC Discovery 1.0 (the
-/// `/.well-known/openid-configuration` path this router serves) marks
-/// `authorization_endpoint` REQUIRED for a full OP, so a strict OIDC RP
-/// validator would reject this document — acceptable here because no RP
-/// consumes this surface as an OP (it is a JWKS-publication endpoint), and
-/// the endgame is either the RFC 8414 `oauth-authorization-server` suffix or
-/// mounting a real authorization surface, never re-advertising 404s.
-async fn discovery_handler(State(state): State<SharedIssuerState>) -> Response {
-    let algorithms: Vec<Algorithm> = state.keys.iter().map(SigningKey::algorithm).collect();
-    match build_issuer_metadata(state.issuer_url.clone(), &algorithms) {
-        Ok(metadata) => Json(serde_json::json!({
-            "issuer": metadata.issuer.as_str(),
-            "jwks_uri": metadata.jwks_uri,
-            "response_types_supported": metadata.response_types_supported,
-            "subject_types_supported": metadata.subject_types_supported,
-            "id_token_signing_alg_values_supported": metadata.id_token_signing_alg_values_supported,
-            "scopes_supported": metadata.scopes_supported,
-            "acr_values_supported": metadata.acr_values_supported,
-            "grant_types_supported": metadata.grant_types_supported,
-        }))
-        .into_response(),
-        Err(_) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
-    }
-}
-
 async fn jwks_handler(State(state): State<SharedIssuerState>) -> Json<serde_json::Value> {
     let jwks = build_jwks(&state.keys);
     let keys: Vec<serde_json::Value> = jwks
@@ -288,10 +251,9 @@ async fn jwks_handler(State(state): State<SharedIssuerState>) -> Json<serde_json
     Json(serde_json::json!({ "keys": keys }))
 }
 
-/// Build the issuer router (discovery + JWKS publication).
+/// Build the issuer router (JWKS publication).
 pub fn build_issuer_router(state: SharedIssuerState) -> Router {
     Router::new()
-        .route(DISCOVERY_ROUTE, get(discovery_handler))
         .route(JWKS_ROUTE, get(jwks_handler))
         .route(LEGACY_JWKS_ROUTE, get(jwks_handler))
         .with_state(state)
@@ -302,6 +264,7 @@ mod tests {
     use super::*;
 
     use aws_lc_rs::signature::{ECDSA_P256_SHA256_FIXED, UnparsedPublicKey};
+    use axum::http::StatusCode;
 
     const ISSUER: &str = "https://idp.oyatie.com";
     const KID: &str = "oya-identity-k1";
@@ -432,7 +395,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn discovery_and_jwks_routes_publish_kernel_shapes() {
+    async fn discovery_is_unmounted_while_jwks_remains_available() {
         use tower::ServiceExt as _;
 
         let signer = test_signer();
@@ -442,37 +405,13 @@ mod tests {
         let response = router
             .clone()
             .oneshot(
-                axum::http::Request::get(DISCOVERY_ROUTE)
+                axum::http::Request::get("/.well-known/openid-configuration")
                     .body(axum::body::Body::empty())
                     .expect("request"),
             )
             .await
             .expect("discovery responds");
-        assert_eq!(response.status(), StatusCode::OK);
-        let body = axum::body::to_bytes(response.into_body(), 1 << 20)
-            .await
-            .expect("body");
-        let document: serde_json::Value = serde_json::from_slice(&body).expect("json");
-        assert_eq!(document["issuer"], ISSUER);
-        assert_eq!(document["jwks_uri"], format!("{ISSUER}/oauth/v2/keys"));
-        assert!(
-            document["id_token_signing_alg_values_supported"]
-                .as_array()
-                .expect("algs")
-                .contains(&serde_json::json!("ES256"))
-        );
-        // Endpoints this surface does not mount must NOT be advertised
-        // (they would 404; RFC 8414 §2 capability claims).
-        for absent in [
-            "authorization_endpoint",
-            "token_endpoint",
-            "userinfo_endpoint",
-        ] {
-            assert!(
-                document.get(absent).is_none(),
-                "discovery doc must not advertise unmounted endpoint {absent}"
-            );
-        }
+        assert_eq!(response.status(), StatusCode::NOT_FOUND);
 
         let response = router
             .oneshot(

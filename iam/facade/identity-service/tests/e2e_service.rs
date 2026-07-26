@@ -255,7 +255,7 @@ async fn rest_validate_authorize_and_fail_closed_contract() {
 }
 
 #[tokio::test(flavor = "multi_thread")]
-async fn issuer_discovery_and_jwks_serve_on_the_live_socket() {
+async fn issuer_discovery_is_unmounted_while_jwks_serves_on_the_live_socket() {
     let fixture = SigningFixture::generate();
     let handle = boot(&fixture).await;
     let base = format!("http://{}", handle.rest_addr);
@@ -266,10 +266,7 @@ async fn issuer_discovery_and_jwks_serve_on_the_live_socket() {
         .send()
         .await
         .expect("discovery responds");
-    assert_eq!(response.status().as_u16(), 200);
-    let document: serde_json::Value = response.json().await.expect("discovery json");
-    assert_eq!(document["issuer"], ISSUER);
-    assert_eq!(document["jwks_uri"], format!("{ISSUER}/oauth/v2/keys"));
+    assert_eq!(response.status().as_u16(), 404);
 
     let response = client
         .get(format!("{base}/oauth/v2/keys"))
@@ -292,7 +289,7 @@ async fn issuer_discovery_and_jwks_serve_on_the_live_socket() {
     assert_eq!(
         legacy_response.status().as_u16(),
         200,
-        "legacy JWKS alias stays mounted while discovery advertises the canonical OpenAPI path"
+        "legacy JWKS alias remains mounted for migration compatibility"
     );
 
     handle.shutdown().await;
