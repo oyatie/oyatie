@@ -921,6 +921,62 @@ mod tests {
         );
     }
 
+    #[test]
+    fn rejects_the_body_defect_shapes_observed_on_real_prs() {
+        // Regression pins for the four body defects actually observed across ten PRs (~a dozen
+        // wasted FULL-tier runs). Each is reachable only through the constants and matchers
+        // above, so pinning the REAL shapes — not synthetic mutations — is what makes the
+        // `--check` author workflow trustworthy enough to run instead of CI.
+        let singular_adr_field = merge_ready_body().replace("- ADRs cited:", "- ADR cited:");
+        assert_eq!(
+            validate_pr_traceability(&document(&singular_adr_field), merge_policy()),
+            Err(PrTraceabilityError::MissingTraceabilityField {
+                field: "ADRs cited",
+            })
+        );
+
+        // Body composed through a shell that never interpreted `\n`, so `## Evidence` is real
+        // text sitting on the tail of another line and never starts one.
+        let escaped_newlines =
+            merge_ready_body().replace("\n\n## Evidence\n", "\\n\\n## Evidence\\n");
+        assert_eq!(
+            validate_pr_traceability(&document(&escaped_newlines), merge_policy()),
+            Err(PrTraceabilityError::MissingSection {
+                section: "Evidence",
+            })
+        );
+
+        let summary_prose_without_bullet = merge_ready_body().replace(
+            "- Implemented the thing.",
+            "Implemented the thing, because the old path double-counted refunds.",
+        );
+        assert_eq!(
+            validate_pr_traceability(&document(&summary_prose_without_bullet), merge_policy()),
+            Err(PrTraceabilityError::MissingSummaryBullet)
+        );
+
+        // Decorated verdict: `verdict_value_is_approval` needs the normalized value to be
+        // EXACTLY `approve`/`approved`, and the trailing severity tally is part of the value.
+        let decorated_verdict = merge_ready_body().replace(
+            "verdict: APPROVE\n",
+            "- Verdict: **APPROVED** — 0 CRITICAL, 0 HIGH\n",
+        );
+        assert_eq!(
+            validate_pr_traceability(&document(&decorated_verdict), merge_policy()),
+            Err(PrTraceabilityError::MissingCodeReviewApproval)
+        );
+
+        // Control: the undefected base body is admissible, so every fixture above fails for its
+        // own defect rather than for a broken fixture base.
+        assert_eq!(
+            validate_pr_traceability(&document(merge_ready_body()), merge_policy()),
+            Ok(PrTraceabilityReport {
+                required_sections_checked: 5,
+                code_review_present: true,
+            })
+        );
+    }
+
     fn valid_body() -> &'static str {
         "## Issue\nCloses #123\n\n## Summary\n- Implemented the thing.\n\n## Verification\n- pass: oya dev check\n\n## Traceability\n- Catalog records touched: oya-intelligence-capability-kernel\n- Cross-axis contracts touched: none\n- ADRs cited: ADR-0001\n\n## Evidence\n- Audit-chain emission: EVT-1\n- Foundation-bypass referenced (if any): none\n- Per-pack regulator-watch impact (if any): none\n"
     }
