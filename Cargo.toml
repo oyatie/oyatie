@@ -815,6 +815,12 @@ hyper-rustls = { version = "0.27", default-features = false, features = ["http1"
 # Axum HTTP framework (ADR-0090 sanctioned-with-justification; isolated to app/adapter layers).
 # Used by ci-webhook-gateway and similar microservices that expose HTTP surfaces.
 axum = { version = "0.8", default-features = false, features = ["http1", "json", "tokio"] }
+# Leptos SSR executor initialization; native streaming renders can run before the server-function
+# handler that otherwise initializes this transitively.
+any_spawner = "=0.3.0"
+# Canonical native Axum integration for the Leptos application shell. Keep this a direct
+# workspace dependency so reindeer materializes the public Buck2 alias consumed by the host.
+leptos_axum = "=0.8.9"
 # reqwest HTTP client — workspace pin so all crates share one resolved version.
 # Used by ci-controller-github-adapter (status poster), ci-tide-github-adapter
 # (GitHub status/merge API), and gateway adapters. Destination is hyper-direct per line 1094.

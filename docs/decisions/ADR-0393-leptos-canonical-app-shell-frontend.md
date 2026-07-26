@@ -148,7 +148,22 @@ manifests:
 - ADR-0394 — bespoke-Rust IDP central hub (the portal this shell fronts).
 - ADR-0090 — hyper canonical HTTP backbone (+ 2026-05-29 hyper/axum split).
 - ADR-0509 — hyperscaler service decomposition (flat single-crate-per-service layout for the portal-shell crates).
-- `crates/oya-application-shell-frontend-prototype/` — the Leptos 0.8.19 prototype promoted to production shell.
+- `crates/oya-application-shell-frontend-prototype/` — the Leptos 0.8.19 prototype promoted to production shell. The ADR-0562 capability-first reorg relocated it to `oya/application/crates/oya-application-shell-frontend/` (the sanctioned pre-move home for the `product-developer-application-shell` composition member); the paths below are that crate's current live artifacts.
+
+### Implementation artifacts of the promoted shell
+
+The native Axum/Tokio SSR host that replaced the crate's hand-rolled TCP listener and HTTP
+parser, its bounded live-server regression suite, and the crate's ownership marker:
+
+- `oya/application/crates/oya-application-shell-frontend/src/server.rs` — the Axum route graph and
+  streaming-SSR host. It mounts explicit non-mutating reads only: no `/api/{*fn_name}`
+  server-function route is registered, because the workspace declares zero `#[server]` functions
+  and a wildcard POST over an empty registry is an unauthenticated control plane.
+- `oya/application/crates/oya-application-shell-frontend/tests/live_server.rs` — the bounded
+  live-TCP regression suite over that host, including the assertion that
+  `POST /api/not-a-server-function` returns 404.
+- `oya/application/crates/oya-application-shell-frontend/OWNERS` — the crate's ownership marker
+  (ADR-0555 born-accounting).
 - `microservices/app-shell-frontend/` + `MIGRATION-PLAN.md` — the SolidJS app retired by this ADR.
 - `specs/http-stack-policy.json` — axum sanctioned-with-justification policy the SSR host obeys.
 - `.omc/idp-central-hub-campaign.json` — the IDP campaign design that surfaced this drift.

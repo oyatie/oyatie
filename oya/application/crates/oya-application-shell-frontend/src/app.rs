@@ -263,6 +263,20 @@ pub fn shell_landmark_label() -> &'static str {
     "Oyatie Operations · Cloud/Tenant Control Center"
 }
 
+/// Reads UI state while retaining client-side dependency tracking.
+///
+/// Native SSR renders a single immutable response, so it must not register reactive dependencies
+/// outside a browser reactive context. Hydrated browser builds retain ordinary tracked reads.
+#[cfg(not(target_arch = "wasm32"))]
+fn render_signal<T: Clone + Send + Sync + 'static>(signal: ReadSignal<T>) -> T {
+    signal.get_untracked()
+}
+
+#[cfg(target_arch = "wasm32")]
+fn render_signal<T: Clone + Send + Sync + 'static>(signal: ReadSignal<T>) -> T {
+    signal.get()
+}
+
 #[component]
 pub fn App() -> impl IntoView {
     view! {
@@ -279,7 +293,9 @@ pub fn App() -> impl IntoView {
                 aria-describedby="console-notice"
             >
                 <HeroPanel />
-                <DashboardIsland />
+                <div id=crate::DASHBOARD_MOUNT_HOST_ID>
+                    <DashboardIsland />
+                </div>
             </main>
             <UtilityPanels />
             <SidePeek />
@@ -765,10 +781,10 @@ pub fn DashboardIsland() -> impl IntoView {
 
     view! {
         <div
-            class=move || if loading.get() { "dashboard-island loading" } else { "dashboard-island" }
+            class=move || if render_signal(loading) { "dashboard-island loading" } else { "dashboard-island" }
             data-island="render-envelope-dashboard"
             aria-live="polite"
-            aria-busy=move || loading.get()
+            aria-busy=move || render_signal(loading)
         >
             <section class="context-switcher island-frame" aria-labelledby="context-title">
                 <div>
@@ -780,8 +796,8 @@ pub fn DashboardIsland() -> impl IntoView {
                     {OperatorContext::ALL.into_iter().map(|context| view! {
                         <button
                             type="button"
-                            class=move || if active_context.get() == context { "context-card selected" } else { "context-card" }
-                            aria-pressed=move || active_context.get() == context
+                            class=move || if render_signal(active_context) == context { "context-card selected" } else { "context-card" }
+                            aria-pressed=move || render_signal(active_context) == context
                             on:click=move |_| {
                                 set_active_context.set(context);
                                 request_render_envelope(
@@ -807,14 +823,14 @@ pub fn DashboardIsland() -> impl IntoView {
                 </div>
             </section>
 
-            {move || error.get().map(|message| view! {
+            {move || render_signal(error).map(|message| view! {
                 <p class="fetch-error" role="alert">{message}</p>
             })}
 
-            {move || match envelope.get() {
+            {move || match render_signal(envelope) {
                 Some(envelope) => dashboard_view(
                     envelope,
-                    selected_node_id.get(),
+                    render_signal(selected_node_id),
                     set_selected_node_id,
                     active_surface,
                     set_active_surface,
@@ -1227,7 +1243,8 @@ fn dashboard_view(
     local_drafts: ReadSignal<Vec<LocalDraft>>,
     set_local_drafts: WriteSignal<Vec<LocalDraft>>,
 ) -> impl IntoView {
-    let display_nodes = workflow_display_nodes(&envelope.workflow.nodes, draft_node_count.get());
+    let display_nodes =
+        workflow_display_nodes(&envelope.workflow.nodes, render_signal(draft_node_count));
     let selected_node = selected_workflow_node(&display_nodes, &selected_node_id)
         .cloned()
         .or_else(|| display_nodes.first().cloned());
@@ -1360,7 +1377,7 @@ fn surface_command_bar(
                 <a
                     href=surface.href()
                     class=move || {
-                        if active_surface.get() == surface {
+                        if render_signal(active_surface) == surface {
                             "surface-command active"
                         } else {
                             "surface-command"
@@ -5292,8 +5309,8 @@ fn communication_hub(
                     <button
                         type="button"
                         role="tab"
-                        aria-selected=move || active_surface.get() == surface
-                        class=move || if active_surface.get() == surface { "hub-tab active" } else { "hub-tab" }
+                        aria-selected=move || render_signal(active_surface) == surface
+                        class=move || if render_signal(active_surface) == surface { "hub-tab active" } else { "hub-tab" }
                         on:click=move |_| {
                             set_active_surface.set(surface);
                             set_selected_hub_index.set(0);
@@ -5331,7 +5348,7 @@ fn communication_hub(
                 }>"Community note"</button>
             </div>
 
-            {move || comms_product_board(active_surface.get())}
+            {move || comms_product_board(render_signal(active_surface))}
 
             <section class="comms-substrate-strip" aria-label="Oyatie Cloud tenant-workload proof">
                 <div>
@@ -5340,7 +5357,7 @@ fn communication_hub(
                     <span data-comms-substrate-status="true">
                         {move || format!(
                             "{} route pinned to FD-001 workload · cell-us-east-2 · local visual proof",
-                            active_surface.get().label()
+                            render_signal(active_surface).label()
                         )}
                     </span>
                 </div>
@@ -5395,10 +5412,10 @@ fn communication_hub(
                         let items = hub_items(
                             &list_messages,
                             &list_communities,
-                            &local_drafts.get(),
-                            active_surface.get(),
+                            &render_signal(local_drafts),
+                            render_signal(active_surface),
                         );
-                        let active_index = selected_hub_index.get();
+                        let active_index = render_signal(selected_hub_index);
                         items.into_iter().enumerate().map(|(index, item)| {
                             let kind = hub_item_kind(&item, index);
                             let chip_class = hub_item_chip_class(kind);
@@ -5433,12 +5450,12 @@ fn communication_hub(
                         let items = hub_items(
                             &detail_messages,
                             &detail_communities,
-                            &local_drafts.get(),
-                            active_surface.get(),
+                            &render_signal(local_drafts),
+                            render_signal(active_surface),
                         );
-                        match selected_hub_item(&items, selected_hub_index.get()) {
+                        match selected_hub_item(&items, render_signal(selected_hub_index)) {
                             Some(item) => {
-                                let kind = hub_item_kind(&item, selected_hub_index.get());
+                                let kind = hub_item_kind(&item, render_signal(selected_hub_index));
                                 let chip_class = hub_item_chip_class(kind);
                                 let surface_label = item.surface.label();
                                 view! {
@@ -5476,7 +5493,7 @@ fn communication_hub(
                         <textarea
                             id="hub-composer-input"
                             rows="3"
-                            prop:value=move || draft_body.get()
+                            prop:value=move || render_signal(draft_body)
                             placeholder="Type here; Queue draft keeps it local to this browser island."
                             on:input=move |event| set_draft_body.set(event_target_value(&event))
                         ></textarea>
@@ -5484,13 +5501,13 @@ fn communication_hub(
                             <button
                                 type="button"
                                 on:click=move |_| {
-                                    let body = draft_body.get().trim().to_string();
+                                    let body = render_signal(draft_body).trim().to_string();
                                     if body.is_empty() {
                                         return;
                                     }
-                                    let mut drafts = local_drafts.get();
+                                    let mut drafts = render_signal(local_drafts);
                                     drafts.insert(0, LocalDraft {
-                                        surface: active_surface.get(),
+                                        surface: render_signal(active_surface),
                                         title: "Local draft queued".to_string(),
                                         body,
                                     });
@@ -6198,7 +6215,7 @@ fn workflow_studio_panel(
                 </div>
                 <div class="workflow-run-chip" aria-label="Run state preview">
                     <span></span>
-                    {move || match workflow_tool.get() {
+                    {move || match render_signal(workflow_tool) {
                         WorkflowTool::Select => "draft · select mode",
                         WorkflowTool::Connect => "draft · connect mode",
                         WorkflowTool::Simulate => "simulation preview",
@@ -6209,7 +6226,7 @@ fn workflow_studio_panel(
                     <button type="button" on:click=move |_| set_workflow_tool.set(WorkflowTool::Select)>"Clear run"</button>
                     <button type="button" on:click=move |_| set_workflow_tool.set(WorkflowTool::Select)>"Validate"</button>
                     <button class="primary-action" type="button" on:click=move |_| set_workflow_tool.set(WorkflowTool::Simulate)>"Run"</button>
-                    <button type="button" on:click=move |_| set_draft_node_count.set(draft_node_count.get() + 1)>"Add block"</button>
+                    <button type="button" on:click=move |_| set_draft_node_count.set(render_signal(draft_node_count) + 1)>"Add block"</button>
                     <button class="dark-action" type="button">"Publish"</button>
                 </div>
             </div>
@@ -6221,8 +6238,8 @@ fn workflow_studio_panel(
                 {WorkflowTool::ALL.into_iter().map(|tool| view! {
                     <button
                         type="button"
-                        class=move || if workflow_tool.get() == tool { "active" } else { "" }
-                        aria-pressed=move || workflow_tool.get() == tool
+                        class=move || if render_signal(workflow_tool) == tool { "active" } else { "" }
+                        aria-pressed=move || render_signal(workflow_tool) == tool
                         on:click=move |_| set_workflow_tool.set(tool)
                     >
                         {tool.label()}
@@ -6256,7 +6273,7 @@ fn workflow_studio_panel(
                         <button
                             type="button"
                             data-palette-item="primitive"
-                            on:click=move |_| set_draft_node_count.set(draft_node_count.get() + 1)
+                            on:click=move |_| set_draft_node_count.set(render_signal(draft_node_count) + 1)
                         >
                             <span>{label}</span><small>{detail}</small><kbd>{key}</kbd>
                         </button>
@@ -6273,7 +6290,7 @@ fn workflow_studio_panel(
                         <button
                             type="button"
                             data-palette-item="action"
-                            on:click=move |_| set_draft_node_count.set(draft_node_count.get() + 1)
+                            on:click=move |_| set_draft_node_count.set(render_signal(draft_node_count) + 1)
                         >
                             <span>{label}</span><small>{detail}</small><kbd>{key}</kbd>
                         </button>
@@ -6289,7 +6306,7 @@ fn workflow_studio_panel(
                         <button
                             type="button"
                             data-palette-item="logic"
-                            on:click=move |_| set_draft_node_count.set(draft_node_count.get() + 1)
+                            on:click=move |_| set_draft_node_count.set(render_signal(draft_node_count) + 1)
                         >
                             <span>{label}</span><small>{detail}</small><kbd>{key}</kbd>
                         </button>
@@ -6311,7 +6328,7 @@ fn workflow_studio_panel(
                             ("Q", "QuickBooks"),
                             ("N", "Notion"),
                         ].into_iter().map(|(mark, label)| view! {
-                            <button type="button" data-palette-item="connector" on:click=move |_| set_draft_node_count.set(draft_node_count.get() + 1)>
+                            <button type="button" data-palette-item="connector" on:click=move |_| set_draft_node_count.set(render_signal(draft_node_count) + 1)>
                                 <strong>{mark}</strong><span>{label}</span>
                             </button>
                         }).collect_view()}
@@ -6351,9 +6368,9 @@ fn workflow_studio_panel(
 
             <div class="workflow-statusbar" aria-label="Workflow editor status">
                 <span>{move || format!("Nodes: {}", nodes.len())}</span>
-                <span>{move || format!("Local blocks: {}", draft_node_count.get())}</span>
+                <span>{move || format!("Local blocks: {}", render_signal(draft_node_count))}</span>
                 <span>"Messenger/Mail/Community outputs are drafts"</span>
-                <span>{move || match workflow_tool.get() {
+                <span>{move || match render_signal(workflow_tool) {
                     WorkflowTool::Select => "Ready · staged",
                     WorkflowTool::Connect => "Click nodes to visualize links",
                     WorkflowTool::Simulate => "Previewing run path only",
@@ -6488,7 +6505,7 @@ fn workflow_canvas(
                 <span class="island-label">"interactive island"</span>
             </div>
             <div
-                class=move || match workflow_tool.get() {
+                class=move || match render_signal(workflow_tool) {
                     WorkflowTool::Select => "workflow-board selectable",
                     WorkflowTool::Connect => "workflow-board connectable",
                     WorkflowTool::Simulate => "workflow-board simulating",
@@ -6524,7 +6541,7 @@ fn workflow_canvas(
                     view! {
                         <button
                             type="button"
-                            class=move || match workflow_tool.get() {
+                            class=move || match render_signal(workflow_tool) {
                                 WorkflowTool::Select => if index == 0 { "workflow-card active selectable" } else { "workflow-card selectable" },
                                 WorkflowTool::Connect => "workflow-card connectable",
                                 WorkflowTool::Simulate => "workflow-card simulating",
