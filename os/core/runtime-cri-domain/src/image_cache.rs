@@ -5465,7 +5465,6 @@ mod tests {
     use std::{
         env, fs,
         path::{Path, PathBuf},
-        process::Command,
         time::{Duration, SystemTime, UNIX_EPOCH},
     };
     use os_block_domain::{
@@ -5593,26 +5592,15 @@ machine:
 
     #[cfg(unix)]
     fn registryd_test_set_file_times(path: &Path, accessed: SystemTime, modified: SystemTime) {
-        let accessed = accessed
-            .duration_since(UNIX_EPOCH)
-            .expect("test access time after epoch")
-            .as_secs()
-            .to_string();
-        let modified = modified
-            .duration_since(UNIX_EPOCH)
-            .expect("test modified time after epoch")
-            .as_secs()
-            .to_string();
-        let status = Command::new("python3")
-            .arg("-c")
-            .arg("import os,sys; os.utime(sys.argv[1], (int(sys.argv[2]), int(sys.argv[3])))")
-            .arg(path)
-            .arg(accessed)
-            .arg(modified)
-            .status()
-            .expect("set file times with python3");
-
-        assert!(status.success());
+        let times = fs::FileTimes::new()
+            .set_accessed(accessed)
+            .set_modified(modified);
+        fs::File::options()
+            .write(true)
+            .open(path)
+            .expect("open fixture to set times")
+            .set_times(times)
+            .expect("set file times");
     }
 
     #[test]

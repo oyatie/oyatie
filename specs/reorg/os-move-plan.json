@@ -1,5 +1,5 @@
 {
-  "_comment": "",
+  "_comment": "De-brand strangler MOVE-3 (ADR-0562 \u00a710.29): home the rung-1 node operating system from cloud/cloud-os/crates into the os/ META directory (owns_crates: true; NOT a capability, so it carries no capability-registry membership glob \u2014 the closed registry maps it via membership_lint_coverage.meta_directory_absorbs). All 41 crates move as ONE block because the plan schema carries a single `capability` field and only one plan may be active, so a batch cannot span destination roots: batch size is the size of one destination block, not a risk dial. os/ is the only remaining block in the 40-70 window and the only 40+ block with ZERO catalog work in either direction (os/ is not one of the fifteen catalog_liveness.workspace_member_globs roots and none of the 41 crates carries a registry/catalog row). Faces on evidence: 40 -> os/core (node-OS runtime engines; init-app is core not facade because an OS PID-1 is not a sold multi-tenant surface, and proto-api is core not ports because every implementor of its seven public traits lives inside proto-api itself, so there is no cross-crate seam), 1 -> os/harness (integration-test-only, mirroring the landed kernel/harness/asterinas-real-boot precedent). De-brand per ADR-0532/0533: oya-cloud-os-<tail> -> os-<tail>.",
   "capability": "os",
   "moves": [
     {

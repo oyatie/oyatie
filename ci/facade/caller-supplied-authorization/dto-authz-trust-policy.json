@@ -19,6 +19,7 @@
     "libs",
     "network",
     "observability",
+    "os",
     "oya",
     "secrets",
     "storage",

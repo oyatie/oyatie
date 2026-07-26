@@ -252,6 +252,7 @@
       ],
       "roots": [
         "cloud",
+        "os",
         "infra",
         "tools"
       ]
@@ -285,6 +286,7 @@
       ],
       "roots": [
         "cloud/cloud-ci",
+        "os",
         "libs",
         "tools"
       ]
@@ -305,7 +307,8 @@
       "infra",
       ".codex",
       ".github/workflows",
-      "cloud"
+      "cloud",
+      "os"
     ],
     "workflow_forbidden_uses": {
       "_comment": "Forbid third-party / marketplace Buck2 setup actions. The allowed bridge is repo-owned infra/ci/install-buck2.sh, which downloads the official facebook/buck2 release asset and verifies the pinned SHA-256 before execution.",
