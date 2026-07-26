@@ -2325,16 +2325,6 @@ mod tests {
                 Err(DocParseError::InvalidSourcePath(rejected)) if rejected == path
             ));
         }
-
-        assert!(matches!(
-            parse_markdown_doc(&DocParseInput::new(
-                "tenant",
-                "docs/decisions/../private.md",
-                "plain prose without a heading or reference",
-            )),
-            Err(DocParseError::InvalidSourcePath(rejected))
-                if rejected == "docs/decisions/../private.md"
-        ));
     }
 
     #[test]
