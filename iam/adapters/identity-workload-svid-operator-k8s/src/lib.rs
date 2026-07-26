@@ -11,7 +11,7 @@
 //! ## Clean-arch boundary
 //!
 //! - issuance is the existing `WorkloadIdentityIssuer` / `TrustdSvidIssuer` port
-//!   over `oya-cloud-os-trustd-domain` — NOT reimplemented here;
+//!   over `os-trustd-domain` — NOT reimplemented here;
 //! - the reconcile DECISION is the pure kernel (`reconcile`), NOT here;
 //! - kube-rs + k8s-openapi are the ADR-0510 transient boundary, isolated to this
 //!   crate (the owned cloud-k8s port is the cutover destination).
@@ -49,12 +49,12 @@ use iam_identity_workload_svid_operator_kernel::{
     reconcile, Action, Clock, DesiredState, ObservedState, ObservedSvidSecret,
 };
 
-use oya_cloud_os_trustd_domain::ca::CertificateAuthority;
-use oya_cloud_os_trustd_domain::der;
-use oya_cloud_os_trustd_domain::service::SecurityService;
-use oya_cloud_os_trustd_domain::signer::EcdsaP256Signer;
-use oya_cloud_os_trustd_domain::x509::KeyPair;
-use oya_cloud_os_trustd_domain::JoinToken;
+use os_trustd_domain::ca::CertificateAuthority;
+use os_trustd_domain::der;
+use os_trustd_domain::service::SecurityService;
+use os_trustd_domain::signer::EcdsaP256Signer;
+use os_trustd_domain::x509::KeyPair;
+use os_trustd_domain::JoinToken;
 
 /// ADR-0510 boundary marker constant: the owned destination is cloud-k8s.
 pub const ADR_0510_TRANSIENT_KUBE_ADAPTER: &str =
@@ -215,13 +215,13 @@ impl TrustdEcdsaIssuanceBackend {
             subject_signer.private_key_der(),
             subject_signer.public_key_spki_der(),
         );
-        let csr = oya_cloud_os_trustd_domain::ca::CertificateSigningRequest::for_workload(
+        let csr = os_trustd_domain::ca::CertificateSigningRequest::for_workload(
             workload_name,
             spiffe_uri,
             &requester_key,
             ttl_secs,
         );
-        let cert_request = oya_cloud_os_trustd_domain::service::CertificateRequest {
+        let cert_request = os_trustd_domain::service::CertificateRequest {
             join_token: self.join_token.clone(),
             csr,
         };

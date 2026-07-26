@@ -82,6 +82,11 @@
       "face": "facade",
       "subfold": "facade/",
       "charter": "The multi-tenant surface we SELL (product face); depends on core/ ONLY through ports."
+    },
+    {
+      "face": "harness",
+      "subfold": "harness/",
+      "charter": "Integration-test-only crates carrying no production code. Admitted ONLY for the META directories whose runtime engines have no sold surface (kernel/, os/); landed precedent kernel/harness/asterinas-real-boot (ADR-0611) and os/harness/difftest-app (ADR-0562 §10.29). NOT a capability face: a capability keeps its tests beside the crate they exercise. Recorded here because the registry is closed and had been describing the tree inaccurately since ADR-0611 landed the first harness leaf."
     }
   ],
   "capabilities": [
@@ -525,7 +530,8 @@
         "_comment": "cloud-os node OS (Talos-class), rung 1.",
         "meta_dir": "os/",
         "current_dirs": [
-          "cloud/cloud-os"
+          "cloud/cloud-os",
+          "os"
         ]
       }
     ],

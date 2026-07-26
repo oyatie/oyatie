@@ -1543,7 +1543,7 @@ fn load_mapping(repo_root: &Path) -> Result<Mapping, RegisterError> {
 /// (→ `meta:kernel/`/`meta:os/`), and the `*`-suffix `absorbs_current_crate_globs` membership — so
 /// `capability_already_mapped(dir) == (homes_for(dir).len() >= 1)`. Sharing the gate's logic is the
 /// drift fix: the orchestrator never emits a spurious `CapabilityMapping` edit for a crate the gate
-/// considers mapped (under `oya/<app product>`, `cloud/cloud-kernel`, `cloud/cloud-os`, or a glob),
+/// considers mapped (under `oya/<app product>`, `cloud/cloud-kernel`, `os`, or a glob),
 /// which would otherwise DOUBLE-MAP it and turn the membership gate RED.
 fn capability_already_mapped(repo_root: &Path, crate_dir: &str) -> Result<bool, RegisterError> {
     let mapping = load_mapping(repo_root)?;

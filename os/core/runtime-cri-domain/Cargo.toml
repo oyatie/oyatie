@@ -1,0 +1,22 @@
+[package]
+name = "os-runtime-cri-domain"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "Model of Talos container runtime integration: containerd client, CRI plugin, image pull/unpack, OCI spec, and the system-services container runner used by machined."
+
+[lib]
+name = "os_runtime_cri_domain"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+os-block-domain = { path = "../block-domain" }
+os-cosi-domain = { path = "../cosi-domain" }
+os-kernel = { path = "../kernel" }
+os-machine-config-domain = { path = "../machine-config-domain" }
+
+[lints]
+workspace = true

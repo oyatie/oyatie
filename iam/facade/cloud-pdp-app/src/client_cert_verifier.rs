@@ -40,8 +40,8 @@ use rustls::{DigitallySignedStruct, DistinguishedName, Error, SignatureScheme};
 
 use iam_identity_workload_svid_kernel::SvidVerifier;
 use iam_identity_workload_svid_trustd::TrustdSvidVerifier;
-use oya_cloud_os_trustd_domain::TrustBundle;
-use oya_cloud_os_trustd_domain::signer::SigningBackend;
+use os_trustd_domain::TrustBundle;
+use os_trustd_domain::signer::SigningBackend;
 
 /// A rustls client-certificate verifier over a trustd [`TrustBundle`].
 ///

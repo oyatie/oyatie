@@ -32,8 +32,8 @@ use tonic::transport::Server;
 use tonic::transport::server::TcpIncoming;
 use tonic::{Request, Response, Status};
 
-use oya_cloud_os_trustd_domain::TrustBundle;
-use oya_cloud_os_trustd_domain::signer::EcdsaP256Signer;
+use os_trustd_domain::TrustBundle;
+use os_trustd_domain::signer::EcdsaP256Signer;
 use oya_shared_pdp_kernel::{EntityRecord, EntitySlice, PdpError};
 use oya_shared_platform_contracts_kernel::pdp::{
     AuthorizationRequest, AuthorizationResponse, Decision, EntityRef, PolicyVersion,
