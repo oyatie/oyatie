@@ -379,6 +379,18 @@ fn retirement_event_transport_delegates_provider_tuple_to_rust_materializer_with
         );
     }
 
+    let census_gate = named_workflow_step(&workflow_doc, "gate", "buck2 test ${{ matrix.crate }}");
+    let census_gate_run = census_gate
+        .get("run")
+        .and_then(YamlValue::as_str)
+        .expect("scm-facts census receipt gate must be a Rust-owned run step");
+    assert!(
+        census_gate_run.contains(
+            "buck2 run //ci/facade/scm-facts-snapshot:adr-census-epoch-receipt-gate-bin -- --repo-root . --github-event"
+        ),
+        "the live scm-facts census receipt gate must retain provider-event identity"
+    );
+
     for line in workflow.lines().filter(|line| {
         (line.contains("oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .")
             && !line.contains("--help")
