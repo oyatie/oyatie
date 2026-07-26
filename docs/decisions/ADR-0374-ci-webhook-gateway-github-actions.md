@@ -18,7 +18,7 @@ affected_surfaces:
   specs: []
 deliverables:
   - id: ADR-0374-D1
-    description: "GitHub webhook receiver as a flat single-concern Rust microservice (ci-webhook-gateway) with src/ root, blessed deps only (Tokio/Axum/Tower/Hyper/serde/tracing + RustCrypto hmac/sha2/subtle), exposing POST /webhook/github + GET /healthz."
+    description: "GitHub webhook receiver as a flat single-concern Rust microservice (ci-webhook-gateway) with src/ root, blessed deps only (Tokio/Axum/Tower/Hyper/serde/tracing + RustCrypto sha2, with RFC 2104 HMAC and constant-time compare implemented in-module), exposing POST /webhook/github + GET /healthz."
     exit_criteria: "cargo build + cargo fmt --check + cargo clippy --all-targets -D warnings + cargo test are green for the crate; the service tree satisfies the design/spec maturity surfaces (proto3 deferred as N/A)."
     verified_by: "oya gate validate design-spec-maturity-claims"
   - id: ADR-0374-D2
@@ -85,7 +85,7 @@ Build a **flat single-concern Rust microservice**, `ci-webhook-gateway`
    Tower/Hyper — blessed runtime deps).
 2. **Verify** the `X-Hub-Signature-256` (or legacy `X-Gitea-Signature`)
    HMAC-SHA256 on the RAW body, **fail-closed, constant-time** (RustCrypto
-   `hmac`/`sha2`/`subtle`), BEFORE any parse/route/dispatch. The secret is read
+   `sha2`; RFC 2104 HMAC and `ct_eq_bytes` constant-time compare live in-module), BEFORE any parse/route/dispatch. The secret is read
    only from `OYA_GITHUB_WEBHOOK_SECRET`, injected from
    `sref://openbao/oya/ci/github-webhook-secret` (ADR-0043), and is redacted in
    `Debug`.
