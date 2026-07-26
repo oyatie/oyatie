@@ -270,6 +270,17 @@ async fn issuer_discovery_and_jwks_serve_on_the_live_socket() {
     let document: serde_json::Value = response.json().await.expect("discovery json");
     assert_eq!(document["issuer"], ISSUER);
     assert_eq!(document["jwks_uri"], format!("{ISSUER}/oauth/v2/keys"));
+    let response_types = document["response_types_supported"]
+        .as_array()
+        .expect("response types array");
+    assert!(
+        response_types.contains(&serde_json::json!("code")),
+        "authorization-code response type must remain declared"
+    );
+    assert!(
+        !response_types.contains(&serde_json::json!("id_token")),
+        "implicit flow must not be advertised"
+    );
 
     let response = client
         .get(format!("{base}/oauth/v2/keys"))
