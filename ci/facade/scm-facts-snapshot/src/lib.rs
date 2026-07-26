@@ -62,6 +62,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::ffi::OsStr;
+use std::io::{Read, Seek, SeekFrom};
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command, ExitStatus, Stdio};
 use std::time::{Duration, Instant};
@@ -1677,10 +1678,11 @@ fn historical_p2_toolchain_command(historical_root: &Path) -> Command {
 
 /// How much of a captured stderr log is carried into an error message.
 ///
-/// The READ is bounded; the file itself is not. Diagnosis should not transcribe a
-/// whole toolchain-install log into a gate failure, but neither should it cap what
-/// the child may write and risk truncating the very line that explains the fault.
-const CAPTURED_STDERR_TAIL_BYTES: usize = 4096;
+/// The child may write an unbounded log; only this much of its tail is ever read
+/// or reported. Diagnosis should not transcribe a whole toolchain-install log into
+/// a gate failure, nor cap what the child may write and risk losing the line that
+/// explains the fault.
+const CAPTURED_STDERR_TAIL_BYTES: u64 = 4096;
 
 /// Render the tail of a captured-stderr log as an error suffix.
 ///
@@ -1690,17 +1692,34 @@ const CAPTURED_STDERR_TAIL_BYTES: usize = 4096;
 /// bounds the start, and `from_utf8_lossy` substitutes U+FFFD for a split
 /// codepoint.
 fn captured_stderr_suffix(log_path: &Path) -> String {
-    std::fs::read(log_path)
-        .ok()
-        .map(|bytes| {
-            let start = bytes.len().saturating_sub(CAPTURED_STDERR_TAIL_BYTES);
-            String::from_utf8_lossy(&bytes[start..]).trim().to_owned()
-        })
-        .filter(|text| !text.is_empty())
-        .map_or_else(
-            || "; rustup stderr was empty".to_owned(),
-            |text| format!("; rustup stderr (last {CAPTURED_STDERR_TAIL_BYTES} bytes): {text}"),
-        )
+    const UNAVAILABLE: &str = "; no rustup stderr captured";
+
+    let Ok(mut file) = std::fs::File::open(log_path) else {
+        return UNAVAILABLE.to_owned();
+    };
+    let Ok(len) = file.metadata().map(|metadata| metadata.len()) else {
+        return UNAVAILABLE.to_owned();
+    };
+    let tail = len.min(CAPTURED_STDERR_TAIL_BYTES);
+    if tail == 0 {
+        return UNAVAILABLE.to_owned();
+    }
+    // Seek rather than read-then-slice: reading the whole file to keep 4 KiB of it
+    // would make the bound a property of the message instead of the read, and would
+    // allocate the entire log on the success path, where nothing is reported at all.
+    // `tail <= len` so the negative offset can never precede the start of the file.
+    if file.seek(SeekFrom::End(-(tail as i64))).is_err() {
+        return UNAVAILABLE.to_owned();
+    }
+    let mut buffer = Vec::with_capacity(tail as usize);
+    if file.take(tail).read_to_end(&mut buffer).is_err() {
+        return UNAVAILABLE.to_owned();
+    }
+    let text = String::from_utf8_lossy(&buffer).trim().to_owned();
+    if text.is_empty() {
+        return UNAVAILABLE.to_owned();
+    }
+    format!("; rustup stderr (last {CAPTURED_STDERR_TAIL_BYTES} bytes): {text}")
 }
 
 /// Install the toolchain the historical worktree pins, serially, before Buck2 runs.
@@ -5447,6 +5466,43 @@ mod tests {
             .expect_err("merge transition must fail")
             .contains("must not be a merge commit")
         );
+    }
+
+    #[test]
+    fn captured_stderr_suffix_reads_only_the_bounded_tail() {
+        let root = std::env::temp_dir().join(format!(
+            "oya-stderr-tail-{}-{}",
+            std::process::id(),
+            unix_timestamp_nanos().expect("timestamp")
+        ));
+        std::fs::create_dir_all(&root).expect("create fixture root");
+        let log = root.join("captured.log");
+
+        // Missing file, and a zero-byte file, must both read as "nothing captured"
+        // rather than claiming rustup produced empty output.
+        assert_eq!(captured_stderr_suffix(&log), "; no rustup stderr captured");
+        std::fs::write(&log, b"").expect("write empty log");
+        assert_eq!(captured_stderr_suffix(&log), "; no rustup stderr captured");
+
+        // Shorter than the bound: the whole content comes back.
+        std::fs::write(&log, b"boom").expect("write short log");
+        assert!(captured_stderr_suffix(&log).ends_with(": boom"));
+
+        // Longer than the bound: only the tail is read, and it is the END of the
+        // file — the part naming the failure — not the beginning.
+        let bound = CAPTURED_STDERR_TAIL_BYTES as usize;
+        let mut long = "a".repeat(bound * 3);
+        long.push_str("TAIL-MARKER");
+        std::fs::write(&log, long.as_bytes()).expect("write long log");
+        let suffix = captured_stderr_suffix(&log);
+        assert!(suffix.ends_with("TAIL-MARKER"), "tail must be preserved");
+        assert!(
+            suffix.len() < bound + 128,
+            "suffix must stay bounded, got {} bytes",
+            suffix.len()
+        );
+
+        std::fs::remove_dir_all(&root).expect("remove fixture root");
     }
 
     #[test]
