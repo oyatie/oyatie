@@ -33,7 +33,34 @@
 # (verified against facebook/buck2 upstream source: app/buck2_common/src/init.rs
 # for daemon_idle_timeout_s, app/buck2_execute_impl/.../clean_stale.rs for
 # clean_stale_enabled, docs/users/advanced/restarter.md for restarter).
+#
+# The real multiplier is finer than "one per worktree": agent lanes pass a fresh
+# --isolation-dir per verification step, and each isolation dir owns a daemon. A
+# 2026-07-26 host census found 59 live daemons holding 22.8 GB with ZERO active
+# builds — 13 of them from a single worktree (build/test/materialize/rebase/
+# accounting/firewall steps). At 4h that ABANDONED tail outlives the lane that
+# created it by most of a working day. 2h halves the tail while staying clear of
+# the CI floor established below.
+#
+# SCOPE — this shortens the abandoned tail ONLY; it does not reduce peak load.
+# A lane mints its 13 isolation dirs within a single verification sweep, far
+# inside any timeout in this range, so peak RSS and peak descriptor count are
+# UNCHANGED. GH #1377's FD exhaustion is a peak-concurrency failure and is NOT
+# addressed here; its root cause is the isolation-dir-per-step habit in lane
+# tooling, and #1377 owns both.
+#
+# FLOOR — do not drop this below ~1h. buck2 keys a daemon to its PROJECT ROOT,
+# and the idle timer only advances while no command is in flight (a long build
+# holds it off entirely; verified against a 45s build under a 5s timeout). In
+# .github/workflows/oya-ci-required.yml the FULL-tier affected-set lane last
+# uses the main-tree daemon at the derive uquery, then adds a merge-base `git
+# worktree` and runs the whole merge-base build+test inside THAT separate root —
+# its own daemon — before returning to the main tree for the binding build. The
+# workflow measures that interval at ~31 min cold for the build alone, plus a
+# full `buck2 test //...` pass. A sub-hour timeout therefore reaps the main-tree
+# daemon's fully-parsed monorepo graph immediately before the binding head
+# build, forcing re-analysis on the single required context.
 [buck2]
-  daemon_idle_timeout_s = 14400
+  daemon_idle_timeout_s = 7200
   clean_stale_enabled = true
   restarter = true
