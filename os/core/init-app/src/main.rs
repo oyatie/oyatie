@@ -3211,20 +3211,15 @@ mod tests {
     }
 
     fn registryd_test_set_file_time(path: &std::path::Path, when: std::time::SystemTime) {
-        let seconds = when
-            .duration_since(std::time::UNIX_EPOCH)
-            .expect("test file time after epoch")
-            .as_secs()
-            .to_string();
-        let status = std::process::Command::new("python3")
-            .arg("-c")
-            .arg("import os,sys; os.utime(sys.argv[1], (int(sys.argv[2]), int(sys.argv[2])))")
-            .arg(path)
-            .arg(&seconds)
-            .status()
-            .expect("set registryd test file times with python3");
-
-        assert!(status.success());
+        let times = std::fs::FileTimes::new()
+            .set_accessed(when)
+            .set_modified(when);
+        std::fs::File::options()
+            .write(true)
+            .open(path)
+            .expect("open registryd fixture to set times")
+            .set_times(times)
+            .expect("set registryd test file times");
     }
 
     fn registryd_loopback_roundtrip(address: SocketAddr, request: &str) -> Vec<u8> {
