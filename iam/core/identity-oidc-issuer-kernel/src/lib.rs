@@ -800,7 +800,7 @@ pub fn build_issuer_metadata(
         authorization_endpoint: format!("{base}/oauth/authorize"),
         token_endpoint: format!("{base}/oauth/v2/token"),
         userinfo_endpoint: Some(format!("{base}/oauth/v2/userinfo")),
-        response_types_supported: vec!["code".to_owned(), "id_token".to_owned()],
+        response_types_supported: vec!["code".to_owned()],
         subject_types_supported: vec!["public".to_owned()],
         id_token_signing_alg_values_supported: signing_algs
             .iter()
