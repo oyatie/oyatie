@@ -47,10 +47,10 @@ use x509_parser::certificate::X509Certificate;
 use x509_parser::pem::Pem;
 use x509_parser::prelude::FromDer;
 
-use oya_cloud_os_trustd_domain::TrustBundle;
-use oya_cloud_os_trustd_domain::certificate::{CertUsage, Certificate};
-use oya_cloud_os_trustd_domain::signer::EcdsaP256Signer;
-use oya_cloud_os_trustd_domain::x509::{DistinguishedName, SubjectAltNames, Validity};
+use os_trustd_domain::TrustBundle;
+use os_trustd_domain::certificate::{CertUsage, Certificate};
+use os_trustd_domain::signer::EcdsaP256Signer;
+use os_trustd_domain::x509::{DistinguishedName, SubjectAltNames, Validity};
 
 use iam_identity_workload_svid_kernel::SpiffeId;
 use iam_identity_workload_svid_trustd::leaf_der;

@@ -18,7 +18,7 @@ oya-shared-ulid-id-kernel = { path = "../../../libs/oya-shared-ulid-id-kernel" }
 iam-identity-workload-domain = { path = "../../core/identity-workload-domain" }
 iam-identity-workload-svid-kernel = { path = "../../core/identity-workload-svid-kernel" }
 iam-identity-workload-svid-trustd = { path = "../../adapters/identity-workload-svid-trustd" }
-oya-cloud-os-trustd-domain = { path = "../../../cloud/cloud-os/crates/oya-cloud-os-trustd-domain" }
+os-trustd-domain = { path = "../../../os/core/trustd-domain" }
 oya-http-runtime-hyper-adapter = { path = "../../../libs/oya-http-runtime-hyper-adapter" }
 x509-parser = { workspace = true }
 aws-lc-rs = "1.17.0"

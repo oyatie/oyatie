@@ -1,0 +1,20 @@
+[package]
+name = "os-config-v1alpha1-domain"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "v1alpha1 machine configuration schema and validation for the operating-system Talos port."
+
+[lib]
+name = "os_config_v1alpha1_domain"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+os-kernel = { path = "../kernel" }
+os-machine-config-domain = { path = "../machine-config-domain" }
+
+[lints]
+workspace = true

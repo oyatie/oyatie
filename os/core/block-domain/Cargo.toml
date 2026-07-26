@@ -1,0 +1,21 @@
+[package]
+name = "os-block-domain"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "no_std port of the Talos block-device subsystem: disk discovery, GPT partition tables, filesystem probing, volume/mount lifecycle and LUKS encryption."
+
+[lib]
+name = "os_block_domain"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+os-kernel = { path = "../kernel" }
+os-cosi-domain = { path = "../cosi-domain" }
+os-machine-config-domain = { path = "../machine-config-domain" }
+
+[lints]
+workspace = true

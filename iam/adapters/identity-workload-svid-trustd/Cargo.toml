@@ -5,11 +5,11 @@ version.workspace = true
 rust-version.workspace = true
 publish = false
 license = "Apache-2.0"
-description = "Workload X.509-SVID trustd adapter (G002 slice-1; ADR-0561): implements the SVID-kernel issuer/verifier ports over the oya-cloud-os-trustd-domain CA/SecurityService/TrustBundle. Issues SVIDs via SecurityService::handle_certificate with the for_workload URI-SAN CSR shape, and verifies a presented peer leaf over the trust bundle + extracts its single SPIFFE URI SAN. Fail-closed throughout. The transport-level rustls handshake + real-crypto cutover are the deferred slice-1b (ADR-0561)."
+description = "Workload X.509-SVID trustd adapter (G002 slice-1; ADR-0561): implements the SVID-kernel issuer/verifier ports over the os-trustd-domain CA/SecurityService/TrustBundle. Issues SVIDs via SecurityService::handle_certificate with the for_workload URI-SAN CSR shape, and verifies a presented peer leaf over the trust bundle + extracts its single SPIFFE URI SAN. Fail-closed throughout. The transport-level rustls handshake + real-crypto cutover are the deferred slice-1b (ADR-0561)."
 
 [dependencies]
 iam-identity-workload-svid-kernel = { path = "../../core/identity-workload-svid-kernel" }
-oya-cloud-os-trustd-domain = { path = "../../../cloud/cloud-os/crates/oya-cloud-os-trustd-domain" }
+os-trustd-domain = { path = "../../../os/core/trustd-domain" }
 x509-parser = { workspace = true }
 
 [lib]

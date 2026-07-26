@@ -1,0 +1,19 @@
+[package]
+name = "os-upgrade-domain"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "OS upgrade orchestration and rollback for the operating-system Talos port."
+
+[lib]
+name = "os_upgrade_domain"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+os-kernel = { path = "../kernel" }
+
+[lints]
+workspace = true
