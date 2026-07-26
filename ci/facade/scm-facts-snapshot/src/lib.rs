@@ -62,6 +62,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::ffi::OsStr;
+use std::io::{Read, Seek, SeekFrom};
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command, ExitStatus, Stdio};
 use std::time::{Duration, Instant};
@@ -1567,14 +1568,30 @@ fn validate_exact_p2_receipt(bytes: &[u8]) -> Result<(), String> {
 
 #[doc(hidden)]
 pub fn command_status_with_timeout(
+    command: Command,
+    timeout: Duration,
+    label: &str,
+) -> Result<ExitStatus, String> {
+    command_status_with_timeout_stderr(command, timeout, label, Stdio::null())
+}
+
+/// As [`command_status_with_timeout`], but with a caller-chosen stderr sink.
+///
+/// stderr is deliberately a caller-supplied `Stdio` rather than a pipe this
+/// function drains: the poll loop below never reads the child's streams, so a
+/// pipe would deadlock as soon as a chatty child filled the pipe buffer — the
+/// condition `test large-output child` exists to pin. A file sink keeps the
+/// non-draining loop safe while still preserving the output.
+fn command_status_with_timeout_stderr(
     mut command: Command,
     timeout: Duration,
     label: &str,
+    stderr: Stdio,
 ) -> Result<ExitStatus, String> {
     let mut child = command
         .stdin(Stdio::null())
         .stdout(Stdio::null())
-        .stderr(Stdio::null())
+        .stderr(stderr)
         .spawn()
         .map_err(|error| format!("{label}: spawn: {error}"))?;
     drop(command);
@@ -1643,6 +1660,68 @@ fn finish_with_cleanup<T>(
     }
 }
 
+/// Build (but do not run) the pre-provision command.
+///
+/// Split out so the load-bearing details — that this runs `rustup toolchain
+/// install` with the *worktree* as cwd, which is the only reason rustup resolves
+/// the historical pin rather than the outer checkout's — are assertable without
+/// spawning rustup.
+fn historical_p2_toolchain_command(historical_root: &Path) -> Command {
+    let mut command = Command::new("rustup");
+    command
+        .arg("toolchain")
+        .arg("install")
+        .current_dir(historical_root);
+    remove_outer_buck_process_state(&mut command);
+    command
+}
+
+/// How much of a captured stderr log is carried into an error message.
+///
+/// The child may write an unbounded log; only this much of its tail is ever read
+/// or reported. Diagnosis should not transcribe a whole toolchain-install log into
+/// a gate failure, nor cap what the child may write and risk losing the line that
+/// explains the fault.
+const CAPTURED_STDERR_TAIL_BYTES: u64 = 4096;
+
+/// Render the tail of a captured-stderr log as an error suffix.
+///
+/// Deliberately infallible: this runs while reporting a failure, and a diagnostic
+/// that can itself fail would mask the fault it exists to explain. Slicing is safe
+/// on any byte boundary — the buffer is `Vec<u8>`, not `str`, `saturating_sub`
+/// bounds the start, and `from_utf8_lossy` substitutes U+FFFD for a split
+/// codepoint.
+fn captured_stderr_suffix(log_path: &Path) -> String {
+    const UNAVAILABLE: &str = "; no rustup stderr captured";
+
+    let Ok(mut file) = std::fs::File::open(log_path) else {
+        return UNAVAILABLE.to_owned();
+    };
+    let Ok(len) = file.metadata().map(|metadata| metadata.len()) else {
+        return UNAVAILABLE.to_owned();
+    };
+    let tail = len.min(CAPTURED_STDERR_TAIL_BYTES);
+    if tail == 0 {
+        return UNAVAILABLE.to_owned();
+    }
+    // Seek rather than read-then-slice: reading the whole file to keep 4 KiB of it
+    // would make the bound a property of the message instead of the read, and would
+    // allocate the entire log on the success path, where nothing is reported at all.
+    // `tail <= len` so the negative offset can never precede the start of the file.
+    if file.seek(SeekFrom::End(-(tail as i64))).is_err() {
+        return UNAVAILABLE.to_owned();
+    }
+    let mut buffer = Vec::with_capacity(tail as usize);
+    if file.take(tail).read_to_end(&mut buffer).is_err() {
+        return UNAVAILABLE.to_owned();
+    }
+    let text = String::from_utf8_lossy(&buffer).trim().to_owned();
+    if text.is_empty() {
+        return UNAVAILABLE.to_owned();
+    }
+    format!("; rustup stderr (last {CAPTURED_STDERR_TAIL_BYTES} bytes): {text}")
+}
+
 /// Install the toolchain the historical worktree pins, serially, before Buck2 runs.
 ///
 /// The historical commit carries its own `rust-toolchain.toml`, which is NOT the
@@ -1660,24 +1739,52 @@ fn finish_with_cleanup<T>(
 /// the toolchain is present. This is the same serialization the CI workflow already
 /// performs for the current pin — done here so it holds for every caller, including
 /// local runs, rather than only where a workflow remembered to add a step.
+///
+/// # Storage
+///
+/// This is the one caller that opts into a stderr sink, so it is the one place
+/// where supervising a child allocates parent-owned storage. The invariant pinned
+/// by `status_only_sustained_output_uses_no_parent_owned_storage` still holds for
+/// [`command_status_with_timeout`], which allocates nothing; the sink here is the
+/// caller's file, written inside the temp worktree and unlinked before returning.
 fn preprovision_historical_p2_toolchain(historical_root: &Path) -> Result<(), String> {
-    let mut command = Command::new("rustup");
-    command
-        .arg("toolchain")
-        .arg("install")
-        .current_dir(historical_root);
-    remove_outer_buck_process_state(&mut command);
-    let status = command_status_with_timeout(
+    const LABEL: &str = "exact historical P2 toolchain pre-provision";
+    let command = historical_p2_toolchain_command(historical_root);
+
+    // Capture stderr rather than discarding it. The failure this routine exists
+    // to prevent reached its gate as a bare `exit status: 3` with rustup's actual
+    // message thrown away; emitting that same opacity from the fix for it would
+    // be a poor trade. `historical_root` is the worktree we just created, so it
+    // is known-writable and a create failure here is a genuine error, not a
+    // condition to route around.
+    let log_path = historical_root.join("p2-toolchain-preprovision.stderr.log");
+    let log = std::fs::File::create(&log_path)
+        .map_err(|error| format!("{LABEL}: create stderr log {}: {error}", log_path.display()))?;
+    let outcome = command_status_with_timeout_stderr(
         command,
         P2_HISTORICAL_TOOLCHAIN_TIMEOUT,
-        "exact historical P2 toolchain pre-provision",
-    )?;
-    if status.success() {
-        Ok(())
-    } else {
-        Err(format!(
-            "exact historical P2 toolchain pre-provision failed with status {status}"
-        ))
+        LABEL,
+        Stdio::from(log),
+    );
+
+    // Read the capture BEFORE cleanup and REGARDLESS of outcome. Returning early
+    // on the supervision error would strand the message on exactly the paths that
+    // need it most — a 10-minute timeout is the case where "what was rustup
+    // doing?" is the whole question.
+    let suffix = captured_stderr_suffix(&log_path);
+    let cleanup = std::fs::remove_file(&log_path);
+
+    match outcome {
+        Err(error) => Err(format!("{error}{suffix}")),
+        // Only the success path propagates a cleanup failure. A leftover untracked
+        // file at the worktree root would otherwise persist into a Buck2 build
+        // whose output bytes are checked against a hardcoded sha256 — low
+        // probability, high consequence, so it is not swallowed.
+        Ok(status) if status.success() => cleanup
+            .map_err(|error| format!("{LABEL}: remove stderr log {}: {error}", log_path.display())),
+        // On a genuine failure the cleanup result is dropped on purpose: it must
+        // not mask the fault being reported.
+        Ok(status) => Err(format!("{LABEL} failed with status {status}{suffix}")),
     }
 }
 
@@ -5359,6 +5466,71 @@ mod tests {
             .expect_err("merge transition must fail")
             .contains("must not be a merge commit")
         );
+    }
+
+    #[test]
+    fn captured_stderr_suffix_reads_only_the_bounded_tail() {
+        let root = std::env::temp_dir().join(format!(
+            "oya-stderr-tail-{}-{}",
+            std::process::id(),
+            unix_timestamp_nanos().expect("timestamp")
+        ));
+        std::fs::create_dir_all(&root).expect("create fixture root");
+        let log = root.join("captured.log");
+
+        // Missing file, and a zero-byte file, must both read as "nothing captured"
+        // rather than claiming rustup produced empty output.
+        assert_eq!(captured_stderr_suffix(&log), "; no rustup stderr captured");
+        std::fs::write(&log, b"").expect("write empty log");
+        assert_eq!(captured_stderr_suffix(&log), "; no rustup stderr captured");
+
+        // Shorter than the bound: the whole content comes back.
+        std::fs::write(&log, b"boom").expect("write short log");
+        assert!(captured_stderr_suffix(&log).ends_with(": boom"));
+
+        // Longer than the bound: only the tail is read, and it is the END of the
+        // file — the part naming the failure — not the beginning.
+        let bound = CAPTURED_STDERR_TAIL_BYTES as usize;
+        let mut long = "a".repeat(bound * 3);
+        long.push_str("TAIL-MARKER");
+        std::fs::write(&log, long.as_bytes()).expect("write long log");
+        let suffix = captured_stderr_suffix(&log);
+        assert!(suffix.ends_with("TAIL-MARKER"), "tail must be preserved");
+        assert!(
+            suffix.len() < bound + 128,
+            "suffix must stay bounded, got {} bytes",
+            suffix.len()
+        );
+
+        std::fs::remove_dir_all(&root).expect("remove fixture root");
+    }
+
+    #[test]
+    fn historical_p2_toolchain_command_installs_from_the_worktree() {
+        let worktree = Path::new("/tmp/oya-p2-history-fixture");
+        let command = historical_p2_toolchain_command(worktree);
+
+        assert_eq!(command.get_program(), "rustup");
+        let args = command
+            .get_args()
+            .map(|arg| arg.to_string_lossy().into_owned())
+            .collect::<Vec<_>>();
+        assert_eq!(args, vec!["toolchain".to_owned(), "install".to_owned()]);
+
+        // The load-bearing detail. `rustup toolchain install` with no argument
+        // resolves rust-toolchain.toml from the working directory, so the cwd
+        // being the historical worktree is the only reason the historical pin is
+        // installed rather than the outer checkout's. If this regresses, the
+        // symptom is the opaque exit-3 gate failure this routine exists to stop.
+        assert_eq!(command.get_current_dir(), Some(worktree));
+
+        // NOT asserted here: that outer Buck2 process state is stripped. The
+        // sibling test can pin that because it constructs its own Command and
+        // sets the keys first; `remove_outer_buck_process_state` only strips keys
+        // already present in the ambient env or explicitly set, so asserting it
+        // through this constructor is vacuous unless the test mutates process
+        // env — which is flaky under a parallel runner. A vacuous assertion reads
+        // as coverage without being coverage, so it is omitted deliberately.
     }
 
     #[test]
