@@ -72,27 +72,46 @@ License posture note: FSL-1.1-Apache-2.0 sits in ADR-0013's requires-review tier
 an Apache-2.0 dependency.
 
 Storage: fast tier = bounded node-local filesystem LRU on `emptyDir` (cache-of-cache, safe
-to lose); slow tier = **SeaweedFS S3** at the staged `oya-storage` substrate
-(`infra/seaweedfs/`), dedicated `nativelink-cas` bucket, CAS reads/writes wrapped in a
+to lose); slow tier = **filesystem on a ReadWriteOnce PersistentVolume** (`local-path`, the
+standing `infra/seaweedfs` / `infra/registry` pattern), CAS reads/writes wrapped in a
 `verify` store (`verify_hash: true` — a blob that does not match its own digest is refused).
-The endpoint override + credentials ride the standard AWS SDK env chain
-(`AWS_ENDPOINT_URL`, key pair via ExternalSecret→OpenBao); **validating that chain against
-SeaweedFS end-to-end is a named bring-up check**, with filesystem-on-PV as the documented
-fallback if the SDK chain disappoints.
+The originally intended slow tier was **SeaweedFS S3** at the staged `oya-storage` substrate
+(`infra/seaweedfs/`), dedicated `nativelink-cas` bucket, reached through the standard AWS
+SDK env chain (`AWS_ENDPOINT_URL`, key pair via ExternalSecret→OpenBao); **validating that
+chain against SeaweedFS end-to-end was the named bring-up check**, with filesystem-on-PV as
+the documented fallback if the SDK chain disappointed. It disappointed (evidence below), so
+the manifest ships the fallback active and the SeaweedFS tier is queued behind a projected
+CA bundle. The fallback's cost, stated: the slow tier is pod-local durable state rather than
+a shared object store, so the deployment is pinned at one replica until the SeaweedFS
+revisit restores horizontal scale-out.
 
-**Bring-up evidence recorded at the v1.6.2 bump (partial — the check is not yet closed).**
-Running the pinned image against this exact `cas.json` on aarch64, with **no `AWS_*` env
-set**, the config parses and store construction begins, then the process panics:
-`failure to initialize platform verifier: General("No CA certificates were loaded from the
-system")` (hyper-rustls) — the image carries no system CA bundle. The same config with the
-`experimental_cloud_object_store` slow tier removed reaches `Ready, listening on
-0.0.0.0:50051` cleanly. So the failure is specific to the cloud-object-store tier, not the
-image or the schema. What is **not** established: whether a plaintext `http://`
-`AWS_ENDPOINT_URL` pointed at in-cluster SeaweedFS avoids the platform-verifier
-initialization altogether — the panic occurs during startup store construction, before any
-request is issued, so it may be unconditional. Closing this check therefore needs either a
-projected CA bundle in the pod or a confirmed plaintext-endpoint path; until one is proven,
-**filesystem-on-PV is the indicated slow tier**, not a contingency.
+**Bring-up evidence recorded at the v1.6.2 bump (partial — the named check is not closed;
+what it guarded is decided).** Running the pinned image against the `cas.json` the manifest
+then carried, on aarch64, with **no `AWS_*` env set**, the config parses and store
+construction begins, then the process panics: `failure to initialize platform verifier:
+General("No CA certificates were loaded from the system")` (hyper-rustls) — the image
+carries no system CA bundle. The same config with the `experimental_cloud_object_store`
+slow tier removed reaches `Ready, listening on 0.0.0.0:50051` cleanly. So the failure is
+specific to the cloud-object-store tier, not the image or the schema.
+
+**That run's open sub-question is now answered: a plaintext `http://` endpoint does *not*
+avoid the platform-verifier initialization.** The first run omitted the `AWS_*` environment
+entirely, so it was re-run with exactly the **three** variables the Deployment then set on
+the pod — `AWS_ENDPOINT_URL=http://seaweedfs-bucket-api…:8333`, `AWS_ACCESS_KEY_ID`,
+`AWS_SECRET_ACCESS_KEY`. It panics **identically**. So **within the active
+cloud-object-store configuration the panic is unconditional**: the verifier is constructed
+during startup store construction, before any request is issued, irrespective of endpoint
+scheme or credential presence. Scoped precisely, and no wider — it is a property of that
+slow tier, not of the image, which starts clean without it.
+
+**What is not closed.** The named check was *end-to-end validation of the SDK chain against
+SeaweedFS*, and this evidence cannot close it: the process dies before it dials, so nothing
+about SeaweedFS itself was exercised. What is closed is the branch that check guarded — the
+SDK chain disappointed, so the documented fallback is taken, and the end-to-end validation
+stays queued behind the CA bundle rather than being claimed.
+
+Consequently **filesystem-on-PV is the indicated slow tier**, not a contingency, and the
+SeaweedFS path requires a CA bundle projected into the pod before it can be revisited.
 
 ### D2 — Keyed authn at the service boundary (the founder-decided posture, mapped to what OSS NativeLink actually enforces)
 
@@ -223,12 +242,16 @@ mechanical client-side proof.
 **Negative / cost.** The canary spends a daily full cold build while INACTIVE (deliberate:
 it exercises the from-empty machinery and the cold price is the ADR-0556 D2 anchor's cost);
 two overlays + a license file are new governed surfaces (mitigated: conformance-gated,
-canonical-JSON governed, accounting-registered); the SeaweedFS SDK-env endpoint chain is
-unvalidated until bring-up (named check + documented fallback).
+canonical-JSON governed, accounting-registered); the SeaweedFS SDK-env endpoint chain never
+reached validation — the store panics before it dials — so the documented fallback is what
+ships, and the slow tier is a single-node PersistentVolume rather than the shared bucket
+(horizontal scale-out and cross-node reuse both wait on the CA-bundle revisit).
 
 **Queued (the honest remainder, tracked):** cluster bring-up (Talos/ArgoCD apply, OpenBao
-seeding, bucket + CA provisioning, image digest-pin + aarch64 manifest check, probe-path
-verification) stays on FRIC-1781070457-buck2-no-shared-cache; divergent-key eviction
+seeding, PV provisioning, probe-path verification) stays on
+FRIC-1781070457-buck2-no-shared-cache; the SeaweedFS slow-tier revisit — CA bundle projected
+into the pod, then bucket provisioning and the end-to-end SDK-chain validation that the
+panic pre-empted, then shared-tier scale-out; divergent-key eviction
 reconciler (ADR-0556 D4.3); owned in-cluster runners or a reviewed endpoint exposure before
 any lane can reach the CAS (ADR-0515 D5); per-identity authz beyond the two-CA split.
 
