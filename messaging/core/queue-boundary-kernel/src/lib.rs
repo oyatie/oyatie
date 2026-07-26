@@ -15,10 +15,12 @@
 //!   instead of redelivering forever (SQS redrive policy).
 //!
 //! # Naming justification
-//! `messaging-queue-boundary-kernel` follows BNF v4.1:
-//! `oya-<topic:queue-boundary>-<layer:kernel>`, mirroring
-//! `oya-data-boundary-kernel` (owned substrate surfaces carry the owned
-//! name `oya-queue`, never a vendor name).
+//! `messaging-queue-boundary-kernel` follows the ADR-0532/0533 de-branded
+//! grammar `<capability:messaging>-<topic:queue-boundary>-<layer:kernel>`,
+//! mirroring its sibling `messaging-substrate-kernel`. The `oya-queue.`
+//! topic prefix below is a WIRE identifier, not a crate name: it is
+//! deliberately unchanged by the de-brand, because renaming a topic is a
+//! behavior change and must not ride along inside a relocation.
 //!
 //! ADR-0083 Tier-3: production code carries no unwrap/expect/panic.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
