@@ -7,7 +7,7 @@
 #                -t registry.oyatie.dev/oya-cloud-intelligence:0.1.0 .
 # Or via in-cluster BuildKit Job: see microservices/cloud-intelligence/k8s/
 #
-# Hyperscaler-lens: rust:1.96.0-bookworm (Apache 2/MIT) +
+# Hyperscaler-lens: rust:1.97.1-bookworm (Apache 2/MIT) +
 # gcr.io/distroless/cc-debian12:nonroot (Apache 2). Passes (a)-(d) of the lens.
 #
 # ADR-0039: supply-chain-security (cosign + SBOM + Trivy)
@@ -15,21 +15,21 @@
 # ADR-0181: container-image-promotion-pipeline
 
 # ── Stage 1: planner ──────────────────────────────────────────────────────────
-FROM rust:1.96.0-bookworm AS planner
+FROM rust:1.97.1-bookworm AS planner
 WORKDIR /build
 RUN cargo install cargo-chef --locked
 COPY . .
 RUN cargo chef prepare --recipe-path recipe.json
 
 # ── Stage 2: cacher ───────────────────────────────────────────────────────────
-FROM rust:1.96.0-bookworm AS cacher
+FROM rust:1.97.1-bookworm AS cacher
 WORKDIR /build
 RUN cargo install cargo-chef --locked
 COPY --from=planner /build/recipe.json recipe.json
 RUN cargo chef cook --release --recipe-path recipe.json
 
 # ── Stage 3: builder ──────────────────────────────────────────────────────────
-FROM rust:1.96.0-bookworm AS builder
+FROM rust:1.97.1-bookworm AS builder
 WORKDIR /build
 COPY . .
 COPY --from=cacher /build/target target

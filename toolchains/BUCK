@@ -5,8 +5,8 @@ load("@prelude//toolchains:python.bzl", "system_python_bootstrap_toolchain")
 load("@prelude//toolchains:remote_test_execution.bzl", "remote_test_execution_toolchain")
 load("@prelude//tests:test_toolchain.bzl", "noop_test_toolchain")
 
-# Rust 1.96.0 toolchain — pinned to match rust-toolchain.toml
-# rustc is resolved via rustup shim; PATH must include ~/.rustup/toolchains/1.96.0-aarch64-apple-darwin/bin
+# Rust 1.97.1 toolchain — pinned to match rust-toolchain.toml
+# rustc is resolved via rustup shim; PATH must include ~/.rustup/toolchains/1.97.1-aarch64-apple-darwin/bin
 system_rust_toolchain(
     name = "rust",
     default_edition = "2024",

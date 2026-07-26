@@ -240,7 +240,7 @@
   ],
   "lts_pins": {
     "prometheus": "2.55",
-    "rust": "1.96.0"
+    "rust": "1.97.1"
   },
   "adrs": [
     {

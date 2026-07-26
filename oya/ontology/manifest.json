@@ -216,7 +216,7 @@
     "clickhouse": "24.10",
     "postgres": "16.6",
     "valkey": "8.1",
-    "rust": "1.96.0"
+    "rust": "1.97.1"
   },
   "adrs": [
     {

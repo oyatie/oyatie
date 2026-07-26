@@ -2,7 +2,7 @@
 # context is this directory. Built in-cluster by BuildKit (ADR-0381 D1; Kaniko archived
 # 2024; host docker retired per ADR-0378) and pushed to the in-cluster registry;
 # deployed in namespace oya-ci.
-FROM rust:1.96.0-bookworm AS builder
+FROM rust:1.97.1-bookworm AS builder
 WORKDIR /build
 COPY . .
 RUN cargo build --release --locked --bin oya-ci-webhook-gateway

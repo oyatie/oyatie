@@ -20,7 +20,7 @@ const REQUIRED_PATHS: &[&str] = &[
 ];
 
 const EXPECTED_APP_EDITION: &str = "2024";
-const EXPECTED_APP_RUST_VERSION: &str = "1.96.0";
+const EXPECTED_APP_RUST_VERSION: &str = "1.97.1";
 const APP_PACKAGE_NAME: &str = "oya-application-app";
 const APP_WORKSPACE_MEMBER: &str = "crates/oya-application-app";
 

@@ -220,7 +220,7 @@
     "loki": "3.5.0\"  # Loki LTS line per docs/standards/observability-slo.md",
     "mimir": "3.3.0\"  # Mimir LTS line per docs/standards/observability-slo.md",
     "prometheus": "3.2.0\"  # Prometheus LTS line per docs/standards/observability-slo.md",
-    "rust": "1.96.0",
+    "rust": "1.97.1",
     "tempo": "3.0.0\"  # Tempo LTS line"
   },
   "adrs": [

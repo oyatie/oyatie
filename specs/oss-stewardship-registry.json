@@ -1089,7 +1089,7 @@
       ],
       "first_added_adr": "implicit-language-policy",
       "last_class_change_adr": "ADR-0345",
-      "notes": "Rust toolchain 1.96.0 stable per dependency-policy §1.1. Backend language per feedback_rust_strict_only_no_python_2026_05_20. Rust Foundation-stewarded; CVE feed via RustSec advisory DB."
+      "notes": "Rust toolchain 1.97.1 stable per dependency-policy §1.1. Backend language per feedback_rust_strict_only_no_python_2026_05_20. Rust Foundation-stewarded; CVE feed via RustSec advisory DB."
     },
     {
       "dep_name": "cargo-deny",

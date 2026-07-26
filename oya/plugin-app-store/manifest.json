@@ -282,7 +282,7 @@
     "cosign": "2.x",
     "trivy": "0.50.x",
     "wasmtime": "see ADR-0200",
-    "rust": "1.96.0"
+    "rust": "1.97.1"
   },
   "adrs": [
     {

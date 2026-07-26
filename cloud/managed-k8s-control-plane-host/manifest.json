@@ -98,7 +98,7 @@
     "ksa"
   ],
   "lts_pins": {
-    "rust": "1.96.0",
+    "rust": "1.97.1",
     "kube": "3.1 (pin lands in registry/lts-pins.yaml when kamaji-provider-live-integration wires the live reconcile per ADR-0376)",
     "kamaji": "version-agnostic at ADR-0376; concrete pin deferred to the live-integration follow-on ADR"
   },

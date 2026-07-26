@@ -38,7 +38,7 @@ Per the LTS-lookup agent's findings at `docs/standards/lts-versions-verified.md`
 
 | Dependency | Cutover-required pin | Why |
 |---|---|---|
-| Rust toolchain | `>= 1.85` (workspace `rust-version`); current stable 1.96.0 | cargo-deny 0.19.5+ requires 1.85 MSRV |
+| Rust toolchain | `>= 1.85` (workspace `rust-version`); current stable 1.97.1 | cargo-deny 0.19.5+ requires 1.85 MSRV |
 | `cargo-deny` | `>= 0.19.5` | Done-Definition D11 depends on it |
 | `cargo-nextest` | current stable (verify at scaffold) | per spec §Technical Context |
 | `cargo-audit` | current stable | hyperscaler-bar standard |
