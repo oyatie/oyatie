@@ -838,7 +838,7 @@ tower = { version = "0.5", default-features = false, features = ["util"] }
 # F-QUAL-CONSTTIME already cover hand-rolled constant-time comparison across the
 # repo, and F-SEC-WEBHOOK-HMAC (added with this change) covers the hand-rolled MAC.
 # Removing the declarations does not change the resolved graph: `hmac` remains in
-# Cargo.lock via hkdf and sqlx-core.
+# Cargo.lock via hkdf and sqlx-postgres.
 sha2 = "0.10"
 
 # Real X.509 issuance (rcgen) + parsing (x509-parser) for the workload-identity
