@@ -187,14 +187,51 @@ spec:
               #
               # Two-major bump from v2.4.1 (2024-10-03, ~22 months stale).
               #
-              # SIGNATURE FORMAT IS NOT BACKWARD COMPATIBLE. v3 writes the new
-              # bundle format; a v2 cosign cannot even discover it. Verified
-              # against a local registry with no egress: v2.4.1 and v2.5.0 both
-              # exit 10 "no signatures found" on a v3-signed image, v3.1.2 exits
-              # 0. Anything verifying images signed here MUST be cosign v3+.
-              # `oya/intelligence/iac/helm/eval/baseline-store/values.yaml` still
-              # pins cosign v2.5.0; it was not established to verify these images,
-              # but it cannot verify them if it does.
+              # WHAT A VERIFIER OF THESE SIGNATURES NEEDS — both conditions:
+              #   1. cosign v3+. A v2 client cannot discover a v3 signature at
+              #      all. Verified against a local registry with no egress:
+              #      v2.4.1 and v2.5.0 both exit 10 "no signatures found" on a
+              #      v3-signed image; v3.1.2 exits 0. (v3 writing its new bundle
+              #      format is the likely mechanism, but what was PROVEN is the
+              #      effect: the tag is written and a v2 client cannot read it.)
+              #   2. `--insecure-ignore-tlog`. REQUIRED, not one option among
+              #      several: signing below passes --tlog-upload=false, so no
+              #      Rekor entry is ever written and NO amount of egress can
+              #      produce one. `verify` requires an entry by default
+              #      (--insecure-ignore-tlog defaults to false), so a v3 verifier
+              #      WITHOUT this flag exits 1. Stating only "use v3+" would send
+              #      someone straight into that failure.
+              #
+              # If the verifier ALSO has no egress, test one more thing before
+              # relying on it: cosign 3.0.2 was reported to reach the sigstore
+              # TUF CDN even for --key verification (sigstore/cosign#4550, whose
+              # repro uses this exact sign invocation), which fails closed with
+              # no egress. That issue is CLOSED by PR #4613 and has NOT been
+              # re-verified against the v3.1.2 pinned here — so treat it as a
+              # thing to check, not a known defect. The offline recipe, if it
+              # does bite: --trusted-root <staged trusted_root.json>
+              # --offline=true --new-bundle-format=false (these images are
+              # v3-signed, so that last flag is the one likely to matter).
+              #
+              # Security properties deliberately given up, so this is a decision
+              # and not an accident: no transparency-log entry, so these
+              # signatures cannot be publicly verified, and no signed timestamp,
+              # so a signature cannot be bound to a point in time if this key is
+              # later rotated or compromised. A defensible trade for in-cluster
+              # signing with no egress. Only the tlog is a change from v2: the
+              # v2 invocation passed no --timestamp-server-url (`cosign sign
+              # --key oya-ci/cosign-key`, commit 33134e055) and trusted
+              # timestamping is opt-in, so v2 produced no signed timestamp
+              # either. --use-signing-config=false dropping the TSA path is the
+              # likely mechanism for v3, not a verified one.
+              #
+              # `oya/intelligence/iac/helm/eval/baseline-store/values.yaml` pins
+              # cosign v2.5.0 for a sidecar literally named cosignVerifier, and
+              # configures rekorPublicLog/rekorMirror. It was NOT established to
+              # verify these images; if it ever does, it fails FIRST at (1) —
+              # exit 10, it cannot discover the signature at all — and would
+              # then fail at (2) after a v3 bump, its rekor config having no
+              # entry to find. Tracked F-SEC-COSIGN-VERIFIER-SKEW.
               #
               # v3 defaults to fetching a signing config from the sigstore TUF
               # repo, so `sign` fails closed without egress. The two flags below
