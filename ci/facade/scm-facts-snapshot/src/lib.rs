@@ -1568,11 +1568,21 @@ fn validate_exact_p2_receipt(bytes: &[u8]) -> Result<(), String> {
 
 /// Supervise a child for its exit status alone, discarding both of its streams.
 ///
-/// No production caller here uses this any more — every nested child must be able to
-/// explain its own failure, so they all route through
-/// [`command_status_with_captured_stderr`]. It remains the primitive that variant is built
-/// on, and the one whose zero-storage contract
-/// `status_only_sustained_output_uses_no_parent_owned_storage` pins.
+/// This has ZERO production callers. Every nested child must be able to explain its own
+/// failure, so they all route through [`command_status_with_captured_stderr`] instead.
+///
+/// It is NOT the primitive that variant is built on — both are thin wrappers over the shared
+/// [`command_status_with_timeout_stderr`], differing only in the sink they supply. What this
+/// one still uniquely provides is a null-sink supervision path for tests, so the
+/// zero-parent-storage property is assertable at all:
+/// `status_only_sustained_output_uses_no_parent_owned_storage` pins that a null sink allocates
+/// nothing. Stated plainly, since it is easy to over-read: that test covers THIS wrapper and no
+/// production path. The production path deliberately does take a temporary file, and its own
+/// storage contract — one child's stderr, outside every worktree, unlinked before the call
+/// returns — is documented on [`command_status_with_captured_stderr`] and pinned by
+/// `captured_stderr_suffix_reads_only_the_bounded_tail` plus the two capture-reaches-the-caller
+/// tests. The shared no-deadlock-on-a-chatty-child property is pinned through this wrapper by
+/// `test large-output child`, and holds for the captured variant by construction.
 #[doc(hidden)]
 pub fn command_status_with_timeout(
     command: Command,
@@ -1689,6 +1699,18 @@ fn historical_p2_toolchain_command(historical_root: &Path) -> Command {
 /// or reported. Diagnosis should not transcribe a whole toolchain-install log into
 /// a gate failure, nor cap what the child may write and risk losing the line that
 /// explains the fault.
+///
+/// # Accepted ceiling
+///
+/// This bounds the READ, not the FILE. A child may still write an arbitrarily large sink,
+/// and the largest producer here is by far the nested `buck2 run` Rust build, whose stderr
+/// is every rustc diagnostic of a full compile. The trade is deliberate: the sink lives in
+/// the system temp directory and is unlinked before the call returns, so peak cost is one
+/// child's stderr volume on a filesystem that already has to hold this path's entire
+/// historical worktree and Buck2 output. Bounding the write instead would truncate the
+/// build's own diagnostics, which is precisely the evidence this capture exists to keep.
+/// If the temp filesystem ever becomes the binding constraint, the upgrade is a bounded
+/// ring buffer that keeps the last N bytes as the child writes — not a smaller read.
 const CAPTURED_STDERR_TAIL_BYTES: u64 = 4096;
 
 /// Render the tail of a captured-stderr log as an error suffix.
@@ -1766,7 +1788,14 @@ pub fn command_status_with_captured_stderr(
         std::process::id(),
         unix_timestamp_nanos()?
     ));
-    let log = std::fs::File::create(&log_path)
+    // `create_new` (O_CREAT|O_EXCL) rather than `create` (O_CREAT|O_TRUNC): the path is in a
+    // world-writable directory, so a plain create would happily adopt a file another user
+    // pre-created there — including a symlink pointing at something this process may write.
+    // O_EXCL refuses instead, and the pid+nanos name makes a legitimate collision impossible.
+    let log = std::fs::File::options()
+        .write(true)
+        .create_new(true)
+        .open(&log_path)
         .map_err(|error| format!("{label}: create stderr log {}: {error}", log_path.display()))?;
     let outcome = command_status_with_timeout_stderr(command, timeout, label, Stdio::from(log));
 
@@ -2460,10 +2489,21 @@ fn git_bytes(repo_root: &Path, args: &[&str]) -> Result<Vec<u8>, String> {
         .output()
         .map_err(|error| format!("run fixed census git command: {error}"))?;
     if output.status.success() {
-        Ok(output.stdout)
-    } else {
-        Err(String::from_utf8_lossy(&output.stderr).trim().to_owned())
+        return Ok(output.stdout);
     }
+    // git's stderr IS the diagnosis whenever it wrote one, so it is returned verbatim. But a
+    // git that fails SILENTLY (killed by the OOM reaper, dying on a closed stderr) would
+    // otherwise make this return `Err("")` — an empty error string, which reaches the caller
+    // as a failure with nothing in it at all. Fall back to the status so no failure on this
+    // path can ever be reported as silence.
+    let stderr = String::from_utf8_lossy(&output.stderr).trim().to_owned();
+    if stderr.is_empty() {
+        return Err(format!(
+            "fixed census git command failed with no stderr: {}",
+            output.status
+        ));
+    }
+    Err(stderr)
 }
 
 fn sha256_hex(bytes: &[u8]) -> String {
@@ -3659,7 +3699,11 @@ fn git_commit_timestamps(repo_root: &Path) -> Result<BTreeMap<String, u64>, Stri
         .output()
         .map_err(|e| format!("log timestamps: {e}"))?;
     if !output.status.success() {
-        return Err(format!("log timestamps exit {:?}", output.status.code()));
+        return Err(format!(
+            "log timestamps exit {:?}: {}",
+            output.status.code(),
+            String::from_utf8_lossy(&output.stderr).trim()
+        ));
     }
     let mut map = BTreeMap::new();
     for line in String::from_utf8_lossy(&output.stdout).lines() {
@@ -3681,7 +3725,11 @@ fn git_ls_files(repo_root: &Path) -> Result<Vec<String>, String> {
         .output()
         .map_err(|e| format!("ls-files: {e}"))?;
     if !output.status.success() {
-        return Err(format!("ls-files exit {:?}", output.status.code()));
+        return Err(format!(
+            "ls-files exit {:?}: {}",
+            output.status.code(),
+            String::from_utf8_lossy(&output.stderr).trim()
+        ));
     }
     let mut paths: Vec<String> = String::from_utf8_lossy(&output.stdout)
         .lines()
@@ -3721,7 +3769,11 @@ fn git_last_touch(repo_root: &Path) -> Result<BTreeMap<String, String>, String> 
         .output()
         .map_err(|e| format!("log: {e}"))?;
     if !output.status.success() {
-        return Err(format!("log exit {:?}", output.status.code()));
+        return Err(format!(
+            "log exit {:?}: {}",
+            output.status.code(),
+            String::from_utf8_lossy(&output.stderr).trim()
+        ));
     }
     let mut map: BTreeMap<String, String> = BTreeMap::new();
     let mut current: Option<String> = None;

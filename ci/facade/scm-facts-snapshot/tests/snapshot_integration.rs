@@ -117,13 +117,16 @@ fn status_only_sustained_output_uses_no_parent_owned_storage() {
     };
     maximum_storage = maximum_storage.max(directory_bytes(&root));
     assert!(status.success(), "status-only storage probe must pass");
-    // This invariant is scoped to `command_status_with_timeout`, which supplies
-    // its own null stderr and therefore allocates nothing. Every caller that must
-    // be able to explain a nested failure goes through
-    // `command_status_with_captured_stderr` instead, and deliberately DOES take a
-    // temporary file — one child's stderr volume, outside any worktree, unlinked
-    // before the call returns. This assertion pins the no-sink path only; it is
-    // not a repository-wide prohibition on capturing stderr.
+    // This invariant is scoped to `command_status_with_timeout`, which supplies its own
+    // null stderr and therefore allocates nothing. Stated plainly, because the name reads
+    // broader than the coverage: that wrapper has NO production callers, so this assertion
+    // covers no production path. Every caller that must be able to explain a nested failure
+    // goes through `command_status_with_captured_stderr` instead, which deliberately DOES
+    // take a temporary file — one child's stderr volume, outside any worktree, unlinked
+    // before the call returns. What survives here is narrow and still worth keeping: proof
+    // that the shared supervision loop costs nothing when a caller genuinely wants no sink.
+    // It is not a repository-wide prohibition on capturing stderr, and it is NOT evidence
+    // about the path production actually takes.
     assert_eq!(
         maximum_storage, 0,
         "status-only command supervision must never allocate parent-owned output storage"
@@ -752,6 +755,47 @@ fn emitter_rejects_canonical_generated_facts_path_when_tracked() {
         "unexpected error: {error}"
     );
     std::fs::remove_dir_all(root).expect("remove integration fixture");
+}
+
+/// A git FAULT on the ignore probe must not be reported as a policy violation.
+///
+/// `git check-ignore --quiet` answers 0 = ignored, 1 = NOT ignored, 128 = git itself failed.
+/// The probe used to test `!= Some(0)`, collapsing 1 and 128, so a stale `index.lock` or a
+/// broken repository reached the consuming gate as "must be ignored and untracked" — a wrong
+/// answer ABOUT THE CANDIDATE TREE, manufactured from a fault in the tool asking the question.
+/// This gates `producer-regen`, so that wrong answer reds every job downstream of it.
+///
+/// The fixture is a directory holding a `.git` REGULAR FILE containing garbage: git stops its
+/// upward repository walk at any `.git` entry, so this faults with exit 128 no matter where the
+/// temp directory sits — including inside a real repository's tree, which a "no repository
+/// above here" fixture cannot promise (buck2 may root TMPDIR under `buck-out`, where the
+/// enclosing repo would answer 1 and the test would silently stop testing anything).
+#[cfg(unix)]
+#[test]
+fn ignore_probe_distinguishes_a_git_fault_from_a_policy_violation() {
+    let root = temp_path("ignore-probe-fault");
+    std::fs::create_dir(&root).expect("create ignore-probe fault fixture root");
+    std::fs::write(root.join(".git"), b"not a gitfile").expect("write broken gitfile");
+
+    let error = CanonicalIgnoredGeneratedWriter::open(&root, Path::new(EPOCH_RECEIPT_PATH))
+        .map(|_| ())
+        .expect_err("a faulting ignore probe must fail closed");
+
+    assert!(
+        error.contains("check ignored generated output boundary exited with Some(128)"),
+        "a git fault must be reported as a fault, got: {error}"
+    );
+    assert!(
+        !error.contains("must be ignored and untracked"),
+        "a git fault must NOT be reported as a policy violation, got: {error}"
+    );
+    // Also proves the capture is wired on THIS probe: the fault is only ever explained on
+    // git's stderr, so an error carrying it could not have come from a discarded sink.
+    assert!(
+        error.contains("child stderr"),
+        "the fault must carry git's own explanation, got: {error}"
+    );
+    std::fs::remove_dir_all(root).expect("remove ignore-probe fault fixture root");
 }
 
 #[test]

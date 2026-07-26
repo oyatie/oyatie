@@ -810,11 +810,24 @@ fn canonical_ignored_generated_path<'a>(
         super::P2_HISTORICAL_GIT_TIMEOUT,
         "check ignored generated output boundary",
     )?;
-    if status.code() != Some(0) {
-        return Err(format!(
-            "ignored generated output {} must be ignored and untracked{ignored_suffix}",
-            relative_path.display()
-        ));
+    // Three arms, not two: `check-ignore --quiet` answers 0 = ignored, 1 = NOT ignored, and
+    // 128 = git itself faulted (no repository, a stale `index.lock`, a broken gitfile).
+    // Collapsing 1 and 128 into "not ignored" reports a git fault to the consuming gate as a
+    // POLICY VIOLATION — a wrong answer, not merely a terse one. Same shape as
+    // `canonical_generated_facts_output_path` and `is_ancestor`.
+    match status.code() {
+        Some(0) => {}
+        Some(1) => {
+            return Err(format!(
+                "ignored generated output {} must be ignored and untracked{ignored_suffix}",
+                relative_path.display()
+            ));
+        }
+        code => {
+            return Err(format!(
+                "check ignored generated output boundary exited with {code:?}{ignored_suffix}"
+            ));
+        }
     }
     let mut tracked_command = Command::new("git");
     tracked_command
