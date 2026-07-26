@@ -65,7 +65,7 @@
   },
   "pre_filter_N1": {
     "rule": "forbidden-vocab crates excised under the scoped deny-list; no multispectrum doctrine; external competitor proper nouns follow their scoped policy rows",
-    "source_catalog_count": 903,
+    "source_catalog_count": 902,
     "dropped_by_name": 71,
     "dropped_by_context_foundry": 202,
     "dropped_by_content_jenkins_bridge": 2,
