@@ -553,7 +553,6 @@
           "libs/oya-crate-registrar-app",
           "libs/oya-crate-registrar-kernel",
           "libs/oya-workspace-members-kernel",
-          "libs/oya-gen-microservice-manifests-app",
           "tools/oya-adapter-substitution-test-app",
           "tools/oya-architecture-graph-generator-app",
           "tools/oya-bot-autofix-app",
