@@ -1,0 +1,25 @@
+{
+  "_comment": "De-brand strangler MOVE-2: home the messaging capability's three single-concern boundary surfaces (ADR-0536 D-13 queue/stream/bus trichotomy; ADR-0132 no-grouping) from the libs/ junk-drawer into the messaging capability, completing the trio whose substrate FLOOR landed at messaging/core/substrate-kernel in MOVE-1 (specs/reorg/messaging-substrate-kernel-move-plan.json). Each crate is a leaf: verified ZERO fan-in (no other Cargo.toml or BUCK in the tree names them), so the relocation breaks no referrer and the batch is atomic-per-unit with no dual state. Each depends only on messaging-substrate-kernel, already inside the capability, so the moves shorten the path-dep from ../../messaging/core/substrate-kernel to ../substrate-kernel and add no cross-capability edge. Face = core, on evidence: all three define ZERO pub traits (they are generic surfaces composed OVER the MessagingSubstrate port, not trait definitions), so the ports face does not apply; ADR-0570 permits a cutover-stable kernel-tier surface in core and its litmus -- would this interface change at owned-stack cutover? -- answers no, since these are the owned surfaces the transient broker adapters are written against. This mirrors both landed messaging leaves (messaging/core/substrate-kernel, messaging/core/domain). De-brand per ADR-0532/0533: cargo name = capability + de-branded path tail (oya-bus-boundary-kernel -> messaging-bus-boundary-kernel), matching the MOVE-1 precedent. ADR-0562 capability-first placement; the three libs/ membership globs in specs/capability-registry.json retire with this move exactly as the substrate-kernel glob did.",
+  "capability": "messaging",
+  "moves": [
+    {
+      "old_path": "libs/oya-bus-boundary-kernel",
+      "new_path": "messaging/core/bus-boundary-kernel",
+      "old_cargo_name": "oya-bus-boundary-kernel",
+      "new_cargo_name": "messaging-bus-boundary-kernel"
+    },
+    {
+      "old_path": "libs/oya-queue-boundary-kernel",
+      "new_path": "messaging/core/queue-boundary-kernel",
+      "old_cargo_name": "oya-queue-boundary-kernel",
+      "new_cargo_name": "messaging-queue-boundary-kernel"
+    },
+    {
+      "old_path": "libs/oya-stream-boundary-kernel",
+      "new_path": "messaging/core/stream-boundary-kernel",
+      "old_cargo_name": "oya-stream-boundary-kernel",
+      "new_cargo_name": "messaging-stream-boundary-kernel"
+    }
+  ],
+  "artifacts": []
+}

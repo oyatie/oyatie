@@ -5822,6 +5822,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6b947ae49db0d222b1dbc6b113ce7248a3fc3a6ca21b696717bfc000ba4484d8"
 
 [[package]]
+name = "messaging-bus-boundary-kernel"
+version = "0.1.0"
+dependencies = [
+ "messaging-substrate-kernel",
+]
+
+[[package]]
 name = "messaging-domain"
 version = "0.1.0"
 dependencies = [
@@ -5834,6 +5841,20 @@ version = "0.1.0"
 dependencies = [
  "messaging-domain",
  "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "messaging-queue-boundary-kernel"
+version = "0.1.0"
+dependencies = [
+ "messaging-substrate-kernel",
+]
+
+[[package]]
+name = "messaging-stream-boundary-kernel"
+version = "0.1.0"
+dependencies = [
+ "messaging-substrate-kernel",
 ]
 
 [[package]]
@@ -6325,13 +6346,6 @@ dependencies = [
  "anyhow",
  "clap",
  "oya-workspace-members-kernel",
-]
-
-[[package]]
-name = "oya-bus-boundary-kernel"
-version = "0.1.0"
-dependencies = [
- "messaging-substrate-kernel",
 ]
 
 [[package]]
@@ -9354,13 +9368,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-queue-boundary-kernel"
-version = "0.1.0"
-dependencies = [
- "messaging-substrate-kernel",
-]
-
-[[package]]
 name = "oya-real-estate-lease-app"
 version = "0.1.0"
 dependencies = [
@@ -9788,13 +9795,6 @@ dependencies = [
  "oya-collab-runtime-domain",
  "oya-data-boundary-kernel",
  "oya-document-format-domain",
-]
-
-[[package]]
-name = "oya-stream-boundary-kernel"
-version = "0.1.0"
-dependencies = [
- "messaging-substrate-kernel",
 ]
 
 [[package]]
