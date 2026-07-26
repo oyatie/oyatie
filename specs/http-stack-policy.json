@@ -69,6 +69,7 @@
       "oya-managed-k8s-control-plane-host-app": "Managed-k8s control-plane host application: control-plane CRUD/admission REST surface; axum router composition. ADR-0376/ADR-0509 §6 rest/ mod.",
       "oya-managed-k8s-cluster-lifecycle-app": "Managed-k8s cluster-lifecycle application: control-plane lifecycle REST surface (create/scale/drain/delete); axum router. Control-plane, not a hot path. ADR-0376/ADR-0509 §6.",
       "oya-managed-k8s-tenant-quota-app": "Managed-k8s tenant-quota application: control-plane quota admission/reporting REST surface; axum router. Control-plane, not a hot path. ADR-0509 §6.",
+      "oya-application-shell-frontend": "Application control-plane SSR host: canonical Leptos/Axum router and server-function boundary replace the prior hand-rolled TCP/HTTP parser for the operator console. This is an SSR/control-plane surface, not a latency-critical data path. ADR-0090/ADR-0509 §6.",
       "oya-ci-webhook-gateway-app": "CI webhook receiver: typed inbound webhook route surface (GitHub/HMAC) where axum extractors cut parsing/validation boilerplate; the crate ALSO uses hyper for upstream dispatch. NOTE: per the gateways-prefer-hyper bias this is a recorded MIGRATION CANDIDATE — the inbound receiver may move to bare hyper once the route surface stabilizes. Tracked, non-blocking. ADR-0374."
     }
   }
