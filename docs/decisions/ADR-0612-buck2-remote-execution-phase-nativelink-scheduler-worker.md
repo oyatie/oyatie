@@ -68,7 +68,8 @@ the cold floor, so no supersession is proposed.
   cold integrity-canary is GREEN* (D2). D3 sequences RE as stage 4: "flips `remote_enabled=true`
   only after cache-first is proven."
 - **ADR-0560** deployed tier 1: `infra/nativelink/nativelink-cas.k8s.yaml` (NativeLink **v1.6.2**,
-  CAS + AC, SeaweedFS-backed), the two opt-in buckconfig overlays
+  CAS + AC, filesystem-on-PV slow tier — the SeaweedFS tier is queued behind a projected CA
+  bundle per ADR-0560 D1), the two opt-in buckconfig overlays
   (`infra/ci/buckconfig/warm-cache-{rw,ro}.buckconfig`), the cache-only execution platform
   (`toolchains/cache/defs.bzl`, `remote_enabled = False`), the resolver + conformance gate
   (`cloud/cloud-ci/gates/oya-cloud-ci-cache-wiring-app`), the kill-switch
