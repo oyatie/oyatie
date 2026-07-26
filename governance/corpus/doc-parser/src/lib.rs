@@ -1059,6 +1059,436 @@ fn sha256_frame(parts: &[&[u8]]) -> [u8; 32] {
     hasher.finalize().into()
 }
 
+/// Pure, non-authorizing validation of controlling ADR chronology.
+///
+/// This evaluator consumes only already-parsed canonical ADR IR. It has no
+/// filesystem, Git, clock, process, or network dependency. Its report is a
+/// `PREPARED_UNBOUND` diagnostic artifact: it cannot establish authority,
+/// release `HOLD(Planning)`, or dispatch planning or implementation.
+pub mod chronology {
+    use std::collections::{BTreeMap, BTreeSet};
+    use std::fmt;
+
+    use super::{AdrDecision, is_adr_id};
+
+    const CLAIM_CEILING: &str = "BLOCKED/HOLD";
+
+    /// Explicit caller-owned inputs for the pure chronology evaluator.
+    #[derive(Debug, Clone, Copy)]
+    pub struct ChronologyInput<'a> {
+        pub controlling_ids: &'a [String],
+        pub decisions: &'a [AdrDecision],
+    }
+
+    /// Fail-closed input errors before any chronology finding is claimed.
+    #[derive(Debug, Clone, PartialEq, Eq)]
+    pub enum ChronologyViolation {
+        DuplicateSourcePath { source_path: String },
+        EmptyRoster,
+        InvalidRosterId { id: String },
+        DuplicateRosterId { id: String },
+    }
+
+    impl fmt::Display for ChronologyViolation {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            match self {
+                Self::DuplicateSourcePath { source_path } => {
+                    write!(
+                        f,
+                        "unrepresentable chronology input has duplicate source path {source_path:?}"
+                    )
+                }
+                Self::EmptyRoster => f.write_str("controlling ADR roster is empty"),
+                Self::InvalidRosterId { id } => {
+                    write!(f, "invalid controlling ADR roster id {id:?}")
+                }
+                Self::DuplicateRosterId { id } => {
+                    write!(f, "duplicate controlling ADR roster id {id:?}")
+                }
+            }
+        }
+    }
+
+    impl std::error::Error for ChronologyViolation {}
+
+    /// One deterministic, non-authorizing chronology diagnostic.
+    #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+    pub enum ChronologyFinding {
+        ReciprocalMismatch {
+            source_id: String,
+            relation: String,
+            target_id: String,
+            expected_relation: String,
+        },
+        DateContradiction {
+            source_id: String,
+            relation: String,
+            target_id: String,
+            source_date: String,
+            target_date: String,
+        },
+        SelfReference {
+            source_id: String,
+            relation: String,
+        },
+        MissingTargetId {
+            source_id: String,
+            relation: String,
+            target_id: String,
+        },
+        DuplicateTargetId {
+            target_id: String,
+            source_paths: Vec<String>,
+        },
+        NonBindingDecision {
+            id: String,
+            status: String,
+            source_path: String,
+        },
+        NonBindingLifecycleEdge {
+            source_id: String,
+            source_path: String,
+            relation: String,
+            target_id: String,
+        },
+        NonBindingController {
+            id: String,
+            status: String,
+            source_path: String,
+        },
+        MissingRosterId {
+            id: String,
+        },
+        LifecycleCycle {
+            ids: Vec<String>,
+        },
+    }
+
+    /// Prepared diagnostics never lift the planning hold; blocking defects are explicit.
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    pub enum ChronologyDisposition {
+        PreparedUnbound,
+        Blocked,
+    }
+
+    /// A deterministic report that remains below the planning-hold ceiling.
+    #[derive(Debug, Clone, PartialEq, Eq)]
+    pub struct ChronologyReport {
+        findings: Vec<ChronologyFinding>,
+        disposition: ChronologyDisposition,
+    }
+
+    impl ChronologyReport {
+        #[must_use]
+        pub fn findings(&self) -> &[ChronologyFinding] {
+            &self.findings
+        }
+
+        #[must_use]
+        pub const fn disposition(&self) -> ChronologyDisposition {
+            self.disposition
+        }
+
+        /// This evaluator can prepare diagnostics only; it cannot bind authority.
+        #[must_use]
+        pub const fn claim_ceiling(&self) -> &'static str {
+            CLAIM_CEILING
+        }
+    }
+
+    /// Evaluate roster-rooted ADR amendment and supersession chronology from canonical IR.
+    ///
+    /// The closed binding-status set is exactly `Accepted`, `Amended`, and
+    /// `Accepted (amendment)`. `Superseded` historical logical sources also
+    /// enforce lifecycle reciprocity and dates; all other statuses are reported
+    /// as nonbinding and their logical edges are excluded from enforcement.
+    ///
+    /// # Errors
+    /// Returns a fail-closed error when the roster is empty, names an invalid or
+    /// duplicate ADR identifier, or cannot faithfully represent distinct source
+    /// documents because it repeats a source path. These conditions map to
+    /// [`ChronologyViolation::EmptyRoster`], [`ChronologyViolation::InvalidRosterId`],
+    /// [`ChronologyViolation::DuplicateRosterId`], and
+    /// [`ChronologyViolation::DuplicateSourcePath`] respectively. Invalid roster
+    /// input prevents evaluation, and this evaluator never releases `HOLD(Planning)`,
+    /// including after a valid roster is supplied.
+    pub fn evaluate_controlling_adr_chronology(
+        input: ChronologyInput<'_>,
+    ) -> Result<ChronologyReport, ChronologyViolation> {
+        let roster = validate_roster(input.controlling_ids)?;
+        let mut source_paths = BTreeSet::new();
+        for decision in input.decisions {
+            if !source_paths.insert(decision.source_path()) {
+                return Err(ChronologyViolation::DuplicateSourcePath {
+                    source_path: decision.source_path().to_owned(),
+                });
+            }
+        }
+
+        let mut population = BTreeMap::<&str, Vec<&AdrDecision>>::new();
+        let mut findings = Vec::new();
+        for decision in input.decisions {
+            population
+                .entry(decision.id().as_str())
+                .or_default()
+                .push(decision);
+            if !is_enforcing_status(decision.status()) {
+                findings.push(ChronologyFinding::NonBindingDecision {
+                    id: decision.id().as_str().to_owned(),
+                    status: decision.status().to_owned(),
+                    source_path: decision.source_path().to_owned(),
+                });
+            }
+        }
+
+        for id in &roster {
+            if !population.contains_key(id.as_str()) {
+                findings.push(ChronologyFinding::MissingRosterId { id: id.clone() });
+            }
+        }
+        for (id, candidates) in &population {
+            if candidates.len() > 1 {
+                findings.push(ChronologyFinding::DuplicateTargetId {
+                    target_id: (*id).to_owned(),
+                    source_paths: {
+                        let mut paths = candidates
+                            .iter()
+                            .map(|decision| decision.source_path().to_owned())
+                            .collect::<Vec<_>>();
+                        paths.sort();
+                        paths
+                    },
+                });
+            }
+        }
+
+        for id in &roster {
+            let Some(candidates) = population.get(id.as_str()) else {
+                continue;
+            };
+            if candidates.len() != 1 {
+                continue;
+            }
+            if !is_enforcing_status(candidates[0].status()) {
+                findings.push(ChronologyFinding::NonBindingController {
+                    id: id.clone(),
+                    status: candidates[0].status().to_owned(),
+                    source_path: candidates[0].source_path().to_owned(),
+                });
+            }
+        }
+
+        let mut forward_edges = BTreeMap::<&str, BTreeSet<&str>>::new();
+        for decision in input.decisions {
+            for (relation, expected_relation, targets) in [
+                ("amends", "amended_by", decision.amends()),
+                ("amended_by", "amends", decision.amended_by()),
+                ("supersedes", "superseded_by", decision.supersedes()),
+                ("superseded_by", "supersedes", decision.superseded_by()),
+            ] {
+                for target in targets {
+                    let raw_target_id = target.id().as_str();
+                    let forward_edge = matches!(relation, "amends" | "supersedes");
+                    if forward_edge && !is_enforcing_status(decision.status()) {
+                        findings.push(ChronologyFinding::NonBindingLifecycleEdge {
+                            source_id: decision.id().as_str().to_owned(),
+                            source_path: decision.source_path().to_owned(),
+                            relation: relation.to_owned(),
+                            target_id: raw_target_id.to_owned(),
+                        });
+                        continue;
+                    }
+                    let Some(candidates) = population.get(raw_target_id) else {
+                        findings.push(ChronologyFinding::MissingTargetId {
+                            source_id: decision.id().as_str().to_owned(),
+                            relation: relation.to_owned(),
+                            target_id: raw_target_id.to_owned(),
+                        });
+                        continue;
+                    };
+                    if candidates.len() != 1 {
+                        continue;
+                    }
+                    let referenced = candidates[0];
+                    let (logical_source, logical_target, forward_relation, inverse_relation) =
+                        if forward_edge {
+                            (decision, referenced, relation, expected_relation)
+                        } else {
+                            (referenced, decision, expected_relation, relation)
+                        };
+                    if logical_source.id() == logical_target.id() {
+                        findings.push(ChronologyFinding::SelfReference {
+                            source_id: logical_source.id().as_str().to_owned(),
+                            relation: forward_relation.to_owned(),
+                        });
+                        continue;
+                    }
+                    if !is_enforcing_status(logical_source.status()) {
+                        findings.push(ChronologyFinding::NonBindingLifecycleEdge {
+                            source_id: logical_source.id().as_str().to_owned(),
+                            source_path: logical_source.source_path().to_owned(),
+                            relation: forward_relation.to_owned(),
+                            target_id: logical_target.id().as_str().to_owned(),
+                        });
+                        continue;
+                    }
+                    if !edge_contains(
+                        logical_source,
+                        forward_relation,
+                        logical_target.id().as_str(),
+                    ) {
+                        findings.push(ChronologyFinding::ReciprocalMismatch {
+                            source_id: logical_source.id().as_str().to_owned(),
+                            relation: forward_relation.to_owned(),
+                            target_id: logical_target.id().as_str().to_owned(),
+                            expected_relation: forward_relation.to_owned(),
+                        });
+                    }
+                    if !edge_contains(
+                        logical_target,
+                        inverse_relation,
+                        logical_source.id().as_str(),
+                    ) {
+                        findings.push(ChronologyFinding::ReciprocalMismatch {
+                            source_id: logical_source.id().as_str().to_owned(),
+                            relation: forward_relation.to_owned(),
+                            target_id: logical_target.id().as_str().to_owned(),
+                            expected_relation: inverse_relation.to_owned(),
+                        });
+                    }
+                    if logical_source.date() < logical_target.date() {
+                        findings.push(ChronologyFinding::DateContradiction {
+                            source_id: logical_source.id().as_str().to_owned(),
+                            relation: forward_relation.to_owned(),
+                            target_id: logical_target.id().as_str().to_owned(),
+                            source_date: logical_source.date().to_owned(),
+                            target_date: logical_target.date().to_owned(),
+                        });
+                    }
+                    forward_edges
+                        .entry(logical_source.id().as_str())
+                        .or_default()
+                        .insert(logical_target.id().as_str());
+                }
+            }
+        }
+
+        findings.extend(lifecycle_cycles(&forward_edges));
+
+        findings.sort();
+        findings.dedup();
+        let disposition = if findings.iter().any(is_blocking_finding) {
+            ChronologyDisposition::Blocked
+        } else {
+            ChronologyDisposition::PreparedUnbound
+        };
+        Ok(ChronologyReport {
+            findings,
+            disposition,
+        })
+    }
+
+    fn validate_roster(ids: &[String]) -> Result<BTreeSet<String>, ChronologyViolation> {
+        if ids.is_empty() {
+            return Err(ChronologyViolation::EmptyRoster);
+        }
+        let mut roster = BTreeSet::new();
+        for id in ids {
+            if !is_adr_id(id) {
+                return Err(ChronologyViolation::InvalidRosterId { id: id.clone() });
+            }
+            if !roster.insert(id.clone()) {
+                return Err(ChronologyViolation::DuplicateRosterId { id: id.clone() });
+            }
+        }
+        Ok(roster)
+    }
+
+    fn is_binding_status(status: &str) -> bool {
+        matches!(status, "Accepted" | "Amended" | "Accepted (amendment)")
+    }
+
+    fn is_enforcing_status(status: &str) -> bool {
+        is_binding_status(status) || status == "Superseded"
+    }
+
+    fn is_blocking_finding(finding: &ChronologyFinding) -> bool {
+        !matches!(
+            finding,
+            ChronologyFinding::NonBindingDecision { .. }
+                | ChronologyFinding::NonBindingLifecycleEdge { .. }
+        )
+    }
+
+    fn lifecycle_cycles(edges: &BTreeMap<&str, BTreeSet<&str>>) -> Vec<ChronologyFinding> {
+        let mut cycles = BTreeSet::new();
+        let reversed = reverse_edges(edges);
+        for start in edges.keys() {
+            let forward = reachable(edges, start);
+            let backward = reachable(&reversed, start);
+            let members = forward
+                .intersection(&backward)
+                .filter(|id| *id != start)
+                .chain(std::iter::once(start))
+                .copied()
+                .collect::<BTreeSet<_>>();
+            if members.len() > 1 {
+                cycles.insert(members.into_iter().map(str::to_owned).collect::<Vec<_>>());
+            }
+        }
+        cycles
+            .into_iter()
+            .map(|ids| ChronologyFinding::LifecycleCycle { ids })
+            .collect()
+    }
+
+    fn reachable<'a>(
+        edges: &BTreeMap<&'a str, BTreeSet<&'a str>>,
+        start: &'a str,
+    ) -> BTreeSet<&'a str> {
+        let mut visited = BTreeSet::new();
+        let mut pending = vec![start];
+        while let Some(current) = pending.pop() {
+            if !visited.insert(current) {
+                continue;
+            }
+            if let Some(next) = edges.get(current) {
+                pending.extend(next.iter().copied());
+            }
+        }
+        visited
+    }
+
+    fn reverse_edges<'a>(
+        edges: &BTreeMap<&'a str, BTreeSet<&'a str>>,
+    ) -> BTreeMap<&'a str, BTreeSet<&'a str>> {
+        let mut reversed = BTreeMap::new();
+        for (source, targets) in edges {
+            reversed.entry(*source).or_insert_with(BTreeSet::new);
+            for target in targets {
+                reversed
+                    .entry(*target)
+                    .or_insert_with(BTreeSet::new)
+                    .insert(*source);
+            }
+        }
+        reversed
+    }
+
+    fn edge_contains(decision: &AdrDecision, relation: &str, id: &str) -> bool {
+        let references = match relation {
+            "amends" => decision.amends(),
+            "amended_by" => decision.amended_by(),
+            "supersedes" => decision.supersedes(),
+            "superseded_by" => decision.superseded_by(),
+            _ => return false,
+        };
+        references
+            .iter()
+            .any(|reference| reference.id().as_str() == id)
+    }
+}
+
 /// Input for parsing one ADR source document.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AdrParseInput {
