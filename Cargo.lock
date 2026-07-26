@@ -841,6 +841,9 @@ dependencies = [
 name = "billing-service"
 version = "0.1.0"
 dependencies = [
+ "billing-domain",
+ "billing-metering",
+ "oya-data-boundary-kernel",
  "tokio",
 ]
 
@@ -7492,14 +7495,6 @@ version = "0.1.0"
 dependencies = [
  "ci-action-item-accounting",
  "ci-canonical-json",
- "serde_json",
-]
-
-[[package]]
-name = "oya-gen-microservice-manifests-app"
-version = "0.1.0"
-dependencies = [
- "serde",
  "serde_json",
 ]
 
