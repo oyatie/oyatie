@@ -682,6 +682,7 @@ pub fn affected_set_operator_artifact(
     resolved_base_ref: &str,
     resolved_head_ref: &str,
     baseline_report_present: bool,
+    baseline_provenance: Option<&Value>,
     decision: &Decision,
     phases: &[GatePhaseOutcome],
 ) -> Value {
@@ -723,6 +724,12 @@ pub fn affected_set_operator_artifact(
         "merge_base_build_health_baseline": {
             "required": matches!(decision, Decision::Full { .. }) && mode == "auto",
             "report_present": baseline_report_present,
+            // WHICH baseline produced this verdict, and therefore what was grandfathered. A
+            // reused artifact grandfathers nothing (its source tip passed admission green); a
+            // cold rebuild may grandfather env-dependent merge-base failures. Recorded so the
+            // difference is auditable per run instead of inferred from wall-clock or logs.
+            "source": if baseline_provenance.is_some() { "trusted-artifact" } else { "cold-rebuild" },
+            "provenance": baseline_provenance.cloned().unwrap_or(Value::Null),
             "anti_laundering": "baseline report must be produced from the merge-base committed tree, never the candidate tree"
         },
         "long_running_gate_phases": phases
@@ -798,6 +805,18 @@ pub fn failing_targets(report: &BTreeMap<String, TargetBuildStatus>) -> BTreeSet
 /// single required context). Bound into run selection so the artifact NAME alone is never enough.
 pub const REQUIRED_CONTEXT_WORKFLOW_PATH: &str = ".github/workflows/oya-ci-required.yml";
 
+/// Sidecar the trusted-baseline consumer writes beside a reused baseline pair.
+///
+/// WHY IT EXISTS: the FULL tier's grandfathering set depends on WHICH baseline it got. A reused
+/// baseline comes from a dev tip that passed admission, so its failure set is empty and nothing is
+/// grandfathered; a cold rebuild can observe env-dependent merge-base failures and grandfather
+/// them. The same PR at the same merge-base can therefore be green or red across two runs with no
+/// code change, purely on whether the artifact still exists. The direction is safe (a reused
+/// baseline is never laxer — see [`build_health_verdict`], a set difference in which a smaller
+/// baseline can only ADD regressions), but it must be a recorded DECISION, not an inheritance.
+/// Presence of this file means "trusted-artifact"; absence means "cold-rebuild".
+pub const BASELINE_PROVENANCE_FILENAME: &str = "baseline-provenance.json";
+
 /// Which merge-base health baseline an artifact carries (GH #1323/#899, ADR-0554 D8).
 ///
 /// A FULL-tier PR needs BOTH: a target that BUILDS can still FAIL its tests, and buck2's
@@ -832,7 +851,11 @@ impl BaselineKind {
 
 /// Reject anything that is not a full 40-char hex object id (fail-closed: an abbreviated or
 /// symbolic ref could resolve differently across runs, so it must never name a baseline).
-fn validated_merge_base_sha(merge_base_sha: &str) -> Result<&str, String> {
+///
+/// Public because the consumer must run this BEFORE interpolating a merge-base into any API
+/// route, not merely before comparing it — the shape check is what keeps a caller-supplied value
+/// from smuggling extra path or query segments.
+pub fn validated_merge_base_sha(merge_base_sha: &str) -> Result<&str, String> {
     let sha = merge_base_sha.trim();
     if sha.len() != 40 || !sha.as_bytes().iter().all(u8::is_ascii_hexdigit) {
         return Err(format!(
@@ -860,9 +883,13 @@ pub fn baseline_artifact_name(
 /// ANTI-LAUNDERING: every accepted property comes from GitHub Actions PROVENANCE, never from
 /// anything a candidate PR controls — the run must be an `event=push` on `head_branch=dev` that
 /// `conclusion=success`ed, its `head_sha` must be the EXACT merge-base, and its `path` must be the
-/// canonical required-context workflow file. Binding `path` matters: without it, any other
-/// workflow on dev could publish an artifact under the expected name and be selected, which is
-/// exactly the "trust the name" hole the D6 anti-laundering paragraph forbids.
+/// canonical required-context workflow file.
+///
+/// The `path` bind is DEFENCE IN DEPTH, not the closing of a live hole: the consumer already
+/// queries the per-workflow runs route and then reads artifacts per-run, so a foreign workflow's
+/// artifacts were never reachable in the first place. It is asserted here anyway so the guarantee
+/// survives a future caller that widens the route to the repo-wide `/actions/runs` list, where
+/// selecting on name alone WOULD be reachable.
 pub fn trusted_dev_push_run_id(
     runs_json: &str,
     merge_base_sha: &str,
@@ -1450,8 +1477,9 @@ mod tests {
 
     #[test]
     fn trusted_push_run_selection_rejects_a_different_workflow_on_the_same_sha() {
-        // ANTI-LAUNDERING: a green push-to-dev run of SOME OTHER workflow at the exact merge-base
-        // must NOT be trusted — otherwise any workflow could publish the expected artifact name.
+        // DEFENCE IN DEPTH: the live consumer queries the per-workflow runs route, so a foreign
+        // workflow's run is not reachable there today. This pins the bind so it still holds if a
+        // caller ever widens the query to the repo-wide `/actions/runs` list.
         let sha = "0123456789abcdef0123456789abcdef01234567";
         let runs = r#"{
             "workflow_runs": [
@@ -1659,6 +1687,7 @@ mod tests {
             "0123456789abcdef0123456789abcdef01234567",
             "89abcdef0123456789abcdef0123456789abcdef",
             false,
+            None,
             &decision,
             &phases,
         );
@@ -1666,6 +1695,15 @@ mod tests {
         assert_eq!(
             artifact["resolved_refs"]["base"],
             "0123456789abcdef0123456789abcdef01234567"
+        );
+        // No sidecar => the baseline was rebuilt cold in this job.
+        assert_eq!(
+            artifact["merge_base_build_health_baseline"]["source"],
+            "cold-rebuild"
+        );
+        assert_eq!(
+            artifact["merge_base_build_health_baseline"]["provenance"],
+            Value::Null
         );
         assert_eq!(
             artifact["resolved_refs"]["head"],
@@ -1717,6 +1755,7 @@ mod tests {
             "0123456789abcdef0123456789abcdef01234567",
             "89abcdef0123456789abcdef0123456789abcdef",
             false,
+            None,
             &decision,
             &phases,
         );
@@ -1726,6 +1765,39 @@ mod tests {
         assert_eq!(
             artifact["long_running_gate_phases"][2]["status"],
             "pending-after-decision"
+        );
+    }
+
+    #[test]
+    fn operator_artifact_records_which_baseline_produced_the_verdict() {
+        // The same PR at the same merge-base grandfathers differently depending on whether the
+        // baseline was REUSED (source tip passed admission => empty failure set => nothing
+        // grandfathered) or REBUILT COLD (may grandfather env-dependent merge-base failures).
+        // The artifact must say which, so the verdict is an auditable decision.
+        let decision = Decision::Full {
+            reasons: vec!["escape trigger".to_owned()],
+        };
+        let provenance = json!({
+            "schema_version": 1,
+            "source": "trusted-artifact",
+            "workflow_run_id": 4242,
+        });
+        let artifact = affected_set_operator_artifact(
+            "auto",
+            "0123456789abcdef0123456789abcdef01234567",
+            "89abcdef0123456789abcdef0123456789abcdef",
+            true,
+            Some(&provenance),
+            &decision,
+            &[],
+        );
+        assert_eq!(
+            artifact["merge_base_build_health_baseline"]["source"],
+            "trusted-artifact"
+        );
+        assert_eq!(
+            artifact["merge_base_build_health_baseline"]["provenance"]["workflow_run_id"],
+            4242
         );
     }
 

@@ -29,10 +29,11 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, ExitCode, Stdio};
 
 use ci_affected_target_set::{
-    BaselineKind, BuildHealthVerdict, REQUIRED_CONTEXT_WORKFLOW_PATH, baseline_artifact_name,
+    BASELINE_PROVENANCE_FILENAME, BaselineKind, BuildHealthVerdict,
+    REQUIRED_CONTEXT_WORKFLOW_PATH, baseline_artifact_name,
     build_health_verdict, failing_targets, parse_build_report, parse_test_verdicts,
     test_verdicts_to_report_value, trusted_baseline_artifact_id, trusted_dev_push_run_id,
-    validate_trusted_baseline_artifact,
+    validate_trusted_baseline_artifact, validated_merge_base_sha,
 };
 
 const LOG: &str = "build-health";
@@ -285,7 +286,7 @@ fn fetch_one_baseline(
     artifacts_json: &str,
     kind: BaselineKind,
     out_dir: &Path,
-) -> Result<PathBuf, TrustedBaselineOutcome> {
+) -> Result<(), TrustedBaselineOutcome> {
     let (artifact_id, expected_name) = select_trusted_artifact(artifacts_json, kind, merge_base)?;
     // The name the API reports for the id we are about to download closes the "selected one
     // artifact, fetched another" loop against a live server response.
@@ -303,6 +304,13 @@ fn fetch_one_baseline(
         &["api", &format!("repos/{repo}/actions/artifacts/{artifact_id}/zip")],
         &zip,
     )?;
+    // ADR-0523 irreducible glue: the Actions artifact API serves ONLY a zip, and this crate takes
+    // no new dependency, so extraction is delegated to `unzip` (present on ubuntu-latest). It is
+    // the one external tool here without prior repo use — deliberately kept to a NON-CRITICAL
+    // position: if it is missing or fails, `capture_to_file` refuses, the pair is abandoned, and
+    // the cold rebuild runs. Absence therefore costs wall-clock, never correctness. Retire it when
+    // an owned inflate lands; do NOT swap in `gh run download`, which selects by NAME and would
+    // discard the artifact-ID binding established above.
     let report = out_dir.join(format!("{}-health-baseline.json", kind.prefix()));
     capture_to_file("unzip", &["-p", &zip.display().to_string()], &report)?;
     let _ = fs::remove_file(&zip);
@@ -316,13 +324,35 @@ fn fetch_one_baseline(
         kind.prefix(),
         report.display()
     );
-    Ok(report)
+    Ok(())
 }
 
 fn reuse_trusted_baselines(raw: &[String]) -> Result<(), TrustedBaselineOutcome> {
-    let merge_base = require(raw, "--merge-base").map_err(Refused)?;
-    let repo = validated_repo(require(raw, "--repo").map_err(Refused)?)?;
     let out_dir = PathBuf::from(require(raw, "--out-dir").map_err(Refused)?);
+    let outcome = reuse_trusted_baselines_inner(raw, &out_dir);
+    if outcome.is_err() {
+        // ONE fail-closed cleanup for EVERY failure mode, including a late one after both halves
+        // validated: never leave a partial baseline the cold path's `test -s` guard could mistake
+        // for a freshly rebuilt one, and never leave a sidecar that would mislabel a cold rebuild
+        // as a reused artifact.
+        for kind in [BaselineKind::Build, BaselineKind::Test] {
+            let _ = fs::remove_file(out_dir.join(format!("{}-health-baseline.json", kind.prefix())));
+        }
+        let _ = fs::remove_file(out_dir.join(BASELINE_PROVENANCE_FILENAME));
+    }
+    outcome
+}
+
+fn reuse_trusted_baselines_inner(
+    raw: &[String],
+    out_dir: &Path,
+) -> Result<(), TrustedBaselineOutcome> {
+    // BOTH interpolated values are shape-checked BEFORE they reach an API route, not merely
+    // before they are compared. `select_trusted_run` re-checks the SHA downstream, but that is
+    // too late to keep a malformed value out of the URL.
+    let merge_base =
+        validated_merge_base_sha(require(raw, "--merge-base").map_err(Refused)?).map_err(Refused)?;
+    let repo = validated_repo(require(raw, "--repo").map_err(Refused)?)?;
 
     let runs = gh_api(&format!(
         "repos/{repo}/actions/workflows/oya-ci-required.yml/runs?event=push&branch=dev&status=success&head_sha={merge_base}&per_page=20"
@@ -342,24 +372,30 @@ fn reuse_trusted_baselines(raw: &[String]) -> Result<(), TrustedBaselineOutcome>
     // one), but it does differ from the cold path, which can observe env-dependent merge-base
     // failures and grandfather them. A PR blocked here is being told the truth: the merge-base
     // was proven green, so the failure is new.
-    let mut written = Vec::new();
     for kind in [BaselineKind::Build, BaselineKind::Test] {
-        match fetch_one_baseline(repo, merge_base, run_id, &artifacts, kind, &out_dir) {
-            Ok(path) => written.push(path),
-            Err(e) => {
-                // Fail closed: never leave a partial baseline where the cold path's `test -s`
-                // guard could mistake it for a freshly rebuilt one.
-                for path in &written {
-                    let _ = fs::remove_file(path);
-                }
-                let _ = fs::remove_file(out_dir.join(format!("{}-health-baseline.json", kind.prefix())));
-                return Err(e);
-            }
-        }
+        // Partial-state cleanup is the caller's single handler — nothing to unwind here.
+        fetch_one_baseline(repo, merge_base, run_id, &artifacts, kind, out_dir)?;
     }
+    // Record WHICH baseline the FULL tier is about to grandfather against. The affected-set gate
+    // reads this sidecar beside the baseline it was handed and stamps it into the operator
+    // decision artifact, so "reused vs rebuilt" is a recorded decision, not an inheritance.
+    let provenance = serde_json::json!({
+        "schema_version": 1,
+        "source": "trusted-artifact",
+        "merge_base": merge_base,
+        "workflow_run_id": run_id,
+        "workflow_path": REQUIRED_CONTEXT_WORKFLOW_PATH,
+        "grandfathering": "none — the source dev tip passed admission, so its failure set is empty",
+    });
+    let sidecar = out_dir.join(BASELINE_PROVENANCE_FILENAME);
+    let bytes = serde_json::to_vec_pretty(&provenance)
+        .map_err(|e| Refused(format!("could not serialize baseline provenance: {e}")))?;
+    fs::write(&sidecar, bytes)
+        .map_err(|e| Refused(format!("could not write `{}`: {e}", sidecar.display())))?;
     println!(
         "{LOG}: trusted merge-base baseline pair REUSED from run {run_id} at {merge_base} — the \
-         cold merge-base rebuild is skipped"
+         cold merge-base rebuild is skipped (provenance: {})",
+        sidecar.display()
     );
     Ok(())
 }
@@ -555,8 +591,10 @@ mod trusted_baseline_tests {
 
     #[test]
     fn a_foreign_workflow_at_the_exact_merge_base_is_never_trusted() {
-        // ANTI-LAUNDERING: without the workflow-path binding, a green dev push of ANY other
-        // workflow could publish an artifact under the expected name and have it accepted.
+        // DEFENCE IN DEPTH: `reuse_trusted_baselines` queries the per-workflow runs route and
+        // reads artifacts per-run, so a foreign workflow's run is not reachable today. Pinned
+        // anyway so widening that route to the repo-wide run list cannot silently reduce
+        // selection to the artifact name alone.
         let payload = format!(
             r#"{{"workflow_runs":[{{"id":14,"head_sha":"{SHA}","event":"push","head_branch":"dev","conclusion":"success","path":".github/workflows/some-other-lane.yml"}}]}}"#
         );
