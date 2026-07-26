@@ -87,12 +87,17 @@ set**, the config parses and store construction begins, then the process panics:
 system")` (hyper-rustls) — the image carries no system CA bundle. The same config with the
 `experimental_cloud_object_store` slow tier removed reaches `Ready, listening on
 0.0.0.0:50051` cleanly. So the failure is specific to the cloud-object-store tier, not the
-image or the schema. What is **not** established: whether a plaintext `http://`
-`AWS_ENDPOINT_URL` pointed at in-cluster SeaweedFS avoids the platform-verifier
-initialization altogether — the panic occurs during startup store construction, before any
-request is issued, so it may be unconditional. Closing this check therefore needs either a
-projected CA bundle in the pod or a confirmed plaintext-endpoint path; until one is proven,
-**filesystem-on-PV is the indicated slow tier**, not a contingency.
+image or the schema.
+
+**The check is now CLOSED, and the panic is unconditional.** The first run omitted the
+`AWS_*` environment, which is the one variable this manifest actually sets, so it was
+re-run with exactly the deployed values — `AWS_ENDPOINT_URL=http://seaweedfs-bucket-api…:8333`
+plus credentials. It panics **identically**. A plaintext `http://` endpoint therefore does
+*not* avoid the platform-verifier initialization: the verifier is constructed during startup
+store construction, before any request is issued and irrespective of endpoint scheme.
+
+Consequently **filesystem-on-PV is the indicated slow tier**, not a contingency, and the
+SeaweedFS path requires a CA bundle projected into the pod before it can be revisited.
 
 ### D2 — Keyed authn at the service boundary (the founder-decided posture, mapped to what OSS NativeLink actually enforces)
 

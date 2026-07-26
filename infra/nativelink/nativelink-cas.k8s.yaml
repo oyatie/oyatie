@@ -252,17 +252,28 @@ spec:
           type: RuntimeDefault
       containers:
         - name: nativelink
-          # Digest-pinned (kyverno verify-image policy applies in-cluster).
+          # Digest-pinned to the multi-arch INDEX (kyverno verify-image policy
+          # applies in-cluster).
           #
-          # ADR-0560's multi-arch bring-up check is now ANSWERED, and the answer
-          # forced this bump: v1.4.0 published a single linux/amd64 manifest only
-          # (its entrypoint is literally nativelink-x86_64-unknown-linux-musl), so
-          # it could never have run on the aarch64 Talos pool the manifest targets
-          # — nor on ADR-0612 D1's aarch64 worker tier. v1.6.0 is the first release
-          # publishing a manifest INDEX covering linux/amd64 + linux/arm64; v1.6.2
-          # verified by pull on aarch64 (entrypoint
-          # nativelink-aarch64-unknown-linux-musl-1.6.2).
-          image: ghcr.io/tracemachina/nativelink:v1.6.2@sha256:b8cb150c1fa776063573d647e7e5df46fb43a79a47430302861bb9ffd38ed007
+          # ADR-0560's multi-arch bring-up check is ANSWERED: v1.4.0 published a
+          # single linux/amd64 manifest only (entrypoint
+          # nativelink-x86_64-unknown-linux-musl), so it could never have run on
+          # the aarch64 Talos pool this manifest targets, nor on ADR-0612 D1's
+          # aarch64 worker tier. v1.6.0 is the first release publishing an OCI
+          # INDEX covering linux/amd64 + linux/arm64.
+          #
+          # MUST be the index digest, never a child. A digest pin is resolved by
+          # the runtime BEFORE the tag is consulted, so pinning a child manifest
+          # silently forces that child's architecture and the `:v1.6.2` tag is
+          # decorative. The previous pin here was sha256:b8cb150c… — the
+          # linux/amd64 CHILD — which reintroduced on aarch64 the exact defect the
+          # bump existed to remove. Verified against the ghcr manifest API with an
+          # index Accept header (`docker manifest inspect` after a --platform pull
+          # reports the resolved child, which is how the wrong value was taken):
+          #   index        sha256:6750ab33…  (application/vnd.oci.image.index.v1+json)
+          #     linux/amd64 sha256:b8cb150c…
+          #     linux/arm64 sha256:ca6c6969…
+          image: ghcr.io/tracemachina/nativelink:v1.6.2@sha256:6750ab337eb1835ebe8452ddb76786641a80e23de71d8a5e630469399219b6ea
           # No shell anywhere: the image entrypoint IS the nativelink binary; the
           # only argument is the declarative config file (ADR-0556 D4 — API-driven
           # service, no exec surface).
