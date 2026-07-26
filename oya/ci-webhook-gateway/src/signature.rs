@@ -22,8 +22,14 @@
 //!   1. FAIL CLOSED — verification runs on the RAW body BEFORE JSON parsing,
 //!      dedup, or routing, so an attacker cannot poison downstream state with
 //!      a crafted-but-unsigned payload.
-//!   2. CONSTANT TIME — HMAC comparison uses `subtle::ConstantTimeEq`;
-//!      ed25519-dalek verify is internally constant-time per its API contract.
+//!   2. CONSTANT TIME — HMAC comparison uses the hand-rolled `ct_eq_bytes`
+//!      below, NOT `subtle::ConstantTimeEq` (this module takes no `subtle`
+//!      dependency); ed25519-dalek verify is internally constant-time per its
+//!      API contract. The HMAC itself is likewise hand-rolled on `sha2` in
+//!      `hmac_sha256` rather than using the `hmac` crate. Both hand-rolls are
+//!      tracked as defects, not endorsed: see registry/fixuptasks.jsonl
+//!      F-QUAL-CONSTTIME / F-HSA-O8 (constant-time compare) and
+//!      F-SEC-WEBHOOK-HMAC (the MAC construction).
 //!   3. NO SECRET LOGGING — secrets and private keys never appear in
 //!      `Debug`/`Display`.
 

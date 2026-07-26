@@ -48,6 +48,13 @@ HMAC secret, commit signing, deploy) and `runbooks/on-call.md` for operations.
 ## Blessed dependencies only
 
 Tokio / Axum / Tower / Hyper / serde / tracing (approved runtime allowlist) +
-RustCrypto `hmac`/`sha2`/`subtle` for the HMAC (MIT/Apache-2.0, OSI-clean). No
-`reqwest`/`hyper-client` — the Jenkins kick is a minimal HTTP/1.1 POST over a
-tokio TCP stream.
+RustCrypto `sha2` (MIT/Apache-2.0, OSI-clean). No `reqwest`/`hyper-client` — the
+Jenkins kick is a minimal HTTP/1.1 POST over a tokio TCP stream.
+
+The RFC 2104 HMAC and the constant-time comparison are implemented **in-module**
+over `sha2` (`hmac_sha256` and `ct_eq_bytes` in `src/signature.rs`); `hmac` and
+`subtle` are NOT dependencies of this crate. That is a deliberate deviation from
+the vetted-crypto bar, not the intended end state — see `F-SEC-WEBHOOK-HMAC` in
+`registry/fixuptasks.jsonl`. The destination is `aws-lc-rs`, which ADR-0506
+already makes the canonical backend and which exposes `hmac::verify` with a
+documented constant-time guarantee.
