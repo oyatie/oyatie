@@ -19,6 +19,9 @@ metadata:
   namespace: oya-kms
 data:
   openbao.hcl: |
+    # This backend is REMOVED at OpenBao v2.7.0 (a minor). The binding version
+    # constraint lives at the `image:` pin below, where a bumper actually looks;
+    # tracked as F-SEC-OPENBAO-FILE-BACKEND.
     storage "file" { path = "/openbao/data" }   # barrier-encrypted at rest
     listener "tcp" {
       address     = "0.0.0.0:8200"
@@ -62,6 +65,17 @@ spec:
         seccompProfile: { type: RuntimeDefault }
       containers:
         - name: openbao
+          # ⚠ DO NOT BUMP PAST 2.6.x AS A ROUTINE NON-MAJOR CHORE.
+          # This deployment stores KMS data on the `file` physical backend (see
+          # the openbao.hcl ConfigMap above), which OpenBao deprecates and
+          # removes at v2.7.0 — a MINOR. Verified by running this exact pin:
+          #   [WARN] storage.file: the file physical backend is deprecated; use
+          #          bao operator migrate to move to a supported storage backend
+          #          by v2.7.0
+          # The raft migration must land BEFORE any 2.7 bump, or this substrate
+          # loses the store every secret depends on. Tracked as
+          # F-SEC-OPENBAO-FILE-BACKEND. 2.6.1 is current upstream latest, so
+          # there is nothing to bump to today regardless.
           image: ghcr.io/openbao/openbao:2.6.1
           imagePullPolicy: IfNotPresent
           args: ["server", "-config=/openbao/config/openbao.hcl"]
