@@ -70,7 +70,7 @@
     "common": {
       "security_policy": {
         "pass": false,
-        "evidence": "CONTRADICTED 2026-07-26: SECURITY.md does not exist at the repository root and is not tracked anywhere at root; only docs/security.md exists, which is not the path GitHub recognises"
+        "evidence": "CONTRADICTED 2026-07-26: SECURITY.md does not exist at the repository root and is not tracked anywhere at root. docs/security.md exists; GitHub does recognise a docs/ location, so the gap is the filename casing plus the absence of a root file, not the directory."
       },
       "access_control": {
         "pass": true,
