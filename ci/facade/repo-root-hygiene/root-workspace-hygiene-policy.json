@@ -33,11 +33,12 @@
   ],
   "allowed_root_dirs": [
     ".cargo", ".claude", ".codex", ".config", ".github", ".omc",
-    "audit", "benchmarks", "billing", "cell", "ci", "cloud", "comms",
+    "app", "audit", "base", "benchmarks", "billing", "build", "cell", "ci",
+    "cloud", "comms",
     "compliance", "compute", "console", "contracts", "data", "docs",
     "evidence", "flags", "gateway", "governance", "iac", "iam", "infra",
     "intelligence", "k8s", "kernel", "libs", "marketplace", "messaging", "network",
-    "observability", "oya", "packs", "plan", "policy", "registry", "scripts",
+    "observability", "os", "oya", "packs", "plan", "policy", "registry", "scripts",
     "secrets", "specs", "storage", "tasks", "templates", "tenancy",
     "third-party", "toolchains", "tools", "workflow"
   ],

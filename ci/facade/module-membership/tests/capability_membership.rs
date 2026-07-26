@@ -262,6 +262,59 @@ fn red_crate_in_two_capabilities_fails_from_disk() {
 }
 
 #[test]
+fn the_committed_policy_scans_every_crate_owning_destination_root() {
+    // COVERAGE PROOF over the COMMITTED policy (not a fixture policy): a crate at
+    // each crate-owning meta destination is actually WALKED. `app/` is the
+    // destination for the 110 app-product crates; dropping any of these roots from
+    // `scan_roots` would drop those crates out of the membership lint silently —
+    // the min_expected_crates floor is a broken-scan guard, not a coverage guard,
+    // and cannot see a partial-root loss. This test fails if a root is dropped.
+    let repo = new_temp_repo();
+    let root = &repo.root;
+    let policy = fixture_policy(root);
+    for meta in ["app", "base", "kernel", "os"] {
+        write_file(
+            root,
+            &format!("{meta}/member/Cargo.toml"),
+            &package_manifest(&format!("{meta}-member")),
+        );
+    }
+    let observed = collect(root, &policy).expect("collect destination-root fixture");
+    let collected: Vec<String> = observed["crates"]
+        .as_array()
+        .expect("crates array")
+        .iter()
+        .map(|c| c.as_str().unwrap_or_default().to_owned())
+        .collect();
+    for meta in ["app", "base", "kernel", "os"] {
+        assert!(
+            collected.contains(&format!("{meta}/member")),
+            "the committed scan_roots must walk the `{meta}/` destination; collected {collected:?}"
+        );
+    }
+}
+
+#[test]
+fn a_base_crate_without_admission_facts_is_red_now_that_base_is_scanned() {
+    // The ADR-0562 §6 base/-admission rule was VACUOUS while `base` sat outside
+    // `scan_roots`: no base/ crate ever reached the evaluator. With the root
+    // scanned, a base/ crate that cannot prove >=3 capability consumers fails
+    // CLOSED, which is the anti-junk-drawer backstop the ADR mandates.
+    let repo = new_temp_repo();
+    let root = &repo.root;
+    write_file(root, "base/dumping-ground/Cargo.toml", &package_manifest("dumping-ground"));
+    let policy = fixture_policy(root);
+    let observed = collect(root, &policy).expect("collect base fixture");
+    let findings = evaluate_keyed(&policy, &observed);
+    assert!(
+        findings.iter().any(|f| f.code == "MEM-BASE-ADMISSION-CONSUMERS"
+            && f.key == "base/dumping-ground"),
+        "a base/ crate with no declared admission facts must fail closed: {findings:#?}"
+    );
+    assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Red);
+}
+
+#[test]
 fn virtual_workspace_manifest_is_not_a_crate() {
     // A [workspace]-only Cargo.toml is NOT a crate; only [package] manifests count.
     let repo = new_temp_repo();
