@@ -52,8 +52,8 @@ standard supplies the per-image authoring rules.
 | Static-linked binary (musl + scratch-equivalent) | `gcr.io/distroless/static-debian13` | digest-pinned | smallest; preferred default |
 | Glibc-linked binary (FFI, dynamic linkage) | `gcr.io/distroless/cc-debian13` | digest-pinned | for crates requiring libc |
 | Java service (no Rust path) | `gcr.io/distroless/java21-debian13` | digest-pinned | only for legacy adapters |
-| Build stage (multi-stage) | `clux/muslrust:1.96.0-stable` | digest-pinned | musl toolchain for static linking |
-| Build stage (FFI) | `rust:1.96.0-slim-trixie` | digest-pinned | when musl is incompatible |
+| Build stage (multi-stage) | `clux/muslrust:1.97.1-stable` | digest-pinned | musl toolchain for static linking |
+| Build stage (FFI) | `rust:1.97.1-slim-trixie` | digest-pinned | when musl is incompatible |
 
 Per [`.omc/scratch/lts-versions-verified-2026-05-12.md`](../../.omc/scratch/lts-versions-verified-2026-05-12.md):
 **debian13 is current**; debian12 is deprecated (EOL ~Sep 2026). All new
@@ -89,7 +89,7 @@ cargo zigbuild --release --target x86_64-unknown-linux-musl
 or with muslrust:
 
 ```sh
-docker run --rm -v $PWD:/volume -w /volume clux/muslrust:1.96.0-stable \
+docker run --rm -v $PWD:/volume -w /volume clux/muslrust:1.97.1-stable \
   cargo build --release --target x86_64-unknown-linux-musl
 ```
 
@@ -110,7 +110,7 @@ Source: [muslrust](https://github.com/clux/muslrust),
 
 ```dockerfile
 # syntax=docker/dockerfile:1.7
-ARG RUST_VERSION=1.96.0
+ARG RUST_VERSION=1.97.1
 ARG DISTROLESS=gcr.io/distroless/static-debian13
 
 FROM clux/muslrust:${RUST_VERSION}-stable AS builder

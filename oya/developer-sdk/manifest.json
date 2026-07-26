@@ -278,7 +278,7 @@
     "openbao": "see ADR-0211",
     "backstage": "1.x",
     "node": "22 LTS",
-    "rust": "1.96.0",
+    "rust": "1.97.1",
     "swift": "5.10",
     "kotlin": "2.0",
     "dotnet": "8 LTS",

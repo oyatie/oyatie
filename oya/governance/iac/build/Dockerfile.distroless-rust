@@ -8,10 +8,10 @@
 # Standard: docs/standards/container-image-convention.md
 
 # ---- stage 1: builder ---------------------------------------------------
-# Rust 1.96.0-slim is pinned in registry catalog `lts_pins.rust`; bump via
+# Rust 1.97.1-slim is pinned in registry catalog `lts_pins.rust`; bump via
 # ADR-0064 canonical-base-and-localization update + workspace-hygiene
 # lane.
-FROM rust:1.96.0-slim AS builder
+FROM rust:1.97.1-slim AS builder
 WORKDIR /build
 
 # musl target = static binary that runs cleanly under distroless static.

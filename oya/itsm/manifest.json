@@ -267,7 +267,7 @@
   "supported_oses_manifest": "microservices/itsm/supported-oses.json",
   "language_policy": {
     "authority": "feedback_rust_strict_only_no_python_2026_05_20 + ADR-0328 §D-18",
-    "backend": "Rust 2024 edition; rust-version 1.96.0; deny clippy::unwrap_used/expect_used/panic",
+    "backend": "Rust 2024 edition; rust-version 1.97.1; deny clippy::unwrap_used/expect_used/panic",
     "frontend_allowlist": {
       "ios": "Swift",
       "android": "Kotlin",

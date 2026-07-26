@@ -5509,7 +5509,7 @@ fn stage0_prereqs_gate_is_dispatched() {
     fs::create_dir_all(temp.join("docs/decisions")).expect("decisions dir created");
     fs::write(
         temp.join("Cargo.toml"),
-        "[workspace]\nmembers = [\"crates/oya-application-app\"]\nresolver = \"2\"\n\n[workspace.package]\nedition = \"2024\"\nversion = \"0.1.0\"\nrust-version = \"1.96.0\"\n",
+        "[workspace]\nmembers = [\"crates/oya-application-app\"]\nresolver = \"2\"\n\n[workspace.package]\nedition = \"2024\"\nversion = \"0.1.0\"\nrust-version = \"1.97.1\"\n",
     )
     .expect("workspace written");
     fs::write(

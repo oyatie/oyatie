@@ -112,7 +112,7 @@ microservices/emergency/
 
 Per `feedback_rust_strict_only_no_python_2026_05_20`:
 
-- **Service logic** — Rust 1.96.0+ (strict; no Python, no JS app logic).
+- **Service logic** — Rust 1.97.1+ (strict; no Python, no JS app logic).
 - **IaC** — OpenTofu HCL (not Terraform).
 - **Policy** — Cedar.
 - **Contracts** — OpenAPI 3.1, AsyncAPI 2.6, proto3.
