@@ -39,13 +39,21 @@
 #   CAs + the read_only AC listener ARE the keyed boundary in slice 1, and a
 #   per-identity authz proxy is named follow-up work in ADR-0560.
 ---
-# SeaweedFS S3 backing (the staged infra/seaweedfs substrate at oya-storage):
-# NativeLink's aws store provider builds its client from the standard AWS SDK
-# config chain, so the endpoint override + credentials arrive via SDK env vars
-# (AWS_ENDPOINT_URL / AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY) on the pod —
-# validating that chain against SeaweedFS end-to-end is a named bring-up check in
-# ADR-0560. The bucket is dedicated (`nativelink-cas`), keyed separately from the
-# sccache bucket identity.
+# Slow tier = filesystem on a PersistentVolume, NOT SeaweedFS S3 (ADR-0560 D1
+# bring-up evidence). The `experimental_cloud_object_store` tier cannot start in
+# this image: constructing it panics with `failure to initialize platform
+# verifier: General("No CA certificates were loaded from the system")` — the image
+# carries no system CA bundle, and the verifier is built during startup store
+# construction, before any request, so a plaintext in-cluster endpoint does not
+# avoid it. Shipping that tier active would guarantee CrashLoopBackOff, so this
+# manifest deploys the tier ADR-0560 records as indicated.
+#
+# SeaweedFS revisit (queued in ADR-0560, deliberately NOT wired here): projecting
+# a CA bundle into the pod is the precondition. The bucket identity stays reserved
+# at OpenBao `oya/ci/nativelink-cas-s3` (dedicated `nativelink-cas` bucket, keyed
+# separately from the sccache bucket identity); its ExternalSecret + the
+# `oya.io/seaweedfs-client` egress label return with that revisit rather than
+# projecting credentials the process never reads.
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -72,12 +80,10 @@ data:
                   }
                 },
                 "slow": {
-                  "experimental_cloud_object_store": {
-                    "provider": "aws",
-                    "region": "oya-storage",
-                    "bucket": "nativelink-cas",
-                    "key_prefix": "cas/",
-                    "retry": { "max_retries": 6, "delay": 0.3, "jitter": 0.5 }
+                  "filesystem": {
+                    "content_path": "/data/cas-content",
+                    "temp_path": "/data/cas-tmp",
+                    "eviction_policy": { "max_bytes": 40000000000 }
                   }
                 }
               }
@@ -97,12 +103,10 @@ data:
               }
             },
             "slow": {
-              "experimental_cloud_object_store": {
-                "provider": "aws",
-                "region": "oya-storage",
-                "bucket": "nativelink-cas",
-                "key_prefix": "ac/",
-                "retry": { "max_retries": 6, "delay": 0.3, "jitter": 0.5 }
+              "filesystem": {
+                "content_path": "/data/ac-content",
+                "temp_path": "/data/ac-tmp",
+                "eviction_policy": { "max_bytes": 5000000000 }
               }
             }
           }
@@ -191,30 +195,25 @@ spec:
     - secretKey: ca-reader.crt
       remoteRef: { key: oya/ci/nativelink-cas-tls, property: reader-client-ca }
 ---
-# SeaweedFS bucket identity for the dedicated nativelink-cas bucket (NOT the
-# sccache ci-cache identity — separate blast radius). Standard AWS SDK env names
-# because NativeLink's aws provider consumes the SDK default chain.
-apiVersion: external-secrets.io/v1
-kind: ExternalSecret
+# Durable slow tier. Bounded by the store eviction policies above (40 GB CAS +
+# 5 GB AC) so the claim is never the thing that fills. ReadWriteOnce matches the
+# repo's `local-path` pattern (infra/seaweedfs, infra/registry) and pins the
+# Deployment at one replica until the SeaweedFS revisit restores a shared tier.
+apiVersion: v1
+kind: PersistentVolumeClaim
 metadata:
-  name: nativelink-cas-s3
+  name: nativelink-cas-data
   namespace: oya-ci
   labels:
+    app: nativelink-cas
     app.kubernetes.io/part-of: oya-substrate
     oya.io/adr: ADR-0560
 spec:
-  refreshInterval: 1h
-  secretStoreRef:
-    name: openbao-oya
-    kind: ClusterSecretStore
-  target:
-    name: nativelink-cas-s3
-    creationPolicy: Owner
-  data:
-    - secretKey: AWS_ACCESS_KEY_ID
-      remoteRef: { key: oya/ci/nativelink-cas-s3, property: access-key }
-    - secretKey: AWS_SECRET_ACCESS_KEY
-      remoteRef: { key: oya/ci/nativelink-cas-s3, property: secret-key }
+  accessModes: [ReadWriteOnce]
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 50Gi
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -227,9 +226,11 @@ metadata:
     oya.io/adr: ADR-0560
     oya.adr/decided-by: ADR-0560
 spec:
-  # Horizontally scalable: stateless in front of the S3 slow tier (the fast tier
-  # is a node-local LRU on emptyDir — cache-of-cache, safe to lose). Start at 1 on
-  # the compact cell; scale-out is a replicas edit, no topology change.
+  # Pinned at 1 while the slow tier is a ReadWriteOnce PV: the fast tier is a
+  # node-local LRU on emptyDir (cache-of-cache, safe to lose), but the slow tier is
+  # now pod-local durable state, not a shared object store. Horizontal scale-out
+  # returns with the SeaweedFS revisit (ADR-0560 D1), which is what made the tier
+  # stateless; it is a topology change today, not a replicas edit.
   replicas: 1
   selector:
     matchLabels:
@@ -238,9 +239,6 @@ spec:
     metadata:
       labels:
         app: nativelink-cas
-        # Egress seam to SeaweedFS: the bucket-api NetworkPolicy in
-        # infra/seaweedfs/seaweedfs.k8s.yaml admits pods carrying this label.
-        oya.io/seaweedfs-client: "true"
     spec:
       automountServiceAccountToken: false
       securityContext:
@@ -279,17 +277,11 @@ spec:
           # service, no exec surface).
           args: ["/etc/nativelink/cas.json"]
           env:
-            # SeaweedFS endpoint override via the AWS SDK default chain (see the
-            # ConfigMap header note). Cluster-internal, plaintext-in-cluster like
-            # the sccache consumer; in-cluster mTLS mesh is the cilium successor.
-            - name: AWS_ENDPOINT_URL
-              value: "http://seaweedfs-bucket-api.oya-storage.svc.cluster.local:8333"
-            - name: AWS_ACCESS_KEY_ID
-              valueFrom:
-                secretKeyRef: { name: nativelink-cas-s3, key: AWS_ACCESS_KEY_ID, optional: false }
-            - name: AWS_SECRET_ACCESS_KEY
-              valueFrom:
-                secretKeyRef: { name: nativelink-cas-s3, key: AWS_SECRET_ACCESS_KEY, optional: false }
+            # No AWS_* here: the AWS SDK env chain exists only for the
+            # cloud-object-store tier, which this manifest no longer activates
+            # (see the ConfigMap header note). The three variables this container
+            # used to set — AWS_ENDPOINT_URL / AWS_ACCESS_KEY_ID /
+            # AWS_SECRET_ACCESS_KEY — return with the SeaweedFS revisit.
             - name: RUST_LOG
               value: "warn"
           ports:
@@ -305,6 +297,8 @@ spec:
               readOnly: true
             - name: cache
               mountPath: /cache
+            - name: data
+              mountPath: /data
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
@@ -338,9 +332,13 @@ spec:
           secret:
             secretName: nativelink-cas-tls
         - name: cache
-          # Node-local LRU fast tier; bounded; durable truth lives in SeaweedFS.
+          # Node-local LRU fast tier; bounded; safe to lose — durable truth lives
+          # on the `data` claim below.
           emptyDir:
             sizeLimit: 12Gi
+        - name: data
+          persistentVolumeClaim:
+            claimName: nativelink-cas-data
 ---
 # Writer endpoint — trusted CI lanes only (mTLS writer CA at the listener; the
 # warm-cache-rw.buckconfig overlay dials this Service).
