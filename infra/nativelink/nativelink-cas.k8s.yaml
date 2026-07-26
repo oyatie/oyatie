@@ -11,7 +11,8 @@
 # Precedent (hyperscaler-lens): NativeLink is Rust-native (rust-purity aligned),
 # speaks the Bazel Remote-Execution gRPC CAS/AC API (the same wire protocol Bazel /
 # Buck2 / Pants / Reclient consume), FSL-1.1-Apache-2.0 (FSL 1.1, converts to
-# Apache-2.0 ~2028-06-07; deployed as a container, not a linked Rust dependency),
+# Apache-2.0 ~2028-07-17 for the pinned v1.6.2 release; deployed as a container,
+# not a linked Rust dependency),
 # self-hostable; its own production guidance runs CAS and scheduler as separate
 # processes (Buildbarn decomposes the same way: bb-storage / bb-scheduler /
 # bb-worker).
@@ -251,10 +252,17 @@ spec:
           type: RuntimeDefault
       containers:
         - name: nativelink
-          # Digest-pin at bring-up (kyverno verify-image policy applies in-cluster);
-          # multi-arch (aarch64 Talos pool) — confirming the arch manifest is a
-          # named bring-up check in ADR-0560.
-          image: ghcr.io/tracemachina/nativelink:v1.4.0
+          # Digest-pinned (kyverno verify-image policy applies in-cluster).
+          #
+          # ADR-0560's multi-arch bring-up check is now ANSWERED, and the answer
+          # forced this bump: v1.4.0 published a single linux/amd64 manifest only
+          # (its entrypoint is literally nativelink-x86_64-unknown-linux-musl), so
+          # it could never have run on the aarch64 Talos pool the manifest targets
+          # — nor on ADR-0612 D1's aarch64 worker tier. v1.6.0 is the first release
+          # publishing a manifest INDEX covering linux/amd64 + linux/arm64; v1.6.2
+          # verified by pull on aarch64 (entrypoint
+          # nativelink-aarch64-unknown-linux-musl-1.6.2).
+          image: ghcr.io/tracemachina/nativelink:v1.6.2@sha256:b8cb150c1fa776063573d647e7e5df46fb43a79a47430302861bb9ffd38ed007
           # No shell anywhere: the image entrypoint IS the nativelink binary; the
           # only argument is the declarative config file (ADR-0556 D4 — API-driven
           # service, no exec surface).

@@ -54,13 +54,14 @@ conformance-checked; nothing in the live pipeline changes behavior today.
 
 ### D1 — Declarative deployment artifacts: the `nativelink-cas` tier only
 
-`infra/nativelink/nativelink-cas.k8s.yaml` deploys NativeLink **v1.4.0** (current upstream
-release, 2026-06-07) as the cache-only tier of the founder-decided 2026-05-30 three-tier
+`infra/nativelink/nativelink-cas.k8s.yaml` deploys NativeLink **v1.6.2** (current upstream
+release, 2026-07-17) as the cache-only tier of the founder-decided 2026-05-30 three-tier
 split (`docs/ideas/nativelink-remote-cache-first.md`): CAS + Action Cache, no scheduler, no
 workers. Precedent accuracy, per the hyperscaler lens: NativeLink is **Rust-native**
 (rust-purity aligned), speaks the **Bazel Remote-Execution gRPC CAS/AC API** (the wire
 protocol Bazel/Buck2/Pants/Reclient already consume), **FSL-1.1-Apache-2.0** (FSL 1.1,
-converts to Apache-2.0 ~2028-06-07; deployed as a container, not a linked Rust
+converts to Apache-2.0 ~2028-07-17 for the pinned v1.6.2 release; deployed as a
+container, not a linked Rust
 dependency), self-hostable; its own production guidance runs CAS and scheduler as
 separate processes, the same decomposition Buildbarn ships (bb-storage / bb-scheduler /
 bb-worker). It runs as a **container, not a workspace crate** — zero new third-party
@@ -79,9 +80,24 @@ The endpoint override + credentials ride the standard AWS SDK env chain
 SeaweedFS end-to-end is a named bring-up check**, with filesystem-on-PV as the documented
 fallback if the SDK chain disappoints.
 
+**Bring-up evidence recorded at the v1.6.2 bump (partial — the check is not yet closed).**
+Running the pinned image against this exact `cas.json` on aarch64, with **no `AWS_*` env
+set**, the config parses and store construction begins, then the process panics:
+`failure to initialize platform verifier: General("No CA certificates were loaded from the
+system")` (hyper-rustls) — the image carries no system CA bundle. The same config with the
+`experimental_cloud_object_store` slow tier removed reaches `Ready, listening on
+0.0.0.0:50051` cleanly. So the failure is specific to the cloud-object-store tier, not the
+image or the schema. What is **not** established: whether a plaintext `http://`
+`AWS_ENDPOINT_URL` pointed at in-cluster SeaweedFS avoids the platform-verifier
+initialization altogether — the panic occurs during startup store construction, before any
+request is issued, so it may be unconditional. Closing this check therefore needs either a
+projected CA bundle in the pod or a confirmed plaintext-endpoint path; until one is proven,
+**filesystem-on-PV is the indicated slow tier**, not a contingency.
+
 ### D2 — Keyed authn at the service boundary (the founder-decided posture, mapped to what OSS NativeLink actually enforces)
 
-Honest capability statement: OSS NativeLink (v1.4.0) has **no per-identity API-key authz**;
+Honest capability statement: OSS NativeLink (v1.6.2) has **no per-identity API-key authz**
+(re-verified against the v1.5.x/v1.6.x release notes at bump time — no authz feature landed);
 what it does enforce at the listener is **mTLS client-certificate verification**
 (`client_ca_file`) and a **read-only Action Cache** (`ac.read_only`). Slice 1 builds the
 keyed boundary from exactly those primitives:
