@@ -3586,46 +3586,48 @@ fn collect_bound_adrs(value: &Value, out: &mut BTreeSet<String>) {
     }
 }
 
-fn masterplan_propagates_decision(masterplan: &str, decision_id: &str) -> bool {
+fn masterplan_propagated_decisions(masterplan: &str) -> BTreeSet<String> {
     let Ok(value) = serde_json::from_str::<Value>(masterplan) else {
-        return false;
+        return BTreeSet::new();
     };
-    let mut bound = BTreeSet::new();
-    collect_bound_adrs(&value, &mut bound);
-    if bound.contains(decision_id) {
-        return true;
-    }
-
-    value
+    let mut propagated = BTreeSet::new();
+    collect_bound_adrs(&value, &mut propagated);
+    let lifecycle_only = value
         .pointer(
             "/masterplan_v2/accepted_decision_propagation_dispositions/decisions",
         )
         .and_then(Value::as_array)
-        .is_some_and(|decisions| {
-            decisions.iter().any(|decision| {
-                decision.get("id").and_then(Value::as_str) == Some(decision_id)
-                    && decision
-                        .get("lifecycle_state")
-                        .and_then(Value::as_str)
-                        .is_some_and(|state| state.eq_ignore_ascii_case("accepted"))
-                    && decision.get("planning_impact").and_then(Value::as_bool) == Some(false)
-                    && decision.get("sequencing_effect").and_then(Value::as_str) == Some("none")
-                    && decision
-                        .get("binding_plan_approval_effect")
-                        .and_then(Value::as_str)
-                        == Some("none")
-                    && decision
-                        .get("execution_dispatch_effect")
-                        .and_then(Value::as_str)
-                        == Some("none")
-                    && decision.get("hold_state").and_then(Value::as_str)
-                        == Some("HOLD(Planning)")
-                    && decision.get("disposition_ref").and_then(Value::as_str)
-                        == Some(
-                            "/specs/master-plan-sequencing.json#_metadata.accepted_decision_propagation_dispositions",
-                        )
-            })
+        .into_iter()
+        .flatten()
+        .filter(|decision| {
+            decision
+                .get("lifecycle_state")
+                .and_then(Value::as_str)
+                .is_some_and(|state| state.eq_ignore_ascii_case("accepted"))
+                && decision.get("planning_impact").and_then(Value::as_bool) == Some(false)
+                && decision.get("sequencing_effect").and_then(Value::as_str) == Some("none")
+                && decision
+                    .get("binding_plan_approval_effect")
+                    .and_then(Value::as_str)
+                    == Some("none")
+                && decision
+                    .get("execution_dispatch_effect")
+                    .and_then(Value::as_str)
+                    == Some("none")
+                && decision.get("hold_state").and_then(Value::as_str)
+                    == Some("HOLD(Planning)")
+                && decision.get("disposition_ref").and_then(Value::as_str)
+                    == Some(
+                        "/specs/master-plan-sequencing.json#_metadata.accepted_decision_propagation_dispositions",
+                    )
         })
+        .filter_map(|decision| decision.get("id").and_then(Value::as_str));
+    propagated.extend(lifecycle_only.map(str::to_owned));
+    propagated
+}
+
+fn masterplan_propagates_decision(masterplan: &str, decision_id: &str) -> bool {
+    masterplan_propagated_decisions(masterplan).contains(decision_id)
 }
 
 /// Collect the GATE-1 cross-artifact facts from the live corpus: ADR front-matter
@@ -3693,6 +3695,7 @@ fn collect_crosswalk_inputs(
         &cfg.reachability.masterplan,
         &masterplan,
     );
+    let propagated_masterplan_decisions = masterplan_propagated_decisions(&masterplan);
 
     let mut decisions: Vec<DecisionCrosswalkRow> = Vec::new();
     let mut duplicate_ids: Vec<String> = Vec::new();
@@ -3706,7 +3709,7 @@ fn collect_crosswalk_inputs(
         let body = sorted.first().map(|p| read_text(p)).unwrap_or_default();
         let status = front_matter_field(&body, "status").unwrap_or_default();
         let in_spec = id_in_spec_corpus(repo_root, id);
-        let in_masterplan = masterplan_propagates_decision(&masterplan, id);
+        let in_masterplan = propagated_masterplan_decisions.contains(id);
         let in_roadmap = roadmap.contains(id.as_str());
         decisions.push(DecisionCrosswalkRow {
             id: id.clone(),

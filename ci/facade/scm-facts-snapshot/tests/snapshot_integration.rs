@@ -36,6 +36,8 @@ const PROTECTED: &str = "3333333333333333333333333333333333333333";
 const CANDIDATE: &str = "5555555555555555555555555555555555555555";
 const EPOCH_RECEIPT_PATH: &str =
     "ci/facade/artifact-inventory-registry/adr-census-epoch-receipt.generated.json";
+const FIXED_P2_EPOCH_RECEIPT_SHA256: &str =
+    "0f22621954fe0f7718a79616769bfe1ed4660851bab8890d69e98038080e2b0a";
 
 #[test]
 fn status_only_child_timeout_preserves_label_and_terminates_child() {
@@ -48,11 +50,17 @@ fn status_only_child_timeout_preserves_label_and_terminates_child() {
         .env("OYA_CI_COMMAND_CHILD_MODE", "timeout")
         .env("OYA_CI_COMMAND_CHILD_ROOT", &root);
 
-    let error =
-        command_status_with_timeout(command, Duration::from_millis(100), "test bounded child")
-            .expect_err("sleeping child must time out");
+    let release = root.join("release");
+    let release_after_timeout = std::thread::spawn(move || {
+        std::thread::sleep(Duration::from_secs(4));
+        std::fs::write(release, b"release").expect("release timeout child after parent deadline");
+    });
+    let error = command_status_with_timeout(command, Duration::from_secs(3), "test bounded child")
+        .expect_err("sleeping child must time out");
     assert!(error.contains("test bounded child timed out"), "{error}");
-    std::thread::sleep(Duration::from_millis(1_250));
+    release_after_timeout
+        .join()
+        .expect("timeout release helper must complete");
     assert!(
         root.join("started").is_file(),
         "timeout child must start before termination"
@@ -144,7 +152,9 @@ fn status_only_command_child_helper() {
                     .expect("timeout child root must be supplied"),
             );
             std::fs::write(root.join("started"), b"started").expect("write started sentinel");
-            std::thread::sleep(Duration::from_secs(1));
+            while !root.join("release").exists() {
+                std::thread::sleep(Duration::from_millis(10));
+            }
             std::fs::write(root.join("survived"), b"survived").expect("write survivor sentinel");
         }
         Ok("large-output") => {
@@ -1048,7 +1058,7 @@ fn active_p2_epoch_emission_preserves_the_fixed_historical_receipt() {
     let receipt = std::fs::read(&output).expect("read active P2 receipt");
     assert_eq!(
         format!("{:x}", sha2::Sha256::digest(&receipt)),
-        "0f22621954fe0f7718a79616769bfe1ed4660851bab8890d69e98038080e2b0a"
+        FIXED_P2_EPOCH_RECEIPT_SHA256
     );
     let value: serde_json::Value = serde_json::from_slice(&receipt).expect("parse receipt");
     assert_eq!(
@@ -1384,7 +1394,7 @@ fn synthetic_pr_p3_to_p2_pointer_only_rollback_emits_the_fixed_receipt() {
             "{:x}",
             sha2::Sha256::digest(std::fs::read(&output).expect("read rollback receipt"))
         ),
-        "0f22621954fe0f7718a79616769bfe1ed4660851bab8890d69e98038080e2b0a",
+        FIXED_P2_EPOCH_RECEIPT_SHA256,
         "P3 to P2 rollback must restore the fixed historical receipt"
     );
 
@@ -1765,23 +1775,25 @@ fn dormant_p3_identity_is_bounded_to_selected_inputs() {
         (
             "pointer-only-p2-to-p3",
             "registry/adr-census-epoch/control-plane.json",
-            b"\n".as_slice(),
+            None,
         ),
         (
             "unrelated-docs",
             "docs/README.md",
-            b"unrelated\n".as_slice(),
+            Some(b"unrelated\n".as_slice()),
         ),
         (
             "nested-unselected-decision",
             "docs/decisions/nested/ADR-9999-unselected.md",
-            b"nested\n".as_slice(),
+            Some(b"nested\n".as_slice()),
         ),
     ];
     for (label, path, mutation) in unchanged_inputs {
         let root = p3_identity_fixture(label);
         let baseline = dormant_p3_epoch_fingerprint(&root).expect("build baseline P3 fingerprint");
-        if path == "registry/adr-census-epoch/control-plane.json" {
+        if let Some(mutation) = mutation {
+            mutate_fixture_and_commit(&root, path, mutation);
+        } else {
             std::fs::write(
                 root.join(path),
                 br#"{
@@ -1795,8 +1807,6 @@ fn dormant_p3_identity_is_bounded_to_selected_inputs() {
             )
             .expect("write pointer-only P3 transition");
             commit_all(&root, "pointer-only P2 to P3");
-        } else {
-            mutate_fixture_and_commit(&root, path, mutation);
         }
         assert_eq!(
             dormant_p3_epoch_fingerprint(&root).expect("rebuild unchanged P3 fingerprint"),

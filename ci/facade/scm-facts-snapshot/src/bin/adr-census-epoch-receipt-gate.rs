@@ -4,7 +4,7 @@
 use std::path::{Path, PathBuf};
 
 use ci_scm_facts_snapshot::{
-    ADR_CENSUS_EPOCH_RECEIPT_PATH, select_census_event_from_event,
+    ADR_CENSUS_EPOCH_RECEIPT_PATH, discover_repo_root, select_census_event_from_event,
     validate_adr_census_epoch_receipt_for_event, validate_census_event_transition,
     validate_dormant_p3_epoch_policy_for_event,
 };
@@ -39,8 +39,18 @@ fn run(args: Vec<String>) -> Result<(), String> {
                 .to_owned(),
         );
     }
-    let repo_root = repo_root.unwrap_or_else(repo_root_from_current_dir);
+    let repo_root = resolve_repo_root(repo_root, discover_repo_root)?;
     validate_gate_from_event(&repo_root)
+}
+
+fn resolve_repo_root(
+    repo_root: Option<PathBuf>,
+    discover: impl FnOnce() -> Result<PathBuf, String>,
+) -> Result<PathBuf, String> {
+    match repo_root {
+        Some(repo_root) => Ok(repo_root),
+        None => discover(),
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -128,21 +138,6 @@ fn validate_gate_from_event(repo_root: &Path) -> Result<(), String> {
     validate_dormant_p3_epoch_policy_for_event(&validated)
 }
 
-fn repo_root_from_current_dir() -> PathBuf {
-    let mut directory = std::env::current_dir().unwrap_or_else(|error| {
-        panic!("adr-census-epoch-receipt-gate: resolve current directory: {error}")
-    });
-    for _ in 0..16 {
-        if directory.join("specs/root-hub-pointers.json").is_file() {
-            return directory;
-        }
-        if !directory.pop() {
-            break;
-        }
-    }
-    panic!("adr-census-epoch-receipt-gate: repository root not found")
-}
-
 #[cfg(test)]
 mod tests {
     use std::collections::BTreeMap;
@@ -172,6 +167,25 @@ mod tests {
 
     fn parse(facts: &BTreeMap<String, String>) -> Result<GateEventContext, String> {
         event_context_from_facts(|key| facts.get(key).cloned())
+    }
+
+    #[test]
+    fn implicit_repo_root_propagates_shared_discovery_failure_without_panicking() {
+        let error = resolve_repo_root(None, || Err("repository root unavailable".to_owned()))
+            .expect_err("implicit repository-root discovery failure must return an error");
+        assert_eq!(error, "repository root unavailable");
+    }
+
+    #[test]
+    fn explicit_repo_root_does_not_invoke_shared_discovery() {
+        let explicit = PathBuf::from("/explicit/repository");
+        assert_eq!(
+            resolve_repo_root(Some(explicit.clone()), || {
+                Err("explicit repo root must bypass discovery".to_owned())
+            })
+            .expect("explicit repo root must be preserved"),
+            explicit
+        );
     }
 
     #[test]
