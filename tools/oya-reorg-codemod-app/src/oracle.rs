@@ -281,20 +281,42 @@ pub fn prove_graph_equivalence(
             cargo_package_edges(&before.cargo_metadata),
             cargo_package_edges(&after.cargo_metadata),
         ) {
-            (Some(b), Some(a)) => {
+            (Some(b), Some(a)) if !b.is_empty() && !a.is_empty() => {
                 let relabelled: BTreeSet<String> = b
                     .iter()
                     .map(|edge| relabel_cargo_edge(edge, &names))
                     .collect();
                 only_before.extend(relabelled.difference(&a).map(|s| format!("cargo:{s}")));
                 only_after.extend(a.difference(&relabelled).map(|s| format!("cargo:{s}")));
-                out.cargo_checked = true;
+                // PLAN COVERAGE: every crate the plan claims to move must be VISIBLE at its
+                // destination. Without this the proof is vacuous on a truncated or filtered
+                // graph — two sets that both omit the moved crates agree trivially.
+                let after_names: BTreeSet<&str> =
+                    a.iter().filter_map(|e| e.split('|').next()).collect();
+                let missing: Vec<&str> = plan
+                    .moves
+                    .iter()
+                    .map(|m| m.new_cargo_name.as_str())
+                    .filter(|n| !after_names.contains(n))
+                    .collect();
+                if missing.is_empty() {
+                    out.cargo_checked = true;
+                } else {
+                    notes.push(format!(
+                        "cargo: {} planned crate(s) absent from the post-move graph (e.g. {}); \
+                         equivalence NOT proven",
+                        missing.len(),
+                        missing[0]
+                    ));
+                }
                 notes.push(format!(
                     "cargo: {} packages before, {} after",
                     b.len(),
                     a.len()
                 ));
             }
+            (Some(_), Some(_)) => notes
+                .push("cargo: an EMPTY package graph proves nothing; equivalence NOT proven".to_owned()),
             _ => notes.push("cargo: metadata did not parse; equivalence NOT proven".to_owned()),
         }
     } else {
@@ -310,7 +332,32 @@ pub fn prove_graph_equivalence(
         let a: BTreeSet<String> = buck_labels(&after.buck_targets).into_iter().collect();
         only_before.extend(b.difference(&a).map(|s| format!("buck:{s}")));
         only_after.extend(a.difference(&b).map(|s| format!("buck:{s}")));
-        out.buck_checked = true;
+        if b.is_empty() || a.is_empty() {
+            notes.push(
+                "buck2: an EMPTY target graph proves nothing; equivalence NOT proven".to_owned(),
+            );
+        } else {
+            // PLAN COVERAGE, buck2 side: each destination package must own at least one target.
+            let missing: Vec<&str> = plan
+                .moves
+                .iter()
+                .map(|m| m.new_path.as_str())
+                .filter(|dest| {
+                    let needle = format!("//{dest}:");
+                    !a.iter().any(|l| l.contains(&needle))
+                })
+                .collect();
+            if missing.is_empty() {
+                out.buck_checked = true;
+            } else {
+                notes.push(format!(
+                    "buck2: {} destination package(s) own no target (e.g. {}); equivalence NOT \
+                     proven",
+                    missing.len(),
+                    missing[0]
+                ));
+            }
+        }
         notes.push(format!("buck2: {} targets before, {} after", b.len(), a.len()));
     } else {
         notes.push(
@@ -765,6 +812,49 @@ root//iam/facade/pdp:iam-pdp";
         );
         assert!(!still_fails.equivalent);
         assert!(still_fails.only_after.iter().any(|s| s.contains("sneaky")));
+    }
+
+    #[test]
+    fn two_empty_graphs_are_not_a_proof() {
+        // Two empty sets are equal. Without a guard that reads as "equivalent" while having
+        // learned nothing — the exact false green this tool exists to avoid, because a buck2
+        // that exits 0 on a broken cell emits no targets at all.
+        let empty_cargo = r#"{"packages":[]}"#;
+        let out = prove_graph_equivalence(
+            &snapshot(empty_cargo, ""),
+            &snapshot(empty_cargo, ""),
+            &os_plan(),
+            &[],
+        );
+        assert!(
+            !out.equivalent,
+            "an empty graph must never prove equivalence; detail={}",
+            out.detail
+        );
+        assert!(!out.cargo_checked && !out.buck_checked);
+        assert!(out.detail.contains("EMPTY"));
+    }
+
+    #[test]
+    fn a_truncated_graph_that_omits_the_moved_crates_is_not_a_proof() {
+        // Both sides agree, both are non-empty — but neither mentions the crate the plan claims
+        // to have moved. Agreement about unrelated targets is not evidence about this move.
+        let unrelated_cargo = r#"{"packages":[{"name":"iam-pdp","dependencies":[]}]}"#;
+        let unrelated_buck = "root//iam/facade/pdp:iam-pdp";
+        let out = prove_graph_equivalence(
+            &snapshot(unrelated_cargo, unrelated_buck),
+            &snapshot(unrelated_cargo, unrelated_buck),
+            &os_plan(),
+            &[],
+        );
+        assert!(
+            !out.equivalent,
+            "a graph that cannot see the moved crate proves nothing; detail={}",
+            out.detail
+        );
+        assert!(!out.cargo_checked, "cargo leg must reject: destination crate absent");
+        assert!(!out.buck_checked, "buck leg must reject: destination package owns no target");
+        assert!(out.detail.contains("absent") || out.detail.contains("no target"));
     }
 
     #[test]
