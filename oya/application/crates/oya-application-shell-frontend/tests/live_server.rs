@@ -218,12 +218,16 @@ async fn live_ssr_host_serves_routes_confines_packages_and_shuts_down_cleanly() 
     .await;
     assert_status(&missing_package, "404");
 
+    // The host mounts no `/api/{*fn_name}` server-function route, so an unauthenticated caller
+    // cannot reach a wildcard POST control plane. This asserts the absence live, not just in the
+    // route table: re-adding the wildcard without a fail-closed authz layer turns this test RED.
     let server_function = request(address, "POST /api/not-a-server-function HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\nContent-Length: 0\r\n\r\n").await;
-    assert!(
-        !server_function.starts_with("HTTP/1.1 404")
-            && !server_function.starts_with("HTTP/1.1 405"),
-        "Leptos server-function route was not reached: {server_function}"
-    );
+    assert_status(&server_function, "404");
+
+    // A POST onto the one surviving `/api` read is rejected by method, not silently absorbed by a
+    // wildcard fallback.
+    let post_envelope = request(address, "POST /api/render-envelope/tenant-admin HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\nContent-Length: 0\r\n\r\n").await;
+    assert_status(&post_envelope, "405");
 
     let post_root = request(
         address,

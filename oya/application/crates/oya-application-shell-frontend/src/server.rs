@@ -1,4 +1,4 @@
-//! Native Axum host for the server-rendered shell and Leptos server functions.
+//! Native Axum host for the server-rendered shell.
 
 use std::{
     env,
@@ -13,7 +13,7 @@ use axum::{
     extract::{Path as AxumPath, State},
     http::{StatusCode, header},
     response::{IntoResponse, Response},
-    routing::{get, post},
+    routing::get,
 };
 use leptos::prelude::*;
 
@@ -85,8 +85,12 @@ where
 
 /// Builds the native route graph.
 ///
-/// The server-function route delegates to Leptos' canonical Axum integration; explicit shell
-/// routes remain separate so the SSR shell and its deny-by-default envelope are easy to audit.
+/// Every route is an explicit, non-mutating read so the SSR shell and its deny-by-default
+/// envelope are easy to audit. There is deliberately no `/api/{*fn_name}` server-function route:
+/// this crate — and the workspace as a whole — declares zero `#[server]` functions, so mounting
+/// `leptos_axum::handle_server_fns` would publish an unauthenticated wildcard POST control plane
+/// backed by an empty registry. Re-adding it requires a fail-closed authz layer (verified
+/// principal + server-side PDP `decide()`) landed in the same change as the first server function.
 #[must_use]
 pub fn router() -> Router {
     router_for_package_root(PathBuf::from(SITE_ROOT).join("pkg"))
@@ -98,8 +102,8 @@ pub fn router() -> Router {
 /// coverage independent from the developer's local `target/site` contents.
 #[must_use]
 pub fn router_for_package_root(package_root: PathBuf) -> Router {
-    // Leptos' server-function adapter initializes this lazily, but a streaming SSR request can
-    // arrive first. Initialize the native Tokio executor before constructing that renderer.
+    // Streaming SSR spawns through `any_spawner`, so the native Tokio executor must be installed
+    // before the renderer is constructed. Re-initialization is a no-op, hence the discarded result.
     let _ = any_spawner::Executor::init_tokio();
     let render_shell = leptos_axum::render_app_to_stream(ServerShell);
 
@@ -109,7 +113,6 @@ pub fn router_for_package_root(package_root: PathBuf) -> Router {
         .route("/style/tokens.css", get(tokens_css))
         .route("/style/app.css", get(app_css))
         .route("/api/render-envelope/{context_id}", get(render_envelope))
-        .route("/api/{*fn_name}", post(leptos_axum::handle_server_fns))
         .route("/pkg/", get(package_asset_empty))
         .route("/pkg/{*asset}", get(package_asset))
         .with_state(ServerState {
