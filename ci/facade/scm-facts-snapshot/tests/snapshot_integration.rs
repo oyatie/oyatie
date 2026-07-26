@@ -117,6 +117,13 @@ fn status_only_sustained_output_uses_no_parent_owned_storage() {
     };
     maximum_storage = maximum_storage.max(directory_bytes(&root));
     assert!(status.success(), "status-only storage probe must pass");
+    // This invariant is scoped to `command_status_with_timeout`, which supplies
+    // its own null stderr and therefore allocates nothing. The sibling
+    // `command_status_with_timeout_stderr` takes a caller-chosen sink, and
+    // `preprovision_historical_p2_toolchain` is the one caller that passes a file
+    // — that storage is the caller's, is written inside the temp worktree, and is
+    // unlinked before the call returns. Adding a second storage-taking caller
+    // means revisiting this assertion's scope.
     assert_eq!(
         maximum_storage, 0,
         "status-only command supervision must never allocate parent-owned output storage"
