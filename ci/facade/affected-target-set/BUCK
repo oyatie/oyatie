@@ -35,6 +35,21 @@ rust_binary(
     ],
 )
 
+# GH #1323/#899 trusted-baseline selector coverage: pins every fail-closed seam of the cross-run
+# baseline consumer (provenance selection, kind scoping, expiry, malformed payloads) so the FULL
+# tier can only skip its cold merge-base rebuild on a fully validated push-to-dev baseline.
+rust_test(
+    name = "oya-cloud-ci-build-health-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_cloud_ci_build_health_unittest",
+    crate_root = "src/bin/oya-cloud-ci-build-health.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-affected-target-set",
+        "third-party//:serde_json",
+    ],
+)
+
 # Adapter-only visibility helper for GH #901: wraps long-running workflow commands and prints
 # phase + elapsed-seconds heartbeats while preserving the wrapped command's exit status.
 rust_binary(

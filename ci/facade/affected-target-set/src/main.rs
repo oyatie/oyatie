@@ -18,15 +18,17 @@
 use std::collections::BTreeMap;
 use std::fs;
 use std::io::Write as _;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::{Command, ExitCode, ExitStatus, Stdio};
 use std::thread;
 use std::time::{Duration, Instant};
 
 use ci_affected_target_set::{
-    Decision, GATE_ID, GatePhaseOutcome, PathClass, Plan, Policy, affected_set_operator_artifact,
+    BASELINE_PROVENANCE_FILENAME, Decision, GATE_ID, GatePhaseOutcome, PathClass, Plan, Policy,
+    affected_set_operator_artifact,
     build_health_verdict, failing_targets, failing_test_targets, long_step_telemetry_line,
     parse_build_report, parse_name_status_z, parse_test_verdicts, plan_changes, resolve,
+    test_verdicts_to_report_value,
 };
 
 const LOG: &str = "affected-set";
@@ -64,6 +66,9 @@ struct ArtifactContext {
     resolved_base_ref: String,
     resolved_head_ref: String,
     baseline_report_present: bool,
+    /// Sidecar written by the trusted-baseline consumer; `None` means the baseline was rebuilt
+    /// cold in this job. Label only — never consulted by the verdict.
+    baseline_provenance: Option<serde_json::Value>,
 }
 
 #[derive(PartialEq, Eq, Clone, Copy)]
@@ -468,7 +473,21 @@ fn build_artifact_context(args: &Args, base: &str) -> Result<Option<ArtifactCont
         resolved_base_ref: resolve_git_ref(base)?,
         resolved_head_ref: resolve_git_ref(&args.head)?,
         baseline_report_present: args.baseline_report.is_some(),
+        baseline_provenance: args.baseline_report.as_deref().and_then(read_baseline_provenance),
     }))
+}
+
+/// Read the trusted-baseline consumer's sidecar from the directory holding `baseline_report`.
+///
+/// PRESENT => the FULL tier is grandfathering against a REUSED push-to-dev baseline (empty
+/// failure set, nothing grandfathered). ABSENT => the baseline was rebuilt cold in this job and
+/// may grandfather env-dependent merge-base failures. A malformed sidecar reads as absent: it is
+/// a provenance LABEL for the operator artifact and must never influence the verdict itself.
+fn read_baseline_provenance(baseline_report: &str) -> Option<serde_json::Value> {
+    let sidecar = Path::new(baseline_report)
+        .parent()?
+        .join(BASELINE_PROVENANCE_FILENAME);
+    serde_json::from_str(&fs::read_to_string(sidecar).ok()?).ok()
 }
 
 fn resolve_git_ref(reference: &str) -> Result<String, String> {
@@ -495,6 +514,7 @@ fn maybe_write_decision_artifact(
         &context.resolved_base_ref,
         &context.resolved_head_ref,
         context.baseline_report_present,
+        context.baseline_provenance.as_ref(),
         decision,
         phases,
     );
@@ -969,15 +989,26 @@ fn run_full_test_health(buck2: &str, test_baseline_report: Option<&str>) -> Exit
     ExitCode::SUCCESS
 }
 
-/// The stable path the admission build-report is written to (D7). GitHub Actions sets
-/// `RUNNER_TEMP`; we anchor the report there so the workflow's upload step references the SAME
-/// path without guessing a PID. Off-CI (or if `RUNNER_TEMP` is unset) it falls back to the OS
-/// temp dir with the identical basename — deterministic either way.
-fn admission_report_path() -> PathBuf {
-    let dir = std::env::var_os("RUNNER_TEMP")
+/// The directory the stable admission reports are written to. GitHub Actions sets `RUNNER_TEMP`;
+/// we anchor the reports there so the workflow's upload steps reference the SAME paths without
+/// guessing a PID. Off-CI (or if `RUNNER_TEMP` is unset) it falls back to the OS temp dir with
+/// identical basenames — deterministic either way.
+fn admission_report_dir() -> PathBuf {
+    std::env::var_os("RUNNER_TEMP")
         .map(PathBuf::from)
-        .unwrap_or_else(std::env::temp_dir);
-    dir.join("build-health-admission-report.json")
+        .unwrap_or_else(std::env::temp_dir)
+}
+
+/// The stable path the admission BUILD report is written to (D7).
+fn admission_report_path() -> PathBuf {
+    admission_report_dir().join("build-health-admission-report.json")
+}
+
+/// The stable path the admission TEST report is written to (GH #1323/#899, the test half of the
+/// D8 baseline pair). Same shape as the build report — `parse_build_report`-readable — because it
+/// is `test_verdicts_to_report_value` output, so the test-health ratchet consumes it identically.
+fn admission_test_report_path() -> PathBuf {
+    admission_report_dir().join("test-health-admission-report.json")
 }
 
 fn long_step_telemetry_interval() -> Duration {
@@ -1123,8 +1154,121 @@ fn run_full_admission_producer(buck2: &str, policy: &Policy) -> ExitCode {
          //... (report byproduct at {report_str})",
         report.len()
     );
-    // Build is green -> run the full test suite exactly as the prior admission path did.
-    run_buck(buck2, &policy.full_run_targets, None)
+    // Build is green -> run the full test suite. The build above already proved every target
+    // builds from the SAME report the verdict is derived from, so the redundant second
+    // `buck2 build` the old `run_buck` tail performed is dropped (pure cache-hit re-walk).
+    run_admission_test_producer(buck2, &policy.full_run_targets)
+}
+
+/// The admission/integration TEST tier + TEST-baseline producer (GH #1323/#899).
+///
+/// Runs the same `buck2 test <full_run_targets>` the admission path always ran and keeps the SAME
+/// hard verdict (buck2's exit status — the integration tip must be green, no grandfathering), but
+/// captures buck2's per-target verdict console and normalizes it into the build-report shape at
+/// [`admission_test_report_path`]. That file is the TEST half of the merge-base baseline pair the
+/// trusted push-to-dev workflow publishes as `test-health-baseline-<sha>`; without it the D8
+/// consumer could only skip the merge-base BUILD, and `buck2 test //...` would rebuild the
+/// workspace anyway — so the build-only baseline saves almost nothing.
+///
+/// Producer-only: nothing about merge authority changes here. A green tip is still required.
+fn run_admission_test_producer(buck2: &str, patterns: &[String]) -> ExitCode {
+    let console_path = admission_report_dir().join(format!("{GATE_ID}-admission-test-console.log"));
+    let console_file = match fs::File::create(&console_path) {
+        Ok(f) => f,
+        Err(e) => {
+            eprintln!(
+                "{LOG}: FAIL — could not create admission test console `{}`: {e}",
+                console_path.display()
+            );
+            return ExitCode::from(2);
+        }
+    };
+    let console_err = match console_file.try_clone() {
+        Ok(f) => f,
+        Err(e) => {
+            eprintln!("{LOG}: FAIL — could not clone admission test console handle: {e}");
+            return ExitCode::from(2);
+        }
+    };
+    let mut pretty = format!("{buck2} test");
+    for p in patterns {
+        pretty.push(' ');
+        pretty.push_str(p);
+    }
+    println!("{LOG}: === {pretty} (per-target verdicts captured for the test baseline) ===");
+    let mut command = Command::new(buck2);
+    command
+        .arg("test")
+        .args(patterns)
+        .stdout(Stdio::from(console_file))
+        .stderr(Stdio::from(console_err));
+    let status = run_command_with_progress("admission-test-health-baseline", &mut command, &pretty);
+
+    let console = match fs::read_to_string(&console_path) {
+        Ok(s) => s,
+        Err(e) => {
+            eprintln!(
+                "{LOG}: FAIL — cannot read admission test console `{}`: {e}",
+                console_path.display()
+            );
+            return ExitCode::from(2);
+        }
+    };
+    // The console was captured, not streamed — surface buck2's own output in the CI log.
+    print!("{console}");
+
+    // HARD admission verdict FIRST and unchanged: any test failure blocks the integration tip.
+    // A red tip is never published as a baseline (the upload step never runs on a failed job), so
+    // normalization is only attempted on green.
+    match status {
+        Ok(st) if st.success() => {}
+        Ok(st) => {
+            eprintln!("{LOG}: FAIL — `{pretty}` exited with {st}");
+            eprintln!("{LOG}: REPRODUCE: {pretty}");
+            return ExitCode::from(u8::try_from(st.code().unwrap_or(1)).unwrap_or(1));
+        }
+        Err(e) => {
+            eprintln!("{LOG}: FAIL — could not execute `{pretty}`: {e}");
+            return ExitCode::from(1);
+        }
+    }
+
+    // Fail-closed normalization: `parse_test_verdicts` reconciles the per-target verdict lines
+    // against buck2's own `Tests finished:` summary and errors on any mismatch. Refuse to publish
+    // an under-enumerated baseline — a missing target reads as "not failing at the merge-base",
+    // which is exactly how a future PR's test regression would get grandfathered away.
+    let verdicts = match parse_test_verdicts(&console) {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!(
+                "{LOG}: FAIL — admission tests PASSED but the per-target verdict console could \
+                 not be reconciled into a trustworthy test baseline: {e}"
+            );
+            return ExitCode::from(2);
+        }
+    };
+    let test_report_path = admission_test_report_path();
+    let bytes = match serde_json::to_vec_pretty(&test_verdicts_to_report_value(&verdicts)) {
+        Ok(b) => b,
+        Err(e) => {
+            eprintln!("{LOG}: FAIL — could not serialize the admission test baseline: {e}");
+            return ExitCode::from(2);
+        }
+    };
+    if let Err(e) = fs::write(&test_report_path, bytes) {
+        eprintln!(
+            "{LOG}: FAIL — could not write the admission test baseline `{}`: {e}",
+            test_report_path.display()
+        );
+        return ExitCode::from(2);
+    }
+    println!(
+        "{LOG}: PASS — admission test tier green; test baseline byproduct: {} target verdict(s) \
+         -> {}",
+        verdicts.len(),
+        test_report_path.display()
+    );
+    ExitCode::SUCCESS
 }
 
 /// Run `buck2 build` then `buck2 test` on either explicit patterns or an @argfile, streaming
