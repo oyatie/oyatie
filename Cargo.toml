@@ -823,9 +823,14 @@ axum = { version = "0.8", default-features = false, features = ["http1", "json",
 reqwest = { version = "0.13", default-features = false, features = ["json", "rustls", "blocking"] }
 # Tower middleware stack — utility layer for axum/hyper service composition.
 tower = { version = "0.5", default-features = false, features = ["util"] }
-# RustCrypto HMAC + SHA-2 + constant-time comparison (ci-webhook-gateway webhook verification).
-# OSI-clean (MIT/Apache-2.0); no ring/aws-lc-rs dependency.
-hmac = "0.12"
+# RustCrypto SHA-2 + constant-time comparison. OSI-clean (MIT/Apache-2.0); no
+# ring/aws-lc-rs dependency.
+#
+# `hmac` was removed here rather than bumped to 0.13: it had ZERO consumers — no
+# member crate declared it and no source referenced it. Its stated purpose,
+# ci-webhook-gateway signature verification, is served by the ed25519 adapter
+# (oya-ci-webhook-gateway-ed25519-adapter) instead. It remains in Cargo.lock as a
+# transitive dependency of hkdf, so nothing about the resolved graph changes.
 sha2 = "0.10"
 subtle = "2.6"
 
