@@ -16,7 +16,10 @@ terraform {
 
 variable "tenant_id" { type = string }
 variable "cell_id"   { type = string }
-variable "region"    { type = string, default = "us-east-1" }
+variable "region" {
+  type = string
+  default = "us-east-1"
+}
 variable "ai_vendor_egress_subnet_cidrs" {
   type    = list(string)
   default = []

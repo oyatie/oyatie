@@ -13,13 +13,31 @@ terraform {
 }
 
 variable "tenant_id" { type = string }
-variable "site_id" { type = string, description = "Customer DC site identifier" }
+variable "site_id" {
+  type = string
+  description = "Customer DC site identifier"
+}
 variable "k8s_cluster_endpoint" { type = string }
-variable "k8s_ca_cert" { type = string, sensitive = true }
-variable "k8s_token" { type = string, sensitive = true }
-variable "sovereign_cell" { type = bool, default = true }
-variable "air_gap_mode" { type = bool, default = false }
-variable "hsm_endpoint" { type = string, default = "" }
+variable "k8s_ca_cert" {
+  type = string
+  sensitive = true
+}
+variable "k8s_token" {
+  type = string
+  sensitive = true
+}
+variable "sovereign_cell" {
+  type = bool
+  default = true
+}
+variable "air_gap_mode" {
+  type = bool
+  default = false
+}
+variable "hsm_endpoint" {
+  type = string
+  default = ""
+}
 
 provider "kubernetes" {
   host                   = var.k8s_cluster_endpoint
