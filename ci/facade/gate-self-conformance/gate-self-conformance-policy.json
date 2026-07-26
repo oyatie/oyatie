@@ -34,15 +34,16 @@
   "hermetic_exceptions": [
     {
       "gate": "affected-target-set",
-      "class": "orchestrator_buck2_execution_boundary",
-      "reason": "The affected-set gate is an orchestrator that invokes the owned Buck2 build/test boundary to compute the admission cone; the predicate result is derived from Buck2 reports, not ad-hoc shell policy. Count raised 5->6 for the ADR-0554 round-6 FULL-tier test-health ratchet, which spawns `buck2 test //...` to capture per-target verdicts (buck2's --build-report cannot express runtime test pass/fail).",
-      "cutover_note": "Replace the subprocess edge with the typed cloud-ci runner/reconciler API when that API owns Buck2 execution; keep the exception visible until then.",
+      "class": "orchestrator_external_execution_boundary",
+      "reason": "The affected-set gate is an orchestrator that invokes the owned Buck2 build/test boundary to compute the admission cone; the predicate result is derived from Buck2 reports, not ad-hoc shell policy. Count raised 5->6 for the ADR-0554 round-6 FULL-tier test-health ratchet, which spawns `buck2 test //...` to capture per-target verdicts (buck2's --build-report cannot express runtime test pass/fail). Count raised 6->9 for GH #1323/#899, and the class widened from buck2-only to external execution, because the ADR-0554 D8 trusted-baseline consumer adds three sites: (a) main.rs +1, the admission TEST-baseline producer capturing `buck2 test` per-target verdicts to publish as `test-health-baseline-<sha>` — same Buck2 boundary as the rest of this row; (b) oya-cloud-ci-build-health.rs +2, `gh api` for the Actions runs/artifacts REST calls and `unzip -p` because the artifact API serves ONLY a zip. Sites (b) are a DIFFERENT boundary (GitHub Actions artifact retrieval, not Buck2) and would ideally be their own row, but hermetic exceptions key on (gate, code, token) and `rules.insert` silently replaces on collision — a second `Command::new` row for this gate would overwrite this one — so they are declared here rather than shadowing the Buck2 scope. Neither (b) site bears a verdict: `gh` returns provenance JSON that the pure selector functions judge, `unzip` only materializes the payload those functions then validate, and ANY failure of either refuses the reuse and falls back to the in-job cold merge-base rebuild, so their absence costs wall-clock and never correctness. `gh run download -n` is deliberately NOT used: it selects by artifact NAME and would discard the artifact-ID binding that ties the downloaded bytes to the provenance-verified run.",
+      "cutover_note": "Replace the subprocess edge with the typed cloud-ci runner/reconciler API when that API owns Buck2 execution; the `gh`/`unzip` pair additionally retires when that API exposes typed cross-run artifact retrieval (or an owned inflate lands), at which point this row shrinks back toward the Buck2-only scope. Keep the exception visible until then.",
       "fixuptask_id": "GH-777-CUTOVER-AFFECTED-SET-TYPED-RUNNER",
       "allowed_paths": [
         "ci/facade/affected-target-set/src/main.rs",
-        "ci/facade/affected-target-set/src/bin/oya-cloud-ci-step-telemetry.rs"
+        "ci/facade/affected-target-set/src/bin/oya-cloud-ci-step-telemetry.rs",
+        "ci/facade/affected-target-set/src/bin/oya-cloud-ci-build-health.rs"
       ],
-      "max_occurrences": 6,
+      "max_occurrences": 9,
       "tokens": [
         "Command::new"
       ]
