@@ -67,7 +67,7 @@ the cold floor, so no supersession is proposed.
   invariant normative: *warm is admissible IFF the class is warm-eligible AND the most recent
   cold integrity-canary is GREEN* (D2). D3 sequences RE as stage 4: "flips `remote_enabled=true`
   only after cache-first is proven."
-- **ADR-0560** deployed tier 1: `infra/nativelink/nativelink-cas.k8s.yaml` (NativeLink **v1.4.0**,
+- **ADR-0560** deployed tier 1: `infra/nativelink/nativelink-cas.k8s.yaml` (NativeLink **v1.6.2**,
   CAS + AC, SeaweedFS-backed), the two opt-in buckconfig overlays
   (`infra/ci/buckconfig/warm-cache-{rw,ro}.buckconfig`), the cache-only execution platform
   (`toolchains/cache/defs.bzl`, `remote_enabled = False`), the resolver + conformance gate
@@ -119,7 +119,7 @@ tests, and claims no running deployment.
 
 ### D1 — Deploy the scheduler + worker tiers (the two reserved K8s tiers)
 
-Two new manifests beside the existing CAS manifest, same NativeLink v1.4.0 image, role selected
+Two new manifests beside the existing CAS manifest, same NativeLink v1.6.2 image, role selected
 by config (the founder-decided "one image/release/version, three K8s tiers" model):
 
 - `infra/nativelink/nativelink-scheduler.k8s.yaml` — Scheduler + Execution + Capabilities. The
@@ -283,7 +283,7 @@ remote executor is a build-integrity trust boundary that release artifacts must 
 ## Owned-stack destination — NativeLink is a transient adapter behind the owned REAPI port
 
 Per the transient-stack selection bar and the ports-designed-for-owned-stack doctrine, this ADR
-does **not** adopt NativeLink as a permanent substrate; it absorbs NativeLink v1.4.0 as a
+does **not** adopt NativeLink as a permanent substrate; it absorbs NativeLink v1.6.2 as a
 **transient adapter behind an owned port**, and names the destination explicitly so the eventual
 cutover is a data event, not a redesign.
 
@@ -391,12 +391,12 @@ per the ci capability … [is] forward-declared per Appendix C and absent from v
   a GREEN RE-covering run (D5). A dedicated RE-only canary cadence distinct from the cache canary is
   the alternative not taken.
 
-## License note — NativeLink v1.4.0 is FSL-1.1, a Tier-3 requires-review license (ADR-0013)
+## License note — NativeLink v1.6.2 is FSL-1.1, a Tier-3 requires-review license (ADR-0013)
 
 The RE phase **deepens** reliance on NativeLink (from a blob cache to the coordinator + execution
 farm), so the license posture is recorded consciously here rather than inherited silently.
 
-- The pinned image is `ghcr.io/tracemachina/nativelink:v1.4.0`. NativeLink is licensed
+- The pinned image is `ghcr.io/tracemachina/nativelink:v1.6.2`. NativeLink is licensed
   **FSL-1.1-Apache-2.0** (Functional Source License 1.1, with an Apache-2.0 future grant that
   converts each release to Apache-2.0 two years after its publication) — **not** Apache-2.0 today.
 - Per **ADR-0013**, FSL-1.1 is **Tier 3 — requires review** (`council-architecture` + `legal`
@@ -547,7 +547,7 @@ the conformance gate itself — the live cluster + runner cutover stays queued (
   asserts the action degrades to **local exec** under `local_enabled = True` — no red build.
   `local_enabled` governs the execution fallback; the fixture is what makes the degradation a tested
   property.
-- License: the `oya-governance-license` lane records NativeLink v1.4.0 as FSL-1.1 Tier-3
+- License: the `oya-governance-license` lane records NativeLink v1.6.2 as FSL-1.1 Tier-3
   (requires-review), not Apache-2.0.
 
 ---
