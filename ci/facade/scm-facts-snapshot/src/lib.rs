@@ -1567,14 +1567,30 @@ fn validate_exact_p2_receipt(bytes: &[u8]) -> Result<(), String> {
 
 #[doc(hidden)]
 pub fn command_status_with_timeout(
+    command: Command,
+    timeout: Duration,
+    label: &str,
+) -> Result<ExitStatus, String> {
+    command_status_with_timeout_stderr(command, timeout, label, Stdio::null())
+}
+
+/// As [`command_status_with_timeout`], but with a caller-chosen stderr sink.
+///
+/// stderr is deliberately a caller-supplied `Stdio` rather than a pipe this
+/// function drains: the poll loop below never reads the child's streams, so a
+/// pipe would deadlock as soon as a chatty child filled the pipe buffer — the
+/// condition `test large-output child` exists to pin. A file sink keeps the
+/// non-draining loop safe while still preserving the output.
+fn command_status_with_timeout_stderr(
     mut command: Command,
     timeout: Duration,
     label: &str,
+    stderr: Stdio,
 ) -> Result<ExitStatus, String> {
     let mut child = command
         .stdin(Stdio::null())
         .stdout(Stdio::null())
-        .stderr(Stdio::null())
+        .stderr(stderr)
         .spawn()
         .map_err(|error| format!("{label}: spawn: {error}"))?;
     drop(command);
@@ -1660,25 +1676,65 @@ fn finish_with_cleanup<T>(
 /// the toolchain is present. This is the same serialization the CI workflow already
 /// performs for the current pin — done here so it holds for every caller, including
 /// local runs, rather than only where a workflow remembered to add a step.
-fn preprovision_historical_p2_toolchain(historical_root: &Path) -> Result<(), String> {
+/// Build (but do not run) the pre-provision command.
+///
+/// Split out so the load-bearing details — that this runs `rustup toolchain
+/// install` with the *worktree* as cwd, which is the only reason rustup resolves
+/// the historical pin rather than the outer checkout's — are assertable without
+/// spawning rustup.
+fn historical_p2_toolchain_command(historical_root: &Path) -> Command {
     let mut command = Command::new("rustup");
     command
         .arg("toolchain")
         .arg("install")
         .current_dir(historical_root);
     remove_outer_buck_process_state(&mut command);
-    let status = command_status_with_timeout(
+    command
+}
+
+/// Tail of a child's captured stderr carried into an error message.
+///
+/// Bounded because the point is diagnosis, not transcription: an unbounded read
+/// would put a full toolchain-install log into a gate failure.
+const CAPTURED_STDERR_TAIL_BYTES: usize = 4096;
+
+fn preprovision_historical_p2_toolchain(historical_root: &Path) -> Result<(), String> {
+    const LABEL: &str = "exact historical P2 toolchain pre-provision";
+    let command = historical_p2_toolchain_command(historical_root);
+
+    // Capture stderr rather than discarding it. The failure this routine exists
+    // to prevent reached its gate as a bare `exit status: 3` with rustup's actual
+    // message thrown away; emitting that same opacity from the fix for it would
+    // be a poor trade. `historical_root` is the worktree we just created, so it
+    // is known-writable and a create failure here is a genuine error, not a
+    // condition to route around.
+    let log_path = historical_root.join("p2-toolchain-preprovision.stderr.log");
+    let log = std::fs::File::create(&log_path)
+        .map_err(|error| format!("{LABEL}: create stderr log {}: {error}", log_path.display()))?;
+    let status = command_status_with_timeout_stderr(
         command,
         P2_HISTORICAL_TOOLCHAIN_TIMEOUT,
-        "exact historical P2 toolchain pre-provision",
+        LABEL,
+        Stdio::from(log),
     )?;
     if status.success() {
-        Ok(())
-    } else {
-        Err(format!(
-            "exact historical P2 toolchain pre-provision failed with status {status}"
-        ))
+        let _ = std::fs::remove_file(&log_path);
+        return Ok(());
     }
+
+    let detail = std::fs::read(&log_path)
+        .ok()
+        .map(|bytes| {
+            let start = bytes.len().saturating_sub(CAPTURED_STDERR_TAIL_BYTES);
+            String::from_utf8_lossy(&bytes[start..]).trim().to_owned()
+        })
+        .filter(|text| !text.is_empty())
+        .map_or_else(
+            || "; rustup stderr was empty".to_owned(),
+            |text| format!("; rustup stderr (last {CAPTURED_STDERR_TAIL_BYTES} bytes): {text}"),
+        );
+    let _ = std::fs::remove_file(&log_path);
+    Err(format!("{LABEL} failed with status {status}{detail}"))
 }
 
 fn run_historical_p2_materializer(historical_root: &Path, output: &Path) -> Result<(), String> {
@@ -5359,6 +5415,26 @@ mod tests {
             .expect_err("merge transition must fail")
             .contains("must not be a merge commit")
         );
+    }
+
+    #[test]
+    fn historical_p2_toolchain_command_installs_from_the_worktree() {
+        let worktree = Path::new("/tmp/oya-p2-history-fixture");
+        let command = historical_p2_toolchain_command(worktree);
+
+        assert_eq!(command.get_program(), "rustup");
+        let args = command
+            .get_args()
+            .map(|arg| arg.to_string_lossy().into_owned())
+            .collect::<Vec<_>>();
+        assert_eq!(args, vec!["toolchain".to_owned(), "install".to_owned()]);
+
+        // The load-bearing detail. `rustup toolchain install` with no argument
+        // resolves rust-toolchain.toml from the working directory, so the cwd
+        // being the historical worktree is the only reason the historical pin is
+        // installed rather than the outer checkout's. If this regresses, the
+        // symptom is the opaque exit-3 gate failure this routine exists to stop.
+        assert_eq!(command.get_current_dir(), Some(worktree));
     }
 
     #[test]
