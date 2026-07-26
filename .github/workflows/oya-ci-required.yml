@@ -608,10 +608,11 @@ jobs:
     # 29110398688 (vs the old same-tree ~5m45s warm) plus a merge-base test pass for the defect-3
     # test-health ratchet — and (2) the binding head build+test. 45 min was sized for a single warm
     # full run and killed the head build mid-flight. 120 clears a pessimistic 2x-cold-full+tests
-    # (~100 min) with margin while still firing on a genuine runaway. This is the cost of a sound
-    # FULL tier without baseline reuse; the trusted-artifact fast-path (owned-Rust selector,
-    # follow-up on #1323) makes the common merge-base case download-not-rebuild and brings this
-    # back toward one warm full run.
+    # (~100 min) with margin while still firing on a genuine runaway. The trusted-artifact
+    # fast-path (owned-Rust `--trusted-baseline` selector, GH #1323/#899) now makes the common
+    # merge-base case download-not-rebuild, so the typical FULL job is one head pass — but this
+    # backstop stays sized for the cold FALLBACK, which any unpublished/expired baseline still
+    # takes.
     timeout-minutes: 120
     steps:
       # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
@@ -745,6 +746,9 @@ jobs:
         if: ${{ github.event_name == 'pull_request' }}
         env:
           BASE_REF: ${{ github.base_ref || 'dev' }}
+          # Read-only; the workflow-level `permissions:` block already grants `actions: read`,
+          # which is exactly what listing runs/artifacts and downloading an artifact needs.
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           # ── MERGE-BASE BUILD + TEST BASELINES in a CLEAN detached worktree (ADR-0554 round-6,
@@ -760,14 +764,6 @@ jobs:
           #    ENTIRELY from merge-base git objects (candidate-uncontrollable), and the candidate
           #    working tree is untouched (no checkout, no restore trap).
           #
-          #    FOLLOW-UP (owned-Rust selector; defect 5b): a trusted push-to-dev baseline-artifact
-          #    fast-path used to reuse a prior dev build-report here via python glue. It was REMOVED
-          #    (no half-done shell) — the pure Rust fns for it already exist
-          #    (trusted_dev_push_run_id / trusted_build_health_baseline_artifact_id /
-          #    validate_trusted_build_health_baseline_artifact) and should return as an owned-Rust
-          #    selector binary reusing them. Until then every FULL-tier PR rebuilds both baselines
-          #    cold in the clean worktree (sound; slower — warmth is ADR-0556/CAS work, and the test
-          #    baseline needs an artifact producer the selector will consume).
           merge_base="$(git merge-base "origin/${BASE_REF}" HEAD)"
           full_required_marker="${RUNNER_TEMP}/affected-set-full-required"
           echo "false" > "${full_required_marker}"
@@ -789,6 +785,12 @@ jobs:
             echo "affected-set preflight: FULL decision requires merge-base build + test baselines"
           else
             echo "affected-set preflight: derived non-FULL decision; skipping merge-base baselines"
+            exit 0
+          fi
+          # Owned-Rust D8 trusted-baseline consumer (GH #1323/#899); rationale + anti-laundering
+          # contract live on `trusted_baseline_exit`. Any doubt => cold rebuild below.
+          if "${RUNNER_TEMP}/oya-cloud-ci-build-health" --trusted-baseline \
+              --merge-base "${merge_base}" --repo "${GITHUB_REPOSITORY}" --out-dir "${RUNNER_TEMP}"; then
             exit 0
           fi
           mb_tree="${RUNNER_TEMP}/merge-base-worktree"
@@ -911,6 +913,24 @@ jobs:
         with:
           name: build-health-baseline-${{ github.sha }}
           path: ${{ runner.temp }}/build-health-admission-report.json
+          retention-days: 90
+          if-no-files-found: error
+      # ── TEST-HEALTH BASELINE PRODUCER (GH #1323/#899; the TEST half of the D8 baseline pair).
+      #    The build baseline alone buys the FULL tier almost nothing: `buck2 test //...` at the
+      #    merge-base would rebuild the workspace anyway, so BOTH halves must be reusable for the
+      #    cold rebuild to be skippable. The admission `--mode full` run captures buck2's
+      #    per-target test verdicts and normalizes them into the build-report shape at this stable
+      #    path, so the test-health ratchet consumes it exactly like the build baseline. Same
+      #    trust posture as the build producer: push-to-dev ONLY — never merge_group, never
+      #    pull_request — so the artifact namespace stays free of candidate-controllable producers.
+      #    A red tip never reaches this step, so a published baseline is always a green dev commit.
+      - name: Upload test-health baseline artifact (trusted push-to-dev producer)
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/dev' }}
+        # actions/upload-artifact@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: test-health-baseline-${{ github.sha }}
+          path: ${{ runner.temp }}/test-health-admission-report.json
           retention-days: 90
           if-no-files-found: error
       - name: Upload affected-set operator artifacts
