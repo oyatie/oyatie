@@ -7,34 +7,84 @@
   "owner_team": "axis-identity + ops-supply-chain",
   "requirements": {
     "source": {
-      "version_controlled": { "pass": true, "evidence": "GitHub mainline" },
-      "history_retained": { "pass": true, "evidence": "branch protection + ADR-0110 changeset state machine" },
-      "two_person_reviewed": { "pass": true, "evidence": "ADR-0111 merge-queue + reviewer-agent approval" }
+      "version_controlled": {
+        "pass": true,
+        "evidence": "GitHub mainline"
+      },
+      "history_retained": {
+        "pass": true,
+        "evidence": "branch protection + ADR-0110 changeset state machine"
+      },
+      "two_person_reviewed": {
+        "pass": false,
+        "evidence": "CONTRADICTED 2026-07-26: .github/branch-protection.yaml:49 sets required_approving_reviews: 0, and its own comment at :46-48 records that PR #964 merged with an empty reviewDecision"
+      }
     },
     "build": {
-      "scripted_build": { "pass": true, "evidence": "Cargo + Docker build via .github/workflows" },
-      "build_service": { "pass": true, "evidence": "GitHub Actions hosted runners + per-pack release pipelines" },
-      "build_as_code": { "pass": true, "evidence": "build pipeline definitions in repo" },
-      "ephemeral_environment": { "pass": true, "evidence": "GitHub-hosted ephemeral runners" },
-      "isolated": { "pass": true, "evidence": "per-job runner; no cross-job state" },
-      "parameterless_build": { "pass": true, "evidence": "deterministic Cargo + Helm chart inputs" },
-      "hermetic_builds": { "pass": true, "evidence": "Cargo.lock + cached registry mirror; no network during build" }
+      "scripted_build": {
+        "pass": true,
+        "evidence": "Cargo + Docker build via .github/workflows"
+      },
+      "build_service": {
+        "pass": true,
+        "evidence": "GitHub Actions hosted runners + per-pack release pipelines"
+      },
+      "build_as_code": {
+        "pass": true,
+        "evidence": "build pipeline definitions in repo"
+      },
+      "ephemeral_environment": {
+        "pass": true,
+        "evidence": "GitHub-hosted ephemeral runners"
+      },
+      "isolated": {
+        "pass": true,
+        "evidence": "per-job runner; no cross-job state"
+      },
+      "parameterless_build": {
+        "pass": true,
+        "evidence": "deterministic Cargo + Helm chart inputs"
+      },
+      "hermetic_builds": {
+        "pass": true,
+        "evidence": "Cargo.lock + cached registry mirror; no network during build"
+      }
     },
     "provenance": {
-      "provenance_generated": { "pass": true, "evidence": "in-toto SLSA provenance per ADR-0181 image-promotion-pipeline" },
-      "provenance_complete": { "pass": true },
-      "provenance_authenticated": { "pass": true, "evidence": "Cosign signed by build-time SPIFFE identity" },
-      "provenance_service_generated": { "pass": true, "evidence": "GitHub Actions generates; not author-controlled" }
+      "provenance_generated": {
+        "pass": true,
+        "evidence": "in-toto SLSA provenance per ADR-0181 image-promotion-pipeline"
+      },
+      "provenance_complete": {
+        "pass": true
+      },
+      "provenance_authenticated": {
+        "pass": true,
+        "evidence": "Cosign signed by build-time SPIFFE identity"
+      },
+      "provenance_service_generated": {
+        "pass": true,
+        "evidence": "GitHub Actions generates; not author-controlled"
+      }
     },
     "common": {
-      "security_policy": { "pass": true, "evidence": "SECURITY.md in repo root" },
-      "access_control": { "pass": true, "evidence": "CODEOWNERS + branch protection" },
-      "superuser_audited": { "pass": true, "evidence": "GitHub audit log + ADR-0162 per-tenant slicing applied to operator actions" }
+      "security_policy": {
+        "pass": false,
+        "evidence": "CONTRADICTED 2026-07-26: SECURITY.md does not exist at the repository root and is not tracked anywhere at root; only docs/security.md exists, which is not the path GitHub recognises"
+      },
+      "access_control": {
+        "pass": true,
+        "evidence": "CODEOWNERS + branch protection"
+      },
+      "superuser_audited": {
+        "pass": true,
+        "evidence": "GitHub audit log + ADR-0162 per-tenant slicing applied to operator actions"
+      }
     }
   },
   "overall": {
-    "achieved_level": "L3",
-    "gap_analysis": "Meets all L3 requirements. L4 (formal verification of build script) is the next stretch."
+    "achieved_level": "NOT ASSESSED \u2014 L3 not met",
+    "gap_analysis": "Previously claimed 'Meets all L3 requirements'. That rollup was false: source.two_person_reviewed, common.security_policy are contradicted by the tree (see each requirement's evidence). This scorecard was hand-authored rather than derived, and a 2026-07-26 sample found ~47% of claims across the scorecard corpus contradicted, so the remaining passes here are unverified rather than confirmed."
   },
   "evidence_attached": [
     "evidence/identity/slsa-l3-audit-2026-05-18.json"
