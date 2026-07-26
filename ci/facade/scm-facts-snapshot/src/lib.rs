@@ -88,6 +88,9 @@ const CENSUS_PARSER_TREE: &str = "0cdece525bc54f83ec51d3ba67a4308d0ce43812";
 const CENSUS_PARSER_PATH: &str = "governance/corpus/doc-parser/src/lib.rs";
 const CENSUS_PARSER_BLOB: &str = "ab3884dbf4a657869fd87920b016cc4734a1c27f";
 const P2_HISTORICAL_MATERIALIZER_TIMEOUT: Duration = Duration::from_secs(30 * 60);
+/// Bounded like the materializer itself: a toolchain install is a network fetch plus
+/// unpack, so it needs real headroom, but it must never hang a gate indefinitely.
+const P2_HISTORICAL_TOOLCHAIN_TIMEOUT: Duration = Duration::from_secs(10 * 60);
 const P2_HISTORICAL_GIT_TIMEOUT: Duration = Duration::from_secs(5 * 60);
 const P2_HISTORICAL_BUCK_SHUTDOWN_TIMEOUT: Duration = Duration::from_secs(30);
 const CHILD_PROCESS_POLL_INTERVAL: Duration = Duration::from_millis(50);
@@ -1640,11 +1643,50 @@ fn finish_with_cleanup<T>(
     }
 }
 
+/// Install the toolchain the historical worktree pins, serially, before Buck2 runs.
+///
+/// The historical commit carries its own `rust-toolchain.toml`, which is NOT the
+/// pin the outer checkout provisioned — the CI pre-provision step runs a bare
+/// `rustup toolchain install`, which resolves against the *current* directory.
+/// The moment the current pin is bumped, the historical pin stops being present.
+///
+/// Without this, the first thing that needs the historical toolchain is Buck2's
+/// own parallel compile actions, and every one of them races an install of the
+/// same toolchain. That races inside rustup's component unpacking and aborts with
+/// `ComponentBuilder::move_file`, surfacing here only as an opaque non-zero exit.
+///
+/// `rustup` resolves the pin from the working directory, so running it with the
+/// worktree as cwd installs exactly what that commit asks for, and is a no-op once
+/// the toolchain is present. This is the same serialization the CI workflow already
+/// performs for the current pin — done here so it holds for every caller, including
+/// local runs, rather than only where a workflow remembered to add a step.
+fn preprovision_historical_p2_toolchain(historical_root: &Path) -> Result<(), String> {
+    let mut command = Command::new("rustup");
+    command
+        .arg("toolchain")
+        .arg("install")
+        .current_dir(historical_root);
+    remove_outer_buck_process_state(&mut command);
+    let status = command_status_with_timeout(
+        command,
+        P2_HISTORICAL_TOOLCHAIN_TIMEOUT,
+        "exact historical P2 toolchain pre-provision",
+    )?;
+    if status.success() {
+        Ok(())
+    } else {
+        Err(format!(
+            "exact historical P2 toolchain pre-provision failed with status {status}"
+        ))
+    }
+}
+
 fn run_historical_p2_materializer(historical_root: &Path, output: &Path) -> Result<(), String> {
     let worktree_nonce = historical_root
         .file_name()
         .and_then(|name| name.to_str())
         .ok_or("exact historical P2 worktree has no UTF-8 nonce")?;
+    preprovision_historical_p2_toolchain(historical_root)?;
     let isolation = format!("p2-historical-{worktree_nonce}");
     let output = output.to_string_lossy().into_owned();
     let mut command = Command::new("buck2");
