@@ -28,7 +28,7 @@ use base64::{Engine as _, engine::general_purpose::STANDARD as BASE64};
 use serde::{Deserialize, Serialize};
 use tracing::{debug, warn};
 
-pub use intelligence_rest::{RestAdapterError, SecretProviderStore};
+pub use intelligence_rest::{RestAdapterError, SecretProviderFuture, SecretProviderStore};
 
 // ---------------------------------------------------------------------------
 // Redacting vault-token wrapper (no `secrecy` dep required)
@@ -74,6 +74,8 @@ pub enum OpenBaoError {
     Base64Decode(String),
     /// Secret not found under KV path.
     SecretNotFound,
+    /// The async secret-provider operation was polled outside a Tokio runtime.
+    RuntimeUnavailable,
 }
 
 impl fmt::Display for OpenBaoError {
@@ -89,6 +91,9 @@ impl fmt::Display for OpenBaoError {
             OpenBaoError::Decode(msg) => write!(f, "vault JSON decode error: {msg}"),
             OpenBaoError::Base64Decode(msg) => write!(f, "transit plaintext base64 error: {msg}"),
             OpenBaoError::SecretNotFound => f.write_str("vault secret not found"),
+            OpenBaoError::RuntimeUnavailable => {
+                f.write_str("OpenBao secret-provider operation requires a Tokio runtime")
+            }
         }
     }
 }
@@ -382,7 +387,7 @@ impl OpenBaoTransitStore {
     }
 
     // -----------------------------------------------------------------------
-    // Async trait helpers (called from the sync trait impl via block_in_place)
+    // Async trait helpers (called from the boxed-future trait implementation)
     // -----------------------------------------------------------------------
 
     /// Full store path: encrypt plaintext → kv_write ciphertext.
@@ -424,39 +429,48 @@ impl OpenBaoTransitStore {
 }
 
 // ---------------------------------------------------------------------------
-// SecretProviderStore trait impl (sync wrapper over async internals)
+// SecretProviderStore trait impl
 // ---------------------------------------------------------------------------
 
 impl SecretProviderStore for OpenBaoTransitStore {
     /// Fetch and decrypt the refresh token identified by `handle`.
     ///
-    /// Uses `tokio::task::block_in_place` so the sync trait method can call the
-    /// async internals from within a multi-threaded Tokio runtime (the same
-    /// pattern used by `reqwest::blocking`). ADR-0083 Tier-3 panic-free:
-    /// all errors are mapped to `RestAdapterError`.
-    fn fetch_refresh_token(&self, handle: &str) -> Result<String, RestAdapterError> {
-        tokio::task::block_in_place(|| {
-            tokio::runtime::Handle::current().block_on(self.fetch_async(handle))
+    fn fetch_refresh_token<'a>(&'a self, handle: &'a str) -> SecretProviderFuture<'a, String> {
+        Box::pin(async move {
+            require_tokio_runtime()?;
+            self.fetch_async(handle)
+                .await
+                .map_err(RestAdapterError::from)
         })
-        .map_err(RestAdapterError::from)
     }
 
     /// Envelope-encrypt `plaintext` and store it under `handle`.
-    fn store_refresh_token(&self, handle: &str, plaintext: &str) -> Result<(), RestAdapterError> {
-        // Reject empty plaintext before making any network calls.
-        if plaintext.is_empty() {
-            return Err(RestAdapterError::InvalidSecret);
-        }
-        tokio::task::block_in_place(|| {
-            tokio::runtime::Handle::current().block_on(self.store_async(handle, plaintext))
+    fn store_refresh_token<'a>(
+        &'a self,
+        handle: &'a str,
+        plaintext: &'a str,
+    ) -> SecretProviderFuture<'a, ()> {
+        Box::pin(async move {
+            require_tokio_runtime()?;
+            if plaintext.is_empty() {
+                return Err(RestAdapterError::InvalidSecret);
+            }
+            self.store_async(handle, plaintext)
+                .await
+                .map_err(RestAdapterError::from)
         })
-        .map_err(RestAdapterError::from)
     }
 
-    fn readiness_probe(&self) -> Result<(), RestAdapterError> {
-        tokio::task::block_in_place(|| {
-            tokio::runtime::Handle::current().block_on(self.health_async())
+    fn readiness_probe(&self) -> SecretProviderFuture<'_, ()> {
+        Box::pin(async move {
+            require_tokio_runtime()?;
+            self.health_async().await.map_err(RestAdapterError::from)
         })
-        .map_err(RestAdapterError::from)
     }
+}
+
+fn require_tokio_runtime() -> Result<(), RestAdapterError> {
+    tokio::runtime::Handle::try_current()
+        .map(|_| ())
+        .map_err(|_| RestAdapterError::from(OpenBaoError::RuntimeUnavailable))
 }

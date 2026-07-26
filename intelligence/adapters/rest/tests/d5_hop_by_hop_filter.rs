@@ -9,9 +9,7 @@ use std::collections::BTreeMap;
 
 use httpmock::prelude::*;
 use intelligence_kernel::TenantId;
-use intelligence_rest::{
-    AnthropicAdapter, ProxyRequest, RestAdapterError, SecretProviderStore,
-};
+use intelligence_rest::{AnthropicAdapter, ProxyRequest, RestAdapterError, SecretProviderStore};
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -19,11 +17,18 @@ use intelligence_rest::{
 
 struct StubStore;
 impl SecretProviderStore for StubStore {
-    fn fetch_refresh_token(&self, _: &str) -> Result<String, RestAdapterError> {
-        Ok("stub-rt".to_string())
+    fn fetch_refresh_token<'a>(
+        &'a self,
+        _: &'a str,
+    ) -> intelligence_rest::SecretProviderFuture<'a, String> {
+        Box::pin(async { Ok("stub-rt".to_string()) })
     }
-    fn store_refresh_token(&self, _: &str, _: &str) -> Result<(), RestAdapterError> {
-        Ok(())
+    fn store_refresh_token<'a>(
+        &'a self,
+        _: &'a str,
+        _: &'a str,
+    ) -> intelligence_rest::SecretProviderFuture<'a, ()> {
+        Box::pin(async { Ok(()) })
     }
 }
 
