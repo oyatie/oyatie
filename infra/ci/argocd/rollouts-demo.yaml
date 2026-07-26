@@ -36,7 +36,7 @@ spec:
                 restartPolicy: Never
                 containers:
                   - name: check
-                    image: busybox:1.37
+                    image: busybox:1.38.0
                     command: ["sh", "-c", "echo canary SLO check OK && exit 0"]
 ---
 apiVersion: argoproj.io/v1alpha1
