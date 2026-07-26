@@ -13,4 +13,9 @@ path = "src/main.rs"
 path = "src/lib.rs"
 
 [dependencies]
+billing-domain = { path = "../../core/billing" }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+
+[dev-dependencies]
+billing-metering = { path = "../../core/metering" }
+oya-data-boundary-kernel = { path = "../../../libs/oya-data-boundary-kernel" }
