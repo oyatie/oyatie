@@ -89,8 +89,8 @@ jobs:
     name: producer-regen (accounting-registry)
     runs-on: ubuntu-latest
     steps:
-      # actions/checkout@v6.0.3 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+      # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
           # Full history: the accounting producer derives last_touch_commit via
@@ -200,8 +200,8 @@ jobs:
           - { crate: scm-facts-snapshot, label: "gate · ADR census epoch receipt (P2 active; P3 dormant)" }
           - { targets: "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel-cargo-differential", os: windows-latest, label: "gate · Windows workspace resolver differential (ERROR_CANT_RESOLVE_FILENAME)" }
     steps:
-      # actions/checkout@v6.0.3 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+      # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
           fetch-depth: 0
@@ -238,8 +238,8 @@ jobs:
     name: freshness (lock + generated faces, ADR-0539)
     runs-on: ubuntu-latest
     steps:
-      # actions/checkout@v6.0.3 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+      # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
           fetch-depth: 0
@@ -249,8 +249,8 @@ jobs:
       # version-pinned input, not a build output). rustup still resolves/validates the
       # toolchain on every run; the cache only pre-seeds ~/.rustup so the install is a no-op.
       - name: Cache pinned Rust toolchain (ADR-0556 D5 QW-4)
-        # actions/cache@v5.0.5 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
+        # actions/cache@v6.1.0 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: |
             ~/.rustup/toolchains
@@ -275,8 +275,8 @@ jobs:
     name: registry-drift (materialized == regenerated)
     runs-on: ubuntu-latest
     steps:
-      # actions/checkout@v6.0.3 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+      # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
           # Full history: the accounting producer derives last_touch_commit via
@@ -306,8 +306,8 @@ jobs:
     name: cloud-ci-firewall (baseline ratchet + gate-registration meta-test)
     runs-on: ubuntu-latest
     steps:
-      # actions/checkout@v6.0.3 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+      # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
           # Full history: the accounting producer derives last_touch_commit via
@@ -344,8 +344,8 @@ jobs:
     name: generated-output-diff-policy (no generated merge surfaces)
     runs-on: ubuntu-latest
     steps:
-      # actions/checkout@v6.0.3 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+      # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
           fetch-depth: 0
@@ -354,8 +354,8 @@ jobs:
       # Warm the pinned toolchain across runs (ADR-0556 D5 QW-4); rustup still resolves and
       # validates the toolchain on every run.
       - name: Cache pinned Rust toolchain (ADR-0556 D5 QW-4)
-        # actions/cache@v5.0.5 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
+        # actions/cache@v6.1.0 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: |
             ~/.rustup/toolchains
@@ -411,8 +411,8 @@ jobs:
     needs: producer-regen
     runs-on: ubuntu-latest
     steps:
-      # actions/checkout@v6.0.3 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+      # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
           # Full history: the materialization step below runs the emitter, which derives
@@ -435,8 +435,8 @@ jobs:
       # Warm the pinned toolchain across runs (ADR-0556 D5 QW-4); rustup still resolves and
       # validates the toolchain on every run.
       - name: Cache pinned Rust toolchain (ADR-0556 D5 QW-4)
-        # actions/cache@v5.0.5 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
+        # actions/cache@v6.1.0 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: |
             ~/.rustup/toolchains
@@ -518,7 +518,7 @@ jobs:
             --artifact-out "${RUNNER_TEMP}/runner-disk-reclaim-buck2.json"
       - name: Restore buck-out (read-only; dev-push is the sole writer)
         # actions/cache/restore@v5.0.5 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: buck-out
           key: buck-out-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml') }}-${{ hashFiles('.buckconfig', 'toolchains/BUCK', 'Cargo.lock') }}
@@ -614,8 +614,8 @@ jobs:
     # back toward one warm full run.
     timeout-minutes: 120
     steps:
-      # actions/checkout@v6.0.3 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+      # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
           # Full history: the merge-base diff anchor + the materialization boundary both
@@ -635,8 +635,8 @@ jobs:
       # Warm the pinned toolchain across runs (ADR-0556 D5 QW-4); rustup still resolves and
       # validates the toolchain on every run.
       - name: Cache pinned Rust toolchain (ADR-0556 D5 QW-4)
-        # actions/cache@v5.0.5 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
+        # actions/cache@v6.1.0 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: |
             ~/.rustup/toolchains
@@ -701,7 +701,7 @@ jobs:
             --artifact-out "${RUNNER_TEMP}/runner-disk-reclaim-affected-set.json"
       - name: Restore buck-out (read-only; dev-push is the sole writer)
         # actions/cache/restore@v5.0.5 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: buck-out
           key: buck-out-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml') }}-${{ hashFiles('.buckconfig', 'toolchains/BUCK', 'Cargo.lock') }}
@@ -892,7 +892,7 @@ jobs:
       - name: Save buck-out (dev-push only; sole canonical full-graph writer)
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/dev' }}
         # actions/cache/save@v5.0.5 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-        uses: actions/cache/save@27d5ce7f107fe9357f9df03efb73ab90386fccae
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: buck-out
           key: buck-out-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml') }}-${{ hashFiles('.buckconfig', 'toolchains/BUCK', 'Cargo.lock') }}
@@ -958,15 +958,15 @@ jobs:
       OYA_PG_ADMIN_URL: postgres://postgres:postgres@127.0.0.1:5432/oyatie
       OYA_PG_APP_URL: postgres://oya_app:app@127.0.0.1:5432/oyatie
     steps:
-      # actions/checkout@v6.0.3 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+      # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
       - name: Install buck2 (digest-pinned prebuilt release)
         run: infra/ci/install-buck2.sh
       - name: Cache pinned Rust toolchain (ADR-0556 D5 QW-4)
-        # actions/cache@v5.0.5 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
+        # actions/cache@v6.1.0 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: |
             ~/.rustup/toolchains
@@ -1095,15 +1095,15 @@ jobs:
       OYA_PG_ADMIN_URL: postgres://postgres:postgres@127.0.0.1:5432/oyatie
       OYA_PG_APP_URL: postgres://oya_app:app@127.0.0.1:5432/oyatie
     steps:
-      # actions/checkout@v6.0.3 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+      # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
       - name: Install buck2 (digest-pinned prebuilt release)
         run: infra/ci/install-buck2.sh
       - name: Cache pinned Rust toolchain (ADR-0556 D5 QW-4)
-        # actions/cache@v5.0.5 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
+        # actions/cache@v6.1.0 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: |
             ~/.rustup/toolchains
