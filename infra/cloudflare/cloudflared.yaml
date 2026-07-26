@@ -51,7 +51,7 @@ spec:
       containers:
         - name: cloudflared
           # TODO before prod: digest-pin + verify signature (infra/kyverno require-signed-images).
-          image: cloudflare/cloudflared:2025.2.0
+          image: cloudflare/cloudflared:2026.7.3
           args: ["tunnel", "--no-autoupdate", "--metrics", "0.0.0.0:2000", "run"]
           env:
             - name: TUNNEL_TOKEN
