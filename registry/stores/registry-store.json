@@ -65,11 +65,11 @@
   },
   "pre_filter_N1": {
     "rule": "forbidden-vocab crates excised under the scoped deny-list; no multispectrum doctrine; external competitor proper nouns follow their scoped policy rows",
-    "source_catalog_count": 903,
+    "source_catalog_count": 902,
     "dropped_by_name": 71,
     "dropped_by_context_foundry": 202,
     "dropped_by_content_jenkins_bridge": 2,
-    "kept_count": 628,
+    "kept_count": 627,
     "notes": "Per D-FOUNDRY/D11(d) the foundry-context block is mid-rename (platform→oya-intelligence, fitness/oya-check-*→oya-governance, agentic-VCS→retired) and NOT yet sense-routed in source; this DRAFT EXCISES all 202 foundry-context + 71 foundry/vcs/jenkins-named crates rather than blindly swap keys (canon: 'never a blind swap'). oya-check-brand-residue KEPT (it IS the forbidden-token deny-list SSOT; names tokens as the enum it guards, not as residue)."
   },
   "normalizations": {
@@ -77,7 +77,7 @@
     "note_OPEN_3": "role 'application'→'app' collapsed per STORE-SCHEMA §6 OPEN-3 recommendation; api/rest/grpc kept distinct.",
     "note_data_class_token": "live catalog token is SENSITIVE_PIPA_ART23 (PIPA Art.23 sensitive-data); STORE-SCHEMA §3.2 shows truncated 'SENSITIVE_PIPA_ART' — DRAFT preserves the live grounded token; flag schema doc to reconcile."
   },
-  "entity_count": 628,
+  "entity_count": 627,
   "entities": [
     {
       "key": "oya-accounting-journal-api",
@@ -4335,21 +4335,6 @@
       "context": "foundation",
       "role": "app",
       "capability": "foundation-orchestration",
-      "plane": "control",
-      "slo": "preview-control-plane",
-      "data_classes_owned": [
-        "INTERNAL_ONLY"
-      ],
-      "operational_classes_owned": [],
-      "api_stability": "preview",
-      "security_review": "unreviewed",
-      "supply_chain": "source-only"
-    },
-    {
-      "key": "oya-gen-microservice-manifests-app",
-      "context": "tooling",
-      "role": "worker",
-      "capability": "gen-microservice-manifests-app",
       "plane": "control",
       "slo": "preview-control-plane",
       "data_classes_owned": [
