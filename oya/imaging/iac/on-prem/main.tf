@@ -18,7 +18,10 @@ terraform {
 variable "tenant_id"              { type = string }
 variable "cell_id"                { type = string }
 variable "kubeconfig_path"        { type = string }
-variable "talos_or_openshift_or_rancher" { type = string, default = "talos" }
+variable "talos_or_openshift_or_rancher" {
+  type = string
+  default = "talos"
+}
 variable "modalities" {
   type = list(object({
     name        = string

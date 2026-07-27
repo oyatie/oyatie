@@ -14,7 +14,10 @@ terraform {
 
 variable "tenant_id" { type = string }
 variable "cell_id"   { type = string }
-variable "pack_id"   { type = string, default = "HIPAA-2024" }
+variable "pack_id" {
+  type = string
+  default = "HIPAA-2024"
+}
 
 resource "oyatie_cloud_data_postgres" "pacs_index" {
   name        = "imaging-pacs-index"

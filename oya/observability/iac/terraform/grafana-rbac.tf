@@ -79,4 +79,7 @@ variable "tenants" {
 }
 
 variable "pack" { type = string }
-variable "grafana_admin_token" { type = string, sensitive = true }
+variable "grafana_admin_token" {
+  type = string
+  sensitive = true
+}

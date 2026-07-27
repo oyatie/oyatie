@@ -13,12 +13,24 @@ terraform {
 }
 
 variable "tenant_id" { type = string }
-variable "colo_provider" { type = string, description = "OVH / Equinix / Hetzner / Telehouse / Digital Realty / etc." }
+variable "colo_provider" {
+  type = string
+  description = "OVH / Equinix / Hetzner / Telehouse / Digital Realty / etc."
+}
 variable "colo_region" { type = string }
 variable "k8s_cluster_endpoint" { type = string }
-variable "k8s_ca_cert" { type = string, sensitive = true }
-variable "k8s_token" { type = string, sensitive = true }
-variable "sovereign_jurisdiction" { type = string, description = "EU / KR / KSA / JP / etc." }
+variable "k8s_ca_cert" {
+  type = string
+  sensitive = true
+}
+variable "k8s_token" {
+  type = string
+  sensitive = true
+}
+variable "sovereign_jurisdiction" {
+  type = string
+  description = "EU / KR / KSA / JP / etc."
+}
 
 provider "kubernetes" {
   host                   = var.k8s_cluster_endpoint

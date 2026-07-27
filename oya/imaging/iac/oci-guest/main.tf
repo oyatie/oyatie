@@ -18,8 +18,14 @@ terraform {
 variable "tenant_id"         { type = string }
 variable "cell_id"           { type = string }
 variable "compartment_ocid"  { type = string }
-variable "tenant_class"      { type = string, default = "demo_trial" }
-variable "region"            { type = string, default = "us-ashburn-1" }
+variable "tenant_class" {
+  type = string
+  default = "demo_trial"
+}
+variable "region" {
+  type = string
+  default = "us-ashburn-1"
+}
 
 locals {
   is_always_free = var.tenant_class == "demo_trial"

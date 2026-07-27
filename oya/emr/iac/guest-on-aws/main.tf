@@ -12,12 +12,21 @@ terraform {
 }
 
 variable "tenant_id" { type = string }
-variable "aws_region" { type = string, default = "us-east-1" }
+variable "aws_region" {
+  type = string
+  default = "us-east-1"
+}
 variable "vpc_id" { type = string }
 variable "private_subnets" { type = list(string) }
 variable "eks_cluster_name" { type = string }
-variable "tenant_kms_key_id" { type = string, description = "Tenant-owned KMS key for BYOK envelope encryption" }
-variable "baa_signed_blob_ref" { type = string, description = "S3 ref to signed BAA document" }
+variable "tenant_kms_key_id" {
+  type = string
+  description = "Tenant-owned KMS key for BYOK envelope encryption"
+}
+variable "baa_signed_blob_ref" {
+  type = string
+  description = "S3 ref to signed BAA document"
+}
 
 # Provider must be configured with tenant's role-assume credentials per Layer-A bootstrap
 provider "aws" {

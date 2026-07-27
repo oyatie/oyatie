@@ -14,11 +14,17 @@ terraform {
 
 variable "tenant_id" { type = string }
 variable "oci_compartment_id" { type = string }
-variable "oci_region" { type = string, default = "us-ashburn-1" }
+variable "oci_region" {
+  type = string
+  default = "us-ashburn-1"
+}
 variable "oke_cluster_id" { type = string }
 variable "tenant_vault_id" { type = string }
 variable "tenant_kms_key_id" { type = string }
-variable "always_free_eligible" { type = bool, default = false }
+variable "always_free_eligible" {
+  type = bool
+  default = false
+}
 
 resource "oci_identity_policy" "emr_iam" {
   compartment_id = var.oci_compartment_id

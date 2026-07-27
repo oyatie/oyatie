@@ -30,7 +30,10 @@ variable "tenant_id"     { type = string }
 variable "cell_id"       { type = string }
 variable "compartment_ocid" { type = string }
 variable "image_tag"     { type = string }
-variable "demo_mode"     { type = bool, default = true }
+variable "demo_mode" {
+  type = bool
+  default = true
+}
 
 # 2× Ampere A1 ARM VMs — maxed against the 4 OCPU + 24 GB Always Free shape.
 resource "oci_core_instance" "emergency_a1_primary" {

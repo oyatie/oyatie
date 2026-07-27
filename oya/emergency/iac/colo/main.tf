@@ -23,7 +23,10 @@ variable "tenant_id"     { type = string }
 variable "cell_id"       { type = string }
 variable "kubeconfig_path" { type = string }
 variable "image_tag"     { type = string }
-variable "colo_provider" { type = string, default = "equinix" }
+variable "colo_provider" {
+  type = string
+  default = "equinix"
+}
 variable "compliance_packs" {
   type    = list(string)
   default = ["HIPAA", "SOC2", "HITRUST", "EMTALA"]

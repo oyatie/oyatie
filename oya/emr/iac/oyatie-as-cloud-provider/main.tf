@@ -19,8 +19,14 @@ variable "oyatie_cell_certification_levels" {
   default = ["hipaa-certified"]
 }
 variable "k8s_cluster_endpoint" { type = string }
-variable "k8s_ca_cert" { type = string, sensitive = true }
-variable "k8s_token" { type = string, sensitive = true }
+variable "k8s_ca_cert" {
+  type = string
+  sensitive = true
+}
+variable "k8s_token" {
+  type = string
+  sensitive = true
+}
 variable "tenant_class" {
   type        = string
   default     = "paid"

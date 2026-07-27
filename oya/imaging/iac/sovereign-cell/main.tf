@@ -19,7 +19,10 @@ variable "pack_id" {
   description = "Compliance pack: HIPAA-2024 | GDPR | KR-Medical-Devices | EU-MDR | EU-AI-Act | MQSA"
 }
 variable "region" { type = string }
-variable "byok_opt_in" { type = bool, default = false }
+variable "byok_opt_in" {
+  type = bool
+  default = false
+}
 
 locals {
   pack_constraints = {
