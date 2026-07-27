@@ -1,5 +1,5 @@
 ---
-id: ADR-0626
+id: ADR-0627
 title: "Enforce ADR-0562's facade→core layering rule, and record the capability migration as intentionally paused at ~45%"
 status: Proposed
 planning_impact: true
@@ -17,7 +17,7 @@ related_specs:
 milestone: W0
 ---
 
-# ADR-0626 — Enforce the facade→core layering rule; record the migration as paused at ~45%
+# ADR-0627 — Enforce the facade→core layering rule; record the migration as paused at ~45%
 
 ## Context
 
@@ -108,4 +108,4 @@ This is a **two-way door**. Resuming is a normal decision, not a repair.
 - `ci/facade/facade-core-layering/src/lib.rs`
 - `ci/facade/facade-core-layering/src/main.rs`
 - `ci/facade/facade-core-layering/tests/facade_core_layering.rs`
-- `docs/decisions/ADR-0626-facade-core-layering-gate-and-reorg-pause-at-45-percent.md`
+- `docs/decisions/ADR-0627-facade-core-layering-gate-and-reorg-pause-at-45-percent.md`
