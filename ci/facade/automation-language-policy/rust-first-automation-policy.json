@@ -353,7 +353,7 @@
       ]
     },
     "workflow_inline_shell": {
-      "_comment": "pipeline-glue(a): the file-extension scan above is blind to shell that lives INSIDE workflow YAML `run:` steps (the file is `.yml`, not `.sh`). This dimension parses the declared workflow roots with a real YAML parser, emits one schema-v2 keyed observation per (file, job, required unique run-step name) with exact non-empty shell_lines, and ratchets it against the embedded workflow_inline_shell_baseline. New keys or line-count growth are born-blocking; retired keys or line-count shrink must shrink the baseline in the same PR. Missing or duplicate names fail closed. Removing the shell itself (productizing it as a Rust/Buck2 step) is pipeline-glue(b).",
+      "_comment": "pipeline-glue(a): the file-extension scan above is blind to shell that lives INSIDE workflow YAML `run:` steps (the file is `.yml`, not `.sh`). This dimension parses the declared workflow roots with a real YAML parser, emits one schema-v2 keyed observation per (file, job, required unique run-step name) with exact effective-command shell_lines (blanks, `#` comments, and odd-parity `\\` continuations excluded), and ratchets it against the embedded workflow_inline_shell_baseline. New keys or line-count growth are born-blocking; retired keys or line-count shrink must shrink the baseline in the same PR. Missing or duplicate names fail closed. Removing the shell itself (productizing it as a Rust/Buck2 step) is pipeline-glue(b).",
       "enabled": true,
       "extensions": [
         ".yaml",

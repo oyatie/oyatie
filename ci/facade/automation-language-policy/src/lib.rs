@@ -229,7 +229,7 @@ pub fn collect_observed_non_rust_automation(
 // extension scan never flags it, and the gate never parses the YAML body. pipeline-glue(a) closes
 // that blind spot by parsing the policy-declared workflow globs with a real YAML parser and
 // emitting one keyed observation per (file, job, required unique step name) that carries an inline
-// `run:` block and its non-empty `shell_lines`. Schema-v2 ratchets both values exactly against the
+// `run:` block and its effective-command `shell_lines`. Schema-v2 ratchets both values exactly against the
 // embedded FROZEN baseline (policy-as-data): a new/grown entry blocks, while a removed/shrunk entry
 // makes the baseline stale until the same reviewed change shrinks it.
 
@@ -252,23 +252,47 @@ fn workflow_shell_key(rel: &str, job: &str, name: &str) -> String {
 /// across continuations for readability. Both shrink comprehension to buy a green check, which
 /// inverts the policy this gate enforces. Counting commands rather than lines keeps the ceiling
 /// binding on what it names while leaving comments and formatting free.
+///
+/// The continuation rules below are the ones the ratchet's value actually rests on: each is a
+/// place where reading `\` too generously would let an author append unbounded new commands for
+/// free. Every case is pinned to observed `bash -x` behaviour, not to intuition.
 fn shell_line_count(run: &str) -> usize {
     let mut commands = 0usize;
     let mut inside_continuation = false;
     for line in run.lines() {
         let trimmed = line.trim();
-        // A comment or blank cannot continue a command, but it also must not terminate one: shell
-        // folds `a \` + `# c` + `b` into a single command, so the continuation state is carried
-        // across skipped lines rather than reset by them.
+        // A blank or comment line TERMINATES a continuation — it is not folded into it.
+        // Backslash-newline removal happens before comment recognition, so the comment eats the
+        // remainder of that logical line and the next line starts a new command:
+        //   printf 'echo A \\\n# why\necho B\n' | bash -x  =>  + echo A / + echo B   (TWO)
+        //   printf 'echo A \\\n\necho B\n'      | bash -x  =>  + echo A / + echo B   (TWO)
+        // Carrying the state across instead would let `existing \` + `# any text` + `new command`
+        // add commands at zero measured cost, without bound.
         if trimmed.is_empty() || trimmed.starts_with('#') {
+            inside_continuation = false;
             continue;
         }
         if !inside_continuation {
             commands += 1;
         }
-        inside_continuation = trimmed.ends_with('\\');
+        // Only an ODD run of trailing backslashes continues: `\\` is an escaped backslash, and a
+        // backslash followed by whitespace escapes that whitespace. Both end the command.
+        //   printf 'echo a\\\\\nnext\n'  | bash -x  =>  + echo 'a\' / + next        (TWO)
+        //   printf 'echo A \\ \necho B\n' | bash -x  =>  + echo A ' ' / + echo B    (TWO)
+        //   printf 'echo t\\\\\\\nCONT\n' | bash -x  =>  + echo 't\CONT'            (ONE)
+        // The parity check runs on the UNTRIMMED line: trailing whitespace after the backslash is
+        // invisible in review but decisive to the shell, so trimming it here would silently
+        // reopen the same free-command hole.
+        let raw = line.strip_suffix('\r').unwrap_or(line);
+        inside_continuation = trailing_backslash_run(raw) % 2 == 1;
     }
     commands
+}
+
+/// Number of `\` characters at the very end of `line` (zero if it ends in anything else,
+/// including whitespace). Parity of this run decides whether the line continues.
+fn trailing_backslash_run(line: &str) -> usize {
+    line.bytes().rev().take_while(|byte| *byte == b'\\').count()
 }
 
 /// Glob-free file collector: the policy declares explicit directories + extensions for a scan
@@ -1638,10 +1662,50 @@ mod tests {
     }
 
     #[test]
-    fn shell_line_count_carries_continuation_across_an_interleaved_comment() {
-        // Shell folds `a \` + comment + `--flag` into ONE command; resetting the continuation
-        // state on the comment would miscount it as two.
-        assert_eq!(shell_line_count("a \\\n# why\n  --flag\n"), 1);
+    fn shell_line_count_terminates_a_continuation_at_a_comment_or_blank() {
+        // A comment does NOT fold into a continuation. Backslash-newline removal happens before
+        // comment recognition, so the comment eats the rest of that logical line and the next
+        // line begins a new command. Observed:
+        //   $ printf 'echo A \\\n# why\necho B\n' | bash -x
+        //   + echo A
+        //   + echo B          <- TWO commands
+        assert_eq!(shell_line_count("echo A \\\n# why\necho B\n"), 2);
+        //   $ printf 'echo A \\\n\necho B\n' | bash -x   -> same, TWO commands
+        assert_eq!(shell_line_count("echo A \\\n\necho B\n"), 2);
+
+        // This is the ratchet's load-bearing case, not a curiosity. If the continuation carried
+        // across comments, `existing \` + `# anything` + `new command` would add real imperative
+        // shell at zero measured cost, repeatable without bound:
+        let laundering_attempt = "set -euo pipefail\n\
+                                  echo done \\\n\
+                                  # rationale\n\
+                                  echo LAUNDERED_1 \\\n\
+                                  # more rationale\n\
+                                  echo LAUNDERED_2\n";
+        assert_eq!(
+            shell_line_count(laundering_attempt),
+            4,
+            "four commands run; anything less is a free-growth hole in the ceiling"
+        );
+    }
+
+    #[test]
+    fn shell_line_count_continues_only_on_an_odd_trailing_backslash_run() {
+        // `\\` is an escaped backslash, not a continuation:
+        //   $ printf 'echo a\\\\\nnext\n' | bash -x   -> + echo 'a\' / + next   (TWO)
+        assert_eq!(shell_line_count("echo a\\\\\nnext\n"), 2);
+        // Three backslashes = escaped backslash + continuation, so it DOES continue:
+        //   $ printf 'echo t\\\\\\\nCONT\n' | bash -x  -> + echo 't\CONT'       (ONE)
+        assert_eq!(shell_line_count("echo t\\\\\\\nCONT\n"), 1);
+    }
+
+    #[test]
+    fn shell_line_count_does_not_continue_on_a_backslash_followed_by_whitespace() {
+        // A backslash escapes the space, it does not continue the line:
+        //   $ printf 'echo A \\ \necho B\n' | bash -x  -> + echo A ' ' / + echo B  (TWO)
+        // Trailing whitespace is invisible in review but decisive to the shell, so trimming
+        // before the parity check would silently reopen the free-command hole.
+        assert_eq!(shell_line_count("echo A \\ \necho B\n"), 2);
     }
 
     #[test]
