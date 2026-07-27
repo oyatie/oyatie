@@ -6,9 +6,38 @@ use std::path::{Path, PathBuf};
 
 use intelligence_codex_sdk::{AppServerConfig, AsyncAppCodex};
 use serde_json::{json, Value};
+use std::sync::OnceLock;
+
 use tempfile::TempDir;
 
 use std::os::unix::fs::PermissionsExt;
+
+/// The fake executable, written EXACTLY ONCE per test process.
+///
+/// Each test used to write its own copy and then exec it. That races: `Command::spawn` forks
+/// before it execs, and the forked child inherits every open descriptor — `CLOEXEC` only clears
+/// them AT exec, so a write descriptor stays open across the child's whole fork→exec window. One
+/// test writing while another forked meant the writer's own exec hit ETXTBSY ("Text file busy").
+/// CI hit exactly that in the sibling app-server contract suite.
+///
+/// Writing once behind a `OnceLock` removes the window structurally rather than by retrying: every
+/// test here must obtain this path before it can spawn, so none can be forking during the single
+/// write. Other test binaries are separate processes and cannot inherit these descriptors.
+///
+/// The `TempDir` is deliberately leaked — it must outlive every test, and a `static` is never
+/// dropped, so binding it would only leave a dangling path.
+static FAKE_APP_SERVER: OnceLock<PathBuf> = OnceLock::new();
+
+fn fake_app_server_path() -> PathBuf {
+    FAKE_APP_SERVER
+        .get_or_init(|| {
+            let dir: &'static TempDir = Box::leak(Box::new(tempfile::tempdir().unwrap()));
+            let path = dir.path().join("codex");
+            write_fake_app_server(&path);
+            path
+        })
+        .clone()
+}
 
 struct FakeAppServer {
     _dir: TempDir,
@@ -19,14 +48,13 @@ struct FakeAppServer {
 
 impl FakeAppServer {
     fn new() -> Self {
+        // The executable is shared and written once; the per-test sinks stay per-fake.
         let dir = tempfile::tempdir().unwrap();
-        let path = dir.path().join("codex");
         let messages_file = dir.path().join("messages.jsonl");
         let args_file = dir.path().join("args.txt");
-        write_fake_app_server(&path);
         Self {
             _dir: dir,
-            path,
+            path: fake_app_server_path(),
             messages_file,
             args_file,
         }

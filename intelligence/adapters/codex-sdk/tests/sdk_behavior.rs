@@ -9,10 +9,39 @@ use intelligence_codex_sdk::{
     ThreadEvent, ThreadOptions, TurnOptions, UserInput, WebSearchMode,
 };
 use serde_json::{json, Map, Value};
+use std::sync::OnceLock;
+
 use tempfile::TempDir;
 
 #[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
+
+/// The fake executable, written EXACTLY ONCE per test process.
+///
+/// Each test used to write its own copy and then exec it. That races: `Command::spawn` forks
+/// before it execs, and the forked child inherits every open descriptor — `CLOEXEC` only clears
+/// them AT exec, so a write descriptor stays open across the child's whole fork→exec window. One
+/// test writing while another forked meant the writer's own exec hit ETXTBSY ("Text file busy").
+/// CI hit exactly that in the sibling app-server contract suite.
+///
+/// Writing once behind a `OnceLock` removes the window structurally rather than by retrying: every
+/// test here must obtain this path before it can spawn, so none can be forking during the single
+/// write. Other test binaries are separate processes and cannot inherit these descriptors.
+///
+/// The `TempDir` is deliberately leaked — it must outlive every test, and a `static` is never
+/// dropped, so binding it would only leave a dangling path.
+static FAKE_CODEX: OnceLock<PathBuf> = OnceLock::new();
+
+fn fake_codex_path() -> PathBuf {
+    FAKE_CODEX
+        .get_or_init(|| {
+            let dir: &'static TempDir = Box::leak(Box::new(tempfile::tempdir().unwrap()));
+            let path = dir.path().join("codex");
+            write_fake_script(&path);
+            path
+        })
+        .clone()
+}
 
 struct FakeCodex {
     _dir: TempDir,
@@ -25,16 +54,15 @@ struct FakeCodex {
 
 impl FakeCodex {
     fn new() -> Self {
+        // The executable is shared and written once; the per-test sinks stay per-fake.
         let dir = tempfile::tempdir().unwrap();
-        let path = dir.path().join("codex");
         let args_file = dir.path().join("args.txt");
         let stdin_file = dir.path().join("stdin.txt");
         let env_file = dir.path().join("env.txt");
         let schema_status_file = dir.path().join("schema-status.txt");
-        write_fake_script(&path);
         Self {
             _dir: dir,
-            path,
+            path: fake_codex_path(),
             args_file,
             stdin_file,
             env_file,
