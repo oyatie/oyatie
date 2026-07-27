@@ -3,6 +3,8 @@
 use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::OnceLock;
 use std::time::Duration;
 
 use intelligence_codex_sdk::{
@@ -14,6 +16,37 @@ use tempfile::TempDir;
 
 use std::os::unix::fs::PermissionsExt;
 
+/// The fake app-server executable, written EXACTLY ONCE per test process.
+///
+/// Every test in this binary used to write its own copy and then exec it. That is a race, and it
+/// failed in CI with `Os { code: 26, kind: ExecutableFileBusy }`:
+///
+/// `Command::spawn` forks before it execs. A forked child inherits every open descriptor, and
+/// although Rust opens files `CLOEXEC`, the descriptor stays open in the child for the whole
+/// fork→exec window. So while test A was inside `fs::write` creating its executable, test B's fork
+/// could capture A's *write* descriptor — and A's own exec then hit ETXTBSY, because the kernel
+/// refuses to execute a file that any process holds open for writing.
+///
+/// Writing once behind a `OnceLock` closes the window structurally rather than by retrying: every
+/// test in this binary must obtain this path before it can construct a client, so no test can be
+/// forking while the single write happens — they are all parked on this lock. Other test binaries
+/// are separate processes and cannot inherit these descriptors at all.
+///
+/// The `TempDir` is deliberately leaked: it must outlive every test, and a `static` is never
+/// dropped, so binding it here would only create a dangling path.
+static FAKE_APP_SERVER: OnceLock<PathBuf> = OnceLock::new();
+
+fn fake_app_server_path() -> PathBuf {
+    FAKE_APP_SERVER
+        .get_or_init(|| {
+            let dir: &'static TempDir = Box::leak(Box::new(tempfile::tempdir().unwrap()));
+            let path = dir.path().join("codex");
+            write_fake_app_server(&path);
+            path
+        })
+        .clone()
+}
+
 struct FakeAppServer {
     _dir: TempDir,
     path: PathBuf,
@@ -23,14 +56,14 @@ struct FakeAppServer {
 
 impl FakeAppServer {
     fn new() -> Self {
+        // The executable is shared and written once; the message/arg sinks stay per-test, since
+        // every test asserts on its own transcript.
         let dir = tempfile::tempdir().unwrap();
-        let path = dir.path().join("codex");
         let messages_file = dir.path().join("messages.jsonl");
         let args_file = dir.path().join("args.txt");
-        write_fake_app_server(&path);
         Self {
             _dir: dir,
-            path,
+            path: fake_app_server_path(),
             messages_file,
             args_file,
         }
@@ -72,7 +105,13 @@ impl FakeAppServer {
     }
 }
 
+/// How many times the fake executable has actually been written. The whole point of the
+/// `OnceLock` above is that this stays at 1 no matter how many fakes are constructed, so the
+/// counter is what [`fake_app_server_is_written_exactly_once`] asserts against.
+static WRITES: AtomicUsize = AtomicUsize::new(0);
+
 fn write_fake_app_server(path: &Path) {
+    WRITES.fetch_add(1, Ordering::SeqCst);
     fs::write(
         path,
         r#"#!/usr/bin/env python3
@@ -602,4 +641,36 @@ fn supports_custom_app_server_request_handler() {
                 "result": {"decision": "reject", "reason": "test policy"}
             })
     }));
+}
+
+#[test]
+fn fake_app_server_is_written_exactly_once() {
+    // Pins the mechanism, not just the outcome. Every test used to write its own executable and
+    // then exec it, which races: a concurrent `Command::spawn` forks, inherits the in-flight write
+    // descriptor, and the exec fails ETXTBSY ("Text file busy"). CI hit it.
+    //
+    // Sharing one write is what removes the window, so regressing to a per-fake write must fail
+    // here rather than turn back into an intermittent CI red that reads as unrelated.
+    let first = FakeAppServer::new();
+    let second = FakeAppServer::new();
+
+    assert_eq!(
+        first.path, second.path,
+        "every fake must exec the SAME executable; a per-fake copy reopens the ETXTBSY race"
+    );
+    assert_eq!(
+        WRITES.load(Ordering::SeqCst),
+        1,
+        "the fake executable must be written exactly once per process, not once per fake"
+    );
+
+    // The per-test sinks stay distinct — sharing those would cross transcripts between tests.
+    assert_ne!(
+        first.messages_file, second.messages_file,
+        "message sinks must remain per-fake"
+    );
+    assert_ne!(
+        first.args_file, second.args_file,
+        "arg sinks must remain per-fake"
+    );
 }
