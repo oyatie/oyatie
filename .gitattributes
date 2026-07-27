@@ -19,7 +19,9 @@
 # was considered but excluded: its history shows in-place row REPLACEMENTS
 # (status flips on existing rows) so `union` would silently keep stale +
 # updated variants of the same logical record, exactly the failure mode the
-# codex reviewer flagged on the initial PR.
+# codex reviewer flagged on the initial PR. That exclusion still stands --
+# see the structural driver registered for it below (ADR-0626), which is a
+# real three-way merge per id rather than a union.
 evidence/audit-chain.jsonl merge=union
 
 # Cargo.lock is generated, but it is not append-only: package sections can be added, removed,
@@ -28,6 +30,26 @@ evidence/audit-chain.jsonl merge=union
 # tools/oya-cargo-lock-merge-driver-app. The driver merges disjoint [[package]] additions and
 # exits 1 on same-package version divergence or removal-vs-edit conflicts.
 Cargo.lock merge=cargo-lock
+# The fixup registry is append-mostly JSONL: line 1 is a schema header with NO `id`, every other
+# line is one task row keyed by `id`. Two lanes each filing a finding append adjacent bytes, so
+# git's text merge conflicts on essentially every pair of concurrent PRs (GH #1412) over a change
+# that is semantically disjoint. `merge=union` is WRONG here for the reason recorded above (in-place
+# row replacements would keep both the stale and updated variant of one logical record, and every
+# consumer keys on `id`). The structural driver in tools/fixup-ledger-merge-driver-app does a real
+# three-way merge per id: it resolves only what is unambiguous, CONFLICTS when both sides edited one
+# id differently, and never lets a deletion win. It fails closed on unmodelled input, so git falls
+# back to a normal conflict rather than the driver writing a partially-merged ledger. On conflict it
+# WRITES diff3 markers carrying every side: git does not re-run its own text merge when a driver
+# exits nonzero, so a driver that abstains leaves `ours` alone, unmarked, with the other side's rows
+# absent -- a clean-looking file that loses data on a reflexive `git add`.
+#
+# Registration is per-clone (see the crate README): an actor without the `merge.fixup-ledger` git
+# config simply gets today's normal conflict, so this can never make the status quo worse.
+#
+# Critically, the header is bound to line 1 STRUCTURALLY and never looked up by id -- an id-keyed
+# resolver skips it (its id is absent, and `None` is falsy), which silently deleted the header from
+# four branches in one session. The driver asserts the header survived before emitting anything.
+registry/fixuptasks.jsonl merge=fixup-ledger
 
 # The friction ledger is an append-only, event-sourced JSONL surface with id-aware semantics
 # (PRIMARY rows anchor a friction id; UPDATE rows append transitions; the ADR-0544
