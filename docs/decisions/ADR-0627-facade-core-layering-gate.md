@@ -1,6 +1,6 @@
 ---
 id: ADR-0627
-title: "Enforce ADR-0562's facade→core layering rule, and record the capability migration as intentionally paused at ~45%"
+title: "Enforce ADR-0562's facade→core layering rule, keyed to survive the remaining capability migration"
 status: Proposed
 planning_impact: true
 deciders: founder
@@ -9,15 +9,15 @@ door: two-way
 owner: council-architecture
 supersedes: []
 superseded_by: []
-amends: [ADR-0328]
+amends: []
 depends_on: [ADR-0562, ADR-0615]
-related: [ADR-0245, ADR-0280, ADR-0512, ADR-0551, ADR-0554]
+related: [ADR-0245, ADR-0280, ADR-0328, ADR-0512, ADR-0551, ADR-0554]
 related_specs:
   - /specs/capability-registry.json
 milestone: W0
 ---
 
-# ADR-0627 — Enforce the facade→core layering rule; record the migration as paused at ~45%
+# ADR-0627 — Enforce the facade→core layering rule, keyed to survive the remaining migration
 
 ## Context
 
@@ -38,16 +38,17 @@ Two facts shaped the design:
 1. **A `Cargo.toml` scan does not see the rule.** `intelligence/facade/worker/BUCK` carries the edge
    at lines 8 and 22 with **zero** Cargo path-dependencies. A manifest-keyed gate is blind to it.
    Detection must read the build graph.
-2. **The migration that was supposed to fix this has stopped.** Roughly 45% of crates have moved to
-   capability-first homes. Finishing changes no architectural fact: a fully migrated tree is exactly
-   as unenforced as today's, because the enforcement was never the relocation — it was the rule.
+2. **Relocation was never the enforcement.** Roughly 45% of crates have moved to capability-first
+   homes, and the rule is violated at the same rate on both sides of the line — a fully migrated tree
+   would be exactly as unenforced as today's. The gate is therefore needed independently of, and
+   concurrently with, the migration rather than after it.
 
 Separately, an unrelated observation constrains what this ADR may promise: a `frozen_empty` gate code
 is **not** ungrandfatherable. Both firewall predicates
 (`ci/facade/baseline-ratchet/src/lib.rs:584` and `:525`) read `!signoff.is_signed_off(...)` with no
-`frozen_empty` special case, and the module documents that as deliberate. So no gate in this repo can
-make the pause mechanically irreversible; this ADR therefore records the pause rather than claiming
-to enforce it.
+`frozen_empty` special case, and the module documents that as deliberate. Recorded here because it
+bounds what any gate in this repo may claim: a `frozen_empty` code is a signed-off-able speed bump,
+not an irreversible mechanism. This ADR claims no mechanism it does not have.
 
 ## Decision
 
@@ -67,12 +68,17 @@ baselined entry at once and the repair would be indistinguishable from launderin
 35 packages, identical per-capability split — *before* the gate was written. Static parsing keeps the
 gate hermetic (no subprocess), which `gate-self-conformance` requires.
 
-**4. Record the capability migration as intentionally paused at ~45%.** This amends **ADR-0328**, the
-sequence authority. (It does **not** amend ADR-0562 §10: ADR-0562:37 states "the migration contract
-in §10 is reference, not execution.") The remaining crates stay where they are until a *product*
-reason touches them. What is given up, explicitly and not deferred: legacy `cloud/`, `oya/`, `libs/`,
-`tools/` keep crates indefinitely; `base/` is not created; `libs/oya-shared-*` (51) and
-`libs/oya-http-*` (8) stay put; the capability registry stays partly stale.
+**4. The capability migration continues to completion.** An earlier draft of this ADR recorded it as
+intentionally paused at ~45%. That is **reversed** by founder decision 2026-07-27: the destination is a
+single, consistent tree — dual state taxes every placement decision, every doc reference, and every new
+crate's home, which is a standing cost on product work rather than on the migration.
+
+This ADR therefore does **not** amend ADR-0328, and asserts no pause. It records only that **decision 2
+above is why this gate ships now instead of after the migration**, and that **decision 2's package-name
+keying exists precisely because the remaining crates will move.** A buck2 label embeds its path; a
+baseline keyed on labels would be invalidated wholesale by the next batch and the repair would be
+indistinguishable from laundering. Package names survive relocation, so this baseline is expected to
+outlive every remaining move without a single re-key.
 
 This is a **two-way door**. Resuming is a normal decision, not a repair.
 
@@ -94,10 +100,13 @@ This is a **two-way door**. Resuming is a normal decision, not a repair.
 
 - The 35 violators persist but **cannot grow**. The baseline is shrink-only, and a repaired entry is
   reported until its baseline row is removed, so repairs cannot silently leave the slot open.
-- The tree stays dual-state indefinitely.
-- The pause is a **record, not a mechanism**. A future agent reading ADR-0562 will find an unfinished
-  mandate; this ADR is what tells them it was deliberate. If migration resumes, the package-name keys
-  survive the moves.
+- The tree stays dual-state **until the migration completes**, which this ADR does not schedule — it
+  only stops asserting a pause that is no longer the decision.
+- **The baseline is migration-proof by construction.** Package-name keys mean the remaining moves
+  require no re-key, no signoff, and no baseline churn. This is the property that lets the gate ship
+  before the tree is finished rather than after.
+- The 5 `facade_core_no_ports_layer` entries close by *introducing a ports layer*, not by relocating —
+  so migration neither closes nor worsens them.
 
 ## Files introduced by this decision
 
@@ -108,4 +117,4 @@ This is a **two-way door**. Resuming is a normal decision, not a repair.
 - `ci/facade/facade-core-layering/src/lib.rs`
 - `ci/facade/facade-core-layering/src/main.rs`
 - `ci/facade/facade-core-layering/tests/facade_core_layering.rs`
-- `docs/decisions/ADR-0627-facade-core-layering-gate-and-reorg-pause-at-45-percent.md`
+- `docs/decisions/ADR-0627-facade-core-layering-gate.md`
