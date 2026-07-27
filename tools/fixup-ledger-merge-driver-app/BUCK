@@ -1,0 +1,38 @@
+# Structural git merge driver for registry/fixuptasks.jsonl (GH #1412). The lib is the pure
+# three-way merge (zero I/O, fixture-drivable); the binary is the thin `%O %A %B` git contract.
+# Registration is per-clone (see README) — an actor without the `merge.fixup-ledger` git config
+# simply gets a normal conflict, exactly as today, so this can never make the status quo worse.
+
+rust_library(
+    name = "fixup-ledger-merge-driver-app",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "fixup_ledger_merge_driver_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "fixup-ledger-merge-driver-app-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "fixup_ledger_merge_driver_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde_json",
+    ],
+)
+
+rust_binary(
+    name = "fixup-ledger-merge-driver",
+    srcs = ["src/main.rs"],
+    crate = "fixup_ledger_merge_driver",
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":fixup-ledger-merge-driver-app",
+        "third-party//:serde_json",
+    ],
+)

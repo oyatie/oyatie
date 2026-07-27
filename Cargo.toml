@@ -14,6 +14,16 @@ members = [
   "oya/*/crates/oya-*",
   "oya/office/oya-*",
   "tools/oya-*",
+  # De-branded tools membership (ADR-0532/0533 de-brand + ADR-0107 layer suffix). The `oya-*`
+  # narrowing above exists so non-crate sibling dirs (scripts, completions, vendored trees) cannot
+  # break cargo resolution -- but the BRAND was never what distinguished a crate from a sibling.
+  # ADR-0107 already binds every crate under tools/ to a canonical layer suffix (`-app` for binary
+  # tools), and none of the four non-crate siblings (anchor-sweep, completions, hooks,
+  # opensk-vendored) carries one. Keying on the suffix is therefore the same guarantee expressed
+  # de-branded, and it lets a new tool land without an `oya-` prefix and without touching this
+  # array again. The globs deliberately overlap on the existing `oya-*-app` crates; cargo resolves
+  # a directory matched twice to one member.
+  "tools/*-app",
   # Capability-first home (ADR-0562 strangler move 1): the `messaging` capability absorbs the
   # former oya/eventing crates at messaging/<face>/<leaf>. The leaf is NOT oya-prefixed (the
   # ADR-0532/0533 de-brand: cargo names messaging-domain / messaging-file-adapter), so the leaf
