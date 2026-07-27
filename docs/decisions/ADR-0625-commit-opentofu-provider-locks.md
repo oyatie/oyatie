@@ -49,7 +49,7 @@ select a different provider version than the last apply used.
 
 Locks are generated with
 
-```
+```shell
 tofu providers lock -platform=linux_amd64 -platform=darwin_arm64
 ```
 
@@ -89,17 +89,6 @@ under the reorg rather than being placed here by choice.
 
 - `infra/cloudflare/.terraform.lock.hcl`
 - `infra/cloudflare/OWNERS`
-- `oya/community/iac/terraform/.terraform.lock.hcl`
-- `oya/emergency/iac/colo/.terraform.lock.hcl`
-- `oya/emergency/iac/oci-always-free/.terraform.lock.hcl`
-- `oya/emr/iac/colo/.terraform.lock.hcl`
-- `oya/emr/iac/guest-on-aws/.terraform.lock.hcl`
-- `oya/emr/iac/guest-on-oci/.terraform.lock.hcl`
-- `oya/emr/iac/on-prem/.terraform.lock.hcl`
-- `oya/emr/iac/oyatie-as-cloud-provider/.terraform.lock.hcl`
-- `oya/emr/iac/oyatie-public-cloud/.terraform.lock.hcl`
-- `oya/finops-portal/iac/.terraform.lock.hcl`
-- `oya/forms/iac/terraform/.terraform.lock.hcl`
 - `oya/identity/iac/colo/.terraform.lock.hcl`
 - `oya/identity/iac/guest-on-aws/.terraform.lock.hcl`
 - `oya/identity/iac/guest-on-oci/.terraform.lock.hcl`
@@ -107,19 +96,6 @@ under the reorg rather than being placed here by choice.
 - `oya/identity/iac/on-prem/.terraform.lock.hcl`
 - `oya/identity/iac/oyatie-as-cloud-provider/.terraform.lock.hcl`
 - `oya/identity/iac/oyatie-public-cloud/.terraform.lock.hcl`
-- `oya/imaging/iac/aws-guest/.terraform.lock.hcl`
-- `oya/imaging/iac/colo/.terraform.lock.hcl`
-- `oya/imaging/iac/oci-guest/.terraform.lock.hcl`
-- `oya/imaging/iac/on-prem/.terraform.lock.hcl`
-- `oya/messenger/iac/colo/.terraform.lock.hcl`
-- `oya/messenger/iac/guest-on-aws/.terraform.lock.hcl`
-- `oya/messenger/iac/guest-on-oci/.terraform.lock.hcl`
-- `oya/messenger/iac/on-prem/.terraform.lock.hcl`
-- `oya/messenger/iac/oyatie-as-cloud-provider/.terraform.lock.hcl`
-- `oya/messenger/iac/oyatie-public-cloud/.terraform.lock.hcl`
-- `oya/observability/iac/terraform/.terraform.lock.hcl`
-- `oya/pharmacy/iac/oci-guest/always-free/.terraform.lock.hcl`
-- `oya/recordings/iac/terraform/.terraform.lock.hcl`
 
 ## Consequences
 
