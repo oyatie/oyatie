@@ -309,12 +309,41 @@ fn hermetic_token_observations(gate: &str, rel_path: &str, text: &str, rows: &mu
     }
 }
 
+/// Extract Rust string literals with 1-based line numbers, skipping `//` line comments and
+/// `/* … */` block comments.
+///
+/// Comment awareness is load-bearing in both directions. Without it, a doc comment that *quotes*
+/// a repo path reads as production code hardcoding that path — a false positive that makes the
+/// gate a source of friction while catching nothing. The sharper half is the false green: a
+/// commented-out `"--fix"` satisfies `has_autofix_contract`, letting a gate claim a remediation
+/// surface it does not implement.
+///
+/// The scan is left-to-right so a `//` *inside* a literal (a URL, say) is consumed as part of the
+/// literal rather than opening a comment — truncating there would be a false negative.
 fn string_literals_with_lines(text: &str) -> Vec<(usize, String)> {
     let mut out = Vec::new();
+    let mut in_block_comment = false;
     for (line_idx, line) in text.lines().enumerate() {
         let bytes = line.as_bytes();
         let mut i = 0;
         while i < bytes.len() {
+            if in_block_comment {
+                if bytes[i] == b'*' && bytes.get(i + 1) == Some(&b'/') {
+                    in_block_comment = false;
+                    i += 2;
+                } else {
+                    i += 1;
+                }
+                continue;
+            }
+            if bytes[i] == b'/' && bytes.get(i + 1) == Some(&b'/') {
+                break;
+            }
+            if bytes[i] == b'/' && bytes.get(i + 1) == Some(&b'*') {
+                in_block_comment = true;
+                i += 2;
+                continue;
+            }
             if bytes[i] != b'"' {
                 i += 1;
                 continue;
@@ -998,6 +1027,79 @@ mod tests {
         row["policy_literal_observations"] = json!(rows);
         let findings = evaluate_keyed(&policy(), &json!({ "gates": [row] }));
         assert!(codes(&findings).contains("gate_self_conformance_policy_as_data_violation"));
+    }
+
+    #[test]
+    fn comments_are_not_production_code_in_either_direction() {
+        let rules = PolicyLiteralRules {
+            allowed_prefixes: vec![],
+            forbidden_prefixes: vec!["acme/".to_owned()],
+            forbidden_contains: vec![],
+        };
+
+        // A doc comment that *quotes* a path documents the shape; it hardcodes nothing.
+        let mut rows = Vec::new();
+        policy_literal_observations(
+            "documented-gate",
+            "platform/gates/documented/src/lib.rs",
+            "/// Degenerate shapes such as \"acme/\" now yield `None`.\n\
+             /* Block form: \"acme/payroll\" was the old bogus prefix. */\n\
+             fn f() {}",
+            &rules,
+            &mut rows,
+        );
+        assert_eq!(
+            rows,
+            Vec::<Value>::new(),
+            "commented-out paths are documentation, not a hardcoded product shape"
+        );
+
+        // The same blindness the other way: a real literal on a line that also carries a
+        // comment is still production code and must still be caught.
+        let mut rows = Vec::new();
+        policy_literal_observations(
+            "mixed-gate",
+            "platform/gates/mixed/src/lib.rs",
+            "const P: &str = \"acme/payroll\"; // \"acme/ignored\"",
+            &rules,
+            &mut rows,
+        );
+        assert_eq!(rows.len(), 1, "code before a trailing comment still counts");
+        assert_eq!(rows[0]["literal"], json!("acme/payroll"));
+
+        // A `//` inside a literal must not open a comment — truncating there loses the tail.
+        let mut rows = Vec::new();
+        policy_literal_observations(
+            "url-gate",
+            "platform/gates/url/src/lib.rs",
+            "const U: &str = \"https://example.test/acme/payroll\";",
+            &rules,
+            &mut rows,
+        );
+        assert_eq!(
+            rows.len(),
+            0,
+            "the scheme's // must not truncate the literal (this one is not acme/-prefixed)"
+        );
+        let literals =
+            string_literals_with_lines("const U: &str = \"https://example.test/acme/payroll\";");
+        assert_eq!(
+            literals,
+            vec![(1, "https://example.test/acme/payroll".to_owned())],
+            "the literal must survive its own // intact"
+        );
+    }
+
+    #[test]
+    fn a_commented_out_autofix_flag_does_not_satisfy_the_contract() {
+        assert!(
+            !has_autofix_contract(&["// TODO: support \"--fix\" one day".to_owned()]),
+            "a commented-out flag is an intention, not a remediation surface"
+        );
+        assert!(
+            has_autofix_contract(&["const ARG: &str = \"--fix\";".to_owned()]),
+            "a real flag literal still declares the contract"
+        );
     }
 
     #[test]

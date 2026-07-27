@@ -77,9 +77,15 @@ fn main() -> ExitCode {
             .findings
             .iter()
             .filter(|f| {
+                // The NON-BASELINEABLE codes: `evaluate` never consults the baseline for these,
+                // so a row here is permanently inert. Worse than useless — once the condition is
+                // fixed the row is absent from `live`, so it inflates `burned_down` forever, and
+                // if its subject crate later moves, TDA-STALE-BASELINE fires on a row that should
+                // never have existed. Excluding them makes the documented re-freeze remedy safe.
                 f.code != "TDA-POLICY-MALFORMED"
                     && f.code != "TDA-BASELINE-MALFORMED"
                     && f.code != "TDA-STALE-BASELINE"
+                    && f.code != "TDA-UNDECLARED-ROOT"
             })
             .map(|f| json!({ "code": f.code, "subject": f.subject }))
             .collect();
