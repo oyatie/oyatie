@@ -118,6 +118,7 @@ is given and takes no position on their contents. That gap is real and is not ad
 This decision governs, and thereby justifies, the following files.
 
 - `tools/fixup-ledger-merge-driver-app/BUCK`
+- `tools/fixup-ledger-merge-driver-app/OWNERS`
 - `tools/fixup-ledger-merge-driver-app/Cargo.toml`
 - `tools/fixup-ledger-merge-driver-app/README.md`
 - `tools/fixup-ledger-merge-driver-app/src/lib.rs`

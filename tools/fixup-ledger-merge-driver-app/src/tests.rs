@@ -99,6 +99,29 @@ fn a_conflict_still_carries_every_row_from_both_sides() {
             merged.content
         );
     }
+    assert_sides_are_under_their_own_markers(&merged.content, "MINE", "THEIRS");
+}
+
+/// Presence is not enough: a block that files theirs' content under `<<<<<<< ours` contains every
+/// marker and every side, so it passes a presence-only check — and a human resolving "keep ours"
+/// then silently keeps theirs. Same looks-right-is-wrong family as everything else this crate
+/// guards against, so the ORDER is asserted, not just the contents.
+fn assert_sides_are_under_their_own_markers(content: &str, ours_needle: &str, theirs_needle: &str) {
+    let at = |needle: &str| {
+        content
+            .find(needle)
+            .unwrap_or_else(|| panic!("{needle} absent from:\n{content}"))
+    };
+    let (ours_marker, base_marker) = (at(OURS_MARKER), at(BASE_MARKER));
+    let (split, theirs_marker) = (at(SPLIT_MARKER), at(THEIRS_MARKER));
+    assert!(
+        ours_marker < at(ours_needle) && at(ours_needle) < base_marker,
+        "ours content must sit between the ours and base markers:\n{content}"
+    );
+    assert!(
+        split < at(theirs_needle) && at(theirs_needle) < theirs_marker,
+        "theirs content must sit between the split and theirs markers:\n{content}"
+    );
 }
 
 #[test]
@@ -300,12 +323,17 @@ fn unmodelled_input_still_yields_a_file_carrying_every_side() {
     for marker in [OURS_MARKER, BASE_MARKER, SPLIT_MARKER, THEIRS_MARKER] {
         assert!(fallback.contains(marker), "missing {marker}");
     }
+    assert_sides_are_under_their_own_markers(&fallback, "MINE", "IMPORTANT");
 }
 
 #[test]
 fn a_clean_merge_is_actually_validated_not_just_validatable() {
-    // The previous validate test called `validate` directly, so deleting the CALL SITE left the
-    // suite green — it pinned the function, not the wiring. This drives the real entry point.
+    // Scope, stated honestly because this claim has been falsified three times: deleting the
+    // `validate(...)` CALL SITE still leaves this suite green, and no black-box assertion can
+    // change that. `validate` cannot fire on today's kernel — every id is emitted unconditionally
+    // — so "ran" and "did not run" are observationally identical from outside. This test pins the
+    // post-condition through the real entry point, which is worth having; it does NOT pin that
+    // validate is wired in. Only a mutation harness could.
     let base = ledger(&[row("A", "a")]);
     let ours = ledger(&[row("A", "a"), row("B", "b")]);
     let theirs = ledger(&[row("A", "a"), row("C", "c")]);
@@ -313,7 +341,7 @@ fn a_clean_merge_is_actually_validated_not_just_validatable() {
     assert!(!merged.conflicted);
 
     // Every id from every side is present in the emitted content — the post-condition validate
-    // enforces, asserted through `merge_ledgers` so the call site cannot be removed silently.
+    // enforces, asserted through `merge_ledgers` rather than by calling `validate` directly.
     let present = ids(&merged.content);
     for id in ["A", "B", "C"] {
         assert!(present.contains(&id.to_owned()), "merge_ledgers dropped {id}");
