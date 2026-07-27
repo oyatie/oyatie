@@ -1,0 +1,51 @@
+rust_library(
+    name = "ci-facade-core-layering",
+    srcs = glob(["src/**/*.rs", "**/*.json"]),
+    crate = "ci_facade_core_layering",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde_json",
+    ],
+)
+
+rust_binary(
+    name = "ci-facade-core-layering-bin",
+    srcs = glob(["src/**/*.rs", "**/*.json"]),
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-facade-core-layering",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "ci-facade-core-layering-unittest",
+    srcs = glob(["src/**/*.rs", "**/*.json"]),
+    crate = "ci_facade_core_layering",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde_json",
+    ],
+)
+
+# facade-core-layering: live-corpus self-test over the real capability tree plus RED/GREEN
+# fixtures. The live leg walks the candidate tree, asserts the gate is born-blocking green today
+# (all 35 pre-existing violators frozen), and asserts SET EQUALITY between the live violation set
+# and the frozen baseline so a phantom baseline row cannot pre-authorize a future violation. A
+# separate non-empty-scan assertion exists because a scan that enumerates nothing is otherwise
+# indistinguishable from a clean tree. The RED fixture proves a NEW facade->core edge fails
+# closed; the GREEN fixture proves facade -> ports is untouched.
+rust_test(
+    name = "ci-facade-core-layering-gate",
+    srcs = glob(["tests/**/*.rs", "**/*.json"]),
+    crate = "ci_facade_core_layering_gate",
+    crate_root = "tests/facade_core_layering.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-facade-core-layering",
+        "third-party//:serde_json",
+    ],
+)
