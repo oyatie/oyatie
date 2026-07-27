@@ -1335,6 +1335,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "ci-facade-core-layering"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
 name = "ci-feature-maturity-policy"
 version = "0.1.0"
 dependencies = [
