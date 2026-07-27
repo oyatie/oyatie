@@ -37,3 +37,18 @@
   daemon_idle_timeout_s = 14400
   clean_stale_enabled = true
   restarter = true
+
+# Nested git worktrees live INSIDE the repo root, so buck2 parses their contents as packages
+# of this cell. Verified 2026-07-26: `buck2 targets //...` FAILS with exit 3 ("Failed to parse
+# 1 package") on a worktree's own buck-out/v2/external_cells/bundled/prelude/**/BUCK, which
+# resolves against a different prelude version than this repo's. Whole-graph queries — build,
+# test, and the `rdeps(//..., ...)` affected-set driver — are unusable until these are ignored.
+# Measured on the canonical checkout: exit 3 / 0 targets / 45.8s before, exit 0 / 1851 targets
+# / 1.3s after. Scale: 55,902 BUCK files under these roots against 940 tracked in the repo.
+#
+# The four roots are exactly the in-repo worktree parents (`git worktree list`). `.claude` is
+# scoped to `worktrees` because `.claude/BUCK` defines a real `settings-json` filegroup; the
+# other three hold zero tracked files. No BUCK or .bzl references any of these paths.
+# CI is unaffected — runners get a clean checkout with none of these roots present.
+[project]
+  ignore = .claude/worktrees, .worktrees, .gjc, .omx
