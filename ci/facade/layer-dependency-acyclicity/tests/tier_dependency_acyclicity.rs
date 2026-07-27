@@ -266,10 +266,20 @@ fn every_governed_glob_root_is_declared_in_the_policy() {
     )
     .expect("policy parses");
 
+    // A root is declared by being tier-classified (`service_roots` = parent-of-services,
+    // `capability_roots` = the root IS the service) or deliberately exempt (`unclassified_roots`).
+    // `capability_roots` is optional, so a policy that omits it keeps the original two-set check.
+    let empty = Vec::new();
     let declared: BTreeSet<&str> = policy["service_roots"]
         .as_array()
         .expect("service_roots")
         .iter()
+        .chain(
+            policy
+                .get("capability_roots")
+                .and_then(|v| v.as_array())
+                .unwrap_or(&empty),
+        )
         .chain(policy["unclassified_roots"].as_array().expect("unclassified_roots"))
         .map(|v| v.as_str().expect("root is a string"))
         .collect();
@@ -284,7 +294,7 @@ fn every_governed_glob_root_is_declared_in_the_policy() {
 
     assert!(
         undeclared.is_empty(),
-        "crate_root_globs roots declared in neither service_roots nor unclassified_roots: \
-         {undeclared:?}; crates landing under these are silently unenforced"
+        "crate_root_globs roots declared in none of service_roots / capability_roots / \
+         unclassified_roots: {undeclared:?}; crates landing under these are silently unenforced"
     );
 }
