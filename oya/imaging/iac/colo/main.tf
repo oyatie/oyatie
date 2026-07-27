@@ -17,7 +17,10 @@ terraform {
 
 variable "tenant_id" { type = string }
 variable "cell_id"   { type = string }
-variable "modality_vlan_cidr" { type = string, default = "10.50.0.0/16" }
+variable "modality_vlan_cidr" {
+  type = string
+  default = "10.50.0.0/16"
+}
 variable "kubeconfig_path"    { type = string }
 
 provider "kubernetes" {

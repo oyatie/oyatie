@@ -23,13 +23,19 @@ terraform {
 
 variable "tenant_id" { type = string }
 variable "cell_id"   { type = string }
-variable "region"    { type = string, default = "oyacloud-us-east-1" }
+variable "region" {
+  type = string
+  default = "oyacloud-us-east-1"
+}
 variable "image_tag" { type = string }
 variable "compliance_packs" {
   type    = list(string)
   default = ["HIPAA", "SOC2", "HITRUST", "EMTALA"]
 }
-variable "kata_pod_runtime" { type = bool, default = true }
+variable "kata_pod_runtime" {
+  type = bool
+  default = true
+}
 
 resource "oyatie_cell" "emergency_cell" {
   tenant_id = var.tenant_id
