@@ -453,3 +453,145 @@ fn burned_down_edge_with_live_endpoints_is_not_stale() {
     assert_eq!(report.verdict, Verdict::Green);
     assert_eq!(report.burned_down, 1);
 }
+
+#[test]
+fn owning_service_consumes_the_configured_roots_not_a_hardcode() {
+    // The regression this guards: the fn took `_service_roots` and hardcoded cloud/oya, so the
+    // policy field looked load-bearing and was not.
+    let roots = vec!["cloud".to_string(), "oya".to_string()];
+    assert_eq!(
+        owning_service("cloud/cloud-iam/crates/x", &roots),
+        Some("cloud/cloud-iam".to_string())
+    );
+    assert_eq!(owning_service("messaging/core/domain", &roots), None);
+
+    // Repointing the policy at a different root set must change the projection. Under a hardcode
+    // this assertion fails.
+    let repointed = vec!["messaging".to_string()];
+    assert_eq!(
+        owning_service("messaging/core/domain", &repointed),
+        Some("messaging/core".to_string())
+    );
+    assert_eq!(owning_service("cloud/cloud-iam/crates/x", &repointed), None);
+
+    // Degenerate shapes must not panic or invent a service.
+    assert_eq!(owning_service("cloud", &roots), None);
+    assert_eq!(owning_service("cloud/", &roots), None);
+    assert_eq!(owning_service("", &roots), None);
+}
+
+#[test]
+fn an_undeclared_crate_root_is_born_blocking() {
+    // A crate under a root declared in NEITHER service_roots NOR unclassified_roots is silently
+    // unenforced today; R6 makes it RED. `unclassified_roots` was inert config before this.
+    let policy = policy();
+    let baseline = json!({"violations": []});
+    let observed = json!({
+        "crate_count": 900,
+        "crates": [
+            {"dir": "libs/oya-x", "service": null},
+            {"dir": "surprise/new-root/crate", "service": null}
+        ],
+        "service_tiers": {},
+        "edges": []
+    });
+    let report = evaluate(&policy, &baseline, &observed);
+    let undeclared: Vec<_> = report
+        .findings
+        .iter()
+        .filter(|f| f.code == "TDA-UNDECLARED-ROOT")
+        .collect();
+    assert_eq!(
+        undeclared.len(),
+        1,
+        "exactly the undeclared root must fire; got {:?}",
+        report.findings
+    );
+    // subject is the ROOT, not the crate dir: one finding per root, stable across crate churn.
+    assert_eq!(undeclared[0].subject, "surprise");
+    assert!(
+        undeclared[0].detail.contains("surprise/new-root/crate"),
+        "detail should name an example crate; got {}",
+        undeclared[0].detail
+    );
+    assert!(matches!(undeclared[0].status, Status::Regression));
+}
+
+#[test]
+fn declared_unclassified_roots_do_not_fire_r6() {
+    // libs/ and tools/ are deliberately exempt; making the declaration live must not RED them.
+    let policy = policy();
+    let baseline = json!({"violations": []});
+    let observed = json!({
+        "crate_count": 900,
+        "crates": [
+            {"dir": "libs/oya-x", "service": null},
+            {"dir": "tools/oya-y", "service": null},
+            {"dir": "cloud/cloud-iam/crates/z", "service": "cloud/cloud-iam"}
+        ],
+        "service_tiers": {},
+        "edges": []
+    });
+    let report = evaluate(&policy, &baseline, &observed);
+    assert!(
+        !report.findings.iter().any(|f| f.code == "TDA-UNDECLARED-ROOT"),
+        "declared roots must not fire; got {:?}",
+        report.findings
+    );
+}
+
+#[test]
+fn evaluator_only_emits_declared_violation_codes() {
+    // THE DRIFT GUARD whose absence let a real defect through. Adding TDA-UNDECLARED-ROOT
+    // required syncing THREE hand-maintained places: VIOLATION_CODES, the module doc bullet
+    // list, and main.rs's --emit-baseline exclusion. Two were updated; the third was missed and
+    // only found in review. ~10 sibling gates carry this guard; this one did not.
+    let declared: BTreeSet<&str> = VIOLATION_CODES.into_iter().collect();
+
+    // Drive the evaluator through every reachable emission path and assert nothing escapes the
+    // declared set.
+    let cases = vec![
+        // malformed policy
+        (json!({"gate_id": "wrong"}), json!({"violations": []}), json!({})),
+        // malformed baseline
+        (policy(), json!({"violations": "not-an-array"}), json!({})),
+        // empty scan + undeclared root + a real edge violation + a stale baseline row
+        (
+            policy(),
+            baseline(&[("TDA-STALE-BASELINE", "ghost/gone")]),
+            json!({
+                "crate_count": 0,
+                "crates": [
+                    {"dir": "surprise/root/x", "service": null},
+                    {"dir": "cloud/a/crates/oya-a", "service": "cloud/a"},
+                    {"dir": "cloud/b/crates/oya-b", "service": "cloud/b"}
+                ],
+                "service_tiers": {
+                    "cloud/a": {"tier": "substrate", "stratum": "S3"},
+                    "cloud/b": {"tier": "product"}
+                },
+                "edges": [
+                    {"from": "cloud/a/crates/oya-a", "to": "cloud/b/crates/oya-b"},
+                    {"from": "cloud/b/crates/oya-b", "to": "cloud/a/crates/oya-a"}
+                ]
+            }),
+        ),
+    ];
+
+    let mut seen: BTreeSet<String> = BTreeSet::new();
+    for (p, b, o) in cases {
+        for f in evaluate(&p, &b, &o).findings {
+            assert!(
+                declared.contains(f.code.as_str()),
+                "evaluator emitted undeclared code `{}`; add it to VIOLATION_CODES",
+                f.code
+            );
+            seen.insert(f.code.clone());
+        }
+    }
+    // Guard the guard: if these cases stop exercising real paths the test silently weakens.
+    assert!(
+        seen.len() >= 4,
+        "expected the fixtures to exercise several codes, saw {seen:?}"
+    );
+}
