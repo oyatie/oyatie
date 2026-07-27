@@ -240,11 +240,35 @@ fn workflow_shell_key(rel: &str, job: &str, name: &str) -> String {
     format!("{rel}::{job}::{name}")
 }
 
-/// Count the inline-shell lines in a `run:` scalar. Block scalars (`run: |` / `run: >`) and
-/// single-line `run:` are both deserialized by serde_yaml into a plain string, so this is a simple
-/// non-empty-line count over the already-parsed value (no regex, no manual block-scalar handling).
+/// Count the *effective* inline-shell lines in a `run:` scalar — the number of shell commands a
+/// reader would count. Block scalars (`run: |` / `run: >`) and single-line `run:` are both
+/// deserialized by serde_yaml into a plain string, so this walks the already-parsed value (no
+/// regex, no manual block-scalar handling).
+///
+/// Blank lines, `#` comments, and `\` line-continuations are excluded because none of them is
+/// shell debt. This dimension exists to ratchet imperative shell *down* until a Rust/Buck2 step
+/// owns the operation; a raw non-empty-line count instead made the ratchet block two edits that
+/// carry no new logic at all — documenting an existing shell step, and wrapping one long command
+/// across continuations for readability. Both shrink comprehension to buy a green check, which
+/// inverts the policy this gate enforces. Counting commands rather than lines keeps the ceiling
+/// binding on what it names while leaving comments and formatting free.
 fn shell_line_count(run: &str) -> usize {
-    run.lines().filter(|line| !line.trim().is_empty()).count()
+    let mut commands = 0usize;
+    let mut inside_continuation = false;
+    for line in run.lines() {
+        let trimmed = line.trim();
+        // A comment or blank cannot continue a command, but it also must not terminate one: shell
+        // folds `a \` + `# c` + `b` into a single command, so the continuation state is carried
+        // across skipped lines rather than reset by them.
+        if trimmed.is_empty() || trimmed.starts_with('#') {
+            continue;
+        }
+        if !inside_continuation {
+            commands += 1;
+        }
+        inside_continuation = trimmed.ends_with('\\');
+    }
+    commands
 }
 
 /// Glob-free file collector: the policy declares explicit directories + extensions for a scan
@@ -1576,6 +1600,60 @@ pub fn evaluate(policy: &Value, observed: &Value) -> Report {
 mod tests {
     use super::*;
     use serde_json::json;
+
+    #[test]
+    fn shell_line_count_counts_commands_not_lines() {
+        // Baseline shape: three plain commands.
+        assert_eq!(shell_line_count("a\nb\nc\n"), 3);
+        // Blank lines never counted (unchanged from the original behaviour).
+        assert_eq!(shell_line_count("a\n\n\nb\n"), 2);
+    }
+
+    #[test]
+    fn shell_line_count_excludes_comments_so_documenting_a_step_is_not_growth() {
+        let undocumented = "gh api repos/x/pulls/1\n";
+        let documented = "# Explain why this call exists, at length,\n\
+                          # across several lines.\n\
+                          gh api repos/x/pulls/1\n";
+        assert_eq!(shell_line_count(undocumented), 1);
+        assert_eq!(
+            shell_line_count(documented),
+            shell_line_count(undocumented),
+            "adding a comment adds no shell debt and must not read as ratchet growth"
+        );
+    }
+
+    #[test]
+    fn shell_line_count_folds_continuations_so_wrapping_is_not_growth() {
+        let one_line = "buck2 run //x:y -- --a --b --c\n";
+        let wrapped = "buck2 run //x:y -- \\\n  --a \\\n  --b \\\n  --c\n";
+        assert_eq!(shell_line_count(one_line), 1);
+        assert_eq!(
+            shell_line_count(wrapped),
+            shell_line_count(one_line),
+            "wrapping one command across continuations must not read as ratchet growth"
+        );
+        // Two wrapped commands are still two commands.
+        assert_eq!(shell_line_count("a \\\n  1\nb \\\n  2\n"), 2);
+    }
+
+    #[test]
+    fn shell_line_count_carries_continuation_across_an_interleaved_comment() {
+        // Shell folds `a \` + comment + `--flag` into ONE command; resetting the continuation
+        // state on the comment would miscount it as two.
+        assert_eq!(shell_line_count("a \\\n# why\n  --flag\n"), 1);
+    }
+
+    #[test]
+    fn shell_line_count_still_grows_when_real_commands_are_added() {
+        // The ceiling stays binding: the point is to stop miscounting, not to stop counting.
+        let before = "a\n";
+        let after = "a\n# a comment, free\nb\n";
+        assert!(
+            shell_line_count(after) > shell_line_count(before),
+            "a genuinely new command must still register as growth"
+        );
+    }
 
     fn policy(paths: &[&str]) -> Value {
         json!({

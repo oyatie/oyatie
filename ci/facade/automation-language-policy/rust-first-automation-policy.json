@@ -367,7 +367,7 @@
   },
   "schema_version": "1.4.0",
   "workflow_inline_shell_baseline": {
-    "_comment": "FROZEN exact named-step baseline of accepted workflow inline shell. Each entry is {key, shell_lines}, keyed as <workflow-relpath>::<job-id>::<required unique run-step name>. Both the named key set and shell_lines are exact shrink-accounted: a new key or line-count growth is born-blocking; a removed key or line-count shrink makes this baseline stale until it shrinks in the same reviewed PR. Missing or duplicate run-step names and malformed or duplicate baseline rows fail closed. This schema-v2 baseline was mechanically migrated from exact origin/dev commit 30dd46c4dd7d12c085b77332d9ac5035d583edcf, preserving its accepted 58 workflow run steps and measured non-empty shell line counts.",
+    "_comment": "FROZEN exact named-step baseline of accepted workflow inline shell. Each entry is {key, shell_lines}, keyed as <workflow-relpath>::<job-id>::<required unique run-step name>. Both the named key set and shell_lines are exact shrink-accounted: a new key or line-count growth is born-blocking; a removed key or line-count shrink makes this baseline stale until it shrinks in the same reviewed PR. Missing or duplicate run-step names and malformed or duplicate baseline rows fail closed. This schema-v2 baseline was mechanically migrated from exact origin/dev commit 30dd46c4dd7d12c085b77332d9ac5035d583edcf, preserving its accepted 58 workflow run steps. shell_lines counts EFFECTIVE shell commands: blank lines, `#` comments, and `\\` line-continuations are excluded, because none is shell debt and counting them made the ratchet block documenting or wrapping a step that added no logic. The 12 entries whose counts fell when the counter was corrected were re-measured in the same PR.",
     "_provenance": {
       "authority": "pipeline-glue(a): rust-first ratchet workflow-inline-shell go-live; door:one-way",
       "baseline_schema_version": 2,
@@ -448,15 +448,15 @@
         },
         {
           "key": ".github/workflows/check-substrates.yml::oya-check-substrate-dependency-dag-acyclicity::buck2 build (validator crate + cycle fixtures)",
-          "shell_lines": 4
+          "shell_lines": 2
         },
         {
           "key": ".github/workflows/check-substrates.yml::oya-check-substrate-dependency-dag-acyclicity::buck2 test (pure-kernel RED cycle classes + live-corpus GREEN gate)",
-          "shell_lines": 4
+          "shell_lines": 2
         },
         {
           "key": ".github/workflows/docs-graph-drift.yml::docs-graph-drift::Materialize de-committed inputs, build + test the generator",
-          "shell_lines": 14
+          "shell_lines": 7
         },
         {
           "key": ".github/workflows/oya-ci-required.yml::buck2::Cache-hit telemetry + warm-mode guard (ADR-0560)",
@@ -476,15 +476,15 @@
         },
         {
           "key": ".github/workflows/oya-ci-required.yml::buck2::Reclaim runner disk before warm restore (FRIC-017 preflight)",
-          "shell_lines": 8
+          "shell_lines": 2
         },
         {
           "key": ".github/workflows/oya-ci-required.yml::buck2::buck2 build + test (//ci/..., hermetic — binding)",
-          "shell_lines": 7
+          "shell_lines": 2
         },
         {
           "key": ".github/workflows/oya-ci-required.yml::gate-affected-target-set::Binding affected-set build + test (cone-binding; FULL tier = build-health ratchet)",
-          "shell_lines": 37
+          "shell_lines": 17
         },
         {
           "key": ".github/workflows/oya-ci-required.yml::gate-affected-target-set::Fetch base ref for the merge-base anchor",
@@ -500,15 +500,15 @@
         },
         {
           "key": ".github/workflows/oya-ci-required.yml::gate-affected-target-set::Materialize merge-base build + test baselines when affected-set needs FULL",
-          "shell_lines": 89
+          "shell_lines": 53
         },
         {
           "key": ".github/workflows/oya-ci-required.yml::gate-affected-target-set::Pre-provision pinned rust toolchain and PR metadata preflight",
-          "shell_lines": 12
+          "shell_lines": 9
         },
         {
           "key": ".github/workflows/oya-ci-required.yml::gate-affected-target-set::Reclaim runner disk before warm restore (FRIC-017 preflight)",
-          "shell_lines": 8
+          "shell_lines": 2
         },
         {
           "key": ".github/workflows/oya-ci-required.yml::gate-baseline-ratchet::Install buck2 (digest-pinned prebuilt release)",
@@ -520,7 +520,7 @@
         },
         {
           "key": ".github/workflows/oya-ci-required.yml::gate-baseline-ratchet::buck2 test cloud-ci-firewall",
-          "shell_lines": 7
+          "shell_lines": 2
         },
         {
           "key": ".github/workflows/oya-ci-required.yml::gate-generated-artifact-freshness::Install buck2 (digest-pinned prebuilt release)",
@@ -604,11 +604,11 @@
         },
         {
           "key": ".github/workflows/oya-ci-required.yml::generated-output-diff-policy::Reject non-deletion generated output edits",
-          "shell_lines": 25
+          "shell_lines": 10
         },
         {
           "key": ".github/workflows/oya-ci-required.yml::oya-ci-required::Fan-in verdict (green IFF every gate lane is green)",
-          "shell_lines": 26
+          "shell_lines": 16
         },
         {
           "key": ".github/workflows/oya-ci-required.yml::producer-regen::Install buck2 (digest-pinned prebuilt release)",
