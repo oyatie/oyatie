@@ -1,7 +1,7 @@
 //! Real X.509 leaf-DER parsing + verification (G002 slice-1b-i; ADR-0561).
 //!
 //! Replaces the TSV1 stand-in codec: a presented peer leaf is now REAL ASN.1
-//! X.509 DER (minted by `oya-cloud-os-trustd-domain::der` via rcgen), and this
+//! X.509 DER (minted by `os-trustd-domain::der` via rcgen), and this
 //! module parses + verifies it with `x509-parser` on the `aws-lc-rs` backend
 //! (`verify-aws`; NO ring, ADR-0506). It is the body the kernel
 //! [`SvidVerifier::verify_peer`] port delegates to.
@@ -184,10 +184,10 @@ fn uri_sans(cert: &X509Certificate<'_>) -> Result<Vec<String>, LeafVerifyError> 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_cloud_os_trustd_domain::ca::{CertificateAuthority, CertificateSigningRequest};
-    use oya_cloud_os_trustd_domain::der;
-    use oya_cloud_os_trustd_domain::signer::EcdsaP256Signer;
-    use oya_cloud_os_trustd_domain::x509::KeyPair;
+    use os_trustd_domain::ca::{CertificateAuthority, CertificateSigningRequest};
+    use os_trustd_domain::der;
+    use os_trustd_domain::signer::EcdsaP256Signer;
+    use os_trustd_domain::x509::KeyPair;
 
     const URI: &str = "spiffe://oyatie.cell-7/tenant/ten_acme/secrets-sync";
 
@@ -279,8 +279,8 @@ mod tests {
         // A CA-capable cert (basicConstraints cA TRUE) signed by the TRUSTED CA,
         // carrying a valid SPIFFE URI SAN, must NOT authenticate as a workload —
         // defence in depth: a CA must never act as a caller.
-        use oya_cloud_os_trustd_domain::certificate::{CertUsage, Certificate};
-        use oya_cloud_os_trustd_domain::x509::{
+        use os_trustd_domain::certificate::{CertUsage, Certificate};
+        use os_trustd_domain::x509::{
             DistinguishedName, SubjectAltNames, Validity,
         };
         let (ca, sgn) = real_ca();
@@ -308,8 +308,8 @@ mod tests {
     fn leaf_without_clientauth_eku_is_rejected() {
         // A serverAuth-only leaf (for_node ServerAuth ⇒ no clientAuth EKU) from the
         // TRUSTED CA, carrying a SPIFFE URI SAN, must NOT authenticate as a caller.
-        use oya_cloud_os_trustd_domain::certificate::{CertUsage, Certificate};
-        use oya_cloud_os_trustd_domain::x509::{
+        use os_trustd_domain::certificate::{CertUsage, Certificate};
+        use os_trustd_domain::x509::{
             DistinguishedName, SubjectAltNames, Validity,
         };
         let (ca, sgn) = real_ca();
@@ -351,7 +351,7 @@ mod tests {
         // A node cert (DNS SAN only, no URI) from the TRUSTED CA still has no
         // SPIFFE identity.
         let (mut ca, sgn) = real_ca();
-        use oya_cloud_os_trustd_domain::certificate::CertUsage;
+        use os_trustd_domain::certificate::CertUsage;
         let wl = EcdsaP256Signer::generate().unwrap();
         let wl_key = KeyPair::new(wl.private_key_der(), wl.public_key_spki_der());
         let csr = CertificateSigningRequest::for_node("node-1", &wl_key, CertUsage::ClientAuth, 3_600)

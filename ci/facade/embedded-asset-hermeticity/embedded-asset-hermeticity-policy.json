@@ -10,7 +10,8 @@
     "infra",
     "marketplace",
     "iam",
-    "intelligence"
+    "intelligence",
+    "os"
   ],
   "exclude_path_substrings": [
     "/target/",

@@ -37,7 +37,7 @@ closure and is **ADR-0559 D6 step 0** — the prerequisite that unblocks the G00
 
 The platform already has the two halves needed to close it, on `dev`:
 
-1. **A CA + issuance engine** (`cloud/cloud-os/crates/oya-cloud-os-trustd-domain`): a faithful
+1. **A CA + issuance engine** (`os/core/trustd-domain`): a faithful
    Rust port of the Talos `trustd` PKI — `CertificateAuthority<S: SigningBackend>`, a
    join-token-gated `SecurityService::handle_certificate` minting path, an `IssuancePolicy` that
    already rejects CA-capable leaves, and a `TrustBundle` chain verifier. `SigningBackend` is the
@@ -274,17 +274,17 @@ axis-cloud-platform; reachable via cargo-members):
 The two new crate roots are owned by axis-identity (a born-at-creation OWNERS in
 each crate directory per ADR-0555) and reachable via the globbed Cargo workspace
 membership (cargo-members). The trustd X.509 extension
-(cloud/cloud-os/crates/oya-cloud-os-trustd-domain/src/x509.rs,
+(os/core/trustd-domain/src/x509.rs,
 .../src/certificate.rs, .../src/ca.rs) amends already-accounted files in place
 and carries no new accounting rows.
 
 Slice-1b-i (FRIC-1781510000) adds two new source files:
 
-- cloud/cloud-os/crates/oya-cloud-os-trustd-domain/src/der.rs — real ASN.1 DER
+- os/core/trustd-domain/src/der.rs — real ASN.1 DER
   issuance (rcgen on the aws-lc-rs backend). Its crate (oya-cloud-os-trustd-domain)
   was previously UNOWNED baseline debt (no OWNERS marker), so der.rs would be born
   unowned. Slice-1b-i therefore born-accounts the crate: it adds
-  cloud/cloud-os/crates/oya-cloud-os-trustd-domain/OWNERS (owner: axis-cloud-platform,
+  os/core/trustd-domain/OWNERS (owner: axis-cloud-platform,
   matching the sibling cloud/* substrate crates cloud-iam/cloud-kms/cloud-kernel),
   registered as reached in specs/reachability-registry.json — which owns der.rs and
   pays down the crate's prior unowned debt (12 source files newly owned, zero new

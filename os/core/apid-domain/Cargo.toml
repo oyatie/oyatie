@@ -1,0 +1,20 @@
+[package]
+name = "os-apid-domain"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+
+[lib]
+name = "os_apid_domain"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+os-kernel = { path = "../kernel" }
+os-proto-api = { path = "../proto-api" }
+
+[lints]
+workspace = true

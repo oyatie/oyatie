@@ -252,6 +252,7 @@
       ],
       "roots": [
         "cloud",
+        "os",
         "infra",
         "tools"
       ]
@@ -264,7 +265,7 @@
       "third-party/"
     ],
     "interpreter_command_authority": {
-      "_comment": "G006 inventory-first guard: Rust automation/gate source must not re-authorize retired Python/Node/MJS authority by spawning interpreter commands directly. The scan is intentionally scoped to automation/gate code; cloud/cloud-os is owned by the later kernel/OS story and is excluded from this task-4 lane.",
+      "_comment": "G006 inventory-first guard: Rust automation/gate source must not re-authorize retired Python/Node/MJS authority by spawning interpreter commands directly. ROOTS NOTE (ADR-0562 reorg): the gate fleet moved cloud/cloud-ci -> ci/, so `cloud/cloud-ci` is now a DEAD path this dimension silently skipped (visit_scan_root treats a missing root as Ok) while its primary target went unscanned; `ci` is the live root and was added to close that blind spot. The dead entry is RETAINED because removing a root fires rust_first_automation_scan_scope_narrowing -- retire it in a change whose subject is the shrink. The scan is intentionally scoped to automation/gate code; cloud/cloud-os is owned by the later kernel/OS story and is excluded from this task-4 lane.",
       "enabled": true,
       "exclude_prefixes": [
         "cloud/cloud-os/"
@@ -285,6 +286,8 @@
       ],
       "roots": [
         "cloud/cloud-ci",
+        "ci",
+        "os",
         "libs",
         "tools"
       ]
@@ -305,7 +308,34 @@
       "infra",
       ".codex",
       ".github/workflows",
-      "cloud"
+      "cloud",
+      "os",
+      "audit",
+      "billing",
+      "cell",
+      "ci",
+      "comms",
+      "compliance",
+      "compute",
+      "console",
+      "data",
+      "flags",
+      "gateway",
+      "governance",
+      "iac",
+      "iam",
+      "intelligence",
+      "k8s",
+      "kernel",
+      "libs",
+      "marketplace",
+      "messaging",
+      "network",
+      "observability",
+      "secrets",
+      "storage",
+      "tenancy",
+      "workflow"
     ],
     "workflow_forbidden_uses": {
       "_comment": "Forbid third-party / marketplace Buck2 setup actions. The allowed bridge is repo-owned infra/ci/install-buck2.sh, which downloads the official facebook/buck2 release asset and verifies the pinned SHA-256 before execution.",

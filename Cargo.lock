@@ -3671,7 +3671,7 @@ dependencies = [
  "iam-identity-workload-svid-operator-kernel",
  "iam-identity-workload-svid-trustd",
  "iam-pdp-cedar",
- "oya-cloud-os-trustd-domain",
+ "os-trustd-domain",
  "oya-http-runtime-hyper-adapter",
  "oya-shared-audit-digest-adapter-awslc",
  "oya-shared-audit-event-kernel",
@@ -3875,7 +3875,7 @@ dependencies = [
  "k8s-openapi",
  "kube",
  "kube-runtime",
- "oya-cloud-os-trustd-domain",
+ "os-trustd-domain",
  "serde_json",
  "tokio",
  "tracing",
@@ -3894,7 +3894,7 @@ name = "iam-identity-workload-svid-trustd"
 version = "0.1.0"
 dependencies = [
  "iam-identity-workload-svid-kernel",
- "oya-cloud-os-trustd-domain",
+ "os-trustd-domain",
  "x509-parser",
 ]
 
@@ -6261,6 +6261,329 @@ dependencies = [
 ]
 
 [[package]]
+name = "os-apid-domain"
+version = "0.1.0"
+dependencies = [
+ "os-kernel",
+ "os-proto-api",
+]
+
+[[package]]
+name = "os-archiver-domain"
+version = "0.1.0"
+dependencies = [
+ "os-kernel",
+]
+
+[[package]]
+name = "os-block-domain"
+version = "0.1.0"
+dependencies = [
+ "os-cosi-domain",
+ "os-kernel",
+ "os-machine-config-domain",
+]
+
+[[package]]
+name = "os-board-domain"
+version = "0.1.0"
+dependencies = [
+ "os-kernel",
+]
+
+[[package]]
+name = "os-cluster-domain"
+version = "0.1.0"
+dependencies = [
+ "os-kernel",
+]
+
+[[package]]
+name = "os-cluster-mgmt-domain"
+version = "0.1.0"
+dependencies = [
+ "os-kernel",
+]
+
+[[package]]
+name = "os-conditions-domain"
+version = "0.1.0"
+dependencies = [
+ "os-kernel",
+]
+
+[[package]]
+name = "os-config-docs-domain"
+version = "0.1.0"
+dependencies = [
+ "os-kernel",
+]
+
+[[package]]
+name = "os-config-v1alpha1-domain"
+version = "0.1.0"
+dependencies = [
+ "os-kernel",
+ "os-machine-config-domain",
+]
+
+[[package]]
+name = "os-controllers-domain"
+version = "0.1.0"
+dependencies = [
+ "os-cosi-domain",
+ "os-kernel",
+ "os-machine-config-domain",
+ "os-network-domain",
+]
+
+[[package]]
+name = "os-cosi-domain"
+version = "0.1.0"
+dependencies = [
+ "os-kernel",
+]
+
+[[package]]
+name = "os-difftest-app"
+version = "0.1.0"
+dependencies = [
+ "os-controllers-domain",
+ "os-init-app",
+ "os-kernel",
+ "os-kubernetes-domain",
+ "os-machine-config-domain",
+ "os-network-domain",
+ "os-platform-domain",
+ "os-runtime-cri-domain",
+ "os-secrets-domain",
+]
+
+[[package]]
+name = "os-etcd-domain"
+version = "0.1.0"
+dependencies = [
+ "os-kernel",
+]
+
+[[package]]
+name = "os-events-logging-domain"
+version = "0.1.0"
+dependencies = [
+ "os-kernel",
+]
+
+[[package]]
+name = "os-extensions-domain"
+version = "0.1.0"
+dependencies = [
+ "os-kernel",
+]
+
+[[package]]
+name = "os-hardware-domain"
+version = "0.1.0"
+dependencies = [
+ "os-kernel",
+]
+
+[[package]]
+name = "os-imager-domain"
+version = "0.1.0"
+dependencies = [
+ "os-kernel",
+]
+
+[[package]]
+name = "os-init-app"
+version = "0.1.0"
+dependencies = [
+ "libc",
+ "os-block-domain",
+ "os-controllers-domain",
+ "os-cosi-domain",
+ "os-kernel",
+ "os-machine-config-domain",
+ "os-machined-domain",
+ "os-network-domain",
+ "os-platform-domain",
+ "os-runtime-cri-domain",
+]
+
+[[package]]
+name = "os-install-domain"
+version = "0.1.0"
+dependencies = [
+ "os-kernel",
+]
+
+[[package]]
+name = "os-k8s-control-domain"
+version = "0.1.0"
+dependencies = [
+ "os-kernel",
+ "os-kubelet-domain",
+ "os-runtime-cri-domain",
+]
+
+[[package]]
+name = "os-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "os-kubelet-domain"
+version = "0.1.0"
+dependencies = [
+ "os-kernel",
+]
+
+[[package]]
+name = "os-kubernetes-domain"
+version = "0.1.0"
+dependencies = [
+ "os-kernel",
+ "os-runtime-cri-domain",
+ "os-secrets-domain",
+]
+
+[[package]]
+name = "os-kubespan-domain"
+version = "0.1.0"
+dependencies = [
+ "os-kernel",
+]
+
+[[package]]
+name = "os-machine-config-domain"
+version = "0.1.0"
+dependencies = [
+ "os-kernel",
+]
+
+[[package]]
+name = "os-machined-domain"
+version = "0.1.0"
+dependencies = [
+ "os-block-domain",
+ "os-cosi-domain",
+ "os-kernel",
+ "os-runtime-cri-domain",
+]
+
+[[package]]
+name = "os-maintenance-domain"
+version = "0.1.0"
+dependencies = [
+ "os-kernel",
+]
+
+[[package]]
+name = "os-meta-domain"
+version = "0.1.0"
+dependencies = [
+ "os-kernel",
+]
+
+[[package]]
+name = "os-network-domain"
+version = "0.1.0"
+dependencies = [
+ "libc",
+ "os-kernel",
+]
+
+[[package]]
+name = "os-perf-domain"
+version = "0.1.0"
+dependencies = [
+ "os-kernel",
+]
+
+[[package]]
+name = "os-platform-domain"
+version = "0.1.0"
+dependencies = [
+ "os-kernel",
+]
+
+[[package]]
+name = "os-proto-api"
+version = "0.1.0"
+dependencies = [
+ "os-kernel",
+]
+
+[[package]]
+name = "os-resources-domain"
+version = "0.1.0"
+dependencies = [
+ "os-kernel",
+]
+
+[[package]]
+name = "os-runtime-cri-domain"
+version = "0.1.0"
+dependencies = [
+ "os-block-domain",
+ "os-cosi-domain",
+ "os-kernel",
+ "os-machine-config-domain",
+]
+
+[[package]]
+name = "os-secrets-domain"
+version = "0.1.0"
+dependencies = [
+ "os-kernel",
+]
+
+[[package]]
+name = "os-security-domain"
+version = "0.1.0"
+dependencies = [
+ "os-kernel",
+]
+
+[[package]]
+name = "os-siderolink-domain"
+version = "0.1.0"
+dependencies = [
+ "os-kernel",
+]
+
+[[package]]
+name = "os-syslogd-domain"
+version = "0.1.0"
+dependencies = [
+ "os-kernel",
+]
+
+[[package]]
+name = "os-time-domain"
+version = "0.1.0"
+dependencies = [
+ "os-kernel",
+]
+
+[[package]]
+name = "os-trustd-domain"
+version = "0.1.0"
+dependencies = [
+ "aws-lc-rs",
+ "os-kernel",
+ "rcgen",
+ "time",
+ "x509-parser",
+]
+
+[[package]]
+name = "os-upgrade-domain"
+version = "0.1.0"
+dependencies = [
+ "os-kernel",
+]
+
+[[package]]
 name = "oya-adapter-substitution-test-app"
 version = "0.1.0"
 
@@ -6875,329 +7198,6 @@ version = "0.1.0"
 dependencies = [
  "serde",
  "serde_json",
-]
-
-[[package]]
-name = "oya-cloud-os-apid-domain"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-os-kernel",
- "oya-cloud-os-proto-api",
-]
-
-[[package]]
-name = "oya-cloud-os-archiver-domain"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-os-kernel",
-]
-
-[[package]]
-name = "oya-cloud-os-block-domain"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-os-cosi-domain",
- "oya-cloud-os-kernel",
- "oya-cloud-os-machine-config-domain",
-]
-
-[[package]]
-name = "oya-cloud-os-board-domain"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-os-kernel",
-]
-
-[[package]]
-name = "oya-cloud-os-cluster-domain"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-os-kernel",
-]
-
-[[package]]
-name = "oya-cloud-os-cluster-mgmt-domain"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-os-kernel",
-]
-
-[[package]]
-name = "oya-cloud-os-conditions-domain"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-os-kernel",
-]
-
-[[package]]
-name = "oya-cloud-os-config-docs-domain"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-os-kernel",
-]
-
-[[package]]
-name = "oya-cloud-os-config-v1alpha1-domain"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-os-kernel",
- "oya-cloud-os-machine-config-domain",
-]
-
-[[package]]
-name = "oya-cloud-os-controllers-domain"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-os-cosi-domain",
- "oya-cloud-os-kernel",
- "oya-cloud-os-machine-config-domain",
- "oya-cloud-os-network-domain",
-]
-
-[[package]]
-name = "oya-cloud-os-cosi-domain"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-os-kernel",
-]
-
-[[package]]
-name = "oya-cloud-os-difftest-app"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-os-controllers-domain",
- "oya-cloud-os-init-app",
- "oya-cloud-os-kernel",
- "oya-cloud-os-kubernetes-domain",
- "oya-cloud-os-machine-config-domain",
- "oya-cloud-os-network-domain",
- "oya-cloud-os-platform-domain",
- "oya-cloud-os-runtime-cri-domain",
- "oya-cloud-os-secrets-domain",
-]
-
-[[package]]
-name = "oya-cloud-os-etcd-domain"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-os-kernel",
-]
-
-[[package]]
-name = "oya-cloud-os-events-logging-domain"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-os-kernel",
-]
-
-[[package]]
-name = "oya-cloud-os-extensions-domain"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-os-kernel",
-]
-
-[[package]]
-name = "oya-cloud-os-hardware-domain"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-os-kernel",
-]
-
-[[package]]
-name = "oya-cloud-os-imager-domain"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-os-kernel",
-]
-
-[[package]]
-name = "oya-cloud-os-init-app"
-version = "0.1.0"
-dependencies = [
- "libc",
- "oya-cloud-os-block-domain",
- "oya-cloud-os-controllers-domain",
- "oya-cloud-os-cosi-domain",
- "oya-cloud-os-kernel",
- "oya-cloud-os-machine-config-domain",
- "oya-cloud-os-machined-domain",
- "oya-cloud-os-network-domain",
- "oya-cloud-os-platform-domain",
- "oya-cloud-os-runtime-cri-domain",
-]
-
-[[package]]
-name = "oya-cloud-os-install-domain"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-os-kernel",
-]
-
-[[package]]
-name = "oya-cloud-os-k8s-control-domain"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-os-kernel",
- "oya-cloud-os-kubelet-domain",
- "oya-cloud-os-runtime-cri-domain",
-]
-
-[[package]]
-name = "oya-cloud-os-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-cloud-os-kubelet-domain"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-os-kernel",
-]
-
-[[package]]
-name = "oya-cloud-os-kubernetes-domain"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-os-kernel",
- "oya-cloud-os-runtime-cri-domain",
- "oya-cloud-os-secrets-domain",
-]
-
-[[package]]
-name = "oya-cloud-os-kubespan-domain"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-os-kernel",
-]
-
-[[package]]
-name = "oya-cloud-os-machine-config-domain"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-os-kernel",
-]
-
-[[package]]
-name = "oya-cloud-os-machined-domain"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-os-block-domain",
- "oya-cloud-os-cosi-domain",
- "oya-cloud-os-kernel",
- "oya-cloud-os-runtime-cri-domain",
-]
-
-[[package]]
-name = "oya-cloud-os-maintenance-domain"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-os-kernel",
-]
-
-[[package]]
-name = "oya-cloud-os-meta-domain"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-os-kernel",
-]
-
-[[package]]
-name = "oya-cloud-os-network-domain"
-version = "0.1.0"
-dependencies = [
- "libc",
- "oya-cloud-os-kernel",
-]
-
-[[package]]
-name = "oya-cloud-os-perf-domain"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-os-kernel",
-]
-
-[[package]]
-name = "oya-cloud-os-platform-domain"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-os-kernel",
-]
-
-[[package]]
-name = "oya-cloud-os-proto-api"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-os-kernel",
-]
-
-[[package]]
-name = "oya-cloud-os-resources-domain"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-os-kernel",
-]
-
-[[package]]
-name = "oya-cloud-os-runtime-cri-domain"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-os-block-domain",
- "oya-cloud-os-cosi-domain",
- "oya-cloud-os-kernel",
- "oya-cloud-os-machine-config-domain",
-]
-
-[[package]]
-name = "oya-cloud-os-secrets-domain"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-os-kernel",
-]
-
-[[package]]
-name = "oya-cloud-os-security-domain"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-os-kernel",
-]
-
-[[package]]
-name = "oya-cloud-os-siderolink-domain"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-os-kernel",
-]
-
-[[package]]
-name = "oya-cloud-os-syslogd-domain"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-os-kernel",
-]
-
-[[package]]
-name = "oya-cloud-os-time-domain"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-os-kernel",
-]
-
-[[package]]
-name = "oya-cloud-os-trustd-domain"
-version = "0.1.0"
-dependencies = [
- "aws-lc-rs",
- "oya-cloud-os-kernel",
- "rcgen",
- "time",
- "x509-parser",
-]
-
-[[package]]
-name = "oya-cloud-os-upgrade-domain"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-os-kernel",
 ]
 
 [[package]]

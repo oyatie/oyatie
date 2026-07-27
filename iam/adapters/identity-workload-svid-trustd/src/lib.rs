@@ -1,13 +1,13 @@
 //! Workload X.509-SVID trustd adapter (G002 slice-1 + slice-1b-i; ADR-0561).
 //!
 //! Implements the [`iam_identity_workload_svid_kernel`] issuer/verifier ports
-//! over the `oya-cloud-os-trustd-domain` CA stack with REAL X.509 crypto:
+//! over the `os-trustd-domain` CA stack with REAL X.509 crypto:
 //!
 //! - [`TrustdSvidIssuer`] issues an SVID by driving
 //!   [`SecurityService::handle_certificate`] with the `for_workload` URI-SAN CSR
 //!   shape (the SPIFFE id becomes the leaf's single URI SAN), join-token gated
 //!   exactly as node issuance is, then minting the REAL ASN.1 DER leaf (real
-//!   ECDSA-P256 signature) via [`oya_cloud_os_trustd_domain::der`].
+//!   ECDSA-P256 signature) via [`os_trustd_domain::der`].
 //! - [`TrustdSvidVerifier`] verifies a presented peer leaf — REAL DER — against a
 //!   [`TrustBundle`] (real signature + validity) with `x509-parser`
 //!   (`verify-aws`, NO ring), and extracts its single SPIFFE URI SAN, parsing it
@@ -28,13 +28,13 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
-use oya_cloud_os_trustd_domain::ca::CertificateSigningRequest;
-use oya_cloud_os_trustd_domain::certificate::Certificate;
-use oya_cloud_os_trustd_domain::der;
-use oya_cloud_os_trustd_domain::service::{CertificateRequest, SecurityService};
-use oya_cloud_os_trustd_domain::signer::EcdsaP256Signer;
-use oya_cloud_os_trustd_domain::x509::KeyPair;
-use oya_cloud_os_trustd_domain::{TrustBundle, TrustError};
+use os_trustd_domain::ca::CertificateSigningRequest;
+use os_trustd_domain::certificate::Certificate;
+use os_trustd_domain::der;
+use os_trustd_domain::service::{CertificateRequest, SecurityService};
+use os_trustd_domain::signer::EcdsaP256Signer;
+use os_trustd_domain::x509::KeyPair;
+use os_trustd_domain::{TrustBundle, TrustError};
 
 use iam_identity_workload_svid_kernel::{
     IssueError, SpiffeId, SvidRequest, SvidVerifier, VerifyError, WorkloadIdentityIssuer, X509Svid,
@@ -147,11 +147,11 @@ impl WorkloadIdentityIssuer for TrustdSvidIssuer<'_> {
 /// [`SpiffeId`]. Generic over the bundle's `SigningBackend` so the same verifier
 /// works for any anchor type; the cryptographic check itself reads the anchors'
 /// real SubjectPublicKeyInfo DER, not the `SigningBackend` MAC.
-pub struct TrustdSvidVerifier<'a, S: oya_cloud_os_trustd_domain::signer::SigningBackend> {
+pub struct TrustdSvidVerifier<'a, S: os_trustd_domain::signer::SigningBackend> {
     bundle: &'a TrustBundle<S>,
 }
 
-impl<'a, S: oya_cloud_os_trustd_domain::signer::SigningBackend> TrustdSvidVerifier<'a, S> {
+impl<'a, S: os_trustd_domain::signer::SigningBackend> TrustdSvidVerifier<'a, S> {
     /// Bind a verifier to a trust bundle.
     pub fn new(bundle: &'a TrustBundle<S>) -> Self {
         Self { bundle }
@@ -187,7 +187,7 @@ impl<'a, S: oya_cloud_os_trustd_domain::signer::SigningBackend> TrustdSvidVerifi
     }
 }
 
-impl<S: oya_cloud_os_trustd_domain::signer::SigningBackend> SvidVerifier
+impl<S: os_trustd_domain::signer::SigningBackend> SvidVerifier
     for TrustdSvidVerifier<'_, S>
 {
     fn verify_peer(&self, leaf_der: &[u8], now: u64) -> Result<SpiffeId, VerifyError> {
@@ -223,9 +223,9 @@ fn map_leaf_err(err: LeafVerifyError) -> VerifyError {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_cloud_os_trustd_domain::ca::CertificateAuthority;
-    use oya_cloud_os_trustd_domain::certificate::CertUsage;
-    use oya_cloud_os_trustd_domain::JoinToken;
+    use os_trustd_domain::ca::CertificateAuthority;
+    use os_trustd_domain::certificate::CertUsage;
+    use os_trustd_domain::JoinToken;
 
     const JOIN_TOKEN: &str = "clusterid.clustersecret";
 
