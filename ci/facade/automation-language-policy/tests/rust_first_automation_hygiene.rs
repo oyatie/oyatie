@@ -442,11 +442,41 @@ fn live_postgres_lane_emits_redacted_bootstrap_provenance_artifact() {
     let provenance_block = &rest[..end];
 
     assert!(
-        provenance_block.contains("\"image\": \"postgres:16\"")
-            && provenance_block.contains("0000_runtime_role.sql")
+        provenance_block.contains("0000_runtime_role.sql")
             && provenance_block.contains("0001_identity_scim_store.sql")
             && provenance_block.contains("\"source_revision\": \"${GITHUB_SHA}\""),
-        "bootstrap provenance must include image, ordered migrations, and source revision: {provenance_block}"
+        "bootstrap provenance must include ordered migrations and source revision: {provenance_block}"
+    );
+
+    // The image is checked by DERIVING it from the lane's own service definition rather than
+    // hardcoding a literal. The invariant that matters is that provenance records what was
+    // ACTUALLY pulled — not that the repo uses one particular registry. The previous literal
+    // (`"image": "postgres:16"`) made a registry change read as a provenance defect, and it
+    // could never have caught the failure it should catch: provenance drifting away from the
+    // image the service really runs.
+    let service_images: std::collections::BTreeSet<&str> = workflow
+        .lines()
+        .filter_map(|line| line.trim().strip_prefix("image:"))
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .collect();
+    assert!(
+        !service_images.is_empty(),
+        "no service `image:` found in {} — an empty set would make the check below vacuous",
+        workflow_path.display()
+    );
+
+    let marker = "\"image\": \"";
+    let image_start = provenance_block
+        .find(marker)
+        .map(|i| i + marker.len())
+        .expect("bootstrap provenance must record an image");
+    let recorded_image = &provenance_block[image_start..]
+        [..provenance_block[image_start..].find('"').expect("unterminated image value")];
+    assert!(
+        service_images.contains(recorded_image),
+        "bootstrap provenance records image {recorded_image:?}, which is not any image the \
+         workflow actually pulls ({service_images:?}) — provenance must not drift from reality"
     );
     assert!(
         !provenance_block.contains("postgres://")

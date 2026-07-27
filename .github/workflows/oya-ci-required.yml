@@ -959,7 +959,16 @@ jobs:
     timeout-minutes: 25
     services:
       postgres:
-        image: postgres:16
+        # Pulled from mirror.gcr.io (Google's anonymous pull-through cache of Docker Hub),
+        # not registry-1.docker.io. Docker Hub timed out the service-container pull on three
+        # separate runs (#1423 twice, #1429 once) with `context deadline exceeded` /
+        # `Client.Timeout exceeded while awaiting headers`, exhausting the runner's own
+        # 3-attempt backoff before any test ran. A service container is pulled BEFORE any
+        # step executes, so no retry step, warm-up, or continue-on-error can wrap it — the
+        # registry has to be one that answers. Digest-pinned: the mirror is content-addressed
+        # so this is byte-identical to Docker Hub's postgres:16, and pinning also retires a
+        # tag-pin (see F-SUPPLY-IMAGE-PINS-UNDIGESTED). Issue #1427.
+        image: mirror.gcr.io/library/postgres:16@sha256:33f923b05f64ca54ac4401c01126a6b92afe839a0aa0a52bc5aeb5cc958e5f20
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -1023,7 +1032,7 @@ jobs:
             "gate_id": "gate-live-postgres-adapters",
             "lane": "adapters",
             "postgres": {
-              "image": "postgres:16",
+              "image": "mirror.gcr.io/library/postgres:16@sha256:33f923b05f64ca54ac4401c01126a6b92afe839a0aa0a52bc5aeb5cc958e5f20",
               "server_version": "${server_version}",
               "database": "oyatie",
               "host": "127.0.0.1",
@@ -1096,7 +1105,16 @@ jobs:
     timeout-minutes: 25
     services:
       postgres:
-        image: postgres:16
+        # Pulled from mirror.gcr.io (Google's anonymous pull-through cache of Docker Hub),
+        # not registry-1.docker.io. Docker Hub timed out the service-container pull on three
+        # separate runs (#1423 twice, #1429 once) with `context deadline exceeded` /
+        # `Client.Timeout exceeded while awaiting headers`, exhausting the runner's own
+        # 3-attempt backoff before any test ran. A service container is pulled BEFORE any
+        # step executes, so no retry step, warm-up, or continue-on-error can wrap it — the
+        # registry has to be one that answers. Digest-pinned: the mirror is content-addressed
+        # so this is byte-identical to Docker Hub's postgres:16, and pinning also retires a
+        # tag-pin (see F-SUPPLY-IMAGE-PINS-UNDIGESTED). Issue #1427.
+        image: mirror.gcr.io/library/postgres:16@sha256:33f923b05f64ca54ac4401c01126a6b92afe839a0aa0a52bc5aeb5cc958e5f20
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -1160,7 +1178,7 @@ jobs:
             "gate_id": "gate-live-postgres-facades",
             "lane": "facades",
             "postgres": {
-              "image": "postgres:16",
+              "image": "mirror.gcr.io/library/postgres:16@sha256:33f923b05f64ca54ac4401c01126a6b92afe839a0aa0a52bc5aeb5cc958e5f20",
               "server_version": "${server_version}",
               "database": "oyatie",
               "host": "127.0.0.1",
