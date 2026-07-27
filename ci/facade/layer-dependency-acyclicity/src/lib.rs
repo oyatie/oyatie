@@ -69,6 +69,12 @@
 //! - `TDA-BASELINE-MALFORMED` — the baseline document is malformed (fail-closed).
 //! - `TDA-STALE-BASELINE`     — a committed baseline subject names a crate ABSENT from the live corpus
 //!   (a phantom row; B3 hardening). See below.
+//! - `TDA-UNDECLARED-ROOT`    — a governed crate sits under a top-level root that is declared
+//!   neither in `service_roots` (tier-classified) nor in `unclassified_roots` (deliberately
+//!   exempt). Such a crate is silently unenforced: `owning_service` returns `None`, so every edge
+//!   touching it is skipped. `unclassified_roots` was previously parsed and NEVER READ — inert
+//!   config that looked like it governed the exemption. This code makes the declaration live, so
+//!   a new crate-bearing root must be declared before its crates can be silently skipped.
 //!
 //! ## Baseline-liveness backstop (B3 hardening — phantom rows made impossible)
 //! The frozen baseline is a SUBSET-semantics ratchet: it blocks only on a NEW regression (a
@@ -105,7 +111,7 @@ pub const BASELINE_PATH: &str =
     "ci/facade/layer-dependency-acyclicity/tier-dependency-acyclicity-baseline.json";
 
 /// The violation codes, in canonical order.
-pub const VIOLATION_CODES: [&str; 9] = [
+pub const VIOLATION_CODES: [&str; 10] = [
     "TDA-SUBSTRATE-UPWARD",
     "TDA-PRODUCT-CELL-CROSS",
     "TDA-CELL-PRODUCT",
@@ -115,6 +121,7 @@ pub const VIOLATION_CODES: [&str; 9] = [
     "TDA-POLICY-MALFORMED",
     "TDA-BASELINE-MALFORMED",
     "TDA-STALE-BASELINE",
+    "TDA-UNDECLARED-ROOT",
 ];
 
 /// Sentinel key for policy/baseline-level (non-per-edge) findings.
@@ -521,18 +528,22 @@ fn segment_matches(pattern: &str, name: &str) -> bool {
     }
 }
 
-/// The owning service of a crate dir = its 2-component `cloud/<svc>` or `oya/<svc>` prefix, matching
-/// the tier-classification roll-up's service projection. Returns `None` for meta crates (`libs/…`,
-/// `tools/…`, the CI gates under `ci/facade/…` — which carry no service tier — and any
-/// path outside `cloud/`/`oya/`). The owning service is looked up against the collected
-/// `service_tiers` map downstream; a 2-component prefix with no tier'd manifest is treated as
-/// unclassified there.
-fn owning_service(crate_dir: &str, _service_roots: &[String]) -> Option<String> {
-    let parts: Vec<&str> = crate_dir.split('/').collect();
-    if parts.len() >= 2 && (parts[0] == "cloud" || parts[0] == "oya") {
-        return Some(format!("{}/{}", parts[0], parts[1]));
+/// The owning service of a crate dir = its 2-component `<service-root>/<svc>` prefix, for any root
+/// declared in the policy's `service_roots`. Returns `None` for crates outside those roots (the
+/// meta trees and the capability homes), which the evaluator then treats as unclassified.
+///
+/// This CONSUMES `service_roots`. It previously hardcoded `cloud`/`oya` and took the parameter as
+/// `_service_roots`, so the policy field appeared to govern the projection and did not — a reader
+/// (and an earlier audit) reasonably concluded the root set was configurable when it was not.
+/// The behaviour is unchanged today because `service_roots` IS `["cloud", "oya"]`; what changes is
+/// that the policy now actually controls it, so repointing the gate at another repo works by data.
+fn owning_service(crate_dir: &str, service_roots: &[String]) -> Option<String> {
+    let (root, rest) = crate_dir.split_once('/')?;
+    if rest.is_empty() || !service_roots.iter().any(|r| r == root) {
+        return None;
     }
-    None
+    let svc = rest.split('/').next().filter(|s| !s.is_empty())?;
+    Some(format!("{root}/{svc}"))
 }
 
 /// Parse a crate `Cargo.toml` for first-party `path = "…"` dependencies, resolving each to a
@@ -934,6 +945,41 @@ pub fn evaluate(policy: &Value, baseline: &Value, observed: &Value) -> Report {
                 Status::Regression
             };
             findings.push(Finding::new(&code, &subject, detail, status));
+        }
+    }
+
+    // R6: UNDECLARED-ROOT backstop. A governed crate whose top-level root is declared neither in
+    // `service_roots` nor in `unclassified_roots` is silently unenforced — `owning_service` gives
+    // it no service, so `tier_of` yields None and EVERY edge touching it is skipped above.
+    //
+    // `unclassified_roots` was previously parsed into the policy struct and never read by any
+    // predicate. It therefore looked like the control for that exemption while controlling
+    // nothing: the exemption came entirely from `owning_service`'s hardcode. This makes the
+    // declaration load-bearing, so adding a crate-bearing top-level root is a deliberate,
+    // reviewable act rather than an automatic silent exemption.
+    //
+    // Currently ZERO on the live corpus (every unclassified root is declared), so this ships as a
+    // born-blocking floor with no baselined debt — a new undeclared root REDs immediately and
+    // cannot be laundered into the frozen baseline.
+    if !scan_is_broken {
+        for (dir, svc) in &crate_service {
+            if svc.is_some() {
+                continue;
+            }
+            let Some((root, _)) = dir.split_once('/') else {
+                continue;
+            };
+            if parsed.unclassified_roots.contains(root) || parsed.service_roots.iter().any(|r| r == root) {
+                continue;
+            }
+            findings.push(Finding::new(
+                "TDA-UNDECLARED-ROOT",
+                dir,
+                format!(
+                    "crate root `{root}` is declared in neither `service_roots` nor `unclassified_roots`, so this crate carries no tier and every dependency edge touching it is SKIPPED; declare the root (or give it a tier'd manifest) before landing crates under it"
+                ),
+                Status::Regression,
+            ));
         }
     }
 
