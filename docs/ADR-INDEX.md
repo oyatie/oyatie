@@ -457,7 +457,7 @@ doc_status: published
 | ADR-0624 | Accepted | Stage the immutable ADR census epoch transition | cloud-ci-platform | [`ADR-0624-stage-immutable-adr-census-epoch-transition.md`](decisions/ADR-0624-stage-immutable-adr-census-epoch-transition.md) |
 | ADR-0625 | Proposed | Commit OpenTofu provider dependency locks for every deployable root | cloud-ci-platform | [`ADR-0625-commit-opentofu-provider-locks.md`](decisions/ADR-0625-commit-opentofu-provider-locks.md) |
 | ADR-0626 | Proposed | Resolve fixup-ledger merges structurally instead of by hand | cloud-ci-platform | [`ADR-0626-structural-merge-driver-for-the-fixup-ledger.md`](decisions/ADR-0626-structural-merge-driver-for-the-fixup-ledger.md) |
-| ADR-0627 | Proposed | Enforce the facade→core layering rule; record the migration as paused at ~45% | council-architecture | [`ADR-0627-facade-core-layering-gate-and-reorg-pause-at-45-percent.md`](decisions/ADR-0627-facade-core-layering-gate-and-reorg-pause-at-45-percent.md) |
+| ADR-0627 | Proposed | Enforce ADR-0562's facade→core layering rule, keyed to survive the remaining capability migration | council-architecture | [`ADR-0627-facade-core-layering-gate.md`](decisions/ADR-0627-facade-core-layering-gate.md) |
 
 ## Update protocol
 
