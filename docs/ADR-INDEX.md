@@ -11,10 +11,10 @@ doc_status: published
 
 ## At-a-glance
 
-- **Total ADRs:** 435
-- **Numbering:** ADR-0001..ADR-0625 (non-contiguous; gaps: 0012, 0033, 0037, 0041, 0050, 0068, 0070..0082, 0084..0089, 0125..0127, 0224..0233, 0247, 0256, 0259..0262, 0264..0271, 0274..0275, 0277..0279, 0281..0283, 0285..0291, 0322..0323, 0327, 0342, 0345, 0385..0386, 0395..0396, 0398..0475, 0477, 0483..0505, 0574..0579, 0583..0585, 0594, 0601..0602)
-- **Next ADR number:** 0626
-- **Status counts:** Accepted 175, Accepted (amendment) 2, Amended 2, Proposed 152, Proposed (conditional: Accepted only after ADR-0377-D2 and ADR-0377-D3 code/tests pass) 1, Proposed (target: Accepted upon PR #143 merge to dev) 1, Superseded 35, accepted 34, deprecated 1, proposed 31, superseded 1
+- **Total ADRs:** 436
+- **Numbering:** ADR-0001..ADR-0626 (non-contiguous; gaps: 0012, 0033, 0037, 0041, 0050, 0068, 0070..0082, 0084..0089, 0125..0127, 0224..0233, 0247, 0256, 0259..0262, 0264..0271, 0274..0275, 0277..0279, 0281..0283, 0285..0291, 0322..0323, 0327, 0342, 0345, 0385..0386, 0395..0396, 0398..0475, 0477, 0483..0505, 0574..0579, 0583..0585, 0594, 0601..0602)
+- **Next ADR number:** 0627
+- **Status counts:** Accepted 175, Accepted (amendment) 2, Amended 2, Proposed 153, Proposed (conditional: Accepted only after ADR-0377-D2 and ADR-0377-D3 code/tests pass) 1, Proposed (target: Accepted upon PR #143 merge to dev) 1, Superseded 35, accepted 34, deprecated 1, proposed 31, superseded 1
 - **Legacy retirement:** see [`ADR-LEGACY-REGRESSION-MAPPING.md`](ADR-LEGACY-REGRESSION-MAPPING.md).
 
 ## Full table (one row per ADR, sorted by ADR number)
@@ -456,11 +456,12 @@ doc_status: published
 | ADR-0623 | Proposed | Keep the pre-roadmap Stage-1 evidence epoch mechanism-neutral | council-architecture | [`ADR-0623-mechanism-neutral-pre-roadmap-stage1-evidence-epoch.md`](decisions/ADR-0623-mechanism-neutral-pre-roadmap-stage1-evidence-epoch.md) |
 | ADR-0624 | Accepted | Stage the immutable ADR census epoch transition | cloud-ci-platform | [`ADR-0624-stage-immutable-adr-census-epoch-transition.md`](decisions/ADR-0624-stage-immutable-adr-census-epoch-transition.md) |
 | ADR-0625 | Proposed | Commit OpenTofu provider dependency locks for every deployable root | cloud-ci-platform | [`ADR-0625-commit-opentofu-provider-locks.md`](decisions/ADR-0625-commit-opentofu-provider-locks.md) |
+| ADR-0626 | Proposed | Enforce ADR-0562's facade→core layering rule, and record the capability migration as intentionally paused at ~45% | council-architecture | [`ADR-0626-facade-core-layering-gate-and-reorg-pause-at-45-percent.md`](decisions/ADR-0626-facade-core-layering-gate-and-reorg-pause-at-45-percent.md) |
 
 ## Update protocol
 
 - Per-event + monthly per `doc.adr_index` row in [`DOC-CATALOG.md`](DOC-CATALOG.md).
-- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0626), unless an explicit reserved-number ADR is being filled.
+- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0627), unless an explicit reserved-number ADR is being filled.
 - Per-ADR amendments preserve the original ADR number; the amended ADR cites its original date and links to the amending PR.
 - Supersession is recorded in the per-ADR header and mirrored here on regeneration.
 
@@ -504,6 +505,6 @@ The directory is intentionally non-contiguous. Every existing `docs/decisions/AD
 
 ## Sources scanned
 
-- `decisions/` directory listing — 435 ADR files (sorted ascending)
+- `decisions/` directory listing — 436 ADR files (sorted ascending)
 - [`machine-readable/decisions.json`](machine-readable/decisions.json) — generated machine mirror
 - [`DOC-CATALOG.md`](DOC-CATALOG.md) — owner / cadence / dependent docs / validation checks
