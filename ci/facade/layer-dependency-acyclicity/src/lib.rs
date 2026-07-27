@@ -532,14 +532,15 @@ fn segment_matches(pattern: &str, name: &str) -> bool {
 /// declared in the policy's `service_roots`. Returns `None` for crates outside those roots (the
 /// meta trees and the capability homes), which the evaluator then treats as unclassified.
 ///
-/// This CONSUMES `service_roots`. It previously hardcoded `cloud`/`oya` and took the parameter as
-/// `_service_roots`, so the policy field appeared to govern the projection and did not — a reader
-/// (and an earlier audit) reasonably concluded the root set was configurable when it was not.
-/// Behaviour is unchanged for every path the collector can actually produce (verified: 0
-/// disagreements across all 905 live crate dirs). It DOES differ on degenerate shapes the
-/// collector cannot emit — `"cloud/"` and `"cloud//x"` previously yielded a bogus `Some("cloud/")`
-/// that could never match `service_tiers`, landing the crate in the unclassified bucket by
-/// accident rather than by rule; both now correctly yield `None`. That change is pinned by test.
+/// This CONSUMES `service_roots`. It previously hardcoded two product roots and took the
+/// parameter as `_service_roots`, so the policy field appeared to govern the projection and did
+/// not — a reader (and an earlier audit) reasonably concluded the root set was configurable when
+/// it was not. Behaviour is unchanged for every path the collector can actually produce (verified:
+/// 0 disagreements across all 905 live crate dirs). It DOES differ on degenerate shapes the
+/// collector cannot emit — a root with an empty remainder, and a root with an empty first
+/// segment, previously yielded a bogus trailing-slash prefix that could never match
+/// `service_tiers`, landing the crate in the unclassified bucket by accident rather than by rule;
+/// both now correctly yield `None`. That change is pinned by test.
 fn owning_service(crate_dir: &str, service_roots: &[String]) -> Option<String> {
     let (root, rest) = crate_dir.split_once('/')?;
     if rest.is_empty() || !service_roots.iter().any(|r| r == root) {
