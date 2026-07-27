@@ -504,7 +504,7 @@
         },
         {
           "key": ".github/workflows/oya-ci-required.yml::gate-affected-target-set::Pre-provision pinned rust toolchain and PR metadata preflight",
-          "shell_lines": 9
+          "shell_lines": 3
         },
         {
           "key": ".github/workflows/oya-ci-required.yml::gate-affected-target-set::Reclaim runner disk before warm restore (FRIC-017 preflight)",
