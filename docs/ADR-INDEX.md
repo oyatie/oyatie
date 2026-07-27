@@ -456,7 +456,7 @@ doc_status: published
 | ADR-0623 | Proposed | Keep the pre-roadmap Stage-1 evidence epoch mechanism-neutral | council-architecture | [`ADR-0623-mechanism-neutral-pre-roadmap-stage1-evidence-epoch.md`](decisions/ADR-0623-mechanism-neutral-pre-roadmap-stage1-evidence-epoch.md) |
 | ADR-0624 | Accepted | Stage the immutable ADR census epoch transition | cloud-ci-platform | [`ADR-0624-stage-immutable-adr-census-epoch-transition.md`](decisions/ADR-0624-stage-immutable-adr-census-epoch-transition.md) |
 | ADR-0625 | Proposed | Commit OpenTofu provider dependency locks for every deployable root | cloud-ci-platform | [`ADR-0625-commit-opentofu-provider-locks.md`](decisions/ADR-0625-commit-opentofu-provider-locks.md) |
-| ADR-0627 | Proposed | Enforce ADR-0562's facade→core layering rule, and record the capability migration as intentionally paused at ~45% | council-architecture | [`ADR-0627-facade-core-layering-gate-and-reorg-pause-at-45-percent.md`](decisions/ADR-0627-facade-core-layering-gate-and-reorg-pause-at-45-percent.md) |
+| ADR-0627 | Proposed | Enforce ADR-0562's facade→core layering rule, keyed to survive the remaining capability migration | council-architecture | [`ADR-0627-facade-core-layering-gate.md`](decisions/ADR-0627-facade-core-layering-gate.md) |
 
 ## Update protocol
 
