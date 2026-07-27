@@ -507,7 +507,13 @@ fn an_undeclared_crate_root_is_born_blocking() {
         "exactly the undeclared root must fire; got {:?}",
         report.findings
     );
-    assert_eq!(undeclared[0].subject, "surprise/new-root/crate");
+    // subject is the ROOT, not the crate dir: one finding per root, stable across crate churn.
+    assert_eq!(undeclared[0].subject, "surprise");
+    assert!(
+        undeclared[0].detail.contains("surprise/new-root/crate"),
+        "detail should name an example crate; got {}",
+        undeclared[0].detail
+    );
     assert!(matches!(undeclared[0].status, Status::Regression));
 }
 
@@ -531,5 +537,61 @@ fn declared_unclassified_roots_do_not_fire_r6() {
         !report.findings.iter().any(|f| f.code == "TDA-UNDECLARED-ROOT"),
         "declared roots must not fire; got {:?}",
         report.findings
+    );
+}
+
+#[test]
+fn evaluator_only_emits_declared_violation_codes() {
+    // THE DRIFT GUARD whose absence let a real defect through. Adding TDA-UNDECLARED-ROOT
+    // required syncing THREE hand-maintained places: VIOLATION_CODES, the module doc bullet
+    // list, and main.rs's --emit-baseline exclusion. Two were updated; the third was missed and
+    // only found in review. ~10 sibling gates carry this guard; this one did not.
+    let declared: BTreeSet<&str> = VIOLATION_CODES.into_iter().collect();
+
+    // Drive the evaluator through every reachable emission path and assert nothing escapes the
+    // declared set.
+    let cases = vec![
+        // malformed policy
+        (json!({"gate_id": "wrong"}), json!({"violations": []}), json!({})),
+        // malformed baseline
+        (policy(), json!({"violations": "not-an-array"}), json!({})),
+        // empty scan + undeclared root + a real edge violation + a stale baseline row
+        (
+            policy(),
+            baseline(&[("TDA-STALE-BASELINE", "ghost/gone")]),
+            json!({
+                "crate_count": 0,
+                "crates": [
+                    {"dir": "surprise/root/x", "service": null},
+                    {"dir": "cloud/a/crates/oya-a", "service": "cloud/a"},
+                    {"dir": "cloud/b/crates/oya-b", "service": "cloud/b"}
+                ],
+                "service_tiers": {
+                    "cloud/a": {"tier": "substrate", "stratum": "S3"},
+                    "cloud/b": {"tier": "product"}
+                },
+                "edges": [
+                    {"from": "cloud/a/crates/oya-a", "to": "cloud/b/crates/oya-b"},
+                    {"from": "cloud/b/crates/oya-b", "to": "cloud/a/crates/oya-a"}
+                ]
+            }),
+        ),
+    ];
+
+    let mut seen: BTreeSet<String> = BTreeSet::new();
+    for (p, b, o) in cases {
+        for f in evaluate(&p, &b, &o).findings {
+            assert!(
+                declared.contains(f.code.as_str()),
+                "evaluator emitted undeclared code `{}`; add it to VIOLATION_CODES",
+                f.code
+            );
+            seen.insert(f.code.clone());
+        }
+    }
+    // Guard the guard: if these cases stop exercising real paths the test silently weakens.
+    assert!(
+        seen.len() >= 4,
+        "expected the fixtures to exercise several codes, saw {seen:?}"
     );
 }

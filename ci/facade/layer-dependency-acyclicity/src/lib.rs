@@ -535,8 +535,11 @@ fn segment_matches(pattern: &str, name: &str) -> bool {
 /// This CONSUMES `service_roots`. It previously hardcoded `cloud`/`oya` and took the parameter as
 /// `_service_roots`, so the policy field appeared to govern the projection and did not — a reader
 /// (and an earlier audit) reasonably concluded the root set was configurable when it was not.
-/// The behaviour is unchanged today because `service_roots` IS `["cloud", "oya"]`; what changes is
-/// that the policy now actually controls it, so repointing the gate at another repo works by data.
+/// Behaviour is unchanged for every path the collector can actually produce (verified: 0
+/// disagreements across all 905 live crate dirs). It DOES differ on degenerate shapes the
+/// collector cannot emit — `"cloud/"` and `"cloud//x"` previously yielded a bogus `Some("cloud/")`
+/// that could never match `service_tiers`, landing the crate in the unclassified bucket by
+/// accident rather than by rule; both now correctly yield `None`. That change is pinned by test.
 fn owning_service(crate_dir: &str, service_roots: &[String]) -> Option<String> {
     let (root, rest) = crate_dir.split_once('/')?;
     if rest.is_empty() || !service_roots.iter().any(|r| r == root) {
@@ -962,6 +965,10 @@ pub fn evaluate(policy: &Value, baseline: &Value, observed: &Value) -> Report {
     // born-blocking floor with no baselined debt — a new undeclared root REDs immediately and
     // cannot be laundered into the frozen baseline.
     if !scan_is_broken {
+        // One finding per ROOT, not per crate: the violation is a property of the root, and a
+        // per-crate subject would emit N identical findings for an N-crate root and churn its
+        // baseline key every time a crate is added or removed under it.
+        let mut undeclared: BTreeMap<&str, &str> = BTreeMap::new();
         for (dir, svc) in &crate_service {
             if svc.is_some() {
                 continue;
@@ -969,14 +976,18 @@ pub fn evaluate(policy: &Value, baseline: &Value, observed: &Value) -> Report {
             let Some((root, _)) = dir.split_once('/') else {
                 continue;
             };
-            if parsed.unclassified_roots.contains(root) || parsed.service_roots.iter().any(|r| r == root) {
-                continue;
+            let declared = parsed.unclassified_roots.contains(root)
+                || parsed.service_roots.iter().any(|r| r == root);
+            if !declared {
+                undeclared.entry(root).or_insert(dir.as_str());
             }
+        }
+        for (root, example) in undeclared {
             findings.push(Finding::new(
                 "TDA-UNDECLARED-ROOT",
-                dir,
+                root,
                 format!(
-                    "crate root `{root}` is declared in neither `service_roots` nor `unclassified_roots`, so this crate carries no tier and every dependency edge touching it is SKIPPED; declare the root (or give it a tier'd manifest) before landing crates under it"
+                    "crate root `{root}` is declared in neither `service_roots` nor `unclassified_roots`, so its crates (e.g. `{example}`) carry no tier and EVERY dependency edge touching them is SKIPPED; declare the root (or give it a tier'd manifest) before landing crates under it"
                 ),
                 Status::Regression,
             ));

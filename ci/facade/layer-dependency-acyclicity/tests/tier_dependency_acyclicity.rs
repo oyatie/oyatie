@@ -15,7 +15,10 @@
 // ADR-0083 Tier-3: integration tests use unwrap/expect/panic to assert invariants.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
+use std::collections::BTreeSet;
 use std::path::PathBuf;
+
+use serde_json::Value;
 
 use ci_layer_dependency_acyclicity::{
     BASELINE_PATH, GATE_ID, POLICY_PATH, Status, Verdict, collect_corpus, evaluate, load_json,
@@ -250,4 +253,38 @@ fn baseline_with_all_subjects_present_is_not_stale() {
 /// The fixtures dir as a `root` argument for `load_json` (which joins `root`/`path`).
 fn fixtures_dir_root() -> PathBuf {
     fixtures_dir()
+}
+
+#[test]
+fn every_governed_glob_root_is_declared_in_the_policy() {
+    // The invariant that MAKES the zero-debt property hold, checked over policy data alone: a
+    // crate_root_glob whose first segment is declared in neither service_roots nor
+    // unclassified_roots silently produces unenforced crates the moment one lands under it
+    // (TDA-UNDECLARED-ROOT). Catching that at policy-edit time beats catching it on arrival.
+    let policy: Value = serde_json::from_str(
+        &std::fs::read_to_string(repo_root().join(POLICY_PATH)).expect("read committed policy"),
+    )
+    .expect("policy parses");
+
+    let declared: BTreeSet<&str> = policy["service_roots"]
+        .as_array()
+        .expect("service_roots")
+        .iter()
+        .chain(policy["unclassified_roots"].as_array().expect("unclassified_roots"))
+        .map(|v| v.as_str().expect("root is a string"))
+        .collect();
+
+    let undeclared: Vec<&str> = policy["crate_root_globs"]
+        .as_array()
+        .expect("crate_root_globs")
+        .iter()
+        .filter_map(|g| g.as_str().and_then(|g| g.split('/').next()))
+        .filter(|root| !declared.contains(root))
+        .collect();
+
+    assert!(
+        undeclared.is_empty(),
+        "crate_root_globs roots declared in neither service_roots nor unclassified_roots: \
+         {undeclared:?}; crates landing under these are silently unenforced"
+    );
 }
