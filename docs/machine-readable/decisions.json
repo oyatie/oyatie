@@ -5260,11 +5260,11 @@
     {
       "adr": "ADR-0627",
       "number": 627,
-      "title": "Enforce the facade→core layering rule; record the migration as paused at ~45%",
+      "title": "Enforce ADR-0562's facade→core layering rule, keyed to survive the remaining capability migration",
       "status": "Proposed",
       "owner": "council-architecture",
       "date": "2026-07-26",
-      "path": "decisions/ADR-0627-facade-core-layering-gate-and-reorg-pause-at-45-percent.md",
+      "path": "decisions/ADR-0627-facade-core-layering-gate.md",
       "supersedes": [],
       "superseded_by": [],
       "related": ["ADR-0245", "ADR-0280", "ADR-0512", "ADR-0551", "ADR-0554"]
