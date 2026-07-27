@@ -39,10 +39,9 @@ on:
   # false-block pattern that forced hand-reruns/empty-commit pushes on ~5 PRs (verified via
   # gh api: coderabbitai userContentEdits timestamps land within 3-5s of the second run's
   # created_at on PR #1297, #1322, #1309, #1327). `edited` fires on ANY title/body/base
-  # edit and carries no code-relevant signal — the PR-metadata preflight step (affected-set
-  # job, `pr-traceability-admission-bin`) already re-fetches the LIVE PR body via `gh api`
-  # at execution time for exactly this reason, so a body-only edit needs no new run at all
-  # (a `gh run rerun` re-validates against the current body). Dropping `edited` removes the
+  # edit and carries no code-relevant signal. Since the PR-body admission check was retired
+  # (see the affected-set job below), NO job reads the PR description at all, so a title/body
+  # edit cannot change any verdict and needs no run whatsoever. Dropping `edited` removes the
   # redundant trigger at its source instead of papering over the cancelled-run symptom.
   pull_request:
     branches: [dev]
@@ -645,30 +644,23 @@ jobs:
           key: rustup-toolchain-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml') }}
       # Same rustup serialization rationale as the buck2 lane above: parallel buck2 actions
       # racing a cold rustup install collide on shared download state.
-      - name: Pre-provision pinned rust toolchain and PR metadata preflight
-        env:
-          PR_NUMBER: ${{ github.event.pull_request.number || '' }}
-          # Live-fetch token (same read-scoped github.token precedent as the merge-base
-          # baseline step below): the pull_request event payload freezes title/body at
-          # trigger time, so a `## Code Review` stamp applied via `gh pr edit` followed by
-          # `gh run rerun --failed` used to re-validate the stale pre-stamp body and stay
-          # RED (CodeReviewRequired), forcing empty-commit pushes purely to mint a fresh
-          # payload. Fetching the live PR at execution time keeps rerun semantics honest
-          # with no new mechanism: same admission bin, same body_path, same triggers.
-          GH_TOKEN: ${{ github.token }}
+      # PR-body admission was removed here (founder directive 2026-07-26: "stop the entire pr
+      # body checks — that is just unnecessary"). It validated that a PR description contained
+      # nine string literals — three section markers, a summary bullet, three traceability
+      # fields, three evidence fields, and a verdict value. It inspected no code and could not
+      # fail on a defect: an author who wrote the right headings passed regardless of what the
+      # diff did. What it did produce was ~20-minute round trips to learn a heading, charged to
+      # the `gate-affected-target-set` job, so the red check read "affected-set (ADR-0554,
+      # binding workspace coverage)" and pointed authors at an unrelated gate.
+      #
+      # Review itself is unaffected — it just stops being a CI-blocking string match on prose.
+      # The validator (`libs/oya-check-pr-traceability`) is retained and still runs locally and
+      # via `--scaffold`; only the merge-blocking invocation is gone.
+      - name: Pre-provision pinned rust toolchain
         run: |
           set -euo pipefail
           rustup toolchain install
           rustc --version
-          if [ "${EVENT_NAME}" = "pull_request" ]; then
-            pr_title="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq '.title')"
-            body_path="${RUNNER_TEMP}/pull-request-body.md"
-            gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq '.body // ""' > "${body_path}"
-            buck2 run //libs/oya-check-pr-traceability:pr-traceability-admission-bin -- \
-              --pr-title "${pr_title}" \
-              --pr-body "${body_path}" \
-              --require-code-review
-          fi
       # Restore buck-out read-only (ADR-0554 D9). Same stable per-dependency/toolchain-set key as the buck2
       # lane: warmth is 100% in buck-out/v2/cache + buck-out/v2/art (path-relocatable); ~/.buck2
       # and ~/.buck are daemon pid/endpoint/log scratch and are deliberately NOT cached. dev-push
