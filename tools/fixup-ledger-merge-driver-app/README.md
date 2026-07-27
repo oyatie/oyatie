@@ -48,12 +48,18 @@ Per `id`:
 | absent | added | added, same bytes | that row |
 | absent | added | added, differently | **conflict** |
 | absent | absent | added | theirs |
-| present | deleted | present | **preserved** |
+| present | deleted | unchanged | **preserved** |
 | present | deleted | deleted | **preserved** |
+| present | deleted | edited | **the edit wins, silently** |
 
 Deletion never wins: the registry declares itself append-only, and a row vanishing in a merge is
 the failure this driver exists to stop. A legitimate redaction is a single linearised commit on
 `dev`.
+
+Note the last row: delete-vs-edit resolves in favour of the edit **without asking**, where git's own
+text merge would raise a modify/delete conflict. Nothing is lost, and it follows from
+deletion-never-wins, but it is one case where this driver is deliberately *less* conservative than
+git.
 
 Rows are copied verbatim, never re-serialised — re-dumping this file has twice produced enormous
 phantom diffs by reordering keys and re-escaping em-dashes. Preservation is per-ROW, not per-file:
@@ -81,7 +87,7 @@ any side was lost, and none is duplicated. That guard cannot fire on the current
 ## Tests
 
 ```shell
-buck2 test //tools/fixup-ledger-merge-driver-app:ci-fixup-ledger-merge-driver-unittest
+buck2 test //tools/fixup-ledger-merge-driver-app:fixup-ledger-merge-driver-app-unittest
 ```
 
 The tests are mutation-checked: reintroducing the original id-keyed header bug turns 8 of them red,

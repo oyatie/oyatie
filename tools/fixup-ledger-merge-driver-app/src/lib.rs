@@ -10,8 +10,9 @@
 //! one `id`. Consumers key on `id`, so that is silent corruption rather than a visible conflict.
 //!
 //! This kernel does a real three-way merge per `id` and is deliberately conservative: it resolves
-//! only what is unambiguous, and returns [`MergeErrorKind::Conflict`] otherwise so git falls back
-//! to a normal conflict. Zero I/O — the caller owns files.
+//! only what is unambiguous and wraps everything else in diff3 markers that carry every side. It
+//! never signals a conflict by declining to produce content — see [`Merged`] for why that
+//! distinction is the whole point. Zero I/O — the caller owns files.
 //!
 //! ## The header is carried by POSITION, never by id lookup
 //!
@@ -209,11 +210,8 @@ pub fn merge_ledgers(base: &str, ours: &str, theirs: &str) -> Result<Merged, Mer
     let theirs_rows = theirs.by_id();
     let mut emitted: BTreeMap<&str, ()> = BTreeMap::new();
 
-    let mut take = |id: &str, resolution: Resolution<'_>, body: &mut Vec<String>| match resolution {
-        Resolution::Row(line) => {
-            body.push(line.to_owned());
-            let _ = id;
-        }
+    let mut take = |resolution: Resolution<'_>, body: &mut Vec<String>| match resolution {
+        Resolution::Row(line) => body.push(line.to_owned()),
         Resolution::Absent => {}
         Resolution::Conflict {
             ours: o,
@@ -231,7 +229,7 @@ pub fn merge_ledgers(base: &str, ours: &str, theirs: &str) -> Result<Merged, Mer
             Some(ours_line),
             theirs_rows.get(id).copied(),
         );
-        take(id, resolution, &mut body);
+        take(resolution, &mut body);
         emitted.insert(id, ());
     }
 
@@ -244,7 +242,7 @@ pub fn merge_ledgers(base: &str, ours: &str, theirs: &str) -> Result<Merged, Mer
             ours_rows.get(id).copied(),
             Some(theirs_line),
         );
-        take(id, resolution, &mut body);
+        take(resolution, &mut body);
         emitted.insert(id, ());
     }
 
@@ -256,7 +254,7 @@ pub fn merge_ledgers(base: &str, ours: &str, theirs: &str) -> Result<Merged, Mer
             continue;
         }
         let resolution = resolve_three_way(Some(base_line), None, None);
-        take(id, resolution, &mut body);
+        take(resolution, &mut body);
         emitted.insert(id, ());
     }
 
@@ -300,6 +298,23 @@ fn conflict_block(ours: Option<&str>, base: Option<&str>, theirs: Option<&str>) 
     out.push('\n');
     out.push_str(THEIRS_MARKER);
     out
+}
+
+/// Wrap three whole files in one diff3 block.
+///
+/// The escape hatch for input this kernel cannot model — a row with no `id`, a duplicate `id`, a
+/// non-JSON line. The caller cannot merge such a file, but it must not respond by leaving `%A`
+/// alone: git treats whatever is in `%A` as the conflicted working tree, so abstaining presents
+/// `ours` as a clean, complete file and the other side's rows vanish. Emitting every side under
+/// markers keeps the data and makes the state obvious.
+pub fn whole_file_conflict(base: &str, ours: &str, theirs: &str) -> String {
+    let trim = |s: &str| s.trim_end_matches('\n').to_owned();
+    format!(
+        "{OURS_MARKER}\n{}\n{BASE_MARKER}\n{}\n{SPLIT_MARKER}\n{}\n{THEIRS_MARKER}\n",
+        trim(ours),
+        trim(base),
+        trim(theirs)
+    )
 }
 
 /// What to do with one region (the header, or one `id`).

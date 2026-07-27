@@ -1,7 +1,13 @@
 //! Git merge-driver entrypoint: `fixup-ledger-merge-driver %O %A %B`.
 //!
 //! Exit 0 = merged cleanly. Exit 1 = merged WITH conflict markers, which a human must resolve.
-//! Exit 2 = unmodelled input or I/O; `%A` is left byte-untouched.
+//! Exit 2 = I/O or usage failure, the only case where `%A` is left alone.
+//!
+//! Unmodelled input (a row with no `id`, a duplicate `id`, a non-JSON line) does NOT abstain
+//! either — it exits 1 with every side wrapped in one whole-file diff3 block. Abstaining there
+//! would reproduce the exact bug the conflict path was fixed for, and the trigger is reachable:
+//! the ledger has no schema validator, so one lane appending a malformed row would otherwise make
+//! every later merge of that file silently present `ours`.
 //!
 //! Exit 1 still WRITES `%A`, and that is the whole point. Git does not re-run its own text merge
 //! when a driver exits nonzero — it takes whatever the driver left in `%A` as the conflicted
@@ -14,7 +20,7 @@
 
 use std::process::ExitCode;
 
-use fixup_ledger_merge_driver_app::{MergeError, MergeErrorKind, merge_ledgers};
+use fixup_ledger_merge_driver_app::{MergeError, MergeErrorKind, merge_ledgers, whole_file_conflict};
 
 fn main() -> ExitCode {
     match run() {
@@ -41,7 +47,19 @@ fn run() -> Result<(), MergeError> {
     let base = read(base_path)?;
     let current = read(current_path)?;
     let other = read(other_path)?;
-    let merged = merge_ledgers(&base, &current, &other)?;
+    let merged = match merge_ledgers(&base, &current, &other) {
+        Ok(merged) => merged,
+        // Unmodelled input. Write every side under markers rather than leaving `%A` alone: git
+        // takes `%A` as the conflicted tree, so abstaining hands back `ours` looking complete.
+        Err(err) if matches!(err.kind(), MergeErrorKind::Parse | MergeErrorKind::Validate) => {
+            write_atomic(current_path, &whole_file_conflict(&base, &current, &other))?;
+            return Err(MergeError::new(
+                MergeErrorKind::Conflict,
+                format!("{err}; wrote every side under conflict markers for manual resolution"),
+            ));
+        }
+        Err(err) => return Err(err),
+    };
     // Write first, THEN signal. The content is complete in both cases; the exit code only tells
     // git whether a human still has to look at it.
     write_atomic(current_path, &merged.content)?;

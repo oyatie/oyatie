@@ -270,3 +270,53 @@ fn validate_fires_when_a_row_would_be_dropped() {
     assert_eq!(err.kind(), MergeErrorKind::Validate);
     assert!(err.to_string().contains('B'), "must name the lost row: {err}");
 }
+
+#[test]
+fn unmodelled_input_still_yields_a_file_carrying_every_side() {
+    // The exit-2 twin of `a_conflict_still_carries_every_row_from_both_sides`. The kernel cannot
+    // merge a malformed side, but the CALLER must not respond by leaving `%A` alone: git takes
+    // `%A` as the conflicted tree, so abstaining hands back `ours` looking clean and complete
+    // while the other side's rows vanish. Verified with a real `git merge` before this test.
+    //
+    // Reachable in practice: the ledger has no schema validator, so one lane appending a row with
+    // no `id` would otherwise make EVERY later merge of that file silently present `ours`.
+    let base = ledger(&[row("A", "base")]);
+    let ours = ledger(&[row("A", "MINE")]);
+    let theirs = format!(
+        "{HEADER}\n{}\n{}\n{{\"no_id_field\":true}}\n",
+        row("A", "base"),
+        row("IMPORTANT", "theirs only")
+    );
+
+    assert_eq!(
+        merge_ledgers(&base, &ours, &theirs).expect_err("kernel cannot model it").kind(),
+        MergeErrorKind::Parse
+    );
+
+    let fallback = whole_file_conflict(&base, &ours, &theirs);
+    assert!(fallback.contains("MINE"), "ours must survive");
+    assert!(fallback.contains("IMPORTANT"), "theirs' unrelated row must survive:\n{fallback}");
+    assert!(fallback.contains("no_id_field"), "the offending row must be visible to fix");
+    for marker in [OURS_MARKER, BASE_MARKER, SPLIT_MARKER, THEIRS_MARKER] {
+        assert!(fallback.contains(marker), "missing {marker}");
+    }
+}
+
+#[test]
+fn a_clean_merge_is_actually_validated_not_just_validatable() {
+    // The previous validate test called `validate` directly, so deleting the CALL SITE left the
+    // suite green — it pinned the function, not the wiring. This drives the real entry point.
+    let base = ledger(&[row("A", "a")]);
+    let ours = ledger(&[row("A", "a"), row("B", "b")]);
+    let theirs = ledger(&[row("A", "a"), row("C", "c")]);
+    let merged = merge_ledgers(&base, &ours, &theirs).expect("clean merge");
+    assert!(!merged.conflicted);
+
+    // Every id from every side is present in the emitted content — the post-condition validate
+    // enforces, asserted through `merge_ledgers` so the call site cannot be removed silently.
+    let present = ids(&merged.content);
+    for id in ["A", "B", "C"] {
+        assert!(present.contains(&id.to_owned()), "merge_ledgers dropped {id}");
+    }
+    assert_eq!(present.len(), 3, "and emitted nothing extra: {present:?}");
+}
