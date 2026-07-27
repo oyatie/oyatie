@@ -1,0 +1,11 @@
+{
+  "schema_version": "1.0",
+  "capability": "compute",
+  "tier": "substrate",
+  "substrate_dag_position": {
+    "stratum": "forward-declared"
+  },
+  "_tier_source": "no DAG node; no absorbed legacy manifest",
+  "_tier_subtype_note": "UNGROUNDED — no DAG node and no absorbed legacy manifest provides a tier_subtype. Deliberately ABSENT rather than invented; it lands with the ADR-0280 capability node.",
+  "_stratum_note": "forward-declared: this capability has no ADR-0280 DAG node, so no S-rank is grounded. R4 (TDA-S-RANK-INVERSION) treats it as rank-exempt, which cannot manufacture a false GREEN — it only declines the comparison. The real S-rank lands when the node is authored."
+}

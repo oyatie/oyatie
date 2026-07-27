@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0",
+  "capability": "data",
+  "tier": "substrate",
+  "tier_subtype": "substrate-data",
+  "dr_tier": "T2",
+  "substrate_dag_position": {
+    "stratum": "forward-declared"
+  },
+  "_tier_source": "DAG specs/substrate-dependency-dag.json node 'ontology' (verbatim)",
+  "_stratum_note": "forward-declared: no S-rank is grounded for this capability root yet. R4 treats it as rank-exempt — it declines the comparison rather than asserting one, so it cannot manufacture a false GREEN. The real S-rank lands with the ADR-0280 capability node (ADR-0562 SS2 / ADR-0615 SS5: 10 of 24 nodes exist today)."
+}

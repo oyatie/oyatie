@@ -6,6 +6,9 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "third-party//:serde_json",
+        # ADR-0563 rename-aware relabel: the frozen baseline is keyed on crate DIRS, so a
+        # capability move+rename strands every subject naming a moved dir as a phantom.
+        "//ci/adapters/path-resolver:ci-path-resolver-adapters",
     ],
 )
 
@@ -35,6 +38,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         "third-party//:serde_json",
+        "//ci/adapters/path-resolver:ci-path-resolver-adapters",
     ],
 )
 

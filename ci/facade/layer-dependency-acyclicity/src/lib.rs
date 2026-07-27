@@ -265,7 +265,13 @@ struct ParsedPolicy {
     /// Governed crate roots (member globs) — the set of first-party crate dirs to scan.
     crate_root_globs: Vec<String>,
     /// Governed SERVICE roots whose `manifest.json` carries tier metadata (`cloud/`, `oya/`).
+    /// A service under these is `<root>/<name>` — the root itself owns no tier.
     service_roots: Vec<String>,
+    /// Governed CAPABILITY roots (ADR-0562): the root IS the service. `iam/`, `os/`, … carry their
+    /// tier at `<root>/manifest.json`, not at `<root>/<name>/manifest.json`, because a capability is
+    /// the ownership unit (ADR-0562 §1) and `core`/`ports`/`adapters`/`facade` are sub-folds, not
+    /// services. Optional (absent ⇒ empty) so the gate stays repo-portable.
+    capability_roots: BTreeSet<String>,
     /// Top-level dirs treated as UNCLASSIFIED (no tier; exempt from cross-tier rules): meta crates.
     unclassified_roots: BTreeSet<String>,
     /// The ordered S-rank enum (`S0` is lowest). Strata outside it (e.g. `forward-declared`) are
@@ -305,6 +311,26 @@ fn parse_policy(policy: &Value) -> Result<ParsedPolicy, String> {
     let unclassified_roots: BTreeSet<String> = string_array(policy, "unclassified_roots")?
         .into_iter()
         .collect();
+    // Optional: a policy that omits it keeps the pre-capability behaviour exactly.
+    let capability_roots: BTreeSet<String> = match policy.get("capability_roots") {
+        None => BTreeSet::new(),
+        Some(_) => string_array(policy, "capability_roots")?.into_iter().collect(),
+    };
+    if let Some(dup) = capability_roots.iter().find(|r| unclassified_roots.contains(*r)) {
+        return Err(format!(
+            "policy root `{dup}` is in BOTH `capability_roots` and `unclassified_roots`; a root is \
+             either tier-classified or deliberately exempt, never both"
+        ));
+    }
+    if let Some(dup) = capability_roots
+        .iter()
+        .find(|r| string_array(policy, "service_roots").is_ok_and(|s| s.contains(r)))
+    {
+        return Err(format!(
+            "policy root `{dup}` is in BOTH `capability_roots` and `service_roots`; the root is \
+             either the service itself or the parent of services, never both"
+        ));
+    }
     let enforcement = policy
         .get("enforcement")
         .and_then(Value::as_str)
@@ -318,6 +344,7 @@ fn parse_policy(policy: &Value) -> Result<ParsedPolicy, String> {
     Ok(ParsedPolicy {
         crate_root_globs: string_array(policy, "crate_root_globs")?,
         service_roots: string_array(policy, "service_roots")?,
+        capability_roots,
         unclassified_roots,
         stratum_rank,
         min_expected_crates: policy
@@ -364,6 +391,10 @@ pub fn collect_corpus(root: &Path, policy: &Value) -> Result<Value, CollectError
         let dir = root.join(service_root);
         collect_service_tiers(&dir, root, &mut service_tiers)?;
     }
+    // Capability roots carry their tier at `<root>/manifest.json` — the root IS the service.
+    for capability_root in &parsed.capability_roots {
+        collect_capability_tier(root, capability_root, &mut service_tiers)?;
+    }
 
     // 2. The governed first-party crate dirs (resolve the member globs against the live tree).
     let mut crate_dirs: BTreeSet<String> = BTreeSet::new();
@@ -375,7 +406,7 @@ pub fn collect_corpus(root: &Path, policy: &Value) -> Result<Value, CollectError
     let mut crates = Vec::with_capacity(crate_dirs.len());
     let mut edges: BTreeSet<(String, String)> = BTreeSet::new();
     for cdir in &crate_dirs {
-        let service = owning_service(cdir, &parsed.service_roots);
+        let service = owning_service(cdir, &parsed.service_roots, &parsed.capability_roots);
         crates.push(json!({ "dir": cdir, "service": service }));
 
         let mut deps: BTreeSet<String> = BTreeSet::new();
@@ -393,9 +424,26 @@ pub fn collect_corpus(root: &Path, policy: &Value) -> Result<Value, CollectError
         .map(|(f, t)| json!({ "from": f, "to": t }))
         .collect();
 
+    // ADR-0563 rename-aware relabel input. The manifest is a pure derivation (ADR-0614:
+    // de-committed, CI-materialized), so its ABSENCE is the normal no-move case, not an error —
+    // it yields the identity and the gate REDs honestly on any moved path. A MALFORMED manifest
+    // likewise collapses to the identity inside `MoveManifest` (both-side injective; an ambiguous
+    // pairing is never partially trusted), so this can only ever remove a false-RED for a proven
+    // relocation and can never manufacture a false-GREEN.
+    let move_pairs: Vec<Value> = ci_path_resolver_adapters::MoveManifest::load(
+        root,
+        ci_path_resolver_adapters::MOVE_MANIFEST_PATH,
+    )
+    .unwrap_or_else(|_| ci_path_resolver_adapters::MoveManifest::empty())
+    .crate_dir_pairs()
+    .iter()
+    .map(|(old, new)| json!({ "old": old, "new": new }))
+    .collect();
+
     Ok(json!({
         "crate_count": crates.len(),
         "edge_count": edge_vec.len(),
+        "crate_dir_pairs": move_pairs,
         "crates": crates,
         "service_tiers": Value::Object(service_tiers),
         "edges": edge_vec,
@@ -454,6 +502,44 @@ fn collect_service_tiers(
         }
         out.insert(rel, Value::Object(record));
     }
+    Ok(())
+}
+
+/// Read a CAPABILITY root's own `manifest.json` and record its `(tier, stratum)` keyed by the root
+/// itself. Unlike [`collect_service_tiers`], which scans CHILDREN of a service root, a capability
+/// root is the service (ADR-0562 §1), so its tier lives one level up.
+///
+/// A missing `manifest.json` is NOT an error — the root simply stays unclassified, exactly as it is
+/// today, so adding a root to `capability_roots` before authoring its manifest is a no-op rather
+/// than a hard failure. A PRESENT-but-malformed manifest is fail-closed, matching the sibling.
+fn collect_capability_tier(
+    repo_root: &Path,
+    capability_root: &str,
+    out: &mut serde_json::Map<String, Value>,
+) -> Result<(), CollectError> {
+    let manifest = repo_root.join(capability_root).join("manifest.json");
+    if !manifest.is_file() {
+        return Ok(());
+    }
+    let text = fs::read_to_string(&manifest)
+        .map_err(|e| CollectError::Io(format!("read {capability_root}/manifest.json: {e}")))?;
+    let value: Value = serde_json::from_str(&text).map_err(|e| CollectError::Parse {
+        path: format!("{capability_root}/manifest.json"),
+        message: e.to_string(),
+    })?;
+    let Some(tier) = value.get("tier").and_then(Value::as_str) else {
+        return Ok(());
+    };
+    let mut record = serde_json::Map::new();
+    record.insert("tier".to_owned(), json!(tier));
+    if let Some(stratum) = value
+        .get("substrate_dag_position")
+        .and_then(|p| p.get("stratum"))
+        .and_then(Value::as_str)
+    {
+        record.insert("stratum".to_owned(), json!(stratum));
+    }
+    out.insert(capability_root.to_owned(), Value::Object(record));
     Ok(())
 }
 
@@ -541,9 +627,23 @@ fn segment_matches(pattern: &str, name: &str) -> bool {
 /// segment, previously yielded a bogus trailing-slash prefix that could never match
 /// `service_tiers`, landing the crate in the unclassified bucket by accident rather than by rule;
 /// both now correctly yield `None`. That change is pinned by test.
-fn owning_service(crate_dir: &str, service_roots: &[String]) -> Option<String> {
+/// A CAPABILITY root (ADR-0562) is itself the service: `iam/core/identity-kernel` is owned by
+/// `iam`, not by `iam/core`. Faces (`core`/`ports`/`adapters`/`facade`) are sub-folds of one
+/// two-pizza ownership boundary (ADR-0562 §1/§4), so projecting them as separate services would
+/// duplicate one tier across 3-4 sibling manifests with nothing asserting they agree.
+fn owning_service(
+    crate_dir: &str,
+    service_roots: &[String],
+    capability_roots: &BTreeSet<String>,
+) -> Option<String> {
     let (root, rest) = crate_dir.split_once('/')?;
-    if rest.is_empty() || !service_roots.iter().any(|r| r == root) {
+    if rest.is_empty() {
+        return None;
+    }
+    if capability_roots.contains(root) {
+        return Some(root.to_owned());
+    }
+    if !service_roots.iter().any(|r| r == root) {
         return None;
     }
     let svc = rest.split('/').next().filter(|s| !s.is_empty())?;
@@ -906,6 +1006,13 @@ pub fn evaluate(policy: &Value, baseline: &Value, observed: &Value) -> Report {
         }
     }
 
+    // ADR-0563 rename-aware relabel (crate-DIR pairs). Runs BEFORE the R1-R4 loop because that loop
+    // decides Baselined-vs-Regression by `baseline.contains(code, subject)`: after a capability
+    // move+rename the same violation appears at the NEW dir, misses its OLD-path key, and reads as
+    // a NEW regression — a false RED on a PR that changed no dependency. Relabelling here fixes both
+    // that and the phantom row `detect_stale_baseline` reports downstream.
+    let baseline = relabel_baseline_for_moves(baseline, observed, &crate_service);
+
     // service -> tier metadata (the projected dependency class).
     let service_tiers = observed
         .get("service_tiers")
@@ -978,6 +1085,7 @@ pub fn evaluate(policy: &Value, baseline: &Value, observed: &Value) -> Report {
                 continue;
             };
             let declared = parsed.unclassified_roots.contains(root)
+                || parsed.capability_roots.contains(root)
                 || parsed.service_roots.iter().any(|r| r == root);
             if !declared {
                 undeclared.entry(root).or_insert(dir.as_str());
@@ -1014,6 +1122,81 @@ pub fn evaluate(policy: &Value, baseline: &Value, observed: &Value) -> Report {
     let mut report = finalize(findings, crate_count as usize, edge_count, &parsed.enforcement);
     report.burned_down = burned_down;
     report
+}
+
+/// Rewrite baseline subjects through the ADR-0563 crate-DIR bijection so a capability move+rename
+/// does not strand its baselined violations.
+///
+/// PURE (data-over-data on opaque string keys) — the manifest is loaded by the collector and
+/// arrives in `observed.crate_dir_pairs`, keeping [`evaluate`] filesystem-free.
+///
+/// Subjects are `"<from-dir> -> <to-dir>"`. Each endpoint maps independently. Two guards make the
+/// rewrite unable to manufacture a false GREEN:
+/// 1. **Existence guard** — a rewritten endpoint is accepted ONLY if the new dir is in the live
+///    crate set. A move that did not actually land leaves the key alone, so the honest phantom is
+///    still reported.
+/// 2. **Non-collision** — if a rewrite would collide with a key already present, the original is
+///    kept. Two baselined rows can never silently merge into one.
+///
+/// A pair list that is empty (the no-move case, and the fail-closed result of a missing or
+/// ambiguous manifest) makes this a strict no-op.
+fn relabel_baseline_for_moves(
+    baseline: Baseline,
+    observed: &Value,
+    crate_service: &BTreeMap<String, Option<String>>,
+) -> Baseline {
+    let pairs: Vec<(String, String)> = observed
+        .get("crate_dir_pairs")
+        .and_then(Value::as_array)
+        .map(|arr| {
+            arr.iter()
+                .filter_map(|p| {
+                    let old = p.get("old").and_then(Value::as_str)?;
+                    let new = p.get("new").and_then(Value::as_str)?;
+                    Some((old.to_owned(), new.to_owned()))
+                })
+                .collect()
+        })
+        .unwrap_or_default();
+    if pairs.is_empty() {
+        return baseline;
+    }
+    let map: BTreeMap<&str, &str> = pairs.iter().map(|(o, n)| (o.as_str(), n.as_str())).collect();
+    let remap = |endpoint: &str| -> Option<String> {
+        let new = map.get(endpoint)?;
+        // Existence guard: only follow a move that actually landed.
+        crate_service
+            .contains_key(*new)
+            .then(|| (*new).to_owned())
+    };
+
+    let mut keys: BTreeSet<String> = BTreeSet::new();
+    for key in &baseline.keys {
+        let Some((code, subject)) = key.split_once('|') else {
+            keys.insert(key.clone());
+            continue;
+        };
+        let Some((from, to)) = subject.split_once(" -> ") else {
+            keys.insert(key.clone());
+            continue;
+        };
+        let new_from = remap(from);
+        let new_to = remap(to);
+        if new_from.is_none() && new_to.is_none() {
+            keys.insert(key.clone());
+            continue;
+        }
+        let f = new_from.as_deref().unwrap_or(from);
+        let t = new_to.as_deref().unwrap_or(to);
+        let rewritten = Baseline::key_of(code, &format!("{f} -> {t}"));
+        // Non-collision: never merge two baselined rows into one.
+        if baseline.keys.contains(&rewritten) || keys.contains(&rewritten) {
+            keys.insert(key.clone());
+        } else {
+            keys.insert(rewritten);
+        }
+    }
+    Baseline { keys }
 }
 
 /// Classify a single cross-service edge against the ADR-0245 rules. Returns `Some((code, detail))`

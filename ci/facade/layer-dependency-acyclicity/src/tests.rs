@@ -459,25 +459,157 @@ fn owning_service_consumes_the_configured_roots_not_a_hardcode() {
     // The regression this guards: the fn took `_service_roots` and hardcoded cloud/oya, so the
     // policy field looked load-bearing and was not.
     let roots = vec!["cloud".to_string(), "oya".to_string()];
+    let no_caps = BTreeSet::new();
     assert_eq!(
-        owning_service("cloud/cloud-iam/crates/x", &roots),
+        owning_service("cloud/cloud-iam/crates/x", &roots, &no_caps),
         Some("cloud/cloud-iam".to_string())
     );
-    assert_eq!(owning_service("messaging/core/domain", &roots), None);
+    assert_eq!(owning_service("messaging/core/domain", &roots, &no_caps), None);
 
     // Repointing the policy at a different root set must change the projection. Under a hardcode
     // this assertion fails.
     let repointed = vec!["messaging".to_string()];
     assert_eq!(
-        owning_service("messaging/core/domain", &repointed),
+        owning_service("messaging/core/domain", &repointed, &no_caps),
         Some("messaging/core".to_string())
     );
-    assert_eq!(owning_service("cloud/cloud-iam/crates/x", &repointed), None);
+    assert_eq!(
+        owning_service("cloud/cloud-iam/crates/x", &repointed, &no_caps),
+        None
+    );
 
     // Degenerate shapes must not panic or invent a service.
-    assert_eq!(owning_service("cloud", &roots), None);
-    assert_eq!(owning_service("cloud/", &roots), None);
-    assert_eq!(owning_service("", &roots), None);
+    assert_eq!(owning_service("cloud", &roots, &no_caps), None);
+    assert_eq!(owning_service("cloud/", &roots, &no_caps), None);
+    assert_eq!(owning_service("", &roots, &no_caps), None);
+}
+
+/// Build a corpus and attach ADR-0563 crate-DIR move pairs.
+fn corpus_with_moves(
+    crates: &[(&str, &str)],
+    tiers: &[(&str, &str, Option<&str>)],
+    edges: &[(&str, &str)],
+    pairs: &[(&str, &str)],
+) -> Value {
+    let mut obs = corpus(crates, tiers, edges);
+    obs["crate_dir_pairs"] = Value::Array(
+        pairs
+            .iter()
+            .map(|(o, n)| json!({ "old": o, "new": n }))
+            .collect(),
+    );
+    obs
+}
+
+#[test]
+fn a_moved_crate_keeps_its_baselined_violation_instead_of_reading_as_a_regression() {
+    // The defect: baseline subjects are crate DIRS, so after a capability move+rename the SAME
+    // violation appears at the NEW dir, misses its OLD-path key, and is reported as a NEW
+    // regression — a false RED on a PR that changed no dependency. ADR-0563's relabel exists for
+    // exactly this but was never wired to this gate.
+    let old_subject = "oya/svc/crates/oya-svc-api -> oya/p/crates/oya-p";
+    let obs = corpus_with_moves(
+        &[("cap/core/api", "cap"), ("oya/p/crates/oya-p", "oya/p")],
+        &[("cap", "substrate", Some("S0")), ("oya/p", "product", None)],
+        &[("cap/core/api", "oya/p/crates/oya-p")],
+        &[("oya/svc/crates/oya-svc-api", "cap/core/api")],
+    );
+    let report = evaluate(
+        &policy(),
+        &baseline(&[("TDA-SUBSTRATE-UPWARD", old_subject)]),
+        &obs,
+    );
+    assert_eq!(
+        report.verdict,
+        Verdict::Green,
+        "a move must not turn accepted debt into a regression"
+    );
+    assert_eq!(report.regressions, 0);
+    assert_eq!(report.baselined, 1);
+    assert!(
+        !report.findings.iter().any(|f| f.code == "TDA-STALE-BASELINE"),
+        "the relabelled row is anchored, so it is not a phantom"
+    );
+}
+
+#[test]
+fn the_relabel_cannot_manufacture_a_false_green() {
+    // Guard 1 — EXISTENCE. A pair whose NEW dir is not in the live crate set is a move that did not
+    // land. Following it would silently retire a real violation; the honest phantom must survive.
+    let obs = corpus_with_moves(
+        &[("oya/p/crates/oya-p", "oya/p")],
+        &[("oya/p", "product", None)],
+        &[],
+        &[("oya/gone/crates/x", "cap/core/never-landed")],
+    );
+    let report = evaluate(
+        &policy(),
+        &baseline(&[("TDA-SUBSTRATE-UPWARD", "oya/gone/crates/x -> oya/p/crates/oya-p")]),
+        &obs,
+    );
+    assert!(
+        report.findings.iter().any(|f| f.code == "TDA-STALE-BASELINE"),
+        "an unlanded move must NOT relabel; the phantom row stays reported"
+    );
+
+    // Guard 2 — STRICT NO-OP. No pairs (the ordinary no-move PR, and the fail-closed result of a
+    // missing or ambiguous manifest) must leave the baseline byte-identical.
+    let subject = "cloud/s/crates/oya-s -> oya/p/crates/oya-p";
+    let obs = corpus_with_moves(
+        &[
+            ("cloud/s/crates/oya-s", "cloud/s"),
+            ("oya/p/crates/oya-p", "oya/p"),
+        ],
+        &[("cloud/s", "substrate", Some("S0")), ("oya/p", "product", None)],
+        &[("cloud/s/crates/oya-s", "oya/p/crates/oya-p")],
+        &[],
+    );
+    let report = evaluate(&policy(), &baseline(&[("TDA-SUBSTRATE-UPWARD", subject)]), &obs);
+    assert_eq!(report.verdict, Verdict::Green);
+    assert_eq!(report.baselined, 1);
+    assert_eq!(report.regressions, 0);
+}
+
+#[test]
+fn a_capability_root_is_its_own_service_not_its_faces() {
+    // ADR-0562 §1/§4: a capability is the ownership unit; core/ports/adapters/facade are sub-folds.
+    // Projecting faces as services would duplicate one tier across 3-4 sibling manifests with
+    // nothing asserting they agree — and it is why ~412 moved crates were emitted `service: null`.
+    let service_roots = vec!["cloud".to_string(), "oya".to_string()];
+    let caps: BTreeSet<String> = ["iam".to_string(), "os".to_string()].into_iter().collect();
+
+    // RED before this change: owning_service returned None (root not in service_roots).
+    assert_eq!(
+        owning_service("iam/core/identity-kernel", &service_roots, &caps),
+        Some("iam".to_string()),
+        "a capability root owns its crates; the face is not the service"
+    );
+    // Every face collapses to the same owning service — the point of the change.
+    assert_eq!(
+        owning_service("iam/adapters/cloud-oci", &service_roots, &caps),
+        Some("iam".to_string())
+    );
+    assert_eq!(
+        owning_service("iam/facade/api", &service_roots, &caps),
+        Some("iam".to_string())
+    );
+    // A meta root that owns crates behaves identically (os/ holds 41).
+    assert_eq!(
+        owning_service("os/core/apid-domain", &service_roots, &caps),
+        Some("os".to_string())
+    );
+
+    // Service roots keep their two-component projection — no behaviour change there.
+    assert_eq!(
+        owning_service("cloud/cloud-iam/crates/x", &service_roots, &caps),
+        Some("cloud/cloud-iam".to_string())
+    );
+    // A root in neither set is still unclassified.
+    assert_eq!(owning_service("libs/oya-json-kernel", &service_roots, &caps), None);
+    // Degenerate shapes stay None even for a declared capability root: the empty-remainder guard
+    // runs BEFORE the capability check, so a bare root never invents a service.
+    assert_eq!(owning_service("iam", &service_roots, &caps), None);
+    assert_eq!(owning_service("iam/", &service_roots, &caps), None);
 }
 
 #[test]

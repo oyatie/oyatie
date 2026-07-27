@@ -35,6 +35,11 @@ path = "src/main.rs"
 
 [dependencies]
 serde_json = { workspace = true }
+# ADR-0563 rename-aware relabel. The gate's frozen baseline is keyed on crate DIRS, so a capability
+# move+rename strands every subject naming a moved dir as a phantom. `MoveManifest` is the ratified
+# bijection (both-side injective, ambiguous pairing collapses to empty) — reused rather than
+# re-parsed so the fail-closed guarantees come with it.
+ci-path-resolver-adapters = { path = "../../adapters/path-resolver" }
 
 [dev-dependencies]
 serde_json = { workspace = true }
