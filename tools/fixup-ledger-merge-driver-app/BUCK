@@ -4,9 +4,9 @@
 # simply gets a normal conflict, exactly as today, so this can never make the status quo worse.
 
 rust_library(
-    name = "ci-fixup-ledger-merge-driver",
+    name = "fixup-ledger-merge-driver-app",
     srcs = glob(["src/**/*.rs"]),
-    crate = "ci_fixup_ledger_merge_driver",
+    crate = "fixup_ledger_merge_driver_app",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
@@ -15,9 +15,9 @@ rust_library(
 )
 
 rust_test(
-    name = "ci-fixup-ledger-merge-driver-unittest",
+    name = "fixup-ledger-merge-driver-app-unittest",
     srcs = glob(["src/**/*.rs"]),
-    crate = "ci_fixup_ledger_merge_driver",
+    crate = "fixup_ledger_merge_driver_app",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
@@ -32,7 +32,7 @@ rust_binary(
     crate_root = "src/main.rs",
     visibility = ["PUBLIC"],
     deps = [
-        ":ci-fixup-ledger-merge-driver",
+        ":fixup-ledger-merge-driver-app",
         "third-party//:serde_json",
     ],
 )

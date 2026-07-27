@@ -65,6 +65,29 @@ impl fmt::Display for MergeError {
 
 impl std::error::Error for MergeError {}
 
+/// The outcome of a merge.
+///
+/// `conflicted` does NOT mean "nothing was produced". `content` is always a complete file that
+/// contains every row from every side; conflicting regions are wrapped in diff3 markers for a
+/// human to resolve. This matters more than it looks: git does NOT re-run its own text merge when
+/// a driver exits nonzero — it takes whatever the driver left in `%A` as the conflicted working
+/// tree. A driver that exits 1 without writing therefore leaves `ours` standing alone, with no
+/// markers and the other side's rows simply absent. The file looks clean and complete, so a
+/// reflexive `git add` loses rows silently. That is the very failure class this crate exists to
+/// prevent, so the conflict path must write, not abstain.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Merged {
+    /// The full file to place in `%A`, markers included when `conflicted`.
+    pub content: String,
+    /// True when at least one region needs a human. The caller should exit nonzero.
+    pub conflicted: bool,
+}
+
+const OURS_MARKER: &str = "<<<<<<< ours";
+const BASE_MARKER: &str = "||||||| base";
+const SPLIT_MARKER: &str = "=======";
+const THEIRS_MARKER: &str = ">>>>>>> theirs";
+
 /// One parsed ledger side: the schema header line, then rows in file order keyed by `id`.
 struct Ledger<'a> {
     header: &'a str,
@@ -157,102 +180,187 @@ fn parse<'a>(text: &'a str, side: &str) -> Result<Ledger<'a>, MergeError> {
 /// Row order is `ours` file order, then `theirs`-only rows appended in their own order. Output is
 /// byte-preserving: source lines are copied verbatim, never re-serialised, so a row's formatting
 /// and any non-ASCII content survive untouched.
-pub fn merge_ledgers(base: &str, ours: &str, theirs: &str) -> Result<String, MergeError> {
+pub fn merge_ledgers(base: &str, ours: &str, theirs: &str) -> Result<Merged, MergeError> {
     let base = parse(base, "base")?;
     let ours = parse(ours, "ours")?;
     let theirs = parse(theirs, "theirs")?;
 
-    if ours.header != theirs.header {
-        return Err(MergeError::new(
-            MergeErrorKind::Conflict,
-            "the two sides changed the schema header differently; resolve it by hand",
-        ));
-    }
+    let mut conflicted = false;
+    let mut body: Vec<String> = Vec::with_capacity(ours.rows.len() + theirs.rows.len());
+
+    // The header gets the same three-way treatment as a row. Comparing only ours-vs-theirs would
+    // call a ONE-sided header edit a conflict, and a `_meta` schema bump is not hypothetical.
+    let header = match resolve_three_way(Some(base.header), Some(ours.header), Some(theirs.header))
+    {
+        Resolution::Row(line) => line.to_owned(),
+        Resolution::Absent => unreachable!("all three sides parsed a header"),
+        Resolution::Conflict {
+            ours: o,
+            base: b,
+            theirs: t,
+        } => {
+            conflicted = true;
+            conflict_block(o, b, t)
+        }
+    };
 
     let base_rows = base.by_id();
     let ours_rows = ours.by_id();
     let theirs_rows = theirs.by_id();
-
-    let mut out: Vec<&str> = Vec::with_capacity(ours.rows.len() + theirs.rows.len());
     let mut emitted: BTreeMap<&str, ()> = BTreeMap::new();
 
+    let mut take = |id: &str, resolution: Resolution<'_>, body: &mut Vec<String>| match resolution {
+        Resolution::Row(line) => {
+            body.push(line.to_owned());
+            let _ = id;
+        }
+        Resolution::Absent => {}
+        Resolution::Conflict {
+            ours: o,
+            base: b,
+            theirs: t,
+        } => {
+            conflicted = true;
+            body.push(conflict_block(o, b, t));
+        }
+    };
+
     for (id, ours_line) in ours.rows.iter().map(|(id, line)| (id.as_str(), *line)) {
-        let resolved = resolve(
-            id,
+        let resolution = resolve_three_way(
             base_rows.get(id).copied(),
             Some(ours_line),
             theirs_rows.get(id).copied(),
-        )?;
-        if let Some(line) = resolved {
-            out.push(line);
-            emitted.insert(id, ());
-        }
+        );
+        take(id, resolution, &mut body);
+        emitted.insert(id, ());
     }
 
     for (id, theirs_line) in theirs.rows.iter().map(|(id, line)| (id.as_str(), *line)) {
         if emitted.contains_key(id) {
             continue;
         }
-        let resolved = resolve(
-            id,
+        let resolution = resolve_three_way(
             base_rows.get(id).copied(),
             ours_rows.get(id).copied(),
             Some(theirs_line),
-        )?;
-        if let Some(line) = resolved {
-            out.push(line);
-            emitted.insert(id, ());
-        }
+        );
+        take(id, resolution, &mut body);
+        emitted.insert(id, ());
     }
 
-    // Deletion never wins: a base row dropped by one side and untouched by the other is carried.
+    // Rows deleted by BOTH sides. Neither loop above reaches them, and deletion never wins, so
+    // they are carried. This is the only case this pass handles — a one-sided delete is already
+    // resolved above by the `(base, Some, None)` arm.
     for (id, base_line) in base.rows.iter().map(|(id, line)| (id.as_str(), *line)) {
         if emitted.contains_key(id) {
             continue;
         }
-        out.push(base_line);
+        let resolution = resolve_three_way(Some(base_line), None, None);
+        take(id, resolution, &mut body);
         emitted.insert(id, ());
     }
 
-    let mut merged = String::with_capacity(ours.header.len() + 1);
-    merged.push_str(ours.header);
-    for line in &out {
+    let mut merged = String::new();
+    merged.push_str(&header);
+    for line in &body {
         merged.push('\n');
         merged.push_str(line);
     }
     merged.push('\n');
 
-    validate(&merged, &base, &ours, &theirs)?;
-    Ok(merged)
+    if !conflicted {
+        validate(&merged, &base, &ours, &theirs)?;
+    }
+    Ok(Merged {
+        content: merged,
+        conflicted,
+    })
 }
 
-/// Resolve one `id` across the three sides. `None` means "emit nothing here".
-fn resolve<'a>(
-    id: &str,
+/// Render one conflicting region as a diff3 block. Every side that exists is present, so no
+/// content is lost — resolving it is a human edit, not a recovery.
+fn conflict_block(ours: Option<&str>, base: Option<&str>, theirs: Option<&str>) -> String {
+    let mut out = String::from(OURS_MARKER);
+    if let Some(line) = ours {
+        out.push('\n');
+        out.push_str(line);
+    }
+    out.push('\n');
+    out.push_str(BASE_MARKER);
+    if let Some(line) = base {
+        out.push('\n');
+        out.push_str(line);
+    }
+    out.push('\n');
+    out.push_str(SPLIT_MARKER);
+    if let Some(line) = theirs {
+        out.push('\n');
+        out.push_str(line);
+    }
+    out.push('\n');
+    out.push_str(THEIRS_MARKER);
+    out
+}
+
+/// What to do with one region (the header, or one `id`).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Resolution<'a> {
+    /// Emit this line verbatim.
+    Row(&'a str),
+    /// Emit nothing.
+    Absent,
+    /// Needs a human; every present side is carried into the marker block.
+    Conflict {
+        ours: Option<&'a str>,
+        base: Option<&'a str>,
+        theirs: Option<&'a str>,
+    },
+}
+
+/// Three-way resolve for one region.
+///
+/// | base | ours | theirs | result |
+/// |------|------|--------|--------|
+/// | any | absent | absent | carried from base (deletion never wins) |
+/// | any | present | absent | ours |
+/// | any | absent | present | theirs |
+/// | any | equal on both sides | | that line |
+/// | present | =base | edited | theirs |
+/// | present | edited | =base | ours |
+/// | present | edited | edited differently | **conflict** |
+/// | absent | added | added differently | **conflict** |
+fn resolve_three_way<'a>(
     base: Option<&'a str>,
     ours: Option<&'a str>,
     theirs: Option<&'a str>,
-) -> Result<Option<&'a str>, MergeError> {
+) -> Resolution<'a> {
     match (base, ours, theirs) {
-        (_, None, None) => Ok(None),
-        (_, Some(line), None) | (_, None, Some(line)) => Ok(Some(line)),
-        (_, Some(ours_line), Some(theirs_line)) if ours_line == theirs_line => Ok(Some(ours_line)),
+        // Deleted on both sides. The registry declares itself append-only, so the base row is
+        // carried rather than allowed to vanish in a merge.
+        (Some(base_line), None, None) => Resolution::Row(base_line),
+        (None, None, None) => Resolution::Absent,
+        (_, Some(line), None) | (_, None, Some(line)) => Resolution::Row(line),
+        (_, Some(ours_line), Some(theirs_line)) if ours_line == theirs_line => {
+            Resolution::Row(ours_line)
+        }
         (Some(base_line), Some(ours_line), Some(theirs_line)) => {
             if ours_line == base_line {
-                Ok(Some(theirs_line))
+                Resolution::Row(theirs_line)
             } else if theirs_line == base_line {
-                Ok(Some(ours_line))
+                Resolution::Row(ours_line)
             } else {
-                Err(MergeError::new(
-                    MergeErrorKind::Conflict,
-                    format!("row `{id}` was edited differently on both sides"),
-                ))
+                Resolution::Conflict {
+                    ours: Some(ours_line),
+                    base: Some(base_line),
+                    theirs: Some(theirs_line),
+                }
             }
         }
-        (None, Some(_), Some(_)) => Err(MergeError::new(
-            MergeErrorKind::Conflict,
-            format!("row `{id}` was added with different content on both sides"),
-        )),
+        (None, Some(ours_line), Some(theirs_line)) => Resolution::Conflict {
+            ours: Some(ours_line),
+            base: None,
+            theirs: Some(theirs_line),
+        },
     }
 }
 

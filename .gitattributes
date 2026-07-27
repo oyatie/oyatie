@@ -35,10 +35,13 @@ Cargo.lock merge=cargo-lock
 # git's text merge conflicts on essentially every pair of concurrent PRs (GH #1412) over a change
 # that is semantically disjoint. `merge=union` is WRONG here for the reason recorded above (in-place
 # row replacements would keep both the stale and updated variant of one logical record, and every
-# consumer keys on `id`). The structural driver in ci/facade/fixup-ledger-merge-driver does a real
+# consumer keys on `id`). The structural driver in tools/fixup-ledger-merge-driver-app does a real
 # three-way merge per id: it resolves only what is unambiguous, CONFLICTS when both sides edited one
 # id differently, and never lets a deletion win. It fails closed on unmodelled input, so git falls
-# back to a normal conflict rather than the driver writing a partially-merged ledger.
+# back to a normal conflict rather than the driver writing a partially-merged ledger. On conflict it
+# WRITES diff3 markers carrying every side: git does not re-run its own text merge when a driver
+# exits nonzero, so a driver that abstains leaves `ours` alone, unmarked, with the other side's rows
+# absent -- a clean-looking file that loses data on a reflexive `git add`.
 #
 # Registration is per-clone (see the crate README): an actor without the `merge.fixup-ledger` git
 # config simply gets today's normal conflict, so this can never make the status quo worse.
@@ -47,7 +50,6 @@ Cargo.lock merge=cargo-lock
 # resolver skips it (its id is absent, and `None` is falsy), which silently deleted the header from
 # four branches in one session. The driver asserts the header survived before emitting anything.
 registry/fixuptasks.jsonl merge=fixup-ledger
-
 
 # The friction ledger is an append-only, event-sourced JSONL surface with id-aware semantics
 # (PRIMARY rows anchor a friction id; UPDATE rows append transitions; the ADR-0544

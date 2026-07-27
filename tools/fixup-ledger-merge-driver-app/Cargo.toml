@@ -1,5 +1,5 @@
 [package]
-name = "ci-fixup-ledger-merge-driver"
+name = "fixup-ledger-merge-driver-app"
 edition.workspace = true
 version.workspace = true
 rust-version.workspace = true
@@ -14,7 +14,7 @@ license = "Apache-2.0"
 # is the thin `%O %A %B` git contract. Same split as the Cargo.lock and friction-ledger drivers.
 
 [lib]
-name = "ci_fixup_ledger_merge_driver"
+name = "fixup_ledger_merge_driver_app"
 path = "src/lib.rs"
 doctest = false
 

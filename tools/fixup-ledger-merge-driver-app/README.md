@@ -28,12 +28,11 @@ git config merge.fixup-ledger.driver "fixup-ledger-merge-driver %O %A %B"
 Build and put the binary on `PATH`:
 
 ```shell
-buck2 build //ci/facade/fixup-ledger-merge-driver:fixup-ledger-merge-driver
+buck2 build //tools/fixup-ledger-merge-driver-app:fixup-ledger-merge-driver
 ```
 
-`.gitattributes` names the driver; git binds it from local config. **Without the config you get a
-normal conflict — exactly today's behaviour.** There is no state in which having this driver is
-worse than not having it.
+`.gitattributes` names the driver; git binds it from local config. Without the config you get a
+normal conflict — exactly today's behaviour.
 
 ## Semantics
 
@@ -48,33 +47,41 @@ Per `id`:
 | absent | added | absent | ours |
 | absent | added | added, same bytes | that row |
 | absent | added | added, differently | **conflict** |
+| absent | absent | added | theirs |
 | present | deleted | present | **preserved** |
+| present | deleted | deleted | **preserved** |
 
 Deletion never wins: the registry declares itself append-only, and a row vanishing in a merge is
 the failure this driver exists to stop. A legitimate redaction is a single linearised commit on
 `dev`.
 
 Rows are copied verbatim, never re-serialised — re-dumping this file has twice produced enormous
-phantom diffs by reordering keys and re-escaping em-dashes.
+phantom diffs by reordering keys and re-escaping em-dashes. Preservation is per-ROW, not per-file:
+blank lines are dropped and exactly one trailing newline is emitted.
 
 ## Exit codes
 
 | code | meaning | effect on `%A` |
 |------|---------|----------------|
-| 0 | merged | replaced atomically with the result |
-| 1 | declined — the sides disagree unambiguously | untouched |
-| 2 | unmodelled input, or failed self-validation | untouched |
+| 0 | merged cleanly | replaced atomically with the result |
+| 1 | merged **with conflict markers** | replaced atomically; a human must resolve |
+| 2 | unmodelled input or I/O | untouched |
 
-On any nonzero exit `%A` is left byte-untouched and git falls back to a normal conflict. The driver
-never writes a partially-merged ledger.
+**Exit 1 still writes, and that is the point.** Git does not re-run its own text merge when a
+driver exits nonzero — it takes whatever the driver left in `%A` as the conflicted working tree. A
+driver that exits 1 without writing leaves `ours` alone, with no markers and the other side's rows
+absent: the file reads as clean and complete, so a reflexive `git add` loses rows silently. Verified
+with a real `git merge`. On conflict this driver writes a file containing **every row from every
+side**, with diff3 markers only around the regions needing a human.
 
-Before emitting, the result is re-parsed and refused unless the header survived, no `id` present on
-any side was lost, and no `id` is duplicated.
+On a clean merge the result is re-parsed and refused unless the header survived, no `id` present on
+any side was lost, and none is duplicated. That guard cannot fire on the current kernel — every
+`id` is emitted unconditionally — so it protects against a future edit, not today's code.
 
 ## Tests
 
 ```shell
-buck2 test //ci/facade/fixup-ledger-merge-driver:ci-fixup-ledger-merge-driver-unittest
+buck2 test //tools/fixup-ledger-merge-driver-app:ci-fixup-ledger-merge-driver-unittest
 ```
 
 The tests are mutation-checked: reintroducing the original id-keyed header bug turns 8 of them red,

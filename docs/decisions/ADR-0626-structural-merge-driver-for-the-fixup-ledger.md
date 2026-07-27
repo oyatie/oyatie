@@ -54,29 +54,49 @@ whole reason the kernel exists in this shape rather than as a one-off script. Th
 of an `id` is exactly what made the hand resolvers drop it, so the kernel asserts the header is
 present on the way out and fails closed if it is not.
 
-**D3 — Resolve only what is unambiguous.** Per `id`: an edit on one side wins; identical edits on
-both sides collapse to one row; different edits to the same `id` on both sides CONFLICT. The
-driver declines rather than guessing, so git falls back to a normal conflict. This is what union
-cannot do and is the reason union was rejected here.
+**D3 — Resolve only what is unambiguous, and MARK the rest without losing it.** Per `id`: an edit
+on one side wins; identical edits on both sides collapse to one row; different edits to the same
+`id` CONFLICT. A conflict is written into the file as a diff3 block carrying every side, not
+signalled by declining to write.
+
+This is the correction of a defect in the first cut of this decision, and it is worth recording
+because the reasoning was wrong in an instructive way. Git does **not** re-run its own text merge
+when a driver exits nonzero — it takes whatever the driver left in `%A` as the conflicted working
+tree. Exiting 1 without writing therefore left `ours` standing alone, unmarked, with the other
+side's rows simply absent. Verified with a real `git merge`: theirs' unrelated new row was gone
+from the working tree and no conflict marker was present, so the file read as clean and complete.
+A reflexive `git add` would have committed the loss. That is the same silent-loss class this
+decision exists to stop, relocated from the header to the conflict path.
 
 **D4 — Deletion never wins.** A row present in the base and dropped by one side is carried through.
 The registry's own `_meta` declares it append-only, and a row vanishing during a merge is the
 failure this driver exists to prevent. Same trade-off `evidence/audit-chain.jsonl` already makes:
 a legitimate redaction must be a single linearised commit on `dev`, never a merge outcome.
 
-**D5 — Byte-preserving output.** Rows are copied verbatim from their source line, never
-re-serialised. Re-dumping this file has twice produced enormous phantom diffs by reordering keys
+**D5 — Row-byte-preserving output.** Rows are copied verbatim from their source line, never
+re-serialised. Whole-file bytes are NOT preserved: blank lines are dropped and exactly one trailing
+newline is emitted. Re-dumping this file has twice produced enormous phantom diffs by reordering keys
 and re-escaping em-dashes; parsing for structure while emitting the original bytes avoids that
 class entirely.
 
-**D6 — Registration is per-clone, so this cannot make the status quo worse.** Git merge drivers
-are named in `.gitattributes` but bound in local config. An actor without the `merge.fixup-ledger`
-binding gets exactly today's behaviour — a normal conflict. There is no state in which enabling
-this driver is worse than not having it.
+**D6 — Registration is per-clone.** Git merge drivers are named in `.gitattributes` but bound in
+local config, so an actor without the `merge.fixup-ledger` binding gets exactly today's behaviour.
 
-**D7 — Self-validating.** The merged result is re-parsed before it is allowed out, and the driver
-refuses to emit it unless the header survived, no `id` present on any side was lost, and no `id`
-is duplicated. A driver that emits a subtly wrong ledger is worse than one that declines.
+The stronger claim originally made here — that there is no state in which enabling the driver is
+worse than not having it — was **false** while D3's conflict path declined to write, and it is
+retained in weakened form deliberately. It holds only because conflicts now emit markers carrying
+every side. A driver that abstains on conflict is strictly worse than no driver, because git's own
+text merge would at least have written `<<<<<<<` markers with both sides visible. The property is
+a consequence of D3, not an independent guarantee.
+
+**D7 — Self-validating, as a regression guard.** A clean merge is re-parsed before it is allowed
+out and refused unless the header survived, no `id` present on any side was lost, and none is
+duplicated.
+
+Stated precisely, because the distinction matters: this cannot fire on the current kernel, which
+emits every `id` unconditionally. It is a guard against a FUTURE edit that stops doing so, not a
+runtime safety net against today's code, and a test pins that it actually catches a dropped row.
+Presenting it as a live net would overstate it.
 
 ## Consequences
 
@@ -90,17 +110,17 @@ or presumes ADR-0622's outcome; if a successor surface is later accepted, this d
 the file it serves.
 
 This does not make the ledger schema enforced. `_meta` declares `blocker_for` as part of the
-schema and 165 of 412 rows carry it; nothing validates that. The driver preserves whatever rows it
+schema and 165 of its 409 rows carry it; nothing validates that. The driver preserves whatever rows it
 is given and takes no position on their contents. That gap is real and is not addressed here.
 
 ## Justified artifacts
 
 This decision governs, and thereby justifies, the following files.
 
-- `ci/facade/fixup-ledger-merge-driver/BUCK`
-- `ci/facade/fixup-ledger-merge-driver/Cargo.toml`
-- `ci/facade/fixup-ledger-merge-driver/README.md`
-- `ci/facade/fixup-ledger-merge-driver/src/lib.rs`
-- `ci/facade/fixup-ledger-merge-driver/src/main.rs`
-- `ci/facade/fixup-ledger-merge-driver/src/tests.rs`
+- `tools/fixup-ledger-merge-driver-app/BUCK`
+- `tools/fixup-ledger-merge-driver-app/Cargo.toml`
+- `tools/fixup-ledger-merge-driver-app/README.md`
+- `tools/fixup-ledger-merge-driver-app/src/lib.rs`
+- `tools/fixup-ledger-merge-driver-app/src/main.rs`
+- `tools/fixup-ledger-merge-driver-app/src/tests.rs`
 - `docs/decisions/ADR-0626-structural-merge-driver-for-the-fixup-ledger.md`
