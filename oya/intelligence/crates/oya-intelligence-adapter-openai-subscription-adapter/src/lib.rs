@@ -25,8 +25,8 @@ pub use key_status::KeyStatus;
 pub use outbound_headers::openai_auth_headers;
 
 use oya_intelligence_account_domain::{SecretMaterial, SecretReference, SecretStorePort};
-use oya_intelligence_adapter_openai_subscription_kernel::{
-    AuthError, AuthToken, PROVIDER_FAMILY, ProviderAuthPort,
+use intelligence_account_kernel::{
+    AuthError, AuthMode, AuthToken, ProviderAuthPort, ProviderFamily,
 };
 use std::sync::Mutex;
 
@@ -142,6 +142,9 @@ impl<S: SecretStorePort + Send> OpenAiApiKeyPoolAdapter<S> {
 }
 
 impl<S: SecretStorePort + Send> ProviderAuthPort for OpenAiApiKeyPoolAdapter<S> {
+    const PROVIDER_FAMILY: ProviderFamily = ProviderFamily::OpenAiOrCodex;
+    const AUTH_MODE: AuthMode = AuthMode::Subscription;
+
     fn authenticate(&self, _sref: &SecretReference) -> Result<AuthToken, AuthError> {
         let now = (self.clock_fn)();
         let idx = self
@@ -156,7 +159,7 @@ impl<S: SecretStorePort + Send> ProviderAuthPort for OpenAiApiKeyPoolAdapter<S> 
         let token_id = format!("openai-pool-key-{idx}");
 
         // API keys do not expire; set a 24h nominal lifetime for the AuthToken wrapper.
-        AuthToken::new(now, now + 86_400, PROVIDER_FAMILY, token_id)
+        AuthToken::new(now, now + 86_400, ProviderFamily::OpenAiOrCodex, token_id)
     }
 
     fn revoke(&self, token: &AuthToken) -> Result<(), AuthError> {
@@ -184,7 +187,6 @@ mod tests {
     use oya_intelligence_account_domain::{
         ProviderFamily, SecretMaterial, SecretReference, SecretStoreError, SecretStorePort,
     };
-    use oya_intelligence_adapter_openai_subscription_kernel::{AUTH_MODE, AuthMode};
     use std::collections::HashMap;
     use std::sync::Mutex;
 
@@ -272,7 +274,10 @@ mod tests {
         let a = make_adapter(&["sk-key0"]);
         assert_eq!(a.auth_mode(), AuthMode::Subscription);
         assert_eq!(a.provider_family(), ProviderFamily::OpenAiOrCodex);
-        assert_eq!(AUTH_MODE, AuthMode::Subscription);
+        assert_eq!(
+            <OpenAiApiKeyPoolAdapter<FakeStore> as ProviderAuthPort>::AUTH_MODE,
+            AuthMode::Subscription
+        );
     }
 
     #[test]
