@@ -997,9 +997,9 @@
       "label": "oya-finance-library-kernel"
     },
     {
-      "id": "microservices/intelligence/crates/oya-intelligence-adapter-domain",
+      "id": "intelligence/core/adapter-kernel",
       "kind": "crate",
-      "label": "oya-intelligence-adapter-domain"
+      "label": "intelligence-adapter-kernel"
     },
     {
       "id": "microservices/intelligence/crates/oya-intelligence-api-semver-domain",
