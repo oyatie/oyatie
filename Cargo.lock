@@ -1494,6 +1494,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "ci-scan-root-liveness"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
 name = "ci-scm-facts-snapshot"
 version = "0.1.0"
 dependencies = [

@@ -1,0 +1,31 @@
+[package]
+name = "ci-scan-root-liveness"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[package.metadata.oya]
+bounded_context = "cloud-ci"
+kind = "shared"
+layer = "app"
+purpose = "Cloud CI scan-root liveness gate. Every coverage-bearing scan root a gate policy declares must resolve to a real path (or a glob matching at least one), else the gate scans less than it claims and reports GREEN over an empty set. The fleet's anti-narrowing ratchet prevents REMOVING a root, so a reorg move that empties a root leaves it permanently dead and unremovable. Distinguishes coverage-bearing roots from vocabulary lists and from FORWARD declarations (paths declared deliberately before creation, e.g. the ADR-0562 app/base destinations). Carries a completeness check so a new gate policy cannot escape liveness checking silently."
+
+[dependencies]
+serde_json = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }
+
+[lib]
+name = "ci_scan_root_liveness"
+path = "src/lib.rs"
+doctest = false
+
+[[test]]
+name = "scan_root_liveness"
+path = "tests/scan_root_liveness.rs"
+
+[lints]
+workspace = true
