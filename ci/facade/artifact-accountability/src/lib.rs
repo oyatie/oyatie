@@ -111,7 +111,7 @@ impl Report {
 /// This is the bare-code projection of [`evaluate_keyed`]: identical detection logic,
 /// keys dropped. Every `tc-*.json` fixture + the born-blocking self-tests keep
 /// asserting bare codes against it byte-for-byte.
-// Decides whether a fixture satisfies the total-accounting rules and reports violations.
+// Decides which total-accounting rules the fixture violates.
 pub fn evaluate(fixture: &Value) -> Report {
     let violations = evaluate_keyed(fixture)
         .into_iter()
