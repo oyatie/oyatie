@@ -310,6 +310,7 @@
       ".github/workflows",
       "cloud",
       "os",
+      "oya",
       "audit",
       "billing",
       "cell",
