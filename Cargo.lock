@@ -8037,21 +8037,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-intelligence-adapter-anthropic-api-adapter"
-version = "0.1.0"
-dependencies = [
- "oya-intelligence-account-domain",
- "oya-intelligence-adapter-anthropic-api-kernel",
-]
-
-[[package]]
-name = "oya-intelligence-adapter-anthropic-api-kernel"
-version = "0.1.0"
-dependencies = [
- "intelligence-account-kernel",
-]
-
-[[package]]
 name = "oya-intelligence-adapter-anthropic-compat-api"
 version = "0.1.0"
 dependencies = [
@@ -8070,66 +8055,14 @@ dependencies = [
  "http-body-util",
  "hyper 1.10.0",
  "hyper-util",
+ "intelligence-account-kernel",
  "oya-http-runtime-hyper-adapter",
  "oya-intelligence-account-domain",
- "oya-intelligence-adapter-anthropic-subscription-kernel",
  "oya-intelligence-oauth-subscription-kernel",
  "serde",
  "serde_json",
  "tokio",
  "tracing",
-]
-
-[[package]]
-name = "oya-intelligence-adapter-anthropic-subscription-kernel"
-version = "0.1.0"
-dependencies = [
- "intelligence-account-kernel",
-]
-
-[[package]]
-name = "oya-intelligence-adapter-gemini-api-adapter"
-version = "0.1.0"
-dependencies = [
- "oya-intelligence-account-domain",
- "oya-intelligence-adapter-gemini-api-kernel",
-]
-
-[[package]]
-name = "oya-intelligence-adapter-gemini-api-kernel"
-version = "0.1.0"
-dependencies = [
- "intelligence-account-kernel",
-]
-
-[[package]]
-name = "oya-intelligence-adapter-gemini-subscription-adapter"
-version = "0.1.0"
-dependencies = [
- "oya-intelligence-account-domain",
- "oya-intelligence-adapter-gemini-subscription-kernel",
-]
-
-[[package]]
-name = "oya-intelligence-adapter-gemini-subscription-kernel"
-version = "0.1.0"
-dependencies = [
- "intelligence-account-kernel",
-]
-
-[[package]]
-name = "oya-intelligence-adapter-openai-api-adapter"
-version = "0.1.0"
-dependencies = [
- "oya-intelligence-account-domain",
- "oya-intelligence-adapter-openai-api-kernel",
-]
-
-[[package]]
-name = "oya-intelligence-adapter-openai-api-kernel"
-version = "0.1.0"
-dependencies = [
- "intelligence-account-kernel",
 ]
 
 [[package]]
@@ -8150,19 +8083,12 @@ dependencies = [
  "http-body-util",
  "hyper 1.10.0",
  "hyper-util",
+ "intelligence-account-kernel",
  "oya-intelligence-account-domain",
- "oya-intelligence-adapter-openai-subscription-kernel",
  "serde",
  "serde_json",
  "tokio",
  "tracing",
-]
-
-[[package]]
-name = "oya-intelligence-adapter-openai-subscription-kernel"
-version = "0.1.0"
-dependencies = [
- "intelligence-account-kernel",
 ]
 
 [[package]]

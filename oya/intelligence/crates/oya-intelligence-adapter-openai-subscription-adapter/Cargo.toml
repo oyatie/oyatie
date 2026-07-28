@@ -13,7 +13,7 @@ doctest = false
 
 [dependencies]
 oya-intelligence-account-domain = { path = "../oya-intelligence-account-domain" }
-oya-intelligence-adapter-openai-subscription-kernel = { path = "../oya-intelligence-adapter-openai-subscription-kernel" }
+intelligence-account-kernel = { path = "../../../../intelligence/core/account-kernel" }
 
 # Async runtime + HTTP stack (ADR-0090: hyper preferred; ADR-0506: aws-lc-rs).
 tokio = { workspace = true, features = ["sync", "time", "net"] }

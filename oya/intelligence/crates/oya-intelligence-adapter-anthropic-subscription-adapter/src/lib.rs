@@ -50,10 +50,10 @@ pub use token_state::{
     classify_oauth_error,
 };
 
-use oya_intelligence_account_domain::SecretReference;
-use oya_intelligence_adapter_anthropic_subscription_kernel::{
-    AuthError, AuthToken, PROVIDER_FAMILY, ProviderAuthPort,
+use intelligence_account_kernel::{
+    AuthError, AuthMode, AuthToken, ProviderAuthPort, ProviderFamily,
 };
+use oya_intelligence_account_domain::SecretReference;
 
 // ── AnthropicOAuthAdapter ────────────────────────────────────────────────────
 
@@ -386,13 +386,16 @@ fn make_auth_token(state: &SeatTokenState, _now: u64) -> Result<AuthToken, AuthE
     AuthToken::new(
         state.issued_at,
         state.expires_at,
-        PROVIDER_FAMILY,
+        ProviderFamily::Claude,
         // token_id_redacted: use a stable hash of access_token length (never expose raw value).
         format!("anthropic-subscription-{}", state.access_token.len()),
     )
 }
 
 impl ProviderAuthPort for AnthropicOAuthAdapter {
+    const PROVIDER_FAMILY: ProviderFamily = ProviderFamily::Claude;
+    const AUTH_MODE: AuthMode = AuthMode::Subscription;
+
     fn authenticate(&self, sref: &SecretReference) -> Result<AuthToken, AuthError> {
         self.authenticate_sync(sref)
     }
@@ -446,6 +449,9 @@ impl AnthropicSubscriptionAdapter {
 }
 
 impl ProviderAuthPort for AnthropicSubscriptionAdapter {
+    const PROVIDER_FAMILY: ProviderFamily = ProviderFamily::Claude;
+    const AUTH_MODE: AuthMode = AuthMode::Subscription;
+
     fn authenticate(&self, sref: &SecretReference) -> Result<AuthToken, AuthError> {
         let token_id = self.synthesize_token_id(sref);
         if self.revoked_token_ids.borrow().contains(&token_id) {
@@ -456,7 +462,7 @@ impl ProviderAuthPort for AnthropicSubscriptionAdapter {
         AuthToken::new(
             self.clock_epoch_secs,
             self.clock_epoch_secs + self.token_lifetime_secs,
-            PROVIDER_FAMILY,
+            ProviderFamily::Claude,
             token_id,
         )
     }
@@ -475,7 +481,6 @@ impl ProviderAuthPort for AnthropicSubscriptionAdapter {
 mod tests {
     use super::*;
     use oya_intelligence_account_domain::{ProviderFamily, SecretReference};
-    use oya_intelligence_adapter_anthropic_subscription_kernel::{AUTH_MODE, AuthMode};
 
     fn sref(s: &str) -> SecretReference {
         SecretReference::new(s.to_owned()).unwrap()
@@ -496,7 +501,10 @@ mod tests {
         let a = AnthropicSubscriptionAdapter::new();
         assert_eq!(a.auth_mode(), AuthMode::Subscription);
         assert_eq!(a.provider_family(), ProviderFamily::Claude);
-        assert_eq!(AUTH_MODE, AuthMode::Subscription);
+        assert_eq!(
+            <AnthropicSubscriptionAdapter as ProviderAuthPort>::AUTH_MODE,
+            AuthMode::Subscription
+        );
     }
 
     #[test]
