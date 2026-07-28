@@ -1254,6 +1254,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "ci-crate-catalog-coverage"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
 name = "ci-crate-layer-suffix"
 version = "0.1.0"
 dependencies = [
