@@ -27,7 +27,7 @@ pub use oya_governance_eval_domain::{
     REQUIRED_LINGUISTIC_COHORT_LOCALES,
 };
 use iam_identity_domain::{IdentityError, IdpBinding, Token, User, issue_token};
-use oya_intelligence_adapter_domain::{
+use intelligence_adapter_kernel::{
     AdapterError, CostCeiling, InvocationPolicy, ProviderAuth, ProviderCallReceipt, ProviderId,
     ProviderMode, ProviderProfile, ProviderRoute, ProviderRoutePreference, ProviderRouteRequest,
     SubscriptionBindingRegistry, resolve_route,

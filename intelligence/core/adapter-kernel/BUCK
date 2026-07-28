@@ -1,7 +1,7 @@
 rust_library(
-    name = "oya-intelligence-adapter-domain",
+    name = "intelligence-adapter-kernel",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
-    crate = "oya_intelligence_adapter_domain",
+    crate = "intelligence_adapter_kernel",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
@@ -13,13 +13,13 @@ rust_library(
 )
 
 rust_test(
-    name = "oya-intelligence-adapter-domain-provider-route",
+    name = "intelligence-adapter-kernel-provider-route",
     srcs = ["tests/provider_route.rs"],
-    crate = "oya_intelligence_adapter_domain_provider_route",
+    crate = "intelligence_adapter_kernel_provider_route",
     crate_root = "tests/provider_route.rs",
     visibility = ["PUBLIC"],
     deps = [
-        ":oya-intelligence-adapter-domain",
+        ":intelligence-adapter-kernel",
         "//secrets/core/domain:secrets-domain",
         "//libs/oya-check-cost-budget:oya-check-cost-budget",
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
