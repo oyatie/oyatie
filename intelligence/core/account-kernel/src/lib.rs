@@ -91,6 +91,118 @@ impl fmt::Debug for SecretReference {
     }
 }
 
+/// `AuthToken` returned by an authenticated provider session.
+///
+/// SECURITY: inner bytes are never exposed — `Debug` renders redacted and no
+/// `Display` is implemented, so a token cannot reach a log line by accident.
+#[derive(Clone, Eq, PartialEq)]
+pub struct AuthToken {
+    issued_at_epoch_secs: u64,
+    expires_at_epoch_secs: u64,
+    provider_family: ProviderFamily,
+    token_id_redacted: String,
+}
+
+impl AuthToken {
+    pub fn new(
+        issued_at_epoch_secs: u64,
+        expires_at_epoch_secs: u64,
+        provider_family: ProviderFamily,
+        token_id_redacted: String,
+    ) -> Result<Self, AuthError> {
+        if expires_at_epoch_secs <= issued_at_epoch_secs {
+            return Err(AuthError::Expired);
+        }
+        if token_id_redacted.is_empty() {
+            return Err(AuthError::InvalidToken);
+        }
+        Ok(Self {
+            issued_at_epoch_secs,
+            expires_at_epoch_secs,
+            provider_family,
+            token_id_redacted,
+        })
+    }
+
+    pub fn issued_at_epoch_secs(&self) -> u64 {
+        self.issued_at_epoch_secs
+    }
+    pub fn expires_at_epoch_secs(&self) -> u64 {
+        self.expires_at_epoch_secs
+    }
+    pub fn provider_family(&self) -> ProviderFamily {
+        self.provider_family
+    }
+    pub fn token_id_redacted(&self) -> &str {
+        &self.token_id_redacted
+    }
+}
+
+impl fmt::Debug for AuthToken {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "AuthToken(provider={:?}, issued={}, expires={}, token=[REDACTED])",
+            self.provider_family, self.issued_at_epoch_secs, self.expires_at_epoch_secs
+        )
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum AuthError {
+    InvalidSecretReference,
+    Expired,
+    InvalidToken,
+    ProviderRejected(String),
+    NetworkUnavailable,
+}
+
+impl fmt::Display for AuthError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::InvalidSecretReference => write!(f, "invalid secret reference"),
+            Self::Expired => write!(f, "auth token expired"),
+            Self::InvalidToken => write!(f, "invalid auth token"),
+            Self::ProviderRejected(s) => write!(f, "provider rejected auth: {s}"),
+            Self::NetworkUnavailable => write!(f, "network unavailable; live-smoke deferred"),
+        }
+    }
+}
+
+/// The auth modality an adapter serves.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum AuthMode {
+    Api,
+    Subscription,
+}
+
+/// `ProviderAuthPort` — the single port trait every provider auth adapter satisfies.
+/// Implementations exchange a [`SecretReference`] for an [`AuthToken`].
+///
+/// ADR-0020 specifies ONE parameterised contract rather than one crate per
+/// (provider, mode) pair. The parameters are the two associated consts: each
+/// implementor declares its family and modality at compile time, and the
+/// provided method bodies surface them at runtime for call sites that need a
+/// value. This replaces six byte-identical 169-line kernel crates that differed
+/// only in those two constants.
+///
+/// Not object-safe by construction — associated consts are the point. Nothing in
+/// the tree uses `dyn ProviderAuthPort`, so compile-time parameterisation costs
+/// nothing here and buys a static guarantee that a family/mode is always declared.
+pub trait ProviderAuthPort {
+    const PROVIDER_FAMILY: ProviderFamily;
+    const AUTH_MODE: AuthMode;
+
+    fn provider_family(&self) -> ProviderFamily {
+        Self::PROVIDER_FAMILY
+    }
+    fn auth_mode(&self) -> AuthMode {
+        Self::AUTH_MODE
+    }
+    fn authenticate(&self, sref: &SecretReference) -> Result<AuthToken, AuthError>;
+    fn revoke(&self, token: &AuthToken) -> Result<(), AuthError>;
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -140,5 +252,110 @@ mod tests {
         let dbg = format!("{r:?}");
         assert!(dbg.contains("[REDACTED]"));
         assert!(!dbg.contains("very-secret"));
+    }
+
+    // --- ProviderAuthPort, consolidated from six per-provider kernel crates ---
+
+    #[test]
+    fn auth_token_valid() {
+        let t = AuthToken::new(100, 200, ProviderFamily::Claude, "tok-id-1".to_owned()).unwrap();
+        assert_eq!(t.provider_family(), ProviderFamily::Claude);
+        assert_eq!(t.issued_at_epoch_secs(), 100);
+        assert_eq!(t.expires_at_epoch_secs(), 200);
+    }
+
+    #[test]
+    fn auth_token_rejects_expired() {
+        assert_eq!(
+            AuthToken::new(200, 100, ProviderFamily::Claude, "x".to_owned()),
+            Err(AuthError::Expired)
+        );
+    }
+
+    #[test]
+    fn auth_token_rejects_empty_id() {
+        assert_eq!(
+            AuthToken::new(100, 200, ProviderFamily::Claude, String::new()),
+            Err(AuthError::InvalidToken)
+        );
+    }
+
+    /// SECURITY INVARIANT carried over from the retired kernels: a token id must
+    /// never be renderable. Losing this test in a refactor would silently permit
+    /// secrets in logs.
+    #[test]
+    fn auth_token_debug_is_redacted() {
+        let t = AuthToken::new(
+            100,
+            200,
+            ProviderFamily::Claude,
+            "very-secret-token-id".to_owned(),
+        )
+        .unwrap();
+        let dbg = format!("{t:?}");
+        assert!(dbg.contains("[REDACTED]"));
+        assert!(!dbg.contains("very-secret-token-id"));
+    }
+
+    /// Carried over from the retired kernels: each variant must be
+    /// distinguishable in an operator-facing message.
+    #[test]
+    fn auth_error_display_distinct() {
+        let messages: Vec<String> = vec![
+            format!("{}", AuthError::InvalidSecretReference),
+            format!("{}", AuthError::Expired),
+            format!("{}", AuthError::InvalidToken),
+            format!("{}", AuthError::ProviderRejected("boom".to_owned())),
+            format!("{}", AuthError::NetworkUnavailable),
+        ];
+        let unique: std::collections::HashSet<_> = messages.iter().collect();
+        assert_eq!(unique.len(), messages.len());
+    }
+
+    /// The consolidation invariant: ONE trait now expresses every
+    /// (provider, mode) pair that previously required its own crate. Two
+    /// implementors differing only in their associated consts prove the
+    /// parameterisation actually carries the distinction.
+    #[test]
+    fn associated_consts_parameterise_family_and_mode() {
+        struct ClaudeSub;
+        struct OpenAiApi;
+
+        fn stub(f: ProviderFamily) -> Result<AuthToken, AuthError> {
+            AuthToken::new(0, 1, f, "stub".to_owned())
+        }
+
+        impl ProviderAuthPort for ClaudeSub {
+            const PROVIDER_FAMILY: ProviderFamily = ProviderFamily::Claude;
+            const AUTH_MODE: AuthMode = AuthMode::Subscription;
+            fn authenticate(&self, _s: &SecretReference) -> Result<AuthToken, AuthError> {
+                stub(Self::PROVIDER_FAMILY)
+            }
+            fn revoke(&self, _t: &AuthToken) -> Result<(), AuthError> {
+                Ok(())
+            }
+        }
+
+        impl ProviderAuthPort for OpenAiApi {
+            const PROVIDER_FAMILY: ProviderFamily = ProviderFamily::OpenAiOrCodex;
+            const AUTH_MODE: AuthMode = AuthMode::Api;
+            fn authenticate(&self, _s: &SecretReference) -> Result<AuthToken, AuthError> {
+                stub(Self::PROVIDER_FAMILY)
+            }
+            fn revoke(&self, _t: &AuthToken) -> Result<(), AuthError> {
+                Ok(())
+            }
+        }
+
+        assert_eq!(ClaudeSub.provider_family(), ProviderFamily::Claude);
+        assert_eq!(ClaudeSub.auth_mode(), AuthMode::Subscription);
+        assert_eq!(OpenAiApi.provider_family(), ProviderFamily::OpenAiOrCodex);
+        assert_eq!(OpenAiApi.auth_mode(), AuthMode::Api);
+
+        let sref = SecretReference::new("sref://x".to_owned()).unwrap();
+        assert_eq!(
+            ClaudeSub.authenticate(&sref).unwrap().provider_family(),
+            ProviderFamily::Claude
+        );
     }
 }
