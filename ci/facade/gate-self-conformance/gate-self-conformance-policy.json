@@ -174,6 +174,7 @@
     "repo-root-hygiene": "Root workspace hygiene findings require deciding whether to move, allowlist, or delete a tracked root artifact.",
     "resource-contract-conformance": "Cloud-resource contract findings require source specification changes or reviewed claim-boundary decisions; the gate cannot safely rewrite product readiness or actuation semantics.",
     "runner-disk-reclaim": "Runner disk reclaim findings require CI runner policy and reclaim-plan changes, not a gate-authored mutation.",
+    "scan-root-liveness": "A dead scan root has three legitimate resolutions and the gate cannot choose between them: repoint it (the path moved -- only the author knows where), delete it (the path is gone for good -- and the anti-narrowing ratchet requires that removal be the SUBJECT of a reviewed change, not a silent side effect), or declare it forward (it does not exist YET -- which requires stating why and what will create it). Auto-deleting would be the worst of the three: it launders coverage loss as cleanup, which is precisely the failure this gate exists to detect.",
     "service-catalog-parity": "Catalog liveness findings require either restoring a crate or explicitly marking the catalog row non-live; the gate cannot infer intent.",
     "service-tier-metadata": "Tier field coverage findings require choosing authoritative service tier metadata.",
     "slo-coverage": "SLO coverage findings require authoring real service objectives and ownership, which the gate cannot synthesize.",
