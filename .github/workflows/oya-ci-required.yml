@@ -163,6 +163,7 @@ jobs:
           - { crate: package-manifest-hygiene,         label: "gate · manifest-hygiene (§2.5#7, born-blocking)" }
           - { crate: crate-name-prefix,            label: "gate · cargo-prefix (ADR-0017)" }
           - { crate: slo-coverage,            label: "gate · slo-coverage (catalog SLO input contract, born-blocking)" }
+          - { crate: scan-root-liveness,      label: "gate · scan-root-liveness (declared scan roots must resolve; reorg-move blindness detector, shrink-only baseline)" }
           - { crate: license-policy,          label: "gate · license-policy (workspace package license policy, shrink-only)" }
           - { crate: service-catalog-parity,        label: "gate · catalog-liveness (PR-C3 founder live-OR-explicitly-marked policy, born-blocking, EMPTY frozen baseline)" }
           - { crate: workspace-member-coverage, label: "gate: workspace-glob-coverage (ADR-0538)" }
