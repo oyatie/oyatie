@@ -1,0 +1,46 @@
+# LOCAL warm-cache overlay — deliberately OUTSIDE the repo.
+#
+# The repo already ships this wiring dark (toolchains/cache/, ADR-0560, plus
+# infra/ci/buckconfig/warm-cache-{rw,ro}.buckconfig). Those overlays point at the
+# in-cluster writer endpoint over mTLS and are selected only by the resolver,
+# which refuses every warm mode while /specs/cache-warm-license.json carries
+# warm_reads_licensed=false — the state today.
+#
+# This file is the LOCAL equivalent for measurement only. It lives outside the
+# working tree because:
+#   - .buckconfig.local is NOT gitignored here, so writing one dirties the tree;
+#   - the root .buckconfig must stay clean (a conformance gate asserts it);
+#   - the governed license flag is flipped by reviewed change citing a GREEN
+#     integrity-canary, never by a local experiment.
+#
+# Differences from the cluster overlay, both local-only:
+#   tls = false            — loopback, no mTLS client cert on this machine
+#   127.0.0.1:50051        — the local container, published to loopback ONLY
+#
+# instance_name MUST be "main": it matches both the cluster overlay and the
+# local NativeLink services map. A mismatch fails every request while the server
+# still looks healthy.
+
+[buck2_re_client]
+  engine_address = grpc://127.0.0.1:50051
+  cas_address = grpc://127.0.0.1:50051
+  action_cache_address = grpc://127.0.0.1:50051
+  instance_name = main
+  tls = false
+
+[oya_cache]
+  remote_cache_enabled = true
+  allow_cache_uploads = true
+
+[build]
+  execution_platforms = toolchains//cache:cache-platform
+
+# buck2 uploads a locally-executed action's result ONLY if it is under this
+# size cap, and the cap is UNSET by default — which is why a correctly wired
+# cache stays empty: reads are enabled, writes are silently declined.
+[buck2]
+  max_cache_upload_mebibytes = 1024
+  # THE unblock: rust/build.bzl defers per-action allow_cache_upload to this key
+  # when the rule leaves it None. Without it every rust action reports
+  # ACTION_UPLOAD_NOT_ALLOWED and the cache stays empty. No prelude fork needed.
+  default_allow_cache_upload = true
