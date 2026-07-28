@@ -13,7 +13,7 @@ doctest = false
 
 [dependencies]
 oya-intelligence-account-domain = { path = "../oya-intelligence-account-domain" }
-oya-intelligence-adapter-anthropic-subscription-kernel = { path = "../oya-intelligence-adapter-anthropic-subscription-kernel" }
+intelligence-account-kernel = { path = "../../../../intelligence/core/account-kernel" }
 oya-intelligence-oauth-subscription-kernel = { path = "../oya-intelligence-oauth-subscription-kernel" }
 
 oya-http-runtime-hyper-adapter = { path = "../../../../libs/oya-http-runtime-hyper-adapter" }

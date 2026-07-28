@@ -6,7 +6,7 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//oya/intelligence/crates/oya-intelligence-account-domain:oya-intelligence-account-domain",
-        "//oya/intelligence/crates/oya-intelligence-adapter-openai-subscription-kernel:oya-intelligence-adapter-openai-subscription-kernel",
+        "//intelligence/core/account-kernel:intelligence-account-kernel",
         "third-party//:bytes",
         "third-party//:http-body-util",
         "third-party//:hyper",
@@ -27,7 +27,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         "//oya/intelligence/crates/oya-intelligence-account-domain:oya-intelligence-account-domain",
-        "//oya/intelligence/crates/oya-intelligence-adapter-openai-subscription-kernel:oya-intelligence-adapter-openai-subscription-kernel",
+        "//intelligence/core/account-kernel:intelligence-account-kernel",
         "third-party//:bytes",
         "third-party//:http-body-util",
         "third-party//:hyper",
@@ -49,7 +49,7 @@ rust_test(
     deps = [
         ":oya-intelligence-adapter-openai-subscription-adapter",
         "//oya/intelligence/crates/oya-intelligence-account-domain:oya-intelligence-account-domain",
-        "//oya/intelligence/crates/oya-intelligence-adapter-openai-subscription-kernel:oya-intelligence-adapter-openai-subscription-kernel",
+        "//intelligence/core/account-kernel:intelligence-account-kernel",
         "third-party//:bytes",
         "third-party//:http-body-util",
         "third-party//:hyper",

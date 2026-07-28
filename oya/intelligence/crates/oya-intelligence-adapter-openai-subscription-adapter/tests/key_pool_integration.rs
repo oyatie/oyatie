@@ -24,7 +24,7 @@ use oya_intelligence_account_domain::{
 use oya_intelligence_adapter_openai_subscription_adapter::{
     KeyPool, KeyStatus, OpenAiApiKeyPoolAdapter,
 };
-use oya_intelligence_adapter_openai_subscription_kernel::{AuthError, ProviderAuthPort};
+use intelligence_account_kernel::{AuthError, ProviderAuthPort};
 
 // ── Shared secret store ──────────────────────────────────────────────────────
 
