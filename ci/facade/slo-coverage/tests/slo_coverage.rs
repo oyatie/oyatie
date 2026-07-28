@@ -20,7 +20,20 @@ const REQUIRED_SLO_LINKED_CLOUD_MANIFESTS: [&str; 6] = [
     "cloud/tenancy/manifest.json",
 ];
 
-const MIN_SLO_CATALOG_ROWS: usize = 776;
+/// FALSE-GREEN FLOOR: the producer must be shown to have actually enumerated the
+/// catalog. A broken collector returns zero rows, finds zero violations, and would
+/// otherwise report a clean pass — so an implausibly small corpus is a gate failure,
+/// never coverage.
+///
+/// This is a floor on COLLECTION, not a ratchet on catalog SIZE. It therefore has to
+/// be lowered deliberately whenever rows are legitimately removed, and the lowering
+/// belongs in the same change as the removal so the two are reviewed together.
+///
+/// 783 rows existed when the previous value of 776 was set — 7 rows of slack. This
+/// change deletes 10 rows (the retired ProviderAuthPort kernels and their in-memory
+/// mock adapters), leaving 773. The floor moves to 766 to preserve exactly that same
+/// 7-row margin rather than silently loosening or tightening the guard.
+const MIN_SLO_CATALOG_ROWS: usize = 766;
 
 fn producer_command(root: &Path, producer_bin: Option<&str>) -> Result<Command, String> {
     if let Some(bin) = producer_bin {
