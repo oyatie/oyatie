@@ -419,6 +419,7 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
 }
 
 /// Bare-code projection of [`evaluate_keyed`]; the single source of truth for the verdict.
+// Decides the gate verdict from the policy and observed ledger rows.
 pub fn evaluate(policy: &Value, observed: &Value) -> Report {
     Report::from_findings(&evaluate_keyed(policy, observed))
 }
