@@ -145,7 +145,7 @@ pub fn evaluate(fixture: &Value) -> Report {
 
 /// Evaluate an automation-ratchet matrix into the keyed finding set — the single source
 /// of truth for the gate's detection logic.
-// Decides which policy violations the automation-ratchet matrix contains.
+// Returns the keyed policy violations present in the automation-ratchet matrix.
 pub fn evaluate_keyed(fixture: &Value) -> BTreeSet<Finding> {
     let mut findings: BTreeSet<Finding> = BTreeSet::new();
 
