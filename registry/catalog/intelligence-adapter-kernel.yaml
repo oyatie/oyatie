@@ -1,5 +1,5 @@
 context: foundry
-role: adapter
+role: kernel
 capability: foundry-adapter
 plane: control
 slo: preview-control-plane

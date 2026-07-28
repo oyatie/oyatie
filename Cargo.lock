@@ -4455,6 +4455,16 @@ name = "intelligence-account-kernel"
 version = "0.1.0"
 
 [[package]]
+name = "intelligence-adapter-kernel"
+version = "0.1.0"
+dependencies = [
+ "intelligence-capability-domain",
+ "oya-check-cost-budget",
+ "oya-data-boundary-kernel",
+ "secrets-domain",
+]
+
+[[package]]
 name = "intelligence-api-rest-kernel"
 version = "0.1.0"
 
@@ -6621,6 +6631,7 @@ dependencies = [
  "data-ontology-domain",
  "iam-identity-domain",
  "iam-policy-cedar-domain",
+ "intelligence-adapter-kernel",
  "intelligence-capability-domain",
  "intelligence-step-domain",
  "messaging-domain",
@@ -6630,7 +6641,6 @@ dependencies = [
  "oya-check-cost-budget",
  "oya-data-boundary-kernel",
  "oya-governance-eval-domain",
- "oya-intelligence-adapter-domain",
  "oya-intelligence-bypass-domain",
  "oya-intelligence-evidence-domain",
  "oya-intelligence-mcp-gateway-domain",
@@ -8061,16 +8071,6 @@ name = "oya-intelligence-adapter-anthropic-subscription-kernel"
 version = "0.1.0"
 dependencies = [
  "intelligence-account-kernel",
-]
-
-[[package]]
-name = "oya-intelligence-adapter-domain"
-version = "0.1.0"
-dependencies = [
- "intelligence-capability-domain",
- "oya-check-cost-budget",
- "oya-data-boundary-kernel",
- "secrets-domain",
 ]
 
 [[package]]

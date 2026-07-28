@@ -6,7 +6,7 @@ use oya_check_cost_budget::{BudgetCeiling as BudgetKernelCeiling, BudgetLedger, 
 use oya_data_boundary_kernel::{
     Classified, DataClass, PrivacyDataClass, privacy_data_classes_from,
 };
-use oya_intelligence_adapter_domain::{
+use intelligence_adapter_kernel::{
     AdapterError, CostCeiling, InvocationPolicy, PromptEnvelope, ProviderAdapter, ProviderAuth,
     ProviderCallReceipt, ProviderEvent, ProviderFailureKind, ProviderId, ProviderInvocation,
     ProviderInvocationRequest, ProviderMode, ProviderProfile, ProviderRoute,
