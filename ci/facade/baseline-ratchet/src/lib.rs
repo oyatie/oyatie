@@ -487,6 +487,64 @@ impl FirewallReport {
     }
 }
 
+/// Relabel a FROZEN baseline's keys through a `old_path -> new_path` rename map.
+///
+/// WHY THIS EXISTS. The baseline is PATH-KEYED, so a pure `git mv` scores as
+/// `regressions = N` at the destination paths and `fixed = N` at the sources. The
+/// ratchet blocks on any new key regardless of offsetting fixes, so a relocation
+/// that changes not one byte of content REDs the firewall. With ~250 crates still
+/// to move out of the legacy `oya/` and `cloud/` roots under ADR-0562, that turns
+/// every structural move into a founder sign-off — the door meant for genuinely
+/// new debt. Relabelling makes a move behave EXACTLY like an in-place edit: the
+/// debt follows the file to its new address.
+///
+/// THIS IS NOT LAUNDERING — it is strictly more faithful tracking. The violation
+/// is neither dropped nor exempted; it is re-keyed to where the file now lives, so
+/// it stays in `tolerated` and still has to be burned down. The laundering
+/// direction is the opposite one (dropping a baseline row), which this never does:
+/// the returned baseline has the same key COUNT per code as the input.
+///
+/// Two guards keep it honest:
+///
+/// - EXISTENCE — a rename whose source carries no baselined violation is ignored.
+///   Inventing a row at the destination would pre-tolerate real new debt landing
+///   there.
+/// - NON-COLLISION — a rename onto a key that is ALREADY baselined under the same
+///   code is refused, leaving both keys intact. Merging two debt rows into one
+///   would shrink the baseline with no burn-down, which is exactly the silent
+///   weakening the ratchet exists to prevent.
+///
+/// Mode, `frozen_empty` and `remediation` are carried through untouched: they are
+/// merge-base DATA, and moving a file must not let a PR rewrite them.
+pub fn relabel_baseline_for_renames(
+    frozen: &Baseline,
+    renames: &BTreeMap<String, String>,
+) -> Baseline {
+    if renames.is_empty() {
+        return frozen.clone();
+    }
+    let mut out = frozen.clone();
+    for codes in out.gates.values_mut() {
+        for code_baseline in codes.values_mut() {
+            let mut keys = code_baseline.keys.clone();
+            for (old, new) in renames {
+                // EXISTENCE guard: only relabel debt that actually exists here.
+                if !keys.contains(old) {
+                    continue;
+                }
+                // NON-COLLISION guard: never merge two baselined rows.
+                if keys.contains(new) {
+                    continue;
+                }
+                keys.remove(old);
+                keys.insert(new.clone());
+            }
+            code_baseline.keys = keys;
+        }
+    }
+    out
+}
+
 /// COMPARE-MODE predicate: compare the current keyed violations against the FROZEN
 /// (merge-base) baseline, per `(gate, code)`. `current` is `gate -> code -> keys` (from
 /// running each gate's `evaluate_keyed` over the live faces). Keys new relative to the
@@ -754,6 +812,150 @@ mod tests {
             );
         }
         out
+    }
+
+    // ── RENAME RELABEL (ADR-0562 structural moves) ──────────────────────────
+    //
+    // The baseline is PATH-KEYED. A pure `git mv` therefore reads as
+    // `regressions = N` at the new paths and `fixed = N` at the old ones — net
+    // zero debt, but the firewall blocks on new keys regardless of offsetting
+    // fixes, so every crate move REDs the gate for no reason. These tests pin
+    // the relabel that makes a move behave exactly like an in-place edit.
+
+    #[test]
+    fn pure_rename_without_relabel_is_a_false_regression() {
+        // The DEFECT, pinned: relabelling nothing leaves the move looking like
+        // brand-new debt. This is the pre-fix behaviour and must stay visible.
+        let cur = current(&[(
+            "cloud-ci-total-accounting",
+            "unjustified",
+            &["moved/a.rs", "b.rs"],
+        )]);
+        let reports = compare(&baseline_fixture(), &cur, &SignOff::default());
+        let unjust = reports.iter().find(|r| r.code == "unjustified").unwrap();
+        assert_eq!(
+            unjust.regressions,
+            ["moved/a.rs".to_owned()].into_iter().collect(),
+            "an unrelabelled move must still surface as a regression"
+        );
+        assert_eq!(unjust.fixed, ["a.rs".to_owned()].into_iter().collect());
+        assert!(unjust.fails());
+    }
+
+    #[test]
+    fn relabelled_pure_rename_is_neither_regression_nor_fix() {
+        // With the rename map applied, a pure move is a NO-OP: the debt follows
+        // the file. Not laundering — the violation stays tracked at its new key.
+        let renames = [("a.rs".to_owned(), "moved/a.rs".to_owned())]
+            .into_iter()
+            .collect();
+        let relabelled = relabel_baseline_for_renames(&baseline_fixture(), &renames);
+        let cur = current(&[(
+            "cloud-ci-total-accounting",
+            "unjustified",
+            &["moved/a.rs", "b.rs"],
+        )]);
+        let reports = compare(&relabelled, &cur, &SignOff::default());
+        let unjust = reports.iter().find(|r| r.code == "unjustified").unwrap();
+        assert!(unjust.regressions.is_empty(), "a pure move is not new debt");
+        assert!(unjust.fixed.is_empty(), "a pure move is not burn-down either");
+        assert_eq!(unjust.tolerated.len(), 2);
+        assert!(!unjust.fails());
+    }
+
+    #[test]
+    fn relabel_still_catches_new_debt_introduced_alongside_a_move() {
+        // ANTI-LAUNDERING: relabelling must not become a cloak. A move that also
+        // ADDS a violating file is still a regression for the added file.
+        let renames = [("a.rs".to_owned(), "moved/a.rs".to_owned())]
+            .into_iter()
+            .collect();
+        let relabelled = relabel_baseline_for_renames(&baseline_fixture(), &renames);
+        let cur = current(&[(
+            "cloud-ci-total-accounting",
+            "unjustified",
+            &["moved/a.rs", "b.rs", "brand-new.rs"],
+        )]);
+        let reports = compare(&relabelled, &cur, &SignOff::default());
+        let unjust = reports.iter().find(|r| r.code == "unjustified").unwrap();
+        assert_eq!(
+            unjust.regressions,
+            ["brand-new.rs".to_owned()].into_iter().collect(),
+            "debt added during a move must still fail"
+        );
+        assert!(unjust.fails());
+    }
+
+    #[test]
+    fn relabel_ignores_renames_whose_source_is_not_baselined() {
+        // EXISTENCE GUARD: a rename of a file that carried no violation must not
+        // invent a baseline row at the destination (which would tolerate real
+        // new debt landing at that path).
+        let renames = [("never-violated.rs".to_owned(), "moved/x.rs".to_owned())]
+            .into_iter()
+            .collect();
+        let relabelled = relabel_baseline_for_renames(&baseline_fixture(), &renames);
+        let unjust = &relabelled.gates["cloud-ci-total-accounting"]["unjustified"];
+        assert_eq!(
+            unjust.keys,
+            ["a.rs".to_owned(), "b.rs".to_owned()].into_iter().collect(),
+            "relabel must not fabricate keys"
+        );
+    }
+
+    #[test]
+    fn relabel_refuses_to_collide_two_baselined_keys() {
+        // NON-COLLISION GUARD: renaming a baselined file ONTO another baselined
+        // key would silently merge two debt rows into one, shrinking the
+        // baseline without any burn-down. Refuse; leave both keys intact.
+        let renames = [("a.rs".to_owned(), "b.rs".to_owned())]
+            .into_iter()
+            .collect();
+        let relabelled = relabel_baseline_for_renames(&baseline_fixture(), &renames);
+        let unjust = &relabelled.gates["cloud-ci-total-accounting"]["unjustified"];
+        assert_eq!(
+            unjust.keys,
+            ["a.rs".to_owned(), "b.rs".to_owned()].into_iter().collect(),
+            "a colliding relabel must be refused, not silently merged"
+        );
+    }
+
+    #[test]
+    fn relabel_is_per_code_not_global() {
+        // `a.rs` is baselined under BOTH `unjustified` and `unowned`. The relabel
+        // must move it in every code that carries it, and must not touch codes
+        // that do not.
+        let renames = [("a.rs".to_owned(), "moved/a.rs".to_owned())]
+            .into_iter()
+            .collect();
+        let relabelled = relabel_baseline_for_renames(&baseline_fixture(), &renames);
+        let gates = &relabelled.gates["cloud-ci-total-accounting"];
+        assert!(gates["unjustified"].keys.contains("moved/a.rs"));
+        assert!(gates["unowned"].keys.contains("moved/a.rs"));
+        assert!(!gates["unjustified"].keys.contains("a.rs"));
+        assert!(!gates["unowned"].keys.contains("a.rs"));
+        // frozen_empty code stays empty — nothing to relabel, nothing invented.
+        assert!(gates["ci_inventory_registry_drift"].keys.is_empty());
+        assert!(gates["ci_inventory_registry_drift"].frozen_empty);
+    }
+
+    #[test]
+    fn relabel_preserves_mode_and_remediation() {
+        // The relabel moves KEYS only. Mode is merge-base DATA a PR must not be
+        // able to rewrite by moving a file.
+        let renames = [("a.rs".to_owned(), "moved/a.rs".to_owned())]
+            .into_iter()
+            .collect();
+        let relabelled = relabel_baseline_for_renames(&baseline_fixture(), &renames);
+        let gates = &relabelled.gates["cloud-ci-total-accounting"];
+        assert_eq!(gates["unjustified"].mode, MODE_BASELINE_BLOCK_ON_NEW);
+        assert_eq!(gates["unowned"].mode, "advisory-until-infra");
+    }
+
+    #[test]
+    fn empty_rename_map_is_the_identity() {
+        let relabelled = relabel_baseline_for_renames(&baseline_fixture(), &BTreeMap::new());
+        assert_eq!(relabelled, baseline_fixture());
     }
 
     #[test]
