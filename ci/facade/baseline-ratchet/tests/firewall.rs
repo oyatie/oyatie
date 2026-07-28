@@ -19,6 +19,7 @@ use std::process::Command;
 use ci_baseline_ratchet::{
     Baseline, FROZEN_SNAPSHOT_PATH, FrozenBaseline, RATCHET_POLICY_PATH, SIGNOFF_FIXER_COMMAND,
     SIGNOFF_PATH, SignOff, baseline_keys_map, evaluate_firewall, ratchet_growth,
+    relabel_baseline_for_renames,
 };
 use serde_json::Value;
 
@@ -59,6 +60,74 @@ fn frozen_snapshot_path(root: &Path) -> PathBuf {
 
 fn ratchet_policy_path(root: &Path) -> PathBuf {
     root.join(RATCHET_POLICY_PATH)
+}
+
+/// Detect `old_path -> new_path` renames between the merge-base and the working tree,
+/// using git's own similarity detection (`--find-renames`).
+///
+/// This is the I/O half of the rename relabel; the decision logic is the pure
+/// `relabel_baseline_for_renames` kernel, which applies the existence and non-collision
+/// guards. Kept here rather than in the kernel so the kernel stays filesystem-free.
+///
+/// FAIL-OPEN BY DESIGN, and deliberately so: if git cannot answer (detached checkout,
+/// missing merge-base, shallow clone) this returns an EMPTY map, which relabels nothing
+/// and leaves the ratchet in its strict pre-existing behaviour. The failure mode of this
+/// helper is therefore a false RED that a human investigates, never a false GREEN.
+fn detect_renames(root: &Path, merge_base: &str) -> BTreeMap<String, String> {
+    let mut renames = BTreeMap::new();
+    if merge_base.is_empty() {
+        return renames;
+    }
+    let Ok(out) = Command::new("git")
+        .current_dir(root)
+        .args([
+            "diff",
+            // THRESHOLD 30%, not git's 50% default, and the reason is specific: a
+            // relocated `Cargo.toml` MUST rewrite its package name, its lib name, and
+            // every relative path dependency. On a ~20-line manifest those few lines are
+            // a large fraction of the total BYTES, so the default similarity index drops
+            // below 50% and git reports add+delete — missing precisely the file a crate
+            // move is guaranteed to touch. Measured on this repo's first move: 50% and
+            // 40% both miss it, 30% pairs it, 25% finds nothing further. 30% is the knee.
+            //
+            // Mis-pairing risk is bounded: git only ever pairs a deletion with an
+            // addition and takes the best match, and the pure kernel then applies the
+            // existence guard (never invent a key) and the non-collision guard (never
+            // merge two baselined rows), so a wrong pair cannot shrink the baseline.
+            "--find-renames=30%",
+            "--diff-filter=R",
+            "--name-status",
+            "-z",
+            merge_base,
+        ])
+        .output()
+    else {
+        return renames;
+    };
+    if !out.status.success() {
+        return renames;
+    }
+    // `-z` output for a rename is three NUL-terminated fields: "R<score>", old, new.
+    let fields: Vec<&str> = std::str::from_utf8(&out.stdout)
+        .unwrap_or_default()
+        .split('\0')
+        .filter(|s| !s.is_empty())
+        .collect();
+    let mut i = 0;
+    while i + 2 < fields.len() + 1 {
+        let Some(status) = fields.get(i) else { break };
+        if !status.starts_with('R') {
+            // Not a rename record; advance one field and resync.
+            i += 1;
+            continue;
+        }
+        let (Some(old), Some(new)) = (fields.get(i + 1), fields.get(i + 2)) else {
+            break;
+        };
+        renames.insert((*old).to_owned(), (*new).to_owned());
+        i += 3;
+    }
+    renames
 }
 
 /// Load the FROZEN merge-base reference. FAIL-CLOSED: a missing or invalid snapshot is a
@@ -431,7 +500,25 @@ fn firewall_is_green_on_the_live_corpus_with_the_baseline() {
     // captured them via evaluate_keyed over the live faces).
     let current = baseline_keys_map(&proposed);
 
-    let report = evaluate_firewall(&frozen.baseline, &proposed, &current, &signoff);
+    // ADR-0562 STRUCTURAL MOVES: the baseline is PATH-KEYED, so a pure `git mv` scores as
+    // regressions at the destination and fixes at the source — net-zero debt that still
+    // REDs the gate, because the ratchet blocks on any new key. Relabel the frozen keys
+    // through git's own rename detection (merge-base -> HEAD) so a relocation behaves like
+    // an in-place edit and the debt follows the file. Not a waiver: the key count per code
+    // is unchanged, the violation stays tolerated, and debt ADDED alongside a move still
+    // regresses. See `relabel_baseline_for_renames` for the existence/non-collision guards.
+    let renames = detect_renames(&root, &frozen.merge_base);
+    if !renames.is_empty() {
+        eprintln!(
+            "FIREWALL rename-relabel: {} path rename(s) detected since merge-base {}; \
+             frozen baseline keys relabelled so pure moves are neither regressions nor fixes.",
+            renames.len(),
+            frozen.merge_base
+        );
+    }
+    let frozen_relabelled = relabel_baseline_for_renames(&frozen.baseline, &renames);
+
+    let report = evaluate_firewall(&frozen_relabelled, &proposed, &current, &signoff);
 
     // Evidence digest: per-code current/baseline/regressions/fixed/tolerated/signed-off.
     eprintln!(
