@@ -59,7 +59,7 @@ use oya_intelligence_provider_pool_app::{
     TransportScript, UnixMillis, UsageSnapshotMap, UsageSnapshotSource, build_seat_snapshots,
     dispatch_to_pool,
 };
-use oya_intelligence_provider_pool_kernel::DurationMs;
+use intelligence_provider_pool_kernel::DurationMs;
 
 // =====================================================================
 // AUTH-005 — fail-closed authn/authz

@@ -12,7 +12,7 @@
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
-use oya_intelligence_account_domain::{
+use intelligence_account_domain::{
     AccountHealth, AccountId, ProviderAccount, RouteExplanation, UsageWindow, UsageWindowKind,
 };
 use oya_intelligence_dashboard_kernel::{
@@ -122,7 +122,7 @@ impl GetSession {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_intelligence_account_domain::{
+    use intelligence_account_domain::{
         AccountHealth, AccountId, AccountState, ProviderAccount, ProviderFamily, RouteExplanation,
         UsageWindow, UsageWindowKind,
     };

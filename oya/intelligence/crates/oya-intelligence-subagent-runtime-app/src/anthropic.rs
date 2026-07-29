@@ -35,7 +35,7 @@
 //! any file, log, or evidence path.
 
 use intelligence_account_kernel::SecretReference;
-use oya_intelligence_subagent_runtime_kernel::{
+use intelligence_subagent_runtime_kernel::{
     SubagentError, SubagentPort, SubagentRequest, SubagentResponse,
 };
 
@@ -371,5 +371,5 @@ mod tests {
         assert!(!body.contains("super-secret-key"));
     }
 
-    use oya_intelligence_subagent_runtime_kernel::FacetRecommendation;
+    use intelligence_subagent_runtime_kernel::FacetRecommendation;
 }

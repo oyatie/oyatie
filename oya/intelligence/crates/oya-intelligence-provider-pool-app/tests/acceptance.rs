@@ -43,7 +43,7 @@ use oya_intelligence_provider_pool_app::{
     UsageSnapshot, UsageSnapshotMap, dispatch_to_pool, dispatch_to_pool_stream,
     parse_retry_after_ms_pub,
 };
-use oya_intelligence_provider_pool_kernel::DurationMs;
+use intelligence_provider_pool_kernel::DurationMs;
 
 fn pid(s: &str) -> ProviderAccountId {
     ProviderAccountId(s.to_owned())
