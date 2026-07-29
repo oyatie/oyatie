@@ -6,15 +6,15 @@
   },
   "_metadata": {
     "source": "docs/decisions",
-    "total_adrs": 439,
-    "numbering": "ADR-0001..ADR-0629 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0037, ADR-0041, ADR-0050, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089, ADR-0125..ADR-0127, ADR-0224..ADR-0233, ADR-0247, ADR-0256, ADR-0259..ADR-0262, ADR-0264..ADR-0271, ADR-0274..ADR-0275, ADR-0277..ADR-0279, ADR-0281..ADR-0283, ADR-0285..ADR-0291, ADR-0322..ADR-0323, ADR-0327, ADR-0342, ADR-0345, ADR-0385..ADR-0386, ADR-0395..ADR-0396, ADR-0398..ADR-0475, ADR-0477, ADR-0483..ADR-0505, ADR-0574..ADR-0579, ADR-0583..ADR-0585, ADR-0594, ADR-0601..ADR-0602)",
+    "total_adrs": 440,
+    "numbering": "ADR-0001..ADR-0630 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0037, ADR-0041, ADR-0050, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089, ADR-0125..ADR-0127, ADR-0224..ADR-0233, ADR-0247, ADR-0256, ADR-0259..ADR-0262, ADR-0264..ADR-0271, ADR-0274..ADR-0275, ADR-0277..ADR-0279, ADR-0281..ADR-0283, ADR-0285..ADR-0291, ADR-0322..ADR-0323, ADR-0327, ADR-0342, ADR-0345, ADR-0385..ADR-0386, ADR-0395..ADR-0396, ADR-0398..ADR-0475, ADR-0477, ADR-0483..ADR-0505, ADR-0574..ADR-0579, ADR-0583..ADR-0585, ADR-0594, ADR-0601..ADR-0602)",
     "gaps": ["ADR-0012", "ADR-0033", "ADR-0037", "ADR-0041", "ADR-0050", "ADR-0068", "ADR-0070..ADR-0082", "ADR-0084..ADR-0089", "ADR-0125..ADR-0127", "ADR-0224..ADR-0233", "ADR-0247", "ADR-0256", "ADR-0259..ADR-0262", "ADR-0264..ADR-0271", "ADR-0274..ADR-0275", "ADR-0277..ADR-0279", "ADR-0281..ADR-0283", "ADR-0285..ADR-0291", "ADR-0322..ADR-0323", "ADR-0327", "ADR-0342", "ADR-0345", "ADR-0385..ADR-0386", "ADR-0395..ADR-0396", "ADR-0398..ADR-0475", "ADR-0477", "ADR-0483..ADR-0505", "ADR-0574..ADR-0579", "ADR-0583..ADR-0585", "ADR-0594", "ADR-0601..ADR-0602"],
-    "next_adr": "ADR-0630",
+    "next_adr": "ADR-0631",
     "status_counts": {
       "Accepted": 175,
       "Accepted (amendment)": 2,
       "Amended": 2,
-      "Proposed": 156,
+      "Proposed": 157,
       "Proposed (conditional: Accepted only after ADR-0377-D2 and ADR-0377-D3 code/tests pass)": 1,
       "Proposed (target: Accepted upon PR #143 merge to dev)": 1,
       "Superseded": 35,
@@ -5260,19 +5260,19 @@
     {
       "adr": "ADR-0627",
       "number": 627,
-      "title": "Enforce ADR-0562's facade→core layering rule, keyed to survive the remaining capability migration",
+      "title": "Enforce the facade→core layering rule, keyed to survive the remaining migration",
       "status": "Proposed",
       "owner": "council-architecture",
       "date": "2026-07-26",
       "path": "decisions/ADR-0627-facade-core-layering-gate.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": ["ADR-0245", "ADR-0280", "ADR-0512", "ADR-0551", "ADR-0554"]
+      "related": ["ADR-0245", "ADR-0280", "ADR-0328", "ADR-0512", "ADR-0551", "ADR-0554"]
     },
     {
       "adr": "ADR-0628",
       "number": 628,
-      "title": "Scan-root liveness: a declared coverage root that no longer resolves is a gate blind spot, not clean coverage",
+      "title": "Scan-root liveness",
       "status": "Proposed",
       "owner": "council-architecture",
       "date": "2026-07-28",
@@ -5284,7 +5284,7 @@
     {
       "adr": "ADR-0629",
       "number": 629,
-      "title": "Crate-catalog coverage: every live crate carries a catalog row, closing the crate→row direction",
+      "title": "Crate-catalog coverage",
       "status": "Proposed",
       "owner": "council-architecture",
       "date": "2026-07-28",
@@ -5292,6 +5292,18 @@
       "supersedes": [],
       "superseded_by": [],
       "related": ["ADR-0515", "ADR-0527", "ADR-0562", "ADR-0568", "ADR-0628"]
+    },
+    {
+      "adr": "ADR-0630",
+      "number": 630,
+      "title": "ARC as the interim owned-runner substrate",
+      "status": "Proposed",
+      "owner": "council-architecture",
+      "date": "2026-07-29",
+      "path": "decisions/ADR-0630-arc-owned-runner-fleet-interim-substrate.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0131", "ADR-0523", "ADR-0535", "ADR-0612", "ADR-0554"]
     }
   ]
 }
