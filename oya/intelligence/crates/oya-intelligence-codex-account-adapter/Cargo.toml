@@ -12,9 +12,9 @@ path = "src/lib.rs"
 doctest = false
 
 [dependencies]
-oya-intelligence-supervisor-kernel = { path = "../oya-intelligence-supervisor-kernel" }
+intelligence-supervisor-kernel = { path = "../../../../intelligence/core/supervisor-kernel" }
 tokio = { workspace = true, features = ["process"] }
-oya-intelligence-account-domain = { version = "0.1.0", path = "../oya-intelligence-account-domain" }
+intelligence-account-domain = { version = "0.1.0", path = "../../../../intelligence/core/account-domain" }
 
 [lints]
 workspace = true

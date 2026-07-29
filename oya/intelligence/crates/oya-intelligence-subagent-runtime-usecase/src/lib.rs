@@ -12,7 +12,7 @@
 pub mod fanout;
 
 pub use fanout::{FacetSlug, fanout_panel_v23};
-pub use oya_intelligence_subagent_runtime_kernel::{
+pub use intelligence_subagent_runtime_kernel::{
     FacetFindingJson, FacetPromptTemplate, FacetRecommendation, MockSubagentPort, SubagentError,
     SubagentPort, SubagentRequest, SubagentResponse,
 };
