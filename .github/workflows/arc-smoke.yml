@@ -1,3 +1,9 @@
+# Owned-runner probe: proves a REAL gate runs on the in-cluster runners using the
+# BAKED toolchain image — no per-job install. Not in any required fan-in.
+#
+# ARCH-AGNOSTIC: `runs-on` selects a per-arch scale set, each pinned by
+# nodeSelector to nodes of that arch and each running an image built from the
+# same arch-neutral Dockerfile. Adding an amd64 box adds a scale set, not a step.
 name: arc-smoke
 on:
   push:
@@ -6,13 +12,17 @@ on:
 permissions:
   contents: read
 jobs:
-  probe:
+  gate:
     runs-on: oya-arm64
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with: { persist-credentials: false, fetch-depth: 0 }
-      - name: Report the runner we actually landed on
+      - name: Prove the toolchain is BAKED, not installed
         run: |
           set -euo pipefail
-          echo "uname: $(uname -s)-$(uname -m)"
-          echo "hostname: $(hostname)"
+          echo "platform: $(uname -s)-$(uname -m) on $(hostname)"
+          buck2 --version
+          rustc --version
+          /usr/bin/clang --version | head -1
+      - name: Run a REAL gate
+        run: buck2 test //ci/facade/canonical-json:ci-canonical-json-gate
