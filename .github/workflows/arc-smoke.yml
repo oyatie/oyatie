@@ -1,6 +1,11 @@
-# ARC self-hosted smoke probe. Proves a job can START and RUN on the owned
-# in-cluster arm64 runner while GitHub-hosted runners are billing-blocked.
-# Not part of any required fan-in; delete once the runner is trusted.
+# ARC owned-runner probe — proves a REAL gate runs on the in-cluster runners while
+# GitHub-hosted runners are billing-blocked. Not part of any required fan-in.
+#
+# ARCH-AGNOSTIC BY CONSTRUCTION (founder 2026-07-29: "arm64 / amd64 should both be a
+# supported path"). Nothing below names an architecture: rustup, apt-get and
+# infra/ci/install-buck2.sh all dispatch on the host's own uname. The only arch-bearing
+# knob is `runs-on`, which selects a per-arch scale set — each pinned by nodeSelector to
+# nodes of that arch, so adding an amd64 box means adding a scale set, not editing this file.
 name: arc-smoke
 on:
   push:
@@ -9,12 +14,33 @@ on:
 permissions:
   contents: read
 jobs:
-  probe:
-    runs-on: oya-arm64
+  gate:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [oya-arm64]      # add oya-amd64 when an amd64 node joins
+    runs-on: ${{ matrix.runner }}
     steps:
-      - name: Report the runner we actually landed on
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with: { persist-credentials: false, fetch-depth: 0 }
+      - name: Report platform
+        run: echo "platform: $(uname -s)-$(uname -m) on $(hostname)"
+      # The stock actions-runner image is Ubuntu with python3/git/curl but NO compiler,
+      # NO rustup and NO zstd. Probed, not assumed.
+      - name: Bootstrap toolchain (arch-neutral)
         run: |
           set -euo pipefail
-          echo "uname: $(uname -s)-$(uname -m)"
-          echo "runner_arch=${RUNNER_ARCH:-unset} runner_os=${RUNNER_OS:-unset}"
-          echo "hostname: $(hostname)"
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq build-essential zstd >/dev/null
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
+            | sh -s -- -y --profile minimal --default-toolchain none
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+      - name: Pre-provision the pinned Rust toolchain
+        run: |
+          set -euo pipefail
+          rustup toolchain install
+          rustc --version
+      - name: Install buck2 (digest-pinned, per-arch)
+        run: infra/ci/install-buck2.sh
+      - name: Run a REAL gate
+        run: buck2 test //ci/facade/canonical-json:ci-canonical-json-gate
