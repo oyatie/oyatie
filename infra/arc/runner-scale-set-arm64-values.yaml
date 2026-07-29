@@ -1,0 +1,66 @@
+# Runner scale set `oya-arm64` — the owned CI runner fleet holding merge
+# authority (founder ruling 2026-07-29). ADR-0630.
+#
+# ONE SCALE SET PER ARCHITECTURE. The cluster is heterogeneous by design
+# ("arm64 / amd64 should both be a supported path"); an amd64 box joining means
+# adding a sibling values file, never editing a workflow. Nothing here is
+# arch-agnostic-by-accident: the arch appears exactly twice, in the set name and
+# in the nodeSelector, and both are load-bearing.
+githubConfigUrl: https://github.com/jason931225/oyatie
+# GitHub App (NOT a personal token): scoped to this ONE repository with
+# Administration:write + Metadata:read. Keys live in the cluster secret, never in
+# git. See ADR-0630 for why an App rather than a PAT.
+githubConfigSecret: oyatie-arc-app
+runnerScaleSetName: oya-arm64
+# Ephemeral runners: minRunners 0 means every job pays pod scheduling + a cold
+# toolchain. That is a KNOWN, DELIBERATE gap at this slice — a warm pool is
+# queued behind the baked runner image, because pre-warming a pod that then
+# spends two minutes installing rustc buys almost nothing.
+maxRunners: 3
+minRunners: 0
+template:
+  metadata:
+    labels:
+      # REQUIRED for the CAS to be reachable AT ALL. infra/nativelink's
+      # NetworkPolicy `nativelink-cas-ingress` admits :50051 only from pods
+      # labelled writer=true and :50052 only from reader=true, matching the
+      # SOURCE pod in any namespace. Without these the connection is refused at
+      # L3 and surfaces as a TIMEOUT rather than a TLS error — a failure mode
+      # that costs an afternoon to diagnose if you assume it is a cert problem.
+      oya.io/nativelink-cas-reader: "true"
+      oya.io/nativelink-cas-writer: "true"
+  spec:
+    # Without this a runner for THIS scale set can schedule onto a node of
+    # another architecture and silently build for the wrong platform, poisoning
+    # that platform's buck2 cache namespace (action keys include cpu:/os:).
+    nodeSelector:
+      kubernetes.io/arch: arm64
+    containers:
+      - name: runner
+        # KNOWN GAP, tracked in ADR-0630: a mutable tag, in a repo where every
+        # `uses:` in every workflow is commit-pinned. It becomes a digest pin
+        # when the baked toolchain image lands and this reference changes anyway.
+        image: ghcr.io/actions/actions-runner:latest
+        command: ["/home/runner/run.sh"]
+        resources:
+          requests:
+            # 2 CPU tracks the MEASURED buck2 scaling knee (j=2 87s, j=4 67s,
+            # j=8 71s, j=18 98s) — over-parallelism degrades, so a wide request
+            # would buy nothing and crowd out co-tenants.
+            cpu: "2"
+            memory: "4Gi"
+            ephemeral-storage: "20Gi"
+          limits:
+            # 8Gi, arrived at by arithmetic rather than taste. Node allocatable
+            # is 28.6Gi and the 4Gi REQUEST lets all maxRunners=3 land on ONE
+            # node; at a 12Gi limit they could grow to 36Gi and OOM it, evicting
+            # co-tenants — nativelink-cas keeps local-path PVCs on these same
+            # nodes, and this cluster is SHARED with the console project.
+            # 3 x 8Gi = 24Gi leaves ~4.6Gi headroom.
+            memory: "8Gi"
+            # buck2 build trees are disk-heavy; FRIC-017 was literally "No space
+            # left on device". Bounded so a runaway build is evicted rather than
+            # filling the node for every other tenant.
+            ephemeral-storage: "60Gi"
+        # NOTE: no CPU limit, deliberately. A throttled compile presents as a
+        # flaky slow test, which is worse than a noisy neighbour we can see.

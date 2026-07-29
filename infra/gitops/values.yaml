@@ -105,6 +105,30 @@ apps:
     values: { installCRDs: true }
     syncWave: "1"
 
+  # ARC controller — reconciles AutoscalingRunnerSet CRs into ephemeral runner
+  # pods. Holds no GitHub credential itself; each scale set references its own
+  # githubConfigSecret. ADR-0630.
+  - name: arc
+    type: chart
+    repoURL: ghcr.io/actions/actions-runner-controller-charts
+    chart: gha-runner-scale-set-controller
+    targetRevision: 0.14.2
+    namespace: arc-systems
+    valuesFile: infra/arc/controller-values.yaml
+    syncWave: "1"
+
+  # Owned CI runner fleet, ONE SCALE SET PER ARCHITECTURE (ADR-0630 D2). An
+  # amd64 box joining the cluster adds a sibling entry + values file; it never
+  # edits a workflow. Depends on the controller above, hence the later syncWave.
+  - name: oya-arm64
+    type: chart
+    repoURL: ghcr.io/actions/actions-runner-controller-charts
+    chart: gha-runner-scale-set
+    targetRevision: 0.14.2
+    namespace: arc-runners
+    valuesFile: infra/arc/runner-scale-set-arm64-values.yaml
+    syncWave: "2"
+
   # In-cluster OCI registry (registry:2) — image target for in-cluster builds
   # (gateway + future microservice images); host docker is retired (ADR-0378).
   - name: registry
