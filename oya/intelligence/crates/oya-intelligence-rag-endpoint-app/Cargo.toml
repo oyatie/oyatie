@@ -13,7 +13,7 @@ doctest = false
 
 [dependencies]
 oya-intelligence-rag-endpoint-kernel = { path = "../oya-intelligence-rag-endpoint-kernel" }
-oya-intelligence-rag-endpoint-domain = { path = "../oya-intelligence-rag-endpoint-domain" }
+intelligence-rag-endpoint-domain = { path = "../../../../intelligence/core/rag-endpoint-domain" }
 intelligence-capability-registry-kernel = { path = "../../../../intelligence/core/capability-registry-kernel" }
 
 [lints]

@@ -49,11 +49,11 @@ use oya_intelligence_mcp_gateway_domain::{
     McpGatewayError, McpPrincipal, McpRateLimiter, McpTenantEndpoint, authorize_tool_call,
     project_capability_tool, validate_access_token,
 };
-use oya_intelligence_policy_domain::{
+use intelligence_policy_domain::{
     AutonomyCapReason, AutonomyCapSource, AutonomyDecision, AutonomyVerdict, TenantPolicy,
 };
-pub use oya_intelligence_run_domain::{Run, RunDisposition, RunState};
-use oya_intelligence_run_domain::{RunError, RunLedger, RunStart};
+pub use intelligence_run_domain::{Run, RunDisposition, RunState};
+use intelligence_run_domain::{RunError, RunLedger, RunStart};
 pub use intelligence_step_domain::{Step, StepDisposition, StepKind, StepState};
 use intelligence_step_domain::{StepError, StepLedger, StepStart};
 use observability_domain::{

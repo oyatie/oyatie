@@ -13,6 +13,16 @@ case "$(uname -s)-$(uname -m)" in
     BUCK2_SHA256="${BUCK2_SHA256-ecc3d807dd0b0feff1a423688bd598263b8339d223e685578a87196456c19d95}"
     BUCK2_BINARY_NAME="buck2"
     ;;
+  Linux-aarch64 | Linux-arm64)
+    # Owned in-cluster ARC runners are aarch64 (ADR-0515 D5 destination; the Talos
+    # pool and the OCI A1.Flex host are both arm64). Same digest-pinned adapter edge
+    # as the x86_64 arm above: release tag selects the asset, SHA-256 pins the bytes,
+    # and the digest is verified before decompression. Bump both arms together.
+    BUCK2_INSTALL_DIR="${BUCK2_INSTALL_DIR:-/tmp/oya-ci-buck2-${BUCK2_RELEASE}}"
+    BUCK2_ASSET="${BUCK2_ASSET-buck2-aarch64-unknown-linux-gnu.zst}"
+    BUCK2_SHA256="${BUCK2_SHA256-e239bf72f40a7987db9024eb6d5e325642f6496c589dec6be54c1008d2618a19}"
+    BUCK2_BINARY_NAME="buck2"
+    ;;
   MINGW*-x86_64)
     windows_github_path=1
     if [ -z "${BUCK2_INSTALL_DIR}" ]; then

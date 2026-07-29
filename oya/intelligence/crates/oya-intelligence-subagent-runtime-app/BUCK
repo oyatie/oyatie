@@ -6,7 +6,7 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//intelligence/core/account-kernel:intelligence-account-kernel",
-        "//oya/intelligence/crates/oya-intelligence-subagent-runtime-kernel:oya-intelligence-subagent-runtime-kernel",
+        "//intelligence/core/subagent-runtime-kernel:intelligence-subagent-runtime-kernel",
         "//oya/intelligence/crates/oya-intelligence-subagent-runtime-usecase:oya-intelligence-subagent-runtime-usecase",
         "third-party//:tempfile",
     ],
@@ -20,7 +20,7 @@ rust_binary(
     deps = [
         "//oya/intelligence/crates/oya-intelligence-subagent-runtime-app:oya-intelligence-subagent-runtime-app",
         "//intelligence/core/account-kernel:intelligence-account-kernel",
-        "//oya/intelligence/crates/oya-intelligence-subagent-runtime-kernel:oya-intelligence-subagent-runtime-kernel",
+        "//intelligence/core/subagent-runtime-kernel:intelligence-subagent-runtime-kernel",
         "//oya/intelligence/crates/oya-intelligence-subagent-runtime-usecase:oya-intelligence-subagent-runtime-usecase",
         "third-party//:tempfile",
     ],
@@ -34,7 +34,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         "//intelligence/core/account-kernel:intelligence-account-kernel",
-        "//oya/intelligence/crates/oya-intelligence-subagent-runtime-kernel:oya-intelligence-subagent-runtime-kernel",
+        "//intelligence/core/subagent-runtime-kernel:intelligence-subagent-runtime-kernel",
         "//oya/intelligence/crates/oya-intelligence-subagent-runtime-usecase:oya-intelligence-subagent-runtime-usecase",
         "third-party//:tempfile",
     ],

@@ -17,7 +17,7 @@ path = "src/lib.rs"
 doctest = false
 
 [dependencies]
-oya-intelligence-supervisor-kernel = { path = "../oya-intelligence-supervisor-kernel" }
+intelligence-supervisor-kernel = { path = "../../../../intelligence/core/supervisor-kernel" }
 
 [dev-dependencies]
 tempfile = { workspace = true }

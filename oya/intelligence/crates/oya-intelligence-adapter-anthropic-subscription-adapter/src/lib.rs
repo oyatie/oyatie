@@ -53,7 +53,7 @@ pub use token_state::{
 use intelligence_account_kernel::{
     AuthError, AuthMode, AuthToken, ProviderAuthPort, ProviderFamily,
 };
-use oya_intelligence_account_domain::SecretReference;
+use intelligence_account_domain::SecretReference;
 
 // ── AnthropicOAuthAdapter ────────────────────────────────────────────────────
 
@@ -480,7 +480,7 @@ impl ProviderAuthPort for AnthropicSubscriptionAdapter {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_intelligence_account_domain::{ProviderFamily, SecretReference};
+    use intelligence_account_domain::{ProviderFamily, SecretReference};
 
     fn sref(s: &str) -> SecretReference {
         SecretReference::new(s.to_owned()).unwrap()

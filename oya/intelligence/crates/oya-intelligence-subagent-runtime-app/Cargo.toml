@@ -33,7 +33,7 @@ doctest = false
 
 [dependencies]
 intelligence-account-kernel = { path = "../../../../intelligence/core/account-kernel" }
-oya-intelligence-subagent-runtime-kernel = { path = "../oya-intelligence-subagent-runtime-kernel" }
+intelligence-subagent-runtime-kernel = { path = "../../../../intelligence/core/subagent-runtime-kernel" }
 oya-intelligence-subagent-runtime-usecase = { path = "../oya-intelligence-subagent-runtime-usecase" }
 
 [dev-dependencies]

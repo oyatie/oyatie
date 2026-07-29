@@ -11,7 +11,7 @@ use oya_intelligence_gemini_account_adapter::GeminiDriver;
 use oya_intelligence_jsonl_supervisor_adapter::{JsonlInboxStore, JsonlOutboxSink};
 use oya_intelligence_settings_template_adapter::{MultiProviderRenderer, TemplateStore};
 use oya_intelligence_supervisor_app::SupervisorApp;
-use oya_intelligence_supervisor_kernel::{
+use intelligence_supervisor_kernel::{
     AccountId, AccountSnapshotProvider, AuditChainPort, ProviderFamily, RendererMode,
     SupervisorAccount, SupervisorConfig, SupervisorError, SupervisorEvent, UsageWindowPort,
     UsageWindowSnapshot,
@@ -160,7 +160,7 @@ impl AccountSnapshotProvider for FileAccountSnapshotProvider {
                     // malformed input, skip the entry rather than `.unwrap()`-
                     // panicking the entire snapshot. Logged to stderr so the
                     // entry visibly drops out of the snapshot.
-                    let secret_ref = match oya_intelligence_account_domain::SecretReference::new(
+                    let secret_ref = match intelligence_account_domain::SecretReference::new(
                         sref_str.to_string(),
                     ) {
                         Ok(secret_ref) => secret_ref,
@@ -175,7 +175,7 @@ impl AccountSnapshotProvider for FileAccountSnapshotProvider {
                     accounts.push(SupervisorAccount {
                         id: AccountId(id.to_string()),
                         provider_family: family,
-                        state: oya_intelligence_account_domain::AccountState::Active,
+                        state: intelligence_account_domain::AccountState::Active,
                         secret_ref,
                     });
                 }
@@ -193,7 +193,7 @@ enum Driver {
     Gemini(GeminiDriver<InMemorySecretStoreAdapter>),
 }
 
-impl oya_intelligence_supervisor_kernel::SessionDriver for Driver {
+impl intelligence_supervisor_kernel::SessionDriver for Driver {
     fn provider_family(&self) -> ProviderFamily {
         match self {
             Self::Claude(d) => d.provider_family(),
@@ -203,10 +203,10 @@ impl oya_intelligence_supervisor_kernel::SessionDriver for Driver {
     }
     fn spawn_for_message(
         &self,
-        ticket: &oya_intelligence_supervisor_kernel::SessionTicket,
+        ticket: &intelligence_supervisor_kernel::SessionTicket,
     ) -> Result<
-        oya_intelligence_supervisor_kernel::SpawnedSession,
-        oya_intelligence_supervisor_kernel::SupervisorError,
+        intelligence_supervisor_kernel::SpawnedSession,
+        intelligence_supervisor_kernel::SupervisorError,
     > {
         match self {
             Self::Claude(d) => d.spawn_for_message(ticket),
@@ -216,9 +216,9 @@ impl oya_intelligence_supervisor_kernel::SessionDriver for Driver {
     }
     fn inject_message(
         &self,
-        session: &oya_intelligence_supervisor_kernel::SpawnedSession,
+        session: &intelligence_supervisor_kernel::SpawnedSession,
         msg: &[u8],
-    ) -> Result<(), oya_intelligence_supervisor_kernel::SupervisorError> {
+    ) -> Result<(), intelligence_supervisor_kernel::SupervisorError> {
         match self {
             Self::Claude(d) => d.inject_message(session, msg),
             Self::Codex(d) => d.inject_message(session, msg),
@@ -227,8 +227,8 @@ impl oya_intelligence_supervisor_kernel::SessionDriver for Driver {
     }
     fn drain_response(
         &self,
-        session: &oya_intelligence_supervisor_kernel::SpawnedSession,
-    ) -> Result<Vec<u8>, oya_intelligence_supervisor_kernel::SupervisorError> {
+        session: &intelligence_supervisor_kernel::SpawnedSession,
+    ) -> Result<Vec<u8>, intelligence_supervisor_kernel::SupervisorError> {
         match self {
             Self::Claude(d) => d.drain_response(session),
             Self::Codex(d) => d.drain_response(session),
@@ -237,15 +237,15 @@ impl oya_intelligence_supervisor_kernel::SessionDriver for Driver {
     }
     fn kill(
         &self,
-        session: &oya_intelligence_supervisor_kernel::SpawnedSession,
-    ) -> Result<(), oya_intelligence_supervisor_kernel::SupervisorError> {
+        session: &intelligence_supervisor_kernel::SpawnedSession,
+    ) -> Result<(), intelligence_supervisor_kernel::SupervisorError> {
         match self {
             Self::Claude(d) => d.kill(session),
             Self::Codex(d) => d.kill(session),
             Self::Gemini(d) => d.kill(session),
         }
     }
-    fn health_check(&self) -> oya_intelligence_supervisor_kernel::DriverHealth {
+    fn health_check(&self) -> intelligence_supervisor_kernel::DriverHealth {
         match self {
             Self::Claude(d) => d.health_check(),
             Self::Codex(d) => d.health_check(),

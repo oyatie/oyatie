@@ -19,7 +19,7 @@
 use oya_http_router_kernel::{HttpMethod, Router, RouterError};
 use oya_http_sse_kernel::SseEvent;
 use intelligence_account_kernel::ProviderFamily;
-use oya_intelligence_provider_pool_kernel::{
+use intelligence_provider_pool_kernel::{
     AccountHealthMap, PoolError, PoolRoutingDecision, ProviderAccountId, ProviderAccountPool,
     RequestMetadata, UnixMillis, UsageSnapshotMap, pick_account,
 };
@@ -454,7 +454,7 @@ pub fn messages_handler(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_intelligence_provider_pool_kernel::{
+    use intelligence_provider_pool_kernel::{
         DurationMs, PoolId, PoolRoutingStrategy, ProviderTier, TenantId,
     };
     use std::collections::BTreeSet;

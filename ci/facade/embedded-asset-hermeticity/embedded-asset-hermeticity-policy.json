@@ -3,7 +3,12 @@
   "gate_id": "cloud-ci-embedded-asset-hermeticity",
   "schema_version": "1.0.0",
   "scan_roots": [
+    "app",
+    "base",
+    "build",
+    "ci",
     "cloud",
+    "data",
     "oya",
     "libs",
     "tools",
@@ -11,7 +16,8 @@
     "marketplace",
     "iam",
     "intelligence",
-    "os"
+    "os",
+    "policy"
   ],
   "exclude_path_substrings": [
     "/target/",
