@@ -196,3 +196,13 @@ ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json
 
 # Dev-only Asterinas boot-harness receipts are regenerable run outputs (reference target/ logs); not committed.
 kernel/harness/*/receipts/
+
+# Agent orchestration scratch. Workflow driver scripts (_workflow.js / _wf.js and
+# friends) are the MACHINERY that produces an audit, not the audit itself: they carry
+# machine-absolute paths, name no owner, and nothing in the build graph references them.
+# Harvest the findings, reap the driver. A driver deliberately retained as cited
+# provenance (a findings doc quoting one of its constants) must be force-added and say so.
+_workflow.js
+_wf.js
+_prewave*.js
+_ralplan_workflow.js
