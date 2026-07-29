@@ -12,24 +12,18 @@ path = "src/lib.rs"
 doctest = false
 
 [dependencies]
-oya-intelligence-account-domain = { path = "../oya-intelligence-account-domain" }
+intelligence-account-domain = { path = "../../../../intelligence/core/account-domain" }
 intelligence-account-kernel = { path = "../../../../intelligence/core/account-kernel" }
-oya-intelligence-oauth-subscription-kernel = { path = "../oya-intelligence-oauth-subscription-kernel" }
-
+intelligence-oauth-subscription-kernel = { path = "../../../../intelligence/core/oauth-subscription-kernel" }
 oya-http-runtime-hyper-adapter = { path = "../../../../libs/oya-http-runtime-hyper-adapter" }
-# Async runtime + HTTP stack (ADR-0090: hyper preferred; ADR-0506/PQC: TLS policy
-# is centralized in oya-http-runtime-hyper-adapter).
 tokio = { workspace = true, features = ["sync", "time", "net"] }
 hyper = { workspace = true }
 hyper-util = { workspace = true }
 http-body-util = { workspace = true }
 bytes = { workspace = true }
-
-# Serialization + observability.
 serde = { workspace = true }
 serde_json = { workspace = true }
 tracing = { workspace = true }
-
 futures-util = { version = "0.3", features = ["alloc"] }
 
 [dev-dependencies]

@@ -1412,7 +1412,7 @@
     },
     {
       "artifact_id": "foundry-supervisor-kernel",
-      "artifact_path": "oya/intelligence/crates/oya-intelligence-supervisor-kernel/Cargo.toml",
+      "artifact_path": "intelligence/core/supervisor-kernel/Cargo.toml",
       "artifact_format": "rust-crate",
       "contract_version": "v3.0.0",
       "owner_team": "axis-foundry",
@@ -1501,7 +1501,7 @@
     },
     {
       "artifact_id": "foundry-settings-template-kernel",
-      "artifact_path": "oya/intelligence/crates/oya-intelligence-settings-template-kernel/Cargo.toml",
+      "artifact_path": "intelligence/core/settings-template-kernel/Cargo.toml",
       "artifact_format": "rust-crate",
       "contract_version": "v3.0.0",
       "owner_team": "axis-foundry",

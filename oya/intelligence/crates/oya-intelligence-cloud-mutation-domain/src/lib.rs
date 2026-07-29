@@ -15,7 +15,7 @@ use oya_data_boundary_kernel::{
     Classified, DataClass, DataClassification, OperationalDataClass, PrivacyDataClass, Purpose,
 };
 use intelligence_capability_domain::{AutonomyTier, Capability};
-use oya_intelligence_policy_domain::{AutonomyDecision, AutonomyVerdict};
+use intelligence_policy_domain::{AutonomyDecision, AutonomyVerdict};
 
 const MUTATION_SCHEMA_VERSION: u32 = 1;
 const MUTATION_ID_PREFIX: &str = "fcm_";
@@ -784,7 +784,7 @@ fn audit<T>(value: T) -> Classified<T> {
 #[cfg(test)]
 mod tests {
     use oya_data_boundary_kernel::SubjectClass;
-    use oya_intelligence_policy_domain::{AutonomyCeilingInputs, evaluate_autonomy_inputs};
+    use intelligence_policy_domain::{AutonomyCeilingInputs, evaluate_autonomy_inputs};
 
     use super::*;
 

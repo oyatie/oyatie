@@ -8,11 +8,11 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use tokio::sync::Semaphore;
 
-use oya_intelligence_account_domain::check_silent_switch;
+use intelligence_account_domain::check_silent_switch;
 use oya_intelligence_route_policy_kernel::{RouteConstraints, RoutePolicy};
 use oya_intelligence_settings_template_adapter::TemplateStore;
-use oya_intelligence_settings_template_kernel::{DriftState, SettingsRenderer};
-use oya_intelligence_supervisor_kernel::{
+use intelligence_settings_template_kernel::{DriftState, SettingsRenderer};
+use intelligence_supervisor_kernel::{
     AccountId, AccountSnapshotProvider, AuditChainPort, AutonomyCeilingPort, InboxStore,
     OutboxSink, RendererMode, SessionDriver, SessionTicket, SupervisorAccount, SupervisorConfig,
     SupervisorError, SupervisorEvent, TickOutcome, UsageWindowPort, record_spend,
@@ -143,10 +143,10 @@ where
 
         // Step 3-4: RoutePolicy::select
         // ADR-0100 Bridge: RoutePolicy expects ProviderAccount, we have SupervisorAccount.
-        let domain_accounts: Vec<oya_intelligence_account_domain::ProviderAccount> = accounts
+        let domain_accounts: Vec<intelligence_account_domain::ProviderAccount> = accounts
             .iter()
             .map(|a| {
-                let mut acc = oya_intelligence_account_domain::ProviderAccount::new(
+                let mut acc = intelligence_account_domain::ProviderAccount::new(
                     a.id.clone(),
                     a.provider_family,
                 );
@@ -162,7 +162,7 @@ where
                 self.inbox
                     .release(&message_id, &format!("routing failed: {:?}", e))?;
                 return Err(SupervisorError::NoEligibleAccount {
-                    chosen: oya_intelligence_supervisor_kernel::AccountId(message_id.0.clone()),
+                    chosen: intelligence_supervisor_kernel::AccountId(message_id.0.clone()),
                     snapshot_ids: accounts.iter().map(|a| a.id.clone()).collect(),
                 });
             }
@@ -190,7 +190,7 @@ where
                 chosen: acc.id.clone(),
                 snapshot_ids: domain_accounts.iter().map(|a| a.id.clone()).collect(),
             })?;
-        let others: Vec<&oya_intelligence_account_domain::ProviderAccount> =
+        let others: Vec<&intelligence_account_domain::ProviderAccount> =
             domain_accounts.iter().filter(|a| a.id != acc.id).collect();
         if let Err(e) = check_silent_switch(&others, domain_acc) {
             self.inbox
@@ -199,7 +199,7 @@ where
         }
 
         // Step 7-13: Usage & Ceiling
-        let driver_tier = oya_intelligence_supervisor_kernel::AutonomyTier::T3PropAct; // In real impl, read from driver registry
+        let driver_tier = intelligence_supervisor_kernel::AutonomyTier::T3PropAct; // In real impl, read from driver registry
         if let Err(e) = self.ceiling.enforce(&acc.id, driver_tier) {
             self.inbox
                 .release(&message_id, &format!("ceiling block: {:?}", e))?;
@@ -218,7 +218,7 @@ where
             autonomy_tier: driver_tier,
             usage_window_snapshot: usage_snapshot,
             message_id: message_id.clone(),
-            request_id: oya_intelligence_supervisor_kernel::RequestId(format!(
+            request_id: intelligence_supervisor_kernel::RequestId(format!(
                 "req-{}",
                 now_epoch_secs
             )),
@@ -291,7 +291,7 @@ where
         let root = std::path::Path::new("/home/user"); // Placeholder
 
         // ADR-0100 Bridge: renderer expects ProviderAccount
-        let mut domain_acc = oya_intelligence_account_domain::ProviderAccount::new(
+        let mut domain_acc = intelligence_account_domain::ProviderAccount::new(
             acc.id.clone(),
             acc.provider_family,
         );

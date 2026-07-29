@@ -5,9 +5,9 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//oya/intelligence/crates/oya-intelligence-account-domain:oya-intelligence-account-domain",
+        "//intelligence/core/account-domain:intelligence-account-domain",
         "//intelligence/core/account-kernel:intelligence-account-kernel",
-        "//oya/intelligence/crates/oya-intelligence-oauth-subscription-kernel:oya-intelligence-oauth-subscription-kernel",
+        "//intelligence/core/oauth-subscription-kernel:intelligence-oauth-subscription-kernel",
         "//libs/oya-http-runtime-hyper-adapter:oya-http-runtime-hyper-adapter",
         "third-party//:bytes",
         "third-party//:futures-util",
@@ -29,9 +29,9 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":oya-intelligence-adapter-anthropic-subscription-adapter",
-        "//oya/intelligence/crates/oya-intelligence-account-domain:oya-intelligence-account-domain",
+        "//intelligence/core/account-domain:intelligence-account-domain",
         "//intelligence/core/account-kernel:intelligence-account-kernel",
-        "//oya/intelligence/crates/oya-intelligence-oauth-subscription-kernel:oya-intelligence-oauth-subscription-kernel",
+        "//intelligence/core/oauth-subscription-kernel:intelligence-oauth-subscription-kernel",
         "//libs/oya-http-runtime-hyper-adapter:oya-http-runtime-hyper-adapter",
         "third-party//:bytes",
         "third-party//:futures-util",

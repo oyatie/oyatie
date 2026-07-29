@@ -24,7 +24,7 @@ pub use key_pool::KeyPool;
 pub use key_status::KeyStatus;
 pub use outbound_headers::openai_auth_headers;
 
-use oya_intelligence_account_domain::{SecretMaterial, SecretReference, SecretStorePort};
+use intelligence_account_domain::{SecretMaterial, SecretReference, SecretStorePort};
 use intelligence_account_kernel::{
     AuthError, AuthMode, AuthToken, ProviderAuthPort, ProviderFamily,
 };
@@ -184,7 +184,7 @@ impl<S: SecretStorePort + Send> ProviderAuthPort for OpenAiApiKeyPoolAdapter<S> 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_intelligence_account_domain::{
+    use intelligence_account_domain::{
         ProviderFamily, SecretMaterial, SecretReference, SecretStoreError, SecretStorePort,
     };
     use std::collections::HashMap;

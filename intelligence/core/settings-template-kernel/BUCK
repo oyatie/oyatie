@@ -1,0 +1,23 @@
+rust_library(
+    name = "intelligence-settings-template-kernel",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "intelligence_settings_template_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//intelligence/core/account-domain:intelligence-account-domain",
+        "//intelligence/core/account-kernel:intelligence-account-kernel",
+    ],
+)
+
+rust_test(
+    name = "intelligence-settings-template-kernel-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "intelligence_settings_template_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//intelligence/core/account-domain:intelligence-account-domain",
+        "//intelligence/core/account-kernel:intelligence-account-kernel",
+    ],
+)

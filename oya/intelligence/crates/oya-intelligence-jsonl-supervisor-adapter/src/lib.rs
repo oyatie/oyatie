@@ -13,7 +13,7 @@ use std::io::{self, BufRead};
 use std::path::{Path, PathBuf};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
-use oya_intelligence_supervisor_kernel::{
+use intelligence_supervisor_kernel::{
     AccountId, InboxItem, InboxStore, Locked, MessageId, OutboxSink, SupervisorError,
 };
 

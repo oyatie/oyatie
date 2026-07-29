@@ -77,7 +77,7 @@ oya-check-retired-vocabulary = { path = "../../../libs/oya-check-retired-vocabul
 oya-intelligence-run-file-adapter = { path = "../../../oya/intelligence/crates/oya-intelligence-run-file-adapter" }
 oya-check-runbook-freshness = { path = "../../../libs/oya-check-runbook-freshness" }
 oya-check-runbook-index = { path = "../../../libs/oya-check-runbook-index" }
-oya-intelligence-run-domain = { path = "../../../oya/intelligence/crates/oya-intelligence-run-domain" }
+intelligence-run-domain = { path = "../../../intelligence/core/run-domain" }
 oya-check-slo-coverage = { path = "../../../libs/oya-check-slo-coverage" }
 oya-check-supply-chain = { path = "../../../libs/oya-check-supply-chain" }
 oya-check-typescript-workspace = { path = "../../../libs/oya-check-typescript-workspace" }
