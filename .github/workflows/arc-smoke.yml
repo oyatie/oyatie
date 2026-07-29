@@ -1,0 +1,20 @@
+# ARC self-hosted smoke probe. Proves a job can START and RUN on the owned
+# in-cluster arm64 runner while GitHub-hosted runners are billing-blocked.
+# Not part of any required fan-in; delete once the runner is trusted.
+name: arc-smoke
+on:
+  push:
+    branches: ["ci/arc-smoke"]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: oya-arm64
+    steps:
+      - name: Report the runner we actually landed on
+        run: |
+          set -euo pipefail
+          echo "uname: $(uname -s)-$(uname -m)"
+          echo "runner_arch=${RUNNER_ARCH:-unset} runner_os=${RUNNER_OS:-unset}"
+          echo "hostname: $(hostname)"
