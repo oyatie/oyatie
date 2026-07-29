@@ -9,7 +9,7 @@
       "manifest_paths",
       "store_manifest_paths"
     ],
-    "declared_roots_total": 194,
+    "declared_roots_total": 200,
     "key_format": "<policy_file>::<json_pointer>::<declared_value>",
     "policy": "shrink-only; a NEW dead root fails, and a landed forward declaration must be retired"
   },
@@ -47,6 +47,22 @@
     "ci/facade/caller-supplied-authorization/dto-authz-trust-policy.json::/scan_roots::policy": {
       "value": "policy",
       "reason": "Same pre-widening as app/ above. policy is the capability ADR-0615 extracted from iam and is where PBAC/PDP code lands — the single root where a caller-supplied-authz defect would be most consequential. Created when the policy capability lands its first crate."
+    },
+    "ci/facade/embedded-asset-hermeticity/embedded-asset-hermeticity-policy.json::/scan_roots::app": {
+      "value": "app",
+      "reason": "SCAN-SCOPE PRE-WIDENING (ADR-0562 \u00a710.29). This gate's scan_roots carried ALL FOUR legacy source roots (oya, libs, cloud, tools) and only nine roots total, making it the widest blind spot in the reorg: any move out of a legacy root into a capability root left its scan universe silently. Declared while app/ is empty so the widening is zero-delta. Created by the first app-tier move."
+    },
+    "ci/facade/embedded-asset-hermeticity/embedded-asset-hermeticity-policy.json::/scan_roots::base": {
+      "value": "base",
+      "reason": "Same pre-widening as app/ above; base/ is the ADR-0562 shared floor and an embedded asset there must be BUCK-srcs-mapped like any other. Created by the first libs/ consolidation move."
+    },
+    "ci/facade/embedded-asset-hermeticity/embedded-asset-hermeticity-policy.json::/scan_roots::build": {
+      "value": "build",
+      "reason": "Same pre-widening as app/ above; completes the meta-root set alongside the os/ entry this policy already carries. Created when build/ lands its first crate."
+    },
+    "ci/facade/embedded-asset-hermeticity/embedded-asset-hermeticity-policy.json::/scan_roots::policy": {
+      "value": "policy",
+      "reason": "Same pre-widening as app/ above; the policy capability (ADR-0615, extracted from iam) will embed Cedar/policy assets, exactly the include_str! class this gate maps. Created when the policy capability lands its first crate."
     },
     "ci/facade/endpoint-authorization-coverage/authz-coverage-policy.json::/scan_roots::app": {
       "value": "app",
