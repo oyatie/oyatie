@@ -66,6 +66,13 @@ metadata:
   name: registry
   namespace: oya-registry
 spec:
+  # PINNED, not allocated. The Talos node registry mirror
+  # (machine.registries.mirrors) points at this ClusterIP by IP, because node
+  # containerd resolves via the host resolver, not CoreDNS. If this Service is
+  # ever recreated it would be assigned a NEW ClusterIP and every node mirror
+  # would silently point at nothing — ImagePullBackOff cluster-wide, with no
+  # signal here. Pinning makes the mirror a stable contract.
+  clusterIP: 10.107.56.227
   selector:
     app: registry
   ports:
