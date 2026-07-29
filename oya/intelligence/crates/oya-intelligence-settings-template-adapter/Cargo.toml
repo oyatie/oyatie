@@ -20,9 +20,9 @@ doctest = false
 [dependencies]
 blake3 = "1.8.5"
 libc = "0.2.186"
-oya-intelligence-account-domain = { version = "0.1.0", path = "../oya-intelligence-account-domain" }
+intelligence-account-domain = { version = "0.1.0", path = "../../../../intelligence/core/account-domain" }
 intelligence-account-kernel = { version = "0.1.0", path = "../../../../intelligence/core/account-kernel" }
-oya-intelligence-settings-template-kernel = { path = "../oya-intelligence-settings-template-kernel" }
+intelligence-settings-template-kernel = { path = "../../../../intelligence/core/settings-template-kernel" }
 
 [lints]
 workspace = true

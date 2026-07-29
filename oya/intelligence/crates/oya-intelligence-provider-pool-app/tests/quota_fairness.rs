@@ -31,7 +31,7 @@ use oya_intelligence_provider_pool_app::{
     TransportScript, UnixMillis, dispatch_to_pool, dispatch_to_pool_with_quota,
     should_skip_reserve,
 };
-use oya_intelligence_provider_pool_kernel::DurationMs;
+use intelligence_provider_pool_kernel::DurationMs;
 use std::collections::BTreeSet;
 
 // ── helpers ───────────────────────────────────────────────────────────────────

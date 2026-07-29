@@ -15,7 +15,7 @@
 //!
 //! It owns **no** routing algorithm, **no** state-machine rules, and **no**
 //! provider-specific code of its own — those live inward:
-//! - [`oya_intelligence_provider_pool_kernel`] — the pure round-robin /
+//! - [`intelligence_provider_pool_kernel`] — the pure round-robin /
 //!   least-used / least-latency / least-remaining / sticky kernel that emits a
 //!   [`PoolRoutingDecision`] from `(pool, request, usage, health, now)`. No I/O,
 //!   no async.
@@ -89,7 +89,7 @@ use std::collections::HashSet;
 use std::sync::OnceLock;
 
 pub use intelligence_account_kernel::{ProviderFamily, SecretReference};
-pub use oya_intelligence_provider_pool_kernel::{
+pub use intelligence_provider_pool_kernel::{
     AccountHealth, AccountHealthMap, CooldownPolicy, DurationMs, FailureKind, HealthState,
     PoolError, PoolId, PoolMembershipChange, PoolRoutingDecision, PoolRoutingReason,
     PoolRoutingStrategy, ProviderAccountId, ProviderAccountPool, ProviderTier, QuarantineMap,
@@ -2692,7 +2692,7 @@ mod tests {
             tid(),
             set,
             strategy,
-            oya_intelligence_provider_pool_kernel::DurationMs(60_000),
+            intelligence_provider_pool_kernel::DurationMs(60_000),
         )
     }
 

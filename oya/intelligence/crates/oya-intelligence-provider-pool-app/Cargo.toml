@@ -18,7 +18,7 @@ description = "Provider-pool composition root (usecase layer per ADR-0105). Wire
 # anthropic/openai compat-api ingress crates to bind a runnable process. These are
 # workspace-internal path-deps, not a new external workspace dependency seam.
 [dependencies]
-oya-intelligence-provider-pool-kernel = { path = "../oya-intelligence-provider-pool-kernel" }
+intelligence-provider-pool-kernel = { path = "../../../../intelligence/core/provider-pool-kernel" }
 intelligence-account-kernel = { path = "../../../../intelligence/core/account-kernel" }
 oya-http-runtime-hyper-adapter = { path = "../../../../libs/oya-http-runtime-hyper-adapter" }
 oya-http-router-kernel = { path = "../../../../libs/oya-http-router-kernel" }

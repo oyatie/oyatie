@@ -6,7 +6,7 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//intelligence/core/capability-registry-kernel:intelligence-capability-registry-kernel",
-        "//oya/intelligence/crates/oya-intelligence-rag-endpoint-domain:oya-intelligence-rag-endpoint-domain",
+        "//intelligence/core/rag-endpoint-domain:intelligence-rag-endpoint-domain",
         "//oya/intelligence/crates/oya-intelligence-rag-endpoint-kernel:oya-intelligence-rag-endpoint-kernel",
     ],
 )
@@ -19,7 +19,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         "//intelligence/core/capability-registry-kernel:intelligence-capability-registry-kernel",
-        "//oya/intelligence/crates/oya-intelligence-rag-endpoint-domain:oya-intelligence-rag-endpoint-domain",
+        "//intelligence/core/rag-endpoint-domain:intelligence-rag-endpoint-domain",
         "//oya/intelligence/crates/oya-intelligence-rag-endpoint-kernel:oya-intelligence-rag-endpoint-kernel",
     ],
 )
