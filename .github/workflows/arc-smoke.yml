@@ -15,11 +15,7 @@ permissions:
   contents: read
 jobs:
   gate:
-    strategy:
-      fail-fast: false
-      matrix:
-        runner: [oya-arm64]      # add oya-amd64 when an amd64 node joins
-    runs-on: ${{ matrix.runner }}
+    runs-on: oya-arm64
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with: { persist-credentials: false, fetch-depth: 0 }
