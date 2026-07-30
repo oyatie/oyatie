@@ -206,3 +206,22 @@ _workflow.js
 _wf.js
 _prewave*.js
 _ralplan_workflow.js
+
+# Machine-local buck2 config. MUST NEVER be committed.
+#
+# This is the ONLY mechanism that can wire the remote cache: buck2 resolves
+# [buck2_re_client] into DaemonStartupConfig from PROJECT CONFIG FILES ONLY, so
+# `--config` and `--config-file` are inert for it (measured). That makes
+# .buckconfig.local uniquely powerful and uniquely dangerous — a committed copy
+# carrying warm-cache-rw content would make EVERY build in the repo
+# remote-cache-enabled with allow_cache_uploads=true, bypassing the
+# build-cache-policy resolver and the /specs/cache-warm-license.json kill-switch
+# entirely, and would silently poison the integrity canary (whose cold build
+# depends on running with NO overlay at all).
+#
+# NOTE the deliberate asymmetry: `.buckconfig.d/` is NOT ignored. Committed
+# fragments there are the fail-closed way to ship real config, because a missing
+# `--config-file` path silently succeeds (`BUILD SUCCEEDED`, exit 0) whereas a
+# committed fragment is always read. Ignore the machine-local file; keep the
+# committed-fragment door open.
+/.buckconfig.local
