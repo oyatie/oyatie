@@ -5,7 +5,7 @@
   "lane": "infra/kubernetes-substrate",
   "range_reference": "range3 §18",
   "blast_radius": "substrate smoke/contract only",
-  "purpose": "Bind the first Talos/vfkit/CAPI/Kamaji/Sidero substrate slice to an executable, non-mutating contract matrix so workers can validate local Talos smoke, Cloudflare Access posture, CAPI/Argo CD/Kamaji integration, the managed-Kubernetes product surface, and Sidero zero-day boundaries without implying live cluster or hardware provisioning.",
+  "purpose": "Bind the first Talos/vfkit/CAPI/Kamaji substrate slice to an executable, non-mutating contract matrix so workers can validate local Talos smoke, Cloudflare Access posture, CAPI/Argo CD/Kamaji integration and the managed-Kubernetes product surface without implying live cluster or hardware provisioning.",
   "authority": {
     "ADR-0370": {
       "path": "docs/decisions/ADR-0370-local-production-fidelity-substrate-talos-apple-silicon.md",
@@ -31,11 +31,6 @@
       "path": "docs/decisions/ADR-0378-canonical-local-substrate-vfkit-talos.md",
       "status": "Accepted",
       "authority_use": "canonical local vfkit plus Talos substrate smoke and colima retirement posture"
-    },
-    "ADR-0382": {
-      "path": "docs/decisions/ADR-0382-bare-metal-talos-zero-day-sidero.md",
-      "status": "Proposed",
-      "authority_use": "design-only context for Sidero zero-day matrix; no live product, cloud, or hardware mutation until accepted authority or an explicit root-pointer/card elevation replaces this boundary"
     }
   },
   "claim_boundary": {
@@ -46,18 +41,15 @@
     "no_managed_k8s_runtime_claim": true,
     "no_sidero_runtime_claim": true,
     "no_secrets_in_git": true,
-    "proposed_adr_0382_design_only": true,
     "can_claim_now": [
       "The TALOS-001 substrate slice is specified as a contract matrix in this dedicated spec.",
-      "The five first-slice surfaces have source ADRs, source paths, acceptance hooks, and non-claims.",
-      "ADR-0382 is used only as Proposed/design context for the Sidero matrix."
+      "The four first-slice surfaces have source ADRs, source paths, acceptance hooks, and non-claims."
     ],
     "cannot_claim_yet": [
       "local vfkit Talos cluster smoke has not been executed by this slice",
       "Cloudflare Access service-token denial and tunnel health have not been executed by this slice",
       "CAPI providers, ClusterResourceSet, Argo CD, and Kamaji controllers have not been installed by this slice",
-      "managed-Kubernetes product microservices are not promoted to runtime or public SLA by this slice",
-      "Sidero Metal PXE enrollment and cold-hardware bring-up remain unexecuted while ADR-0382 is Proposed"
+      "managed-Kubernetes product microservices are not promoted to runtime or public SLA by this slice"
     ]
   },
   "matrix": [
@@ -194,41 +186,6 @@
       "non_claims": [
         "This slice does not promote managed-Kubernetes APIs to general availability or a publicly committed SLA.",
         "This slice does not mutate service code, tenant data, billing, quota state, or live control planes."
-      ]
-    },
-    {
-      "id": "sidero_zero_day_matrix",
-      "source_adrs": [
-        "ADR-0382",
-        "ADR-0375",
-        "ADR-0378"
-      ],
-      "source_paths": [
-        "infra/sidero-metal/values.yaml",
-        "infra/sidero-metal/dhcp-tftp.yaml",
-        "infra/sidero-metal/capi/cluster.yaml",
-        "infra/sidero-metal/capi/metal-machine.yaml",
-        "infra/sidero-metal/capi/talos-cp.yaml",
-        "infra/talos/bare-metal/up.sh"
-      ],
-      "required_contract": [
-        "ADR-0382 is Proposed and may only define a design-only Sidero zero-day matrix in this slice.",
-        "D1 management cluster bootstrap covers Sidero controller-manager, cluster-api-provider-sidero, DHCP/TFTP/iPXE, and a default ServerClass.",
-        "D2 zero-touch node enrollment covers PXE to iPXE to Talos kernel/initramfs and discovery as a Sidero Server before operator labelling.",
-        "D3 CAPI provisioning covers Cluster plus MetalCluster, TalosControlPlane, and MetalMachine progression to a Ready control-plane node after Cilium.",
-        "D4 one-command bring-up mirrors talos-local subcommands check/bootstrap-mgmt/enroll/up/status without manual per-machine ISO authoring."
-      ],
-      "acceptance": [
-        "Future live Sidero evidence must record Sidero pods, ServerClass, discovered Server, provisioned MetalMachine, CAPI Cluster Ready, and kubectl access to the resulting cluster.",
-        "Production multi-VLAN, BMC credentials, hardware identities, and Image Factory mirrors must live in per-site overlays or secret custody, not this repository."
-      ],
-      "verification": [
-        "buck2 test //ci/facade/contract-slice-conformance:ci-contract-slice-conformance-gate",
-        "future hardware evidence: kubectl -n sidero-system get pods, kubectl get serverclass, kubectl get servers, kubectl get cluster, and infra/talos/bare-metal/up.sh status transcript"
-      ],
-      "non_claims": [
-        "This slice does not install Sidero, start DHCP/TFTP, PXE-boot hardware, label real Servers, or provision a CAPI Cluster.",
-        "This slice does not elevate ADR-0382 from Proposed to Accepted."
       ]
     }
   ],

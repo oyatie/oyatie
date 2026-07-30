@@ -19,9 +19,7 @@
     "authority.ADR-0376.path",
     "authority.ADR-0376.authority_use",
     "authority.ADR-0378.path",
-    "authority.ADR-0378.authority_use",
-    "authority.ADR-0382.path",
-    "authority.ADR-0382.authority_use"
+    "authority.ADR-0378.authority_use"
   ],
   "required_true_fields": [
     "claim_boundary.metadata_only",
@@ -30,8 +28,7 @@
     "claim_boundary.no_hardware_boot_claim",
     "claim_boundary.no_managed_k8s_runtime_claim",
     "claim_boundary.no_sidero_runtime_claim",
-    "claim_boundary.no_secrets_in_git",
-    "claim_boundary.proposed_adr_0382_design_only"
+    "claim_boundary.no_secrets_in_git"
   ],
   "enum_constraints": [
     {
@@ -99,12 +96,6 @@
       "allowed": [
         "Accepted"
       ]
-    },
-    {
-      "field": "authority.ADR-0382.status",
-      "allowed": [
-        "Proposed"
-      ]
     }
   ],
   "required_array_members": [
@@ -119,23 +110,13 @@
   ],
   "required_markers": [
     {
-      "field": "authority.ADR-0382.authority_use",
-      "quantifier": "all_of",
-      "markers": [
-        "design-only",
-        "no live",
-        "root-pointer/card elevation"
-      ]
-    },
-    {
       "field": "claim_boundary.cannot_claim_yet",
       "quantifier": "all_of",
       "markers": [
         "local vfkit Talos cluster smoke",
         "Cloudflare Access service-token denial",
         "CAPI providers",
-        "managed-Kubernetes product microservices",
-        "Sidero Metal PXE enrollment"
+        "managed-Kubernetes product microservices"
       ]
     },
     {
@@ -160,8 +141,8 @@
   "array_cardinality": [
     {
       "field": "matrix",
-      "min": 5,
-      "max": 5,
+      "min": 4,
+      "max": 4,
       "unique_by": "id"
     }
   ],
@@ -173,8 +154,7 @@
         "local_vfkit_talos_smoke",
         "cloudflare_access_tunnel_posture",
         "capi_argocd_kamaji_integration",
-        "managed_k8s_surface",
-        "sidero_zero_day_matrix"
+        "managed_k8s_surface"
       ],
       "exact_members": true,
       "member_required_fields": [
@@ -403,62 +383,6 @@
           "must_contain": [
             "This slice does not promote managed-Kubernetes APIs to general availability or a publicly committed SLA.",
             "This slice does not mutate service code, tenant data, billing, quota state, or live control planes."
-          ]
-        },
-        {
-          "when_member": "sidero_zero_day_matrix",
-          "field": "source_adrs",
-          "must_contain": [
-            "ADR-0382",
-            "ADR-0375",
-            "ADR-0378"
-          ]
-        },
-        {
-          "when_member": "sidero_zero_day_matrix",
-          "field": "source_paths",
-          "must_contain": [
-            "infra/sidero-metal/values.yaml",
-            "infra/sidero-metal/dhcp-tftp.yaml",
-            "infra/sidero-metal/capi/cluster.yaml",
-            "infra/sidero-metal/capi/metal-machine.yaml",
-            "infra/sidero-metal/capi/talos-cp.yaml",
-            "infra/talos/bare-metal/up.sh"
-          ]
-        },
-        {
-          "when_member": "sidero_zero_day_matrix",
-          "field": "required_contract",
-          "must_contain": [
-            "ADR-0382 is Proposed and may only define a design-only Sidero zero-day matrix in this slice.",
-            "D1 management cluster bootstrap covers Sidero controller-manager, cluster-api-provider-sidero, DHCP/TFTP/iPXE, and a default ServerClass.",
-            "D2 zero-touch node enrollment covers PXE to iPXE to Talos kernel/initramfs and discovery as a Sidero Server before operator labelling.",
-            "D3 CAPI provisioning covers Cluster plus MetalCluster, TalosControlPlane, and MetalMachine progression to a Ready control-plane node after Cilium.",
-            "D4 one-command bring-up mirrors talos-local subcommands check/bootstrap-mgmt/enroll/up/status without manual per-machine ISO authoring."
-          ]
-        },
-        {
-          "when_member": "sidero_zero_day_matrix",
-          "field": "acceptance",
-          "must_contain": [
-            "Future live Sidero evidence must record Sidero pods, ServerClass, discovered Server, provisioned MetalMachine, CAPI Cluster Ready, and kubectl access to the resulting cluster.",
-            "Production multi-VLAN, BMC credentials, hardware identities, and Image Factory mirrors must live in per-site overlays or secret custody, not this repository."
-          ]
-        },
-        {
-          "when_member": "sidero_zero_day_matrix",
-          "field": "verification",
-          "must_contain": [
-            "buck2 test //ci/facade/contract-slice-conformance:ci-contract-slice-conformance-gate",
-            "future hardware evidence: kubectl -n sidero-system get pods, kubectl get serverclass, kubectl get servers, kubectl get cluster, and infra/talos/bare-metal/up.sh status transcript"
-          ]
-        },
-        {
-          "when_member": "sidero_zero_day_matrix",
-          "field": "non_claims",
-          "must_contain": [
-            "This slice does not install Sidero, start DHCP/TFTP, PXE-boot hardware, label real Servers, or provision a CAPI Cluster.",
-            "This slice does not elevate ADR-0382 from Proposed to Accepted."
           ]
         }
       ]
