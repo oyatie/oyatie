@@ -211,6 +211,43 @@ fn cyclic_directory_symlink_inspection_error_matches_cargo_success() {
     let _ = std::fs::remove_dir_all(root);
 }
 
+/// Unix arm of the cyclic-symlink differential above.
+///
+/// The PROPERTY under test is portable: when a `members = ["members/*"]` glob hits a directory
+/// symlink that cannot be inspected, the owned resolver must agree with cargo. Only the errno
+/// is platform-specific — Windows reports ERROR_CANT_RESOLVE_FILENAME (1921), Unix reports
+/// ELOOP — so the Windows arm keeps the exact-errno assertion and this arm asserts the
+/// portable part.
+///
+/// Why this exists: the differential was reachable ONLY through a `windows-latest` matrix leg,
+/// which made a genuinely portable invariant depend on Windows CI capacity. The raw errno is
+/// deliberately NOT asserted here: ELOOP is 40 on Linux and 62 on macOS/BSD, and pulling `libc`
+/// into this crate to name it would put a transient dependency in a `*-kernel` crate, which the
+/// ADR-0547 kernel-purity gate forbids. `expect_err` plus the resolver differential is the
+/// portable contract; the platform-specific constant stays with the platform that defines it.
+#[cfg(unix)]
+#[test]
+fn cyclic_directory_symlink_inspection_error_matches_cargo_success_unix() {
+    use std::os::unix::fs::symlink;
+
+    let root = fixture_root("unix-cyclic-directory-symlink");
+    write(
+        &root,
+        "Cargo.toml",
+        "[workspace]\nmembers = [\"members/*\"]\nresolver = \"2\"\n",
+    );
+    std::fs::create_dir_all(root.join("members")).expect("create member root");
+    // Self-referential relative symlink: resolving `loop` requires resolving `loop`.
+    symlink("loop", root.join("members/loop")).expect("create cyclic directory symlink");
+
+    std::fs::metadata(root.join("members/loop"))
+        .expect_err("the cyclic directory symlink must fail filesystem inspection");
+
+    assert_cargo_metadata_matches_owned_resolver(&root, cargo_metadata(&root));
+
+    let _ = std::fs::remove_dir_all(root);
+}
+
 #[cfg(unix)]
 #[test]
 fn directory_symlink_member_matches_cargo_success() {
