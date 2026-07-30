@@ -1,6 +1,6 @@
 ---
 id: ADR-0382
-status: Proposed
+status: Rejected
 planning_impact: true
 deciders: founder, ops-platform, council-architecture
 date: 2026-05-28
@@ -38,18 +38,93 @@ purpose: >
   provisioning substrate, distinct from the vfkit local-VM substrate
   (ADR-0378) used on the macOS dev box. Zero-day automated bring-up — cold
   hardware to green CP + CAPI #1 — without manual ISO authoring or
-  hand-running talosctl per machine. Status Proposed because this ADR
-  captures the decision-space + hyperscaler-lens validation + the recommended
-  4-deliverable shape; implementation IPs follow once the ADR lands.
+  hand-running talosctl per machine. REJECTED 2026-07-30 without ever being
+  accepted: it proposed a second bare-metal provider one day after ADR-0375
+  (Accepted) had already ratified and wired Metal3/CAPM3, and never evaluated
+  Metal3 in its own Alternatives Considered. Retained as the record of the
+  decision-space and hyperscaler-lens validation; no implementation IP follows.
 ---
 
 # ADR-0382: Bare-metal Talos zero-day bring-up via Sidero Metal
 
 ## Status
 
-Proposed (2026-05-28). Captures the decision-space + recommended choice +
-hyperscaler-lens validation. Implementation IPs (D1-D4) follow once this ADR
-lands on dev.
+**Rejected (2026-07-30).** Never accepted; sat at Proposed for two months. The
+design content below is retained deliberately as the record of the decision-space
+and the hyperscaler-lens validation — it is history, not authority.
+
+### Why rejected — the adjudication this ADR never made
+
+This ADR proposed **Sidero Metal** as the bare-metal Talos provisioning layer one
+day after ADR-0375 (**Accepted**, 2026-05-27) had already ratified a bare-metal CAPI
+infra provider and wired it: `infra/capi/init.sh` pins
+`INFRA="oci:v0.24.0,aws:v2.11.1,metal3:v1.13.0"`, and `infra/capi/clusters` renders
+per-cell clusters with `substrate` one of `oci | aws | metal3`.
+
+**Metal3/CAPM3 does not appear anywhere in this ADR's Alternatives Considered**,
+which weighs only Tinkerbell, MAAS, manual `talosctl`, Matchbox, and
+hyperscaler-managed offerings. The two ADRs never met. Note also that ADR-0375's
+own rejection names **Sidero Omni** — the proprietary fleet manager — which is a
+*different product* from the Apache-2 Sidero Metal proposed here, so no prior
+adjudication covered this choice either.
+
+Rejected rather than superseded because there is nothing to supersede: the ratified
+provider (Metal3/CAPM3 v1.13.0, ADR-0375 D2) stands unchanged, and this ADR
+proposed a parallel second provider without retiring the first.
+
+Three further grounds, each verified at rejection time:
+
+1. **Every precondition is absent.** D1 requires a management cluster running
+   Sidero + `cluster-api-provider-sidero`; D2 requires factory-fresh hardware
+   PXE-booting through iPXE; the LAN requires DHCP-relay control plus TFTP; the
+   Helm values require BMC access; and the stated lifecycle hands the manifests to
+   Argo CD, which is not installed on any cluster. None of these exist.
+2. **The provisioning destination is already port-backed and owned.**
+   `k8s/ports/cluster-lifecycle-api` exposes `provision_cluster`, and
+   `k8s/adapters/control-plane-host-adapter-capi` is the honest-deferred CAPI
+   adapter behind it. `infra/sidero-metal/**` was raw Helm values and raw CRs
+   referencing no owned port — the unmediated second copy that
+   transient-substrate doctrine forbids.
+3. **The SideroLink protocol is already reimplemented in owned Rust.**
+   `os/core/siderolink-domain` is `no_std`, models the provision API, and exposes a
+   `ProvisionService` trait plus a `Disabled → Configured → Provisioned → Up` state
+   machine. Deleting the vendor YAML destroys no engineering.
+
+ADR-0536 D-3 independently classifies Cluster API as an adapter to be replaced,
+and ADR-0482 (Accepted) already ordered the amendment class this ADR sits inside.
+
+### What this rejection does and does not remove
+
+Removed: `infra/sidero-metal/**` (5 files, referenced by no ADR by path), and the
+`sidero_zero_day_matrix` row plus the ADR-0382 authority block from the TALOS-001
+substrate slice.
+
+**Retained:** `infra/capi/**` — it is the named deliverable of ADR-0375 D2/D3 and is
+untouched by this rejection.
+
+Also retained, and left broken on purpose: `infra/talos/bare-metal/up.sh`, which
+ADR-0523 (Accepted) ledger item 4 admits as irreducible glue independently of this
+ADR, so deleting it is a declared one-way door requiring separate re-justification.
+Be precise about the damage rather than understating it: `up.sh` defaults
+`SIDERO_DIR` to `$ROOT/infra/sidero-metal`, so **five of its six subcommands are now
+non-functional** — `check` hard-exits on the first missing manifest, and
+`enroll`/`up`/`down` apply files that no longer exist; only `status` is unaffected.
+It also remains a live entry in the shell-exception budget
+(`rust-first-automation-policy.json` `exceptions[5]`, `temporary_legacy_bridge`)
+whose replacement plan promises a Rust/GitOps controller for an operation the script
+can no longer perform. Tracked as `F-INFRA-SIDERO-BRINGUP-SCRIPT-DEAD`; the
+disposition is either deletion or repointing it at the ratified Metal3/CAPM3
+provider.
+
+Left as-is, deliberately out of scope: `cloud/cloud-kernel` anchors ADR-0382 in its
+`manifest.json` and in three crate `adr_anchors` arrays. That anchor is
+self-disclaimed as context — *"relevant to future Talos-compatible boot/provisioning
+verification but not to pure kernel seams"* — and is gate-inert, so re-curating
+another capability's anchor list belongs to its owner, not to this rejection.
+
+Reversal, if bare-metal fleet provisioning is later wanted: re-propose against the
+owned `cluster-lifecycle-api` port, adjudicate Metal3 vs Sidero Metal explicitly,
+and restore the deleted files from this branch's parent commit.
 
 ## Context
 

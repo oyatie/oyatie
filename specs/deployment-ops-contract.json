@@ -169,7 +169,7 @@
     },
     {
       "id": "DEP-OPS-AC-007",
-      "rule": "TALOS-001 is represented as a non-mutating substrate slice matrix covering local vfkit/Talos smoke, Cloudflare Access tunnel posture, CAPI/Argo CD/Kamaji integration, managed-Kubernetes product surface, and Sidero zero-day design-only boundaries"
+      "rule": "TALOS-001 is represented as a non-mutating substrate slice matrix covering local vfkit/Talos smoke, Cloudflare Access tunnel posture, CAPI/Argo CD/Kamaji integration, and managed-Kubernetes product surface"
     }
   ],
   "verification_commands": [
