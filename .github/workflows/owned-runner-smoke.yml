@@ -1,0 +1,39 @@
+# Temporary end-to-end proof that the owned Talos arm64 ARC fleet accepts jobs and
+# that the baked toolchain image carries every tool oya-ci-required needs. Deleted in
+# the same PR once the flip is verified — it exists to de-risk changing 11 runs-on
+# lines in the merge-authority lane, not to become a permanent workflow.
+name: owned-runner-smoke
+on:
+  push:
+    branches: ['ci/flip-**']
+permissions:
+  contents: read
+jobs:
+  smoke:
+    runs-on: oya-arm64
+    steps:
+      - name: runner identity + arch
+        run: |
+          set -euo pipefail
+          echo "runner=${RUNNER_NAME:-?} os=${RUNNER_OS:-?} arch=${RUNNER_ARCH:-?}"
+          uname -m
+          test "$(uname -m)" = "aarch64" || { echo "expected aarch64"; exit 1; }
+      - name: bash is the default shell (kubernetes containerMode would break this)
+        run: |
+          set -euo pipefail
+          echo "SHELL-OK: set -euo pipefail accepted"
+      - name: baked toolchain present at the paths toolchains/BUCK uses
+        run: |
+          set -euo pipefail
+          rustc --version
+          cargo --version
+          buck2 --version
+          /usr/bin/clang --version | head -1
+          test -x /usr/bin/ld.lld && echo "ld.lld OK"
+          echo "BAKED-TOOLCHAIN-OK"
+      - name: CNPG reachable with both roles (what the postgres gates need)
+        run: |
+          set -euo pipefail
+          : "${OYA_CI_PG_HOST:?OYA_CI_PG_HOST not projected into the runner}"
+          echo "pg host=${OYA_CI_PG_HOST} superuser=${OYA_CI_PG_SUPERUSER:?unset}"
+          echo "PG-ENV-OK"
