@@ -113,13 +113,13 @@ jobs:
           OYA_CACHE_TLS_CLIENT_CERT: ${{ secrets.OYA_CACHE_READER_TLS_CLIENT_CERT_PATH }}
         run: |
           set -euo pipefail
-          buck2 --isolation-dir canary-warm-probe build --config-file infra/ci/buckconfig/warm-cache-ro.buckconfig --config "buck2_re_client.tls_client_cert=${OYA_CACHE_TLS_CLIENT_CERT}" @/tmp/canary-targets --show-full-output > /tmp/canary-warm-outputs.txt
+          buck2 --isolation-dir canary-warm-probe build --config-file infra/ci/buckconfig/warm-cache-ro.buckconfig --config "buck2_re_client.tls_client_cert=${OYA_CACHE_TLS_CLIENT_CERT}" @/tmp/canary-targets --unstable-write-invocation-record /tmp/canary-warm-record.json --show-full-output > /tmp/canary-warm-outputs.txt
           buck2 run //ci/facade/build-cache-policy:oya-cloud-ci-cache-wiring-bin -- hash-outputs --show-output /tmp/canary-warm-outputs.txt --out /tmp/canary-warm-manifest.json
       - name: Canary verdict (byte-equality; RED fails the job)
         run: |
           set -euo pipefail
           if [ -f /tmp/canary-warm-manifest.json ]; then
-            buck2 run //ci/facade/build-cache-policy:oya-cloud-ci-cache-wiring-bin -- canary-verdict --cold /tmp/canary-cold-manifest.json --warm /tmp/canary-warm-manifest.json --out /tmp/canary-verdict.json
+            buck2 run //ci/facade/build-cache-policy:oya-cloud-ci-cache-wiring-bin -- canary-verdict --cold /tmp/canary-cold-manifest.json --warm /tmp/canary-warm-manifest.json --warm-record /tmp/canary-warm-record.json --out /tmp/canary-verdict.json
           else
             buck2 run //ci/facade/build-cache-policy:oya-cloud-ci-cache-wiring-bin -- canary-verdict --cold /tmp/canary-cold-manifest.json --out /tmp/canary-verdict.json
           fi
