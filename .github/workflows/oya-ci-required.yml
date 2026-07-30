@@ -257,7 +257,7 @@ jobs:
           path: |
             ~/.rustup/toolchains
             ~/.rustup/update-hashes
-          key: rustup-toolchain-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml') }}
+          key: rustup-toolchain-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('rust-toolchain.toml') }}
       - name: Pre-provision pinned Rust toolchain for Buck2 freshness binaries
         run: |
           set -euo pipefail
@@ -362,7 +362,7 @@ jobs:
           path: |
             ~/.rustup/toolchains
             ~/.rustup/update-hashes
-          key: rustup-toolchain-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml') }}
+          key: rustup-toolchain-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('rust-toolchain.toml') }}
       - name: Pre-provision pinned Rust toolchain for Buck2 policy binary
         run: |
           set -euo pipefail
@@ -443,7 +443,7 @@ jobs:
           path: |
             ~/.rustup/toolchains
             ~/.rustup/update-hashes
-          key: rustup-toolchain-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml') }}
+          key: rustup-toolchain-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('rust-toolchain.toml') }}
       # Pre-provision the pinned rust toolchain ONCE, serially, before the buck2 build.
       # The buck2 rust toolchain (toolchains/BUCK: system_rust_toolchain via the rustup shim)
       # resolves rustc and toolchain components per compile action, and buck2 runs those actions in
@@ -523,9 +523,9 @@ jobs:
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: buck-out
-          key: buck-out-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml') }}-${{ hashFiles('.buckconfig', 'toolchains/BUCK', 'Cargo.lock') }}
+          key: buck-out-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('rust-toolchain.toml') }}-${{ hashFiles('.buckconfig', 'toolchains/BUCK', 'Cargo.lock') }}
           restore-keys: |
-            buck-out-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml') }}-
+            buck-out-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('rust-toolchain.toml') }}-
       # Generated-face materialization — the SINGLE out-of-graph git boundary. Re-run the emitter
       # and producer against the checked-out candidate tree, then let buck2 consume those files as
       # declared inputs. We deliberately do NOT byte-compare against committed JSON here: that was
@@ -644,7 +644,7 @@ jobs:
           path: |
             ~/.rustup/toolchains
             ~/.rustup/update-hashes
-          key: rustup-toolchain-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml') }}
+          key: rustup-toolchain-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('rust-toolchain.toml') }}
       # Same rustup serialization rationale as the buck2 lane above: parallel buck2 actions
       # racing a cold rustup install collide on shared download state.
       # PR-body admission was removed here (founder directive 2026-07-26: "stop the entire pr
@@ -705,9 +705,9 @@ jobs:
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: buck-out
-          key: buck-out-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml') }}-${{ hashFiles('.buckconfig', 'toolchains/BUCK', 'Cargo.lock') }}
+          key: buck-out-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('rust-toolchain.toml') }}-${{ hashFiles('.buckconfig', 'toolchains/BUCK', 'Cargo.lock') }}
           restore-keys: |
-            buck-out-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml') }}-
+            buck-out-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('rust-toolchain.toml') }}-
       # KEEPS materializing (not converted to ADR-0556 D5 QW-1 artifact reuse): same rationale
       # as the buck2 lane — the cone's gate tests consume the per-job merge-base frozen
       # baseline (ADR-0551), and this lane's own build-health baseline below is per-job by
@@ -897,7 +897,7 @@ jobs:
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: buck-out
-          key: buck-out-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml') }}-${{ hashFiles('.buckconfig', 'toolchains/BUCK', 'Cargo.lock') }}
+          key: buck-out-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('rust-toolchain.toml') }}-${{ hashFiles('.buckconfig', 'toolchains/BUCK', 'Cargo.lock') }}
       # ── BUILD-HEALTH BASELINE PRODUCER (ADR-0554 D7; ADR-0556 D5 QW-1 trusted-producer +
       #    postmerge-dev-trunk warmth class). ONLY a trusted push-to-dev publishes the admission
       #    build-report as the merge-base-to-be baseline artifact — NOT merge_group, NOT
@@ -1004,7 +1004,7 @@ jobs:
           path: |
             ~/.rustup/toolchains
             ~/.rustup/update-hashes
-          key: rustup-toolchain-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml') }}
+          key: rustup-toolchain-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('rust-toolchain.toml') }}
       - name: Pre-provision pinned Rust toolchain for Buck2 live tests
         run: |
           set -euo pipefail
@@ -1154,7 +1154,7 @@ jobs:
           path: |
             ~/.rustup/toolchains
             ~/.rustup/update-hashes
-          key: rustup-toolchain-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml') }}
+          key: rustup-toolchain-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('rust-toolchain.toml') }}
       - name: Pre-provision pinned Rust toolchain for Buck2 live tests
         run: |
           set -euo pipefail
