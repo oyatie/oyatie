@@ -172,3 +172,20 @@ have shared a namespace — previously the blocker that made warm-cache work unm
 This decision is the justification anchor for `infra/arc/OWNERS`,
 `infra/arc/controller-values.yaml`, `infra/arc/runner-scale-set-arm64-values.yaml`, and the two
 `infra/gitops/values.yaml` chart registrations.
+
+It is also the justification anchor for the baked runner image this fleet runs. One path per
+bullet, spelled byte-exactly and unwrapped, because the born-accounting producer matches
+path-like tokens and an abbreviated or line-broken path matches nothing:
+
+- `infra/ci/runner-image/Dockerfile`
+- `infra/ci/runner-image/OWNERS`
+
+Why this decision owns them rather than a new ADR: the image exists only to serve this scale
+set, and D4 already commits to a baked toolchain image for it — the recipe is that commitment's
+artifact, not a separate decision. It was previously built from a copy living outside the repo,
+which made the image holding merge authority unreproducible; committing it closes that hole and
+is what brings it under ADR-0555 accounting in the first place.
+
+The image additionally bakes **PowerShell** because the required lane runs its gate matrix under
+`shell: pwsh` and the upstream `actions-runner` image ships none — GitHub-hosted images supplied
+it invisibly, so the dependency only became apparent once this fleet took the jobs.
