@@ -775,9 +775,9 @@ fn hardening_non_array_primitive_container_fails_closed() {
 }
 
 /// Proves the converted TALOS-001 slice enforces (retires
-/// scripts/tests/talos_001_substrate_slice_check.py): elevating the Proposed
-/// ADR-0382 boundary to Accepted and dropping a required-surface source ADR
-/// both RED.
+/// scripts/tests/talos_001_substrate_slice_check.py): demoting an Accepted
+/// authority out of its enum boundary and dropping a required-surface source
+/// ADR both RED.
 #[test]
 fn talos_001_substrate_slice_is_enforced() {
     let root = repo_root();
@@ -792,17 +792,20 @@ fn talos_001_substrate_slice_is_enforced() {
         "TALOS-001 slice must be declared in the policy"
     );
 
-    // ADR-0382 elevated from Proposed to Accepted must violate the enum boundary.
+    // Demoting ADR-0378 out of Accepted must violate the enum boundary. (This
+    // assertion previously targeted ADR-0382's Proposed pin; ADR-0382 is Rejected
+    // and no longer an authority of this slice, so the enum-boundary property is
+    // re-anchored on a live Accepted authority rather than dropped.)
     let mut corpus = live_corpus(&root, &policy);
-    corpus.get_mut(spec).unwrap()["authority"]["ADR-0382"]["status"] = json!("Accepted");
+    corpus.get_mut(spec).unwrap()["authority"]["ADR-0378"]["status"] = json!("Proposed");
     let report = evaluate_configured(&policy, &corpus);
     assert!(
         report
             .findings
             .iter()
             .any(|finding| finding.code == "contract_slice_enum_violation"
-                && finding.key == "talos-001-substrate-slice:authority.ADR-0382.status"),
-        "elevating ADR-0382 out of Proposed must be rejected: {:?}",
+                && finding.key == "talos-001-substrate-slice:authority.ADR-0378.status"),
+        "demoting ADR-0378 out of Accepted must be rejected: {:?}",
         report.findings
     );
 
@@ -848,19 +851,22 @@ fn talos_001_substrate_slice_is_enforced() {
         report.findings
     );
 
-    // Removing a whole matrix member (Sidero) must violate the exact-set membership check.
+    // Removing a whole matrix member must violate the exact-set membership check.
+    // (Previously targeted sidero_zero_day_matrix, removed with ADR-0382's
+    // rejection; re-anchored on a live member so exact-set enforcement stays
+    // covered rather than silently losing a case.)
     let mut corpus = live_corpus(&root, &policy);
     corpus.get_mut(spec).unwrap()["matrix"]
         .as_array_mut()
         .unwrap()
-        .retain(|row| row["id"] != "sidero_zero_day_matrix");
+        .retain(|row| row["id"] != "managed_k8s_surface");
     let report = evaluate_configured(&policy, &corpus);
     assert!(
         report.findings.iter().any(|finding| {
             finding.code == "contract_slice_missing_object_array_member"
-                && finding.key == "talos-001-substrate-slice:matrix:sidero_zero_day_matrix"
+                && finding.key == "talos-001-substrate-slice:matrix:managed_k8s_surface"
         }),
-        "dropping the sidero_zero_day_matrix member must be rejected: {:?}",
+        "dropping the managed_k8s_surface member must be rejected: {:?}",
         report.findings
     );
 
