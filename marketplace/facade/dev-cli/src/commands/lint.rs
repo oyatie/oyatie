@@ -34,12 +34,21 @@ const REQUIRED_PHASE00_IPS: &[&str] = &[
     ".omc/plans/milestones/M02-foundry-preview/phases/P03-gates-validators-evidence/IP-003-adr-template-bypass-ledger.md",
 ];
 
+// MUST stay identical to the canonical closed enum, `VALID_STATUSES` in
+// libs/oya-governance-adr-shape-kernel/src/lib.rs. This is a hand-kept DUPLICATE:
+// that const is private and this retirement-marked CLI surface does not depend on
+// the kernel crate, so the two cannot be mechanically bound today. The divergence
+// was real and load-bearing — this list previously omitted BOTH `Amended` (which
+// made `oya lint adr-shape` hard-error on the 2 live Amended ADRs, e.g. ADR-0147)
+// and `Rejected`, while carrying a phantom `Retracted` the kernel never accepted.
+// Tracked as F-GOV-ADR-STATUS-ENUM-DUPLICATED.
 const ADR_STATUSES: &[&str] = &[
     "Proposed",
     "Accepted",
+    "Amended",
     "Superseded",
     "Deprecated",
-    "Retracted",
+    "Rejected",
 ];
 const ADR_SECTIONS: &[&str] = &["Context", "Decision", "Consequences"];
 

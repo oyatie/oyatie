@@ -1349,7 +1349,7 @@
       "current_path": "/specs/talos-001-substrate-slice.json",
       "kind": "spec",
       "migration_phase": "complete",
-      "purpose": "TALOS-001 substrate slice: authority ADR statuses, claim boundaries, and required-surface source paths for local vfkit/Talos smoke, Cloudflare Access tunnel posture, CAPI/Argo CD/Kamaji, managed-Kubernetes product surface, and the Sidero zero-day design-only matrix (ADR-0370/0371/0375/0376/0378/0382). Enforced by //ci/facade/contract-slice-conformance; split from specs/deployment-ops-contract.json per the finops-001/cell-002 per-slice-file precedent.",
+      "purpose": "TALOS-001 substrate slice: authority ADR statuses, claim boundaries, and required-surface source paths for local vfkit/Talos smoke, Cloudflare Access tunnel posture, CAPI/Argo CD/Kamaji, and the managed-Kubernetes product surface (ADR-0370/0371/0375/0376/0378). Enforced by //ci/facade/contract-slice-conformance; split from specs/deployment-ops-contract.json per the finops-001/cell-002 per-slice-file precedent.",
       "target_path_after_md_retirement": "same (machine-readable from inception)"
     },
     "test_set_registry": {

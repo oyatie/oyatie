@@ -38,9 +38,11 @@ purpose: >
   provisioning substrate, distinct from the vfkit local-VM substrate
   (ADR-0378) used on the macOS dev box. Zero-day automated bring-up — cold
   hardware to green CP + CAPI #1 — without manual ISO authoring or
-  hand-running talosctl per machine. Status Proposed because this ADR
-  captures the decision-space + hyperscaler-lens validation + the recommended
-  4-deliverable shape; implementation IPs follow once the ADR lands.
+  hand-running talosctl per machine. REJECTED 2026-07-30 without ever being
+  accepted: it proposed a second bare-metal provider one day after ADR-0375
+  (Accepted) had already ratified and wired Metal3/CAPM3, and never evaluated
+  Metal3 in its own Alternatives Considered. Retained as the record of the
+  decision-space and hyperscaler-lens validation; no implementation IP follows.
 ---
 
 # ADR-0382: Bare-metal Talos zero-day bring-up via Sidero Metal
@@ -98,10 +100,27 @@ Removed: `infra/sidero-metal/**` (5 files, referenced by no ADR by path), and th
 substrate slice.
 
 **Retained:** `infra/capi/**` — it is the named deliverable of ADR-0375 D2/D3 and is
-untouched by this rejection. Also retained: `infra/talos/bare-metal/up.sh`, which
+untouched by this rejection.
+
+Also retained, and left broken on purpose: `infra/talos/bare-metal/up.sh`, which
 ADR-0523 (Accepted) ledger item 4 admits as irreducible glue independently of this
-ADR; its Sidero-specific preflight is now dead and needs a separate disposition,
-and touching an ADR-0523 ledger item is a declared one-way door.
+ADR, so deleting it is a declared one-way door requiring separate re-justification.
+Be precise about the damage rather than understating it: `up.sh` defaults
+`SIDERO_DIR` to `$ROOT/infra/sidero-metal`, so **five of its six subcommands are now
+non-functional** — `check` hard-exits on the first missing manifest, and
+`enroll`/`up`/`down` apply files that no longer exist; only `status` is unaffected.
+It also remains a live entry in the shell-exception budget
+(`rust-first-automation-policy.json` `exceptions[5]`, `temporary_legacy_bridge`)
+whose replacement plan promises a Rust/GitOps controller for an operation the script
+can no longer perform. Tracked as `F-INFRA-SIDERO-BRINGUP-SCRIPT-DEAD`; the
+disposition is either deletion or repointing it at the ratified Metal3/CAPM3
+provider.
+
+Left as-is, deliberately out of scope: `cloud/cloud-kernel` anchors ADR-0382 in its
+`manifest.json` and in three crate `adr_anchors` arrays. That anchor is
+self-disclaimed as context — *"relevant to future Talos-compatible boot/provisioning
+verification but not to pure kernel seams"* — and is gate-inert, so re-curating
+another capability's anchor list belongs to its owner, not to this rejection.
 
 Reversal, if bare-metal fleet provisioning is later wanted: re-propose against the
 owned `cluster-lifecycle-api` port, adjudicate Metal3 vs Sidero Metal explicitly,
