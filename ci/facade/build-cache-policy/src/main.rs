@@ -11,7 +11,7 @@
 //!   assert-warm --record PATH --build-class C --mode M
 //!   assert-cold --record PATH
 //!   hash-outputs --show-output PATH [--out PATH]
-//!   canary-verdict --cold PATH [--warm PATH] [--out PATH]
+//!   canary-verdict --cold PATH [--warm PATH --warm-record PATH] [--out PATH]
 //!   canary-targets                      (prints the pinned target set, one per line)
 
 use std::fs;
@@ -207,6 +207,37 @@ fn run(args: Vec<String>) -> Result<ExitCode, String> {
                          to emit INACTIVE while warmth is live (ADR-0556 D2)"
                             .to_string(),
                     );
+                }
+            }
+            // FAIL-CLOSED on a NON-PARTICIPATING probe. A warm manifest proves nothing
+            // about the cache unless the probe that produced it actually fetched from
+            // the cache: canary_verdict compares target->OUTPUT-DIGEST pairs, and a probe
+            // that served zero blobs and rebuilt everything locally yields digests
+            // byte-identical to the cold build, full label overlap, zero divergence — and
+            // therefore GREEN. That GREEN is the verdict that licenses warm reads
+            // FLEET-WIDE, so it must never be reachable without proven participation.
+            //
+            // assert_warm_cache_participation is the existing, unit-tested predicate for
+            // exactly this (cache_hit_rate != 0, run_action_cache_count != 0,
+            // last_snapshot.re_action_cache_started != 0). It was written and never wired.
+            if warm.is_some() {
+                let record_path = flag_value(rest, "--warm-record").ok_or_else(|| {
+                    "canary-verdict: a --warm manifest requires --warm-record (the probe's \
+                     buck2 invocation record). Without it the probe's cache participation is \
+                     unproven, and a zero-fetch local rebuild would emit GREEN and license \
+                     warm reads fleet-wide (ADR-0556 D2)"
+                        .to_string()
+                })?;
+                let record = read_json(&record_path)?;
+                if let Err(findings) =
+                    app::assert_warm_cache_participation(&record, "integrity-canary", "warm-ro")
+                {
+                    return Err(format!(
+                        "canary-verdict: the warm probe did NOT participate in the cache, so its \
+                         manifest is a local rebuild rather than evidence — refusing to compare \
+                         it (ADR-0556 D2). Findings: {}",
+                        findings.join("; ")
+                    ));
                 }
             }
             let (status, verdict) = app::canary_verdict(&cold, warm.as_ref());

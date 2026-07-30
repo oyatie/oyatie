@@ -259,6 +259,27 @@ fn canary_workflow_is_scheduled_cold_and_wires_the_proof() {
         "FROM-EMPTY VIOLATION: the canary workflow restores a cache — the proof is circular \
          (ADR-0556 D5 cold-must-stay)"
     );
+
+    // THE WARM SIDE. Every assertion below this point in the original test covered the
+    // COLD step only (--unstable-write-invocation-record + assert-cold), both of which
+    // the cold build already satisfied — so the gate LOOKED like it guarded the canary
+    // while never checking the half that could lie. canary_verdict compares
+    // target->output-digest pairs, so a probe that fetched nothing and rebuilt locally
+    // produces byte-identical digests, full overlap, zero divergence => GREEN, and that
+    // GREEN licenses warm reads fleet-wide.
+    assert!(
+        text.contains("--isolation-dir canary-warm-probe")
+            && text.contains("--unstable-write-invocation-record /tmp/canary-warm-record.json"),
+        "WARM PROBE UNPROVEN: the probe build must write its OWN invocation record, or its \
+         cache participation cannot be checked and a zero-fetch local rebuild emits GREEN \
+         (ADR-0556 D2)"
+    );
+    assert!(
+        text.contains("--warm /tmp/canary-warm-manifest.json")
+            && text.contains("--warm-record /tmp/canary-warm-record.json"),
+        "WARM MANIFEST ADMITTED WITHOUT PROOF: canary-verdict must receive --warm-record \
+         alongside --warm so the probe's participation gates the comparison (ADR-0556 D2)"
+    );
     assert!(
         text.contains("--unstable-write-invocation-record"),
         "canary must capture the structured invocation record"
