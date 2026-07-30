@@ -6,31 +6,33 @@ on:
 permissions:
   contents: read
 jobs:
-  # Proves the two capabilities the REQUIRED postgres gates need on an owned
-  # runner: a `services:` container, and a real buck2 gate. containerMode
-  # kubernetes turns the service into a pod, so no privileged Docker is involved.
-  svc:
+  # Proves the three capabilities the REQUIRED lanes need on an owned runner:
+  # baked toolchain, a real buck2 gate, and a live CNPG connection with the
+  # superuser/app-role split the RLS tests assert on. No service container, no
+  # containerMode, no privileged Docker — the database is a CRD-provisioned
+  # CNPG Cluster reached over its Service.
+  owned:
     runs-on: oya-arm64
-    container:
-      image: registry.oya-registry.svc.cluster.local:5000/oya/runner:arm64
-    services:
-      postgres:
-        image: mirror.gcr.io/library/postgres:16
-        env:
-          POSTGRES_PASSWORD: probe
-          POSTGRES_DB: probe
-        ports: ["5432:5432"]
     steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with: { persist-credentials: false, fetch-depth: 0 }
       - name: Toolchain is baked
         run: |
           set -euo pipefail
           echo "platform: $(uname -s)-$(uname -m) on $(hostname)"
           buck2 --version && rustc --version && /usr/bin/clang --version | head -1
-      - name: Service container reachable
+      - name: CNPG reachable with a per-run database
         run: |
           set -euo pipefail
-          for i in $(seq 1 30); do
-            if (echo > /dev/tcp/postgres/5432) 2>/dev/null; then echo "POSTGRES-SERVICE-REACHABLE"; exit 0; fi
-            sleep 2
-          done
-          echo "postgres service never became reachable" >&2; exit 1
+          sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client >/dev/null
+          export PGPASSWORD="$OYA_CI_PG_SUPERPASS"
+          DB="ci_probe_${GITHUB_RUN_ID}"
+          PSQL="psql -v ON_ERROR_STOP=1 -h $OYA_CI_PG_HOST -U $OYA_CI_PG_SUPERUSER"
+          $PSQL -d postgres -c "CREATE DATABASE \"$DB\";"
+          $PSQL -d "$DB" -c "DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='oya_app') THEN CREATE ROLE oya_app LOGIN PASSWORD 'app' NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE; END IF; END \$\$;"
+          echo "-- the RLS invariant the gates assert on:"
+          $PSQL -d "$DB" -tAc "SELECT rolname||' super='||rolsuper||' bypassrls='||rolbypassrls FROM pg_roles WHERE rolname IN ('$OYA_CI_PG_SUPERUSER','oya_app') ORDER BY rolname;"
+          $PSQL -d postgres -c "DROP DATABASE \"$DB\";"
+          echo "CNPG-PER-RUN-DB-OK"
+      - name: Real buck2 gate
+        run: buck2 test //ci/facade/canonical-json:ci-canonical-json-gate
