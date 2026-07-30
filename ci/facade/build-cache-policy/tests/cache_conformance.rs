@@ -222,6 +222,48 @@ fn overlays_parse_select_the_cache_platform_and_carry_no_identity() {
 }
 
 #[test]
+/// The SIBLING of root_buckconfig_stays_dark, which guards only `.buckconfig`.
+///
+/// `.buckconfig.local` is the ONLY mechanism that can wire the remote cache: buck2
+/// resolves `[buck2_re_client]` into DaemonStartupConfig from project config files
+/// ONLY, so `--config` / `--config-file` are inert for that section (measured). A
+/// COMMITTED `.buckconfig.local` carrying warm-cache-rw content would therefore make
+/// every build in the repo remote-cache-enabled with uploads on, bypassing the
+/// resolver and the /specs/cache-warm-license.json kill-switch entirely — and would
+/// poison the integrity canary, whose cold build depends on running with no overlay.
+///
+/// Deliberate asymmetry: `.buckconfig.d/` is NOT forbidden. Committed fragments there
+/// are the FAIL-CLOSED way to ship real config, because a missing `--config-file`
+/// path silently succeeds (BUILD SUCCEEDED, exit 0) while a committed fragment is
+/// always read. This test bans the machine-local file, not the committed-fragment door.
+fn buckconfig_local_is_ignored_and_untracked() {
+    let root = repo_root();
+
+    let gitignore = std::fs::read_to_string(root.join(".gitignore"))
+        .expect("read .gitignore — it is the only thing keeping a warm-cache overlay uncommittable");
+    assert!(
+        gitignore
+            .lines()
+            .any(|l| l.trim() == "/.buckconfig.local" || l.trim() == ".buckconfig.local"),
+        "UNIGNORED CACHE OVERLAY: .gitignore must ignore .buckconfig.local. It is the only file \
+         that can wire [buck2_re_client], so an unignored copy is one `git add -A` away from \
+         enabling remote cache + uploads for every build in the repo, bypassing the resolver \
+         and the warm-license kill-switch (ADR-0560 D6)"
+    );
+
+    let tracked = std::process::Command::new("git")
+        .args(["ls-files", "--", ".buckconfig.local"])
+        .current_dir(&root)
+        .output()
+        .expect("run git ls-files");
+    assert!(
+        String::from_utf8_lossy(&tracked.stdout).trim().is_empty(),
+        "TRACKED CACHE OVERLAY: .buckconfig.local is committed. Remove it — its contents apply \
+         to every buck2 invocation in this checkout, warm or cold, licensed or not"
+    );
+}
+
+#[test]
 fn root_buckconfig_stays_dark() {
     let root = repo_root();
     let text = std::fs::read_to_string(root.join(".buckconfig")).expect("read root .buckconfig");
