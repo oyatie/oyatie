@@ -37,11 +37,38 @@ template:
       kubernetes.io/arch: arm64
     containers:
       - name: runner
-        # KNOWN GAP, tracked in ADR-0630: a mutable tag, in a repo where every
-        # `uses:` in every workflow is commit-pinned. It becomes a digest pin
-        # when the baked toolchain image lands and this reference changes anyway.
-        image: ghcr.io/actions/actions-runner:latest
+        # DIGEST-PINNED baked toolchain image, built from the committed recipe at
+        # infra/ci/runner-image/Dockerfile (which is itself pinned to a base image
+        # digest). Carries buck2, rustc/cargo from rust-toolchain.toml, clang+lld at
+        # the ABSOLUTE path toolchains/BUCK invokes, and pwsh — the last of which is
+        # not optional: oya-ci-required.yml runs the gate matrix's main step under
+        # `shell: pwsh`, and the stock actions-runner image has none, so all 45 gate
+        # legs would fail on this fleet with a missing-shell error that reads like a
+        # gate failure. GitHub-hosted ubuntu images ship pwsh, which is why the
+        # dependency was invisible until the fleet moved off hosted runners.
+        #
+        # Served by the in-cluster registry; pullable because Talos machine.registries
+        # carries a mirror keyed to the registry Service's PINNED clusterIP.
+        # This file is the APPLY SOURCE — never `helm upgrade` from a copy. A previous
+        # slice drifted the live fleet from this declaration within hours by upgrading
+        # from a scratchpad values file, which is the defect a committed declaration
+        # exists to prevent.
+        image: registry.oya-registry.svc.cluster.local:5000/oya/runner:arm64-pwsh@sha256:c679cbd7cd00b6b51a18eb3124869971a92b083cceedeecf3bbd68299cf7422d
         command: ["/home/runner/run.sh"]
+        # The live-Postgres gates need BOTH a superuser and a non-superuser app role:
+        # the RLS tests assert that rolsuper/rolbypassrls cannot be bypassed, so the
+        # distinction IS the assertion under test. Credentials flow
+        # k8s Secret -> pod env -> gate; the Secret is projected from the CNPG cluster
+        # in oya-data, never copied into git.
+        env:
+          - name: OYA_CI_PG_HOST
+            value: oya-pg-rw.oya-data.svc.cluster.local
+          - name: OYA_CI_PG_SUPERUSER
+            valueFrom:
+              secretKeyRef: { name: oya-pg-superuser, key: username }
+          - name: OYA_CI_PG_SUPERPASS
+            valueFrom:
+              secretKeyRef: { name: oya-pg-superuser, key: password }
         resources:
           requests:
             # 2 CPU tracks the MEASURED buck2 scaling knee (j=2 87s, j=4 67s,

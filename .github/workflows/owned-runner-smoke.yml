@@ -37,3 +37,20 @@ jobs:
           : "${OYA_CI_PG_HOST:?OYA_CI_PG_HOST not projected into the runner}"
           echo "pg host=${OYA_CI_PG_HOST} superuser=${OYA_CI_PG_SUPERUSER:?unset}"
           echo "PG-ENV-OK"
+      - name: pwsh is present and runs the gate matrix's own shell (blocker found 2026-07-30)
+        shell: pwsh
+        run: |
+          $PSVersionTable.PSVersion.ToString()
+          if ($IsWindows) { Write-Error "IsWindows must be false on the Linux fleet"; exit 1 }
+          # Mirror the real gate step's shape: it builds $targets from matrix values and
+          # branches on $IsWindows. Prove the Linux branch is reachable here.
+          $targets = "//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot-unittest"
+          if ([string]::IsNullOrWhiteSpace($targets)) { exit 1 }
+          Write-Host "PWSH-OK targets=$targets"
+      - name: actions/checkout works (needs the runner's bundled node)
+        uses: actions/checkout@v5
+      - name: repo is checked out and buck2 can see the cell
+        run: |
+          set -euo pipefail
+          test -f .buckconfig && echo "CHECKOUT-OK"
+          buck2 --version >/dev/null && echo "BUCK2-IN-REPO-OK"
