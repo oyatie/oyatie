@@ -164,8 +164,22 @@ enforce it move to BLOCKER status only after:
    compiles, exits 0 on a clean checkout, and rejects synthetic
    cycle-injection fixtures in `tests/fixtures/dag-cycles/`.
 3. The CI lane `oya-check-substrate-dependency-dag-acyclicity` is
-   registered in `.github/workflows/check-substrates.yml` and runs
-   on every pull request targeting `dev`.
+   registered as a leg of the `.github/workflows/oya-ci-required.yml`
+   gate matrix (`crate: dependency-graph-acyclicity`) and runs on every
+   pull request targeting `dev`.
+
+   > **AMENDED 2026-07-31.** This prerequisite previously named
+   > `.github/workflows/check-substrates.yml`. That standalone workflow
+   > ran the SAME two buck2 targets as the required matrix leg —
+   > `//ci/facade/dependency-graph-acyclicity:ci-dependency-graph-acyclicity-unittest`
+   > and `:ci-dependency-graph-acyclicity-gate` — as a NON-required
+   > duplicate, and is retired in the change that carries this amendment.
+   > The required leg is the merge authority and is unchanged; only the
+   > duplicate lane is gone. Prerequisite #3 is therefore satisfied more
+   > strongly than before: by a leg of the single required context rather
+   > than by a workflow that could go red without blocking anything.
+   > Evidence that it could: the retired lane failed admission with
+   > `steps=0` on every run for its entire life and nothing noticed.
 4. Every Tier-1 substrate µservice declares its position in the DAG
    in `microservices/<substrate>/manifest.json` under the
    `substrate_dag_position` field with `tier_subtype:`,
@@ -209,11 +223,21 @@ silent false-green):
   - `ci/facade/dependency-graph-acyclicity/tests/fixtures/dag-cycles/self-loop.json`
   - `ci/facade/dependency-graph-acyclicity/tests/fixtures/dag-cycles/six-node-buried.json`
 - Prerequisite #3 (the named CI lane): the lane
-  `oya-check-substrate-dependency-dag-acyclicity` is authored in
-  `.github/workflows/check-substrates.yml` (the ADR-prescribed surface)
-  and ALSO registered in the canonical `.github/workflows/oya-ci-required.yml`
-  gate matrix (so the gate-registration meta-test passes and the lane
-  gates the required context).
+  `oya-check-substrate-dependency-dag-acyclicity` is registered in the
+  canonical `.github/workflows/oya-ci-required.yml` gate matrix as
+  `crate: dependency-graph-acyclicity`, so the gate-registration
+  meta-test passes and the lane gates the required context.
+
+  > **AMENDED 2026-07-31.** This clause previously named
+  > `.github/workflows/check-substrates.yml` as "the ADR-prescribed
+  > surface" AND acknowledged the required-matrix registration in the
+  > same breath — noting that the matrix leg is what "gates the required
+  > context." The duplicate is retired; the sentence now names only the
+  > surface that carries merge authority. D-3 step 9 is AMENDED in the
+  > same change: the required leg runs only `:ci-<crate>-unittest` and
+  > `:ci-<crate>-gate`, never the validator BIN, so it never wrote the
+  > evidence file — that obligation is retired explicitly rather than
+  > silently inherited.
 
 Prerequisites #4 (per-µservice manifest `substrate_dag_position`) and #5
 (the cloud-iac substrate catalog) are NOT in scope for this Phase-0 lane;
@@ -1011,11 +1035,33 @@ on every pull request targeting `dev`, `staging`, `production`, and
    `oya-shared-<substrate>-client-*` crate's `build.rs` MUST emit
    a compile-time DAG-position assertion macro. Crate absent or
    missing macro → exit 1.
-9. **Emit machine-readable evidence.** Lane writes
-   `evidence/substrate-dependency-dag-validation-<timestamp>.json`
-   containing the parsed DAG, the topological sort, the per-edge
-   permit-fragment check, and the SCC analysis result. Stored under
-   `evidence/governance-lane/` per ADR-0131 evidence-routing rules.
+9. **Assert the DAG properties in a fail-closed gate.** The gate target
+   `//ci/facade/dependency-graph-acyclicity:ci-dependency-graph-acyclicity-gate`
+   asserts the parsed DAG, the topological sort, the per-edge
+   permit-fragment check, and the SCC analysis result over the live
+   corpus, and fails the required context when any of them does not hold.
+   The gate's conclusion is the durable record.
+
+   > **AMENDED 2026-07-31.** This step previously mandated that the lane
+   > WRITE `evidence/substrate-dependency-dag-validation-<timestamp>.json`
+   > under `evidence/governance-lane/`. That obligation is retired, and it
+   > is retired deliberately rather than quietly dropped — an earlier draft
+   > of this amendment claimed the required leg already satisfied step 9,
+   > which was FALSE: the required matrix leg runs only
+   > `:ci-<crate>-unittest` and `:ci-<crate>-gate`, never
+   > `:oya-cloud-ci-substrate-dependency-dag-acyclicity-bin`, so it never
+   > wrote that file. Only the now-retired duplicate workflow did.
+   >
+   > Retired because the emission assured nothing the gate does not.
+   > 1,714 copies accumulated, ~498 bytes each; no job downloaded it, no
+   > gate read it, and no human is documented as reading it. The properties
+   > it recorded are the properties the gate FAILS ON — and the adjacent
+   > exit-code and BLOCKER clauses below, which are the enforcing half of
+   > D-3, are untouched and remain the authority.
+   >
+   > This follows the general rule: **assert the property, discard the
+   > evidence.** Retaining evidence is what you do when you cannot assert.
+   > Here we can, fail-closed, on every PR, with no override path.
 
 **Exit codes:**
 

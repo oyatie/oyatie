@@ -378,11 +378,10 @@
       "frozen_from_commit": "30dd46c4dd7d12c085b77332d9ac5035d583edcf",
       "keys_by_file": {
         ".github/workflows/cache-integrity-canary.yml": 12,
-        ".github/workflows/check-substrates.yml": 5,
         ".github/workflows/docs-graph-drift.yml": 1,
         ".github/workflows/oya-ci-required.yml": 40
       },
-      "keys_total": 58,
+      "keys_total": 53,
       "migration": "v1 positional step-N keys migrated mechanically from exact origin/dev base to required unique named-step keys with measured shell_lines; v2 is exact shrink-accounted."
     },
     "codes": {
@@ -434,26 +433,6 @@
         {
           "key": ".github/workflows/cache-integrity-canary.yml::canary::Warm-probe fetch (read-only; skipped while unlicensed)",
           "shell_lines": 3
-        },
-        {
-          "key": ".github/workflows/check-substrates.yml::oya-check-substrate-dependency-dag-acyclicity::Install buck2 (digest-pinned prebuilt release)",
-          "shell_lines": 1
-        },
-        {
-          "key": ".github/workflows/check-substrates.yml::oya-check-substrate-dependency-dag-acyclicity::Pre-provision pinned Rust toolchain",
-          "shell_lines": 4
-        },
-        {
-          "key": ".github/workflows/check-substrates.yml::oya-check-substrate-dependency-dag-acyclicity::Validate canonical DAG + emit evidence",
-          "shell_lines": 6
-        },
-        {
-          "key": ".github/workflows/check-substrates.yml::oya-check-substrate-dependency-dag-acyclicity::buck2 build (validator crate + cycle fixtures)",
-          "shell_lines": 2
-        },
-        {
-          "key": ".github/workflows/check-substrates.yml::oya-check-substrate-dependency-dag-acyclicity::buck2 test (pure-kernel RED cycle classes + live-corpus GREEN gate)",
-          "shell_lines": 2
         },
         {
           "key": ".github/workflows/docs-graph-drift.yml::docs-graph-drift::Materialize de-committed inputs, build + test the generator",
