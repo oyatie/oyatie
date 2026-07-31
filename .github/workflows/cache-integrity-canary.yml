@@ -139,4 +139,7 @@ jobs:
             /tmp/canary-cold-manifest.json
             /tmp/canary-warm-manifest.json
             /tmp/canary-cache-hit-report.json
+          # Bounded: same shared-quota accrual as every other upload in this repo. The
+          # canary runs daily, so 30 days keeps a full month of cold-vs-warm verdicts.
+          retention-days: 30
           if-no-files-found: warn

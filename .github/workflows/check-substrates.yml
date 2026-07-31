@@ -105,4 +105,9 @@ jobs:
         with:
           name: substrate-dependency-dag-validation
           path: evidence/governance-lane/substrate-dependency-dag-validation-*.log
+          # Bounded: every unbounded upload defaults to 90 days and accrues one copy per
+          # run against a fixed account-wide artifact storage quota. When that quota is
+          # exhausted, uploads in OTHER workflows start failing — this lane's own logs are
+          # tiny, but the accrual is shared.
+          retention-days: 30
           if-no-files-found: warn

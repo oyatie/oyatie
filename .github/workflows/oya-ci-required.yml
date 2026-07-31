@@ -114,6 +114,15 @@ jobs:
             ci/facade/scm-facts-snapshot/scm-volatile-facts.generated.json
             ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json
             registry/graph/active-artifact-contract-edges.json
+          # Bounded: this is an INTRA-RUN handoff (the gate matrix legs download it in the
+          # same run), not retained evidence. Left unbounded it defaulted to 90 days and
+          # became the largest live artifact family produced by a live workflow — 203 MB
+          # across 199 copies of a ~1 MB face set. Combined with the retired producers'
+          # backlog it exhausted the account's artifact storage quota, and the upload then
+          # failed with `Failed to CreateArtifact: Artifact storage quota has been hit`,
+          # which SKIPS every `needs: producer-regen` lane (all 44 gate legs, affected-set
+          # and buck2) and fails `oya-ci-required` with zero gate verdicts.
+          retention-days: 1
           if-no-files-found: error
 
   # ── GATE LANES (reusable matrix). Every homogeneous gate is the SAME step — one
@@ -577,6 +586,9 @@ jobs:
         with:
           name: cache-hit-report-buck2-lane
           path: /tmp/cache-hit-report.json
+          # Bounded like every sibling operator artifact in this workflow (30d). Telemetry
+          # is read while triaging a recent run, never 90 days later.
+          retention-days: 30
           if-no-files-found: error
       - name: Upload runner disk reclaim operator artifact (buck2 lane)
         if: always()
