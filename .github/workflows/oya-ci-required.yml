@@ -491,32 +491,26 @@ jobs:
       # Interim warm-by-default until the shared content-addressed
       # remote cache (NativeLink/CAS, ADR-0560, HANDOFF W3) lands with a cold-canary integrity job
       # proving cold==warm. See friction-ledger buck2-no-shared-cache.
-      # Reclaim preinstalled ubuntu-latest bloat (.NET/Android/GHC/CodeQL/preloaded Docker images:
-      # ~25-30 GiB) BEFORE the multi-GB buck-out restore. This lane decompresses a ~5.78 GiB buck-out
-      # blob (~12-15 GiB on disk) on top of a fetch-depth:0 monorepo checkout, exhausting the ~14 GiB
-      # free on / on GitHub-hosted ubuntu-latest; FRIC-017 recurred on PR #741 (No space left on device
-      # at this restore, before any build ran). Hermetic: removes only vendor preinstall dirs that no
-      # oya/buck2 action consumes; touches NO repo content and NO cache (buck-out / ~/.rustup / the
-      # restored blob untouched), so the cold==warm integrity canary (ADR-0556/0560) is unaffected. df
-      # is emitted so a genuine disk-NEED growth surfaces as a true RED instead of being masked.
-      - name: Reclaim runner disk before warm restore (FRIC-017 preflight)
-        # Rust-first, data-driven preflight (ADR-0548 pipeline-as-product): retires the two
-        # duplicated inline `sudo rm -rf` blocks. The policy (reclaim_dirs + min_free_gib_after)
-        # lives in runner-disk-reclaim-policy.json; the bin best-effort removes the profile's
-        # vendor preinstall dirs and logs structured disk-before/after plus a JSON operator
-        # artifact. Policy is explicit fail-closed: threshold-miss exits INFRA-RED unless a future
-        # caller supplies a typed fail-open waiver, so the required context cannot silently green on
-        # insufficient runner capacity. Built as the runner user (buck2 on user PATH; daemon must
-        # not run as root); only the prebuilt binary is sudo'd (needs root for root-owned dirs).
-        run: |
-          # Build as the runner user (buck2 on user PATH; never run buck2 daemon as root —
-          # that corrupts cache/daemon ownership). Then sudo ONLY the prebuilt binary (needs
-          # root solely to remove the root-owned vendor preinstall dirs).
-          BIN="$(buck2 build //ci/facade/runner-disk-reclaim:oya-cloud-ci-runner-disk-reclaim-bin --show-output 2>/dev/null | awk '{print $2}')"
-          sudo -E "$BIN" \
-            --profile github-hosted-ubuntu-latest \
-            --infra-red-policy fail-closed \
-            --artifact-out "${RUNNER_TEMP}/runner-disk-reclaim-buck2.json"
+      # NO disk-reclaim preflight here. It was a `--profile github-hosted-ubuntu-latest` step that
+      # deleted the hosted VM image's vendor preinstall trees and then asserted a 20 GiB floor
+      # fail-closed. Both halves are wrong on `oya-arm64`, and this was probed in a live runner pod
+      # (arc-runners/oya-arm64-lh4ch-runner-9f8wd) rather than assumed:
+      #   * all five reclaim dirs (/usr/share/dotnet, /usr/local/lib/android, /opt/ghc,
+      #     /usr/local/.ghcup, /opt/hostedtoolcache/CodeQL) are ABSENT — the pod image is
+      #     ghcr.io/actions/actions-runner plus our own toolchain layers, so the reclaim freed
+      #     exactly zero bytes while reporting success;
+      #   * `statvfs("/")` in the pod reads the NODE overlay (48G total, 31G free), NOT the pod's
+      #     60Gi ephemeral-storage limit — the limit is LARGER than the whole node filesystem. That
+      #     made the fail-closed floor a merge gate on a disk we share with the console project and
+      #     with nativelink-cas local-path PVCs: a neighbour's growth alone could exit 3 and
+      #     manufacture an INFRA-RED in the required context, with nothing left to reclaim to
+      #     recover it.
+      # The real disk bound is already enforced correctly and attributably by the pod's
+      # ephemeral-storage limit in infra/arc/runner-scale-set-arm64-values.yaml (kubelet evicts a
+      # runaway build, blaming the pod that caused it). ADR-0548:307 records that the preflight's
+      # intended consumer — an infra-vs-code label on the required context — was never built, so the
+      # step's only live effect was the false RED. Re-add a reclaim step only if a fleet appears that
+      # has something to reclaim, and only measuring a filesystem this repo owns.
       - name: Restore buck-out (read-only; dev-push is the sole writer)
         # actions/cache/restore@v5.0.5 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
@@ -582,18 +576,6 @@ jobs:
           # is read while triaging a recent run, never 90 days later.
           retention-days: 30
           if-no-files-found: error
-      - name: Upload runner disk reclaim operator artifact (buck2 lane)
-        # FAILURE-ONLY triage. A disk-reclaim report from a lane that PASSED is never opened —
-        # the job's own conclusion is the verdict. FRIC-017 was "No space left on device", and
-        # that is exactly a failing run, where this report is the primary evidence.
-        if: failure()
-        # actions/upload-artifact@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
-        with:
-          name: runner-disk-reclaim-buck2
-          path: ${{ runner.temp }}/runner-disk-reclaim-buck2.json
-          retention-days: 30
-          if-no-files-found: warn
   # ── BINDING WORKSPACE COVERAGE (ADR-0554, FRIC-1781310000). Closes the largest false-green
   #    channel: the buck2 lane above is scoped to //ci/..., so code anywhere else
   #    (oya/*, libs/*, cloud/* services) could merge broken — proven live by PR #651 head
@@ -678,32 +660,9 @@ jobs:
       # and ~/.buck are daemon pid/endpoint/log scratch and are deliberately NOT cached. dev-push
       # is the sole writer (the save step below is push-to-dev-gated), so PR runs read only — no
       # per-commit multi-GB write-churn/eviction (see the buck2-lane rationale above).
-      # Reclaim preinstalled ubuntu-latest bloat (.NET/Android/GHC/CodeQL/preloaded Docker images:
-      # ~25-30 GiB) BEFORE the multi-GB buck-out restore. This lane decompresses a ~5.78 GiB buck-out
-      # blob (~12-15 GiB on disk) on top of a fetch-depth:0 monorepo checkout, exhausting the ~14 GiB
-      # free on / on GitHub-hosted ubuntu-latest; FRIC-017 recurred on PR #741 (No space left on device
-      # at this restore, before any build ran). Hermetic: removes only vendor preinstall dirs that no
-      # oya/buck2 action consumes; touches NO repo content and NO cache (buck-out / ~/.rustup / the
-      # restored blob untouched), so the cold==warm integrity canary (ADR-0556/0560) is unaffected. df
-      # is emitted so a genuine disk-NEED growth surfaces as a true RED instead of being masked.
-      - name: Reclaim runner disk before warm restore (FRIC-017 preflight)
-        # Rust-first, data-driven preflight (ADR-0548 pipeline-as-product): retires the two
-        # duplicated inline `sudo rm -rf` blocks. The policy (reclaim_dirs + min_free_gib_after)
-        # lives in runner-disk-reclaim-policy.json; the bin best-effort removes the profile's
-        # vendor preinstall dirs and logs structured disk-before/after plus a JSON operator
-        # artifact. Policy is explicit fail-closed: threshold-miss exits INFRA-RED unless a future
-        # caller supplies a typed fail-open waiver, so the required context cannot silently green on
-        # insufficient runner capacity. Built as the runner user (buck2 on user PATH; daemon must
-        # not run as root); only the prebuilt binary is sudo'd (needs root for root-owned dirs).
-        run: |
-          # Build as the runner user (buck2 on user PATH; never run buck2 daemon as root —
-          # that corrupts cache/daemon ownership). Then sudo ONLY the prebuilt binary (needs
-          # root solely to remove the root-owned vendor preinstall dirs).
-          BIN="$(buck2 build //ci/facade/runner-disk-reclaim:oya-cloud-ci-runner-disk-reclaim-bin --show-output 2>/dev/null | awk '{print $2}')"
-          sudo -E "$BIN" \
-            --profile github-hosted-ubuntu-latest \
-            --infra-red-policy fail-closed \
-            --artifact-out "${RUNNER_TEMP}/runner-disk-reclaim-affected-set.json"
+      # NO disk-reclaim preflight here — same reason as the buck2 lane above (hosted-VM profile on
+      # an ARC pod: nothing to reclaim, and the fail-closed floor measured a NODE filesystem shared
+      # with another tenant, so a neighbour could manufacture an INFRA-RED in the required context).
       - name: Restore buck-out (read-only; dev-push is the sole writer)
         # actions/cache/restore@v5.0.5 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
@@ -963,7 +922,6 @@ jobs:
         with:
           name: affected-set-operator-artifacts
           path: |
-            ${{ runner.temp }}/runner-disk-reclaim-affected-set.json
             ${{ runner.temp }}/affected-set-derive-decision.json
             ${{ runner.temp }}/affected-set-binding-decision.json
           retention-days: 30

@@ -340,6 +340,34 @@ fn canary_workflow_is_scheduled_cold_and_wires_the_proof() {
     );
 }
 
+/// The workflow text of ONE step: everything from `anchor` to the next sibling step or the end of
+/// the job, whichever comes first.
+///
+/// The end bound is structural — the next `      - ` at step indent, or the first line that
+/// dedents out of the job's step list — NOT a named neighbour. Anchoring on a neighbour's name is
+/// why this file went red for an unrelated reason: it closed the cache-hit upload block at
+/// `- name: Upload runner disk reclaim operator artifact`, so deleting that (obsolete) step
+/// silently extended the slice to end-of-file and tripped the `continue-on-error` assertion on a
+/// COMMENT 400 lines away in another job. A stale delimiter must not present as a cache-policy
+/// violation. The dedent bound matters on its own: without it the LAST step of a job still ran on
+/// into the next job's text.
+fn workflow_step_block<'a>(text: &'a str, anchor: &str) -> Option<&'a str> {
+    let tail = text.split(anchor).nth(1)?;
+    let mut end = tail.len();
+    let mut offset = 0usize;
+    for line in tail.split_inclusive('\n') {
+        // offset == 0 is the remainder of the anchor's own line, which is part of this step.
+        let body = line.trim_end_matches('\n');
+        let dedents_out_of_step_list = !body.trim().is_empty() && !body.starts_with("      ");
+        if offset > 0 && (body.starts_with("      - ") || dedents_out_of_step_list) {
+            end = offset;
+            break;
+        }
+        offset += line.len();
+    }
+    Some(&tail[..end])
+}
+
 #[test]
 fn required_workflow_cache_hit_report_is_binding() {
     let root = repo_root();
@@ -349,14 +377,11 @@ fn required_workflow_cache_hit_report_is_binding() {
              cache-hit report guard"
         )
     });
-    let telemetry_step = text
-        .split("- name: Cache-hit telemetry + warm-mode guard (ADR-0560)")
-        .nth(1)
-        .and_then(|tail| {
-            tail.split("- name: Upload cache-hit telemetry artifact")
-                .next()
-        })
-        .expect("required workflow must contain the cache-hit telemetry guard step");
+    let telemetry_step = workflow_step_block(
+        &text,
+        "- name: Cache-hit telemetry + warm-mode guard (ADR-0560)",
+    )
+    .expect("required workflow must contain the cache-hit telemetry guard step");
     assert!(
         telemetry_step.contains("--unstable-write-invocation-record")
             || text.contains(
@@ -378,13 +403,7 @@ fn required_workflow_cache_hit_report_is_binding() {
         "the cache-hit telemetry guard must be binding; missing counters or 0% warm hits cannot pass"
     );
 
-    let upload_step = text
-        .split("- name: Upload cache-hit telemetry artifact")
-        .nth(1)
-        .and_then(|tail| {
-            tail.split("- name: Upload runner disk reclaim operator artifact")
-                .next()
-        })
+    let upload_step = workflow_step_block(&text, "- name: Upload cache-hit telemetry artifact")
         .expect("required workflow must contain the cache-hit artifact upload step");
     assert!(
         upload_step.contains("name: cache-hit-report-buck2-lane")
