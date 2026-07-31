@@ -114,7 +114,7 @@ apps:
     chart: gha-runner-scale-set-controller
     targetRevision: 0.14.2
     namespace: arc-systems
-    valuesFile: infra/arc/controller-values.yaml
+    valueFiles: [infra/arc/controller-values.yaml]
     syncWave: "1"
 
   # Owned CI runner fleet, ONE SCALE SET PER ARCHITECTURE (ADR-0630 D2). An
@@ -126,7 +126,7 @@ apps:
     chart: gha-runner-scale-set
     targetRevision: 0.14.2
     namespace: arc-runners
-    valuesFile: infra/arc/runner-scale-set-arm64-values.yaml
+    valueFiles: [infra/arc/runner-scale-set-arm64-values.yaml]
     syncWave: "2"
 
   # In-cluster OCI registry (registry:2) — image target for in-cluster builds
