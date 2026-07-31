@@ -50,6 +50,7 @@ fn policy() -> Policy {
                 "docs/**": [],
                 "**/*.md": []
             },
+            "inert_selection_classes": ["docs/**", "**/*.md"],
             "default_base_ref": "origin/dev"
         }"#,
     )
@@ -121,6 +122,135 @@ fn docs_only_diff_is_no_graph_targets_via_explicit_inert_declaration() {
     // this stays NoGraphTargets — now by an auditable pack rule, not a silent code default.
     let decision = resolve(&plan, &owners(&[("docs/decisions/ADR-0001-x.md", &[])]), &p);
     assert_eq!(decision, Decision::NoGraphTargets);
+}
+
+// ── PREDICATE (1): a non-empty diff that selects NOTHING is RED ──────────────────────────
+
+#[test]
+fn red_predicate_1_nonempty_diff_with_empty_selection_refuses() {
+    // THE RED. This is PR #1389 replayed through the real kernel: `.github/**` declared `[]` in
+    // synthetic_dependencies. Every escalation above fires on paths with NO declaration; a `[]`
+    // declaration matches, contributes nothing, and used to sail straight to NoGraphTargets ->
+    // exit 0. The lane then reported SUCCESS having built and tested zero targets, and a
+    // workflow-only PR walked past the no-new-shell ratchet and every whole-tree gate.
+    //
+    // The pack below is the exact regression shape: `.github/**` is declared inert-by-seed but is
+    // NOT in `inert_selection_classes`, so it holds no licence to be the entire selection.
+    let p = Policy::from_json(
+        r#"{
+            "gate_id": "cloud-ci-affected-set",
+            "universe": "//...",
+            "full_run_targets": ["//..."],
+            "full_trigger_patterns": ["**/*.bzl"],
+            "require_owner_patterns": ["**/*.rs"],
+            "package_definition_basenames": ["BUCK.v2", "BUCK"],
+            "package_sibling_basenames": ["Cargo.toml"],
+            "cell_roots": {"": "//"},
+            "synthetic_dependencies": {
+                ".github/**": []
+            },
+            "inert_selection_classes": ["docs/**"],
+            "default_base_ref": "origin/dev"
+        }"#,
+    )
+    .expect("pack parses");
+    let path = ".github/workflows/oya-ci-required.yml";
+    let changes = [Change::Present(path.into())];
+    let plan = plan_changes(&changes, &p);
+    // Production reality: `owner()` is empty for `.github/**` (it is nobody's declared src).
+    let decision = resolve(&plan, &owners(&[(path, &[])]), &p);
+    assert_eq!(
+        decision,
+        Decision::RefuseEmptySelection {
+            paths: vec![path.into()]
+        },
+        "a non-empty diff selecting NO targets must be RED — it is green precisely because it \
+         tested nothing"
+    );
+}
+
+#[test]
+fn red_predicate_1_absent_licence_field_is_fail_closed() {
+    // The pack field is optional. ABSENT must mean "nothing may be the entire selection", not
+    // "everything may" — an unwrap_or_default that silently disables a gate is the standard way
+    // this class of assertion rots back into a no-op.
+    let p = Policy::from_json(
+        r#"{
+            "gate_id": "cloud-ci-affected-set",
+            "universe": "//...",
+            "full_run_targets": ["//..."],
+            "full_trigger_patterns": ["**/*.bzl"],
+            "require_owner_patterns": ["**/*.rs"],
+            "package_definition_basenames": ["BUCK.v2", "BUCK"],
+            "package_sibling_basenames": ["Cargo.toml"],
+            "cell_roots": {"": "//"},
+            "synthetic_dependencies": {"docs/**": []},
+            "default_base_ref": "origin/dev"
+        }"#,
+    )
+    .expect("pack parses");
+    assert!(p.inert_selection_classes.is_empty());
+    let changes = [Change::Present("docs/note.md".into())];
+    let plan = plan_changes(&changes, &p);
+    assert_eq!(
+        resolve(&plan, &owners(&[("docs/note.md", &[])]), &p),
+        Decision::RefuseEmptySelection {
+            paths: vec!["docs/note.md".into()]
+        },
+        "an absent `inert_selection_classes` must license NOTHING"
+    );
+}
+
+#[test]
+fn empty_diff_selects_nothing_legitimately() {
+    // The GREEN half of predicate (1): the predicate is `changed_files non-empty AND selection
+    // empty`. An empty diff has nothing to select and must stay a PASS, not become a refusal.
+    let p = policy();
+    let plan = plan_changes(&[], &p);
+    assert_eq!(resolve(&plan, &BTreeMap::new(), &p), Decision::NoGraphTargets);
+}
+
+#[test]
+fn docs_only_diff_keeps_its_licence_to_select_nothing_in_the_shipped_pack() {
+    // The other GREEN half, against the SHIPPED pack rather than a fixture: docs-only changes may
+    // legitimately select nothing, so the shipped `inert_selection_classes` must actually cover
+    // them. Without this the assertion would RED every docs PR — a gate that fires on everything
+    // is as useless as one that fires on nothing.
+    let p = Policy::from_json(
+        &fs::read_to_string(shipped_pack_path()).expect("read shipped pack"),
+    )
+    .expect("shipped pack parses");
+    for path in [
+        "docs/decisions/ADR-0554-binding-buck2-workspace-coverage.md",
+        "README.md",
+        "docs/guide/x.mdx",
+    ] {
+        let changes = [Change::Present(path.into())];
+        let plan = plan_changes(&changes, &p);
+        assert_eq!(
+            resolve(&plan, &owners(&[(path, &[])]), &p),
+            Decision::NoGraphTargets,
+            "`{path}` is a docs-class change and must keep passing with an empty selection"
+        );
+    }
+}
+
+#[test]
+fn shipped_pack_does_not_license_the_github_class_to_select_nothing() {
+    // Belt to the github-consumer-coverage gate's braces, from the other direction: even if the
+    // `.github/**` seed list were ever emptied, the class holds no licence to be the entire
+    // selection, so the PR #1389 outcome is RED rather than green.
+    let p = Policy::from_json(
+        &fs::read_to_string(shipped_pack_path()).expect("read shipped pack"),
+    )
+    .expect("shipped pack parses");
+    assert!(
+        !p.inert_selection_classes
+            .iter()
+            .any(|c| c.starts_with(".github")),
+        "`.github/**` must never hold an empty-selection licence; got {:?}",
+        p.inert_selection_classes
+    );
 }
 
 #[test]

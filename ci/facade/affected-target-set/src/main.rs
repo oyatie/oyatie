@@ -205,6 +205,38 @@ fn main() -> ExitCode {
             );
             ExitCode::from(2)
         }
+        Decision::RefuseEmptySelection { paths } => {
+            let final_decision = Decision::RefuseEmptySelection {
+                paths: paths.clone(),
+            };
+            let phases = vec![
+                phase("derive-affected-set-tier", "completed", "decision.tier"),
+                phase(
+                    "binding-build-test",
+                    "not-run",
+                    "non-empty diff selected no targets — refused before build",
+                ),
+            ];
+            if let Err(e) =
+                maybe_write_decision_artifact(&artifact_context, &final_decision, &phases)
+            {
+                return artifact_failure(e);
+            }
+            eprintln!(
+                "{LOG}: FAIL — the diff is NON-EMPTY but the affected set is EMPTY. Passing here \
+                 would be green precisely BECAUSE nothing was built or tested. Unlicensed path(s):"
+            );
+            for p in &paths {
+                eprintln!("{LOG}:   {p}");
+            }
+            eprintln!(
+                "{LOG}: REMEDIATION: wire these paths into a buck2 target, or declare the seeds \
+                 they contribute in `synthetic_dependencies`. Only if the class genuinely cannot \
+                 affect ANY buck2 target may it be added to `inert_selection_classes` — that field \
+                 is the licence to build and test nothing, and it is reviewed as one."
+            );
+            ExitCode::from(2)
+        }
         Decision::NoGraphTargets => {
             let final_decision = Decision::NoGraphTargets;
             let phases = vec![
@@ -217,8 +249,8 @@ fn main() -> ExitCode {
                 return artifact_failure(e);
             }
             println!(
-                "{LOG}: decision=NO-GRAPH-TARGETS — every changed file is unowned and not in any \
-                 owner-required class (docs/config-text outside the buildfile/escape classes) -> PASS"
+                "{LOG}: decision=NO-GRAPH-TARGETS — the diff is empty, or every changed file is \
+                 unowned, not owner-required, and licensed by `inert_selection_classes` -> PASS"
             );
             ExitCode::SUCCESS
         }
