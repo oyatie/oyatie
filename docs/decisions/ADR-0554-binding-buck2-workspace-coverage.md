@@ -84,9 +84,15 @@ Ship the **tiered** design (option c), evaluated against the alternatives below:
   graph-relevant files, unmappable package definitions, and EVERY derivation failure (git,
   owner-query, rdeps, empty closure). There is no skip path, no label, no allowlist, and no
   human decision anywhere in the lane. Verdict dominance is fixed in the engine:
-  `RefuseUnowned > Full > Affected > NoGraphTargets` — an owner-required file with NO owning
-  target FAILS the lane outright, because graph-invisible code is not made safe by running
-  more targets.
+  `RefuseUnowned > Full > Affected > RefuseEmptySelection > NoGraphTargets` — an owner-required
+  file with NO owning target FAILS the lane outright, because graph-invisible code is not made
+  safe by running more targets. `RefuseEmptySelection` is predicate (1) of the selection-totality
+  assertion: a NON-EMPTY diff that selects NO targets is a target-determination bug, never a
+  pass — the lane would report success having built and tested nothing, i.e. green precisely
+  BECAUSE it checked nothing. The only licence for that outcome is the pack's
+  `inert_selection_classes` (docs-only diffs), kept deliberately separate from the `[]` entries
+  in `synthetic_dependencies` so "contributes no seed" cannot silently become "may be the entire
+  selection" — the reverted PR #1389 hole.
 - **D3 — Full-workspace tier at admission/integration.** On `merge_group`
   (ADR-0515 oya-ci-tide admission; inert until the queue is enabled), `push` to dev (every
   landing — strictly stronger than a cron schedule), and `workflow_dispatch`, the lane runs
