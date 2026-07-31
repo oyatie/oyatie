@@ -380,8 +380,7 @@ jobs:
           # See the base-ref note in gate-affected-target-set: a bare `git fetch origin` cannot
           # work here (PRIVATE repo + persist-credentials: false) and is redundant under
           # fetch-depth: 0. Assert instead of fetching.
-          git rev-parse --verify "refs/remotes/origin/${BASE_REF}" >/dev/null 2>&1 \
-            || { echo "refs/remotes/origin/${BASE_REF} is missing — checkout must keep fetch-depth: 0"; exit 1; }
+          git rev-parse --verify "refs/remotes/origin/${BASE_REF}" >/dev/null 2>&1 || { echo "refs/remotes/origin/${BASE_REF} missing — this job's checkout must keep fetch-depth: 0"; exit 1; }
           policy_bin="$(buck2 build //ci/facade/generated-artifact-policy:oya-cloud-ci-generated-output-diff-policy --show-output | awk '{print $2}')"
           materializer_bin="$(buck2 build //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin --show-output | awk '{print $2}')"
           # Materialize (de-committed, never a contributor merge surface):
@@ -723,7 +722,6 @@ jobs:
         env:
           BASE_REF: ${{ github.base_ref || 'dev' }}
         run: |
-          set -euo pipefail
           # DO NOT re-add a bare `git fetch origin` here. This repo is PRIVATE and the
           # checkout above runs `persist-credentials: false`, so an unauthenticated fetch
           # dies with: fatal: could not read Username for 'https://github.com'. That step
@@ -734,9 +732,7 @@ jobs:
           # which maps every remote head including the base ref. So ASSERT the invariant
           # rather than re-fetching it — a future fetch-depth change then fails loudly
           # right here instead of yielding a silently wrong merge-base downstream.
-          git rev-parse --verify "refs/remotes/origin/${BASE_REF}" >/dev/null 2>&1 \
-            || { echo "refs/remotes/origin/${BASE_REF} is missing — this job's checkout must keep fetch-depth: 0"; exit 1; }
-          echo "base ref present: origin/${BASE_REF} = $(git rev-parse --short "refs/remotes/origin/${BASE_REF}")"
+          git rev-parse --verify "refs/remotes/origin/${BASE_REF}" >/dev/null 2>&1 || { echo "refs/remotes/origin/${BASE_REF} missing — this job's checkout must keep fetch-depth: 0"; exit 1; }
       # ── BUILD-HEALTH BASELINE (ADR-0554 D9 same-root build, round-5; ADR-0551 merge-base frozen
       #    pattern). On a pull_request, derive the affected-set plan FIRST. Most PRs stay in the
       #    affected cone and do not need a merge-base full-workspace build at all; only a derived
