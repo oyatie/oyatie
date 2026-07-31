@@ -9,6 +9,7 @@
 !/.omc/ultragoal/TEAMMATE-PREAMBLE.md
 !/.omc/ultragoal/friction-ledger.jsonl
 !/.omc/ultragoal/premise.txt
+!/.omc/ultragoal/adr-0510-cutover-trigger-measurement.md
 /.omx/
 # Local GJC runtime/session state is never committed.
 # Specs/plans promoted to product authority belong in tracked specs/docs/registry files.
