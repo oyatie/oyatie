@@ -162,10 +162,17 @@ fn fixture_registry() -> &'static str {
 
 /// The committed policy with the floor lowered + registry repointed at the fixture registry so the
 /// small fixture repos do not trip MEM-EMPTY-SCAN (the floor guards the LIVE corpus, not fixtures).
+/// The `legacy_root_freeze` block is dropped for the same reason: its census names the 445 real
+/// legacy-root crate dirs, none of which exist in a temp fixture, so every fixture would drown in
+/// MEM-STALE-LEGACY-ROOT-BASELINE. The freeze is exercised against its own small fixture below, and
+/// the COMMITTED block's liveness is asserted by `committed_policy_freezes_the_legacy_roots`.
 fn fixture_policy(repo: &Path) -> Value {
     let live = repo_root();
     let mut policy = policy(&live);
     policy["min_expected_crates"] = Value::from(1u64);
+    if let Some(object) = policy.as_object_mut() {
+        object.remove("legacy_root_freeze");
+    }
     // The fixture registry lives at the fixture repo root.
     write_file(repo, "specs/capability-registry.json", fixture_registry());
     // Also stamp root-hub-pointers so any walk-up logic that targets the fixture is satisfied.
@@ -312,6 +319,133 @@ fn a_base_crate_without_admission_facts_is_red_now_that_base_is_scanned() {
         "a base/ crate with no declared admission facts must fail closed: {findings:#?}"
     );
     assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Red);
+}
+
+// ---------------------------------------------------------------------------
+// STOP ACCRUAL — the legacy-root freeze, proven in BOTH directions on the COMMITTED policy.
+// ---------------------------------------------------------------------------
+
+#[test]
+fn committed_policy_freezes_the_legacy_roots_with_a_producer_emitted_census() {
+    // ANTI-VACUITY. The freeze is inert when the block is absent or declares no roots — which is
+    // exactly what a fixture wants and exactly what would silently switch the live gate off. This
+    // asserts the COMMITTED policy is not in that state: all four legacy source roots are frozen,
+    // and the census is the real corpus, not a token entry.
+    let root = repo_root();
+    let policy = policy(&root);
+    let freeze = &policy["legacy_root_freeze"];
+
+    let roots: Vec<&str> = freeze["frozen_roots"]
+        .as_array()
+        .expect("legacy_root_freeze.frozen_roots must be an array")
+        .iter()
+        .map(|v| v.as_str().expect("root is a string"))
+        .collect();
+    assert_eq!(
+        roots,
+        vec!["cloud", "libs", "oya", "tools"],
+        "every legacy source root ADR-0562 empties must be frozen; dropping one re-opens accrual there"
+    );
+
+    let census = freeze["crates"]
+        .as_array()
+        .expect("legacy_root_freeze.crates must be an array");
+    assert!(
+        census.len() > 400,
+        "the frozen census holds only {} entries — it was not emitted by --emit-legacy-freeze over \
+         the real corpus, and a short census would fail hundreds of live crates",
+        census.len()
+    );
+    for entry in census {
+        let dir = entry.as_str().expect("census entry is a string");
+        assert!(
+            roots.iter().any(|r| dir == *r || dir.starts_with(&format!("{r}/"))),
+            "census entry {dir:?} is not under any frozen root — the census is keyed by crate DIR \
+             under a frozen root, so an off-root entry can only ever be dead weight"
+        );
+    }
+}
+
+#[test]
+fn live_corpus_census_matches_the_committed_freeze_exactly() {
+    // BASELINE FIDELITY (direction (a) of the oracle, stated as an equality rather than an absence
+    // of findings): the committed census IS the live legacy-root crate set. Neither over-broad (a
+    // stale entry would pre-forgive a crate re-created at that path) nor short (a missing entry
+    // would fail a crate that exists today).
+    let root = repo_root();
+    let policy = policy(&root);
+    let observed = collect(&root, &policy).expect("collect the live corpus");
+    let crates: Vec<String> = observed["crates"]
+        .as_array()
+        .expect("crates array")
+        .iter()
+        .map(|c| c.as_str().unwrap_or_default().to_owned())
+        .collect();
+
+    let live = ci_module_membership::legacy_root_census(&policy, &crates);
+    let committed: Vec<String> = policy["legacy_root_freeze"]["crates"]
+        .as_array()
+        .expect("census array")
+        .iter()
+        .map(|c| c.as_str().unwrap_or_default().to_owned())
+        .collect();
+    assert_eq!(
+        live, committed,
+        "the frozen census must equal the live legacy-root crate set exactly; re-run \
+         `--emit-legacy-freeze` and commit the result"
+    );
+    eprintln!(
+        "LEGACY-ROOT FREEZE: {} crate(s) frozen shrink-only across cloud/ libs/ oya/ tools/ \
+         (burn-down target 0)",
+        live.len()
+    );
+}
+
+#[test]
+fn red_new_crate_under_a_frozen_legacy_root_fails_from_disk() {
+    // DIRECTION (b) OF THE ORACLE, from disk and against the COMMITTED freeze semantics: a crate
+    // BORN under a frozen legacy root, mapping cleanly to a registered capability (so every other
+    // membership check is happy), must still fail. Without this the gate is indistinguishable from
+    // one that checks nothing — the live tree is green either way.
+    let repo = new_temp_repo();
+    let root = &repo.root;
+    write_file(
+        root,
+        "cloud/cloud-iam/crates/iam-kernel/Cargo.toml",
+        &package_manifest("iam-kernel"),
+    );
+    write_file(
+        root,
+        "cloud/cloud-iam/crates/iam-brand-new/Cargo.toml",
+        &package_manifest("iam-brand-new"),
+    );
+    let mut policy = fixture_policy(root);
+    // The freeze as it is committed, narrowed to this fixture's corpus: `cloud` frozen, and the
+    // pre-existing crate — but NOT the new one — in the census.
+    policy["legacy_root_freeze"] = serde_json::json!({
+        "frozen_roots": ["cloud", "libs", "oya", "tools"],
+        "crates": ["cloud/cloud-iam/crates/iam-kernel"]
+    });
+
+    let observed = collect(root, &policy).expect("collect legacy-freeze fixture");
+    let findings = evaluate_keyed(&policy, &observed);
+
+    // The new crate maps to exactly one capability, so it is NOT an unmapped-crate finding — the
+    // freeze is the only thing that can catch it.
+    assert!(
+        !findings
+            .iter()
+            .any(|f| f.key == "cloud/cloud-iam/crates/iam-brand-new"
+                && f.code == "MEM-NEW-UNMAPPED-CRATE"),
+        "the fixture must exercise the freeze, not the membership map: {findings:#?}"
+    );
+    assert!(
+        findings.iter().any(|f| f.code == "MEM-NEW-LEGACY-ROOT-CRATE"
+            && f.key == "cloud/cloud-iam/crates/iam-brand-new"),
+        "a crate born under a FROZEN legacy root must fail from disk: {findings:#?}"
+    );
+    assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Red);
+    assert_eq!(evaluate(&policy, &observed).legacy_root_crates, 2);
 }
 
 #[test]

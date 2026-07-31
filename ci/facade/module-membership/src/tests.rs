@@ -273,3 +273,129 @@ fn registry_without_coverage_block_fails_closed() {
     let c = codes(&evaluate_keyed(&policy(), &obs));
     assert!(c.contains("MEM-POLICY-MALFORMED"), "{c:?}");
 }
+
+// ---------------------------------------------------------------------------
+// STOP ACCRUAL — the legacy-root freeze (pure fixtures).
+// ---------------------------------------------------------------------------
+
+/// The base policy plus a freeze over `cloud`/`oya` with a two-entry census.
+fn freeze_policy(census: Vec<&str>) -> Value {
+    let mut p = policy();
+    p["legacy_root_freeze"] = json!({
+        "frozen_roots": ["cloud", "oya"],
+        "crates": census,
+    });
+    p
+}
+
+#[test]
+fn frozen_census_tolerates_every_crate_that_exists_today() {
+    let p = freeze_policy(vec![
+        "cloud/cloud-iam/crates/oya-cloud-iam-kernel",
+        "oya/identity/crates/oya-identity-kernel",
+    ]);
+    let obs = observed(
+        vec![
+            "cloud/cloud-iam/crates/oya-cloud-iam-kernel",
+            "oya/identity/crates/oya-identity-kernel",
+            // The shared registry fixture's own unmapped-baseline entry; present so this test
+            // isolates the freeze rather than tripping MEM-STALE-FROZEN-BASELINE.
+            "libs/oya-shared-idempotency-key-kernel",
+        ],
+        vec!["cloud", "oya", "libs"],
+    );
+    let findings = evaluate_keyed(&p, &obs);
+    assert!(findings.is_empty(), "{findings:#?}");
+    assert_eq!(evaluate(&p, &obs).legacy_root_crates, 2);
+}
+
+#[test]
+fn a_crate_born_under_a_frozen_root_is_a_regression() {
+    // THE WHOLE POINT: the new crate maps cleanly to a registered capability, so membership alone
+    // is green. Only the freeze catches it.
+    let p = freeze_policy(vec!["cloud/cloud-iam/crates/oya-cloud-iam-kernel"]);
+    let obs = observed(
+        vec![
+            "cloud/cloud-iam/crates/oya-cloud-iam-kernel",
+            "cloud/cloud-iam/crates/oya-cloud-iam-brand-new",
+        ],
+        vec!["cloud"],
+    );
+    let findings = evaluate_keyed(&p, &obs);
+    let hit = findings
+        .iter()
+        .find(|f| f.code == "MEM-NEW-LEGACY-ROOT-CRATE")
+        .unwrap_or_else(|| panic!("expected a freeze finding: {findings:#?}"));
+    assert_eq!(hit.key, "cloud/cloud-iam/crates/oya-cloud-iam-brand-new");
+    // The remedy must name where the crate SHOULD go, not merely that it is unwelcome.
+    assert!(hit.detail.contains("capability root"), "{}", hit.detail);
+    assert_eq!(evaluate(&p, &obs).verdict, Verdict::Red);
+}
+
+#[test]
+fn a_crate_born_outside_every_frozen_root_is_not_a_freeze_finding() {
+    // The freeze must not become a repo-wide "no new crates" rule: a crate in a capability root is
+    // exactly the destination the reorg wants, and must land freely.
+    let p = freeze_policy(vec!["cloud/cloud-iam/crates/oya-cloud-iam-kernel"]);
+    let obs = observed(
+        vec![
+            "cloud/cloud-iam/crates/oya-cloud-iam-kernel",
+            "iam/core/pdp-kernel",
+        ],
+        vec!["cloud", "iam"],
+    );
+    let c = codes(&evaluate_keyed(&p, &obs));
+    assert!(!c.contains("MEM-NEW-LEGACY-ROOT-CRATE"), "{c:?}");
+    assert_eq!(evaluate(&p, &obs).legacy_root_crates, 1);
+}
+
+#[test]
+fn a_moved_crate_must_shrink_the_census_in_the_same_change() {
+    // Burn-down that is not recorded leaves slack behind: a crate later re-created at that exact
+    // path would land pre-forgiven. The move is only complete when the census entry is gone.
+    let p = freeze_policy(vec![
+        "cloud/cloud-iam/crates/oya-cloud-iam-kernel",
+        "oya/identity/crates/oya-identity-kernel",
+    ]);
+    let obs = observed(
+        vec!["cloud/cloud-iam/crates/oya-cloud-iam-kernel"],
+        vec!["cloud"],
+    );
+    let findings = evaluate_keyed(&p, &obs);
+    let hit = findings
+        .iter()
+        .find(|f| f.code == "MEM-STALE-LEGACY-ROOT-BASELINE")
+        .unwrap_or_else(|| panic!("expected a stale-census finding: {findings:#?}"));
+    assert_eq!(hit.key, "oya/identity/crates/oya-identity-kernel");
+    assert_eq!(evaluate(&p, &obs).verdict, Verdict::Red);
+}
+
+#[test]
+fn a_policy_without_the_freeze_block_is_inert() {
+    // Fixture / adopting-repo contract: no block ⇒ no freeze findings at all, in either direction.
+    // The live gate's non-inertness is asserted separately over the COMMITTED policy.
+    let obs = observed(
+        vec!["cloud/cloud-iam/crates/oya-cloud-iam-brand-new"],
+        vec!["cloud"],
+    );
+    let c = codes(&evaluate_keyed(&policy(), &obs));
+    assert!(!c.contains("MEM-NEW-LEGACY-ROOT-CRATE"), "{c:?}");
+    assert!(!c.contains("MEM-STALE-LEGACY-ROOT-BASELINE"), "{c:?}");
+    assert_eq!(evaluate(&policy(), &obs).legacy_root_crates, 0);
+}
+
+#[test]
+fn every_freeze_code_is_registered() {
+    let p = freeze_policy(vec!["oya/identity/crates/gone"]);
+    let obs = observed(
+        vec!["cloud/cloud-iam/crates/oya-cloud-iam-brand-new"],
+        vec!["cloud"],
+    );
+    let findings = evaluate_keyed(&p, &obs);
+    for f in &findings {
+        assert!(VIOLATION_CODES.contains(&f.code.as_str()), "unregistered {}", f.code);
+    }
+    let c = codes(&findings);
+    assert!(c.contains("MEM-NEW-LEGACY-ROOT-CRATE"), "{c:?}");
+    assert!(c.contains("MEM-STALE-LEGACY-ROOT-BASELINE"), "{c:?}");
+}
