@@ -36,12 +36,28 @@
 //! FLIP-TO-BLOCKING TRIGGER: when the frozen baseline reaches 0 (post-strangler), a remaining
 //! unmapped crate becomes a hard failure with zero advisory slack.
 //!
+//! ## STOP ACCRUAL — the legacy-root freeze
+//! Membership alone does not stop the reorg's debt from GROWING: a brand-new crate born under
+//! `oya/`, `libs/`, `tools/` or `cloud/` maps cleanly to a registered capability (those dirs are
+//! exactly what `absorbs_current_dirs` covers), so the lint is green while the pile the strangler
+//! has to move gets bigger. The policy's `legacy_root_freeze` block closes that: the crate census
+//! of each frozen root is FROZEN SHRINK-ONLY at the freeze commit. A crate dir under a frozen root
+//! that is not in the census is a NEW legacy-root crate ([`MEM-NEW-LEGACY-ROOT-CRATE`]) — it
+//! belongs in its capability root. A census entry that is no longer a crate is burn-down that must
+//! be recorded in the same change ([`MEM-STALE-LEGACY-ROOT-BASELINE`]), so the census tracks the
+//! moves instead of accumulating slack. The census is PRODUCER-EMITTED (`--emit-legacy-freeze`
+//! renders it from this gate's own [`collect`]); the producer refuses to grow it without
+//! `--allow-new`, so a regen cannot launder a newly-born crate into the tolerated set. A policy
+//! with no `legacy_root_freeze` block (fixtures, adopting repos) is inert here.
+//!
 //! ## Violation codes (the contract — literal strings the gate emits)
 //! - `MEM-NEW-UNMAPPED-CRATE`     — a crate maps to NO home and is NOT in the frozen baseline (regression).
 //! - `MEM-DOUBLE-MAPPED-CRATE`    — a crate maps to >1 home (the closed-set/exactly-one violation).
 //! - `MEM-NEW-TOP-LEVEL-DIR`      — a top-level dir exists outside the closed `allowed_top_level_dirs`.
 //! - `MEM-BASE-ADMISSION-CONSUMERS` — a `base/` crate has `<3` capability consumers.
 //! - `MEM-BASE-ADMISSION-DAG`     — a `base/` crate is not strictly below all its capability consumers in the DAG.
+//! - `MEM-NEW-LEGACY-ROOT-CRATE`  — a crate was born under a FROZEN legacy root and is not in the frozen census (accrual).
+//! - `MEM-STALE-LEGACY-ROOT-BASELINE` — a legacy-root census entry is no longer a crate (burn-down that must be recorded).
 //! - `MEM-STALE-FROZEN-BASELINE`  — a frozen-baseline entry no longer exists / is now mapped (drift; baseline must shrink in lockstep).
 //! - `MEM-EMPTY-SCAN`             — fewer crates than the policy floor (false-green guard).
 //! - `MEM-POLICY-GATE-ID-MISMATCH`— the policy `gate_id` is not [`GATE_ID`] (fail-closed).
@@ -61,10 +77,12 @@ use serde_json::{Value, json};
 pub const GATE_ID: &str = "cloud-ci-capability-membership";
 
 /// The violation codes, in canonical order.
-pub const VIOLATION_CODES: [&str; 9] = [
+pub const VIOLATION_CODES: [&str; 11] = [
     "MEM-NEW-UNMAPPED-CRATE",
     "MEM-DOUBLE-MAPPED-CRATE",
     "MEM-NEW-TOP-LEVEL-DIR",
+    "MEM-NEW-LEGACY-ROOT-CRATE",
+    "MEM-STALE-LEGACY-ROOT-BASELINE",
     "MEM-BASE-ADMISSION-CONSUMERS",
     "MEM-BASE-ADMISSION-DAG",
     "MEM-STALE-FROZEN-BASELINE",
@@ -72,6 +90,9 @@ pub const VIOLATION_CODES: [&str; 9] = [
     "MEM-POLICY-GATE-ID-MISMATCH",
     "MEM-POLICY-MALFORMED",
 ];
+
+/// The policy block that freezes the legacy-root crate census shrink-only.
+pub const LEGACY_ROOT_FREEZE_KEY: &str = "legacy_root_freeze";
 
 /// Sentinel key for policy-level (non-per-crate) findings.
 const POLICY_KEY: &str = "<policy>";
@@ -127,6 +148,9 @@ pub struct Report {
     pub crates_checked: usize,
     pub mapped_to_home: usize,
     pub frozen_unmapped: usize,
+    /// Crates still living under a FROZEN legacy root — the strangler's burn-down number. The
+    /// freeze holds it shrink-only; the reorg is done for a root when its share reaches 0.
+    pub legacy_root_crates: usize,
     pub violations: BTreeSet<String>,
 }
 
@@ -536,7 +560,92 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
     // 3. base/-admission rule over any crate under base/.
     evaluate_base_admission(observed, &registry, &crates, &mut findings);
 
+    // 4. STOP ACCRUAL: the legacy-root census is frozen shrink-only.
+    evaluate_legacy_root_freeze(policy, &crates, &crate_set, &mut findings);
+
     findings
+}
+
+/// The frozen legacy roots the policy declares. Empty when the `legacy_root_freeze` block is absent
+/// or declares no roots — the freeze is then INERT, which is what a fixture / adopting-repo policy
+/// wants (the committed-policy self-test is what proves the live gate is not inert).
+#[must_use]
+pub fn frozen_legacy_roots(policy: &Value) -> Vec<String> {
+    policy
+        .get(LEGACY_ROOT_FREEZE_KEY)
+        .map(|freeze| string_array(freeze, "frozen_roots"))
+        .unwrap_or_default()
+}
+
+/// The crate dirs that live under a frozen legacy root, sorted and deduped.
+///
+/// The SINGLE source of the "is this crate in a legacy root?" predicate: the `--emit-legacy-freeze`
+/// producer renders exactly this list, and the evaluator below checks exactly this list against the
+/// committed census — so a producer run and a gate run can never disagree about what the census
+/// should contain.
+#[must_use]
+pub fn legacy_root_census(policy: &Value, crates: &[String]) -> Vec<String> {
+    let roots = frozen_legacy_roots(policy);
+    if roots.is_empty() {
+        return Vec::new();
+    }
+    let mut census: Vec<String> = crates
+        .iter()
+        .filter(|dir| roots.iter().any(|root| prefix_match(dir, root)))
+        .cloned()
+        .collect();
+    census.sort();
+    census.dedup();
+    census
+}
+
+/// STOP ACCRUAL. The legacy-root crate census is FROZEN SHRINK-ONLY: today's crates are tolerated,
+/// a crate BORN under a frozen root is a regression, and a census entry that is no longer a crate is
+/// burn-down that must be recorded in the same change (otherwise the census keeps slack the reorg
+/// already earned back, and a crate later re-created at that exact path lands pre-forgiven).
+fn evaluate_legacy_root_freeze(
+    policy: &Value,
+    crates: &[String],
+    crate_set: &BTreeSet<String>,
+    findings: &mut BTreeSet<Finding>,
+) {
+    let roots = frozen_legacy_roots(policy);
+    if roots.is_empty() {
+        return;
+    }
+    let Some(freeze) = policy.get(LEGACY_ROOT_FREEZE_KEY) else {
+        return;
+    };
+    let census: BTreeSet<String> = string_array(freeze, "crates").into_iter().collect();
+
+    for crate_dir in legacy_root_census(policy, crates) {
+        if census.contains(&crate_dir) {
+            continue;
+        }
+        findings.insert(Finding::new(
+            "MEM-NEW-LEGACY-ROOT-CRATE",
+            &crate_dir,
+            format!(
+                "crate was born under the FROZEN legacy root {:?}, whose census is shrink-only ({} entries) — the capability-first reorg exists to EMPTY that root, so a new crate there is fresh migration debt. Create it under its capability root instead (<capability>/{{core,ports,adapters,facade}}/ or app/<product>/). If this crate genuinely cannot live anywhere else yet, the census entry must be added by hand and reviewed: the producer refuses to grow it (`--emit-legacy-freeze` without `--allow-new`).",
+                roots
+                    .iter()
+                    .find(|root| prefix_match(&crate_dir, root))
+                    .map(String::as_str)
+                    .unwrap_or_default(),
+                census.len()
+            ),
+        ));
+    }
+
+    for entry in &census {
+        if !crate_set.contains(entry) {
+            findings.insert(Finding::new(
+                "MEM-STALE-LEGACY-ROOT-BASELINE",
+                entry,
+                "legacy-root census entry is no longer a crate — that is burn-down, and it must be recorded in the SAME change that moved or deleted the crate (re-run `--emit-legacy-freeze`). A census that keeps slack it no longer needs silently pre-forgives the next crate born at that path.",
+            ));
+        }
+    }
 }
 
 /// Enforce the ADR-0562 §6 `base/`-admission rule: a `base/` crate must be depended-on by `>=3`
@@ -624,6 +733,7 @@ pub fn evaluate(policy: &Value, observed: &Value) -> Report {
         crates_checked,
         mapped_to_home,
         frozen_unmapped,
+        legacy_root_crates: legacy_root_census(policy, &crates).len(),
         violations,
     }
 }
