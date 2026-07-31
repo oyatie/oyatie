@@ -108,12 +108,27 @@ jobs:
       - name: Materialize cloud-ci generated faces
         run: rustup toolchain install && rustc --version && buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . --github-event
       - name: Upload regenerated faces
-        # BEST-EFFORT: this artifact is an intra-run CACHE, so a failed upload must not fail the
-        # producer. It did, for days: `Failed to CreateArtifact: Artifact storage quota has been
-        # hit` came from THIS step AFTER the materialization above had already succeeded, failing
-        # the job and skipping every downstream lane. A gate verdict must never be a function of a
-        # blob-store quota — the consumers materialize on a miss instead.
-        continue-on-error: true
+        # FATAL, deliberately — the ONE upload in this workflow that is not best-effort.
+        #
+        # BEST-EFFORT FOR EVIDENCE, FATAL FOR INPUTS. The other five uploads here are evidence
+        # (telemetry, operator reports, baselines a later run cold-rebuilds on a miss); none is
+        # read by anything in the same run, so a failed upload must never redden a computed
+        # verdict. THIS artifact is different: it is a declared INPUT to ~40 gate legs.
+        #
+        # Measured 2026-07-31 (run 30641618660 attempt 2): with `continue-on-error: true` here,
+        # a quota-failed upload reported step `conclusion: success` (that is what the flag does —
+        # it rewrites the conclusion while `outcome` stays `failure`), the run ended with ZERO
+        # artifacts, producer-regen went GREEN, and 30 gate legs then failed with
+        # `Artifact not found for name: generated-faces` — a confusing error 30 times over
+        # instead of one job naming the real cause. Masking an input failure is strictly worse
+        # than reporting it.
+        #
+        # This leaves a residual coupling: a quota outage still blocks the gate matrix. Closing
+        # it needs either a materialize-on-miss fallback (a new inline-shell step, correctly
+        # refused by the `automation-language-policy` merge-base ceiling) or moving the transport
+        # off rented blob storage to the in-cluster CAS. The `buck2` and `gate-affected-target-set`
+        # lanes are already immune — they materialize their own faces and no longer depend on
+        # this job at all.
         # actions/upload-artifact@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
