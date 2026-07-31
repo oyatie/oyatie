@@ -98,10 +98,8 @@
       ],
       "absorbs_current_dirs": [
         "cell",
-        "cloud/cloud-cell",
         "cloud/cell-lifecycle",
-        "cloud/cell-rebalancer",
-        "cloud/cloud-capacity"
+        "cloud/cell-rebalancer"
       ],
       "dag_node": "cell"
     },
@@ -129,10 +127,7 @@
       "seed_domains": [
         "authorization"
       ],
-      "absorbs_current_dirs": [
-        "policy",
-        "oya/policy"
-      ],
+      "absorbs_current_dirs": [],
       "dag_node": "policy-engine",
       "boundary_note": "EXTRACTED from iam (ADR-0615, founder 2026-07-10) as the 24th capability, reversing ADR-0562 §2's iam-absorbs-policy coarse collapse. ADR-0562 §7 split: OWNERS boundary (axis-policy-engine vs axis-identity) + clean port seam (the PDP consumes the iam principal; ~all consume the PDP) + this ADR amendment. Maps 1:1 to the pre-existing policy-engine DAG node (ADR-0280 §D-13; no DAG edit needed — the node and its identity/tenancy/cell + five consumer edges already exist). Only oya/policy moves; the Cedar PDP crates physically under iam/** stay iam-mapped (double-map avoidance). Precedent: AWS IAM vs Verified Permissions (Cedar, store-per-tenant); Google IAM vs Zanzibar (logically-global, physically-distributed-with-local-replicas). Not a singleton global PDP."
     },
@@ -184,7 +179,6 @@
       ],
       "absorbs_current_dirs": [
         "observability",
-        "cloud/cloud-observability",
         "oya/observability",
         "oya/diagnostics"
       ],
@@ -202,8 +196,7 @@
         "oya/ontology",
         "oya/data-pipeline",
         "oya/data-warehouse",
-        "oya/analytics",
-        "oya/search"
+        "oya/analytics"
       ],
       "dag_node": "ontology"
     },
@@ -230,8 +223,7 @@
         "compute"
       ],
       "absorbs_current_dirs": [
-        "compute",
-        "cloud/cloud-compute"
+        "compute"
       ],
       "dag_node": "compute",
       "boundary_note": "Coarse per founder ruling: compute is ONE engine (vm + k8s-on-compute + functions) with facade sub-surfaces, NOT three capabilities."
@@ -327,7 +319,6 @@
       ],
       "absorbs_current_dirs": [
         "ci",
-        "cloud/cloud-ci",
         "oya/ci-controller",
         "oya/ci-tide",
         "oya/ci-webhook-gateway"
@@ -356,7 +347,6 @@
         "billing",
         "cloud/cloud-billing",
         "cloud/cloud-billing-tax",
-        "cloud/cloud-finops",
         "oya/oya-billing",
         "oya/oya-meter",
         "oya/oya-cost",
@@ -374,7 +364,6 @@
       ],
       "absorbs_current_dirs": [
         "marketplace",
-        "cloud/cloud-marketplace",
         "oya/marketplace",
         "oya/plugin-app-store",
         "oya/developer-sdk"
@@ -390,8 +379,7 @@
       ],
       "absorbs_current_dirs": [
         "console",
-        "oya/ops-dashboard-control-center",
-        "oya/ops"
+        "oya/ops-dashboard-control-center"
       ],
       "dag_node": "console",
       "boundary_note": "RESOLVED (ADR-0615, founder 2026-07-10): the console SHELL is the substrate capability (core/ports/facade: shell, token broker, design system, nav). Ops-dashboard leaves composing 2+ capabilities (incident-command, cluster-health, finops-portal, on-call-handoff, ...) are app/ops-console/<vertical> composition members; single-capability views stay a capability facade. The shell/surface line is the ADR-0562 §3#5 2+-capability test."

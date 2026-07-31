@@ -461,3 +461,84 @@ fn virtual_workspace_manifest_is_not_a_crate() {
     assert_eq!(evaluate(&policy, &observed).crates_checked, 1);
     assert!(evaluate_keyed(&policy, &observed).is_empty());
 }
+
+/// LIVE CORPUS: every `absorbs_current_dirs` entry must name a directory that EXISTS.
+///
+/// The registry's whole job is to say which legacy dirs each capability is still absorbing — it is
+/// the ledger the strangler burns down against. Nothing asserted that those paths resolve, so a
+/// COMPLETED move left its entry behind forever and the ledger silently overstated the remaining
+/// work. Measured at the time this landed: 10 of 73 legacy-prefixed entries named directories that
+/// no longer existed, including `cloud/cloud-ci` — the same vacated tree that had the cold cache
+/// canary building an empty target set.
+///
+/// This is the reorg co-move blind spot in its purest form: the tree moved, the ledger did not, and
+/// every gate stayed green. Sibling detectors now exist for the canary's pinned targets and for the
+/// disk-reclaim runner profile; this closes the third instance.
+///
+/// Direction matters. A stale entry is BURN-DOWN that was never recorded, so removing it is always
+/// allowed and this test forces it to happen. The inverse — a live dir missing from the registry —
+/// is what MEM-NEW-LEGACY-ROOT-CRATE and the frozen census already cover.
+#[test]
+fn live_registry_absorbs_dirs_all_resolve() {
+    let root = repo_root();
+    let registry = load_json(&root.join("specs/capability-registry.json"));
+
+    let capabilities = registry
+        .get("capabilities")
+        .expect("capability-registry must carry `capabilities`");
+
+    let mut stale: Vec<String> = Vec::new();
+    let mut checked = 0usize;
+
+    let mut check = |name: &str, value: &serde_json::Value| {
+        for dir in value
+            .get("absorbs_current_dirs")
+            .and_then(|v| v.as_array())
+            .map(|a| a.as_slice())
+            .unwrap_or_default()
+        {
+            let Some(dir) = dir.as_str() else { continue };
+            checked += 1;
+            if !root.join(dir).is_dir() {
+                stale.push(format!("{name} -> {dir}"));
+            }
+        }
+    };
+
+    match capabilities {
+        serde_json::Value::Object(map) => {
+            for (name, cap) in map {
+                check(name, cap);
+            }
+        }
+        serde_json::Value::Array(list) => {
+            for cap in list {
+                let name = cap
+                    .get("name")
+                    .or_else(|| cap.get("id"))
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("<unnamed>");
+                check(name, cap);
+            }
+        }
+        other => panic!("`capabilities` must be an object or array, got {other:?}"),
+    }
+
+    // MEM-EMPTY-SCAN floor: a registry that resolved zero entries would pass vacuously, which is the
+    // exact false-green shape this test exists to prevent.
+    assert!(
+        checked > 0,
+        "no absorbs_current_dirs entries were checked — the registry shape changed and this \
+         detector is now vacuous, which reads as success while asserting nothing"
+    );
+
+    assert!(
+        stale.is_empty(),
+        "{} of {checked} `absorbs_current_dirs` entries name a directory that does NOT exist. A \
+         completed move left its ledger entry behind, so the registry overstates the remaining \
+         reorg work and nothing noticed. Removing a stale entry is burn-down and is always \
+         allowed:\n  {}",
+        stale.len(),
+        stale.join("\n  ")
+    );
+}
