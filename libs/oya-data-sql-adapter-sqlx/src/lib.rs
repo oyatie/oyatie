@@ -381,6 +381,26 @@ pub struct LiveRlsCrossTenantReport {
     pub tenant_b_visible_rows: usize,
     pub tenant_b_write_into_a_denied: bool,
     pub commit_timestamps_strictly_increase: bool,
+    /// The app role driving the probe carries neither `rolsuper` nor
+    /// `rolbypassrls`, so the RLS policy under test is actually enforced
+    /// against it. Without this the row-count assertions below could pass for
+    /// the wrong reason (fixture drift) rather than because RLS held.
+    pub app_role_lacks_bypassrls: bool,
+}
+
+/// Probe the connected role's RLS-bypass capability. Mirrors
+/// `current_role_bypassrls` in oya-data-outbox-adapter-postgres; `rolsuper`
+/// implies bypass even when `rolbypassrls` is false.
+async fn app_role_lacks_bypassrls(pool: &PgPool) -> Result<bool, DataSqlError> {
+    let row = sqlx::query(
+        "SELECT rolsuper, rolbypassrls FROM pg_roles WHERE rolname = current_user",
+    )
+    .fetch_one(pool)
+    .await
+    .map_err(sqlx_error)?;
+    let rolsuper: bool = row.try_get("rolsuper").map_err(sqlx_error)?;
+    let rolbypassrls: bool = row.try_get("rolbypassrls").map_err(sqlx_error)?;
+    Ok(!rolsuper && !rolbypassrls)
 }
 
 /// Env-gated live harness. Returns `Ok(None)` when the enable flag is
@@ -424,6 +444,10 @@ pub async fn run_live_rls_cross_tenant_probe()
         .map_err(|error| DataSqlError::Adapter(format!("pool config: {error:?}")))?;
     let client =
         SqlxDataClient::connect(&SqlxDataClientConfig::new(app_url, pool_config)?).await?;
+
+    // Non-vacuity: capture whether the app role could bypass RLS BEFORE any
+    // assertion depends on RLS holding.
+    let app_role_lacks_bypassrls = app_role_lacks_bypassrls(&client.pool).await?;
 
     let tenant_a = SessionDescriptor::tenant_data("tenant-a", "cell-001", "oyatie-data-probe")?;
     let tenant_b = SessionDescriptor::tenant_data("tenant-b", "cell-001", "oyatie-data-probe")?;
@@ -496,6 +520,7 @@ pub async fn run_live_rls_cross_tenant_probe()
         tenant_b_write_into_a_denied,
         commit_timestamps_strictly_increase: receipt_2.commit_timestamp
             > receipt_1.commit_timestamp,
+        app_role_lacks_bypassrls,
     }))
 }
 
@@ -617,6 +642,12 @@ mod tests {
             .await
             .unwrap()
             .expect("live probe enabled");
+        // Non-vacuity FIRST: a bypass-capable role would make every assertion
+        // below prove nothing about RLS.
+        assert!(
+            report.app_role_lacks_bypassrls,
+            "app role must NOT carry rolsuper/rolbypassrls or RLS is silently skipped"
+        );
         assert_eq!(report.tenant_a_visible_rows, 2);
         assert_eq!(report.tenant_b_visible_rows, 1);
         assert!(report.tenant_b_write_into_a_denied);

@@ -1052,42 +1052,12 @@ jobs:
           "${ADMIN_PSQL[@]}" -f iam/adapters/identity-scim-store-postgres/migrations/0000_runtime_role.sql
           "${ADMIN_PSQL[@]}" -f iam/adapters/identity-scim-store-postgres/migrations/0001_identity_scim_store.sql
           "${ADMIN_PSQL[@]}" -c "GRANT identity_scim_runtime TO oya_app;"
+          # Log-only role echo. The BINDING proof that these roles cannot bypass RLS is
+          # asserted in-test, fail-closed, not archived as an artifact: the shared
+          # assert_rls_enforceable() boot guard plus the per-adapter live asserts
+          # (see the crates run below). A JSON provenance blob used to be written and
+          # uploaded here; it had zero consumers and no ADR, so the assertion replaced it.
           "${ADMIN_PSQL[@]}" -c "SELECT rolname, rolsuper, rolbypassrls FROM pg_roles WHERE rolname IN ('postgres','oya_app','tenancy_lifecycle_runtime','identity_scim_runtime') ORDER BY rolname;"
-          server_version="$("${ADMIN_PSQL[@]}" -Atqc "SHOW server_version;")"
-          cat > "${RUNNER_TEMP}/live-postgres-adapters-bootstrap-provenance.json" <<JSON
-          {
-            "schema_version": 2,
-            "artifact_type": "cloud_ci_operator_artifact",
-            "artifact_id": "live-postgres-bootstrap-provenance",
-            "gate_id": "gate-live-postgres-adapters",
-            "lane": "adapters",
-            "postgres": {
-              "image": "mirror.gcr.io/library/postgres:16@sha256:33f923b05f64ca54ac4401c01126a6b92afe839a0aa0a52bc5aeb5cc958e5f20",
-              "server_version": "${server_version}",
-              "database": "oyatie",
-              "host": "127.0.0.1",
-              "port": 5432
-            },
-            "roles": [
-              {"name": "postgres", "purpose": "admin bootstrap superuser; DSN/password redacted"},
-              {"name": "oya_app", "purpose": "non-superuser NOBYPASSRLS app login; DSN/password redacted"},
-              {"name": "tenancy_lifecycle_runtime", "purpose": "tenancy runtime role granted to oya_app"},
-              {"name": "identity_scim_runtime", "purpose": "SCIM runtime role granted to oya_app"}
-            ],
-            "migrations": [
-              "tenancy/adapters/tenant-lifecycle-store-postgres/migrations/0000_runtime_role.sql",
-              "tenancy/adapters/tenant-lifecycle-store-postgres/migrations/0001_tenant_lifecycle_store.sql",
-              "iam/adapters/identity-scim-store-postgres/migrations/0000_runtime_role.sql",
-              "iam/adapters/identity-scim-store-postgres/migrations/0001_identity_scim_store.sql"
-            ],
-            "source_revision": "${GITHUB_SHA}",
-            "retention_and_pii": {
-              "retention_days": 30,
-              "pii": "none; local CI database metadata and repo paths only",
-              "secret_redaction": "admin/app DSNs, passwords, tenant secrets, idempotency keys, and tokens are not emitted"
-            }
-          }
-          JSON
       - name: buck2 test — durable adapters (admin=superuser, app=app-role)
         env:
           OYA_DATA_LIVE_POSTGRES: "1"
@@ -1119,20 +1089,6 @@ jobs:
           buck2 test --local-only --num-threads 1 //tenancy/adapters/tenant-lifecycle-store-postgres:tenancy-tenant-lifecycle-store-postgres-live -- "${LIVE_ENV[@]}"
           buck2 test --local-only --num-threads 1 //iam/adapters/identity-scim-store-postgres:identity-scim-store-postgres-unittest -- "${LIVE_ENV[@]}"
           buck2 test --local-only --num-threads 1 //iam/adapters/identity-scim-store-postgres:identity-scim-store-postgres-live -- "${LIVE_ENV[@]}"
-      - name: Upload live-postgres adapter bootstrap provenance
-        # FAILURE-ONLY. "Provenance" here is test-bootstrap provenance, not release provenance:
-        # SLSA-style attestation is retained for artifacts that SHIP, and nothing ships from this
-        # job. On a green run it records that a database came up; on a red one it says how the
-        # bootstrap differed, which is the only time anyone reads it.
-        if: failure()
-        # actions/upload-artifact@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
-        with:
-          name: live-postgres-adapters-bootstrap-provenance
-          path: ${{ runner.temp }}/live-postgres-adapters-bootstrap-provenance.json
-          retention-days: 30
-          if-no-files-found: warn
-
   gate-live-postgres-facades:
     name: "gate-live-postgres-facades (durable facades: tenant lifecycle / SCIM, #901)"
     # HELD on hosted deliberately: this job uses a `services:` container, which needs a
@@ -1206,42 +1162,10 @@ jobs:
           "${ADMIN_PSQL[@]}" -f iam/adapters/identity-scim-store-postgres/migrations/0000_runtime_role.sql
           "${ADMIN_PSQL[@]}" -f iam/adapters/identity-scim-store-postgres/migrations/0001_identity_scim_store.sql
           "${ADMIN_PSQL[@]}" -c "GRANT identity_scim_runtime TO oya_app;"
+          # Log-only role echo; see the adapters job above. The binding no-bypass proof is
+          # the fail-closed assert_rls_enforceable() boot guard the facades run below hit,
+          # not a retained artifact.
           "${ADMIN_PSQL[@]}" -c "SELECT rolname, rolsuper, rolbypassrls FROM pg_roles WHERE rolname IN ('postgres','oya_app','tenancy_lifecycle_runtime','identity_scim_runtime') ORDER BY rolname;"
-          server_version="$("${ADMIN_PSQL[@]}" -Atqc "SHOW server_version;")"
-          cat > "${RUNNER_TEMP}/live-postgres-facades-bootstrap-provenance.json" <<JSON
-          {
-            "schema_version": 2,
-            "artifact_type": "cloud_ci_operator_artifact",
-            "artifact_id": "live-postgres-bootstrap-provenance",
-            "gate_id": "gate-live-postgres-facades",
-            "lane": "facades",
-            "postgres": {
-              "image": "mirror.gcr.io/library/postgres:16@sha256:33f923b05f64ca54ac4401c01126a6b92afe839a0aa0a52bc5aeb5cc958e5f20",
-              "server_version": "${server_version}",
-              "database": "oyatie",
-              "host": "127.0.0.1",
-              "port": 5432
-            },
-            "roles": [
-              {"name": "postgres", "purpose": "admin bootstrap superuser; DSN/password redacted"},
-              {"name": "oya_app", "purpose": "non-superuser NOBYPASSRLS app login; DSN/password redacted"},
-              {"name": "tenancy_lifecycle_runtime", "purpose": "tenancy runtime role granted to oya_app"},
-              {"name": "identity_scim_runtime", "purpose": "SCIM runtime role granted to oya_app"}
-            ],
-            "migrations": [
-              "tenancy/adapters/tenant-lifecycle-store-postgres/migrations/0000_runtime_role.sql",
-              "tenancy/adapters/tenant-lifecycle-store-postgres/migrations/0001_tenant_lifecycle_store.sql",
-              "iam/adapters/identity-scim-store-postgres/migrations/0000_runtime_role.sql",
-              "iam/adapters/identity-scim-store-postgres/migrations/0001_identity_scim_store.sql"
-            ],
-            "source_revision": "${GITHUB_SHA}",
-            "retention_and_pii": {
-              "retention_days": 30,
-              "pii": "none; local CI database metadata and repo paths only",
-              "secret_redaction": "admin/app DSNs, passwords, tenant secrets, idempotency keys, and tokens are not emitted"
-            }
-          }
-          JSON
       - name: buck2 test — durable facades (live test = app-role, non-live = in-memory)
         env:
           OYA_BACKBONE_LIVE_POSTGRES: "1"
@@ -1257,18 +1181,6 @@ jobs:
           buck2 test --local-only --num-threads 1 //iam/facade/identity-service:iam-identity-service-e2e -- "${FACADE_ENV[@]}"
           buck2 test --local-only --num-threads 1 //tenancy/facade/tenant-lifecycle-app:tenancy-tenant-lifecycle-app-unittest -- "${FACADE_ENV[@]}"
           buck2 test --local-only --num-threads 1 //tenancy/facade/tenant-lifecycle-app:tenancy-tenant-lifecycle-app-acceptance -- "${FACADE_ENV[@]}"
-      - name: Upload live-postgres facade bootstrap provenance
-        # FAILURE-ONLY, same reasoning as the adapter job above: test-bootstrap provenance, not
-        # release provenance. Nothing ships from this job.
-        if: failure()
-        # actions/upload-artifact@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
-        with:
-          name: live-postgres-facades-bootstrap-provenance
-          path: ${{ runner.temp }}/live-postgres-facades-bootstrap-provenance.json
-          retention-days: 30
-          if-no-files-found: warn
-
   # ── THE FAN-IN. This is the single required context branch protection keys on. It has NO
   #    command of its own (Principle 1 — it NEVER re-runs a narrower subset): it is green IFF
   #    every gate lane above is green. `needs:` lists EVERY gate job; the gate-registration
