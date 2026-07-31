@@ -424,72 +424,34 @@ fn retirement_control_plane_has_a_dedicated_owners_boundary() {
     );
 }
 
+/// The live-Postgres lanes used to ARCHIVE a bootstrap-provenance JSON blob whose real intent
+/// was to show the RLS tests were not vacuous — that they ran as a NOSUPERUSER/NOBYPASSRLS role
+/// and so were capable of failing. Nothing ever downloaded it and no ADR governed it, so the
+/// intent moved to where it can actually fail the build: a fail-closed assertion in each live
+/// path. This test keeps that from silently rotting back into an unasserted artifact —
+/// `oya-data-sql-adapter-sqlx` had no such assertion at all until the archive was removed.
 #[test]
-fn live_postgres_lane_emits_redacted_bootstrap_provenance_artifact() {
+fn every_live_postgres_path_asserts_rls_is_enforceable() {
     let root = repo_root();
-    let workflow_path = root.join(".github/workflows/oya-ci-required.yml");
-    let workflow = fs::read_to_string(&workflow_path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", workflow_path.display()));
-
-    let artifact_id = "\"artifact_id\": \"live-postgres-bootstrap-provenance\"";
-    let start = workflow
-        .find(artifact_id)
-        .expect("live-postgres bootstrap provenance artifact must be emitted");
-    let rest = &workflow[start..];
-    let end = rest
-        .find("\n          JSON")
-        .expect("bootstrap provenance heredoc must terminate");
-    let provenance_block = &rest[..end];
-
-    assert!(
-        provenance_block.contains("0000_runtime_role.sql")
-            && provenance_block.contains("0001_identity_scim_store.sql")
-            && provenance_block.contains("\"source_revision\": \"${GITHUB_SHA}\""),
-        "bootstrap provenance must include ordered migrations and source revision: {provenance_block}"
-    );
-
-    // The image is checked by DERIVING it from the lane's own service definition rather than
-    // hardcoding a literal. The invariant that matters is that provenance records what was
-    // ACTUALLY pulled — not that the repo uses one particular registry. The previous literal
-    // (`"image": "postgres:16"`) made a registry change read as a provenance defect, and it
-    // could never have caught the failure it should catch: provenance drifting away from the
-    // image the service really runs.
-    let service_images: std::collections::BTreeSet<&str> = workflow
-        .lines()
-        .filter_map(|line| line.trim().strip_prefix("image:"))
-        .map(str::trim)
-        .filter(|value| !value.is_empty())
-        .collect();
-    assert!(
-        !service_images.is_empty(),
-        "no service `image:` found in {} — an empty set would make the check below vacuous",
-        workflow_path.display()
-    );
-
-    let marker = "\"image\": \"";
-    let image_start = provenance_block
-        .find(marker)
-        .map(|i| i + marker.len())
-        .expect("bootstrap provenance must record an image");
-    let recorded_image = &provenance_block[image_start..]
-        [..provenance_block[image_start..].find('"').expect("unterminated image value")];
-    assert!(
-        service_images.contains(recorded_image),
-        "bootstrap provenance records image {recorded_image:?}, which is not any image the \
-         workflow actually pulls ({service_images:?}) — provenance must not drift from reality"
-    );
-    assert!(
-        !provenance_block.contains("postgres://")
-            && !provenance_block.contains("postgres:postgres")
-            && !provenance_block.contains("oya_app:app"),
-        "bootstrap provenance must not emit DSNs or credentials: {provenance_block}"
-    );
-    assert!(
-        workflow.contains("name: live-postgres-adapters-bootstrap-provenance")
-            && workflow.contains("name: live-postgres-facades-bootstrap-provenance")
-            && workflow.contains("retention-days: 30"),
-        "bootstrap provenance must be uploaded as a durable retained operator artifact"
-    );
+    // Each source below backs one target the gate-live-postgres-* jobs run, and must carry
+    // either its own rolsuper/rolbypassrls probe or the shared boot guard.
+    for relative_path in [
+        "libs/oya-data-sql-adapter-sqlx/src/lib.rs",
+        "libs/oya-data-outbox-adapter-postgres/src/lib.rs",
+        "tenancy/adapters/tenant-lifecycle-store-postgres/src/lib.rs",
+        "iam/adapters/identity-scim-store-postgres/src/lib.rs",
+        "tenancy/facade/tenant-lifecycle-app/src/lib.rs",
+        "iam/facade/identity-service/src/server.rs",
+    ] {
+        let path = root.join(relative_path);
+        let source =
+            fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
+        assert!(
+            source.contains("rolbypassrls") || source.contains("assert_rls_enforceable"),
+            "{relative_path} drives a live-Postgres CI target but asserts nothing about RLS \
+             bypass; without it the cross-tenant-deny tests can pass vacuously"
+        );
+    }
 }
 
 /// The live workflow corpus inline-shell key set must equal the committed frozen baseline EXACTLY
