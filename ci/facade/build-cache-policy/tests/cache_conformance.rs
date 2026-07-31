@@ -378,27 +378,27 @@ fn required_workflow_cache_hit_report_is_binding() {
         "the cache-hit telemetry guard must be binding; missing counters or 0% warm hits cannot pass"
     );
 
-    let upload_step = text
-        .split("- name: Upload cache-hit telemetry artifact")
-        .nth(1)
-        .and_then(|tail| {
-            tail.split("- name: Upload runner disk reclaim operator artifact")
-                .next()
-        })
-        .expect("required workflow must contain the cache-hit artifact upload step");
-    assert!(
-        upload_step.contains("name: cache-hit-report-buck2-lane")
-            && upload_step.contains("path: /tmp/cache-hit-report.json"),
-        "the cache-hit report artifact must be uploaded under the stable diagnostic name/path"
-    );
-    assert!(
-        upload_step.contains("if-no-files-found: error"),
-        "a missing cache-hit report must be RED, not a warning, once the required lane ran"
-    );
-    assert!(
-        !upload_step.contains("continue-on-error"),
-        "uploading the cache-hit report must stay binding so diagnostics cannot silently disappear"
-    );
+    // DELETED: three assertions that matched the `Upload cache-hit telemetry artifact` step's own
+    // YAML literals (`name: cache-hit-report-buck2-lane`, `path: /tmp/cache-hit-report.json`,
+    // `if-no-files-found: error`) and claimed they made the report "binding". They asserted
+    // nothing. The upload step is `if: failure()`, so on a green lane it never runs; on a red
+    // lane the job is already failing, so `if-no-files-found: error` cannot change any verdict
+    // ever. `cache-hit-report-buck2-lane` also has ZERO consumers — it appears only in the
+    // workflow that produces it and in this test — so the artifact going missing breaks nothing.
+    // The step's own comment in oya-ci-required.yml says it outright: "`assert-warm` above is the
+    // enforcing check; this upload never was." Those three asserts could only fail if somebody
+    // edited the YAML, which converted "we have a gate for that" into false assurance.
+    //
+    // WHERE THE REAL ASSURANCE LIVES — do not re-add a YAML-literal check here:
+    //   * that the report is PRODUCED and a cold/0%-hit warm lane goes RED: the binding
+    //     `Cache-hit telemetry + warm-mode guard (ADR-0560)` step, which is `if: always()` and
+    //     carries no `continue-on-error`. Its wiring is asserted above in THIS test; its
+    //     behaviour is asserted directly against the kernel by
+    //     `cache_hit_guard_behavior_covers_bypass_warm_and_malformed_records` below.
+    //   * that a stale/missing invocation record cannot pass: `app::assert_warm_cache_participation`,
+    //     exercised over bypass/warm/zero-hit/malformed records in that same test.
+    // Artifact retention and upload success are runtime-only properties of a failure-path
+    // diagnostic. A pure test cannot observe them, and nothing depends on them.
 }
 
 #[test]
