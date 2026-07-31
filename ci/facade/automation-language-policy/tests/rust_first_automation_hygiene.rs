@@ -484,12 +484,66 @@ fn live_postgres_lane_emits_redacted_bootstrap_provenance_artifact() {
             && !provenance_block.contains("oya_app:app"),
         "bootstrap provenance must not emit DSNs or credentials: {provenance_block}"
     );
-    assert!(
-        workflow.contains("name: live-postgres-adapters-bootstrap-provenance")
-            && workflow.contains("name: live-postgres-facades-bootstrap-provenance")
-            && workflow.contains("retention-days: 30"),
-        "bootstrap provenance must be uploaded as a durable retained operator artifact"
-    );
+    // REPLACED: this used to assert the two upload step names plus a bare
+    // `workflow.contains("retention-days: 30")`, under the claim "bootstrap provenance must be
+    // uploaded as a durable retained operator artifact". Both halves were false assurance.
+    // The retention match was UNANCHORED — six unrelated steps in this workflow carry
+    // `retention-days: 30`, so it stayed green even if BOTH provenance uploads dropped retention
+    // entirely. And "durable retained" is not what the workflow provides: both uploads are
+    // `if: failure()` with `if-no-files-found: warn`, i.e. best-effort triage evidence that is
+    // deliberately absent on every green run. Neither assert could fail unless somebody edited
+    // the YAML, and neither could fail when the property actually broke.
+    //
+    // What a pure test CAN observe is drift between two independent facts: the path the lane's
+    // heredoc writes and the path the upload step publishes. That drift is otherwise invisible
+    // forever — `if-no-files-found: warn` uploads nothing, warns, and stays green — and it would
+    // silently discard exactly the provenance document the rest of this test validates above.
+    // Assert the cross-reference, never either literal on its own.
+    fn temp_normalized(path: &str) -> String {
+        path.trim()
+            .replace("${{ runner.temp }}", "$TMP")
+            .replace("${RUNNER_TEMP}", "$TMP")
+    }
+
+    for lane in ["adapters", "facades"] {
+        let artifact = format!("live-postgres-{lane}-bootstrap-provenance");
+
+        let written = workflow
+            .lines()
+            .find_map(|line| {
+                let path = line.trim().strip_prefix("cat > \"")?.split('"').next()?;
+                path.contains(&artifact).then(|| temp_normalized(path))
+            })
+            .unwrap_or_else(|| panic!("no heredoc in the {lane} lane writes {artifact}"));
+
+        let upload_step = workflow
+            .split(&format!("name: {artifact}\n"))
+            .nth(1)
+            .unwrap_or_else(|| {
+                panic!("the {lane} lane writes {artifact} but never uploads it")
+            });
+        let uploaded = upload_step
+            .lines()
+            .find_map(|line| line.trim().strip_prefix("path:"))
+            .map(temp_normalized)
+            .unwrap_or_else(|| panic!("the {artifact} upload step declares no `path:`"));
+
+        assert_eq!(
+            written, uploaded,
+            "the {artifact} upload publishes {uploaded:?}, but the {lane} lane actually writes \
+             {written:?} — under `if-no-files-found: warn` that drift uploads nothing, warns, and \
+             stays green, silently discarding the provenance validated above"
+        );
+    }
+
+    // NOT ASSERTED HERE, deliberately — do not re-add a YAML-literal check for these:
+    //   * that provenance is actually retained/downloadable after a run. Runtime-only, and the
+    //     upload is `if: failure()` best-effort by construction; no consumer reads it (the
+    //     artifact name appears only in oya-ci-required.yml and in this test).
+    //   * that the bootstrap SUCCEEDED. That is the live-postgres job's own conclusion —
+    //     `gate-live-postgres-adapters` / `gate-live-postgres-facades` in
+    //     .github/workflows/oya-ci-required.yml, which are `needs:` of the `oya-ci-required`
+    //     fan-in job. Provenance is triage evidence for that verdict, never the verdict.
 }
 
 /// The live workflow corpus inline-shell key set must equal the committed frozen baseline EXACTLY
