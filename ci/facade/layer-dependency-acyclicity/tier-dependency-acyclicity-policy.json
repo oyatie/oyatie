@@ -1,5 +1,5 @@
 {
-  "_comment": "Policy-as-data for the cloud-ci-tier-dependency-acyclicity gate (Phase-0 capability-first reorg; ADR-0245/0280/0562). DATA, not code: the governed crate-root globs, the tier'd service roots, the unclassified meta roots, the ADR-0280 S-rank order, the false-green floor, and the enforcement mode. The Rust kernel hardcodes no repo fact; a different repo adopts the gate by repointing this policy. crate_root_globs mirror the root Cargo.toml workspace members (FRIC-1781069288/ADR-0538 globbed membership); the canonical resolver remains libs/oya-workspace-members-kernel — this list is the gate's own scan floor, kept in lockstep by the workspace-glob-coverage gate. enforcement is born advisory-baseline; flip to blocking only when tier-dependency-acyclicity-baseline.json reaches zero violations (post-strangler).",
+  "_comment": "Policy-as-data for the cloud-ci-tier-dependency-acyclicity gate (Phase-0 capability-first reorg; ADR-0245/0280/0562). DATA, not code: the governed crate-root globs, the tier'd service roots, the unclassified meta roots, the ADR-0280 S-rank order, the false-green floor, and the enforcement mode. The Rust kernel hardcodes no repo fact; a different repo adopts the gate by repointing this policy. crate_root_globs mirror the root Cargo.toml workspace members (FRIC-1781069288/ADR-0538 globbed membership); the canonical resolver remains libs/oya-workspace-members-kernel \u2014 this list is the gate's own scan floor. W2 (ADR-0562 \u00a710.29): its ROOT coverage is now DERIVED \u2014 the cross-artifact-agreement registry\u21c4derived-policy sync check requires a glob rooted at every capability root and every crate-owning meta dir, matched on the glob's first path segment, so a crate moved into a destination root can no longer leave the tier graph silently. The same wave closed the measured drift against the root Cargo.toml workspace members (tools/*-app and governance/corpus/* were workspace members with no glob here). enforcement is born advisory-baseline; flip to blocking only when tier-dependency-acyclicity-baseline.json reaches zero violations (post-strangler).",
   "gate_id": "cloud-ci-tier-dependency-acyclicity",
   "doctrine_adrs": [
     "ADR-0245",
@@ -38,11 +38,17 @@
     "billing/*/*",
     "intelligence/*/*",
     "policy/*/*",
-    "os/*/*"
+    "os/*/*",
+    "app/*/*",
+    "base/*/*",
+    "kernel/*/*",
+    "tools/*-app",
+    "governance/corpus/*"
   ],
   "service_roots": [
     "cloud",
-    "oya"
+    "oya",
+    "app"
   ],
   "unclassified_roots": [
     "libs",
@@ -71,7 +77,10 @@
     "billing",
     "intelligence",
     "policy",
-    "os"
+    "os",
+    "base",
+    "governance",
+    "kernel"
   ],
   "stratum_rank_order": [
     "S0",

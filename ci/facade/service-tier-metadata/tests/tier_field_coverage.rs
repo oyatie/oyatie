@@ -50,6 +50,63 @@ fn policy(root: &Path) -> Value {
     load_json(&gate_dir(root).join("tier-field-coverage-policy.json"))
 }
 
+/// Every `exclude_path_prefixes` entry must still shadow at least one REAL
+/// `manifest.json`, and must never shadow a top-level service manifest. Without
+/// this, an exclusion added for a test fixture rots into a permanent unaudited
+/// blind spot the moment the fixture moves — the same failure mode
+/// scan-root-liveness prevents for forward declarations.
+#[test]
+fn every_manifest_exclusion_is_live_and_shadows_no_service_manifest() {
+    let root = repo_root();
+    let policy = policy(&root);
+    let roots: Vec<String> = policy["governed_service_roots"]
+        .as_array()
+        .expect("governed_service_roots")
+        .iter()
+        .filter_map(|v| v.as_str().map(str::to_owned))
+        .collect();
+    let prefixes: Vec<String> = policy["exclude_path_prefixes"]
+        .as_array()
+        .expect("exclude_path_prefixes must be declared (may be empty)")
+        .iter()
+        .filter_map(|v| v.as_str().map(str::to_owned))
+        .collect();
+
+    // Re-walk WITHOUT the exclusions so the shadowed set is observable.
+    let unfiltered = {
+        let mut open = policy.clone();
+        open["exclude_path_prefixes"] = Value::Array(Vec::new());
+        collect_manifests(&root, &open).expect("unfiltered collection")
+    };
+    let all: Vec<String> = unfiltered["manifests"]
+        .as_array()
+        .expect("manifests")
+        .iter()
+        .filter_map(|m| m["path"].as_str().map(str::to_owned))
+        .collect();
+
+    for prefix in &prefixes {
+        let shadowed: Vec<&String> = all.iter().filter(|p| p.starts_with(prefix)).collect();
+        assert!(
+            !shadowed.is_empty(),
+            "exclusion `{prefix}` shadows no manifest.json — remove it; a stale exclusion is a \
+             permanent unaudited blind spot"
+        );
+        for path in shadowed {
+            let depth = path.split('/').count();
+            let is_service_manifest = depth == 3
+                && roots
+                    .iter()
+                    .any(|r| path.split('/').next() == Some(r.as_str()));
+            assert!(
+                !is_service_manifest,
+                "exclusion `{prefix}` shadows TOP-LEVEL service manifest `{path}` — exclusions \
+                 exist for test fixtures, never for a governed service"
+            );
+        }
+    }
+}
+
 #[test]
 fn live_service_corpus_is_born_blocking_green() {
     let root = repo_root();

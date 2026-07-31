@@ -2496,6 +2496,12 @@ fn live_registry_policy_corpus(root: &Path) -> Value {
                     "ci/facade/layer-dependency-acyclicity/tier-dependency-acyclicity-policy.json",
                 )),
             },
+            "tier_field_coverage": {
+                "path": "ci/facade/service-tier-metadata/tier-field-coverage-policy.json",
+                "document": load_json(
+                    &root.join("ci/facade/service-tier-metadata/tier-field-coverage-policy.json"),
+                ),
+            },
         },
     })
 }
