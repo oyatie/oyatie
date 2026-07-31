@@ -370,10 +370,6 @@
       "prefix": ".github/workflows/cache-integrity-canary.yml"
     },
     {
-      "anchor": "ADR-0280 §D-3: the substrate-dependency-dag acyclicity lane workflow (oya-check-substrate-dependency-dag-acyclicity) — the ADR-0280-prescribed CI surface that runs the Tarjan/Kahn validator on every PR targeting dev; named explicitly in ADR-0280 §status prerequisite #3 + §D-3",
-      "prefix": ".github/workflows/check-substrates.yml"
-    },
-    {
       "anchor": "ADR-0555 ownership seed: the workflows tree's OWNERS marker (cloud-ci-platform) — added with ADR-0560's canary workflow so new workflow files are born owned",
       "prefix": ".github/workflows/OWNERS"
     },
