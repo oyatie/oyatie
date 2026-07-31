@@ -115,7 +115,19 @@ fn cmd_manifest(args: &[String]) -> Result<ExitCode, String> {
             context: format!("load committed plan {}", p.display()),
             message,
         })?;
-        Ok(plan.moves.iter().map(|m| m.old_path.clone()).collect())
+        // Artifact old_paths participate in the landed probe alongside crate moves. Without them an
+        // ARTIFACT-ONLY plan (`moves: []`, the PR-B backfill shape that model.rs:119-128 explicitly
+        // blesses) yields an EMPTY probe input, and `plan_is_landed` returns false for empty input —
+        // so such a plan is ACTIVE FOREVER and can never self-heal. Two of them committed would make
+        // `select_move_plan` raise MultipleMovePlans, and that error is raised from step 1 of the
+        // UNIVERSAL materializer, fail-closed, on every CI leg and every local gate lane — wedging
+        // every subsequent PR in the repo. The validator already accepted this plan shape; only the
+        // landed probe was never extended to it.
+        //
+        // `old_dir_absent_at_merge_base` is path-agnostic (`git ls-tree -r --name-only <rev> -- <p>`
+        // matches a file pathspec as well as a directory), so an artifact old_path that names a FILE
+        // probes correctly and needs no separate handling.
+        Ok(oya_reorg_codemod_app::plan_probe_paths(&plan))
     };
     let plan_path = oya_reorg_codemod_app::resolve_effective_active_move_plan(
         plan_path,

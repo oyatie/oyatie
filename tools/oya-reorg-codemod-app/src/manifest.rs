@@ -16,7 +16,7 @@
 
 use std::path::{Path, PathBuf};
 
-use crate::model::CodemodError;
+use crate::model::{CodemodError, MovePlan};
 
 /// The conventional committed-plan directory, repo-relative.
 pub const REORG_PLAN_DIR: &str = "specs/reorg";
@@ -122,6 +122,26 @@ pub fn resolve_effective_move_plan(
 /// plan only REMOVES relabel pairs (never adds one), and a genuinely-pending plan (any old crate-dir
 /// still present at the merge-base) is NEVER excluded, so the >1-PENDING-move fail-closed guard is
 /// preserved (and sharpened — it no longer false-positives on stale-landed leftovers).
+/// The paths a plan contributes to the LANDED probe: crate-move old dirs PLUS artifact old paths.
+///
+/// Exists as its own function because the defect it fixes lived in the caller, not in
+/// `plan_is_landed`. An ARTIFACT-ONLY plan (`moves: []`) previously produced an EMPTY probe input,
+/// and `plan_is_landed` is false for empty input — so the plan stayed ACTIVE forever, could never
+/// self-heal, and a second one would raise `MultipleMovePlans` from step 1 of the universal
+/// materializer (fail-closed, every CI leg and every local gate lane), wedging every subsequent PR.
+/// `model.rs` already blessed the artifact-only shape; only this probe was never extended to it.
+///
+/// Takes the WHOLE plan rather than two path slices on purpose: the defect was a caller deriving
+/// the probe input from `moves` alone, so a signature that still lets a caller pass `&[]` for the
+/// artifact side leaves the same defect reachable. One argument, no way to under-supply it.
+pub fn plan_probe_paths(plan: &MovePlan) -> Vec<String> {
+    plan.moves
+        .iter()
+        .map(|m| m.old_path.clone())
+        .chain(plan.artifacts.iter().map(|a| a.old_path.clone()))
+        .collect()
+}
+
 pub fn plan_is_landed(
     old_crate_dirs: &[String],
     old_dir_absent_at_merge_base: &impl Fn(&str) -> bool,
@@ -326,6 +346,91 @@ mod tests {
             !plan_is_landed(&["old/a".to_owned(), "old/b".to_owned()], &only_a_absent),
             "any pending old dir keeps the plan active"
         );
+    }
+
+    fn crate_move(old: &str) -> crate::model::CrateMove {
+        crate::model::CrateMove {
+            old_path: old.to_owned(),
+            new_path: format!("moved/{old}"),
+            old_cargo_name: "oya-old".to_owned(),
+            new_cargo_name: "new".to_owned(),
+        }
+    }
+
+    fn artifact_only(old: &str) -> MovePlan {
+        MovePlan {
+            capability: "backfill".to_owned(),
+            moves: vec![],
+            artifacts: vec![crate::model::ArtifactMove {
+                old_path: old.to_owned(),
+                new_path: format!("moved/{old}"),
+            }],
+        }
+    }
+
+    /// The probe input is derived from the WHOLE plan: crate-move old dirs PLUS artifact old paths.
+    /// An artifact-ONLY plan (`moves: []`) must contribute its artifact old paths — deriving the
+    /// probe from `moves` alone yields EMPTY, and `plan_is_landed` is false for empty, so the plan
+    /// would be ACTIVE FOREVER and could never self-heal.
+    #[test]
+    fn artifact_only_plan_probes_its_artifact_paths() {
+        let plan = artifact_only("cloud/cloud-iam/observability/slos/iam.openslo.yaml");
+        let probe = plan_probe_paths(&plan);
+        assert_eq!(
+            probe,
+            vec!["cloud/cloud-iam/observability/slos/iam.openslo.yaml".to_owned()],
+            "an artifact-only plan must contribute a NON-EMPTY probe input"
+        );
+        let absent = |_p: &str| true;
+        assert!(
+            plan_is_landed(&probe, &absent),
+            "an artifact-only plan whose old paths are absent at the merge-base IS landed"
+        );
+
+        // Mixed plan: both sides contribute, moves first (deterministic order).
+        let mixed = MovePlan {
+            capability: "iam".to_owned(),
+            moves: vec![crate_move("libs/oya-iam-domain")],
+            artifacts: vec![crate::model::ArtifactMove {
+                old_path: "cloud/cloud-iam/slos/iam.openslo.yaml".to_owned(),
+                new_path: "iam/slos/iam.openslo.yaml".to_owned(),
+            }],
+        };
+        assert_eq!(
+            plan_probe_paths(&mixed),
+            vec![
+                "libs/oya-iam-domain".to_owned(),
+                "cloud/cloud-iam/slos/iam.openslo.yaml".to_owned(),
+            ]
+        );
+    }
+
+    /// THE WEDGE, end-to-end through the selector. Two committed artifact-only plans, one already
+    /// landed: the landed one must be excluded so the pending one is selected. With a moves-only
+    /// probe BOTH are permanently active and this raises `MultipleMovePlans` — an error step 1 of
+    /// the UNIVERSAL materializer raises fail-closed on every CI leg and every local gate lane,
+    /// wedging every subsequent PR in the repo until a human deletes a plan file.
+    #[test]
+    fn two_artifact_only_plans_one_landed_do_not_wedge_the_repo() {
+        let landed_plan = PathBuf::from("specs/reorg/iam-backfill-move-plan.json");
+        let pending_plan = PathBuf::from("specs/reorg/ci-backfill-move-plan.json");
+        let load = |p: &Path| -> Result<Vec<String>, CodemodError> {
+            let plan = if p.ends_with("iam-backfill-move-plan.json") {
+                artifact_only("cloud/cloud-iam/slos/iam.openslo.yaml")
+            } else {
+                artifact_only("cloud/cloud-ci/slos/ci.openslo.yaml")
+            };
+            Ok(plan_probe_paths(&plan))
+        };
+        let old_dir_absent = |p: &str| p == "cloud/cloud-iam/slos/iam.openslo.yaml";
+        let selected = select_active_move_plan(
+            &[landed_plan, pending_plan.clone()],
+            load,
+            old_dir_absent,
+        )
+        .expect("a landed artifact-only plan must not wedge the single-plan guard")
+        .expect("the pending artifact-only plan is selected");
+        assert_eq!(selected, pending_plan);
     }
 
     /// MUST-PASS #5: a stale LANDED plan is excluded BEFORE the single-plan guard, so it can no
