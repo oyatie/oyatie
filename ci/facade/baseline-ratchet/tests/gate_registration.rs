@@ -1009,9 +1009,17 @@ fn windows_workspace_resolver_differential_is_a_buck2_matrix_leg() {
     // YAML single-quoted workflow scalars escape PowerShell's literal quote as `''`; inspect
     // the decoded script shape so the guard validates execution semantics, not YAML spelling.
     let gate_job = workflow_job(&workflow, "gate").replace("''", "'");
+    // Assert the MECHANISM (runner comes from the matrix, with a fallback), not which runner
+    // label happens to back the fallback today. This previously pinned the literal
+    // `|| 'ubuntu-latest'`, which made it fail the moment the required lane moved to the owned
+    // arm64 fleet — an infrastructure change that does not touch this guard's actual invariant.
+    // The `matrix.os` hatch is the load-bearing part: it is how the one windows-latest leg keeps
+    // requesting Windows while every other leg takes the default runner. The windows entry itself
+    // is asserted separately below, so pinning the fallback here bought no coverage.
     assert!(
-        gate_job.contains("runs-on: ${{ matrix.os || 'ubuntu-latest' }}"),
-        "the reusable gate matrix must select its runner from the matrix"
+        gate_job.contains("runs-on: ${{ matrix.os || '"),
+        "the reusable gate matrix must select its runner from the matrix (runs-on: \
+         ${{{{ matrix.os || '<default>' }}}}), so a per-leg `os:` can override the default"
     );
     let windows_entry = windows_resolver_matrix_entry(&gate_job)
         .expect("the Windows resolver differential must be one matrix.include entry");

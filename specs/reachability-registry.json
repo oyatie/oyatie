@@ -346,6 +346,10 @@
       "prefix": "third-party/"
     },
     {
+      "anchor": "ADR-0630 D4 (Artifact accounting): the baked owned-runner image recipe consumed by the oya-arm64 ARC scale set — buck2 + the pinned Rust toolchain + clang/lld + pwsh (the required lane's gate matrix runs `shell: pwsh`, which the upstream actions-runner image does not ship); base-image digest pinned and arch-agnostic via uname -m; ownership seed infra/ci/runner-image/OWNERS (cloud-ci-platform)",
+      "prefix": "infra/ci/runner-image/"
+    },
+    {
       "anchor": "ADR-0560 D1: NativeLink CAS deployable artifacts — the warm-substrate manifests consumed at cluster bring-up (GitOps apply); keyed mTLS boundary + SeaweedFS S3 backing per the ADR; ownership seed infra/nativelink/OWNERS (cloud-ci-platform)",
       "prefix": "infra/nativelink/"
     },
