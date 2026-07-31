@@ -108,11 +108,47 @@ fn named_job_step<'a>(job: &'a str, name: &str) -> &'a str {
     named_workflow_step(job, name)
 }
 
+/// Drop whole-line YAML comments so the counting assertions below measure EFFECTIVE workflow
+/// content, never prose.
+///
+/// These assertions count raw substrings, and a comment is part of that text — so a comment that
+/// merely QUOTES an asserted literal silently pushes the count to 2 and reds the gate. That is not
+/// hypothetical: #1469 added a comment documenting the failure string
+/// `Artifact not found for name: generated-faces`, which made `name: generated-faces` occur twice
+/// inside the producer's upload step. This gate then reported a workflow-topology defect that did
+/// not exist, on a workflow whose topology was correct.
+///
+/// A gate whose verdict depends on comment prose is measuring the wrong thing. Documenting a
+/// string must never be indistinguishable from declaring it. The second half of this same test
+/// already had the right discipline (exact-line equality against `line.trim()`); this extends it
+/// to the substring assertions rather than leaving two standards in one file.
+///
+/// Only WHOLE-LINE comments are dropped. A trailing `#` inside a value is left alone: stripping it
+/// needs a YAML-aware scanner, and no assertion here targets one.
+fn effective_yaml(text: &str) -> String {
+    text.lines()
+        .filter(|line| !line.trim_start().starts_with('#'))
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
+fn count_effective(haystack: &str, needle: &str) -> usize {
+    effective_yaml(haystack).match_indices(needle).count()
+}
+
 fn assert_occurs_exactly_once(haystack: &str, needle: &str) {
     assert_eq!(
-        haystack.match_indices(needle).count(),
+        count_effective(haystack, needle),
         1,
-        "{needle:?} must occur exactly once in the producer step"
+        "{needle:?} must occur exactly once (comments excluded)"
+    );
+}
+
+fn assert_absent(haystack: &str, needle: &str, why: &str) {
+    assert_eq!(
+        count_effective(haystack, needle),
+        0,
+        "{needle:?} must NOT appear (comments excluded): {why}"
     );
 }
 
@@ -723,8 +759,36 @@ fn broad_workflow_consumers_require_the_producer_artifact_and_keep_the_merge_bas
         assert_occurs_exactly_once(upload, path);
     }
 
+    // THE INVARIANT: a broad consumer must HOLD the generated faces before it tests. That is
+    // unchanged. What changed (#1467) is that the three consumers no longer satisfy it the same
+    // way, so asserting one mechanism for all three would pin an architecture the repo has left.
+    //
+    //   `gate`      — a MERE READER. It never materializes, so it must RECEIVE the faces:
+    //                 `needs: producer-regen` plus the download, before its broad step.
+    //   `buck2` and `gate-affected-target-set` — SELF-MATERIALIZERS. Each runs the materializer
+    //                 with the same argv the producer runs, overwriting every downloaded byte, so
+    //                 the download was dead weight behind a serial barrier. #1467 removed both the
+    //                 download and the `needs:` edge, which is what makes these two lanes immune
+    //                 to an artifact-storage-quota outage.
+    //
+    // Both sides are pinned. A future edge re-added to a self-materializer, or a download dropped
+    // from the mere reader, fails here.
+    let download_step_name = "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)";
+    let materialize_step_name = "Materialize cloud-ci generated faces (out-of-graph boundary)";
+
+    let gate = workflow_job(&workflow, "gate");
+    assert_occurs_exactly_once(gate, "needs: producer-regen");
+    assert_occurs_exactly_once(gate, download_step_name);
+    let download = named_job_step(gate, download_step_name);
+    assert_occurs_exactly_once(download, download_commit);
+    assert_occurs_exactly_once(download, "name: generated-faces");
+    assert_occurs_exactly_once(download, "path: .");
+    assert!(
+        gate.find(download_step_name) < gate.find("buck2 test ${{ matrix.crate }}"),
+        "gate must download producer faces before its broad test"
+    );
+
     for (job_name, broad_step) in [
-        ("gate", "buck2 test ${{ matrix.crate }}"),
         ("buck2", "buck2 build + test (//ci/..., hermetic — binding)"),
         (
             "gate-affected-target-set",
@@ -732,22 +796,21 @@ fn broad_workflow_consumers_require_the_producer_artifact_and_keep_the_merge_bas
         ),
     ] {
         let job = workflow_job(&workflow, job_name);
-        assert_occurs_exactly_once(job, "needs: producer-regen");
-        let download = named_job_step(
+        assert_absent(
             job,
-            "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)",
+            "needs: producer-regen",
+            "this lane materializes its own faces; the edge only serialized it behind the \
+             producer and let a failed artifact upload skip it entirely",
         );
-        assert_occurs_exactly_once(
+        assert_absent(
             job,
-            "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)",
+            download_step_name,
+            "downloading faces this job immediately overwrites is dead weight",
         );
-        assert_occurs_exactly_once(download, download_commit);
-        assert_occurs_exactly_once(download, "name: generated-faces");
-        assert_occurs_exactly_once(download, "path: .");
+        assert_occurs_exactly_once(job, materialize_step_name);
         assert!(
-            job.find("Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)")
-                < job.find(broad_step),
-            "{job_name} must download producer faces before its broad test"
+            job.find(materialize_step_name) < job.find(broad_step),
+            "{job_name} must materialize the faces before its broad test"
         );
     }
 
