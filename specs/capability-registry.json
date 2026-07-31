@@ -1,9 +1,10 @@
 {
-  "_comment": "The CLOSED capability registry (ADR-0562). The single machine-readable source of truth for the canonical capability set of the capability-first repo organization. Coarse / Conway-aligned: one capability per two-pizza ownership boundary. Seeded from ADR-0536's sixteen substrate domains + the verified current tree (cloud/ + oya/). A crate maps to EXACTLY ONE registered capability via the ADR-0562 deterministic placement rule; new top-level dirs outside this registry plus base/build/third-party/governance/kernel/os/app FAIL the membership lint. De-brand naming is realized via the ADR-0532/0533 profile mechanism; the names here are the de-branded canonical slugs (the flip is a later Phase-0 lane). This file is governance data; its eventual home is governance/capability-registry.json after the reorg, held at specs/ until the governance/ top-level dir is created. DATA, not code: canonical-json governed, reachability-registered, council-architecture owned.",
+  "_comment": "The CLOSED capability registry (ADR-0562). The single machine-readable source of truth for the canonical capability set of the capability-first repo organization. Coarse / Conway-aligned: one capability per two-pizza ownership boundary. Seeded from ADR-0536's sixteen substrate domains + the verified current tree (cloud/ + oya/). A crate maps to EXACTLY ONE registered capability via the ADR-0562 deterministic placement rule; new top-level dirs outside this registry plus base/build/third-party/governance/kernel/os/app/infra FAIL the membership lint. De-brand naming is realized via the ADR-0532/0533 profile mechanism; the names here are the de-branded canonical slugs (the flip is a later Phase-0 lane). This file is governance data; its eventual home is governance/capability-registry.json after the reorg, held at specs/ until the governance/ top-level dir is created. DATA, not code: canonical-json governed, reachability-registered, council-architecture owned.",
   "schema_version": "1.1.0",
   "doctrine_adr": "ADR-0562",
   "amendment_adrs": [
-    "ADR-0615"
+    "ADR-0615",
+    "ADR-0631"
   ],
   "closed": true,
   "registry_kind": "capability",
@@ -60,6 +61,12 @@
       "off_runtime_ladder": false,
       "charter": "Composition ring: deployable surfaces wiring 2+ capabilities for a tenant (SaaS verticals + the web shell). app/<product>/ composes; it never defines a capability engine.",
       "owns_crates": true
+    },
+    {
+      "dir": "infra/",
+      "off_runtime_ladder": true,
+      "charter": "Meta, off the runtime ladder: the RENDERED cluster-substrate declarations (Talos/CAPI machine configs, GitOps applications, admission policies, mesh + ingress, secret plumbing, cache/registry/storage backends) that stand the fleet up. Owns ZERO crates — measured: `git ls-tree -r origin/dev infra/ | grep -c Cargo.toml` = 0 over 81 tracked files. Distinct from the `iac` CAPABILITY, which owns the Rust engines that AUTHOR and reconcile these declarations: iac is the code, infra/ is its rendered fleet-level output. Registered by ADR-0631 to close the ADR-0562 §6 hole where module-membership's hand-maintained `non_crate_top_level_dirs` permitted a top-level dir the closed registry never authorized. Its 16 subdirs' per-capability disposition is DEFERRED — see infra_subdir_disposition.",
+      "owns_crates": false
     }
   ],
   "faces": [
@@ -98,10 +105,8 @@
       ],
       "absorbs_current_dirs": [
         "cell",
-        "cloud/cloud-cell",
         "cloud/cell-lifecycle",
-        "cloud/cell-rebalancer",
-        "cloud/cloud-capacity"
+        "cloud/cell-rebalancer"
       ],
       "dag_node": "cell"
     },
@@ -130,9 +135,12 @@
         "authorization"
       ],
       "absorbs_current_dirs": [
-        "policy",
-        "oya/policy"
+        "policy"
       ],
+      "forward_declared_root": {
+        "value": "policy",
+        "reason": "The `policy` capability was extracted from iam by ADR-0615 and its destination root does not exist yet, so its ONLY absorb is a path declared ahead of creation. Recorded explicitly (ADR-0631) so a bare-name absorb that resolves to nothing is distinguishable from a dead prefix and is not pruned by the liveness repair that removed the ten vacated source dirs. Mirrors the same declaration already carried for `policy` in ci/facade/scan-root-liveness/scan-root-liveness-policy.json for four other gate policies. Retire this block when the policy capability lands its first crate."
+      },
       "dag_node": "policy-engine",
       "boundary_note": "EXTRACTED from iam (ADR-0615, founder 2026-07-10) as the 24th capability, reversing ADR-0562 §2's iam-absorbs-policy coarse collapse. ADR-0562 §7 split: OWNERS boundary (axis-policy-engine vs axis-identity) + clean port seam (the PDP consumes the iam principal; ~all consume the PDP) + this ADR amendment. Maps 1:1 to the pre-existing policy-engine DAG node (ADR-0280 §D-13; no DAG edit needed — the node and its identity/tenancy/cell + five consumer edges already exist). Only oya/policy moves; the Cedar PDP crates physically under iam/** stay iam-mapped (double-map avoidance). Precedent: AWS IAM vs Verified Permissions (Cedar, store-per-tenant); Google IAM vs Zanzibar (logically-global, physically-distributed-with-local-replicas). Not a singleton global PDP."
     },
@@ -184,7 +192,6 @@
       ],
       "absorbs_current_dirs": [
         "observability",
-        "cloud/cloud-observability",
         "oya/observability",
         "oya/diagnostics"
       ],
@@ -202,8 +209,7 @@
         "oya/ontology",
         "oya/data-pipeline",
         "oya/data-warehouse",
-        "oya/analytics",
-        "oya/search"
+        "oya/analytics"
       ],
       "dag_node": "ontology"
     },
@@ -230,8 +236,7 @@
         "compute"
       ],
       "absorbs_current_dirs": [
-        "compute",
-        "cloud/cloud-compute"
+        "compute"
       ],
       "dag_node": "compute",
       "boundary_note": "Coarse per founder ruling: compute is ONE engine (vm + k8s-on-compute + functions) with facade sub-surfaces, NOT three capabilities."
@@ -327,7 +332,6 @@
       ],
       "absorbs_current_dirs": [
         "ci",
-        "cloud/cloud-ci",
         "oya/ci-controller",
         "oya/ci-tide",
         "oya/ci-webhook-gateway"
@@ -356,7 +360,6 @@
         "billing",
         "cloud/cloud-billing",
         "cloud/cloud-billing-tax",
-        "cloud/cloud-finops",
         "oya/oya-billing",
         "oya/oya-meter",
         "oya/oya-cost",
@@ -374,7 +377,6 @@
       ],
       "absorbs_current_dirs": [
         "marketplace",
-        "cloud/cloud-marketplace",
         "oya/marketplace",
         "oya/plugin-app-store",
         "oya/developer-sdk"
@@ -390,8 +392,7 @@
       ],
       "absorbs_current_dirs": [
         "console",
-        "oya/ops-dashboard-control-center",
-        "oya/ops"
+        "oya/ops-dashboard-control-center"
       ],
       "dag_node": "console",
       "boundary_note": "RESOLVED (ADR-0615, founder 2026-07-10): the console SHELL is the substrate capability (core/ports/facade: shell, token broker, design system, nav). Ops-dashboard leaves composing 2+ capabilities (incident-command, cluster-health, finops-portal, on-call-handoff, ...) are app/ops-console/<vertical> composition members; single-capability views stay a capability facade. The shell/surface line is the ADR-0562 §3#5 2+-capability test."
@@ -476,6 +477,65 @@
       "pending_relocation": true
     }
   ],
+  "infra_subdir_disposition": {
+    "_comment": "ADR-0631. infra/ is admitted as a NON-CRATE meta directory (meta_directories[infra/], owns_crates:false); its 16 subdirs are rendered fleet declarations, not crates, so their per-capability disposition is a SATELLITE question that does not gate any crate move and is DELIBERATELY not decided here. Recorded because the closed registry must not silently imply that admitting the root also settled its contents. The measured cost of deciding it: 26 distinct docs/decisions/*.md files name an infra/<subdir> path VERBATIM, so any relocation turns those into dangling pointers. Ten of the twenty-six are Accepted-class (nine `Accepted`, one `Accepted (amendment)`), and editing an Accepted body implies an Amended status flip plus cross-artifact propagation — expensive, and out of scope for a registry amendment. The other sixteen are ten Proposed, five Superseded, one Rejected.",
+    "decided": false,
+    "decision_owner": "council-architecture",
+    "blocks_crate_moves": false,
+    "subdirs": [
+      "arc",
+      "branch-protection",
+      "capi",
+      "ci",
+      "ci-webhook-gateway",
+      "cilium",
+      "cloudflare",
+      "external-secrets",
+      "gitops",
+      "kms",
+      "kyverno",
+      "nativelink",
+      "observability",
+      "registry",
+      "seaweedfs",
+      "talos"
+    ],
+    "adr_path_anchor_cost": {
+      "_comment": "Distinct docs/decisions/*.md files naming `infra/<subdir>` verbatim, measured on origin/dev@96da99d14. cilium and observability have ZERO anchors; the other fourteen have at least one. Per-subdir counts overlap (one ADR may name several), so they do not sum to the distinct-file total.",
+      "distinct_adr_files": 26,
+      "accepted_class_adr_files": 10,
+      "per_subdir_adr_file_counts": {
+        "arc": 1,
+        "branch-protection": 5,
+        "capi": 2,
+        "ci": 10,
+        "ci-webhook-gateway": 2,
+        "cilium": 0,
+        "cloudflare": 3,
+        "external-secrets": 2,
+        "gitops": 6,
+        "kms": 1,
+        "kyverno": 4,
+        "nativelink": 4,
+        "observability": 0,
+        "registry": 3,
+        "seaweedfs": 1,
+        "talos": 6
+      },
+      "accepted_class_adrs": [
+        "ADR-0117",
+        "ADR-0148",
+        "ADR-0370",
+        "ADR-0371",
+        "ADR-0374",
+        "ADR-0375",
+        "ADR-0378",
+        "ADR-0379",
+        "ADR-0380",
+        "ADR-0515"
+      ]
+    }
+  },
   "membership_lint_coverage": {
     "_comment": "ADR-0562 §6 membership-lint COVERAGE extension (Phase-0). The capabilities[].absorbs_current_dirs close the cloud/+oya/ SERVICE-dir axis; this block extends the closed registry to map EVERY remaining current crate (the cloud/oya app surfaces with no capability service-dir, plus the libs/ and tools/ crates that dissolve into capability homes + meta dirs per ADR-0562 §1, 'libs/ dissolves into capability homes + base/'). Each entry maps a PRE-MOVE current path → a registered capability slug OR a meta directory (kernel/os/base/governance/build/third-party/app). The membership lint reads these PRE-MOVE; POST-move the path itself is the namespace. Genuinely-ambiguous crates that the strangler must home per-crate are NOT force-mapped here — they live in frozen_unmapped_baseline and the gate enforces no-regression against that frozen set. DATA, not code.",
     "app_products": {
