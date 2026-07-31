@@ -955,8 +955,12 @@ jobs:
         # selected no targets, so the run is green precisely BECAUSE it tested nothing. That is
         # the failure mode this artifact exists to expose, and it is invisible in a `failure()`
         # upload because the run did not fail. Green is the suspicious state here.
-        # Revisit only once a gate asserts the affected set is non-empty for a non-empty diff;
-        # until that exists, this artifact is the only witness.
+        # THAT GATE NOW EXISTS: `Decision::RefuseEmptySelection` (predicate (1) of the
+        # selection-totality assertion, ci/facade/affected-target-set/src/lib.rs) fails the lane
+        # when a non-empty diff selects no targets and the paths hold no `inert_selection_classes`
+        # licence. This upload becomes removable — drop it to `failure()` like its siblings — once
+        # that assertion has proven itself in production; it is kept here meanwhile so the
+        # assertion and the witness overlap rather than hand off blind.
         if: always()
         # actions/upload-artifact@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
