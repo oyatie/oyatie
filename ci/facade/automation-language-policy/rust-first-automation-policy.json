@@ -524,7 +524,7 @@
         },
         {
           "key": ".github/workflows/oya-ci-required.yml::gate-live-postgres-adapters::Bootstrap app role + durable schemas/roles (admin, adapters)",
-          "shell_lines": 45
+          "shell_lines": 10
         },
         {
           "key": ".github/workflows/oya-ci-required.yml::gate-live-postgres-adapters::Install buck2 (digest-pinned prebuilt release)",
@@ -544,7 +544,7 @@
         },
         {
           "key": ".github/workflows/oya-ci-required.yml::gate-live-postgres-facades::Bootstrap app role + durable schemas/roles (admin, facades)",
-          "shell_lines": 45
+          "shell_lines": 10
         },
         {
           "key": ".github/workflows/oya-ci-required.yml::gate-live-postgres-facades::Install buck2 (digest-pinned prebuilt release)",
