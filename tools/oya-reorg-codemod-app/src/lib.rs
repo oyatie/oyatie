@@ -71,7 +71,7 @@ pub mod plan;
 pub mod rust_src;
 
 pub use manifest::{
-    discover_committed_move_plans, plan_is_landed, resolve_committed_move_plan,
+    discover_committed_move_plans, plan_is_landed, plan_probe_paths, resolve_committed_move_plan,
     resolve_effective_active_move_plan, resolve_effective_move_plan, select_active_move_plan,
     select_move_plan,
 };
