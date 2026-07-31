@@ -580,7 +580,12 @@ jobs:
           cat /tmp/cache-hit-report.json
           buck2 run //ci/facade/build-cache-policy:oya-cloud-ci-cache-wiring-bin -- assert-warm --record /tmp/buck2-lane-invocation-record.json --build-class gate-fleet-shared-graph --mode "${CACHE_MODE}"
       - name: Upload cache-hit telemetry artifact
-        if: always()
+        # FAILURE-ONLY. Cache-hit rate is a METRIC, not an artifact: a number we want over time
+        # belongs in the metrics substrate (cloud-observability runs VictoriaMetrics), where it
+        # can be aggregated and alerted on. 1469 per-run JSON blobs that nothing aggregates are
+        # not a telemetry pipeline. On a FAILING lane the same file is triage evidence, so it is
+        # kept there. `assert-warm` above is the enforcing check; this upload never was.
+        if: failure()
         # actions/upload-artifact@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
@@ -591,7 +596,10 @@ jobs:
           retention-days: 30
           if-no-files-found: error
       - name: Upload runner disk reclaim operator artifact (buck2 lane)
-        if: always()
+        # FAILURE-ONLY triage. A disk-reclaim report from a lane that PASSED is never opened —
+        # the job's own conclusion is the verdict. FRIC-017 was "No space left on device", and
+        # that is exactly a failing run, where this report is the primary evidence.
+        if: failure()
         # actions/upload-artifact@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
@@ -960,6 +968,14 @@ jobs:
           retention-days: 90
           if-no-files-found: error
       - name: Upload affected-set operator artifacts
+        # DELIBERATE EXCEPTION — stays `always()` while its four siblings move to `failure()`.
+        # For every other upload here, green means "nothing to look at". For the affected set the
+        # opposite holds: an EMPTY affected set is a FALSE GREEN — the lane reports success having
+        # selected no targets, so the run is green precisely BECAUSE it tested nothing. That is
+        # the failure mode this artifact exists to expose, and it is invisible in a `failure()`
+        # upload because the run did not fail. Green is the suspicious state here.
+        # Revisit only once a gate asserts the affected set is non-empty for a non-empty diff;
+        # until that exists, this artifact is the only witness.
         if: always()
         # actions/upload-artifact@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
@@ -1123,7 +1139,11 @@ jobs:
           buck2 test --local-only --num-threads 1 //iam/adapters/identity-scim-store-postgres:identity-scim-store-postgres-unittest -- "${LIVE_ENV[@]}"
           buck2 test --local-only --num-threads 1 //iam/adapters/identity-scim-store-postgres:identity-scim-store-postgres-live -- "${LIVE_ENV[@]}"
       - name: Upload live-postgres adapter bootstrap provenance
-        if: always()
+        # FAILURE-ONLY. "Provenance" here is test-bootstrap provenance, not release provenance:
+        # SLSA-style attestation is retained for artifacts that SHIP, and nothing ships from this
+        # job. On a green run it records that a database came up; on a red one it says how the
+        # bootstrap differed, which is the only time anyone reads it.
+        if: failure()
         # actions/upload-artifact@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
@@ -1257,7 +1277,9 @@ jobs:
           buck2 test --local-only --num-threads 1 //tenancy/facade/tenant-lifecycle-app:tenancy-tenant-lifecycle-app-unittest -- "${FACADE_ENV[@]}"
           buck2 test --local-only --num-threads 1 //tenancy/facade/tenant-lifecycle-app:tenancy-tenant-lifecycle-app-acceptance -- "${FACADE_ENV[@]}"
       - name: Upload live-postgres facade bootstrap provenance
-        if: always()
+        # FAILURE-ONLY, same reasoning as the adapter job above: test-bootstrap provenance, not
+        # release provenance. Nothing ships from this job.
+        if: failure()
         # actions/upload-artifact@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
