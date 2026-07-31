@@ -259,14 +259,13 @@ jobs:
       # Warm the pinned toolchain across runs (ADR-0556 D5 QW-4: the toolchain is a
       # version-pinned input, not a build output). rustup still resolves/validates the
       # toolchain on every run; the cache only pre-seeds ~/.rustup so the install is a no-op.
-      - name: Cache pinned Rust toolchain (ADR-0556 D5 QW-4)
-        # actions/cache@v6.1.0 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
-        with:
-          path: |
-            ~/.rustup/toolchains
-            ~/.rustup/update-hashes
-          key: rustup-toolchain-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('rust-toolchain.toml') }}
+      # NO rustup cache here. The baked runner image sets RUSTUP_HOME=/opt/rust/rustup
+      # (infra/ci/runner-image/Dockerfile), so rustup never reads ~/.rustup — this step used to
+      # save and restore a path that does not exist on this fleet. It was a no-op that presented
+      # as a green cache step. It is also redundant: the image BAKES the pinned toolchain, so the
+      # `rustup toolchain install` below is already a no-op.
+      # The two gate-live-postgres-* jobs KEEP their cache blocks: they still run on
+      # ubuntu-latest, where RUSTUP_HOME is unset and ~/.rustup is the real path.
       - name: Pre-provision pinned Rust toolchain for Buck2 freshness binaries
         run: |
           set -euo pipefail
@@ -364,14 +363,8 @@ jobs:
         run: infra/ci/install-buck2.sh
       # Warm the pinned toolchain across runs (ADR-0556 D5 QW-4); rustup still resolves and
       # validates the toolchain on every run.
-      - name: Cache pinned Rust toolchain (ADR-0556 D5 QW-4)
-        # actions/cache@v6.1.0 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
-        with:
-          path: |
-            ~/.rustup/toolchains
-            ~/.rustup/update-hashes
-          key: rustup-toolchain-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('rust-toolchain.toml') }}
+      # NO rustup cache here — see the rationale on the freshness job above (baked image sets
+      # RUSTUP_HOME=/opt/rust/rustup; ~/.rustup is never read on this fleet).
       - name: Pre-provision pinned Rust toolchain for Buck2 policy binary
         run: |
           set -euo pipefail
@@ -448,14 +441,8 @@ jobs:
         run: infra/ci/install-buck2.sh
       # Warm the pinned toolchain across runs (ADR-0556 D5 QW-4); rustup still resolves and
       # validates the toolchain on every run.
-      - name: Cache pinned Rust toolchain (ADR-0556 D5 QW-4)
-        # actions/cache@v6.1.0 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
-        with:
-          path: |
-            ~/.rustup/toolchains
-            ~/.rustup/update-hashes
-          key: rustup-toolchain-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('rust-toolchain.toml') }}
+      # NO rustup cache here — see the rationale on the freshness job above (baked image sets
+      # RUSTUP_HOME=/opt/rust/rustup; ~/.rustup is never read on this fleet).
       # Pre-provision the pinned rust toolchain ONCE, serially, before the buck2 build.
       # The buck2 rust toolchain (toolchains/BUCK: system_rust_toolchain via the rustup shim)
       # resolves rustc and toolchain components per compile action, and buck2 runs those actions in
@@ -660,14 +647,8 @@ jobs:
         run: infra/ci/install-buck2.sh
       # Warm the pinned toolchain across runs (ADR-0556 D5 QW-4); rustup still resolves and
       # validates the toolchain on every run.
-      - name: Cache pinned Rust toolchain (ADR-0556 D5 QW-4)
-        # actions/cache@v6.1.0 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
-        with:
-          path: |
-            ~/.rustup/toolchains
-            ~/.rustup/update-hashes
-          key: rustup-toolchain-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('rust-toolchain.toml') }}
+      # NO rustup cache here — see the rationale on the freshness job above (baked image sets
+      # RUSTUP_HOME=/opt/rust/rustup; ~/.rustup is never read on this fleet).
       # Same rustup serialization rationale as the buck2 lane above: parallel buck2 actions
       # racing a cold rustup install collide on shared download state.
       # PR-body admission was removed here (founder directive 2026-07-26: "stop the entire pr
