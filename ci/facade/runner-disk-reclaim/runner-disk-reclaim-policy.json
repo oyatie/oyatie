@@ -12,6 +12,11 @@
         "/opt/hostedtoolcache/CodeQL"
       ],
       "min_free_gib_after": 20
+    },
+    "oya-owned-arc-pod": {
+      "_comment": "OWNED FLEET (ARC pod on Talos, runs-on: oya-arm64). Empty reclaim_dirs and a ZERO floor, both deliberate. RECLAIM: an ARC runner container carries none of the hosted image's vendor preinstall trees, so every dir the github-hosted profile removes is absent here — a profile mismatch reclaims zero bytes while reporting success. FLOOR: `min_free_gib_after` asserts free space on `/` via statvfs, which inside a pod reads the NODE filesystem, NOT the pod's ephemeral-storage quota. This cluster is SHARED with the console project, so under --infra-red-policy fail-closed a node-level floor lets a NEIGHBOUR's disk usage manufacture an INFRA-RED in our merge path — a false red attributed to our infra. The floor is therefore 0 (never trips) rather than a number that measures the wrong filesystem. ATTRIBUTION IS NOT LOST, it moves to where it belongs: the pod declares ephemeral-storage requests/limits (ADR-0630 D5) and the kubelet EVICTS on breach, which is a first-class scheduler concern rather than a job step — exactly what .omc/ultragoal/friction-ledger.jsonl:17 anticipated for owned runners. FRIC-017's intent (a disk-exhaustion RED must be distinguishable from a code failure) is preserved by eviction, which is unambiguously infra.",
+      "reclaim_dirs": [],
+      "min_free_gib_after": 0
     }
   }
 }
