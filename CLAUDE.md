@@ -52,7 +52,7 @@ required_workflow:
 current_substrate_adrs:
   - docs/decisions/ADR-0111-merge-queue-projected-state-fix-at-any-stage.md # folded into ADR-0515 cloud-ci/oya-ci Tide
   - docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md
-  - docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md
+  - docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md # slug is a vocab-scrub artifact and MISNAMES the decision: ADR-0363 chose plain git + a SELF-HOSTED OSS forge and explicitly REJECTED GitHub as substrate (bootstrap-only); GitHub PRs are live today only via the ADR-0515 amendment. See the 2026-07-31 amendment in that ADR.
   - docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md
   - docs/decisions/ADR-0516-agentic-delivery-fabric-apex-vision.md # entry point of the ADR-0516..ADR-0535 fabric cluster
 historical_substrate_adrs:
