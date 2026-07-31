@@ -44,7 +44,24 @@ concurrency:
 jobs:
   canary:
     name: "integrity-canary (cold, from-empty — ADR-0556 D2 / ADR-0560)"
-    runs-on: ubuntu-latest
+    # OWNED FLEET. This canary has NEVER been green — and not because the cold build fails.
+    # Every scheduled run terminates with steps=0: the job never entered its body, so it failed
+    # ADMISSION, not verification. Probed 30523904142 / 30433843967 / 30340384915 / 30251411018 /
+    # 30193580189 — five consecutive runs, all steps=0, log blob absent. That is the same
+    # hosted-runner condition that moved the required lane in #1450 and check-substrates in #1453.
+    #
+    # WHY THIS ONE MATTERS MOST: this canary is the trust anchor for the entire warm-cache and RE
+    # architecture. ADR-0556 D2's licensing clause (b) cannot be satisfied without a green canary,
+    # /specs/cache-warm-license.json correctly ships `warm_reads_licensed: false` because of it,
+    # and ADR-0612 D5 states plainly: "no RE-covering canary, no RE". A one-line runner label has
+    # been holding the whole cache/RE critical path closed, while presenting as a failing canary.
+    #
+    # Safe to flip: no `services:` block (so the Docker-daemon constraint keeping the two
+    # gate-live-postgres-* jobs on hosted does not apply) and no pwsh/Windows/macOS dependency.
+    # ADR-0560 D4's contract — from-empty, NO overlay, NO actions/cache step — is a property of
+    # the STEPS, which are unchanged. Running in-cluster additionally puts the canary where the
+    # NativeLink CAS is actually reachable, which is a precondition for it ever covering RE.
+    runs-on: oya-arm64
     steps:
       # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
