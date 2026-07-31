@@ -1,432 +1,67 @@
 [workspace]
 members = [
-  # Globbed workspace membership (FRIC-1781069288 / ADR-0538): adding a crate under any
-  # of these roots requires ZERO edit to this shared array, eliminating the
-  # 100%-by-construction merge-conflict class on Cargo.toml across concurrent lanes.
-  # Each glob star matches exactly one path component; every unexcluded matched directory must
-  # hold a Cargo.toml or Cargo rejects the workspace. The canonical resolver is
-  # libs/oya-workspace-members-kernel (reuse, not re-derive; gates must resolve members there,
-  # never parse this array).
-  # The crate segment is narrowed to `oya-*` wherever every first-party crate leaf is
-  # oya-prefixed (enforced by the born-blocking cargo-prefix gate), so non-crate sibling
-  # dirs (scripts, completions, vendored trees) can never break `cargo` resolution.
+  # SHAPE-DECLARING membership (ADR-0538 glob-only contract, generalized one level up).
+  #
+  # ADR-0538 globbed membership so that adding a CRATE needs no edit to this shared array —
+  # it named the merge-conflict class explicitly: "eliminating the 100%-by-construction
+  # merge-conflict class on Cargo.toml across concurrent lanes". That intent was right and
+  # this array had drifted away from it: membership was enumerated ONE GLOB PER CAPABILITY
+  # (`messaging/*/*`, `iac/*/*`, `observability/*/*`, ... 24 of them), so adding a CAPABILITY
+  # still edited the array — and every capability move did. The array was a mutex again, one
+  # level up, which is why every reorg move serialized on this file (68 of 68 movers).
+  #
+  # The four globs below describe the northstar LAYOUT instead of enumerating its instances.
+  # `<capability>/{core,ports,adapters,facade}/<leaf>` is ADR-0562 §1's shape, so a conforming
+  # capability — present or future — is a member by construction and needs ZERO edit here.
+  #
+  # Measured on the tree at the time of this change: the four globs select 466 directories, of
+  # which 465 hold a [package] manifest. The single non-crate match is carried in `exclude`
+  # below. The old `<cap>/*/*` form matched EVERY non-crate subdir (`<cap>/observability/`,
+  # `<cap>/slos/`, ...), and cargo errors on a matched directory with no manifest — which is
+  # why each satellite dir needed a hand-written exclude entry. Under the layer globs those
+  # directories no longer match at all, so ~23 exclude entries simply cease to be necessary.
+  #
+  # The canonical resolver remains libs/oya-workspace-members-kernel; gates must resolve
+  # members there, never by parsing this array.
+  "*/core/*",
+  "*/ports/*",
+  "*/adapters/*",
+  "*/facade/*",
+
+  # LEGACY roots, retained until their capability moves land. Each is narrowed to the crate
+  # leaf shape (`oya-*`, `-app`) so non-crate siblings — scripts, completions, vendored trees —
+  # can never break cargo resolution. These lines are the reorg's remaining debt and shrink to
+  # nothing as `oya/`, `libs/`, `tools/` and `cloud/` empty out.
   "libs/oya-*",
   "oya/*/crates/oya-*",
   "oya/office/oya-*",
   "tools/oya-*",
-  # De-branded tools membership (ADR-0532/0533 de-brand + ADR-0107 layer suffix). The `oya-*`
-  # narrowing above exists so non-crate sibling dirs (scripts, completions, vendored trees) cannot
-  # break cargo resolution -- but the BRAND was never what distinguished a crate from a sibling.
-  # ADR-0107 already binds every crate under tools/ to a canonical layer suffix (`-app` for binary
-  # tools), and none of the four non-crate siblings (anchor-sweep, completions, hooks,
-  # opensk-vendored) carries one. Keying on the suffix is therefore the same guarantee expressed
-  # de-branded, and it lets a new tool land without an `oya-` prefix and without touching this
-  # array again. The globs deliberately overlap on the existing `oya-*-app` crates; cargo resolves
-  # a directory matched twice to one member.
   "tools/*-app",
-  # Capability-first home (ADR-0562 strangler move 1): the `messaging` capability absorbs the
-  # former oya/eventing crates at messaging/<face>/<leaf>. The leaf is NOT oya-prefixed (the
-  # ADR-0532/0533 de-brand: cargo names messaging-domain / messaging-file-adapter), so the leaf
-  # segment stays a bare `*`. `messaging/*/*` covers both faces (core/domain, adapters/file) with
-  # one glob, satisfying ADR-0538's glob-only members contract (no explicit-path members).
-  "messaging/*/*",
-  # Capability-first home (ADR-0562 strangler move 2): the `iac` capability absorbs the former
-  # cloud/cloud-iac crates at iac/<face>/<leaf> across three faces (core, ports, adapters,
-  # facade). The leaf is de-branded (cargo names iac-domain / iac-api / iac-rest /
-  # iac-infrastructure / iac-app), so the leaf segment stays a bare `*`. `iac/*/*` covers every
-  # face/leaf (iac/core/domain, iac/core/api, iac/ports/rest, iac/adapters/infrastructure,
-  # iac/facade/app) with one glob, satisfying ADR-0538's glob-only members contract.
-  "iac/*/*",
-  # Capability-first home (ADR-0562 strangler move 3): the `observability` capability absorbs the
-  # former cloud/cloud-observability + oya/observability crates at observability/<face>/<leaf>
-  # across two faces (core, adapters). The leaf is de-branded (cargo names observability-kernel /
-  # observability-aggregate / observability-api / observability-domain /
-  # observability-tracing-adapter), so the leaf segment stays a bare `*`. `observability/*/*`
-  # covers every face/leaf (observability/core/{kernel,aggregate,api,domain},
-  # observability/adapters/tracing) with one glob, satisfying ADR-0538's glob-only members
-  # contract (no explicit-path members).
-  "observability/*/*",
-  # Capability-first home (ADR-0562 strangler move 4): the `compute` capability absorbs the former
-  # cloud/cloud-compute crates at compute/<face>/<leaf> across three faces (core, facade,
-  # adapters). compute is ONE engine (vm + k8s-on-compute + functions) with facade sub-surfaces:
-  # the three aggregate kernels are the engine (core), the vm/k8s/functions product APIs are the
-  # sold surfaces (facade), and the aws/oci impls are transient infra (adapters). The leaf is
-  # de-branded (cargo names compute-domain / compute-dcops / compute-resource / compute-vm-api /
-  # compute-k8s-api / compute-functions-api / compute-aws-adapter / compute-oci-adapter), so the
-  # leaf segment stays a bare `*`. `compute/*/*` covers every face/leaf (compute/core/{domain,
-  # dcops,resource}, compute/facade/{vm,k8s,functions}, compute/adapters/{aws,oci}) with one glob,
-  # satisfying ADR-0538's glob-only members contract (no explicit-path members).
-  "compute/*/*",
-  # Capability-first home (ADR-0562 strangler move 5): the `storage` capability absorbs the former
-  # cloud/cloud-storage + oya/drive + oya/recordings crates at storage/<face>/<leaf> across four
-  # faces (core, ports, adapters, facade). storage is the CAS/blob substrate: the object-store-kernel
-  # port and storage-domain engine live under core, object-api/block-api are the inbound capability
-  # surfaces (ports), the s3/oci impls are transient provider infra (adapters), and the
-  # Drive/Recordings products consuming the substrate are facades. The leaf is de-branded
-  # (cargo names storage-object-store-kernel / storage-domain / storage-object-api /
-  # storage-block-api / storage-s3-adapter / storage-oci-adapter / storage-drive-domain /
-  # storage-recordings-domain), so the leaf segment stays a bare `*`. `storage/*/*` covers every
-  # face/leaf (storage/core/{object-store-kernel,domain}, storage/ports/{object-api,block-api},
-  # storage/adapters/{s3,oci}, storage/facade/{drive,recordings}) with one glob, satisfying ADR-0538's
-  # glob-only members contract (no explicit-path members).
-  "storage/*/*",
-  # Capability-first home (ADR-0562 strangler move 6): the `cell` capability absorbs the former
-  # cloud/cloud-cell + cloud/cloud-capacity crates at cell/<face>/<leaf> across two faces (core,
-  # ports). cell is the ADR-0280 leaf cellular-topology substrate (NOT a sold product, so NO
-  # facade): the routing/region/regional-pack/capacity/capacity-commercial engines are the
-  # substrate (core), and the *-api binding surfaces (region-api, regional-pack-api, the no-dep
-  # cell-bind lib proving the cloud-cell-bind-v1 contract) are the inbound capability boundaries
-  # (ports). The leaf is de-branded (cargo names cell-routing / cell-region / cell-region-api /
-  # cell-regional-pack / cell-regional-pack-api / cell-bind-api / cell-capacity /
-  # cell-capacity-commercial; routing not cell to avoid path-doubling), so the leaf segment stays
-  # a bare `*`. `cell/*/*` covers every face/leaf (cell/core/{routing,region,regional-pack,
-  # capacity,capacity-commercial}, cell/ports/{region,regional-pack,cell-bind}) with one glob,
-  # satisfying ADR-0538's glob-only members contract (no explicit-path members); the crate-free
-  # cell-lifecycle / cell-rebalancer phase-2 dirs are not swept (no Cargo.toml).
-  "cell/*/*",
-  # Capability-first home (ADR-0562 strangler move 7): the `gateway` capability absorbs the former
-  # oya/connector SaaS-connector crates at gateway/adapters/<vendor>-connector (one face, adapters).
-  # gateway is the API-gateway / SSOT-edge capability (dag_node api-gateway); for now it is an
-  # ALL-ADAPTERS capability — the ten SaaS connectors (adp, epic-fhir, gusto, netsuite, quickbooks,
-  # rippling, salesforce, slack, teams, workday) are external-system integration adapters, so they
-  # home to adapters/. No core/ports/facade crates exist yet (they arrive when the api-gateway
-  # crates are authored — acceptable incremental state). Each connector is de-branded (cargo names
-  # gateway-<vendor>-connector; the oya-connector-<vendor>-adapter prefix drops to the capability
-  # slug), so the leaf segment stays a bare `*`. `gateway/*/*` covers every face/leaf
-  # (gateway/adapters/{adp,epic-fhir,gusto,netsuite,quickbooks,rippling,salesforce,slack,teams,
-  # workday}-connector) with one glob, satisfying ADR-0538's glob-only members contract (no
-  # explicit-path members); the crate-free oya/api-gateway phase-2 dir is not swept (no Cargo.toml).
-  "gateway/*/*",
-  # Capability-first home (ADR-0562 strangler move 8): the `flags` capability absorbs the former
-  # oya/feature-flags evaluation server at flags/core/server (one face, core). flags is the
-  # feature-flag / configuration substrate (dag_node flags): the OFREP/gRPC/REST flag-evaluation
-  # engine. The originally-moved crate (the OFREP/gRPC/REST evaluation server, with its ofrep/grpc/
-  # rest/targeting/evaluation/storage/tenants/observability internal modules) IS the substrate engine,
-  # so it homes to core/; the aspirational ADR-0481 three-crate split (kernel/rest/app) was never
-  # built. Wave-1 BUILD slice (this PR): the pure, cloud-agnostic deterministic evaluation engine
-  # (rule targeting + percentage bucketing + variant resolution, ADR-0481 evaluation TODO) is
-  # decomposed OUT of the bundled server into a second core crate `flags/core/evaluation-domain`
-  # (cargo name flags-evaluation-domain; zero cloud/persistence/identity/runtime deps — tokio-free),
-  # with the storage/cloud/identity adapters DEFERRED behind its `FlagSource` port (clean-arch
-  # ports-in-core per ADR-0570). Both are de-branded (the oya-flags prefix drops to the capability
-  # slug), so the leaf segment stays a bare `*`. `flags/*/*` covers BOTH core-face leaves
-  # (flags/core/server, flags/core/evaluation-domain) with one glob — no members edit was needed,
-  # satisfying ADR-0538's glob-only members contract (no explicit-path members); the crate-empty
-  # oya/oya-flags placeholder + oya/feature-flags non-crate artifacts are not swept (no Cargo.toml)
-  # and are homed in phase-2 (task #62).
-  "flags/*/*",
-  # Capability-first home (ADR-0562 strangler move 9): the `marketplace` capability absorbs the
-  # former cloud/cloud-marketplace + oya/marketplace + oya/developer-sdk crates into
-  # marketplace/{core,facade} (two faces). marketplace is the marketplace / plugin-app-store / SKU
-  # ENGINE (dag_node marketplace, a first-class cross-cutting sold-ness capability): the cloud
-  # marketplace domain/kernel + the SaaS plugin-marketplace kernel + the doc-set-scaffold home to
-  # core/ (substrate engine surfaces), and the `oya` gate-runner dev-CLI homes to facade/dev-cli
-  # (the sold developer-tooling surface; its [[bin]] name `oya` is preserved). All five crates are
-  # de-branded to the capability prefix (marketplace-cloud-domain / marketplace-cloud-kernel /
-  # marketplace-plugin-kernel / marketplace-dev-cli / marketplace-doc-set-scaffold), so each leaf
-  # segment stays a bare `*`. `marketplace/*/*` covers all five faces/leaves
-  # (marketplace/core/{cloud-domain,cloud-kernel,plugin-kernel,doc-set-scaffold} +
-  # marketplace/facade/dev-cli) with one glob, satisfying ADR-0538's glob-only members contract (no
-  # explicit-path members); the crate-empty oya/plugin-app-store + the non-crate artifacts of the
-  # absorbed dirs are not swept (no Cargo.toml) and are homed in phase-2 (task #62).
-  "marketplace/*/*",
-  # Capability-first home (ADR-0562 strangler move 10): the `compliance` capability absorbs the
-  # former oya/compliance crates into compliance/{core,ports} (two faces). compliance is the
-  # compliance + governance-evidence substrate (dag_node compliance): the DLP / DSR / e-discovery /
-  # retention / retention-DSR / trust-portal DOMAIN crates ARE the substrate engine, so they home to
-  # core/, and the DSR cascade-execute USECASE crate is the inbound application port, so it homes to
-  # ports/. All seven crates are de-branded to the capability prefix (compliance-dlp / compliance-dsr
-  # / compliance-dsr-usecase / compliance-ediscovery / compliance-retention / compliance-retention-dsr
-  # / compliance-trust-portal), so each leaf segment stays a bare `*`. `compliance/*/*` covers all
-  # seven faces/leaves (compliance/core/{dlp,dsr,ediscovery,retention,retention-dsr,trust-portal} +
-  # compliance/ports/dsr-usecase) with one glob, satisfying ADR-0538's glob-only members contract (no
-  # explicit-path members); the co-moved compliance/observability/slos non-crate SLO subtree is
-  # excluded below (no Cargo.toml), and the absorbed dir's other non-crate artifacts are homed in
-  # phase-2 (task #62).
-  "compliance/*/*",
-  # Capability-first home (ADR-0562 strangler move 11): the `console` capability absorbs the former
-  # oya/ops crates into console/{ports,core,adapters,facade} (all four faces), spread over two product
-  # cells (docs-portal, four crates; workspace-shell, five crates). console is the operator/tenant
-  # console-shell substrate (dag_node console): the per-cell KERNEL crate defines the port traits +
-  # types (zero deps, the boundary the cell depends inward on), so it homes to ports/; the per-cell
-  # USECASE crate is the application use-case orchestration, so it homes to core/ (a legal core→ports
-  # downward edge — hexagonal, not an inversion); the ADAPTER crate projects kernel types onto the
-  # OpenAPI wire, so it homes to adapters/; the REST boundary + the app composition root home to
-  # facade/. Each crate is de-branded to the capability prefix with a role-suffixed leaf so cargo ==
-  # path-tail stays unique across the two shared cell names (console-docs-portal-kernel /
-  # console-docs-portal-usecase / console-docs-portal-adapter / console-docs-portal-rest /
-  # console-workspace-shell-kernel / console-workspace-shell-usecase / console-workspace-shell-adapter
-  # / console-workspace-shell-rest / console-workspace-shell-app), so each leaf segment stays a bare
-  # `*`. `console/*/*` covers all nine faces/leaves with one glob, satisfying ADR-0538's glob-only
-  # members contract (no explicit-path members); the absorbed dir holds no SLO subtree (no co-move, no
-  # observability exclude), and its other non-crate artifacts are homed in phase-2 (task #62).
-  "console/*/*",
-  # Capability-first home (ADR-0562 strangler move 12): the `comms` capability absorbs the former
-  # oya/mail + oya/messenger + oya/meet + oya/contact-center crates into comms/{core,ports,adapters,
-  # facade} (all four faces), spread over FOUR product cells (mail, seven crates; messenger, seven
-  # crates; meet, one crate; contact-center, one crate). comms is the multi-channel communications
-  # plane (dag_node comms): email/mail, messenger, meet, and contact-center. Each crate is de-branded
-  # to the capability prefix with a role-suffixed leaf so cargo == path-tail stays unique across the
-  # four cells (comms-mail-domain / comms-mail-mailbox-usecase / comms-mail-mailbox-app /
-  # comms-mail-mailbox-api / comms-mail-mailbox-postgres / comms-mail-mailbox-grpc /
-  # comms-mail-mailbox-rest / comms-messenger-domain / comms-messenger-stream-usecase /
-  # comms-messenger-stream-app / comms-messenger-stream-api / comms-messenger-stream-postgres /
-  # comms-messenger-stream-grpc / comms-messenger-stream-rest / comms-meet-domain /
-  # comms-contact-center-voice-routing), so each leaf segment stays a bare `*`. `comms/*/*` covers all
-  # sixteen faces/leaves with one glob, satisfying ADR-0538's glob-only members contract (no
-  # explicit-path members); the co-moved comms/observability/slos non-crate SLO subtree (per-service
-  # subdirs mail/messenger/meet/contact-center, collision-avoiding) is excluded below (no Cargo.toml),
-  # and the absorbed dirs' other non-crate artifacts are homed in phase-2 (task #62).
-  "comms/*/*",
-  # Capability-first home (ADR-0562 strangler move 13): the `k8s` capability absorbs the former
-  # cloud/managed-k8s-cluster-lifecycle + cloud/managed-k8s-control-plane-host +
-  # cloud/managed-k8s-sla-observability + cloud/managed-k8s-tenant-quota crates into
-  # k8s/{core,ports,adapters,facade} (all four faces), spread over FOUR product cells
-  # (cluster-lifecycle, three crates; control-plane-host, five crates; sla-observability, four
-  # crates; tenant-quota, five crates). k8s is the managed-Kubernetes plane (dag_node control-plane):
-  # the SOLD managed-k8s product (facade) above the owned control-plane (core). Each crate is
-  # de-branded to the capability prefix with a `<cell>-<role>` leaf so cargo == path-tail stays
-  # unique across the four cells (k8s-cluster-lifecycle-kernel / k8s-cluster-lifecycle-api /
-  # k8s-cluster-lifecycle-app / k8s-control-plane-host-kernel / k8s-control-plane-host-api /
-  # k8s-control-plane-host-adapter-inmemory / k8s-control-plane-host-adapter-capi /
-  # k8s-control-plane-host-app / k8s-sla-observability-kernel / k8s-sla-observability-api /
-  # k8s-sla-observability-adapter-inmemory / k8s-sla-observability-app / k8s-tenant-quota-kernel /
-  # k8s-tenant-quota-api / k8s-tenant-quota-adapter-inmemory / k8s-tenant-quota-adapter-cedar /
-  # k8s-tenant-quota-app), so each leaf segment stays a bare `*`. `k8s/*/*` covers all seventeen
-  # faces/leaves with one glob, satisfying ADR-0538's glob-only members contract (no explicit-path
-  # members); the co-moved k8s/observability/slos non-crate SLO subtree (per-service subdirs
-  # cluster-lifecycle/control-plane-host/sla-observability/tenant-quota, collision-avoiding for the
-  # shared provisioning-latency basename) is excluded below (no Cargo.toml), and the absorbed dirs'
-  # other non-crate artifacts are homed in phase-2 (task #62). cloud/cloud-k8s is crate-empty
-  # (docs/IaC only) and is absorbed dir-slug-only (no crate move).
-  "k8s/*/*",
-  # Capability-first home (ADR-0562 strangler move 14): the `tenancy` capability absorbs the
-  # former cloud/tenancy/crates into tenancy/{core,ports,adapters} across three faces (core,
-  # ports, adapters; no facade — tenant management IS the substrate). The seventeen crates spread
-  # over core (fourteen: kernel/domain + the cell-assignment/dsr-cascade/isolation-policy/
-  # lifecycle-locks/sub-scope-registry kernels + kyb-kyc-verifier + the tenant-lifecycle
-  # domain/kernel/usecase triad + the dr-pairing/per-tenant-quota/reserved-namespace usecases),
-  # ports (two: api + cli), and adapters (one: data-residency-enforcer). Each crate is de-branded
-  # to the capability prefix with a leaf naming so cargo == path-tail stays unique (tenancy-kernel /
-  # tenancy-domain / tenancy-cell-assignment / tenancy-dsr-cascade / tenancy-isolation-policy /
-  # tenancy-lifecycle-locks / tenancy-sub-scope-registry / tenancy-kyb-kyc-verifier /
-  # tenancy-tenant-lifecycle-domain / tenancy-tenant-lifecycle-kernel /
-  # tenancy-tenant-lifecycle-usecase / tenancy-dr-pairing / tenancy-per-tenant-quota /
-  # tenancy-reserved-namespace / tenancy-api / tenancy-cli / tenancy-data-residency-enforcer), so
-  # each leaf segment stays a bare `*`. `tenancy/*/*` covers all seventeen faces/leaves with one
-  # glob, satisfying ADR-0538's glob-only members contract (no explicit-path members); the co-moved
-  # tenancy/observability/slos non-crate SLO subtree (flat — single source dir, no basename
-  # collision) is excluded below (no Cargo.toml), and the absorbed dir's other non-crate artifacts
-  # are homed in phase-2 (task #62).
-  "tenancy/*/*",
-  # Capability-first home (ADR-0562 strangler move 15): the `audit` capability absorbs the former
-  # oya/audit-chain/crates into audit/{core,ports,adapters} across three faces (core, ports,
-  # adapters; no facade — the tamper-evident Merkle audit log IS the substrate, the S0 audit-chain
-  # dag node). The eighteen crates spread over core (seven: chain-domain + usecase + the
-  # emission/query/retention-cascade/sealing/verification domains), ports (ten: the
-  # emission/query/retention-cascade/sealing/verification kernels + their api DTO crates), and
-  # adapters (one: file). Each crate is de-branded to the capability prefix with a leaf naming so
-  # cargo == path-tail stays unique (audit-chain-domain / audit-usecase / audit-emission-kernel /
-  # audit-emission-api / audit-emission-domain / audit-query-kernel / audit-query-api /
-  # audit-query-domain / audit-retention-cascade-kernel / audit-retention-cascade-api /
-  # audit-retention-cascade-domain / audit-sealing-kernel / audit-sealing-api / audit-sealing-domain /
-  # audit-verification-kernel / audit-verification-api / audit-verification-domain /
-  # audit-file-adapter), so each leaf segment stays a bare `*`. `audit/*/*` covers all eighteen
-  # faces/leaves with one glob, satisfying ADR-0538's glob-only members contract (no explicit-path
-  # members); the co-moved audit/observability/slos non-crate SLO subtree (flat — single source dir,
-  # no basename collision) is excluded below (no Cargo.toml), and the absorbed dir's other non-crate
-  # artifacts are homed in phase-2 (task #62).
-  "audit/*/*",
-  # data capability (MOVE-16, ADR-0562): homes cloud/cloud-data + oya/{ontology,search,analytics,
-  # data-pipeline,data-warehouse} → data/{core,ports,facade}/<leaf> (23 crates: core 18 / ports 2 /
-  # facade 5). The de-branded cargo name == data-<leaf> path-tail, so each leaf segment stays a bare
-  # `*`. `data/*/*` covers all twenty-three faces/leaves with one glob, satisfying ADR-0538's
-  # glob-only members contract (no explicit-path members); the co-moved data/observability/slos
-  # non-crate SLO subtree (per-service subdirs — six source dirs carry cross-service basename
-  # collisions, e.g. autosharding-events/availability/read-latency/write-latency) is excluded below
-  # (no Cargo.toml), and the absorbed dirs' other non-crate artifacts are homed in phase-2 (task #62).
-  "data/*/*",
-  # workflow capability (MOVE-17, ADR-0562): homes oya/{workflow-engine,workflow-studio,tasks,forms}/
-  # crates → workflow/{core,ports,adapters,facade}/<leaf> (48 crates: core 12 / ports 16 / adapters 11 /
-  # facade 9). The orchestration substrate's engine (four hexagonal sub-domains: event-bus, execution-
-  # engine, state-machine, trigger-orchestrator) is core/ports/adapters; the studio + saas + tasks +
-  # forms products are facade. The de-branded cargo name == workflow-<leaf> path-tail, so each leaf
-  # segment stays a bare `*`. `workflow/*/*` covers all forty-eight faces/leaves with one glob,
-  # satisfying ADR-0538's glob-only members contract (no explicit-path members); the co-moved
-  # workflow/observability/slos non-crate SLO subtree (per-service subdirs — the four source dirs carry
-  # the cross-service basename collision autosharding-events.openslo.yaml ×4) is excluded below (no
-  # Cargo.toml), and the absorbed dirs' other non-crate artifacts are homed in phase-2 (task #62).
-  "workflow/*/*",
-  # iam capability (MOVE-18, ADR-0562): homes cloud/cloud-iam + oya/{identity,policy,tenant-rbac,
-  # oya-authn-device-firmware} crates → iam/{core,ports,adapters,facade}/<leaf> (63 crates: core 18 /
-  # ports 16 / adapters 9 / facade 20). The COARSE Conway-aligned identity+authz capability: the
-  # cloud-iam IdP/PDP substrate (engine we RUN) + policy-cedar + tenant-rbac authz spine are
-  # core/ports/adapters; the product-shared identity service + workload-rest + tenant-rbac runtime/
-  # evidence/readiness surfaces (the faces we SELL, which CONSUME the substrate) are facade. The
-  # de-branded cargo name == iam-<leaf> path-tail (cloud-iam-X de-dups to iam-cloud-X), so each leaf
-  # segment stays a bare `*`. `iam/*/*` covers all sixty-three faces/leaves with one glob, satisfying
-  # ADR-0538's glob-only members contract (no explicit-path members — the codemod-emitted literals are
-  # collapsed to this glob); the co-moved iam/observability/slos non-crate SLO subtree (per-service
-  # subdirs cloud-iam/identity/tenant-rbac/identity-workload-svid-kernel, collision-avoiding for the
-  # shared autosharding-events.openslo.yaml basename across cloud-iam + identity) is excluded below (no
-  # Cargo.toml), and the intentionally crate-free oya/oya-identity + oya/consent-graph dirs are homed
-  # in phase-2 (task #62).
-  "iam/*/*",
-  # network capability (MOVE-19, ADR-0562): homes cloud/cloud-network + cloud/cloud-network-dns
-  # crates → network/{core,ports,adapters}/<leaf> (7 crates: core 2 / ports 3 / adapters 2; no
-  # facade — the network + DNS substrate IS the engine we RUN, not a sold product surface). The
-  # network + DNS substrate: the cloud-network catalog/VPC/LB/route domain + the platform-wide
-  # ADR-0049 residency-class kernel are core; the vpc/lb/dns trait + DTO seams are ports; the
-  # oci + selfhosted transient provider impls are adapters. The de-branded cargo name ==
-  # network-<leaf> path-tail (the legacy oya-cloud-network-X / oya-residency-domain forms drop to
-  # the `network-` capability slug, role suffix dropped where the face implies it), so each leaf
-  # segment stays a bare `*`. `network/*/*` covers all seven faces/leaves with one glob, satisfying
-  # ADR-0538's glob-only members contract (no explicit-path members — the codemod-emitted literals
-  # are collapsed to this glob); the co-moved network/observability/slos non-crate SLO subtree
-  # (per-service subdirs cloud-network/cloud-network-dns, collision-avoiding for the shared
-  # autosharding-events.openslo.yaml basename across the two source dirs) is excluded below (no
-  # Cargo.toml), and the absorbed dirs' other non-crate artifacts (docs/PRD/IPs/contracts) are
-  # homed in phase-2 (task #62).
-  "network/*/*",
-  # secrets capability (MOVE-20, ADR-0562 §10.24): homes cloud/cloud-kms + cloud/cloud-secrets
-  # crates → secrets/{core,ports,adapters,facade}/<leaf> (10 crates: core 4 / ports 1 / adapters 4 /
-  # facade 1). secrets is KMS + secrets + the crypto root (recursion break #1): the cloud-kms key
-  # lifecycle domain + the enclave/operator kernels + the cloud-secrets value-object domain are core;
-  # the kms capability-trait + DTO seam is ports; the oci/openbao provider + operator-k8s + file
-  # transient infra impls are adapters; the kms-operator-app K8s operator composition root (wires the
-  # operator-k8s adapter + operator-kernel) is facade (the iam cloud-pdp-app §10.22 facade precedent: a
-  # deployable that depends on a concrete adapter belongs in facade/, NOT core/). The de-branded cargo
-  # name == secrets-<leaf> path-tail (the legacy oya-cloud-kms-X / oya-secrets-X forms drop to the
-  # `secrets-` capability slug; the face dir is NOT in the name and the leaves are already distinct), so
-  # each leaf segment stays a bare `*`. `secrets/*/*` covers all ten faces/leaves with one glob,
-  # satisfying ADR-0538's glob-only members contract (no explicit-path members — the codemod-emitted
-  # literals are collapsed to this glob); the co-moved secrets/observability/slos non-crate SLO subtree
-  # (per-service subdirs cloud-kms/cloud-secrets, collision-avoiding for the shared
-  # autosharding-events.openslo.yaml basename across the two source dirs) is excluded below (no
-  # Cargo.toml), and the absorbed dirs' other non-crate artifacts (manifest.json/docs/PRD/IPs/contracts)
-  # are homed in phase-2 (task #62).
-  "secrets/*/*",
-  # billing capability (MOVE-21, ADR-0562 §10.25 + REORG-003): homes cloud/cloud-billing
-  # + cloud/cloud-billing-tax + cloud/cloud-finops + oya/accounting crates plus the
-  # former libs/oya-metering-pipeline-kernel straggler → billing/{core,ports,adapters,facade}/<leaf>.
-  # billing is the first-class cross-cutting sold-ness capability (metering + billing + tax
-  # + finops/cost + accounting): the billing/metering/finops/accounting-journal domains +
-  # the billing/finops kernels + the metering pipeline kernel + the accounting-app usecase
-  # orchestrator (no adapter dep) are core; the finops/accounting capability-trait + DTO seams
-  # + the lib-only tax-api contract surface are ports; the accounting-journal http +
-  # inmemory-storage transient infra impls are adapters; the billing/meter/cost service
-  # deployables + the saas-bench harness are facade. The de-branded cargo name ==
-  # billing-<leaf> path-tail (the legacy oya-cloud-billing-X / oya-cloud-finops-X /
-  # oya-accounting-journal-X / oya-metering-X / oya-meter-X forms drop to the `billing-`
-  # capability slug; the face dir is NOT in the name and the leaves are already distinct),
-  # so each leaf segment stays a bare `*`. `billing/*/*` covers every billing face/leaf
-  # with one glob, satisfying ADR-0538's glob-only members contract (no explicit-path members
-  # — the codemod-emitted literals are collapsed to this glob); the co-moved billing/observability/slos
-  # non-crate SLO subtree (per-service subdirs cloud-billing/cloud-billing-tax, collision-avoiding
-  # for the shared autosharding-events.openslo.yaml basename across the two source dirs) is excluded
-  # below (no Cargo.toml), and the absorbed dirs' other non-crate artifacts
-  # (manifest.json/docs/PRD/IPs/contracts/iac/catalog) are homed in phase-2 (task #62).
-  "billing/*/*",
-  # ADR-0562 §10.26(a) move-22 sub-batch (a): the `intelligence` capability ROOT — established by this
-  # sub-batch, which homes the sixteen cloud-intelligence crates into intelligence/{core 4, adapters 10,
-  # facade 2} (ports/ receives crates in later sub-batches b-g). intelligence is the AI/intelligence
-  # substrate (OAuth subscription-pool request pipeline + proof layer + agentic capabilities). FACE per
-  # ENUMERATION (the acyclicity gate is BLIND to intelligence/* edges): the four kernels (seat-pool/
-  # tool-compat/translation/wire) are pure-serde leaves => core; the cedar/codex/gemini/openbao provider
-  # adapters + the clickhouse/valkey eventsinks + the claude-agent/codex vendor SDK transports +
-  # ops-infrastructure + the axum reverse-proxy `rest` (it depends on the concrete codex-adapter +
-  # gemini-adapter, so it is adapters — NOT ports; the suggested ports placement was a face inversion) are
-  # adapters; the `app` composition-root (the cloud-intelligence binary) + the `worker` are facade. ZERO
-  # core/ports->adapters edges (every intelligence/core/* + intelligence/ports/* Cargo.toml carries no
-  # ../../adapters or ../../facade dep). `intelligence/*/*` covers all sixteen faces/leaves with one glob
-  # (ADR-0538 glob-only members; the codemod-emitted literals are collapsed to this glob); the co-moved
-  # intelligence/observability/slos non-crate SLO subtree (flat — single source dir, no basename collision)
-  # is excluded by the no-Cargo.toml resolver rule, and the absorbed cloud-intelligence dir's other
-  # non-crate artifacts (manifest.json/docs/PRD/IPs/contracts/iac/k8s/policy/Dockerfile) + the remaining 126
-  # oya/intelligence crates are homed in later sub-batches / phase-2 (task #62).
-  "intelligence/*/*",
-  # Phase -1 corpus substrate (ADR-0580): the live-AST governance "corpus" homes its crates under
-  # the governance/ meta directory at governance/corpus/<leaf> (corpus-core, corpus-extract). The
-  # leaf is de-branded (cargo names corpus-core / corpus-extract), so the leaf segment stays a bare
-  # `*`. `governance/corpus/*` is a 3-segment glob (it MUST be — the members-kernel matches `*`
-  # per-path-component with an exact segment-count, so a 2-segment `governance/*` would NOT match a
-  # 3-segment crate dir). Narrow (corpus-scoped, not `governance/*/*`) per the closed-registry
-  # anti-junk-drawer intent: each future governance sub-substrate adds its own glob via its own ADR.
+
+  # Crates in conforming roots that legitimately sit OUTSIDE the four-layer shape.
+  # `governance/` is a meta root off the runtime ladder (ADR-0615) and the two harness/testing
+  # trees are build-support rather than capability faces. Each is an explicit, reviewed
+  # exception rather than a wildcard that would re-admit the satellite-match problem.
   "governance/corpus/*",
-  # Capability-first home (ADR-0562 KEYSTONE strangler move): the `ci` capability absorbs the
-  # former cloud/cloud-ci gate crates at ci/facade/<leaf> (the delivery-fabric gate fleet). The
-  # leaf is de-branded (cargo names ci-baseline-ratchet / ci-module-membership / ... ), so the
-  # leaf segment stays a bare `*`. `ci/*/*` covers every moved gate crate (ci/facade/<leaf>) with
-  # one glob, satisfying ADR-0538's glob-only members contract (no explicit-path members). The one
-  # buck2-only gate (ci/facade/automation-language-policy, no Cargo.toml) is excluded below.
-  "ci/*/*",
-  # Meta-directory home (ADR-0562 §1 meta_directories + ADR-0615): the `os/` rung-1 node
-  # operating system (cloud-os, Talos-class) absorbs the former cloud/cloud-os crates at
-  # os/<face>/<leaf>. `os/` is a META directory with owns_crates: true — NOT a capability — so it
-  # carries no capability-registry membership glob; the closed registry maps it via
-  # membership_lint_coverage.meta_directory_absorbs. Faces are core (the 40 node-OS runtime
-  # engines) and harness (the one integration-test-only crate, mirroring the landed
-  # kernel/harness/asterinas-real-boot precedent). The leaf is de-branded (ADR-0532/0533: cargo
-  # names os-apid-domain / os-kernel / os-init-app / os-difftest-app / ...), so the leaf segment
-  # stays a bare `*`. `os/*/*` is a 3-segment glob matching both faces (os/core/<leaf>,
-  # os/harness/<leaf>) with one glob, satisfying ADR-0538's glob-only members contract (no
-  # explicit-path members). This glob MUST be added BEFORE the codemod runs: without it the
-  # codemod appends literal-path members, which is `workspace_member_explicit_path` — a
-  # frozen_empty violation that cannot be baselined.
-  "os/*/*",
+  "intelligence/testing/*",
+  "os/harness/*",
 ]
 exclude = [
-  # cloud/cloud-kernel is a SEPARATE no_std bare-metal workspace (its own [workspace]
-  # root + per-arch userspace sub-workspaces). It must stay out of the root workspace
-  # even though cloud/*/crates/oya-* would otherwise sweep its crates in.
-  "cloud/cloud-kernel",
-  # kernel/ is the sanctioned top-level nested Cargo workspace (ADR-0512 carve-out; the ONLY
-  # whitelisted nested [workspace], placement per specs/capability-registry.json / ADR-0562):
-  # the rung-0 kuberos kernel + its dev-only QEMU real-boot harness resolve independently of the
-  # std-targeted root lockfile. It must stay out of the root workspace (same reason as cloud-kernel).
-  "kernel",
-  # Buck2-only gate: has BUCK + src but no Cargo.toml by design, so the `ci/*/*` member
-  # glob would otherwise make cargo error trying to load it as a member (ADR-0562 KEYSTONE
-  # move: relocated from cloud/cloud-ci/gates/oya-cloud-ci-rust-first-automation-hygiene-app).
+  # Only THREE exclusions remain, and none of them is per-move churn.
+  #
+  # `kernel` and `cloud/cloud-kernel` are their own workspaces (ADR-0512 carve-out) — excluded
+  # because they are separate roots, not because a glob over-matched them.
+  #
+  # `ci/facade/automation-language-policy` is the single directory the layer globs match that
+  # holds no [package] manifest.
+  #
+  # The ~23 `<cap>/observability`-shaped entries that used to live here are GONE, not relocated:
+  # they existed solely because `<cap>/*/*` matched satellite directories, and the layer globs
+  # above do not match them. That is the point of the change — a capability move no longer adds
+  # an exclusion, so this array stops being a merge surface.
   "ci/facade/automation-language-policy",
-  # Capability SLO homes (ADR-0139 SLO-home convention; doctrine-fix PR-B): each capability's
-  # promotion-gating SLOs live at `<cap>/observability/slos/*.openslo.yaml` — a NON-crate data
-  # subtree, no Cargo.toml. The `<cap>/*/*` member glob would otherwise match
-  # `<cap>/observability/slos` (the `*/*` = `observability/slos`) and make cargo error trying to
-  # read a member manifest that does not exist (same class as the buck2-only gate above). The
-  # observability/ subtree under each cap is OWNERS-covered (ADR-0555 breadth-unlimited) but is
-  # never a crate home, so excluding it is correct + future-proof.
-  "iac/observability",
-  # IaC shared OpenTofu module library (ADR-0339, PR #1165): `iac/modules/<family>/<module>/`
-  # is a NON-crate data subtree (.tofu + catalog.json + OWNERS, no Cargo.toml). The `iac/*/*`
-  # member glob would otherwise match `iac/modules/aws-guest` and make cargo error trying to
-  # read a member manifest that does not exist (same class as the SLO homes below).
-  "iac/modules",
-  "observability/observability",
-  "storage/observability",
-  "cell/observability",
-  "gateway/observability",
-  "flags/observability",
-  "marketplace/observability",
-  "compliance/observability",
-  "comms/observability",
-  # Messenger chaos scenarios and the resilience control-loop contract are tracked operational
-  # data subtrees, not Rust crates. `comms/*/*` matches both directories, so Cargo requires these
-  # reviewed explicit excludes to avoid treating either as a workspace package.
-  "comms/messenger/chaos",
-  "comms/messenger/resilience",
-  "k8s/observability",
-  "tenancy/observability",
-  "audit/observability",
-  "data/observability",
-  # DATA-005 Kubernetes/GitOps operational manifests are non-crate product artifacts.
-  "data/ops",
-  "workflow/observability",
-  "iam/observability",
-  "network/observability",
-  "secrets/observability",
-  "billing/observability",
-  "intelligence/observability",
+  "cloud/cloud-kernel",
+  "kernel",
 ]
 resolver = "2"
 
