@@ -187,11 +187,28 @@ pub fn collect_manifests(root: &Path, policy: &Value) -> Result<Value, CollectEr
         .unwrap_or_default();
     roots.sort();
 
+    let exclude_prefixes: Vec<String> = policy
+        .get("exclude_path_prefixes")
+        .and_then(Value::as_array)
+        .map(|arr| {
+            arr.iter()
+                .filter_map(Value::as_str)
+                .map(str::to_owned)
+                .collect()
+        })
+        .unwrap_or_default();
+
     let mut paths: Vec<String> = Vec::new();
     for service_root in &roots {
         let dir = root.join(service_root);
         collect_manifest_paths(&dir, root, &mut paths)?;
     }
+    // Test-fixture manifests are synthetic RED/GREEN inputs owned by a crate's own
+    // suite, not governed services. They only stayed invisible while the governed
+    // roots were cloud/+oya/; widening the roots to the ADR-0562 capability set
+    // brings them into the walk, so the exclusion is policy DATA (repo-portable),
+    // never a hardcoded path in the kernel.
+    paths.retain(|rel| !exclude_prefixes.iter().any(|prefix| rel.starts_with(prefix)));
     paths.sort();
 
     let mut manifests = Vec::with_capacity(paths.len());

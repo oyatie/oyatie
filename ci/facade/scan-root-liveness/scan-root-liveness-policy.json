@@ -7,11 +7,12 @@
       "scan_roots",
       "crate_root_globs",
       "manifest_paths",
-      "store_manifest_paths"
+      "store_manifest_paths",
+      "governed_service_roots"
     ],
-    "declared_roots_total": 200,
+    "declared_roots_total": 262,
     "key_format": "<policy_file>::<json_pointer>::<declared_value>",
-    "policy": "shrink-only; a NEW dead root fails, and a landed forward declaration must be retired"
+    "policy": "shrink-only; a NEW dead root fails, and a landed forward declaration must be retired W2: governed_service_roots joined the coverage-bearing key set and tier-field-coverage joined registered_policy_files, so the gate that owns service-manifest scope can no longer declare a root nobody audits."
   },
   "min_expected_roots": 150,
   "coverage_bearing_keys": [
@@ -19,7 +20,8 @@
     "scan_roots",
     "crate_root_globs",
     "manifest_paths",
-    "store_manifest_paths"
+    "store_manifest_paths",
+    "governed_service_roots"
   ],
   "registered_policy_files": [
     "ci/facade/automation-language-policy/rust-first-automation-policy.json",
@@ -28,13 +30,26 @@
     "ci/facade/endpoint-authorization-coverage/authz-coverage-policy.json",
     "ci/facade/layer-dependency-acyclicity/tier-dependency-acyclicity-policy.json",
     "ci/facade/module-membership/capability-membership-policy.json",
-    "ci/facade/operator-secret-rbac/operator-secret-bootstrap-policy.json"
+    "ci/facade/operator-secret-rbac/operator-secret-bootstrap-policy.json",
+    "ci/facade/service-tier-metadata/tier-field-coverage-policy.json"
   ],
   "exempt_policy_files": {},
   "forward_declarations": {
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/cli_package_authority/roots::app": {
+      "value": "app",
+      "reason": "SCAN-ROOT PRE-WIDENING (W2 registry-derived coverage, ADR-0562 \u00a710.29 + ADR-0628). The CLI-authority scan covered only cloud/os/infra/tools, so a `-cli` package born in any reorg destination was unseen. app/ is the composition ring where a product CLI would most plausibly be born. Declared while app/ is empty; zero-delta because the root matches no Cargo manifest. Retire when the first app-tier move lands."
+    },
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/cli_package_authority/roots::base": {
+      "value": "base",
+      "reason": "SCAN-ROOT PRE-WIDENING (W2 registry-derived coverage, ADR-0562 \u00a710.29 + ADR-0628). Same pre-widening as app/ above; the ADR-0562 shared floor must never grow a CLI-shaped package. Retire when the first libs/ consolidation move lands."
+    },
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/cli_package_authority/roots::policy": {
+      "value": "policy",
+      "reason": "SCAN-ROOT PRE-WIDENING (W2 registry-derived coverage, ADR-0562 \u00a710.29 + ADR-0628). Same pre-widening as app/ above; `policy` is a registered capability in the ADR-0562 closed registry with no directory yet. Retire when the policy capability lands its first crate."
+    },
     "ci/facade/caller-supplied-authorization/dto-authz-trust-policy.json::/scan_roots::app": {
       "value": "app",
-      "reason": "AUTHZ SCAN-SCOPE PRE-WIDENING (ADR-0562 §10.29 mandate, applied ahead of the move rather than after it). ADR-0615 relocates 33 product dirs from oya/<product>/ to app/<product>/; oya IS in this gate's scan_roots and app was NOT, so that move would have silently removed the entire product surface from the ADR-0582 caller-supplied-authz class-fix with no CI red — the gate has no per-crate expectation, so a departed crate is invisible. Declared while app/ holds zero crates, which is the only moment the widening is provably zero-delta (no new findings, no baseline churn). Created by the first app-tier move."
+      "reason": "AUTHZ SCAN-SCOPE PRE-WIDENING (ADR-0562 \u00a710.29 mandate, applied ahead of the move rather than after it). ADR-0615 relocates 33 product dirs from oya/<product>/ to app/<product>/; oya IS in this gate's scan_roots and app was NOT, so that move would have silently removed the entire product surface from the ADR-0582 caller-supplied-authz class-fix with no CI red \u2014 the gate has no per-crate expectation, so a departed crate is invisible. Declared while app/ holds zero crates, which is the only moment the widening is provably zero-delta (no new findings, no baseline churn). Created by the first app-tier move."
     },
     "ci/facade/caller-supplied-authorization/dto-authz-trust-policy.json::/scan_roots::base": {
       "value": "base",
@@ -46,7 +61,7 @@
     },
     "ci/facade/caller-supplied-authorization/dto-authz-trust-policy.json::/scan_roots::policy": {
       "value": "policy",
-      "reason": "Same pre-widening as app/ above. policy is the capability ADR-0615 extracted from iam and is where PBAC/PDP code lands — the single root where a caller-supplied-authz defect would be most consequential. Created when the policy capability lands its first crate."
+      "reason": "Same pre-widening as app/ above. policy is the capability ADR-0615 extracted from iam and is where PBAC/PDP code lands \u2014 the single root where a caller-supplied-authz defect would be most consequential. Created when the policy capability lands its first crate."
     },
     "ci/facade/embedded-asset-hermeticity/embedded-asset-hermeticity-policy.json::/scan_roots::app": {
       "value": "app",
@@ -66,7 +81,7 @@
     },
     "ci/facade/endpoint-authorization-coverage/authz-coverage-policy.json::/scan_roots::app": {
       "value": "app",
-      "reason": "AUTHZ SCAN-SCOPE PRE-WIDENING, sibling of the dto-authz-trust entry above and for the same measured reason: oya IS in this gate's scan_roots and app was NOT, so the ADR-0615 33-product move would have silently removed the product surface from the issue #770 / AUTH-005 unauthenticated-HTTP-control-plane gate. AUTH-005 was the dominant finding of the whole-repo review, so this is the highest-consequence instance of the ADR-0562 §10.29 class. Declared while app/ is empty and the widening is provably zero-delta. Created by the first app-tier move."
+      "reason": "AUTHZ SCAN-SCOPE PRE-WIDENING, sibling of the dto-authz-trust entry above and for the same measured reason: oya IS in this gate's scan_roots and app was NOT, so the ADR-0615 33-product move would have silently removed the product surface from the issue #770 / AUTH-005 unauthenticated-HTTP-control-plane gate. AUTH-005 was the dominant finding of the whole-repo review, so this is the highest-consequence instance of the ADR-0562 \u00a710.29 class. Declared while app/ is empty and the widening is provably zero-delta. Created by the first app-tier move."
     },
     "ci/facade/endpoint-authorization-coverage/authz-coverage-policy.json::/scan_roots::base": {
       "value": "base",
@@ -80,6 +95,18 @@
       "value": "policy",
       "reason": "Same pre-widening as app/ above. The policy capability (ADR-0615, extracted from iam) will expose policy-decision endpoints; an unauthenticated control plane there is the worst case this gate exists to block."
     },
+    "ci/facade/layer-dependency-acyclicity/tier-dependency-acyclicity-policy.json::/crate_root_globs::app/*/*": {
+      "value": "app/*/*",
+      "reason": "SCAN-ROOT PRE-WIDENING (W2 registry-derived coverage, ADR-0562 \u00a710.29 + ADR-0628). ADR-0615 relocates 33 product dirs to app/<product>/. `app` is a crate-owning meta dir in the closed registry, so its crates must carry a tier; a crate landing there while the glob is absent is invisible to the tier gate AND trips its own \"declared in neither service_roots nor unclassified_roots\" guard. Declared while app/ holds zero crates, which is the only moment the widening is provably zero-delta (measured: 897 crates / 1379 edges / 8 baselined / 0 regressions, byte-identical before and after). Retire when the first app-tier move lands."
+    },
+    "ci/facade/layer-dependency-acyclicity/tier-dependency-acyclicity-policy.json::/crate_root_globs::base/*/*": {
+      "value": "base/*/*",
+      "reason": "SCAN-ROOT PRE-WIDENING (W2 registry-derived coverage, ADR-0562 \u00a710.29 + ADR-0628). Same pre-widening as app/*/* above. base/ is the ADR-0562 shared floor (>=3 capability consumers, strictly below all of them in the ADR-0280 DAG) \u2014 precisely the stratum whose upward edges this gate exists to catch. Retire when the first libs/ consolidation move lands."
+    },
+    "ci/facade/layer-dependency-acyclicity/tier-dependency-acyclicity-policy.json::/crate_root_globs::policy/*/*": {
+      "value": "policy/*/*",
+      "reason": "Same declared-but-unbuilt `policy` capability as above, expressed as a crate glob. Kept so the tier rules apply the moment the capability lands, rather than being retrofitted after crates already exist there."
+    },
     "ci/facade/module-membership/capability-membership-policy.json::/scan_roots::app": {
       "value": "app",
       "reason": "ADR-0562 capability-first destination. Declared ahead of creation so the first product app can land without a policy edit; module-membership already lists app/ in meta_directories and allowed_top_level_dirs. Created by the first app-tier move."
@@ -88,13 +115,25 @@
       "value": "base",
       "reason": "ADR-0562 capability-first destination for the shared floor. Declared ahead of creation for the same reason as app/; created by the first libs/ consolidation move."
     },
+    "ci/facade/module-membership/capability-membership-policy.json::/scan_roots::build": {
+      "value": "build",
+      "reason": "SCAN-ROOT PRE-WIDENING (W2 registry-derived coverage, ADR-0562 \u00a710.29 + ADR-0628). build/ is a registry meta directory (buck2 prelude, toolchains, reindeer, CI engines) declared with owns_crates:false, so the derived-sync rule does not require it. It is declared here anyway so that a crate born under build/ CANNOT escape the membership lint: allowed_top_level_dirs already admits build/, so MEM-NEW-TOP-LEVEL-DIR would not fire and the crate would be invisible. Zero-delta: build/ holds zero tracked files. Retire when build/ lands its first crate."
+    },
     "ci/facade/module-membership/capability-membership-policy.json::/scan_roots::policy": {
       "value": "policy",
       "reason": "Declared capability in the ADR-0562 closed registry with no directory yet; created when the policy-pack capability lands its first crate."
     },
-    "ci/facade/layer-dependency-acyclicity/tier-dependency-acyclicity-policy.json::/crate_root_globs::policy/*/*": {
-      "value": "policy/*/*",
-      "reason": "Same declared-but-unbuilt `policy` capability as above, expressed as a crate glob. Kept so the tier rules apply the moment the capability lands, rather than being retrofitted after crates already exist there."
+    "ci/facade/service-tier-metadata/tier-field-coverage-policy.json::/governed_service_roots::app": {
+      "value": "app",
+      "reason": "SCAN-ROOT PRE-WIDENING (W2 registry-derived coverage, ADR-0562 \u00a710.29 + ADR-0628). ADR-0615 relocates 33 product dirs to app/<product>/, and a product manifest.json travels WITH its directory. oya IS a governed service root and app was NOT, so that move would have dropped the entire product surface out of the ADR-0245/0348 tier/dr_tier/sharding/OpenSLO checks \u2014 and min_expected_service_manifests (95) would have gone RED at 21 rather than silently green. Retire when the first app-tier move lands."
+    },
+    "ci/facade/service-tier-metadata/tier-field-coverage-policy.json::/governed_service_roots::base": {
+      "value": "base",
+      "reason": "SCAN-ROOT PRE-WIDENING (W2 registry-derived coverage, ADR-0562 \u00a710.29 + ADR-0628). Same pre-widening as app/ above; base/ is a crate-owning meta dir, so a service manifest landing there must be governed from the moment it exists. Retire when the first libs/ consolidation move lands."
+    },
+    "ci/facade/service-tier-metadata/tier-field-coverage-policy.json::/governed_service_roots::policy": {
+      "value": "policy",
+      "reason": "SCAN-ROOT PRE-WIDENING (W2 registry-derived coverage, ADR-0562 \u00a710.29 + ADR-0628). Same pre-widening as app/ above; `policy` is a registered capability with no directory yet. Retire when the policy capability lands its first crate."
     }
   },
   "baselined_dead_roots": [

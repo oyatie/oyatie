@@ -239,7 +239,7 @@
   "purpose": "Rust-first automation hygiene ratchet. Non-Rust scripts are blocked unless explicitly exceptioned as shrinkable debt with a Rust/Buck2/cloud-native replacement path; cloud/infra/tooling CLI-first package births are blocked outright.",
   "scan": {
     "cli_package_authority": {
-      "_comment": "Cloud-native infrastructure automation must not be born as a new CLI-first package. This dimension scans infrastructure/cloud/tooling Cargo manifests for package names with retired CLI suffixes. Existing product/local legacy CLIs outside these roots remain governed by their own retirement lanes; new cloud/infra/tooling work should be an app, gate, controller, service, API, or declarative config consumer instead.",
+      "_comment": "Cloud-native infrastructure automation must not be born as a new CLI-first package. This dimension scans infrastructure/cloud/tooling Cargo manifests for package names with retired CLI suffixes. Existing product/local legacy CLIs outside these roots remain governed by their own retirement lanes; new cloud/infra/tooling work should be an app, gate, controller, service, API, or declarative config consumer instead. W2 (ADR-0562 \u00a710.29): roots widened from [cloud, os, infra, tools] to every ADR-0562 capability root and crate-owning meta dir that holds no -cli package today, so a CLI-shaped package born in a reorg destination cannot escape. Two roots are deliberately NOT admitted because they carry a pre-existing grandfathered CLI and admission would RED this born-blocking dimension: marketplace (marketplace-dev-cli) and tenancy (tenancy-cli). Widening them is a COVERAGE argument, not a zero-delta change, and neither escape hatch is legitimate \u2014 exclude_prefixes is shrink-only under validate_scan_scope_ceiling and the cross-artifact coverage baseline is asserted born-empty. They are admitted by the CLI-retirement wave that renames those packages. The legacy oya root is blocked the same way by oya/intelligence/crates/oya-codeview-cli.",
       "enabled": true,
       "exclude_prefixes": [
         "cloud/cloud-os/"
@@ -254,7 +254,32 @@
         "cloud",
         "os",
         "infra",
-        "tools"
+        "tools",
+        "app",
+        "audit",
+        "base",
+        "billing",
+        "cell",
+        "ci",
+        "comms",
+        "compliance",
+        "compute",
+        "console",
+        "data",
+        "flags",
+        "gateway",
+        "iac",
+        "iam",
+        "intelligence",
+        "k8s",
+        "kernel",
+        "messaging",
+        "network",
+        "observability",
+        "policy",
+        "secrets",
+        "storage",
+        "workflow"
       ]
     },
     "exclude_prefixes": [
@@ -480,7 +505,7 @@
           "shell_lines": 2
         },
         {
-          "key": ".github/workflows/oya-ci-required.yml::buck2::buck2 build + test (//ci/..., hermetic — binding)",
+          "key": ".github/workflows/oya-ci-required.yml::buck2::buck2 build + test (//ci/..., hermetic \u2014 binding)",
           "shell_lines": 2
         },
         {
@@ -560,7 +585,7 @@
           "shell_lines": 3
         },
         {
-          "key": ".github/workflows/oya-ci-required.yml::gate-live-postgres-adapters::buck2 test — durable adapters (admin=superuser, app=app-role)",
+          "key": ".github/workflows/oya-ci-required.yml::gate-live-postgres-adapters::buck2 test \u2014 durable adapters (admin=superuser, app=app-role)",
           "shell_lines": 19
         },
         {
@@ -580,7 +605,7 @@
           "shell_lines": 3
         },
         {
-          "key": ".github/workflows/oya-ci-required.yml::gate-live-postgres-facades::buck2 test — durable facades (live test = app-role, non-live = in-memory)",
+          "key": ".github/workflows/oya-ci-required.yml::gate-live-postgres-facades::buck2 test \u2014 durable facades (live test = app-role, non-live = in-memory)",
           "shell_lines": 10
         },
         {
