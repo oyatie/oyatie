@@ -22,7 +22,8 @@
 //! - [`plan_changes`] `(changes, policy) -> Plan` is PURE: classifies every diff entry.
 //! - [`resolve`] `(plan, owner_results, policy) -> Decision` is PURE: folds per-file
 //!   `owner()` results into the final verdict.
-//! - Verdict dominance (fail-closed): `RefuseUnowned` > `Full` > `Affected` > `NoGraphTargets`.
+//! - Verdict dominance (fail-closed): `RefuseUnowned` > `Full` > `Affected` >
+//!   `RefuseEmptySelection` > `NoGraphTargets`.
 //!   - `RefuseUnowned`: a file in the owner-required class has NO owning target — the file is
 //!     invisible to the build graph, so even a full-workspace run would not compile it.
 //!     Running anything would be a false-green; the lane FAILS with the path list.
@@ -30,8 +31,11 @@
 //!     adapter reported derivation uncertainty — the rdeps cone cannot be trusted, so the
 //!     ENTIRE workspace runs. Escalation is the automation; nothing is ever skipped.
 //!   - `Affected`: owners + the reverse-dependency closure (computed by the adapter).
-//!   - `NoGraphTargets`: every changed file is unowned AND not in any owner-required class
-//!     (docs/config-text outside the buildfile + escape-trigger classes).
+//!   - `RefuseEmptySelection`: predicate (1) of the selection-totality assertion — the diff is
+//!     NON-EMPTY yet the selection is EMPTY and the changed paths carry no inert-selection
+//!     licence. Passing here would be green precisely BECAUSE nothing was built or tested.
+//!   - `NoGraphTargets`: every changed file is unowned AND not in any owner-required class AND
+//!     in a declared `inert_selection_classes` class (docs) — or the diff is empty.
 //!
 //! ADR-0083 Tier-3: production code carries no unwrap/expect/panic; `#![forbid(unsafe_code)]`.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
@@ -84,6 +88,21 @@ pub struct Policy {
     /// the [`resolve`] "owner OR explicit synthetic dependency, otherwise FULL" rule. Optional in
     /// the pack (absent = empty map = every unowned non-owner-required path escalates to FULL).
     pub synthetic_dependencies: BTreeMap<String, Vec<String>>,
+    /// Micro-glob path classes ALLOWED to constitute the ENTIRE selection — the exemption list
+    /// for [`unjustified_empty_selection`] (predicate (1) of the selection-totality assertion).
+    ///
+    /// This is DELIBERATELY a second, single-purpose declaration rather than a re-read of the
+    /// `[]` entries in `synthetic_dependencies`, because those two statements are different:
+    /// `synthetic_dependencies[X] = []` says "X contributes no seed"; `inert_selection_classes`
+    /// says "a diff consisting ONLY of X may build and test NOTHING and still pass". The reverted
+    /// PR #1389 (`.github/**: []` -> a workflow-only PR resolved to `NoGraphTargets` and walked
+    /// past the no-new-shell ratchet) is exactly the case where the first is a defensible
+    /// optimization and the second is a merge-authority hole. Splitting them means a future
+    /// `[]` declaration for a broad class fails RED naming the path, instead of passing green.
+    ///
+    /// Optional in the pack; ABSENT = empty = fail-closed (ANY non-empty diff that selects
+    /// nothing is refused).
+    pub inert_selection_classes: Vec<String>,
     /// Default base ref for the merge-base anchor (e.g. `origin/dev`); CLI `--base` overrides.
     pub default_base_ref: String,
 }
@@ -194,6 +213,12 @@ impl Policy {
             package_sibling_basenames: str_list_field(&v, "package_sibling_basenames")?,
             cell_roots,
             synthetic_dependencies: parse_synthetic_dependencies(&v)?,
+            // Absent -> empty -> fail-closed: nothing may be the entire selection.
+            inert_selection_classes: if v.get("inert_selection_classes").is_some() {
+                str_list_field(&v, "inert_selection_classes")?
+            } else {
+                Vec::new()
+            },
             default_base_ref: str_field(&v, "default_base_ref")?,
         })
     }
@@ -559,7 +584,15 @@ pub enum Decision {
     Full { reasons: Vec<String> },
     /// Run these seed targets + their reverse-dependency closure.
     Affected { seeds: Vec<String> },
-    /// Every change is unowned AND not in any owner-required class.
+    /// PREDICATE (1) OF THE SELECTION-TOTALITY ASSERTION: the diff is NON-EMPTY yet the selection
+    /// is EMPTY, and `paths` are the changed files not covered by any declared inert selection
+    /// class. A non-empty diff that selects nothing is a bug in target determination, never a
+    /// pass: the lane would report success having built and tested NOTHING — green precisely
+    /// BECAUSE it checked nothing.
+    RefuseEmptySelection { paths: Vec<String> },
+    /// Every change is unowned AND not in any owner-required class, AND every changed path is in
+    /// a declared inert selection class (or the diff is empty). The only legitimate empty
+    /// selection.
     NoGraphTargets,
 }
 
@@ -616,7 +649,48 @@ pub fn resolve(
             seeds: seeds.into_iter().collect(),
         };
     }
+    // PREDICATE (1). Everything above either selected targets or escalated; reaching here means
+    // the lane is about to PASS having built and tested nothing. That is only admissible when
+    // every changed path is in a declared inert selection class.
+    let unjustified = unjustified_empty_selection(plan, policy);
+    if !unjustified.is_empty() {
+        return Decision::RefuseEmptySelection { paths: unjustified };
+    }
     Decision::NoGraphTargets
+}
+
+/// The changed paths that would ride an EMPTY selection to a PASS without an explicit licence
+/// (PURE). Empty result = the empty selection is justified (either the diff is empty, or every
+/// changed path is in a declared [`Policy::inert_selection_classes`] class).
+///
+/// WHY IT IS NOT ENOUGH THAT `resolve` ALREADY ESCALATES UNMAPPED PATHS TO FULL. It escalates
+/// paths with no `synthetic_dependencies` match at all. It does NOT question a path whose
+/// declaration matched and contributed an EMPTY seed union — and that is precisely the reverted
+/// PR #1389 shape (`.github/**: []`), where the empty selection was a policy statement nobody had
+/// to defend. This function makes "may be the entire selection" a separate, named, reviewable
+/// licence, so the `[]`-inert false green cannot be reintroduced for a NEW class by one line.
+///
+/// ARTIFACT NOTE: `.github/workflows/oya-ci-required.yml` keeps the `affected-set-operator-artifacts`
+/// upload on `if: always()` because, before this assertion existed, that artifact was the ONLY
+/// witness of an empty affected set. This function is the gate that comment defers to; once it has
+/// proven itself in production the upload can drop to `failure()` like its siblings — an empty
+/// selection now fails the lane instead of passing it silently.
+pub fn unjustified_empty_selection(plan: &Plan, policy: &Policy) -> Vec<String> {
+    let mut paths: Vec<String> = plan
+        .classified
+        .iter()
+        .map(|(path, _)| path)
+        .filter(|path| {
+            !policy
+                .inert_selection_classes
+                .iter()
+                .any(|pattern| glob_match(pattern, path))
+        })
+        .cloned()
+        .collect();
+    paths.sort();
+    paths.dedup();
+    paths
 }
 
 /// The union of synthetic seed targets from EVERY `synthetic_dependencies` pattern matching
@@ -705,10 +779,16 @@ pub fn affected_set_operator_artifact(
             "seed_count": seeds.len(),
             "seeds": seeds,
         }),
+        Decision::RefuseEmptySelection { paths } => json!({
+            "tier": "REFUSE_EMPTY_SELECTION",
+            "will_run": false,
+            "paths": paths,
+            "reasons": ["non-empty diff selected no targets and the paths carry no inert-selection licence"],
+        }),
         Decision::NoGraphTargets => json!({
             "tier": "NO_GRAPH_TARGETS",
             "will_run": false,
-            "reasons": ["every changed file is unowned and not owner-required"],
+            "reasons": ["every changed file is unowned, not owner-required, and in a declared inert selection class"],
         }),
     };
 
@@ -1436,6 +1516,7 @@ mod tests {
             package_sibling_basenames: vec!["Cargo.toml".to_owned(), "build.rs".to_owned()],
             cell_roots: BTreeMap::from([(String::new(), "//".to_owned())]),
             synthetic_dependencies: BTreeMap::new(),
+            inert_selection_classes: Vec::new(),
             default_base_ref: "origin/main".to_owned(),
         }
     }
