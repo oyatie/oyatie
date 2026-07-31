@@ -514,7 +514,7 @@ jobs:
           # root solely to remove the root-owned vendor preinstall dirs).
           BIN="$(buck2 build //ci/facade/runner-disk-reclaim:oya-cloud-ci-runner-disk-reclaim-bin --show-output 2>/dev/null | awk '{print $2}')"
           sudo -E "$BIN" \
-            --profile github-hosted-ubuntu-latest \
+            --profile oya-owned-arc-pod \
             --infra-red-policy fail-closed \
             --artifact-out "${RUNNER_TEMP}/runner-disk-reclaim-buck2.json"
       - name: Restore buck-out (read-only; dev-push is the sole writer)
@@ -701,7 +701,7 @@ jobs:
           # root solely to remove the root-owned vendor preinstall dirs).
           BIN="$(buck2 build //ci/facade/runner-disk-reclaim:oya-cloud-ci-runner-disk-reclaim-bin --show-output 2>/dev/null | awk '{print $2}')"
           sudo -E "$BIN" \
-            --profile github-hosted-ubuntu-latest \
+            --profile oya-owned-arc-pod \
             --infra-red-policy fail-closed \
             --artifact-out "${RUNNER_TEMP}/runner-disk-reclaim-affected-set.json"
       - name: Restore buck-out (read-only; dev-push is the sole writer)
