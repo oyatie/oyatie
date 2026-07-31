@@ -29,11 +29,30 @@ const REQUIRED_SLO_LINKED_CLOUD_MANIFESTS: [&str; 6] = [
 /// be lowered deliberately whenever rows are legitimately removed, and the lowering
 /// belongs in the same change as the removal so the two are reviewed together.
 ///
-/// 783 rows existed when the previous value of 776 was set — 7 rows of slack. This
-/// change deletes 10 rows (the retired ProviderAuthPort kernels and their in-memory
-/// mock adapters), leaving 773. The floor moves to 766 to preserve exactly that same
-/// 7-row margin rather than silently loosening or tightening the guard.
-const MIN_SLO_CATALOG_ROWS: usize = 766;
+/// 783 rows existed when the previous value of 776 was set — 7 rows of slack. The
+/// ProviderAuthPort consolidation deleted 10 rows, leaving 773, and moved the floor to
+/// 766 to preserve exactly that same 7-row margin.
+///
+/// 2026-07-31: the floor was left at 766 while the corpus fell to 755, so this gate was
+/// RED on dev. The convention above was not followed by the removals that landed after it:
+///   #1451 chore(payments): delete the closed oya/payments crate cluster  -20 rows
+///   #1413 chore(libs): delete the orphaned oya-gen-microservice-manifests-app  -1 row
+/// Each deletion is legitimate and reviewed; none lowered the floor in the same change.
+/// They were able to merge that way because this gate produced NO VERDICT at the time —
+/// the artifact-storage-quota outage failed `producer-regen`, and every `needs:` leg was
+/// SKIPPED rather than run. A skipped gate is not a passing gate, and this is what that
+/// distinction costs: a born-blocking floor sat stale behind a lane nobody was reading.
+///
+/// 755 rows exist today. The floor moves to 748 to preserve the same 7-row margin rather
+/// than silently loosening or tightening the guard.
+///
+/// NOTE for the next removal: this constant has now gone stale twice in the same way.
+/// A floor that must be hand-lowered on every legitimate deletion is a staleness surface;
+/// deriving it from an INDEPENDENT enumeration of the catalog files on disk (with a small
+/// absolute floor purely to catch a both-are-zero scan) would keep the empty-scan
+/// protection while removing the manual step. That is a separate reviewed change, not a
+/// side effect of un-reddening dev.
+const MIN_SLO_CATALOG_ROWS: usize = 748;
 
 fn producer_command(root: &Path, producer_bin: Option<&str>) -> Result<Command, String> {
     if let Some(bin) = producer_bin {
