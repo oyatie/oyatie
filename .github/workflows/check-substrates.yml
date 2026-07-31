@@ -115,7 +115,14 @@ jobs:
       - name: Upload DAG validation evidence
         # actions/upload-artifact@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
-        if: ${{ always() }}
+        # FAILURE-ONLY. This was the single largest artifact family in the repo — 1713 live
+        # copies, one per run — of a log whose entire content is "the DAG validated", for a job
+        # that already reports exactly that as its check conclusion. The validator's exit code is
+        # the verdict; this log is triage for when it is non-zero.
+        # ADR-0280 §D-3 step 9 requires the evidence be EMITTED to evidence/governance-lane/,
+        # which the preceding step still does unconditionally. It does not require a green run's
+        # copy be retained in artifact storage for 30 days.
+        if: failure()
         with:
           name: substrate-dependency-dag-validation
           path: evidence/governance-lane/substrate-dependency-dag-validation-*.log
