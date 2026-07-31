@@ -46,7 +46,21 @@ jobs:
   #    (tests/fixtures/dag-cycles/) MUST fail the validator and the real DAG MUST pass.
   oya-check-substrate-dependency-dag-acyclicity:
     name: oya-check-substrate-dependency-dag-acyclicity
-    runs-on: ubuntu-latest
+    # OWNED FLEET, not hosted. GitHub-hosted runners are unavailable to this account: every
+    # `ubuntu-latest` job here has terminated in ~2s with steps=0, runner_name empty and no log
+    # blob at all (`BlobNotFound`) — an admission failure, not a gate verdict. Probed across the
+    # five most recent runs (30605865889, 30605857132, 30531366207, 30512117350, 30499122616);
+    # all five identical. That is the same condition that moved the required lane to `oya-arm64`
+    # in PR #1450, and it left THIS lane silently red on `dev` ever since.
+    #
+    # Nothing in this job is hosted-specific: checkout, install-buck2.sh (switches on `uname -m`
+    # and carries an aarch64 digest pin), rustup against rust-toolchain.toml, buck2 build/test,
+    # and an artifact upload. There is no `services:` block, so the Docker-daemon constraint that
+    # keeps the two gate-live-postgres-* jobs on hosted does not apply here.
+    #
+    # ADR-0280 §D-3 prescribes this FILE and this LANE NAME verbatim; it says nothing about the
+    # runner, so the lane's authored surface is unchanged.
+    runs-on: oya-arm64
     steps:
       # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
