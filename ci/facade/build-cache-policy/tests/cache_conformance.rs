@@ -452,5 +452,44 @@ fn bundled_canary_targets_stay_inside_the_binding_gate_cone() {
             t.starts_with("//"),
             "pinned target `{t}` must be a repo-anchored pattern"
         );
+
+        // PATH LIVENESS — the assertion this test was missing, and the reason it never fired.
+        // `!targets.is_empty()` above proves the ARRAY has entries; `starts_with("//")` proves each
+        // is SHAPED like a pattern. Neither proves a pattern names anything that exists. This block
+        // pinned `//cloud/cloud-ci/...` long after the gate-fleet move VACATED that tree, so the
+        // pattern resolved to ZERO targets — and the canary that anchors the entire warm-cache/RE
+        // trust chain (ADR-0556 D2 licensing, ADR-0612 D5 "no RE-covering canary, no RE") would
+        // have built nothing and reported success having verified nothing.
+        //
+        // Checked as a PATH here, deliberately, not by shelling `buck2 targets`: this stays a pure
+        // test, and a vacated root is exactly the reorg-move failure mode that got us. It does not
+        // claim the pattern resolves to >=1 buck2 TARGET — the canary job's own from-empty build is
+        // what proves that, and it cannot even start against a root that does not exist.
+        // The FULL package prefix, not just the first segment. Checking only the first segment is
+        // itself the bug this test exists to catch: `//cloud/cloud-ci/...` has root `cloud`, and
+        // `cloud/` still exists as a legacy root, so a first-segment check passes while the
+        // `cloud-ci` subtree it actually names is gone. Verified by restoring the vacated pattern
+        // and watching a first-segment version of this assertion stay GREEN.
+        let prefix = t
+            .trim_start_matches('/')
+            .split("/...")
+            .next()
+            .unwrap_or_default()
+            .split(':')
+            .next()
+            .unwrap_or_default()
+            .trim_end_matches('/');
+        assert!(
+            !prefix.is_empty(),
+            "pinned target `{t}` has no resolvable package prefix"
+        );
+        let prefix_path = repo_root().join(prefix);
+        assert!(
+            prefix_path.is_dir(),
+            "pinned canary target `{t}` names a package prefix that does not exist: {}. A move \
+             vacated it and nothing noticed — the canary would build an EMPTY target set and pass. \
+             Re-point the pattern at the tree the gates actually live in, or drop it.",
+            prefix_path.display()
+        );
     }
 }
