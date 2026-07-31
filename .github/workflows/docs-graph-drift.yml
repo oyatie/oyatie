@@ -45,7 +45,11 @@ concurrency:
 jobs:
   docs-graph-drift:
     name: docs-graph-drift
-    runs-on: ubuntu-latest
+    # OWNED FLEET, same admission condition as the canary above and check-substrates (#1453):
+    # hosted runners are not admitted for this account, so this lane has been red since
+    # 2026-07-26 without ever executing a step. No `services:` block and no pwsh/Windows/macOS
+    # dependency, so nothing here is hosted-specific.
+    runs-on: oya-arm64
     timeout-minutes: 15
     steps:
       # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
