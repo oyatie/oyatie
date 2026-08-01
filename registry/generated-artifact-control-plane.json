@@ -40,7 +40,7 @@
     },
     {
       "artifact_id": "cloud-ci-adr-census-parent-receipt",
-      "path": "ci/facade/artifact-inventory-registry/adr-census-parent-receipt.generated.json",
+      "path": "ci/facade/scm-facts-snapshot/adr-census-parent-receipt.generated.json",
       "artifact_class": "main-materialized-aggregate",
       "materialization_mode": "not-tracked-in-git",
       "merge_policy": "never-manual-merge-regenerate-from-source-tree",
