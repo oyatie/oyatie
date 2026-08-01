@@ -9,7 +9,7 @@ door: one-way
 owner: council-architecture
 supersedes: []
 superseded_by: []
-amends: []
+amends: [ADR-0056, ADR-0105]
 amended_by: [ADR-0632]
 # NOTE: the Phase-00 product spec under docs/products/<de-brand-target>/ also named GraphQL in its
 # transport-parity scope; its GraphQL retraction is deferred to the de-brand of that directory

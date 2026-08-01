@@ -160,6 +160,129 @@ fn internal_grpc_contract_path_findings(
         .collect()
 }
 
+fn manifest_protocol_findings(manifest_path: &Path, manifest: &Value) -> Vec<String> {
+    fn walk(
+        manifest_path: &Path,
+        path: &str,
+        value: &Value,
+        findings: &mut Vec<String>,
+        saw_flatbuffers: &mut bool,
+    ) {
+        match value {
+            Value::Object(object) => {
+                for (key, child) in object {
+                    let child_path = format!("{path}/{key}");
+                    let normalized_key = key.to_ascii_lowercase();
+                    if normalized_key == "internal_grpc" {
+                        let valid = child.as_object().is_some_and(|internal| {
+                            internal.get("transport") == Some(&Value::String("http2".to_owned()))
+                                && internal.get("language_profile")
+                                    == Some(&Value::String("proto3".to_owned()))
+                        });
+                        if !valid {
+                            findings.push(format!(
+                                "{} {child_path} must declare internal gRPC as proto3 over HTTP/2",
+                                manifest_path.display()
+                            ));
+                        }
+                    }
+                    if normalized_key.contains("flatbuffer") {
+                        *saw_flatbuffers = true;
+                    }
+                    if normalized_key.contains("grpc") {
+                        if let Some(text) = child.as_str() {
+                            let text = text.to_ascii_lowercase();
+                            if text.contains("http/3") || text.contains("http3") {
+                                findings.push(format!(
+                                    "{} {child_path} routes gRPC over HTTP/3 instead of HTTP/2",
+                                    manifest_path.display()
+                                ));
+                            }
+                        }
+                    }
+                    walk(manifest_path, &child_path, child, findings, saw_flatbuffers);
+                }
+            }
+            Value::Array(values) => {
+                for (index, child) in values.iter().enumerate() {
+                    walk(
+                        manifest_path,
+                        &format!("{path}/{index}"),
+                        child,
+                        findings,
+                        saw_flatbuffers,
+                    );
+                }
+            }
+            Value::String(text) => {
+                let text = text.to_ascii_lowercase();
+                if text.contains("flatbuffer") {
+                    *saw_flatbuffers = true;
+                }
+                if text.contains("grpc") && (text.contains("http/3") || text.contains("http3")) {
+                    findings.push(format!(
+                        "{} {path} routes gRPC over HTTP/3 instead of HTTP/2",
+                        manifest_path.display()
+                    ));
+                }
+            }
+            _ => {}
+        }
+    }
+
+    let mut findings = Vec::new();
+    let mut saw_flatbuffers = false;
+    walk(
+        manifest_path,
+        "",
+        manifest,
+        &mut findings,
+        &mut saw_flatbuffers,
+    );
+    if saw_flatbuffers {
+        let required_activation = BTreeSet::from([
+            "isolated hot path",
+            "no second independently authored source of truth",
+            "reproducible latency or zero-copy benchmark",
+            "schema-evolution review",
+        ]);
+        let observed_activation = manifest
+            .pointer("/protocol_posture/flatbuffers/activation_requires")
+            .and_then(Value::as_array)
+            .into_iter()
+            .flatten()
+            .filter_map(Value::as_str)
+            .collect::<BTreeSet<_>>();
+        if manifest.pointer("/protocol_posture/flatbuffers/status")
+            != Some(&Value::String("benchmark-gated-derived-adapter".to_owned()))
+            || manifest.pointer("/protocol_posture/flatbuffers/canonical")
+                != Some(&Value::Bool(false))
+            || observed_activation != required_activation
+        {
+            findings.push(format!(
+                "{} mentions FlatBuffers without the complete benchmark-gated, non-canonical derived-adapter posture",
+                manifest_path.display()
+            ));
+        }
+    }
+    findings
+}
+
+fn string_set(value: &Value, pointer: &str) -> BTreeSet<String> {
+    value
+        .pointer(pointer)
+        .and_then(Value::as_array)
+        .unwrap_or_else(|| panic!("policy pointer {pointer} must be an array"))
+        .iter()
+        .map(|entry| {
+            entry
+                .as_str()
+                .unwrap_or_else(|| panic!("policy pointer {pointer} must contain strings"))
+                .to_owned()
+        })
+        .collect()
+}
+
 fn accepted_status(frontmatter: &str, accepted: &BTreeSet<&str>) -> bool {
     frontmatter.lines().any(|line| {
         line.strip_prefix("status:")
@@ -248,12 +371,23 @@ fn contains_claim_term(clause: &str) -> bool {
 }
 
 fn current_rpc_claim_is_affirmative(after_rpc: &str) -> bool {
-    let (current_segment, adversative) = after_rpc
+    if contains_term(
+        after_rpc,
+        &["not forbidden", "not prohibited", "not rejected"],
+    ) {
+        return true;
+    }
+    let (mut current_segment, adversative) = after_rpc
         .rsplit_once(" but ")
         .map_or((after_rpc, false), |(_, current)| (current, true));
-    let current_marker = adversative
-        || contains_word(current_segment, &["now", "currently"])
-        || contains_term(current_segment, &["no longer"]);
+    let explicit_current = contains_word(current_segment, &["now", "currently"]);
+    if let Some((_, current)) = current_segment.rsplit_once(" now ") {
+        current_segment = current;
+    } else if let Some((_, current)) = current_segment.rsplit_once(" currently ") {
+        current_segment = current;
+    }
+    let current_marker =
+        adversative || explicit_current || contains_term(current_segment, &["no longer"]);
     if !current_marker {
         return false;
     }
@@ -336,9 +470,11 @@ fn classify_rpc_audience(words: &[&str], rpc_index: usize) -> RpcAudience {
         "not enabled",
         "not available",
         "needs a proxy",
+        "requires a proxy",
     ];
     let internal_terms = [
         "internal only",
+        "internal grpc",
         "grpc internal",
         "internal surface",
         "internal module",
@@ -429,7 +565,7 @@ fn public_rpc_findings(adr_id: &str, lifecycle: &str, document: &str) -> Vec<Pub
         .join(" ")
         .to_ascii_lowercase();
     let mut findings = Vec::new();
-    for (clause_index, clause) in normalized.split(['.', '!', '?', ';']).enumerate() {
+    for (clause_index, clause) in normalized.split(['.', '!', '?']).enumerate() {
         let words = clause.split_whitespace().collect::<Vec<_>>();
         for (word_index, word) in words.iter().enumerate() {
             let token = word
@@ -659,6 +795,38 @@ fn live_adr_authority_reconciliation_is_green() {
         );
     }
 
+    let zero_graphql_layer_adrs = policy["authority_reconciliation"]["zero_graphql_layer_adrs"]
+        .as_array()
+        .expect("zero-GraphQL layer ADR inventory")
+        .iter()
+        .map(|entry| entry.as_str().expect("zero-GraphQL layer ADR id"))
+        .collect::<BTreeSet<_>>();
+    let zero_graphql_frontmatter = accepted_documents
+        .get("ADR-0565")
+        .map(|document| frontmatter(document))
+        .expect("ADR-0565 must remain Accepted");
+    for id in zero_graphql_layer_adrs {
+        let amended = accepted_documents
+            .get(id)
+            .unwrap_or_else(|| panic!("zero-GraphQL layer ADR {id} must remain Accepted"));
+        let amended_frontmatter = frontmatter(amended);
+        for amendment in ["ADR-0565", "ADR-0632"] {
+            assert!(
+                amended_frontmatter
+                    .lines()
+                    .any(|line| { line.starts_with("amended_by:") && line.contains(amendment) }),
+                "{id} must carry reciprocal amended_by edge for {amendment}"
+            );
+        }
+        assert!(
+            zero_graphql_frontmatter
+                .lines()
+                .find(|line| line.starts_with("amends:"))
+                .is_some_and(|line| line.contains(id)),
+            "ADR-0565 must carry reciprocal amends edge for {id}"
+        );
+    }
+
     for (id, document) in &accepted_documents {
         let findings = public_rpc_findings(id, "accepted", document);
         assert!(
@@ -764,8 +932,9 @@ fn every_declared_internal_grpc_contract_is_a_regular_tracked_file() {
 }
 
 #[test]
-fn entire_live_v1_manifest_corpus_is_protocol_schema_compatible() {
+fn entire_governed_manifest_corpus_is_inventoried_and_protocol_compatible() {
     let root = repo_root();
+    let policy = policy();
     let schema = json(&declared_path("OYA_MICROSERVICE_MANIFEST_SCHEMA"));
     let allowed_contract_keys = schema
         .pointer("/properties/contracts/properties")
@@ -795,10 +964,49 @@ fn entire_live_v1_manifest_corpus_is_protocol_schema_compatible() {
     collect_named_files(&root.join("cloud"), "manifest.json", &mut paths);
     paths.sort();
 
+    let expected_total = policy["manifest_inventory"]["expected_total"]
+        .as_u64()
+        .expect("manifest expected_total") as usize;
+    assert_eq!(
+        paths.len(),
+        expected_total,
+        "the governed manifest universe changed; classify every new or removed manifest"
+    );
+    let reviewed_legacy = string_set(
+        &policy,
+        "/manifest_inventory/reviewed_legacy_service_manifests",
+    );
+    let reviewed_overlays = string_set(&policy, "/manifest_inventory/reviewed_overlay_manifests");
+    assert!(
+        reviewed_legacy.is_disjoint(&reviewed_overlays),
+        "legacy service and overlay inventories must not overlap"
+    );
+
     let mut live_count = 0;
+    let mut observed_legacy = BTreeSet::new();
+    let mut observed_overlays = BTreeSet::new();
+    let mut observed_public_proto = BTreeSet::new();
+    let mut protocol_findings = Vec::new();
     for path in paths {
         let manifest = json(&path);
+        let relative = path
+            .strip_prefix(&root)
+            .expect("manifest must be below repository root")
+            .to_string_lossy()
+            .replace('\\', "/");
+        protocol_findings.extend(manifest_protocol_findings(&path, &manifest));
+        if manifest
+            .pointer("/tenant_version_pinning/public_surface_files/proto")
+            .is_some()
+        {
+            observed_public_proto.insert(relative.clone());
+        }
         if manifest["schema_version"] != "1.0" || !manifest["contracts"].is_object() {
+            if relative.contains("/packs/") {
+                observed_overlays.insert(relative);
+            } else {
+                observed_legacy.insert(relative);
+            }
             continue;
         }
         live_count += 1;
@@ -898,6 +1106,26 @@ fn entire_live_v1_manifest_corpus_is_protocol_schema_compatible() {
         live_count, 60,
         "the Buck-declared live v1.0 service manifest corpus changed; classify and migrate every new match"
     );
+    assert_eq!(
+        observed_legacy, reviewed_legacy,
+        "legacy service manifest review baseline drifted"
+    );
+    assert_eq!(
+        observed_overlays, reviewed_overlays,
+        "localization overlay manifest review baseline drifted"
+    );
+    assert_eq!(
+        observed_public_proto,
+        string_set(
+            &policy,
+            "/manifest_inventory/frozen_public_proto_migration_inventory"
+        ),
+        "legacy public_surface_files.proto migration inventory drifted; migrate removals or explicitly review additions"
+    );
+    assert!(
+        protocol_findings.is_empty(),
+        "shape-independent manifest protocol findings: {protocol_findings:#?}"
+    );
 }
 
 #[test]
@@ -920,6 +1148,34 @@ fn manifest_protocol_red_mutations_are_rejected() {
         assert!(
             !valid,
             "RED manifest mutation was incorrectly accepted: {contracts}"
+        );
+    }
+
+    for mutation in [
+        serde_json::json!({
+            "microservice": "schema-less-bypass",
+            "contracts": ["legacy-shape"],
+            "grpc_transport": "gRPC over HTTP/3 internally"
+        }),
+        serde_json::json!({
+            "schema_version": "0.9",
+            "microservice": "non-v1-bypass",
+            "contracts": "legacy-shape",
+            "internal_grpc": {
+                "transport": "http3",
+                "language_profile": "proto3"
+            }
+        }),
+        serde_json::json!({
+            "microservice": "schema-less-flatbuffers-bypass",
+            "contracts": ["legacy-shape"],
+            "serialization": "FlatBuffers is canonical for the waveform path"
+        }),
+    ] {
+        let findings = manifest_protocol_findings(Path::new("fixture/manifest.json"), &mutation);
+        assert!(
+            !findings.is_empty(),
+            "non-v1/schema-less RED manifest bypassed protocol checks: {mutation}"
         );
     }
 }

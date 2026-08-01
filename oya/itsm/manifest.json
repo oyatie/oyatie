@@ -105,7 +105,7 @@
     "contract_versions": {
       "rest": "OpenAPI 3.2.0",
       "events": "AsyncAPI 3.1.0",
-      "grpc": "proto3 over HTTP/3 per ADR-0253",
+      "grpc": "proto3 over HTTP/2 per ADR-0253",
       "naming": "BNF v4.1"
     },
     "declared_layers": [
@@ -244,7 +244,7 @@
       "HTTP/2 over TLS 1.3",
       "HTTP/1.1 over TLS 1.3"
     ],
-    "grpc_transport": "gRPC over HTTP/3",
+    "grpc_transport": "gRPC over HTTP/2",
     "tls": "TLS 1.3 with ECH + PQC hybrid (X25519MLKEM768) where negotiated",
     "alpn": [
       "h3",
