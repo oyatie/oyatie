@@ -109,6 +109,148 @@ fn accepted_status(frontmatter: &str, accepted: &BTreeSet<&str>) -> bool {
     })
 }
 
+#[derive(Debug, PartialEq, Eq)]
+struct PublicRpcFinding {
+    key: String,
+    clause: String,
+}
+
+#[derive(Debug, PartialEq, Eq)]
+enum RpcAudience {
+    Public,
+    Internal,
+    Rejected,
+    Historical,
+    Unclassified,
+}
+
+fn contains_term(clause: &str, terms: &[&str]) -> bool {
+    terms.iter().any(|term| clause.contains(term))
+}
+
+fn contains_word(clause: &str, words: &[&str]) -> bool {
+    clause
+        .split(|character: char| !character.is_alphanumeric())
+        .any(|token| words.contains(&token))
+}
+
+fn classify_rpc_audience(window: &str) -> RpcAudience {
+    let rejection_terms = [
+        "forbidden",
+        "prohibited",
+        "not allowed",
+        "must not",
+        "do not",
+        "does not",
+        "will not",
+        "cannot",
+        "can't",
+        "no direct",
+        "no public",
+        "not public",
+        "never public",
+        "excluded",
+        "rejected",
+        "without",
+    ];
+    let internal_terms = [
+        "internal-only",
+        "internal only",
+        "grpc-internal",
+        "internal-surface",
+        "internal surface",
+        "internal module",
+        "sibling-service",
+        "sibling service",
+        "east-west",
+        "behind the gateway",
+        "behind the public contract",
+    ];
+    let historical_terms = [
+        "historical",
+        "formerly",
+        "former ",
+        "previously",
+        "legacy",
+        "superseded",
+        "retired",
+        "replaced",
+        "no longer",
+        "deferred",
+    ];
+    let exposure_terms = [
+        "consume", "call", "expos", "query", "serve", "support", "use ", "uses", "via ",
+        "contract", "surface",
+    ];
+
+    if contains_term(window, &historical_terms) {
+        RpcAudience::Historical
+    } else if contains_term(window, &rejection_terms) {
+        RpcAudience::Rejected
+    } else if contains_term(window, &internal_terms) {
+        RpcAudience::Internal
+    } else if contains_word(window, &["public"])
+        || contains_term(window, &["product primitive", "tenant-facing"])
+        || (contains_word(window, &["tenant", "tenants"]) && contains_term(window, &exposure_terms))
+        || (contains_term(
+            window,
+            &[
+                "native client",
+                "clients call backend",
+                "client calls backend",
+            ],
+        ) && contains_term(window, &exposure_terms))
+    {
+        RpcAudience::Public
+    } else {
+        RpcAudience::Unclassified
+    }
+}
+
+fn public_rpc_findings(adr_id: &str, lifecycle: &str, document: &str) -> Vec<PublicRpcFinding> {
+    let lifecycle = lifecycle
+        .trim()
+        .trim_matches(['\'', '"'])
+        .to_ascii_lowercase();
+    if !matches!(lifecycle.as_str(), "accepted" | "accepted (amendment)") {
+        return Vec::new();
+    }
+
+    let normalized = document
+        .split_whitespace()
+        .collect::<Vec<_>>()
+        .join(" ")
+        .to_ascii_lowercase();
+    let mut findings = Vec::new();
+    for (clause_index, clause) in normalized.split(['.', '!', '?', ';']).enumerate() {
+        let words = clause.split_whitespace().collect::<Vec<_>>();
+        for (word_index, word) in words.iter().enumerate() {
+            let token = word
+                .trim_matches(|character: char| !character.is_alphanumeric() && character != '-');
+            let protocol = if token.contains("grpc") {
+                "grpc"
+            } else if token.contains("connect-rpc") || token.contains("connect-protocol") {
+                "connect"
+            } else {
+                continue;
+            };
+            let start = word_index.saturating_sub(12);
+            let end = (word_index + 13).min(words.len());
+            let window = words[start..end].join(" ");
+            if classify_rpc_audience(&window) != RpcAudience::Public {
+                continue;
+            }
+            findings.push(PublicRpcFinding {
+                key: format!(
+                    "{adr_id}:public-rpc:{protocol}:clause-{clause_index}-word-{word_index}"
+                ),
+                clause: window,
+            });
+        }
+    }
+    findings
+}
+
 fn assert_public_protocol_reconciliation(adr_id: &str, document: &str, heading: &str) {
     let frontmatter = frontmatter(document);
     assert!(
@@ -287,23 +429,12 @@ fn live_adr_authority_reconciliation_is_green() {
         );
     }
 
-    let contradiction_markers =
-        policy["authority_reconciliation"]["public_rpc_contradiction_markers"]
-            .as_array()
-            .expect("contradiction marker inventory");
     for (id, document) in &accepted_documents {
-        let normalized = document
-            .split_whitespace()
-            .collect::<Vec<_>>()
-            .join(" ")
-            .to_ascii_lowercase();
-        for marker in contradiction_markers {
-            let marker = marker.as_str().expect("contradiction marker");
-            assert!(
-                !normalized.contains(marker),
-                "Accepted ADR {id} retains public RPC contradiction marker {marker}"
-            );
-        }
+        let findings = public_rpc_findings(id, "accepted", document);
+        assert!(
+            findings.is_empty(),
+            "Accepted ADR {id} retains public RPC contradictions: {findings:#?}"
+        );
     }
 
     let proposed = text("OYA_ADR_0246");
@@ -630,6 +761,7 @@ fn negative_fixture_corpus_fails_on_each_guarded_invariant() {
 #[test]
 fn accepted_adr_public_rpc_red_mutations_are_detected() {
     let fixtures = json(&declared_path("OYA_PRODUCT_PROTOCOL_NEGATIVE_CASES"));
+    let accepted_baseline = "# Fixture Accepted ADR\n\nPublic gRPC, gRPC-Web, and Connect are forbidden. Sibling-service calls use internal-only gRPC/proto3 over HTTP/2.";
     let cases = fixtures["accepted_adr_cases"]
         .as_array()
         .expect("Accepted ADR RED cases");
@@ -638,20 +770,31 @@ fn accepted_adr_public_rpc_red_mutations_are_detected() {
         "Accepted ADR RED corpus must not be empty"
     );
     for case in cases {
-        let normalized = case["text"]
-            .as_str()
-            .expect("RED ADR text")
-            .to_ascii_lowercase();
-        let exposes_rpc = ["grpc", "connect-rpc", "connect-protocol", "grpc-web"]
-            .iter()
-            .any(|token| normalized.contains(token));
-        let has_public_audience = ["public", "tenant", "client", "product primitive"]
-            .iter()
-            .any(|token| normalized.contains(token));
+        let name = case["name"].as_str().expect("case name");
+        let mutation = case["text"].as_str().expect("RED ADR text");
+        let document = format!("{accepted_baseline}\n\n{mutation}\n");
+        let findings = public_rpc_findings(name, "Accepted", &document);
         assert!(
-            exposes_rpc && has_public_audience,
-            "RED ADR mutation was not recognized as public RPC exposure: {}",
-            case["name"]
+            !findings.is_empty(),
+            "RED ADR mutation {name} evaded the live detector"
+        );
+        assert!(
+            findings.iter().all(|finding| finding.key.starts_with(name)),
+            "RED ADR mutation {name} did not emit a keyed finding: {findings:#?}"
+        );
+    }
+
+    for case in fixtures["accepted_adr_counterexamples"]
+        .as_array()
+        .expect("Accepted ADR counterexamples")
+    {
+        let name = case["name"].as_str().expect("case name");
+        let text = case["text"].as_str().expect("counterexample text");
+        let lifecycle = case["lifecycle"].as_str().unwrap_or("Accepted");
+        let findings = public_rpc_findings(name, lifecycle, text);
+        assert!(
+            findings.is_empty(),
+            "counterexample {name} produced false positives: {findings:#?}"
         );
     }
 }
