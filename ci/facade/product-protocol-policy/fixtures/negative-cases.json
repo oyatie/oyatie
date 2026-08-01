@@ -709,6 +709,26 @@
     {
       "name": "public-grpc-product",
       "text": "The Connect-RPC surface is exposed as a public product primitive."
+    },
+    {
+      "name": "public-bare-connect-supported",
+      "text": "Public Connect is supported for tenant integrations."
+    },
+    {
+      "name": "public-grpc-without-proxy",
+      "text": "Public gRPC is supported without a proxy."
+    },
+    {
+      "name": "historical-rest-current-grpc",
+      "text": "The legacy REST adapter is retired, and tenants now use gRPC."
+    },
+    {
+      "name": "public-grpc-behind-gateway",
+      "text": "Public gRPC is exposed behind the gateway."
+    },
+    {
+      "name": "unclassified-grpc-claim",
+      "text": "gRPC is supported for partner integrations."
     }
   ],
   "accepted_adr_counterexamples": [
