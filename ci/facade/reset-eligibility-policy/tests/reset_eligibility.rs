@@ -338,3 +338,30 @@ fn schema_semantics_reject_nested_required_type_format_ref_and_additional_proper
         );
     }
 }
+
+#[test]
+fn schema_semantics_apply_ref_siblings_and_closed_objects_without_properties() {
+    let referenced_with_sibling = json!({
+        "$defs": {"text": {"type": "string"}},
+        "$ref": "#/$defs/text",
+        "minLength": 5
+    });
+    assert!(
+        !validate_artifact_schema(&referenced_with_sibling, &json!("four")).is_empty(),
+        "a valid $ref sibling constraint must not be skipped"
+    );
+    assert!(
+        validate_artifact_schema(&referenced_with_sibling, &json!("valid")).is_empty(),
+        "$ref and its sibling constraint should compose for a valid value"
+    );
+
+    let closed_object = json!({"type": "object", "additionalProperties": false});
+    assert!(
+        !validate_artifact_schema(&closed_object, &json!({"candidate_escape": true})).is_empty(),
+        "additionalProperties=false must close an object even without properties"
+    );
+    assert!(
+        validate_artifact_schema(&closed_object, &json!({})).is_empty(),
+        "an empty closed object should remain valid"
+    );
+}

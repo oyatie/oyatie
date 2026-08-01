@@ -521,7 +521,6 @@ fn validate_node(
             return;
         };
         validate_node(root, target, value, path, findings);
-        return;
     }
     if let Some(constant) = schema.get("const")
         && value != constant
@@ -560,20 +559,17 @@ fn validate_node(
                 schema_error(findings, &format!("{path}.{required}"), "required");
             }
         }
-        if let Some(properties) = properties {
-            for (key, child) in object {
-                if let Some(child_schema) = properties.get(key) {
-                    validate_node(
-                        root,
-                        child_schema,
-                        child,
-                        &format!("{path}.{key}"),
-                        findings,
-                    );
-                } else if schema.get("additionalProperties").and_then(Value::as_bool) == Some(false)
-                {
-                    schema_error(findings, &format!("{path}.{key}"), "additionalProperties");
-                }
+        for (key, child) in object {
+            if let Some(child_schema) = properties.and_then(|schemas| schemas.get(key)) {
+                validate_node(
+                    root,
+                    child_schema,
+                    child,
+                    &format!("{path}.{key}"),
+                    findings,
+                );
+            } else if schema.get("additionalProperties").and_then(Value::as_bool) == Some(false) {
+                schema_error(findings, &format!("{path}.{key}"), "additionalProperties");
             }
         }
     }

@@ -2787,13 +2787,13 @@
       "artifact_format": "json",
       "contract_version": "v3.0.0",
       "owner_team": "cloud-ci-platform + platform-operations + data-protection",
-      "purpose_short": "Digest-bound, secret-free W0-D discovery observation recording RESET INELIGIBLE and preservation migration.",
+      "purpose_short": "Redacted, undigested and unverified W0-D discovery observation recording RESET INELIGIBLE and preservation migration.",
       "artifact_profile": "evidence-bundle",
       "capability_overrides": {
         "enforcement": {"lane_id": "cloud-ci-reset-eligibility-policy"},
         "verification": {"checker_crate": "ci/facade/reset-eligibility-policy", "command": "buck2 test //ci/facade/reset-eligibility-policy:ci-reset-eligibility-policy-gate"},
         "validation": {"validator": "specs/reset-eligibility.schema.json plus ci-reset-eligibility-policy"},
-        "autogen": {"generator": "not-applicable; source-authored from redacted read-only discovery digests"},
+        "autogen": {"generator": "not-applicable; source-authored from redacted read-only discovery; secret-value exclusion is claimed but not independently verified"},
         "selfheal": {"healer": "not-applicable; new provider observations and approvals require reviewed collection"},
         "telemetry": {"metrics": [{"id": "oya_reset_eligibility", "kind": "gauge", "unit": "1", "labels": ["reset_id", "mode"], "cardinality_budget": 32}]},
         "provenance": {"current_author": "inventory-drift-timeout + codex", "current_reviewed_by": "pending code-review", "last_modified_at": "2026-08-01T00:00:00Z"}

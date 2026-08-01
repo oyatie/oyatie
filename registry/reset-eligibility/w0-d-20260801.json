@@ -152,7 +152,7 @@
     },
     {
       "stable_id": "cloudflare-configured:active-edge",
-      "lifecycle": "active-api-foundry-kms-ops-dns",
+      "lifecycle": "active-four-public-edge-names",
       "data_class": "public-routing-metadata",
       "retention": "service-continuity",
       "billing": "unknown",
@@ -215,7 +215,7 @@
       "acceptance_criteria": "DNS and edge routes have an approved cutover and rollback with observed service continuity.",
       "verification_path": "Capture redacted DNS/edge inventory and execute a reversible cutover rehearsal.",
       "suggested_owner": "network-platform",
-      "dependency_notes": "api, foundry, kms, and ops edge names are active."
+      "dependency_notes": "Four redacted public edge names are active."
     }
   ],
   "unknowns": [
