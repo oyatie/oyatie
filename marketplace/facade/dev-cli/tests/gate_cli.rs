@@ -5505,13 +5505,6 @@ fn board_masterplan_consistency_gate_rejects_reverse_orphans() {
 #[test]
 fn stage0_prereqs_gate_is_dispatched() {
     let temp = temp_dir("stage0-prereqs-dispatch");
-    let fake_bin_dir = temp.join("bin");
-    fs::create_dir_all(&fake_bin_dir).expect("fake bin dir created");
-    fs::copy(
-        env!("CARGO_BIN_EXE_fake-cargo"),
-        fake_bin_dir.join(format!("cargo{}", std::env::consts::EXE_SUFFIX)),
-    )
-    .expect("fake cargo copied");
     fs::create_dir_all(temp.join("crates/oya-application-app/src")).expect("app dir created");
     fs::create_dir_all(temp.join("docs/decisions")).expect("decisions dir created");
     fs::write(
@@ -5536,17 +5529,13 @@ fn stage0_prereqs_gate_is_dispatched() {
     .expect("adr written");
 
     let output = Command::new(env!("CARGO_BIN_EXE_oya"))
-        .env("PATH", &fake_bin_dir)
-        .env(
-            "FAKE_CARGO_STDOUT",
-            r#"{"packages":[{"name":"oya-application-app","edition":"2024","rust_version":"1.97.1"}]}"#,
-        )
         .args([
             "gate",
             "validate",
             "stage0-prereqs",
             "--repo-root",
             temp.to_str().expect("utf8 temp"),
+            "--self-test",
         ])
         .output()
         .expect("gate command runs");

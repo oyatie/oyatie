@@ -664,7 +664,6 @@ rust_test(
     crate = "marketplace_dev_cli_gate_cli",
     crate_root = "tests/gate_cli.rs",
     env = {
-        "CARGO_BIN_EXE_fake-cargo": "$(location :fake-cargo)",
         "CARGO_BIN_EXE_oya": "$(location :oya)",
         "CARGO_MANIFEST_DIR": ".",
     },
