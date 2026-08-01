@@ -10,3 +10,7 @@ export_file(
     name = "adr-census-epoch-receipt.schema.json",
     visibility = ["PUBLIC"],
 )
+export_file(
+    name = "reset-eligibility.schema.json",
+    visibility = ["PUBLIC"],
+)
