@@ -140,8 +140,10 @@ fn frozen_baseline_is_exactly_the_live_violation_set() {
          number went UP: the gate now sees inversions it had been structurally blind to.\n\
          \n\
          The 21 root rows are the capability roots still exempt; each burns down as its root moves \
-         to capability_roots. They are hand-added, never --emit-baseline output (see the baseline \
-         _comment) so a structural exemption cannot be laundered by re-running the tool."
+         to capability_roots. --emit-baseline never MINTS one (see the baseline _comment), so a \
+         structural exemption cannot be laundered by re-running the tool; it does carry the rows \
+         already committed here forward, filtered to those still live, so a re-emit does not \
+         silently delete 21 advisory rows and turn them into 21 regressions."
     );
 }
 
@@ -270,34 +272,23 @@ fn fixtures_dir_root() -> PathBuf {
     fixtures_dir()
 }
 
-#[test]
-fn a_capability_root_can_declare_its_own_tier_after_its_sources_are_gone() {
-    // HIGH-2: `capability_tier` derived a tier ONLY from `absorbs_current_dirs` entries resolving in
-    // `service_tiers`, which is built only from `<service_root>/<name>/manifest.json`. A COMPLETED
-    // capability move DELETES those dirs, so the terminal state of a successful migration was an
-    // unresolvable tier — and TDA-CAPABILITY-TIER-UNRESOLVED is hardcoded `Status::Regression`, so
-    // the baseline could not absorb it and --emit-baseline refused it. The gate failed permanently
-    // exactly when the reorg SUCCEEDED, with no green path at all (`policy`, `compute` and
-    // `messaging` are already in that state with zero absorbable services). A capability root now
-    // carries its OWN declared tier, which is preferred over the projection.
-    let scratch = std::env::temp_dir().join(format!(
-        "tda-declared-tier-{}-{}",
+/// A throwaway repo tree for the collection-side tests. Returns `(root, policy)`.
+fn scratch_repo(label: &str, registry: &str) -> (PathBuf, Value) {
+    let root = std::env::temp_dir().join(format!(
+        "tda-{label}-{}-{}",
         std::process::id(),
         std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .map(|d| d.as_nanos())
             .unwrap_or_default()
     ));
-    let capability = scratch.join("capx/core/domain");
-    std::fs::create_dir_all(&capability).expect("scratch tree");
-    std::fs::write(capability.join("Cargo.toml"), "[package]\nname = \"x\"\n").expect("crate");
-    // The registry names an absorbed service that NO LONGER EXISTS — the migration completed.
+    std::fs::create_dir_all(root.join("capx/core/domain")).expect("scratch tree");
     std::fs::write(
-        scratch.join("registry.json"),
-        r#"{"capabilities":[{"name":"capx","absorbs_current_dirs":["capx","cloud/gone"]}],
-            "meta_directories":[{"dir":"os/"}]}"#,
+        root.join("capx/core/domain/Cargo.toml"),
+        "[package]\nname = \"x\"\n",
     )
-    .expect("registry");
+    .expect("crate");
+    std::fs::write(root.join("registry.json"), registry).expect("registry");
     let policy = serde_json::json!({
         "gate_id": GATE_ID,
         "enforcement": "advisory-baseline",
@@ -309,50 +300,124 @@ fn a_capability_root_can_declare_its_own_tier_after_its_sources_are_gone() {
         "stratum_rank_order": ["S0", "S1", "S2", "S3", "S4", "S5"],
         "min_expected_crates": 0
     });
+    (root, policy)
+}
+
+/// Write a service `manifest.json` at `<root>/<rel>`.
+fn write_service(root: &std::path::Path, rel: &str, stratum: &str) {
+    std::fs::create_dir_all(root.join(rel)).expect("service dir");
+    std::fs::write(
+        root.join(rel).join("manifest.json"),
+        format!(r#"{{"tier":"substrate","substrate_dag_position":{{"stratum":"{stratum}"}}}}"#),
+    )
+    .expect("service manifest");
+}
+
+#[test]
+fn a_capability_tier_is_declared_not_derived_from_the_dirs_it_absorbs() {
+    // HIGH-2 + HIGH-3, which the same change deletes rather than guards.
+    //
+    // The tier used to be PROJECTED from the services in `absorbs_current_dirs`, resolved through
+    // `service_tiers` — built only from `<service_root>/<name>/manifest.json`. Two consequences, both
+    // fatal, neither patchable:
+    //   HIGH-2: a COMPLETED capability move DELETES those dirs, so the terminal state of a successful
+    //           migration was an unresolvable tier. TDA-CAPABILITY-TIER-UNRESOLVED is hardcoded
+    //           Status::Regression, so the baseline could not absorb it and --emit-baseline refused
+    //           it: the gate failed permanently exactly when the reorg SUCCEEDED.
+    //   HIGH-3: unanimity was computed over whichever services had not moved YET, so MIGRATION ORDER
+    //           decided the answer — `capx` below spans S1+S3 and has no defensible projected tier,
+    //           but move the S3 service first and the survivor projects a confident S1.
+    //
+    // A DECLARED tier is invariant under both. This test moves the services one at a time and
+    // asserts the tier never changes — which is the property, not a symptom of it.
+    let (root, policy) = scratch_repo(
+        "declared-tier",
+        r#"{"capabilities":[{"name":"capx","tier":"substrate",
+             "substrate_dag_position":{"stratum":"S2"},
+             "absorbs_current_dirs":["capx","cloud/a","cloud/b"]}],
+            "meta_directories":[{"dir":"os/"}]}"#,
+    );
     let empty_baseline = serde_json::json!({ "gate_id": GATE_ID, "violations": [] });
+    let declared = serde_json::json!({"tier": "substrate", "stratum": "S2"});
 
-    // No projection is possible and no tier is declared → RED, as it must be.
-    let observed = collect_corpus(&scratch, &policy).expect("collect");
-    let report = evaluate(&policy, &empty_baseline, &observed);
+    // Both absorbed services present, and they DISAGREE (S1 vs S3) — the projection's unresolvable
+    // case, which the declaration is unaffected by.
+    write_service(&root, "cloud/a", "S1");
+    write_service(&root, "cloud/b", "S3");
+    let observed = collect_corpus(&root, &policy).expect("collect");
+    assert_eq!(
+        observed["service_tiers"]["capx"], declared,
+        "the registry declaration is the tier, not the absorbed services' (dis)agreement"
+    );
+    assert_eq!(
+        evaluate(&policy, &empty_baseline, &observed).verdict,
+        Verdict::Green
+    );
+
+    // The S3 service moves in — the projection would now read a unanimous S1.
+    std::fs::remove_dir_all(root.join("cloud/b")).expect("complete the S3 move");
+    let observed = collect_corpus(&root, &policy).expect("collect");
+    assert_eq!(
+        observed["service_tiers"]["capx"], declared,
+        "migration ORDER must not change the tier"
+    );
+
+    // The migration COMPLETES — every absorbed dir is gone, the projection has nothing left at all.
+    std::fs::remove_dir_all(root.join("cloud/a")).expect("complete the S1 move");
+    let observed = collect_corpus(&root, &policy).expect("collect");
+    assert_eq!(
+        observed["service_tiers"]["capx"], declared,
+        "a COMPLETED move must not orphan the tier"
+    );
+    assert_eq!(
+        evaluate(&policy, &empty_baseline, &observed).verdict,
+        Verdict::Green,
+        "the gate must not fail exactly when the reorg succeeds"
+    );
+
+    std::fs::remove_dir_all(&root).ok();
+}
+
+#[test]
+fn an_undeclared_capability_is_red_and_never_falls_back_to_a_projection() {
+    // The other half of "one mechanism": removing the derivation only helps if nothing quietly
+    // restores it. A capability with perfectly unanimous absorbed services and NO declared tier must
+    // still RED — otherwise the projection is back as a fallback, and a fallback that covers for a
+    // missing declaration is exactly how `unclassified_roots` became a silent exemption.
+    let (root, policy) = scratch_repo(
+        "undeclared",
+        r#"{"capabilities":[{"name":"capx",
+             "absorbs_current_dirs":["capx","cloud/a","cloud/b"]}],
+            "meta_directories":[{"dir":"os/"}]}"#,
+    );
+    write_service(&root, "cloud/a", "S1");
+    write_service(&root, "cloud/b", "S1");
+
+    let observed = collect_corpus(&root, &policy).expect("collect");
     assert!(
-        report
-            .findings
-            .iter()
-            .any(|f| f.code == "TDA-CAPABILITY-TIER-UNRESOLVED" && f.subject == "capx"),
-        "a fully-migrated capability with no declared tier must RED; {:?}",
-        report.findings
+        observed["service_tiers"].get("capx").is_none(),
+        "unanimous absorbed services must NOT resurrect a projected tier: {}",
+        observed["service_tiers"]
+    );
+    let report = evaluate(
+        &policy,
+        &serde_json::json!({ "gate_id": GATE_ID, "violations": [] }),
+        &observed,
+    );
+    let f = report
+        .findings
+        .iter()
+        .find(|f| f.code == "TDA-CAPABILITY-TIER-UNRESOLVED")
+        .expect("an undeclared capability must RED");
+    assert_eq!(f.subject, "capx");
+    assert_eq!(f.status, Status::Regression);
+    assert!(
+        f.detail.contains("registry entry"),
+        "the remedy must point at the registry; got {}",
+        f.detail
     );
 
-    // Declaring the tier on the capability root itself is the green path.
-    std::fs::write(
-        scratch.join("capx/manifest.json"),
-        r#"{"tier":"substrate","substrate_dag_position":{"stratum":"S2"}}"#,
-    )
-    .expect("capability manifest");
-    let observed = collect_corpus(&scratch, &policy).expect("collect");
-    assert_eq!(
-        observed["service_tiers"]["capx"],
-        serde_json::json!({"tier": "substrate", "stratum": "S2"}),
-        "the capability's OWN manifest is the tier"
-    );
-    let report = evaluate(&policy, &empty_baseline, &observed);
-    assert_eq!(report.verdict, Verdict::Green, "{:?}", report.findings);
-
-    // And the declared tier WINS over a still-resolvable projection: the tier is a reviewable fact,
-    // not a shadow of dirs scheduled for deletion, so the two must not silently disagree.
-    std::fs::create_dir_all(scratch.join("cloud/gone")).expect("resurrect source");
-    std::fs::write(
-        scratch.join("cloud/gone/manifest.json"),
-        r#"{"tier":"substrate","substrate_dag_position":{"stratum":"S5"}}"#,
-    )
-    .expect("source manifest");
-    let observed = collect_corpus(&scratch, &policy).expect("collect");
-    assert_eq!(
-        observed["service_tiers"]["capx"]["stratum"], "S2",
-        "the DECLARED tier is preferred over the projection"
-    );
-
-    std::fs::remove_dir_all(&scratch).ok();
+    std::fs::remove_dir_all(&root).ok();
 }
 
 #[test]

@@ -110,13 +110,22 @@
 //! comparing nothing. Two ways to fail it, with distinct remedies: (i) UNRESOLVED — no `tier` in
 //! `<capability>/manifest.json` and no unanimous projection from the registry-absorbed services;
 //! (ii) UNRANKABLE — a `substrate` whose stratum is outside `stratum_rank_order` (`forward-declared`),
-//! which R4 looks up, misses, and skips. (ii) is the one the PRESENCE test (`contains_key`) missed.
+//! which R4 looks up, misses, and skips. (ii) is the one the PRESENCE test (`contains_key`) missed,
+//! and it applies to a DECLARED `forward-declared` exactly as it does to a derived one — otherwise
+//! "it was declared" becomes the next silent exemption.
 //!
-//! A capability root's tier has TWO sources, preferred in order: its OWN `manifest.json` (a
-//! DECLARED, reviewable fact) and, failing that, the registry projection. The projection is
-//! transitional by construction — it resolves only while the absorbed service dirs still exist, so
-//! a COMPLETED capability move makes it unresolvable, and the gate would fail permanently exactly
-//! when the reorg SUCCEEDS. The declared manifest is the terminal state's green path.
+//! **A capability DECLARES its tier; nothing derives it.** ADR-0562 makes the capability the
+//! tier-bearing unit, and `specs/capability-registry.json` already defines the capabilities and is
+//! already the authority R6b trusts for `meta_directories`, so the `tier` +
+//! `substrate_dag_position.stratum` facets live there beside the definition. The tier was previously
+//! PROJECTED from the services in `absorbs_current_dirs` — a derivation standing in for a missing
+//! declaration, reading the wrong authority. It failed two ways that patching could not fix: it
+//! resolved only while the absorbed dirs still EXISTED (a completed move orphaned the tier, so the
+//! gate failed permanently exactly when the reorg SUCCEEDED), and its unanimity was computed over
+//! whichever services had not moved YET, so MIGRATION ORDER decided the answer. Both failure modes
+//! are deleted with the derivation. There is ONE mechanism: an undeclared capability is RED, never
+//! projected — two mechanisms where one silently covers for the other is how `unclassified_roots`
+//! became a silent exemption in the first place.
 //!
 //! ## Baseline-liveness backstop (B3 hardening — phantom rows made impossible)
 //! The frozen baseline is a SUBSET-semantics ratchet: it blocks only on a NEW regression (a
@@ -466,37 +475,27 @@ pub fn collect_corpus(root: &Path, policy: &Value) -> Result<Value, CollectError
         collect_service_tiers(&dir, root, &mut service_tiers)?;
     }
 
-    // 1b. Capability-root -> tier. TWO sources, in priority order:
-    //   (a) the capability's OWN `<capability>/manifest.json` — a DECLARED, reviewable tier;
-    //   (b) failing that, a PROJECTION from the ADR-0562 closed registry: each capability's
-    //       `absorbs_current_dirs` names the `cloud/`+`oya/` services it absorbed, whose manifests
-    //       are the tier authority read in step 1.
+    // 1b. Capability-root -> tier, DECLARED in the ADR-0562 closed registry beside the capability's
+    // own definition, in the same `tier` + `substrate_dag_position.stratum` facets a service manifest
+    // uses (one extractor, [`tier_facets`], reads both).
     //
-    // (a) exists because (b) is a shadow of directories the migration DELETES. `absorbs_current_dirs`
-    // resolves only while the absorbed service dirs are still there, so a COMPLETED capability move
-    // makes the projection unresolvable — the gate would fail permanently exactly when the reorg
-    // SUCCEEDS, and TDA-CAPABILITY-TIER-UNRESOLVED is non-baselineable, so there would be no green
-    // path at all (`policy`, `compute` and `messaging` already have zero absorbable services). A
-    // declared manifest is the terminal state; the projection is the transitional one.
-    //
-    // Both passes are separate loops so neither is order-dependent: a projection reads only SERVICE
-    // manifests, never another capability's freshly-inserted record.
+    // There is deliberately NO derivation here. A capability's tier used to be PROJECTED from the
+    // `cloud/`+`oya/` services its `absorbs_current_dirs` names — a derivation standing in for a
+    // declaration nobody had written. ADR-0562 makes the CAPABILITY the tier-bearing unit, so the
+    // projection was reading the wrong authority, and it broke in two ways that no amount of
+    // patching fixes: it resolves only while the absorbed dirs still EXIST, so a completed move
+    // orphaned the tier (the gate failed permanently exactly when the reorg SUCCEEDED), and its
+    // unanimity was computed over whichever services had not moved YET, so MIGRATION ORDER decided
+    // the answer — `iam` spans S1+S1+S3, and moving the S3 service first silently resolved it S1.
+    // Declaring the tier deletes both failure modes rather than guarding them. An undeclared
+    // capability is RED (R6c), never projected: a capability whose absorbed services genuinely
+    // disagree has no defensible tier, and inventing one is the under-enforcement this gate exists
+    // to catch, with a plausible-looking number attached.
     let registry = load_json(root, &parsed.capability_registry_path)?;
     let (registry_capabilities, registry_meta_dirs) = registry_facts(&registry);
-    let mut declared: BTreeSet<&str> = BTreeSet::new();
     for cap in &parsed.capability_roots {
-        if let Some(record) = tier_record(root, cap)? {
+        if let Some(record) = registry_entry(&registry, cap).and_then(tier_facets) {
             service_tiers.insert(cap.clone(), record);
-            declared.insert(cap.as_str());
-        }
-    }
-    let service_only = service_tiers.clone();
-    for cap in &parsed.capability_roots {
-        if declared.contains(cap.as_str()) {
-            continue;
-        }
-        if let Some(tier) = capability_tier(&registry, cap, &service_only) {
-            service_tiers.insert(cap.clone(), tier);
         }
     }
 
@@ -561,83 +560,13 @@ fn registry_facts(registry: &Value) -> (Vec<String>, Vec<String>) {
     )
 }
 
-/// The tier of a capability root, projected from the services its ADR-0562 registry entry absorbed.
-///
-/// Returns `Some` ONLY on unanimity across EVERY absorbed service: one `tier` class and at most one
-/// `stratum`. Unanimity is the fail-closed choice — a capability whose absorbed services disagree
-/// (today: `iam` spans S1+S3, `marketplace` spans product+substrate) has no single defensible tier,
-/// and silently picking one would re-introduce the very under-enforcement this gate exists to catch,
-/// with a plausible-looking number attached. `None` surfaces as TDA-CAPABILITY-TIER-UNRESOLVED.
-///
-/// "EVERY" is load-bearing, and it did not used to be. An absorbed entry that failed to resolve was
-/// SKIPPED, so nothing distinguished "unanimous because they agree" from "unanimous because only one
-/// is left" — and a COMPLETED capability move DELETES the absorbed service dir, taking its manifest
-/// with it. `iam` today spans S1+S1+S3 and is correctly unresolved; move the S3 service into `iam/`
-/// first and the survivors are unanimously S1, so `iam` silently resolves S1 while the S3 material
-/// now physically lives inside it. Move the S1 services first and the same capability resolves S3.
-/// THE TIER WAS AN ARTIFACT OF MIGRATION ORDER. An unresolvable entry is now a distinct outcome:
-/// the whole projection is unresolved. That also makes the (a)-branch declared manifest in
-/// [`collect_corpus`] the only way a fully-migrated capability can carry a tier, which is the point
-/// — a declared fact rather than a derived shadow of directories scheduled for deletion.
-///
-/// The capability's OWN root dir is excluded from the source set. Every registry entry lists it in
-/// `absorbs_current_dirs` (verified: every bare, non-`<root>/<svc>` entry equals its capability's
-/// name), but it is the DESTINATION tree, never a tier'd service — including it would make every
-/// capability permanently unresolvable under the all-entries rule.
-///
-/// One asymmetry, deliberate: classes must agree, but a stratum present on some absorbed services
-/// and absent on others resolves to the single present rank rather than to `None`. That direction
-/// is safe — an assigned rank can only ADD R4 findings (an unranked endpoint is skipped by the
-/// `(Some, Some)` match arm entirely), never remove one, so it cannot produce a false green. It is
-/// also not currently reachable: `substrate_requires_dag_position` is born-blocking in the sibling
-/// tier-field-coverage gate, so a tier'd substrate without a stratum does not survive CI. Verified
-/// on the live tree — of the 24 registered capabilities only `marketplace` mixes, and it is already
-/// excluded one step earlier by the CLASS check (substrate + product).
-fn capability_tier(
-    registry: &Value,
-    capability: &str,
-    service_tiers: &serde_json::Map<String, Value>,
-) -> Option<Value> {
-    let entry = registry
+/// The `capabilities[]` entry named `capability` in the ADR-0562 closed registry.
+fn registry_entry<'a>(registry: &'a Value, capability: &str) -> Option<&'a Value> {
+    registry
         .get("capabilities")
         .and_then(Value::as_array)?
         .iter()
-        .find(|c| c.get("name").and_then(Value::as_str) == Some(capability))?;
-
-    let mut classes: BTreeSet<&str> = BTreeSet::new();
-    let mut strata: BTreeSet<&str> = BTreeSet::new();
-    for absorbed in entry
-        .get("absorbs_current_dirs")
-        .and_then(Value::as_array)?
-        .iter()
-        .filter_map(Value::as_str)
-        .filter(|a| *a != capability)
-    {
-        // An absorbed service that resolves to nothing — never tier'd, or already MOVED away — makes
-        // the projection partial, not unanimous. Fail closed on the whole capability.
-        let record = service_tiers.get(absorbed)?;
-        classes.insert(record.get("tier").and_then(Value::as_str)?);
-        if let Some(stratum) = record.get("stratum").and_then(Value::as_str) {
-            strata.insert(stratum);
-        }
-    }
-
-    let mut class = classes.into_iter();
-    let (Some(class), None) = (class.next(), class.next()) else {
-        return None;
-    };
-    let mut stratum = strata.into_iter();
-    let stratum = match (stratum.next(), stratum.next()) {
-        (Some(_), Some(_)) => return None,
-        (found, _) => found,
-    };
-
-    let mut record = serde_json::Map::new();
-    record.insert("tier".to_owned(), json!(class));
-    if let Some(stratum) = stratum {
-        record.insert("stratum".to_owned(), json!(stratum));
-    }
-    Some(Value::Object(record))
+        .find(|c| c.get("name").and_then(Value::as_str) == Some(capability))
 }
 
 /// Read the service-root `manifest.json` directly under each governed service root and record its
@@ -675,9 +604,26 @@ fn collect_service_tiers(
     Ok(())
 }
 
-/// The `{tier, stratum}` record declared by `<repo_root>/<rel>/manifest.json`, or `None` when there
-/// is no manifest or it carries no `tier`. The single manifest→tier reader: the service scan and the
-/// capability root's own DECLARED tier both go through it, so both read the same facets the same way.
+/// The `{tier, stratum}` record a document declares via the `tier` +
+/// `substrate_dag_position.stratum` facets, or `None` if it carries no `tier`. The SINGLE extractor
+/// for both tier authorities — a service `manifest.json` and a capability's registry entry — so the
+/// two cannot drift into reading the same facets differently, and so a capability's declaration is
+/// spelled exactly like the service declarations it replaced.
+fn tier_facets(value: &Value) -> Option<Value> {
+    let tier = value.get("tier").and_then(Value::as_str)?;
+    let mut record = serde_json::Map::new();
+    record.insert("tier".to_owned(), json!(tier));
+    if let Some(stratum) = value
+        .get("substrate_dag_position")
+        .and_then(|p| p.get("stratum"))
+        .and_then(Value::as_str)
+    {
+        record.insert("stratum".to_owned(), json!(stratum));
+    }
+    Some(Value::Object(record))
+}
+
+/// [`tier_facets`] of `<repo_root>/<rel>/manifest.json`, or `None` when there is no manifest.
 /// A malformed manifest is a fail-closed `CollectError`, never a silent skip.
 fn tier_record(repo_root: &Path, rel: &str) -> Result<Option<Value>, CollectError> {
     let manifest = repo_root.join(rel).join("manifest.json");
@@ -690,19 +636,7 @@ fn tier_record(repo_root: &Path, rel: &str) -> Result<Option<Value>, CollectErro
         path: format!("{rel}/manifest.json"),
         message: e.to_string(),
     })?;
-    let Some(tier) = value.get("tier").and_then(Value::as_str) else {
-        return Ok(None);
-    };
-    let mut record = serde_json::Map::new();
-    record.insert("tier".to_owned(), json!(tier));
-    if let Some(stratum) = value
-        .get("substrate_dag_position")
-        .and_then(|p| p.get("stratum"))
-        .and_then(Value::as_str)
-    {
-        record.insert("stratum".to_owned(), json!(stratum));
-    }
-    Ok(Some(Value::Object(record)))
+    Ok(tier_facets(&value))
 }
 
 /// Resolve a member glob with single-star path segments (e.g. `cloud/*/crates/oya-*`) against the
@@ -1315,10 +1249,13 @@ pub fn evaluate(policy: &Value, baseline: &Value, observed: &Value) -> Report {
             {
                 None => continue,
                 Some(TierDefect::Unresolved) => format!(
-                    "capability root `{root}` is declared in `capability_roots` but carries no tier: none is declared in `{root}/manifest.json`, and none could be projected from the services its registry entry absorbs (an absorbed service carries no tier or has already MOVED, or they disagree on tier/stratum). Every edge touching its crates is STILL skipped while the policy claims it is enforced; declare the tier in `{root}/manifest.json`, or remove `{root}` from `capability_roots` until it can be classified"
+                    "capability root `{root}` is declared in `capability_roots` but its entry in the ADR-0562 closed capability registry declares no `tier`, so every edge touching its crates is STILL skipped while the policy claims it is enforced. ADR-0562 makes the capability the tier-bearing unit: add the `tier` facet (and `substrate_dag_position.stratum` for a substrate) to `{root}`'s registry entry, or remove `{root}` from `capability_roots` until its tier has been ruled on. It is NOT inferred from the services `{root}` absorbs — a capability whose absorbed services disagree has no defensible tier, and picking one silently is the under-enforcement this gate exists to catch"
+                ),
+                Some(TierDefect::UnenforceableClass(class)) => format!(
+                    "capability root `{root}` declares tier class `{class}`, which no ADR-0245 rule acts on (the rules match `substrate`/`product`/`service-cell`), so every edge touching its crates falls through and is silently allowed while the policy claims the root is enforced. `reserved` is a placeholder for a µservice that ships no crates (ADR-0245), not a class for a crate-bearing capability tree; if that is genuinely the intent, remove `{root}` from `capability_roots` rather than declaring a class that enforces nothing"
                 ),
                 Some(TierDefect::UnrankableStratum(stratum)) => format!(
-                    "capability root `{root}` projects stratum `{stratum}`, which carries no ADR-0280 rank (`stratum_rank_order` is S0..S5), so R4 compares nothing: every intra-substrate edge touching its crates is silently allowed while the policy claims the root is enforced. A PRESENT tier is not a USABLE one. Give `{root}` a ranked stratum in `{root}/manifest.json` (the absorbed services it inherits from are forward-declared placeholders), or remove it from `capability_roots` until the rank is decided"
+                    "capability root `{root}` declares stratum `{stratum}`, which carries no ADR-0280 rank (`stratum_rank_order` is S0..S5), so R4 compares nothing: every intra-substrate edge touching its crates is silently allowed while the policy claims the root is enforced. A DECLARED tier is not automatically a USABLE one — `forward-declared` is exactly as unenforced whether it was declared or derived. Give `{root}` a ranked stratum in its registry entry, or remove it from `capability_roots` until the rank is decided"
                 ),
             };
             findings.push(Finding::new(
@@ -1379,12 +1316,20 @@ fn string_list<'a>(observed: &'a Value, key: &str) -> BTreeSet<&'a str> {
         .unwrap_or_default()
 }
 
-/// Why a capability root's tier cannot enforce anything (R6c). Two distinct causes, reported with
+/// The tier classes [`classify_edge`] actually matches on. A class outside this set reaches its
+/// `_ => None` arm, so a root carrying one compares NOTHING — `reserved` (a legal
+/// `tier_field_coverage` enum value) and any typo both land there. Kept beside the R6c predicate so
+/// adding a rule arm without widening this list is a visible omission rather than a silent one.
+const ENFORCED_TIER_CLASSES: [&str; 3] = ["substrate", "product", "service-cell"];
+
+/// Why a capability root's tier cannot enforce anything (R6c). Three distinct causes, reported with
 /// distinct remedies because they need different fixes.
 enum TierDefect {
-    /// No tier record at all — nothing declared, nothing projected.
+    /// No tier declared at all.
     Unresolved,
-    /// A `substrate` record whose stratum carries no ADR-0280 rank, so R4 compares nothing.
+    /// A class no rule acts on (`reserved`, or a misspelling), so every edge is skipped.
+    UnenforceableClass(String),
+    /// A `substrate` whose stratum carries no ADR-0280 rank, so R4 compares nothing.
     UnrankableStratum(String),
 }
 
@@ -1399,6 +1344,9 @@ fn capability_tier_defect(
     let Some(class) = record.and_then(|r| r.get("tier")).and_then(Value::as_str) else {
         return Some(TierDefect::Unresolved);
     };
+    if !ENFORCED_TIER_CLASSES.contains(&class) {
+        return Some(TierDefect::UnenforceableClass(class.to_owned()));
+    }
     if class != "substrate" {
         return None;
     }

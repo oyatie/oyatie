@@ -1008,131 +1008,16 @@ fn root_subject_baseline_rows_are_not_phantoms() {
 }
 
 #[test]
-fn capability_tier_requires_unanimity_across_absorbed_services() {
-    // The projection rule. `iam` really does absorb services spanning S1 and S3, and `marketplace`
-    // spans product and substrate; picking one silently would put a plausible-looking but
-    // unfounded tier on ~68 crates. Unanimous -> Some; disagreement or no data -> None (R6c).
-    let registry = json!({"capabilities": [
-        {"name": "unanimous", "absorbs_current_dirs": ["unanimous", "cloud/a", "cloud/b"]},
-        {"name": "split-stratum", "absorbs_current_dirs": ["cloud/a", "cloud/c"]},
-        {"name": "split-class", "absorbs_current_dirs": ["cloud/a", "cloud/d"]},
-        {"name": "no-data", "absorbs_current_dirs": ["no-data"]}
-    ]});
-    let mut tiers = serde_json::Map::new();
-    for (svc, tier, stratum) in [
-        ("cloud/a", "substrate", Some("S1")),
-        ("cloud/b", "substrate", Some("S1")),
-        ("cloud/c", "substrate", Some("S3")),
-        ("cloud/d", "product", None),
-    ] {
-        let mut rec = serde_json::Map::new();
-        rec.insert("tier".to_owned(), json!(tier));
-        if let Some(s) = stratum {
-            rec.insert("stratum".to_owned(), json!(s));
-        }
-        tiers.insert(svc.to_owned(), Value::Object(rec));
-    }
-
-    assert_eq!(
-        capability_tier(&registry, "unanimous", &tiers),
-        Some(json!({"tier": "substrate", "stratum": "S1"})),
-        "unanimous absorbed services project their tier onto the capability"
-    );
-    assert_eq!(
-        capability_tier(&registry, "split-stratum", &tiers),
-        None,
-        "S1 + S3 has no single defensible stratum (the live `iam` case)"
-    );
-    assert_eq!(
-        capability_tier(&registry, "split-class", &tiers),
-        None,
-        "substrate + product has no single defensible class (the live `marketplace` case)"
-    );
-    assert_eq!(capability_tier(&registry, "no-data", &tiers), None);
-    assert_eq!(capability_tier(&registry, "unregistered", &tiers), None);
-}
-
-/// A `service_tiers` map for the `capability_tier` projection tests.
-fn service_tier_map(rows: &[(&str, &str, Option<&str>)]) -> serde_json::Map<String, Value> {
-    let mut out = serde_json::Map::new();
-    for (svc, tier, stratum) in rows {
-        let mut rec = serde_json::Map::new();
-        rec.insert("tier".to_owned(), json!(tier));
-        if let Some(s) = stratum {
-            rec.insert("stratum".to_owned(), json!(s));
-        }
-        out.insert((*svc).to_owned(), Value::Object(rec));
-    }
-    out
-}
-
-#[test]
-fn capability_tier_is_not_an_artifact_of_migration_order() {
-    // HIGH-3. Unanimity was computed over the SURVIVORS: an absorbed service whose `manifest.json`
-    // is gone (a COMPLETED move deletes the dir) was silently skipped, so nothing distinguished
-    // "unanimous because they agree" from "unanimous because only one is left". The live `iam`
-    // spans S1+S1+S3 and is correctly unresolved today — but move the S3 service into `iam/` first
-    // and the survivors are unanimously S1, so `iam` resolves S1 while the S3 material now
-    // physically lives inside it. Move the S1 services first and the same capability resolves S3.
-    // The tier must not be a function of which service moved first.
-    let registry = json!({"capabilities": [{
-        "name": "iam",
-        "absorbs_current_dirs": ["iam", "cloud/cloud-iam", "oya/identity", "oya/consent-graph"]
-    }]});
-
-    let all_present = service_tier_map(&[
-        ("cloud/cloud-iam", "substrate", Some("S1")),
-        ("oya/identity", "substrate", Some("S1")),
-        ("oya/consent-graph", "substrate", Some("S3")),
-    ]);
-    assert_eq!(
-        capability_tier(&registry, "iam", &all_present),
-        None,
-        "S1+S1+S3 has no unanimous stratum (the live `iam` case)"
-    );
-
-    // The S3 service moved into `iam/` — its dir, and with it its manifest, is gone.
-    let s3_moved = service_tier_map(&[
-        ("cloud/cloud-iam", "substrate", Some("S1")),
-        ("oya/identity", "substrate", Some("S1")),
-    ]);
-    assert_eq!(
-        capability_tier(&registry, "iam", &s3_moved),
-        None,
-        "a vanished absorbed service must not launder S1+S1+S3 into a unanimous S1"
-    );
-
-    // The mirror: the S1 services moved first, which under survivor-unanimity resolves S3.
-    let s1_moved = service_tier_map(&[("oya/consent-graph", "substrate", Some("S3"))]);
-    assert_eq!(
-        capability_tier(&registry, "iam", &s1_moved),
-        None,
-        "the projected tier must not be an artifact of migration ORDER"
-    );
-
-    // The capability's OWN root dir is in `absorbs_current_dirs` for every registry entry (it is the
-    // destination tree, not a source service) and never carries a service manifest. Excluding it is
-    // what keeps a fully-resolvable capability resolvable under the all-entries rule.
-    let complete = service_tier_map(&[
-        ("cloud/cloud-iam", "substrate", Some("S1")),
-        ("oya/identity", "substrate", Some("S1")),
-        ("oya/consent-graph", "substrate", Some("S1")),
-    ]);
-    assert_eq!(
-        capability_tier(&registry, "iam", &complete),
-        Some(json!({"tier": "substrate", "stratum": "S1"})),
-        "every absorbed SERVICE resolving unanimously still projects"
-    );
-}
-
-#[test]
-fn r6c_reds_a_capability_root_projecting_an_unrankable_stratum() {
+fn r6c_reds_a_capability_root_with_an_unrankable_stratum() {
     // CRITICAL-1. R6c tested that a tier was PRESENT, not that it was USABLE. `forward-declared` is
     // absent from `stratum_rank_order`, so `classify_edge`'s R4 arm looks it up, gets None, and the
     // `(Some, Some)` arm never matches — the root compares NOTHING. Meanwhile R6b is quiet (the root
-    // left `unclassified_roots`) and R6c was quiet (a record exists). Four live capabilities
-    // (ci/billing/storage/flags) project exactly `{substrate, forward-declared}` today, because
-    // every surviving absorbed manifest happens to be forward-declared.
+    // left `unclassified_roots`) and R6c was quiet (a record exists).
+    //
+    // This survives the move to DECLARED tiers, and must: `forward-declared` is exactly as
+    // unenforced whether a registry entry declared it or a projection derived it. Four capabilities
+    // (ci/billing/storage/flags) have only forward-declared evidence to draw on today, so this is
+    // the rule that keeps "just declare it" from becoming the next silent exemption.
     let mut policy = policy();
     policy["capability_roots"] = json!(["storage"]);
     let mut observed = root_rules_corpus(&["storage"], &["libs", "tools", "cloud/cloud-ci", "os"]);
@@ -1174,11 +1059,47 @@ fn r6c_reds_a_capability_root_projecting_an_unrankable_stratum() {
         report.findings
     );
 
-    // GREEN once the projection is RANKABLE.
+    // GREEN once the stratum is RANKABLE.
     let mut ranked = observed;
     ranked["service_tiers"]["storage"] = json!({"tier": "substrate", "stratum": "S2"});
     let report = evaluate(&policy, &baseline(&[]), &ranked);
     assert!(report.findings.is_empty(), "{:?}", report.findings);
+}
+
+#[test]
+fn r6c_reds_a_capability_root_whose_class_no_rule_acts_on() {
+    // The same hole one step up from CRITICAL-1, found while re-reading this predicate: it only
+    // checked the STRATUM, so a class outside the rules' match arms passed. `classify_edge` matches
+    // substrate/product/service-cell and falls through on anything else — `reserved` is a legal
+    // tier_field_coverage enum value, and a typo like "susbtrate" lands in the same place. Either
+    // one is a crate-bearing capability tree comparing NOTHING while the policy claims enforcement,
+    // which is the exemption this whole rule exists to deny.
+    for class in ["reserved", "susbtrate"] {
+        let mut policy = policy();
+        policy["capability_roots"] = json!(["capx"]);
+        let mut observed = root_rules_corpus(&["capx"], &["libs", "tools", "cloud/cloud-ci", "os"]);
+        observed["service_tiers"] = json!({ "capx": {"tier": class} });
+
+        let report = evaluate(&policy, &baseline(&[]), &observed);
+        let f = report
+            .findings
+            .iter()
+            .find(|f| f.code == "TDA-CAPABILITY-TIER-UNRESOLVED")
+            .unwrap_or_else(|| panic!("class `{class}` enforces nothing and must RED"));
+        assert_eq!(f.status, Status::Regression);
+        assert!(f.detail.contains(class), "{}", f.detail);
+    }
+
+    // A class the rules DO act on needs no stratum (R2/R3 compare classes alone).
+    let mut policy = policy();
+    policy["capability_roots"] = json!(["capx"]);
+    let mut observed = root_rules_corpus(&["capx"], &["libs", "tools", "cloud/cloud-ci", "os"]);
+    observed["service_tiers"] = json!({ "capx": {"tier": "product"} });
+    assert!(
+        evaluate(&policy, &baseline(&[]), &observed)
+            .findings
+            .is_empty()
+    );
 }
 
 #[test]
