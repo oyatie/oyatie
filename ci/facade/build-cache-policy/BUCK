@@ -42,7 +42,8 @@ rust_test(
 # license + overlays + live workflows. Proves the dark-wiring guarantee (unlicensed
 # => every class bypasses), the ADR-0556 one-way cold floor, the kill-switch, the
 # overlay posture, the clean root .buckconfig, the canary workflow's from-empty
-# shape, and ADR-0554 D10's ban on archiving runner-local `buck-out` in required CI.
+# shape, and ADR-0554 D10's YAML-structural ban on archiving runner-local `buck-out`
+# or retaining the deleted reclaim artifact in required CI.
 # The slice-1 instalment of the ADR-0556-named cache-policy-conformance successor gate.
 rust_test(
     name = "ci-build-cache-policy-gate",
@@ -53,5 +54,6 @@ rust_test(
     deps = [
         ":ci-build-cache-policy",
         "third-party//:serde_json",
+        "third-party//:serde_yaml",
     ],
 )

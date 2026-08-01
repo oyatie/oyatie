@@ -23,6 +23,7 @@ use std::path::PathBuf;
 
 use ci_build_cache_policy as app;
 use serde_json::{Value, json};
+use serde_yaml::Value as YamlValue;
 
 const CANARY_WORKFLOW_PATH: &str = ".github/workflows/cache-integrity-canary.yml";
 const REQUIRED_WORKFLOW_PATH: &str = ".github/workflows/oya-ci-required.yml";
@@ -59,6 +60,79 @@ fn invocation_record_fixture(
         "exit_result_name": "SUCCESS",
         "last_snapshot": { "re_action_cache_started": action_hits },
     })
+}
+
+fn actions_cache_buck_out_violations(workflow: &str) -> Vec<String> {
+    let doc: YamlValue = serde_yaml::from_str(workflow).expect("parse workflow YAML");
+    let jobs = doc
+        .get("jobs")
+        .and_then(YamlValue::as_mapping)
+        .expect("workflow must contain a jobs mapping");
+    let mut violations = Vec::new();
+
+    for (job_name, job) in jobs {
+        let job_name = job_name.as_str().unwrap_or("<non-string-job>");
+        let Some(steps) = job.get("steps").and_then(YamlValue::as_sequence) else {
+            continue;
+        };
+        for step in steps {
+            let Some(action) = step.get("uses").and_then(YamlValue::as_str) else {
+                continue;
+            };
+            let action_name = action.split('@').next().unwrap_or(action);
+            if !matches!(
+                action_name,
+                "actions/cache" | "actions/cache/restore" | "actions/cache/save"
+            ) {
+                continue;
+            }
+
+            let step_name = step
+                .get("name")
+                .and_then(YamlValue::as_str)
+                .unwrap_or("<unnamed-step>");
+            let Some(path) = step.get("with").and_then(|with| with.get("path")) else {
+                continue;
+            };
+            let mut raw_paths = Vec::new();
+            match path {
+                YamlValue::String(value) => raw_paths.extend(value.lines()),
+                YamlValue::Sequence(values) => {
+                    for value in values {
+                        match value.as_str() {
+                            Some(value) => raw_paths.extend(value.lines()),
+                            None => violations.push(format!(
+                                "{job_name}/{step_name}: non-string actions/cache path {value:?}"
+                            )),
+                        }
+                    }
+                }
+                value => violations.push(format!(
+                    "{job_name}/{step_name}: non-string actions/cache path {value:?}"
+                )),
+            }
+
+            for raw_path in raw_paths {
+                let raw_path = raw_path.trim();
+                if raw_path.is_empty() || raw_path.starts_with('!') {
+                    continue;
+                }
+                let normalized = raw_path.replace('\\', "/");
+                let components = normalized
+                    .split('/')
+                    .filter(|component| !component.is_empty() && *component != ".");
+                if components.clone().any(|component| component == "buck-out")
+                    || matches!(normalized.as_str(), "." | "./" | "${{ github.workspace }}")
+                {
+                    violations.push(format!(
+                        "{job_name}/{step_name}: {action_name} archives forbidden path {raw_path:?}"
+                    ));
+                }
+            }
+        }
+    }
+
+    violations
 }
 
 #[test]
@@ -407,29 +481,46 @@ fn required_workflow_never_archives_buck_out() {
     let root = repo_root();
     let text = std::fs::read_to_string(root.join(REQUIRED_WORKFLOW_PATH))
         .unwrap_or_else(|e| panic!("read {REQUIRED_WORKFLOW_PATH}: {e}"));
+    let violations = actions_cache_buck_out_violations(&text);
 
     assert!(
-        !text.contains("path: buck-out"),
+        violations.is_empty(),
+        "{}: {violations:?}",
         concat!(
             "UNSAFE RUNNER SNAPSHOT: the required workflow archives `buck-out`. Buck2's local ",
             "state and materialized outputs are runner-local and the archive can exhaust an ",
             "ephemeral runner during extraction before any binding test executes (ADR-0554 D10)"
-        )
+        ),
     );
     assert!(
-        !text.contains("Restore buck-out") && !text.contains("Save buck-out"),
-        concat!(
-            "UNSAFE RUNNER SNAPSHOT: restore/save steps for `buck-out` must remain deleted; use ",
-            "a Buck2-aware remote action cache + CAS after its separate license is enabled ",
-            "(ADR-0554 D10)"
-        )
+        !text.contains("runner-disk-reclaim-buck2.json"),
+        "DEAD ARTIFACT: the retired owned-runner reclaim producer has no output to upload; remove its failure-only artifact path (ADR-0554 D10)"
     );
+}
+
+#[test]
+fn buck_out_archive_guard_rejects_yaml_path_variants_and_renamed_steps() {
+    for path_yaml in [
+        "path: ./buck-out",
+        "path: buck-out/v2/cache",
+        "path: |\n              ~/.rustup\n              ./buck-out/v2/cache",
+        "path:\n              - ~/.rustup\n              - buck-out/v2/cache",
+        "path: ${{ github.workspace }}/buck-out",
+        "path: .",
+    ] {
+        let fixture = format!(
+            "jobs:\n  renamed-job:\n    steps:\n      - name: Innocuous renamed step\n        uses: actions/cache/restore@pinned\n        with:\n          key: unrelated-key\n          {path_yaml}\n"
+        );
+        assert!(
+            !actions_cache_buck_out_violations(&fixture).is_empty(),
+            "guard accepted forbidden YAML variant:\n{fixture}"
+        );
+    }
+
+    let safe = "jobs:\n  gate:\n    steps:\n      - uses: actions/cache@pinned\n        with:\n          path: |\n            ~/.rustup/toolchains\n            ~/.rustup/update-hashes\n";
     assert!(
-        !text.contains("buck-out-${{"),
-        concat!(
-            "UNSAFE RUNNER SNAPSHOT: the retired stable whole-tree cache key reappeared in the ",
-            "required workflow (ADR-0554 D10)"
-        )
+        actions_cache_buck_out_violations(safe).is_empty(),
+        "toolchain-only actions/cache must remain allowed"
     );
 }
 

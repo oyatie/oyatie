@@ -341,9 +341,10 @@ cross-run baseline is needed in the interim.
 
 ### D9 — Warm the build-health baseline via same-root merge-base build + dev-push-sole-writer cache split (round-5)
 
-> **SUPERSEDED IN PART BY D10 (2026-08-01).** The same-root merge-base/head sequencing survives as
-> safe within-job reuse. The cross-run GitHub Actions save/restore of the `buck-out` filesystem is
-> retired after repeatable kubelet eviction during archive extraction.
+> **SUPERSEDED IN PART BY D10 (2026-08-01).** The merge-base/head comparison and build-health
+> ratchet survive, but both the same-root reuse optimization and cross-run GitHub Actions
+> save/restore of the `buck-out` filesystem are retired. The fallback baseline is built in a
+> separate clean worktree after repeatable kubelet eviction exposed the snapshot boundary.
 
 **This SUPERSEDES D8** (the cross-run report-artifact CONSUMER — do **not** build it). Two changes
 ship together; both warm the buck2 CI cache without touching what the gates DECIDE.
@@ -461,10 +462,11 @@ extraction. Primary references:
 **Decision.** Required CI MUST NOT save or restore any part of runner-local `buck-out` through
 `actions/cache`; the stable whole-tree key and fallback prefix are deleted. There is no retry,
 `continue-on-error`, partial-cache salvage, or arbitrary node-floor workaround. The `buck2` and
-`gate-affected-target-set` jobs begin with empty runner-local state. D9's same-root sequence remains:
-when the merge-base baseline is computed locally, the candidate may reuse only state created earlier
-inside that same job. The no-op owned-runner disk-reclaim invocation and its unconsumed operator
-artifact are removed with the restore path they existed to precede.
+`gate-affected-target-set` jobs begin with empty runner-local state. D9's build-health comparison
+remains, but not its same-root reuse optimization: a FULL-tier pull-request fallback materializes the
+merge-base in a separate clean worktree with independent cold `buck-out` state while the candidate
+root remains untouched and independently cold. The no-op owned-runner disk-reclaim invocation and
+its unconsumed operator artifact are removed with the restore path they existed to precede.
 
 **Future warm path.** ADR-0556's warm-eligible classes remain classifications for a separately
 licensed Buck2-aware remote action cache + CAS, not permission to snapshot Buck2 internals. The
@@ -474,7 +476,8 @@ and rollback evidence; it must not resurrect `actions/cache` for `buck-out`.
 [Buck2's supported remote contract](https://buck2.build/docs/users/remote_execution/) names separate
 action-cache and CAS endpoints.
 
-**Mechanical guard.** `ci-build-cache-policy-gate` reads the live required workflow and fails if
-`path: buck-out`, the retired stable `buck-out-${{...}}` key, or named whole-tree save/restore steps
-reappear. This is a correctness and availability invariant: a cache optimization cannot prevent the
-tests that establish merge authority from starting.
+**Mechanical guard.** `ci-build-cache-policy-gate` parses the live required-workflow YAML, identifies
+every `actions/cache`, `actions/cache/restore`, and `actions/cache/save` step independent of its name
+or key, normalizes scalar/block/list paths, and rejects `buck-out`, its descendants, and whole-root
+archives. It also rejects the retired reclaim artifact path. This is a correctness and availability
+invariant: a cache optimization cannot prevent the tests that establish merge authority from starting.
