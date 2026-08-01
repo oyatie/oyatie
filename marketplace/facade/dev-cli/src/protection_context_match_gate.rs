@@ -3,7 +3,7 @@
 //! Reads `.github/branch-protection.yaml` (the `required_status_checks`
 //! list under the protected branch) and walks `.github/workflows/*.yml`
 //! collecting every job `name:` field, then invokes the
-//! [`oya_check_protection_context_match`] kernel to assert every
+//! [`check_protection_context_match`] kernel to assert every
 //! required context is the `name:` of some workflow job. It also compares
 //! the canonical YAML against the apply-source branch-protection JSON so
 //! local preflight catches stale required-check config before GitHub mutation.
@@ -27,7 +27,7 @@ use std::collections::BTreeSet;
 use std::fs;
 use std::path::PathBuf;
 
-use oya_check_protection_context_match::{
+use check_protection_context_match::{
     ProtectionContextMatchReport, WorkflowJobNames, validate_protection_context_match,
 };
 

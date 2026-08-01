@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use oya_check_honest_claims::{
+use check_honest_claims::{
     ChangeSetPlanViolation, HonestClaimsDocument, HonestClaimsViolation,
     ImplementationPlanDocument, validate_changeset_plan_graph, validate_honest_claims,
 };

@@ -1,0 +1,15 @@
+[package]
+name = "check-doc-catalog"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[lib]
+name = "check_doc_catalog"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

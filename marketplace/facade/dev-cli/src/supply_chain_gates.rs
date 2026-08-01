@@ -2,11 +2,11 @@ use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use oya_check_release_pack::{
+use check_release_pack::{
     ComplianceRegulatorRef, ReleaseEvidencePackManifest, ReleaseEvidencePackPolicy,
     ReleaseEvidencePackRecord, validate_release_evidence_packs,
 };
-use oya_check_supply_chain::{
+use check_supply_chain::{
     ImagePromotionRecord, ImagePromotionTier, ImagePromotionVerifier, ReleaseArtifact,
     ReleaseSupplyChainEvidence, SupplyChainEvidence, SupplyChainRecord,
     validate_image_promotion_pipeline, validate_pre_release_supply_chain,

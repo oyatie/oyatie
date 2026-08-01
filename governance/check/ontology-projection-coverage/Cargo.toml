@@ -1,0 +1,26 @@
+[package]
+name = "check-ontology-projection-coverage"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# Skeleton kernel authored 2026-05-18 per ADR-0145 Invariant 3 enforcement.
+# Verifies that µservices owning canonical entities declare an
+# `ontology_projections` block in their manifest.json. The dispatcher
+# now runs strict declaration-completeness mode; registry-authority
+# cross-checking remains tracked under
+# registry/placeholder-debt/adr-follow-ups.yaml#adr-0145-ontology-projection-validator.
+
+[dependencies]
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+
+[lib]
+name = "check_ontology_projection_coverage"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

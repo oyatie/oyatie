@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use oya_check_authority_cohesion::{AuthorityDocument, validate_authority_cohesion};
+use check_authority_cohesion::{AuthorityDocument, validate_authority_cohesion};
 use oya_check_claim_ceiling::FoundationClaimCeiling;
 use intelligence_catalog_domain::CatalogIndex;
 

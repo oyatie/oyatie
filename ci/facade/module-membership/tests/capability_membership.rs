@@ -350,11 +350,18 @@ fn committed_policy_freezes_the_legacy_roots_with_a_producer_emitted_census() {
     let census = freeze["crates"]
         .as_array()
         .expect("legacy_root_freeze.crates must be an array");
+    // Anti-vacuity is asserted WITHOUT a constant floor. The census is shrink-only with a
+    // burn-down target of ZERO, so any hardcoded minimum is really a ceiling on the reorg this
+    // block exists to protect: this assertion read `census.len() > 400` and went RED the first
+    // time a move batch legitimately burned 66 entries down to 350. Fidelity — that the census
+    // IS the live legacy-root crate set, neither over-broad nor short — is proven exactly by
+    // `live_corpus_census_matches_the_committed_freeze_exactly` below, which strictly subsumes
+    // any count check (a token census fails the equality). All this one owes is that the block
+    // is not the inert empty stub a fixture carries.
     assert!(
-        census.len() > 400,
-        "the frozen census holds only {} entries — it was not emitted by --emit-legacy-freeze over \
-         the real corpus, and a short census would fail hundreds of live crates",
-        census.len()
+        !census.is_empty(),
+        "the frozen census is EMPTY — the freeze is inert, which is exactly the state that \
+         silently switches the live gate off; re-emit it with --emit-legacy-freeze"
     );
     for entry in census {
         let dir = entry.as_str().expect("census entry is a string");

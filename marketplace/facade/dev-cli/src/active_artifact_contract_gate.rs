@@ -4,7 +4,7 @@
 //! Closes architect r17/r18/r19 + full-consensus-planner-v3 §5 hops 1-2+5-6:
 //! - Reads the artifact-capabilities registry
 //! - Resolves HEAD-tracked paths via `git ls-files`
-//! - Delegates R01-R07 validation to `oya-check-active-artifact-contract`
+//! - Delegates R01-R07 validation to `check-active-artifact-contract`
 //! - Optionally emits evidence bundle with `validation_duration_ms`
 //! - Optionally emits ONE graph edge artifact per consensus-v3 amendment #4
 
@@ -14,7 +14,7 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::time::Instant;
 
-use oya_check_active_artifact_contract::{
+use check_active_artifact_contract::{
     ArtifactRow, CapabilityDeclaration, CapabilityKind, CapabilityStatus, Severity,
     ValidationReport, validate,
 };

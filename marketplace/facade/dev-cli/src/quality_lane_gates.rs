@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use oya_check_quality_lane::{
+use check_quality_lane::{
     QualityLaneDocRow, QualityLaneRecord, QualityLaneStage, QualityLaneStatus,
     validate_quality_lanes,
 };

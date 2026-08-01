@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use oya_check_placeholder_debt::{
+use check_placeholder_debt::{
     PlaceholderDebtFinding, PlaceholderDebtRecord, PlaceholderDocument, discover_placeholder_debt,
     validate_placeholder_debt,
 };

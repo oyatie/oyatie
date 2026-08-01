@@ -1,0 +1,36 @@
+rust_library(
+    name = "check-pr-traceability",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "check_pr_traceability",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)
+
+rust_binary(
+    name = "pr-traceability-admission-bin",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/bin/pr-traceability-admission.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":check-pr-traceability",
+    ],
+)
+
+rust_test(
+    name = "check-pr-traceability-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "check_pr_traceability",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+rust_test(
+    name = "pr-traceability-admission-bin-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/bin/pr-traceability-admission.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":check-pr-traceability",
+    ],
+)

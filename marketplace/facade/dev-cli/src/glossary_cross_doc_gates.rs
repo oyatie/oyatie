@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use oya_check_glossary_coverage::{GlossaryTerm, validate_glossary_cross_doc_coverage};
+use check_glossary_coverage::{GlossaryTerm, validate_glossary_cross_doc_coverage};
 
 use crate::{
     extract_json_array_for_key, extract_json_object_for_key, extract_json_objects,

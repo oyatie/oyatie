@@ -6,25 +6,25 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
-use oya_check_adr_citation::{AdrCitationDocument, validate_adr_citations};
+use check_adr_citation::{AdrCitationDocument, validate_adr_citations};
 use oya_check_brand_residue::{BrandResidueDocument, validate_brand_residue};
-use oya_check_glossary_vocabulary::{
+use check_glossary_vocabulary::{
     GlossaryVocabularyWarning, GlossaryVocabularyWarningKind, GlossaryVocabularyWarningSource,
     IgnoredUppercaseWord, VocabularyDocument,
     validate_glossary_vocabulary_hygiene_with_baseline_and_ignored_words,
     validate_glossary_vocabulary_hygiene_with_ignored_words,
 };
 use oya_check_license_policy::LicensePolicy;
-use oya_check_mobile_native::{
+use check_mobile_native::{
     MobileNativeDiscoveryMarker, MobileNativeManifest, MobileNativePolicy,
     MobileNativeProductRecord, validate_mobile_native,
 };
-use oya_check_no_grouping::{GroupingArtifact, is_grouping_artifact, validate_no_grouping};
-use oya_check_vendor_lockin_discipline::{
+use check_no_grouping::{GroupingArtifact, is_grouping_artifact, validate_no_grouping};
+use check_vendor_lockin_discipline::{
     VendorLockinReport, parse_registry_json as parse_vendor_lockin_registry,
     validate_registry as validate_vendor_lockin_registry,
 };
-use oya_check_vendor_recency::{
+use check_vendor_recency::{
     VendorContractRecencyPolicy, VendorContractRecord, validate_vendor_contract_recency,
 };
 use intelligence_api_semver_domain::validate_api_semver;
@@ -1447,7 +1447,7 @@ pub(crate) fn validate_vendor_lockin_discipline_gate(
     for entry in entries.iter() {
         if !matches!(
             entry.tier,
-            oya_check_vendor_lockin_discipline::VendorTier::TierII
+            check_vendor_lockin_discipline::VendorTier::TierII
         ) {
             continue;
         }

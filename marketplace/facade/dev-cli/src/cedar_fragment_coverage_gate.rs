@@ -9,7 +9,7 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::time::Instant;
 
-use oya_check_cedar_fragment_coverage::{
+use check_cedar_fragment_coverage::{
     CoverageInputs, FragmentRow, FragmentStatus, ValidationReport, Violation, validate,
 };
 

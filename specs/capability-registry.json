@@ -592,7 +592,8 @@
           "libs/oya-check-*",
           "libs/oya-governance-*",
           "tools/oya-governance-*",
-          "governance/corpus/*"
+          "governance/corpus/*",
+          "governance/check/*"
         ]
       },
       {

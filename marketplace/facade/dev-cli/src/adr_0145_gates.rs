@@ -23,11 +23,11 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
-use oya_check_audit_chain_seal_coverage as audit_chain_check;
-use oya_check_high_risk_auto_decision_refusal as high_risk_refusal_check;
-use oya_check_ontology_projection_coverage as ontology_check;
-use oya_check_otel_trace_propagation as otel_check;
-use oya_check_slsa_l3_evidence_grounded as slsa_check;
+use check_audit_chain_seal_coverage as audit_chain_check;
+use check_high_risk_auto_decision_refusal as high_risk_refusal_check;
+use check_ontology_projection_coverage as ontology_check;
+use check_otel_trace_propagation as otel_check;
+use check_slsa_l3_evidence_grounded as slsa_check;
 
 /// Canonical service roots scanned when no explicit `--microservices-root` is given.
 const DEFAULT_SERVICE_ROOTS: &[&str] = &["cloud", "oya", "microservices"];

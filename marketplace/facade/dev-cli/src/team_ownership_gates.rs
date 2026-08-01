@@ -1,8 +1,8 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use oya_check_codeowners_mirror::{CodeownersEntry, validate_codeowners_mirror};
-use oya_check_raci_coverage::validate_raci_team_coverage;
+use check_codeowners_mirror::{CodeownersEntry, validate_codeowners_mirror};
+use check_raci_coverage::validate_raci_team_coverage;
 
 use crate::{extract_first_backticked_value, usage};
 

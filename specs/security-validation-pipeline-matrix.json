@@ -20,7 +20,7 @@
       "/specs/toolchain-tenant-isolation-fixtures.json"
     ],
     "related_code": [
-      "/libs/oya-check-supply-chain/src/lib.rs"
+      "/governance/check/supply-chain/src/lib.rs"
     ],
     "related_decisions": [
       "ADR-0039",
@@ -546,7 +546,7 @@
         "covers": [
           "Cargo.lock, package manifests, container package inventories, vendored tools, build plugins, generated SBOMs, and transitive dependency metadata",
           "vulnerability databases, license allow/deny policy, dependency maturity, stale direct dependencies, and known-exploited vulnerability overlays",
-          "existing oya-check-supply-chain evidence fields for cargo-deny, cargo-audit, Trivy/osv, SBOM, Cosign/Rekor, and provenance posture"
+          "existing check-supply-chain evidence fields for cargo-deny, cargo-audit, Trivy/osv, SBOM, Cosign/Rekor, and provenance posture"
         ],
         "applicability": "pre-merge for dependency/lockfile/build-tool changes; nightly for vulnerability database drift; release for artifact SBOM and provenance"
       },
@@ -603,7 +603,7 @@
         "OWASP SAMM: implementation/dependency management maturity"
       ],
       "productization_requirements": [
-        "Reuses and extends oya-check-supply-chain evidence concepts instead of duplicating supply-chain policy",
+        "Reuses and extends check-supply-chain evidence concepts instead of duplicating supply-chain policy",
         "SBOM and provenance records are immutable release artifacts",
         "VEX decisions are API records, not scanner inline suppressions"
       ]
@@ -809,7 +809,7 @@
         "OWASP SAMM: operations/deployment assurance"
       ],
       "productization_requirements": [
-        "Integrates with oya-check-supply-chain release evidence fields",
+        "Integrates with check-supply-chain release evidence fields",
         "Admission verifier records are required for deployment, not optional release notes",
         "Re-scans can turn a previously passing image red when fresh vulnerability intelligence changes risk"
       ]
@@ -1422,7 +1422,7 @@
   "known_gaps_before_green": [
     "No Rust validator/gate is added by this planning matrix task.",
     "No fixtures are added by this task; fixture rows above are target contracts for follow-up gate implementation.",
-    "Existing oya-check-supply-chain covers a subset of SCA/container/release evidence but does not cover the full universal security-validation matrix.",
+    "Existing check-supply-chain covers a subset of SCA/container/release evidence but does not cover the full universal security-validation matrix.",
     "BAS, security-chaos, automated pen-test, DAST, IAST, fuzzing, and API fuzzing require safe sandbox/preview environment contracts before any live execution claim.",
     "Continuous-control evidence requires runtime control inventory and trusted-clock freshness before it can block release or production-ready claims."
   ]

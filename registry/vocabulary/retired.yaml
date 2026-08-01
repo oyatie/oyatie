@@ -23,7 +23,7 @@
 #                            require an ADR.
 #
 # Lane: oya-governance-retired-vocabulary
-# Kernel: crates/oya-check-retired-vocabulary
+# Kernel: governance/check/retired-vocabulary
 # Runner: crates/oya-dev-cli/src/retired_vocabulary_gate.rs
 # Lane invocation: `oya gate validate retired-vocabulary`
 
