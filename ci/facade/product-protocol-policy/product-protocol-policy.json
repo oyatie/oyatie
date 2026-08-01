@@ -5,7 +5,23 @@
     "product_contract": "specs/product-protocol-contract.json",
     "api_contract_ssot": "specs/api-contract-ssot-canonical.json",
     "transport_profile": "network/ports/transport-profile/endpoint-transport-profile.contract.json",
-    "root_hub": "specs/root-hub-pointers.json"
+    "root_hub": "specs/root-hub-pointers.json",
+    "manifest_schema": "specs/microservices/manifest-schema.json",
+    "master_plan_sequencing": "specs/master-plan-sequencing.json"
+  },
+  "authority_reconciliation": {
+    "accepted_adrs": [
+      {"id": "ADR-0157", "artifact": "adr_0157"},
+      {"id": "ADR-0167", "artifact": "adr_0167"},
+      {"id": "ADR-0176", "artifact": "adr_0176"},
+      {"id": "ADR-0182", "artifact": "adr_0182"},
+      {"id": "ADR-0258", "artifact": "adr_0258"}
+    ],
+    "proposed_adrs": [
+      {"id": "ADR-0246", "artifact": "adr_0246"}
+    ],
+    "section_heading": "## ADR-0632 product-protocol reconciliation",
+    "proposed_section_heading": "## ADR-0632 product-protocol clarification (proposal only)"
   },
   "rules": [
     {"code": "PP-CONTRACT-ID", "artifact": "product_contract", "pointer": "/spec_id", "mode": "equals", "expected": "EXE-PRODUCT-PROTOCOL-CONTRACT"},
@@ -88,6 +104,11 @@
     {"code": "PP-NETWORK-MUTATION-PROFILE", "artifact": "product_contract", "pointer": "/telemetry/network_device_interfaces/mutating_operations", "mode": "equals", "expected": "separate-Accepted-profile-required"},
     {"code": "PP-FABRIC-ACTIVATION-BOUNDARY", "artifact": "product_contract", "pointer": "/fabric/activation_boundary", "mode": "equals", "expected": "a separate Accepted profile must prove Oyatie owns the relevant device or bare-metal fabric and has interoperability, congestion, loss, telemetry, rollback, and operator evidence"},
     {"code": "PP-NONCLAIMS", "artifact": "product_contract", "pointer": "/non_claims", "mode": "unordered_equals", "expected": ["This contract does not claim every allowed protocol is implemented by every capability.", "This contract does not claim public gRPC, gRPC-Web, Connect, or GraphQL compatibility.", "This contract does not claim an owned physical Clos/EVPN fabric, switch NOS, SAI integration, gNMI/gNOI actuation, UEC, RoCEv2, or NVMe/RDMA deployment.", "This contract does not make HTTP/3 availability a correctness dependency.", "This contract does not claim that eBPF can replace application-level telemetry."]},
-    {"code": "PP-ROOT-HUB", "artifact": "root_hub", "pointer": "/entry_points/product_protocol_contract/current_path", "mode": "equals", "expected": "/specs/product-protocol-contract.json"}
+    {"code": "PP-ROOT-HUB", "artifact": "root_hub", "pointer": "/entry_points/product_protocol_contract/current_path", "mode": "equals", "expected": "/specs/product-protocol-contract.json"},
+    {"code": "PP-MANIFEST-CONTRACTS-CLOSED", "artifact": "manifest_schema", "pointer": "/properties/contracts/additionalProperties", "mode": "equals", "expected": false},
+    {"code": "PP-MANIFEST-INTERNAL-GRPC-H2", "artifact": "manifest_schema", "pointer": "/properties/contracts/properties/internal_grpc/properties/transport/const", "mode": "equals", "expected": "http2"},
+    {"code": "PP-MANIFEST-INTERNAL-PROTO3", "artifact": "manifest_schema", "pointer": "/properties/contracts/properties/internal_grpc/properties/language_profile/const", "mode": "equals", "expected": "proto3"},
+    {"code": "PP-MANIFEST-PUBLIC-VERSION-FILES-CLOSED", "artifact": "manifest_schema", "pointer": "/properties/tenant_version_pinning/properties/public_surface_files/additionalProperties", "mode": "equals", "expected": false},
+    {"code": "PP-MASTERPLAN-15V-QUEUED", "artifact": "master_plan_sequencing", "pointer": "/realignment_wave_sequence/waves_15_plus/sub_wave_landings/15V-API-Versioning-Adoption/status", "mode": "equals", "expected": "queued"}
   ]
 }

@@ -25,3 +25,8 @@ export_file(
     name = "root-hub-pointers.json",
     visibility = ["PUBLIC"],
 )
+
+export_file(
+    name = "master-plan-sequencing.json",
+    visibility = ["PUBLIC"],
+)

@@ -14,6 +14,7 @@ related:
   - ADR-0042-observability-stack-otel-and-in-house-ui.md
   - ADR-0044-service-mesh-istio-ambient-and-envoy-gateway.md
   - ADR-0148-service-mesh-cilium.md
+  - ADR-0632
 doc_class: Architecture-Decision-Record
 purpose: >
   Standardize a normative response header `oya-degradation-class:
@@ -31,6 +32,14 @@ enforced_by: oya gate validate brownout-signal-coverage
 Accepted — 2026-05-18. Enforcement is advisory until every public RPC
 on every µservice surfaces the header. Coverage tracker at
 `registry/brownout/coverage-tracker.tsv`.
+
+## ADR-0632 product-protocol reconciliation
+
+For public traffic, the degradation signal **MUST** travel through HTTPS REST/OpenAPI 3.2.0
+headers or equivalent metadata in signed/versioned webhooks, AsyncAPI/CloudEvents events, SSE, and
+bidirectional WebSocket messages. Public GraphQL, gRPC, gRPC-Web, and Connect are forbidden. The
+same signal may be carried as metadata on internal-only gRPC/proto3 over HTTP/2 without creating a
+public RPC contract.
 
 ## Context
 
@@ -64,7 +73,7 @@ Without the header:
 
 ### D-1. Normative response header
 
-Every public µservice RPC (HTTP + gRPC + AsyncAPI) emits the header:
+Every public HTTPS REST response emits the header below. Public webhooks, AsyncAPI events, and SSE messages carry the same value as protocol-appropriate metadata; internal gRPC responses carry it as response metadata:
 
 ```
 oya-degradation-class: nominal|degraded|brownout|outage

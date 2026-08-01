@@ -1,0 +1,14 @@
+[
+    export_file(
+        name = path,
+        visibility = ["PUBLIC"],
+    )
+    for path in [
+        "ADR-0157-api-gateway-tier.md",
+        "ADR-0167-tenant-cli.md",
+        "ADR-0176-brownout-degradation-signal-api.md",
+        "ADR-0182-api-gateway-north-south-vs-service-mesh-east-west-separation.md",
+        "ADR-0246-policy-engine-substrate-promotion.md",
+        "ADR-0258-api-versioning-model.md",
+    ]
+]
