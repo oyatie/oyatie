@@ -6706,8 +6706,8 @@ fn aspirational_enforcement_gate_accepts_real_required_surfaces() {
             "--clear-default-corpus",
             "--corpus-root",
             fixture.docs.to_str().expect("utf8 docs"),
-            "--crates-dir",
-            fixture.crates.to_str().expect("utf8 crates"),
+            "--catalog-dir",
+            fixture.catalog.to_str().expect("utf8 catalog"),
             "--workflows-dir",
             fixture.workflows.to_str().expect("utf8 workflows"),
             "--quality-lanes",
@@ -6731,6 +6731,121 @@ fn aspirational_enforcement_gate_accepts_real_required_surfaces() {
         String::from_utf8_lossy(&output.stdout)
             .contains("aspirational-enforcement validation passed")
     );
+}
+
+/// The relocation this gate must survive: `libs/oya-check-<topic>` moves to
+/// `governance/check/<topic>`, so both the catalog record stem and the corpus
+/// spelling drop the `oya-` brand. Before the identity fix the tokenizer keyed
+/// on `oya-check-` and matched NOTHING in that family, so a binding claim
+/// against an ABSENT gate reported clean. It must still be caught.
+#[test]
+fn aspirational_enforcement_gate_catches_missing_gate_under_the_relocated_spelling() {
+    let temp = TempDirGuard::new("aspirational-relocated");
+    let fixture = write_aspirational_fixture(temp.path());
+    fs::write(
+        fixture.docs.join("ADR-9000.md"),
+        "enforced_by: check-absent-gate\n",
+    )
+    .expect("doc written");
+
+    let output = run_aspirational_gate(&fixture);
+
+    assert!(
+        !output.status.success(),
+        "a binding claim on an unregistered check capability must fail even after the relocation\nstdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("check-absent-gate"),
+        "expected the relocated identity in the violation; got: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+/// STANDING RULE, surface side: zero measured check capabilities is a broken
+/// scan, never dormant-and-passing.
+#[test]
+fn aspirational_enforcement_gate_rejects_an_emptied_capability_scan() {
+    let temp = TempDirGuard::new("aspirational-empty-capabilities");
+    let fixture = write_aspirational_fixture(temp.path());
+    fs::write(
+        fixture.docs.join("ADR-9000.md"),
+        "enforced_by: check-real\n",
+    )
+    .expect("doc written");
+    // Simulate the scan going blind: the records are there, none of them
+    // resolve to a check capability any more.
+    fs::write(
+        fixture.catalog.join("governance-check-real.yaml"),
+        "context: tooling\ncapability: renamed-away-real\n",
+    )
+    .expect("catalog record rewritten");
+
+    let output = run_aspirational_gate(&fixture);
+
+    assert!(
+        !output.status.success(),
+        "a gate observing zero check capabilities must be RED, not clean\nstdout={}",
+        String::from_utf8_lossy(&output.stdout)
+    );
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("ZERO check capabilities"),
+        "expected the emptied-surface-scan diagnosis; got: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+/// STANDING RULE, corpus side: the surface scan can be healthy while the
+/// document scan is the empty one.
+#[test]
+fn aspirational_enforcement_gate_rejects_an_emptied_corpus_site_scan() {
+    let temp = TempDirGuard::new("aspirational-empty-sites");
+    let fixture = write_aspirational_fixture(temp.path());
+    fs::remove_file(fixture.docs.join("_baseline.md")).expect("baseline doc removed");
+    fs::write(
+        fixture.docs.join("ADR-9000.md"),
+        "branch protection required check: oya-governance-real\n",
+    )
+    .expect("doc written");
+
+    let output = run_aspirational_gate(&fixture);
+
+    assert!(
+        !output.status.success(),
+        "a gate observing zero check sites must be RED, not clean\nstdout={}",
+        String::from_utf8_lossy(&output.stdout)
+    );
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("ZERO check-capability sites"),
+        "expected the emptied-corpus-scan diagnosis; got: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+fn run_aspirational_gate(fixture: &AspirationalFixture) -> std::process::Output {
+    Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "aspirational-enforcement",
+            "--clear-default-corpus",
+            "--corpus-root",
+            fixture.docs.to_str().expect("utf8 docs"),
+            "--catalog-dir",
+            fixture.catalog.to_str().expect("utf8 catalog"),
+            "--workflows-dir",
+            fixture.workflows.to_str().expect("utf8 workflows"),
+            "--quality-lanes",
+            fixture.quality_lanes.to_str().expect("utf8 quality lanes"),
+            "--branch-protection",
+            fixture
+                .branch_protection
+                .to_str()
+                .expect("utf8 branch protection"),
+        ])
+        .output()
+        .expect("gate command runs")
 }
 
 #[test]
@@ -7162,8 +7277,8 @@ fn aspirational_enforcement_gate_rejects_missing_required_workflow() {
             "--clear-default-corpus",
             "--corpus-root",
             fixture.docs.to_str().expect("utf8 docs"),
-            "--crates-dir",
-            fixture.crates.to_str().expect("utf8 crates"),
+            "--catalog-dir",
+            fixture.catalog.to_str().expect("utf8 catalog"),
             "--workflows-dir",
             fixture.workflows.to_str().expect("utf8 workflows"),
             "--quality-lanes",
@@ -7203,8 +7318,8 @@ fn aspirational_enforcement_gate_rejects_negated_advisory_required_claim() {
             "--clear-default-corpus",
             "--corpus-root",
             fixture.docs.to_str().expect("utf8 docs"),
-            "--crates-dir",
-            fixture.crates.to_str().expect("utf8 crates"),
+            "--catalog-dir",
+            fixture.catalog.to_str().expect("utf8 catalog"),
             "--workflows-dir",
             fixture.workflows.to_str().expect("utf8 workflows"),
             "--quality-lanes",
@@ -7244,8 +7359,8 @@ fn aspirational_enforcement_gate_rejects_multiline_enforced_by_claim() {
             "--clear-default-corpus",
             "--corpus-root",
             fixture.docs.to_str().expect("utf8 docs"),
-            "--crates-dir",
-            fixture.crates.to_str().expect("utf8 crates"),
+            "--catalog-dir",
+            fixture.catalog.to_str().expect("utf8 catalog"),
             "--workflows-dir",
             fixture.workflows.to_str().expect("utf8 workflows"),
             "--quality-lanes",
@@ -7285,8 +7400,8 @@ fn aspirational_enforcement_gate_rejects_unindented_multiline_enforced_by_claim(
             "--clear-default-corpus",
             "--corpus-root",
             fixture.docs.to_str().expect("utf8 docs"),
-            "--crates-dir",
-            fixture.crates.to_str().expect("utf8 crates"),
+            "--catalog-dir",
+            fixture.catalog.to_str().expect("utf8 catalog"),
             "--workflows-dir",
             fixture.workflows.to_str().expect("utf8 workflows"),
             "--quality-lanes",
@@ -7326,8 +7441,8 @@ fn aspirational_enforcement_gate_rejects_unindented_multiline_required_check() {
             "--clear-default-corpus",
             "--corpus-root",
             fixture.docs.to_str().expect("utf8 docs"),
-            "--crates-dir",
-            fixture.crates.to_str().expect("utf8 crates"),
+            "--catalog-dir",
+            fixture.catalog.to_str().expect("utf8 catalog"),
             "--workflows-dir",
             fixture.workflows.to_str().expect("utf8 workflows"),
             "--quality-lanes",
@@ -7372,8 +7487,8 @@ fn aspirational_enforcement_gate_rejects_unindented_multiline_required_status() 
             "--clear-default-corpus",
             "--corpus-root",
             fixture.docs.to_str().expect("utf8 docs"),
-            "--crates-dir",
-            fixture.crates.to_str().expect("utf8 crates"),
+            "--catalog-dir",
+            fixture.catalog.to_str().expect("utf8 catalog"),
             "--workflows-dir",
             fixture.workflows.to_str().expect("utf8 workflows"),
             "--quality-lanes",
@@ -7414,8 +7529,8 @@ fn aspirational_enforcement_gate_rejects_missing_branch_protection_file() {
             "--clear-default-corpus",
             "--corpus-root",
             fixture.docs.to_str().expect("utf8 docs"),
-            "--crates-dir",
-            fixture.crates.to_str().expect("utf8 crates"),
+            "--catalog-dir",
+            fixture.catalog.to_str().expect("utf8 catalog"),
             "--workflows-dir",
             fixture.workflows.to_str().expect("utf8 workflows"),
             "--quality-lanes",
@@ -7470,8 +7585,8 @@ fn aspirational_enforcement_gate_accepts_inline_comments_in_control_surfaces() {
             "--clear-default-corpus",
             "--corpus-root",
             fixture.docs.to_str().expect("utf8 docs"),
-            "--crates-dir",
-            fixture.crates.to_str().expect("utf8 crates"),
+            "--catalog-dir",
+            fixture.catalog.to_str().expect("utf8 catalog"),
             "--workflows-dir",
             fixture.workflows.to_str().expect("utf8 workflows"),
             "--quality-lanes",
@@ -7516,8 +7631,8 @@ fn aspirational_enforcement_gate_rejects_required_context_on_wrong_branch() {
             "--clear-default-corpus",
             "--corpus-root",
             fixture.docs.to_str().expect("utf8 docs"),
-            "--crates-dir",
-            fixture.crates.to_str().expect("utf8 crates"),
+            "--catalog-dir",
+            fixture.catalog.to_str().expect("utf8 catalog"),
             "--workflows-dir",
             fixture.workflows.to_str().expect("utf8 workflows"),
             "--quality-lanes",
@@ -7567,8 +7682,8 @@ fn aspirational_enforcement_gate_rejects_file_stem_only_workflow_stub() {
             "--clear-default-corpus",
             "--corpus-root",
             fixture.docs.to_str().expect("utf8 docs"),
-            "--crates-dir",
-            fixture.crates.to_str().expect("utf8 crates"),
+            "--catalog-dir",
+            fixture.catalog.to_str().expect("utf8 catalog"),
             "--workflows-dir",
             fixture.workflows.to_str().expect("utf8 workflows"),
             "--quality-lanes",
@@ -7618,8 +7733,8 @@ fn aspirational_enforcement_gate_rejects_metadata_key_only_workflow_stub() {
             "--clear-default-corpus",
             "--corpus-root",
             fixture.docs.to_str().expect("utf8 docs"),
-            "--crates-dir",
-            fixture.crates.to_str().expect("utf8 crates"),
+            "--catalog-dir",
+            fixture.catalog.to_str().expect("utf8 catalog"),
             "--workflows-dir",
             fixture.workflows.to_str().expect("utf8 workflows"),
             "--quality-lanes",
@@ -7669,8 +7784,8 @@ fn aspirational_enforcement_gate_rejects_step_name_only_workflow_stub() {
             "--clear-default-corpus",
             "--corpus-root",
             fixture.docs.to_str().expect("utf8 docs"),
-            "--crates-dir",
-            fixture.crates.to_str().expect("utf8 crates"),
+            "--catalog-dir",
+            fixture.catalog.to_str().expect("utf8 catalog"),
             "--workflows-dir",
             fixture.workflows.to_str().expect("utf8 workflows"),
             "--quality-lanes",
@@ -7715,8 +7830,8 @@ fn aspirational_enforcement_gate_rejects_blocks_merge_without_required_context()
             "--clear-default-corpus",
             "--corpus-root",
             fixture.docs.to_str().expect("utf8 docs"),
-            "--crates-dir",
-            fixture.crates.to_str().expect("utf8 crates"),
+            "--catalog-dir",
+            fixture.catalog.to_str().expect("utf8 catalog"),
             "--workflows-dir",
             fixture.workflows.to_str().expect("utf8 workflows"),
             "--quality-lanes",
@@ -7752,8 +7867,8 @@ fn aspirational_enforcement_gate_rejects_missing_corpus_root() {
             "--clear-default-corpus",
             "--corpus-root",
             missing_root.to_str().expect("utf8 missing docs"),
-            "--crates-dir",
-            fixture.crates.to_str().expect("utf8 crates"),
+            "--catalog-dir",
+            fixture.catalog.to_str().expect("utf8 catalog"),
             "--workflows-dir",
             fixture.workflows.to_str().expect("utf8 workflows"),
             "--quality-lanes",
@@ -7793,8 +7908,8 @@ fn aspirational_enforcement_gate_allows_planned_missing_lanes() {
             "--clear-default-corpus",
             "--corpus-root",
             fixture.docs.to_str().expect("utf8 docs"),
-            "--crates-dir",
-            fixture.crates.to_str().expect("utf8 crates"),
+            "--catalog-dir",
+            fixture.catalog.to_str().expect("utf8 catalog"),
             "--workflows-dir",
             fixture.workflows.to_str().expect("utf8 workflows"),
             "--quality-lanes",
@@ -7834,8 +7949,8 @@ fn aspirational_enforcement_gate_rejects_active_quality_lane_without_workflow() 
             "--clear-default-corpus",
             "--corpus-root",
             fixture.docs.to_str().expect("utf8 docs"),
-            "--crates-dir",
-            fixture.crates.to_str().expect("utf8 crates"),
+            "--catalog-dir",
+            fixture.catalog.to_str().expect("utf8 catalog"),
             "--workflows-dir",
             fixture.workflows.to_str().expect("utf8 workflows"),
             "--quality-lanes",
@@ -7888,8 +8003,8 @@ fn aspirational_enforcement_gate_rejects_workflow_without_quality_lane() {
             "--clear-default-corpus",
             "--corpus-root",
             fixture.docs.to_str().expect("utf8 docs"),
-            "--crates-dir",
-            fixture.crates.to_str().expect("utf8 crates"),
+            "--catalog-dir",
+            fixture.catalog.to_str().expect("utf8 catalog"),
             "--workflows-dir",
             fixture.workflows.to_str().expect("utf8 workflows"),
             "--quality-lanes",
@@ -7913,7 +8028,7 @@ fn aspirational_enforcement_gate_rejects_workflow_without_quality_lane() {
 
 struct AspirationalFixture {
     docs: PathBuf,
-    crates: PathBuf,
+    catalog: PathBuf,
     workflows: PathBuf,
     quality_lanes: PathBuf,
     branch_protection: PathBuf,
@@ -7921,10 +8036,25 @@ struct AspirationalFixture {
 
 fn write_aspirational_fixture(root: &Path) -> AspirationalFixture {
     let docs = root.join("docs");
-    let crates = root.join("crates");
+    let catalog = root.join("catalog");
     let workflows = root.join("workflows");
     fs::create_dir_all(&docs).expect("docs dir created");
-    fs::create_dir_all(crates.join("oya-check-real")).expect("check crate dir created");
+    fs::create_dir_all(&catalog).expect("catalog dir created");
+    // The check-gate identity is the catalog `capability:` facet. The record
+    // STEM here is deliberately the RELOCATED path shape while the facet keeps
+    // the identity, which is exactly the rename the tokenizer must survive.
+    fs::write(
+        catalog.join("governance-check-real.yaml"),
+        "context: tooling\ncapability: check-real\n",
+    )
+    .expect("catalog record written");
+    // Every aspirational test inherits one resolvable check site, so the
+    // zero-site backstop stays armed instead of firing on narrow fixtures.
+    fs::write(
+        docs.join("_baseline.md"),
+        "enforced_by: check-real\n",
+    )
+    .expect("baseline doc written");
     fs::create_dir_all(&workflows).expect("workflows dir created");
     fs::write(
         workflows.join("oya-governance-real.yml"),
@@ -7945,7 +8075,7 @@ fn write_aspirational_fixture(root: &Path) -> AspirationalFixture {
     .expect("branch protection written");
     AspirationalFixture {
         docs,
-        crates,
+        catalog,
         workflows,
         quality_lanes,
         branch_protection,
