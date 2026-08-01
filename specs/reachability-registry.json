@@ -138,7 +138,7 @@
       "prefix": "specs/capability-registry.json"
     },
     {
-      "anchor": "ADR-0280 §D-1: the canonical substrate-of-substrate dependency DAG policy-as-data (the Tier-1 v1.0.0 worked example, populated verbatim; de-branded node names per ADR-0562). Its named consumer is the oya-cloud-ci-substrate-dependency-dag-acyclicity-app gate (ADR-0280 §D-3, Tarjan/Kahn validator) + ADR-0280 related_specs; every derived surface (manifests, bootstrap, SLO composition, Cedar permits) derives from it",
+      "anchor": "ADR-0631 D1-D5: canonical face-aware graph-v2 topology, consumed by the existing dependency-graph-acyclicity Buck gate; exactly five graph kinds, graph-3-only acyclicity, and exact max-min reverse failure closure.",
       "prefix": "specs/substrate-dependency-dag.json"
     },
     {
@@ -300,6 +300,14 @@
     {
       "anchor": "ADR-0625: OpenTofu provider dependency lock for this root. A lock is only meaningful beside its own root, so it is registered as an exact path rather than a tree; it relocates with its root under the reorg.",
       "prefix": "oya/identity/iac/oyatie-public-cloud/.terraform.lock.hcl"
+    },
+    {
+      "anchor": "ADR-0631 D5: closed Draft 2020-12 schema for the canonical substrate graph-v2 contract, loaded through the gate policy and asserted by the dependency-graph-acyclicity live-corpus test.",
+      "prefix": "specs/substrate-dependency-dag.schema.json"
+    },
+    {
+      "anchor": "ADR-0631 D5: named RED/GREEN mutation corpus consumed directly by the dependency-graph-acyclicity Buck gate test.",
+      "prefix": "ci/facade/dependency-graph-acyclicity/tests/fixtures/graph-v2-cases.json"
     }
   ]
 }

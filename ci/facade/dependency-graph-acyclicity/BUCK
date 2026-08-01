@@ -9,7 +9,7 @@ rust_library(
     ],
 )
 
-# Gate binary (ADR-0280 §D-3). Loads the policy-declared substrate DAG and exits 0/1/2.
+# Gate binary (ADR-0280 §D-3 + ADR-0631). Loads the policy-declared graph-v2 document and exits 0/1/2.
 # LOCAL BRIDGE feedback only (founder CLI-retirement directive): merge authority is the gate test
 # below + the check-substrates lane, never this binary.
 rust_binary(
@@ -23,8 +23,7 @@ rust_binary(
     ],
 )
 
-# Pure-kernel unit tests: Tarjan / Kahn / forbidden-edge / parse, plus the RED cycle classes
-# (two-node, three-node, self-loop, six-node-buried) proven WITHOUT a filesystem.
+# Pure-kernel tests include the max-min failure-impact composition rule and policy boundary.
 rust_test(
     name = "ci-dependency-graph-acyclicity-unittest",
     srcs = glob(["src/**/*.rs", "**/*.json"]),
@@ -36,10 +35,8 @@ rust_test(
     ],
 )
 
-# ADR-0280 §D-3 acyclicity lane: Buck2-native live-corpus self-test over the REAL policy-declared
-# substrate DAG (must be GREEN: acyclic, forbidden edges honoured,
-# bootstrap_order == Kahn topo-sort), plus the on-disk RED cycle fixtures under
-# tests/fixtures/dag-cycles/ (each MUST fail the validator).
+# ADR-0631 graph-v2 live-corpus and mutation-fixture gate. It proves the exact five-kind set,
+# face endpoints, graph-3-only acyclicity, and exact derived failure closure.
 rust_test(
     name = "ci-dependency-graph-acyclicity-gate",
     srcs = glob(["tests/**/*.rs", "**/*.json"]),

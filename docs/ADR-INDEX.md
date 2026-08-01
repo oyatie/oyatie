@@ -11,10 +11,10 @@ doc_status: published
 
 ## At-a-glance
 
-- **Total ADRs:** 439
-- **Numbering:** ADR-0001..ADR-0630 (non-contiguous; gaps: 0012, 0033, 0037, 0041, 0050, 0068, 0070..0082, 0084..0089, 0125..0127, 0170, 0224..0233, 0247, 0256, 0259..0262, 0264..0271, 0274..0275, 0277..0279, 0281..0283, 0285..0291, 0322..0323, 0327, 0342, 0345, 0385..0386, 0395..0396, 0398..0475, 0477, 0483..0505, 0574..0579, 0583..0585, 0594, 0601..0602)
-- **Next ADR number:** 0631
-- **Status counts:** Accepted 178, Accepted (amendment) 2, Amended 2, Proposed 152, Proposed (conditional: Accepted only after ADR-0377-D2 and ADR-0377-D3 code/tests pass) 1, Proposed (target: Accepted upon PR #143 merge to dev) 1, Rejected 1, Superseded 35, accepted 34, deprecated 1, proposed 31, superseded 1
+- **Total ADRs:** 440
+- **Numbering:** ADR-0001..ADR-0631 (non-contiguous; gaps: 0012, 0033, 0037, 0041, 0050, 0068, 0070..0082, 0084..0089, 0125..0127, 0170, 0224..0233, 0247, 0256, 0259..0262, 0264..0271, 0274..0275, 0277..0279, 0281..0283, 0285..0291, 0322..0323, 0327, 0342, 0345, 0385..0386, 0395..0396, 0398..0475, 0477, 0483..0505, 0574..0579, 0583..0585, 0594, 0601..0602)
+- **Next ADR number:** 0632
+- **Status counts:** Accepted 179, Accepted (amendment) 2, Amended 2, Proposed 152, Proposed (conditional: Accepted only after ADR-0377-D2 and ADR-0377-D3 code/tests pass) 1, Proposed (target: Accepted upon PR #143 merge to dev) 1, Rejected 1, Superseded 35, accepted 34, deprecated 1, proposed 31, superseded 1
 - **Legacy retirement:** see [`ADR-LEGACY-REGRESSION-MAPPING.md`](ADR-LEGACY-REGRESSION-MAPPING.md).
 
 ## Full table (one row per ADR, sorted by ADR number)
@@ -460,11 +460,12 @@ doc_status: published
 | ADR-0628 | Proposed | Scan-root liveness | council-architecture | [`ADR-0628-scan-root-liveness-gate.md`](decisions/ADR-0628-scan-root-liveness-gate.md) |
 | ADR-0629 | Proposed | Crate-catalog coverage | council-architecture | [`ADR-0629-crate-catalog-coverage-gate.md`](decisions/ADR-0629-crate-catalog-coverage-gate.md) |
 | ADR-0630 | Proposed | ARC as the interim owned-runner substrate | council-architecture | [`ADR-0630-arc-owned-runner-fleet-interim-substrate.md`](decisions/ADR-0630-arc-owned-runner-fleet-interim-substrate.md) |
+| ADR-0631 | Accepted | Face-aware substrate dependency graph v2 | council-architecture | [`ADR-0631-face-aware-substrate-dependency-graph-v2.md`](decisions/ADR-0631-face-aware-substrate-dependency-graph-v2.md) |
 
 ## Update protocol
 
 - Per-event + monthly per `doc.adr_index` row in [`DOC-CATALOG.md`](DOC-CATALOG.md).
-- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0631), unless an explicit reserved-number ADR is being filled.
+- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0632), unless an explicit reserved-number ADR is being filled.
 - Per-ADR amendments preserve the original ADR number; the amended ADR cites its original date and links to the amending PR.
 - Supersession is recorded in the per-ADR header and mirrored here on regeneration.
 
@@ -509,6 +510,6 @@ The directory is intentionally non-contiguous. Every existing `docs/decisions/AD
 
 ## Sources scanned
 
-- `decisions/` directory listing — 439 ADR files (sorted ascending)
+- `decisions/` directory listing — 440 ADR files (sorted ascending)
 - [`machine-readable/decisions.json`](machine-readable/decisions.json) — generated machine mirror
 - [`DOC-CATALOG.md`](DOC-CATALOG.md) — owner / cadence / dependent docs / validation checks

@@ -1,8 +1,8 @@
-//! cloud-ci-substrate-dependency-dag-acyclicity gate binary (ADR-0280 §D-3).
+//! cloud-ci substrate graph-v2 gate binary (ADR-0280 §D-3, amended by ADR-0631).
 //!
 //! Loads the policy-declared substrate dependency DAG, runs the full coherence evaluation
-//! (Tarjan acyclicity + forbidden-edge honouring + Kahn topo-sort == bootstrap_order + schema
-//! completeness), prints the report, and exits 0 (GREEN) / 1 (RED) / 2 (parse error). LOCAL BRIDGE
+//! (closed face-aware shape + graph-3 Tarjan acyclicity + forbidden-edge honouring + valid Kahn
+//! order + exact max-min reverse failure closure), prints the report, and exits 0/1/2. LOCAL BRIDGE
 //! feedback only (founder CLI-retirement directive): merge authority lives in the buck2 gate test
 //! behind oya-ci-required + the check-substrates lane, never in this binary.
 #![forbid(unsafe_code)]
@@ -80,7 +80,7 @@ fn main() -> ExitCode {
     println!("{}", render_findings(&report.findings));
     if let Some(order) = &report.derived_bootstrap_order {
         println!(
-            "derived bootstrap_order (Kahn topo-sort): {}",
+            "derived graph-3 bootstrap_order (Kahn): {}",
             order.join(" -> ")
         );
     }

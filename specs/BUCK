@@ -10,3 +10,11 @@ export_file(
     name = "adr-census-epoch-receipt.schema.json",
     visibility = ["PUBLIC"],
 )
+export_file(
+    name = "substrate-dependency-dag.json",
+    visibility = ["PUBLIC"],
+)
+export_file(
+    name = "substrate-dependency-dag.schema.json",
+    visibility = ["PUBLIC"],
+)
