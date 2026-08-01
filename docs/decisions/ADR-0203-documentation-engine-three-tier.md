@@ -8,7 +8,7 @@
 - Supersedes: none
 - Superseded by: none
 - Related: ADR-0393 (Leptos canonical app shell), ADR-0394 (first-party Rust developer
-  portal), ADR-0173 (vendor lock-in avoidance)
+  portal), ADR-0173 (vendor lock-in avoidance), ADR-0258 (API versioning model)
 
 ## Context
 
