@@ -70,7 +70,7 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "microservices/consent-graph/contracts/proto/consent-graph.proto"
+        "oya/consent-graph/contracts/proto/consent-graph.proto"
       ]
     }
   },

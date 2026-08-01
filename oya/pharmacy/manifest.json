@@ -134,8 +134,7 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "microservices/pharmacy/contracts/proto/pharmacy.proto",
-        "contracts/proto/pharmacy.proto"
+        "oya/pharmacy/contracts/proto/pharmacy.proto"
       ]
     }
   },

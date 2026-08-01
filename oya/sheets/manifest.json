@@ -30,7 +30,7 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "microservices/sheets/contracts/proto/sheets.proto"
+        "oya/sheets/contracts/proto/sheets.proto"
       ]
     }
   },

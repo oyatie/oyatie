@@ -90,7 +90,7 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "microservices/community/contracts/proto/community.proto"
+        "oya/community/contracts/proto/community.proto"
       ]
     }
   },

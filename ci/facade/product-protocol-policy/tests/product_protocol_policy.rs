@@ -3,6 +3,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::process::Command;
 
 use ci_product_protocol_policy::{GATE_ID, evaluate_keyed};
 use serde_json::Value;
@@ -100,6 +101,65 @@ fn collect_named_files(directory: &Path, name: &str, output: &mut Vec<PathBuf>) 
     }
 }
 
+fn tracked_paths(root: &Path) -> BTreeSet<String> {
+    let output = Command::new("git")
+        .args([
+            "-C",
+            root.to_str().expect("UTF-8 repository root"),
+            "ls-files",
+            "-z",
+        ])
+        .output()
+        .expect("run git ls-files for the tracked contract universe");
+    assert!(
+        output.status.success(),
+        "git ls-files failed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    String::from_utf8(output.stdout)
+        .expect("git ls-files output must be UTF-8")
+        .split('\0')
+        .filter(|path| !path.is_empty())
+        .map(str::to_owned)
+        .collect()
+}
+
+fn internal_grpc_contract_path_findings(
+    root: &Path,
+    tracked: &BTreeSet<String>,
+    manifest_path: &Path,
+    manifest: &Value,
+) -> Vec<String> {
+    manifest
+        .pointer("/contracts/internal_grpc/contracts")
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+        .filter_map(|contract| {
+            let Some(contract) = contract.as_str() else {
+                return Some(format!(
+                    "{} declares a non-string internal gRPC contract path",
+                    manifest_path.display()
+                ));
+            };
+            let metadata = fs::symlink_metadata(root.join(contract));
+            if !tracked.contains(contract) {
+                Some(format!(
+                    "{} declares untracked internal gRPC contract {contract}",
+                    manifest_path.display()
+                ))
+            } else if !metadata.is_ok_and(|metadata| metadata.file_type().is_file()) {
+                Some(format!(
+                    "{} declares non-regular internal gRPC contract {contract}",
+                    manifest_path.display()
+                ))
+            } else {
+                None
+            }
+        })
+        .collect()
+}
+
 fn accepted_status(frontmatter: &str, accepted: &BTreeSet<&str>) -> bool {
     frontmatter.lines().any(|line| {
         line.strip_prefix("status:")
@@ -170,12 +230,59 @@ fn contains_claim_term(clause: &str) -> bool {
                 | "supported"
                 | "supports"
                 | "supporting"
+                | "allow"
+                | "allowed"
+                | "allows"
+                | "allowing"
+                | "available"
+                | "enable"
+                | "enabled"
+                | "enables"
+                | "enabling"
                 | "use"
                 | "used"
                 | "uses"
                 | "using"
         )
     })
+}
+
+fn current_rpc_claim_is_affirmative(after_rpc: &str) -> bool {
+    let (current_segment, adversative) = after_rpc
+        .rsplit_once(" but ")
+        .map_or((after_rpc, false), |(_, current)| (current, true));
+    let current_marker = adversative
+        || contains_word(current_segment, &["now", "currently"])
+        || contains_term(current_segment, &["no longer"]);
+    if !current_marker {
+        return false;
+    }
+    if contains_term(
+        current_segment,
+        &["no longer forbidden", "no longer prohibited"],
+    ) {
+        return true;
+    }
+    if contains_term(
+        current_segment,
+        &[
+            "forbidden",
+            "prohibited",
+            "rejected",
+            "not supported",
+            "not now supported",
+            "no longer supported",
+            "not allowed",
+            "not enabled",
+            "not available",
+        ],
+    ) {
+        return false;
+    }
+    contains_word(
+        current_segment,
+        &["supported", "allowed", "available", "enabled"],
+    )
 }
 
 fn classify_rpc_audience(words: &[&str], rpc_index: usize) -> RpcAudience {
@@ -186,6 +293,7 @@ fn classify_rpc_audience(words: &[&str], rpc_index: usize) -> RpcAudience {
     let local = normalized_words(
         &words[rpc_index.saturating_sub(8)..(rpc_index + 9).min(words.len())].join(" "),
     );
+    let current_affirmative = current_rpc_claim_is_affirmative(&after);
 
     let historical_before = [
         "historical",
@@ -225,6 +333,8 @@ fn classify_rpc_audience(words: &[&str], rpc_index: usize) -> RpcAudience {
         "excluded",
         "rejected",
         "not supported",
+        "not enabled",
+        "not available",
         "needs a proxy",
     ];
     let internal_terms = [
@@ -233,6 +343,7 @@ fn classify_rpc_audience(words: &[&str], rpc_index: usize) -> RpcAudience {
         "internal surface",
         "internal module",
         "internal service rpc",
+        "internal connect",
         "sibling service",
         "east west",
         "stays internal",
@@ -265,7 +376,13 @@ fn classify_rpc_audience(words: &[&str], rpc_index: usize) -> RpcAudience {
         "consumer microservices",
     ];
 
-    if contains_term(&before, &historical_before) || contains_term(&after, &historical_after) {
+    if current_affirmative
+        && (contains_word(&local, &["public", "tenant", "tenants"])
+            || contains_term(&local, &["product primitive", "tenant facing"]))
+    {
+        RpcAudience::Public
+    } else if contains_term(&before, &historical_before) || contains_term(&after, &historical_after)
+    {
         RpcAudience::Historical
     } else if contains_term(&rejection_before, &rejected_before)
         || contains_term(&after, &rejected_after)
@@ -320,19 +437,20 @@ fn public_rpc_findings(adr_id: &str, lifecycle: &str, document: &str) -> Vec<Pub
             let start = word_index.saturating_sub(12);
             let end = (word_index + 13).min(words.len());
             let window = words[start..end].join(" ");
+            let bare_start = word_index.saturating_sub(4);
+            let bare_end = (word_index + 5).min(words.len());
+            let bare_window = normalized_words(&words[bare_start..bare_end].join(" "));
             let bare_connect_with_protocol_context = token == "connect"
-                && (contains_term(
-                    &window,
-                    &[
-                        "supported",
-                        "exposed",
-                        "connect protocol",
-                        "connect rpc",
-                        "integration",
-                    ],
-                ) || words[start..end]
-                    .iter()
-                    .any(|candidate| candidate.contains("grpc")));
+                && ((contains_word(&bare_window, &["public", "tenant", "tenants"])
+                    && (contains_claim_term(&bare_window)
+                        || contains_word(&bare_window, &["endpoint", "endpoints"])))
+                    || contains_term(
+                        &bare_window,
+                        &["connect protocol", "connect rpc", "integration"],
+                    )
+                    || words[bare_start..bare_end]
+                        .iter()
+                        .any(|candidate| candidate.contains("grpc")));
             let protocol = if token.contains("grpc") {
                 "grpc"
             } else if token.contains("connect-rpc")
@@ -596,6 +714,53 @@ fn manifest_schema_keeps_public_contracts_closed_and_grpc_internal() {
         BTreeSet::from(["asyncapi", "openapi"]),
         "public version carriers must not admit GraphQL or proto3"
     );
+}
+
+#[test]
+fn every_declared_internal_grpc_contract_is_a_regular_tracked_file() {
+    let root = repo_root();
+    let tracked = tracked_paths(&root);
+    let mut paths = Vec::new();
+    collect_named_files(&root.join("oya"), "manifest.json", &mut paths);
+    collect_named_files(&root.join("cloud"), "manifest.json", &mut paths);
+    paths.sort();
+
+    let mut declared_contracts = 0;
+    let mut findings = Vec::new();
+    for path in paths {
+        let manifest = json(&path);
+        declared_contracts += manifest
+            .pointer("/contracts/internal_grpc/contracts")
+            .and_then(Value::as_array)
+            .map_or(0, Vec::len);
+        findings.extend(internal_grpc_contract_path_findings(
+            &root, &tracked, &path, &manifest,
+        ));
+    }
+    assert!(
+        declared_contracts > 0,
+        "internal gRPC contract corpus must not be empty"
+    );
+    assert!(
+        findings.is_empty(),
+        "internal gRPC contract path findings: {findings:#?}"
+    );
+
+    let mutation = serde_json::json!({
+        "contracts": {
+            "internal_grpc": {
+                "contracts": ["__missing_internal_grpc_contract__.proto"]
+            }
+        }
+    });
+    let mutation_findings = internal_grpc_contract_path_findings(
+        &root,
+        &tracked,
+        Path::new("fixture/manifest.json"),
+        &mutation,
+    );
+    assert_eq!(mutation_findings.len(), 1, "dangling path must fail closed");
+    assert!(mutation_findings[0].contains("untracked internal gRPC contract"));
 }
 
 #[test]

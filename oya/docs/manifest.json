@@ -64,7 +64,7 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "microservices/docs/contracts/proto/docs.proto"
+        "oya/docs/contracts/proto/docs.proto"
       ]
     }
   },

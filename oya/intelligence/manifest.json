@@ -213,8 +213,8 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "microservices/intelligence/contracts/proto/intelligence-v1.proto",
-        "microservices/intelligence/contracts/proto/intelligence.proto"
+        "oya/intelligence/contracts/proto/intelligence-v1.proto",
+        "oya/intelligence/contracts/proto/intelligence.proto"
       ]
     }
   },

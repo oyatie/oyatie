@@ -52,7 +52,7 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "microservices/tenancy/contracts/proto/tenancy.proto"
+        "cloud/tenancy/contracts/proto/tenancy.proto"
       ]
     }
   },

@@ -729,6 +729,30 @@
     {
       "name": "unclassified-grpc-claim",
       "text": "gRPC is supported for partner integrations."
+    },
+    {
+      "name": "public-connect-allowed",
+      "text": "Public Connect is allowed for tenant integrations."
+    },
+    {
+      "name": "public-connect-available",
+      "text": "Public Connect is available for tenant integrations."
+    },
+    {
+      "name": "public-connect-endpoints-enabled",
+      "text": "Public Connect endpoints are enabled."
+    },
+    {
+      "name": "rejected-then-current-grpc",
+      "text": "Public gRPC was rejected, but is now supported."
+    },
+    {
+      "name": "grpc-no-longer-forbidden",
+      "text": "Public gRPC is no longer forbidden."
+    },
+    {
+      "name": "legacy-current-grpc",
+      "text": "Legacy public gRPC is now supported."
     }
   ],
   "accepted_adr_counterexamples": [
@@ -747,6 +771,26 @@
     {
       "name": "historical-connect",
       "text": "The former public Connect-RPC contract was replaced by REST."
+    },
+    {
+      "name": "connect-product-name",
+      "text": "Public Connect is the product name for the annual customer conference."
+    },
+    {
+      "name": "internal-connect",
+      "text": "Internal Connect RPC endpoints are enabled for sibling services."
+    },
+    {
+      "name": "rejected-connect",
+      "text": "Public Connect endpoints are forbidden."
+    },
+    {
+      "name": "negated-connect",
+      "text": "Public Connect endpoints are not enabled."
+    },
+    {
+      "name": "current-negated-grpc",
+      "text": "Public gRPC is no longer supported."
     },
     {
       "name": "proposed-public-connect",

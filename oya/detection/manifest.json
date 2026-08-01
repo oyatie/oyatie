@@ -186,7 +186,7 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "microservices/detection/contracts/detection-v1.proto"
+        "oya/detection/contracts/detection-v1.proto"
       ]
     },
     "trait": [
