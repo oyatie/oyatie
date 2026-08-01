@@ -255,6 +255,13 @@ fn cache_path_archives_checkout(raw_path: &str) -> Result<bool, String> {
     if normalized.is_empty() {
         return Err("empty include pattern".to_owned());
     }
+    let bytes = normalized.as_bytes();
+    let windows_drive_path = bytes.len() >= 2 && bytes[0].is_ascii_alphabetic() && bytes[1] == b':';
+    if normalized.starts_with('/') || normalized.starts_with('\\') || windows_drive_path {
+        return Err(format!(
+            "absolute actions/cache paths cannot prove exclusion of runner-local buck-out: {raw_path:?}"
+        ));
+    }
     if normalized
         .split(['/', '\\'])
         .any(|component| component == "..")
@@ -946,6 +953,12 @@ fn buck_out_archive_guard_rejects_yaml_path_variants_and_renamed_steps() {
         "path: '${{ github.workspace }}/${{ inputs.cache_path }}'",
         "path: '${{ github.workspace }}suffix'",
         "path: '!${{ inputs.cache_path }}'",
+        "path: /home/runner/_work/oyatie/oyatie/buck-out",
+        "path: /home/runner/_work/oyatie/oyatie",
+        "path: /home/runner/_work/**",
+        "path: 'D:\\a\\oyatie\\oyatie\\buck-out'",
+        "path: 'C:buck-out'",
+        "path: '\\\\server\\share\\oyatie\\buck-out'",
     ] {
         let fixture = format!(
             "jobs:\n  renamed-job:\n    steps:\n      - name: Innocuous renamed step\n        uses: actions/cache/restore@pinned\n        with:\n          key: unrelated-key\n          {path_yaml}\n"
