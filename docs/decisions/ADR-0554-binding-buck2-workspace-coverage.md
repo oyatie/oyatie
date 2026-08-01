@@ -483,7 +483,9 @@ same-repository reusable workflows, and fails closed on unproven external job-le
 normalizes scalar/block/list paths and rejects `buck-out`, its descendants, and lexical
 whole-root/glob archives. Dynamic expressions that control the first path component fail closed unless
 the expression is the statically recognizable `github.workspace` prefix with an analyzable suffix.
-Unproven absolute cache paths also fail closed on Unix and Windows; required CI must use relative or
-tilde paths, or the analyzable workspace prefix. The guard also rejects the retired reclaim artifact
-path. This is a correctness and availability invariant: a cache optimization cannot prevent the tests
-that establish merge authority from starting.
+Unproven absolute cache paths also fail closed on Unix and Windows. Tilde-expanded paths fail closed
+except for the proven-safe rustup toolchain and update-hash roots; in particular, `~/_work/**` cannot
+alias the owned runner checkout. Required CI must otherwise use relative paths or the analyzable
+workspace prefix. The guard also rejects the retired reclaim artifact path. This is a correctness and
+availability invariant: a cache optimization cannot prevent the tests that establish merge authority
+from starting.

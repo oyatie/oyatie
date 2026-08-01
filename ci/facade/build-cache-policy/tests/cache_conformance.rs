@@ -262,6 +262,23 @@ fn cache_path_archives_checkout(raw_path: &str) -> Result<bool, String> {
             "absolute actions/cache paths cannot prove exclusion of runner-local buck-out: {raw_path:?}"
         ));
     }
+    if normalized.starts_with('~') {
+        const SAFE_TILDE_ROOTS: [&str; 2] = [
+            "~/.rustup/toolchains",
+            "~/.rustup/update-hashes",
+        ];
+        let proven_safe = SAFE_TILDE_ROOTS.iter().any(|root| {
+            normalized == *root
+                || normalized
+                    .strip_prefix(root)
+                    .is_some_and(|suffix| suffix.starts_with('/'))
+        });
+        if !proven_safe {
+            return Err(format!(
+                "unproven tilde-expanded actions/cache path can reach the runner checkout: {raw_path:?}"
+            ));
+        }
+    }
     if normalized
         .split(['/', '\\'])
         .any(|component| component == "..")
@@ -956,6 +973,9 @@ fn buck_out_archive_guard_rejects_yaml_path_variants_and_renamed_steps() {
         "path: /home/runner/_work/oyatie/oyatie/buck-out",
         "path: /home/runner/_work/oyatie/oyatie",
         "path: /home/runner/_work/**",
+        "path: ~/_work/oyatie/oyatie/buck-out",
+        "path: ~/_work/**",
+        "path: ~/**",
         "path: 'D:\\a\\oyatie\\oyatie\\buck-out'",
         "path: 'C:buck-out'",
         "path: '\\\\server\\share\\oyatie\\buck-out'",
