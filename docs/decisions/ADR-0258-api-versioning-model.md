@@ -9,7 +9,7 @@ supersedes: []
 superseded_by: []
 amends: []
 amended_by: [ADR-0565]
-related: [ADR-0011, ADR-0037, ADR-0064, ADR-0131, ADR-0145, ADR-0150, ADR-0203, ADR-0244, ADR-0250, ADR-0565]
+related: [ADR-0011, ADR-0037, ADR-0064, ADR-0131, ADR-0145, ADR-0150, ADR-0157, ADR-0167, ADR-0176, ADR-0182, ADR-0203, ADR-0244, ADR-0250, ADR-0565]
 related_specs:
   - /specs/microservices/manifest-schema.json
   - /specs/hyperscaler-architecture-invariants.json
