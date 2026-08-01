@@ -45,7 +45,7 @@ DOSSIER-BC-002: Bounded context `signing-key-issuance` states: Per-developer ED2
 DOSSIER-BC-003: Bounded context `api-contracts-registry` states: OpenAPI 3.2 + AsyncAPI 3.1 + proto3 canonical contracts; version-locked; consumed by codegen + portal.; crate count=4.
 DOSSIER-BC-004: Bounded context `sdk-codegen` states: Codegen pipeline emitting six SDK family clients (TS/Rust/Swift/Kotlin/C#/Python) from OpenAPI/AsyncAPI/proto.; crate count=4.
 DOSSIER-BC-005: Bounded context `sandbox-provisioner` states: Per-developer sandbox tenant provisioning; reset-on-demand within 30s; synthetic data seeding.; crate count=5.
-DOSSIER-BC-006: Bounded context `dev-portal` states: Backstage-extension developer portal: API browser, try-in-sandbox, app submission, app metrics + revenue.; crate count=5.
+DOSSIER-BC-006: Bounded context `dev-portal` states: First-party Rust developer portal: API browser, try-in-sandbox, app submission, app metrics + revenue; Backstage-shaped catalog data is one-way migration input only.; crate count=5.
 DOSSIER-CRATE-001: Existing crate `oya-developer-sdk-developer-onboarding-kernel` remains untouched by this document-stage IP.
 DOSSIER-CRATE-002: Existing crate `oya-developer-sdk-developer-onboarding-domain` remains untouched by this document-stage IP.
 DOSSIER-CRATE-003: Existing crate `oya-developer-sdk-developer-onboarding-usecase` remains untouched by this document-stage IP.

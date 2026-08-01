@@ -7,7 +7,7 @@ status: Accepted
 owner_team: axis-ecosystem + ops-sre-reliability
 date: 2026-05-18
 related_artifacts:
-  - ADR-0170 (Backstage)
+  - ADR-0394 (first-party Rust developer portal)
 doc_status: published
 ---
 
@@ -15,7 +15,7 @@ doc_status: published
 
 ## Trigger
 
-- Backstage health endpoint 5xx
+- Portal shell or operations-BFF health endpoint 5xx
 - Try-in-sandbox widget timeout > 5s
 
 ## Severity
@@ -34,11 +34,14 @@ Tenant or developer experience is degraded; per-µservice SLO budget consumed; r
 4. Verify the upstream µservice dependency status (tenancy / identity / governance / workflow-engine event bus / audit-chain / cloud-secrets).
 5. Capture a snapshot of the current Prometheus metrics + last 100 audit-chain seal events.
 
-### Recovery Path A — Backstage core out-of-memory
+### Recovery Path A — Portal shell or operations BFF out of memory
 
-1. Restart Backstage pod.
-2. Scale replicas.
-3. Verify /health 200.
+1. Identify whether the Leptos SSR shell, operations BFF, or a downstream capability is exhausted.
+2. Roll back or restart only the affected workload through the governed deployment operation.
+3. Scale the affected workload within its declared capacity policy.
+4. Verify `/health` returns 200, the degraded module recovers, and unaffected modules stayed
+   available.
+5. Confirm the restart and recovery emitted audit and OpenTelemetry evidence.
 
 ## Escalation
 
