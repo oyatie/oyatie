@@ -92,66 +92,73 @@
   "inventory": [
     {
       "stable_id": "talos-current:cluster",
-      "identity_hash": "sha256:5e62accab417f7501ceca86b390f13394c70f652398adc2de170e082d59e5ca5",
       "lifecycle": "live-three-node-cluster",
       "data_class": "internal-platform-state",
       "retention": "unknown",
       "billing": "unknown",
-      "deletion_semantics": "unverified"
+      "deletion_semantics": "unverified",
+      "unverified_identity_fingerprint": "sha256:5e62accab417f7501ceca86b390f13394c70f652398adc2de170e082d59e5ca5",
+      "verification_status": "unverified-discovery"
     },
     {
       "stable_id": "kubernetes-current:persistent-volumes",
-      "identity_hash": "sha256:3ac7fff3ebde49382c4073a71665dc0982779f9e68d516c97b9eb06d9a9f32a7",
       "lifecycle": "six-bound-delete-policy-pvs-87-gib",
       "data_class": "persistent-service-data",
       "retention": "unknown",
       "billing": "active-capacity",
-      "deletion_semantics": "delete-policy-data-loss"
+      "deletion_semantics": "delete-policy-data-loss",
+      "unverified_identity_fingerprint": "sha256:3ac7fff3ebde49382c4073a71665dc0982779f9e68d516c97b9eb06d9a9f32a7",
+      "verification_status": "unverified-discovery"
     },
     {
       "stable_id": "kubernetes-current:postgres",
-      "identity_hash": "sha256:dcc744e11561573d44a59a8a62d2bbd296960d0c970e6d1de9e9e3e3dbc8900b",
       "lifecycle": "healthy-three-instance-postgres-18.4",
       "data_class": "database-data",
       "retention": "unknown",
       "billing": "shared-cluster",
-      "deletion_semantics": "backup-and-restore-point-unverified"
+      "deletion_semantics": "backup-and-restore-point-unverified",
+      "unverified_identity_fingerprint": "sha256:dcc744e11561573d44a59a8a62d2bbd296960d0c970e6d1de9e9e3e3dbc8900b",
+      "verification_status": "unverified-discovery"
     },
     {
       "stable_id": "kubernetes-current:openbao",
-      "identity_hash": "sha256:4acaeadd9147b60220fc3e852e9568f6747109e61318327a95ba5174caff710b",
       "lifecycle": "initialized-unsealed-live-eso-integration",
       "data_class": "cryptographic-and-secret-metadata",
       "retention": "unknown",
       "billing": "shared-cluster",
-      "deletion_semantics": "pki-and-recovery-unverified"
+      "deletion_semantics": "pki-and-recovery-unverified",
+      "unverified_identity_fingerprint": "sha256:4acaeadd9147b60220fc3e852e9568f6747109e61318327a95ba5174caff710b",
+      "verification_status": "unverified-discovery"
     },
     {
       "stable_id": "kubernetes-current:oci-registry",
-      "identity_hash": "sha256:df67d52d9af143d6e83e7417e10ad3bea63cbab5e9c2aff5ddf7075a54a5c3f9",
       "lifecycle": "live-two-repositories-five-tags",
       "data_class": "build-and-release-artifacts",
       "retention": "unknown",
       "billing": "active-20-gib-pv",
-      "deletion_semantics": "delete-policy-data-loss"
+      "deletion_semantics": "delete-policy-data-loss",
+      "unverified_identity_fingerprint": "sha256:df67d52d9af143d6e83e7417e10ad3bea63cbab5e9c2aff5ddf7075a54a5c3f9",
+      "verification_status": "unverified-discovery"
     },
     {
       "stable_id": "github:jason931225/oyatie:arc-runners",
-      "identity_hash": "sha256:8a6465b8bd0653e824e2f0bb438561bd9c426483f7e10809af5c6ca2957d23f5",
       "lifecycle": "active-protected-ci-substrate",
       "data_class": "ci-execution-state",
       "retention": "branch-protection-dependent",
       "billing": "unknown",
-      "deletion_semantics": "would-break-required-ci"
+      "deletion_semantics": "would-break-required-ci",
+      "unverified_identity_fingerprint": "sha256:8a6465b8bd0653e824e2f0bb438561bd9c426483f7e10809af5c6ca2957d23f5",
+      "verification_status": "unverified-discovery"
     },
     {
       "stable_id": "cloudflare-configured:active-edge",
-      "identity_hash": "sha256:7a7ed98dd7fd1f53d5b6b4eaf19aa8ba5ca3ea4fc228493281cdabbe874158b4",
       "lifecycle": "active-api-foundry-kms-ops-dns",
       "data_class": "public-routing-metadata",
       "retention": "service-continuity",
       "billing": "unknown",
-      "deletion_semantics": "would-disrupt-public-edge"
+      "deletion_semantics": "would-disrupt-public-edge",
+      "unverified_identity_fingerprint": "sha256:7a7ed98dd7fd1f53d5b6b4eaf19aa8ba5ca3ea4fc228493281cdabbe874158b4",
+      "verification_status": "unverified-discovery"
     }
   ],
   "recovery": {

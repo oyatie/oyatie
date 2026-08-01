@@ -1423,7 +1423,7 @@
       "current_path": "/registry/reset-eligibility/w0-d-20260801.json",
       "kind": "registry",
       "migration_phase": "wave-0-d-preservation-migration",
-      "purpose": "Current W0-D read-only discovery observation. Verdict is RESET INELIGIBLE and the authorized implementation mode is preservation migration; it contains digests and redacted metadata only, never secret values.",
+      "purpose": "Current W0-D read-only, undigested/unverified discovery observation. Verdict is RESET INELIGIBLE; preservation migration is the only represented mode. It is not actuation authority and contains no verified evidence digest.",
       "target_path_after_md_retirement": "same"
     }
   },

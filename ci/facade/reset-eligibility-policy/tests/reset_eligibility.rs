@@ -3,8 +3,8 @@
 use std::{collections::BTreeMap, fs, path::PathBuf};
 
 use ci_reset_eligibility_policy::{
-    RuntimeAuthority, evaluate, evidence_digest, json_digest, receipt_payload,
-    validate_artifact_schema,
+    RuntimeAuthority, TrustedApprovalKey, evaluate, evaluate_schema, evidence_digest, json_digest,
+    receipt_payload, validate_artifact_schema,
 };
 use ed25519_dalek::{Signer, SigningKey};
 use serde_json::{Value, json};
@@ -38,6 +38,10 @@ fn hex(bytes: &[u8]) -> String {
     bytes.iter().map(|byte| format!("{byte:02x}")).collect()
 }
 
+fn approval_signing_key(index: u8) -> SigningKey {
+    SigningKey::from_bytes(&[7 + index; 32])
+}
+
 fn sign(mut receipt: Value, key: &SigningKey) -> Value {
     let signature = key.sign(&receipt_payload(&receipt).expect("receipt payload"));
     receipt["signature"] = json!(hex(&signature.to_bytes()));
@@ -46,8 +50,6 @@ fn sign(mut receipt: Value, key: &SigningKey) -> Value {
 
 fn positive_fixture() -> (Value, Value, Value, RuntimeAuthority) {
     let (policy, schema, mut artifact) = live();
-    let approval_key = SigningKey::from_bytes(&[7; 32]);
-    let grant_key = SigningKey::from_bytes(&[9; 32]);
     let evidence = BTreeMap::from([(
         "fixture-source".to_owned(),
         b"reviewed redacted evidence\n".to_vec(),
@@ -74,34 +76,32 @@ fn positive_fixture() -> (Value, Value, Value, RuntimeAuthority) {
         "approved_at":"2026-08-01T18:00:00Z", "expires_at":"2026-08-02T17:00:00Z",
         "key_id":"approval-key", "signature":"00"
     });
-    artifact["approvals"] = json!(
-        ["founder", "platform-operations", "data-protection"]
-            .into_iter()
-            .map(|role| {
-                let mut receipt = common.clone();
-                receipt["role"] = json!(role);
-                receipt["approver"] = json!(format!("trusted-{role}"));
-                sign(receipt, &approval_key)
-            })
-            .collect::<Vec<_>>()
-    );
-    artifact["decision"] = json!({"eligible":true,"mode":"authorized-reset","default_if_unknown":"ineligible","reason_codes":[]});
+    artifact["decision"] = json!({"eligible":false,"mode":"preservation-migration","default_if_unknown":"ineligible","reason_codes":["authorization-disabled"]});
 
-    let mut grant = common;
-    grant["grant_id"] = json!("protected-grant-1");
-    grant["key_id"] = json!("authorization-key");
-    let grant = sign(grant, &grant_key);
     let mut runtime = RuntimeAuthority::fail_closed(PROTECTED, CANDIDATE);
     runtime.evidence_by_source = evidence;
-    runtime.trusted_approval_keys.insert(
-        "approval-key".to_owned(),
-        approval_key.verifying_key().to_bytes(),
-    );
-    runtime.trusted_authorization_keys.insert(
-        "authorization-key".to_owned(),
-        grant_key.verifying_key().to_bytes(),
-    );
-    runtime.authorization_grant = Some(grant);
+    let mut approvals = Vec::new();
+    for (index, role) in ["founder", "platform-operations", "data-protection"]
+        .into_iter()
+        .enumerate()
+    {
+        let key = approval_signing_key(index as u8);
+        let key_id = format!("approval-key-{role}");
+        runtime.trusted_approval_keys.insert(
+            key_id.clone(),
+            TrustedApprovalKey {
+                verifying_key: key.verifying_key().to_bytes(),
+                principal: format!("trusted-{role}"),
+                allowed_role: role.to_owned(),
+            },
+        );
+        let mut receipt = common.clone();
+        receipt["role"] = json!(role);
+        receipt["approver"] = json!(format!("trusted-{role}"));
+        receipt["key_id"] = json!(key_id);
+        approvals.push(sign(receipt, &key));
+    }
+    artifact["approvals"] = json!(approvals);
     (policy, schema, artifact, runtime)
 }
 
@@ -145,6 +145,16 @@ fn live_w0d_discovery_is_non_authoritative_and_fail_closed() {
             .join("\n")
     );
     assert_eq!(policy["reset_authorization_enabled"], false);
+    assert!(
+        policy["authority_boundary"]
+            .as_str()
+            .unwrap()
+            .contains("no reset actuation path")
+    );
+    assert_eq!(
+        schema["properties"]["decision"]["properties"]["mode"]["const"],
+        "preservation-migration"
+    );
     assert_eq!(
         artifact["evidence_manifest"]["status"],
         "unverified-discovery"
@@ -153,9 +163,14 @@ fn live_w0d_discovery_is_non_authoritative_and_fail_closed() {
 }
 
 #[test]
-fn protected_positive_path_requires_rehashed_evidence_signed_receipts_and_separate_grant() {
+fn complete_protected_evidence_and_approvals_remain_dormant_without_actuation_authority() {
     let (policy, schema, artifact, runtime) = positive_fixture();
     assert!(evaluate(&policy, &schema, &artifact, &runtime, NOW).is_empty());
+    assert_eq!(artifact["decision"]["eligible"], false);
+    assert_eq!(
+        artifact["decision"]["reason_codes"],
+        json!(["authorization-disabled"])
+    );
 
     let mut candidate_policy = policy.clone();
     candidate_policy["reset_authorization_enabled"] = json!(true);
@@ -176,7 +191,7 @@ fn protected_positive_path_requires_rehashed_evidence_signed_receipts_and_separa
 }
 
 #[test]
-fn positive_path_rejects_evidence_commit_schema_policy_and_signature_tampering() {
+fn dormant_eligibility_path_rejects_evidence_commit_schema_policy_and_signature_tampering() {
     let (policy, schema, artifact, runtime) = positive_fixture();
     let mut tampered_runtime = runtime.clone();
     tampered_runtime
@@ -197,6 +212,91 @@ fn positive_path_rejects_evidence_commit_schema_policy_and_signature_tampering()
     let mut forged = artifact.clone();
     forged["approvals"][0]["approver"] = json!("candidate");
     assert!(!evaluate(&policy, &schema, &forged, &runtime, NOW).is_empty());
+}
+
+#[test]
+fn approvals_reject_role_swaps_principal_reuse_key_reuse_and_untrusted_keys() {
+    let (policy, schema, artifact, runtime) = positive_fixture();
+
+    let mut role_swap = artifact.clone();
+    role_swap["approvals"][0]["role"] = json!("platform-operations");
+    role_swap["approvals"].as_array_mut().unwrap()[0] =
+        sign(role_swap["approvals"][0].clone(), &approval_signing_key(0));
+    assert!(!evaluate(&policy, &schema, &role_swap, &runtime, NOW).is_empty());
+
+    let mut principal_reuse = runtime.clone();
+    principal_reuse
+        .trusted_approval_keys
+        .get_mut("approval-key-platform-operations")
+        .unwrap()
+        .principal = "trusted-founder".to_owned();
+    let mut principal_artifact = artifact.clone();
+    principal_artifact["approvals"][1]["approver"] = json!("trusted-founder");
+    principal_artifact["approvals"].as_array_mut().unwrap()[1] = sign(
+        principal_artifact["approvals"][1].clone(),
+        &approval_signing_key(1),
+    );
+    assert!(!evaluate(&policy, &schema, &principal_artifact, &principal_reuse, NOW).is_empty());
+
+    let mut key_reuse = runtime.clone();
+    let founder_key = key_reuse.trusted_approval_keys["approval-key-founder"].verifying_key;
+    key_reuse
+        .trusted_approval_keys
+        .get_mut("approval-key-platform-operations")
+        .unwrap()
+        .verifying_key = founder_key;
+    let mut key_reuse_artifact = artifact.clone();
+    key_reuse_artifact["approvals"].as_array_mut().unwrap()[1] = sign(
+        key_reuse_artifact["approvals"][1].clone(),
+        &approval_signing_key(0),
+    );
+    assert!(!evaluate(&policy, &schema, &key_reuse_artifact, &key_reuse, NOW).is_empty());
+
+    let mut untrusted = runtime.clone();
+    untrusted
+        .trusted_approval_keys
+        .remove("approval-key-founder");
+    assert!(!evaluate(&policy, &schema, &artifact, &untrusted, NOW).is_empty());
+}
+
+#[test]
+fn malformed_supported_schema_keyword_shapes_are_red() {
+    let (policy, schema, _, _) = positive_fixture();
+    let mutations: Vec<ArtifactMutation> = vec![
+        ("required", Box::new(|v| v["required"] = json!("reset_id"))),
+        ("type", Box::new(|v| v["type"] = json!(["object", "null"]))),
+        (
+            "ref",
+            Box::new(|v| v["properties"]["scope"] = json!({"$ref": 7})),
+        ),
+        (
+            "additionalProperties",
+            Box::new(|v| v["additionalProperties"] = json!("false")),
+        ),
+        (
+            "format",
+            Box::new(|v| v["$defs"]["utcTimestamp"]["format"] = json!("email")),
+        ),
+        (
+            "enum",
+            Box::new(|v| {
+                v["properties"]["evidence_manifest"]["properties"]["status"]["enum"] =
+                    json!("verified")
+            }),
+        ),
+        (
+            "items",
+            Box::new(|v| v["properties"]["sources"]["items"] = json!([])),
+        ),
+    ];
+    for (name, mutate) in mutations {
+        let mut changed = schema.clone();
+        mutate(&mut changed);
+        assert!(
+            !evaluate_schema(&policy, &changed).is_empty(),
+            "malformed {name} keyword shape was accepted"
+        );
+    }
 }
 
 #[test]
