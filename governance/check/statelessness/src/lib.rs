@@ -29,31 +29,6 @@ use std::fmt;
 /// substrate phases can track drift without blocking CI.  `Blocker` causes the
 /// check to return a non-zero exit code when any violation is found; P22 flips
 /// the lane to this mode once all known violations are resolved.
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
-pub enum CheckMode {
-    /// Print violations; always exit 0.
-    #[default]
-    ReportOnly,
-    /// Print violations; exit non-zero if any found.
-    Blocker,
-}
-
-impl CheckMode {
-    /// Returns `true` when this mode should cause the process to exit non-zero
-    /// on any detected violation.
-    pub fn is_blocker(self) -> bool {
-        matches!(self, Self::Blocker)
-    }
-}
-
-impl fmt::Display for CheckMode {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::ReportOnly => write!(f, "report-only"),
-            Self::Blocker => write!(f, "blocker"),
-        }
-    }
-}
 
 /// Layer values where statelessness is required (outer ring + entry points).
 /// Inner-ring crates (`kernel`, `domain`) are exempt because they typically
@@ -314,22 +289,8 @@ mod tests {
         assert!(matches!(err, Error::EmptyPath { .. }));
     }
 
-    #[test]
-    fn check_mode_default_is_report_only() {
-        assert_eq!(CheckMode::default(), CheckMode::ReportOnly);
-        assert!(!CheckMode::ReportOnly.is_blocker());
-    }
 
-    #[test]
-    fn check_mode_blocker_is_blocker() {
-        assert!(CheckMode::Blocker.is_blocker());
-    }
 
-    #[test]
-    fn check_mode_display() {
-        assert_eq!(CheckMode::ReportOnly.to_string(), "report-only");
-        assert_eq!(CheckMode::Blocker.to_string(), "blocker");
-    }
 
     #[test]
     fn line_numbers_are_one_indexed() {

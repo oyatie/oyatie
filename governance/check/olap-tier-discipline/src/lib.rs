@@ -17,7 +17,6 @@
 //!     count via [`OlapUsage::row_count_estimate`]), OR
 //!   - window functions (`OVER`) across multi-month windows.
 //!
-//! Lane mode follows the canonical [`CheckMode`].
 // ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
@@ -28,27 +27,6 @@ use std::fmt;
 /// flagged as belonging to ClickHouse per ADR-0193.
 pub const WIDE_AGGREGATE_ROW_THRESHOLD: u64 = 100_000;
 
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
-pub enum CheckMode {
-    #[default]
-    ReportOnly,
-    Blocker,
-}
-
-impl CheckMode {
-    pub fn is_blocker(self) -> bool {
-        matches!(self, Self::Blocker)
-    }
-}
-
-impl fmt::Display for CheckMode {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::ReportOnly => write!(f, "report-only"),
-            Self::Blocker => write!(f, "blocker"),
-        }
-    }
-}
 
 /// Storage tier the SQL fragment runs against, per ADR-0184 layering.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -347,13 +325,6 @@ mod tests {
         assert!(r.violations.is_empty());
     }
 
-    #[test]
-    fn check_mode_default_and_blocker_behaviour() {
-        assert_eq!(CheckMode::default(), CheckMode::ReportOnly);
-        assert!(CheckMode::Blocker.is_blocker());
-        assert!(!CheckMode::ReportOnly.is_blocker());
-        assert_eq!(CheckMode::Blocker.to_string(), "blocker");
-    }
 
     #[test]
     fn storage_tier_label_round_trips() {
