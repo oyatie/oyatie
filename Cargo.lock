@@ -1416,6 +1416,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "ci-lifecycle-status"
+version = "0.1.0"
+dependencies = [
+ "oya-governance-lifecycle-kernel",
+ "serde_json",
+]
+
+[[package]]
 name = "ci-module-membership"
 version = "0.1.0"
 dependencies = [
@@ -7643,22 +7651,8 @@ name = "oya-governance-adr-shape-kernel"
 version = "0.1.0"
 
 [[package]]
-name = "oya-governance-adr-status-lifecycle-app"
-version = "0.1.0"
-dependencies = [
- "oya-governance-lifecycle-kernel",
-]
-
-[[package]]
 name = "oya-governance-agentic-navigability-kernel"
 version = "0.1.0"
-
-[[package]]
-name = "oya-governance-api-stability-tier-lifecycle-app"
-version = "0.1.0"
-dependencies = [
- "oya-governance-lifecycle-kernel",
-]
 
 [[package]]
 name = "oya-governance-architecture-map-freshness-kernel"
@@ -7712,13 +7706,6 @@ name = "oya-governance-bypass-kernel"
 version = "0.1.0"
 
 [[package]]
-name = "oya-governance-capability-status-lifecycle-app"
-version = "0.1.0"
-dependencies = [
- "oya-governance-lifecycle-kernel",
-]
-
-[[package]]
 name = "oya-governance-capability-tier-coverage"
 version = "0.1.0"
 dependencies = [
@@ -7747,29 +7734,8 @@ name = "oya-governance-cohesion-kernel"
 version = "0.1.0"
 
 [[package]]
-name = "oya-governance-crate-status-lifecycle-app"
-version = "0.1.0"
-dependencies = [
- "oya-governance-lifecycle-kernel",
-]
-
-[[package]]
-name = "oya-governance-dependency-status-lifecycle-app"
-version = "0.1.0"
-dependencies = [
- "oya-governance-lifecycle-kernel",
-]
-
-[[package]]
 name = "oya-governance-doc-freshness-kernel"
 version = "0.1.0"
-
-[[package]]
-name = "oya-governance-doc-status-lifecycle-app"
-version = "0.1.0"
-dependencies = [
- "oya-governance-lifecycle-kernel",
-]
 
 [[package]]
 name = "oya-governance-doc-style-kernel"
@@ -7790,13 +7756,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-governance-feature-flag-status-lifecycle-app"
-version = "0.1.0"
-dependencies = [
- "oya-governance-lifecycle-kernel",
-]
-
-[[package]]
 name = "oya-governance-gate-catalog-domain"
 version = "0.1.0"
 
@@ -7811,13 +7770,6 @@ version = "0.1.0"
 [[package]]
 name = "oya-governance-lifecycle-kernel"
 version = "0.1.0"
-
-[[package]]
-name = "oya-governance-migration-status-lifecycle-app"
-version = "0.1.0"
-dependencies = [
- "oya-governance-lifecycle-kernel",
-]
 
 [[package]]
 name = "oya-governance-mistakes-ledger-kernel"
@@ -7861,13 +7813,6 @@ dependencies = [
  "serde",
  "serde_yaml",
  "walkdir",
-]
-
-[[package]]
-name = "oya-governance-plan-status-lifecycle-app"
-version = "0.1.0"
-dependencies = [
- "oya-governance-lifecycle-kernel",
 ]
 
 [[package]]

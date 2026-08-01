@@ -264,6 +264,7 @@ jobs:
           - { crate: automation-language-policy, label: "gate · rust-first automation hygiene (cloud-native infra anti-patterns: scripts, workflow shell, retired interpreters, and new CLI packages)" }
           - { crate: gate-self-conformance, label: "gate · gate-self-conformance (GH #777, pipeline-as-product 7-property bar over every gate)" }
           - { crate: scm-facts-snapshot, label: "gate · ADR census epoch receipt (P2 active; P3 dormant)" }
+          - { crate: lifecycle-status, label: "gate · lifecycle-status (ADR-0109, ONE parameterized lane over every specs/lifecycle-configs/*.json — replaces the nine tools/oya-governance-*-lifecycle-app dev-CLIs that were never referenced by any workflow; a lane that cannot walk its corpus or matches zero artifacts is blocking, not vacuously green)" }
           - { targets: "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel-cargo-differential", os: windows-latest, label: "gate · Windows workspace resolver differential (ERROR_CANT_RESOLVE_FILENAME)" }
     steps:
       # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
