@@ -488,32 +488,54 @@ fn zero_graphql_authority_has_reciprocal_edges_and_no_live_surface() {
     );
 }
 
-/// W0-A renamed these two developer-SDK IP identities. Their file bindings must follow the same
-/// canonical move instead of silently retaining nonexistent microservices paths.
+/// Developer-SDK IP file bindings are optional. When present, each binding must identify an exact
+/// implementation-plan artifact for that row; broad doctrine notes and ADRs cannot stand in for it.
 #[test]
-fn developer_sdk_renamed_ip_references_resolve() {
+fn developer_sdk_ip_file_bindings_are_exact_implementation_plans() {
     let root = repo_root();
     let manifest = load_json(&root.join("oya/developer-sdk/manifest.json"));
     let ips = manifest["ips"].as_array().expect("developer-sdk ips array");
+    let mut ids = BTreeSet::new();
 
-    for (id, expected_path) in [
-        (
-            "IP-001-layer-a-postgres-openbao-iac",
-            "oya/developer-sdk/IPs/IP-ADR-0339-Shared-IaC-Modules.md",
-        ),
-        (
-            "IP-008-dev-portal-first-party-module",
-            "oya/developer-sdk/decisions/ADR-SDK-0007-developer-portal-as-first-party-module.md",
-        ),
-    ] {
-        let row = ips
-            .iter()
-            .find(|row| row["id"].as_str() == Some(id))
-            .unwrap_or_else(|| panic!("developer-sdk IP row {id}"));
-        assert_eq!(row["file"].as_str(), Some(expected_path));
+    for row in ips {
+        let id = row["id"].as_str().expect("developer-sdk IP id");
+        assert!(ids.insert(id), "duplicate developer-sdk IP id {id}");
+
+        let Some(file) = row.get("file") else {
+            continue;
+        };
+        let file = file
+            .as_str()
+            .unwrap_or_else(|| panic!("developer-sdk IP {id} file must be a string"));
+        let expected_path = format!("oya/developer-sdk/implementation-plans/{id}.md");
+        assert_eq!(
+            file, expected_path,
+            "developer-sdk IP {id} may bind only its exact implementation-plan artifact"
+        );
         assert!(
-            root.join(expected_path).is_file(),
-            "developer-sdk IP {id} must resolve to {expected_path}"
+            root.join(file).is_file(),
+            "developer-sdk IP {id} file must resolve to {file}"
+        );
+
+        let artifact = fs::read_to_string(root.join(file))
+            .unwrap_or_else(|error| panic!("read developer-sdk IP {id} file {file}: {error}"));
+        let frontmatter = artifact
+            .strip_prefix("---\n")
+            .and_then(|tail| {
+                tail.split_once("\n---\n")
+                    .map(|(frontmatter, _)| frontmatter)
+            })
+            .unwrap_or_else(|| panic!("developer-sdk IP {id} file must have YAML frontmatter"));
+        let exact_id = format!("id: {id}");
+        assert!(
+            frontmatter.lines().any(|line| line.trim() == exact_id),
+            "developer-sdk IP {id} file must declare its exact identity"
+        );
+        assert!(
+            frontmatter
+                .lines()
+                .any(|line| line.trim() == "artifact_class: implementation-plan"),
+            "developer-sdk IP {id} file must declare artifact_class: implementation-plan"
         );
     }
 }
