@@ -1884,9 +1884,16 @@ mod tests {
 
     fn load_live_test_scm_facts(root: &Path) -> ScmFacts {
         let face = root.join("ci/facade/artifact-inventory-registry/scm-facts.generated.json");
+        // Same class as the repo-root-hygiene / generated-artifact-policy gates: this face is the
+        // ADR-0604 de-commit class, so it is absent in ANY clean worktree and this live-corpus
+        // test cannot run. "run the producer-regen/materialization boundary" named no command,
+        // which left an author with a red gate and nothing to do about it.
         assert!(
             face.is_file(),
-            "missing materialized scm-facts face at {}; run the producer-regen/materialization boundary before this live-corpus test",
+            "missing materialized scm-facts face at {}.\n\nIt is generated (ADR-0604 de-commit \
+             class), not tracked in git. Materialize it, then re-run:\n\n    buck2 run \
+             //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin \
+             -- --repo-root .\n",
             face.display()
         );
         load_scm_facts(&face).expect("materialized scm-facts face loads")
@@ -3197,6 +3204,92 @@ status: Accepted
         fs::remove_dir_all(root).expect("remove temp repo");
     }
 
+    /// A text registry reaches a path when it NAMES the path — not when the path's characters
+    /// occur somewhere inside it.
+    ///
+    /// RED before the fix: `masterplan.contains("OWNERS")` was satisfied by
+    /// `docs/OWNERS-policy.md`, by the JSON key `"OWNERS"`, and by the bare word in prose, so
+    /// every short path (and every path that is a proper prefix of a longer one) was reported
+    /// reachable by coincidence.
+    ///
+    /// BLAST RADIUS, measured over the live 18853-path tracked universe: the substring probe
+    /// over-reported exactly TWO paths, both at the repo root — `OWNERS` and `README.md`. NEITHER
+    /// becomes unaccounted, which is why this fix needs no registry or baseline edit:
+    /// `README.md` is genuinely NAMED by `root-hub-pointers.json` and `DOC-CATALOG.md`, and
+    /// `OWNERS` resolves through `owners-schema` (OWNERS files are accounted by CONSTRUCTION —
+    /// see `owners_files_are_never_registered_in_the_reachability_registry`, which actively
+    /// FORBIDS registering one). Nothing gains reachability: a whole-token match is a strict
+    /// subset of a substring match by construction.
+    ///
+    /// KNOWN CEILING (deliberate, not an oversight): a whole-token match still credits a bare
+    /// PROSE word that happens to equal a root-level path — a sentence containing the word
+    /// `OWNERS` reaches the root `OWNERS` file. Distinguishing "the word" from "the path"
+    /// needs a typed reference field on the registries, not a better tokenizer. The exact-match
+    /// fix removes the substring class (a path reached by being a fragment of a DIFFERENT
+    /// path); the residual bare-word class is a much smaller surface, bounded to root-level
+    /// paths whose whole name is an ordinary English token.
+    #[test]
+    fn text_registry_reachability_is_whole_path_not_substring() {
+        let root = unique_temp_repo();
+        fs::create_dir_all(root.join("specs")).expect("create specs");
+        fs::create_dir_all(root.join("docs")).expect("create docs");
+        // NAMES `docs/OWNERS-policy.md` and `.omc/plans/milestones/M02b/README.md`; NAMES
+        // neither the root `OWNERS` nor the root `README.md`, though both occur as substrings
+        // of what it does name. Also exercises the two real reference SHAPES the live
+        // registries use: a root-anchored `/specs/...` ref and a `<path>#<fragment>` deep link.
+        fs::write(
+            root.join("specs/masterplan.json"),
+            concat!(
+                "{\n",
+                "  \"policy\": \"docs/OWNERS-policy.md\",\n",
+                "  \"readme_ref\": \".omc/plans/milestones/M02b/README.md\",\n",
+                "  \"root_anchored\": \"/specs/root-hub-pointers.json\",\n",
+                "  \"deep_link\": \"ci/facade/cross-artifact-agreement/src/lib.rs#evaluate_x\"\n",
+                "}\n"
+            ),
+        )
+        .expect("write masterplan");
+
+        let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
+        let paths: Vec<String> = [
+            "OWNERS",
+            "README.md",
+            "docs/OWNERS-policy.md",
+            "specs/root-hub-pointers.json",
+            "ci/facade/cross-artifact-agreement/src/lib.rs",
+        ]
+        .iter()
+        .map(|p| (*p).to_owned())
+        .collect();
+        let map = resolve_reachability(&root, &paths, &cfg).expect("resolve");
+
+        // RED case: substring hits that are NOT references.
+        assert!(
+            !map.contains_key("OWNERS"),
+            "root OWNERS must NOT be reachable from a registry that only mentions \
+             docs/OWNERS-policy.md and the word OWNERS in prose"
+        );
+        assert!(
+            !map.contains_key("README.md"),
+            "root README.md must NOT be reachable from a registry that only names \
+             .omc/plans/milestones/M02b/README.md"
+        );
+
+        // GREEN cases: the three shapes that ARE references must still reach.
+        for named in [
+            "docs/OWNERS-policy.md",
+            "specs/root-hub-pointers.json",
+            "ci/facade/cross-artifact-agreement/src/lib.rs",
+        ] {
+            assert_eq!(
+                map.get(named),
+                Some(&vec!["masterplan".to_owned()]),
+                "{named} IS named by the registry and must stay reachable"
+            );
+        }
+        fs::remove_dir_all(root).expect("remove temp repo");
+    }
+
     /// ADR-0555 hardening (FRIC-1781400000): the OWNERS content schema + breadth bound
     /// RED/GREEN corpus, dir-loaded from `specs/fixtures/owners-schema/` (data-under-test
     /// — the fixtures are the reviewable spec of the schema).
@@ -4340,6 +4433,13 @@ fn collect_repo_inputs(
 /// real registries (masterplan.json / root-hub-pointers.json / Cargo.toml members /
 /// DOC-CATALOG / the reviewed reachability registry) and mark each tracked path with the
 /// registries that mention it.
+///
+/// The three TEXT registries are matched by whole path token, NOT by substring. A registry
+/// reaches a path when it NAMES the path; `masterplan.contains("OWNERS")` is also true of
+/// `docs/OWNERS-policy.md`, of the JSON key `"OWNERS"`, and of the bare word in prose — so
+/// every short path (and every path that is a prefix of a longer one) was reported reachable
+/// by coincidence. That is a fail-OPEN accounting error: the whole point of the `unreachable`
+/// firewall code is that nothing lives in the tree without a live registry pointing at it.
 fn resolve_reachability(
     repo_root: &Path,
     paths: &[String],
@@ -4348,6 +4448,9 @@ fn resolve_reachability(
     let masterplan = read_text(&repo_root.join(&cfg.reachability.masterplan));
     let root_hub = read_text(&repo_root.join(&cfg.reachability.root_hub));
     let doc_catalog = read_text(&repo_root.join(&cfg.reachability.doc_catalog));
+    let masterplan = mentioned_path_index(&masterplan);
+    let root_hub = mentioned_path_index(&root_hub);
+    let doc_catalog = mentioned_path_index(&doc_catalog);
     let cargo_members = read_cargo_member_prefixes(repo_root)?;
     let registrations = load_reachability_registry(&repo_root.join(&cfg.reachability.registry))?;
 
@@ -4377,6 +4480,53 @@ fn resolve_reachability(
         }
     }
     Ok(map)
+}
+
+/// The repo-relative path-like tokens a corpus document names, in document order.
+///
+/// This is the tokenizer `resolve_justifications` has always used for the ADR corpus, lifted
+/// so reachability can share it: split on whitespace and the JSON/markdown delimiters that
+/// surround a path (`"`, backtick, parens, comma, semicolon, brackets), then trim the
+/// leader/trailer punctuation a path never carries (`:`, `#`, `*`, and a sentence-final `.`).
+/// Callers apply their own membership test; nothing here is filtered by length, so
+/// `resolve_justifications` keeps its exact `len() >= 4 && tracked.contains(..)` behaviour.
+fn path_like_tokens(body: &str) -> impl Iterator<Item = &str> {
+    body.split(|c: char| {
+        c.is_whitespace() || matches!(c, '"' | '`' | '(' | ')' | ',' | ';' | '[' | ']')
+    })
+    .map(|raw| {
+        raw.trim_matches(|c: char| matches!(c, ':' | '#' | '*'))
+            .trim_end_matches('.')
+    })
+}
+
+/// The set of repo-relative paths a registry document MENTIONS — the exact-match index that
+/// replaces the old `registry_text.contains(path)` substring probe in [`resolve_reachability`].
+///
+/// Two normalizations the ADR corpus does not need, both measured against the live registries
+/// rather than assumed:
+///
+/// 1. A leading `/` is stripped. The repo's spec surface spells root-anchored references as
+///    `/specs/root-hub-pointers.json` (see `CLAUDE.md`, `masterplan.json`
+///    `live_gate_input_refs`) while the tracked universe spells the same file
+///    `specs/root-hub-pointers.json`.
+/// 2. A `#fragment` suffix is cut. `masterplan.json` names most of its evidence anchors as
+///    `<path>#<symbol>` — `/infra/branch-protection/dev.json#required_status_checks`,
+///    `ci/facade/cross-artifact-agreement/src/lib.rs#evaluate_masterplan_v2_projection_freshness`,
+///    `specs/capability-registry.json#meta_directories[kernel/]`. Those ARE references to the
+///    file; only the deep link is extra.
+///
+/// The old substring test matched both shapes by accident. An exact test has to normalize them
+/// on purpose — without this, the fix would report ~7 genuinely-registered spec/gate files as
+/// newly unreachable, trading a fail-open bug for a fail-closed one.
+fn mentioned_path_index(body: &str) -> BTreeSet<&str> {
+    path_like_tokens(body)
+        .map(|token| {
+            let token = token.trim_start_matches('/');
+            token.split_once('#').map_or(token, |(path, _fragment)| path)
+        })
+        .filter(|token| !token.is_empty())
+        .collect()
 }
 
 /// Member directory prefixes from the workspace Cargo.toml — a path under a member
@@ -4442,12 +4592,7 @@ fn resolve_justifications(
         };
         let body = read_text(adr_path);
         // Walk whitespace/quote-delimited tokens; keep those that are tracked paths.
-        for raw in body.split(|c: char| {
-            c.is_whitespace() || matches!(c, '"' | '`' | '(' | ')' | ',' | ';' | '[' | ']')
-        }) {
-            let token = raw
-                .trim_matches(|c: char| matches!(c, ':' | '#' | '*'))
-                .trim_end_matches('.');
+        for token in path_like_tokens(&body) {
             if token.len() >= 4 && tracked.contains(token) {
                 mentioned
                     .entry(token.to_owned())
