@@ -118,7 +118,9 @@ pub struct RepoInputs {
     /// (ADR-0555 hardening, FRIC-1781400000) — the binary's `resolve_owners` enforces
     /// both before a path ever lands in this map.
     pub owners: BTreeMap<String, String>,
-    /// path -> justification ref (ADR-####/spec $id/need:<ticket>). Absent ⇒ unjustified.
+    /// path -> justification ref (ADR-####/spec $id/need:<ticket>). Absent AND unreached ⇒
+    /// unjustified: `build_registry` falls back to `reached:<source>` for any path a live
+    /// reachability source reaches (reached ⇒ justified).
     pub justifications: BTreeMap<String, String>,
     /// path -> the registries that reach it (masterplan|root-hub|cargo-members|doc-catalog|crosswalk).
     pub reachability: BTreeMap<String, Vec<String>>,
@@ -353,6 +355,34 @@ pub fn build_registry(inputs: &RepoInputs, policy: &Policy) -> Result<Value, Pro
             if reachable_from.is_empty() {
                 reachable_from.push(OWNERS_SCHEMA_ANCHOR.to_owned());
             }
+        }
+
+        // REACHED ⇒ JUSTIFIED. Every reachability source is itself a reviewed design act — a
+        // masterplan/root-hub/DOC-CATALOG entry, a workspace Cargo member registration, or a
+        // reachability-registry entry that MUST carry a non-empty `anchor` naming why the tree
+        // is reached (`load_reachability_registry`). Demanding a SECOND, prose restatement of
+        // that decision in an ADR body added no signal and blocked real work: the ADR-mention
+        // resolver is a context-free token match, so it credits a path named in a prohibition,
+        // an allowlist, or a Rejected ADR exactly as it credits a decision, and it collides on
+        // bare basenames (73 ADRs contain the token `Cargo.toml`).
+        //
+        // The fallback is a RULE, never a per-path exemption list, and it is strictly weaker
+        // than reachability: a path reached by NOTHING leaves `reachable_from` empty, so this
+        // yields `None` and the row still raises BOTH `unjustified` and `unreachable`.
+        // `resolve_reachability` pushes sources in a fixed order, so `first()` is deterministic
+        // and the face stays byte-stable. The ADR corpus still wins when it names the path, so
+        // no existing `justification_ref` changes value.
+        //
+        // It runs AFTER the OWNERS floor, and the ORDER IS LOAD-BEARING — not because the
+        // floor's `reachable_from` push feeds `first()` (it cannot: the floor fills
+        // `justification_ref` for every valid OWNERS file, so this fallback is always a no-op
+        // on them, and `reached:owners-schema` is unreachable by construction), but because a
+        // valid OWNERS file that ALSO resolves a reachability source would otherwise be stamped
+        // `reached:cargo-members` instead of `owners-schema`. That would silently empty the
+        // `justification_ref == "owners-schema"` census [`OWNERS_SCHEMA_ANCHOR`] documents as
+        // the way a reviewer enumerates every by-construction row.
+        if justification_ref.is_none() {
+            justification_ref = reachable_from.first().map(|src| format!("reached:{src}"));
         }
         // No last-touch column (ADR-0552, FRIC-1781234047): per-path last-touch revision ids
         // are HISTORY-derived volatile facts — a squash-merge rewrites them for every path
@@ -1677,6 +1707,82 @@ mod tests {
         assert_eq!(orphan["verdict"], "RED");
     }
 
+    /// REACHED ⇒ JUSTIFIED, as a rule over every reachability source — and the safety floor
+    /// that makes the rule admissible: a path reached by NOTHING still raises BOTH codes.
+    /// This is the whole safety argument for collapsing `unjustified` into `unreachable`.
+    #[test]
+    fn reached_paths_are_justified_by_the_reaching_source_and_unreached_paths_are_not() {
+        let policy = Policy::from_bundled().expect("policy");
+        let sources = [
+            "masterplan",
+            "root-hub",
+            "doc-catalog",
+            "cargo-members",
+            "reachability-registry",
+        ];
+        let mut inputs = RepoInputs {
+            tracked_paths: vec!["oya/unreached/src/lib.rs".into()],
+            ..RepoInputs::default()
+        };
+        for source in sources {
+            let path = format!("oya/{source}/src/lib.rs");
+            inputs.tracked_paths.push(path.clone());
+            inputs.reachability.insert(path, vec![source.to_owned()]);
+        }
+        let registry = build_registry(&inputs, &policy).expect("registry");
+        let rows = registry["rows"].as_array().expect("rows");
+        let row = |path: &str| {
+            rows.iter()
+                .find(|r| r["path"] == path)
+                .unwrap_or_else(|| panic!("row for {path}"))
+                .clone()
+        };
+
+        // Every reaching source justifies, naming WHICH source did it.
+        for source in sources {
+            let record = row(&format!("oya/{source}/src/lib.rs"));
+            assert_eq!(
+                record["justification_ref"],
+                serde_json::json!(format!("reached:{source}")),
+                "{source} must justify the paths it reaches"
+            );
+            let codes = ci_artifact_accountability::evaluate_keyed(&registry);
+            assert!(
+                !codes.iter().any(|f| f.code == "unjustified"
+                    && f.key == format!("oya/{source}/src/lib.rs")),
+                "a path reached by {source} must not be unjustified"
+            );
+        }
+
+        // The floor: reached by NOTHING ⇒ no justification laundered in, BOTH codes raised.
+        let unreached = row("oya/unreached/src/lib.rs");
+        assert_eq!(unreached["justification_ref"], serde_json::Value::Null);
+        assert_eq!(unreached["verdict"], "RED");
+        let codes: BTreeSet<String> = ci_artifact_accountability::evaluate_keyed(&registry)
+            .into_iter()
+            .filter(|f| f.key == "oya/unreached/src/lib.rs")
+            .map(|f| f.code)
+            .collect();
+        assert!(
+            codes.contains("unjustified") && codes.contains("unreachable"),
+            "an unregistered artifact must still raise BOTH codes, got {codes:?}"
+        );
+    }
+
+    /// The ADR corpus still wins when it names the path: the fallback never overwrites a real
+    /// decision ref, so no existing `justification_ref` changes value.
+    #[test]
+    fn an_adr_justification_is_not_overwritten_by_the_reaching_source() {
+        let policy = Policy::from_bundled().expect("policy");
+        let registry = build_registry(&sample_inputs(), &policy).expect("registry");
+        let rows = registry["rows"].as_array().expect("rows");
+        let masterplan = rows
+            .iter()
+            .find(|r| r["path"] == "specs/masterplan.json")
+            .expect("masterplan row");
+        assert_eq!(masterplan["justification_ref"], "ADR-0364");
+    }
+
     #[test]
     fn gate_baseline_freezes_current_keys_and_stamps_disposition() {
         // total-accounting: one row with an unowned + unjustified + unreachable + no_ttl_class
@@ -2255,6 +2361,39 @@ mod tests {
         let registry = build_registry(&inputs, &policy).expect("registry");
         let row = &registry["rows"].as_array().expect("rows")[0];
         assert_eq!(row["justification_ref"], "ADR-0543");
+        assert_eq!(row["reachable_from"], serde_json::json!(["cargo-members"]));
+    }
+
+    /// ORDERING: the OWNERS floor runs BEFORE the reached ⇒ justified fallback. Both rules
+    /// fill an absent `justification_ref`, so on a valid OWNERS file that ALSO resolves a
+    /// reachability source the two race — and only the floor's answer keeps the row findable
+    /// by the `justification_ref == "owners-schema"` census [`OWNERS_SCHEMA_ANCHOR`] documents.
+    ///
+    /// TODAY's corpus does not exercise this: all 108 tracked OWNERS files either carry an ADR
+    /// justification already or resolve no reachability but the floor's own. It bites as the
+    /// reorg lands new OWNERS files under cargo members with no ADR prose — exactly the case
+    /// the floor exists to serve — so the ordering needs a test, not a comment.
+    #[test]
+    fn owners_floor_wins_over_the_reached_fallback_for_an_unjustified_valid_owners_file() {
+        let policy = Policy::from_bundled().expect("policy");
+        let inputs = RepoInputs {
+            tracked_paths: tracked(&["cloud/x/OWNERS"]),
+            owners: BTreeMap::new(),
+            justifications: BTreeMap::new(),
+            reachability: BTreeMap::from([(
+                "cloud/x/OWNERS".to_owned(),
+                vec!["cargo-members".to_owned()],
+            )]),
+            dup_of: BTreeMap::new(),
+            valid_owners_files: BTreeSet::from(["cloud/x/OWNERS".to_owned()]),
+        };
+        let registry = build_registry(&inputs, &policy).expect("registry");
+        let row = &registry["rows"].as_array().expect("rows")[0];
+        assert_eq!(
+            row["justification_ref"], OWNERS_SCHEMA_ANCHOR,
+            "the floor must stamp the by-construction anchor, not `reached:cargo-members`"
+        );
+        // The floor never displaces a reachability source it did not need to supply.
         assert_eq!(row["reachable_from"], serde_json::json!(["cargo-members"]));
     }
 

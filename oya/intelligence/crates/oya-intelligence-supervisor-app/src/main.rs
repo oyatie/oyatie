@@ -3,20 +3,18 @@
 use std::fs;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use oya_intelligence_account_adapter_inmemory::InMemorySecretStoreAdapter;
-use oya_intelligence_autonomy_ceiling_domain::CeilingPolicy;
-use oya_intelligence_claude_account_adapter::ClaudeDriver;
-use oya_intelligence_codex_account_adapter::CodexDriver;
-use oya_intelligence_gemini_account_adapter::GeminiDriver;
-use oya_intelligence_jsonl_supervisor_adapter::{JsonlInboxStore, JsonlOutboxSink};
-use oya_intelligence_settings_template_adapter::{MultiProviderRenderer, TemplateStore};
+use intelligence_account_adapter_inmemory::InMemorySecretStoreAdapter;
+use intelligence_autonomy_ceiling_domain::CeilingPolicy;
+use intelligence_cli_session_driver::CliSessionDriver;
+use intelligence_jsonl_supervisor_adapter::{JsonlInboxStore, JsonlOutboxSink};
+use intelligence_settings_template_adapter::{MultiProviderRenderer, TemplateStore};
 use oya_intelligence_supervisor_app::SupervisorApp;
 use intelligence_supervisor_kernel::{
     AccountId, AccountSnapshotProvider, AuditChainPort, ProviderFamily, RendererMode,
     SupervisorAccount, SupervisorConfig, SupervisorError, SupervisorEvent, UsageWindowPort,
     UsageWindowSnapshot,
 };
-use oya_intelligence_supervisor_security_adapter::CedarAutonomyCeilingAdapter;
+use intelligence_supervisor_security_adapter::CedarAutonomyCeilingAdapter;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -50,9 +48,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // 4. Setup drivers
     let drivers = vec![
-        Driver::Claude(ClaudeDriver::new(secrets_adapter.clone())),
-        Driver::Codex(CodexDriver::new(secrets_adapter.clone())),
-        Driver::Gemini(GeminiDriver::new(secrets_adapter.clone())),
+        CliSessionDriver::claude(secrets_adapter.clone()),
+        CliSessionDriver::codex(secrets_adapter.clone()),
+        CliSessionDriver::gemini(secrets_adapter.clone()),
     ];
 
     // 5. Setup other ports
@@ -182,74 +180,5 @@ impl AccountSnapshotProvider for FileAccountSnapshotProvider {
             }
         }
         accounts
-    }
-}
-
-// ── Driver Enum Wrapper ──────────────────────────────────────────────────────
-
-enum Driver {
-    Claude(ClaudeDriver<InMemorySecretStoreAdapter>),
-    Codex(CodexDriver<InMemorySecretStoreAdapter>),
-    Gemini(GeminiDriver<InMemorySecretStoreAdapter>),
-}
-
-impl intelligence_supervisor_kernel::SessionDriver for Driver {
-    fn provider_family(&self) -> ProviderFamily {
-        match self {
-            Self::Claude(d) => d.provider_family(),
-            Self::Codex(d) => d.provider_family(),
-            Self::Gemini(d) => d.provider_family(),
-        }
-    }
-    fn spawn_for_message(
-        &self,
-        ticket: &intelligence_supervisor_kernel::SessionTicket,
-    ) -> Result<
-        intelligence_supervisor_kernel::SpawnedSession,
-        intelligence_supervisor_kernel::SupervisorError,
-    > {
-        match self {
-            Self::Claude(d) => d.spawn_for_message(ticket),
-            Self::Codex(d) => d.spawn_for_message(ticket),
-            Self::Gemini(d) => d.spawn_for_message(ticket),
-        }
-    }
-    fn inject_message(
-        &self,
-        session: &intelligence_supervisor_kernel::SpawnedSession,
-        msg: &[u8],
-    ) -> Result<(), intelligence_supervisor_kernel::SupervisorError> {
-        match self {
-            Self::Claude(d) => d.inject_message(session, msg),
-            Self::Codex(d) => d.inject_message(session, msg),
-            Self::Gemini(d) => d.inject_message(session, msg),
-        }
-    }
-    fn drain_response(
-        &self,
-        session: &intelligence_supervisor_kernel::SpawnedSession,
-    ) -> Result<Vec<u8>, intelligence_supervisor_kernel::SupervisorError> {
-        match self {
-            Self::Claude(d) => d.drain_response(session),
-            Self::Codex(d) => d.drain_response(session),
-            Self::Gemini(d) => d.drain_response(session),
-        }
-    }
-    fn kill(
-        &self,
-        session: &intelligence_supervisor_kernel::SpawnedSession,
-    ) -> Result<(), intelligence_supervisor_kernel::SupervisorError> {
-        match self {
-            Self::Claude(d) => d.kill(session),
-            Self::Codex(d) => d.kill(session),
-            Self::Gemini(d) => d.kill(session),
-        }
-    }
-    fn health_check(&self) -> intelligence_supervisor_kernel::DriverHealth {
-        match self {
-            Self::Claude(d) => d.health_check(),
-            Self::Codex(d) => d.health_check(),
-            Self::Gemini(d) => d.health_check(),
-        }
     }
 }

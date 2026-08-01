@@ -48,6 +48,13 @@ use serde_json::Value;
 ///     required fan-in (it would have nothing to assert and would mutate the tree under presubmit).
 ///   - the planning-projection renderer: a pure library invoked by generated-artifact freshness to
 ///     materialize the untracked board projection; it has no independent admission verdict.
+///
+/// This list is an escape hatch from the invariant, so it is itself gated: every entry must have
+/// NO `ci-<crate>-gate` Buck target, enforced by
+/// [`non_gate_exclusions_are_falsifiable_against_the_build_graph`]. A real gate cannot be silenced
+/// by appending its name here. Note these crates are NOT unrun: `//ci/...` in the required `buck2`
+/// job runs their `-unittest` targets, and planning-projection's library code additionally runs
+/// inside the bespoke `gate-generated-artifact-freshness` lane that depends on it.
 const PRODUCER_CRATE: &str = "artifact-inventory-registry";
 const NON_GATE_CRATES: [&str; 3] = [
     "artifact-inventory-registry",
@@ -853,6 +860,59 @@ fn every_gate_crate_is_registered_in_oya_ci_required_workflow() {
         gates.display(),
         wf.display(),
         missing
+    );
+}
+
+/// `NON_GATE_CRATES` is the ONE hole in the registration invariant above, and until this test it
+/// was an unfalsifiable ASSERTION: nothing stopped a real gate lane from being permanently
+/// silenced by appending its directory name to that list — the exact "declared-but-unregistered
+/// machinery silently no-ops" failure the registration meta-test exists to prevent, reintroduced
+/// one level up in the meta-test's own escape hatch.
+///
+/// This anchors each exclusion to the BUILD GRAPH, where "is this a gate lane?" is objectively
+/// answerable instead of self-declared. A gate lane is exactly a crate whose BUCK declares
+/// `ci-<dir>-gate` — the target the required workflow's matrix leg expands to
+/// (`//ci/facade/{0}:ci-{0}-gate`). A crate with no such target CANNOT be run as a matrix leg at
+/// all (buck2 exits BUILD FAILED on the unknown target), which is the positive, checkable reason
+/// it is excluded rather than merely unregistered.
+///
+/// So: if a `-gate` target ever appears in an excluded crate, that crate IS a gate lane and MUST
+/// be registered in the required workflow — this test REDs and says so, instead of the new gate
+/// never running and every subsequent merge going unchecked by it.
+///
+/// The converse (every NON-excluded crate declares a `-gate` target) is deliberately NOT asserted:
+/// `affected-target-set` and `generated-artifact-freshness` are legitimately registered as bespoke
+/// jobs that drive `rust_binary` targets, not `-gate` rust_tests.
+#[test]
+fn non_gate_exclusions_are_falsifiable_against_the_build_graph() {
+    let root = repo_root();
+    let gates = gates_dir(&root);
+
+    let mut wrongly_excluded: Vec<String> = Vec::new();
+    for crate_dir in NON_GATE_CRATES {
+        let buck = gates.join(crate_dir).join("BUCK");
+        // Same sanity check PRODUCER_CRATE gets: a stale or misspelled exclusion silently widens
+        // the hole (it excludes nothing, but hides that the name no longer resolves).
+        assert!(
+            buck.is_file(),
+            "NON_GATE_CRATES lists `{crate_dir}`, but {} does not exist — the exclusion is stale \
+             (crate renamed or removed). Drop the entry or fix the name.",
+            buck.display()
+        );
+        if read_to_string(&buck).contains(&format!("\"ci-{crate_dir}-gate\"")) {
+            wrongly_excluded.push(crate_dir.to_owned());
+        }
+    }
+
+    assert!(
+        wrongly_excluded.is_empty(),
+        "crate(s) excluded by NON_GATE_CRATES that DO declare a `ci-<crate>-gate` Buck target, so \
+         they are real gate lanes being silently skipped by the registration invariant: {:?}\n\
+         Either register each one in {} (matrix leg `- {{ crate: <crate>, label: \"gate · … \" }}`, \
+         a bespoke `-p <crate>` job, or a `//ci/facade/<crate>:` Buck target job) and remove it \
+         from NON_GATE_CRATES, or delete the `-gate` target if it was never meant to be a lane.",
+        wrongly_excluded,
+        workflow_path(&root).display()
     );
 }
 
