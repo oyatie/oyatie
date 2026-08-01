@@ -17,9 +17,10 @@ use ci_scm_facts_snapshot::retirement::{
     write_canonical_ignored_generated_file,
 };
 use ci_scm_facts_snapshot::{
-    command_status_with_captured_stderr, command_status_with_timeout, discover_repo_root,
-    dormant_p3_epoch_fingerprint, emit_adr_census_epoch_receipt,
-    emit_adr_census_epoch_receipt_for_event, load_vocab_policy, output_path_resolver,
+    ADR_CENSUS_PARENT_RECEIPT_PATH, P2ParentReceipt, command_status_with_captured_stderr,
+    command_status_with_timeout, discover_repo_root, dormant_p3_epoch_fingerprint,
+    emit_adr_census_epoch_receipt, emit_adr_census_epoch_receipt_for_event, load_vocab_policy,
+    output_path_resolver,
     retirement::{
         GENERATED_FACTS_PATH, RetirementMaterializationContext, emit_history_only_retirement_facts,
         historical_dev_push_context, visit_git_blobs, write_canonical_retirement_facts,
@@ -561,6 +562,27 @@ fn p3_history_fixture(label: &str) -> PathBuf {
         "bind current P3 policy to historical P2 ancestry",
     );
     root
+}
+
+/// Copy the pre-step's materialized P2 parent receipt into a fixture clone.
+///
+/// Deliberately `expect`s rather than skipping: an active-P2 emission cannot be exercised at all
+/// without these bytes, and a test that quietly passed because the pre-step never ran would be a
+/// false green strictly worse than a red.
+fn copy_materialized_p2_parent_receipt(root: &Path) -> PathBuf {
+    let source = discover_repo_root()
+        .expect("discover source repository root")
+        .join(ADR_CENSUS_PARENT_RECEIPT_PATH);
+    let destination = root.join(ADR_CENSUS_PARENT_RECEIPT_PATH);
+    std::fs::create_dir_all(destination.parent().expect("parent receipt face parent"))
+        .expect("create parent receipt face directory");
+    std::fs::copy(&source, &destination).unwrap_or_else(|error| {
+        panic!(
+            "the out-of-graph pre-step must have materialized {}: {error}",
+            source.display()
+        )
+    });
+    destination
 }
 
 fn mutate_fixture_and_commit(root: &Path, path: &str, mutation: &[u8]) {
@@ -1193,9 +1215,11 @@ fn active_p2_epoch_emission_preserves_the_fixed_historical_receipt() {
         ),
     };
     match event.as_ref() {
-        Some(event) => emit_adr_census_epoch_receipt_for_event(event, &output)
-            .expect("emit event-bound active P2 epoch receipt"),
-        None => emit_adr_census_epoch_receipt(&repo_root, &output)
+        Some(event) => {
+            emit_adr_census_epoch_receipt_for_event(event, &output, P2ParentReceipt::Materialized)
+                .expect("emit event-bound active P2 epoch receipt")
+        }
+        None => emit_adr_census_epoch_receipt(&repo_root, &output, P2ParentReceipt::Materialized)
             .expect("emit local active P2 epoch receipt"),
     }
     let receipt = std::fs::read(&output).expect("read active P2 receipt");
@@ -1469,7 +1493,7 @@ fn synthetic_pr_p3_receipt_uses_evaluated_tree_while_subject_history_stays_point
     let output_root = temp_path("synthetic-pr-p3-evaluated-receipt");
     std::fs::create_dir(&output_root).expect("create external P3 receipt output root");
     let output = output_root.join("receipt.json");
-    emit_adr_census_epoch_receipt_for_event(&validated, &output)
+    emit_adr_census_epoch_receipt_for_event(&validated, &output, P2ParentReceipt::Materialized)
         .expect("event-bound P3 receipt must materialize");
     validate_adr_census_epoch_receipt_for_event(&validated, &output)
         .expect("event-bound P3 receipt must validate");
@@ -1502,6 +1526,10 @@ fn synthetic_pr_p3_receipt_uses_evaluated_tree_while_subject_history_stays_point
 #[test]
 fn synthetic_pr_p3_to_p2_pointer_only_rollback_emits_the_fixed_receipt() {
     let root = p3_history_fixture("synthetic-pr-p3-to-p2-rollback");
+    // The fixture is a bare-ish clone, so it carries no untracked face. Rolling back to P2 makes
+    // this emission a P2 one, which CONSUMES the pre-step's parent receipt — copy it in from the
+    // source checkout, and fail loudly (not skip) when the pre-step has not run.
+    copy_materialized_p2_parent_receipt(&root);
     write_census_control(&root, "P3");
     let protected = commit_all(&root, "activate protected P3 pointer");
 
@@ -1528,7 +1556,7 @@ fn synthetic_pr_p3_to_p2_pointer_only_rollback_emits_the_fixed_receipt() {
     let output_root = temp_path("synthetic-pr-p3-to-p2-receipt");
     std::fs::create_dir(&output_root).expect("create external P2 rollback receipt root");
     let output = output_root.join("receipt.json");
-    emit_adr_census_epoch_receipt_for_event(&validated, &output)
+    emit_adr_census_epoch_receipt_for_event(&validated, &output, P2ParentReceipt::Materialized)
         .expect("event-bound P2 rollback receipt must materialize");
     validate_adr_census_epoch_receipt_for_event(&validated, &output)
         .expect("event-bound P2 rollback receipt must validate");
@@ -1543,6 +1571,59 @@ fn synthetic_pr_p3_to_p2_pointer_only_rollback_emits_the_fixed_receipt() {
 
     std::fs::remove_dir_all(output_root).expect("remove external P2 rollback receipt");
     std::fs::remove_dir_all(root).expect("remove P3 to P2 rollback fixture");
+}
+
+/// The in-graph P2 contract, pinned in all three states so "it passed" cannot mean "it checked
+/// nothing": absent face -> named failure, wrong bytes -> named failure, real bytes -> the fixed
+/// receipt. Written as one test on ONE fixture so the green leg is the same emission as the two
+/// red ones, which is what makes them evidence rather than assertion.
+#[test]
+fn active_p2_emission_consumes_the_out_of_graph_parent_receipt_and_never_skips() {
+    let root = p3_history_fixture("p2-parent-receipt-contract");
+    let output_root = temp_path("p2-parent-receipt-contract-out");
+    std::fs::create_dir(&output_root).expect("create parent-receipt contract output root");
+    let output = output_root.join("receipt.json");
+
+    let absent = emit_adr_census_epoch_receipt(&root, &output, P2ParentReceipt::Materialized)
+        .expect_err("an absent parent receipt face must fail the emission, never skip it");
+    assert!(
+        absent.contains("read materialized exact historical P2 parent receipt"),
+        "{absent}"
+    );
+    assert!(
+        absent.contains("oya-cloud-ci-materialize-generated-faces-bin"),
+        "the failure must name the out-of-graph pre-step that produces it: {absent}"
+    );
+    assert!(
+        !output.exists(),
+        "a failed emission must leave no receipt behind"
+    );
+
+    let face = copy_materialized_p2_parent_receipt(&root);
+    let mut tampered = std::fs::read(&face).expect("read copied parent receipt face");
+    tampered[0] ^= 1;
+    std::fs::write(&face, tampered).expect("tamper the parent receipt face");
+    let corrupted = emit_adr_census_epoch_receipt(&root, &output, P2ParentReceipt::Materialized)
+        .expect_err("a tampered parent receipt face must fail the emission");
+    assert!(
+        corrupted.contains("exact historical P2 whole-file digest differs"),
+        "{corrupted}"
+    );
+
+    copy_materialized_p2_parent_receipt(&root);
+    emit_adr_census_epoch_receipt(&root, &output, P2ParentReceipt::Materialized)
+        .expect("the restored parent receipt face must emit");
+    assert_eq!(
+        format!(
+            "{:x}",
+            sha2::Sha256::digest(std::fs::read(&output).expect("read restored receipt"))
+        ),
+        FIXED_P2_EPOCH_RECEIPT_SHA256,
+        "the same emission that went red twice must produce the fixed receipt from real bytes"
+    );
+
+    std::fs::remove_dir_all(output_root).expect("remove parent-receipt contract output");
+    std::fs::remove_dir_all(root).expect("remove parent-receipt contract fixture");
 }
 
 #[test]
@@ -1606,9 +1687,13 @@ fn active_control_linear_push_matches_local_receipt_bytes() {
     std::fs::create_dir(&output_root).expect("create external push receipt root");
     let event_output = output_root.join("event.json");
     let local_output = output_root.join("local.json");
-    emit_adr_census_epoch_receipt_for_event(&validated, &event_output)
-        .expect("event-bound push receipt must materialize");
-    emit_adr_census_epoch_receipt(&root, &local_output)
+    emit_adr_census_epoch_receipt_for_event(
+        &validated,
+        &event_output,
+        P2ParentReceipt::Materialized,
+    )
+    .expect("event-bound push receipt must materialize");
+    emit_adr_census_epoch_receipt(&root, &local_output, P2ParentReceipt::Materialized)
         .expect("local receipt at the evaluated commit must materialize");
     assert_eq!(
         std::fs::read(&event_output).expect("read event-bound push receipt"),
@@ -1657,7 +1742,7 @@ fn active_p3_merge_group_emits_from_the_exact_evaluated_tree() {
     let output_root = temp_path("active-p3-merge-group-receipt");
     std::fs::create_dir(&output_root).expect("create external merge-group receipt root");
     let output = output_root.join("receipt.json");
-    emit_adr_census_epoch_receipt_for_event(&validated, &output)
+    emit_adr_census_epoch_receipt_for_event(&validated, &output, P2ParentReceipt::Materialized)
         .expect("event-bound merge-group receipt must materialize");
     validate_adr_census_epoch_receipt_for_event(&validated, &output)
         .expect("event-bound merge-group receipt must validate");
@@ -1724,7 +1809,7 @@ fn root_commit_p3_control_reaches_named_bootstrap_shape_failure() {
     commit_all(&root, "root P3 control");
 
     let output = root.join("out/adr-census-epoch-receipt.generated.json");
-    let error = emit_adr_census_epoch_receipt(&root, &output)
+    let error = emit_adr_census_epoch_receipt(&root, &output, P2ParentReceipt::Materialized)
         .expect_err("a root P3 control must fail the bootstrap shape rule");
     std::fs::remove_dir_all(&root).expect("remove root P3 control fixture");
 
