@@ -9,7 +9,7 @@ supersedes: []
 superseded_by: []
 amends: []
 amended_by: [ADR-0565]
-related: [ADR-0011, ADR-0037, ADR-0064, ADR-0131, ADR-0145, ADR-0150, ADR-0244, ADR-0250, ADR-0565]
+related: [ADR-0011, ADR-0037, ADR-0064, ADR-0131, ADR-0145, ADR-0150, ADR-0203, ADR-0244, ADR-0250, ADR-0565]
 related_specs:
   - /specs/microservices/manifest-schema.json
   - /specs/hyperscaler-architecture-invariants.json
@@ -27,11 +27,18 @@ authority_chain: council-architecture
 
 Accepted (2026-05-20). Tier-1 lockdown ADR. Closes the "API versioning model" gap left open by ADR-0037 (which set tier vocabulary but did not pin the canonical version-negotiation algorithm, the per-tenant pinning override, the per-µservice independent cadence, or the SDK auto-generation pipeline).
 
-This ADR is BINDING on every µservice that exposes a public REST/gRPC/AsyncAPI surface and on every internal mesh interface that crosses a µservice boundary. GraphQL is historical rejected context only; ADR-0565 removed it from the owned surface set.
+This ADR is BINDING on every µservice that exposes a public REST/OpenAPI, webhook, AsyncAPI event, or streaming surface and on every internal mesh interface that crosses a µservice boundary. GraphQL is historical rejected context only; ADR-0565 removed it from the owned surface set.
+
+## ADR-0203 public-contract reconciliation
+
+ADR-0203 fixes the public documentation and contract boundary at OpenAPI 3.2 REST plus AsyncAPI
+3.1 event, webhook, and streaming references. Public gRPC or proto3 exposure is not authorized.
+The gRPC package and URL-versioning rules below remain binding only for internal service-to-service
+RPC under mTLS; displaying internal Protobuf descriptors does not create a public contract.
 
 ## Context
 
-oyatie ships a hyperscaler-grade API surface: the public REST/gRPC/AsyncAPI surface (Workspace, Cloud, Foundry, Verticals, Connect, Search) and the internal mesh surface (µservice ↔ µservice gRPC under mTLS, per ADR-0145). GraphQL is not an owned surface under ADR-0565. Both surfaces evolve continuously. Without a single canonical versioning model:
+oyatie ships a hyperscaler-grade API surface: the public REST/OpenAPI, webhook, AsyncAPI event, and streaming surface (Workspace, Cloud, Foundry, Verticals, Connect, Search) and the internal mesh surface (µservice ↔ µservice gRPC under mTLS, per ADR-0145). GraphQL is not an owned surface under ADR-0565. Both surfaces evolve continuously. Without a single canonical versioning model:
 
 1. Tenant SDKs and ISV integrations break silently when µservices ship breaking changes (violates `feedback_no_silent_regression`).
 2. Per-µservice teams invent ad-hoc conventions (URL versioning here, query-param versioning there, header versioning elsewhere), producing the per-axis-vocabulary fragmentation that ADR-0001 (cohesion thesis) forbids.

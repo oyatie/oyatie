@@ -488,6 +488,101 @@ fn zero_graphql_authority_has_reciprocal_edges_and_no_live_surface() {
     );
 }
 
+/// ADR-0203 owns the self-contained public documentation boundary in this authority epoch:
+/// OpenAPI REST plus AsyncAPI event/webhook/streaming references, with Protobuf descriptors
+/// visible only to internal service owners. ADR-0258 and the absorbed sequencing sidecar must not
+/// silently turn internal gRPC/proto3 into a public contract.
+#[test]
+fn public_protocol_authority_keeps_grpc_and_proto_internal() {
+    let root = repo_root();
+    let documentation = fs::read_to_string(
+        root.join("docs/decisions/ADR-0203-documentation-engine-three-tier.md"),
+    )
+    .expect("read ADR-0203");
+    let versioning =
+        fs::read_to_string(root.join("docs/decisions/ADR-0258-api-versioning-model.md"))
+            .expect("read ADR-0258");
+    let sequencing = load_json(&root.join("specs/master-plan-sequencing.json"));
+
+    assert!(
+        documentation.contains("- Status: Accepted")
+            && documentation.contains("ADR-0258 (API versioning model)")
+            && versioning.contains("status: Accepted")
+            && versioning.contains("ADR-0203")
+            && versioning.contains("## ADR-0203 public-contract reconciliation"),
+        "ADR-0203 and ADR-0258 must stay Accepted, related, and explicitly reconciled"
+    );
+    for required in [
+        "OpenAPI 3.2 REST",
+        "AsyncAPI\n3.1 event, webhook, and streaming references",
+        "Public gRPC or proto3 exposure is not authorized",
+        "internal service-to-service\nRPC under mTLS",
+        "displaying internal Protobuf descriptors does not create a public contract",
+    ] {
+        assert!(
+            versioning.contains(required),
+            "ADR-0258 must preserve the reconciled protocol invariant {required:?}"
+        );
+    }
+    assert!(
+        documentation.contains(
+            "Protobuf descriptors may be shown for internal service owners but do not create a public gRPC\n  contract"
+        ),
+        "ADR-0203 must keep Protobuf documentation internal-only"
+    );
+
+    let normalized_versioning = versioning
+        .split_whitespace()
+        .collect::<Vec<_>>()
+        .join(" ")
+        .to_ascii_lowercase();
+    for contradiction in [
+        "public rest/grpc",
+        "public http/grpc",
+        "proto3 services exposed externally",
+        "proto3 reserved field oyatie_version",
+    ] {
+        assert!(
+            !normalized_versioning.contains(contradiction),
+            "ADR-0258 reintroduced public RPC authority {contradiction:?}"
+        );
+    }
+
+    let rendered_plan = serde_json::to_string(&sequencing)
+        .expect("sequencing must serialize")
+        .to_ascii_lowercase();
+    for contradiction in [
+        "public rest/asyncapi/proto3",
+        "proto3 services exposed externally",
+        "proto3 reserved field oyatie_version",
+        "versionsservice",
+        "contracts/*.proto",
+    ] {
+        assert!(
+            !rendered_plan.contains(contradiction),
+            "sequencing reintroduced public RPC authority {contradiction:?}"
+        );
+    }
+    let wave = &sequencing["realignment_wave_sequence"]["waves_15_plus"]
+        ["sub_wave_landings"]["15V-API-Versioning-Adoption"];
+    let rendered_wave = serde_json::to_string(wave)
+        .expect("15V must serialize")
+        .to_ascii_lowercase();
+    for required in [
+        "openapi 3.2.0",
+        "signed/versioned webhook",
+        "asyncapi 3.1.0",
+        "streaming",
+        "internal-mesh grpc/proto3",
+        "exempt",
+    ] {
+        assert!(
+            rendered_wave.contains(required),
+            "15V must preserve the carrier boundary {required:?}"
+        );
+    }
+}
+
 /// Developer-SDK IP file bindings are optional. When present, each binding must identify an exact
 /// implementation-plan artifact for that row; broad doctrine notes and ADRs cannot stand in for it.
 #[test]
