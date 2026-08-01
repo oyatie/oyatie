@@ -14,7 +14,7 @@
 //! - every capability `absorbs_current_dirs` entry that is a TOP-LEVEL dir (no
 //!   `/`) — the capability's own root — must appear in the module-membership
 //!   `allowed_top_level_dirs`, the root-hygiene `allowed_root_dirs`, AND the
-//!   tier-dependency roots (`unclassified_roots` ∪ `service_roots`);
+//!   tier-dependency roots (`unclassified_roots` ∪ `service_roots` ∪ `capability_roots`);
 //! - every registry `meta_directories[].dir` (normalized, trailing `/` stripped)
 //!   must appear in the module-membership `allowed_top_level_dirs` — the
 //!   ADR-0562 closed-set authority for the meta ring — AND in the root-hygiene
@@ -130,7 +130,7 @@ fn string_set(
 ///     "root_hygiene":     { "path": "ci/facade/repo-root-hygiene/root-workspace-hygiene-policy.json",
 ///                            "document": { "allowed_root_dirs": ["policy", ...] } },
 ///     "tier_dependency":  { "path": "ci/facade/layer-dependency-acyclicity/tier-dependency-acyclicity-policy.json",
-///                            "document": { "unclassified_roots": ["policy", ...], "service_roots": ["cloud", "oya"] } }
+///                            "document": { "unclassified_roots": ["policy", ...], "service_roots": ["cloud", "oya"], "capability_roots": ["cell", ...] } }
 ///   }
 /// }
 /// ```
@@ -160,8 +160,12 @@ pub fn evaluate_registry_derived_policy_sync(corpus: &Value) -> BTreeSet<Finding
         membership.path,
         &mut findings,
     );
-    let membership_scan_roots =
-        string_set(membership.document, "scan_roots", membership.path, &mut findings);
+    let membership_scan_roots = string_set(
+        membership.document,
+        "scan_roots",
+        membership.path,
+        &mut findings,
+    );
     let root_hygiene_roots = string_set(
         root_hygiene.document,
         "allowed_root_dirs",
@@ -177,6 +181,17 @@ pub fn evaluate_registry_derived_policy_sync(corpus: &Value) -> BTreeSet<Finding
     tier_roots.extend(string_set(
         tier.document,
         "service_roots",
+        tier.path,
+        &mut findings,
+    ));
+    // `capability_roots` is the TIER-ENFORCED home for capability trees. It must join the union or
+    // this check would RED the correct fix: moving a capability root out of `unclassified_roots`
+    // into `capability_roots` keeps it declared, and reporting that as a desync would leave
+    // `unclassified_roots` (the silent-exemption list) as the only union member a capability could
+    // legally sit in — which is how it grew to 24 capability entries in the first place.
+    tier_roots.extend(string_set(
+        tier.document,
+        "capability_roots",
         tier.path,
         &mut findings,
     ));
@@ -198,7 +213,7 @@ pub fn evaluate_registry_derived_policy_sync(corpus: &Value) -> BTreeSet<Finding
         }
         if !tier_roots.contains(root) {
             findings.insert(desync(&format!(
-                "{}#unclassified_roots|service_roots:{root}",
+                "{}#unclassified_roots|service_roots|capability_roots:{root}",
                 tier.path
             )));
         }
@@ -331,7 +346,7 @@ mod tests {
                 },
                 "tier_dependency": {
                     "path": "ci/facade/layer-dependency-acyclicity/tier-dependency-acyclicity-policy.json",
-                    "document": { "unclassified_roots": ["policy", "cell"], "service_roots": ["cloud", "oya"] }
+                    "document": { "unclassified_roots": ["policy", "cell"], "service_roots": ["cloud", "oya"], "capability_roots": [] }
                 }
             }
         })
@@ -367,9 +382,25 @@ mod tests {
         assert_eq!(
             keys(&findings),
             vec![
-                "ci/facade/layer-dependency-acyclicity/tier-dependency-acyclicity-policy.json#unclassified_roots|service_roots:cell".to_owned(),
+                "ci/facade/layer-dependency-acyclicity/tier-dependency-acyclicity-policy.json#unclassified_roots|service_roots|capability_roots:cell".to_owned(),
                 "ci/facade/repo-root-hygiene/root-workspace-hygiene-policy.json#allowed_root_dirs:cell".to_owned(),
             ]
+        );
+    }
+
+    #[test]
+    fn a_capability_root_is_accepted_from_tier_capability_roots() {
+        // The WIRING assertion for the tier gate's `capability_roots` list. Moving a capability
+        // root out of the silent-exemption list (`unclassified_roots`) and into the tier-ENFORCED
+        // list is the fix; if this union did not include `capability_roots`, that fix would be
+        // reported here as a desync — the sync gate would penalise the correct move and leave
+        // `unclassified_roots` as the only union member a capability could legally occupy.
+        let mut corpus = green_corpus();
+        corpus["policies"]["tier_dependency"]["document"]["unclassified_roots"] = json!(["policy"]);
+        corpus["policies"]["tier_dependency"]["document"]["capability_roots"] = json!(["cell"]);
+        assert!(
+            keys(&evaluate_registry_derived_policy_sync(&corpus)).is_empty(),
+            "a capability root declared in `capability_roots` is DECLARED, not desynced"
         );
     }
 

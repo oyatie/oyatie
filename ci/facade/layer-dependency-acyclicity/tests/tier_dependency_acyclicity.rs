@@ -127,22 +127,37 @@ fn frozen_baseline_is_exactly_the_live_violation_set() {
     );
     assert_eq!(
         baseline.keys.len(),
-        8,
-        "the frozen baseline holds 8 tier inversions (12 at birth, less the 3 cloud-kms -> residency \
-         S-RANK-INVERSIONs burned down by ADR-0562 move-19: oya-residency-domain left the cloud/ \
-         tier'd substrate root for the unclassified network/ capability home; less the 1 \
-         oya-saas-bench-app -> oya-saas-plugin-app SUBSTRATE-UPWARD edge burned down by ADR-0562 \
-         move-21: oya-saas-bench-app left the cloud/ tier'd substrate root for the unclassified \
-         billing/ capability home, so that inversion left the classified graph)"
+        38,
+        "the frozen baseline holds 38 rows: 8 SUBSTRATE-UPWARD + 9 S-RANK-INVERSION edges, plus 21 \
+         UNCLASSIFIED-ROOT-NOT-META roots.\n\
+         \n\
+         The 9 S-RANK-INVERSIONs are the point of the capability_roots change. This assertion \
+         previously read 8 and explained the drop from 12 as 'burned down by ADR-0562 move-19: \
+         oya-residency-domain left the cloud/ tier'd substrate root for the UNCLASSIFIED network/ \
+         capability home'. That was not burn-down — the inverting edges still exist; relocating one \
+         endpoint into an unenforced root removed them from the comparison. Tier-classifying \
+         network/ (with cell/observability/secrets/audit) brings them back, which is why this \
+         number went UP: the gate now sees inversions it had been structurally blind to.\n\
+         \n\
+         The 21 root rows are the capability roots still exempt; each burns down as its root moves \
+         to capability_roots. They are hand-added, never --emit-baseline output (see the baseline \
+         _comment) so a structural exemption cannot be laundered by re-running the tool."
     );
 }
 
 /// A fixture-scoped policy: the live policy's rules + S-rank order, but a zero crate floor (the
-/// synthetic fixtures hold only a couple of crates, far below the live false-green floor).
+/// synthetic fixtures hold only a couple of crates, far below the live false-green floor), and the
+/// ROOT-scoped rules (R6b/R6c) narrowed to the synthetic tree. The fixtures exist to exercise the
+/// EDGE rules over two synthetic services; carrying the live root lists would make every fixture
+/// verdict a function of the live repo's 21 outstanding capability exemptions instead of the edge
+/// under test.
 fn fixture_policy() -> serde_json::Value {
     let root = repo_root();
     let mut policy = load_json(&root, POLICY_PATH).expect("load policy");
     policy["min_expected_crates"] = serde_json::json!(0);
+    policy["capability_roots"] = serde_json::json!([]);
+    // Matches the fixtures' `registry_meta_dirs`, so R6b is quiet.
+    policy["unclassified_roots"] = serde_json::json!(["os"]);
     policy
 }
 
@@ -270,6 +285,7 @@ fn every_governed_glob_root_is_declared_in_the_policy() {
         .as_array()
         .expect("service_roots")
         .iter()
+        .chain(policy["capability_roots"].as_array().expect("capability_roots"))
         .chain(policy["unclassified_roots"].as_array().expect("unclassified_roots"))
         .map(|v| v.as_str().expect("root is a string"))
         .collect();
