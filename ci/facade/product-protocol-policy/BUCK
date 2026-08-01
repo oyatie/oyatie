@@ -1,0 +1,37 @@
+rust_library(
+    name = "ci-product-protocol-policy",
+    srcs = glob(["src/**/*.rs", "**/*.json"]),
+    crate = "ci_product_protocol_policy",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "ci-product-protocol-policy-unittest",
+    srcs = glob(["src/**/*.rs", "**/*.json"]),
+    crate = "ci_product_protocol_policy",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "ci-product-protocol-policy-gate",
+    srcs = glob(["tests/**/*.rs", "fixtures/**/*.json", "product-protocol-policy.json"]),
+    crate = "ci_product_protocol_policy_gate",
+    crate_root = "tests/product_protocol_policy.rs",
+    env = {
+        "OYA_ENDPOINT_TRANSPORT_PROFILE": "$(location //network/ports/transport-profile:endpoint-transport-profile.contract.json)",
+    },
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-product-protocol-policy",
+        "//network/ports/transport-profile:endpoint-transport-profile.contract.json",
+        "third-party//:serde_json",
+    ],
+)

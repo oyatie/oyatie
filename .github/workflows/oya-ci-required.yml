@@ -243,6 +243,7 @@ jobs:
           - { crate: core-dependency-isolation,           label: "gate · kernel-purity (ADR-0547, *-kernel/*-core zero transient-tech deps)" }
           - { crate: crypto-backend-policy,   label: "gate · crypto-backend-purity (ADR-0506, ring forbidden / aws-lc-rs mandated — zero ring activation)" }
           - { crate: graphql-usage-policy,  label: "gate · no-graphql-without-adr (ADR-0565, zero-GraphQL: no graphql lib / .graphql/.gql/.sdl reintroduction without a reversing ADR — candidate-tree evaluated, EMPTY frozen baseline)" }
+          - { crate: product-protocol-policy, label: "gate · product-protocol-contract (ADR-0632, public REST/events/realtime, internal gRPC/H2/proto3, TLS 1.3, benchmark-gated fabric profiles)" }
           - { crate: endpoint-authorization-coverage,          label: "gate · authz-coverage (issue #770 / AUTH-005, NEW unauthenticated HTTP control planes blocked vs frozen baseline)" }
           - { crate: caller-supplied-authorization,         label: "gate · dto-authz-trust (ADR-0582, the CLASS-FIX for caller-supplied-authz-trust: a NEW fn that trusts a forged *Authorization DTO / x-authorization-* header in place of a server-side PDP decide() is blocked vs the frozen baseline of ~92 known instances; v2: FN-01/02/03/04/05/06 hardened)" }
           - { crate: generated-artifact-policy, label: "gate · generated-artifact-control-plane (public hermetic CI artifact policy)" }

@@ -4,6 +4,7 @@
     {
       "alt_svc": "required",
       "default_protocol": "http3",
+      "fallback_protocol": "http2",
       "ech": "support_required_with_plaintext_sni_transition_fallback",
       "fallback_timeout_ms": {
         "default": 500,
@@ -44,6 +45,7 @@
       "support_required": true
     },
     "endpoint_id": "api-gateway-public",
+    "fallback_protocol": "http2",
     "fallback_timeout_ms": 500,
     "pqc": {
       "classical_transition_fallback_allowed": true,
@@ -60,6 +62,7 @@
     "tls_profile": "strict_tls13"
   },
   "contract_id": "network.transport_profile.endpoint.v1",
+  "product_protocol_contract": "specs/product-protocol-contract.json",
   "deferred_adapters": [
     {
       "name": "s2n_quic",
@@ -83,6 +86,11 @@
       "data_class": "PUBLIC",
       "name": "protocol",
       "rust_type": "TransportProtocol"
+    },
+    {
+      "data_class": "PUBLIC",
+      "name": "fallback_protocol",
+      "rust_type": "Option<TransportProtocol>"
     },
     {
       "data_class": "PUBLIC",

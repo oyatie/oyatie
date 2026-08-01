@@ -300,6 +300,14 @@
     {
       "anchor": "ADR-0625: OpenTofu provider dependency lock for this root. A lock is only meaningful beside its own root, so it is registered as an exact path rather than a tree; it relocates with its root under the reorg.",
       "prefix": "oya/identity/iac/oyatie-public-cloud/.terraform.lock.hcl"
+    },
+    {
+      "anchor": "ADR-0632 artifact accounting: exact canonical product protocol contract consumed by the cloud-ci product-protocol-policy gate and linked from the root hub.",
+      "prefix": "specs/product-protocol-contract.json"
+    },
+    {
+      "anchor": "ADR-0632 enforcement: owned Rust/Buck2 product protocol gate, policy data, negative fixtures, and tests that keep public/internal exposure, TLS, serialization, telemetry, and fabric posture fail-closed.",
+      "prefix": "ci/facade/product-protocol-policy/"
     }
   ]
 }
