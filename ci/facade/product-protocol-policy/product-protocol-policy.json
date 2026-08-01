@@ -65,14 +65,6 @@
     "accepted_statuses": [
       "accepted",
       "accepted (amendment)"
-    ],
-    "public_rpc_contradiction_markers": [
-      "native clients consume the same openapi / ~~graphql~~ [dropped per adr-0565] / connect-protocol",
-      "grpc adapter tier-b on tenant request",
-      "clients call backend via openapi grpc/rest",
-      "connect-rpc surface and webhook fan-out are exposed as a product primitive",
-      "tenants query own usage via connect-rpc",
-      "tenant-facing client from the connect-rpc proto"
     ]
   },
   "rules": [

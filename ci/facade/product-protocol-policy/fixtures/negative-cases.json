@@ -710,5 +710,28 @@
       "name": "public-grpc-product",
       "text": "The Connect-RPC surface is exposed as a public product primitive."
     }
+  ],
+  "accepted_adr_counterexamples": [
+    {
+      "name": "internal-grpc",
+      "text": "Sibling-service calls use internal-only gRPC/proto3 over HTTP/2."
+    },
+    {
+      "name": "public-grpc-rejected",
+      "text": "Public gRPC, gRPC-Web, and Connect are forbidden."
+    },
+    {
+      "name": "tenant-grpc-negated",
+      "text": "No direct gRPC from the tenant client is allowed."
+    },
+    {
+      "name": "historical-connect",
+      "text": "The former public Connect-RPC contract was replaced by REST."
+    },
+    {
+      "name": "proposed-public-connect",
+      "lifecycle": "Proposed",
+      "text": "Native clients consume the public Connect-protocol contract."
+    }
   ]
 }
