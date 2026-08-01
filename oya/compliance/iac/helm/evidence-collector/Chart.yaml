@@ -1,7 +1,7 @@
 # Canonical-base: microservices/governance/iac/helm/_oya-helpers (per ADR-0064)
 apiVersion: v2
 name: oya-compliance-evidence-collector
-description: Compliance evidence collector tier per ADR-0209. SOC 2 Type II + GDPR DSAR + HIPAA + PCI-DSS continuous evidence collection. Emits audit-chain-sealed artifacts to SeaweedFS storage; auditor portal view via Backstage (ADR-0170).
+description: Compliance evidence collector tier per ADR-0209. SOC 2 Type II + GDPR DSAR + HIPAA + PCI-DSS continuous evidence collection. Emits audit-chain-sealed artifacts to SeaweedFS storage; auditor view is composed by the first-party portal (ADR-0394).
 type: application
 version: 0.1.0
 appVersion: "0.1.0"

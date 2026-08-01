@@ -71,10 +71,10 @@ dsar:
     pathPrefix: /api/v1/dsar
     auth: zitadel-passwordless        # per ADR-0145 identity tier
 
-# Auditor portal — Backstage view (per ADR-0170).
+# Auditor portal — first-party read module (per ADR-0394).
 auditorPortal:
   enabled: true
-  backstagePluginPath: /backstage/plugins/oya-compliance-auditor
+  portalRoute: /auditor
   readOnlyRoleBindingTemplate: cedar-fragment/auditor-readonly.cedar
   perEngagementAccess: true           # auditor identity provisioned per engagement; expires on close
 

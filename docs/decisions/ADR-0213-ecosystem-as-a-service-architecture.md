@@ -26,7 +26,7 @@ related_adrs:
   - ADR-0132  # No-grouping policy; EaaS is two single-concern µservices, not one bundle
   - ADR-0139  # Agentic SLO-gated promotion (per-plugin SLO publishing inherits)
   - ADR-0147  # Wasmtime sandbox baseline
-  - ADR-0170  # Backstage dev portal substrate (developer-sdk portal lives under)
+  - ADR-0394  # first-party Rust developer portal and composition boundary
   - ADR-0181  # Cosign signing (per-plugin signature verification)
   - ADR-0185  # OpenAPI 3.2 codegen for SDK families
   - ADR-0199  # Per-tenant cost attribution (revenue share computation feeds)
@@ -53,7 +53,7 @@ inherited_doctrine_from:
   - JetBrains Marketplace — IDE plugin distribution + paid plugins + revenue share + per-plugin signing
 forbidden_primitives_for_implementation:
   - "External plugin-store SaaS (e.g., GitHub Marketplace as backing substrate) — plugin-app-store is 100% in-house per ADR-0211"
-  - "External developer-portal SaaS (e.g., readme.io, stoplight.io hosted) — Backstage in-house per ADR-0170"
+  - "External developer-portal SaaS or third-party portal runtime — first-party Rust portal per ADR-0394"
   - "External revenue-share SaaS (e.g., Tipalti, Stripe hosted) — payout substrate is in-house per ADR-0211 §revenue-share"
   - "External package-manager surface (e.g., npm registry, crates.io) for first-party SDK distribution — vendored under microservices/developer-sdk/iac/registry per ADR-0211 §package-distribution"
 ---
@@ -113,7 +113,7 @@ Oyatie ships an **Ecosystem-as-a-Service** product surface, composed of **two si
 | µservice | Concern | Persona served | Inheritance |
 |---|---|---|---|
 | `microservices/plugin-app-store/` | Consumer-facing plugin/app discovery + install + per-plugin permission grant + subscription mgmt + audit; admin-facing vetting queue + revocation | tenant-operator, tenant-admin, platform-admin | Apple App Store + VS Code Marketplace + AWS Marketplace + Shopify App Store |
-| `microservices/developer-sdk/` | Developer-facing SDK distribution + API contracts (OpenAPI 3.2 + AsyncAPI 3.1 + proto3) + sandbox env + dev portal + signing-key issuance + Stripe-Connect-style onboarding + revenue payout | 3rd-party developer | Stripe (developer onboarding + payout) + Apple Developer Program (signing keys + sandbox) + Backstage (developer portal) |
+| `microservices/developer-sdk/` | Developer-facing SDK distribution + API contracts (OpenAPI 3.2 + AsyncAPI 3.1 + proto3) + sandbox env + dev portal + signing-key issuance + Stripe-Connect-style onboarding + revenue payout | 3rd-party developer | Stripe (developer onboarding + payout) + Apple Developer Program (signing keys + sandbox) + first-party portal composition (ADR-0394) |
 
 Both µservices share **no code** with each other beyond canonical contracts (event schemas, Cedar policy fragments). They communicate exclusively via the Workflow + Ontology adapter layer per `feedback_workflow_objectgraph_adapter_layer (retired per ADR-0145).md`. No `ecosystem` super-bundle; ADR-0132 forbids it.
 
@@ -183,7 +183,7 @@ Per ADR-0185 OpenAPI 3.2 codegen, developer-sdk emits client SDKs for six stacks
 - C# — NuGet package; .NET 8 LTS.
 - Python — PyPI package; 3.12+.
 
-Each SDK is generated from the canonical OpenAPI 3.2 spec under `microservices/developer-sdk/contracts/openapi/oya-ecosystem.yaml` plus AsyncAPI 3.1 spec for event subscriptions. Codegen pipeline lives under `microservices/developer-sdk/src/codegen/`; nightly CI publishes new versions to Oya-internal package registry under `microservices/developer-sdk/iac/registry/`.
+Each SDK is generated from the canonical OpenAPI 3.2 spec under `microservices/developer-sdk/contracts/openapi/oya-ecosystem.yaml` plus AsyncAPI 3.1 contracts for event subscriptions. Codegen pipeline lives under `microservices/developer-sdk/src/codegen/`; nightly CI publishes new versions to Oya-internal package registry under `microservices/developer-sdk/iac/registry/`.
 
 ### 7. Sandbox environment (developer-facing)
 
@@ -193,14 +193,19 @@ Every developer with a verified account gets an isolated sandbox tenant:
 - Synthetic data seeded from the public-data pack templates (`docs/templates/sandbox-fixtures.json`).
 - Sandbox tenants billed to a shared developer-bench cost-center per ADR-0199; developers do not pay.
 
-### 8. Developer portal (Backstage extension)
+### 8. Developer portal (first-party module)
 
-Per ADR-0170 Backstage substrate, the developer portal is a Backstage extension under `microservices/developer-sdk/iac/backstage-extension/`:
-- API contracts browseable via Backstage Tech-docs.
+Per ADR-0394, developer workflows are modules in the first-party Rust portal composition under
+`app/ops-console/developer-portal/`. The developer-sdk capability owns the APIs and domain rules;
+the portal owns presentation and composition only:
+- API contracts browseable through the first-party documentation module.
 - "Try in sandbox" interactive widget for every endpoint.
 - Per-plugin metrics: install count, revenue-to-date, vetting-queue position, SLO compliance.
 - Submission workflow: developer authors plugin manifest → uploads Wasmtime artifact → portal initiates vetting pipeline → status streamed.
 - API key + signing key management via OpenBao (per ADR-0211).
+
+Backstage may be used as a feature reference or bounded one-way import source. It is not a runtime,
+plugin host, deployment substrate, or catalog authority.
 
 ### 9. Per-plugin SLO publishing
 
@@ -283,7 +288,7 @@ Reject because:
 | Phase 0 (this ADR) | M02b | ADR accepted; µservice scaffolds + manifests + IPs authored | scaffold-pr merged |
 | Phase 1 | M04-ecosystem-substrate | discovery + install + revoke; pack-us only; single capability tier; OSS-only plugins | preview |
 | Phase 2 | M05-ecosystem-paid | one-time + recurring billing; revenue share; pack-eu + pack-us packs | stable |
-| Phase 3 | M06-ecosystem-developer-portal | full Backstage portal; SDK families published; sandbox env | GA |
+| Phase 3 | M06-ecosystem-developer-portal | first-party portal modules; SDK families published; sandbox env | GA |
 | Phase 4 | M07-ecosystem-vetting-acceleration | parallel vetting workers; SLA ≤ 1 business day; automated AI-Act class detection | GA-evolved |
 
 Each phase's gate is in `/specs/master-plan-sequencing.json§ecosystem-as-a-service` (to be added by a follow-up CR).
@@ -300,7 +305,8 @@ Both µservices ship the canonical PrometheusRule wired to the observability µs
 ## In-house roadmap (per ADR-0211)
 
 EaaS is **100% in-house from day one** per ADR-0211 in-house tech policy. The roadmap forbids reliance on:
-- External developer-portal SaaS (readme.io, stoplight, gitbook) — replaced by Backstage in-house extension per ADR-0170.
+- External developer-portal SaaS and third-party portal runtimes (readme.io, stoplight, gitbook,
+  Backstage) — replaced by the first-party Rust portal per ADR-0394.
 - External package-registry SaaS (npmjs.com, crates.io) for first-party SDK distribution — vendored in-house under `microservices/developer-sdk/iac/registry/`.
 - External KYC / AML SaaS (Onfido, Stripe Identity) — implemented in-house under `microservices/developer-sdk/src/onboarding/kyc/`.
 - External payout SaaS (Tipalti, Stripe hosted, Wise hosted) — implemented in-house with direct ACH / SEPA / KFTC integration under `microservices/developer-sdk/src/payout/`.
