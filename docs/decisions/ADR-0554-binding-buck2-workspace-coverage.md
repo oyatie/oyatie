@@ -482,6 +482,8 @@ or key and action-reference casing, recursively follows repository-local composi
 same-repository reusable workflows, and fails closed on unproven external job-level workflow calls. It
 normalizes scalar/block/list paths and rejects `buck-out`, its descendants, and lexical
 whole-root/glob archives. Dynamic expressions that control the first path component fail closed unless
-the expression is the statically recognizable `github.workspace` prefix with an analyzable suffix. It
-also rejects the retired reclaim artifact path. This is a correctness and availability invariant: a
-cache optimization cannot prevent the tests that establish merge authority from starting.
+the expression is the statically recognizable `github.workspace` prefix with an analyzable suffix.
+Unproven absolute cache paths also fail closed on Unix and Windows; required CI must use relative or
+tilde paths, or the analyzable workspace prefix. The guard also rejects the retired reclaim artifact
+path. This is a correctness and availability invariant: a cache optimization cannot prevent the tests
+that establish merge authority from starting.
