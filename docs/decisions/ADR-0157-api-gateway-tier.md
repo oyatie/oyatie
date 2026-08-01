@@ -6,7 +6,7 @@ date: 2026-05-18
 owner: council-architecture
 supersedes: []
 superseded_by: []
-related: [ADR-0009, ADR-0049, ADR-0114, ADR-0121, ADR-0128, ADR-0145, ADR-0148, ADR-0182]
+related: [ADR-0009, ADR-0049, ADR-0114, ADR-0121, ADR-0128, ADR-0145, ADR-0148, ADR-0182, ADR-0203, ADR-0258]
 architectural_authority: ADR-0182 (gateway-vs-mesh separation principle; this ADR picks the implementation)
 last_reconciled: 2026-08-01
 reconciled_with: [ADR-0203, ADR-0258]

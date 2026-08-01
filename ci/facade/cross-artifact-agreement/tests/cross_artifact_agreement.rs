@@ -9,6 +9,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Component, Path, PathBuf};
 use std::process::Command;
+use std::sync::OnceLock;
 
 use ci_cross_artifact_agreement::{
     AdrDecisionRecord, GateCoverageBaseline, RatchetReport, RawHistoryOnlyRetirementReceipt,
@@ -3005,17 +3006,146 @@ fn adr_records_from_decisions_json(decisions: &Value) -> Vec<AdrDecisionRecord> 
     records
 }
 
+fn source_derived_adr_records(root: &Path) -> Vec<AdrDecisionRecord> {
+    static RECORDS: OnceLock<Vec<AdrDecisionRecord>> = OnceLock::new();
+    RECORDS
+        .get_or_init(|| {
+            let producer = std::env::var("OYA_ADR_INDEX_PRODUCER_BIN")
+                .expect("Buck2 must provide the sanctioned ADR-index producer binary");
+            let temp = tempfile::tempdir().expect("create ADR-index projection tempdir");
+            let index = temp.path().join("ADR-INDEX.md");
+            let machine = temp.path().join("decisions.json");
+            let output =
+                Command::new(producer_binary(root, Some(&producer)).expect("ADR producer path"))
+                    .current_dir(root)
+                    .args([
+                        "doc",
+                        "adr-index",
+                        "--decisions-dir",
+                        root.join("docs/decisions")
+                            .to_str()
+                            .expect("UTF-8 decisions path"),
+                        "--index",
+                        index.to_str().expect("UTF-8 index path"),
+                        "--machine",
+                        machine.to_str().expect("UTF-8 machine path"),
+                        "--write",
+                        "--format",
+                        "json",
+                    ])
+                    .output()
+                    .expect("run sanctioned ADR-index producer");
+            assert!(
+                output.status.success(),
+                "ADR-index producer failed: stdout={} stderr={}",
+                String::from_utf8_lossy(&output.stdout),
+                String::from_utf8_lossy(&output.stderr)
+            );
+            adr_records_from_decisions_json(&load_json(&machine))
+        })
+        .clone()
+}
+
+fn public_protocol_required_relation_edges() -> Vec<(&'static str, &'static str)> {
+    const SOURCES: [&str; 4] = ["ADR-0157", "ADR-0167", "ADR-0176", "ADR-0182"];
+    let mut required = Vec::new();
+    for source in SOURCES {
+        required.push((source, "ADR-0203"));
+        required.push((source, "ADR-0258"));
+        required.push(("ADR-0203", source));
+        required.push(("ADR-0258", source));
+    }
+    required.push(("ADR-0203", "ADR-0258"));
+    required.push(("ADR-0258", "ADR-0203"));
+    required
+}
+
+fn public_protocol_reciprocal_relation_error(records: &[AdrDecisionRecord]) -> Option<String> {
+    let relations = records
+        .iter()
+        .map(|record| (record.id.as_str(), record.related.as_slice()))
+        .collect::<BTreeMap<_, _>>();
+    public_protocol_required_relation_edges()
+        .into_iter()
+        .find_map(|(source, target)| {
+            let Some(related) = relations.get(source) else {
+                return Some(format!("missing source metadata for {source}"));
+            };
+            (!related.iter().any(|relation| relation == target))
+                .then(|| format!("{source} missing reciprocal related edge to {target}"))
+        })
+}
+
+#[test]
+fn public_protocol_source_metadata_has_every_reciprocal_relation() {
+    let records = source_derived_adr_records(&repo_root());
+    assert_eq!(public_protocol_reciprocal_relation_error(&records), None);
+}
+
+#[test]
+fn public_protocol_reciprocal_relation_guard_rejects_every_removed_edge() {
+    let records = source_derived_adr_records(&repo_root());
+    let expected_edges = public_protocol_required_relation_edges();
+    assert_eq!(
+        expected_edges.len(),
+        18,
+        "full directed reciprocal edge set"
+    );
+    for (source, target) in expected_edges {
+        let mut mutated = records.clone();
+        let record = mutated
+            .iter_mut()
+            .find(|record| record.id == source)
+            .expect("mutation source ADR");
+        record.related.retain(|relation| relation != target);
+        assert_eq!(
+            public_protocol_reciprocal_relation_error(&mutated),
+            Some(format!(
+                "{source} missing reciprocal related edge to {target}"
+            )),
+            "removing {source} -> {target} must fail closed"
+        );
+    }
+}
+
+#[test]
+fn source_relation_change_with_stale_controller_projection_fails_closed() {
+    let root = repo_root();
+    let mut source_records = source_derived_adr_records(&root);
+    let record = source_records
+        .iter_mut()
+        .find(|record| record.id == "ADR-0157")
+        .expect("ADR-0157 source record");
+    record.related.retain(|relation| relation != "ADR-0203");
+
+    let findings = evaluate_adr_index_projection_parity(
+        &source_records,
+        &fs::read_to_string(root.join("docs/ADR-INDEX.md")).expect("read docs/ADR-INDEX.md"),
+        &fs::read_to_string(root.join("docs/machine-readable/decisions.json"))
+            .expect("read docs/machine-readable/decisions.json"),
+        &decision_md_file_names(&root)
+            .iter()
+            .filter_map(|name| name.get(0..8).map(str::to_owned))
+            .collect(),
+    );
+    assert!(
+        findings.iter().any(|finding| finding
+            .key
+            .starts_with("docs/machine-readable/decisions.json#")),
+        "a source relation mutation with an unchanged controller projection must fail: {findings:?}"
+    );
+}
+
 /// Sub-check 3/3 born-advisory over the live tree: docs/ADR-INDEX.md and
 /// docs/machine-readable/decisions.json are byte-parity with their producer's
-/// re-render (via the oya-check-adr-index kernel, no shell-out) AND cover exactly
+/// re-render (via the sanctioned Buck2-built `oya doc adr-index` producer) AND cover exactly
 /// the docs/decisions/*.md corpus (#1327 defect class (d): projections not
 /// regenerated through their producer; implements the adr-index-pipeline.md
 /// promise). Enforces no-regression vs the frozen baseline.
 #[test]
 fn adr_index_projection_parity_is_advisory_clean_on_live_tree() {
     let root = repo_root();
-    let decisions = load_json(&root.join("docs/machine-readable/decisions.json"));
-    let records = adr_records_from_decisions_json(&decisions);
+    let records = source_derived_adr_records(&root);
     let on_disk_markdown =
         fs::read_to_string(root.join("docs/ADR-INDEX.md")).expect("read docs/ADR-INDEX.md");
     let on_disk_json = fs::read_to_string(root.join("docs/machine-readable/decisions.json"))
