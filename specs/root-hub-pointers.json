@@ -1411,6 +1411,20 @@
       "kind": "spec",
       "migration_phase": "regid-003-planning-spec",
       "purpose": "Planning-only PCI DSS Level 1 readiness and regulated-data control-pack contract for CDE scope, tokenization, PAN/CVV/track-data prohibitions, QSA/ROC/AOC evidence, ASV scans, segmentation, KMS/PDP/audit bindings, retention, incident response, and tenant pack activation gates."
+    },
+    "reset_eligibility_schema": {
+      "current_path": "/specs/reset-eligibility.schema.json",
+      "kind": "schema",
+      "migration_phase": "wave-0-d-reset-discovery",
+      "purpose": "Fail-closed schema for time-bounded infrastructure reset observations. Unknowns, hard stops, incomplete recovery, missing approvals, or stale positive evidence prohibit reset; absence of evidence is never deletion authority.",
+      "target_path_after_md_retirement": "same"
+    },
+    "reset_eligibility_current_observation": {
+      "current_path": "/registry/reset-eligibility/w0-d-20260801.json",
+      "kind": "registry",
+      "migration_phase": "wave-0-d-preservation-migration",
+      "purpose": "Current W0-D read-only discovery observation. Verdict is RESET INELIGIBLE and the authorized implementation mode is preservation migration; it contains digests and redacted metadata only, never secret values.",
+      "target_path_after_md_retirement": "same"
     }
   },
   "specs_directory_audit_2026_05_20": {

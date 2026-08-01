@@ -300,6 +300,18 @@
     {
       "anchor": "ADR-0625: OpenTofu provider dependency lock for this root. A lock is only meaningful beside its own root, so it is registered as an exact path rather than a tree; it relocates with its root under the reorg.",
       "prefix": "oya/identity/iac/oyatie-public-cloud/.terraform.lock.hcl"
+    },
+    {
+      "anchor": "W0-D founder decision 2026-08-01: fail-closed reset eligibility schema; unknowns and absent evidence never authorize deletion.",
+      "prefix": "specs/reset-eligibility.schema.json"
+    },
+    {
+      "anchor": "W0-D founder decision 2026-08-01: redacted, digest-bound reset observations; current verdict is ineligible and requires preservation migration.",
+      "prefix": "registry/reset-eligibility/"
+    },
+    {
+      "anchor": "W0-D founder decision 2026-08-01: protected cloud-ci enforcement for reset eligibility and preservation migration.",
+      "prefix": "ci/facade/reset-eligibility-policy/"
     }
   ]
 }
