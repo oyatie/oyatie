@@ -69,13 +69,31 @@ fn live_corpus_is_born_blocking_green() {
 fn active_admission_wires_signature_provenance_sbom_and_vet_posture() {
     let root = repo_root();
 
-    let workflow = std::fs::read_to_string(root.join(".github/workflows/oya-ci-required.yml"))
-        .expect("read oya-ci-required workflow");
-    assert!(
-        workflow.contains("crate: supply-chain-audit")
-            && workflow.contains("gate · supply-chain-audit"),
-        "the supply-chain audit gate must be part of the active oya-ci-required admission matrix"
-    );
+    // The 46->2 matrix collapse (2026-08-01) removed this gate's dedicated matrix leg: the whole
+    // `ci/facade` fleet is now executed once by `buck2 test //ci/...`, a strict superset of what
+    // the matrix ran.
+    //
+    // This test used to assert `workflow.contains("crate: supply-chain-audit")`. It is NOT
+    // replaced with `workflow.contains("buck2 test //ci/...")` — that would be the same defect in
+    // a new costume, since a substring search over the whole file is satisfied by a COMMENT while
+    // nothing executes. Workflow-level registration is now owned structurally, in one place, by
+    // `ci/facade/baseline-ratchet/tests/gate_registration.rs`
+    // (`every_gate_crate_is_registered_in_oya_ci_required_workflow`), which resolves the patterns
+    // executed by fan-in-reachable jobs, and by gate-self-conformance's `workflow_registered`.
+    //
+    // What remains HERE is this crate's own half of that contract: the recursive pattern executes
+    // nothing for a package that declares no test rule, so the targets must exist.
+    let buck = std::fs::read_to_string(root.join("ci/facade/supply-chain-audit/BUCK"))
+        .expect("read supply-chain-audit BUCK");
+    for target in [
+        "name = \"ci-supply-chain-audit-gate\"",
+        "name = \"ci-supply-chain-audit-unittest\"",
+    ] {
+        assert!(
+            buck.contains(target),
+            "the supply-chain audit gate must expose {target} for `//ci/...` to execute it"
+        );
+    }
 
     let kyverno =
         std::fs::read_to_string(root.join("infra/kyverno/policies/verify-image-signed.yaml"))

@@ -487,9 +487,43 @@ fn workflow_invokes_buck_target(workflow: &str, name: &str, gates_root_rel: &str
     })
 }
 
+/// True iff an executable workflow line runs a RECURSIVE `buck2 test` pattern that covers the
+/// gates root — `buck2 test //ci/...` executes every `//ci/facade/<gate>:` target, so after the
+/// 46->2 matrix collapse (2026-08-01) a gate needs no per-crate workflow line at all.
+///
+/// `--keep-going` / `|| true` invocations are excluded: those are baseline measurements whose
+/// exit code is discarded by construction (the affected-set lane's merge-base pass runs
+/// `buck2 test //... --keep-going ... || true`), and `//...` would otherwise register every gate
+/// in the repo while binding none of them.
+fn workflow_executes_recursive_gates_pattern(workflow: &str, gates_root_rel: &str) -> bool {
+    let root = gates_root_rel.trim_matches('/');
+    workflow.lines().any(|line| {
+        let trimmed = line.trim();
+        if trimmed.starts_with('#')
+            || trimmed.contains("--keep-going")
+            || trimmed.contains("|| true")
+        {
+            return false;
+        }
+        let Some((_, args)) = trimmed.split_once("buck2 test ") else {
+            return false;
+        };
+        args.split_whitespace().any(|token| {
+            token
+                .strip_prefix("//")
+                .and_then(|rest| rest.strip_suffix("..."))
+                .is_some_and(|prefix| {
+                    let prefix = prefix.trim_end_matches('/');
+                    prefix.is_empty() || root == prefix || root.starts_with(&format!("{prefix}/"))
+                })
+        })
+    })
+}
+
 fn workflow_registers_gate(workflow: &str, name: &str, gates_root_rel: &str) -> bool {
     workflow_matrix_includes_crate(workflow, name)
         || workflow_invokes_buck_target(workflow, name, gates_root_rel)
+        || workflow_executes_recursive_gates_pattern(workflow, gates_root_rel)
 }
 
 fn is_rust_test_source(path: &Path) -> bool {
