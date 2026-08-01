@@ -2317,6 +2317,7 @@ value = "legacy-marker"
             justifications: resolve_justifications(&root, &paths, &cfg),
             reachability: resolve_reachability(&root, &paths, &cfg).expect("reachability"),
             dup_of: BTreeMap::new(),
+            valid_owners_files: resolve_owners(&root, &paths, &cfg).valid_files,
         };
         let registry = build_registry(&inputs, &policy).expect("build registry");
         let mut producer: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
@@ -4244,6 +4245,7 @@ fn collect_repo_inputs(
             justifications,
             reachability,
             dup_of: BTreeMap::new(),
+            valid_owners_files: owners_resolution.valid_files,
         },
         owners_resolution.integrity,
     ))
@@ -4457,6 +4459,14 @@ fn check_added_paths(
 
     let justifications = resolve_justifications(repo_root, &accounted, cfg);
     let reachability = resolve_reachability(repo_root, &accounted, cfg)?;
+    // The OWNERS accounting floor is derived here too, or this author-side check would
+    // report WOULD RED for a newly-added valid OWNERS file that CI then passes — the exact
+    // false alarm that makes a pre-push check untrustworthy. Unlike OWNER resolution (which
+    // is full-tree and therefore unsound on a partial set, see the doc comment above), the
+    // per-file SCHEMA verdict is locally computable: the added OWNERS file is itself in the
+    // set and is read + parsed straight from the working tree. Only `valid_files` is taken;
+    // `by_path` stays empty so `unowned` remains out of scope exactly as before.
+    let valid_owners_files = resolve_owners(repo_root, &accounted, cfg).valid_files;
 
     // Route the added rows through the producer's OWN face-builder and the firewall's OWN
     // evaluator: the unjustified/unreachable/scratch/ttl verdicts are byte-identical to CI.
@@ -4466,6 +4476,7 @@ fn check_added_paths(
         justifications: justifications.clone(),
         reachability: reachability.clone(),
         dup_of: BTreeMap::new(),
+        valid_owners_files,
     };
     let registry = build_registry(&inputs, policy)?;
     let mut codes_by_key: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
