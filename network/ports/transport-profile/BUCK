@@ -1,3 +1,8 @@
+export_file(
+    name = "endpoint-transport-profile.contract.json",
+    visibility = ["PUBLIC"],
+)
+
 rust_library(
     name = "network-transport-profile",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),

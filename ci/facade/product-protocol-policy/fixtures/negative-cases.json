@@ -1,0 +1,13 @@
+{
+  "cases": [
+    {"name": "public-graphql-not-forbidden", "artifact": "product_contract", "pointer": "/public_api/forbidden_protocols", "replacement": ["grpc", "grpc-web", "connect"], "expected_code": "PP-PUBLIC-FORBIDDEN"},
+    {"name": "public-grpc-not-forbidden", "artifact": "product_contract", "pointer": "/public_api/forbidden_protocols", "replacement": ["graphql", "grpc-web", "connect"], "expected_code": "PP-PUBLIC-FORBIDDEN"},
+    {"name": "public-grpc-web-not-forbidden", "artifact": "product_contract", "pointer": "/public_api/forbidden_protocols", "replacement": ["graphql", "grpc", "connect"], "expected_code": "PP-PUBLIC-FORBIDDEN"},
+    {"name": "public-connect-not-forbidden", "artifact": "product_contract", "pointer": "/public_api/forbidden_protocols", "replacement": ["graphql", "grpc", "grpc-web"], "expected_code": "PP-PUBLIC-FORBIDDEN"},
+    {"name": "flatbuffers-becomes-canonical", "artifact": "product_contract", "pointer": "/serialization/flatbuffers/canonical", "replacement": true, "expected_code": "PP-FLATBUFFERS-NONCANONICAL"},
+    {"name": "tls-12-regression", "artifact": "product_contract", "pointer": "/public_api/transport/tls_minimum", "replacement": "1.2", "expected_code": "PP-PUBLIC-TLS"},
+    {"name": "grpc-over-http3-internal", "artifact": "product_contract", "pointer": "/internal_rpc/http_transport", "replacement": "http3", "expected_code": "PP-INTERNAL-H2"},
+    {"name": "custom-ebpf-default", "artifact": "product_contract", "pointer": "/telemetry/custom_ebpf", "replacement": "default", "expected_code": "PP-CUSTOM-EBPF-GATE"},
+    {"name": "rocev2-first", "artifact": "product_contract", "pointer": "/fabric/disaggregated_storage_first_profile", "replacement": "rocev2", "expected_code": "PP-NVME-TCP-FIRST"}
+  ]
+}

@@ -154,6 +154,40 @@
       "root//libs/oya-check-data-class:oya-check-data-class-unittest",
       "root//libs/oya-check-license-policy:oya-check-license-policy-license-policy"
     ],
+    "specs/product-protocol-contract.json": [
+      "root//ci/facade/artifact-inventory-registry:ci-artifact-inventory-registry-unittest",
+      "root//ci/facade/baseline-ratchet:ci-baseline-ratchet-gate",
+      "root//ci/facade/cross-artifact-agreement:ci-cross-artifact-agreement-gate",
+      "root//ci/facade/generated-artifact-freshness:ci-generated-artifact-freshness-unittest",
+      "root//ci/facade/inventory-registry-drift:ci-inventory-registry-drift-gate",
+      "root//ci/facade/product-protocol-policy:ci-product-protocol-policy-gate",
+      "root//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot-gate",
+      "root//libs/oya-check-active-artifact-contract:oya-check-active-artifact-contract-unittest",
+      "root//marketplace/facade/dev-cli:marketplace-dev-cli-gate-cli"
+    ],
+    "specs/api-contract-ssot-canonical.json": [
+      "root//ci/facade/artifact-inventory-registry:ci-artifact-inventory-registry-unittest",
+      "root//ci/facade/baseline-ratchet:ci-baseline-ratchet-gate",
+      "root//ci/facade/cross-artifact-agreement:ci-cross-artifact-agreement-gate",
+      "root//ci/facade/generated-artifact-freshness:ci-generated-artifact-freshness-unittest",
+      "root//ci/facade/inventory-registry-drift:ci-inventory-registry-drift-gate",
+      "root//ci/facade/product-protocol-policy:ci-product-protocol-policy-gate",
+      "root//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot-gate",
+      "root//libs/oya-check-active-artifact-contract:oya-check-active-artifact-contract-unittest",
+      "root//marketplace/facade/dev-cli:marketplace-dev-cli-gate-cli",
+      "root//ci/facade/graphql-usage-policy:ci-graphql-usage-policy-gate"
+    ],
+    "specs/root-hub-pointers.json": [
+      "root//ci/facade/artifact-inventory-registry:ci-artifact-inventory-registry-unittest",
+      "root//ci/facade/baseline-ratchet:ci-baseline-ratchet-gate",
+      "root//ci/facade/cross-artifact-agreement:ci-cross-artifact-agreement-gate",
+      "root//ci/facade/generated-artifact-freshness:ci-generated-artifact-freshness-unittest",
+      "root//ci/facade/inventory-registry-drift:ci-inventory-registry-drift-gate",
+      "root//ci/facade/product-protocol-policy:ci-product-protocol-policy-gate",
+      "root//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot-gate",
+      "root//libs/oya-check-active-artifact-contract:oya-check-active-artifact-contract-unittest",
+      "root//marketplace/facade/dev-cli:marketplace-dev-cli-gate-cli"
+    ],
     "docs/ideas/archive/**": [
       "root//ci/facade/cross-artifact-agreement:ci-cross-artifact-agreement-gate"
     ],
