@@ -263,10 +263,7 @@ fn cache_path_archives_checkout(raw_path: &str) -> Result<bool, String> {
         ));
     }
     if normalized.starts_with('~') {
-        const SAFE_TILDE_ROOTS: [&str; 2] = [
-            "~/.rustup/toolchains",
-            "~/.rustup/update-hashes",
-        ];
+        const SAFE_TILDE_ROOTS: [&str; 2] = ["~/.rustup/toolchains", "~/.rustup/update-hashes"];
         let proven_safe = SAFE_TILDE_ROOTS.iter().any(|root| {
             normalized == *root
                 || normalized
@@ -481,7 +478,11 @@ fn inspect_actions_cache_steps(
             let Some(action) = step.get("uses").and_then(YamlValue::as_str) else {
                 continue;
             };
-            let action_name = action.split('@').next().unwrap_or(action);
+            let action_name = if action.starts_with("./") {
+                action
+            } else {
+                action.split('@').next().unwrap_or(action)
+            };
             let action_name_lower = action_name.to_ascii_lowercase();
             if matches!(
                 action_name_lower.as_str(),
@@ -1019,10 +1020,32 @@ fn buck_out_archive_guard_follows_local_composite_actions() {
     .expect("write local composite fixture");
     let workflow = "jobs:\n  gate:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: ./.github/actions/cache-wrapper\n        with:\n          cache_path: buck-out\n";
     let violations = actions_cache_buck_out_violations(Some(&fixture_root), "<fixture>", workflow);
-    std::fs::remove_dir_all(&fixture_root).expect("remove local composite fixture");
     assert!(
         !violations.is_empty(),
         "local composite action must not hide a forbidden checkout archive"
+    );
+
+    let benign_prefix_dir = fixture_root.join(".github/actions/cache");
+    let at_named_dir = fixture_root.join(".github/actions/cache@wrapper");
+    std::fs::create_dir_all(&benign_prefix_dir).expect("create benign prefix action fixture");
+    std::fs::create_dir_all(&at_named_dir).expect("create at-named action fixture");
+    std::fs::write(
+        benign_prefix_dir.join("action.yml"),
+        "name: benign prefix\ndescription: must not mask at-named sibling\nruns:\n  using: composite\n  steps:\n    - run: echo safe\n      shell: bash\n",
+    )
+    .expect("write benign prefix action fixture");
+    std::fs::write(
+        at_named_dir.join("action.yml"),
+        "name: unsafe at-named wrapper\ndescription: runner resolves the at sign literally\nruns:\n  using: composite\n  steps:\n    - uses: actions/cache@pinned\n      with:\n        path: buck-out\n        key: fixture\n",
+    )
+    .expect("write at-named action fixture");
+    let at_named_workflow = "jobs:\n  gate:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: ./.github/actions/cache@wrapper\n";
+    let at_named_violations =
+        actions_cache_buck_out_violations(Some(&fixture_root), "<fixture>", at_named_workflow);
+    std::fs::remove_dir_all(&fixture_root).expect("remove local composite fixture");
+    assert!(
+        !at_named_violations.is_empty(),
+        "local action references containing `@` must resolve the literal runner path, not a benign truncated prefix"
     );
 }
 
