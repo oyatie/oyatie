@@ -162,6 +162,8 @@ pub struct TransportEndpointSpec {
     pub capability_class: TransportCapabilityClass,
     /// data_class: PUBLIC - wire protocol family for the declared endpoint.
     pub protocol: TransportProtocol,
+    /// data_class: PUBLIC - bounded fallback wire protocol, when the endpoint class permits one.
+    pub fallback_protocol: Option<TransportProtocol>,
     /// data_class: PUBLIC - minimum TLS/authentication posture required by the class.
     pub tls_profile: TlsProfile,
     /// data_class: PUBLIC - HTTP Alt-Svc value for public protocol upgrade discovery.
@@ -180,6 +182,7 @@ impl TransportEndpointSpec {
             endpoint_id: endpoint_id.into(),
             capability_class: TransportCapabilityClass::External,
             protocol: TransportProtocol::Http3,
+            fallback_protocol: Some(TransportProtocol::Http2),
             tls_profile: TlsProfile::StrictTls13,
             alt_svc: Some(r#"h3=":443"; ma=86400"#.to_owned()),
             fallback_timeout_ms: Some(DEFAULT_EXTERNAL_FALLBACK_TIMEOUT_MS),
@@ -193,6 +196,7 @@ impl TransportEndpointSpec {
             endpoint_id: endpoint_id.into(),
             capability_class: TransportCapabilityClass::InterCell,
             protocol: TransportProtocol::GrpcHttp2,
+            fallback_protocol: None,
             tls_profile: TlsProfile::SpiffeMtlsTls13,
             alt_svc: None,
             fallback_timeout_ms: None,
@@ -206,6 +210,7 @@ impl TransportEndpointSpec {
             endpoint_id: endpoint_id.into(),
             capability_class: TransportCapabilityClass::Internal,
             protocol: TransportProtocol::GrpcHttp2,
+            fallback_protocol: None,
             tls_profile: TlsProfile::SpiffeMtlsTls13,
             alt_svc: None,
             fallback_timeout_ms: None,
@@ -232,6 +237,12 @@ impl TransportEndpointSpec {
         }
         if self.tls_profile != TlsProfile::StrictTls13 {
             return invalid("tls_profile", "external endpoints require strict tls 1.3");
+        }
+        if self.fallback_protocol != Some(TransportProtocol::Http2) {
+            return invalid(
+                "fallback_protocol",
+                "external endpoints require http2 fallback",
+            );
         }
 
         let alt_svc = self
@@ -348,6 +359,12 @@ impl TransportEndpointSpec {
             return invalid(
                 "alt_svc",
                 "non-external endpoints do not advertise http3 upgrade",
+            );
+        }
+        if self.fallback_protocol.is_some() {
+            return invalid(
+                "fallback_protocol",
+                "non-external endpoints do not use protocol fallback",
             );
         }
         if self.fallback_timeout_ms.is_some() {
@@ -545,6 +562,20 @@ mod tests {
     }
 
     #[test]
+    fn rejects_external_profile_without_http2_fallback() {
+        let mut spec = TransportEndpointSpec::external_http3("public-inference-stream");
+        spec.fallback_protocol = None;
+
+        assert_eq!(
+            spec.validate(),
+            Err(TransportProfileError::InvalidField {
+                field: "fallback_protocol",
+                reason: "external endpoints require http2 fallback"
+            })
+        );
+    }
+
+    #[test]
     fn rejects_external_profile_without_alt_svc() {
         let mut spec = TransportEndpointSpec::external_http3("public-inference-stream");
         spec.alt_svc = None;
@@ -570,6 +601,20 @@ mod tests {
             PqcPolicy::transition_supported_groups()
         );
         assert_eq!(spec.validate(), Ok(()));
+    }
+
+    #[test]
+    fn rejects_internal_profile_with_protocol_fallback() {
+        let mut spec = TransportEndpointSpec::internal_grpc_h2("internal-policy");
+        spec.fallback_protocol = Some(TransportProtocol::Http2);
+
+        assert_eq!(
+            spec.validate(),
+            Err(TransportProfileError::InvalidField {
+                field: "fallback_protocol",
+                reason: "non-external endpoints do not use protocol fallback"
+            })
+        );
     }
 
     #[test]

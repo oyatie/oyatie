@@ -38,7 +38,10 @@ fn unordered_string_array(value: &Value) -> Option<(usize, BTreeSet<&str>)> {
     Some((values.len(), strings))
 }
 
-fn rule_matches(mode: &str, observed: &Value, expected: &Value) -> Result<bool, &'static str> {
+fn rule_matches(rule: &Value, observed: &Value, expected: &Value) -> Result<bool, &'static str> {
+    let Some(mode) = string(rule, "mode") else {
+        return Err("rule mode must be a string");
+    };
     match mode {
         "equals" => Ok(observed == expected),
         "unordered_equals" => {
@@ -52,14 +55,32 @@ fn rule_matches(mode: &str, observed: &Value, expected: &Value) -> Result<bool, 
                 && expected_len == expected.len()
                 && observed == expected)
         }
-        _ => Err("rule mode must be equals or unordered_equals"),
+        "named_member_equals" => {
+            let Some(members) = observed.as_array() else {
+                return Err("named_member_equals observed value must be an array");
+            };
+            let Some(selector_field) = string(rule, "selector_field") else {
+                return Err("named_member_equals selector_field must be a string");
+            };
+            let Some(selector_value) = rule.get("selector_value") else {
+                return Err("named_member_equals selector_value is required");
+            };
+            let Some(member_pointer) =
+                string(rule, "member_pointer").filter(|value| value.starts_with('/'))
+            else {
+                return Err("named_member_equals member_pointer must begin with /");
+            };
+            let matches = members
+                .iter()
+                .filter(|member| member.get(selector_field) == Some(selector_value))
+                .collect::<Vec<_>>();
+            Ok(matches.len() == 1 && matches[0].pointer(member_pointer) == Some(expected))
+        }
+        _ => Err("rule mode must be equals, unordered_equals, or named_member_equals"),
     }
 }
 
-pub fn evaluate_keyed(
-    policy: &Value,
-    artifacts: &BTreeMap<String, Value>,
-) -> BTreeSet<Finding> {
+pub fn evaluate_keyed(policy: &Value, artifacts: &BTreeMap<String, Value>) -> BTreeSet<Finding> {
     let mut findings = BTreeSet::new();
     if string(policy, "gate_id") != Some(GATE_ID) {
         findings.insert(Finding::new(
@@ -145,14 +166,6 @@ pub fn evaluate_keyed(
             ));
             continue;
         };
-        let Some(mode) = string(rule, "mode") else {
-            findings.insert(Finding::new(
-                "PP-POLICY-MALFORMED-RULE",
-                &rule_path,
-                "rule mode must be a string",
-            ));
-            continue;
-        };
         let Some(expected) = rule.get("expected") else {
             findings.insert(Finding::new(
                 "PP-POLICY-MALFORMED-RULE",
@@ -177,7 +190,7 @@ pub fn evaluate_keyed(
             ));
             continue;
         };
-        match rule_matches(mode, observed, expected) {
+        match rule_matches(rule, observed, expected) {
             Ok(true) => {}
             Ok(false) => {
                 findings.insert(Finding::new(
@@ -187,11 +200,7 @@ pub fn evaluate_keyed(
                 ));
             }
             Err(detail) => {
-                findings.insert(Finding::new(
-                    "PP-POLICY-MALFORMED-RULE",
-                    &rule_path,
-                    detail,
-                ));
+                findings.insert(Finding::new("PP-POLICY-MALFORMED-RULE", &rule_path, detail));
             }
         }
     }
@@ -211,7 +220,8 @@ mod tests {
             "artifacts": {"contract": "contract.json"},
             "rules": [
                 {"code": "PP-ONE", "artifact": "contract", "pointer": "/one", "mode": "equals", "expected": true},
-                {"code": "PP-SET", "artifact": "contract", "pointer": "/set", "mode": "unordered_equals", "expected": ["a", "b"]}
+                {"code": "PP-SET", "artifact": "contract", "pointer": "/set", "mode": "unordered_equals", "expected": ["a", "b"]},
+                {"code": "PP-NAMED", "artifact": "contract", "pointer": "/classes", "mode": "named_member_equals", "selector_field": "name", "selector_value": "external", "member_pointer": "/tls", "expected": "tls13"}
             ]
         })
     }
@@ -220,7 +230,7 @@ mod tests {
     fn matching_contract_is_green() {
         let artifacts = BTreeMap::from([(
             "contract".to_owned(),
-            json!({"one": true, "set": ["b", "a"]}),
+            json!({"one": true, "set": ["b", "a"], "classes": [{"name": "external", "tls": "tls13"}]}),
         )]);
         assert!(evaluate_keyed(&policy(), &artifacts).is_empty());
     }
@@ -243,6 +253,37 @@ mod tests {
             evaluate_keyed(&policy(), &artifacts)
                 .iter()
                 .any(|finding| finding.code == "PP-SET")
+        );
+    }
+
+    #[test]
+    fn named_member_rules_are_order_independent_and_reject_duplicates() {
+        let mut artifacts = BTreeMap::from([(
+            "contract".to_owned(),
+            json!({
+                "one": true,
+                "set": ["a", "b"],
+                "classes": [
+                    {"name": "internal", "tls": "mtls13"},
+                    {"name": "external", "tls": "tls13"}
+                ]
+            }),
+        )]);
+        assert!(evaluate_keyed(&policy(), &artifacts).is_empty());
+
+        artifacts
+            .get_mut("contract")
+            .expect("contract fixture")
+            .get_mut("classes")
+            .expect("classes fixture")
+            .clone_from(&json!([
+                {"name": "external", "tls": "tls13"},
+                {"name": "external", "tls": "tls13"}
+            ]));
+        assert!(
+            evaluate_keyed(&policy(), &artifacts)
+                .iter()
+                .any(|finding| finding.code == "PP-NAMED")
         );
     }
 
