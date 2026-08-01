@@ -480,6 +480,8 @@ action-cache and CAS endpoints.
 every `actions/cache`, `actions/cache/restore`, and `actions/cache/save` step independent of its name
 or key and action-reference casing, recursively follows repository-local composite actions and
 same-repository reusable workflows, and fails closed on unproven external job-level workflow calls. It
+requires portable slash-form `./...` local-action references and fails closed on backslash-bearing
+references whose filesystem meaning differs by runner host. It
 normalizes scalar/block/list paths and rejects `buck-out`, its descendants, and lexical
 whole-root/glob archives. Dynamic expressions that control the first path component fail closed unless
 the expression is the statically recognizable `github.workspace` prefix with an analyzable suffix.
