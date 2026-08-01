@@ -802,6 +802,17 @@ jobs:
       # baseline (ADR-0551), and this lane's own build-health baseline below is per-job by
       # design (ADR-0554 round-3).
       - name: Materialize cloud-ci generated faces (out-of-graph boundary)
+        # PER-STEP BUDGET (job 91306848257): the job-level `timeout-minutes: 120` is the ONLY bound
+        # on this job, so a runner starved for CPU/Memory produces a BLANK failure — that job died
+        # after 42 min with its long step still `in_progress`, every later step `pending`, NO step
+        # carrying a failure conclusion, and the log itself 404 (BlobNotFound: the dying runner
+        # never uploaded it). A per-step budget converts that into a named step with a verdict.
+        # Budgets are sized from measured healthy runs (30344393217, 30339547842, 30338990451,
+        # 30326460290, 30234767998, 30249944210, 2026-07-27..28), not guessed, and their sum (117)
+        # stays under the 120-minute job backstop so a wedge is always attributed to a step.
+        # This step: worst healthy observation 4m29s; a materializer run is minutes, not tens of
+        # minutes, so 12 catches a wedge without ever tripping on a slow-but-live runner.
+        timeout-minutes: 12
         run: buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . --github-event
       - name: Fetch base ref for the merge-base anchor
         if: ${{ github.event_name == 'pull_request' }}
@@ -843,6 +854,16 @@ jobs:
       #    use an exact push-to-dev baseline artifact when provenance and schema validate, else
       #    fail closed to the same in-job merge-base rebuild below.
       - name: Materialize merge-base build + test baselines when affected-set needs FULL
+        # PER-STEP BUDGET. THE step that hung in job 91306848257 (started 01:16:44, still
+        # `in_progress` when the pod died at 01:55:36 = 38m52s and counting). Worst healthy
+        # observation is 32m18s (a cold FULL-tier merge-base pass; the trusted-baseline fast path
+        # takes 5s), so 55 is ~1.7x the worst measurement — wide enough that a genuinely cold
+        # full-workspace pass never trips it, tight enough to fire on a wedged buck2 action.
+        # HONEST LIMIT: at 38m52s this run was only ~20% over healthy, so 55 would NOT have beaten
+        # the pod to the kill here — a tighter budget would flake on cold caches, which is worse.
+        # What this buys is the OTHER shape: a step that hangs rather than dies now ends with a
+        # named failing step and an uploaded log instead of a 120-minute blank.
+        timeout-minutes: 55
         if: ${{ github.event_name == 'pull_request' }}
         env:
           BASE_REF: ${{ github.base_ref || 'dev' }}
@@ -940,6 +961,11 @@ jobs:
               || { echo "test-health: FATAL empty merge-base test baseline report"; exit 1; }
           )
       - name: Binding affected-set build + test (cone-binding; FULL tier = build-health ratchet)
+        # PER-STEP BUDGET. Worst healthy observation 28m19s across the six sampled runs (26m23s /
+        # 27m13s / 27m34s / 27m38s / 27m42s / 28m19s — a remarkably tight FULL-tier cluster), so 50
+        # is ~1.8x the worst measurement. This step never ran at all in job 91306848257: it was
+        # still `pending` when the pod died, which is exactly why the blank failure named nothing.
+        timeout-minutes: 50
         env:
           BASE_REF: ${{ github.base_ref || 'dev' }}
         run: |
