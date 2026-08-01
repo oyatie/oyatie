@@ -14,6 +14,22 @@ filegroup(
     srcs = glob(["testdata/**"]),
 )
 
+# Corpus graph extraction (ADR-0541). ONE buck2 action over this package's YAML: buck2's own action
+# cache then makes re-extraction incremental with no scheduler, watcher, or invalidation logic of
+# ours — editing a YAML file here dirties only this shard.
+#
+# KNOWN LIMITATION at this scale: a genrule's `out` IS its default output, so `buck2 build //...`
+# materializes every shard. That is fine for the three packages wired today and is NOT fine at ~900.
+# The prelude's own index-store rule (prelude//cxx:index_store.bzl) keeps per-target stores out of
+# default outputs and materializes only merged buckets; adopting that shape is the scale-up step,
+# and it needs a rule we own rather than a genrule.
+genrule(
+    name = "corpus-yaml-facts",
+    srcs = glob(["**/*.yaml", "**/*.yml"]),
+    out = "yaml-facts.json",
+    cmd = "$(exe //governance/corpus/extract:yaml-facts) --target root//os/core/machine-config-domain:corpus-yaml-facts --prefix os/core/machine-config-domain --out $OUT $SRCS",
+)
+
 rust_test(
     name = "os-machine-config-domain-unittest",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt", "testdata/**"]),
