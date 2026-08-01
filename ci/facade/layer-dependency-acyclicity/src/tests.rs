@@ -1052,6 +1052,267 @@ fn capability_tier_requires_unanimity_across_absorbed_services() {
     assert_eq!(capability_tier(&registry, "unregistered", &tiers), None);
 }
 
+/// A `service_tiers` map for the `capability_tier` projection tests.
+fn service_tier_map(rows: &[(&str, &str, Option<&str>)]) -> serde_json::Map<String, Value> {
+    let mut out = serde_json::Map::new();
+    for (svc, tier, stratum) in rows {
+        let mut rec = serde_json::Map::new();
+        rec.insert("tier".to_owned(), json!(tier));
+        if let Some(s) = stratum {
+            rec.insert("stratum".to_owned(), json!(s));
+        }
+        out.insert((*svc).to_owned(), Value::Object(rec));
+    }
+    out
+}
+
+#[test]
+fn capability_tier_is_not_an_artifact_of_migration_order() {
+    // HIGH-3. Unanimity was computed over the SURVIVORS: an absorbed service whose `manifest.json`
+    // is gone (a COMPLETED move deletes the dir) was silently skipped, so nothing distinguished
+    // "unanimous because they agree" from "unanimous because only one is left". The live `iam`
+    // spans S1+S1+S3 and is correctly unresolved today — but move the S3 service into `iam/` first
+    // and the survivors are unanimously S1, so `iam` resolves S1 while the S3 material now
+    // physically lives inside it. Move the S1 services first and the same capability resolves S3.
+    // The tier must not be a function of which service moved first.
+    let registry = json!({"capabilities": [{
+        "name": "iam",
+        "absorbs_current_dirs": ["iam", "cloud/cloud-iam", "oya/identity", "oya/consent-graph"]
+    }]});
+
+    let all_present = service_tier_map(&[
+        ("cloud/cloud-iam", "substrate", Some("S1")),
+        ("oya/identity", "substrate", Some("S1")),
+        ("oya/consent-graph", "substrate", Some("S3")),
+    ]);
+    assert_eq!(
+        capability_tier(&registry, "iam", &all_present),
+        None,
+        "S1+S1+S3 has no unanimous stratum (the live `iam` case)"
+    );
+
+    // The S3 service moved into `iam/` — its dir, and with it its manifest, is gone.
+    let s3_moved = service_tier_map(&[
+        ("cloud/cloud-iam", "substrate", Some("S1")),
+        ("oya/identity", "substrate", Some("S1")),
+    ]);
+    assert_eq!(
+        capability_tier(&registry, "iam", &s3_moved),
+        None,
+        "a vanished absorbed service must not launder S1+S1+S3 into a unanimous S1"
+    );
+
+    // The mirror: the S1 services moved first, which under survivor-unanimity resolves S3.
+    let s1_moved = service_tier_map(&[("oya/consent-graph", "substrate", Some("S3"))]);
+    assert_eq!(
+        capability_tier(&registry, "iam", &s1_moved),
+        None,
+        "the projected tier must not be an artifact of migration ORDER"
+    );
+
+    // The capability's OWN root dir is in `absorbs_current_dirs` for every registry entry (it is the
+    // destination tree, not a source service) and never carries a service manifest. Excluding it is
+    // what keeps a fully-resolvable capability resolvable under the all-entries rule.
+    let complete = service_tier_map(&[
+        ("cloud/cloud-iam", "substrate", Some("S1")),
+        ("oya/identity", "substrate", Some("S1")),
+        ("oya/consent-graph", "substrate", Some("S1")),
+    ]);
+    assert_eq!(
+        capability_tier(&registry, "iam", &complete),
+        Some(json!({"tier": "substrate", "stratum": "S1"})),
+        "every absorbed SERVICE resolving unanimously still projects"
+    );
+}
+
+#[test]
+fn r6c_reds_a_capability_root_projecting_an_unrankable_stratum() {
+    // CRITICAL-1. R6c tested that a tier was PRESENT, not that it was USABLE. `forward-declared` is
+    // absent from `stratum_rank_order`, so `classify_edge`'s R4 arm looks it up, gets None, and the
+    // `(Some, Some)` arm never matches — the root compares NOTHING. Meanwhile R6b is quiet (the root
+    // left `unclassified_roots`) and R6c was quiet (a record exists). Four live capabilities
+    // (ci/billing/storage/flags) project exactly `{substrate, forward-declared}` today, because
+    // every surviving absorbed manifest happens to be forward-declared.
+    let mut policy = policy();
+    policy["capability_roots"] = json!(["storage"]);
+    let mut observed = root_rules_corpus(&["storage"], &["libs", "tools", "cloud/cloud-ci", "os"]);
+    observed["service_tiers"] = json!({
+        "storage": {"tier": "substrate", "stratum": "forward-declared"},
+        "network": {"tier": "substrate", "stratum": "S1"}
+    });
+
+    let report = evaluate(&policy, &baseline(&[]), &observed);
+    let f = report
+        .findings
+        .iter()
+        .find(|f| f.code == "TDA-CAPABILITY-TIER-UNRESOLVED")
+        .expect("a PRESENT-but-UNRANKABLE capability tier must fire R6c");
+    assert_eq!(f.subject, "storage");
+    assert_eq!(f.status, Status::Regression);
+    assert!(
+        f.detail.contains("forward-declared") && f.detail.contains("no ADR-0280 rank"),
+        "the detail must name the cause, not the generic no-unanimity case; got {}",
+        f.detail
+    );
+    assert_eq!(report.verdict, Verdict::Red);
+
+    // The paired proof that this is a FALSE GREEN and not a cosmetic gap: an S0-ward edge out of the
+    // forward-declared root is a real ADR-0280 inversion and R4 does not flag it.
+    let mut with_edge = observed.clone();
+    with_edge["crates"] = json!([
+        {"dir": "storage/core/domain", "service": "storage"},
+        {"dir": "network/core/residency", "service": "network"}
+    ]);
+    with_edge["edges"] = json!([{"from": "storage/core/domain", "to": "network/core/residency"}]);
+    let report = evaluate(&policy, &baseline(&[]), &with_edge);
+    assert!(
+        !report
+            .findings
+            .iter()
+            .any(|f| f.code == "TDA-S-RANK-INVERSION"),
+        "an unrankable stratum compares nothing — that is the defect R6c must name; {:?}",
+        report.findings
+    );
+
+    // GREEN once the projection is RANKABLE.
+    let mut ranked = observed;
+    ranked["service_tiers"]["storage"] = json!({"tier": "substrate", "stratum": "S2"});
+    let report = evaluate(&policy, &baseline(&[]), &ranked);
+    assert!(report.findings.is_empty(), "{:?}", report.findings);
+}
+
+#[test]
+fn root_rules_run_even_when_the_scan_is_broken() {
+    // MEDIUM-5. R6b/R6c are evaluated over POLICY data, exactly as their comment says — so they must
+    // not sit behind the `scan_is_broken` guard R6 needs. They did, which meant a scan broken enough
+    // to trip the false-green floor silenced the two rules that do not depend on the scan at all.
+    let mut policy = policy();
+    policy["min_expected_crates"] = json!(700);
+    policy["unclassified_roots"] = json!(["iam"]);
+    policy["capability_roots"] = json!(["marketplace"]);
+    let mut observed = root_rules_corpus(&["iam", "marketplace"], &["os"]);
+    observed["crate_count"] = json!(0); // a broken scan
+
+    let report = evaluate(&policy, &baseline(&[]), &observed);
+    let codes: BTreeSet<&str> = report.findings.iter().map(|f| f.code.as_str()).collect();
+    assert!(codes.contains("TDA-EMPTY-SCAN"), "{:?}", report.findings);
+    assert!(
+        codes.contains("TDA-UNCLASSIFIED-ROOT-NOT-META")
+            && codes.contains("TDA-CAPABILITY-TIER-UNRESOLVED"),
+        "a broken scan must not silence the POLICY-only rules; got {codes:?}"
+    );
+}
+
+#[test]
+fn a_root_baseline_row_naming_an_undeclared_root_is_stale() {
+    // MEDIUM-6. The B3 phantom-row class, reopened one level up: root rows had NO staleness detector
+    // at all, and they are now 21 of the 38 committed rows. R6b re-derives its subjects from
+    // `unclassified_roots` and R6c from `capability_roots`, so a row naming a root in neither can
+    // never be re-derived — permanently inert, and it inflates `burned_down` forever.
+    let mut policy = policy();
+    policy["unclassified_roots"] = json!(["libs"]);
+    let observed = root_rules_corpus(&["iam"], &["libs"]);
+
+    let report = evaluate(
+        &policy,
+        &baseline(&[("TDA-UNCLASSIFIED-ROOT-NOT-META", "vanished-root")]),
+        &observed,
+    );
+    let f = report
+        .findings
+        .iter()
+        .find(|f| f.code == "TDA-STALE-BASELINE")
+        .expect("a root row that no rule can re-derive must fire the liveness backstop");
+    assert_eq!(f.subject, "vanished-root");
+    assert_eq!(report.verdict, Verdict::Red);
+
+    // A row whose root is still DECLARED is live debt, not a phantom — even while R6b reports it.
+    let report = evaluate(
+        &policy,
+        &baseline(&[("TDA-UNCLASSIFIED-ROOT-NOT-META", "libs")]),
+        &root_rules_corpus(&["iam"], &["os"]),
+    );
+    assert!(
+        !report
+            .findings
+            .iter()
+            .any(|f| f.code == "TDA-STALE-BASELINE"),
+        "a declared root's row is live debt, not stale; {:?}",
+        report.findings
+    );
+}
+
+#[test]
+fn emit_baseline_carries_live_root_rows_forward_and_mints_none() {
+    // HIGH-4. `--emit-baseline` is the remedy printed in TDA-STALE-BASELINE's detail AND in the
+    // baseline `_comment`'s regenerate instruction. It dropped every ROOT row, so an operator
+    // following the documented remedy turned 21 advisory rows into 21 blocking regressions.
+    let mut policy = policy();
+    policy["unclassified_roots"] = json!(["kept", "burned"]);
+    let mut observed = root_rules_corpus(&["kept", "burned"], &[]);
+    // `burned` moved to capability_roots, so R6b no longer reports it: its committed row is spent.
+    policy["capability_roots"] = json!(["burned"]);
+    policy["unclassified_roots"] = json!(["kept"]);
+    observed["service_tiers"] = json!({"burned": {"tier": "substrate", "stratum": "S1"}});
+
+    let committed = json!({
+        "_comment": "hand-written prose that a re-emit must not destroy",
+        "frozen_at_ref": "origin/dev abc123",
+        "gate_id": GATE_ID,
+        "violations": [
+            {"code": "TDA-UNCLASSIFIED-ROOT-NOT-META", "subject": "kept"},
+            {"code": "TDA-UNCLASSIFIED-ROOT-NOT-META", "subject": "burned"}
+        ]
+    });
+    let report = evaluate(&policy, &committed, &observed);
+    let doc = emit_baseline_doc(&report, &committed);
+    let rows: Vec<(&str, &str)> = doc["violations"]
+        .as_array()
+        .expect("violations")
+        .iter()
+        .map(|v| {
+            (
+                v["code"].as_str().expect("code"),
+                v["subject"].as_str().expect("subject"),
+            )
+        })
+        .collect();
+
+    assert_eq!(
+        rows,
+        vec![("TDA-UNCLASSIFIED-ROOT-NOT-META", "kept")],
+        "the still-live root row survives; the burned-down one drops"
+    );
+    assert_eq!(
+        doc["_comment"], committed["_comment"],
+        "prose is carried forward"
+    );
+    assert_eq!(doc["frozen_at_ref"], committed["frozen_at_ref"]);
+
+    // And a root finding that was never committed can NEVER be laundered in by re-emitting.
+    let mut policy = policy;
+    policy["unclassified_roots"] = json!(["kept", "brand-new"]);
+    let observed = root_rules_corpus(&["kept", "brand-new"], &[]);
+    let report = evaluate(&policy, &committed, &observed);
+    assert!(
+        report
+            .findings
+            .iter()
+            .any(|f| f.subject == "brand-new" && f.status == Status::Regression),
+        "the new exemption is a live regression; {:?}",
+        report.findings
+    );
+    let doc = emit_baseline_doc(&report, &committed);
+    assert!(
+        !doc["violations"]
+            .as_array()
+            .expect("violations")
+            .iter()
+            .any(|v| v["subject"] == "brand-new"),
+        "re-emitting must never MINT a structural row: {doc:#}"
+    );
+}
+
 #[test]
 fn evaluator_only_emits_declared_violation_codes() {
     // THE DRIFT GUARD whose absence let a real defect through. Adding TDA-UNDECLARED-ROOT

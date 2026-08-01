@@ -271,6 +271,91 @@ fn fixtures_dir_root() -> PathBuf {
 }
 
 #[test]
+fn a_capability_root_can_declare_its_own_tier_after_its_sources_are_gone() {
+    // HIGH-2: `capability_tier` derived a tier ONLY from `absorbs_current_dirs` entries resolving in
+    // `service_tiers`, which is built only from `<service_root>/<name>/manifest.json`. A COMPLETED
+    // capability move DELETES those dirs, so the terminal state of a successful migration was an
+    // unresolvable tier — and TDA-CAPABILITY-TIER-UNRESOLVED is hardcoded `Status::Regression`, so
+    // the baseline could not absorb it and --emit-baseline refused it. The gate failed permanently
+    // exactly when the reorg SUCCEEDED, with no green path at all (`policy`, `compute` and
+    // `messaging` are already in that state with zero absorbable services). A capability root now
+    // carries its OWN declared tier, which is preferred over the projection.
+    let scratch = std::env::temp_dir().join(format!(
+        "tda-declared-tier-{}-{}",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_nanos())
+            .unwrap_or_default()
+    ));
+    let capability = scratch.join("capx/core/domain");
+    std::fs::create_dir_all(&capability).expect("scratch tree");
+    std::fs::write(capability.join("Cargo.toml"), "[package]\nname = \"x\"\n").expect("crate");
+    // The registry names an absorbed service that NO LONGER EXISTS — the migration completed.
+    std::fs::write(
+        scratch.join("registry.json"),
+        r#"{"capabilities":[{"name":"capx","absorbs_current_dirs":["capx","cloud/gone"]}],
+            "meta_directories":[{"dir":"os/"}]}"#,
+    )
+    .expect("registry");
+    let policy = serde_json::json!({
+        "gate_id": GATE_ID,
+        "enforcement": "advisory-baseline",
+        "crate_root_globs": ["capx/*/*"],
+        "service_roots": ["cloud", "oya"],
+        "capability_roots": ["capx"],
+        "capability_registry_path": "registry.json",
+        "unclassified_roots": ["os"],
+        "stratum_rank_order": ["S0", "S1", "S2", "S3", "S4", "S5"],
+        "min_expected_crates": 0
+    });
+    let empty_baseline = serde_json::json!({ "gate_id": GATE_ID, "violations": [] });
+
+    // No projection is possible and no tier is declared → RED, as it must be.
+    let observed = collect_corpus(&scratch, &policy).expect("collect");
+    let report = evaluate(&policy, &empty_baseline, &observed);
+    assert!(
+        report
+            .findings
+            .iter()
+            .any(|f| f.code == "TDA-CAPABILITY-TIER-UNRESOLVED" && f.subject == "capx"),
+        "a fully-migrated capability with no declared tier must RED; {:?}",
+        report.findings
+    );
+
+    // Declaring the tier on the capability root itself is the green path.
+    std::fs::write(
+        scratch.join("capx/manifest.json"),
+        r#"{"tier":"substrate","substrate_dag_position":{"stratum":"S2"}}"#,
+    )
+    .expect("capability manifest");
+    let observed = collect_corpus(&scratch, &policy).expect("collect");
+    assert_eq!(
+        observed["service_tiers"]["capx"],
+        serde_json::json!({"tier": "substrate", "stratum": "S2"}),
+        "the capability's OWN manifest is the tier"
+    );
+    let report = evaluate(&policy, &empty_baseline, &observed);
+    assert_eq!(report.verdict, Verdict::Green, "{:?}", report.findings);
+
+    // And the declared tier WINS over a still-resolvable projection: the tier is a reviewable fact,
+    // not a shadow of dirs scheduled for deletion, so the two must not silently disagree.
+    std::fs::create_dir_all(scratch.join("cloud/gone")).expect("resurrect source");
+    std::fs::write(
+        scratch.join("cloud/gone/manifest.json"),
+        r#"{"tier":"substrate","substrate_dag_position":{"stratum":"S5"}}"#,
+    )
+    .expect("source manifest");
+    let observed = collect_corpus(&scratch, &policy).expect("collect");
+    assert_eq!(
+        observed["service_tiers"]["capx"]["stratum"], "S2",
+        "the DECLARED tier is preferred over the projection"
+    );
+
+    std::fs::remove_dir_all(&scratch).ok();
+}
+
+#[test]
 fn every_governed_glob_root_is_declared_in_the_policy() {
     // The invariant that MAKES the zero-debt property hold, checked over policy data alone: a
     // crate_root_glob whose first segment is declared in neither service_roots nor
