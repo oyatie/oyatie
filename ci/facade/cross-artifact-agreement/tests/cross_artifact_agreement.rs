@@ -9,6 +9,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Component, Path, PathBuf};
 use std::process::Command;
+use std::sync::OnceLock;
 
 use ci_cross_artifact_agreement::{
     AdrDecisionRecord, GateCoverageBaseline, RatchetReport, RawHistoryOnlyRetirementReceipt,
@@ -352,6 +353,378 @@ fn retirement_sources_do_not_silently_amend_accepted_adr_0613() {
         assert!(
             anchor.contains("HOLD(Planning)"),
             "{prefix} must retain the authority ceiling"
+        );
+    }
+}
+
+/// Accepted portal authority must remain a single coherent contract. The generic bridge roadmap
+/// may retain an import transition, but must not resurrect Backstage as a parallel runtime.
+#[test]
+fn portal_authority_keeps_backstage_one_way_and_runtime_free() {
+    let root = repo_root();
+    let first_party =
+        fs::read_to_string(root.join("docs/decisions/ADR-0394-bespoke-rust-idp-central-hub.md"))
+            .expect("read ADR-0394");
+    let roadmap =
+        fs::read_to_string(root.join("docs/decisions/ADR-0482-bespoke-substrate-roadmap.md"))
+            .expect("read ADR-0482");
+
+    assert!(
+        first_party.contains("amends: [ADR-0482]")
+            && roadmap.contains("amended_by: [kubers-anchor-2026-05-28, ADR-0394,"),
+        "ADR-0394 and ADR-0482 must carry reciprocal amendment edges"
+    );
+    assert!(
+        first_party.contains("bounded one-way import source")
+            && first_party.contains("It is not a runtime dependency, plugin host"),
+        "ADR-0394 must keep Backstage bounded to one-way import and forbid runtime authority"
+    );
+    assert!(
+        roadmap.contains(
+            "Bounded one-way import of Backstage Catalog YAML; no Backstage runtime or plugin host"
+        ) && !roadmap.contains("| Rust-native portal (ADR-0434) | Backstage (ADR-0410) |"),
+        "ADR-0482 must not resurrect the retired Backstage runtime bridge"
+    );
+}
+
+/// ADR-0614 was accepted after its resolver hardening shipped, and ADR-0616 then reversed the
+/// committed frozen-reference posture. Stale proposal-era prose would make live authority lie.
+#[test]
+fn move_manifest_authority_matches_fail_closed_resolver_and_adr_0616() {
+    let root = repo_root();
+    let move_manifest = fs::read_to_string(
+        root.join("docs/decisions/ADR-0614-de-commit-reorg-move-manifest-bijection.md"),
+    )
+    .expect("read ADR-0614");
+    let frozen_reference = fs::read_to_string(
+        root.join("docs/decisions/ADR-0616-de-commit-firewall-frozen-reference-baseline.md"),
+    )
+    .expect("read ADR-0616");
+
+    assert!(
+        move_manifest.contains("amended_by: [ADR-0616]")
+            && frozen_reference.contains("amends: [ADR-0604, ADR-0614]"),
+        "ADR-0614 and ADR-0616 must carry reciprocal amendment edges"
+    );
+    for stale in [
+        "still return `Self` infallibly",
+        "mapping absent → `empty()`",
+        "Latent hazard recorded, not dropped",
+        "De-commit AND refactor `load` to fail-closed in one PR",
+        "Reaffirms ADR-0596",
+    ] {
+        assert!(
+            !move_manifest.contains(stale),
+            "ADR-0614 contains stale authority phrase {stale:?}"
+        );
+    }
+    assert!(
+        move_manifest.contains("return `Result` and hard-error when")
+            && move_manifest
+                .contains("ADR-0616 supersedes ADR-0596's committed frozen-reference rule"),
+        "ADR-0614 must describe the shipped fail-closed resolver and current ADR-0616 posture"
+    );
+    for stale in [
+        "is the firewall ratchet's FROZEN reference and the LAST committed generated",
+        "The emitter reads it as the committed blob",
+        "src/main.rs:737",
+    ] {
+        assert!(
+            !frozen_reference.contains(stale),
+            "ADR-0616 contains stale live-baseline claim {stale:?}"
+        );
+    }
+    assert!(
+        frozen_reference.contains("Before this decision")
+            && frozen_reference
+                .contains("regenerates the baseline twice from the immutable merge-base source")
+            && frozen_reference.contains("resolve_merge_base_baseline_snapshot")
+            && frozen_reference.contains("provides no committed-face")
+            && frozen_reference.contains("`git show` fallback"),
+        "ADR-0616 must distinguish historical committed state from immutable-source regeneration"
+    );
+}
+
+/// ADR-0565 is the one-way zero-GraphQL authority. The two older API ADRs may retain only
+/// explicitly historical/rejected discussion and must expose normalized reciprocal edges.
+#[test]
+fn zero_graphql_authority_has_reciprocal_edges_and_no_live_surface() {
+    let root = repo_root();
+    let zero_graphql = fs::read_to_string(
+        root.join("docs/decisions/ADR-0565-zero-graphql-in-the-owned-api-surface.md"),
+    )
+    .expect("read ADR-0565");
+    let network = fs::read_to_string(
+        root.join("docs/decisions/ADR-0253-network-topology-edge-service-mesh.md"),
+    )
+    .expect("read ADR-0253");
+    let versioning =
+        fs::read_to_string(root.join("docs/decisions/ADR-0258-api-versioning-model.md"))
+            .expect("read ADR-0258");
+
+    assert!(
+        zero_graphql.contains("amends: [ADR-0253, ADR-0258]")
+            && network.contains("amended_by:\n  - ADR-0565\n")
+            && versioning.contains("amended_by: [ADR-0565]"),
+        "ADR-0565, ADR-0253, and ADR-0258 must carry normalized reciprocal amendment edges"
+    );
+    for stale in [
+        "D-14 (OpenAPI 3.2 + GraphQL Fed + gRPC + AsyncAPI)",
+        "GraphQL is a fraction of the public surface",
+        "the GraphQL deprecation directive remains available within GraphQL surfaces",
+        "public REST/gRPC/AsyncAPI/~~GraphQL~~ surface",
+    ] {
+        assert!(
+            !network.contains(stale) && !versioning.contains(stale),
+            "older API authority retains live GraphQL claim {stale:?}"
+        );
+    }
+    assert!(
+        network.contains("historical rejected context only")
+            && versioning.contains("GraphQL is historical rejected context only")
+            && versioning.contains(
+                "GraphQL Federation as the version-management substrate (historical, rejected)"
+            ),
+        "surviving GraphQL prose must be explicitly historical or rejected"
+    );
+}
+
+fn normalizes_to_public_grpc_contradiction(text: &str) -> bool {
+    let normalized = text
+        .split_whitespace()
+        .collect::<Vec<_>>()
+        .join(" ")
+        .to_ascii_lowercase();
+    [
+        "public rest/grpc",
+        "public http/grpc",
+        "external http/grpc",
+        "public grpc is",
+        "public grpc api",
+        "public grpc surface",
+        "public µservice rpc (http + grpc",
+        "proto3 services exposed externally",
+        "proto3 reserved field oyatie_version",
+    ]
+    .iter()
+    .any(|contradiction| normalized.contains(contradiction))
+}
+
+/// ADR-0203 owns the self-contained public documentation boundary in this authority epoch:
+/// OpenAPI REST plus AsyncAPI event/webhook/streaming references, with Protobuf descriptors
+/// visible only to internal service owners. Every Accepted protocol ADR in the explicit authority
+/// set, ADR-0258, and the absorbed sequencing sidecar must preserve that boundary.
+#[test]
+fn public_protocol_authority_keeps_grpc_and_proto_internal() {
+    let root = repo_root();
+    let documentation =
+        fs::read_to_string(root.join("docs/decisions/ADR-0203-documentation-engine-three-tier.md"))
+            .expect("read ADR-0203");
+    let versioning =
+        fs::read_to_string(root.join("docs/decisions/ADR-0258-api-versioning-model.md"))
+            .expect("read ADR-0258");
+    let sequencing = load_json(&root.join("specs/master-plan-sequencing.json"));
+    let protocol_adrs = [
+        "docs/decisions/ADR-0157-api-gateway-tier.md",
+        "docs/decisions/ADR-0167-tenant-cli.md",
+        "docs/decisions/ADR-0176-brownout-degradation-signal-api.md",
+        "docs/decisions/ADR-0182-api-gateway-north-south-vs-service-mesh-east-west-separation.md",
+    ];
+
+    assert!(
+        documentation.contains("- Status: Accepted")
+            && documentation.contains("ADR-0258 (API versioning model)")
+            && versioning.contains("status: Accepted")
+            && versioning.contains("ADR-0203")
+            && versioning.contains("## ADR-0203 public-contract reconciliation"),
+        "ADR-0203 and ADR-0258 must stay Accepted, related, and explicitly reconciled"
+    );
+    for required in [
+        "OpenAPI 3.2 REST",
+        "AsyncAPI\n3.1 event, webhook, and streaming references",
+        "Public gRPC or proto3 exposure is not authorized",
+        "internal service-to-service\nRPC under mTLS",
+        "displaying internal Protobuf descriptors does not create a public contract",
+    ] {
+        assert!(
+            versioning.contains(required),
+            "ADR-0258 must preserve the reconciled protocol invariant {required:?}"
+        );
+    }
+    assert!(
+        documentation.contains(
+            "Protobuf descriptors may be shown for internal service owners but do not create a public gRPC\n  contract"
+        ),
+        "ADR-0203 must keep Protobuf documentation internal-only"
+    );
+
+    for path in protocol_adrs {
+        let adr = fs::read_to_string(root.join(path))
+            .unwrap_or_else(|error| panic!("read protocol authority {path}: {error}"));
+        assert!(
+            adr.contains("status: Accepted")
+                && adr.contains("last_reconciled: 2026-08-01")
+                && adr.contains("reconciled_with: [ADR-0203, ADR-0258]")
+                && adr.contains("### Public-contract reconciliation"),
+            "{path} must remain Accepted and carry reciprocal protocol reconciliation metadata"
+        );
+        for required in [
+            "REST documented by OpenAPI 3.2",
+            "webhooks, events, and streams documented by AsyncAPI 3.1",
+            "gRPC over HTTP/2 (H2) with proto3 is",
+            "internal-only service-to-service traffic under mTLS",
+            "it is not a public API contract",
+        ] {
+            assert!(
+                adr.contains(required),
+                "{path} must preserve protocol invariant {required:?}"
+            );
+        }
+        assert!(
+            !normalizes_to_public_grpc_contradiction(&adr),
+            "{path} reintroduced contradictory public gRPC authority"
+        );
+    }
+
+    assert!(
+        !normalizes_to_public_grpc_contradiction(&versioning),
+        "ADR-0258 reintroduced contradictory public gRPC authority"
+    );
+
+    let rendered_plan = serde_json::to_string(&sequencing)
+        .expect("sequencing must serialize")
+        .to_ascii_lowercase();
+    for contradiction in [
+        "public rest/asyncapi/proto3",
+        "proto3 services exposed externally",
+        "proto3 reserved field oyatie_version",
+        "versionsservice",
+        "contracts/*.proto",
+    ] {
+        assert!(
+            !rendered_plan.contains(contradiction),
+            "sequencing reintroduced public RPC authority {contradiction:?}"
+        );
+    }
+    let wave = &sequencing["realignment_wave_sequence"]["waves_15_plus"]["sub_wave_landings"]["15V-API-Versioning-Adoption"];
+    let rendered_wave = serde_json::to_string(wave)
+        .expect("15V must serialize")
+        .to_ascii_lowercase();
+    for required in [
+        "openapi 3.2.0",
+        "signed/versioned webhook",
+        "asyncapi 3.1.0",
+        "streaming",
+        "internal-mesh grpc/proto3",
+        "exempt",
+    ] {
+        assert!(
+            rendered_wave.contains(required),
+            "15V must preserve the carrier boundary {required:?}"
+        );
+    }
+}
+
+#[test]
+fn public_protocol_guard_rejects_known_public_grpc_mutations() {
+    for mutation in [
+        "Public REST/gRPC is supported.",
+        "Public HTTP/gRPC API.",
+        "Every external HTTP/gRPC request enters here.",
+        "Every public µservice RPC (HTTP + gRPC + AsyncAPI) emits metadata.",
+        "Public gRPC is a Tier-A contract.",
+        "Proto3 services exposed externally.",
+        "Proto3 reserved field oyatie_version.",
+    ] {
+        assert!(
+            normalizes_to_public_grpc_contradiction(mutation),
+            "public protocol guard false-green for mutation {mutation:?}"
+        );
+    }
+}
+
+/// Developer-SDK IP file bindings are optional. When present, each binding must identify an exact
+/// implementation-plan artifact for that row; broad doctrine notes and ADRs cannot stand in for it.
+#[test]
+fn developer_sdk_ip_file_bindings_are_exact_implementation_plans() {
+    let root = repo_root();
+    let manifest = load_json(&root.join("oya/developer-sdk/manifest.json"));
+    let ips = manifest["ips"].as_array().expect("developer-sdk ips array");
+    let mut ids = BTreeSet::new();
+
+    for row in ips {
+        let id = row["id"].as_str().expect("developer-sdk IP id");
+        assert!(ids.insert(id), "duplicate developer-sdk IP id {id}");
+
+        let Some(file) = row.get("file") else {
+            continue;
+        };
+        let file = file
+            .as_str()
+            .unwrap_or_else(|| panic!("developer-sdk IP {id} file must be a string"));
+        let expected_path = format!("oya/developer-sdk/implementation-plans/{id}.md");
+        assert_eq!(
+            file, expected_path,
+            "developer-sdk IP {id} may bind only its exact implementation-plan artifact"
+        );
+        assert!(
+            root.join(file).is_file(),
+            "developer-sdk IP {id} file must resolve to {file}"
+        );
+
+        let artifact = fs::read_to_string(root.join(file))
+            .unwrap_or_else(|error| panic!("read developer-sdk IP {id} file {file}: {error}"));
+        let frontmatter = artifact
+            .strip_prefix("---\n")
+            .and_then(|tail| {
+                tail.split_once("\n---\n")
+                    .map(|(frontmatter, _)| frontmatter)
+            })
+            .unwrap_or_else(|| panic!("developer-sdk IP {id} file must have YAML frontmatter"));
+        let exact_id = format!("id: {id}");
+        assert!(
+            frontmatter.lines().any(|line| line.trim() == exact_id),
+            "developer-sdk IP {id} file must declare its exact identity"
+        );
+        assert!(
+            frontmatter
+                .lines()
+                .any(|line| line.trim() == "artifact_class: implementation-plan"),
+            "developer-sdk IP {id} file must declare artifact_class: implementation-plan"
+        );
+    }
+}
+
+/// Legacy Backstage-shaped records are bounded one-way import data, but their source URLs must
+/// still resolve to the canonical post-reorg compliance artifacts.
+#[test]
+fn compliance_catalog_import_urls_resolve_to_canonical_paths() {
+    let root = repo_root();
+    let prefix = "https://github.com/oyadev/oyatie/blob/main/";
+    for (catalog_path, canonical_path) in [
+        (
+            "oya/compliance/catalog/api-asyncapi.yaml",
+            "oya/compliance/contracts/asyncapi.yaml",
+        ),
+        (
+            "oya/compliance/catalog/api-rest.yaml",
+            "oya/compliance/contracts/openapi.yaml",
+        ),
+        (
+            "oya/compliance/catalog/component-info.yaml",
+            "oya/compliance/manifest.json",
+        ),
+    ] {
+        let catalog = fs::read_to_string(root.join(catalog_path))
+            .unwrap_or_else(|error| panic!("read {catalog_path}: {error}"));
+        let url = format!("{prefix}{canonical_path}");
+        assert!(
+            catalog.contains(&url) && !catalog.contains("microservices/compliance/"),
+            "{catalog_path} must reference canonical compliance path {canonical_path}"
+        );
+        assert!(
+            root.join(canonical_path).is_file(),
+            "catalog reference must resolve to {canonical_path}"
         );
     }
 }
@@ -780,7 +1153,8 @@ fn broad_workflow_consumers_require_the_producer_artifact_and_keep_the_merge_bas
     //
     // Both sides are pinned. A future edge re-added to a self-materializer, or a download dropped
     // from the mere reader, fails here.
-    let download_step_name = "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)";
+    let download_step_name =
+        "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)";
     let materialize_step_name = "Materialize cloud-ci generated faces (out-of-graph boundary)";
 
     let gate = workflow_job(&workflow, "gate");
@@ -2632,17 +3006,146 @@ fn adr_records_from_decisions_json(decisions: &Value) -> Vec<AdrDecisionRecord> 
     records
 }
 
+fn source_derived_adr_records(root: &Path) -> Vec<AdrDecisionRecord> {
+    static RECORDS: OnceLock<Vec<AdrDecisionRecord>> = OnceLock::new();
+    RECORDS
+        .get_or_init(|| {
+            let producer = std::env::var("OYA_ADR_INDEX_PRODUCER_BIN")
+                .expect("Buck2 must provide the sanctioned ADR-index producer binary");
+            let temp = tempfile::tempdir().expect("create ADR-index projection tempdir");
+            let index = temp.path().join("ADR-INDEX.md");
+            let machine = temp.path().join("decisions.json");
+            let output =
+                Command::new(producer_binary(root, Some(&producer)).expect("ADR producer path"))
+                    .current_dir(root)
+                    .args([
+                        "doc",
+                        "adr-index",
+                        "--decisions-dir",
+                        root.join("docs/decisions")
+                            .to_str()
+                            .expect("UTF-8 decisions path"),
+                        "--index",
+                        index.to_str().expect("UTF-8 index path"),
+                        "--machine",
+                        machine.to_str().expect("UTF-8 machine path"),
+                        "--write",
+                        "--format",
+                        "json",
+                    ])
+                    .output()
+                    .expect("run sanctioned ADR-index producer");
+            assert!(
+                output.status.success(),
+                "ADR-index producer failed: stdout={} stderr={}",
+                String::from_utf8_lossy(&output.stdout),
+                String::from_utf8_lossy(&output.stderr)
+            );
+            adr_records_from_decisions_json(&load_json(&machine))
+        })
+        .clone()
+}
+
+fn public_protocol_required_relation_edges() -> Vec<(&'static str, &'static str)> {
+    const SOURCES: [&str; 4] = ["ADR-0157", "ADR-0167", "ADR-0176", "ADR-0182"];
+    let mut required = Vec::new();
+    for source in SOURCES {
+        required.push((source, "ADR-0203"));
+        required.push((source, "ADR-0258"));
+        required.push(("ADR-0203", source));
+        required.push(("ADR-0258", source));
+    }
+    required.push(("ADR-0203", "ADR-0258"));
+    required.push(("ADR-0258", "ADR-0203"));
+    required
+}
+
+fn public_protocol_reciprocal_relation_error(records: &[AdrDecisionRecord]) -> Option<String> {
+    let relations = records
+        .iter()
+        .map(|record| (record.id.as_str(), record.related.as_slice()))
+        .collect::<BTreeMap<_, _>>();
+    public_protocol_required_relation_edges()
+        .into_iter()
+        .find_map(|(source, target)| {
+            let Some(related) = relations.get(source) else {
+                return Some(format!("missing source metadata for {source}"));
+            };
+            (!related.iter().any(|relation| relation == target))
+                .then(|| format!("{source} missing reciprocal related edge to {target}"))
+        })
+}
+
+#[test]
+fn public_protocol_source_metadata_has_every_reciprocal_relation() {
+    let records = source_derived_adr_records(&repo_root());
+    assert_eq!(public_protocol_reciprocal_relation_error(&records), None);
+}
+
+#[test]
+fn public_protocol_reciprocal_relation_guard_rejects_every_removed_edge() {
+    let records = source_derived_adr_records(&repo_root());
+    let expected_edges = public_protocol_required_relation_edges();
+    assert_eq!(
+        expected_edges.len(),
+        18,
+        "full directed reciprocal edge set"
+    );
+    for (source, target) in expected_edges {
+        let mut mutated = records.clone();
+        let record = mutated
+            .iter_mut()
+            .find(|record| record.id == source)
+            .expect("mutation source ADR");
+        record.related.retain(|relation| relation != target);
+        assert_eq!(
+            public_protocol_reciprocal_relation_error(&mutated),
+            Some(format!(
+                "{source} missing reciprocal related edge to {target}"
+            )),
+            "removing {source} -> {target} must fail closed"
+        );
+    }
+}
+
+#[test]
+fn source_relation_change_with_stale_controller_projection_fails_closed() {
+    let root = repo_root();
+    let mut source_records = source_derived_adr_records(&root);
+    let record = source_records
+        .iter_mut()
+        .find(|record| record.id == "ADR-0157")
+        .expect("ADR-0157 source record");
+    record.related.retain(|relation| relation != "ADR-0203");
+
+    let findings = evaluate_adr_index_projection_parity(
+        &source_records,
+        &fs::read_to_string(root.join("docs/ADR-INDEX.md")).expect("read docs/ADR-INDEX.md"),
+        &fs::read_to_string(root.join("docs/machine-readable/decisions.json"))
+            .expect("read docs/machine-readable/decisions.json"),
+        &decision_md_file_names(&root)
+            .iter()
+            .filter_map(|name| name.get(0..8).map(str::to_owned))
+            .collect(),
+    );
+    assert!(
+        findings.iter().any(|finding| finding
+            .key
+            .starts_with("docs/machine-readable/decisions.json#")),
+        "a source relation mutation with an unchanged controller projection must fail: {findings:?}"
+    );
+}
+
 /// Sub-check 3/3 born-advisory over the live tree: docs/ADR-INDEX.md and
 /// docs/machine-readable/decisions.json are byte-parity with their producer's
-/// re-render (via the oya-check-adr-index kernel, no shell-out) AND cover exactly
+/// re-render (via the sanctioned Buck2-built `oya doc adr-index` producer) AND cover exactly
 /// the docs/decisions/*.md corpus (#1327 defect class (d): projections not
 /// regenerated through their producer; implements the adr-index-pipeline.md
 /// promise). Enforces no-regression vs the frozen baseline.
 #[test]
 fn adr_index_projection_parity_is_advisory_clean_on_live_tree() {
     let root = repo_root();
-    let decisions = load_json(&root.join("docs/machine-readable/decisions.json"));
-    let records = adr_records_from_decisions_json(&decisions);
+    let records = source_derived_adr_records(&root);
     let on_disk_markdown =
         fs::read_to_string(root.join("docs/ADR-INDEX.md")).expect("read docs/ADR-INDEX.md");
     let on_disk_json = fs::read_to_string(root.join("docs/machine-readable/decisions.json"))
