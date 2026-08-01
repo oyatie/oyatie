@@ -762,6 +762,8 @@ jobs:
           # change into throwaway Cargo workspaces. Those directories intentionally do not carry
           # rust-toolchain.toml, so the rustup shim needs the same default that the canonical
           # runner image establishes. Derive it from the repo pin rather than duplicating a version.
+          # The affected-set runner and its direct merge-base baseline command below both forward
+          # this pinned RUSTUP_HOME through Buck2's deliberately narrow test-executor environment.
           rustc --version && (cd "$(mktemp -d)" && cargo --version)
       # Restore buck-out read-only (ADR-0554 D9). Same stable per-dependency/toolchain-set key as the buck2
       # lane: warmth is 100% in buck-out/v2/cache + buck-out/v2/art (path-relocatable); ~/.buck2
@@ -956,9 +958,12 @@ jobs:
             # TEST baseline (defect 3): run the merge-base tests keep-going, capture the per-target
             # verdict console, and normalize it with the owned-Rust build-health binary into the
             # build-report shape so the test-health ratchet consumes it exactly like the build
-            # baseline. Exit code not propagated (pre-existing test debt is the baseline).
+            # baseline. Forward the same pinned rustup path as the head invocation so infrastructure
+            # failures cannot enter only one side of the per-target ratchet. Exit code not propagated
+            # (pre-existing test debt is the baseline).
             "${ci_step_telemetry}" --phase materialize-merge-base-test-health-baseline -- \
-              buck2 test //... --keep-going > "${RUNNER_TEMP}/merge-base-test-console.log" 2>&1 || true
+              buck2 test //... --keep-going -- --env "RUSTUP_HOME=${RUSTUP_HOME}" \
+                > "${RUNNER_TEMP}/merge-base-test-console.log" 2>&1 || true
             "${RUNNER_TEMP}/oya-cloud-ci-build-health" \
               --normalize-test-console "${RUNNER_TEMP}/merge-base-test-console.log" \
               --normalize-out "${RUNNER_TEMP}/test-health-baseline.json"
