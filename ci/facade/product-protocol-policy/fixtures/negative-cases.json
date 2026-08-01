@@ -753,6 +753,14 @@
     {
       "name": "legacy-current-grpc",
       "text": "Legacy public gRPC is now supported."
+    },
+    {
+      "name": "allowed-not-forbidden-grpc",
+      "text": "Public gRPC is allowed, not forbidden."
+    },
+    {
+      "name": "rejected-semicolon-now-supported-grpc",
+      "text": "Public gRPC was rejected; it is now supported."
     }
   ],
   "accepted_adr_counterexamples": [

@@ -8,7 +8,7 @@
   "status": "wave-15m-f-authoring",
   "date": "2026-05-21",
   "audience_type": "tenant-b2b-healthcare-provider",
-  "doctrine_summary": "Hyperscaler-grade continuous physiologic surveillance µservice. Owns VitalSignsStream + Waveform + ICUMonitoring + RPM + AlarmManagement + SmartAlarm + Trending + DeteriorationPrediction + SepsisEarlyWarning + CodeBlue + TelemetryCoverage + CentralStation + MobileNotification + WaveformArchive + DeviceInterop + TrendAnalytics + WearableIntegration + ICUBundleCompliance bounded contexts. Streams 50-1000Hz waveforms via gRPC + FlatBuffers; 1Hz numeric vitals via FHIR Observation[vital-signs]; ML deterioration scoring (NEWS2/MEWS/qSOFA/SOFA/Rothman analog) every 5 minutes; smart alarm engine reduces alarm-fatigue ≥40% vs. Philips/GE/Mindray baselines. Cedar-gated bed-group + alarm-suppression authority chain; HIPAA + EU-AI-Act packs mandatory; FDA 21 CFR Part 11 + IEC 62304 SaMD Class C lifecycle binding.",
+  "doctrine_summary": "Hyperscaler-grade continuous physiologic surveillance µservice. Owns VitalSignsStream + Waveform + ICUMonitoring + RPM + AlarmManagement + SmartAlarm + Trending + DeteriorationPrediction + SepsisEarlyWarning + CodeBlue + TelemetryCoverage + CentralStation + MobileNotification + WaveformArchive + DeviceInterop + TrendAnalytics + WearableIntegration + ICUBundleCompliance bounded contexts. Streams 50-1000Hz waveforms through internal gRPC/proto3 over HTTP/2; a FlatBuffers projection is only a benchmark-gated derived adapter and is not canonical; 1Hz numeric vitals via FHIR Observation[vital-signs]; ML deterioration scoring (NEWS2/MEWS/qSOFA/SOFA/Rothman analog) every 5 minutes; smart alarm engine reduces alarm-fatigue ≥40% vs. Philips/GE/Mindray baselines. Cedar-gated bed-group + alarm-suppression authority chain; HIPAA + EU-AI-Act packs mandatory; FDA 21 CFR Part 11 + IEC 62304 SaMD Class C lifecycle binding.",
   "binding_adrs": [
     "ADR-0131",
     "ADR-0132",
@@ -496,5 +496,19 @@
     "rationale": "No current measured runtime SLI is declared for this foundation or planning-only service; the manifest must not claim production or hyperscaler-ready SLO coverage until an OpenSLO file lands.",
     "cutover_on": "2026-12-31",
     "evidence": "specs/master-plan-sequencing.json#realignment_wave_sequence"
+  },
+  "protocol_posture": {
+    "internal_grpc_transport": "http2",
+    "internal_grpc_language_profile": "proto3",
+    "flatbuffers": {
+      "status": "benchmark-gated-derived-adapter",
+      "canonical": false,
+      "activation_requires": [
+        "isolated hot path",
+        "reproducible latency or zero-copy benchmark",
+        "schema-evolution review",
+        "no second independently authored source of truth"
+      ]
+    }
   }
 }

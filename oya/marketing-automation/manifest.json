@@ -236,7 +236,7 @@
     "contract_versions": {
       "rest": "OpenAPI 3.2.0",
       "events": "AsyncAPI 3.1.0",
-      "grpc": "proto3 over HTTP/3",
+      "grpc": "proto3 over HTTP/2",
       "naming": "BNF v4.1"
     },
     "declared_layers": [
@@ -260,7 +260,7 @@
     "tls_floor": "TLS 1.3",
     "ech_enabled_where_terminated": true,
     "pqc_hybrid_negotiated": "X25519MLKEM768 + ML-KEM-768",
-    "grpc_transport": "gRPC over HTTP/3 internally"
+    "grpc_transport": "gRPC over HTTP/2 internally"
   },
   "compliance_packs": [
     "SOC-2",
