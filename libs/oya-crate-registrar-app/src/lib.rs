@@ -45,48 +45,38 @@ use std::collections::BTreeSet;
 use std::fs;
 use std::path::Path;
 
-use serde_json::{Map, Value};
+use serde_json::Value;
 
 // ───────────────────────────── canonical JSON (byte-stable) ─────────────────────────────
 
-/// Serialize `value` to the repo's canonical on-disk JSON form: keys recursively sorted, 2-space
-/// pretty, single trailing newline. This is byte-identical to the producer's
-/// `accounting-registry::to_canonical_json` (accounting-registry-app `lib.rs:892`) — the same
-/// canonical form keeps `specs/capability-registry.json` byte-stable across cargo and buck2 (the
-/// explicit key-sort makes the bytes independent of serde_json's `preserve_order` feature, which
-/// reindeer unions ON under buck2). It is reimplemented here rather than importing the heavyweight
-/// producer (a 12-gate dependency tree) because the algorithm is small and the coupling would be
-/// inappropriate for a thin writer crate.
+/// Serialize `value` to the repo's canonical on-disk JSON form: 2-space pretty, single trailing
+/// newline, **authored key order preserved**.
+///
+/// `sort_keys` is FALSE. That is the settled one-way-door dialect
+/// (`ci/facade/canonical-json/canonical-json-policy.json`, ADR-0546): "sort_keys=false because the
+/// defect is rewrite nondeterminism, not key-order ambiguity, and sorting would churn 1452 repo
+/// files and destroy intentional order on the agent entry surface". The file this writer edits —
+/// `specs/capability-registry.json` — is HAND-AUTHORED governance data whose key order is a design
+/// act, so a recursive sort here would silently reorder the whole registry on the next
+/// `register_crate` and hang that diff on whoever's PR happened to trigger it.
+///
+/// This is deliberately NOT the producer's `accounting-registry::to_canonical_json`, which sorts:
+/// that one serializes GENERATED faces, where no authored order exists to destroy.
+///
+/// Byte-stability across cargo and buck2 comes from `serde_json`'s `preserve_order` feature, which
+/// this crate's `Cargo.toml` declares explicitly and which reindeer already unions ON for the
+/// single generated `third-party//:serde_json`. Both build paths therefore see an insertion-ordered
+/// map — without the feature, cargo's default `BTreeMap` backing would sort on PARSE and no
+/// serializer could recover the authored order.
 ///
 /// # Errors
 /// Returns [`WriterError::Serialize`] if the value cannot be serialized (e.g. a non-string map key,
 /// which `serde_json::Value` never produces from parsed JSON).
 pub fn to_canonical_json(value: &Value) -> Result<String, WriterError> {
-    let mut text = serde_json::to_string_pretty(&canonicalize_value(value))
-        .map_err(|e| WriterError::Serialize(e.to_string()))?;
+    let mut text =
+        serde_json::to_string_pretty(value).map_err(|e| WriterError::Serialize(e.to_string()))?;
     text.push('\n');
     Ok(text)
-}
-
-/// Recursively reorder every object's keys into sorted (Unicode-scalar / UTF-8-byte) order. Mirrors
-/// the producer's `canonicalize_value`; arrays keep element order, scalars are unchanged.
-fn canonicalize_value(value: &Value) -> Value {
-    match value {
-        Value::Object(map) => {
-            let mut sorted: std::collections::BTreeMap<String, Value> =
-                std::collections::BTreeMap::new();
-            for (key, val) in map {
-                sorted.insert(key.clone(), canonicalize_value(val));
-            }
-            let mut out = Map::new();
-            for (key, val) in sorted {
-                out.insert(key, val);
-            }
-            Value::Object(out)
-        }
-        Value::Array(items) => Value::Array(items.iter().map(canonicalize_value).collect()),
-        other => other.clone(),
-    }
 }
 
 // ───────────────────────────── writer errors ─────────────────────────────
