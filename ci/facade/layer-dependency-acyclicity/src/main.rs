@@ -16,8 +16,8 @@ use std::path::PathBuf;
 use std::process::ExitCode;
 
 use ci_layer_dependency_acyclicity::{
-    BASELINE_PATH, Baseline, POLICY_PATH, Status, Verdict, collect_corpus, evaluate, load_json,
-    render,
+    BASELINE_PATH, Baseline, POLICY_PATH, ROOT_SUBJECT_CODES, Status, Verdict, collect_corpus,
+    evaluate, load_json, render,
 };
 use serde_json::{Value, json};
 
@@ -82,10 +82,18 @@ fn main() -> ExitCode {
                 // fixed the row is absent from `live`, so it inflates `burned_down` forever, and
                 // if its subject crate later moves, TDA-STALE-BASELINE fires on a row that should
                 // never have existed. Excluding them makes the documented re-freeze remedy safe.
+                //
+                // ROOT_SUBJECT_CODES are excluded for a second, load-bearing reason: they are the
+                // STRUCTURAL codes (R6/R6b/R6c). If a re-emit could absorb them, the remedy for
+                // "you exempted a capability root from tier enforcement" would be "re-run
+                // --emit-baseline", which is precisely the self-service laundering that let
+                // `unclassified_roots` grow 3 -> 27 unchallenged. Keeping them out means the only
+                // ways to green a structural finding are to fix it or to hand-edit the frozen
+                // baseline — and a hand-edited baseline row is visible in review.
                 f.code != "TDA-POLICY-MALFORMED"
                     && f.code != "TDA-BASELINE-MALFORMED"
                     && f.code != "TDA-STALE-BASELINE"
-                    && f.code != "TDA-UNDECLARED-ROOT"
+                    && !ROOT_SUBJECT_CODES.contains(&f.code.as_str())
             })
             .map(|f| json!({ "code": f.code, "subject": f.subject }))
             .collect();

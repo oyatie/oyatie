@@ -10,5 +10,7 @@
     "cloud/synth-substrate": { "tier": "substrate", "stratum": "S0" },
     "oya/synth-product": { "tier": "product" }
   },
-  "edges": []
+  "edges": [],
+  "registry_capabilities": [],
+  "registry_meta_dirs": ["os"]
 }

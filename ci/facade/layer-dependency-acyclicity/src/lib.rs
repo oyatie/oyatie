@@ -70,11 +70,40 @@
 //! - `TDA-STALE-BASELINE`     — a committed baseline subject names a crate ABSENT from the live corpus
 //!   (a phantom row; B3 hardening). See below.
 //! - `TDA-UNDECLARED-ROOT`    — a governed crate sits under a top-level root that is declared
-//!   neither in `service_roots` (tier-classified) nor in `unclassified_roots` (deliberately
-//!   exempt). Such a crate is silently unenforced: `owning_service` returns `None`, so every edge
-//!   touching it is skipped. `unclassified_roots` was previously parsed and NEVER READ — inert
-//!   config that looked like it governed the exemption. This code makes the declaration live, so
-//!   a new crate-bearing root must be declared before its crates can be silently skipped.
+//!   in none of `service_roots` / `capability_roots` (tier-classified) or `unclassified_roots`
+//!   (deliberately exempt). Such a crate is silently unenforced: `owning_service` returns `None`,
+//!   so every edge touching it is skipped. `unclassified_roots` was previously parsed and NEVER
+//!   READ — inert config that looked like it governed the exemption. This code makes the
+//!   declaration live, so a new crate-bearing root must be declared before its crates can be
+//!   silently skipped.
+//! - `TDA-UNCLASSIFIED-ROOT-NOT-META` — a root declared in `unclassified_roots` is NOT a
+//!   `meta_directories` entry of the ADR-0562 CLOSED capability registry. See R6b below.
+//! - `TDA-CAPABILITY-TIER-UNRESOLVED` — a root declared in `capability_roots` yielded no
+//!   unanimous tier from its registry-absorbed services. See R6c below.
+//!
+//! ## R6b/R6c — `unclassified` is reserved for registry-declared META dirs (the exemption floor)
+//! `TDA-UNDECLARED-ROOT` alone left a self-service escape hatch: its prescribed remedy is "declare
+//! the root", and declaring it in `unclassified_roots` silences R6 while leaving the tier-comparison
+//! SKIP fully intact. The detector was therefore satisfiable by disabling the thing it protects, and
+//! `unclassified_roots` grew 3 -> 27 entries, one per capability move — 24 of the 27 being registered
+//! CAPABILITIES, i.e. exactly the tier-bearing units ADR-0562 defines, not meta trees.
+//!
+//! The closed capability registry (`specs/capability-registry.json`, `closed: true`) already carries
+//! both halves of the fix, so neither is a new hand-maintained list:
+//! - `capabilities[].name` — the units that MUST be tier-classified (`capability_roots`);
+//! - `meta_directories[].dir` — the CLOSED allowlist of trees that may legitimately carry no tier.
+//!
+//! **R6b** (`TDA-UNCLASSIFIED-ROOT-NOT-META`): every `unclassified_roots` entry must be a registry
+//! `meta_directories` dir. A registered capability declared unclassified REDs with the remedy "move
+//! it to `capability_roots`"; a root that is neither capability nor meta REDs with "register it in
+//! the closed registry". Since the registry is CLOSED, a future capability move can no longer buy
+//! silence by appending to `unclassified_roots` — the only green paths are tier-classifying the root
+//! or amending the ADR-0562 authority, both reviewable acts.
+//!
+//! **R6c** (`TDA-CAPABILITY-TIER-UNRESOLVED`): opting a root INTO `capability_roots` must not become
+//! the replacement silent exemption. A capability root whose registry-absorbed services yield no
+//! unanimous `(tier, stratum)` — none tier'd, or they disagree — is RED and non-baselineable, so a
+//! root cannot be parked in `capability_roots` to look enforced while comparing nothing.
 //!
 //! ## Baseline-liveness backstop (B3 hardening — phantom rows made impossible)
 //! The frozen baseline is a SUBSET-semantics ratchet: it blocks only on a NEW regression (a
@@ -111,7 +140,7 @@ pub const BASELINE_PATH: &str =
     "ci/facade/layer-dependency-acyclicity/tier-dependency-acyclicity-baseline.json";
 
 /// The violation codes, in canonical order.
-pub const VIOLATION_CODES: [&str; 10] = [
+pub const VIOLATION_CODES: [&str; 12] = [
     "TDA-SUBSTRATE-UPWARD",
     "TDA-PRODUCT-CELL-CROSS",
     "TDA-CELL-PRODUCT",
@@ -122,6 +151,18 @@ pub const VIOLATION_CODES: [&str; 10] = [
     "TDA-BASELINE-MALFORMED",
     "TDA-STALE-BASELINE",
     "TDA-UNDECLARED-ROOT",
+    "TDA-UNCLASSIFIED-ROOT-NOT-META",
+    "TDA-CAPABILITY-TIER-UNRESOLVED",
+];
+
+/// The codes whose `subject` is a top-level ROOT name, not a crate edge or an SCC member list.
+/// Two evaluator behaviours key off this: the B3 baseline-liveness backstop must not treat a root
+/// subject as a phantom crate dir (`iam` is never a crate dir, so every such row would RED), and
+/// `--emit-baseline` uses it to keep the non-baselineable structural codes out of a re-freeze.
+pub const ROOT_SUBJECT_CODES: [&str; 3] = [
+    "TDA-UNDECLARED-ROOT",
+    "TDA-UNCLASSIFIED-ROOT-NOT-META",
+    "TDA-CAPABILITY-TIER-UNRESOLVED",
 ];
 
 /// Sentinel key for policy/baseline-level (non-per-edge) findings.
@@ -265,9 +306,18 @@ struct ParsedPolicy {
     /// Governed crate roots (member globs) — the set of first-party crate dirs to scan.
     crate_root_globs: Vec<String>,
     /// Governed SERVICE roots whose `manifest.json` carries tier metadata (`cloud/`, `oya/`).
+    /// Shape: `<root>/<service>/**`, so the tier unit is the 2-component service prefix.
     service_roots: Vec<String>,
+    /// Governed CAPABILITY roots (ADR-0562 `<capability>/<face>/<crate>`). Shape-distinct from
+    /// `service_roots`: the tier unit is the ROOT ITSELF (the capability), because the second path
+    /// component is an ADR-0562 FACE (`core`/`ports`/`adapters`/`facade`/`observability`), not a
+    /// service. The tier is derived from the capability's registry-absorbed `cloud/`+`oya/` services.
+    capability_roots: Vec<String>,
     /// Top-level dirs treated as UNCLASSIFIED (no tier; exempt from cross-tier rules): meta crates.
+    /// R6b constrains this to the closed registry's `meta_directories`.
     unclassified_roots: BTreeSet<String>,
+    /// Repo-relative path to the ADR-0562 closed capability registry (the R6b/R6c authority).
+    capability_registry_path: String,
     /// The ordered S-rank enum (`S0` is lowest). Strata outside it (e.g. `forward-declared`) are
     /// rank-exempt.
     stratum_rank: BTreeMap<String, usize>,
@@ -315,10 +365,46 @@ fn parse_policy(policy: &Value) -> Result<ParsedPolicy, String> {
             "policy `enforcement` must be \"advisory-baseline\" or \"blocking\", got {enforcement:?}"
         ));
     }
+    // `capability_roots` is OPTIONAL-but-typed: absent or `[]` is legal (a repo mid-migration, or
+    // one with no capability trees), but a present non-array / non-string entry fails CLOSED rather
+    // than silently degrading to "no capability roots" — the exact false-green this gate exists to
+    // prevent.
+    let capability_roots = match policy.get("capability_roots") {
+        None => Vec::new(),
+        Some(Value::Array(arr)) => {
+            let mut out = Vec::with_capacity(arr.len());
+            for (i, v) in arr.iter().enumerate() {
+                out.push(
+                    v.as_str()
+                        .ok_or_else(|| format!("policy `capability_roots`[{i}] must be a string"))?
+                        .to_owned(),
+                );
+            }
+            out
+        }
+        Some(_) => return Err("policy `capability_roots` must be a string array".to_owned()),
+    };
+    if let Some(dup) = capability_roots
+        .iter()
+        .find(|r| unclassified_roots.contains(*r))
+    {
+        return Err(format!(
+            "policy declares root `{dup}` in BOTH `capability_roots` and `unclassified_roots`; a \
+             root is either tier-enforced or exempt, never both"
+        ));
+    }
+    let capability_registry_path = policy
+        .get("capability_registry_path")
+        .and_then(Value::as_str)
+        .ok_or_else(|| "policy `capability_registry_path` must be a string".to_owned())?
+        .to_owned();
+
     Ok(ParsedPolicy {
         crate_root_globs: string_array(policy, "crate_root_globs")?,
         service_roots: string_array(policy, "service_roots")?,
+        capability_roots,
         unclassified_roots,
+        capability_registry_path,
         stratum_rank,
         min_expected_crates: policy
             .get("min_expected_crates")
@@ -355,14 +441,28 @@ pub struct Tier {
 /// Read-only; writes no temp files. A malformed manifest/Cargo.toml/BUCK is a fail-closed
 /// `CollectError`, never a silently skipped file.
 pub fn collect_corpus(root: &Path, policy: &Value) -> Result<Value, CollectError> {
-    let parsed = parse_policy(policy)
-        .map_err(|m| CollectError::Parse { path: POLICY_PATH.to_owned(), message: m })?;
+    let parsed = parse_policy(policy).map_err(|m| CollectError::Parse {
+        path: POLICY_PATH.to_owned(),
+        message: m,
+    })?;
 
     // 1. Service-dir -> tier metadata, sourced from each service-root manifest.json (authoritative).
     let mut service_tiers = serde_json::Map::new();
     for service_root in &parsed.service_roots {
         let dir = root.join(service_root);
         collect_service_tiers(&dir, root, &mut service_tiers)?;
+    }
+
+    // 1b. Capability-root -> tier, PROJECTED from the ADR-0562 closed registry: each capability's
+    // `absorbs_current_dirs` names the `cloud/`+`oya/` services it absorbed, whose manifests are the
+    // tier authority read in step 1. Unanimity is required (see `capability_tier`); a capability
+    // that resolves to nothing is left absent here and REDs as TDA-CAPABILITY-TIER-UNRESOLVED.
+    let registry = load_json(root, &parsed.capability_registry_path)?;
+    let (registry_capabilities, registry_meta_dirs) = registry_facts(&registry);
+    for cap in &parsed.capability_roots {
+        if let Some(tier) = capability_tier(&registry, cap, &service_tiers) {
+            service_tiers.insert(cap.clone(), tier);
+        }
     }
 
     // 2. The governed first-party crate dirs (resolve the member globs against the live tree).
@@ -375,7 +475,7 @@ pub fn collect_corpus(root: &Path, policy: &Value) -> Result<Value, CollectError
     let mut crates = Vec::with_capacity(crate_dirs.len());
     let mut edges: BTreeSet<(String, String)> = BTreeSet::new();
     for cdir in &crate_dirs {
-        let service = owning_service(cdir, &parsed.service_roots);
+        let service = owning_service(cdir, &parsed.service_roots, &parsed.capability_roots);
         crates.push(json!({ "dir": cdir, "service": service }));
 
         let mut deps: BTreeSet<String> = BTreeSet::new();
@@ -399,7 +499,87 @@ pub fn collect_corpus(root: &Path, policy: &Value) -> Result<Value, CollectError
         "crates": crates,
         "service_tiers": Value::Object(service_tiers),
         "edges": edge_vec,
+        // R6b/R6c inputs, carried as DATA so the evaluator stays pure (no registry I/O of its own).
+        "registry_capabilities": registry_capabilities,
+        "registry_meta_dirs": registry_meta_dirs,
     }))
+}
+
+/// The two closed-registry fact sets R6b/R6c evaluate against: the registered capability names and
+/// the `meta_directories` dirs (trailing `/` stripped, matching the top-level root spelling).
+fn registry_facts(registry: &Value) -> (Vec<String>, Vec<String>) {
+    let names = |key: &str, field: &str| -> Vec<String> {
+        registry
+            .get(key)
+            .and_then(Value::as_array)
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|e| e.get(field).and_then(Value::as_str))
+                    .map(|d| d.trim_end_matches('/').to_owned())
+                    .collect()
+            })
+            .unwrap_or_default()
+    };
+    (
+        names("capabilities", "name"),
+        names("meta_directories", "dir"),
+    )
+}
+
+/// The tier of a capability root, projected from the services its ADR-0562 registry entry absorbed.
+///
+/// Returns `Some` ONLY on unanimity across every absorbed service that carries a tier: one `tier`
+/// class and at most one `stratum`. Unanimity is the fail-closed choice — a capability whose
+/// absorbed services disagree (today: `iam` spans S1+S3, `marketplace` spans product+substrate) has
+/// no single defensible tier, and silently picking one would re-introduce the very
+/// under-enforcement this gate exists to catch, with a plausible-looking number attached. `None`
+/// (no absorbed service is tier'd, or they disagree) surfaces as TDA-CAPABILITY-TIER-UNRESOLVED.
+fn capability_tier(
+    registry: &Value,
+    capability: &str,
+    service_tiers: &serde_json::Map<String, Value>,
+) -> Option<Value> {
+    let entry = registry
+        .get("capabilities")
+        .and_then(Value::as_array)?
+        .iter()
+        .find(|c| c.get("name").and_then(Value::as_str) == Some(capability))?;
+
+    let mut classes: BTreeSet<&str> = BTreeSet::new();
+    let mut strata: BTreeSet<&str> = BTreeSet::new();
+    for absorbed in entry
+        .get("absorbs_current_dirs")
+        .and_then(Value::as_array)?
+        .iter()
+        .filter_map(Value::as_str)
+    {
+        let Some(record) = service_tiers.get(absorbed) else {
+            continue;
+        };
+        if let Some(class) = record.get("tier").and_then(Value::as_str) {
+            classes.insert(class);
+        }
+        if let Some(stratum) = record.get("stratum").and_then(Value::as_str) {
+            strata.insert(stratum);
+        }
+    }
+
+    let mut class = classes.into_iter();
+    let (Some(class), None) = (class.next(), class.next()) else {
+        return None;
+    };
+    let mut stratum = strata.into_iter();
+    let stratum = match (stratum.next(), stratum.next()) {
+        (Some(_), Some(_)) => return None,
+        (found, _) => found,
+    };
+
+    let mut record = serde_json::Map::new();
+    record.insert("tier".to_owned(), json!(class));
+    if let Some(stratum) = stratum {
+        record.insert("stratum".to_owned(), json!(stratum));
+    }
+    Some(Value::Object(record))
 }
 
 /// Read the service-root `manifest.json` directly under each governed service root and record its
@@ -486,8 +666,9 @@ fn resolve_one_star_glob(
                     }
                 };
                 for entry in entries {
-                    let entry = entry
-                        .map_err(|e| CollectError::Io(format!("entry in {}: {e}", dir.display())))?;
+                    let entry = entry.map_err(|e| {
+                        CollectError::Io(format!("entry in {}: {e}", dir.display()))
+                    })?;
                     let ft = entry.file_type().map_err(|e| {
                         CollectError::Io(format!("file_type {}: {e}", entry.path().display()))
                     })?;
@@ -522,15 +703,24 @@ fn resolve_one_star_glob(
 fn segment_matches(pattern: &str, name: &str) -> bool {
     match pattern.split_once('*') {
         None => pattern == name,
-        Some((prefix, suffix)) => name.len() >= prefix.len() + suffix.len()
-            && name.starts_with(prefix)
-            && name.ends_with(suffix),
+        Some((prefix, suffix)) => {
+            name.len() >= prefix.len() + suffix.len()
+                && name.starts_with(prefix)
+                && name.ends_with(suffix)
+        }
     }
 }
 
-/// The owning service of a crate dir = its 2-component `<service-root>/<svc>` prefix, for any root
-/// declared in the policy's `service_roots`. Returns `None` for crates outside those roots (the
-/// meta trees and the capability homes), which the evaluator then treats as unclassified.
+/// The owning TIER UNIT of a crate dir. Two governed shapes, deliberately distinct:
+/// - a `capability_roots` root (ADR-0562 `<capability>/<face>/<crate>`) → the ROOT ITSELF. The
+///   second component is a FACE (`core`/`ports`/`adapters`/`facade`/`observability`), so a
+///   2-component prefix would name `iam/adapters` — a face, not a tier-bearing unit. This is why
+///   capability roots cannot simply be appended to `service_roots`.
+/// - a `service_roots` root (`cloud/<svc>/crates/…`, `oya/<svc>/crates/…`) → the 2-component
+///   `<root>/<svc>` prefix, which is where the tier'd `manifest.json` lives.
+///
+/// Returns `None` for crates outside both (the meta trees), which the evaluator treats as
+/// unclassified.
 ///
 /// This CONSUMES `service_roots`. It previously hardcoded two product roots and took the
 /// parameter as `_service_roots`, so the policy field appeared to govern the projection and did
@@ -541,9 +731,19 @@ fn segment_matches(pattern: &str, name: &str) -> bool {
 /// segment, previously yielded a bogus trailing-slash prefix that could never match
 /// `service_tiers`, landing the crate in the unclassified bucket by accident rather than by rule;
 /// both now correctly yield `None`. That change is pinned by test.
-fn owning_service(crate_dir: &str, service_roots: &[String]) -> Option<String> {
+fn owning_service(
+    crate_dir: &str,
+    service_roots: &[String],
+    capability_roots: &[String],
+) -> Option<String> {
     let (root, rest) = crate_dir.split_once('/')?;
-    if rest.is_empty() || !service_roots.iter().any(|r| r == root) {
+    if rest.is_empty() {
+        return None;
+    }
+    if capability_roots.iter().any(|r| r == root) {
+        return Some(root.to_owned());
+    }
+    if !service_roots.iter().any(|r| r == root) {
         return None;
     }
     let svc = rest.split('/').next().filter(|s| !s.is_empty())?;
@@ -562,7 +762,11 @@ fn cargo_path_deps(
     let text = match fs::read_to_string(&manifest) {
         Ok(t) => t,
         Err(ref e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(()),
-        Err(e) => return Err(CollectError::Io(format!("read {crate_dir}/Cargo.toml: {e}"))),
+        Err(e) => {
+            return Err(CollectError::Io(format!(
+                "read {crate_dir}/Cargo.toml: {e}"
+            )));
+        }
     };
     for rel in extract_cargo_path_values(&text) {
         // Skip the `[lib]`/`[[bin]]` source paths (they point at src/*, not a sibling crate).
@@ -639,11 +843,7 @@ fn strip_toml_comment(line: &str) -> &str {
 /// Parse a crate `BUCK`/`BUCK.v2` for first-party `//path:name` dependency/visibility targets,
 /// resolving each `//path` to a repo-relative crate dir. `third-party//…` and bare relative targets
 /// are skipped (only first-party `//…` absolute targets are graph edges here). Fail-closed.
-fn buck_deps(
-    root: &Path,
-    crate_dir: &str,
-    out: &mut BTreeSet<String>,
-) -> Result<(), CollectError> {
+fn buck_deps(root: &Path, crate_dir: &str, out: &mut BTreeSet<String>) -> Result<(), CollectError> {
     let mut text = None;
     for name in ["BUCK.v2", "BUCK"] {
         let p = root.join(crate_dir).join(name);
@@ -978,7 +1178,8 @@ pub fn evaluate(policy: &Value, baseline: &Value, observed: &Value) -> Report {
                 continue;
             };
             let declared = parsed.unclassified_roots.contains(root)
-                || parsed.service_roots.iter().any(|r| r == root);
+                || parsed.service_roots.iter().any(|r| r == root)
+                || parsed.capability_roots.iter().any(|r| r == root);
             if !declared {
                 undeclared.entry(root).or_insert(dir.as_str());
             }
@@ -988,10 +1189,53 @@ pub fn evaluate(policy: &Value, baseline: &Value, observed: &Value) -> Report {
                 "TDA-UNDECLARED-ROOT",
                 root,
                 format!(
-                    "crate root `{root}` is declared in neither `service_roots` nor `unclassified_roots`, so its crates (e.g. `{example}`) carry no tier and EVERY dependency edge touching them is SKIPPED; declare the root (or give it a tier'd manifest) before landing crates under it"
+                    "crate root `{root}` is declared in none of `service_roots`/`capability_roots`/`unclassified_roots`, so its crates (e.g. `{example}`) carry no tier and EVERY dependency edge touching them is SKIPPED; declare the root (or give it a tier'd manifest) before landing crates under it"
                 ),
                 Status::Regression,
             ));
+        }
+
+        // R6b: `unclassified` is reserved for registry-declared META dirs. Evaluated over POLICY DATA
+        // (not the live crate set) so a capability root cannot go quiet merely by holding zero crates
+        // today — the exemption is the defect, whether or not it is currently load-bearing.
+        let registry_capabilities = string_list(observed, "registry_capabilities");
+        let registry_meta_dirs = string_list(observed, "registry_meta_dirs");
+        for root in &parsed.unclassified_roots {
+            if registry_meta_dirs.contains(root.as_str()) {
+                continue;
+            }
+            let detail = if registry_capabilities.contains(root.as_str()) {
+                format!(
+                    "`{root}` is a REGISTERED CAPABILITY (specs/capability-registry.json) declared in `unclassified_roots`, so every dependency edge touching its crates is SKIPPED — the tier rules do not run on it at all. A capability is a tier-bearing unit (ADR-0562), not a meta tree: move `{root}` to `capability_roots`. Declaring it exempt is what turns the TDA-UNDECLARED-ROOT remedy into a permanent silent exemption"
+                )
+            } else {
+                format!(
+                    "`{root}` is declared in `unclassified_roots` but is neither a registered capability nor a `meta_directories` entry of the CLOSED ADR-0562 capability registry, so its exemption rests on nothing reviewable; register it as a meta directory (or give it a tier)"
+                )
+            };
+            findings.push(Finding::new(
+                "TDA-UNCLASSIFIED-ROOT-NOT-META",
+                root,
+                detail,
+                status_for(&baseline, "TDA-UNCLASSIFIED-ROOT-NOT-META", root),
+            ));
+        }
+
+        // R6c: opting INTO `capability_roots` must not become the replacement silent exemption. A
+        // declared capability root with no resolved tier compares nothing, exactly like an unclassified
+        // one — but now with the appearance of enforcement. Always blocking, never baselineable.
+        for root in &parsed.capability_roots {
+            if service_tiers.contains_key(root) {
+                continue;
+            }
+            findings.push(Finding::new(
+            "TDA-CAPABILITY-TIER-UNRESOLVED",
+            root,
+            format!(
+                "capability root `{root}` is declared in `capability_roots` but no unanimous tier could be projected from the services its registry entry absorbs (none carries a tier, or they disagree on tier/stratum), so every edge touching its crates is STILL skipped while the policy claims it is enforced; resolve the disagreement in the absorbed `manifest.json` facets, or remove `{root}` from `capability_roots` until it can be classified"
+            ),
+            Status::Regression,
+        ));
         }
     }
 
@@ -1010,10 +1254,40 @@ pub fn evaluate(policy: &Value, baseline: &Value, observed: &Value) -> Report {
         detect_stale_baseline(&baseline, &crate_service, &mut findings);
     }
 
-    let burned_down = if scan_is_broken { 0 } else { count_burned_down(&baseline, &findings) };
-    let mut report = finalize(findings, crate_count as usize, edge_count, &parsed.enforcement);
+    let burned_down = if scan_is_broken {
+        0
+    } else {
+        count_burned_down(&baseline, &findings)
+    };
+    let mut report = finalize(
+        findings,
+        crate_count as usize,
+        edge_count,
+        &parsed.enforcement,
+    );
     report.burned_down = burned_down;
     report
+}
+
+/// Read a `[String]` field from the observed corpus, defaulting to empty. Absent/malformed is
+/// treated as "no registry facts", which makes R6b report EVERY unclassified root rather than
+/// exempting them — the fail-closed direction.
+fn string_list<'a>(observed: &'a Value, key: &str) -> BTreeSet<&'a str> {
+    observed
+        .get(key)
+        .and_then(Value::as_array)
+        .map(|arr| arr.iter().filter_map(Value::as_str).collect())
+        .unwrap_or_default()
+}
+
+/// Baselined (known debt, advisory) if the frozen baseline carries the key, else a blocking
+/// regression.
+fn status_for(baseline: &Baseline, code: &str, subject: &str) -> Status {
+    if baseline.contains(code, subject) {
+        Status::Baselined
+    } else {
+        Status::Regression
+    }
 }
 
 /// Classify a single cross-service edge against the ADR-0245 rules. Returns `Some((code, detail))`
@@ -1052,8 +1326,14 @@ fn classify_edge(
         )),
         // R4: intra-substrate S-rank — dep may only point to an equal-or-lower S-rank.
         ("substrate", "substrate") => {
-            let sr = src.stratum.as_deref().and_then(|s| parsed.stratum_rank.get(s));
-            let dr = dst.stratum.as_deref().and_then(|s| parsed.stratum_rank.get(s));
+            let sr = src
+                .stratum
+                .as_deref()
+                .and_then(|s| parsed.stratum_rank.get(s));
+            let dr = dst
+                .stratum
+                .as_deref()
+                .and_then(|s| parsed.stratum_rank.get(s));
             match (sr, dr) {
                 (Some(&sr), Some(&dr)) if dr > sr => Some((
                     "TDA-S-RANK-INVERSION".to_owned(),
@@ -1090,7 +1370,9 @@ fn detect_cycles(edges: &[Value], baseline: &Baseline, findings: &mut Vec<Findin
         if from == to {
             self_loops.insert(from.to_owned());
         } else {
-            adj.entry(from.to_owned()).or_default().insert(to.to_owned());
+            adj.entry(from.to_owned())
+                .or_default()
+                .insert(to.to_owned());
         }
     }
     for node in &self_loops {
@@ -1099,7 +1381,9 @@ fn detect_cycles(edges: &[Value], baseline: &Baseline, findings: &mut Vec<Findin
         findings.push(Finding::new(
             "TDA-CYCLE",
             &subject,
-            format!("self-loop on `{node}` (a 1-cycle; the crate graph must be acyclic, ADR-0280 R5)"),
+            format!(
+                "self-loop on `{node}` (a 1-cycle; the crate graph must be acyclic, ADR-0280 R5)"
+            ),
             status,
         ));
     }
@@ -1253,6 +1537,14 @@ fn detect_stale_baseline(
         if subject == POLICY_KEY {
             continue;
         }
+        // Root-subject codes name a top-level ROOT (`iam`), not a crate dir (`iam/core/api`). A root
+        // is never a key in the live crate set, so without this every such baselined row would fire
+        // a bogus TDA-STALE-BASELINE — a false RED, and the anchoring check is meaningless for them
+        // anyway (R6b/R6c re-derive their subjects from policy + registry data on every run, so they
+        // cannot go stale the way a moved crate's edge does).
+        if ROOT_SUBJECT_CODES.contains(&code) {
+            continue;
+        }
         if let Some(missing) =
             subject_crate_dirs(subject).find(|cdir| !live_crate_dirs.contains_key(*cdir))
         {
@@ -1290,7 +1582,10 @@ fn finalize(
 ) -> Report {
     findings.sort();
     findings.dedup();
-    let baselined = findings.iter().filter(|f| f.status == Status::Baselined).count();
+    let baselined = findings
+        .iter()
+        .filter(|f| f.status == Status::Baselined)
+        .count();
     let regressions = findings
         .iter()
         .filter(|f| f.status == Status::Regression)
