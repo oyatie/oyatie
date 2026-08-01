@@ -142,17 +142,37 @@ pub fn plan_probe_paths(plan: &MovePlan) -> Vec<String> {
         .collect()
 }
 
+/// The probe is FALLIBLE on purpose. It answers "is this old path absent at the merge-base?", and
+/// a `bool` cannot say "I could not tell" — so an unresolvable merge-base used to be coerced into
+/// `false` ("present"), which reads as "pending", which makes EVERY committed plan ACTIVE, which
+/// surfaces as `MultipleMovePlans` from the universal materializer. `Result` makes that coercion
+/// unrepresentable: uncertainty must be either answered or reported.
 pub fn plan_is_landed(
     old_crate_dirs: &[String],
-    old_dir_absent_at_merge_base: &impl Fn(&str) -> bool,
-) -> bool {
-    !old_crate_dirs.is_empty() && old_crate_dirs.iter().all(|d| old_dir_absent_at_merge_base(d))
+    old_dir_absent_at_merge_base: &impl Fn(&str) -> Result<bool, CodemodError>,
+) -> Result<bool, CodemodError> {
+    if old_crate_dirs.is_empty() {
+        return Ok(false);
+    }
+    for dir in old_crate_dirs {
+        if !old_dir_absent_at_merge_base(dir)? {
+            return Ok(false);
+        }
+    }
+    Ok(true)
 }
 
 /// Select the single ACTIVE (non-landed) committed plan, applying the fail-closed single-plan guard
 /// to the active set only. `load_old_crate_dirs` yields a plan's move old crate-dirs (git/parse in
-/// prod, a fake in tests); `old_dir_absent_at_merge_base` probes immutable history (fail-closed to
-/// `false`/present on uncertainty, so uncertainty keeps a plan ACTIVE and the guard sharp).
+/// prod, a fake in tests); `old_dir_absent_at_merge_base` probes immutable history.
+///
+/// The probe degrades in two DIFFERENT directions on purpose. A per-path git failure at a resolved
+/// rev is LOCAL uncertainty: it answers `Ok(false)`/present, so that plan stays ACTIVE and the
+/// guard stays sharp. A merge-base that does not resolve at all is a GLOBAL input failure — no plan
+/// can be classified — so the probe returns `Err` and this selector propagates it verbatim instead
+/// of mislabelling every landed plan as active and raising a bogus `MultipleMovePlans`.
+///
+/// An EMPTY plan set never calls the probe, so a no-move PR stays green on a ref-less checkout.
 pub fn select_active_move_plan<L, A>(
     plans: &[PathBuf],
     load_old_crate_dirs: L,
@@ -160,12 +180,12 @@ pub fn select_active_move_plan<L, A>(
 ) -> Result<Option<PathBuf>, CodemodError>
 where
     L: Fn(&Path) -> Result<Vec<String>, CodemodError>,
-    A: Fn(&str) -> bool,
+    A: Fn(&str) -> Result<bool, CodemodError>,
 {
     let mut active: Vec<PathBuf> = Vec::new();
     for plan in plans {
         let old_dirs = load_old_crate_dirs(plan)?;
-        if !plan_is_landed(&old_dirs, &old_dir_absent_at_merge_base) {
+        if !plan_is_landed(&old_dirs, &old_dir_absent_at_merge_base)? {
             active.push(plan.clone());
         }
     }
@@ -183,7 +203,7 @@ pub fn resolve_effective_active_move_plan<L, A>(
 ) -> Result<Option<PathBuf>, CodemodError>
 where
     L: Fn(&Path) -> Result<Vec<String>, CodemodError>,
-    A: Fn(&str) -> bool,
+    A: Fn(&str) -> Result<bool, CodemodError>,
 {
     let discovered = discover_committed_move_plans(repo_root)?;
     let active = select_active_move_plan(&discovered, load_old_crate_dirs, old_dir_absent_at_merge_base)?;
@@ -332,20 +352,83 @@ mod tests {
     /// an empty-moves plan is NOT landed; a plan with any pending old-dir is NOT landed.
     #[test]
     fn plan_is_landed_semantics() {
-        let absent = |_d: &str| true; // everything absent at merge-base
-        let present = |_d: &str| false; // everything present at merge-base
-        assert!(plan_is_landed(&["old/a".to_owned()], &absent), "all-absent => landed");
+        let absent = |_d: &str| Ok(true); // everything absent at merge-base
+        let present = |_d: &str| Ok(false); // everything present at merge-base
         assert!(
-            !plan_is_landed(&["old/a".to_owned()], &present),
+            plan_is_landed(&["old/a".to_owned()], &absent).unwrap(),
+            "all-absent => landed"
+        );
+        assert!(
+            !plan_is_landed(&["old/a".to_owned()], &present).unwrap(),
             "old dir still present => pending, not landed"
         );
-        assert!(!plan_is_landed(&[], &absent), "empty-moves plan is never landed");
-        // Mixed: one dir landed, one still pending => the plan is NOT landed (fail toward pending).
-        let only_a_absent = |d: &str| d == "old/a";
         assert!(
-            !plan_is_landed(&["old/a".to_owned(), "old/b".to_owned()], &only_a_absent),
+            !plan_is_landed(&[], &absent).unwrap(),
+            "empty-moves plan is never landed"
+        );
+        // Mixed: one dir landed, one still pending => the plan is NOT landed (fail toward pending).
+        let only_a_absent = |d: &str| Ok(d == "old/a");
+        assert!(
+            !plan_is_landed(&["old/a".to_owned(), "old/b".to_owned()], &only_a_absent).unwrap(),
             "any pending old dir keeps the plan active"
         );
+    }
+
+    /// GIT UNCERTAINTY MUST NOT WEDGE THE REPO — the regression pin.
+    ///
+    /// When the merge-base does not resolve, the probe cannot classify ANY plan. The selector must
+    /// surface THAT input failure, naming the ref that would not resolve. Before the fix the probe
+    /// was a bare `bool` and `None` was coerced to `false` ("still present" => "pending"), so all N
+    /// committed-and-landed plans read ACTIVE and this call returned
+    /// `Err(MultipleMovePlans { count: N })` — raised from step 1 of the universal materializer, so
+    /// fail-closed on every CI leg and every local gate lane, repo-wide, under a message that named
+    /// the wrong problem. Reproduced end-to-end on a clone with no `refs/remotes/origin/dev`:
+    /// `MultipleMovePlans { count: 7 }`.
+    ///
+    /// The `n = 7` here is the live `specs/reorg/` plan count at the time of the fix, so the pin
+    /// exercises the exact shape that wedged.
+    #[test]
+    fn unresolvable_merge_base_reports_itself_not_multiple_move_plans() {
+        let plans: Vec<PathBuf> = (0..7)
+            .map(|i| PathBuf::from(format!("specs/reorg/p{i}-move-plan.json")))
+            .collect();
+        let load = |_p: &Path| Ok(vec!["cloud/cloud-iam/slos/iam.openslo.yaml".to_owned()]);
+        // Exactly what main.rs's probe does when `git merge-base origin/dev HEAD` yields nothing.
+        let unresolvable = |_d: &str| {
+            Err(CodemodError::MergeBaseUnresolved {
+                base_ref: "origin/dev".to_owned(),
+            })
+        };
+        match select_active_move_plan(&plans, load, unresolvable) {
+            Err(CodemodError::MergeBaseUnresolved { base_ref }) => {
+                assert_eq!(base_ref, "origin/dev", "the error must name the ref");
+            }
+            other => panic!("expected MergeBaseUnresolved, got {other:?}"),
+        }
+
+        // ...and the message must point at the CHECKOUT, not at deleting move plans.
+        let rendered = CodemodError::MergeBaseUnresolved {
+            base_ref: "origin/dev".to_owned(),
+        }
+        .to_string();
+        assert!(rendered.contains("origin/dev"), "{rendered}");
+        assert!(rendered.contains("do NOT delete move plans"), "{rendered}");
+    }
+
+    /// The same ref-less checkout on a NO-MOVE PR (zero committed plans) stays green: with nothing
+    /// to classify the probe is never consulted, so the fix cannot turn an unresolvable merge-base
+    /// into a new repo-wide wedge of its own.
+    #[test]
+    fn unresolvable_merge_base_with_no_plans_is_still_none() {
+        let load = |_p: &Path| Ok(vec!["never/called".to_owned()]);
+        let unresolvable = |_d: &str| {
+            Err(CodemodError::MergeBaseUnresolved {
+                base_ref: "origin/dev".to_owned(),
+            })
+        };
+        assert!(select_active_move_plan(&[], load, unresolvable)
+            .expect("a no-move PR must not need a merge-base")
+            .is_none());
     }
 
     fn crate_move(old: &str) -> crate::model::CrateMove {
@@ -381,9 +464,9 @@ mod tests {
             vec!["cloud/cloud-iam/observability/slos/iam.openslo.yaml".to_owned()],
             "an artifact-only plan must contribute a NON-EMPTY probe input"
         );
-        let absent = |_p: &str| true;
+        let absent = |_p: &str| Ok(true);
         assert!(
-            plan_is_landed(&probe, &absent),
+            plan_is_landed(&probe, &absent).unwrap(),
             "an artifact-only plan whose old paths are absent at the merge-base IS landed"
         );
 
@@ -422,7 +505,7 @@ mod tests {
             };
             Ok(plan_probe_paths(&plan))
         };
-        let old_dir_absent = |p: &str| p == "cloud/cloud-iam/slos/iam.openslo.yaml";
+        let old_dir_absent = |p: &str| Ok(p == "cloud/cloud-iam/slos/iam.openslo.yaml");
         let selected = select_active_move_plan(
             &[landed_plan, pending_plan.clone()],
             load,
@@ -447,7 +530,7 @@ mod tests {
                 Ok(vec!["libs/oya-shared-pdp-adapter-cedar".to_owned()])
             }
         };
-        let old_dir_absent = |d: &str| d == "libs/oya-shared-pdp-adapter-cedar"; // only iam landed
+        let old_dir_absent = |d: &str| Ok(d == "libs/oya-shared-pdp-adapter-cedar"); // only iam landed
         let selected = select_active_move_plan(&[landed.clone(), pending.clone()], load, old_dir_absent)
             .unwrap()
             .unwrap();
@@ -460,7 +543,7 @@ mod tests {
         let a = PathBuf::from("specs/reorg/a-move-plan.json");
         let b = PathBuf::from("specs/reorg/b-move-plan.json");
         let load = |_p: &Path| Ok(vec!["some/pending/dir".to_owned()]);
-        let old_dir_absent = |_d: &str| false; // both pending
+        let old_dir_absent = |_d: &str| Ok(false); // both pending
         assert!(matches!(
             select_active_move_plan(&[a, b], load, old_dir_absent),
             Err(CodemodError::MultipleMovePlans { count: 2, .. })
@@ -473,7 +556,7 @@ mod tests {
         let a = PathBuf::from("specs/reorg/a-move-plan.json");
         let b = PathBuf::from("specs/reorg/b-move-plan.json");
         let load = |_p: &Path| Ok(vec!["landed/dir".to_owned()]);
-        let old_dir_absent = |_d: &str| true; // all landed
+        let old_dir_absent = |_d: &str| Ok(true); // all landed
         assert!(select_active_move_plan(&[a, b], load, old_dir_absent).unwrap().is_none());
     }
 

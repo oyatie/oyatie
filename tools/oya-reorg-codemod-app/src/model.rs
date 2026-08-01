@@ -498,6 +498,16 @@ pub enum CodemodError {
     /// A MOVE PR commits exactly one plan; >1 is a contributor error the manifest materialization
     /// must fail-closed on rather than silently first-winning an arbitrary one.
     MultipleMovePlans { count: usize, paths: Vec<String> },
+    /// The landed-plan probe's base ref did not resolve, so NO committed plan's landed-ness can be
+    /// decided. This is an INPUT failure (shallow clone, force-pushed base, rewritten history, a
+    /// fetch that never brought the ref) and is reported as itself.
+    ///
+    /// It used to be coerced to "not absent" => "still present" => every plan reads ACTIVE, so the
+    /// N committed-and-landed plans surfaced as [`CodemodError::MultipleMovePlans`] from step 1 of
+    /// the universal materializer — fail-closed on every CI leg and every local gate lane,
+    /// repo-wide, under an error that named the wrong problem and pointed remediation at deleting
+    /// plan files. Git uncertainty must degrade the landed-ness check LOCALLY, never wedge the repo.
+    MergeBaseUnresolved { base_ref: String },
     /// A move's `new_path` contains another (or its own) move's `old_path` as a boundary-safe
     /// path-token substring — the ADR doc-anchor rewrite would re-match and grow on
     /// re-application (revert-then-reapply, or a mistaken double-apply).
@@ -551,6 +561,13 @@ impl fmt::Display for CodemodError {
                 f,
                 "more than one committed move-plan in specs/reorg/ ({count}); a move PR commits \
                  exactly one (fail-closed): {paths:?}"
+            ),
+            CodemodError::MergeBaseUnresolved { base_ref } => write!(
+                f,
+                "merge-base against {base_ref:?} did not resolve, so no committed move-plan's \
+                 landed-ness can be determined (fail-closed). This is a CHECKOUT problem, not a \
+                 move-plan problem: fetch the base branch so {base_ref} resolves (a full-history \
+                 checkout, `fetch-depth: 0` in CI) — do NOT delete move plans"
             ),
             CodemodError::AnchorRewriteNonIdempotent { new_path, old_path } => write!(
                 f,
