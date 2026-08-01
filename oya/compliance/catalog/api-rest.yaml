@@ -1,3 +1,4 @@
+# Legacy Backstage-shaped catalog import for one-way migration into the first-party portal.
 apiVersion: backstage.io/v1alpha1
 kind: API
 metadata:

@@ -63,17 +63,18 @@ rule; product-graph.html needs an explicit line — it is a `.html`, not a `*.ge
 are derived on demand by the existing materializer entrypoint (masterplan first, then the
 arch-graph dashboard) and materialized out-of-graph for consumers before gates run.
 
-### RETAIN committed — `specs/reorg/move-manifest.generated.json` (deliberately out of scope)
+### Historical scope boundary — move manifest (later amended by ADR-0614)
 
-ADR-0595 already special-cased move-manifest as "stays committed"; this ADR **reaffirms** that and
-records why it is NOT swept into this de-commit:
+At this decision's acceptance, ADR-0595 still special-cased move-manifest as "stays committed" and
+this ADR deliberately left it outside the two-face de-commit. Accepted ADR-0614 later amended that
+boundary. The original reasons remain useful incident context:
 
-1. **It conflicts with a proposed design.** ADR-0563 is Proposed, not Accepted; it proposed making
+1. **It conflicted with a proposed design.** ADR-0563 is Proposed, not Accepted; it proposed making
    move-manifest the authoritative committed rename-aware move-bijection that the path-keyed CI
-   baseline relabel consumes. This rationale did not make ADR-0563 binding. ADR-0614 later proposed
-   and implemented de-commitment, but its lifecycle/propagation proof must be resolved separately.
-2. **It introduces a silent failure mode.** `ci/adapters/path-resolver` `ManifestBijection::load`
-   fails **open to identity** on an absent manifest. De-committed, any emitter leg not preceded by
+   baseline relabel consumes. This rationale did not make ADR-0563 binding. ADR-0614 later accepted
+   and implemented de-commitment with independent lifecycle propagation.
+2. **It introduced a silent failure mode.** `ci/adapters/path-resolver` formerly failed **open to
+   identity** on an absent manifest. De-committed, any emitter leg not preceded by
    a full materialize would silently relabel to identity — turning every pre-existing renamed-path
    debt item into a phantom "new regression" (a silent false-RED on move PRs), a worse failure than
    the one this ADR fixes.
@@ -81,8 +82,8 @@ records why it is NOT swept into this de-commit:
    of the committed move-plan × candidate tree); it regenerated correctly in the same incident that
    corrupted masterplan. It is the *reviewed* artifact — a human reads the bijection.
 
-A separate decision may de-commit move-manifest only with a fail-closed (not fail-open) relabel. It
-is out of ADR-0613 scope; ADR-0614 records that later proposal and implementation.
+ADR-0614 de-commits the move manifest only after making relabel fail closed and requiring materialize
+before consume. That amendment is separate from ADR-0613's original two-face scope.
 
 ### Gate teaching (no flag day)
 
@@ -125,8 +126,8 @@ is out of ADR-0613 scope; ADR-0614 records that later proposal and implementatio
 ## Alternatives considered
 
 - **De-commit all three faces (include move-manifest).** Rejected for this ADR because the then-live
-  relabel path failed open when the manifest was absent. ADR-0614 later addresses this as a separate
-  proposal; neither proposal becomes binding merely because implementation landed.
+  relabel path failed open when the manifest was absent. Accepted ADR-0614 later addresses this as
+  a separate fail-closed amendment.
 - **Hand-revert the corrupt face and keep committing.** Rejected: it leaves the identical trap
   armed for the next move; it treats a symptom, not the class (the friction-is-process-failure
   doctrine).
@@ -147,6 +148,7 @@ land-time materialized, not hand-edited in this PR.
   projection faces.
 - Amends ADR-0364's committed-surface stance for the masterplan projection and the product-graph
   dashboard (they become derive-on-demand, not committed).
-- Leaves Proposed ADR-0563/ADR-0614's move-manifest disposition outside this ADR. At acceptance,
-  ADR-0613 also reaffirmed ADR-0596's committed frozen-reference rule; the later implementation of
-  Proposed ADR-0616 is separate lifecycle drift until ADR-0616 is accepted or rolled back.
+- Leaves Proposed ADR-0563's broader move-manifest design outside this ADR. Accepted ADR-0614
+  separately governs the de-committed move-manifest disposition. At acceptance ADR-0613 reaffirmed
+  ADR-0596's committed frozen-reference rule; Accepted ADR-0616 later reverses that rule for the
+  provenance-bound merge-base regeneration design.
