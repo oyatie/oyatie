@@ -46,9 +46,13 @@
     "asyncapi": [
       "microservices/cloud-intelligence/contracts/cloud-intelligence.asyncapi.yaml"
     ],
-    "proto": [
-      "microservices/cloud-intelligence/contracts/cloud-intelligence.proto"
-    ]
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": [
+        "microservices/cloud-intelligence/contracts/cloud-intelligence.proto"
+      ]
+    }
   },
   "capabilities": [
     {
@@ -253,9 +257,6 @@
       },
       "asyncapi": {
         "2026-05-27": "microservices/cloud-intelligence/contracts/cloud-intelligence.asyncapi.yaml"
-      },
-      "proto": {
-        "2026-05-27": "microservices/cloud-intelligence/contracts/cloud-intelligence.proto"
       }
     }
   },

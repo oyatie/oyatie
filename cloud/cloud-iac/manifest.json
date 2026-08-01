@@ -35,7 +35,11 @@
   "contracts": {
     "openapi": [],
     "asyncapi": [],
-    "proto": []
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": []
+    }
   },
   "capabilities": [
     {

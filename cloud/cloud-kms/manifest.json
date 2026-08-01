@@ -41,7 +41,11 @@
       "contracts/openapi/cloud/cloud-kms-v1.yaml"
     ],
     "asyncapi": [],
-    "proto": []
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": []
+    }
   },
   "capabilities": [
     {

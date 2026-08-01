@@ -70,7 +70,11 @@
   "contracts": {
     "openapi": [],
     "asyncapi": [],
-    "proto": [],
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": []
+    },
     "contract_status": "not_claimed_scaffold_only"
   },
   "capabilities": [],

@@ -73,6 +73,42 @@ fn frontmatter(document: &str) -> &str {
         .expect("ADR must carry YAML frontmatter")
 }
 
+fn repo_root() -> PathBuf {
+    let mut directory = std::env::current_dir().expect("current directory");
+    for _ in 0..16 {
+        if directory.join("specs/root-hub-pointers.json").is_file() {
+            return directory;
+        }
+        if !directory.pop() {
+            break;
+        }
+    }
+    panic!("failed to locate repository root from Buck test working directory")
+}
+
+fn collect_named_files(directory: &Path, name: &str, output: &mut Vec<PathBuf>) {
+    for entry in fs::read_dir(directory)
+        .unwrap_or_else(|error| panic!("read directory {}: {error}", directory.display()))
+    {
+        let entry = entry.expect("directory entry");
+        let path = entry.path();
+        if entry.file_type().expect("file type").is_dir() {
+            collect_named_files(&path, name, output);
+        } else if entry.file_name() == name {
+            output.push(path);
+        }
+    }
+}
+
+fn accepted_status(frontmatter: &str, accepted: &BTreeSet<&str>) -> bool {
+    frontmatter.lines().any(|line| {
+        line.strip_prefix("status:")
+            .map(str::trim)
+            .map(|status| status.trim_matches(['\'', '"']).to_ascii_lowercase())
+            .is_some_and(|status| accepted.contains(status.as_str()))
+    })
+}
+
 fn assert_public_protocol_reconciliation(adr_id: &str, document: &str, heading: &str) {
     let frontmatter = frontmatter(document);
     assert!(
@@ -80,7 +116,14 @@ fn assert_public_protocol_reconciliation(adr_id: &str, document: &str, heading: 
         "{adr_id} identity drifted"
     );
     assert!(
-        frontmatter.contains("status: Accepted"),
+        frontmatter
+            .lines()
+            .any(|line| line.strip_prefix("status:").is_some_and(|status| {
+                status
+                    .trim()
+                    .trim_matches(['\'', '"'])
+                    .eq_ignore_ascii_case("accepted")
+            })),
         "{adr_id} must remain Accepted"
     );
     assert!(
@@ -165,26 +208,102 @@ fn live_adr_authority_reconciliation_is_green() {
     let heading = policy["authority_reconciliation"]["section_heading"]
         .as_str()
         .expect("accepted ADR section heading");
-    let accepted = [
-        ("ADR-0157", "OYA_ADR_0157"),
-        ("ADR-0167", "OYA_ADR_0167"),
-        ("ADR-0176", "OYA_ADR_0176"),
-        ("ADR-0182", "OYA_ADR_0182"),
-        ("ADR-0258", "OYA_ADR_0258"),
-    ];
     let declared = policy["authority_reconciliation"]["accepted_adrs"]
         .as_array()
         .expect("accepted ADR inventory")
         .iter()
         .map(|row| row["id"].as_str().expect("ADR id"))
         .collect::<BTreeSet<_>>();
-    assert_eq!(
-        declared,
-        accepted.iter().map(|(id, _)| *id).collect(),
-        "policy inventory must cover the complete W0-B Accepted ADR correction map"
+
+    let root = repo_root();
+    let mut accepted_documents = BTreeMap::new();
+    let accepted_statuses = policy["authority_reconciliation"]["accepted_statuses"]
+        .as_array()
+        .expect("accepted status inventory")
+        .iter()
+        .map(|status| status.as_str().expect("accepted status"))
+        .collect::<BTreeSet<_>>();
+    for entry in fs::read_dir(root.join("docs/decisions")).expect("read declared ADR corpus") {
+        let path = entry.expect("ADR entry").path();
+        let file_name = path
+            .file_name()
+            .and_then(|value| value.to_str())
+            .unwrap_or("");
+        if path.extension().and_then(|value| value.to_str()) != Some("md")
+            || file_name.len() < 9
+            || !file_name.as_bytes()[4..8].iter().all(u8::is_ascii_digit)
+            || file_name.as_bytes()[8] != b'-'
+        {
+            continue;
+        }
+        let document = fs::read_to_string(&path)
+            .unwrap_or_else(|error| panic!("read {}: {error}", path.display()));
+        if document.starts_with("---\n") {
+            let metadata = frontmatter(&document);
+            if accepted_status(metadata, &accepted_statuses) {
+                accepted_documents.insert(
+                    metadata
+                        .lines()
+                        .find_map(|line| line.strip_prefix("id:").map(str::trim))
+                        .unwrap_or(&file_name[..8])
+                        .to_owned(),
+                    document,
+                );
+            }
+        } else {
+            let lifecycle_prefix = document.lines().take(40).collect::<Vec<_>>().join(" ");
+            if lifecycle_prefix.to_ascii_lowercase().contains("accepted") {
+                accepted_documents.insert(file_name[..8].to_owned(), document);
+            }
+        }
+    }
+    assert!(
+        !accepted_documents.is_empty(),
+        "Accepted ADR corpus must not be empty"
     );
-    for (adr_id, variable) in accepted {
-        assert_public_protocol_reconciliation(adr_id, &text(variable), heading);
+
+    for id in &declared {
+        let document = accepted_documents
+            .get(*id)
+            .unwrap_or_else(|| panic!("reconciled ADR {id} must exist and remain Accepted"));
+        assert_public_protocol_reconciliation(id, document, heading);
+        assert!(
+            frontmatter(document)
+                .lines()
+                .any(|line| { line.starts_with("amended_by:") && line.contains("ADR-0632") }),
+            "{id} must carry the reciprocal amended_by lifecycle edge"
+        );
+    }
+
+    let amending = text("OYA_ADR_0632");
+    let amending_frontmatter = frontmatter(&amending);
+    for id in &declared {
+        assert!(
+            amending_frontmatter
+                .lines()
+                .find(|line| line.starts_with("amends:"))
+                .is_some_and(|line| line.contains(*id)),
+            "ADR-0632 must carry reciprocal amends edge for {id}"
+        );
+    }
+
+    let contradiction_markers =
+        policy["authority_reconciliation"]["public_rpc_contradiction_markers"]
+            .as_array()
+            .expect("contradiction marker inventory");
+    for (id, document) in &accepted_documents {
+        let normalized = document
+            .split_whitespace()
+            .collect::<Vec<_>>()
+            .join(" ")
+            .to_ascii_lowercase();
+        for marker in contradiction_markers {
+            let marker = marker.as_str().expect("contradiction marker");
+            assert!(
+                !normalized.contains(marker),
+                "Accepted ADR {id} retains public RPC contradiction marker {marker}"
+            );
+        }
     }
 
     let proposed = text("OYA_ADR_0246");
@@ -227,10 +346,174 @@ fn manifest_schema_keeps_public_contracts_closed_and_grpc_internal() {
         .and_then(Value::as_object)
         .expect("public version-file properties");
     assert_eq!(
-        public_version_files.keys().map(String::as_str).collect::<BTreeSet<_>>(),
+        public_version_files
+            .keys()
+            .map(String::as_str)
+            .collect::<BTreeSet<_>>(),
         BTreeSet::from(["asyncapi", "openapi"]),
         "public version carriers must not admit GraphQL or proto3"
     );
+}
+
+#[test]
+fn entire_live_v1_manifest_corpus_is_protocol_schema_compatible() {
+    let root = repo_root();
+    let schema = json(&declared_path("OYA_MICROSERVICE_MANIFEST_SCHEMA"));
+    let allowed_contract_keys = schema
+        .pointer("/properties/contracts/properties")
+        .and_then(Value::as_object)
+        .expect("contract properties")
+        .keys()
+        .map(String::as_str)
+        .collect::<BTreeSet<_>>();
+    assert_eq!(
+        allowed_contract_keys,
+        BTreeSet::from([
+            "asyncapi",
+            "contract_status",
+            "convention_docs",
+            "internal_grpc",
+            "openapi",
+            "sdk",
+            "service_local_contract_scaffolds",
+            "source",
+            "trait",
+        ]),
+        "manifest contract keys must be the closed public/internal carriers plus compatibility metadata"
+    );
+
+    let mut paths = Vec::new();
+    collect_named_files(&root.join("oya"), "manifest.json", &mut paths);
+    collect_named_files(&root.join("cloud"), "manifest.json", &mut paths);
+    paths.sort();
+
+    let mut live_count = 0;
+    for path in paths {
+        let manifest = json(&path);
+        if manifest["schema_version"] != "1.0" || !manifest["contracts"].is_object() {
+            continue;
+        }
+        live_count += 1;
+        assert!(
+            manifest["microservice"].is_string(),
+            "{} live v1.0 microservice identity must be a string",
+            path.display()
+        );
+        let contracts = manifest["contracts"]
+            .as_object()
+            .unwrap_or_else(|| panic!("{} contracts must be an object", path.display()));
+        for key in contracts.keys() {
+            assert!(
+                allowed_contract_keys.contains(key.as_str()),
+                "{} uses undeclared contract carrier {key}",
+                path.display()
+            );
+        }
+        for public in ["openapi", "asyncapi"] {
+            let values = contracts[public].as_array().unwrap_or_else(|| {
+                panic!("{} contracts.{public} must be an array", path.display())
+            });
+            assert!(
+                values.iter().all(Value::is_string),
+                "{} contracts.{public} must contain only paths",
+                path.display()
+            );
+        }
+        for metadata in [
+            "convention_docs",
+            "sdk",
+            "service_local_contract_scaffolds",
+            "source",
+            "trait",
+        ] {
+            if let Some(values) = contracts.get(metadata) {
+                assert!(
+                    values
+                        .as_array()
+                        .is_some_and(|values| values.iter().all(Value::is_string)),
+                    "{} contracts.{metadata} compatibility metadata must contain only paths",
+                    path.display()
+                );
+            }
+        }
+        if let Some(status) = contracts.get("contract_status") {
+            assert!(
+                status.is_string(),
+                "{} contracts.contract_status compatibility metadata must be a string",
+                path.display()
+            );
+        }
+        assert!(!contracts.contains_key("proto"));
+        assert!(!contracts.contains_key("connect"));
+        let internal = contracts["internal_grpc"]
+            .as_object()
+            .unwrap_or_else(|| panic!("{} must declare migrated internal_grpc", path.display()));
+        assert_eq!(
+            internal.len(),
+            3,
+            "{} internal_grpc must be closed",
+            path.display()
+        );
+        assert_eq!(
+            internal["transport"],
+            "http2",
+            "{} internal gRPC must use H2",
+            path.display()
+        );
+        assert_eq!(
+            internal["language_profile"],
+            "proto3",
+            "{} internal gRPC must use proto3",
+            path.display()
+        );
+        assert!(
+            internal["contracts"]
+                .as_array()
+                .is_some_and(|values| values.iter().all(Value::is_string)),
+            "{} internal_grpc.contracts must be an array of paths",
+            path.display()
+        );
+        if let Some(public_files) = manifest
+            .pointer("/tenant_version_pinning/public_surface_files")
+            .and_then(Value::as_object)
+        {
+            assert!(
+                public_files
+                    .keys()
+                    .all(|key| matches!(key.as_str(), "openapi" | "asyncapi")),
+                "{} public version carriers must exclude Proto/Connect",
+                path.display()
+            );
+        }
+    }
+    assert_eq!(
+        live_count, 60,
+        "the Buck-declared live v1.0 service manifest corpus changed; classify and migrate every new match"
+    );
+}
+
+#[test]
+fn manifest_protocol_red_mutations_are_rejected() {
+    for contracts in [
+        serde_json::json!({"openapi": [], "asyncapi": [], "proto": ["public.proto"]}),
+        serde_json::json!({"openapi": [], "asyncapi": [], "connect": ["public.connect"]}),
+        serde_json::json!({"openapi": [], "asyncapi": [], "internal_grpc": {"transport": "http3", "language_profile": "proto3", "contracts": []}}),
+        serde_json::json!({"openapi": [], "asyncapi": [], "internal_grpc": {"transport": "http2", "language_profile": "editions-2024", "contracts": []}}),
+    ] {
+        let keys = contracts.as_object().expect("fixture object");
+        let valid = keys.keys().all(|key| {
+            matches!(
+                key.as_str(),
+                "openapi" | "asyncapi" | "source" | "internal_grpc"
+            )
+        }) && keys.get("internal_grpc").is_none_or(|internal| {
+            internal["transport"] == "http2" && internal["language_profile"] == "proto3"
+        });
+        assert!(
+            !valid,
+            "RED manifest mutation was incorrectly accepted: {contracts}"
+        );
+    }
 }
 
 #[test]
@@ -340,6 +623,35 @@ fn negative_fixture_corpus_fails_on_each_guarded_invariant() {
         assert!(
             findings.iter().any(|finding| finding.code == expected_code),
             "negative fixture {name} did not emit {expected_code}: {findings:#?}"
+        );
+    }
+}
+
+#[test]
+fn accepted_adr_public_rpc_red_mutations_are_detected() {
+    let fixtures = json(&declared_path("OYA_PRODUCT_PROTOCOL_NEGATIVE_CASES"));
+    let cases = fixtures["accepted_adr_cases"]
+        .as_array()
+        .expect("Accepted ADR RED cases");
+    assert!(
+        !cases.is_empty(),
+        "Accepted ADR RED corpus must not be empty"
+    );
+    for case in cases {
+        let normalized = case["text"]
+            .as_str()
+            .expect("RED ADR text")
+            .to_ascii_lowercase();
+        let exposes_rpc = ["grpc", "connect-rpc", "connect-protocol", "grpc-web"]
+            .iter()
+            .any(|token| normalized.contains(token));
+        let has_public_audience = ["public", "tenant", "client", "product primitive"]
+            .iter()
+            .any(|token| normalized.contains(token));
+        assert!(
+            exposes_rpc && has_public_audience,
+            "RED ADR mutation was not recognized as public RPC exposure: {}",
+            case["name"]
         );
     }
 }

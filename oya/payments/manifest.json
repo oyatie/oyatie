@@ -103,9 +103,13 @@
     "asyncapi": [
       "microservices/payments/contracts/asyncapi-v1.yaml"
     ],
-    "proto": [
-      "microservices/payments/contracts/payments-v1.proto"
-    ]
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": [
+        "microservices/payments/contracts/payments-v1.proto"
+      ]
+    }
   },
   "capabilities": [
     {
@@ -309,7 +313,7 @@
     },
     {
       "id": "ADR-0131",
-      "title": "Per-\u00b5service flat layout"
+      "title": "Per-µservice flat layout"
     },
     {
       "id": "ADR-0145",
@@ -402,7 +406,7 @@
   },
   "provider_credential_mode": {
     "default": "byok",
-    "note": "Every tenant brings their own PSP account per ADR-0255 \u00a7D-4; platform_default only for oyatie-internal tenant"
+    "note": "Every tenant brings their own PSP account per ADR-0255 §D-4; platform_default only for oyatie-internal tenant"
   },
   "mesh_layering": {
     "cilium_l4": true,
@@ -573,9 +577,6 @@
       },
       "asyncapi": {
         "2026-05-21": "microservices/payments/contracts/asyncapi-v1.yaml"
-      },
-      "proto": {
-        "2026-05-21": "microservices/payments/contracts/payments-v1.proto"
       }
     }
   },

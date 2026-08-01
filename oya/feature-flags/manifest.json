@@ -299,10 +299,14 @@
       "microservices/feature-flags/contracts/feature-flags.asyncapi.yaml",
       "microservices/feature-flags/contracts/asyncapi-v1.yaml"
     ],
-    "proto": [
-      "microservices/feature-flags/contracts/feature_flags.proto",
-      "microservices/feature-flags/contracts/feature-flags-v1.proto"
-    ],
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": [
+        "microservices/feature-flags/contracts/feature_flags.proto",
+        "microservices/feature-flags/contracts/feature-flags-v1.proto"
+      ]
+    },
     "sdk": [
       "microservices/feature-flags/contracts/openfeature-sdk-contract.md"
     ]
@@ -682,9 +686,6 @@
       },
       "asyncapi": {
         "2026-05-21": "microservices/feature-flags/contracts/asyncapi-v1.yaml"
-      },
-      "proto": {
-        "2026-05-21": "microservices/feature-flags/contracts/feature-flags-v1.proto"
       }
     }
   },

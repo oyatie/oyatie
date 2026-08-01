@@ -6,17 +6,21 @@ date: 2026-05-18
 owner: axis-eventing
 supersedes: []
 superseded_by: []
+amended_by: [ADR-0632]
 related: [ADR-0005, ADR-0011, ADR-0037, ADR-0040, ADR-0145, ADR-0167, ADR-0168]
 related_specs:
   - /specs/hyperscaler-architecture-invariants.json
   - /specs/per-microservice-flat-layout.json
 ---
-
 # ADR-0169 — Webhook DLQ + exponential-backoff retry (Stripe webhook subscriptions pattern)
 
 ## Status
 
 Accepted (2026-05-18). Authorizes a canonical webhook-delivery substrate shared across every µservice that pushes outbound webhooks to tenants, with standardized DLQ, exponential-backoff retry, circuit-breaker, and per-tenant endpoint registry. Tier C "nice-to-have" hyperscaler pattern per `/specs/hyperscaler-architecture-invariants.json` audit Row C3.
+
+## ADR-0632 product-protocol reconciliation
+
+Tenant webhook delivery and retry remain public HTTPS REST documented by OpenAPI 3.2.0 plus signed/versioned webhooks, with AsyncAPI/CloudEvents events, SSE, or WebSocket used only where their delivery semantics apply. Public GraphQL, gRPC, gRPC-Web, and Connect are forbidden. The former tenant-requested gRPC adapter is narrowed to internal-only gRPC/proto3 over HTTP/2 and cannot be selected as a public webhook carrier.
 
 ## Context
 
@@ -128,7 +132,7 @@ Critical: a slow/down tenant endpoint MUST NOT starve other tenants' webhook del
 ### Operational
 
 1. `crates/oya-shared-webhook-delivery-kernel/` is the canonical trait surface (this ADR's skeleton).
-2. Adapters per backend: HTTP-1.1 client (default), HTTP-2 (long-poll-friendly tenants), gRPC (Tier-B; on request).
+2. Public delivery adapters use HTTPS HTTP/1.1 (default) or HTTP/2 (long-poll-friendly tenants); gRPC is not a tenant-selectable webhook carrier.
 3. Every µservice with outbound webhooks integrates via a 30-line wiring change.
 4. DLQ-replay SLO: tenant-initiated retry executes within 60s p99.
 5. Webhook-delivery telemetry: per-tenant deliveries/sec, retry-rate, DLQ-fill-rate, p99 e2e latency. Exposed via the observability µservice per ADR-0139.
@@ -199,7 +203,7 @@ This is the Stripe-documented rotation pattern; we adopt it directly.
 2. M01.5: HTTP-1.1 adapter + DLQ Postgres tables; one µservice (workflow) integrates as the pilot.
 3. M02: remaining webhook-emitting µservices integrate; tenant-API surface goes Tier-A.
 4. M02.5: `oya webhook list-deliveries` + `oya webhook retry` CLI commands ship (ADR-0167).
-5. M03: gRPC adapter Tier-B on tenant request.
+5. M03: optional internal-only gRPC/proto3 over HTTP/2 adapter for sibling-service delivery orchestration; never tenant-facing.
 
 ## References
 

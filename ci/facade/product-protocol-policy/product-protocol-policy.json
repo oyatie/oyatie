@@ -11,17 +11,69 @@
   },
   "authority_reconciliation": {
     "accepted_adrs": [
-      {"id": "ADR-0157", "artifact": "adr_0157"},
-      {"id": "ADR-0167", "artifact": "adr_0167"},
-      {"id": "ADR-0176", "artifact": "adr_0176"},
-      {"id": "ADR-0182", "artifact": "adr_0182"},
-      {"id": "ADR-0258", "artifact": "adr_0258"}
+      {
+        "id": "ADR-0051"
+      },
+      {
+        "id": "ADR-0157"
+      },
+      {
+        "id": "ADR-0159"
+      },
+      {
+        "id": "ADR-0167"
+      },
+      {
+        "id": "ADR-0169"
+      },
+      {
+        "id": "ADR-0176"
+      },
+      {
+        "id": "ADR-0182"
+      },
+      {
+        "id": "ADR-0185"
+      },
+      {
+        "id": "ADR-0258"
+      },
+      {
+        "id": "ADR-0478"
+      },
+      {
+        "id": "ADR-0479"
+      },
+      {
+        "id": "ADR-0480"
+      },
+      {
+        "id": "ADR-0481"
+      },
+      {
+        "id": "ADR-0565"
+      }
     ],
     "proposed_adrs": [
-      {"id": "ADR-0246", "artifact": "adr_0246"}
+      {
+        "id": "ADR-0246",
+        "artifact": "adr_0246"
+      }
     ],
     "section_heading": "## ADR-0632 product-protocol reconciliation",
-    "proposed_section_heading": "## ADR-0632 product-protocol clarification (proposal only)"
+    "proposed_section_heading": "## ADR-0632 product-protocol clarification (proposal only)",
+    "accepted_statuses": [
+      "accepted",
+      "accepted (amendment)"
+    ],
+    "public_rpc_contradiction_markers": [
+      "native clients consume the same openapi / ~~graphql~~ [dropped per adr-0565] / connect-protocol",
+      "grpc adapter tier-b on tenant request",
+      "clients call backend via openapi grpc/rest",
+      "connect-rpc surface and webhook fan-out are exposed as a product primitive",
+      "tenants query own usage via connect-rpc",
+      "tenant-facing client from the connect-rpc proto"
+    ]
   },
   "rules": [
     {"code": "PP-CONTRACT-ID", "artifact": "product_contract", "pointer": "/spec_id", "mode": "equals", "expected": "EXE-PRODUCT-PROTOCOL-CONTRACT"},

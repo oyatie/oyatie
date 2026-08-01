@@ -209,9 +209,14 @@
     "asyncapi": [
       "microservices/intelligence/contracts/asyncapi/intelligence-events-v1.yaml"
     ],
-    "proto": [
-      "microservices/intelligence/contracts/proto/intelligence-v1.proto"
-    ]
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": [
+        "microservices/intelligence/contracts/proto/intelligence-v1.proto",
+        "microservices/intelligence/contracts/proto/intelligence.proto"
+      ]
+    }
   },
   "capabilities": [
     {
@@ -762,9 +767,6 @@
       },
       "asyncapi": {
         "2026-05-21": "microservices/intelligence/contracts/asyncapi/intelligence-events-v1.yaml"
-      },
-      "proto": {
-        "2026-05-21": "microservices/intelligence/contracts/proto/intelligence.proto"
       }
     }
   },

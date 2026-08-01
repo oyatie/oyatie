@@ -45,6 +45,7 @@ rust_test(
         "OYA_PRODUCT_PROTOCOL_NEGATIVE_CASES": "$(location :negative-cases.json)",
         "OYA_PRODUCT_PROTOCOL_POLICY": "$(location :product-protocol-policy.json)",
         "OYA_ROOT_HUB_POINTERS": "$(location //specs:root-hub-pointers.json)",
+        "OYA_ADR_0632": "$(location //docs/decisions:ADR-0632-product-protocol-and-owned-fabric-posture.md)",
         "OYA_ADR_0157": "$(location //docs/decisions:ADR-0157-api-gateway-tier.md)",
         "OYA_ADR_0167": "$(location //docs/decisions:ADR-0167-tenant-cli.md)",
         "OYA_ADR_0176": "$(location //docs/decisions:ADR-0176-brownout-degradation-signal-api.md)",
@@ -52,6 +53,11 @@ rust_test(
         "OYA_ADR_0246": "$(location //docs/decisions:ADR-0246-policy-engine-substrate-promotion.md)",
         "OYA_ADR_0258": "$(location //docs/decisions:ADR-0258-api-versioning-model.md)",
     },
+    resources = [
+        "//cloud:live-service-manifest-corpus",
+        "//docs/decisions:adr-corpus",
+        "//oya:live-service-manifest-corpus",
+    ],
     visibility = ["PUBLIC"],
     deps = [
         ":ci-product-protocol-policy",
@@ -63,6 +69,7 @@ rust_test(
         "//specs:api-contract-ssot-canonical.json",
         "//specs:product-protocol-contract.json",
         "//specs:root-hub-pointers.json",
+        "//docs/decisions:ADR-0632-product-protocol-and-owned-fabric-posture.md",
         "//docs/decisions:ADR-0157-api-gateway-tier.md",
         "//docs/decisions:ADR-0167-tenant-cli.md",
         "//docs/decisions:ADR-0176-brownout-degradation-signal-api.md",

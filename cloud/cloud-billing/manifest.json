@@ -34,9 +34,15 @@
     "asyncapi": [
       "contracts/asyncapi.yaml"
     ],
-    "proto": [
-      "contracts/proto/cloud-billing.proto"
-    ],
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": [
+        "contracts/proto/cloud-billing.proto",
+        "contracts/proto/cloud/billing/v1/cloud-billing-event-v1.proto",
+        "contracts/proto/platform/metering/v1/metering-event-v1.proto"
+      ]
+    },
     "contract_status": "service-local billing, metering, invoice, FOCUS export, and settlement contract files exist in this package; they remain planning/validation contracts and do not claim REST, gRPC, broker, settlement, payment, FOCUS export, or provider runtime readiness"
   },
   "capabilities": [
@@ -311,10 +317,6 @@
       "asyncapi": [
         "contracts/asyncapi/cloud/cloud-billing-events-v1.yaml",
         "contracts/asyncapi/platform/metering-events-v1.yaml"
-      ],
-      "proto": [
-        "contracts/proto/cloud/billing/v1/cloud-billing-event-v1.proto",
-        "contracts/proto/platform/metering/v1/metering-event-v1.proto"
       ]
     },
     "non_claim": "Contracts are schemas for current local metadata behavior, but no per-tenant API version pinning runtime is implemented by CS-CLOUD-BILLING-TAX-001."

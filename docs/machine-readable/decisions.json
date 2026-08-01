@@ -1572,7 +1572,7 @@
       "path": "decisions/ADR-0157-api-gateway-tier.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": ["ADR-0009", "ADR-0049", "ADR-0114", "ADR-0121", "ADR-0128", "ADR-0145", "ADR-0148", "ADR-0182"]
+      "related": ["ADR-0009", "ADR-0049", "ADR-0114", "ADR-0121", "ADR-0128", "ADR-0145", "ADR-0148", "ADR-0182", "ADR-0632"]
     },
     {
       "adr": "ADR-0158",
@@ -1692,7 +1692,7 @@
       "path": "decisions/ADR-0167-tenant-cli.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": ["ADR-0002", "ADR-0011", "ADR-0021", "ADR-0037", "ADR-0121", "ADR-0145", "ADR-0146"]
+      "related": ["ADR-0002", "ADR-0011", "ADR-0021", "ADR-0037", "ADR-0121", "ADR-0145", "ADR-0146", "ADR-0632"]
     },
     {
       "adr": "ADR-0168",
@@ -1788,7 +1788,7 @@
       "path": "decisions/ADR-0176-brownout-degradation-signal-api.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": ["ADR-0128", "ADR-0009", "ADR-0042", "ADR-0044", "ADR-0148"]
+      "related": ["ADR-0128", "ADR-0009", "ADR-0042", "ADR-0044", "ADR-0148", "ADR-0632"]
     },
     {
       "adr": "ADR-0177",
@@ -1860,7 +1860,7 @@
       "path": "decisions/ADR-0182-api-gateway-north-south-vs-service-mesh-east-west-separation.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": ["ADR-0121", "ADR-0145", "ADR-0148", "ADR-0150", "ADR-0157", "ADR-0183", "ADR-0184", "ADR-0185", "ADR-0186"]
+      "related": ["ADR-0121", "ADR-0145", "ADR-0148", "ADR-0150", "ADR-0157", "ADR-0183", "ADR-0184", "ADR-0185", "ADR-0186", "ADR-0632"]
     },
     {
       "adr": "ADR-0183",
@@ -2508,7 +2508,7 @@
       "path": "decisions/ADR-0246-policy-engine-substrate-promotion.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": ["ADR-0009", "ADR-0028", "ADR-0049", "ADR-0050", "ADR-0099", "ADR-0105", "ADR-0106", "ADR-0128", "ADR-0131", "ADR-0132", "ADR-0140", "ADR-0144", "ADR-0145", "ADR-0148", "ADR-0150", "ADR-0176", "ADR-0183", "ADR-0211", "ADR-0240", "ADR-0241", "ADR-0242", "ADR-0243", "ADR-0244", "ADR-0245", "ADR-0247", "ADR-0248", "ADR-0251"]
+      "related": ["ADR-0009", "ADR-0028", "ADR-0049", "ADR-0050", "ADR-0099", "ADR-0105", "ADR-0106", "ADR-0128", "ADR-0131", "ADR-0132", "ADR-0140", "ADR-0144", "ADR-0145", "ADR-0148", "ADR-0150", "ADR-0176", "ADR-0183", "ADR-0211", "ADR-0240", "ADR-0241", "ADR-0242", "ADR-0243", "ADR-0244", "ADR-0245", "ADR-0247", "ADR-0248", "ADR-0251", "ADR-0632"]
     },
     {
       "adr": "ADR-0248",
@@ -2628,7 +2628,7 @@
       "path": "decisions/ADR-0258-api-versioning-model.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": ["ADR-0011", "ADR-0037", "ADR-0064", "ADR-0131", "ADR-0145", "ADR-0150", "ADR-0244", "ADR-0250", "ADR-0565"]
+      "related": ["ADR-0011", "ADR-0037", "ADR-0064", "ADR-0131", "ADR-0145", "ADR-0150", "ADR-0244", "ADR-0250", "ADR-0565", "ADR-0632"]
     },
     {
       "adr": "ADR-0263",
@@ -5304,7 +5304,7 @@
       "path": "decisions/ADR-0632-product-protocol-and-owned-fabric-posture.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": ["ADR-0203", "ADR-0211", "ADR-0213", "ADR-0394", "ADR-0506", "ADR-0561"]
+      "related": ["ADR-0203", "ADR-0211", "ADR-0213", "ADR-0246", "ADR-0358", "ADR-0394", "ADR-0506", "ADR-0561"]
     }
   ]
 }

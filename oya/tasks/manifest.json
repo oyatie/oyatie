@@ -75,9 +75,13 @@
     "asyncapi": [
       "microservices/tasks/contracts/asyncapi/tasks-events.yaml"
     ],
-    "proto": [
-      "microservices/tasks/contracts/proto/tasks.proto"
-    ]
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": [
+        "microservices/tasks/contracts/proto/tasks.proto"
+      ]
+    }
   },
   "capabilities": [
     {
@@ -158,25 +162,25 @@
   "ips": [
     {
       "id": "IP-001-iac-bootstrap",
-      "title": "IP-001: IaC bootstrap \u2014 Helm + Kustomize for Postgres + Valkey + Meilisearch substrate",
+      "title": "IP-001: IaC bootstrap — Helm + Kustomize for Postgres + Valkey + Meilisearch substrate",
       "acceptance_status": "ga",
       "file": "microservices/tasks/IP-001-iac-bootstrap.md"
     },
     {
       "id": "IP-002-cargo-workspace-bootstrap",
-      "title": "IP-002: Cargo workspace bootstrap \u2014 57 crate stubs per BNF v4.1",
+      "title": "IP-002: Cargo workspace bootstrap — 57 crate stubs per BNF v4.1",
       "acceptance_status": "ga",
       "file": "microservices/tasks/IP-002-cargo-workspace-bootstrap.md"
     },
     {
       "id": "IP-003-task-store-kernel-domain",
-      "title": "IP-003: task-store kernel + domain \u2014 entities, ports, invariants",
+      "title": "IP-003: task-store kernel + domain — entities, ports, invariants",
       "acceptance_status": "ga",
       "file": "microservices/tasks/IP-003-task-store-kernel-domain.md"
     },
     {
       "id": "IP-004-task-store-adapter-postgres",
-      "title": "IP-004: task-store adapter \u2014 Postgres 16 LTS with RLS + tenant-DEK",
+      "title": "IP-004: task-store adapter — Postgres 16 LTS with RLS + tenant-DEK",
       "acceptance_status": "ga",
       "file": "microservices/tasks/IP-004-task-store-adapter-postgres.md"
     },
@@ -188,7 +192,7 @@
     },
     {
       "id": "IP-006-custom-field-engine",
-      "title": "IP-006: custom-field engine \u2014 typed-schema-per-project + flexible JSON",
+      "title": "IP-006: custom-field engine — typed-schema-per-project + flexible JSON",
       "acceptance_status": "ga",
       "file": "microservices/tasks/IP-006-custom-field-engine.md"
     },
@@ -200,7 +204,7 @@
     },
     {
       "id": "IP-008-recurring-task-engine",
-      "title": "IP-008: recurring-task engine \u2014 RFC 5545 RRULE subset (rrule-rs 0.13)",
+      "title": "IP-008: recurring-task engine — RFC 5545 RRULE subset (rrule-rs 0.13)",
       "acceptance_status": "ga",
       "file": "microservices/tasks/IP-008-recurring-task-engine.md"
     },
@@ -212,37 +216,37 @@
     },
     {
       "id": "IP-010-view-engine-and-board-realtime",
-      "title": "IP-010: view-engine BC \u2014 board DnD + collaborative description CRDT (Loro 1.x)",
+      "title": "IP-010: view-engine BC — board DnD + collaborative description CRDT (Loro 1.x)",
       "acceptance_status": "ga",
       "file": "microservices/tasks/IP-010-view-engine-and-board-realtime.md"
     },
     {
       "id": "IP-011-search-and-filter",
-      "title": "IP-011: search-index BC \u2014 Meilisearch 0.10.0 LTS + rebuildable fallback",
+      "title": "IP-011: search-index BC — Meilisearch 0.10.0 LTS + rebuildable fallback",
       "acceptance_status": "ga",
       "file": "microservices/tasks/IP-011-search-and-filter.md"
     },
     {
       "id": "IP-012-bulk-edit-pipeline",
-      "title": "IP-012: bulk-edit pipeline \u2014 atomic 1..10k task patch with cycle-aware refusal",
+      "title": "IP-012: bulk-edit pipeline — atomic 1..10k task patch with cycle-aware refusal",
       "acceptance_status": "ga",
       "file": "microservices/tasks/IP-012-bulk-edit-pipeline.md"
     },
     {
       "id": "IP-013-rest-and-websocket-api-surface",
-      "title": "IP-013: REST + WebSocket API surface \u2014 OpenAPI 3.2.0 + AsyncAPI 3.1.0 + proto3 wiring",
+      "title": "IP-013: REST + WebSocket API surface — OpenAPI 3.2.0 + AsyncAPI 3.1.0 + proto3 wiring",
       "acceptance_status": "ga",
       "file": "microservices/tasks/IP-013-rest-and-websocket-api-surface.md"
     },
     {
       "id": "IP-014-ai-assist-bounds-and-eu-ai-act",
-      "title": "IP-014: AI assist bounds \u2014 T0 next-task / T1 categorise + priority / T2 auto-assign with EU AI Act Annex III \u00a74 refusal",
+      "title": "IP-014: AI assist bounds — T0 next-task / T1 categorise + priority / T2 auto-assign with EU AI Act Annex III §4 refusal",
       "acceptance_status": "ga",
       "file": "microservices/tasks/IP-014-ai-assist-bounds-and-eu-ai-act.md"
     },
     {
       "id": "IP-015-hg-tasks-conformance",
-      "title": "IP-015: HG-tasks conformance \u2014 registration + branch protection + SLO coverage gates",
+      "title": "IP-015: HG-tasks conformance — registration + branch protection + SLO coverage gates",
       "acceptance_status": "ga",
       "file": "microservices/tasks/IP-015-hg-tasks-conformance.md"
     }
@@ -327,10 +331,10 @@
     }
   ],
   "hyperscaler_inv_coverage": {
-    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
-    "tenant_rate_limit": "INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
-    "reference_signals": "INV-FOUR-REFERENCE-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
-    "error_budget_burn": "INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "reference_signals": "INV-FOUR-REFERENCE-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "audit_chain": {
     "enabled": true,
@@ -420,7 +424,7 @@
     "fedramp",
     "il5"
   ],
-  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; reference_signals: INV-FOUR-REFERENCE-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
+  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; reference_signals: INV-FOUR-REFERENCE-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
   "owner_team": "axis-tasks",
   "data_classification": "INTERNAL_ONLY, AUDIT, PII_QUASI",
   "compliance_packs_applicable": [
@@ -535,9 +539,6 @@
       },
       "asyncapi": {
         "2026-05-21": "microservices/tasks/contracts/asyncapi/tasks-events.yaml"
-      },
-      "proto": {
-        "2026-05-21": "microservices/tasks/contracts/proto/tasks.proto"
       }
     }
   },

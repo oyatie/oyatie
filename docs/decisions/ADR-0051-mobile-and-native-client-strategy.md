@@ -2,8 +2,8 @@
 id: ADR-0051
 status: accepted
 doc_status: published
+amended_by: [ADR-0632]
 ---
-
 # ADR-0051: Mobile and Native Client Strategy
 
 - **Status:** Accepted
@@ -13,6 +13,10 @@ doc_status: published
 - **Related:** ADR-0001 (cohesion thesis — single brand surface across all clients), ADR-0010 (regional-pack architecture — per-region store / privacy variations), ADR-0017 (brand naming + repo layout), ADR-0044 (gateway / mTLS — mobile-to-API edge)
 
 ---
+
+## ADR-0632 product-protocol reconciliation
+
+Native clients consume the same public HTTPS REST surface documented by OpenAPI 3.2.0, signed/versioned webhooks, AsyncAPI/CloudEvents events, SSE streams, and bidirectional WebSocket sessions as web clients. Public GraphQL, gRPC, gRPC-Web, and Connect are forbidden. Protobuf is reserved for internal-only gRPC/proto3 over HTTP/2 and is never a native-client or gateway contract.
 
 ## Context
 
@@ -49,7 +53,7 @@ All native shells render the `Oyatie` brand per ADR-0017. App-store identifiers 
 
 ### 5. Native shells consume the same canonical contracts
 
-Native clients consume the same OpenAPI / ~~GraphQL~~ [dropped per ADR-0565] / Connect-protocol contracts that web does, through the same gateway per ADR-0044 with mTLS device attestation. There is no native-only API. Per-product PRDs may define **client-only convenience endpoints** (e.g. push-notification token registration, offline-sync deltas), but those endpoints stay in the canonical contract registry per ADR-0011 and obey the Data Use Boundary per ADR-0008.
+Native clients consume the same public HTTPS REST/OpenAPI contracts that web does, through the same gateway per ADR-0044 with mTLS device attestation; public Connect is not a client contract. There is no native-only API. Per-product PRDs may define **client-only convenience endpoints** (e.g. push-notification token registration, offline-sync deltas), but those endpoints stay in the canonical contract registry per ADR-0011 and obey the Data Use Boundary per ADR-0008.
 
 ### 6. Per-pack store-policy + per-region distribution
 

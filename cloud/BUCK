@@ -1,0 +1,6 @@
+# Hermetic input set for gates that must validate every live cloud service manifest.
+filegroup(
+    name = "live-service-manifest-corpus",
+    srcs = glob(["**/manifest.json"]),
+    visibility = ["PUBLIC"],
+)
