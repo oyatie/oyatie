@@ -1,6 +1,17 @@
+export_file(
+    name = "product-protocol-policy.json",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "negative-cases.json",
+    src = "fixtures/negative-cases.json",
+    visibility = ["PUBLIC"],
+)
+
 rust_library(
     name = "ci-product-protocol-policy",
-    srcs = glob(["src/**/*.rs", "**/*.json"]),
+    srcs = glob(["src/**/*.rs"]),
     crate = "ci_product_protocol_policy",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
@@ -11,7 +22,7 @@ rust_library(
 
 rust_test(
     name = "ci-product-protocol-policy-unittest",
-    srcs = glob(["src/**/*.rs", "**/*.json"]),
+    srcs = glob(["src/**/*.rs"]),
     crate = "ci_product_protocol_policy",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
@@ -22,16 +33,26 @@ rust_test(
 
 rust_test(
     name = "ci-product-protocol-policy-gate",
-    srcs = glob(["tests/**/*.rs", "fixtures/**/*.json", "product-protocol-policy.json"]),
+    srcs = glob(["tests/**/*.rs"]),
     crate = "ci_product_protocol_policy_gate",
     crate_root = "tests/product_protocol_policy.rs",
     env = {
+        "OYA_API_CONTRACT_SSOT": "$(location //specs:api-contract-ssot-canonical.json)",
         "OYA_ENDPOINT_TRANSPORT_PROFILE": "$(location //network/ports/transport-profile:endpoint-transport-profile.contract.json)",
+        "OYA_PRODUCT_PROTOCOL_CONTRACT": "$(location //specs:product-protocol-contract.json)",
+        "OYA_PRODUCT_PROTOCOL_NEGATIVE_CASES": "$(location :negative-cases.json)",
+        "OYA_PRODUCT_PROTOCOL_POLICY": "$(location :product-protocol-policy.json)",
+        "OYA_ROOT_HUB_POINTERS": "$(location //specs:root-hub-pointers.json)",
     },
     visibility = ["PUBLIC"],
     deps = [
         ":ci-product-protocol-policy",
+        ":negative-cases.json",
+        ":product-protocol-policy.json",
         "//network/ports/transport-profile:endpoint-transport-profile.contract.json",
+        "//specs:api-contract-ssot-canonical.json",
+        "//specs:product-protocol-contract.json",
+        "//specs:root-hub-pointers.json",
         "third-party//:serde_json",
     ],
 )
