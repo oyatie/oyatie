@@ -1,5 +1,12 @@
+//! One fixture per exit path of the driver process.
+//!
+//! The load-bearing assertion in every nonzero case is the same: git takes whatever the driver
+//! leaves in `%A` as the conflicted working tree and never re-runs its own text merge, so `%A` must
+//! never come back as unmarked `ours`. If it does, `theirs` is gone and a reflexive `git add`
+//! commits the loss with nothing on screen to stop it.
+
 use std::path::{Path, PathBuf};
-use std::process::Command;
+use std::process::{Command, Output};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 fn driver_bin() -> PathBuf {
@@ -57,58 +64,160 @@ fn package(name: &str, version: &str) -> String {
     format!("[[package]]\nname = \"{name}\"\nversion = \"{version}\"\n")
 }
 
-#[test]
-fn parse_failure_returns_exit_2() {
-    let dir = unique_dir("parse-failure");
-    let base = dir.join("base.lock");
-    let current = dir.join("current.lock");
-    let other = dir.join("other.lock");
-    write_file(&base, "not = [valid");
-    write_file(&current, &lockfile(&package("serde", "1.0.0")));
-    write_file(&other, &lockfile(&package("serde", "1.0.0")));
-
-    let output = match Command::new(driver_bin())
-        .arg(&base)
-        .arg(&current)
-        .arg(&other)
+fn run_driver(base: &Path, current: &Path, other: &Path) -> Output {
+    match Command::new(driver_bin())
+        .arg(base)
+        .arg(current)
+        .arg(other)
         .output()
     {
         Ok(output) => output,
-        Err(err) => {
-            assert!(false, "failed to run merge driver: {err}");
-            return;
-        }
-    };
+        Err(err) => panic!("failed to run merge driver: {err}"),
+    }
+}
 
-    assert_eq!(output.status.code(), Some(2));
+/// The whole point of the crate: whatever ends up in `%A` after a nonzero exit must carry every
+/// side and must not be mistakable for a resolved lockfile.
+fn assert_marked_conflict(current: &Path, must_contain: &[&str]) {
+    let merged = read_file(current);
+    for marker in ["<<<<<<< ours", "||||||| base", "=======", ">>>>>>> theirs"] {
+        assert!(
+            merged.contains(marker),
+            "%A is missing the {marker:?} marker; git would present it as a clean file:\n{merged}"
+        );
+    }
+    for needle in must_contain {
+        assert!(merged.contains(needle), "%A lost {needle:?}:\n{merged}");
+    }
+}
+
+/// Exit 1 — semantic conflict (same package resolved to two versions).
+#[test]
+fn version_divergence_writes_every_side_into_current() {
+    let dir = unique_dir("version-divergence");
+    let (base, current, other) = (
+        dir.join("base.lock"),
+        dir.join("current.lock"),
+        dir.join("other.lock"),
+    );
+    write_file(&base, &lockfile(&package("serde", "1.0.0")));
+    write_file(&current, &lockfile(&package("serde", "1.0.1")));
+    write_file(&other, &lockfile(&package("serde", "1.0.2")));
+
+    let output = run_driver(&base, &current, &other);
+
+    assert_eq!(output.status.code(), Some(1));
+    assert_marked_conflict(&current, &["1.0.0", "1.0.1", "1.0.2"]);
     let _ = std::fs::remove_dir_all(dir);
 }
 
+/// Exit 1 — removal on one side, edit on the other.
 #[test]
-fn current_file_stays_unchanged_on_conflict() {
-    let dir = unique_dir("conflict-current-untouched");
-    let base = dir.join("base.lock");
-    let current = dir.join("current.lock");
-    let other = dir.join("other.lock");
-    let original_current = lockfile(&package("serde", "1.0.1"));
-    write_file(&base, &lockfile(""));
-    write_file(&current, &original_current);
-    write_file(&other, &lockfile(&package("serde", "1.0.2")));
+fn removal_vs_edit_writes_every_side_into_current() {
+    let dir = unique_dir("removal-vs-edit");
+    let (base, current, other) = (
+        dir.join("base.lock"),
+        dir.join("current.lock"),
+        dir.join("other.lock"),
+    );
+    write_file(&base, &lockfile(&package("serde", "1.0.0")));
+    write_file(&current, &lockfile(""));
+    write_file(
+        &other,
+        &lockfile("[[package]]\nname = \"serde\"\nversion = \"1.0.0\"\nchecksum = \"deadbeef\"\n"),
+    );
 
-    let output = match Command::new(driver_bin())
-        .arg(&base)
-        .arg(&current)
-        .arg(&other)
-        .output()
-    {
-        Ok(output) => output,
-        Err(err) => {
-            assert!(false, "failed to run merge driver: {err}");
-            return;
-        }
-    };
+    let output = run_driver(&base, &current, &other);
 
     assert_eq!(output.status.code(), Some(1));
-    assert_eq!(read_file(&current), original_current);
+    assert_marked_conflict(&current, &["deadbeef"]);
+    let _ = std::fs::remove_dir_all(dir);
+}
+
+/// Exit 1 — a side that does not parse. Abstaining here would resolve to `ours` just as silently
+/// as a semantic conflict does, so unmodelled input takes the same marked-conflict path.
+#[test]
+fn parse_failure_writes_every_side_into_current() {
+    let dir = unique_dir("parse-failure");
+    let (base, current, other) = (
+        dir.join("base.lock"),
+        dir.join("current.lock"),
+        dir.join("other.lock"),
+    );
+    write_file(&base, "not = [valid");
+    write_file(&current, &lockfile(&package("serde", "1.0.0")));
+    write_file(&other, &lockfile(&package("theirs-only", "0.2.0")));
+
+    let output = run_driver(&base, &current, &other);
+
+    assert_eq!(output.status.code(), Some(1));
+    assert_marked_conflict(&current, &["theirs-only", "not = [valid"]);
+    let _ = std::fs::remove_dir_all(dir);
+}
+
+/// Exit 1 — a side git handed us that cannot be read. `theirs` is unrecoverable, so the file must
+/// say so under markers rather than hand back a clean-looking `ours`.
+#[test]
+fn unreadable_other_side_writes_marked_conflict_into_current() {
+    let dir = unique_dir("unreadable-other");
+    let (base, current, other) = (
+        dir.join("base.lock"),
+        dir.join("current.lock"),
+        dir.join("missing.lock"),
+    );
+    write_file(&base, &lockfile(&package("serde", "1.0.0")));
+    write_file(&current, &lockfile(&package("serde", "1.0.1")));
+
+    let output = run_driver(&base, &current, &other);
+
+    assert_eq!(output.status.code(), Some(1));
+    assert_marked_conflict(&current, &["could not be read"]);
+    let _ = std::fs::remove_dir_all(dir);
+}
+
+/// Exit 2 — the only surviving abstain: no `%A` argument, so there is no file to mark.
+#[test]
+fn missing_arguments_exit_2() {
+    let output = match Command::new(driver_bin()).output() {
+        Ok(output) => output,
+        Err(err) => panic!("failed to run merge driver: {err}"),
+    };
+    assert_eq!(output.status.code(), Some(2));
+}
+
+/// Exit 0 — disjoint additions still merge, and `%A` holds the merged result with no markers.
+#[test]
+fn disjoint_additions_merge_cleanly() {
+    let dir = unique_dir("clean-merge");
+    let (base, current, other) = (
+        dir.join("base.lock"),
+        dir.join("current.lock"),
+        dir.join("other.lock"),
+    );
+    write_file(&base, &lockfile(&package("alpha", "1.0.0")));
+    write_file(
+        &current,
+        &lockfile(&format!(
+            "{}\n{}",
+            package("alpha", "1.0.0"),
+            package("ours-only", "0.1.0")
+        )),
+    );
+    write_file(
+        &other,
+        &lockfile(&format!(
+            "{}\n{}",
+            package("alpha", "1.0.0"),
+            package("theirs-only", "0.2.0")
+        )),
+    );
+
+    let output = run_driver(&base, &current, &other);
+
+    assert_eq!(output.status.code(), Some(0));
+    let merged = read_file(&current);
+    assert!(merged.contains("ours-only"), "{merged}");
+    assert!(merged.contains("theirs-only"), "{merged}");
+    assert!(!merged.contains("<<<<<<<"), "{merged}");
     let _ = std::fs::remove_dir_all(dir);
 }
