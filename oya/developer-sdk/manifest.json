@@ -177,92 +177,77 @@
     {
       "id": "IP-001-layer-a-postgres-openbao-iac",
       "title": "IP-001: Layer-A Postgres + OpenBao IaC",
-      "acceptance_status": "pending",
-      "file": "oya/developer-sdk/IPs/IP-ADR-0339-Shared-IaC-Modules.md"
+      "acceptance_status": "pending"
     },
     {
       "id": "IP-002-developer-onboarding-kernel-domain",
       "title": "IP-002: developer-onboarding kernel + domain (KYC + AML state machine)",
-      "acceptance_status": "pending",
-      "file": "microservices/developer-sdk/implementation-plans/IP-002-developer-onboarding-kernel-domain.md"
+      "acceptance_status": "pending"
     },
     {
       "id": "IP-003-developer-onboarding-usecase-api-adapter-rest-app",
       "title": "IP-003: developer-onboarding remaining layers",
-      "acceptance_status": "pending",
-      "file": "microservices/developer-sdk/implementation-plans/IP-003-developer-onboarding-usecase-api-adapter-rest-app.md"
+      "acceptance_status": "pending"
     },
     {
       "id": "IP-004-signing-key-issuance-openbao",
       "title": "IP-004: per-developer ED25519 signing key issuance via OpenBao",
-      "acceptance_status": "pending",
-      "file": "microservices/developer-sdk/implementation-plans/IP-004-signing-key-issuance-openbao.md"
+      "acceptance_status": "pending"
     },
     {
       "id": "IP-005-api-contracts-registry",
       "title": "IP-005: OpenAPI/AsyncAPI/proto canonical contracts registry",
-      "acceptance_status": "pending",
-      "file": "microservices/developer-sdk/implementation-plans/IP-005-api-contracts-registry.md"
+      "acceptance_status": "pending"
     },
     {
       "id": "IP-006-sdk-codegen-ts-rust-swift-kotlin-csharp-python",
       "title": "IP-006: codegen pipeline for six SDK families",
-      "acceptance_status": "pending",
-      "file": "microservices/developer-sdk/implementation-plans/IP-006-sdk-codegen-ts-rust-swift-kotlin-csharp-python.md"
+      "acceptance_status": "pending"
     },
     {
       "id": "IP-007-sandbox-provisioner-tenant-on-demand",
       "title": "IP-007: per-developer sandbox tenant provisioner + reset",
-      "acceptance_status": "pending",
-      "file": "microservices/developer-sdk/implementation-plans/IP-007-sandbox-provisioner-tenant-on-demand.md"
+      "acceptance_status": "pending"
     },
     {
       "id": "IP-008-dev-portal-first-party-module",
       "title": "IP-008: first-party developer portal module (API browser + try-in-sandbox)",
-      "acceptance_status": "pending",
-      "file": "oya/developer-sdk/decisions/ADR-SDK-0007-developer-portal-as-first-party-module.md"
+      "acceptance_status": "pending"
     },
     {
       "id": "IP-009-dev-portal-app-submission-flow",
       "title": "IP-009: dev portal app submission flow (manifest upload + vetting status stream)",
-      "acceptance_status": "pending",
-      "file": "microservices/developer-sdk/implementation-plans/IP-009-dev-portal-app-submission-flow.md"
+      "acceptance_status": "pending"
     },
     {
       "id": "IP-010-payout-ach-sepa-kftc-fedwire",
       "title": "IP-010: payout substrate (ACH + SEPA + KFTC + FedWire adapters)",
-      "acceptance_status": "pending",
-      "file": "microservices/developer-sdk/implementation-plans/IP-010-payout-ach-sepa-kftc-fedwire.md"
+      "acceptance_status": "pending"
     },
     {
       "id": "IP-011-tax-form-1099-vat-moss-kr-vat",
       "title": "IP-011: tax-form generation (1099-MISC US + EU VAT MOSS + KR VAT)",
-      "acceptance_status": "pending",
-      "file": "microservices/developer-sdk/implementation-plans/IP-011-tax-form-1099-vat-moss-kr-vat.md"
+      "acceptance_status": "pending"
     },
     {
       "id": "IP-012-package-registry-vendored",
       "title": "IP-012: in-house package registry (vendored npm + cargo + nuget + pypi)",
-      "acceptance_status": "pending",
-      "file": "microservices/developer-sdk/implementation-plans/IP-012-package-registry-vendored.md"
+      "acceptance_status": "pending"
     },
     {
       "id": "IP-013-observability-slo-manifests",
       "title": "IP-013: developer-sdk OpenSLO manifests + observability self-SLOs",
-      "acceptance_status": "pending",
-      "file": "microservices/developer-sdk/implementation-plans/IP-013-observability-slo-manifests.md"
+      "acceptance_status": "pending"
     },
     {
       "id": "IP-014-branch-protection-and-hyperscaler-gates",
       "title": "IP-014: branch-protection + hyperscaler-gates HG-SDK registration",
-      "acceptance_status": "pending",
-      "file": "microservices/developer-sdk/implementation-plans/IP-014-branch-protection-and-hyperscaler-gates.md"
+      "acceptance_status": "pending"
     },
     {
       "id": "IP-015-stripe-connect-parity-end-to-end-drill",
       "title": "IP-015: end-to-end Stripe-Connect-parity drill (onboarding → app publish → install → payout)",
-      "acceptance_status": "pending",
-      "file": "microservices/developer-sdk/implementation-plans/IP-015-stripe-connect-parity-end-to-end-drill.md"
+      "acceptance_status": "pending"
     }
   ],
   "regulatory_packs": [
