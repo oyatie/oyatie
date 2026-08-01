@@ -486,12 +486,22 @@ fn inspect_actions_cache_steps(
             let Some(action) = step.get("uses").and_then(YamlValue::as_str) else {
                 continue;
             };
-            let action_name = if action.starts_with("./") || action.starts_with(".\\") {
+            let local_action = action.starts_with("./") || action.starts_with(".\\");
+            let action_name = if local_action {
                 action
             } else {
                 action.split('@').next().unwrap_or(action)
             };
-            let action_name_lower = action_name.to_ascii_lowercase();
+            let action_name_lower = if local_action {
+                action_name.to_ascii_lowercase()
+            } else {
+                action_name
+                    .split(['/', '\\'])
+                    .filter(|segment| !segment.is_empty())
+                    .collect::<Vec<_>>()
+                    .join("/")
+                    .to_ascii_lowercase()
+            };
             if matches!(
                 action_name_lower.as_str(),
                 "actions/cache" | "actions/cache/restore" | "actions/cache/save"
@@ -1003,6 +1013,24 @@ fn buck_out_archive_guard_rejects_yaml_path_variants_and_renamed_steps() {
         !actions_cache_buck_out_violations(None, "<fixture>", mixed_case).is_empty(),
         "action repository casing must not bypass the guard"
     );
+
+    for action in [
+        "actions\\cache@pinned",
+        "actions//cache@pinned",
+        "actions/cache/@pinned",
+        "actions\\cache\\restore@pinned",
+        "actions//cache//save@pinned",
+        "actions/cache/restore/@pinned",
+        "actions/cache/save/@pinned",
+    ] {
+        let fixture = format!(
+            "jobs:\n  gate:\n    steps:\n      - uses: {action}\n        with:\n          path: buck-out\n          key: fixture\n"
+        );
+        assert!(
+            !actions_cache_buck_out_violations(None, "<fixture>", &fixture).is_empty(),
+            "runner-equivalent external cache action reference bypassed the guard: {action:?}"
+        );
+    }
 
     let safe = "jobs:\n  gate:\n    steps:\n      - uses: actions/cache@pinned\n        with:\n          path: |\n            ~/.rustup/toolchains\n            ~/.rustup/update-hashes\n            toolchain-*\n            rustup-*\n            [rt]ustup-cache\n            tool chain-*\n            ${{ github.workspace }}/toolchain-*\n            !buck-out\n            # buck-out\n";
     assert!(
