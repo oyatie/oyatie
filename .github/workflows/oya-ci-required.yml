@@ -740,9 +740,9 @@ jobs:
       #    full build — no grandfathering).
       #
       #    ANTI-LAUNDERING (ADR-0554 D6, preserved): the baseline failure-set comes ENTIRELY from
-      #    the merge-base COMMITTED tree (git object history — candidate-uncontrollable); during the
-      #    baseline build the candidate working tree is GONE from disk, so it cannot feed the
-      #    baseline; the report reaches the verdict ONLY via --baseline-report. Each worktree's
+      #    the merge-base COMMITTED tree (git object history — candidate-uncontrollable); the
+      #    separate baseline worktree cannot read candidate working-tree bytes, so they cannot feed
+      #    the baseline; the report reaches the verdict ONLY via --baseline-report. Each worktree's
       #    runner-local Buck2 state can change only wall-clock, never the baseline SOURCE; no
       #    cross-run `buck-out` bytes enter this job (ADR-0554 D10). GH #899 activates the trusted D8 consumer first:
       #    use an exact push-to-dev baseline artifact when provenance and schema validate, else

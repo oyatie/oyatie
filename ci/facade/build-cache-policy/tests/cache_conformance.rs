@@ -19,7 +19,10 @@
 // ADR-0083 Tier-3: integration tests use unwrap/expect/panic to assert invariants.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
-use std::path::PathBuf;
+use std::{
+    collections::HashSet,
+    path::{Component, Path, PathBuf},
+};
 
 use ci_build_cache_policy as app;
 use serde_json::{Value, json};
@@ -62,76 +65,189 @@ fn invocation_record_fixture(
     })
 }
 
-fn actions_cache_buck_out_violations(workflow: &str) -> Vec<String> {
-    let doc: YamlValue = serde_yaml::from_str(workflow).expect("parse workflow YAML");
-    let jobs = doc
-        .get("jobs")
-        .and_then(YamlValue::as_mapping)
-        .expect("workflow must contain a jobs mapping");
-    let mut violations = Vec::new();
+fn cache_path_archives_checkout(raw_path: &str) -> bool {
+    let normalized = raw_path.trim().replace('\\', "/");
+    let compact: String = normalized
+        .chars()
+        .filter(|character| !character.is_ascii_whitespace())
+        .collect();
+    let compact_lower = compact.to_ascii_lowercase();
+    let workspace_prefix = "${{github.workspace}}";
+    let relative = compact_lower
+        .strip_prefix(workspace_prefix)
+        .map(|suffix| suffix.trim_start_matches('/'))
+        .unwrap_or(compact_lower.as_str());
+    let relative = relative
+        .strip_prefix("./")
+        .unwrap_or(relative)
+        .trim_end_matches('/');
 
-    for (job_name, job) in jobs {
-        let job_name = job_name.as_str().unwrap_or("<non-string-job>");
-        let Some(steps) = job.get("steps").and_then(YamlValue::as_sequence) else {
-            continue;
-        };
+    if relative.is_empty() || relative == "." {
+        return true;
+    }
+
+    let components: Vec<&str> = relative
+        .split('/')
+        .filter(|component| !component.is_empty() && *component != ".")
+        .collect();
+    let first_component = components.first().copied().unwrap_or(relative);
+    components.contains(&"buck-out")
+        || first_component == "**"
+        || first_component
+            .chars()
+            .any(|character| matches!(character, '*' | '?' | '[' | '{'))
+}
+
+fn action_steps<'a>(doc: &'a YamlValue) -> Vec<(&'a str, &'a [YamlValue])> {
+    let mut scopes = Vec::new();
+    if let Some(jobs) = doc.get("jobs").and_then(YamlValue::as_mapping) {
+        for (job_name, job) in jobs {
+            if let Some(steps) = job.get("steps").and_then(YamlValue::as_sequence) {
+                scopes.push((
+                    job_name.as_str().unwrap_or("<non-string-job>"),
+                    steps.as_slice(),
+                ));
+            }
+        }
+    }
+    if let Some(steps) = doc
+        .get("runs")
+        .and_then(|runs| runs.get("steps"))
+        .and_then(YamlValue::as_sequence)
+    {
+        scopes.push(("<composite-action>", steps.as_slice()));
+    }
+    scopes
+}
+
+fn local_action_file(repo_root: &Path, action_name: &str) -> Result<Option<PathBuf>, String> {
+    let Some(relative) = action_name.strip_prefix("./") else {
+        return Ok(None);
+    };
+    let relative = Path::new(relative);
+    if relative
+        .components()
+        .any(|component| !matches!(component, Component::Normal(_)))
+    {
+        return Err(format!(
+            "local action path escapes the repository: {action_name:?}"
+        ));
+    }
+    let action_dir = repo_root.join(relative);
+    for file_name in ["action.yml", "action.yaml"] {
+        let candidate = action_dir.join(file_name);
+        if candidate.is_file() {
+            return Ok(Some(candidate));
+        }
+    }
+    Err(format!(
+        "local action {action_name:?} has no action.yml or action.yaml"
+    ))
+}
+
+fn inspect_actions_cache_steps(
+    repo_root: Option<&Path>,
+    source: &str,
+    doc: &YamlValue,
+    visited_local_actions: &mut HashSet<PathBuf>,
+    violations: &mut Vec<String>,
+) {
+    for (scope, steps) in action_steps(doc) {
         for step in steps {
             let Some(action) = step.get("uses").and_then(YamlValue::as_str) else {
                 continue;
             };
             let action_name = action.split('@').next().unwrap_or(action);
-            if !matches!(
-                action_name,
+            let action_name_lower = action_name.to_ascii_lowercase();
+            if matches!(
+                action_name_lower.as_str(),
                 "actions/cache" | "actions/cache/restore" | "actions/cache/save"
             ) {
-                continue;
-            }
-
-            let step_name = step
-                .get("name")
-                .and_then(YamlValue::as_str)
-                .unwrap_or("<unnamed-step>");
-            let Some(path) = step.get("with").and_then(|with| with.get("path")) else {
-                continue;
-            };
-            let mut raw_paths = Vec::new();
-            match path {
-                YamlValue::String(value) => raw_paths.extend(value.lines()),
-                YamlValue::Sequence(values) => {
-                    for value in values {
-                        match value.as_str() {
-                            Some(value) => raw_paths.extend(value.lines()),
-                            None => violations.push(format!(
-                                "{job_name}/{step_name}: non-string actions/cache path {value:?}"
-                            )),
+                let step_name = step
+                    .get("name")
+                    .and_then(YamlValue::as_str)
+                    .unwrap_or("<unnamed-step>");
+                let Some(path) = step.get("with").and_then(|with| with.get("path")) else {
+                    continue;
+                };
+                let mut raw_paths = Vec::new();
+                match path {
+                    YamlValue::String(value) => raw_paths.extend(value.lines()),
+                    YamlValue::Sequence(values) => {
+                        for value in values {
+                            match value.as_str() {
+                                Some(value) => raw_paths.extend(value.lines()),
+                                None => violations.push(format!(
+                                    "{source}:{scope}/{step_name}: non-string actions/cache path {value:?}"
+                                )),
+                            }
                         }
                     }
+                    value => violations.push(format!(
+                        "{source}:{scope}/{step_name}: non-string actions/cache path {value:?}"
+                    )),
                 }
-                value => violations.push(format!(
-                    "{job_name}/{step_name}: non-string actions/cache path {value:?}"
-                )),
+
+                for raw_path in raw_paths {
+                    let raw_path = raw_path.trim();
+                    if raw_path.is_empty() || raw_path.starts_with('!') {
+                        continue;
+                    }
+                    if cache_path_archives_checkout(raw_path) {
+                        violations.push(format!(
+                            "{source}:{scope}/{step_name}: {action_name} archives forbidden path {raw_path:?}"
+                        ));
+                    }
+                }
+                continue;
             }
 
-            for raw_path in raw_paths {
-                let raw_path = raw_path.trim();
-                if raw_path.is_empty() || raw_path.starts_with('!') {
-                    continue;
+            let Some(repo_root) = repo_root else {
+                continue;
+            };
+            match local_action_file(repo_root, action_name) {
+                Ok(Some(action_file)) if visited_local_actions.insert(action_file.clone()) => {
+                    match std::fs::read_to_string(&action_file) {
+                        Ok(text) => match serde_yaml::from_str(&text) {
+                            Ok(action_doc) => inspect_actions_cache_steps(
+                                Some(repo_root),
+                                &action_file.display().to_string(),
+                                &action_doc,
+                                visited_local_actions,
+                                violations,
+                            ),
+                            Err(error) => violations.push(format!(
+                                "{}: malformed local action YAML: {error}",
+                                action_file.display()
+                            )),
+                        },
+                        Err(error) => violations.push(format!(
+                            "{}: cannot read local action: {error}",
+                            action_file.display()
+                        )),
+                    }
                 }
-                let normalized = raw_path.replace('\\', "/");
-                let components = normalized
-                    .split('/')
-                    .filter(|component| !component.is_empty() && *component != ".");
-                if components.clone().any(|component| component == "buck-out")
-                    || matches!(normalized.as_str(), "." | "./" | "${{ github.workspace }}")
-                {
-                    violations.push(format!(
-                        "{job_name}/{step_name}: {action_name} archives forbidden path {raw_path:?}"
-                    ));
-                }
+                Ok(Some(_)) | Ok(None) => {}
+                Err(error) => violations.push(format!("{source}:{scope}: {error}")),
             }
         }
     }
+}
 
+fn actions_cache_buck_out_violations(
+    repo_root: Option<&Path>,
+    source: &str,
+    workflow: &str,
+) -> Vec<String> {
+    let doc: YamlValue = serde_yaml::from_str(workflow).expect("parse workflow YAML");
+    let mut violations = Vec::new();
+    inspect_actions_cache_steps(
+        repo_root,
+        source,
+        &doc,
+        &mut HashSet::new(),
+        &mut violations,
+    );
     violations
 }
 
@@ -481,7 +597,7 @@ fn required_workflow_never_archives_buck_out() {
     let root = repo_root();
     let text = std::fs::read_to_string(root.join(REQUIRED_WORKFLOW_PATH))
         .unwrap_or_else(|e| panic!("read {REQUIRED_WORKFLOW_PATH}: {e}"));
-    let violations = actions_cache_buck_out_violations(&text);
+    let violations = actions_cache_buck_out_violations(Some(&root), REQUIRED_WORKFLOW_PATH, &text);
 
     assert!(
         violations.is_empty(),
@@ -507,20 +623,53 @@ fn buck_out_archive_guard_rejects_yaml_path_variants_and_renamed_steps() {
         "path:\n              - ~/.rustup\n              - buck-out/v2/cache",
         "path: ${{ github.workspace }}/buck-out",
         "path: .",
+        "path: ${{ github.workspace }}/",
+        "path: ${{ github.workspace }}/**",
+        "path: ./**",
+        "path: '**'",
     ] {
         let fixture = format!(
             "jobs:\n  renamed-job:\n    steps:\n      - name: Innocuous renamed step\n        uses: actions/cache/restore@pinned\n        with:\n          key: unrelated-key\n          {path_yaml}\n"
         );
         assert!(
-            !actions_cache_buck_out_violations(&fixture).is_empty(),
+            !actions_cache_buck_out_violations(None, "<fixture>", &fixture).is_empty(),
             "guard accepted forbidden YAML variant:\n{fixture}"
         );
     }
 
+    let mixed_case = "jobs:\n  gate:\n    steps:\n      - uses: AcTiOnS/CaChE@pinned\n        with:\n          path: ./buck-out\n";
+    assert!(
+        !actions_cache_buck_out_violations(None, "<fixture>", mixed_case).is_empty(),
+        "action repository casing must not bypass the guard"
+    );
+
     let safe = "jobs:\n  gate:\n    steps:\n      - uses: actions/cache@pinned\n        with:\n          path: |\n            ~/.rustup/toolchains\n            ~/.rustup/update-hashes\n";
     assert!(
-        actions_cache_buck_out_violations(safe).is_empty(),
+        actions_cache_buck_out_violations(None, "<fixture>", safe).is_empty(),
         "toolchain-only actions/cache must remain allowed"
+    );
+}
+
+#[test]
+fn buck_out_archive_guard_follows_local_composite_actions() {
+    let fixture_root = std::env::temp_dir().join(format!(
+        "oya-cache-composite-fixture-{}-{}",
+        std::process::id(),
+        std::thread::current().name().unwrap_or("unnamed")
+    ));
+    let action_dir = fixture_root.join(".github/actions/cache-wrapper");
+    std::fs::create_dir_all(&action_dir).expect("create local composite fixture");
+    std::fs::write(
+        action_dir.join("action.yml"),
+        "name: cache wrapper\nruns:\n  using: composite\n  steps:\n    - uses: ACTIONS/CACHE/SAVE@pinned\n      with:\n        path: '${{ github.workspace }}/**'\n        key: fixture\n",
+    )
+    .expect("write local composite fixture");
+    let workflow = "jobs:\n  gate:\n    steps:\n      - uses: ./.github/actions/cache-wrapper\n";
+    let violations = actions_cache_buck_out_violations(Some(&fixture_root), "<fixture>", workflow);
+    std::fs::remove_dir_all(&fixture_root).expect("remove local composite fixture");
+    assert!(
+        !violations.is_empty(),
+        "local composite action must not hide a forbidden checkout archive"
     );
 }
 
