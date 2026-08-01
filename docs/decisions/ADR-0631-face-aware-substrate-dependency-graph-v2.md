@@ -51,6 +51,11 @@ unit id combines a canonical capability and its founder-locked `runtime_face`, f
 declares a capability from the closed 24-capability registry, its `runtime_face`, and one of the
 internal planes `B0`, `C0`, `C1`, `C2`, `G`, or `R`.
 
+The validator compares the document to the exact founder-authoritative closed set of 19
+`(id, capability, runtime_face, plane)` tuples. Shape-valid substitutions, renamed faces, and
+consistently rewired replacement units are contract drift and fail closed rather than silently
+creating a nineteenth alternative topology.
+
 A unit is a topology endpoint, not a new capability and not a repository module. The closed
 24-capability membership from ADR-0562/0615 is unchanged. E0 integrity and genesis roots are
 declared separately as `external_anchors`; they are valid topology endpoints but are not falsely
@@ -100,14 +105,21 @@ links attenuate a path, but an alternative stronger path still governs impact.
 
 ### D5 — closed schema and fail-closed validator
 
-`specs/substrate-dependency-dag.schema.json` is a Draft 2020-12 closed schema. The existing
-`dependency-graph-acyclicity` Buck targets keep their names and now reject missing/extra graph kinds,
-18/20-unit drift, duplicate or unknown units, unknown capabilities or endpoints, missing
-`runtime_face`, cross-kind contamination, graph-3 self-loops and cycles, malformed request or
-failure metadata, and any missing, extra, forward, or incorrectly composed failure closure edge.
-The gate declares the graph, schema, and capability registry as Buck resources. Executable
-fixture-driven tests prove those RED classes and prove reverse directions outside graph 3 plus the
-exact closure remain GREEN.
+`specs/substrate-dependency-dag.schema.json` is a Draft 2020-12 closed schema. The Rust gate does
+not claim to be a general-purpose JSON Schema interpreter: it faithfully enforces every invariant
+used by this schema and binds the parsed schema authority to its reviewed deterministic parsed-JSON
+serialization SHA-256.
+Therefore a replacement schema cannot be ignored merely because it retains the Draft marker;
+executable mutations of `prefixItems`, `items: false`, `required`, `additionalProperties`, `const`,
+ranges, and types all fail closed, including a rejecting `{"not": {}}` replacement.
+
+The existing `dependency-graph-acyclicity` Buck targets keep their names and reject missing/extra
+graph kinds, 18/20-unit drift, any deviation from the exact 19 tuples, duplicate or unknown units,
+unknown capabilities or endpoints, missing `runtime_face`, cross-kind contamination, graph-3
+self-loops and cycles, request weights outside `(0, 1]`, malformed request or failure metadata, and
+any missing, extra, forward, or incorrectly composed failure closure edge. The gate declares the
+graph, schema, and capability registry as Buck resources. Executable fixture-driven tests prove
+those RED classes and prove reverse directions outside graph 3 plus the exact closure remain GREEN.
 
 ### D6 — mandatory follow-ups, no new baselines
 

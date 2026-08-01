@@ -1,4 +1,4 @@
-//! Face-aware substrate graph-v2 validator (ADR-0631).
+//! Runtime-face-aware substrate graph-v2 validator (ADR-0631).
 //!
 //! The document contains exactly five separately typed graphs. Only
 //! `steady_state_request` is constrained to be acyclic. The failure graph is not authored
@@ -11,6 +11,7 @@ use std::fs;
 use std::path::{Component, Path};
 
 use serde_json::Value;
+use sha2::{Digest, Sha256};
 
 pub const GATE_ID: &str = "cloud-ci-substrate-dependency-dag-acyclicity";
 pub const DEFAULT_POLICY_PATH: &str =
@@ -25,6 +26,39 @@ pub const GRAPH_KINDS: [&str; 5] = [
 pub const IMPACT_RULES: [&str; 4] = ["INDEPENDENT", "BROWNOUT", "DEGRADED", "FULL"];
 pub const DEPENDENCY_UNIT_COUNT: usize = 19;
 pub const CAPABILITY_COUNT: usize = 24;
+pub const SCHEMA_CANONICAL_SHA256: &str =
+    "11ff9eddf5974b8f82c06e1bc6fd4ee79cbc3e4364859e187d684e45fae8717a";
+const DEPENDENCY_UNIT_AUTHORITY: [(&str, &str, &str, &str); DEPENDENCY_UNIT_COUNT] = [
+    ("network.bootstrap", "network", "bootstrap", "B0"),
+    ("cell.envelope", "cell", "envelope", "B0"),
+    ("cell.genesis", "cell", "genesis", "G"),
+    ("cell.lifecycle.cp", "cell", "lifecycle.cp", "G"),
+    ("cell.router.dp", "cell", "router.dp", "R"),
+    ("iam.admin.cp", "iam", "admin.cp", "G"),
+    ("iam.local-verifier", "iam", "local-verifier", "C0"),
+    ("tenancy.directory.cp", "tenancy", "directory.cp", "G"),
+    ("tenancy.local-context", "tenancy", "local-context", "C0"),
+    ("policy.authoring.cp", "policy", "authoring.cp", "G"),
+    ("policy.local-pdp", "policy", "local-pdp", "C0"),
+    ("secrets.root-control", "secrets", "root-control", "G"),
+    ("secrets.cell-issuer", "secrets", "cell-issuer", "C0"),
+    (
+        "audit.control-aggregation",
+        "audit",
+        "control-aggregation",
+        "G",
+    ),
+    ("audit.cell-seal", "audit", "cell-seal", "C1"),
+    (
+        "observability.cell-runtime",
+        "observability",
+        "cell-runtime",
+        "C1",
+    ),
+    ("data.ontology-runtime", "data", "ontology-runtime", "C1"),
+    ("intelligence.runtime", "intelligence", "runtime", "C2"),
+    ("workflow.runtime", "workflow", "runtime", "C2"),
+];
 const PATH_RULE: &str = "minimum severity across every steady_state_request edge on a path; a weak propagation edge bounds that path";
 const MULTI_PATH_RULE: &str = "maximum severity across all paths from impacted_unit to failed_unit; the strongest propagation path wins";
 const CLOSURE_DIRECTION: &str =
@@ -197,12 +231,18 @@ pub fn parse_dag(bytes: &str) -> Result<Dag, DagError> {
     Ok(Dag { raw })
 }
 
-pub fn evaluate(dag: &Dag, capability_registry: &Value) -> Report {
-    evaluate_with_raw(dag, &dag.raw, capability_registry)
+pub fn evaluate(dag: &Dag, schema: &Value, capability_registry: &Value) -> Report {
+    evaluate_with_raw(dag, &dag.raw, schema, capability_registry)
 }
 
-pub fn evaluate_with_raw(_dag: &Dag, raw: &Value, capability_registry: &Value) -> Report {
+pub fn evaluate_with_raw(
+    _dag: &Dag,
+    raw: &Value,
+    schema: &Value,
+    capability_registry: &Value,
+) -> Report {
     let mut findings = Vec::new();
+    check_schema_authority(schema, &mut findings);
     check_top_level(raw, &mut findings);
     let capabilities = check_capability_registry(capability_registry, &mut findings);
     let units = check_dependency_units(raw, &capabilities, &mut findings);
@@ -315,6 +355,25 @@ pub fn evaluate_with_raw(_dag: &Dag, raw: &Value, capability_registry: &Value) -
         },
         findings,
         derived_bootstrap_order: derived,
+    }
+}
+
+fn check_schema_authority(schema: &Value, findings: &mut Vec<Finding>) {
+    let digest = serde_json::to_vec(schema)
+        .ok()
+        .map(|bytes| format!("{:x}", Sha256::digest(bytes)));
+    if schema.get("$schema").and_then(Value::as_str)
+        != Some("https://json-schema.org/draft/2020-12/schema")
+        || digest.as_deref() != Some(SCHEMA_CANONICAL_SHA256)
+    {
+        findings.push(finding(
+            "dag_schema_authority_mismatch",
+            "substrate-dependency-dag.schema.json",
+            format!(
+                "schema must be the reviewed Draft 2020-12 authority with sha256 {}; got {:?}",
+                SCHEMA_CANONICAL_SHA256, digest
+            ),
+        ));
     }
 }
 
@@ -578,6 +637,7 @@ fn check_dependency_units(
     findings: &mut Vec<Finding>,
 ) -> BTreeSet<String> {
     let mut units = BTreeSet::new();
+    let mut declared_authority = BTreeSet::new();
     let allowed: BTreeSet<&str> = ["id", "capability", "runtime_face", "plane", "purpose"]
         .into_iter()
         .collect();
@@ -601,6 +661,9 @@ fn check_dependency_units(
             findings,
         );
         let id = unit.get("id").and_then(Value::as_str);
+        let capability = unit.get("capability").and_then(Value::as_str);
+        let runtime_face = unit.get("runtime_face").and_then(Value::as_str);
+        let plane = unit.get("plane").and_then(Value::as_str);
         for field in ["id", "capability", "runtime_face", "plane", "purpose"] {
             if !is_non_empty_string(unit.get(field)) {
                 findings.push(finding(
@@ -621,7 +684,7 @@ fn check_dependency_units(
                 "plane must be one of B0/C0/C1/C2/G/R; E0 belongs to external_anchors",
             ));
         }
-        if let Some(capability) = unit.get("capability").and_then(Value::as_str)
+        if let Some(capability) = capability
             && !capabilities.contains(capability)
         {
             findings.push(finding(
@@ -646,6 +709,34 @@ fn check_dependency_units(
                 "dependency unit ids must be unique",
             ));
         }
+        if let (Some(id), Some(capability), Some(runtime_face), Some(plane)) =
+            (id, capability, runtime_face, plane)
+        {
+            declared_authority.insert((
+                id.to_owned(),
+                capability.to_owned(),
+                runtime_face.to_owned(),
+                plane.to_owned(),
+            ));
+        }
+    }
+    let expected_authority: BTreeSet<(String, String, String, String)> = DEPENDENCY_UNIT_AUTHORITY
+        .iter()
+        .map(|(id, capability, runtime_face, plane)| {
+            (
+                (*id).to_owned(),
+                (*capability).to_owned(),
+                (*runtime_face).to_owned(),
+                (*plane).to_owned(),
+            )
+        })
+        .collect();
+    if declared_authority != expected_authority {
+        findings.push(finding(
+            "dag_dependency_unit_authority_mismatch",
+            "dependency_units",
+            "must equal the founder-authoritative closed set of 19 (id, capability, runtime_face, plane) tuples",
+        ));
     }
     units
 }
@@ -951,7 +1042,7 @@ fn check_edge(
             .and_then(Value::as_str)
             .and_then(impact_rank);
         let weight = edge.get("dependency_weight").and_then(Value::as_f64);
-        let metadata_valid = weight.is_some_and(|weight| (0.0..=1.0).contains(&weight))
+        let metadata_valid = weight.is_some_and(|weight| weight > 0.0 && weight <= 1.0)
             && rule.is_some()
             && is_non_empty_string(edge.get("version_compatibility_range"))
             && is_non_empty_string(edge.get("cedar_permit_fragment"));
@@ -959,7 +1050,7 @@ fn check_edge(
             findings.push(finding(
                 "dag_edge_malformed",
                 &subject,
-                "steady-state metadata requires weight number in [0,1], valid cascade_rule, and non-empty version/Cedar strings",
+                "steady-state metadata requires weight number in (0,1], valid cascade_rule, and non-empty version/Cedar strings",
             ));
         }
         if let Some(rule) = rule {
