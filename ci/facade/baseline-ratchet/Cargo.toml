@@ -29,11 +29,21 @@ doctest = false
 name = "oya-cloud-ci-firewall-signoff-fixer"
 path = "src/main.rs"
 
+# Typed terminal-state adapter: reads the run/jobs/annotations JSON from the Actions REST API and
+# hands it to the pure `run_terminal_state` kernel. Not a `gh` wrapper — `gh` is absent from the
+# owned runner image.
+[[bin]]
+name = "oya-cloud-ci-run-terminal-state"
+path = "src/bin/oya-cloud-ci-run-terminal-state.rs"
+
 [dependencies]
 serde_json = { workspace = true }
+sha2 = { workspace = true }
+reqwest = { workspace = true }
 
 [dev-dependencies]
 serde_json = { workspace = true }
+sha2 = { workspace = true }
 
 [lints]
 workspace = true
