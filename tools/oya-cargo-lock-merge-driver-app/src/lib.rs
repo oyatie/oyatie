@@ -4,12 +4,35 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::error::Error;
 use std::fmt::{Display, Formatter};
 
+/// The two ways a lockfile merge can fail. Neither is an exit code: the binary writes every side
+/// under conflict markers for both, so `%A` is complete whichever one it was (see `main.rs`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MergeErrorKind {
     Parse,
     Conflict,
-    Io,
-    Usage,
+}
+
+const OURS_MARKER: &str = "<<<<<<< ours";
+const BASE_MARKER: &str = "||||||| base";
+const SPLIT_MARKER: &str = "=======";
+const THEIRS_MARKER: &str = ">>>>>>> theirs";
+
+/// Every side of a failed merge, carried verbatim under diff3 markers.
+///
+/// Git does NOT re-run its own text merge when a merge driver exits nonzero — it takes whatever
+/// the driver left in `%A` as the conflicted working tree. A driver that exits nonzero without
+/// writing therefore leaves `ours` standing alone, unmarked, with `theirs` simply absent: the file
+/// reads as clean and complete, so a reflexive `git add` commits the loss silently. Verified with a
+/// real `git merge`. Every nonzero exit of this driver writes this document instead, so no side can
+/// disappear and the result cannot parse as TOML until a human has resolved it.
+pub fn whole_file_conflict(base: &str, ours: &str, theirs: &str) -> String {
+    let trim = |text: &str| text.trim_end_matches('\n').to_owned();
+    format!(
+        "{OURS_MARKER}\n{}\n{BASE_MARKER}\n{}\n{SPLIT_MARKER}\n{}\n{THEIRS_MARKER}\n",
+        trim(ours),
+        trim(base),
+        trim(theirs)
+    )
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -780,4 +803,33 @@ fn push_block(output: &mut String, raw: &str) {
 
 fn conflict<T>(message: String) -> Result<T, MergeError> {
     Err(MergeError::new(MergeErrorKind::Conflict, message))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn whole_file_conflict_carries_every_side_under_diff3_markers() {
+        let document = whole_file_conflict("BASE\n", "OURS\n", "THEIRS\n");
+        assert_eq!(
+            document,
+            "<<<<<<< ours\nOURS\n||||||| base\nBASE\n=======\nTHEIRS\n>>>>>>> theirs\n"
+        );
+    }
+
+    /// The invariant the data-loss defect violated: whatever the driver leaves in `%A` must still
+    /// contain `theirs`, and must not be mistakable for a resolved file.
+    #[test]
+    fn whole_file_conflict_never_reads_as_a_clean_lockfile() {
+        let theirs = "[[package]]\nname = \"theirs-only\"\nversion = \"0.2.0\"\n";
+        let document = whole_file_conflict("", "[[package]]\nname = \"alpha\"\n", theirs);
+        assert!(document.contains("theirs-only"));
+        assert!(document.contains(OURS_MARKER));
+        assert!(document.contains(THEIRS_MARKER));
+        assert!(
+            document.parse::<toml_edit::DocumentMut>().is_err(),
+            "a conflicted %A must not parse as TOML"
+        );
+    }
 }
