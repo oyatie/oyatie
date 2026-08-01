@@ -122,6 +122,7 @@ enum RpcAudience {
     Rejected,
     Historical,
     Unclassified,
+    NonClaim,
 }
 
 fn contains_term(clause: &str, terms: &[&str]) -> bool {
@@ -134,76 +135,165 @@ fn contains_word(clause: &str, words: &[&str]) -> bool {
         .any(|token| words.contains(&token))
 }
 
-fn classify_rpc_audience(window: &str) -> RpcAudience {
-    let rejection_terms = [
-        "forbidden",
-        "prohibited",
-        "not allowed",
-        "must not",
-        "do not",
-        "does not",
-        "will not",
-        "cannot",
-        "can't",
-        "no direct",
-        "no public",
-        "not public",
-        "never public",
-        "excluded",
-        "rejected",
-        "without",
-    ];
-    let internal_terms = [
-        "internal-only",
-        "internal only",
-        "grpc-internal",
-        "internal-surface",
-        "internal surface",
-        "internal module",
-        "sibling-service",
-        "sibling service",
-        "east-west",
-        "behind the gateway",
-        "behind the public contract",
-    ];
-    let historical_terms = [
+fn normalized_words(text: &str) -> String {
+    text.split(|character: char| !character.is_alphanumeric())
+        .filter(|word| !word.is_empty())
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
+fn contains_claim_term(clause: &str) -> bool {
+    clause.split_whitespace().any(|word| {
+        matches!(
+            word,
+            "consume"
+                | "consumed"
+                | "consumes"
+                | "consuming"
+                | "call"
+                | "called"
+                | "calls"
+                | "calling"
+                | "expose"
+                | "exposed"
+                | "exposes"
+                | "exposing"
+                | "query"
+                | "queried"
+                | "queries"
+                | "querying"
+                | "serve"
+                | "served"
+                | "serves"
+                | "serving"
+                | "support"
+                | "supported"
+                | "supports"
+                | "supporting"
+                | "use"
+                | "used"
+                | "uses"
+                | "using"
+        )
+    })
+}
+
+fn classify_rpc_audience(words: &[&str], rpc_index: usize) -> RpcAudience {
+    let before = normalized_words(&words[rpc_index.saturating_sub(4)..rpc_index].join(" "));
+    let rejection_before =
+        normalized_words(&words[rpc_index.saturating_sub(8)..rpc_index].join(" "));
+    let after = normalized_words(&words[rpc_index + 1..(rpc_index + 9).min(words.len())].join(" "));
+    let local = normalized_words(
+        &words[rpc_index.saturating_sub(8)..(rpc_index + 9).min(words.len())].join(" "),
+    );
+
+    let historical_before = [
         "historical",
         "formerly",
-        "former ",
+        "former",
         "previously",
         "legacy",
+        "named",
+        "described",
+    ];
+    let historical_after = [
         "superseded",
         "retired",
         "replaced",
         "no longer",
         "deferred",
+        "deprecated",
     ];
-    let exposure_terms = [
-        "consume", "call", "expos", "query", "serve", "support", "use ", "uses", "via ",
-        "contract", "surface",
+    let rejected_before = [
+        "rejected alternative",
+        "no direct",
+        "no public",
+        "do not expose",
+        "does not expose",
+        "must not expose",
+        "do not create",
+        "does not create",
+    ];
+    let rejected_after = [
+        "forbidden",
+        "prohibited",
+        "not allowed",
+        "must not",
+        "cannot be public",
+        "not public",
+        "never public",
+        "excluded",
+        "rejected",
+        "not supported",
+        "needs a proxy",
+    ];
+    let internal_terms = [
+        "internal only",
+        "grpc internal",
+        "internal surface",
+        "internal module",
+        "internal service rpc",
+        "sibling service",
+        "east west",
+        "stays internal",
+        "remains internal",
+        "for internal service",
+    ];
+    let inferred_internal_terms = [
+        "service to service",
+        "per service",
+        "µservice",
+        "microservice",
+        "call each other",
+        "workflow vs direct",
+        "direct grpc",
+        "pod",
+        "outbound socket",
+        "proto3 schema",
+        "package path carries",
+        "substrate to substrate",
+        "outgoing grpc client",
+        "synchronous grpc",
+        "grpc sync",
+    ];
+    let nonclaim_terms = [
+        "distinguished from",
+        "protocol specific",
+        "protocol layers",
+        "layer enum",
+        "surface kind",
+        "consumer microservices",
     ];
 
-    if contains_term(window, &historical_terms) {
+    if contains_term(&before, &historical_before) || contains_term(&after, &historical_after) {
         RpcAudience::Historical
-    } else if contains_term(window, &rejection_terms) {
+    } else if contains_term(&rejection_before, &rejected_before)
+        || contains_term(&after, &rejected_after)
+    {
         RpcAudience::Rejected
-    } else if contains_term(window, &internal_terms) {
+    } else if contains_term(&local, &internal_terms) {
         RpcAudience::Internal
-    } else if contains_word(window, &["public"])
-        || contains_term(window, &["product primitive", "tenant-facing"])
-        || (contains_word(window, &["tenant", "tenants"]) && contains_term(window, &exposure_terms))
+    } else if contains_word(&local, &["public"])
+        || contains_term(&local, &["product primitive", "tenant facing"])
+        || (contains_word(&local, &["tenant", "tenants"]) && contains_claim_term(&local))
         || (contains_term(
-            window,
+            &local,
             &[
                 "native client",
                 "clients call backend",
                 "client calls backend",
             ],
-        ) && contains_term(window, &exposure_terms))
+        ) && contains_claim_term(&local))
     {
         RpcAudience::Public
-    } else {
+    } else if contains_term(&local, &inferred_internal_terms) {
+        RpcAudience::Internal
+    } else if contains_term(&local, &nonclaim_terms) {
+        RpcAudience::NonClaim
+    } else if contains_claim_term(&local) {
         RpcAudience::Unclassified
+    } else {
+        RpcAudience::NonClaim
     }
 }
 
@@ -227,22 +317,44 @@ fn public_rpc_findings(adr_id: &str, lifecycle: &str, document: &str) -> Vec<Pub
         for (word_index, word) in words.iter().enumerate() {
             let token = word
                 .trim_matches(|character: char| !character.is_alphanumeric() && character != '-');
+            let start = word_index.saturating_sub(12);
+            let end = (word_index + 13).min(words.len());
+            let window = words[start..end].join(" ");
+            let bare_connect_with_protocol_context = token == "connect"
+                && (contains_term(
+                    &window,
+                    &[
+                        "supported",
+                        "exposed",
+                        "connect protocol",
+                        "connect rpc",
+                        "integration",
+                    ],
+                ) || words[start..end]
+                    .iter()
+                    .any(|candidate| candidate.contains("grpc")));
             let protocol = if token.contains("grpc") {
                 "grpc"
-            } else if token.contains("connect-rpc") || token.contains("connect-protocol") {
+            } else if token.contains("connect-rpc")
+                || token.contains("connect-protocol")
+                || bare_connect_with_protocol_context
+            {
                 "connect"
             } else {
                 continue;
             };
-            let start = word_index.saturating_sub(12);
-            let end = (word_index + 13).min(words.len());
-            let window = words[start..end].join(" ");
-            if classify_rpc_audience(&window) != RpcAudience::Public {
+            let audience = classify_rpc_audience(&words, word_index);
+            if !matches!(audience, RpcAudience::Public | RpcAudience::Unclassified) {
                 continue;
             }
             findings.push(PublicRpcFinding {
                 key: format!(
-                    "{adr_id}:public-rpc:{protocol}:clause-{clause_index}-word-{word_index}"
+                    "{adr_id}:public-rpc:{protocol}:{}:clause-{clause_index}-word-{word_index}",
+                    match audience {
+                        RpcAudience::Public => "public",
+                        RpcAudience::Unclassified => "unclassified",
+                        _ => unreachable!("non-finding audience was filtered"),
+                    }
                 ),
                 clause: window,
             });
