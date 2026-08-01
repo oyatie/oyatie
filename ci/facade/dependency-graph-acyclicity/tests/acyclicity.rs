@@ -52,6 +52,15 @@ fn capability_registry() -> Value {
     .expect("parse capability registry")
 }
 
+fn live_schema() -> Value {
+    let root = repo_root();
+    let policy = load_policy(&root, DEFAULT_POLICY_PATH).expect("read live policy");
+    serde_json::from_str(
+        &std::fs::read_to_string(root.join(policy.schema_path)).expect("read live schema"),
+    )
+    .expect("parse live schema")
+}
+
 fn fixture_cases() -> Value {
     let root = repo_root();
     serde_json::from_str(
@@ -64,9 +73,13 @@ fn fixture_cases() -> Value {
 }
 
 fn report(raw: &Value) -> Report {
+    report_with_schema(raw, &live_schema())
+}
+
+fn report_with_schema(raw: &Value, schema: &Value) -> Report {
     let dag = parse_dag(&serde_json::to_string(raw).expect("serialize graph"))
         .expect("structurally parse graph");
-    evaluate_with_raw(&dag, raw, &capability_registry())
+    evaluate_with_raw(&dag, raw, schema, &capability_registry())
 }
 
 fn graph_mut<'a>(raw: &'a mut Value, kind: &str) -> &'a mut Value {
@@ -76,6 +89,23 @@ fn graph_mut<'a>(raw: &'a mut Value, kind: &str) -> &'a mut Value {
         .iter_mut()
         .find(|graph| graph["kind"] == kind)
         .expect("graph kind")
+}
+
+fn replace_string(value: &mut Value, old: &str, new: &str) {
+    match value {
+        Value::Array(items) => {
+            for item in items {
+                replace_string(item, old, new);
+            }
+        }
+        Value::Object(object) => {
+            for item in object.values_mut() {
+                replace_string(item, old, new);
+            }
+        }
+        Value::String(current) if current == old => *current = new.to_owned(),
+        _ => {}
+    }
 }
 
 fn apply_fixture_mutation(raw: &mut Value, mutation: &str) {
@@ -111,6 +141,20 @@ fn apply_fixture_mutation(raw: &mut Value, mutation: &str) {
                 .as_object_mut()
                 .unwrap()
                 .remove("runtime_face");
+        }
+        "unknown_runtime_face" => {
+            raw["dependency_units"][0]["runtime_face"] = json!("unknown-bootstrap");
+        }
+        "id_face_mismatch" => {
+            raw["dependency_units"][1]["runtime_face"] = json!("genesis");
+        }
+        "capability_id_mismatch" => {
+            raw["dependency_units"][1]["capability"] = json!("network");
+        }
+        "consistent_unit_replacement" => {
+            raw["dependency_units"][0]["id"] = json!("network.fabric-bootstrap");
+            raw["dependency_units"][0]["runtime_face"] = json!("fabric-bootstrap");
+            replace_string(raw, "network.bootstrap", "network.fabric-bootstrap");
         }
         "unknown_endpoint" => graph_mut(raw, "genesis")["edges"]
             .as_array_mut()
@@ -183,6 +227,9 @@ fn apply_fixture_mutation(raw: &mut Value, mutation: &str) {
         "request_weight_out_of_range" => {
             graph_mut(raw, "steady_state_request")["edges"][0]["dependency_weight"] = json!(1.1);
         }
+        "request_weight_zero" => {
+            graph_mut(raw, "steady_state_request")["edges"][0]["dependency_weight"] = json!(0);
+        }
         "remove_forbidden_reason" => {
             graph_mut(raw, "steady_state_request")["forbidden_edges_assertion"][0]
                 .as_object_mut()
@@ -243,7 +290,7 @@ fn live_policy_and_graph_v2_are_green() {
     assert_eq!(kinds, GRAPH_KINDS);
     let dag = parse_dag(&serde_json::to_string(&raw).expect("serialize graph"))
         .expect("structurally parse graph");
-    let evaluated = evaluate_with_raw(&dag, &raw, &registry);
+    let evaluated = evaluate_with_raw(&dag, &raw, &schema, &registry);
     assert_eq!(
         evaluated.verdict,
         Verdict::Green,
@@ -265,6 +312,10 @@ fn missing_and_extra_graph_kinds_are_red() {
         "edges": []
     }));
     assert_red_code(&extra, "dag_graph_kind_set");
+
+    let (mut reordered, _) = load_live();
+    reordered["graphs"].as_array_mut().unwrap().swap(0, 1);
+    assert_red_code(&reordered, "dag_graph_kind_set");
 }
 
 #[test]
@@ -321,6 +372,89 @@ fn dependency_unit_count_capabilities_and_runtime_faces_are_closed() {
         .unwrap()
         .remove("runtime_face");
     assert_red_code(&missing_runtime_face, "dag_schema_violation");
+
+    let (mut unknown_face, _) = load_live();
+    unknown_face["dependency_units"][0]["runtime_face"] = json!("unknown-bootstrap");
+    assert_red_code(&unknown_face, "dag_dependency_unit_authority_mismatch");
+
+    let (mut id_face_mismatch, _) = load_live();
+    id_face_mismatch["dependency_units"][1]["runtime_face"] = json!("genesis");
+    assert_red_code(&id_face_mismatch, "dag_dependency_unit_authority_mismatch");
+
+    let (mut capability_id_mismatch, _) = load_live();
+    capability_id_mismatch["dependency_units"][1]["capability"] = json!("network");
+    assert_red_code(
+        &capability_id_mismatch,
+        "dag_dependency_unit_authority_mismatch",
+    );
+
+    let (mut replacement, _) = load_live();
+    replacement["dependency_units"][0]["id"] = json!("network.fabric-bootstrap");
+    replacement["dependency_units"][0]["runtime_face"] = json!("fabric-bootstrap");
+    replace_string(
+        &mut replacement,
+        "network.bootstrap",
+        "network.fabric-bootstrap",
+    );
+    assert_red_code(&replacement, "dag_dependency_unit_authority_mismatch");
+}
+
+#[test]
+fn canonical_schema_authority_cannot_be_replaced_or_weakened() {
+    let (raw, _) = load_live();
+    let canonical = live_schema();
+    let mut mutations = Vec::new();
+
+    mutations.push((
+        "rejecting replacement",
+        json!({"$schema": "https://json-schema.org/draft/2020-12/schema", "not": {}}),
+    ));
+
+    let mut prefix_items = canonical.clone();
+    prefix_items["properties"]["graphs"]
+        .as_object_mut()
+        .unwrap()
+        .remove("prefixItems");
+    mutations.push(("prefixItems", prefix_items));
+
+    let mut items_false = canonical.clone();
+    items_false["properties"]["graphs"]["items"] = json!(true);
+    mutations.push(("items:false", items_false));
+
+    let mut required = canonical.clone();
+    required["required"].as_array_mut().unwrap().pop();
+    mutations.push(("required", required));
+
+    let mut additional_properties = canonical.clone();
+    additional_properties["additionalProperties"] = json!(true);
+    mutations.push(("additionalProperties", additional_properties));
+
+    let mut const_keyword = canonical.clone();
+    const_keyword["properties"]["version"]["const"] = json!("2.x");
+    mutations.push(("const", const_keyword));
+
+    let mut range = canonical.clone();
+    range["$defs"]["request_edge"]["properties"]["dependency_weight"]["exclusiveMinimum"] =
+        json!(-1);
+    mutations.push(("range", range));
+
+    let mut value_type = canonical;
+    value_type["$defs"]["request_edge"]["properties"]["dependency_weight"]["type"] =
+        json!("string");
+    mutations.push(("type", value_type));
+
+    for (name, schema) in mutations {
+        let evaluated = report_with_schema(&raw, &schema);
+        assert_eq!(evaluated.verdict, Verdict::Red, "schema mutation {name}");
+        assert!(
+            evaluated
+                .findings
+                .iter()
+                .any(|finding| finding.code == "dag_schema_authority_mismatch"),
+            "schema mutation {name}: {:?}",
+            evaluated.findings
+        );
+    }
 }
 
 #[test]
@@ -415,11 +549,19 @@ fn composition_direction_and_required_schema_fields_are_red() {
         .unwrap()
         .remove("path_rule");
     assert_red_code(&missing_path_rule, "dag_schema_violation");
+
+    let (mut extra_property, _) = load_live();
+    extra_property["schema_escape_hatch"] = json!(true);
+    assert_red_code(&extra_property, "dag_schema_violation");
+
+    let (mut wrong_const, _) = load_live();
+    wrong_const["version"] = json!("2.x");
+    assert_red_code(&wrong_const, "dag_schema_violation");
 }
 
 #[test]
 fn request_metadata_types_ranges_and_forbidden_assertions_are_red() {
-    for invalid_weight in [json!("heavy"), json!(-0.1), json!(1.1)] {
+    for invalid_weight in [json!("heavy"), json!(-0.1), json!(0), json!(1.1)] {
         let (mut raw, _) = load_live();
         graph_mut(&mut raw, "steady_state_request")["edges"][0]["dependency_weight"] =
             invalid_weight;
