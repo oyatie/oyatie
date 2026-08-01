@@ -5535,6 +5535,7 @@ fn stage0_prereqs_gate_is_dispatched() {
             "stage0-prereqs",
             "--repo-root",
             temp.to_str().expect("utf8 temp"),
+            "--self-test",
         ])
         .output()
         .expect("gate command runs");

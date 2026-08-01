@@ -799,6 +799,125 @@ fn shipped_seed_packages(path: &str) -> std::collections::BTreeSet<String> {
     }
 }
 
+fn shipped_seeds(path: &str) -> std::collections::BTreeSet<String> {
+    match shipped_decision_with_no_owner(path) {
+        Decision::Affected { seeds } => seeds.into_iter().collect(),
+        other => {
+            panic!("`{path}` must resolve to Affected via a synthetic declaration, got {other:?}")
+        }
+    }
+}
+
+/// PR #1486 repaired a broken merge-base artifact registry row. These six registry/spec edits
+/// had no Buck owner, so the affected-set preflight escalated to FULL and then tried to
+/// materialize the already-broken merge base. That made the repair impossible to admit even
+/// though its candidate-side gates were green.
+///
+/// Each exact path is a live whole-tree/control-plane input, not an inert JSON class. Keep the
+/// declarations narrow and pin leaf gates that consume the live corpus or its generated SCM
+/// faces, plus leaf tests for the enforcement packages named by the authority specs. Library or
+/// package-wide seeds would pull an unrelated Cargo-workspace loop test through rdeps. Unknown
+/// unowned JSON remains FULL by the separate fail-closed test below.
+#[test]
+fn baseline_repair_control_plane_inputs_seed_accountable_leaf_targets() {
+    let common = [
+        "root//ci/facade/artifact-inventory-registry:ci-artifact-inventory-registry-unittest",
+        "root//ci/facade/baseline-ratchet:ci-baseline-ratchet-gate",
+        "root//ci/facade/cross-artifact-agreement:ci-cross-artifact-agreement-gate",
+        "root//ci/facade/generated-artifact-freshness:ci-generated-artifact-freshness-unittest",
+        "root//ci/facade/inventory-registry-drift:ci-inventory-registry-drift-gate",
+        "root//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot-gate",
+    ];
+    let cases: [(&str, &[&str]); 6] = [
+        (
+            "registry/artifact-capabilities-registry.json",
+            &[
+                "root//ci/facade/contract-slice-conformance:ci-contract-slice-conformance-gate",
+                "root//libs/oya-check-active-artifact-contract:oya-check-active-artifact-contract-unittest",
+                "root//marketplace/facade/dev-cli:marketplace-dev-cli-gate-cli",
+            ],
+        ),
+        (
+            "registry/dependency-rationales.json",
+            &["root//marketplace/facade/dev-cli:marketplace-dev-cli-gate-cli"],
+        ),
+        (
+            "registry/quality/lanes/lean-settings-drift.json",
+            &[
+                "root//intelligence/adapters/settings-template-adapter:intelligence-settings-template-adapter",
+                "root//intelligence/core/settings-template-kernel:intelligence-settings-template-kernel-unittest",
+            ],
+        ),
+        (
+            "specs/artifact-profile-defaults.json",
+            &[
+                "root//libs/oya-check-active-artifact-contract:oya-check-active-artifact-contract-unittest",
+                "root//marketplace/facade/dev-cli:marketplace-dev-cli-gate-cli",
+            ],
+        ),
+        (
+            "specs/decision-rights.json",
+            &[
+                "root//libs/oya-check-codeowners-mirror:oya-check-codeowners-mirror-unittest",
+                "root//libs/oya-check-pr-traceability:oya-check-pr-traceability-unittest",
+                "root//libs/oya-check-raci-coverage:oya-check-raci-coverage-unittest",
+            ],
+        ),
+        (
+            "specs/forbidden-operations.json",
+            &[
+                "root//intelligence/core/autonomy-ceiling-app:intelligence-autonomy-ceiling-app-unittest",
+                "root//intelligence/core/autonomy-ceiling-domain:intelligence-autonomy-ceiling-domain-unittest",
+                "root//intelligence/core/autonomy-ceiling-kernel:intelligence-autonomy-ceiling-kernel-unittest",
+                "root//libs/oya-check-data-class:oya-check-data-class-unittest",
+                "root//libs/oya-check-license-policy:oya-check-license-policy-license-policy",
+            ],
+        ),
+    ];
+
+    for (path, path_specific) in cases {
+        let seeds = shipped_seeds(path);
+        for required in common.iter().chain(path_specific.iter()) {
+            assert!(
+                seeds.contains(*required),
+                "`{path}` must seed accountable leaf target `{required}`; got {seeds:?}"
+            );
+        }
+        for broad_seed in [
+            "root//ci/facade/cross-artifact-agreement:",
+            "root//ci/facade/generated-artifact-freshness:",
+            "root//libs/oya-check-active-artifact-contract:",
+            "root//libs/oya-check-dependency-seam:",
+            "root//marketplace/facade/dev-cli:",
+        ] {
+            assert!(
+                !seeds.contains(broad_seed),
+                "`{path}` must not select unrelated dev CLI tests through broad seed `{broad_seed}`"
+            );
+        }
+        assert!(
+            !seeds.contains(
+                "root//marketplace/facade/dev-cli:marketplace-dev-cli-loop-recovery-patterns"
+            ),
+            "`{path}` must never seed the Cargo-workspace loop target directly"
+        );
+    }
+}
+
+#[test]
+fn unknown_unowned_control_json_still_escalates_to_full() {
+    let path = "specs/not-declared-to-affected-set.json";
+    match shipped_decision_with_no_owner(path) {
+        Decision::Full { reasons } => assert!(
+            reasons.iter().any(|reason| {
+                reason.contains(path) && reason.contains("no synthetic-dependency declaration")
+            }),
+            "FULL reason must identify the undeclared JSON input; got {reasons:?}"
+        ),
+        other => panic!("unknown unowned control JSON must remain FULL, got {other:?}"),
+    }
+}
+
 /// RED (PR #1473): that one-line PR added `os/OWNERS` and NOTHING else. With no `**/OWNERS`
 /// declaration the path is unowned + unmapped, so `resolve` escalated to `Decision::Full` and the
 /// lane spent 42 minutes on the whole workspace before its runner died.
