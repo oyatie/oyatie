@@ -757,8 +757,12 @@ jobs:
       - name: Pre-provision pinned rust toolchain and PR metadata preflight
         run: |
           set -euo pipefail
-          rustup toolchain install
-          rustc --version
+          rustup toolchain install && rustup default "$(rustup show active-toolchain | awk '{print $1}')"
+          # Buck2 rust tests execute from isolated sandboxes and some differential tests then
+          # change into throwaway Cargo workspaces. Those directories intentionally do not carry
+          # rust-toolchain.toml, so the rustup shim needs the same default that the canonical
+          # runner image establishes. Derive it from the repo pin rather than duplicating a version.
+          rustc --version && (cd "$(mktemp -d)" && cargo --version)
       # Restore buck-out read-only (ADR-0554 D9). Same stable per-dependency/toolchain-set key as the buck2
       # lane: warmth is 100% in buck-out/v2/cache + buck-out/v2/art (path-relocatable); ~/.buck2
       # and ~/.buck are daemon pid/endpoint/log scratch and are deliberately NOT cached. dev-push
