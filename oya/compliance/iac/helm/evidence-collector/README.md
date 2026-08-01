@@ -41,7 +41,7 @@ Kernel guard rejects DSAR assembly when subject `tenant_id` ≠ request `tenant_
 
 ## Auditor portal
 
-Backstage plugin (per ADR-0170). Per-engagement auditor identity; access expires on engagement close.
+first-party portal module (per ADR-0394). Per-engagement auditor identity; access expires on engagement close.
 
 ## Cross-references
 

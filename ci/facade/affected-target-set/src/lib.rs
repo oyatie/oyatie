@@ -50,6 +50,59 @@ use serde_json::{Value, json};
 /// The lane id, matching the buck2 target + the policy `gate_id`.
 pub const GATE_ID: &str = "cloud-ci-affected-set";
 
+/// Build the exact Buck2 test argv and replayable display command used by every affected-set test
+/// path. Buck2 test actions intentionally receive a small environment whitelist. The owned CI
+/// runner keeps its pinned rustup installation outside `$HOME`, so tests that invoke Cargo after
+/// changing into throwaway workspaces need that non-secret path forwarded through the executor.
+/// `CARGO_HOME` remains isolated; hosted and developer environments without a non-empty
+/// `RUSTUP_HOME` keep Buck2's default test environment unchanged.
+pub fn buck2_test_invocation<T: AsRef<str>>(
+    buck2: &str,
+    targets: &[T],
+    keep_going: bool,
+) -> (Vec<String>, String) {
+    buck2_test_invocation_from(buck2, targets, keep_going, |key| std::env::var(key).ok())
+}
+
+fn buck2_test_invocation_from<T: AsRef<str>>(
+    buck2: &str,
+    targets: &[T],
+    keep_going: bool,
+    mut lookup: impl FnMut(&str) -> Option<String>,
+) -> (Vec<String>, String) {
+    let mut args = Vec::with_capacity(targets.len() + 5);
+    args.push("test".to_owned());
+    args.extend(targets.iter().map(|target| target.as_ref().to_owned()));
+    if keep_going {
+        args.push("--keep-going".to_owned());
+    }
+    if let Some(rustup_home) = lookup("RUSTUP_HOME").filter(|value| !value.trim().is_empty()) {
+        args.extend([
+            "--".to_owned(),
+            "--env".to_owned(),
+            format!("RUSTUP_HOME={rustup_home}"),
+        ]);
+    }
+
+    let display = std::iter::once(buck2)
+        .chain(args.iter().map(String::as_str))
+        .map(shell_quote)
+        .collect::<Vec<_>>()
+        .join(" ");
+    (args, display)
+}
+
+fn shell_quote(value: &str) -> String {
+    if !value.is_empty()
+        && value
+            .bytes()
+            .all(|byte| byte.is_ascii_alphanumeric() || b"_@%+=:,./-".contains(&byte))
+    {
+        return value.to_owned();
+    }
+    format!("'{}'", value.replace('\'', "'\"'\"'"))
+}
+
 /// Policy pack: ALL repo facts live here (parsed from the policy JSON).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Policy {
@@ -1554,6 +1607,62 @@ fn rel_slash_path(root: &Path, path: &Path) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn buck2_test_invocation_forwards_only_rustup_home_and_renders_exact_argv() {
+        let (args, display) = buck2_test_invocation_from(
+            "/opt/bin/buck2",
+            &["//one:unit", "//two:fixture"],
+            true,
+            |key| match key {
+                "RUSTUP_HOME" => Some("/opt/rust/rustup with space".to_owned()),
+                "CARGO_HOME" => Some("/opt/rust/cargo".to_owned()),
+                _ => None,
+            },
+        );
+
+        assert_eq!(
+            args,
+            [
+                "test",
+                "//one:unit",
+                "//two:fixture",
+                "--keep-going",
+                "--",
+                "--env",
+                "RUSTUP_HOME=/opt/rust/rustup with space",
+            ]
+        );
+        assert_eq!(
+            display,
+            "/opt/bin/buck2 test //one:unit //two:fixture --keep-going -- --env 'RUSTUP_HOME=/opt/rust/rustup with space'"
+        );
+    }
+
+    #[test]
+    fn buck2_test_invocation_keeps_default_environment_without_valid_rustup_home() {
+        for rustup_home in [None, Some(String::new()), Some("  ".to_owned())] {
+            let (args, display) = buck2_test_invocation_from("buck2", &["//..."], false, |key| {
+                (key == "RUSTUP_HOME")
+                    .then(|| rustup_home.clone())
+                    .flatten()
+            });
+            assert_eq!(args, ["test", "//..."]);
+            assert_eq!(display, "buck2 test //...");
+        }
+    }
+
+    #[test]
+    fn buck2_test_invocation_shell_quotes_single_quotes_without_changing_argv() {
+        let (args, display) = buck2_test_invocation_from("buck2", &["//..."], false, |key| {
+            (key == "RUSTUP_HOME").then(|| "/tmp/rust'up".to_owned())
+        });
+        assert_eq!(args[4], "RUSTUP_HOME=/tmp/rust'up");
+        assert_eq!(
+            display,
+            "buck2 test //... -- --env 'RUSTUP_HOME=/tmp/rust'\"'\"'up'"
+        );
+    }
 
     #[test]
     fn glob_star_within_segment() {

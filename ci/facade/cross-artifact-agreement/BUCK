@@ -40,10 +40,12 @@ rust_test(
     srcs = glob(["tests/**/*.rs"]),
     crate = "ci_cross_artifact_agreement_corpus",
     crate_root = "tests/cross_artifact_agreement.rs",
-    # HERMETIC: the test execs the buck2-BUILT producer binary (no `env!("CARGO")`, no `cargo
-    # run`). `$(exe ...)` makes buck2 build the producer and substitute its sandbox path here;
-    # the producer reads the committed scm-facts face (a declared input) — no action calls git.
+    # HERMETIC: the test execs buck2-BUILT producer binaries (no `env!("CARGO")`, no `cargo
+    # run`). `$(exe ...)` makes buck2 build each producer and substitute its sandbox path here;
+    # the accounting producer reads the committed scm-facts face — no action calls git — while
+    # the ADR producer re-renders source decisions into a test-owned temporary directory.
     env = {
+        "OYA_ADR_INDEX_PRODUCER_BIN": "$(exe //marketplace/facade/dev-cli:oya)",
         "OYA_CI_PRODUCER_BIN": "$(exe //ci/facade/artifact-inventory-registry:oya-cloud-ci-accounting-registry-app-bin)",
         "OYA_IDEA_ARCHIVE_POLICY": "$(location //specs:markdown-retirement-policy.json)",
         # E7: exact controller-owned Git/object facts. Like the existing de-committed SCM-facts
@@ -63,5 +65,6 @@ rust_test(
         "//specs:markdown-retirement-policy.json",
         "third-party//:serde_json",
         "third-party//:sha2",
+        "third-party//:tempfile",
     ],
 )
