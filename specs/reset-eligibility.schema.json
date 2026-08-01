@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://docs.oyatie.com/schemas/reset-eligibility.schema.json",
   "title": "Infrastructure reset eligibility observation",
-  "description": "Fail-closed, time-bounded observation contract. Unknown scope, active hard stops, incomplete recovery proof, incomplete approvals, or expired positive evidence make reset ineligible; absence of evidence is never deletion authority.",
+  "description": "Fail-closed discovery contract. Candidate-authored content is never reset authority; exact commits, evidence bytes, signed approval receipts, and a separate authorization grant come from protected CI/runtime authority.",
   "type": "object",
   "required": [
     "$schema",
@@ -34,27 +34,19 @@
       "minLength": 1
     },
     "captured_at": {
-      "type": "string",
-      "format": "date-time"
+      "$ref": "#/$defs/utcTimestamp"
     },
     "expires_at": {
-      "type": "string",
-      "format": "date-time"
+      "$ref": "#/$defs/utcTimestamp"
     },
     "repository": {
       "type": "object",
       "required": [
-        "protected_commit_sha",
-        "candidate_commit_sha"
+        "binding_source"
       ],
       "properties": {
-        "protected_commit_sha": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{40}$"
-        },
-        "candidate_commit_sha": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{40}$"
+        "binding_source": {
+          "const": "ci-runtime-authority"
         }
       },
       "additionalProperties": false
@@ -108,12 +100,18 @@
       "type": "object",
       "required": [
         "uri",
-        "sha256"
+        "status"
       ],
       "properties": {
         "uri": {
           "type": "string",
           "minLength": 1
+        },
+        "status": {
+          "enum": [
+            "verified",
+            "unverified-discovery"
+          ]
         },
         "sha256": {
           "$ref": "#/$defs/sha256"
@@ -272,8 +270,16 @@
         "required": [
           "role",
           "approver",
-          "approved",
-          "approved_at"
+          "approved_at",
+          "expires_at",
+          "reset_id",
+          "evidence_sha256",
+          "protected_commit_sha",
+          "candidate_commit_sha",
+          "schema_sha256",
+          "policy_sha256",
+          "key_id",
+          "signature"
         ],
         "properties": {
           "role": {
@@ -284,12 +290,39 @@
             "type": "string",
             "minLength": 1
           },
-          "approved": {
-            "type": "boolean"
-          },
           "approved_at": {
+            "$ref": "#/$defs/utcTimestamp"
+          },
+          "expires_at": {
+            "$ref": "#/$defs/utcTimestamp"
+          },
+          "reset_id": {
             "type": "string",
-            "format": "date-time"
+            "minLength": 1
+          },
+          "evidence_sha256": {
+            "$ref": "#/$defs/sha256"
+          },
+          "protected_commit_sha": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{40}$"
+          },
+          "candidate_commit_sha": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{40}$"
+          },
+          "schema_sha256": {
+            "$ref": "#/$defs/sha256"
+          },
+          "policy_sha256": {
+            "$ref": "#/$defs/sha256"
+          },
+          "key_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "signature": {
+            "$ref": "#/$defs/signature"
           }
         },
         "additionalProperties": false
@@ -382,6 +415,15 @@
         }
       },
       "additionalProperties": false
+    },
+    "signature": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{128}$"
+    },
+    "utcTimestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
     }
   },
   "additionalProperties": false

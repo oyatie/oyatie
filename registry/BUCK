@@ -7,3 +7,8 @@ export_file(
     src = "adr-census-epoch/control-plane.json",
     visibility = ["PUBLIC"],
 )
+export_file(
+    name = "reset-eligibility-w0-d-20260801.json",
+    src = "reset-eligibility/w0-d-20260801.json",
+    visibility = ["PUBLIC"],
+)

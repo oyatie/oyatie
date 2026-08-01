@@ -4,14 +4,8 @@
   "expected_schema_uri": "https://docs.oyatie.com/schemas/reset-eligibility.schema.json",
   "artifact_path": "registry/reset-eligibility/w0-d-20260801.json",
   "expected_schema_version": 1,
-  "expected_evidence_manifest_sha256": "sha256:208783ed5d85345be22f336da0dd6c5425a5176a425512fdadf42715c2064f5c",
   "reset_authorization_enabled": false,
   "max_validity_seconds": 86400,
-  "required_approval_roles": [
-    "founder",
-    "platform-operations",
-    "data-protection"
-  ],
   "allowed_source_results": [
     "observed",
     "unknown",
@@ -25,5 +19,6 @@
     "private_key",
     "credential_value",
     "recovery_key"
-  ]
+  ],
+  "authority_boundary": "candidate-policy-is-discovery-only; positive authorization requires protected runtime commit identities, evidence bytes, trusted approval keys, and a separately signed grant"
 }
