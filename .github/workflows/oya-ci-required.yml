@@ -135,10 +135,20 @@ jobs:
           name: generated-faces
           # A single repository-rooted artifact preserves every controller-owned output's
           # declared path for all consuming jobs.
+          #
+          # adr-census-parent-receipt.generated.json is the exact historical P2 parent receipt,
+          # materialized by the epoch-receipt emission in the step above (the single out-of-graph
+          # boundary) and CONSUMED in-graph by
+          # //ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot-integration, which fails loud
+          # rather than skipping when it is absent. It is listed explicitly because it lives with
+          # its producer crate, not under the artifact-inventory-registry glob: that directory is
+          # the freshness gate's own face roster and a face that gate cannot regenerate is
+          # generated_face_stale there by construction.
           path: |
             ci/facade/artifact-inventory-registry/*.generated.json
             ci/facade/scm-facts-snapshot/scm-volatile-facts.generated.json
             ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json
+            ci/facade/scm-facts-snapshot/adr-census-parent-receipt.generated.json
             registry/graph/active-artifact-contract-edges.json
           # Bounded: this is an INTRA-RUN handoff (the gate matrix legs download it in the
           # same run), not retained evidence. Left unbounded it defaulted to 90 days and
