@@ -86,7 +86,7 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "microservices/workflow-engine/contracts/proto/workflow-engine.proto"
+        "oya/workflow-engine/contracts/proto/workflow-engine.proto"
       ]
     }
   },

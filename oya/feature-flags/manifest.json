@@ -303,8 +303,8 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "microservices/feature-flags/contracts/feature_flags.proto",
-        "microservices/feature-flags/contracts/feature-flags-v1.proto"
+        "oya/feature-flags/contracts/feature_flags.proto",
+        "oya/feature-flags/contracts/feature-flags-v1.proto"
       ]
     },
     "sdk": [

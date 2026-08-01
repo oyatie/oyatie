@@ -38,7 +38,7 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "contracts/proto/cloud-billing.proto",
+        "cloud/cloud-billing/contracts/proto/cloud-billing.proto",
         "contracts/proto/cloud/billing/v1/cloud-billing-event-v1.proto",
         "contracts/proto/platform/metering/v1/metering-event-v1.proto"
       ]

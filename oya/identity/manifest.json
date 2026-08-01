@@ -108,9 +108,9 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "microservices/identity/contracts/proto/identity.proto",
-        "microservices/identity/contracts/proto/multi_context_split.proto",
-        "microservices/identity/contracts/proto/workload.proto"
+        "oya/identity/contracts/proto/identity.proto",
+        "oya/identity/contracts/proto/multi_context_split.proto",
+        "oya/identity/contracts/proto/workload.proto"
       ]
     }
   },

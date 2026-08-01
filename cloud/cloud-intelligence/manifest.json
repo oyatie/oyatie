@@ -50,7 +50,7 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "microservices/cloud-intelligence/contracts/cloud-intelligence.proto"
+        "cloud/cloud-intelligence/contracts/cloud-intelligence.proto"
       ]
     }
   },

@@ -42,7 +42,7 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "microservices/managed-k8s-tenant-quota/contracts/managed-k8s-tenant-quota.proto"
+        "cloud/managed-k8s-tenant-quota/contracts/managed-k8s-tenant-quota.proto"
       ]
     }
   },

@@ -28,7 +28,7 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "microservices/notes/contracts/proto/notes.proto"
+        "oya/notes/contracts/proto/notes.proto"
       ]
     }
   },

@@ -58,7 +58,7 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "microservices/calendar/contracts/proto/calendar.proto"
+        "oya/calendar/contracts/proto/calendar.proto"
       ]
     }
   },

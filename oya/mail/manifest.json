@@ -81,7 +81,7 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "microservices/mail/contracts/proto/mail.proto"
+        "oya/mail/contracts/proto/mail.proto"
       ]
     }
   },

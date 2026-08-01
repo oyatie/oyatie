@@ -43,7 +43,7 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "microservices/oya-managed-k8s-control-plane-host/contracts/control_plane_host.proto"
+        "cloud/managed-k8s-control-plane-host/contracts/control_plane_host.proto"
       ]
     }
   },

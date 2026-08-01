@@ -99,7 +99,7 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "microservices/plugin-app-store/contracts/proto/plugin-app-store.proto"
+        "oya/plugin-app-store/contracts/proto/plugin-app-store.proto"
       ]
     }
   },

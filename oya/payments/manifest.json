@@ -107,7 +107,7 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "microservices/payments/contracts/payments-v1.proto"
+        "oya/payments/contracts/payments-v1.proto"
       ]
     }
   },

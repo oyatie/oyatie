@@ -67,7 +67,7 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "microservices/audit-chain/contracts/proto/audit-chain.proto"
+        "oya/audit-chain/contracts/proto/audit-chain.proto"
       ]
     }
   },

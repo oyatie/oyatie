@@ -41,7 +41,7 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "microservices/managed-k8s-sla-observability/contracts/managed-k8s-sla-observability.proto"
+        "cloud/managed-k8s-sla-observability/contracts/managed-k8s-sla-observability.proto"
       ]
     }
   },

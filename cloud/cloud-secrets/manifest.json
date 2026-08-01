@@ -44,7 +44,7 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "contracts/proto/cloud-secrets.proto"
+        "cloud/cloud-secrets/contracts/proto/cloud-secrets.proto"
       ]
     }
   },

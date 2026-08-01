@@ -45,7 +45,7 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "microservices/messenger/contracts/proto/messenger.proto"
+        "oya/messenger/contracts/proto/messenger.proto"
       ]
     }
   },
