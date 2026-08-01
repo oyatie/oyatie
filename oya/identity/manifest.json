@@ -66,7 +66,7 @@
     },
     {
       "name": "audit-emitter",
-      "description": "Bridge to audit-chain \u00b5service for all identity-class events per ADR-0162.",
+      "description": "Bridge to audit-chain µservice for all identity-class events per ADR-0162.",
       "crates": []
     },
     {
@@ -104,11 +104,15 @@
       "microservices/identity/contracts/asyncapi/multi-context-events.yaml",
       "microservices/identity/contracts/asyncapi/workload-events.yaml"
     ],
-    "proto": [
-      "microservices/identity/contracts/proto/identity.proto",
-      "microservices/identity/contracts/proto/multi_context_split.proto",
-      "microservices/identity/contracts/proto/workload.proto"
-    ]
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": [
+        "microservices/identity/contracts/proto/identity.proto",
+        "microservices/identity/contracts/proto/multi_context_split.proto",
+        "microservices/identity/contracts/proto/workload.proto"
+      ]
+    }
   },
   "capabilities": [
     {
@@ -363,7 +367,7 @@
       "tenant_classes_supported": [
         "paid"
       ],
-      "note": "demo_trial on OCI routes to iac/oci-guest/always-free/ per ADR-0329 \u00a7B2.026"
+      "note": "demo_trial on OCI routes to iac/oci-guest/always-free/ per ADR-0329 §B2.026"
     },
     {
       "id": "oci-guest-always-free",
@@ -372,7 +376,7 @@
       "tenant_classes_supported": [
         "demo_trial"
       ],
-      "note": "Demo/trial default substrate per ADR-0330 \u00a7B.3.2; sized to OCI Always Free envelope"
+      "note": "Demo/trial default substrate per ADR-0330 §B.3.2; sized to OCI Always Free envelope"
     },
     {
       "id": "on-prem",
@@ -398,7 +402,7 @@
       "tenant_classes_supported": [
         "paid"
       ],
-      "note": "Provider-control-plane prerequisite per ADR-0328 \u00a7A.6; identity is provider identity/security service, not a cloud adapter"
+      "note": "Provider-control-plane prerequisite per ADR-0328 §A.6; identity is provider identity/security service, not a cloud adapter"
     }
   ],
   "supported_oses": "microservices/identity/supported-oses.json",
@@ -493,13 +497,13 @@
     },
     {
       "id": "ADR-0330",
-      "title": "Tenant Class \u2014 demo_trial vs paid with Composable Billing Components",
+      "title": "Tenant Class — demo_trial vs paid with Composable Billing Components",
       "scope": "repo",
       "file": "docs/decisions/ADR-0330-tenant-class-demo-trial-vs-paid-composable-billing-components.md"
     },
     {
       "id": "ADR-0331",
-      "title": "Cross-\u00b5service tenant_class Adoption Template",
+      "title": "Cross-µservice tenant_class Adoption Template",
       "scope": "repo",
       "file": "docs/decisions/ADR-0331-cross-microservice-tenant-class-adoption-template.md"
     },
@@ -510,28 +514,28 @@
     },
     {
       "id": "ADR-0251",
-      "title": "Compliance pack primitive \u2014 activation gated by tenant_class = paid",
+      "title": "Compliance pack primitive — activation gated by tenant_class = paid",
       "scope": "repo"
     },
     {
       "id": "ADR-0255",
-      "title": "BYOK opt-in \u2014 gated by tenant_class = paid (\u00a7D-4)",
+      "title": "BYOK opt-in — gated by tenant_class = paid (§D-4)",
       "scope": "repo"
     },
     {
       "id": "ADR-0243",
-      "title": "Cedar as universal gate \u2014 tenant_class enters principal context",
+      "title": "Cedar as universal gate — tenant_class enters principal context",
       "scope": "repo"
     },
     {
       "id": "ADR-0244",
-      "title": "Tenant as universal scoping primitive \u2014 tenant_class extends tenant claim",
+      "title": "Tenant as universal scoping primitive — tenant_class extends tenant claim",
       "scope": "repo"
     }
   ],
   "hyperscaler_inv_coverage": {
     "circuit_breaker": "envoy-circuit-breaker-on-zitadel-upstream: max_connections=200, max_pending_requests=100, max_requests=400, max_retries=3, outlier_detection: per-tenant-budget split via consecutive_5xx=5 base_ejection_time=30s",
-    "tenant_rate_limit": "envoy-rate-limit-per-tenant-id-header + per-scim-bearer-token; pgcat shuffle-sharding 4 shards year-1 \u2192 16 year-3 \u2192 64 year-5",
+    "tenant_rate_limit": "envoy-rate-limit-per-tenant-id-header + per-scim-bearer-token; pgcat shuffle-sharding 4 shards year-1 → 16 year-3 → 64 year-5",
     "core_signals": "rate=oya_identity_oidc_issue_total; errors=oya_identity_oidc_issue_total{error=~\".+\"}; latency=oya_identity_oidc_issue_duration_seconds; saturation=oya_identity_zitadel_postgres_pool_utilization; dashboard: dashboards/identity-overview.json panel-1",
     "error_budget_burn": "4-window multi-burn per ADR-0139 on all 9 SLOs in #slos; OnCall route: axis-identity"
   },
@@ -713,7 +717,7 @@
     "cn-pipl-2021",
     "il5"
   ],
-  "hyperscaler_benchmark": "circuit_breaker: envoy-circuit-breaker-on-zitadel-upstream: max_connections=200, max_pending_requests=100, max_requests=400, max_retries=3, outlier_detection: per-tenant-budget split via consecutive_5xx=5 base_ejection_time=30s; tenant_rate_limit: envoy-rate-limit-per-tenant-id-header + per-scim-bearer-token; pgcat shuffle-sharding 4 shards year-1 \u2192 16 year-3 \u2192 64 year-5; core_signals: rate=oya_identity_oidc_issue_total; errors=oya_identity_oidc_issue_total{error=~\".+\"}; latency=oya_identity_oidc_issue_duration_seconds; saturation=oya_identity_zitadel_postgres_pool_utilization; dashboard: dashboards/identity-overview.json panel-1; error_budget_burn: 4-window multi-burn per ADR-0139 on all 9 SLOs in slos; OnCall route: axis-identity; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
+  "hyperscaler_benchmark": "circuit_breaker: envoy-circuit-breaker-on-zitadel-upstream: max_connections=200, max_pending_requests=100, max_requests=400, max_retries=3, outlier_detection: per-tenant-budget split via consecutive_5xx=5 base_ejection_time=30s; tenant_rate_limit: envoy-rate-limit-per-tenant-id-header + per-scim-bearer-token; pgcat shuffle-sharding 4 shards year-1 → 16 year-3 → 64 year-5; core_signals: rate=oya_identity_oidc_issue_total; errors=oya_identity_oidc_issue_total{error=~\".+\"}; latency=oya_identity_oidc_issue_duration_seconds; saturation=oya_identity_zitadel_postgres_pool_utilization; dashboard: dashboards/identity-overview.json panel-1; error_budget_burn: 4-window multi-burn per ADR-0139 on all 9 SLOs in slos; OnCall route: axis-identity; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
   "owner_team": "axis-identity",
   "tier_classification": "hero-substrate",
   "data_classification": "PII_IDENTIFYING, PII_QUASI_IDENTIFYING, AUTHENTICATION, AUDIT, INTERNAL_ONLY",
@@ -842,11 +846,6 @@
         "2026-05-21": "microservices/identity/contracts/asyncapi/identity-events.yaml",
         "2026-02-21": "microservices/identity/contracts/asyncapi/identity-events.yaml",
         "2025-11-21": "microservices/identity/contracts/asyncapi/identity-events.yaml"
-      },
-      "proto": {
-        "2026-05-21": "microservices/identity/contracts/proto/identity.proto",
-        "2026-02-21": "microservices/identity/contracts/proto/identity.proto",
-        "2025-11-21": "microservices/identity/contracts/proto/identity.proto"
       }
     }
   },

@@ -38,9 +38,13 @@
     "asyncapi": [
       "cloud/cloud-storage/contracts/asyncapi/cloud-storage-design-events.yaml"
     ],
-    "proto": [
-      "cloud/cloud-storage/contracts/proto/cloud-storage-design.proto"
-    ],
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": [
+        "cloud/cloud-storage/contracts/proto/cloud-storage-design.proto"
+      ]
+    },
     "service_local_contract_scaffolds": [
       "cloud/cloud-storage/contracts/asyncapi/cloud-storage-design-events.yaml",
       "cloud/cloud-storage/contracts/proto/cloud-storage-design.proto"

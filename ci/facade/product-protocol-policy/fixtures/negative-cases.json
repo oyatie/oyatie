@@ -1,91 +1,714 @@
 {
   "cases": [
-    {"name": "pp-contract-id", "artifact": "product_contract", "pointer": "/spec_id", "replacement": "__red_fixture__", "expected_code": "PP-CONTRACT-ID"},
-    {"name": "pp-contract-status", "artifact": "product_contract", "pointer": "/status", "replacement": "__red_fixture__", "expected_code": "PP-CONTRACT-STATUS"},
-    {"name": "pp-contract-authority", "artifact": "product_contract", "pointer": "/authority/adr", "replacement": "__red_fixture__", "expected_code": "PP-CONTRACT-AUTHORITY"},
-    {"name": "pp-public-allowed", "artifact": "product_contract", "pointer": "/public_api/allowed_protocols", "replacement": ["https-rest", "versioned-webhooks", "sse"], "expected_code": "PP-PUBLIC-ALLOWED"},
-    {"name": "pp-public-forbidden", "artifact": "product_contract", "pointer": "/public_api/forbidden_protocols", "replacement": ["graphql", "grpc", "grpc-web"], "expected_code": "PP-PUBLIC-FORBIDDEN"},
-    {"name": "pp-openapi-version", "artifact": "product_contract", "pointer": "/public_api/contracts/openapi", "replacement": "__red_fixture__", "expected_code": "PP-OPENAPI-VERSION"},
-    {"name": "pp-asyncapi-version", "artifact": "product_contract", "pointer": "/public_api/contracts/asyncapi", "replacement": "__red_fixture__", "expected_code": "PP-ASYNCAPI-VERSION"},
-    {"name": "pp-cloudevents-version", "artifact": "product_contract", "pointer": "/public_api/contracts/cloudevents", "replacement": "__red_fixture__", "expected_code": "PP-CLOUDEVENTS-VERSION"},
-    {"name": "pp-cloudevents-websocket-nonclaim", "artifact": "product_contract", "pointer": "/public_api/contracts/cloudevents_websocket_binding", "replacement": "__red_fixture__", "expected_code": "PP-CLOUDEVENTS-WEBSOCKET-NONCLAIM"},
-    {"name": "pp-public-edge-preference", "artifact": "product_contract", "pointer": "/public_api/transport/edge_preference", "replacement": "__red_fixture__", "expected_code": "PP-PUBLIC-EDGE-PREFERENCE"},
-    {"name": "pp-public-edge-fallback", "artifact": "product_contract", "pointer": "/public_api/transport/fallback", "replacement": "__red_fixture__", "expected_code": "PP-PUBLIC-EDGE-FALLBACK"},
-    {"name": "pp-public-tls", "artifact": "product_contract", "pointer": "/public_api/transport/tls_minimum", "replacement": "__red_fixture__", "expected_code": "PP-PUBLIC-TLS"},
-    {"name": "pp-internal-exposure", "artifact": "product_contract", "pointer": "/internal_rpc/exposure", "replacement": "__red_fixture__", "expected_code": "PP-INTERNAL-EXPOSURE"},
-    {"name": "pp-internal-grpc", "artifact": "product_contract", "pointer": "/internal_rpc/protocol", "replacement": "__red_fixture__", "expected_code": "PP-INTERNAL-GRPC"},
-    {"name": "pp-internal-h2", "artifact": "product_contract", "pointer": "/internal_rpc/http_transport", "replacement": "__red_fixture__", "expected_code": "PP-INTERNAL-H2"},
-    {"name": "pp-internal-protobuf", "artifact": "product_contract", "pointer": "/internal_rpc/schema_system", "replacement": "__red_fixture__", "expected_code": "PP-INTERNAL-PROTOBUF"},
-    {"name": "pp-internal-proto3", "artifact": "product_contract", "pointer": "/internal_rpc/language_profile", "replacement": "__red_fixture__", "expected_code": "PP-INTERNAL-PROTO3"},
-    {"name": "pp-internal-mtls", "artifact": "product_contract", "pointer": "/internal_rpc/identity_transport", "replacement": "__red_fixture__", "expected_code": "PP-INTERNAL-MTLS"},
-    {"name": "pp-flatbuffers-derived", "artifact": "product_contract", "pointer": "/serialization/flatbuffers/status", "replacement": "__red_fixture__", "expected_code": "PP-FLATBUFFERS-DERIVED"},
-    {"name": "pp-flatbuffers-noncanonical", "artifact": "product_contract", "pointer": "/serialization/flatbuffers/canonical", "replacement": true, "expected_code": "PP-FLATBUFFERS-NONCANONICAL"},
-    {"name": "pp-telemetry-baseline", "artifact": "product_contract", "pointer": "/telemetry/baseline", "replacement": ["opentelemetry", "cilium"], "expected_code": "PP-TELEMETRY-BASELINE"},
-    {"name": "pp-custom-ebpf-gate", "artifact": "product_contract", "pointer": "/telemetry/custom_ebpf", "replacement": "__red_fixture__", "expected_code": "PP-CUSTOM-EBPF-GATE"},
-    {"name": "pp-fabric-provider-owned", "artifact": "product_contract", "pointer": "/fabric/provider_owned", "replacement": ["bgp-clos", "evpn-vxlan", "physical-switching"], "expected_code": "PP-FABRIC-PROVIDER-OWNED"},
-    {"name": "pp-fabric-deferred", "artifact": "product_contract", "pointer": "/fabric/deferred_owned_profiles", "replacement": ["sonic", "sai", "gnmi-mutating", "gnoi-mutating", "uec", "rocev2", "nvme-rdma"], "expected_code": "PP-FABRIC-DEFERRED"},
-    {"name": "pp-nvme-tcp-first", "artifact": "product_contract", "pointer": "/fabric/disaggregated_storage_first_profile", "replacement": "__red_fixture__", "expected_code": "PP-NVME-TCP-FIRST"},
-    {"name": "pp-api-ssot-protocol-ref", "artifact": "api_contract_ssot", "pointer": "/product_protocol_contract", "replacement": "__red_fixture__", "expected_code": "PP-API-SSOT-PROTOCOL-REF"},
-    {"name": "pp-api-ssot-public", "artifact": "api_contract_ssot", "pointer": "/exposure_policy/public", "replacement": ["rest", "versioned-webhooks", "asyncapi-events", "sse"], "expected_code": "PP-API-SSOT-PUBLIC"},
-    {"name": "pp-api-ssot-internal", "artifact": "api_contract_ssot", "pointer": "/exposure_policy/internal_only", "replacement": ["grpc", "grpc-streaming"], "expected_code": "PP-API-SSOT-INTERNAL"},
-    {"name": "pp-api-ssot-forbidden", "artifact": "api_contract_ssot", "pointer": "/exposure_policy/forbidden_public", "replacement": ["graphql", "grpc", "grpc-web"], "expected_code": "PP-API-SSOT-FORBIDDEN"},
-    {"name": "pp-transport-protocol-ref", "artifact": "transport_profile", "pointer": "/product_protocol_contract", "replacement": "__red_fixture__", "expected_code": "PP-TRANSPORT-PROTOCOL-REF"},
-    {"name": "pp-webhook-security", "artifact": "product_contract", "pointer": "/public_api/selection_rules/webhooks", "replacement": ["versioned", "authenticated", "signed", "idempotent"], "expected_code": "PP-WEBHOOK-SECURITY"},
-    {"name": "pp-central-tls13", "artifact": "product_contract", "pointer": "/transport_security/minimum_version", "replacement": "__red_fixture__", "expected_code": "PP-CENTRAL-TLS13"},
-    {"name": "pp-central-internal-mtls", "artifact": "product_contract", "pointer": "/transport_security/internal_workload_mtls", "replacement": "__red_fixture__", "expected_code": "PP-CENTRAL-INTERNAL-MTLS"},
-    {"name": "pp-central-identity-lifecycle", "artifact": "product_contract", "pointer": "/transport_security/identity_lifecycle", "replacement": ["issuance", "rotation", "revocation"], "expected_code": "PP-CENTRAL-IDENTITY-LIFECYCLE"},
-    {"name": "pp-managed-storage-first", "artifact": "product_contract", "pointer": "/fabric/managed_storage_first", "replacement": false, "expected_code": "PP-MANAGED-STORAGE-FIRST"},
-    {"name": "pp-rocev2-nonrequirement", "artifact": "product_contract", "pointer": "/fabric/rocev2_product_requirement", "replacement": true, "expected_code": "PP-ROCEV2-NONREQUIREMENT"},
-    {"name": "pp-transport-external-h3", "artifact": "transport_profile", "pointer": "/capability_classes/0/default_protocol", "replacement": "__red_fixture__", "expected_code": "PP-TRANSPORT-EXTERNAL-H3"},
-    {"name": "pp-transport-external-h2-fallback", "artifact": "transport_profile", "pointer": "/capability_classes/0/fallback_protocol", "replacement": "__red_fixture__", "expected_code": "PP-TRANSPORT-EXTERNAL-H2-FALLBACK"},
-    {"name": "pp-transport-external-tls", "artifact": "transport_profile", "pointer": "/capability_classes/0/tls_profile", "replacement": "__red_fixture__", "expected_code": "PP-TRANSPORT-EXTERNAL-TLS"},
-    {"name": "pp-transport-intercell-grpc-h2", "artifact": "transport_profile", "pointer": "/capability_classes/1/default_protocol", "replacement": "__red_fixture__", "expected_code": "PP-TRANSPORT-INTERCELL-GRPC-H2"},
-    {"name": "pp-transport-intercell-mtls", "artifact": "transport_profile", "pointer": "/capability_classes/1/tls_profile", "replacement": "__red_fixture__", "expected_code": "PP-TRANSPORT-INTERCELL-MTLS"},
-    {"name": "pp-transport-internal-grpc-h2", "artifact": "transport_profile", "pointer": "/capability_classes/2/default_protocol", "replacement": "__red_fixture__", "expected_code": "PP-TRANSPORT-INTERNAL-GRPC-H2"},
-    {"name": "pp-transport-internal-mtls", "artifact": "transport_profile", "pointer": "/capability_classes/2/tls_profile", "replacement": "__red_fixture__", "expected_code": "PP-TRANSPORT-INTERNAL-MTLS"},
-    {"name": "pp-strict-tls-profile-minimum", "artifact": "transport_profile", "pointer": "/tls_profiles/strict_tls13/minimum_version", "replacement": "__red_fixture__", "expected_code": "PP-STRICT-TLS-PROFILE-MINIMUM"},
-    {"name": "pp-strict-tls-profile-auth", "artifact": "transport_profile", "pointer": "/tls_profiles/strict_tls13/peer_authentication", "replacement": "__red_fixture__", "expected_code": "PP-STRICT-TLS-PROFILE-AUTH"},
-    {"name": "pp-spiffe-mtls-profile-minimum", "artifact": "transport_profile", "pointer": "/tls_profiles/spiffe_mtls_tls13/minimum_version", "replacement": "__red_fixture__", "expected_code": "PP-SPIFFE-MTLS-PROFILE-MINIMUM"},
-    {"name": "pp-spiffe-mtls-profile-auth", "artifact": "transport_profile", "pointer": "/tls_profiles/spiffe_mtls_tls13/peer_authentication", "replacement": "__red_fixture__", "expected_code": "PP-SPIFFE-MTLS-PROFILE-AUTH"},
-    {"name": "pp-spiffe-mtls-profile-identity", "artifact": "transport_profile", "pointer": "/tls_profiles/spiffe_mtls_tls13/workload_identity", "replacement": "__red_fixture__", "expected_code": "PP-SPIFFE-MTLS-PROFILE-IDENTITY"},
-    {"name": "pp-spiffe-mtls-profile-lifecycle", "artifact": "transport_profile", "pointer": "/tls_profiles/spiffe_mtls_tls13/identity_lifecycle", "replacement": ["issuance", "rotation", "revocation"], "expected_code": "PP-SPIFFE-MTLS-PROFILE-LIFECYCLE"},
-    {"name": "pp-canonical-endpoint-id", "artifact": "transport_profile", "pointer": "/canonical_external_endpoint/endpoint_id", "replacement": "__red_fixture__", "expected_code": "PP-CANONICAL-ENDPOINT-ID"},
-    {"name": "pp-canonical-endpoint-class", "artifact": "transport_profile", "pointer": "/canonical_external_endpoint/capability_class", "replacement": "__red_fixture__", "expected_code": "PP-CANONICAL-ENDPOINT-CLASS"},
-    {"name": "pp-canonical-endpoint-protocol", "artifact": "transport_profile", "pointer": "/canonical_external_endpoint/protocol", "replacement": "__red_fixture__", "expected_code": "PP-CANONICAL-ENDPOINT-PROTOCOL"},
-    {"name": "pp-canonical-endpoint-fallback", "artifact": "transport_profile", "pointer": "/canonical_external_endpoint/fallback_protocol", "replacement": "__red_fixture__", "expected_code": "PP-CANONICAL-ENDPOINT-FALLBACK"},
-    {"name": "pp-canonical-endpoint-tls", "artifact": "transport_profile", "pointer": "/canonical_external_endpoint/tls_profile", "replacement": "__red_fixture__", "expected_code": "PP-CANONICAL-ENDPOINT-TLS"},
-    {"name": "pp-contract-version", "artifact": "product_contract", "pointer": "/contract_version", "replacement": "__red_fixture__", "expected_code": "PP-CONTRACT-VERSION"},
-    {"name": "pp-contract-founder-decision", "artifact": "product_contract", "pointer": "/authority/founder_decision", "replacement": "__red_fixture__", "expected_code": "PP-CONTRACT-FOUNDER-DECISION"},
-    {"name": "pp-contract-enforcement-gate", "artifact": "product_contract", "pointer": "/authority/enforcement_gate", "replacement": "__red_fixture__", "expected_code": "PP-CONTRACT-ENFORCEMENT-GATE"},
-    {"name": "pp-cloudevents-http-binding", "artifact": "product_contract", "pointer": "/public_api/contracts/cloudevents_http_binding", "replacement": "__red_fixture__", "expected_code": "PP-CLOUDEVENTS-HTTP-BINDING"},
-    {"name": "pp-http3-nondependency", "artifact": "product_contract", "pointer": "/public_api/transport/correctness_may_depend_on_http3", "replacement": true, "expected_code": "PP-HTTP3-NONDEPENDENCY"},
-    {"name": "pp-sse-selection", "artifact": "product_contract", "pointer": "/public_api/selection_rules/sse", "replacement": "__red_fixture__", "expected_code": "PP-SSE-SELECTION"},
-    {"name": "pp-websocket-selection", "artifact": "product_contract", "pointer": "/public_api/selection_rules/websocket", "replacement": "__red_fixture__", "expected_code": "PP-WEBSOCKET-SELECTION"},
-    {"name": "pp-internal-compatibility", "artifact": "product_contract", "pointer": "/internal_rpc/compatibility", "replacement": ["reserve removed field names and numbers", "never reuse field numbers"], "expected_code": "PP-INTERNAL-COMPATIBILITY"},
-    {"name": "pp-editions-profile-name", "artifact": "product_contract", "pointer": "/internal_rpc/future_profile/name", "replacement": "__red_fixture__", "expected_code": "PP-EDITIONS-PROFILE-NAME"},
-    {"name": "pp-editions-deferred", "artifact": "product_contract", "pointer": "/internal_rpc/future_profile/status", "replacement": "__red_fixture__", "expected_code": "PP-EDITIONS-DEFERRED"},
-    {"name": "pp-editions-activation", "artifact": "product_contract", "pointer": "/internal_rpc/future_profile/activation", "replacement": "__red_fixture__", "expected_code": "PP-EDITIONS-ACTIVATION"},
-    {"name": "pp-tls-normative-term", "artifact": "product_contract", "pointer": "/transport_security/normative_term", "replacement": "__red_fixture__", "expected_code": "PP-TLS-NORMATIVE-TERM"},
-    {"name": "pp-ssl-deprecated-term", "artifact": "product_contract", "pointer": "/transport_security/deprecated_term", "replacement": "__red_fixture__", "expected_code": "PP-SSL-DEPRECATED-TERM"},
-    {"name": "pp-public-server-auth", "artifact": "product_contract", "pointer": "/transport_security/public_server_authentication", "replacement": "__red_fixture__", "expected_code": "PP-PUBLIC-SERVER-AUTH"},
-    {"name": "pp-public-client-mtls-gated", "artifact": "product_contract", "pointer": "/transport_security/public_client_mtls", "replacement": "__red_fixture__", "expected_code": "PP-PUBLIC-CLIENT-MTLS-GATED"},
-    {"name": "pp-tls-exceptions-reviewed", "artifact": "product_contract", "pointer": "/transport_security/exceptions", "replacement": "__red_fixture__", "expected_code": "PP-TLS-EXCEPTIONS-REVIEWED"},
-    {"name": "pp-external-serialization", "artifact": "product_contract", "pointer": "/serialization/external_default", "replacement": "__red_fixture__", "expected_code": "PP-EXTERNAL-SERIALIZATION"},
-    {"name": "pp-internal-serialization", "artifact": "product_contract", "pointer": "/serialization/internal_canonical", "replacement": "__red_fixture__", "expected_code": "PP-INTERNAL-SERIALIZATION"},
-    {"name": "pp-flatbuffers-activation", "artifact": "product_contract", "pointer": "/serialization/flatbuffers/activation_requires", "replacement": ["isolated hot path", "reproducible latency or zero-copy benchmark", "schema-evolution review"], "expected_code": "PP-FLATBUFFERS-ACTIVATION"},
-    {"name": "pp-otel-application-semantics", "artifact": "product_contract", "pointer": "/telemetry/application_semantics", "replacement": "__red_fixture__", "expected_code": "PP-OTEL-APPLICATION-SEMANTICS"},
-    {"name": "pp-otel-ebpf-pilot", "artifact": "product_contract", "pointer": "/telemetry/otel_ebpf", "replacement": "__red_fixture__", "expected_code": "PP-OTEL-EBPF-PILOT"},
-    {"name": "pp-gnmi-deferred", "artifact": "product_contract", "pointer": "/telemetry/network_device_interfaces/gnmi", "replacement": "__red_fixture__", "expected_code": "PP-GNMI-DEFERRED"},
-    {"name": "pp-gnoi-deferred", "artifact": "product_contract", "pointer": "/telemetry/network_device_interfaces/gnoi", "replacement": "__red_fixture__", "expected_code": "PP-GNOI-DEFERRED"},
-    {"name": "pp-network-mutation-profile", "artifact": "product_contract", "pointer": "/telemetry/network_device_interfaces/mutating_operations", "replacement": "__red_fixture__", "expected_code": "PP-NETWORK-MUTATION-PROFILE"},
-    {"name": "pp-fabric-activation-boundary", "artifact": "product_contract", "pointer": "/fabric/activation_boundary", "replacement": "__red_fixture__", "expected_code": "PP-FABRIC-ACTIVATION-BOUNDARY"},
-    {"name": "pp-nonclaims", "artifact": "product_contract", "pointer": "/non_claims", "replacement": ["This contract does not claim every allowed protocol is implemented by every capability.", "This contract does not claim public gRPC, gRPC-Web, Connect, or GraphQL compatibility.", "This contract does not claim an owned physical Clos/EVPN fabric, switch NOS, SAI integration, gNMI/gNOI actuation, UEC, RoCEv2, or NVMe/RDMA deployment.", "This contract does not make HTTP/3 availability a correctness dependency."], "expected_code": "PP-NONCLAIMS"},
-    {"name": "pp-root-hub", "artifact": "root_hub", "pointer": "/entry_points/product_protocol_contract/current_path", "replacement": "__red_fixture__", "expected_code": "PP-ROOT-HUB"},
-    {"name": "pp-manifest-contracts-closed", "artifact": "manifest_schema", "pointer": "/properties/contracts/additionalProperties", "replacement": true, "expected_code": "PP-MANIFEST-CONTRACTS-CLOSED"},
-    {"name": "pp-manifest-internal-grpc-h2", "artifact": "manifest_schema", "pointer": "/properties/contracts/properties/internal_grpc/properties/transport/const", "replacement": "__red_fixture__", "expected_code": "PP-MANIFEST-INTERNAL-GRPC-H2"},
-    {"name": "pp-manifest-internal-proto3", "artifact": "manifest_schema", "pointer": "/properties/contracts/properties/internal_grpc/properties/language_profile/const", "replacement": "__red_fixture__", "expected_code": "PP-MANIFEST-INTERNAL-PROTO3"},
-    {"name": "pp-manifest-public-version-files-closed", "artifact": "manifest_schema", "pointer": "/properties/tenant_version_pinning/properties/public_surface_files/additionalProperties", "replacement": true, "expected_code": "PP-MANIFEST-PUBLIC-VERSION-FILES-CLOSED"},
-    {"name": "pp-masterplan-15v-queued", "artifact": "master_plan_sequencing", "pointer": "/realignment_wave_sequence/waves_15_plus/sub_wave_landings/15V-API-Versioning-Adoption/status", "replacement": "__red_fixture__", "expected_code": "PP-MASTERPLAN-15V-QUEUED"},
-    {"name": "pp-transport-external-duplicate-name", "artifact": "transport_profile", "pointer": "/capability_classes", "replacement": [{"alt_svc": "required", "default_protocol": "http3", "fallback_protocol": "http2", "ech": "support_required_with_plaintext_sni_transition_fallback", "fallback_timeout_ms": {"default": 500, "max": 12500}, "name": "external", "pqc": "hybrid_negotiation_required_with_classical_transition_fallback", "tls_profile": "strict_tls13"}, {"alt_svc": "required", "default_protocol": "http3", "fallback_protocol": "http2", "ech": "support_required_with_plaintext_sni_transition_fallback", "fallback_timeout_ms": {"default": 500, "max": 12500}, "name": "external", "pqc": "hybrid_negotiation_required_with_classical_transition_fallback", "tls_profile": "strict_tls13"}], "expected_code": "PP-TRANSPORT-EXTERNAL-H3"}
+    {
+      "name": "pp-contract-id",
+      "artifact": "product_contract",
+      "pointer": "/spec_id",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-CONTRACT-ID"
+    },
+    {
+      "name": "pp-contract-status",
+      "artifact": "product_contract",
+      "pointer": "/status",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-CONTRACT-STATUS"
+    },
+    {
+      "name": "pp-contract-authority",
+      "artifact": "product_contract",
+      "pointer": "/authority/adr",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-CONTRACT-AUTHORITY"
+    },
+    {
+      "name": "pp-public-allowed",
+      "artifact": "product_contract",
+      "pointer": "/public_api/allowed_protocols",
+      "replacement": [
+        "https-rest",
+        "versioned-webhooks",
+        "sse"
+      ],
+      "expected_code": "PP-PUBLIC-ALLOWED"
+    },
+    {
+      "name": "pp-public-forbidden",
+      "artifact": "product_contract",
+      "pointer": "/public_api/forbidden_protocols",
+      "replacement": [
+        "graphql",
+        "grpc",
+        "grpc-web"
+      ],
+      "expected_code": "PP-PUBLIC-FORBIDDEN"
+    },
+    {
+      "name": "pp-openapi-version",
+      "artifact": "product_contract",
+      "pointer": "/public_api/contracts/openapi",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-OPENAPI-VERSION"
+    },
+    {
+      "name": "pp-asyncapi-version",
+      "artifact": "product_contract",
+      "pointer": "/public_api/contracts/asyncapi",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-ASYNCAPI-VERSION"
+    },
+    {
+      "name": "pp-cloudevents-version",
+      "artifact": "product_contract",
+      "pointer": "/public_api/contracts/cloudevents",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-CLOUDEVENTS-VERSION"
+    },
+    {
+      "name": "pp-cloudevents-websocket-nonclaim",
+      "artifact": "product_contract",
+      "pointer": "/public_api/contracts/cloudevents_websocket_binding",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-CLOUDEVENTS-WEBSOCKET-NONCLAIM"
+    },
+    {
+      "name": "pp-public-edge-preference",
+      "artifact": "product_contract",
+      "pointer": "/public_api/transport/edge_preference",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-PUBLIC-EDGE-PREFERENCE"
+    },
+    {
+      "name": "pp-public-edge-fallback",
+      "artifact": "product_contract",
+      "pointer": "/public_api/transport/fallback",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-PUBLIC-EDGE-FALLBACK"
+    },
+    {
+      "name": "pp-public-tls",
+      "artifact": "product_contract",
+      "pointer": "/public_api/transport/tls_minimum",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-PUBLIC-TLS"
+    },
+    {
+      "name": "pp-internal-exposure",
+      "artifact": "product_contract",
+      "pointer": "/internal_rpc/exposure",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-INTERNAL-EXPOSURE"
+    },
+    {
+      "name": "pp-internal-grpc",
+      "artifact": "product_contract",
+      "pointer": "/internal_rpc/protocol",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-INTERNAL-GRPC"
+    },
+    {
+      "name": "pp-internal-h2",
+      "artifact": "product_contract",
+      "pointer": "/internal_rpc/http_transport",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-INTERNAL-H2"
+    },
+    {
+      "name": "pp-internal-protobuf",
+      "artifact": "product_contract",
+      "pointer": "/internal_rpc/schema_system",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-INTERNAL-PROTOBUF"
+    },
+    {
+      "name": "pp-internal-proto3",
+      "artifact": "product_contract",
+      "pointer": "/internal_rpc/language_profile",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-INTERNAL-PROTO3"
+    },
+    {
+      "name": "pp-internal-mtls",
+      "artifact": "product_contract",
+      "pointer": "/internal_rpc/identity_transport",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-INTERNAL-MTLS"
+    },
+    {
+      "name": "pp-flatbuffers-derived",
+      "artifact": "product_contract",
+      "pointer": "/serialization/flatbuffers/status",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-FLATBUFFERS-DERIVED"
+    },
+    {
+      "name": "pp-flatbuffers-noncanonical",
+      "artifact": "product_contract",
+      "pointer": "/serialization/flatbuffers/canonical",
+      "replacement": true,
+      "expected_code": "PP-FLATBUFFERS-NONCANONICAL"
+    },
+    {
+      "name": "pp-telemetry-baseline",
+      "artifact": "product_contract",
+      "pointer": "/telemetry/baseline",
+      "replacement": [
+        "opentelemetry",
+        "cilium"
+      ],
+      "expected_code": "PP-TELEMETRY-BASELINE"
+    },
+    {
+      "name": "pp-custom-ebpf-gate",
+      "artifact": "product_contract",
+      "pointer": "/telemetry/custom_ebpf",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-CUSTOM-EBPF-GATE"
+    },
+    {
+      "name": "pp-fabric-provider-owned",
+      "artifact": "product_contract",
+      "pointer": "/fabric/provider_owned",
+      "replacement": [
+        "bgp-clos",
+        "evpn-vxlan",
+        "physical-switching"
+      ],
+      "expected_code": "PP-FABRIC-PROVIDER-OWNED"
+    },
+    {
+      "name": "pp-fabric-deferred",
+      "artifact": "product_contract",
+      "pointer": "/fabric/deferred_owned_profiles",
+      "replacement": [
+        "sonic",
+        "sai",
+        "gnmi-mutating",
+        "gnoi-mutating",
+        "uec",
+        "rocev2",
+        "nvme-rdma"
+      ],
+      "expected_code": "PP-FABRIC-DEFERRED"
+    },
+    {
+      "name": "pp-nvme-tcp-first",
+      "artifact": "product_contract",
+      "pointer": "/fabric/disaggregated_storage_first_profile",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-NVME-TCP-FIRST"
+    },
+    {
+      "name": "pp-api-ssot-protocol-ref",
+      "artifact": "api_contract_ssot",
+      "pointer": "/product_protocol_contract",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-API-SSOT-PROTOCOL-REF"
+    },
+    {
+      "name": "pp-api-ssot-public",
+      "artifact": "api_contract_ssot",
+      "pointer": "/exposure_policy/public",
+      "replacement": [
+        "rest",
+        "versioned-webhooks",
+        "asyncapi-events",
+        "sse"
+      ],
+      "expected_code": "PP-API-SSOT-PUBLIC"
+    },
+    {
+      "name": "pp-api-ssot-internal",
+      "artifact": "api_contract_ssot",
+      "pointer": "/exposure_policy/internal_only",
+      "replacement": [
+        "grpc",
+        "grpc-streaming"
+      ],
+      "expected_code": "PP-API-SSOT-INTERNAL"
+    },
+    {
+      "name": "pp-api-ssot-forbidden",
+      "artifact": "api_contract_ssot",
+      "pointer": "/exposure_policy/forbidden_public",
+      "replacement": [
+        "graphql",
+        "grpc",
+        "grpc-web"
+      ],
+      "expected_code": "PP-API-SSOT-FORBIDDEN"
+    },
+    {
+      "name": "pp-transport-protocol-ref",
+      "artifact": "transport_profile",
+      "pointer": "/product_protocol_contract",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-TRANSPORT-PROTOCOL-REF"
+    },
+    {
+      "name": "pp-webhook-security",
+      "artifact": "product_contract",
+      "pointer": "/public_api/selection_rules/webhooks",
+      "replacement": [
+        "versioned",
+        "authenticated",
+        "signed",
+        "idempotent"
+      ],
+      "expected_code": "PP-WEBHOOK-SECURITY"
+    },
+    {
+      "name": "pp-central-tls13",
+      "artifact": "product_contract",
+      "pointer": "/transport_security/minimum_version",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-CENTRAL-TLS13"
+    },
+    {
+      "name": "pp-central-internal-mtls",
+      "artifact": "product_contract",
+      "pointer": "/transport_security/internal_workload_mtls",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-CENTRAL-INTERNAL-MTLS"
+    },
+    {
+      "name": "pp-central-identity-lifecycle",
+      "artifact": "product_contract",
+      "pointer": "/transport_security/identity_lifecycle",
+      "replacement": [
+        "issuance",
+        "rotation",
+        "revocation"
+      ],
+      "expected_code": "PP-CENTRAL-IDENTITY-LIFECYCLE"
+    },
+    {
+      "name": "pp-managed-storage-first",
+      "artifact": "product_contract",
+      "pointer": "/fabric/managed_storage_first",
+      "replacement": false,
+      "expected_code": "PP-MANAGED-STORAGE-FIRST"
+    },
+    {
+      "name": "pp-rocev2-nonrequirement",
+      "artifact": "product_contract",
+      "pointer": "/fabric/rocev2_product_requirement",
+      "replacement": true,
+      "expected_code": "PP-ROCEV2-NONREQUIREMENT"
+    },
+    {
+      "name": "pp-transport-external-h3",
+      "artifact": "transport_profile",
+      "pointer": "/capability_classes/0/default_protocol",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-TRANSPORT-EXTERNAL-H3"
+    },
+    {
+      "name": "pp-transport-external-h2-fallback",
+      "artifact": "transport_profile",
+      "pointer": "/capability_classes/0/fallback_protocol",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-TRANSPORT-EXTERNAL-H2-FALLBACK"
+    },
+    {
+      "name": "pp-transport-external-tls",
+      "artifact": "transport_profile",
+      "pointer": "/capability_classes/0/tls_profile",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-TRANSPORT-EXTERNAL-TLS"
+    },
+    {
+      "name": "pp-transport-intercell-grpc-h2",
+      "artifact": "transport_profile",
+      "pointer": "/capability_classes/1/default_protocol",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-TRANSPORT-INTERCELL-GRPC-H2"
+    },
+    {
+      "name": "pp-transport-intercell-mtls",
+      "artifact": "transport_profile",
+      "pointer": "/capability_classes/1/tls_profile",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-TRANSPORT-INTERCELL-MTLS"
+    },
+    {
+      "name": "pp-transport-internal-grpc-h2",
+      "artifact": "transport_profile",
+      "pointer": "/capability_classes/2/default_protocol",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-TRANSPORT-INTERNAL-GRPC-H2"
+    },
+    {
+      "name": "pp-transport-internal-mtls",
+      "artifact": "transport_profile",
+      "pointer": "/capability_classes/2/tls_profile",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-TRANSPORT-INTERNAL-MTLS"
+    },
+    {
+      "name": "pp-strict-tls-profile-minimum",
+      "artifact": "transport_profile",
+      "pointer": "/tls_profiles/strict_tls13/minimum_version",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-STRICT-TLS-PROFILE-MINIMUM"
+    },
+    {
+      "name": "pp-strict-tls-profile-auth",
+      "artifact": "transport_profile",
+      "pointer": "/tls_profiles/strict_tls13/peer_authentication",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-STRICT-TLS-PROFILE-AUTH"
+    },
+    {
+      "name": "pp-spiffe-mtls-profile-minimum",
+      "artifact": "transport_profile",
+      "pointer": "/tls_profiles/spiffe_mtls_tls13/minimum_version",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-SPIFFE-MTLS-PROFILE-MINIMUM"
+    },
+    {
+      "name": "pp-spiffe-mtls-profile-auth",
+      "artifact": "transport_profile",
+      "pointer": "/tls_profiles/spiffe_mtls_tls13/peer_authentication",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-SPIFFE-MTLS-PROFILE-AUTH"
+    },
+    {
+      "name": "pp-spiffe-mtls-profile-identity",
+      "artifact": "transport_profile",
+      "pointer": "/tls_profiles/spiffe_mtls_tls13/workload_identity",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-SPIFFE-MTLS-PROFILE-IDENTITY"
+    },
+    {
+      "name": "pp-spiffe-mtls-profile-lifecycle",
+      "artifact": "transport_profile",
+      "pointer": "/tls_profiles/spiffe_mtls_tls13/identity_lifecycle",
+      "replacement": [
+        "issuance",
+        "rotation",
+        "revocation"
+      ],
+      "expected_code": "PP-SPIFFE-MTLS-PROFILE-LIFECYCLE"
+    },
+    {
+      "name": "pp-canonical-endpoint-id",
+      "artifact": "transport_profile",
+      "pointer": "/canonical_external_endpoint/endpoint_id",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-CANONICAL-ENDPOINT-ID"
+    },
+    {
+      "name": "pp-canonical-endpoint-class",
+      "artifact": "transport_profile",
+      "pointer": "/canonical_external_endpoint/capability_class",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-CANONICAL-ENDPOINT-CLASS"
+    },
+    {
+      "name": "pp-canonical-endpoint-protocol",
+      "artifact": "transport_profile",
+      "pointer": "/canonical_external_endpoint/protocol",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-CANONICAL-ENDPOINT-PROTOCOL"
+    },
+    {
+      "name": "pp-canonical-endpoint-fallback",
+      "artifact": "transport_profile",
+      "pointer": "/canonical_external_endpoint/fallback_protocol",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-CANONICAL-ENDPOINT-FALLBACK"
+    },
+    {
+      "name": "pp-canonical-endpoint-tls",
+      "artifact": "transport_profile",
+      "pointer": "/canonical_external_endpoint/tls_profile",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-CANONICAL-ENDPOINT-TLS"
+    },
+    {
+      "name": "pp-contract-version",
+      "artifact": "product_contract",
+      "pointer": "/contract_version",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-CONTRACT-VERSION"
+    },
+    {
+      "name": "pp-contract-founder-decision",
+      "artifact": "product_contract",
+      "pointer": "/authority/founder_decision",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-CONTRACT-FOUNDER-DECISION"
+    },
+    {
+      "name": "pp-contract-enforcement-gate",
+      "artifact": "product_contract",
+      "pointer": "/authority/enforcement_gate",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-CONTRACT-ENFORCEMENT-GATE"
+    },
+    {
+      "name": "pp-cloudevents-http-binding",
+      "artifact": "product_contract",
+      "pointer": "/public_api/contracts/cloudevents_http_binding",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-CLOUDEVENTS-HTTP-BINDING"
+    },
+    {
+      "name": "pp-http3-nondependency",
+      "artifact": "product_contract",
+      "pointer": "/public_api/transport/correctness_may_depend_on_http3",
+      "replacement": true,
+      "expected_code": "PP-HTTP3-NONDEPENDENCY"
+    },
+    {
+      "name": "pp-sse-selection",
+      "artifact": "product_contract",
+      "pointer": "/public_api/selection_rules/sse",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-SSE-SELECTION"
+    },
+    {
+      "name": "pp-websocket-selection",
+      "artifact": "product_contract",
+      "pointer": "/public_api/selection_rules/websocket",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-WEBSOCKET-SELECTION"
+    },
+    {
+      "name": "pp-internal-compatibility",
+      "artifact": "product_contract",
+      "pointer": "/internal_rpc/compatibility",
+      "replacement": [
+        "reserve removed field names and numbers",
+        "never reuse field numbers"
+      ],
+      "expected_code": "PP-INTERNAL-COMPATIBILITY"
+    },
+    {
+      "name": "pp-editions-profile-name",
+      "artifact": "product_contract",
+      "pointer": "/internal_rpc/future_profile/name",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-EDITIONS-PROFILE-NAME"
+    },
+    {
+      "name": "pp-editions-deferred",
+      "artifact": "product_contract",
+      "pointer": "/internal_rpc/future_profile/status",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-EDITIONS-DEFERRED"
+    },
+    {
+      "name": "pp-editions-activation",
+      "artifact": "product_contract",
+      "pointer": "/internal_rpc/future_profile/activation",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-EDITIONS-ACTIVATION"
+    },
+    {
+      "name": "pp-tls-normative-term",
+      "artifact": "product_contract",
+      "pointer": "/transport_security/normative_term",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-TLS-NORMATIVE-TERM"
+    },
+    {
+      "name": "pp-ssl-deprecated-term",
+      "artifact": "product_contract",
+      "pointer": "/transport_security/deprecated_term",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-SSL-DEPRECATED-TERM"
+    },
+    {
+      "name": "pp-public-server-auth",
+      "artifact": "product_contract",
+      "pointer": "/transport_security/public_server_authentication",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-PUBLIC-SERVER-AUTH"
+    },
+    {
+      "name": "pp-public-client-mtls-gated",
+      "artifact": "product_contract",
+      "pointer": "/transport_security/public_client_mtls",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-PUBLIC-CLIENT-MTLS-GATED"
+    },
+    {
+      "name": "pp-tls-exceptions-reviewed",
+      "artifact": "product_contract",
+      "pointer": "/transport_security/exceptions",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-TLS-EXCEPTIONS-REVIEWED"
+    },
+    {
+      "name": "pp-external-serialization",
+      "artifact": "product_contract",
+      "pointer": "/serialization/external_default",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-EXTERNAL-SERIALIZATION"
+    },
+    {
+      "name": "pp-internal-serialization",
+      "artifact": "product_contract",
+      "pointer": "/serialization/internal_canonical",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-INTERNAL-SERIALIZATION"
+    },
+    {
+      "name": "pp-flatbuffers-activation",
+      "artifact": "product_contract",
+      "pointer": "/serialization/flatbuffers/activation_requires",
+      "replacement": [
+        "isolated hot path",
+        "reproducible latency or zero-copy benchmark",
+        "schema-evolution review"
+      ],
+      "expected_code": "PP-FLATBUFFERS-ACTIVATION"
+    },
+    {
+      "name": "pp-otel-application-semantics",
+      "artifact": "product_contract",
+      "pointer": "/telemetry/application_semantics",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-OTEL-APPLICATION-SEMANTICS"
+    },
+    {
+      "name": "pp-otel-ebpf-pilot",
+      "artifact": "product_contract",
+      "pointer": "/telemetry/otel_ebpf",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-OTEL-EBPF-PILOT"
+    },
+    {
+      "name": "pp-gnmi-deferred",
+      "artifact": "product_contract",
+      "pointer": "/telemetry/network_device_interfaces/gnmi",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-GNMI-DEFERRED"
+    },
+    {
+      "name": "pp-gnoi-deferred",
+      "artifact": "product_contract",
+      "pointer": "/telemetry/network_device_interfaces/gnoi",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-GNOI-DEFERRED"
+    },
+    {
+      "name": "pp-network-mutation-profile",
+      "artifact": "product_contract",
+      "pointer": "/telemetry/network_device_interfaces/mutating_operations",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-NETWORK-MUTATION-PROFILE"
+    },
+    {
+      "name": "pp-fabric-activation-boundary",
+      "artifact": "product_contract",
+      "pointer": "/fabric/activation_boundary",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-FABRIC-ACTIVATION-BOUNDARY"
+    },
+    {
+      "name": "pp-nonclaims",
+      "artifact": "product_contract",
+      "pointer": "/non_claims",
+      "replacement": [
+        "This contract does not claim every allowed protocol is implemented by every capability.",
+        "This contract does not claim public gRPC, gRPC-Web, Connect, or GraphQL compatibility.",
+        "This contract does not claim an owned physical Clos/EVPN fabric, switch NOS, SAI integration, gNMI/gNOI actuation, UEC, RoCEv2, or NVMe/RDMA deployment.",
+        "This contract does not make HTTP/3 availability a correctness dependency."
+      ],
+      "expected_code": "PP-NONCLAIMS"
+    },
+    {
+      "name": "pp-root-hub",
+      "artifact": "root_hub",
+      "pointer": "/entry_points/product_protocol_contract/current_path",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-ROOT-HUB"
+    },
+    {
+      "name": "pp-manifest-contracts-closed",
+      "artifact": "manifest_schema",
+      "pointer": "/properties/contracts/additionalProperties",
+      "replacement": true,
+      "expected_code": "PP-MANIFEST-CONTRACTS-CLOSED"
+    },
+    {
+      "name": "pp-manifest-internal-grpc-h2",
+      "artifact": "manifest_schema",
+      "pointer": "/properties/contracts/properties/internal_grpc/properties/transport/const",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-MANIFEST-INTERNAL-GRPC-H2"
+    },
+    {
+      "name": "pp-manifest-internal-proto3",
+      "artifact": "manifest_schema",
+      "pointer": "/properties/contracts/properties/internal_grpc/properties/language_profile/const",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-MANIFEST-INTERNAL-PROTO3"
+    },
+    {
+      "name": "pp-manifest-public-version-files-closed",
+      "artifact": "manifest_schema",
+      "pointer": "/properties/tenant_version_pinning/properties/public_surface_files/additionalProperties",
+      "replacement": true,
+      "expected_code": "PP-MANIFEST-PUBLIC-VERSION-FILES-CLOSED"
+    },
+    {
+      "name": "pp-masterplan-15v-queued",
+      "artifact": "master_plan_sequencing",
+      "pointer": "/realignment_wave_sequence/waves_15_plus/sub_wave_landings/15V-API-Versioning-Adoption/status",
+      "replacement": "__red_fixture__",
+      "expected_code": "PP-MASTERPLAN-15V-QUEUED"
+    },
+    {
+      "name": "pp-transport-external-duplicate-name",
+      "artifact": "transport_profile",
+      "pointer": "/capability_classes",
+      "replacement": [
+        {
+          "alt_svc": "required",
+          "default_protocol": "http3",
+          "fallback_protocol": "http2",
+          "ech": "support_required_with_plaintext_sni_transition_fallback",
+          "fallback_timeout_ms": {
+            "default": 500,
+            "max": 12500
+          },
+          "name": "external",
+          "pqc": "hybrid_negotiation_required_with_classical_transition_fallback",
+          "tls_profile": "strict_tls13"
+        },
+        {
+          "alt_svc": "required",
+          "default_protocol": "http3",
+          "fallback_protocol": "http2",
+          "ech": "support_required_with_plaintext_sni_transition_fallback",
+          "fallback_timeout_ms": {
+            "default": 500,
+            "max": 12500
+          },
+          "name": "external",
+          "pqc": "hybrid_negotiation_required_with_classical_transition_fallback",
+          "tls_profile": "strict_tls13"
+        }
+      ],
+      "expected_code": "PP-TRANSPORT-EXTERNAL-H3"
+    }
+  ],
+  "accepted_adr_cases": [
+    {
+      "name": "native-connect-public",
+      "text": "Native clients consume the public Connect-protocol contract."
+    },
+    {
+      "name": "tenant-connect-query",
+      "text": "Tenants query their own usage via Connect-RPC."
+    },
+    {
+      "name": "public-grpc-product",
+      "text": "The Connect-RPC surface is exposed as a public product primitive."
+    }
   ]
 }

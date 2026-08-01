@@ -237,9 +237,13 @@
     "asyncapi": [
       "contracts/focus-export-internal.asyncapi.yaml"
     ],
-    "proto": [
-      "contracts/cost-allocation-policy-internal.proto"
-    ],
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": [
+        "contracts/cost-allocation-policy-internal.proto"
+      ]
+    },
     "contract_status": "service-local FinOps invoice, FOCUS export, and cost-allocation contract files exist in this package; Rust tests cover local report boundaries only and no portal, export, invoice-render, or OpenCost runtime is claimed"
   },
   "capabilities": [

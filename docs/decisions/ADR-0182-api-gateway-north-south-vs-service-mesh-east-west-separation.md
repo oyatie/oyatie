@@ -6,6 +6,7 @@ date: 2026-05-18
 owner: council-architecture
 supersedes: []
 superseded_by: []
+amended_by: [ADR-0632]
 related: [ADR-0121, ADR-0145, ADR-0148, ADR-0150, ADR-0157, ADR-0183, ADR-0184, ADR-0185, ADR-0186, ADR-0632]
 related_specs:
   - /specs/hyperscaler-architecture-invariants.json

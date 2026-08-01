@@ -86,6 +86,7 @@ enforced_by:
   - cloud-ci/Rust gate packet no-policy-in-code
   - cloud-ci/Rust gate packet cedar-fragment-signature
   - cloud-ci/Rust gate packet cedar-default-deny-coverage
+clarified_by: [ADR-0632]
 ---
 
 # ADR-0246: Policy-Engine Substrate Promotion

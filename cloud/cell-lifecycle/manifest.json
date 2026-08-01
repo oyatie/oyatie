@@ -242,7 +242,11 @@
       "microservices/cell-lifecycle/contracts/openapi.yaml"
     ],
     "asyncapi": [],
-    "proto": [],
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": []
+    },
     "contract_status": "service-local OpenAPI remains planning/scaffold metadata; code-backed tests cover Rust domain/app boundaries only"
   },
   "capabilities": [

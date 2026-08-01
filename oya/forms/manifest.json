@@ -42,9 +42,13 @@
     "asyncapi": [
       "microservices/forms/contracts/asyncapi/forms.asyncapi.yaml"
     ],
-    "proto": [
-      "microservices/forms/contracts/proto/forms.proto"
-    ]
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": [
+        "microservices/forms/contracts/proto/forms.proto"
+      ]
+    }
   },
   "capabilities": [
     {
@@ -125,7 +129,7 @@
   "ips": [
     {
       "id": "IP-001-layer-a-postgres-valkey-meilisearch-clamav-waf-cdn-captcha-iac",
-      "title": "IP-001: Layer-A IaC \u2014 Postgres (Citus) + Valkey + Meilisearch + ClamAV + WAF + CDN + Captcha sidecar",
+      "title": "IP-001: Layer-A IaC — Postgres (Citus) + Valkey + Meilisearch + ClamAV + WAF + CDN + Captcha sidecar",
       "acceptance_status": "ga",
       "file": "microservices/forms/IP-001-layer-a-postgres-valkey-meilisearch-clamav-waf-cdn-captcha-iac.md"
     },
@@ -286,10 +290,10 @@
     }
   ],
   "hyperscaler_inv_coverage": {
-    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
-    "tenant_rate_limit": "INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
-    "reference_signals": "INV-FOUR-REFERENCE-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
-    "error_budget_burn": "INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "reference_signals": "INV-FOUR-REFERENCE-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "audit_chain": {
     "enabled": true,
@@ -341,7 +345,7 @@
     "fedramp",
     "il5"
   ],
-  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; reference_signals: INV-FOUR-REFERENCE-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
+  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; reference_signals: INV-FOUR-REFERENCE-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
   "owner_team": "axis-forms",
   "tier_classification": "microservice-manifested",
   "data_classification": "PII_IDENTIFYING, this field, NORMAL for an inferred-PII field is rejected, INTERNAL_ONLY, AUDIT, PII_QUASI",
@@ -457,9 +461,6 @@
       },
       "asyncapi": {
         "2026-05-21": "microservices/forms/contracts/asyncapi/forms.asyncapi.yaml"
-      },
-      "proto": {
-        "2026-05-21": "microservices/forms/contracts/proto/forms.proto"
       }
     }
   },

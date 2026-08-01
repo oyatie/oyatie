@@ -7,6 +7,7 @@ deciders: council-architecture, axis-foundry, axis-cloud, axis-all-microservices
 owner: council-architecture
 supersedes: []
 superseded_by: []
+amended_by: [ADR-0632]
 related: [ADR-0011, ADR-0037, ADR-0064, ADR-0131, ADR-0145, ADR-0150, ADR-0244, ADR-0250, ADR-0565, ADR-0632]
 related_specs:
   - /specs/microservices/manifest-schema.json

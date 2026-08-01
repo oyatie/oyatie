@@ -57,9 +57,13 @@
     "asyncapi": [
       "microservices/application/contracts/asyncapi/application-events.yaml"
     ],
-    "proto": [
-      "microservices/application/contracts/proto/application.proto"
-    ]
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": [
+        "microservices/application/contracts/proto/application.proto"
+      ]
+    }
   },
   "capabilities": [
     {
@@ -303,10 +307,10 @@
     }
   ],
   "hyperscaler_inv_coverage": {
-    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
-    "tenant_rate_limit": "INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
-    "canonical_signals": "INV-FOUR-CANONICAL-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
-    "error_budget_burn": "INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "canonical_signals": "INV-FOUR-CANONICAL-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "audit_chain": {
     "enabled": true,
@@ -357,7 +361,7 @@
     "fedramp",
     "il5"
   ],
-  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; canonical_signals: INV-FOUR-CANONICAL-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
+  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; canonical_signals: INV-FOUR-CANONICAL-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
   "owner_team": "axis-application",
   "tier_classification": "B2B",
   "data_classification": "INTERNAL_ONLY, AUDIT, PII_QUASI",
@@ -466,9 +470,6 @@
       },
       "asyncapi": {
         "2026-05-21": "microservices/application/contracts/asyncapi/application-events.yaml"
-      },
-      "proto": {
-        "2026-05-21": "microservices/application/contracts/proto/application.proto"
       }
     }
   },

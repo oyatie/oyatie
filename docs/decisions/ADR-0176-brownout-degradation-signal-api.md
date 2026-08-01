@@ -8,6 +8,7 @@ owners:
   - axis-cloud
 supersedes: []
 superseded_by: []
+amended_by: [ADR-0632]
 related:
   - ADR-0128-hyperscaler-architecture-invariants.md
   - ADR-0009-cell-architecture-per-tenant-per-region.md

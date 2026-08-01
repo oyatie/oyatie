@@ -47,9 +47,13 @@
     "asyncapi": [
       "microservices/workflow-studio/contracts/asyncapi/workflow-studio-events.yaml"
     ],
-    "proto": [
-      "microservices/workflow-studio/contracts/proto/workflow-studio.proto"
-    ]
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": [
+        "microservices/workflow-studio/contracts/proto/workflow-studio.proto"
+      ]
+    }
   },
   "capabilities": [
     {
@@ -112,43 +116,43 @@
   "ips": [
     {
       "id": "IP-001-layer-a-cdn-waf-postgres-valkey-ws-gateway-iac",
-      "title": "IP-001: Layer-A IaC \u2014 CDN + WAF + Postgres (Citus) + Valkey + WebSocket gateway",
+      "title": "IP-001: Layer-A IaC — CDN + WAF + Postgres (Citus) + Valkey + WebSocket gateway",
       "acceptance_status": "ga",
       "file": "microservices/workflow-studio/IP-001-layer-a-cdn-waf-postgres-valkey-ws-gateway-iac.md"
     },
     {
       "id": "IP-002-visual-canvas-kernel-domain",
-      "title": "IP-002: visual-canvas \u2014 kernel + domain crates",
+      "title": "IP-002: visual-canvas — kernel + domain crates",
       "acceptance_status": "ga",
       "file": "microservices/workflow-studio/IP-002-visual-canvas-kernel-domain.md"
     },
     {
       "id": "IP-003-dsl-emitter-loader-kernel-domain",
-      "title": "IP-003: dsl-emitter + dsl-loader \u2014 kernel + domain",
+      "title": "IP-003: dsl-emitter + dsl-loader — kernel + domain",
       "acceptance_status": "ga",
       "file": "microservices/workflow-studio/IP-003-dsl-emitter-loader-kernel-domain.md"
     },
     {
       "id": "IP-004-dsl-emitter-loader-usecase-api-adapter-sdk",
-      "title": "IP-004: dsl-emitter + dsl-loader \u2014 usecase + api + adapter + sdk",
+      "title": "IP-004: dsl-emitter + dsl-loader — usecase + api + adapter + sdk",
       "acceptance_status": "ga",
       "file": "microservices/workflow-studio/IP-004-dsl-emitter-loader-usecase-api-adapter-sdk.md"
     },
     {
       "id": "IP-005-collab-crdt-kernel-domain-adapter",
-      "title": "IP-005: collab-crdt \u2014 kernel + domain + usecase + api + adapter + adapter-valkey",
+      "title": "IP-005: collab-crdt — kernel + domain + usecase + api + adapter + adapter-valkey",
       "acceptance_status": "ga",
       "file": "microservices/workflow-studio/IP-005-collab-crdt-kernel-domain-adapter.md"
     },
     {
       "id": "IP-006-collab-crdt-worker-sdk",
-      "title": "IP-006: collab-crdt \u2014 worker + sdk (WebSocket gateway long-lived process + tenant SDK)",
+      "title": "IP-006: collab-crdt — worker + sdk (WebSocket gateway long-lived process + tenant SDK)",
       "acceptance_status": "ga",
       "file": "microservices/workflow-studio/IP-006-collab-crdt-worker-sdk.md"
     },
     {
       "id": "IP-007-node-library-registry-full",
-      "title": "IP-007: node-library-registry \u2014 kernel through app",
+      "title": "IP-007: node-library-registry — kernel through app",
       "acceptance_status": "ga",
       "file": "microservices/workflow-studio/IP-007-node-library-registry-full.md"
     },
@@ -160,25 +164,25 @@
     },
     {
       "id": "IP-009-license-gate-cedar-full",
-      "title": "IP-009: license-gate-cedar \u2014 full BC (7 layers)",
+      "title": "IP-009: license-gate-cedar — full BC (7 layers)",
       "acceptance_status": "ga",
       "file": "microservices/workflow-studio/IP-009-license-gate-cedar-full.md"
     },
     {
       "id": "IP-010-jurisdiction-overlay-renderer-full",
-      "title": "IP-010: jurisdiction-overlay-renderer \u2014 full BC (5 layers)",
+      "title": "IP-010: jurisdiction-overlay-renderer — full BC (5 layers)",
       "acceptance_status": "ga",
       "file": "microservices/workflow-studio/IP-010-jurisdiction-overlay-renderer-full.md"
     },
     {
       "id": "IP-011-replay-debugger-frontend-full",
-      "title": "IP-011: replay-debugger-frontend \u2014 full BC (6 layers)",
+      "title": "IP-011: replay-debugger-frontend — full BC (6 layers)",
       "acceptance_status": "ga",
       "file": "microservices/workflow-studio/IP-011-replay-debugger-frontend-full.md"
     },
     {
       "id": "IP-012-visual-canvas-leptos-wasm-rest-sdk-app",
-      "title": "IP-012: visual-canvas \u2014 usecase + api + adapter + adapter-leptos-wasm + rest + sdk + app",
+      "title": "IP-012: visual-canvas — usecase + api + adapter + adapter-leptos-wasm + rest + sdk + app",
       "acceptance_status": "ga",
       "file": "microservices/workflow-studio/IP-012-visual-canvas-leptos-wasm-rest-sdk-app.md"
     },
@@ -293,10 +297,10 @@
     }
   ],
   "hyperscaler_inv_coverage": {
-    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
-    "tenant_rate_limit": "INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
-    "primary_signals": "INV-FOUR-reference-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
-    "error_budget_burn": "INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "primary_signals": "INV-FOUR-reference-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "audit_chain": {
     "enabled": true,
@@ -364,7 +368,7 @@
     "fedramp",
     "il5"
   ],
-  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; primary_signals: INV-FOUR-reference-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
+  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; primary_signals: INV-FOUR-reference-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
   "owner_team": "axis-workflow-studio",
   "data_classification": "PII_IDENTIFYING, this field, INTERNAL_ONLY, AUDIT, PII_QUASI",
   "compliance_packs_applicable": [
@@ -480,9 +484,6 @@
       },
       "asyncapi": {
         "2026-05-21": "microservices/workflow-studio/contracts/asyncapi/workflow-studio-events.yaml"
-      },
-      "proto": {
-        "2026-05-21": "microservices/workflow-studio/contracts/proto/workflow-studio.proto"
       }
     }
   },

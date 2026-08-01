@@ -244,7 +244,11 @@
     "asyncapi": [
       "microservices/cell-rebalancer/contracts/asyncapi.yaml"
     ],
-    "proto": [],
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": []
+    },
     "contract_status": "service-local contracts are retained as planning scaffolds; no transport implementation or broker runtime is code-backed"
   },
   "capabilities": [

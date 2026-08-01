@@ -115,6 +115,38 @@
           },
           "description": "Rust-native shared contract source paths that generate or validate public REST/OpenAPI, internal-only gRPC/Protobuf, and event/AsyncAPI projections. GraphQL is not an owned contract surface."
         },
+        "contract_status": {
+          "type": "string",
+          "description": "Compatibility metadata describing whether listed contract files are live, code-backed, or planning-only; it is not a protocol carrier."
+        },
+        "service_local_contract_scaffolds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Compatibility inventory of service-local planning/scaffold contract paths; it is not a public protocol carrier or runtime claim."
+        },
+        "convention_docs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Compatibility inventory of contract convention documentation."
+        },
+        "trait": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Compatibility inventory of protocol-neutral Rust trait contract documentation."
+        },
+        "sdk": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Compatibility inventory of SDK contract documentation; it does not authorize a public RPC carrier."
+        },
         "internal_grpc": {
           "description": "Optional internal-only gRPC over HTTP/2 contract sources using proto3. Presence declares capability metadata only; it does not claim the service or generated runtime is live.",
           "type": "object",

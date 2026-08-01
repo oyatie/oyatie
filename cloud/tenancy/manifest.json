@@ -48,9 +48,13 @@
     "asyncapi": [
       "microservices/tenancy/contracts/asyncapi/tenant-events.yaml"
     ],
-    "proto": [
-      "microservices/tenancy/contracts/proto/tenancy.proto"
-    ]
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": [
+        "microservices/tenancy/contracts/proto/tenancy.proto"
+      ]
+    }
   },
   "capabilities": [
     {
@@ -93,7 +97,7 @@
     },
     {
       "name": "tenancy-latency",
-      "target": "\u2264",
+      "target": "≤",
       "sli": "sum(rate(http_request_duration_seconds_bucket{job=\"oya-tenancy-tenant-lifecycle-rest\",route=\"/api/v1/tenants/.+\",le=\"0.005\"}[5m]))",
       "file": "tenancy/observability/slos/latency.openslo.yaml"
     }
@@ -272,10 +276,10 @@
     }
   ],
   "hyperscaler_inv_coverage": {
-    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
-    "tenant_rate_limit": "INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
-    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
-    "error_budget_burn": "INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "audit_chain": {
     "enabled": true,
@@ -341,7 +345,7 @@
     "fedramp-high",
     "eu-ai-act"
   ],
-  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; sre_signal_set: four-primary-service-signals \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles anchors the external control pattern for principals; 2: Google Cloud service agents provides a second independent hyperscaler pattern for principals",
+  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; sre_signal_set: four-primary-service-signals → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles anchors the external control pattern for principals; 2: Google Cloud service agents provides a second independent hyperscaler pattern for principals",
   "owner_team": "axis-tenancy",
   "data_classification": "INTERNAL_ONLY, AUDIT, PII_QUASI",
   "compliance_packs_applicable": [
@@ -497,11 +501,6 @@
         "2026-05-21": "microservices/tenancy/contracts/asyncapi/tenant-events.yaml",
         "2026-02-21": "microservices/tenancy/contracts/asyncapi/tenant-events.yaml",
         "2025-11-21": "microservices/tenancy/contracts/asyncapi/tenant-events.yaml"
-      },
-      "proto": {
-        "2026-05-21": "microservices/tenancy/contracts/proto/tenancy.proto",
-        "2026-02-21": "microservices/tenancy/contracts/proto/tenancy.proto",
-        "2025-11-21": "microservices/tenancy/contracts/proto/tenancy.proto"
       }
     }
   },

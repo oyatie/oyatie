@@ -54,9 +54,13 @@
     "asyncapi": [
       "microservices/calendar/contracts/asyncapi/calendar-events.yaml"
     ],
-    "proto": [
-      "microservices/calendar/contracts/proto/calendar.proto"
-    ]
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": [
+        "microservices/calendar/contracts/proto/calendar.proto"
+      ]
+    }
   },
   "capabilities": [
     {
@@ -137,67 +141,67 @@
   "ips": [
     {
       "id": "IP-001-iac-bootstrap",
-      "title": "IP-001: IaC bootstrap \u2014 Helm + Kustomize for Radicale + Postgres + Valkey + SabreDAV (us-healthcare)",
+      "title": "IP-001: IaC bootstrap — Helm + Kustomize for Radicale + Postgres + Valkey + SabreDAV (us-healthcare)",
       "acceptance_status": "ga",
       "file": "microservices/calendar/IP-001-iac-bootstrap.md"
     },
     {
       "id": "IP-002-event-store-kernel",
-      "title": "IP-002: event-store kernel \u2014 CalendarEvent + Attendee + RetentionPolicyRef + LegalHoldRef + port traits",
+      "title": "IP-002: event-store kernel — CalendarEvent + Attendee + RetentionPolicyRef + LegalHoldRef + port traits",
       "acceptance_status": "ga",
       "file": "microservices/calendar/IP-002-event-store-kernel.md"
     },
     {
       "id": "IP-003-event-store-domain-and-usecase",
-      "title": "IP-003: event-store domain + usecase \u2014 invariants and orchestrators",
+      "title": "IP-003: event-store domain + usecase — invariants and orchestrators",
       "acceptance_status": "ga",
       "file": "microservices/calendar/IP-003-event-store-domain-and-usecase.md"
     },
     {
       "id": "IP-004-event-store-adapter-postgres",
-      "title": "IP-004: event-store adapter-postgres \u2014 per-tenant RLS + Tenant-DEK envelope",
+      "title": "IP-004: event-store adapter-postgres — per-tenant RLS + Tenant-DEK envelope",
       "acceptance_status": "ga",
       "file": "microservices/calendar/IP-004-event-store-adapter-postgres.md"
     },
     {
       "id": "IP-005-recurrence-engine",
-      "title": "IP-005: recurrence-engine \u2014 kernel + domain + usecase + adapter (`rrule-rs` 0.13.x)",
+      "title": "IP-005: recurrence-engine — kernel + domain + usecase + adapter (`rrule-rs` 0.13.x)",
       "acceptance_status": "ga",
       "file": "microservices/calendar/IP-005-recurrence-engine.md"
     },
     {
       "id": "IP-006-availability-resolver",
-      "title": "IP-006: availability-resolver \u2014 kernel + domain + usecase + adapter-valkey + rest",
+      "title": "IP-006: availability-resolver — kernel + domain + usecase + adapter-valkey + rest",
       "acceptance_status": "ga",
       "file": "microservices/calendar/IP-006-availability-resolver.md"
     },
     {
       "id": "IP-007-room-booking",
-      "title": "IP-007: room-booking \u2014 kernel + domain + usecase + adapter + rest",
+      "title": "IP-007: room-booking — kernel + domain + usecase + adapter + rest",
       "acceptance_status": "ga",
       "file": "microservices/calendar/IP-007-room-booking.md"
     },
     {
       "id": "IP-008-invitation-flow",
-      "title": "IP-008: invitation-flow \u2014 kernel + domain + usecase + adapter + worker (RFC 5546 + RFC 6047 + RFC 6638)",
+      "title": "IP-008: invitation-flow — kernel + domain + usecase + adapter + worker (RFC 5546 + RFC 6047 + RFC 6638)",
       "acceptance_status": "ga",
       "file": "microservices/calendar/IP-008-invitation-flow.md"
     },
     {
       "id": "IP-009-ics-import-export-and-caldav",
-      "title": "IP-009: ics-import-export \u2014 kernel + domain + usecase + adapter-icalendar + adapter-caldav-radicale + adapter-caldav-sabredav",
+      "title": "IP-009: ics-import-export — kernel + domain + usecase + adapter-icalendar + adapter-caldav-radicale + adapter-caldav-sabredav",
       "acceptance_status": "ga",
       "file": "microservices/calendar/IP-009-ics-import-export-and-caldav.md"
     },
     {
       "id": "IP-010-tzdb-refresh-worker",
-      "title": "IP-010: tzdb-refresh-worker \u2014 CronJob per ADR-CAL-0004",
+      "title": "IP-010: tzdb-refresh-worker — CronJob per ADR-CAL-0004",
       "acceptance_status": "ga",
       "file": "microservices/calendar/IP-010-tzdb-refresh-worker.md"
     },
     {
       "id": "IP-011-contracts-openapi-asyncapi-proto",
-      "title": "IP-011: contracts \u2014 OpenAPI 3.2.0 + AsyncAPI 3.1.0 + proto3 finalisation",
+      "title": "IP-011: contracts — OpenAPI 3.2.0 + AsyncAPI 3.1.0 + proto3 finalisation",
       "acceptance_status": "ga",
       "file": "microservices/calendar/IP-011-contracts-openapi-asyncapi-proto.md"
     },
@@ -209,13 +213,13 @@
     },
     {
       "id": "IP-013-workflow-handoff",
-      "title": "IP-013: Workflow + Ontology handoff (cross-\u00b5service integration)",
+      "title": "IP-013: Workflow + Ontology handoff (cross-µservice integration)",
       "acceptance_status": "ga",
       "file": "microservices/calendar/IP-013-workflow-handoff.md"
     },
     {
       "id": "IP-014-hg-calendar-authority-cohesion",
-      "title": "IP-014: HG-CALENDAR authority cohesion \u2014 hyperscaler-maturity claim wiring",
+      "title": "IP-014: HG-CALENDAR authority cohesion — hyperscaler-maturity claim wiring",
       "acceptance_status": "ga",
       "file": "microservices/calendar/IP-014-hg-calendar-authority-cohesion.md"
     },
@@ -300,10 +304,10 @@
     }
   ],
   "hyperscaler_inv_coverage": {
-    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
-    "tenant_rate_limit": "INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
-    "baseline_signals": "INV-FOUR-baseline-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
-    "error_budget_burn": "INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "baseline_signals": "INV-FOUR-baseline-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "audit_chain": {
     "enabled": true,
@@ -384,7 +388,7 @@
     "fedramp",
     "il5"
   ],
-  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; baseline_signals: INV-FOUR-baseline-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
+  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; baseline_signals: INV-FOUR-baseline-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
   "owner_team": "axis-calendar",
   "tier_classification": "tenant-facing",
   "data_classification": "INTERNAL_ONLY, AUDIT, PII_QUASI",
@@ -495,9 +499,6 @@
       },
       "asyncapi": {
         "2026-05-21": "microservices/calendar/contracts/asyncapi/calendar-events.yaml"
-      },
-      "proto": {
-        "2026-05-21": "microservices/calendar/contracts/proto/calendar.proto"
       }
     }
   },
