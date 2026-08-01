@@ -10,4 +10,4 @@ spec:
   owner: axis-compliance
   system: oyatie-platform
   definition:
-    $text: https://github.com/oyadev/oyatie/blob/main/microservices/compliance/contracts/asyncapi.yaml
+    $text: https://github.com/oyadev/oyatie/blob/main/oya/compliance/contracts/asyncapi.yaml

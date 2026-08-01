@@ -423,6 +423,133 @@ fn move_manifest_authority_matches_fail_closed_resolver_and_adr_0616() {
                 .contains("ADR-0616 supersedes ADR-0596's committed frozen-reference rule"),
         "ADR-0614 must describe the shipped fail-closed resolver and current ADR-0616 posture"
     );
+    for stale in [
+        "is the firewall ratchet's FROZEN reference and the LAST committed generated",
+        "The emitter reads it as the committed blob",
+        "src/main.rs:737",
+    ] {
+        assert!(
+            !frozen_reference.contains(stale),
+            "ADR-0616 contains stale live-baseline claim {stale:?}"
+        );
+    }
+    assert!(
+        frozen_reference.contains("Before this decision")
+            && frozen_reference
+                .contains("regenerates the baseline twice from the immutable merge-base source")
+            && frozen_reference.contains("resolve_merge_base_baseline_snapshot")
+            && frozen_reference.contains("provides no committed-face")
+            && frozen_reference.contains("`git show` fallback"),
+        "ADR-0616 must distinguish historical committed state from immutable-source regeneration"
+    );
+}
+
+/// ADR-0565 is the one-way zero-GraphQL authority. The two older API ADRs may retain only
+/// explicitly historical/rejected discussion and must expose normalized reciprocal edges.
+#[test]
+fn zero_graphql_authority_has_reciprocal_edges_and_no_live_surface() {
+    let root = repo_root();
+    let zero_graphql = fs::read_to_string(
+        root.join("docs/decisions/ADR-0565-zero-graphql-in-the-owned-api-surface.md"),
+    )
+    .expect("read ADR-0565");
+    let network = fs::read_to_string(
+        root.join("docs/decisions/ADR-0253-network-topology-edge-service-mesh.md"),
+    )
+    .expect("read ADR-0253");
+    let versioning =
+        fs::read_to_string(root.join("docs/decisions/ADR-0258-api-versioning-model.md"))
+            .expect("read ADR-0258");
+
+    assert!(
+        zero_graphql.contains("amends: [ADR-0253, ADR-0258]")
+            && network.contains("amended_by:\n  - ADR-0565\n")
+            && versioning.contains("amended_by: [ADR-0565]"),
+        "ADR-0565, ADR-0253, and ADR-0258 must carry normalized reciprocal amendment edges"
+    );
+    for stale in [
+        "D-14 (OpenAPI 3.2 + GraphQL Fed + gRPC + AsyncAPI)",
+        "GraphQL is a fraction of the public surface",
+        "the GraphQL deprecation directive remains available within GraphQL surfaces",
+        "public REST/gRPC/AsyncAPI/~~GraphQL~~ surface",
+    ] {
+        assert!(
+            !network.contains(stale) && !versioning.contains(stale),
+            "older API authority retains live GraphQL claim {stale:?}"
+        );
+    }
+    assert!(
+        network.contains("historical rejected context only")
+            && versioning.contains("GraphQL is historical rejected context only")
+            && versioning.contains(
+                "GraphQL Federation as the version-management substrate (historical, rejected)"
+            ),
+        "surviving GraphQL prose must be explicitly historical or rejected"
+    );
+}
+
+/// W0-A renamed these two developer-SDK IP identities. Their file bindings must follow the same
+/// canonical move instead of silently retaining nonexistent microservices paths.
+#[test]
+fn developer_sdk_renamed_ip_references_resolve() {
+    let root = repo_root();
+    let manifest = load_json(&root.join("oya/developer-sdk/manifest.json"));
+    let ips = manifest["ips"].as_array().expect("developer-sdk ips array");
+
+    for (id, expected_path) in [
+        (
+            "IP-001-layer-a-postgres-openbao-iac",
+            "oya/developer-sdk/IPs/IP-ADR-0339-Shared-IaC-Modules.md",
+        ),
+        (
+            "IP-008-dev-portal-first-party-module",
+            "oya/developer-sdk/decisions/ADR-SDK-0007-developer-portal-as-first-party-module.md",
+        ),
+    ] {
+        let row = ips
+            .iter()
+            .find(|row| row["id"].as_str() == Some(id))
+            .unwrap_or_else(|| panic!("developer-sdk IP row {id}"));
+        assert_eq!(row["file"].as_str(), Some(expected_path));
+        assert!(
+            root.join(expected_path).is_file(),
+            "developer-sdk IP {id} must resolve to {expected_path}"
+        );
+    }
+}
+
+/// Legacy Backstage-shaped records are bounded one-way import data, but their source URLs must
+/// still resolve to the canonical post-reorg compliance artifacts.
+#[test]
+fn compliance_catalog_import_urls_resolve_to_canonical_paths() {
+    let root = repo_root();
+    let prefix = "https://github.com/oyadev/oyatie/blob/main/";
+    for (catalog_path, canonical_path) in [
+        (
+            "oya/compliance/catalog/api-asyncapi.yaml",
+            "oya/compliance/contracts/asyncapi.yaml",
+        ),
+        (
+            "oya/compliance/catalog/api-rest.yaml",
+            "oya/compliance/contracts/openapi.yaml",
+        ),
+        (
+            "oya/compliance/catalog/component-info.yaml",
+            "oya/compliance/manifest.json",
+        ),
+    ] {
+        let catalog = fs::read_to_string(root.join(catalog_path))
+            .unwrap_or_else(|error| panic!("read {catalog_path}: {error}"));
+        let url = format!("{prefix}{canonical_path}");
+        assert!(
+            catalog.contains(&url) && !catalog.contains("microservices/compliance/"),
+            "{catalog_path} must reference canonical compliance path {canonical_path}"
+        );
+        assert!(
+            root.join(canonical_path).is_file(),
+            "catalog reference must resolve to {canonical_path}"
+        );
+    }
 }
 
 #[test]
