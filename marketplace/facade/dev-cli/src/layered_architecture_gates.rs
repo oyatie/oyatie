@@ -17,8 +17,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
-use oya_check_client_stack_discipline as client_check;
-use oya_check_layered_architecture_discipline as layered_check;
+use check_client_stack_discipline as client_check;
+use check_layered_architecture_discipline as layered_check;
 
 /// Canonical service roots scanned when no explicit `--microservices-root` is given.
 const DEFAULT_SERVICE_ROOTS: &[&str] = &["cloud", "oya", "microservices"];

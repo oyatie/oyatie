@@ -2199,7 +2199,7 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
         // lane fails fast on any document that still mentions a
         // retired term. Lane id:
         // `oya-governance-retired-vocabulary`. Kernel:
-        // `oya-check-retired-vocabulary` (port-in-kernel, ADR-0056).
+        // `check-retired-vocabulary` (port-in-kernel, ADR-0056).
         (Some("validate"), Some("retired-vocabulary")) => {
             match crate::parse_retired_vocabulary_validate_args(args.collect()) {
                 Ok(args) => match crate::validate_retired_vocabulary_gate(args) {
@@ -2232,7 +2232,7 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
         // job that does not exist, or GitHub live enforcement drifts
         // behind the canonical repo policy. Lane id:
         // `oya-governance-protection-context-match`. Kernel:
-        // `oya-check-protection-context-match` (port-in-kernel,
+        // `check-protection-context-match` (port-in-kernel,
         // ADR-0056).
         (Some("validate"), Some("protection-context-match")) => {
             match crate::parse_protection_context_match_validate_args(args.collect()) {
@@ -2262,7 +2262,7 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
         // local-developer entry point is wired consistently across
         // Done-Definition, dev-CLI dispatch source, and the local
         // pre-push git hook. Lane id: `oya-governance-pre-push`.
-        // Kernel: `oya-check-pre-push` (port-in-kernel, ADR-0056).
+        // Kernel: `check-pre-push` (port-in-kernel, ADR-0056).
         (Some("validate"), Some("pre-push-contract")) => {
             match crate::parse_pre_push_contract_validate_args(args.collect()) {
                 Ok(args) => match crate::validate_pre_push_contract_gate(args) {

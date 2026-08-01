@@ -1,0 +1,27 @@
+[package]
+name = "check-iac-tier-discipline"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# ADR-0202 advisory gate. Enforces the three-tier boundary table:
+#  Tier A (ArgoCD) owns app manifests only
+#  Tier B (OpenTofu) owns cloud-side resources only
+#  Tier C (Cluster API) owns cluster lifecycle only
+#
+# Detects boundary crossings: OpenTofu modules that declare per-pod
+# manifests; ArgoCD Applications that reference cloud-side
+# primitives directly; residual Terraform usage after the
+# migration window.
+
+[dependencies]
+
+[lib]
+name = "check_iac_tier_discipline"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

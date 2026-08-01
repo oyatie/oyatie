@@ -1,5 +1,5 @@
 //! `oya gate validate openapi-rest-route-parity` — runtime for the
-//! oya-check-openapi-rest-route-parity kernel. Walks REST crate source files
+//! check-openapi-rest-route-parity kernel. Walks REST crate source files
 //! + OpenAPI contracts, builds RouteParityInputs, calls validate().
 
 use std::collections::BTreeSet;
@@ -7,7 +7,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::Instant;
 
-use oya_check_openapi_rest_route_parity::{
+use check_openapi_rest_route_parity::{
     RouteParityInputs, ValidationReport, Violation, validate,
 };
 

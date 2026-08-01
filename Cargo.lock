@@ -1134,6 +1134,244 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "613afe47fcd5fac7ccf1db93babcb082c5994d996f20b8b159f2ad1658eb5724"
 
 [[package]]
+name = "check-a11y-discipline"
+version = "0.1.0"
+
+[[package]]
+name = "check-active-artifact-contract"
+version = "0.1.0"
+
+[[package]]
+name = "check-adr-citation"
+version = "0.1.0"
+
+[[package]]
+name = "check-aspirational-enforcement"
+version = "0.1.0"
+
+[[package]]
+name = "check-audit-chain-seal-coverage"
+version = "0.1.0"
+
+[[package]]
+name = "check-authority-cohesion"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
+name = "check-authz-tier-discipline"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "check-benchmark"
+version = "0.1.0"
+
+[[package]]
+name = "check-cedar-fragment-coverage"
+version = "0.1.0"
+
+[[package]]
+name = "check-client-stack-discipline"
+version = "0.1.0"
+
+[[package]]
+name = "check-codeowners-mirror"
+version = "0.1.0"
+
+[[package]]
+name = "check-cohesion"
+version = "0.1.0"
+
+[[package]]
+name = "check-cursor-pagination-coverage"
+version = "0.1.0"
+
+[[package]]
+name = "check-data-class"
+version = "0.1.0"
+
+[[package]]
+name = "check-doc-catalog"
+version = "0.1.0"
+
+[[package]]
+name = "check-documentation-system"
+version = "0.1.0"
+
+[[package]]
+name = "check-event-schema-versioning"
+version = "0.1.0"
+
+[[package]]
+name = "check-glossary-coverage"
+version = "0.1.0"
+
+[[package]]
+name = "check-glossary-vocabulary"
+version = "0.1.0"
+
+[[package]]
+name = "check-high-risk-auto-decision-refusal"
+version = "0.1.0"
+
+[[package]]
+name = "check-honest-claims"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
+name = "check-iac-tier-discipline"
+version = "0.1.0"
+
+[[package]]
+name = "check-id-discipline"
+version = "0.1.0"
+
+[[package]]
+name = "check-idempotency-key-coverage"
+version = "0.1.0"
+
+[[package]]
+name = "check-image-signing-discipline"
+version = "0.1.0"
+
+[[package]]
+name = "check-layered-architecture-discipline"
+version = "0.1.0"
+
+[[package]]
+name = "check-metric-cardinality"
+version = "0.1.0"
+
+[[package]]
+name = "check-mobile-native"
+version = "0.1.0"
+
+[[package]]
+name = "check-no-grouping"
+version = "0.1.0"
+
+[[package]]
+name = "check-olap-tier-discipline"
+version = "0.1.0"
+
+[[package]]
+name = "check-ontology-projection-coverage"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "check-openapi-rest-route-parity"
+version = "0.1.0"
+
+[[package]]
+name = "check-otel-trace-propagation"
+version = "0.1.0"
+
+[[package]]
+name = "check-perf-budget"
+version = "0.1.0"
+
+[[package]]
+name = "check-placeholder-debt"
+version = "0.1.0"
+
+[[package]]
+name = "check-pr-traceability"
+version = "0.1.0"
+
+[[package]]
+name = "check-pre-push"
+version = "0.1.0"
+
+[[package]]
+name = "check-protection-context-match"
+version = "0.1.0"
+
+[[package]]
+name = "check-quality-lane"
+version = "0.1.0"
+
+[[package]]
+name = "check-raci-coverage"
+version = "0.1.0"
+
+[[package]]
+name = "check-readme-coverage"
+version = "0.1.0"
+
+[[package]]
+name = "check-release-pack"
+version = "0.1.0"
+
+[[package]]
+name = "check-retired-vocabulary"
+version = "0.1.0"
+
+[[package]]
+name = "check-rpo-rto-coverage"
+version = "0.1.0"
+
+[[package]]
+name = "check-runbook-freshness"
+version = "0.1.0"
+
+[[package]]
+name = "check-runbook-index"
+version = "0.1.0"
+
+[[package]]
+name = "check-shardability"
+version = "0.1.0"
+
+[[package]]
+name = "check-slsa-l3-evidence-grounded"
+version = "0.1.0"
+
+[[package]]
+name = "check-statelessness"
+version = "0.1.0"
+
+[[package]]
+name = "check-supply-chain"
+version = "0.1.0"
+
+[[package]]
+name = "check-tenant-cost-labels-coverage"
+version = "0.1.0"
+
+[[package]]
+name = "check-typescript-workspace"
+version = "0.1.0"
+
+[[package]]
+name = "check-vector-store-discipline"
+version = "0.1.0"
+
+[[package]]
+name = "check-vendor-lockin-discipline"
+version = "0.1.0"
+
+[[package]]
+name = "check-vendor-recency"
+version = "0.1.0"
+
+[[package]]
+name = "check-wasm-runtime-discipline"
+version = "0.1.0"
+
+[[package]]
 name = "chrono"
 version = "0.4.44"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5881,6 +6119,62 @@ version = "0.1.0"
 dependencies = [
  "audit-chain-domain",
  "audit-file-adapter",
+ "check-a11y-discipline",
+ "check-active-artifact-contract",
+ "check-adr-citation",
+ "check-aspirational-enforcement",
+ "check-audit-chain-seal-coverage",
+ "check-authority-cohesion",
+ "check-authz-tier-discipline",
+ "check-benchmark",
+ "check-cedar-fragment-coverage",
+ "check-client-stack-discipline",
+ "check-codeowners-mirror",
+ "check-cohesion",
+ "check-cursor-pagination-coverage",
+ "check-data-class",
+ "check-doc-catalog",
+ "check-documentation-system",
+ "check-event-schema-versioning",
+ "check-glossary-coverage",
+ "check-glossary-vocabulary",
+ "check-high-risk-auto-decision-refusal",
+ "check-honest-claims",
+ "check-iac-tier-discipline",
+ "check-id-discipline",
+ "check-idempotency-key-coverage",
+ "check-image-signing-discipline",
+ "check-layered-architecture-discipline",
+ "check-metric-cardinality",
+ "check-mobile-native",
+ "check-no-grouping",
+ "check-olap-tier-discipline",
+ "check-ontology-projection-coverage",
+ "check-openapi-rest-route-parity",
+ "check-otel-trace-propagation",
+ "check-perf-budget",
+ "check-placeholder-debt",
+ "check-pr-traceability",
+ "check-pre-push",
+ "check-protection-context-match",
+ "check-quality-lane",
+ "check-raci-coverage",
+ "check-readme-coverage",
+ "check-release-pack",
+ "check-retired-vocabulary",
+ "check-rpo-rto-coverage",
+ "check-runbook-freshness",
+ "check-runbook-index",
+ "check-shardability",
+ "check-slsa-l3-evidence-grounded",
+ "check-statelessness",
+ "check-supply-chain",
+ "check-tenant-cost-labels-coverage",
+ "check-typescript-workspace",
+ "check-vector-store-discipline",
+ "check-vendor-lockin-discipline",
+ "check-vendor-recency",
+ "check-wasm-runtime-discipline",
  "ci-generated-artifact-freshness",
  "intelligence-api-semver-domain",
  "intelligence-cargo-prefix-domain",
@@ -5892,73 +6186,17 @@ dependencies = [
  "messaging-domain",
  "messaging-file-adapter",
  "oya-application-app",
- "oya-check-a11y-discipline",
- "oya-check-active-artifact-contract",
- "oya-check-adr-citation",
  "oya-check-adr-index",
- "oya-check-aspirational-enforcement",
- "oya-check-audit-chain-seal-coverage",
- "oya-check-authority-cohesion",
- "oya-check-authz-tier-discipline",
  "oya-check-backup-retention-discipline",
- "oya-check-benchmark",
  "oya-check-brand-residue",
- "oya-check-cedar-fragment-coverage",
  "oya-check-claim-ceiling",
- "oya-check-client-stack-discipline",
- "oya-check-codeowners-mirror",
- "oya-check-cohesion",
  "oya-check-compliance-evidence-coverage",
- "oya-check-cursor-pagination-coverage",
- "oya-check-data-class",
  "oya-check-dependency-seam",
  "oya-check-doc-axis",
- "oya-check-doc-catalog",
- "oya-check-documentation-system",
- "oya-check-event-schema-versioning",
- "oya-check-glossary-coverage",
- "oya-check-glossary-vocabulary",
- "oya-check-high-risk-auto-decision-refusal",
- "oya-check-honest-claims",
  "oya-check-i18n-coverage",
- "oya-check-iac-tier-discipline",
- "oya-check-id-discipline",
- "oya-check-idempotency-key-coverage",
- "oya-check-image-signing-discipline",
- "oya-check-layered-architecture-discipline",
  "oya-check-license-policy",
- "oya-check-metric-cardinality",
- "oya-check-mobile-native",
- "oya-check-no-grouping",
- "oya-check-olap-tier-discipline",
- "oya-check-ontology-projection-coverage",
- "oya-check-openapi-rest-route-parity",
- "oya-check-otel-trace-propagation",
- "oya-check-perf-budget",
- "oya-check-placeholder-debt",
- "oya-check-pr-traceability",
- "oya-check-pre-push",
- "oya-check-protection-context-match",
- "oya-check-quality-lane",
- "oya-check-raci-coverage",
- "oya-check-readme-coverage",
  "oya-check-realtime-transport-tier",
- "oya-check-release-pack",
- "oya-check-retired-vocabulary",
- "oya-check-rpo-rto-coverage",
- "oya-check-runbook-freshness",
- "oya-check-runbook-index",
- "oya-check-shardability",
  "oya-check-slo-coverage",
- "oya-check-slsa-l3-evidence-grounded",
- "oya-check-statelessness",
- "oya-check-supply-chain",
- "oya-check-tenant-cost-labels-coverage",
- "oya-check-typescript-workspace",
- "oya-check-vector-store-discipline",
- "oya-check-vendor-lockin-discipline",
- "oya-check-vendor-recency",
- "oya-check-wasm-runtime-discipline",
  "oya-data-boundary-kernel",
  "oya-governance-banned-primitives-kernel",
  "oya-governance-gate-catalog-domain",
@@ -6879,18 +7117,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-check-a11y-discipline"
-version = "0.1.0"
-
-[[package]]
-name = "oya-check-active-artifact-contract"
-version = "0.1.0"
-
-[[package]]
-name = "oya-check-adr-citation"
-version = "0.1.0"
-
-[[package]]
 name = "oya-check-adr-index"
 version = "0.1.0"
 dependencies = [
@@ -6902,38 +7128,11 @@ name = "oya-check-adr-placeholders"
 version = "0.1.0"
 
 [[package]]
-name = "oya-check-aspirational-enforcement"
-version = "0.1.0"
-
-[[package]]
-name = "oya-check-audit-chain-seal-coverage"
-version = "0.1.0"
-
-[[package]]
-name = "oya-check-authority-cohesion"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "oya-check-authz-tier-discipline"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
-]
-
-[[package]]
 name = "oya-check-backup-retention-discipline"
 version = "0.1.0"
 dependencies = [
  "oya-shared-backup-kernel",
 ]
-
-[[package]]
-name = "oya-check-benchmark"
-version = "0.1.0"
 
 [[package]]
 name = "oya-check-brand-residue"
@@ -6943,27 +7142,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-check-cedar-fragment-coverage"
-version = "0.1.0"
-
-[[package]]
 name = "oya-check-claim-ceiling"
 version = "0.1.0"
 dependencies = [
  "intelligence-catalog-domain",
 ]
-
-[[package]]
-name = "oya-check-client-stack-discipline"
-version = "0.1.0"
-
-[[package]]
-name = "oya-check-codeowners-mirror"
-version = "0.1.0"
-
-[[package]]
-name = "oya-check-cohesion"
-version = "0.1.0"
 
 [[package]]
 name = "oya-check-compliance-evidence-coverage"
@@ -6984,14 +7167,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-check-cursor-pagination-coverage"
-version = "0.1.0"
-
-[[package]]
-name = "oya-check-data-class"
-version = "0.1.0"
-
-[[package]]
 name = "oya-check-dependency-seam"
 version = "0.1.0"
 dependencies = [
@@ -7010,37 +7185,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-check-doc-catalog"
-version = "0.1.0"
-
-[[package]]
-name = "oya-check-documentation-system"
-version = "0.1.0"
-
-[[package]]
-name = "oya-check-event-schema-versioning"
-version = "0.1.0"
-
-[[package]]
-name = "oya-check-glossary-coverage"
-version = "0.1.0"
-
-[[package]]
-name = "oya-check-glossary-vocabulary"
-version = "0.1.0"
-
-[[package]]
-name = "oya-check-high-risk-auto-decision-refusal"
-version = "0.1.0"
-
-[[package]]
-name = "oya-check-honest-claims"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
 name = "oya-check-i18n-coverage"
 version = "0.1.0"
 dependencies = [
@@ -7048,91 +7192,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-check-iac-tier-discipline"
-version = "0.1.0"
-
-[[package]]
-name = "oya-check-id-discipline"
-version = "0.1.0"
-
-[[package]]
-name = "oya-check-idempotency-key-coverage"
-version = "0.1.0"
-
-[[package]]
-name = "oya-check-image-signing-discipline"
-version = "0.1.0"
-
-[[package]]
-name = "oya-check-layered-architecture-discipline"
-version = "0.1.0"
-
-[[package]]
 name = "oya-check-license-policy"
-version = "0.1.0"
-
-[[package]]
-name = "oya-check-metric-cardinality"
-version = "0.1.0"
-
-[[package]]
-name = "oya-check-mobile-native"
-version = "0.1.0"
-
-[[package]]
-name = "oya-check-no-grouping"
-version = "0.1.0"
-
-[[package]]
-name = "oya-check-olap-tier-discipline"
-version = "0.1.0"
-
-[[package]]
-name = "oya-check-ontology-projection-coverage"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "oya-check-openapi-rest-route-parity"
-version = "0.1.0"
-
-[[package]]
-name = "oya-check-otel-trace-propagation"
-version = "0.1.0"
-
-[[package]]
-name = "oya-check-perf-budget"
-version = "0.1.0"
-
-[[package]]
-name = "oya-check-placeholder-debt"
-version = "0.1.0"
-
-[[package]]
-name = "oya-check-pr-traceability"
-version = "0.1.0"
-
-[[package]]
-name = "oya-check-pre-push"
-version = "0.1.0"
-
-[[package]]
-name = "oya-check-protection-context-match"
-version = "0.1.0"
-
-[[package]]
-name = "oya-check-quality-lane"
-version = "0.1.0"
-
-[[package]]
-name = "oya-check-raci-coverage"
-version = "0.1.0"
-
-[[package]]
-name = "oya-check-readme-coverage"
 version = "0.1.0"
 
 [[package]]
@@ -7143,43 +7203,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-check-release-pack"
-version = "0.1.0"
-
-[[package]]
-name = "oya-check-retired-vocabulary"
-version = "0.1.0"
-
-[[package]]
-name = "oya-check-rpo-rto-coverage"
-version = "0.1.0"
-
-[[package]]
-name = "oya-check-runbook-freshness"
-version = "0.1.0"
-
-[[package]]
-name = "oya-check-runbook-index"
-version = "0.1.0"
-
-[[package]]
 name = "oya-check-saga-shape"
 version = "0.1.0"
 
 [[package]]
-name = "oya-check-shardability"
-version = "0.1.0"
-
-[[package]]
 name = "oya-check-slo-coverage"
-version = "0.1.0"
-
-[[package]]
-name = "oya-check-slsa-l3-evidence-grounded"
-version = "0.1.0"
-
-[[package]]
-name = "oya-check-statelessness"
 version = "0.1.0"
 
 [[package]]
@@ -7189,34 +7217,6 @@ dependencies = [
  "serde",
  "serde_yaml",
 ]
-
-[[package]]
-name = "oya-check-supply-chain"
-version = "0.1.0"
-
-[[package]]
-name = "oya-check-tenant-cost-labels-coverage"
-version = "0.1.0"
-
-[[package]]
-name = "oya-check-typescript-workspace"
-version = "0.1.0"
-
-[[package]]
-name = "oya-check-vector-store-discipline"
-version = "0.1.0"
-
-[[package]]
-name = "oya-check-vendor-lockin-discipline"
-version = "0.1.0"
-
-[[package]]
-name = "oya-check-vendor-recency"
-version = "0.1.0"
-
-[[package]]
-name = "oya-check-wasm-runtime-discipline"
-version = "0.1.0"
 
 [[package]]
 name = "oya-checkout-guard-app"

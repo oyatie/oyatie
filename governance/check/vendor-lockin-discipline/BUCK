@@ -1,0 +1,7 @@
+rust_library(
+    name = "check-vendor-lockin-discipline",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "check_vendor_lockin_discipline",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

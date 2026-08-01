@@ -43,6 +43,7 @@ members = [
   # trees are build-support rather than capability faces. Each is an explicit, reviewed
   # exception rather than a wildcard that would re-admit the satellite-match problem.
   "governance/corpus/*",
+  "governance/check/*",
   "intelligence/testing/*",
   "os/harness/*",
 ]

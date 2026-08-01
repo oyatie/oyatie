@@ -1,8 +1,8 @@
 //! Disk-walking runners for the 4 scalability lanes that delegate to:
-//!   - oya-check-statelessness
-//!   - oya-check-shardability
-//!   - oya-check-perf-budget
-//!   - oya-check-benchmark
+//!   - check-statelessness
+//!   - check-shardability
+//!   - check-perf-budget
+//!   - check-benchmark
 //!
 //! Each runner: parse CLI args → harvest typed Node list from disk →
 //! call the I/O-free kernel → emit success or failure report.
@@ -10,18 +10,18 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use oya_check_benchmark::{
+use check_benchmark::{
     Prd, Report as BenchmarkReport, ViolationKind as BenchmarkViolationKind,
     check as check_benchmark,
 };
-use oya_check_perf_budget::{
+use check_perf_budget::{
     ImplementationPlan, Report as PerfBudgetReport, ViolationKind as PerfBudgetViolationKind,
     check as check_perf_budget,
 };
-use oya_check_shardability::{
+use check_shardability::{
     MigrationFile, Report as ShardabilityReport, check as check_shardability,
 };
-use oya_check_statelessness::{
+use check_statelessness::{
     Report as StatelessnessReport, SCOPED_LAYERS, SourceFile, check as check_statelessness,
 };
 

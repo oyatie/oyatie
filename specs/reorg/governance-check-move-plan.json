@@ -1,0 +1,568 @@
+{
+  "_comment": "De-brand strangler MOVE-4: home the dep-lint authority's 56 leaf check kernels from the libs/ junk drawer into governance/check/. DESTINATION IS NOT DERIVED FROM FAN-OUT. Measured fan-out puts all 63 of these crates at exactly one external dependent root, but that root is marketplace/facade/dev-cli -- a CLI facade that aggregates 67 check kernels because aggregating is what a facade does. Fan-in from a facade carries no ownership information, so the fan-out-1 rule (one capability owns it -> <capability>/core/) is degenerate here and would have homed 56 governance gates into marketplace/core/. The authoritative answer is already written down twice: specs/capability-registry.json absorbs libs/oya-check-* into meta_dir governance/ (\"The libs/oya-check-* and libs/oya-governance-* crates ARE the dep-lint authority\"), and ADR-0562 section 1 lists \"the dep-lint authority\" among governance/'s residents in both the tree diagram and placement rule 2. The closed registry outranks a fan-out heuristic. ADR-0615 ruling 10 (dev-cli -> ci/, de-CLI'd) is about the CONSUMER and does not relocate the kernels it calls. Face = governance/check/, mirroring the only existing governance/ resident group, governance/corpus/* (ADR-0580); governance/ is a meta root off the runtime ladder, so it takes group/leaf, not the four-layer capability shape. De-brand per ADR-0532/0533: cargo name = group + de-branded leaf (oya-check-cohesion -> check-cohesion), matching corpus-doc-parser; zero collision against the 866-member workspace. 56, not 63 or 72, is a dependency boundary and not a count: 63 of the 72 libs/oya-check-* crates have ZERO in-workspace dependencies, and the batch is exactly the intersection of that leaf set with the fan-out-1 block. The 7 fan-out-1 crates left behind each still depend on a crate that stays in libs/ (oya-shared-backup-kernel, oya-shared-i18n-kernel, oya-shared-compliance-evidence-kernel, oya-shared-realtime-transport-kernel, oya-workspace-members-kernel, oya-governance-adr-shape-kernel, intelligence-catalog-domain), so moving them now would mint a fresh governance/ -> libs/ edge pointing back into the drawer this move exists to drain. The 5 fan-out-2 members (adr-index, license-policy, slo-coverage, brand-residue, cost-budget) and the 4 zero-fan-out members are out of this lane's block. libs/oya-check-* therefore stays in the registry alongside the new governance/check/* glob until the remaining 16 follow, exactly as os/ carried both cloud/cloud-os and os in current_dirs during its transition. WORKSPACE MEMBERSHIP IS NOT AUTOMATIC HERE: the root members array globs the four-layer shape (*/core/*, */ports/*, ...) plus named legacy roots, and governance/ is admitted only by the literal \"governance/corpus/*\" entry -- so this move adds \"governance/check/*\" in the same commit. Without it all 56 crates leave the workspace silently and every member-count gate stays green while reading a smaller universe. Catalog rows re-key with the crates (registry/catalog/oya-check-*.yaml -> check-*.yaml, 56 rows, content-preserving per the ci/ move precedent); governance/ is not one of the fifteen catalog_liveness.workspace_member_globs roots, so no row is REQUIRED at the destination, but leaving the rows behind under their old stems would strand 56 catalog records whose identity is no longer a live crate id. ADR-0562 capability-first placement; ADR-0132 no-grouping (check/ is the single-concern dep-lint authority, not a bundle).",
+  "capability": "governance",
+  "moves": [
+    {
+      "old_path": "libs/oya-check-a11y-discipline",
+      "new_path": "governance/check/a11y-discipline",
+      "old_cargo_name": "oya-check-a11y-discipline",
+      "new_cargo_name": "check-a11y-discipline"
+    },
+    {
+      "old_path": "libs/oya-check-active-artifact-contract",
+      "new_path": "governance/check/active-artifact-contract",
+      "old_cargo_name": "oya-check-active-artifact-contract",
+      "new_cargo_name": "check-active-artifact-contract"
+    },
+    {
+      "old_path": "libs/oya-check-adr-citation",
+      "new_path": "governance/check/adr-citation",
+      "old_cargo_name": "oya-check-adr-citation",
+      "new_cargo_name": "check-adr-citation"
+    },
+    {
+      "old_path": "libs/oya-check-aspirational-enforcement",
+      "new_path": "governance/check/aspirational-enforcement",
+      "old_cargo_name": "oya-check-aspirational-enforcement",
+      "new_cargo_name": "check-aspirational-enforcement"
+    },
+    {
+      "old_path": "libs/oya-check-audit-chain-seal-coverage",
+      "new_path": "governance/check/audit-chain-seal-coverage",
+      "old_cargo_name": "oya-check-audit-chain-seal-coverage",
+      "new_cargo_name": "check-audit-chain-seal-coverage"
+    },
+    {
+      "old_path": "libs/oya-check-authority-cohesion",
+      "new_path": "governance/check/authority-cohesion",
+      "old_cargo_name": "oya-check-authority-cohesion",
+      "new_cargo_name": "check-authority-cohesion"
+    },
+    {
+      "old_path": "libs/oya-check-authz-tier-discipline",
+      "new_path": "governance/check/authz-tier-discipline",
+      "old_cargo_name": "oya-check-authz-tier-discipline",
+      "new_cargo_name": "check-authz-tier-discipline"
+    },
+    {
+      "old_path": "libs/oya-check-benchmark",
+      "new_path": "governance/check/benchmark",
+      "old_cargo_name": "oya-check-benchmark",
+      "new_cargo_name": "check-benchmark"
+    },
+    {
+      "old_path": "libs/oya-check-cedar-fragment-coverage",
+      "new_path": "governance/check/cedar-fragment-coverage",
+      "old_cargo_name": "oya-check-cedar-fragment-coverage",
+      "new_cargo_name": "check-cedar-fragment-coverage"
+    },
+    {
+      "old_path": "libs/oya-check-client-stack-discipline",
+      "new_path": "governance/check/client-stack-discipline",
+      "old_cargo_name": "oya-check-client-stack-discipline",
+      "new_cargo_name": "check-client-stack-discipline"
+    },
+    {
+      "old_path": "libs/oya-check-codeowners-mirror",
+      "new_path": "governance/check/codeowners-mirror",
+      "old_cargo_name": "oya-check-codeowners-mirror",
+      "new_cargo_name": "check-codeowners-mirror"
+    },
+    {
+      "old_path": "libs/oya-check-cohesion",
+      "new_path": "governance/check/cohesion",
+      "old_cargo_name": "oya-check-cohesion",
+      "new_cargo_name": "check-cohesion"
+    },
+    {
+      "old_path": "libs/oya-check-cursor-pagination-coverage",
+      "new_path": "governance/check/cursor-pagination-coverage",
+      "old_cargo_name": "oya-check-cursor-pagination-coverage",
+      "new_cargo_name": "check-cursor-pagination-coverage"
+    },
+    {
+      "old_path": "libs/oya-check-data-class",
+      "new_path": "governance/check/data-class",
+      "old_cargo_name": "oya-check-data-class",
+      "new_cargo_name": "check-data-class"
+    },
+    {
+      "old_path": "libs/oya-check-doc-catalog",
+      "new_path": "governance/check/doc-catalog",
+      "old_cargo_name": "oya-check-doc-catalog",
+      "new_cargo_name": "check-doc-catalog"
+    },
+    {
+      "old_path": "libs/oya-check-documentation-system",
+      "new_path": "governance/check/documentation-system",
+      "old_cargo_name": "oya-check-documentation-system",
+      "new_cargo_name": "check-documentation-system"
+    },
+    {
+      "old_path": "libs/oya-check-event-schema-versioning",
+      "new_path": "governance/check/event-schema-versioning",
+      "old_cargo_name": "oya-check-event-schema-versioning",
+      "new_cargo_name": "check-event-schema-versioning"
+    },
+    {
+      "old_path": "libs/oya-check-glossary-coverage",
+      "new_path": "governance/check/glossary-coverage",
+      "old_cargo_name": "oya-check-glossary-coverage",
+      "new_cargo_name": "check-glossary-coverage"
+    },
+    {
+      "old_path": "libs/oya-check-glossary-vocabulary",
+      "new_path": "governance/check/glossary-vocabulary",
+      "old_cargo_name": "oya-check-glossary-vocabulary",
+      "new_cargo_name": "check-glossary-vocabulary"
+    },
+    {
+      "old_path": "libs/oya-check-high-risk-auto-decision-refusal",
+      "new_path": "governance/check/high-risk-auto-decision-refusal",
+      "old_cargo_name": "oya-check-high-risk-auto-decision-refusal",
+      "new_cargo_name": "check-high-risk-auto-decision-refusal"
+    },
+    {
+      "old_path": "libs/oya-check-honest-claims",
+      "new_path": "governance/check/honest-claims",
+      "old_cargo_name": "oya-check-honest-claims",
+      "new_cargo_name": "check-honest-claims"
+    },
+    {
+      "old_path": "libs/oya-check-iac-tier-discipline",
+      "new_path": "governance/check/iac-tier-discipline",
+      "old_cargo_name": "oya-check-iac-tier-discipline",
+      "new_cargo_name": "check-iac-tier-discipline"
+    },
+    {
+      "old_path": "libs/oya-check-id-discipline",
+      "new_path": "governance/check/id-discipline",
+      "old_cargo_name": "oya-check-id-discipline",
+      "new_cargo_name": "check-id-discipline"
+    },
+    {
+      "old_path": "libs/oya-check-idempotency-key-coverage",
+      "new_path": "governance/check/idempotency-key-coverage",
+      "old_cargo_name": "oya-check-idempotency-key-coverage",
+      "new_cargo_name": "check-idempotency-key-coverage"
+    },
+    {
+      "old_path": "libs/oya-check-image-signing-discipline",
+      "new_path": "governance/check/image-signing-discipline",
+      "old_cargo_name": "oya-check-image-signing-discipline",
+      "new_cargo_name": "check-image-signing-discipline"
+    },
+    {
+      "old_path": "libs/oya-check-layered-architecture-discipline",
+      "new_path": "governance/check/layered-architecture-discipline",
+      "old_cargo_name": "oya-check-layered-architecture-discipline",
+      "new_cargo_name": "check-layered-architecture-discipline"
+    },
+    {
+      "old_path": "libs/oya-check-metric-cardinality",
+      "new_path": "governance/check/metric-cardinality",
+      "old_cargo_name": "oya-check-metric-cardinality",
+      "new_cargo_name": "check-metric-cardinality"
+    },
+    {
+      "old_path": "libs/oya-check-mobile-native",
+      "new_path": "governance/check/mobile-native",
+      "old_cargo_name": "oya-check-mobile-native",
+      "new_cargo_name": "check-mobile-native"
+    },
+    {
+      "old_path": "libs/oya-check-no-grouping",
+      "new_path": "governance/check/no-grouping",
+      "old_cargo_name": "oya-check-no-grouping",
+      "new_cargo_name": "check-no-grouping"
+    },
+    {
+      "old_path": "libs/oya-check-olap-tier-discipline",
+      "new_path": "governance/check/olap-tier-discipline",
+      "old_cargo_name": "oya-check-olap-tier-discipline",
+      "new_cargo_name": "check-olap-tier-discipline"
+    },
+    {
+      "old_path": "libs/oya-check-ontology-projection-coverage",
+      "new_path": "governance/check/ontology-projection-coverage",
+      "old_cargo_name": "oya-check-ontology-projection-coverage",
+      "new_cargo_name": "check-ontology-projection-coverage"
+    },
+    {
+      "old_path": "libs/oya-check-openapi-rest-route-parity",
+      "new_path": "governance/check/openapi-rest-route-parity",
+      "old_cargo_name": "oya-check-openapi-rest-route-parity",
+      "new_cargo_name": "check-openapi-rest-route-parity"
+    },
+    {
+      "old_path": "libs/oya-check-otel-trace-propagation",
+      "new_path": "governance/check/otel-trace-propagation",
+      "old_cargo_name": "oya-check-otel-trace-propagation",
+      "new_cargo_name": "check-otel-trace-propagation"
+    },
+    {
+      "old_path": "libs/oya-check-perf-budget",
+      "new_path": "governance/check/perf-budget",
+      "old_cargo_name": "oya-check-perf-budget",
+      "new_cargo_name": "check-perf-budget"
+    },
+    {
+      "old_path": "libs/oya-check-placeholder-debt",
+      "new_path": "governance/check/placeholder-debt",
+      "old_cargo_name": "oya-check-placeholder-debt",
+      "new_cargo_name": "check-placeholder-debt"
+    },
+    {
+      "old_path": "libs/oya-check-pr-traceability",
+      "new_path": "governance/check/pr-traceability",
+      "old_cargo_name": "oya-check-pr-traceability",
+      "new_cargo_name": "check-pr-traceability"
+    },
+    {
+      "old_path": "libs/oya-check-pre-push",
+      "new_path": "governance/check/pre-push",
+      "old_cargo_name": "oya-check-pre-push",
+      "new_cargo_name": "check-pre-push"
+    },
+    {
+      "old_path": "libs/oya-check-protection-context-match",
+      "new_path": "governance/check/protection-context-match",
+      "old_cargo_name": "oya-check-protection-context-match",
+      "new_cargo_name": "check-protection-context-match"
+    },
+    {
+      "old_path": "libs/oya-check-quality-lane",
+      "new_path": "governance/check/quality-lane",
+      "old_cargo_name": "oya-check-quality-lane",
+      "new_cargo_name": "check-quality-lane"
+    },
+    {
+      "old_path": "libs/oya-check-raci-coverage",
+      "new_path": "governance/check/raci-coverage",
+      "old_cargo_name": "oya-check-raci-coverage",
+      "new_cargo_name": "check-raci-coverage"
+    },
+    {
+      "old_path": "libs/oya-check-readme-coverage",
+      "new_path": "governance/check/readme-coverage",
+      "old_cargo_name": "oya-check-readme-coverage",
+      "new_cargo_name": "check-readme-coverage"
+    },
+    {
+      "old_path": "libs/oya-check-release-pack",
+      "new_path": "governance/check/release-pack",
+      "old_cargo_name": "oya-check-release-pack",
+      "new_cargo_name": "check-release-pack"
+    },
+    {
+      "old_path": "libs/oya-check-retired-vocabulary",
+      "new_path": "governance/check/retired-vocabulary",
+      "old_cargo_name": "oya-check-retired-vocabulary",
+      "new_cargo_name": "check-retired-vocabulary"
+    },
+    {
+      "old_path": "libs/oya-check-rpo-rto-coverage",
+      "new_path": "governance/check/rpo-rto-coverage",
+      "old_cargo_name": "oya-check-rpo-rto-coverage",
+      "new_cargo_name": "check-rpo-rto-coverage"
+    },
+    {
+      "old_path": "libs/oya-check-runbook-freshness",
+      "new_path": "governance/check/runbook-freshness",
+      "old_cargo_name": "oya-check-runbook-freshness",
+      "new_cargo_name": "check-runbook-freshness"
+    },
+    {
+      "old_path": "libs/oya-check-runbook-index",
+      "new_path": "governance/check/runbook-index",
+      "old_cargo_name": "oya-check-runbook-index",
+      "new_cargo_name": "check-runbook-index"
+    },
+    {
+      "old_path": "libs/oya-check-shardability",
+      "new_path": "governance/check/shardability",
+      "old_cargo_name": "oya-check-shardability",
+      "new_cargo_name": "check-shardability"
+    },
+    {
+      "old_path": "libs/oya-check-slsa-l3-evidence-grounded",
+      "new_path": "governance/check/slsa-l3-evidence-grounded",
+      "old_cargo_name": "oya-check-slsa-l3-evidence-grounded",
+      "new_cargo_name": "check-slsa-l3-evidence-grounded"
+    },
+    {
+      "old_path": "libs/oya-check-statelessness",
+      "new_path": "governance/check/statelessness",
+      "old_cargo_name": "oya-check-statelessness",
+      "new_cargo_name": "check-statelessness"
+    },
+    {
+      "old_path": "libs/oya-check-supply-chain",
+      "new_path": "governance/check/supply-chain",
+      "old_cargo_name": "oya-check-supply-chain",
+      "new_cargo_name": "check-supply-chain"
+    },
+    {
+      "old_path": "libs/oya-check-tenant-cost-labels-coverage",
+      "new_path": "governance/check/tenant-cost-labels-coverage",
+      "old_cargo_name": "oya-check-tenant-cost-labels-coverage",
+      "new_cargo_name": "check-tenant-cost-labels-coverage"
+    },
+    {
+      "old_path": "libs/oya-check-typescript-workspace",
+      "new_path": "governance/check/typescript-workspace",
+      "old_cargo_name": "oya-check-typescript-workspace",
+      "new_cargo_name": "check-typescript-workspace"
+    },
+    {
+      "old_path": "libs/oya-check-vector-store-discipline",
+      "new_path": "governance/check/vector-store-discipline",
+      "old_cargo_name": "oya-check-vector-store-discipline",
+      "new_cargo_name": "check-vector-store-discipline"
+    },
+    {
+      "old_path": "libs/oya-check-vendor-lockin-discipline",
+      "new_path": "governance/check/vendor-lockin-discipline",
+      "old_cargo_name": "oya-check-vendor-lockin-discipline",
+      "new_cargo_name": "check-vendor-lockin-discipline"
+    },
+    {
+      "old_path": "libs/oya-check-vendor-recency",
+      "new_path": "governance/check/vendor-recency",
+      "old_cargo_name": "oya-check-vendor-recency",
+      "new_cargo_name": "check-vendor-recency"
+    },
+    {
+      "old_path": "libs/oya-check-wasm-runtime-discipline",
+      "new_path": "governance/check/wasm-runtime-discipline",
+      "old_cargo_name": "oya-check-wasm-runtime-discipline",
+      "new_cargo_name": "check-wasm-runtime-discipline"
+    }
+  ],
+  "artifacts": [
+    {
+      "old_path": "registry/catalog/oya-check-a11y-discipline.yaml",
+      "new_path": "registry/catalog/check-a11y-discipline.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-active-artifact-contract.yaml",
+      "new_path": "registry/catalog/check-active-artifact-contract.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-adr-citation.yaml",
+      "new_path": "registry/catalog/check-adr-citation.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-aspirational-enforcement.yaml",
+      "new_path": "registry/catalog/check-aspirational-enforcement.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-audit-chain-seal-coverage.yaml",
+      "new_path": "registry/catalog/check-audit-chain-seal-coverage.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-authority-cohesion.yaml",
+      "new_path": "registry/catalog/check-authority-cohesion.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-authz-tier-discipline.yaml",
+      "new_path": "registry/catalog/check-authz-tier-discipline.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-benchmark.yaml",
+      "new_path": "registry/catalog/check-benchmark.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-cedar-fragment-coverage.yaml",
+      "new_path": "registry/catalog/check-cedar-fragment-coverage.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-client-stack-discipline.yaml",
+      "new_path": "registry/catalog/check-client-stack-discipline.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-codeowners-mirror.yaml",
+      "new_path": "registry/catalog/check-codeowners-mirror.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-cohesion.yaml",
+      "new_path": "registry/catalog/check-cohesion.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-cursor-pagination-coverage.yaml",
+      "new_path": "registry/catalog/check-cursor-pagination-coverage.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-data-class.yaml",
+      "new_path": "registry/catalog/check-data-class.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-doc-catalog.yaml",
+      "new_path": "registry/catalog/check-doc-catalog.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-documentation-system.yaml",
+      "new_path": "registry/catalog/check-documentation-system.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-event-schema-versioning.yaml",
+      "new_path": "registry/catalog/check-event-schema-versioning.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-glossary-coverage.yaml",
+      "new_path": "registry/catalog/check-glossary-coverage.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-glossary-vocabulary.yaml",
+      "new_path": "registry/catalog/check-glossary-vocabulary.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-high-risk-auto-decision-refusal.yaml",
+      "new_path": "registry/catalog/check-high-risk-auto-decision-refusal.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-honest-claims.yaml",
+      "new_path": "registry/catalog/check-honest-claims.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-iac-tier-discipline.yaml",
+      "new_path": "registry/catalog/check-iac-tier-discipline.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-id-discipline.yaml",
+      "new_path": "registry/catalog/check-id-discipline.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-idempotency-key-coverage.yaml",
+      "new_path": "registry/catalog/check-idempotency-key-coverage.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-image-signing-discipline.yaml",
+      "new_path": "registry/catalog/check-image-signing-discipline.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-layered-architecture-discipline.yaml",
+      "new_path": "registry/catalog/check-layered-architecture-discipline.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-metric-cardinality.yaml",
+      "new_path": "registry/catalog/check-metric-cardinality.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-mobile-native.yaml",
+      "new_path": "registry/catalog/check-mobile-native.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-no-grouping.yaml",
+      "new_path": "registry/catalog/check-no-grouping.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-olap-tier-discipline.yaml",
+      "new_path": "registry/catalog/check-olap-tier-discipline.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-ontology-projection-coverage.yaml",
+      "new_path": "registry/catalog/check-ontology-projection-coverage.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-openapi-rest-route-parity.yaml",
+      "new_path": "registry/catalog/check-openapi-rest-route-parity.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-otel-trace-propagation.yaml",
+      "new_path": "registry/catalog/check-otel-trace-propagation.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-perf-budget.yaml",
+      "new_path": "registry/catalog/check-perf-budget.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-placeholder-debt.yaml",
+      "new_path": "registry/catalog/check-placeholder-debt.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-pr-traceability.yaml",
+      "new_path": "registry/catalog/check-pr-traceability.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-pre-push.yaml",
+      "new_path": "registry/catalog/check-pre-push.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-protection-context-match.yaml",
+      "new_path": "registry/catalog/check-protection-context-match.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-quality-lane.yaml",
+      "new_path": "registry/catalog/check-quality-lane.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-raci-coverage.yaml",
+      "new_path": "registry/catalog/check-raci-coverage.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-readme-coverage.yaml",
+      "new_path": "registry/catalog/check-readme-coverage.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-release-pack.yaml",
+      "new_path": "registry/catalog/check-release-pack.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-retired-vocabulary.yaml",
+      "new_path": "registry/catalog/check-retired-vocabulary.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-rpo-rto-coverage.yaml",
+      "new_path": "registry/catalog/check-rpo-rto-coverage.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-runbook-freshness.yaml",
+      "new_path": "registry/catalog/check-runbook-freshness.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-runbook-index.yaml",
+      "new_path": "registry/catalog/check-runbook-index.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-shardability.yaml",
+      "new_path": "registry/catalog/check-shardability.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-slsa-l3-evidence-grounded.yaml",
+      "new_path": "registry/catalog/check-slsa-l3-evidence-grounded.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-statelessness.yaml",
+      "new_path": "registry/catalog/check-statelessness.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-supply-chain.yaml",
+      "new_path": "registry/catalog/check-supply-chain.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-tenant-cost-labels-coverage.yaml",
+      "new_path": "registry/catalog/check-tenant-cost-labels-coverage.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-typescript-workspace.yaml",
+      "new_path": "registry/catalog/check-typescript-workspace.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-vector-store-discipline.yaml",
+      "new_path": "registry/catalog/check-vector-store-discipline.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-vendor-lockin-discipline.yaml",
+      "new_path": "registry/catalog/check-vendor-lockin-discipline.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-vendor-recency.yaml",
+      "new_path": "registry/catalog/check-vendor-recency.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-wasm-runtime-discipline.yaml",
+      "new_path": "registry/catalog/check-wasm-runtime-discipline.yaml"
+    }
+  ]
+}

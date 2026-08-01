@@ -77,7 +77,7 @@
       "enforcement": {
         "mode": "mechanical",
         "enforced_by": [
-          "oya-check-data-class"
+          "check-data-class"
         ],
         "evidence": "data-class lane scans kernel-crate struct fields for `// data_class:` annotation comment; absence flags PR"
       }

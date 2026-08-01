@@ -99,7 +99,7 @@ pub(crate) fn validate_authz_tier_discipline_gate(
 ) -> Result<AuthzTierSummary, String> {
     // Walk every microservices/<ms>/policy/*.cedar and
     // microservices/<ms>/iac/helm/**/envoy*.yaml, invoking
-    // oya_check_authz_tier_discipline::scan_cedar / scan_envoy_filter.
+    // check_authz_tier_discipline::scan_cedar / scan_envoy_filter.
     //
     // Honest scope: this advisory pass enumerates *.cedar and envoy*.yaml under
     // each µservice; absent files yield zero scans (NOT vacuous-pass — count
@@ -132,7 +132,7 @@ pub(crate) fn validate_authz_tier_discipline_gate(
                     Ok(text) => text,
                     Err(_) => continue,
                 };
-                let report = oya_check_authz_tier_discipline::scan_cedar(
+                let report = check_authz_tier_discipline::scan_cedar(
                     &cedar.display().to_string(),
                     &body,
                 );
@@ -148,7 +148,7 @@ pub(crate) fn validate_authz_tier_discipline_gate(
                     Ok(text) => text,
                     Err(_) => continue,
                 };
-                let report = oya_check_authz_tier_discipline::scan_envoy_filter(
+                let report = check_authz_tier_discipline::scan_envoy_filter(
                     &envoy.display().to_string(),
                     &body,
                 );

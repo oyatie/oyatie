@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use oya_check_data_class::{
+use check_data_class::{
     FieldIdentity, KernelField, LegacyUnannotatedField, validate_data_class_fitness,
 };
 

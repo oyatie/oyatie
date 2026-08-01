@@ -3,7 +3,7 @@
 //! Reads `registry/vocabulary/retired.yaml` and walks the configured
 //! corpus roots (default: `docs/`, `registry/`, `templates/`,
 //! `crates/`, `tools/`, `scripts/`), passing each file to the
-//! [`oya_check_retired_vocabulary`] kernel.
+//! [`check_retired_vocabulary`] kernel.
 //!
 //! Lane id: `oya-governance-retired-vocabulary`. The lane fails
 //! fast on any drift hit, surfacing every file:line:term row at once
@@ -17,7 +17,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use oya_check_retired_vocabulary::{
+use check_retired_vocabulary::{
     RetiredTerm, RetiredVocabularyError, RetiredVocabularyReport, ScannedDocument,
     validate_retired_vocabulary,
 };
@@ -60,14 +60,18 @@ const DEFAULT_EXCLUDE_ROOTS: &[&str] = &[
     ".omc",
     ".omx",
     "target",
-    // Substring-grep over Rust source under crates/oya-check-retired-vocabulary/
+    // Substring-grep over Rust source under governance/check/retired-vocabulary/
     // would match the kernel's own test fixtures (which intentionally embed
     // retired terms as string literals to test the kernel itself). The kernel
     // crate is self-validating; excluding it avoids meta-flagging.
-    "crates/oya-check-retired-vocabulary",
+    //
+    // Both this entry and the runner entry below carried a `crates/` prefix that
+    // matched nothing after the crates moved out of it, so neither exclusion was
+    // live. They are re-anchored on the real paths here.
+    "governance/check/retired-vocabulary",
     // The runner module embeds retired terms in YAML-parser tests + comment
     // examples. Same self-validating reasoning as the kernel crate above.
-    "crates/oya-dev-cli/src/retired_vocabulary_gate.rs",
+    "marketplace/facade/dev-cli/src/retired_vocabulary_gate.rs",
     // The registry file IS the canonical record of retired terms; it must
     // spell each one verbatim. Excluding it prevents trivial self-match.
     "registry/vocabulary/retired.yaml",
