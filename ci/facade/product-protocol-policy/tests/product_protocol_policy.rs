@@ -1,6 +1,6 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -95,9 +95,34 @@ fn negative_fixture_corpus_fails_on_each_guarded_invariant() {
     let fixtures = json(&declared_path("OYA_PRODUCT_PROTOCOL_NEGATIVE_CASES"));
 
     let cases = fixtures["cases"].as_array().expect("cases array");
+    let required_codes = policy["rules"]
+        .as_array()
+        .expect("rules array")
+        .iter()
+        .map(|rule| rule["code"].as_str().expect("rule code"))
+        .collect::<BTreeSet<_>>();
+    let fixture_codes = cases
+        .iter()
+        .map(|case| case["expected_code"].as_str().expect("expected code"))
+        .collect::<BTreeSet<_>>();
     assert!(
-        cases.len() >= 9,
-        "negative fixture corpus unexpectedly small"
+        required_codes == fixture_codes,
+        "negative fixtures must cover every policy rule exactly by code; missing={:?}, unknown={:?}",
+        required_codes
+            .difference(&fixture_codes)
+            .collect::<Vec<_>>(),
+        fixture_codes
+            .difference(&required_codes)
+            .collect::<Vec<_>>()
+    );
+    let fixture_names = cases
+        .iter()
+        .map(|case| case["name"].as_str().expect("case name"))
+        .collect::<BTreeSet<_>>();
+    assert_eq!(
+        fixture_names.len(),
+        cases.len(),
+        "fixture names must be unique"
     );
     for case in cases {
         let name = case["name"].as_str().expect("case name");
