@@ -18,3 +18,7 @@ export_file(
     name = "substrate-dependency-dag.schema.json",
     visibility = ["PUBLIC"],
 )
+export_file(
+    name = "capability-registry.json",
+    visibility = ["PUBLIC"],
+)

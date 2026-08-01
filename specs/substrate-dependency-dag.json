@@ -10,139 +10,146 @@
     "ADR-0615",
     "ADR-0631"
   ],
-  "dependency_units": [
+  "external_anchors": [
     {
       "id": "external.genesis-roots",
-      "capability": "external",
-      "face": "genesis-roots",
       "plane": "E0",
       "purpose": "Hardware trust, signed bootstrap artifacts, organisation quorum, and bootstrap facts."
+    }
+  ],
+  "dependency_units": [
+    {
+      "id": "network.bootstrap",
+      "capability": "network",
+      "runtime_face": "bootstrap",
+      "plane": "B0",
+      "purpose": "Bootstrap network, DNS, and time substrate beneath the empty cell envelope."
     },
     {
       "id": "cell.envelope",
       "capability": "cell",
-      "face": "envelope",
       "plane": "B0",
-      "purpose": "Empty cell hosting and liveness envelope."
+      "purpose": "Empty cell hosting and liveness envelope.",
+      "runtime_face": "envelope"
     },
     {
       "id": "cell.genesis",
       "capability": "cell",
-      "face": "genesis",
       "plane": "G",
-      "purpose": "First-management-cell break-glass face."
+      "purpose": "First-management-cell break-glass face.",
+      "runtime_face": "genesis"
     },
     {
       "id": "cell.lifecycle.cp",
       "capability": "cell",
-      "face": "lifecycle.cp",
       "plane": "G",
-      "purpose": "Cell identity, placement, and lifecycle control face."
+      "purpose": "Cell identity, placement, and lifecycle control face.",
+      "runtime_face": "lifecycle.cp"
     },
     {
       "id": "cell.router.dp",
       "capability": "cell",
-      "face": "router.dp",
       "plane": "R",
-      "purpose": "Cellularized routing data plane using signed cached snapshots."
+      "purpose": "Cellularized routing data plane using signed cached snapshots.",
+      "runtime_face": "router.dp"
     },
     {
       "id": "iam.admin.cp",
       "capability": "iam",
-      "face": "admin.cp",
       "plane": "G",
-      "purpose": "Identity administration and publication face."
+      "purpose": "Identity administration and publication face.",
+      "runtime_face": "admin.cp"
     },
     {
       "id": "iam.local-verifier",
       "capability": "iam",
-      "face": "local-verifier",
       "plane": "C0",
-      "purpose": "Cell-local token, SVID, and JWK validation face."
+      "purpose": "Cell-local token, SVID, and JWK validation face.",
+      "runtime_face": "local-verifier"
     },
     {
       "id": "tenancy.directory.cp",
       "capability": "tenancy",
-      "face": "directory.cp",
       "plane": "G",
-      "purpose": "Tenant lifecycle and home-cell directory authority."
+      "purpose": "Tenant lifecycle and home-cell directory authority.",
+      "runtime_face": "directory.cp"
     },
     {
       "id": "tenancy.local-context",
       "capability": "tenancy",
-      "face": "local-context",
       "plane": "C0",
-      "purpose": "Signed cached tenant and routing context."
+      "purpose": "Signed cached tenant and routing context.",
+      "runtime_face": "local-context"
     },
     {
       "id": "policy.authoring.cp",
       "capability": "policy",
-      "face": "authoring.cp",
       "plane": "G",
-      "purpose": "Policy authoring, signing, and distribution face."
+      "purpose": "Policy authoring, signing, and distribution face.",
+      "runtime_face": "authoring.cp"
     },
     {
       "id": "policy.local-pdp",
       "capability": "policy",
-      "face": "local-pdp",
       "plane": "C0",
-      "purpose": "Cell-local PDP and versioned tenant policy store."
+      "purpose": "Cell-local PDP and versioned tenant policy store.",
+      "runtime_face": "local-pdp"
     },
     {
       "id": "secrets.root-control",
       "capability": "secrets",
-      "face": "root-control",
       "plane": "G",
-      "purpose": "External-root-backed root and intermediate management service."
+      "purpose": "External-root-backed root and intermediate management service.",
+      "runtime_face": "root-control"
     },
     {
       "id": "secrets.cell-issuer",
       "capability": "secrets",
-      "face": "cell-issuer",
       "plane": "C0",
-      "purpose": "Cell key partition and downstream workload issuer."
+      "purpose": "Cell key partition and downstream workload issuer.",
+      "runtime_face": "cell-issuer"
     },
     {
       "id": "audit.control-aggregation",
       "capability": "audit",
-      "face": "control-aggregation",
       "plane": "G",
-      "purpose": "Asynchronous fleet audit aggregation face."
+      "purpose": "Asynchronous fleet audit aggregation face.",
+      "runtime_face": "control-aggregation"
     },
     {
       "id": "audit.cell-seal",
       "capability": "audit",
-      "face": "cell-seal",
       "plane": "C1",
-      "purpose": "Cell-local append and seal face."
+      "purpose": "Cell-local append and seal face.",
+      "runtime_face": "cell-seal"
     },
     {
       "id": "observability.cell-runtime",
       "capability": "observability",
-      "face": "cell-runtime",
       "plane": "C1",
-      "purpose": "Cell-local telemetry collection and runtime visibility."
+      "purpose": "Cell-local telemetry collection and runtime visibility.",
+      "runtime_face": "cell-runtime"
     },
     {
       "id": "data.ontology-runtime",
       "capability": "data",
-      "face": "ontology-runtime",
       "plane": "C1",
-      "purpose": "Cell-local ontology and projection runtime."
+      "purpose": "Cell-local ontology and projection runtime.",
+      "runtime_face": "ontology-runtime"
     },
     {
       "id": "intelligence.runtime",
       "capability": "intelligence",
-      "face": "runtime",
       "plane": "C2",
-      "purpose": "Cell workload intelligence runtime."
+      "purpose": "Cell workload intelligence runtime.",
+      "runtime_face": "runtime"
     },
     {
       "id": "workflow.runtime",
       "capability": "workflow",
-      "face": "runtime",
       "plane": "C2",
-      "purpose": "Cell workload orchestration runtime."
+      "purpose": "Cell workload orchestration runtime.",
+      "runtime_face": "runtime"
     }
   ],
   "failure_impact_composition": {
@@ -164,8 +171,14 @@
         {
           "graph_kind": "genesis",
           "from": "external.genesis-roots",
+          "to": "network.bootstrap",
+          "rationale": "External integrity and liveness facts establish the bootstrap network, DNS, and time substrate."
+        },
+        {
+          "graph_kind": "genesis",
+          "from": "network.bootstrap",
           "to": "cell.envelope",
-          "rationale": "External integrity and liveness facts establish the empty hosting envelope."
+          "rationale": "The bootstrap network anchors the empty cell hosting envelope."
         },
         {
           "graph_kind": "genesis",
@@ -347,7 +360,7 @@
         {
           "from": "policy.local-pdp",
           "to": "data.ontology-runtime",
-          "reason": "policy-engine MUST NOT depend on ontology \u2014 Ontology depends on policy-engine for authorization (the historical inversion this ADR explicitly closes)."
+          "reason": "policy-engine MUST NOT depend on ontology — Ontology depends on policy-engine for authorization (the historical inversion this ADR explicitly closes)."
         },
         {
           "from": "secrets.cell-issuer",
@@ -362,7 +375,7 @@
         {
           "from": "audit.cell-seal",
           "to": "intelligence.runtime",
-          "reason": "audit-chain MUST NOT depend on intelligence \u2014 the audit substrate is the simplest possible."
+          "reason": "audit-chain MUST NOT depend on intelligence — the audit substrate is the simplest possible."
         },
         {
           "from": "audit.cell-seal",
@@ -372,7 +385,7 @@
         {
           "from": "data.ontology-runtime",
           "to": "intelligence.runtime",
-          "reason": "RAG reads flow Intelligence \u2192 Ontology, not the reverse."
+          "reason": "RAG reads flow Intelligence → Ontology, not the reverse."
         },
         {
           "from": "data.ontology-runtime",
@@ -493,7 +506,7 @@
           "cascade_rule": "FULL",
           "version_compatibility_range": "^1.0",
           "cedar_permit_fragment": "permit-audit-chain-call-policy-engine-v1",
-          "rationale": "Audit-chain admission gated by Cedar (per ADR-0243 \u00a7D-1).",
+          "rationale": "Audit-chain admission gated by Cedar (per ADR-0243 §D-1).",
           "graph_kind": "steady_state_request"
         },
         {
@@ -673,7 +686,7 @@
           "cascade_rule": "FULL",
           "version_compatibility_range": "^1.0",
           "cedar_permit_fragment": "permit-intelligence-call-policy-engine-v1",
-          "rationale": "Data-class \u2192 provider routing (per ADR-0243 \u00a7D-1.1).",
+          "rationale": "Data-class → provider routing (per ADR-0243 §D-1.1).",
           "graph_kind": "steady_state_request"
         },
         {

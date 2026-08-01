@@ -17,6 +17,11 @@ rust_binary(
     srcs = glob(["src/**/*.rs", "**/*.json"]),
     crate_root = "src/main.rs",
     visibility = ["PUBLIC"],
+    resources = [
+        "//specs:capability-registry.json",
+        "//specs:substrate-dependency-dag.json",
+        "//specs:substrate-dependency-dag.schema.json",
+    ],
     deps = [
         ":ci-dependency-graph-acyclicity",
         "third-party//:serde_json",
@@ -36,13 +41,18 @@ rust_test(
 )
 
 # ADR-0631 graph-v2 live-corpus and mutation-fixture gate. It proves the exact five-kind set,
-# face endpoints, graph-3-only acyclicity, and exact derived failure closure.
+# runtime-face endpoints, graph-3-only acyclicity, and exact derived failure closure.
 rust_test(
     name = "ci-dependency-graph-acyclicity-gate",
     srcs = glob(["tests/**/*.rs", "**/*.json"]),
     crate = "ci_dependency_graph_acyclicity_gate",
     crate_root = "tests/acyclicity.rs",
     visibility = ["PUBLIC"],
+    resources = [
+        "//specs:capability-registry.json",
+        "//specs:substrate-dependency-dag.json",
+        "//specs:substrate-dependency-dag.schema.json",
+    ],
     deps = [
         ":ci-dependency-graph-acyclicity",
         "third-party//:serde_json",
