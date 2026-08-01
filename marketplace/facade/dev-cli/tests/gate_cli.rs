@@ -8050,11 +8050,8 @@ fn write_aspirational_fixture(root: &Path) -> AspirationalFixture {
     .expect("catalog record written");
     // Every aspirational test inherits one resolvable check site, so the
     // zero-site backstop stays armed instead of firing on narrow fixtures.
-    fs::write(
-        docs.join("_baseline.md"),
-        "enforced_by: check-real\n",
-    )
-    .expect("baseline doc written");
+    fs::write(docs.join("_baseline.md"), "enforced_by: check-real\n")
+        .expect("baseline doc written");
     fs::create_dir_all(&workflows).expect("workflows dir created");
     fs::write(
         workflows.join("oya-governance-real.yml"),

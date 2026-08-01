@@ -456,7 +456,8 @@ mod tests {
         // (`check-real`), not by the legacy crate name. Both must resolve
         // against the SAME known set, or the relocation empties the scan.
         let report =
-            validate_aspirational_enforcement([doc("enforced_by: check-real\n")], &known()).unwrap();
+            validate_aspirational_enforcement([doc("enforced_by: check-real\n")], &known())
+                .unwrap();
         assert_eq!(report.binding_mentions, 1);
         assert_eq!(report.check_sites, 1);
     }
@@ -476,11 +477,9 @@ mod tests {
         // `oya-check-` — makes `oya-check-real` yield BOTH `oya-check-real`
         // and a spurious nested `check-real`, double-counting every legacy
         // site. Token-boundary anchoring must yield exactly one identity.
-        let report = validate_aspirational_enforcement(
-            [doc("enforced_by: oya-check-real\n")],
-            &known(),
-        )
-        .unwrap();
+        let report =
+            validate_aspirational_enforcement([doc("enforced_by: oya-check-real\n")], &known())
+                .unwrap();
         assert_eq!(report.binding_mentions, 1);
         assert_eq!(report.check_sites, 1);
     }
@@ -507,7 +506,9 @@ mod tests {
             "the relocated spelling must resolve in a JSON value too"
         );
         assert_eq!(
-            enforcement_tokens("axum is sanctioned; shall be enforced by `check-real` per ADR-0090"),
+            enforcement_tokens(
+                "axum is sanctioned; shall be enforced by `check-real` per ADR-0090"
+            ),
             BTreeSet::from(["check-real".to_string()]),
             "a backticked code span is a claim position: today's prose claims \
              read `oya-check-<topic>`, and relocation turns them into the bare form"
