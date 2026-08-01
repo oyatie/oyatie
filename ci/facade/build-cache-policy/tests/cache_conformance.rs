@@ -340,10 +340,14 @@ fn action_steps<'a>(doc: &'a YamlValue) -> Vec<(&'a str, &'a [YamlValue])> {
 }
 
 fn local_action_file(repo_root: &Path, action_name: &str) -> Result<Option<PathBuf>, String> {
-    let Some(relative) = action_name.strip_prefix("./") else {
+    let Some(relative) = action_name
+        .strip_prefix("./")
+        .or_else(|| action_name.strip_prefix(".\\"))
+    else {
         return Ok(None);
     };
-    let relative = Path::new(relative);
+    let normalized_relative = relative.replace('\\', "/");
+    let relative = Path::new(&normalized_relative);
     if relative
         .components()
         .any(|component| !matches!(component, Component::Normal(_)))
@@ -478,7 +482,7 @@ fn inspect_actions_cache_steps(
             let Some(action) = step.get("uses").and_then(YamlValue::as_str) else {
                 continue;
             };
-            let action_name = if action.starts_with("./") {
+            let action_name = if action.starts_with("./") || action.starts_with(".\\") {
                 action
             } else {
                 action.split('@').next().unwrap_or(action)
@@ -1042,10 +1046,21 @@ fn buck_out_archive_guard_follows_local_composite_actions() {
     let at_named_workflow = "jobs:\n  gate:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: ./.github/actions/cache@wrapper\n";
     let at_named_violations =
         actions_cache_buck_out_violations(Some(&fixture_root), "<fixture>", at_named_workflow);
-    std::fs::remove_dir_all(&fixture_root).expect("remove local composite fixture");
     assert!(
         !at_named_violations.is_empty(),
         "local action references containing `@` must resolve the literal runner path, not a benign truncated prefix"
+    );
+
+    let windows_at_named_workflow = "jobs:\n  gate:\n    runs-on: windows-latest\n    steps:\n      - uses: .\\.github\\actions\\cache@wrapper\n";
+    let windows_at_named_violations = actions_cache_buck_out_violations(
+        Some(&fixture_root),
+        "<fixture>",
+        windows_at_named_workflow,
+    );
+    std::fs::remove_dir_all(&fixture_root).expect("remove local composite fixture");
+    assert!(
+        !windows_at_named_violations.is_empty(),
+        "Windows-form local action references must preserve literal `@` paths and inspect the same unsafe composite"
     );
 }
 
