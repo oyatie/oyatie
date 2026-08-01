@@ -2779,6 +2779,100 @@
         "autogen": {"generator": "not-applicable; source-authored product contract"},
         "provenance": {"current_author": "codex", "current_reviewed_by": "pending code-review", "last_modified_at": "2026-08-01T00:00:00Z"}
       }
+    },
+    {
+      "artifact_id": "oya-check-cedar-fragment-coverage-manifest",
+      "artifact_path": "libs/oya-check-cedar-fragment-coverage/Cargo.toml",
+      "artifact_format": "cargo-toml",
+      "contract_version": "v3.0.0",
+      "owner_team": "council-architecture",
+      "purpose_short": "Cargo manifest for the cedar-fragment-coverage check kernel (std-only). Validates C01-C04 invariants from cedar-fragments-registry. Backs lean-a-cedar-fragment-coverage lane.",
+      "artifact_profile": "registry",
+      "capability_overrides": {
+        "verification": {
+          "checker_crate": "libs/oya-check-active-artifact-contract",
+          "command": "oya-ci-required/cloud-ci evidence: active-artifact-contract"
+        },
+        "provenance": {
+          "current_author": "claude-opus-4-7 + jason931225",
+          "last_modified_at": "2026-05-14T00:00:00Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "oya-check-openapi-rest-route-parity-manifest",
+      "artifact_path": "libs/oya-check-openapi-rest-route-parity/Cargo.toml",
+      "artifact_format": "cargo-toml",
+      "contract_version": "v3.0.0",
+      "owner_team": "council-architecture",
+      "purpose_short": "Cargo manifest for openapi-rest-route-parity check kernel (std-only). Compares REST _ROUTE constants vs OpenAPI paths sets. Backs lean-a-openapi-rest-route-parity lane (active via oya-ci-required/cloud-ci gate suite).",
+      "artifact_profile": "registry",
+      "capability_overrides": {
+        "verification": {
+          "checker_crate": "libs/oya-check-active-artifact-contract",
+          "command": "oya-ci-required/cloud-ci evidence: active-artifact-contract"
+        },
+        "provenance": {
+          "current_author": "claude-opus-4-7 + jason931225",
+          "last_modified_at": "2026-05-14T00:00:00Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "substrate-dependency-dag-v2",
+      "artifact_path": "/specs/substrate-dependency-dag.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "council-architecture + cloud-ci-platform",
+      "purpose_short": "Face-aware canonical substrate topology with exactly five typed graphs and a derived failure closure.",
+      "artifact_profile": "registry",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "cloud-ci-substrate-dependency-dag-acyclicity"
+        },
+        "verification": {
+          "command": "buck2 test //ci/facade/dependency-graph-acyclicity:ci-dependency-graph-acyclicity-gate"
+        },
+        "validation": {
+          "validator": "specs/substrate-dependency-dag.schema.json plus the dependency-graph-acyclicity Rust gate"
+        },
+        "autogen": {
+          "generator": "not-applicable; source-authored topology, with failure closure verified as derived"
+        },
+        "provenance": {
+          "current_author": "codex",
+          "current_reviewed_by": "pending code-review",
+          "last_modified_at": "2026-08-01T00:00:00Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "substrate-dependency-dag-schema",
+      "artifact_path": "/specs/substrate-dependency-dag.schema.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "council-architecture + cloud-ci-platform",
+      "purpose_short": "Closed Draft 2020-12 schema for the ADR-0631 face-aware substrate graph-v2 contract.",
+      "artifact_profile": "schema",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "cloud-ci-substrate-dependency-dag-acyclicity"
+        },
+        "verification": {
+          "command": "buck2 test //ci/facade/dependency-graph-acyclicity:ci-dependency-graph-acyclicity-gate"
+        },
+        "validation": {
+          "validator": "JSON Schema Draft 2020-12 plus the dependency-graph-acyclicity Rust gate"
+        },
+        "autogen": {
+          "generator": "not-applicable; schema is source-authored"
+        },
+        "provenance": {
+          "current_author": "codex",
+          "current_reviewed_by": "pending code-review",
+          "last_modified_at": "2026-08-01T00:00:00Z"
+        }
+      }
     }
   ],
   "purpose": "Auto-backfilled purpose for artifact-capabilities-registry.json"
