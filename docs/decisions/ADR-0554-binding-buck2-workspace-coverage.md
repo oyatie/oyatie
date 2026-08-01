@@ -478,7 +478,7 @@ action-cache and CAS endpoints.
 
 **Mechanical guard.** `ci-build-cache-policy-gate` parses the live required-workflow YAML, identifies
 every `actions/cache`, `actions/cache/restore`, and `actions/cache/save` step independent of its name
-or key and action-reference casing, recursively follows repository-local composite actions and
+or key, action-reference casing, separator spelling, or empty path segments; it recursively follows repository-local composite actions and
 same-repository reusable workflows, and fails closed on unproven external job-level workflow calls. It
 requires portable slash-form `./...` local-action references and fails closed on backslash-bearing
 references whose filesystem meaning differs by runner host. It
