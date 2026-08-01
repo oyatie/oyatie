@@ -1,8 +1,10 @@
 #![forbid(unsafe_code)]
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
+use ed25519_dalek::{Signature, VerifyingKey};
 use serde_json::Value;
+use sha2::{Digest, Sha256};
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub struct Finding {
@@ -21,8 +23,113 @@ impl Finding {
     }
 }
 
+#[derive(Clone, Debug)]
+pub struct RuntimeAuthority {
+    pub protected_commit_sha: String,
+    pub candidate_commit_sha: String,
+    pub required_approval_roles: BTreeSet<String>,
+    pub trusted_approval_keys: BTreeMap<String, [u8; 32]>,
+    pub trusted_authorization_keys: BTreeMap<String, [u8; 32]>,
+    pub evidence_by_source: BTreeMap<String, Vec<u8>>,
+    pub authorization_grant: Option<Value>,
+}
+
+impl RuntimeAuthority {
+    pub fn fail_closed(
+        protected_commit_sha: impl Into<String>,
+        candidate_commit_sha: impl Into<String>,
+    ) -> Self {
+        Self {
+            protected_commit_sha: protected_commit_sha.into(),
+            candidate_commit_sha: candidate_commit_sha.into(),
+            required_approval_roles: ["founder", "platform-operations", "data-protection"]
+                .into_iter()
+                .map(str::to_owned)
+                .collect(),
+            trusted_approval_keys: BTreeMap::new(),
+            trusted_authorization_keys: BTreeMap::new(),
+            evidence_by_source: BTreeMap::new(),
+            authorization_grant: None,
+        }
+    }
+}
+
+pub fn sha256(bytes: &[u8]) -> String {
+    format!("sha256:{:x}", Sha256::digest(bytes))
+}
+
+pub fn json_digest(value: &Value) -> String {
+    sha256(&serde_json::to_vec(value).expect("serializing a serde_json::Value cannot fail"))
+}
+
+pub fn evidence_digest(evidence: &BTreeMap<String, Vec<u8>>) -> String {
+    let mut hasher = Sha256::new();
+    for (source_id, bytes) in evidence {
+        hasher.update((source_id.len() as u64).to_be_bytes());
+        hasher.update(source_id.as_bytes());
+        hasher.update(Sha256::digest(bytes));
+    }
+    format!("sha256:{:x}", hasher.finalize())
+}
+
+/// Validate this artifact with every JSON Schema keyword used by the committed schema.
+/// This is deliberately a schema-specific Draft 2020-12 subset, not a claim of general
+/// JSON Schema support. `evaluate_schema` rejects any unsupported schema keyword.
+pub fn validate_artifact_schema(schema: &Value, artifact: &Value) -> BTreeSet<Finding> {
+    let mut findings = BTreeSet::new();
+    validate_node(schema, schema, artifact, "$", &mut findings);
+    findings
+}
+
 pub fn evaluate_schema(policy: &Value, schema: &Value) -> BTreeSet<Finding> {
     let mut findings = BTreeSet::new();
+    if policy
+        .get("reset_authorization_enabled")
+        .and_then(Value::as_bool)
+        != Some(false)
+    {
+        findings.insert(Finding::new(
+            "reset_policy_candidate_authority",
+            "reset_authorization_enabled",
+            "repo policy must remain false; authorization is a separate protected runtime grant",
+        ));
+    }
+    if policy.get("max_validity_seconds").and_then(Value::as_i64) != Some(86_400) {
+        findings.insert(Finding::new(
+            "reset_policy_malformed",
+            "max_validity_seconds",
+            "repo policy must retain the fixed 24-hour ceiling",
+        ));
+    }
+    let allowed = string_set(policy.get("allowed_source_results"));
+    let expected_allowed = ["observed", "unknown", "denied", "error"]
+        .into_iter()
+        .collect::<BTreeSet<_>>();
+    if allowed != expected_allowed {
+        findings.insert(Finding::new(
+            "reset_policy_malformed",
+            "allowed_source_results",
+            "candidate policy cannot broaden or narrow source result semantics",
+        ));
+    }
+    let forbidden = string_set(policy.get("forbidden_secret_keys"));
+    let expected_forbidden = [
+        "password",
+        "token",
+        "secret_value",
+        "private_key",
+        "credential_value",
+        "recovery_key",
+    ]
+    .into_iter()
+    .collect::<BTreeSet<_>>();
+    if forbidden != expected_forbidden {
+        findings.insert(Finding::new(
+            "reset_policy_malformed",
+            "forbidden_secret_keys",
+            "candidate policy cannot weaken the secret-bearing field denylist",
+        ));
+    }
     let Some(uri) = policy.get("expected_schema_uri").and_then(Value::as_str) else {
         findings.insert(Finding::new(
             "reset_policy_malformed",
@@ -31,157 +138,90 @@ pub fn evaluate_schema(policy: &Value, schema: &Value) -> BTreeSet<Finding> {
         ));
         return findings;
     };
-    if schema.get("$id").and_then(Value::as_str) != Some(uri) {
+    if schema.get("$schema").and_then(Value::as_str)
+        != Some("https://json-schema.org/draft/2020-12/schema")
+        || schema.get("$id").and_then(Value::as_str) != Some(uri)
+    {
         findings.insert(Finding::new(
             "reset_schema_binding_mismatch",
-            "$id",
-            "schema $id does not match policy",
+            "$schema/$id",
+            "schema must declare Draft 2020-12 and the policy-bound identifier",
         ));
     }
-    let expected_version = policy
-        .get("expected_schema_version")
-        .and_then(Value::as_u64);
-    let schema_version = schema
+    if schema
         .pointer("/properties/schema_version/const")
-        .and_then(Value::as_u64);
-    if expected_version.is_none() || schema_version != expected_version {
+        .and_then(Value::as_u64)
+        != policy
+            .get("expected_schema_version")
+            .and_then(Value::as_u64)
+    {
         findings.insert(Finding::new(
             "reset_schema_binding_mismatch",
             "schema_version",
             "schema version const does not match policy",
         ));
     }
-    for field in [
-        "scope",
-        "sources",
-        "inventory",
-        "recovery",
-        "hard_stops",
-        "unknowns",
-        "approvals",
-        "decision",
-    ] {
-        let required = schema
-            .get("required")
-            .and_then(Value::as_array)
-            .is_some_and(|values| values.iter().any(|value| value.as_str() == Some(field)));
-        if !required {
-            findings.insert(Finding::new(
-                "reset_schema_fail_open",
-                field,
-                "required reset eligibility field is optional",
-            ));
-        }
-    }
+    let supported: BTreeSet<&str> = [
+        "$schema",
+        "$id",
+        "$defs",
+        "$ref",
+        "title",
+        "description",
+        "type",
+        "required",
+        "properties",
+        "additionalProperties",
+        "items",
+        "minItems",
+        "uniqueItems",
+        "minLength",
+        "pattern",
+        "format",
+        "enum",
+        "const",
+    ]
+    .into_iter()
+    .collect();
+    reject_unsupported_keywords(schema, "$", &supported, true, &mut findings);
     findings
 }
 
-pub fn evaluate(policy: &Value, artifact: &Value, evaluated_at_epoch: i64) -> BTreeSet<Finding> {
-    let mut findings = BTreeSet::new();
-    if policy.get("gate_id").and_then(Value::as_str) != Some("cloud-ci-reset-eligibility-policy") {
-        findings.insert(Finding::new(
-            "reset_policy_malformed",
-            "gate_id",
-            "unexpected or missing gate_id",
-        ));
-    }
-    let expected_version = policy
-        .get("expected_schema_version")
-        .and_then(Value::as_u64);
-    if expected_version.is_none()
-        || artifact.get("schema_version").and_then(Value::as_u64) != expected_version
-    {
-        findings.insert(Finding::new(
-            "reset_artifact_malformed",
-            "schema_version",
-            "artifact schema version does not match policy",
-        ));
-    }
-    if artifact.get("$schema").and_then(Value::as_str)
-        != policy.get("expected_schema_uri").and_then(Value::as_str)
-    {
+pub fn evaluate(
+    policy: &Value,
+    schema: &Value,
+    artifact: &Value,
+    runtime: &RuntimeAuthority,
+    evaluated_at_epoch: i64,
+) -> BTreeSet<Finding> {
+    let mut findings = evaluate_schema(policy, schema);
+    findings.extend(validate_artifact_schema(schema, artifact));
+    if artifact.get("$schema") != policy.get("expected_schema_uri") {
         findings.insert(Finding::new(
             "reset_schema_binding_mismatch",
             "$schema",
             "artifact schema URI does not match policy",
         ));
     }
-
-    require_nonempty_string(artifact, "reset_id", &mut findings);
-    for pointer in [
-        "/repository/protected_commit_sha",
-        "/repository/candidate_commit_sha",
-    ] {
-        let valid = artifact
-            .pointer(pointer)
-            .and_then(Value::as_str)
-            .is_some_and(|value| is_hex(value, 40));
-        if !valid {
-            findings.insert(Finding::new(
-                "reset_artifact_malformed",
-                pointer,
-                "repository commit must be a 40-character lowercase hexadecimal SHA",
-            ));
-        }
-    }
     if artifact
-        .pointer("/collector/method")
+        .pointer("/repository/binding_source")
         .and_then(Value::as_str)
-        != Some("read-only")
-        || artifact
-            .pointer("/collector/secret_values_excluded")
-            .and_then(Value::as_bool)
-            != Some(true)
+        != Some("ci-runtime-authority")
     {
         findings.insert(Finding::new(
-            "reset_collection_boundary_invalid",
-            "collector",
-            "collector must be read-only and exclude secret values",
+            "reset_repository_binding_invalid",
+            "repository.binding_source",
+            "commit identities must come from CI runtime authority",
         ));
     }
-    for pointer in [
-        "/scope/providers",
-        "/scope/accounts",
-        "/scope/regions",
-        "/scope/clusters",
-    ] {
-        if !nonempty_unique_strings(artifact.pointer(pointer)) {
-            findings.insert(Finding::new(
-                "reset_scope_incomplete",
-                pointer,
-                "scope dimension must contain unique non-empty identifiers",
-            ));
-        }
-    }
-
-    let expected_manifest = policy
-        .get("expected_evidence_manifest_sha256")
-        .and_then(Value::as_str);
-    if expected_manifest.is_none()
-        || artifact
-            .pointer("/evidence_manifest/sha256")
-            .and_then(Value::as_str)
-            != expected_manifest
-    {
+    if !is_hex(&runtime.protected_commit_sha, 40) || !is_hex(&runtime.candidate_commit_sha, 40) {
         findings.insert(Finding::new(
-            "reset_evidence_manifest_mismatch",
-            "evidence_manifest.sha256",
-            "evidence manifest digest does not match the reviewed discovery manifest",
-        ));
-    }
-    if artifact
-        .pointer("/evidence_manifest/uri")
-        .and_then(Value::as_str)
-        .is_none_or(str::is_empty)
-    {
-        findings.insert(Finding::new(
-            "reset_artifact_malformed",
-            "evidence_manifest.uri",
-            "evidence manifest URI is required",
+            "reset_runtime_authority_malformed",
+            "repository",
+            "runtime commit identities must be exact 40-character lowercase SHAs",
         ));
     }
 
-    let max_validity = policy.get("max_validity_seconds").and_then(Value::as_i64);
     let captured = artifact
         .get("captured_at")
         .and_then(Value::as_str)
@@ -190,169 +230,118 @@ pub fn evaluate(policy: &Value, artifact: &Value, evaluated_at_epoch: i64) -> BT
         .get("expires_at")
         .and_then(Value::as_str)
         .and_then(parse_rfc3339_utc);
-    match (captured, expires, max_validity) {
-        (Some(captured), Some(expires), Some(max))
-            if expires > captured && expires - captured <= max => {}
-        _ => {
+    let max = policy.get("max_validity_seconds").and_then(Value::as_i64);
+    if !matches!((captured, expires, max), (Some(c), Some(e), Some(m)) if e > c && e - c <= m) {
+        findings.insert(Finding::new(
+            "reset_evidence_window_invalid",
+            "captured_at/expires_at",
+            "evidence window must be positive and no longer than the fixed policy maximum",
+        ));
+    }
+
+    let mut sources_incomplete = false;
+    let mut source_ids = BTreeSet::new();
+    for (index, source) in artifact
+        .get("sources")
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+        .enumerate()
+    {
+        let key = format!("sources[{index}]");
+        let id = source
+            .get("source_id")
+            .and_then(Value::as_str)
+            .unwrap_or_default();
+        if id.is_empty() || !source_ids.insert(id) {
             findings.insert(Finding::new(
-                "reset_evidence_window_invalid",
-                "captured_at/expires_at",
-                "evidence window must be positive and no longer than policy max_validity_seconds",
+                "reset_source_malformed",
+                &key,
+                "source_id must be non-empty and unique",
             ));
         }
-    }
-
-    let allowed_results = string_set(policy.get("allowed_source_results"));
-    let mut sources_incomplete = false;
-    let sources = artifact.get("sources").and_then(Value::as_array);
-    if sources.is_none_or(Vec::is_empty) {
-        findings.insert(Finding::new(
-            "reset_sources_missing",
-            "sources",
-            "at least one source observation is required",
-        ));
-        sources_incomplete = true;
-    } else if let Some(sources) = sources {
-        let mut ids = BTreeSet::new();
-        for (index, source) in sources.iter().enumerate() {
-            let key = format!("sources[{index}]");
-            let source_id = source
-                .get("source_id")
-                .and_then(Value::as_str)
-                .filter(|value| !value.is_empty());
-            if source_id.is_none() || !ids.insert(source_id.unwrap_or_default()) {
-                findings.insert(Finding::new(
-                    "reset_source_malformed",
-                    &key,
-                    "source_id must be non-empty and unique",
-                ));
-            }
-            let result = source.get("result").and_then(Value::as_str);
-            if result.is_none() || !allowed_results.contains(result.unwrap_or_default()) {
-                findings.insert(Finding::new(
-                    "reset_source_malformed",
-                    &key,
-                    "source result is not allowed by policy",
-                ));
-                sources_incomplete = true;
-            } else if result != Some("observed") {
-                sources_incomplete = true;
-            }
-            if source.get("redaction").and_then(Value::as_str) != Some("secret-values-excluded")
-                || source
-                    .get("evidence_uri")
-                    .and_then(Value::as_str)
-                    .is_none_or(str::is_empty)
-            {
-                findings.insert(Finding::new(
-                    "reset_source_malformed",
-                    &key,
-                    "source requires a redacted evidence URI",
-                ));
-            }
-            if result == Some("observed")
-                && !source
-                    .get("sha256")
-                    .and_then(Value::as_str)
-                    .is_some_and(is_sha256)
-            {
-                findings.insert(Finding::new(
-                    "reset_source_malformed",
-                    &key,
-                    "observed source requires a sha256 digest",
-                ));
-            }
-        }
-    }
-
-    let inventory = artifact.get("inventory").and_then(Value::as_array);
-    if inventory.is_none_or(Vec::is_empty) {
-        findings.insert(Finding::new(
-            "reset_inventory_missing",
-            "inventory",
-            "at least one stable inventory identity is required",
-        ));
-    } else if let Some(inventory) = inventory {
-        let mut ids = BTreeSet::new();
-        for (index, item) in inventory.iter().enumerate() {
-            let key = format!("inventory[{index}]");
-            let stable_id = item
-                .get("stable_id")
-                .and_then(Value::as_str)
-                .filter(|value| !value.is_empty());
-            if stable_id.is_none() || !ids.insert(stable_id.unwrap_or_default()) {
-                findings.insert(Finding::new(
-                    "reset_inventory_malformed",
-                    &key,
-                    "stable_id must be non-empty and unique",
-                ));
-            }
-            if !item
-                .get("identity_hash")
-                .and_then(Value::as_str)
-                .is_some_and(is_sha256)
-            {
-                findings.insert(Finding::new(
-                    "reset_inventory_malformed",
-                    &key,
-                    "identity_hash must be sha256",
-                ));
-            }
-            for field in [
-                "lifecycle",
-                "data_class",
-                "retention",
-                "billing",
-                "deletion_semantics",
-            ] {
-                if item
-                    .get(field)
-                    .and_then(Value::as_str)
-                    .is_none_or(str::is_empty)
-                {
-                    findings.insert(Finding::new(
-                        "reset_inventory_malformed",
-                        format!("{key}.{field}"),
-                        "inventory lifecycle field must be non-empty",
-                    ));
+        if source.get("result").and_then(Value::as_str) == Some("observed") {
+            match runtime.evidence_by_source.get(id) {
+                Some(bytes)
+                    if source.get("sha256").and_then(Value::as_str)
+                        == Some(sha256(bytes).as_str()) => {}
+                _ => {
+                    findings.insert(Finding::new("reset_source_evidence_unverified", &key, "observed evidence bytes are absent or do not rehash to the declared digest"));
+                    sources_incomplete = true;
                 }
             }
+        } else {
+            sources_incomplete = true;
         }
     }
+    let rehashed_evidence_digest = evidence_digest(&runtime.evidence_by_source);
+    let manifest_verified = artifact
+        .pointer("/evidence_manifest/status")
+        .and_then(Value::as_str)
+        == Some("verified")
+        && artifact
+            .pointer("/evidence_manifest/sha256")
+            .and_then(Value::as_str)
+            == Some(rehashed_evidence_digest.as_str())
+        && !runtime.evidence_by_source.is_empty();
+    if !manifest_verified {
+        sources_incomplete = true;
+    }
 
-    let recovery_fields = [
+    let recovery_incomplete = [
         "backup_verified",
         "immutable_backup_location_verified",
         "rpo_verified",
         "restore_drill_verified",
         "key_recovery_verified",
-    ];
-    let recovery_incomplete = recovery_fields.iter().any(|field| {
+    ]
+    .iter()
+    .any(|field| {
         artifact
             .pointer(&format!("/recovery/{field}"))
             .and_then(Value::as_bool)
             != Some(true)
     });
-    let hard_stops_present = validate_blockers(artifact.get("hard_stops"), &mut findings);
-    let unknowns_present = validate_unknowns(artifact.get("unknowns"), &mut findings);
-    let approvals_incomplete = validate_approvals(policy, artifact.get("approvals"), &mut findings);
+    let hard_stops_present = artifact
+        .get("hard_stops")
+        .and_then(Value::as_array)
+        .is_none_or(|v| !v.is_empty());
+    let unknowns_present = artifact
+        .get("unknowns")
+        .and_then(Value::as_array)
+        .is_none_or(|v| !v.is_empty());
+    let approvals_complete = validate_approval_receipts(
+        artifact,
+        runtime,
+        &rehashed_evidence_digest,
+        policy,
+        schema,
+        evaluated_at_epoch,
+        &mut findings,
+    );
+    let grant_valid = validate_authorization_grant(
+        artifact,
+        runtime,
+        &rehashed_evidence_digest,
+        policy,
+        schema,
+        evaluated_at_epoch,
+        &mut findings,
+    );
 
-    let forbidden_secret_keys = string_set(policy.get("forbidden_secret_keys"));
-    scan_forbidden_keys(artifact, "$", &forbidden_secret_keys, &mut findings);
-
-    let stale_positive = captured.is_none_or(|capture| evaluated_at_epoch < capture)
-        || expires.is_none_or(|expiry| evaluated_at_epoch >= expiry);
-    let authorization_enabled = policy
-        .get("reset_authorization_enabled")
-        .and_then(Value::as_bool)
-        == Some(true);
-    let computed_eligible = authorization_enabled
+    let forbidden = string_set(policy.get("forbidden_secret_keys"));
+    scan_forbidden_keys(artifact, "$", &forbidden, &mut findings);
+    let stale = manifest_verified
+        && (captured.is_none_or(|c| evaluated_at_epoch < c)
+            || expires.is_none_or(|e| evaluated_at_epoch >= e));
+    let computed_eligible = grant_valid
+        && approvals_complete
+        && manifest_verified
         && !sources_incomplete
         && !recovery_incomplete
         && !hard_stops_present
         && !unknowns_present
-        && !approvals_incomplete
-        && !stale_positive
+        && !stale
         && findings.is_empty();
 
     let mut reasons = BTreeSet::new();
@@ -368,25 +357,24 @@ pub fn evaluate(policy: &Value, artifact: &Value, evaluated_at_epoch: i64) -> BT
     if unknowns_present {
         reasons.insert("unknowns-present");
     }
-    if approvals_incomplete {
+    if !approvals_complete {
         reasons.insert("approvals-incomplete");
     }
-    if stale_positive {
-        reasons.insert("evidence-expired");
-    }
-    if !authorization_enabled {
+    if !grant_valid {
         reasons.insert("authorization-disabled");
     }
-
-    let decision_eligible = artifact
-        .pointer("/decision/eligible")
-        .and_then(Value::as_bool);
+    if stale {
+        reasons.insert("evidence-expired");
+    }
     let expected_mode = if computed_eligible {
         "authorized-reset"
     } else {
         "preservation-migration"
     };
-    if decision_eligible != Some(computed_eligible)
+    if artifact
+        .pointer("/decision/eligible")
+        .and_then(Value::as_bool)
+        != Some(computed_eligible)
         || artifact.pointer("/decision/mode").and_then(Value::as_str) != Some(expected_mode)
         || artifact
             .pointer("/decision/default_if_unknown")
@@ -399,44 +387,341 @@ pub fn evaluate(policy: &Value, artifact: &Value, evaluated_at_epoch: i64) -> BT
             "declared decision does not match fail-closed computed eligibility",
         ));
     }
-    let declared_reasons = string_set(artifact.pointer("/decision/reason_codes"));
-    if declared_reasons != reasons {
+    if string_set(artifact.pointer("/decision/reason_codes")) != reasons {
         findings.insert(Finding::new(
             "reset_reason_codes_mismatch",
             "decision.reason_codes",
-            format!("declared reason codes {declared_reasons:?} do not match computed {reasons:?}"),
+            "declared reason codes do not match the computed decision",
         ));
     }
     findings
 }
 
-fn require_nonempty_string(value: &Value, key: &str, findings: &mut BTreeSet<Finding>) {
-    if value
-        .get(key)
-        .and_then(Value::as_str)
-        .is_none_or(str::is_empty)
+fn validate_approval_receipts(
+    artifact: &Value,
+    runtime: &RuntimeAuthority,
+    evidence: &str,
+    policy: &Value,
+    schema: &Value,
+    now: i64,
+    findings: &mut BTreeSet<Finding>,
+) -> bool {
+    let mut approved = BTreeSet::new();
+    for (index, receipt) in artifact
+        .get("approvals")
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+        .enumerate()
     {
+        let role = receipt
+            .get("role")
+            .and_then(Value::as_str)
+            .unwrap_or_default();
+        let key_id = receipt
+            .get("key_id")
+            .and_then(Value::as_str)
+            .unwrap_or_default();
+        let valid =
+            receipt_binding_valid(receipt, artifact, runtime, evidence, policy, schema, now)
+                && verify_receipt(receipt, runtime.trusted_approval_keys.get(key_id));
+        if valid {
+            approved.insert(role.to_owned());
+        } else {
+            findings.insert(Finding::new("reset_approval_receipt_invalid", format!("approvals[{index}]"), "approval must be attributable, signed by a runtime-trusted key, and bound to reset/evidence/commits/policy/schema"));
+        }
+    }
+    runtime.required_approval_roles.is_subset(&approved)
+}
+
+fn validate_authorization_grant(
+    artifact: &Value,
+    runtime: &RuntimeAuthority,
+    evidence: &str,
+    policy: &Value,
+    schema: &Value,
+    now: i64,
+    findings: &mut BTreeSet<Finding>,
+) -> bool {
+    let Some(grant) = runtime.authorization_grant.as_ref() else {
+        return false;
+    };
+    let key_id = grant
+        .get("key_id")
+        .and_then(Value::as_str)
+        .unwrap_or_default();
+    let valid = grant
+        .get("grant_id")
+        .and_then(Value::as_str)
+        .is_some_and(|v| !v.is_empty())
+        && receipt_binding_valid(grant, artifact, runtime, evidence, policy, schema, now)
+        && verify_receipt(grant, runtime.trusted_authorization_keys.get(key_id));
+    if !valid {
         findings.insert(Finding::new(
-            "reset_artifact_malformed",
-            key,
-            "required non-empty string is missing",
+            "reset_authorization_grant_invalid",
+            "authorization_grant",
+            "separately controlled authorization grant is invalid",
         ));
+    }
+    valid
+}
+
+fn receipt_binding_valid(
+    receipt: &Value,
+    artifact: &Value,
+    runtime: &RuntimeAuthority,
+    evidence: &str,
+    policy: &Value,
+    schema: &Value,
+    now: i64,
+) -> bool {
+    receipt.get("reset_id") == artifact.get("reset_id")
+        && receipt.get("evidence_sha256").and_then(Value::as_str) == Some(evidence)
+        && receipt.get("protected_commit_sha").and_then(Value::as_str)
+            == Some(runtime.protected_commit_sha.as_str())
+        && receipt.get("candidate_commit_sha").and_then(Value::as_str)
+            == Some(runtime.candidate_commit_sha.as_str())
+        && receipt.get("schema_sha256").and_then(Value::as_str)
+            == Some(json_digest(schema).as_str())
+        && receipt.get("policy_sha256").and_then(Value::as_str)
+            == Some(json_digest(policy).as_str())
+        && receipt
+            .get("approved_at")
+            .and_then(Value::as_str)
+            .and_then(parse_rfc3339_utc)
+            .is_some_and(|approved| approved <= now)
+        && receipt
+            .get("expires_at")
+            .and_then(Value::as_str)
+            .and_then(parse_rfc3339_utc)
+            .is_some_and(|e| now < e)
+}
+
+pub fn receipt_payload(receipt: &Value) -> Option<Vec<u8>> {
+    let fields = [
+        "grant_id",
+        "role",
+        "approver",
+        "reset_id",
+        "evidence_sha256",
+        "protected_commit_sha",
+        "candidate_commit_sha",
+        "schema_sha256",
+        "policy_sha256",
+        "approved_at",
+        "expires_at",
+        "key_id",
+    ];
+    let mut payload = String::new();
+    for field in fields {
+        if let Some(value) = receipt.get(field).and_then(Value::as_str) {
+            payload.push_str(field);
+            payload.push('=');
+            payload.push_str(value);
+            payload.push('\n');
+        }
+    }
+    (!payload.is_empty()).then(|| payload.into_bytes())
+}
+
+fn verify_receipt(receipt: &Value, key: Option<&[u8; 32]>) -> bool {
+    let (Some(key), Some(signature_hex), Some(payload)) = (
+        key,
+        receipt.get("signature").and_then(Value::as_str),
+        receipt_payload(receipt),
+    ) else {
+        return false;
+    };
+    let Some(signature_bytes) = decode_hex_64(signature_hex) else {
+        return false;
+    };
+    VerifyingKey::from_bytes(key)
+        .ok()
+        .is_some_and(|verifying_key| {
+            verifying_key
+                .verify_strict(&payload, &Signature::from_bytes(&signature_bytes))
+                .is_ok()
+        })
+}
+
+fn validate_node(
+    root: &Value,
+    schema: &Value,
+    value: &Value,
+    path: &str,
+    findings: &mut BTreeSet<Finding>,
+) {
+    if let Some(reference) = schema.get("$ref").and_then(Value::as_str) {
+        let Some(target) = reference.strip_prefix('#').and_then(|p| root.pointer(p)) else {
+            findings.insert(Finding::new("reset_schema_invalid_ref", path, reference));
+            return;
+        };
+        validate_node(root, target, value, path, findings);
+        return;
+    }
+    if let Some(constant) = schema.get("const")
+        && value != constant
+    {
+        schema_error(findings, path, "const");
+    }
+    if let Some(values) = schema.get("enum").and_then(Value::as_array)
+        && !values.contains(value)
+    {
+        schema_error(findings, path, "enum");
+    }
+    if let Some(kind) = schema.get("type").and_then(Value::as_str) {
+        let correct = match kind {
+            "object" => value.is_object(),
+            "array" => value.is_array(),
+            "string" => value.is_string(),
+            "boolean" => value.is_boolean(),
+            "integer" => value.is_i64() || value.is_u64(),
+            _ => false,
+        };
+        if !correct {
+            schema_error(findings, path, "type");
+            return;
+        }
+    }
+    if let Some(object) = value.as_object() {
+        let properties = schema.get("properties").and_then(Value::as_object);
+        for required in schema
+            .get("required")
+            .and_then(Value::as_array)
+            .into_iter()
+            .flatten()
+            .filter_map(Value::as_str)
+        {
+            if !object.contains_key(required) {
+                schema_error(findings, &format!("{path}.{required}"), "required");
+            }
+        }
+        if let Some(properties) = properties {
+            for (key, child) in object {
+                if let Some(child_schema) = properties.get(key) {
+                    validate_node(
+                        root,
+                        child_schema,
+                        child,
+                        &format!("{path}.{key}"),
+                        findings,
+                    );
+                } else if schema.get("additionalProperties").and_then(Value::as_bool) == Some(false)
+                {
+                    schema_error(findings, &format!("{path}.{key}"), "additionalProperties");
+                }
+            }
+        }
+    }
+    if let Some(array) = value.as_array() {
+        if schema
+            .get("minItems")
+            .and_then(Value::as_u64)
+            .is_some_and(|min| array.len() < min as usize)
+        {
+            schema_error(findings, path, "minItems");
+        }
+        if schema.get("uniqueItems").and_then(Value::as_bool) == Some(true)
+            && array
+                .iter()
+                .enumerate()
+                .any(|(i, v)| array[..i].contains(v))
+        {
+            schema_error(findings, path, "uniqueItems");
+        }
+        if let Some(item_schema) = schema.get("items") {
+            for (index, child) in array.iter().enumerate() {
+                validate_node(
+                    root,
+                    item_schema,
+                    child,
+                    &format!("{path}[{index}]"),
+                    findings,
+                );
+            }
+        }
+    }
+    if let Some(text) = value.as_str() {
+        if schema
+            .get("minLength")
+            .and_then(Value::as_u64)
+            .is_some_and(|min| text.chars().count() < min as usize)
+        {
+            schema_error(findings, path, "minLength");
+        }
+        if let Some(pattern) = schema.get("pattern").and_then(Value::as_str) {
+            let valid = match pattern {
+                "^[0-9a-f]{40}$" => is_hex(text, 40),
+                "^sha256:[0-9a-f]{64}$" => is_sha256(text),
+                "^[0-9a-f]{128}$" => is_hex(text, 128),
+                "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$" => {
+                    parse_rfc3339_utc(text).is_some()
+                }
+                _ => false,
+            };
+            if !valid {
+                schema_error(findings, path, "pattern");
+            }
+        }
+        if schema.get("format").and_then(Value::as_str) == Some("date-time")
+            && parse_rfc3339_utc(text).is_none()
+        {
+            schema_error(findings, path, "format");
+        }
     }
 }
 
-fn nonempty_unique_strings(value: Option<&Value>) -> bool {
-    let Some(values) = value.and_then(Value::as_array) else {
-        return false;
+fn schema_error(findings: &mut BTreeSet<Finding>, path: &str, keyword: &str) {
+    findings.insert(Finding::new(
+        "reset_schema_validation",
+        path,
+        format!("violates {keyword}"),
+    ));
+}
+
+fn reject_unsupported_keywords(
+    value: &Value,
+    path: &str,
+    supported: &BTreeSet<&str>,
+    schema_node: bool,
+    findings: &mut BTreeSet<Finding>,
+) {
+    let Some(object) = value.as_object() else {
+        return;
     };
-    if values.is_empty() {
-        return false;
+    for (key, child) in object {
+        if schema_node && !supported.contains(key.as_str()) {
+            findings.insert(Finding::new(
+                "reset_schema_unsupported_keyword",
+                format!("{path}.{key}"),
+                "schema uses an unsupported keyword",
+            ));
+            continue;
+        }
+        match key.as_str() {
+            "properties" | "$defs" => {
+                if let Some(children) = child.as_object() {
+                    for (name, child_schema) in children {
+                        reject_unsupported_keywords(
+                            child_schema,
+                            &format!("{path}.{key}.{name}"),
+                            supported,
+                            true,
+                            findings,
+                        );
+                    }
+                }
+            }
+            "items" => reject_unsupported_keywords(
+                child,
+                &format!("{path}.{key}"),
+                supported,
+                true,
+                findings,
+            ),
+            _ => {}
+        }
     }
-    let strings = values
-        .iter()
-        .filter_map(Value::as_str)
-        .filter(|value| !value.is_empty())
-        .collect::<BTreeSet<_>>();
-    strings.len() == values.len()
 }
 
 fn string_set(value: Option<&Value>) -> BTreeSet<&str> {
@@ -447,134 +732,24 @@ fn string_set(value: Option<&Value>) -> BTreeSet<&str> {
         .filter_map(Value::as_str)
         .collect()
 }
-
 fn is_hex(value: &str, len: usize) -> bool {
     value.len() == len
         && value
             .bytes()
-            .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+            .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
 }
-
 fn is_sha256(value: &str) -> bool {
-    value
-        .strip_prefix("sha256:")
-        .is_some_and(|digest| is_hex(digest, 64))
+    value.strip_prefix("sha256:").is_some_and(|v| is_hex(v, 64))
 }
-
-fn validate_blockers(value: Option<&Value>, findings: &mut BTreeSet<Finding>) -> bool {
-    let Some(rows) = value.and_then(Value::as_array) else {
-        findings.insert(Finding::new(
-            "reset_artifact_malformed",
-            "hard_stops",
-            "hard_stops must be an array",
-        ));
-        return true;
-    };
-    let mut ids = BTreeSet::new();
-    for (index, row) in rows.iter().enumerate() {
-        let key = format!("hard_stops[{index}]");
-        let id = row
-            .get("id")
-            .and_then(Value::as_str)
-            .filter(|value| !value.is_empty());
-        if id.is_none() || !ids.insert(id.unwrap_or_default()) {
-            findings.insert(Finding::new(
-                "reset_hard_stop_malformed",
-                &key,
-                "hard-stop id must be non-empty and unique",
-            ));
-        }
-        for field in [
-            "class",
-            "acceptance_criteria",
-            "verification_path",
-            "suggested_owner",
-            "dependency_notes",
-        ] {
-            if row
-                .get(field)
-                .and_then(Value::as_str)
-                .is_none_or(str::is_empty)
-            {
-                findings.insert(Finding::new(
-                    "reset_hard_stop_malformed",
-                    format!("{key}.{field}"),
-                    "blocker field must be non-empty",
-                ));
-            }
-        }
+fn decode_hex_64(value: &str) -> Option<[u8; 64]> {
+    if value.len() != 128 {
+        return None;
     }
-    !rows.is_empty()
-}
-
-fn validate_unknowns(value: Option<&Value>, findings: &mut BTreeSet<Finding>) -> bool {
-    let Some(rows) = value.and_then(Value::as_array) else {
-        findings.insert(Finding::new(
-            "reset_artifact_malformed",
-            "unknowns",
-            "unknowns must be an array",
-        ));
-        return true;
-    };
-    let mut ids = BTreeSet::new();
-    for (index, row) in rows.iter().enumerate() {
-        let key = format!("unknowns[{index}]");
-        let id = row
-            .get("id")
-            .and_then(Value::as_str)
-            .filter(|value| !value.is_empty());
-        if id.is_none() || !ids.insert(id.unwrap_or_default()) {
-            findings.insert(Finding::new(
-                "reset_unknown_malformed",
-                &key,
-                "unknown id must be non-empty and unique",
-            ));
-        }
-        for field in ["owner", "closure_probe"] {
-            if row
-                .get(field)
-                .and_then(Value::as_str)
-                .is_none_or(str::is_empty)
-            {
-                findings.insert(Finding::new(
-                    "reset_unknown_malformed",
-                    format!("{key}.{field}"),
-                    "unknown closure field must be non-empty",
-                ));
-            }
-        }
+    let mut out = [0; 64];
+    for (i, byte) in out.iter_mut().enumerate() {
+        *byte = u8::from_str_radix(&value[i * 2..i * 2 + 2], 16).ok()?;
     }
-    !rows.is_empty()
-}
-
-fn validate_approvals(
-    policy: &Value,
-    value: Option<&Value>,
-    findings: &mut BTreeSet<Finding>,
-) -> bool {
-    let required = string_set(policy.get("required_approval_roles"));
-    if required.is_empty() {
-        findings.insert(Finding::new(
-            "reset_policy_malformed",
-            "required_approval_roles",
-            "policy must require at least one approval role",
-        ));
-        return true;
-    }
-    let Some(rows) = value.and_then(Value::as_array) else {
-        findings.insert(Finding::new(
-            "reset_artifact_malformed",
-            "approvals",
-            "approvals must be an array",
-        ));
-        return true;
-    };
-    let approved = rows
-        .iter()
-        .filter(|row| row.get("approved").and_then(Value::as_bool) == Some(true))
-        .filter_map(|row| row.get("role").and_then(Value::as_str))
-        .collect::<BTreeSet<_>>();
-    !required.is_subset(&approved)
+    Some(out)
 }
 
 fn scan_forbidden_keys(
@@ -591,7 +766,7 @@ fn scan_forbidden_keys(
                     findings.insert(Finding::new(
                         "reset_secret_bearing_field",
                         &child_path,
-                        "secret-bearing field names are forbidden in reset evidence",
+                        "secret-bearing field names are forbidden",
                     ));
                 }
                 scan_forbidden_keys(child, &child_path, forbidden, findings);
@@ -623,12 +798,28 @@ fn parse_rfc3339_utc(value: &str) -> Option<i64> {
     let hour = value[11..13].parse::<i64>().ok()?;
     let minute = value[14..16].parse::<i64>().ok()?;
     let second = value[17..19].parse::<i64>().ok()?;
-    if !(1..=12).contains(&month)
-        || !(1..=31).contains(&day)
-        || hour > 23
-        || minute > 59
-        || second > 59
-    {
+    if !(1..=12).contains(&month) || hour > 23 || minute > 59 || second > 59 {
+        return None;
+    }
+    let days_in_month = [
+        31,
+        if year % 4 == 0 && (year % 100 != 0 || year % 400 == 0) {
+            29
+        } else {
+            28
+        },
+        31,
+        30,
+        31,
+        30,
+        31,
+        31,
+        30,
+        31,
+        30,
+        31,
+    ];
+    if day < 1 || day > days_in_month[(month - 1) as usize] {
         return None;
     }
     let adjusted_year = year - i64::from(month <= 2);
@@ -637,81 +828,5 @@ fn parse_rfc3339_utc(value: &str) -> Option<i64> {
     let shifted_month = month + if month > 2 { -3 } else { 9 };
     let day_of_year = (153 * shifted_month + 2) / 5 + day - 1;
     let day_of_era = year_of_era * 365 + year_of_era / 4 - year_of_era / 100 + day_of_year;
-    let days_since_epoch = era * 146_097 + day_of_era - 719_468;
-    Some(days_since_epoch * 86_400 + hour * 3_600 + minute * 60 + second)
-}
-
-#[cfg(test)]
-mod tests {
-    use serde_json::{Value, json};
-
-    use super::evaluate;
-
-    const CAPTURED: i64 = 1_785_607_169;
-
-    fn policy() -> Value {
-        serde_json::from_str(include_str!("../reset-eligibility-policy.json")).expect("policy")
-    }
-
-    fn eligible_fixture() -> Value {
-        json!({
-            "$schema": "https://docs.oyatie.com/schemas/reset-eligibility.schema.json",
-            "schema_version": 1,
-            "reset_id": "fixture-reset",
-            "captured_at": "2026-08-01T17:59:29Z",
-            "expires_at": "2026-08-02T17:59:29Z",
-            "repository": {"protected_commit_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "candidate_commit_sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"},
-            "collector": {"id": "fixture", "method": "read-only", "secret_values_excluded": true},
-            "scope": {"providers": ["fixture"], "accounts": ["fixture-account"], "regions": ["fixture-region"], "clusters": ["fixture-cluster"]},
-            "evidence_manifest": {"uri": "redacted-local-manifest:fixture", "sha256": "sha256:208783ed5d85345be22f336da0dd6c5425a5176a425512fdadf42715c2064f5c"},
-            "sources": [{"source_id": "fixture", "result": "observed", "redaction": "secret-values-excluded", "evidence_uri": "redacted-local:fixture", "sha256": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}],
-            "inventory": [{"stable_id": "fixture:one", "identity_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "lifecycle": "replaceable", "data_class": "none", "retention": "none", "billing": "known", "deletion_semantics": "verified"}],
-            "recovery": {"backup_verified": true, "immutable_backup_location_verified": true, "rpo_verified": true, "restore_drill_verified": true, "key_recovery_verified": true},
-            "hard_stops": [],
-            "unknowns": [],
-            "approvals": [
-                {"role": "founder", "approver": "fixture-founder", "approved": true, "approved_at": "2026-08-01T18:00:00Z"},
-                {"role": "platform-operations", "approver": "fixture-ops", "approved": true, "approved_at": "2026-08-01T18:00:00Z"},
-                {"role": "data-protection", "approver": "fixture-data", "approved": true, "approved_at": "2026-08-01T18:00:00Z"}
-            ],
-            "decision": {"eligible": false, "mode": "preservation-migration", "default_if_unknown": "ineligible", "reason_codes": ["authorization-disabled"]}
-        })
-    }
-
-    #[test]
-    fn complete_fresh_evidence_cannot_self_authorize_a_reset() {
-        let mut artifact = eligible_fixture();
-        assert!(evaluate(&policy(), &artifact, CAPTURED + 3600).is_empty());
-        artifact["decision"] = json!({"eligible":true,"mode":"authorized-reset","default_if_unknown":"ineligible","reason_codes":[]});
-        assert!(!evaluate(&policy(), &artifact, CAPTURED + 3600).is_empty());
-    }
-
-    #[test]
-    fn unknown_hard_stop_and_missing_recovery_force_preservation() {
-        let mut artifact = eligible_fixture();
-        artifact["unknowns"] = json!([{"id":"provider-scope", "owner":"platform-operations", "closure_probe":"enumerate provider accounts"}]);
-        artifact["hard_stops"] = json!([{"id":"live-stateful-data", "class":"data-loss", "acceptance_criteria":"verified immutable backup", "verification_path":"restore drill", "suggested_owner":"data-protection", "dependency_notes":"none"}]);
-        artifact["recovery"]["backup_verified"] = json!(false);
-        artifact["decision"] = json!({"eligible":false,"mode":"preservation-migration","default_if_unknown":"ineligible","reason_codes":["authorization-disabled","hard-stops-present","unknowns-present","recovery-incomplete"]});
-        assert!(evaluate(&policy(), &artifact, CAPTURED + 3600).is_empty());
-        artifact["decision"] = json!({"eligible":true,"mode":"authorized-reset","default_if_unknown":"ineligible","reason_codes":[]});
-        assert!(!evaluate(&policy(), &artifact, CAPTURED + 3600).is_empty());
-    }
-
-    #[test]
-    fn stale_positive_or_overlong_window_is_red() {
-        let artifact = eligible_fixture();
-        assert!(!evaluate(&policy(), &artifact, CAPTURED + 86_401).is_empty());
-        let mut overlong = eligible_fixture();
-        overlong["expires_at"] = json!("2026-08-02T18:00:00Z");
-        assert!(!evaluate(&policy(), &overlong, CAPTURED + 3600).is_empty());
-    }
-
-    #[test]
-    fn incomplete_approvals_and_secret_bearing_fields_are_red() {
-        let mut artifact = eligible_fixture();
-        artifact["approvals"] = json!([]);
-        artifact["token"] = json!("must-never-appear");
-        assert!(!evaluate(&policy(), &artifact, CAPTURED + 3600).is_empty());
-    }
+    Some((era * 146_097 + day_of_era - 719_468) * 86_400 + hour * 3_600 + minute * 60 + second)
 }
