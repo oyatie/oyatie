@@ -210,6 +210,126 @@ fn gate2_is_born_blocking_on_the_live_corpus() {
     assert!(unowned > 1000, "owner gap is systemic, got {unowned}");
 }
 
+/// Every tracked `OWNERS` file is accounted BY CONSTRUCTION on the LIVE corpus — no ADR
+/// prose mention, no `specs/reachability-registry.json` row, no hand-edit of any global file.
+///
+/// This is the regression PR #1473 shipped: a one-line `os/OWNERS` rode a `git mv` and turned
+/// `dev` RED (`unjustified` 16545 -> 16546, `unreachable` 12167 -> 12168) because the
+/// accounting system demanded that the very files it resolves OWNERSHIP from be individually
+/// justified to itself. ADR-0562 §10.29 had already written the manual obligation down ("the
+/// OWNERS file rides the `git mv`; its registry entry does not") and the next PR forgot it —
+/// so this is the detector that replaces the discipline.
+///
+/// The assertion is deliberately over the WHOLE tracked OWNERS population rather than over
+/// `os/OWNERS` alone, so it keeps holding as the ~275 remaining reorg destinations land and
+/// as `os/OWNERS` itself moves again. `os/OWNERS` is then named explicitly because it is the
+/// exhibit: if that one path regressed, the general invariant could still pass on a corpus
+/// that no longer contains it.
+#[test]
+fn owners_files_are_accounted_by_construction_on_the_live_corpus() {
+    let root = repo_root();
+    let registry = run_producer_stdout(&root);
+    let rows = registry["rows"].as_array().expect("registry rows");
+
+    let owners_rows: Vec<&Value> = rows
+        .iter()
+        .filter(|row| {
+            row["path"]
+                .as_str()
+                .is_some_and(|p| p == "OWNERS" || p.ends_with("/OWNERS"))
+        })
+        .collect();
+    // Non-vacuity: a filter that silently matched nothing would make every assertion below
+    // pass trivially. The live tree carries >100 OWNERS files.
+    assert!(
+        owners_rows.len() > 50,
+        "expected the live corpus to carry many OWNERS rows, got {} — the filter is measuring \
+         the wrong thing",
+        owners_rows.len()
+    );
+
+    let unaccounted: Vec<(&str, bool, bool)> = owners_rows
+        .iter()
+        .map(|row| {
+            (
+                row["path"].as_str().unwrap_or_default(),
+                row["justification_ref"].is_null(),
+                row["reachable_from"]
+                    .as_array()
+                    .map(Vec::is_empty)
+                    .unwrap_or(true),
+            )
+        })
+        .filter(|(_, unjustified, unreachable)| *unjustified || *unreachable)
+        .collect();
+    assert!(
+        unaccounted.is_empty(),
+        "every tracked OWNERS file must be accounted by construction (schema-valid ⇒ justified \
+         + reachable). Unaccounted: {unaccounted:?}. If one of these fails the ADR-0555 OWNERS \
+         schema that is CORRECT and the fix is the file's CONTENT — never a reachability-registry row."
+    );
+
+    // The exhibit (PR #1473). Named explicitly: nobody hand-wrote a row for it.
+    let os_owners = rows
+        .iter()
+        .find(|row| row["path"] == "os/OWNERS")
+        .expect("os/OWNERS must be in the live registry");
+    assert_eq!(os_owners["justification_ref"], "owners-schema");
+    assert_eq!(
+        os_owners["reachable_from"],
+        serde_json::json!(["owners-schema"])
+    );
+
+    // ...and the gate agrees: no per-path finding is keyed to ANY OWNERS file.
+    let owners_findings: Vec<String> = ci_artifact_accountability::evaluate_keyed(&registry)
+        .into_iter()
+        .filter(|f| f.key == "OWNERS" || f.key.ends_with("/OWNERS"))
+        .map(|f| format!("{}:{}", f.code, f.key))
+        .collect();
+    assert!(
+        owners_findings.is_empty(),
+        "GATE-2 must raise no violation against any OWNERS file, got {owners_findings:?}"
+    );
+
+    eprintln!(
+        "OWNERS-BY-CONSTRUCTION live-corpus counts: owners_rows={} unaccounted=0 registry_rows={}",
+        owners_rows.len(),
+        rows.len()
+    );
+}
+
+/// The other half of the detector: the deleted rows must STAY deleted.
+///
+/// `specs/reachability-registry.json` is a GLOBAL MUTABLE FILE — every capability move that
+/// wants a row has to edit it, which serializes moves behind one merge-conflict point. 49 of
+/// its 124 rows existed only to permit an OWNERS file, at a median of ~217 characters of
+/// hand-written anchor prose apiece. Re-adding one is a no-op (the file is already accounted)
+/// that the next mover then has to carry, so it is caught here rather than tolerated. The
+/// `--fix-reachability` bridge refuses these paths too, so the paved road agrees with the gate.
+#[test]
+fn owners_files_are_never_registered_in_the_reachability_registry() {
+    let registry: Value = load_json(&repo_root().join("specs/reachability-registry.json"));
+    let registered = registry["registered"]
+        .as_array()
+        .expect("registered array");
+    // Non-vacuity: the file still carries its legitimate non-OWNERS registrations.
+    assert!(
+        registered.len() > 20,
+        "reachability registry looks empty ({} rows) — the probe is measuring the wrong file",
+        registered.len()
+    );
+    let owners_entries: Vec<&str> = registered
+        .iter()
+        .filter_map(|entry| entry["prefix"].as_str())
+        .filter(|prefix| *prefix == "OWNERS" || prefix.ends_with("/OWNERS"))
+        .collect();
+    assert!(
+        owners_entries.is_empty(),
+        "OWNERS files are accounted by construction — a reachability registration for one is \
+         dead weight every future capability move has to maintain. Remove: {owners_entries:?}"
+    );
+}
+
 /// Run the producer to emit the registry face to stdout, HERMETICALLY. The producer binary must be
 /// provided by `OYA_CI_PRODUCER_BIN`; missing env fails closed so tests cannot silently fall back to
 /// Cargo. The producer reads the materialized scm-facts face (a declared input); it never calls git.

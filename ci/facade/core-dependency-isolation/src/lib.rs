@@ -1335,7 +1335,23 @@ pub fn apply_fixes(root: &Path, fixes: &[Fix]) -> Result<Vec<String>, CollectErr
 /// sandbox without cargo on PATH), the validator degrades to `Ok(())`: the layer-1 syntactic
 /// bounds have already passed and the blocking buck2 `rust_test` gate is the enforcement backstop
 /// (documented in ADR-0547 D6).
+///
+/// "Cannot be spawned" is broader than `Command::output` returning `Err`. On PATH, `cargo` is
+/// usually rustup's PROXY, not a cargo. A proxy that cannot resolve a toolchain still spawns
+/// fine and then exits NON-ZERO with its own diagnostic — indistinguishable, at this match arm,
+/// from cargo rejecting the manifest. Attributing that to the manifest is a false RED that also
+/// rolls back correct edits, so availability is probed separately by [`cargo_is_usable`].
 fn cargo_metadata_validator(root: &Path) -> Result<(), String> {
+    if let Err(unavailable) = cargo_is_usable(root) {
+        // Degraded mode (review F5: surface it, never degrade silently): the layer-1
+        // syntactic bounds have already passed and the blocking buck2 rust_test gate is
+        // the enforcement backstop (ADR-0547 D6).
+        eprintln!(
+            "kernel-purity --fix: WARNING — `cargo metadata` revalidation skipped ({unavailable}); \
+             layer-2 semantic validation degraded, the blocking buck2 gate remains the backstop"
+        );
+        return Ok(());
+    }
     match std::process::Command::new("cargo")
         .args(["metadata", "--no-deps", "--format-version", "1"])
         .current_dir(root)
@@ -1343,15 +1359,36 @@ fn cargo_metadata_validator(root: &Path) -> Result<(), String> {
     {
         Ok(output) if output.status.success() => Ok(()),
         Ok(output) => Err(String::from_utf8_lossy(&output.stderr).trim().to_owned()),
-        Err(spawn_error) => {
-            // Degraded mode (review F5: surface it, never degrade silently): the layer-1
-            // syntactic bounds have already passed and the blocking buck2 rust_test gate is
-            // the enforcement backstop (ADR-0547 D6).
-            eprintln!(
-                "kernel-purity --fix: WARNING — `cargo metadata` revalidation skipped (cargo                  could not be spawned: {spawn_error}); layer-2 semantic validation degraded,                  the blocking buck2 gate remains the backstop"
-            );
-            Ok(())
-        }
+        Err(spawn_error) => Err(format!("cargo metadata could not be spawned: {spawn_error}")),
+    }
+}
+
+/// Is a working `cargo` reachable *from `root`*, independent of any manifest there?
+///
+/// `cargo --version` is the discriminator because it exercises exactly the resolution that
+/// precedes `cargo metadata` — PATH lookup, then rustup's cwd-anchored toolchain resolution —
+/// and touches no manifest. `root` matters: rustup resolves the toolchain from the WORKING
+/// DIRECTORY, so a probe run anywhere else answers a different question than the one asked.
+///
+/// Measured (buck2 rust_test action, macOS, simulated CI runner env):
+///   * no resolvable toolchain -> `--version` exits 1, `metadata` exits 1 (same rustup text)
+///   * resolvable toolchain + broken manifest -> `--version` exits 0, `metadata` exits 101
+///
+/// So a real manifest error is never degraded away: the probe passes and the caller's
+/// `metadata` failure is reported as-is.
+fn cargo_is_usable(root: &Path) -> Result<(), String> {
+    match std::process::Command::new("cargo")
+        .arg("--version")
+        .current_dir(root)
+        .output()
+    {
+        Ok(output) if output.status.success() => Ok(()),
+        Ok(output) => Err(format!(
+            "`cargo --version` failed with {} — no usable cargo toolchain resolves here: {}",
+            output.status,
+            String::from_utf8_lossy(&output.stderr).trim()
+        )),
+        Err(spawn_error) => Err(format!("cargo could not be spawned: {spawn_error}")),
     }
 }
 
@@ -1719,6 +1756,46 @@ fn join_relative(member_dir: &str, rel: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// The availability probe must be MANIFEST-INDEPENDENT, and degrading must be reserved for
+    /// an unusable toolchain — never for a manifest cargo actually rejected.
+    ///
+    /// Asserted as an implication rather than a fixed outcome, because the answer legitimately
+    /// differs by environment: a buck2 `rust_test` action receives an 8-variable env whitelist
+    /// with no `RUSTUP_HOME`/`CARGO_HOME`, so on a CI image whose rustup state lives outside
+    /// `$HOME` no toolchain resolves and BOTH calls must degrade. Pinning either branch
+    /// absolutely would make this test a host detector.
+    #[test]
+    fn availability_probe_ignores_the_manifest_and_gates_the_degrade() {
+        let root = std::env::temp_dir().join(format!(
+            "kernel-purity-probe-{}-{:?}",
+            std::process::id(),
+            std::thread::current().id()
+        ));
+        fs::create_dir_all(&root).expect("create probe root");
+        // Syntactically invalid TOML: `cargo metadata` must reject this whenever it can run.
+        fs::write(root.join("Cargo.toml"), "[package]\nname = \n").expect("write bad manifest");
+
+        let usable = cargo_is_usable(&root);
+        let validated = cargo_metadata_validator(&root);
+
+        if usable.is_ok() {
+            assert!(
+                validated.is_err(),
+                "a usable cargo must still REJECT a broken manifest — degrading here would \
+                 silently roll back correct fixes and report a green gate: {validated:?}"
+            );
+        } else {
+            assert_eq!(
+                validated,
+                Ok(()),
+                "an unusable cargo must degrade to the ADR-0547 D6 backstop, not be reported \
+                 as a manifest defect: probe said {usable:?}"
+            );
+        }
+
+        fs::remove_dir_all(&root).expect("remove probe root");
+    }
 
     fn policy() -> Value {
         json!({
