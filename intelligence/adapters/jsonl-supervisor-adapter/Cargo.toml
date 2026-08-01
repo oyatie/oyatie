@@ -5,19 +5,19 @@
 #         fsync-aware crate in the supervisor stack (Option D, v4 §A.3).
 
 [package]
-name = "oya-intelligence-jsonl-supervisor-adapter"
+name = "intelligence-jsonl-supervisor-adapter"
 version = "0.1.0"
 edition.workspace = true
 publish = false
 license = "Apache-2.0"
 
 [lib]
-name = "oya_intelligence_jsonl_supervisor_adapter"
+name = "intelligence_jsonl_supervisor_adapter"
 path = "src/lib.rs"
 doctest = false
 
 [dependencies]
-intelligence-supervisor-kernel = { path = "../../../../intelligence/core/supervisor-kernel" }
+intelligence-supervisor-kernel = { path = "../../core/supervisor-kernel" }
 
 [dev-dependencies]
 tempfile = { workspace = true }

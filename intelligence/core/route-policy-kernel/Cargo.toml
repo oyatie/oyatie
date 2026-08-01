@@ -1,5 +1,5 @@
 [package]
-name = "oya-intelligence-account-adapter-inmemory"
+name = "intelligence-route-policy-kernel"
 edition.workspace = true
 version.workspace = true
 rust-version.workspace = true
@@ -7,12 +7,12 @@ publish = false
 license = "Apache-2.0"
 
 [lib]
-name = "oya_intelligence_account_adapter_inmemory"
+name = "intelligence_route_policy_kernel"
 path = "src/lib.rs"
 doctest = false
 
 [dependencies]
-intelligence-account-domain = { path = "../../../../intelligence/core/account-domain" }
+intelligence-account-domain = { path = "../account-domain" }
 
 [lints]
 workspace = true

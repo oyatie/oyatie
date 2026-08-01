@@ -1,23 +1,21 @@
 rust_library(
-    name = "oya-intelligence-jsonl-supervisor-adapter",
+    name = "intelligence-route-policy-kernel",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
-    crate = "oya_intelligence_jsonl_supervisor_adapter",
+    crate = "intelligence_route_policy_kernel",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//intelligence/core/supervisor-kernel:intelligence-supervisor-kernel",
-        "third-party//:tempfile",
+        "//intelligence/core/account-domain:intelligence-account-domain",
     ],
 )
 
 rust_test(
-    name = "oya-intelligence-jsonl-supervisor-adapter-unittest",
+    name = "intelligence-route-policy-kernel-unittest",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
-    crate = "oya_intelligence_jsonl_supervisor_adapter",
+    crate = "intelligence_route_policy_kernel",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//intelligence/core/supervisor-kernel:intelligence-supervisor-kernel",
-        "third-party//:tempfile",
+        "//intelligence/core/account-domain:intelligence-account-domain",
     ],
 )

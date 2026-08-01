@@ -1,12 +1,12 @@
 rust_library(
-    name = "oya-intelligence-supervisor-security-adapter",
+    name = "intelligence-supervisor-security-adapter",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
-    crate = "oya_intelligence_supervisor_security_adapter",
+    crate = "intelligence_supervisor_security_adapter",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
         "//intelligence/core/account-domain:intelligence-account-domain",
-        "//oya/intelligence/crates/oya-intelligence-autonomy-ceiling-domain:oya-intelligence-autonomy-ceiling-domain",
+        "//intelligence/core/autonomy-ceiling-domain:intelligence-autonomy-ceiling-domain",
         "//intelligence/core/autonomy-ceiling-kernel:intelligence-autonomy-ceiling-kernel",
         "//intelligence/core/capability-registry-kernel:intelligence-capability-registry-kernel",
         "//intelligence/core/supervisor-kernel:intelligence-supervisor-kernel",

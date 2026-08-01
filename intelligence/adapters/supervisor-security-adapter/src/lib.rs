@@ -3,7 +3,7 @@
 //! ADR-0043 + M02-P06; callers inject the concrete `SecretStorePort`.
 
 use intelligence_account_domain::{SecretMaterial, SecretReference, SecretStorePort};
-use oya_intelligence_autonomy_ceiling_domain::{CeilingPolicy, TenantId};
+use intelligence_autonomy_ceiling_domain::{CeilingPolicy, TenantId};
 use intelligence_autonomy_ceiling_kernel::{AutonomyTier as CeilingTier, check_tier};
 use intelligence_capability_registry_kernel::AutonomyTier as CapabilityTier;
 use intelligence_supervisor_kernel::{
