@@ -229,6 +229,11 @@ fn cache_path_candidate_archives_checkout(candidate: &str) -> Result<bool, Strin
         .split('/')
         .find(|component| !component.is_empty() && *component != ".")
         .unwrap_or(relative);
+    if first_component.contains("${{") || first_component.contains("}}") {
+        return Err(format!(
+            "dynamic expression controls the first cache-path component: {candidate:?}"
+        ));
+    }
     glob_segment_matches(first_component, "buck-out")
 }
 
@@ -282,6 +287,7 @@ fn included_cache_pattern(raw_path: &str) -> Result<Option<&str>, String> {
         pattern = remainder.trim();
     }
     if excluded {
+        cache_path_archives_checkout(pattern)?;
         return Ok(None);
     }
     if pattern.is_empty() {
@@ -935,6 +941,11 @@ fn buck_out_archive_guard_rejects_yaml_path_variants_and_renamed_steps() {
         "path: '!!buck-out'",
         "path: '! !buck-out'",
         "path: 'toolchain/../buck-out'",
+        "path: \"${{ 'buck-out' }}\"",
+        "path: \"${{ format('buck-{0}', 'out') }}\"",
+        "path: '${{ github.workspace }}/${{ inputs.cache_path }}'",
+        "path: '${{ github.workspace }}suffix'",
+        "path: '!${{ inputs.cache_path }}'",
     ] {
         let fixture = format!(
             "jobs:\n  renamed-job:\n    steps:\n      - name: Innocuous renamed step\n        uses: actions/cache/restore@pinned\n        with:\n          key: unrelated-key\n          {path_yaml}\n"
@@ -951,7 +962,7 @@ fn buck_out_archive_guard_rejects_yaml_path_variants_and_renamed_steps() {
         "action repository casing must not bypass the guard"
     );
 
-    let safe = "jobs:\n  gate:\n    steps:\n      - uses: actions/cache@pinned\n        with:\n          path: |\n            ~/.rustup/toolchains\n            ~/.rustup/update-hashes\n            toolchain-*\n            rustup-*\n            '[rt]ustup-cache'\n            tool chain-*\n            '${{ github.workspace }}suffix'\n            '!buck-out'\n            '# buck-out'\n";
+    let safe = "jobs:\n  gate:\n    steps:\n      - uses: actions/cache@pinned\n        with:\n          path: |\n            ~/.rustup/toolchains\n            ~/.rustup/update-hashes\n            toolchain-*\n            rustup-*\n            [rt]ustup-cache\n            tool chain-*\n            ${{ github.workspace }}/toolchain-*\n            !buck-out\n            # buck-out\n";
     assert!(
         actions_cache_buck_out_violations(None, "<fixture>", safe).is_empty(),
         "toolchain-only actions/cache must remain allowed"
@@ -970,10 +981,10 @@ fn buck_out_archive_guard_follows_local_composite_actions() {
     std::fs::create_dir_all(&action_dir).expect("create local composite fixture");
     std::fs::write(
         action_dir.join("action.yml"),
-        "name: cache wrapper\nruns:\n  using: composite\n  steps:\n    - uses: ACTIONS/CACHE/SAVE@pinned\n      with:\n        path: '${{ github.workspace }}/**'\n        key: fixture\n",
+        "name: cache wrapper\ndescription: fixture cache wrapper\ninputs:\n  cache_path:\n    description: cache path\n    required: true\nruns:\n  using: composite\n  steps:\n    - uses: ACTIONS/CACHE/SAVE@pinned\n      with:\n        path: '${{ inputs.cache_path }}'\n        key: fixture\n",
     )
     .expect("write local composite fixture");
-    let workflow = "jobs:\n  gate:\n    steps:\n      - uses: ./.github/actions/cache-wrapper\n";
+    let workflow = "jobs:\n  gate:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: ./.github/actions/cache-wrapper\n        with:\n          cache_path: buck-out\n";
     let violations = actions_cache_buck_out_violations(Some(&fixture_root), "<fixture>", workflow);
     std::fs::remove_dir_all(&fixture_root).expect("remove local composite fixture");
     assert!(
@@ -994,10 +1005,10 @@ fn buck_out_archive_guard_follows_local_reusable_workflows() {
     std::fs::create_dir_all(&workflow_dir).expect("create reusable workflow fixture");
     std::fs::write(
         workflow_dir.join("cache-wrapper.yml"),
-        "jobs:\n  cache:\n    steps:\n      - uses: actions/cache@pinned\n        with:\n          path: buck-out\n          key: fixture\n",
+        "name: cache wrapper\non:\n  workflow_call:\n    inputs:\n      cache_path:\n        required: true\n        type: string\njobs:\n  cache:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/cache@pinned\n        with:\n          path: '${{ inputs.cache_path }}'\n          key: fixture\n",
     )
     .expect("write reusable workflow fixture");
-    let workflow = "jobs:\n  delegated-gate:\n    uses: ./.github/workflows/cache-wrapper.yml\n";
+    let workflow = "name: caller\non: pull_request\njobs:\n  delegated-gate:\n    uses: ./.github/workflows/cache-wrapper.yml\n    with:\n      cache_path: buck-out\n";
     let violations = actions_cache_buck_out_violations(Some(&fixture_root), "<fixture>", workflow);
     assert!(
         !violations.is_empty(),
@@ -1005,27 +1016,51 @@ fn buck_out_archive_guard_follows_local_reusable_workflows() {
     );
 
     std::fs::write(
-        workflow_dir.join("safe-a.yml"),
-        "jobs:\n  safe-cache:\n    steps:\n      - uses: actions/cache@pinned\n        with:\n          path: toolchain-*\n          key: fixture\n  delegated:\n    uses: ./.github/workflows/safe-b.yml\n",
+        workflow_dir.join("safe.yml"),
+        "name: safe cache wrapper\non:\n  workflow_call:\njobs:\n  safe-cache:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/cache@pinned\n        with:\n          path: toolchain-*\n          key: fixture\n",
     )
-    .expect("write first safe reusable workflow fixture");
-    std::fs::write(
-        workflow_dir.join("safe-b.yml"),
-        "jobs:\n  delegated:\n    uses: ./.github/workflows/safe-a.yml\n",
-    )
-    .expect("write cyclic safe reusable workflow fixture");
-    let safe_workflow = "jobs:\n  delegated-gate:\n    uses: ./.github/workflows/safe-a.yml\n";
+    .expect("write safe reusable workflow fixture");
+    let safe_workflow = "name: caller\non: pull_request\njobs:\n  delegated-gate:\n    uses: ./.github/workflows/safe.yml\n";
     assert!(
         actions_cache_buck_out_violations(Some(&fixture_root), "<fixture>", safe_workflow)
             .is_empty(),
-        "safe same-repository reusable workflows and cycles must terminate without false positives"
+        "safe same-repository reusable workflows must not produce false positives"
     );
-    std::fs::remove_dir_all(&fixture_root).expect("remove reusable workflow fixture");
 
     let external = "jobs:\n  delegated-gate:\n    uses: owner/repo/.github/workflows/cache.yml@0123456789abcdef\n";
     assert!(
         !actions_cache_buck_out_violations(Some(Path::new(".")), "<fixture>", external).is_empty(),
         "uninspected external reusable workflows must fail closed"
+    );
+    std::fs::remove_dir_all(&fixture_root).expect("remove reusable workflow fixture");
+}
+
+#[test]
+fn buck_out_archive_guard_terminates_local_document_cycles() {
+    let fixture_root = std::env::temp_dir().join(format!(
+        "oya-cache-document-cycle-fixture-{}-{}",
+        std::process::id(),
+        std::thread::current().name().unwrap_or("unnamed")
+    ));
+    let workflow_dir = fixture_root.join(".github/workflows");
+    let _ = std::fs::remove_dir_all(&fixture_root);
+    std::fs::create_dir_all(&workflow_dir).expect("create cycle fixture");
+    std::fs::write(
+        workflow_dir.join("cycle-a.yml"),
+        "jobs:\n  delegated:\n    uses: ./.github/workflows/cycle-b.yml\n",
+    )
+    .expect("write first cycle fixture");
+    std::fs::write(
+        workflow_dir.join("cycle-b.yml"),
+        "jobs:\n  delegated:\n    uses: ./.github/workflows/cycle-a.yml\n",
+    )
+    .expect("write second cycle fixture");
+    let workflow = "jobs:\n  delegated:\n    uses: ./.github/workflows/cycle-a.yml\n";
+    let violations = actions_cache_buck_out_violations(Some(&fixture_root), "<fixture>", workflow);
+    std::fs::remove_dir_all(&fixture_root).expect("remove cycle fixture");
+    assert!(
+        violations.is_empty(),
+        "cycle protection must terminate structural traversal: {violations:?}"
     );
 }
 
