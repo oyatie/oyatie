@@ -22,6 +22,16 @@ export_file(
 )
 
 export_file(
+    name = "substrate-dependency-dag.json",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "substrate-dependency-dag.schema.json",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
     name = "root-hub-pointers.json",
     visibility = ["PUBLIC"],
 )

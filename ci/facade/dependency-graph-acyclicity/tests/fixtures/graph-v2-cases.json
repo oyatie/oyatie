@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "purpose": "Named mutation corpus consumed by the graph-v2 gate test. Mutations apply to the live canonical document so fixtures cannot drift into a second graph authority.",
+  "cases": [
+    { "id": "red-missing-kind", "mutation": "remove graph kind", "expected": "dag_graph_kind_set" },
+    { "id": "red-extra-kind", "mutation": "append unknown sixth graph kind", "expected": "dag_graph_kind_set" },
+    { "id": "red-duplicate-unit", "mutation": "duplicate dependency unit id", "expected": "dag_duplicate_unit" },
+    { "id": "red-unknown-endpoint", "mutation": "reference undeclared dependency unit", "expected": "dag_edge_unknown_unit" },
+    { "id": "red-cross-kind-contamination", "mutation": "edge graph_kind differs from containing graph", "expected": "dag_cross_kind_edge" },
+    { "id": "red-graph3-self-loop", "mutation": "steady_state_request self-loop", "expected": "dag_cycle" },
+    { "id": "red-graph3-cycle", "mutation": "steady_state_request reverse edge closes cycle", "expected": "dag_cycle" },
+    { "id": "red-malformed-failure-edge", "mutation": "remove impact_rule", "expected": "dag_failure_edge_malformed" },
+    { "id": "red-missing-failure-closure-edge", "mutation": "remove derived closure edge", "expected": "dag_failure_closure_mismatch" },
+    { "id": "red-mismatched-failure-impact", "mutation": "change derived impact severity", "expected": "dag_failure_closure_mismatch" },
+    { "id": "green-reverse-direction-outside-graph3", "mutation": "create reverse direction in genesis", "expected": "GREEN" },
+    { "id": "green-exact-failure-closure", "mutation": "none", "expected": "GREEN" }
+  ]
+}
