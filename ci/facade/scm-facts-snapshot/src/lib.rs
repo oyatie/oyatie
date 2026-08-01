@@ -82,8 +82,15 @@ use sha2::{Digest, Sha256};
 ///
 /// De-commit class (ADR-0604): untracked + gitignored, produced by the CI scm-facts-regen
 /// pre-step / local regen hook, consumed on disk by every in-graph P2 epoch emission.
+///
+/// It lives beside this crate's other emitter-produced faces, NOT in
+/// `ci/facade/artifact-inventory-registry/`. That directory is the freshness gate's own face
+/// roster: the gate globs every `*.generated.json` in it as a face it must have regenerated
+/// itself (`read_committed_generated_faces`), and its exempt set is a hardcoded path list, not a
+/// control-plane field. A face this gate has no producer for is therefore `generated_face_stale`
+/// there by construction — and the gate's own regeneration is what materializes this one.
 pub const ADR_CENSUS_PARENT_RECEIPT_PATH: &str =
-    "ci/facade/artifact-inventory-registry/adr-census-parent-receipt.generated.json";
+    "ci/facade/scm-facts-snapshot/adr-census-parent-receipt.generated.json";
 /// Remediation named by every "the parent receipt face is absent" error.
 const ADR_CENSUS_PARENT_RECEIPT_REMEDIATION: &str = "buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .";
 const CENSUS_CORPUS_COMMIT: &str = "1fa09da22be819b062881eb59252f4dd4c6b550a";
