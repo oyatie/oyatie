@@ -16,10 +16,9 @@ use std::path::PathBuf;
 use std::process::ExitCode;
 
 use ci_layer_dependency_acyclicity::{
-    BASELINE_PATH, Baseline, POLICY_PATH, Status, Verdict, collect_corpus, evaluate, load_json,
-    render,
+    BASELINE_PATH, POLICY_PATH, Status, Verdict, collect_corpus, emit_baseline_doc, evaluate,
+    load_json, render,
 };
-use serde_json::{Value, json};
 
 struct Args {
     repo_root: PathBuf,
@@ -69,43 +68,9 @@ fn main() -> ExitCode {
     let report = evaluate(&policy, &baseline, &observed);
 
     if args.emit_baseline {
-        // Print the CURRENT live violation set as a baseline document (the re-freeze surface).
-        // Exclude the diagnostic codes (policy/baseline-malformed + the B3 stale-baseline phantom
-        // finding): a re-emit re-freezes the LIVE violation set, so a phantom row must be dropped, not
-        // carried forward.
-        let mut violations: Vec<Value> = report
-            .findings
-            .iter()
-            .filter(|f| {
-                // The NON-BASELINEABLE codes: `evaluate` never consults the baseline for these,
-                // so a row here is permanently inert. Worse than useless — once the condition is
-                // fixed the row is absent from `live`, so it inflates `burned_down` forever, and
-                // if its subject crate later moves, TDA-STALE-BASELINE fires on a row that should
-                // never have existed. Excluding them makes the documented re-freeze remedy safe.
-                f.code != "TDA-POLICY-MALFORMED"
-                    && f.code != "TDA-BASELINE-MALFORMED"
-                    && f.code != "TDA-STALE-BASELINE"
-                    && f.code != "TDA-UNDECLARED-ROOT"
-            })
-            .map(|f| json!({ "code": f.code, "subject": f.subject }))
-            .collect();
-        violations.sort_by(|a, b| {
-            let ka = Baseline::key_of(
-                a.get("code").and_then(Value::as_str).unwrap_or(""),
-                a.get("subject").and_then(Value::as_str).unwrap_or(""),
-            );
-            let kb = Baseline::key_of(
-                b.get("code").and_then(Value::as_str).unwrap_or(""),
-                b.get("subject").and_then(Value::as_str).unwrap_or(""),
-            );
-            ka.cmp(&kb)
-        });
-        let doc = json!({
-            "gate_id": "cloud-ci-tier-dependency-acyclicity",
-            "burn_down_target": 0,
-            "violations": violations,
-        });
-        match serde_json::to_string_pretty(&doc) {
+        // The re-freeze surface. Pure logic lives in the kernel so it is testable; this binary only
+        // prints it.
+        match serde_json::to_string_pretty(&emit_baseline_doc(&report, &baseline)) {
             Ok(s) => println!("{s}"),
             Err(e) => {
                 eprintln!("tier-dependency-acyclicity gate emit error: {e}");

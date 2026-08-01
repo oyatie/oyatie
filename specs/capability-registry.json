@@ -1,5 +1,5 @@
 {
-  "_comment": "The CLOSED capability registry (ADR-0562). The single machine-readable source of truth for the canonical capability set of the capability-first repo organization. Coarse / Conway-aligned: one capability per two-pizza ownership boundary. Seeded from ADR-0536's sixteen substrate domains + the verified current tree (cloud/ + oya/). A crate maps to EXACTLY ONE registered capability via the ADR-0562 deterministic placement rule; new top-level dirs outside this registry plus base/build/third-party/governance/kernel/os/app FAIL the membership lint. De-brand naming is realized via the ADR-0532/0533 profile mechanism; the names here are the de-branded canonical slugs (the flip is a later Phase-0 lane). This file is governance data; its eventual home is governance/capability-registry.json after the reorg, held at specs/ until the governance/ top-level dir is created. DATA, not code: canonical-json governed, reachability-registered, council-architecture owned.",
+  "_comment": "The CLOSED capability registry (ADR-0562). The single machine-readable source of truth for the canonical capability set of the capability-first repo organization. Coarse / Conway-aligned: one capability per two-pizza ownership boundary. Seeded from ADR-0536's sixteen substrate domains + the verified current tree (cloud/ + oya/). A crate maps to EXACTLY ONE registered capability via the ADR-0562 deterministic placement rule; new top-level dirs outside this registry plus base/build/third-party/governance/kernel/os/app FAIL the membership lint. De-brand naming is realized via the ADR-0532/0533 profile mechanism; the names here are the de-branded canonical slugs (the flip is a later Phase-0 lane). This file is governance data; its eventual home is governance/capability-registry.json after the reorg, held at specs/ until the governance/ top-level dir is created. DATA, not code: canonical-json governed, reachability-registered, council-architecture owned. CAPABILITY TIER FACETS (`tier` + `substrate_dag_position.stratum`, spelled exactly as in a service manifest.json per ADR-0245 tier-as-facet): a capability that carries them DECLARES its dependency tier here, beside its definition. cloud-ci-tier-dependency-acyclicity reads this and derives NOTHING — the tier was previously PROJECTED from each capability's absorbs_current_dirs, which resolved only while those service dirs still existed (a completed move orphaned the tier) and whose unanimity was computed over whichever services had not moved yet (migration ORDER decided the answer). An UNDECLARED capability is RED and non-baselineable in that gate the moment it enters capability_roots; there is deliberately no fallback, because a fallback covering for a missing declaration is how a silent exemption returns. NINE capabilities are deliberately undeclared, each needing a founder/architecture ruling rather than an invented value: marketplace SPANS tiers (product + substrate — the ADR-0562 \"a single engine spans tiers via its faces\" case, so it may need splitting rather than a tier); iam spans S1+S3 with three untiered absorbed services; storage, ci, billing and flags have only `forward-declared` evidence, which carries no ADR-0280 rank and so enforces nothing; policy, compute and messaging have no tier'd absorbed service at all. The fifteen declared values transcribe what every one of their absorbed services already unanimously declares.",
   "schema_version": "1.1.0",
   "doctrine_adr": "ADR-0562",
   "amendment_adrs": [
@@ -92,6 +92,10 @@
   "capabilities": [
     {
       "name": "cell",
+      "tier": "substrate",
+      "substrate_dag_position": {
+        "stratum": "S2"
+      },
       "charter": "Cellular topology substrate: cluster-per-cell, hard caps, thin static-stable cell router, autosharding/rebalancing. The leaf substrate (ADR-0280 bootstrap floor).",
       "seed_domains": [
         "cells"
@@ -133,6 +137,10 @@
     },
     {
       "name": "tenancy",
+      "tier": "substrate",
+      "substrate_dag_position": {
+        "stratum": "S2"
+      },
       "charter": "Tenant lifecycle + home-cell resolution + tenant-as-universal-scoping-primitive. The structural multi-tenancy substrate.",
       "seed_domains": [
         "control plane"
@@ -145,6 +153,10 @@
     },
     {
       "name": "secrets",
+      "tier": "substrate",
+      "substrate_dag_position": {
+        "stratum": "S0"
+      },
       "charter": "KMS + secrets + workload identity (SPIFFE/SVID issuance). The crypto root (recursion break #1).",
       "seed_domains": [
         "KMS"
@@ -161,6 +173,10 @@
     },
     {
       "name": "audit",
+      "tier": "substrate",
+      "substrate_dag_position": {
+        "stratum": "S0"
+      },
       "charter": "Tamper-evident Merkle audit log; always-on, no kill switch. Seals the emitting principal + tenant scope.",
       "seed_domains": [
         "audit"
@@ -173,6 +189,10 @@
     },
     {
       "name": "observability",
+      "tier": "substrate",
+      "substrate_dag_position": {
+        "stratum": "S0"
+      },
       "charter": "Metrics/logs/traces/SLO substrate (ADR-0139 SLO-gated promotion). The agentic observability plane.",
       "seed_domains": [
         "observability"
@@ -186,6 +206,10 @@
     },
     {
       "name": "data",
+      "tier": "substrate",
+      "substrate_dag_position": {
+        "stratum": "S3"
+      },
       "charter": "Data substrate: ontology graph, OLTP/OLAP storage engines, pipelines/warehouse, replication/residency. The owned data plane.",
       "seed_domains": [
         "data"
@@ -230,6 +254,10 @@
     },
     {
       "name": "k8s",
+      "tier": "substrate",
+      "substrate_dag_position": {
+        "stratum": "S1"
+      },
       "charter": "Owned Kubernetes control plane (core) + managed-k8s product (facade). kuberos->cloud-k8s ladder rung above os/.",
       "seed_domains": [
         "control plane"
@@ -247,6 +275,10 @@
     },
     {
       "name": "network",
+      "tier": "substrate",
+      "substrate_dag_position": {
+        "stratum": "S1"
+      },
       "charter": "Network + DNS substrate: service mesh, static-stable signed DNS snapshots, cell routing data plane.",
       "seed_domains": [
         "network/DNS"
@@ -260,6 +292,10 @@
     },
     {
       "name": "gateway",
+      "tier": "substrate",
+      "substrate_dag_position": {
+        "stratum": "S0"
+      },
       "charter": "API gateway / SSOT edge: Check/Report enforcement point, public API contract surface, rate/quota enforcement.",
       "seed_domains": [
         "gateway/SSOT"
@@ -284,6 +320,10 @@
     },
     {
       "name": "intelligence",
+      "tier": "substrate",
+      "substrate_dag_position": {
+        "stratum": "S4"
+      },
       "charter": "AI/intelligence substrate: SDK adapters, request pipeline + proof layer, agentic capabilities. cloud-intelligence destination.",
       "seed_domains": [
         "control plane"
@@ -298,6 +338,10 @@
     },
     {
       "name": "workflow",
+      "tier": "substrate",
+      "substrate_dag_position": {
+        "stratum": "S4"
+      },
       "charter": "Orchestration substrate: workflow engine + studio. Cross-capability composition via events.",
       "seed_domains": [
         "control plane"
@@ -328,6 +372,10 @@
     },
     {
       "name": "iac",
+      "tier": "substrate",
+      "substrate_dag_position": {
+        "stratum": "S0"
+      },
       "charter": "Infrastructure-as-code substrate + GitOps reconciliation surfaces. Declarative state for the owned stack.",
       "seed_domains": [
         "control plane"
@@ -374,6 +422,10 @@
     },
     {
       "name": "console",
+      "tier": "substrate",
+      "substrate_dag_position": {
+        "stratum": "S4"
+      },
       "charter": "Operator/tenant console shell: one platform-owned Leptos shell composed at build time; sole token broker; replaces all operator CLIs.",
       "seed_domains": [
         "console shell"
@@ -387,6 +439,10 @@
     },
     {
       "name": "compliance",
+      "tier": "substrate",
+      "substrate_dag_position": {
+        "stratum": "S4"
+      },
       "charter": "Compliance + regulatory-evidence substrate: regulatory packs, data-class registry, DPIA/threat-model evidence, audit-pack generation. Governance-ENGINE surfaces are NOT here (see boundary_note + ADR-0615 §2 Q13).",
       "seed_domains": [
         "audit"
@@ -401,6 +457,10 @@
     },
     {
       "name": "comms",
+      "tier": "substrate",
+      "substrate_dag_position": {
+        "stratum": "S2"
+      },
       "charter": "Communications substrate: email/mail, messenger, meet, notifications, contact-center. Multi-channel comms plane.",
       "seed_domains": [
         "control plane"
