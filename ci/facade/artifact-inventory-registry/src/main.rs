@@ -2271,6 +2271,39 @@ value = "legacy-marker"
         fs::remove_dir_all(root).expect("remove temp repo");
     }
 
+    /// The author-facing half of reached ⇒ justified: a path a live registry reaches is clean
+    /// with NO ADR naming it, and the report NAMES the reaching source instead of printing
+    /// `justified: NO` beside an OK verdict.
+    #[test]
+    fn check_mode_added_reached_path_is_justified_by_its_reaching_source() {
+        let root = unique_temp_repo();
+        fs::create_dir_all(root.join("docs/decisions")).expect("create decisions dir");
+        fs::create_dir_all(root.join("specs")).expect("create specs dir");
+        // A reviewed reachability registration — the only registry available in a temp repo with
+        // no cargo workspace. No ADR mentions the path.
+        fs::write(
+            root.join("specs/reachability-registry.json"),
+            r#"{"registered":[{"prefix":"newsvc/","anchor":"ADR-9998: the new service tree."}]}"#,
+        )
+        .expect("write registry");
+
+        let verdict = check_verdict(&root, "newsvc/src/lib.rs");
+
+        assert_eq!(verdict.reachable_from, vec!["reachability-registry"]);
+        assert_eq!(
+            verdict.justification.as_deref(),
+            Some("reached:reachability-registry"),
+            "the report must name the reaching source, not print NO"
+        );
+        assert!(
+            verdict.blocking_codes.is_empty(),
+            "a reached path REDs nothing, got {:?}",
+            verdict.blocking_codes
+        );
+
+        fs::remove_dir_all(root).expect("remove temp repo");
+    }
+
     #[test]
     fn check_mode_excluded_path_is_outside_the_accounting_universe() {
         // A `third-party/` path never enters the scm-facts tracked universe ⇒ cannot RED the
@@ -4463,11 +4496,27 @@ fn check_added_paths(
     let inputs = RepoInputs {
         tracked_paths: accounted,
         owners: BTreeMap::new(),
-        justifications: justifications.clone(),
+        justifications,
         reachability: reachability.clone(),
         dup_of: BTreeMap::new(),
     };
     let registry = build_registry(&inputs, policy)?;
+    // Report the justification the REGISTRY assigned, not the raw ADR-corpus map: `build_registry`
+    // applies the reached ⇒ justified rule, so reading the map here would print `justified: NO`
+    // beside an OK verdict — a display that contradicts the gate it is supposed to predict.
+    let justification_by_path: BTreeMap<String, String> = registry
+        .get("rows")
+        .and_then(serde_json::Value::as_array)
+        .map(|rows| {
+            rows.iter()
+                .filter_map(|row| {
+                    let path = row.get("path")?.as_str()?;
+                    let refr = row.get("justification_ref")?.as_str()?;
+                    Some((path.to_owned(), refr.to_owned()))
+                })
+                .collect()
+        })
+        .unwrap_or_default();
     let mut codes_by_key: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
     for finding in ci_artifact_accountability::evaluate_keyed(&registry) {
         if finding.code == "unowned" {
@@ -4485,7 +4534,7 @@ fn check_added_paths(
             let excluded = is_path_excluded(path, cfg);
             AddedPathVerdict {
                 unit_class: policy.classify(path).to_owned(),
-                justification: justifications.get(path).cloned(),
+                justification: justification_by_path.get(path).cloned(),
                 reachable_from: reachability.get(path).cloned().unwrap_or_default(),
                 blocking_codes: if excluded {
                     BTreeSet::new()
@@ -4499,13 +4548,19 @@ fn check_added_paths(
         .collect())
 }
 
-/// The exact, actionable remediation for an `unjustified` added path (FRIC #1328): name the
-/// precise path token to add and the governing-ADR precedents. Extracted so the tests can pin
-/// the author-facing text.
+/// The exact, actionable remediation for an `unjustified` added path (FRIC #1328). Since
+/// `build_registry` treats REACHED as justified, this code now fires only on a path that is
+/// ALSO unreachable — so registering reachability is the paved road and clears BOTH codes at
+/// once. Writing the path into ADR prose is the fallback for an artifact no live registry can
+/// reach. Extracted so the tests can pin the author-facing text.
 fn unjustified_remediation(path: &str) -> String {
     format!(
-        "add the exact path token `{path}` to the governing ADR under docs/decisions/ — \
-         precedent: ADR-0515 for ci/ gate surfaces, ADR-0251 for compliance artifacts"
+        "register `{path}` in a live reachability registry (masterplan / root-hub-pointers / \
+         DOC-CATALOG / the reviewed reachability-registry), or land it under a workspace Cargo \
+         member — a reached path is justified by the registry that reaches it, so this clears \
+         `unreachable` too. Only if NO live registry can reach it, add the exact path token \
+         `{path}` to the governing ADR under docs/decisions/ — precedent: ADR-0515 for ci/ gate \
+         surfaces, ADR-0251 for compliance artifacts"
     )
 }
 
