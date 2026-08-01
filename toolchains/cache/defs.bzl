@@ -11,8 +11,8 @@
 # never sets the [oya_cache] section. Only the opt-in CI overlays
 # (infra/ci/buckconfig/warm-cache-{rw,ro}.buckconfig) select it and set the knobs,
 # so every build that does not explicitly pass an overlay is bit-identical to today
-# (the conformance gate in cloud/cloud-ci/gates/oya-cloud-ci-cache-wiring-app
-# asserts the root config stays clean).
+# (the conformance gate in ci/facade/build-cache-policy asserts the root config stays
+# clean; it moved there from cloud/cloud-ci/gates/ in the ADR-0562 reorg).
 
 load("@prelude//cfg/exec_platform:marker.bzl", "get_exec_platform_marker")
 

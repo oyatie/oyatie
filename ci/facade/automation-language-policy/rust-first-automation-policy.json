@@ -91,18 +91,6 @@
       "status": "temporary_legacy_bridge"
     },
     {
-      "path": "tools/anchor-sweep/inject_anchors.py",
-      "reason": "Legacy automation bridge retained as explicit shrinkable debt under the Rust-first pipeline productization ratchet.",
-      "replacement": "Replace with Rust Buck2 cloud-ci gate, reusable pipeline product capability, or Kubernetes-native controller contract.",
-      "status": "temporary_legacy_bridge"
-    },
-    {
-      "path": "tools/completions/bash/_oya",
-      "reason": "Legacy automation bridge retained as explicit shrinkable debt under the Rust-first pipeline productization ratchet.",
-      "replacement": "Replace with Rust Buck2 cloud-ci gate, reusable pipeline product capability, or Kubernetes-native controller contract.",
-      "status": "temporary_legacy_bridge"
-    },
-    {
       "path": "tools/hooks/adr-orphan-detect.sh",
       "reason": "Local agent hook bridge retained only to block retired local authority while cloud-ci admission moves into Rust gates.",
       "replacement": "Replace with Rust Buck2 cloud-ci admission gate and Kubernetes-native policy/controller enforcement.",
@@ -173,7 +161,7 @@
   "non_rust_exception_baseline": {
     "_comment": "FROZEN review-visible baseline of TODAY's accepted temporary_legacy_bridge non-Rust automation exceptions (the exceptions[] allowlist). The file-extension scan permits a non-Rust file iff it has an exceptions[] entry (any-allowlisted-ok); this dimension additionally freezes that EXCEPTION SET shrink-only so a NEW .py/.sh bridge cannot be admitted by silently adding an allowlist row. A current exception NOT in this baseline is born-blocking (rust_first_automation_unbaselined_non_rust_exception) -- convert it to owned Rust (e.g. a contract-slice entry on //ci/facade/contract-slice-conformance) rather than shell/Python; a removed bridge must shrink this baseline in the SAME PR (rust_first_automation_non_rust_exception_baseline_stale). Folded INTO this policy (zero new tracked accounting rows); NOT producer-regenerated -- reviewed, hand-shrunk; anti-laundering is REVIEW-VISIBLE: growing the bridge set now requires an explicit reviewed baseline edit, not a routine-looking allowlist append.",
     "_provenance": {
-      "keys_total": 28,
+      "keys_total": 26,
       "policy": "shrink-only; growth requires a review-visible baseline edit, retirement must shrink in the same PR"
     },
     "codes": {
@@ -193,8 +181,6 @@
         "scripts/tests/cloud_observability_slo_evidence_check.py",
         "scripts/tests/cloud_production_quality_kit_evidence_backlog_check.py",
         "scripts/tests/dr_001_rto_rpo_matrix_slice_check.py",
-        "tools/anchor-sweep/inject_anchors.py",
-        "tools/completions/bash/_oya",
         "tools/hooks/adr-orphan-detect.sh",
         "tools/hooks/injection-content-scanner.sh",
         "tools/hooks/local-authority-enforcer.sh",
