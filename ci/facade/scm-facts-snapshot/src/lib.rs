@@ -78,8 +78,14 @@ use serde::Deserialize;
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 
-const ADR_CENSUS_RECEIPT_PATH: &str =
+/// The out-of-graph materialized face carrying the exact historical P2 parent receipt bytes.
+///
+/// De-commit class (ADR-0604): untracked + gitignored, produced by the CI scm-facts-regen
+/// pre-step / local regen hook, consumed on disk by every in-graph P2 epoch emission.
+pub const ADR_CENSUS_PARENT_RECEIPT_PATH: &str =
     "ci/facade/artifact-inventory-registry/adr-census-parent-receipt.generated.json";
+/// Remediation named by every "the parent receipt face is absent" error.
+const ADR_CENSUS_PARENT_RECEIPT_REMEDIATION: &str = "buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .";
 const CENSUS_CORPUS_COMMIT: &str = "1fa09da22be819b062881eb59252f4dd4c6b550a";
 const CENSUS_REPOSITORY_TREE: &str = "d7b15539396db21b219d68779362850cce9afa8f";
 const CENSUS_DOCS_TREE: &str = "fbf3f8d4b9ecf30b2272f37871e8152a616eed5a";
@@ -627,10 +633,14 @@ fn run() -> Result<(), String> {
         volatile_out.unwrap_or_else(|| repo_root.join(resolver.candidate(PathId::VolatileFacts)));
     if emit_adr_census_parent_receipt {
         let output = adr_census_parent_receipt_out
-            .unwrap_or_else(|| repo_root.join(ADR_CENSUS_RECEIPT_PATH));
+            .unwrap_or_else(|| repo_root.join(ADR_CENSUS_PARENT_RECEIPT_PATH));
         emit_fixed_adr_census_parent_receipt(&repo_root, &output)?;
         return Ok(());
     }
+    // This binary IS the out-of-graph boundary (see the crate's BUCK header): Buck2 builds it as
+    // a cacheable artifact but only the CI scm-facts-regen pre-step and the local regen hook RUN
+    // it, both from a real shell. It is therefore the one caller allowed to produce the P2 parent
+    // receipt; every in-graph consumer reads the face it leaves behind.
     if emit_adr_census_epoch_receipt_requested {
         let output = adr_census_epoch_receipt_out
             .unwrap_or_else(|| repo_root.join(ADR_CENSUS_EPOCH_RECEIPT_PATH));
@@ -643,7 +653,11 @@ fn run() -> Result<(), String> {
             subject_commit.as_deref(),
         ) {
             (None, None, None, None, None, None) => {
-                emit_adr_census_epoch_receipt(&repo_root, &output)?;
+                emit_adr_census_epoch_receipt(
+                    &repo_root,
+                    &output,
+                    P2ParentReceipt::MaterializeOutOfGraph,
+                )?;
                 return Ok(());
             }
             (Some(protected), Some(evaluated), Some(event), Some(event_ref), Some(event_base_ref), Some(subject)) =>
@@ -653,7 +667,11 @@ fn run() -> Result<(), String> {
             _ => return Err("--protected-base-commit, --evaluated-commit, --scm-event-name, --scm-event-ref, --scm-event-base-ref, and --subject-commit are all-or-none for ADR census receipt emission".to_owned()),
         };
         let validated = validate_census_event_transition(&selection)?;
-        emit_adr_census_epoch_receipt_for_event(&validated, &output)?;
+        emit_adr_census_epoch_receipt_for_event(
+            &validated,
+            &output,
+            P2ParentReceipt::MaterializeOutOfGraph,
+        )?;
         return Ok(());
     }
 
@@ -780,12 +798,46 @@ fn run() -> Result<(), String> {
     Ok(())
 }
 
+/// Where an active-P2 emission is allowed to get the exact historical parent receipt bytes.
+///
+/// Producing those bytes means creating a Git worktree at
+/// [`P2_HISTORICAL_IMPLEMENTATION_COMMIT`], running `rustup toolchain install`, and nesting a
+/// `buck2 run` — none of which may happen inside a cacheable Buck2 action. That is this crate's
+/// own stated invariant (see its `BUCK` header: the emitter "is RUN by the CI scm-facts-regen
+/// pre-step + the local regen hook — NEVER inside a cacheable buck2 action"), and it is also a
+/// hard mechanical fact: a Buck2 *test* action's environment is sanitized to
+/// `BUCK2_DAEMON_UUID, BUCK_BUILD_ID, HOME, LOGNAME, PATH, PWD, TMPDIR, USER`, carrying neither
+/// `RUSTUP_HOME` nor `CARGO_HOME`, so the rebuild cannot succeed there at all.
+///
+/// The variant is therefore a property of the CALLER's execution context, never of what happens
+/// to be on disk: an in-graph caller that finds no face must go RED, not quietly rebuild.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum P2ParentReceipt {
+    /// In-graph (and every library) caller: consume the face materialized by the pre-step, and
+    /// FAIL LOUD when it is absent. Never rebuilds, never skips.
+    Materialized,
+    /// The out-of-graph boundary alone (the emitter binary, run by the CI pre-step or the local
+    /// regen hook from a real shell): rebuild from the historical implementation when the face
+    /// is absent, and materialize it so in-graph consumers find it.
+    MaterializeOutOfGraph,
+}
+
 /// Materialize the active append-only census epoch. P2 is intentionally preserved verbatim;
 /// P3 is dormant until its parser and descriptor are promoted together.
-pub fn emit_adr_census_epoch_receipt(repo_root: &Path, output: &Path) -> Result<(), String> {
+pub fn emit_adr_census_epoch_receipt(
+    repo_root: &Path,
+    output: &Path,
+    parent_receipt: P2ParentReceipt,
+) -> Result<(), String> {
     let repo_root = canonical_repo_root(repo_root)?;
     let revision = resolve_head_revision(&repo_root)?;
-    emit_adr_census_epoch_receipt_at_revisions(&repo_root, output, &revision, &revision)
+    emit_adr_census_epoch_receipt_at_revisions(
+        &repo_root,
+        output,
+        &revision,
+        &revision,
+        parent_receipt,
+    )
 }
 
 /// Emit the active receipt from one validated controller event boundary.
@@ -795,12 +847,14 @@ pub fn emit_adr_census_epoch_receipt(repo_root: &Path, output: &Path) -> Result<
 pub fn emit_adr_census_epoch_receipt_for_event(
     selection: &ValidatedCensusEventSelection,
     output: &Path,
+    parent_receipt: P2ParentReceipt,
 ) -> Result<(), String> {
     emit_adr_census_epoch_receipt_at_revisions(
         &selection.repo_root,
         output,
         &selection.history_revision,
         &selection.content_revision,
+        parent_receipt,
     )
 }
 
@@ -809,6 +863,7 @@ fn emit_adr_census_epoch_receipt_at_revisions(
     output: &Path,
     history_revision: &str,
     content_revision: &str,
+    parent_receipt: P2ParentReceipt,
 ) -> Result<(), String> {
     let repo_root = canonical_repo_root(repo_root)?;
     let history_revision =
@@ -827,7 +882,7 @@ fn emit_adr_census_epoch_receipt_at_revisions(
     validate_census_epoch_control_history(&repo_root, &history_revision, control.active_epoch)?;
     let bytes = match control.active_epoch {
         CensusEpoch::P2 => {
-            build_fixed_adr_census_parent_receipt_at_revision(&repo_root, &history_revision)?
+            resolve_fixed_adr_census_parent_receipt(&repo_root, &history_revision, parent_receipt)?
         }
         CensusEpoch::P3 => {
             build_p3_adr_census_epoch_receipt_at_revision(&repo_root, &content_revision)?
@@ -1399,10 +1454,52 @@ fn build_fixed_adr_census_parent_receipt_at_revision(
     build_fixed_adr_census_parent_receipt_from_historical_implementation(repo_root, &revision)
 }
 
-fn build_fixed_adr_census_parent_receipt_from_historical_implementation(
+/// Resolve the exact historical P2 receipt bytes for one epoch emission.
+///
+/// The bytes are IMMUTABLE — [`validate_exact_p2_receipt`] pins the whole-file digest plus three
+/// inner digests — so the only question is who is allowed to spend a worktree checkout, a
+/// `rustup toolchain install`, and a nested `buck2 run` producing them. Per [`P2ParentReceipt`]
+/// that is the out-of-graph boundary and nothing else; every other caller consumes the
+/// materialized face and goes RED when it is missing.
+///
+/// A face whose bytes are WRONG fails in BOTH modes: the validation below is the same one the
+/// producer applies, so a corrupted face can never be laundered into a green emission.
+fn resolve_fixed_adr_census_parent_receipt(
     repo_root: &Path,
     revision: &str,
+    source: P2ParentReceipt,
 ) -> Result<Vec<u8>, String> {
+    require_p2_historical_ancestry(repo_root, revision)?;
+    let face = repo_root.join(ADR_CENSUS_PARENT_RECEIPT_PATH);
+    match std::fs::read(&face) {
+        Ok(bytes) => validate_exact_p2_receipt(&bytes).map(|()| bytes),
+        Err(error) => match source {
+            P2ParentReceipt::Materialized => Err(format!(
+                "read materialized exact historical P2 parent receipt {}: {error}; \
+                 producing it needs a Git worktree, `rustup toolchain install`, and a nested \
+                 `buck2 run`, which this crate never performs inside a Buck2 action — \
+                 materialize it out of graph first: {ADR_CENSUS_PARENT_RECEIPT_REMEDIATION}",
+                face.display()
+            )),
+            P2ParentReceipt::MaterializeOutOfGraph => {
+                let bytes = build_fixed_adr_census_parent_receipt_from_historical_implementation(
+                    repo_root, revision,
+                )?;
+                retirement::write_canonical_ignored_generated_file(
+                    repo_root,
+                    Path::new(ADR_CENSUS_PARENT_RECEIPT_PATH),
+                    &bytes,
+                )?;
+                Ok(bytes)
+            }
+        },
+    }
+}
+
+/// The P2 replay is only meaningful when its historical implementation commit is present and is
+/// an ancestor of the revision being emitted. Pure Git object reads — cheap, hermetic, and safe
+/// inside a Buck2 action — so this guard stays on BOTH resolution paths.
+fn require_p2_historical_ancestry(repo_root: &Path, revision: &str) -> Result<(), String> {
     git_text(
         repo_root,
         &[
@@ -1420,6 +1517,14 @@ fn build_fixed_adr_census_parent_receipt_from_historical_implementation(
             revision,
         ],
     )?;
+    Ok(())
+}
+
+fn build_fixed_adr_census_parent_receipt_from_historical_implementation(
+    repo_root: &Path,
+    revision: &str,
+) -> Result<Vec<u8>, String> {
+    require_p2_historical_ancestry(repo_root, revision)?;
     let nonce = format!("{}-{}", std::process::id(), unix_timestamp_nanos()?);
     let root = std::env::temp_dir().join(format!("oya-p2-history-{nonce}"));
     let output = root.join("adr-census-parent-receipt.generated.json");
