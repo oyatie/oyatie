@@ -178,7 +178,7 @@
       "id": "IP-001-layer-a-postgres-openbao-iac",
       "title": "IP-001: Layer-A Postgres + OpenBao IaC",
       "acceptance_status": "pending",
-      "file": "microservices/developer-sdk/implementation-plans/IP-001-layer-a-postgres-openbao-iac.md"
+      "file": "oya/developer-sdk/IPs/IP-ADR-0339-Shared-IaC-Modules.md"
     },
     {
       "id": "IP-002-developer-onboarding-kernel-domain",
@@ -220,7 +220,7 @@
       "id": "IP-008-dev-portal-first-party-module",
       "title": "IP-008: first-party developer portal module (API browser + try-in-sandbox)",
       "acceptance_status": "pending",
-      "file": "microservices/developer-sdk/implementation-plans/IP-008-dev-portal-first-party-module.md"
+      "file": "oya/developer-sdk/decisions/ADR-SDK-0007-developer-portal-as-first-party-module.md"
     },
     {
       "id": "IP-009-dev-portal-app-submission-flow",
