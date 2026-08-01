@@ -8,8 +8,8 @@ date: 2026-05-29
 owner: council-architecture
 supersedes: []
 superseded_by: []
-amends: []
-related: [ADR-0001, ADR-0011, ADR-0067, ADR-0090, ADR-0130, ADR-0131, ADR-0132, ADR-0203, ADR-0209, ADR-0213, ADR-0372, ADR-0393, ADR-0509, ADR-0515, ADR-0615]
+amends: [ADR-0482]
+related: [ADR-0001, ADR-0011, ADR-0067, ADR-0090, ADR-0130, ADR-0131, ADR-0132, ADR-0203, ADR-0209, ADR-0213, ADR-0372, ADR-0393, ADR-0482, ADR-0509, ADR-0515, ADR-0615]
 related_specs:
   - /specs/http-stack-policy.json
   - /specs/hyperscaler-architecture-invariants.json
@@ -35,7 +35,9 @@ not by itself lift `HOLD(Planning)` or authorize an execution wave.
 
 The earlier Backstage substrate decision is removed from the live ADR corpus under ADR-0515's
 current-truth rule. Git history is the sole archive. This record therefore states the current
-decision without carrying a live citation or reciprocal edge to the retired file.
+decision without carrying a live citation or reciprocal edge to the retired file. This record
+explicitly amends ADR-0482's generic parallel-bridge doctrine for the portal: Backstage is limited
+to a bounded one-way import source and is never a live or parallel runtime.
 
 ## Context
 
