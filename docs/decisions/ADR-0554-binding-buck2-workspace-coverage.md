@@ -341,6 +341,10 @@ cross-run baseline is needed in the interim.
 
 ### D9 — Warm the build-health baseline via same-root merge-base build + dev-push-sole-writer cache split (round-5)
 
+> **SUPERSEDED IN PART BY D10 (2026-08-01).** The same-root merge-base/head sequencing survives as
+> safe within-job reuse. The cross-run GitHub Actions save/restore of the `buck-out` filesystem is
+> retired after repeatable kubelet eviction during archive extraction.
+
 **This SUPERSEDES D8** (the cross-run report-artifact CONSUMER — do **not** build it). Two changes
 ship together; both warm the buck2 CI cache without touching what the gates DECIDE.
 
@@ -428,3 +432,49 @@ shared cache makes the merge-base build a remote cache hit with no per-runner `b
 restore, so the save/restore split and the same-root baseline warming both collapse into the CAS
 fetch (cutover-litmus: the trait/port shape does not change — this is a transient runner-local
 substrate, absorbed by the adapter at cutover). Tracked under FRIC-1781070457 (buck2-no-shared-cache).
+
+### D10 — Retire whole-tree `buck-out` snapshots; run cold until a Buck2-aware remote cache is licensed
+
+**Incident evidence.** Required workflow run `30719749523` restored the same immutable cache
+(`6254757999`, 6,368,432,109 compressed bytes) in jobs `91421429719` and `91421429732`. Both owned
+ARC pods were terminated during extraction before any binding Buck2 test ran. Kubernetes events
+reported node-pressure eviction after the pods consumed 27,260,676 KiB and 28,878,996 KiB while
+node ephemeral storage fell below the kubelet threshold. The declared 60 GiB pod limit could not
+make a 48,932 MiB node physically larger; the 20 GiB request also understated the observed restore.
+This was deterministic at the incident boundary: two of two consumers of that cache were evicted,
+while the cold miss that created it (`30718212975`) and the preceding cold PR run (`30717144686`)
+completed successfully.
+
+**Root cause, not symptom masking.** GitHub's cache contract restores the caller-selected `path` and
+exposes key/cache-hit outputs; it provides no maximum expanded-size admission guard. Its repository
+storage quota is a retention/eviction control, not runner extraction protection. Buck2's documented
+on-disk SQLite materializer state remembers which outputs exist on disk; restoring only
+`buck-out/v2/cache` without the matching materialized outputs is therefore not a documented portable
+cache contract. `buck2 clean --stale` also runs only after files exist and cannot protect archive
+extraction. Primary references:
+
+- [GitHub Actions dependency caching](https://docs.github.com/en/actions/reference/workflows-and-actions/dependency-caching)
+- [Buck2 deferred materialization and on-disk state](https://buck2.build/docs/users/advanced/deferred_materialization/)
+- [Buck2 clean](https://buck2.build/docs/users/commands/clean/)
+- [Kubernetes node-pressure eviction](https://kubernetes.io/docs/concepts/scheduling-eviction/node-pressure-eviction/)
+
+**Decision.** Required CI MUST NOT save or restore any part of runner-local `buck-out` through
+`actions/cache`; the stable whole-tree key and fallback prefix are deleted. There is no retry,
+`continue-on-error`, partial-cache salvage, or arbitrary node-floor workaround. The `buck2` and
+`gate-affected-target-set` jobs begin with empty runner-local state. D9's same-root sequence remains:
+when the merge-base baseline is computed locally, the candidate may reuse only state created earlier
+inside that same job. The no-op owned-runner disk-reclaim invocation and its unconsumed operator
+artifact are removed with the restore path they existed to precede.
+
+**Future warm path.** ADR-0556's warm-eligible classes remain classifications for a separately
+licensed Buck2-aware remote action cache + CAS, not permission to snapshot Buck2 internals. The
+NativeLink license remains false and `CACHE_MODE=bypass` telemetry remains binding. Re-enabling
+warmth requires the Buck2 remote action-cache/CAS contract, its cold-canary proof, capacity bounds,
+and rollback evidence; it must not resurrect `actions/cache` for `buck-out`.
+[Buck2's supported remote contract](https://buck2.build/docs/users/remote_execution/) names separate
+action-cache and CAS endpoints.
+
+**Mechanical guard.** `ci-build-cache-policy-gate` reads the live required workflow and fails if
+`path: buck-out`, the retired stable `buck-out-${{...}}` key, or named whole-tree save/restore steps
+reappear. This is a correctness and availability invariant: a cache optimization cannot prevent the
+tests that establish merge authority from starting.

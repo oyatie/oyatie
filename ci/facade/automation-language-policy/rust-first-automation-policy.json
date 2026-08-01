@@ -338,15 +338,15 @@
       "authority": "pipeline-glue(a): rust-first ratchet workflow-inline-shell go-live; door:one-way",
       "baseline_schema_version": 2,
       "buck2_required_ci_note": "2026-06-25 #839: the required CI bridge is Buck2-only. The gate matrix adds one reviewed inline-shell key for the repo-owned official-Buck2 installer plus the Buck2 test step (gate::step-2..4). The live-Postgres lanes replace Swatinem rust-cache and cargo test with repo-owned install-buck2, actions/cache toolchain warmup, and buck2 test --local-only against isolated Postgres services; #901 splits the accepted live-Postgres keys into adapter/facade jobs (step-1 and step-3..6 for each lane). This remains transitional runner glue until the owned cloud-ci runner models the disposable database as a managed local_resource.",
-      "fric_017_note": "FRIC-017 disk-reclaim run-blocks are PRODUCTIZED in pipeline-glue(b): each former multi-line sudo rm -rf block is now a build-as-user + sudo-binary invocation of the data-driven Rust preflight oya-cloud-ci-runner-disk-reclaim-bin. Schema-v1 positional identities were historical only; schema-v2 records the required named run-step key and exact shell_lines, so any later footprint shrink must update this frozen baseline in the same reviewed PR.",
+      "fric_017_note": "FRIC-017 disk-reclaim run-blocks were productized in pipeline-glue(b), then the two owned-runner invocations were retired with the unsafe whole-tree buck-out cache by ADR-0554 D10. The Rust preflight and hosted-runner policy remain reusable; required CI carries no reclaim shell step. Schema-v2 records the required named run-step key and exact shell_lines, so this reviewed baseline shrinks with those deleted invocations.",
       "frozen_at": "2026-06-18",
       "frozen_from_commit": "30dd46c4dd7d12c085b77332d9ac5035d583edcf",
       "keys_by_file": {
         ".github/workflows/cache-integrity-canary.yml": 12,
         ".github/workflows/docs-graph-drift.yml": 1,
-        ".github/workflows/oya-ci-required.yml": 40
+        ".github/workflows/oya-ci-required.yml": 38
       },
-      "keys_total": 53,
+      "keys_total": 51,
       "migration": "v1 positional step-N keys migrated mechanically from exact origin/dev base to required unique named-step keys with measured shell_lines; v2 is exact shrink-accounted."
     },
     "codes": {
@@ -420,10 +420,6 @@
           "shell_lines": 3
         },
         {
-          "key": ".github/workflows/oya-ci-required.yml::buck2::Reclaim runner disk before warm restore (FRIC-017 preflight)",
-          "shell_lines": 2
-        },
-        {
           "key": ".github/workflows/oya-ci-required.yml::buck2::buck2 build + test (//ci/..., hermetic — binding)",
           "shell_lines": 2
         },
@@ -450,10 +446,6 @@
         {
           "key": ".github/workflows/oya-ci-required.yml::gate-affected-target-set::Pre-provision pinned rust toolchain and PR metadata preflight",
           "shell_lines": 3
-        },
-        {
-          "key": ".github/workflows/oya-ci-required.yml::gate-affected-target-set::Reclaim runner disk before warm restore (FRIC-017 preflight)",
-          "shell_lines": 2
         },
         {
           "key": ".github/workflows/oya-ci-required.yml::gate-baseline-ratchet::Install buck2 (digest-pinned prebuilt release)",
