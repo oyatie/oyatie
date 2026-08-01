@@ -326,10 +326,17 @@ fn retirement_sources_do_not_silently_amend_accepted_adr_0613() {
     let rows = reachability["registered"]
         .as_array()
         .expect("registered reachability rows");
+    // `registry/history-only-retirement/OWNERS` was in this list until OWNERS files became
+    // accounted BY CONSTRUCTION (`OWNERS_SCHEMA_ANCHOR`): its registry row — like all 49
+    // OWNERS rows — is deleted, so there is no anchor left that could claim an unrecorded
+    // ADR-0613 amendment for it. The prose ceiling it carried is not weakened by the removal,
+    // it is made unnecessary: the derived anchor is a fixed literal no author can write prose
+    // into. The four rows that still exist are still checked, and
+    // `owners_files_are_never_registered_in_the_reachability_registry` (total-accounting gate)
+    // is what keeps the OWNERS row from coming back.
     for prefix in [
         "ci/facade/scm-facts-snapshot/src/retirement.rs",
         "registry/history-only-retirement/control-plane.json",
-        "registry/history-only-retirement/OWNERS",
         "specs/history-only-retirement-control-plane.schema.json",
         "specs/history-only-retirement-facts.schema.json",
     ] {

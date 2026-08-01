@@ -39,6 +39,10 @@ use serde_json::{json, Value};
 /// committed==regenerated coverage byte-binds it to this deterministic codemod output.
 const DEFAULT_MANIFEST_OUT: &str = "specs/reorg/move-manifest.generated.json";
 
+/// The out-of-band bootstrap ref the landed-plan probe anchors on (the emitter's own base ref).
+/// Named once so the probe and the [`CodemodError::MergeBaseUnresolved`] report cannot drift.
+const MERGE_BASE_REF: &str = "origin/dev";
+
 fn main() -> ExitCode {
     match run() {
         Ok(code) => code,
@@ -101,14 +105,24 @@ fn cmd_manifest(args: &[String]) -> Result<ExitCode, String> {
     // MUST-PASS #5 (straddle DoS): exclude ALREADY-LANDED committed plans (whose every move old
     // crate-dir is absent from the merge-base tree) BEFORE the single-plan count guard, so a merged
     // move-plan a prior PR never cleaned up cannot hard-error every subsequent materialization. The
-    // merge-base is the emitter's out-of-band bootstrap (`origin/dev`); on any git uncertainty the
-    // probe fails closed to PRESENT, so an undeterminable plan stays ACTIVE and the guard stays sharp.
-    let merge_base = git_merge_base(&repo_root, "origin/dev");
-    let old_dir_absent_at_merge_base = |dir: &str| -> bool {
-        match &merge_base {
-            Some(mb) => !git_dir_present_at(&repo_root, mb, dir),
-            None => false,
-        }
+    // merge-base is the emitter's out-of-band bootstrap (`origin/dev`). A per-path git failure at a
+    // RESOLVED merge-base fails closed to PRESENT, so that plan stays ACTIVE and the guard stays
+    // sharp. A merge-base that does not resolve AT ALL is a different animal: it is an INPUT failure
+    // that leaves EVERY plan unclassifiable, so it is reported as itself rather than coerced.
+    //
+    // It used to return `false` ("not absent" => present => pending). That made all N committed
+    // plans read ACTIVE on any checkout where `origin/dev` was missing (shallow clone, force-pushed
+    // base, rewritten history, a fetch that never brought the ref), and the materializer then died
+    // on `MultipleMovePlans { count: N }` from step 1 — every CI leg, every local gate lane,
+    // repo-wide, pointing remediation at deleting move plans that were never the problem.
+    let merge_base = git_merge_base(&repo_root, MERGE_BASE_REF);
+    let old_dir_absent_at_merge_base = |dir: &str| -> Result<bool, CodemodError> {
+        let merge_base = merge_base
+            .as_deref()
+            .ok_or_else(|| CodemodError::MergeBaseUnresolved {
+                base_ref: MERGE_BASE_REF.to_owned(),
+            })?;
+        Ok(!git_dir_present_at(&repo_root, merge_base, dir))
     };
     let load_old_crate_dirs = |p: &Path| -> Result<Vec<String>, CodemodError> {
         let plan = load_plan(p, false).map_err(|message| CodemodError::Io {
@@ -209,9 +223,10 @@ fn git_ls_files(repo_root: &Path) -> Result<Vec<String>, String> {
     Ok(paths)
 }
 
-/// `git merge-base <base_ref> HEAD` (full hex sha), or `None` on any failure — the MUST-PASS #5
-/// landed-plan exclusion is a REFINEMENT of the fail-closed single-plan guard, so an unresolvable
-/// merge-base simply disables the exclusion (every plan stays ACTIVE) rather than erroring.
+/// `git merge-base <base_ref> HEAD` (full hex sha), or `None` when the ref does not resolve.
+/// `None` is NOT an answer the landed-plan exclusion can use — it means the exclusion cannot run at
+/// all — so the caller turns it into [`CodemodError::MergeBaseUnresolved`]. Disabling the exclusion
+/// instead (the old behaviour) silently reclassified every landed plan as ACTIVE.
 fn git_merge_base(repo_root: &Path, base_ref: &str) -> Option<String> {
     let out = Command::new("git")
         .arg("-C")
