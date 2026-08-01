@@ -126,6 +126,13 @@ pub struct RepoInputs {
     pub reachability: BTreeMap<String, Vec<String>>,
     /// path -> canonical path it duplicates (drives the MERGE verdict). Absent ⇒ not a dup.
     pub dup_of: BTreeMap<String, String>,
+    /// The OWNERS files (repo-relative) that PARSE against the ADR-0555 schema — the
+    /// `valid_files` half of [`resolve_owners`]'s outcome. Membership here is the ONLY
+    /// signal `build_registry` accepts for the [`OWNERS_SCHEMA_ANCHOR`] accounting floor,
+    /// which is why the set carries the parse VERDICT rather than the name shape: a file
+    /// named `OWNERS` that fails `parse_owners_content` is absent from this set and stays
+    /// fully RED. Empty ⇒ no path gets the floor (the pre-hardening behaviour).
+    pub valid_owners_files: BTreeSet<String>,
 }
 
 /// The carve-out + TTL policy, parsed once from the DATA tables.
@@ -225,6 +232,25 @@ impl Policy {
     }
 }
 
+/// The `justification_ref` AND `reachable_from` source stamped on a schema-valid OWNERS
+/// file (ADR-0555 §ownership-registration). It is deliberately NOT an `ADR-####` id: the
+/// value is derived from the OWNERS SCHEMA rather than from any prose mention, and a
+/// reviewer must be able to tell the two apart at a glance (`justification_ref ==
+/// "owners-schema"` enumerates every by-construction row). It is also portable — a repo
+/// adopting this producer inherits the derivation, not an Oyatie decision id.
+///
+/// WHY the derivation exists (FRIC: PR #1473 turned `dev` RED with a one-line `os/OWNERS`).
+/// An OWNERS file is the ownership PRIMITIVE this very producer resolves rows against
+/// (`resolve_owners`), so demanding that each one ALSO be named in ADR prose and listed in
+/// `specs/reachability-registry.json` made the accounting system self-referential: 49 of the
+/// registry's 124 rows existed only to permit an OWNERS file, each carrying hundreds of
+/// characters of hand-written anchor prose, and every capability move had to hand-edit that
+/// one global file or turn the branch RED. ADR-0562 §10.29 wrote the obligation down ("the
+/// OWNERS file rides the `git mv`; its registry entry does not") and the very next PR forgot
+/// it — a written-down manual obligation that gets forgotten needs a detector, not more
+/// discipline. Accounting an OWNERS file by CONSTRUCTION removes the obligation entirely.
+pub const OWNERS_SCHEMA_ANCHOR: &str = "owners-schema";
+
 /// A single accounting record (the 11 fields of PHASE-0-FIREWALL-PLAN §5.1).
 #[derive(Debug, Clone, Serialize, PartialEq, Eq)]
 pub struct AccountingRecord {
@@ -306,7 +332,31 @@ pub fn build_registry(inputs: &RepoInputs, policy: &Policy) -> Result<Value, Pro
             .unwrap_or_else(TtlRecord::unaccounted_placeholder);
 
         let owner = inputs.owners.get(path).cloned();
-        let reachable_from = inputs.reachability.get(path).cloned().unwrap_or_default();
+        let mut justification_ref = inputs.justifications.get(path).cloned();
+        let mut reachable_from = inputs.reachability.get(path).cloned().unwrap_or_default();
+
+        // The OWNERS accounting FLOOR (see [`OWNERS_SCHEMA_ANCHOR`]). A file that parses
+        // against the ADR-0555 OWNERS schema is categorically justified (the schema is the
+        // decision that says it exists) and categorically reachable (this producer's own
+        // `resolve_owners` reaches it on every run) — no prose mention, no registry row.
+        //
+        // Two properties make this a floor rather than a laundry:
+        //  1. It is keyed on the PARSE VERDICT, never the filename. `valid_owners_files`
+        //     holds only files `parse_owners_content` accepted, so a comment-only / garbage
+        //     / non-UTF-8 OWNERS file gets nothing here and stays unjustified + unreachable
+        //     + unowned. Invalid ownership markers must stay RED, or the fail-closed
+        //     resolution ADR-0555 hardened would be reachable-by-renaming-a-file.
+        //  2. It only ever FILLS AN ABSENCE. A path that already resolved a justification
+        //     or a reachability source keeps exactly what it resolved, so the derivation
+        //     provably cannot alter any row that was already accounted — it can only turn
+        //     an otherwise-RED valid OWNERS file GREEN.
+        if inputs.valid_owners_files.contains(path) {
+            justification_ref.get_or_insert_with(|| OWNERS_SCHEMA_ANCHOR.to_owned());
+            if reachable_from.is_empty() {
+                reachable_from.push(OWNERS_SCHEMA_ANCHOR.to_owned());
+            }
+        }
+
         // REACHED ⇒ JUSTIFIED. Every reachability source is itself a reviewed design act — a
         // masterplan/root-hub/DOC-CATALOG entry, a workspace Cargo member registration, or a
         // reachability-registry entry that MUST carry a non-empty `anchor` naming why the tree
@@ -322,11 +372,18 @@ pub fn build_registry(inputs: &RepoInputs, policy: &Policy) -> Result<Value, Pro
         // `resolve_reachability` pushes sources in a fixed order, so `first()` is deterministic
         // and the face stays byte-stable. The ADR corpus still wins when it names the path, so
         // no existing `justification_ref` changes value.
-        let justification_ref = inputs
-            .justifications
-            .get(path)
-            .cloned()
-            .or_else(|| reachable_from.first().map(|src| format!("reached:{src}")));
+        //
+        // It runs AFTER the OWNERS floor, and the ORDER IS LOAD-BEARING — not because the
+        // floor's `reachable_from` push feeds `first()` (it cannot: the floor fills
+        // `justification_ref` for every valid OWNERS file, so this fallback is always a no-op
+        // on them, and `reached:owners-schema` is unreachable by construction), but because a
+        // valid OWNERS file that ALSO resolves a reachability source would otherwise be stamped
+        // `reached:cargo-members` instead of `owners-schema`. That would silently empty the
+        // `justification_ref == "owners-schema"` census [`OWNERS_SCHEMA_ANCHOR`] documents as
+        // the way a reviewer enumerates every by-construction row.
+        if justification_ref.is_none() {
+            justification_ref = reachable_from.first().map(|src| format!("reached:{src}"));
+        }
         // No last-touch column (ADR-0552, FRIC-1781234047): per-path last-touch revision ids
         // are HISTORY-derived volatile facts — a squash-merge rewrites them for every path
         // the PR touched, so embedding them here made the committed face un-settle on every
@@ -1180,6 +1237,15 @@ pub struct OwnersIntegrity {
 pub struct OwnersResolution {
     pub by_path: BTreeMap<String, String>,
     pub integrity: OwnersIntegrity,
+    /// The OWNERS files (repo-relative) that PARSED against the schema — exactly the
+    /// complement of `integrity.invalid` over the tracked OWNERS files. This is the one
+    /// place in the producer that reads and parses OWNERS content, so it is the only place
+    /// the per-file validity verdict exists; it feeds `RepoInputs::valid_owners_files` and
+    /// hence the `build_registry` accounting floor. NOT the same as "appears in `by_path`":
+    /// the per-file breadth bound (`max_paths_per_owners_file`) can truncate a valid file's
+    /// own row out of the coverage set, and truncation is a BREADTH verdict, not a schema
+    /// verdict.
+    pub valid_files: BTreeSet<String>,
 }
 
 fn nearest_ancestor(path: &str, dirs: &BTreeSet<String>) -> Option<String> {
@@ -1226,6 +1292,7 @@ pub fn resolve_owners(
 
     let mut integrity = OwnersIntegrity::default();
     let mut valid_dirs: BTreeSet<String> = BTreeSet::new();
+    let mut valid_files: BTreeSet<String> = BTreeSet::new();
     for (dir, rel) in &owners_paths {
         let defect = match std::fs::read(repo_root.join(rel)) {
             Err(e) => Some(format!("unreadable: {e}")),
@@ -1240,13 +1307,18 @@ pub fn resolve_owners(
             }
             None => {
                 valid_dirs.insert(dir.clone());
+                valid_files.insert(rel.clone());
             }
         }
     }
 
     let mut by_path = BTreeMap::new();
     if owners_paths.is_empty() {
-        return OwnersResolution { by_path, integrity };
+        return OwnersResolution {
+            by_path,
+            integrity,
+            valid_files,
+        };
     }
 
     let all_dirs: BTreeSet<String> = owners_paths.keys().cloned().collect();
@@ -1281,7 +1353,11 @@ pub fn resolve_owners(
         }
     }
 
-    OwnersResolution { by_path, integrity }
+    OwnersResolution {
+        by_path,
+        integrity,
+        valid_files,
+    }
 }
 
 /// One reviewed reachability registration (ADR-0555): a dir prefix (MUST end with `/`) or
@@ -1491,6 +1567,22 @@ pub fn fix_reachability(
             "--fix-reachability: both <prefix> and <anchor> must be non-empty".to_owned(),
         ));
     }
+    // An OWNERS file is accounted BY CONSTRUCTION (see [`OWNERS_SCHEMA_ANCHOR`]), so a row
+    // for one is dead weight the next capability move has to carry. Refusing here keeps the
+    // paved road and the gate in agreement: without it the bridge would happily write a row
+    // that `owners_files_are_never_registered_in_the_reachability_registry` then rejects in
+    // CI — a trap that reads as a gate bug rather than as a no-op registration. The remedy
+    // for an unaccounted OWNERS file is to make it PARSE, never to register it.
+    let owners_file = cfg.owners.file_name.as_str();
+    if prefix == owners_file || prefix.ends_with(&format!("/{owners_file}")) {
+        return Err(ProducerError::Refused(format!(
+            "--fix-reachability: {prefix} is an {owners_file} file, which is accounted by \
+             CONSTRUCTION — a schema-valid {owners_file} file is justified + reachable with \
+             no registry row, so this registration would be a no-op that every future move \
+             has to maintain. If {prefix} is still RED, its CONTENT fails the {owners_file} \
+             schema (>=1 owner principal, no unparseable lines): fix the file, not the registry."
+        )));
+    }
     let registry_rel = cfg.reachability.registry.as_str();
     let registry_abs = repo_root.join(registry_rel);
     let mut entries = load_reachability_registry(&registry_abs)?;
@@ -1567,6 +1659,7 @@ mod tests {
             justifications,
             reachability,
             dup_of: BTreeMap::new(),
+            valid_owners_files: BTreeSet::new(),
         }
     }
 
@@ -2135,6 +2228,216 @@ mod tests {
         )
         .expect("a within-bound registration applies");
         assert!(ok.contains("1 tracked path(s)"), "{ok}");
+
+        std::fs::remove_dir_all(root).expect("remove temp repo");
+    }
+
+    /// THE SAFETY ARGUMENT, end to end on a real tree: a schema-VALID OWNERS file is
+    /// accounted by construction; a schema-INVALID one stays fully RED. Both files are the
+    /// same name in the same shape — only the CONTENT differs — so this pins that the floor
+    /// is keyed on the parse verdict and cannot be reached by naming a file `OWNERS`.
+    ///
+    /// The tree is deliberately barren: no ADRs, no masterplan, no reachability registry, no
+    /// Cargo workspace. So NOTHING except the derivation can justify or reach either file —
+    /// which is exactly the `os/OWNERS` situation that turned `dev` RED in PR #1473.
+    #[test]
+    fn valid_owners_file_is_accounted_by_construction_and_invalid_one_stays_red() {
+        let root = unique_temp_repo();
+        std::fs::create_dir_all(root.join("good")).expect("create good dir");
+        std::fs::create_dir_all(root.join("bad")).expect("create bad dir");
+        std::fs::write(root.join("good/OWNERS"), "cloud-ci-platform\n").expect("write valid");
+        // Comment-only: the ADR-0555 schema's canonical NOT-ownership case.
+        std::fs::write(root.join("bad/OWNERS"), "# owner: TBD\n").expect("write invalid");
+        std::fs::write(root.join("good/thing.rs"), "fn main() {}\n").expect("write covered");
+        std::fs::write(root.join("bad/thing.rs"), "fn main() {}\n").expect("write covered");
+
+        let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
+        let paths = tracked(&[
+            "bad/OWNERS",
+            "bad/thing.rs",
+            "good/OWNERS",
+            "good/thing.rs",
+        ]);
+        let resolution = resolve_owners(&root, &paths, &cfg);
+        assert_eq!(
+            resolution.valid_files,
+            BTreeSet::from(["good/OWNERS".to_owned()]),
+            "only the schema-valid OWNERS file may carry the accounting floor"
+        );
+        assert!(
+            resolution.integrity.invalid.contains_key("bad/OWNERS"),
+            "the comment-only file must be reported as a schema defect"
+        );
+
+        let policy = Policy::from_bundled().expect("policy");
+        let inputs = RepoInputs {
+            tracked_paths: paths,
+            owners: resolution.by_path,
+            // Barren tree: nothing else accounts anything.
+            justifications: BTreeMap::new(),
+            reachability: BTreeMap::new(),
+            dup_of: BTreeMap::new(),
+            valid_owners_files: resolution.valid_files,
+        };
+        let registry = build_registry(&inputs, &policy).expect("registry");
+        let row = |path: &str| -> Value {
+            registry["rows"]
+                .as_array()
+                .expect("rows")
+                .iter()
+                .find(|r| r["path"] == path)
+                .expect("row")
+                .clone()
+        };
+
+        // GREEN: the valid OWNERS file, with ZERO hand-written registrations anywhere.
+        let good = row("good/OWNERS");
+        assert_eq!(good["justification_ref"], OWNERS_SCHEMA_ANCHOR);
+        assert_eq!(
+            good["reachable_from"],
+            serde_json::json!([OWNERS_SCHEMA_ANCHOR])
+        );
+        let good_findings: BTreeSet<String> =
+            ci_artifact_accountability::evaluate_keyed(&registry)
+                .into_iter()
+                .filter(|f| f.key == "good/OWNERS")
+                .map(|f| f.code)
+                .collect();
+        assert!(
+            good_findings.is_empty(),
+            "a schema-valid OWNERS file must raise NO accounting violation, got {good_findings:?}"
+        );
+
+        // RED: the invalid one is not laundered — it stays unjustified AND unreachable AND
+        // unowned (invalid content poisons its own directory, ADR-0555 fail-closed).
+        let bad = row("bad/OWNERS");
+        assert_eq!(bad["justification_ref"], Value::Null);
+        assert_eq!(bad["reachable_from"], serde_json::json!([]));
+        assert_eq!(bad["verdict"], "RED");
+        let bad_findings: BTreeSet<String> = ci_artifact_accountability::evaluate_keyed(&registry)
+            .into_iter()
+            .filter(|f| f.key == "bad/OWNERS")
+            .map(|f| f.code)
+            .collect();
+        for code in ["unjustified", "unreachable", "unowned"] {
+            assert!(
+                bad_findings.contains(code),
+                "a schema-INVALID OWNERS file must keep firing {code}, got {bad_findings:?}"
+            );
+        }
+
+        // The floor NEVER reaches a non-OWNERS path, even one the valid file owns.
+        let covered = row("good/thing.rs");
+        assert_eq!(covered["justification_ref"], Value::Null);
+        assert_eq!(covered["reachable_from"], serde_json::json!([]));
+        assert_eq!(covered["verdict"], "RED");
+
+        std::fs::remove_dir_all(root).expect("remove temp repo");
+    }
+
+    /// The floor only ever FILLS AN ABSENCE: a valid OWNERS file that already resolved a
+    /// justification / reachability source keeps exactly what it resolved. This is what makes
+    /// "no other row changes" a property of the code rather than of the corpus.
+    #[test]
+    fn owners_floor_never_overrides_a_resolved_justification_or_reachability() {
+        let policy = Policy::from_bundled().expect("policy");
+        let inputs = RepoInputs {
+            tracked_paths: tracked(&["cloud/x/OWNERS"]),
+            owners: BTreeMap::from([(
+                "cloud/x/OWNERS".to_owned(),
+                "OWNERS:cloud/x".to_owned(),
+            )]),
+            justifications: BTreeMap::from([(
+                "cloud/x/OWNERS".to_owned(),
+                "ADR-0543".to_owned(),
+            )]),
+            reachability: BTreeMap::from([(
+                "cloud/x/OWNERS".to_owned(),
+                vec!["cargo-members".to_owned()],
+            )]),
+            dup_of: BTreeMap::new(),
+            valid_owners_files: BTreeSet::from(["cloud/x/OWNERS".to_owned()]),
+        };
+        let registry = build_registry(&inputs, &policy).expect("registry");
+        let row = &registry["rows"].as_array().expect("rows")[0];
+        assert_eq!(row["justification_ref"], "ADR-0543");
+        assert_eq!(row["reachable_from"], serde_json::json!(["cargo-members"]));
+    }
+
+    /// ORDERING: the OWNERS floor runs BEFORE the reached ⇒ justified fallback. Both rules
+    /// fill an absent `justification_ref`, so on a valid OWNERS file that ALSO resolves a
+    /// reachability source the two race — and only the floor's answer keeps the row findable
+    /// by the `justification_ref == "owners-schema"` census [`OWNERS_SCHEMA_ANCHOR`] documents.
+    ///
+    /// TODAY's corpus does not exercise this: all 108 tracked OWNERS files either carry an ADR
+    /// justification already or resolve no reachability but the floor's own. It bites as the
+    /// reorg lands new OWNERS files under cargo members with no ADR prose — exactly the case
+    /// the floor exists to serve — so the ordering needs a test, not a comment.
+    #[test]
+    fn owners_floor_wins_over_the_reached_fallback_for_an_unjustified_valid_owners_file() {
+        let policy = Policy::from_bundled().expect("policy");
+        let inputs = RepoInputs {
+            tracked_paths: tracked(&["cloud/x/OWNERS"]),
+            owners: BTreeMap::new(),
+            justifications: BTreeMap::new(),
+            reachability: BTreeMap::from([(
+                "cloud/x/OWNERS".to_owned(),
+                vec!["cargo-members".to_owned()],
+            )]),
+            dup_of: BTreeMap::new(),
+            valid_owners_files: BTreeSet::from(["cloud/x/OWNERS".to_owned()]),
+        };
+        let registry = build_registry(&inputs, &policy).expect("registry");
+        let row = &registry["rows"].as_array().expect("rows")[0];
+        assert_eq!(
+            row["justification_ref"], OWNERS_SCHEMA_ANCHOR,
+            "the floor must stamp the by-construction anchor, not `reached:cargo-members`"
+        );
+        // The floor never displaces a reachability source it did not need to supply.
+        assert_eq!(row["reachable_from"], serde_json::json!(["cargo-members"]));
+    }
+
+    /// The bridge cannot re-create the rows this change deleted: registering an OWNERS path
+    /// is refused with the real remedy (fix the file's CONTENT), and leaves the registry
+    /// byte-identical. Without this the paved road would write a row the gate then rejects.
+    #[test]
+    fn fix_reachability_refuses_owners_paths_as_accounted_by_construction() {
+        let root = unique_temp_repo();
+        std::fs::create_dir_all(root.join("specs")).expect("create specs");
+        let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
+        let registry_rel = cfg.reachability.registry.clone();
+        let seed = "{\n  \"registered\": []\n}\n";
+        std::fs::write(root.join(&registry_rel), seed).expect("seed registry");
+
+        for prefix in ["OWNERS", "os/OWNERS", "cloud/cloud-kernel/OWNERS"] {
+            let err = fix_reachability(
+                &root,
+                &cfg,
+                &tracked(&[prefix]),
+                &format!("{prefix}=some hand-written anchor prose"),
+            )
+            .expect_err("registering an OWNERS path must be refused");
+            let message = format!("{err:?}");
+            assert!(
+                message.contains("accounted by") && message.contains("schema"),
+                "the refusal must name the construction + the real remedy, got {message}"
+            );
+            assert_eq!(
+                std::fs::read_to_string(root.join(&registry_rel)).expect("read"),
+                seed,
+                "a refused registration must leave the registry byte-identical"
+            );
+        }
+
+        // Control: a NON-OWNERS path still registers, so the refusal is scoped, not a
+        // blanket break of the bridge.
+        fix_reachability(
+            &root,
+            &cfg,
+            &tracked(&["specs/thing.json"]),
+            "specs/thing.json=reviewed anchor",
+        )
+        .expect("a non-OWNERS registration still applies");
 
         std::fs::remove_dir_all(root).expect("remove temp repo");
     }

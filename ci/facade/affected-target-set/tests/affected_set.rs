@@ -772,6 +772,118 @@ fn archive_epoch_e4_inputs_seed_cross_artifact_agreement_gate_despite_docs_inert
     }
 }
 
+// ── The `**/OWNERS` governance-marker class (PR #1473 shape) ─────────────────────────────
+
+/// Resolve one path against the SHIPPED pack with an EMPTY owner map — the production shape for
+/// a whole-tree-scanner input, whose `owner()` is empty BY DEFINITION.
+fn shipped_decision_with_no_owner(path: &str) -> Decision {
+    let policy = Policy::from_json(&fs::read_to_string(shipped_pack_path()).expect("read pack"))
+        .expect("shipped pack parses");
+    resolve(
+        &plan_changes(&[Change::Present(path.into())], &policy),
+        &owners(&[(path, &[])]),
+        &policy,
+    )
+}
+
+/// `root//ci/facade/x:` -> `ci/facade/x`, so seed patterns compare as package dirs.
+fn seed_package(seed: &str) -> String {
+    let rest = seed.split_once("//").map_or(seed, |(_, r)| r);
+    rest.split_once(':').map_or(rest, |(pkg, _)| pkg).to_owned()
+}
+
+fn shipped_seed_packages(path: &str) -> std::collections::BTreeSet<String> {
+    match shipped_decision_with_no_owner(path) {
+        Decision::Affected { seeds } => seeds.iter().map(|s| seed_package(s)).collect(),
+        other => panic!("`{path}` must resolve to Affected via a synthetic declaration, got {other:?}"),
+    }
+}
+
+/// RED (PR #1473): that one-line PR added `os/OWNERS` and NOTHING else. With no `**/OWNERS`
+/// declaration the path is unowned + unmapped, so `resolve` escalated to `Decision::Full` and the
+/// lane spent 42 minutes on the whole workspace before its runner died.
+///
+/// `OWNERS` is emphatically NOT inert — declaring it `[]` would be the reverted PR #1389 false
+/// green in a new costume. An OWNERS file is a live input to the ownership/accounting machinery
+/// (`artifact-inventory-registry` resolves the nearest up-tree OWNERS for EVERY tracked path and
+/// validates its content schema and breadth bound; `baseline-ratchet` carries
+/// `tc-FW-*-owners-addition-*` firewall fixtures; `automation-language-policy` asserts the
+/// retirement control plane HAS an OWNERS boundary and that `registry/OWNERS` does NOT exist).
+/// An OWNERS-only PR that selected nothing would skip exactly the gates that judge it.
+#[test]
+fn governance_marker_owners_reaches_its_consumers_instead_of_escalating_to_full() {
+    let packages = shipped_seed_packages("os/OWNERS");
+    for required in [
+        // Resolves nearest-ancestor OWNERS for every tracked path; validates the OWNERS schema.
+        "ci/facade/artifact-inventory-registry",
+        // `unowned` accounting rows are derived from that resolution.
+        "ci/facade/artifact-accountability",
+        // Firewall fixtures judge OWNERS ADDITIONS against the frozen baseline + signoff.
+        "ci/facade/baseline-ratchet",
+        // Asserts the retirement control plane's OWNERS boundary exists (and `registry/OWNERS` does not).
+        "ci/facade/automation-language-policy",
+        // `[owners]` policy-as-data: the marker file name and the breadth bound.
+        "libs/oya-ci-config",
+        // Born-accounting writes `<dir>/OWNERS` and validates owner principals.
+        "libs/oya-crate-registrar-kernel",
+    ] {
+        assert!(
+            packages.contains(required),
+            "a lone `os/OWNERS` change must seed `{required}`, which reads OWNERS at runtime; \
+             got {packages:?}"
+        );
+    }
+}
+
+/// The root `OWNERS` file is tracked, so `**/OWNERS` must match a ZERO-segment prefix too —
+/// otherwise the repo's broadest ownership boundary is the one path still escalating to FULL.
+#[test]
+fn the_root_owners_file_is_covered_by_the_same_declaration() {
+    assert_eq!(
+        shipped_seed_packages("OWNERS"),
+        shipped_seed_packages("os/OWNERS"),
+        "`**/OWNERS` must cover the root marker identically to a nested one"
+    );
+}
+
+/// ANTI-ROT. The `.github/**` seed list is the only one held complete mechanically
+/// (`ci-affected-target-set-github-consumer-coverage` derives it from the tree). The OWNERS seed
+/// list has no such derivation available — `scan_path_literal_consumers` keys on a repo-root
+/// DIRECTORY prefix (needle `"<class_dir>`), and OWNERS is a BASENAME class scattered over 109
+/// directories, so the scan neither finds its real consumers (`".omc/ultragoal/OWNERS"` does not
+/// start with `"OWNERS`) nor excludes coincidental hits (`"OWNERS:{dir}"`, an owner-map value).
+/// A scan that under-approximates would rubber-stamp the declaration.
+///
+/// Instead the two classes are chained: both are whole-tree accounting inputs, so requiring the
+/// OWNERS list to be a SUPERSET of the `.github` list makes the derived completeness gate protect
+/// this class too — a new whole-tree gate forced into the `.github` list by that gate is forced
+/// into this one here. Over-seeding costs build time; under-seeding is a merge-authority hole.
+#[test]
+fn the_owners_seed_list_is_a_superset_of_the_mechanically_derived_github_list() {
+    let owners_pkgs = shipped_seed_packages("os/OWNERS");
+    let github_pkgs = shipped_seed_packages(".github/workflows/oya-ci-required.yml");
+    let missing: Vec<&String> = github_pkgs.difference(&owners_pkgs).collect();
+    assert!(
+        missing.is_empty(),
+        "`synthetic_dependencies[\"**/OWNERS\"]` must contain every `.github/**` seed so the \
+         derived github-consumer-coverage gate keeps this class from rotting; missing {missing:?}"
+    );
+}
+
+/// `**/OWNERS` must never hold an empty-selection licence: the seeds are non-empty, so an
+/// OWNERS-only PR resolves `Affected` and never reaches predicate (1). If someone later empties
+/// the seed list, this keeps the outcome RED instead of a silent pass.
+#[test]
+fn shipped_pack_does_not_license_the_owners_class_to_select_nothing() {
+    let p = Policy::from_json(&fs::read_to_string(shipped_pack_path()).expect("read shipped pack"))
+        .expect("shipped pack parses");
+    assert!(
+        !p.inert_selection_classes.iter().any(|c| c.ends_with("OWNERS")),
+        "`**/OWNERS` must never hold an empty-selection licence; got {:?}",
+        p.inert_selection_classes
+    );
+}
+
 #[test]
 fn wrong_pack_for_engine_is_rejected() {
     let err = Policy::from_json(r#"{"gate_id": "cloud-ci-something-else"}"#).unwrap_err();

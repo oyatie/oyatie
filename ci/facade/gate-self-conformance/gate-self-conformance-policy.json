@@ -112,13 +112,13 @@
     {
       "gate": "core-dependency-isolation",
       "class": "autofix_semantic_validation_boundary",
-      "reason": "Kernel-purity invokes cargo metadata only after its fixer edits manifests so corrupt rewrites roll back; the blocking gate predicate remains policy/data driven and Buck2-tested.",
-      "cutover_note": "Move semantic manifest validation behind the owned workspace-members/manifest parser so the fixer rollback path no longer shells to cargo.",
+      "reason": "Kernel-purity invokes cargo metadata only after its fixer edits manifests so corrupt rewrites roll back; the blocking gate predicate remains policy/data driven and Buck2-tested. A SECOND call (cargo --version) probes toolchain availability from the same cwd BEFORE that metadata call, because `cargo` on PATH is usually rustup's proxy: a proxy that cannot resolve a toolchain still spawns and exits non-zero, which is indistinguishable at the Ok(output) arm from cargo rejecting the manifest, and misattributing it produced a false RED that also rolled back correct edits. Both calls share one cutover.",
+      "cutover_note": "Move semantic manifest validation behind the owned workspace-members/manifest parser so the fixer rollback path no longer shells to cargo. That cutover removes BOTH the availability probe and the metadata call.",
       "fixuptask_id": "GH-777-CUTOVER-KERNEL-PURITY-FIXER-VALIDATOR",
       "allowed_paths": [
         "ci/facade/core-dependency-isolation/src/lib.rs"
       ],
-      "max_occurrences": 1,
+      "max_occurrences": 2,
       "tokens": [
         "std::process::Command",
         "Command::new"
