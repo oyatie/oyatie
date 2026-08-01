@@ -759,6 +759,7 @@ pub fn affected_set_operator_artifact(
     resolved_head_ref: &str,
     baseline_report_present: bool,
     baseline_provenance: Option<&Value>,
+    baseline_reuse_outcome: Option<&Value>,
     decision: &Decision,
     phases: &[GatePhaseOutcome],
 ) -> Value {
@@ -812,6 +813,11 @@ pub fn affected_set_operator_artifact(
             // difference is auditable per run instead of inferred from wall-clock or logs.
             "source": if baseline_provenance.is_some() { "trusted-artifact" } else { "cold-rebuild" },
             "provenance": baseline_provenance.cloned().unwrap_or(Value::Null),
+            // WHY the fast path did or did not run. `source` alone cannot distinguish "no baseline
+            // was published for this merge-base" from "the runner could not ask" — and for the
+            // whole life of the owned arm64 fleet it was always the latter, invisibly. Null here
+            // means the consumer never ran at all (a non-FULL tier), which is not a degrade.
+            "reuse_outcome": baseline_reuse_outcome.cloned().unwrap_or(Value::Null),
             "anti_laundering": "baseline report must be produced from the merge-base committed tree, never the candidate tree"
         },
         "long_running_gate_phases": phases
@@ -898,6 +904,93 @@ pub const REQUIRED_CONTEXT_WORKFLOW_PATH: &str = ".github/workflows/oya-ci-requi
 /// baseline can only ADD regressions), but it must be a recorded DECISION, not an inheritance.
 /// Presence of this file means "trusted-artifact"; absence means "cold-rebuild".
 pub const BASELINE_PROVENANCE_FILENAME: &str = "baseline-provenance.json";
+
+/// Sidecar recording WHY the trusted-baseline fast path did or did not run — written on EVERY
+/// outcome, unlike [`BASELINE_PROVENANCE_FILENAME`] which exists only on success.
+///
+/// WHY A SECOND FILE: the provenance sidecar's contract is "present == reused", and the consumer
+/// deletes it on any failure so a partial download can never be mistaken for a reuse. That makes it
+/// structurally unable to carry a degrade reason. This one always exists, so "the fast path did not
+/// run, and here is the typed reason" is a recorded fact rather than an inference from wall-clock.
+pub const BASELINE_REUSE_OUTCOME_FILENAME: &str = "baseline-reuse-outcome.json";
+
+/// The typed outcome of the trusted-baseline fast path (GH #1323/#899, ADR-0554 D8).
+///
+/// THE DEFECT THIS TYPE CLOSES: the consumer previously had two failure shapes, `Unavailable` and
+/// `Refused`, and folded "the tool/transport does not work here" into `Refused`. `gh` is absent
+/// from the owned arm64 runner image, so EVERY run on that fleet took `Refused` and fell back to
+/// the cold merge-base rebuild — measured at 11m12s..17m48s per FULL-tier run — while reporting
+/// nothing an operator or a query could distinguish from the healthy "no baseline published yet"
+/// case. A capability probe that degrades silently to a slower path is indistinguishable from one
+/// that works; the fix is to make the degrade a state with a name, not a missing log line.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum BaselineReuseState {
+    /// A provenance-validated merge-base baseline pair was downloaded; the cold rebuild is skipped.
+    Reused,
+    /// The API answered, and the answer is that no reusable baseline exists for this merge-base
+    /// (first push, expired retention, red dev tip). EXPECTED — the cold rebuild is correct here.
+    Unavailable,
+    /// A candidate baseline existed but failed a provenance or payload check. Fail-closed by
+    /// design; the cold rebuild is correct here too, but a sustained rate means the publisher and
+    /// the consumer disagree about artifact shape.
+    Refused,
+    /// The runner could NOT ASK: a required executable is missing, no token is present, or the API
+    /// was unreachable/unauthenticated. This is an INFRASTRUCTURE DEFECT, not an answer — the
+    /// fast path is dark until someone fixes the environment.
+    CapabilityFault,
+}
+
+impl BaselineReuseState {
+    /// Stable machine token for the sidecar, the operator artifact, and log greps.
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Reused => "reused",
+            Self::Unavailable => "unavailable",
+            Self::Refused => "refused",
+            Self::CapabilityFault => "capability-fault",
+        }
+    }
+
+    /// Does this state mean the ENVIRONMENT is broken, as opposed to a legitimate answer?
+    ///
+    /// Only this predicate escalates reporting loudness. It must stay false for `Unavailable` and
+    /// `Refused`: crying wolf on the normal path is how the real signal got ignored in the first
+    /// place.
+    pub const fn is_capability_fault(self) -> bool {
+        matches!(self, Self::CapabilityFault)
+    }
+
+    /// Process exit code. Distinct per state so the workflow — and a human reading `$?` — can tell
+    /// a dead capability from a healthy miss. Every non-`Reused` code is non-zero, preserving the
+    /// existing fail-closed contract: anything short of a validated pair runs the cold rebuild.
+    pub const fn exit_code(self) -> u8 {
+        match self {
+            Self::Reused => 0,
+            Self::Refused => 2,
+            Self::Unavailable => 3,
+            Self::CapabilityFault => 4,
+        }
+    }
+}
+
+/// PURE: which degrade state (if any) a GitHub REST status code implies for the fast path.
+///
+/// `None` means "continue". The split is the whole point of [`BaselineReuseState`]:
+///   - 404/410 are ANSWERS from a working API — the run or artifact is genuinely not there;
+///   - 401/403/429 and 5xx mean we never got an answer (bad/absent token, rate limit, outage),
+///     which is an environment fault an operator must fix, not a property of this PR;
+///   - anything else is unexpected enough to refuse rather than guess.
+///
+/// 403 is deliberately a fault and not a refusal: GitHub returns it for BOTH rate limiting and
+/// missing `actions: read`, and neither is a statement about the baseline.
+pub const fn classify_api_status(status: u16) -> Option<BaselineReuseState> {
+    match status {
+        200..=299 => None,
+        404 | 410 => Some(BaselineReuseState::Unavailable),
+        401 | 403 | 429 | 500..=599 => Some(BaselineReuseState::CapabilityFault),
+        _ => Some(BaselineReuseState::Refused),
+    }
+}
 
 /// Which merge-base health baseline an artifact carries (GH #1323/#899, ADR-0554 D8).
 ///
@@ -1922,6 +2015,7 @@ mod tests {
             "89abcdef0123456789abcdef0123456789abcdef",
             false,
             None,
+            None,
             &decision,
             &phases,
         );
@@ -1990,6 +2084,7 @@ mod tests {
             "89abcdef0123456789abcdef0123456789abcdef",
             false,
             None,
+            None,
             &decision,
             &phases,
         );
@@ -2022,6 +2117,7 @@ mod tests {
             "89abcdef0123456789abcdef0123456789abcdef",
             true,
             Some(&provenance),
+            Some(&json!({"state": "reused"})),
             &decision,
             &[],
         );
@@ -2033,6 +2129,120 @@ mod tests {
             artifact["merge_base_build_health_baseline"]["provenance"]["workflow_run_id"],
             4242
         );
+    }
+
+    #[test]
+    fn operator_artifact_records_a_dark_fast_path_as_a_typed_degrade() {
+        // THE REGRESSION THIS PINS (CI job 91383250718): `gh` was absent from the owned runner
+        // image, so the consumer degraded to the cold rebuild on EVERY run. `source` alone reads
+        // "cold-rebuild" for that, which is byte-identical to the healthy "no baseline published
+        // for this merge-base" case — the artifact could not distinguish a broken fleet from a
+        // working one, so nobody did. The typed outcome must survive into the artifact.
+        let outcome = json!({
+            "state": "capability-fault",
+            "capability_fault": true,
+            "reason": "GET repos/o/r/actions/...: the GitHub API is unreachable",
+        });
+        let artifact = affected_set_operator_artifact(
+            "auto",
+            "0123456789abcdef0123456789abcdef01234567",
+            "89abcdef0123456789abcdef0123456789abcdef",
+            true,
+            None,
+            Some(&outcome),
+            &Decision::Full {
+                reasons: vec!["escape trigger".to_owned()],
+            },
+            &[],
+        );
+        let baseline = &artifact["merge_base_build_health_baseline"];
+        assert_eq!(baseline["source"], "cold-rebuild");
+        assert_eq!(baseline["reuse_outcome"]["state"], "capability-fault");
+        assert_eq!(baseline["reuse_outcome"]["capability_fault"], true);
+
+        // A non-FULL run never invokes the consumer at all; that is an ABSENCE of a decision, not
+        // a degrade, and must not be reported as one.
+        let never_ran = affected_set_operator_artifact(
+            "auto",
+            "0123456789abcdef0123456789abcdef01234567",
+            "89abcdef0123456789abcdef0123456789abcdef",
+            false,
+            None,
+            None,
+            &Decision::NoGraphTargets,
+            &[],
+        );
+        assert_eq!(
+            never_ran["merge_base_build_health_baseline"]["reuse_outcome"],
+            Value::Null
+        );
+    }
+
+    #[test]
+    fn a_dead_capability_is_a_distinct_state_from_a_healthy_miss() {
+        // The four states must stay mutually distinguishable by BOTH of the channels that consume
+        // them: the machine token in the sidecar/artifact, and the process exit code the workflow
+        // sees. Collapsing any pair is how the original defect hid.
+        let all = [
+            BaselineReuseState::Reused,
+            BaselineReuseState::Unavailable,
+            BaselineReuseState::Refused,
+            BaselineReuseState::CapabilityFault,
+        ];
+        let tokens: BTreeSet<&str> = all.iter().map(|s| s.as_str()).collect();
+        assert_eq!(tokens.len(), all.len(), "state tokens must be unique");
+        let codes: BTreeSet<u8> = all.iter().map(|s| s.exit_code()).collect();
+        assert_eq!(codes.len(), all.len(), "exit codes must be unique");
+
+        // Only a real environment fault is loud. `Unavailable` is the NORMAL path (a merge-base
+        // whose dev push never published, or whose artifacts expired) and `Refused` is the gate
+        // working as designed; warning on either would drown the one signal that means "fix me".
+        assert!(BaselineReuseState::CapabilityFault.is_capability_fault());
+        assert!(!BaselineReuseState::Unavailable.is_capability_fault());
+        assert!(!BaselineReuseState::Refused.is_capability_fault());
+        assert!(!BaselineReuseState::Reused.is_capability_fault());
+
+        // Fail-closed contract the workflow depends on: anything short of a validated pair is
+        // non-zero, so the cold rebuild runs.
+        assert_eq!(BaselineReuseState::Reused.exit_code(), 0);
+        for state in [
+            BaselineReuseState::Unavailable,
+            BaselineReuseState::Refused,
+            BaselineReuseState::CapabilityFault,
+        ] {
+            assert_ne!(state.exit_code(), 0, "{state:?} must fall back");
+        }
+    }
+
+    #[test]
+    fn http_statuses_split_answers_from_faults() {
+        assert_eq!(classify_api_status(200), None);
+        assert_eq!(classify_api_status(204), None);
+        // A working API saying "not there" — the cold rebuild is the RIGHT answer, quietly.
+        for status in [404, 410] {
+            assert_eq!(
+                classify_api_status(status),
+                Some(BaselineReuseState::Unavailable),
+                "HTTP {status}"
+            );
+        }
+        // No answer at all: absent/expired token, missing `actions: read`, rate limit, outage.
+        // Every one of these is an operator's problem, and none is a property of the PR.
+        for status in [401, 403, 429, 500, 502, 503] {
+            assert_eq!(
+                classify_api_status(status),
+                Some(BaselineReuseState::CapabilityFault),
+                "HTTP {status}"
+            );
+        }
+        // Anything unmodelled is refused rather than guessed at.
+        for status in [301, 400, 422] {
+            assert_eq!(
+                classify_api_status(status),
+                Some(BaselineReuseState::Refused),
+                "HTTP {status}"
+            );
+        }
     }
 
     #[test]

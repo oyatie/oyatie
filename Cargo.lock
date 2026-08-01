@@ -1158,6 +1158,7 @@ dependencies = [
 name = "ci-affected-target-set"
 version = "0.1.0"
 dependencies = [
+ "reqwest 0.13.4",
  "serde_json",
 ]
 
