@@ -65,10 +65,18 @@ fn package(name: &str, version: &str) -> String {
 }
 
 fn run_driver(base: &Path, current: &Path, other: &Path) -> Output {
+    run_driver_with_extras(base, current, other, &[])
+}
+
+/// `extras` are the placeholders git may substitute AFTER `%O %A %B` — `%L`, `%P`, `%S`, `%X`,
+/// `%Y`. Requiring exactly three arguments was a data-loss bug in its own right, so every exit
+/// path is exercised with a tail present as well as without.
+fn run_driver_with_extras(base: &Path, current: &Path, other: &Path, extras: &[&str]) -> Output {
     match Command::new(driver_bin())
         .arg(base)
         .arg(current)
         .arg(other)
+        .args(extras)
         .output()
     {
         Ok(output) => output,
@@ -175,14 +183,147 @@ fn unreadable_other_side_writes_marked_conflict_into_current() {
     let _ = std::fs::remove_dir_all(dir);
 }
 
-/// Exit 2 — the only surviving abstain: no `%A` argument, so there is no file to mark.
+/// Exit 1 — the four-placeholder registration. `merge.oya-faces` in this repo is registered as
+/// `%O %A %B %P`, and git also documents `%L`, `%S`, `%X` and `%Y`. Demanding exactly three
+/// arguments made that shape take the usage branch and exit WITHOUT writing `%A`, which is the
+/// same silent data loss the conflict path was fixed for, entered through a different door.
 #[test]
-fn missing_arguments_exit_2() {
+fn four_placeholder_registration_writes_every_side_into_current() {
+    let dir = unique_dir("four-placeholder-conflict");
+    let (base, current, other) = (
+        dir.join("base.lock"),
+        dir.join("current.lock"),
+        dir.join("other.lock"),
+    );
+    write_file(&base, &lockfile(&package("shared", "1.0.0")));
+    write_file(&current, &lockfile(&package("shared", "1.0.1")));
+    write_file(&other, &lockfile(&package("shared", "1.0.2")));
+
+    // The trailing argument is `%P`, exactly as `merge.oya-faces` is registered.
+    let output = run_driver_with_extras(&base, &current, &other, &["Cargo.lock"]);
+
+    assert_eq!(output.status.code(), Some(1));
+    assert_marked_conflict(&current, &["1.0.0", "1.0.1", "1.0.2"]);
+    let _ = std::fs::remove_dir_all(dir);
+}
+
+/// Exit 1 — the five-placeholder form `%O %A %B %L %P` from gitattributes(5)'s own example. The
+/// tail is accepted and ignored, so a longer registration cannot resurrect the arity hole.
+#[test]
+fn five_placeholder_registration_writes_every_side_into_current() {
+    let dir = unique_dir("five-placeholder-conflict");
+    let (base, current, other) = (
+        dir.join("base.lock"),
+        dir.join("current.lock"),
+        dir.join("other.lock"),
+    );
+    write_file(&base, &lockfile(&package("shared", "1.0.0")));
+    write_file(&current, &lockfile(&package("shared", "1.0.1")));
+    write_file(&other, &lockfile(&package("shared", "1.0.2")));
+
+    let output = run_driver_with_extras(&base, &current, &other, &["7", "Cargo.lock"]);
+
+    assert_eq!(output.status.code(), Some(1));
+    assert_marked_conflict(&current, &["1.0.0", "1.0.1", "1.0.2"]);
+    let _ = std::fs::remove_dir_all(dir);
+}
+
+/// Exit 0 — a clean merge must still be clean under the four-placeholder registration, so the
+/// arity fix is not merely "conflicts loudly on every input".
+#[test]
+fn four_placeholder_registration_merges_cleanly() {
+    let dir = unique_dir("four-placeholder-clean");
+    let (base, current, other) = (
+        dir.join("base.lock"),
+        dir.join("current.lock"),
+        dir.join("other.lock"),
+    );
+    write_file(&base, &lockfile(&package("alpha", "1.0.0")));
+    write_file(
+        &current,
+        &lockfile(&format!(
+            "{}\n{}",
+            package("alpha", "1.0.0"),
+            package("ours-only", "0.1.0")
+        )),
+    );
+    write_file(
+        &other,
+        &lockfile(&format!(
+            "{}\n{}",
+            package("alpha", "1.0.0"),
+            package("theirs-only", "0.2.0")
+        )),
+    );
+
+    let output = run_driver_with_extras(&base, &current, &other, &["Cargo.lock"]);
+
+    assert_eq!(output.status.code(), Some(0));
+    let merged = read_file(&current);
+    assert!(merged.contains("ours-only"), "{merged}");
+    assert!(merged.contains("theirs-only"), "{merged}");
+    assert!(!merged.contains("<<<<<<<"), "{merged}");
+    let _ = std::fs::remove_dir_all(dir);
+}
+
+/// Exit 129 — too few arguments to even know which file is `%A`. >128 is git's documented "the
+/// driver crashed" range: git abandons the merge instead of recording a conflict, so no `UU` path
+/// with unmarked `ours` can exist for a reflexive `git add` to commit. Exit 2 here would produce
+/// exactly that state, which is why exit 2 no longer exists.
+#[test]
+fn missing_arguments_abort_the_merge() {
     let output = match Command::new(driver_bin()).output() {
         Ok(output) => output,
         Err(err) => panic!("failed to run merge driver: {err}"),
     };
-    assert_eq!(output.status.code(), Some(2));
+    assert_eq!(
+        output.status.code(),
+        Some(129),
+        "an exit code <=128 would tell git 'conflict' while %A was never written"
+    );
+}
+
+/// Exit 129 — a panic. `std::env::args()` panics on an argument that is not valid Unicode, which
+/// makes this the one panic reachable from outside the process, and it lands in the only window
+/// that matters: before the conflict document has been written to `%A`. A bare panic exits 101,
+/// and 101 is <=128, so git would record an ordinary conflict over an untouched `%A` — the data
+/// loss again. The panic hook turns it into an abandoned merge instead.
+#[test]
+fn non_utf8_argument_aborts_the_merge() {
+    use std::ffi::OsStr;
+    use std::os::unix::ffi::OsStrExt;
+
+    let output = match Command::new(driver_bin())
+        .arg("base.lock")
+        .arg(OsStr::from_bytes(b"current-\xff\xfe.lock"))
+        .arg("other.lock")
+        .output()
+    {
+        Ok(output) => output,
+        Err(err) => panic!("failed to run merge driver: {err}"),
+    };
+
+    assert_eq!(
+        output.status.code(),
+        Some(129),
+        "a panic must abandon the merge; 101 would tell git 'conflict' over an untouched %A"
+    );
+}
+
+/// Exit 129 — `%A` is known but cannot be written (its directory does not exist). Same reasoning:
+/// the driver cannot make `%A` correct, so it must not let git believe a merge happened.
+#[test]
+fn unwritable_current_aborts_the_merge() {
+    let dir = unique_dir("unwritable-current");
+    let (base, other) = (dir.join("base.lock"), dir.join("other.lock"));
+    let current = dir.join("no-such-dir").join("current.lock");
+    write_file(&base, &lockfile(&package("serde", "1.0.0")));
+    write_file(&other, &lockfile(&package("serde", "1.0.2")));
+
+    let output = run_driver(&base, &current, &other);
+
+    assert_eq!(output.status.code(), Some(129));
+    let _ = std::fs::remove_dir_all(dir);
 }
 
 /// Exit 0 — disjoint additions still merge, and `%A` holds the merged result with no markers.

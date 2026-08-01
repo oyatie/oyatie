@@ -4,12 +4,12 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::error::Error;
 use std::fmt::{Display, Formatter};
 
+/// The two ways a lockfile merge can fail. Neither is an exit code: the binary writes every side
+/// under conflict markers for both, so `%A` is complete whichever one it was (see `main.rs`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MergeErrorKind {
     Parse,
     Conflict,
-    Io,
-    Usage,
 }
 
 const OURS_MARKER: &str = "<<<<<<< ours";
