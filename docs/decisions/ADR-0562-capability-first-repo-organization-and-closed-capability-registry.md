@@ -58,8 +58,12 @@ written layout authorities are in force and partially in tension:
 The tension the founder resolved: the current `{oya,cloud}/` split sorts the tree by **who runs or
 sells** a system (cloud = platform/tenant substrate; oya = product/domain) rather than by **what the
 system IS**. That is a runner/seller axis, not a capability axis. It scatters one capability across
-both roots (identity lives at `cloud/cloud-iam` AND `oya/identity` AND `oya/oya-identity` AND
-`oya/consent-graph` AND `oya/tenant-rbac` AND `oya/policy`), it has no hyperscaler source-tree
+both roots (identity lived at `cloud/cloud-iam` AND `oya/identity` AND `oya/oya-identity` AND
+`oya/consent-graph` AND `oya/tenant-rbac` AND `oya/policy` — PATH-ANCHOR: HISTORICAL, the scatter
+as measured at authoring on 2026-06-14. §10.22's crate-first move has since homed these crates into
+`iam/`; the other five dirs survive as non-crate doc/spec shells, while `oya/policy` was retired
+outright (§10.22 closeout) and is correctly dead. Do NOT relabel this list — it records the
+pre-reorg scatter that motivated the decision), it has no hyperscaler source-tree
 precedent (Google's tree is `//net //storage //compute`, not `//run //sell`), and it cannot encode
 the founder's own ports-designed-for-owned-stack litmus ("would this trait change at cutover?") —
 because the run-face and the sell-face of one engine end up in different roots instead of behind one
@@ -80,6 +84,33 @@ ADR-0245's facet rule. This ADR ratifies it, closes the capability set so the sh
 mechanically safe (an open set degrades into a junk-drawer), and folds in the resolved forks.
 
 ## Decision
+
+### §0 Path-anchor reading rule (how to read the backticked paths in this ADR)
+
+This ADR is simultaneously a **destination spec** and an **executed-move log**, so a majority of its
+backticked paths do not resolve against the live tree **by construction**. A dead anchor here is
+therefore not evidence of staleness. Every backticked path in this document is exactly one of:
+
+| Class | Meaning | Resolves today? | Repairable? |
+|---|---|---|---|
+| **LIVE** | a current path the reader can open | yes | yes — a dead LIVE anchor IS a defect |
+| **DESTINATION** | the northstar shape this ADR ratifies but the reorg has not reached: `base/`, `build/`, `app/<product>/`, `governance/capability-registry.json` | no, by design | **NO** — repairing it rewrites the northstar into the status quo |
+| **HISTORICAL** | the pre-reorg tree as measured at authoring (§Context), or the **source** side of an executed move in §10.4–§10.29 | no, by design — the move is what killed it | **NO** — see §10.27a |
+| **RELATIVE** | capability- or crate-relative shorthand (`core/accounting-app`, `facade/dev-cli`, `src/lib.rs`, `../../facade`) | not from the repo root | n/a — resolve against the enclosing capability |
+
+**Rule for any future dead-anchor detector.** Treat `docs/decisions/ADR-0562-*.md` as follows:
+lines **inside §10.4–§10.29** are an append-only move log whose source paths MUST be dead; skip
+them. Outside the move log, skip the four DESTINATION anchors named above and the §Context scatter
+list, both of which carry an inline `PATH-ANCHOR:` marker. Anything else that fails to resolve is a
+real finding. **§10.27a is the standing precedent: a path-rewriting pass that relabels this ADR's
+narrative prose to post-move paths makes the record assert something false and was REVERTED.**
+
+*Measured 2026-07-31, against the tree as it stood before this §0 annotation was added:* 175 dead
+repo-root anchors — **162 HISTORICAL inside the §10 move log**, 11
+DESTINATION (`base/`, `build/`), 1 HISTORICAL (`oya/policy`, §Context), 1 DESTINATION
+(`governance/capability-registry.json`). **Zero dead LIVE anchors**; every §10 *destination* path
+spot-checked resolves (e.g. `cell/core/routing/src/lib.rs`), which is the check that would have
+caught a false move record.
 
 ### §1 The shape
 
@@ -110,10 +141,20 @@ sells it. Tier-first (`substrate/ product/ service-cell/`) has no such precedent
 
 ### §2 The closed capability registry
 
-The canonical capability set is declared as data at **`specs/capability-registry.json`** (the
-eventual home is `governance/capability-registry.json` after the reorg; held at `specs/` until the
-`governance/` top-level dir exists, because creating a new top-level dir now would itself trip the
-§6 membership lint). The registry is a **closed** enum (like ADR-0280's `tier_subtype` enum and
+The canonical capability set is declared as data at **`specs/capability-registry.json`** (the live
+home; PATH-ANCHOR: LIVE). The eventual home is `governance/capability-registry.json` after the
+reorg (PATH-ANCHOR: DESTINATION — not yet created; do not "repair" it to the live path).
+
+*Precondition update (2026-07-31, mechanical re-check).* The clause originally read "held at
+`specs/` until the `governance/` top-level dir exists, because creating a new top-level dir now
+would itself trip the §6 membership lint." **That blocker no longer holds:** `governance/` exists
+as a top-level dir (`governance/corpus/`) and `governance` is already present in the membership
+policy's `allowed_top_level_dirs` + meta-directory sets
+(`ci/facade/module-membership/capability-membership-policy.json`). The registry file itself has NOT
+moved, so `specs/capability-registry.json` remains the live path every gate reads; the move is now
+unblocked but unexecuted, and is a strangler item, not a documentation fix.
+
+The registry is a **closed** enum (like ADR-0280's `tier_subtype` enum and
 ADR-0245's tier facet): a crate must map to one registered capability or the membership lint fails.
 
 The set is **coarse / Conway-aligned (founder ruling): one capability per two-pizza ownership
@@ -2668,7 +2709,8 @@ And the committed move-plan `specs/reorg/messaging-boundary-kernels-move-plan.js
 
 **The catalog rows are REQUIRED, not decorative, and this is the move's one non-mechanical obligation.** `catalog_liveness.workspace_member_globs` defaults to a fifteen-root list that includes `messaging/**` (`libs/oya-ci-config/src/lib.rs:1081`), so a live workspace member under `messaging/` must carry a `registry/catalog/<crate_id>.yaml` row or an explicit exemption; `libs/**` is NOT in that list, which is why these three crates needed no row at their old home and need one now. The violation code `catalog_live_crate_without_row` is dispositioned `frozen_empty: true`, so a missing row cannot be laundered into the accepted baseline by regeneration — it is a hard RED. Any future move INTO one of those fifteen roots inherits the same obligation, and it is invisible from the diff: the codemod relocates crates but does not author catalog rows. Like §10.27, this PR removes no prior spent plan: every committed plan on `dev` is already excluded by the codemod's `plan_is_landed` merge-base carve-out, so exactly ONE active move-plan (this one) remains and the single-active-plan invariant holds.
 
-**Codemod defect found and worked around, not absorbed.** The codemod's path-rewriting pass edited §10.27's HISTORICAL prose, rewriting "the crate's three dependents — `libs/oya-bus-boundary-kernel`, … — are NOT moved by this PR" into the post-move paths, which makes that sentence assert something false about what §10.27 did. Narrative ADR text is a record of a past state, not a live reference to be relabeled. The mechanical edit to §10.27 was REVERTED and this section appended instead; the defect (path rewriting must exclude ADR narrative bodies, or at minimum the `docs/decisions/` prose outside frontmatter and governed path lists) is filed as a follow-up.
+**§10.27a — Codemod defect found and worked around, not absorbed** (the standing precedent cited by
+§0's path-anchor reading rule)**.** The codemod's path-rewriting pass edited §10.27's HISTORICAL prose, rewriting "the crate's three dependents — `libs/oya-bus-boundary-kernel`, … — are NOT moved by this PR" into the post-move paths, which makes that sentence assert something false about what §10.27 did. Narrative ADR text is a record of a past state, not a live reference to be relabeled. The mechanical edit to §10.27 was REVERTED and this section appended instead; the defect (path rewriting must exclude ADR narrative bodies, or at minimum the `docs/decisions/` prose outside frontmatter and governed path lists) is filed as a follow-up.
 
 #### §10.29 De-brand strangler MOVE-3: the `os/` meta directory (cloud/cloud-os/crates → os/) — 41-crate single-block batch, the rung-1 node OS, zero catalog work in either direction
 
