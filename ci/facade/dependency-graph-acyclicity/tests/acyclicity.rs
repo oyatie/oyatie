@@ -34,11 +34,22 @@ fn load_live() -> (Value, Policy) {
     let policy = load_policy(&root, DEFAULT_POLICY_PATH).expect("read live policy");
     assert!(root.join(&policy.dag_path).is_file());
     assert!(root.join(&policy.schema_path).is_file());
+    assert!(root.join(&policy.capability_registry_path).is_file());
     let raw = serde_json::from_str(
         &std::fs::read_to_string(root.join(&policy.dag_path)).expect("read live graph"),
     )
     .expect("parse live graph JSON");
     (raw, policy)
+}
+
+fn capability_registry() -> Value {
+    let root = repo_root();
+    let policy = load_policy(&root, DEFAULT_POLICY_PATH).expect("read live policy");
+    serde_json::from_str(
+        &std::fs::read_to_string(root.join(policy.capability_registry_path))
+            .expect("read capability registry"),
+    )
+    .expect("parse capability registry")
 }
 
 fn fixture_cases() -> Value {
@@ -55,7 +66,7 @@ fn fixture_cases() -> Value {
 fn report(raw: &Value) -> Report {
     let dag = parse_dag(&serde_json::to_string(raw).expect("serialize graph"))
         .expect("structurally parse graph");
-    evaluate_with_raw(&dag, raw)
+    evaluate_with_raw(&dag, raw, &capability_registry())
 }
 
 fn graph_mut<'a>(raw: &'a mut Value, kind: &str) -> &'a mut Value {
@@ -65,6 +76,121 @@ fn graph_mut<'a>(raw: &'a mut Value, kind: &str) -> &'a mut Value {
         .iter_mut()
         .find(|graph| graph["kind"] == kind)
         .expect("graph kind")
+}
+
+fn apply_fixture_mutation(raw: &mut Value, mutation: &str) {
+    match mutation {
+        "none" => {}
+        "remove_graph_kind" => {
+            raw["graphs"].as_array_mut().unwrap().pop();
+        }
+        "append_unknown_graph_kind" => raw["graphs"].as_array_mut().unwrap().push(json!({
+            "kind": "sixth_graph", "edge_semantics": "invalid", "edges": []
+        })),
+        "duplicate_dependency_unit" => {
+            let first = raw["dependency_units"][0].clone();
+            raw["dependency_units"].as_array_mut().unwrap().push(first);
+        }
+        "remove_dependency_unit" => {
+            raw["dependency_units"].as_array_mut().unwrap().pop();
+        }
+        "append_twentieth_dependency_unit" => {
+            raw["dependency_units"].as_array_mut().unwrap().push(json!({
+                "id": "network.fixture-twentieth",
+                "capability": "network",
+                "runtime_face": "fixture-twentieth",
+                "plane": "B0",
+                "purpose": "executable mutation fixture"
+            }));
+        }
+        "unknown_capability" => {
+            raw["dependency_units"][0]["capability"] = json!("not-a-capability");
+        }
+        "remove_runtime_face" => {
+            raw["dependency_units"][0]
+                .as_object_mut()
+                .unwrap()
+                .remove("runtime_face");
+        }
+        "unknown_endpoint" => graph_mut(raw, "genesis")["edges"]
+            .as_array_mut()
+            .unwrap()
+            .push(json!({
+                "graph_kind": "genesis", "from": "unknown.face", "to": "cell.envelope"
+            })),
+        "cross_kind_contamination" => {
+            graph_mut(raw, "genesis")["edges"][0]["graph_kind"] =
+                json!("steady_state_request");
+        }
+        "graph3_self_loop" => graph_mut(raw, "steady_state_request")["edges"]
+            .as_array_mut()
+            .unwrap()
+            .push(json!({
+                "graph_kind": "steady_state_request", "from": "cell.envelope", "to": "cell.envelope",
+                "dependency_weight": 1.0, "cascade_rule": "FULL",
+                "version_compatibility_range": "^2.0", "cedar_permit_fragment": "fixture-self-loop"
+            })),
+        "graph3_cycle" => graph_mut(raw, "steady_state_request")["edges"]
+            .as_array_mut()
+            .unwrap()
+            .push(json!({
+                "graph_kind": "steady_state_request", "from": "cell.envelope", "to": "iam.local-verifier",
+                "dependency_weight": 1.0, "cascade_rule": "FULL",
+                "version_compatibility_range": "^2.0", "cedar_permit_fragment": "fixture-cycle"
+            })),
+        "remove_failure_impact_rule" => {
+            graph_mut(raw, "failure_brownout_propagation")["edges"][0]
+                .as_object_mut()
+                .unwrap()
+                .remove("impact_rule");
+        }
+        "remove_failure_closure_edge" => {
+            graph_mut(raw, "failure_brownout_propagation")["edges"]
+                .as_array_mut()
+                .unwrap()
+                .pop();
+        }
+        "change_failure_impact" => {
+            graph_mut(raw, "failure_brownout_propagation")["edges"][0]["impact_rule"] =
+                json!("INDEPENDENT");
+        }
+        "reverse_direction_outside_graph3" => graph_mut(raw, "genesis")["edges"]
+            .as_array_mut()
+            .unwrap()
+            .push(json!({
+                "graph_kind": "genesis", "from": "cell.genesis", "to": "network.bootstrap"
+            })),
+        "composition_sum" => {
+            graph_mut(raw, "failure_brownout_propagation")["composition"] = json!("sum");
+        }
+        "forward_closure_direction" => {
+            raw["failure_impact_composition"]["closure_direction"] =
+                json!("forward_transitive_closure");
+        }
+        "remove_doctrine_adrs" => {
+            raw.as_object_mut().unwrap().remove("doctrine_adrs");
+        }
+        "remove_path_rule" => {
+            raw["failure_impact_composition"]
+                .as_object_mut()
+                .unwrap()
+                .remove("path_rule");
+        }
+        "request_weight_wrong_type" => {
+            graph_mut(raw, "steady_state_request")["edges"][0]["dependency_weight"] =
+                json!("heavy");
+        }
+        "request_weight_out_of_range" => {
+            graph_mut(raw, "steady_state_request")["edges"][0]["dependency_weight"] = json!(1.1);
+        }
+        "remove_forbidden_reason" => {
+            graph_mut(raw, "steady_state_request")["forbidden_edges_assertion"][0]
+                .as_object_mut()
+                .unwrap()
+                .remove("reason");
+        }
+        other => panic!("unknown executable fixture mutation {other}"),
+    }
 }
 
 fn assert_red_code(raw: &Value, code: &str) {
@@ -83,9 +209,31 @@ fn assert_red_code(raw: &Value, code: &str) {
 #[test]
 fn live_policy_and_graph_v2_are_green() {
     let (raw, policy) = load_live();
+    let root = repo_root();
+    let schema: Value = serde_json::from_str(
+        &std::fs::read_to_string(root.join(&policy.schema_path)).expect("read live schema"),
+    )
+    .expect("parse live schema JSON");
+    let registry = capability_registry();
     assert_eq!(policy.gate_id, GATE_ID);
+    assert_eq!(
+        schema["$schema"],
+        "https://json-schema.org/draft/2020-12/schema"
+    );
+    assert_eq!(registry["closed"], true);
+    assert_eq!(registry["registry_kind"], "capability");
+    assert_eq!(registry["capabilities"].as_array().unwrap().len(), 24);
     assert_eq!(raw["version"], "2.0.0");
     assert_eq!(raw["schema"], "specs/substrate-dependency-dag.schema.json");
+    assert_eq!(raw["dependency_units"].as_array().unwrap().len(), 19);
+    assert!(
+        raw["dependency_units"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|unit| unit.get("runtime_face").is_some_and(Value::is_string))
+    );
+    assert_eq!(raw["external_anchors"].as_array().unwrap().len(), 1);
     let kinds: Vec<&str> = raw["graphs"]
         .as_array()
         .expect("graphs")
@@ -93,7 +241,9 @@ fn live_policy_and_graph_v2_are_green() {
         .map(|graph| graph["kind"].as_str().expect("kind"))
         .collect();
     assert_eq!(kinds, GRAPH_KINDS);
-    let evaluated = report(&raw);
+    let dag = parse_dag(&serde_json::to_string(&raw).expect("serialize graph"))
+        .expect("structurally parse graph");
+    let evaluated = evaluate_with_raw(&dag, &raw, &registry);
     assert_eq!(
         evaluated.verdict,
         Verdict::Green,
@@ -140,6 +290,37 @@ fn duplicate_unknown_and_cross_kind_edges_are_red() {
     graph_mut(&mut contaminated, "genesis")["edges"][0]["graph_kind"] =
         json!("steady_state_request");
     assert_red_code(&contaminated, "dag_cross_kind_edge");
+}
+
+#[test]
+fn dependency_unit_count_capabilities_and_runtime_faces_are_closed() {
+    let (mut eighteen, _) = load_live();
+    eighteen["dependency_units"].as_array_mut().unwrap().pop();
+    assert_red_code(&eighteen, "dag_dependency_unit_set");
+
+    let (mut twenty, _) = load_live();
+    twenty["dependency_units"]
+        .as_array_mut()
+        .unwrap()
+        .push(json!({
+            "id": "network.bootstrap",
+            "capability": "network",
+            "runtime_face": "bootstrap",
+            "plane": "B0",
+            "purpose": "fixture-only twentieth unit"
+        }));
+    assert_red_code(&twenty, "dag_dependency_unit_set");
+
+    let (mut unknown_capability, _) = load_live();
+    unknown_capability["dependency_units"][1]["capability"] = json!("not-a-capability");
+    assert_red_code(&unknown_capability, "dag_unknown_capability");
+
+    let (mut missing_runtime_face, _) = load_live();
+    missing_runtime_face["dependency_units"][1]
+        .as_object_mut()
+        .unwrap()
+        .remove("runtime_face");
+    assert_red_code(&missing_runtime_face, "dag_schema_violation");
 }
 
 #[test]
@@ -211,6 +392,64 @@ fn malformed_or_mismatched_failure_closure_is_red() {
 }
 
 #[test]
+fn composition_direction_and_required_schema_fields_are_red() {
+    let (mut sum, _) = load_live();
+    graph_mut(&mut sum, "failure_brownout_propagation")["composition"] = json!("sum");
+    assert_red_code(&sum, "dag_schema_violation");
+
+    let (mut forward, _) = load_live();
+    forward["failure_impact_composition"]["closure_direction"] =
+        json!("forward_transitive_closure");
+    assert_red_code(&forward, "dag_schema_violation");
+
+    let (mut missing_doctrine, _) = load_live();
+    missing_doctrine
+        .as_object_mut()
+        .unwrap()
+        .remove("doctrine_adrs");
+    assert_red_code(&missing_doctrine, "dag_schema_violation");
+
+    let (mut missing_path_rule, _) = load_live();
+    missing_path_rule["failure_impact_composition"]
+        .as_object_mut()
+        .unwrap()
+        .remove("path_rule");
+    assert_red_code(&missing_path_rule, "dag_schema_violation");
+}
+
+#[test]
+fn request_metadata_types_ranges_and_forbidden_assertions_are_red() {
+    for invalid_weight in [json!("heavy"), json!(-0.1), json!(1.1)] {
+        let (mut raw, _) = load_live();
+        graph_mut(&mut raw, "steady_state_request")["edges"][0]["dependency_weight"] =
+            invalid_weight;
+        assert_red_code(&raw, "dag_edge_malformed");
+    }
+
+    let (mut numeric_version, _) = load_live();
+    graph_mut(&mut numeric_version, "steady_state_request")["edges"][0]["version_compatibility_range"] =
+        json!(2);
+    assert_red_code(&numeric_version, "dag_edge_malformed");
+
+    let (mut empty_cedar, _) = load_live();
+    graph_mut(&mut empty_cedar, "steady_state_request")["edges"][0]["cedar_permit_fragment"] =
+        json!("");
+    assert_red_code(&empty_cedar, "dag_edge_malformed");
+
+    let (mut missing_reason, _) = load_live();
+    graph_mut(&mut missing_reason, "steady_state_request")["forbidden_edges_assertion"][0]
+        .as_object_mut()
+        .unwrap()
+        .remove("reason");
+    assert_red_code(&missing_reason, "dag_schema_violation");
+
+    let (mut numeric_reason, _) = load_live();
+    graph_mut(&mut numeric_reason, "steady_state_request")["forbidden_edges_assertion"][0]["reason"] =
+        json!(7);
+    assert_red_code(&numeric_reason, "dag_schema_violation");
+}
+
+#[test]
 fn failure_graph_is_the_exact_reverse_transitive_closure() {
     let (raw, _) = load_live();
     let evaluated = report(&raw);
@@ -225,29 +464,29 @@ fn failure_graph_is_the_exact_reverse_transitive_closure() {
 }
 
 #[test]
-fn fixture_corpus_covers_every_required_red_and_green_class() {
+fn fixture_corpus_executes_every_declared_mutation_and_expected_verdict() {
     let cases = fixture_cases();
-    let actual: Vec<&str> = cases["cases"]
-        .as_array()
-        .expect("fixture cases")
-        .iter()
-        .map(|case| case["id"].as_str().expect("fixture id"))
-        .collect();
-    assert_eq!(
-        actual,
-        [
-            "red-missing-kind",
-            "red-extra-kind",
-            "red-duplicate-unit",
-            "red-unknown-endpoint",
-            "red-cross-kind-contamination",
-            "red-graph3-self-loop",
-            "red-graph3-cycle",
-            "red-malformed-failure-edge",
-            "red-missing-failure-closure-edge",
-            "red-mismatched-failure-impact",
-            "green-reverse-direction-outside-graph3",
-            "green-exact-failure-closure",
-        ]
-    );
+    let cases = cases["cases"].as_array().expect("fixture cases");
+    assert!(!cases.is_empty(), "fixture corpus must not be decorative");
+    for case in cases {
+        let id = case["id"].as_str().expect("fixture id");
+        let mutation = case["mutation"].as_str().expect("fixture mutation");
+        let expected = case["expected"].as_str().expect("fixture expected");
+        let (mut raw, _) = load_live();
+        apply_fixture_mutation(&mut raw, mutation);
+        let evaluated = report(&raw);
+        if expected == "GREEN" {
+            assert_eq!(evaluated.verdict, Verdict::Green, "fixture {id}");
+        } else {
+            assert_eq!(evaluated.verdict, Verdict::Red, "fixture {id}");
+            assert!(
+                evaluated
+                    .findings
+                    .iter()
+                    .any(|finding| finding.code == expected),
+                "fixture {id}: expected {expected}, got {:?}",
+                evaluated.findings
+            );
+        }
+    }
 }

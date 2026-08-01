@@ -32,6 +32,11 @@ export_file(
 )
 
 export_file(
+    name = "capability-registry.json",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
     name = "root-hub-pointers.json",
     visibility = ["PUBLIC"],
 )
