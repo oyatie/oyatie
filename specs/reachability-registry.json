@@ -306,7 +306,7 @@
       "prefix": "specs/reset-eligibility.schema.json"
     },
     {
-      "anchor": "W0-D founder decision 2026-08-01: redacted, digest-bound reset observations; current verdict is ineligible and requires preservation migration.",
+      "anchor": "W0-D founder decision 2026-08-01: redacted, undigested/unverified reset discovery; current verdict is ineligible, represents preservation migration only, and provides no actuation authority.",
       "prefix": "registry/reset-eligibility/"
     },
     {

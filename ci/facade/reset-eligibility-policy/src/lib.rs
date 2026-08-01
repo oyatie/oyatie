@@ -24,14 +24,19 @@ impl Finding {
 }
 
 #[derive(Clone, Debug)]
+pub struct TrustedApprovalKey {
+    pub verifying_key: [u8; 32],
+    pub principal: String,
+    pub allowed_role: String,
+}
+
+#[derive(Clone, Debug)]
 pub struct RuntimeAuthority {
     pub protected_commit_sha: String,
     pub candidate_commit_sha: String,
     pub required_approval_roles: BTreeSet<String>,
-    pub trusted_approval_keys: BTreeMap<String, [u8; 32]>,
-    pub trusted_authorization_keys: BTreeMap<String, [u8; 32]>,
+    pub trusted_approval_keys: BTreeMap<String, TrustedApprovalKey>,
     pub evidence_by_source: BTreeMap<String, Vec<u8>>,
-    pub authorization_grant: Option<Value>,
 }
 
 impl RuntimeAuthority {
@@ -47,9 +52,7 @@ impl RuntimeAuthority {
                 .map(str::to_owned)
                 .collect(),
             trusted_approval_keys: BTreeMap::new(),
-            trusted_authorization_keys: BTreeMap::new(),
             evidence_by_source: BTreeMap::new(),
-            authorization_grant: None,
         }
     }
 }
@@ -91,7 +94,7 @@ pub fn evaluate_schema(policy: &Value, schema: &Value) -> BTreeSet<Finding> {
         findings.insert(Finding::new(
             "reset_policy_candidate_authority",
             "reset_authorization_enabled",
-            "repo policy must remain false; authorization is a separate protected runtime grant",
+            "repo policy must remain false; W0-D evaluates eligibility only and has no actuation authority",
         ));
     }
     if policy.get("max_validity_seconds").and_then(Value::as_i64) != Some(86_400) {
@@ -184,6 +187,7 @@ pub fn evaluate_schema(policy: &Value, schema: &Value) -> BTreeSet<Finding> {
     .into_iter()
     .collect();
     reject_unsupported_keywords(schema, "$", &supported, true, &mut findings);
+    validate_schema_keyword_shapes(schema, schema, "$", &mut findings);
     findings
 }
 
@@ -319,30 +323,15 @@ pub fn evaluate(
         evaluated_at_epoch,
         &mut findings,
     );
-    let grant_valid = validate_authorization_grant(
-        artifact,
-        runtime,
-        &rehashed_evidence_digest,
-        policy,
-        schema,
-        evaluated_at_epoch,
-        &mut findings,
-    );
-
     let forbidden = string_set(policy.get("forbidden_secret_keys"));
     scan_forbidden_keys(artifact, "$", &forbidden, &mut findings);
     let stale = manifest_verified
         && (captured.is_none_or(|c| evaluated_at_epoch < c)
             || expires.is_none_or(|e| evaluated_at_epoch >= e));
-    let computed_eligible = grant_valid
-        && approvals_complete
-        && manifest_verified
-        && !sources_incomplete
-        && !recovery_incomplete
-        && !hard_stops_present
-        && !unknowns_present
-        && !stale
-        && findings.is_empty();
+    // W0-D is intentionally dormant: it can prove prerequisites incomplete or complete,
+    // but cannot authorize destructive actuation. A future protected one-time actuation
+    // boundary must define operation/scope binding, a protected nonce, and atomic consumption.
+    let computed_eligible = false;
 
     let mut reasons = BTreeSet::new();
     if sources_incomplete {
@@ -360,17 +349,11 @@ pub fn evaluate(
     if !approvals_complete {
         reasons.insert("approvals-incomplete");
     }
-    if !grant_valid {
-        reasons.insert("authorization-disabled");
-    }
+    reasons.insert("authorization-disabled");
     if stale {
         reasons.insert("evidence-expired");
     }
-    let expected_mode = if computed_eligible {
-        "authorized-reset"
-    } else {
-        "preservation-migration"
-    };
+    let expected_mode = "preservation-migration";
     if artifact
         .pointer("/decision/eligible")
         .and_then(Value::as_bool)
@@ -407,6 +390,9 @@ fn validate_approval_receipts(
     findings: &mut BTreeSet<Finding>,
 ) -> bool {
     let mut approved = BTreeSet::new();
+    let mut principals = BTreeSet::new();
+    let mut key_ids = BTreeSet::new();
+    let mut public_keys = BTreeSet::new();
     for (index, receipt) in artifact
         .get("approvals")
         .and_then(Value::as_array)
@@ -422,48 +408,27 @@ fn validate_approval_receipts(
             .get("key_id")
             .and_then(Value::as_str)
             .unwrap_or_default();
-        let valid =
-            receipt_binding_valid(receipt, artifact, runtime, evidence, policy, schema, now)
-                && verify_receipt(receipt, runtime.trusted_approval_keys.get(key_id));
+        let trusted = runtime.trusted_approval_keys.get(key_id);
+        let identity_valid = trusted.is_some_and(|key| {
+            receipt.get("approver").and_then(Value::as_str) == Some(key.principal.as_str())
+                && role == key.allowed_role.as_str()
+        });
+        let cryptographically_valid = identity_valid
+            && receipt_binding_valid(receipt, artifact, runtime, evidence, policy, schema, now)
+            && verify_receipt(receipt, trusted.map(|key| &key.verifying_key));
+        let valid = cryptographically_valid
+            && trusted.is_some_and(|key| {
+                principals.insert(key.principal.as_str())
+                    && key_ids.insert(key_id)
+                    && public_keys.insert(key.verifying_key)
+            });
         if valid {
             approved.insert(role.to_owned());
         } else {
-            findings.insert(Finding::new("reset_approval_receipt_invalid", format!("approvals[{index}]"), "approval must be attributable, signed by a runtime-trusted key, and bound to reset/evidence/commits/policy/schema"));
+            findings.insert(Finding::new("reset_approval_receipt_invalid", format!("approvals[{index}]"), "approval must use a unique principal and key bound by runtime authority to exactly one allowed role, and its signature must bind reset/evidence/commits/policy/schema"));
         }
     }
     runtime.required_approval_roles.is_subset(&approved)
-}
-
-fn validate_authorization_grant(
-    artifact: &Value,
-    runtime: &RuntimeAuthority,
-    evidence: &str,
-    policy: &Value,
-    schema: &Value,
-    now: i64,
-    findings: &mut BTreeSet<Finding>,
-) -> bool {
-    let Some(grant) = runtime.authorization_grant.as_ref() else {
-        return false;
-    };
-    let key_id = grant
-        .get("key_id")
-        .and_then(Value::as_str)
-        .unwrap_or_default();
-    let valid = grant
-        .get("grant_id")
-        .and_then(Value::as_str)
-        .is_some_and(|v| !v.is_empty())
-        && receipt_binding_valid(grant, artifact, runtime, evidence, policy, schema, now)
-        && verify_receipt(grant, runtime.trusted_authorization_keys.get(key_id));
-    if !valid {
-        findings.insert(Finding::new(
-            "reset_authorization_grant_invalid",
-            "authorization_grant",
-            "separately controlled authorization grant is invalid",
-        ));
-    }
-    valid
 }
 
 fn receipt_binding_valid(
@@ -499,7 +464,6 @@ fn receipt_binding_valid(
 
 pub fn receipt_payload(receipt: &Value) -> Option<Vec<u8>> {
     let fields = [
-        "grant_id",
         "role",
         "approver",
         "reset_id",
@@ -722,6 +686,156 @@ fn reject_unsupported_keywords(
             _ => {}
         }
     }
+}
+
+fn validate_schema_keyword_shapes(
+    root: &Value,
+    schema: &Value,
+    path: &str,
+    findings: &mut BTreeSet<Finding>,
+) {
+    let Some(object) = schema.as_object() else {
+        findings.insert(Finding::new(
+            "reset_schema_keyword_shape",
+            path,
+            "every schema node must be an object",
+        ));
+        return;
+    };
+    for key in ["$schema", "$id", "title", "description"] {
+        if object.contains_key(key) && object.get(key).and_then(Value::as_str).is_none() {
+            schema_keyword_error(findings, path, key, "must be a string");
+        }
+    }
+    if let Some(kind) = object.get("type")
+        && !kind.as_str().is_some_and(|kind| {
+            matches!(kind, "object" | "array" | "string" | "boolean" | "integer")
+        })
+    {
+        schema_keyword_error(findings, path, "type", "must be one supported type string");
+    }
+    if let Some(required) = object.get("required") {
+        let valid = required.as_array().is_some_and(|items| {
+            let names = items
+                .iter()
+                .filter_map(Value::as_str)
+                .collect::<BTreeSet<_>>();
+            names.len() == items.len()
+        });
+        if !valid {
+            schema_keyword_error(
+                findings,
+                path,
+                "required",
+                "must be an array of unique strings",
+            );
+        }
+    }
+    if let Some(reference) = object.get("$ref") {
+        let valid = reference
+            .as_str()
+            .and_then(|value| value.strip_prefix('#'))
+            .and_then(|pointer| root.pointer(pointer))
+            .is_some();
+        if !valid {
+            schema_keyword_error(
+                findings,
+                path,
+                "$ref",
+                "must be a resolvable local JSON pointer string",
+            );
+        }
+    }
+    if let Some(value) = object.get("additionalProperties")
+        && value.as_bool().is_none()
+    {
+        schema_keyword_error(findings, path, "additionalProperties", "must be boolean");
+    }
+    if let Some(value) = object.get("format")
+        && value.as_str() != Some("date-time")
+    {
+        schema_keyword_error(findings, path, "format", "only date-time is supported");
+    }
+    if let Some(value) = object.get("enum") {
+        let valid = value.as_array().is_some_and(|items| {
+            !items.is_empty()
+                && !items
+                    .iter()
+                    .enumerate()
+                    .any(|(index, item)| items[..index].contains(item))
+        });
+        if !valid {
+            schema_keyword_error(
+                findings,
+                path,
+                "enum",
+                "must be a non-empty array of unique JSON values",
+            );
+        }
+    }
+    if let Some(value) = object.get("items")
+        && !value.is_object()
+    {
+        schema_keyword_error(findings, path, "items", "must be a schema object");
+    }
+    for key in ["minItems", "minLength"] {
+        if object.contains_key(key) && object.get(key).and_then(Value::as_u64).is_none() {
+            schema_keyword_error(findings, path, key, "must be a non-negative integer");
+        }
+    }
+    if object.contains_key("uniqueItems")
+        && object.get("uniqueItems").and_then(Value::as_bool).is_none()
+    {
+        schema_keyword_error(findings, path, "uniqueItems", "must be boolean");
+    }
+    if let Some(pattern) = object.get("pattern") {
+        let supported = matches!(
+            pattern.as_str(),
+            Some(
+                "^[0-9a-f]{40}$"
+                    | "^sha256:[0-9a-f]{64}$"
+                    | "^[0-9a-f]{128}$"
+                    | "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+            )
+        );
+        if !supported {
+            schema_keyword_error(
+                findings,
+                path,
+                "pattern",
+                "must be one explicitly implemented pattern",
+            );
+        }
+    }
+    for container in ["properties", "$defs"] {
+        if let Some(children) = object.get(container) {
+            let Some(children) = children.as_object() else {
+                schema_keyword_error(findings, path, container, "must be an object of schemas");
+                continue;
+            };
+            for (name, child) in children {
+                validate_schema_keyword_shapes(
+                    root,
+                    child,
+                    &format!("{path}.{container}.{name}"),
+                    findings,
+                );
+            }
+        }
+    }
+    if let Some(items) = object.get("items")
+        && items.is_object()
+    {
+        validate_schema_keyword_shapes(root, items, &format!("{path}.items"), findings);
+    }
+}
+
+fn schema_keyword_error(findings: &mut BTreeSet<Finding>, path: &str, keyword: &str, detail: &str) {
+    findings.insert(Finding::new(
+        "reset_schema_keyword_shape",
+        format!("{path}.{keyword}"),
+        detail,
+    ));
 }
 
 fn string_set(value: Option<&Value>) -> BTreeSet<&str> {

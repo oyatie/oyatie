@@ -20,5 +20,5 @@
     "credential_value",
     "recovery_key"
   ],
-  "authority_boundary": "candidate-policy-is-discovery-only; positive authorization requires protected runtime commit identities, evidence bytes, trusted approval keys, and a separately signed grant"
+  "authority_boundary": "eligibility-only-dormant; no reset actuation path, authorization grant, authorization key set, replayable capability, or live positive decision exists in W0-D; future actuation requires a separately reviewed protected one-time operation/scope binding with nonce issuance and atomic consumption"
 }
