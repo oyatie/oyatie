@@ -15,6 +15,10 @@ use crate::network::{
     RouteMergeController,
 };
 use crate::runtime::ControllerRuntime;
+use os_kernel::Result as CoreResult;
+use os_network_domain::LinkStatus;
+
+type LinkStatusSource = Box<dyn FnMut() -> CoreResult<Vec<LinkStatus>>>;
 
 /// The controller domains this crate provides, used to select what to register.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -102,6 +106,7 @@ impl Domain {
 pub struct RegistryBuilder<W: KernelWriter + 'static> {
     domains: Vec<Domain>,
     kernel: Option<W>,
+    link_status_source: Option<LinkStatusSource>,
 }
 
 impl<W: KernelWriter + 'static> RegistryBuilder<W> {
@@ -110,7 +115,20 @@ impl<W: KernelWriter + 'static> RegistryBuilder<W> {
         RegistryBuilder {
             domains: Vec::new(),
             kernel: Some(kernel),
+            link_status_source: None,
         }
+    }
+
+    /// Replace the platform link-status source with an injected snapshot provider.
+    ///
+    /// Runtime assembly uses the live source by default. Tests and simulations should inject a
+    /// deterministic provider so their result never depends on the host network namespace.
+    pub fn with_link_status_source(
+        mut self,
+        source: impl FnMut() -> CoreResult<Vec<LinkStatus>> + 'static,
+    ) -> Self {
+        self.link_status_source = Some(Box::new(source));
+        self
     }
 
     /// Add a domain to register (idempotent on duplicates).
@@ -141,7 +159,11 @@ impl<W: KernelWriter + 'static> RegistryBuilder<W> {
                 Domain::ConfigAcquire => rt.register(Box::new(ConfigAcquireController::new())),
                 Domain::ConfigCluster => rt.register(Box::new(ClusterConfigController::new())),
                 Domain::NetworkLinkStatusSource => {
-                    rt.register(Box::new(LinkStatusSourceController::new()));
+                    let controller = match self.link_status_source.take() {
+                        Some(source) => LinkStatusSourceController::new_with_source(source),
+                        None => LinkStatusSourceController::new(),
+                    };
+                    rt.register(Box::new(controller));
                 }
                 Domain::NetworkOperatorConfig => {
                     rt.register(Box::new(OperatorConfigController::new()));
@@ -328,7 +350,10 @@ mod tests {
             hostname: None,
             search_domains: Vec::new(),
         };
-        let mut rt = RegistryBuilder::in_memory().all_domains().build();
+        let mut rt = RegistryBuilder::in_memory()
+            .with_link_status_source(|| Ok(Vec::new()))
+            .all_domains()
+            .build();
         rt.state_mut()
             .create(Box::new(StageReport::new(
                 MachineStage::Running,
