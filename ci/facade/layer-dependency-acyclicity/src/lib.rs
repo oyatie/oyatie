@@ -534,6 +534,15 @@ fn registry_facts(registry: &Value) -> (Vec<String>, Vec<String>) {
 /// no single defensible tier, and silently picking one would re-introduce the very
 /// under-enforcement this gate exists to catch, with a plausible-looking number attached. `None`
 /// (no absorbed service is tier'd, or they disagree) surfaces as TDA-CAPABILITY-TIER-UNRESOLVED.
+///
+/// One asymmetry, deliberate: classes must agree, but a stratum present on some absorbed services
+/// and absent on others resolves to the single present rank rather than to `None`. That direction
+/// is safe — an assigned rank can only ADD R4 findings (an unranked endpoint is skipped by the
+/// `(Some, Some)` match arm entirely), never remove one, so it cannot produce a false green. It is
+/// also not currently reachable: `substrate_requires_dag_position` is born-blocking in the sibling
+/// tier-field-coverage gate, so a tier'd substrate without a stratum does not survive CI. Verified
+/// on the live tree — of the 24 registered capabilities only `marketplace` mixes, and it is already
+/// excluded one step earlier by the CLASS check (substrate + product).
 fn capability_tier(
     registry: &Value,
     capability: &str,
