@@ -43,15 +43,18 @@ stopped protecting runtime requests.
 
 ## Decision
 
-### D1 — `dependency_units` are face-qualified
+### D1 — `dependency_units` are `runtime_face`-qualified
 
-`specs/substrate-dependency-dag.json` v2 declares closed `dependency_units`. A unit id combines a
-capability and a plane-specific face, for example `cell.envelope`, `cell.lifecycle.cp`,
-`iam.local-verifier`, or `policy.authoring.cp`. Every unit declares its capability, face, and one
-of the planes `E0`, `B0`, `C0`, `C1`, `C2`, `G`, or `R`.
+`specs/substrate-dependency-dag.json` v2 declares exactly 19 unique, closed `dependency_units`. A
+unit id combines a canonical capability and its founder-locked `runtime_face`, for example
+`cell.envelope`, `cell.lifecycle.cp`, `iam.local-verifier`, or `policy.authoring.cp`. Every unit
+declares a capability from the closed 24-capability registry, its `runtime_face`, and one of the
+internal planes `B0`, `C0`, `C1`, `C2`, `G`, or `R`.
 
 A unit is a topology endpoint, not a new capability and not a repository module. The closed
-24-capability membership from ADR-0562/0615 is unchanged.
+24-capability membership from ADR-0562/0615 is unchanged. E0 integrity and genesis roots are
+declared separately as `external_anchors`; they are valid topology endpoints but are not falsely
+classified as capabilities or counted among the 19 dependency units.
 
 ### D2 — exactly five graph kinds
 
@@ -99,10 +102,12 @@ links attenuate a path, but an alternative stronger path still governs impact.
 
 `specs/substrate-dependency-dag.schema.json` is a Draft 2020-12 closed schema. The existing
 `dependency-graph-acyclicity` Buck targets keep their names and now reject missing/extra graph kinds,
-duplicate or unknown units, unknown endpoints, cross-kind contamination, graph-3 self-loops and
-cycles, malformed failure edges, and any missing, extra, or incorrectly composed failure closure
-edge. Fixture-driven tests prove those RED classes and prove reverse directions outside graph 3 plus
-the exact closure remain GREEN.
+18/20-unit drift, duplicate or unknown units, unknown capabilities or endpoints, missing
+`runtime_face`, cross-kind contamination, graph-3 self-loops and cycles, malformed request or
+failure metadata, and any missing, extra, forward, or incorrectly composed failure closure edge.
+The gate declares the graph, schema, and capability registry as Buck resources. Executable
+fixture-driven tests prove those RED classes and prove reverse directions outside graph 3 plus the
+exact closure remain GREEN.
 
 ### D6 — mandatory follow-ups, no new baselines
 

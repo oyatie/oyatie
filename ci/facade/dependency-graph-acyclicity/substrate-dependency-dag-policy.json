@@ -1,6 +1,7 @@
 {
-  "_comment": "cloud-ci face-aware substrate graph-v2 policy. Rust is a neutral validator; repo adoption paths are data.",
+  "_comment": "cloud-ci runtime-face-aware substrate graph-v2 policy. Rust is a neutral validator; repo adoption paths are data.",
   "gate_id": "cloud-ci-substrate-dependency-dag-acyclicity",
   "dag_path": "specs/substrate-dependency-dag.json",
-  "schema_path": "specs/substrate-dependency-dag.schema.json"
+  "schema_path": "specs/substrate-dependency-dag.schema.json",
+  "capability_registry_path": "specs/capability-registry.json"
 }
