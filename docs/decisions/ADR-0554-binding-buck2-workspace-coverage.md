@@ -483,8 +483,8 @@ same-repository reusable workflows, and fails closed on unproven external job-le
 requires portable slash-form `./...` local-action references and fails closed on backslash-bearing
 references whose filesystem meaning differs by runner host. It
 normalizes scalar/block/list paths and rejects `buck-out`, its descendants, and lexical
-whole-root/glob archives. Dynamic expressions that control the first path component fail closed unless
-the expression is the statically recognizable `github.workspace` prefix with an analyzable suffix.
+whole-root/glob archives. Dynamic expressions fail closed unless the sole expression is the statically
+recognizable `github.workspace` prefix and the remaining suffix is entirely analyzable.
 Unproven absolute cache paths also fail closed on Unix and Windows. Tilde-expanded paths fail closed
 except for the proven-safe rustup toolchain and update-hash roots; in particular, `~/_work/**` cannot
 alias the owned runner checkout. Required CI must otherwise use relative paths or the analyzable

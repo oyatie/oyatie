@@ -221,6 +221,12 @@ fn cache_path_candidate_archives_checkout(candidate: &str) -> Result<bool, Strin
         relative = stripped;
     }
 
+    if relative.contains("${{") || relative.contains("}}") {
+        return Err(format!(
+            "unresolved dynamic expression controls the cache path: {candidate:?}"
+        ));
+    }
+
     if relative.is_empty() || relative == "." {
         return Ok(true);
     }
@@ -229,11 +235,6 @@ fn cache_path_candidate_archives_checkout(candidate: &str) -> Result<bool, Strin
         .split('/')
         .find(|component| !component.is_empty() && *component != ".")
         .unwrap_or(relative);
-    if first_component.contains("${{") || first_component.contains("}}") {
-        return Err(format!(
-            "dynamic expression controls the first cache-path component: {candidate:?}"
-        ));
-    }
     glob_segment_matches(first_component, "buck-out")
 }
 
@@ -987,6 +988,8 @@ fn buck_out_archive_guard_rejects_yaml_path_variants_and_renamed_steps() {
         "path: \"${{ 'buck-out' }}\"",
         "path: \"${{ format('buck-{0}', 'out') }}\"",
         "path: '${{ github.workspace }}/${{ inputs.cache_path }}'",
+        "path: 'safe/${{ inputs.cache_path }}'",
+        "path: '${{ github.workspace }}/safe/${{ inputs.cache_path }}'",
         "path: '${{ github.workspace }}suffix'",
         "path: '!${{ inputs.cache_path }}'",
         "path: /home/runner/_work/oyatie/oyatie/buck-out",
