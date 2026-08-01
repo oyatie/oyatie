@@ -7,9 +7,7 @@
 - Tags: substrate, documentation, developer-experience, marketing
 - Supersedes: none
 - Superseded by: none
-- Related: ADR-0157 (API gateway), ADR-0167 (tenant CLI), ADR-0173 (vendor lock-in avoidance),
-  ADR-0176 (brownout signal), ADR-0182 (gateway/mesh separation), ADR-0258 (API versioning model),
-  ADR-0393 (Leptos canonical app shell), ADR-0394 (first-party Rust developer portal)
+- Related: ADR-0157 (API gateway), ADR-0167 (tenant CLI), ADR-0173 (vendor lock-in avoidance), ADR-0176 (brownout signal), ADR-0182 (gateway/mesh separation), ADR-0258 (API versioning model), ADR-0393 (Leptos canonical app shell), ADR-0394 (first-party Rust developer portal)
 
 ## Context
 
