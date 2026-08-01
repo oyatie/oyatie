@@ -536,73 +536,13 @@ jobs:
           set -euo pipefail
           rustup toolchain install
           rustc --version
-      # Restore buck-out across runs so ephemeral runners start warm (design §3.1 / ADR-0515 D4).
-      #
-      # WHAT IS WARMED, PRECISELY (ADR-0554 D9, round-5): 100% of buck2 cross-run warmth lives in
-      # ./buck-out — buck-out/v2/cache/{materializer_state,incremental_state}/db.sqlite plus
-      # buck-out/v2/art (the materialized action outputs). buck-out is PATH-RELOCATABLE (relative
-      # paths + --remap-cwd-prefix=., no absolute project root baked in; a restored hit is keyed
-      # only on buck2_revision + os + arch), so restoring it into any runner checkout is sound.
-      # ~/.buck2 and ~/.buck hold ONLY daemon pid/endpoint/log scratch — ZERO action results — so
-      # caching `path: buck-out` warms everything cacheable and ~/.buck2/~/.buck is DELIBERATELY
-      # NOT cached (caching daemon scratch warms nothing; do not copy-paste global-state caching).
-      #
-      # SAVE/RESTORE SPLIT (ADR-0554 D9; specs/cache-warmth-policy.json postmerge-dev-trunk = sole
-      # writer, presubmit-trusted-affected-cone = reader). dev-push is the SOLE canonical writer via
-      # the gate-affected-target-set job's SAVE step (see below): that job builds the FULL //... graph on
-      # push, so the saved buck-out is the full-graph superset. This buck2 job is READ-ONLY on every
-      # trigger — it restores the full-graph buck-out and its //ci/... build is a subset
-      # hit. PRs never write, eliminating the per-commit multi-GB write-churn/eviction (the
-      # Bazel/Google post-merge-fills-the-cache pattern).
-      #
-      # Cache key is STABLE per dependency/toolchain-set (.buckconfig + toolchains/BUCK +
-      # Cargo.lock + rust-toolchain.toml),
-      # NOT per-commit. The previous `-${{ github.sha }}` suffix made the primary key unique
-      # every commit, so actions/cache SAVED a fresh full buck-out (multi-GB) on EVERY run and
-      # never hit the primary key — bloating the 10GB repo cache into constant LRU eviction and
-      # exhausting ephemeral-runner disk at the save step (the "No space left on device" failure,
-      # FRIC-017). A stable key saves once per dependency-set and restores it exactly: deterministic
-      # warm start, no per-commit bloat. Changed crates still rebuild (buck2 is content-addressed,
-      # so a restored hit is bit-identical to a cold build); only a Cargo.lock/toolchain/.buckconfig
-      # or Rust channel change mints a new entry. The restore prefix is scoped by
-      # rust-toolchain.toml so a Rust-version bump never reuses old rlibs into the new compiler.
-      # Interim warm-by-default until the shared content-addressed
-      # remote cache (NativeLink/CAS, ADR-0560, HANDOFF W3) lands with a cold-canary integrity job
-      # proving cold==warm. See friction-ledger buck2-no-shared-cache.
-      # Reclaim preinstalled ubuntu-latest bloat (.NET/Android/GHC/CodeQL/preloaded Docker images:
-      # ~25-30 GiB) BEFORE the multi-GB buck-out restore. This lane decompresses a ~5.78 GiB buck-out
-      # blob (~12-15 GiB on disk) on top of a fetch-depth:0 monorepo checkout, exhausting the ~14 GiB
-      # free on / on GitHub-hosted ubuntu-latest; FRIC-017 recurred on PR #741 (No space left on device
-      # at this restore, before any build ran). Hermetic: removes only vendor preinstall dirs that no
-      # oya/buck2 action consumes; touches NO repo content and NO cache (buck-out / ~/.rustup / the
-      # restored blob untouched), so the cold==warm integrity canary (ADR-0556/0560) is unaffected. df
-      # is emitted so a genuine disk-NEED growth surfaces as a true RED instead of being masked.
-      - name: Reclaim runner disk before warm restore (FRIC-017 preflight)
-        # Rust-first, data-driven preflight (ADR-0548 pipeline-as-product): retires the two
-        # duplicated inline `sudo rm -rf` blocks. The policy (reclaim_dirs + min_free_gib_after)
-        # lives in runner-disk-reclaim-policy.json; the bin best-effort removes the profile's
-        # vendor preinstall dirs and logs structured disk-before/after plus a JSON operator
-        # artifact. Policy is explicit fail-closed: threshold-miss exits INFRA-RED unless a future
-        # caller supplies a typed fail-open waiver, so the required context cannot silently green on
-        # insufficient runner capacity. Built as the runner user (buck2 on user PATH; daemon must
-        # not run as root); only the prebuilt binary is sudo'd (needs root for root-owned dirs).
-        run: |
-          # Build as the runner user (buck2 on user PATH; never run buck2 daemon as root —
-          # that corrupts cache/daemon ownership). Then sudo ONLY the prebuilt binary (needs
-          # root solely to remove the root-owned vendor preinstall dirs).
-          BIN="$(buck2 build //ci/facade/runner-disk-reclaim:oya-cloud-ci-runner-disk-reclaim-bin --show-output 2>/dev/null | awk '{print $2}')"
-          sudo -E "$BIN" \
-            --profile oya-owned-arc-pod \
-            --infra-red-policy fail-closed \
-            --artifact-out "${RUNNER_TEMP}/runner-disk-reclaim-buck2.json"
-      - name: Restore buck-out (read-only; dev-push is the sole writer)
-        # actions/cache/restore@v5.0.5 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
-        with:
-          path: buck-out
-          key: buck-out-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('rust-toolchain.toml') }}-${{ hashFiles('.buckconfig', 'toolchains/BUCK', 'Cargo.lock') }}
-          restore-keys: |
-            buck-out-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('rust-toolchain.toml') }}-
+      # Buck2 runner state is deliberately cold and ephemeral (ADR-0554 D10). The 2026-08-01
+      # incident proved a 6.37 GB whole-tree actions/cache archive can cross the owned node's
+      # ephemeral-storage eviction threshold while extracting, before any binding test executes.
+      # Never archive or restore `buck-out`, including `buck-out/v2/cache`: Buck2's materializer
+      # state and local incremental state are coupled to its on-disk outputs. A future warm path
+      # must use the separately licensed Buck2-aware remote action cache + CAS; until then this
+      # lane builds from an empty runner-local `buck-out`.
       # Generated-face materialization — the SINGLE out-of-graph git boundary. Re-run the emitter
       # and producer against the checked-out candidate tree, then let buck2 consume those files as
       # declared inputs. We deliberately do NOT byte-compare against committed JSON here: that was
@@ -697,8 +637,7 @@ jobs:
   gate-affected-target-set:
     name: "gate · affected-set (ADR-0554, binding workspace coverage)"
     # NO `needs: producer-regen`: this lane materializes its own faces (see the out-of-graph
-    # boundary step below). Keeping the barrier also made the buck-out cache writer collateral
-    # damage of any producer failure.
+    # boundary step below), so a producer failure cannot suppress this independent binding verdict.
     runs-on: oya-arm64
     # SAFETY RAIL (ADR-0554 D7; re-derived round-6): bound the full-workspace rebuild so a
     # runaway/exhaustion (a wedged buck2 action, a non-terminating compile) cannot burn the runner
@@ -728,10 +667,8 @@ jobs:
       # (`--repo-root . --github-event`) and overwrites every downloaded face. The EVENT_* tuple
       # `--github-event` consumes is WORKFLOW-level env (line 59), in scope for every job.
       #
-      # Removing the barrier matters most HERE: this lane is the SOLE writer of the buck-out cache
-      # ("Save buck-out (dev-push only; sole canonical full-graph writer)" below). Behind
-      # `needs: producer-regen` a producer failure SKIPPED this job, so on the push-to-dev event
-      # nothing ever populated the cache and every subsequent run measured 0% hits.
+      # Removing the barrier keeps this binding workspace verdict independent: a producer failure
+      # cannot skip the full admission build/test that diagnoses the candidate on its own merits.
       - name: Install buck2 (digest-pinned prebuilt release)
         run: infra/ci/install-buck2.sh
       # Warm the pinned toolchain across runs (ADR-0556 D5 QW-4); rustup still resolves and
@@ -768,45 +705,10 @@ jobs:
           # The affected-set runner and its direct merge-base baseline command below both forward
           # this pinned RUSTUP_HOME through Buck2's deliberately narrow test-executor environment.
           rustc --version && (cd "$(mktemp -d)" && cargo --version)
-      # Restore buck-out read-only (ADR-0554 D9). Same stable per-dependency/toolchain-set key as the buck2
-      # lane: warmth is 100% in buck-out/v2/cache + buck-out/v2/art (path-relocatable); ~/.buck2
-      # and ~/.buck are daemon pid/endpoint/log scratch and are deliberately NOT cached. dev-push
-      # is the sole writer (the save step below is push-to-dev-gated), so PR runs read only — no
-      # per-commit multi-GB write-churn/eviction (see the buck2-lane rationale above).
-      # Reclaim preinstalled ubuntu-latest bloat (.NET/Android/GHC/CodeQL/preloaded Docker images:
-      # ~25-30 GiB) BEFORE the multi-GB buck-out restore. This lane decompresses a ~5.78 GiB buck-out
-      # blob (~12-15 GiB on disk) on top of a fetch-depth:0 monorepo checkout, exhausting the ~14 GiB
-      # free on / on GitHub-hosted ubuntu-latest; FRIC-017 recurred on PR #741 (No space left on device
-      # at this restore, before any build ran). Hermetic: removes only vendor preinstall dirs that no
-      # oya/buck2 action consumes; touches NO repo content and NO cache (buck-out / ~/.rustup / the
-      # restored blob untouched), so the cold==warm integrity canary (ADR-0556/0560) is unaffected. df
-      # is emitted so a genuine disk-NEED growth surfaces as a true RED instead of being masked.
-      - name: Reclaim runner disk before warm restore (FRIC-017 preflight)
-        # Rust-first, data-driven preflight (ADR-0548 pipeline-as-product): retires the two
-        # duplicated inline `sudo rm -rf` blocks. The policy (reclaim_dirs + min_free_gib_after)
-        # lives in runner-disk-reclaim-policy.json; the bin best-effort removes the profile's
-        # vendor preinstall dirs and logs structured disk-before/after plus a JSON operator
-        # artifact. Policy is explicit fail-closed: threshold-miss exits INFRA-RED unless a future
-        # caller supplies a typed fail-open waiver, so the required context cannot silently green on
-        # insufficient runner capacity. Built as the runner user (buck2 on user PATH; daemon must
-        # not run as root); only the prebuilt binary is sudo'd (needs root for root-owned dirs).
-        run: |
-          # Build as the runner user (buck2 on user PATH; never run buck2 daemon as root —
-          # that corrupts cache/daemon ownership). Then sudo ONLY the prebuilt binary (needs
-          # root solely to remove the root-owned vendor preinstall dirs).
-          BIN="$(buck2 build //ci/facade/runner-disk-reclaim:oya-cloud-ci-runner-disk-reclaim-bin --show-output 2>/dev/null | awk '{print $2}')"
-          sudo -E "$BIN" \
-            --profile oya-owned-arc-pod \
-            --infra-red-policy fail-closed \
-            --artifact-out "${RUNNER_TEMP}/runner-disk-reclaim-affected-set.json"
-      - name: Restore buck-out (read-only; dev-push is the sole writer)
-        # actions/cache/restore@v5.0.5 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
-        with:
-          path: buck-out
-          key: buck-out-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('rust-toolchain.toml') }}-${{ hashFiles('.buckconfig', 'toolchains/BUCK', 'Cargo.lock') }}
-          restore-keys: |
-            buck-out-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('rust-toolchain.toml') }}-
+      # This lane also starts from an empty runner-local `buck-out` (ADR-0554 D10). It performs
+      # the merge-base baseline first and reuses only the Buck2 state created within this job; no
+      # cross-run filesystem snapshot is restored. A future warm path must be Buck2-aware remote
+      # action-cache + CAS, gated by the existing separate license and cold canary.
       # KEEPS materializing (not converted to ADR-0556 D5 QW-1 artifact reuse): same rationale
       # as the buck2 lane — the cone's gate tests consume the per-job merge-base frozen
       # baseline (ADR-0551), and this lane's own build-health baseline below is per-job by
@@ -840,13 +742,14 @@ jobs:
           # rather than re-fetching it — a future fetch-depth change then fails loudly
           # right here instead of yielding a silently wrong merge-base downstream.
           git rev-parse --verify "refs/remotes/origin/${BASE_REF}" >/dev/null 2>&1 || { echo "refs/remotes/origin/${BASE_REF} missing — this job's checkout must keep fetch-depth: 0"; exit 1; }
-      # ── BUILD-HEALTH BASELINE (ADR-0554 D9 same-root build, round-5; ADR-0551 merge-base frozen
+      # ── BUILD-HEALTH BASELINE (ADR-0554 D9/D10 same-root build; ADR-0551 merge-base frozen
       #    pattern). On a pull_request, derive the affected-set plan FIRST. Most PRs stay in the
       #    affected cone and do not need a merge-base full-workspace build at all; only a derived
       #    FULL decision needs the MERGE-BASE build-health baseline used by the ratchet. When FULL
-      #    is required, materialize that baseline IN THE MAIN ROOT so it shares the warm ./buck-out
-      #    restored above (the merge-base IS a dev commit, so the dev-keyed buck-out is near-fully
-      #    warm for it). We detach the SAME working tree to the merge-base COMMITTED tree-ish (the
+      #    is required, materialize that baseline IN THE MAIN ROOT. D10 removed cross-run filesystem
+      #    snapshots, so this job starts cold; keeping both tree states in one root still lets the
+      #    candidate reuse safe Buck2 state produced by its own merge-base pass. We detach the SAME
+      #    working tree to the merge-base COMMITTED tree-ish (the
       #    candidate working tree is removed from disk for the build), run the full keep-going
       #    build, capture per-target pass/fail, then a TRAP restores the candidate on EXIT. The
       #    affected-set FULL tier grandfathers targets already failing at the merge-base and blocks
@@ -856,11 +759,9 @@ jobs:
       #    ANTI-LAUNDERING (ADR-0554 D6, preserved): the baseline failure-set comes ENTIRELY from
       #    the merge-base COMMITTED tree (git object history — candidate-uncontrollable); during the
       #    baseline build the candidate working tree is GONE from disk, so it cannot feed the
-      #    baseline; the report reaches the verdict ONLY via --baseline-report. The warm ./buck-out
-      #    is a content-addressed substrate — a buck2 hit is bit-identical to a cold build (ADR-0556
-      #    D1/D2) — so warmth changes only wall-clock, never the baseline SOURCE. Warm-eligible
-      #    under ADR-0556 with no policy change (trusted-author, content-addressed; not the
-      #    integrity-canary/release cold floor). GH #899 activates the trusted D8 consumer first:
+      #    baseline; the report reaches the verdict ONLY via --baseline-report. Job-local Buck2 state
+      #    can change only wall-clock, never the baseline SOURCE; no cross-run `buck-out` bytes enter
+      #    this job (ADR-0554 D10). GH #899 activates the trusted D8 consumer first:
       #    use an exact push-to-dev baseline artifact when provenance and schema validate, else
       #    fail closed to the same in-job merge-base rebuild below.
       - name: Materialize merge-base build + test baselines when affected-set needs FULL
@@ -1019,24 +920,6 @@ jobs:
               --base "origin/${BASE_REF}" --mode full \
               --decision-artifact-out "${RUNNER_TEMP}/affected-set-binding-decision.json"
           fi
-      # ── FULL-GRAPH CACHE SAVE (ADR-0554 D9; sole canonical writer). On dev-push this job runs
-      #    --mode full (buck2 build + test //...), so buck-out is populated with the FULL workspace
-      #    graph — not just //ci/... as in the buck2 lane. Saving here means PR
-      #    gate-affected-target-set restores a full-graph buck-out, so the same-root merge-base baseline
-      #    build is near-fully-warm (the merge-base IS a recent dev commit whose full-graph buck-out
-      #    was just saved). The buck2 lane restores the same key and is a subset hit. One save step,
-      #    one job, one key — no two-writer race. Runs AFTER the Binding step (buck-out fully
-      #    populated). Guarded push-to-dev so PRs remain read-only (restore-only via the step above).
-      #    Size note: the full-graph buck-out is one blob per stable key (overwrites, non-accumulating
-      #    due to dev-push-sole-writer), bounded by the dependency-set change cadence — worth watching
-      #    against the GitHub 10GB cache limit; NativeLink CAS (ADR-0560) removes this at cutover.
-      - name: Save buck-out (dev-push only; sole canonical full-graph writer)
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/dev' }}
-        # actions/cache/save@v5.0.5 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
-        with:
-          path: buck-out
-          key: buck-out-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('rust-toolchain.toml') }}-${{ hashFiles('.buckconfig', 'toolchains/BUCK', 'Cargo.lock') }}
       # ── BUILD-HEALTH BASELINE PRODUCER (ADR-0554 D7; ADR-0556 D5 QW-1 trusted-producer +
       #    postmerge-dev-trunk warmth class). ONLY a trusted push-to-dev publishes the admission
       #    build-report as the merge-base-to-be baseline artifact — NOT merge_group, NOT
@@ -1105,7 +988,6 @@ jobs:
         with:
           name: affected-set-operator-artifacts
           path: |
-            ${{ runner.temp }}/runner-disk-reclaim-affected-set.json
             ${{ runner.temp }}/affected-set-derive-decision.json
             ${{ runner.temp }}/affected-set-binding-decision.json
           retention-days: 30

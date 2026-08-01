@@ -239,8 +239,9 @@ fn overlays_parse_select_the_cache_platform_and_carry_no_identity() {
 fn buckconfig_local_is_ignored_and_untracked() {
     let root = repo_root();
 
-    let gitignore = std::fs::read_to_string(root.join(".gitignore"))
-        .expect("read .gitignore — it is the only thing keeping a warm-cache overlay uncommittable");
+    let gitignore = std::fs::read_to_string(root.join(".gitignore")).expect(
+        "read .gitignore — it is the only thing keeping a warm-cache overlay uncommittable",
+    );
     assert!(
         gitignore
             .lines()
@@ -399,6 +400,37 @@ fn required_workflow_cache_hit_report_is_binding() {
     //     exercised over bypass/warm/zero-hit/malformed records in that same test.
     // Artifact retention and upload success are runtime-only properties of a failure-path
     // diagnostic. A pure test cannot observe them, and nothing depends on them.
+}
+
+#[test]
+fn required_workflow_never_archives_buck_out() {
+    let root = repo_root();
+    let text = std::fs::read_to_string(root.join(REQUIRED_WORKFLOW_PATH))
+        .unwrap_or_else(|e| panic!("read {REQUIRED_WORKFLOW_PATH}: {e}"));
+
+    assert!(
+        !text.contains("path: buck-out"),
+        concat!(
+            "UNSAFE RUNNER SNAPSHOT: the required workflow archives `buck-out`. Buck2's local ",
+            "state and materialized outputs are runner-local and the archive can exhaust an ",
+            "ephemeral runner during extraction before any binding test executes (ADR-0554 D10)"
+        )
+    );
+    assert!(
+        !text.contains("Restore buck-out") && !text.contains("Save buck-out"),
+        concat!(
+            "UNSAFE RUNNER SNAPSHOT: restore/save steps for `buck-out` must remain deleted; use ",
+            "a Buck2-aware remote action cache + CAS after its separate license is enabled ",
+            "(ADR-0554 D10)"
+        )
+    );
+    assert!(
+        !text.contains("buck-out-${{"),
+        concat!(
+            "UNSAFE RUNNER SNAPSHOT: the retired stable whole-tree cache key reappeared in the ",
+            "required workflow (ADR-0554 D10)"
+        )
+    );
 }
 
 #[test]
