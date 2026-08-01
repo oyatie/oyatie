@@ -8389,7 +8389,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-intelligence-claude-account-adapter"
+name = "oya-intelligence-cli-session-driver"
 version = "0.1.0"
 dependencies = [
  "intelligence-account-domain",
@@ -8405,15 +8405,6 @@ dependencies = [
  "intelligence-capability-domain",
  "intelligence-policy-domain",
  "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-intelligence-codex-account-adapter"
-version = "0.1.0"
-dependencies = [
- "intelligence-account-domain",
- "intelligence-supervisor-kernel",
- "tokio",
 ]
 
 [[package]]
@@ -8578,15 +8569,6 @@ version = "0.1.0"
 dependencies = [
  "oya-data-boundary-kernel",
  "oya-intelligence-evidence-domain",
-]
-
-[[package]]
-name = "oya-intelligence-gemini-account-adapter"
-version = "0.1.0"
-dependencies = [
- "intelligence-account-domain",
- "intelligence-supervisor-kernel",
- "tokio",
 ]
 
 [[package]]
@@ -8784,9 +8766,7 @@ dependencies = [
  "intelligence-supervisor-kernel",
  "oya-intelligence-account-adapter-inmemory",
  "oya-intelligence-autonomy-ceiling-domain",
- "oya-intelligence-claude-account-adapter",
- "oya-intelligence-codex-account-adapter",
- "oya-intelligence-gemini-account-adapter",
+ "oya-intelligence-cli-session-driver",
  "oya-intelligence-jsonl-supervisor-adapter",
  "oya-intelligence-route-policy-kernel",
  "oya-intelligence-settings-template-adapter",

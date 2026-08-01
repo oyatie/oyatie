@@ -28,9 +28,7 @@ harness = false
 [dependencies]
 intelligence-supervisor-kernel = { path = "../../../../intelligence/core/supervisor-kernel" }
 oya-intelligence-jsonl-supervisor-adapter = { path = "../oya-intelligence-jsonl-supervisor-adapter" }
-oya-intelligence-claude-account-adapter = { path = "../oya-intelligence-claude-account-adapter" }
-oya-intelligence-codex-account-adapter = { path = "../oya-intelligence-codex-account-adapter" }
-oya-intelligence-gemini-account-adapter = { path = "../oya-intelligence-gemini-account-adapter" }
+oya-intelligence-cli-session-driver = { path = "../oya-intelligence-cli-session-driver" }
 oya-intelligence-route-policy-kernel = { path = "../oya-intelligence-route-policy-kernel" }
 intelligence-account-domain = { path = "../../../../intelligence/core/account-domain" }
 tokio = { workspace = true, features = ["sync"] }

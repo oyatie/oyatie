@@ -1,6 +1,6 @@
 context: foundry
 role: adapter
-capability: gemini-account
+capability: cli-session
 plane: control
 slo: preview-control-plane
 data_classes_owned: [INTERNAL_ONLY]
