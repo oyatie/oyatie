@@ -51,3 +51,16 @@ rust_test(
     },
     visibility = ["PUBLIC"],
 )
+
+# What the driver writes and what it exits with are unit-testable; what GIT DOES with those two
+# facts is not, and that is where the data loss lived. This target drives a real `git merge`.
+rust_test(
+    name = "oya-cargo-lock-merge-driver-app-git-merge-e2e",
+    srcs = ["tests/git_merge_e2e.rs"],
+    crate = "oya_cargo_lock_merge_driver_app_git_merge_e2e",
+    crate_root = "tests/git_merge_e2e.rs",
+    env = {
+        "OYA_CARGO_LOCK_MERGE_DRIVER": "$(location :oya-cargo-lock-merge-driver)",
+    },
+    visibility = ["PUBLIC"],
+)
