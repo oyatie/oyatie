@@ -25,10 +25,9 @@ use std::time::{Duration, Instant};
 
 use ci_affected_target_set::{
     BASELINE_PROVENANCE_FILENAME, Decision, GATE_ID, GatePhaseOutcome, PathClass, Plan, Policy,
-    affected_set_operator_artifact,
-    build_health_verdict, failing_targets, failing_test_targets, long_step_telemetry_line,
-    parse_build_report, parse_name_status_z, parse_test_verdicts, plan_changes, resolve,
-    test_verdicts_to_report_value,
+    affected_set_operator_artifact, buck2_test_invocation, build_health_verdict, failing_targets,
+    failing_test_targets, long_step_telemetry_line, parse_build_report, parse_name_status_z,
+    parse_test_verdicts, plan_changes, resolve, test_verdicts_to_report_value,
 };
 
 const LOG: &str = "affected-set";
@@ -914,23 +913,19 @@ fn run_full_test_health(buck2: &str, test_baseline_report: Option<&str>) -> Exit
             return ExitCode::from(2);
         }
     };
+    let (test_args, pretty) = buck2_test_invocation(buck2, &["//..."], true);
     println!(
-        "{LOG}: FULL tier test-health: {buck2} test //... --keep-going (per-target verdicts \
-         captured to {console_path})"
+        "{LOG}: FULL tier test-health: {pretty} (per-target verdicts captured to {console_path})"
     );
     // We intentionally do NOT propagate this run's exit code: --keep-going exits non-zero on ANY
     // pre-existing test/build failure, but only test REGRESSIONS must block. The verdict comes from
     // the reconciled per-target verdict diff below (a genuine infra/parse failure fails closed).
     let mut command = Command::new(buck2);
     command
-        .args(["test", "//...", "--keep-going"])
+        .args(&test_args)
         .stdout(Stdio::from(console_file))
         .stderr(Stdio::from(console_err));
-    if let Err(e) = run_command_with_progress(
-        "full-tier-test-health",
-        &mut command,
-        &format!("{buck2} test //... --keep-going"),
-    ) {
+    if let Err(e) = run_command_with_progress("full-tier-test-health", &mut command, &pretty) {
         eprintln!("{LOG}: WARN — could not execute head test-health command: {e}");
     }
 
@@ -1006,10 +1001,11 @@ fn run_full_test_health(buck2: &str, test_baseline_report: Option<&str>) -> Exit
         for t in &verdict.regressions {
             eprintln!("{LOG}:   TEST-REGRESSION {t}");
         }
+        let regression_targets = verdict.regressions.to_vec();
+        let (_, reproduce) = buck2_test_invocation(buck2, &regression_targets, false);
         eprintln!(
             "{LOG}: REMEDIATION: fix these tests or revert the change that broke them; pre-existing \
-             test failures are grandfathered, only NEW test debt blocks. REPRODUCE: {buck2} test {}",
-            verdict.regressions.join(" ")
+             test failures are grandfathered, only NEW test debt blocks. REPRODUCE: {reproduce}"
         );
         return ExitCode::from(1);
     }
@@ -1222,16 +1218,11 @@ fn run_admission_test_producer(buck2: &str, patterns: &[String]) -> ExitCode {
             return ExitCode::from(2);
         }
     };
-    let mut pretty = format!("{buck2} test");
-    for p in patterns {
-        pretty.push(' ');
-        pretty.push_str(p);
-    }
+    let (test_args, pretty) = buck2_test_invocation(buck2, patterns, false);
     println!("{LOG}: === {pretty} (per-target verdicts captured for the test baseline) ===");
     let mut command = Command::new(buck2);
     command
-        .arg("test")
-        .args(patterns)
+        .args(&test_args)
         .stdout(Stdio::from(console_file))
         .stderr(Stdio::from(console_err));
     let status = run_command_with_progress("admission-test-health-baseline", &mut command, &pretty);
@@ -1311,11 +1302,12 @@ fn run_buck(buck2: &str, patterns: &[String], argfile: Option<&PathBuf>) -> Exit
         None => patterns.to_vec(),
     };
     for verb in ["build", "test"] {
-        let mut pretty = format!("{buck2} {verb}");
-        for s in &spec {
-            pretty.push(' ');
-            pretty.push_str(s);
-        }
+        let (test_args, test_pretty) = buck2_test_invocation(buck2, &spec, false);
+        let pretty = if verb == "test" {
+            test_pretty
+        } else {
+            format!("{buck2} {verb} {}", spec.join(" "))
+        };
         println!("{LOG}: === {pretty} ===");
         let phase = match verb {
             "build" => "binding-build",
@@ -1323,7 +1315,11 @@ fn run_buck(buck2: &str, patterns: &[String], argfile: Option<&PathBuf>) -> Exit
             _ => "binding-build-test",
         };
         let mut command = Command::new(buck2);
-        command.arg(verb).args(&spec);
+        if verb == "test" {
+            command.args(&test_args);
+        } else {
+            command.arg(verb).args(&spec);
+        }
         let status = run_command_with_progress(phase, &mut command, &pretty);
         match status {
             Ok(st) if st.success() => {}
