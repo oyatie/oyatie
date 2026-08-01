@@ -5,6 +5,19 @@
 # registry-drift-protected scm-facts.generated.json face. ADR-0604 de-commit class: the face is
 # NOT tracked in git and NOT a buck source member; the producer + every gate rust_test consume
 # the materialized on-disk face from the repo root, so no buck2 action ever calls git.
+#
+# The exact historical P2 parent receipt obeys the SAME split. Producing it checks out a git
+# worktree at the pinned historical commit, runs `rustup toolchain install`, and nests a
+# `buck2 run` — so ONLY this binary does that, and only when run out of graph. It leaves the
+# bytes at ci/facade/scm-facts-snapshot/adr-census-parent-receipt.generated.json, beside this
+# crate's other emitter-produced faces and deliberately NOT in the freshness gate's own face
+# roster directory ci/facade/artifact-inventory-registry/, which that gate globs wholesale as
+# faces IT must have regenerated
+# (de-commit class, carried between jobs by the producer-regen `generated-faces` artifact), and
+# :ci-scm-facts-snapshot-integration CONSUMES that face. A Buck2 test action's environment is
+# sanitized to BUCK2_DAEMON_UUID, BUCK_BUILD_ID, HOME, LOGNAME, PATH, PWD, TMPDIR, USER — no
+# RUSTUP_HOME, no CARGO_HOME — so an in-action rebuild is red by construction, and an absent
+# face is a hard failure here rather than a skipped test.
 rust_library(
     name = "ci-scm-facts-snapshot-lib",
     srcs = ["src/lib.rs", "src/retirement.rs"],

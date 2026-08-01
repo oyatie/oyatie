@@ -2323,6 +2323,58 @@ value = "legacy-marker"
         fs::remove_dir_all(root).expect("remove temp repo");
     }
 
+    /// The AUTHOR-SIDE half of the OWNERS accounting floor. CI's path is covered by the
+    /// total-accounting gate's live-corpus test; this covers the pre-push check, which builds
+    /// its own `RepoInputs` and would silently miss the floor if the wiring were dropped.
+    ///
+    /// The failure mode being pinned is a false alarm, which is worse than useless here: an
+    /// author adding a valid `os/OWNERS` would be told to WOULD RED, would go hand-write a
+    /// reachability-registry row to "fix" it, and would land exactly the dead weight this
+    /// change deletes. The invalid file is the control — it must still be reported.
+    #[test]
+    fn check_mode_accounts_a_valid_owners_file_and_still_reds_an_invalid_one() {
+        let root = unique_temp_repo();
+        fs::create_dir_all(root.join("good")).expect("create good dir");
+        fs::create_dir_all(root.join("bad")).expect("create bad dir");
+        fs::write(root.join("good/OWNERS"), "cloud-ci-platform\n").expect("write valid");
+        fs::write(root.join("bad/OWNERS"), "# owner: TBD\n").expect("write invalid");
+
+        let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
+        let policy = Policy::from_config(&cfg).expect("policy");
+        let paths = vec!["good/OWNERS".to_owned(), "bad/OWNERS".to_owned()];
+        let verdicts = check_added_paths(&root, &cfg, &policy, &paths).expect("check added paths");
+
+        let good = verdicts
+            .iter()
+            .find(|v| v.path == "good/OWNERS")
+            .expect("good verdict");
+        assert!(
+            good.blocking_codes.is_empty(),
+            "a schema-valid OWNERS file must not be reported as WOULD RED, got {:?}",
+            good.blocking_codes
+        );
+        // The printed columns must agree with the verdict, or the report says OK directly
+        // under "justified by NO · reachable via UNREACHABLE".
+        assert_eq!(good.justification.as_deref(), Some("owners-schema"));
+        assert_eq!(good.reachable_from, vec!["owners-schema".to_owned()]);
+
+        let bad = verdicts
+            .iter()
+            .find(|v| v.path == "bad/OWNERS")
+            .expect("bad verdict");
+        for code in ["unjustified", "unreachable"] {
+            assert!(
+                bad.blocking_codes.contains(code),
+                "a comment-only OWNERS file must still be reported as {code}, got {:?}",
+                bad.blocking_codes
+            );
+        }
+        assert_eq!(bad.justification, None);
+        assert!(bad.reachable_from.is_empty());
+
+        fs::remove_dir_all(root).expect("remove temp repo");
+    }
+
     #[test]
     fn check_mode_verdicts_equal_producer_firewall_verdicts() {
         // PARITY: for the SAME inputs, check-mode's per-path blocking codes are byte-identical to
@@ -2350,6 +2402,7 @@ value = "legacy-marker"
             justifications: resolve_justifications(&root, &paths, &cfg),
             reachability: resolve_reachability(&root, &paths, &cfg).expect("reachability"),
             dup_of: BTreeMap::new(),
+            valid_owners_files: resolve_owners(&root, &paths, &cfg).valid_files,
         };
         let registry = build_registry(&inputs, &policy).expect("build registry");
         let mut producer: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
@@ -4277,6 +4330,7 @@ fn collect_repo_inputs(
             justifications,
             reachability,
             dup_of: BTreeMap::new(),
+            valid_owners_files: owners_resolution.valid_files,
         },
         owners_resolution.integrity,
     ))
@@ -4490,33 +4544,26 @@ fn check_added_paths(
 
     let justifications = resolve_justifications(repo_root, &accounted, cfg);
     let reachability = resolve_reachability(repo_root, &accounted, cfg)?;
+    // The OWNERS accounting floor is derived here too, or this author-side check would
+    // report WOULD RED for a newly-added valid OWNERS file that CI then passes — the exact
+    // false alarm that makes a pre-push check untrustworthy. Unlike OWNER resolution (which
+    // is full-tree and therefore unsound on a partial set, see the doc comment above), the
+    // per-file SCHEMA verdict is locally computable: the added OWNERS file is itself in the
+    // set and is read + parsed straight from the working tree. Only `valid_files` is taken;
+    // `by_path` stays empty so `unowned` remains out of scope exactly as before.
+    let valid_owners_files = resolve_owners(repo_root, &accounted, cfg).valid_files;
 
     // Route the added rows through the producer's OWN face-builder and the firewall's OWN
     // evaluator: the unjustified/unreachable/scratch/ttl verdicts are byte-identical to CI.
     let inputs = RepoInputs {
         tracked_paths: accounted,
         owners: BTreeMap::new(),
-        justifications,
+        justifications: justifications.clone(),
         reachability: reachability.clone(),
         dup_of: BTreeMap::new(),
+        valid_owners_files,
     };
     let registry = build_registry(&inputs, policy)?;
-    // Report the justification the REGISTRY assigned, not the raw ADR-corpus map: `build_registry`
-    // applies the reached ⇒ justified rule, so reading the map here would print `justified: NO`
-    // beside an OK verdict — a display that contradicts the gate it is supposed to predict.
-    let justification_by_path: BTreeMap<String, String> = registry
-        .get("rows")
-        .and_then(serde_json::Value::as_array)
-        .map(|rows| {
-            rows.iter()
-                .filter_map(|row| {
-                    let path = row.get("path")?.as_str()?;
-                    let refr = row.get("justification_ref")?.as_str()?;
-                    Some((path.to_owned(), refr.to_owned()))
-                })
-                .collect()
-        })
-        .unwrap_or_default();
     let mut codes_by_key: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
     for finding in ci_artifact_accountability::evaluate_keyed(&registry) {
         if finding.code == "unowned" {
@@ -4528,14 +4575,55 @@ fn check_added_paths(
             .insert(finding.code);
     }
 
+    // Report the values off the BUILT ROWS, not off the raw resolver maps. The rows are what
+    // `evaluate_keyed` just judged, so the printed "justified by X · reachable via Y" columns
+    // and the WOULD-RED verdict cannot disagree — a row carrying a DERIVED accounting source
+    // (the OWNERS floor, or the reached ⇒ justified rule) would otherwise print "justified by
+    // NO · reachable via UNREACHABLE" directly above an `OK` line. Both columns must come from
+    // the row for that to hold: reading `justification_ref` back but re-reading the raw
+    // reachability map still lets an OWNERS-floor row print `UNREACHABLE` beside `OK`.
+    // Re-deriving either rule here instead would duplicate it and let the two copies drift;
+    // reading it back cannot. Paths with no row (excluded / unit_class ephemeral) fall back to
+    // the resolver maps and print their own lines anyway.
+    let mut row_accounting: BTreeMap<String, (Option<String>, Vec<String>)> = BTreeMap::new();
+    for row in registry["rows"].as_array().into_iter().flatten() {
+        let Some(path) = row["path"].as_str() else {
+            continue;
+        };
+        row_accounting.insert(
+            path.to_owned(),
+            (
+                row["justification_ref"].as_str().map(str::to_owned),
+                row["reachable_from"]
+                    .as_array()
+                    .map(|values| {
+                        values
+                            .iter()
+                            .filter_map(serde_json::Value::as_str)
+                            .map(str::to_owned)
+                            .collect()
+                    })
+                    .unwrap_or_default(),
+            ),
+        );
+    }
+
     Ok(paths
         .iter()
         .map(|path| {
             let excluded = is_path_excluded(path, cfg);
+            let (justification, reachable_from) = row_accounting.get(path).cloned().unwrap_or_else(
+                || {
+                    (
+                        justifications.get(path).cloned(),
+                        reachability.get(path).cloned().unwrap_or_default(),
+                    )
+                },
+            );
             AddedPathVerdict {
                 unit_class: policy.classify(path).to_owned(),
-                justification: justification_by_path.get(path).cloned(),
-                reachable_from: reachability.get(path).cloned().unwrap_or_default(),
+                justification,
+                reachable_from,
                 blocking_codes: if excluded {
                     BTreeSet::new()
                 } else {
