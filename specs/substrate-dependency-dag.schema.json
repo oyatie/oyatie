@@ -182,7 +182,7 @@
         },
         "dependency_weight": {
           "type": "number",
-          "minimum": 0,
+          "exclusiveMinimum": 0,
           "maximum": 1
         },
         "cascade_rule": {
