@@ -30,15 +30,18 @@ evidence/audit-chain.jsonl merge=union
 # tools/oya-cargo-lock-merge-driver-app. The driver merges disjoint [[package]] additions and
 # exits 1 on same-package version divergence or removal-vs-edit conflicts.
 #
-# On EVERY nonzero exit it WRITES diff3 markers carrying every side. Git does not re-run its own
-# text merge when a driver exits nonzero — it takes whatever the driver left in `%A` as the
+# Whenever it reports a conflict it WRITES diff3 markers carrying every side. Git does not re-run
+# its own text merge when a driver exits nonzero — it takes whatever the driver left in `%A` as the
 # conflicted working tree — so a driver that abstains hands back `ours` alone, unmarked, with the
 # other side's packages absent: a clean-looking file that loses data on a reflexive `git add`. That
 # was this driver's behaviour until it was fixed; a real `git merge` produced a merge commit
-# byte-identical to `ours`.
+# byte-identical to `ours`. Where it cannot write `%A` at all it exits >128 instead, which git
+# treats as a crash and abandons the merge — never a conflict it made no promises about.
 #
 # Registration is per-clone (see the crate README): an actor without the `merge.cargo-lock` git
-# config simply gets today's normal conflict.
+# config simply gets today's normal conflict. Extra placeholders after `%O %A %B` (`%P`, `%L`, …)
+# are accepted and ignored, so a `%O %A %B %P` registration — the form `merge.oya-faces` uses — is
+# safe; demanding exactly three was itself a data-loss bug.
 Cargo.lock merge=cargo-lock
 # The fixup registry is append-mostly JSONL: line 1 is a schema header with NO `id`, every other
 # line is one task row keyed by `id`. Two lanes each filing a finding append adjacent bytes, so
