@@ -478,7 +478,9 @@ action-cache and CAS endpoints.
 
 **Mechanical guard.** `ci-build-cache-policy-gate` parses the live required-workflow YAML, identifies
 every `actions/cache`, `actions/cache/restore`, and `actions/cache/save` step independent of its name
-or key and action-reference casing, follows repository-local composite actions, normalizes
-scalar/block/list paths, and rejects `buck-out`, its descendants, and lexical whole-root/glob archives.
-It also rejects the retired reclaim artifact path. This is a correctness and availability invariant: a
-cache optimization cannot prevent the tests that establish merge authority from starting.
+or key and action-reference casing, recursively follows repository-local composite actions and
+same-repository reusable workflows, and fails closed on unproven external job-level workflow calls. It
+normalizes scalar/block/list paths and rejects `buck-out`, its descendants, and lexical
+whole-root/glob archives. It also rejects the retired reclaim artifact path. This is a correctness and
+availability invariant: a cache optimization cannot prevent the tests that establish merge authority
+from starting.

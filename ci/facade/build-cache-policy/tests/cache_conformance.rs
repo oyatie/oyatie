@@ -65,37 +65,229 @@ fn invocation_record_fixture(
     })
 }
 
-fn cache_path_archives_checkout(raw_path: &str) -> bool {
-    let normalized = raw_path.trim().replace('\\', "/");
-    let compact: String = normalized
+#[derive(Debug)]
+enum GlobToken {
+    Literal(char),
+    AnyCharacter,
+    Star,
+    CharacterClass {
+        negated: bool,
+        ranges: Vec<(char, char)>,
+    },
+}
+
+fn parse_glob_segment(pattern: &str) -> Result<Vec<GlobToken>, String> {
+    let characters: Vec<char> = pattern.chars().collect();
+    let mut tokens = Vec::new();
+    let mut index = 0;
+
+    while index < characters.len() {
+        match characters[index] {
+            '*' => {
+                tokens.push(GlobToken::Star);
+                index += 1;
+            }
+            '?' => {
+                tokens.push(GlobToken::AnyCharacter);
+                index += 1;
+            }
+            '\\' => {
+                index += 1;
+                let Some(character) = characters.get(index).copied() else {
+                    return Err(format!("trailing glob escape in {pattern:?}"));
+                };
+                tokens.push(GlobToken::Literal(character));
+                index += 1;
+            }
+            '[' => {
+                index += 1;
+                let negated = matches!(characters.get(index), Some('!' | '^'));
+                if negated {
+                    index += 1;
+                }
+                let mut ranges = Vec::new();
+                if characters.get(index) == Some(&']') {
+                    ranges.push((']', ']'));
+                    index += 1;
+                }
+                while index < characters.len() && characters[index] != ']' {
+                    let start = if characters[index] == '\\' {
+                        index += 1;
+                        characters.get(index).copied().ok_or_else(|| {
+                            format!("trailing character-class escape in {pattern:?}")
+                        })?
+                    } else {
+                        characters[index]
+                    };
+                    index += 1;
+
+                    if characters.get(index) == Some(&'-')
+                        && characters.get(index + 1).is_some_and(|value| *value != ']')
+                    {
+                        index += 1;
+                        let end = if characters[index] == '\\' {
+                            index += 1;
+                            characters.get(index).copied().ok_or_else(|| {
+                                format!("trailing character-class range escape in {pattern:?}")
+                            })?
+                        } else {
+                            characters[index]
+                        };
+                        index += 1;
+                        if start > end {
+                            return Err(format!("reversed character-class range in {pattern:?}"));
+                        }
+                        ranges.push((start, end));
+                    } else {
+                        ranges.push((start, start));
+                    }
+                }
+                if characters.get(index) != Some(&']') || ranges.is_empty() {
+                    return Err(format!(
+                        "unterminated or empty character class in {pattern:?}"
+                    ));
+                }
+                index += 1;
+                tokens.push(GlobToken::CharacterClass { negated, ranges });
+            }
+            character => {
+                tokens.push(GlobToken::Literal(character));
+                index += 1;
+            }
+        }
+    }
+
+    Ok(tokens)
+}
+
+fn add_star_epsilon_closure(tokens: &[GlobToken], states: &mut HashSet<usize>) {
+    loop {
+        let additions: Vec<usize> = states
+            .iter()
+            .filter_map(|position| {
+                matches!(tokens.get(*position), Some(GlobToken::Star)).then_some(position + 1)
+            })
+            .filter(|position| !states.contains(position))
+            .collect();
+        if additions.is_empty() {
+            return;
+        }
+        states.extend(additions);
+    }
+}
+
+fn glob_segment_matches(pattern: &str, target: &str) -> Result<bool, String> {
+    let tokens = parse_glob_segment(pattern)?;
+    let mut states = HashSet::from([0]);
+    add_star_epsilon_closure(&tokens, &mut states);
+
+    for character in target.chars() {
+        let mut next = HashSet::new();
+        for position in &states {
+            match tokens.get(*position) {
+                Some(GlobToken::Star) => {
+                    next.insert(*position);
+                }
+                Some(GlobToken::Literal(expected)) if *expected == character => {
+                    next.insert(position + 1);
+                }
+                Some(GlobToken::AnyCharacter) => {
+                    next.insert(position + 1);
+                }
+                Some(GlobToken::CharacterClass { negated, ranges }) => {
+                    let listed = ranges
+                        .iter()
+                        .any(|(start, end)| *start <= character && character <= *end);
+                    if listed != *negated {
+                        next.insert(position + 1);
+                    }
+                }
+                _ => {}
+            }
+        }
+        states = next;
+        add_star_epsilon_closure(&tokens, &mut states);
+    }
+
+    Ok(states.contains(&tokens.len()))
+}
+
+fn cache_path_candidate_archives_checkout(candidate: &str) -> Result<bool, String> {
+    let mut relative = strip_workspace_expression(candidate)
+        .map(|suffix| suffix.trim_start_matches('/'))
+        .unwrap_or(candidate)
+        .trim_end_matches('/');
+    while let Some(stripped) = relative.strip_prefix("./") {
+        relative = stripped;
+    }
+
+    if relative.is_empty() || relative == "." {
+        return Ok(true);
+    }
+
+    let first_component = relative
+        .split('/')
+        .find(|component| !component.is_empty() && *component != ".")
+        .unwrap_or(relative);
+    glob_segment_matches(first_component, "buck-out")
+}
+
+fn strip_workspace_expression(candidate: &str) -> Option<&str> {
+    let expression = candidate.strip_prefix("${{")?;
+    let end = expression.find("}}")?;
+    let name: String = expression[..end]
         .chars()
         .filter(|character| !character.is_ascii_whitespace())
         .collect();
-    let compact_lower = compact.to_ascii_lowercase();
-    let workspace_prefix = "${{github.workspace}}";
-    let relative = compact_lower
-        .strip_prefix(workspace_prefix)
-        .map(|suffix| suffix.trim_start_matches('/'))
-        .unwrap_or(compact_lower.as_str());
-    let relative = relative
-        .strip_prefix("./")
-        .unwrap_or(relative)
-        .trim_end_matches('/');
+    let suffix = &expression[end + 2..];
+    (name.eq_ignore_ascii_case("github.workspace")
+        && (suffix.is_empty() || suffix.starts_with('/') || suffix.starts_with('\\')))
+    .then_some(suffix)
+}
 
-    if relative.is_empty() || relative == "." {
-        return true;
+fn cache_path_archives_checkout(raw_path: &str) -> Result<bool, String> {
+    let normalized = raw_path.trim().to_ascii_lowercase();
+    if normalized.is_empty() {
+        return Err("empty include pattern".to_owned());
+    }
+    if normalized
+        .split(['/', '\\'])
+        .any(|component| component == "..")
+    {
+        return Err(format!(
+            "relative parent segments are not supported by @actions/glob: {raw_path:?}"
+        ));
     }
 
-    let components: Vec<&str> = relative
-        .split('/')
-        .filter(|component| !component.is_empty() && *component != ".")
-        .collect();
-    let first_component = components.first().copied().unwrap_or(relative);
-    components.contains(&"buck-out")
-        || first_component == "**"
-        || first_component
-            .chars()
-            .any(|character| matches!(character, '*' | '?' | '[' | '{'))
+    // On Linux/macOS a backslash escapes glob metacharacters; on Windows it can
+    // also be a separator. Reject if either supported interpretation reaches the
+    // checkout's runner-local `buck-out` root.
+    cache_path_candidate_archives_checkout(&normalized).and_then(|archives| {
+        if archives || !normalized.contains('\\') {
+            Ok(archives)
+        } else {
+            cache_path_candidate_archives_checkout(&normalized.replace('\\', "/"))
+        }
+    })
+}
+
+fn included_cache_pattern(raw_path: &str) -> Result<Option<&str>, String> {
+    let mut pattern = raw_path.trim();
+    if pattern.is_empty() || pattern.starts_with('#') {
+        return Ok(None);
+    }
+    let mut excluded = false;
+    while let Some(remainder) = pattern.strip_prefix('!') {
+        excluded = !excluded;
+        pattern = remainder.trim();
+    }
+    if excluded {
+        return Ok(None);
+    }
+    if pattern.is_empty() {
+        return Err(format!("empty actions/cache include pattern {raw_path:?}"));
+    }
+    Ok(Some(pattern))
 }
 
 fn action_steps<'a>(doc: &'a YamlValue) -> Vec<(&'a str, &'a [YamlValue])> {
@@ -136,8 +328,14 @@ fn local_action_file(repo_root: &Path, action_name: &str) -> Result<Option<PathB
     let action_dir = repo_root.join(relative);
     for file_name in ["action.yml", "action.yaml"] {
         let candidate = action_dir.join(file_name);
-        if candidate.is_file() {
-            return Ok(Some(candidate));
+        if let Ok(metadata) = candidate.symlink_metadata() {
+            if metadata.file_type().is_file() {
+                return Ok(Some(candidate));
+            }
+            return Err(format!(
+                "local action metadata is not a regular file: {}",
+                candidate.display()
+            ));
         }
     }
     Err(format!(
@@ -145,13 +343,109 @@ fn local_action_file(repo_root: &Path, action_name: &str) -> Result<Option<PathB
     ))
 }
 
+fn local_reusable_workflow_file(repo_root: &Path, reference: &str) -> Result<PathBuf, String> {
+    let Some(relative) = reference.strip_prefix("./") else {
+        return Err(format!(
+            "external job-level reusable workflow is not proven cache-safe: {reference:?}"
+        ));
+    };
+    let relative = Path::new(relative);
+    if !relative.starts_with(".github/workflows")
+        || relative
+            .components()
+            .any(|component| !matches!(component, Component::Normal(_)))
+        || !matches!(
+            relative
+                .extension()
+                .and_then(|extension| extension.to_str()),
+            Some("yml" | "yaml")
+        )
+    {
+        return Err(format!(
+            "invalid same-repository reusable workflow reference: {reference:?}"
+        ));
+    }
+    let workflow_file = repo_root.join(relative);
+    match workflow_file.symlink_metadata() {
+        Ok(metadata) if metadata.file_type().is_file() => Ok(workflow_file),
+        Ok(_) => Err(format!(
+            "reusable workflow is not a regular file: {}",
+            workflow_file.display()
+        )),
+        Err(error) => Err(format!(
+            "cannot resolve reusable workflow {}: {error}",
+            workflow_file.display()
+        )),
+    }
+}
+
+fn inspect_local_yaml_document(
+    repo_root: &Path,
+    path: PathBuf,
+    visited_local_documents: &mut HashSet<PathBuf>,
+    violations: &mut Vec<String>,
+) {
+    if !visited_local_documents.insert(path.clone()) {
+        return;
+    }
+    match std::fs::read_to_string(&path) {
+        Ok(text) => match serde_yaml::from_str(&text) {
+            Ok(doc) => inspect_actions_cache_steps(
+                Some(repo_root),
+                &path.display().to_string(),
+                &doc,
+                visited_local_documents,
+                violations,
+            ),
+            Err(error) => violations.push(format!(
+                "{}: malformed local workflow/action YAML: {error}",
+                path.display()
+            )),
+        },
+        Err(error) => violations.push(format!(
+            "{}: cannot read local workflow/action: {error}",
+            path.display()
+        )),
+    }
+}
+
 fn inspect_actions_cache_steps(
     repo_root: Option<&Path>,
     source: &str,
     doc: &YamlValue,
-    visited_local_actions: &mut HashSet<PathBuf>,
+    visited_local_documents: &mut HashSet<PathBuf>,
     violations: &mut Vec<String>,
 ) {
+    if let Some(jobs) = doc.get("jobs").and_then(YamlValue::as_mapping) {
+        for (job_name, job) in jobs {
+            let scope = job_name.as_str().unwrap_or("<non-string-job>");
+            let Some(reference_value) = job.get("uses") else {
+                continue;
+            };
+            let Some(reference) = reference_value.as_str() else {
+                violations.push(format!(
+                    "{source}:{scope}: non-string reusable workflow reference {reference_value:?}"
+                ));
+                continue;
+            };
+            let Some(repo_root) = repo_root else {
+                violations.push(format!(
+                    "{source}:{scope}: cannot verify reusable workflow {reference:?} without a repository root"
+                ));
+                continue;
+            };
+            match local_reusable_workflow_file(repo_root, reference) {
+                Ok(path) => inspect_local_yaml_document(
+                    repo_root,
+                    path,
+                    visited_local_documents,
+                    violations,
+                ),
+                Err(error) => violations.push(format!("{source}:{scope}: {error}")),
+            }
+        }
+    }
+
     for (scope, steps) in action_steps(doc) {
         for step in steps {
             let Some(action) = step.get("uses").and_then(YamlValue::as_str) else {
@@ -189,14 +483,20 @@ fn inspect_actions_cache_steps(
                 }
 
                 for raw_path in raw_paths {
-                    let raw_path = raw_path.trim();
-                    if raw_path.is_empty() || raw_path.starts_with('!') {
-                        continue;
-                    }
-                    if cache_path_archives_checkout(raw_path) {
-                        violations.push(format!(
-                            "{source}:{scope}/{step_name}: {action_name} archives forbidden path {raw_path:?}"
-                        ));
+                    match included_cache_pattern(raw_path) {
+                        Ok(None) => {}
+                        Ok(Some(include)) => match cache_path_archives_checkout(include) {
+                            Ok(true) => violations.push(format!(
+                                "{source}:{scope}/{step_name}: {action_name} archives forbidden path {raw_path:?}"
+                            )),
+                            Ok(false) => {}
+                            Err(error) => violations.push(format!(
+                                "{source}:{scope}/{step_name}: malformed actions/cache path {raw_path:?}: {error}"
+                            )),
+                        },
+                        Err(error) => violations.push(format!(
+                            "{source}:{scope}/{step_name}: malformed actions/cache path: {error}"
+                        )),
                     }
                 }
                 continue;
@@ -206,28 +506,13 @@ fn inspect_actions_cache_steps(
                 continue;
             };
             match local_action_file(repo_root, action_name) {
-                Ok(Some(action_file)) if visited_local_actions.insert(action_file.clone()) => {
-                    match std::fs::read_to_string(&action_file) {
-                        Ok(text) => match serde_yaml::from_str(&text) {
-                            Ok(action_doc) => inspect_actions_cache_steps(
-                                Some(repo_root),
-                                &action_file.display().to_string(),
-                                &action_doc,
-                                visited_local_actions,
-                                violations,
-                            ),
-                            Err(error) => violations.push(format!(
-                                "{}: malformed local action YAML: {error}",
-                                action_file.display()
-                            )),
-                        },
-                        Err(error) => violations.push(format!(
-                            "{}: cannot read local action: {error}",
-                            action_file.display()
-                        )),
-                    }
-                }
-                Ok(Some(_)) | Ok(None) => {}
+                Ok(Some(action_file)) => inspect_local_yaml_document(
+                    repo_root,
+                    action_file,
+                    visited_local_documents,
+                    violations,
+                ),
+                Ok(None) => {}
                 Err(error) => violations.push(format!("{source}:{scope}: {error}")),
             }
         }
@@ -241,11 +526,28 @@ fn actions_cache_buck_out_violations(
 ) -> Vec<String> {
     let doc: YamlValue = serde_yaml::from_str(workflow).expect("parse workflow YAML");
     let mut violations = Vec::new();
+    let mut visited_local_documents = HashSet::new();
+    if let Some(repo_root) = repo_root {
+        let source_path = Path::new(source);
+        if !source_path.is_absolute()
+            && source_path
+                .components()
+                .all(|component| matches!(component, Component::Normal(_)))
+        {
+            let candidate = repo_root.join(source_path);
+            if candidate
+                .symlink_metadata()
+                .is_ok_and(|metadata| metadata.file_type().is_file())
+            {
+                visited_local_documents.insert(candidate);
+            }
+        }
+    }
     inspect_actions_cache_steps(
         repo_root,
         source,
         &doc,
-        &mut HashSet::new(),
+        &mut visited_local_documents,
         &mut violations,
     );
     violations
@@ -627,6 +929,12 @@ fn buck_out_archive_guard_rejects_yaml_path_variants_and_renamed_steps() {
         "path: ${{ github.workspace }}/**",
         "path: ./**",
         "path: '**'",
+        "path: '?uck-out'",
+        "path: '[b]uck-out'",
+        "path: 'buck-*'",
+        "path: '!!buck-out'",
+        "path: '! !buck-out'",
+        "path: 'toolchain/../buck-out'",
     ] {
         let fixture = format!(
             "jobs:\n  renamed-job:\n    steps:\n      - name: Innocuous renamed step\n        uses: actions/cache/restore@pinned\n        with:\n          key: unrelated-key\n          {path_yaml}\n"
@@ -643,7 +951,7 @@ fn buck_out_archive_guard_rejects_yaml_path_variants_and_renamed_steps() {
         "action repository casing must not bypass the guard"
     );
 
-    let safe = "jobs:\n  gate:\n    steps:\n      - uses: actions/cache@pinned\n        with:\n          path: |\n            ~/.rustup/toolchains\n            ~/.rustup/update-hashes\n";
+    let safe = "jobs:\n  gate:\n    steps:\n      - uses: actions/cache@pinned\n        with:\n          path: |\n            ~/.rustup/toolchains\n            ~/.rustup/update-hashes\n            toolchain-*\n            rustup-*\n            '[rt]ustup-cache'\n            tool chain-*\n            '${{ github.workspace }}suffix'\n            '!buck-out'\n            '# buck-out'\n";
     assert!(
         actions_cache_buck_out_violations(None, "<fixture>", safe).is_empty(),
         "toolchain-only actions/cache must remain allowed"
@@ -658,6 +966,7 @@ fn buck_out_archive_guard_follows_local_composite_actions() {
         std::thread::current().name().unwrap_or("unnamed")
     ));
     let action_dir = fixture_root.join(".github/actions/cache-wrapper");
+    let _ = std::fs::remove_dir_all(&fixture_root);
     std::fs::create_dir_all(&action_dir).expect("create local composite fixture");
     std::fs::write(
         action_dir.join("action.yml"),
@@ -670,6 +979,53 @@ fn buck_out_archive_guard_follows_local_composite_actions() {
     assert!(
         !violations.is_empty(),
         "local composite action must not hide a forbidden checkout archive"
+    );
+}
+
+#[test]
+fn buck_out_archive_guard_follows_local_reusable_workflows() {
+    let fixture_root = std::env::temp_dir().join(format!(
+        "oya-cache-reusable-workflow-fixture-{}-{}",
+        std::process::id(),
+        std::thread::current().name().unwrap_or("unnamed")
+    ));
+    let workflow_dir = fixture_root.join(".github/workflows");
+    let _ = std::fs::remove_dir_all(&fixture_root);
+    std::fs::create_dir_all(&workflow_dir).expect("create reusable workflow fixture");
+    std::fs::write(
+        workflow_dir.join("cache-wrapper.yml"),
+        "jobs:\n  cache:\n    steps:\n      - uses: actions/cache@pinned\n        with:\n          path: buck-out\n          key: fixture\n",
+    )
+    .expect("write reusable workflow fixture");
+    let workflow = "jobs:\n  delegated-gate:\n    uses: ./.github/workflows/cache-wrapper.yml\n";
+    let violations = actions_cache_buck_out_violations(Some(&fixture_root), "<fixture>", workflow);
+    assert!(
+        !violations.is_empty(),
+        "same-repository reusable workflow must not hide a forbidden checkout archive"
+    );
+
+    std::fs::write(
+        workflow_dir.join("safe-a.yml"),
+        "jobs:\n  safe-cache:\n    steps:\n      - uses: actions/cache@pinned\n        with:\n          path: toolchain-*\n          key: fixture\n  delegated:\n    uses: ./.github/workflows/safe-b.yml\n",
+    )
+    .expect("write first safe reusable workflow fixture");
+    std::fs::write(
+        workflow_dir.join("safe-b.yml"),
+        "jobs:\n  delegated:\n    uses: ./.github/workflows/safe-a.yml\n",
+    )
+    .expect("write cyclic safe reusable workflow fixture");
+    let safe_workflow = "jobs:\n  delegated-gate:\n    uses: ./.github/workflows/safe-a.yml\n";
+    assert!(
+        actions_cache_buck_out_violations(Some(&fixture_root), "<fixture>", safe_workflow)
+            .is_empty(),
+        "safe same-repository reusable workflows and cycles must terminate without false positives"
+    );
+    std::fs::remove_dir_all(&fixture_root).expect("remove reusable workflow fixture");
+
+    let external = "jobs:\n  delegated-gate:\n    uses: owner/repo/.github/workflows/cache.yml@0123456789abcdef\n";
+    assert!(
+        !actions_cache_buck_out_violations(Some(Path::new(".")), "<fixture>", external).is_empty(),
+        "uninspected external reusable workflows must fail closed"
     );
 }
 
