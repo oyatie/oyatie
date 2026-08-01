@@ -4473,6 +4473,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "intelligence-account-adapter-inmemory"
+version = "0.1.0"
+dependencies = [
+ "intelligence-account-domain",
+]
+
+[[package]]
 name = "intelligence-account-domain"
 version = "0.1.0"
 dependencies = [
@@ -4533,6 +4540,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "intelligence-autonomy-ceiling-app"
+version = "0.1.0"
+dependencies = [
+ "intelligence-autonomy-ceiling-domain",
+ "intelligence-autonomy-ceiling-kernel",
+ "intelligence-capability-registry-kernel",
+]
+
+[[package]]
+name = "intelligence-autonomy-ceiling-domain"
+version = "0.1.0"
+dependencies = [
+ "intelligence-autonomy-ceiling-kernel",
+]
+
+[[package]]
 name = "intelligence-autonomy-ceiling-kernel"
 version = "0.1.0"
 
@@ -4576,6 +4599,15 @@ dependencies = [
  "tokio",
  "tokio-tungstenite 0.27.0",
  "uuid",
+]
+
+[[package]]
+name = "intelligence-cli-session-driver"
+version = "0.1.0"
+dependencies = [
+ "intelligence-account-domain",
+ "intelligence-supervisor-kernel",
+ "tokio",
 ]
 
 [[package]]
@@ -4640,6 +4672,14 @@ dependencies = [
  "serde_json",
  "tokio",
  "tracing",
+]
+
+[[package]]
+name = "intelligence-jsonl-supervisor-adapter"
+version = "0.1.0"
+dependencies = [
+ "intelligence-supervisor-kernel",
+ "tempfile",
 ]
 
 [[package]]
@@ -4742,11 +4782,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "intelligence-route-policy-kernel"
+version = "0.1.0"
+dependencies = [
+ "intelligence-account-domain",
+]
+
+[[package]]
 name = "intelligence-run-domain"
 version = "0.1.0"
 dependencies = [
  "intelligence-capability-domain",
  "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "intelligence-settings-template-adapter"
+version = "0.1.0"
+dependencies = [
+ "blake3",
+ "intelligence-account-domain",
+ "intelligence-account-kernel",
+ "intelligence-settings-template-kernel",
+ "libc",
 ]
 
 [[package]]
@@ -4777,6 +4835,17 @@ version = "0.1.0"
 dependencies = [
  "intelligence-account-domain",
  "intelligence-autonomy-ceiling-kernel",
+]
+
+[[package]]
+name = "intelligence-supervisor-security-adapter"
+version = "0.1.0"
+dependencies = [
+ "intelligence-account-domain",
+ "intelligence-autonomy-ceiling-domain",
+ "intelligence-autonomy-ceiling-kernel",
+ "intelligence-capability-registry-kernel",
+ "intelligence-supervisor-kernel",
 ]
 
 [[package]]
@@ -8042,13 +8111,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-intelligence-account-adapter-inmemory"
-version = "0.1.0"
-dependencies = [
- "intelligence-account-domain",
-]
-
-[[package]]
 name = "oya-intelligence-adapter-anthropic-compat-api"
 version = "0.1.0"
 dependencies = [
@@ -8269,22 +8331,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-intelligence-autonomy-ceiling-app"
-version = "0.1.0"
-dependencies = [
- "intelligence-autonomy-ceiling-kernel",
- "intelligence-capability-registry-kernel",
- "oya-intelligence-autonomy-ceiling-domain",
-]
-
-[[package]]
-name = "oya-intelligence-autonomy-ceiling-domain"
-version = "0.1.0"
-dependencies = [
- "intelligence-autonomy-ceiling-kernel",
-]
-
-[[package]]
 name = "oya-intelligence-backbone-workload-live-app"
 version = "0.1.0"
 dependencies = [
@@ -8334,15 +8380,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-intelligence-claude-account-adapter"
-version = "0.1.0"
-dependencies = [
- "intelligence-account-domain",
- "intelligence-supervisor-kernel",
- "tokio",
-]
-
-[[package]]
 name = "oya-intelligence-cloud-mutation-domain"
 version = "0.1.0"
 dependencies = [
@@ -8350,15 +8387,6 @@ dependencies = [
  "intelligence-capability-domain",
  "intelligence-policy-domain",
  "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-intelligence-codex-account-adapter"
-version = "0.1.0"
-dependencies = [
- "intelligence-account-domain",
- "intelligence-supervisor-kernel",
- "tokio",
 ]
 
 [[package]]
@@ -8526,15 +8554,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-intelligence-gemini-account-adapter"
-version = "0.1.0"
-dependencies = [
- "intelligence-account-domain",
- "intelligence-supervisor-kernel",
- "tokio",
-]
-
-[[package]]
 name = "oya-intelligence-guardrails-domain"
 version = "0.1.0"
 dependencies = [
@@ -8550,14 +8569,6 @@ name = "oya-intelligence-guardrails-usecase"
 version = "0.1.0"
 dependencies = [
  "oya-intelligence-guardrails-domain",
-]
-
-[[package]]
-name = "oya-intelligence-jsonl-supervisor-adapter"
-version = "0.1.0"
-dependencies = [
- "intelligence-supervisor-kernel",
- "tempfile",
 ]
 
 [[package]]
@@ -8669,30 +8680,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-intelligence-route-policy-kernel"
-version = "0.1.0"
-dependencies = [
- "intelligence-account-domain",
-]
-
-[[package]]
 name = "oya-intelligence-run-file-adapter"
 version = "0.1.0"
 dependencies = [
  "intelligence-capability-domain",
  "intelligence-run-domain",
  "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-intelligence-settings-template-adapter"
-version = "0.1.0"
-dependencies = [
- "blake3",
- "intelligence-account-domain",
- "intelligence-account-kernel",
- "intelligence-settings-template-kernel",
- "libc",
 ]
 
 [[package]]
@@ -8724,32 +8717,19 @@ dependencies = [
 name = "oya-intelligence-supervisor-app"
 version = "0.1.0"
 dependencies = [
+ "intelligence-account-adapter-inmemory",
  "intelligence-account-domain",
+ "intelligence-autonomy-ceiling-domain",
+ "intelligence-cli-session-driver",
+ "intelligence-jsonl-supervisor-adapter",
+ "intelligence-route-policy-kernel",
+ "intelligence-settings-template-adapter",
  "intelligence-settings-template-kernel",
  "intelligence-supervisor-kernel",
- "oya-intelligence-account-adapter-inmemory",
- "oya-intelligence-autonomy-ceiling-domain",
- "oya-intelligence-claude-account-adapter",
- "oya-intelligence-codex-account-adapter",
- "oya-intelligence-gemini-account-adapter",
- "oya-intelligence-jsonl-supervisor-adapter",
- "oya-intelligence-route-policy-kernel",
- "oya-intelligence-settings-template-adapter",
- "oya-intelligence-supervisor-security-adapter",
+ "intelligence-supervisor-security-adapter",
  "tokio",
  "tracing",
  "tracing-subscriber",
-]
-
-[[package]]
-name = "oya-intelligence-supervisor-security-adapter"
-version = "0.1.0"
-dependencies = [
- "intelligence-account-domain",
- "intelligence-autonomy-ceiling-kernel",
- "intelligence-capability-registry-kernel",
- "intelligence-supervisor-kernel",
- "oya-intelligence-autonomy-ceiling-domain",
 ]
 
 [[package]]

@@ -93,10 +93,8 @@
       {
         "path": "scripts/tests/cloud_control_plane_operation_contract_check.py",
         "kind": "python_test_sprawl_backlog",
-        "present_in_current_head": true,
-        "retirement_action": "Primary path ported to //cloud/cloud-ci/gates/oya-cloud-ci-cloud-resource-contracts-app:oya-cloud-ci-cloud-resource-contracts-app-gate; legacy Python file remains fenced as local/provenance-only temporary bridge until final deletion/generated-face settlement.",
-        "authority_fence": "local_legacy_bridge_not_merge_authority_rust_primary_landed",
-        "replacement_target": "//cloud/cloud-ci/gates/oya-cloud-ci-cloud-resource-contracts-app:oya-cloud-ci-cloud-resource-contracts-app-gate"
+        "present_in_current_head": false,
+        "retirement_action": "Ported to //ci/facade/resource-contract-conformance:oya-cloud-ci-cloud-resource-contracts-app-gate and retired from scripts/tests."
       },
       {
         "path": "scripts/tests/cloud_dogfood_ci_toolchain_lane_reconciliation_check.py",
@@ -107,10 +105,8 @@
       {
         "path": "scripts/tests/cloud_enforceability_facets_check.py",
         "kind": "python_test_sprawl_backlog",
-        "present_in_current_head": true,
-        "retirement_action": "Primary path ported to //cloud/cloud-ci/gates/oya-cloud-ci-cloud-resource-contracts-app:oya-cloud-ci-cloud-resource-contracts-app-gate; legacy Python file remains fenced as local/provenance-only temporary bridge until final deletion/generated-face settlement.",
-        "authority_fence": "local_legacy_bridge_not_merge_authority_rust_primary_landed",
-        "replacement_target": "//cloud/cloud-ci/gates/oya-cloud-ci-cloud-resource-contracts-app:oya-cloud-ci-cloud-resource-contracts-app-gate"
+        "present_in_current_head": false,
+        "retirement_action": "Ported to //ci/facade/resource-contract-conformance:oya-cloud-ci-cloud-resource-contracts-app-gate and retired from scripts/tests."
       },
       {
         "path": "scripts/tests/cloud_hyperscaler_parity_taxonomy_check.py",
@@ -137,10 +133,8 @@
       {
         "path": "scripts/tests/cloud_resource_contract_parity_catalog_check.py",
         "kind": "python_test_sprawl_backlog",
-        "present_in_current_head": true,
-        "retirement_action": "Primary path ported to //cloud/cloud-ci/gates/oya-cloud-ci-cloud-resource-contracts-app:oya-cloud-ci-cloud-resource-contracts-app-gate; legacy Python file remains fenced as local/provenance-only temporary bridge until final deletion/generated-face settlement.",
-        "authority_fence": "local_legacy_bridge_not_merge_authority_rust_primary_landed",
-        "replacement_target": "//cloud/cloud-ci/gates/oya-cloud-ci-cloud-resource-contracts-app:oya-cloud-ci-cloud-resource-contracts-app-gate"
+        "present_in_current_head": false,
+        "retirement_action": "Ported to //ci/facade/resource-contract-conformance:oya-cloud-ci-cloud-resource-contracts-app-gate and retired from scripts/tests."
       }
     ]
   },

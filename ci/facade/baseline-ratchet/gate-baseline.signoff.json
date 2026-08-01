@@ -41,12 +41,6 @@
       "unjustified": [
         "docs/standards/image-discipline.md",
         "docs/standards/security-review.md",
-        "iam/adapters/pdp-cedar/BUCK",
-        "iam/adapters/pdp-cedar/Cargo.toml",
-        "iam/adapters/pdp-cedar/cedar/platform-templates.cedar",
-        "iam/adapters/pdp-cedar/cedar/platform.cedarschema",
-        "iam/adapters/pdp-cedar/src/lib.rs",
-        "iam/adapters/pdp-cedar/tests/cedar_pdp_conformance.rs",
         "registry/stores/canon-id-crosswalk.json",
         "registry/stores/design-store.json",
         "registry/stores/instructions-store.json"
@@ -295,6 +289,21 @@
       "code": "unjustified",
       "keys": [
         "ci/facade/baseline-ratchet/tests/gate_registration.rs"
+      ]
+    },
+    {
+      "date": "2026-08-01",
+      "retired_by": "oya-cloud-ci-firewall-signoff-fixer --fix (mechanical inert-entry retirement, FRIC-1781280001)",
+      "rationale": "Mechanically derived: entry key absent from the CANDIDATE tree (current AND proposed) — the door admits nothing in the change under evaluation, so the exemption protects nothing and is a standing re-introduction ticket. Inert-ness is read against the candidate, not the merge-base frozen face, so PR-admission and push-admission agree (FRIC-1781280001 inert-door detector; ADR-0551 hardening; FRIC-1781460000 PR/push symmetry).",
+      "gate": "cloud-ci-total-accounting",
+      "code": "unjustified",
+      "keys": [
+        "iam/adapters/pdp-cedar/BUCK",
+        "iam/adapters/pdp-cedar/Cargo.toml",
+        "iam/adapters/pdp-cedar/cedar/platform-templates.cedar",
+        "iam/adapters/pdp-cedar/cedar/platform.cedarschema",
+        "iam/adapters/pdp-cedar/src/lib.rs",
+        "iam/adapters/pdp-cedar/tests/cedar_pdp_conformance.rs"
       ]
     }
   ]
