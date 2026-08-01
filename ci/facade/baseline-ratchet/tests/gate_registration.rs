@@ -539,6 +539,24 @@ fn affected_set_long_step_telemetry_is_wired(workflow: &str) -> bool {
         && workflow.contains("--phase binding-affected-set-build-test --")
 }
 
+fn merge_base_test_health_forwards_the_owned_rustup_home(workflow: &str) -> bool {
+    let job = workflow_job(workflow, "gate-affected-target-set");
+    let Some(step) = workflow_steps(&job).into_iter().find(|step| {
+        step.iter().any(|line| {
+            line.trim()
+                == "- name: Materialize merge-base build + test baselines when affected-set needs FULL"
+        })
+    }) else {
+        return false;
+    };
+    let step = step.join("\n");
+    step.contains("--phase materialize-merge-base-test-health-baseline --")
+        && step.lines().any(|line| {
+            line.trim()
+                == "buck2 test //... --keep-going -- --env \"RUSTUP_HOME=${RUSTUP_HOME}\" \\"
+        })
+}
+
 /// True iff `crate_dir` is an entry in the `gate` job's `strategy.matrix` — i.e. it is a
 /// homogeneous matrix gate run via `cargo test -p ${{ matrix.crate }}`. Recognizes both the
 /// simple list form (`- <crate>`) and the `include`-object form (`{ crate: <crate>, label: … }`).
@@ -1437,5 +1455,26 @@ fn affected_set_long_step_telemetry_wraps_long_running_phases() {
     assert!(
         !affected_set_long_step_telemetry_is_wired(&without_baseline),
         "missing baseline materialization telemetry must be detected"
+    );
+}
+
+#[test]
+fn merge_base_test_health_uses_the_same_rustup_executor_contract_as_head() {
+    let root = repo_root();
+    let wf = workflow_path(&root);
+    let workflow =
+        fs::read_to_string(&wf).unwrap_or_else(|e| panic!("read workflow {}: {e}", wf.display()));
+
+    assert!(
+        merge_base_test_health_forwards_the_owned_rustup_home(&workflow),
+        "the merge-base test baseline must forward the owned RUSTUP_HOME exactly like the affected-set head test invocation"
+    );
+    let without_env = workflow.replace(
+        "--keep-going -- --env \"RUSTUP_HOME=${RUSTUP_HOME}\"",
+        "--keep-going",
+    );
+    assert!(
+        !merge_base_test_health_forwards_the_owned_rustup_home(&without_env),
+        "removing the merge-base rustup executor environment must be detected"
     );
 }
