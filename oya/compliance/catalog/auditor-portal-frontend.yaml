@@ -1,8 +1,9 @@
+# Legacy Backstage-shaped catalog import for one-way migration into the first-party portal.
 apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
   name: compliance-auditor-portal
-  description: Read-only auditor portal Backstage plugin per IP-007.
+  description: Read-only first-party auditor portal module per ADR-0209 and ADR-0394.
 spec:
   type: website
   lifecycle: experimental

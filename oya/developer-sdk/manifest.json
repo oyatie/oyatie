@@ -15,7 +15,7 @@
     "inheritance": [
       "Stripe — third-party developer onboarding + KYC/AML + revenue share + payout",
       "Apple Developer Program — signing keys + sandbox + dev portal",
-      "Backstage — developer portal substrate (per ADR-0170)",
+      "First-party Rust developer portal composition (per ADR-0394)",
       "OpenAPI 3.2 codegen — SDK families per ADR-0185"
     ]
   },
@@ -52,7 +52,7 @@
     },
     {
       "name": "dev-portal",
-      "description": "Backstage-extension developer portal: API browser, try-in-sandbox, app submission, app metrics + revenue.",
+      "description": "First-party portal module: API browser, try-in-sandbox, app submission, app metrics + revenue.",
       "crates": [],
       "status": "planned"
     },
@@ -175,10 +175,10 @@
   ],
   "ips": [
     {
-      "id": "IP-001-layer-a-postgres-openbao-backstage-iac",
-      "title": "IP-001: Layer-A Postgres + OpenBao + Backstage IaC",
+      "id": "IP-001-layer-a-postgres-openbao-iac",
+      "title": "IP-001: Layer-A Postgres + OpenBao IaC",
       "acceptance_status": "pending",
-      "file": "microservices/developer-sdk/implementation-plans/IP-001-layer-a-postgres-openbao-backstage-iac.md"
+      "file": "microservices/developer-sdk/implementation-plans/IP-001-layer-a-postgres-openbao-iac.md"
     },
     {
       "id": "IP-002-developer-onboarding-kernel-domain",
@@ -217,10 +217,10 @@
       "file": "microservices/developer-sdk/implementation-plans/IP-007-sandbox-provisioner-tenant-on-demand.md"
     },
     {
-      "id": "IP-008-dev-portal-backstage-extension",
-      "title": "IP-008: dev portal Backstage extension (API browser + try-in-sandbox)",
+      "id": "IP-008-dev-portal-first-party-module",
+      "title": "IP-008: first-party developer portal module (API browser + try-in-sandbox)",
       "acceptance_status": "pending",
-      "file": "microservices/developer-sdk/implementation-plans/IP-008-dev-portal-backstage-extension.md"
+      "file": "microservices/developer-sdk/implementation-plans/IP-008-dev-portal-first-party-module.md"
     },
     {
       "id": "IP-009-dev-portal-app-submission-flow",
@@ -276,7 +276,6 @@
   "lts_pins": {
     "postgres": "16.0",
     "openbao": "see ADR-0211",
-    "backstage": "1.x",
     "node": "22 LTS",
     "rust": "1.97.1",
     "swift": "5.10",
@@ -316,10 +315,10 @@
       "file": "docs/decisions/ADR-0132-product-platform-and-bundle-dissolution.md"
     },
     {
-      "id": "ADR-0170",
-      "title": "Backstage developer portal substrate",
+      "id": "ADR-0394",
+      "title": "First-party Rust internal developer platform",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0170-backstage-developer-portal-substrate.md"
+      "file": "docs/decisions/ADR-0394-bespoke-rust-idp-central-hub.md"
     },
     {
       "id": "ADR-0185",

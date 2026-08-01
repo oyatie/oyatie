@@ -6,15 +6,15 @@
   },
   "_metadata": {
     "source": "docs/decisions",
-    "total_adrs": 440,
-    "numbering": "ADR-0001..ADR-0630 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0037, ADR-0041, ADR-0050, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089, ADR-0125..ADR-0127, ADR-0224..ADR-0233, ADR-0247, ADR-0256, ADR-0259..ADR-0262, ADR-0264..ADR-0271, ADR-0274..ADR-0275, ADR-0277..ADR-0279, ADR-0281..ADR-0283, ADR-0285..ADR-0291, ADR-0322..ADR-0323, ADR-0327, ADR-0342, ADR-0345, ADR-0385..ADR-0386, ADR-0395..ADR-0396, ADR-0398..ADR-0475, ADR-0477, ADR-0483..ADR-0505, ADR-0574..ADR-0579, ADR-0583..ADR-0585, ADR-0594, ADR-0601..ADR-0602)",
-    "gaps": ["ADR-0012", "ADR-0033", "ADR-0037", "ADR-0041", "ADR-0050", "ADR-0068", "ADR-0070..ADR-0082", "ADR-0084..ADR-0089", "ADR-0125..ADR-0127", "ADR-0224..ADR-0233", "ADR-0247", "ADR-0256", "ADR-0259..ADR-0262", "ADR-0264..ADR-0271", "ADR-0274..ADR-0275", "ADR-0277..ADR-0279", "ADR-0281..ADR-0283", "ADR-0285..ADR-0291", "ADR-0322..ADR-0323", "ADR-0327", "ADR-0342", "ADR-0345", "ADR-0385..ADR-0386", "ADR-0395..ADR-0396", "ADR-0398..ADR-0475", "ADR-0477", "ADR-0483..ADR-0505", "ADR-0574..ADR-0579", "ADR-0583..ADR-0585", "ADR-0594", "ADR-0601..ADR-0602"],
+    "total_adrs": 439,
+    "numbering": "ADR-0001..ADR-0630 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0037, ADR-0041, ADR-0050, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089, ADR-0125..ADR-0127, ADR-0170, ADR-0224..ADR-0233, ADR-0247, ADR-0256, ADR-0259..ADR-0262, ADR-0264..ADR-0271, ADR-0274..ADR-0275, ADR-0277..ADR-0279, ADR-0281..ADR-0283, ADR-0285..ADR-0291, ADR-0322..ADR-0323, ADR-0327, ADR-0342, ADR-0345, ADR-0385..ADR-0386, ADR-0395..ADR-0396, ADR-0398..ADR-0475, ADR-0477, ADR-0483..ADR-0505, ADR-0574..ADR-0579, ADR-0583..ADR-0585, ADR-0594, ADR-0601..ADR-0602)",
+    "gaps": ["ADR-0012", "ADR-0033", "ADR-0037", "ADR-0041", "ADR-0050", "ADR-0068", "ADR-0070..ADR-0082", "ADR-0084..ADR-0089", "ADR-0125..ADR-0127", "ADR-0170", "ADR-0224..ADR-0233", "ADR-0247", "ADR-0256", "ADR-0259..ADR-0262", "ADR-0264..ADR-0271", "ADR-0274..ADR-0275", "ADR-0277..ADR-0279", "ADR-0281..ADR-0283", "ADR-0285..ADR-0291", "ADR-0322..ADR-0323", "ADR-0327", "ADR-0342", "ADR-0345", "ADR-0385..ADR-0386", "ADR-0395..ADR-0396", "ADR-0398..ADR-0475", "ADR-0477", "ADR-0483..ADR-0505", "ADR-0574..ADR-0579", "ADR-0583..ADR-0585", "ADR-0594", "ADR-0601..ADR-0602"],
     "next_adr": "ADR-0631",
     "status_counts": {
-      "Accepted": 175,
+      "Accepted": 178,
       "Accepted (amendment)": 2,
       "Amended": 2,
-      "Proposed": 156,
+      "Proposed": 152,
       "Proposed (conditional: Accepted only after ADR-0377-D2 and ADR-0377-D3 code/tests pass)": 1,
       "Proposed (target: Accepted upon PR #143 merge to dev)": 1,
       "Rejected": 1,
@@ -1719,18 +1719,6 @@
       "related": ["ADR-0005", "ADR-0011", "ADR-0037", "ADR-0040", "ADR-0145", "ADR-0167", "ADR-0168"]
     },
     {
-      "adr": "ADR-0170",
-      "number": 170,
-      "title": "Backstage-style internal developer portal",
-      "status": "Accepted",
-      "owner": "axis-developer-experience",
-      "date": "2026-05-18",
-      "path": "decisions/ADR-0170-developer-portal.md",
-      "supersedes": [],
-      "superseded_by": [],
-      "related": ["ADR-0011", "ADR-0019", "ADR-0025", "ADR-0042", "ADR-0131", "ADR-0139", "ADR-0167", "ADR-0394"]
-    },
-    {
       "adr": "ADR-0171",
       "number": 171,
       "title": "Multi-cluster federation via ArgoCD ApplicationSets + Cluster API",
@@ -2124,7 +2112,7 @@
       "path": "decisions/ADR-0203-documentation-engine-three-tier.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": ["ADR-0170"]
+      "related": ["ADR-0393", "ADR-0394"]
     },
     {
       "adr": "ADR-0204",
@@ -2196,7 +2184,7 @@
       "path": "decisions/ADR-0209-compliance-evidence-automation.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": ["ADR-0145", "ADR-0153", "ADR-0170", "ADR-0181", "ADR-0183"]
+      "related": ["ADR-0145", "ADR-0153", "ADR-0394", "ADR-0181", "ADR-0183"]
     },
     {
       "adr": "ADR-0210",
@@ -2244,7 +2232,7 @@
       "path": "decisions/ADR-0213-ecosystem-as-a-service-architecture.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": ["ADR-0001", "ADR-0002", "ADR-0003", "ADR-0007", "ADR-0008", "ADR-0028", "ADR-0037", "ADR-0056", "ADR-0065", "ADR-0105", "ADR-0110", "ADR-0123", "ADR-0131", "ADR-0132", "ADR-0139", "ADR-0147", "ADR-0170", "ADR-0181", "ADR-0185", "ADR-0199", "ADR-0200", "ADR-0211", "ADR-0212"]
+      "related": ["ADR-0001", "ADR-0002", "ADR-0003", "ADR-0007", "ADR-0008", "ADR-0028", "ADR-0037", "ADR-0056", "ADR-0065", "ADR-0105", "ADR-0110", "ADR-0123", "ADR-0131", "ADR-0132", "ADR-0139", "ADR-0147", "ADR-0394", "ADR-0181", "ADR-0185", "ADR-0199", "ADR-0200", "ADR-0211", "ADR-0212"]
     },
     {
       "adr": "ADR-0214",
@@ -3857,14 +3845,14 @@
     {
       "adr": "ADR-0394",
       "number": 394,
-      "title": "Bespoke-Rust IDP central hub (Leptos portal + ops-BFF; supersedes/reconciles ADR-0170)",
-      "status": "Proposed",
+      "title": "First-party Rust internal developer platform",
+      "status": "Accepted",
       "owner": "council-architecture",
       "date": "2026-05-29",
       "path": "decisions/ADR-0394-bespoke-rust-idp-central-hub.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": ["ADR-0001", "ADR-0011", "ADR-0067", "ADR-0090", "ADR-0130", "ADR-0131", "ADR-0132", "ADR-0170", "ADR-0203", "ADR-0209", "ADR-0213", "ADR-0372", "ADR-0393", "ADR-0509"]
+      "related": ["ADR-0001", "ADR-0011", "ADR-0067", "ADR-0090", "ADR-0130", "ADR-0131", "ADR-0132", "ADR-0203", "ADR-0209", "ADR-0213", "ADR-0372", "ADR-0393", "ADR-0509", "ADR-0515", "ADR-0615"]
     },
     {
       "adr": "ADR-0397",
@@ -4662,7 +4650,7 @@
       "adr": "ADR-0565",
       "number": 565,
       "title": "Zero GraphQL in the owned API surface",
-      "status": "Proposed",
+      "status": "Accepted",
       "owner": "council-architecture",
       "date": "2026-06-21",
       "path": "decisions/ADR-0565-zero-graphql-in-the-owned-api-surface.md",
@@ -5106,7 +5094,7 @@
       "adr": "ADR-0614",
       "number": 614,
       "title": "De-commit the reorg move-manifest bijection",
-      "status": "Proposed",
+      "status": "Accepted",
       "owner": "cloud-ci-platform",
       "date": "2026-07-09",
       "path": "decisions/ADR-0614-de-commit-reorg-move-manifest-bijection.md",
@@ -5130,7 +5118,7 @@
       "adr": "ADR-0616",
       "number": 616,
       "title": "De-commit the firewall frozen-reference baseline",
-      "status": "Proposed",
+      "status": "Accepted",
       "owner": "council-architecture",
       "date": "2026-07-09",
       "path": "decisions/ADR-0616-de-commit-firewall-frozen-reference-baseline.md",
