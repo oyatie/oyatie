@@ -604,22 +604,6 @@ jobs:
           # is read while triaging a recent run, never 90 days later.
           retention-days: 30
           if-no-files-found: error
-      - name: Upload runner disk reclaim operator artifact (buck2 lane)
-        continue-on-error: true
-# BEST-EFFORT (evidence, not verdict): an artifact-storage-quota failure on THIS step must
-# not turn a computed gate verdict red. Same class as the producer-regen faces upload —
-# the gate result is decided before any upload runs.
-        # FAILURE-ONLY triage. A disk-reclaim report from a lane that PASSED is never opened —
-        # the job's own conclusion is the verdict. FRIC-017 was "No space left on device", and
-        # that is exactly a failing run, where this report is the primary evidence.
-        if: failure()
-        # actions/upload-artifact@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
-        with:
-          name: runner-disk-reclaim-buck2
-          path: ${{ runner.temp }}/runner-disk-reclaim-buck2.json
-          retention-days: 30
-          if-no-files-found: warn
   # ── BINDING WORKSPACE COVERAGE (ADR-0554, FRIC-1781310000). Closes the largest false-green
   #    channel: the buck2 lane above is scoped to //ci/..., so code anywhere else
   #    (oya/*, libs/*, cloud/* services) could merge broken — proven live by PR #651 head
@@ -705,10 +689,11 @@ jobs:
           # The affected-set runner and its direct merge-base baseline command below both forward
           # this pinned RUSTUP_HOME through Buck2's deliberately narrow test-executor environment.
           rustc --version && (cd "$(mktemp -d)" && cargo --version)
-      # This lane also starts from an empty runner-local `buck-out` (ADR-0554 D10). It performs
-      # the merge-base baseline first and reuses only the Buck2 state created within this job; no
-      # cross-run filesystem snapshot is restored. A future warm path must be Buck2-aware remote
-      # action-cache + CAS, gated by the existing separate license and cold canary.
+      # This lane also starts from an empty runner-local `buck-out` (ADR-0554 D10). A FULL-tier
+      # pull-request fallback builds the merge-base in a separate clean worktree with its own cold
+      # runner-local state; the candidate root remains isolated and cold. No cross-run filesystem
+      # snapshot is restored. A future warm path must be Buck2-aware remote action-cache + CAS,
+      # gated by the existing separate license and cold canary.
       # KEEPS materializing (not converted to ADR-0556 D5 QW-1 artifact reuse): same rationale
       # as the buck2 lane — the cone's gate tests consume the per-job merge-base frozen
       # baseline (ADR-0551), and this lane's own build-health baseline below is per-job by
@@ -742,16 +727,14 @@ jobs:
           # rather than re-fetching it — a future fetch-depth change then fails loudly
           # right here instead of yielding a silently wrong merge-base downstream.
           git rev-parse --verify "refs/remotes/origin/${BASE_REF}" >/dev/null 2>&1 || { echo "refs/remotes/origin/${BASE_REF} missing — this job's checkout must keep fetch-depth: 0"; exit 1; }
-      # ── BUILD-HEALTH BASELINE (ADR-0554 D9/D10 same-root build; ADR-0551 merge-base frozen
+      # ── BUILD-HEALTH BASELINE (ADR-0554 D9 ratchet / D10 cold isolation; ADR-0551 merge-base frozen
       #    pattern). On a pull_request, derive the affected-set plan FIRST. Most PRs stay in the
       #    affected cone and do not need a merge-base full-workspace build at all; only a derived
       #    FULL decision needs the MERGE-BASE build-health baseline used by the ratchet. When FULL
-      #    is required, materialize that baseline IN THE MAIN ROOT. D10 removed cross-run filesystem
-      #    snapshots, so this job starts cold; keeping both tree states in one root still lets the
-      #    candidate reuse safe Buck2 state produced by its own merge-base pass. We detach the SAME
-      #    working tree to the merge-base COMMITTED tree-ish (the
-      #    candidate working tree is removed from disk for the build), run the full keep-going
-      #    build, capture per-target pass/fail, then a TRAP restores the candidate on EXIT. The
+      #    is required, materialize that baseline in a SEPARATE clean worktree at the merge-base
+      #    COMMITTED tree-ish. D10 removes cross-run filesystem snapshots, so both that fallback
+      #    worktree and the untouched candidate root start independently cold. Run the full
+      #    keep-going build, capture per-target pass/fail, then remove the temporary worktree. The
       #    affected-set FULL tier grandfathers targets already failing at the merge-base and blocks
       #    only REGRESSIONS. Skipped for push/merge_group/dispatch (the admission tier is a hard
       #    full build — no grandfathering).
@@ -759,9 +742,9 @@ jobs:
       #    ANTI-LAUNDERING (ADR-0554 D6, preserved): the baseline failure-set comes ENTIRELY from
       #    the merge-base COMMITTED tree (git object history — candidate-uncontrollable); during the
       #    baseline build the candidate working tree is GONE from disk, so it cannot feed the
-      #    baseline; the report reaches the verdict ONLY via --baseline-report. Job-local Buck2 state
-      #    can change only wall-clock, never the baseline SOURCE; no cross-run `buck-out` bytes enter
-      #    this job (ADR-0554 D10). GH #899 activates the trusted D8 consumer first:
+      #    baseline; the report reaches the verdict ONLY via --baseline-report. Each worktree's
+      #    runner-local Buck2 state can change only wall-clock, never the baseline SOURCE; no
+      #    cross-run `buck-out` bytes enter this job (ADR-0554 D10). GH #899 activates the trusted D8 consumer first:
       #    use an exact push-to-dev baseline artifact when provenance and schema validate, else
       #    fail closed to the same in-job merge-base rebuild below.
       - name: Materialize merge-base build + test baselines when affected-set needs FULL
