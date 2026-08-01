@@ -1,0 +1,23 @@
+rust_library(
+    name = "intelligence-jsonl-supervisor-adapter",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "intelligence_jsonl_supervisor_adapter",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//intelligence/core/supervisor-kernel:intelligence-supervisor-kernel",
+        "third-party//:tempfile",
+    ],
+)
+
+rust_test(
+    name = "intelligence-jsonl-supervisor-adapter-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "intelligence_jsonl_supervisor_adapter",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//intelligence/core/supervisor-kernel:intelligence-supervisor-kernel",
+        "third-party//:tempfile",
+    ],
+)

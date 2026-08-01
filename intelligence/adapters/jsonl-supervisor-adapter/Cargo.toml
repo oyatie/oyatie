@@ -1,0 +1,26 @@
+# Naming: oya-<product>-<feature>-<layer> per v4 BNF.
+#         product=foundry; feature=jsonl-supervisor; layer=adapter (12-layer-enum L4).
+#         Justification: file-backed InboxStore + OutboxSink for the foundry supervisor
+#         lane (M02-P06). BC-tokens=[jsonl,supervisor] + layer=adapter; the only
+#         fsync-aware crate in the supervisor stack (Option D, v4 §A.3).
+
+[package]
+name = "intelligence-jsonl-supervisor-adapter"
+version = "0.1.0"
+edition.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[lib]
+name = "intelligence_jsonl_supervisor_adapter"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+intelligence-supervisor-kernel = { path = "../../core/supervisor-kernel" }
+
+[dev-dependencies]
+tempfile = { workspace = true }
+
+[lints]
+workspace = true
