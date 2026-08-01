@@ -75,7 +75,7 @@ Plus a fifth, project-management quadrant for the consolidated docs themselves (
 | **Trust portal** | `trust.oyatie.com/` | `ops-compliance` + `council-privacy` | Generated from compliance evidence + audit-chain anchor proofs + DPIA / SOC2 / ISMS-P attestations |
 | **Status page** | `status.oyatie.com/` | `ops-sre-reliability` | Generated from SLO catalog + incident management |
 | **Engineering dev surface** | `dev.oyatie.com/` per ADR-0025 | `axis-foundry` (foundry surface) | Mix: catalog UI + Leptos portal |
-| **Internal wiki** | `wiki.oyatie.com/` (Backstage-like; later `oya-portal`) | per-team | Mix: agent-authored + human-edited |
+| **Internal wiki** | `wiki.oyatie.com/` within the first-party Rust portal | per-team | Mix: agent-authored + human-edited; Backstage is at most a one-way import/reference source |
 
 ---
 

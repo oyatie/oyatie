@@ -1,4 +1,5 @@
-# Backstage catalog record per ADR-0170.
+# Legacy Backstage-shaped catalog import. It is migration input for the first-party ADR-0394
+# portal projection, not a Backstage runtime or catalog authority.
 apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:

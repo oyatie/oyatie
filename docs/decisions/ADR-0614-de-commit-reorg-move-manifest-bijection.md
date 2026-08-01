@@ -1,7 +1,7 @@
 ---
 id: ADR-0614
 title: "De-commit the reorg move-manifest bijection (finish the pure-derivation strangler for the last committed reorg face)"
-status: Proposed
+status: Accepted
 planning_impact: false
 deciders: founder
 date: 2026-07-09
@@ -22,15 +22,11 @@ milestone: W0
 
 ## Status
 
-**Proposed - 2026-07-09** (ratified under the founder's 2026-07-08 autonomous-drive delegation and
-an explicit 2026-07-09 delegation for this fix with "what would hyperscalers do" as the bar and
-"ADR reversal is ok" as the standing approval to reverse ADR-0563's committed stance; door:
-one-way — same policy class as ADR-0595/ADR-0613: once the control-plane re-tracking guard
-(`generated_artifact_not_tracked_path_is_tracked`) covers this path, "the move bijection is a pure
-derivation, not a contributor merge surface" is a one-way commitment). Lifecycle status stays
-**Proposed** and advances to Accepted when the manifest / gitignore / registry-drift / ADR-0563
-propagation lands (the ADR-0595/ADR-0613 pattern — a fresh `Accepted` ADR that has not yet reached
-its propagation faces trips the cross-artifact-agreement `unpropagated_decision` invariant).
+**Accepted — 2026-08-01.** The founder selected the de-committed, controller-derived move-manifest
+posture during the north-star authority interview. The manifest, gitignore, deterministic
+regeneration, fail-closed path resolution, registry-drift checks, and ADR-0563 amendment are already
+present. The bijection is a pure derivation rather than a contributor merge surface; re-tracking it
+requires a later Accepted reversing ADR.
 
 ## Context
 

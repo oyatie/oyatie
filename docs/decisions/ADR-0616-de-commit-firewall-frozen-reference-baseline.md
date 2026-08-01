@@ -1,7 +1,7 @@
 ---
 id: ADR-0616
 title: "De-commit the firewall frozen-reference baseline — regenerate it from merge-base SOURCE (reverses ADR-0596)"
-status: Proposed
+status: Accepted
 planning_impact: false
 deciders: founder
 date: 2026-07-09
@@ -21,9 +21,11 @@ milestone: W0
 
 ## Status
 
-**Proposed - 2026-07-09.** Reverses ADR-0596 ("frozen references must stay committed") and overrides
-ADR-0613's same-day reaffirmation of it. Authored for founder sign-off; **records an HONEST trust delta**
-(see Decision §Trust) rather than claiming ADR-0551/0596 invariant-preservation. Door: one-way.
+**Accepted — 2026-08-01.** The founder selected deterministic regeneration from merge-base source
+during the north-star authority interview. This reverses ADR-0596's committed-face requirement and
+narrows ADR-0613's earlier reaffirmation accordingly. The trust delta in Decision §Trust remains
+binding: the baseline must be regenerated twice from the immutable merge-base source and bound to
+that source by provenance. Door: one-way.
 
 ## Context
 

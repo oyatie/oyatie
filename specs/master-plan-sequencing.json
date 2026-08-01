@@ -34,11 +34,22 @@
       "authority_note": "Gate-facing lifecycle propagation only. These markers satisfy the historical roadmap face of the artifact-inventory firewall; they do not restore this sidecar as live plan authority, mint work-item IDs, order work, or prove rollout.",
       "decisions": [
         {
-          "id": "ADR-0170",
+          "id": "ADR-0394",
           "lifecycle_state": "Accepted",
+          "planning_impact": true,
           "sequencing_effect": "none",
-          "disposition_ref": "/specs/masterplan.json#masterplan_v2.planning_entry_contract",
-          "note": "Lifecycle-repair propagation only; the unresolved internal-developer-portal choice remains a founder decision and this marker does not schedule its rollout."
+          "disposition_ref": "/specs/masterplan.json#planning_authority.bound_adrs",
+          "hold_state": "HOLD(Planning)",
+          "note": "Accepted first-party Rust developer-portal authority propagation. Its implementation uses existing MPV2 work and does not mint or dispatch a wave."
+        },
+        {
+          "id": "ADR-0565",
+          "lifecycle_state": "Accepted",
+          "planning_impact": true,
+          "sequencing_effect": "none",
+          "disposition_ref": "/specs/masterplan.json#planning_authority.bound_adrs",
+          "hold_state": "HOLD(Planning)",
+          "note": "Accepted zero-GraphQL authority propagation. It constrains product contracts without minting or dispatching plan work."
         },
         {
           "id": "ADR-0613",
@@ -46,6 +57,24 @@
           "sequencing_effect": "none",
           "disposition_ref": "/specs/masterplan.json#masterplan_v2.planning_entry_contract",
           "note": "Accepted projection-policy propagation only; planning_impact is false and this marker does not add plan work."
+        },
+        {
+          "id": "ADR-0614",
+          "lifecycle_state": "Accepted",
+          "planning_impact": false,
+          "sequencing_effect": "none",
+          "disposition_ref": "/specs/masterplan.json#masterplan_v2.accepted_decision_propagation_dispositions",
+          "hold_state": "HOLD(Planning)",
+          "note": "Accepted de-committed move-manifest lifecycle propagation only; no sequencing or dispatch effect."
+        },
+        {
+          "id": "ADR-0616",
+          "lifecycle_state": "Accepted",
+          "planning_impact": false,
+          "sequencing_effect": "none",
+          "disposition_ref": "/specs/masterplan.json#masterplan_v2.accepted_decision_propagation_dispositions",
+          "hold_state": "HOLD(Planning)",
+          "note": "Accepted merge-base-source frozen-baseline lifecycle propagation only; no sequencing or dispatch effect."
         },
         {
           "id": "ADR-0619",
