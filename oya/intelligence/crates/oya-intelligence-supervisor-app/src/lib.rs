@@ -9,8 +9,8 @@ use std::sync::{Arc, Mutex};
 use tokio::sync::Semaphore;
 
 use intelligence_account_domain::check_silent_switch;
-use oya_intelligence_route_policy_kernel::{RouteConstraints, RoutePolicy};
-use oya_intelligence_settings_template_adapter::TemplateStore;
+use intelligence_route_policy_kernel::{RouteConstraints, RoutePolicy};
+use intelligence_settings_template_adapter::TemplateStore;
 use intelligence_settings_template_kernel::{DriftState, SettingsRenderer};
 use intelligence_supervisor_kernel::{
     AccountId, AccountSnapshotProvider, AuditChainPort, AutonomyCeilingPort, InboxStore,

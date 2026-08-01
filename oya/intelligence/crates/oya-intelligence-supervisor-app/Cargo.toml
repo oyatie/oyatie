@@ -27,20 +27,18 @@ harness = false
 
 [dependencies]
 intelligence-supervisor-kernel = { path = "../../../../intelligence/core/supervisor-kernel" }
-oya-intelligence-jsonl-supervisor-adapter = { path = "../oya-intelligence-jsonl-supervisor-adapter" }
-oya-intelligence-claude-account-adapter = { path = "../oya-intelligence-claude-account-adapter" }
-oya-intelligence-codex-account-adapter = { path = "../oya-intelligence-codex-account-adapter" }
-oya-intelligence-gemini-account-adapter = { path = "../oya-intelligence-gemini-account-adapter" }
-oya-intelligence-route-policy-kernel = { path = "../oya-intelligence-route-policy-kernel" }
+intelligence-jsonl-supervisor-adapter = { path = "../../../../intelligence/adapters/jsonl-supervisor-adapter" }
+intelligence-cli-session-driver = { path = "../../../../intelligence/adapters/cli-session-driver" }
+intelligence-route-policy-kernel = { path = "../../../../intelligence/core/route-policy-kernel" }
 intelligence-account-domain = { path = "../../../../intelligence/core/account-domain" }
 tokio = { workspace = true, features = ["sync"] }
 tracing.workspace = true
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
 intelligence-settings-template-kernel = { version = "0.1.0", path = "../../../../intelligence/core/settings-template-kernel" }
-oya-intelligence-settings-template-adapter = { version = "0.1.0", path = "../oya-intelligence-settings-template-adapter" }
-oya-intelligence-autonomy-ceiling-domain = { version = "0.1.0", path = "../oya-intelligence-autonomy-ceiling-domain" }
-oya-intelligence-supervisor-security-adapter = { version = "0.1.0", path = "../oya-intelligence-supervisor-security-adapter" }
-oya-intelligence-account-adapter-inmemory = { version = "0.1.0", path = "../oya-intelligence-account-adapter-inmemory" }
+intelligence-settings-template-adapter = { version = "0.1.0", path = "../../../../intelligence/adapters/settings-template-adapter" }
+intelligence-autonomy-ceiling-domain = { version = "0.1.0", path = "../../../../intelligence/core/autonomy-ceiling-domain" }
+intelligence-supervisor-security-adapter = { version = "0.1.0", path = "../../../../intelligence/adapters/supervisor-security-adapter" }
+intelligence-account-adapter-inmemory = { version = "0.1.0", path = "../../../../intelligence/adapters/account-adapter-inmemory" }
 
 [lints]
 workspace = true
