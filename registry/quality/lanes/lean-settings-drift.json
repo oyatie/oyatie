@@ -2,14 +2,14 @@
   "$schema": "https://docs.oyatie.com/schemas/quality-lane.schema.json",
   "lane_id": "lean-settings-drift",
   "status": "planned",
-  "owner_team": "axis-foundry",
+  "owner_team": "axis-intelligence",
   "purpose": "CI lane contract for settings-template drift detection across provider account templates; feature-gated until account registry volume reaches the declared threshold.",
   "threshold": {
     "account_rows_minimum": 10,
     "below_threshold_action": "fixture-only"
   },
   "commands": [
-    "cargo test -p oya-intelligence-settings-template-kernel",
-    "cargo test -p oya-intelligence-settings-template-adapter"
+    "cargo test -p intelligence-settings-template-kernel",
+    "cargo test -p intelligence-settings-template-adapter"
   ]
 }
