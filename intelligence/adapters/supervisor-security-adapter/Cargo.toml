@@ -1,0 +1,16 @@
+[package]
+name = "intelligence-supervisor-security-adapter"
+version = "0.1.0"
+edition.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+intelligence-supervisor-kernel = { path = "../../core/supervisor-kernel" }
+intelligence-autonomy-ceiling-domain = { path = "../../core/autonomy-ceiling-domain" }
+intelligence-autonomy-ceiling-kernel = { path = "../../core/autonomy-ceiling-kernel" }
+intelligence-capability-registry-kernel = { path = "../../core/capability-registry-kernel" }
+intelligence-account-domain = { path = "../../core/account-domain" }
+
+[lints]
+workspace = true

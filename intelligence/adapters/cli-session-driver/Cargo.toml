@@ -5,7 +5,7 @@
 #         five values now carried by CliDriverSpec.
 
 [package]
-name = "oya-intelligence-cli-session-driver"
+name = "intelligence-cli-session-driver"
 edition.workspace = true
 version.workspace = true
 rust-version.workspace = true
@@ -13,14 +13,14 @@ publish = false
 license = "Apache-2.0"
 
 [lib]
-name = "oya_intelligence_cli_session_driver"
+name = "intelligence_cli_session_driver"
 path = "src/lib.rs"
 doctest = false
 
 [dependencies]
-intelligence-supervisor-kernel = { path = "../../../../intelligence/core/supervisor-kernel" }
+intelligence-supervisor-kernel = { path = "../../core/supervisor-kernel" }
 tokio = { workspace = true, features = ["process"] }
-intelligence-account-domain = { version = "0.1.0", path = "../../../../intelligence/core/account-domain" }
+intelligence-account-domain = { version = "0.1.0", path = "../../core/account-domain" }
 
 [lints]
 workspace = true

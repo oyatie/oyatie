@@ -1,0 +1,20 @@
+[package]
+name = "intelligence-autonomy-ceiling-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[lib]
+name = "intelligence_autonomy_ceiling_app"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+intelligence-autonomy-ceiling-kernel = { path = "../autonomy-ceiling-kernel" }
+intelligence-autonomy-ceiling-domain = { path = "../autonomy-ceiling-domain" }
+intelligence-capability-registry-kernel = { path = "../capability-registry-kernel" }
+
+[lints]
+workspace = true

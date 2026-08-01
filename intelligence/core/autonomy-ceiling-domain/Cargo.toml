@@ -1,5 +1,5 @@
 [package]
-name = "oya-intelligence-autonomy-ceiling-domain"
+name = "intelligence-autonomy-ceiling-domain"
 edition.workspace = true
 version.workspace = true
 rust-version.workspace = true
@@ -7,12 +7,12 @@ publish = false
 license = "Apache-2.0"
 
 [lib]
-name = "oya_intelligence_autonomy_ceiling_domain"
+name = "intelligence_autonomy_ceiling_domain"
 path = "src/lib.rs"
 doctest = false
 
 [dependencies]
-intelligence-autonomy-ceiling-kernel = { path = "../../../../intelligence/core/autonomy-ceiling-kernel" }
+intelligence-autonomy-ceiling-kernel = { path = "../autonomy-ceiling-kernel" }
 
 [lints]
 workspace = true
