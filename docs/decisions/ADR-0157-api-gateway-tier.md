@@ -8,6 +8,8 @@ supersedes: []
 superseded_by: []
 related: [ADR-0009, ADR-0049, ADR-0114, ADR-0121, ADR-0128, ADR-0145, ADR-0148, ADR-0182]
 architectural_authority: ADR-0182 (gateway-vs-mesh separation principle; this ADR picks the implementation)
+last_reconciled: 2026-08-01
+reconciled_with: [ADR-0203, ADR-0258]
 related_specs:
   - /specs/hyperscaler-architecture-invariants.json
   - /specs/per-microservice-flat-layout.json
@@ -17,7 +19,13 @@ related_specs:
 
 ## Status
 
-Accepted (2026-05-18). Promotes a dedicated `api-gateway` µservice as the canonical north-south entry point for every external (tenant-facing, partner-facing, public-internet) HTTP/gRPC call into the oyatie hyperscaler shape.
+Accepted (2026-05-18). Promotes a dedicated `api-gateway` µservice as the canonical north-south entry point for every external (tenant-facing, partner-facing, public-internet) REST, webhook, event, and streaming call into the oyatie hyperscaler shape.
+
+### Public-contract reconciliation
+
+Per ADR-0203 and ADR-0258, public contract carriers are REST documented by OpenAPI 3.2 plus
+webhooks, events, and streams documented by AsyncAPI 3.1. gRPC over HTTP/2 (H2) with proto3 is
+internal-only service-to-service traffic under mTLS; it is not a public API contract.
 
 ## Context
 
@@ -41,11 +49,11 @@ ADR-0157 promotes this from "implied by ADR-0121" to a first-class µservice dec
 
 ## Decision
 
-Oyatie adopts a dedicated **`api-gateway` µservice** as the canonical north-south entry tier. Every external HTTP/gRPC request transits the api-gateway tier before the cell-µservice tenant-routing layer hands it to a workload µservice.
+Oyatie adopts a dedicated **`api-gateway` µservice** as the canonical north-south entry tier. Every external REST, webhook, event, or streaming request transits the api-gateway tier before the cell-µservice tenant-routing layer hands it to a workload µservice.
 
 ### Operational shape
 
-1. **Termination.** TLS 1.3 termination at the api-gateway edge (cert rotation per ADR-0064 canonical-base + per-pack overlay). HTTP/2 + gRPC + WebSocket all supported.
+1. **Termination.** TLS 1.3 termination at the api-gateway edge (cert rotation per ADR-0064 canonical-base + per-pack overlay). Public REST over HTTP/1.1 or HTTP/2, WebSocket, and SSE are supported; internal gRPC/proto3 remains on the east-west H2+mTLS path and is not exposed by the public listener.
 2. **AuthN.** JWT bearer (tenant-issued, signed by tenancy µservice JWKS) verified at the gateway; mTLS partner certificates verified at the gateway; OAuth 2.1 + PAR per RFC 9126 (Pushed Authorization Requests) for human flows.
 3. **AuthZ at the gateway.** Cedar fragment for *coarse* tenant scoping ("is this JWT's tenant_id allowed to talk to this hostname?"). Fine-grained per-resource Cedar evaluation remains at the workload µservice (per ADR-0145 + ADR-0148 — AuthorizationPolicy on the mesh).
 4. **WAF.** Coraza (OWASP open-source) running in the gateway data path. Default rule pack = OWASP CRS 4.x; per-pack overlays in `iac/kustomize/components/waf/`. Rules covering OWASP API Security Top-10 (2023) — broken object-level auth, broken authentication, broken object-property-level auth, unrestricted resource consumption, broken function-level auth, server-side request forgery, security misconfiguration, lack of inventory, unsafe consumption.

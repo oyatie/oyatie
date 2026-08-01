@@ -488,21 +488,47 @@ fn zero_graphql_authority_has_reciprocal_edges_and_no_live_surface() {
     );
 }
 
+fn normalizes_to_public_grpc_contradiction(text: &str) -> bool {
+    let normalized = text
+        .split_whitespace()
+        .collect::<Vec<_>>()
+        .join(" ")
+        .to_ascii_lowercase();
+    [
+        "public rest/grpc",
+        "public http/grpc",
+        "external http/grpc",
+        "public grpc is",
+        "public grpc api",
+        "public grpc surface",
+        "public µservice rpc (http + grpc",
+        "proto3 services exposed externally",
+        "proto3 reserved field oyatie_version",
+    ]
+    .iter()
+    .any(|contradiction| normalized.contains(contradiction))
+}
+
 /// ADR-0203 owns the self-contained public documentation boundary in this authority epoch:
 /// OpenAPI REST plus AsyncAPI event/webhook/streaming references, with Protobuf descriptors
-/// visible only to internal service owners. ADR-0258 and the absorbed sequencing sidecar must not
-/// silently turn internal gRPC/proto3 into a public contract.
+/// visible only to internal service owners. Every Accepted protocol ADR in the explicit authority
+/// set, ADR-0258, and the absorbed sequencing sidecar must preserve that boundary.
 #[test]
 fn public_protocol_authority_keeps_grpc_and_proto_internal() {
     let root = repo_root();
-    let documentation = fs::read_to_string(
-        root.join("docs/decisions/ADR-0203-documentation-engine-three-tier.md"),
-    )
-    .expect("read ADR-0203");
+    let documentation =
+        fs::read_to_string(root.join("docs/decisions/ADR-0203-documentation-engine-three-tier.md"))
+            .expect("read ADR-0203");
     let versioning =
         fs::read_to_string(root.join("docs/decisions/ADR-0258-api-versioning-model.md"))
             .expect("read ADR-0258");
     let sequencing = load_json(&root.join("specs/master-plan-sequencing.json"));
+    let protocol_adrs = [
+        "docs/decisions/ADR-0157-api-gateway-tier.md",
+        "docs/decisions/ADR-0167-tenant-cli.md",
+        "docs/decisions/ADR-0176-brownout-degradation-signal-api.md",
+        "docs/decisions/ADR-0182-api-gateway-north-south-vs-service-mesh-east-west-separation.md",
+    ];
 
     assert!(
         documentation.contains("- Status: Accepted")
@@ -531,22 +557,38 @@ fn public_protocol_authority_keeps_grpc_and_proto_internal() {
         "ADR-0203 must keep Protobuf documentation internal-only"
     );
 
-    let normalized_versioning = versioning
-        .split_whitespace()
-        .collect::<Vec<_>>()
-        .join(" ")
-        .to_ascii_lowercase();
-    for contradiction in [
-        "public rest/grpc",
-        "public http/grpc",
-        "proto3 services exposed externally",
-        "proto3 reserved field oyatie_version",
-    ] {
+    for path in protocol_adrs {
+        let adr = fs::read_to_string(root.join(path))
+            .unwrap_or_else(|error| panic!("read protocol authority {path}: {error}"));
         assert!(
-            !normalized_versioning.contains(contradiction),
-            "ADR-0258 reintroduced public RPC authority {contradiction:?}"
+            adr.contains("status: Accepted")
+                && adr.contains("last_reconciled: 2026-08-01")
+                && adr.contains("reconciled_with: [ADR-0203, ADR-0258]")
+                && adr.contains("### Public-contract reconciliation"),
+            "{path} must remain Accepted and carry reciprocal protocol reconciliation metadata"
+        );
+        for required in [
+            "REST documented by OpenAPI 3.2",
+            "webhooks, events, and streams documented by AsyncAPI 3.1",
+            "gRPC over HTTP/2 (H2) with proto3 is",
+            "internal-only service-to-service traffic under mTLS",
+            "it is not a public API contract",
+        ] {
+            assert!(
+                adr.contains(required),
+                "{path} must preserve protocol invariant {required:?}"
+            );
+        }
+        assert!(
+            !normalizes_to_public_grpc_contradiction(&adr),
+            "{path} reintroduced contradictory public gRPC authority"
         );
     }
+
+    assert!(
+        !normalizes_to_public_grpc_contradiction(&versioning),
+        "ADR-0258 reintroduced contradictory public gRPC authority"
+    );
 
     let rendered_plan = serde_json::to_string(&sequencing)
         .expect("sequencing must serialize")
@@ -563,8 +605,7 @@ fn public_protocol_authority_keeps_grpc_and_proto_internal() {
             "sequencing reintroduced public RPC authority {contradiction:?}"
         );
     }
-    let wave = &sequencing["realignment_wave_sequence"]["waves_15_plus"]
-        ["sub_wave_landings"]["15V-API-Versioning-Adoption"];
+    let wave = &sequencing["realignment_wave_sequence"]["waves_15_plus"]["sub_wave_landings"]["15V-API-Versioning-Adoption"];
     let rendered_wave = serde_json::to_string(wave)
         .expect("15V must serialize")
         .to_ascii_lowercase();
@@ -579,6 +620,24 @@ fn public_protocol_authority_keeps_grpc_and_proto_internal() {
         assert!(
             rendered_wave.contains(required),
             "15V must preserve the carrier boundary {required:?}"
+        );
+    }
+}
+
+#[test]
+fn public_protocol_guard_rejects_known_public_grpc_mutations() {
+    for mutation in [
+        "Public REST/gRPC is supported.",
+        "Public HTTP/gRPC API.",
+        "Every external HTTP/gRPC request enters here.",
+        "Every public µservice RPC (HTTP + gRPC + AsyncAPI) emits metadata.",
+        "Public gRPC is a Tier-A contract.",
+        "Proto3 services exposed externally.",
+        "Proto3 reserved field oyatie_version.",
+    ] {
+        assert!(
+            normalizes_to_public_grpc_contradiction(mutation),
+            "public protocol guard false-green for mutation {mutation:?}"
         );
     }
 }
@@ -1093,7 +1152,8 @@ fn broad_workflow_consumers_require_the_producer_artifact_and_keep_the_merge_bas
     //
     // Both sides are pinned. A future edge re-added to a self-materializer, or a download dropped
     // from the mere reader, fails here.
-    let download_step_name = "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)";
+    let download_step_name =
+        "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)";
     let materialize_step_name = "Materialize cloud-ci generated faces (out-of-graph boundary)";
 
     let gate = workflow_job(&workflow, "gate");
