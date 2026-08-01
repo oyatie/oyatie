@@ -6,10 +6,6 @@
 //! directs the caller to delegate to the Milvus adapter (Phase 0) or
 //! the Phase-2 in-house `oya-vector-store-server` adapter.
 //!
-//! Lane mode follows the canonical [`CheckMode`] (mirrors
-//! `check-statelessness`): `ReportOnly` at substrate phase, `Blocker`
-//! once the wave has migrated all over-ceiling collections to Milvus.
-//!
 //! Per ADR-0083 this kernel is pure; the caller pre-harvests
 //! [`CollectionUsage`] records (one per per-tenant per-collection slot)
 //! from a runner and feeds them in.
@@ -22,27 +18,6 @@ use std::fmt;
 /// ADR-0192 hard ceiling for the embedded-tier pgvector path.
 pub const PGVECTOR_HARD_CEILING_VECTORS: u64 = 10_000_000;
 
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
-pub enum CheckMode {
-    #[default]
-    ReportOnly,
-    Blocker,
-}
-
-impl CheckMode {
-    pub fn is_blocker(self) -> bool {
-        matches!(self, Self::Blocker)
-    }
-}
-
-impl fmt::Display for CheckMode {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::ReportOnly => write!(f, "report-only"),
-            Self::Blocker => write!(f, "blocker"),
-        }
-    }
-}
 
 /// Engine backend currently serving a collection.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -306,18 +281,7 @@ mod tests {
         assert!(matches!(err, Error::DuplicateRecord { .. }));
     }
 
-    #[test]
-    fn check_mode_blocker_returns_true() {
-        assert!(CheckMode::Blocker.is_blocker());
-        assert!(!CheckMode::ReportOnly.is_blocker());
-        assert_eq!(CheckMode::default(), CheckMode::ReportOnly);
-    }
 
-    #[test]
-    fn check_mode_display_canonical() {
-        assert_eq!(CheckMode::Blocker.to_string(), "blocker");
-        assert_eq!(CheckMode::ReportOnly.to_string(), "report-only");
-    }
 
     #[test]
     fn vector_backend_label_round_trips() {
