@@ -3852,7 +3852,7 @@
       "path": "decisions/ADR-0394-bespoke-rust-idp-central-hub.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": ["ADR-0001", "ADR-0011", "ADR-0067", "ADR-0090", "ADR-0130", "ADR-0131", "ADR-0132", "ADR-0203", "ADR-0209", "ADR-0213", "ADR-0372", "ADR-0393", "ADR-0509", "ADR-0515", "ADR-0615"]
+      "related": ["ADR-0001", "ADR-0011", "ADR-0067", "ADR-0090", "ADR-0130", "ADR-0131", "ADR-0132", "ADR-0203", "ADR-0209", "ADR-0213", "ADR-0372", "ADR-0393", "ADR-0482", "ADR-0509", "ADR-0515", "ADR-0615"]
     },
     {
       "adr": "ADR-0397",
@@ -3936,7 +3936,7 @@
       "path": "decisions/ADR-0482-bespoke-substrate-roadmap.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": ["ADR-0388", "ADR-0392", "ADR-0409", "ADR-0434", "ADR-0451", "ADR-0474", "ADR-0475", "ADR-0476", "ADR-0477", "ADR-0478", "ADR-0479", "ADR-0480", "ADR-0481", "ADR-0483", "ADR-0484", "ADR-0506", "ADR-0507", "ADR-0508", "ADR-0516", "ADR-0520", "ADR-0521"]
+      "related": ["ADR-0388", "ADR-0392", "ADR-0394", "ADR-0409", "ADR-0434", "ADR-0451", "ADR-0474", "ADR-0475", "ADR-0476", "ADR-0477", "ADR-0478", "ADR-0479", "ADR-0480", "ADR-0481", "ADR-0483", "ADR-0484", "ADR-0506", "ADR-0507", "ADR-0508", "ADR-0516", "ADR-0520", "ADR-0521"]
     },
     {
       "adr": "ADR-0506",
@@ -5100,7 +5100,7 @@
       "path": "decisions/ADR-0614-de-commit-reorg-move-manifest-bijection.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": ["ADR-0596", "ADR-0551", "ADR-0562", "ADR-0555", "ADR-0364"]
+      "related": ["ADR-0596", "ADR-0616", "ADR-0551", "ADR-0562", "ADR-0555", "ADR-0364"]
     },
     {
       "adr": "ADR-0615",

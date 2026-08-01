@@ -9,7 +9,7 @@ door: one-way
 owner: council-architecture
 supersedes: [ADR-0596]
 superseded_by: []
-amends: [ADR-0604]
+amends: [ADR-0604, ADR-0614]
 depends_on: [ADR-0515, ADR-0539, ADR-0551, ADR-0552, ADR-0595, ADR-0596, ADR-0604, ADR-0613]
 related: [ADR-0111, ADR-0363, ADR-0558, ADR-0563]
 related_specs:
@@ -23,7 +23,7 @@ milestone: W0
 
 **Accepted — 2026-08-01.** The founder selected deterministic regeneration from merge-base source
 during the north-star authority interview. This reverses ADR-0596's committed-face requirement and
-narrows ADR-0613's earlier reaffirmation accordingly. The trust delta in Decision §Trust remains
+narrows ADR-0613's and ADR-0614's earlier reaffirmations accordingly. The trust delta in Decision §Trust remains
 binding: the baseline must be regenerated twice from the immutable merge-base source and bound to
 that source by provenance. Door: one-way.
 

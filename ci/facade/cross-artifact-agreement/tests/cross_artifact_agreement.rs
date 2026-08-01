@@ -356,6 +356,75 @@ fn retirement_sources_do_not_silently_amend_accepted_adr_0613() {
     }
 }
 
+/// Accepted portal authority must remain a single coherent contract. The generic bridge roadmap
+/// may retain an import transition, but must not resurrect Backstage as a parallel runtime.
+#[test]
+fn portal_authority_keeps_backstage_one_way_and_runtime_free() {
+    let root = repo_root();
+    let first_party =
+        fs::read_to_string(root.join("docs/decisions/ADR-0394-bespoke-rust-idp-central-hub.md"))
+            .expect("read ADR-0394");
+    let roadmap =
+        fs::read_to_string(root.join("docs/decisions/ADR-0482-bespoke-substrate-roadmap.md"))
+            .expect("read ADR-0482");
+
+    assert!(
+        first_party.contains("amends: [ADR-0482]")
+            && roadmap.contains("amended_by: [kubers-anchor-2026-05-28, ADR-0394,"),
+        "ADR-0394 and ADR-0482 must carry reciprocal amendment edges"
+    );
+    assert!(
+        first_party.contains("bounded one-way import source")
+            && first_party.contains("It is not a runtime dependency, plugin host"),
+        "ADR-0394 must keep Backstage bounded to one-way import and forbid runtime authority"
+    );
+    assert!(
+        roadmap.contains(
+            "Bounded one-way import of Backstage Catalog YAML; no Backstage runtime or plugin host"
+        ) && !roadmap.contains("| Rust-native portal (ADR-0434) | Backstage (ADR-0410) |"),
+        "ADR-0482 must not resurrect the retired Backstage runtime bridge"
+    );
+}
+
+/// ADR-0614 was accepted after its resolver hardening shipped, and ADR-0616 then reversed the
+/// committed frozen-reference posture. Stale proposal-era prose would make live authority lie.
+#[test]
+fn move_manifest_authority_matches_fail_closed_resolver_and_adr_0616() {
+    let root = repo_root();
+    let move_manifest = fs::read_to_string(
+        root.join("docs/decisions/ADR-0614-de-commit-reorg-move-manifest-bijection.md"),
+    )
+    .expect("read ADR-0614");
+    let frozen_reference = fs::read_to_string(
+        root.join("docs/decisions/ADR-0616-de-commit-firewall-frozen-reference-baseline.md"),
+    )
+    .expect("read ADR-0616");
+
+    assert!(
+        move_manifest.contains("amended_by: [ADR-0616]")
+            && frozen_reference.contains("amends: [ADR-0604, ADR-0614]"),
+        "ADR-0614 and ADR-0616 must carry reciprocal amendment edges"
+    );
+    for stale in [
+        "still return `Self` infallibly",
+        "mapping absent → `empty()`",
+        "Latent hazard recorded, not dropped",
+        "De-commit AND refactor `load` to fail-closed in one PR",
+        "Reaffirms ADR-0596",
+    ] {
+        assert!(
+            !move_manifest.contains(stale),
+            "ADR-0614 contains stale authority phrase {stale:?}"
+        );
+    }
+    assert!(
+        move_manifest.contains("return `Result` and hard-error when")
+            && move_manifest
+                .contains("ADR-0616 supersedes ADR-0596's committed frozen-reference rule"),
+        "ADR-0614 must describe the shipped fail-closed resolver and current ADR-0616 posture"
+    );
+}
+
 #[test]
 fn production_evaluator_rejects_installed_dormant_control_plane_byte_drift() {
     let control_plane =
