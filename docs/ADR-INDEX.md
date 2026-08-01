@@ -11,10 +11,10 @@ doc_status: published
 
 ## At-a-glance
 
-- **Total ADRs:** 440
-- **Numbering:** ADR-0001..ADR-0630 (non-contiguous; gaps: 0012, 0033, 0037, 0041, 0050, 0068, 0070..0082, 0084..0089, 0125..0127, 0224..0233, 0247, 0256, 0259..0262, 0264..0271, 0274..0275, 0277..0279, 0281..0283, 0285..0291, 0322..0323, 0327, 0342, 0345, 0385..0386, 0395..0396, 0398..0475, 0477, 0483..0505, 0574..0579, 0583..0585, 0594, 0601..0602)
+- **Total ADRs:** 439
+- **Numbering:** ADR-0001..ADR-0630 (non-contiguous; gaps: 0012, 0033, 0037, 0041, 0050, 0068, 0070..0082, 0084..0089, 0125..0127, 0170, 0224..0233, 0247, 0256, 0259..0262, 0264..0271, 0274..0275, 0277..0279, 0281..0283, 0285..0291, 0322..0323, 0327, 0342, 0345, 0385..0386, 0395..0396, 0398..0475, 0477, 0483..0505, 0574..0579, 0583..0585, 0594, 0601..0602)
 - **Next ADR number:** 0631
-- **Status counts:** Accepted 175, Accepted (amendment) 2, Amended 2, Proposed 156, Proposed (conditional: Accepted only after ADR-0377-D2 and ADR-0377-D3 code/tests pass) 1, Proposed (target: Accepted upon PR #143 merge to dev) 1, Rejected 1, Superseded 35, accepted 34, deprecated 1, proposed 31, superseded 1
+- **Status counts:** Accepted 178, Accepted (amendment) 2, Amended 2, Proposed 152, Proposed (conditional: Accepted only after ADR-0377-D2 and ADR-0377-D3 code/tests pass) 1, Proposed (target: Accepted upon PR #143 merge to dev) 1, Rejected 1, Superseded 35, accepted 34, deprecated 1, proposed 31, superseded 1
 - **Legacy retirement:** see [`ADR-LEGACY-REGRESSION-MAPPING.md`](ADR-LEGACY-REGRESSION-MAPPING.md).
 
 ## Full table (one row per ADR, sorted by ADR number)
@@ -162,7 +162,6 @@ doc_status: published
 | ADR-0167 | Accepted | Tenant-facing CLI binary `oya` (separate from internal `oya-dev-cli`) | council-api-sdk | [`ADR-0167-tenant-cli.md`](decisions/ADR-0167-tenant-cli.md) |
 | ADR-0168 | Accepted | Public status page derived from SLO state | ops-sre-reliability | [`ADR-0168-public-status-page.md`](decisions/ADR-0168-public-status-page.md) |
 | ADR-0169 | Accepted | Webhook DLQ + exponential-backoff retry (Stripe webhook subscriptions pattern) | axis-eventing | [`ADR-0169-webhook-dlq-retry.md`](decisions/ADR-0169-webhook-dlq-retry.md) |
-| ADR-0170 | Accepted | Backstage-style internal developer portal | axis-developer-experience | [`ADR-0170-developer-portal.md`](decisions/ADR-0170-developer-portal.md) |
 | ADR-0171 | Accepted | Multi-cluster federation via ArgoCD ApplicationSets + Cluster API | axis-cloud-iac | [`ADR-0171-multi-cluster-federation.md`](decisions/ADR-0171-multi-cluster-federation.md) |
 | ADR-0172 | Accepted | Read replicas + CQRS where appropriate (high-read BCs only, per-µservice opt-in) | axis-eventing | [`ADR-0172-cqrs-read-replicas.md`](decisions/ADR-0172-cqrs-read-replicas.md) |
 | ADR-0173 | Accepted | Vendor lock-in avoidance and stack ownership | axis-governance, axis-foundry, axis-cloud-k8s, axis-cloud-secrets, axis-observability | [`ADR-0173-vendor-lock-in-avoidance-and-stack-ownership.md`](decisions/ADR-0173-vendor-lock-in-avoidance-and-stack-ownership.md) |
@@ -340,7 +339,7 @@ doc_status: published
 | ADR-0391 | Accepted | N-lane parallel safety proof and unified DevOps console | council-architecture | [`ADR-0391-n-lane-parallel-safety-proof-and-devops-console.md`](decisions/ADR-0391-n-lane-parallel-safety-proof-and-devops-console.md) |
 | ADR-0392 | Accepted | Buck2 canonical build graph (reverses ADR-0358 §2 Bazel rules_rust) | council-architecture | [`ADR-0392-buck2-canonical-build-graph.md`](decisions/ADR-0392-buck2-canonical-build-graph.md) |
 | ADR-0393 | Accepted | Leptos canonical app-shell frontend (Rust/WASM SSR+hydration; supersedes ADR-0372) | council-architecture | [`ADR-0393-leptos-canonical-app-shell-frontend.md`](decisions/ADR-0393-leptos-canonical-app-shell-frontend.md) |
-| ADR-0394 | Proposed | Bespoke-Rust IDP central hub (Leptos portal + ops-BFF; supersedes/reconciles ADR-0170) | council-architecture | [`ADR-0394-bespoke-rust-idp-central-hub.md`](decisions/ADR-0394-bespoke-rust-idp-central-hub.md) |
+| ADR-0394 | Accepted | First-party Rust internal developer platform | council-architecture | [`ADR-0394-bespoke-rust-idp-central-hub.md`](decisions/ADR-0394-bespoke-rust-idp-central-hub.md) |
 | ADR-0397 | Proposed | Pulsar 4.x + Oxia canonical event-bus | council-architecture | [`ADR-0397-pulsar-oxia-canonical-event-bus.md`](decisions/ADR-0397-pulsar-oxia-canonical-event-bus.md) |
 | ADR-0476 | Accepted | oya-identity: bespoke Rust human identity substrate | platform-tenancy-identity | [`ADR-0476-oya-identity-bespoke-human-identity.md`](decisions/ADR-0476-oya-identity-bespoke-human-identity.md) |
 | ADR-0478 | Accepted | oya-billing: bespoke Rust billing engine | council-billing | [`ADR-0478-oya-billing-bespoke-billing-engine.md`](decisions/ADR-0478-oya-billing-bespoke-billing-engine.md) |
@@ -407,7 +406,7 @@ doc_status: published
 | ADR-0562 | Accepted | Capability-first repo organization + the closed capability registry | founder | [`ADR-0562-capability-first-repo-organization-and-closed-capability-registry.md`](decisions/ADR-0562-capability-first-repo-organization-and-closed-capability-registry.md) |
 | ADR-0563 | Proposed | Rename-aware path-keyed CI baseline relabel at the scm-facts emitter | cloud-ci-platform | [`ADR-0563-rename-aware-path-keyed-ci-baseline-relabel.md`](decisions/ADR-0563-rename-aware-path-keyed-ci-baseline-relabel.md) |
 | ADR-0564 | Proposed | Commission the tenancy tenant-lifecycle registration service (G006 slice 1) | axis-cloud-platform | [`ADR-0564-tenancy-tenant-lifecycle-service-commissioning.md`](decisions/ADR-0564-tenancy-tenant-lifecycle-service-commissioning.md) |
-| ADR-0565 | Proposed | Zero GraphQL in the owned API surface | council-architecture | [`ADR-0565-zero-graphql-in-the-owned-api-surface.md`](decisions/ADR-0565-zero-graphql-in-the-owned-api-surface.md) |
+| ADR-0565 | Accepted | Zero GraphQL in the owned API surface | council-architecture | [`ADR-0565-zero-graphql-in-the-owned-api-surface.md`](decisions/ADR-0565-zero-graphql-in-the-owned-api-surface.md) |
 | ADR-0566 | Proposed | Authz-coverage gate (unauthenticated HTTP control-plane backstop) | council-architecture | [`ADR-0566-authz-coverage-gate.md`](decisions/ADR-0566-authz-coverage-gate.md) |
 | ADR-0567 | Proposed | Commission auth durable stores with Postgres + RLS | axis-cloud-platform | [`ADR-0567-auth-durable-store-postgres-rls-plans.md`](decisions/ADR-0567-auth-durable-store-postgres-rls-plans.md) |
 | ADR-0568 | Proposed | born-accounting register_crate — the pure registrar kernel | cloud-ci-platform | [`ADR-0568-born-accounting-register-crate-registrar-kernel.md`](decisions/ADR-0568-born-accounting-register-crate-registrar-kernel.md) |
@@ -444,9 +443,9 @@ doc_status: published
 | ADR-0611 | Proposed | Land the Asterinas real-boot foundation harness under kernel/ (kuberos Wave-1 shard-1) | council-architecture | [`ADR-0611-land-asterinas-real-boot-foundation-kernel.md`](decisions/ADR-0611-land-asterinas-real-boot-foundation-kernel.md) |
 | ADR-0612 | Proposed | buck2 Remote-Execution phase — deploy the NativeLink scheduler + worker tiers, flip `remote_enabled=true` | council-architecture | [`ADR-0612-buck2-remote-execution-phase-nativelink-scheduler-worker.md`](decisions/ADR-0612-buck2-remote-execution-phase-nativelink-scheduler-worker.md) |
 | ADR-0613 | Accepted | De-commit the remaining controller-materialized projection faces | council-architecture | [`ADR-0613-de-commit-remaining-controller-materialized-projection-faces.md`](decisions/ADR-0613-de-commit-remaining-controller-materialized-projection-faces.md) |
-| ADR-0614 | Proposed | De-commit the reorg move-manifest bijection | cloud-ci-platform | [`ADR-0614-de-commit-reorg-move-manifest-bijection.md`](decisions/ADR-0614-de-commit-reorg-move-manifest-bijection.md) |
+| ADR-0614 | Accepted | De-commit the reorg move-manifest bijection | cloud-ci-platform | [`ADR-0614-de-commit-reorg-move-manifest-bijection.md`](decisions/ADR-0614-de-commit-reorg-move-manifest-bijection.md) |
 | ADR-0615 | Accepted | Capability boundary rulings — resolving ADR-0562's flagged_boundaries | council-architecture | [`ADR-0615-capability-boundary-rulings-resolving-adr-0562-flagged-boundaries.md`](decisions/ADR-0615-capability-boundary-rulings-resolving-adr-0562-flagged-boundaries.md) |
-| ADR-0616 | Proposed | De-commit the firewall frozen-reference baseline | council-architecture | [`ADR-0616-de-commit-firewall-frozen-reference-baseline.md`](decisions/ADR-0616-de-commit-firewall-frozen-reference-baseline.md) |
+| ADR-0616 | Accepted | De-commit the firewall frozen-reference baseline | council-architecture | [`ADR-0616-de-commit-firewall-frozen-reference-baseline.md`](decisions/ADR-0616-de-commit-firewall-frozen-reference-baseline.md) |
 | ADR-0617 | Proposed | The Living Monorepo Governance Graph | council-architecture | [`ADR-0617-living-monorepo-governance-graph.md`](decisions/ADR-0617-living-monorepo-governance-graph.md) |
 | ADR-0618 | Proposed | Contract-slice conformance gate scope boundary | council-architecture | [`ADR-0618-contract-slice-gate-scope-boundary.md`](decisions/ADR-0618-contract-slice-gate-scope-boundary.md) |
 | ADR-0619 | Accepted | Zero-live-context retirement of an external agent-harness brand | council-architecture | [`ADR-0619-zero-live-context-retirement-of-external-agent-harness-brand.md`](decisions/ADR-0619-zero-live-context-retirement-of-external-agent-harness-brand.md) |
@@ -484,6 +483,7 @@ The directory is intentionally non-contiguous. Every existing `docs/decisions/AD
 | 0070..0082 | Not represented by a `docs/decisions/ADR-*.md` file; reserved, deleted, or retired. |
 | 0084..0089 | Not represented by a `docs/decisions/ADR-*.md` file; reserved, deleted, or retired. |
 | 0125..0127 | Not represented by a `docs/decisions/ADR-*.md` file; reserved, deleted, or retired. |
+| 0170 | Not represented by a `docs/decisions/ADR-*.md` file; reserved, deleted, or retired. |
 | 0224..0233 | Not represented by a `docs/decisions/ADR-*.md` file; reserved, deleted, or retired. |
 | 0247 | Not represented by a `docs/decisions/ADR-*.md` file; reserved, deleted, or retired. |
 | 0256 | Not represented by a `docs/decisions/ADR-*.md` file; reserved, deleted, or retired. |
@@ -509,6 +509,6 @@ The directory is intentionally non-contiguous. Every existing `docs/decisions/AD
 
 ## Sources scanned
 
-- `decisions/` directory listing — 440 ADR files (sorted ascending)
+- `decisions/` directory listing — 439 ADR files (sorted ascending)
 - [`machine-readable/decisions.json`](machine-readable/decisions.json) — generated machine mirror
 - [`DOC-CATALOG.md`](DOC-CATALOG.md) — owner / cadence / dependent docs / validation checks
