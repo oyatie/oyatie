@@ -1,12 +1,26 @@
 // gate-registration completeness meta-test (ADR-0515 D2; CICD-DESIGN-PLAN Stage 1B + Pre-mortem
 // Scenario-1c "silent-skip false-green" sibling acceptance test).
 //
-// INVARIANT: every gate crate directory under `ci/facade/` — EXCEPT the producer
-// (`oya-cloud-ci-accounting-registry-app`, the rust_binary that EMITS the faces, not a gate
-// lane) — MUST be registered as a job lane in `.github/workflows/oya-ci-required.yml`, the
-// single canonical `oya-ci-required` fan-in. A new gate cannot be added without registering
-// it in the required workflow; an in-tree-but-unregistered gate fails this test (it would be a
-// silent false-green one level below the workflow's `needs:` fan-in).
+// INVARIANT (two halves — BOTH are required, and for a long time only the first existed):
+//
+//   (a) INSIDE the fleet: every gate crate directory under `ci/facade/` — EXCEPT the producer
+//       (`oya-cloud-ci-accounting-registry-app`, the rust_binary that EMITS the faces, not a gate
+//       lane) — MUST be registered as a job lane in `.github/workflows/oya-ci-required.yml`, the
+//       single canonical `oya-ci-required` fan-in. A new gate cannot be added without registering
+//       it in the required workflow; an in-tree-but-unregistered gate fails this test (it would be
+//       a silent false-green one level below the workflow's `needs:` fan-in).
+//
+//   (b) OUTSIDE the fleet: a gate crate must not LIVE anywhere else. Half (a) equates "gate crate"
+//       with "directory under ci/facade/", so its universe is exactly the fleet directory — a gate
+//       parked outside it was never a candidate for the check and could not be reported missing.
+//       That is not a strictness gap, it is a SCOPE gap, and it hid seventeen `tools/oya-governance-
+//       *-app` fitness gates that built, carried tests, and were referenced by ZERO workflow for
+//       their entire lifetime. Half (b) closes the complement, so the two together are total: a
+//       gate is either in the fleet and registered, or it does not exist.
+//
+// The `capability: fitness-*` facet in `registry/catalog/<crate>.yaml` — not the crate NAME — is
+// what identifies a gate crate for half (b). Keying on the name would let a rename dodge the check;
+// the catalog row is the born-accounting SSOT the crate cannot exist without.
 //
 // It is a pure filesystem + text gate: it reads the gates dir and greps the workflow yaml. No
 // network, no GitHub API — runnable in any presubmit. Keep it deterministic and surface-all
@@ -675,6 +689,117 @@ fn phase0_pre_merge_review_rows(root: &Path) -> Vec<Value> {
         path.display()
     );
     review_rows
+}
+
+/// Gate crates that still live OUTSIDE `ci/facade/`. FROZEN and shrink-only: a NEW `fitness-*`
+/// crate born outside the fleet is blocking, and a listed crate that is moved or deleted must
+/// shrink this array in the SAME PR. Each remaining entry is an open disposition question (move
+/// into the fleet, refactor to a library + Buck2 test, rewrite, or delete), NOT an accepted home.
+///
+/// Nine siblings — the ADR-0109 `oya-governance-*-lifecycle-app` set — were replaced wholesale by
+/// the single parameterized `ci/facade/lifecycle-status` lane, which is why they are absent here.
+const GATE_CRATES_OUTSIDE_THE_FLEET: [&str; 8] = [
+    "tools/oya-governance-adapter-with-no-importer-app",
+    "tools/oya-governance-adr-shape-app",
+    "tools/oya-governance-authoritative-tracked-app",
+    "tools/oya-governance-banned-primitives-app",
+    "tools/oya-governance-portfolio-citation-app",
+    "tools/oya-governance-predictable-naming-app",
+    "tools/oya-governance-purpose-audit-app",
+    "tools/oya-governance-sunset-lifecycle-app",
+];
+
+/// Roots that may hold crates but are NOT the gate fleet. A `fitness-*` capability found here is a
+/// gate living outside its home.
+const NON_FLEET_CRATE_ROOTS: [&str; 1] = ["tools"];
+
+/// True when `<crate>`'s born-accounting catalog row declares a `fitness-*` capability — the facet
+/// every governance gate crate carries and no other `tools/` crate does.
+fn declares_fitness_capability(root: &Path, crate_name: &str) -> bool {
+    let catalog = root.join(format!("registry/catalog/{crate_name}.yaml"));
+    let Ok(text) = fs::read_to_string(&catalog) else {
+        return false;
+    };
+    text.lines().any(|line| {
+        line.split('#')
+            .next()
+            .unwrap_or("")
+            .trim()
+            .strip_prefix("capability:")
+            .is_some_and(|value| value.trim().starts_with("fitness-"))
+    })
+}
+
+fn gate_crates_outside_the_fleet(root: &Path) -> Vec<String> {
+    let mut found = Vec::new();
+    for non_fleet_root in NON_FLEET_CRATE_ROOTS {
+        let dir = root.join(non_fleet_root);
+        let Ok(entries) = fs::read_dir(&dir) else {
+            continue;
+        };
+        for entry in entries {
+            let path = entry.expect("dir entry").path();
+            if !path.join("Cargo.toml").is_file() {
+                continue;
+            }
+            let name = path
+                .file_name()
+                .expect("dir file_name")
+                .to_string_lossy()
+                .into_owned();
+            if declares_fitness_capability(root, &name) {
+                found.push(format!("{non_fleet_root}/{name}"));
+            }
+        }
+    }
+    found.sort();
+    found
+}
+
+/// Half (b): the complement of the registration invariant. A gate crate parked outside
+/// `ci/facade/` is invisible to `every_gate_crate_is_registered_in_oya_ci_required_workflow`,
+/// whose universe IS the fleet directory — so an unregistered gate there is not merely unenforced,
+/// it is unreportable. This freezes the known set shrink-only in both directions.
+#[test]
+fn no_new_gate_crate_is_born_outside_the_registered_gate_fleet() {
+    let root = repo_root();
+    let found = gate_crates_outside_the_fleet(&root);
+    let frozen: BTreeSet<&str> = GATE_CRATES_OUTSIDE_THE_FLEET.iter().copied().collect();
+    let live: BTreeSet<&str> = found.iter().map(String::as_str).collect();
+
+    let born: Vec<&&str> = live.difference(&frozen).collect();
+    assert!(
+        born.is_empty(),
+        "gate crate(s) born OUTSIDE the registered gate fleet: {born:?}\n\
+         A crate whose catalog row declares a `fitness-*` capability is a gate; it belongs under \
+         ci/facade/ with a matrix leg in .github/workflows/oya-ci-required.yml. Outside the fleet \
+         it is unreachable by the registration invariant and enforces nothing."
+    );
+
+    let stale: Vec<&&str> = frozen.difference(&live).collect();
+    assert!(
+        stale.is_empty(),
+        "GATE_CRATES_OUTSIDE_THE_FLEET is stale — {stale:?} no longer exist(s). Shrink the frozen \
+         array in the SAME PR that moved or deleted them, or the ratchet silently regains headroom."
+    );
+}
+
+/// The discriminator must key on the catalog facet, not on the crate name, or a rename defeats it.
+#[test]
+fn the_outside_fleet_discriminator_reads_the_catalog_facet_not_the_crate_name() {
+    let root = repo_root();
+    assert!(
+        declares_fitness_capability(&root, "oya-governance-adr-shape-app"),
+        "a governance gate's catalog row declares a fitness-* capability"
+    );
+    assert!(
+        !declares_fitness_capability(&root, "oya-reorg-codemod-app"),
+        "a non-gate tools/ crate must not be swept up by the discriminator"
+    );
+    assert!(
+        !declares_fitness_capability(&root, "oya-governance-adr-status-lifecycle-app"),
+        "a crate with no catalog row at all is not a gate — absence must not read as fitness"
+    );
 }
 
 #[test]

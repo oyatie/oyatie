@@ -1,6 +1,6 @@
-context: foundry
-role: app
-capability: fitness-feature-flag-status-lifecycle
+context: shared
+role: kernel
+capability: cloud-ci-lifecycle-status
 plane: control
 slo: preview-control-plane
 data_classes_owned: [INTERNAL_ONLY]
