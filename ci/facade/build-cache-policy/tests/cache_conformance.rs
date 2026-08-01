@@ -346,8 +346,12 @@ fn local_action_file(repo_root: &Path, action_name: &str) -> Result<Option<PathB
     else {
         return Ok(None);
     };
-    let normalized_relative = relative.replace('\\', "/");
-    let relative = Path::new(&normalized_relative);
+    if action_name.contains('\\') {
+        return Err(format!(
+            "backslash-bearing local action paths are host-ambiguous; use portable `./` slash syntax: {action_name:?}"
+        ));
+    }
+    let relative = Path::new(relative);
     if relative
         .components()
         .any(|component| !matches!(component, Component::Normal(_)))
@@ -1057,10 +1061,34 @@ fn buck_out_archive_guard_follows_local_composite_actions() {
         "<fixture>",
         windows_at_named_workflow,
     );
-    std::fs::remove_dir_all(&fixture_root).expect("remove local composite fixture");
     assert!(
         !windows_at_named_violations.is_empty(),
-        "Windows-form local action references must preserve literal `@` paths and inspect the same unsafe composite"
+        "Windows-form local action references must fail closed because their host interpretation is ambiguous"
+    );
+
+    let normalized_benign_dir = fixture_root.join(".github/actions/cache/wrapper");
+    let literal_backslash_unsafe_dir = fixture_root.join(".github/actions/cache\\wrapper");
+    std::fs::create_dir_all(&normalized_benign_dir)
+        .expect("create normalized benign action fixture");
+    std::fs::create_dir_all(&literal_backslash_unsafe_dir)
+        .expect("create literal-backslash unsafe action fixture");
+    std::fs::write(
+        normalized_benign_dir.join("action.yml"),
+        "name: normalized benign action\ndescription: must not mask the POSIX literal-backslash sibling\nruns:\n  using: composite\n  steps:\n    - run: echo safe\n      shell: bash\n",
+    )
+    .expect("write normalized benign action fixture");
+    std::fs::write(
+        literal_backslash_unsafe_dir.join("action.yml"),
+        "name: literal-backslash unsafe action\ndescription: Linux runner preserves the interior backslash\nruns:\n  using: composite\n  steps:\n    - uses: actions/cache@pinned\n      with:\n        path: buck-out\n        key: fixture\n",
+    )
+    .expect("write literal-backslash unsafe action fixture");
+    let cross_host_workflow = "jobs:\n  gate:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: ./.github/actions/cache\\wrapper\n";
+    let cross_host_violations =
+        actions_cache_buck_out_violations(Some(&fixture_root), "<fixture>", cross_host_workflow);
+    std::fs::remove_dir_all(&fixture_root).expect("remove local composite fixture");
+    assert!(
+        !cross_host_violations.is_empty(),
+        "host-sensitive interior backslashes must fail closed rather than inspect only the normalized benign action"
     );
 }
 
