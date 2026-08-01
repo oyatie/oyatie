@@ -23,12 +23,19 @@ pub const GRAPH_KINDS: [&str; 5] = [
     "failure_brownout_propagation",
 ];
 pub const IMPACT_RULES: [&str; 4] = ["INDEPENDENT", "BROWNOUT", "DEGRADED", "FULL"];
+pub const DEPENDENCY_UNIT_COUNT: usize = 19;
+pub const CAPABILITY_COUNT: usize = 24;
+const PATH_RULE: &str = "minimum severity across every steady_state_request edge on a path; a weak propagation edge bounds that path";
+const MULTI_PATH_RULE: &str = "maximum severity across all paths from impacted_unit to failed_unit; the strongest propagation path wins";
+const CLOSURE_DIRECTION: &str =
+    "reverse_transitive_closure: request dependency A -> B yields failure propagation B -> A";
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Policy {
     pub gate_id: String,
     pub dag_path: String,
     pub schema_path: String,
+    pub capability_registry_path: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -99,12 +106,31 @@ pub fn parse_policy(bytes: &str) -> Result<Policy, DagError> {
     }
     let dag_path = required_string(&value, "dag_path", "policy")?;
     let schema_path = required_string(&value, "schema_path", "policy")?;
+    let capability_registry_path = required_string(&value, "capability_registry_path", "policy")?;
     validate_repo_relative_path("dag_path", dag_path)?;
     validate_repo_relative_path("schema_path", schema_path)?;
+    validate_repo_relative_path("capability_registry_path", capability_registry_path)?;
+    let allowed: BTreeSet<&str> = [
+        "_comment",
+        "gate_id",
+        "dag_path",
+        "schema_path",
+        "capability_registry_path",
+    ]
+    .into_iter()
+    .collect();
+    if let Some(object) = value.as_object()
+        && let Some(extra) = object.keys().find(|key| !allowed.contains(key.as_str()))
+    {
+        return Err(DagError::Parse(format!(
+            "policy closed schema rejects property `{extra}`"
+        )));
+    }
     Ok(Policy {
         gate_id: gate_id.to_owned(),
         dag_path: dag_path.to_owned(),
         schema_path: schema_path.to_owned(),
+        capability_registry_path: capability_registry_path.to_owned(),
     })
 }
 
@@ -146,6 +172,14 @@ pub fn load_dag(root: &Path, path: &str) -> Result<Dag, DagError> {
     parse_dag(&bytes)
 }
 
+pub fn load_json(root: &Path, path: &str) -> Result<Value, DagError> {
+    let full = root.join(path);
+    let bytes = fs::read_to_string(&full)
+        .map_err(|error| DagError::Io(format!("{}: {error}", full.display())))?;
+    serde_json::from_str(&bytes)
+        .map_err(|error| DagError::Parse(format!("{}: invalid json: {error}", full.display())))
+}
+
 pub fn parse_dag(bytes: &str) -> Result<Dag, DagError> {
     let raw: Value = serde_json::from_str(bytes)
         .map_err(|error| DagError::Parse(format!("invalid json: {error}")))?;
@@ -163,14 +197,17 @@ pub fn parse_dag(bytes: &str) -> Result<Dag, DagError> {
     Ok(Dag { raw })
 }
 
-pub fn evaluate(dag: &Dag) -> Report {
-    evaluate_with_raw(dag, &dag.raw)
+pub fn evaluate(dag: &Dag, capability_registry: &Value) -> Report {
+    evaluate_with_raw(dag, &dag.raw, capability_registry)
 }
 
-pub fn evaluate_with_raw(_dag: &Dag, raw: &Value) -> Report {
+pub fn evaluate_with_raw(_dag: &Dag, raw: &Value, capability_registry: &Value) -> Report {
     let mut findings = Vec::new();
     check_top_level(raw, &mut findings);
-    let units = check_dependency_units(raw, &mut findings);
+    let capabilities = check_capability_registry(capability_registry, &mut findings);
+    let units = check_dependency_units(raw, &capabilities, &mut findings);
+    let external_anchors = check_external_anchors(raw, &mut findings);
+    let endpoints: BTreeSet<String> = units.union(&external_anchors).cloned().collect();
     let graph_map = check_graph_set(raw, &mut findings);
 
     let mut steady_edges = Vec::new();
@@ -195,7 +232,8 @@ pub fn evaluate_with_raw(_dag: &Dag, raw: &Value) -> Report {
                 kind,
                 index,
                 edge,
-                &units,
+                &endpoints,
+                &external_anchors,
                 &mut steady_edges,
                 &mut declared_failure,
                 &mut seen_edges,
@@ -287,6 +325,7 @@ fn check_top_level(raw: &Value, findings: &mut Vec<Finding>) {
         "schema",
         "version",
         "doctrine_adrs",
+        "external_anchors",
         "dependency_units",
         "failure_impact_composition",
         "graphs",
@@ -295,6 +334,30 @@ fn check_top_level(raw: &Value, findings: &mut Vec<Finding>) {
     .into_iter()
     .collect();
     check_closed_object("document", raw, &allowed, "dag_schema_violation", findings);
+    check_required_properties(
+        "document",
+        raw,
+        &[
+            "$schema",
+            "schema",
+            "version",
+            "doctrine_adrs",
+            "external_anchors",
+            "dependency_units",
+            "failure_impact_composition",
+            "graphs",
+            "mandatory_follow_ups",
+        ],
+        "dag_schema_violation",
+        findings,
+    );
+    if raw.get("_comment").is_some_and(|value| !value.is_string()) {
+        findings.push(finding(
+            "dag_schema_violation",
+            "_comment",
+            "optional comment must be a string",
+        ));
+    }
     for (key, expected) in [
         ("$schema", "https://json-schema.org/draft/2020-12/schema"),
         ("schema", "specs/substrate-dependency-dag.schema.json"),
@@ -308,7 +371,69 @@ fn check_top_level(raw: &Value, findings: &mut Vec<Finding>) {
             ));
         }
     }
+    let doctrine = raw.get("doctrine_adrs").and_then(Value::as_array);
+    if doctrine.is_none_or(|items| items.len() < 5)
+        || doctrine.is_some_and(|items| {
+            let values: Vec<&str> = items.iter().filter_map(Value::as_str).collect();
+            values.len() != items.len()
+                || values.iter().any(|value| !is_adr_id(value))
+                || values.iter().copied().collect::<BTreeSet<_>>().len() != values.len()
+        })
+    {
+        findings.push(finding(
+            "dag_schema_violation",
+            "doctrine_adrs",
+            "requires at least five unique ADR-NNNN strings",
+        ));
+    }
+
     let composition = raw.get("failure_impact_composition");
+    let null = Value::Null;
+    let composition_value = composition.unwrap_or(&null);
+    let composition_allowed: BTreeSet<&str> = [
+        "path_rule",
+        "multi_path_rule",
+        "severity_order",
+        "closure_direction",
+    ]
+    .into_iter()
+    .collect();
+    check_closed_object(
+        "failure_impact_composition",
+        composition_value,
+        &composition_allowed,
+        "dag_schema_violation",
+        findings,
+    );
+    check_required_properties(
+        "failure_impact_composition",
+        composition_value,
+        &[
+            "path_rule",
+            "multi_path_rule",
+            "severity_order",
+            "closure_direction",
+        ],
+        "dag_schema_violation",
+        findings,
+    );
+    for (key, expected) in [
+        ("path_rule", PATH_RULE),
+        ("multi_path_rule", MULTI_PATH_RULE),
+        ("closure_direction", CLOSURE_DIRECTION),
+    ] {
+        if composition
+            .and_then(|value| value.get(key))
+            .and_then(Value::as_str)
+            != Some(expected)
+        {
+            findings.push(finding(
+                "dag_schema_violation",
+                format!("failure_impact_composition.{key}"),
+                format!("must equal `{expected}`"),
+            ));
+        }
+    }
     let severity = composition
         .and_then(|value| value.get("severity_order"))
         .and_then(Value::as_array)
@@ -320,9 +445,8 @@ fn check_top_level(raw: &Value, findings: &mut Vec<Finding>) {
             "must declare INDEPENDENT < BROWNOUT < DEGRADED < FULL",
         ));
     }
-    let follow_ups: BTreeSet<&str> = raw
-        .get("mandatory_follow_ups")
-        .and_then(Value::as_array)
+    let follow_up_items = raw.get("mandatory_follow_ups").and_then(Value::as_array);
+    let follow_ups: BTreeSet<&str> = follow_up_items
         .into_iter()
         .flatten()
         .filter_map(|item| item.get("id").and_then(Value::as_str))
@@ -330,37 +454,155 @@ fn check_top_level(raw: &Value, findings: &mut Vec<Finding>) {
     let expected: BTreeSet<&str> = ["W0-C-MODULE-MEMBERSHIP", "W0-C-LAYER-RANKS"]
         .into_iter()
         .collect();
-    if follow_ups != expected {
+    if follow_up_items.is_none_or(|items| items.len() != 2) || follow_ups != expected {
         findings.push(finding(
             "dag_schema_violation",
             "mandatory_follow_ups",
             "must carry the module-membership and layer-rank migrations without baselines",
         ));
     }
+    let allowed_follow_up: BTreeSet<&str> = ["id", "status", "constraint"].into_iter().collect();
+    for (index, item) in follow_up_items.into_iter().flatten().enumerate() {
+        let subject = format!("mandatory_follow_ups[{index}]");
+        check_closed_object(
+            &subject,
+            item,
+            &allowed_follow_up,
+            "dag_schema_violation",
+            findings,
+        );
+        check_required_properties(
+            &subject,
+            item,
+            &["id", "status", "constraint"],
+            "dag_schema_violation",
+            findings,
+        );
+        if item.get("status").and_then(Value::as_str) != Some("required-not-in-this-slice")
+            || !is_non_empty_string(item.get("constraint"))
+        {
+            findings.push(finding(
+                "dag_schema_violation",
+                subject,
+                "follow-up requires locked status and non-empty constraint",
+            ));
+        }
+    }
 }
 
-fn check_dependency_units(raw: &Value, findings: &mut Vec<Finding>) -> BTreeSet<String> {
+fn check_capability_registry(registry: &Value, findings: &mut Vec<Finding>) -> BTreeSet<String> {
+    let mut capabilities = BTreeSet::new();
+    let rows = registry.get("capabilities").and_then(Value::as_array);
+    if registry.get("closed").and_then(Value::as_bool) != Some(true)
+        || registry.get("registry_kind").and_then(Value::as_str) != Some("capability")
+        || rows.is_none_or(|items| items.len() != CAPABILITY_COUNT)
+    {
+        findings.push(finding(
+            "dag_capability_registry_invalid",
+            "capability_registry",
+            "canonical registry must be closed, kind=capability, and contain exactly 24 rows",
+        ));
+    }
+    for (index, row) in rows.into_iter().flatten().enumerate() {
+        let Some(name) = row
+            .get("name")
+            .and_then(Value::as_str)
+            .filter(|name| !name.is_empty())
+        else {
+            findings.push(finding(
+                "dag_capability_registry_invalid",
+                format!("capabilities[{index}]"),
+                "capability row requires a non-empty name",
+            ));
+            continue;
+        };
+        if !capabilities.insert(name.to_owned()) {
+            findings.push(finding(
+                "dag_capability_registry_invalid",
+                name,
+                "canonical capability names must be unique",
+            ));
+        }
+    }
+    capabilities
+}
+
+fn check_external_anchors(raw: &Value, findings: &mut Vec<Finding>) -> BTreeSet<String> {
+    let mut anchors = BTreeSet::new();
+    let rows = raw.get("external_anchors").and_then(Value::as_array);
+    if rows.is_none_or(|items| items.len() != 1) {
+        findings.push(finding(
+            "dag_schema_violation",
+            "external_anchors",
+            "requires exactly one E0 external anchor",
+        ));
+    }
+    let allowed: BTreeSet<&str> = ["id", "plane", "purpose"].into_iter().collect();
+    for (index, anchor) in rows.into_iter().flatten().enumerate() {
+        let subject = format!("external_anchors[{index}]");
+        check_closed_object(&subject, anchor, &allowed, "dag_schema_violation", findings);
+        check_required_properties(
+            &subject,
+            anchor,
+            &["id", "plane", "purpose"],
+            "dag_schema_violation",
+            findings,
+        );
+        let id = anchor.get("id").and_then(Value::as_str);
+        if id.is_none_or(|id| !is_external_id(id))
+            || anchor.get("plane").and_then(Value::as_str) != Some("E0")
+            || !is_non_empty_string(anchor.get("purpose"))
+        {
+            findings.push(finding(
+                "dag_schema_violation",
+                &subject,
+                "external anchor requires external.* id, plane E0, and non-empty purpose",
+            ));
+        }
+        if let Some(id) = id
+            && !anchors.insert(id.to_owned())
+        {
+            findings.push(finding(
+                "dag_duplicate_unit",
+                id,
+                "external anchor ids must be unique",
+            ));
+        }
+    }
+    anchors
+}
+
+fn check_dependency_units(
+    raw: &Value,
+    capabilities: &BTreeSet<String>,
+    findings: &mut Vec<Finding>,
+) -> BTreeSet<String> {
     let mut units = BTreeSet::new();
-    let allowed: BTreeSet<&str> = ["id", "capability", "face", "plane", "purpose"]
+    let allowed: BTreeSet<&str> = ["id", "capability", "runtime_face", "plane", "purpose"]
         .into_iter()
         .collect();
-    let planes = ["E0", "B0", "C0", "C1", "C2", "G", "R"];
-    for (index, unit) in raw
-        .get("dependency_units")
-        .and_then(Value::as_array)
-        .into_iter()
-        .flatten()
-        .enumerate()
-    {
+    let planes = ["B0", "C0", "C1", "C2", "G", "R"];
+    let rows = raw.get("dependency_units").and_then(Value::as_array);
+    if rows.is_none_or(|items| items.len() != DEPENDENCY_UNIT_COUNT) {
+        findings.push(finding(
+            "dag_dependency_unit_set",
+            "dependency_units",
+            "must contain exactly 19 unique internal dependency units",
+        ));
+    }
+    for (index, unit) in rows.into_iter().flatten().enumerate() {
         let subject = format!("dependency_units[{index}]");
         check_closed_object(&subject, unit, &allowed, "dag_schema_violation", findings);
+        check_required_properties(
+            &subject,
+            unit,
+            &["id", "capability", "runtime_face", "plane", "purpose"],
+            "dag_schema_violation",
+            findings,
+        );
         let id = unit.get("id").and_then(Value::as_str);
-        for field in ["id", "capability", "face", "plane", "purpose"] {
-            if unit
-                .get(field)
-                .and_then(Value::as_str)
-                .is_none_or(str::is_empty)
-            {
+        for field in ["id", "capability", "runtime_face", "plane", "purpose"] {
+            if !is_non_empty_string(unit.get(field)) {
                 findings.push(finding(
                     "dag_schema_violation",
                     &subject,
@@ -376,17 +618,33 @@ fn check_dependency_units(raw: &Value, findings: &mut Vec<Finding>) -> BTreeSet<
             findings.push(finding(
                 "dag_schema_violation",
                 &subject,
-                "plane must be one of E0/B0/C0/C1/C2/G/R",
+                "plane must be one of B0/C0/C1/C2/G/R; E0 belongs to external_anchors",
             ));
         }
-        if let Some(id) = id {
-            if !units.insert(id.to_owned()) {
-                findings.push(finding(
-                    "dag_duplicate_unit",
-                    id,
-                    "dependency unit ids must be unique",
-                ));
-            }
+        if let Some(capability) = unit.get("capability").and_then(Value::as_str)
+            && !capabilities.contains(capability)
+        {
+            findings.push(finding(
+                "dag_unknown_capability",
+                &subject,
+                format!("capability `{capability}` is absent from the canonical registry"),
+            ));
+        }
+        if id.is_some_and(|id| !is_dependency_unit_id(id)) {
+            findings.push(finding(
+                "dag_schema_violation",
+                &subject,
+                "id must be a lowercase dot-qualified dependency-unit identifier",
+            ));
+        }
+        if let Some(id) = id
+            && !units.insert(id.to_owned())
+        {
+            findings.push(finding(
+                "dag_duplicate_unit",
+                id,
+                "dependency unit ids must be unique",
+            ));
         }
     }
     units
@@ -418,13 +676,12 @@ fn check_graph_set<'a>(raw: &'a Value, findings: &mut Vec<Finding>) -> BTreeMap<
             ));
         }
     }
-    let actual: BTreeSet<&str> = declared.iter().map(String::as_str).collect();
-    let expected: BTreeSet<&str> = GRAPH_KINDS.into_iter().collect();
-    if declared.len() != GRAPH_KINDS.len() || actual != expected {
+    let expected: Vec<String> = GRAPH_KINDS.iter().map(|kind| (*kind).to_owned()).collect();
+    if declared != expected {
         findings.push(finding(
             "dag_graph_kind_set",
             "graphs",
-            format!("must contain exactly {GRAPH_KINDS:?}; got {declared:?}"),
+            format!("must contain exactly {GRAPH_KINDS:?} in canonical order; got {declared:?}"),
         ));
     }
     graphs
@@ -444,6 +701,7 @@ fn check_graph_shape(kind: &str, graph: &Value, findings: &mut Vec<Finding>) {
     };
     let allowed: BTreeSet<&str> = keys.iter().copied().collect();
     check_closed_object(kind, graph, &allowed, "dag_schema_violation", findings);
+    check_required_properties(kind, graph, keys, "dag_schema_violation", findings);
     if graph
         .get("edge_semantics")
         .and_then(Value::as_str)
@@ -454,6 +712,33 @@ fn check_graph_shape(kind: &str, graph: &Value, findings: &mut Vec<Finding>) {
             kind,
             "graph requires non-empty edge_semantics",
         ));
+    }
+    if kind == "failure_brownout_propagation"
+        && graph.get("composition").and_then(Value::as_str) != Some("max_min")
+    {
+        findings.push(finding(
+            "dag_schema_violation",
+            kind,
+            "failure graph composition must equal `max_min`",
+        ));
+    }
+    if kind == "steady_state_request" {
+        check_string_array(
+            "steady_state_request.bootstrap_order",
+            graph.get("bootstrap_order"),
+            true,
+            findings,
+        );
+        if !graph
+            .get("forbidden_edges_assertion")
+            .is_some_and(Value::is_array)
+        {
+            findings.push(finding(
+                "dag_schema_violation",
+                kind,
+                "forbidden_edges_assertion must be an array",
+            ));
+        }
     }
 }
 
@@ -476,7 +761,8 @@ fn check_edge(
     kind: &str,
     index: usize,
     edge: &Value,
-    units: &BTreeSet<String>,
+    endpoints: &BTreeSet<String>,
+    external_anchors: &BTreeSet<String>,
     steady: &mut Vec<RequestEdge>,
     failure: &mut Vec<FailureEdge>,
     seen_edges: &mut BTreeSet<String>,
@@ -509,6 +795,19 @@ fn check_edge(
             "dag_failure_edge_malformed",
             findings,
         );
+        check_required_properties(
+            &subject,
+            edge,
+            &[
+                "graph_kind",
+                "failed_unit",
+                "impacted_unit",
+                "impact_rule",
+                "derivation",
+            ],
+            "dag_failure_edge_malformed",
+            findings,
+        );
         let failed = edge.get("failed_unit").and_then(Value::as_str);
         let impacted = edge.get("impacted_unit").and_then(Value::as_str);
         let rule = edge
@@ -516,8 +815,8 @@ fn check_edge(
             .and_then(Value::as_str)
             .and_then(impact_rank);
         let derivation = edge.get("derivation").and_then(Value::as_str);
-        if failed.is_none()
-            || impacted.is_none()
+        if failed.is_none_or(str::is_empty)
+            || impacted.is_none_or(str::is_empty)
             || rule.is_none()
             || derivation != Some("max_min_reverse_transitive_closure")
         {
@@ -531,7 +830,7 @@ fn check_edge(
         let failed = failed.unwrap_or_default();
         let impacted = impacted.unwrap_or_default();
         for endpoint in [failed, impacted] {
-            if !units.contains(endpoint) {
+            if !endpoints.contains(endpoint) {
                 findings.push(finding(
                     "dag_edge_unknown_unit",
                     &subject,
@@ -576,9 +875,41 @@ fn check_edge(
             .collect()
     };
     check_closed_object(&subject, edge, &allowed, "dag_edge_malformed", findings);
+    check_required_properties(
+        &subject,
+        edge,
+        if kind == "steady_state_request" {
+            &[
+                "graph_kind",
+                "from",
+                "to",
+                "dependency_weight",
+                "cascade_rule",
+                "version_compatibility_range",
+                "cedar_permit_fragment",
+            ]
+        } else {
+            &["graph_kind", "from", "to"]
+        },
+        "dag_edge_malformed",
+        findings,
+    );
+    if edge
+        .get("rationale")
+        .is_some_and(|value| !value.is_string())
+    {
+        findings.push(finding(
+            "dag_edge_malformed",
+            &subject,
+            "optional rationale must be a string",
+        ));
+    }
     let from = edge.get("from").and_then(Value::as_str);
     let to = edge.get("to").and_then(Value::as_str);
-    let (Some(from), Some(to)) = (from, to) else {
+    let (Some(from), Some(to)) = (
+        from.filter(|value| !value.is_empty()),
+        to.filter(|value| !value.is_empty()),
+    ) else {
         findings.push(finding(
             "dag_edge_malformed",
             &subject,
@@ -587,13 +918,24 @@ fn check_edge(
         return;
     };
     for endpoint in [from, to] {
-        if !units.contains(endpoint) {
+        if !endpoints.contains(endpoint) {
             findings.push(finding(
                 "dag_edge_unknown_unit",
                 &subject,
                 format!("endpoint `{endpoint}` is not a declared dependency unit"),
             ));
         }
+    }
+    if kind != "genesis"
+        && [from, to]
+            .iter()
+            .any(|endpoint| external_anchors.contains(*endpoint))
+    {
+        findings.push(finding(
+            "dag_edge_unknown_unit",
+            &subject,
+            "external anchors are valid only in the genesis graph",
+        ));
     }
     let identity = format!("{from}->{to}");
     if !seen_edges.insert(identity.clone()) {
@@ -608,17 +950,16 @@ fn check_edge(
             .get("cascade_rule")
             .and_then(Value::as_str)
             .and_then(impact_rank);
-        let required = [
-            "dependency_weight",
-            "cascade_rule",
-            "version_compatibility_range",
-            "cedar_permit_fragment",
-        ];
-        if required.iter().any(|key| edge.get(*key).is_none()) || rule.is_none() {
+        let weight = edge.get("dependency_weight").and_then(Value::as_f64);
+        let metadata_valid = weight.is_some_and(|weight| (0.0..=1.0).contains(&weight))
+            && rule.is_some()
+            && is_non_empty_string(edge.get("version_compatibility_range"))
+            && is_non_empty_string(edge.get("cedar_permit_fragment"));
+        if !metadata_valid {
             findings.push(finding(
                 "dag_edge_malformed",
                 &subject,
-                "steady-state edge is missing metadata or has an invalid cascade_rule",
+                "steady-state metadata requires weight number in [0,1], valid cascade_rule, and non-empty version/Cedar strings",
             ));
         }
         if let Some(rule) = rule {
@@ -647,9 +988,27 @@ fn parse_forbidden_edges(
         let subject = format!("steady_state_request.forbidden_edges_assertion[{index}]");
         let allowed: BTreeSet<&str> = ["from", "to", "reason"].into_iter().collect();
         check_closed_object(&subject, edge, &allowed, "dag_schema_violation", findings);
+        check_required_properties(
+            &subject,
+            edge,
+            &["from", "to", "reason"],
+            "dag_schema_violation",
+            findings,
+        );
         let from = edge.get("from").and_then(Value::as_str);
         let to = edge.get("to").and_then(Value::as_str);
-        if let (Some(from), Some(to)) = (from, to) {
+        let reason_valid = is_non_empty_string(edge.get("reason"));
+        if !reason_valid {
+            findings.push(finding(
+                "dag_schema_violation",
+                &subject,
+                "forbidden edge requires a non-empty string reason",
+            ));
+        }
+        if let (Some(from), Some(to)) = (
+            from.filter(|value| !value.is_empty()),
+            to.filter(|value| !value.is_empty()),
+        ) {
             for endpoint in [from, to] {
                 if !units.contains(endpoint) {
                     findings.push(finding(
@@ -691,6 +1050,83 @@ fn check_closed_object(
             ));
         }
     }
+}
+
+fn check_required_properties(
+    subject: &str,
+    value: &Value,
+    required: &[&str],
+    code: &str,
+    findings: &mut Vec<Finding>,
+) {
+    let Some(object) = value.as_object() else {
+        return;
+    };
+    for key in required {
+        if !object.contains_key(*key) {
+            findings.push(finding(
+                code,
+                subject,
+                format!("missing required property `{key}`"),
+            ));
+        }
+    }
+}
+
+fn check_string_array(
+    subject: &str,
+    value: Option<&Value>,
+    require_non_empty: bool,
+    findings: &mut Vec<Finding>,
+) {
+    let Some(items) = value.and_then(Value::as_array) else {
+        findings.push(finding("dag_schema_violation", subject, "must be an array"));
+        return;
+    };
+    let strings: Vec<&str> = items.iter().filter_map(Value::as_str).collect();
+    if strings.len() != items.len()
+        || (require_non_empty && strings.is_empty())
+        || strings.iter().any(|item| item.is_empty())
+        || strings.iter().copied().collect::<BTreeSet<_>>().len() != strings.len()
+    {
+        findings.push(finding(
+            "dag_schema_violation",
+            subject,
+            "must contain unique non-empty strings",
+        ));
+    }
+}
+
+fn is_non_empty_string(value: Option<&Value>) -> bool {
+    value
+        .and_then(Value::as_str)
+        .is_some_and(|value| !value.is_empty())
+}
+
+fn is_adr_id(value: &str) -> bool {
+    value.len() == 8
+        && value.starts_with("ADR-")
+        && value.as_bytes()[4..].iter().all(u8::is_ascii_digit)
+}
+
+fn is_dependency_unit_id(value: &str) -> bool {
+    let mut segments = value.split('.');
+    let first = segments.next();
+    let rest: Vec<&str> = segments.collect();
+    first.is_some_and(is_slug) && !rest.is_empty() && rest.iter().copied().all(is_slug)
+}
+
+fn is_external_id(value: &str) -> bool {
+    value
+        .strip_prefix("external.")
+        .is_some_and(|suffix| !suffix.is_empty() && suffix.split('.').all(is_slug))
+}
+
+fn is_slug(value: &str) -> bool {
+    !value.is_empty()
+        && value
+            .bytes()
+            .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'-')
 }
 
 fn string_array(value: Option<&Value>) -> Vec<String> {
@@ -830,10 +1266,10 @@ fn validate_bootstrap_order(
     for (from, to) in edges {
         let dependent = positions.get(from.as_str()).copied();
         let dependency = positions.get(to.as_str()).copied();
-        if let (Some(dependent), Some(dependency)) = (dependent, dependency) {
-            if dependency >= dependent {
-                return Some(format!("dependency `{to}` must precede dependent `{from}`"));
-            }
+        if let (Some(dependent), Some(dependency)) = (dependent, dependency)
+            && dependency >= dependent
+        {
+            return Some(format!("dependency `{to}` must precede dependent `{from}`"));
         }
     }
     None
@@ -997,16 +1433,21 @@ mod tests {
     }
 
     #[test]
-    fn policy_requires_schema_path() {
+    fn policy_requires_all_live_contract_paths() {
         let parsed = parse_policy(
             &json!({
                 "gate_id": GATE_ID,
                 "dag_path": "specs/dag.json",
-                "schema_path": "specs/dag.schema.json"
+                "schema_path": "specs/dag.schema.json",
+                "capability_registry_path": "specs/capability-registry.json"
             })
             .to_string(),
         )
         .unwrap();
         assert_eq!(parsed.schema_path, "specs/dag.schema.json");
+        assert_eq!(
+            parsed.capability_registry_path,
+            "specs/capability-registry.json"
+        );
     }
 }
