@@ -17,8 +17,9 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use ci_baseline_ratchet::{
-    Baseline, FROZEN_SNAPSHOT_PATH, FrozenBaseline, RATCHET_POLICY_PATH, SIGNOFF_FIXER_COMMAND,
-    SIGNOFF_PATH, SignOff, baseline_keys_map, evaluate_firewall, ratchet_growth,
+    Baseline, DEBT_SIGNAL_LOG_MARKER, DEBT_SIGNAL_PATH, DebtSignalMeta, FROZEN_SNAPSHOT_PATH,
+    FirewallReport, FrozenBaseline, RATCHET_POLICY_PATH, SIGNOFF_FIXER_COMMAND, SIGNOFF_PATH,
+    SignOff, baseline_keys_map, debt_counts, evaluate_firewall, ratchet_growth,
     relabel_baseline_for_renames,
 };
 use serde_json::Value;
@@ -60,6 +61,37 @@ fn frozen_snapshot_path(root: &Path) -> PathBuf {
 
 fn ratchet_policy_path(root: &Path) -> PathBuf {
     root.join(RATCHET_POLICY_PATH)
+}
+
+/// Emit the counts-only burn-down signal for THIS run: one greppable stderr line plus a
+/// durable JSON event at [`DEBT_SIGNAL_PATH`] (untracked, gitignored — telemetry, never a
+/// merge surface, and nothing reads it back, so it cannot launder debt). The CI job uploads
+/// the file as a run artifact.
+///
+/// HARD-FAILS on a write error rather than degrading to best-effort. This whole signal
+/// exists because a silent loss of observability went unnoticed for weeks; a silently
+/// skipped write would recreate exactly that defect at a smaller scale.
+fn emit_debt_counts(root: &Path, report: &FirewallReport, frozen: &FrozenBaseline) {
+    let signal = debt_counts(
+        report,
+        &DebtSignalMeta {
+            base_ref: &frozen.base_ref,
+            merge_base: &frozen.merge_base,
+            emitted_at_unix: std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map(|since| since.as_secs())
+                .unwrap_or(0),
+        },
+    );
+    eprintln!(
+        "{DEBT_SIGNAL_LOG_MARKER} {}",
+        serde_json::to_string(&signal).expect("serialize debt counts signal")
+    );
+    let path = root.join(DEBT_SIGNAL_PATH);
+    let mut text = serde_json::to_string_pretty(&signal).expect("render debt counts signal");
+    text.push('\n');
+    fs::write(&path, text)
+        .unwrap_or_else(|e| panic!("write debt counts signal to {}: {e}", path.display()));
 }
 
 /// Detect `old_path -> new_path` renames between the merge-base and the working tree,
@@ -548,6 +580,12 @@ fn firewall_is_green_on_the_live_corpus_with_the_baseline() {
         "  inert_signoff (door entries exempting nothing — retire them): {}",
         report.inert_signoff.len()
     );
+
+    // BURN-DOWN TREND SIGNAL. The stderr digest above dies with the run's log; ADR-0616
+    // de-committed the face that used to carry the level and the trend in-tree, and nothing
+    // replaced it. Emit the COUNTS (never the keys) as a durable per-run event here, BEFORE
+    // any assertion below, so a RED firewall still reports its debt trend.
+    emit_debt_counts(&root, &report, &frozen);
 
     let failing: Vec<&str> = report
         .codes

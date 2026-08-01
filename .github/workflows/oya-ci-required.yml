@@ -413,6 +413,40 @@ jobs:
             //ci/facade/baseline-ratchet:ci-baseline-ratchet-gate \
             //ci/facade/baseline-ratchet:ci-baseline-ratchet-gate-registration \
             //ci/facade/baseline-ratchet:ci-baseline-ratchet-run-observability-packet
+      - name: Upload gate debt COUNTS (burn-down trend signal)
+        # ALWAYS, unlike the failure-only operator artifacts elsewhere in this workflow, and
+        # for the opposite reason. Those upload a number that an enforcing check ALREADY
+        # decides in-band (cache-hit rate vs `assert-warm`), so a passing lane's blob is dead
+        # weight. This is the inverse case: ADR-0616 de-committed gate-baseline.generated.json
+        # (47,830 tolerated keys — correctly: it was an authoritative merge surface), and with
+        # it went the ONLY record of the debt level and its trend. A GREEN run is exactly when
+        # the burn-down question is asked ("is it going down, or has it been flat for a
+        # month?"), so a failure-only upload would answer it never.
+        #
+        # COUNTS ONLY — integers and ids, bounded by the (gate, code) pair count (88), not by
+        # the debt (47,830 keys). Nothing reads it back, so it is telemetry, not control state,
+        # and it does not re-create the merge surface the de-commit removed.
+        #
+        # NOT the destination. Per-run blobs are a stopgap, not a telemetry pipeline: the
+        # counts belong as rows/series in a results plane (Bazel BEP -> BES, Chromium ResultDB),
+        # here the declared VictoriaMetrics in infra/observability/observability.k8s.yaml. That
+        # substrate is declared but not reconciled onto a cluster, so wiring an emitter at it
+        # today would push into nothing. `debt_counts` already emits a transport-free document
+        # for that ingest; only the transport is missing.
+        if: always()
+        # BEST-EFFORT (evidence, not verdict): an artifact-storage-quota failure here must not
+        # turn the computed firewall verdict red. `if-no-files-found: error` still annotates the
+        # step when the gate stops emitting, so a silently-dead emitter stays visible.
+        continue-on-error: true
+        # actions/upload-artifact@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: gate-debt-counts
+          path: ci/facade/baseline-ratchet/gate-debt-counts.generated.json
+          # 90d, not the 30d of the triage artifacts: this is a TREND series, and the stall it
+          # has to expose was measured in 22-39 day flats.
+          retention-days: 90
+          if-no-files-found: error
 
   # ── GENERATED OUTPUT DIFF POLICY. Generated files may be deleted to retire a tracked output,
   #    but PRs must not add/modify generated outputs as merge surfaces. Classification comes from

@@ -784,6 +784,322 @@ where
     a.into_iter().chain(b).cloned().collect()
 }
 
+// ===========================================================================
+// GATE DEBT COUNTS — the burn-down trend signal the de-commit took with it
+//
+// `gate-baseline.generated.json` carried 47,830 tolerated keys across 15 gates: the fleet's
+// dominant debt ledger. ADR-0616 de-committed it, correctly — it was an authoritative merge
+// surface a mis-invoked materializer could corrupt silently, and it is regenerated from the
+// merge-base source on every run. That de-commit is NOT reverted here and nothing below reads
+// the face back.
+//
+// What the de-commit also removed was the only record of the LEVEL and the TREND. Before it,
+// `git log -p` on the face answered "is the debt going down?" (142 commits touched it over its
+// life); after it, nothing did. Gates that had been FLAT for weeks — and at least one that grew
+// — became unobservable.
+//
+// The industry answer to "we lost visibility when we stopped committing the file" is never
+// "commit the file again"; it is to emit the numbers to a results plane. Bazel's Build Event
+// Protocol streams per-invocation results and a terminal BuildMetrics event to a backend
+// (`--bes_backend`) or a per-invocation file (`--build_event_json_file`), never into the source
+// tree (https://bazel.build/remote/bep). Chromium moved all builder test results into ResultDB,
+// a LUCI service holding them as queryable rows, and bases pass/fail on those rows rather than
+// on JSON files in the checkout
+// (https://chromium.googlesource.com/chromium/src/+/112.0.5615.165/docs/testing/resultdb.md).
+// [`debt_counts`] is the emitter half of that split: a counts-only, schema-versioned event,
+// sized by the number of (gate, code) pairs (88) rather than by the debt (47,830 keys).
+//
+// It answers the TREND, not just the level: each row carries `baseline` (the count at the
+// FROZEN merge-base reference), `current` (the candidate tree), the signed `delta` and a
+// `direction` of down/flat/up, and each rollup counts how many codes moved each way — so
+// `codes_flat == codes` is a stalled scope, mechanically, in a single run.
+// ===========================================================================
+
+/// Schema id of the emitted debt event. Bump only on a breaking shape change.
+pub const DEBT_SIGNAL_SCHEMA: &str = "oya-ci/gate-debt-counts/v1";
+
+/// Repo-relative path the firewall gate writes the event to. NOT tracked in git (covered by the
+/// `**/*.generated.json` ignore rule): a per-run signal, never a merge surface.
+pub const DEBT_SIGNAL_PATH: &str = "ci/facade/baseline-ratchet/gate-debt-counts.generated.json";
+
+/// Stable log prefix for the single-line form, so the counts are greppable straight out of a run
+/// log without downloading the artifact.
+pub const DEBT_SIGNAL_LOG_MARKER: &str = "OYA-CI-DEBT-COUNTS";
+
+/// Debt shrank relative to the frozen merge-base reference.
+pub const DIRECTION_DOWN: &str = "down";
+/// Debt did not move — the stall signal.
+pub const DIRECTION_FLAT: &str = "flat";
+/// Debt grew relative to the frozen merge-base reference.
+pub const DIRECTION_UP: &str = "up";
+
+/// Trend direction of `current` against the frozen `baseline` count.
+pub fn direction(baseline: usize, current: usize) -> &'static str {
+    match current.cmp(&baseline) {
+        std::cmp::Ordering::Less => DIRECTION_DOWN,
+        std::cmp::Ordering::Equal => DIRECTION_FLAT,
+        std::cmp::Ordering::Greater => DIRECTION_UP,
+    }
+}
+
+/// Run identity stamped on the event so a series of events is orderable and every row is
+/// attributable to a comparison point. Supplied by the caller: the builder stays pure — no
+/// clock, no git.
+pub struct DebtSignalMeta<'a> {
+    /// The frozen policy base ref the merge-base was computed against (e.g. `origin/dev`).
+    pub base_ref: &'a str,
+    /// The merge-base revision the `baseline` counts are measured at.
+    pub merge_base: &'a str,
+    /// Wall-clock of emission. This event is per-run telemetry, not a byte-compared face, so a
+    /// timestamp is safe; it is a parameter so the builder itself stays deterministic.
+    pub emitted_at_unix: u64,
+}
+
+/// Aggregated counts for one scope (codes roll up into a gate; gates roll up into the repo).
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+struct DebtCounts {
+    codes: usize,
+    baseline: usize,
+    current: usize,
+    tolerated: usize,
+    fixed: usize,
+    regressions: usize,
+    signed_off: usize,
+    codes_down: usize,
+    codes_flat: usize,
+    codes_up: usize,
+}
+
+impl DebtCounts {
+    fn add(&mut self, report: &CodeReport) {
+        self.codes += 1;
+        self.baseline += report.baseline;
+        self.current += report.current;
+        self.tolerated += report.tolerated.len();
+        self.fixed += report.fixed.len();
+        self.regressions += report.regressions.len();
+        self.signed_off += report.signed_off.len();
+        match direction(report.baseline, report.current) {
+            DIRECTION_DOWN => self.codes_down += 1,
+            DIRECTION_UP => self.codes_up += 1,
+            _ => self.codes_flat += 1,
+        }
+    }
+
+    fn merge(&mut self, other: &Self) {
+        self.codes += other.codes;
+        self.baseline += other.baseline;
+        self.current += other.current;
+        self.tolerated += other.tolerated;
+        self.fixed += other.fixed;
+        self.regressions += other.regressions;
+        self.signed_off += other.signed_off;
+        self.codes_down += other.codes_down;
+        self.codes_flat += other.codes_flat;
+        self.codes_up += other.codes_up;
+    }
+
+    fn to_value(self) -> Value {
+        serde_json::json!({
+            "codes": self.codes,
+            "baseline": self.baseline,
+            "current": self.current,
+            "tolerated": self.tolerated,
+            "fixed": self.fixed,
+            "regressions": self.regressions,
+            "signed_off": self.signed_off,
+            "delta": self.current as i64 - self.baseline as i64,
+            "direction": direction(self.baseline, self.current),
+            "codes_down": self.codes_down,
+            "codes_flat": self.codes_flat,
+            "codes_up": self.codes_up,
+        })
+    }
+}
+
+fn debt_code_value(report: &CodeReport) -> Value {
+    serde_json::json!({
+        "mode": report.mode,
+        "baseline": report.baseline,
+        "current": report.current,
+        "tolerated": report.tolerated.len(),
+        "fixed": report.fixed.len(),
+        "regressions": report.regressions.len(),
+        "signed_off": report.signed_off.len(),
+        "delta": report.current as i64 - report.baseline as i64,
+        "direction": direction(report.baseline, report.current),
+    })
+}
+
+/// Build the counts-only debt event from a firewall report.
+///
+/// COUNTS ONLY, BY CONSTRUCTION: every value written here is an integer, a gate id, a code id, a
+/// `mode`, or a direction word. No `regressions`/`fixed`/`tolerated`/`signed_off` KEY ever
+/// reaches the document — only its cardinality. That is what makes this safe to emit, and safe
+/// to store, where the 47,830-key face was not.
+pub fn debt_counts(report: &FirewallReport, meta: &DebtSignalMeta<'_>) -> Value {
+    let mut by_gate: BTreeMap<&str, (DebtCounts, serde_json::Map<String, Value>)> = BTreeMap::new();
+    for code in &report.codes {
+        let entry = by_gate.entry(code.gate.as_str()).or_default();
+        entry.0.add(code);
+        entry.1.insert(code.code.clone(), debt_code_value(code));
+    }
+
+    let mut repo = DebtCounts::default();
+    let mut gates = serde_json::Map::new();
+    for (gate, (counts, codes)) in by_gate {
+        repo.merge(&counts);
+        gates.insert(
+            gate.to_owned(),
+            serde_json::json!({ "totals": counts.to_value(), "codes": Value::Object(codes) }),
+        );
+    }
+
+    serde_json::json!({
+        "schema_version": DEBT_SIGNAL_SCHEMA,
+        "_comment": "COUNTS ONLY (no debt keys) — the burn-down trend signal that replaces \
+                     observability of the de-committed gate-baseline face (ADR-0616). Per \
+                     (gate, code): `baseline` is the count at the FROZEN merge-base reference, \
+                     `current` the count on the candidate tree, `direction` down/flat/up. \
+                     Nothing gates on this document; it is telemetry, not control state.",
+        "base_ref": meta.base_ref,
+        "merge_base": meta.merge_base,
+        "emitted_at_unix": meta.emitted_at_unix,
+        "gate_count": gates.len(),
+        "totals": repo.to_value(),
+        "ratchet_growth": report.ratchet_growth.len(),
+        "inert_signoff": report.inert_signoff.len(),
+        "gates": Value::Object(gates),
+    })
+}
+
+#[cfg(test)]
+mod debt_signal_tests {
+    use super::*;
+
+    fn keys(values: &[&str]) -> BTreeSet<String> {
+        values.iter().map(|value| (*value).to_owned()).collect()
+    }
+
+    fn code(gate: &str, name: &str, baseline: &[&str], current: &[&str]) -> CodeReport {
+        let baseline_keys = keys(baseline);
+        let current_keys = keys(current);
+        CodeReport {
+            gate: gate.to_owned(),
+            code: name.to_owned(),
+            mode: MODE_BASELINE_BLOCK_ON_NEW.to_owned(),
+            current: current_keys.len(),
+            baseline: baseline_keys.len(),
+            regressions: current_keys.difference(&baseline_keys).cloned().collect(),
+            fixed: baseline_keys.difference(&current_keys).cloned().collect(),
+            tolerated: current_keys.intersection(&baseline_keys).cloned().collect(),
+            signed_off: BTreeSet::new(),
+            remediation: None,
+        }
+    }
+
+    fn meta() -> DebtSignalMeta<'static> {
+        DebtSignalMeta {
+            base_ref: "origin/dev",
+            merge_base: "0123456789abcdef0123456789abcdef01234567",
+            emitted_at_unix: 1_780_000_000,
+        }
+    }
+
+    #[test]
+    fn direction_reports_down_flat_and_up() {
+        assert_eq!(direction(10, 7), DIRECTION_DOWN);
+        assert_eq!(direction(10, 10), DIRECTION_FLAT);
+        assert_eq!(direction(10, 13), DIRECTION_UP);
+    }
+
+    /// THE load-bearing invariant: this document may carry cardinalities, never keys. If a
+    /// future edit starts serializing the key SETS, the emitted signal becomes the very
+    /// merge-surface-sized artifact ADR-0616 de-committed. A distinctive key is planted on every
+    /// set the report carries and the serialized document is searched for it.
+    #[test]
+    fn debt_signal_carries_counts_only_never_debt_keys() {
+        let planted = "oya/planted-debt-key-do-not-emit.rs";
+        let mut row = code("g1", "c1", &[planted], &[planted, "oya/new.rs"]);
+        row.signed_off = keys(&["oya/signed-off-planted.rs"]);
+        let report = FirewallReport {
+            codes: vec![row],
+            ratchet_growth: vec![("g1".into(), "c1".into(), planted.to_owned())],
+            inert_signoff: vec![("g1".into(), "c1".into(), planted.to_owned())],
+        };
+
+        let signal = debt_counts(&report, &meta());
+        let text = serde_json::to_string(&signal).unwrap();
+
+        assert!(
+            !text.contains(planted),
+            "debt keys leaked into the counts signal: {text}"
+        );
+        assert!(!text.contains("oya/new.rs"), "regression key leaked: {text}");
+        assert!(
+            !text.contains("oya/signed-off-planted.rs"),
+            "signed-off key leaked: {text}"
+        );
+        // The cardinalities of the very sets whose keys were withheld are still reported
+        // (code row + gate rollup + repo rollup).
+        assert_eq!(text.matches("\"tolerated\":1").count(), 3);
+        assert_eq!(text.matches("\"signed_off\":1").count(), 3);
+        assert_eq!(signal["ratchet_growth"], Value::from(1));
+        assert_eq!(signal["inert_signoff"], Value::from(1));
+    }
+
+    #[test]
+    fn debt_signal_gate_and_repo_totals_aggregate_code_counts() {
+        let report = FirewallReport {
+            codes: vec![
+                code("g1", "c1", &["a", "b", "c"], &["a"]),
+                code("g1", "c2", &["d"], &["d", "e"]),
+                code("g2", "c3", &["f"], &["f"]),
+            ],
+            ..FirewallReport::default()
+        };
+
+        let signal = debt_counts(&report, &meta());
+
+        assert_eq!(signal["gate_count"], Value::from(2));
+        assert_eq!(signal["totals"]["baseline"], Value::from(5));
+        assert_eq!(signal["totals"]["current"], Value::from(4));
+        assert_eq!(signal["totals"]["delta"], Value::from(-1));
+        assert_eq!(signal["totals"]["direction"], Value::from(DIRECTION_DOWN));
+        assert_eq!(signal["totals"]["fixed"], Value::from(2));
+        assert_eq!(signal["totals"]["regressions"], Value::from(1));
+        assert_eq!(signal["gates"]["g1"]["totals"]["baseline"], Value::from(4));
+        assert_eq!(signal["gates"]["g1"]["totals"]["current"], Value::from(3));
+        assert_eq!(signal["gates"]["g2"]["totals"]["direction"], DIRECTION_FLAT);
+        assert_eq!(
+            signal["gates"]["g1"]["codes"]["c2"]["direction"],
+            DIRECTION_UP
+        );
+        assert_eq!(signal["gates"]["g1"]["codes"]["c2"]["delta"], Value::from(1));
+    }
+
+    /// A STALL is "the level did not move", which a level-only signal cannot express. With
+    /// per-code directions rolled up, `codes_flat == codes` says it mechanically.
+    #[test]
+    fn an_all_flat_scope_is_reported_as_a_stall_not_just_a_level() {
+        let report = FirewallReport {
+            codes: vec![
+                code("g1", "c1", &["a", "b"], &["a", "b"]),
+                code("g1", "c2", &["c"], &["c"]),
+            ],
+            ..FirewallReport::default()
+        };
+
+        let signal = debt_counts(&report, &meta());
+        let totals = &signal["totals"];
+
+        assert_eq!(totals["current"], Value::from(3));
+        assert_eq!(totals["codes"], totals["codes_flat"]);
+        assert_eq!(totals["codes_down"], Value::from(0));
+        assert_eq!(totals["direction"], Value::from(DIRECTION_FLAT));
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
