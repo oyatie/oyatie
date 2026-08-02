@@ -1418,6 +1418,14 @@
       "kind": "spec",
       "migration_phase": "regid-003-planning-spec",
       "purpose": "Planning-only PCI DSS Level 1 readiness and regulated-data control-pack contract for CDE scope, tokenization, PAN/CVV/track-data prohibitions, QSA/ROC/AOC evidence, ASV scans, segmentation, KMS/PDP/audit bindings, retention, incident response, and tenant pack activation gates."
+    },
+    "substrate_dependency_graph_v2": {
+      "current_path": "/specs/substrate-dependency-dag.json",
+      "kind": "spec",
+      "migration_phase": "W0-C-graph-v2",
+      "purpose": "ADR-0635 face-aware substrate topology authority: closed dependency_units plus exactly five typed graphs; only steady_state_request is acyclic and failure_brownout_propagation is its derived max-min reverse transitive closure.",
+      "schema_path": "/specs/substrate-dependency-dag.schema.json",
+      "target_path_after_md_retirement": "same"
     }
   },
   "specs_directory_audit_2026_05_20": {

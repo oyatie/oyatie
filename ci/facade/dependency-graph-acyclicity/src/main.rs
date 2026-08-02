@@ -1,17 +1,18 @@
-//! cloud-ci-substrate-dependency-dag-acyclicity gate binary (ADR-0280 §D-3).
+//! cloud-ci substrate graph-v2 gate binary (ADR-0280 §D-3, amended by ADR-0635).
 //!
 //! Loads the policy-declared substrate dependency DAG, runs the full coherence evaluation
-//! (Tarjan acyclicity + forbidden-edge honouring + Kahn topo-sort == bootstrap_order + schema
-//! completeness), prints the report, and exits 0 (GREEN) / 1 (RED) / 2 (parse error). LOCAL BRIDGE
+//! (closed runtime-face-aware shape + graph-3 Tarjan acyclicity + forbidden-edge honouring + valid Kahn
+//! order + exact max-min reverse failure closure), prints the report, and exits 0/1/2. LOCAL BRIDGE
 //! feedback only (founder CLI-retirement directive): merge authority lives in the buck2 gate test
-//! behind oya-ci-required + the check-substrates lane, never in this binary.
+//! behind oya-ci-required + `//ci/facade/dependency-graph-acyclicity:ci-dependency-graph-acyclicity-gate`, never in this binary.
 #![forbid(unsafe_code)]
 
 use std::path::PathBuf;
 use std::process::ExitCode;
 
 use ci_dependency_graph_acyclicity::{
-    DEFAULT_POLICY_PATH, Verdict, evaluate_with_raw, load_dag, load_policy, render_findings,
+    DEFAULT_POLICY_PATH, Verdict, evaluate_with_raw, load_dag, load_json, load_policy,
+    render_findings,
 };
 
 struct Args {
@@ -36,15 +37,34 @@ fn main() -> ExitCode {
         }
     };
 
-    let dag_path = match args.dag_path {
-        Some(path) => path,
-        None => match load_policy(&args.repo_root, &args.policy_path) {
-            Ok(policy) => policy.dag_path,
-            Err(error) => {
-                eprintln!("substrate-dependency-dag gate policy error: {error}");
-                return ExitCode::from(2);
-            }
-        },
+    let policy = match load_policy(&args.repo_root, &args.policy_path) {
+        Ok(policy) => policy,
+        Err(error) => {
+            eprintln!("substrate-dependency-dag gate policy error: {error}");
+            return ExitCode::from(2);
+        }
+    };
+    let dag_path = args.dag_path.unwrap_or_else(|| policy.dag_path.clone());
+
+    let schema = match load_json(&args.repo_root, &policy.schema_path) {
+        Ok(schema) => schema,
+        Err(error) => {
+            eprintln!("substrate-dependency-dag schema error: {error}");
+            return ExitCode::from(2);
+        }
+    };
+    if schema.get("$schema").and_then(serde_json::Value::as_str)
+        != Some("https://json-schema.org/draft/2020-12/schema")
+    {
+        eprintln!("substrate-dependency-dag schema error: expected Draft 2020-12 schema");
+        return ExitCode::from(2);
+    }
+    let capability_registry = match load_json(&args.repo_root, &policy.capability_registry_path) {
+        Ok(registry) => registry,
+        Err(error) => {
+            eprintln!("substrate-dependency-dag capability registry error: {error}");
+            return ExitCode::from(2);
+        }
     };
 
     let dag = match load_dag(&args.repo_root, &dag_path) {
@@ -76,11 +96,11 @@ fn main() -> ExitCode {
         }
     };
 
-    let report = evaluate_with_raw(&dag, &raw);
+    let report = evaluate_with_raw(&dag, &raw, &schema, &capability_registry);
     println!("{}", render_findings(&report.findings));
     if let Some(order) = &report.derived_bootstrap_order {
         println!(
-            "derived bootstrap_order (Kahn topo-sort): {}",
+            "derived graph-3 bootstrap_order (Kahn): {}",
             order.join(" -> ")
         );
     }
