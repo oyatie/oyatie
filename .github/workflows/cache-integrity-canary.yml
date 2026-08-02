@@ -19,6 +19,16 @@
 # structured invocation record), the digest manifest, and the verdict artifact all
 # run for real today.
 #
+# THIS JOB THEREFORE FAILS DAILY UNTIL CAS EXISTS, AND THAT IS THE CORRECT READING.
+# INACTIVE_NO_ENDPOINT exits nonzero (CanaryStatus::is_failure — only GREEN exits
+# zero), so the check conclusion says "the trust anchor is not established" rather
+# than "cache integrity verified". It previously exited zero, which published a
+# daily green badge for a run that compared zero keys: run 30690156857 (2026-08-01)
+# was conclusion=success with the warm-probe step SKIPPED. The job is deliberately
+# outside the oya-ci-required fan-in (see below), so a red conclusion here carries
+# no merge authority and cannot wedge trunk — it only refuses to invite the
+# warm_reads_licensed flip on evidence that does not exist.
+#
 # This is NOT part of the oya-ci-required fan-in (zero impact on merge authority);
 # results surface as run artifacts + the job's check conclusion per the no-shell
 # axiom (ADR-0556 D4.3: result via API/artifact, never a log someone shells in to
