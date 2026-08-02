@@ -133,7 +133,6 @@ fn live_owned_stack_has_no_active_graphql_layer_vocabulary() {
         "oya/marketplace",
         "oya/ontology/decisions/ADR-ONT-001-rdf-shape-vs-property-graph-storage.md",
         "oya/workplace-integration",
-        "scripts/gen_first_party_buck.py",
     ];
     let forbidden_needles = [
         "Layer::Graphql",
