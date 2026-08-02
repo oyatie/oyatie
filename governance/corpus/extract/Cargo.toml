@@ -15,6 +15,7 @@ license = "Apache-2.0"
 [dependencies]
 blake3 = "1.8.5"
 corpus-core = { path = "../core" }
+corpus-yaml-kernel = { path = "../yaml-kernel" }
 oya-workspace-members-kernel = { path = "../../../libs/oya-workspace-members-kernel" }
 syn = { workspace = true }
 quote = { workspace = true }
@@ -27,6 +28,12 @@ doctest = false
 [[bin]]
 name = "corpus-extract"
 path = "src/main.rs"
+
+# The buck2-action entry point for the YAML artifact class. Inputs arrive as explicit argv paths
+# (never a filesystem walk), so an action's inputs are exactly what buck2 declared.
+[[bin]]
+name = "corpus-yaml-facts"
+path = "src/yaml_facts_main.rs"
 
 [lints]
 workspace = true

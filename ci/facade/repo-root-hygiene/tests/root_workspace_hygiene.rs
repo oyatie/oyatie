@@ -70,11 +70,42 @@ fn unquote_git_path(raw: &str) -> String {
     }
 }
 
-/// Build the `{ "rows": [{"path": ...}] }` observed inventory from the committed scm-facts snapshot.
+/// The materialized tracked-path face this gate reads. ADR-0604 de-commit class: NOT tracked in
+/// git, so in ANY clean worktree it is simply absent.
+const SCM_FACTS_REL: &str = "ci/facade/artifact-inventory-registry/scm-facts.generated.json";
+
+/// The exact command that materializes it locally — the same binary the CI "Materialize cloud-ci
+/// generated faces" step runs, minus `--github-event` (which only reads `GITHUB_EVENT_PATH`).
+const MATERIALIZE_CMD: &str = "buck2 run \
+     //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin \
+     -- --repo-root .";
+
+/// Resolve the scm-facts face, or fail with an ACTIONABLE message.
+///
+/// Before this, a clean worktree got `read <abs path>: No such file or directory (os error 2)`.
+/// That is a true statement and useless advice: the face is generated, its producer is not
+/// discoverable from the path, and an author checking their change against this gate had no way
+/// to know the gate was not evaluating anything. A gate that cannot be run locally gives no local
+/// signal, which is how a change reaches CI unchecked.
+fn require_scm_facts(root: &Path) -> PathBuf {
+    let path = root.join(SCM_FACTS_REL);
+    assert!(
+        path.is_file(),
+        "{SCM_FACTS_REL} is missing — this gate reads the materialized tracked-path face, which \
+         is generated (ADR-0604 de-commit class) and therefore absent in a clean worktree.\n\
+         \n\
+         Materialize it, then re-run this gate:\n\
+         \n    {MATERIALIZE_CMD}\n\
+         \n\
+         In CI this is the \"Materialize cloud-ci generated faces\" step; the faces are then \
+         uploaded as the `generated-faces` artifact and downloaded by every gate leg."
+    );
+    path
+}
+
+/// Build the `{ "rows": [{"path": ...}] }` observed inventory from the materialized scm-facts face.
 fn observed_from_scm_facts(root: &Path) -> Value {
-    let scm = load_json(&root.join(
-        "ci/facade/artifact-inventory-registry/scm-facts.generated.json",
-    ));
+    let scm = load_json(&require_scm_facts(root));
     let paths = scm["tracked_paths"]
         .as_array()
         .expect("scm-facts.generated.json must carry a tracked_paths array");

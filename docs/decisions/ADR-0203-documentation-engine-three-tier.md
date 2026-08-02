@@ -2,218 +2,117 @@
 
 - Status: Accepted
 - Date: 2026-05-18
+- Last reconciled: 2026-08-01
 - Deciders: Substrate architecture authority (oya-architecture-authority)
 - Tags: substrate, documentation, developer-experience, marketing
 - Supersedes: none
 - Superseded by: none
-- Related: ADR-0170 (developer portal — Backstage + TechDocs already
-  selected),
-  ADR-0173 (vendor lock-in avoidance — no commercial-only docs
-  platform allowed),
-  ADR-0185 (Workflow Studio client stack — SvelteKit Phase 1).
+- Related: ADR-0157 (API gateway), ADR-0167 (tenant CLI), ADR-0173 (vendor lock-in avoidance), ADR-0176 (brownout signal), ADR-0182 (gateway/mesh separation), ADR-0258 (API versioning model), ADR-0393 (Leptos canonical app shell), ADR-0394 (first-party Rust developer portal)
 
 ## Context
 
-Three audiences with three different access patterns consume
-oyatie documentation:
+Three audiences consume Oyatie documentation through different access patterns:
 
-1. **Engineers reading the raw repository.** They live in
-   `git`, `rg`, `bat`, IDE preview. They want a fast, navigable,
-   in-repo rendering that survives offline + air-gapped review.
-2. **Engineers browsing the service catalog.** They live in the
-   internal developer portal (ADR-0170 Backstage). They want
-   per-service docs federated alongside ownership, SLOs, ADR
-   index, dashboards.
-3. **External customers / prospects.** They live on the public
-   web. They want polished marketing, onboarding, API reference,
-   and search.
+1. engineers reading the repository need fast, offline, air-gap-safe navigation;
+2. engineers and operators browsing the service catalog need documentation composed with ownership,
+   APIs, SLOs, runbooks, releases, and dashboards;
+3. external customers and developers need polished, versioned public documentation and API
+   reference.
 
-A single docs engine that tries to serve all three either degrades
-to a lowest-common-denominator markdown previewer or accretes a
-custom SPA layer for marketing that drifts from the in-repo
-source.
+A single renderer optimized for all three either loses repository fidelity or becomes a second
+application platform. The source must remain in Git while each audience receives an appropriate
+projection.
 
 ## Decision
 
-Three engines, three audiences, single Markdown source-of-truth.
+Use three presentation tiers over one repository-owned Markdown and contract source of truth.
 
-### Tier 1 — In-repo technical docs: mdbook
+### Tier 1 — In-repository technical documentation
 
-- **Engine**: `mdbook` (Rust-native, MPL-2.0).
-- **Sources**:
-  - `docs/standards/` — engineering standards (e.g.
-    `wasm-runtime-canonical.md`, `gitops-iac-cluster-tier-boundaries.md`)
-  - `docs/operators/` — operator runbooks
-  - `docs/decisions/` — ADR index rendered as a navigable book
-- **Audience**: internal engineers, raw repo readers.
-- **Output**: static HTML, committed-render not required; build
-  artifact published to internal docs bucket on `dev` branch
-  promotion.
+- **Engine:** `mdbook`.
+- **Sources:** `docs/`, capability-local ADRs, runbooks, SLOs, and ownership documents.
+- **Audience:** engineers, reviewers, and air-gapped operators.
+- **Output:** a reproducible static artifact; rendered output is not committed authority.
 
-### Tier 2 — Service catalog: Backstage TechDocs
+### Tier 2 — First-party service-catalog documentation module
 
-Backstage is Spotify-origin, donated to the CNCF (incubating).
-TechDocs is its "docs-like-code" plugin: Markdown rendered via
-MkDocs inside the Backstage UI.
+- **Engine:** the first-party Rust docs-portal module mounted in
+  `app/ops-console/developer-portal/` per ADR-0394 and rendered through the Leptos shell per
+  ADR-0393.
+- **Sources:** repository Markdown plus canonical catalog, ownership, SLO, runbook, release, and API
+  projections exposed through governed read APIs.
+- **Audience:** internal engineers and operators browsing the capability catalog.
+- **Output:** a live module in the first-party portal. The portal is a projection, never the source
+  of truth.
 
-- **Engine**: Backstage TechDocs (Markdown rendered via MkDocs
-  inside the Backstage UI, per ADR-0170).
-- **Sources**: per-µservice docs under
-  `microservices/<ms>/` — PRD, IPs, runbooks, SLOs, dashboards,
-  ownership manifests. TechDocs reads the same Markdown files
-  mdbook reads when scoped to a single µservice.
-- **Audience**: internal engineers browsing the service catalog.
-- **Output**: live inside Backstage portal (ADR-0170).
+Backstage and TechDocs may be consulted as feature references or one-way migration inputs. They are
+not runtime dependencies, plugin hosts, catalog authorities, or deployment substrates.
 
-### Tier 3 — Public docs / marketing: SvelteKit
+### Tier 3 — Public documentation
 
-- **Engine**: SvelteKit (ADR-0185 Phase 1 client stack; matches
-  the canonical web rendering substrate).
-- **Sources**:
-  - Processed JSON exported from the same Markdown
-    source-of-truth (mdbook generator emits a JSON sidecar; a
-    follow-up generator script produces the SvelteKit content
-    bundle).
-  - OpenAPI 3.2.0 + AsyncAPI 3.1.0 contracts rendered via
-    Redoc (preferred) or Stoplight Elements.
-- **Audience**: external customers, prospects, search engines.
-- **Output**: live at the public marketing domain.
+- **Engine:** the canonical Leptos/Rust-WASM web shell from ADR-0393, with SSR and hydration.
+- **Sources:** a deterministic content bundle projected from the repository source plus versioned
+  OpenAPI 3.2 and AsyncAPI 3.1 contracts.
+- **Audience:** external customers, developers, prospects, and search engines.
+- **Output:** the public documentation and developer experience surface.
 
 ### Cross-render contract
 
-- Markdown source-of-truth lives in the repository under
-  `docs/` and `microservices/<ms>/`.
-- mdbook reads the in-repo Markdown directly.
-- Backstage TechDocs reads the same Markdown via MkDocs at portal
-  build time.
-- SvelteKit reads a JSON content bundle produced by a generator
-  step (the generator is owned by the `microservices/docs/`
-  µservice).
-- Diagrams: Mermaid + C4-PlantUML committed as source; rendered
-  at build time by each tier.
+- Markdown and contract sources remain repository-owned.
+- Tier 1 reads Markdown directly.
+- Tier 2 reads canonical content and metadata through owned projection APIs.
+- Tier 3 reads a deterministic, provenance-bearing content bundle.
+- No tier may write back to Markdown, catalog, ownership, or contract authority directly.
+- Mermaid and C4-PlantUML remain source formats and are rendered during the applicable build.
+- Every generated bundle is reproducible, freshness-checked, and traceable to an exact source SHA.
 
 ### API reference
 
-- OpenAPI 3.2.0 contracts under `microservices/<ms>/contracts/`
-  → Redoc (preferred) → embedded in the SvelteKit public docs.
-- AsyncAPI 3.1.0 contracts (event-driven µservices) → AsyncAPI's
-  rendering CLI → embedded in the SvelteKit public docs.
+- OpenAPI 3.2 contracts render the synchronous REST reference.
+- AsyncAPI 3.1 contracts render event, webhook, and streaming reference.
+- Protobuf descriptors may be shown for internal service owners but do not create a public gRPC
+  contract.
 
 ## Alternatives considered
 
-- **Docusaurus** — React-based, mature, but breaks the
-  Rust-primary stack alignment (ADR-0185 picked SvelteKit Phase 1
-  + Leptos Phase 2). Adding React just for docs creates a second
-  client stack the discipline gate must whitelist. Rejected.
-- **MkDocs alone** — Pure Python; no Rust path; lacks the
-  marketing-page composition we want for Tier 3. Acceptable as
-  the engine inside Backstage TechDocs (Tier 2) because that
-  choice is already made by ADR-0170. Rejected as canonical for
-  Tiers 1 + 3.
-- **GitBook** — Commercial, vendor-locked. ADR-0173 forbids.
-  Rejected.
-- **Notion / Confluence / similar SaaS** — Vendor lock-in plus
-  loss of source-of-truth in `git`. Rejected.
-- **Single engine across all three tiers** — Always degrades to
-  lowest-common-denominator or accretes a custom SPA for
-  marketing. Rejected on principle.
+- **Backstage TechDocs or MkDocs as Tier 2 runtime:** rejected. This would introduce a parallel
+  Node/Python portal substrate and a second catalog authority. Their information architecture may
+  be used as a feature reference only.
+- **Docusaurus:** rejected because it creates a second React/Node client stack.
+- **GitBook, Notion, Confluence, or hosted documentation SaaS as authority:** rejected for vendor
+  lock-in and loss of Git as source of truth.
+- **One renderer for every tier:** rejected because repository, internal operational, and public
+  presentation requirements have different reliability and interaction boundaries.
 
 ## Consequences
 
-- New µservice `microservices/docs/` (already scaffolded) owns
-  the generator step that produces the SvelteKit content bundle
-  + integrates the Redoc / AsyncAPI rendering pipeline.
-- mdbook + TechDocs read the same Markdown; SvelteKit reads the
-  generated bundle. No drift because all three trace back to the
-  same `docs/` and `microservices/<ms>/` source.
-- New contributors point at
-  `docs/standards/wasm-runtime-canonical.md` and
-  `docs/standards/gitops-iac-cluster-tier-boundaries.md` as
-  example engineering-standards reads rendered by mdbook.
-- The discipline gate `oya-check-client-stack-discipline`
-  (ADR-0185) already enforces SvelteKit / Leptos. No additional
-  gate is required for Tier 3.
-
-## Standards anchor
-
-- `microservices/docs/` — µservice substrate.
-- `docs/standards/` — mdbook source root.
-- ADR-0170 (developer portal) — Backstage TechDocs binding.
-- ADR-0185 (client stack) — SvelteKit binding.
+- Oyatie owns the Tier-2 and Tier-3 runtimes and their accessibility, security, and reliability.
+- Documentation and API metadata remain authoritative outside the portal; portal indexes are
+  disposable projections.
+- The portal composes capability APIs and contains no duplicated domain logic.
+- A Tier-2 outage degrades portal documentation without blocking raw repository access or public
+  static reference artifacts.
 
 ## Migration
 
-- T+0 (this ADR): canonical engines named; mdbook+TechDocs
-  already operable; SvelteKit generator scaffolded.
-- T+30d: SvelteKit generator produces the JSON bundle for at
-  least one µservice end-to-end.
-- T+60d: All µservices expose docs through all three tiers
-  (each µservice has at minimum a PRD, IPs, and runbook visible
-  in mdbook + TechDocs; public-facing µservices add a SvelteKit
-  surface).
+1. Retire any live Backstage/TechDocs runtime, plugin, or Helm authority rather than moving it into
+   the capability tree.
+2. Keep existing Markdown and catalog-shaped documents as migration inputs only when their
+   provenance is explicit and no Backstage runtime is required to consume them.
+3. Implement the first-party docs module under the multi-capability composition root.
+4. Prove exact-SHA content freshness, degraded-mode behavior, accessibility, and cross-tier link
+   integrity before promotion.
 
-## In-house roadmap
+## Verification
 
-Two of the three engines are community standards we adopt as-is.
-The third tier (Backstage) is community standard with a conditional
-Phase-2 in-house option named.
-
-### Keep as community standards (no replacement planned)
-
-- **mdbook** (Rust community standard, MPL-2.0, used by the Rust
-  Project itself for The Rust Book / Cargo Book / Rust Reference)
-  is the Tier-1 engine. Adopting mdbook *is* the in-house posture
-  for a Rust-primary substrate. No Phase-2 replacement planned.
-- **SvelteKit** (Tier 3) is covered by ADR-0185 as the canonical
-  web client stack. Adopting SvelteKit *is* the in-house posture
-  for Phase-1 web; Leptos is the Phase-2 in-house Rust-native
-  successor named in ADR-0185.
-
-### Phase 0 vendor adapter (gated)
-
-- **Backstage TechDocs** (Tier 2) — Spotify-origin, donated to
-  CNCF (incubating). Apache-2.0. Used as the developer-portal
-  substrate per ADR-0170. Kept behind an adapter so we never
-  bake Backstage assumptions into business logic.
-
-### Phase 2 in-house build (conditional)
-
-`oya-developer-portal` — in-house Rust-native developer-portal
-substrate. Triggered ONLY if Backstage scope grows beyond
-"service catalog + TechDocs" in a way that conflicts with our
-substrate (e.g. plugin model that requires Node/TS runtime
-inside our Rust-primary control plane, or licensing posture
-changes, or scaling characteristics that Backstage cannot meet
-for our µservice count).
-
-**Trigger conditions** (any fires Phase 2). Numeric, not
-aspirational:
-
-1. Plugin model forces a Node/TS runtime into the cluster
-   control plane in a way that violates ADR-0185 client-stack
-   discipline.
-2. Backstage upstream changes licensing in a way that violates
-   ADR-0173.
-3. Service-catalog scale exceeds Backstage's per-instance
-   indexing budget. Concrete threshold: µservice count > 500
-   OR per-µservice doc-page count > 10,000 with sustained
-   p99 catalog query > 2 s.
-4. Backstage scope creeps beyond "service catalog +
-   TechDocs" into "IDP universal control plane" (e.g.
-   per-Backstage-plugin replacing oyatie µservices); the
-   substrate must remain the source-of-truth, not Backstage.
-
-Until any trigger fires, Backstage is the canonical Tier-2
-engine.
-
-### In-house contribution path
-
-Fixes / features in mdbook + Backstage TechDocs that land in our
-integration are contributed upstream. Per ADR-0173.
+- Repository scans find no promoted Backstage runtime, plugin package, or deployment chart.
+- Tier-2 and Tier-3 builds consume the same canonical Markdown and contract inventory.
+- A stale or provenance-free generated bundle fails closed.
+- Browser evidence covers keyboard navigation, WCAG 2.2 AA, responsive rendering, search, and a
+  degraded catalog dependency.
+- OpenTelemetry evidence covers render latency, errors, saturation, source freshness, and failed
+  downstream projections.
 
 ## Open questions
 
-- Search across all three tiers — single search index vs
-  per-tier index — deferred to a follow-up ADR.
-- Versioned docs (per-API-version reference) layout in SvelteKit
-  deferred to a follow-up ADR.
+- Cross-tier search-index ownership and versioned-document retention remain follow-up decisions.

@@ -1,0 +1,33 @@
+rust_library(
+    name = "corpus-yaml-kernel",
+    srcs = glob(["src/**/*.rs", "**/*.json"]),
+    crate = "corpus_yaml_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//governance/corpus/core:corpus-core",
+        "third-party//:blake3",
+        "third-party//:saphyr",
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)
+
+# Pure-kernel unit tests: node identity survives reformatting, the digest is SHALLOW (a sibling
+# edit cannot churn an unrelated entry — the anti-Merkle commitment), a parse failure is OPAQUE
+# rather than silently clean, the face serializes deterministically regardless of input order, and
+# the producer never routes bytes through `serde_json::Value`. All proven WITHOUT a filesystem.
+rust_test(
+    name = "corpus-yaml-kernel-unittest",
+    srcs = glob(["src/**/*.rs", "**/*.json"]),
+    crate = "corpus_yaml_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//governance/corpus/core:corpus-core",
+        "third-party//:blake3",
+        "third-party//:saphyr",
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)

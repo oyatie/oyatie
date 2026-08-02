@@ -35,17 +35,31 @@
     {
       "gate": "affected-target-set",
       "class": "orchestrator_external_execution_boundary",
-      "reason": "The affected-set gate is an orchestrator that invokes the owned Buck2 build/test boundary to compute the admission cone; the predicate result is derived from Buck2 reports, not ad-hoc shell policy. Count raised 5->6 for the ADR-0554 round-6 FULL-tier test-health ratchet, which spawns `buck2 test //...` to capture per-target verdicts (buck2's --build-report cannot express runtime test pass/fail). Count raised 6->9 for GH #1323/#899, and the class widened from buck2-only to external execution, because the ADR-0554 D8 trusted-baseline consumer adds three sites: (a) main.rs +1, the admission TEST-baseline producer capturing `buck2 test` per-target verdicts to publish as `test-health-baseline-<sha>` \u2014 same Buck2 boundary as the rest of this row; (b) oya-cloud-ci-build-health.rs +2, `gh api` for the Actions runs/artifacts REST calls and `unzip -p` because the artifact API serves ONLY a zip. Sites (b) are a DIFFERENT boundary (GitHub Actions artifact retrieval, not Buck2) and would ideally be their own row, but hermetic exceptions key on (gate, code, token) and `rules.insert` silently replaces on collision \u2014 a second `Command::new` row for this gate would overwrite this one \u2014 so they are declared here rather than shadowing the Buck2 scope. Neither (b) site bears a verdict: `gh` returns provenance JSON that the pure selector functions judge, `unzip` only materializes the payload those functions then validate, and ANY failure of either refuses the reuse and falls back to the in-job cold merge-base rebuild, so their absence costs wall-clock and never correctness. `gh run download -n` is deliberately NOT used: it selects by artifact NAME and would discard the artifact-ID binding that ties the downloaded bytes to the provenance-verified run.",
-      "cutover_note": "Replace the subprocess edge with the typed cloud-ci runner/reconciler API when that API owns Buck2 execution; the `gh`/`unzip` pair additionally retires when that API exposes typed cross-run artifact retrieval (or an owned inflate lands), at which point this row shrinks back toward the Buck2-only scope. Keep the exception visible until then.",
+      "reason": "The affected-set gate is an orchestrator that invokes the owned Buck2 build/test boundary to compute the admission cone; the predicate result is derived from Buck2 reports, not ad-hoc shell policy. Count raised 5->6 for the ADR-0554 round-6 FULL-tier test-health ratchet, which spawns `buck2 test //...` to capture per-target verdicts (buck2's --build-report cannot express runtime test pass/fail). Count raised 6->9 for GH #1323/#899, and the class widened from buck2-only to external execution, because the ADR-0554 D8 trusted-baseline consumer added three sites: (a) main.rs +1, the admission TEST-baseline producer capturing `buck2 test` per-target verdicts to publish as `test-health-baseline-<sha>` \u2014 same Buck2 boundary as the rest of this row; (b) oya-cloud-ci-build-health.rs +2, `gh api` for the Actions runs/artifacts REST calls and `unzip -p` because the artifact API serves ONLY a zip. Count LOWERED 9->8: the `gh api` site is RETIRED. `gh` is not installed on the owned arm64 runner image \u2014 probed against the live digest-pinned image, where no file named `gh` exists on the rootfs while curl/unzip/git/buck2/rustc/pwsh/jq are all present \u2014 so that subprocess failed with os error 2 on every FULL-tier run and the fast path was dark fleet-wide (measured cold merge-base rebuild: 11m12s..17m48s per run, mean 12m50s over 12 runs). It is now an owned `reqwest` GitHub REST adapter, declared in the sibling row below. `unzip -p` REMAINS a subprocess and is deliberately retained: it IS present in the image, the artifact API serves only a zip, and inflating in-process would add a dependency for something already installed. It bears no verdict \u2014 it only materializes a payload the pure validators then judge, and any failure refuses the reuse and falls back to the in-job cold merge-base rebuild, so its absence costs wall-clock and never correctness. `gh run download -n` was deliberately NOT used and its REST equivalent is not either: selecting by artifact NAME would discard the artifact-ID binding that ties the downloaded bytes to the provenance-verified run.",
+      "cutover_note": "Replace the subprocess edge with the typed cloud-ci runner/reconciler API when that API owns Buck2 execution; the remaining `unzip` site additionally retires when an owned inflate lands, at which point this row shrinks back to the Buck2-only scope. Keep the exception visible until then.",
       "fixuptask_id": "GH-777-CUTOVER-AFFECTED-SET-TYPED-RUNNER",
       "allowed_paths": [
         "ci/facade/affected-target-set/src/main.rs",
         "ci/facade/affected-target-set/src/bin/oya-cloud-ci-step-telemetry.rs",
         "ci/facade/affected-target-set/src/bin/oya-cloud-ci-build-health.rs"
       ],
-      "max_occurrences": 9,
+      "max_occurrences": 8,
       "tokens": [
         "Command::new"
+      ]
+    },
+    {
+      "gate": "affected-target-set",
+      "class": "trusted_baseline_artifact_retrieval_boundary",
+      "reason": "The ADR-0554 D8 trusted-baseline consumer reads the GitHub Actions runs/artifacts REST API to decide whether the FULL tier may skip its cold merge-base rebuild. This is a genuine network edge and is declared as one rather than hidden behind a CLI: the previous `gh api` subprocess concealed it, and concealed with it the fact that `gh` is absent from the owned arm64 runner image, so the fast path never once ran on the owned fleet. A separate row is possible here where a second `Command::new` row was not, because hermetic exceptions key on (gate, code, token) and `reqwest` is a distinct token \u2014 no `rules.insert` collision. The adapter bears NO verdict: it returns bytes, and the pure selector/validator functions (`trusted_dev_push_run_id`, `trusted_baseline_artifact_id`, `validate_trusted_baseline_artifact`) decide whether those bytes may become a baseline. Provenance is checked against the API's own response, so a candidate cannot launder a regression by publishing a look-alike artifact; and ANY doubt \u2014 including an unreachable API \u2014 refuses the reuse and runs the untouched cold rebuild, so this edge can cost wall-clock and never correctness. The API host is a compile-time constant, not a flag, so provenance validation cannot be pointed at a candidate-controlled server. Count 3 = the client field, the client builder, and the response type of the single `get` seam every route goes through; the ceiling is set to the exact observed count so a widening network surface has to be argued for here rather than absorbed into slack.",
+      "cutover_note": "Retire when the typed cloud-ci runner/reconciler API exposes cross-run artifact retrieval, at which point the consumer calls that API instead of GitHub directly and this row is deleted. Until then the shared shape belongs in one place: the sibling `oya-cloud-ci-run-terminal-state` consumer in ci/facade/baseline-ratchet grew the same client for the same reason, and the two must be extracted into a single ci/facade GitHub adapter once both have landed (that extraction needs its own crate, BUCK target, workspace member row, and a `scan.non_gate_crates` entry, so it is a deliberate follow-up rather than a drive-by).",
+      "fixuptask_id": "GH-1323-CUTOVER-TRUSTED-BASELINE-TYPED-ARTIFACT-API",
+      "allowed_paths": [
+        "ci/facade/affected-target-set/src/bin/oya-cloud-ci-build-health.rs"
+      ],
+      "max_occurrences": 3,
+      "tokens": [
+        "reqwest"
       ]
     },
     {
@@ -75,6 +89,20 @@
       "max_occurrences": 1,
       "tokens": [
         "SystemTime::now"
+      ]
+    },
+    {
+      "gate": "baseline-ratchet",
+      "class": "observability_adapter_rest_read_boundary",
+      "reason": "This binary is NOT a gate predicate and bears no admission verdict: it is the read-only adapter for the typed run terminal-state classifier, which reads step conclusions and check-run annotations from the Actions REST API and labels a required-context run pass / fail / no-verdict / blocked / verified-empty so an operator can tell an infrastructure fault from a candidate defect without scraping logs. Both sites are the same HTTP client construction (builder + type annotation) in the adapter; the classification itself is a pure kernel in src/run_terminal_state.rs with no I/O, no clock, and no network, and it is that kernel the acceptance tests exercise against captured real runs. reqwest is used rather than shelling to `gh` because `gh` is absent from the digest-pinned owned arm64 runner image, which is exactly why the sibling trusted-baseline fast path in affected-target-set is silently dead there. The adapter is invoked by no workflow step today, so it cannot affect any gate verdict even accidentally: adding a caller needs a new inline-shell `run:` step, and automation-language-policy is a shrink-only merge-base ceiling that rejects one by design.",
+      "cutover_note": "Retire this row when the classifier moves to the owned CI runner action surface, where it is a first-class action rather than a `run:` line and the runner owns the Actions REST boundary. Before that, if the sibling affected-target-set `gh api` shell-out is also converted to reqwest, extract ONE shared ci/facade GitHub REST adapter crate and repoint both rows at it instead of declaring the token twice.",
+      "fixuptask_id": "GH-1003-CUTOVER-RUN-TERMINAL-STATE-TYPED-RUNNER",
+      "allowed_paths": [
+        "ci/facade/baseline-ratchet/src/bin/oya-cloud-ci-run-terminal-state.rs"
+      ],
+      "max_occurrences": 2,
+      "tokens": [
+        "reqwest"
       ]
     },
     {
@@ -148,6 +176,7 @@
     "canonical-json": "This gate already ships an explicit --fix path; the policy reason remains as documentation for adopters that disable rewriting.",
     "contract-slice-conformance": "Contract-slice findings (missing required field, forbidden interpreter/CLI marker in a spec, enum/array/object-member violation, or a bad migration declaration) are repaired by the slice author editing the committed spec JSON or the contract-slice-policy DATA; there is no safe mechanical rewrite of a contract's meaning.",
     "core-dependency-isolation": "Kernel-purity ships a fixer for dependency declarations, but topology and semantic validation failures still require reviewed source changes.",
+    "corpus-index-coverage": "Closing a coverage finding means choosing where an artifact belongs in the build graph — which package should own it, or whether a new package should exist at all. An autofix could only stamp an extraction genrule onto whatever package happens to sit nearest, which is exactly the junk-drawer placement the capability-membership rules forbid; and for the unpackaged term there is no package to stamp anything onto.",
     "crate-catalog-coverage": "A catalog row's context, role, capability, plane, SLO tier, and data/operational classes are governance DECLARATIONS, not facts derivable from the crate; a gate that authored them would be fabricating ownership and data-classification metadata that later gates then treat as authoritative. For the move case the gate emits the exact `git mv registry/catalog/<old>.yaml registry/catalog/<new>.yaml` command in its finding, so remediation is one reviewed copy-paste rather than a silent rewrite.",
     "crate-layer-suffix": "Crate naming and layer placement are design decisions; an automatic rename would break imports, manifests, and ownership without review.",
     "crate-name-prefix": "Prefix violations are migration-sensitive naming decisions; remediation is a reviewed rename or neutral-profile policy change.",

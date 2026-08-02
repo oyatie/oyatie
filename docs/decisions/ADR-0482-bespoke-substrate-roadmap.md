@@ -9,8 +9,8 @@ doctrine_meta: true
 owner: founder
 supersedes: []
 superseded_by: []
-related: [ADR-0388, ADR-0392, ADR-0409, ADR-0434, ADR-0451, ADR-0474, ADR-0475, ADR-0476, ADR-0477, ADR-0478, ADR-0479, ADR-0480, ADR-0481, ADR-0483, ADR-0484, ADR-0506, ADR-0507, ADR-0508, ADR-0516, ADR-0520, ADR-0521]
-amended_by: [kubers-anchor-2026-05-28, ADR-0520, ADR-0521]
+related: [ADR-0388, ADR-0392, ADR-0394, ADR-0409, ADR-0434, ADR-0451, ADR-0474, ADR-0475, ADR-0476, ADR-0477, ADR-0478, ADR-0479, ADR-0480, ADR-0481, ADR-0483, ADR-0484, ADR-0506, ADR-0507, ADR-0508, ADR-0516, ADR-0520, ADR-0521]
+amended_by: [kubers-anchor-2026-05-28, ADR-0394, ADR-0520, ADR-0521]
 door: one-way
 milestone: M-BESPOKE-ROADMAP
 ---
@@ -41,9 +41,11 @@ This ADR is the top-level sequencing and bridge-discipline document for all besp
 
 ## Decision
 
-Adopt a phased bespoke roadmap with explicit timeline tiers and bridge mappings. Every bespoke
-component ships with a parallel OSS bridge, quality-gated cutover criteria, and tenant opt-in
-granularity. No hard-deadline cutover — quality gates only.
+Adopt a phased bespoke roadmap with explicit timeline tiers and bridge mappings. Unless a later
+Accepted ADR explicitly narrows a component's bridge posture, each bespoke component ships with a
+parallel OSS bridge, quality-gated cutover criteria, and tenant opt-in granularity. No
+hard-deadline cutover — quality gates only. ADR-0394 is the explicit portal amendment: Backstage is
+a bounded one-way import source only, never a parallel runtime, plugin host, or live authority.
 
 ## Phased Roadmap
 
@@ -52,7 +54,7 @@ granularity. No hard-deadline cutover — quality gates only.
 | Bespoke | Supersedes OSS | Bridge during Phase-1 | Cutover criteria |
 |---|---|---|---|
 | oya-vcs (ADR-0409) | GitHub (ADR-0363) | Parallel-run; tenant opt-in per repo | Feature parity per-feature gates |
-| Rust-native portal (ADR-0434) | Backstage (ADR-0410) | Backstage Catalog YAML spec retained | Same |
+| Rust-native portal (ADR-0434, amended by ADR-0394) | First-party portal; Backstage is reference/import input only | Bounded one-way import of Backstage Catalog YAML; no Backstage runtime or plugin host | Import completeness and provenance validated; importer can then be removed |
 | oya-notify (ADR-0451) | Postal/Haraka alternatives | None — bespoke from day 1 | N/A |
 | oya-errors (ADR-0474) | GlitchTip (ADR-0466) | Phase-1 GlitchTip ingest endpoint | Sentry SDK protocol parity |
 | oya-status (ADR-0475) | Gatus (ADR-0468) | Gatus runs parallel | OpenSLO/Mimir integration parity |
@@ -101,7 +103,9 @@ granularity. No hard-deadline cutover — quality gates only.
 
 ## Bridge Discipline
 
-Every bespoke tier MUST have:
+Every bespoke tier MUST have the following by default, except where a later Accepted ADR records a
+bounded component-specific amendment. ADR-0394 supplies that amendment for the portal and permits
+only a one-way Backstage catalog import, not a parallel Backstage runtime:
 
 1. **Parallel-run period** — OSS Phase-1 and bespoke Phase-2 coexist; neither blocks the other.
 2. **Feature parity target table** — explicit per-feature exit criteria per the bespoke-over-oss
@@ -136,7 +140,17 @@ field when it does not yet exist.
 - All future component ADRs must identify their tier placement and bridge strategy.
 - Bridge ADRs (OSS adoptions) must carry `bespoke_replacement_planned: true` in frontmatter.
 - Tier 4 work (oya-os, oya-kernel) is governed by ADR-0483.
-- No OSS bridge is retired without the corresponding bespoke component passing its parity gate.
+- No OSS runtime bridge is retired without the corresponding bespoke component passing its parity
+  gate, unless a later Accepted ADR explicitly rejects that runtime and defines a narrower import
+  transition, as ADR-0394 does for Backstage.
+
+## Amendment (2026-08-01, ADR-0394 first-party portal)
+
+ADR-0394 amends this roadmap's generic portal bridge. The portal is first-party Rust only.
+Backstage may be consulted as a feature reference or consumed through a bounded, provenance-bearing,
+one-way catalog import. It is not operated in parallel, and it is not a runtime dependency, plugin
+host, catalog authority, deployment substrate, or extension point. The importer is transition
+tooling with explicit validation and deletion criteria, not a supported product bridge.
 
 ## Amendment (2026-05-28, kubers active development)
 

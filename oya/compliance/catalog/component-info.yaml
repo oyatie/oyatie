@@ -1,4 +1,5 @@
-# Backstage catalog record per ADR-0170.
+# Legacy Backstage-shaped catalog import. It is migration input for the first-party ADR-0394
+# portal projection, not a Backstage runtime or catalog authority.
 apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
@@ -6,7 +7,7 @@ metadata:
   title: Compliance
   description: Compliance evidence automation per ADR-0209 — in-house pipeline replacing Drata/Vanta.
   annotations:
-    backstage.io/managed-by-location: url:https://github.com/oyadev/oyatie/blob/main/microservices/compliance/manifest.json
+    backstage.io/managed-by-location: url:https://github.com/oyadev/oyatie/blob/main/oya/compliance/manifest.json
     oya.dev/microservice: compliance
     oya.dev/owner: axis-compliance
     oya.dev/frameworks: soc2-type-2,gdpr,hipaa,pci-dss

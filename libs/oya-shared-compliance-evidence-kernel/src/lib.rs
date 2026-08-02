@@ -17,7 +17,7 @@
 //!   kernel validates the seal hash is hex-shaped (the real cosign /
 //!   sigstore verification is an adapter concern).
 //!
-//! NO I/O. Adapters bring SeaweedFS storage + ADR-0170 Backstage
+//! NO I/O. Adapters bring SeaweedFS storage + the ADR-0394 first-party portal
 //! reader access.
 //!
 //! ADR-0083 Tier 3 test exemption.

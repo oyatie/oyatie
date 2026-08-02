@@ -17,7 +17,7 @@ supersedes: []
 amends: []
 superseded_by: []
 amended_by:
-  - ADR-0565-zero-graphql-in-the-owned-api-surface.md (D-14's multi-protocol surface drops the GraphQL Federation v2 / BFF leg; the REST 3.2 + gRPC + AsyncAPI legs stand)
+  - ADR-0565
 related:
   - ADR-0009-cell-architecture-per-tenant-per-region.md
   - ADR-0010-regional-pack-architecture.md
@@ -170,7 +170,8 @@ None of those ADRs defined:
 - the **migration path** from Cloudflare-hosted edge to self-hosted
   Pingora POPs that ADR-0211 (in-house tech stack policy) makes
   inevitable at scale;
-- the **HTTP API surface canonical** (REST 3.2 / gRPC) at the public-facing edge. <!-- GraphQL Federation v2 dropped per ADR-0565 (zero GraphQL in the owned API surface) -->
+- the **HTTP API surface canonical** (REST 3.2 / gRPC) at the public-facing edge. GraphQL
+  Federation v2 is historical rejected context only; ADR-0565 removed it from the owned surface.
 
 This keystone closes those gaps.
 
@@ -745,7 +746,7 @@ GeoDNS routes clients per ADR-0241 DR + ADR-0049 residency.
   **planned outage** rather than a residency violation. The tenant's
   business continuity contract documents this tradeoff.
 
-### D-14. HTTP API surfaces — REST 3.2 + gRPC + AsyncAPI 3.1 _(GraphQL Federation v2 dropped per ADR-0565)_
+### D-14. HTTP API surfaces — REST 3.2 + gRPC + AsyncAPI 3.1
 
 Per oyatie canonical API spec authority:
 
@@ -754,12 +755,8 @@ Per oyatie canonical API spec authority:
   9457 (Problem Details for HTTP APIs) + standard `Accept-Version`
   header pattern. Cursor pagination per ADR-0150. Idempotency keys
   per ADR-0252.
-- ~~**GraphQL Federation v2** via BFF (Backend-for-Frontend) tier for
-  rich UI surfaces (the Workflow Studio canvas, the Consumer Brand
-  Surface dashboards). Apollo Federation v2 supergraph composes
-  per-µservice subgraphs.~~ **Dropped per ADR-0565** (zero GraphQL in
-  the owned API surface; rich-UI read-aggregation is served by
-  REST/gRPC composition, not a GraphQL BFF).
+- **Historical rejected context:** GraphQL Federation v2 via a BFF tier was considered for rich UI
+  surfaces. ADR-0565 removed that leg; rich-UI read aggregation is served by REST/gRPC composition.
 - **gRPC** for high-throughput internal calls + low-latency RPCs
   between µservices. Per ADR-0145 direct-sibling-gRPC permitted.
   Protocol Buffers v3; per-µservice `contracts/proto/*.proto` files
@@ -771,7 +768,7 @@ Per oyatie canonical API spec authority:
   durable streams + by audit-chain for sealed evidence streams.
 - **No raw HTTP without one of the above.** Every public + tenant-
   facing surface MUST declare its contract (OpenAPI / Proto /
-  AsyncAPI; GraphQL SDL dropped per ADR-0565). CI lane `oya-check-api-contract-presence`
+  AsyncAPI). GraphQL SDL is historical rejected context under ADR-0565. CI lane `oya-check-api-contract-presence`
   enforces.
 - **No "internal-only" surfaces lack contracts.** Per ADR-0242
   oyatie-is-a-tenant doctrine; all surfaces have contracts.
@@ -1528,7 +1525,7 @@ hyperscaler pattern + source + anti-pattern avoided.
 | D-11 (per-cell L4 + L7 LB) | "Layered load balancing" | Envoy + Cilium kube-proxy replacement + GKE service mesh | "Single-tier LB" — limited control |
 | D-12 (Year 5+ self-managed BGP) | "Own ASN + RPKI" | Cloudflare ASN 13335 + Google ASN 15169 + RIPE NCC ROA | "Forever-cloud-BGP" — vendor lock-in at planetary scale |
 | D-13 (GeoDNS to home_cell with residency fallback) | "Tenant-aware residency routing" | AWS Route 53 GeoDNS + Cloudflare GeoSteering | "Residency-blind failover" — EU data crosses Atlantic on EU cell failure |
-| D-14 (OpenAPI 3.2 + GraphQL Fed + gRPC + AsyncAPI) | "Multi-protocol API surface" | Stripe API (REST 3.x) + Netflix GraphQL Federation + Google gRPC + Slack AsyncAPI | "Single-protocol bottleneck" — REST-only forces RPC-over-REST patterns |
+| D-14 (OpenAPI 3.2 + gRPC + AsyncAPI; GraphQL BFF rejected by ADR-0565) | "Multi-protocol API surface" | Stripe API (REST 3.x) + Google gRPC + Slack AsyncAPI | "Single-protocol bottleneck" — REST-only forces RPC-over-REST patterns |
 | D-15 (SSE primary + WS bidirectional + WebTransport) | "Realtime push tier" | Slack WebSocket + Discord SSE + ChatGPT SSE for token stream + Zoom WebTransport | "Polling" — high request volume + latency |
 | D-16 (Dual-signed webhook + saga + idempotency) | "Webhook reliability triplet" | Stripe webhook HMAC + Slack request signing + GitHub Ed25519 + AWS EventBridge retry + Stripe idempotency | "Single-sig + fire-and-forget" — replay attacks + lost events |
 | D-17 (Pingora migration plan) | "Phased self-hosting migration" | Stripe + Cloudflare + GitHub all reached self-hosted edge by year 5-7 | "Forever-hosted-edge" — vendor margin compounds at planetary scale |

@@ -498,6 +498,32 @@ cargo.rust_library(
 )
 
 http_archive(
+    name = "arraydeque-0.5.1.crate",
+    sha256 = "7d902e3d592a523def97af8f317b08ce16b7ab854c1985a0c671e6f15cebc236",
+    strip_prefix = "arraydeque-0.5.1",
+    urls = ["https://static.crates.io/crates/arraydeque/0.5.1/download"],
+    visibility = [],
+)
+
+cargo.rust_library(
+    name = "arraydeque-0.5",
+    srcs = [":arraydeque-0.5.1.crate"],
+    crate = "arraydeque",
+    crate_root = "arraydeque-0.5.1.crate/src/lib.rs",
+    edition = "2021",
+    env = {
+        "CARGO_MANIFEST_DIR": "arraydeque-0.5.1.crate",
+        "CARGO_PKG_NAME": "arraydeque",
+        "CARGO_PKG_VERSION": "0.5.1",
+        "CARGO_PKG_VERSION_MAJOR": "0",
+        "CARGO_PKG_VERSION_MINOR": "5",
+        "CARGO_PKG_VERSION_PATCH": "1",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
+    visibility = [],
+)
+
+http_archive(
     name = "arrayref-0.3.9.crate",
     sha256 = "76a2e8124351fda1ef8aaaa3bbd7ebbcb486bbcd4225aca0aa0d84bb2db8fecb",
     strip_prefix = "arrayref-0.3.9",
@@ -6169,7 +6195,9 @@ cargo.rust_library(
         "CARGO_PKG_VERSION_PATCH": "1",
         "CARGO_PKG_VERSION_PRE": "",
     },
+    features = ["default-hasher"],
     visibility = [],
+    deps = [":foldhash-0.2"],
 )
 
 http_archive(
@@ -6197,6 +6225,33 @@ cargo.rust_library(
     },
     visibility = [],
     deps = [":hashbrown-0.15"],
+)
+
+http_archive(
+    name = "hashlink-0.12.1.crate",
+    sha256 = "32069d97bb81e38fa67eab65e3393bf804bb85969f2bc06bf13f64aef5aba248",
+    strip_prefix = "hashlink-0.12.1",
+    urls = ["https://static.crates.io/crates/hashlink/0.12.1/download"],
+    visibility = [],
+)
+
+cargo.rust_library(
+    name = "hashlink-0.12",
+    srcs = [":hashlink-0.12.1.crate"],
+    crate = "hashlink",
+    crate_root = "hashlink-0.12.1.crate/src/lib.rs",
+    edition = "2024",
+    env = {
+        "CARGO_MANIFEST_DIR": "hashlink-0.12.1.crate",
+        "CARGO_PKG_NAME": "hashlink",
+        "CARGO_PKG_VERSION": "0.12.1",
+        "CARGO_PKG_VERSION_MAJOR": "0",
+        "CARGO_PKG_VERSION_MINOR": "12",
+        "CARGO_PKG_VERSION_PATCH": "1",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
+    visibility = [],
+    deps = [":hashbrown-0.17"],
 )
 
 http_archive(
@@ -10951,6 +11006,33 @@ cargo.rust_library(
 )
 
 http_archive(
+    name = "ordered-float-5.3.0.crate",
+    sha256 = "b7d950ca161dc355eaf28f82b11345ed76c6e1f6eb1f4f4479e0323b9e2fbd0e",
+    strip_prefix = "ordered-float-5.3.0",
+    urls = ["https://static.crates.io/crates/ordered-float/5.3.0/download"],
+    visibility = [],
+)
+
+cargo.rust_library(
+    name = "ordered-float-5",
+    srcs = [":ordered-float-5.3.0.crate"],
+    crate = "ordered_float",
+    crate_root = "ordered-float-5.3.0.crate/src/lib.rs",
+    edition = "2021",
+    env = {
+        "CARGO_MANIFEST_DIR": "ordered-float-5.3.0.crate",
+        "CARGO_PKG_NAME": "ordered-float",
+        "CARGO_PKG_VERSION": "5.3.0",
+        "CARGO_PKG_VERSION_MAJOR": "5",
+        "CARGO_PKG_VERSION_MINOR": "3",
+        "CARGO_PKG_VERSION_PATCH": "0",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
+    visibility = [],
+    deps = [":num-traits-0.2"],
+)
+
+http_archive(
     name = "parking-2.2.1.crate",
     sha256 = "f38d5652c16fde515bb1ecef450ab0f6a219d619a7274976324d5e377f7dceba",
     strip_prefix = "parking-2.2.1",
@@ -14694,6 +14776,74 @@ cargo.rust_library(
         ),
     },
     visibility = [],
+)
+
+alias(
+    name = "saphyr",
+    actual = ":saphyr-0.0.11",
+    visibility = ["PUBLIC"],
+)
+
+http_archive(
+    name = "saphyr-0.0.11.crate",
+    sha256 = "8acd6cfc4803660d26a3fb5bd8f5e47bc0eea5229f4d32f7cb4ee21a733e6961",
+    strip_prefix = "saphyr-0.0.11",
+    urls = ["https://static.crates.io/crates/saphyr/0.0.11/download"],
+    visibility = [],
+)
+
+cargo.rust_library(
+    name = "saphyr-0.0.11",
+    srcs = [":saphyr-0.0.11.crate"],
+    crate = "saphyr",
+    crate_root = "saphyr-0.0.11.crate/src/lib.rs",
+    edition = "2024",
+    env = {
+        "CARGO_MANIFEST_DIR": "saphyr-0.0.11.crate",
+        "CARGO_PKG_NAME": "saphyr",
+        "CARGO_PKG_VERSION": "0.0.11",
+        "CARGO_PKG_VERSION_MAJOR": "0",
+        "CARGO_PKG_VERSION_MINOR": "0",
+        "CARGO_PKG_VERSION_PATCH": "11",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
+    visibility = [],
+    deps = [
+        ":hashlink-0.12",
+        ":ordered-float-5",
+        ":saphyr-parser-0.0.11",
+        ":thiserror-2",
+    ],
+)
+
+http_archive(
+    name = "saphyr-parser-0.0.11.crate",
+    sha256 = "ebfd783fcf1b3f6bafd557be0e1427ec54f826f513c3cdd749f9844484df2a13",
+    strip_prefix = "saphyr-parser-0.0.11",
+    urls = ["https://static.crates.io/crates/saphyr-parser/0.0.11/download"],
+    visibility = [],
+)
+
+cargo.rust_library(
+    name = "saphyr-parser-0.0.11",
+    srcs = [":saphyr-parser-0.0.11.crate"],
+    crate = "saphyr_parser",
+    crate_root = "saphyr-parser-0.0.11.crate/src/lib.rs",
+    edition = "2024",
+    env = {
+        "CARGO_MANIFEST_DIR": "saphyr-parser-0.0.11.crate",
+        "CARGO_PKG_NAME": "saphyr-parser",
+        "CARGO_PKG_VERSION": "0.0.11",
+        "CARGO_PKG_VERSION_MAJOR": "0",
+        "CARGO_PKG_VERSION_MINOR": "0",
+        "CARGO_PKG_VERSION_PATCH": "11",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
+    visibility = [],
+    deps = [
+        ":arraydeque-0.5",
+        ":thiserror-2",
+    ],
 )
 
 http_archive(

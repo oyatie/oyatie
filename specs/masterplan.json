@@ -7,7 +7,7 @@
     "version": "2.0.0",
     "status": "implemented-masterplan-json-live-hierarchy-index",
     "created_at": "2026-05-14T06:53:11Z",
-    "updated_at": "2026-07-02T00:00:00Z",
+    "updated_at": "2026-08-01T00:00:00Z",
     "owner_team": "founder",
     "current_machine_readable_authority": "/specs/masterplan.json",
     "human_compatibility_projection": "docs/MASTERPLAN.md",
@@ -140,7 +140,7 @@
             "event/AsyncAPI",
             "realtime (SSE/WebSocket/gRPC-streaming) bindings"
           ],
-          "zero_graphql": "Observed candidate implementation assumption: the owned API surface currently carries no GraphQL husk or generated BFF. ADR-0565 remains Proposed, so this records repository state rather than binding doctrine and must not override Accepted API choices; the founder choice in masterplan_v2.planning_entry_contract must resolve acceptance or rollback before a binding plan relies on it.",
+          "zero_graphql": "Binding product doctrine: ADR-0565 is Accepted and the owned API surface is GraphQL-free. Reintroduction requires a later Accepted ADR that explicitly reverses ADR-0565. The separate product-protocol contract distinguishes public and internal non-GraphQL surfaces.",
           "requirement": "Every owned API surface (REST/OpenAPI, gRPC/Protobuf, event/AsyncAPI, realtime) must be generated or validated from the same shared Rust-native contract source; it must not become a separately hand-maintained schema."
         },
         "workload_specific_substrates": {
@@ -3520,8 +3520,7 @@
                 "id": "M02-P04-IP-001",
                 "file": ".omc/plans/milestones/M02-foundry-preview/phases/P04-transport-parity-write-gates/IP-001-rest-transports.md",
                 "title": "REST API transports",
-                "related_proposed_adr": "ADR-0565",
-                "lifecycle_note": "ADR-0565 remains Proposed and therefore does not supersede this implementation plan. The zero-GraphQL founder choice must be resolved before binding planning decides whether this transport plan is retained, narrowed, or retired.",
+                "lifecycle_note": "ADR-0565 is Accepted and binds zero GraphQL. This legacy transport plan remains non-authoritative until reconciled with the exposure-aware product-protocol contract; no GraphQL surface may be retained or reintroduced.",
                 "status": "planning-closed-contract-authored",
                 "doc_class": "ImplementationPlan",
                 "execution_unit": "ChangeSet",
@@ -3536,7 +3535,8 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain git protected PRs plus oya-ci-required/cloud-ci authority; Oya VCS is future-target/provenance-only for planning closure and is not merge or closure authority. Production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain git protected PRs plus oya-ci-required/cloud-ci authority; Oya VCS is future-target/provenance-only for planning closure and is not merge or closure authority. Production exit still requires ChangeSet verification and gate evidence.",
+                "related_accepted_adr": "ADR-0565"
               },
               {
                 "id": "M02-P04-IP-002",
@@ -5873,6 +5873,7 @@
       "ADR-0359",
       "ADR-0360",
       "ADR-0361",
+      "ADR-0394",
       "ADR-0516",
       "ADR-0517",
       "ADR-0518",
@@ -5895,6 +5896,7 @@
       "ADR-0535",
       "ADR-0557",
       "ADR-0562",
+      "ADR-0565",
       "ADR-0615",
       "ADR-0619"
     ],
@@ -6256,6 +6258,28 @@
     "accepted_decision_propagation_dispositions": {
       "authority_note": "Gate-facing lifecycle propagation only for Accepted decisions whose planning_impact is false. These markers do not bind planning authority, approve a plan, mint or order work-item IDs, authorize execution-wave dispatch, or prove rollout.",
       "decisions": [
+        {
+          "id": "ADR-0614",
+          "lifecycle_state": "Accepted",
+          "planning_impact": false,
+          "sequencing_effect": "none",
+          "binding_plan_approval_effect": "none",
+          "execution_dispatch_effect": "none",
+          "hold_state": "HOLD(Planning)",
+          "disposition_ref": "/specs/master-plan-sequencing.json#_metadata.accepted_decision_propagation_dispositions",
+          "note": "Accepted move-manifest de-commit lifecycle propagation only. The manifest remains controller-derived; this marker adds no plan work and does not lift HOLD(Planning)."
+        },
+        {
+          "id": "ADR-0616",
+          "lifecycle_state": "Accepted",
+          "planning_impact": false,
+          "sequencing_effect": "none",
+          "binding_plan_approval_effect": "none",
+          "execution_dispatch_effect": "none",
+          "hold_state": "HOLD(Planning)",
+          "disposition_ref": "/specs/master-plan-sequencing.json#_metadata.accepted_decision_propagation_dispositions",
+          "note": "Accepted merge-base-source frozen-baseline lifecycle propagation only. The baseline remains regenerated and provenance-bound; this marker adds no plan work and does not lift HOLD(Planning)."
+        },
         {
           "id": "ADR-0624",
           "lifecycle_state": "Accepted",
@@ -9137,59 +9161,75 @@
       "authority_choice_matrix": [
         {
           "choice_id": "ADR-0515-SUPERSEDED-HISTORY-DISPOSITION",
-          "current_binding_state": "ADR-0515 is Accepted and its binding rule requires hard deletion of superseded ADR files; preserved superseded files in the repository are implementation drift, not an amendment.",
-          "founder_choice_required": "Choose preservation through a new higher Accepted amendment, or enforce ADR-0515's current hard-delete rule consistently.",
-          "planning_default_while_open": "Do not perform destructive deletion during the walkthrough. Treat preserved superseded files as nonbinding data and do not call their preservation an amendment or policy resolution.",
-          "blocks_binding_plan": true
+          "current_binding_state": "ADR-0515 hard deletion is reaffirmed: superseded live ADR bytes are removed and Git history is the sole archive.",
+          "founder_choice_required": "None; resolved 2026-08-01 in favor of hard deletion.",
+          "planning_default_while_open": "Apply current-truth hard deletion; do not retain readable superseded ADR tombstones.",
+          "blocks_binding_plan": false,
+          "resolution_state": "resolved",
+          "founder_resolution": "hard-delete-and-preserve-git-history-only"
         },
         {
-          "choice_id": "ADR-0170-VS-ADR-0394-IDP-SUBSTRATE",
-          "current_binding_state": "ADR-0170 is Accepted; ADR-0394 is Proposed and cannot supersede it.",
-          "founder_choice_required": "Retain the Backstage substrate under ADR-0170, or Accept a reconciled ADR-0394 with explicit dependent retargeting.",
-          "planning_default_while_open": "ADR-0170 remains binding.",
-          "blocks_binding_plan": true
+          "choice_id": "IDP-SUBSTRATE-FIRST-PARTY-RUST",
+          "current_binding_state": "ADR-0394 is Accepted and binds the first-party Rust developer portal; the retired Backstage ADR is absent from the live corpus.",
+          "founder_choice_required": "None; resolved 2026-08-01 in favor of ADR-0394.",
+          "planning_default_while_open": "Use ADR-0394 as the portal substrate authority while keeping rollout claims evidence-gated.",
+          "blocks_binding_plan": false,
+          "resolution_state": "resolved",
+          "founder_resolution": "accept-first-party-rust-portal"
         },
         {
           "choice_id": "ADR-0565-ZERO-GRAPHQL",
-          "current_binding_state": "The zero-GraphQL decision remains Proposed while later repository text and implementation assumptions reflect parts of it.",
-          "founder_choice_required": "Accept and propagate the one-way removal decision, or roll back/defer the conflicting assumptions.",
-          "planning_default_while_open": "Do not use ADR-0565 to override Accepted API choices.",
-          "blocks_binding_plan": true
+          "current_binding_state": "ADR-0565 is Accepted and binds zero GraphQL in the owned API surface.",
+          "founder_choice_required": "None; resolved 2026-08-01 by accepting ADR-0565.",
+          "planning_default_while_open": "No GraphQL; reintroduction requires a later Accepted reversing ADR.",
+          "blocks_binding_plan": false,
+          "resolution_state": "resolved",
+          "founder_resolution": "accept-zero-graphql"
         },
         {
           "choice_id": "ADR-0614-MOVE-MANIFEST-DECOMMIT",
-          "current_binding_state": "The move-manifest de-commit implementation is present while ADR-0614 remains Proposed.",
-          "founder_choice_required": "Accept ADR-0614 as lifecycle reconciliation, or roll back the landed policy and implementation.",
-          "planning_default_while_open": "Treat the implementation as observed candidate state, not binding authority.",
-          "blocks_binding_plan": true
+          "current_binding_state": "ADR-0614 is Accepted; the move manifest is de-committed, deterministic, controller-derived, and fail-closed when absent.",
+          "founder_choice_required": "None; resolved 2026-08-01 by accepting ADR-0614.",
+          "planning_default_while_open": "Keep the move manifest de-committed and materialize it before consumers run.",
+          "blocks_binding_plan": false,
+          "resolution_state": "resolved",
+          "founder_resolution": "accept-controller-derived-move-manifest"
         },
         {
           "choice_id": "ADR-0616-FROZEN-BASELINE-DECOMMIT",
-          "current_binding_state": "The merge-base regeneration implementation is present while ADR-0616 remains Proposed and conflicts with ADR-0613's Accepted reaffirmation of the committed frozen-reference rule originally described by ADR-0596.",
-          "founder_choice_required": "Accept ADR-0616's documented trust delta and lifecycle reversal, or restore ADR-0613's Accepted committed-baseline contract.",
-          "planning_default_while_open": "Do not claim Proposed ADR-0616 displaces Accepted ADR-0613.",
-          "blocks_binding_plan": true
+          "current_binding_state": "ADR-0616 is Accepted and supersedes ADR-0596; the frozen baseline is regenerated twice from merge-base source and provenance-bound.",
+          "founder_choice_required": "None; resolved 2026-08-01 by accepting ADR-0616.",
+          "planning_default_while_open": "Keep the frozen baseline untracked and regenerate it deterministically from immutable merge-base source.",
+          "blocks_binding_plan": false,
+          "resolution_state": "resolved",
+          "founder_resolution": "accept-merge-base-source-regeneration"
         },
         {
           "choice_id": "ADR-0609-MASTERPLAN-FABRIC-SCOPE",
-          "current_binding_state": "ADR-0609 remains Proposed; only the single-masterplan authority and digest enforcement have current evidence.",
-          "founder_choice_required": "Accept only the evidenced narrow authority/digest scope, or keep the ADR Proposed; do not infer the broader drive loop.",
-          "planning_default_while_open": "Use masterplan_v2 as the canonical plan authority without a broader fabric-loop completion claim.",
-          "blocks_binding_plan": false
+          "current_binding_state": "ADR-0609 remains Proposed. Only the already-evidenced single-masterplan authority and sequencing-digest enforcement are used under existing Accepted authority.",
+          "founder_choice_required": "None for planning entry; the broad fabric drive loop is explicitly deferred.",
+          "planning_default_while_open": "Use masterplan_v2 as canonical plan authority without accepting or implying the broader fabric drive loop.",
+          "blocks_binding_plan": false,
+          "resolution_state": "deferred-nonbinding",
+          "founder_resolution": "defer-broad-adr-0609-claims"
         },
         {
           "choice_id": "ADR-0610-ADR-0611-SHIPPED-ARTIFACT-SCOPE",
-          "current_binding_state": "ADRs 0610 and 0611 remain Proposed although bounded stage-0 and kernel harness artifacts are present.",
-          "founder_choice_required": "Ratify only the shipped artifact scope when needed, or leave both proposals nonbinding; do not infer a benchmark-engine or product pivot.",
-          "planning_default_while_open": "Treat the artifacts as evidence/prototypes under existing Accepted authority only.",
-          "blocks_binding_plan": false
+          "current_binding_state": "ADRs 0610 and 0611 remain Proposed; bounded artifacts are evidence/prototypes only.",
+          "founder_choice_required": "None for planning entry; broad benchmark-engine and kernel-product claims are explicitly deferred.",
+          "planning_default_while_open": "Do not infer product adoption or completion from the bounded artifacts.",
+          "blocks_binding_plan": false,
+          "resolution_state": "deferred-nonbinding",
+          "founder_resolution": "defer-broad-adr-0610-0611-claims"
         },
         {
           "choice_id": "ADR-0617-LIVING-MONOREPO-GRAPH",
-          "current_binding_state": "ADR-0617 is a Proposed one-way governance-graph design and does not yet bind the masterplan.",
-          "founder_choice_required": "Defer it unless the next plan depends on the graph substrate, or explicitly Accept it with scoped implementation and evidence obligations.",
-          "planning_default_while_open": "Defer; do not make the proposed graph a planning prerequisite.",
-          "blocks_binding_plan": false
+          "current_binding_state": "ADR-0617 remains Proposed and is not a masterplan prerequisite.",
+          "founder_choice_required": "None for planning entry; the living governance graph is explicitly deferred.",
+          "planning_default_while_open": "Continue with existing governance substrates; no graph implementation or completion claim.",
+          "blocks_binding_plan": false,
+          "resolution_state": "deferred-nonbinding",
+          "founder_resolution": "defer-adr-0617"
         }
       ],
       "entry_conditions": [
@@ -9207,7 +9247,36 @@
         "the sequencing digest differs from sha256:a6ddc2a8f372c71aa31f9a7e84087d8d2de84c283baee0c8746e054d58564c3c without a fresh founder ratification record",
         "any dispatched_waves entry exists before all prior conditions close"
       ],
-      "closure_rule": "A later protected evidence-bearing amendment must extend the cross-artifact evaluator with the closed-state proof contract and may then set state=closed, binding_plan_approval_allowed=true, and dispatch_allowed=true only after every entry condition is proven. The current evaluator deliberately accepts only the open hold. Until the transition lands, the exact terminal state is blocked-preplanning-authority-closure, not ready or complete."
+      "closure_rule": "A later protected evidence-bearing amendment must extend the cross-artifact evaluator with the closed-state proof contract and may then set state=closed, binding_plan_approval_allowed=true, and dispatch_allowed=true only after every entry condition is proven. The current evaluator deliberately accepts only the open hold. Until the transition lands, the exact terminal state is blocked-preplanning-authority-closure, not ready or complete.",
+      "authority_resolution_record": {
+        "state": "founder-choices-resolved-hold-still-open",
+        "resolved_at": "2026-08-01T00:00:00Z",
+        "approved_by": "founder",
+        "decision_source": "North-star deep interview with explicit autonomous hyperscaler-best-practice delegation.",
+        "residual_ambiguity": "approximately 3 percent; below the founder-required 5 percent ceiling",
+        "binding_resolutions": [
+          "hard-delete superseded live ADR bytes with Git history as the sole archive",
+          "first-party Rust developer portal per ADR-0394",
+          "zero GraphQL per ADR-0565",
+          "controller-derived move manifest per ADR-0614",
+          "merge-base-source regenerated frozen baseline per ADR-0616"
+        ],
+        "nonbinding_deferrals": [
+          "ADR-0609 broad fabric drive loop",
+          "ADR-0610 and ADR-0611 broad product claims",
+          "ADR-0617 governance graph"
+        ],
+        "claim_ceiling": "This record resolves founder choices only. HOLD(Planning), binding-plan approval, and execution dispatch remain closed until protected-PR, Phase-0, no-dispatch, and closed-state evaluator proofs land."
+      },
+      "entry_condition_progress": {
+        "authority_choices_resolved": true,
+        "nonbinding_proposals_deferred": true,
+        "phase_0_gap_packet_explicit": true,
+        "no_execution_wave_dispatched_while_open": true,
+        "protected_candidate_merged_green_reviewed": false,
+        "closed_state_evaluator_proof": false,
+        "hold_state": "HOLD(Planning)"
+      }
     },
     "non_claims": [
       "Sub-AC 4 records the founder-ratification decision for the re-derived sequencing (see masterplan_v2.sequencing.founder_ratification and evidence/goals/masterplan-v2-sequencing-founder-ratification-20260702.json); it does not claim E2E loop execution, and no execution wave has dispatched.",
