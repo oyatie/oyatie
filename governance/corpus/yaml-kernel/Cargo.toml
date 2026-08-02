@@ -1,0 +1,33 @@
+[package]
+name = "corpus-yaml-kernel"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# Corpus graph kernel for the YAML artifact class (ADR-0541 Corpus Liveness Graph).
+#
+# PURE: zero I/O, zero clock/rand/net. Takes a file path + its UTF-8 bytes as DATA and returns
+# content-addressed nodes + typed edges. The I/O adapter is the `corpus-extract` binary
+# (`corpus-yaml-facts`), which is what a buck2 action invokes.
+#
+# saphyr is the YAML parser because the parser chain must be PURE RUST end to end: saphyr +
+# saphyr-parser + arraydeque + hashlink + ordered-float contain no C and no `cc` build step.
+# serde_yaml is rejected (0.9.34+deprecated, unmaintained, `unsafe`-heavy) even though its
+# unsafe-libyaml backend is c2rust-transpiled rather than true C FFI.
+
+[dependencies]
+blake3 = "1.8.5"
+corpus-core = { path = "../core" }
+saphyr = { version = "0.0.11", default-features = false }
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[lib]
+name = "corpus_yaml_kernel"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true
