@@ -1,5 +1,5 @@
 {
-  "_comment": "cloud-ci runtime-face-aware substrate graph-v2 policy. Rust is a neutral validator; repo adoption paths are data.",
+  "_comment": "Oyatie cloud-ci runtime-face-aware substrate graph-v2 authority binding (ADR-0635): the validator enforces the exact doctrine set, dependency-unit authority, schema digest, and a valid dependency-first bootstrap order declared by this repository.",
   "gate_id": "cloud-ci-substrate-dependency-dag-acyclicity",
   "dag_path": "specs/substrate-dependency-dag.json",
   "schema_path": "specs/substrate-dependency-dag.schema.json",
