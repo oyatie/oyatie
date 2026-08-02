@@ -2,6 +2,7 @@
 id: ADR-0632
 title: "Public product protocols, internal RPC, transport security, serialization, telemetry, and provider-owned fabric posture"
 status: Accepted
+doc_status: published
 planning_impact: true
 deciders: founder
 date: 2026-08-01
