@@ -512,6 +512,54 @@ pub enum CodemodError {
     /// path-token substring — the ADR doc-anchor rewrite would re-match and grow on
     /// re-application (revert-then-reapply, or a mistaken double-apply).
     AnchorRewriteNonIdempotent { new_path: String, old_path: String },
+    /// A move would relocate a crate from one Cargo WORKSPACE into a DIFFERENT one (e.g. out of
+    /// the root workspace into the ADR-0512 `kernel` / `cloud/cloud-kernel` nested carve-out, or
+    /// vice versa). Which workspace owns a crate decides its lockfile, its feature unification and
+    /// its `[workspace.dependencies]` inheritance — a change no path-level codemod may make
+    /// silently. Fail-closed: the move needs an explicit architectural decision first.
+    WorkspaceSpan {
+        old_path: String,
+        old_workspace: String,
+        new_path: String,
+        new_workspace: String,
+    },
+    /// A moved path is not claimed by ANY workspace after the move (every `[workspace]` ancestor
+    /// excludes it), so no `cargo metadata` run could ever validate it.
+    WorkspaceOrphan { path: String, workspace: String },
+    /// Rust source under a moving crate carries `include!` / `include_bytes!` / `include_str!` /
+    /// `#[path]` literals that resolve OUTSIDE the moving crate's own directory. A path move
+    /// changes both the crate's name and its HOP COUNT to any such target, so these literals
+    /// silently stop meaning what they meant — and NEITHER oracle can see it (`cargo metadata`
+    /// and `buck2 targets` both resolve the graph WITHOUT compiling, so a dangling `include!`
+    /// is invisible to them). Detect-and-refuse rather than rewrite: see `rust_src`.
+    UnrewritablePathLiteral { literals: Vec<EscapingPathLiteral> },
+}
+
+/// A Rust-source path literal that a crate move would invalidate: it resolves outside the
+/// moving crate's own directory, so the move changes its meaning.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct EscapingPathLiteral {
+    /// Repo-relative path of the `.rs` file holding the literal.
+    pub file: String,
+    /// 1-indexed line of the literal.
+    pub line: usize,
+    /// The macro / attribute that carries it (`include_bytes!`, `#[path]`, ...).
+    pub kind: String,
+    /// The literal text as written.
+    pub literal: String,
+    /// The repo-relative path it currently resolves to, or `None` when it escapes the repo root.
+    pub resolves_to: Option<String>,
+}
+
+impl fmt::Display for EscapingPathLiteral {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let target = self.resolves_to.as_deref().unwrap_or("<outside repo root>");
+        write!(
+            f,
+            "{}:{}: {}({:?}) -> {}",
+            self.file, self.line, self.kind, self.literal, target
+        )
+    }
 }
 
 impl fmt::Display for CodemodError {
@@ -574,8 +622,49 @@ impl fmt::Display for CodemodError {
                 "new_path {new_path:?} contains move old_path {old_path:?} as a path-token \
                  substring; the ADR doc-anchor rewrite would not be idempotent on re-application"
             ),
+            CodemodError::WorkspaceSpan {
+                old_path,
+                old_workspace,
+                new_path,
+                new_workspace,
+            } => write!(
+                f,
+                "move {old_path:?} -> {new_path:?} SPANS cargo workspaces \
+                 ({} -> {}): which workspace owns a crate decides its lockfile, feature \
+                 unification and [workspace.dependencies] inheritance. A codemod must not change \
+                 that silently (fail-closed) — decide the workspace carve-out first, then move",
+                workspace_label(old_workspace),
+                workspace_label(new_workspace)
+            ),
+            CodemodError::WorkspaceOrphan { path, workspace } => write!(
+                f,
+                "moved path {path:?} would be claimed by NO cargo workspace (nearest [workspace] \
+                 ancestor {} excludes it), so no `cargo metadata` run could validate it \
+                 (fail-closed)",
+                workspace_label(workspace)
+            ),
+            CodemodError::UnrewritablePathLiteral { literals } => {
+                write!(
+                    f,
+                    "{} Rust path literal(s) under a moving crate resolve OUTSIDE that crate, so \
+                     the move changes their meaning and NEITHER oracle can detect it (`cargo \
+                     metadata` and `buck2 targets` resolve the graph without compiling). \
+                     Fail-closed — repoint these by hand (or add their target to the move plan), \
+                     then re-run:",
+                    literals.len()
+                )?;
+                for literal in literals {
+                    write!(f, "\n  {literal}")?;
+                }
+                Ok(())
+            }
         }
     }
+}
+
+/// Render a repo-relative workspace root for humans (`""` is the repo root itself).
+fn workspace_label(root: &str) -> &str {
+    if root.is_empty() { "<repo root>" } else { root }
 }
 
 impl std::error::Error for CodemodError {}
