@@ -11,3 +11,12 @@ filegroup(
     srcs = glob(["**/*.proto"]),
     visibility = ["PUBLIC"],
 )
+
+# Corpus graph extraction (ADR-0541). This top-level package made the cloud YAML corpus a build-
+# graph input; the matching extractor keeps that improvement from becoming an uncovered package.
+genrule(
+    name = "corpus-yaml-facts",
+    srcs = glob(["**/*.yaml", "**/*.yml"]),
+    out = "yaml-facts.json",
+    cmd = "$(exe //governance/corpus/extract:yaml-facts) --target root//cloud:corpus-yaml-facts --prefix cloud --out $OUT $SRCS",
+)

@@ -4,3 +4,11 @@ filegroup(
     srcs = glob(["**/*.proto"]),
     visibility = ["PUBLIC"],
 )
+
+# Corpus graph extraction (ADR-0541).
+genrule(
+    name = "corpus-yaml-facts",
+    srcs = glob(["**/*.yaml", "**/*.yml"]),
+    out = "yaml-facts.json",
+    cmd = "$(exe //governance/corpus/extract:yaml-facts) --target root//contracts:corpus-yaml-facts --prefix contracts --out $OUT $SRCS",
+)

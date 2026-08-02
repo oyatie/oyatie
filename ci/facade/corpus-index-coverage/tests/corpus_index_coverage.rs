@@ -223,16 +223,18 @@ fn the_walk_sees_the_real_corpus() {
         "only {} YAML-owning packages found — the walk is broken",
         observations.len()
     );
-    // A walk that finds packages but no FILES is equally broken, and the unpackaged term is the one
-    // the northstar ratchet rides on, so it gets its own floor.
+    // A walk that finds packages but no FILES is equally broken. Apply the floor to the complete
+    // census, not the unpackaged subset: the north star is zero unpackaged files, and successful
+    // package adoption must never trip the anti-vacuity guard merely because it made progress.
     let packaged: usize = observations.iter().map(|o| o.yaml_files).sum();
     assert!(
         packaged >= 100,
         "only {packaged} YAML files attributed to packages"
     );
+    let total = packaged + unpackaged;
     assert!(
-        unpackaged >= policy.min_expected_yaml_files / 2,
-        "only {unpackaged} unpackaged YAML files — the out-of-package census collapsed"
+        total >= policy.min_expected_yaml_files,
+        "only {total} total YAML files — the complete census collapsed"
     );
 }
 
