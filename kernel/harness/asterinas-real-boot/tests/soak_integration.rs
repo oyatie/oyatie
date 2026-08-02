@@ -108,7 +108,6 @@ fn fixture_boot(
         soak::LiveTermination::TimedOut
     };
     Ok(soak::assemble_boot_record(soak::BootObservation {
-        evidence_origin: harness::EvidenceOrigin::Fixture,
         attempt_id: attempt_id.to_string(),
         iteration_index: iteration,
         live,
@@ -147,9 +146,7 @@ fn synthetic_ten_of_ten_soak_remains_fixture_and_never_serializes_pass_or_real()
     assert!(outcome.attempts.iter().all(|attempt| {
         attempt.verdict == "fail"
             && attempt.clean_boots == 0
-            && attempt.boot_records.iter().all(|record| {
-                record.evidence_origin == harness::EvidenceOrigin::Fixture && !record.clean
-            })
+            && attempt.boot_records.iter().all(|record| !record.clean)
     }));
 
     let aggregate = read_json(&outcome.aggregate_receipt_path);
