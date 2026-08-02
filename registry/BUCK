@@ -8,6 +8,12 @@ export_file(
     visibility = ["PUBLIC"],
 )
 
+export_file(
+    name = "reset-eligibility-w0-d-20260801.json",
+    src = "reset-eligibility/w0-d-20260801.json",
+    visibility = ["PUBLIC"],
+)
+
 # Corpus graph extraction (ADR-0541). The repo's densest YAML package — 768 of the 861 YAML files
 # that live inside any buck2 package at all. ONE action, so a single-file edit here re-extracts this
 # shard and nothing else.
