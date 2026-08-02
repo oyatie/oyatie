@@ -27,8 +27,8 @@ use ci_affected_target_set::{
     BASELINE_PROVENANCE_FILENAME, BASELINE_REUSE_OUTCOME_FILENAME, Decision, GATE_ID,
     GatePhaseOutcome, PathClass, Plan, Policy, affected_set_operator_artifact,
     buck2_test_invocation, build_health_verdict, failing_targets, failing_test_targets,
-    long_step_telemetry_line, parse_build_report, parse_name_status_z, parse_test_verdicts,
-    plan_changes, resolve, test_verdicts_to_report_value,
+    long_step_telemetry_line, merge_base_diff_args, parse_build_report, parse_name_status_z,
+    parse_test_verdicts, plan_changes, resolve, test_verdicts_to_report_value,
 };
 
 const LOG: &str = "affected-set";
@@ -601,10 +601,7 @@ fn derive(args: &Args, base: &str, policy: &Policy, buck2: &str) -> Decision {
         "{LOG}: base={base} head={} merge-base={merge_base}",
         args.head
     );
-    let diff = match capture(
-        "git",
-        &["diff", "--name-status", "-z", &merge_base, &args.head],
-    ) {
+    let diff = match capture("git", &merge_base_diff_args(&merge_base, &args.head)) {
         Ok(out) => out,
         Err(e) => {
             return Decision::Full {
