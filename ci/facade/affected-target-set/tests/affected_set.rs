@@ -207,7 +207,10 @@ fn empty_diff_selects_nothing_legitimately() {
     // empty`. An empty diff has nothing to select and must stay a PASS, not become a refusal.
     let p = policy();
     let plan = plan_changes(&[], &p);
-    assert_eq!(resolve(&plan, &BTreeMap::new(), &p), Decision::NoGraphTargets);
+    assert_eq!(
+        resolve(&plan, &BTreeMap::new(), &p),
+        Decision::NoGraphTargets
+    );
 }
 
 #[test]
@@ -216,10 +219,8 @@ fn docs_only_diff_keeps_its_licence_to_select_nothing_in_the_shipped_pack() {
     // legitimately select nothing, so the shipped `inert_selection_classes` must actually cover
     // them. Without this the assertion would RED every docs PR — a gate that fires on everything
     // is as useless as one that fires on nothing.
-    let p = Policy::from_json(
-        &fs::read_to_string(shipped_pack_path()).expect("read shipped pack"),
-    )
-    .expect("shipped pack parses");
+    let p = Policy::from_json(&fs::read_to_string(shipped_pack_path()).expect("read shipped pack"))
+        .expect("shipped pack parses");
     for path in [
         "docs/decisions/ADR-0554-binding-buck2-workspace-coverage.md",
         "README.md",
@@ -240,10 +241,8 @@ fn shipped_pack_does_not_license_the_github_class_to_select_nothing() {
     // Belt to the github-consumer-coverage gate's braces, from the other direction: even if the
     // `.github/**` seed list were ever emptied, the class holds no licence to be the entire
     // selection, so the PR #1389 outcome is RED rather than green.
-    let p = Policy::from_json(
-        &fs::read_to_string(shipped_pack_path()).expect("read shipped pack"),
-    )
-    .expect("shipped pack parses");
+    let p = Policy::from_json(&fs::read_to_string(shipped_pack_path()).expect("read shipped pack"))
+        .expect("shipped pack parses");
     assert!(
         !p.inert_selection_classes
             .iter()
@@ -795,7 +794,9 @@ fn seed_package(seed: &str) -> String {
 fn shipped_seed_packages(path: &str) -> std::collections::BTreeSet<String> {
     match shipped_decision_with_no_owner(path) {
         Decision::Affected { seeds } => seeds.iter().map(|s| seed_package(s)).collect(),
-        other => panic!("`{path}` must resolve to Affected via a synthetic declaration, got {other:?}"),
+        other => {
+            panic!("`{path}` must resolve to Affected via a synthetic declaration, got {other:?}")
+        }
     }
 }
 
@@ -905,6 +906,44 @@ fn baseline_repair_control_plane_inputs_seed_accountable_leaf_targets() {
 }
 
 #[test]
+fn product_protocol_authority_inputs_seed_the_exact_enforcement_surface() {
+    let common = std::collections::BTreeSet::from([
+        "root//ci/facade/artifact-inventory-registry:ci-artifact-inventory-registry-unittest"
+            .to_owned(),
+        "root//ci/facade/baseline-ratchet:ci-baseline-ratchet-gate".to_owned(),
+        "root//ci/facade/cross-artifact-agreement:ci-cross-artifact-agreement-gate".to_owned(),
+        "root//ci/facade/generated-artifact-freshness:ci-generated-artifact-freshness-unittest"
+            .to_owned(),
+        "root//ci/facade/inventory-registry-drift:ci-inventory-registry-drift-gate".to_owned(),
+        "root//ci/facade/product-protocol-policy:ci-product-protocol-policy-gate".to_owned(),
+        "root//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot-gate".to_owned(),
+        "root//governance/check/active-artifact-contract:check-active-artifact-contract-unittest"
+            .to_owned(),
+        "root//marketplace/facade/dev-cli:marketplace-dev-cli-gate-cli".to_owned(),
+    ]);
+
+    for path in [
+        "specs/product-protocol-contract.json",
+        "specs/root-hub-pointers.json",
+    ] {
+        assert_eq!(
+            shipped_seeds(path),
+            common,
+            "`{path}` must select the complete, narrow product-protocol enforcement surface"
+        );
+    }
+
+    let mut api_contract_ssot = common;
+    api_contract_ssot
+        .insert("root//ci/facade/graphql-usage-policy:ci-graphql-usage-policy-gate".to_owned());
+    assert_eq!(
+        shipped_seeds("specs/api-contract-ssot-canonical.json"),
+        api_contract_ssot,
+        "the API-contract SSOT must additionally select the zero-GraphQL gate"
+    );
+}
+
+#[test]
 fn unknown_unowned_control_json_still_escalates_to_full() {
     let path = "specs/not-declared-to-affected-set.json";
     match shipped_decision_with_no_owner(path) {
@@ -997,7 +1036,9 @@ fn shipped_pack_does_not_license_the_owners_class_to_select_nothing() {
     let p = Policy::from_json(&fs::read_to_string(shipped_pack_path()).expect("read shipped pack"))
         .expect("shipped pack parses");
     assert!(
-        !p.inert_selection_classes.iter().any(|c| c.ends_with("OWNERS")),
+        !p.inert_selection_classes
+            .iter()
+            .any(|c| c.ends_with("OWNERS")),
         "`**/OWNERS` must never hold an empty-selection licence; got {:?}",
         p.inert_selection_classes
     );

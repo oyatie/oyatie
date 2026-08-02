@@ -1,3 +1,7 @@
+// oyatie.contract.exposure: internal-only
+// oyatie.contract.transport: grpc-http2
+// oyatie.contract.identity: spiffe-mtls-tls13
+
 // Oyatie Cloud Intelligence service — admin/internal gRPC contract.
 //
 // Design + research grounding: microservices/cloud-intelligence/PRD.md §4 and
@@ -25,8 +29,8 @@ option go_package = "github.com/oyatie/cloud-intelligence-sdk-go/v1;cloudintelli
 option java_multiple_files = true;
 option java_package = "co.oyatie.cloud_intelligence.v1";
 
-// Control-plane service — admin realm only. Authorization is enforced by the
-// adminBearer realm (constant-time token) + owned-policy-engine-port decisions.
+// Control-plane service — internal admin realm only. SPIFFE workload identity and
+// owned-policy-engine-port decisions enforce authorization.
 service LlmGatewayAdmin {
   // Report key-pool health across all provider channels.
   rpc PoolStatus(PoolStatusRequest) returns (PoolStatusResponse);

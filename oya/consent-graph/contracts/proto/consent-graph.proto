@@ -1,3 +1,7 @@
+// oyatie.contract.exposure: internal-only
+// oyatie.contract.transport: grpc-http2
+// oyatie.contract.identity: spiffe-mtls-tls13
+
 syntax = "proto3";
 // Authority: ADR-0214 cross-tenant real-time visibility.
 // proto3 wire format. Used for internal gRPC between consent-graph-app and enforcement-app

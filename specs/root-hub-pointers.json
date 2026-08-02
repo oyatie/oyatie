@@ -157,7 +157,14 @@
       "current_path": "/specs/api-contract-ssot-canonical.json",
       "kind": "spec",
       "migration_phase": "p-target",
-      "purpose": "API contract SSOT (CS-LAUNCH-API-CONTRACT-SSOT-001): one Rust-native source generating/validating REST(OpenAPI 3.2.0)+gRPC(proto3)+event(AsyncAPI 3.1.0)+realtime(SSE/WebSocket/gRPC-streaming); ZERO GraphQL per ADR-0565 (no husk, no generated BFF); api-contract-ssot-drift gate. Pulsar launch-primary; Kubewarden default. Target spec; no generators/runtime claimed.",
+      "purpose": "API contract SSOT (CS-LAUNCH-API-CONTRACT-SSOT-001): one Rust-native source generating/validating public REST (OpenAPI 3.2.0), versioned webhooks, events (AsyncAPI 3.1.0), SSE, and WebSocket plus internal-only gRPC/proto3 and gRPC streaming. ZERO GraphQL per ADR-0565; exposure boundaries and transport posture are governed by the Accepted product-protocol contract. Target spec; no generators or runtime claimed.",
+      "target_path_after_md_retirement": "same"
+    },
+    "product_protocol_contract": {
+      "current_path": "/specs/product-protocol-contract.json",
+      "kind": "spec",
+      "migration_phase": "w0-b-accepted",
+      "purpose": "Accepted ADR-0632 product protocol posture: public HTTPS REST, versioned webhooks, AsyncAPI events, SSE, and WebSocket; internal-only gRPC over HTTP/2 with proto3 and SPIFFE-shaped mTLS/TLS 1.3; JSON/OpenAPI externally; FlatBuffers and owned-fabric/RDMA profiles remain evidence-gated.",
       "target_path_after_md_retirement": "same"
     },
     "artifact_capabilities_registry": {

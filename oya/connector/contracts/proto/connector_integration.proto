@@ -1,7 +1,10 @@
+// oyatie.contract.exposure: internal-only
+// oyatie.contract.transport: grpc-http2
+// oyatie.contract.identity: spiffe-mtls-tls13
 syntax = "proto3";
 
 // connector service — Integration Substrate gRPC contract
-// Per ADR-0253 HTTP/3 + QUIC; gRPC over HTTP/3.
+// Per ADR-0632: internal-only gRPC over HTTP/2 with SPIFFE mTLS/TLS 1.3.
 // Per ADR-0263 audit-event emission contract.
 
 package oyatie.connector.v1;

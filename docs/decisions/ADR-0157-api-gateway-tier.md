@@ -6,10 +6,11 @@ date: 2026-05-18
 owner: council-architecture
 supersedes: []
 superseded_by: []
-related: [ADR-0009, ADR-0049, ADR-0114, ADR-0121, ADR-0128, ADR-0145, ADR-0148, ADR-0182, ADR-0203, ADR-0258]
+amended_by: [ADR-0632]
+related: [ADR-0009, ADR-0049, ADR-0114, ADR-0121, ADR-0128, ADR-0145, ADR-0148, ADR-0182, ADR-0203, ADR-0258, ADR-0632]
 architectural_authority: ADR-0182 (gateway-vs-mesh separation principle; this ADR picks the implementation)
 last_reconciled: 2026-08-01
-reconciled_with: [ADR-0203, ADR-0258]
+reconciled_with: [ADR-0203, ADR-0258, ADR-0632]
 related_specs:
   - /specs/hyperscaler-architecture-invariants.json
   - /specs/per-microservice-flat-layout.json
@@ -19,13 +20,22 @@ related_specs:
 
 ## Status
 
-Accepted (2026-05-18). Promotes a dedicated `api-gateway` µservice as the canonical north-south entry point for every external (tenant-facing, partner-facing, public-internet) REST, webhook, event, and streaming call into the oyatie hyperscaler shape.
+Accepted (2026-05-18). Promotes a dedicated `api-gateway` µservice as the canonical north-south entry point for every external (tenant-facing, partner-facing, public-internet) HTTPS REST or realtime call into the oyatie hyperscaler shape.
+
+## ADR-0632 product-protocol reconciliation
+
+ADR-0632 controls protocol exposure. The north-south public surface **MUST** be HTTPS REST
+documented by OpenAPI 3.2.0, signed/versioned webhooks, AsyncAPI/CloudEvents events, SSE by
+default for one-way streaming, or WebSocket for bidirectional sessions. It **MUST NOT** expose
+GraphQL, gRPC, gRPC-Web, or Connect. The gRPC rate-limit service and east-west calls retained by
+this ADR are internal-only gRPC/proto3 over HTTP/2.
 
 ### Public-contract reconciliation
 
 Per ADR-0203 and ADR-0258, public contract carriers are REST documented by OpenAPI 3.2 plus
 webhooks, events, and streams documented by AsyncAPI 3.1. gRPC over HTTP/2 (H2) with proto3 is
 internal-only service-to-service traffic under mTLS; it is not a public API contract.
+
 
 ## Context
 
@@ -49,11 +59,11 @@ ADR-0157 promotes this from "implied by ADR-0121" to a first-class µservice dec
 
 ## Decision
 
-Oyatie adopts a dedicated **`api-gateway` µservice** as the canonical north-south entry tier. Every external REST, webhook, event, or streaming request transits the api-gateway tier before the cell-µservice tenant-routing layer hands it to a workload µservice.
+Oyatie adopts a dedicated **`api-gateway` µservice** as the canonical north-south entry tier. Every external HTTPS REST or realtime request transits the api-gateway tier before the cell-µservice tenant-routing layer hands it to a workload µservice.
 
 ### Operational shape
 
-1. **Termination.** TLS 1.3 termination at the api-gateway edge (cert rotation per ADR-0064 canonical-base + per-pack overlay). Public REST over HTTP/1.1 or HTTP/2, WebSocket, and SSE are supported; internal gRPC/proto3 remains on the east-west H2+mTLS path and is not exposed by the public listener.
+1. **Termination.** TLS 1.3 termination at the api-gateway edge (cert rotation per ADR-0064 canonical-base + per-pack overlay). HTTP/3 is preferred with HTTP/2 fallback; SSE is the one-way streaming default and WebSocket is reserved for bidirectional sessions.
 2. **AuthN.** JWT bearer (tenant-issued, signed by tenancy µservice JWKS) verified at the gateway; mTLS partner certificates verified at the gateway; OAuth 2.1 + PAR per RFC 9126 (Pushed Authorization Requests) for human flows.
 3. **AuthZ at the gateway.** Cedar fragment for *coarse* tenant scoping ("is this JWT's tenant_id allowed to talk to this hostname?"). Fine-grained per-resource Cedar evaluation remains at the workload µservice (per ADR-0145 + ADR-0148 — AuthorizationPolicy on the mesh).
 4. **WAF.** Coraza (OWASP open-source) running in the gateway data path. Default rule pack = OWASP CRS 4.x; per-pack overlays in `iac/kustomize/components/waf/`. Rules covering OWASP API Security Top-10 (2023) — broken object-level auth, broken authentication, broken object-property-level auth, unrestricted resource consumption, broken function-level auth, server-side request forgery, security misconfiguration, lack of inventory, unsafe consumption.
@@ -61,7 +71,7 @@ Oyatie adopts a dedicated **`api-gateway` µservice** as the canonical north-sou
 6. **Global rate-limit (first tier).** Envoy global rate-limit service (gRPC) backed by Redis (cell µservice's regional Redis cluster). Per-tenant + per-route + per-IP-prefix dimensions.
 7. **Per-µservice rate-limit (second tier).** INV-SHUFFLE-SHARDING remains at the workload-µservice ingress as authored in ADR-0128. The gateway tier is *first* defense; per-µservice shuffle-sharding is *second*. Both tiers required.
 8. **Request mutation.** The gateway injects W3C trace-context headers, the tenant-routing header `x-oya-cell-id`, and the persona-tier header `x-oya-persona-tier` (computed from the JWT) so downstream µservices read consistent context.
-9. **Schema enforcement.** OpenAPI 3.1 schemas registered with the api-gateway tier (sourced from each workload µservice's `contracts/openapi-v1.yaml`). Requests failing schema validation fail-fast at the edge (4xx) without reaching the workload tier.
+9. **Schema enforcement.** OpenAPI 3.2.0 schemas registered with the api-gateway tier (sourced from each workload µservice's `contracts/openapi-v1.yaml`). Requests failing schema validation fail-fast at the edge (4xx) without reaching the workload tier.
 10. **Per-cell deployment.** The api-gateway tier deploys per-cell (per ADR-0009). A KR cell has its own api-gateway pool; a EU cell has its own pool. Cross-cell traffic is rejected at the gateway (ADR-0049 residency invariant).
 
 ### Tech selection
@@ -140,7 +150,7 @@ The api-gateway µservice has zero domain logic; it is pure adapter (Layer 7 in 
 ### Operational
 
 1. New µservice scaffolded at `microservices/api-gateway/` per ADR-0131 flat layout. PRD skeleton ships with this ADR (see Companion); full IP pack lands in the stacked PR.
-2. New CI lane `cloud-ci/Rust gate packet api-gateway-tier` enforces (a) all external endpoints in any other µservice's OpenAPI 3.1 spec resolve under the api-gateway tier's route table, (b) no other µservice declares a `LoadBalancer` Service for tenant-facing traffic.
+2. New CI lane `cloud-ci/Rust gate packet api-gateway-tier` enforces (a) all external endpoints in any other µservice's OpenAPI 3.2.0 spec resolve under the api-gateway tier's route table, (b) no other µservice declares a `LoadBalancer` Service for tenant-facing traffic.
 3. Per-tenant rate-limit policy defaults captured in `specs/api-gateway-tier-canonical.json`.
 4. Helm chart `iac/helm/api-gateway/` ships with Envoy Gateway 1.1 + Coraza + ratelimit-redis sidecar.
 5. Per-pack overlay path `iac/kustomize/components/api-gateway-overlay-{kr,eu,us,jp,ksa}/` for sovereign cell variations.

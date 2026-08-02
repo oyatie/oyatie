@@ -31,9 +31,13 @@
     "asyncapi": [
       "contracts/asyncapi/cloud-billing-tax-design-events.yaml"
     ],
-    "proto": [
-      "contracts/proto/cloud-billing-tax-design.proto"
-    ],
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": [
+        "cloud/cloud-billing-tax/contracts/proto/cloud-billing-tax-design.proto"
+      ]
+    },
     "service_local_contract_scaffolds": [],
     "contract_status": "service-local tax design contracts exist in this package; they are planning/validation metadata and do not claim a live tax calculation engine, filing adapter, authority integration, or persistence runtime"
   },

@@ -1,10 +1,14 @@
+// oyatie.contract.exposure: internal-only
+// oyatie.contract.transport: grpc-http2
+// oyatie.contract.identity: spiffe-mtls-tls13
+
 // Ontology µservice gRPC contracts.
 //
 // Mirrors the REST surface in contracts/openapi/ontology.yaml + the async surface
 // in contracts/asyncapi/ontology-events.yaml. Used by:
 //   - Workflow µservice (peer adapter; consumes Ontology Functions via gRPC for
 //     low-latency typed reads inside Workflow state machines)
-//   - SDKs (Rust + future TS/Python via tonic + tonic-build / protoc)
+//   - Internal workload SDKs (Rust + future TS/Python via tonic/protoc) for in-cluster callers
 //   - Internal cross-pod calls (mTLS over Istio)
 
 syntax = "proto3";

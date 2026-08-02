@@ -209,9 +209,20 @@
     "asyncapi": [
       "microservices/intelligence/contracts/asyncapi/intelligence-events-v1.yaml"
     ],
-    "proto": [
-      "microservices/intelligence/contracts/proto/intelligence-v1.proto"
-    ]
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": [
+        "oya/intelligence/contracts/proto/eval-eval_runner.proto",
+        "oya/intelligence/contracts/proto/evidence-foundry-evidence.proto",
+        "oya/intelligence/contracts/proto/guardrails-guardrails.proto",
+        "oya/intelligence/contracts/proto/intelligence-v1.proto",
+        "oya/intelligence/contracts/proto/intelligence.proto",
+        "oya/intelligence/contracts/proto/providers-provider-invoke.proto",
+        "oya/intelligence/contracts/proto/runtime-foundry-runtime.proto",
+        "oya/intelligence/contracts/proto/supervisor-foundry-supervisor.proto"
+      ]
+    }
   },
   "capabilities": [
     {
@@ -762,9 +773,6 @@
       },
       "asyncapi": {
         "2026-05-21": "microservices/intelligence/contracts/asyncapi/intelligence-events-v1.yaml"
-      },
-      "proto": {
-        "2026-05-21": "microservices/intelligence/contracts/proto/intelligence.proto"
       }
     }
   },

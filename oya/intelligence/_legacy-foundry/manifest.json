@@ -223,14 +223,12 @@
       "microservices/foundry/contracts/asyncapi/runtime-foundry-runtime-events.yaml",
       "microservices/foundry/contracts/asyncapi/supervisor-foundry-supervisor-events.yaml"
     ],
-    "proto": [
-      "microservices/foundry/contracts/proto/eval-eval_runner.proto",
-      "microservices/foundry/contracts/proto/evidence-foundry-evidence.proto",
-      "microservices/foundry/contracts/proto/guardrails-guardrails.proto",
-      "microservices/foundry/contracts/proto/providers-provider-invoke.proto",
-      "microservices/foundry/contracts/proto/runtime-foundry-runtime.proto",
-      "microservices/foundry/contracts/proto/supervisor-foundry-supervisor.proto"
-    ]
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": []
+    },
+    "contract_status": "retired legacy Foundry snapshot; no live protocol contracts are declared here"
   },
   "capabilities": [
     {

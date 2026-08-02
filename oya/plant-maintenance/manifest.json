@@ -370,9 +370,6 @@
       },
       "asyncapi": {
         "2026-05-21": "microservices/plant-maintenance/contracts/asyncapi-v1.yaml"
-      },
-      "proto": {
-        "2026-05-21": "microservices/plant-maintenance/contracts/plant-maintenance-v1.proto"
       }
     }
   },

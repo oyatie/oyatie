@@ -47,9 +47,13 @@
     "asyncapi": [
       "microservices/observability/contracts/asyncapi/eligibility-events.yaml"
     ],
-    "proto": [
-      "microservices/observability/contracts/proto/slo-engine.proto"
-    ]
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": [
+        "oya/observability/contracts/proto/slo-engine.proto"
+      ]
+    }
   },
   "capabilities": [
     {
@@ -166,7 +170,7 @@
     },
     {
       "id": "IP-010-promotion-eligibility-ledger",
-      "title": "IP-010: Promotion-eligibility ledger \u2014 Mimir-native recording rules",
+      "title": "IP-010: Promotion-eligibility ledger — Mimir-native recording rules",
       "acceptance_status": "ga",
       "file": "microservices/observability/IP-010-promotion-eligibility-ledger.md"
     },
@@ -268,10 +272,10 @@
     }
   ],
   "hyperscaler_inv_coverage": {
-    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
-    "tenant_rate_limit": "INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
-    "reference_signals": "INV-FOUR-REFERENCE-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
-    "error_budget_burn": "INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "reference_signals": "INV-FOUR-REFERENCE-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "audit_chain": {
     "enabled": true,
@@ -323,7 +327,7 @@
     "il5",
     "DORA"
   ],
-  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; reference_signals: INV-FOUR-REFERENCE-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; ADR-0139 implements |; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here",
+  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; reference_signals: INV-FOUR-REFERENCE-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; ADR-0139 implements |; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here",
   "owner_team": "axis-observability",
   "data_classification": "AUDIT, INTERNAL_ONLY, PII_QUASI",
   "compliance_packs_applicable": [
@@ -449,11 +453,6 @@
         "2026-05-21": "microservices/observability/contracts/asyncapi/eligibility-events.yaml",
         "2026-02-21": "microservices/observability/contracts/asyncapi/eligibility-events.yaml",
         "2025-11-21": "microservices/observability/contracts/asyncapi/eligibility-events.yaml"
-      },
-      "proto": {
-        "2026-05-21": "microservices/observability/contracts/proto/slo-engine.proto",
-        "2026-02-21": "microservices/observability/contracts/proto/slo-engine.proto",
-        "2025-11-21": "microservices/observability/contracts/proto/slo-engine.proto"
       }
     }
   },

@@ -9,8 +9,8 @@ door: one-way
 owner: council-architecture
 supersedes: []
 superseded_by: []
-amends: [ADR-0253, ADR-0258]
-amended_by: []
+amends: [ADR-0056, ADR-0105, ADR-0253, ADR-0258]
+amended_by: [ADR-0632]
 # NOTE: the Phase-00 product spec under docs/products/<de-brand-target>/ also named GraphQL in its
 # transport-parity scope; its GraphQL retraction is deferred to the de-brand of that directory
 # (it cannot be cited here without re-introducing the brand-residue token the brand-residue gate forbids).
@@ -24,7 +24,6 @@ related_specs:
   - /specs/microservices/manifest-schema.json
 milestone: W0
 ---
-
 # ADR-0565: Zero GraphQL in the owned API surface
 
 ## Status
@@ -34,6 +33,10 @@ owned API surface after the north-star interview. The public/internal exposure s
 non-GraphQL product contract are specified separately; this decision binds only the removal and
 fail-closed reintroduction rule. Reintroduction requires a later Accepted ADR that explicitly
 reverses this decision.
+
+## ADR-0632 product-protocol reconciliation
+
+The non-GraphQL surface set is exposure-aware: public contracts are HTTPS REST documented by OpenAPI 3.2.0, signed/versioned webhooks, AsyncAPI/CloudEvents events, SSE, and bidirectional WebSocket sessions. Public gRPC, gRPC-Web, and Connect are forbidden. gRPC and gRPC streaming are internal-only gRPC/proto3 over HTTP/2 and do not enter public SDK or gateway compatibility.
 
 ## Context
 
@@ -71,9 +74,9 @@ second hand-edited-vs-generated schema family is exactly the drift surface the S
 Backend-for-Frontend (BFF). The canonical owned API surface set is:
 
 - **REST** — OpenAPI 3.2.0
-- **gRPC** — proto3
+- **internal-only gRPC** — proto3 over HTTP/2
 - **event / async** — AsyncAPI 3.1.0
-- **realtime** — SSE (one-way server push), WebSocket (bidirectional), and gRPC-streaming
+- **realtime** — public SSE (one-way server push) and WebSocket (bidirectional); gRPC streaming is internal-only
 
 All of these are generated or validated from the one shared Rust-native contract source of truth
 (ADR-0094 contract-first, the api-contract-ssot model). There is NO generated-BFF carve-out: the

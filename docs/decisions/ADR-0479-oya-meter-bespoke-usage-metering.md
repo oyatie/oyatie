@@ -8,15 +8,19 @@ owner: axis-cloud
 planning_impact: true
 supersedes: [ADR-0429]
 superseded_by: []
+amended_by: [ADR-0632]
 milestone: M-METERING-V2
 related: [ADR-0429, ADR-0478, ADR-0193, ADR-0397, ADR-0083, ADR-0411, ADR-0403, ADR-0420, ADR-0449, ADR-0131, ADR-0132, ADR-0509]
 ---
-
 # ADR-0479 — oya-meter: bespoke Rust usage metering substrate
 
 ## Status
 
 Accepted — 2026-05-28. Founder-locked. Supersedes ADR-0429 (OpenMeter Phase-1 stepping stone).
+
+## ADR-0632 product-protocol reconciliation
+
+Tenants query usage through public HTTPS REST documented by OpenAPI 3.2.0; signed/versioned webhooks, AsyncAPI/CloudEvents events, SSE, and WebSocket remain the allowed public delivery and streaming carriers. Public GraphQL, gRPC, gRPC-Web, and Connect are forbidden. Meter-to-billing and other sibling-service calls may use internal-only gRPC/proto3 over HTTP/2; public SDKs are generated from OpenAPI, not Connect or Protobuf.
 
 ## Context
 
@@ -43,7 +47,7 @@ no-suite). OpenMeter is retired as an active dependency (ADR-0429 → Superseded
 
 ### D1 — µservice scaffold
 
-`microservices/oya-meter/` — Rust workspace, Axum + Connect-RPC. **ClickHouse** (ADR-0193) is the
+`microservices/oya-meter/` — Rust workspace, Axum public HTTPS REST plus internal-only gRPC/proto3 over HTTP/2. **ClickHouse** (ADR-0193) is the
 time-series usage backend; **PostgreSQL** is the meter-catalog store (tenant meter definitions,
 resource dimension registry).
 
@@ -69,12 +73,11 @@ only query their own namespace; operator realm has cross-tenant read.
 ### D4 — Crossplane provisioning
 
 **Crossplane** (ADR-0411) TenantApplication XR provisions per-tenant meter namespaces on tenant
-onboarding. Feeds **oya-billing** (ADR-0478) billable-metrics via a well-typed gRPC/Connect-RPC
-surface.
+onboarding. Feeds **oya-billing** (ADR-0478) billable-metrics via a well-typed internal-only gRPC/proto3 over HTTP/2 surface.
 
 ### D5 — Tenant usage API
 
-Tenants query own usage via Connect-RPC; SDK auto-generated via **Kiota** (ADR-0449). Rate: tenant
+Tenants query their own usage via public HTTPS REST documented by OpenAPI; SDK auto-generated via **Kiota** (ADR-0449). Rate: tenant
 aggregate queries at `/usage/v1/{tenant_id}/aggregates`; raw event replay at
 `/usage/v1/{tenant_id}/events` (operator only).
 
@@ -99,11 +102,11 @@ aggregate queries at `/usage/v1/{tenant_id}/aggregates`; raw event replay at
 
 - OpenMeter containers are removed from the deployment manifests after oya-meter D1–D3 pass
   acceptance gates.
-- oya-billing (ADR-0478) switches its billable-metrics source from OpenMeter to oya-meter Connect-RPC
+- oya-billing (ADR-0478) switches its billable-metrics source from OpenMeter to oya-meter internal gRPC/proto3
   once D4 is accepted.
 - Polars (ADR-0420) materialized-stream pattern is the canonical aggregate computation path; no
   separate streaming-SQL engine required.
-- Kiota SDK (ADR-0449) generates tenant-facing client from the Connect-RPC proto.
+- Kiota SDK (ADR-0449) generates the tenant-facing client from OpenAPI, never from an internal Protobuf contract.
 
 ## Integration
 

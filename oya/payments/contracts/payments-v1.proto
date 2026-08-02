@@ -1,6 +1,10 @@
+// oyatie.contract.exposure: internal-only
+// oyatie.contract.transport: grpc-http2
+// oyatie.contract.identity: spiffe-mtls-tls13
+
 // Canonical-base: specs/proto/canonical-message-shape.json (per ADR-0064)
 // Authoring authority: ADR-0145 inter-microservice communication (direct gRPC + 3 invariants).
-// Transport: gRPC over HTTP/3 per ADR-0253; TLS 1.3 mTLS with SPIFFE SVID.
+// Transport: internal sibling-service gRPC over HTTP/2 with mTLS/TLS 1.3 and SPIFFE SVID.
 
 syntax = "proto3";
 

@@ -201,9 +201,6 @@
       },
       "asyncapi": {
         "2026-05-21": "microservices/financial-planning/contracts/asyncapi-v1.yaml"
-      },
-      "proto": {
-        "2026-05-21": "microservices/financial-planning/contracts/financial-planning-v1.proto"
       }
     }
   },

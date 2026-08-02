@@ -1,5 +1,8 @@
+// oyatie.contract.exposure: internal-only
+// oyatie.contract.transport: grpc-http2
+// oyatie.contract.identity: spiffe-mtls-tls13
 // oya-intelligence-runtime — gRPC contract
-// Peer to contracts/openapi/foundry-runtime.yaml for clients that prefer gRPC.
+// Internal-only service RPC projection; contracts/openapi/foundry-runtime.yaml remains the public client contract.
 // Per ADR-0025 + ADR-0131.
 
 syntax = "proto3";
@@ -13,7 +16,7 @@ import "google/protobuf/struct.proto";
 // Service: FoundryRuntime
 // =========================================================================
 //
-// Authn: per-request OIDC bearer (gRPC metadata key "authorization").
+// Authn: SPIFFE mTLS workload identity with TLS 1.3; user-token authentication belongs to REST/OpenAPI.
 // Authz: Cedar policy evaluation server-side; same fragments as REST.
 // Tenancy: per-request metadata key "x-scope-orgid" = "tenant:<hashed-id>".
 

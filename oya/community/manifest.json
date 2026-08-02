@@ -86,9 +86,13 @@
     "asyncapi": [
       "microservices/community/contracts/asyncapi/community-events.yaml"
     ],
-    "proto": [
-      "microservices/community/contracts/proto/community.proto"
-    ]
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": [
+        "oya/community/contracts/proto/community.proto"
+      ]
+    }
   },
   "capabilities": [
     {
@@ -181,91 +185,91 @@
   "ips": [
     {
       "id": "IP-001-postgres-citus-post-store-iac",
-      "title": "IP-001 \u2014 Postgres + Citus post-store IaC",
+      "title": "IP-001 — Postgres + Citus post-store IaC",
       "acceptance_status": "ga",
       "file": "microservices/community/IP-001-postgres-citus-post-store-iac.md"
     },
     {
       "id": "IP-002-post-store-kernel-domain",
-      "title": "IP-002 \u2014 post-store kernel + domain crates",
+      "title": "IP-002 — post-store kernel + domain crates",
       "acceptance_status": "ga",
       "file": "microservices/community/IP-002-post-store-kernel-domain.md"
     },
     {
       "id": "IP-003-post-store-usecase-api",
-      "title": "IP-003 \u2014 post-store usecase + api crates",
+      "title": "IP-003 — post-store usecase + api crates",
       "acceptance_status": "ga",
       "file": "microservices/community/IP-003-post-store-usecase-api.md"
     },
     {
       "id": "IP-004-post-store-adapter-postgres-rest-worker-sdk-app",
-      "title": "IP-004 \u2014 post-store adapter-postgres + rest + worker + sdk + app crates",
+      "title": "IP-004 — post-store adapter-postgres + rest + worker + sdk + app crates",
       "acceptance_status": "ga",
       "file": "microservices/community/IP-004-post-store-adapter-postgres-rest-worker-sdk-app.md"
     },
     {
       "id": "IP-005-thread-tree-materialised-path",
-      "title": "IP-005 \u2014 thread-tree (materialised path)",
+      "title": "IP-005 — thread-tree (materialised path)",
       "acceptance_status": "ga",
       "file": "microservices/community/IP-005-thread-tree-materialised-path.md"
     },
     {
       "id": "IP-006-voting-engine",
-      "title": "IP-006 \u2014 voting-engine",
+      "title": "IP-006 — voting-engine",
       "acceptance_status": "ga",
       "file": "microservices/community/IP-006-voting-engine.md"
     },
     {
       "id": "IP-007-moderation-queue",
-      "title": "IP-007 \u2014 moderation-queue",
+      "title": "IP-007 — moderation-queue",
       "acceptance_status": "ga",
       "file": "microservices/community/IP-007-moderation-queue.md"
     },
     {
       "id": "IP-008-kb-article-store-s3",
-      "title": "IP-008 \u2014 kb-article-store + adapter-s3",
+      "title": "IP-008 — kb-article-store + adapter-s3",
       "acceptance_status": "ga",
       "file": "microservices/community/IP-008-kb-article-store-s3.md"
     },
     {
       "id": "IP-009-search-index-elasticsearch",
-      "title": "IP-009 \u2014 search-index (Elasticsearch)",
+      "title": "IP-009 — search-index (Elasticsearch)",
       "acceptance_status": "ga",
       "file": "microservices/community/IP-009-search-index-elasticsearch.md"
     },
     {
       "id": "IP-010-foundry-guardrails-moderation-bridge",
-      "title": "IP-010 \u2014 foundry-guardrails moderation bridge adapter",
+      "title": "IP-010 — foundry-guardrails moderation bridge adapter",
       "acceptance_status": "ga",
       "file": "microservices/community/IP-010-foundry-guardrails-moderation-bridge.md"
     },
     {
       "id": "IP-011-cedar-policy-fragments",
-      "title": "IP-011 \u2014 Cedar policy fragments",
+      "title": "IP-011 — Cedar policy fragments",
       "acceptance_status": "ga",
       "file": "microservices/community/IP-011-cedar-policy-fragments.md"
     },
     {
       "id": "IP-012-openslo-grafana-dashboards",
-      "title": "IP-012 \u2014 OpenSLO manifests + Grafana dashboards",
+      "title": "IP-012 — OpenSLO manifests + Grafana dashboards",
       "acceptance_status": "ga",
       "file": "microservices/community/IP-012-openslo-grafana-dashboards.md"
     },
     {
       "id": "IP-013-oya-governance-promotion-readiness",
-      "title": "IP-013 \u2014 oya-governance promotion-readiness wiring",
+      "title": "IP-013 — oya-governance promotion-readiness wiring",
       "acceptance_status": "ga",
       "file": "microservices/community/IP-013-oya-governance-promotion-readiness.md"
     },
     {
       "id": "IP-014-hyperscaler-maturity-gate",
-      "title": "IP-014 \u2014 Hyperscaler maturity gate HG-COMMUNITY",
+      "title": "IP-014 — Hyperscaler maturity gate HG-COMMUNITY",
       "acceptance_status": "ga",
       "file": "microservices/community/IP-014-hyperscaler-maturity-gate.md"
     },
     {
       "id": "IP-015-capacity-cost-chaos-drill",
-      "title": "IP-015 \u2014 Capacity + cost + chaos drill",
+      "title": "IP-015 — Capacity + cost + chaos drill",
       "acceptance_status": "ga",
       "file": "microservices/community/IP-015-capacity-cost-chaos-drill.md"
     }
@@ -344,10 +348,10 @@
     }
   ],
   "hyperscaler_inv_coverage": {
-    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
-    "tenant_rate_limit": "INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
-    "primary_sre_signals": "INV-FOUR-PRIMARY-SRE-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
-    "error_budget_burn": "INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "primary_sre_signals": "INV-FOUR-PRIMARY-SRE-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "audit_chain": {
     "enabled": true,
@@ -407,7 +411,7 @@
     "fedramp",
     "il5"
   ],
-  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; primary_sre_signals: INV-FOUR-PRIMARY-SRE-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
+  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; primary_sre_signals: INV-FOUR-PRIMARY-SRE-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
   "owner_team": "axis-community",
   "service_classification": "product",
   "data_classification": "PII_IDENTIFYING, AUTHENTICATION, AUDIT",
@@ -529,9 +533,6 @@
       },
       "asyncapi": {
         "2026-05-21": "microservices/community/contracts/asyncapi/community-events.yaml"
-      },
-      "proto": {
-        "2026-05-21": "microservices/community/contracts/proto/community.proto"
       }
     }
   },

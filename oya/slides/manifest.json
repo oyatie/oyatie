@@ -27,9 +27,13 @@
     "asyncapi": [
       "microservices/slides/contracts/asyncapi/slides-events.yaml"
     ],
-    "proto": [
-      "microservices/slides/contracts/proto/slides.proto"
-    ]
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": [
+        "oya/slides/contracts/proto/slides.proto"
+      ]
+    }
   },
   "capabilities": [
     {
@@ -116,31 +120,31 @@
   "ips": [
     {
       "id": "IP-001-layer-a-cdn-postgres-valkey-s3-ws-gateway-iac",
-      "title": "IP-001: Layer-A IaC \u2014 CDN, WAF, Postgres, Valkey, S3, WS gateway, gVisor export pool",
+      "title": "IP-001: Layer-A IaC — CDN, WAF, Postgres, Valkey, S3, WS gateway, gVisor export pool",
       "acceptance_status": "ga",
       "file": "microservices/slides/IP-001-layer-a-cdn-postgres-valkey-s3-ws-gateway-iac.md"
     },
     {
       "id": "IP-002-presentation-slide-kernel-domain",
-      "title": "IP-002: presentation + slide BCs \u2014 kernel + domain",
+      "title": "IP-002: presentation + slide BCs — kernel + domain",
       "acceptance_status": "ga",
       "file": "microservices/slides/IP-002-presentation-slide-kernel-domain.md"
     },
     {
       "id": "IP-003-slide-layout-text-box-shape-kernel-domain",
-      "title": "IP-003: slide-layout + text-box + shape + table + equation BCs \u2014 kernel + domain",
+      "title": "IP-003: slide-layout + text-box + shape + table + equation BCs — kernel + domain",
       "acceptance_status": "ga",
       "file": "microservices/slides/IP-003-slide-layout-text-box-shape-kernel-domain.md"
     },
     {
       "id": "IP-004-asset-bcs-image-video-audio-adapters",
-      "title": "IP-004: image + video-embed + audio-embed BCs \u2014 adapters (S3 + ImageMagick + ffmpeg + ClamAV + OPSWAT)",
+      "title": "IP-004: image + video-embed + audio-embed BCs — adapters (S3 + ImageMagick + ffmpeg + ClamAV + OPSWAT)",
       "acceptance_status": "ga",
       "file": "microservices/slides/IP-004-asset-bcs-image-video-audio-adapters.md"
     },
     {
       "id": "IP-005-real-time-collaboration-loro-kernel-domain-adapter",
-      "title": "IP-005: real-time-collaboration with Loro CRDT \u2014 kernel + domain + adapter + adapter-valkey + adapter-loro",
+      "title": "IP-005: real-time-collaboration with Loro CRDT — kernel + domain + adapter + adapter-valkey + adapter-loro",
       "acceptance_status": "ga",
       "file": "microservices/slides/IP-005-real-time-collaboration-loro-kernel-domain-adapter.md"
     },
@@ -152,7 +156,7 @@
     },
     {
       "id": "IP-007-chart-embed-bridge-to-sheets",
-      "title": "IP-007: chart BC with live-link to sheets \u00b5service",
+      "title": "IP-007: chart BC with live-link to sheets µservice",
       "acceptance_status": "ga",
       "file": "microservices/slides/IP-007-chart-embed-bridge-to-sheets.md"
     },
@@ -176,13 +180,13 @@
     },
     {
       "id": "IP-011-import-export-pptx-pdf-mp4-pipeline",
-      "title": "IP-011: import-export BC \u2014 PPTX + ODP + PDF + Keynote + MP4 + PNG pipeline (gVisor sandboxed)",
+      "title": "IP-011: import-export BC — PPTX + ODP + PDF + Keynote + MP4 + PNG pipeline (gVisor sandboxed)",
       "acceptance_status": "ga",
       "file": "microservices/slides/IP-011-import-export-pptx-pdf-mp4-pipeline.md"
     },
     {
       "id": "IP-012-accessibility-ai-design-ai-content-generation",
-      "title": "IP-012: accessibility + ai-design + ai-content-generation \u2014 T0/T1/T2 + EU AI Act risk-class",
+      "title": "IP-012: accessibility + ai-design + ai-content-generation — T0/T1/T2 + EU AI Act risk-class",
       "acceptance_status": "ga",
       "file": "microservices/slides/IP-012-accessibility-ai-design-ai-content-generation.md"
     },
@@ -291,10 +295,10 @@
     }
   ],
   "hyperscaler_inv_coverage": {
-    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
-    "tenant_rate_limit": "INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
-    "reference_signals": "INV-FOUR-REFERENCE-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
-    "error_budget_burn": "INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "reference_signals": "INV-FOUR-REFERENCE-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "audit_chain": {
     "enabled": true,
@@ -344,7 +348,7 @@
     "cn-pipl-2021",
     "il5"
   ],
-  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; reference_signals: INV-FOUR-REFERENCE-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
+  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; reference_signals: INV-FOUR-REFERENCE-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
   "owner_team": "axis-slides",
   "tier_classification": "external-facing",
   "data_classification": "INTERNAL_ONLY, AUDIT, PII_QUASI",
@@ -466,9 +470,6 @@
       },
       "asyncapi": {
         "2026-05-21": "microservices/slides/contracts/asyncapi/slides-events.yaml"
-      },
-      "proto": {
-        "2026-05-21": "microservices/slides/contracts/proto/slides.proto"
       }
     }
   },

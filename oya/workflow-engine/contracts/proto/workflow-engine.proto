@@ -1,13 +1,17 @@
+// oyatie.contract.exposure: internal-only
+// oyatie.contract.transport: grpc-http2
+// oyatie.contract.identity: spiffe-mtls-tls13
+
 syntax = "proto3";
 
 package oyatie.workflow_engine.v1;
 
 // workflow-engine gRPC contracts.
 // Owned by axis-workflow.
-// Mirrors the REST surface (contracts/openapi/workflow-engine.yaml).
-// Used by Studio, SDK consumers, and other µservices.
+// Internal-only sibling-service projection of the REST contract.
+// Public Studio and SDK clients use REST/OpenAPI; this surface is for in-cluster workloads.
 //
-// All RPCs require OIDC + per-tenant scope via Cedar policy.
+// All RPCs require SPIFFE mTLS workload identity; forwarded user claims are authorized by Cedar.
 // Tenant_id is server-side stamped; client cannot override.
 
 import "google/protobuf/timestamp.proto";

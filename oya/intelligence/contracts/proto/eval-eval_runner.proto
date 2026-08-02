@@ -1,3 +1,6 @@
+// oyatie.contract.exposure: internal-only
+// oyatie.contract.transport: grpc-http2
+// oyatie.contract.identity: spiffe-mtls-tls13
 // foundry-eval Eval Runner gRPC contract
 // Per ADR-0024 (eval harness) + ADR-0131 (per-microservice flat layout)
 // Owner: axis-foundry

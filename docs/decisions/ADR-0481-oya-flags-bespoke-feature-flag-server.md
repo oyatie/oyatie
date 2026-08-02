@@ -9,10 +9,11 @@ milestone: M-FEATURE-FLAGS-V2
 planning_impact: true
 supersedes: []
 superseded_by: []
+amended_by: [ADR-0632]
 related: [ADR-0428, ADR-0083, ADR-0407, ADR-0411, ADR-0397, ADR-0476, ADR-0408, ADR-0509]
 deliverables:
   - id: D1
-    description: "New µservice microservices/oya-flags/ — Rust workspace, axum + Connect-RPC. Speaks OpenFeature flag-evaluation protocol (ADR-0428 SDK compat retained). PostgreSQL backend for flag definitions; in-memory hot cache for evaluation hot-path."
+    description: "New µservice microservices/oya-flags/ — Rust workspace, Axum public REST plus internal-only gRPC/proto3 over HTTP/2. Speaks the OpenFeature flag-evaluation protocol (ADR-0428 SDK compat retained). PostgreSQL backend for flag definitions; in-memory hot cache for evaluation hot-path."
     exit_criteria: "microservices/oya-flags/src/ compiles; cargo nextest -p oya-flags passes; OpenFeature provider test client resolves a boolean flag against the running server."
     verified_by: "cargo nextest -p oya-flags + cargo clippy -p oya-flags -- -D warnings"
   - id: D2
@@ -33,13 +34,16 @@ deliverables:
     verified_by: "oya gate validate honest-claims + Self-Service UI integration test: toggle flag -> evaluate flag returns updated variation"
 owner: council-platform
 ---
-
 # ADR-0481 — oya-flags: bespoke Rust feature flag server superseding flagd
 
 ## Status
 
 Accepted — 2026-05-28 (founder-locked). Amends ADR-0428 (server provider only; OpenFeature SDK
 protocol unchanged).
+
+## ADR-0632 product-protocol reconciliation
+
+Tenant and operator flag APIs use public HTTPS REST documented by OpenAPI 3.2.0, with signed/versioned webhooks, AsyncAPI/CloudEvents events, SSE, or WebSocket used where their semantics apply. Public GraphQL, gRPC, gRPC-Web, and Connect are forbidden. The OpenFeature gRPC adapter is internal-only gRPC/proto3 over HTTP/2.
 
 ## Context
 
@@ -65,12 +69,10 @@ auth, and the PostgreSQL-backed GitOps audit trail without depending on flagd's 
 
 ## Decision
 
-Replace flagd with **oya-flags**, a bespoke Rust feature flag server built on axum + Connect-RPC,
-speaking the OpenFeature flag-evaluation protocol. ADR-0428 SDK adoption is preserved; only the
+Replace flagd with **oya-flags**, a bespoke Rust feature flag server built on Axum for public HTTPS REST plus internal-only gRPC/proto3 over HTTP/2, speaking the OpenFeature flag-evaluation protocol. ADR-0428 SDK adoption is preserved; only the
 server provider changes.
 
-- **Server**: `microservices/oya-flags/` — Rust, axum, Connect-RPC. Implements the OpenFeature
-  flag-evaluation gRPC protocol so existing SDK wiring (ADR-0428 Phase 2) continues unchanged.
+- **Server**: `microservices/oya-flags/` — Rust and Axum. It exposes public HTTPS REST and implements the OpenFeature flag-evaluation gRPC protocol only for internal sibling-service calls so existing SDK wiring (ADR-0428 Phase 2) continues unchanged.
 - **Storage**: PostgreSQL (ADR-0406) for flag definitions. In-memory hot cache for evaluation
   hot-path; cache invalidated on flag bundle push.
 - **Targeting**: tenant-id, region, user, percentage rollout, time-bound windows, and arbitrary

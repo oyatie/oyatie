@@ -33,7 +33,11 @@
   "contracts": {
     "openapi": [],
     "asyncapi": [],
-    "proto": [],
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": []
+    },
     "contract_status": "not_claimed_scaffold_only"
   },
   "capabilities": [],
@@ -163,49 +167,94 @@
         "crate": "oya-cloud-kernel-app",
         "metadata_file": "cloud/cloud-kernel/crates/oya-cloud-kernel-app/Cargo.toml#package.metadata.oya",
         "layer": "app",
-        "adr_anchors": ["ADR-0512", "ADR-0520", "ADR-0536", "ADR-0562", "ADR-0378", "ADR-0382"],
+        "adr_anchors": [
+          "ADR-0512",
+          "ADR-0520",
+          "ADR-0536",
+          "ADR-0562",
+          "ADR-0378",
+          "ADR-0382"
+        ],
         "coverage_rationale": "Composition binary for the nested kuberos workspace; additionally carries Talos compatibility verification images through the selected arch backend."
       },
       {
         "crate": "oya-cloud-kernel-hal-kernel",
         "metadata_file": "cloud/cloud-kernel/crates/oya-cloud-kernel-hal-kernel/Cargo.toml#package.metadata.oya",
         "layer": "kernel",
-        "adr_anchors": ["ADR-0512", "ADR-0520", "ADR-0536", "ADR-0562", "ADR-0547"],
+        "adr_anchors": [
+          "ADR-0512",
+          "ADR-0520",
+          "ADR-0536",
+          "ADR-0562",
+          "ADR-0547"
+        ],
         "coverage_rationale": "Cutover-stable architecture HAL seam inside the sanctioned nested/excluded kuberos workspace."
       },
       {
         "crate": "oya-cloud-kernel-frame-kernel",
         "metadata_file": "cloud/cloud-kernel/crates/oya-cloud-kernel-frame-kernel/Cargo.toml#package.metadata.oya",
         "layer": "kernel",
-        "adr_anchors": ["ADR-0512", "ADR-0520", "ADR-0536", "ADR-0562", "ADR-0547"],
+        "adr_anchors": [
+          "ADR-0512",
+          "ADR-0520",
+          "ADR-0536",
+          "ADR-0562",
+          "ADR-0547"
+        ],
         "coverage_rationale": "Safe Frame kernel seam over the HAL; explicitly non-runtime-promoting until module build and boot artifacts are separately reviewed."
       },
       {
         "crate": "oya-cloud-kernel-ksync-kernel",
         "metadata_file": "cloud/cloud-kernel/crates/oya-cloud-kernel-ksync-kernel/Cargo.toml#package.metadata.oya",
         "layer": "kernel",
-        "adr_anchors": ["ADR-0512", "ADR-0520", "ADR-0536", "ADR-0562", "ADR-0547"],
+        "adr_anchors": [
+          "ADR-0512",
+          "ADR-0520",
+          "ADR-0536",
+          "ADR-0562",
+          "ADR-0547"
+        ],
         "coverage_rationale": "no_std kernel concurrency primitives bound to the kuberos kernel rung and kernel-purity doctrine."
       },
       {
         "crate": "oya-cloud-kernel-user-layout-kernel",
         "metadata_file": "cloud/cloud-kernel/crates/oya-cloud-kernel-user-layout-kernel/Cargo.toml#package.metadata.oya",
         "layer": "kernel",
-        "adr_anchors": ["ADR-0512", "ADR-0520", "ADR-0536", "ADR-0562", "ADR-0547"],
+        "adr_anchors": [
+          "ADR-0512",
+          "ADR-0520",
+          "ADR-0536",
+          "ADR-0562",
+          "ADR-0547"
+        ],
         "coverage_rationale": "Arch-neutral EL0 layout math shared by Frame backends; pure kernel coverage, not a runtime readiness claim."
       },
       {
         "crate": "oya-cloud-kernel-arch-aarch64-adapter",
         "metadata_file": "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter/Cargo.toml#package.metadata.oya",
         "layer": "adapter",
-        "adr_anchors": ["ADR-0512", "ADR-0520", "ADR-0536", "ADR-0562", "ADR-0378", "ADR-0382"],
+        "adr_anchors": [
+          "ADR-0512",
+          "ADR-0520",
+          "ADR-0536",
+          "ADR-0562",
+          "ADR-0378",
+          "ADR-0382"
+        ],
         "coverage_rationale": "aarch64 architecture backend adapter; Talos compatibility anchors are limited to verification-image context."
       },
       {
         "crate": "oya-cloud-kernel-arch-x86-64-adapter",
         "metadata_file": "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/Cargo.toml#package.metadata.oya",
         "layer": "adapter",
-        "adr_anchors": ["ADR-0512", "ADR-0520", "ADR-0536", "ADR-0562", "ADR-0378", "ADR-0382"],
+        "adr_anchors": [
+          "ADR-0512",
+          "ADR-0520",
+          "ADR-0536",
+          "ADR-0562",
+          "ADR-0378",
+          "ADR-0382"
+        ],
         "coverage_rationale": "x86_64 architecture backend adapter; Talos compatibility anchors are limited to verification-image context."
       }
     ]

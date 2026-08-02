@@ -1,3 +1,7 @@
+// oyatie.contract.exposure: internal-only
+// oyatie.contract.transport: grpc-http2
+// oyatie.contract.identity: spiffe-mtls-tls13
+
 // finops-portal — cost-allocation-policy internal gRPC contract
 // Authored 2026-05-18.
 // Authority: ADR-0174 chargeback formula + ADR-0083 Tier-A 4-INV +

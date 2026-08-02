@@ -1,3 +1,6 @@
+// oyatie.contract.exposure: internal-only
+// oyatie.contract.transport: grpc-http2
+// oyatie.contract.identity: spiffe-mtls-tls13
 syntax = "proto3";
 
 package oyatie.marketing_automation.v1;

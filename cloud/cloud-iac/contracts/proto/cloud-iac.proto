@@ -1,5 +1,8 @@
+// oyatie.contract.exposure: internal-only
+// oyatie.contract.transport: grpc-http2
+// oyatie.contract.identity: spiffe-mtls-tls13
 // oya-cloud-iac — gRPC contract
-// Peer to contracts/openapi/cloud-iac.yaml for clients that prefer gRPC.
+// Internal-only service RPC projection; contracts/openapi/cloud-iac.yaml remains the public client contract.
 // Per PRD-cloud-iac + ADR-0131.
 
 syntax = "proto3";
@@ -12,8 +15,7 @@ import "google/protobuf/timestamp.proto";
 // Service: CloudIac
 // =========================================================================
 //
-// Authn: per-request OIDC bearer (gRPC metadata key "authorization") for human
-//        + non-service principals. SPIFFE mTLS for service-to-service.
+// Authn: SPIFFE mTLS workload identity with TLS 1.3; user-token authentication belongs to REST/OpenAPI.
 // Authz: Cedar policy evaluation server-side; same fragments as REST.
 // Tenancy: per-request metadata key "x-microservice" = "<microservice-id>".
 

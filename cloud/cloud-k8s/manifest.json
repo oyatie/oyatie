@@ -38,7 +38,13 @@
       "contracts/openapi/cloud/cloud-compute-vm-v1.yaml"
     ],
     "asyncapi": [],
-    "proto": [],
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": [
+        "cloud/cloud-k8s/contracts/proto/cloud-k8s.proto"
+      ]
+    },
     "service_local_contract_scaffolds": [
       "microservices/cloud-k8s/contracts/openapi/cloud-k8s.yaml",
       "microservices/cloud-k8s/contracts/asyncapi/cloud-k8s-events.yaml",

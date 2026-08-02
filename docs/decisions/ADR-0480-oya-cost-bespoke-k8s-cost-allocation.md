@@ -8,15 +8,19 @@ owner: council-cost
 planning_impact: true
 supersedes: [ADR-0443]
 superseded_by: []
+amended_by: [ADR-0632]
 milestone: M-COST-ALLOCATION-V2
 related: [ADR-0443, ADR-0479, ADR-0193, ADR-0407, ADR-0083, ADR-0411, ADR-0423, ADR-0509]
 ---
-
 # ADR-0480 — oya-cost: bespoke Rust K8s cost allocation substrate
 
 ## Status
 
 Accepted — 2026-05-28. Supersedes ADR-0443 (OpenCost Phase-1).
+
+## ADR-0632 product-protocol reconciliation
+
+The tenant cost API is public HTTPS REST documented by OpenAPI 3.2.0, with signed/versioned webhooks, AsyncAPI/CloudEvents events, SSE, or WebSocket used where their semantics apply. Public GraphQL, gRPC, gRPC-Web, and Connect are forbidden. Cost-to-meter and other sibling-service calls may use internal-only gRPC/proto3 over HTTP/2.
 
 ## Context
 
@@ -26,13 +30,13 @@ Bounded complexity: K8s cost allocation reduces to three primitives — (1) node
 
 ## Decision
 
-Ship `microservices/oya-cost/` as a bespoke Rust µservice (Axum + Connect-RPC). ClickHouse for time-series cost data; PostgreSQL for catalog. Cedar (ADR-0083) gates per-tenant cost-API access. OpenCost is retired.
+Ship `microservices/oya-cost/` as a bespoke Rust µservice (Axum public HTTPS REST plus internal-only gRPC/proto3 over HTTP/2). ClickHouse for time-series cost data; PostgreSQL for catalog. Cedar (ADR-0083) gates per-tenant cost-API access. OpenCost is retired.
 
 ## Deliverables
 
 | ID | Deliverable | Exit criteria |
 |---|---|---|
-| D1 | `microservices/oya-cost/` Rust workspace | `cargo check` passes; Axum serves `/healthz`; Connect-RPC skeleton wired |
+| D1 | `microservices/oya-cost/` Rust workspace | `cargo check` passes; Axum serves `/healthz`; internal gRPC/proto3 skeleton wired |
 | D2 | K8s resource cost computation | Ingest Mimir resource-usage metrics + Karpenter node-pricing → per-pod/per-tenant/per-µservice allocation; labels: tenant, region, runtime-tier |
 | D3 | Cost-as-SLI | Per-tenant cost-per-request metrics; OpenSLO (ADR-0441) cost-bound objectives; Polars (ADR-0420) materialized streams for trend analysis |
 | D4 | oya-meter → oya-billing feed | Feed oya-meter (ADR-0479) → oya-billing (ADR-0478) for tenant invoicing; Cedar gates per-tenant cost-API access |

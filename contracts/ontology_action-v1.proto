@@ -1,3 +1,6 @@
+// oyatie.contract.exposure: internal-only
+// oyatie.contract.transport: grpc-http2
+// oyatie.contract.identity: spiffe-mtls-tls13
 syntax = "proto3";
 package oyatie.ontology.action.v1;
 message ActionInvocationRequest { string tenant_id = 1; string principal_id = 2; string action_type_id = 3; string entity_id = 4; string idempotency_key = 5; AutonomyTier autonomy_tier = 6; }

@@ -8,6 +8,7 @@ owners:
   - axis-cloud
 supersedes: []
 superseded_by: []
+amended_by: [ADR-0632]
 related:
   - ADR-0128-hyperscaler-architecture-invariants.md
   - ADR-0009-cell-architecture-per-tenant-per-region.md
@@ -16,8 +17,9 @@ related:
   - ADR-0148-service-mesh-cilium.md
   - ADR-0203-documentation-engine-three-tier.md
   - ADR-0258-api-versioning-model.md
+  - ADR-0632
 last_reconciled: 2026-08-01
-reconciled_with: [ADR-0203, ADR-0258]
+reconciled_with: [ADR-0203, ADR-0258, ADR-0632]
 doc_class: Architecture-Decision-Record
 purpose: >
   Standardize a normative response header `oya-degradation-class:
@@ -36,11 +38,20 @@ Accepted — 2026-05-18. Enforcement is advisory until every public RPC
 on every µservice surfaces the header. Coverage tracker at
 `registry/brownout/coverage-tracker.tsv`.
 
+## ADR-0632 product-protocol reconciliation
+
+For public traffic, the degradation signal **MUST** travel through HTTPS REST/OpenAPI 3.2.0
+headers or equivalent metadata in signed/versioned webhooks, AsyncAPI/CloudEvents events, SSE, and
+bidirectional WebSocket messages. Public GraphQL, gRPC, gRPC-Web, and Connect are forbidden. The
+same signal may be carried as metadata on internal-only gRPC/proto3 over HTTP/2 without creating a
+public RPC contract.
+
 ### Public-contract reconciliation
 
 Per ADR-0203 and ADR-0258, public contract carriers are REST documented by OpenAPI 3.2 plus
 webhooks, events, and streams documented by AsyncAPI 3.1. gRPC over HTTP/2 (H2) with proto3 is
 internal-only service-to-service traffic under mTLS; it is not a public API contract.
+
 
 ## Context
 
@@ -74,9 +85,9 @@ Without the header:
 
 ### D-1. Normative response header
 
-Every public REST response emits the header. Public webhooks, events, and streams carry the same
-value as AsyncAPI-defined metadata. Internal gRPC/proto3 services carry the same key as H2 metadata
-under mTLS without changing that internal-only classification:
+Every public HTTPS REST response emits the header below. Public webhooks, AsyncAPI events, SSE,
+and WebSocket messages carry the same value as protocol-appropriate metadata; internal gRPC
+responses carry it as response metadata without creating a public RPC contract:
 
 ```
 oya-degradation-class: nominal|degraded|brownout|outage

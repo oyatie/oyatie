@@ -347,9 +347,6 @@
       },
       "asyncapi": {
         "2026-05-21": "microservices/comms-email/contracts/asyncapi.yaml"
-      },
-      "proto": {
-        "2026-05-21": "microservices/comms-email/contracts/comms_email.proto"
       }
     }
   },

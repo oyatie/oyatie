@@ -6,9 +6,10 @@ date: 2026-05-18
 owner: council-api-sdk
 supersedes: []
 superseded_by: []
-related: [ADR-0002, ADR-0011, ADR-0021, ADR-0037, ADR-0121, ADR-0145, ADR-0146, ADR-0203, ADR-0258]
+amended_by: [ADR-0632]
+related: [ADR-0002, ADR-0011, ADR-0021, ADR-0037, ADR-0121, ADR-0145, ADR-0146, ADR-0203, ADR-0258, ADR-0632]
 last_reconciled: 2026-08-01
-reconciled_with: [ADR-0203, ADR-0258]
+reconciled_with: [ADR-0203, ADR-0258, ADR-0632]
 related_specs:
   - /specs/hyperscaler-architecture-invariants.json
   - /specs/per-microservice-flat-layout.json
@@ -20,15 +21,24 @@ related_specs:
 
 Accepted (2026-05-18). Authorizes a separate, narrowly-scoped tenant-facing CLI binary published to tenants as part of the public SDK surface. Tier C "nice-to-have" hyperscaler pattern per `/specs/hyperscaler-architecture-invariants.json` audit Row C1.
 
+## ADR-0632 product-protocol reconciliation
+
+The tenant CLI **MUST** use the public HTTPS REST surface documented by OpenAPI 3.2.0 and may
+consume signed/versioned webhooks or AsyncAPI/CloudEvents notifications through supported public
+workflows; SSE and WebSocket remain the public one-way and bidirectional realtime transports. It
+**MUST NOT** expose GraphQL, gRPC, gRPC-Web, or Connect. Internal sibling-service RPC remains
+internal-only gRPC/proto3 over HTTP/2 and outside the tenant CLI contract.
+
 ### Public-contract reconciliation
 
 Per ADR-0203 and ADR-0258, public contract carriers are REST documented by OpenAPI 3.2 plus
 webhooks, events, and streams documented by AsyncAPI 3.1. gRPC over HTTP/2 (H2) with proto3 is
 internal-only service-to-service traffic under mTLS; it is not a public API contract.
 
+
 ## Context
 
-Oyatie ships public REST/OpenAPI, webhook, event, and streaming APIs per ADR-0011 (cross-microservice contract registry) and a language SDK roadmap per ADR-0037 (public API stability tiers). Power users — DevOps engineers, automation authors, support engineers, agentic tenants per ADR-0021 — require a command-line workflow that matches the ergonomics of the public clouds:
+Oyatie ships a public HTTPS REST, webhook, event, and realtime API per ADR-0011 (cross-microservice contract registry) and a language SDK roadmap per ADR-0037 (public API stability tiers). Power users — DevOps engineers, automation authors, support engineers, agentic tenants per ADR-0021 — require a command-line workflow that matches the ergonomics of the public clouds:
 
 - **AWS CLI** (`aws s3 cp ...`) — the canonical reference for "every API method exposed as a command".
 - **Stripe CLI** (`stripe listen`, `stripe trigger`, `stripe login`) — the canonical reference for OAuth-2.1 login, local webhook tunneling, and event simulation.

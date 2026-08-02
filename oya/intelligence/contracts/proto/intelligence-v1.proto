@@ -1,6 +1,10 @@
+// oyatie.contract.exposure: internal-only
+// oyatie.contract.transport: grpc-http2
+// oyatie.contract.identity: spiffe-mtls-tls13
+
 // oya-intelligence — gRPC contract v1
-// Peer to contracts/openapi/intelligence-v1.yaml for clients that prefer gRPC.
-// Per ADR-0255, ADR-0145 (direct gRPC), ADR-0253 (HTTP/3 + QUIC default).
+// Internal sibling-service gRPC contract; public clients use contracts/openapi/intelligence-v1.yaml.
+// Per ADR-0255, ADR-0145 (direct internal gRPC), and ADR-0632 (HTTP/2 with mTLS/TLS 1.3).
 
 syntax = "proto3";
 
@@ -13,7 +17,8 @@ import "google/protobuf/struct.proto";
 // Service: Dispatch
 // =========================================================================
 //
-// Authn: per-request OIDC bearer (gRPC metadata "authorization").
+// Authn: SPIFFE mTLS/TLS 1.3 authenticates the calling workload; forwarded user claims are
+// application authorization context and do not make this a public RPC surface.
 // Authz: Cedar policy evaluation server-side (dispatch-authorization, refusal-baseline,
 //        eu-ai-act-high-risk, abuse-defence, byok-gating, provider-routing).
 // Tenancy: per-request metadata "x-tenant-id" = "tenant:<hashed-id>".

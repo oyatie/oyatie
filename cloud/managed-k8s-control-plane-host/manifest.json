@@ -39,9 +39,13 @@
     "asyncapi": [
       "microservices/oya-managed-k8s-control-plane-host/contracts/asyncapi.yaml"
     ],
-    "proto": [
-      "microservices/oya-managed-k8s-control-plane-host/contracts/control_plane_host.proto"
-    ]
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": [
+        "cloud/managed-k8s-control-plane-host/contracts/control_plane_host.proto"
+      ]
+    }
   },
   "capabilities": [
     {

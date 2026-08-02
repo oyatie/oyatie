@@ -6,8 +6,9 @@ planning_impact: true
 doc_status: published
 owner: council-architecture
 date: 2026-05-15
-amends: ADR-0056-rust-clean-architecture-bnf.md
+amends: [ADR-0056]
 supersedes: [ADR-0107]
+amended_by: [ADR-0565, ADR-0632]
 relates_to:
   - ADR-0056-rust-clean-architecture-bnf.md
   - ADR-0104-ecosystem-expansion-toolchain-and-adapters.md
@@ -24,6 +25,10 @@ Accepted (amends ADR-0056 §"12-Value Layer Enum")
 > `adapter`, `infrastructure`, `cli`, `rest`, `grpc`, `graphql`, `worker`, `sdk`, `api` (13 product
 > values) + the governance-only `check` family. `runtime` is **not** canonical (→ `app`). The
 > tables below are read through this banner; `application` ⇒ `usecase` wherever it appears as a layer.
+
+## ADR-0632 product-protocol reconciliation
+
+The layer enum is a crate-shape vocabulary, not an exposure allowlist. Public contracts are HTTPS REST documented by OpenAPI 3.2.0, signed/versioned webhooks, AsyncAPI/CloudEvents events, SSE, and WebSocket. GraphQL, public gRPC, gRPC-Web, and Connect are forbidden. The `grpc` layer is internal-only gRPC/proto3 over HTTP/2; the historical `graphql` token remains naming provenance only and cannot authorize a GraphQL crate or owned API surface under ADR-0565.
 
 ## Context
 

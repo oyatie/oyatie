@@ -34,7 +34,13 @@
       "contracts/openapi/cloud/cloud-network-dns-v1.yaml"
     ],
     "asyncapi": [],
-    "proto": []
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": [
+        "cloud/cloud-network-dns/contracts/proto/cloud-network-dns-design.proto"
+      ]
+    }
   },
   "capabilities": [
     {

@@ -1,3 +1,6 @@
+// oyatie.contract.exposure: internal-only
+// oyatie.contract.transport: grpc-http2
+// oyatie.contract.identity: spiffe-mtls-tls13
 // Oyatie Analytics µservice — gRPC contract.
 // Authority: ADR-0193, ADR-0145 inter-µservice communication.
 // Tier-A 4-INV: idempotency keys, cursor pagination, X-Request-Id, OTel-friendly.

@@ -210,9 +210,6 @@
       },
       "asyncapi": {
         "2026-05-21": "microservices/design-collaboration/contracts/asyncapi-v1.yaml"
-      },
-      "proto": {
-        "2026-05-21": "microservices/design-collaboration/contracts/design-collaboration-v1.proto"
       }
     }
   },

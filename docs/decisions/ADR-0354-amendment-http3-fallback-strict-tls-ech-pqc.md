@@ -749,6 +749,7 @@ External endpoint declarations use this canonical JSON shape:
   "endpoint_id": "api-gateway-public",
   "capability_class": "external",
   "protocol": "http3",
+  "fallback_protocol": "http2",
   "tls_profile": "strict_tls13",
   "alt_svc": "h3=\":443\"; ma=86400",
   "fallback_timeout_ms": 500,
@@ -778,7 +779,7 @@ External endpoint declarations use this canonical JSON shape:
 For inter-cell and internal endpoints, the same serialized shape is
 used with `capability_class: "inter_cell"` or `"internal"`,
 `protocol: "grpc_http2"`, `tls_profile: "spiffe_mtls_tls13"`,
-`alt_svc: null`, `fallback_timeout_ms: null`, and
+`fallback_protocol: null`, `alt_svc: null`, `fallback_timeout_ms: null`, and
 `ech.enabled: false`. Inter-cell endpoints declare hybrid PQC posture
 with `pqc.enabled: true`; internal endpoints may set `pqc.enabled:
 false` unless a substrate-specific ADR raises the class.

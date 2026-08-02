@@ -202,6 +202,7 @@
     "parity-claim-evidence": "Hyperscaler taxonomy gaps are product-readiness classification decisions and must be resolved in the taxonomy source.",
     "policy-deploy-parity": "Cedar deployment parity findings require authored policy changes or deployed ConfigMap fixes, both security-sensitive human decisions.",
     "port-placement": "Port-placement findings require moving traits across clean-architecture boundaries, not a safe local text rewrite.",
+    "product-protocol-policy": "Product protocol findings require an explicit API exposure, transport-security, serialization, telemetry, or owned-fabric decision; the gate cannot safely invent or rewrite those product contracts.",
     "repo-root-hygiene": "Root workspace hygiene findings require deciding whether to move, allowlist, or delete a tracked root artifact.",
     "resource-contract-conformance": "Cloud-resource contract findings require source specification changes or reviewed claim-boundary decisions; the gate cannot safely rewrite product readiness or actuation semantics.",
     "runner-disk-reclaim": "Runner disk reclaim findings require CI runner policy and reclaim-plan changes, not a gate-authored mutation.",

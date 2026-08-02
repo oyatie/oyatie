@@ -1,4 +1,10 @@
-// notes µservice — Loro CRDT op stream protobuf (gRPC-Web + WebSocket binary)
+// oyatie.contract.exposure: internal-only
+// oyatie.contract.transport: grpc-http2
+// oyatie.contract.identity: spiffe-mtls-tls13
+
+// notes µservice — internal Loro CRDT op stream Protobuf contract.
+// Internal gRPC uses HTTP/2 with SPIFFE mTLS/TLS 1.3; public realtime uses the AsyncAPI-described
+// WebSocket message contract.
 // Version 1.0.0
 // References: ADR-NOTES-0003 (Loro 1.x); ADR-NOTES-0001 (E2E refusal)
 

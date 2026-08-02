@@ -1,3 +1,6 @@
+// oyatie.contract.exposure: internal-only
+// oyatie.contract.transport: grpc-http2
+// oyatie.contract.identity: spiffe-mtls-tls13
 syntax = "proto3";
 
 package oya.warehouse.v1;
@@ -5,7 +8,7 @@ package oya.warehouse.v1;
 option java_package = "dev.oyatie.warehouse.v1";
 
 // SAP EWM; benchmarks: SAP EWM Extended Warehouse Management | Oracle Fusion Warehouse Management | Workday inventory-operations counterpart | NetSuite WMS | Microsoft Dynamics 365 Warehouse Management
-// Transport binding: HTTP/3 default at REST edge, gRPC over mTLS internally, ECH/PQC at ingress where supported.
+// Transport binding: internal-only gRPC over HTTP/2 with SPIFFE mTLS/TLS 1.3; public transport is defined by OpenAPI.
 
 message InboundDeliveryCommand {
   string tenant_id = 1;

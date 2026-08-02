@@ -1,0 +1,6 @@
+# Hermetic input set for gates that validate the full internal Proto contract corpus.
+filegroup(
+    name = "proto-contract-corpus",
+    srcs = glob(["**/*.proto"]),
+    visibility = ["PUBLIC"],
+)
