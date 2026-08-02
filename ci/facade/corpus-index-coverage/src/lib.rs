@@ -174,7 +174,7 @@ fn canonical_srcs(call: &CallExpr) -> bool {
     }
 }
 
-fn literal_declaration(call: &CallExpr) -> Result<bool, DeclarationError> {
+fn literal_declaration(package: &str, call: &CallExpr) -> Result<bool, DeclarationError> {
     if call.func != "genrule" {
         return Ok(false);
     }
@@ -184,13 +184,21 @@ fn literal_declaration(call: &CallExpr) -> Result<bool, DeclarationError> {
     if !is_target {
         return Ok(false);
     }
-    let has_out = call
-        .kwarg("out")
-        .is_some_and(|arg| matches!(arg.value.expr, Expr::Str(_)));
-    let has_cmd = call
+    let canonical_out = call.kwarg("out").is_some_and(
+        |arg| matches!(&arg.value.expr, Expr::Str(value) if value == "yaml-facts.json"),
+    );
+    let expected_cmd = format!(
+        "$(exe //governance/corpus/extract:yaml-facts) --target root//{package}:{EXTRACTION_TARGET} --prefix {package} --out $OUT $SRCS"
+    );
+    let canonical_cmd = call
         .kwarg("cmd")
-        .is_some_and(|arg| matches!(arg.value.expr, Expr::Str(_)));
-    if !canonical_srcs(call) || !has_out || !has_cmd || call.has_opaque() {
+        .is_some_and(|arg| matches!(&arg.value.expr, Expr::Str(value) if value == &expected_cmd));
+    if call.args.len() != 4
+        || !canonical_srcs(call)
+        || !canonical_out
+        || !canonical_cmd
+        || call.has_opaque()
+    {
         return Err(declaration_error(
             "incomplete or unsupported literal corpus extraction genrule",
         ));
@@ -203,7 +211,10 @@ fn literal_declaration(call: &CallExpr) -> Result<bool, DeclarationError> {
 /// # Errors
 /// Returns an error for malformed, conflicting, aliased, computed, or otherwise unsupported
 /// declaration syntax. Comments and strings never count as declarations.
-pub fn extraction_declaration(text: &str) -> Result<ExtractionDeclaration, DeclarationError> {
+pub fn extraction_declaration(
+    package: &str,
+    text: &str,
+) -> Result<ExtractionDeclaration, DeclarationError> {
     let doc =
         parse(text).map_err(|error| declaration_error(format!("BUCK parse failed: {error}")))?;
     let mut canonical_loads = 0usize;
@@ -227,7 +238,7 @@ pub fn extraction_declaration(text: &str) -> Result<ExtractionDeclaration, Decla
             }
             Stmt::Call(call) if call.func == CANONICAL_SHARD_SYMBOL => shard_calls.push(call),
             Stmt::Call(call) => {
-                if literal_declaration(call)? {
+                if literal_declaration(package, call)? {
                     literal_calls += 1;
                 }
             }
@@ -1113,7 +1124,7 @@ mod tests {
     }
 
     fn declaration(text: &str) -> Result<ExtractionDeclaration, DeclarationError> {
-        extraction_declaration(text)
+        extraction_declaration("oya/ci-webhook-gateway", text)
     }
 
     const CANONICAL: &str = r#"
@@ -1141,12 +1152,69 @@ corpus_yaml_facts_shards(
         );
     }
 
+    const CANONICAL_LITERAL_CMD: &str = "$(exe //governance/corpus/extract:yaml-facts) --target root//oya/ci-webhook-gateway:corpus-yaml-facts --prefix oya/ci-webhook-gateway --out $OUT $SRCS";
+
+    fn literal(cmd: &str, out: &str) -> String {
+        format!(
+            "genrule(name = \"corpus-yaml-facts\", srcs = glob([\"**/*.yaml\", \"**/*.yml\"]), out = \"{out}\", cmd = \"{cmd}\")"
+        )
+    }
+
     #[test]
     fn canonical_ci_webhook_literal_passes() {
-        let text = r#"genrule(name = "corpus-yaml-facts", srcs = glob(["**/*.yaml", "**/*.yml"]), out = "yaml-facts.json", cmd = "extract")"#;
         assert_eq!(
-            declaration(text).unwrap(),
+            declaration(&literal(CANONICAL_LITERAL_CMD, "yaml-facts.json")).unwrap(),
             ExtractionDeclaration::LiteralSingle
+        );
+    }
+
+    #[test]
+    fn literal_touch_command_spoof_blocks() {
+        assert!(declaration(&literal("touch $OUT", "yaml-facts.json")).is_err());
+    }
+
+    #[test]
+    fn literal_wrong_output_blocks() {
+        assert!(declaration(&literal(CANONICAL_LITERAL_CMD, "other.json")).is_err());
+    }
+
+    #[test]
+    fn literal_wrong_target_blocks() {
+        assert!(
+            declaration(&literal(
+                &CANONICAL_LITERAL_CMD.replace(
+                    "root//oya/ci-webhook-gateway:corpus-yaml-facts",
+                    "root//oya/wrong:corpus-yaml-facts"
+                ),
+                "yaml-facts.json"
+            ))
+            .is_err()
+        );
+    }
+
+    #[test]
+    fn literal_wrong_prefix_blocks() {
+        assert!(
+            declaration(&literal(
+                &CANONICAL_LITERAL_CMD
+                    .replace("--prefix oya/ci-webhook-gateway", "--prefix oya/wrong"),
+                "yaml-facts.json"
+            ))
+            .is_err()
+        );
+    }
+
+    #[test]
+    fn literal_wrong_extractor_blocks() {
+        assert!(
+            declaration(&literal(
+                &CANONICAL_LITERAL_CMD.replace(
+                    "//governance/corpus/extract:yaml-facts",
+                    "//wrong:yaml-facts"
+                ),
+                "yaml-facts.json"
+            ))
+            .is_err()
         );
     }
 
