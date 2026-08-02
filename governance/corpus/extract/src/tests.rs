@@ -9,6 +9,7 @@ use corpus_core::{ItemKind, Visibility};
 fn one_file(source: &str) -> SourceSet {
     SourceSet::new([SourceFile {
         crate_id: "test-crate".to_owned(),
+        path: "test-crate/src/lib.rs".to_owned(),
         module_path: String::new(),
         source: source.to_owned(),
     }])
@@ -34,11 +35,13 @@ fn determinism_byte_identical_for_identical_input() {
 fn determinism_independent_of_file_order() {
     let f1 = SourceFile {
         crate_id: "c".to_owned(),
+        path: "c/src/a.rs".to_owned(),
         module_path: "a".to_owned(),
         source: "pub fn one() {}".to_owned(),
     };
     let f2 = SourceFile {
         crate_id: "c".to_owned(),
+        path: "c/src/b.rs".to_owned(),
         module_path: "b".to_owned(),
         source: "pub fn two() {}".to_owned(),
     };
@@ -321,12 +324,14 @@ fn cross_file_impls_same_type_produce_distinct_facts() {
     // lib.rs: `impl Foo` with method `a`
     let lib_rs = SourceFile {
         crate_id: "test-crate".to_owned(),
+        path: "test-crate/src/lib.rs".to_owned(),
         module_path: String::new(), // crate root
         source: "pub struct Foo; impl Foo { pub fn a(&self) -> u32 { 1 } }".to_owned(),
     };
     // main.rs: another `impl Foo` with method `b` — same crate, same module_path, different body
     let main_rs = SourceFile {
         crate_id: "test-crate".to_owned(),
+        path: "test-crate/src/main.rs".to_owned(),
         module_path: String::new(), // also crate root
         source: "impl Foo { pub fn b(&self) -> u32 { 2 } }".to_owned(),
     };
@@ -455,6 +460,7 @@ fn proto_idl_fixture_closes_include_proto_true_miss() {
 
     let set = SourceSet::new([SourceFile {
         crate_id: "messenger-proto-contracts".to_owned(),
+        path: "comms/messenger/contracts/messenger.proto".to_owned(),
         module_path: "oya.messenger.v1".to_owned(),
         source: proto.to_owned(),
     }]);
@@ -474,4 +480,163 @@ fn proto_idl_fixture_closes_include_proto_true_miss() {
         "oya.messenger.v1::MessengerService::SendMessage",
         ItemKind::Function
     )));
+}
+
+// ── edges ────────────────────────────────────────────────────────────────────────────────────
+
+use corpus_core::{CoveragePolicy, EdgeKind, NodeId, NodeKind, evaluate_coverage};
+
+fn refs_targets(extraction: &CorpusExtraction) -> Vec<String> {
+    extraction
+        .graph
+        .edges()
+        .iter()
+        .filter(|edge| edge.kind == EdgeKind::Refs)
+        .map(|edge| edge.dst.path.clone())
+        .collect()
+}
+
+// The derived spine: every clean fact gets an Entry node, and the file that produced it CONTAINS
+// it. Without this, a fact is in the fact set but unreachable in the graph.
+#[test]
+fn every_fact_gets_a_node_and_a_containing_file_edge() {
+    let extracted = extract("pub fn alpha() {} pub struct Beta;");
+    assert!(!extracted.facts.is_empty(), "precondition: facts exist");
+    for fact in extracted.facts.facts() {
+        let id = NodeId::entry(&fact.crate_id, &fact.fqpath);
+        assert!(
+            extracted.graph.contains_node(&id),
+            "fact {} has no Entry node",
+            fact.fqpath
+        );
+        assert!(
+            extracted.graph.edges().iter().any(|edge| {
+                edge.kind == EdgeKind::Contains && edge.src.kind == NodeKind::File && edge.dst == id
+            }),
+            "fact {} is contained by no file",
+            fact.fqpath
+        );
+    }
+}
+
+// Contains, the second level: an impl block contains its methods. This is the only parent/child
+// relation where both ends are facts, and it is what lets a reachability BFS descend from a type.
+#[test]
+fn impl_contains_its_methods() {
+    let extracted = extract("pub struct Foo; impl Foo { pub fn method(&self) {} }");
+    let impl_fqpath = extracted
+        .facts
+        .facts()
+        .iter()
+        .find(|fact| fact.item_kind == ItemKind::Impl)
+        .map(|fact| fact.fqpath.clone())
+        .expect("an impl fact");
+    assert!(
+        extracted.graph.edges().iter().any(|edge| {
+            edge.kind == EdgeKind::Contains
+                && edge.src == NodeId::entry("test-crate", &impl_fqpath)
+                && edge.dst == NodeId::entry("test-crate", "Foo::method")
+        }),
+        "impl→method Contains edge missing: {:#?}",
+        extracted.graph.edges()
+    );
+}
+
+// Refs: a call names its target, an impl names its trait and self type, a signature names its
+// types. A method CALL (`x.foo()`) is deliberately absent — resolving it needs the receiver type,
+// so there is no honest name to emit.
+#[test]
+fn refs_edges_name_calls_types_and_traits() {
+    let extracted = extract(
+        "pub trait Speak {} pub struct Foo; \
+         impl Speak for Foo {} \
+         pub fn caller() -> Foo { helper(); Foo } \
+         pub fn helper() {}",
+    );
+    let targets = refs_targets(&extracted);
+    assert!(targets.contains(&"helper".to_owned()), "call: {targets:?}");
+    assert!(targets.contains(&"Foo".to_owned()), "type: {targets:?}");
+    assert!(targets.contains(&"Speak".to_owned()), "trait: {targets:?}");
+    assert!(
+        !targets.iter().any(|target| target == "self"),
+        "a receiver is not a reference: {targets:?}"
+    );
+}
+
+// KNOWN-POSITIVE CONTROL, end to end: every name this crate references is defined in this crate,
+// so the COMPUTED coverage is total and nothing dangles.
+#[test]
+fn coverage_positive_control_self_contained_crate() {
+    let extracted = extract("pub fn caller() { helper(); } pub fn helper() {}");
+    let coverage = extracted.graph.coverage();
+    assert_eq!(
+        extracted.graph.unresolved_targets(),
+        Vec::new(),
+        "targets: {:?}",
+        refs_targets(&extracted)
+    );
+    assert_eq!(coverage.total_targets, 1);
+    assert_eq!(coverage.rate_bps(), 10_000);
+}
+
+// KNOWN-NEGATIVE CONTROL, end to end: the SAME source with the callee deleted. The reference
+// survives as a dangling NAME, coverage drops, and the ratchet names the missing target. A
+// fact-pointer `dst` would have made this state unrepresentable.
+#[test]
+fn coverage_negative_control_deleted_callee_dangles() {
+    let extracted = extract("pub fn caller() { helper(); }");
+    let coverage = extracted.graph.coverage();
+    assert_eq!(coverage.total_targets, 1);
+    assert_eq!(coverage.indexed_targets, 0);
+    assert_eq!(coverage.rate_bps(), 0);
+    assert_eq!(
+        extracted.graph.unresolved_targets(),
+        vec![NodeId::entry("test-crate", "helper")]
+    );
+
+    let findings = evaluate_coverage(
+        &extracted.graph,
+        &CoveragePolicy {
+            baseline_unindexed_targets: 0,
+            min_expected_targets: 1,
+        },
+    );
+    assert!(
+        findings
+            .iter()
+            .any(|finding| finding.blocking && finding.detail.contains("helper")),
+        "the ratchet must name the dangling target: {findings:?}"
+    );
+}
+
+// Duplication falls out of the shallow file digest for free — the property that matters for the
+// markdown families sitting at 179 byte-identical copies each.
+#[test]
+fn byte_identical_files_share_one_digest_across_distinct_nodes() {
+    let body = "pub fn same() {}";
+    let set = SourceSet::new((0..3).map(|index| SourceFile {
+        crate_id: format!("crate-{index}"),
+        path: format!("cap-{index}/src/lib.rs"),
+        module_path: String::new(),
+        source: body.to_owned(),
+    }));
+    let extracted = extract_corpus(&SynAstSource::new(), &set).unwrap();
+    let families = extracted.graph.duplicate_containers();
+    assert_eq!(families.len(), 1);
+    assert_eq!(
+        families[0].1,
+        vec![
+            "cap-0/src/lib.rs".to_owned(),
+            "cap-1/src/lib.rs".to_owned(),
+            "cap-2/src/lib.rs".to_owned()
+        ]
+    );
+}
+
+// Edges must be as deterministic as the facts, or the graph is not a build output.
+#[test]
+fn graph_is_byte_identical_for_identical_input() {
+    let src =
+        "pub struct Foo; impl Foo { pub fn a(&self) -> Foo { helper(); Foo } } pub fn helper() {}";
+    assert_eq!(extract(src).graph, extract(src).graph);
 }
