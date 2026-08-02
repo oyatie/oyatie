@@ -1,0 +1,168 @@
+{
+  "_comment": "G025 remainder: the 16 libs/oya-check-* crates left after MOVE-4 (specs/reorg/governance-check-move-plan.json, 56 moves already executed on origin/dev). Same home as MOVE-4: governance/check/<leaf>, cargo de-brand oya-check-X -> check-X, catalog re-key registry/catalog/oya-check-X.yaml -> check-X.yaml. Authority unchanged: specs/capability-registry.json + ADR-0562 place dep-lint kernels under governance/; ADR-0532/0533 de-brand; face = governance/check/ group/leaf (not four-layer capability shape). Collision census on origin/dev at authoring: old_path live=16/16, new_path absent=16/16, old catalog live=16/16, new catalog absent=16/16, zero overlap with prior 56-move plan destinations. PLANNING ONLY \u2014 do not execute the materializer against this plan until independent review APPROVE, candidate protected CI green, and admission. This file is the executable move plan input; writing it is not activation and not a code move.",
+  "capability": "governance",
+  "moves": [
+    {
+      "old_path": "libs/oya-check-adr-index",
+      "new_path": "governance/check/adr-index",
+      "old_cargo_name": "oya-check-adr-index",
+      "new_cargo_name": "check-adr-index"
+    },
+    {
+      "old_path": "libs/oya-check-adr-placeholders",
+      "new_path": "governance/check/adr-placeholders",
+      "old_cargo_name": "oya-check-adr-placeholders",
+      "new_cargo_name": "check-adr-placeholders"
+    },
+    {
+      "old_path": "libs/oya-check-backup-retention-discipline",
+      "new_path": "governance/check/backup-retention-discipline",
+      "old_cargo_name": "oya-check-backup-retention-discipline",
+      "new_cargo_name": "check-backup-retention-discipline"
+    },
+    {
+      "old_path": "libs/oya-check-brand-residue",
+      "new_path": "governance/check/brand-residue",
+      "old_cargo_name": "oya-check-brand-residue",
+      "new_cargo_name": "check-brand-residue"
+    },
+    {
+      "old_path": "libs/oya-check-claim-ceiling",
+      "new_path": "governance/check/claim-ceiling",
+      "old_cargo_name": "oya-check-claim-ceiling",
+      "new_cargo_name": "check-claim-ceiling"
+    },
+    {
+      "old_path": "libs/oya-check-compliance-evidence-coverage",
+      "new_path": "governance/check/compliance-evidence-coverage",
+      "old_cargo_name": "oya-check-compliance-evidence-coverage",
+      "new_cargo_name": "check-compliance-evidence-coverage"
+    },
+    {
+      "old_path": "libs/oya-check-container-base-image",
+      "new_path": "governance/check/container-base-image",
+      "old_cargo_name": "oya-check-container-base-image",
+      "new_cargo_name": "check-container-base-image"
+    },
+    {
+      "old_path": "libs/oya-check-cost-budget",
+      "new_path": "governance/check/cost-budget",
+      "old_cargo_name": "oya-check-cost-budget",
+      "new_cargo_name": "check-cost-budget"
+    },
+    {
+      "old_path": "libs/oya-check-dependency-seam",
+      "new_path": "governance/check/dependency-seam",
+      "old_cargo_name": "oya-check-dependency-seam",
+      "new_cargo_name": "check-dependency-seam"
+    },
+    {
+      "old_path": "libs/oya-check-doc-axis",
+      "new_path": "governance/check/doc-axis",
+      "old_cargo_name": "oya-check-doc-axis",
+      "new_cargo_name": "check-doc-axis"
+    },
+    {
+      "old_path": "libs/oya-check-i18n-coverage",
+      "new_path": "governance/check/i18n-coverage",
+      "old_cargo_name": "oya-check-i18n-coverage",
+      "new_cargo_name": "check-i18n-coverage"
+    },
+    {
+      "old_path": "libs/oya-check-license-policy",
+      "new_path": "governance/check/license-policy",
+      "old_cargo_name": "oya-check-license-policy",
+      "new_cargo_name": "check-license-policy"
+    },
+    {
+      "old_path": "libs/oya-check-realtime-transport-tier",
+      "new_path": "governance/check/realtime-transport-tier",
+      "old_cargo_name": "oya-check-realtime-transport-tier",
+      "new_cargo_name": "check-realtime-transport-tier"
+    },
+    {
+      "old_path": "libs/oya-check-saga-shape",
+      "new_path": "governance/check/saga-shape",
+      "old_cargo_name": "oya-check-saga-shape",
+      "new_cargo_name": "check-saga-shape"
+    },
+    {
+      "old_path": "libs/oya-check-slo-coverage",
+      "new_path": "governance/check/slo-coverage",
+      "old_cargo_name": "oya-check-slo-coverage",
+      "new_cargo_name": "check-slo-coverage"
+    },
+    {
+      "old_path": "libs/oya-check-step-up-auth-coverage",
+      "new_path": "governance/check/step-up-auth-coverage",
+      "old_cargo_name": "oya-check-step-up-auth-coverage",
+      "new_cargo_name": "check-step-up-auth-coverage"
+    }
+  ],
+  "artifacts": [
+    {
+      "old_path": "registry/catalog/oya-check-adr-index.yaml",
+      "new_path": "registry/catalog/check-adr-index.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-adr-placeholders.yaml",
+      "new_path": "registry/catalog/check-adr-placeholders.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-backup-retention-discipline.yaml",
+      "new_path": "registry/catalog/check-backup-retention-discipline.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-brand-residue.yaml",
+      "new_path": "registry/catalog/check-brand-residue.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-claim-ceiling.yaml",
+      "new_path": "registry/catalog/check-claim-ceiling.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-compliance-evidence-coverage.yaml",
+      "new_path": "registry/catalog/check-compliance-evidence-coverage.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-container-base-image.yaml",
+      "new_path": "registry/catalog/check-container-base-image.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-cost-budget.yaml",
+      "new_path": "registry/catalog/check-cost-budget.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-dependency-seam.yaml",
+      "new_path": "registry/catalog/check-dependency-seam.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-doc-axis.yaml",
+      "new_path": "registry/catalog/check-doc-axis.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-i18n-coverage.yaml",
+      "new_path": "registry/catalog/check-i18n-coverage.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-license-policy.yaml",
+      "new_path": "registry/catalog/check-license-policy.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-realtime-transport-tier.yaml",
+      "new_path": "registry/catalog/check-realtime-transport-tier.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-saga-shape.yaml",
+      "new_path": "registry/catalog/check-saga-shape.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-slo-coverage.yaml",
+      "new_path": "registry/catalog/check-slo-coverage.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-check-step-up-auth-coverage.yaml",
+      "new_path": "registry/catalog/check-step-up-auth-coverage.yaml"
+    }
+  ]
+}
