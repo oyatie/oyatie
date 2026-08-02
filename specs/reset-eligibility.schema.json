@@ -133,7 +133,16 @@
         "properties": {
           "source_id": {
             "type": "string",
-            "minLength": 1
+            "enum": [
+              "github-and-protected-ci",
+              "kubernetes-inventory",
+              "stateful-workloads",
+              "openbao-and-registry",
+              "backup-jobs",
+              "dns-and-edge",
+              "provider-billing-and-global-inventory",
+              "external-backups-and-saas-callbacks"
+            ]
           },
           "result": {
             "enum": [
@@ -175,7 +184,15 @@
         "properties": {
           "stable_id": {
             "type": "string",
-            "minLength": 1
+            "enum": [
+              "talos-current:cluster",
+              "kubernetes-current:persistent-volumes",
+              "kubernetes-current:postgres",
+              "kubernetes-current:openbao",
+              "kubernetes-current:oci-registry",
+              "github:jason931225/oyatie:arc-runners",
+              "cloudflare-configured:active-edge"
+            ]
           },
           "lifecycle": {
             "type": "string",

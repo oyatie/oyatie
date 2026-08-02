@@ -12,6 +12,25 @@ use serde_json::{Value, json};
 const NOW: i64 = 1_785_610_769;
 const PROTECTED: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 const CANDIDATE: &str = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+const SOURCE_IDS: [&str; 8] = [
+    "github-and-protected-ci",
+    "kubernetes-inventory",
+    "stateful-workloads",
+    "openbao-and-registry",
+    "backup-jobs",
+    "dns-and-edge",
+    "provider-billing-and-global-inventory",
+    "external-backups-and-saas-callbacks",
+];
+const INVENTORY_IDS: [&str; 7] = [
+    "talos-current:cluster",
+    "kubernetes-current:persistent-volumes",
+    "kubernetes-current:postgres",
+    "kubernetes-current:openbao",
+    "kubernetes-current:oci-registry",
+    "github:jason931225/oyatie:arc-runners",
+    "cloudflare-configured:active-edge",
+];
 type ArtifactMutation = (&'static str, Box<dyn Fn(&mut Value)>);
 
 fn env_path(name: &str) -> PathBuf {
@@ -50,10 +69,15 @@ fn sign(mut receipt: Value, key: &SigningKey) -> Value {
 
 fn positive_fixture() -> (Value, Value, Value, RuntimeAuthority) {
     let (policy, schema, mut artifact) = live();
-    let evidence = BTreeMap::from([(
-        "fixture-source".to_owned(),
-        b"reviewed redacted evidence\n".to_vec(),
-    )]);
+    let evidence = SOURCE_IDS
+        .into_iter()
+        .map(|source_id| {
+            (
+                source_id.to_owned(),
+                format!("reviewed redacted evidence for {source_id}\n").into_bytes(),
+            )
+        })
+        .collect::<BTreeMap<_, _>>();
     let digest = evidence_digest(&evidence);
     artifact["reset_id"] = json!("fixture-reset");
     artifact["repository"] = json!({"binding_source":"ci-runtime-authority"});
@@ -61,10 +85,21 @@ fn positive_fixture() -> (Value, Value, Value, RuntimeAuthority) {
     artifact["expires_at"] = json!("2026-08-02T17:59:29Z");
     artifact["evidence_manifest"] =
         json!({"uri":"protected-runtime:fixture","status":"verified","sha256":digest});
-    artifact["sources"] = json!([{
-        "source_id":"fixture-source", "result":"observed", "redaction":"secret-values-excluded",
-        "evidence_uri":"protected-runtime:fixture-source", "sha256":ci_reset_eligibility_policy::sha256(b"reviewed redacted evidence\n")
-    }]);
+    artifact["sources"] = json!(
+        SOURCE_IDS
+            .into_iter()
+            .map(|source_id| {
+                let bytes = evidence.get(source_id).expect("fixture evidence");
+                json!({
+                    "source_id": source_id,
+                    "result": "observed",
+                    "redaction": "secret-values-excluded",
+                    "evidence_uri": format!("protected-runtime:{source_id}"),
+                    "sha256": ci_reset_eligibility_policy::sha256(bytes)
+                })
+            })
+            .collect::<Vec<_>>()
+    );
     artifact["recovery"] = json!({"backup_verified":true,"immutable_backup_location_verified":true,"rpo_verified":true,"restore_drill_verified":true,"key_recovery_verified":true});
     artifact["hard_stops"] = json!([]);
     artifact["unknowns"] = json!([]);
@@ -103,6 +138,22 @@ fn positive_fixture() -> (Value, Value, Value, RuntimeAuthority) {
     }
     artifact["approvals"] = json!(approvals);
     (policy, schema, artifact, runtime)
+}
+
+fn resign_approvals(artifact: &mut Value) {
+    for index in 0..artifact["approvals"].as_array().expect("approvals").len() {
+        artifact["approvals"].as_array_mut().unwrap()[index] = sign(
+            artifact["approvals"][index].clone(),
+            &approval_signing_key(index as u8),
+        );
+    }
+}
+
+fn has_code(
+    findings: &std::collections::BTreeSet<ci_reset_eligibility_policy::Finding>,
+    code: &str,
+) -> bool {
+    findings.iter().any(|finding| finding.code == code)
 }
 
 #[test]
@@ -196,7 +247,7 @@ fn dormant_eligibility_path_rejects_evidence_commit_schema_policy_and_signature_
     let mut tampered_runtime = runtime.clone();
     tampered_runtime
         .evidence_by_source
-        .get_mut("fixture-source")
+        .get_mut(SOURCE_IDS[0])
         .unwrap()
         .push(b'!');
     assert!(!evaluate(&policy, &schema, &artifact, &tampered_runtime, NOW).is_empty());
@@ -363,5 +414,172 @@ fn schema_semantics_apply_ref_siblings_and_closed_objects_without_properties() {
     assert!(
         validate_artifact_schema(&closed_object, &json!({})).is_empty(),
         "an empty closed object should remain valid"
+    );
+}
+
+#[test]
+fn stale_evidence_is_reported_even_when_the_manifest_is_unverified() {
+    let (policy, schema, mut artifact) = live();
+    artifact["captured_at"] = json!("2026-08-01T17:00:00Z");
+    artifact["expires_at"] = json!("2026-08-01T18:00:00Z");
+    artifact["decision"]["reason_codes"]
+        .as_array_mut()
+        .expect("reason codes")
+        .push(json!("evidence-expired"));
+
+    assert!(
+        evaluate(
+            &policy,
+            &schema,
+            &artifact,
+            &RuntimeAuthority::fail_closed(PROTECTED, CANDIDATE),
+            NOW,
+        )
+        .is_empty(),
+        "expiry must be computed independently of manifest verification"
+    );
+}
+
+#[test]
+fn approval_receipts_are_bounded_by_artifact_window_and_twenty_four_hours() {
+    let (policy, schema, artifact, runtime) = positive_fixture();
+
+    let mut before_capture = artifact.clone();
+    for receipt in before_capture["approvals"].as_array_mut().unwrap() {
+        receipt["approved_at"] = json!("2026-08-01T17:00:00Z");
+    }
+    resign_approvals(&mut before_capture);
+    assert!(has_code(
+        &evaluate(&policy, &schema, &before_capture, &runtime, NOW),
+        "reset_approval_receipt_invalid"
+    ));
+
+    let mut expiry_after_artifact = artifact.clone();
+    for receipt in expiry_after_artifact["approvals"].as_array_mut().unwrap() {
+        receipt["expires_at"] = json!("2026-08-02T18:30:00Z");
+    }
+    resign_approvals(&mut expiry_after_artifact);
+    assert!(has_code(
+        &evaluate(&policy, &schema, &expiry_after_artifact, &runtime, NOW),
+        "reset_approval_receipt_invalid"
+    ));
+
+    let mut after_artifact = artifact.clone();
+    for receipt in after_artifact["approvals"].as_array_mut().unwrap() {
+        receipt["approved_at"] = json!("2026-08-02T18:10:00Z");
+        receipt["expires_at"] = json!("2026-08-03T18:00:00Z");
+    }
+    resign_approvals(&mut after_artifact);
+    assert!(has_code(
+        &evaluate(&policy, &schema, &after_artifact, &runtime, 1_785_697_200,),
+        "reset_approval_receipt_invalid"
+    ));
+}
+
+#[test]
+fn source_and_inventory_identifiers_are_exact_closed_sets() {
+    let (policy, schema, artifact, runtime) = positive_fixture();
+    assert_eq!(
+        artifact["inventory"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter_map(|item| item["stable_id"].as_str())
+            .collect::<Vec<_>>(),
+        INVENTORY_IDS
+    );
+
+    let mut missing_source = artifact.clone();
+    missing_source["sources"].as_array_mut().unwrap().pop();
+    assert!(has_code(
+        &evaluate(&policy, &schema, &missing_source, &runtime, NOW),
+        "reset_source_set_mismatch"
+    ));
+
+    let mut unknown_source = artifact.clone();
+    unknown_source["sources"][0]["source_id"] = json!("candidate-invented-source");
+    assert!(has_code(
+        &evaluate(&policy, &schema, &unknown_source, &runtime, NOW),
+        "reset_source_set_mismatch"
+    ));
+
+    let mut missing_inventory = artifact.clone();
+    missing_inventory["inventory"].as_array_mut().unwrap().pop();
+    assert!(has_code(
+        &evaluate(&policy, &schema, &missing_inventory, &runtime, NOW),
+        "reset_inventory_set_mismatch"
+    ));
+
+    let mut unknown_inventory = artifact.clone();
+    unknown_inventory["inventory"][0]["stable_id"] = json!("candidate:invented");
+    assert!(has_code(
+        &evaluate(&policy, &schema, &unknown_inventory, &runtime, NOW),
+        "reset_inventory_set_mismatch"
+    ));
+}
+
+#[test]
+fn high_confidence_secret_values_are_rejected_without_flagging_hashes_or_ids() {
+    let (policy, schema, artifact, runtime) = positive_fixture();
+    assert!(
+        evaluate(&policy, &schema, &artifact, &runtime, NOW).is_empty(),
+        "normal SHA-256 values, commit IDs, signatures, and stable IDs must remain green"
+    );
+
+    for secret in [
+        "-----BEGIN PRIVATE KEY-----MIIEvQIBADANBgkqhkiG9w0BAQEFAASC",
+        "ghp_1234567890abcdefghijklmnopqrstuv",
+        "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.c2lnbmF0dXJlMTIzNDU2Nzg5MA",
+        "q9P/2Zd7Wm4+Lx8!Vt3#Kn6@Hs1%Rc5^Bj0&Fy7*Ua2=Ee9?",
+    ] {
+        let mut leaked = artifact.clone();
+        leaked["inventory"][0]["lifecycle"] = json!(secret);
+        assert!(has_code(
+            &evaluate(&policy, &schema, &leaked, &runtime, NOW),
+            "reset_secret_value_detected"
+        ));
+    }
+}
+
+#[test]
+fn colon_bearing_secret_is_rejected_while_structured_values_remain_green() {
+    let (policy, schema, artifact, runtime) = positive_fixture();
+
+    for secret in [
+        "opaque:q9P/2Zd7Wm4+Lx8!Vt3#Kn6@Hs1%Rc5^Bj0&Fy7*Ua2=Ee9?",
+        "opaque://q9P/2Zd7Wm4+Lx8!Vt3#Kn6@Hs1%Rc5^Bj0&Fy7*Ua2=Ee9?",
+        "opaque://q9P2Zd7Wm4+Lx8!Vt3#Kn6@Hs1%Rc5Bj0&Fy7*Ua2=Ee9?",
+    ] {
+        let mut colon_secret = artifact.clone();
+        colon_secret["inventory"][0]["lifecycle"] = json!(secret);
+        assert!(has_code(
+            &evaluate(&policy, &schema, &colon_secret, &runtime, NOW),
+            "reset_secret_value_detected"
+        ));
+    }
+
+    for secret in [
+        "https://user:q9P/2Zd7Wm4+Lx8!Vt3#Kn6@Hs1%Rc5^Bj0&Fy7*Ua2=Ee9?@inventory.example",
+        "https://user:q9P2Zd7Wm4+Lx8!Vt3#Kn6@Hs1%Rc5Bj0&Fy7*Ua2=Ee9?@inventory.example",
+    ] {
+        let mut userinfo_secret = artifact.clone();
+        userinfo_secret["evidence_manifest"]["uri"] = json!(secret);
+        assert!(has_code(
+            &evaluate(&policy, &schema, &userinfo_secret, &runtime, NOW),
+            "reset_secret_value_detected"
+        ));
+    }
+
+    let mut uri = artifact.clone();
+    uri["evidence_manifest"]["uri"] =
+        json!("https://inventory.oyatie.example/resources/cluster-primary");
+    assert!(
+        evaluate(&policy, &schema, &uri, &runtime, NOW).is_empty(),
+        "a structurally valid URI must remain green"
+    );
+
+    assert!(
+        evaluate(&policy, &schema, &artifact, &runtime, NOW).is_empty(),
+        "approved stable IDs, SHA-256 digests, commit SHAs, and signatures must remain green"
     );
 }

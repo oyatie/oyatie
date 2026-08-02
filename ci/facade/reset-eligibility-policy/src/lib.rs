@@ -6,6 +6,26 @@ use ed25519_dalek::{Signature, VerifyingKey};
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 
+const REQUIRED_SOURCE_IDS: [&str; 8] = [
+    "github-and-protected-ci",
+    "kubernetes-inventory",
+    "stateful-workloads",
+    "openbao-and-registry",
+    "backup-jobs",
+    "dns-and-edge",
+    "provider-billing-and-global-inventory",
+    "external-backups-and-saas-callbacks",
+];
+const REQUIRED_INVENTORY_IDS: [&str; 7] = [
+    "talos-current:cluster",
+    "kubernetes-current:persistent-volumes",
+    "kubernetes-current:postgres",
+    "kubernetes-current:openbao",
+    "kubernetes-current:oci-registry",
+    "github:jason931225/oyatie:arc-runners",
+    "cloudflare-configured:active-edge",
+];
+
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub struct Finding {
     pub code: String,
@@ -164,6 +184,26 @@ pub fn evaluate_schema(policy: &Value, schema: &Value) -> BTreeSet<Finding> {
             "schema version const does not match policy",
         ));
     }
+    for (pointer, expected, key) in [
+        (
+            "/properties/sources/items/properties/source_id/enum",
+            REQUIRED_SOURCE_IDS.as_slice(),
+            "sources.source_id",
+        ),
+        (
+            "/properties/inventory/items/properties/stable_id/enum",
+            REQUIRED_INVENTORY_IDS.as_slice(),
+            "inventory.stable_id",
+        ),
+    ] {
+        if string_set(schema.pointer(pointer)) != expected.iter().copied().collect() {
+            findings.insert(Finding::new(
+                "reset_schema_binding_mismatch",
+                key,
+                "schema must retain the policy-owned closed identifier set",
+            ));
+        }
+    }
     let supported: BTreeSet<&str> = [
         "$schema",
         "$id",
@@ -278,6 +318,44 @@ pub fn evaluate(
             sources_incomplete = true;
         }
     }
+    let expected_source_ids = REQUIRED_SOURCE_IDS.into_iter().collect::<BTreeSet<_>>();
+    if source_ids != expected_source_ids {
+        findings.insert(Finding::new(
+            "reset_source_set_mismatch",
+            "sources",
+            "sources must contain exactly the eight policy-owned source identifiers",
+        ));
+        sources_incomplete = true;
+    }
+
+    let mut inventory_ids = BTreeSet::new();
+    for (index, item) in artifact
+        .get("inventory")
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+        .enumerate()
+    {
+        let id = item
+            .get("stable_id")
+            .and_then(Value::as_str)
+            .unwrap_or_default();
+        if id.is_empty() || !inventory_ids.insert(id) {
+            findings.insert(Finding::new(
+                "reset_inventory_malformed",
+                format!("inventory[{index}]"),
+                "stable_id must be non-empty and unique",
+            ));
+        }
+    }
+    let expected_inventory_ids = REQUIRED_INVENTORY_IDS.into_iter().collect::<BTreeSet<_>>();
+    if inventory_ids != expected_inventory_ids {
+        findings.insert(Finding::new(
+            "reset_inventory_set_mismatch",
+            "inventory",
+            "inventory must contain exactly the seven policy-owned stable identifiers",
+        ));
+    }
     let rehashed_evidence_digest = evidence_digest(&runtime.evidence_by_source);
     let manifest_verified = artifact
         .pointer("/evidence_manifest/status")
@@ -324,10 +402,9 @@ pub fn evaluate(
         &mut findings,
     );
     let forbidden = string_set(policy.get("forbidden_secret_keys"));
-    scan_forbidden_keys(artifact, "$", &forbidden, &mut findings);
-    let stale = manifest_verified
-        && (captured.is_none_or(|c| evaluated_at_epoch < c)
-            || expires.is_none_or(|e| evaluated_at_epoch >= e));
+    scan_forbidden_secrets(artifact, "$", &forbidden, &mut findings);
+    let stale = captured.is_none_or(|c| evaluated_at_epoch < c)
+        || expires.is_none_or(|e| evaluated_at_epoch >= e);
     // W0-D is intentionally dormant: it can prove prerequisites incomplete or complete,
     // but cannot authorize destructive actuation. A future protected one-time actuation
     // boundary must define operation/scope binding, a protected nonce, and atomic consumption.
@@ -440,6 +517,22 @@ fn receipt_binding_valid(
     schema: &Value,
     now: i64,
 ) -> bool {
+    let artifact_captured = artifact
+        .get("captured_at")
+        .and_then(Value::as_str)
+        .and_then(parse_rfc3339_utc);
+    let artifact_expires = artifact
+        .get("expires_at")
+        .and_then(Value::as_str)
+        .and_then(parse_rfc3339_utc);
+    let approved = receipt
+        .get("approved_at")
+        .and_then(Value::as_str)
+        .and_then(parse_rfc3339_utc);
+    let receipt_expires = receipt
+        .get("expires_at")
+        .and_then(Value::as_str)
+        .and_then(parse_rfc3339_utc);
     receipt.get("reset_id") == artifact.get("reset_id")
         && receipt.get("evidence_sha256").and_then(Value::as_str) == Some(evidence)
         && receipt.get("protected_commit_sha").and_then(Value::as_str)
@@ -450,16 +543,16 @@ fn receipt_binding_valid(
             == Some(json_digest(schema).as_str())
         && receipt.get("policy_sha256").and_then(Value::as_str)
             == Some(json_digest(policy).as_str())
-        && receipt
-            .get("approved_at")
-            .and_then(Value::as_str)
-            .and_then(parse_rfc3339_utc)
-            .is_some_and(|approved| approved <= now)
-        && receipt
-            .get("expires_at")
-            .and_then(Value::as_str)
-            .and_then(parse_rfc3339_utc)
-            .is_some_and(|e| now < e)
+        && matches!(
+            (artifact_captured, artifact_expires, approved, receipt_expires),
+            (Some(captured), Some(artifact_end), Some(approved_at), Some(receipt_end))
+                if captured <= approved_at
+                    && approved_at <= artifact_end
+                    && approved_at <= now
+                    && now < receipt_end
+                    && receipt_end <= artifact_end
+                    && approved_at.checked_add(86_400).is_some_and(|ceiling| receipt_end <= ceiling)
+        )
 }
 
 pub fn receipt_payload(receipt: &Value) -> Option<Vec<u8>> {
@@ -862,7 +955,7 @@ fn decode_hex_64(value: &str) -> Option<[u8; 64]> {
     Some(out)
 }
 
-fn scan_forbidden_keys(
+fn scan_forbidden_secrets(
     value: &Value,
     path: &str,
     forbidden: &BTreeSet<&str>,
@@ -879,16 +972,161 @@ fn scan_forbidden_keys(
                         "secret-bearing field names are forbidden",
                     ));
                 }
-                scan_forbidden_keys(child, &child_path, forbidden, findings);
+                scan_forbidden_secrets(child, &child_path, forbidden, findings);
             }
         }
         Value::Array(values) => {
             for (index, child) in values.iter().enumerate() {
-                scan_forbidden_keys(child, &format!("{path}[{index}]"), forbidden, findings);
+                scan_forbidden_secrets(child, &format!("{path}[{index}]"), forbidden, findings);
             }
+        }
+        Value::String(text) if looks_like_secret_value(path, text) => {
+            findings.insert(Finding::new(
+                "reset_secret_value_detected",
+                path,
+                "high-confidence secret-like value is forbidden even under an innocuous field name",
+            ));
         }
         _ => {}
     }
+}
+
+fn looks_like_secret_value(path: &str, value: &str) -> bool {
+    if value.contains("-----BEGIN PRIVATE KEY-----")
+        || value.starts_with("ghp_")
+        || value.starts_with("github_pat_")
+        || value.starts_with("sk_live_")
+        || value.starts_with("xoxb-")
+    {
+        return true;
+    }
+    if looks_like_jwt(value) {
+        return true;
+    }
+    if value.len() < 40
+        || value.bytes().any(|byte| byte.is_ascii_whitespace())
+        || is_approved_structured_value(path, value)
+    {
+        return false;
+    }
+    let mut classes = [false; 4];
+    let mut counts = [0_u32; 128];
+    for byte in value.bytes() {
+        if !byte.is_ascii() {
+            return false;
+        }
+        classes[0] |= byte.is_ascii_lowercase();
+        classes[1] |= byte.is_ascii_uppercase();
+        classes[2] |= byte.is_ascii_digit();
+        classes[3] |= byte.is_ascii_punctuation();
+        counts[usize::from(byte)] += 1;
+    }
+    if classes.into_iter().filter(|present| *present).count() < 3
+        || counts.into_iter().filter(|count| *count > 0).count() < 16
+    {
+        return false;
+    }
+    let length = value.len() as f64;
+    let entropy = counts
+        .into_iter()
+        .filter(|count| *count > 0)
+        .map(|count| {
+            let probability = f64::from(count) / length;
+            -probability * probability.log2()
+        })
+        .sum::<f64>();
+    entropy >= 4.3
+}
+
+fn is_approved_structured_value(path: &str, value: &str) -> bool {
+    is_uri_field(path) && (is_hierarchical_uri(value) || is_approved_opaque_uri(value))
+        || path.ends_with(".stable_id") && REQUIRED_INVENTORY_IDS.contains(&value)
+        || is_sha256_field(path) && is_sha256(value)
+        || is_commit_field(path) && is_hex(value, 40)
+        || path.ends_with(".signature") && is_hex(value, 128)
+}
+
+fn is_hierarchical_uri(value: &str) -> bool {
+    let Some((scheme, remainder)) = value.split_once("://") else {
+        return false;
+    };
+    let authority = remainder
+        .split_once(['/', '?', '#'])
+        .map_or(remainder, |(authority, _)| authority);
+    matches!(scheme, "http" | "https")
+        && !remainder.is_empty()
+        && !authority.is_empty()
+        && !remainder.contains('@')
+        && remainder.bytes().all(is_uri_tail_byte)
+}
+
+fn is_approved_opaque_uri(value: &str) -> bool {
+    let Some((scheme, suffix)) = value.split_once(':') else {
+        return false;
+    };
+    matches!(
+        scheme,
+        "protected-runtime" | "redacted-local" | "redacted-local-manifest"
+    ) && !suffix.is_empty()
+        && suffix.bytes().all(is_uri_tail_byte)
+}
+
+fn is_uri_field(path: &str) -> bool {
+    path.ends_with(".uri") || path.ends_with(".evidence_uri")
+}
+
+fn is_uri_tail_byte(byte: u8) -> bool {
+    byte.is_ascii_alphanumeric()
+        || matches!(
+            byte,
+            b'-' | b'.'
+                | b'_'
+                | b'~'
+                | b':'
+                | b'/'
+                | b'?'
+                | b'#'
+                | b'['
+                | b']'
+                | b'@'
+                | b'!'
+                | b'$'
+                | b'&'
+                | b'\''
+                | b'('
+                | b')'
+                | b'*'
+                | b'+'
+                | b','
+                | b';'
+                | b'='
+                | b'%'
+        )
+}
+
+fn is_sha256_field(path: &str) -> bool {
+    path.ends_with(".sha256")
+        || path.ends_with(".evidence_sha256")
+        || path.ends_with(".schema_sha256")
+        || path.ends_with(".policy_sha256")
+}
+
+fn is_commit_field(path: &str) -> bool {
+    path.ends_with(".protected_commit_sha") || path.ends_with(".candidate_commit_sha")
+}
+
+fn looks_like_jwt(value: &str) -> bool {
+    let parts = value.split('.').collect::<Vec<_>>();
+    parts.len() == 3
+        && parts[0].starts_with("eyJ")
+        && parts[1].starts_with("eyJ")
+        && parts
+            .iter()
+            .all(|part| part.len() >= 16 && part.bytes().all(is_base64url_byte))
+}
+
+fn is_base64url_byte(byte: u8) -> bool {
+    byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'_')
 }
 
 fn parse_rfc3339_utc(value: &str) -> Option<i64> {
@@ -939,4 +1177,61 @@ fn parse_rfc3339_utc(value: &str) -> Option<i64> {
     let day_of_year = (153 * shifted_month + 2) / 5 + day - 1;
     let day_of_era = year_of_era * 365 + year_of_era / 4 - year_of_era / 100 + day_of_year;
     Some((era * 146_097 + day_of_era - 719_468) * 86_400 + hour * 3_600 + minute * 60 + second)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{is_approved_structured_value, looks_like_secret_value};
+
+    #[test]
+    fn structured_secret_scanner_exclusions_are_exact() {
+        for (path, value) in [
+            (
+                "$.evidence_manifest.uri",
+                "https://inventory.oyatie.example/resources/cluster-primary",
+            ),
+            (
+                "$.inventory[0].stable_id",
+                "github:jason931225/oyatie:arc-runners",
+            ),
+            (
+                "$.evidence_manifest.sha256",
+                "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+            ),
+            (
+                "$.approvals[0].candidate_commit_sha",
+                "0123456789abcdef0123456789abcdef01234567",
+            ),
+            (
+                "$.approvals[0].signature",
+                "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+            ),
+        ] {
+            assert!(
+                is_approved_structured_value(path, value),
+                "approved structured value was not excluded: {path}"
+            );
+        }
+
+        let colon_secret = "opaque:q9P/2Zd7Wm4+Lx8!Vt3#Kn6@Hs1%Rc5^Bj0&Fy7*Ua2=Ee9?";
+        assert!(!is_approved_structured_value(
+            "$.inventory[0].lifecycle",
+            colon_secret
+        ));
+        assert!(looks_like_secret_value(
+            "$.inventory[0].lifecycle",
+            colon_secret
+        ));
+
+        for value in [
+            "opaque://q9P2Zd7Wm4+Lx8!Vt3#Kn6@Hs1%Rc5Bj0&Fy7*Ua2=Ee9?",
+            "https://user:q9P2Zd7Wm4+Lx8!Vt3#Kn6@Hs1%Rc5Bj0&Fy7*Ua2=Ee9?@host",
+        ] {
+            assert!(!is_approved_structured_value(
+                "$.evidence_manifest.uri",
+                value
+            ));
+            assert!(looks_like_secret_value("$.evidence_manifest.uri", value));
+        }
+    }
 }
