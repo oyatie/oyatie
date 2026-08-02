@@ -1,0 +1,24 @@
+{
+  "gate_id": "cloud-ci-reset-eligibility-policy",
+  "schema_path": "specs/reset-eligibility.schema.json",
+  "expected_schema_uri": "https://docs.oyatie.com/schemas/reset-eligibility.schema.json",
+  "artifact_path": "registry/reset-eligibility/w0-d-20260801.json",
+  "expected_schema_version": 1,
+  "reset_authorization_enabled": false,
+  "max_validity_seconds": 86400,
+  "allowed_source_results": [
+    "observed",
+    "unknown",
+    "denied",
+    "error"
+  ],
+  "forbidden_secret_keys": [
+    "password",
+    "token",
+    "secret_value",
+    "private_key",
+    "credential_value",
+    "recovery_key"
+  ],
+  "authority_boundary": "eligibility-only-dormant; no reset actuation path, authorization grant, authorization key set, replayable capability, or live positive decision exists in W0-D; future actuation requires a separately reviewed protected one-time operation/scope binding with nonce issuance and atomic consumption"
+}

@@ -1426,6 +1426,20 @@
       "purpose": "ADR-0635 face-aware substrate topology authority: closed dependency_units plus exactly five typed graphs; only steady_state_request is acyclic and failure_brownout_propagation is its derived max-min reverse transitive closure.",
       "schema_path": "/specs/substrate-dependency-dag.schema.json",
       "target_path_after_md_retirement": "same"
+    },
+    "reset_eligibility_schema": {
+      "current_path": "/specs/reset-eligibility.schema.json",
+      "kind": "schema",
+      "migration_phase": "wave-0-d-reset-discovery",
+      "purpose": "Fail-closed schema for time-bounded infrastructure reset observations. Unknowns, hard stops, incomplete recovery, missing approvals, or stale positive evidence prohibit reset; absence of evidence is never deletion authority.",
+      "target_path_after_md_retirement": "same"
+    },
+    "reset_eligibility_current_observation": {
+      "current_path": "/registry/reset-eligibility/w0-d-20260801.json",
+      "kind": "registry",
+      "migration_phase": "wave-0-d-preservation-migration",
+      "purpose": "Current W0-D read-only, undigested/unverified discovery observation. Verdict is RESET INELIGIBLE; preservation migration is the only represented mode. It is not actuation authority and contains no verified evidence digest.",
+      "target_path_after_md_retirement": "same"
     }
   },
   "specs_directory_audit_2026_05_20": {

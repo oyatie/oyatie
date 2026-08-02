@@ -1,0 +1,26 @@
+[package]
+name = "ci-reset-eligibility-policy"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[package.metadata.oya]
+bounded_context = "cloud-ci"
+kind = "shared"
+layer = "app"
+purpose = "Fail-closed reset eligibility evaluator: unknowns, hard stops, missing recovery proof, stale positive evidence, or incomplete approvals force preservation migration."
+
+[lib]
+name = "ci_reset_eligibility_policy"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+ed25519-dalek = "2"
+serde_json = { workspace = true }
+sha2 = { workspace = true }
+
+[lints]
+workspace = true
