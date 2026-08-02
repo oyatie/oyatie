@@ -1,0 +1,21 @@
+[package]
+name = "check-idempotency-key-coverage"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# Pure-fn kernel (port-in-kernel, ADR-0056). Reads OpenAPI 3.2.0
+# documents handed in by the runner; returns exact "state-changing
+# operation missing Idempotency-Key" findings per ADR-0149.
+
+[dependencies]
+
+[lib]
+name = "check_idempotency_key_coverage"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

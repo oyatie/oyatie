@@ -431,14 +431,14 @@ follow_ups:
 
   - id: adr-0145-otel-propagation-validator
     intent: |
-      Strict-mode parser for `oya-check-otel-trace-propagation`. The
+      Strict-mode parser for `check-otel-trace-propagation`. The
       current crate ships only `validate_advisory`; strict mode requires
       a Rust-syntax parser that walks every `crates/oya-*-adapter-grpc-*`
       crate and asserts W3C traceparent injection on every outbound
       gRPC call. Replaces the kernel's `validate_strict` `unimplemented!`.
     driver_docs:
       - docs/decisions/ADR-0145-inter-microservice-communication-reform.md
-      - crates/oya-check-otel-trace-propagation/src/lib.rs
+      - governance/check/otel-trace-propagation/src/lib.rs
     owner: council-architecture + axis-observability
     trigger: |
       ≥ 80% of µservices integrate the tracing client kernel AND advisory
@@ -447,7 +447,7 @@ follow_ups:
 
   - id: adr-0145-ontology-projection-validator
     intent: |
-      Strict-mode parser for `oya-check-ontology-projection-coverage`.
+      Strict-mode parser for `check-ontology-projection-coverage`.
       The current crate ships only `validate_advisory` with tolerant
       JSON string-match; strict mode requires a real JSON parser that
       cross-checks `manifest.json#ontology_projections` against
@@ -456,7 +456,7 @@ follow_ups:
     driver_docs:
       - docs/decisions/ADR-0145-inter-microservice-communication-reform.md
       - specs/microservices/manifest-schema.json
-      - crates/oya-check-ontology-projection-coverage/src/lib.rs
+      - governance/check/ontology-projection-coverage/src/lib.rs
     owner: council-architecture + axis-ontology
     trigger: |
       `registry/ontology/entities.json` reaches authority-source GA
@@ -465,7 +465,7 @@ follow_ups:
 
   - id: adr-0145-audit-chain-seal-validator
     intent: |
-      Strict-mode parser for `oya-check-audit-chain-seal-coverage`. The
+      Strict-mode parser for `check-audit-chain-seal-coverage`. The
       current crate inspects `manifest.json#audit_chain.seal_events`;
       strict mode requires source-level proof that every capability
       with `eu_ai_act_risk_class != "none"` AND with state-changing
@@ -473,7 +473,7 @@ follow_ups:
       `unimplemented!`.
     driver_docs:
       - docs/decisions/ADR-0145-inter-microservice-communication-reform.md
-      - crates/oya-check-audit-chain-seal-coverage/src/lib.rs
+      - governance/check/audit-chain-seal-coverage/src/lib.rs
     owner: council-architecture + axis-audit-chain
     trigger: |
       `adr-0145-audit-client-impl` lands AND ≥ 80% of µservices integrate
@@ -496,7 +496,7 @@ follow_ups:
       - docs/decisions/ADR-0149-idempotency-keys-canonical.md
       - docs/standards/idempotency-keys-canonical.md
       - crates/oya-shared-idempotency-key-kernel/src/lib.rs
-      - crates/oya-check-idempotency-key-coverage/src/lib.rs
+      - governance/check/idempotency-key-coverage/src/lib.rs
     owner: council-architecture + axis-all-microservices
     trigger: |
       ≥ 80% of µservices declare the canonical `IdempotencyKey`
@@ -573,7 +573,7 @@ follow_ups:
     driver_docs:
       - docs/decisions/ADR-0156-pii-registry-canonical.md
       - crates/oya-shared-ulid-id-kernel/src/lib.rs
-      - crates/oya-check-id-discipline/src/lib.rs
+      - governance/check/id-discipline/src/lib.rs
     owner: council-architecture + axis-all-microservices
     trigger: every µservice's schemas declare ULID for id-shaped fields.
     status: pending
@@ -600,7 +600,7 @@ follow_ups:
     driver_docs:
       - docs/decisions/ADR-0146-container-base-image-distroless-nonroot.md
       - docs/standards/image-signing-canonical.md
-      - crates/oya-check-image-signing-discipline/src/lib.rs
+      - governance/check/image-signing-discipline/src/lib.rs
     owner: axis-supply-chain + council-security
     trigger: every µservice's published image carries a sigstore cosign signature traceable to GitHub Actions OIDC.
     status: pending
@@ -620,7 +620,7 @@ follow_ups:
     driver_docs:
       - docs/decisions/ADR-0145-inter-microservice-communication-reform.md
       - registry/quality/lanes.yaml#oya-governance-ontology-projection-coverage
-      - crates/oya-check-ontology-projection-coverage/src/lib.rs
+      - governance/check/ontology-projection-coverage/src/lib.rs
     owner: axis-ontology + axis-mail + axis-calendar + axis-messenger + axis-tasks + axis-drive + axis-meet + axis-recordings + axis-network
     trigger: |
       All 8 listed canonical-entity-owner manifests populate
@@ -636,7 +636,7 @@ follow_ups:
       - microservices/network/manifest.json#ontology_projections
       - microservices/messenger/manifest.json#ontology_projections
       - microservices/drive/manifest.json#ontology_projections
-      - crates/oya-check-ontology-projection-coverage/src/lib.rs
+      - governance/check/ontology-projection-coverage/src/lib.rs
     status: completed
 
   # PR #143 close-out 2026-05-18 — Vendor-lockin trait-path annotation handling.

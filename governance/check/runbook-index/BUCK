@@ -1,0 +1,18 @@
+rust_library(
+    name = "check-runbook-index",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "check_runbook_index",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)
+
+rust_test(
+    name = "check-runbook-index-runbook-index",
+    srcs = ["tests/runbook_index.rs"],
+    crate = "check_runbook_index_runbook_index",
+    crate_root = "tests/runbook_index.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":check-runbook-index",
+    ],
+)

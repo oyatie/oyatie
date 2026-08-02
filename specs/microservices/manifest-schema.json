@@ -692,7 +692,7 @@
       }
     },
     "ontology_projections": {
-      "description": "ADR-0145 Invariant 3 — µservices owning canonical entities declare projection targets in Ontology. Empty array is permitted for µservices that own no canonical entities. Validated by oya-check-ontology-projection-coverage (advisory mode pending the strict-mode parser per registry/placeholder-debt/adr-follow-ups.yaml#adr-0145-ontology-projection-validator).",
+      "description": "ADR-0145 Invariant 3 — µservices owning canonical entities declare projection targets in Ontology. Empty array is permitted for µservices that own no canonical entities. Validated by check-ontology-projection-coverage (advisory mode pending the strict-mode parser per registry/placeholder-debt/adr-follow-ups.yaml#adr-0145-ontology-projection-validator).",
       "type": "array",
       "items": {
         "type": "object",

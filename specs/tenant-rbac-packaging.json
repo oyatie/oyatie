@@ -60,7 +60,7 @@
   "verification": {
     "static_gates": [
       "scripts/reject-retired-grouping-wording.sh .",
-      "cargo test -p oya-check-no-grouping"
+      "cargo test -p check-no-grouping"
     ],
     "best_practice_evidence": [
       "https://kubernetes.io/docs/concepts/security/multi-tenancy/",

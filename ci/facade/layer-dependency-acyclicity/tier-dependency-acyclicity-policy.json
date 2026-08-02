@@ -38,7 +38,8 @@
     "billing/*/*",
     "intelligence/*/*",
     "policy/*/*",
-    "os/*/*"
+    "os/*/*",
+    "governance/*/*"
   ],
   "service_roots": [
     "cloud",
@@ -74,7 +75,8 @@
     "billing",
     "intelligence",
     "policy",
-    "os"
+    "os",
+    "governance"
   ],
   "stratum_rank_order": [
     "S0",

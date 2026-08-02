@@ -1,0 +1,27 @@
+rust_library(
+    name = "check-a11y-discipline",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "check_a11y_discipline",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)
+
+rust_test(
+    name = "check-a11y-discipline-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "check_a11y_discipline",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+rust_test(
+    name = "check-a11y-discipline-discipline",
+    srcs = ["tests/discipline.rs"],
+    crate = "check_a11y_discipline_discipline",
+    crate_root = "tests/discipline.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":check-a11y-discipline",
+    ],
+)

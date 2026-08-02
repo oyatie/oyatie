@@ -23,7 +23,7 @@
         "lane_id": "lean-a-active-artifact-contract"
       },
       "verification": {
-        "checker_crate": "libs/oya-check-active-artifact-contract",
+        "checker_crate": "governance/check/active-artifact-contract",
         "command": "oya-ci-required/cloud-ci evidence: active-artifact-contract --workspace"
       },
       "validation": {
@@ -36,7 +36,7 @@
         "healer": "planned oya-heal-artifact-capabilities-registry crate (no live path) (planned)"
       },
       "telemetry": {
-        "exporter": "libs/oya-check-active-artifact-contract::metrics (planned)",
+        "exporter": "governance/check/active-artifact-contract::metrics (planned)",
         "dashboard": "docs/dashboards/artifact-capabilities-registry.json (planned)",
         "metrics": [
           {
@@ -104,7 +104,7 @@
           "lane_id": "lean-a-active-artifact-contract"
         },
         "verification": {
-          "checker_crate": "libs/oya-check-active-artifact-contract",
+          "checker_crate": "governance/check/active-artifact-contract",
           "command": "oya-ci-required/cloud-ci evidence: active-artifact-contract"
         },
         "validation": {
@@ -513,7 +513,7 @@
       "artifact_profile": "registry",
       "capability_overrides": {
         "verification": {
-          "checker_crate": "libs/oya-check-active-artifact-contract",
+          "checker_crate": "governance/check/active-artifact-contract",
           "command": "oya-ci-required/cloud-ci evidence: active-artifact-contract"
         },
         "provenance": {
@@ -532,7 +532,7 @@
       "artifact_profile": "registry",
       "capability_overrides": {
         "verification": {
-          "checker_crate": "libs/oya-check-active-artifact-contract",
+          "checker_crate": "governance/check/active-artifact-contract",
           "command": "oya-ci-required/cloud-ci evidence: active-artifact-contract"
         },
         "provenance": {
@@ -551,7 +551,7 @@
       "artifact_profile": "schema",
       "capability_overrides": {
         "verification": {
-          "checker_crate": "libs/oya-check-active-artifact-contract",
+          "checker_crate": "governance/check/active-artifact-contract",
           "command": "oya-ci-required/cloud-ci evidence: active-artifact-contract"
         },
         "provenance": {
@@ -570,7 +570,7 @@
       "artifact_profile": "schema",
       "capability_overrides": {
         "verification": {
-          "checker_crate": "libs/oya-check-active-artifact-contract",
+          "checker_crate": "governance/check/active-artifact-contract",
           "command": "oya-ci-required/cloud-ci evidence: active-artifact-contract"
         },
         "provenance": {
@@ -589,7 +589,7 @@
       "artifact_profile": "registry",
       "capability_overrides": {
         "verification": {
-          "checker_crate": "libs/oya-check-cedar-fragment-coverage",
+          "checker_crate": "governance/check/cedar-fragment-coverage",
           "command": "oya-ci-required/cloud-ci evidence: cedar-fragment-coverage"
         },
         "enforcement": {
@@ -602,8 +602,8 @@
       }
     },
     {
-      "artifact_id": "oya-check-cedar-fragment-coverage-manifest",
-      "artifact_path": "libs/oya-check-cedar-fragment-coverage/Cargo.toml",
+      "artifact_id": "check-cedar-fragment-coverage-manifest",
+      "artifact_path": "governance/check/cedar-fragment-coverage/Cargo.toml",
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-architecture",
@@ -611,7 +611,7 @@
       "artifact_profile": "registry",
       "capability_overrides": {
         "verification": {
-          "checker_crate": "libs/oya-check-active-artifact-contract",
+          "checker_crate": "governance/check/active-artifact-contract",
           "command": "oya-ci-required/cloud-ci evidence: active-artifact-contract"
         },
         "provenance": {
@@ -630,7 +630,7 @@
       "artifact_profile": "registry",
       "capability_overrides": {
         "verification": {
-          "checker_crate": "libs/oya-check-active-artifact-contract",
+          "checker_crate": "governance/check/active-artifact-contract",
           "command": "oya-ci-required/cloud-ci evidence: active-artifact-contract"
         },
         "provenance": {
@@ -640,8 +640,8 @@
       }
     },
     {
-      "artifact_id": "oya-check-openapi-rest-route-parity-manifest",
-      "artifact_path": "libs/oya-check-openapi-rest-route-parity/Cargo.toml",
+      "artifact_id": "check-openapi-rest-route-parity-manifest",
+      "artifact_path": "governance/check/openapi-rest-route-parity/Cargo.toml",
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-architecture",
@@ -649,7 +649,7 @@
       "artifact_profile": "registry",
       "capability_overrides": {
         "verification": {
-          "checker_crate": "libs/oya-check-active-artifact-contract",
+          "checker_crate": "governance/check/active-artifact-contract",
           "command": "oya-ci-required/cloud-ci evidence: active-artifact-contract"
         },
         "provenance": {
@@ -668,7 +668,7 @@
       "artifact_profile": "registry",
       "capability_overrides": {
         "verification": {
-          "checker_crate": "libs/oya-check-active-artifact-contract",
+          "checker_crate": "governance/check/active-artifact-contract",
           "command": "oya-ci-required/cloud-ci evidence: active-artifact-contract"
         },
         "provenance": {
@@ -687,7 +687,7 @@
       "artifact_profile": "registry",
       "capability_overrides": {
         "verification": {
-          "checker_crate": "libs/oya-check-active-artifact-contract",
+          "checker_crate": "governance/check/active-artifact-contract",
           "command": "oya-ci-required/cloud-ci evidence: active-artifact-contract"
         },
         "provenance": {
@@ -706,7 +706,7 @@
       "artifact_profile": "registry",
       "capability_overrides": {
         "verification": {
-          "checker_crate": "libs/oya-check-active-artifact-contract",
+          "checker_crate": "governance/check/active-artifact-contract",
           "command": "oya-ci-required/cloud-ci evidence: active-artifact-contract"
         },
         "provenance": {
@@ -725,7 +725,7 @@
       "artifact_profile": "registry",
       "capability_overrides": {
         "verification": {
-          "checker_crate": "libs/oya-check-active-artifact-contract",
+          "checker_crate": "governance/check/active-artifact-contract",
           "command": "oya-ci-required/cloud-ci evidence: active-artifact-contract"
         },
         "provenance": {
@@ -744,7 +744,7 @@
       "artifact_profile": "registry",
       "capability_overrides": {
         "verification": {
-          "checker_crate": "libs/oya-check-active-artifact-contract",
+          "checker_crate": "governance/check/active-artifact-contract",
           "command": "oya-ci-required/cloud-ci evidence: active-artifact-contract"
         },
         "provenance": {
@@ -763,7 +763,7 @@
       "artifact_profile": "registry",
       "capability_overrides": {
         "verification": {
-          "checker_crate": "libs/oya-check-active-artifact-contract",
+          "checker_crate": "governance/check/active-artifact-contract",
           "command": "oya-ci-required/cloud-ci evidence: active-artifact-contract"
         },
         "provenance": {
@@ -782,7 +782,7 @@
       "artifact_profile": "registry",
       "capability_overrides": {
         "verification": {
-          "checker_crate": "libs/oya-check-active-artifact-contract",
+          "checker_crate": "governance/check/active-artifact-contract",
           "command": "oya-ci-required/cloud-ci evidence: active-artifact-contract"
         },
         "provenance": {
@@ -801,7 +801,7 @@
       "artifact_profile": "registry",
       "capability_overrides": {
         "verification": {
-          "checker_crate": "libs/oya-check-active-artifact-contract",
+          "checker_crate": "governance/check/active-artifact-contract",
           "command": "oya-ci-required/cloud-ci evidence: active-artifact-contract"
         },
         "provenance": {
@@ -820,7 +820,7 @@
       "artifact_profile": "registry",
       "capability_overrides": {
         "verification": {
-          "checker_crate": "libs/oya-check-active-artifact-contract",
+          "checker_crate": "governance/check/active-artifact-contract",
           "command": "oya-ci-required/cloud-ci evidence: active-artifact-contract"
         },
         "provenance": {
@@ -839,7 +839,7 @@
       "artifact_profile": "registry",
       "capability_overrides": {
         "verification": {
-          "checker_crate": "libs/oya-check-active-artifact-contract",
+          "checker_crate": "governance/check/active-artifact-contract",
           "command": "oya-ci-required/cloud-ci evidence: active-artifact-contract"
         },
         "provenance": {
@@ -861,7 +861,7 @@
           "lane_id": "lean-a-active-artifact-contract"
         },
         "verification": {
-          "checker_crate": "jq + future oya-check-active-artifact-contract",
+          "checker_crate": "jq + future check-active-artifact-contract",
           "command": "jq empty /evidence/goals/fd001-planning-closure-implementation-goal-2026-05-19.json"
         },
         "validation": {
@@ -2579,8 +2579,8 @@
           "lane_id": "regvuln-002-vulnerability-contract-integration-decision"
         },
         "verification": {
-          "checker_crate": "libs/oya-check-supply-chain",
-          "command": "python3 -m json.tool specs/vulnerability-intelligence-sbom-vex-pipeline.json >/dev/null && cargo test -p oya-check-supply-chain --lib vulnerability_intelligence"
+          "checker_crate": "governance/check/supply-chain",
+          "command": "python3 -m json.tool specs/vulnerability-intelligence-sbom-vex-pipeline.json >/dev/null && cargo test -p check-supply-chain --lib vulnerability_intelligence"
         },
         "validation": {
           "validator": "JSON syntax plus Rust vulnerability-intelligence contract fixture until a dedicated cloud-ci gate lands"

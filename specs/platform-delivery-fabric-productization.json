@@ -446,7 +446,7 @@
   },
   "parity_target_source_tracking_contract": {
     "purpose": "Make reference/source tracking executable without making external projects, adapters, or bridge CI systems authoritative.",
-    "validator": "libs/oya-check-honest-claims/src/lib.rs#validate_parity_target_source_tracking",
+    "validator": "governance/check/honest-claims/src/lib.rs#validate_parity_target_source_tracking",
     "fixture_refs": [
       "specs/fixtures/platform-delivery-fabric/parity-target-source-tracking-good.json",
       "specs/fixtures/platform-delivery-fabric/parity-target-source-tracking-bad-authority.json"

@@ -19,7 +19,7 @@
       "source_path": "/registry/artifact-capabilities-registry.json",
       "shape": "rows[].artifact_profile + rows[].capability_overrides",
       "freshness": "manual-edit-on-state-change",
-      "consumer": "oya-check-active-artifact-contract validator"
+      "consumer": "check-active-artifact-contract validator"
     },
     "Block-current-consumers": {
       "source_path": "/registry/reusable-building-blocks-registry.json",

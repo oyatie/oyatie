@@ -1,0 +1,21 @@
+[package]
+name = "check-event-schema-versioning"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# Pure-fn kernel (port-in-kernel, ADR-0056). Reads AsyncAPI 3.1.0
+# specs; enforces that every message declares the canonical `version`
+# header per ADR-0154.
+
+[dependencies]
+
+[lib]
+name = "check_event_schema_versioning"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

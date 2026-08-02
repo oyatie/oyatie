@@ -108,15 +108,15 @@
     "mode": "cultural + mechanical-partial",
     "mechanical_components": [
       {
-        "lane": "oya-check-pr-traceability",
+        "lane": "check-pr-traceability",
         "verifies": "PR body cites a decision_class id from this spec"
       },
       {
-        "lane": "oya-check-raci-coverage",
+        "lane": "check-raci-coverage",
         "verifies": "per-team RACI allocation in docs/RACI-OWNERSHIP.md is consistent with decision_classes here"
       },
       {
-        "lane": "oya-check-codeowners-mirror",
+        "lane": "check-codeowners-mirror",
         "verifies": "CODEOWNERS mirrors RACI ownership per-path"
       }
     ],

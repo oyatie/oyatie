@@ -2,7 +2,7 @@ use std::collections::BTreeSet;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use oya_check_aspirational_enforcement::{
+use check_aspirational_enforcement::{
     AspirationalDocument, AspirationalViolation, KnownEnforcementSurfaces,
     validate_aspirational_enforcement,
 };

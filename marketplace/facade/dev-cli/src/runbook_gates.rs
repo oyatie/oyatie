@@ -1,8 +1,8 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use oya_check_runbook_freshness::{RunbookFreshnessRecord, validate_runbook_freshness};
-use oya_check_runbook_index::validate_runbook_index_resolves;
+use check_runbook_freshness::{RunbookFreshnessRecord, validate_runbook_freshness};
+use check_runbook_index::validate_runbook_index_resolves;
 
 use crate::{current_epoch_days_i64, parse_yyyy_mm_dd_to_epoch_days, slash_path, usage};
 

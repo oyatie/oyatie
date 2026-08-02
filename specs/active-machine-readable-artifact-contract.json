@@ -34,7 +34,7 @@
       "docs/decisions/ADR-0015-architectural-flattening-target.md"
     ],
     "enforcing_fitness_lane": "lean-a-active-artifact-contract",
-    "validator_crate": "crates/oya-check-active-artifact-contract (planned)",
+    "validator_crate": "governance/check/active-artifact-contract (planned)",
     "purpose": "Registry-row schema for the central artifact capabilities control-plane."
   },
   "type": "object",

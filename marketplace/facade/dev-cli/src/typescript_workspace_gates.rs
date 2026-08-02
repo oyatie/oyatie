@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use oya_check_typescript_workspace::{
+use check_typescript_workspace::{
     TypescriptWorkspaceEvidence, TypescriptWorkspaceLane, TypescriptWorkspaceScript,
     validate_typescript_workspace,
 };

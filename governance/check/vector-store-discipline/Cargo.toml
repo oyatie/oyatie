@@ -1,0 +1,17 @@
+[package]
+name = "check-vector-store-discipline"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[lib]
+name = "check_vector_store_discipline"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+
+[lints]
+workspace = true
