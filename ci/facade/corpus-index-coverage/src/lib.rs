@@ -80,6 +80,22 @@ pub struct Policy {
     /// Anti-vacuity floor on FILES. A walk that finds packages but no files is equally broken, and
     /// would report a shrinking unpackaged count that is pure measurement collapse.
     pub min_expected_yaml_files: usize,
+    /// Anti-vacuity floor on the UNPACKAGED term specifically — the ATTRIBUTION guard.
+    ///
+    /// NOT redundant with the two floors above, and the reason is the whole point of the field.
+    /// Both of those are invariant under mis-attribution: if every file were wrongly assigned to
+    /// some package, `packaged` rises by exactly what `unpackaged` loses, so `total_yaml_files` is
+    /// unchanged and `total_packages` is unchanged. Both floors hold. Meanwhile the unpackaged
+    /// term — the one the northstar ratchet rides on — reads ZERO and looks like the debt being
+    /// paid off in full.
+    ///
+    /// It is deliberately a POLICY number rather than a fraction of another one. This floor was
+    /// previously derived in the fixture as `min_expected_yaml_files / 2`, which silently encoded
+    /// the assumption that most YAML sits outside the build graph; #1507 pulled 4541 files into
+    /// packages, falsified the assumption, and the derived floor fired on real progress. A floor
+    /// guarding an assumption belongs where a reviewer can see it, not inside an expression where
+    /// changing the corpus silently changes the guard.
+    pub min_expected_unpackaged_yaml_files: usize,
 }
 
 /// Computed coverage over the observed corpus.
@@ -231,6 +247,21 @@ pub fn evaluate(
             blocking: true,
         });
     }
+    // ATTRIBUTION collapse. Both floors above are invariant under mis-attribution (packaged rises
+    // by exactly what unpackaged loses), so they hold while the northstar term goes to zero and
+    // reads as the debt being paid off. Only a floor on that term catches it.
+    if coverage.unpackaged_yaml_files < policy.min_expected_unpackaged_yaml_files {
+        findings.push(Finding {
+            code: CODE_VACUOUS_SCAN.to_owned(),
+            package: String::new(),
+            detail: format!(
+                "observed only {} unpackaged YAML files, expected at least {} — the out-of-package \
+                 census collapsed, so a shrinking northstar debt is measurement error, not progress",
+                coverage.unpackaged_yaml_files, policy.min_expected_unpackaged_yaml_files
+            ),
+            blocking: true,
+        });
+    }
 
     // The northstar ratchet: artifacts must move INTO the build graph, never around it.
     if coverage.unpackaged_yaml_files > policy.baseline_unpackaged_yaml_files {
@@ -308,6 +339,9 @@ mod tests {
             baseline_unpackaged_yaml_files: unpackaged,
             min_expected_yaml_packages: 1,
             min_expected_yaml_files: 1,
+            // 0 so the shared helper does not trip the attribution floor; the cases that exercise
+            // that floor set it explicitly.
+            min_expected_unpackaged_yaml_files: 0,
         }
     }
 
@@ -405,10 +439,48 @@ mod tests {
             baseline_unpackaged_yaml_files: 5_000,
             min_expected_yaml_packages: 1,
             min_expected_yaml_files: 5_000,
+            min_expected_unpackaged_yaml_files: 0,
         };
         let verdict = evaluate(&[pkg("a", 1, true)], 0, &strict);
         assert!(verdict.failed(), "a collapsed census must not read as progress");
         assert!(verdict.blocking().iter().any(|f| f.code == CODE_VACUOUS_SCAN));
+    }
+
+    // THE CASE NEITHER CENSUS FLOOR CAN SEE. Every file is attributed to a package, so the total
+    // census is INTACT (5000 packaged + 0 unpackaged = 5000) and the package count is intact —
+    // both floors above pass. Only the attribution floor fails it. Without this the northstar term
+    // reads zero and looks like the out-of-graph debt was paid off in full.
+    #[test]
+    fn an_attribution_collapse_fails_closed_while_both_census_floors_hold() {
+        let strict = Policy {
+            baseline_uncovered_packages: 10,
+            baseline_unpackaged_yaml_files: 5_000,
+            min_expected_yaml_packages: 1,
+            min_expected_yaml_files: 5_000,
+            min_expected_unpackaged_yaml_files: 400,
+        };
+        let observed = [pkg("a", 5_000, true)];
+
+        // Control: the census floor is genuinely satisfied here, so the failure below can only be
+        // the attribution floor — otherwise this test would prove nothing about the new check.
+        let census_only = Policy {
+            min_expected_unpackaged_yaml_files: 0,
+            ..strict
+        };
+        assert!(
+            !evaluate(&observed, 0, &census_only).failed(),
+            "control: both census floors must PASS on this shape"
+        );
+
+        let verdict = evaluate(&observed, 0, &strict);
+        assert!(
+            verdict.failed(),
+            "unpackaged collapsing to 0 must not read as progress"
+        );
+        assert!(verdict.blocking().iter().any(|f| f.code == CODE_VACUOUS_SCAN));
+
+        // GUARD: the same shape at or above the floor is fine, so the floor is not always-on.
+        assert!(!evaluate(&observed, 400, &strict).failed());
     }
 
     #[test]

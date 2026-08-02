@@ -50,6 +50,7 @@ fn load_policy(root: &Path) -> Policy {
         baseline_unpackaged_yaml_files: field("baseline_unpackaged_yaml_files"),
         min_expected_yaml_packages: field("min_expected_yaml_packages"),
         min_expected_yaml_files: field("min_expected_yaml_files"),
+        min_expected_unpackaged_yaml_files: field("min_expected_unpackaged_yaml_files"),
     }
 }
 
@@ -235,6 +236,39 @@ fn the_walk_sees_the_real_corpus() {
     assert!(
         total >= policy.min_expected_yaml_files,
         "only {total} total YAML files — the complete census collapsed"
+    );
+    // The census floor above is invariant under mis-attribution — packaged rises by exactly what
+    // unpackaged loses — so it cannot see an attribution collapse. That is a separate policy floor,
+    // evaluated by the gate kernel; asserted here against the LIVE corpus so the shipped check is
+    // exercised rather than a second, drifting copy of it.
+    assert!(
+        unpackaged >= policy.min_expected_unpackaged_yaml_files,
+        "only {unpackaged} unpackaged YAML files — the out-of-package census collapsed"
+    );
+}
+
+// RED FIXTURE against the LIVE policy for the attribution floor. Same observations, same file
+// census, only the unpackaged term collapsed — the shape both census floors pass and the northstar
+// ratchet would book as the out-of-graph debt being paid off in full.
+#[test]
+fn an_attribution_collapse_fails_the_live_policy() {
+    let root = repo_root();
+    let (observations, unpackaged) = observe(&root);
+    let policy = load_policy(&root);
+
+    // Control: the live corpus as measured is NOT failing, so the failure below is the collapse
+    // and not a pre-existing red.
+    assert!(!evaluate(&observations, unpackaged, &policy).failed());
+
+    let verdict = evaluate(&observations, 0, &policy);
+    assert!(verdict.failed(), "an attribution collapse must fail closed");
+    assert!(
+        verdict
+            .blocking()
+            .iter()
+            .any(|f| f.code == CODE_VACUOUS_SCAN),
+        "must be reported as a vacuous scan, got {:#?}",
+        verdict.blocking()
     );
 }
 
