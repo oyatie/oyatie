@@ -37,7 +37,6 @@
     "secrets/*/*",
     "billing/*/*",
     "intelligence/*/*",
-    "policy/*/*",
     "os/*/*",
     "governance/*/*"
   ],
@@ -49,18 +48,18 @@
   "capability_roots": [
     "audit",
     "cell",
+    "ci",
+    "messaging",
     "network",
     "observability",
-    "secrets"
+    "secrets",
+    "storage"
   ],
   "unclassified_roots": [
     "libs",
     "tools",
-    "ci",
-    "messaging",
     "iac",
     "compute",
-    "storage",
     "gateway",
     "flags",
     "marketplace",
@@ -74,7 +73,6 @@
     "iam",
     "billing",
     "intelligence",
-    "policy",
     "os",
     "governance"
   ],
