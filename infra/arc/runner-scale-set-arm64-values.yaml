@@ -76,7 +76,19 @@ template:
             # would buy nothing and crowd out co-tenants.
             cpu: "2"
             memory: "4Gi"
-            ephemeral-storage: "20Gi"
+            # Ephemeral-storage REQUEST is a scheduler accounting floor, not a
+            # hard growth ceiling. Measured 2026-08-02 FULL-tier cold baselines
+            # on oya-arm64 used 29.49–30.93 Gi before kubelet DiskPressure
+            # eviction (pods qj8fm/vm2d4/wsll2; available ~6.1–6.5 Gi under the
+            # ~7.3 Gi node threshold). Worker allocatable is 45,909,593,217 B =
+            # 42.756 GiB binary. The previous 20Gi request let TWO runners
+            # co-locate (40 Gi < 42.756 Gi) even though two measured peaks
+            # cannot fit. 22Gi is the smallest integer Gi request for which
+            # 2 × request = 44 Gi exceeds that allocatable, so Kubernetes
+            # schedules at most one runner per current worker. maxRunners and
+            # the 60Gi hard limit are unchanged; this does not green a failed
+            # target or weaken any gate. Recompute if worker capacity grows.
+            ephemeral-storage: "22Gi"
           limits:
             # 8Gi, arrived at by arithmetic rather than taste. Node allocatable
             # is 28.6Gi and the 4Gi REQUEST lets all maxRunners=3 land on ONE
@@ -87,7 +99,8 @@ template:
             memory: "8Gi"
             # buck2 build trees are disk-heavy; FRIC-017 was literally "No space
             # left on device". Bounded so a runaway build is evicted rather than
-            # filling the node for every other tenant.
+            # filling the node for every other tenant. Distinct from the 22Gi
+            # request above: the limit remains the runaway ceiling.
             ephemeral-storage: "60Gi"
         # NOTE: no CPU limit, deliberately. A throttled compile presents as a
         # flaky slow test, which is worse than a noisy neighbour we can see.
