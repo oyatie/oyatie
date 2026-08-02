@@ -9,6 +9,17 @@ doc_status: published
 > **Owner:** `council-architecture`.
 > **Companion:** [teams/](teams/) (39 charters), `.github/CODEOWNERS` (per-file owners).
 > **Source of truth for per-file owners:** `.github/CODEOWNERS`. This doc is for *roles* across the project.
+>
+> **`.github/CODEOWNERS` routes ZERO reviewers today — it is a declaration, not a routing mechanism.**
+> Measured 2026-08-02: `gh api repos/:owner/:repo/codeowners/errors` returns **111 `Unknown owner`
+> errors against 111 owner references** — every one. Cause is structural, not a typo: the repo is
+> `owner.type: User`, so `gh api repos/:owner/:repo/teams` returns `[]` and no `@teams/*` handle can
+> ever resolve. It also has no force: `required_pull_request_reviews.require_code_owner_reviews` is
+> unset on `dev`. Corroborating outcome probe — the eight most recent PRs (#1498–#1507) carry zero
+> review requests and zero reviews. Treat the owner column below as the *intended* map, sourced from
+> `docs/teams/*/CHARTER.md` and the 110 per-directory `OWNERS` files; do not treat a merged PR as
+> having been seen by the listed owner. Disposition (convert to individual handles vs. delete)
+> is a founder call — see the open registries task.
 
 ## 1. RACI key
 
