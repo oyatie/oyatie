@@ -166,11 +166,10 @@ keys while RED stands.
    comparison tolerance. cold == warm is byte-equality, the same bar as `registry-drift`.
 
 Sequencing consequence: the CAS vertical MUST ship the canary in the same change that enables
-fleet-wide warm reads — no canary, no warm. The pre-CAS interim warmth that already exists (the
-stable-key `actions/cache` buck-out restore, PR #659) is transitional and comes under the canary
-regime at CAS bring-up; it is tolerated now because it is single-writer (the repo's own trusted
-CI), content-addressed, and scoped to `buck-out`, but its "a restored hit is bit-identical to a
-cold build" claim is exactly the claim the canary exists to verify continuously.
+fleet-wide warm reads — no canary, no warm. The former pre-CAS stable-key `actions/cache` snapshot
+of `buck-out` is **retired by ADR-0554 D10** after repeatable node-pressure eviction during archive
+extraction. Required CI is cold until the Buck2-aware remote action cache + CAS is separately
+licensed; the canary regime applies at that future bring-up.
 
 ### D3 — The owned-stack destination: NativeLink CAS as the warm substrate; cold bypasses it
 
@@ -246,8 +245,11 @@ The classification binds the quick-wins that predate the CAS:
   warm-eligible reuse. The cargo→buck2 **required-context content swap stays the ADR-0525
   founder-paired door** — the quick-win is removing redundant compilation, not moving merge
   authority.
-- **QW-3 — the stable-key buck-out `actions/cache` restore** (landed, PR #659) — warm-eligible
-  interim, single-writer, under the canary regime at CAS bring-up (D2).
+- **QW-3 — RETIRED: stable-key `buck-out` `actions/cache` restore.** ADR-0554 D10 removes the
+  whole-tree writer and both readers after the 6.37 GB archive repeatedly evicted owned runner pods
+  during extraction. No partial `buck-out/v2/cache` salvage is permitted: local materializer state
+  is coupled to on-disk outputs. Warm eligibility survives only for the future Buck2-aware remote
+  action-cache + CAS contract.
 - **QW-4 — toolchain/buck2-binary caching** on ephemeral runners (ADR-0515 D4's
   `actions/cache` item) — warm-eligible; the toolchain is digest-pinned input, not build output.
 
@@ -255,6 +257,8 @@ The classification binds the quick-wins that predate the CAS:
 
 - No cache restore step may ever be added to a release/production-image or
   provenance/attestation workflow, nor to the integrity-canary job when it lands.
+- Required CI must not archive or restore runner-local `buck-out`; it remains cold until the
+  separately licensed Buck2-aware remote cache satisfies D2.
 - `registry-drift`'s independent in-job rematerialization stays (above).
 - Nothing grants fork-PR/untrusted contexts cache participation.
 
@@ -322,9 +326,9 @@ governed, and its conformance gate is the named successor); fork-PR contributors
 until the read-only relaxation is reviewed (accepted — the contributor population today is the
 agent fleet, which is trusted-class).
 
-**Neutral.** No live behavior changes in this ADR — it is classification + invariant + surface
-model. The interim `actions/cache` warmth already in the tree is unchanged by this ADR's landing
-and becomes canary-governed at CAS bring-up.
+**Neutral.** This ADR remains classification + invariant + surface model. ADR-0554 D10 independently
+retires the live interim `actions/cache` filesystem snapshot; the warm classes here continue to
+describe the future Buck2-aware remote-cache posture and become canary-governed only at bring-up.
 
 ## Verification
 

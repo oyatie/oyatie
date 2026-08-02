@@ -2359,14 +2359,23 @@ fn buck2_installer_recovers_an_ownerless_no_flock_lock_directory() {
         "#!/usr/bin/env bash\nset -euo pipefail\ninput=\"\"; output=\"\"\nwhile [ \"$#\" -gt 0 ]; do case \"$1\" in -o) output=\"$2\"; shift 2 ;; -d|-f) shift ;; *) input=\"$1\"; shift ;; esac; done\ncp \"$input\" \"$output\"\n",
         "#!/usr/bin/env bash\nset -euo pipefail\nout=\"\"\nwhile [ \"$#\" -gt 0 ]; do case \"$1\" in -o) out=\"$2\"; shift 2 ;; *) shift ;; esac; done\ncp \"$PAYLOAD\" \"$out\"\n",
     );
+    // Cross the deadline between loop observations: two separate reads let the old
+    // implementation skip ownerless reaping and then time out in the same iteration.
+    write_executable(
+        &bin.join("date"),
+        "#!/usr/bin/env bash\nset -euo pipefail\n[ \"$#\" -eq 1 ] && [ \"$1\" = \"+%s\" ]\ncalls=0\nif [ -f \"$CLOCK_STATE\" ]; then calls=\"$(cat \"$CLOCK_STATE\")\"; fi\ncalls=$((calls + 1))\nprintf '%s\\n' \"$calls\" > \"$CLOCK_STATE\"\nif [ \"$calls\" -le 2 ]; then printf '100\\n'; else printf '101\\n'; fi\n",
+    );
+    write_executable(&bin.join("sleep"), "#!/usr/bin/env bash\nexit 0\n");
     let install_dir = fixture.path().join("install");
     let content_dir = installer_content_dir(&install_dir, &digest);
+    let clock_state = fixture.path().join("clock-state");
     fs::create_dir_all(content_dir.join(".buck2-install.lock.d"))
         .expect("construct ownerless lock directory");
 
     let output = installer_command(&root, &bin, &install_dir, "asset.zst", &digest)
         .env("BUCK2_INSTALL_FORCE_NO_FLOCK", "1")
         .env("BUCK2_INSTALL_LOCK_TIMEOUT_SECONDS", "1")
+        .env("CLOCK_STATE", &clock_state)
         .env("PAYLOAD", &payload)
         .output()
         .expect("run ownerless-lock recovery fixture");

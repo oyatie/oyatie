@@ -226,7 +226,10 @@ fn the_walk_sees_the_real_corpus() {
     // A walk that finds packages but no FILES is equally broken, and the unpackaged term is the one
     // the northstar ratchet rides on, so it gets its own floor.
     let packaged: usize = observations.iter().map(|o| o.yaml_files).sum();
-    assert!(packaged >= 100, "only {packaged} YAML files attributed to packages");
+    assert!(
+        packaged >= 100,
+        "only {packaged} YAML files attributed to packages"
+    );
     assert!(
         unpackaged >= policy.min_expected_yaml_files / 2,
         "only {unpackaged} unpackaged YAML files — the out-of-package census collapsed"
@@ -241,7 +244,12 @@ fn a_vacuous_scan_fails_against_the_live_policy() {
     let policy = load_policy(&root);
     let verdict = evaluate(&[], 0, &policy);
     assert!(verdict.failed());
-    assert!(verdict.blocking().iter().any(|f| f.code == CODE_VACUOUS_SCAN));
+    assert!(
+        verdict
+            .blocking()
+            .iter()
+            .any(|f| f.code == CODE_VACUOUS_SCAN)
+    );
 }
 
 // The ceiling must have NO slack: a ratchet frozen above today's number silently absorbs the next

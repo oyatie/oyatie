@@ -6,15 +6,15 @@
   },
   "_metadata": {
     "source": "docs/decisions",
-    "total_adrs": 439,
-    "numbering": "ADR-0001..ADR-0630 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0037, ADR-0041, ADR-0050, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089, ADR-0125..ADR-0127, ADR-0170, ADR-0224..ADR-0233, ADR-0247, ADR-0256, ADR-0259..ADR-0262, ADR-0264..ADR-0271, ADR-0274..ADR-0275, ADR-0277..ADR-0279, ADR-0281..ADR-0283, ADR-0285..ADR-0291, ADR-0322..ADR-0323, ADR-0327, ADR-0342, ADR-0345, ADR-0385..ADR-0386, ADR-0395..ADR-0396, ADR-0398..ADR-0475, ADR-0477, ADR-0483..ADR-0505, ADR-0574..ADR-0579, ADR-0583..ADR-0585, ADR-0594, ADR-0601..ADR-0602)",
+    "total_adrs": 440,
+    "numbering": "ADR-0001..ADR-0631 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0037, ADR-0041, ADR-0050, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089, ADR-0125..ADR-0127, ADR-0170, ADR-0224..ADR-0233, ADR-0247, ADR-0256, ADR-0259..ADR-0262, ADR-0264..ADR-0271, ADR-0274..ADR-0275, ADR-0277..ADR-0279, ADR-0281..ADR-0283, ADR-0285..ADR-0291, ADR-0322..ADR-0323, ADR-0327, ADR-0342, ADR-0345, ADR-0385..ADR-0386, ADR-0395..ADR-0396, ADR-0398..ADR-0475, ADR-0477, ADR-0483..ADR-0505, ADR-0574..ADR-0579, ADR-0583..ADR-0585, ADR-0594, ADR-0601..ADR-0602)",
     "gaps": ["ADR-0012", "ADR-0033", "ADR-0037", "ADR-0041", "ADR-0050", "ADR-0068", "ADR-0070..ADR-0082", "ADR-0084..ADR-0089", "ADR-0125..ADR-0127", "ADR-0170", "ADR-0224..ADR-0233", "ADR-0247", "ADR-0256", "ADR-0259..ADR-0262", "ADR-0264..ADR-0271", "ADR-0274..ADR-0275", "ADR-0277..ADR-0279", "ADR-0281..ADR-0283", "ADR-0285..ADR-0291", "ADR-0322..ADR-0323", "ADR-0327", "ADR-0342", "ADR-0345", "ADR-0385..ADR-0386", "ADR-0395..ADR-0396", "ADR-0398..ADR-0475", "ADR-0477", "ADR-0483..ADR-0505", "ADR-0574..ADR-0579", "ADR-0583..ADR-0585", "ADR-0594", "ADR-0601..ADR-0602"],
-    "next_adr": "ADR-0631",
+    "next_adr": "ADR-0632",
     "status_counts": {
       "Accepted": 178,
       "Accepted (amendment)": 2,
       "Amended": 2,
-      "Proposed": 152,
+      "Proposed": 153,
       "Proposed (conditional: Accepted only after ADR-0377-D2 and ADR-0377-D3 code/tests pass)": 1,
       "Proposed (target: Accepted upon PR #143 merge to dev)": 1,
       "Rejected": 1,
@@ -5293,6 +5293,18 @@
       "supersedes": [],
       "superseded_by": [],
       "related": ["ADR-0131", "ADR-0523", "ADR-0535", "ADR-0612", "ADR-0554"]
+    },
+    {
+      "adr": "ADR-0631",
+      "number": 631,
+      "title": "a capability that spans strata has a wrong boundary",
+      "status": "Proposed",
+      "owner": "council-architecture",
+      "date": "2026-08-01",
+      "path": "decisions/ADR-0631-capability-stratum-is-a-boundary-test-split-iam.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0615", "ADR-0512", "ADR-0132", "ADR-0139"]
     }
   ]
 }
