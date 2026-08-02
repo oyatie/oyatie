@@ -2,6 +2,7 @@
 id: ADR-0631
 title: "A capability that spans strata has a wrong boundary, not a tier problem: split iam into iam (S1 PDP) and identity (S3 product), and rehome consent-graph to compliance"
 status: Proposed
+doc_status: published
 planning_impact: true
 deciders: founder
 date: 2026-08-01

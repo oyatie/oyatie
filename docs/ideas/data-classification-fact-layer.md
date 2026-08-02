@@ -1,3 +1,7 @@
+---
+doc_status: drafted
+---
+
 # Spec: Data-Classification Fact Layer
 
 > Status: DRAFT — Phase 1 (Specify) of spec-driven development. Not ratified. No ADR yet.
