@@ -5,6 +5,7 @@
 # previous hand-written rust_library/rust_binary targets globbed non-existent
 # crates/**/*.rs, which fails `buck2 build` with "crate has no srcs".
 #
-# When the implementations land, the generator (scripts/gen_first_party_buck.py)
-# emits the real rust_library/rust_binary targets from cargo metadata, as for every
-# other crate. Until then this package intentionally declares no targets.
+# This package has no Cargo.toml and is not a workspace member, so no generator can reach it.
+# When the implementations land they ship a hand-written BUCK (the buck2-native per-package
+# mechanism), and //tools/oya-buck-test-wiring-app wires the rust_test. Until then this package
+# intentionally declares no targets.
