@@ -1,46 +1,8 @@
-//! # cloud-ci-substrate-dependency-dag-acyclicity (ADR-0280 §D-3)
+//! Runtime-face-aware substrate graph-v2 validator (ADR-0635).
 //!
-//! The principal enforcement surface for the substrate-of-substrate dependency doctrine
-//! (ADR-0280, amended by ADR-0520 + ADR-0562). It loads the policy-declared substrate DAG and
-//! proves the substrate dependency graph is a DAG:
-//!
-//! 1. **Schema shape** — every node carries the §D-1 `required` fields; every edge carries the
-//!    §D-1 `required` fields with a `cascade_rule` in the allowed enum; endpoints reference
-//!    declared nodes.
-//! 2. **Acyclicity (Tarjan)** — strongly-connected-components; any SCC of size > 1 is a cycle
-//!    and fails closed (ADR-0280 R-12: cycles are BLOCKER, no exception path).
-//! 3. **Forbidden-edge honouring** — every `forbidden_edges_assertion {from,to,reason}` MUST NOT
-//!    appear in `edges` (the negative-space invariant, e.g. the cell-leaf assertions and the
-//!    cloud-secrets->identity bootstrap-only seam).
-//! 4. **Topological-sort coherence (Kahn)** — `bootstrap_order` MUST equal Kahn's deterministic
-//!    topo-sort (alphabetical tie-break on equal in-degree). The bootstrap order is DERIVED by
-//!    querying the DAG, never hard-coded (ADR-0280 §D-4).
-//!
-//! ## Born pack-shaped (R0)
-//! The crate is a NEUTRAL graph engine. Repo-specific adoption points live in
-//! `substrate-dependency-dag-policy.json`; the Tarjan / Kahn / forbidden-edge / schema-shape
-//! logic is pure and runs on any DAG document of this schema. The kernel fixes only the algorithm,
-//! not the data.
-//!
-//! ## Kernel contract
-//! - [`parse_policy`] `(bytes) -> Result<Policy, DagError>` reads the data-pack boundary.
-//! - [`parse_dag`] `(bytes) -> Result<Dag, DagError>` is the DAG parse boundary (pure; no I/O).
-//! - [`load_dag`] `(root, path) -> Result<Dag, DagError>` is the only I/O (read-only file read).
-//! - [`evaluate`] `(&Dag) -> Report` is PURE and unit-testable without a filesystem; it keys
-//!   every finding by a stable code.
-//! - [`tarjan_sccs`] / [`kahn_topo_sort`] are pure graph primitives, directly testable.
-//!
-//! ## Violation codes (the contract — literal strings the gate emits)
-//! - `dag_parse_error`        — the document is not valid JSON / not the DAG schema shape.
-//! - `dag_node_missing_field` — a node is missing a §D-1 `required` field.
-//! - `dag_edge_missing_field` — an edge is missing a §D-1 `required` field.
-//! - `dag_edge_bad_cascade`   — an edge `cascade_rule` is outside {FULL,DEGRADED,BROWNOUT,INDEPENDENT}.
-//! - `dag_edge_unknown_node`  — an edge endpoint references an undeclared node.
-//! - `dag_cycle`              — a strongly-connected component of size > 1 (a cycle).
-//! - `dag_forbidden_edge`     — an edge present that a `forbidden_edges_assertion` forbids.
-//! - `dag_bootstrap_drift`    — `bootstrap_order` != Kahn deterministic topological sort.
-//!
-//! ADR-0083 Tier-3: production code carries no unwrap/expect/panic; `#![forbid(unsafe_code)]`.
+//! The document contains exactly five separately typed graphs. Only
+//! `steady_state_request` is constrained to be acyclic. The failure graph is not authored
+//! independently: it must equal the max-min reverse transitive closure of the steady-state graph.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
@@ -49,172 +11,170 @@ use std::fs;
 use std::path::{Component, Path};
 
 use serde_json::Value;
+use sha2::{Digest, Sha256};
 
-/// The gate id, matching the buck2 target stem + the doctrine.
 pub const GATE_ID: &str = "cloud-ci-substrate-dependency-dag-acyclicity";
-
-/// Default policy data-pack path, relative to the repo root.
-pub const DEFAULT_POLICY_PATH: &str = "ci/facade/dependency-graph-acyclicity/substrate-dependency-dag-policy.json";
-
-/// The §D-1 node `required` fields.
-pub const NODE_REQUIRED_FIELDS: [&str; 6] = [
-    "name",
-    "tier_subtype",
-    "dr_tier",
-    "slo_floor",
-    "brownout_protocol_version",
-    "chaos_drill_cadence_days",
+pub const DEFAULT_POLICY_PATH: &str =
+    "ci/facade/dependency-graph-acyclicity/substrate-dependency-dag-policy.json";
+pub const GRAPH_KINDS: [&str; 5] = [
+    "genesis",
+    "new_cell_provisioning",
+    "steady_state_request",
+    "control_data_publication",
+    "failure_brownout_propagation",
 ];
-
-/// The §D-1 edge `required` fields.
-pub const EDGE_REQUIRED_FIELDS: [&str; 6] = [
-    "from",
-    "to",
-    "dependency_weight",
-    "cascade_rule",
-    "version_compatibility_range",
-    "cedar_permit_fragment",
+pub const IMPACT_RULES: [&str; 4] = ["INDEPENDENT", "BROWNOUT", "DEGRADED", "FULL"];
+pub const DEPENDENCY_UNIT_COUNT: usize = 19;
+pub const CAPABILITY_COUNT: usize = 24;
+pub const SCHEMA_CANONICAL_SHA256: &str =
+    "11ff9eddf5974b8f82c06e1bc6fd4ee79cbc3e4364859e187d684e45fae8717a";
+pub const GRAPH_DOCTRINE_ADRS: [&str; 5] =
+    ["ADR-0245", "ADR-0280", "ADR-0562", "ADR-0615", "ADR-0635"];
+const DEPENDENCY_UNIT_AUTHORITY: [(&str, &str, &str, &str); DEPENDENCY_UNIT_COUNT] = [
+    ("network.bootstrap", "network", "bootstrap", "B0"),
+    ("cell.envelope", "cell", "envelope", "B0"),
+    ("cell.genesis", "cell", "genesis", "G"),
+    ("cell.lifecycle.cp", "cell", "lifecycle.cp", "G"),
+    ("cell.router.dp", "cell", "router.dp", "R"),
+    ("iam.admin.cp", "iam", "admin.cp", "G"),
+    ("iam.local-verifier", "iam", "local-verifier", "C0"),
+    ("tenancy.directory.cp", "tenancy", "directory.cp", "G"),
+    ("tenancy.local-context", "tenancy", "local-context", "C0"),
+    ("policy.authoring.cp", "policy", "authoring.cp", "G"),
+    ("policy.local-pdp", "policy", "local-pdp", "C0"),
+    ("secrets.root-control", "secrets", "root-control", "G"),
+    ("secrets.cell-issuer", "secrets", "cell-issuer", "C0"),
+    (
+        "audit.control-aggregation",
+        "audit",
+        "control-aggregation",
+        "G",
+    ),
+    ("audit.cell-seal", "audit", "cell-seal", "C1"),
+    (
+        "observability.cell-runtime",
+        "observability",
+        "cell-runtime",
+        "C1",
+    ),
+    ("data.ontology-runtime", "data", "ontology-runtime", "C1"),
+    ("intelligence.runtime", "intelligence", "runtime", "C2"),
+    ("workflow.runtime", "workflow", "runtime", "C2"),
 ];
+const PATH_RULE: &str = "minimum severity across every steady_state_request edge on a path; a weak propagation edge bounds that path";
+const MULTI_PATH_RULE: &str = "maximum severity across all paths from impacted_unit to failed_unit; the strongest propagation path wins";
+const CLOSURE_DIRECTION: &str =
+    "reverse_transitive_closure: request dependency A -> B yields failure propagation B -> A";
 
-/// The §D-1 `cascade_rule` enum.
-pub const CASCADE_RULES: [&str; 4] = ["FULL", "DEGRADED", "BROWNOUT", "INDEPENDENT"];
-
-/// The blocking violation codes, in canonical order.
-pub const VIOLATION_CODES: [&str; 8] = [
-    "dag_parse_error",
-    "dag_node_missing_field",
-    "dag_edge_missing_field",
-    "dag_edge_bad_cascade",
-    "dag_edge_unknown_node",
-    "dag_cycle",
-    "dag_forbidden_edge",
-    "dag_bootstrap_drift",
-];
-
-// ───────────────────────────── parsed DAG ─────────────────────────────
-
-/// Policy data for this gate. Repo-specific adoption points belong here, not in Rust constants.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Policy {
-    /// The gate id this policy configures; must equal [`GATE_ID`].
     pub gate_id: String,
-    /// Repo-relative path to the substrate dependency DAG document.
     pub dag_path: String,
+    pub schema_path: String,
+    pub capability_registry_path: String,
 }
 
-/// A parsed substrate dependency DAG: the node set (in declared order), the directed edges, the
-/// declared bootstrap order, and the forbidden-edge negative-space assertions.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Dag {
-    /// Node names in declared order.
-    pub nodes: Vec<String>,
-    /// Directed edges `(from, to)` in declared order. A `from` DEPENDS ON `to`.
-    pub edges: Vec<(String, String)>,
-    /// The declared bootstrap order.
-    pub bootstrap_order: Vec<String>,
-    /// The forbidden-edge assertions `(from, to)`.
-    pub forbidden_edges: Vec<(String, String)>,
+    raw: Value,
 }
 
-/// Why a document cannot be parsed into a [`Dag`]. Returned instead of panicking.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum DagError {
-    /// Not valid JSON, or not the DAG schema shape (with a human-readable reason).
     Parse(String),
-    /// The file could not be read (with a human-readable reason).
     Io(String),
 }
 
 impl std::fmt::Display for DagError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            DagError::Parse(reason) => write!(f, "dag parse error: {reason}"),
-            DagError::Io(reason) => write!(f, "dag io error: {reason}"),
+            Self::Parse(reason) => write!(f, "dag parse error: {reason}"),
+            Self::Io(reason) => write!(f, "dag io error: {reason}"),
         }
     }
 }
 
 impl std::error::Error for DagError {}
 
-// ───────────────────────────── findings + report ─────────────────────────────
-
-/// A single coherence violation, keyed by code + a stable subject.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Finding {
-    /// One of [`VIOLATION_CODES`].
     pub code: String,
-    /// A stable subject (e.g. an edge `from->to` or a node name).
     pub subject: String,
-    /// Human-readable detail.
     pub detail: String,
 }
 
-/// The Green/Red verdict.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Verdict {
     Green,
     Red,
 }
 
-/// The evaluation report: ordered findings + the derived Kahn topo-sort + the verdict.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Report {
     pub findings: Vec<Finding>,
-    /// The Kahn deterministic topological sort (the DERIVED bootstrap order). `None` when a cycle
-    /// makes a total order impossible.
     pub derived_bootstrap_order: Option<Vec<String>>,
     pub verdict: Verdict,
 }
 
-impl Report {
-    fn from_findings(findings: Vec<Finding>, derived: Option<Vec<String>>) -> Self {
-        let verdict = if findings.is_empty() {
-            Verdict::Green
-        } else {
-            Verdict::Red
-        };
-        Report {
-            findings,
-            derived_bootstrap_order: derived,
-            verdict,
-        }
+fn finding(code: &str, subject: impl Into<String>, detail: impl Into<String>) -> Finding {
+    Finding {
+        code: code.to_owned(),
+        subject: subject.into(),
+        detail: detail.into(),
     }
 }
 
-// ───────────────────────────── parse boundary ─────────────────────────────
-
-/// Read the policy document from `<root>/<path>` and parse it. Read-only I/O.
 pub fn load_policy(root: &Path, path: &str) -> Result<Policy, DagError> {
     let full = root.join(path);
-    let bytes =
-        fs::read_to_string(&full).map_err(|e| DagError::Io(format!("{}: {e}", full.display())))?;
+    let bytes = fs::read_to_string(&full)
+        .map_err(|error| DagError::Io(format!("{}: {error}", full.display())))?;
     parse_policy(&bytes)
 }
 
-/// Parse the gate policy from JSON bytes. PURE — no I/O. Fails closed if the policy points outside
-/// the repo-relative data-pack boundary.
 pub fn parse_policy(bytes: &str) -> Result<Policy, DagError> {
     let value: Value = serde_json::from_str(bytes)
-        .map_err(|e| DagError::Parse(format!("invalid policy json: {e}")))?;
-    let gate_id = required_string(&value, "gate_id")?;
+        .map_err(|error| DagError::Parse(format!("invalid policy json: {error}")))?;
+    let gate_id = required_string(&value, "gate_id", "policy")?;
     if gate_id != GATE_ID {
         return Err(DagError::Parse(format!(
             "policy gate_id `{gate_id}` does not match `{GATE_ID}`"
         )));
     }
-    let dag_path = required_string(&value, "dag_path")?;
+    let dag_path = required_string(&value, "dag_path", "policy")?;
+    let schema_path = required_string(&value, "schema_path", "policy")?;
+    let capability_registry_path = required_string(&value, "capability_registry_path", "policy")?;
     validate_repo_relative_path("dag_path", dag_path)?;
+    validate_repo_relative_path("schema_path", schema_path)?;
+    validate_repo_relative_path("capability_registry_path", capability_registry_path)?;
+    let allowed: BTreeSet<&str> = [
+        "_comment",
+        "gate_id",
+        "dag_path",
+        "schema_path",
+        "capability_registry_path",
+    ]
+    .into_iter()
+    .collect();
+    if let Some(object) = value.as_object()
+        && let Some(extra) = object.keys().find(|key| !allowed.contains(key.as_str()))
+    {
+        return Err(DagError::Parse(format!(
+            "policy closed schema rejects property `{extra}`"
+        )));
+    }
     Ok(Policy {
         gate_id: gate_id.to_owned(),
         dag_path: dag_path.to_owned(),
+        schema_path: schema_path.to_owned(),
+        capability_registry_path: capability_registry_path.to_owned(),
     })
 }
 
-fn required_string<'a>(value: &'a Value, key: &str) -> Result<&'a str, DagError> {
+fn required_string<'a>(value: &'a Value, key: &str, subject: &str) -> Result<&'a str, DagError> {
     value
         .get(key)
         .and_then(Value::as_str)
-        .ok_or_else(|| DagError::Parse(format!("policy missing string `{key}`")))
+        .ok_or_else(|| DagError::Parse(format!("{subject} missing string `{key}`")))
 }
 
 fn validate_repo_relative_path(field: &str, path: &str) -> Result<(), DagError> {
@@ -223,17 +183,16 @@ fn validate_repo_relative_path(field: &str, path: &str) -> Result<(), DagError> 
             "policy `{field}` must not be empty"
         )));
     }
-    let parsed = Path::new(path);
-    for component in parsed.components() {
+    for component in Path::new(path).components() {
         match component {
             Component::ParentDir => {
                 return Err(DagError::Parse(format!(
-                    "policy `{field}` must stay repo-relative and must not contain `..`: {path}"
+                    "policy `{field}` must not contain `..`: {path}"
                 )));
             }
             Component::RootDir | Component::Prefix(_) => {
                 return Err(DagError::Parse(format!(
-                    "policy `{field}` must be repo-relative, got {path}"
+                    "policy `{field}` must be repo-relative: {path}"
                 )));
             }
             Component::CurDir | Component::Normal(_) => {}
@@ -242,718 +201,1340 @@ fn validate_repo_relative_path(field: &str, path: &str) -> Result<(), DagError> 
     Ok(())
 }
 
-/// Read the DAG document from `<root>/<path>` and parse it. Read-only I/O.
 pub fn load_dag(root: &Path, path: &str) -> Result<Dag, DagError> {
     let full = root.join(path);
-    let bytes =
-        fs::read_to_string(&full).map_err(|e| DagError::Io(format!("{}: {e}", full.display())))?;
+    let bytes = fs::read_to_string(&full)
+        .map_err(|error| DagError::Io(format!("{}: {error}", full.display())))?;
     parse_dag(&bytes)
 }
 
-/// Parse a DAG document from JSON bytes. PURE — no I/O. Validates only the SHAPE needed to build
-/// the graph; the field-completeness + cascade-enum + endpoint checks are findings in [`evaluate`]
-/// so the gate surfaces ALL coherence problems rather than aborting on the first.
-pub fn parse_dag(bytes: &str) -> Result<Dag, DagError> {
-    let value: Value =
-        serde_json::from_str(bytes).map_err(|e| DagError::Parse(format!("invalid json: {e}")))?;
-
-    let nodes = parse_node_names(&value)?;
-    let edges = parse_edge_endpoints(&value)?;
-    let bootstrap_order = parse_string_array(&value, "bootstrap_order")?;
-    let forbidden_edges = parse_forbidden_edges(&value)?;
-
-    Ok(Dag {
-        nodes,
-        edges,
-        bootstrap_order,
-        forbidden_edges,
-    })
+pub fn load_json(root: &Path, path: &str) -> Result<Value, DagError> {
+    let full = root.join(path);
+    let bytes = fs::read_to_string(&full)
+        .map_err(|error| DagError::Io(format!("{}: {error}", full.display())))?;
+    serde_json::from_str(&bytes)
+        .map_err(|error| DagError::Parse(format!("{}: invalid json: {error}", full.display())))
 }
 
-fn parse_node_names(value: &Value) -> Result<Vec<String>, DagError> {
-    let arr = value
-        .get("nodes")
+pub fn parse_dag(bytes: &str) -> Result<Dag, DagError> {
+    let raw: Value = serde_json::from_str(bytes)
+        .map_err(|error| DagError::Parse(format!("invalid json: {error}")))?;
+    if !raw.is_object() {
+        return Err(DagError::Parse("top level must be an object".to_owned()));
+    }
+    if !raw.get("dependency_units").is_some_and(Value::is_array) {
+        return Err(DagError::Parse(
+            "missing `dependency_units` array".to_owned(),
+        ));
+    }
+    if !raw.get("graphs").is_some_and(Value::is_array) {
+        return Err(DagError::Parse("missing `graphs` array".to_owned()));
+    }
+    Ok(Dag { raw })
+}
+
+pub fn evaluate(dag: &Dag, schema: &Value, capability_registry: &Value) -> Report {
+    evaluate_with_raw(dag, &dag.raw, schema, capability_registry)
+}
+
+pub fn evaluate_with_raw(
+    _dag: &Dag,
+    raw: &Value,
+    schema: &Value,
+    capability_registry: &Value,
+) -> Report {
+    let mut findings = Vec::new();
+    check_schema_authority(schema, &mut findings);
+    check_top_level(raw, &mut findings);
+    let capabilities = check_capability_registry(capability_registry, &mut findings);
+    let units = check_dependency_units(raw, &capabilities, &mut findings);
+    let external_anchors = check_external_anchors(raw, &mut findings);
+    let endpoints: BTreeSet<String> = units.union(&external_anchors).cloned().collect();
+    let graph_map = check_graph_set(raw, &mut findings);
+
+    let mut steady_edges = Vec::new();
+    let mut bootstrap_order = Vec::new();
+    let mut forbidden_edges = Vec::new();
+    let mut declared_failure = Vec::new();
+
+    for (kind, graph) in &graph_map {
+        check_graph_shape(kind, graph, &mut findings);
+        let edges = graph.get("edges").and_then(Value::as_array);
+        let Some(edges) = edges else {
+            findings.push(finding(
+                "dag_schema_violation",
+                kind,
+                "graph missing `edges` array",
+            ));
+            continue;
+        };
+        let mut seen_edges = BTreeSet::new();
+        for (index, edge) in edges.iter().enumerate() {
+            check_edge(
+                kind,
+                index,
+                edge,
+                &endpoints,
+                &external_anchors,
+                &mut steady_edges,
+                &mut declared_failure,
+                &mut seen_edges,
+                &mut findings,
+            );
+        }
+        if kind == "steady_state_request" {
+            bootstrap_order = string_array(graph.get("bootstrap_order"));
+            forbidden_edges = parse_forbidden_edges(graph, &units, &mut findings);
+        }
+    }
+
+    let request_units: BTreeSet<String> = steady_edges
+        .iter()
+        .flat_map(|edge: &RequestEdge| [edge.from.clone(), edge.to.clone()])
+        .collect();
+    let request_pairs: Vec<(String, String)> = steady_edges
+        .iter()
+        .map(|edge| (edge.from.clone(), edge.to.clone()))
+        .collect();
+
+    let sccs = tarjan_sccs(&request_units, &request_pairs);
+    for component in sccs {
+        let self_loop = component.len() == 1
+            && request_pairs
+                .iter()
+                .any(|(from, to)| from == &component[0] && to == &component[0]);
+        if component.len() > 1 || self_loop {
+            findings.push(finding(
+                "dag_cycle",
+                component.join(" -> "),
+                "steady_state_request contains a directed cycle; other graph kinds are not subject to this invariant",
+            ));
+        }
+    }
+
+    let derived = kahn_dependency_first(&request_units, &request_pairs);
+    if let Some(order) = &derived {
+        if let Some(reason) =
+            validate_bootstrap_order(&request_units, &request_pairs, &bootstrap_order)
+        {
+            findings.push(finding("dag_bootstrap_drift", "bootstrap_order", reason));
+        }
+        if order.len() != request_units.len() {
+            findings.push(finding(
+                "dag_bootstrap_drift",
+                "bootstrap_order",
+                "derived order does not cover every steady-state dependency unit",
+            ));
+        }
+    } else {
+        findings.push(finding(
+            "dag_bootstrap_drift",
+            "bootstrap_order",
+            "no dependency-first topological order exists",
+        ));
+    }
+
+    let request_set: BTreeSet<(String, String)> = request_pairs.iter().cloned().collect();
+    for (from, to) in forbidden_edges {
+        if request_set.contains(&(from.clone(), to.clone())) {
+            findings.push(finding(
+                "dag_forbidden_edge",
+                format!("{from}->{to}"),
+                "steady-state edge is present but explicitly forbidden",
+            ));
+        }
+    }
+
+    check_failure_closure(&steady_edges, &declared_failure, &mut findings);
+
+    findings.sort();
+    findings.dedup();
+    Report {
+        verdict: if findings.is_empty() {
+            Verdict::Green
+        } else {
+            Verdict::Red
+        },
+        findings,
+        derived_bootstrap_order: derived,
+    }
+}
+
+fn check_schema_authority(schema: &Value, findings: &mut Vec<Finding>) {
+    let digest = serde_json::to_vec(schema)
+        .ok()
+        .map(|bytes| format!("{:x}", Sha256::digest(bytes)));
+    if schema.get("$schema").and_then(Value::as_str)
+        != Some("https://json-schema.org/draft/2020-12/schema")
+        || digest.as_deref() != Some(SCHEMA_CANONICAL_SHA256)
+    {
+        findings.push(finding(
+            "dag_schema_authority_mismatch",
+            "substrate-dependency-dag.schema.json",
+            format!(
+                "schema must be the reviewed Draft 2020-12 authority with sha256 {}; got {:?}",
+                SCHEMA_CANONICAL_SHA256, digest
+            ),
+        ));
+    }
+}
+
+fn check_top_level(raw: &Value, findings: &mut Vec<Finding>) {
+    let allowed: BTreeSet<&str> = [
+        "_comment",
+        "$schema",
+        "schema",
+        "version",
+        "doctrine_adrs",
+        "external_anchors",
+        "dependency_units",
+        "failure_impact_composition",
+        "graphs",
+        "mandatory_follow_ups",
+    ]
+    .into_iter()
+    .collect();
+    check_closed_object("document", raw, &allowed, "dag_schema_violation", findings);
+    check_required_properties(
+        "document",
+        raw,
+        &[
+            "$schema",
+            "schema",
+            "version",
+            "doctrine_adrs",
+            "external_anchors",
+            "dependency_units",
+            "failure_impact_composition",
+            "graphs",
+            "mandatory_follow_ups",
+        ],
+        "dag_schema_violation",
+        findings,
+    );
+    if raw.get("_comment").is_some_and(|value| !value.is_string()) {
+        findings.push(finding(
+            "dag_schema_violation",
+            "_comment",
+            "optional comment must be a string",
+        ));
+    }
+    for (key, expected) in [
+        ("$schema", "https://json-schema.org/draft/2020-12/schema"),
+        ("schema", "specs/substrate-dependency-dag.schema.json"),
+        ("version", "2.0.0"),
+    ] {
+        if raw.get(key).and_then(Value::as_str) != Some(expected) {
+            findings.push(finding(
+                "dag_schema_violation",
+                key,
+                format!("must equal `{expected}`"),
+            ));
+        }
+    }
+    let doctrine = raw.get("doctrine_adrs").and_then(Value::as_array);
+    let doctrine_matches = doctrine.is_some_and(|items| {
+        items.len() == GRAPH_DOCTRINE_ADRS.len()
+            && items
+                .iter()
+                .zip(GRAPH_DOCTRINE_ADRS)
+                .all(|(actual, expected)| actual.as_str() == Some(expected))
+    });
+    if !doctrine_matches {
+        findings.push(finding(
+            "dag_schema_violation",
+            "doctrine_adrs",
+            format!("must equal {GRAPH_DOCTRINE_ADRS:?}"),
+        ));
+    }
+
+    let composition = raw.get("failure_impact_composition");
+    let null = Value::Null;
+    let composition_value = composition.unwrap_or(&null);
+    let composition_allowed: BTreeSet<&str> = [
+        "path_rule",
+        "multi_path_rule",
+        "severity_order",
+        "closure_direction",
+    ]
+    .into_iter()
+    .collect();
+    check_closed_object(
+        "failure_impact_composition",
+        composition_value,
+        &composition_allowed,
+        "dag_schema_violation",
+        findings,
+    );
+    check_required_properties(
+        "failure_impact_composition",
+        composition_value,
+        &[
+            "path_rule",
+            "multi_path_rule",
+            "severity_order",
+            "closure_direction",
+        ],
+        "dag_schema_violation",
+        findings,
+    );
+    for (key, expected) in [
+        ("path_rule", PATH_RULE),
+        ("multi_path_rule", MULTI_PATH_RULE),
+        ("closure_direction", CLOSURE_DIRECTION),
+    ] {
+        if composition
+            .and_then(|value| value.get(key))
+            .and_then(Value::as_str)
+            != Some(expected)
+        {
+            findings.push(finding(
+                "dag_schema_violation",
+                format!("failure_impact_composition.{key}"),
+                format!("must equal `{expected}`"),
+            ));
+        }
+    }
+    let severity = composition
+        .and_then(|value| value.get("severity_order"))
         .and_then(Value::as_array)
-        .ok_or_else(|| DagError::Parse("missing `nodes` array".to_owned()))?;
-    let mut out = Vec::with_capacity(arr.len());
-    for (i, n) in arr.iter().enumerate() {
-        let name = n
+        .map(|items| items.iter().filter_map(Value::as_str).collect::<Vec<_>>());
+    if severity.as_deref() != Some(IMPACT_RULES.as_slice()) {
+        findings.push(finding(
+            "dag_schema_violation",
+            "failure_impact_composition.severity_order",
+            "must declare INDEPENDENT < BROWNOUT < DEGRADED < FULL",
+        ));
+    }
+    let follow_up_items = raw.get("mandatory_follow_ups").and_then(Value::as_array);
+    let follow_ups: BTreeSet<&str> = follow_up_items
+        .into_iter()
+        .flatten()
+        .filter_map(|item| item.get("id").and_then(Value::as_str))
+        .collect();
+    let expected: BTreeSet<&str> = ["W0-C-MODULE-MEMBERSHIP", "W0-C-LAYER-RANKS"]
+        .into_iter()
+        .collect();
+    if follow_up_items.is_none_or(|items| items.len() != 2) || follow_ups != expected {
+        findings.push(finding(
+            "dag_schema_violation",
+            "mandatory_follow_ups",
+            "must carry the module-membership and layer-rank migrations without baselines",
+        ));
+    }
+    let allowed_follow_up: BTreeSet<&str> = ["id", "status", "constraint"].into_iter().collect();
+    for (index, item) in follow_up_items.into_iter().flatten().enumerate() {
+        let subject = format!("mandatory_follow_ups[{index}]");
+        check_closed_object(
+            &subject,
+            item,
+            &allowed_follow_up,
+            "dag_schema_violation",
+            findings,
+        );
+        check_required_properties(
+            &subject,
+            item,
+            &["id", "status", "constraint"],
+            "dag_schema_violation",
+            findings,
+        );
+        if item.get("status").and_then(Value::as_str) != Some("required-not-in-this-slice")
+            || !is_non_empty_string(item.get("constraint"))
+        {
+            findings.push(finding(
+                "dag_schema_violation",
+                subject,
+                "follow-up requires locked status and non-empty constraint",
+            ));
+        }
+    }
+}
+
+fn check_capability_registry(registry: &Value, findings: &mut Vec<Finding>) -> BTreeSet<String> {
+    let mut capabilities = BTreeSet::new();
+    let rows = registry.get("capabilities").and_then(Value::as_array);
+    if registry.get("closed").and_then(Value::as_bool) != Some(true)
+        || registry.get("registry_kind").and_then(Value::as_str) != Some("capability")
+        || rows.is_none_or(|items| items.len() != CAPABILITY_COUNT)
+    {
+        findings.push(finding(
+            "dag_capability_registry_invalid",
+            "capability_registry",
+            "canonical registry must be closed, kind=capability, and contain exactly 24 rows",
+        ));
+    }
+    for (index, row) in rows.into_iter().flatten().enumerate() {
+        let Some(name) = row
             .get("name")
             .and_then(Value::as_str)
-            .ok_or_else(|| DagError::Parse(format!("node[{i}] missing string `name`")))?;
-        out.push(name.to_owned());
-    }
-    Ok(out)
-}
-
-fn parse_edge_endpoints(value: &Value) -> Result<Vec<(String, String)>, DagError> {
-    let arr = value
-        .get("edges")
-        .and_then(Value::as_array)
-        .ok_or_else(|| DagError::Parse("missing `edges` array".to_owned()))?;
-    let mut out = Vec::with_capacity(arr.len());
-    for (i, e) in arr.iter().enumerate() {
-        let from = e
-            .get("from")
-            .and_then(Value::as_str)
-            .ok_or_else(|| DagError::Parse(format!("edge[{i}] missing string `from`")))?;
-        let to = e
-            .get("to")
-            .and_then(Value::as_str)
-            .ok_or_else(|| DagError::Parse(format!("edge[{i}] missing string `to`")))?;
-        out.push((from.to_owned(), to.to_owned()));
-    }
-    Ok(out)
-}
-
-fn parse_string_array(value: &Value, key: &str) -> Result<Vec<String>, DagError> {
-    let arr = value
-        .get(key)
-        .and_then(Value::as_array)
-        .ok_or_else(|| DagError::Parse(format!("missing `{key}` array")))?;
-    let mut out = Vec::with_capacity(arr.len());
-    for (i, v) in arr.iter().enumerate() {
-        let s = v
-            .as_str()
-            .ok_or_else(|| DagError::Parse(format!("{key}[{i}] is not a string")))?;
-        out.push(s.to_owned());
-    }
-    Ok(out)
-}
-
-fn parse_forbidden_edges(value: &Value) -> Result<Vec<(String, String)>, DagError> {
-    // forbidden_edges_assertion is optional in the schema; treat absence as an empty set.
-    let Some(arr) = value.get("forbidden_edges_assertion") else {
-        return Ok(Vec::new());
-    };
-    let arr = arr
-        .as_array()
-        .ok_or_else(|| DagError::Parse("`forbidden_edges_assertion` is not an array".to_owned()))?;
-    let mut out = Vec::with_capacity(arr.len());
-    for (i, e) in arr.iter().enumerate() {
-        let from = e.get("from").and_then(Value::as_str).ok_or_else(|| {
-            DagError::Parse(format!(
-                "forbidden_edges_assertion[{i}] missing string `from`"
-            ))
-        })?;
-        let to = e.get("to").and_then(Value::as_str).ok_or_else(|| {
-            DagError::Parse(format!(
-                "forbidden_edges_assertion[{i}] missing string `to`"
-            ))
-        })?;
-        out.push((from.to_owned(), to.to_owned()));
-    }
-    Ok(out)
-}
-
-// ───────────────────────────── schema-completeness checks ─────────────────────────────
-
-/// Push a finding for every node/edge that omits a §D-1 `required` field, every edge whose
-/// `cascade_rule` is outside the enum, and every edge endpoint that names an undeclared node.
-/// PURE: re-parses the document `Value` (the caller already proved it parses) to inspect fields the
-/// graph [`Dag`] discards. Keeps [`Dag`] minimal while still surfacing schema drift.
-fn check_schema_completeness(value: &Value, dag: &Dag, findings: &mut Vec<Finding>) {
-    let node_set: BTreeSet<&str> = dag.nodes.iter().map(String::as_str).collect();
-
-    if let Some(nodes) = value.get("nodes").and_then(Value::as_array) {
-        for n in nodes {
-            let name = n.get("name").and_then(Value::as_str).unwrap_or("<unnamed>");
-            for field in NODE_REQUIRED_FIELDS {
-                if n.get(field).is_none() {
-                    findings.push(Finding {
-                        code: "dag_node_missing_field".to_owned(),
-                        subject: name.to_owned(),
-                        detail: format!("node `{name}` missing required field `{field}`"),
-                    });
-                }
-            }
+            .filter(|name| !name.is_empty())
+        else {
+            findings.push(finding(
+                "dag_capability_registry_invalid",
+                format!("capabilities[{index}]"),
+                "capability row requires a non-empty name",
+            ));
+            continue;
+        };
+        if !capabilities.insert(name.to_owned()) {
+            findings.push(finding(
+                "dag_capability_registry_invalid",
+                name,
+                "canonical capability names must be unique",
+            ));
         }
     }
-
-    if let Some(edges) = value.get("edges").and_then(Value::as_array) {
-        for e in edges {
-            let from = e.get("from").and_then(Value::as_str).unwrap_or("?");
-            let to = e.get("to").and_then(Value::as_str).unwrap_or("?");
-            let subject = format!("{from}->{to}");
-            for field in EDGE_REQUIRED_FIELDS {
-                if e.get(field).is_none() {
-                    findings.push(Finding {
-                        code: "dag_edge_missing_field".to_owned(),
-                        subject: subject.clone(),
-                        detail: format!("edge `{subject}` missing required field `{field}`"),
-                    });
-                }
-            }
-            match e.get("cascade_rule").and_then(Value::as_str) {
-                Some(rule) if CASCADE_RULES.contains(&rule) => {}
-                Some(rule) => findings.push(Finding {
-                    code: "dag_edge_bad_cascade".to_owned(),
-                    subject: subject.clone(),
-                    detail: format!(
-                        "edge `{subject}` cascade_rule `{rule}` not in {CASCADE_RULES:?}"
-                    ),
-                }),
-                None => { /* already reported by the missing-field pass */ }
-            }
-            for (role, ep) in [("from", from), ("to", to)] {
-                if !node_set.contains(ep) {
-                    findings.push(Finding {
-                        code: "dag_edge_unknown_node".to_owned(),
-                        subject: subject.clone(),
-                        detail: format!(
-                            "edge `{subject}` `{role}` endpoint `{ep}` is not a declared node"
-                        ),
-                    });
-                }
-            }
-        }
-    }
+    capabilities
 }
 
-// ───────────────────────────── graph primitives ─────────────────────────────
+fn check_external_anchors(raw: &Value, findings: &mut Vec<Finding>) -> BTreeSet<String> {
+    let mut anchors = BTreeSet::new();
+    let rows = raw.get("external_anchors").and_then(Value::as_array);
+    if rows.is_none_or(|items| items.len() != 1) {
+        findings.push(finding(
+            "dag_schema_violation",
+            "external_anchors",
+            "requires exactly one E0 external anchor",
+        ));
+    }
+    let allowed: BTreeSet<&str> = ["id", "plane", "purpose"].into_iter().collect();
+    for (index, anchor) in rows.into_iter().flatten().enumerate() {
+        let subject = format!("external_anchors[{index}]");
+        check_closed_object(&subject, anchor, &allowed, "dag_schema_violation", findings);
+        check_required_properties(
+            &subject,
+            anchor,
+            &["id", "plane", "purpose"],
+            "dag_schema_violation",
+            findings,
+        );
+        let id = anchor.get("id").and_then(Value::as_str);
+        if id.is_none_or(|id| !is_external_id(id))
+            || anchor.get("plane").and_then(Value::as_str) != Some("E0")
+            || !is_non_empty_string(anchor.get("purpose"))
+        {
+            findings.push(finding(
+                "dag_schema_violation",
+                &subject,
+                "external anchor requires external.* id, plane E0, and non-empty purpose",
+            ));
+        }
+        if let Some(id) = id
+            && !anchors.insert(id.to_owned())
+        {
+            findings.push(finding(
+                "dag_duplicate_unit",
+                id,
+                "external anchor ids must be unique",
+            ));
+        }
+    }
+    anchors
+}
 
-/// Build the adjacency map `from -> sorted unique tos`, restricted to declared nodes. Edges whose
-/// endpoints are not declared nodes are dropped here (they are reported separately as
-/// `dag_edge_unknown_node`) so the graph algorithms operate on a well-formed node set.
-fn adjacency(dag: &Dag) -> BTreeMap<String, BTreeSet<String>> {
-    let node_set: BTreeSet<&str> = dag.nodes.iter().map(String::as_str).collect();
-    let mut adj: BTreeMap<String, BTreeSet<String>> = dag
-        .nodes
-        .iter()
-        .map(|n| (n.clone(), BTreeSet::new()))
+fn check_dependency_units(
+    raw: &Value,
+    capabilities: &BTreeSet<String>,
+    findings: &mut Vec<Finding>,
+) -> BTreeSet<String> {
+    let mut units = BTreeSet::new();
+    let mut declared_authority = BTreeSet::new();
+    let allowed: BTreeSet<&str> = ["id", "capability", "runtime_face", "plane", "purpose"]
+        .into_iter()
         .collect();
-    for (from, to) in &dag.edges {
-        if node_set.contains(from.as_str()) && node_set.contains(to.as_str()) {
-            adj.entry(from.clone()).or_default().insert(to.clone());
+    let planes = ["B0", "C0", "C1", "C2", "G", "R"];
+    let rows = raw.get("dependency_units").and_then(Value::as_array);
+    if rows.is_none_or(|items| items.len() != DEPENDENCY_UNIT_COUNT) {
+        findings.push(finding(
+            "dag_dependency_unit_set",
+            "dependency_units",
+            "must contain exactly 19 unique internal dependency units",
+        ));
+    }
+    for (index, unit) in rows.into_iter().flatten().enumerate() {
+        let subject = format!("dependency_units[{index}]");
+        check_closed_object(&subject, unit, &allowed, "dag_schema_violation", findings);
+        check_required_properties(
+            &subject,
+            unit,
+            &["id", "capability", "runtime_face", "plane", "purpose"],
+            "dag_schema_violation",
+            findings,
+        );
+        let id = unit.get("id").and_then(Value::as_str);
+        let capability = unit.get("capability").and_then(Value::as_str);
+        let runtime_face = unit.get("runtime_face").and_then(Value::as_str);
+        let plane = unit.get("plane").and_then(Value::as_str);
+        for field in ["id", "capability", "runtime_face", "plane", "purpose"] {
+            if !is_non_empty_string(unit.get(field)) {
+                findings.push(finding(
+                    "dag_schema_violation",
+                    &subject,
+                    format!("missing non-empty string `{field}`"),
+                ));
+            }
+        }
+        if !unit
+            .get("plane")
+            .and_then(Value::as_str)
+            .is_some_and(|plane| planes.contains(&plane))
+        {
+            findings.push(finding(
+                "dag_schema_violation",
+                &subject,
+                "plane must be one of B0/C0/C1/C2/G/R; E0 belongs to external_anchors",
+            ));
+        }
+        if let Some(capability) = capability
+            && !capabilities.contains(capability)
+        {
+            findings.push(finding(
+                "dag_unknown_capability",
+                &subject,
+                format!("capability `{capability}` is absent from the canonical registry"),
+            ));
+        }
+        if id.is_some_and(|id| !is_dependency_unit_id(id)) {
+            findings.push(finding(
+                "dag_schema_violation",
+                &subject,
+                "id must be a lowercase dot-qualified dependency-unit identifier",
+            ));
+        }
+        if let Some(id) = id
+            && !units.insert(id.to_owned())
+        {
+            findings.push(finding(
+                "dag_duplicate_unit",
+                id,
+                "dependency unit ids must be unique",
+            ));
+        }
+        if let (Some(id), Some(capability), Some(runtime_face), Some(plane)) =
+            (id, capability, runtime_face, plane)
+        {
+            declared_authority.insert((
+                id.to_owned(),
+                capability.to_owned(),
+                runtime_face.to_owned(),
+                plane.to_owned(),
+            ));
         }
     }
-    adj
+    let expected_authority: BTreeSet<(String, String, String, String)> = DEPENDENCY_UNIT_AUTHORITY
+        .iter()
+        .map(|(id, capability, runtime_face, plane)| {
+            (
+                (*id).to_owned(),
+                (*capability).to_owned(),
+                (*runtime_face).to_owned(),
+                (*plane).to_owned(),
+            )
+        })
+        .collect();
+    if declared_authority != expected_authority {
+        findings.push(finding(
+            "dag_dependency_unit_authority_mismatch",
+            "dependency_units",
+            "must equal the founder-authoritative closed set of 19 (id, capability, runtime_face, plane) tuples",
+        ));
+    }
+    units
 }
 
-/// Tarjan's strongly-connected-components. Returns the SCCs (each a sorted node set). Any SCC of
-/// size > 1 is a cycle; a self-loop (a node with an edge to itself) is also returned as a size-1
-/// SCC flagged via [`has_self_loop`]. Pure, O(V+E), iterative (no recursion → no stack overflow on
-/// adversarial input, honouring the no-panic doctrine).
-pub fn tarjan_sccs(dag: &Dag) -> Vec<Vec<String>> {
-    let adj = adjacency(dag);
-    let mut index_counter: usize = 0;
-    let mut indices: BTreeMap<String, usize> = BTreeMap::new();
-    let mut lowlink: BTreeMap<String, usize> = BTreeMap::new();
-    let mut on_stack: BTreeSet<String> = BTreeSet::new();
-    let mut stack: Vec<String> = Vec::new();
-    let mut sccs: Vec<Vec<String>> = Vec::new();
+fn check_graph_set<'a>(raw: &'a Value, findings: &mut Vec<Finding>) -> BTreeMap<String, &'a Value> {
+    let mut graphs = BTreeMap::new();
+    let mut declared = Vec::new();
+    for graph in raw
+        .get("graphs")
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+    {
+        let Some(kind) = graph.get("kind").and_then(Value::as_str) else {
+            findings.push(finding(
+                "dag_graph_kind_set",
+                "graphs",
+                "every graph requires a string kind",
+            ));
+            continue;
+        };
+        declared.push(kind.to_owned());
+        if graphs.insert(kind.to_owned(), graph).is_some() {
+            findings.push(finding(
+                "dag_graph_kind_set",
+                kind,
+                "graph kind is duplicated",
+            ));
+        }
+    }
+    let expected: Vec<String> = GRAPH_KINDS.iter().map(|kind| (*kind).to_owned()).collect();
+    if declared != expected {
+        findings.push(finding(
+            "dag_graph_kind_set",
+            "graphs",
+            format!("must contain exactly {GRAPH_KINDS:?} in canonical order; got {declared:?}"),
+        ));
+    }
+    graphs
+}
 
-    // Iterative Tarjan. Each work-stack frame tracks a node and a cursor into its successor list.
+fn check_graph_shape(kind: &str, graph: &Value, findings: &mut Vec<Finding>) {
+    let keys: &[&str] = match kind {
+        "steady_state_request" => &[
+            "kind",
+            "edge_semantics",
+            "bootstrap_order",
+            "forbidden_edges_assertion",
+            "edges",
+        ],
+        "failure_brownout_propagation" => &["kind", "edge_semantics", "composition", "edges"],
+        _ => &["kind", "edge_semantics", "edges"],
+    };
+    let allowed: BTreeSet<&str> = keys.iter().copied().collect();
+    check_closed_object(kind, graph, &allowed, "dag_schema_violation", findings);
+    check_required_properties(kind, graph, keys, "dag_schema_violation", findings);
+    if graph
+        .get("edge_semantics")
+        .and_then(Value::as_str)
+        .is_none_or(str::is_empty)
+    {
+        findings.push(finding(
+            "dag_schema_violation",
+            kind,
+            "graph requires non-empty edge_semantics",
+        ));
+    }
+    if kind == "failure_brownout_propagation"
+        && graph.get("composition").and_then(Value::as_str) != Some("max_min")
+    {
+        findings.push(finding(
+            "dag_schema_violation",
+            kind,
+            "failure graph composition must equal `max_min`",
+        ));
+    }
+    if kind == "steady_state_request" {
+        check_string_array(
+            "steady_state_request.bootstrap_order",
+            graph.get("bootstrap_order"),
+            true,
+            findings,
+        );
+        if !graph
+            .get("forbidden_edges_assertion")
+            .is_some_and(Value::is_array)
+        {
+            findings.push(finding(
+                "dag_schema_violation",
+                kind,
+                "forbidden_edges_assertion must be an array",
+            ));
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+struct RequestEdge {
+    from: String,
+    to: String,
+    rule: u8,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+struct FailureEdge {
+    failed: String,
+    impacted: String,
+    rule: u8,
+}
+
+#[allow(clippy::too_many_arguments)]
+fn check_edge(
+    kind: &str,
+    index: usize,
+    edge: &Value,
+    endpoints: &BTreeSet<String>,
+    external_anchors: &BTreeSet<String>,
+    steady: &mut Vec<RequestEdge>,
+    failure: &mut Vec<FailureEdge>,
+    seen_edges: &mut BTreeSet<String>,
+    findings: &mut Vec<Finding>,
+) {
+    let subject = format!("{kind}.edges[{index}]");
+    let declared_kind = edge.get("graph_kind").and_then(Value::as_str);
+    if declared_kind != Some(kind) {
+        findings.push(finding(
+            "dag_cross_kind_edge",
+            &subject,
+            format!("edge graph_kind {declared_kind:?} must match containing graph `{kind}`"),
+        ));
+    }
+
+    if kind == "failure_brownout_propagation" {
+        let allowed: BTreeSet<&str> = [
+            "graph_kind",
+            "failed_unit",
+            "impacted_unit",
+            "impact_rule",
+            "derivation",
+        ]
+        .into_iter()
+        .collect();
+        check_closed_object(
+            &subject,
+            edge,
+            &allowed,
+            "dag_failure_edge_malformed",
+            findings,
+        );
+        check_required_properties(
+            &subject,
+            edge,
+            &[
+                "graph_kind",
+                "failed_unit",
+                "impacted_unit",
+                "impact_rule",
+                "derivation",
+            ],
+            "dag_failure_edge_malformed",
+            findings,
+        );
+        let failed = edge.get("failed_unit").and_then(Value::as_str);
+        let impacted = edge.get("impacted_unit").and_then(Value::as_str);
+        let rule = edge
+            .get("impact_rule")
+            .and_then(Value::as_str)
+            .and_then(impact_rank);
+        let derivation = edge.get("derivation").and_then(Value::as_str);
+        if failed.is_none_or(str::is_empty)
+            || impacted.is_none_or(str::is_empty)
+            || rule.is_none()
+            || derivation != Some("max_min_reverse_transitive_closure")
+        {
+            findings.push(finding(
+                "dag_failure_edge_malformed",
+                &subject,
+                "failure edge requires failed_unit, impacted_unit, a valid impact_rule, and max-min derivation",
+            ));
+            return;
+        }
+        let failed = failed.unwrap_or_default();
+        let impacted = impacted.unwrap_or_default();
+        for endpoint in [failed, impacted] {
+            if !endpoints.contains(endpoint) {
+                findings.push(finding(
+                    "dag_edge_unknown_unit",
+                    &subject,
+                    format!("endpoint `{endpoint}` is not a declared dependency unit"),
+                ));
+            }
+        }
+        let identity = format!("{failed}->{impacted}");
+        if !seen_edges.insert(identity.clone()) {
+            findings.push(finding(
+                "dag_duplicate_edge",
+                identity,
+                "duplicate failure edge",
+            ));
+        }
+        if let Some(rule) = rule {
+            failure.push(FailureEdge {
+                failed: failed.to_owned(),
+                impacted: impacted.to_owned(),
+                rule,
+            });
+        }
+        return;
+    }
+
+    let allowed: BTreeSet<&str> = if kind == "steady_state_request" {
+        [
+            "graph_kind",
+            "from",
+            "to",
+            "dependency_weight",
+            "cascade_rule",
+            "version_compatibility_range",
+            "cedar_permit_fragment",
+            "rationale",
+        ]
+        .into_iter()
+        .collect()
+    } else {
+        ["graph_kind", "from", "to", "rationale"]
+            .into_iter()
+            .collect()
+    };
+    check_closed_object(&subject, edge, &allowed, "dag_edge_malformed", findings);
+    check_required_properties(
+        &subject,
+        edge,
+        if kind == "steady_state_request" {
+            &[
+                "graph_kind",
+                "from",
+                "to",
+                "dependency_weight",
+                "cascade_rule",
+                "version_compatibility_range",
+                "cedar_permit_fragment",
+            ]
+        } else {
+            &["graph_kind", "from", "to"]
+        },
+        "dag_edge_malformed",
+        findings,
+    );
+    if edge
+        .get("rationale")
+        .is_some_and(|value| !value.is_string())
+    {
+        findings.push(finding(
+            "dag_edge_malformed",
+            &subject,
+            "optional rationale must be a string",
+        ));
+    }
+    let from = edge.get("from").and_then(Value::as_str);
+    let to = edge.get("to").and_then(Value::as_str);
+    let (Some(from), Some(to)) = (
+        from.filter(|value| !value.is_empty()),
+        to.filter(|value| !value.is_empty()),
+    ) else {
+        findings.push(finding(
+            "dag_edge_malformed",
+            &subject,
+            "edge requires string from and to endpoints",
+        ));
+        return;
+    };
+    for endpoint in [from, to] {
+        if !endpoints.contains(endpoint) {
+            findings.push(finding(
+                "dag_edge_unknown_unit",
+                &subject,
+                format!("endpoint `{endpoint}` is not a declared dependency unit"),
+            ));
+        }
+    }
+    if kind != "genesis"
+        && [from, to]
+            .iter()
+            .any(|endpoint| external_anchors.contains(*endpoint))
+    {
+        findings.push(finding(
+            "dag_edge_unknown_unit",
+            &subject,
+            "external anchors are valid only in the genesis graph",
+        ));
+    }
+    let identity = format!("{from}->{to}");
+    if !seen_edges.insert(identity.clone()) {
+        findings.push(finding(
+            "dag_duplicate_edge",
+            format!("{kind}:{identity}"),
+            "duplicate edge in graph kind",
+        ));
+    }
+    if kind == "steady_state_request" {
+        let rule = edge
+            .get("cascade_rule")
+            .and_then(Value::as_str)
+            .and_then(impact_rank);
+        let weight = edge.get("dependency_weight").and_then(Value::as_f64);
+        let metadata_valid = weight.is_some_and(|weight| weight > 0.0 && weight <= 1.0)
+            && rule.is_some()
+            && is_non_empty_string(edge.get("version_compatibility_range"))
+            && is_non_empty_string(edge.get("cedar_permit_fragment"));
+        if !metadata_valid {
+            findings.push(finding(
+                "dag_edge_malformed",
+                &subject,
+                "steady-state metadata requires weight number in (0,1], valid cascade_rule, and non-empty version/Cedar strings",
+            ));
+        }
+        if let Some(rule) = rule {
+            steady.push(RequestEdge {
+                from: from.to_owned(),
+                to: to.to_owned(),
+                rule,
+            });
+        }
+    }
+}
+
+fn parse_forbidden_edges(
+    graph: &Value,
+    units: &BTreeSet<String>,
+    findings: &mut Vec<Finding>,
+) -> Vec<(String, String)> {
+    let mut out = Vec::new();
+    for (index, edge) in graph
+        .get("forbidden_edges_assertion")
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+        .enumerate()
+    {
+        let subject = format!("steady_state_request.forbidden_edges_assertion[{index}]");
+        let allowed: BTreeSet<&str> = ["from", "to", "reason"].into_iter().collect();
+        check_closed_object(&subject, edge, &allowed, "dag_schema_violation", findings);
+        check_required_properties(
+            &subject,
+            edge,
+            &["from", "to", "reason"],
+            "dag_schema_violation",
+            findings,
+        );
+        let from = edge.get("from").and_then(Value::as_str);
+        let to = edge.get("to").and_then(Value::as_str);
+        let reason_valid = is_non_empty_string(edge.get("reason"));
+        if !reason_valid {
+            findings.push(finding(
+                "dag_schema_violation",
+                &subject,
+                "forbidden edge requires a non-empty string reason",
+            ));
+        }
+        if let (Some(from), Some(to)) = (
+            from.filter(|value| !value.is_empty()),
+            to.filter(|value| !value.is_empty()),
+        ) {
+            for endpoint in [from, to] {
+                if !units.contains(endpoint) {
+                    findings.push(finding(
+                        "dag_edge_unknown_unit",
+                        &subject,
+                        format!("endpoint `{endpoint}` is not declared"),
+                    ));
+                }
+            }
+            out.push((from.to_owned(), to.to_owned()));
+        } else {
+            findings.push(finding(
+                "dag_schema_violation",
+                subject,
+                "forbidden edge requires from and to",
+            ));
+        }
+    }
+    out
+}
+
+fn check_closed_object(
+    subject: &str,
+    value: &Value,
+    allowed: &BTreeSet<&str>,
+    code: &str,
+    findings: &mut Vec<Finding>,
+) {
+    let Some(object) = value.as_object() else {
+        findings.push(finding(code, subject, "must be an object"));
+        return;
+    };
+    for key in object.keys() {
+        if !allowed.contains(key.as_str()) {
+            findings.push(finding(
+                code,
+                subject,
+                format!("closed schema rejects property `{key}`"),
+            ));
+        }
+    }
+}
+
+fn check_required_properties(
+    subject: &str,
+    value: &Value,
+    required: &[&str],
+    code: &str,
+    findings: &mut Vec<Finding>,
+) {
+    let Some(object) = value.as_object() else {
+        return;
+    };
+    for key in required {
+        if !object.contains_key(*key) {
+            findings.push(finding(
+                code,
+                subject,
+                format!("missing required property `{key}`"),
+            ));
+        }
+    }
+}
+
+fn check_string_array(
+    subject: &str,
+    value: Option<&Value>,
+    require_non_empty: bool,
+    findings: &mut Vec<Finding>,
+) {
+    let Some(items) = value.and_then(Value::as_array) else {
+        findings.push(finding("dag_schema_violation", subject, "must be an array"));
+        return;
+    };
+    let strings: Vec<&str> = items.iter().filter_map(Value::as_str).collect();
+    if strings.len() != items.len()
+        || (require_non_empty && strings.is_empty())
+        || strings.iter().any(|item| item.is_empty())
+        || strings.iter().copied().collect::<BTreeSet<_>>().len() != strings.len()
+    {
+        findings.push(finding(
+            "dag_schema_violation",
+            subject,
+            "must contain unique non-empty strings",
+        ));
+    }
+}
+
+fn is_non_empty_string(value: Option<&Value>) -> bool {
+    value
+        .and_then(Value::as_str)
+        .is_some_and(|value| !value.is_empty())
+}
+
+fn is_dependency_unit_id(value: &str) -> bool {
+    let mut segments = value.split('.');
+    let first = segments.next();
+    let rest: Vec<&str> = segments.collect();
+    first.is_some_and(is_slug) && !rest.is_empty() && rest.iter().copied().all(is_slug)
+}
+
+fn is_external_id(value: &str) -> bool {
+    value
+        .strip_prefix("external.")
+        .is_some_and(|suffix| !suffix.is_empty() && suffix.split('.').all(is_slug))
+}
+
+fn is_slug(value: &str) -> bool {
+    !value.is_empty()
+        && value
+            .bytes()
+            .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'-')
+}
+
+fn string_array(value: Option<&Value>) -> Vec<String> {
+    value
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+        .filter_map(Value::as_str)
+        .map(str::to_owned)
+        .collect()
+}
+
+fn impact_rank(rule: &str) -> Option<u8> {
+    IMPACT_RULES
+        .iter()
+        .position(|candidate| candidate == &rule)
+        .and_then(|index| u8::try_from(index).ok())
+}
+
+fn impact_name(rank: u8) -> &'static str {
+    IMPACT_RULES
+        .get(usize::from(rank))
+        .copied()
+        .unwrap_or("INDEPENDENT")
+}
+
+fn check_failure_closure(
+    steady: &[RequestEdge],
+    declared: &[FailureEdge],
+    findings: &mut Vec<Finding>,
+) {
+    let expected = derive_failure_closure(steady);
+    let declared_set: BTreeSet<FailureEdge> = declared.iter().cloned().collect();
+    if declared.len() != declared_set.len() {
+        findings.push(finding(
+            "dag_failure_closure_mismatch",
+            "failure_brownout_propagation",
+            "failure closure contains duplicate entries",
+        ));
+    }
+    if expected != declared_set {
+        let missing: Vec<String> = expected
+            .difference(&declared_set)
+            .map(|edge| {
+                format!(
+                    "{}->{}:{}",
+                    edge.failed,
+                    edge.impacted,
+                    impact_name(edge.rule)
+                )
+            })
+            .collect();
+        let extra: Vec<String> = declared_set
+            .difference(&expected)
+            .map(|edge| {
+                format!(
+                    "{}->{}:{}",
+                    edge.failed,
+                    edge.impacted,
+                    impact_name(edge.rule)
+                )
+            })
+            .collect();
+        findings.push(finding(
+            "dag_failure_closure_mismatch",
+            "failure_brownout_propagation",
+            format!("must equal max-min reverse closure; missing={missing:?}; extra={extra:?}"),
+        ));
+    }
+}
+
+fn derive_failure_closure(steady: &[RequestEdge]) -> BTreeSet<FailureEdge> {
+    let mut units = BTreeSet::new();
+    let mut widest: BTreeMap<(String, String), u8> = BTreeMap::new();
+    for edge in steady {
+        units.insert(edge.from.clone());
+        units.insert(edge.to.clone());
+        let key = (edge.from.clone(), edge.to.clone());
+        widest
+            .entry(key)
+            .and_modify(|rank| *rank = (*rank).max(edge.rule))
+            .or_insert(edge.rule);
+    }
+    let ordered: Vec<String> = units.into_iter().collect();
+    for via in &ordered {
+        for from in &ordered {
+            let Some(left) = widest.get(&(from.clone(), via.clone())).copied() else {
+                continue;
+            };
+            for to in &ordered {
+                let Some(right) = widest.get(&(via.clone(), to.clone())).copied() else {
+                    continue;
+                };
+                let candidate = left.min(right);
+                widest
+                    .entry((from.clone(), to.clone()))
+                    .and_modify(|rank| *rank = (*rank).max(candidate))
+                    .or_insert(candidate);
+            }
+        }
+    }
+    widest
+        .into_iter()
+        .filter(|((impacted, failed), _)| impacted != failed)
+        .map(|((impacted, failed), rule)| FailureEdge {
+            failed,
+            impacted,
+            rule,
+        })
+        .collect()
+}
+
+fn validate_bootstrap_order(
+    units: &BTreeSet<String>,
+    edges: &[(String, String)],
+    order: &[String],
+) -> Option<String> {
+    if order.len() != units.len() {
+        return Some(format!(
+            "contains {} entries but steady-state graph has {} units",
+            order.len(),
+            units.len()
+        ));
+    }
+    let positions: BTreeMap<&str, usize> = order
+        .iter()
+        .enumerate()
+        .map(|(index, unit)| (unit.as_str(), index))
+        .collect();
+    if positions.len() != units.len()
+        || !units
+            .iter()
+            .all(|unit| positions.contains_key(unit.as_str()))
+    {
+        return Some("must contain every steady-state dependency unit exactly once".to_owned());
+    }
+    for (from, to) in edges {
+        let dependent = positions.get(from.as_str()).copied();
+        let dependency = positions.get(to.as_str()).copied();
+        if let (Some(dependent), Some(dependency)) = (dependent, dependency)
+            && dependency >= dependent
+        {
+            return Some(format!("dependency `{to}` must precede dependent `{from}`"));
+        }
+    }
+    None
+}
+
+fn adjacency(
+    units: &BTreeSet<String>,
+    edges: &[(String, String)],
+) -> BTreeMap<String, BTreeSet<String>> {
+    let mut out: BTreeMap<String, BTreeSet<String>> = units
+        .iter()
+        .map(|unit| (unit.clone(), BTreeSet::new()))
+        .collect();
+    for (from, to) in edges {
+        if units.contains(from) && units.contains(to) {
+            out.entry(from.clone()).or_default().insert(to.clone());
+        }
+    }
+    out
+}
+
+fn kahn_dependency_first(
+    units: &BTreeSet<String>,
+    edges: &[(String, String)],
+) -> Option<Vec<String>> {
+    let mut remaining = adjacency(units, edges);
+    let mut emitted = BTreeSet::new();
+    let mut order = Vec::new();
+    while order.len() < units.len() {
+        let ready = remaining
+            .iter()
+            .find(|(unit, dependencies)| !emitted.contains(*unit) && dependencies.is_empty())
+            .map(|(unit, _)| unit.clone());
+        let unit = ready?;
+        emitted.insert(unit.clone());
+        order.push(unit.clone());
+        for dependencies in remaining.values_mut() {
+            dependencies.remove(&unit);
+        }
+    }
+    Some(order)
+}
+
+fn tarjan_sccs(units: &BTreeSet<String>, edges: &[(String, String)]) -> Vec<Vec<String>> {
+    let adj = adjacency(units, edges);
+    let mut next_index = 0usize;
+    let mut indices: BTreeMap<String, usize> = BTreeMap::new();
+    let mut lowlinks: BTreeMap<String, usize> = BTreeMap::new();
+    let mut on_stack = BTreeSet::new();
+    let mut stack = Vec::new();
+    let mut components = Vec::new();
+
     enum Step {
         Enter(String),
-        // Resume `node` after visiting child at successor-cursor `cursor`.
         Resume(String, usize),
     }
-
-    // Deterministic node iteration order (BTreeMap keys are sorted).
-    let node_order: Vec<String> = adj.keys().cloned().collect();
-    let succs: BTreeMap<String, Vec<String>> = adj
-        .iter()
-        .map(|(k, v)| (k.clone(), v.iter().cloned().collect()))
+    let successors: BTreeMap<String, Vec<String>> = adj
+        .into_iter()
+        .map(|(unit, next)| (unit, next.into_iter().collect()))
         .collect();
 
-    for start in &node_order {
+    for start in units {
         if indices.contains_key(start) {
             continue;
         }
-        let mut work: Vec<Step> = vec![Step::Enter(start.clone())];
+        let mut work = vec![Step::Enter(start.clone())];
         while let Some(step) = work.pop() {
             match step {
-                Step::Enter(v) => {
-                    indices.insert(v.clone(), index_counter);
-                    lowlink.insert(v.clone(), index_counter);
-                    index_counter += 1;
-                    stack.push(v.clone());
-                    on_stack.insert(v.clone());
-                    work.push(Step::Resume(v, 0));
+                Step::Enter(unit) => {
+                    indices.insert(unit.clone(), next_index);
+                    lowlinks.insert(unit.clone(), next_index);
+                    next_index += 1;
+                    stack.push(unit.clone());
+                    on_stack.insert(unit.clone());
+                    work.push(Step::Resume(unit, 0));
                 }
-                Step::Resume(v, cursor) => {
-                    let children = succs.get(&v).map(Vec::as_slice).unwrap_or(&[]);
-                    if cursor < children.len() {
-                        let w = children[cursor].clone();
-                        // Schedule resumption at the next cursor, then descend (or fold-up).
-                        work.push(Step::Resume(v.clone(), cursor + 1));
-                        if !indices.contains_key(&w) {
-                            work.push(Step::Enter(w));
-                        } else if on_stack.contains(&w) {
-                            let vi = *lowlink.get(&v).unwrap_or(&0);
-                            let wi = *indices.get(&w).unwrap_or(&0);
-                            lowlink.insert(v.clone(), vi.min(wi));
+                Step::Resume(unit, cursor) => {
+                    let next = successors.get(&unit).map(Vec::as_slice).unwrap_or(&[]);
+                    if cursor < next.len() {
+                        let successor = next[cursor].clone();
+                        work.push(Step::Resume(unit.clone(), cursor + 1));
+                        if !indices.contains_key(&successor) {
+                            work.push(Step::Enter(successor));
+                        } else if on_stack.contains(&successor) {
+                            let current = lowlinks.get(&unit).copied().unwrap_or(0);
+                            let target = indices.get(&successor).copied().unwrap_or(0);
+                            lowlinks.insert(unit, current.min(target));
                         }
                     } else {
-                        // All children done: if v is an SCC root, pop the component.
-                        let vlow = *lowlink.get(&v).unwrap_or(&0);
-                        let vidx = *indices.get(&v).unwrap_or(&0);
-                        if vlow == vidx {
-                            let mut component: Vec<String> = Vec::new();
-                            while let Some(w) = stack.pop() {
-                                on_stack.remove(&w);
-                                component.push(w.clone());
-                                if w == v {
+                        let low = lowlinks.get(&unit).copied().unwrap_or(0);
+                        let index = indices.get(&unit).copied().unwrap_or(0);
+                        if low == index {
+                            let mut component = Vec::new();
+                            while let Some(member) = stack.pop() {
+                                on_stack.remove(&member);
+                                component.push(member.clone());
+                                if member == unit {
                                     break;
                                 }
                             }
                             component.sort();
-                            sccs.push(component);
+                            components.push(component);
                         }
-                        // Propagate lowlink to the parent (the frame just below, if it is our parent).
                         if let Some(Step::Resume(parent, _)) = work.last() {
-                            let pi = *lowlink.get(parent).unwrap_or(&0);
-                            let vi = *lowlink.get(&v).unwrap_or(&0);
+                            let parent_low = lowlinks.get(parent).copied().unwrap_or(0);
+                            let child_low = lowlinks.get(&unit).copied().unwrap_or(0);
                             let parent = parent.clone();
-                            lowlink.insert(parent, pi.min(vi));
+                            lowlinks.insert(parent, parent_low.min(child_low));
                         }
                     }
                 }
             }
         }
     }
-    sccs
+    components
 }
 
-/// True iff any declared node carries an edge to itself (a 1-cycle Tarjan returns as a size-1 SCC).
-pub fn has_self_loop(dag: &Dag) -> Option<String> {
-    let node_set: BTreeSet<&str> = dag.nodes.iter().map(String::as_str).collect();
-    dag.edges
-        .iter()
-        .find(|(from, to)| from == to && node_set.contains(from.as_str()))
-        .map(|(from, _)| from.clone())
-}
-
-/// Kahn's algorithm topological sort with an alphabetical tie-break on equal in-degree (the
-/// ADR-0280 §D-4 deterministic rule). Returns `None` if the graph has a cycle (some nodes never
-/// reach in-degree 0). Pure, O(V+E).
-///
-/// NOTE ON DIRECTION: an edge `from -> to` means `from` DEPENDS ON `to`, so `to` must bootstrap
-/// BEFORE `from`. Kahn therefore peels nodes with zero OUT-degree-into-unbootstrapped first; we
-/// model this as in-degree over the REVERSED edge set (a node is "ready" when all its dependencies
-/// are already emitted), which yields the bootstrap order (leaf `cell` first).
-pub fn kahn_topo_sort(dag: &Dag) -> Option<Vec<String>> {
-    let adj = adjacency(dag); // from -> {to} (dependencies)
-    // remaining[from] = set of not-yet-emitted dependencies of `from`.
-    let mut remaining: BTreeMap<String, BTreeSet<String>> = adj.clone();
-    let mut emitted: BTreeSet<String> = BTreeSet::new();
-    let mut order: Vec<String> = Vec::new();
-    let total = dag.nodes.len();
-
-    while order.len() < total {
-        // Ready = declared nodes, not yet emitted, with all dependencies already emitted.
-        // Alphabetical tie-break: BTreeMap iteration is sorted; pick the FIRST ready node.
-        let ready: Option<String> = remaining
-            .iter()
-            .filter(|(name, deps)| !emitted.contains(name.as_str()) && deps.is_empty())
-            .map(|(name, _)| name.clone())
-            .next();
-        match ready {
-            Some(node) => {
-                emitted.insert(node.clone());
-                order.push(node.clone());
-                // Remove the just-emitted node from every other node's remaining deps.
-                for deps in remaining.values_mut() {
-                    deps.remove(&node);
-                }
-            }
-            // No ready node but not all emitted => a cycle blocks a total order.
-            None => return None,
-        }
-    }
-    Some(order)
-}
-
-/// Why a declared `bootstrap_order` is not a valid topological order of the DAG. Used by the
-/// bootstrap-coherence check (ADR-0280 §D-3 step 4). Returned as a human-readable reason so the
-/// gate finding names the precise defect.
-///
-/// IMPORTANT (ADR-0280 R-5 / §D-4 bootstrap-seam subtlety): the §D-1 `bootstrap_order` is a
-/// HAND-AUTHORED valid topological order that does NOT match a pure alphabetical-tie-break Kahn
-/// sort — `cloud-secrets` depends only on `cell` (so alphabetically it would sort 2nd, before
-/// `identity`) yet §D-1 places it at bootstrap step 5 because cloud-secrets is provisioned AFTER
-/// identity via the Shamir-genesis BOOTSTRAP-ONLY SEAM (a non-runtime edge captured as a
-/// forbidden_edges_assertion, not a DAG edge). The doctrine's load-bearing invariant is that the
-/// declared order is *a* valid topological order (every dependency precedes its dependent), NOT
-/// that it equals the alphabetical one. So the gate validates VALID-TOPO-ORDER, not equality; the
-/// alphabetical Kahn sort is still derived and surfaced as the canonical suggestion.
-pub fn validate_bootstrap_order(dag: &Dag) -> Option<String> {
-    // 1. The declared order must be exactly the declared node set (no missing / extra / dup).
-    let node_set: BTreeSet<&str> = dag.nodes.iter().map(String::as_str).collect();
-    let order_set: BTreeSet<&str> = dag.bootstrap_order.iter().map(String::as_str).collect();
-    if order_set.len() != dag.bootstrap_order.len() {
-        return Some("bootstrap_order contains a duplicate node".to_owned());
-    }
-    if order_set != node_set {
-        let missing: Vec<&str> = node_set.difference(&order_set).copied().collect();
-        let extra: Vec<&str> = order_set.difference(&node_set).copied().collect();
-        return Some(format!(
-            "bootstrap_order node set != DAG node set (missing={missing:?}, extra={extra:?})"
-        ));
-    }
-    // 2. For every edge `from -> to` (from DEPENDS ON to), `to` must appear BEFORE `from`.
-    let position: BTreeMap<&str, usize> = dag
-        .bootstrap_order
-        .iter()
-        .enumerate()
-        .map(|(i, n)| (n.as_str(), i))
-        .collect();
-    for (from, to) in &dag.edges {
-        // Skip edges with undeclared endpoints (reported separately as dag_edge_unknown_node).
-        let (Some(&fp), Some(&tp)) = (position.get(from.as_str()), position.get(to.as_str()))
-        else {
-            continue;
-        };
-        if tp >= fp {
-            return Some(format!(
-                "edge `{from}->{to}` (dependency) violates bootstrap_order: dependency `{to}` (step {}) must precede dependent `{from}` (step {})",
-                tp + 1,
-                fp + 1
-            ));
-        }
-    }
-    None
-}
-
-// ───────────────────────────── evaluation ─────────────────────────────
-
-/// Evaluate a parsed [`Dag`] for every coherence invariant. PURE — no I/O. Surfaces ALL findings
-/// (does not stop at the first) so a single run reports every problem.
-pub fn evaluate(dag: &Dag) -> Report {
-    // Re-serialize the structural Dag back into a Value for the field-completeness pass would lose
-    // the discarded fields; instead the caller passes the raw document via evaluate_with_raw when a
-    // full schema check is wanted. evaluate() runs the graph-level invariants over the Dag alone.
-    evaluate_inner(dag, None)
-}
-
-/// Evaluate including the §D-1 field-completeness + cascade-enum + endpoint schema checks against
-/// the raw parsed `Value` (the document the [`Dag`] was parsed from). This is what the live gate
-/// runs; [`evaluate`] is the graph-only projection for tests that construct a [`Dag`] directly.
-pub fn evaluate_with_raw(dag: &Dag, raw: &Value) -> Report {
-    evaluate_inner(dag, Some(raw))
-}
-
-fn evaluate_inner(dag: &Dag, raw: Option<&Value>) -> Report {
-    let mut findings: Vec<Finding> = Vec::new();
-
-    if let Some(raw) = raw {
-        check_schema_completeness(raw, dag, &mut findings);
-    }
-
-    // ── Acyclicity (Tarjan). Any SCC of size > 1 is a cycle; a self-loop is a 1-cycle.
-    if let Some(node) = has_self_loop(dag) {
-        findings.push(Finding {
-            code: "dag_cycle".to_owned(),
-            subject: format!("{node}->{node}"),
-            detail: format!("self-loop on `{node}` (a 1-cycle; the graph must be acyclic)"),
-        });
-    }
-    for scc in tarjan_sccs(dag) {
-        if scc.len() > 1 {
-            findings.push(Finding {
-                code: "dag_cycle".to_owned(),
-                subject: scc.join(","),
-                detail: format!(
-                    "strongly-connected component of size {} is a cycle: {}",
-                    scc.len(),
-                    scc.join(" -> ")
-                ),
-            });
-        }
-    }
-
-    // ── Forbidden-edge honouring.
-    let edge_set: BTreeSet<(&str, &str)> = dag
-        .edges
-        .iter()
-        .map(|(f, t)| (f.as_str(), t.as_str()))
-        .collect();
-    for (from, to) in &dag.forbidden_edges {
-        if edge_set.contains(&(from.as_str(), to.as_str())) {
-            findings.push(Finding {
-                code: "dag_forbidden_edge".to_owned(),
-                subject: format!("{from}->{to}"),
-                detail: format!(
-                    "edge `{from}->{to}` is present but is asserted forbidden (negative-space invariant)"
-                ),
-            });
-        }
-    }
-
-    // ── Topological-sort coherence (Kahn). The declared bootstrap_order MUST be a VALID
-    //    topological order of the DAG (every dependency precedes its dependent), per ADR-0280 §D-3
-    //    step 4. It need NOT equal the alphabetical-tie-break sort — §D-1's hand-authored order
-    //    encodes the R-5 cloud-secrets bootstrap-seam subtlety that pure alphabetical sorting
-    //    cannot (see `validate_bootstrap_order`). The alphabetical Kahn sort is still derived and
-    //    surfaced as the canonical suggestion.
-    let derived = kahn_topo_sort(dag);
-    if derived.is_some() {
-        if let Some(reason) = validate_bootstrap_order(dag) {
-            findings.push(Finding {
-                code: "dag_bootstrap_drift".to_owned(),
-                subject: "bootstrap_order".to_owned(),
-                detail: reason,
-            });
-        }
-    } else {
-        // A cycle already produced a dag_cycle finding; record the bootstrap consequence too.
-        findings.push(Finding {
-            code: "dag_bootstrap_drift".to_owned(),
-            subject: "bootstrap_order".to_owned(),
-            detail: "no topological sort exists (the graph has a cycle)".to_owned(),
-        });
-    }
-
-    findings.sort();
-    Report::from_findings(findings, derived)
-}
-
-/// Render findings as a deterministic multi-line report for the binary / CI logs.
 pub fn render_findings(findings: &[Finding]) -> String {
     if findings.is_empty() {
         return format!(
-            "{GATE_ID}: GREEN — DAG acyclic (Tarjan); forbidden edges honoured; bootstrap_order is a valid topological order (Kahn)"
+            "{GATE_ID}: GREEN — graph-v2 closed shape valid; steady-state acyclic; failure closure exact"
         );
     }
-    let mut out = format!("{GATE_ID}: RED — {} finding(s):", findings.len());
-    for f in findings {
-        out.push_str(&format!("\n  [{}] {}: {}", f.code, f.subject, f.detail));
+    let mut output = format!("{GATE_ID}: RED — {} finding(s):", findings.len());
+    for item in findings {
+        output.push_str(&format!(
+            "\n  [{}] {}: {}",
+            item.code, item.subject, item.detail
+        ));
     }
-    out
+    output
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serde_json::json;
 
-    fn dag(
-        nodes: &[&str],
-        edges: &[(&str, &str)],
-        bootstrap: &[&str],
-        forbidden: &[(&str, &str)],
-    ) -> Dag {
-        Dag {
-            nodes: nodes.iter().map(|s| s.to_string()).collect(),
-            edges: edges
-                .iter()
-                .map(|(a, b)| (a.to_string(), b.to_string()))
-                .collect(),
-            bootstrap_order: bootstrap.iter().map(|s| s.to_string()).collect(),
-            forbidden_edges: forbidden
-                .iter()
-                .map(|(a, b)| (a.to_string(), b.to_string()))
-                .collect(),
+    fn request(from: &str, to: &str, rule: &str) -> RequestEdge {
+        RequestEdge {
+            from: from.to_owned(),
+            to: to.to_owned(),
+            rule: impact_rank(rule).expect("known rule"),
         }
     }
 
     #[test]
-    fn acyclic_chain_is_green() {
-        // a -> b -> c (a depends on b depends on c). Bootstrap: c, b, a.
-        let d = dag(
-            &["a", "b", "c"],
-            &[("a", "b"), ("b", "c")],
-            &["c", "b", "a"],
-            &[],
-        );
-        let report = evaluate(&d);
-        assert_eq!(report.verdict, Verdict::Green, "{:?}", report.findings);
+    fn max_min_closure_weakest_edge_bounds_path_and_strongest_path_wins() {
+        let edges = [
+            request("a", "b", "FULL"),
+            request("b", "c", "BROWNOUT"),
+            request("a", "d", "DEGRADED"),
+            request("d", "c", "FULL"),
+        ];
+        let closure = derive_failure_closure(&edges);
+        assert!(closure.contains(&FailureEdge {
+            failed: "c".to_owned(),
+            impacted: "a".to_owned(),
+            rule: impact_rank("DEGRADED").unwrap(),
+        }));
+    }
+
+    #[test]
+    fn policy_requires_all_live_contract_paths() {
+        let parsed = parse_policy(
+            &json!({
+                "gate_id": GATE_ID,
+                "dag_path": "specs/dag.json",
+                "schema_path": "specs/dag.schema.json",
+                "capability_registry_path": "specs/capability-registry.json"
+            })
+            .to_string(),
+        )
+        .unwrap();
+        assert_eq!(parsed.schema_path, "specs/dag.schema.json");
         assert_eq!(
-            report.derived_bootstrap_order.as_deref(),
-            Some(["c", "b", "a"].map(String::from).as_slice())
-        );
-    }
-
-    #[test]
-    fn two_node_cycle_is_red() {
-        let d = dag(&["a", "b"], &[("a", "b"), ("b", "a")], &["a", "b"], &[]);
-        let report = evaluate(&d);
-        assert_eq!(report.verdict, Verdict::Red);
-        assert!(report.findings.iter().any(|f| f.code == "dag_cycle"));
-        assert!(report.derived_bootstrap_order.is_none());
-    }
-
-    #[test]
-    fn three_node_cycle_is_red() {
-        let d = dag(
-            &["a", "b", "c"],
-            &[("a", "b"), ("b", "c"), ("c", "a")],
-            &["a", "b", "c"],
-            &[],
-        );
-        let report = evaluate(&d);
-        assert_eq!(report.verdict, Verdict::Red);
-        assert!(report.findings.iter().any(|f| f.code == "dag_cycle"));
-    }
-
-    #[test]
-    fn self_loop_is_red() {
-        let d = dag(&["a"], &[("a", "a")], &["a"], &[]);
-        let report = evaluate(&d);
-        assert_eq!(report.verdict, Verdict::Red);
-        assert!(report.findings.iter().any(|f| f.code == "dag_cycle"));
-        assert_eq!(has_self_loop(&d).as_deref(), Some("a"));
-    }
-
-    #[test]
-    fn six_node_buried_cycle_is_red() {
-        // A long acyclic spine with one buried back-edge d -> b forming b->c->d->b.
-        let d = dag(
-            &["a", "b", "c", "d", "e", "f"],
-            &[
-                ("a", "b"),
-                ("b", "c"),
-                ("c", "d"),
-                ("d", "b"), // buried back-edge
-                ("d", "e"),
-                ("e", "f"),
-            ],
-            &["f", "e", "d", "c", "b", "a"],
-            &[],
-        );
-        let report = evaluate(&d);
-        assert_eq!(report.verdict, Verdict::Red);
-        let cycle = report
-            .findings
-            .iter()
-            .find(|f| f.code == "dag_cycle")
-            .expect("a cycle finding");
-        // The SCC must contain exactly the buried 3-cycle members.
-        assert_eq!(cycle.subject, "b,c,d", "{}", cycle.detail);
-    }
-
-    #[test]
-    fn forbidden_edge_present_is_red() {
-        let d = dag(
-            &["a", "b"],
-            &[("a", "b")],
-            &["b", "a"],
-            &[("a", "b")], // forbidding an edge that exists
-        );
-        let report = evaluate(&d);
-        assert_eq!(report.verdict, Verdict::Red);
-        assert!(
-            report
-                .findings
-                .iter()
-                .any(|f| f.code == "dag_forbidden_edge")
-        );
-    }
-
-    #[test]
-    fn bootstrap_drift_is_red() {
-        // Acyclic, but the declared order is NOT a valid topological order: a depends on b (edge
-        // a->b) yet a is placed BEFORE b, so a dependency follows its dependent.
-        let d = dag(
-            &["a", "b", "c"],
-            &[("a", "b"), ("b", "c")],
-            &["a", "b", "c"],
-            &[],
-        );
-        let report = evaluate(&d);
-        assert_eq!(report.verdict, Verdict::Red);
-        assert!(
-            report
-                .findings
-                .iter()
-                .any(|f| f.code == "dag_bootstrap_drift")
-        );
-    }
-
-    #[test]
-    fn valid_but_non_alphabetical_bootstrap_order_is_green() {
-        // The ADR-0280 R-5 / §D-4 bootstrap-seam scenario in miniature. Nodes c,i,t,s with deps
-        // i->c, t->i, s->c. The declared order [c,i,t,s] places `s` LAST — a VALID topological
-        // order (s's only dependency c precedes it). The pure alphabetical-tie-break Kahn sort
-        // instead yields [c,i,s,t] (after c, both i and s are ready; i<s; then s, then t). The two
-        // differ at the s/t positions, yet the declared order is still valid. The gate must accept
-        // it (GREEN): valid-topo-order, not equality-to-alphabetical, is the invariant.
-        let d = dag(
-            &["c", "i", "t", "s"],
-            &[("i", "c"), ("t", "i"), ("s", "c")],
-            &["c", "i", "t", "s"], // valid, but not the alphabetical sort
-            &[],
-        );
-        let report = evaluate(&d);
-        assert_eq!(report.verdict, Verdict::Green, "{:?}", report.findings);
-        // The alphabetical Kahn sort differs from the (valid) declared order — and that is fine.
-        let derived = kahn_topo_sort(&d).expect("acyclic => topo-sort");
-        assert_eq!(
-            derived,
-            ["c", "i", "s", "t"].map(String::from),
-            "alphabetical Kahn sort"
-        );
-        assert_ne!(
-            derived, d.bootstrap_order,
-            "derived alphabetical sort diverges from the valid declared order"
-        );
-    }
-
-    #[test]
-    fn kahn_alphabetical_tiebreak_is_deterministic() {
-        // Two independent leaves b and c, both dependencies of a. Tie-break is alphabetical.
-        let d = dag(
-            &["a", "b", "c"],
-            &[("a", "b"), ("a", "c")],
-            &["b", "c", "a"],
-            &[],
-        );
-        assert_eq!(
-            kahn_topo_sort(&d).as_deref(),
-            Some(["b", "c", "a"].map(String::from).as_slice())
-        );
-    }
-
-    #[test]
-    fn parse_round_trips_minimal_document() {
-        let doc = r#"{
-          "version": "1.0.0",
-          "nodes": [{"name": "a"}, {"name": "b"}],
-          "edges": [{"from": "a", "to": "b"}],
-          "bootstrap_order": ["b", "a"],
-          "forbidden_edges_assertion": [{"from": "b", "to": "a", "reason": "x"}]
-        }"#;
-        let d = parse_dag(doc).expect("parse");
-        assert_eq!(d.nodes, vec!["a", "b"]);
-        assert_eq!(d.edges, vec![("a".to_string(), "b".to_string())]);
-        assert_eq!(d.bootstrap_order, vec!["b", "a"]);
-        assert_eq!(d.forbidden_edges, vec![("b".to_string(), "a".to_string())]);
-    }
-
-    #[test]
-    fn policy_accepts_neutral_repo_relative_dag_path() {
-        let doc = r#"{
-          "gate_id": "cloud-ci-substrate-dependency-dag-acyclicity",
-          "dag_path": "config/substrate/dag.json"
-        }"#;
-        let policy = parse_policy(doc).expect("neutral policy parses");
-        assert_eq!(policy.gate_id, GATE_ID);
-        assert_eq!(policy.dag_path, "config/substrate/dag.json");
-    }
-
-    #[test]
-    fn policy_rejects_wrong_gate_id() {
-        let doc = r#"{
-          "gate_id": "other-gate",
-          "dag_path": "config/substrate/dag.json"
-        }"#;
-        let error = parse_policy(doc).expect_err("wrong gate id must fail closed");
-        assert!(
-            error.to_string().contains("does not match"),
-            "unexpected error: {error}"
-        );
-    }
-
-    #[test]
-    fn policy_rejects_path_escape() {
-        let doc = r#"{
-          "gate_id": "cloud-ci-substrate-dependency-dag-acyclicity",
-          "dag_path": "../outside.json"
-        }"#;
-        let error = parse_policy(doc).expect_err("path escape must fail closed");
-        assert!(
-            error.to_string().contains("must not contain `..`"),
-            "unexpected error: {error}"
+            parsed.capability_registry_path,
+            "specs/capability-registry.json"
         );
     }
 }

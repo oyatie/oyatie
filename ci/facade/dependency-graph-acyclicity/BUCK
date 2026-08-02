@@ -6,25 +6,30 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "third-party//:serde_json",
+        "third-party//:sha2",
     ],
 )
 
-# Gate binary (ADR-0280 §D-3). Loads the policy-declared substrate DAG and exits 0/1/2.
+# Gate binary (ADR-0280 §D-3 + ADR-0635). Loads the policy-declared graph-v2 document and exits 0/1/2.
 # LOCAL BRIDGE feedback only (founder CLI-retirement directive): merge authority is the gate test
-# below + the check-substrates lane, never this binary.
+# below + `//ci/facade/dependency-graph-acyclicity:ci-dependency-graph-acyclicity-gate`, never this binary.
 rust_binary(
     name = "oya-cloud-ci-substrate-dependency-dag-acyclicity-bin",
     srcs = glob(["src/**/*.rs", "**/*.json"]),
     crate_root = "src/main.rs",
     visibility = ["PUBLIC"],
+    resources = [
+        "//specs:capability-registry.json",
+        "//specs:substrate-dependency-dag.json",
+        "//specs:substrate-dependency-dag.schema.json",
+    ],
     deps = [
         ":ci-dependency-graph-acyclicity",
         "third-party//:serde_json",
     ],
 )
 
-# Pure-kernel unit tests: Tarjan / Kahn / forbidden-edge / parse, plus the RED cycle classes
-# (two-node, three-node, self-loop, six-node-buried) proven WITHOUT a filesystem.
+# Pure-kernel tests include the max-min failure-impact composition rule and policy boundary.
 rust_test(
     name = "ci-dependency-graph-acyclicity-unittest",
     srcs = glob(["src/**/*.rs", "**/*.json"]),
@@ -33,19 +38,23 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         "third-party//:serde_json",
+        "third-party//:sha2",
     ],
 )
 
-# ADR-0280 §D-3 acyclicity lane: Buck2-native live-corpus self-test over the REAL policy-declared
-# substrate DAG (must be GREEN: acyclic, forbidden edges honoured,
-# bootstrap_order == Kahn topo-sort), plus the on-disk RED cycle fixtures under
-# tests/fixtures/dag-cycles/ (each MUST fail the validator).
+# ADR-0635 graph-v2 live-corpus and mutation-fixture gate. It proves the exact five-kind set,
+# runtime-face endpoints, graph-3-only acyclicity, and exact derived failure closure.
 rust_test(
     name = "ci-dependency-graph-acyclicity-gate",
     srcs = glob(["tests/**/*.rs", "**/*.json"]),
     crate = "ci_dependency_graph_acyclicity_gate",
     crate_root = "tests/acyclicity.rs",
     visibility = ["PUBLIC"],
+    resources = [
+        "//specs:capability-registry.json",
+        "//specs:substrate-dependency-dag.json",
+        "//specs:substrate-dependency-dag.schema.json",
+    ],
     deps = [
         ":ci-dependency-graph-acyclicity",
         "third-party//:serde_json",

@@ -328,6 +328,14 @@
     {
       "anchor": "ADR-0632 hermetic input declaration: exact microservice-schema BUCK file exporting the closed public/internal contract schema to the product-protocol gate.",
       "prefix": "specs/microservices/BUCK"
+    },
+    {
+      "anchor": "ADR-0635 D5: closed Draft 2020-12 schema for the canonical substrate graph-v2 contract, loaded through the gate policy and asserted by the dependency-graph-acyclicity live-corpus test.",
+      "prefix": "specs/substrate-dependency-dag.schema.json"
+    },
+    {
+      "anchor": "ADR-0635 D5: named RED/GREEN mutation corpus consumed directly by the dependency-graph-acyclicity Buck gate test.",
+      "prefix": "ci/facade/dependency-graph-acyclicity/tests/fixtures/graph-v2-cases.json"
     }
   ]
 }
