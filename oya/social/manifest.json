@@ -64,9 +64,13 @@
     "asyncapi": [
       "microservices/social/contracts/asyncapi/social-events.yaml"
     ],
-    "proto": [
-      "microservices/social/contracts/proto/social.proto"
-    ]
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": [
+        "oya/social/contracts/proto/social.proto"
+      ]
+    }
   },
   "capabilities": [
     {
@@ -544,9 +548,6 @@
       },
       "asyncapi": {
         "2026-05-21": "microservices/social/contracts/asyncapi/social-events.yaml"
-      },
-      "proto": {
-        "2026-05-21": "microservices/social/contracts/proto/social.proto"
       }
     }
   },

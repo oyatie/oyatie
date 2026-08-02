@@ -232,9 +232,6 @@
       },
       "asyncapi": {
         "2026-05-21": "contracts/asyncapi.yaml"
-      },
-      "proto": {
-        "2026-05-21": "contracts/proto/diagnostics.proto"
       }
     }
   },

@@ -80,9 +80,13 @@
     "asyncapi": [
       "microservices/drive/contracts/asyncapi/drive-events.yaml"
     ],
-    "proto": [
-      "microservices/drive/contracts/proto/drive.proto"
-    ]
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": [
+        "oya/drive/contracts/proto/drive.proto"
+      ]
+    }
   },
   "capabilities": [
     {
@@ -540,9 +544,6 @@
       },
       "asyncapi": {
         "2026-05-21": "microservices/drive/contracts/asyncapi/drive-events.yaml"
-      },
-      "proto": {
-        "2026-05-21": "microservices/drive/contracts/proto/drive.proto"
       }
     }
   },

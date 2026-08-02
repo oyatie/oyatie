@@ -1,5 +1,9 @@
+// oyatie.contract.exposure: internal-only
+// oyatie.contract.transport: grpc-http2
+// oyatie.contract.identity: spiffe-mtls-tls13
+
 // oya-observability-slo-engine — gRPC contract
-// Peer to contracts/openapi/slo-engine.yaml for clients that prefer gRPC.
+// Internal sibling-service gRPC contract; public clients use contracts/openapi/slo-engine.yaml.
 // Per ADR-0139 + ADR-0131.
 
 syntax = "proto3";
@@ -12,7 +16,8 @@ import "google/protobuf/timestamp.proto";
 // Service: SloEngine
 // =========================================================================
 //
-// Authn: per-request OIDC bearer (gRPC metadata key "authorization").
+// Authn: SPIFFE mTLS/TLS 1.3 authenticates the calling workload; forwarded user claims are
+// application authorization context and do not make this a public RPC surface.
 // Authz: Cedar policy evaluation server-side; same fragments as REST.
 // Tenancy: per-request metadata key "x-scope-orgid" = "tenant:<hashed-id>".
 

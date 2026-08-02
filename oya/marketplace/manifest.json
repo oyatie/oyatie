@@ -231,9 +231,13 @@
     "asyncapi": [
       "contracts/asyncapi-v1.yaml"
     ],
-    "proto": [
-      "contracts/marketplace-v1.proto"
-    ],
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": [
+        "oya/marketplace/contracts/marketplace-v1.proto"
+      ]
+    },
     "contract_status": "service-local marketplace settlement/revenue-share contract files exist in this package; they remain planning/validation contracts and do not claim live REST/event/proto runtime, entitlement, metering, payout, escrow, or external marketplace integration"
   },
   "capabilities": [

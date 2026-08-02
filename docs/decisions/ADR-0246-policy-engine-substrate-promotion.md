@@ -47,6 +47,7 @@ related:
   - ADR-0247-self-hosting-self-modification-doctrine.md
   - ADR-0248-amazon-shape-cellular-architecture.md
   - ADR-0251-compliance-pack-cell-certification-levels.md
+  - ADR-0632
 related_specs:
   - /specs/platform-architecture.json
   - /specs/microservices/policy-engine.json
@@ -85,6 +86,7 @@ enforced_by:
   - cloud-ci/Rust gate packet no-policy-in-code
   - cloud-ci/Rust gate packet cedar-fragment-signature
   - cloud-ci/Rust gate packet cedar-default-deny-coverage
+clarified_by: [ADR-0632]
 ---
 
 # ADR-0246: Policy-Engine Substrate Promotion
@@ -103,7 +105,7 @@ twelve days.
 Keystone position: 5 of 14.
 
 Enforcement is `advisory-until-policy-engine-substrate-lands`. The
-doctrine is accepted in text now, but the CI lanes that enforce it move
+proposal is recorded in text but is not Accepted; the CI lanes described here would move
 to BLOCKER status only after:
 
 1. `microservices/policy-engine/` directory exists under
@@ -124,6 +126,13 @@ to BLOCKER status only after:
 
 Until those five items land, validators emit findings without failing
 CI. Post-bootstrap, the lanes promote to BLOCKER.
+
+## ADR-0632 product-protocol clarification (proposal only)
+
+This ADR remains **Proposed** and does not accept a protocol surface or implementation. If accepted,
+its “gRPC-primary” language applies only to internal gRPC/proto3 over HTTP/2; HTTPS REST documented
+by OpenAPI 3.2.0 is the public and compatibility surface. GraphQL, public gRPC, gRPC-Web, and Connect
+remain forbidden by ADR-0632.
 
 ## Date
 
@@ -623,8 +632,7 @@ IP-008 (one IP per BC) per ADR-0139 SLO-gated promotion.
 
 ### D-4. API surface
 
-The policy-engine µservice exposes the following operations over gRPC
-(canonical) + OpenAPI 3.2.0 (REST surface for compat):
+The policy-engine µservice exposes the following operations over internal-only gRPC/proto3 plus a public or compatibility HTTPS REST projection documented by OpenAPI 3.2.0. This is proposed scope, not an accepted exposure or implementation claim:
 
 | Operation | Path | Method | Idempotent? | Performance budget |
 |---|---|---|---|---|
@@ -1776,7 +1784,7 @@ avoided.
 | D-1 (Promote BC to peer substrate µservice) | "Centralized Policy Service" | AWS Verified Permissions (re:Invent 2023 BOA303); Google Org Policy; Netflix authz service (Netflix Tech Blog 2024) | "Embedded Policy in Application Service" — policy evolution coupled to host service deploy cycle |
 | D-2 (8 BCs: fragment-registry, evaluator, signing-chain, hot-reload, coverage-audit, pack-overlay, tenant-overlay, bootstrap-genesis) | "Single-Concern Bounded Contexts" | DDD (Evans 2003); ADR-0132 no-grouping forward policy | "Bundle Bounded Context" — multi-concern BCs prone to coupling drift |
 | D-3 (47-crate redistribution following BNF v4.1 + ADR-0105 layer enum) | "Hexagonal Architecture with Port-in-Kernel" | Cockburn 2005 Hexagonal; ADR-0105 13-value canonical enum | "Anemic Layered Architecture" — ports defined outside kernel, leaking I/O concerns |
-| D-4 (gRPC + OpenAPI 3.2.0 dual surface; 10 operations) | "gRPC-Primary with REST Compat" | Google API Design Guide; Stripe API design (REST primary with gRPC for internal); Cloudflare Workers gRPC | "Single-Protocol Lock-in" — REST-only locks out efficient inter-µservice calls; gRPC-only locks out browser callers |
+| D-4 (internal gRPC/proto3 + public/compat OpenAPI 3.2.0 REST projection; 10 operations) | "Internal RPC with REST Public/Compat" | Google API Design Guide; Stripe API design (REST primary with gRPC for internal); Cloudflare Workers gRPC | "Single-Protocol Lock-in" — REST-only locks out efficient inter-µservice calls; gRPC-only locks out browser callers |
 | D-5 (Per-cell deployment: 3+ replicas + HPA + PDB + cross-region paired DR cell) | "Cell-Sharded Stateless Tier with HA" | AWS cell-based architecture (Bryan Liston re:Invent 2018); ADR-0009 cell architecture; ADR-0048 cell sharding | "Global Singleton Service" — single-region or single-replica policy service is a portfolio-wide blast radius |
 | D-6 (Hot path p99 < 1ms via in-cell evaluator + Valkey hot cache + circuit breaker fallback) | "Static Stability + Edge-Cached Evaluation" | AWS Builder's Library "Static Stability" (Weiss + Furr); AWS Verified Permissions production cache; Cloudflare Workers KV | "Synchronous Round-Trip to Global Policy Store" — cross-region policy fetch on hot path |
 | D-7 (Postgres + Citus shard on (scope, fragment_id); ClickHouse not required because Cedar AST cache covers hot path) | "Distributed Relational with Application-Aware Sharding" | Citus design (Microsoft acquired 2019); AWS Aurora Limitless; Google Spanner external consistency | "Single-Instance Relational Bottleneck" — single Postgres for global policy doesn't scale write-side |

@@ -6,11 +6,11 @@ date: 2026-05-18
 owner: council-architecture
 supersedes: []
 superseded_by: []
+amended_by: [ADR-0632]
 related: [ADR-0064, ADR-0131, ADR-0145, ADR-0148, ADR-0182, ADR-0183, ADR-0184, ADR-0186]
 related_specs:
   - /specs/microservices/manifest-schema.json
 ---
-
 # ADR-0185 — Workflow Studio client stack: per-surface native rendering; OpenAPI contract is the cross-ecosystem unifier
 
 ## Status
@@ -20,6 +20,10 @@ Accepted (2026-05-18). Adopts a **per-surface native rendering** strategy for Wo
 ## Status note (user directive 2026-05-18)
 
 User directive: *"Native is best for everything where possible."* This ADR enforces that directive across every supported platform.
+
+## ADR-0632 product-protocol reconciliation
+
+Workflow Studio and other clients call the public HTTPS REST gateway documented by OpenAPI 3.2.0 and may consume signed/versioned webhooks, AsyncAPI/CloudEvents events, SSE, or WebSocket where appropriate. Public GraphQL, gRPC, gRPC-Web, and Connect are forbidden. Protobuf is limited to internal-only gRPC/proto3 over HTTP/2 behind the gateway.
 
 ## Context
 
@@ -305,7 +309,7 @@ Phase 2 web migration rollback: each surface migrates independently; partial rol
 
 - ADR-0064 — canonical-base + localization packs (design tokens compile per-pack overlays).
 - ADR-0131 — per-microservice flat layout (client trees live under `microservices/<ms>/clients/`).
-- ADR-0145 — inter-microservice communication reform (clients call backend via OpenAPI gRPC/REST).
+- ADR-0145 — inter-microservice communication reform (clients call the public OpenAPI REST gateway; gRPC stays internal).
 - ADR-0148 — service-mesh canonical (clients enter the mesh via Envoy Gateway per ADR-0182).
 - ADR-0182 — API gateway (north-south).
 - ADR-0186 — observability backplane (clients ship OpenTelemetry trace context via OTLP).

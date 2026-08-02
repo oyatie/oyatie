@@ -1,3 +1,6 @@
+// oyatie.contract.exposure: internal-only
+// oyatie.contract.transport: grpc-http2
+// oyatie.contract.identity: spiffe-mtls-tls13
 syntax = "proto3";
 
 package oya.global_trade.v1;
@@ -5,7 +8,7 @@ package oya.global_trade.v1;
 option java_package = "dev.oyatie.global_trade.v1";
 
 // SAP GTS; benchmarks: SAP GTS Global Trade Services | Oracle Global Trade Management | Workday supplier-compliance workflow counterpart | NetSuite international tax and trade counterpart | Microsoft Dynamics 365 global trade and export-control counterpart
-// Transport binding: HTTP/3 default at REST edge, gRPC over mTLS internally, ECH/PQC at ingress where supported.
+// Transport binding: internal-only gRPC over HTTP/2 with SPIFFE mTLS/TLS 1.3; public transport is defined by OpenAPI.
 
 message CustomsDeclarationCommand {
   string tenant_id = 1;

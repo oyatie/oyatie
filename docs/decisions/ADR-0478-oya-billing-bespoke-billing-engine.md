@@ -9,14 +9,18 @@ milestone: M-BILLING-ENGINE-V2
 planning_impact: true
 supersedes: [ADR-0457]
 superseded_by: []
+amended_by: [ADR-0632]
 related: [ADR-0457, ADR-0429, ADR-0443, ADR-0083, ADR-0411, ADR-0451, ADR-0509]
 ---
-
 # ADR-0478 — oya-billing: bespoke Rust billing engine
 
 ## Status
 
 Accepted — 2026-05-28 (founder-locked). Supersedes ADR-0457 (Lago).
+
+## ADR-0632 product-protocol reconciliation
+
+Billing-as-a-product is exposed through public HTTPS REST documented by OpenAPI 3.2.0 plus signed/versioned webhooks and AsyncAPI/CloudEvents events; SSE or WebSocket may be used only for their defined streaming semantics. Public GraphQL, gRPC, gRPC-Web, and Connect are forbidden. Billing-to-meter and other sibling-service calls may use internal-only gRPC/proto3 over HTTP/2.
 
 ## Context
 
@@ -29,7 +33,7 @@ since hardened into decision criteria:
 
 2. **Rust doctrine.** ADR-0457 accepted a Ruby/Rails service. The hyperscaler-lens filter requires
    a fully self-hostable, Rust-native component at every substrate seam. A bespoke engine written
-   in Rust + Axum + Connect-RPC matches this doctrine without exception.
+   in Rust + Axum with internal-only gRPC/proto3 over HTTP/2 matches this doctrine without exception.
 
 ## Decision
 
@@ -37,7 +41,7 @@ Build `oya-billing` — a bespoke Rust billing engine — as the canonical billi
 
 ### D1 — New µservice `microservices/oya-billing/`
 
-Rust workspace. Axum HTTP + Connect-RPC (ADR-0416) API surface. PostgreSQL (ADR-0406) for durable
+Rust workspace. Axum serves the public HTTPS REST/OpenAPI surface; internal-only gRPC/proto3 over HTTP/2 serves sibling services. PostgreSQL (ADR-0406) for durable
 billing state (subscriptions, invoices, line items, credits). Apache Pulsar (ADR-0397) for
 billable-event stream fan-out. Flat single-concern layout per ADR-0131 + ADR-0132.
 
@@ -63,9 +67,7 @@ Invoice delivery via oya-notify (ADR-0451) on Pulsar invoice-finalized events.
 
 ### D5 — Billing-as-a-product
 
-Tenants running services on oyatie use oya-billing for their own end-customers. The Connect-RPC
-surface and webhook fan-out are exposed as a product primitive with per-tenant namespace
-isolation. This is a multi-tenant oya-billing model — distinct from oyatie billing its tenants.
+Tenants running services on oyatie use oya-billing for their own end-customers. The public HTTPS REST/OpenAPI surface and signed/versioned webhook fan-out are exposed as a product primitive with per-tenant namespace isolation. This is a multi-tenant oya-billing model — distinct from oyatie billing its tenants.
 
 ## Hyperscaler-lens
 
@@ -103,7 +105,7 @@ Stripe API / PaymentAdapter ──► payment dispatch
 ## Promotion Rationale
 
 Bespoke billing is the hyperscaler pattern (Stripe, Shopify, AWS). Lago's AGPL gate is
-irreconcilable with billing-as-a-product topology. Rust + Connect-RPC matches the doctrine
+irreconcilable with billing-as-a-product topology. Rust plus public REST and internal-only gRPC/proto3 matches the doctrine
 already established across the substrate. This ADR unblocks M-BILLING-ENGINE-V2.
 
 ## Implementation pattern (ADR-0509 alignment)

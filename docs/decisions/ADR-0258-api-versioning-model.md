@@ -8,8 +8,8 @@ owner: council-architecture
 supersedes: []
 superseded_by: []
 amends: []
-amended_by: [ADR-0565]
-related: [ADR-0011, ADR-0037, ADR-0064, ADR-0131, ADR-0145, ADR-0150, ADR-0157, ADR-0167, ADR-0176, ADR-0182, ADR-0203, ADR-0244, ADR-0250, ADR-0565]
+amended_by: [ADR-0565, ADR-0632]
+related: [ADR-0011, ADR-0037, ADR-0064, ADR-0131, ADR-0145, ADR-0150, ADR-0157, ADR-0167, ADR-0176, ADR-0182, ADR-0203, ADR-0244, ADR-0250, ADR-0565, ADR-0632]
 related_specs:
   - /specs/microservices/manifest-schema.json
   - /specs/hyperscaler-architecture-invariants.json
@@ -27,7 +27,10 @@ authority_chain: council-architecture
 
 Accepted (2026-05-20). Tier-1 lockdown ADR. Closes the "API versioning model" gap left open by ADR-0037 (which set tier vocabulary but did not pin the canonical version-negotiation algorithm, the per-tenant pinning override, the per-µservice independent cadence, or the SDK auto-generation pipeline).
 
-This ADR is BINDING on every µservice that exposes a public REST/OpenAPI, webhook, AsyncAPI event, or streaming surface and on every internal mesh interface that crosses a µservice boundary. GraphQL is historical rejected context only; ADR-0565 removed it from the owned surface set.
+This ADR is BINDING on every µservice that exposes a public REST, signed/versioned webhook,
+AsyncAPI event, SSE, or WebSocket surface and on every internal mesh interface that crosses a
+µservice boundary. GraphQL is historical rejected context only; ADR-0565 removed it from the owned
+surface set.
 
 ## ADR-0203 public-contract reconciliation
 
@@ -36,9 +39,16 @@ ADR-0203 fixes the public documentation and contract boundary at OpenAPI 3.2 RES
 The gRPC package and URL-versioning rules below remain binding only for internal service-to-service
 RPC under mTLS; displaying internal Protobuf descriptors does not create a public contract.
 
+## ADR-0632 product-protocol reconciliation
+
+Public versioning applies to HTTPS REST/OpenAPI 3.2.0, signed/versioned webhooks,
+AsyncAPI/CloudEvents events, SSE, and bidirectional WebSocket messages. Public GraphQL, gRPC,
+gRPC-Web, and Connect are forbidden; no public proto3 carrier or `VersionsService` is authorized.
+The package/version rules in this ADR remain valid for internal-only gRPC/proto3 over HTTP/2.
+
 ## Context
 
-oyatie ships a hyperscaler-grade API surface: the public REST/OpenAPI, webhook, AsyncAPI event, and streaming surface (Workspace, Cloud, Foundry, Verticals, Connect, Search) and the internal mesh surface (µservice ↔ µservice gRPC under mTLS, per ADR-0145). GraphQL is not an owned surface under ADR-0565. Both surfaces evolve continuously. Without a single canonical versioning model:
+oyatie ships a hyperscaler-grade API surface: the public REST, signed/versioned webhook, AsyncAPI event, SSE, and WebSocket surface (Workspace, Cloud, Foundry, Verticals, Connect, Search; GraphQL dropped per ADR-0565) and the internal mesh surface (µservice ↔ µservice gRPC under mTLS, per ADR-0145). Both surfaces evolve continuously. Without a single canonical versioning model:
 
 1. Tenant SDKs and ISV integrations break silently when µservices ship breaking changes (violates `feedback_no_silent_regression`).
 2. Per-µservice teams invent ad-hoc conventions (URL versioning here, query-param versioning there, header versioning elsewhere), producing the per-axis-vocabulary fragmentation that ADR-0001 (cohesion thesis) forbids.
@@ -514,16 +524,13 @@ The webhook dispatcher (per microservices/connector-events or per-µservice outb
 - Apollo Federation provides per-subgraph evolution with global schema composition.
 
 **Cons**:
-- At the time of the original decision, GraphQL surfaces were contemplated for Drive, Workspace
-  search results, and Knowledge Graph. ADR-0565 later removed that planned surface entirely.
+- Oyatie public surfaces are REST + signed/versioned webhooks + AsyncAPI events + SSE/WebSocket; GraphQL is not an owned surface. Moving version management to GraphQL would contradict the canonical exposure boundary.
 - GraphQL deprecation is per-field, not per-generation; tenants cannot pin to "the schema as of 2026-05-20" — they can only ignore the deprecation warnings.
 - gRPC and AsyncAPI cannot ride the GraphQL deprecation directive; they would need a separate model anyway.
 - Internal mesh is gRPC + REST, not GraphQL.
 - Apollo Federation pricing and operational model is a separate dependency surface to take on.
 
-**Rejected because**: the canonical surface is REST + gRPC + AsyncAPI. ADR-0565 subsequently
-removed GraphQL entirely, so its deprecation directive is not available anywhere in the owned API
-surface and cannot complement D-1.
+**Rejected because**: the public surface is REST + signed/versioned webhooks + AsyncAPI events + SSE/WebSocket, the internal RPC surface is gRPC/proto3, and GraphQL is forbidden by ADR-0565 and ADR-0632.
 
 ### Alternative D — No versioning; every API change is breaking; tenants migrate on every release
 

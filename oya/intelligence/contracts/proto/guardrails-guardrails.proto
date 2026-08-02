@@ -1,5 +1,8 @@
+// oyatie.contract.exposure: internal-only
+// oyatie.contract.transport: grpc-http2
+// oyatie.contract.identity: spiffe-mtls-tls13
 // oya-intelligence-guardrails — gRPC contract
-// Peer to contracts/openapi/guardrails.yaml for clients that prefer gRPC.
+// Internal-only service RPC projection; contracts/openapi/guardrails.yaml remains the public client contract.
 // Per ADR-0131 + ADR-0140 (retired per ADR-0145).
 
 syntax = "proto3";
@@ -12,8 +15,7 @@ import "google/protobuf/timestamp.proto";
 // Service: Guardrails
 // =========================================================================
 //
-// Authn: per-request OIDC bearer (gRPC metadata "authorization") OR SPIFFE mTLS
-//        (only sanctioned in-cluster caller is foundry-runtime).
+// Authn: SPIFFE mTLS workload identity with TLS 1.3; the sanctioned in-cluster caller is foundry-runtime.
 // Authz: Cedar policy evaluation server-side; same fragments as REST.
 // Tenancy: per-request metadata "x-scope-orgid" = "tenant:<hashed-id>".
 

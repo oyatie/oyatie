@@ -1,8 +1,11 @@
+// oyatie.contract.exposure: internal-only
+// oyatie.contract.transport: grpc-http2
+// oyatie.contract.identity: spiffe-mtls-tls13
 syntax = "proto3";
 
 // Emergency Department Information System (ED-IS) gRPC contract.
 // Authority: ADR-0332 (in flight) | ADR-0145 (direct gRPC + 3 invariants) |
-//            ADR-0253 (HTTP/3+QUIC default).
+//            ADR-0632 (internal-only gRPC over HTTP/2).
 //
 // Owner: emergency-medicine-platform-engineer
 // Stability: v0-draft (not yet stable; subject to ADR-controlled change).

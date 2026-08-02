@@ -1,5 +1,9 @@
+// oyatie.contract.exposure: internal-only
+// oyatie.contract.transport: grpc-http2
+// oyatie.contract.identity: spiffe-mtls-tls13
+
 // oya-application — gRPC contract
-// Peer to contracts/openapi/application.yaml for clients that prefer gRPC.
+// Internal sibling-service gRPC contract; public clients use contracts/openapi/application.yaml.
 // Per ADR-0123 + ADR-0131.
 
 syntax = "proto3";
@@ -13,7 +17,8 @@ import "google/protobuf/empty.proto";
 // Service: ApplicationShell
 // =========================================================================
 //
-// Authn: per-request OIDC bearer (gRPC metadata key "authorization").
+// Authn: SPIFFE mTLS/TLS 1.3 authenticates the calling workload; forwarded user claims are
+// application authorization context and do not make this a public RPC surface.
 // Authz: Cedar policy evaluation server-side; same fragments as REST.
 // Tenancy: per-request metadata key "x-tenant-id" = "tenant:<hashed-id>";
 //          mismatch with JWT claim returns UNAUTHENTICATED.

@@ -647,7 +647,7 @@ FR-007: Return immutable lifecycle history with audit-chain event references and
 Acceptance FR-007: request, state, evidence, Cedar, audit-chain, and observability outcomes are testable without Rust implementation in this scaffold.
 FR-008: Preserve idempotency across retries and cross-region replication lag.
 Acceptance FR-008: request, state, evidence, Cedar, audit-chain, and observability outcomes are testable without Rust implementation in this scaffold.
-FR-009: Expose OpenAPI 3.2.0 REST over HTTP/3 and gRPC/HTTP3 compatible semantics downstream.
+FR-009: Under Accepted ADR-0632, limit any downstream public surface to HTTPS REST/OpenAPI 3.2.0, versioned webhooks described by AsyncAPI 3.1.0 with CloudEvents 1.0.2 where its stable HTTP binding applies, SSE, and WebSocket as applicable; prefer HTTP/3 at capable public edges with mandatory HTTP/2 fallback. Keep gRPC/proto3 internal-only over HTTP/2 with mTLS and TLS 1.3; do not add public gRPC or GraphQL.
 Acceptance FR-009: request, state, evidence, Cedar, audit-chain, and observability outcomes are testable without Rust implementation in this scaffold.
 FR-010: Emit OpenSLO metrics for register, promote, drain, lookup, evidence validation, and drain-to-decommission duration.
 Acceptance FR-010: request, state, evidence, Cedar, audit-chain, and observability outcomes are testable without Rust implementation in this scaffold.
@@ -788,8 +788,8 @@ AC-090: The scaffold documents state machine behavior with a concrete validator 
 ### 16.3 IP-CL-003: drain and decommission coordination with cell-rebalancer
 - PRD trace: IP-CL-003 owns the implementation plan for drain and decommission coordination with cell-rebalancer and carries acceptance criteria into Wave 15-ZD-impl.
 - Scaffold state: authored here as documentation only; no Rust code is created.
-### 16.4 IP-CL-004: API surface REST, gRPC, and HTTP/3
-- PRD trace: IP-CL-004 owns the implementation plan for API surface REST, gRPC, and HTTP/3 and carries acceptance criteria into Wave 15-ZD-impl.
+### 16.4 IP-CL-004: public API, events, streaming, and internal RPC boundary
+- PRD trace: Under Accepted ADR-0632, IP-CL-004 owns the downstream selection and implementation plan for applicable public REST/OpenAPI, versioned webhooks, AsyncAPI/CloudEvents, SSE/WebSocket, HTTP/3 edge preference with HTTP/2 fallback, and internal-only gRPC/proto3 over HTTP/2 with mTLS and TLS 1.3; it carries acceptance criteria into Wave 15-ZD-impl without claiming an implemented generator or runtime.
 - Scaffold state: authored here as documentation only; no Rust code is created.
 ### 16.5 IP-CL-005: Cedar authorization and promotion permit
 - PRD trace: IP-CL-005 owns the implementation plan for Cedar authorization and promotion permit and carries acceptance criteria into Wave 15-ZD-impl.

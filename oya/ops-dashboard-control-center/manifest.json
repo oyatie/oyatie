@@ -233,9 +233,13 @@
     "asyncapi": [
       "microservices/ops-dashboard-control-center/contracts/asyncapi/ops-dashboard-control-center-events.yaml"
     ],
-    "proto": [
-      "microservices/ops-dashboard-control-center/contracts/proto/ops_dashboard_control_center.proto"
-    ],
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": [
+        "oya/ops-dashboard-control-center/contracts/proto/ops_dashboard_control_center.proto"
+      ]
+    },
     "contract_status": "service-local dashboard contracts are planning scaffolds; no ops-dashboard runtime crate or transport is implemented"
   },
   "capabilities": [

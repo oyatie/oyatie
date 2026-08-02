@@ -446,7 +446,8 @@ fn move_manifest_authority_matches_fail_closed_resolver_and_adr_0616() {
 }
 
 /// ADR-0565 is the one-way zero-GraphQL authority. The two older API ADRs may retain only
-/// explicitly historical/rejected discussion and must expose normalized reciprocal edges.
+/// explicitly historical/rejected discussion and must expose normalized reciprocal edges,
+/// including later product-protocol amendments.
 #[test]
 fn zero_graphql_authority_has_reciprocal_edges_and_no_live_surface() {
     let root = repo_root();
@@ -463,9 +464,9 @@ fn zero_graphql_authority_has_reciprocal_edges_and_no_live_surface() {
             .expect("read ADR-0258");
 
     assert!(
-        zero_graphql.contains("amends: [ADR-0253, ADR-0258]")
+        zero_graphql.contains("amends: [ADR-0056, ADR-0105, ADR-0253, ADR-0258]")
             && network.contains("amended_by:\n  - ADR-0565\n")
-            && versioning.contains("amended_by: [ADR-0565]"),
+            && versioning.contains("amended_by: [ADR-0565, ADR-0632]"),
         "ADR-0565, ADR-0253, and ADR-0258 must carry normalized reciprocal amendment edges"
     );
     for stale in [
@@ -564,7 +565,7 @@ fn public_protocol_authority_keeps_grpc_and_proto_internal() {
         assert!(
             adr.contains("status: Accepted")
                 && adr.contains("last_reconciled: 2026-08-01")
-                && adr.contains("reconciled_with: [ADR-0203, ADR-0258]")
+                && adr.contains("reconciled_with: [ADR-0203, ADR-0258, ADR-0632]")
                 && adr.contains("### Public-contract reconciliation"),
             "{path} must remain Accepted and carry reciprocal protocol reconciliation metadata"
         );
@@ -614,7 +615,8 @@ fn public_protocol_authority_keeps_grpc_and_proto_internal() {
         "openapi 3.2.0",
         "signed/versioned webhook",
         "asyncapi 3.1.0",
-        "streaming",
+        "sse",
+        "websocket",
         "internal-mesh grpc/proto3",
         "exempt",
     ] {

@@ -304,6 +304,30 @@
     {
       "anchor": "ADR-0625: OpenTofu provider dependency lock for this root. A lock is only meaningful beside its own root, so it is registered as an exact path rather than a tree; it relocates with its root under the reorg.",
       "prefix": "oya/identity/iac/oyatie-public-cloud/.terraform.lock.hcl"
+    },
+    {
+      "anchor": "ADR-0632 artifact accounting: exact canonical product protocol contract consumed by the cloud-ci product-protocol-policy gate and linked from the root hub.",
+      "prefix": "specs/product-protocol-contract.json"
+    },
+    {
+      "anchor": "ADR-0632 enforcement: owned Rust/Buck2 product protocol gate, policy data, negative fixtures, and tests that keep public/internal exposure, TLS, serialization, telemetry, and fabric posture fail-closed.",
+      "prefix": "ci/facade/product-protocol-policy/"
+    },
+    {
+      "anchor": "ADR-0632 hermetic input declaration: exact root BUCK file for the governed Oyatie manifest and internal Proto corpora consumed by the product-protocol gate.",
+      "prefix": "oya/BUCK"
+    },
+    {
+      "anchor": "ADR-0632 hermetic input declaration: exact root BUCK file for the governed cloud manifest and internal Proto corpora consumed by the product-protocol gate.",
+      "prefix": "cloud/BUCK"
+    },
+    {
+      "anchor": "ADR-0632 hermetic input declaration: exact contracts BUCK file for the root internal Proto corpus consumed by the product-protocol gate.",
+      "prefix": "contracts/BUCK"
+    },
+    {
+      "anchor": "ADR-0632 hermetic input declaration: exact microservice-schema BUCK file exporting the closed public/internal contract schema to the product-protocol gate.",
+      "prefix": "specs/microservices/BUCK"
     }
   ]
 }

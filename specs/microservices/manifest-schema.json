@@ -108,20 +108,71 @@
             "type": "string"
           }
         },
-        "proto": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
         "source": {
           "type": "array",
           "items": {
             "type": "string"
           },
-          "description": "Rust-native shared contract source paths that generate or validate REST/OpenAPI, gRPC/Protobuf, and event/AsyncAPI projections. GraphQL is NOT an owned contract surface per ADR-0565."
+          "description": "Rust-native shared contract source paths that generate or validate public REST/OpenAPI, internal-only gRPC/Protobuf, and event/AsyncAPI projections. GraphQL is not an owned contract surface."
+        },
+        "contract_status": {
+          "type": "string",
+          "description": "Compatibility metadata describing whether listed contract files are live, code-backed, or planning-only; it is not a protocol carrier."
+        },
+        "service_local_contract_scaffolds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Compatibility inventory of service-local planning/scaffold contract paths; it is not a public protocol carrier or runtime claim."
+        },
+        "convention_docs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Compatibility inventory of contract convention documentation."
+        },
+        "trait": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Compatibility inventory of protocol-neutral Rust trait contract documentation."
+        },
+        "sdk": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Compatibility inventory of SDK contract documentation; it does not authorize a public RPC carrier."
+        },
+        "internal_grpc": {
+          "description": "Optional internal-only gRPC over HTTP/2 contract sources using proto3. Presence declares capability metadata only; it does not claim the service or generated runtime is live.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "transport",
+            "language_profile",
+            "contracts"
+          ],
+          "properties": {
+            "transport": {
+              "const": "http2"
+            },
+            "language_profile": {
+              "const": "proto3"
+            },
+            "contracts": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
         }
-      }
+      },
+      "description": "Closed protocol declaration: public contracts are OpenAPI REST and AsyncAPI events; GraphQL is forbidden. Internal gRPC/proto3 may be declared only in internal_grpc and does not claim a live implementation."
     },
     "capabilities": {
       "type": "array",
@@ -1719,7 +1770,7 @@
       }
     },
     "tenant_version_pinning": {
-      "description": "ADR-0342 — Per-µservice api_versioning declaration AND tenant-pinning posture flag. The block enumerates the date-based versions the µservice exposes on its public boundary (OpenAPI 3.2.0 endpoints, AsyncAPI 3.1.0 channels, proto3 services exposed externally) plus the supported-window floor (N=3 versions × ≥180 days post-deprecation) plus the deprecation_calendar with per-version sunset-class-ADR cross-references plus the per-version OpenAPI/AsyncAPI/proto3 file path map. The block also declares whether the µservice supports per-tenant version pinning (per ADR-0342 D-5; tenant manifest authority lives at /specs/tenant-manifest-schema.json#api_version_pinning). Required for every µservice that exposes a public API; OPTIONAL for internal-only µservices that never appear at the api-gateway public boundary. Hyperscaler precedent: Stripe / Anthropic / OpenAI / AWS / Google Cloud / GitHub.",
+      "description": "ADR-0342 — Per-µservice api_versioning declaration AND tenant-pinning posture flag. The block enumerates the date-based versions the µservice exposes on its public boundary (OpenAPI 3.2.0 endpoints, AsyncAPI 3.1.0 channels) plus the supported-window floor (N=3 versions × ≥180 days post-deprecation) plus the deprecation_calendar with per-version sunset-class-ADR cross-references plus the per-version OpenAPI/AsyncAPI file path map. The block also declares whether the µservice supports per-tenant version pinning (per ADR-0342 D-5; tenant manifest authority lives at /specs/tenant-manifest-schema.json#api_version_pinning). Required for every µservice that exposes a public API; OPTIONAL for internal-only µservices that never appear at the api-gateway public boundary. Hyperscaler precedent: Stripe / Anthropic / OpenAI / AWS / Google Cloud / GitHub.",
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -1808,7 +1859,7 @@
           }
         },
         "public_surface_files": {
-          "description": "Per-version map of OpenAPI 3.2.0 / AsyncAPI 3.1.0 / proto3 source files. Keys are YYYY-MM-DD; values are paths under microservices/<name>/contracts/.",
+          "description": "Per-version map of public OpenAPI 3.2.0 and AsyncAPI 3.1.0 source files. Keys are YYYY-MM-DD; values are paths under microservices/<name>/contracts/.",
           "type": "object",
           "additionalProperties": false,
           "properties": {
@@ -1824,13 +1875,6 @@
               "additionalProperties": {
                 "type": "string",
                 "description": "Path to contracts/asyncapi/<YYYY-MM-DD>.yaml"
-              }
-            },
-            "proto": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "string",
-                "description": "Path to contracts/proto/<YYYY-MM-DD>/ subdirectory"
               }
             }
           }

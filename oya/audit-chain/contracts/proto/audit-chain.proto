@@ -1,5 +1,9 @@
+// oyatie.contract.exposure: internal-only
+// oyatie.contract.transport: grpc-http2
+// oyatie.contract.identity: spiffe-mtls-tls13
+
 // oya-audit-chain — gRPC contract
-// Peer to contracts/openapi/audit-chain.yaml for clients that prefer gRPC.
+// Internal sibling-service gRPC contract; public clients use contracts/openapi/audit-chain.yaml.
 // Per Bominal ADR-0028 + ADR-0003.
 
 syntax = "proto3";
@@ -12,8 +16,8 @@ import "google/protobuf/timestamp.proto";
 // Service: AuditChain
 // =========================================================================
 //
-// Authn: internal — SPIFFE mTLS; external — OIDC bearer (gRPC metadata
-// "authorization"). Authz: Cedar policy server-side.
+// Authn: internal gRPC uses SPIFFE mTLS/TLS 1.3; public user-token auth belongs to REST/OpenAPI.
+// Authz: Cedar policy server-side.
 // Tenancy: per-request metadata "x-scope-orgid" = "tenant:<hashed-id>".
 // Idempotency: every Emit RPC carries "idempotency-key" = ULID.
 

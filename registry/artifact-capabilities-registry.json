@@ -2763,6 +2763,22 @@
         "selfheal": {"healer": "not-applicable; immutable predecessor facts require reviewed replacement authority"},
         "provenance": {"current_author": "codex", "current_reviewed_by": "pending code-review", "last_modified_at": "2026-07-22T00:00:00Z"}
       }
+    },
+    {
+      "artifact_id": "product-protocol-contract",
+      "artifact_path": "/specs/product-protocol-contract.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "council-architecture + cloud-ci-platform",
+      "purpose_short": "Canonical ADR-0632 public/internal protocol, TLS, serialization, telemetry, and provider-owned fabric posture for the capability-first reorganization.",
+      "artifact_profile": "schema",
+      "capability_overrides": {
+        "enforcement": {"lane_id": "cloud-ci-product-protocol-policy"},
+        "verification": {"command": "buck2 test //ci/facade/product-protocol-policy:ci-product-protocol-policy-gate"},
+        "validation": {"validator": "JSON syntax plus the policy-driven ADR-0632 cross-artifact evaluator"},
+        "autogen": {"generator": "not-applicable; source-authored product contract"},
+        "provenance": {"current_author": "codex", "current_reviewed_by": "pending code-review", "last_modified_at": "2026-08-01T00:00:00Z"}
+      }
     }
   ],
   "purpose": "Auto-backfilled purpose for artifact-capabilities-registry.json"

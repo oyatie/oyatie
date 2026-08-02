@@ -38,9 +38,13 @@
     "asyncapi": [
       "microservices/managed-k8s-tenant-quota/contracts/asyncapi-v1.yaml"
     ],
-    "proto": [
-      "microservices/managed-k8s-tenant-quota/contracts/managed-k8s-tenant-quota.proto"
-    ]
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": [
+        "cloud/managed-k8s-tenant-quota/contracts/managed-k8s-tenant-quota.proto"
+      ]
+    }
   },
   "capabilities": [
     {

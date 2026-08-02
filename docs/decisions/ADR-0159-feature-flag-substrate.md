@@ -6,12 +6,12 @@ date: 2026-05-18
 owner: council-architecture
 supersedes: []
 superseded_by: []
+amended_by: [ADR-0632]
 related: [ADR-0007, ADR-0009, ADR-0049, ADR-0110, ADR-0114, ADR-0128, ADR-0139, ADR-0145, ADR-0157, ADR-0158]
 related_specs:
   - /specs/feature-flag-substrate-canonical.json
   - /specs/hyperscaler-architecture-invariants.json
 ---
-
 # ADR-0159 — Dedicated Feature-Flag µservice (runtime gradual rollout) separate from ChangeSet acceptance (code-deploy gating)
 
 ## Status
@@ -19,6 +19,10 @@ related_specs:
 Accepted (2026-05-18). Promotes a dedicated `feature-flags` µservice as the canonical *runtime* feature-flag substrate. Distinct from the ChangeSet `acceptance_status` (ADR-0110), which gates code-deploy. Distinct from progressive delivery (ADR-0160 / ADR-0114), which gates traffic shape during a deploy.
 
 **Amended — 2026-07-09 (RELEASE-001 runtime-safety declaration):** the retained non-crate `feature-flags` release surface may carry a data-only RELEASE-001 runtime-safety declaration at `oya/feature-flags/release/runtime-safety-policy.json`, owned narrowly by `oya/feature-flags/release/OWNERS`. The declaration documents alignment between this ADR's feature-flag lifecycle cleanup discipline and ADR-0139 SLO-gated promotion and ADR-0176 brownout degradation signaling, without claiming live rollout execution, tenant traffic, measured SLOs, runtime observability-engine readiness, or Oya CD parity/cutover.
+
+## ADR-0632 product-protocol reconciliation
+
+The tenant, Workflow Studio, portal, and SDK-facing feature-flag contract is public HTTPS REST documented by OpenAPI 3.2.0, with signed/versioned webhooks, AsyncAPI/CloudEvents events, SSE, or WebSocket used where their delivery semantics apply. Public GraphQL, gRPC, gRPC-Web, and Connect are forbidden. Any gRPC flag-evaluation adapter is internal-only gRPC/proto3 over HTTP/2 behind the public contract.
 
 ## Context
 
@@ -55,7 +59,7 @@ All three required for any user-visible change. ChangeSet promotes the code. Fla
 
 The `feature-flags` µservice implements the OpenFeature spec server-side:
 
-- gRPC + REST surface for flag evaluation (`evaluateBoolean`, `evaluateString`, `evaluateNumber`, `evaluateObject`).
+- Public HTTPS REST surface for flag evaluation (`evaluateBoolean`, `evaluateString`, `evaluateNumber`, `evaluateObject`), with an internal-only gRPC/proto3 over HTTP/2 adapter for sibling services.
 - Per-µservice Rust SDK (`oya-feature-flag-client`) wrapping the OpenFeature Rust SDK.
 - Per-µservice TypeScript / Python SDKs for the workflow-studio / portal tiers.
 - Per-tenant flag evaluation context: `tenant_id`, `persona_tier`, `pack_id`, `cohort_ids[]`, `user_id` (hashed).

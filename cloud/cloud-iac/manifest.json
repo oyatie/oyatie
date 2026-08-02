@@ -35,7 +35,13 @@
   "contracts": {
     "openapi": [],
     "asyncapi": [],
-    "proto": []
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": [
+        "cloud/cloud-iac/contracts/proto/cloud-iac.proto"
+      ]
+    }
   },
   "capabilities": [
     {

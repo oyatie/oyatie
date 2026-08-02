@@ -1,7 +1,11 @@
+// oyatie.contract.exposure: internal-only
+// oyatie.contract.transport: grpc-http2
+// oyatie.contract.identity: spiffe-mtls-tls13
+
 // cloud-billing gRPC contract (proto3)
 //
 // Per ADR-0145 inter-µservice communication reform: direct gRPC + 3 invariants.
-// Per ADR-0253 transport defaults to HTTP/3 + QUIC with HTTPS/2 fallback.
+// Internal sibling-service gRPC uses HTTP/2 with mTLS/TLS 1.3; public clients use REST/OpenAPI.
 // Per ADR-0243 every state-mutation method is Cedar-gated.
 // Per ADR-0263 every state-mutation produces an audit-chain seal hash returned in response.
 // Per ADR-0330 tenant_class is the keystone enum; billing_components is the composable subset.

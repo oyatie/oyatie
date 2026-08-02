@@ -1,0 +1,27 @@
+[package]
+name = "ci-product-protocol-policy"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[package.metadata.oya]
+bounded_context = "cloud-ci"
+kind = "shared"
+layer = "app"
+purpose = "Fail-closed policy gate for the ADR-0632 public, internal, transport-security, serialization, telemetry, and owned-fabric protocol contract."
+
+[lib]
+name = "ci_product_protocol_policy"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+serde_json = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }
+
+[lints]
+workspace = true

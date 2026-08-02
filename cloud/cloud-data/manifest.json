@@ -43,9 +43,13 @@
     "asyncapi": [
       "cloud/cloud-data/contracts/asyncapi/cloud-data-design-events.yaml"
     ],
-    "proto": [
-      "cloud/cloud-data/contracts/proto/cloud-data-design.proto"
-    ],
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": [
+        "cloud/cloud-data/contracts/proto/cloud-data-design.proto"
+      ]
+    },
     "contract_status": "cloud/cloud-data OpenAPI scaffold has intentionally empty paths; design AsyncAPI/proto contracts are metadata-only review evidence and do not prove runtime broker/gRPC service readiness"
   },
   "capabilities": [

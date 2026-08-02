@@ -37,9 +37,13 @@
     "asyncapi": [
       "microservices/managed-k8s-sla-observability/contracts/asyncapi-v1.yaml"
     ],
-    "proto": [
-      "microservices/managed-k8s-sla-observability/contracts/managed-k8s-sla-observability.proto"
-    ]
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": [
+        "cloud/managed-k8s-sla-observability/contracts/managed-k8s-sla-observability.proto"
+      ]
+    }
   },
   "capabilities": [
     {
