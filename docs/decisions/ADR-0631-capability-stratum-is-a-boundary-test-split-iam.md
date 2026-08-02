@@ -1,6 +1,6 @@
 ---
 id: ADR-0631
-title: "A capability that spans strata has a wrong boundary, not a tier problem: split iam into iam (S1 PDP) and identity (S3 product), and rehome consent-graph to compliance"
+title: "A capability that spans strata has a wrong boundary, not a tier problem: split iam into iam (S1 PDP) and identity (S3 product), consolidate the Cedar+ReBAC decision plane into policy, and re-derive the burn-down record"
 status: Proposed
 doc_status: published
 planning_impact: true
@@ -159,6 +159,169 @@ rather than collapsing into red/green:
 | `blocked` | a dependent outside the split already imports `identity/*` | rollback window closed; forward-fix only |
 | `no-verdict` | the gate did not reach a verdict | re-run; do NOT read as pass |
 
+### D7 — the authorization DECISION PLANE consolidates into `policy/`; `iam` keeps the IdP
+
+`policy/` contains **zero files** while its material sits in `iam/**` and `libs/**`. That is not a
+tier question. Applying D1: `iam` cannot be S1 while holding S3 decision-plane material, so this is
+the other half of the same span D2 addresses — moving `consent-graph` alone does not resolve it.
+
+**The registry already declares this boundary; only the tree contradicts it.** `policy`'s charter
+reads *"The Cedar-backed PBAC+ReBAC authorization decision plane (**standalone**, cell-distributed)"*
+while `iam`'s reads *"Produces the verified principal."* This decision makes the tree match the
+registry, it does not invent a new seam.
+
+**It is two engines, not a Cedar feature of IAM.** The plane is an owned merge of Cedar (PBAC —
+"does policy permit this action given these attributes") and Zanzibar-style ReBAC ("is there a
+relationship path from this subject to this object"). Neither subsumes the other, which is why AWS
+ships Verified Permissions separately from IAM, Azure ships Azure Policy separately from Entra, and
+Google ships the Zanzibar/Check path separately from IAM. Three independent architectures put the
+decision plane outside the identity service. The ReBAC half is real, not aspirational:
+`policy-cedar-domain/src/rebac.rs` + `tests/rebac_tuple_port.rs`.
+
+A PDP and an IdP also differ on every axis that defines a capability boundary: change cadence
+(policies churn, identity schema does not), owner (security/compliance vs platform), scaling profile
+(read-heavy hot path vs write-sensitive), and blast radius (a bad policy denies one action; a bad IdP
+change locks everyone out). Different cadence and owner is the Conway test; different scaling profile
+is the independent-deployability test.
+
+**MOVE (7):** `iam/core/policy-cedar-domain` · `iam/core/cloud-pdp-kernel` · `iam/adapters/pdp-cedar`
+· `iam/adapters/cloud-pdp-bundle-file` · `iam/ports/policy-cedar-api` · `iam/facade/cloud-pdp-app`
+· `libs/oya-shared-pdp-kernel`.
+
+**DO NOT MOVE — the per-capability PEP adapters STAY** (`k8s/adapters/*-cedar`,
+`tenancy/adapters/tenant-lifecycle-authz-pdp`, `intelligence/adapters/authz-cedar-adapter`,
+`oya/ci-webhook-gateway/**/authz-cedar-adapter`). A Policy ENFORCEMENT Point belongs with the
+capability it protects; only the DECISION point centralizes. Collapsing PEPs into `policy/` would
+invert the dependency and recreate the monolith this splits.
+
+**MISFILED BY NAME, and NOT to `policy` (2):** `iam/core/tenant-rbac-tenant-admission-policy` and
+`iam/ports/tenant-rbac-tenant-egress-policy-contract` describe themselves as **review-only** crates
+defining *"Kubernetes admission guardrails"* and *"network egress guardrails"*. That is `k8s` and
+`network` material; the token `policy` in their names made them look like decision-plane crates.
+Dispositioned separately — do not sweep them into this move.
+
+**ARGUABLE (1):** `iam/adapters/identity-workload-authz-cedar` evaluates an `AuthorizationRequest`
+(decision-plane work) but is scoped to workload identity. Decide by **which port it implements** — an
+adapter belongs with the capability owning its port — not by its name.
+
+### D8 — `policy` is itself two strata: the G face and the C0 face
+
+The canonical DAG (`specs/substrate-dependency-dag.json`) declares `policy-engine` depending on
+`cell`(S2), `identity` and `tenancy`(S2), while `audit-chain`(S0) and `observability`(S0) depend on
+`policy-engine`. Applying D1's arithmetic: `max(deps)=S2 <= rank <= min(dependents)=S0` — an **EMPTY
+RANGE**. The SSOT contains an inversion.
+
+**The charter explains the contradiction and names the fix.** PEPs are specified to consume a
+*last-known-good signed snapshot*, under an explicit static-stability invariant: *"a stale snapshot
+denies or routes to the authoritative shard, never silently authorizes."* But the DAG encodes
+`permit-audit-chain-call-policy-engine-v1` — a runtime **CALL**. A data plane that calls its control
+plane on the hot path is the availability anti-pattern static stability exists to prevent.
+
+So `policy` splits along the faces its own charter already names:
+- **G face** — policy + ReBAC-tuple authoring / signing / distribution. Control plane. Depends on
+  `cell`/`tenancy`, so it sits ABOVE them (~S3).
+- **C0 face** — per-cell runtime PDP + versioned snapshot store. Data plane. Consumed by every PEP,
+  so it must sit at or below its lowest consumer.
+
+The G→C0 relationship is **snapshot publication, not a call**, and therefore not a build-graph edge.
+Encoding that removes the inversion without weakening any rule — which is the test D1 sets for a
+correct split, as against picking a number that makes the gate quiet.
+
+### D9 — the pre-#1481 burn-down record is not audited; it is RE-DERIVED
+
+Three recorded burn-downs were proven to be relocations rather than repairs (the gate's own test
+recorded 3 `cloud-kms -> residency` inversions as *"burned down by move-19"* when the edges were
+never fixed — a move relocated one endpoint into an unenforced root and the violation stopped being
+computed). ~19 capabilities' records were produced by the same mechanism, now closed by #1481.
+
+**Those records will NOT be individually audited.** The burn-down record is a derived claim about
+history; what matters operationally is the CURRENT violation set, which #1481 now computes correctly.
+So: finish the declarations, re-run the gate over the fully-reclassified tree, and take the resulting
+violation set as ground truth. Every real inversion appears; every false "burned down" claim resurfaces
+as a live violation. **The audit is a byproduct of enforcement rather than a project.**
+
+This is strictly better than auditing nineteen records on four counts: it is mechanical rather than
+archaeological; it yields an actionable list instead of a historical verdict; it is self-correcting,
+because the re-derivation need not be trusted the way an auditor would; and auditing history tells you
+WHO was wrong while re-deriving tells you WHAT to fix. The same reason one rebuilds a corrupted index
+instead of auditing what the index used to say.
+
+**Sequencing consequence:** re-derivation is complete only over ENFORCED roots, so it is valid only
+after every capability is declared. That is a reason to finish the declarations first, not a caveat
+against the method.
+
+**One thing IS worth doing:** record in `tier-dependency-acyclicity-baseline.json` that pre-#1481
+burn-down claims are unreliable. Not to verify them — to stop a future reader citing them as evidence.
+A record known to be unreliable and marked so is safe; one merely known to be unreliable is not.
+
+### D10 — placement must be MECHANICAL, and today it is inferred from names
+
+Everything above was expensive because **a crate's correct home is currently decided by reading it**.
+That is the root cause, not a side effect, and the evidence is all from this one exercise:
+
+- `tenant-rbac-tenant-admission-policy` and `tenant-rbac-tenant-egress-policy-contract` read as
+  decision-plane crates. Their module docs say **Kubernetes admission** and **network egress**
+  guardrails. The token `policy` in the NAME was wrong about the CONTENT.
+- `oya-check-cost-budget` reads as a gate. It is a runtime budget-ledger consumed by production code;
+  moving it to a gate root would have inverted product -> ci.
+- `identity-workload-authz-cedar` cannot be classified from its name at all — it needs a port check.
+- 12 crates were nearly deleted as dead; six were `status: active` with ADR mandates.
+
+A name is a lossy encoding of a decision nobody recorded.
+
+**The hyperscaler answer is not a smarter linter — it is the BUILD SYSTEM.** In google3 the
+directory IS the declaration (one BUILD per package) and `visibility` is the enforcement; nobody
+asks whether a target "belongs" somewhere, because a target that reaches outside its allowed view
+does not build. Buck2 carries the same primitives plus `within_view`, the downward constraint.
+
+That distinction is load-bearing here, not stylistic. **A gate keyed on names is exactly what a
+rename silently emptied this week** — the `aspirational-enforcement` scan went to zero sites and
+reported clean. A `visibility`/`within_view` constraint has **no probe to get wrong**: it is
+evaluated by buck2 itself, and it fails at BUILD-FILE EVALUATION — earlier than analysis, before any
+test runs. Verified in-tree 2026-07-31: a forbidden dep yields
+`Target's within_view attribute does not allow dependency ...`.
+
+So placement is DECLARED at birth and ENFORCED BY THE GRAPH, never re-inferred:
+
+1. **Capability boundaries become `visibility` declarations.** A capability's `core/` is visible to
+   its own `ports/`/`adapters/`/`facade/` and to nothing else; `ports/` is the only face with
+   cross-capability visibility. That single rule makes "which capability owns this crate?"
+   answerable by whether it links — the ports-and-adapters seam expressed in the build graph rather
+   than in prose.
+2. **`within_view` pins the DAG direction per stratum.** A capability at S_n may view S_n and below.
+   That is ADR-0280's rule, enforced by the build system instead of re-derived by a gate from a
+   crate-graph scan.
+3. **The catalog row records the answer so it survives renames.** `register_crate` already makes a
+   crate born-accounted with a `registry/catalog/<crate_id>.yaml` row; that row — not the path, not
+   the name — carries the owning capability. Precedent: R6c and the aspirational-enforcement fix both
+   key on the catalog `capability:` facet **precisely so a rename cannot change the answer**.
+4. **Each face then has ONE mechanical test**, and none of them requires reading the crate:
+   - `adapters/` — owned by the capability owning the PORT it implements. Read off the dep edge.
+   - `core/` — its non-`libs` dependencies must not leave its capability. Read off the dep set.
+   - `ports/` — owned by the capability whose seam it defines; implementors may live anywhere.
+   - `facade/` — owned by the capability whose surface it sells.
+
+**A crate whose declared capability disagrees with its visibility-permitted dependency set does not
+build.** That is strictly stronger than a gate, because a gate can be emptied, skipped, or left
+unwired — this repo found 19 gates in exactly that state — whereas a build constraint cannot be
+satisfied while violated. Every item in the list above would have failed at the moment it landed.
+
+**Migration is incremental and non-breaking**: `visibility` defaults are permissive, so tightening
+one capability at a time surfaces its real violations without a big-bang cutover. Start with a
+capability whose boundary is already clean (`audit` or `secrets`, both S0 with small absorbed sets)
+to validate the pattern before touching `iam`.
+
+**Run the check at CREATION, not at tier-declaration time.** Seven of the eight untiered capabilities
+turned out to be derivable, and both genuine "spans" were single misplaced crates — so the unanimity
+rule has been doing per-crate boundary detection nobody asked it for, years after the fact. Catching a
+misplaced crate the day it lands is a one-line move; catching it at tier-declaration means it has
+already accumulated dependents and the fix is a migration.
+
+The goal is that "where does this crate go?" has a mechanical answer derivable from what the crate
+DEPENDS ON and what DEPENDS ON IT — with the catalog row recording the answer so it survives renames,
+and the gate failing closed when the two disagree.
+
+
 ## Consequences
 
 - `specs/capability-registry.json` gains `identity`; the closed set goes 24 -> 25. The registry stays
@@ -173,6 +336,24 @@ rather than collapsing into red/green:
   under D1 before it accepts a member at S3.
 - One-way door: the split changes the closed registry and the crate homes of 63 crates. Reversing it
   after dependents adopt `identity/` is expensive.
+
+### From D7-D10
+
+- `policy/` stops being an empty registered root. 7 crates move in (6 from `iam/**`, 1 from
+  `libs/**`); the ~8 per-capability PEP adapters stay where they are.
+- **`iam` shrinks twice** — D2 removes product identity, D7 removes the decision plane. What remains
+  is the IdP plus the tenant-RBAC role store, which is what its charter already claims.
+- The `policy/*/*` glob in `tier-dependency-acyclicity-policy.json` starts matching crates instead of
+  nothing, and `policy` leaves `unclassified_roots`. Both are currently false-greens: the gate
+  declares it is skipping edges for a directory that does not exist.
+- **D8 requires an SSOT edit.** `specs/substrate-dependency-dag.json` encodes
+  `permit-audit-chain-call-policy-engine-v1` and `permit-observability-call-policy-engine-v1` as
+  CALLS. Under the static-stability invariant those are snapshot reads. Correcting them removes the
+  empty range without weakening a rule; leaving them encodes an inversion in the single source of truth.
+- **D9 costs nothing now** and forecloses a wrong future citation. The one-line unreliability note in
+  the baseline is the entire deliverable until the declarations finish.
+- **D10 is the only item here that prevents recurrence.** D2/D3/D7 fix three boundaries; D10 stops the
+  fourth from being created.
 
 ## Alternatives rejected
 
