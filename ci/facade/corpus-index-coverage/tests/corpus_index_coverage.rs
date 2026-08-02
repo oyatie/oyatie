@@ -5,6 +5,8 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use std::collections::{BTreeMap, BTreeSet};
+use std::fs::File;
+use std::io::Read;
 use std::path::{Path, PathBuf};
 
 use ci_corpus_index_coverage::{
@@ -14,6 +16,7 @@ use ci_corpus_index_coverage::{
 };
 
 const POLICY_PATH: &str = "ci/facade/corpus-index-coverage/corpus-index-coverage-policy.json";
+const MAX_YAML_SOURCE_BYTES: u64 = 1_048_576;
 const NESTED_REPAIR_PACKAGES: [&str; 6] = [
     "oya/oya-authn-device-firmware",
     "oya/oya-billing",
@@ -28,6 +31,12 @@ struct LiveObservation {
     unpackaged: usize,
     oya_inputs: Vec<CorpusInput>,
     oya_faces: Vec<FaceObservation>,
+}
+
+struct YamlCandidate {
+    path: PathBuf,
+    resolved: PathBuf,
+    source_bytes: u64,
 }
 
 fn repo_root() -> PathBuf {
@@ -70,7 +79,13 @@ fn is_yaml(name: &str) -> bool {
     name.ends_with(".yaml") || name.ends_with(".yml")
 }
 
-fn walk(root: &Path) -> Result<(Vec<PathBuf>, Vec<(PathBuf, u64)>), String> {
+fn walk(root: &Path) -> Result<(Vec<PathBuf>, Vec<YamlCandidate>), String> {
+    let canonical_root = root.canonicalize().map_err(|error| {
+        format!(
+            "repo root canonicalization {} failed: {error}",
+            root.display()
+        )
+    })?;
     let mut packages = Vec::new();
     let mut yamls = Vec::new();
     let mut stack = vec![root.to_path_buf()];
@@ -96,30 +111,67 @@ fn walk(root: &Path) -> Result<(Vec<PathBuf>, Vec<(PathBuf, u64)>), String> {
             } else if name == "BUCK" {
                 packages.push(dir.clone());
             } else if is_yaml(name) {
-                let metadata = std::fs::metadata(&path)
-                    .map_err(|error| format!("YAML metadata {} failed: {error}", path.display()))?;
-                let bytes = std::fs::read(&path)
-                    .map_err(|error| format!("YAML read {} failed: {error}", path.display()))?;
-                if metadata.len()
-                    != u64::try_from(bytes.len()).map_err(|error| error.to_string())?
-                {
+                let resolved = path.canonicalize().map_err(|error| {
+                    format!("YAML canonicalization {} failed: {error}", path.display())
+                })?;
+                if !resolved.starts_with(&canonical_root) {
                     return Err(format!(
-                        "YAML {} changed during observation",
-                        path.display()
+                        "YAML {} resolves outside repository root to {}",
+                        path.display(),
+                        resolved.display()
                     ));
                 }
-                yamls.push((path, metadata.len()));
+                let metadata = std::fs::metadata(&resolved)
+                    .map_err(|error| format!("YAML metadata {} failed: {error}", path.display()))?;
+                if !metadata.is_file() {
+                    return Err(format!(
+                        "YAML {} resolves to non-regular file {}",
+                        path.display(),
+                        resolved.display()
+                    ));
+                }
+                if metadata.len() > MAX_YAML_SOURCE_BYTES {
+                    return Err(format!(
+                        "YAML {} is {} bytes, above the {}-byte limit",
+                        path.display(),
+                        metadata.len(),
+                        MAX_YAML_SOURCE_BYTES
+                    ));
+                }
+                let file = File::open(&resolved)
+                    .map_err(|error| format!("YAML open {} failed: {error}", path.display()))?;
+                let mut bytes = Vec::with_capacity(
+                    usize::try_from(metadata.len()).map_err(|error| error.to_string())?,
+                );
+                file.take(MAX_YAML_SOURCE_BYTES + 1)
+                    .read_to_end(&mut bytes)
+                    .map_err(|error| {
+                        format!("YAML bounded read {} failed: {error}", path.display())
+                    })?;
+                let bytes_read = u64::try_from(bytes.len()).map_err(|error| error.to_string())?;
+                if bytes_read > MAX_YAML_SOURCE_BYTES || bytes_read != metadata.len() {
+                    return Err(format!(
+                        "YAML {} changed size during bounded observation: metadata={}, read={bytes_read}",
+                        path.display(),
+                        metadata.len()
+                    ));
+                }
+                yamls.push(YamlCandidate {
+                    path,
+                    resolved,
+                    source_bytes: bytes_read,
+                });
             }
         }
     }
     Ok((packages, yamls))
 }
 
-fn read_buck_declaration(dir: &Path) -> Result<ExtractionDeclaration, String> {
+fn read_buck_declaration(dir: &Path, package: &str) -> Result<ExtractionDeclaration, String> {
     let path = dir.join("BUCK");
     let buck = std::fs::read_to_string(&path)
         .map_err(|error| format!("BUCK read {} failed: {error}", path.display()))?;
-    extraction_declaration(&buck)
+    extraction_declaration(package, &buck)
         .map_err(|error| format!("BUCK declaration {} failed: {error}", path.display()))
 }
 
@@ -130,22 +182,23 @@ fn observe(root: &Path) -> Result<LiveObservation, String> {
     let mut unpackaged = 0usize;
     let mut oya_inputs = Vec::new();
 
-    for (yaml, source_bytes) in yamls {
-        let relative = yaml
+    for candidate in yamls {
+        let relative = candidate
+            .path
             .strip_prefix(root)
-            .map_err(|error| format!("{} is outside root: {error}", yaml.display()))?
+            .map_err(|error| format!("{} is outside root: {error}", candidate.path.display()))?
             .to_str()
-            .ok_or_else(|| format!("non-UTF-8 repo-relative path {}", yaml.display()))?
+            .ok_or_else(|| format!("non-UTF-8 repo-relative path {}", candidate.path.display()))?
             .replace('\\', "/");
         let input = CorpusInput {
             path: relative.clone(),
-            source_bytes,
+            source_bytes: candidate.source_bytes,
         };
         if relative.starts_with("oya/") {
             oya_inputs.push(input.clone());
         }
 
-        let mut cursor = yaml.parent();
+        let mut cursor = candidate.path.parent();
         let mut owner = None;
         while let Some(dir) = cursor {
             if package_set.contains(dir) {
@@ -158,7 +211,20 @@ fn observe(root: &Path) -> Result<LiveObservation, String> {
             cursor = dir.parent();
         }
         match owner {
-            Some(dir) => owned.entry(dir).or_default().push(input),
+            Some(dir) => {
+                let canonical_owner = dir.canonicalize().map_err(|error| {
+                    format!("package canonicalization {} failed: {error}", dir.display())
+                })?;
+                if !candidate.resolved.starts_with(&canonical_owner) {
+                    return Err(format!(
+                        "YAML {} resolves outside owning package {} to {}",
+                        candidate.path.display(),
+                        dir.display(),
+                        candidate.resolved.display()
+                    ));
+                }
+                owned.entry(dir).or_default().push(input);
+            }
             None => unpackaged += 1,
         }
     }
@@ -172,7 +238,7 @@ fn observe(root: &Path) -> Result<LiveObservation, String> {
             .to_str()
             .ok_or_else(|| format!("non-UTF-8 package path {}", dir.display()))?
             .replace('\\', "/");
-        let declaration = read_buck_declaration(&dir)?;
+        let declaration = read_buck_declaration(&dir, &package)?;
         let faces = derive_faces(&package, &inputs, declaration)
             .map_err(|error| format!("face derivation for {package} failed: {error}"))?;
         if package == "oya" || package.starts_with("oya/") {
@@ -370,8 +436,92 @@ fn unreadable_or_missing_buck_blocks() {
     let missing = std::env::temp_dir().join(format!("corpus-missing-buck-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&missing);
     std::fs::create_dir_all(&missing).unwrap();
-    assert!(read_buck_declaration(&missing).is_err());
+    assert!(read_buck_declaration(&missing, "missing").is_err());
     std::fs::remove_dir_all(&missing).unwrap();
+}
+
+#[cfg(unix)]
+fn symlink_case(name: &str) -> PathBuf {
+    let root = std::env::temp_dir().join(format!("corpus-{name}-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&root);
+    std::fs::create_dir_all(&root).unwrap();
+    root
+}
+
+#[cfg(unix)]
+#[test]
+fn external_yaml_symlink_blocks() {
+    use std::os::unix::fs::symlink;
+
+    let root = symlink_case("external-link");
+    let external = root.with_extension("external");
+    let _ = std::fs::remove_file(&external);
+    std::fs::write(&external, "external: true\n").unwrap();
+    symlink(&external, root.join("external.yaml")).unwrap();
+    assert!(walk(&root).is_err());
+    std::fs::remove_dir_all(&root).unwrap();
+    std::fs::remove_file(&external).unwrap();
+}
+
+#[cfg(unix)]
+#[test]
+fn oversized_internal_yaml_symlink_blocks_before_read() {
+    use std::os::unix::fs::symlink;
+
+    let root = symlink_case("oversized-link");
+    std::fs::write(root.join("large.data"), vec![b'x'; 1_048_577]).unwrap();
+    symlink("large.data", root.join("large.yaml")).unwrap();
+    assert!(walk(&root).is_err());
+    std::fs::remove_dir_all(&root).unwrap();
+}
+
+#[cfg(unix)]
+#[test]
+fn non_regular_internal_yaml_symlink_blocks() {
+    use std::os::unix::fs::symlink;
+
+    let root = symlink_case("directory-link");
+    std::fs::create_dir(root.join("target-dir")).unwrap();
+    symlink("target-dir", root.join("directory.yaml")).unwrap();
+    assert!(walk(&root).is_err());
+    std::fs::remove_dir_all(&root).unwrap();
+}
+
+#[cfg(unix)]
+#[test]
+fn symlink_escaping_nearest_package_blocks() {
+    use std::os::unix::fs::symlink;
+
+    let root = symlink_case("owner-escape");
+    let package = root.join("package");
+    std::fs::create_dir(&package).unwrap();
+    std::fs::write(package.join("BUCK"), "").unwrap();
+    std::fs::write(root.join("shared.data"), "shared: true\n").unwrap();
+    symlink("../shared.data", package.join("escaped.yaml")).unwrap();
+    assert!(observe(&root).is_err());
+    std::fs::remove_dir_all(&root).unwrap();
+}
+
+#[cfg(unix)]
+#[test]
+fn current_internal_yaml_symlink_inventory_is_seven_and_safe() {
+    let root = repo_root();
+    let paths = [
+        "oya/connector/contracts/asyncapi-v1.yaml",
+        "oya/connector/contracts/openapi-v1.yaml",
+        "oya/ops-dashboard-control-center/contracts/asyncapi-v1.yaml",
+        "oya/ops-dashboard-control-center/contracts/openapi-v1.yaml",
+        "oya/ops-dashboard-control-center/iac/ech-config.yaml",
+        "oya/ops-dashboard-control-center/iac/edge-waf.yaml",
+        "oya/ops-dashboard-control-center/iac/pqc-cert.yaml",
+    ];
+    assert!(paths.iter().all(|path| {
+        std::fs::symlink_metadata(root.join(path))
+            .unwrap()
+            .file_type()
+            .is_symlink()
+    }));
+    assert!(walk(&root).is_ok());
 }
 
 #[cfg(unix)]
