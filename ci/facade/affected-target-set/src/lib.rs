@@ -413,6 +413,36 @@ impl Change {
     }
 }
 
+/// The merge-base diff argv, minus the two revisions (PURE, so the rename-detection flags are a
+/// fact a test can read rather than a string buried in the adapter).
+///
+/// WHY THE FLAGS ARE EXPLICIT. Rename detection used to be left to ambient git config. It happened
+/// to work only because `diff.renames` defaults to true and neither `diff.renames` nor
+/// `diff.renameLimit` is set in this repo — that is a property of the MACHINE, not of the tool. A
+/// runner with `diff.renames=false` (or a rename set large enough to blow `diff.renameLimit`, where
+/// git silently degrades to add+delete and only warns) turns a move into `A`+`D`. That is not a
+/// cosmetic difference: [`resolve`] returns `RefuseUnowned` BEFORE it reads `full_reasons`, by
+/// design ("a graph-invisibility refusal dominates"), so the `D` half never gets to escalate to
+/// FULL. The destination arrives as an unowned `Present` and the verdict is a REFUSAL — every
+/// capability-move PR would wedge with no in-band exit, on a config the PR author cannot see.
+///
+/// `--find-renames` pins detection on regardless of `diff.renames`. `-l0` removes the rename-limit
+/// cap so a large capability move cannot silently degrade. Neither changes behavior under this
+/// repo's current config — they make today's behavior INDEPENDENT of it. Copy detection is
+/// deliberately NOT enabled: `-C` is off by default, and turning it on would reclassify ordinary
+/// copies as `Structural` -> FULL, buying a ~55-60 min run for no correctness gain.
+pub fn merge_base_diff_args<'a>(merge_base: &'a str, head: &'a str) -> Vec<&'a str> {
+    vec![
+        "diff",
+        "--name-status",
+        "-z",
+        "--find-renames",
+        "-l0",
+        merge_base,
+        head,
+    ]
+}
+
 /// Parse `git diff --name-status -z` output into `Change`s (PURE; moved from the adapter so the
 /// diff-kind -> FULL escalation is unit-testable). NUL-separated records; `R`/`C` carry two
 /// paths. Rename/copy/type-change map to a single [`Change::Structural`] -> FULL (their blast
