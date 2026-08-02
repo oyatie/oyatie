@@ -1,4 +1,4 @@
-//! Runtime-face-aware substrate graph-v2 validator (ADR-0631).
+//! Runtime-face-aware substrate graph-v2 validator (ADR-0635).
 //!
 //! The document contains exactly five separately typed graphs. Only
 //! `steady_state_request` is constrained to be acyclic. The failure graph is not authored
@@ -28,6 +28,13 @@ pub const DEPENDENCY_UNIT_COUNT: usize = 19;
 pub const CAPABILITY_COUNT: usize = 24;
 pub const SCHEMA_CANONICAL_SHA256: &str =
     "11ff9eddf5974b8f82c06e1bc6fd4ee79cbc3e4364859e187d684e45fae8717a";
+pub const GRAPH_DOCTRINE_ADRS: [&str; 5] = [
+    "ADR-0245",
+    "ADR-0280",
+    "ADR-0562",
+    "ADR-0615",
+    "ADR-0635",
+];
 const DEPENDENCY_UNIT_AUTHORITY: [(&str, &str, &str, &str); DEPENDENCY_UNIT_COUNT] = [
     ("network.bootstrap", "network", "bootstrap", "B0"),
     ("cell.envelope", "cell", "envelope", "B0"),
@@ -431,18 +438,18 @@ fn check_top_level(raw: &Value, findings: &mut Vec<Finding>) {
         }
     }
     let doctrine = raw.get("doctrine_adrs").and_then(Value::as_array);
-    if doctrine.is_none_or(|items| items.len() < 5)
-        || doctrine.is_some_and(|items| {
-            let values: Vec<&str> = items.iter().filter_map(Value::as_str).collect();
-            values.len() != items.len()
-                || values.iter().any(|value| !is_adr_id(value))
-                || values.iter().copied().collect::<BTreeSet<_>>().len() != values.len()
-        })
-    {
+    let doctrine_matches = doctrine.is_some_and(|items| {
+        items.len() == GRAPH_DOCTRINE_ADRS.len()
+            && items
+                .iter()
+                .zip(GRAPH_DOCTRINE_ADRS)
+                .all(|(actual, expected)| actual.as_str() == Some(expected))
+    });
+    if !doctrine_matches {
         findings.push(finding(
             "dag_schema_violation",
             "doctrine_adrs",
-            "requires at least five unique ADR-NNNN strings",
+            format!("must equal {GRAPH_DOCTRINE_ADRS:?}"),
         ));
     }
 
@@ -1192,12 +1199,6 @@ fn is_non_empty_string(value: Option<&Value>) -> bool {
     value
         .and_then(Value::as_str)
         .is_some_and(|value| !value.is_empty())
-}
-
-fn is_adr_id(value: &str) -> bool {
-    value.len() == 8
-        && value.starts_with("ADR-")
-        && value.as_bytes()[4..].iter().all(u8::is_ascii_digit)
 }
 
 fn is_dependency_unit_id(value: &str) -> bool {

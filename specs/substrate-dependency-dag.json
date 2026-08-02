@@ -1,5 +1,5 @@
 {
-  "_comment": "Canonical runtime-face-aware substrate dependency graph v2. ADR-0631 amends ADR-0245, ADR-0280, ADR-0562, and ADR-0615. The five graph kinds are deliberately distinct; only steady_state_request is required to be acyclic. failure_brownout_propagation is derived exactly from steady_state_request by the declared max-min impact composition rule.",
+  "_comment": "Canonical runtime-face-aware substrate dependency graph v2. ADR-0635 amends ADR-0245, ADR-0280, ADR-0562, and ADR-0615. The five graph kinds are deliberately distinct; only steady_state_request is required to be acyclic. failure_brownout_propagation is derived exactly from steady_state_request by the declared max-min impact composition rule.",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "schema": "specs/substrate-dependency-dag.schema.json",
   "version": "2.0.0",
@@ -8,7 +8,7 @@
     "ADR-0280",
     "ADR-0562",
     "ADR-0615",
-    "ADR-0631"
+    "ADR-0635"
   ],
   "external_anchors": [
     {
