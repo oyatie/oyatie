@@ -336,6 +336,18 @@
     {
       "anchor": "ADR-0635 D5: named RED/GREEN mutation corpus consumed directly by the dependency-graph-acyclicity Buck gate test.",
       "prefix": "ci/facade/dependency-graph-acyclicity/tests/fixtures/graph-v2-cases.json"
+    },
+    {
+      "anchor": "W0-D founder decision 2026-08-01: fail-closed reset eligibility schema; unknowns and absent evidence never authorize deletion.",
+      "prefix": "specs/reset-eligibility.schema.json"
+    },
+    {
+      "anchor": "W0-D founder decision 2026-08-01: redacted, undigested/unverified reset discovery; current verdict is ineligible, represents preservation migration only, and provides no actuation authority.",
+      "prefix": "registry/reset-eligibility/"
+    },
+    {
+      "anchor": "W0-D founder decision 2026-08-01: protected cloud-ci enforcement for reset eligibility and preservation migration.",
+      "prefix": "ci/facade/reset-eligibility-policy/"
     }
   ]
 }

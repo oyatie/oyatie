@@ -1,0 +1,448 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/schemas/reset-eligibility.schema.json",
+  "title": "Infrastructure reset eligibility observation",
+  "description": "Fail-closed, eligibility-only discovery contract. Candidate-authored content never authorizes reset actuation. W0-D is dormant until a separately reviewed protected one-time actuation boundary defines exact operation/scope binding, nonce issuance, and atomic consumption.",
+  "type": "object",
+  "required": [
+    "$schema",
+    "schema_version",
+    "reset_id",
+    "captured_at",
+    "expires_at",
+    "repository",
+    "collector",
+    "scope",
+    "evidence_manifest",
+    "sources",
+    "inventory",
+    "recovery",
+    "hard_stops",
+    "unknowns",
+    "approvals",
+    "decision"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "https://docs.oyatie.com/schemas/reset-eligibility.schema.json"
+    },
+    "schema_version": {
+      "const": 1
+    },
+    "reset_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "captured_at": {
+      "$ref": "#/$defs/utcTimestamp"
+    },
+    "expires_at": {
+      "$ref": "#/$defs/utcTimestamp"
+    },
+    "repository": {
+      "type": "object",
+      "required": [
+        "binding_source"
+      ],
+      "properties": {
+        "binding_source": {
+          "const": "ci-runtime-authority"
+        }
+      },
+      "additionalProperties": false
+    },
+    "collector": {
+      "type": "object",
+      "required": [
+        "id",
+        "method",
+        "secret_values_excluded"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "method": {
+          "const": "read-only"
+        },
+        "secret_values_excluded": {
+          "const": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "scope": {
+      "type": "object",
+      "required": [
+        "providers",
+        "accounts",
+        "regions",
+        "clusters"
+      ],
+      "properties": {
+        "providers": {
+          "$ref": "#/$defs/nonEmptyStrings"
+        },
+        "accounts": {
+          "$ref": "#/$defs/nonEmptyStrings"
+        },
+        "regions": {
+          "$ref": "#/$defs/nonEmptyStrings"
+        },
+        "clusters": {
+          "$ref": "#/$defs/nonEmptyStrings"
+        }
+      },
+      "additionalProperties": false
+    },
+    "evidence_manifest": {
+      "type": "object",
+      "required": [
+        "uri",
+        "status"
+      ],
+      "properties": {
+        "uri": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "enum": [
+            "verified",
+            "unverified-discovery"
+          ]
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      },
+      "additionalProperties": false
+    },
+    "sources": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "source_id",
+          "result",
+          "redaction",
+          "evidence_uri"
+        ],
+        "properties": {
+          "source_id": {
+            "type": "string",
+            "enum": [
+              "github-and-protected-ci",
+              "kubernetes-inventory",
+              "stateful-workloads",
+              "openbao-and-registry",
+              "backup-jobs",
+              "dns-and-edge",
+              "provider-billing-and-global-inventory",
+              "external-backups-and-saas-callbacks"
+            ]
+          },
+          "result": {
+            "enum": [
+              "observed",
+              "unknown",
+              "denied",
+              "error"
+            ]
+          },
+          "redaction": {
+            "const": "secret-values-excluded"
+          },
+          "evidence_uri": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sha256": {
+            "$ref": "#/$defs/sha256"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "inventory": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "stable_id",
+          "unverified_identity_fingerprint",
+          "lifecycle",
+          "data_class",
+          "retention",
+          "billing",
+          "deletion_semantics",
+          "verification_status"
+        ],
+        "properties": {
+          "stable_id": {
+            "type": "string",
+            "enum": [
+              "talos-current:cluster",
+              "kubernetes-current:persistent-volumes",
+              "kubernetes-current:postgres",
+              "kubernetes-current:openbao",
+              "kubernetes-current:oci-registry",
+              "github:jason931225/oyatie:arc-runners",
+              "cloudflare-configured:active-edge"
+            ]
+          },
+          "lifecycle": {
+            "type": "string",
+            "minLength": 1
+          },
+          "data_class": {
+            "type": "string",
+            "minLength": 1
+          },
+          "retention": {
+            "type": "string",
+            "minLength": 1
+          },
+          "billing": {
+            "type": "string",
+            "minLength": 1
+          },
+          "deletion_semantics": {
+            "type": "string",
+            "minLength": 1
+          },
+          "unverified_identity_fingerprint": {
+            "$ref": "#/$defs/sha256"
+          },
+          "verification_status": {
+            "const": "unverified-discovery"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "recovery": {
+      "type": "object",
+      "required": [
+        "backup_verified",
+        "immutable_backup_location_verified",
+        "rpo_verified",
+        "restore_drill_verified",
+        "key_recovery_verified"
+      ],
+      "properties": {
+        "backup_verified": {
+          "type": "boolean"
+        },
+        "immutable_backup_location_verified": {
+          "type": "boolean"
+        },
+        "rpo_verified": {
+          "type": "boolean"
+        },
+        "restore_drill_verified": {
+          "type": "boolean"
+        },
+        "key_recovery_verified": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "hard_stops": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/blocker"
+      }
+    },
+    "unknowns": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "owner",
+          "closure_probe"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "owner": {
+            "type": "string",
+            "minLength": 1
+          },
+          "closure_probe": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "approvals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "role",
+          "approver",
+          "approved_at",
+          "expires_at",
+          "reset_id",
+          "evidence_sha256",
+          "protected_commit_sha",
+          "candidate_commit_sha",
+          "schema_sha256",
+          "policy_sha256",
+          "key_id",
+          "signature"
+        ],
+        "properties": {
+          "role": {
+            "type": "string",
+            "minLength": 1
+          },
+          "approver": {
+            "type": "string",
+            "minLength": 1
+          },
+          "approved_at": {
+            "$ref": "#/$defs/utcTimestamp"
+          },
+          "expires_at": {
+            "$ref": "#/$defs/utcTimestamp"
+          },
+          "reset_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "evidence_sha256": {
+            "$ref": "#/$defs/sha256"
+          },
+          "protected_commit_sha": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{40}$"
+          },
+          "candidate_commit_sha": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{40}$"
+          },
+          "schema_sha256": {
+            "$ref": "#/$defs/sha256"
+          },
+          "policy_sha256": {
+            "$ref": "#/$defs/sha256"
+          },
+          "key_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "signature": {
+            "$ref": "#/$defs/signature"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "decision": {
+      "type": "object",
+      "required": [
+        "eligible",
+        "mode",
+        "default_if_unknown",
+        "reason_codes"
+      ],
+      "properties": {
+        "eligible": {
+          "type": "boolean"
+        },
+        "mode": {
+          "const": "preservation-migration"
+        },
+        "default_if_unknown": {
+          "const": "ineligible"
+        },
+        "reason_codes": {
+          "$ref": "#/$defs/uniqueStrings"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "uniqueStrings": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "nonEmptyStrings": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "blocker": {
+      "type": "object",
+      "required": [
+        "id",
+        "class",
+        "acceptance_criteria",
+        "verification_path",
+        "suggested_owner",
+        "dependency_notes"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "class": {
+          "type": "string",
+          "minLength": 1
+        },
+        "acceptance_criteria": {
+          "type": "string",
+          "minLength": 1
+        },
+        "verification_path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "suggested_owner": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dependency_notes": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "signature": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{128}$"
+    },
+    "utcTimestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+    }
+  },
+  "additionalProperties": false
+}
