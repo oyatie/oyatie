@@ -1,5 +1,5 @@
 ---
-id: ADR-0632
+id: ADR-0633
 title: "Enforcement belongs to the layer that OWNS the fact: T1 mutation coupling, T2 non-emptiability, a promotion gate that keeps false-positive checks out of gates, and a naming rule with a rename test"
 status: Proposed
 doc_status: published
@@ -16,7 +16,7 @@ related: [ADR-0631, ADR-0615, ADR-0512, ADR-0132, ADR-0515, ADR-0523]
 milestone: W3
 ---
 
-# ADR-0632: enforcement belongs to the layer that owns the fact
+# ADR-0633: enforcement belongs to the layer that owns the fact
 
 ## Status
 
