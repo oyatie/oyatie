@@ -1458,6 +1458,408 @@ fn affected_set_long_step_telemetry_wraps_long_running_phases() {
     );
 }
 
+// ===========================================================================
+// (c) QUALITY-LANE TARGET RESOLVABILITY.
+//
+// Halves (a) and (b) above answer "is every gate CRATE registered somewhere".
+// They say nothing about the other direction: `registry/quality/lanes.yaml`
+// declares 90+ lanes with `status: active`, an `owner_team`, an ADR `source`
+// and a `check_command` — and NOTHING ever resolved that command against a
+// thing that exists. The registry's own validator (`oya-check-quality-lane`,
+// `QualityLaneError::CheckCommandNotWired`) only substring-matches the command
+// against `oya-governance-gate-catalog-domain::all_canonical_commands_rendered()`
+// — a second hand-maintained list. Two hand-maintained lists agreeing with each
+// other is a tautology, not enforcement: when the dev-cli package was renamed
+// `oya-dev-cli` -> `marketplace-dev-cli`, BOTH lists kept the dead name and the
+// quality-lanes gate stayed green.
+//
+// This half resolves the DECLARED TARGET of every active lane against the tree:
+//   - `gate validate <lane>`  -> `<lane>` must be a real dispatch arm in the
+//                                dev-cli gate dispatcher SOURCE (not a mirror list);
+//   - `cargo run -p <pkg>`    -> some in-tree Cargo.toml must declare `<pkg>`;
+//   - `buck2 ... //cell:tgt`  -> `<cell>/BUCK` must declare target `tgt`;
+//   - a repo-relative script  -> that file must exist;
+//   - a bare cargo/buck2 toolchain verb resolves by definition.
+//
+// Pure filesystem + text, deterministic, surface-all — same contract as (a)/(b),
+// and it rides the same already-required target
+// `//ci/facade/baseline-ratchet:ci-baseline-ratchet-gate-registration`.
+// ===========================================================================
+
+/// Targets that are declared `status: active` in the lane registry but do not exist in the tree.
+/// This is a SHRINK-ONLY hatch, keyed on the TARGET (one entry can cover many lanes), and it is
+/// itself falsifiable: [`known_unresolvable_lane_targets_are_still_unresolvable`] fails the moment
+/// an entry starts resolving, so the hatch cannot outlive the defect it documents.
+///
+/// Retiring an ADR-mandated lane is a governance act, not a way to get green — so these lanes are
+/// deliberately left `status: active` and the breakage is recorded here where the required fan-in
+/// can see it, instead of being flipped to `planned`.
+const KNOWN_UNRESOLVABLE_LANE_TARGETS: [(&str, &str); 3] = [
+    (
+        "cargo-package:oya-dev-cli",
+        "The gate CLI package was renamed to `marketplace-dev-cli` (marketplace/facade/dev-cli/Cargo.toml) \
+         and no package declares `oya-dev-cli`, so all 80 `cargo run -p oya-dev-cli -- ...` lane \
+         commands are unrunnable as written. `cargo run` is additionally retired as a verification \
+         verb (buck2 is canonical). Repair is the buck2 form already used in-tree, \
+         `buck2 run //marketplace/facade/dev-cli:oya -- gate validate <lane>`, applied ACROSS the \
+         registry, `oya-governance-gate-catalog-domain`, and `registry/docs/pipeline.tsv` together \
+         (they substring-match each other); doing it here alone would red the documentation-system \
+         and supply-chain gates.",
+    ),
+    (
+        "cargo-package:oya-vcs-merge-queue-fix-loop-app",
+        "Lane `oya-governance-merge-queue-staging-ref-gc` names a package that no longer exists \
+         anywhere in-tree; the ADR-0363 retirement of the bespoke VCS ratchet removed it and left \
+         the lane pointing at nothing.",
+    ),
+    (
+        "repo-file:tools/governance/adr-0221-governance-gates.sh",
+        "The four ADR-0221 hook-efficacy lanes (vacuous-green, orphan-citation, version-pin, \
+         buildability-line-count) still name a shell harness that ADR-0523 (zero-shell posture) \
+         deleted. There is no Rust replacement: none of the four names is a `gate validate` \
+         dispatch arm either, so these lanes enforce nothing. Repair is an owned-Rust port, which \
+         is a governance decision, not a registry edit.",
+    ),
+];
+
+fn quality_lane_registry_path(root: &Path) -> PathBuf {
+    root.join("registry/quality/lanes.yaml")
+}
+
+/// The dev-cli gate dispatcher SOURCE. Read deliberately instead of any catalog constant: the
+/// catalog is a mirror, the `match` is the thing that actually decides whether `gate validate X`
+/// runs or falls through to the usage/exit-2 arm.
+fn gate_dispatcher_path(root: &Path) -> PathBuf {
+    root.join("marketplace/facade/dev-cli/src/commands/gate/mod.rs")
+}
+
+/// `(lane_id, check_command)` for every `status: active` lane, in registry order.
+///
+/// Deliberately a line parser, not a YAML dependency: the registry is a flat two-level list and
+/// this test must not acquire a parser that could itself drift from canonical-json/YAML policy.
+fn active_quality_lanes(registry: &str) -> Vec<(String, String)> {
+    let mut lanes = Vec::new();
+    let mut id = String::new();
+    let mut status = String::new();
+    let mut check_command = String::new();
+    let mut flush = |id: &mut String, status: &mut String, cmd: &mut String| {
+        if !id.is_empty() && status == "active" {
+            lanes.push((std::mem::take(id), std::mem::take(cmd)));
+        }
+        id.clear();
+        status.clear();
+        cmd.clear();
+    };
+    for line in registry.lines() {
+        if let Some(value) = line.strip_prefix("  - id: ") {
+            flush(&mut id, &mut status, &mut check_command);
+            id = value.trim().to_owned();
+        } else if let Some(value) = line.strip_prefix("    status: ") {
+            status = value.trim().to_owned();
+        } else if let Some(value) = line.strip_prefix("    check_command: ") {
+            check_command = value.trim().to_owned();
+        }
+    }
+    flush(&mut id, &mut status, &mut check_command);
+    lanes
+}
+
+/// Lane names the dev-cli dispatcher actually handles, read out of its `match` arms.
+fn gate_dispatch_arms(dispatcher_source: &str) -> BTreeSet<String> {
+    const OPEN: &str = "(Some(\"validate\"), Some(\"";
+    let mut arms = BTreeSet::new();
+    for (index, matched) in dispatcher_source.match_indices(OPEN) {
+        let tail = &dispatcher_source[index + matched.len()..];
+        if let Some(name) = tail.split('"').next()
+            && !name.is_empty()
+        {
+            arms.insert(name.to_owned());
+        }
+    }
+    arms
+}
+
+/// Every cargo package name declared in-tree. Bounded walk: the deepest manifest in the repo sits
+/// at depth 6, and the skipped roots hold no first-party manifest.
+fn declared_cargo_packages(root: &Path) -> BTreeSet<String> {
+    const SKIP: [&str; 6] = [
+        ".git",
+        "target",
+        "buck-out",
+        "node_modules",
+        ".claude",
+        ".omc",
+    ];
+    let mut names = BTreeSet::new();
+    let mut queue = vec![(root.to_path_buf(), 0_usize)];
+    while let Some((dir, depth)) = queue.pop() {
+        if depth > 7 {
+            continue;
+        }
+        let Ok(entries) = fs::read_dir(&dir) else {
+            continue;
+        };
+        for entry in entries.flatten() {
+            let path = entry.path();
+            let name = entry.file_name().to_string_lossy().into_owned();
+            if path.is_dir() {
+                if !SKIP.contains(&name.as_str()) {
+                    queue.push((path, depth + 1));
+                }
+            } else if name == "Cargo.toml"
+                && let Ok(text) = fs::read_to_string(&path)
+                && let Some(package) = cargo_package_name(&text)
+            {
+                names.insert(package);
+            }
+        }
+    }
+    names
+}
+
+/// `[package] name = "x"` -> `x`. Stops at the next section header so a `[dependencies]` entry
+/// named `name` can never be mistaken for the package identity.
+fn cargo_package_name(manifest: &str) -> Option<String> {
+    let mut in_package = false;
+    for line in manifest.lines() {
+        let trimmed = line.trim();
+        if trimmed.starts_with('[') {
+            in_package = trimmed == "[package]";
+            continue;
+        }
+        if in_package && let Some(value) = trimmed.strip_prefix("name") {
+            let value = value.trim_start().strip_prefix('=')?.trim();
+            return Some(value.trim_matches('"').to_owned());
+        }
+    }
+    None
+}
+
+/// What a `check_command` needs to exist before it can run.
+#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+enum LaneTarget {
+    /// `gate validate <lane>` — must be a dispatcher `match` arm.
+    GateLane(String),
+    /// `cargo run -p <pkg>` — must be a declared package.
+    CargoPackage(String),
+    /// `//cell/path:target` — `<cell/path>/BUCK` must declare it.
+    BuckTarget(String),
+    /// A repo-relative script path — must exist.
+    RepoFile(String),
+}
+
+impl LaneTarget {
+    fn key(&self) -> String {
+        match self {
+            Self::GateLane(v) => format!("gate-lane:{v}"),
+            Self::CargoPackage(v) => format!("cargo-package:{v}"),
+            Self::BuckTarget(v) => format!("buck-target:{v}"),
+            Self::RepoFile(v) => format!("repo-file:{v}"),
+        }
+    }
+}
+
+/// Everything a `check_command` must resolve for the lane to be runnable. A command can carry more
+/// than one (`cargo run -p X -- gate validate Y` needs BOTH the package and the dispatch arm) —
+/// checking only the last token is how the lane name kept resolving while the package did not.
+///
+/// A bare toolchain verb (`cargo fmt`, `cargo deny check`, `buck2 test //...`) yields no target and
+/// resolves by definition; that is not a silent pass, it is the absence of a repo-local dependency.
+fn lane_targets(check_command: &str) -> Vec<LaneTarget> {
+    let tokens: Vec<&str> = check_command.split_whitespace().collect();
+    let mut targets = Vec::new();
+    for (index, token) in tokens.iter().enumerate() {
+        match *token {
+            "-p" | "--package" => {
+                if let Some(pkg) = tokens.get(index + 1) {
+                    targets.push(LaneTarget::CargoPackage((*pkg).to_owned()));
+                }
+            }
+            "validate" if index > 0 && tokens[index - 1] == "gate" => {
+                if let Some(lane) = tokens.get(index + 1) {
+                    targets.push(LaneTarget::GateLane((*lane).to_owned()));
+                }
+            }
+            _ if token.starts_with("//") && token.contains(':') => {
+                targets.push(LaneTarget::BuckTarget((*token).to_owned()));
+            }
+            _ if token.contains('/')
+                && (token.ends_with(".sh")
+                    || token.ends_with(".py")
+                    || token.ends_with(".mjs")) =>
+            {
+                targets.push(LaneTarget::RepoFile((*token).to_owned()));
+            }
+            _ => {}
+        }
+    }
+    targets
+}
+
+fn buck_target_exists(root: &Path, label: &str) -> bool {
+    let Some((cell, name)) = label.trim_start_matches('/').split_once(':') else {
+        return false;
+    };
+    let Ok(text) = fs::read_to_string(root.join(cell).join("BUCK")) else {
+        return false;
+    };
+    text.contains(&format!("name = \"{name}\""))
+}
+
+fn lane_target_resolves(
+    root: &Path,
+    target: &LaneTarget,
+    arms: &BTreeSet<String>,
+    packages: &BTreeSet<String>,
+) -> bool {
+    match target {
+        LaneTarget::GateLane(lane) => arms.contains(lane),
+        LaneTarget::CargoPackage(pkg) => packages.contains(pkg),
+        LaneTarget::BuckTarget(label) => buck_target_exists(root, label),
+        LaneTarget::RepoFile(path) => root.join(path).is_file(),
+    }
+}
+
+/// `(lane_id, target_key)` for every active lane whose declared target does not exist.
+fn unresolvable_active_lane_targets(root: &Path) -> Vec<(String, String)> {
+    let registry = read_to_string(&quality_lane_registry_path(root));
+    let arms = gate_dispatch_arms(&read_to_string(&gate_dispatcher_path(root)));
+    let packages = declared_cargo_packages(root);
+    let mut unresolved = Vec::new();
+    for (id, command) in active_quality_lanes(&registry) {
+        for target in lane_targets(&command) {
+            if !lane_target_resolves(root, &target, &arms, &packages) {
+                unresolved.push((id.clone(), target.key()));
+            }
+        }
+    }
+    unresolved.sort();
+    unresolved
+}
+
+/// The probe itself must be falsifiable before any of its NEGATIVE results are load-bearing: a
+/// parser that silently returns nothing would report a clean tree forever.
+#[test]
+fn the_lane_resolvability_probe_is_falsifiable_on_known_controls() {
+    let root = repo_root();
+
+    let lanes = active_quality_lanes(&read_to_string(&quality_lane_registry_path(&root)));
+    assert!(
+        lanes.len() > 50,
+        "active-lane parser found only {} lanes — the registry shape changed and this gate went blind",
+        lanes.len()
+    );
+    assert!(
+        lanes.iter().all(|(_, command)| !command.is_empty()),
+        "an active lane parsed with an empty check_command; an empty command resolves vacuously"
+    );
+
+    let arms = gate_dispatch_arms(&read_to_string(&gate_dispatcher_path(&root)));
+    assert!(
+        arms.contains("authority-cohesion") && arms.contains("a11y-discipline"),
+        "known-positive control: both lanes have a `(Some(\"validate\"), Some(..))` arm in the dispatcher"
+    );
+    assert!(
+        !arms.contains("vacuous-green"),
+        "known-negative control: the ADR-0221 hook-efficacy lanes have no dispatch arm"
+    );
+
+    let packages = declared_cargo_packages(&root);
+    assert!(
+        packages.contains("marketplace-dev-cli"),
+        "known-positive control: the renamed gate CLI package must be discovered"
+    );
+    assert!(
+        !packages.contains("oya-dev-cli"),
+        "known-negative control: the pre-rename package name must NOT be discovered"
+    );
+
+    // Target extraction must see BOTH targets in a compound command, not just the trailing one.
+    assert_eq!(
+        lane_targets("cargo run -p oya-dev-cli -- gate validate a11y-discipline"),
+        vec![
+            LaneTarget::CargoPackage("oya-dev-cli".into()),
+            LaneTarget::GateLane("a11y-discipline".into()),
+        ],
+    );
+    assert_eq!(
+        lane_targets("bash tools/governance/adr-0221-governance-gates.sh vacuous-green"),
+        vec![LaneTarget::RepoFile(
+            "tools/governance/adr-0221-governance-gates.sh".into()
+        )],
+    );
+    assert!(lane_targets("cargo deny check").is_empty());
+
+    assert!(
+        buck_target_exists(&root, "//marketplace/facade/dev-cli:oya"),
+        "known-positive control: the gate CLI buck2 binary target exists"
+    );
+    assert!(
+        !buck_target_exists(&root, "//marketplace/facade/dev-cli:no-such-target"),
+        "known-negative control: a bogus target must not resolve"
+    );
+}
+
+/// The durable half: an ACTIVE lane must name something that exists. Wiring individual dispatch
+/// arms by hand fixes six lanes once; this fixes the class, because the next lane that is declared
+/// active against a renamed package, a deleted script, or an unimplemented gate name fails here.
+#[test]
+fn every_active_quality_lane_resolves_to_a_real_target() {
+    let root = repo_root();
+    let unresolved = unresolvable_active_lane_targets(&root);
+    let known: BTreeSet<&str> = KNOWN_UNRESOLVABLE_LANE_TARGETS
+        .iter()
+        .map(|(target, _)| *target)
+        .collect();
+
+    let regressions: Vec<&(String, String)> = unresolved
+        .iter()
+        .filter(|(_, target)| !known.contains(target.as_str()))
+        .collect();
+
+    assert!(
+        regressions.is_empty(),
+        "quality lane(s) declared `status: active` name a target that does not exist: {regressions:#?}\n\
+         An active lane must resolve: a `gate validate <lane>` name must be a dispatch arm in \
+         marketplace/facade/dev-cli/src/commands/gate/mod.rs, a `-p <pkg>` must be a declared cargo \
+         package, a `//cell:target` must be declared in that cell's BUCK, and a script path must \
+         exist. Registering a lane without its runnable target is a dark gate — it reports nothing \
+         and blocks nothing. Do NOT flip the lane to `status: planned` to clear this; retiring an \
+         ADR-mandated lane is a governance act."
+    );
+}
+
+/// The hatch must not outlive the defect. If a documented-broken target starts resolving, the entry
+/// is stale and must be deleted in the SAME change that repaired it, or the ratchet silently regains
+/// headroom for the next dark lane.
+#[test]
+fn known_unresolvable_lane_targets_are_still_unresolvable() {
+    let root = repo_root();
+    let live: BTreeSet<String> = unresolvable_active_lane_targets(&root)
+        .into_iter()
+        .map(|(_, target)| target)
+        .collect();
+
+    let stale: Vec<&str> = KNOWN_UNRESOLVABLE_LANE_TARGETS
+        .iter()
+        .map(|(target, _)| *target)
+        .filter(|target| !live.contains(*target))
+        .collect();
+
+    assert!(
+        stale.is_empty(),
+        "KNOWN_UNRESOLVABLE_LANE_TARGETS is stale — {stale:?} now resolve(s). Drop the entry (and \
+         its rationale) in the same change that repaired the target."
+    );
+
+    for (target, rationale) in KNOWN_UNRESOLVABLE_LANE_TARGETS {
+        assert!(
+            rationale.len() > 80,
+            "{target} must carry the reason it is unresolvable and what repairing it requires"
+        );
+    }
+}
+
 #[test]
 fn merge_base_test_health_uses_the_same_rustup_executor_contract_as_head() {
     let root = repo_root();
