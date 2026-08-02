@@ -901,7 +901,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-check-aspirational-enforcement",
+      "key": "check-aspirational-enforcement",
       "context": "tooling",
       "role": "worker",
       "capability": "check-aspirational-enforcement",
@@ -931,7 +931,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-check-honest-claims",
+      "key": "check-honest-claims",
       "context": "tooling",
       "role": "worker",
       "capability": "check-honest-claims",

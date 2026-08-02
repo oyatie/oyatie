@@ -1,0 +1,16 @@
+rust_library(
+    name = "check-shardability",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "check_shardability",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)
+
+rust_test(
+    name = "check-shardability-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "check_shardability",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

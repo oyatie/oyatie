@@ -21,13 +21,13 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
-use oya_check_cursor_pagination_coverage as cursor_check;
-use oya_check_event_schema_versioning as event_schema_check;
-use oya_check_id_discipline as id_check;
-use oya_check_idempotency_key_coverage as idem_check;
-use oya_check_image_signing_discipline as image_check;
-use oya_check_metric_cardinality as metric_check;
-use oya_check_rpo_rto_coverage as rpo_rto_check;
+use check_cursor_pagination_coverage as cursor_check;
+use check_event_schema_versioning as event_schema_check;
+use check_id_discipline as id_check;
+use check_idempotency_key_coverage as idem_check;
+use check_image_signing_discipline as image_check;
+use check_metric_cardinality as metric_check;
+use check_rpo_rto_coverage as rpo_rto_check;
 
 /// Canonical service roots scanned when no explicit `--microservices-root` is given.
 /// Order: cloud first (infra services), then oya (application services), then the

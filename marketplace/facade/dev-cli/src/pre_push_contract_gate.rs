@@ -2,7 +2,7 @@
 //!
 //! Reads evidence files (Done-Definition, dev-CLI dispatch source,
 //! pre-push hook script) and invokes
-//! [`oya_check_pre_push::validate_pre_push_contract`]. The kernel is
+//! [`check_pre_push::validate_pre_push_contract`]. The kernel is
 //! the canonical authority; this module is the I/O-shaped runner
 //! (port-in-kernel, ADR-0056).
 //!
@@ -20,7 +20,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use oya_check_pre_push::{
+use check_pre_push::{
     PrePushContractEvidence, PrePushContractReport, validate_pre_push_contract,
 };
 

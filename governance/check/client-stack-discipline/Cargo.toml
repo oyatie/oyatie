@@ -1,0 +1,24 @@
+[package]
+name = "check-client-stack-discipline"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# Pure-fn kernel (port-in-kernel, ADR-0056). Validates that every client
+# surface declared under oya/<ms>/clients/ conforms to the
+# native-per-platform discipline from ADR-0185:
+#   - web surface uses exactly one of sveltekit OR leptos (not both)
+#   - mobile surface uses SwiftUI on Apple / Compose on Android (no KMP UI)
+#   - Windows uses WinUI 3 (no Avalonia/MAUI/Electron)
+#   - Linux uses gtk4-rs + libadwaita (no Tauri/Electron/Qt/Flutter/Slint/Iced)
+#   - all clients declare OpenAPI 3.2.0 codegen recipe
+#   - rejects React/Vue/Flutter/Electron/Cordova
+#   - Apple targets MUST NOT import KMP klib artifacts
+#   - Linux MUST consume the oya-client-shared-rust workspace crate
+
+[dependencies]
+
+[lints]
+workspace = true

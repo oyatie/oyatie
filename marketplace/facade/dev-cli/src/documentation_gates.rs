@@ -1,12 +1,12 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use oya_check_doc_catalog::{DocCatalogRecord, validate_doc_catalog};
-use oya_check_documentation_system::{
+use check_doc_catalog::{DocCatalogRecord, validate_doc_catalog};
+use check_documentation_system::{
     DocumentationPipelineRecord, DocumentationPipelineState, DocumentationSystemEvidence,
     validate_documentation_system,
 };
-use oya_check_readme_coverage::validate_readme_doc_coverage;
+use check_readme_coverage::validate_readme_doc_coverage;
 use oya_governance_gate_catalog_domain::all_canonical_commands_rendered;
 
 use crate::{
@@ -183,7 +183,7 @@ pub(crate) fn parse_documentation_system_validate_args(
 
 pub(crate) fn validate_documentation_system_gate(
     args: DocumentationSystemValidateArgs,
-) -> Result<oya_check_documentation_system::DocumentationSystemReport, String> {
+) -> Result<check_documentation_system::DocumentationSystemReport, String> {
     let documentation = fs::read_to_string(&args.documentation_path).map_err(|error| {
         format!(
             "documentation system doc unreadable {}: {error}",

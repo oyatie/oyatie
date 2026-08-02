@@ -24,7 +24,7 @@
       "enforcement": {
         "mode": "mechanical",
         "enforced_by": [
-          "oya-check-cohesion"
+          "check-cohesion"
         ],
         "planned_enforcement_refs": [
           "oya-governance-cohesion-kernel"
@@ -40,7 +40,7 @@
       "enforcement": {
         "mode": "mechanical",
         "enforced_by": [
-          "oya-check-doc-catalog"
+          "check-doc-catalog"
         ],
         "planned_enforcement_refs": [
           "oya-governance-pr-traceability-kernel"
@@ -93,7 +93,7 @@
       "enforcement": {
         "mode": "mechanical",
         "enforced_by": [
-          "oya-check-doc-catalog"
+          "check-doc-catalog"
         ],
         "planned_enforcement_refs": [
           "oya-governance-doc-style-kernel"
@@ -131,7 +131,7 @@
       "enforcement": {
         "mode": "cultural",
         "enforced_by": null,
-        "evidence": "No mechanical enforcement today. The 4 stub crates that claimed to enforce this (oya-check-statelessness, -shardability, -perf-budget, -benchmark) were deleted 2026-05-15 — 6-line doc-stubs claiming 'Accepted' status are worse than no crate (per audit). PRs cite performance claims; review is the only check until real lane crates ship under M02 substrate. Re-introduction requires a real implementation, not a doc-stub."
+        "evidence": "No mechanical enforcement today. The 4 stub crates that claimed to enforce this (check-statelessness, -shardability, -perf-budget, -benchmark) were deleted 2026-05-15 — 6-line doc-stubs claiming 'Accepted' status are worse than no crate (per audit). PRs cite performance claims; review is the only check until real lane crates ship under M02 substrate. Re-introduction requires a real implementation, not a doc-stub."
       }
     },
     {

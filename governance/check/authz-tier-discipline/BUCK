@@ -1,0 +1,24 @@
+rust_library(
+    name = "check-authz-tier-discipline",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "check_authz_tier_discipline",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "check-authz-tier-discipline-authz-tier-discipline",
+    srcs = ["tests/authz_tier_discipline.rs"],
+    crate = "check_authz_tier_discipline_authz_tier_discipline",
+    crate_root = "tests/authz_tier_discipline.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":check-authz-tier-discipline",
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)

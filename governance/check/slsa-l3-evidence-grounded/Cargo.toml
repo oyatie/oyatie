@@ -1,0 +1,18 @@
+[package]
+name = "check-slsa-l3-evidence-grounded"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# Pure-fn kernel (port-in-kernel, ADR-0056). Verifies that every SLSA L3
+# evidence citation in a µservice's scorecard overrides resolves to a
+# real `.github/workflows/<file>.yml` AND that file declares the
+# SLSA-relevant primitive (hermetic-build, signed-provenance,
+# two-party-review).
+
+[dependencies]
+
+[lints]
+workspace = true

@@ -130,7 +130,7 @@
       "prerequisite_for_operational": [
         "ADR JSON Schema",
         "ADR-content JSON Schema",
-        "Update oya-check-adr-index + oya-check-adr-citation check crates to read JSON instead of markdown (oya-check-constitution-cite removed in commit 526e4bf — strike: retire docs/CONSTITUTION.md and its enforcement crate, sunset 2026-05-15)",
+        "Update oya-check-adr-index + check-adr-citation check crates to read JSON instead of markdown (oya-check-constitution-cite removed in commit 526e4bf — strike: retire docs/CONSTITUTION.md and its enforcement crate, sunset 2026-05-15)",
         "Update all crate-side ADR citation comments (e.g., 'per ADR-####') to point at JSON"
       ],
       "historical_deadline": "2026-06-12",
@@ -176,7 +176,7 @@
     },
     {
       "phase_id": "PHASE-8-CHECK-CRATE-REWRITES",
-      "scope": "Rewrite ~11 check crates that grep markdown to consume JSON: oya-check-adr-citation, oya-check-adr-index, oya-check-authority-cohesion, oya-check-codeowners-mirror, oya-check-doc-catalog, oya-check-documentation-system, oya-check-glossary-coverage, oya-check-glossary-vocabulary, oya-check-raci-coverage, oya-check-readme-coverage, oya-check-runbook-freshness (oya-check-constitution-cite deleted in commit 526e4bf — strike: retire docs/CONSTITUTION.md and its enforcement crate, sunset 2026-05-15; no rewrite needed)",
+      "scope": "Rewrite ~11 check crates that grep markdown to consume JSON: check-adr-citation, oya-check-adr-index, check-authority-cohesion, check-codeowners-mirror, check-doc-catalog, check-documentation-system, check-glossary-coverage, check-glossary-vocabulary, check-raci-coverage, check-readme-coverage, check-runbook-freshness (oya-check-constitution-cite deleted in commit 526e4bf — strike: retire docs/CONSTITUTION.md and its enforcement crate, sunset 2026-05-15; no rewrite needed)",
       "deadline": "2026-08-31",
       "status": "inventory-drift-needs-replan",
       "files_count_estimated": 11,

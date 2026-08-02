@@ -1,0 +1,21 @@
+[package]
+name = "check-id-discipline"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# Pure-fn kernel (port-in-kernel, ADR-0056). Reads OpenAPI/AsyncAPI
+# schemas; flags auto-increment / UUID v4 / fabricated id formats
+# where ULID is canonical per ADR-0156.
+
+[dependencies]
+
+[lib]
+name = "check_id_discipline"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

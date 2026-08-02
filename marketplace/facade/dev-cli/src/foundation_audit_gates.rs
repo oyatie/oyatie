@@ -3,7 +3,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use audit_file_adapter::FileAuditLedger;
-use oya_check_pr_traceability::{
+use check_pr_traceability::{
     PrTraceabilityDocument, PrTraceabilityPolicy, validate_pr_traceability,
 };
 use oya_intelligence_bypass_domain::{

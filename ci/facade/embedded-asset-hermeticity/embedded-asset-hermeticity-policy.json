@@ -17,7 +17,8 @@
     "iam",
     "intelligence",
     "os",
-    "policy"
+    "policy",
+    "governance"
   ],
   "exclude_path_substrings": [
     "/target/",

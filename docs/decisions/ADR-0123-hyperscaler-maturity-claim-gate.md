@@ -78,12 +78,12 @@ The authority-cohesion gate's root-hub fixture corpus is governed by this ADR. T
 fixtures prove the claim-governance authority chain remains reachable through the
 root hub and master-plan sequencing surfaces:
 
-`libs/oya-check-authority-cohesion/OWNERS`
-`libs/oya-check-authority-cohesion/tests/fixtures/master-plan-green.json`
-`libs/oya-check-authority-cohesion/tests/fixtures/master-plan-missing-fragment.json`
-`libs/oya-check-authority-cohesion/tests/fixtures/root-hub-green.json`
-`libs/oya-check-authority-cohesion/tests/fixtures/root-hub-red-missing-fragment.json`
-`libs/oya-check-authority-cohesion/tests/fixtures/root-hub-red-missing-path.json`
+`governance/check/authority-cohesion/OWNERS`
+`governance/check/authority-cohesion/tests/fixtures/master-plan-green.json`
+`governance/check/authority-cohesion/tests/fixtures/master-plan-missing-fragment.json`
+`governance/check/authority-cohesion/tests/fixtures/root-hub-green.json`
+`governance/check/authority-cohesion/tests/fixtures/root-hub-red-missing-fragment.json`
+`governance/check/authority-cohesion/tests/fixtures/root-hub-red-missing-path.json`
 
 ## Verification
 

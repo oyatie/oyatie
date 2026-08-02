@@ -226,7 +226,7 @@ authority lives only in the cloud-ci gates behind `oya-ci-required` (ADR-0515):
 - `oya gate validate architecture-boundaries` — the role dependency-edge matrix (including the
   app→app ban); its header still describes pre-pure-split paths (`crates/<name>`,
   `registry/catalog/`), i.e. it has drifted.
-- `libs/oya-check-no-grouping` (ADR-0132/ADR-0362) — runs only through `oya-dev-cli`.
+- `governance/check/no-grouping` (ADR-0132/ADR-0362) — runs only through `oya-dev-cli`.
 
 **Not implemented anywhere:** ADR-0131's promised `per-service-layout` and
 `aggregation-index-generation` gate packets (no Rust implementation exists in the tree).
