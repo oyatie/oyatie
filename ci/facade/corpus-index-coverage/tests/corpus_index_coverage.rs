@@ -20,6 +20,7 @@ use ci_corpus_index_coverage::{
 };
 
 const POLICY_PATH: &str = "ci/facade/corpus-index-coverage/corpus-index-coverage-policy.json";
+const REQUIRED_WORKFLOW_PATH: &str = ".github/workflows/oya-ci-required.yml";
 
 /// The rule name every extraction genrule carries. A package is INDEXED iff its BUCK declares it.
 const EXTRACTION_TARGET: &str = "corpus-yaml-facts";
@@ -226,7 +227,10 @@ fn the_walk_sees_the_real_corpus() {
     // A walk that finds packages but no FILES is equally broken, and the unpackaged term is the one
     // the northstar ratchet rides on, so it gets its own floor.
     let packaged: usize = observations.iter().map(|o| o.yaml_files).sum();
-    assert!(packaged >= 100, "only {packaged} YAML files attributed to packages");
+    assert!(
+        packaged >= 100,
+        "only {packaged} YAML files attributed to packages"
+    );
     assert!(
         unpackaged >= policy.min_expected_yaml_files / 2,
         "only {unpackaged} unpackaged YAML files — the out-of-package census collapsed"
@@ -241,7 +245,12 @@ fn a_vacuous_scan_fails_against_the_live_policy() {
     let policy = load_policy(&root);
     let verdict = evaluate(&[], 0, &policy);
     assert!(verdict.failed());
-    assert!(verdict.blocking().iter().any(|f| f.code == CODE_VACUOUS_SCAN));
+    assert!(
+        verdict
+            .blocking()
+            .iter()
+            .any(|f| f.code == CODE_VACUOUS_SCAN)
+    );
 }
 
 // The ceiling must have NO slack: a ratchet frozen above today's number silently absorbs the next
@@ -261,5 +270,38 @@ fn the_frozen_ceilings_equal_todays_counts() {
         verdict.coverage.unpackaged_yaml_files, policy.baseline_unpackaged_yaml_files,
         "lower baseline_unpackaged_yaml_files to {} so the northstar ratchet keeps biting",
         verdict.coverage.unpackaged_yaml_files
+    );
+}
+
+#[test]
+fn required_status_label_matches_the_authoritative_policy() {
+    let root = repo_root();
+    let policy = load_policy(&root);
+    let raw = std::fs::read_to_string(root.join(REQUIRED_WORKFLOW_PATH))
+        .expect("read required-status workflow");
+    let workflow: serde_yaml::Value = serde_yaml::from_str(&raw).expect("workflow parses");
+    let entries = workflow["jobs"]["gate"]["strategy"]["matrix"]["include"]
+        .as_sequence()
+        .expect("required-status gate matrix include is a sequence");
+    let corpus_entries: Vec<_> = entries
+        .iter()
+        .filter(|entry| entry["crate"].as_str() == Some("corpus-index-coverage"))
+        .collect();
+
+    assert_eq!(
+        corpus_entries.len(),
+        1,
+        "required-status workflow must carry exactly one corpus-index-coverage matrix row"
+    );
+    let label = corpus_entries[0]["label"]
+        .as_str()
+        .expect("corpus-index-coverage matrix row has a string label");
+    let expected = format!(
+        "born-ADVISORY over {} uncovered packages + {} unpackaged files",
+        policy.baseline_uncovered_packages, policy.baseline_unpackaged_yaml_files
+    );
+    assert!(
+        label.contains(&expected),
+        "required-status label must derive its debt counts from the policy; expected {expected:?}, got {label:?}"
     );
 }

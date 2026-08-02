@@ -3,21 +3,21 @@
   "gate_id": "cloud-ci-corpus-index-coverage",
   "schema_version": "1.0.0",
   "baseline_uncovered_packages": 24,
-  "baseline_unpackaged_yaml_files": 5003,
+  "baseline_unpackaged_yaml_files": 4999,
   "min_expected_yaml_packages": 20,
   "min_expected_yaml_files": 4000,
   "measured": {
     "_comment": "Measured by the live gate at freeze time, recorded so a later reader can see whether the ratchet moved or the corpus did. yaml_files_total counts the walk's census, which skips dot-directories; a git ls-files census reports 8 more (.github/**) and is not the number the ceilings are frozen against.",
     "yaml_packages_total": 27,
     "yaml_packages_indexed": 3,
-    "yaml_files_total": 5866,
-    "yaml_files_indexed": 801,
-    "yaml_files_unpackaged": 5003,
+    "yaml_files_total": 5852,
+    "yaml_files_indexed": 791,
+    "yaml_files_unpackaged": 4999,
     "package_coverage_bps": 1111,
-    "file_coverage_bps": 1365
+    "file_coverage_bps": 1351
   },
   "product_contract": {
-    "born_advisory": "Born ADVISORY over today's debt and BLOCKING on regression. 24 YAML-owning packages declare no extraction target and 5003 YAML files sit outside every buck2 package; both are reported as advisory findings and frozen as ceilings. A NEW uncovered package, or NEW YAML outside the build graph, exceeds its ceiling and fails closed.",
+    "born_advisory": "Born ADVISORY over today's debt and BLOCKING on regression. 24 YAML-owning packages declare no extraction target and 4999 YAML files sit outside every buck2 package; both are reported as advisory findings and frozen as ceilings. A NEW uncovered package, or NEW YAML outside the build graph, exceeds its ceiling and fails closed.",
     "shrink_only": "Both ceilings are lowered as extraction targets and service-root packages land. The gate emits a corpus_index_stale_ceiling advisory whenever a ceiling sits above the measured number, so slack cannot silently accumulate and absorb the next regression.",
     "pack_shaped": "The Rust kernel hardcodes no oyatie path. Package census, file census, and both ceilings are DATA.",
     "anti_vacuity": "min_expected_yaml_packages and min_expected_yaml_files fail the gate closed when the walk collapses. Without them a broken walk reports zero uncovered packages, which is indistinguishable from full coverage.",
