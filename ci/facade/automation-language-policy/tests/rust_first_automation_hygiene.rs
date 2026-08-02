@@ -252,6 +252,51 @@ fn thirdparty_python_overlay_is_retired_into_owned_rust() {
     );
 }
 
+/// The two Python BUCK generators are retired, and the one whose JOB is still live has a NAMED
+/// owned-Rust successor. This is the pointer: `scripts/emit_rust_tests.py` mirrored a
+/// `rust_library` into a `<name>-unittest` `rust_test`, which is exactly what the ADR-0540
+/// generator `//tools/oya-buck-test-wiring-app` does — and does strictly better, because the
+/// Python version carried the same blanket `already has a rust_test` skip that #1496 removed from
+/// the Rust tool (it hid every crate whose unit test was wired but whose `tests/*.rs` were not).
+/// `scripts/gen_first_party_buck.py` has no successor because it has no job: all 868 workspace
+/// members already carry a BUCK file, so its only non-no-op mode was `--force`, which clobbers
+/// hand-edited BUCK.
+#[test]
+fn python_buck_generators_are_retired_with_the_wiring_successor_named() {
+    let root = repo_root();
+    let policy = load_policy(&root);
+    let paths = ["scripts/emit_rust_tests.py", "scripts/gen_first_party_buck.py"];
+    let exceptions = policy["exceptions"].as_array().expect("exceptions array");
+    let baseline = policy["non_rust_exception_baseline"]["codes"]
+        ["rust_first_automation_unbaselined_non_rust_exception"]
+        .as_array()
+        .expect("non-Rust exception baseline array");
+
+    for path in paths {
+        assert!(
+            !root.join(path).exists(),
+            "retired Python BUCK generator must be absent: {path}"
+        );
+        assert!(
+            !exceptions
+                .iter()
+                .any(|row| row["path"].as_str() == Some(path)),
+            "retired Python BUCK generator must not remain exceptioned: {path}"
+        );
+        assert!(
+            !baseline.iter().any(|value| value.as_str() == Some(path)),
+            "retired Python BUCK generator must shrink from the frozen baseline: {path}"
+        );
+    }
+
+    assert!(
+        root.join("tools/oya-buck-test-wiring-app/src/lib.rs").is_file(),
+        "the rust_test wiring job must live in the owned-Rust ADR-0540 generator \
+         //tools/oya-buck-test-wiring-app — retiring the Python emitter without it would drop a \
+         live job, not a dead one"
+    );
+}
+
 // ───────────────────────── workflow-inline-shell dimension (pipeline-glue(a)) ─────────────────────
 
 /// The `.github/workflows` surface MUST be in the gate's scan scope: the policy declares it as a
