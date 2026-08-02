@@ -29,7 +29,7 @@
 // ADR-0083 Tier-3: integration tests use unwrap/expect/panic to assert invariants.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -517,12 +517,37 @@ fn windows_branch_has_buck_execution_receipt(gate_job: &str) -> bool {
         && exit_capture_index < exit_propagation_index
 }
 
+/// The fan-in's success CONDITIONAL — the `if [ … ] && [ … ]; then` line, with shell
+/// line-continuations folded and comment lines dropped.
+///
+/// This is the only place a `needs.<job>.result` value is load-bearing. The fan-in runs
+/// `if: always()`, so a job whose result is never COMPARED here cannot make the required context
+/// red no matter how it fails.
+fn fan_in_success_conditional(fan_in_block: &str) -> String {
+    workflow_steps(fan_in_block)
+        .iter()
+        .flat_map(|step| executable_lines(step))
+        .find(|line| line.starts_with("if ") && line.contains("; then"))
+        .unwrap_or_default()
+}
+
+/// True iff the fan-in both DEPENDS ON `job` (`needs:` membership) and CHECKS its result inside
+/// the success conditional.
+///
+/// The second half used to be `fan_in_block.contains("needs.{job}.result")` — a substring search
+/// over the whole block, which the step's own diagnostic
+/// `echo "  buck2 = ${{ needs.buck2.result }}"` satisfies all by itself. Deleting the real
+/// `&& [ "${{ needs.buck2.result }}" = "success" ]` clause therefore left every assertion GREEN
+/// while the required context would go green with the `buck2` job FAILING — the entire gate fleet
+/// blacked out with no verdict. `fan_in_membership_requires_a_checked_result_not_an_echo` pins
+/// that mutation as RED.
 fn fan_in_mentions_job(fan_in_block: &str, job: &str) -> bool {
     fan_in_block
         .lines()
         .filter_map(yaml_list_item)
         .any(|v| v == job)
-        && fan_in_block.contains(&format!("needs.{job}.result"))
+        && fan_in_success_conditional(fan_in_block)
+            .contains(&format!("needs.{job}.result }}}}\" = \"success\""))
 }
 
 fn live_postgres_split_fan_in_is_complete(workflow: &str) -> bool {
@@ -557,20 +582,322 @@ fn merge_base_test_health_forwards_the_owned_rustup_home(workflow: &str) -> bool
         })
 }
 
-/// True iff `crate_dir` is an entry in the `gate` job's `strategy.matrix` — i.e. it is a
-/// homogeneous matrix gate run via `cargo test -p ${{ matrix.crate }}`. Recognizes both the
-/// simple list form (`- <crate>`) and the `include`-object form (`{ crate: <crate>, label: … }`).
-/// Crate names are unique and distinct from the `needs:` job names, so scanning the whole
-/// workflow is safe; the per-line comment strip keeps trailing `# …` from defeating the match.
-fn is_matrix_gate(workflow: &str, crate_dir: &str) -> bool {
-    workflow.lines().any(|line| {
-        let t = line.split('#').next().unwrap_or("").trim();
-        t == format!("- {crate_dir}") || t.contains(&format!("crate: {crate_dir},"))
+/// The job names the fan-in actually joins on, read from its `needs:` list. A job outside this
+/// list has no admission authority, so nothing it executes can register a gate.
+fn fan_in_needs(workflow: &str) -> Vec<String> {
+    let block = fan_in_block(workflow);
+    let mut jobs = Vec::new();
+    let mut in_needs = false;
+    for line in block.lines() {
+        if line.trim_end() == "    needs:" {
+            in_needs = true;
+            continue;
+        }
+        if !in_needs {
+            continue;
+        }
+        // The list ends at the first non-list line (`    steps:`).
+        match yaml_list_item(line) {
+            Some(job) if !job.is_empty() && !job.contains(':') => jobs.push(job),
+            _ => break,
+        }
+    }
+    jobs
+}
+
+/// Fold shell line-continuations and DROP comment lines, so a `#`-commented target pattern can
+/// never be mistaken for an executed one. This is the specific false-green the retired
+/// `is_buck_gate` permitted: it was `workflow.contains("//ci/facade/<crate>:")`, satisfied by any
+/// literal mention anywhere in the file — including a comment listing target names while nothing
+/// ran. Coverage evidence must come from an executable line.
+fn executable_lines(step: &[&str]) -> Vec<String> {
+    let mut folded: Vec<String> = Vec::new();
+    let mut pending = String::new();
+    for line in step {
+        let code = line.trim();
+        if code.starts_with('#') {
+            continue;
+        }
+        match code.strip_suffix('\\') {
+            Some(head) => {
+                pending.push_str(head);
+                pending.push(' ');
+            }
+            None => {
+                pending.push_str(code);
+                folded.push(std::mem::take(&mut pending));
+            }
+        }
+    }
+    if !pending.is_empty() {
+        folded.push(pending);
+    }
+    folded
+}
+
+/// Every Buck2 target PATTERN this workflow actually executes under `buck2 test`, restricted to
+/// jobs the fan-in joins on.
+///
+/// Two exclusions, both deliberate. A `--keep-going` or `|| true` invocation is a BASELINE
+/// measurement whose exit code is discarded by construction (the affected-set lane's merge-base
+/// pass runs `buck2 test //... --keep-going ... || true`); counting it would make this whole
+/// meta-test vacuous, because `//...` covers every gate while binding nothing.
+fn executed_patterns_by_job(workflow: &str) -> BTreeMap<String, BTreeSet<String>> {
+    let mut by_job = BTreeMap::new();
+    for job in fan_in_needs(workflow) {
+        let block = workflow_job(workflow, &job);
+        let mut patterns = BTreeSet::new();
+        for step in workflow_steps(&block) {
+            for line in executable_lines(&step) {
+                if line.contains("--keep-going") || line.contains("|| true") {
+                    continue;
+                }
+                let Some((_, args)) = line.split_once("buck2 test ") else {
+                    continue;
+                };
+                // Stop at the first statement separator. The `gate` job's pwsh step is ONE line
+                // that chains `buck2 test $targets; …; & buck2 run //ci/facade/…-gate-bin`, and
+                // without this the `buck2 run` target is harvested as though `buck2 test` had run
+                // it — which would let a `buck2 run` of a test-less package "cover" that package.
+                let args = args.split(';').next().unwrap_or(args);
+                patterns.extend(
+                    args.split_whitespace()
+                        .filter(|token| token.starts_with("//"))
+                        .map(|token| token.trim_matches('"').to_owned()),
+                );
+            }
+        }
+        if !patterns.is_empty() {
+            by_job.insert(job, patterns);
+        }
+    }
+    by_job
+}
+
+fn executed_buck2_test_patterns(workflow: &str) -> BTreeSet<String> {
+    executed_patterns_by_job(workflow)
+        .into_values()
+        .flatten()
+        .collect()
+}
+
+/// True iff a Buck2 target pattern executes the targets of repo-relative package `pkg`.
+/// `//ci/...` (and `//...`) recurse; `//ci/facade/x:tgt` names one package.
+fn pattern_covers_package(pattern: &str, pkg: &str) -> bool {
+    let body = pattern.strip_prefix("//").unwrap_or(pattern);
+    match body.strip_suffix("...") {
+        Some(root) => {
+            let root = root.trim_end_matches('/');
+            root.is_empty() || pkg == root || pkg.starts_with(&format!("{root}/"))
+        }
+        None => body.split(':').next() == Some(pkg),
+    }
+}
+
+/// True iff the package's BUCK declares at least one test rule.
+///
+/// This is the load-bearing half of recursive coverage: `buck2 test //ci/...` executes NOTHING
+/// for a package that declares no test target, so pattern coverage alone would green a gate that
+/// never runs. That is the dark-gate shape the collapse could otherwise introduce.
+fn buck_declares_a_test_rule(buck: &Path) -> bool {
+    let Ok(text) = fs::read_to_string(buck) else {
+        return false;
+    };
+    text.lines().any(|line| {
+        let t = line.trim_start();
+        !t.starts_with('#')
+            && t.split_once('(')
+                .is_some_and(|(rule, _)| rule.trim_end().ends_with("_test"))
     })
 }
 
-fn is_buck_gate(workflow: &str, crate_dir: &str) -> bool {
-    workflow.contains(&format!("//ci/facade/{crate_dir}:"))
+/// RED proof for the executed-target-set registration invariant. Each arm is a false-green this
+/// meta-test must reject; without them "registered" would be satisfiable without executing
+/// anything, which is what the retired substring version allowed.
+#[test]
+fn registration_evidence_must_come_from_a_binding_execution() {
+    let fixture = "\
+jobs:
+  buck2:
+    steps:
+      - name: consolidated
+        run: |
+          buck2 test //ci/... --unstable-write-invocation-record /tmp/r.json
+  orphan:
+    steps:
+      - name: not joined by the fan-in
+        run: buck2 test //ci/facade/orphan-only:ci-orphan-only-gate
+  baseline:
+    steps:
+      - name: discarded exit code
+        run: buck2 test //... --keep-going > /tmp/log 2>&1 || true
+  oya-ci-required:
+    needs:
+      - buck2
+      - baseline
+    steps:
+      - name: verdict
+        run: echo done
+";
+    let executed = executed_buck2_test_patterns(fixture);
+
+    // GREEN: the one pattern run by a fan-in-joined job on a binding line.
+    assert!(executed.contains("//ci/..."), "executed: {executed:?}");
+    // RED 1: an orphan job is not admission authority, so its pattern must not register a gate,
+    // and a `--keep-going || true` baseline pass must not either.
+    assert!(
+        !executed
+            .iter()
+            .any(|p| p.contains("orphan-only") || p.contains("//...")),
+        "orphan-job and discarded-exit-code patterns must not count: {executed:?}"
+    );
+    assert_eq!(executed.len(), 1, "executed: {executed:?}");
+
+    // RED 2: a COMMENTED pattern registers nothing. This is the exact defect in the retired
+    // `is_buck_gate` — `workflow.contains("//ci/facade/<crate>:")` matched a comment, so pasting
+    // a list of target names into the YAML passed while nothing ran.
+    let commented = "\
+jobs:
+  buck2:
+    steps:
+      - name: comment only
+        run: |
+          # buck2 test //ci/facade/ghost:ci-ghost-gate
+          echo nothing
+  oya-ci-required:
+    needs:
+      - buck2
+    steps:
+      - name: verdict
+        run: echo done
+";
+    assert!(
+        executed_buck2_test_patterns(commented).is_empty(),
+        "a commented-out target pattern must never be registration evidence"
+    );
+
+    // RED 3: a `buck2 run` chained after `buck2 test` on the SAME line (the surviving `gate`
+    // job's pwsh step does exactly this) is not a test execution and must not be harvested as one.
+    let chained = "\
+jobs:
+  gate:
+    steps:
+      - name: chained
+        run: '& buck2 test //ci/facade/a:t; if ($x) { & buck2 run //ci/facade/b:some-bin -- --x }'
+  oya-ci-required:
+    needs:
+      - gate
+    steps:
+      - name: verdict
+        run: echo done
+";
+    let chained = executed_buck2_test_patterns(chained);
+    assert!(chained.contains("//ci/facade/a:t"), "chained: {chained:?}");
+    assert!(
+        !chained.iter().any(|p| p.contains("some-bin")),
+        "a `buck2 run` target must not be harvested as a test pattern: {chained:?}"
+    );
+
+    // Pattern coverage semantics: recursive patterns recurse, exact patterns do not.
+    assert!(pattern_covers_package("//ci/...", "ci/facade/x"));
+    assert!(pattern_covers_package("//...", "ci/facade/x"));
+    assert!(pattern_covers_package("//ci/facade/x:ci-x-gate", "ci/facade/x"));
+    assert!(!pattern_covers_package("//ci/facade/x:ci-x-gate", "ci/facade/y"));
+    // Prefix matching must respect path segments: `//cider/...` must not cover `ci/facade/x`.
+    assert!(!pattern_covers_package("//cider/...", "ci/facade/x"));
+
+    // RED 4: recursive coverage is not execution. A package with no test rule runs nothing under
+    // `buck2 test //ci/...`, which is the dark-gate shape the collapse could otherwise introduce.
+    let root = repo_root();
+    assert!(buck_declares_a_test_rule(
+        &root.join("ci/facade/baseline-ratchet/BUCK")
+    ));
+    assert!(!buck_declares_a_test_rule(&root.join("toolchains/BUCK")));
+    assert!(!buck_declares_a_test_rule(&root.join("does/not/exist/BUCK")));
+}
+
+/// RED proof for `fan_in_mentions_job`, and the reason this rework exists.
+///
+/// The fan-in step ECHOES every `needs.<job>.result` for diagnostics and then COMPARES them in an
+/// `if [ … ] && [ … ]; then` chain. Only the comparison is load-bearing — the fan-in is
+/// `if: always()`, so a job missing from the chain can fail while the required context goes green.
+///
+/// The retired helper substring-searched the whole fan-in block, so the echo alone satisfied it:
+/// deleting the real `&& [ "${{ needs.buck2.result }}" = "success" ]` clause left every assertion
+/// in this file GREEN while the entire gate fleet could black out with no verdict. That hole was
+/// pre-existing, but the collapse makes it load-bearing — before, blocking power was split across
+/// `needs.gate.result` and `needs.buck2.result`; after, it rests on the `buck2` clause alone.
+#[test]
+fn fan_in_membership_requires_a_checked_result_not_an_echo() {
+    // The real shape: echoed AND compared. Must pass.
+    let checked = "\n  oya-ci-required:
+    if: ${{ always() }}
+    needs:
+      - buck2
+    steps:
+      - name: Fan-in verdict
+        run: |
+          echo \"  buck2 = ${{ needs.buck2.result }}\"
+          if [ \"${{ needs.buck2.result }}\" = \"success\" ]; then
+            exit 0
+          fi
+          exit 1
+";
+    assert!(
+        fan_in_mentions_job(fan_in_block(checked), "buck2"),
+        "a job that is both depended on and compared in the success chain must register"
+    );
+
+    // THE MUTATION (verifier RED-C): the comparison is deleted, the diagnostic echo remains.
+    // The retired substring helper returned true here. It must now be FALSE.
+    let echo_only = "\n  oya-ci-required:
+    if: ${{ always() }}
+    needs:
+      - buck2
+    steps:
+      - name: Fan-in verdict
+        run: |
+          echo \"  buck2 = ${{ needs.buck2.result }}\"
+          if [ \"${{ needs.gate.result }}\" = \"success\" ]; then
+            exit 0
+          fi
+          exit 1
+";
+    assert!(
+        !fan_in_mentions_job(fan_in_block(echo_only), "buck2"),
+        "a job whose result is only ECHOED, never compared, must NOT count as checked — the \
+         fan-in is `if: always()`, so its failure would not make the required context red"
+    );
+
+    // `needs:` membership is still required: comparing a job the fan-in does not depend on is a
+    // race, not a join (the result would be empty).
+    let not_needed = "\n  oya-ci-required:
+    if: ${{ always() }}
+    needs:
+      - gate
+    steps:
+      - name: Fan-in verdict
+        run: |
+          if [ \"${{ needs.buck2.result }}\" = \"success\" ]; then
+            exit 0
+          fi
+          exit 1
+";
+    assert!(
+        !fan_in_mentions_job(fan_in_block(not_needed), "buck2"),
+        "a compared-but-not-depended-on job must NOT count — it is not joined"
+    );
+
+    // The LIVE workflow must satisfy the strengthened form for the lane the collapse makes
+    // load-bearing. Without this, the fixtures above could pass while dev regressed.
+    let workflow = read_to_string(&workflow_path(&repo_root()));
+    let block = fan_in_block(&workflow);
+    for job in ["buck2", "gate", "gate-baseline-ratchet"] {
+        assert!(
+            fan_in_mentions_job(block, job),
+            "live fan-in must both depend on and compare `needs.{job}.result`"
+        );
+    }
 }
 
 fn read_to_string(path: &Path) -> String {
@@ -851,33 +1178,63 @@ fn every_gate_crate_is_registered_in_oya_ci_required_workflow() {
         gates.display()
     );
 
-    // Surface-all: collect EVERY unregistered gate, then assert the set is empty.
-    let mut missing: Vec<String> = Vec::new();
+    // ── REGISTRATION IS EXECUTION (2026-08-01, the 48->2 matrix collapse).
+    //
+    // This used to be three substring searches over the workflow TEXT: `-p <crate>`, a
+    // `crate: <crate>,` matrix line, or `//ci/facade/<crate>:` ANYWHERE in the file. All three
+    // were matrix-shaped, and the third was satisfiable by a COMMENT — the cheapest way to pass
+    // it was to paste a list of target names while nothing executed, which is precisely the
+    // false-green it claimed to prevent. Its docstring said "every gate crate must be
+    // registered"; what it enforced was "every ci/facade/ subdir is mentioned in a YAML file".
+    //
+    // It now asserts the property that actually matters: every gate crate is EXECUTED. A gate is
+    // registered iff some job the FAN-IN JOINS ON runs a `buck2 test` pattern that covers the
+    // crate's package, from an executable (non-comment, non-`--keep-going`, non-`|| true`) line,
+    // AND the crate's BUCK declares a test rule for that pattern to match.
+    let executed = executed_buck2_test_patterns(&workflow);
+    assert!(
+        !executed.is_empty(),
+        "no fan-in-reachable job in {} executes any `buck2 test <//pattern>` — the gate fleet has \
+         no binding execution at all",
+        wf.display()
+    );
+
+    // Surface-all: collect EVERY unexecuted gate, then assert the set is empty.
+    let mut uncovered: Vec<String> = Vec::new();
+    let mut no_test_rule: Vec<String> = Vec::new();
     for crate_dir in &crates {
         if NON_GATE_CRATES.contains(&crate_dir.as_str()) {
             continue;
         }
-        // A gate is "registered" iff the workflow runs it as a cargo lane, matrix lane, or
-        // dedicated Buck target lane. Freshness is a Buck-built binary because it must use the
-        // same face producer targets as the materialization boundary without mutating the tree.
-        let registered = workflow.contains(&format!("-p {crate_dir}"))
-            || is_matrix_gate(&workflow, crate_dir)
-            || is_buck_gate(&workflow, crate_dir);
-        if !registered {
-            missing.push(crate_dir.clone());
+        let pkg = format!("ci/facade/{crate_dir}");
+        if !executed
+            .iter()
+            .any(|pattern| pattern_covers_package(pattern, &pkg))
+        {
+            uncovered.push(crate_dir.clone());
+        } else if !buck_declares_a_test_rule(&root.join(&pkg).join("BUCK")) {
+            no_test_rule.push(crate_dir.clone());
         }
     }
 
     assert!(
-        missing.is_empty(),
-        "gate crate(s) present under {} but NOT registered in {} — add the crate to the `gate` \
-         job's `strategy.matrix.crate` list (homogeneous gates), give it a bespoke `-p <crate>` \
-         job, or wire a dedicated `//ci/facade/<crate>:` Buck target \
-         job: {:?}\n\
-         An in-tree-but-unregistered gate is a silent false-green one level below the fan-in.",
+        uncovered.is_empty(),
+        "gate crate(s) present under {} but executed by NO fan-in-reachable `buck2 test` pattern \
+         in {}: {:?}\n\
+         Executed patterns: {:?}\n\
+         An in-tree-but-unexecuted gate is a silent false-green one level below the fan-in.",
         gates.display(),
         wf.display(),
-        missing
+        uncovered,
+        executed
+    );
+    assert!(
+        no_test_rule.is_empty(),
+        "gate crate(s) under {} are covered by an executed target PATTERN but their BUCK declares \
+         no `*_test` rule, so `buck2 test` runs nothing for them: {:?}\n\
+         Recursive coverage is not execution — add the gate's `rust_test` target.",
+        gates.display(),
+        no_test_rule
     );
 }
 
@@ -1089,12 +1446,25 @@ fn oya_ci_configured_gates_have_disposition_and_required_workflow_authority() {
     );
 
     let mut missing_workflow_authority = Vec::new();
+    let executed = executed_buck2_test_patterns(&workflow);
     for (gate_id, input_kind) in configured {
         let has_required_lane = match input_kind.as_str() {
-            // The matrix `crate:` value is the NEW de-branded ci/facade dir; resolve it via the
-            // committed move-plan SSOT (the ci keystone move renamed the crates semantically).
-            "producer-face" => ci_move_new_dir(&root, &format!("oya-{gate_id}-app"))
-                .is_some_and(|dir| workflow.contains(&format!("crate: {dir},"))),
+            // Resolve the gate id to its NEW de-branded ci/facade dir via the committed move-plan
+            // SSOT (the ci keystone move renamed the crates semantically), then require that
+            // dir's package to be covered by a pattern a fan-in-reachable job actually executes.
+            //
+            // This used to be `workflow.contains("crate: {dir},")` — a matrix line. The 48->2
+            // collapse (2026-08-01) removed those lines; the gates are now executed by
+            // `buck2 test //ci/...` in the `buck2` lane. Asserting execution rather than a matrix
+            // line is also what this check always MEANT by "required workflow authority".
+            "producer-face" => ci_move_new_dir(&root, &format!("oya-{gate_id}-app")).is_some_and(
+                |dir| {
+                    let pkg = format!("ci/facade/{dir}");
+                    executed
+                        .iter()
+                        .any(|pattern| pattern_covers_package(pattern, &pkg))
+                },
+            ),
             "raw-corpus-collector" => {
                 workflow.contains("producer-regen") && workflow.contains("gate-baseline-ratchet")
             }
@@ -1134,44 +1504,50 @@ fn every_gate_lane_is_a_dependency_of_the_fan_in_job() {
         "fan-in job `oya-ci-required` has no `needs:` — it must depend on every gate lane"
     );
 
-    // Map each non-producer gate crate to its expected job-name token in the fan-in `needs:`.
-    // Job names in this workflow embed the gate identity (e.g. `gate-total-accounting`,
-    // `gate-registry-drift`). We assert the gate's short identity appears in the fan-in block.
+    // ── COMPLEMENTARY to `every_gate_crate_is_registered_...`, not a duplicate of it.
+    //
+    // That test proves each gate is EXECUTED by some job in the fan-in's `needs:`. This one
+    // proves the executing job is also JOINED BY THE VERDICT: the fan-in runs `if: always()`, so
+    // a job that sits in `needs:` but whose result is never compared in the success chain can
+    // fail while the required context still goes green. Being depended on is not the same as
+    // being checked — `fan_in_mentions_job` requires both, and
+    // `fan_in_membership_requires_a_checked_result_not_an_echo` proves it requires both by
+    // pinning the echo-only mutation as RED. (That claim was previously asserted in this comment
+    // while the helper only substring-searched the whole block, which the diagnostic `echo` line
+    // satisfied — a false comment guarding a real hole.)
+    //
+    // The retired version mapped a gate crate to a job by SUBSTRING (`fan_in_block.contains(
+    // &short)` after stripping `oya-cloud-ci-`/`-app`), which matched any incidental mention in
+    // the block — including a comment — and was matrix-shaped besides.
     let crates = gate_crate_dirs(&gates);
+    let by_job = executed_patterns_by_job(&workflow);
     let mut missing: Vec<String> = Vec::new();
     for crate_dir in &crates {
         if NON_GATE_CRATES.contains(&crate_dir.as_str()) {
             continue;
         }
-        // A matrix gate runs under the single `gate` job → the fan-in must depend on `gate`.
-        // A bespoke gate has its own `gate-<short>` job → the fan-in must reference that short
-        // identity. (`registry-drift` is already short; others strip `oya-cloud-ci-`/`-app`.)
-        let wired = if is_matrix_gate(&workflow, crate_dir) {
-            fan_in_block
-                .lines()
-                .filter_map(yaml_list_item)
-                .any(|v| v == "gate")
-        } else {
-            let short = crate_dir
-                .strip_prefix("oya-cloud-ci-")
-                .unwrap_or(crate_dir)
-                .strip_suffix("-app")
-                .map(str::to_owned)
-                .unwrap_or_else(|| crate_dir.clone());
-            fan_in_block.contains(&short)
-        };
-        if !wired {
-            missing.push(format!(
-                "{crate_dir} (matrix gate ⇒ needs `- gate`; bespoke ⇒ needs its `gate-<short>` job)"
-            ));
+        let pkg = format!("ci/facade/{crate_dir}");
+        let checked_by: Vec<&String> = by_job
+            .iter()
+            .filter(|(_, patterns)| {
+                patterns
+                    .iter()
+                    .any(|pattern| pattern_covers_package(pattern, &pkg))
+            })
+            .map(|(job, _)| job)
+            .filter(|job| fan_in_mentions_job(fan_in_block, job))
+            .collect();
+        if checked_by.is_empty() {
+            missing.push(crate_dir.clone());
         }
     }
 
     assert!(
         missing.is_empty(),
-        "gate lane(s) not wired into the `oya-ci-required` fan-in job's `needs:` in {}: {:?}\n\
-         Every gate lane must be a dependency of the fan-in or its failure cannot make the \
-         required context red.",
+        "gate lane(s) executed by NO job that the `oya-ci-required` fan-in both depends on AND \
+         checks via `needs.<job>.result` in {}: {:?}\n\
+         The fan-in runs `if: always()`, so an unchecked job's failure cannot make the required \
+         context red.",
         wf.display(),
         missing
     );
