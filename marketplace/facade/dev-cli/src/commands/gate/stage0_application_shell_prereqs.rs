@@ -64,14 +64,20 @@ pub(crate) struct Stage0PrereqsReport {
 pub(crate) fn validate_stage0_prereqs_gate(
     args: Stage0PrereqsValidateArgs,
 ) -> Result<Stage0PrereqsReport, String> {
-    let errors = check_repo(&args.repo_root)?;
+    let self_test_metadata = args.self_test.then(|| {
+        format!(
+            r#"{{"packages":[{{"name":"{APP_PACKAGE_NAME}","edition":"{EXPECTED_APP_EDITION}","rust_version":"{EXPECTED_APP_RUST_VERSION}"}}]}}"#
+        )
+    });
+    let (errors, metadata) = check_repo(&args.repo_root, self_test_metadata.as_deref())?;
     if !errors.is_empty() {
         return Err(format_errors(&errors));
     }
     let workspace_text = std::fs::read_to_string(args.repo_root.join("Cargo.toml"))
         .map_err(|error| format!("Cargo.toml unreadable at repo root: {error}"))?;
     let members = parse_workspace_members(&workspace_text);
-    let (edition, rust_version) = read_application_app_metadata(&args.repo_root)?;
+    let (edition, rust_version) = metadata
+        .ok_or_else(|| "stage0 metadata was unavailable after validation passed".to_string())?;
     Ok(Stage0PrereqsReport {
         required_paths_checked: REQUIRED_PATHS.len(),
         workspace_member_present: members.iter().any(|member| member == APP_WORKSPACE_MEMBER),
@@ -80,7 +86,10 @@ pub(crate) fn validate_stage0_prereqs_gate(
     })
 }
 
-fn check_repo(root: &Path) -> Result<Vec<String>, String> {
+fn check_repo(
+    root: &Path,
+    metadata_json_override: Option<&str>,
+) -> Result<(Vec<String>, Option<(String, String)>), String> {
     let mut errors: Vec<String> = Vec::new();
     for rel_path in REQUIRED_PATHS {
         if !root.join(rel_path).exists() {
@@ -102,22 +111,26 @@ fn check_repo(root: &Path) -> Result<Vec<String>, String> {
         ));
     }
 
-    match run_cargo_metadata(root) {
+    let metadata = match metadata_json_override {
+        Some(metadata_json) => parse_application_app_metadata(metadata_json),
+        None => run_cargo_metadata(root),
+    };
+    match &metadata {
         Ok((edition, rust_version)) => {
-            if edition != EXPECTED_APP_EDITION {
+            if edition.as_str() != EXPECTED_APP_EDITION {
                 errors.push(format!(
                     "{APP_PACKAGE_NAME} edition is {edition}, expected {EXPECTED_APP_EDITION}"
                 ));
             }
-            if rust_version != EXPECTED_APP_RUST_VERSION {
+            if rust_version.as_str() != EXPECTED_APP_RUST_VERSION {
                 errors.push(format!(
                     "{APP_PACKAGE_NAME} rust-version is {rust_version}, expected {EXPECTED_APP_RUST_VERSION}"
                 ));
             }
         }
-        Err(error) => errors.push(error),
+        Err(error) => errors.push(error.clone()),
     }
-    Ok(errors)
+    Ok((errors, metadata.ok()))
 }
 
 pub(crate) fn parse_workspace_members(cargo_toml_text: &str) -> Vec<String> {
@@ -160,10 +173,6 @@ fn collect_quoted_values(text: &str, values: &mut Vec<String>) {
     }
 }
 
-fn read_application_app_metadata(root: &Path) -> Result<(String, String), String> {
-    run_cargo_metadata(root)
-}
-
 fn run_cargo_metadata(root: &Path) -> Result<(String, String), String> {
     let output = Command::new("cargo")
         .arg("metadata")
@@ -178,7 +187,11 @@ fn run_cargo_metadata(root: &Path) -> Result<(String, String), String> {
         return Err(format!("cargo metadata failed: {}", stderr.trim_end()));
     }
     let stdout = String::from_utf8_lossy(&output.stdout);
-    let metadata: serde_json::Value = serde_json::from_str(&stdout)
+    parse_application_app_metadata(&stdout)
+}
+
+fn parse_application_app_metadata(metadata_json: &str) -> Result<(String, String), String> {
+    let metadata: serde_json::Value = serde_json::from_str(metadata_json)
         .map_err(|error| format!("cargo metadata JSON invalid: {error}"))?;
     let packages = metadata
         .get("packages")
@@ -250,5 +263,14 @@ mod tests {
     fn parse_args_rejects_unknown_flag() {
         let result = parse_stage0_prereqs_validate_args(vec!["--bogus".to_string()]);
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn parse_application_app_metadata_rejects_missing_application_package() {
+        let result = parse_application_app_metadata(r#"{"packages":[]}"#);
+        assert_eq!(
+            result,
+            Err("cargo metadata does not include oya-application-app".to_string())
+        );
     }
 }

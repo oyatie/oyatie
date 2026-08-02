@@ -11,7 +11,7 @@ purpose: |
 canonical_authority: docs/decisions/ADR-0209-compliance-evidence-automation.md
 related_adrs:
   - ADR-0145
-  - ADR-0170
+  - ADR-0394
   - ADR-0181
   - ADR-0183
   - ADR-0209
@@ -78,9 +78,10 @@ Cross-tenant artifacts excluded from coverage; gate flags any cross-tenant artif
 
 ## Auditor portal
 
-Read-only Backstage view at `/auditor/<framework>/`. Per-framework filter shows artifact
-inventory + audit-chain seal hex. Auditor identity provisioned per engagement; access expires
-on engagement close.
+Read-only first-party portal module at `/auditor/<framework>/`. The module composes
+compliance-owned, Cedar-gated read APIs and never reads the evidence store directly. Per-framework
+filters show artifact inventory and audit-chain seal hex. Auditor identity is provisioned per
+engagement and expires when the engagement closes.
 
 ## Coverage gate
 
@@ -91,6 +92,6 @@ flagged per (microservice × framework × required artifact kind).
 
 - ADR-0209 — compliance evidence automation (this standard's authority).
 - ADR-0145 — audit-chain seal substrate.
-- ADR-0170 — Backstage developer portal (auditor view).
+- ADR-0394 — first-party Rust developer portal (auditor module).
 - ADR-0181 — container image promotion (deploy receipts).
 - ADR-0183 — Cedar policy (auditor read-only access).

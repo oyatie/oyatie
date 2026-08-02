@@ -87,7 +87,10 @@ mod tests {
     #[test]
     fn full_runtime_boot_to_ready() {
         let kernel = InMemoryKernel::new().with_path("/proc/sys/net/ipv4/ip_forward", "0");
-        let mut rt = RegistryBuilder::with_kernel(kernel).all_domains().build();
+        let mut rt = RegistryBuilder::with_kernel(kernel)
+            .with_link_status_source(|| Ok(Vec::new()))
+            .all_domains()
+            .build();
         assert_eq!(rt.controller_count(), 15);
 
         // Seed acquired config, a kernel param, and a running stage report.

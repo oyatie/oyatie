@@ -1,3 +1,4 @@
+# Legacy Backstage-shaped catalog import for one-way migration into the first-party portal.
 apiVersion: backstage.io/v1alpha1
 kind: API
 metadata:
@@ -9,4 +10,4 @@ spec:
   owner: axis-compliance
   system: oyatie-platform
   definition:
-    $text: https://github.com/oyadev/oyatie/blob/main/microservices/compliance/contracts/openapi.yaml
+    $text: https://github.com/oyadev/oyatie/blob/main/oya/compliance/contracts/openapi.yaml

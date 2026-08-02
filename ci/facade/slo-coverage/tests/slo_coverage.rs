@@ -43,16 +43,21 @@ const REQUIRED_SLO_LINKED_CLOUD_MANIFESTS: [&str; 6] = [
 /// SKIPPED rather than run. A skipped gate is not a passing gate, and this is what that
 /// distinction costs: a born-blocking floor sat stale behind a lane nobody was reading.
 ///
-/// 755 rows exist today. The floor moves to 748 to preserve the same 7-row margin rather
+/// 2026-08-01: two later, reviewed consolidations again removed live catalog rows without
+/// carrying this floor in the same change:
+///   #1485 refactor(intelligence): collapse three provider adapters into one  -2 rows
+///   #1483 fix(ci): retire eight duplicate dark lifecycle catalog rows        -8 rows
+///
+/// 745 rows exist today. The floor moves to 738 to preserve the same 7-row margin rather
 /// than silently loosening or tightening the guard.
 ///
-/// NOTE for the next removal: this constant has now gone stale twice in the same way.
+/// NOTE for the next removal: this constant has now gone stale three times in the same way.
 /// A floor that must be hand-lowered on every legitimate deletion is a staleness surface;
 /// deriving it from an INDEPENDENT enumeration of the catalog files on disk (with a small
 /// absolute floor purely to catch a both-are-zero scan) would keep the empty-scan
 /// protection while removing the manual step. That is a separate reviewed change, not a
 /// side effect of un-reddening dev.
-const MIN_SLO_CATALOG_ROWS: usize = 748;
+const MIN_SLO_CATALOG_ROWS: usize = 738;
 
 fn producer_command(root: &Path, producer_bin: Option<&str>) -> Result<Command, String> {
     if let Some(bin) = producer_bin {

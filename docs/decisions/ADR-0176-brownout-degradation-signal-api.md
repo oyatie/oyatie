@@ -14,6 +14,10 @@ related:
   - ADR-0042-observability-stack-otel-and-in-house-ui.md
   - ADR-0044-service-mesh-istio-ambient-and-envoy-gateway.md
   - ADR-0148-service-mesh-cilium.md
+  - ADR-0203-documentation-engine-three-tier.md
+  - ADR-0258-api-versioning-model.md
+last_reconciled: 2026-08-01
+reconciled_with: [ADR-0203, ADR-0258]
 doc_class: Architecture-Decision-Record
 purpose: >
   Standardize a normative response header `oya-degradation-class:
@@ -31,6 +35,12 @@ enforced_by: oya gate validate brownout-signal-coverage
 Accepted — 2026-05-18. Enforcement is advisory until every public RPC
 on every µservice surfaces the header. Coverage tracker at
 `registry/brownout/coverage-tracker.tsv`.
+
+### Public-contract reconciliation
+
+Per ADR-0203 and ADR-0258, public contract carriers are REST documented by OpenAPI 3.2 plus
+webhooks, events, and streams documented by AsyncAPI 3.1. gRPC over HTTP/2 (H2) with proto3 is
+internal-only service-to-service traffic under mTLS; it is not a public API contract.
 
 ## Context
 
@@ -64,7 +74,9 @@ Without the header:
 
 ### D-1. Normative response header
 
-Every public µservice RPC (HTTP + gRPC + AsyncAPI) emits the header:
+Every public REST response emits the header. Public webhooks, events, and streams carry the same
+value as AsyncAPI-defined metadata. Internal gRPC/proto3 services carry the same key as H2 metadata
+under mTLS without changing that internal-only classification:
 
 ```
 oya-degradation-class: nominal|degraded|brownout|outage

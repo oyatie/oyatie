@@ -40,6 +40,10 @@ path = "src/bin/oya-cloud-ci-step-telemetry.rs"
 
 [dependencies]
 serde_json = { workspace = true }
+# Owned GitHub REST adapter for the trusted-baseline consumer. `gh` is NOT installed on the owned
+# arm64 runner image (probed against the live digest-pinned image), so the subprocess this replaces
+# failed with os error 2 on every FULL-tier run and silently paid the cold merge-base rebuild.
+reqwest = { workspace = true }
 
 [lints]
 workspace = true

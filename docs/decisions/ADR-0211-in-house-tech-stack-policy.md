@@ -50,7 +50,7 @@ The dependency is a CNCF-graduated or Linux-Foundation-hosted community standard
 - SPIFFE / SPIRE — CNCF.
 - Cosign / Trivy — Sigstore / CNCF.
 - PostgreSQL — long-running community standard; PostgreSQL license.
-- OpenAPI 3.2.0 (Sept 2025) / AsyncAPI 3.1.0 (Jan 2026) / proto3 — open standards.
+- OpenAPI 3.2.0 / AsyncAPI 3.1.0 / proto3 — open standards.
 - ICU MessageFormat / Fluent (Mozilla) — open standards.
 - WCAG 2.2 AA — W3C standard.
 - OIDC / WebAuthn L3 / SCIM 2.0 — IETF / W3C / OASIS standards.
@@ -79,7 +79,6 @@ The dependency is a current-best vendor product that we use today behind a thin 
 | Velero (K8s backup orchestrator) | oya-backup-orchestrator | AWS-Backup-parity needed at multi-tenant scale |
 | OpenCost (FinOps) | oya-finops-portal | tenant-billing-portal needs OpenCost can't cover |
 | Postal (sovereign email) | oya-comms-email-server | ≥1M sends/day/tenant × 7d sustained OR sovereign air-gap deploy |
-| Backstage (developer portal) | oya-developer-portal | Backstage scope exceeded for service catalog + TechDocs |
 | svelte-flow (canvas) | oya-canvas (Leptos-native, shares oya-client-shared-rust with Linux GTK) | ≥10K nodes per workflow OR svelte-flow perf ceiling per ADR-0185 |
 | Meilisearch (search) | oya-search-server (Tantivy-based) | BUSL enterprise tier requirement OR Meilisearch licensing concern escalation |
 
@@ -110,6 +109,8 @@ The capability IS our differentiation. It must be 100% in-house from day one. No
 - **Cell architecture** (per ADR-0009) — the multi-tenant blast-radius isolation.
 - **Consent Graph** (per ADR-0214) — the cross-tenant visibility moat (LinkedIn-class graph).
 - **Plugin App Store + Developer SDK** (per ADR-0213) — the third-party ecosystem moat.
+- **First-party developer portal** (per ADR-0394) — the human and machine composition surface for
+  owned platform capabilities; third-party portal runtimes are feature references only.
 - **Compliance evidence pipeline** (Drata / Vanta replacement; per ADR-0209) — in-house from day one because regulators trust must NOT route through a third party that could pivot pricing / policy / outage.
 
 ## CI enforcement
