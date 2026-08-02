@@ -127,9 +127,26 @@ fn frozen_baseline_is_exactly_the_live_violation_set() {
     );
     assert_eq!(
         baseline.keys.len(),
-        38,
-        "the frozen baseline holds 38 rows: 8 SUBSTRATE-UPWARD + 9 S-RANK-INVERSION edges, plus 21 \
+        34,
+        "the frozen baseline holds 34 rows: 8 SUBSTRATE-UPWARD + 9 S-RANK-INVERSION edges, plus 17 \
          UNCLASSIFIED-ROOT-NOT-META roots.\n\
+         \n\
+         The root rows dropped 21 -> 17 when messaging/ci/storage were tier-declared (ADR-0631 \
+         floor test) and `policy` was removed as a ROOT. Three of those four are real burn-down; \
+         `policy` is a bookkeeping deletion, not a fix — the capability keeps its live \
+         policy-engine DAG node, but it owns ZERO crates (the nine Cedar/PDP crates stay \
+         iam-mapped per ADR-0615 to avoid a membership double-map), so `policy/*/*` matched \
+         nothing and the exemption governed nothing. Re-homing those crates into `policy/` is a \
+         MOVE, filed separately; it will need this root back.\n\
+         \n\
+         The S-RANK-INVERSION count did NOT move (9, unchanged): declaring the three surfaced \
+         ZERO new inversions. That is a fact about the neighbourhood, not a clean bill of health \
+         — messaging's and storage's ranked neighbours (audit/cell/network/secrets) are already \
+         classified and they sit legally, while every one of ci's neighbours (libs, intelligence, \
+         governance) is STILL unclassified, so ci's S5 constrains no live edge yet. Verified by \
+         perturbation: forcing messaging to S1 or storage to S1 each REDs one inversion, but \
+         forcing ci to S1 REDs nothing. ci's S4 floor becomes real when `intelligence` moves to \
+         capability_roots.\n\
          \n\
          The 9 S-RANK-INVERSIONs are the point of the capability_roots change. This assertion \
          previously read 8 and explained the drop from 12 as 'burned down by ADR-0562 move-19: \
