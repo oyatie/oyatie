@@ -166,15 +166,18 @@ jobs:
           retention-days: 1
           if-no-files-found: error
 
-  # ── GATE LANES (reusable matrix). Every homogeneous gate is the SAME step — one
-  #    `buck2 test //ci/facade/<crate>:{ci-<crate>-unittest,ci-<crate>-gate}` — so instead of copy-pasting a job per gate, a single
-  #    matrixed `gate` job fans out over the crate list. Adding a homogeneous gate is ONE line in the matrix
-  #    below; the `gate_registration` meta-test (in the cloud-ci-firewall lane) ENFORCES that
-  #    every in-tree gate crate is listed here, every oya-ci.toml accounting/firewall gate has
-  #    bundled disposition DATA, and every gate lane is a fan-in dependency. Each matrix leg is its own check-run
-  #    `gate (oya-cloud-ci-<x>-app)`, preserving per-gate attribution; legs with a live-corpus
-  #    self-test are born-blocking. `fail-fast: false` = surface-all (every leg runs to
-  #    completion even if a sibling fails).
+  # ── RESIDUAL GATE LANES. This job USED to fan out one leg per homogeneous gate crate. It no
+  #    longer does — see the COLLAPSED note on `strategy.matrix` below. The gate fleet is executed
+  #    ONCE, by `buck2 test //ci/...` in the `buck2` lane, which is a strict SUPERSET of what the
+  #    matrix ran. Only the two legs whose work falls OUTSIDE `//ci/...` survive here.
+  #
+  #    ADDING A GATE IS NOW ZERO WORKFLOW LINES: drop the crate under `ci/facade/<crate>/` with a
+  #    BUCK `rust_test` target and the recursive pattern picks it up. The `gate_registration`
+  #    meta-test (in the cloud-ci-firewall lane) enforces exactly that — every in-tree gate crate
+  #    must be covered by a target pattern that some FAN-IN-REACHABLE job actually executes, AND
+  #    the crate must declare a test rule for that pattern to match. It no longer greps for a
+  #    matrix line. It also still enforces bundled disposition DATA and fan-in membership.
+  #    `fail-fast: false` = surface-all (both surviving legs run even if a sibling fails).
   #    (Deliberately a matrix, NOT a `workflow_call` reusable workflow: a called workflow would
   #    rename the published check-runs [`<caller> / <job>`], breaking the `oya-ci-required`
   #    branch-protection context. A future owned oya-ci runner can reuse this matrix verbatim —
@@ -219,53 +222,46 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { crate: cross-artifact-agreement, label: "gate · cross-artifact-agreement (GATE-1, incl. the 4 masterplan-v2 plan gates: structural ID/DAG/orphans · projection-freshness · plan-vs-evidence · read-contract/entry-surface)" }
-          - { crate: artifact-accountability,         label: "gate · total-accounting (GATE-2)" }
-          - { crate: stale-artifact-detection,         label: "gate · staleness-reaper (GATE-3, born-blocking)" }
-          - { crate: automation-coverage,       label: "gate · automation-ratchet (GATE-4, polices gates)" }
-          - { crate: crate-layer-suffix,         label: "gate · bnf-layer-suffix (BNF §2.5#4, born-blocking)" }
-          - { crate: package-manifest-hygiene,         label: "gate · manifest-hygiene (§2.5#7, born-blocking)" }
-          - { crate: crate-name-prefix,            label: "gate · cargo-prefix (ADR-0017)" }
-          - { crate: slo-coverage,            label: "gate · slo-coverage (catalog SLO input contract, born-blocking)" }
-          - { crate: scan-root-liveness,      label: "gate · scan-root-liveness (declared scan roots must resolve; reorg-move blindness detector, shrink-only baseline)" }
-          - { crate: crate-catalog-coverage,  label: "gate · crate-catalog-coverage (every live crate carries a registry/catalog row; born-blocking, shrink-only baseline)" }
-          - { crate: license-policy,          label: "gate · license-policy (workspace package license policy, shrink-only)" }
-          - { crate: service-catalog-parity,        label: "gate · catalog-liveness (PR-C3 founder live-OR-explicitly-marked policy, born-blocking, EMPTY frozen baseline)" }
-          - { crate: workspace-member-coverage, label: "gate: workspace-glob-coverage (ADR-0538)" }
-          - { crate: build-target-parity,           label: "gate · target-parity (ADR-0540, test-wiring false-green)" }
-          - { crate: hook-wiring,    label: "gate · enforcement-liveness (FRIC-012, hook mirror liveness)" }
-          - { crate: action-item-accounting,     label: "gate · friction-accounting (ADR-0544, closed-loop friction-ledger accounting)" }
-          - { crate: canonical-json,          label: "gate · canonical-json (ADR-0546, deterministic JSON serialization)" }
-          - { crate: parity-claim-evidence, label: "gate · hyperscaler-parity-taxonomy (cloud hyperscaler parity taxonomy, born-blocking)" }
-          - { crate: resource-contract-conformance, label: "gate · cloud-resource-contracts (Rust/API replacement for P0 cloud-resource Python validators)" }
-          - { crate: contract-slice-conformance, label: "gate · contract-slice-conformance (paved-road Rust/Buck2 replacement for scripts/tests/*_check.py contract-slice validators; ADR-0515/0523/0528)" }
-          - { crate: embedded-asset-hermeticity, label: "gate · embedded-asset-hermeticity (ADR-0545, include_str!/include_bytes! __srcs-tree mapping)" }
-          - { crate: core-dependency-isolation,           label: "gate · kernel-purity (ADR-0547, *-kernel/*-core zero transient-tech deps)" }
-          - { crate: crypto-backend-policy,   label: "gate · crypto-backend-purity (ADR-0506, ring forbidden / aws-lc-rs mandated — zero ring activation)" }
-          - { crate: graphql-usage-policy,  label: "gate · no-graphql-without-adr (ADR-0565, zero-GraphQL: no graphql lib / .graphql/.gql/.sdl reintroduction without a reversing ADR — candidate-tree evaluated, EMPTY frozen baseline)" }
-          - { crate: endpoint-authorization-coverage,          label: "gate · authz-coverage (issue #770 / AUTH-005, NEW unauthenticated HTTP control planes blocked vs frozen baseline)" }
-          - { crate: caller-supplied-authorization,         label: "gate · dto-authz-trust (ADR-0582, the CLASS-FIX for caller-supplied-authz-trust: a NEW fn that trusts a forged *Authorization DTO / x-authorization-* header in place of a server-side PDP decide() is blocked vs the frozen baseline of ~92 known instances; v2: FN-01/02/03/04/05/06 hardened)" }
-          - { crate: generated-artifact-policy, label: "gate · generated-artifact-control-plane (public hermetic CI artifact policy)" }
-          - { crate: build-cache-policy,            label: "gate · cache-wiring conformance (ADR-0560/ADR-0556, dark-wiring + cold floor + kill-switch)" }
-          - { crate: dependency-graph-acyclicity, label: "gate · substrate-dependency-dag-acyclicity (ADR-0280 §D-3, Tarjan SCC + Kahn topo-order + forbidden-edge honouring)" }
-          - { crate: service-tier-metadata,     label: "gate · tier-field-coverage (Phase-0 reorg ADR-0562/0536/0245, per-service tier/tier_subtype/dr_tier coverage + enum validity + no type-overload, born-blocking)" }
-          - { crate: layer-dependency-acyclicity, label: "gate · tier-dependency-acyclicity (Phase-0 reorg ADR-0245/0280/0562, cargo+buck crate-graph tier rules + S-rank + Tarjan cycle backstop, born-ADVISORY vs frozen baseline → enforce-no-regression)" }
-          - { crate: facade-core-layering, label: "gate · facade-core-layering (ADR-0562 central rule: facade reaches its own core only through ports; BUCK-graph keyed by cargo package name, 35 frozen, shrink-only)" }
-          - { crate: module-membership,   label: "gate · capability-membership (Phase-0 reorg ADR-0562 §6, the anti-junk-drawer MEMBERSHIP lint: every crate → exactly one registered capability/meta home, no NEW unmapped crate, no NEW top-level dir, base/-admission; born-advisory + enforce-no-regression vs the frozen unmapped baseline)" }
-          - { crate: runner-disk-reclaim,     label: "gate · runner-disk-reclaim conformance (FRIC-017 productization, ADR-0548 pipeline-as-product: policy parse + threshold/INFRA-RED discrimination + reclaim plan)" }
-          - { crate: port-placement,          label: "gate · port-placement (ADR-0570, clean-arch ports-in-core: no storage-port trait DEFINED in an */adapters/* crate — productizes the #116 defect class; born-advisory + enforce-no-regression vs frozen baseline)" }
-          - { crate: repo-root-hygiene,  label: "gate · root-workspace-hygiene (ADR-0600, allowlist-as-DATA default-DENY: every TRACKED repo-root file must match the allowlist + every top-level dir must be a permitted capability/meta home — makes committed root scratch structurally impossible; complements the scratch DENYLIST)" }
-          - { crate: dependency-automation, label: "gate · dependency-automation (ADR-0535, owned oya-deps.toml Rust bump-bot contract; external bot configs remain absent)" }
-          - { crate: supply-chain-audit,    label: "gate · supply-chain-audit (owned RustSec advisory scan over vendored mirror, born-blocking)" }
-          - { crate: feature-maturity-policy, label: "gate · planned-maturity (GH #992, product PRD acceptance/verification contracts + rich capability records + retired-plan provenance boundary)" }
-          - { crate: operator-secret-rbac, label: "gate · operator-secret-bootstrap (GH #980 + GH #988 / ADR-0606, least-privilege secret RBAC, declarative join-token bootstrap, ESO/OpenBao role+namespace+prefix scope, and plaintext OpenBao NetworkPolicy isolation)" }
-          - { crate: policy-deploy-parity, label: "gate · cedar-deploy-parity (GH #16 / ADR-0608, deployed-vs-authored Cedar parity: no deployed ConfigMap permit may leave the action unconstrained (action-agnostic blanket grant) and every deployed permit MUST be ⊆ the capability's authored <cap>/{policy,cedar}/*.cedar set; fail-closed on missing-authored/un-extractable/empty-scan; GH #16 byte-identical blanket ConfigMaps grandfathered in a documented shrink-only baseline pending the blanket-disarm follow-up)" }
-          - { crate: topology-manifest-contract, label: "gate · cell-topology-manifest-contract (CELL-001R manifest contract)" }
-          - { crate: automation-language-policy, label: "gate · rust-first automation hygiene (cloud-native infra anti-patterns: scripts, workflow shell, retired interpreters, and new CLI packages)" }
-          - { crate: corpus-index-coverage, label: "gate · corpus-index-coverage (ADR-0541 corpus liveness graph: every buck2 package owning YAML must declare a corpus-yaml-facts extraction target, and YAML outside every buck2 package is counted in the denominator so a side channel can never look like progress; born-ADVISORY over 24 uncovered packages + 5003 unpackaged files, blocking on regression, shrink-only)" }
-          - { crate: gate-self-conformance, label: "gate · gate-self-conformance (GH #777, pipeline-as-product 7-property bar over every gate)" }
+        # ── COLLAPSED (2026-08-01): 48 legs -> 2. The 46 removed legs were PURE REDUNDANCY.
+        #    Each expanded to `//ci/facade/<crate>:{ci-<crate>-unittest,ci-<crate>-gate}`, and the
+        #    `buck2` lane below ALREADY runs `buck2 test //ci/...` — the whole tree — as a binding
+        #    fan-in constituent. Proven by mechanical set-diff on the candidate tree, not by eye:
+        #      matrix side  (47 crates x2 + the scm-facts integration target) =  95 targets
+        #      //ci/... side (`buck2 uquery "kind('.*_test', //ci/...)"`)      = 118 targets
+        #      `comm -23 matrix ci` = EMPTY — //ci/... is a strict SUPERSET of the matrix (+23).
+        #    The probe was validated on a known-positive control (an injected non-existent target
+        #    IS reported), so the empty result is a proof and not a broken pipeline.
+        #
+        #    So the executed target SET is unchanged; only the number of times each element is
+        #    executed drops from two to one. Per-gate diagnosability survives: the consolidated
+        #    lane prints per-target verdicts (`✗ Fail: root//ci/facade/<crate>:...`), which on run
+        #    30677213867 reproduced EVERY matrix failure at named-target granularity, and caught
+        #    one the matrix missed.
+        #
+        #    WHY IT IS WORTH DOING: a matrix leg RUNS for ~24s and WAITS ~49.5 min (a 124:1
+        #    wait-to-work ratio) — the owned fleet delivers ~1.81 effective runners, so 48 jobs is
+        #    a queue, not parallelism. Per-run owned-fleet saving is stated in the commit message
+        #    against named run IDs rather than baked in here, because it is a measurement of a
+        #    fleet that changes size, not a property of this file.
+        #
+        #    THE TWO SURVIVORS ARE NOT REDUNDANT — both verified to fall OUTSIDE `//ci/...`:
+        #    1. scm-facts-snapshot: its leg runs an extra `buck2 run
+        #       //ci/facade/scm-facts-snapshot:adr-census-epoch-receipt-gate-bin -- --repo-root .
+        #       --github-event` AFTER its tests. That target is a `rust_binary` (uquery-confirmed
+        #       `buck.type: rust_binary`), so `buck2 test //ci/...` never executes it, and its
+        #       `rust_test` twin only compiles the source under the test harness — `main()` never
+        #       runs there. Dropping this leg would create a dark gate.
+        #    2. The Windows resolver differential: `//libs/...` is not under `//ci/...` (confirmed
+        #       absent from the 118-target enumeration) AND it is the only Windows coverage in the
+        #       workflow. Kept VERBATIM. `windows-latest` is hosted, so it costs the fleet zero.
+        #
+        #    DELIBERATELY NOT TORN DOWN FURTHER: the job name `gate`, the test step's NAME (left
+        #    byte-identical below), the `needs: producer-regen` edge and the faces download all
+        #    stay. `automation-language-policy` freezes an inline-shell baseline keyed by
+        #    `<workflow>::<job>::<step name>` as a merge-base ONE-WAY ceiling, so a renamed step is
+        #    born-blocking `unbaselined` by design. producer-regen is NOT orphaned by this change:
+        #    the surviving scm-facts-snapshot leg still consumes its artifact.
           - { crate: scm-facts-snapshot, label: "gate · ADR census epoch receipt (P2 active; P3 dormant)" }
-          - { crate: lifecycle-status, label: "gate · lifecycle-status (ADR-0109, ONE parameterized lane over every specs/lifecycle-configs/*.json — replaces the nine tools/oya-governance-*-lifecycle-app dev-CLIs that were never referenced by any workflow; a lane that cannot walk its corpus or matches zero artifacts is blocking, not vacuously green)" }
           - { targets: "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel-cargo-differential", os: windows-latest, label: "gate · Windows workspace resolver differential (ERROR_CANT_RESOLVE_FILENAME)" }
     steps:
       # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
