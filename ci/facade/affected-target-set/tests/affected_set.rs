@@ -833,7 +833,7 @@ fn baseline_repair_control_plane_inputs_seed_accountable_leaf_targets() {
             "registry/artifact-capabilities-registry.json",
             &[
                 "root//ci/facade/contract-slice-conformance:ci-contract-slice-conformance-gate",
-                "root//libs/oya-check-active-artifact-contract:oya-check-active-artifact-contract-unittest",
+                "root//governance/check/active-artifact-contract:check-active-artifact-contract-unittest",
                 "root//marketplace/facade/dev-cli:marketplace-dev-cli-gate-cli",
             ],
         ),
@@ -851,16 +851,16 @@ fn baseline_repair_control_plane_inputs_seed_accountable_leaf_targets() {
         (
             "specs/artifact-profile-defaults.json",
             &[
-                "root//libs/oya-check-active-artifact-contract:oya-check-active-artifact-contract-unittest",
+                "root//governance/check/active-artifact-contract:check-active-artifact-contract-unittest",
                 "root//marketplace/facade/dev-cli:marketplace-dev-cli-gate-cli",
             ],
         ),
         (
             "specs/decision-rights.json",
             &[
-                "root//libs/oya-check-codeowners-mirror:oya-check-codeowners-mirror-unittest",
-                "root//libs/oya-check-pr-traceability:oya-check-pr-traceability-unittest",
-                "root//libs/oya-check-raci-coverage:oya-check-raci-coverage-unittest",
+                "root//governance/check/codeowners-mirror:check-codeowners-mirror-unittest",
+                "root//governance/check/pr-traceability:check-pr-traceability-unittest",
+                "root//governance/check/raci-coverage:check-raci-coverage-unittest",
             ],
         ),
         (
@@ -869,7 +869,7 @@ fn baseline_repair_control_plane_inputs_seed_accountable_leaf_targets() {
                 "root//intelligence/core/autonomy-ceiling-app:intelligence-autonomy-ceiling-app-unittest",
                 "root//intelligence/core/autonomy-ceiling-domain:intelligence-autonomy-ceiling-domain-unittest",
                 "root//intelligence/core/autonomy-ceiling-kernel:intelligence-autonomy-ceiling-kernel-unittest",
-                "root//libs/oya-check-data-class:oya-check-data-class-unittest",
+                "root//governance/check/data-class:check-data-class-unittest",
                 "root//libs/oya-check-license-policy:oya-check-license-policy-license-policy",
             ],
         ),
@@ -886,7 +886,7 @@ fn baseline_repair_control_plane_inputs_seed_accountable_leaf_targets() {
         for broad_seed in [
             "root//ci/facade/cross-artifact-agreement:",
             "root//ci/facade/generated-artifact-freshness:",
-            "root//libs/oya-check-active-artifact-contract:",
+            "root//governance/check/active-artifact-contract:",
             "root//libs/oya-check-dependency-seam:",
             "root//marketplace/facade/dev-cli:",
         ] {
