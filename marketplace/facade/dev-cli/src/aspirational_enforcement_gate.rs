@@ -12,7 +12,7 @@ use crate::{path_has_component, slash_path, usage};
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct AspirationalEnforcementValidateArgs {
     corpus_roots: Vec<PathBuf>,
-    crates_dir: PathBuf,
+    catalog_dir: PathBuf,
     workflows_dir: PathBuf,
     quality_lanes: PathBuf,
     branch_protection: PathBuf,
@@ -24,7 +24,8 @@ pub(crate) struct AspirationalEnforcementGateReport {
     pub documents_checked: usize,
     pub lines_checked: usize,
     pub binding_mentions: usize,
-    pub known_crates: usize,
+    pub check_sites: usize,
+    pub check_capabilities: usize,
     pub workflow_contexts: usize,
     pub quality_lane_contexts: usize,
     pub branch_required_contexts: usize,
@@ -39,7 +40,7 @@ pub(crate) fn parse_aspirational_enforcement_validate_args(
             PathBuf::from("specs"),
             PathBuf::from("registry"),
         ],
-        crates_dir: PathBuf::from("crates"),
+        catalog_dir: PathBuf::from("registry/catalog"),
         workflows_dir: PathBuf::from(".github/workflows"),
         quality_lanes: PathBuf::from("registry/quality/lanes.yaml"),
         branch_protection: PathBuf::from(".github/branch-protection.yaml"),
@@ -55,11 +56,11 @@ pub(crate) fn parse_aspirational_enforcement_validate_args(
                 parsed.corpus_roots.push(PathBuf::from(value));
             }
             "--clear-default-corpus" => parsed.corpus_roots.clear(),
-            "--crates-dir" => {
+            "--catalog-dir" => {
                 let Some(value) = iter.next() else {
                     return Err(usage());
                 };
-                parsed.crates_dir = PathBuf::from(value);
+                parsed.catalog_dir = PathBuf::from(value);
             }
             "--workflows-dir" => {
                 let Some(value) = iter.next() else {
@@ -106,24 +107,36 @@ pub(crate) fn validate_aspirational_enforcement_gate(
         branch_required_contexts.extend(quality_lane_contexts.iter().cloned());
     }
     let surfaces = KnownEnforcementSurfaces {
-        crate_names: read_crate_names(&args.crates_dir)?,
+        check_capabilities: read_check_capabilities(&args.catalog_dir)?,
         workflow_contexts,
         quality_lane_contexts,
         branch_required_contexts,
         declared_lane_ids: read_declared_lane_ids(&args.quality_lanes)?,
     };
-    let known_crates = surfaces.crate_names.len();
+    let check_capabilities = surfaces.check_capabilities.len();
     let workflow_contexts = surfaces.workflow_contexts.len();
     let quality_lane_contexts = surfaces.quality_lane_contexts.len();
     let branch_required_contexts = surfaces.branch_required_contexts.len();
     let report =
         validate_aspirational_enforcement(documents, &surfaces).map_err(render_violations)?;
 
+    // STANDING RULE, corpus side: the surface scan can be healthy while the
+    // CORPUS scan is the empty one (a rename that changes how documents spell
+    // the gates). Zero observed sites means the tokenizer stopped matching, so
+    // fail rather than report clean over a corpus we measured nothing in.
+    if report.check_sites == 0 {
+        return Err(format!(
+            "aspirational-enforcement observed ZERO check-capability sites across {} document(s) / {} line(s) while {check_capabilities} check capabilities are registered — the corpus scan is empty, which is a broken scan, not a clean corpus",
+            report.documents_checked, report.lines_checked
+        ));
+    }
+
     Ok(AspirationalEnforcementGateReport {
         documents_checked: report.documents_checked,
         lines_checked: report.lines_checked,
         binding_mentions: report.binding_mentions,
-        known_crates,
+        check_sites: report.check_sites,
+        check_capabilities,
         workflow_contexts,
         quality_lane_contexts,
         branch_required_contexts,
@@ -185,28 +198,60 @@ fn read_document(root: &Path, path: &Path) -> Result<AspirationalDocument, Strin
     })
 }
 
-fn read_crate_names(crates_dir: &Path) -> Result<BTreeSet<String>, String> {
-    let entries = fs::read_dir(crates_dir).map_err(|error| {
+/// Check-gate identities come from the `capability:` facet of the catalog
+/// records, NOT from scanning a directory for an `oya-check-` name prefix.
+/// The facet is invariant under relocation: moving `libs/oya-check-adr-citation`
+/// to `governance/check/adr-citation` renames the record STEM but leaves
+/// `capability: check-adr-citation` untouched, so the scan cannot be emptied by
+/// a rename. Mirrors the tier gate's `capability: fitness-*` keying.
+fn read_check_capabilities(catalog_dir: &Path) -> Result<BTreeSet<String>, String> {
+    let entries = fs::read_dir(catalog_dir).map_err(|error| {
         format!(
-            "aspirational-enforcement crates dir unreadable {}: {error}",
-            crates_dir.display()
+            "aspirational-enforcement catalog dir unreadable {}: {error}",
+            catalog_dir.display()
         )
     })?;
-    let mut crates = BTreeSet::new();
+    let mut capabilities = BTreeSet::new();
     for entry in entries {
-        let entry = entry
-            .map_err(|error| format!("aspirational-enforcement crate entry unreadable: {error}"))?;
+        let entry = entry.map_err(|error| {
+            format!("aspirational-enforcement catalog entry unreadable: {error}")
+        })?;
         let path = entry.path();
-        if !path.is_dir() {
+        if !path.is_file()
+            || !matches!(
+                path.extension().and_then(|extension| extension.to_str()),
+                Some("yaml" | "yml")
+            )
+        {
             continue;
         }
-        if let Some(name) = path.file_name().and_then(|name| name.to_str())
-            && name.starts_with("oya-check-")
-        {
-            crates.insert(name.to_string());
+        let contents = fs::read_to_string(&path).map_err(|error| {
+            format!(
+                "aspirational-enforcement catalog record unreadable {}: {error}",
+                path.display()
+            )
+        })?;
+        for line in contents.lines() {
+            if let Some(value) = line.strip_prefix("capability:") {
+                let capability = normalize_yaml_scalar(value);
+                if capability.starts_with("check-") {
+                    capabilities.insert(capability);
+                }
+                break;
+            }
         }
     }
-    Ok(crates)
+    // STANDING RULE: a rule whose measured site count is 0 is a broken scan,
+    // not a clean repo. Without this the gate runs, observes nothing, and
+    // reports clean — indistinguishable from passing. The identical guard on
+    // read_branch_required_contexts below is the precedent.
+    if capabilities.is_empty() {
+        return Err(format!(
+            "aspirational-enforcement observed ZERO check capabilities under {} — the check-gate surface scan is empty, which is a broken scan, not a clean repo (expected `capability: check-*` facets in the catalog records)",
+            catalog_dir.display()
+        ));
+    }
+    Ok(capabilities)
 }
 
 fn read_workflow_contexts(workflows_dir: &Path) -> Result<BTreeSet<String>, String> {
