@@ -8,8 +8,8 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use console_docs_portal_kernel::{
-    ExtractorClass, ExtractorId, ExtractorRecord, LiveFeedEvent, LiveFeedEventKind, ManifestPort,
-    ManifestQuery, ManifestSnapshot, TenantScope,
+    ExtractorClass, ExtractorId, ExtractorRecord, LiveFeedEvent, LiveFeedEventKind,
+    ManifestSnapshot,
 };
 
 /// Wire shape mirroring `#/components/schemas/ExtractorRecord`.
@@ -57,26 +57,6 @@ impl WireManifestSnapshot {
             stale_record_count: snapshot.stale_record_count,
         }
     }
-
-    /// Convenience: project the GET /workspace/docs/manifest response by
-    /// applying the kernel query against a manifest port.
-    pub fn from_port<P: ManifestPort>(
-        port: &P,
-        tenant_scope: TenantScope,
-        extractor_filter: Option<ExtractorClass>,
-        include_stale: bool,
-        now_unix_ms: u64,
-    ) -> Self {
-        let snapshot = port.query(
-            &ManifestQuery {
-                tenant_scope,
-                extractor_filter,
-                include_stale,
-            },
-            now_unix_ms,
-        );
-        Self::from_kernel(&snapshot)
-    }
 }
 
 /// Wire shape mirroring `#/components/schemas/LiveFeedEvent`.
@@ -114,25 +94,44 @@ fn kind_name(kind: LiveFeedEventKind) -> &'static str {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct WireRefreshExtractorRequest {
     pub unix_ms: u64,
-    pub force: bool,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum WireRefreshExtractorOutcome {
+    AppliedAndEventRecorded,
+    AppliedButEventRecordingFailed,
+}
+
+impl WireRefreshExtractorOutcome {
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::AppliedAndEventRecorded => "applied-and-event-recorded",
+            Self::AppliedButEventRecordingFailed => "applied-but-event-recording-failed",
+        }
+    }
 }
 
 /// Wire shape mirroring `#/components/schemas/RefreshExtractorResponse`.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct WireRefreshExtractorResponse {
     pub extractor_id: String,
-    pub refreshed: bool,
+    pub outcome: WireRefreshExtractorOutcome,
     pub last_refreshed_unix_ms: u64,
     pub record_count: u64,
 }
 
 impl WireRefreshExtractorResponse {
-    pub fn from_record(record: &ExtractorRecord, refreshed: bool) -> Self {
+    pub fn from_applied(
+        extractor_id: ExtractorId,
+        last_refreshed_unix_ms: u64,
+        record_count: u64,
+        outcome: WireRefreshExtractorOutcome,
+    ) -> Self {
         Self {
-            extractor_id: record.id.0.clone(),
-            refreshed,
-            last_refreshed_unix_ms: record.last_refreshed_unix_ms,
-            record_count: record.manifest_record_count,
+            extractor_id: extractor_id.0,
+            outcome,
+            last_refreshed_unix_ms,
+            record_count,
         }
     }
 }
@@ -164,7 +163,7 @@ impl WireCedarDenyResponse {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use console_docs_portal_kernel::InMemoryManifest;
+    use console_docs_portal_kernel::TenantScope;
 
     fn record(id: &str, class: ExtractorClass, fresh: u64, count: u64) -> ExtractorRecord {
         ExtractorRecord {
@@ -196,38 +195,6 @@ mod tests {
         assert!(wire.is_stale);
         let wire_fresh = WireExtractorRecord::from_kernel(&r, 100);
         assert!(!wire_fresh.is_stale);
-    }
-
-    #[test]
-    fn wire_manifest_snapshot_from_port() {
-        let mut m = InMemoryManifest::new();
-        m.register_extractor(record("a", ExtractorClass::Hot, 100, 5))
-            .unwrap();
-        m.register_extractor(record("b", ExtractorClass::Cold, 100, 10))
-            .unwrap();
-        let snap = WireManifestSnapshot::from_port(&m, TenantScope(None), None, true, 200);
-        assert_eq!(snap.records.len(), 2);
-        assert_eq!(snap.freshness_unix_ms, 200);
-        assert_eq!(snap.records[0].id, "a");
-        assert_eq!(snap.records[1].id, "b");
-    }
-
-    #[test]
-    fn wire_manifest_snapshot_filter_by_class() {
-        let mut m = InMemoryManifest::new();
-        m.register_extractor(record("a", ExtractorClass::Hot, 100, 5))
-            .unwrap();
-        m.register_extractor(record("b", ExtractorClass::Cold, 100, 10))
-            .unwrap();
-        let snap = WireManifestSnapshot::from_port(
-            &m,
-            TenantScope(None),
-            Some(ExtractorClass::Hot),
-            true,
-            200,
-        );
-        assert_eq!(snap.records.len(), 1);
-        assert_eq!(snap.records[0].class, "hot");
     }
 
     #[test]
@@ -268,13 +235,23 @@ mod tests {
     }
 
     #[test]
-    fn wire_refresh_extractor_response_shape() {
-        let r = record("a", ExtractorClass::Hot, 100, 7);
-        let resp = WireRefreshExtractorResponse::from_record(&r, true);
-        assert_eq!(resp.extractor_id, "a");
-        assert!(resp.refreshed);
-        assert_eq!(resp.last_refreshed_unix_ms, 100);
-        assert_eq!(resp.record_count, 7);
+    fn both_refresh_outcomes_map_without_error_detail_leak() {
+        let recorded = WireRefreshExtractorResponse::from_applied(
+            ExtractorId("a".into()),
+            100,
+            7,
+            WireRefreshExtractorOutcome::AppliedAndEventRecorded,
+        );
+        let failed = WireRefreshExtractorResponse::from_applied(
+            ExtractorId("a".into()),
+            100,
+            7,
+            WireRefreshExtractorOutcome::AppliedButEventRecordingFailed,
+        );
+        assert_eq!(recorded.outcome.name(), "applied-and-event-recorded");
+        assert_eq!(failed.outcome.name(), "applied-but-event-recording-failed");
+        assert_eq!(recorded.extractor_id, "a");
+        assert_eq!(failed.record_count, 7);
     }
 
     #[test]
@@ -294,23 +271,30 @@ mod tests {
     }
 
     #[test]
-    fn wire_refresh_extractor_request_shape() {
-        let req = WireRefreshExtractorRequest {
-            unix_ms: 12345,
-            force: false,
-        };
+    fn wire_refresh_extractor_request_has_only_governed_input() {
+        let req = WireRefreshExtractorRequest { unix_ms: 12345 };
         assert_eq!(req.unix_ms, 12345);
-        assert!(!req.force);
     }
 
     #[test]
-    fn wire_manifest_snapshot_propagates_stale_count() {
-        let mut m = InMemoryManifest::new();
-        m.register_extractor(record("hot-stale", ExtractorClass::Hot, 0, 0))
-            .unwrap();
-        // include_stale=true means stale rows appear, and stale_record_count is N.
-        let snap = WireManifestSnapshot::from_port(&m, TenantScope(None), None, true, 10_000);
-        assert_eq!(snap.records.len(), 1);
-        assert_eq!(snap.stale_record_count, 1);
+    fn exported_openapi_matches_refresh_wire_contract() {
+        let contract = std::fs::read_to_string(env!("OPS_DOCS_OPENAPI"))
+            .expect("exported OpenAPI contract must be readable");
+        for required in [
+            "required: [extractor_id, outcome, last_refreshed_unix_ms, record_count]",
+            "enum: [applied-and-event-recorded, applied-but-event-recording-failed]",
+            "\"200\":",
+        ] {
+            assert!(
+                contract.contains(required),
+                "missing contract fragment: {required}"
+            );
+        }
+        for unsupported in ["name: tenant", "force:", "refreshed:", "\"202\":"] {
+            assert!(
+                !contract.contains(unsupported),
+                "unsupported contract fragment remains: {unsupported}"
+            );
+        }
     }
 }

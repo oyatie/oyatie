@@ -1,3 +1,8 @@
+export_file(
+    name = "ops-docs-v1.openapi.yaml",
+    visibility = ["PUBLIC"],
+)
+
 # Hermetic input set for gates that validate the full internal Proto contract corpus.
 filegroup(
     name = "proto-contract-corpus",

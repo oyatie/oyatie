@@ -11,13 +11,23 @@ use console_docs_portal_kernel::{
     LiveFeedPort, ManifestError, ManifestPort, ManifestQuery, ManifestSnapshot, TenantScope,
 };
 
-/// Application response for extractor refresh before wire projection.
+/// Manifest mutation details returned after a successful refresh.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct RefreshExtractorResult {
+pub struct AppliedRefresh {
     pub extractor_id: ExtractorId,   // data_class: INTERNAL_ONLY
-    pub refreshed: bool,             // data_class: INTERNAL_ONLY
     pub last_refreshed_unix_ms: u64, // data_class: INTERNAL_ONLY
     pub record_count: u64,           // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum RefreshExtractorOutcome {
+    AppliedAndEventRecorded {
+        applied: AppliedRefresh,
+    },
+    AppliedButEventRecordingFailed {
+        applied: AppliedRefresh,
+        cause: LiveFeedError,
+    },
 }
 
 /// GET /workspace/docs/manifest.
@@ -36,7 +46,7 @@ impl<P: ManifestPort> GetManifestUseCase<P> {
         extractor_filter: Option<ExtractorClass>,
         include_stale: bool,
         now_unix_ms: u64,
-    ) -> ManifestSnapshot {
+    ) -> Result<ManifestSnapshot, ManifestError> {
         self.port.query(
             &ManifestQuery {
                 tenant_scope,
@@ -50,30 +60,11 @@ impl<P: ManifestPort> GetManifestUseCase<P> {
 
 /// POST /workspace/docs/api/v1/extractors/{id}/refresh.
 ///
-/// Composite use case: refreshes the manifest port AND emits a
-/// LiveFeedEventKind::ExtractorRefreshed event on the live-feed port so SSE
-/// subscribers see the change in near-real-time per ADR-0066 Warm SLA.
+/// Composite use case: refreshes the manifest port and records an
+/// `LiveFeedEventKind::ExtractorRefreshed` event through the live-feed port.
 pub struct RefreshExtractorUseCase<M: ManifestPort, F: LiveFeedPort> {
     manifest: M,
     live_feed: F,
-}
-
-#[derive(Debug)]
-pub enum RefreshExtractorError {
-    Manifest(ManifestError),
-    LiveFeed(LiveFeedError),
-}
-
-impl From<ManifestError> for RefreshExtractorError {
-    fn from(error: ManifestError) -> Self {
-        Self::Manifest(error)
-    }
-}
-
-impl From<LiveFeedError> for RefreshExtractorError {
-    fn from(error: LiveFeedError) -> Self {
-        Self::LiveFeed(error)
-    }
 }
 
 impl<M: ManifestPort, F: LiveFeedPort> RefreshExtractorUseCase<M, F> {
@@ -89,23 +80,27 @@ impl<M: ManifestPort, F: LiveFeedPort> RefreshExtractorUseCase<M, F> {
         id: &ExtractorId,
         record_count: u64,
         unix_ms: u64,
-        tenant_scope: TenantScope,
         payload_hash: String,
-    ) -> Result<RefreshExtractorResult, RefreshExtractorError> {
+    ) -> Result<RefreshExtractorOutcome, ManifestError> {
         self.manifest.refresh_extractor(id, record_count, unix_ms)?;
-        self.live_feed.emit(LiveFeedEvent {
-            kind: LiveFeedEventKind::ExtractorRefreshed,
-            extractor_id: Some(id.clone()),
-            tenant_scope,
-            emitted_at_unix_ms: unix_ms,
-            payload_hash,
-        })?;
-        Ok(RefreshExtractorResult {
+        let applied = AppliedRefresh {
             extractor_id: id.clone(),
-            refreshed: true,
             last_refreshed_unix_ms: unix_ms,
             record_count,
-        })
+        };
+        let event = LiveFeedEvent {
+            kind: LiveFeedEventKind::ExtractorRefreshed,
+            extractor_id: Some(id.clone()),
+            tenant_scope: TenantScope(None),
+            emitted_at_unix_ms: unix_ms,
+            payload_hash,
+        };
+        match self.live_feed.emit(event) {
+            Ok(()) => Ok(RefreshExtractorOutcome::AppliedAndEventRecorded { applied }),
+            Err(cause) => {
+                Ok(RefreshExtractorOutcome::AppliedButEventRecordingFailed { applied, cause })
+            }
+        }
     }
 }
 
@@ -128,7 +123,7 @@ impl<P: ManifestPort> RegisterExtractorUseCase<P> {
     }
 }
 
-/// GET /workspace/docs/live — replay window helper for SSE bootstrap.
+/// GET /workspace/docs/live — fallible replay-window query.
 pub struct SubscribeLiveFeedUseCase<P: LiveFeedPort> {
     port: P,
 }
@@ -138,12 +133,18 @@ impl<P: LiveFeedPort> SubscribeLiveFeedUseCase<P> {
         Self { port }
     }
 
-    pub fn execute(&self, since_unix_ms: u64, limit: usize) -> Vec<LiveFeedEvent> {
-        self.port
-            .recent(since_unix_ms, limit)
+    pub fn execute(
+        &self,
+        tenant_scope: TenantScope,
+        since_unix_ms: u64,
+        limit: usize,
+    ) -> Result<Vec<LiveFeedEvent>, LiveFeedError> {
+        Ok(self
+            .port
+            .recent(&tenant_scope, since_unix_ms, limit)?
             .into_iter()
             .cloned()
-            .collect()
+            .collect())
     }
 }
 
@@ -174,16 +175,77 @@ mod tests {
     #[test]
     fn get_manifest_returns_all_when_filter_none() {
         let use_case = GetManifestUseCase::new(populated_manifest());
-        let response = use_case.execute(TenantScope(None), None, true, 200);
+        let response = use_case
+            .execute(TenantScope(None), None, true, 200)
+            .unwrap();
         assert_eq!(response.records.len(), 2);
     }
 
     #[test]
     fn get_manifest_filters_by_class() {
         let use_case = GetManifestUseCase::new(populated_manifest());
-        let response = use_case.execute(TenantScope(None), Some(ExtractorClass::Hot), true, 200);
+        let response = use_case
+            .execute(TenantScope(None), Some(ExtractorClass::Hot), true, 200)
+            .unwrap();
         assert_eq!(response.records.len(), 1);
         assert_eq!(response.records[0].class, ExtractorClass::Hot);
+    }
+
+    #[derive(Default)]
+    struct RejectingLiveFeed;
+
+    impl LiveFeedPort for RejectingLiveFeed {
+        fn emit(&mut self, _event: LiveFeedEvent) -> Result<(), LiveFeedError> {
+            Err(LiveFeedError::NonMonotonicTimestamp {
+                prior: 300,
+                attempted: 200,
+            })
+        }
+
+        fn recent(
+            &self,
+            _tenant_scope: &TenantScope,
+            _since_unix_ms: u64,
+            _limit: usize,
+        ) -> Result<Vec<&LiveFeedEvent>, LiveFeedError> {
+            Ok(Vec::new())
+        }
+
+        fn count(&self) -> usize {
+            0
+        }
+    }
+
+    #[test]
+    fn feed_failure_after_mutation_is_typed_applied_outcome() {
+        let mut use_case = RefreshExtractorUseCase::new(populated_manifest(), RejectingLiveFeed);
+        let outcome = use_case
+            .execute(&ExtractorId("a".into()), 42, 200, "h".into())
+            .unwrap();
+        assert!(matches!(
+            outcome,
+            RefreshExtractorOutcome::AppliedButEventRecordingFailed {
+                applied: AppliedRefresh {
+                    extractor_id: ExtractorId(ref id),
+                    last_refreshed_unix_ms: 200,
+                    record_count: 42,
+                },
+                cause: LiveFeedError::NonMonotonicTimestamp { .. },
+            } if id == "a"
+        ));
+        let snapshot = use_case
+            .manifest
+            .query(
+                &ManifestQuery {
+                    tenant_scope: TenantScope(None),
+                    extractor_filter: None,
+                    include_stale: true,
+                },
+                200,
+            )
+            .unwrap();
+        assert_eq!(snapshot.records[0].last_refreshed_unix_ms, 200);
+        assert_eq!(snapshot.records[0].manifest_record_count, 42);
     }
 
     #[test]
@@ -191,18 +253,18 @@ mod tests {
         let mut use_case =
             RefreshExtractorUseCase::new(populated_manifest(), InMemoryLiveFeed::new());
         let response = use_case
-            .execute(
-                &ExtractorId("a".into()),
-                42,
-                200,
-                TenantScope(None),
-                "h".into(),
-            )
+            .execute(&ExtractorId("a".into()), 42, 200, "h".into())
             .unwrap();
-        assert!(response.refreshed);
-        assert_eq!(response.extractor_id, ExtractorId("a".into()));
-        assert_eq!(response.record_count, 42);
-        assert_eq!(response.last_refreshed_unix_ms, 200);
+        assert!(matches!(
+            response,
+            RefreshExtractorOutcome::AppliedAndEventRecorded {
+                applied: AppliedRefresh {
+                    extractor_id: ExtractorId(ref id),
+                    last_refreshed_unix_ms: 200,
+                    record_count: 42,
+                }
+            } if id == "a"
+        ));
         assert_eq!(use_case.live_feed.count(), 1);
     }
 
@@ -210,38 +272,17 @@ mod tests {
     fn refresh_unknown_extractor_errors() {
         let mut use_case =
             RefreshExtractorUseCase::new(populated_manifest(), InMemoryLiveFeed::new());
-        let result = use_case.execute(
-            &ExtractorId("unknown".into()),
-            0,
-            200,
-            TenantScope(None),
-            "h".into(),
-        );
-        assert!(matches!(
-            result,
-            Err(RefreshExtractorError::Manifest(
-                ManifestError::UnknownExtractorId(_)
-            ))
-        ));
+        let result = use_case.execute(&ExtractorId("unknown".into()), 0, 200, "h".into());
+        assert!(matches!(result, Err(ManifestError::UnknownExtractorId(_))));
+        assert_eq!(use_case.live_feed.count(), 0);
     }
 
     #[test]
     fn refresh_stale_timestamp_errors() {
         let mut use_case =
             RefreshExtractorUseCase::new(populated_manifest(), InMemoryLiveFeed::new());
-        let result = use_case.execute(
-            &ExtractorId("a".into()),
-            0,
-            50,
-            TenantScope(None),
-            "h".into(),
-        );
-        assert!(matches!(
-            result,
-            Err(RefreshExtractorError::Manifest(
-                ManifestError::StaleTimestamp { .. }
-            ))
-        ));
+        let result = use_case.execute(&ExtractorId("a".into()), 0, 50, "h".into());
+        assert!(matches!(result, Err(ManifestError::StaleTimestamp { .. })));
     }
 
     #[test]
@@ -260,6 +301,7 @@ mod tests {
                     },
                     10
                 )
+                .unwrap()
                 .records
                 .len(),
             1
@@ -280,7 +322,7 @@ mod tests {
             .unwrap();
         }
         let use_case = SubscribeLiveFeedUseCase::new(feed);
-        let events = use_case.execute(250, 10);
+        let events = use_case.execute(TenantScope(None), 250, 10).unwrap();
         assert_eq!(events.len(), 2);
         assert_eq!(events[0].emitted_at_unix_ms, 300);
     }
@@ -299,7 +341,7 @@ mod tests {
             .unwrap();
         }
         let use_case = SubscribeLiveFeedUseCase::new(feed);
-        let events = use_case.execute(0, 5);
+        let events = use_case.execute(TenantScope(None), 0, 5).unwrap();
         assert_eq!(events.len(), 5);
     }
 
@@ -308,22 +350,10 @@ mod tests {
         let mut use_case =
             RefreshExtractorUseCase::new(populated_manifest(), InMemoryLiveFeed::new());
         use_case
-            .execute(
-                &ExtractorId("a".into()),
-                1,
-                200,
-                TenantScope(None),
-                "h1".into(),
-            )
+            .execute(&ExtractorId("a".into()), 1, 200, "h1".into())
             .unwrap();
         use_case
-            .execute(
-                &ExtractorId("b".into()),
-                1,
-                300,
-                TenantScope(None),
-                "h2".into(),
-            )
+            .execute(&ExtractorId("b".into()), 1, 300, "h2".into())
             .unwrap();
         assert_eq!(use_case.live_feed.count(), 2);
     }

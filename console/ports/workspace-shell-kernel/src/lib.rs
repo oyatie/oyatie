@@ -76,6 +76,18 @@ pub struct Surface {
     pub retired_redirects_to: Option<SurfaceId>, // data_class: INTERNAL_ONLY
 }
 
+/// Typed result of a surface lifecycle request.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum SurfaceStateTransitionOutcome {
+    Changed {
+        from: SurfaceState,
+        to: SurfaceState,
+    },
+    Unchanged {
+        state: SurfaceState,
+    },
+}
+
 /// Port trait: registers and queries surfaces in the workspace catalog.
 /// Adapter implementations write to durable storage; tests use in-memory.
 pub trait SurfaceCatalogPort {
@@ -86,7 +98,7 @@ pub trait SurfaceCatalogPort {
         &mut self,
         id: &SurfaceId,
         new_state: SurfaceState,
-    ) -> Result<(), SurfaceCatalogError>;
+    ) -> Result<SurfaceStateTransitionOutcome, SurfaceCatalogError>;
     fn count(&self) -> usize;
 }
 
@@ -155,7 +167,7 @@ impl SurfaceCatalogPort for InMemorySurfaceCatalog {
         &mut self,
         id: &SurfaceId,
         new_state: SurfaceState,
-    ) -> Result<(), SurfaceCatalogError> {
+    ) -> Result<SurfaceStateTransitionOutcome, SurfaceCatalogError> {
         let surface = self
             .by_id
             .get_mut(id)
@@ -163,18 +175,20 @@ impl SurfaceCatalogPort for InMemorySurfaceCatalog {
         // Allowed transitions: ReservedComingSoon → Live; Live → Retired.
         // Backwards transitions are explicit policy violations.
         match (surface.state, new_state) {
-            (SurfaceState::ReservedComingSoon, SurfaceState::Live) => {
+            (from @ SurfaceState::ReservedComingSoon, to @ SurfaceState::Live) => {
                 surface.state = new_state;
-                Ok(())
+                Ok(SurfaceStateTransitionOutcome::Changed { from, to })
             }
-            (SurfaceState::Live, SurfaceState::Retired) => {
+            (from @ SurfaceState::Live, to @ SurfaceState::Retired) => {
                 if surface.retired_redirects_to.is_none() {
                     return Err(SurfaceCatalogError::RetiredWithoutRedirect(id.clone()));
                 }
                 surface.state = new_state;
-                Ok(())
+                Ok(SurfaceStateTransitionOutcome::Changed { from, to })
             }
-            (from, to) if from == to => Ok(()), // idempotent no-op
+            (state, requested) if state == requested => {
+                Ok(SurfaceStateTransitionOutcome::Unchanged { state })
+            }
             (from, to) => Err(SurfaceCatalogError::InvalidStateTransition {
                 id: id.clone(),
                 from,
@@ -271,7 +285,7 @@ mod tests {
     }
 
     #[test]
-    fn flip_state_reserved_to_live_ok() {
+    fn reserved_to_live_reports_changed_from_and_to() {
         let mut catalog = InMemorySurfaceCatalog::new();
         catalog
             .register_surface(surface(
@@ -280,9 +294,16 @@ mod tests {
                 SurfaceState::ReservedComingSoon,
             ))
             .unwrap();
-        catalog
+        let outcome = catalog
             .flip_state(&SurfaceId("a".into()), SurfaceState::Live)
             .unwrap();
+        assert_eq!(
+            outcome,
+            SurfaceStateTransitionOutcome::Changed {
+                from: SurfaceState::ReservedComingSoon,
+                to: SurfaceState::Live,
+            }
+        );
         assert_eq!(
             catalog.get_surface(&SurfaceId("a".into())).unwrap().state,
             SurfaceState::Live
@@ -330,7 +351,7 @@ mod tests {
     }
 
     #[test]
-    fn flip_state_idempotent() {
+    fn same_state_reports_unchanged() {
         let mut catalog = InMemorySurfaceCatalog::new();
         catalog
             .register_surface(surface(
@@ -339,9 +360,15 @@ mod tests {
                 SurfaceState::ReservedComingSoon,
             ))
             .unwrap();
-        catalog
+        let outcome = catalog
             .flip_state(&SurfaceId("a".into()), SurfaceState::ReservedComingSoon)
             .unwrap();
+        assert_eq!(
+            outcome,
+            SurfaceStateTransitionOutcome::Unchanged {
+                state: SurfaceState::ReservedComingSoon,
+            }
+        );
     }
 
     #[test]

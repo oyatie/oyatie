@@ -14,8 +14,12 @@ rust_test(
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
     crate = "console_docs_portal_adapter",
     crate_root = "src/lib.rs",
+    env = {
+        "OPS_DOCS_OPENAPI": "$(location //contracts:ops-docs-v1.openapi.yaml)",
+    },
     visibility = ["PUBLIC"],
     deps = [
         "//console/ports/docs-portal-kernel:console-docs-portal-kernel",
+        "//contracts:ops-docs-v1.openapi.yaml",
     ],
 )

@@ -7,7 +7,8 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use console_workspace_shell_kernel::{
-    Surface, SurfaceCatalogError, SurfaceCatalogPort, SurfaceId, SurfaceState, VisibilityTier,
+    Surface, SurfaceCatalogError, SurfaceCatalogPort, SurfaceId, SurfaceState,
+    SurfaceStateTransitionOutcome, VisibilityTier,
 };
 
 /// Application response for surface-list use cases before wire projection.
@@ -120,7 +121,7 @@ impl<P: SurfaceCatalogPort> FlipSurfaceStateUseCase<P> {
         &mut self,
         id: &SurfaceId,
         new_state: SurfaceState,
-    ) -> Result<(), SurfaceCatalogError> {
+    ) -> Result<SurfaceStateTransitionOutcome, SurfaceCatalogError> {
         self.catalog.flip_state(id, new_state)
     }
 }
@@ -278,11 +279,32 @@ mod tests {
     }
 
     #[test]
-    fn flip_state_use_case_promotes_to_live() {
+    fn flip_state_use_case_propagates_changed() {
         let mut use_case = FlipSurfaceStateUseCase::new(populated_catalog());
-        use_case
+        let outcome = use_case
             .execute(&SurfaceId("soon".into()), SurfaceState::Live)
             .unwrap();
+        assert_eq!(
+            outcome,
+            console_workspace_shell_kernel::SurfaceStateTransitionOutcome::Changed {
+                from: SurfaceState::ReservedComingSoon,
+                to: SurfaceState::Live,
+            }
+        );
+    }
+
+    #[test]
+    fn flip_state_use_case_propagates_unchanged() {
+        let mut use_case = FlipSurfaceStateUseCase::new(populated_catalog());
+        let outcome = use_case
+            .execute(&SurfaceId("soon".into()), SurfaceState::ReservedComingSoon)
+            .unwrap();
+        assert_eq!(
+            outcome,
+            console_workspace_shell_kernel::SurfaceStateTransitionOutcome::Unchanged {
+                state: SurfaceState::ReservedComingSoon,
+            }
+        );
     }
 
     #[test]
