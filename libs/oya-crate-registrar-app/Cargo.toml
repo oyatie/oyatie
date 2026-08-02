@@ -21,7 +21,12 @@ doctest = false
 oya-crate-registrar-kernel = { path = "../oya-crate-registrar-kernel" }
 oya-workspace-members-kernel = { path = "../oya-workspace-members-kernel" }
 serde = { workspace = true }
-serde_json = { workspace = true }
+# preserve_order is LOAD-BEARING, not a preference: this crate rewrites the hand-authored
+# specs/capability-registry.json, and canonical-json-policy.json pins sort_keys:false. Without the
+# feature, serde_json's default BTreeMap backing sorts every object on PARSE and the authored order
+# is gone before serialization. reindeer already unions it ON for third-party//:serde_json, so this
+# makes the cargo path agree with the buck2 path rather than diverge from it.
+serde_json = { workspace = true, features = ["preserve_order"] }
 
 [lints]
 workspace = true

@@ -187,6 +187,81 @@ fn capability_apply_roundtrip_and_idempotent() {
     assert_eq!(after_first, tmp.read(capability_mapping::REGISTRY_PATH));
 }
 
+/// The real `specs/capability-registry.json` is HAND-AUTHORED with a deliberate key order
+/// (`_comment`, `schema_version`, `doctrine_adr`, …) — nothing close to sorted. The
+/// canonical-json policy pins `sort_keys: false` precisely because "sorting would churn 1452 repo
+/// files and destroy intentional order on the agent entry surface". A writer that re-sorts on
+/// write turns one crate registration into a wholesale reordering of a governed spec.
+///
+/// This fixture reproduces that shape: keys in descending-ish authored order, so ANY sort is
+/// visible as a reordering.
+fn hand_authored_registry() -> String {
+    concat!(
+        "{\n",
+        "  \"_comment\": \"authored first, sorts near-first\",\n",
+        "  \"schema_version\": \"1.1.0\",\n",
+        "  \"doctrine_adr\": \"ADR-0562\",\n",
+        "  \"closed\": true,\n",
+        "  \"membership_lint_coverage\": {\n",
+        "    \"_comment\": \"nested authored order matters too\",\n",
+        "    \"absorbs_current_crate_globs\": [\n",
+        "      {\n",
+        "        \"meta_dir\": \"build/\",\n",
+        "        \"globs\": [\n",
+        "          \"libs/oya-ci-config\"\n",
+        "        ]\n",
+        "      }\n",
+        "    ]\n",
+        "  }\n",
+        "}\n"
+    )
+    .to_owned()
+}
+
+/// The authored key order of every object in `text`, outermost object first, as they appear on
+/// disk. Cheap textual read (keys are one-per-line in 2-space pretty form) — enough to assert
+/// "the writer did not reorder", which a parsed comparison could not do under a sorting map.
+fn authored_key_order(text: &str) -> Vec<String> {
+    text.lines()
+        .filter_map(|line| {
+            let trimmed = line.trim_start();
+            let rest = trimmed.strip_prefix('"')?;
+            let (key, after) = rest.split_once('"')?;
+            after.trim_start().starts_with(':').then(|| key.to_owned())
+        })
+        .collect()
+}
+
+#[test]
+fn capability_write_preserves_hand_authored_key_order() {
+    let current = hand_authored_registry();
+    let next = capability_mapping::compute(&current, "libs/oya-crate-registrar-app", "build/")
+        .expect("compute");
+
+    assert_eq!(
+        authored_key_order(&next),
+        authored_key_order(&current),
+        "canonical-json policy pins sort_keys:false — registering a crate must upsert one glob, \
+         NOT reorder the governed registry's hand-authored keys"
+    );
+    // The edit itself still landed (the assertion above must not pass by doing nothing).
+    assert!(next.contains("libs/oya-crate-registrar-app"), "the upsert still happened");
+}
+
+#[test]
+fn to_canonical_json_does_not_sort_keys() {
+    // Direct cover of the writer primitive: sort_keys:false is a property of the serializer,
+    // not an accident of one caller's input.
+    let authored: Value = serde_json::from_str(r#"{"zeta":1,"alpha":2,"mid":{"z":1,"a":2}}"#)
+        .expect("parse");
+    let out = to_canonical_json(&authored).expect("serialize");
+    assert_eq!(
+        authored_key_order(&out),
+        vec!["zeta", "alpha", "mid", "z", "a"],
+        "to_canonical_json must preserve authored key order (canonical-json-policy sort_keys:false)"
+    );
+}
+
 // ───────────────────────────── 2. adr_governed_paths (pure) ─────────────────────────────
 
 const ADR_NO_BLOCK: &str = "---\nid: ADR-0568\n---\n\n# ADR-0568: scaffold\n\n## Context\n\nSome body.\n";

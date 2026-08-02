@@ -25,23 +25,32 @@
 #![forbid(unsafe_code)]
 
 use std::fs;
+use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::process::{Command, ExitCode, Stdio};
+use std::time::Duration;
 
 use ci_affected_target_set::{
-    BASELINE_PROVENANCE_FILENAME, BaselineKind, BuildHealthVerdict,
-    REQUIRED_CONTEXT_WORKFLOW_PATH, baseline_artifact_name,
-    build_health_verdict, failing_targets, parse_build_report, parse_test_verdicts,
-    test_verdicts_to_report_value, trusted_baseline_artifact_id, trusted_dev_push_run_id,
-    validate_trusted_baseline_artifact, validated_merge_base_sha,
+    BASELINE_PROVENANCE_FILENAME, BASELINE_REUSE_OUTCOME_FILENAME, BaselineKind,
+    BaselineReuseState, BuildHealthVerdict, REQUIRED_CONTEXT_WORKFLOW_PATH, baseline_artifact_name,
+    build_health_verdict, classify_api_status, failing_targets, parse_build_report,
+    parse_test_verdicts, test_verdicts_to_report_value, trusted_baseline_artifact_id,
+    trusted_dev_push_run_id, validate_trusted_baseline_artifact, validated_merge_base_sha,
 };
 
 const LOG: &str = "build-health";
 
-/// Exit code meaning "no trusted baseline is available — fall back to the cold merge-base
-/// rebuild". Distinct from 2 (bad arguments) purely for operator legibility; the workflow falls
-/// back on ANY non-zero, which is the fail-closed default.
-const NO_TRUSTED_BASELINE: u8 = 3;
+/// GitHub REST base. Fixed rather than configurable: the trusted baseline is only meaningful for
+/// the repository whose `oya-ci-required` runs produced it, and a settable API host would be a way
+/// to point provenance validation at a server the candidate controls.
+const GITHUB_API: &str = "https://api.github.com";
+/// GitHub rejects API requests without a User-Agent.
+const HTTP_USER_AGENT: &str = "oya-cloud-ci-build-health";
+/// GitHub's pinned REST version; unversioned requests can change shape under us.
+const GITHUB_API_VERSION: &str = "2022-11-28";
+/// Per-request ceiling. The fast path exists to save ~12 minutes; a request that hangs longer than
+/// this has already lost to the cold rebuild it was avoiding.
+const HTTP_TIMEOUT: Duration = Duration::from_secs(60);
 
 struct Args {
     baseline_report: String,
@@ -131,16 +140,37 @@ fn require<'a>(raw: &'a [String], flag: &str) -> Result<&'a str, String> {
 ///
 /// The merge-base of a PR IS a `dev` commit, and its push-to-dev `oya-ci-required` run already
 /// built AND tested the whole workspace and published both baselines as artifacts. Rebuilding them
-/// cold in a clean worktree is the FULL tier's wall-clock bottleneck — 31m16s of a measured 68m57s
-/// job on PR #1376. When the published pair validates, we download it and the cold rebuild is
-/// skipped entirely.
+/// cold in a clean worktree is the FULL tier's wall-clock bottleneck. When the published pair
+/// validates, we download it and the cold rebuild is skipped entirely.
+///
+/// WHAT IT IS WORTH, measured rather than asserted. Across the last 60 `oya-ci-required` PR runs on
+/// the owned arm64 fleet, the merge-base materialization step is sharply bimodal: 13 non-FULL runs
+/// exit the step in 1-2s, and 12 successful FULL runs spend 672s..1068s in it (mean 12m50s, median
+/// 12m33s) — a cold `buck2 build //...` plus `buck2 test //...` of the whole workspace. The fast
+/// path replaces all of it with four REST calls and two zip inflations: measured END TO END at 2s
+/// against a real merge-base, yielding a validated 2199-target build baseline and a 1117-target
+/// test baseline. FULL was derived on 14 of 27 PR runs that reached this step, so this is not a
+/// rare path. The saving is only realised when the merge-base dev tip is green and its artifacts
+/// are unexpired; a red dev tip legitimately reports `Unavailable` and pays the rebuild.
 ///
 /// OWNED-RUST, NOT WORKFLOW SHELL: the whole sequence — list runs, select the trusted one, select
 /// each artifact, download, unzip, validate — lives here rather than in the workflow's `run:`
-/// block. The crate gains no HTTP client and no new dependency; it drives the already-installed
-/// `gh` and `unzip` as subprocesses, exactly the composition-root pattern the sibling affected-set
-/// binary uses for `git` and `buck2`. Keeping it here also keeps the rust-first inline-shell
-/// ratchet honest: the workflow grows a handful of lines instead of ~35.
+/// block. Keeping it here also keeps the rust-first inline-shell ratchet honest: the workflow grows
+/// a handful of lines instead of ~35.
+///
+/// NOT `gh` (the fix for GH job 91383250718). This previously drove `gh api` as a subprocess on the
+/// premise that `gh` was "already installed". It is not: the owned arm64 runner image
+/// (infra/ci/runner-image/Dockerfile) never installs it, and a probe of the live digest-pinned
+/// image finds no file named `gh` anywhere on the rootfs while curl/unzip/git/buck2/rustc/pwsh/jq
+/// are all present. Every FULL-tier run on the owned fleet therefore failed at the first API call
+/// with `No such file or directory (os error 2)` and paid the cold merge-base rebuild. The REST
+/// calls now go over `reqwest::blocking` — the same choice, for the same reason, as the sibling
+/// `oya-cloud-ci-run-terminal-state` consumer. `curl` was rejected despite being present: it would
+/// keep a CLI dependency the repo is retiring, and it puts the bearer token in the process table.
+///
+/// `unzip` REMAINS a subprocess and is deliberately untouched: it IS present in the image (probed,
+/// not assumed), the artifact API serves only a zip, and inflating one in-process would mean a new
+/// dependency for something already installed.
 ///
 /// ANTI-LAUNDERING (the D6 guarantees, preserved and tightened): a baseline is accepted ONLY from
 /// a GitHub Actions run whose PROVENANCE proves the candidate could not have produced it —
@@ -153,20 +183,78 @@ fn require<'a>(raw: &'a [String], flag: &str) -> Result<&'a str, String> {
 ///
 /// Usage: `--trusted-baseline --merge-base <sha> --repo <owner/name> --out-dir <dir>`.
 fn trusted_baseline_exit(raw: &[String]) -> u8 {
-    match reuse_trusted_baselines(raw) {
-        Ok(()) => 0,
-        Err(TrustedBaselineOutcome::Unavailable(why)) => {
-            eprintln!(
-                "{LOG}: NO TRUSTED BASELINE — {why}; the cold merge-base rebuild runs instead"
-            );
-            NO_TRUSTED_BASELINE
-        }
-        Err(TrustedBaselineOutcome::Refused(why)) => {
-            eprintln!(
-                "{LOG}: TRUSTED BASELINE REFUSED — {why}; the cold merge-base rebuild runs instead"
-            );
-            2
-        }
+    let (state, why) = match reuse_trusted_baselines(raw) {
+        Ok(()) => (
+            BaselineReuseState::Reused,
+            "validated merge-base baseline pair downloaded".to_owned(),
+        ),
+        Err(outcome) => (outcome.state(), outcome.into_reason()),
+    };
+
+    // REPORT BEFORE RETURNING, on every path. The stderr line below always existed; what did not
+    // was any record a machine could query, which is why a dead capability survived unnoticed for
+    // the whole life of the owned fleet. `--out-dir` is validated inside `reuse_trusted_baselines`,
+    // so re-reading it here without validation is only ever used as a directory to write into.
+    if let Some(out_dir) = flag_value(raw, "--out-dir") {
+        report_reuse_outcome(
+            Path::new(out_dir),
+            flag_value(raw, "--merge-base").unwrap_or("<unparsed>"),
+            state,
+            &why,
+        );
+    }
+
+    match state {
+        BaselineReuseState::Reused => {}
+        BaselineReuseState::Unavailable => eprintln!(
+            "{LOG}: NO TRUSTED BASELINE — {why}; the cold merge-base rebuild runs instead"
+        ),
+        BaselineReuseState::Refused => eprintln!(
+            "{LOG}: TRUSTED BASELINE REFUSED — {why}; the cold merge-base rebuild runs instead"
+        ),
+        BaselineReuseState::CapabilityFault => eprintln!(
+            "{LOG}: TRUSTED BASELINE CAPABILITY FAULT — {why}. This is an INFRASTRUCTURE defect, \
+             not a property of this PR: the fast path is dark and every FULL-tier run pays the \
+             cold merge-base rebuild until it is fixed."
+        ),
+    }
+    state.exit_code()
+}
+
+/// Write the typed fast-path outcome everywhere it can be noticed: a machine-readable sidecar the
+/// affected-set gate folds into its operator artifact, the job step summary, and — for a capability
+/// fault only — a GitHub annotation.
+///
+/// DELIBERATELY NON-BLOCKING. A capability fault must never fail the step: baseline reuse is an
+/// optimization, and turning an observability improvement into a merge blocker would be a worse
+/// defect than the one being fixed. `::warning::` is the correct loudness — it renders on the run
+/// page without touching admission. Every write here is best-effort for the same reason: a failure
+/// to REPORT must not change what the gate DECIDES.
+fn report_reuse_outcome(out_dir: &Path, merge_base: &str, state: BaselineReuseState, why: &str) {
+    let outcome = serde_json::json!({
+        "schema_version": 1,
+        "state": state.as_str(),
+        "capability_fault": state.is_capability_fault(),
+        "reason": why,
+        "merge_base": merge_base,
+        "cold_rebuild_ran": state != BaselineReuseState::Reused,
+    });
+    if let Ok(bytes) = serde_json::to_vec_pretty(&outcome) {
+        let _ = fs::write(out_dir.join(BASELINE_REUSE_OUTCOME_FILENAME), bytes);
+    }
+
+    if state.is_capability_fault() {
+        // GitHub parses this from stdout and surfaces it on the run summary page.
+        println!("::warning title=Trusted-baseline fast path is dark::{why}");
+    }
+    if let Ok(summary) = std::env::var("GITHUB_STEP_SUMMARY")
+        && let Ok(mut file) = fs::OpenOptions::new().append(true).create(true).open(summary)
+    {
+        let _ = writeln!(
+            file,
+            "- merge-base baseline reuse: **{}** — {why}",
+            state.as_str()
+        );
     }
 }
 
@@ -174,11 +262,32 @@ fn trusted_baseline_exit(raw: &[String]) -> u8 {
 enum TrustedBaselineOutcome {
     /// No baseline exists for this merge-base (normal: first push, expired retention, red dev).
     Unavailable(String),
-    /// A baseline exists but failed a provenance/shape check, or an input/subprocess was bad.
+    /// A baseline exists but failed a provenance/shape check, or an input was bad.
     Refused(String),
+    /// The runner could not ASK: a required executable is absent, no token is present, or the API
+    /// was unreachable. Split out of `Refused` because folding the two together is exactly what
+    /// hid `gh`'s absence — a broken environment reported identically to a working one that had
+    /// nothing to offer.
+    CapabilityFault(String),
 }
 
-use TrustedBaselineOutcome::{Refused, Unavailable};
+impl TrustedBaselineOutcome {
+    fn state(&self) -> BaselineReuseState {
+        match self {
+            Self::Unavailable(_) => BaselineReuseState::Unavailable,
+            Self::Refused(_) => BaselineReuseState::Refused,
+            Self::CapabilityFault(_) => BaselineReuseState::CapabilityFault,
+        }
+    }
+
+    fn into_reason(self) -> String {
+        match self {
+            Self::Unavailable(why) | Self::Refused(why) | Self::CapabilityFault(why) => why,
+        }
+    }
+}
+
+use TrustedBaselineOutcome::{CapabilityFault, Refused, Unavailable};
 
 /// `owner/name`, restricted to the characters GitHub actually allows, so a hostile value can never
 /// smuggle extra path or query segments into the API routes built below.
@@ -236,26 +345,98 @@ fn accept_downloaded_baseline(
         .map_err(Refused)
 }
 
-/// Run `gh api <route>` and return stdout. A non-zero status (404, no token, rate limit) is a
-/// refusal, never a silent empty payload.
-fn gh_api(route: &str) -> Result<String, TrustedBaselineOutcome> {
-    let out = Command::new("gh")
-        .args(["api", route])
-        .stdin(Stdio::null())
-        .output()
-        .map_err(|e| Refused(format!("could not execute `gh api {route}`: {e}")))?;
-    if !out.status.success() {
-        return Err(Refused(format!(
-            "`gh api {route}` exited with {}: {}",
-            out.status,
-            String::from_utf8_lossy(&out.stderr).trim()
-        )));
-    }
-    String::from_utf8(out.stdout).map_err(|e| Refused(format!("`gh api {route}` output is not UTF-8: {e}")))
+/// Owned GitHub REST adapter. Carries no verdict of its own: it returns bytes, and the pure
+/// selector/validator functions decide whether those bytes may become a baseline.
+struct GitHubApi {
+    client: reqwest::blocking::Client,
+    token: String,
 }
 
-/// Stream a subprocess's stdout straight to `dest` (artifact zips are binary, and `unzip -p`
-/// output can be large — neither belongs in memory).
+impl GitHubApi {
+    /// `GH_TOKEN` first (what the workflow sets and what `gh` read), then `GITHUB_TOKEN`.
+    ///
+    /// An absent or blank token is a CAPABILITY FAULT, not a refusal: it means this runner cannot
+    /// ask the question at all, which is the same class of defect as the missing binary this
+    /// adapter replaces.
+    fn from_env() -> Result<Self, TrustedBaselineOutcome> {
+        let token = ["GH_TOKEN", "GITHUB_TOKEN"]
+            .iter()
+            .find_map(|name| std::env::var(name).ok())
+            .filter(|value| !value.trim().is_empty())
+            .ok_or_else(|| {
+                CapabilityFault(
+                    "neither GH_TOKEN nor GITHUB_TOKEN is set to a non-empty value, so the \
+                     Actions API cannot be queried"
+                        .to_owned(),
+                )
+            })?;
+        let client = reqwest::blocking::Client::builder()
+            .user_agent(HTTP_USER_AGENT)
+            .timeout(HTTP_TIMEOUT)
+            .build()
+            .map_err(|e| CapabilityFault(format!("could not build the GitHub HTTP client: {e}")))?;
+        Ok(Self { client, token })
+    }
+
+    /// GET `<api>/<route>` with the status classified into a typed degrade.
+    ///
+    /// Redirects are followed by the default policy, which is load-bearing for the artifact `zip`
+    /// route: it 302s to a signed blob host, and reqwest strips `Authorization` on a cross-host
+    /// redirect — required, because that host rejects a request carrying two auth mechanisms.
+    fn get(&self, route: &str) -> Result<reqwest::blocking::Response, TrustedBaselineOutcome> {
+        let response = self
+            .client
+            .get(format!("{GITHUB_API}/{route}"))
+            .bearer_auth(&self.token)
+            .header("Accept", "application/vnd.github+json")
+            .header("X-GitHub-Api-Version", GITHUB_API_VERSION)
+            .send()
+            .map_err(|e| {
+                CapabilityFault(format!("GET {route}: the GitHub API is unreachable: {e}"))
+            })?;
+        let status = response.status().as_u16();
+        match classify_api_status(status) {
+            None => Ok(response),
+            Some(BaselineReuseState::Unavailable) => {
+                Err(Unavailable(format!("GET {route}: HTTP {status}")))
+            }
+            Some(BaselineReuseState::CapabilityFault) => Err(CapabilityFault(format!(
+                "GET {route}: HTTP {status} — the runner cannot authenticate to or reach the \
+                 GitHub Actions API"
+            ))),
+            Some(_) => Err(Refused(format!("GET {route}: unexpected HTTP {status}"))),
+        }
+    }
+
+    /// GET `route` and return the body as text. Never a silent empty payload: a body that cannot
+    /// be read is a fault, and the callers' pure validators reject anything that is not the
+    /// expected JSON shape.
+    fn get_text(&self, route: &str) -> Result<String, TrustedBaselineOutcome> {
+        self.get(route)?
+            .text()
+            .map_err(|e| CapabilityFault(format!("GET {route}: could not read the body: {e}")))
+    }
+
+    /// Stream `route` straight to `dest` — artifact zips are binary and do not belong in memory.
+    fn download(&self, route: &str, dest: &Path) -> Result<(), TrustedBaselineOutcome> {
+        let mut response = self.get(route)?;
+        let mut file = fs::File::create(dest)
+            .map_err(|e| Refused(format!("could not create `{}`: {e}", dest.display())))?;
+        std::io::copy(&mut response, &mut file)
+            .map_err(|e| CapabilityFault(format!("GET {route}: download interrupted: {e}")))?;
+        Ok(())
+    }
+}
+
+/// Stream a subprocess's stdout straight to `dest` (`unzip -p` output can be large and does not
+/// belong in memory).
+///
+/// THE TWO FAILURE SHAPES ARE NOT THE SAME DEFECT, and conflating them is the bug this change
+/// exists to kill. "Could not SPAWN it" means the runner image lacks the tool — an environment
+/// fault that will recur on every single run until someone changes the image. "It ran and exited
+/// non-zero" is a statement about the DATA (a truncated or corrupt zip) and is a refusal. `gh`
+/// was the site that got noticed; `unzip` reaches this same code path and had the same
+/// mis-classification, so it is fixed here rather than at the one caller that was reported.
 fn capture_to_file(
     program: &str,
     args: &[&str],
@@ -268,7 +449,11 @@ fn capture_to_file(
         .stdin(Stdio::null())
         .stdout(Stdio::from(file))
         .status()
-        .map_err(|e| Refused(format!("could not execute `{program}`: {e}")))?;
+        .map_err(|e| {
+            CapabilityFault(format!(
+                "could not execute `{program}`: {e} — the runner image does not provide it"
+            ))
+        })?;
     if !status.success() {
         return Err(Refused(format!(
             "`{program} {}` exited with {status}",
@@ -280,6 +465,7 @@ fn capture_to_file(
 
 /// Download and validate ONE kind of baseline into `out_dir/<kind>-health-baseline.json`.
 fn fetch_one_baseline(
+    api: &GitHubApi,
     repo: &str,
     merge_base: &str,
     run_id: u64,
@@ -290,7 +476,7 @@ fn fetch_one_baseline(
     let (artifact_id, expected_name) = select_trusted_artifact(artifacts_json, kind, merge_base)?;
     // The name the API reports for the id we are about to download closes the "selected one
     // artifact, fetched another" loop against a live server response.
-    let meta = gh_api(&format!("repos/{repo}/actions/artifacts/{artifact_id}"))?;
+    let meta = api.get_text(&format!("repos/{repo}/actions/artifacts/{artifact_id}"))?;
     let reported_name = serde_json::from_str::<serde_json::Value>(&meta)
         .ok()
         .and_then(|v| v.get("name").and_then(|n| n.as_str()).map(str::to_owned))
@@ -299,9 +485,8 @@ fn fetch_one_baseline(
         })?;
 
     let zip = out_dir.join(format!("trusted-{}-health-baseline.zip", kind.prefix()));
-    capture_to_file(
-        "gh",
-        &["api", &format!("repos/{repo}/actions/artifacts/{artifact_id}/zip")],
+    api.download(
+        &format!("repos/{repo}/actions/artifacts/{artifact_id}/zip"),
         &zip,
     )?;
     // The artifact API serves ONLY a zip and this crate takes no new dependency, so extraction is
@@ -352,12 +537,13 @@ fn reuse_trusted_baselines_inner(
     let merge_base =
         validated_merge_base_sha(require(raw, "--merge-base").map_err(Refused)?).map_err(Refused)?;
     let repo = validated_repo(require(raw, "--repo").map_err(Refused)?)?;
+    let api = GitHubApi::from_env()?;
 
-    let runs = gh_api(&format!(
+    let runs = api.get_text(&format!(
         "repos/{repo}/actions/workflows/oya-ci-required.yml/runs?event=push&branch=dev&status=success&head_sha={merge_base}&per_page=20"
     ))?;
     let run_id = select_trusted_run(&runs, merge_base)?;
-    let artifacts = gh_api(&format!(
+    let artifacts = api.get_text(&format!(
         "repos/{repo}/actions/runs/{run_id}/artifacts?per_page=100"
     ))?;
 
@@ -373,7 +559,7 @@ fn reuse_trusted_baselines_inner(
     // was proven green, so the failure is new.
     for kind in [BaselineKind::Build, BaselineKind::Test] {
         // Partial-state cleanup is the caller's single handler — nothing to unwind here.
-        fetch_one_baseline(repo, merge_base, run_id, &artifacts, kind, out_dir)?;
+        fetch_one_baseline(&api, repo, merge_base, run_id, &artifacts, kind, out_dir)?;
     }
     // Record WHICH baseline the FULL tier is about to grandfather against. The affected-set gate
     // reads this sidecar beside the baseline it was handed and stamps it into the operator
@@ -736,10 +922,80 @@ mod trusted_baseline_tests {
         assert_eq!(trusted_baseline_exit(&[]), 2);
     }
 
+    /// THE REGRESSION TEST FOR CI JOB 91383250718.
+    ///
+    /// `gh` was absent from the owned arm64 runner image, so the first API call failed with
+    /// `No such file or directory (os error 2)` and the consumer reported `Refused` — the same
+    /// state it reports when a baseline exists but fails a provenance check. A missing tool and a
+    /// rejected artifact are not the same defect: one recurs on every run until the image changes,
+    /// the other is the gate doing its job. Because they shared a state, the fast path was dark on
+    /// the whole fleet for its entire life and the only symptom was wall-clock.
+    ///
+    /// The `gh` call site is gone, but the CLASS is reachable through `capture_to_file`, which
+    /// still spawns `unzip`. That is deliberately the assertion: this pins the classification of
+    /// an unspawnable program, not the identity of one particular tool.
     #[test]
-    fn unavailability_and_refusal_map_to_distinct_non_zero_exits() {
-        assert_ne!(NO_TRUSTED_BASELINE, 0);
-        assert_ne!(NO_TRUSTED_BASELINE, 2);
+    fn an_unspawnable_program_is_a_capability_fault_not_a_refusal() {
+        let dest = std::env::temp_dir().join("oya-build-health-capability-fault-probe");
+        let err = capture_to_file(
+            "oya-no-such-program-on-any-runner-image",
+            &["--version"],
+            &dest,
+        )
+        .unwrap_err();
+        assert!(
+            matches!(err, CapabilityFault(_)),
+            "a missing executable is an environment fault, not a refusal: {err:?}"
+        );
+        assert_eq!(err.state(), BaselineReuseState::CapabilityFault);
+        assert_ne!(
+            err.state().exit_code(),
+            BaselineReuseState::Refused.exit_code(),
+            "the workflow must be able to tell a dead capability from a rejected baseline"
+        );
+        let _ = fs::remove_file(&dest);
+
+        // CONTROL: a program that RUNS and exits non-zero is a statement about the data, so it
+        // stays a refusal. Without this the test above would pass for a version that classified
+        // every subprocess failure as a fault — the mirror image of the original bug.
+        let control = std::env::temp_dir().join("oya-build-health-capability-fault-control");
+        let err = capture_to_file("false", &[], &control).unwrap_err();
+        assert!(
+            matches!(err, Refused(_)),
+            "a tool that ran and failed is a data refusal: {err:?}"
+        );
+        let _ = fs::remove_file(&control);
+    }
+
+    /// Every outcome — including the degrades — must leave a machine-readable record. Before this,
+    /// the workflow's `if <bin>; then exit 0; fi` swallowed the exit code and the only trace was
+    /// one stderr line in a 68-minute log.
+    #[test]
+    fn every_outcome_is_reported_where_a_machine_can_read_it() {
+        let dir = std::env::temp_dir().join("oya-build-health-reuse-outcome-report");
+        let _ = fs::create_dir_all(&dir);
+        report_reuse_outcome(
+            &dir,
+            SHA,
+            BaselineReuseState::CapabilityFault,
+            "could not execute `gh`",
+        );
+        let written = fs::read_to_string(dir.join(BASELINE_REUSE_OUTCOME_FILENAME))
+            .expect("a degrade must write the outcome sidecar");
+        let value: serde_json::Value = serde_json::from_str(&written).expect("valid JSON");
+        assert_eq!(value["state"], "capability-fault");
+        assert_eq!(value["capability_fault"], true);
+        assert_eq!(value["cold_rebuild_ran"], true);
+        assert_eq!(value["merge_base"], SHA);
+
+        report_reuse_outcome(&dir, SHA, BaselineReuseState::Reused, "pair downloaded");
+        let written = fs::read_to_string(dir.join(BASELINE_REUSE_OUTCOME_FILENAME))
+            .expect("success must be recorded too");
+        let value: serde_json::Value = serde_json::from_str(&written).expect("valid JSON");
+        assert_eq!(value["state"], "reused");
+        assert_eq!(value["capability_fault"], false);
+        assert_eq!(value["cold_rebuild_ran"], false);
+        let _ = fs::remove_dir_all(&dir);
     }
 }
 

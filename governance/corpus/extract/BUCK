@@ -28,6 +28,19 @@ rust_binary(
     ],
 )
 
+# The buck2-ACTION entry point for the YAML artifact class. Every `corpus-yaml-facts` genrule in
+# the repo runs this binary over that package's declared YAML srcs and writes one graph shard.
+rust_binary(
+    name = "yaml-facts",
+    srcs = glob(["src/**/*.rs", "**/*.json"]),
+    crate_root = "src/yaml_facts_main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//governance/corpus/core:corpus-core",
+        "//governance/corpus/yaml-kernel:corpus-yaml-kernel",
+    ],
+)
+
 rust_test(
     name = "corpus-extract-unittest",
     srcs = glob(["src/**/*.rs", "**/*.json"]),
