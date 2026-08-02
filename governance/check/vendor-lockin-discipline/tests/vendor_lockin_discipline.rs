@@ -9,33 +9,80 @@ use check_vendor_lockin_discipline::{
     VendorEntry, VendorLockinError, VendorTier, parse_registry_json, validate_registry,
 };
 
-const REGISTRY_PATH: &str = "../../registry/vendor-lockin-phaseout/index.json";
+const REGISTRY_REL_PATH: &str = "registry/vendor-lockin-phaseout/index.json";
+
+/// Walk up from `start` to the repo root (the standing live-corpus pattern).
+///
+/// Replaces a hardcoded `../../registry/...` that silently went stale when this
+/// crate moved from `crates/<name>/` to `governance/check/<name>/` — one level
+/// deeper, so the relative path resolved to `governance/registry/...`, which does
+/// not exist. Nothing caught it because this file had no Buck2 target at all.
+fn repo_root() -> std::path::PathBuf {
+    let mut dir = std::env::current_dir().expect("current_dir");
+    for _ in 0..16 {
+        if dir.join("specs/root-hub-pointers.json").is_file() {
+            return dir;
+        }
+        if !dir.pop() {
+            break;
+        }
+    }
+    panic!("failed to locate repo root from test current_dir");
+}
+
+fn read_registry() -> String {
+    let path = repo_root().join(REGISTRY_REL_PATH);
+    std::fs::read_to_string(&path)
+        .unwrap_or_else(|error| panic!("registry must be readable at {}: {error}", path.display()))
+}
+
+/// A gate that observes an EMPTY corpus is RED, never green.
+///
+/// `N == 0` means the probe went blind — moved corpus, stale path, renamed root —
+/// which is precisely the failure this file sat in, undetected, while unwired.
+/// The floor is reported on every call so the observed population is visible in
+/// the test log instead of being implied by a bare pass.
+fn population_floor(observed: usize, floor: usize, label: &str) -> Result<String, String> {
+    if observed == 0 {
+        return Err(format!(
+            "{label}: observed ZERO — the probe is blind, not the corpus clean"
+        ));
+    }
+    if observed < floor {
+        return Err(format!("{label}: observed {observed}, below floor {floor}"));
+    }
+    Ok(format!("{label}: observed {observed} (floor {floor})"))
+}
+
+/// RED fixture for the rule above: an empty probe MUST fail.
+#[test]
+fn population_floor_refuses_an_empty_probe() {
+    assert!(
+        population_floor(0, 30, "vendor entries").is_err(),
+        "N==0 must be RED — a blind probe cannot report green"
+    );
+    assert!(
+        population_floor(29, 30, "vendor entries").is_err(),
+        "below-floor must be RED"
+    );
+    assert!(population_floor(30, 30, "vendor entries").is_ok());
+}
 
 #[test]
 fn real_registry_parses_and_validates() {
-    let source = std::fs::read_to_string(REGISTRY_PATH).expect("registry must be readable");
+    let source = read_registry();
     let entries = parse_registry_json(&source).expect("registry must parse");
-    assert!(
-        entries.len() >= 30,
-        "vendor inventory must have >=30 entries (ADR-0173 quality bar); got {}",
-        entries.len()
-    );
     let report = validate_registry(&entries).expect("registry must validate");
-    assert!(
-        report.tier_i_count >= 10,
-        "expected >=10 Tier-I entries; got {}",
-        report.tier_i_count
-    );
-    assert!(
-        report.tier_ii_count >= 5,
-        "expected >=5 Tier-II entries; got {}",
-        report.tier_ii_count
-    );
-    assert!(
-        report.tier_iii_count >= 5,
-        "expected >=5 Tier-III entries; got {}",
-        report.tier_iii_count
-    );
+    // Every population this gate observes is asserted non-zero AND printed, so a
+    // probe that goes blind reports RED instead of a vacuous green.
+    for observation in [
+        population_floor(entries.len(), 30, "vendor entries (ADR-0173 quality bar)"),
+        population_floor(report.tier_i_count, 10, "Tier-I entries"),
+        population_floor(report.tier_ii_count, 5, "Tier-II entries"),
+        population_floor(report.tier_iii_count, 5, "Tier-III entries"),
+    ] {
+        println!("{}", observation.unwrap_or_else(|error| panic!("{error}")));
+    }
     assert!(
         report.seam_impls_total >= report.tier_ii_count,
         "every Tier-II entry must declare >=1 seam impl"
@@ -44,7 +91,7 @@ fn real_registry_parses_and_validates() {
 
 #[test]
 fn real_registry_anthropic_api_has_multi_impl_seam() {
-    let source = std::fs::read_to_string(REGISTRY_PATH).expect("registry must be readable");
+    let source = read_registry();
     let entries = parse_registry_json(&source).expect("registry must parse");
     let anthropic = entries
         .iter()
@@ -69,12 +116,20 @@ fn real_registry_anthropic_api_has_multi_impl_seam() {
 
 #[test]
 fn real_registry_no_forbidden_tier_iii_silently_promoted() {
-    let source = std::fs::read_to_string(REGISTRY_PATH).expect("registry must be readable");
+    let source = read_registry();
     let entries = parse_registry_json(&source).expect("registry must parse");
-    for entry in entries
+    let tier_iii: Vec<_> = entries
         .iter()
         .filter(|entry| entry.tier == VendorTier::TierIII)
-    {
+        .collect();
+    // Without this floor the loop below passes VACUOUSLY when the filter matches
+    // nothing — green precisely because it checked nothing.
+    println!(
+        "{}",
+        population_floor(tier_iii.len(), 5, "Tier-III entries scanned")
+            .unwrap_or_else(|error| panic!("{error}"))
+    );
+    for entry in tier_iii {
         assert!(
             entry.adoption_rationale.to_uppercase().contains("REFUSED"),
             "Tier III entry {} must carry REFUSED rationale",
