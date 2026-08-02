@@ -5,3 +5,14 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
 )
+
+rust_test(
+    name = "check-vendor-lockin-discipline-vendor-lockin-discipline",
+    srcs = ["tests/vendor_lockin_discipline.rs"],
+    crate = "check_vendor_lockin_discipline_vendor_lockin_discipline",
+    crate_root = "tests/vendor_lockin_discipline.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":check-vendor-lockin-discipline",
+    ],
+)
