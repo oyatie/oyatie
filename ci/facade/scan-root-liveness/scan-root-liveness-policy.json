@@ -90,11 +90,7 @@
     },
     "ci/facade/module-membership/capability-membership-policy.json::/scan_roots::policy": {
       "value": "policy",
-      "reason": "Declared capability in the ADR-0562 closed registry with no directory yet; created when the policy-pack capability lands its first crate."
-    },
-    "ci/facade/layer-dependency-acyclicity/tier-dependency-acyclicity-policy.json::/crate_root_globs::policy/*/*": {
-      "value": "policy/*/*",
-      "reason": "Same declared-but-unbuilt `policy` capability as above, expressed as a crate glob. Kept so the tier rules apply the moment the capability lands, rather than being retrofitted after crates already exist there."
+      "reason": "Declared capability in the ADR-0562 closed registry with no directory yet; created when the policy-pack capability lands its first crate. This membership `scan_roots` forward declaration is SOUND and stays: scan_roots is pure coverage, so naming a not-yet-existing root costs nothing and the root is walked the moment it appears. Its tier-policy twin (`crate_root_globs::policy/*/*`) was RETIRED 2026-08-01 because the tier policy gives no such free ride: every crate_root_globs root must also appear in service_roots/capability_roots/unclassified_roots (pinned by every_governed_glob_root_is_declared_in_the_policy), and for a crate-less `policy` the only reachable option was `unclassified_roots`, a live SKIP-ALL-EDGES exemption that R6b correctly REDs. The forward declaration therefore structurally required a standing violation to exist, which is why it was baselined rather than fixed. Re-add the glob together with a real root declaration in the same change that lands policy/'s first crate — the ADR-0615 re-home of the nine iam-mapped Cedar/PDP crates, filed separately as a MOVE."
     }
   },
   "baselined_dead_roots": [
