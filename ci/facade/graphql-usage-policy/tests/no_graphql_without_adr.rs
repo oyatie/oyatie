@@ -126,14 +126,13 @@ fn live_owned_stack_has_no_active_graphql_layer_vocabulary() {
         "docs/GLOSSARY.md",
         "docs/standards",
         "docs/templates/microservice-template.md",
-        "libs/oya-check-statelessness",
+        "governance/check/statelessness",
         "marketplace/core/doc-set-scaffold",
         "marketplace/facade/dev-cli/src",
         "marketplace/observability/slos",
         "oya/marketplace",
         "oya/ontology/decisions/ADR-ONT-001-rdf-shape-vs-property-graph-storage.md",
         "oya/workplace-integration",
-        "scripts/gen_first_party_buck.py",
     ];
     let forbidden_needles = [
         "Layer::Graphql",
@@ -188,6 +187,16 @@ fn collect_active_vocabulary_hits(
         return;
     }
 
+    // A scan root that no longer resolves is NOT "clean" — it is a root that scans nothing and
+    // reports GREEN over an empty set. `scan_roots` here is a Rust array literal, so the
+    // //ci/facade/scan-root-liveness gate (which reads JSON policy files) structurally cannot see
+    // it; this assertion is that gate's stand-in for this declaration site. A reorg move or a
+    // retirement that empties a root must delete the root in the same PR.
+    assert!(
+        path.exists(),
+        "dead active-vocabulary scan root {rel}: declared but resolves to no path, so it scans \
+         nothing and reports green over an empty set — delete the root in the PR that removes it"
+    );
     if !path.is_file() {
         return;
     }

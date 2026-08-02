@@ -135,12 +135,14 @@ The enforcement above is staged. Three items are explicitly NOT in this PR:
   `agent/no-graphql-gate`).** Interim gap: a `.graphql` file added to an EXISTING crate is not yet
   auto-blocked until #772 lands — the de-blessing above only closes the crate-NAME axis, not the
   artifact-EXTENSION axis.
-- **Removing the inert `**/*.graphql` glob from the BUCK generator
-  (`scripts/gen_first_party_buck.py`) requires an atomic full-tree regen** coupled to the
-  target-parity gate; it is a tracked corpus-wide sweep, NOT this PR. Without the generator fix any
-  manual BUCK-glob sweep is futile (the next regen would reintroduce the glob). The committed BUCK
-  files therefore still carry the inert glob; it is dead weight (the source files it would match were
-  deleted), not a live GraphQL surface.
+- **The regen-reintroduction risk behind the inert `**/*.graphql` BUCK glob is CLOSED.** This ADR
+  originally deferred the glob sweep because the Python BUCK generator would have reintroduced the
+  glob on the next full-tree regen, making any manual sweep futile. That generator
+  (`scripts/gen_first_party_buck.py`) is now deleted: all 868 workspace members already carry a BUCK
+  file, so its only non-no-op mode was `--force`, which clobbers hand-edited BUCK. With no generator
+  there is no regen that can reintroduce the glob, and the sweep of the committed BUCK files is a
+  plain mechanical edit whenever it is worth doing. The committed files still carry the inert glob;
+  it is dead weight (the source files it would match were deleted), not a live GraphQL surface.
 
 ### Enforcement gate (LANDED — the artifact-EXTENSION axis #772 closes here)
 
