@@ -132,18 +132,28 @@ fn run() -> Result<bool, Box<dyn Error>> {
 
     // Either boot (verified ISO) or emit honest failure directly (digest mismatch). Both paths
     // converge on ONE finalize call built from named-field structs (no positional scalar list).
-    let (wall_secs, exit_reason) = if iso_verified {
-        boot_qemu_and_capture(qprog, &qargs, &serial_log, &qemu_stderr, start)?
+    let (evidence_origin, wall_secs, exit_reason) = if iso_verified {
+        let (wall_secs, exit_reason) =
+            boot_qemu_and_capture(qprog, &qargs, &serial_log, &qemu_stderr, start)?;
+        (harness::EvidenceOrigin::Observed, wall_secs, exit_reason)
     } else {
         // Do not boot on a digest mismatch. Truncate any prior capture fail-closed (a swallowed
         // error could leave a stale marker-bearing log on disk).
         fs::write(&serial_log, b"")?;
-        (0u64, String::from("not-booted-iso-digest-mismatch"))
+        fs::write(&qemu_stderr, b"not spawned: ISO digest mismatch\n")?;
+        (
+            harness::EvidenceOrigin::Fixture,
+            0u64,
+            String::from("not-booted-iso-digest-mismatch"),
+        )
     };
 
     let iso_path = iso.to_string_lossy();
     let allowed: Vec<&str> = pin::BOOT_READY_MARKERS.to_vec();
     let attempt = harness::BootAttempt {
+        evidence_origin,
+        upstream_repository: pin::UPSTREAM_REPOSITORY,
+        repository_commit: pin::RELEASE_COMMIT,
         release_tag: pin::RELEASE_TAG,
         boot_iso_asset: pin::BOOT_ISO_ASSET,
         iso_path: &iso_path,
@@ -164,6 +174,7 @@ fn run() -> Result<bool, Box<dyn Error>> {
     };
     let dests = harness::EvidenceDests {
         serial_log: &serial_log,
+        qemu_stderr: &qemu_stderr,
         excerpt: &excerpt_dest,
         boot_receipt: &boot_receipt_dest,
         envelope_receipt: &envelope_receipt_dest,

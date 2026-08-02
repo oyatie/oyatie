@@ -9,14 +9,10 @@
 //! fail-path escalation so both admissible and inadmissible outcomes are verified deterministically.
 //!
 //! What is proven here:
-//!   * boot-reached: receipt status `pass`, matched marker recorded verbatim, the recorded
-//!     serial-log sha256 equals an INDEPENDENTLY-computed digest of the on-disk fixture (receipt
-//!     digest self-consistency), and NO gap-register entry is written.
-//!   * non-boot: receipt status `fail`, no fabricated marker, a gap-register escalation entry is
-//!     written carrying `simulated_or_inferred_evidence_produced: false`, and the recorded digests
-//!     are still self-consistent with the on-disk fixture bytes.
-//!   * empty log (timed-out boot that emitted nothing): still honest `fail` — a zero-byte log
-//!     cannot synthesize a pass.
+//!   * marker-bearing fixtures remain `fixture` / `REFUSED_NO_ORACLE`, never pass or observed;
+//!   * observed marker-free captures become `ObservedFailure` while retaining artifact pointers;
+//!   * missing or invalid artifact oracles fail with typed `AbsentOracle`;
+//!   * Darwin arm64 with configured x86_64 TCG is not classified unsupported solely by host arch.
 
 use kernel_asterinas_boundary as pin;
 use kernel_asterinas_real_boot as harness;
@@ -70,6 +66,7 @@ fn read_json(path: &Path) -> serde_json::Value {
 struct Fixture {
     dir: PathBuf,
     serial_log: PathBuf,
+    qemu_stderr: PathBuf,
     excerpt: PathBuf,
     boot_receipt: PathBuf,
     envelope_receipt: PathBuf,
@@ -81,7 +78,10 @@ impl Fixture {
         let dir = scratch(tag);
         let serial_log = dir.join("boot-serial.log");
         fs::write(&serial_log, serial_contents).expect("write serial fixture");
+        let qemu_stderr = dir.join("qemu.stderr.log");
+        fs::write(&qemu_stderr, b"fixture stderr\n").expect("write stderr fixture");
         Fixture {
+            qemu_stderr,
             excerpt: dir.join("boot-serial.excerpt.txt"),
             boot_receipt: dir.join("boot-receipt.json"),
             envelope_receipt: dir.join("envelope-receipt.json"),
@@ -91,7 +91,11 @@ impl Fixture {
         }
     }
 
-    fn run(&self, iso_ok: bool) -> harness::FinalizeOutcome {
+    fn run(
+        &self,
+        iso_ok: bool,
+        evidence_origin: harness::EvidenceOrigin,
+    ) -> Result<harness::FinalizeOutcome, harness::FinalizeError> {
         // A fixed fake ISO sha; `iso_ok` decides whether expected==actual (verified) or not.
         let expected = "bf6e161ecc8b8080b842a339cee5f55d18b93d99b1e39c7c07681ff3aca0090a";
         let actual = if iso_ok {
@@ -107,6 +111,9 @@ impl Fixture {
         let markers: Vec<&str> = pin::BOOT_READY_MARKERS.to_vec();
 
         let attempt = harness::BootAttempt {
+            evidence_origin,
+            upstream_repository: pin::UPSTREAM_REPOSITORY,
+            repository_commit: pin::RELEASE_COMMIT,
             release_tag: pin::RELEASE_TAG,
             boot_iso_asset: pin::BOOT_ISO_ASSET,
             iso_path,
@@ -127,12 +134,13 @@ impl Fixture {
         };
         let dests = harness::EvidenceDests {
             serial_log: &self.serial_log,
+            qemu_stderr: &self.qemu_stderr,
             excerpt: &self.excerpt,
             boot_receipt: &self.boot_receipt,
             envelope_receipt: &self.envelope_receipt,
             gap_register: &self.gap_register,
         };
-        harness::finalize_boot_evidence(&attempt, &dests).expect("finalize")
+        harness::finalize_boot_evidence(&attempt, &dests)
     }
 }
 
@@ -145,108 +153,53 @@ impl Drop for Fixture {
 }
 
 #[test]
-fn boot_reached_outcome_writes_pass_receipt_with_self_consistent_digest_and_no_gap() {
-    // A raw serial-log fixture containing a real closed-set marker (systemd Reached-target line).
-    // The earliest marker line wins; the reached-target line (idx 3) precedes the login line.
+fn marker_bearing_fixture_writes_refusal_never_observed_real_or_pass() {
     let log = "[    0.000000] Booting NixOS stage 1\n\
-               [    1.100000] EDD information probe\n\
-               [  OK  ] Reached target Basic System.\n\
-               nixos login: \n";
-    let fx = Fixture::new("reached", log.as_bytes());
-    let independent_digest = sha256_hex(&fx.serial_log);
+               [  OK  ] Reached target Basic System.\n";
+    let fx = Fixture::new("fixture-marker", log.as_bytes());
 
-    let outcome = fx.run(true);
+    let outcome = fx
+        .run(true, harness::EvidenceOrigin::Fixture)
+        .expect("fixture finalizes as refusal");
 
-    // ---- Outcome: reached, no escalation.
-    assert!(
-        outcome.boot_reached,
-        "marker present + iso verified -> reached"
-    );
-    assert!(
-        !outcome.gap_register_written,
-        "a reached boot must NOT emit a gap-register escalation"
-    );
-    assert_eq!(outcome.verdict.status, harness::BootStatus::Pass);
-    let m = outcome
-        .verdict
-        .marker
-        .clone()
-        .expect("matched marker recorded");
-    assert_eq!(m.marker_index, 3, "systemd Reached-target class");
-    assert_eq!(m.line_number, 3);
-    assert_eq!(m.matched_text, "Reached target Basic System");
-
-    // ---- Receipt digest self-consistency: recorded == recomputed-from-disk == independent digest.
-    assert_eq!(outcome.serial_log_sha256, independent_digest);
+    assert!(!outcome.boot_reached);
+    assert_eq!(outcome.evidence_origin, harness::EvidenceOrigin::Fixture);
     assert_eq!(
-        outcome.digest_verification.recorded_sha256,
-        independent_digest
+        outcome.evidence_outcome,
+        harness::EvidenceOutcome::AbsentOracle
     );
-    assert_eq!(
-        outcome.digest_verification.actual_sha256,
-        independent_digest
-    );
-
-    // ---- Boot receipt file on disk.
+    assert_eq!(outcome.terminal, "REFUSED_NO_ORACLE");
+    assert!(outcome.gap_register_written);
     let receipt = read_json(&fx.boot_receipt);
-    assert_eq!(receipt["status"], "pass");
-    assert_eq!(receipt["receipt_type"], "boot");
+    assert_eq!(receipt["status"], "fail");
+    assert_eq!(receipt["boot_verdict"]["evidence_origin"], "fixture");
+    assert_eq!(receipt["boot_verdict"]["observed_success"], false);
     assert_eq!(
-        receipt["boot_verdict"]["boot_reached"],
-        serde_json::Value::Bool(true)
+        receipt["boot_verdict"]["derived_solely_from_real_captured_log"],
+        false
     );
-    assert_eq!(receipt["boot_verdict"]["verdict_status"], "pass");
-    // Records the QEMU invocation.
-    assert_eq!(
-        receipt["qemu_invocation"]["program"],
-        harness::qemu_program()
-    );
-    assert!(
-        receipt["qemu_invocation"]["reproducible_command"]
-            .as_str()
-            .unwrap()
-            .starts_with("qemu-system-x86_64 "),
-        "records the runnable QEMU command"
-    );
-    // Records the artifact digest.
-    assert_eq!(
-        receipt["artifact"]["verified"],
-        serde_json::Value::Bool(true)
-    );
-    // Records the captured serial-log path + the recomputed serial-log sha256.
-    assert_eq!(
-        receipt["serial_log"]["path"],
-        serde_json::Value::String(fx.serial_log.to_string_lossy().into_owned())
-    );
-    assert_eq!(
-        receipt["serial_log"]["sha256"],
-        serde_json::Value::String(independent_digest.clone())
-    );
-    // Matched marker recorded verbatim.
-    assert_eq!(receipt["boot_verdict"]["matched_marker"]["marker_index"], 3);
-    assert_eq!(
-        receipt["boot_verdict"]["matched_marker"]["matched_text_verbatim"],
-        "Reached target Basic System"
-    );
+}
 
-    // ---- Envelope receipt records the serial log by reference with the same self-consistent sha.
-    let envelope = read_json(&fx.envelope_receipt);
-    let serial_ref = envelope["artifacts_handled_by_reference"]
-        .as_array()
-        .unwrap()
-        .iter()
-        .find(|r| r["role"] == "serial-log")
-        .expect("serial-log referenced");
-    assert_eq!(
-        serial_ref["sha256"],
-        serde_json::Value::String(independent_digest.clone())
-    );
+#[test]
+fn observed_no_marker_capture_is_observed_failure_and_retains_artifact_pointers() {
+    let log = "[    0.000000] Booting NixOS stage 1\n\
+               [   12.500000] still initializing, no ready marker yet\n";
+    let fx = Fixture::new("observed-failure", log.as_bytes());
 
-    // ---- No simulated evidence: the gap-register file is absent on success.
-    assert!(
-        !fx.gap_register.exists(),
-        "no gap-register file may be produced for a reached boot"
+    let outcome = fx
+        .run(true, harness::EvidenceOrigin::Observed)
+        .expect("observed failure finalizes");
+
+    assert_eq!(
+        outcome.evidence_outcome,
+        harness::EvidenceOutcome::ObservedFailure
     );
+    assert_eq!(outcome.terminal, "OBSERVED_FAILURE");
+    assert!(!outcome.boot_reached);
+    assert!(outcome.artifact_envelope.artifacts.iter().any(|artifact| {
+        artifact.role == harness::ArtifactRole::SerialLog
+            && artifact.source_pointer == fx.serial_log.to_string_lossy()
+    }));
 }
 
 #[test]
@@ -261,7 +214,9 @@ fn non_boot_outcome_writes_fail_receipt_and_gap_escalation_without_simulated_evi
     let fx = Fixture::new("noboot", log.as_bytes());
     let independent_digest = sha256_hex(&fx.serial_log);
 
-    let outcome = fx.run(true); // ISO verifies; the fail is purely "no boot-ready marker".
+    let outcome = fx
+        .run(true, harness::EvidenceOrigin::Fixture)
+        .expect("fixture non-boot finalizes"); // ISO verifies; no marker.
 
     // ---- Outcome: not reached, escalation emitted.
     assert!(!outcome.boot_reached, "no marker -> not reached");
@@ -321,39 +276,91 @@ fn non_boot_outcome_writes_fail_receipt_and_gap_escalation_without_simulated_evi
 }
 
 #[test]
-fn empty_serial_log_is_honest_fail_never_a_synthesized_pass() {
-    // A timed-out boot that emitted nothing to serial. A zero-byte capture cannot fabricate a
-    // marker, so the verdict is an honest fail with a gap-register escalation.
+fn missing_serial_oracle_is_typed_refused_no_oracle() {
     let fx = Fixture::new("empty", b"");
-    let empty_digest = sha256_hex(&fx.serial_log);
-    // sha256 of the empty input (NIST vector) — the referenced file really is zero bytes.
+
+    let error = fx
+        .run(true, harness::EvidenceOrigin::Fixture)
+        .expect_err("zero-size serial capture is not an artifact oracle");
+
+    assert!(matches!(
+        error,
+        harness::FinalizeError::Evidence(harness::EvidenceOutcome::AbsentOracle)
+    ));
+    assert_eq!(error.to_string(), "REFUSED_NO_ORACLE");
+}
+
+#[test]
+fn fixture_markers_cannot_claim_observed_real_or_pass() {
+    let verdict = harness::derive_boot_verdict(
+        "[  OK  ] Reached target Basic System.\n",
+        &pin::BOOT_READY_MARKERS,
+        harness::EvidenceOrigin::Fixture,
+    )
+    .expect("fixture marker parses");
+
+    assert_eq!(verdict.origin, harness::EvidenceOrigin::Fixture);
+    assert_eq!(verdict.outcome, harness::EvidenceOutcome::AbsentOracle);
+    assert!(!verdict.observed_success);
+    assert_eq!(verdict.status, harness::BootStatus::Fail);
+}
+
+#[test]
+fn artifact_envelope_rejects_malformed_or_incomplete_evidence() {
+    let artifact = harness::ArtifactRef {
+        role: harness::ArtifactRole::SerialLog,
+        source_pointer: "serial.log".to_string(),
+        sha256: "0".repeat(64),
+        byte_size: 1,
+    };
     assert_eq!(
-        empty_digest,
-        "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        harness::ArtifactEnvelope::validate(
+            pin::UPSTREAM_REPOSITORY,
+            "not-a-commit",
+            vec![artifact.clone()],
+            &[harness::ArtifactRole::SerialLog],
+        ),
+        Err(harness::EvidenceOutcome::AbsentOracle)
     );
-
-    let outcome = fx.run(true);
-
-    assert!(!outcome.boot_reached);
-    assert!(outcome.gap_register_written);
-    assert_eq!(outcome.serial_log_byte_size, 0);
-    assert!(outcome.verdict.marker.is_none());
-
-    let receipt = read_json(&fx.boot_receipt);
-    assert_eq!(receipt["status"], "fail");
+    for invalid in [
+        harness::ArtifactRef {
+            source_pointer: String::new(),
+            ..artifact.clone()
+        },
+        harness::ArtifactRef {
+            sha256: String::new(),
+            ..artifact.clone()
+        },
+        harness::ArtifactRef {
+            byte_size: 0,
+            ..artifact.clone()
+        },
+    ] {
+        assert_eq!(
+            harness::ArtifactEnvelope::validate(
+                pin::UPSTREAM_REPOSITORY,
+                pin::RELEASE_COMMIT,
+                vec![invalid],
+                &[harness::ArtifactRole::SerialLog],
+            ),
+            Err(harness::EvidenceOutcome::AbsentOracle)
+        );
+    }
     assert_eq!(
-        receipt["serial_log"]["sha256"],
-        serde_json::Value::String(empty_digest.clone())
+        harness::ArtifactEnvelope::validate(
+            pin::UPSTREAM_REPOSITORY,
+            pin::RELEASE_COMMIT,
+            vec![artifact],
+            &[harness::ArtifactRole::Iso, harness::ArtifactRole::SerialLog],
+        ),
+        Err(harness::EvidenceOutcome::AbsentOracle)
     );
-    assert_eq!(receipt["serial_log"]["byte_size"], 0);
+}
 
-    let gap = read_json(&fx.gap_register);
+#[test]
+fn darwin_arm64_with_x86_64_tcg_is_not_unsupported() {
     assert_eq!(
-        gap["simulated_or_inferred_evidence_produced"],
-        serde_json::Value::Bool(false)
-    );
-    assert_eq!(
-        gap["evidence"]["serial_log_sha256"],
-        serde_json::Value::String(empty_digest)
+        harness::classify_qemu_path("darwin", "aarch64", true),
+        harness::EvidenceOutcome::Success
     );
 }
