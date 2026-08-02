@@ -49,8 +49,35 @@ fn input_path(env_name: &str, repo_relative_path: &str) -> PathBuf {
     repo_root().join(repo_relative_path)
 }
 
+/// The exact command that materializes the `*.generated.json` faces locally — the same binary the
+/// CI "Materialize cloud-ci generated faces" step runs, minus `--github-event` (which only reads
+/// `GITHUB_EVENT_PATH`).
+const MATERIALIZE_CMD: &str = "buck2 run \
+     //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin \
+     -- --repo-root .";
+
 fn read_json(path: PathBuf) -> Value {
-    let bytes = fs::read(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
+    // A missing GENERATED face is the one failure mode an author hits every time and can act on,
+    // so it gets the instruction instead of a bare `os error 2`. These faces are the ADR-0604
+    // de-commit class: not tracked in git, materialized by CI, therefore absent in ANY clean
+    // worktree — which meant this gate produced no local signal at all and could not be used to
+    // check a change before pushing. Tracked inputs (manifest, schema, ratchet policy) keep the
+    // plain read error; for those, "missing" really is just missing.
+    let bytes = fs::read(&path).unwrap_or_else(|e| {
+        let generated = path
+            .file_name()
+            .and_then(|n| n.to_str())
+            .is_some_and(|n| n.ends_with(".generated.json"));
+        assert!(
+            !generated,
+            "read {}: {e}\n\nThis is a GENERATED face (ADR-0604 de-commit class): it is not \
+             tracked in git and is absent in a clean worktree. Materialize it, then re-run this \
+             gate:\n\n    {MATERIALIZE_CMD}\n\nOr point the gate at an existing face with \
+             {SCM_FACTS_ENV}=<path>.",
+            path.display()
+        );
+        panic!("read {}: {e}", path.display())
+    });
     serde_json::from_slice(&bytes)
         .unwrap_or_else(|e| panic!("parse {} as JSON: {e}", path.display()))
 }

@@ -1,0 +1,3485 @@
+{
+  "run": {
+    "id": 30677213867,
+    "run_attempt": 1,
+    "status": "completed",
+    "conclusion": "failure",
+    "event": "pull_request",
+    "head_sha": "faee428489bd16e5a79d00eeb8ec15d14c0e18df",
+    "created_at": "2026-08-01T01:07:51Z",
+    "run_started_at": "2026-08-01T01:07:51Z",
+    "updated_at": "2026-08-01T02:01:28Z"
+  },
+  "jobs": [
+    {
+      "id": 91306848228,
+      "name": "gate-live-postgres-facades (durable facades: tenant lifecycle / SCIM, #901)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-08-01T01:07:54Z",
+      "completed_at": "2026-08-01T01:18:45Z",
+      "runner_name": "GitHub Actions 1000176417",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Initialize containers",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Install buck2 (digest-pinned prebuilt release)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "Cache pinned Rust toolchain (ADR-0556 D5 QW-4)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 6,
+          "name": "Pre-provision pinned Rust toolchain for Buck2 live tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 7,
+          "name": "Install postgresql-client for the bootstrap",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 8,
+          "name": "Bootstrap app role + durable schemas/roles (admin, facades)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 9,
+          "name": "buck2 test — durable facades (live test = app-role, non-live = in-memory)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 16,
+          "name": "Post Cache pinned Rust toolchain (ADR-0556 D5 QW-4)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 17,
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 18,
+          "name": "Stop containers",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 19,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 91306848230,
+      "name": "freshness (lock + generated faces, ADR-0539)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-08-01T01:07:57Z",
+      "completed_at": "2026-08-01T01:14:08Z",
+      "runner_name": "oya-arm64-lh4ch-runner-dmtdq",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Install buck2 (digest-pinned prebuilt release)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Pre-provision pinned Rust toolchain for Buck2 freshness binaries",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "Run freshness gate",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 10,
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 11,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 91306848251,
+      "name": "gate-live-postgres-adapters (durable adapters: RLS / CDC / SCIM, #901)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-08-01T01:07:54Z",
+      "completed_at": "2026-08-01T01:13:49Z",
+      "runner_name": "GitHub Actions 1000176418",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Initialize containers",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Install buck2 (digest-pinned prebuilt release)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "Cache pinned Rust toolchain (ADR-0556 D5 QW-4)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 6,
+          "name": "Pre-provision pinned Rust toolchain for Buck2 live tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 7,
+          "name": "Install postgresql-client for the bootstrap",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 8,
+          "name": "Bootstrap app role + durable schemas/roles (admin, adapters)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 9,
+          "name": "buck2 test — durable adapters (admin=superuser, app=app-role)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 16,
+          "name": "Post Cache pinned Rust toolchain (ADR-0556 D5 QW-4)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 17,
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 18,
+          "name": "Stop containers",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 19,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 91306848255,
+      "name": "producer-regen (accounting-registry)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-08-01T01:22:50Z",
+      "completed_at": "2026-08-01T01:28:34Z",
+      "runner_name": "oya-arm64-lh4ch-runner-dr8k8",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Install buck2 (digest-pinned prebuilt release)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Materialize cloud-ci generated faces",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "Upload regenerated faces",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 10,
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 11,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 91306848257,
+      "name": "gate · affected-set (ADR-0554, binding workspace coverage)",
+      "status": "completed",
+      "conclusion": "failure",
+      "started_at": "2026-08-01T01:13:32Z",
+      "completed_at": "2026-08-01T01:55:36Z",
+      "runner_name": "oya-arm64-lh4ch-runner-vdf7p",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Install buck2 (digest-pinned prebuilt release)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Pre-provision pinned rust toolchain and PR metadata preflight",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "Reclaim runner disk before warm restore (FRIC-017 preflight)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 6,
+          "name": "Restore buck-out (read-only; dev-push is the sole writer)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 7,
+          "name": "Materialize cloud-ci generated faces (out-of-graph boundary)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 8,
+          "name": "Fetch base ref for the merge-base anchor",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 9,
+          "name": "Materialize merge-base build + test baselines when affected-set needs FULL",
+          "status": "in_progress",
+          "conclusion": null
+        },
+        {
+          "number": 10,
+          "name": "Binding affected-set build + test (cone-binding; FULL tier = build-health ratchet)",
+          "status": "pending",
+          "conclusion": null
+        },
+        {
+          "number": 11,
+          "name": "Save buck-out (dev-push only; sole canonical full-graph writer)",
+          "status": "pending",
+          "conclusion": null
+        },
+        {
+          "number": 12,
+          "name": "Upload build-health baseline artifact (trusted push-to-dev producer)",
+          "status": "pending",
+          "conclusion": null
+        },
+        {
+          "number": 13,
+          "name": "Upload test-health baseline artifact (trusted push-to-dev producer)",
+          "status": "pending",
+          "conclusion": null
+        },
+        {
+          "number": 14,
+          "name": "Upload affected-set operator artifacts",
+          "status": "pending",
+          "conclusion": null
+        },
+        {
+          "number": 28,
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "pending",
+          "conclusion": null
+        }
+      ]
+    },
+    {
+      "id": 91306848269,
+      "name": "registry-drift (materialized == regenerated)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-08-01T01:07:57Z",
+      "completed_at": "2026-08-01T01:13:27Z",
+      "runner_name": "oya-arm64-lh4ch-runner-9lztm",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Install buck2 (digest-pinned prebuilt release)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Materialize faces then assert byte-parity",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 8,
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 9,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 91306848270,
+      "name": "generated-output-diff-policy (no generated merge surfaces)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-08-01T01:14:12Z",
+      "completed_at": "2026-08-01T01:17:26Z",
+      "runner_name": "oya-arm64-lh4ch-runner-2jdkx",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Install buck2 (digest-pinned prebuilt release)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Pre-provision pinned Rust toolchain for Buck2 policy binary",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "Reject non-deletion generated output edits",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 10,
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 11,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 91306848284,
+      "name": "cloud-ci-firewall (baseline ratchet + gate-registration meta-test)",
+      "status": "completed",
+      "conclusion": "failure",
+      "started_at": "2026-08-01T01:17:31Z",
+      "completed_at": "2026-08-01T01:22:44Z",
+      "runner_name": "oya-arm64-lh4ch-runner-z4kcz",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Install buck2 (digest-pinned prebuilt release)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Materialize cloud-ci generated faces",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "buck2 test cloud-ci-firewall",
+          "status": "completed",
+          "conclusion": "failure"
+        },
+        {
+          "number": 10,
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 11,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 91306848285,
+      "name": "buck2 (hermetic build + affected gate tests)",
+      "status": "completed",
+      "conclusion": "failure",
+      "started_at": "2026-08-01T01:28:40Z",
+      "completed_at": "2026-08-01T01:41:41Z",
+      "runner_name": "oya-arm64-lh4ch-runner-q8hz9",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Install buck2 (digest-pinned prebuilt release)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Pre-provision pinned rust toolchain (serialize rustup before parallel buck2)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "Reclaim runner disk before warm restore (FRIC-017 preflight)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 6,
+          "name": "Restore buck-out (read-only; dev-push is the sole writer)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 7,
+          "name": "Materialize cloud-ci generated faces (out-of-graph boundary)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 8,
+          "name": "buck2 build + test (//ci/..., hermetic — binding)",
+          "status": "completed",
+          "conclusion": "failure"
+        },
+        {
+          "number": 9,
+          "name": "Cache-hit telemetry + warm-mode guard (ADR-0560)",
+          "status": "completed",
+          "conclusion": "failure"
+        },
+        {
+          "number": 10,
+          "name": "Upload cache-hit telemetry artifact",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 11,
+          "name": "Upload runner disk reclaim operator artifact (buck2 lane)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 22,
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 23,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 91309033920,
+      "name": "gate · scan-root-liveness (declared scan roots must resolve; reorg-move blindness detector, shrink-only baseline)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-08-01T02:00:38Z",
+      "completed_at": "2026-08-01T02:01:01Z",
+      "runner_name": "oya-arm64-lh4ch-runner-bh57v",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Install buck2 (digest-pinned prebuilt release)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "Pre-provision pinned Rust toolchain for Buck2 gate tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 6,
+          "name": "buck2 test scan-root-liveness",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 12,
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 13,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 91309033926,
+      "name": "gate · slo-coverage (catalog SLO input contract, born-blocking)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-08-01T01:59:38Z",
+      "completed_at": "2026-08-01T02:00:25Z",
+      "runner_name": "oya-arm64-lh4ch-runner-knb78",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Install buck2 (digest-pinned prebuilt release)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "Pre-provision pinned Rust toolchain for Buck2 gate tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 6,
+          "name": "buck2 test slo-coverage",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 12,
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 13,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 91309033927,
+      "name": "gate · license-policy (workspace package license policy, shrink-only)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-08-01T01:54:13Z",
+      "completed_at": "2026-08-01T01:55:02Z",
+      "runner_name": "oya-arm64-lh4ch-runner-xmkhc",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Install buck2 (digest-pinned prebuilt release)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "Pre-provision pinned Rust toolchain for Buck2 gate tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 6,
+          "name": "buck2 test license-policy",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 12,
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 13,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 91309033928,
+      "name": "gate · staleness-reaper (GATE-3, born-blocking)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-08-01T02:00:29Z",
+      "completed_at": "2026-08-01T02:01:22Z",
+      "runner_name": "oya-arm64-lh4ch-runner-ght2j",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Install buck2 (digest-pinned prebuilt release)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "Pre-provision pinned Rust toolchain for Buck2 gate tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 6,
+          "name": "buck2 test stale-artifact-detection",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 12,
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 13,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 91309033929,
+      "name": "gate · generated-artifact-control-plane (public hermetic CI artifact policy)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-08-01T01:54:12Z",
+      "completed_at": "2026-08-01T01:54:36Z",
+      "runner_name": "oya-arm64-lh4ch-runner-xs5fb",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Install buck2 (digest-pinned prebuilt release)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "Pre-provision pinned Rust toolchain for Buck2 gate tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 6,
+          "name": "buck2 test generated-artifact-policy",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 12,
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 13,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 91309033930,
+      "name": "gate · automation-ratchet (GATE-4, polices gates)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-08-01T01:48:14Z",
+      "completed_at": "2026-08-01T01:49:00Z",
+      "runner_name": "oya-arm64-lh4ch-runner-zlt7k",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Install buck2 (digest-pinned prebuilt release)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "Pre-provision pinned Rust toolchain for Buck2 gate tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 6,
+          "name": "buck2 test automation-coverage",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 12,
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 13,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 91309033932,
+      "name": "gate · total-accounting (GATE-2)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-08-01T01:41:49Z",
+      "completed_at": "2026-08-01T01:43:36Z",
+      "runner_name": "oya-arm64-lh4ch-runner-ptrfq",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Install buck2 (digest-pinned prebuilt release)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "Pre-provision pinned Rust toolchain for Buck2 gate tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 6,
+          "name": "buck2 test artifact-accountability",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 12,
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 13,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 91309033935,
+      "name": "gate · crate-catalog-coverage (every live crate carries a registry/catalog row; born-blocking, shrink-only baseline)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-08-01T02:00:14Z",
+      "completed_at": "2026-08-01T02:00:33Z",
+      "runner_name": "oya-arm64-lh4ch-runner-6cxfq",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Install buck2 (digest-pinned prebuilt release)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "Pre-provision pinned Rust toolchain for Buck2 gate tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 6,
+          "name": "buck2 test crate-catalog-coverage",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 12,
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 13,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 91309033936,
+      "name": "gate · cross-artifact-agreement (GATE-1, incl. the 4 masterplan-v2 plan gates: structural ID/DAG/orphans · projection-freshness · plan-vs-evidence · read-contract/entry-surface)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-08-01T01:50:49Z",
+      "completed_at": "2026-08-01T01:51:57Z",
+      "runner_name": "oya-arm64-lh4ch-runner-4qdcg",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Install buck2 (digest-pinned prebuilt release)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "Pre-provision pinned Rust toolchain for Buck2 gate tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 6,
+          "name": "buck2 test cross-artifact-agreement",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 12,
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 13,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 91309033937,
+      "name": "gate · bnf-layer-suffix (BNF §2.5#4, born-blocking)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-08-01T01:55:37Z",
+      "completed_at": "2026-08-01T01:56:27Z",
+      "runner_name": "oya-arm64-lh4ch-runner-gzlc6",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Install buck2 (digest-pinned prebuilt release)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "Pre-provision pinned Rust toolchain for Buck2 gate tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 6,
+          "name": "buck2 test crate-layer-suffix",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 12,
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 13,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 91309033939,
+      "name": "gate · target-parity (ADR-0540, test-wiring false-green)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-08-01T01:49:59Z",
+      "completed_at": "2026-08-01T01:50:44Z",
+      "runner_name": "oya-arm64-lh4ch-runner-5br8f",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Install buck2 (digest-pinned prebuilt release)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "Pre-provision pinned Rust toolchain for Buck2 gate tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 6,
+          "name": "buck2 test build-target-parity",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 12,
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 13,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 91309033941,
+      "name": "gate · kernel-purity (ADR-0547, *-kernel/*-core zero transient-tech deps)",
+      "status": "completed",
+      "conclusion": "failure",
+      "started_at": "2026-08-01T01:52:01Z",
+      "completed_at": "2026-08-01T01:52:46Z",
+      "runner_name": "oya-arm64-lh4ch-runner-t6s99",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Install buck2 (digest-pinned prebuilt release)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "Pre-provision pinned Rust toolchain for Buck2 gate tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 6,
+          "name": "buck2 test core-dependency-isolation",
+          "status": "completed",
+          "conclusion": "failure"
+        },
+        {
+          "number": 12,
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 13,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 91309033942,
+      "name": "gate · cloud-resource-contracts (Rust/API replacement for P0 cloud-resource Python validators)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-08-01T01:45:49Z",
+      "completed_at": "2026-08-01T01:46:13Z",
+      "runner_name": "oya-arm64-lh4ch-runner-f7hf6",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Install buck2 (digest-pinned prebuilt release)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "Pre-provision pinned Rust toolchain for Buck2 gate tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 6,
+          "name": "buck2 test resource-contract-conformance",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 12,
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 13,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 91309033944,
+      "name": "gate: workspace-glob-coverage (ADR-0538)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-08-01T01:46:18Z",
+      "completed_at": "2026-08-01T01:47:16Z",
+      "runner_name": "oya-arm64-lh4ch-runner-k87z8",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Install buck2 (digest-pinned prebuilt release)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "Pre-provision pinned Rust toolchain for Buck2 gate tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 6,
+          "name": "buck2 test workspace-member-coverage",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 12,
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 13,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 91309033946,
+      "name": "gate · hyperscaler-parity-taxonomy (cloud hyperscaler parity taxonomy, born-blocking)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-08-01T01:56:43Z",
+      "completed_at": "2026-08-01T01:57:03Z",
+      "runner_name": "oya-arm64-lh4ch-runner-hp2mx",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Install buck2 (digest-pinned prebuilt release)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "Pre-provision pinned Rust toolchain for Buck2 gate tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 6,
+          "name": "buck2 test parity-claim-evidence",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 12,
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 13,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 91309033947,
+      "name": "gate · facade-core-layering (ADR-0562 central rule: facade reaches its own core only through ports; BUCK-graph keyed by cargo package name, 35 frozen, shrink-only)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-08-01T01:51:34Z",
+      "completed_at": "2026-08-01T01:51:55Z",
+      "runner_name": "oya-arm64-lh4ch-runner-4nhk7",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Install buck2 (digest-pinned prebuilt release)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "Pre-provision pinned Rust toolchain for Buck2 gate tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 6,
+          "name": "buck2 test facade-core-layering",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 12,
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 13,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 91309033949,
+      "name": "gate · canonical-json (ADR-0546, deterministic JSON serialization)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-08-01T01:44:30Z",
+      "completed_at": "2026-08-01T01:45:00Z",
+      "runner_name": "oya-arm64-lh4ch-runner-md2t9",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Install buck2 (digest-pinned prebuilt release)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "Pre-provision pinned Rust toolchain for Buck2 gate tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 6,
+          "name": "buck2 test canonical-json",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 12,
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 13,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 91309033950,
+      "name": "gate · friction-accounting (ADR-0544, closed-loop friction-ledger accounting)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-08-01T01:49:05Z",
+      "completed_at": "2026-08-01T01:49:31Z",
+      "runner_name": "oya-arm64-lh4ch-runner-c7pf7",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Install buck2 (digest-pinned prebuilt release)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "Pre-provision pinned Rust toolchain for Buck2 gate tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 6,
+          "name": "buck2 test action-item-accounting",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 12,
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 13,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 91309033953,
+      "name": "gate · embedded-asset-hermeticity (ADR-0545, include_str!/include_bytes! __srcs-tree mapping)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-08-01T01:53:44Z",
+      "completed_at": "2026-08-01T01:54:07Z",
+      "runner_name": "oya-arm64-lh4ch-runner-4w7kt",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Install buck2 (digest-pinned prebuilt release)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "Pre-provision pinned Rust toolchain for Buck2 gate tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 6,
+          "name": "buck2 test embedded-asset-hermeticity",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 12,
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 13,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 91309033956,
+      "name": "gate · enforcement-liveness (FRIC-012, hook mirror liveness)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-08-01T01:52:34Z",
+      "completed_at": "2026-08-01T01:53:07Z",
+      "runner_name": "oya-arm64-lh4ch-runner-7sbmn",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Install buck2 (digest-pinned prebuilt release)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "Pre-provision pinned Rust toolchain for Buck2 gate tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 6,
+          "name": "buck2 test hook-wiring",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 12,
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 13,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 91309033957,
+      "name": "gate · manifest-hygiene (§2.5#7, born-blocking)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-08-01T01:54:42Z",
+      "completed_at": "2026-08-01T01:55:33Z",
+      "runner_name": "oya-arm64-lh4ch-runner-vtnld",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Install buck2 (digest-pinned prebuilt release)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "Pre-provision pinned Rust toolchain for Buck2 gate tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 6,
+          "name": "buck2 test package-manifest-hygiene",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 12,
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 13,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 91309033958,
+      "name": "gate · dependency-automation (ADR-0535, owned oya-deps.toml Rust bump-bot contract; external bot configs remain absent)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-08-01T01:53:12Z",
+      "completed_at": "2026-08-01T01:53:39Z",
+      "runner_name": "oya-arm64-lh4ch-runner-d8jlp",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Install buck2 (digest-pinned prebuilt release)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "Pre-provision pinned Rust toolchain for Buck2 gate tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 6,
+          "name": "buck2 test dependency-automation",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 12,
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 13,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 91309033961,
+      "name": "gate · no-graphql-without-adr (ADR-0565, zero-GraphQL: no graphql lib / .graphql/.gql/.sdl reintroduction without a reversing ADR — candidate-tree evaluated, EMPTY frozen baseline)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-08-01T01:58:03Z",
+      "completed_at": "2026-08-01T01:58:33Z",
+      "runner_name": "oya-arm64-lh4ch-runner-bsl4g",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Install buck2 (digest-pinned prebuilt release)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "Pre-provision pinned Rust toolchain for Buck2 gate tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 6,
+          "name": "buck2 test graphql-usage-policy",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 12,
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 13,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 91309033962,
+      "name": "gate · capability-membership (Phase-0 reorg ADR-0562 §6, the anti-junk-drawer MEMBERSHIP lint: every crate → exactly one registered capability/meta home, no NEW unmapped crate, no NEW top-level dir, base/-admission; born-advisory + enforce-no-regression vs the frozen unmapped baseline)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-08-01T01:47:48Z",
+      "completed_at": "2026-08-01T01:48:09Z",
+      "runner_name": "oya-arm64-lh4ch-runner-jc5tr",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Install buck2 (digest-pinned prebuilt release)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "Pre-provision pinned Rust toolchain for Buck2 gate tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 6,
+          "name": "buck2 test module-membership",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 12,
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 13,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 91309033966,
+      "name": "gate · tier-dependency-acyclicity (Phase-0 reorg ADR-0245/0280/0562, cargo+buck crate-graph tier rules + S-rank + Tarjan cycle backstop, born-ADVISORY vs frozen baseline → enforce-no-regression)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-08-01T01:47:21Z",
+      "completed_at": "2026-08-01T01:47:43Z",
+      "runner_name": "oya-arm64-lh4ch-runner-2wphk",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Install buck2 (digest-pinned prebuilt release)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "Pre-provision pinned Rust toolchain for Buck2 gate tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 6,
+          "name": "buck2 test layer-dependency-acyclicity",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 12,
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 13,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 91309033967,
+      "name": "gate · cargo-prefix (ADR-0017)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-08-01T01:56:57Z",
+      "completed_at": "2026-08-01T01:57:45Z",
+      "runner_name": "oya-arm64-lh4ch-runner-pggpz",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Install buck2 (digest-pinned prebuilt release)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "Pre-provision pinned Rust toolchain for Buck2 gate tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 6,
+          "name": "buck2 test crate-name-prefix",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 12,
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 13,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 91309033970,
+      "name": "gate · root-workspace-hygiene (ADR-0600, allowlist-as-DATA default-DENY: every TRACKED repo-root file must match the allowlist + every top-level dir must be a permitted capability/meta home — makes committed root scratch structurally impossible; complements the scratch DENYLIST)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-08-01T01:49:36Z",
+      "completed_at": "2026-08-01T01:49:54Z",
+      "runner_name": "oya-arm64-lh4ch-runner-h84bf",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Install buck2 (digest-pinned prebuilt release)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "Pre-provision pinned Rust toolchain for Buck2 gate tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 6,
+          "name": "buck2 test repo-root-hygiene",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 12,
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 13,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 91309033973,
+      "name": "gate · catalog-liveness (PR-C3 founder live-OR-explicitly-marked policy, born-blocking, EMPTY frozen baseline)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-08-01T01:53:17Z",
+      "completed_at": "2026-08-01T01:54:09Z",
+      "runner_name": "oya-arm64-lh4ch-runner-94tzt",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Install buck2 (digest-pinned prebuilt release)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "Pre-provision pinned Rust toolchain for Buck2 gate tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 6,
+          "name": "buck2 test service-catalog-parity",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 12,
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 13,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 91309033975,
+      "name": "gate · port-placement (ADR-0570, clean-arch ports-in-core: no storage-port trait DEFINED in an */adapters/* crate — productizes the #116 defect class; born-advisory + enforce-no-regression vs frozen baseline)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-08-01T01:43:41Z",
+      "completed_at": "2026-08-01T01:44:23Z",
+      "runner_name": "oya-arm64-lh4ch-runner-pft9d",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Install buck2 (digest-pinned prebuilt release)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "Pre-provision pinned Rust toolchain for Buck2 gate tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 6,
+          "name": "buck2 test port-placement",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 12,
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 13,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 91309033978,
+      "name": "gate · tier-field-coverage (Phase-0 reorg ADR-0562/0536/0245, per-service tier/tier_subtype/dr_tier coverage + enum validity + no type-overload, born-blocking)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-08-01T01:59:19Z",
+      "completed_at": "2026-08-01T01:59:40Z",
+      "runner_name": "oya-arm64-lh4ch-runner-7c9xc",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Install buck2 (digest-pinned prebuilt release)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "Pre-provision pinned Rust toolchain for Buck2 gate tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 6,
+          "name": "buck2 test service-tier-metadata",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 12,
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 13,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 91309033979,
+      "name": "gate · substrate-dependency-dag-acyclicity (ADR-0280 §D-3, Tarjan SCC + Kahn topo-order + forbidden-edge honouring)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-08-01T01:55:08Z",
+      "completed_at": "2026-08-01T01:55:31Z",
+      "runner_name": "oya-arm64-lh4ch-runner-4rwmp",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Install buck2 (digest-pinned prebuilt release)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "Pre-provision pinned Rust toolchain for Buck2 gate tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 6,
+          "name": "buck2 test dependency-graph-acyclicity",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 12,
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 13,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 91309033980,
+      "name": "gate · contract-slice-conformance (paved-road Rust/Buck2 replacement for scripts/tests/*_check.py contract-slice validators; ADR-0515/0523/0528)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-08-01T01:50:58Z",
+      "completed_at": "2026-08-01T01:51:29Z",
+      "runner_name": "oya-arm64-lh4ch-runner-khwvk",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Install buck2 (digest-pinned prebuilt release)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "Pre-provision pinned Rust toolchain for Buck2 gate tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 6,
+          "name": "buck2 test contract-slice-conformance",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 12,
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 13,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 91309033982,
+      "name": "gate · supply-chain-audit (owned RustSec advisory scan over vendored mirror, born-blocking)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-08-01T01:45:06Z",
+      "completed_at": "2026-08-01T01:45:43Z",
+      "runner_name": "oya-arm64-lh4ch-runner-csc9f",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Install buck2 (digest-pinned prebuilt release)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "Pre-provision pinned Rust toolchain for Buck2 gate tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 6,
+          "name": "buck2 test supply-chain-audit",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 12,
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 13,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 91309033989,
+      "name": "gate · operator-secret-bootstrap (GH #980 + GH #988 / ADR-0606, least-privilege secret RBAC, declarative join-token bootstrap, ESO/OpenBao role+namespace+prefix scope, and plaintext OpenBao NetworkPolicy isolation)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-08-01T01:52:01Z",
+      "completed_at": "2026-08-01T01:52:28Z",
+      "runner_name": "oya-arm64-lh4ch-runner-2vp9f",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Install buck2 (digest-pinned prebuilt release)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "Pre-provision pinned Rust toolchain for Buck2 gate tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 6,
+          "name": "buck2 test operator-secret-rbac",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 12,
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 13,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 91309033990,
+      "name": "gate · crypto-backend-purity (ADR-0506, ring forbidden / aws-lc-rs mandated — zero ring activation)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-08-01T01:57:49Z",
+      "completed_at": "2026-08-01T01:58:12Z",
+      "runner_name": "oya-arm64-lh4ch-runner-cjh95",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Install buck2 (digest-pinned prebuilt release)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "Pre-provision pinned Rust toolchain for Buck2 gate tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 6,
+          "name": "buck2 test crypto-backend-policy",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 12,
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 13,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 91309033993,
+      "name": "gate · runner-disk-reclaim conformance (FRIC-017 productization, ADR-0548 pipeline-as-product: policy parse + threshold/INFRA-RED discrimination + reclaim plan)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-08-01T01:52:51Z",
+      "completed_at": "2026-08-01T01:53:13Z",
+      "runner_name": "oya-arm64-lh4ch-runner-98967",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Install buck2 (digest-pinned prebuilt release)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "Pre-provision pinned Rust toolchain for Buck2 gate tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 6,
+          "name": "buck2 test runner-disk-reclaim",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 12,
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 13,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 91309033995,
+      "name": "gate · authz-coverage (issue #770 / AUTH-005, NEW unauthenticated HTTP control planes blocked vs frozen baseline)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-08-01T01:55:37Z",
+      "completed_at": "2026-08-01T01:55:59Z",
+      "runner_name": "oya-arm64-lh4ch-runner-ksgg9",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Install buck2 (digest-pinned prebuilt release)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "Pre-provision pinned Rust toolchain for Buck2 gate tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 6,
+          "name": "buck2 test endpoint-authorization-coverage",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 12,
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 13,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 91309033997,
+      "name": "gate · dto-authz-trust (ADR-0582, the CLASS-FIX for caller-supplied-authz-trust: a NEW fn that trusts a forged *Authorization DTO / x-authorization-* header in place of a server-side PDP decide() is blocked vs the frozen baseline of ~92 known instances; v2: FN-01/02/03/04/05/06 hardened)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-08-01T01:59:46Z",
+      "completed_at": "2026-08-01T02:00:09Z",
+      "runner_name": "oya-arm64-lh4ch-runner-5b5gb",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Install buck2 (digest-pinned prebuilt release)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "Pre-provision pinned Rust toolchain for Buck2 gate tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 6,
+          "name": "buck2 test caller-supplied-authorization",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 12,
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 13,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 91309033999,
+      "name": "gate · cache-wiring conformance (ADR-0560/ADR-0556, dark-wiring + cold floor + kill-switch)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-08-01T01:56:32Z",
+      "completed_at": "2026-08-01T01:56:53Z",
+      "runner_name": "oya-arm64-lh4ch-runner-ksvsh",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Install buck2 (digest-pinned prebuilt release)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "Pre-provision pinned Rust toolchain for Buck2 gate tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 6,
+          "name": "buck2 test build-cache-policy",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 12,
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 13,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 91309034022,
+      "name": "gate · rust-first automation hygiene (cloud-native infra anti-patterns: scripts, workflow shell, retired interpreters, and new CLI packages)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-08-01T01:56:04Z",
+      "completed_at": "2026-08-01T01:56:38Z",
+      "runner_name": "oya-arm64-lh4ch-runner-sjq49",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Install buck2 (digest-pinned prebuilt release)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "Pre-provision pinned Rust toolchain for Buck2 gate tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 6,
+          "name": "buck2 test automation-language-policy",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 12,
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 13,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 91309034033,
+      "name": "gate · planned-maturity (GH #992, product PRD acceptance/verification contracts + rich capability records + retired-plan provenance boundary)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-08-01T01:58:47Z",
+      "completed_at": "2026-08-01T01:59:13Z",
+      "runner_name": "oya-arm64-lh4ch-runner-t878p",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Install buck2 (digest-pinned prebuilt release)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "Pre-provision pinned Rust toolchain for Buck2 gate tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 6,
+          "name": "buck2 test feature-maturity-policy",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 12,
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 13,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 91309034035,
+      "name": "gate · ADR census epoch receipt (P2 active; P3 dormant)",
+      "status": "completed",
+      "conclusion": "failure",
+      "started_at": "2026-08-01T01:57:08Z",
+      "completed_at": "2026-08-01T01:57:58Z",
+      "runner_name": "oya-arm64-lh4ch-runner-s7qrb",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Install buck2 (digest-pinned prebuilt release)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "Pre-provision pinned Rust toolchain for Buck2 gate tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 6,
+          "name": "buck2 test scm-facts-snapshot",
+          "status": "completed",
+          "conclusion": "failure"
+        },
+        {
+          "number": 12,
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 13,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 91309034047,
+      "name": "gate · cedar-deploy-parity (GH #16 / ADR-0608, deployed-vs-authored Cedar parity: no deployed ConfigMap permit may leave the action unconstrained (action-agnostic blanket grant) and every deployed permit MUST be ⊆ the capability's authored <cap>/{policy,cedar}/*.cedar set; fail-closed on missing-authored/un-extractable/empty-scan; GH #16 byte-identical blanket ConfigMaps grandfathered in a documented shrink-only baseline pending the blanket-disarm follow-up)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-08-01T01:58:18Z",
+      "completed_at": "2026-08-01T01:58:41Z",
+      "runner_name": "oya-arm64-lh4ch-runner-vbh9z",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Install buck2 (digest-pinned prebuilt release)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "Pre-provision pinned Rust toolchain for Buck2 gate tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 6,
+          "name": "buck2 test policy-deploy-parity",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 12,
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 13,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 91309034052,
+      "name": "gate · Windows workspace resolver differential (ERROR_CANT_RESOLVE_FILENAME)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-08-01T01:28:37Z",
+      "completed_at": "2026-08-01T01:30:34Z",
+      "runner_name": "GitHub Actions 1000176419",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Install buck2 (digest-pinned prebuilt release)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "Pre-provision pinned Rust toolchain for Buck2 gate tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 6,
+          "name": "buck2 test ",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 12,
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 13,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 91309034077,
+      "name": "gate · cell-topology-manifest-contract (CELL-001R manifest contract)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-08-01T01:58:38Z",
+      "completed_at": "2026-08-01T01:59:03Z",
+      "runner_name": "oya-arm64-lh4ch-runner-7b8mj",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Install buck2 (digest-pinned prebuilt release)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "Pre-provision pinned Rust toolchain for Buck2 gate tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 6,
+          "name": "buck2 test topology-manifest-contract",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 12,
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 13,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 91309034090,
+      "name": "gate · gate-self-conformance (GH #777, pipeline-as-product 7-property bar over every gate)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-08-01T01:59:10Z",
+      "completed_at": "2026-08-01T01:59:33Z",
+      "runner_name": "oya-arm64-lh4ch-runner-8pv2t",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Install buck2 (digest-pinned prebuilt release)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "Pre-provision pinned Rust toolchain for Buck2 gate tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 6,
+          "name": "buck2 test gate-self-conformance",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 12,
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 13,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 91312488237,
+      "name": "oya-ci-required",
+      "status": "completed",
+      "conclusion": "failure",
+      "started_at": "2026-08-01T02:01:26Z",
+      "completed_at": "2026-08-01T02:01:28Z",
+      "runner_name": "oya-arm64-lh4ch-runner-klxhv",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Fan-in verdict (green IFF every gate lane is green)",
+          "status": "completed",
+          "conclusion": "failure"
+        },
+        {
+          "number": 3,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ],
+  "annotations": {
+    "91306848228": [],
+    "91306848230": [],
+    "91306848251": [],
+    "91306848255": [],
+    "91306848257": [
+      {
+        "annotation_level": "failure",
+        "message": "The self-hosted runner lost communication with the server. Verify the machine is running and has a healthy network connection. Anything in your workflow that terminates the runner process, starves it for CPU/Memory, or blocks its network access can cause this error."
+      }
+    ],
+    "91306848269": [],
+    "91306848270": [],
+    "91306848284": [
+      {
+        "annotation_level": "failure",
+        "message": "Process completed with exit code 32."
+      }
+    ],
+    "91306848285": [
+      {
+        "annotation_level": "failure",
+        "message": "Process completed with exit code 1."
+      },
+      {
+        "annotation_level": "failure",
+        "message": "Process completed with exit code 32."
+      }
+    ],
+    "91309033920": [],
+    "91309033926": [],
+    "91309033927": [],
+    "91309033928": [],
+    "91309033929": [],
+    "91309033930": [],
+    "91309033932": [],
+    "91309033935": [],
+    "91309033936": [],
+    "91309033937": [],
+    "91309033939": [],
+    "91309033941": [
+      {
+        "annotation_level": "failure",
+        "message": "Process completed with exit code 1."
+      },
+      {
+        "annotation_level": "failure",
+        "message": "expected flush after ref listing"
+      },
+      {
+        "annotation_level": "failure",
+        "message": "RPC failed; HTTP 404 curl 22 The requested URL returned error: 404"
+      }
+    ],
+    "91309033942": [],
+    "91309033944": [],
+    "91309033946": [],
+    "91309033947": [],
+    "91309033949": [],
+    "91309033950": [],
+    "91309033953": [],
+    "91309033956": [],
+    "91309033957": [],
+    "91309033958": [],
+    "91309033961": [],
+    "91309033962": [],
+    "91309033966": [],
+    "91309033967": [],
+    "91309033970": [],
+    "91309033973": [],
+    "91309033975": [],
+    "91309033978": [],
+    "91309033979": [],
+    "91309033980": [],
+    "91309033982": [],
+    "91309033989": [],
+    "91309033990": [],
+    "91309033993": [],
+    "91309033995": [],
+    "91309033997": [],
+    "91309033999": [],
+    "91309034022": [],
+    "91309034033": [],
+    "91309034035": [
+      {
+        "annotation_level": "failure",
+        "message": "Process completed with exit code 1."
+      }
+    ],
+    "91309034047": [],
+    "91309034052": [],
+    "91309034077": [],
+    "91309034090": [],
+    "91312488237": [
+      {
+        "annotation_level": "failure",
+        "message": "Process completed with exit code 1."
+      }
+    ]
+  }
+}

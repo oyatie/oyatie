@@ -173,9 +173,6 @@ where
         }
 
         let buck_text = read_text(&buck_path)?;
-        if buck_text.contains("rust_test(") {
-            continue;
-        }
 
         let has_in_crate_tests = member_has_in_crate_tests(&member_path, &tracked, &mut read_text)?;
         let integration_tests = member_integration_tests(&member_path, &tracked);
@@ -195,8 +192,39 @@ where
             continue;
         }
 
-        let library = parse_rust_library(&buck_text)
-            .with_context(|| format!("parse rust_library in {buck_path}"))?;
+        // A rust_library built from computed Starlark (e.g. `crate_root = ROOT + "/src/lib.rs"`
+        // with `mapped_srcs`) cannot be mirrored into a rust_test stanza by string reuse. Report
+        // it and keep walking: ONE such member must not abort the whole run and hide every other
+        // unwired member behind it.
+        let library = match parse_rust_library(&buck_text) {
+            Ok(library) => library,
+            Err(error) => {
+                diagnostics.push(UnsupportedMemberDiagnostic {
+                    member_path: member_path.clone(),
+                    buck_path: buck_path.clone(),
+                    code: "unsupported_computed_rust_library".to_owned(),
+                    message: format!(
+                        "rust_library is not statically mirrorable; skipped: {error:#}"
+                    ),
+                });
+                continue;
+            }
+        };
+
+        // Dedup PER `crate_root`, never a blanket "this BUCK already says rust_test( so it is
+        // wired" skip. A crate whose unit test is wired but whose `tests/*.rs` integration tests
+        // are not is exactly the population the ADR-0554 affected-set gate refuses
+        // (`RefuseUnowned`), and the blanket skip made every one of them invisible to this tool.
+        let wired_roots = wired_test_crate_roots(&buck_text);
+        let has_in_crate_tests = has_in_crate_tests && !wired_roots.contains(&library.crate_root);
+        let integration_tests: Vec<String> = integration_tests
+            .into_iter()
+            .filter(|test_path| !wired_roots.contains(test_path))
+            .collect();
+        if !has_in_crate_tests && integration_tests.is_empty() {
+            continue;
+        }
+
         candidates.push(Candidate {
             member_path,
             library,
@@ -386,6 +414,35 @@ fn parse_rust_library(buck_text: &str) -> Result<RustLibrary> {
         srcs_expr: extract_value_expr(&block, "srcs")?,
         deps: extract_deps(&block)?,
     })
+}
+
+/// The `crate_root` values a `rust_test` stanza in this BUCK already covers.
+///
+/// A block whose `crate_root` is absent or computed yields nothing, so it is treated as covering
+/// no root — the conservative direction: the tool then offers a stanza whose name may already be
+/// taken, and buck2 rejects the duplicate LOUDLY at parse time. The opposite error (claiming
+/// coverage that does not exist) is the silent one this whole change removes.
+fn wired_test_crate_roots(buck_text: &str) -> BTreeSet<String> {
+    find_call_blocks(buck_text, "rust_test")
+        .iter()
+        .filter_map(|block| extract_string_field(block, "crate_root").ok())
+        .collect()
+}
+
+/// Every balanced `function_name(...)` block, in source order.
+fn find_call_blocks(text: &str, function_name: &str) -> Vec<String> {
+    let needle = format!("{function_name}(");
+    let mut blocks = Vec::new();
+    let mut cursor = 0usize;
+    while let Some(offset) = text[cursor..].find(&needle) {
+        let start = cursor + offset;
+        let Some(block) = find_call_block(&text[start..], function_name) else {
+            break;
+        };
+        cursor = start + block.len();
+        blocks.push(block);
+    }
+    blocks
 }
 
 fn find_call_block(text: &str, function_name: &str) -> Option<String> {
@@ -743,6 +800,103 @@ mod tests {
         );
     }
 
+    /// A `rust_test` stanza already covering `crate_root`, i.e. what a wired unit test looks like.
+    fn wired_unit_test_buck() -> String {
+        format!(
+            "{}\nrust_test(\n    name = \"oya-example-kernel-unittest\",\n    srcs = glob([\"src/**/*.rs\"]),\n    crate = \"oya_example_kernel\",\n    crate_root = \"src/lib.rs\",\n    visibility = [\"PUBLIC\"],\n)\n",
+            library_buck()
+        )
+    }
+
+    /// REGRESSION: the blanket `buck_text.contains("rust_test(")` skip hid every crate whose unit
+    /// test was wired but whose `tests/*.rs` were not — the exact population the ADR-0554
+    /// affected-set gate refuses with `RefuseUnowned`. Wiring must be decided per `crate_root`.
+    #[test]
+    fn offers_integration_stanza_when_only_the_unit_crate_root_is_wired() {
+        let tracked = vec![
+            "libs/oya-example-kernel/BUCK".to_owned(),
+            "libs/oya-example-kernel/Cargo.toml".to_owned(),
+            "libs/oya-example-kernel/src/lib.rs".to_owned(),
+            "libs/oya-example-kernel/tests/contract.rs".to_owned(),
+        ];
+        let members = vec!["libs/oya-example-kernel".to_owned()];
+        let files = vec![
+            ("libs/oya-example-kernel/BUCK", wired_unit_test_buck()),
+            (
+                "libs/oya-example-kernel/src/lib.rs",
+                "#[cfg(test)] mod tests {}".to_owned(),
+            ),
+        ];
+
+        let candidates = candidates_from_fixture(members, tracked, files, None).unwrap();
+
+        assert_eq!(candidates.len(), 1, "the unwired tests/ file must surface");
+        // The already-wired unit crate_root must NOT be offered a second time.
+        assert!(!candidates[0].has_in_crate_tests);
+        assert_eq!(candidates[0].integration_tests, ["tests/contract.rs"]);
+        let names: Vec<String> = generated_targets(&candidates[0])
+            .unwrap()
+            .into_iter()
+            .map(|target| target.name)
+            .collect();
+        assert_eq!(names, ["oya-example-kernel-contract"]);
+    }
+
+    /// REGRESSION: a single member whose `rust_library` is built from computed Starlark used to
+    /// abort the ENTIRE run with `Err`, hiding every other unwired member behind it.
+    #[test]
+    fn computed_rust_library_is_a_diagnostic_not_a_run_abort() {
+        let computed_buck = r#"ROOT = "libs/oya-computed-kernel"
+
+rust_library(
+    name = "oya-computed-kernel",
+    srcs = [],
+    crate = "oya_computed_kernel",
+    crate_root = ROOT + "/src/lib.rs",
+    visibility = ["PUBLIC"],
+    mapped_srcs = {},
+)
+"#;
+        let tracked = vec![
+            "libs/oya-computed-kernel/BUCK".to_owned(),
+            "libs/oya-computed-kernel/Cargo.toml".to_owned(),
+            "libs/oya-computed-kernel/tests/contract.rs".to_owned(),
+            "libs/oya-example-kernel/BUCK".to_owned(),
+            "libs/oya-example-kernel/Cargo.toml".to_owned(),
+            "libs/oya-example-kernel/tests/contract.rs".to_owned(),
+        ];
+        let members = vec![
+            "libs/oya-computed-kernel".to_owned(),
+            "libs/oya-example-kernel".to_owned(),
+        ];
+        let files = vec![
+            ("libs/oya-computed-kernel/BUCK", computed_buck.to_owned()),
+            ("libs/oya-example-kernel/BUCK", library_buck().to_owned()),
+        ];
+
+        let report = check_report_from_fixture(members, tracked, files, None).unwrap();
+
+        let candidate_paths: Vec<&str> = report
+            .candidates
+            .iter()
+            .map(|candidate| candidate.member_path.as_str())
+            .collect();
+        assert_eq!(
+            candidate_paths,
+            ["libs/oya-example-kernel"],
+            "the healthy member must still be collected"
+        );
+        assert_eq!(report.diagnostics.len(), 1);
+        assert_eq!(
+            report.diagnostics[0].code,
+            "unsupported_computed_rust_library"
+        );
+        assert_eq!(
+            report.diagnostics[0].member_path,
+            "libs/oya-computed-kernel"
+        );
+    }
+
     #[test]
     fn filters_alphabetical_lib_candidates_without_existing_rust_test() {
         let tracked = vec![
@@ -768,10 +922,10 @@ mod tests {
                 "libs/oya-beta-kernel/src/lib.rs",
                 "#[cfg(test)] mod tests {}".to_owned(),
             ),
-            (
-                "libs/oya-gamma-kernel/BUCK",
-                format!("{}rust_test(name = \"existing\")\n", library_buck()),
-            ),
+            // gamma's in-crate tests are ALREADY wired: a rust_test covering this crate_root
+            // exists, so gamma must not be offered again. (The stanza carries a real crate_root —
+            // a bare `rust_test(name = "existing")` proves nothing about coverage.)
+            ("libs/oya-gamma-kernel/BUCK", wired_unit_test_buck()),
             (
                 "libs/oya-gamma-kernel/src/lib.rs",
                 "#[cfg(test)] mod tests {}".to_owned(),
@@ -916,8 +1070,11 @@ mod tests {
         let files = vec![
             (
                 "libs/oya-example-kernel/BUCK",
+                // The already-wired stanza must name the crate_root it covers. A bare
+                // `rust_test(name = ...)` says nothing about which sources are wired, and
+                // treating it as full coverage is the defect this suite now pins.
                 format!(
-                    "{}\nrust_test(\n    name = \"oya-example-kernel-unittest\",\n)\n",
+                    "{}\nrust_test(\n    name = \"oya-example-kernel-unittest\",\n    crate_root = \"src/lib.rs\",\n)\n",
                     include_str!("../fixtures/library_with_tests.input.txt")
                 ),
             ),

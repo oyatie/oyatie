@@ -1952,7 +1952,7 @@ fn census_epoch_artifact_rows_use_the_rust_buck_gate() {
 }
 
 #[test]
-fn census_epoch_owners_is_adr_justified_and_nonbinding_reachable() {
+fn census_epoch_owners_is_adr_justified_and_not_hand_registered() {
     let repo_root = discover_repo_root().expect("discover repository root");
     let owners_path = "registry/adr-census-epoch/OWNERS";
     let adr = std::fs::read_to_string(
@@ -1975,26 +1975,10 @@ fn census_epoch_owners_is_adr_justified_and_nonbinding_reachable() {
         .iter()
         .filter(|row| row["prefix"].as_str() == Some(owners_path))
         .collect::<Vec<_>>();
-    assert_eq!(
-        matching.len(),
-        1,
-        "the census epoch ownership marker must have one exact reachability row"
+    assert!(
+        matching.is_empty(),
+        "OWNERS files are accounted by construction and must not regain hand-written reachability rows"
     );
-    let anchor = matching[0]["anchor"]
-        .as_str()
-        .expect("census epoch OWNERS reachability anchor must be text");
-    for required_claim_ceiling in [
-        "HOLD(Planning)",
-        "ADR-0624",
-        "no closure",
-        "dispatch",
-        "authority",
-    ] {
-        assert!(
-            anchor.contains(required_claim_ceiling),
-            "census epoch OWNERS reachability anchor must preserve {required_claim_ceiling}"
-        );
-    }
 }
 
 #[test]

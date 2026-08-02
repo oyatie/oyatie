@@ -1892,11 +1892,12 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 Ok(args) => match crate::validate_aspirational_enforcement_gate(args) {
                     Ok(report) => {
                         println!(
-                            "aspirational-enforcement validation passed: {} documents, {} lines, {} binding mentions, {} check crates, {} workflow contexts, {} quality lane contexts, {} required contexts",
+                            "aspirational-enforcement validation passed: {} documents, {} lines, {} binding mentions, {} check sites, {} check capabilities, {} workflow contexts, {} quality lane contexts, {} required contexts",
                             report.documents_checked,
                             report.lines_checked,
                             report.binding_mentions,
-                            report.known_crates,
+                            report.check_sites,
+                            report.check_capabilities,
                             report.workflow_contexts,
                             report.quality_lane_contexts,
                             report.branch_required_contexts

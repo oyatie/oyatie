@@ -1180,7 +1180,7 @@
           ]
         },
         "verification": {
-          "checker_crate": "oya/intelligence/crates/oya-intelligence-settings-template-kernel",
+          "checker_crate": "intelligence/core/settings-template-kernel",
           "command": "oya-ci-required/cloud-ci evidence: settings-drift --template templates/foundry-supervisor/claude.toml --accounts registry/accounts/claude*.toml",
           "verifies": [
             "template instances valid per schema.json",
@@ -1188,11 +1188,11 @@
           ]
         },
         "validation": {
-          "validator": "oya/intelligence/crates/oya-intelligence-settings-template-kernel::SettingsRenderer::verify",
+          "validator": "intelligence/core/settings-template-kernel::SettingsRenderer::verify",
           "trigger": "pre-commit-hook"
         },
         "autogen": {
-          "generator": "oya/intelligence/crates/oya-intelligence-settings-template-kernel::SettingsRenderer::render",
+          "generator": "intelligence/core/settings-template-kernel::SettingsRenderer::render",
           "inputs": [
             "registry/accounts/claude*.toml",
             "templates/foundry-supervisor/claude.toml"
@@ -1200,12 +1200,13 @@
           "idempotency_class": "content-addressed-blake3"
         },
         "selfheal": {
-          "healer": "oya/intelligence/crates/oya-intelligence-settings-template-kernel::SettingsRenderer::reconcile",
+          "healer": "manual — invoke an intelligence/adapters/settings-template-adapter implementation of SettingsRenderer::render; no reconciliation API exists",
           "heals_what": [
             "drift between template and rendered per-account files"
           ],
-          "safe_unattended": [
-            "re-render on blake3-mismatch"
+          "safe_unattended": [],
+          "requires_human_approval_for": [
+            "rendering drift remediation until a reviewed invocation path exists"
           ]
         },
         "selfupdate": {
@@ -1239,8 +1240,8 @@
           ]
         },
         "provenance": {
-          "current_author": "worker-registry",
-          "last_modified_at": "2026-05-15T00:00:00Z"
+          "current_author": "codex-baseline-repair",
+          "last_modified_at": "2026-08-01T00:00:00Z"
         }
       }
     },
@@ -1263,7 +1264,7 @@
           ]
         },
         "verification": {
-          "checker_crate": "oya/intelligence/crates/oya-intelligence-settings-template-kernel",
+          "checker_crate": "intelligence/core/settings-template-kernel",
           "command": "oya-ci-required/cloud-ci evidence: settings-drift --template templates/foundry-supervisor/codex.toml --accounts registry/accounts/codex*.toml",
           "verifies": [
             "template instances valid per schema.json",
@@ -1271,11 +1272,11 @@
           ]
         },
         "validation": {
-          "validator": "oya/intelligence/crates/oya-intelligence-settings-template-kernel::SettingsRenderer::verify",
+          "validator": "intelligence/core/settings-template-kernel::SettingsRenderer::verify",
           "trigger": "pre-commit-hook"
         },
         "autogen": {
-          "generator": "oya/intelligence/crates/oya-intelligence-settings-template-kernel::SettingsRenderer::render",
+          "generator": "intelligence/core/settings-template-kernel::SettingsRenderer::render",
           "inputs": [
             "registry/accounts/codex*.toml",
             "templates/foundry-supervisor/codex.toml"
@@ -1283,12 +1284,13 @@
           "idempotency_class": "content-addressed-blake3"
         },
         "selfheal": {
-          "healer": "oya/intelligence/crates/oya-intelligence-settings-template-kernel::SettingsRenderer::reconcile",
+          "healer": "manual — invoke an intelligence/adapters/settings-template-adapter implementation of SettingsRenderer::render; no reconciliation API exists",
           "heals_what": [
             "drift between template and rendered per-account files"
           ],
-          "safe_unattended": [
-            "re-render on blake3-mismatch"
+          "safe_unattended": [],
+          "requires_human_approval_for": [
+            "rendering drift remediation until a reviewed invocation path exists"
           ]
         },
         "selfupdate": {
@@ -1322,8 +1324,8 @@
           ]
         },
         "provenance": {
-          "current_author": "worker-registry",
-          "last_modified_at": "2026-05-15T00:00:00Z"
+          "current_author": "codex-baseline-repair",
+          "last_modified_at": "2026-08-01T00:00:00Z"
         }
       }
     },
@@ -1346,7 +1348,7 @@
           ]
         },
         "verification": {
-          "checker_crate": "oya/intelligence/crates/oya-intelligence-settings-template-kernel",
+          "checker_crate": "intelligence/core/settings-template-kernel",
           "command": "oya-ci-required/cloud-ci evidence: settings-drift --template templates/foundry-supervisor/gemini.toml --accounts registry/accounts/gemini*.toml",
           "verifies": [
             "template instances valid per schema.json",
@@ -1354,11 +1356,11 @@
           ]
         },
         "validation": {
-          "validator": "oya/intelligence/crates/oya-intelligence-settings-template-kernel::SettingsRenderer::verify",
+          "validator": "intelligence/core/settings-template-kernel::SettingsRenderer::verify",
           "trigger": "pre-commit-hook"
         },
         "autogen": {
-          "generator": "oya/intelligence/crates/oya-intelligence-settings-template-kernel::SettingsRenderer::render",
+          "generator": "intelligence/core/settings-template-kernel::SettingsRenderer::render",
           "inputs": [
             "registry/accounts/gemini*.toml",
             "templates/foundry-supervisor/gemini.toml"
@@ -1366,12 +1368,13 @@
           "idempotency_class": "content-addressed-blake3"
         },
         "selfheal": {
-          "healer": "oya/intelligence/crates/oya-intelligence-settings-template-kernel::SettingsRenderer::reconcile",
+          "healer": "manual — invoke an intelligence/adapters/settings-template-adapter implementation of SettingsRenderer::render; no reconciliation API exists",
           "heals_what": [
             "drift between template and rendered per-account files"
           ],
-          "safe_unattended": [
-            "re-render on blake3-mismatch"
+          "safe_unattended": [],
+          "requires_human_approval_for": [
+            "rendering drift remediation until a reviewed invocation path exists"
           ]
         },
         "selfupdate": {
@@ -1405,8 +1408,8 @@
           ]
         },
         "provenance": {
-          "current_author": "worker-registry",
-          "last_modified_at": "2026-05-15T00:00:00Z"
+          "current_author": "codex-baseline-repair",
+          "last_modified_at": "2026-08-01T00:00:00Z"
         }
       }
     },
@@ -1415,7 +1418,7 @@
       "artifact_path": "intelligence/core/supervisor-kernel/Cargo.toml",
       "artifact_format": "rust-crate",
       "contract_version": "v3.0.0",
-      "owner_team": "axis-foundry",
+      "owner_team": "axis-intelligence",
       "purpose_short": "Kernel crate for foundry supervisor: port traits (SessionDriver, InboxStore, OutboxSink, UsageEnforcement, RoutePolicy, SecretStorePort), domain types (SessionTicket, SpendRecord, MessageId, RequestId), dead_letter contract.",
       "artifact_profile": "kernel-crate",
       "capability_overrides": {
@@ -1430,7 +1433,7 @@
         },
         "verification": {
           "checker_crate": "libs/oya-check-dependency-seam",
-          "command": "cargo check -p oya-intelligence-supervisor-kernel",
+          "command": "cargo check -p intelligence-supervisor-kernel",
           "verifies": [
             "zero external non-std dependencies in kernel",
             "all port traits sealed",
@@ -1494,8 +1497,8 @@
           ]
         },
         "provenance": {
-          "current_author": "worker-registry",
-          "last_modified_at": "2026-05-15T00:00:00Z"
+          "current_author": "codex-baseline-repair",
+          "last_modified_at": "2026-08-01T00:00:00Z"
         }
       }
     },
@@ -1504,7 +1507,7 @@
       "artifact_path": "intelligence/core/settings-template-kernel/Cargo.toml",
       "artifact_format": "rust-crate",
       "contract_version": "v3.0.0",
-      "owner_team": "axis-foundry",
+      "owner_team": "axis-intelligence",
       "purpose_short": "Kernel crate for settings template rendering: SettingsTemplate trait, SettingsRenderer (blake3 hash + drift detect), HookEvent, McpServerRef port types. Reusable across M03+ Workflow Studio.",
       "artifact_profile": "kernel-crate",
       "capability_overrides": {
@@ -1518,7 +1521,7 @@
         },
         "verification": {
           "checker_crate": "libs/oya-check-dependency-seam",
-          "command": "cargo check -p oya-intelligence-settings-template-kernel",
+          "command": "cargo check -p intelligence-settings-template-kernel",
           "verifies": [
             "zero external non-std dependencies in kernel",
             "SettingsRenderer::verify idempotent",
@@ -1581,8 +1584,8 @@
           ]
         },
         "provenance": {
-          "current_author": "worker-registry",
-          "last_modified_at": "2026-05-15T00:00:00Z"
+          "current_author": "codex-baseline-repair",
+          "last_modified_at": "2026-08-01T00:00:00Z"
         }
       }
     },
@@ -1591,7 +1594,7 @@
       "artifact_path": "registry/quality/lanes/lean-settings-drift.json",
       "artifact_format": "json",
       "contract_version": "v3.0.0",
-      "owner_team": "axis-foundry",
+      "owner_team": "axis-intelligence",
       "purpose_short": "CI lane enforcing settings-template drift detection. Feature-flagged off until N>=10 account rows. Before threshold runs against fixture files only (vacuous pass). Per v5 §A.1.2.",
       "artifact_profile": "ci-lane",
       "capability_overrides": {
@@ -1604,7 +1607,7 @@
           ]
         },
         "verification": {
-          "checker_crate": "oya/intelligence/crates/oya-intelligence-settings-template-kernel",
+          "checker_crate": "intelligence/core/settings-template-kernel",
           "command": "oya-ci-required/cloud-ci evidence: settings-drift --workspace",
           "verifies": [
             "all rendered per-account files match their template blake3",
@@ -1621,11 +1624,10 @@
           "idempotency_class": "deterministic"
         },
         "selfheal": {
-          "healer": "oya/intelligence/crates/oya-intelligence-settings-template-kernel::SettingsRenderer::reconcile (VerifyOnly mode)",
-          "safe_unattended": [
-            "re-render drifted files"
-          ],
+          "healer": "not-applicable — this planned lane is verify-only and has no remediation invocation path",
+          "safe_unattended": [],
           "requires_human_approval_for": [
+            "rendering drift remediation",
             "template shape change"
           ]
         },
@@ -1660,17 +1662,17 @@
           ]
         },
         "provenance": {
-          "current_author": "worker-registry",
-          "last_modified_at": "2026-05-15T00:00:00Z"
+          "current_author": "codex-baseline-repair",
+          "last_modified_at": "2026-08-01T00:00:00Z"
         }
       }
     },
     {
       "artifact_id": "foundry-settings-template-drift-adapter",
-      "artifact_path": "oya/intelligence/crates/oya-intelligence-settings-template-adapter/src/lib.rs",
+      "artifact_path": "intelligence/adapters/settings-template-adapter/src/lib.rs",
       "artifact_format": "rust-source",
       "contract_version": "v3.0.0",
-      "owner_team": "axis-foundry",
+      "owner_team": "axis-intelligence",
       "purpose_short": "Settings-template adapter verifier surface. Implements SettingsRenderer::verify for Claude, Codex, and Gemini account templates; consumed by the lean-settings-drift lane.",
       "artifact_profile": "verifier",
       "capability_overrides": {
@@ -1683,8 +1685,8 @@
           ]
         },
         "verification": {
-          "checker_crate": "oya/intelligence/crates/oya-intelligence-settings-template-adapter",
-          "command": "cargo test -p oya-intelligence-settings-template-adapter",
+          "checker_crate": "intelligence/adapters/settings-template-adapter",
+          "command": "cargo test -p intelligence-settings-template-adapter",
           "verifies": [
             "exit 0 on no-drift fixture",
             "exit 1 on drift fixture",
@@ -1692,7 +1694,7 @@
           ]
         },
         "validation": {
-          "validator": "cargo clippy -p oya-intelligence-settings-template-adapter",
+          "validator": "cargo clippy -p intelligence-settings-template-adapter",
           "trigger": "pre-commit-hook"
         },
         "autogen": {
@@ -1701,9 +1703,10 @@
           "idempotency_class": "deterministic"
         },
         "selfheal": {
-          "healer": "not-applicable — verifier is read-only; drift remediation delegated to SettingsRenderer::reconcile",
+          "healer": "manual — adapter implementations expose SettingsRenderer::render, but no unattended remediation invocation path exists",
           "safe_unattended": [],
           "requires_human_approval_for": [
+            "rendering drift remediation",
             "any behavioural change in exit code contract"
           ]
         },
@@ -1737,8 +1740,8 @@
           ]
         },
         "provenance": {
-          "current_author": "worker-registry",
-          "last_modified_at": "2026-05-15T00:00:00Z"
+          "current_author": "codex-baseline-repair",
+          "last_modified_at": "2026-08-01T00:00:00Z"
         }
       }
     },

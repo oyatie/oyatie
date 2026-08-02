@@ -73,7 +73,7 @@ Many tools serve both — e.g. catalog browsing is human-and-agent. The toolchai
 | **Plugin authoring SDK** | **Rust → WASM** (canonical); **TS / AssemblyScript → WASM** (compatibility); **Python → WASM** (where Pyodide-class is acceptable) | Go is currently weak on WASM; not first-class | Multi-language support widens marketplace |
 | **Engineering CLI** (the `oya dev / admin / build / agent / ops / pack / catalog / gate` split) | **Rust** + clap | none | Single binary distribution; cross-platform |
 | **Documentation site** | **Rust + leptos-static** with mdbook-class generator (in-house) | Astro / Docusaurus during bootstrap if needed | Self-hosted; agent-friendly source format |
-| **IDP / catalog UI portal** | **Rust + Leptos** | Backstage during bootstrap if needed (Apache-2; OK) | Same family |
+| **IDP / catalog UI portal** | **Rust + Leptos** | Backstage may be consulted as a feature reference or consumed through a bounded one-way catalog import; it is never a runtime/bootstrap dependency | Same family; first-party portal per ADR-0394 |
 | **Build cache + remote execution** | **Rust** (sccache for Rust; remote-execution via Bazel-remote protocol) | Bazel itself if the workspace adopts it (gated decision) | sccache is canonical |
 | **CI orchestrator** | **GitHub Actions** for IO; **Rust nextest** for test execution; in-house orchestrator under consideration | self-hosted Argo Workflows per Issue #1307 | Existing GitHub investment |
 | **Notebook / ad-hoc analytics** | **Python** (DuckDB + Polars + pandas) | Rust + Polars (Rust API) for repeatable jobs | Data scientist familiarity |
@@ -340,7 +340,7 @@ CI lane `oya-governance-license` runs `cargo deny` + per-language equivalents an
 | 10 | `oya-intelligence-cache` (prompt + semantic cache) | Cost reduction |
 | 11 | `oya dev / admin / build / agent / ops / pack / catalog / gate` CLI split | Persona separation |
 | 12 | `oya-intelligence-marketplace` (plugin authoring + signing + sandbox) | Customer-extensible Foundry |
-| 13 | `oya-portal` (IDP / catalog UI in Leptos) | Replace Backstage bootstrap |
+| 13 | `oya-portal` (IDP / catalog UI in Leptos) | Deliver the first-party portal without a Backstage runtime bootstrap |
 | 14 | `oya-toolchain` (shared Rust libs every team uses) | Cohesion compounds |
 | 15 | `oya-bench` (benchmark harness) | Perf regression detection |
 | 16 | `oya-bouncer` (license + SBOM + supply-chain) | Wraps cargo-deny + Cosign + Trivy |

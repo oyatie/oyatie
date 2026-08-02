@@ -1,7 +1,7 @@
 ---
 id: ADR-0565
 title: "Zero GraphQL in the owned API surface — the canonical surface set is REST + gRPC + async + realtime, and GraphQL returns only by an ADR that explicitly reverses this"
-status: Proposed
+status: Accepted
 planning_impact: true
 deciders: founder
 date: 2026-06-21
@@ -9,7 +9,7 @@ door: one-way
 owner: council-architecture
 supersedes: []
 superseded_by: []
-amends: []
+amends: [ADR-0253, ADR-0258]
 amended_by: []
 # NOTE: the Phase-00 product spec under docs/products/<de-brand-target>/ also named GraphQL in its
 # transport-parity scope; its GraphQL retraction is deferred to the de-brand of that directory
@@ -29,8 +29,11 @@ milestone: W0
 
 ## Status
 
-**Proposed — 2026-06-21 (council-architecture; founder decision; door: one-way — removing a declared
-API surface from the owned stack is a directional commitment; reintroduction is itself a one-way ADR).**
+**Accepted — 2026-08-01 (founder-ratified; door: one-way).** The founder confirmed a zero-GraphQL
+owned API surface after the north-star interview. The public/internal exposure split and the exact
+non-GraphQL product contract are specified separately; this decision binds only the removal and
+fail-closed reintroduction rule. Reintroduction requires a later Accepted ADR that explicitly
+reverses this decision.
 
 ## Context
 
