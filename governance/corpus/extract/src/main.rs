@@ -24,6 +24,7 @@
 use std::path::{Path, PathBuf};
 use std::process::{Command, ExitCode};
 
+use corpus_core::{CoveragePolicy, evaluate_coverage};
 use corpus_extract::{
     CorpusExtraction, SourceFile, SourceSet, SynAstSource, extract_corpus, module_path_for,
     resolve_capability_crates,
@@ -31,18 +32,36 @@ use corpus_extract::{
 
 fn main() -> ExitCode {
     let args: Vec<String> = std::env::args().collect();
-    let (repo_root, dir_prefix) = match args.as_slice() {
-        [_, repo_root, dir_prefix] => (PathBuf::from(repo_root), dir_prefix.clone()),
+    let (repo_root, dir_prefix, ceiling) = match args.as_slice() {
+        [_, repo_root, dir_prefix] => (PathBuf::from(repo_root), dir_prefix.clone(), None),
+        [_, repo_root, dir_prefix, ceiling] => match ceiling.parse::<usize>() {
+            Ok(ceiling) => (PathBuf::from(repo_root), dir_prefix.clone(), Some(ceiling)),
+            Err(error) => {
+                eprintln!("corpus-extract: unindexed-target ceiling must be an integer: {error}");
+                return ExitCode::from(2);
+            }
+        },
         _ => {
-            eprintln!("usage: corpus-extract <repo_root> <capability_dir_prefix>");
+            eprintln!(
+                "usage: corpus-extract <repo_root> <capability_dir_prefix> \
+                 [unindexed_target_ceiling]"
+            );
             return ExitCode::from(2);
         }
     };
 
-    match run(&repo_root, &dir_prefix) {
-        Ok(json) => {
+    match run(&repo_root, &dir_prefix, ceiling) {
+        Ok(Outcome { json, blocked }) => {
             println!("{json}");
-            ExitCode::SUCCESS
+            // A ratchet that only ever prints is advisory forever. Exiting non-zero on a BLOCKING
+            // finding is what lets a caller (a CI lane, a buck2 action) enforce it without
+            // reimplementing the evaluation — and is why the ceiling is an argument rather than a
+            // number frozen inside the binary.
+            if blocked {
+                ExitCode::FAILURE
+            } else {
+                ExitCode::SUCCESS
+            }
         }
         Err(message) => {
             eprintln!("corpus-extract: {message}");
@@ -51,9 +70,15 @@ fn main() -> ExitCode {
     }
 }
 
+/// What a run produced: the canonical fact-set JSON, and whether the coverage ratchet blocked.
+struct Outcome {
+    json: String,
+    blocked: bool,
+}
+
 /// Resolve, extract, and render. Returns the canonical fact-set JSON (stdout) and prints the opaque
 /// report to stderr as a side effect.
-fn run(repo_root: &Path, dir_prefix: &str) -> Result<String, String> {
+fn run(repo_root: &Path, dir_prefix: &str, ceiling: Option<usize>) -> Result<Outcome, String> {
     let crate_dirs = resolve_capability_crates(repo_root, dir_prefix)
         .map_err(|e| format!("resolve capability crates: {e}"))?;
     if crate_dirs.is_empty() {
@@ -72,6 +97,9 @@ fn run(repo_root: &Path, dir_prefix: &str) -> Result<String, String> {
             let module_path = module_path_for(crate_dir, &rel);
             files.push(SourceFile {
                 crate_id: crate_id.clone(),
+                // `git ls-files` already yields REPO-relative paths, which is exactly the File-node
+                // container identity the graph requires.
+                path: rel,
                 module_path,
                 source,
             });
@@ -83,11 +111,62 @@ fn run(repo_root: &Path, dir_prefix: &str) -> Result<String, String> {
         extract_corpus(&SynAstSource::new(), &set).map_err(|e| format!("extract corpus: {e}"))?;
 
     report_to_stderr(dir_prefix, &crate_dirs, &extraction);
+    let blocked = evaluate_ratchet(&extraction, ceiling);
 
-    extraction
+    let json = extraction
         .facts
         .canonical_json()
-        .map_err(|e| format!("serialize fact set: {e}"))
+        .map_err(|e| format!("serialize fact set: {e}"))?;
+    Ok(Outcome { json, blocked })
+}
+
+/// Evaluate the edge-coverage ratchet and report every finding. Returns whether any finding blocks.
+///
+/// The anti-vacuity floor is DERIVED, never asserted: a run that resolved facts but produced zero
+/// `Refs` targets means the reference pass collapsed, and its "nothing dangles" result is
+/// meaningless rather than perfect. With no ceiling supplied the ratchet is ADVISORY — every
+/// dangling target is still reported, but nothing fails — which is how it is born.
+fn evaluate_ratchet(extraction: &CorpusExtraction, ceiling: Option<usize>) -> bool {
+    let coverage = extraction.graph.coverage();
+    let policy = CoveragePolicy {
+        baseline_unindexed_targets: ceiling.unwrap_or(coverage.unindexed_targets()),
+        min_expected_targets: usize::from(!extraction.facts.is_empty()),
+    };
+    let findings = evaluate_coverage(&extraction.graph, &policy);
+    let blocking: Vec<_> = findings.iter().filter(|finding| finding.blocking).collect();
+    eprintln!(
+        "  coverage ratchet (ceiling {}{}):",
+        policy.baseline_unindexed_targets,
+        if ceiling.is_some() {
+            ""
+        } else {
+            ", ADVISORY — no ceiling supplied"
+        }
+    );
+    let mut dangling = 0usize;
+    for finding in &findings {
+        // Dangling targets are already listed above as the unindexed sample; printing each one
+        // twice would bury the codes that decide the verdict. They are COUNTED here so an empty
+        // section can never be mistaken for a clean one.
+        if finding.code == corpus_core::CODE_EDGE_DANGLING_TARGET {
+            dangling += 1;
+        } else {
+            eprintln!("    [{}] {}", finding.code, finding.detail);
+        }
+    }
+    eprintln!(
+        "    [{}] x{dangling}",
+        corpus_core::CODE_EDGE_DANGLING_TARGET
+    );
+    eprintln!(
+        "    verdict: {}",
+        if blocking.is_empty() {
+            "PASS"
+        } else {
+            "BLOCKED"
+        }
+    );
+    !blocking.is_empty()
 }
 
 /// Read a crate's de-branded cargo `name` from its `Cargo.toml` (the fact `crate_id`).
@@ -173,5 +252,41 @@ fn report_to_stderr(dir_prefix: &str, crate_dirs: &[String], extraction: &Corpus
         for reason in &report.opaque {
             eprintln!("    [{}] {}", reason.category(), reason.detail());
         }
+    }
+
+    // The graph + the COVERAGE RATCHET input. Every number here is counted from the graph that was
+    // just built; none is asserted.
+    let graph = &extraction.graph;
+    let coverage = graph.coverage();
+    eprintln!("  graph nodes: {}", graph.nodes().len());
+    eprintln!("  graph edges: {}", graph.edges().len());
+    eprintln!(
+        "  edge-target coverage: {}/{} indexed ({}.{:02}%)",
+        coverage.indexed_targets,
+        coverage.total_targets,
+        coverage.rate_bps() / 100,
+        coverage.rate_bps() % 100
+    );
+    eprintln!("  unindexed edge targets: {}", coverage.unindexed_targets());
+    // Print a bounded SAMPLE of the unindexed set, not just its size. A coverage number nobody can
+    // audit is an assertion wearing a measurement's clothes: the sample is what lets a reader see
+    // whether the miss is real (a genuinely absent definition) or an artifact of the extractor's
+    // missing import resolution (`Vec`, `String`, an unqualified intra-module call).
+    let unresolved = graph.unresolved_targets();
+    for target in unresolved.iter().take(20) {
+        eprintln!("    unindexed: {}::{}", target.container, target.path);
+    }
+    if unresolved.len() > 20 {
+        eprintln!("    ... and {} more", unresolved.len() - 20);
+    }
+    let duplicates = graph.duplicate_containers();
+    eprintln!("  byte-identical file families: {}", duplicates.len());
+    for (digest, containers) in duplicates.iter().take(10) {
+        eprintln!(
+            "    {} x{}: {}",
+            &digest.as_str()[..8],
+            containers.len(),
+            containers.join(", ")
+        );
     }
 }

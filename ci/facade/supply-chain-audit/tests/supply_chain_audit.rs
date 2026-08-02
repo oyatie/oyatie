@@ -69,12 +69,17 @@ fn live_corpus_is_born_blocking_green() {
 fn active_admission_wires_signature_provenance_sbom_and_vet_posture() {
     let root = repo_root();
 
-    let workflow = std::fs::read_to_string(root.join(".github/workflows/oya-ci-required.yml"))
-        .expect("read oya-ci-required workflow");
+    // The 48->2 matrix collapse (2026-08-01) removed this gate's dedicated matrix leg: the whole
+    // `ci/facade` fleet is now executed once by `buck2 test //ci/...`, a strict superset of what
+    // the matrix ran. The matrix-text assertion that used to live here is deliberately NOT
+    // replaced by `workflow.contains("buck2 test //ci/...")` — that would re-commit the same
+    // substring defect (a comment satisfies it) one rename later. Registration is owned by
+    // `gate_registration.rs`, which resolves the patterns fan-in-reachable jobs actually execute
+    // and requires this crate's BUCK to declare a test rule. The residual obligation THIS test
+    // keeps is the one it can check locally: the gate's own Buck target must exist.
     assert!(
-        workflow.contains("crate: supply-chain-audit")
-            && workflow.contains("gate · supply-chain-audit"),
-        "the supply-chain audit gate must be part of the active oya-ci-required admission matrix"
+        root.join("ci/facade/supply-chain-audit/BUCK").is_file(),
+        "the supply-chain audit gate must declare a Buck target to be executed by //ci/..."
     );
 
     let kyverno =

@@ -17,7 +17,22 @@
 //!    fact per resolvable item, recording each unresolvable item as an
 //!    [`OpaqueReason`](corpus_core::OpaqueReason).
 //! 4. [`extract_corpus`] — fold the per-file extractions into a canonical
-//!    [`FactSet`](corpus_core::FactSet) + an [`OpaqueReport`].
+//!    [`FactSet`](corpus_core::FactSet), a [`Graph`](corpus_core::Graph), and an [`OpaqueReport`].
+//!
+//! ## The graph
+//! Facts alone answer "does this item exist"; edges answer "what reaches it". This extractor emits
+//! the [`Graph`](corpus_core::Graph) alongside the facts: a `File` node per source file, an `Entry`
+//! node per fact, `Contains` edges (file→item, impl→method), and `Refs` edges for calls, type
+//! mentions, and implemented traits.
+//!
+//! An edge `dst` is a NAME, not a fact pointer, so a reference to something that does not exist
+//! stays REPRESENTABLE — that dangling state is the defect worth detecting, and a fact pointer
+//! would have made it unrepresentable. [`Graph::coverage`](corpus_core::Graph::coverage) counts
+//! indexed over total `Refs` targets, and
+//! [`evaluate_coverage`](corpus_core::evaluate_coverage) turns that count into a shrink-only
+//! ratchet. Measured 2026-08-01 with no import resolution: `governance/corpus` 159/463 (34.34%),
+//! `ci/facade` 1710/4716 (36.25%) — the unindexed remainder is dominated by std and cross-crate
+//! names, which are genuinely outside the extracted slice.
 //!
 //! ## Hermeticity + determinism
 //! No clock, no rand, no network, no ambient env. The only inputs are the committed manifest, the
@@ -40,9 +55,13 @@ use std::collections::BTreeMap;
 use std::fmt;
 use std::path::Path;
 
-use corpus_core::{AstSource, Extraction, FactSet, Function, ItemKind, OpaqueReason, Visibility};
+use corpus_core::{
+    AstSource, ContentHash, Edge, EdgeKind, Extraction, FactSet, Function, Graph, ItemKind, Node,
+    NodeId, OpaqueReason, Visibility,
+};
 use oya_workspace_members_kernel::{ResolveError, resolve_member_dirs};
 use quote::ToTokens;
+use syn::visit::{self, Visit};
 
 /// The infallible error type for [`SynAstSource`]: parse failures are reported as per-item
 /// [`OpaqueReason::ParseError`], so `extract_file` never actually fails. The type exists to satisfy
@@ -121,14 +140,19 @@ pub fn module_path_for(crate_dir: &str, rel: &str) -> String {
 pub struct SourceFile {
     /// The owning crate's de-branded cargo name (e.g. `flags-evaluation-domain`).
     pub crate_id: String,
+    /// The file's REPO-RELATIVE path. This is the [`NodeId::file`] container, so it must be the
+    /// repo-relative form: a per-package or absolute path would make two extractions of the same
+    /// file produce different node identities, and the graph would fragment into islands that each
+    /// look internally consistent.
+    pub path: String,
     /// The `::`-joined module path the file's items live under (empty for `lib.rs`/`main.rs`).
     pub module_path: String,
     /// The file's UTF-8 source.
     pub source: String,
 }
 
-/// A canonically-ordered set of source files to extract. Ordering is by `(crate_id, module_path)`
-/// so the corpus walk — and thus any incidental ordering effect — is deterministic.
+/// A canonically-ordered set of source files to extract. Ordering is by `(crate_id, path)` so the
+/// corpus walk — and thus any incidental ordering effect — is deterministic.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct SourceSet {
     files: Vec<SourceFile>,
@@ -141,6 +165,7 @@ impl SourceSet {
         files.sort_by(|a, b| {
             a.crate_id
                 .cmp(&b.crate_id)
+                .then_with(|| a.path.cmp(&b.path))
                 .then_with(|| a.module_path.cmp(&b.module_path))
         });
         SourceSet { files }
@@ -185,11 +210,14 @@ impl OpaqueReport {
     }
 }
 
-/// The full result of extracting a corpus slice: the canonical fact set + the opaque report.
+/// The full result of extracting a corpus slice: the canonical fact set, the graph, and the opaque
+/// report.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct CorpusExtraction {
     /// The canonical, sorted, de-duplicated facts.
     pub facts: FactSet,
+    /// The canonical node/edge graph over those facts.
+    pub graph: Graph,
     /// The opaque-rate report.
     pub report: OpaqueReport,
 }
@@ -209,11 +237,39 @@ pub fn extract_corpus<S: AstSource>(
 ) -> Result<CorpusExtraction, S::Error> {
     let mut facts: Vec<Function> = Vec::new();
     let mut opaque: Vec<OpaqueReason> = Vec::new();
+    let mut nodes: Vec<Node> = Vec::new();
+    let mut edges: Vec<Edge> = Vec::new();
 
     for file in set.files() {
         let extraction: Extraction =
             source.extract_file(&file.crate_id, &file.module_path, &file.source)?;
+
+        // DERIVED, so no AstSource has to reimplement it (or can forget to):
+        //  - one File node per source file, digested over the file BYTES. Two byte-identical files
+        //    therefore carry the same digest while staying two nominally distinct nodes, which is
+        //    exactly what makes duplication a free `Graph::duplicate_containers` query.
+        //  - one Entry node per clean fact, digested by the fact's own SHALLOW signature hash.
+        //  - a file→item `Contains` edge, the spanning forest a reachability BFS walks.
+        let file_id = NodeId::file(&file.path);
+        nodes.push(Node {
+            id: file_id.clone(),
+            digest: ContentHash::of(file.source.as_bytes()),
+        });
+        for fact in &extraction.facts {
+            let entry_id = NodeId::entry(&fact.crate_id, &fact.fqpath);
+            nodes.push(Node {
+                id: entry_id.clone(),
+                digest: fact.signature_hash.clone(),
+            });
+            edges.push(Edge {
+                kind: EdgeKind::Contains,
+                src: file_id.clone(),
+                dst: entry_id,
+            });
+        }
+
         facts.extend(extraction.facts);
+        edges.extend(extraction.edges);
         opaque.extend(extraction.opaque);
     }
 
@@ -271,6 +327,7 @@ pub fn extract_corpus<S: AstSource>(
 
     Ok(CorpusExtraction {
         facts: fact_set,
+        graph: Graph::new(nodes, edges),
         report,
     })
 }
@@ -306,6 +363,7 @@ impl AstSource for SynAstSource {
                 // denominator so the opaque rate is honest.
                 return Ok(Extraction {
                     facts: Vec::new(),
+                    edges: Vec::new(),
                     opaque: vec![OpaqueReason::ParseError(format!(
                         "{crate_id}::{module_path}: {error}"
                     ))],
@@ -614,6 +672,93 @@ fn impl_body_disambiguator(item_impl: &syn::ItemImpl) -> String {
     hash.to_hex()[..8].to_owned()
 }
 
+/// Collects the NAMES a syn node references: call targets, struct-literal paths, and type paths.
+///
+/// Deliberately narrow. A bare `syn::Path` visitor would also pick up local bindings, match arms,
+/// and macro fragments, and a `Refs` edge that names a local variable makes the dangling-reference
+/// query cry wolf — which is the whole reason the query exists. Method calls (`x.foo()`) are NOT
+/// collected: resolving a method needs the receiver's type, so there is no name to emit, and
+/// inventing one would be worse than omitting it.
+#[derive(Debug, Default)]
+struct RefCollector {
+    names: std::collections::BTreeSet<String>,
+}
+
+impl RefCollector {
+    fn record(&mut self, path: &syn::Path) {
+        if let Some(name) = reference_name(path) {
+            self.names.insert(name);
+        }
+    }
+}
+
+impl<'ast> Visit<'ast> for RefCollector {
+    fn visit_expr_call(&mut self, node: &'ast syn::ExprCall) {
+        if let syn::Expr::Path(path) = node.func.as_ref() {
+            self.record(&path.path);
+        }
+        visit::visit_expr_call(self, node);
+    }
+
+    fn visit_expr_struct(&mut self, node: &'ast syn::ExprStruct) {
+        self.record(&node.path);
+        visit::visit_expr_struct(self, node);
+    }
+
+    fn visit_type_path(&mut self, node: &'ast syn::TypePath) {
+        self.record(&node.path);
+        visit::visit_type_path(self, node);
+    }
+}
+
+/// Render a referenced path as the NAME an edge `dst` carries: idents joined by `::`, generic
+/// arguments dropped (they are visited separately as their own type paths).
+///
+/// `crate::` and `self::` prefixes are stripped because a fact `fqpath` is already crate-relative.
+/// `Self` and `super` are rejected: resolving either needs context this pass does not carry, and a
+/// wrong name is worse than a missing one.
+// ponytail: the name is recorded AS WRITTEN, with no `use`-alias resolution — so `HashMap` stays
+// `HashMap` rather than `std::collections::HashMap`, and an unqualified intra-module call `foo()`
+// stays `foo` rather than `m::foo`. The ceiling: every such reference lands in the UNINDEXED bucket
+// that `Graph::coverage` counts, so today's number is a floor, not a verdict on the code. The
+// upgrade path is a per-file `use`-map applied before the name is emitted, which is a resolution
+// pass, not a better heuristic — do NOT approximate it with suffix matching at query time, because
+// that would silently resolve genuinely dangling references and destroy the signal.
+fn reference_name(path: &syn::Path) -> Option<String> {
+    let mut segments: Vec<String> = path
+        .segments
+        .iter()
+        .map(|segment| segment.ident.to_string())
+        .collect();
+    while matches!(
+        segments.first().map(String::as_str),
+        Some("crate") | Some("self")
+    ) {
+        segments.remove(0);
+    }
+    if segments.is_empty() || matches!(segments[0].as_str(), "Self" | "super") {
+        return None;
+    }
+    Some(segments.join("::"))
+}
+
+/// Emit one `Refs` edge per collected name, from the item's own Entry node.
+///
+/// The `dst` container is the REFERENCING crate: without import resolution this pass cannot know
+/// which crate defines the name, and guessing would fabricate edges. A name defined elsewhere
+/// therefore resolves to no node and is counted as unindexed — which is the honest reading, since
+/// from this graph's point of view it genuinely IS outside.
+fn push_refs(crate_id: &str, src_fqpath: &str, collector: RefCollector, out: &mut Extraction) {
+    let src = NodeId::entry(crate_id, src_fqpath);
+    for name in collector.names {
+        out.edges.push(Edge {
+            kind: EdgeKind::Refs,
+            src: src.clone(),
+            dst: NodeId::entry(crate_id, name),
+        });
+    }
+}
+
 /// The path-join of a module path and an item name (`m::sub` + `f` → `m::sub::f`; empty module →
 /// `f`).
 fn join_path(module_path: &str, name: &str) -> String {
@@ -755,12 +900,15 @@ fn walk_item(crate_id: &str, module_path: &str, item: &syn::Item, state: &mut Wa
             let body = normalize_tokens(&item_fn.block);
             state.extraction.facts.push(Function::new(
                 crate_id,
-                fqpath,
+                fqpath.clone(),
                 kind,
                 normalize_visibility(&item_fn.vis),
                 &signature,
                 &body,
             ));
+            let mut collector = RefCollector::default();
+            collector.visit_item_fn(item_fn);
+            push_refs(crate_id, &fqpath, collector, &mut state.extraction);
         }
         syn::Item::Struct(s) => {
             push_type(
@@ -919,12 +1067,15 @@ fn push_type(
     let tokens = normalize_tokens(item);
     out.facts.push(Function::new(
         crate_id,
-        fqpath,
+        fqpath.clone(),
         ItemKind::Type,
         normalize_visibility(vis),
         &tokens,
         "",
     ));
+    let mut collector = RefCollector::default();
+    collector.visit_item(item);
+    push_refs(crate_id, &fqpath, collector, out);
 }
 
 /// Push a `PubItem` fact (const/static).
@@ -945,12 +1096,15 @@ fn push_pub_item(
     let tokens = normalize_tokens(item);
     out.facts.push(Function::new(
         crate_id,
-        fqpath,
+        fqpath.clone(),
         ItemKind::PubItem,
         normalize_visibility(vis),
         &tokens,
         "",
     ));
+    let mut collector = RefCollector::default();
+    collector.visit_item(item);
+    push_refs(crate_id, &fqpath, collector, out);
 }
 
 /// Walk an `impl` block: emit one `Impl` fact for the block and recurse its methods as
@@ -1016,6 +1170,15 @@ fn walk_impl(crate_id: &str, module_path: &str, item_impl: &syn::ItemImpl, state
         "",
     ));
 
+    // The impl block's OWN references: its self type and the trait it implements. Method bodies are
+    // attributed to the methods, not to the block, so an impl node's Refs stay its own.
+    let mut impl_refs = RefCollector::default();
+    impl_refs.visit_type(&item_impl.self_ty);
+    if let Some((_, path, _)) = &item_impl.trait_ {
+        impl_refs.record(path);
+    }
+    push_refs(crate_id, &impl_fqpath, impl_refs, &mut state.extraction);
+
     let method_base = join_path(module_path, &self_key);
     for impl_item in &item_impl.items {
         if let syn::ImplItem::Fn(method) = impl_item {
@@ -1039,12 +1202,23 @@ fn walk_impl(crate_id: &str, module_path: &str, item_impl: &syn::ItemImpl, state
             let body = normalize_tokens(&method.block);
             state.extraction.facts.push(Function::new(
                 crate_id,
-                fqpath,
+                fqpath.clone(),
                 kind,
                 normalize_visibility(&method.vis),
                 &signature,
                 &body,
             ));
+            // The containment spine: the impl block CONTAINS its methods. This is the only
+            // parent/child relation where BOTH ends are facts today — a module or crate parent
+            // would need an aggregate node, and an aggregate node is a Merkle root.
+            state.extraction.edges.push(Edge {
+                kind: EdgeKind::Contains,
+                src: NodeId::entry(crate_id, &impl_fqpath),
+                dst: NodeId::entry(crate_id, &fqpath),
+            });
+            let mut collector = RefCollector::default();
+            collector.visit_impl_item_fn(method);
+            push_refs(crate_id, &fqpath, collector, &mut state.extraction);
         }
     }
 }
