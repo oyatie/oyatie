@@ -105,6 +105,23 @@ rust_test(
     ],
 )
 
+# Rename detection must be a property of the tool, not of the machine. Spawns git in a scratch repo
+# with `diff.renames=false` and proves the explicit flags override it, that WITHOUT them the same
+# move degrades to add+delete (so the flags are load-bearing, not decorative), and that the degraded
+# form wedges on `RefuseUnowned` — which dominates `full_reasons`, so the paired `D` cannot rescue
+# the verdict. Without this, every ADR-0562 capability-move PR is one runner config away from
+# unmergeable.
+rust_test(
+    name = "ci-affected-target-set-rename-detection",
+    srcs = glob(["tests/**/*.rs", "**/*.json"]),
+    crate = "ci_affected_target_set_rename_detection",
+    crate_root = "tests/rename_detection.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-affected-target-set",
+    ],
+)
+
 # ADR-0554 decision fixtures: pins the cf16525 false-green class (out-of-scope source must land
 # in the decided set) + every fail-closed seam (escape->FULL, deletion->FULL, unowned->REFUSE).
 rust_test(
