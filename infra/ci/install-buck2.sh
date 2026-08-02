@@ -109,7 +109,7 @@ cleanup_on_exit() {
 trap cleanup_on_exit EXIT
 
 acquire_mkdir_lock() {
-  local deadline owner_pid
+  local deadline now owner_pid
   deadline=$(( $(date +%s) + lock_timeout_seconds ))
   while ! mkdir "${lock_dir}" 2>/dev/null; do
     owner_pid=""
@@ -121,10 +121,11 @@ acquire_mkdir_lock() {
       rmdir -- "${lock_dir}" 2>/dev/null || true
       continue
     fi
-    if [ "$(date +%s)" -ge "${deadline}" ] && [ -z "${owner_pid}" ]; then
-      rmdir -- "${lock_dir}" 2>/dev/null && continue
-    fi
-    if [ "$(date +%s)" -ge "${deadline}" ]; then
+    now="$(date +%s)"
+    if [ "${now}" -ge "${deadline}" ]; then
+      if [ -z "${owner_pid}" ] && rmdir -- "${lock_dir}" 2>/dev/null; then
+        continue
+      fi
       echo "Timed out waiting for Buck2 installer lock: ${lock_path}" >&2
       exit 1
     fi
