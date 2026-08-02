@@ -1262,6 +1262,15 @@ fn nearest_ancestor(path: &str, dirs: &BTreeSet<String>) -> Option<String> {
     None
 }
 
+fn is_top_level_buck_metadata(path: &str) -> bool {
+    let mut components = path.split('/');
+    components
+        .next()
+        .is_some_and(|directory| !directory.is_empty())
+        && components.next() == Some("BUCK")
+        && components.next().is_none()
+}
+
 /// Resolve the nearest up-tree `OWNERS` file for each path. Ownership requires BOTH
 /// existence and valid content (ADR-0555 hardening, FRIC-1781400000): the file must
 /// parse to >=1 owner principal under `parse_owners_content`, and a single file's
@@ -1327,11 +1336,14 @@ pub fn resolve_owners(
         if let Some(owner_dir) = nearest_ancestor(path, &all_dirs)
             && valid_dirs.contains(&owner_dir)
         {
-            // A root-level OWNERS file is the narrow registration for root DATA files.
-            // Letting it own every otherwise-unowned subtree would bulk-neuter accounting
-            // and immediately trip the breadth bound on large repos. Subtrees keep their
-            // own nearest-ancestor OWNERS registrations.
-            if owner_dir.is_empty() && path.contains('/') {
+            // A root-level OWNERS file is the narrow registration for root DATA files and
+            // direct top-level BUCK package aggregators. Those BUCK files shape the
+            // repository-wide hermetic build graph and belong to the root build owner; the
+            // rule is structural rather than a path allowlist. Letting root OWNERS claim any
+            // other otherwise-unowned subtree would bulk-neuter accounting and immediately
+            // trip the breadth bound on large repos. Subtrees keep their own nearest-ancestor
+            // OWNERS registrations.
+            if owner_dir.is_empty() && path.contains('/') && !is_top_level_buck_metadata(path) {
                 continue;
             }
             covered.entry(owner_dir).or_default().push(path.clone());
@@ -2128,7 +2140,7 @@ mod tests {
     }
 
     #[test]
-    fn root_owners_covers_only_root_files_not_every_subtree() {
+    fn root_owners_covers_root_data_and_top_level_buck_metadata_not_subtrees() {
         let root = unique_temp_repo();
         std::fs::write(root.join("OWNERS"), "cloud-ci-platform\n").expect("write root owners");
         std::fs::create_dir_all(root.join("docs")).expect("create docs dir");
@@ -2146,6 +2158,7 @@ mod tests {
             &tracked(&[
                 "OWNERS",
                 "oya-deps.toml",
+                "oya/BUCK",
                 "docs/doc.md",
                 "cloud/gate/app.rs",
             ]),
@@ -2156,9 +2169,10 @@ mod tests {
             resolution.by_path,
             BTreeMap::from([
                 ("OWNERS".to_owned(), "OWNERS:".to_owned()),
-                ("oya-deps.toml".to_owned(), "OWNERS:".to_owned())
+                ("oya-deps.toml".to_owned(), "OWNERS:".to_owned()),
+                ("oya/BUCK".to_owned(), "OWNERS:".to_owned())
             ]),
-            "root OWNERS should be a narrow root-DATA owner, not a blanket subtree owner"
+            "root OWNERS should cover root DATA and direct top-level BUCK metadata, not blanket subtrees"
         );
         assert!(
             resolution.integrity.over_broad.is_empty(),
