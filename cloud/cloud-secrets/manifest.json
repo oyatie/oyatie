@@ -40,9 +40,13 @@
     "asyncapi": [
       "contracts/asyncapi/cloud-secrets-events.yaml"
     ],
-    "proto": [
-      "contracts/proto/cloud-secrets.proto"
-    ]
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": [
+        "cloud/cloud-secrets/contracts/proto/cloud-secrets.proto"
+      ]
+    }
   },
   "capabilities": [
     {

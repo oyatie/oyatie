@@ -365,9 +365,6 @@
       },
       "asyncapi": {
         "2026-05-21": "microservices/treasury/contracts/asyncapi-v1.yaml"
-      },
-      "proto": {
-        "2026-05-21": "microservices/treasury/contracts/treasury-v1.proto"
       }
     }
   },

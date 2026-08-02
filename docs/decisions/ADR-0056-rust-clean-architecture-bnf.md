@@ -1,4 +1,5 @@
 ---
+id: ADR-0056
 doc_class: DecisionRecord
 shape: ~
 length_cap: 500
@@ -19,6 +20,7 @@ purpose: |
 canonical_authority: docs/CONSTITUTION.md
 supersedes: ~
 superseded_by: ~
+amended_by: [ADR-0565, ADR-0632]
 related_adrs:
   - ADR-0015
   - ADR-0017
@@ -51,6 +53,10 @@ companion_docs:
 > #1–#2; the normative enum/BNF/semantics in this ADR are updated in place below to match.
 
 ---
+
+## ADR-0632 product-protocol reconciliation
+
+The crate-layer grammar names implementation boundaries, not public product authorization. Public contracts are HTTPS REST documented by OpenAPI 3.2.0, signed/versioned webhooks, AsyncAPI/CloudEvents events, SSE, and WebSocket. GraphQL, public gRPC, gRPC-Web, and Connect are forbidden. The `grpc` layer is internal-only gRPC/proto3 over HTTP/2; the historical `graphql` token remains naming provenance only and cannot authorize a GraphQL crate or owned API surface under ADR-0565.
 
 ## Context
 

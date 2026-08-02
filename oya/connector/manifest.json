@@ -34,9 +34,14 @@
     "asyncapi": [
       "microservices/connector/contracts/connect-retirement.asyncapi.yaml"
     ],
-    "proto": [
-      "microservices/connector/contracts/connect_retirement.proto"
-    ]
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": [
+        "oya/connector/contracts/connector_retirement.proto",
+        "oya/connector/contracts/proto/connector_integration.proto"
+      ]
+    }
   },
   "capabilities": [
     {
@@ -217,9 +222,6 @@
       },
       "asyncapi": {
         "2026-05-21": "microservices/connector/contracts/connect-retirement.asyncapi.yaml"
-      },
-      "proto": {
-        "2026-05-21": "microservices/connector/contracts/connect_retirement.proto"
       }
     }
   },

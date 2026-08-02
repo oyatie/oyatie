@@ -70,7 +70,7 @@ pub struct EchPolicy {
 }
 
 impl EchPolicy {
-    pub fn external() -> Self {
+    fn adr_0354_external() -> Self {
         Self {
             enabled: true,
             support_required: true,
@@ -115,21 +115,10 @@ impl PqcPolicy {
         PQC_TRANSITION_SUPPORTED_GROUPS.to_vec()
     }
 
-    pub fn hybrid_required() -> Self {
+    fn adr_0354_hybrid_required() -> Self {
         Self {
             enabled: true,
             hybrid_negotiation_required: true,
-            kem: Some(HybridKem::X25519MlKem768),
-            signature: Some(HybridSignature::Ed25519MlDsa65),
-            supported_groups: Self::transition_supported_groups(),
-            classical_transition_fallback_allowed: true,
-        }
-    }
-
-    pub fn hybrid_optional() -> Self {
-        Self {
-            enabled: true,
-            hybrid_negotiation_required: false,
             kem: Some(HybridKem::X25519MlKem768),
             signature: Some(HybridSignature::Ed25519MlDsa65),
             supported_groups: Self::transition_supported_groups(),
@@ -144,7 +133,7 @@ impl PqcPolicy {
             kem: None,
             signature: None,
             supported_groups: Vec::new(),
-            classical_transition_fallback_allowed: true,
+            classical_transition_fallback_allowed: false,
         }
     }
 
@@ -162,6 +151,8 @@ pub struct TransportEndpointSpec {
     pub capability_class: TransportCapabilityClass,
     /// data_class: PUBLIC - wire protocol family for the declared endpoint.
     pub protocol: TransportProtocol,
+    /// data_class: PUBLIC - bounded fallback wire protocol, when the endpoint class permits one.
+    pub fallback_protocol: Option<TransportProtocol>,
     /// data_class: PUBLIC - minimum TLS/authentication posture required by the class.
     pub tls_profile: TlsProfile,
     /// data_class: PUBLIC - HTTP Alt-Svc value for public protocol upgrade discovery.
@@ -180,11 +171,12 @@ impl TransportEndpointSpec {
             endpoint_id: endpoint_id.into(),
             capability_class: TransportCapabilityClass::External,
             protocol: TransportProtocol::Http3,
+            fallback_protocol: Some(TransportProtocol::Http2),
             tls_profile: TlsProfile::StrictTls13,
             alt_svc: Some(r#"h3=":443"; ma=86400"#.to_owned()),
             fallback_timeout_ms: Some(DEFAULT_EXTERNAL_FALLBACK_TIMEOUT_MS),
-            ech: EchPolicy::external(),
-            pqc: PqcPolicy::hybrid_required(),
+            ech: EchPolicy::disabled(),
+            pqc: PqcPolicy::disabled(),
         }
     }
 
@@ -193,11 +185,12 @@ impl TransportEndpointSpec {
             endpoint_id: endpoint_id.into(),
             capability_class: TransportCapabilityClass::InterCell,
             protocol: TransportProtocol::GrpcHttp2,
+            fallback_protocol: None,
             tls_profile: TlsProfile::SpiffeMtlsTls13,
             alt_svc: None,
             fallback_timeout_ms: None,
             ech: EchPolicy::disabled(),
-            pqc: PqcPolicy::hybrid_required(),
+            pqc: PqcPolicy::disabled(),
         }
     }
 
@@ -206,6 +199,7 @@ impl TransportEndpointSpec {
             endpoint_id: endpoint_id.into(),
             capability_class: TransportCapabilityClass::Internal,
             protocol: TransportProtocol::GrpcHttp2,
+            fallback_protocol: None,
             tls_profile: TlsProfile::SpiffeMtlsTls13,
             alt_svc: None,
             fallback_timeout_ms: None,
@@ -233,6 +227,12 @@ impl TransportEndpointSpec {
         if self.tls_profile != TlsProfile::StrictTls13 {
             return invalid("tls_profile", "external endpoints require strict tls 1.3");
         }
+        if self.fallback_protocol != Some(TransportProtocol::Http2) {
+            return invalid(
+                "fallback_protocol",
+                "external endpoints require http2 fallback",
+            );
+        }
 
         let alt_svc = self
             .alt_svc
@@ -258,8 +258,23 @@ impl TransportEndpointSpec {
             );
         }
 
-        if !self.ech.enabled || !self.ech.support_required {
-            return invalid("ech", "external endpoints must support ech");
+        self.validate_optional_external_ech()?;
+        self.validate_optional_pqc()?;
+        self.reject_unaccepted_advanced_profile()
+    }
+
+    fn validate_optional_external_ech(&self) -> Result<(), TransportProfileError> {
+        if !self.ech.enabled {
+            if self.ech != EchPolicy::disabled() {
+                return invalid(
+                    "ech",
+                    "disabled ech must not carry advanced-profile metadata",
+                );
+            }
+            return Ok(());
+        }
+        if !self.ech.support_required {
+            return invalid("ech.support_required", "enabled ech must require support");
         }
         if !self.ech.plaintext_sni_fallback_allowed {
             return invalid(
@@ -286,8 +301,24 @@ impl TransportEndpointSpec {
                 "external ech outer_sni must be a shared oyatie.dev cover name",
             );
         }
-        if !self.pqc.enabled || !self.pqc.hybrid_negotiation_required {
-            return invalid("pqc", "external endpoints must offer hybrid pqc");
+        Ok(())
+    }
+
+    fn validate_optional_pqc(&self) -> Result<(), TransportProfileError> {
+        if !self.pqc.enabled {
+            if self.pqc != PqcPolicy::disabled() {
+                return invalid(
+                    "pqc",
+                    "disabled pqc must not carry advanced-profile metadata",
+                );
+            }
+            return Ok(());
+        }
+        if !self.pqc.hybrid_negotiation_required {
+            return invalid(
+                "pqc.hybrid_negotiation_required",
+                "enabled pqc must require hybrid negotiation",
+            );
         }
         if self.pqc.kem.is_none() || self.pqc.signature.is_none() {
             return invalid("pqc", "hybrid pqc requires kem and signature identifiers");
@@ -295,7 +326,7 @@ impl TransportEndpointSpec {
         if !self.pqc.classical_transition_fallback_allowed {
             return invalid(
                 "pqc.classical_transition_fallback_allowed",
-                "external pqc requires classical fallback during transition",
+                "enabled pqc requires classical fallback during transition",
             );
         }
         validate_transition_supported_groups(&self.pqc.supported_groups)?;
@@ -304,28 +335,21 @@ impl TransportEndpointSpec {
 
     fn validate_inter_cell(&self) -> Result<(), TransportProfileError> {
         self.validate_non_external("inter-cell endpoints require grpc over http2")?;
-        if !self.pqc.enabled || !self.pqc.hybrid_negotiation_required {
-            return invalid("pqc", "inter-cell endpoints must require hybrid pqc");
-        }
-        if self.pqc.kem.is_none() || self.pqc.signature.is_none() {
-            return invalid("pqc", "hybrid pqc requires kem and signature identifiers");
-        }
-        if !self.pqc.classical_transition_fallback_allowed {
-            return invalid(
-                "pqc.classical_transition_fallback_allowed",
-                "inter-cell pqc requires classical fallback during transition",
-            );
-        }
-        validate_transition_supported_groups(&self.pqc.supported_groups)?;
-        Ok(())
+        self.validate_optional_pqc()?;
+        self.reject_unaccepted_advanced_profile()
     }
 
     fn validate_internal(&self) -> Result<(), TransportProfileError> {
         self.validate_non_external("internal endpoints require grpc over http2")?;
-        if self.pqc.enabled && (self.pqc.kem.is_none() || self.pqc.signature.is_none()) {
+        self.validate_optional_pqc()?;
+        self.reject_unaccepted_advanced_profile()
+    }
+
+    fn reject_unaccepted_advanced_profile(&self) -> Result<(), TransportProfileError> {
+        if self.ech.enabled || self.pqc.enabled {
             return invalid(
-                "pqc",
-                "enabled hybrid pqc requires kem and signature identifiers",
+                "advanced_profile",
+                "ECH/PQC activation requires a separate Accepted authority profile",
             );
         }
         Ok(())
@@ -348,6 +372,12 @@ impl TransportEndpointSpec {
             return invalid(
                 "alt_svc",
                 "non-external endpoints do not advertise http3 upgrade",
+            );
+        }
+        if self.fallback_protocol.is_some() {
+            return invalid(
+                "fallback_protocol",
+                "non-external endpoints do not use protocol fallback",
             );
         }
         if self.fallback_timeout_ms.is_some() {
@@ -471,6 +501,7 @@ mod tests {
         required_fields: Vec<ContractField>,
         capability_classes: Vec<CapabilityClass>,
         canonical_external_endpoint: TransportEndpointSpec,
+        advanced_profiles: Vec<AdvancedProfile>,
         deferred_adapters: Vec<DeferredAdapter>,
     }
 
@@ -488,6 +519,18 @@ mod tests {
         fallback_timeout_ms: serde_json::Value,
         ech: String,
         pqc: String,
+        #[serde(default)]
+        http3_correctness_dependency: Option<String>,
+    }
+
+    #[derive(Deserialize)]
+    struct AdvancedProfile {
+        profile_id: String,
+        authority_status: String,
+        activation: String,
+        runtime_activation_while_proposed: String,
+        base_constructor_activation: String,
+        canonical_external_endpoint: TransportEndpointSpec,
     }
 
     #[derive(Deserialize)]
@@ -497,8 +540,8 @@ mod tests {
     }
 
     #[test]
-    fn accepts_external_http3_with_alt_svc_ech_and_pqc() {
-        let spec = TransportEndpointSpec::external_http3("public-inference-stream");
+    fn proposed_adr_0354_overlay_shape_is_inert_at_runtime() {
+        let spec = advanced_external();
 
         assert_eq!(spec.protocol, TransportProtocol::Http3);
         assert_eq!(spec.capability_class, TransportCapabilityClass::External);
@@ -513,12 +556,25 @@ mod tests {
             PqcPolicy::transition_supported_groups()
         );
         assert_eq!(spec.pqc.classical_transition_fallback_allowed, true);
-        assert_eq!(spec.validate(), Ok(()));
+        assert_eq!(spec.validate(), proposed_profile_activation_error());
+    }
+
+    #[test]
+    fn base_constructors_do_not_silently_enable_proposed_ech_or_pqc() {
+        let external = TransportEndpointSpec::external_http3("public-inference-stream");
+        let inter_cell = TransportEndpointSpec::inter_cell_grpc_h2("cell-rebalance-events");
+        let internal = TransportEndpointSpec::internal_grpc_h2("internal-policy");
+
+        for spec in [&external, &inter_cell, &internal] {
+            assert_eq!(spec.ech, EchPolicy::disabled());
+            assert_eq!(spec.pqc, PqcPolicy::disabled());
+            assert_eq!(spec.validate(), Ok(()));
+        }
     }
 
     #[test]
     fn rejects_external_profile_without_http3() {
-        let mut spec = TransportEndpointSpec::external_http3("public-inference-stream");
+        let mut spec = advanced_external();
         spec.protocol = TransportProtocol::Http2;
 
         assert_eq!(
@@ -532,7 +588,7 @@ mod tests {
 
     #[test]
     fn rejects_external_profile_without_strict_tls13() {
-        let mut spec = TransportEndpointSpec::external_http3("public-inference-stream");
+        let mut spec = advanced_external();
         spec.tls_profile = TlsProfile::SpiffeMtlsTls13;
 
         assert_eq!(
@@ -545,8 +601,22 @@ mod tests {
     }
 
     #[test]
+    fn rejects_external_profile_without_http2_fallback() {
+        let mut spec = advanced_external();
+        spec.fallback_protocol = None;
+
+        assert_eq!(
+            spec.validate(),
+            Err(TransportProfileError::InvalidField {
+                field: "fallback_protocol",
+                reason: "external endpoints require http2 fallback"
+            })
+        );
+    }
+
+    #[test]
     fn rejects_external_profile_without_alt_svc() {
-        let mut spec = TransportEndpointSpec::external_http3("public-inference-stream");
+        let mut spec = advanced_external();
         spec.alt_svc = None;
 
         assert_eq!(
@@ -563,13 +633,22 @@ mod tests {
         assert_eq!(spec.tls_profile, TlsProfile::SpiffeMtlsTls13);
         assert_eq!(spec.alt_svc, None);
         assert_eq!(spec.ech.enabled, false);
-        assert_eq!(spec.pqc.enabled, true);
-        assert_eq!(spec.pqc.hybrid_negotiation_required, true);
-        assert_eq!(
-            spec.pqc.supported_groups,
-            PqcPolicy::transition_supported_groups()
-        );
+        assert_eq!(spec.pqc, PqcPolicy::disabled());
         assert_eq!(spec.validate(), Ok(()));
+    }
+
+    #[test]
+    fn rejects_internal_profile_with_protocol_fallback() {
+        let mut spec = TransportEndpointSpec::internal_grpc_h2("internal-policy");
+        spec.fallback_protocol = Some(TransportProtocol::Http2);
+
+        assert_eq!(
+            spec.validate(),
+            Err(TransportProfileError::InvalidField {
+                field: "fallback_protocol",
+                reason: "non-external endpoints do not use protocol fallback"
+            })
+        );
     }
 
     #[test]
@@ -602,21 +681,21 @@ mod tests {
 
     #[test]
     fn rejects_external_profile_without_pqc_transition_fallback() {
-        let mut spec = TransportEndpointSpec::external_http3("public-inference-stream");
+        let mut spec = advanced_external();
         spec.pqc.classical_transition_fallback_allowed = false;
 
         assert_eq!(
             spec.validate(),
             Err(TransportProfileError::InvalidField {
                 field: "pqc.classical_transition_fallback_allowed",
-                reason: "external pqc requires classical fallback during transition"
+                reason: "enabled pqc requires classical fallback during transition"
             })
         );
     }
 
     #[test]
     fn rejects_external_profile_with_incomplete_hybrid_pqc_identifiers() {
-        let mut missing_kem = TransportEndpointSpec::external_http3("public-inference-stream");
+        let mut missing_kem = advanced_external();
         missing_kem.pqc.kem = None;
         assert_eq!(
             missing_kem.validate(),
@@ -626,8 +705,7 @@ mod tests {
             })
         );
 
-        let mut missing_signature =
-            TransportEndpointSpec::external_http3("public-inference-stream");
+        let mut missing_signature = advanced_external();
         missing_signature.pqc.signature = None;
         assert_eq!(
             missing_signature.validate(),
@@ -640,7 +718,7 @@ mod tests {
 
     #[test]
     fn external_pqc_supported_groups_pin_hybrid_first_and_transition_fallback() {
-        let spec = TransportEndpointSpec::external_http3("public-inference-stream");
+        let spec = advanced_external();
 
         assert_eq!(
             spec.pqc.supported_groups,
@@ -654,7 +732,7 @@ mod tests {
 
     #[test]
     fn rejects_missing_or_misordered_pqc_transition_supported_groups() {
-        let mut missing_groups = TransportEndpointSpec::external_http3("public-inference-stream");
+        let mut missing_groups = advanced_external();
         missing_groups.pqc.supported_groups = Vec::new();
         assert_eq!(
             missing_groups.validate(),
@@ -664,8 +742,7 @@ mod tests {
             })
         );
 
-        let mut missing_classical =
-            TransportEndpointSpec::external_http3("public-inference-stream");
+        let mut missing_classical = advanced_external();
         missing_classical.pqc.supported_groups = vec![TlsSupportedGroup::X25519MlKem768];
         assert_eq!(
             missing_classical.validate(),
@@ -675,7 +752,7 @@ mod tests {
             })
         );
 
-        let mut misordered = TransportEndpointSpec::inter_cell_grpc_h2("cell-rebalance-events");
+        let mut misordered = advanced_inter_cell();
         misordered.pqc.supported_groups =
             vec![TlsSupportedGroup::X25519, TlsSupportedGroup::X25519MlKem768];
         assert_eq!(
@@ -713,21 +790,21 @@ mod tests {
 
     #[test]
     fn rejects_inter_cell_profile_without_required_hybrid_negotiation() {
-        let mut spec = TransportEndpointSpec::inter_cell_grpc_h2("cell-rebalance-events");
+        let mut spec = advanced_inter_cell();
         spec.pqc.hybrid_negotiation_required = false;
 
         assert_eq!(
             spec.validate(),
             Err(TransportProfileError::InvalidField {
-                field: "pqc",
-                reason: "inter-cell endpoints must require hybrid pqc"
+                field: "pqc.hybrid_negotiation_required",
+                reason: "enabled pqc must require hybrid negotiation"
             })
         );
     }
 
     #[test]
     fn rejects_external_profile_without_ech_transition_fallback() {
-        let mut spec = TransportEndpointSpec::external_http3("public-inference-stream");
+        let mut spec = advanced_external();
         spec.ech.plaintext_sni_fallback_allowed = false;
 
         assert_eq!(
@@ -741,7 +818,7 @@ mod tests {
 
     #[test]
     fn rejects_external_profile_with_wrong_alt_svc_port() {
-        let mut spec = TransportEndpointSpec::external_http3("public-inference-stream");
+        let mut spec = advanced_external();
         spec.alt_svc = Some(r#"h3=":8443"; ma=86400"#.to_owned());
 
         assert_eq!(
@@ -783,7 +860,7 @@ mod tests {
 
     #[test]
     fn rejects_external_profile_without_ech_rotation_posture() {
-        let mut spec = TransportEndpointSpec::external_http3("public-inference-stream");
+        let mut spec = advanced_external();
         spec.ech.grease_retry_configs = false;
 
         assert_eq!(
@@ -797,7 +874,7 @@ mod tests {
 
     #[test]
     fn rejects_external_profile_with_zero_ech_rotation_window() {
-        let mut spec = TransportEndpointSpec::external_http3("public-inference-stream");
+        let mut spec = advanced_external();
         spec.ech.key_rotation_hours = Some(0);
 
         assert_eq!(
@@ -811,8 +888,7 @@ mod tests {
 
     #[test]
     fn rejects_external_profile_with_non_cover_outer_sni() {
-        let mut tenant_specific_sni =
-            TransportEndpointSpec::external_http3("public-inference-stream");
+        let mut tenant_specific_sni = advanced_external();
         tenant_specific_sni.ech.outer_sni = Some("ten_alpha.api.oyatie.dev".to_owned());
         assert_eq!(
             tenant_specific_sni.validate(),
@@ -822,7 +898,7 @@ mod tests {
             })
         );
 
-        let mut foreign_sni = TransportEndpointSpec::external_http3("public-inference-stream");
+        let mut foreign_sni = advanced_external();
         foreign_sni.ech.outer_sni = Some("api.example.com".to_owned());
         assert_eq!(
             foreign_sni.validate(),
@@ -832,7 +908,7 @@ mod tests {
             })
         );
 
-        let mut tenant_like_sni = TransportEndpointSpec::external_http3("public-inference-stream");
+        let mut tenant_like_sni = advanced_external();
         tenant_like_sni.ech.outer_sni = Some("tenant-alpha.oyatie.dev".to_owned());
         assert_eq!(
             tenant_like_sni.validate(),
@@ -843,7 +919,7 @@ mod tests {
         );
 
         let overlong_label = "a".repeat(64);
-        let mut overlong_sni = TransportEndpointSpec::external_http3("public-inference-stream");
+        let mut overlong_sni = advanced_external();
         overlong_sni.ech.outer_sni = Some(format!("{overlong_label}.oyatie.dev"));
         assert_eq!(
             overlong_sni.validate(),
@@ -856,14 +932,14 @@ mod tests {
 
     #[test]
     fn rejects_inter_cell_profile_without_pqc_transition_fallback() {
-        let mut spec = TransportEndpointSpec::inter_cell_grpc_h2("cell-rebalance-events");
+        let mut spec = advanced_inter_cell();
         spec.pqc.classical_transition_fallback_allowed = false;
 
         assert_eq!(
             spec.validate(),
             Err(TransportProfileError::InvalidField {
                 field: "pqc.classical_transition_fallback_allowed",
-                reason: "inter-cell pqc requires classical fallback during transition"
+                reason: "enabled pqc requires classical fallback during transition"
             })
         );
     }
@@ -919,13 +995,11 @@ mod tests {
         assert_eq!(external.alt_svc, "required");
         assert_eq!(external.fallback_timeout_ms["default"], 500);
         assert_eq!(external.fallback_timeout_ms["max"], 12_500);
+        assert_eq!(external.ech, "optional_profile_gated");
+        assert_eq!(external.pqc, "optional_profile_gated");
         assert_eq!(
-            external.ech,
-            "support_required_with_plaintext_sni_transition_fallback"
-        );
-        assert_eq!(
-            external.pqc,
-            "hybrid_negotiation_required_with_classical_transition_fallback"
+            external.http3_correctness_dependency.as_deref(),
+            Some("forbidden")
         );
         assert_eq!(
             contract.canonical_external_endpoint,
@@ -943,10 +1017,7 @@ mod tests {
         assert_eq!(inter_cell.alt_svc, "forbidden");
         assert_eq!(inter_cell.fallback_timeout_ms, "forbidden");
         assert_eq!(inter_cell.ech, "forbidden");
-        assert_eq!(
-            inter_cell.pqc,
-            "hybrid_negotiation_required_with_classical_transition_fallback"
-        );
+        assert_eq!(inter_cell.pqc, "optional_profile_gated");
 
         let internal = contract
             .capability_classes
@@ -958,7 +1029,25 @@ mod tests {
         assert_eq!(internal.alt_svc, "forbidden");
         assert_eq!(internal.fallback_timeout_ms, "forbidden");
         assert_eq!(internal.ech, "forbidden");
-        assert_eq!(internal.pqc, "optional");
+        assert_eq!(internal.pqc, "optional_profile_gated");
+
+        let advanced = contract
+            .advanced_profiles
+            .iter()
+            .find(|profile| profile.profile_id == "adr-0354-ech-hybrid-pqc")
+            .expect("ADR-0354 advanced profile");
+        assert_eq!(advanced.authority_status, "Proposed");
+        assert_eq!(advanced.activation, "separate_accepted_profile_required");
+        assert_eq!(advanced.runtime_activation_while_proposed, "forbidden");
+        assert_eq!(advanced.base_constructor_activation, "forbidden");
+        assert_eq!(
+            advanced.canonical_external_endpoint,
+            apply_adr_0354_shape(TransportEndpointSpec::external_http3("api-gateway-public"))
+        );
+        assert_eq!(
+            advanced.canonical_external_endpoint.validate(),
+            proposed_profile_activation_error()
+        );
 
         let deferred = contract
             .deferred_adapters
@@ -969,7 +1058,7 @@ mod tests {
     }
 
     #[test]
-    fn adr_d7_example_uses_transport_endpoint_spec_shape() {
+    fn proposed_adr_d7_example_matches_only_the_explicit_advanced_overlay() {
         let adr = adr_0354();
         let example = extract_json_between(
             &adr,
@@ -981,9 +1070,46 @@ mod tests {
 
         assert_eq!(
             endpoint,
+            apply_adr_0354_shape(TransportEndpointSpec::external_http3("api-gateway-public"))
+        );
+        assert_ne!(
+            endpoint,
             TransportEndpointSpec::external_http3("api-gateway-public")
         );
-        assert_eq!(endpoint.validate(), Ok(()));
+        assert_eq!(endpoint.validate(), proposed_profile_activation_error());
+    }
+
+    fn advanced_external() -> TransportEndpointSpec {
+        apply_adr_0354_shape(TransportEndpointSpec::external_http3(
+            "public-inference-stream",
+        ))
+    }
+
+    fn advanced_inter_cell() -> TransportEndpointSpec {
+        apply_adr_0354_shape(TransportEndpointSpec::inter_cell_grpc_h2(
+            "cell-rebalance-events",
+        ))
+    }
+
+    fn apply_adr_0354_shape(mut spec: TransportEndpointSpec) -> TransportEndpointSpec {
+        match spec.capability_class {
+            TransportCapabilityClass::External => {
+                spec.ech = EchPolicy::adr_0354_external();
+                spec.pqc = PqcPolicy::adr_0354_hybrid_required();
+            }
+            TransportCapabilityClass::InterCell => {
+                spec.pqc = PqcPolicy::adr_0354_hybrid_required();
+            }
+            TransportCapabilityClass::Internal => {}
+        }
+        spec
+    }
+
+    fn proposed_profile_activation_error() -> Result<(), TransportProfileError> {
+        Err(TransportProfileError::InvalidField {
+            field: "advanced_profile",
+            reason: "ECH/PQC activation requires a separate Accepted authority profile",
+        })
     }
 
     fn extract_json_between<'a>(body: &'a str, start: &str, end: &str) -> &'a str {

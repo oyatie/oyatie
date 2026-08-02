@@ -164,7 +164,7 @@ enforced_by:
 117. Valkey remains bounded hot lookup only.
 118. The architecture must fail closed when evidence is unavailable.
 119. The architecture must preserve deterministic replay across regions with HLC ordering.
-120. The architecture must keep API transport on OpenAPI 3.2.0 REST and future gRPC over HTTP/3 without adding GraphQL command paths.
+120. Under Accepted ADR-0632, the architecture must limit any public surface to REST/OpenAPI 3.2.0, versioned webhooks described by AsyncAPI 3.1.0 with CloudEvents 1.0.2 where its stable HTTP binding applies, and deliberate SSE/WebSocket streaming as applicable; capable public edges prefer HTTP/3 with mandatory HTTP/2 fallback. gRPC/proto3 remains internal-only over HTTP/2 with mTLS and TLS 1.3, and neither public gRPC nor GraphQL command paths are allowed.
 
 ## 9. API and Event Surface
 121. The existing OpenAPI 3.2.0 contract should grow promotion request fields only in the later implementation wave.
@@ -176,7 +176,7 @@ enforced_by:
 127. Candidate channels are `cell.lifecycle.transition.accepted`, `cell.lifecycle.transition.rejected`, `cell.promotion.executed`, `cell.promotion.demoted`, and `cell.promotion.override`.
 128. AsyncAPI messages should carry event id, cell id, tier edge, HLC timestamp, audit-chain event id, and evidence digest.
 129. AsyncAPI messages should not carry raw compliance documents, raw canary traces, or tenant payloads.
-130. The downstream implementation should use proto3 only for internal gRPC automation surfaces and reserve stable field tags for tier edges and snapshot digests.
+130. The downstream implementation should use proto3 only for internal gRPC automation surfaces over HTTP/2 with mTLS and TLS 1.3, and reserve stable field tags for tier edges and snapshot digests.
 131. The public API version carrier remains governed by the existing tenant_version_pinning block and ADR-0342-era carrier discipline already present in the manifest.
 132. `cell-lifecycle` does not define a separate public versioning doctrine for ADR-0341.
 

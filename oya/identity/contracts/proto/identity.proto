@@ -1,6 +1,11 @@
+// oyatie.contract.exposure: internal-only
+// oyatie.contract.transport: grpc-http2
+// oyatie.contract.identity: spiffe-mtls-tls13
+
 syntax = "proto3";
 
-// Authority: ADR-0145 inter-µservice OIDC bearer, ADR-0187 Zitadel canonical IdP.
+// Authority: ADR-0145 internal service RPC, ADR-0187 Zitadel canonical IdP.
+// Transport identity: SPIFFE mTLS/TLS 1.3 over HTTP/2; bearer tokens are verification payloads.
 //
 // Internal-only proto3 for ext_authz between Envoy waypoint and Cedar PDP +
 // internal admin RPC between identity µservice and its workers. NOT exposed

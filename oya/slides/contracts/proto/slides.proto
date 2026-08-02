@@ -1,3 +1,7 @@
+// oyatie.contract.exposure: internal-only
+// oyatie.contract.transport: grpc-http2
+// oyatie.contract.identity: spiffe-mtls-tls13
+
 // oya-slides protobuf contract — proto3
 // Per ADR-0135 dissolution + ADR-0131 per-microservice flat layout.
 // Used by cross-µservice SDK consumers (sheets, docs, forms, drive, messenger, etc.)

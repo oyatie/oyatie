@@ -1,5 +1,8 @@
+// oyatie.contract.exposure: internal-only
+// oyatie.contract.transport: grpc-http2
+// oyatie.contract.identity: spiffe-mtls-tls13
 // patient-monitoring gRPC streaming surface
-// Per ADR-MS-001: gRPC bidi over HTTP/3 + QUIC with FlatBuffers payload reference.
+// Per ADR-0632: internal-only gRPC bidi over HTTP/2 with SPIFFE mTLS/TLS 1.3.
 // Tenancy + HLC stamping enforced per ADR-0244 + ADR-0252.
 // Cedar-gated at boundary per ADR-0243.
 
@@ -111,7 +114,7 @@ message VitalSignsHistoryResponse {
 
 // -----------------------------------------------------------------------------
 // WaveformService — 50-1000 Hz high-frequency waveform bidi stream
-// FlatBuffers payload referenced via batch_payload_ref + batch_payload_inline_blob.
+// Binary waveform payload referenced via batch_payload_ref or carried inline.
 // -----------------------------------------------------------------------------
 
 service WaveformService {
@@ -167,7 +170,7 @@ message WaveformBatch {
   uint32 bit_depth = 6;
   string batch_start_hlc = 7;
   uint32 batch_duration_ms = 8;
-  // EITHER inline blob (FlatBuffers) for hot path, OR ref to object-storage URI
+  // Either an inline binary batch or a reference to an object-storage URI.
   bytes batch_payload_inline = 9;
   string batch_payload_ref = 10;
   bool alarm_episode_flag = 11;

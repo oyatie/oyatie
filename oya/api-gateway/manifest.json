@@ -178,9 +178,13 @@
     "asyncapi": [
       "microservices/api-gateway/contracts/api-gateway.asyncapi.yaml"
     ],
-    "proto": [
-      "microservices/api-gateway/contracts/api_gateway.proto"
-    ],
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": [
+        "oya/api-gateway/contracts/api_gateway.proto"
+      ]
+    },
     "convention_docs": [
       "microservices/api-gateway/contracts/metric-naming-convention.md"
     ]
@@ -574,11 +578,6 @@
         "2026-05-21": "microservices/api-gateway/contracts/api-gateway.asyncapi.yaml",
         "2026-02-21": "microservices/api-gateway/contracts/api-gateway.asyncapi.yaml",
         "2025-11-21": "microservices/api-gateway/contracts/api-gateway.asyncapi.yaml"
-      },
-      "proto": {
-        "2026-05-21": "microservices/api-gateway/contracts/api_gateway.proto",
-        "2026-02-21": "microservices/api-gateway/contracts/api_gateway.proto",
-        "2025-11-21": "microservices/api-gateway/contracts/api_gateway.proto"
       }
     }
   },

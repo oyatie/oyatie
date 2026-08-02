@@ -26,9 +26,13 @@
     "asyncapi": [
       "microservices/sheets/contracts/asyncapi/sheets-events.yaml"
     ],
-    "proto": [
-      "microservices/sheets/contracts/proto/sheets.proto"
-    ]
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": [
+        "oya/sheets/contracts/proto/sheets.proto"
+      ]
+    }
   },
   "capabilities": [
     {
@@ -109,85 +113,85 @@
   "ips": [
     {
       "id": "IP-001-iac-bootstrap",
-      "title": "IP-001: Layer-A IaC \u2014 CDN + WAF + Postgres + Valkey + S3 + OCI Object Storage (Arrow/Parquet) + gVisor + AV-scan sidecars",
+      "title": "IP-001: Layer-A IaC — CDN + WAF + Postgres + Valkey + S3 + OCI Object Storage (Arrow/Parquet) + gVisor + AV-scan sidecars",
       "acceptance_status": "ga",
       "file": "microservices/sheets/IP-001-iac-bootstrap.md"
     },
     {
       "id": "IP-002-cargo-workspace-cell-grid-kernel-domain",
-      "title": "IP-002: cell-grid \u2014 kernel + domain (entities + pure cell-graph algebra)",
+      "title": "IP-002: cell-grid — kernel + domain (entities + pure cell-graph algebra)",
       "acceptance_status": "ga",
       "file": "microservices/sheets/IP-002-cargo-workspace-cell-grid-kernel-domain.md"
     },
     {
       "id": "IP-003-formula-engine-kernel-domain-400-functions",
-      "title": "IP-003: formula-engine \u2014 kernel + domain + usecase + api + adapter + sdk (\u2265400 functions; LibreOffice Calc reference corpus)",
+      "title": "IP-003: formula-engine — kernel + domain + usecase + api + adapter + sdk (≥400 functions; LibreOffice Calc reference corpus)",
       "acceptance_status": "ga",
       "file": "microservices/sheets/IP-003-formula-engine-kernel-domain-400-functions.md"
     },
     {
       "id": "IP-004-recalc-engine-dep-graph-parallel",
-      "title": "IP-004: recalc-engine \u2014 kernel + domain + usecase + api + adapter + worker + sdk (dep-graph + topological + parallel-task-graph per ADR-SHEETS-0004)",
+      "title": "IP-004: recalc-engine — kernel + domain + usecase + api + adapter + worker + sdk (dep-graph + topological + parallel-task-graph per ADR-SHEETS-0004)",
       "acceptance_status": "ga",
       "file": "microservices/sheets/IP-004-recalc-engine-dep-graph-parallel.md"
     },
     {
       "id": "IP-005-collab-crdt-loro-aligned-ws-0001",
-      "title": "IP-005: collab-crdt \u2014 kernel + domain + usecase + api + adapter + adapter-loro + adapter-valkey + worker + sdk (Loro 1.x aligned with workflow-studio ADR-WS-0001)",
+      "title": "IP-005: collab-crdt — kernel + domain + usecase + api + adapter + adapter-loro + adapter-valkey + worker + sdk (Loro 1.x aligned with workflow-studio ADR-WS-0001)",
       "acceptance_status": "ga",
       "file": "microservices/sheets/IP-005-collab-crdt-loro-aligned-ws-0001.md"
     },
     {
       "id": "IP-006-large-sheet-storage-postgres-arrow-parquet-hybrid",
-      "title": "IP-006: large-sheet-storage \u2014 postgres + Arrow/Parquet hybrid substrate (per ADR-SHEETS-0003)",
+      "title": "IP-006: large-sheet-storage — postgres + Arrow/Parquet hybrid substrate (per ADR-SHEETS-0003)",
       "acceptance_status": "ga",
       "file": "microservices/sheets/IP-006-large-sheet-storage-postgres-arrow-parquet-hybrid.md"
     },
     {
       "id": "IP-007-cell-grid-adapter-postgres-and-materialized-views",
-      "title": "IP-007: cell-grid \u2014 adapter-postgres with materialized-view caches for hot ranges",
+      "title": "IP-007: cell-grid — adapter-postgres with materialized-view caches for hot ranges",
       "acceptance_status": "ga",
       "file": "microservices/sheets/IP-007-cell-grid-adapter-postgres-and-materialized-views.md"
     },
     {
       "id": "IP-008-formatting-pivot-charts-data-validation",
-      "title": "IP-008: formatting + pivot-tables + charts + data-validation \u2014 kernel + domain + usecase + api + adapter (custom Leptos canvas chart renderer)",
+      "title": "IP-008: formatting + pivot-tables + charts + data-validation — kernel + domain + usecase + api + adapter (custom Leptos canvas chart renderer)",
       "acceptance_status": "ga",
       "file": "microservices/sheets/IP-008-formatting-pivot-charts-data-validation.md"
     },
     {
       "id": "IP-009-import-export-xlsx-calamine-rust-xlsxwriter-sandboxed",
-      "title": "IP-009: import-export \u2014 kernel + domain + usecase + api + adapter + adapter-calamine + adapter-rust-xlsxwriter + adapter-clamav + adapter-opswat + worker + sdk",
+      "title": "IP-009: import-export — kernel + domain + usecase + api + adapter + adapter-calamine + adapter-rust-xlsxwriter + adapter-clamav + adapter-opswat + worker + sdk",
       "acceptance_status": "ga",
       "file": "microservices/sheets/IP-009-import-export-xlsx-calamine-rust-xlsxwriter-sandboxed.md"
     },
     {
       "id": "IP-010-sharing-acl-named-range-cedar",
-      "title": "IP-010: sharing-acl + named-ranges \u2014 full BC crate sets per ADR-SHEETS-0006",
+      "title": "IP-010: sharing-acl + named-ranges — full BC crate sets per ADR-SHEETS-0006",
       "acceptance_status": "ga",
       "file": "microservices/sheets/IP-010-sharing-acl-named-range-cedar.md"
     },
     {
       "id": "IP-011-ai-formula-smart-fill-foundry-runtime-bridge",
-      "title": "IP-011: ai-formula \u2014 foundry-runtime bridge with T1 advisory + T2 gated per ADR-SHEETS-0005",
+      "title": "IP-011: ai-formula — foundry-runtime bridge with T1 advisory + T2 gated per ADR-SHEETS-0005",
       "acceptance_status": "ga",
       "file": "microservices/sheets/IP-011-ai-formula-smart-fill-foundry-runtime-bridge.md"
     },
     {
       "id": "IP-012-connected-sheets-comments-version-history-trigger-embed-bridge",
-      "title": "IP-012: connected-sheets + comments + version-history + trigger-bridge + embed-bridge \u2014 full BC crate sets",
+      "title": "IP-012: connected-sheets + comments + version-history + trigger-bridge + embed-bridge — full BC crate sets",
       "acceptance_status": "ga",
       "file": "microservices/sheets/IP-012-connected-sheets-comments-version-history-trigger-embed-bridge.md"
     },
     {
       "id": "IP-013-cell-grid-rest-leptos-wasm-app-license-gate",
-      "title": "IP-013: cell-grid \u2014 adapter-leptos-wasm + rest + sdk + app + license-gate-cedar full BC",
+      "title": "IP-013: cell-grid — adapter-leptos-wasm + rest + sdk + app + license-gate-cedar full BC",
       "acceptance_status": "ga",
       "file": "microservices/sheets/IP-013-cell-grid-rest-leptos-wasm-app-license-gate.md"
     },
     {
       "id": "IP-014-observability-slo-manifests-9-openslo",
-      "title": "IP-014: 9 OpenSLO v1.0 manifests \u2014 sheets self-SLOs",
+      "title": "IP-014: 9 OpenSLO v1.0 manifests — sheets self-SLOs",
       "acceptance_status": "ga",
       "file": "microservices/sheets/IP-014-observability-slo-manifests-9-openslo.md"
     },
@@ -290,10 +294,10 @@
     }
   ],
   "hyperscaler_inv_coverage": {
-    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
-    "tenant_rate_limit": "INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
-    "reference_signals": "INV-FOUR-REFERENCE-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
-    "error_budget_burn": "INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "reference_signals": "INV-FOUR-REFERENCE-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "audit_chain": {
     "enabled": true,
@@ -346,7 +350,7 @@
     "fedramp",
     "il5"
   ],
-  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; reference_signals: INV-FOUR-REFERENCE-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
+  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; reference_signals: INV-FOUR-REFERENCE-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
   "owner_team": "axis-sheets",
   "tier_classification": "external-facing",
   "data_classification": "PII_IDENTIFYING, this field will, INTERNAL_ONLY, AUDIT, PII_QUASI",
@@ -471,9 +475,6 @@
       },
       "asyncapi": {
         "2026-05-21": "microservices/sheets/contracts/asyncapi/sheets-events.yaml"
-      },
-      "proto": {
-        "2026-05-21": "microservices/sheets/contracts/proto/sheets.proto"
       }
     }
   },

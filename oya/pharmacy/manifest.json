@@ -130,9 +130,13 @@
     "asyncapi": [
       "microservices/pharmacy/contracts/asyncapi/pharmacy-events.yaml"
     ],
-    "proto": [
-      "microservices/pharmacy/contracts/proto/pharmacy.proto"
-    ]
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": [
+        "oya/pharmacy/contracts/proto/pharmacy.proto"
+      ]
+    }
   },
   "capabilities": [
     {
@@ -898,9 +902,6 @@
       },
       "asyncapi": {
         "2026-05-21": "contracts/asyncapi.yaml"
-      },
-      "proto": {
-        "2026-05-21": "contracts/proto/pharmacy.proto"
       }
     }
   },

@@ -1,8 +1,12 @@
+// oyatie.contract.exposure: internal-only
+// oyatie.contract.transport: grpc-http2
+// oyatie.contract.identity: spiffe-mtls-tls13
+
 syntax = "proto3";
 
 // feature-flags-v1.proto
 // Binding ADR: ADR-0159 (feature-flag substrate)
-// Transport: gRPC over HTTP/3 per ADR-0253
+// Transport: internal sibling-service gRPC over HTTP/2 with mTLS/TLS 1.3.
 // Generated code: oya-feature-flags-flag-api crate
 // Versioning: SemVer per ADR-0258
 

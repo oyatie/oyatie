@@ -6,9 +6,10 @@ date: 2026-05-18
 owner: council-architecture
 supersedes: []
 superseded_by: []
-related: [ADR-0121, ADR-0145, ADR-0148, ADR-0150, ADR-0157, ADR-0183, ADR-0184, ADR-0185, ADR-0186, ADR-0203, ADR-0258]
+amended_by: [ADR-0632]
+related: [ADR-0121, ADR-0145, ADR-0148, ADR-0150, ADR-0157, ADR-0183, ADR-0184, ADR-0185, ADR-0186, ADR-0203, ADR-0258, ADR-0632]
 last_reconciled: 2026-08-01
-reconciled_with: [ADR-0203, ADR-0258]
+reconciled_with: [ADR-0203, ADR-0258, ADR-0632]
 related_specs:
   - /specs/hyperscaler-architecture-invariants.json
   - /specs/microservices/manifest-schema.json
@@ -20,11 +21,19 @@ related_specs:
 
 Accepted (2026-05-18). Mandates a clean separation between **north-south** (public ingress → cluster) and **east-west** (intra-cluster service-to-service) traffic concerns, with each direction owned by exactly one substrate and zero feature overlap.
 
+## ADR-0632 product-protocol reconciliation
+
+The north-south public boundary **MUST** expose HTTPS REST/OpenAPI 3.2.0, signed/versioned
+webhooks, AsyncAPI/CloudEvents events, SSE by default for one-way streaming, and WebSocket only for
+bidirectional sessions. It **MUST NOT** expose GraphQL, gRPC, gRPC-Web, or Connect. East-west typed
+RPC remains internal-only gRPC/proto3 over HTTP/2 and never becomes a gateway public contract.
+
 ### Public-contract reconciliation
 
 Per ADR-0203 and ADR-0258, public contract carriers are REST documented by OpenAPI 3.2 plus
 webhooks, events, and streams documented by AsyncAPI 3.1. gRPC over HTTP/2 (H2) with proto3 is
 internal-only service-to-service traffic under mTLS; it is not a public API contract.
+
 
 ## Context
 

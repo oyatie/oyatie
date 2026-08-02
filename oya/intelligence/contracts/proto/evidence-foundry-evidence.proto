@@ -1,3 +1,6 @@
+// oyatie.contract.exposure: internal-only
+// oyatie.contract.transport: grpc-http2
+// oyatie.contract.identity: spiffe-mtls-tls13
 // foundry-evidence.proto
 // Internal gRPC contract for high-throughput record_invocation path.
 // Companion to contracts/openapi/foundry-evidence.yaml (REST); the gRPC

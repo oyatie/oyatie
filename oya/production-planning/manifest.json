@@ -360,9 +360,6 @@
       },
       "asyncapi": {
         "2026-05-21": "microservices/production-planning/contracts/asyncapi-v1.yaml"
-      },
-      "proto": {
-        "2026-05-21": "microservices/production-planning/contracts/production-planning-v1.proto"
       }
     }
   },

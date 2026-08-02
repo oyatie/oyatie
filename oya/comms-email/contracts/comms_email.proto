@@ -1,8 +1,10 @@
+// oyatie.contract.exposure: internal-only
+// oyatie.contract.transport: grpc-http2
+// oyatie.contract.identity: spiffe-mtls-tls13
 syntax = "proto3";
 
 // ADR-0201 canonical transactional-email substrate.
-// gRPC surface that mirrors the OpenAPI REST surface for clients
-// that prefer protobuf wire format.
+// Internal-only sibling-service gRPC projection; public clients use the OpenAPI REST surface.
 
 package oya.comms_email.v1;
 

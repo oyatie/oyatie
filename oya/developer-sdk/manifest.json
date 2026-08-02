@@ -93,9 +93,13 @@
     "asyncapi": [
       "microservices/developer-sdk/contracts/asyncapi/developer-sdk-events.yaml"
     ],
-    "proto": [
-      "microservices/developer-sdk/contracts/proto/developer-sdk.proto"
-    ]
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": [
+        "oya/developer-sdk/contracts/proto/developer-sdk.proto"
+      ]
+    }
   },
   "capabilities": [
     {
@@ -568,9 +572,6 @@
       },
       "asyncapi": {
         "2026-05-21": "microservices/developer-sdk/contracts/asyncapi/developer-sdk-events.yaml"
-      },
-      "proto": {
-        "2026-05-21": "microservices/developer-sdk/contracts/proto/developer-sdk.proto"
       }
     }
   },

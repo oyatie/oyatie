@@ -1,5 +1,9 @@
+// oyatie.contract.exposure: internal-only
+// oyatie.contract.transport: grpc-http2
+// oyatie.contract.identity: spiffe-mtls-tls13
+
 // oya-meet — gRPC contract
-// Peer to contracts/openapi/meet.yaml for clients that prefer gRPC.
+// Internal sibling-service gRPC contract; public clients use contracts/openapi/meet.yaml.
 // Per ADR-0135 + ADR-0131 + ADR-0132.
 
 syntax = "proto3";

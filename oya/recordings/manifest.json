@@ -31,9 +31,13 @@
     "asyncapi": [
       "microservices/recordings/contracts/asyncapi/recordings-events.yaml"
     ],
-    "proto": [
-      "microservices/recordings/contracts/proto/recordings.proto"
-    ]
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": [
+        "oya/recordings/contracts/proto/recordings.proto"
+      ]
+    }
   },
   "capabilities": [
     {
@@ -464,9 +468,6 @@
       },
       "asyncapi": {
         "2026-05-21": "microservices/recordings/contracts/asyncapi/recordings-events.yaml"
-      },
-      "proto": {
-        "2026-05-21": "microservices/recordings/contracts/proto/recordings.proto"
       }
     }
   },

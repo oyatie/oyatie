@@ -70,9 +70,13 @@
     "asyncapi": [
       "oya/workplace-integration/contracts/asyncapi-v1.yaml"
     ],
-    "proto": [
-      "oya/workplace-integration/contracts/workplace-integration-v1.proto"
-    ]
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": [
+        "oya/workplace-integration/contracts/workplace-integration-v1.proto"
+      ]
+    }
   },
   "journey_ips": [
     {
@@ -196,9 +200,6 @@
       },
       "asyncapi": {
         "2026-05-21": "oya/workplace-integration/contracts/asyncapi-v1.yaml"
-      },
-      "proto": {
-        "2026-05-21": "oya/workplace-integration/contracts/workplace-integration-v1.proto"
       }
     }
   },
