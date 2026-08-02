@@ -1423,7 +1423,7 @@
       "current_path": "/specs/substrate-dependency-dag.json",
       "kind": "spec",
       "migration_phase": "W0-C-graph-v2",
-      "purpose": "ADR-0631 face-aware substrate topology authority: closed dependency_units plus exactly five typed graphs; only steady_state_request is acyclic and failure_brownout_propagation is its derived max-min reverse transitive closure.",
+      "purpose": "ADR-0635 face-aware substrate topology authority: closed dependency_units plus exactly five typed graphs; only steady_state_request is acyclic and failure_brownout_propagation is its derived max-min reverse transitive closure.",
       "schema_path": "/specs/substrate-dependency-dag.schema.json",
       "target_path_after_md_retirement": "same"
     }

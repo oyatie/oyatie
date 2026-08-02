@@ -543,6 +543,10 @@ fn composition_direction_and_required_schema_fields_are_red() {
         .remove("doctrine_adrs");
     assert_red_code(&missing_doctrine, "dag_schema_violation");
 
+    let (mut stale_graph_adr, _) = load_live();
+    stale_graph_adr["doctrine_adrs"][4] = json!("ADR-0631");
+    assert_red_code(&stale_graph_adr, "dag_schema_violation");
+
     let (mut missing_path_rule, _) = load_live();
     missing_path_rule["failure_impact_composition"]
         .as_object_mut()

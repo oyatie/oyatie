@@ -1,10 +1,10 @@
-//! cloud-ci substrate graph-v2 gate binary (ADR-0280 §D-3, amended by ADR-0631).
+//! cloud-ci substrate graph-v2 gate binary (ADR-0280 §D-3, amended by ADR-0635).
 //!
 //! Loads the policy-declared substrate dependency DAG, runs the full coherence evaluation
 //! (closed runtime-face-aware shape + graph-3 Tarjan acyclicity + forbidden-edge honouring + valid Kahn
 //! order + exact max-min reverse failure closure), prints the report, and exits 0/1/2. LOCAL BRIDGE
 //! feedback only (founder CLI-retirement directive): merge authority lives in the buck2 gate test
-//! behind oya-ci-required + the check-substrates lane, never in this binary.
+//! behind oya-ci-required + `//ci/facade/dependency-graph-acyclicity:ci-dependency-graph-acyclicity-gate`, never in this binary.
 #![forbid(unsafe_code)]
 
 use std::path::PathBuf;

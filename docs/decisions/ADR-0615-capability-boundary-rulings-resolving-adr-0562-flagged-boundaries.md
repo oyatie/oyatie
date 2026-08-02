@@ -9,7 +9,7 @@ door: one-way
 owner: council-architecture
 supersedes: []
 superseded_by: []
-amended_by: [ADR-0631]
+amended_by: [ADR-0635]
 amends: [ADR-0562]
 depends_on: [ADR-0562, ADR-0280]
 related: [ADR-0245, ADR-0512, ADR-0139, ADR-0532, ADR-0533, ADR-0536, ADR-0555]

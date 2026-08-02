@@ -1,5 +1,5 @@
 ---
-id: ADR-0631
+id: ADR-0635
 title: "Face-aware substrate dependency graph v2: five typed graphs and derived failure closure"
 status: Accepted
 planning_impact: true
@@ -19,7 +19,7 @@ related_specs:
 milestone: W0-C
 ---
 
-# ADR-0631: Face-aware substrate dependency graph v2
+# ADR-0635: Face-aware substrate dependency graph v2
 
 ## Status
 

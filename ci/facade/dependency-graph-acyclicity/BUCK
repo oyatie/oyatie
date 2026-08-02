@@ -10,9 +10,9 @@ rust_library(
     ],
 )
 
-# Gate binary (ADR-0280 §D-3 + ADR-0631). Loads the policy-declared graph-v2 document and exits 0/1/2.
+# Gate binary (ADR-0280 §D-3 + ADR-0635). Loads the policy-declared graph-v2 document and exits 0/1/2.
 # LOCAL BRIDGE feedback only (founder CLI-retirement directive): merge authority is the gate test
-# below + the check-substrates lane, never this binary.
+# below + `//ci/facade/dependency-graph-acyclicity:ci-dependency-graph-acyclicity-gate`, never this binary.
 rust_binary(
     name = "oya-cloud-ci-substrate-dependency-dag-acyclicity-bin",
     srcs = glob(["src/**/*.rs", "**/*.json"]),
@@ -42,7 +42,7 @@ rust_test(
     ],
 )
 
-# ADR-0631 graph-v2 live-corpus and mutation-fixture gate. It proves the exact five-kind set,
+# ADR-0635 graph-v2 live-corpus and mutation-fixture gate. It proves the exact five-kind set,
 # runtime-face endpoints, graph-3-only acyclicity, and exact derived failure closure.
 rust_test(
     name = "ci-dependency-graph-acyclicity-gate",
