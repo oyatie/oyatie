@@ -14,6 +14,7 @@
 //!
 //! The dry-run is the safety gate. The engine refuses to land a move whose dry-run fails.
 
+use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -94,7 +95,7 @@ pub fn dry_run(
         return Ok(report);
     }
 
-    let (cargo_ok, cargo_detail) = run_cargo_metadata(&shadow);
+    let (cargo_ok, cargo_detail) = verify_owning_workspaces(&shadow, plan);
     let buck_available = run_buck && which("buck2");
     let (buck_ok, buck_detail) = if buck_available {
         let (ok, detail) = run_buck_targets(&shadow);
@@ -116,6 +117,70 @@ pub fn dry_run(
         let _ = std::fs::remove_dir_all(&shadow);
     }
     Ok(report)
+}
+
+/// Verify the workspaces that ACTUALLY OWN the moved paths, not just the repo root.
+///
+/// This is the D1 fix. The old oracle ran `cargo metadata` at the repo root only — but the root
+/// `Cargo.toml` EXCLUDES the ADR-0512 nested carve-outs (`kernel`, `cloud/cloud-kernel`), so for
+/// any move inside one of them the oracle validated a workspace that did not contain the crates
+/// it had just moved, and reported `cargo_ok: true` over dangling path deps. A migration tool
+/// whose oracle cannot see the tree it is migrating converts every nested-workspace move into a
+/// silent corruption.
+///
+/// Two assertions per owning workspace:
+/// 1. `cargo metadata` RESOLVES there (catches dangling `path=` deps — the 5-edge class), and
+/// 2. every moved crate is actually PRESENT in that workspace's member set (catches a move that
+///    lands outside every `members` glob, which resolution alone would not report).
+///
+/// The repo root is always included, so unrelated root breakage is still caught.
+fn verify_owning_workspaces(shadow: &Path, plan: &MovePlan) -> (bool, String) {
+    let mut workspaces: BTreeMap<String, Vec<String>> = BTreeMap::new();
+    workspaces.entry(String::new()).or_default();
+    for m in &plan.moves {
+        match crate::plan::owning_workspace_root(shadow, &m.new_path) {
+            Ok(Some(workspace)) => workspaces
+                .entry(workspace)
+                .or_default()
+                .push(m.new_path.clone()),
+            Ok(None) => {}
+            Err(error) => return (false, format!("owning-workspace resolution failed: {error}")),
+        }
+    }
+
+    let mut details = Vec::new();
+    let mut ok = true;
+    for (workspace, moved_paths) in &workspaces {
+        let label = if workspace.is_empty() {
+            "<repo root>"
+        } else {
+            workspace.as_str()
+        };
+        let workspace_abs = shadow.join(workspace);
+        if !workspace_abs.join("Cargo.toml").is_file() {
+            continue; // fixture tree without a manifest here
+        }
+        let (resolved, detail) = run_cargo_metadata(&workspace_abs);
+        if !resolved {
+            ok = false;
+            details.push(format!("[{label}] cargo metadata FAILED: {detail}"));
+            continue;
+        }
+        // Membership: the moved crate's manifest must appear in ITS OWN workspace's metadata.
+        for moved in moved_paths {
+            let manifest_abs = shadow.join(moved).join("Cargo.toml");
+            let needle = manifest_abs.to_string_lossy().to_string();
+            if !detail.contains(&needle) {
+                ok = false;
+                details.push(format!(
+                    "[{label}] moved crate {moved:?} resolved by NO workspace member entry \
+                     (cargo metadata at {label} does not list {needle})"
+                ));
+            }
+        }
+        details.push(format!("[{label}] ok"));
+    }
+    (ok, details.join("\n"))
 }
 
 /// Run `cargo metadata` at `root`. Returns `(resolved_ok, stdout_or_stderr)`. `--no-deps` +
@@ -227,7 +292,7 @@ fn which(bin: &str) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::CrateMove;
+    use crate::model::{CrateMove, MovePlan};
     use std::sync::atomic::{AtomicU64, Ordering};
 
     static COUNTER: AtomicU64 = AtomicU64::new(0);
@@ -310,6 +375,92 @@ mod tests {
         // The real tree was NOT modified (dry-run is shadow-only).
         assert!(root.join("crates/oya-b/Cargo.toml").is_file());
         assert!(!root.join("demo/core/b").exists());
+        let _ = std::fs::remove_dir_all(&root);
+    }
+
+    /// A root workspace that EXCLUDES a nested workspace (the ADR-0512 carve-out shape:
+    /// root `Cargo.toml` excludes `nested`, which is its own `[workspace]` root). `libs/keep`
+    /// exists so the ROOT workspace itself is non-empty and resolves on its own.
+    fn make_excluded_nested_workspace_fixture(root: &Path, break_nested: bool) {
+        write(
+            root,
+            "Cargo.toml",
+            "[workspace]\nmembers = [\"libs/*\"]\nexclude = [\"nested\"]\nresolver = \"2\"\n",
+        );
+        write(
+            root,
+            "libs/keep/Cargo.toml",
+            "[package]\nname = \"keep\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
+        );
+        write(root, "libs/keep/src/lib.rs", "pub fn keep() {}\n");
+
+        // The NESTED workspace — invisible to `cargo metadata` at the ROOT.
+        write(
+            root,
+            "nested/Cargo.toml",
+            "[workspace]\nmembers = [\"crates/*\"]\nresolver = \"2\"\n",
+        );
+        // `a` depends on `b`. When `break_nested`, it ALSO carries a dangling path dep that
+        // no plan can repair — the deliberate post-move break the oracle must catch.
+        let a_manifest = if break_nested {
+            "[package]\nname = \"a\"\nversion = \"0.1.0\"\nedition = \"2021\"\n\n[dependencies]\nb = { path = \"../b\" }\nghost = { path = \"../oya-ghost\" }\n"
+        } else {
+            "[package]\nname = \"a\"\nversion = \"0.1.0\"\nedition = \"2021\"\n\n[dependencies]\nb = { path = \"../b\" }\n"
+        };
+        write(root, "nested/crates/a/Cargo.toml", a_manifest);
+        write(root, "nested/crates/a/src/lib.rs", "pub use b::hello;\n");
+        write(
+            root,
+            "nested/crates/b/Cargo.toml",
+            "[package]\nname = \"b\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
+        );
+        write(root, "nested/crates/b/src/lib.rs", "pub fn hello() {}\n");
+    }
+
+    fn nested_move_plan() -> MovePlan {
+        MovePlan {
+            capability: "nested".to_string(),
+            moves: vec![CrateMove {
+                old_path: "nested/crates/b".to_string(),
+                new_path: "nested/core/b".to_string(),
+                old_cargo_name: "b".to_string(),
+                new_cargo_name: "nested-b".to_string(),
+            }],
+            artifacts: vec![],
+        }
+    }
+
+    /// D1 (RED before the owning-workspace oracle): the moved crates live inside a workspace
+    /// the ROOT `Cargo.toml` EXCLUDES, so `cargo metadata` at the ROOT can never observe them.
+    /// A root-only oracle reports `clean: true` over an arbitrarily broken nested workspace.
+    #[test]
+    fn dry_run_fails_when_an_excluded_nested_workspace_is_left_broken() {
+        let root = tmp_root("nested-broken");
+        make_excluded_nested_workspace_fixture(&root, true);
+        let report = dry_run(&root, &nested_move_plan(), false, false).unwrap();
+        assert!(
+            !report.clean,
+            "oracle must FAIL on a broken EXCLUDED nested workspace; \
+             a root-only `cargo metadata` is structurally blind to it. cargo={}",
+            report.cargo_detail
+        );
+        assert!(!report.cargo_ok, "cargo leg must be the failing one");
+        let _ = std::fs::remove_dir_all(&root);
+    }
+
+    /// The GREEN counterpart: the SAME nested/excluded geometry with a correct result must
+    /// still pass. Together with the RED test above this proves the oracle actually descended
+    /// into the nested workspace rather than skipping it (a skip would pass BOTH).
+    #[test]
+    fn dry_run_passes_a_correct_move_inside_an_excluded_nested_workspace() {
+        let root = tmp_root("nested-clean");
+        make_excluded_nested_workspace_fixture(&root, false);
+        let report = dry_run(&root, &nested_move_plan(), false, false).unwrap();
+        assert!(
+            report.clean,
+            "a correct nested move must pass; cargo={}",
+            report.cargo_detail
+        );
         let _ = std::fs::remove_dir_all(&root);
     }
 

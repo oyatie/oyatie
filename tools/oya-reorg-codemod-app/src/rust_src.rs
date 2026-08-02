@@ -8,7 +8,121 @@
 //! full parse — sufficient and deterministic for the crate-ident rename class, which is the
 //! only Rust-source change a path move induces (the move never edits item names).
 
+//! # Path literals: detect-and-REFUSE (not rewrite)
+//!
+//! `include!` / `include_bytes!` / `include_str!` / `#[path]` carry FILE-RELATIVE path
+//! literals. A flat `crates/<crate>` -> two-level `<face>/<crate>` move changes both the
+//! crate's name and its HOP COUNT to anything outside itself, so `../../../x` silently stops
+//! meaning what it meant. This module DETECTS those literals and the engine refuses the move;
+//! it deliberately does NOT rewrite them. Three reasons:
+//!
+//! 1. **No oracle can check a rewrite.** Both of this tool's oracles — `cargo metadata` and
+//!    `buck2 targets //...` — resolve the graph WITHOUT compiling, so neither can observe a
+//!    dangling `include!`. Shipping a rewrite whose only validation is "the arithmetic looked
+//!    right" would recreate the exact defect this work exists to remove: an unverifiable
+//!    transform reported as green.
+//! 2. **The targets are not all in the plan.** The measured cloud-kernel literals point at
+//!    `../../../out/*.elf` — a BUILD-OUTPUT directory that is not a crate, is not in any move
+//!    plan, and may not exist when the codemod runs. Whether it should follow the crate, stay
+//!    put, or be regenerated is a judgment the plan does not encode, so a rewrite would guess.
+//! 3. **Refusal is cheap and precise.** The detector reports file:line and the resolved
+//!    target, and only fires for literals that ESCAPE the moving crate — a literal pointing
+//!    inside the crate's own directory keeps its meaning (the whole subtree moves together)
+//!    and is silently allowed, which is what keeps the refusal from being noise.
+//!
+//! Refusing loudly cannot corrupt a tree; a clever rewrite can.
+
 use std::collections::BTreeMap;
+
+use crate::model::{join_rel, EscapingPathLiteral};
+
+/// The path-literal carriers a crate move can invalidate. Each is matched as a literal prefix
+/// followed (after optional whitespace) by a plain double-quoted string.
+const PATH_LITERAL_CARRIERS: [(&str, &str); 4] = [
+    ("include_bytes!", "("),
+    ("include_str!", "("),
+    ("include!", "("),
+    ("#[path", "="),
+];
+
+/// Scan one Rust source file for path literals that resolve OUTSIDE `crate_dir`.
+///
+/// `file_rel` and `crate_dir` are repo-relative (the crate's PRE-move dir). A literal that
+/// resolves inside `crate_dir` is omitted: the whole crate subtree moves together, so its
+/// relative path is preserved by construction. A literal that escapes the repo root entirely
+/// is reported with `resolves_to: None`.
+///
+/// ponytail: only plain string literals are matched. `include!(concat!(env!("OUT_DIR"), ...))`
+/// is build-script driven and move-invariant, so skipping it is correct rather than lazy; a
+/// hand-built `concat!("../", ...)` would be missed, which is why this is a REFUSAL gate on
+/// what it does see rather than a completeness claim.
+pub fn scan_escaping_path_literals(
+    source: &str,
+    file_rel: &str,
+    crate_dir: &str,
+) -> Vec<EscapingPathLiteral> {
+    let file_dir = parent_dir(file_rel);
+    let mut out = Vec::new();
+    for (line_idx, line) in source.lines().enumerate() {
+        for (carrier, opener) in PATH_LITERAL_CARRIERS {
+            let mut cursor = 0usize;
+            while let Some(hit) = line[cursor..].find(carrier) {
+                let after = cursor + hit + carrier.len();
+                cursor = after;
+                let Some(literal) = literal_after(line, after, opener) else {
+                    continue;
+                };
+                // An absolute path is not a move-relative reference; leave it be.
+                if literal.starts_with('/') {
+                    continue;
+                }
+                let resolves_to = join_rel(&file_dir, &literal);
+                let escapes = match resolves_to.as_deref() {
+                    // Escaped the repo root -> unresolvable, always a refusal.
+                    None => true,
+                    Some(target) => !is_inside(target, crate_dir),
+                };
+                if escapes {
+                    out.push(EscapingPathLiteral {
+                        file: file_rel.to_string(),
+                        line: line_idx + 1,
+                        kind: carrier.trim_start_matches("#[").to_string(),
+                        literal,
+                        resolves_to,
+                    });
+                }
+            }
+        }
+    }
+    out
+}
+
+/// Extract the double-quoted string that follows `opener` at `from`, skipping whitespace.
+/// Returns `None` when the next non-space token is not a plain string literal (so
+/// `concat!(...)`, `env!(...)` and raw/byte strings are simply not matched).
+fn literal_after(line: &str, from: usize, opener: &str) -> Option<String> {
+    let rest = line.get(from..)?.trim_start();
+    let rest = rest.strip_prefix(opener)?.trim_start();
+    let body = rest.strip_prefix('"')?;
+    let end = body.find('"')?;
+    Some(body[..end].to_string())
+}
+
+/// True if repo-relative `target` is `dir` itself or lives beneath it.
+fn is_inside(target: &str, dir: &str) -> bool {
+    if dir.is_empty() {
+        return true;
+    }
+    target == dir || target.starts_with(&format!("{dir}/"))
+}
+
+/// The repo-relative directory holding `rel` (empty at the repo root).
+fn parent_dir(rel: &str) -> String {
+    match rel.rfind('/') {
+        Some(idx) => rel[..idx].to_string(),
+        None => String::new(),
+    }
+}
 
 /// Rewrite every whole-identifier occurrence of an old crate ident to its new ident across a
 /// Rust source file. `ident_renames` maps OLD snake crate ident -> NEW snake crate ident.
@@ -124,6 +238,88 @@ fn f() -> oya_iam::Result {
         let (out, changed) = rewrite_rust_source(src, &BTreeMap::new());
         assert!(!changed);
         assert_eq!(out, src);
+    }
+
+    /// D3 class 1, verbatim from `cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/
+    /// src/user.rs`: a BUILD-OUTPUT target (`cloud/cloud-kernel/out/`) that is not a crate, is in
+    /// no move plan, and may not exist when the codemod runs — the case a rewrite would have to
+    /// guess at.
+    #[test]
+    fn escaping_build_output_include_literal_is_detected() {
+        let src = "static SPAWN: &[u8] = include_bytes!(\"../../../out/user-spawn-x86_64.elf\");\n";
+        let found = scan_escaping_path_literals(
+            src,
+            "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/src/user.rs",
+            "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter",
+        );
+        assert_eq!(found.len(), 1, "{found:?}");
+        assert_eq!(
+            found[0].resolves_to.as_deref(),
+            Some("cloud/cloud-kernel/out/user-spawn-x86_64.elf")
+        );
+        assert_eq!(found[0].kind, "include_bytes!");
+        assert_eq!(found[0].line, 1, "1-indexed line reported");
+    }
+
+    /// D3 class 2, verbatim from `cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter/
+    /// tests-host/src/lib.rs:46`: a SIBLING CRATE named by its old directory outright. Note the
+    /// hop count is only correct at THIS depth — the same literal one directory shallower
+    /// resolves somewhere else entirely, which is exactly why the engine refuses instead of
+    /// recomputing.
+    #[test]
+    fn escaping_sibling_crate_include_literal_is_detected() {
+        let src = "    include!(\"../../../oya-cloud-kernel-user-layout-kernel/src/vfs.rs\");\n";
+        let found = scan_escaping_path_literals(
+            src,
+            "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter/tests-host/src/lib.rs",
+            "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter/tests-host",
+        );
+        assert_eq!(found.len(), 1, "{found:?}");
+        assert_eq!(
+            found[0].resolves_to.as_deref(),
+            Some("cloud/cloud-kernel/crates/oya-cloud-kernel-user-layout-kernel/src/vfs.rs"),
+            "sibling-crate target resolved repo-relative"
+        );
+        assert_eq!(found[0].kind, "include!");
+    }
+
+    /// The refusal must NOT be noise: a literal pointing INSIDE the moving crate keeps its
+    /// meaning, because the whole crate subtree relocates together. This is the common
+    /// `tests/common/mod.rs` / `../src/x.rs` shape and must stay silent.
+    #[test]
+    fn literals_inside_the_moving_crate_are_not_reported() {
+        let src = r#"
+include!("../src/layout.rs");
+include!("helper.rs");
+"#;
+        let found = scan_escaping_path_literals(
+            src,
+            "cloud/cloud-kernel/crates/oya-cloud-kernel-user-layout-kernel/tests-buck/lib.rs",
+            "cloud/cloud-kernel/crates/oya-cloud-kernel-user-layout-kernel",
+        );
+        assert!(found.is_empty(), "self-contained literals must not fire: {found:?}");
+    }
+
+    #[test]
+    fn path_attribute_and_repo_escaping_literal_are_reported() {
+        let src = "#[path = \"../../shared/mod.rs\"]\nmod shared;\ninclude!(\"../../../../../etc/x.rs\");\n";
+        let found = scan_escaping_path_literals(src, "a/b/src/lib.rs", "a/b");
+        assert_eq!(found.len(), 2, "{found:?}");
+        assert_eq!(found[0].kind, "path", "#[path] carrier labelled");
+        assert_eq!(found[0].resolves_to.as_deref(), Some("a/shared/mod.rs"));
+        assert_eq!(
+            found[1].resolves_to, None,
+            "a literal escaping the repo root is unresolvable and still refused"
+        );
+    }
+
+    /// Non-literal include forms are build-script driven and move-invariant; matching them
+    /// would make the gate fire on paths a move cannot break.
+    #[test]
+    fn out_dir_concat_include_is_not_reported() {
+        let src = "include!(concat!(env!(\"OUT_DIR\"), \"/generated.rs\"));\n";
+        let found = scan_escaping_path_literals(src, "a/b/src/lib.rs", "a/b");
+        assert!(found.is_empty(), "OUT_DIR includes are move-invariant: {found:?}");
     }
 
     #[test]
