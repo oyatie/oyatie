@@ -23,7 +23,7 @@ deliverables:
   - id: D3
     description: "Flag-as-code: definitions in oya-vcs (ADR-0409) GitOps repo; Buck2 CI (ADR-0408) validates schema; flag changes flow through PR review. Audit trail = git history."
     exit_criteria: "Buck2 gate oya-gate-validate-flag-schema is BLOCKER on flag bundle PRs; schema validator rejects malformed bundles; well-formed bundles pass and are applied to the running server within 30 s."
-    verified_by: "oya gate validate flag-schema (Buck2) + integration test: apply bundle -> evaluate flag"
+    verified_by: "planned hermetic cloud-ci/Buck2 flag-schema gate target (must be wired before D3 completion) + integration test: apply bundle -> evaluate flag"
   - id: D4
     description: "OTel (ADR-0407) integration: every evaluation emits span with flag_key + variation + tenant. Cloud-intelligence routing (ADR-0384) uses oya-flags for Cluster I/II/III selection."
     exit_criteria: "feature_flag.key and feature_flag.value OTel span attributes present on every evaluation span in Grafana Tempo; cloud-intelligence routing reads cluster-tier flag from oya-flags on every request."
@@ -31,7 +31,7 @@ deliverables:
   - id: D5
     description: "Tenant flag plane via Crossplane (ADR-0411) TenantApplication XR. Tenants set per-tenant flags via Self-Service UI (ADR-0434). oya-identity (ADR-0476) human auth + SPIFFE service auth."
     exit_criteria: "TenantApplication XR provisions a per-tenant flag namespace; Self-Service UI flag panel lists and toggles tenant-scoped flags; Cedar policy forbids cross-tenant flag writes."
-    verified_by: "oya gate validate honest-claims + Self-Service UI integration test: toggle flag -> evaluate flag returns updated variation"
+    verified_by: "cloud-ci/Rust honest-claims gate packet + Self-Service UI integration test: toggle flag -> evaluate flag returns updated variation"
 owner: council-platform
 ---
 # ADR-0481 — oya-flags: bespoke Rust feature flag server superseding flagd
