@@ -104,6 +104,8 @@ fn run() -> Result<bool, Box<dyn Error>> {
     );
 
     let cfg = soak::SoakConfig {
+        upstream_repository: pin::UPSTREAM_REPOSITORY.to_string(),
+        repository_commit: pin::RELEASE_COMMIT.to_string(),
         release_tag: pin::RELEASE_TAG.to_string(),
         iso: soak::IsoArtifact {
             asset_name: pin::BOOT_ISO_ASSET.to_string(),
@@ -120,7 +122,10 @@ fn run() -> Result<bool, Box<dyn Error>> {
         iteration_count: soak::ITERATION_COUNT,
         max_attempts: soak::MAX_SOAK_ATTEMPTS,
         per_boot_timeout_secs: soak::PER_BOOT_TIMEOUT_SECS,
-        allowed_markers: pin::BOOT_READY_MARKERS.iter().map(|m| m.to_string()).collect(),
+        allowed_markers: pin::BOOT_READY_MARKERS
+            .iter()
+            .map(|m| m.to_string())
+            .collect(),
     };
     let dests = soak::SoakDests {
         run_dir: run_dir.clone(),
@@ -148,7 +153,12 @@ fn run() -> Result<bool, Box<dyn Error>> {
         let clean = a.boot_records.iter().filter(|r| r.clean).count();
         eprintln!(
             "[soak] {} verdict={} clean_boots={}/{} receipt={} sha256={}",
-            a.attempt_id, a.verdict, clean, a.required_clean_boots, a.receipt_path, a.receipt_sha256
+            a.attempt_id,
+            a.verdict,
+            clean,
+            a.required_clean_boots,
+            a.receipt_path,
+            a.receipt_sha256
         );
     }
     eprintln!(
@@ -267,6 +277,7 @@ fn execute_one_boot(
     let marker = harness::find_boot_marker(&final_log, &pin::BOOT_READY_MARKERS)?;
 
     let record = soak::assemble_boot_record(soak::BootObservation {
+        evidence_origin: harness::EvidenceOrigin::Observed,
         attempt_id: attempt_id.to_string(),
         iteration_index: iteration,
         live,
@@ -282,7 +293,10 @@ fn execute_one_boot(
         record.clean,
         record.termination_reason,
         record.elapsed_seconds,
-        record.matched_marker.as_ref().map(|m| m.matched_text.as_str())
+        record
+            .matched_marker
+            .as_ref()
+            .map(|m| m.matched_text.as_str())
     );
     Ok(record)
 }

@@ -226,13 +226,147 @@ pub fn find_boot_marker(log: &str, markers: &[&str]) -> Result<Option<MarkerMatc
     Ok(None)
 }
 
-/// Pass/fail status of a [`BootVerdict`], derived SOLELY from boot-ready markers present in the
-/// real captured serial log.
+/// Closed provenance for boot evidence. Fixture bytes may exercise parsing but are never admissible
+/// as observed success.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum EvidenceOrigin {
+    Fixture,
+    Observed,
+}
+
+impl EvidenceOrigin {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Fixture => "fixture",
+            Self::Observed => "observed",
+        }
+    }
+}
+
+/// Closed outcome of the evidence path.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum EvidenceOutcome {
+    Success,
+    AbsentOracle,
+    UnsupportedPath,
+    ObservedFailure,
+}
+
+impl EvidenceOutcome {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Success => "success",
+            Self::AbsentOracle => "absent_oracle",
+            Self::UnsupportedPath => "unsupported_path",
+            Self::ObservedFailure => "observed_failure",
+        }
+    }
+
+    pub fn terminal(self) -> &'static str {
+        match self {
+            Self::Success => "PASS",
+            Self::AbsentOracle => "REFUSED_NO_ORACLE",
+            Self::UnsupportedPath => "REFUSED_UNSUPPORTED_PATH",
+            Self::ObservedFailure => "OBSERVED_FAILURE",
+        }
+    }
+}
+
+/// Closed by-reference artifact roles in a boot evidence envelope.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ArtifactRole {
+    Iso,
+    SerialLog,
+    QemuStderr,
+    Receipt,
+    Excerpt,
+    SoakEvidence,
+    GapRecord,
+}
+
+impl ArtifactRole {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Iso => "iso",
+            Self::SerialLog => "serial-log",
+            Self::QemuStderr => "qemu-stderr",
+            Self::Receipt => "receipt",
+            Self::Excerpt => "excerpt",
+            Self::SoakEvidence => "soak-evidence",
+            Self::GapRecord => "gap-record",
+        }
+    }
+}
+
+/// One non-empty, digest-bound artifact reference.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ArtifactRef {
+    pub role: ArtifactRole,
+    pub source_pointer: String,
+    pub sha256: String,
+    pub byte_size: u64,
+}
+
+/// Validated artifact set bound to one exact upstream repository commit.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ArtifactEnvelope {
+    pub upstream_repository: String,
+    pub repository_commit: String,
+    pub artifacts: Vec<ArtifactRef>,
+}
+
+impl ArtifactEnvelope {
+    pub fn validate(
+        upstream_repository: &str,
+        repository_commit: &str,
+        artifacts: Vec<ArtifactRef>,
+        required_roles: &[ArtifactRole],
+    ) -> Result<Self, EvidenceOutcome> {
+        let commit_valid = repository_commit.len() == 40
+            && repository_commit.bytes().all(|b| b.is_ascii_hexdigit());
+        let artifacts_valid = artifacts.iter().all(|artifact| {
+            !artifact.source_pointer.trim().is_empty()
+                && artifact.sha256.len() == 64
+                && artifact.sha256.bytes().all(|b| b.is_ascii_hexdigit())
+                && artifact.byte_size > 0
+        });
+        let roles_present = required_roles
+            .iter()
+            .all(|role| artifacts.iter().any(|artifact| artifact.role == *role));
+        if upstream_repository.trim().is_empty()
+            || !commit_valid
+            || !artifacts_valid
+            || !roles_present
+        {
+            return Err(EvidenceOutcome::AbsentOracle);
+        }
+        Ok(Self {
+            upstream_repository: upstream_repository.to_string(),
+            repository_commit: repository_commit.to_ascii_lowercase(),
+            artifacts,
+        })
+    }
+}
+
+/// Host architecture alone never makes configured x86_64 TCG unsupported.
+pub fn classify_qemu_path(
+    _host_os: &str,
+    _host_arch: &str,
+    x86_64_tcg_configured: bool,
+) -> EvidenceOutcome {
+    if x86_64_tcg_configured {
+        EvidenceOutcome::Success
+    } else {
+        EvidenceOutcome::UnsupportedPath
+    }
+}
+
+/// Pass/fail status of a [`BootVerdict`]. A pass requires observed origin plus a marker.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BootStatus {
-    /// At least one closed-set marker was found in the real captured log.
+    /// Observed origin plus at least one closed-set marker.
     Pass,
-    /// No closed-set marker was found in the real captured log.
+    /// Fixture origin or no marker in an observed capture.
     Fail,
 }
 
@@ -246,40 +380,47 @@ impl BootStatus {
     }
 }
 
-/// The boot-reached verdict, derived SOLELY from boot-ready markers found in the real captured
-/// serial log.
+/// Boot verdict from marker parsing plus a closed evidence origin.
 ///
-/// `boot_reached` is `true` iff at least one regex in the closed `allowed_markers` set matches a
-/// line of the raw captured log (markers present -> reached; absent -> not reached); `marker`
-/// carries the exact matched marker (verbatim line + text) or `None`; `status` is `Pass` iff
-/// reached. The verdict is a pure function of the real log bytes and the closed marker set — no
-/// simulated, synthesized, expected, or constant input can produce a `Pass`, because a `Pass`
-/// requires a real marker occurrence in the supplied log.
+/// Marker detection records parsing evidence in `marker`; it becomes `observed_success` and `Pass`
+/// only for `EvidenceOrigin::Observed`. Fixtures always remain `AbsentOracle` / `Fail`.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BootVerdict {
     pub boot_reached: bool,
+    pub observed_success: bool,
+    pub origin: EvidenceOrigin,
+    pub outcome: EvidenceOutcome,
     pub allowed_markers: Vec<String>,
     pub marker: Option<MarkerMatch>,
     pub status: BootStatus,
 }
 
-/// Derive the boot-reached verdict SOLELY from boot-ready markers present in the real captured
-/// serial `log`, against the closed `markers` set.
+/// Parse the closed marker set and derive truth from explicit origin.
 ///
-/// Markers present -> `boot_reached = true`, `status = Pass`; markers absent -> `boot_reached =
-/// false`, `status = Fail`. This scans only the supplied log bytes via [`find_boot_marker`] (no
-/// fallback/heuristic marker, no external signal, no simulated input), so the verdict cannot be
-/// satisfied by anything other than a real marker occurrence in the log it is given.
-pub fn derive_boot_verdict(log: &str, markers: &[&str]) -> Result<BootVerdict, regex::Error> {
+/// Observed marker -> `Success` / `Pass`; observed no-marker -> `ObservedFailure`; every fixture ->
+/// `AbsentOracle` / `Fail`, regardless of marker content.
+pub fn derive_boot_verdict(
+    log: &str,
+    markers: &[&str],
+    origin: EvidenceOrigin,
+) -> Result<BootVerdict, regex::Error> {
     let marker = find_boot_marker(log, markers)?;
-    let boot_reached = marker.is_some();
-    let status = if boot_reached {
+    let observed_success = origin == EvidenceOrigin::Observed && marker.is_some();
+    let outcome = match (origin, marker.is_some()) {
+        (EvidenceOrigin::Observed, true) => EvidenceOutcome::Success,
+        (EvidenceOrigin::Observed, false) => EvidenceOutcome::ObservedFailure,
+        (EvidenceOrigin::Fixture, _) => EvidenceOutcome::AbsentOracle,
+    };
+    let status = if observed_success {
         BootStatus::Pass
     } else {
         BootStatus::Fail
     };
     Ok(BootVerdict {
-        boot_reached,
+        boot_reached: observed_success,
+        observed_success,
+        origin,
+        outcome,
         allowed_markers: markers.iter().map(|m| (*m).to_string()).collect(),
         marker,
         status,
@@ -460,6 +601,7 @@ pub fn nav_plan_json(plan: &[KeyStep]) -> serde_json::Value {
 #[allow(clippy::too_many_arguments)]
 pub fn build_boot_receipt(
     release_tag: &str,
+    artifact_envelope: &ArtifactEnvelope,
     iso_path: &str,
     expected_iso_sha256: &str,
     actual_iso_sha256: &str,
@@ -477,8 +619,8 @@ pub fn build_boot_receipt(
     booted_at_unix: u64,
 ) -> serde_json::Value {
     let iso_verified = digests_match(expected_iso_sha256, actual_iso_sha256);
-    let boot_reached = verdict.boot_reached;
-    let status = if boot_reached && iso_verified {
+    let boot_reached = verdict.observed_success;
+    let status = if verdict.outcome == EvidenceOutcome::Success && iso_verified {
         "pass"
     } else {
         "fail"
@@ -494,13 +636,18 @@ pub fn build_boot_receipt(
         None => serde_json::Value::Null,
     };
     serde_json::json!({
-        "$schema": "https://docs.oyatie.com/schemas/kuberos-asterinas-boot-receipt.v0.1.0.json",
+        "$schema": "https://docs.oyatie.com/schemas/kuberos-asterinas-boot-receipt.v0.2.0.json",
         "receipt_type": "boot",
         "acceptance_criterion": "AC2",
         "component": "asterinas/kernel",
         "wave": "kuberos-asterinas-wave1",
         "slice": "real-boot-envelope",
         "release_tag": release_tag,
+        "upstream_repository": artifact_envelope.upstream_repository,
+        "repository_commit": artifact_envelope.repository_commit,
+        "evidence_origin": verdict.origin.as_str(),
+        "evidence_outcome": verdict.outcome.as_str(),
+        "observed_success": verdict.observed_success,
         "black_box_unmodified_upstream": true,
         "artifact": {
             "iso_path": iso_path,
@@ -528,11 +675,14 @@ pub fn build_boot_receipt(
             "byte_size": serial_log_byte_size,
         },
         "boot_verdict": {
+            "evidence_origin": verdict.origin.as_str(),
+            "evidence_outcome": verdict.outcome.as_str(),
+            "observed_success": verdict.observed_success,
             "allowed_markers": verdict.allowed_markers,
             "boot_reached": boot_reached,
             "verdict_status": verdict.status.as_str(),
             "matched_marker": matched,
-            "derived_solely_from_real_captured_log": true,
+            "derived_solely_from_real_captured_log": verdict.origin == EvidenceOrigin::Observed,
         },
         "timeout_secs": timeout_secs,
         "wall_secs": wall_secs,
@@ -548,12 +698,8 @@ pub fn build_boot_receipt(
 #[allow(clippy::too_many_arguments)]
 pub fn build_envelope_receipt(
     release_tag: &str,
-    iso_path: &str,
-    iso_sha256: &str,
-    iso_byte_size: u64,
-    serial_log_path: &str,
-    serial_log_sha256: &str,
-    serial_log_byte_size: u64,
+    artifact_envelope: &ArtifactEnvelope,
+    verdict: &BootVerdict,
     serial_log_line_count: usize,
     excerpt_head_lines: usize,
     excerpt_tail_lines: usize,
@@ -567,18 +713,32 @@ pub fn build_envelope_receipt(
         .zip(marker_hit_counts.iter())
         .map(|(m, c)| serde_json::json!({ "marker": m, "matching_lines": c }))
         .collect();
+    let artifacts: Vec<serde_json::Value> = artifact_envelope
+        .artifacts
+        .iter()
+        .map(|artifact| {
+            serde_json::json!({
+                "role": artifact.role.as_str(),
+                "source_pointer": artifact.source_pointer,
+                "sha256": artifact.sha256,
+                "byte_size": artifact.byte_size,
+            })
+        })
+        .collect();
     serde_json::json!({
-        "$schema": "https://docs.oyatie.com/schemas/kuberos-asterinas-envelope-receipt.v0.1.0.json",
+        "$schema": "https://docs.oyatie.com/schemas/kuberos-asterinas-envelope-receipt.v0.2.0.json",
         "receipt_type": "envelope",
         "acceptance_criterion": "AC2",
         "component": "asterinas/kernel",
         "wave": "kuberos-asterinas-wave1",
         "slice": "real-boot-envelope",
         "release_tag": release_tag,
-        "artifacts_handled_by_reference": [
-            { "role": "release-iso", "path": iso_path, "sha256": iso_sha256, "byte_size": iso_byte_size },
-            { "role": "serial-log", "path": serial_log_path, "sha256": serial_log_sha256, "byte_size": serial_log_byte_size },
-        ],
+        "evidence_origin": verdict.origin.as_str(),
+        "evidence_outcome": verdict.outcome.as_str(),
+        "observed_success": verdict.observed_success,
+        "upstream_repository": artifact_envelope.upstream_repository,
+        "repository_commit": artifact_envelope.repository_commit,
+        "artifacts_handled_by_reference": artifacts,
         "no_inlined_binaries_or_full_logs": true,
         "serial_log_line_count": serial_log_line_count,
         "agent_context_excerpt_bounds": {
@@ -594,6 +754,7 @@ pub fn build_envelope_receipt(
 
 /// Build a gap-register entry (honest-failure escalation) recording a real-boot blocker.
 pub fn build_gap_register_entry(
+    verdict: &BootVerdict,
     gap_id: &str,
     title: &str,
     blocker_class: &str,
@@ -609,6 +770,9 @@ pub fn build_gap_register_entry(
         "status": "open",
         "severity": "blocker-before-real-boot-envelope-proven",
         "slice": "real-boot-envelope",
+        "evidence_origin": verdict.origin.as_str(),
+        "evidence_outcome": verdict.outcome.as_str(),
+        "observed_success": verdict.observed_success,
         "observed_fact": observed_fact,
         "evidence": {
             "serial_log_path": serial_log_path,
@@ -676,6 +840,12 @@ pub fn write_excerpt_file(
 /// This is the pure, QEMU-free input to [`finalize_boot_evidence`], so the receipt assembly and
 /// fail-path escalation are integration-testable without QEMU.
 pub struct BootAttempt<'a> {
+    /// Closed provenance; only the process driver may set `Observed` after spawn/capture.
+    pub evidence_origin: EvidenceOrigin,
+    /// Upstream repository authority for the pinned release.
+    pub upstream_repository: &'a str,
+    /// Exact 40-hex upstream release commit.
+    pub repository_commit: &'a str,
     /// Pinned release tag (e.g. `v0.17.2`).
     pub release_tag: &'a str,
     /// Published release-asset name, recorded in the gap-register observed_fact.
@@ -716,6 +886,8 @@ pub struct BootAttempt<'a> {
 pub struct EvidenceDests<'a> {
     /// Raw captured serial log (input; read to derive the verdict + recompute the digest).
     pub serial_log: &'a Path,
+    /// Captured QEMU stderr, required for observed evidence.
+    pub qemu_stderr: &'a Path,
     /// Bounded head/tail excerpt destination.
     pub excerpt: &'a Path,
     /// Boot receipt destination.
@@ -729,6 +901,14 @@ pub struct EvidenceDests<'a> {
 /// Outcome of [`finalize_boot_evidence`] — a bounded, by-reference summary of what was written.
 #[derive(Debug, Clone)]
 pub struct FinalizeOutcome {
+    /// Closed provenance of the finalized evidence.
+    pub evidence_origin: EvidenceOrigin,
+    /// Typed evidence outcome.
+    pub evidence_outcome: EvidenceOutcome,
+    /// Durable terminal derived from the typed outcome.
+    pub terminal: &'static str,
+    /// Validated commit-bound artifact envelope.
+    pub artifact_envelope: ArtifactEnvelope,
     /// Overall boot-reached: a real marker in the log AND the ISO digest verified.
     pub boot_reached: bool,
     /// The verdict derived solely from the real captured log.
@@ -751,7 +931,45 @@ pub struct FinalizeOutcome {
     pub gap_register_written: bool,
 }
 
-/// Finalize the on-disk evidence of a single boot attempt into the admissible receipts.
+#[derive(Debug)]
+pub enum FinalizeError {
+    Evidence(EvidenceOutcome),
+    Io(io::Error),
+    Regex(regex::Error),
+    Digest(DigestVerifyError),
+}
+
+impl fmt::Display for FinalizeError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Evidence(outcome) => write!(f, "{}", outcome.terminal()),
+            Self::Io(error) => error.fmt(f),
+            Self::Regex(error) => error.fmt(f),
+            Self::Digest(error) => error.fmt(f),
+        }
+    }
+}
+
+impl std::error::Error for FinalizeError {}
+
+impl From<io::Error> for FinalizeError {
+    fn from(error: io::Error) -> Self {
+        Self::Io(error)
+    }
+}
+
+impl From<regex::Error> for FinalizeError {
+    fn from(error: regex::Error) -> Self {
+        Self::Regex(error)
+    }
+}
+
+impl From<DigestVerifyError> for FinalizeError {
+    fn from(error: DigestVerifyError) -> Self {
+        Self::Digest(error)
+    }
+}
+
 ///
 /// This is the AC3 boot-receipt assembly + honest fail-path escalation, extracted from the
 /// QEMU-driving binary so it is exercised by an integration test covering BOTH boot-reached and
@@ -769,17 +987,57 @@ pub struct FinalizeOutcome {
 ///
 /// No simulated, synthesized, expected, or constant evidence is produced: an overall `pass`
 /// requires a real marker occurrence in the supplied log AND a verified ISO digest.
+/// Finalize a boot attempt without promoting fixture parsing into observed evidence.
 pub fn finalize_boot_evidence(
     attempt: &BootAttempt,
     dests: &EvidenceDests,
-) -> Result<FinalizeOutcome, Box<dyn std::error::Error>> {
+) -> Result<FinalizeOutcome, FinalizeError> {
     // 1. Recompute the serial-log digest from the on-disk bytes at receipt-write time so any
     //    digest recorded in a receipt is self-consistent with the file it references.
     let (serial_sha256, serial_size) = sha256_file(dests.serial_log)?;
-    let log = read_log_file(dests.serial_log).unwrap_or_default();
+    let (stderr_sha256, stderr_size) = sha256_file(dests.qemu_stderr)
+        .map_err(|_| FinalizeError::Evidence(EvidenceOutcome::AbsentOracle))?;
+    let log = read_log_file(dests.serial_log)?;
 
-    // 2. Verdict derived SOLELY from the real captured log + closed marker set.
-    let verdict = derive_boot_verdict(&log, attempt.allowed_markers)?;
+    let artifact_envelope = ArtifactEnvelope::validate(
+        attempt.upstream_repository,
+        attempt.repository_commit,
+        vec![
+            ArtifactRef {
+                role: ArtifactRole::Iso,
+                source_pointer: attempt.iso_path.to_string(),
+                sha256: attempt.actual_iso_sha256.to_string(),
+                byte_size: attempt.iso_byte_size,
+            },
+            ArtifactRef {
+                role: ArtifactRole::SerialLog,
+                source_pointer: dests.serial_log.to_string_lossy().into_owned(),
+                sha256: serial_sha256.clone(),
+                byte_size: serial_size,
+            },
+            ArtifactRef {
+                role: ArtifactRole::QemuStderr,
+                source_pointer: dests.qemu_stderr.to_string_lossy().into_owned(),
+                sha256: stderr_sha256,
+                byte_size: stderr_size,
+            },
+        ],
+        &[
+            ArtifactRole::Iso,
+            ArtifactRole::SerialLog,
+            ArtifactRole::QemuStderr,
+        ],
+    )
+    .map_err(FinalizeError::Evidence)?;
+
+    // Marker parsing is not success: origin closes the truth boundary.
+    let mut verdict = derive_boot_verdict(&log, attempt.allowed_markers, attempt.evidence_origin)?;
+    if !attempt.iso_verified && verdict.outcome == EvidenceOutcome::Success {
+        verdict.outcome = EvidenceOutcome::ObservedFailure;
+        verdict.observed_success = false;
+        verdict.boot_reached = false;
+        verdict.status = BootStatus::Fail;
+    }
     let counts = marker_hit_counts(&log, attempt.allowed_markers)?;
     let total_lines = line_count(&log);
     let (head, tail) = head_tail_lines(&log, attempt.excerpt_lines);
@@ -806,6 +1064,7 @@ pub fn finalize_boot_evidence(
     //    serial-log sha256).
     let boot_receipt = build_boot_receipt(
         attempt.release_tag,
+        &artifact_envelope,
         attempt.iso_path,
         attempt.expected_iso_sha256,
         attempt.actual_iso_sha256,
@@ -832,26 +1091,7 @@ pub fn finalize_boot_evidence(
     let digest_verification = verify_serial_log_digest(recorded, dests.serial_log)?;
     write_json_file(dests.boot_receipt, &boot_receipt)?;
 
-    // 5. Envelope receipt.
-    let envelope = build_envelope_receipt(
-        attempt.release_tag,
-        attempt.iso_path,
-        attempt.actual_iso_sha256,
-        attempt.iso_byte_size,
-        &dests.serial_log.to_string_lossy(),
-        &serial_sha256,
-        serial_size,
-        total_lines,
-        head.len().min(attempt.excerpt_lines),
-        tail.len().min(attempt.excerpt_lines),
-        attempt.excerpt_lines,
-        &counts,
-        attempt.allowed_markers,
-        now_unix(),
-    );
-    write_json_file(dests.envelope_receipt, &envelope)?;
-
-    // 6. Honest-failure escalation: emit a gap-register entry when the boot is not reached. No
+    // 5. Honest-failure escalation: emit a gap-register entry when the boot is not reached. No
     //    simulated or inferred evidence is produced — the entry records the observed fact only.
     let gap_register_written = if !boot_reached {
         let observed = format!(
@@ -863,6 +1103,7 @@ pub fn finalize_boot_evidence(
             total_lines
         );
         let entry = build_gap_register_entry(
+            &verdict,
             "KAW1-BOOT-ENVELOPE-001",
             "Real-boot envelope not proven: no boot-ready marker in captured serial log",
             "boot-api-evidence-gap",
@@ -877,7 +1118,62 @@ pub fn finalize_boot_evidence(
         false
     };
 
+    let mut finalized_artifacts = artifact_envelope.artifacts.clone();
+    for (role, path) in [
+        (ArtifactRole::Receipt, dests.boot_receipt),
+        (ArtifactRole::Excerpt, dests.excerpt),
+    ] {
+        let (sha256, byte_size) = sha256_file(path)?;
+        finalized_artifacts.push(ArtifactRef {
+            role,
+            source_pointer: path.to_string_lossy().into_owned(),
+            sha256,
+            byte_size,
+        });
+    }
+    let mut required_roles = vec![
+        ArtifactRole::Iso,
+        ArtifactRole::SerialLog,
+        ArtifactRole::QemuStderr,
+        ArtifactRole::Receipt,
+        ArtifactRole::Excerpt,
+    ];
+    if gap_register_written {
+        let (sha256, byte_size) = sha256_file(dests.gap_register)?;
+        finalized_artifacts.push(ArtifactRef {
+            role: ArtifactRole::GapRecord,
+            source_pointer: dests.gap_register.to_string_lossy().into_owned(),
+            sha256,
+            byte_size,
+        });
+        required_roles.push(ArtifactRole::GapRecord);
+    }
+    let artifact_envelope = ArtifactEnvelope::validate(
+        attempt.upstream_repository,
+        attempt.repository_commit,
+        finalized_artifacts,
+        &required_roles,
+    )
+    .map_err(FinalizeError::Evidence)?;
+    let envelope = build_envelope_receipt(
+        attempt.release_tag,
+        &artifact_envelope,
+        &verdict,
+        total_lines,
+        head.len().min(attempt.excerpt_lines),
+        tail.len().min(attempt.excerpt_lines),
+        attempt.excerpt_lines,
+        &counts,
+        attempt.allowed_markers,
+        now_unix(),
+    );
+    write_json_file(dests.envelope_receipt, &envelope)?;
+
     Ok(FinalizeOutcome {
+        evidence_origin: attempt.evidence_origin,
+        evidence_outcome: verdict.outcome,
+        terminal: verdict.outcome.terminal(),
+        artifact_envelope,
         boot_reached,
         verdict,
         serial_log_sha256: serial_sha256,
@@ -1146,6 +1442,18 @@ mod tests {
     #[test]
     fn boot_receipt_pass_requires_marker_and_iso_digest() {
         let plan = serial_menu_nav_plan();
+        let artifact_envelope = ArtifactEnvelope::validate(
+            "https://github.com/asterinas/asterinas",
+            "23adfdfd72b05cee8d232809caea81a4b33d3488",
+            vec![ArtifactRef {
+                role: ArtifactRole::SerialLog,
+                source_pointer: "log".to_string(),
+                sha256: "0".repeat(64),
+                byte_size: 42,
+            }],
+            &[ArtifactRole::SerialLog],
+        )
+        .unwrap();
         let marker = Some(MarkerMatch {
             marker_index: 3,
             marker_pattern: markers()[3].to_string(),
@@ -1155,12 +1463,16 @@ mod tests {
         });
         let reached = BootVerdict {
             boot_reached: true,
+            observed_success: true,
+            origin: EvidenceOrigin::Observed,
+            outcome: EvidenceOutcome::Success,
             allowed_markers: markers().iter().map(|m| m.to_string()).collect(),
             marker,
             status: BootStatus::Pass,
         };
         let ok = build_boot_receipt(
             "v0.17.2",
+            &artifact_envelope,
             "iso",
             "bf6e",
             "BF6E",
@@ -1188,12 +1500,16 @@ mod tests {
         // No marker -> fail even with a good ISO digest.
         let not_reached = BootVerdict {
             boot_reached: false,
+            observed_success: false,
+            origin: EvidenceOrigin::Observed,
+            outcome: EvidenceOutcome::ObservedFailure,
             allowed_markers: markers().iter().map(|m| m.to_string()).collect(),
             marker: None,
             status: BootStatus::Fail,
         };
         let fail = build_boot_receipt(
             "v0.17.2",
+            &artifact_envelope,
             "iso",
             "bf6e",
             "bf6e",
@@ -1217,6 +1533,7 @@ mod tests {
         // yet the marker-derived verdict itself stays pass (it depends solely on the log).
         let bad_iso = build_boot_receipt(
             "v0.17.2",
+            &artifact_envelope,
             "iso",
             "bf6e",
             "dead",
@@ -1239,14 +1556,28 @@ mod tests {
 
     #[test]
     fn envelope_receipt_records_by_reference_handling() {
+        let artifact_envelope = ArtifactEnvelope::validate(
+            "https://github.com/asterinas/asterinas",
+            "23adfdfd72b05cee8d232809caea81a4b33d3488",
+            vec![ArtifactRef {
+                role: ArtifactRole::SerialLog,
+                source_pointer: "log".to_string(),
+                sha256: "0".repeat(64),
+                byte_size: 20_000,
+            }],
+            &[ArtifactRole::SerialLog],
+        )
+        .unwrap();
+        let verdict = derive_boot_verdict(
+            "Reached target Basic System\n",
+            markers(),
+            EvidenceOrigin::Fixture,
+        )
+        .unwrap();
         let r = build_envelope_receipt(
             "v0.17.2",
-            "iso",
-            "bf6e",
-            1_378_910_208,
-            "log",
-            "beef",
-            20_000,
+            &artifact_envelope,
+            &verdict,
             210,
             80,
             80,
@@ -1255,33 +1586,30 @@ mod tests {
             markers(),
             1,
         );
-        assert_eq!(
-            r["no_inlined_binaries_or_full_logs"],
-            serde_json::Value::Bool(true)
-        );
+        assert_eq!(r["evidence_origin"], "fixture");
+        assert_eq!(r["observed_success"], false);
         assert_eq!(
             r["artifacts_handled_by_reference"]
                 .as_array()
                 .unwrap()
                 .len(),
-            2
-        );
-        assert_eq!(
-            r["fit_single_agent_execution_envelope"],
-            serde_json::Value::Bool(true)
+            1
         );
     }
 
     // ---- Sub-AC 2: boot-reached verdict derived SOLELY from real-log markers ----
 
     #[test]
-    fn derive_boot_verdict_reached_when_marker_present_in_fixture_log() {
+    fn derive_boot_verdict_fixture_marker_is_parsed_but_not_observed_success() {
         // Fixture log WITH a closed-set marker (a real systemd "Reached target" line shape).
         let log = "[    2.01] EDD probe\n[  OK  ] Reached target Multi-User System.\ntail\n";
-        let v = derive_boot_verdict(log, markers()).unwrap();
-        assert!(v.boot_reached, "marker present -> reached");
-        assert_eq!(v.status, BootStatus::Pass);
-        assert_eq!(v.status.as_str(), "pass");
+        let v = derive_boot_verdict(log, markers(), EvidenceOrigin::Fixture).unwrap();
+        assert!(!v.boot_reached, "fixture marker is not observed success");
+        assert!(!v.observed_success);
+        assert_eq!(v.origin, EvidenceOrigin::Fixture);
+        assert_eq!(v.outcome, EvidenceOutcome::AbsentOracle);
+        assert_eq!(v.status, BootStatus::Fail);
+        assert_eq!(v.status.as_str(), "fail");
         assert_eq!(
             v.allowed_markers,
             markers().iter().map(|m| m.to_string()).collect::<Vec<_>>()
@@ -1293,7 +1621,7 @@ mod tests {
     }
 
     #[test]
-    fn derive_boot_verdict_reaches_on_each_closed_marker_class() {
+    fn derive_boot_verdict_parses_each_fixture_marker_without_promoting_it() {
         // One fixture log per class in the closed marker set: every class -> reached, and the
         // exact matched marker index is the class expected. Proves the verdict is driven by real
         // marker occurrences across the whole closed set, not one hard-coded pattern.
@@ -1305,12 +1633,14 @@ mod tests {
             (4, "systemd[1]: Startup finished in 4.213s.\n"),
         ];
         for (idx, log) in fixtures {
-            let v = derive_boot_verdict(log, markers()).unwrap();
+            let v = derive_boot_verdict(log, markers(), EvidenceOrigin::Fixture).unwrap();
             assert!(
-                v.boot_reached,
-                "class {idx} fixture must be reached: {log:?}"
+                !v.boot_reached,
+                "class {idx} fixture is not observed: {log:?}"
             );
-            assert_eq!(v.status, BootStatus::Pass);
+            assert!(!v.observed_success);
+            assert_eq!(v.status, BootStatus::Fail);
+            assert_eq!(v.outcome, EvidenceOutcome::AbsentOracle);
             assert_eq!(v.marker.expect("marker").marker_index, idx);
         }
     }
@@ -1321,7 +1651,7 @@ mod tests {
         // Asterinas NixOS" banner must NOT match the literal "Welcome to NixOS" marker, and no
         // login/shell/reached-target/startup-finished line is present.
         let log = "Welcome to Asterinas NixOS 0.17.2\nloglevel=4 nohibernate\nEDD probe done\nno panic here\n";
-        let v = derive_boot_verdict(log, markers()).unwrap();
+        let v = derive_boot_verdict(log, markers(), EvidenceOrigin::Fixture).unwrap();
         assert!(!v.boot_reached, "no marker -> not reached");
         assert_eq!(v.status, BootStatus::Fail);
         assert_eq!(v.status.as_str(), "fail");
@@ -1333,7 +1663,7 @@ mod tests {
     fn derive_boot_verdict_empty_log_is_not_reached() {
         // A timed-out boot that emitted nothing to serial is honest not-reached, never a
         // synthesized pass — the verdict has no input from which to fabricate a marker.
-        let v = derive_boot_verdict("", markers()).unwrap();
+        let v = derive_boot_verdict("", markers(), EvidenceOrigin::Fixture).unwrap();
         assert!(!v.boot_reached);
         assert_eq!(v.status, BootStatus::Fail);
         assert!(v.marker.is_none());
@@ -1356,7 +1686,7 @@ mod tests {
 // integration test against on-disk serial-log fixtures with NO QEMU and NO network.
 // ============================================================================
 pub mod soak {
-    use super::{MarkerMatch, now_unix, sha256_file, write_json_file};
+    use super::{EvidenceOrigin, MarkerMatch, now_unix, sha256_file, write_json_file};
     use std::path::{Path, PathBuf};
 
     /// Iterations per soak attempt: 10 consecutive fresh-VM cold boots must all be clean.
@@ -1410,11 +1740,12 @@ pub mod soak {
         pub description: String,
     }
 
-    /// The raw observed facts of ONE real fresh-VM boot, gathered by the impure QEMU driver and
-    /// handed to the pure [`assemble_boot_record`]. The serial log is referenced by path +
-    /// recomputed digest — its bytes are NEVER carried here (large-artifact-by-reference).
+    /// The raw inputs of one boot-evidence record. `evidence_origin` closes fixture vs observed;
+    /// the process driver may set `Observed` only after spawn and capture.
     #[derive(Debug, Clone)]
     pub struct BootObservation {
+        /// Closed provenance; only the process driver sets `Observed` after spawn/capture.
+        pub evidence_origin: EvidenceOrigin,
         /// Owning attempt id (e.g. `attempt-001`).
         pub attempt_id: String,
         /// 1-based iteration index within the attempt (1..=10).
@@ -1435,11 +1766,11 @@ pub mod soak {
         pub serial_log_byte_size: u64,
     }
 
-    /// One boot's record. Every heavy artifact (the serial log) is referenced by path + digest;
-    /// no log bytes are inlined. `clean` is derived SOLELY from a real observation via
-    /// [`boot_is_clean`] — no simulated/expected/constant input can set it.
+    /// One boot's record. `clean` requires `Observed` origin, a marker, no timeout, and the
+    /// marker-killed termination; fixture markers can never set it.
     #[derive(Debug, Clone)]
     pub struct BootRecord {
+        pub evidence_origin: EvidenceOrigin,
         pub attempt_id: String,
         pub iteration_index: usize,
         pub clean: bool,
@@ -1504,6 +1835,8 @@ pub mod soak {
     /// receipt builders.
     #[derive(Debug, Clone)]
     pub struct SoakConfig {
+        pub upstream_repository: String,
+        pub repository_commit: String,
         pub release_tag: String,
         pub iso: IsoArtifact,
         pub qemu_program: String,
@@ -1552,7 +1885,8 @@ pub mod soak {
     /// so a boot with `timeout_hit == true` is unclean even if a marker-like line is present.
     /// Pure — reads only an already-assembled real record.
     pub fn boot_is_clean(record: &BootRecord) -> bool {
-        record.matched_marker.is_some()
+        record.evidence_origin == EvidenceOrigin::Observed
+            && record.matched_marker.is_some()
             && !record.timeout_hit
             && record.termination_reason == TERM_MARKER_KILLED
     }
@@ -1564,6 +1898,7 @@ pub mod soak {
         let marker_present = obs.marker.is_some();
         let timeout_hit = matches!(obs.live, LiveTermination::TimedOut);
         let mut record = BootRecord {
+            evidence_origin: obs.evidence_origin,
             attempt_id: obs.attempt_id,
             iteration_index: obs.iteration_index,
             clean: false,
@@ -1623,6 +1958,8 @@ pub mod soak {
     /// digest + byte size, never inlined.
     pub fn build_boot_record_json(r: &BootRecord) -> serde_json::Value {
         serde_json::json!({
+            "evidence_origin": r.evidence_origin.as_str(),
+            "observed_success": r.evidence_origin == EvidenceOrigin::Observed && r.clean,
             "attempt_id": r.attempt_id,
             "iteration_index": r.iteration_index,
             "clean": r.clean,
@@ -1679,14 +2016,27 @@ pub mod soak {
     /// Assemble the per-attempt receipt JSON: the attempt verdict + its 10 ordered boot records
     /// (each referencing its serial log by path + digest), plus the ISO/QEMU/isolation context.
     pub fn build_attempt_receipt(cfg: &SoakConfig, attempt: &SoakAttempt) -> serde_json::Value {
+        let evidence_origin = if attempt
+            .boot_records
+            .iter()
+            .all(|record| record.evidence_origin == EvidenceOrigin::Observed)
+        {
+            EvidenceOrigin::Observed
+        } else {
+            EvidenceOrigin::Fixture
+        };
         serde_json::json!({
-            "$schema": "https://docs.oyatie.com/schemas/kuberos-asterinas-soak-attempt-receipt.v0.1.0.json",
+            "$schema": "https://docs.oyatie.com/schemas/kuberos-asterinas-soak-attempt-receipt.v0.2.0.json",
             "receipt_type": "soak-attempt",
             "acceptance_criterion": "SHARD-2-SOAK",
             "component": "asterinas/kernel",
             "wave": "kuberos-asterinas-wave1",
             "slice": "real-boot-soak",
             "release_tag": cfg.release_tag,
+            "upstream_repository": cfg.upstream_repository,
+            "repository_commit": cfg.repository_commit,
+            "evidence_origin": evidence_origin.as_str(),
+            "observed_success": evidence_origin == EvidenceOrigin::Observed && attempt.verdict == "pass",
             "black_box_unmodified_upstream": true,
             "attempt_id": attempt.attempt_id,
             "attempt_index": attempt.attempt_index,
@@ -1709,6 +2059,16 @@ pub mod soak {
     /// the attempt count, and the honest-fail gap-register (on exhaustion). No large artifact is
     /// inlined.
     pub fn build_aggregate_receipt(cfg: &SoakConfig, agg: &AggregateReceipt) -> serde_json::Value {
+        let evidence_origin = if agg
+            .attempts
+            .iter()
+            .flat_map(|attempt| &attempt.boot_records)
+            .all(|record| record.evidence_origin == EvidenceOrigin::Observed)
+        {
+            EvidenceOrigin::Observed
+        } else {
+            EvidenceOrigin::Fixture
+        };
         let attempts: Vec<serde_json::Value> = agg
             .attempts
             .iter()
@@ -1728,13 +2088,17 @@ pub mod soak {
             })
             .collect();
         serde_json::json!({
-            "$schema": "https://docs.oyatie.com/schemas/kuberos-asterinas-soak-aggregate-receipt.v0.1.0.json",
+            "$schema": "https://docs.oyatie.com/schemas/kuberos-asterinas-soak-aggregate-receipt.v0.2.0.json",
             "receipt_type": "soak-aggregate",
             "acceptance_criterion": "SHARD-2-SOAK",
             "component": "asterinas/kernel",
             "wave": "kuberos-asterinas-wave1",
             "slice": "real-boot-soak",
             "release_tag": cfg.release_tag,
+            "upstream_repository": cfg.upstream_repository,
+            "repository_commit": cfg.repository_commit,
+            "evidence_origin": evidence_origin.as_str(),
+            "observed_success": evidence_origin == EvidenceOrigin::Observed && agg.overall_verdict == "pass",
             "black_box_unmodified_upstream": true,
             "overall_verdict": agg.overall_verdict,
             "passing_attempt_id": agg.passing_attempt_id,
@@ -1801,12 +2165,7 @@ pub mod soak {
         mut boot_runner: F,
     ) -> Result<SoakOutcome, Box<dyn std::error::Error>>
     where
-        F: FnMut(
-            &SoakConfig,
-            &str,
-            usize,
-            &Path,
-        ) -> Result<BootRecord, Box<dyn std::error::Error>>,
+        F: FnMut(&SoakConfig, &str, usize, &Path) -> Result<BootRecord, Box<dyn std::error::Error>>,
     {
         std::fs::create_dir_all(&dests.run_dir)?;
 
@@ -1881,7 +2240,11 @@ pub mod soak {
         .to_string();
         // Honest-fail: only after the attempt budget is exhausted without a clean 10/10.
         let gap_register = if passing_attempt_id.is_none() {
-            Some(build_soak_gap_register_entry(cfg, &dests.run_dir, now_unix()))
+            Some(build_soak_gap_register_entry(
+                cfg,
+                &dests.run_dir,
+                now_unix(),
+            ))
         } else {
             None
         };
@@ -1936,6 +2299,7 @@ pub mod soak {
 
         fn clean_record(attempt_id: &str, iteration_index: usize) -> BootRecord {
             assemble_boot_record(BootObservation {
+                evidence_origin: EvidenceOrigin::Observed,
                 attempt_id: attempt_id.to_string(),
                 iteration_index,
                 live: LiveTermination::MarkerKilled,
@@ -2003,6 +2367,7 @@ pub mod soak {
         fn timed_out_observation_assembles_unclean_record() {
             // A boot that hit the deadline: harness-killed, no marker → unclean, timeout_hit true.
             let record = assemble_boot_record(BootObservation {
+                evidence_origin: EvidenceOrigin::Observed,
                 attempt_id: "attempt-001".to_string(),
                 iteration_index: 4,
                 live: LiveTermination::TimedOut,
@@ -2027,7 +2392,10 @@ pub mod soak {
             assert!(attempt_is_pass(&records, ITERATION_COUNT));
 
             // Nine clean boots is not a pass.
-            assert!(!attempt_is_pass(&records[..ITERATION_COUNT - 1], ITERATION_COUNT));
+            assert!(!attempt_is_pass(
+                &records[..ITERATION_COUNT - 1],
+                ITERATION_COUNT
+            ));
 
             // Passing boots NEVER aggregate across attempts: relabel the last boot's attempt id.
             let mut split = records.clone();
@@ -2063,7 +2431,10 @@ pub mod soak {
                 v["raw_serial_log"]["digest_recomputed_from_disk_at_record_build"],
                 serde_json::Value::Bool(true)
             );
-            assert_eq!(v["matched_marker"]["matched_text_verbatim"], "Reached target Basic System");
+            assert_eq!(
+                v["matched_marker"]["matched_text_verbatim"],
+                "Reached target Basic System"
+            );
         }
     }
 }
