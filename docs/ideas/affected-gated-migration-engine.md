@@ -35,7 +35,9 @@ skip-list), **presubmit (cheap, local-darwin) vs postsubmit (authoritative gate-
       / rebase-on-merge.
 
 ## MVP Scope
-**In:** `pipeline` over remaining `#84` subsystems → append-emit (`scripts/emit_rust_tests.py`)
+**In:** `pipeline` over remaining `#84` subsystems → append-emit
+(`//tools/oya-buck-test-wiring-app:oya-buck-test-wiring --apply`, the owned-Rust ADR-0540
+generator that replaced `scripts/emit_rust_tests.py`; `--check` is its coverage-gate mode)
 → local `buck2 test //unit/...` (darwin presubmit) → land-loop (open PR → poll `oya-ci-gate` →
 on RED, parse the status-summary, quarantine the named crate via `KNOWN_FAILING` + revert +
 follow-up, re-push, ≤K rounds → **auto-merge** on green) → report (landed/quarantined counts,

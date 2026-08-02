@@ -1,7 +1,9 @@
 # NEUTRALIZED for the Buck2 cutover: placeholder microservice with no .rs source yet
 # (implementation pending). The rust targets below are commented out so `buck2 build //...`
-# is green; the generator (scripts/gen_first_party_buck.py) emits real targets from cargo
-# metadata once the crate implementations land.
+# is green. When the crate implementations land they bring their own Cargo.toml and a
+# hand-written per-package BUCK using glob() — the buck2-native mechanism. There is no
+# first-party BUCK generator: this directory holds no Cargo.toml, so no cargo-metadata-driven
+# generator could ever have served it.
 #
 # microservices/oya-flags/BUCK
 # Placeholder Buck2 targets for oya-flags (ADR-0481).
