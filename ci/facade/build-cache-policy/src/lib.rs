@@ -563,12 +563,22 @@ impl CanaryStatus {
         }
     }
 
-    /// Process exit semantics: RED and UNVERIFIED fail the canary job.
+    /// Process exit semantics: ONLY `Green` exits zero.
+    ///
+    /// The canary's exit code is what becomes the scheduled job's check
+    /// conclusion, and that conclusion is a declared result channel of the
+    /// workflow (ADR-0556 D4.3: "result via API/artifact, never a log someone
+    /// shells in to read"). So a non-Green verdict that exits zero publishes a
+    /// GREEN badge for a run that verified nothing about cache integrity —
+    /// measured on run 30690156857 (2026-08-01): warm-probe SKIPPED, verdict
+    /// INACTIVE_NO_ENDPOINT, job conclusion `success`.
+    ///
+    /// `InactiveNoEndpoint` and `UnverifiedEmptyOverlap` are the SAME condition —
+    /// zero keys compared — so they get the same exit semantics. This makes the
+    /// type's own contract ("anything other than `Green` licenses NOTHING")
+    /// mechanically true instead of merely documented.
     pub fn is_failure(self) -> bool {
-        matches!(
-            self,
-            CanaryStatus::Red | CanaryStatus::UnverifiedEmptyOverlap
-        )
+        !matches!(self, CanaryStatus::Green)
     }
 }
 
@@ -1025,8 +1035,36 @@ mod tests {
     fn verdict_inactive_when_no_endpoint() {
         let (status, v) = canary_verdict(&manifest(&[("//a:a", "1")]), None);
         assert_eq!(status, CanaryStatus::InactiveNoEndpoint);
-        assert!(!status.is_failure());
         assert_eq!(v["compared_keys"], 0);
+        // RED fixture for the false-green channel: INACTIVE compared ZERO keys, so it must
+        // NOT exit zero. Exit code is the scheduled job's check conclusion, and a `success`
+        // conclusion on a run that verified nothing publishes a daily green badge for an
+        // unestablished trust anchor (observed: run 30690156857, 2026-08-01 — warm-probe
+        // skipped, verdict INACTIVE_NO_ENDPOINT, conclusion `success`). Reverting
+        // `is_failure` to exclude InactiveNoEndpoint fails here.
+        assert!(
+            status.is_failure(),
+            "INACTIVE_NO_ENDPOINT compared 0 keys; exiting zero would publish a green check \
+             conclusion for a run that verified no cache integrity"
+        );
+    }
+
+    #[test]
+    fn only_green_exits_zero() {
+        // The type's contract is "anything other than Green licenses NOTHING". Assert it over
+        // EVERY variant so a new status added later cannot default into the passing arm.
+        for status in [
+            CanaryStatus::Red,
+            CanaryStatus::InactiveNoEndpoint,
+            CanaryStatus::UnverifiedEmptyOverlap,
+        ] {
+            assert!(
+                status.is_failure(),
+                "{} licenses nothing, so it must not exit zero",
+                status.as_str()
+            );
+        }
+        assert!(!CanaryStatus::Green.is_failure());
     }
 
     #[test]
