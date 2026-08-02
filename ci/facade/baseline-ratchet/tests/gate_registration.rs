@@ -1870,18 +1870,7 @@ fn affected_set_long_step_telemetry_wraps_long_running_phases() {
 /// Retiring an ADR-mandated lane is a governance act, not a way to get green — so these lanes are
 /// deliberately left `status: active` and the breakage is recorded here where the required fan-in
 /// can see it, instead of being flipped to `planned`.
-const KNOWN_UNRESOLVABLE_LANE_TARGETS: [(&str, &str); 3] = [
-    (
-        "cargo-package:oya-dev-cli",
-        "The gate CLI package was renamed to `marketplace-dev-cli` (marketplace/facade/dev-cli/Cargo.toml) \
-         and no package declares `oya-dev-cli`, so all 80 `cargo run -p oya-dev-cli -- ...` lane \
-         commands are unrunnable as written. `cargo run` is additionally retired as a verification \
-         verb (buck2 is canonical). Repair is the buck2 form already used in-tree, \
-         `buck2 run //marketplace/facade/dev-cli:oya -- gate validate <lane>`, applied ACROSS the \
-         registry, `oya-governance-gate-catalog-domain`, and `registry/docs/pipeline.tsv` together \
-         (they substring-match each other); doing it here alone would red the documentation-system \
-         and supply-chain gates.",
-    ),
+const KNOWN_UNRESOLVABLE_LANE_TARGETS: [(&str, &str); 2] = [
     (
         "cargo-package:oya-vcs-merge-queue-fix-loop-app",
         "Lane `oya-governance-merge-queue-staging-ref-gc` names a package that no longer exists \
@@ -2158,6 +2147,16 @@ fn the_lane_resolvability_probe_is_falsifiable_on_known_controls() {
             LaneTarget::GateLane("a11y-discipline".into()),
         ],
     );
+    // ...including in the buck2 form the registry now actually uses, where the binary is a label
+    // rather than a `-p` package. If this stopped yielding the BuckTarget the gate would go blind
+    // on 80 lanes at once, having just been repaired off the cargo form.
+    assert_eq!(
+        lane_targets("buck2 run //marketplace/facade/dev-cli:oya -- gate validate a11y-discipline"),
+        vec![
+            LaneTarget::BuckTarget("//marketplace/facade/dev-cli:oya".into()),
+            LaneTarget::GateLane("a11y-discipline".into()),
+        ],
+    );
     assert_eq!(
         lane_targets("bash tools/governance/adr-0221-governance-gates.sh vacuous-green"),
         vec![LaneTarget::RepoFile(
@@ -2203,6 +2202,113 @@ fn every_active_quality_lane_resolves_to_a_real_target() {
          and blocks nothing. Do NOT flip the lane to `status: planned` to clear this; retiring an \
          ADR-mandated lane is a governance act."
     );
+}
+
+// ===========================================================================
+// (d) OPERATING-CONTRACT HOOK MIRROR.
+//
+// Same defect class as (c), one artifact over: `docs/AGENTS.md` — the operating
+// contract agents are told to read first — carried an "Active hooks" line that
+// named FIVE behaviours and one file, `scripts/hooks/guard-pr-merge-review.mjs`,
+// and not one of them existed. The `enforcement-liveness` face already resolves
+// `.claude/settings.json` -> `tools/hooks/`, but nothing ever resolved the PROSE
+// mirror, so the contract described an enforcement posture the repo never had.
+//
+// A mirror that can drift is the defect; equality against the SSOT is the fix.
+// ===========================================================================
+
+fn agents_contract_path(root: &Path) -> PathBuf {
+    root.join("docs/AGENTS.md")
+}
+
+fn claude_hook_wiring_path(root: &Path) -> PathBuf {
+    root.join(".claude/settings.json")
+}
+
+/// The `Active hooks` line of the Claude Code appendix — the mirror under test.
+fn active_hooks_claim(contract: &str) -> &str {
+    contract
+        .lines()
+        .find(|line| line.starts_with("Active hooks"))
+        .unwrap_or("")
+}
+
+/// Every `<name>.sh` token in `text`, by basename. Deliberately shape-agnostic: it reads the same
+/// out of a JSON `"command"` value and out of a backticked markdown span, so the two sides are
+/// comparable without either format being parsed.
+fn hook_script_basenames(text: &str) -> BTreeSet<String> {
+    let mut names = BTreeSet::new();
+    for (index, _) in text.match_indices(".sh") {
+        let head = &text[..index];
+        let start = head
+            .rfind(|c: char| !(c.is_ascii_alphanumeric() || c == '-' || c == '_'))
+            .map_or(0, |i| i + 1);
+        if start < head.len() {
+            names.insert(format!("{}.sh", &head[start..]));
+        }
+    }
+    names
+}
+
+/// The probe must be falsifiable before its equality result is load-bearing.
+#[test]
+fn the_hook_mirror_probe_is_falsifiable_on_known_controls() {
+    let root = repo_root();
+
+    assert_eq!(
+        hook_script_basenames(
+            r#"{ "command": "tools/hooks/no-cargo-enforcer.sh" } and `adr-orphan-detect.sh`"#
+        ),
+        BTreeSet::from([
+            "adr-orphan-detect.sh".to_owned(),
+            "no-cargo-enforcer.sh".to_owned(),
+        ]),
+        "the extractor must read a JSON command value and a markdown span identically"
+    );
+    assert!(hook_script_basenames("no hooks named here").is_empty());
+
+    let contract = read_to_string(&agents_contract_path(&root));
+    let claim = active_hooks_claim(&contract);
+    assert!(
+        !claim.is_empty(),
+        "the Claude Code appendix must still carry an `Active hooks` line; if it was renamed this \
+         gate went blind and the mirror is unguarded again"
+    );
+    assert!(
+        !hook_script_basenames(claim).is_empty(),
+        "known-positive control: the claim line must name at least one hook script"
+    );
+}
+
+/// The durable half: the contract's hook list must equal the wiring, in both directions. A name in
+/// the doc that is not wired is the original defect (a hook readers believe runs and does not); a
+/// wired hook missing from the doc is the same drift facing the other way.
+#[test]
+fn the_operating_contract_hook_list_equals_the_claude_wiring() {
+    let root = repo_root();
+    let claimed = hook_script_basenames(active_hooks_claim(&read_to_string(
+        &agents_contract_path(&root),
+    )));
+    let wired = hook_script_basenames(&read_to_string(&claude_hook_wiring_path(&root)));
+
+    let unwired: Vec<&String> = claimed.difference(&wired).collect();
+    let undocumented: Vec<&String> = wired.difference(&claimed).collect();
+
+    assert!(
+        unwired.is_empty() && undocumented.is_empty(),
+        "docs/AGENTS.md `Active hooks` has drifted from .claude/settings.json.\n\
+         claimed-but-not-wired: {unwired:?}\n\
+         wired-but-not-claimed: {undocumented:?}\n\
+         The wiring file is the SSOT; the contract line is a mirror. Naming a hook the harness \
+         never loads tells every agent an enforcement runs that does not."
+    );
+
+    for name in &wired {
+        assert!(
+            root.join("tools/hooks").join(name).is_file(),
+            "{name} is wired in .claude/settings.json but tools/hooks/{name} does not exist"
+        );
+    }
 }
 
 /// The hatch must not outlive the defect. If a documented-broken target starts resolving, the entry
