@@ -19,6 +19,7 @@ owners:
   - axis-intelligence
   - axis-workflow-engine
 amended_by:
+  - ADR-0635
   - ADR-0520
   - ADR-0562-capability-first-repo-organization-and-closed-capability-registry.md (DAG nodes use de-branded capability names; §D-1 is the canonical substrate bootstrap ordering source per ADR-0562 §8 Fork 1)
 supersedes: []

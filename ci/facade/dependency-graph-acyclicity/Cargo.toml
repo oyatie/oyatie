@@ -10,13 +10,13 @@ license = "Apache-2.0"
 bounded_context = "cloud-ci"
 kind = "shared"
 layer = "app"
-purpose = "Cloud CI acyclicity gate for the policy-declared substrate-of-substrate dependency DAG (ADR-0280 §D-3): Tarjan SCC (no cycles) + forbidden-edge honouring + Kahn topo-sort == bootstrap_order + §D-1 schema completeness."
+purpose = "Oyatie cloud-ci authority gate for the face-aware substrate graph v2 (ADR-0280 §D-3, ADR-0635): exact doctrine/unit/schema bindings, request-graph acyclicity, forbidden-edge honouring, valid dependency-first bootstrap order, and exact derived failure closure."
 
-# cloud-ci-substrate-dependency-dag-acyclicity (ADR-0280 §D-3, amended by ADR-0520 + ADR-0562):
-# the principal enforcement surface of the substrate-of-substrate dependency doctrine. Pure graph
-# engine (Tarjan + Kahn); repo-specific adoption points live in substrate-dependency-dag-policy.json.
-# Born pack-shaped: runs on any DAG document of the §D-1 schema. Bootstrap order is DERIVED by
-# querying the DAG (Kahn topo-sort), never hard-coded.
+# cloud-ci-substrate-dependency-dag-acyclicity (ADR-0280 §D-3, amended by ADR-0520, ADR-0562,
+# and ADR-0635): the principal enforcement surface of Oyatie's substrate-of-substrate dependency
+# doctrine. The policy selects the live documents; the Rust validator deliberately binds their exact
+# authority tuples, schema digest, graph kinds, and doctrine ADRs. Bootstrap order is hand-authored
+# but must be a complete, dependency-first topological order of the declared bootstrap graph.
 
 [lib]
 name = "ci_dependency_graph_acyclicity"
@@ -29,6 +29,7 @@ path = "src/main.rs"
 
 [dependencies]
 serde_json = { workspace = true }
+sha2 = { workspace = true }
 
 [[test]]
 name = "acyclicity"
