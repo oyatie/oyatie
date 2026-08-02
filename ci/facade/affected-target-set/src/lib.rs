@@ -1241,6 +1241,275 @@ pub fn validate_trusted_baseline_artifact(
     }
     Ok(report.len())
 }
+
+/// Maximum trusted failed-run job log accepted by the dormant partial-negative parser.
+///
+/// The bootstrap fixture is 576,565 bytes. Stage B must enforce this bound while fetching too.
+pub const PARTIAL_NEGATIVE_LOG_MAX_BYTES: usize = 2 * 1024 * 1024;
+
+/// Maximum number of literal `BUILD-FAIL` labels accepted from one canonical producer block.
+pub const PARTIAL_NEGATIVE_MAX_FAILURES: usize = 16_384;
+pub const PARTIAL_NEGATIVE_SCHEMA_VERSION: u64 = 2;
+pub const PARTIAL_NEGATIVE_SOURCE: &str = "trusted-negative-receipt";
+pub const PARTIAL_NEGATIVE_COMPLETENESS: &str = "observed-failure-lower-bound";
+pub const PARTIAL_NEGATIVE_TEST_POLICY: &str = "hard-no-grandfathering";
+
+const PARTIAL_NEGATIVE_BLOCK_PREFIX: &str =
+    "affected-set: RED — admission FULL build failed on ";
+const PARTIAL_NEGATIVE_FAILURE_PREFIX: &str = "affected-set:   BUILD-FAIL ";
+const PARTIAL_NEGATIVE_BLOCK_TERMINATOR: &str = "affected-set: REPRODUCE:";
+
+/// Identity of the trusted failed required-context job whose log carries a receipt.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PartialNegativeJobBinding {
+    pub workflow_path: String,
+    pub run_id: u64,
+    pub run_attempt: u64,
+    pub job_id: u64,
+    pub job_name: String,
+    pub step_number: u64,
+    pub step_name: String,
+}
+
+/// Typed action-local terminal. The bootstrap fixture reports no action exit code; this is distinct
+/// from both success and the enclosing workflow step's exit 1.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PartialNegativeActionTerminal {
+    Fail,
+    NoExitCode,
+}
+
+impl PartialNegativeActionTerminal {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Fail => "FAIL",
+            Self::NoExitCode => "<no exit code>",
+        }
+    }
+}
+
+/// Exact failed build action observed inside the bound job step.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PartialNegativeBuildAction {
+    pub label: String,
+    /// Opaque configured-platform identity from Buck2 output; it is not claimed to be a digest.
+    pub configured_platform_token: String,
+    pub rule: String,
+    /// Action-local terminal, kept distinct from the enclosing workflow step exit code.
+    pub action_terminal: PartialNegativeActionTerminal,
+}
+
+/// Complete dormant Stage A receipt contract. Stage B must populate and validate every binding
+/// from trusted GitHub responses and a validator built from the immutable base.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PartialNegativeReceipt {
+    pub schema_version: u64,
+    pub source: String,
+    pub completeness: String,
+    pub merge_base: String,
+    pub job: PartialNegativeJobBinding,
+    pub build_action: PartialNegativeBuildAction,
+    pub observed_failures: BTreeSet<String>,
+    pub test_policy: String,
+}
+
+impl PartialNegativeReceipt {
+    /// Validate the architecture contract after trusted transport/provenance fields are populated.
+    pub fn validate(&self) -> Result<(), String> {
+        if self.schema_version != PARTIAL_NEGATIVE_SCHEMA_VERSION
+            || self.source != PARTIAL_NEGATIVE_SOURCE
+            || self.completeness != PARTIAL_NEGATIVE_COMPLETENESS
+            || self.test_policy != PARTIAL_NEGATIVE_TEST_POLICY
+        {
+            return Err("partial-negative receipt contract token mismatch".to_owned());
+        }
+        validated_merge_base_sha(&self.merge_base)?;
+        if self.job.workflow_path != REQUIRED_CONTEXT_WORKFLOW_PATH
+            || self.job.run_id == 0
+            || self.job.run_attempt == 0
+            || self.job.job_id == 0
+            || self.job.step_number == 0
+            || self.job.job_name.trim().is_empty()
+            || self.job.step_name.trim().is_empty()
+        {
+            return Err("partial-negative receipt has invalid job/step binding".to_owned());
+        }
+        if self.build_action.label.trim().is_empty()
+            || self.build_action.configured_platform_token.trim().is_empty()
+            || self.build_action.rule.trim().is_empty()
+        {
+            return Err("partial-negative receipt has incomplete build-action binding".to_owned());
+        }
+        if self.observed_failures.is_empty()
+            || self.observed_failures.len() > PARTIAL_NEGATIVE_MAX_FAILURES
+        {
+            return Err("partial-negative receipt needs a bounded non-empty failure set".to_owned());
+        }
+        if !self.observed_failures.contains(&self.build_action.label) {
+            return Err("bound failed action is absent from observed failures".to_owned());
+        }
+        Ok(())
+    }
+}
+
+/// A validated lower-bound failure set from one trusted failed required-context run.
+///
+/// This is BUILD-only. It never carries a test baseline: candidate test failures remain hard
+/// failures. The type is dormant in Stage A; no workflow or binary calls it.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PartialNegativeFailures {
+    pub observed_failures: BTreeSet<String>,
+}
+
+/// Parse exactly one canonical FULL-build failure block from a bounded trusted job log.
+///
+/// Only literal `BUILD-FAIL` records are admitted. `SKIPPED`, `CANCELLED`, summaries, and enclosing
+/// workflow exit codes cannot enter the lower-bound set. Transport prefixes before the first
+/// `affected-set:` token are ignored; text after an exact label is rejected rather than normalized.
+pub fn parse_partial_negative_failures(job_log: &str) -> Result<PartialNegativeFailures, String> {
+    if job_log.len() > PARTIAL_NEGATIVE_LOG_MAX_BYTES {
+        return Err(format!(
+            "trusted failed-run log is {} bytes; maximum is {PARTIAL_NEGATIVE_LOG_MAX_BYTES}",
+            job_log.len()
+        ));
+    }
+
+    let lines: Vec<&str> = job_log.lines().collect();
+    let starts: Vec<usize> = lines
+        .iter()
+        .enumerate()
+        .filter_map(|(index, line)| {
+            line.find("affected-set:")
+                .map(|start| &line[start..])
+                .filter(|payload| payload.starts_with(PARTIAL_NEGATIVE_BLOCK_PREFIX))
+                .map(|_| index)
+        })
+        .collect();
+    if starts.len() != 1 {
+        return Err(format!(
+            "trusted failed-run log must contain exactly one canonical FULL-build failure block; found {}",
+            starts.len()
+        ));
+    }
+
+    let start = starts[0];
+    let header = lines[start]
+        .find("affected-set:")
+        .map(|payload_start| &lines[start][payload_start..])
+        .ok_or("canonical FULL-build failure header disappeared")?;
+    let count_suffix = header
+        .strip_prefix(PARTIAL_NEGATIVE_BLOCK_PREFIX)
+        .and_then(|suffix| suffix.strip_suffix(
+            " target(s) (integration tip must be green, no grandfathering):",
+        ))
+        .ok_or("canonical FULL-build failure header is malformed")?;
+    let declared: usize = count_suffix
+        .parse()
+        .map_err(|_| "canonical FULL-build failure count is not an unsigned integer".to_owned())?;
+    if declared == 0 || declared > PARTIAL_NEGATIVE_MAX_FAILURES {
+        return Err(format!(
+            "canonical FULL-build failure count must be in 1..={PARTIAL_NEGATIVE_MAX_FAILURES}, got {declared}"
+        ));
+    }
+
+    let mut failures = BTreeSet::new();
+    let mut terminated = false;
+    for raw_line in lines.iter().skip(start + 1) {
+        let marker_start = raw_line
+            .find("affected-set:")
+            .ok_or("non-producer line interrupts canonical failure block")?;
+        let line = &raw_line[marker_start..];
+        if line.starts_with(PARTIAL_NEGATIVE_BLOCK_TERMINATOR) {
+            terminated = true;
+            break;
+        }
+        let label = line
+            .strip_prefix(PARTIAL_NEGATIVE_FAILURE_PREFIX)
+            .ok_or_else(|| format!("unexpected line inside canonical failure block: `{line}`"))?;
+        if label.is_empty()
+            || label.trim() != label
+            || label.split_whitespace().count() != 1
+            || !label.contains("//")
+            || !label.contains(':')
+        {
+            return Err(format!("invalid exact Buck2 failure label `{label}`"));
+        }
+        if !failures.insert(label.to_owned()) {
+            return Err(format!("duplicate BUILD-FAIL label `{label}`"));
+        }
+        if failures.len() > PARTIAL_NEGATIVE_MAX_FAILURES {
+            return Err("canonical failure block exceeds entry ceiling".to_owned());
+        }
+    }
+    if !terminated {
+        return Err("canonical FULL-build failure block has no REPRODUCE terminator".to_owned());
+    }
+    if failures.len() != declared {
+        return Err(format!(
+            "canonical failure block declared {declared} target(s) but contained {} literal BUILD-FAIL record(s)",
+            failures.len()
+        ));
+    }
+
+    Ok(PartialNegativeFailures {
+        observed_failures: failures,
+    })
+}
+
+/// State of the preferred trusted successful-run artifact pair.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PositiveBaselineState {
+    Absent,
+    Valid,
+    /// An exact successful run exists, but its artifact pair is unusable for any reason.
+    Invalid,
+}
+
+/// State of the optional trusted failed-run BUILD receipt.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum NegativeBaselineState {
+    Absent,
+    Valid(PartialNegativeReceipt),
+    Invalid,
+}
+
+/// Dormant selection result for Stage B's future trusted-baseline consumer.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum PartialNegativeSelection {
+    Positive,
+    Negative(PartialNegativeFailures),
+    Cold,
+}
+
+/// Apply the positive-first anti-downgrade decision table without I/O.
+///
+/// A known successful run dominates. Missing, partial, malformed, expired, unavailable, or
+/// mismatched artifacts from it force a cold rebuild; they may never downgrade to an older failed
+/// run. Negative selection requires genuine positive absence, a valid non-empty receipt, and this
+/// validator in the exact immutable base.
+pub fn select_partial_negative_baseline(
+    positive: PositiveBaselineState,
+    negative: NegativeBaselineState,
+    validator_base_sha: Option<&str>,
+) -> PartialNegativeSelection {
+    match (positive, negative, validator_base_sha) {
+        (PositiveBaselineState::Valid, _, _) => PartialNegativeSelection::Positive,
+        (
+            PositiveBaselineState::Absent,
+            NegativeBaselineState::Valid(receipt),
+            Some(validator_base_sha),
+        ) if receipt.validate().is_ok()
+            && validated_merge_base_sha(validator_base_sha).is_ok()
+            && receipt.merge_base == validator_base_sha =>
+        {
+            PartialNegativeSelection::Negative(PartialNegativeFailures {
+                observed_failures: receipt.observed_failures,
+            })
+        }
+        _ => PartialNegativeSelection::Cold,
+    }
+}
+
 /// The build-health verdict: regressions BLOCK, pre-existing failures are GRANDFATHERED.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BuildHealthVerdict {
@@ -2015,6 +2284,151 @@ mod tests {
             Ok(None)
         );
     }
+    fn trusted_partial_negative_fixture() -> PartialNegativeReceipt {
+        PartialNegativeReceipt {
+            schema_version: PARTIAL_NEGATIVE_SCHEMA_VERSION,
+            source: PARTIAL_NEGATIVE_SOURCE.to_owned(),
+            completeness: PARTIAL_NEGATIVE_COMPLETENESS.to_owned(),
+            merge_base: "b6cebdaa897912a0bb29a55406375f4bb0109cd6".to_owned(),
+            job: PartialNegativeJobBinding {
+                workflow_path: REQUIRED_CONTEXT_WORKFLOW_PATH.to_owned(),
+                run_id: 30_747_487_757,
+                run_attempt: 1,
+                job_id: 91_495_435_478,
+                job_name: "gate · affected-set (ADR-0554, binding workspace coverage)".to_owned(),
+                step_number: 8,
+                step_name: "Binding affected-set build + test (cone-binding; FULL tier = build-health ratchet)".to_owned(),
+            },
+            build_action: PartialNegativeBuildAction {
+                label: "root//oya:corpus-yaml-facts".to_owned(),
+                configured_platform_token: "e39f0472c2e09c96".to_owned(),
+                rule: "genrule".to_owned(),
+                action_terminal: PartialNegativeActionTerminal::NoExitCode,
+            },
+            observed_failures: set(&["root//oya:corpus-yaml-facts"]),
+            test_policy: PARTIAL_NEGATIVE_TEST_POLICY.to_owned(),
+        }
+    }
+
+    #[test]
+    fn partial_negative_receipt_validates_the_trusted_fixture_bindings() {
+        let receipt = trusted_partial_negative_fixture();
+        assert_eq!(receipt.validate(), Ok(()));
+
+        let mut invalid = receipt;
+        invalid.schema_version = 1;
+        assert!(invalid.validate().is_err());
+
+        let mut missing_action = trusted_partial_negative_fixture();
+        missing_action.build_action.label = "root//oya:not-observed".to_owned();
+        assert!(missing_action.validate().is_err());
+    }
+
+    #[test]
+    fn partial_negative_parser_accepts_one_literal_fail_block() {
+        let log = concat!(
+            "2026-08-01T00:00:00Z setup\n",
+            "2026-08-01T00:00:01Z affected-set: RED — admission FULL build failed on 1 target(s) (integration tip must be green, no grandfathering):\n",
+            "2026-08-01T00:00:01Z affected-set:   BUILD-FAIL root//oya:corpus-yaml-facts\n",
+            "2026-08-01T00:00:01Z affected-set: REPRODUCE: buck2 build //...\n",
+        );
+        assert_eq!(
+            parse_partial_negative_failures(log).unwrap().observed_failures,
+            set(&["root//oya:corpus-yaml-facts"])
+        );
+    }
+
+    #[test]
+    fn partial_negative_parser_refuses_non_literal_or_incomplete_evidence() {
+        let header = "affected-set: RED — admission FULL build failed on 1 target(s) (integration tip must be green, no grandfathering):\n";
+        for log in [
+            format!("{header}affected-set:   SKIPPED root//oya:not-failed\naffected-set: REPRODUCE:"),
+            format!("{header}affected-set:   BUILD-FAIL root//oya:one\naffected-set:   BUILD-FAIL root//oya:two\naffected-set: REPRODUCE:"),
+            format!("{header}affected-set:   BUILD-FAIL root//oya:one"),
+            format!("{header}affected-set:   BUILD-FAIL root//oya:one extra\naffected-set: REPRODUCE:"),
+        ] {
+            assert!(parse_partial_negative_failures(&log).is_err(), "accepted `{log}`");
+        }
+    }
+
+    #[test]
+    fn partial_negative_parser_refuses_duplicate_blocks_and_oversize_logs() {
+        let block = concat!(
+            "affected-set: RED — admission FULL build failed on 1 target(s) (integration tip must be green, no grandfathering):\n",
+            "affected-set:   BUILD-FAIL root//oya:one\n",
+            "affected-set: REPRODUCE:\n",
+        );
+        assert!(parse_partial_negative_failures(&format!("{block}{block}")).is_err());
+        assert!(
+            parse_partial_negative_failures(&"x".repeat(PARTIAL_NEGATIVE_LOG_MAX_BYTES + 1))
+                .is_err()
+        );
+    }
+
+    #[test]
+    fn partial_negative_selection_is_positive_first_and_base_bounded() {
+        let receipt = trusted_partial_negative_fixture();
+        let failures = PartialNegativeFailures {
+            observed_failures: receipt.observed_failures.clone(),
+        };
+        let base = receipt.merge_base.clone();
+        assert_eq!(
+            select_partial_negative_baseline(
+                PositiveBaselineState::Valid,
+                NegativeBaselineState::Valid(receipt.clone()),
+                Some(&base),
+            ),
+            PartialNegativeSelection::Positive
+        );
+        assert_eq!(
+            select_partial_negative_baseline(
+                PositiveBaselineState::Absent,
+                NegativeBaselineState::Valid(receipt.clone()),
+                Some(&base),
+            ),
+            PartialNegativeSelection::Negative(failures.clone())
+        );
+
+        let mut malformed = receipt.clone();
+        malformed.source = "candidate-log".to_owned();
+        assert_eq!(
+            select_partial_negative_baseline(
+                PositiveBaselineState::Absent,
+                NegativeBaselineState::Valid(malformed),
+                Some(&base),
+            ),
+            PartialNegativeSelection::Cold
+        );
+        let different_base = "0123456789abcdef0123456789abcdef01234567";
+        for (positive, negative, validator_base) in [
+            (
+                PositiveBaselineState::Invalid,
+                NegativeBaselineState::Valid(receipt.clone()),
+                Some(base.as_str()),
+            ),
+            (
+                PositiveBaselineState::Absent,
+                NegativeBaselineState::Invalid,
+                Some(base.as_str()),
+            ),
+            (
+                PositiveBaselineState::Absent,
+                NegativeBaselineState::Valid(receipt.clone()),
+                None,
+            ),
+            (
+                PositiveBaselineState::Absent,
+                NegativeBaselineState::Valid(receipt.clone()),
+                Some(different_base),
+            ),
+        ] {
+            assert_eq!(
+                select_partial_negative_baseline(positive, negative, validator_base),
+                PartialNegativeSelection::Cold
+            );
+        }
+    }
+
     #[test]
     fn build_health_regression_blocks_grandfathered_does_not() {
         // baseline (merge-base) red: {blake3, sqlx}. head red: {blake3, sqlx, NEW}.
