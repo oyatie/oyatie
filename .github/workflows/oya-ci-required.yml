@@ -45,7 +45,7 @@ on:
   # redundant trigger at its source instead of papering over the cancelled-run symptom.
   pull_request:
     branches: [dev]
-    types: [opened, reopened, synchronize, ready_for_review]
+    types: [opened, reopened, synchronize]
   merge_group:
     types: [checks_requested]
 
