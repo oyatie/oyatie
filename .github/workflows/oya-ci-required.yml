@@ -75,8 +75,26 @@ env:
 # head exists, so keep only the newest run per PR. Push / merge_group / manual runs retain the full
 # non-cancelling surface-all behavior for integration evidence. Group by workflow name instead of a
 # repository-specific literal so the pattern remains reusable by the owned cloud-ci adapter.
+#
+# CI-CLASS-FIX (trunk self-cancellation, measured 2026-08-02): the non-PR fallback used to be
+# `github.ref`, which on a `push` to dev is the CONSTANT `refs/heads/dev` — so every trunk commit
+# shared ONE concurrency group. `cancel-in-progress: false` does NOT mean "never cancelled": GitHub
+# admits at most one RUNNING plus one PENDING run per group and evicts the older PENDING run when a
+# newer one arrives. A merge burst therefore discarded its own predecessors before they scheduled a
+# single job. Measured over the last 60 `push` runs on dev: 2 success / 27 failure / 31 cancelled,
+# and 27 of those 31 cancelled runs had a job count of ZERO. Nine of them were cancelled EXACTLY 1s
+# after their successor was created (e.g. run 30724418203 created 00:00:36 → cancelled 00:00:54,
+# successor created 00:00:53), while run 30723769427 held the single running slot for 2h10m. That is
+# pending eviction, not runner-fleet starvation and not `cancel-in-progress`.
+#
+# Keying the non-PR arm on `github.sha` gives every trunk commit its own group, so each one gets its
+# own verdict. PR grouping is UNCHANGED and still keyed on the PR number: superseding an older head
+# SHA is correct there, because an older head can never satisfy branch protection once a newer head
+# exists. `cancel-in-progress` needs no change — it already evaluates false for push/merge_group, and
+# per-SHA groups make it moot there (a re-run of the same SHA queues behind rather than killing the
+# in-flight one). The 4 cancelled runs that DID schedule jobs are a separate, unrelated cause.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
