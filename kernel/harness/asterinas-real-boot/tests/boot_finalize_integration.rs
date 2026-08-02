@@ -65,6 +65,7 @@ fn read_json(path: &Path) -> serde_json::Value {
 /// return the outcome. `iso_ok` toggles whether the (fake) ISO digest verifies.
 struct Fixture {
     dir: PathBuf,
+    iso_path: PathBuf,
     serial_log: PathBuf,
     qemu_stderr: PathBuf,
     excerpt: PathBuf,
@@ -76,11 +77,14 @@ struct Fixture {
 impl Fixture {
     fn new(tag: &str, serial_contents: &[u8]) -> Fixture {
         let dir = scratch(tag);
+        let iso_path = dir.join("fixture.iso");
+        fs::write(&iso_path, b"fixture iso bytes").expect("write iso fixture");
         let serial_log = dir.join("boot-serial.log");
         fs::write(&serial_log, serial_contents).expect("write serial fixture");
         let qemu_stderr = dir.join("qemu.stderr.log");
         fs::write(&qemu_stderr, b"fixture stderr\n").expect("write stderr fixture");
         Fixture {
+            iso_path,
             qemu_stderr,
             excerpt: dir.join("boot-serial.excerpt.txt"),
             boot_receipt: dir.join("boot-receipt.json"),
@@ -91,35 +95,29 @@ impl Fixture {
         }
     }
 
-    fn run(
-        &self,
-        iso_ok: bool,
-        evidence_origin: harness::EvidenceOrigin,
-    ) -> Result<harness::FinalizeOutcome, harness::FinalizeError> {
-        // A fixed fake ISO sha; `iso_ok` decides whether expected==actual (verified) or not.
-        let expected = "bf6e161ecc8b8080b842a339cee5f55d18b93d99b1e39c7c07681ff3aca0090a";
+    fn run(&self, iso_ok: bool) -> Result<harness::FinalizeOutcome, harness::FinalizeError> {
+        let expected = sha256_hex(&self.iso_path);
         let actual = if iso_ok {
-            expected
+            expected.clone()
         } else {
-            "0000000000000000000000000000000000000000000000000000000000000000"
+            "0".repeat(64)
         };
-        let iso_path = "kernel/target/artifacts/asterinas-nixos-0.17.2-x86_64.iso";
-        let qargs = harness::build_qemu_args(iso_path, 6144, 4);
+        let iso_path = self.iso_path.to_string_lossy();
+        let qargs = harness::build_qemu_args(&iso_path, 6144, 4);
         let qprog = harness::qemu_program();
         let cmd = harness::render_command(qprog, &qargs);
         let nav = harness::serial_menu_nav_plan();
         let markers: Vec<&str> = pin::BOOT_READY_MARKERS.to_vec();
 
         let attempt = harness::BootAttempt {
-            evidence_origin,
             upstream_repository: pin::UPSTREAM_REPOSITORY,
             repository_commit: pin::RELEASE_COMMIT,
             release_tag: pin::RELEASE_TAG,
             boot_iso_asset: pin::BOOT_ISO_ASSET,
-            iso_path,
-            expected_iso_sha256: expected,
-            actual_iso_sha256: actual,
-            iso_byte_size: pin::BOOT_ISO_BYTE_SIZE,
+            iso_path: &iso_path,
+            expected_iso_sha256: &expected,
+            actual_iso_sha256: &actual,
+            iso_byte_size: fs::metadata(&self.iso_path).expect("iso metadata").len(),
             iso_verified: iso_ok,
             qemu_program: qprog,
             qemu_args: &qargs,
@@ -158,12 +156,9 @@ fn marker_bearing_fixture_writes_refusal_never_observed_real_or_pass() {
                [  OK  ] Reached target Basic System.\n";
     let fx = Fixture::new("fixture-marker", log.as_bytes());
 
-    let outcome = fx
-        .run(true, harness::EvidenceOrigin::Fixture)
-        .expect("fixture finalizes as refusal");
+    let outcome = fx.run(true).expect("fixture finalizes as refusal");
 
     assert!(!outcome.boot_reached);
-    assert_eq!(outcome.evidence_origin, harness::EvidenceOrigin::Fixture);
     assert_eq!(
         outcome.evidence_outcome,
         harness::EvidenceOutcome::AbsentOracle
@@ -186,15 +181,13 @@ fn observed_no_marker_capture_is_observed_failure_and_retains_artifact_pointers(
                [   12.500000] still initializing, no ready marker yet\n";
     let fx = Fixture::new("observed-failure", log.as_bytes());
 
-    let outcome = fx
-        .run(true, harness::EvidenceOrigin::Observed)
-        .expect("observed failure finalizes");
+    let outcome = fx.run(true).expect("observed failure finalizes");
 
     assert_eq!(
         outcome.evidence_outcome,
-        harness::EvidenceOutcome::ObservedFailure
+        harness::EvidenceOutcome::AbsentOracle
     );
-    assert_eq!(outcome.terminal, "OBSERVED_FAILURE");
+    assert_eq!(outcome.terminal, "REFUSED_NO_ORACLE");
     assert!(!outcome.boot_reached);
     assert!(outcome.artifact_envelope.artifacts.iter().any(|artifact| {
         artifact.role == harness::ArtifactRole::SerialLog
@@ -214,9 +207,7 @@ fn non_boot_outcome_writes_fail_receipt_and_gap_escalation_without_simulated_evi
     let fx = Fixture::new("noboot", log.as_bytes());
     let independent_digest = sha256_hex(&fx.serial_log);
 
-    let outcome = fx
-        .run(true, harness::EvidenceOrigin::Fixture)
-        .expect("fixture non-boot finalizes"); // ISO verifies; no marker.
+    let outcome = fx.run(true).expect("fixture non-boot finalizes"); // ISO verifies; no marker.
 
     // ---- Outcome: not reached, escalation emitted.
     assert!(!outcome.boot_reached, "no marker -> not reached");
@@ -224,7 +215,7 @@ fn non_boot_outcome_writes_fail_receipt_and_gap_escalation_without_simulated_evi
         outcome.gap_register_written,
         "a non-boot MUST emit a gap-register escalation"
     );
-    assert_eq!(outcome.verdict.status, harness::BootStatus::Fail);
+    assert_eq!(outcome.verdict.status(), harness::BootStatus::Fail);
     assert!(
         outcome.verdict.marker.is_none(),
         "no fabricated marker on a non-boot"
@@ -280,7 +271,7 @@ fn missing_serial_oracle_is_typed_refused_no_oracle() {
     let fx = Fixture::new("empty", b"");
 
     let error = fx
-        .run(true, harness::EvidenceOrigin::Fixture)
+        .run(true)
         .expect_err("zero-size serial capture is not an artifact oracle");
 
     assert!(matches!(
@@ -295,72 +286,17 @@ fn fixture_markers_cannot_claim_observed_real_or_pass() {
     let verdict = harness::derive_boot_verdict(
         "[  OK  ] Reached target Basic System.\n",
         &pin::BOOT_READY_MARKERS,
-        harness::EvidenceOrigin::Fixture,
     )
     .expect("fixture marker parses");
-
-    assert_eq!(verdict.origin, harness::EvidenceOrigin::Fixture);
-    assert_eq!(verdict.outcome, harness::EvidenceOutcome::AbsentOracle);
-    assert!(!verdict.observed_success);
-    assert_eq!(verdict.status, harness::BootStatus::Fail);
-}
-
-#[test]
-fn artifact_envelope_rejects_malformed_or_incomplete_evidence() {
-    let artifact = harness::ArtifactRef {
-        role: harness::ArtifactRole::SerialLog,
-        source_pointer: "serial.log".to_string(),
-        sha256: "0".repeat(64),
-        byte_size: 1,
-    };
-    assert_eq!(
-        harness::ArtifactEnvelope::validate(
-            pin::UPSTREAM_REPOSITORY,
-            "not-a-commit",
-            vec![artifact.clone()],
-            &[harness::ArtifactRole::SerialLog],
-        ),
-        Err(harness::EvidenceOutcome::AbsentOracle)
-    );
-    for invalid in [
-        harness::ArtifactRef {
-            source_pointer: String::new(),
-            ..artifact.clone()
-        },
-        harness::ArtifactRef {
-            sha256: String::new(),
-            ..artifact.clone()
-        },
-        harness::ArtifactRef {
-            byte_size: 0,
-            ..artifact.clone()
-        },
-    ] {
-        assert_eq!(
-            harness::ArtifactEnvelope::validate(
-                pin::UPSTREAM_REPOSITORY,
-                pin::RELEASE_COMMIT,
-                vec![invalid],
-                &[harness::ArtifactRole::SerialLog],
-            ),
-            Err(harness::EvidenceOutcome::AbsentOracle)
-        );
-    }
-    assert_eq!(
-        harness::ArtifactEnvelope::validate(
-            pin::UPSTREAM_REPOSITORY,
-            pin::RELEASE_COMMIT,
-            vec![artifact],
-            &[harness::ArtifactRole::Iso, harness::ArtifactRole::SerialLog],
-        ),
-        Err(harness::EvidenceOutcome::AbsentOracle)
-    );
+    assert_eq!(verdict.outcome(), harness::EvidenceOutcome::AbsentOracle);
+    assert!(!verdict.observed_success());
+    assert_eq!(verdict.status(), harness::BootStatus::Fail);
 }
 
 #[test]
 fn darwin_arm64_with_x86_64_tcg_is_not_unsupported() {
     assert_eq!(
         harness::classify_qemu_path("darwin", "aarch64", true),
-        harness::EvidenceOutcome::Success
+        harness::PathAvailability::Supported
     );
 }

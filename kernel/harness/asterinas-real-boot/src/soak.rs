@@ -277,7 +277,6 @@ fn execute_one_boot(
     let marker = harness::find_boot_marker(&final_log, &pin::BOOT_READY_MARKERS)?;
 
     let record = soak::assemble_boot_record(soak::BootObservation {
-        evidence_origin: harness::EvidenceOrigin::Observed,
         attempt_id: attempt_id.to_string(),
         iteration_index: iteration,
         live,
