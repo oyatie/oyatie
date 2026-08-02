@@ -2,9 +2,8 @@
 # ralplan-docs-portal v7 + ADR-0066 (live code-introspection docs portal).
 # Consumer of oya-ops-docs-portal-kernel types (ManifestPort + LiveFeedPort +
 # ExtractorClass hot/warm/cold).
-# Cedar-gated initially by ops-internal-public.cedar (M02-P20); tenant-tier
-# overlay adds ops-tenant-public.cedar + ops-manifest-tenant-filter.cedar +
-# ops-live-feed-scope.cedar at Wave 5.
+# Cedar-gated initially by ops-internal-public.cedar (M02-P20). Unsupported
+# tenant-scoped reads are refused at the kernel port boundary.
 # Per ADR-0067 §5: SSR p99 ≤500ms, SSE p99 ≤2s, 10k concurrent SSE.
 # Per markdown-retirement-policy: this YAML is canonical source.
 openapi: 3.2.0
@@ -12,9 +11,9 @@ info:
   title: Ops Docs Portal
   version: 1.0.0
   description: |
-    Per-tenant manifest + SSE live-feed surface for ops.oyatie.com/workspace/docs.
-    Streams ADR/runbook/glossary/dead-code/link-broken events as they happen.
-    Extractor freshness: Hot ≤500ms / Warm ≤2s / Cold ≤10min.
+    Internal manifest and live-feed contract for ops.oyatie.com/workspace/docs.
+    Models ADR/runbook/glossary/dead-code/link-broken events and extractor freshness:
+    Hot ≤500ms / Warm ≤2s / Cold ≤10min.
 
     Registered in `/registry/artifact-capabilities-registry.json` per
     ADR-0069 v3.0.0.
@@ -40,14 +39,8 @@ paths:
       tags: [manifest]
       summary: Read the current docs portal manifest
       operationId: getManifest
-      x-cedar-fragments: [ops-internal-public, ops-tenant-public, ops-manifest-tenant-filter]
+      x-cedar-fragments: [ops-internal-public]
       parameters:
-        - in: query
-          name: tenant
-          required: false
-          schema: { type: string }
-          description: Tenant id hash (SHA-256). Cedar enforces principal.tenant_id == tenant.
-          x-oyatie-data-class: INTERNAL_ONLY
         - in: query
           name: class
           required: false
@@ -73,13 +66,8 @@ paths:
       tags: [live-feed]
       summary: SSE stream of live docs portal events
       operationId: subscribeLiveFeed
-      x-cedar-fragments: [ops-internal-public, ops-live-feed-scope]
+      x-cedar-fragments: [ops-internal-public]
       parameters:
-        - in: query
-          name: tenant
-          required: false
-          schema: { type: string }
-          x-oyatie-data-class: INTERNAL_ONLY
         - in: query
           name: since
           required: false
@@ -117,8 +105,8 @@ paths:
             schema:
               $ref: "#/components/schemas/RefreshExtractorRequest"
       responses:
-        "202":
-          description: Refresh accepted
+        "200":
+          description: Manifest refresh applied; outcome reports event-recording status
           content:
             application/json:
               schema:
@@ -221,20 +209,19 @@ components:
           format: int64
           minimum: 0
           x-oyatie-data-class: INTERNAL_ONLY
-        force:
-          type: boolean
-          default: false
-          x-oyatie-data-class: INTERNAL_ONLY
+    RefreshExtractorOutcome:
+      type: string
+      enum: [applied-and-event-recorded, applied-but-event-recording-failed]
     RefreshExtractorResponse:
       type: object
       additionalProperties: false
-      required: [extractor_id, refreshed]
+      required: [extractor_id, outcome, last_refreshed_unix_ms, record_count]
       properties:
         extractor_id:
           $ref: "#/components/schemas/ExtractorId"
           x-oyatie-data-class: INTERNAL_ONLY
-        refreshed:
-          type: boolean
+        outcome:
+          $ref: "#/components/schemas/RefreshExtractorOutcome"
           x-oyatie-data-class: INTERNAL_ONLY
         last_refreshed_unix_ms:
           type: integer

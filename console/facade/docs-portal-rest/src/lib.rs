@@ -11,13 +11,15 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use console_docs_portal_adapter::{
-    WireLiveFeedEvent, WireManifestSnapshot, WireRefreshExtractorResponse,
+    WireLiveFeedEvent, WireManifestSnapshot, WireRefreshExtractorOutcome,
+    WireRefreshExtractorResponse,
 };
 use console_docs_portal_kernel::{
-    ExtractorClass, ExtractorId, LiveFeedPort, ManifestPort, TenantScope,
+    ExtractorClass, ExtractorId, LiveFeedError, LiveFeedPort, ManifestError, ManifestPort,
+    TenantScope,
 };
 use console_docs_portal_usecase::{
-    GetManifestUseCase, RefreshExtractorError, RefreshExtractorUseCase, SubscribeLiveFeedUseCase,
+    GetManifestUseCase, RefreshExtractorOutcome, RefreshExtractorUseCase, SubscribeLiveFeedUseCase,
 };
 
 pub const GET_MANIFEST_ROUTE: &str = "/workspace/docs/manifest";
@@ -32,7 +34,6 @@ pub const REFRESH_EXTRACTOR_METHOD: &str = "POST";
 /// Request shape for GET /workspace/docs/manifest.
 #[derive(Clone, Debug, Eq, PartialEq, Default)]
 pub struct GetManifestRequest {
-    pub tenant_scope: TenantScope,
     pub class: Option<ExtractorClass>,
     pub include_stale: bool,
     pub now_unix_ms: u64,
@@ -41,7 +42,6 @@ pub struct GetManifestRequest {
 /// Request shape for GET /workspace/docs/live.
 #[derive(Clone, Debug, Eq, PartialEq, Default)]
 pub struct SubscribeLiveFeedRequest {
-    pub tenant_scope: TenantScope,
     pub since_unix_ms: u64,
     pub limit: usize,
 }
@@ -52,32 +52,33 @@ pub struct RefreshExtractorRequest {
     pub extractor_id: ExtractorId,
     pub unix_ms: u64,
     pub record_count: u64,
-    pub tenant_scope: TenantScope,
     pub payload_hash: String,
-    pub force: bool,
 }
 
 /// REST handler: GET /workspace/docs/manifest.
-pub fn get_manifest<P: ManifestPort>(port: P, request: GetManifestRequest) -> WireManifestSnapshot {
+pub fn get_manifest<P: ManifestPort>(
+    port: P,
+    request: GetManifestRequest,
+) -> Result<WireManifestSnapshot, ManifestError> {
     let snapshot = GetManifestUseCase::new(port).execute(
-        request.tenant_scope,
+        TenantScope(None),
         request.class,
         request.include_stale,
         request.now_unix_ms,
-    );
-    WireManifestSnapshot::from_kernel(&snapshot)
+    )?;
+    Ok(WireManifestSnapshot::from_kernel(&snapshot))
 }
 
 /// REST handler: GET /workspace/docs/live.
 pub fn subscribe_live_feed<P: LiveFeedPort>(
     port: P,
     request: SubscribeLiveFeedRequest,
-) -> Vec<WireLiveFeedEvent> {
-    SubscribeLiveFeedUseCase::new(port)
-        .execute(request.since_unix_ms, request.limit)
+) -> Result<Vec<WireLiveFeedEvent>, LiveFeedError> {
+    Ok(SubscribeLiveFeedUseCase::new(port)
+        .execute(TenantScope(None), request.since_unix_ms, request.limit)?
         .iter()
         .map(WireLiveFeedEvent::from_kernel)
-        .collect()
+        .collect())
 }
 
 /// REST handler: POST /workspace/docs/api/v1/extractors/{id}/refresh.
@@ -85,20 +86,31 @@ pub fn refresh_extractor<M: ManifestPort, F: LiveFeedPort>(
     manifest: M,
     live_feed: F,
     request: RefreshExtractorRequest,
-) -> Result<WireRefreshExtractorResponse, RefreshExtractorError> {
-    let result = RefreshExtractorUseCase::new(manifest, live_feed).execute(
+) -> Result<WireRefreshExtractorResponse, ManifestError> {
+    let outcome = RefreshExtractorUseCase::new(manifest, live_feed).execute(
         &request.extractor_id,
         request.record_count,
         request.unix_ms,
-        request.tenant_scope,
         request.payload_hash,
     )?;
-    Ok(WireRefreshExtractorResponse {
-        extractor_id: result.extractor_id.0,
-        refreshed: result.refreshed,
-        last_refreshed_unix_ms: result.last_refreshed_unix_ms,
-        record_count: result.record_count,
-    })
+    match outcome {
+        RefreshExtractorOutcome::AppliedAndEventRecorded { applied } => {
+            Ok(WireRefreshExtractorResponse::from_applied(
+                applied.extractor_id,
+                applied.last_refreshed_unix_ms,
+                applied.record_count,
+                WireRefreshExtractorOutcome::AppliedAndEventRecorded,
+            ))
+        }
+        RefreshExtractorOutcome::AppliedButEventRecordingFailed { applied, .. } => {
+            Ok(WireRefreshExtractorResponse::from_applied(
+                applied.extractor_id,
+                applied.last_refreshed_unix_ms,
+                applied.record_count,
+                WireRefreshExtractorOutcome::AppliedButEventRecordingFailed,
+            ))
+        }
+    }
 }
 
 #[cfg(test)]
@@ -149,12 +161,12 @@ mod tests {
         let response = get_manifest(
             populated_manifest(),
             GetManifestRequest {
-                tenant_scope: TenantScope(None),
                 class: None,
                 include_stale: true,
                 now_unix_ms: 200,
             },
-        );
+        )
+        .unwrap();
         assert_eq!(response.records.len(), 2);
     }
 
@@ -163,12 +175,12 @@ mod tests {
         let response = get_manifest(
             populated_manifest(),
             GetManifestRequest {
-                tenant_scope: TenantScope(None),
                 class: Some(ExtractorClass::Hot),
                 include_stale: true,
                 now_unix_ms: 200,
             },
-        );
+        )
+        .unwrap();
         assert_eq!(response.records.len(), 1);
         assert_eq!(response.records[0].class, "hot");
     }
@@ -178,12 +190,65 @@ mod tests {
         let events = subscribe_live_feed(
             InMemoryLiveFeed::new(),
             SubscribeLiveFeedRequest {
-                tenant_scope: TenantScope(None),
                 since_unix_ms: 0,
                 limit: 10,
             },
-        );
+        )
+        .unwrap();
         assert!(events.is_empty());
+    }
+
+    #[derive(Default)]
+    struct RejectingLiveFeed;
+
+    impl LiveFeedPort for RejectingLiveFeed {
+        fn emit(
+            &mut self,
+            _event: console_docs_portal_kernel::LiveFeedEvent,
+        ) -> Result<(), console_docs_portal_kernel::LiveFeedError> {
+            Err(
+                console_docs_portal_kernel::LiveFeedError::NonMonotonicTimestamp {
+                    prior: 300,
+                    attempted: 200,
+                },
+            )
+        }
+
+        fn recent(
+            &self,
+            _tenant_scope: &TenantScope,
+            _since_unix_ms: u64,
+            _limit: usize,
+        ) -> Result<
+            Vec<&console_docs_portal_kernel::LiveFeedEvent>,
+            console_docs_portal_kernel::LiveFeedError,
+        > {
+            Ok(Vec::new())
+        }
+
+        fn count(&self) -> usize {
+            0
+        }
+    }
+
+    #[test]
+    fn feed_recording_failure_is_normal_typed_applied_response() {
+        let response = refresh_extractor(
+            populated_manifest(),
+            RejectingLiveFeed,
+            RefreshExtractorRequest {
+                extractor_id: ExtractorId("a".into()),
+                unix_ms: 200,
+                record_count: 42,
+                payload_hash: "h".into(),
+            },
+        )
+        .unwrap();
+        assert_eq!(
+            response.outcome.name(),
+            "applied-but-event-recording-failed"
+        );
+        assert_eq!(response.record_count, 42);
     }
 
     #[test]
@@ -197,13 +262,11 @@ mod tests {
                 extractor_id: ExtractorId("a".into()),
                 unix_ms: 200,
                 record_count: 42,
-                tenant_scope: TenantScope(None),
                 payload_hash: "h".into(),
-                force: false,
             },
         )
         .unwrap();
-        assert!(response.refreshed);
+        assert_eq!(response.outcome.name(), "applied-and-event-recorded");
         assert_eq!(response.record_count, 42);
         assert_eq!(response.last_refreshed_unix_ms, 200);
     }
@@ -217,17 +280,10 @@ mod tests {
                 extractor_id: ExtractorId("unknown".into()),
                 unix_ms: 200,
                 record_count: 0,
-                tenant_scope: TenantScope(None),
                 payload_hash: "h".into(),
-                force: false,
             },
         );
-        assert!(matches!(
-            result,
-            Err(RefreshExtractorError::Manifest(
-                ManifestError::UnknownExtractorId(_)
-            ))
-        ));
+        assert!(matches!(result, Err(ManifestError::UnknownExtractorId(_))));
     }
 
     #[test]
@@ -239,17 +295,10 @@ mod tests {
                 extractor_id: ExtractorId("a".into()),
                 unix_ms: 50,
                 record_count: 0,
-                tenant_scope: TenantScope(None),
                 payload_hash: "h".into(),
-                force: false,
             },
         );
-        assert!(matches!(
-            result,
-            Err(RefreshExtractorError::Manifest(
-                ManifestError::StaleTimestamp { .. }
-            ))
-        ));
+        assert!(matches!(result, Err(ManifestError::StaleTimestamp { .. })));
     }
 
     #[test]
@@ -269,11 +318,11 @@ mod tests {
         let events = subscribe_live_feed(
             feed,
             SubscribeLiveFeedRequest {
-                tenant_scope: TenantScope(None),
                 since_unix_ms: 0,
                 limit: 3,
             },
-        );
+        )
+        .unwrap();
         assert_eq!(events.len(), 3);
     }
 }

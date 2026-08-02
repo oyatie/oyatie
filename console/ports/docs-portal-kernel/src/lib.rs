@@ -2,7 +2,7 @@
 //! per ralplan-docs-portal v7 + ADR-0066 live code-introspection docs portal.
 //!
 //! Defines the hot/warm/cold extractor classes (ADR-0066 perf SLAs) +
-//! ManifestPort (per-tenant manifest filter) + LiveFeedPort (SSE event stream).
+//! fallible ManifestPort and LiveFeedPort boundaries.
 //!
 //! Pure std-only kernel layer per ADR-0015: no outbound I/O, no framework deps.
 // ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
@@ -14,9 +14,9 @@ use std::collections::BTreeMap;
 /// Extractor freshness class per ADR-0066 §5. Each class declares an SLA budget.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum ExtractorClass {
-    /// Real-time read; budget ≤500ms; backed by direct query + SSE push.
+    /// Read budget ≤500ms.
     Hot,
-    /// Near-real-time; budget ≤2s SSE; refreshed on-write.
+    /// Refresh budget ≤2s.
     Warm,
     /// Background-refreshed; budget ≤10min scheduled; cold cache.
     Cold,
@@ -60,10 +60,15 @@ impl ExtractorRecord {
     }
 }
 
-/// Tenant scope for manifest filtering per Cedar `ops-manifest-tenant-filter.cedar`.
-/// `None` = internal-only (no tenant projection); `Some(tenant_hash)` = filter to that tenant.
+/// Scope marker at the read boundary.
+/// `None` is the supported internal scope; `Some` is refused as unsupported.
 #[derive(Clone, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct TenantScope(pub Option<String>); // data_class: INTERNAL_ONLY (SHA-256 of tenant id; never raw)
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum TenantScopeRefusal {
+    Unsupported(TenantScope),
+}
 
 /// Manifest query: read-side projection of the docs portal state.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -88,13 +93,18 @@ pub trait ManifestPort {
         record_count: u64,
         unix_ms: u64,
     ) -> Result<(), ManifestError>;
-    fn query(&self, query: &ManifestQuery, now_unix_ms: u64) -> ManifestSnapshot;
+    fn query(
+        &self,
+        query: &ManifestQuery,
+        now_unix_ms: u64,
+    ) -> Result<ManifestSnapshot, ManifestError>;
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ManifestError {
     DuplicateExtractorId(ExtractorId),
     UnknownExtractorId(ExtractorId),
+    TenantScope(TenantScopeRefusal),
     StaleTimestamp {
         id: ExtractorId,
         prior: u64,
@@ -144,7 +154,16 @@ impl ManifestPort for InMemoryManifest {
         Ok(())
     }
 
-    fn query(&self, query: &ManifestQuery, now_unix_ms: u64) -> ManifestSnapshot {
+    fn query(
+        &self,
+        query: &ManifestQuery,
+        now_unix_ms: u64,
+    ) -> Result<ManifestSnapshot, ManifestError> {
+        if query.tenant_scope.0.is_some() {
+            return Err(ManifestError::TenantScope(TenantScopeRefusal::Unsupported(
+                query.tenant_scope.clone(),
+            )));
+        }
         let mut records: Vec<ExtractorRecord> = self
             .by_id
             .values()
@@ -159,11 +178,11 @@ impl ManifestPort for InMemoryManifest {
             .collect();
         records.sort_by(|a, b| a.id.cmp(&b.id));
         let stale_record_count = records.iter().filter(|r| r.is_stale(now_unix_ms)).count();
-        ManifestSnapshot {
+        Ok(ManifestSnapshot {
             records,
             freshness_unix_ms: now_unix_ms,
             stale_record_count,
-        }
+        })
     }
 }
 
@@ -187,12 +206,18 @@ pub struct LiveFeedEvent {
 
 pub trait LiveFeedPort {
     fn emit(&mut self, event: LiveFeedEvent) -> Result<(), LiveFeedError>;
-    fn recent(&self, since_unix_ms: u64, limit: usize) -> Vec<&LiveFeedEvent>;
+    fn recent(
+        &self,
+        tenant_scope: &TenantScope,
+        since_unix_ms: u64,
+        limit: usize,
+    ) -> Result<Vec<&LiveFeedEvent>, LiveFeedError>;
     fn count(&self) -> usize;
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum LiveFeedError {
+    TenantScope(TenantScopeRefusal),
     NonMonotonicTimestamp { prior: u64, attempted: u64 },
 }
 
@@ -221,12 +246,23 @@ impl LiveFeedPort for InMemoryLiveFeed {
         Ok(())
     }
 
-    fn recent(&self, since_unix_ms: u64, limit: usize) -> Vec<&LiveFeedEvent> {
-        self.events
+    fn recent(
+        &self,
+        tenant_scope: &TenantScope,
+        since_unix_ms: u64,
+        limit: usize,
+    ) -> Result<Vec<&LiveFeedEvent>, LiveFeedError> {
+        if tenant_scope.0.is_some() {
+            return Err(LiveFeedError::TenantScope(TenantScopeRefusal::Unsupported(
+                tenant_scope.clone(),
+            )));
+        }
+        Ok(self
+            .events
             .iter()
             .filter(|e| e.emitted_at_unix_ms >= since_unix_ms)
             .take(limit)
-            .collect()
+            .collect())
     }
 
     fn count(&self) -> usize {
@@ -271,14 +307,16 @@ mod tests {
             .unwrap();
         m.register_extractor(record("b", ExtractorClass::Cold, 100))
             .unwrap();
-        let snap = m.query(
-            &ManifestQuery {
-                tenant_scope: TenantScope(None),
-                extractor_filter: None,
-                include_stale: true,
-            },
-            200,
-        );
+        let snap = m
+            .query(
+                &ManifestQuery {
+                    tenant_scope: TenantScope(None),
+                    extractor_filter: None,
+                    include_stale: true,
+                },
+                200,
+            )
+            .unwrap();
         assert_eq!(snap.records.len(), 2);
     }
 
@@ -289,14 +327,16 @@ mod tests {
             .unwrap();
         m.register_extractor(record("b", ExtractorClass::Cold, 100))
             .unwrap();
-        let snap = m.query(
-            &ManifestQuery {
-                tenant_scope: TenantScope(None),
-                extractor_filter: Some(ExtractorClass::Hot),
-                include_stale: true,
-            },
-            200,
-        );
+        let snap = m
+            .query(
+                &ManifestQuery {
+                    tenant_scope: TenantScope(None),
+                    extractor_filter: Some(ExtractorClass::Hot),
+                    include_stale: true,
+                },
+                200,
+            )
+            .unwrap();
         assert_eq!(snap.records.len(), 1);
         assert_eq!(snap.records[0].class, ExtractorClass::Hot);
     }
@@ -308,14 +348,16 @@ mod tests {
             .unwrap();
         m.register_extractor(record("cold-fresh", ExtractorClass::Cold, 200))
             .unwrap();
-        let snap = m.query(
-            &ManifestQuery {
-                tenant_scope: TenantScope(None),
-                extractor_filter: None,
-                include_stale: false,
-            },
-            10_000,
-        );
+        let snap = m
+            .query(
+                &ManifestQuery {
+                    tenant_scope: TenantScope(None),
+                    extractor_filter: None,
+                    include_stale: false,
+                },
+                10_000,
+            )
+            .unwrap();
         assert_eq!(snap.records.len(), 1);
         assert_eq!(snap.records[0].id, ExtractorId("cold-fresh".into()));
     }
@@ -375,13 +417,49 @@ mod tests {
     }
 
     #[test]
+    fn manifest_rejects_unsupported_tenant_scope_before_read() {
+        let mut manifest = InMemoryManifest::new();
+        manifest
+            .register_extractor(record("a", ExtractorClass::Hot, 100))
+            .unwrap();
+        let result = manifest.query(
+            &ManifestQuery {
+                tenant_scope: TenantScope(Some("tenant-hash".into())),
+                extractor_filter: None,
+                include_stale: true,
+            },
+            200,
+        );
+        assert_eq!(
+            result,
+            Err(ManifestError::TenantScope(TenantScopeRefusal::Unsupported(
+                TenantScope(Some("tenant-hash".into()))
+            )))
+        );
+    }
+
+    #[test]
+    fn live_feed_rejects_unsupported_tenant_scope_before_read() {
+        let mut feed = InMemoryLiveFeed::new();
+        feed.emit(event(LiveFeedEventKind::ExtractorRefreshed, 100))
+            .unwrap();
+        let result = feed.recent(&TenantScope(Some("tenant-hash".into())), 0, 10);
+        assert_eq!(
+            result,
+            Err(LiveFeedError::TenantScope(TenantScopeRefusal::Unsupported(
+                TenantScope(Some("tenant-hash".into()))
+            )))
+        );
+    }
+
+    #[test]
     fn live_feed_recent_window() {
         let mut feed = InMemoryLiveFeed::new();
         for ms in [100u64, 200, 300, 400, 500] {
             feed.emit(event(LiveFeedEventKind::ExtractorRefreshed, ms))
                 .unwrap();
         }
-        let since = feed.recent(250, 10);
+        let since = feed.recent(&TenantScope(None), 250, 10).unwrap();
         assert_eq!(since.len(), 3);
     }
 }

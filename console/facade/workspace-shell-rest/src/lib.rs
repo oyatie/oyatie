@@ -15,11 +15,9 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use console_workspace_shell_adapter::{WireHealthResponse, WireSurface, WireSurfaceListResponse};
-use console_workspace_shell_kernel::{
-    SurfaceCatalogError, SurfaceCatalogPort, SurfaceId, SurfaceState, VisibilityTier,
-};
+use console_workspace_shell_kernel::{SurfaceCatalogPort, SurfaceState, VisibilityTier};
 use console_workspace_shell_usecase::{
-    FlipSurfaceStateUseCase, ListAllSurfacesUseCase, ListLiveSurfacesUseCase, ShellHealthUseCase,
+    ListAllSurfacesUseCase, ListLiveSurfacesUseCase, ShellHealthUseCase,
 };
 
 pub const LIST_LIVE_SURFACES_ROUTE: &str = "/workspace";
@@ -95,20 +93,10 @@ pub fn shell_health<P: SurfaceCatalogPort>(
     }
 }
 
-/// Surface state transition (mutating; internal-sre+).
-pub fn flip_surface_state<P: SurfaceCatalogPort>(
-    catalog: P,
-    id: &SurfaceId,
-    new_state: SurfaceState,
-) -> Result<(), SurfaceCatalogError> {
-    let mut use_case = FlipSurfaceStateUseCase::new(catalog);
-    use_case.execute(id, new_state)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use console_workspace_shell_kernel::{InMemorySurfaceCatalog, Surface};
+    use console_workspace_shell_kernel::{InMemorySurfaceCatalog, Surface, SurfaceId};
 
     fn surface(id: &str, route: &str, state: SurfaceState, tier: VisibilityTier) -> Surface {
         Surface {
@@ -226,24 +214,5 @@ mod tests {
         assert_eq!(response.status, "healthy");
         assert_eq!(response.surface_count, 3);
         assert_eq!(response.version, "v0.1.0");
-    }
-
-    #[test]
-    fn flip_state_promotes_reserved_to_live() {
-        let result = flip_surface_state(populated(), &SurfaceId("soon".into()), SurfaceState::Live);
-        assert!(result.is_ok());
-    }
-
-    #[test]
-    fn flip_state_rejects_invalid_transition() {
-        let result = flip_surface_state(
-            populated(),
-            &SurfaceId("live-pub".into()),
-            SurfaceState::ReservedComingSoon,
-        );
-        assert!(matches!(
-            result,
-            Err(SurfaceCatalogError::InvalidStateTransition { .. })
-        ));
     }
 }
