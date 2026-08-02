@@ -98,7 +98,7 @@
       "root//ci/facade/generated-artifact-freshness:ci-generated-artifact-freshness-unittest",
       "root//ci/facade/inventory-registry-drift:ci-inventory-registry-drift-gate",
       "root//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot-gate",
-      "root//libs/oya-check-active-artifact-contract:oya-check-active-artifact-contract-unittest",
+      "root//governance/check/active-artifact-contract:check-active-artifact-contract-unittest",
       "root//marketplace/facade/dev-cli:marketplace-dev-cli-gate-cli"
     ],
     "registry/dependency-rationales.json": [
@@ -127,7 +127,7 @@
       "root//ci/facade/generated-artifact-freshness:ci-generated-artifact-freshness-unittest",
       "root//ci/facade/inventory-registry-drift:ci-inventory-registry-drift-gate",
       "root//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot-gate",
-      "root//libs/oya-check-active-artifact-contract:oya-check-active-artifact-contract-unittest",
+      "root//governance/check/active-artifact-contract:check-active-artifact-contract-unittest",
       "root//marketplace/facade/dev-cli:marketplace-dev-cli-gate-cli"
     ],
     "specs/decision-rights.json": [
@@ -137,9 +137,9 @@
       "root//ci/facade/generated-artifact-freshness:ci-generated-artifact-freshness-unittest",
       "root//ci/facade/inventory-registry-drift:ci-inventory-registry-drift-gate",
       "root//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot-gate",
-      "root//libs/oya-check-codeowners-mirror:oya-check-codeowners-mirror-unittest",
-      "root//libs/oya-check-pr-traceability:oya-check-pr-traceability-unittest",
-      "root//libs/oya-check-raci-coverage:oya-check-raci-coverage-unittest"
+      "root//governance/check/codeowners-mirror:check-codeowners-mirror-unittest",
+      "root//governance/check/pr-traceability:check-pr-traceability-unittest",
+      "root//governance/check/raci-coverage:check-raci-coverage-unittest"
     ],
     "specs/forbidden-operations.json": [
       "root//ci/facade/artifact-inventory-registry:ci-artifact-inventory-registry-unittest",
@@ -151,7 +151,7 @@
       "root//intelligence/core/autonomy-ceiling-app:intelligence-autonomy-ceiling-app-unittest",
       "root//intelligence/core/autonomy-ceiling-domain:intelligence-autonomy-ceiling-domain-unittest",
       "root//intelligence/core/autonomy-ceiling-kernel:intelligence-autonomy-ceiling-kernel-unittest",
-      "root//libs/oya-check-data-class:oya-check-data-class-unittest",
+      "root//governance/check/data-class:check-data-class-unittest",
       "root//libs/oya-check-license-policy:oya-check-license-policy-license-policy"
     ],
     "docs/ideas/archive/**": [
