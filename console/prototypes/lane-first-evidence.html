@@ -1,0 +1,1544 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Oyatie Console · Lane-First Evidence (design prototype)</title>
+<!--
+  DESIGN PROTOTYPE. Not a production surface. See §Design rationale at the foot of the page for
+  what this is, what it is not, and what it deliberately does not build.
+
+  Self-contained by construction: zero network requests, zero CDN scripts, zero fonts fetched.
+  (The sibling convention file docs/architecture/product-graph.template.html pulls cytoscape from
+  unpkg; this one deliberately does not — a diagnostic surface that cannot render offline is not a
+  diagnostic surface.)
+
+  The two <script type="application/json"> blocks below are UNMODIFIED output of
+  //ci/facade/baseline-ratchet run_terminal_state::classify_run over the two captured real
+  incidents in specs/fixtures/cloud-ci-run-terminal-state/. Nothing here is synthesized.
+-->
+<style>
+  :root {
+    --bg:        #0b0e14;
+    --bg-grad:   radial-gradient(1200px 700px at 78% -10%, #131a2a 0%, #0b0e14 55%);
+    --panel:     #11151e;
+    --panel-2:   #161b27;
+    --panel-3:   #1b2230;
+    --border:    #232b3a;
+    --border-2:  #2d3850;
+    --text:      #e6ebf4;
+    --text-2:    #c2ccdd;
+    --muted:     #9aa4b2;
+    --faint:     #79859c;
+    --accent:    #38e0d8;
+    --accent-2:  #7c8cff;
+    --green:  #4ade80;
+    --yellow: #f5c518;
+    --amber:  #f59e0b;
+    --red:    #f87171;
+    --orange: #fb923c;
+    --purple: #c084fc;
+    --blue:   #60a5fa;
+    --gray:   #94a3b8;
+    --mono: "Berkeley Mono", "JetBrains Mono", "SFMono-Regular", ui-monospace, Menlo, Consolas, monospace;
+    --sans: "Geist", "Inter Tight", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    --shadow: 0 8px 28px rgba(0,0,0,0.45);
+    --r: 8px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg); background-image: var(--bg-grad); background-attachment: fixed;
+    color: var(--text); font-family: var(--sans); font-size: 14px; line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent); }
+  code, .mono { font-family: var(--mono); }
+
+  .wrap { max-width: 1500px; margin: 0 auto; padding: 20px 20px 80px; }
+
+  /* ── Roll-up header ─────────────────────────────────────────────── */
+  header.rollup {
+    border: 1px solid var(--border); border-radius: var(--r); background: var(--panel);
+    padding: 16px 18px; box-shadow: var(--shadow); margin-bottom: 18px;
+  }
+  .rollup-top { display: flex; flex-wrap: wrap; gap: 14px; align-items: baseline; }
+  .brand { font-weight: 650; letter-spacing: .01em; }
+  .brand small { color: var(--faint); font-weight: 400; margin-left: 8px; }
+  .rollup-verdict { margin-left: auto; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .rollup-line { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 18px; color: var(--muted); font-size: 12.5px; }
+  .rollup-line b { color: var(--text-2); font-weight: 550; }
+
+  .banner {
+    margin-top: 12px; padding: 10px 12px; border-radius: 6px; font-size: 12.5px;
+    border: 1px solid var(--border-2); background: var(--panel-2); color: var(--text-2);
+  }
+  .banner.warn { border-color: #5a4415; background: #241c07; color: #f0d79a; }
+
+  /* ── Badges ─────────────────────────────────────────────────────── */
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px; font-family: var(--mono);
+    font-size: 11px; letter-spacing: .04em; text-transform: uppercase;
+    padding: 3px 8px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap;
+  }
+  .badge.lg { font-size: 13px; padding: 5px 12px; }
+  .badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .s-pass           { color: var(--green); }
+  .s-fail           { color: var(--red); }
+  .s-no-verdict     { color: var(--amber); }
+  .s-blocked        { color: var(--gray); }
+  .s-verified-empty { color: var(--purple); }
+  .a-proceed        { color: var(--green); }
+  .a-fix-candidate  { color: var(--red); }
+  .a-retry          { color: var(--blue); }
+  .a-fix-infra      { color: var(--orange); }
+  .a-wait           { color: var(--gray); }
+  .a-needs-human    { color: var(--purple); }
+
+  /* ── Two-pane: lane rail (primary) + lane detail ────────────────── */
+  .panes { display: grid; grid-template-columns: minmax(320px, 400px) minmax(0, 1fr); gap: 18px; align-items: start; }
+  @media (max-width: 980px) { .panes { grid-template-columns: minmax(0, 1fr); } }
+
+  .card {
+    border: 1px solid var(--border); border-radius: var(--r); background: var(--panel);
+    box-shadow: var(--shadow); overflow: hidden;
+  }
+  .card > h2 {
+    margin: 0; padding: 12px 14px; font-size: 12px; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--faint); border-bottom: 1px solid var(--border); background: var(--panel-2); font-weight: 600;
+  }
+  .card > h2 .hint { text-transform: none; letter-spacing: 0; color: var(--faint); font-weight: 400; margin-left: 8px; font-size: 11.5px; }
+  .card-body { padding: 14px; }
+
+  /* lane rail */
+  .bucket { border-bottom: 1px solid var(--border); }
+  .bucket:last-child { border-bottom: 0; }
+  .bucket-head {
+    display: flex; align-items: center; gap: 8px; padding: 9px 14px; background: var(--panel-2);
+    font-size: 11.5px; letter-spacing: .05em; text-transform: uppercase; color: var(--text-2); font-weight: 600;
+  }
+  .bucket-head .count { margin-left: auto; font-family: var(--mono); color: var(--faint); letter-spacing: 0; }
+  .bucket-head .who { text-transform: none; letter-spacing: 0; color: var(--faint); font-weight: 400; font-size: 11px; }
+
+  .lane-row {
+    display: block; width: 100%; text-align: left; border: 0; border-left: 3px solid transparent;
+    background: transparent; color: var(--text); padding: 9px 14px; cursor: pointer;
+    font-family: inherit; font-size: 13px; border-bottom: 1px solid #1a2130;
+  }
+  .lane-row:last-child { border-bottom: 0; }
+  .lane-row:hover { background: var(--panel-2); }
+  .lane-row[aria-current="true"] { background: var(--panel-3); border-left-color: var(--accent); }
+  .lane-row .nm { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lane-row .sub { display: flex; gap: 8px; align-items: center; margin-top: 4px; color: var(--faint); font-size: 11px; font-family: var(--mono); }
+  .lane-row .dot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+
+  .grouped { color: var(--amber); font-family: var(--mono); font-size: 11px; }
+
+  /* lane detail */
+  .kv { display: grid; grid-template-columns: 168px minmax(0, 1fr); gap: 7px 14px; font-size: 13px; }
+  .kv dt { color: var(--faint); font-size: 11.5px; letter-spacing: .04em; text-transform: uppercase; padding-top: 2px; }
+  .kv dd { margin: 0; color: var(--text-2); min-width: 0; overflow-wrap: anywhere; }
+  .because { border-left: 2px solid var(--accent-dim, #1b5a59); padding-left: 10px; color: var(--text); }
+
+  ul.steps { margin: 0; padding-left: 18px; font-family: var(--mono); font-size: 12px; color: var(--text-2); }
+  ul.steps li { margin: 2px 0; overflow-wrap: anywhere; }
+  .none { color: var(--faint); font-style: italic; }
+
+  /* chronology strip — deliberately secondary */
+  .chron { display: flex; gap: 8px; flex-wrap: wrap; }
+  .obs {
+    border: 1px solid var(--border-2); border-radius: 6px; background: var(--panel-2);
+    padding: 7px 10px; font-family: var(--mono); font-size: 11.5px; cursor: pointer; color: var(--text-2);
+  }
+  .obs[aria-current="true"] { border-color: var(--accent); color: var(--text); }
+  .obs .when { color: var(--faint); }
+  .obs.newest::after { content: " · newest"; color: var(--faint); }
+
+  /* share card */
+  .share { display: grid; gap: 10px; }
+  .sharecard {
+    border: 1px solid var(--border-2); border-radius: var(--r); background: #0e1219; padding: 14px;
+    font-family: var(--mono); font-size: 12px; color: var(--text-2); white-space: pre-wrap; overflow-x: auto;
+  }
+  .redacted { color: var(--amber); }
+  .toggle-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  button.tab {
+    background: var(--panel-2); border: 1px solid var(--border-2); color: var(--text-2);
+    border-radius: 6px; padding: 5px 11px; font-family: var(--mono); font-size: 11.5px; cursor: pointer;
+  }
+  button.tab[aria-pressed="true"] { border-color: var(--accent); color: var(--text); background: var(--panel-3); }
+
+  /* self-check */
+  table.checks { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  table.checks th, table.checks td { text-align: left; padding: 7px 10px; border-bottom: 1px solid #1a2130; vertical-align: top; }
+  table.checks th { color: var(--faint); font-size: 11px; letter-spacing: .05em; text-transform: uppercase; font-weight: 600; }
+  table.checks td.v { font-family: var(--mono); white-space: nowrap; }
+  .ok { color: var(--green); } .bad { color: var(--red); }
+
+  details.rationale { margin-top: 18px; }
+  details.rationale > summary {
+    cursor: pointer; padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--r);
+    background: var(--panel); color: var(--text-2); font-size: 12px; letter-spacing: .05em; text-transform: uppercase; font-weight: 600;
+  }
+  .rationale-body { border: 1px solid var(--border); border-top: 0; border-radius: 0 0 var(--r) var(--r); background: var(--panel); padding: 6px 20px 20px; }
+  .rationale-body h3 { font-size: 13px; letter-spacing: .04em; text-transform: uppercase; color: var(--accent); margin: 22px 0 8px; }
+  .rationale-body p, .rationale-body li { color: var(--text-2); font-size: 13.5px; max-width: 78ch; }
+  .rationale-body table { border-collapse: collapse; font-size: 13px; margin: 8px 0; }
+  .rationale-body th, .rationale-body td { border: 1px solid var(--border); padding: 6px 10px; text-align: left; color: var(--text-2); }
+  .rationale-body th { color: var(--faint); font-size: 11.5px; text-transform: uppercase; letter-spacing: .04em; }
+  .scrollx { overflow-x: auto; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="rollup">
+    <div class="rollup-top">
+      <div class="brand">Oyatie Console <small>lane-first evidence · design prototype</small></div>
+      <div class="rollup-verdict" id="rollup-verdict"></div>
+    </div>
+    <div class="rollup-line" id="rollup-line"></div>
+    <div class="banner warn">
+      <b>No live feed exists.</b> <code>oya-cloud-ci-run-terminal-state-bin</code> is built and tested but is
+      <b>not invoked by <code>.github/workflows/oya-ci-required.yml</code></b> — the fan-in job carries a comment saying so
+      deliberately (a new inline-shell <code>run:</code> step would trip the shrink-only <code>automation-language-policy</code> ceiling).
+      Every lane below is the classifier's own output over the two <b>captured real incidents</b> it is held live by.
+      This surface is designed against the <code>cloud-ci-run-terminal-state/v1</code> contract, not against a feed.
+    </div>
+  </header>
+
+  <div class="panes">
+
+    <!-- PRIMARY NAVIGATION: choose a lane. Not a time axis. -->
+    <div class="card" id="rail">
+      <h2>Lanes <span class="hint">pick a lane first — chronology lives inside it</span></h2>
+      <div class="toggle-row" style="padding:11px 14px;border-bottom:1px solid var(--border);">
+        <button class="tab" id="f-human" aria-pressed="true">needs a human</button>
+        <button class="tab" id="f-all" aria-pressed="false">all lanes</button>
+        <span class="mono" style="color:var(--faint);font-size:11px;" id="rail-count"></span>
+      </div>
+      <div id="buckets"></div>
+    </div>
+
+    <div>
+      <div class="card" id="detail">
+        <h2 id="detail-title">Lane</h2>
+        <div class="card-body" id="detail-body"></div>
+      </div>
+
+      <div class="card" style="margin-top:18px;">
+        <h2>Shareable evidence card <span class="hint">allow-list projection — safe to paste into a ticket</span></h2>
+        <div class="card-body share">
+          <div class="toggle-row">
+            <button class="tab" id="p-safe" aria-pressed="true">shareable</button>
+            <button class="tab" id="p-raw" aria-pressed="false">internal (console-only)</button>
+          </div>
+          <div class="sharecard" id="sharecard"></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:18px;">
+        <h2>Sanitizer self-check <span class="hint">runs on load over the real embedded data + a known-positive control</span></h2>
+        <div class="card-body">
+          <div class="scrollx"><table class="checks" id="checks"></table></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script type="application/json" id="run-a">
+{
+  "schema_version": "cloud-ci-run-terminal-state/v1",
+  "state": "fail",
+  "next_action": "fix-candidate",
+  "green": false,
+  "candidate_sha": "faee428489bd16e5a79d00eeb8ec15d14c0e18df",
+  "run_id": "30677213867",
+  "attempt": 1,
+  "input_digest": "0e5347615952e43686528334aa1eafb469ec3a22d2472e591741f5e17a575f26",
+  "classifier_version": "cloud-ci-run-terminal-state/v1",
+  "observed_at": "2026-08-01T16:00:00Z",
+  "tally": {
+    "fail": 5,
+    "no-verdict": 1,
+    "pass": 50
+  },
+  "lanes": [
+    {
+      "job_id": 91306848228,
+      "job_name": "gate-live-postgres-facades (durable facades: tenant lifecycle / SCIM, #901)",
+      "state": "pass",
+      "next_action": "proceed",
+      "because": "lane succeeded",
+      "failed_steps": [],
+      "unfinished_steps": [],
+      "annotations": [],
+      "queue_delay_seconds": 3
+    },
+    {
+      "job_id": 91306848230,
+      "job_name": "freshness (lock + generated faces, ADR-0539)",
+      "state": "pass",
+      "next_action": "proceed",
+      "because": "lane succeeded",
+      "failed_steps": [],
+      "unfinished_steps": [],
+      "annotations": [],
+      "queue_delay_seconds": 6
+    },
+    {
+      "job_id": 91306848251,
+      "job_name": "gate-live-postgres-adapters (durable adapters: RLS / CDC / SCIM, #901)",
+      "state": "pass",
+      "next_action": "proceed",
+      "because": "lane succeeded",
+      "failed_steps": [],
+      "unfinished_steps": [],
+      "annotations": [],
+      "queue_delay_seconds": 3
+    },
+    {
+      "job_id": 91306848255,
+      "job_name": "producer-regen (accounting-registry)",
+      "state": "pass",
+      "next_action": "proceed",
+      "because": "lane succeeded",
+      "failed_steps": [],
+      "unfinished_steps": [],
+      "annotations": [],
+      "queue_delay_seconds": 899
+    },
+    {
+      "job_id": 91306848257,
+      "job_name": "gate · affected-set (ADR-0554, binding workspace coverage)",
+      "state": "no-verdict",
+      "next_action": "retry",
+      "because": "lane concluded `failure` but ZERO steps recorded a failure verdict while 7 step(s) never completed and the runner reported losing communication with the server; no gate observed the candidate",
+      "failed_steps": [],
+      "unfinished_steps": [
+        "Materialize merge-base build + test baselines when affected-set needs FULL",
+        "Binding affected-set build + test (cone-binding; FULL tier = build-health ratchet)",
+        "Save buck-out (dev-push only; sole canonical full-graph writer)",
+        "Upload build-health baseline artifact (trusted push-to-dev producer)",
+        "Upload test-health baseline artifact (trusted push-to-dev producer)",
+        "Upload affected-set operator artifacts",
+        "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1"
+      ],
+      "annotations": [
+        "The self-hosted runner lost communication with the server. Verify the machine is running and has a healthy network connection. Anything in your workflow that terminates the runner process, starves it for CPU/Memory, or blocks its network access can cause this error."
+      ],
+      "queue_delay_seconds": 341
+    },
+    {
+      "job_id": 91306848269,
+      "job_name": "registry-drift (materialized == regenerated)",
+      "state": "pass",
+      "next_action": "proceed",
+      "because": "lane succeeded",
+      "failed_steps": [],
+      "unfinished_steps": [],
+      "annotations": [],
+      "queue_delay_seconds": 6
+    },
+    {
+      "job_id": 91306848270,
+      "job_name": "generated-output-diff-policy (no generated merge surfaces)",
+      "state": "pass",
+      "next_action": "proceed",
+      "because": "lane succeeded",
+      "failed_steps": [],
+      "unfinished_steps": [],
+      "annotations": [],
+      "queue_delay_seconds": 381
+    },
+    {
+      "job_id": 91306848284,
+      "job_name": "cloud-ci-firewall (baseline ratchet + gate-registration meta-test)",
+      "state": "fail",
+      "next_action": "fix-candidate",
+      "because": "lane concluded `failure` and 1 step(s) recorded a failure verdict: buck2 test cloud-ci-firewall",
+      "failed_steps": [
+        "buck2 test cloud-ci-firewall"
+      ],
+      "unfinished_steps": [],
+      "annotations": [
+        "Process completed with exit code 32."
+      ],
+      "queue_delay_seconds": 580
+    },
+    {
+      "job_id": 91306848285,
+      "job_name": "buck2 (hermetic build + affected gate tests)",
+      "state": "fail",
+      "next_action": "fix-candidate",
+      "because": "lane concluded `failure` and 2 step(s) recorded a failure verdict: buck2 build + test (//ci/..., hermetic — binding), Cache-hit telemetry + warm-mode guard (ADR-0560)",
+      "failed_steps": [
+        "buck2 build + test (//ci/..., hermetic — binding)",
+        "Cache-hit telemetry + warm-mode guard (ADR-0560)"
+      ],
+      "unfinished_steps": [],
+      "annotations": [
+        "Process completed with exit code 1.",
+        "Process completed with exit code 32."
+      ],
+      "queue_delay_seconds": 1249
+    },
+    {
+      "job_id": 91309033920,
+      "job_name": "gate · scan-root-liveness (declared scan roots must resolve; reorg-move blindness detector, shrink-only baseline)",
+      "state": "pass",
+      "next_action": "proceed",
+      "because": "lane succeeded",
+      "failed_steps": [],
+      "unfinished_steps": [],
+      "annotations": [],
+      "queue_delay_seconds": 3167
+    },
+    {
+      "job_id": 91309033926,
+      "job_name": "gate · slo-coverage (catalog SLO input contract, born-blocking)",
+      "state": "pass",
+      "next_action": "proceed",
+      "because": "lane succeeded",
+      "failed_steps": [],
+      "unfinished_steps": [],
+      "annotations": [],
+      "queue_delay_seconds": 3107
+    },
+    {
+      "job_id": 91309033927,
+      "job_name": "gate · license-policy (workspace package license policy, shrink-only)",
+      "state": "pass",
+      "next_action": "proceed",
+      "because": "lane succeeded",
+      "failed_steps": [],
+      "unfinished_steps": [],
+      "annotations": [],
+      "queue_delay_seconds": 2782
+    },
+    {
+      "job_id": 91309033928,
+      "job_name": "gate · staleness-reaper (GATE-3, born-blocking)",
+      "state": "pass",
+      "next_action": "proceed",
+      "because": "lane succeeded",
+      "failed_steps": [],
+      "unfinished_steps": [],
+      "annotations": [],
+      "queue_delay_seconds": 3158
+    },
+    {
+      "job_id": 91309033929,
+      "job_name": "gate · generated-artifact-control-plane (public hermetic CI artifact policy)",
+      "state": "pass",
+      "next_action": "proceed",
+      "because": "lane succeeded",
+      "failed_steps": [],
+      "unfinished_steps": [],
+      "annotations": [],
+      "queue_delay_seconds": 2781
+    },
+    {
+      "job_id": 91309033930,
+      "job_name": "gate · automation-ratchet (GATE-4, polices gates)",
+      "state": "pass",
+      "next_action": "proceed",
+      "because": "lane succeeded",
+      "failed_steps": [],
+      "unfinished_steps": [],
+      "annotations": [],
+      "queue_delay_seconds": 2423
+    },
+    {
+      "job_id": 91309033932,
+      "job_name": "gate · total-accounting (GATE-2)",
+      "state": "pass",
+      "next_action": "proceed",
+      "because": "lane succeeded",
+      "failed_steps": [],
+      "unfinished_steps": [],
+      "annotations": [],
+      "queue_delay_seconds": 2038
+    },
+    {
+      "job_id": 91309033935,
+      "job_name": "gate · crate-catalog-coverage (every live crate carries a registry/catalog row; born-blocking, shrink-only baseline)",
+      "state": "pass",
+      "next_action": "proceed",
+      "because": "lane succeeded",
+      "failed_steps": [],
+      "unfinished_steps": [],
+      "annotations": [],
+      "queue_delay_seconds": 3143
+    },
+    {
+      "job_id": 91309033936,
+      "job_name": "gate · cross-artifact-agreement (GATE-1, incl. the 4 masterplan-v2 plan gates: structural ID/DAG/orphans · projection-freshness · plan-vs-evidence · read-contract/entry-surface)",
+      "state": "pass",
+      "next_action": "proceed",
+      "because": "lane succeeded",
+      "failed_steps": [],
+      "unfinished_steps": [],
+      "annotations": [],
+      "queue_delay_seconds": 2578
+    },
+    {
+      "job_id": 91309033937,
+      "job_name": "gate · bnf-layer-suffix (BNF §2.5#4, born-blocking)",
+      "state": "pass",
+      "next_action": "proceed",
+      "because": "lane succeeded",
+      "failed_steps": [],
+      "unfinished_steps": [],
+      "annotations": [],
+      "queue_delay_seconds": 2866
+    },
+    {
+      "job_id": 91309033939,
+      "job_name": "gate · target-parity (ADR-0540, test-wiring false-green)",
+      "state": "pass",
+      "next_action": "proceed",
+      "because": "lane succeeded",
+      "failed_steps": [],
+      "unfinished_steps": [],
+      "annotations": [],
+      "queue_delay_seconds": 2528
+    },
+    {
+      "job_id": 91309033941,
+      "job_name": "gate · kernel-purity (ADR-0547, *-kernel/*-core zero transient-tech deps)",
+      "state": "fail",
+      "next_action": "fix-candidate",
+      "because": "lane concluded `failure` and 1 step(s) recorded a failure verdict: buck2 test core-dependency-isolation",
+      "failed_steps": [
+        "buck2 test core-dependency-isolation"
+      ],
+      "unfinished_steps": [],
+      "annotations": [
+        "Process completed with exit code 1.",
+        "expected flush after ref listing",
+        "RPC failed; HTTP 404 curl 22 The requested URL returned error: 404"
+      ],
+      "queue_delay_seconds": 2650
+    },
+    {
+      "job_id": 91309033942,
+      "job_name": "gate · cloud-resource-contracts (Rust/API replacement for P0 cloud-resource Python validators)",
+      "state": "pass",
+      "next_action": "proceed",
+      "because": "lane succeeded",
+      "failed_steps": [],
+      "unfinished_steps": [],
+      "annotations": [],
+      "queue_delay_seconds": 2278
+    },
+    {
+      "job_id": 91309033944,
+      "job_name": "gate: workspace-glob-coverage (ADR-0538)",
+      "state": "pass",
+      "next_action": "proceed",
+      "because": "lane succeeded",
+      "failed_steps": [],
+      "unfinished_steps": [],
+      "annotations": [],
+      "queue_delay_seconds": 2307
+    },
+    {
+      "job_id": 91309033946,
+      "job_name": "gate · hyperscaler-parity-taxonomy (cloud hyperscaler parity taxonomy, born-blocking)",
+      "state": "pass",
+      "next_action": "proceed",
+      "because": "lane succeeded",
+      "failed_steps": [],
+      "unfinished_steps": [],
+      "annotations": [],
+      "queue_delay_seconds": 2932
+    },
+    {
+      "job_id": 91309033947,
+      "job_name": "gate · facade-core-layering (ADR-0562 central rule: facade reaches its own core only through ports; BUCK-graph keyed by cargo package name, 35 frozen, shrink-only)",
+      "state": "pass",
+      "next_action": "proceed",
+      "because": "lane succeeded",
+      "failed_steps": [],
+      "unfinished_steps": [],
+      "annotations": [],
+      "queue_delay_seconds": 2623
+    },
+    {
+      "job_id": 91309033949,
+      "job_name": "gate · canonical-json (ADR-0546, deterministic JSON serialization)",
+      "state": "pass",
+      "next_action": "proceed",
+      "because": "lane succeeded",
+      "failed_steps": [],
+      "unfinished_steps": [],
+      "annotations": [],
+      "queue_delay_seconds": 2199
+    },
+    {
+      "job_id": 91309033950,
+      "job_name": "gate · friction-accounting (ADR-0544, closed-loop friction-ledger accounting)",
+      "state": "pass",
+      "next_action": "proceed",
+      "because": "lane succeeded",
+      "failed_steps": [],
+      "unfinished_steps": [],
+      "annotations": [],
+      "queue_delay_seconds": 2474
+    },
+    {
+      "job_id": 91309033953,
+      "job_name": "gate · embedded-asset-hermeticity (ADR-0545, include_str!/include_bytes! __srcs-tree mapping)",
+      "state": "pass",
+      "next_action": "proceed",
+      "because": "lane succeeded",
+      "failed_steps": [],
+      "unfinished_steps": [],
+      "annotations": [],
+      "queue_delay_seconds": 2753
+    },
+    {
+      "job_id": 91309033956,
+      "job_name": "gate · enforcement-liveness (FRIC-012, hook mirror liveness)",
+      "state": "pass",
+      "next_action": "proceed",
+      "because": "lane succeeded",
+      "failed_steps": [],
+      "unfinished_steps": [],
+      "annotations": [],
+      "queue_delay_seconds": 2683
+    },
+    {
+      "job_id": 91309033957,
+      "job_name": "gate · manifest-hygiene (§2.5#7, born-blocking)",
+      "state": "pass",
+      "next_action": "proceed",
+      "because": "lane succeeded",
+      "failed_steps": [],
+      "unfinished_steps": [],
+      "annotations": [],
+      "queue_delay_seconds": 2811
+    },
+    {
+      "job_id": 91309033958,
+      "job_name": "gate · dependency-automation (ADR-0535, owned oya-deps.toml Rust bump-bot contract; external bot configs remain absent)",
+      "state": "pass",
+      "next_action": "proceed",
+      "because": "lane succeeded",
+      "failed_steps": [],
+      "unfinished_steps": [],
+      "annotations": [],
+      "queue_delay_seconds": 2721
+    },
+    {
+      "job_id": 91309033961,
+      "job_name": "gate · no-graphql-without-adr (ADR-0565, zero-GraphQL: no graphql lib / .graphql/.gql/.sdl reintroduction without a reversing ADR — candidate-tree evaluated, EMPTY frozen baseline)",
+      "state": "pass",
+      "next_action": "proceed",
+      "because": "lane succeeded",
+      "failed_steps": [],
+      "unfinished_steps": [],
+      "annotations": [],
+      "queue_delay_seconds": 3012
+    },
+    {
+      "job_id": 91309033962,
+      "job_name": "gate · capability-membership (Phase-0 reorg ADR-0562 §6, the anti-junk-drawer MEMBERSHIP lint: every crate → exactly one registered capability/meta home, no NEW unmapped crate, no NEW top-level dir, base/-admission; born-advisory + enforce-no-regression vs the frozen unmapped baseline)",
+      "state": "pass",
+      "next_action": "proceed",
+      "because": "lane succeeded",
+      "failed_steps": [],
+      "unfinished_steps": [],
+      "annotations": [],
+      "queue_delay_seconds": 2397
+    },
+    {
+      "job_id": 91309033966,
+      "job_name": "gate · tier-dependency-acyclicity (Phase-0 reorg ADR-0245/0280/0562, cargo+buck crate-graph tier rules + S-rank + Tarjan cycle backstop, born-ADVISORY vs frozen baseline → enforce-no-regression)",
+      "state": "pass",
+      "next_action": "proceed",
+      "because": "lane succeeded",
+      "failed_steps": [],
+      "unfinished_steps": [],
+      "annotations": [],
+      "queue_delay_seconds": 2370
+    },
+    {
+      "job_id": 91309033967,
+      "job_name": "gate · cargo-prefix (ADR-0017)",
+      "state": "pass",
+      "next_action": "proceed",
+      "because": "lane succeeded",
+      "failed_steps": [],
+      "unfinished_steps": [],
+      "annotations": [],
+      "queue_delay_seconds": 2946
+    },
+    {
+      "job_id": 91309033970,
+      "job_name": "gate · root-workspace-hygiene (ADR-0600, allowlist-as-DATA default-DENY: every TRACKED repo-root file must match the allowlist + every top-level dir must be a permitted capability/meta home — makes committed root scratch structurally impossible; complements the scratch DENYLIST)",
+      "state": "pass",
+      "next_action": "proceed",
+      "because": "lane succeeded",
+      "failed_steps": [],
+      "unfinished_steps": [],
+      "annotations": [],
+      "queue_delay_seconds": 2505
+    },
+    {
+      "job_id": 91309033973,
+      "job_name": "gate · catalog-liveness (PR-C3 founder live-OR-explicitly-marked policy, born-blocking, EMPTY frozen baseline)",
+      "state": "pass",
+      "next_action": "proceed",
+      "because": "lane succeeded",
+      "failed_steps": [],
+      "unfinished_steps": [],
+      "annotations": [],
+      "queue_delay_seconds": 2726
+    },
+    {
+      "job_id": 91309033975,
+      "job_name": "gate · port-placement (ADR-0570, clean-arch ports-in-core: no storage-port trait DEFINED in an */adapters/* crate — productizes the #116 defect class; born-advisory + enforce-no-regression vs frozen baseline)",
+      "state": "pass",
+      "next_action": "proceed",
+      "because": "lane succeeded",
+      "failed_steps": [],
+      "unfinished_steps": [],
+      "annotations": [],
+      "queue_delay_seconds": 2150
+    },
+    {
+      "job_id": 91309033978,
+      "job_name": "gate · tier-field-coverage (Phase-0 reorg ADR-0562/0536/0245, per-service tier/tier_subtype/dr_tier coverage + enum validity + no type-overload, born-blocking)",
+      "state": "pass",
+      "next_action": "proceed",
+      "because": "lane succeeded",
+      "failed_steps": [],
+      "unfinished_steps": [],
+      "annotations": [],
+      "queue_delay_seconds": 3088
+    },
+    {
+      "job_id": 91309033979,
+      "job_name": "gate · substrate-dependency-dag-acyclicity (ADR-0280 §D-3, Tarjan SCC + Kahn topo-order + forbidden-edge honouring)",
+      "state": "pass",
+      "next_action": "proceed",
+      "because": "lane succeeded",
+      "failed_steps": [],
+      "unfinished_steps": [],
+      "annotations": [],
+      "queue_delay_seconds": 2837
+    },
+    {
+      "job_id": 91309033980,
+      "job_name": "gate · contract-slice-conformance (paved-road Rust/Buck2 replacement for scripts/tests/*_check.py contract-slice validators; ADR-0515/0523/0528)",
+      "state": "pass",
+      "next_action": "proceed",
+      "because": "lane succeeded",
+      "failed_steps": [],
+      "unfinished_steps": [],
+      "annotations": [],
+      "queue_delay_seconds": 2587
+    },
+    {
+      "job_id": 91309033982,
+      "job_name": "gate · supply-chain-audit (owned RustSec advisory scan over vendored mirror, born-blocking)",
+      "state": "pass",
+      "next_action": "proceed",
+      "because": "lane succeeded",
+      "failed_steps": [],
+      "unfinished_steps": [],
+      "annotations": [],
+      "queue_delay_seconds": 2235
+    },
+    {
+      "job_id": 91309033989,
+      "job_name": "gate · operator-secret-bootstrap (GH #980 + GH #988 / ADR-0606, least-privilege secret RBAC, declarative join-token bootstrap, ESO/OpenBao role+namespace+prefix scope, and plaintext OpenBao NetworkPolicy isolation)",
+      "state": "pass",
+      "next_action": "proceed",
+      "because": "lane succeeded",
+      "failed_steps": [],
+      "unfinished_steps": [],
+      "annotations": [],
+      "queue_delay_seconds": 2650
+    },
+    {
+      "job_id": 91309033990,
+      "job_name": "gate · crypto-backend-purity (ADR-0506, ring forbidden / aws-lc-rs mandated — zero ring activation)",
+      "state": "pass",
+      "next_action": "proceed",
+      "because": "lane succeeded",
+      "failed_steps": [],
+      "unfinished_steps": [],
+      "annotations": [],
+      "queue_delay_seconds": 2998
+    },
+    {
+      "job_id": 91309033993,
+      "job_name": "gate · runner-disk-reclaim conformance (FRIC-017 productization, ADR-0548 pipeline-as-product: policy parse + threshold/INFRA-RED discrimination + reclaim plan)",
+      "state": "pass",
+      "next_action": "proceed",
+      "because": "lane succeeded",
+      "failed_steps": [],
+      "unfinished_steps": [],
+      "annotations": [],
+      "queue_delay_seconds": 2700
+    },
+    {
+      "job_id": 91309033995,
+      "job_name": "gate · authz-coverage (issue #770 / AUTH-005, NEW unauthenticated HTTP control planes blocked vs frozen baseline)",
+      "state": "pass",
+      "next_action": "proceed",
+      "because": "lane succeeded",
+      "failed_steps": [],
+      "unfinished_steps": [],
+      "annotations": [],
+      "queue_delay_seconds": 2866
+    },
+    {
+      "job_id": 91309033997,
+      "job_name": "gate · dto-authz-trust (ADR-0582, the CLASS-FIX for caller-supplied-authz-trust: a NEW fn that trusts a forged *Authorization DTO / x-authorization-* header in place of a server-side PDP decide() is blocked vs the frozen baseline of ~92 known instances; v2: FN-01/02/03/04/05/06 hardened)",
+      "state": "pass",
+      "next_action": "proceed",
+      "because": "lane succeeded",
+      "failed_steps": [],
+      "unfinished_steps": [],
+      "annotations": [],
+      "queue_delay_seconds": 3115
+    },
+    {
+      "job_id": 91309033999,
+      "job_name": "gate · cache-wiring conformance (ADR-0560/ADR-0556, dark-wiring + cold floor + kill-switch)",
+      "state": "pass",
+      "next_action": "proceed",
+      "because": "lane succeeded",
+      "failed_steps": [],
+      "unfinished_steps": [],
+      "annotations": [],
+      "queue_delay_seconds": 2921
+    },
+    {
+      "job_id": 91309034022,
+      "job_name": "gate · rust-first automation hygiene (cloud-native infra anti-patterns: scripts, workflow shell, retired interpreters, and new CLI packages)",
+      "state": "pass",
+      "next_action": "proceed",
+      "because": "lane succeeded",
+      "failed_steps": [],
+      "unfinished_steps": [],
+      "annotations": [],
+      "queue_delay_seconds": 2893
+    },
+    {
+      "job_id": 91309034033,
+      "job_name": "gate · planned-maturity (GH #992, product PRD acceptance/verification contracts + rich capability records + retired-plan provenance boundary)",
+      "state": "pass",
+      "next_action": "proceed",
+      "because": "lane succeeded",
+      "failed_steps": [],
+      "unfinished_steps": [],
+      "annotations": [],
+      "queue_delay_seconds": 3056
+    },
+    {
+      "job_id": 91309034035,
+      "job_name": "gate · ADR census epoch receipt (P2 active; P3 dormant)",
+      "state": "fail",
+      "next_action": "fix-candidate",
+      "because": "lane concluded `failure` and 1 step(s) recorded a failure verdict: buck2 test scm-facts-snapshot",
+      "failed_steps": [
+        "buck2 test scm-facts-snapshot"
+      ],
+      "unfinished_steps": [],
+      "annotations": [
+        "Process completed with exit code 1."
+      ],
+      "queue_delay_seconds": 2957
+    },
+    {
+      "job_id": 91309034047,
+      "job_name": "gate · cedar-deploy-parity (GH #16 / ADR-0608, deployed-vs-authored Cedar parity: no deployed ConfigMap permit may leave the action unconstrained (action-agnostic blanket grant) and every deployed permit MUST be ⊆ the capability's authored <cap>/{policy,cedar}/*.cedar set; fail-closed on missing-authored/un-extractable/empty-scan; GH #16 byte-identical blanket ConfigMaps grandfathered in a documented shrink-only baseline pending the blanket-disarm follow-up)",
+      "state": "pass",
+      "next_action": "proceed",
+      "because": "lane succeeded",
+      "failed_steps": [],
+      "unfinished_steps": [],
+      "annotations": [],
+      "queue_delay_seconds": 3027
+    },
+    {
+      "job_id": 91309034052,
+      "job_name": "gate · Windows workspace resolver differential (ERROR_CANT_RESOLVE_FILENAME)",
+      "state": "pass",
+      "next_action": "proceed",
+      "because": "lane succeeded",
+      "failed_steps": [],
+      "unfinished_steps": [],
+      "annotations": [],
+      "queue_delay_seconds": 1246
+    },
+    {
+      "job_id": 91309034077,
+      "job_name": "gate · cell-topology-manifest-contract (CELL-001R manifest contract)",
+      "state": "pass",
+      "next_action": "proceed",
+      "because": "lane succeeded",
+      "failed_steps": [],
+      "unfinished_steps": [],
+      "annotations": [],
+      "queue_delay_seconds": 3047
+    },
+    {
+      "job_id": 91309034090,
+      "job_name": "gate · gate-self-conformance (GH #777, pipeline-as-product 7-property bar over every gate)",
+      "state": "pass",
+      "next_action": "proceed",
+      "because": "lane succeeded",
+      "failed_steps": [],
+      "unfinished_steps": [],
+      "annotations": [],
+      "queue_delay_seconds": 3079
+    },
+    {
+      "job_id": 91312488237,
+      "job_name": "oya-ci-required",
+      "state": "fail",
+      "next_action": "fix-candidate",
+      "because": "lane concluded `failure` and 1 step(s) recorded a failure verdict: Fan-in verdict (green IFF every gate lane is green)",
+      "failed_steps": [
+        "Fan-in verdict (green IFF every gate lane is green)"
+      ],
+      "unfinished_steps": [],
+      "annotations": [
+        "Process completed with exit code 1."
+      ],
+      "queue_delay_seconds": 3215
+    }
+  ]
+}
+  </script>
+  <script type="application/json" id="run-b">
+{
+  "schema_version": "cloud-ci-run-terminal-state/v1",
+  "state": "fail",
+  "next_action": "fix-candidate",
+  "green": false,
+  "candidate_sha": "924e9dd0eeb4dd37f3e3e502c0f0e7df10f1ebc0",
+  "run_id": "30692655896",
+  "attempt": 1,
+  "input_digest": "596e669120225e9e7ab0a220866fc729733badf7a40cf9624746c02a905668c9",
+  "classifier_version": "cloud-ci-run-terminal-state/v1",
+  "observed_at": "2026-08-01T16:00:00Z",
+  "tally": {
+    "blocked": 1,
+    "fail": 7,
+    "pass": 3
+  },
+  "lanes": [
+    {
+      "job_id": 91359470200,
+      "job_name": "freshness (lock + generated faces, ADR-0539)",
+      "state": "fail",
+      "next_action": "fix-candidate",
+      "because": "lane concluded `failure` and 1 step(s) recorded a failure verdict: Run freshness gate",
+      "failed_steps": [
+        "Run freshness gate"
+      ],
+      "unfinished_steps": [],
+      "annotations": [
+        "Process completed with exit code 1."
+      ],
+      "queue_delay_seconds": 6595
+    },
+    {
+      "job_id": 91359470232,
+      "job_name": "generated-output-diff-policy (no generated merge surfaces)",
+      "state": "pass",
+      "next_action": "proceed",
+      "because": "lane succeeded",
+      "failed_steps": [],
+      "unfinished_steps": [],
+      "annotations": [],
+      "queue_delay_seconds": 7793
+    },
+    {
+      "job_id": 91359470234,
+      "job_name": "gate-live-postgres-adapters (durable adapters: RLS / CDC / SCIM, #901)",
+      "state": "pass",
+      "next_action": "proceed",
+      "because": "lane succeeded",
+      "failed_steps": [],
+      "unfinished_steps": [],
+      "annotations": [],
+      "queue_delay_seconds": 6507
+    },
+    {
+      "job_id": 91359470253,
+      "job_name": "gate · affected-set (ADR-0554, binding workspace coverage)",
+      "state": "fail",
+      "next_action": "fix-candidate",
+      "because": "lane concluded `failure` and 1 step(s) recorded a failure verdict: Materialize cloud-ci generated faces (out-of-graph boundary)",
+      "failed_steps": [
+        "Materialize cloud-ci generated faces (out-of-graph boundary)"
+      ],
+      "unfinished_steps": [],
+      "annotations": [
+        "Process completed with exit code 1."
+      ],
+      "queue_delay_seconds": 6874
+    },
+    {
+      "job_id": 91359470254,
+      "job_name": "registry-drift (materialized == regenerated)",
+      "state": "fail",
+      "next_action": "fix-candidate",
+      "because": "lane concluded `failure` and 1 step(s) recorded a failure verdict: Materialize faces then assert byte-parity",
+      "failed_steps": [
+        "Materialize faces then assert byte-parity"
+      ],
+      "unfinished_steps": [],
+      "annotations": [
+        "Process completed with exit code 1."
+      ],
+      "queue_delay_seconds": 7018
+    },
+    {
+      "job_id": 91359470255,
+      "job_name": "gate-live-postgres-facades (durable facades: tenant lifecycle / SCIM, #901)",
+      "state": "pass",
+      "next_action": "proceed",
+      "because": "lane succeeded",
+      "failed_steps": [],
+      "unfinished_steps": [],
+      "annotations": [],
+      "queue_delay_seconds": 6506
+    },
+    {
+      "job_id": 91359470257,
+      "job_name": "cloud-ci-firewall (baseline ratchet + gate-registration meta-test)",
+      "state": "fail",
+      "next_action": "fix-candidate",
+      "because": "lane concluded `failure` and 1 step(s) recorded a failure verdict: Materialize cloud-ci generated faces",
+      "failed_steps": [
+        "Materialize cloud-ci generated faces"
+      ],
+      "unfinished_steps": [],
+      "annotations": [
+        "Process completed with exit code 1."
+      ],
+      "queue_delay_seconds": 7465
+    },
+    {
+      "job_id": 91359470263,
+      "job_name": "buck2 (hermetic build + affected gate tests)",
+      "state": "fail",
+      "next_action": "fix-candidate",
+      "because": "lane concluded `failure` and 2 step(s) recorded a failure verdict: Materialize cloud-ci generated faces (out-of-graph boundary), Cache-hit telemetry + warm-mode guard (ADR-0560)",
+      "failed_steps": [
+        "Materialize cloud-ci generated faces (out-of-graph boundary)",
+        "Cache-hit telemetry + warm-mode guard (ADR-0560)"
+      ],
+      "unfinished_steps": [],
+      "annotations": [
+        "No files were found with the provided path: /tmp/cache-hit-report.json. No artifacts will be uploaded.",
+        "Process completed with exit code 2.",
+        "Process completed with exit code 1."
+      ],
+      "queue_delay_seconds": 7598
+    },
+    {
+      "job_id": 91359470266,
+      "job_name": "producer-regen (accounting-registry)",
+      "state": "fail",
+      "next_action": "fix-candidate",
+      "because": "lane concluded `failure` and 1 step(s) recorded a failure verdict: Materialize cloud-ci generated faces",
+      "failed_steps": [
+        "Materialize cloud-ci generated faces"
+      ],
+      "unfinished_steps": [],
+      "annotations": [
+        "Process completed with exit code 1."
+      ],
+      "queue_delay_seconds": 7945
+    },
+    {
+      "job_id": 91361747565,
+      "job_name": "oya-ci-required",
+      "state": "fail",
+      "next_action": "fix-candidate",
+      "because": "lane concluded `failure` and 1 step(s) recorded a failure verdict: Fan-in verdict (green IFF every gate lane is green)",
+      "failed_steps": [
+        "Fan-in verdict (green IFF every gate lane is green)"
+      ],
+      "unfinished_steps": [],
+      "annotations": [
+        "Process completed with exit code 1."
+      ],
+      "queue_delay_seconds": 8226
+    },
+    {
+      "job_id": 91361747751,
+      "job_name": "matrix.label",
+      "state": "blocked",
+      "next_action": "wait",
+      "because": "lane was skipped and ran no steps; an upstream lane it depends on did not succeed, so this lane never evaluated the candidate",
+      "failed_steps": [],
+      "unfinished_steps": [],
+      "annotations": [],
+      "queue_delay_seconds": 8102
+    }
+  ]
+}
+  </script>
+
+  <details class="rationale" open>
+    <summary>Design rationale — the lane-first information architecture</summary>
+    <div class="rationale-body">
+
+      <h3>1 · What is a lane</h3>
+      <p>
+        A <b>lane</b> is a durable, named enforcement responsibility — <code>gate · kernel-purity</code>,
+        <code>freshness</code>, <code>buck2</code>, <code>gate-live-postgres-adapters</code>. It outlives any
+        one run. A <b>run</b> is one <i>observation</i> of a set of lanes against one candidate SHA.
+      </p>
+      <p>
+        Today no lane object exists anywhere in the system. The Actions UI re-creates 56 job rows per run
+        and throws them away; <code>cloud-ci-run-terminal-state/v1</code> is likewise a per-run document with a
+        <code>lanes[]</code> array keyed by <code>job_name</code>. <b>The lane is a derived entity: group
+        artifacts by <code>job_name</code> across runs.</b> That derivation is the whole IA. Everything else
+        follows from having a lane to hang evidence on.
+      </p>
+
+      <h3>2 · What is a lane's evidence</h3>
+      <p>Straight off the v1 contract, no invention:</p>
+      <ul>
+        <li><code>state</code> — one of <code>pass | fail | no-verdict | blocked | verified-empty</code>.</li>
+        <li><code>next_action</code> — the single permitted action. This is the payload; the state is the reason.</li>
+        <li><code>because</code> — the kernel's one-line derivation, naming the typed fields that decided it. Never a log excerpt.</li>
+        <li><code>failed_steps</code> / <code>unfinished_steps</code> — repo-authored workflow step names. The discriminator between <i>a gate rejected you</i> and <i>no gate ever looked</i>.</li>
+        <li><code>queue_delay_seconds</code> — starvation. A <b>lane</b> property that is invisible in any run-shaped view.</li>
+        <li><code>annotations</code> — corroborating only, never the discriminator. <b>Never leaves the console</b> (§5).</li>
+        <li><code>input_digest</code> + <code>classifier_version</code> — the verdict is bound to the exact bytes and the exact rules that produced it.</li>
+        <li>Observation history — <code>(run_id, candidate_sha, observed_at, state, next_action)</code> per run. This is the chronology, and it is <i>inside</i> the lane.</li>
+      </ul>
+
+      <h3>3 · What is the default view</h3>
+      <p>
+        <b>“Needs a human, by lane.”</b> Not a run list, not a reverse-chronological wall. The left rail is the
+        primary navigation and it is a <i>lane</i> selector, bucketed by permitted next action, severity-first.
+        Time is a strip <i>inside</i> the selected lane.
+      </p>
+      <p>
+        The measured argument, from the two real runs embedded in this page:
+      </p>
+      <ul>
+        <li>
+          Run <code>30677213867</code> — <b>56 lanes</b>: 50 pass, 5 fail, 1 no-verdict. The single lane that is
+          machine-clearable (<code>gate · affected-set</code> → <code>retry</code>, the runner died mid-step) is
+          buried among five that need a code change. A timestamp-ordered list makes those six look identical.
+        </li>
+        <li>
+          Run <code>30692655896</code> — 11 lanes, <b>7 red</b>. Discounting the fan-in (§3) that is 6 real failing
+          lanes, and <b>4 of those 6 failed on the identical step</b>
+          (<code>Materialize cloud-ci generated faces</code>, with and without its
+          <code>(out-of-graph boundary)</code> qualifier). A fifth, <code>registry-drift</code>, failed on
+          <code>Materialize faces then assert byte-parity</code> — same root cause, different step name, so the
+          signature grouping does <i>not</i> catch it and the rail honestly shows <span class="grouped">▸ grouped ×4</span>
+          rather than claiming ×5. Four rows collapse to one action; the fifth is a known limit of grouping on a
+          step-name signature, and the fix is a lane-to-root-cause edge the contract does not carry today.
+        </li>
+        <li>
+          Queue delay in run <code>30692655896</code> reaches <b>8226 s (2 h 17 m)</b>. That is a fleet-capacity
+          story that a per-run view structurally cannot tell, because it only becomes a signal across runs of the
+          same lane.
+        </li>
+      </ul>
+      <p>
+        <b>The fan-in lane is not a lane.</b> <code>oya-ci-required</code> appears in <code>lanes[]</code> as
+        <code>fail / fix-candidate</code> in both runs, but it is the roll-up of the others, not an independent
+        observation. It is promoted to the header verdict and removed from the rail — otherwise it double-counts
+        every real failure and adds a row that no human can act on.
+      </p>
+
+      <h3>4 · What “needs a human” means, per state</h3>
+      <p>
+        A red lane is not automatically a human's problem. <code>retry</code> is the only red outcome a machine may
+        clear on its own, and today it is indistinguishable from <code>fix-candidate</code> — which is exactly the
+        cost the typed states were introduced to remove.
+      </p>
+      <div class="scrollx">
+      <table>
+        <tr><th>state</th><th>next action</th><th>needs a human?</th><th>who, and what they decide</th></tr>
+        <tr><td><code>pass</code></td><td><code>proceed</code></td><td>no</td><td>—</td></tr>
+        <tr><td><code>fail</code></td><td><code>fix-candidate</code></td><td><b>yes</b></td><td>candidate author — a gate observed a violation in the change</td></tr>
+        <tr><td><code>no-verdict</code></td><td><code>retry</code> (attempt 1)</td><td>no</td><td>machine-clearable; surfaced but not queued to a person</td></tr>
+        <tr><td><code>no-verdict</code></td><td><code>fix-infra</code> (attempt &gt; 1)</td><td><b>yes</b></td><td>fleet owner — repeat infra fault is systemic, “retry harder” is not a remediation</td></tr>
+        <tr><td><code>blocked</code></td><td><code>wait</code></td><td>no — <b>unless</b> the run roll-up is also <code>blocked</code></td><td>pipeline owner — a run where every lane is waiting is a wedge, and nothing upstream will ever clear it</td></tr>
+        <tr><td><code>verified-empty</code></td><td><code>needs-human</code></td><td><b>always</b></td><td>rule owner — a rule with 0 measured sites enforces nothing; only a person can say whether that is a dead rule or a broken scan</td></tr>
+      </table>
+      </div>
+      <p>
+        The <code>blocked</code> row is the one rule the contract does not give you for free: it needs the run
+        roll-up as context, which is why the lane view keeps the roll-up in the header rather than discarding it.
+      </p>
+
+      <h3>5 · Sanitization — what may leave the console</h3>
+      <p>
+        Two projections of the same lane, and the boundary is <b>reusability</b>: a card that can be pasted into a
+        ticket, a chat, or a status page is a different object from what an authenticated operator sees.
+      </p>
+      <table>
+        <tr><th>field</th><th>shareable card</th><th>why</th></tr>
+        <tr><td><code>job_name</code>, <code>state</code>, <code>next_action</code></td><td><b>keep</b></td><td>the failure and the decision — the point of the card</td></tr>
+        <tr><td><code>because</code></td><td><b>keep</b></td><td>kernel-authored from typed fields; contract-guaranteed never to be a log excerpt</td></tr>
+        <tr><td><code>failed_steps</code>, <code>unfinished_steps</code></td><td><b>keep</b></td><td>workflow step names, already public in <code>.github/workflows/</code>; this is the invariant that was violated</td></tr>
+        <tr><td><code>input_digest</code>, <code>classifier_version</code>, <code>candidate_sha</code></td><td><b>keep</b></td><td>attribution — makes the card re-verifiable instead of merely quotable</td></tr>
+        <tr><td>owner</td><td><b>keep</b> — <span class="redacted">but v1 has no owner field</span></td><td>see §6</td></tr>
+        <tr><td><code>annotations</code></td><td><b>class only</b></td><td>free-form operator text. In the real embedded data it already carries a filesystem path (<code>/tmp/cache-hit-report.json</code>), process exit codes, and a curl/HTTP error. Reduced to a typed class (<code>runner-lost</code>, <code>process-exit</code>, <code>artifact-missing</code>, <code>network</code>) plus a redaction count.</td></tr>
+        <tr><td><code>queue_delay_seconds</code></td><td><b>keep</b></td><td>a scalar; no operational context in it</td></tr>
+        <tr><td><code>job_id</code>, run URLs, logs</td><td><b>drop</b></td><td>internal handles; a log line is the exact thing the typed contract exists to stop passing around</td></tr>
+      </table>
+      <p>
+        The sanitizer is an <b>allow-list</b>, never a deny-list: an unknown future field is dropped by default.
+        The deny-list in the self-check above is not the mechanism — it is the <i>test</i> of the mechanism, and it
+        includes a synthetic <code>ghp_</code> token control so a green result proves the check can fire at all
+        rather than proving only that nothing happened to match.
+      </p>
+
+      <h3>6 · Defects this design surfaced in the v1 contract</h3>
+      <ul>
+        <li>
+          <b>No owner field.</b> <code>cloud-ci-run-terminal-state/v1</code> carries no owner and no repo path, so a
+          “needs a human” view cannot route to a human — it can only display that <i>some</i> human is needed. The
+          repo already has the mapping (<code>OWNERS</code> files: <code>console/OWNERS</code> →
+          <code>axis-cloud-platform</code>, <code>evidence/OWNERS</code> → <code>cloud-ci-platform</code>), but nothing
+          joins a <code>job_name</code> to a path. The card shows the gap rather than inventing a name.
+        </li>
+        <li>
+          <b>Lane identity is a display string.</b> <code>job_name</code> is
+          <code>"gate · kernel-purity (ADR-0547, *-kernel/*-core zero transient-tech deps)"</code> — identity, an
+          ADR reference, and a human description fused into one field. Any cross-run join is therefore a string
+          match against a value that changes whenever someone edits the parenthetical. A stable <code>lane_id</code>
+          would make the lane a real entity instead of a derived one.
+        </li>
+        <li>
+          <b><code>verified-empty</code> is unreachable in practice.</b> It requires the <code>--subjects</code>
+          sidecar, which no lane emits today; both real fixtures classify with an empty <code>SubjectCounts</code>.
+          The state exists in the type and has never once been produced. This prototype renders it from the
+          contract and labels it as never-observed rather than pretending it is live.
+        </li>
+      </ul>
+
+      <h3>7 · What this prototype is not</h3>
+      <ul>
+        <li>Not wired to anything. No fetch, no poll, no API. Two frozen JSON documents, embedded.</li>
+        <li>No auth, no tenancy, no Cedar visibility tiers — the console's real surface catalog
+            (<code>console/ports/workspace-shell-kernel</code>) has a six-tier visibility model this ignores entirely.</li>
+        <li>Not Leptos. HTML/vanilla JS, per the prototypes-then-Leptos convention.</li>
+        <li>Not responsive beyond a single breakpoint, and untested on the tablet / VR-AR targets the console must eventually serve.</li>
+        <li>No lane history beyond the two captured runs — every lane strip here is 1 or 2 observations deep, because that is all the real data there is.</li>
+      </ul>
+    </div>
+  </details>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // Ordered by run_id, not observed_at: the artifact's `observed_at` is supplied by the caller (the
+  // kernel has no clock) and is identical across both documents here, so it cannot order them.
+  // GitHub run ids are monotonic, and the ordering it gives matches the real wall clock
+  // (30677213867 = 01:07 UTC, 30692655896 = 08:53 UTC).
+  var RUNS = ["run-a", "run-b"].map(function (id) {
+    return JSON.parse(document.getElementById(id).textContent);
+  }).sort(function (x, y) { return Number(x.run_id) - Number(y.run_id); });
+
+  // The fan-in is the roll-up of the other lanes, not a lane. See §3.
+  var FANIN = "oya-ci-required";
+
+  // ── Lane derivation: group per-run artifacts by job_name. This is the whole IA. ──────────
+  var LANES = {};   // job_name -> { name, obs: [ {lane, run} ] }
+  RUNS.forEach(function (run) {
+    run.lanes.forEach(function (lane) {
+      if (lane.job_name === FANIN) return;
+      (LANES[lane.job_name] = LANES[lane.job_name] || { name: lane.job_name, obs: [] })
+        .obs.push({ lane: lane, run: run });
+    });
+  });
+  Object.keys(LANES).forEach(function (k) {
+    LANES[k].obs.sort(function (a, b) { return Number(a.run.run_id) - Number(b.run.run_id); });
+    LANES[k].latest = LANES[k].obs[LANES[k].obs.length - 1];
+  });
+
+  // ── "Needs a human", per §4. `retry` is machine-clearable; `wait` only escalates in a wedge. ──
+  function needsHuman(lane, run) {
+    var a = lane.next_action;
+    if (a === "fix-candidate" || a === "fix-infra" || a === "needs-human") return true;
+    if (a === "wait" && run.state === "blocked") return true;   // wedge: nothing upstream will clear it
+    return false;
+  }
+
+  var BUCKETS = [
+    { action: "fix-candidate", label: "fix candidate",  who: "candidate author" },
+    { action: "needs-human",   label: "needs a human",  who: "rule owner — 0 measured sites" },
+    { action: "fix-infra",     label: "fix infra",      who: "fleet owner — repeat infra fault" },
+    { action: "retry",         label: "retry",          who: "machine-clearable — no human queued" },
+    { action: "wait",          label: "wait",           who: "blocked upstream" },
+    { action: "proceed",       label: "proceed",        who: "" }
+  ];
+
+  // ── Root-cause grouping: lanes sharing a failed-step signature are one incident. §3 ──────
+  function signature(lane) {
+    if (!lane.failed_steps.length) return null;
+    // strip the parenthetical qualifier so "X" and "X (out-of-graph boundary)" collapse
+    return lane.failed_steps[0].replace(/\s*\([^)]*\)\s*$/, "").trim();
+  }
+
+  // ── Annotation redaction. Class, never text. §5 ──────────────────────────────────────────
+  function annotationClass(text) {
+    if (/lost communication with the server/i.test(text)) return "runner-lost";
+    if (/no files were found/i.test(text)) return "artifact-missing";
+    if (/\bcurl\b|HTTP \d{3}|RPC failed/i.test(text)) return "network";
+    if (/exit code \d+/i.test(text)) return "process-exit";
+    return "unclassified";
+  }
+
+  // ALLOW-LIST projection. An unknown future field is dropped by default.
+  function shareable(lane, run) {
+    var classes = {};
+    lane.annotations.forEach(function (a) { classes[annotationClass(a)] = (classes[annotationClass(a)] || 0) + 1; });
+    return {
+      lane: lane.job_name,
+      state: lane.state,
+      next_action: lane.next_action,
+      because: lane.because,
+      failed_steps: lane.failed_steps,
+      unfinished_steps: lane.unfinished_steps,
+      queue_delay_seconds: lane.queue_delay_seconds,
+      owner: null,                                  // §6 — v1 carries no owner. Not invented.
+      owner_note: "not present in cloud-ci-run-terminal-state/v1",
+      evidence_classes: classes,
+      annotations_redacted: lane.annotations.length,
+      candidate_sha: run.candidate_sha,
+      classifier_version: run.classifier_version,
+      input_digest: run.input_digest
+    };
+  }
+
+  // ── Rendering ───────────────────────────────────────────────────────────────────────────
+  var el = function (id) { return document.getElementById(id); };
+  var esc = function (s) { return String(s).replace(/[&<>]/g, function (c) { return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c]; }); };
+  var badge = function (cls, val) { return '<span class="badge ' + cls + val + '">' + esc(val) + "</span>"; };
+  var state = { selected: null, humanOnly: true, projection: "safe" };
+
+  function renderRollup() {
+    var run = RUNS[RUNS.length - 1];
+    el("rollup-verdict").innerHTML =
+      '<span class="badge lg s-' + run.state + '">' + esc(run.state) + "</span>" +
+      '<span class="badge lg a-' + run.next_action + '">' + esc(run.next_action) + "</span>";
+    var t = run.tally, parts = Object.keys(t).map(function (k) { return "<b>" + t[k] + "</b> " + k; });
+    el("rollup-line").innerHTML =
+      "<span>candidate <b class='mono'>" + esc(run.candidate_sha.slice(0, 12)) + "</b></span>" +
+      "<span>run <b class='mono'>" + esc(run.run_id) + "</b> attempt " + run.attempt + "</span>" +
+      "<span>" + parts.join(" · ") + "</span>" +
+      "<span class='mono' style='color:var(--faint)'>" + esc(run.classifier_version) + "</span>";
+  }
+
+  function renderRail() {
+    var run = RUNS[RUNS.length - 1];
+    var rows = Object.keys(LANES).map(function (k) { return LANES[k]; })
+      .filter(function (L) { return !state.humanOnly || needsHuman(L.latest.lane, L.latest.run); });
+
+    // group counts by failed-step signature, latest observation only
+    var sigCount = {};
+    rows.forEach(function (L) { var s = signature(L.latest.lane); if (s) sigCount[s] = (sigCount[s] || 0) + 1; });
+
+    var html = "";
+    BUCKETS.forEach(function (b) {
+      var inB = rows.filter(function (L) { return L.latest.lane.next_action === b.action; });
+      if (!inB.length) return;
+      inB.sort(function (a, c) { return a.name.localeCompare(c.name); });
+      html += '<div class="bucket"><div class="bucket-head"><span class="badge a-' + b.action + '">' + esc(b.label) + "</span>" +
+              (b.who ? '<span class="who">' + esc(b.who) + "</span>" : "") +
+              '<span class="count">' + inB.length + "</span></div>";
+      inB.forEach(function (L) {
+        var lane = L.latest.lane, sig = signature(lane);
+        var grouped = sig && sigCount[sig] > 1
+          ? '<span class="grouped">&#9656; grouped &times;' + sigCount[sig] + "</span>" : "";
+        html += '<button class="lane-row" data-lane="' + esc(L.name) + '" aria-current="' + (state.selected === L.name) + '">' +
+                '<span class="nm">' + esc(L.name) + "</span>" +
+                '<span class="sub">' +
+                '<span class="s-' + lane.state + '">' + esc(lane.state) + "</span>" +
+                "<span>&middot; " + L.obs.length + " obs</span>" +
+                (lane.queue_delay_seconds != null ? "<span>&middot; queued " + Math.round(lane.queue_delay_seconds / 60) + "m</span>" : "") +
+                // A lane's state is its LAST observation, which may predate the newest run. Without this
+                // marker a lane that simply did not run again reads as a current verdict.
+                (L.latest.run.run_id !== run.run_id
+                  ? '<span class="grouped" title="last observed in run ' + esc(L.latest.run.run_id) +
+                    '">&#9888; stale</span>' : "") +
+                grouped + "</span></button>";
+      });
+      html += "</div>";
+    });
+    if (!html) html = '<div class="card-body none">No lane in the latest run needs a human.</div>';
+    el("buckets").innerHTML = html;
+    el("rail-count").textContent = rows.length + " / " + Object.keys(LANES).length + " lanes";
+    Array.prototype.forEach.call(el("buckets").querySelectorAll(".lane-row"), function (btn) {
+      btn.addEventListener("click", function () { state.selected = btn.dataset.lane; render(); });
+    });
+  }
+
+  function renderDetail() {
+    var L = LANES[state.selected];
+    if (!L) {
+      el("detail-title").textContent = "Lane";
+      el("detail-body").innerHTML = '<p class="none">Pick a lane from the rail. Chronology appears here, inside the lane.</p>';
+      return;
+    }
+    var obs = L.viewing || L.latest, lane = obs.lane, run = obs.run;
+    el("detail-title").textContent = L.name;
+    var steps = function (arr, empty) {
+      return arr.length ? '<ul class="steps">' + arr.map(function (s) { return "<li>" + esc(s) + "</li>"; }).join("") + "</ul>"
+                        : '<span class="none">' + empty + "</span>";
+    };
+    var chron = L.obs.slice().reverse().map(function (o, i) {
+      return '<button class="obs' + (i === 0 ? " newest" : "") + '" data-run="' + esc(o.run.run_id) + '" aria-current="' + (o === obs) + '">' +
+             '<span class="s-' + o.lane.state + '">' + esc(o.lane.state) + "</span> " +
+             '<span class="when">' + esc(o.run.candidate_sha.slice(0, 7)) + " &middot; run " + esc(o.run.run_id) + "</span></button>";
+    }).join("");
+
+    el("detail-body").innerHTML =
+      '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">' +
+        badge("s-", lane.state) + badge("a-", lane.next_action) +
+        '<span class="badge ' + (needsHuman(lane, run) ? "a-fix-candidate" : "a-proceed") + '">' +
+        (needsHuman(lane, run) ? "needs a human" : "no human needed") + "</span>" +
+      "</div>" +
+      '<dl class="kv">' +
+        "<dt>because</dt><dd class='because'>" + esc(lane.because) + "</dd>" +
+        "<dt>failed steps</dt><dd>" + steps(lane.failed_steps, "none — no step recorded a failure verdict") + "</dd>" +
+        "<dt>unfinished steps</dt><dd>" + steps(lane.unfinished_steps, "none — every step reached a conclusion") + "</dd>" +
+        "<dt>queue delay</dt><dd class='mono'>" + (lane.queue_delay_seconds == null ? "unknown" :
+            lane.queue_delay_seconds + " s (" + Math.round(lane.queue_delay_seconds / 60) + " min)") + "</dd>" +
+        "<dt>observed at</dt><dd class='mono'>" + esc(run.observed_at) + "</dd>" +
+        "<dt>attribution</dt><dd class='mono' style='font-size:11.5px'>" + esc(run.classifier_version) + " &middot; " + esc(run.input_digest.slice(0, 16)) + "&hellip;</dd>" +
+      "</dl>" +
+      '<h2 style="margin:20px -14px 0;">Chronology <span class="hint">secondary — this lane, over time</span></h2>' +
+      '<div class="chron" style="padding-top:12px;">' + chron + "</div>";
+
+    Array.prototype.forEach.call(el("detail-body").querySelectorAll(".obs"), function (btn) {
+      btn.addEventListener("click", function () {
+        L.viewing = L.obs.filter(function (o) { return o.run.run_id === btn.dataset.run; })[0];
+        render();
+      });
+    });
+  }
+
+  function renderShare() {
+    var L = LANES[state.selected];
+    if (!L) { el("sharecard").innerHTML = '<span class="none">Pick a lane.</span>'; return; }
+    var obs = L.viewing || L.latest;
+    if (state.projection === "safe") {
+      el("sharecard").innerHTML = esc(JSON.stringify(shareable(obs.lane, obs.run), null, 2)) +
+        (obs.lane.annotations.length
+          ? '\n\n<span class="redacted">// ' + obs.lane.annotations.length +
+            " annotation(s) withheld — free-form operator text never leaves the console.</span>"
+          : "");
+    } else {
+      el("sharecard").innerHTML =
+        '<span class="redacted">// INTERNAL VIEW — authenticated console only. Never rendered into a shareable card.</span>\n\n' +
+        esc(JSON.stringify(obs.lane, null, 2));
+    }
+  }
+
+  // ── Self-check. Deny-list is the TEST of the allow-list, not the mechanism. §5 ───────────
+  var DENY = [
+    { name: "filesystem path", re: /(^|[\s"'(])\/(tmp|var|home|Users|root|opt)\// },
+    { name: "process exit code", re: /exit code \d+/i },
+    { name: "network/curl detail", re: /\bcurl\b|RPC failed|HTTP \d{3}/ },
+    { name: "URL", re: /https?:\/\// },
+    { name: "credential token", re: /\b(ghp|gho|ghs|ghu|github_pat)_[A-Za-z0-9_]{8,}/ }
+  ];
+  function scan(text) { return DENY.filter(function (d) { return d.re.test(text); }).map(function (d) { return d.name; }); }
+
+  function renderChecks() {
+    // Every real lane in both runs, plus a KNOWN-POSITIVE CONTROL carrying a synthetic token, so a
+    // green result proves the deny-list can fire rather than proving only that nothing matched.
+    var cases = [];
+    RUNS.forEach(function (run) {
+      run.lanes.forEach(function (lane) { cases.push({ label: "real · " + lane.job_name, lane: lane, run: run }); });
+    });
+    var controlLane = JSON.parse(JSON.stringify(RUNS[0].lanes[0]));
+    controlLane.job_name = "CONTROL (synthetic)";
+    controlLane.annotations = controlLane.annotations.concat([
+      "auth failed for https://api.github.com using ghp_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "wrote /Users/operator/secrets/kubeconfig"
+    ]);
+    cases.push({ label: "CONTROL · synthetic token + private path", lane: controlLane, run: RUNS[0], control: true });
+
+    var rawHits = 0, safeHits = 0, controlRaw = [], controlSafe = [];
+    cases.forEach(function (c) {
+      var raw = scan(JSON.stringify(c.lane));
+      var safe = scan(JSON.stringify(shareable(c.lane, c.run)));
+      if (raw.length) rawHits++;
+      if (safe.length) safeHits++;
+      if (c.control) { controlRaw = raw; controlSafe = safe; }
+    });
+
+    var row = function (label, detail, pass) {
+      return "<tr><td>" + label + "</td><td>" + detail + '</td><td class="v ' + (pass ? "ok" : "bad") + '">' +
+             (pass ? "GREEN" : "RED") + "</td></tr>";
+    };
+    el("checks").innerHTML =
+      "<tr><th>check</th><th>observed</th><th>result</th></tr>" +
+      row("RED exhibit — naive projection of the raw lane leaks",
+          "<b>" + rawHits + "</b> of " + cases.length + " lanes trip the deny-list when serialized whole",
+          rawHits > 0) +
+      row("Known-positive control fires on the raw projection",
+          controlRaw.length ? "control caught: <code>" + controlRaw.join("</code>, <code>") + "</code>" : "control caught NOTHING — the deny-list is inert",
+          controlRaw.length >= 2) +
+      row("GREEN — allow-list projection leaks nothing, real data",
+          "<b>" + safeHits + "</b> of " + cases.length + " sanitized cards trip the deny-list",
+          safeHits === 0) +
+      row("GREEN — allow-list projection leaks nothing, control",
+          controlSafe.length ? "control LEAKED: <code>" + controlSafe.join("</code>, <code>") + "</code>" : "synthetic token and private path both dropped",
+          controlSafe.length === 0);
+  }
+
+  function render() { renderRail(); renderDetail(); renderShare(); }
+
+  el("f-human").addEventListener("click", function () { state.humanOnly = true; sync(); });
+  el("f-all").addEventListener("click", function () { state.humanOnly = false; sync(); });
+  function sync() {
+    el("f-human").setAttribute("aria-pressed", String(state.humanOnly));
+    el("f-all").setAttribute("aria-pressed", String(!state.humanOnly));
+    render();
+  }
+  el("p-safe").addEventListener("click", function () { state.projection = "safe"; syncP(); });
+  el("p-raw").addEventListener("click", function () { state.projection = "raw"; syncP(); });
+  function syncP() {
+    el("p-safe").setAttribute("aria-pressed", String(state.projection === "safe"));
+    el("p-raw").setAttribute("aria-pressed", String(state.projection === "raw"));
+    renderShare();
+  }
+
+  // Default selection: the lane whose RED means different things on different runs — distinct
+  // non-green states, not merely pass-then-fail. That lane is the one a run-shaped view structurally
+  // cannot show, so it is the one worth opening on. In this data it resolves to `gate · affected-set`
+  // (no-verdict/retry in run 30677213867, fail/fix-candidate in run 30692655896): same lane, two runs,
+  // two different permitted actions. A pass→fail lane like `freshness` ties on raw distinct-state
+  // count and would otherwise win on alphabetical order while demonstrating nothing.
+  state.selected = Object.keys(LANES).map(function (k) { return LANES[k]; })
+    .map(function (L) {
+      var red = {};
+      L.obs.forEach(function (o) { if (o.lane.state !== "pass") red[o.lane.state] = 1; });
+      return { name: L.name, distinctRed: Object.keys(red).length, n: L.obs.length };
+    })
+    .sort(function (a, b) { return b.distinctRed - a.distinctRed || b.n - a.n || a.name.localeCompare(b.name); })[0].name;
+
+  renderRollup();
+  renderChecks();
+  render();
+})();
+</script>
+</body>
+</html>
