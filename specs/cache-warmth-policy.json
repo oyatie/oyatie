@@ -90,7 +90,7 @@
     }
   },
   "consumers": [
-    "interim CI quick-wins (ADR-0556 D5: QW-1 artifact reuse, QW-2 cargo-matrix collapse, QW-3 stable-key buck-out restore, QW-4 toolchain caching) — warm-safe list only; no cache step may be added to a cold-required path",
+    "interim CI quick-wins (ADR-0556 D5: QW-1 artifact reuse, QW-2 cargo-matrix collapse, QW-4 toolchain caching; QW-3 stable-key buck-out restore retired by ADR-0554 D10) — warm-safe list only; no cache step may be added to a cold-required path and runner-local buck-out must never be archived",
     "NativeLink CAS W3 vertical (ADR-0556 D3: buck2_re_client cache-only; allow_cache_uploads per-class from this policy; MUST ship the integrity-canary in the same change)",
     "future cache-policy-conformance gate (the enforcement successor, ADR-0555 D4 gate-test-plus-policy-DATA: asserts the live CI cache configuration matches this policy)"
   ],
