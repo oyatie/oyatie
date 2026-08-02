@@ -28,13 +28,8 @@ pub const DEPENDENCY_UNIT_COUNT: usize = 19;
 pub const CAPABILITY_COUNT: usize = 24;
 pub const SCHEMA_CANONICAL_SHA256: &str =
     "11ff9eddf5974b8f82c06e1bc6fd4ee79cbc3e4364859e187d684e45fae8717a";
-pub const GRAPH_DOCTRINE_ADRS: [&str; 5] = [
-    "ADR-0245",
-    "ADR-0280",
-    "ADR-0562",
-    "ADR-0615",
-    "ADR-0635",
-];
+pub const GRAPH_DOCTRINE_ADRS: [&str; 5] =
+    ["ADR-0245", "ADR-0280", "ADR-0562", "ADR-0615", "ADR-0635"];
 const DEPENDENCY_UNIT_AUTHORITY: [(&str, &str, &str, &str); DEPENDENCY_UNIT_COUNT] = [
     ("network.bootstrap", "network", "bootstrap", "B0"),
     ("cell.envelope", "cell", "envelope", "B0"),
