@@ -5213,14 +5213,14 @@
         ]
       },
       "non_claims": [
-        "composition root that wires `oya-intelligence-attribution-kernel::plan_attribution` (pure metadata-only citation planning) through the `-domain` (tenant/principal policy binding), `-usecase` (idempotent + audit-event), `-worker` (job-lifecycle), and `-adapter` (citation-renderer envelope) layers into an end-to-end dispatch use-case (`dispatch_attribution`) that resolves the policy decision, runs the kernel/domain/usecase pipeline (honoring idempotency-cache short-circuits + audit-event fan-out), persists the receipt, and dispatches the renderer envelope with retry honoring on retryable transport failures",
+        "composition root that wires `intelligence-attribution-kernel::plan_attribution` (pure metadata-only citation planning) through the `-domain` (tenant/principal policy binding), `-usecase` (idempotent + audit-event), `-worker` (job-lifecycle), and `-adapter` (citation-renderer envelope) layers into an end-to-end dispatch use-case (`dispatch_attribution`) that resolves the policy decision, runs the kernel/domain/usecase pipeline (honoring idempotency-cache short-circuits + audit-event fan-out), persists the receipt, and dispatches the renderer envelope with retry honoring on retryable transport failures",
         "port surface for `AttributionRepository` (TenantId + IdempotencyKey → AttributionUsecaseReceipt), `AttributionPolicyStore` (TenantId + PrincipalId → AttributionPolicyDecision), `AttributionAuditSink` (push port for AttributionAuditEvent taps), and `CitationRendererTransport` (async envelope-driven renderer call), with in-memory reference adapters for tests + single-node bring-up",
         "typed `HyperCitationRendererTransport` scaffold that surfaces the `Unimplemented::OpenBaoCredentialResolution` honest boundary today (no silent stub: credential resolution returns `RendererTransportError::NonRetryable` referencing `registry/placeholder-debt/adr-follow-ups.yaml#adr-0374-attribution-app-openbao-credential-resolution`); a sibling `Unimplemented::BedrockAuditEmission` boundary tracks the immutable hash-chained `attribution.audit.v1` record emission that the in-memory sink fan-out is structured to feed",
         "no production deployment, daemonized listener readiness, Bedrock-shape audit-chain emission, OpenBao credential resolution, per-tenant rate limiting / budget admission, cross-tenant aggregation, or REST/gRPC surface (the kernel + this app are wired by sibling REST adapters downstream)"
       ]
     },
     {
-      "key": "oya-intelligence-attribution-domain",
+      "key": "intelligence-attribution-domain",
       "context": "intelligence",
       "role": "domain",
       "capability": "attribution-citation-planning",
@@ -5238,7 +5238,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-intelligence-attribution-kernel",
+      "key": "intelligence-attribution-kernel",
       "context": "intelligence",
       "role": "kernel",
       "capability": "attribution-citation-planning",
@@ -5311,7 +5311,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-intelligence-audit-tap-usecase",
+      "key": "intelligence-audit-tap-usecase",
       "context": "intelligence",
       "role": "usecase",
       "capability": "metadata-audit-tap-emission",
@@ -5364,7 +5364,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-intelligence-context-aware-retrieval-domain",
+      "key": "intelligence-context-aware-retrieval-domain",
       "context": "intelligence",
       "role": "domain",
       "capability": "context-aware-retrieval",

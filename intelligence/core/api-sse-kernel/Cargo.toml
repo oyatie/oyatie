@@ -1,0 +1,18 @@
+[package]
+name = "intelligence-api-sse-kernel"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[lib]
+name = "intelligence_api_sse_kernel"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+intelligence-api-rest-kernel = { path = "../api-rest-kernel" }
+
+[lints]
+workspace = true
