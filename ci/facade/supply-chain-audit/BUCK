@@ -44,7 +44,10 @@ rust_test(
 # quinn-proto 0.11.14 + fixture advisory => SCA-VULN keyed to RUSTSEC-2026-0185; 0.11.15 => clean;
 # unmaintained absent from ignore => SCA-UNMAINTAINED, present => clean; tampered manifest =>
 # SCA-MIRROR-MALFORMED) PLUS a live_corpus_is_born_green leg over the real Cargo.lock + committed
-# advisory mirror (green: quinn fixed + the 3 unmaintained ids in policy.ignore).
+# advisory mirror (green: quinn fixed + the 3 unmaintained ids in policy.ignore), PLUS the lockfile
+# COVERAGE legs: the tree's Cargo.lock corpus is derived by walking it and asserted equal to
+# policy.lockfile_paths (live), with synthetic RED proofs for an undeclared lockfile
+# (SCA-LOCKFILE-UNCOVERED) and a declared-but-deleted one (SCA-LOCKFILE-ABSENT).
 rust_test(
     name = "ci-supply-chain-audit-gate",
     srcs = glob(["tests/**/*.rs", "**/*.json"]),

@@ -10,12 +10,13 @@ license = "Apache-2.0"
 bounded_context = "cloud-ci"
 kind = "shared"
 layer = "app"
-purpose = "Cloud CI gate ENFORCING supply-chain advisory hygiene: matches the workspace Cargo.lock against a VENDORED, content-addressed RustSec advisory snapshot and blocks any locked crate affected by an un-ignored security (SCA-VULN) or unmaintained (SCA-UNMAINTAINED) advisory. Owned pure-Rust replacement for the reverted #974 shell cargo-audit/deny — hermetic (serde_json+toml+semver only, no rustsec/git2/libgit2, no shell/network/clock), born-blocking, with mirror integrity (content_hash+count+floor) failing closed against a truncated/vacuously-green snapshot."
+purpose = "Cloud CI gate ENFORCING supply-chain advisory hygiene: matches EVERY declared Cargo.lock in the repository against a VENDORED, content-addressed RustSec advisory snapshot and blocks any locked crate affected by an un-ignored security (SCA-VULN) or unmaintained (SCA-UNMAINTAINED) advisory. Owned pure-Rust replacement for the reverted #974 shell cargo-audit/deny — hermetic (serde_json+toml+semver only, no rustsec/git2/libgit2, no shell/network/clock), born-blocking, with mirror integrity (content_hash+count+floor) failing closed against a truncated/vacuously-green snapshot and a DERIVED lockfile-coverage assertion (walk the tree, assert set equality with policy.lockfile_paths) failing closed against an unscanned workspace."
 
 # cloud-ci-supply-chain-audit: self-contained, policy-driven gate. A pure evaluate_keyed(policy,
 # observed) matches Cargo.lock versions against the vendored advisory mirror via semver. The observed
-# signal is a read-only parse of Cargo.lock + advisory-mirror/{advisories.json,mirror-manifest.json}
-# (NO shell/network/clock). R0 pack-shaped: lockfile_path, mirror_dir, unmaintained_policy,
+# signal is a read-only parse of every declared Cargo.lock, a read-only walk of the tree deriving the
+# ACTUAL lockfile corpus, and advisory-mirror/{advisories.json,mirror-manifest.json} (NO
+# shell/network/clock). R0 pack-shaped: lockfile_paths, mirror_dir, unmaintained_policy,
 # min_advisories floor, and the time-boxed ignore[] all live in supply-chain-audit-policy.json.
 
 [lib]
