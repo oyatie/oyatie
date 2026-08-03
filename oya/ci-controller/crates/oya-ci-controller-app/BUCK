@@ -6,8 +6,8 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel",
-        "//oya/ci-controller/crates/oya-ci-controller-k8s-adapter:oya-ci-controller-k8s-adapter",
-        "//oya/ci-controller/crates/oya-ci-controller-github-adapter:oya-ci-controller-github-adapter",
+        "//ci/adapters/controller-k8s-adapter:ci-controller-k8s-adapter",
+        "//ci/adapters/controller-github-adapter:ci-controller-github-adapter",
         "third-party//:axum",
         "third-party//:futures",
         "third-party//:k8s-openapi",
@@ -28,8 +28,8 @@ rust_binary(
     visibility = ["PUBLIC"],
     deps = [
         "//oya/ci-controller/crates/oya-ci-controller-app:oya-ci-controller-app",
-        "//oya/ci-controller/crates/oya-ci-controller-github-adapter:oya-ci-controller-github-adapter",
-        "//oya/ci-controller/crates/oya-ci-controller-k8s-adapter:oya-ci-controller-k8s-adapter",
+        "//ci/adapters/controller-github-adapter:ci-controller-github-adapter",
+        "//ci/adapters/controller-k8s-adapter:ci-controller-k8s-adapter",
         "//oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel",
         "third-party//:axum",
         "third-party//:futures",
@@ -53,8 +53,8 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         "//oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel",
-        "//oya/ci-controller/crates/oya-ci-controller-k8s-adapter:oya-ci-controller-k8s-adapter",
-        "//oya/ci-controller/crates/oya-ci-controller-github-adapter:oya-ci-controller-github-adapter",
+        "//ci/adapters/controller-k8s-adapter:ci-controller-k8s-adapter",
+        "//ci/adapters/controller-github-adapter:ci-controller-github-adapter",
         "third-party//:axum",
         "third-party//:futures",
         "third-party//:k8s-openapi",

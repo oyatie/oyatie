@@ -1,0 +1,17 @@
+context: ci
+role: adapter
+capability: ci-controller
+plane: control
+slo: preview-control-plane
+data_classes_owned: [INTERNAL_ONLY]
+operational_classes_owned: []
+api_stability: preview
+security_review: unreviewed
+supply_chain: source-only
+source_adrs: [ADR-0105, ADR-0387, ADR-0515, ADR-0562]
+traceability:
+  changeset: CS-CI-ADAPTERS-CAPABILITY-MOVE-001
+  source_crate: ci/adapters/controller-k8s-adapter/Cargo.toml
+non_claims:
+  - Implements kernel::JobSpawner and observe_job() via kube-rs against batch/v1 Jobs in namespace oya-ci
+  - security_review remains unreviewed until a code-backed review ChangeSet upgrades it

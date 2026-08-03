@@ -23,8 +23,8 @@ use oya_ci_controller_app::{
     ConfiguredBearerCiTriggerAuthenticator, ControllerState, GateSpecConfig, ServerState,
     StreamExt, build_router, run_controller,
 };
-use oya_ci_controller_github_adapter::GitHubCommitStatusPoster;
-use oya_ci_controller_k8s_adapter::K8sJobSpawner;
+use ci_controller_github_adapter::GitHubCommitStatusPoster;
+use ci_controller_k8s_adapter::K8sJobSpawner;
 use oya_ci_controller_kernel::CommitStatusPoster;
 use std::sync::Arc;
 use tracing::info;
