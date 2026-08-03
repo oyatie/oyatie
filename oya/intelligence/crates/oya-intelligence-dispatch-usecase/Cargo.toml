@@ -7,8 +7,8 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
-oya-intelligence-guardrails-domain = { path = "../oya-intelligence-guardrails-domain" }
-oya-intelligence-model-routing-domain = { path = "../oya-intelligence-model-routing-domain" }
+intelligence-guardrails-domain = { path = "../../../../intelligence/core/guardrails-domain" }
+intelligence-model-routing-domain = { path = "../../../../intelligence/core/model-routing-domain" }
 
 [lib]
 name = "oya_intelligence_dispatch_usecase"

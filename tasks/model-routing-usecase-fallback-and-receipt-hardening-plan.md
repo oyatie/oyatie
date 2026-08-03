@@ -53,8 +53,8 @@ the catalog.
 
 **Acceptance:**
 
-- `cargo check -p oya-intelligence-model-routing-usecase --all-targets` green.
-- `cargo nextest run -p oya-intelligence-model-routing-usecase` green.
+- `cargo check -p intelligence-model-routing-usecase --all-targets` green.
+- `cargo nextest run -p intelligence-model-routing-usecase` green.
 - Test (a): recoverable top-candidate denial falls through to next eligible
   candidate → `Routed` receipt naming that candidate.
 - Test (b): terminal denial (`DomainRouteDecision::Invalid`) fails fast without
@@ -97,7 +97,7 @@ the fully-`Denied` path, it enumerates every candidate in stable order.
 
 **Acceptance:**
 
-- `cargo nextest run -p oya-intelligence-model-routing-usecase` green.
+- `cargo nextest run -p intelligence-model-routing-usecase` green.
 - Test: all candidates denied → receipt enumerates every candidate with its
   specific `RouteDenialReason` in stable order; `status` is `Denied`; no field
   carries provider secrets or network-resolved data (metadata-only invariant).
@@ -122,7 +122,7 @@ this. This subtask is test-only verification.
 
 **Acceptance:**
 
-- `cargo nextest run -p oya-intelligence-model-routing-usecase` green.
+- `cargo nextest run -p intelligence-model-routing-usecase` green.
 - Test: fallback-resolved request → replay same key → second receipt
   `PartialEq` first (including `candidate_denials` and chosen candidate).
 - Test: conflicting payload on same key →
@@ -133,8 +133,8 @@ this. This subtask is test-only verification.
 ## Acceptance Gate (overall)
 
 ```sh
-cargo check -p oya-intelligence-model-routing-usecase --all-targets
-cargo nextest run -p oya-intelligence-model-routing-usecase
+cargo check -p intelligence-model-routing-usecase --all-targets
+cargo nextest run -p intelligence-model-routing-usecase
 ```
 
 Both must exit 0 with all tests green. No `unwrap`/`expect`/`panic` outside

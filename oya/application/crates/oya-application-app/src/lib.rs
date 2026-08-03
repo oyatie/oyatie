@@ -39,13 +39,13 @@ pub use intelligence_capability_domain::{
     AutonomyTier, Capability, CapabilityAction, CapabilityCostProfile, CapabilityMcpContract,
     CapabilityRegistry,
 };
-use oya_intelligence_evidence_domain::EvidenceError;
-pub use oya_intelligence_evidence_domain::{EvidenceChain, EvidenceKind, EvidenceRecord};
-pub use oya_intelligence_mcp_gateway_domain::{
+use intelligence_evidence_domain::EvidenceError;
+pub use intelligence_evidence_domain::{EvidenceChain, EvidenceKind, EvidenceRecord};
+pub use intelligence_mcp_gateway_domain::{
     DISCOVER_SCOPE, McpAccessTokenClaims, McpGatewayDescriptor, McpPrompt, McpRateLimitPolicy,
     McpTool, scope_for_tool_name,
 };
-use oya_intelligence_mcp_gateway_domain::{
+use intelligence_mcp_gateway_domain::{
     McpGatewayError, McpPrincipal, McpRateLimiter, McpTenantEndpoint, authorize_tool_call,
     project_capability_tool, validate_access_token,
 };
