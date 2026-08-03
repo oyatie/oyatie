@@ -18,7 +18,7 @@ L1: Kernel          ← oya-intelligence-settings-template-kernel (THIS CRATE)
     ├─ RenderManifest, DriftReport (value types)
     └─ SettingsRenderer (port trait)
 
-L4: Adapter         ← oya-intelligence-settings-template-adapter
+L4: Adapter         ← intelligence-settings-template-adapter
     ├─ ClaudeRenderer (impl SettingsRenderer)
     ├─ CodexRenderer (impl SettingsRenderer)
     └─ GeminiRenderer (impl SettingsRenderer)

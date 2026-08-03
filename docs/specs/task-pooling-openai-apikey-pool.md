@@ -3,13 +3,13 @@
 ## Objective
 
 Live API-key pool for the OpenAI subscription adapter inside
-`oya-intelligence-adapter-openai-subscription-adapter`. Replaces the in-memory mock with a
+`intelligence-openai-subscription-adapter`. Replaces the in-memory mock with a
 real circuit-breaker-style pool: failure-count blacklist, jittered cooldown, success-restore,
 and correct `Authorization: Bearer` header injection.
 
 ## Crate Boundary
 
-ONLY `microservices/intelligence/crates/oya-intelligence-adapter-openai-subscription-adapter`
+ONLY `intelligence/adapters/openai-subscription-adapter`
 is modified. The kernel (`oya-intelligence-adapter-openai-subscription-kernel`) is NOT changed.
 
 ## Mod Layout (flat clean-arch per ADR-0509)

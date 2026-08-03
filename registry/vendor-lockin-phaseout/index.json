@@ -411,7 +411,7 @@
       "seam_adapter_trait": "microservices/intelligence/crates/oya-intelligence-adapter-anthropic-subscription-kernel",
       "seam_adapter_impls": [
         "microservices/intelligence/crates/oya-intelligence-adapter-anthropic-subscription-adapter",
-        "microservices/intelligence/crates/oya-intelligence-adapter-openai-subscription-adapter",
+        "intelligence/adapters/openai-subscription-adapter",
         "microservices/intelligence/crates/oya-intelligence-adapter-gemini-subscription-adapter"
       ],
       "phase_out_target_date_or_signal": "signal: foundry-runtime parity demonstrated"
@@ -442,7 +442,7 @@
       "replacement_readiness_gate": "same as anthropic-api",
       "seam_adapter_trait": "microservices/intelligence/crates/oya-intelligence-adapter-openai-subscription-kernel",
       "seam_adapter_impls": [
-        "microservices/intelligence/crates/oya-intelligence-adapter-openai-subscription-adapter",
+        "intelligence/adapters/openai-subscription-adapter",
         "microservices/intelligence/crates/oya-intelligence-adapter-anthropic-subscription-adapter",
         "microservices/intelligence/crates/oya-intelligence-adapter-gemini-subscription-adapter"
       ],
@@ -476,7 +476,7 @@
       "seam_adapter_impls": [
         "microservices/intelligence/crates/oya-intelligence-adapter-gemini-subscription-adapter",
         "microservices/intelligence/crates/oya-intelligence-adapter-anthropic-subscription-adapter",
-        "microservices/intelligence/crates/oya-intelligence-adapter-openai-subscription-adapter"
+        "intelligence/adapters/openai-subscription-adapter"
       ],
       "phase_out_target_date_or_signal": "signal: foundry-runtime parity demonstrated"
     },
