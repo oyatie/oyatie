@@ -11,11 +11,11 @@
 //! | `OYA_CI_WEBHOOK_ED25519_PUBKEY` | (required)     | Hex-encoded 32-byte ed25519 pubkey|
 //! | `OYA_CI_WEBHOOK_TARGET_BRANCH`  | `dev`          | Gated base branch                 |
 
+use ci_webhook_gateway_authz_cedar_adapter::CedarWebhookGate;
+use ci_webhook_gateway_ed25519_adapter::Ed25519Verifier;
+use ci_webhook_gateway_github_adapter::GitHubStatusPoster;
 use ed25519_dalek::VerifyingKey;
 use oya_ci_webhook_gateway_app::{AppState, build_router, replay::DeliveryGuard};
-use oya_ci_webhook_gateway_authz_cedar_adapter::CedarWebhookGate;
-use oya_ci_webhook_gateway_ed25519_adapter::Ed25519Verifier;
-use oya_ci_webhook_gateway_github_adapter::GitHubStatusPoster;
 use std::sync::{Arc, Mutex};
 use tracing::info;
 

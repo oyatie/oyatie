@@ -1,0 +1,42 @@
+{
+  "capability": "ci",
+  "_comment": "ci ADAPTERS strangler move (ADR-0562 §1 face row 2: each crate names or wraps a concrete transient technology — GitHub HTTP via reqwest, kube-rs, cedar-policy, ed25519-dalek — so the face is adapters/, never core/). Six crates leave oya/ci-controller, oya/ci-tide and oya/ci-webhook-gateway for ci/adapters/<leaf>; the `ci/*/*` member glob is already live (root Cargo.toml:362) so no root manifest edit is required, and ci/adapters/ already exists (ci/adapters/path-resolver), which carries no leaf-name collision with these six. This is a SEPARATE plan from the SPENT keystone specs/reorg/ci-move-plan.json (cloud/cloud-ci/gates -> ci/facade, already landed): that plan is read by name as the keystone-rename SSOT by ci/facade/baseline-ratchet/tests/gate_registration.rs and must not be re-opened. The three kernels (oya-ci-controller-kernel, oya-ci-tide-kernel, oya-ci-webhook-gateway-kernel) and the three composition-root apps STAY PUT in oya/ this move, so no ci/facade crate exists to create a NEW ci/facade/facade-core-layering facade_core_direct_dep finding and no ci/ports hop is required yet; the surviving edges are ci/adapters -> oya/<svc>/crates/<kernel>, declared in both Cargo.toml and BUCK. SCOPE NOTE (deliberate non-edits, each a follow-up not an in-flight edit): (1) the pre-existing dead `microservices/ci-webhook-gateway/policy/...` doc-comment path in ci/adapters/webhook-gateway-authz-cedar-adapter/src/lib.rs and oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-kernel/src/lib.rs is stale on the merge base and is NOT caused by this relocation; (2) the ADR-0513-vs-ADR-0515 citation in ci/adapters/tide-github-adapter/Cargo.toml is a superseded-ADR reference, not a path or a name; (3) the bare `httpmock = \"0.7\"` dev-deps and the duplicated third-party BUCK dep lines are pre-existing manifest hygiene; (4) dated records are left verbatim as records — docs/audit/initial-sweep-2026-06-06/**, .omc/ultragoal/friction-ledger.jsonl, and the `## Empirical evidence` captured build-failure transcript in ADR-0545 (its live anchors — the files-touched table row and the Verification buck2 command — ARE repointed). GATE-COVERAGE CO-OBLIGATION: ci/facade/embedded-asset-hermeticity/embedded-asset-hermeticity-policy.json gains `ci` in scan_roots, because the cedar adapter carries the ADR-0545 / FRIC-1781131000 motivating include_str! site and moving it from a scanned root (oya) to an unscanned one (ci) would have removed it from the corpus and turned the gate GREEN by measurement loss. The include literal is re-derived for the crate's new depth ONLY (../../../policy/... -> ../../../../oya/ci-webhook-gateway/policy/...); the reviewed ADR-0545 mapped_srcs comprehension, the ROOT-prefixed crate_root form, and the cross-package mapped VALUE oya/ci-webhook-gateway/policy/ci-webhook-gateway.cedar are all preserved byte-for-byte, and oya/ci-webhook-gateway/policy/{BUCK,ci-webhook-gateway.cedar} is NOT moved or deleted. Catalog: three of the six crates carry a registry/catalog row (git mv + traceability.source_crate repoint); the other three were already in the crate-catalog-coverage `uncatalogued` shrink-only ratchet and are re-keyed there in place, so uncatalogued_total stays 197 and the ratchet neither grows nor is silently burned down (authoring three NEW catalog rows would be debt burn-down, i.e. content creation, inside a MOVE; the gate's own frozen_baseline_is_exactly_the_live_gap_set asserts SET EQUALITY, so the in-place re-key is what keeps it green). registry/dependency-rationales.json entries.{serde,serde_json,cedar-policy}.allowed_crates are re-keyed IN PLACE, matching the landed convention of the intelligence and iam-pdp-cedar moves (origin/dev already carries `intelligence-*` and `iam-pdp-cedar` at their pre-rename positions); oya-check-dependency-seam parses allowed_crates into a BTreeSet and ci/facade/canonical-json governs only governed_roots=[\"specs\"] with sort_keys=false, so array order is not read by any consumer and re-sorting mid-strangler would diverge from the landed rows. registry/stores/registry-store.json is deliberately untouched: it is a dated read-only survey ($schema_ref into docs/audit/initial-sweep-2026-06-06/, generated_from '... read-only survey 2026-06-07', status DRAFT) and is baselined `unreachable` by the ratchet, so re-keying it would edit a historical record with no live consumer. VERIFIED on the moved tree: `cargo metadata --no-deps` 6/6 new names present as workspace members (896 total); `buck2 build //ci/adapters/...` BUILD SUCCEEDED; `buck2 test //ci/...` 113 pass (the single failure, cross-artifact-agreement's live_history_only_retirement_facts_are_bound_to_the_controller_control_plane, is the de-committed ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json materializer precondition, absent from a fresh worktree and independent of this diff); rustfmt --check clean on all 16 touched .rs files.",
+  "moves": [
+    {
+      "old_path": "oya/ci-controller/crates/oya-ci-controller-github-adapter",
+      "new_path": "ci/adapters/controller-github-adapter",
+      "old_cargo_name": "oya-ci-controller-github-adapter",
+      "new_cargo_name": "ci-controller-github-adapter"
+    },
+    {
+      "old_path": "oya/ci-controller/crates/oya-ci-controller-k8s-adapter",
+      "new_path": "ci/adapters/controller-k8s-adapter",
+      "old_cargo_name": "oya-ci-controller-k8s-adapter",
+      "new_cargo_name": "ci-controller-k8s-adapter"
+    },
+    {
+      "old_path": "oya/ci-tide/crates/oya-ci-tide-github-adapter",
+      "new_path": "ci/adapters/tide-github-adapter",
+      "old_cargo_name": "oya-ci-tide-github-adapter",
+      "new_cargo_name": "ci-tide-github-adapter"
+    },
+    {
+      "old_path": "oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-authz-cedar-adapter",
+      "new_path": "ci/adapters/webhook-gateway-authz-cedar-adapter",
+      "old_cargo_name": "oya-ci-webhook-gateway-authz-cedar-adapter",
+      "new_cargo_name": "ci-webhook-gateway-authz-cedar-adapter"
+    },
+    {
+      "old_path": "oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-ed25519-adapter",
+      "new_path": "ci/adapters/webhook-gateway-ed25519-adapter",
+      "old_cargo_name": "oya-ci-webhook-gateway-ed25519-adapter",
+      "new_cargo_name": "ci-webhook-gateway-ed25519-adapter"
+    },
+    {
+      "old_path": "oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-github-adapter",
+      "new_path": "ci/adapters/webhook-gateway-github-adapter",
+      "old_cargo_name": "oya-ci-webhook-gateway-github-adapter",
+      "new_cargo_name": "ci-webhook-gateway-github-adapter"
+    }
+  ]
+}

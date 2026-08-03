@@ -156,8 +156,8 @@
       }
     },
     {
-      "crate_name": "oya-ci-controller-k8s-adapter",
-      "crate_manifest": "oya/ci-controller/crates/oya-ci-controller-k8s-adapter/Cargo.toml",
+      "crate_name": "ci-controller-k8s-adapter",
+      "crate_manifest": "ci/adapters/controller-k8s-adapter/Cargo.toml",
       "owner_batch": "ci-control-plane",
       "owner_unit": "oya/ci-controller",
       "required_action": "cite_existing_adr",

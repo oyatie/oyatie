@@ -137,7 +137,7 @@ repo by repointing the policy.
 | Path / Crate | Change type | BNF v4.1 name | Layer |
 |---|---|---|---|
 | `ci/facade/embedded-asset-hermeticity/` | create gate crate + policy + baseline + fixer binary | `oya-cloud-ci-embedded-asset-hermeticity-app` | app |
-| `oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-authz-cedar-adapter/BUCK` | prerequisite hermeticity fix (FRIC-1781131000 second instance) | - | - |
+| `ci/adapters/webhook-gateway-authz-cedar-adapter/BUCK` | prerequisite hermeticity fix (FRIC-1781131000 second instance) | - | - |
 | `.github/workflows/oya-ci-required.yml` | add one gate matrix line | - | - |
 | `docs/oya-ci/gate-catalog.md` | document gate, key shape, codes, auto-remediator | - | - |
 
@@ -236,7 +236,7 @@ Workflow events nor write Ontology objects.
 - `buck2 build //ci/facade/embedded-asset-hermeticity/...`
 - `buck2 test //ci/facade/embedded-asset-hermeticity:oya-cloud-ci-embedded-asset-hermeticity-app-unittest`
 - `buck2 test //ci/facade/embedded-asset-hermeticity:oya-cloud-ci-embedded-asset-hermeticity-app-gate`
-- `buck2 build //oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-authz-cedar-adapter:oya-ci-webhook-gateway-authz-cedar-adapter` (prerequisite fix; was failing, now `BUILD SUCCEEDED`)
+- `buck2 build //ci/adapters/webhook-gateway-authz-cedar-adapter:ci-webhook-gateway-authz-cedar-adapter` (prerequisite fix; was failing, now `BUILD SUCCEEDED`)
 - E2E auto-remediation: break the webhook BUCK, `buck2 run …:oya-cloud-ci-embedded-asset-hermeticity-fixer -- --fix`, then `buck2 build` the adapter → `BUILD SUCCEEDED` + `--check` clean.
 
 ## Known Limitations and Destination
