@@ -1,0 +1,34 @@
+Oyatie pre-wipe curated ignored context archive
+Status: DATA / recovery-only / never merge directly / not plan or operating authority
+Created UTC: 2026-08-03T12:18:15Z
+Base origin/dev: d11567a1acc8f1d77d95d9fb65500fe96a123a4a
+Selection rule: current handoff + current trusted-delivery context + distilled reorg/pipeline notes + explicitly rescued move-plan payloads.
+Excluded: build outputs, caches, generated faces, runtime state, old bundles, and OMX ralplan-repair artifacts.
+
+sha256  path
+b706b17c1a88c572c383fd913123451623e12ade194c53144f5821a35c41c7ae  .omc/ultragoal/HANDOFF-2026-08-03-SESSION.md
+a76936d378ddf0cdaa69b36d5bbc5d9b21decf3bc727590a57d2eb628ecd302b  .omc/ultragoal/parallel-development-plan.md
+84426d0a76a8ff7c7ce750716457f8589cb2c77a9ba7412053f052008b2ded4f  .omc/ultragoal/strangler-move-playbook.md
+3300c254634ac8e02e6649368a193ebc45a5e63ce1a9c5193cec9413a35ebdcf  .omc/ultragoal/ideas/pipeline-friction-derived-seeds-and-productized-guards.md
+c1adaf086d3a8d7956788530b347a408752c530a616a50520369d5610cb69a8a  .omc/ultragoal/ideas/derivation-resolution-not-artifact-transport.md
+faa3c9400f422816070e65db525ecea3ffafd2a3720304dae5474816e7ca9127  .omc/ultragoal/ci-gate-fleet-audit-2026-07-28.md
+429d50f48c14459e59a519723c8fdf223f6eb3cf722c5538593eddf44b439e79  .omc/ultragoal/REORG-PROGRAM-2026-07-30.md
+bad719c48d391b7b9b87823601291860ab1571803ff984ff4be9a6e5cbdefbd9  .omx/context/trusted-delivery-mpv2-wave0-20260803T100153Z.md
+f55ca41211abecbf5690a72b51b95f212266b684497e88af746bcd71aa0f595d  .omc/ultragoal/rescued-move-plans/governance-check-remainder-move-plan--135e476c5b.json
+3c90648e77de2506690e436ecb1e6b85b6f2f58341f3cfa57851dabbe034557e  .omc/ultragoal/rescued-move-plans/intelligence-core-sub-batch-c-move-plan--45ebb7be37.json
+ba15907ed3fca0fc7cfbf49d840781b5e1d6f2e174ce79e551a3a98cf6a8d613  .omc/ultragoal/rescued-move-plans/ci-adapters-move-plan--44a552eff3.json
+8a40c530d2acc42182c97a5559a3bd65ffc63504d95c29c616a953e4a3fa846e  .omc/ultragoal/rescued-move-plans/ci-tide-kernel-move-plan--6619a5e968.json
+fa16c366f3797ef3baef41fc1244fd235d8fede5583038f36958ffc38e13b8e0  .omc/ultragoal/rescued-move-plans/intelligence-move-plan--e0b58358c0.json
+69ffb5f37d90d94978db9632f873a76fb2c5050ab1e7fbc40596e85b0645f319  .omc/ultragoal/rescued-move-plans/data-kernels-move-plan--2b00f7a6f4.json
+356b504e9981303a700a138eaa4acfc251bf0f207918ccbc9d281ccb38055da2  .omc/ultragoal/rescued-move-plans/data-move-plan--d4a9312fa2.json
+f427bea67ee70914148cf6734038e710549e96206672f777429c3155e28cf89c  .omc/ultragoal/rescued-move-plans/ci-move-plan--e2a0436eaf.json
+f6f0c31283c8faac4e064b03819914f37d37a2798d0dfd30990590374fa65dd5  .omc/ultragoal/rescued-move-plans/README.md
+36d22a1e12a1cb68a892b97dc1c9ef5dd9ffa3d04cf656de573e979e6a301111  .omc/ultragoal/rescued-move-plans/intelligence-move-plan--85f1c6664e.json
+94a23c9bb50cd175ee2c43475fcd5e9eb0ea9495498fc8cc796309cef82411af  .omc/ultragoal/rescued-move-plans/billing-move-plan--e8d0c48b00.json
+92ddac975b8369f3124b3980879e8b060700e786ff9893c570c1764d4e135865  .omc/ultragoal/rescued-move-plans/ci-move-plan--38673aae1d.json
+4225b29e8723c816319b09e887a0b6eac3c66259dd09a3beb27b5aed80fe19b7  .omc/ultragoal/rescued-move-plans/intelligence-adapters-move-plan--3259485d23.json
+7e32a3dca5119b86b8673cf165f47e82dd5f93e862013e92a1214649aca43d09  .omc/ultragoal/rescued-move-plans/intelligence-move-plan--a9d35ea211.json
+8b081851f6f660fda6a20fdcbcff18b4d024592c6ec1d3d6be8bf458f25b4d9e  .omc/ultragoal/rescued-move-plans/data-kernels-move-plan--2defb5a620.json
+e3b26bccebb35214a505b156150b5211a94b15268bce8b8c064c1c9f1bff32a4  .omc/ultragoal/rescued-move-plans/intelligence-move-plan--29430ef125.json
+47da2379302fe0885a58f14128152ff9a4ce63c8396fd24ea4ebec29b183035a  .omc/ultragoal/rescued-move-plans/ci-tide-move-plan--2962ca57ed.json
+4510ec5044fcc5bd6f4162c4fb01de6f11e8bac01a6741cd5518c71bc079773d  .omc/ultragoal/rescued-move-plans/calendar-move-plan--3483f2317d.json
