@@ -76,10 +76,12 @@ fn run() -> Result<ExitCode, String> {
 /// path-keyed CI baseline relabel consumes (task #64). It loads the plan (if any), VALIDATES
 /// it, enumerates the candidate tracked tree (`git ls-files` — the emitter's exact universe),
 /// derives the file-level + crate-ident pairs deterministically, and writes the canonical
-/// face. With NO `--plan` it writes the canonical EMPTY manifest (`files: []`,
-/// `crate_idents: []`) — the strict no-op the emitter reads as "no renames" (identity
-/// relabel), so a no-move PR is gate-green and byte-stable. Determinism: sorted pairs +
-/// canonical JSON => `committed==regenerated` holds byte-for-byte (the registry-drift binding).
+/// face. With NO `--plan` it discovers the single ACTIVE committed plan itself after excluding
+/// already-landed plans; multiple active plans fail closed, while zero active plans write the
+/// canonical EMPTY manifest (`files: []`, `crate_idents: []`) — the strict no-op the emitter reads
+/// as "no renames" (identity relabel), so a no-move PR is gate-green and byte-stable. Determinism:
+/// sorted pairs + canonical JSON => `committed==regenerated` holds byte-for-byte (the
+/// registry-drift binding).
 fn cmd_manifest(args: &[String]) -> Result<ExitCode, String> {
     let mut plan_path: Option<PathBuf> = None;
     let mut repo_root = std::env::current_dir().map_err(|e| e.to_string())?;
