@@ -1,6 +1,6 @@
-//! # oya-ci-tide-kernel
+//! # ci-tide-kernel
 //!
-//! Pure-domain kernel for the oya-ci tide component (Phase 2, ADR-0513).
+//! Pure-domain kernel for the oya-ci tide component (ADR-0515).
 //! No I/O, no async, no network. #![forbid(unsafe_code)].
 //!
 //! Owns:
@@ -10,7 +10,7 @@
 //! - [`is_mergeable`] — the eligibility predicate (THE core logic)
 //! - [`ForgeClient`] trait seam — I/O boundary for the adapter layer
 //!
-//! ## Eligibility invariant (ADR-0513 tide / ADR-0111)
+//! ## Eligibility invariant (ADR-0515 tide / ADR-0111)
 //!
 //! A PR is merge-eligible iff ALL of:
 //! 1. The configured `required_status_context` has state `success` on the HEAD SHA.

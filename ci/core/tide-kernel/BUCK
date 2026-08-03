@@ -1,7 +1,7 @@
 rust_library(
-    name = "oya-ci-tide-kernel",
+    name = "ci-tide-kernel",
     srcs = glob(["src/**/*.rs", "**/*.cedar", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml"]),
-    crate = "oya_ci_tide_kernel",
+    crate = "ci_tide_kernel",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
@@ -11,9 +11,9 @@ rust_library(
 )
 
 rust_test(
-    name = "oya-ci-tide-kernel-tests",
+    name = "ci-tide-kernel-tests",
     srcs = glob(["src/**/*.rs"]),
-    crate = "oya_ci_tide_kernel",
+    crate = "ci_tide_kernel",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [

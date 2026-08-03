@@ -277,6 +277,12 @@
       "new_path": "ci/facade/topology-manifest-contract",
       "old_cargo_name": "oya-cloud-ci-cell-topology-manifest-contract-app",
       "new_cargo_name": "ci-topology-manifest-contract"
+    },
+    {
+      "old_path": "oya/ci-tide/crates/oya-ci-tide-kernel",
+      "new_path": "ci/core/tide-kernel",
+      "old_cargo_name": "oya-ci-tide-kernel",
+      "new_cargo_name": "ci-tide-kernel"
     }
   ],
   "artifacts": [
