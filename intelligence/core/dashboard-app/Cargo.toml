@@ -1,0 +1,19 @@
+[package]
+name = "intelligence-dashboard-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[lib]
+name = "intelligence_dashboard_app"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+oya-intelligence-account-domain = { path = "../../../oya/intelligence/crates/oya-intelligence-account-domain" }
+oya-intelligence-dashboard-kernel = { path = "../../../oya/intelligence/crates/oya-intelligence-dashboard-kernel" }
+
+[lints]
+workspace = true

@@ -6,8 +6,8 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//oya/intelligence/crates/oya-intelligence-eval-adapter:oya-intelligence-eval-adapter",
-        "//oya/intelligence/crates/oya-intelligence-eval-domain:oya-intelligence-eval-domain",
-        "//oya/intelligence/crates/oya-intelligence-eval-kernel:oya-intelligence-eval-kernel",
+        "//intelligence/core/eval-domain:intelligence-eval-domain",
+        "//intelligence/core/eval-kernel:intelligence-eval-kernel",
         "//oya/intelligence/crates/oya-intelligence-eval-usecase:oya-intelligence-eval-usecase",
         "//oya/intelligence/crates/oya-intelligence-eval-worker:oya-intelligence-eval-worker",
         "third-party//:bytes",
@@ -28,8 +28,8 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         "//oya/intelligence/crates/oya-intelligence-eval-adapter:oya-intelligence-eval-adapter",
-        "//oya/intelligence/crates/oya-intelligence-eval-domain:oya-intelligence-eval-domain",
-        "//oya/intelligence/crates/oya-intelligence-eval-kernel:oya-intelligence-eval-kernel",
+        "//intelligence/core/eval-domain:intelligence-eval-domain",
+        "//intelligence/core/eval-kernel:intelligence-eval-kernel",
         "//oya/intelligence/crates/oya-intelligence-eval-usecase:oya-intelligence-eval-usecase",
         "//oya/intelligence/crates/oya-intelligence-eval-worker:oya-intelligence-eval-worker",
         "third-party//:bytes",
@@ -51,8 +51,8 @@ rust_test(
     deps = [
         ":oya-intelligence-eval-app",
         "//oya/intelligence/crates/oya-intelligence-eval-adapter:oya-intelligence-eval-adapter",
-        "//oya/intelligence/crates/oya-intelligence-eval-domain:oya-intelligence-eval-domain",
-        "//oya/intelligence/crates/oya-intelligence-eval-kernel:oya-intelligence-eval-kernel",
+        "//intelligence/core/eval-domain:intelligence-eval-domain",
+        "//intelligence/core/eval-kernel:intelligence-eval-kernel",
         "//oya/intelligence/crates/oya-intelligence-eval-usecase:oya-intelligence-eval-usecase",
         "//oya/intelligence/crates/oya-intelligence-eval-worker:oya-intelligence-eval-worker",
         "third-party//:bytes",
