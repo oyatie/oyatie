@@ -3,8 +3,8 @@
 use std::{collections::BTreeMap, fs, path::PathBuf};
 
 use ci_reset_eligibility_policy::{
-    RuntimeAuthority, TrustedApprovalKey, evaluate, evaluate_schema, evidence_digest, json_digest,
-    receipt_payload, validate_artifact_schema,
+    RuntimeAuthority, TrustedApprovalKey, artifact_subject_digest, evaluate, evaluate_schema,
+    evidence_digest, json_digest, receipt_payload, validate_artifact_schema,
 };
 use ed25519_dalek::{Signer, SigningKey};
 use serde_json::{Value, json};
@@ -105,7 +105,9 @@ fn positive_fixture() -> (Value, Value, Value, RuntimeAuthority) {
     artifact["unknowns"] = json!([]);
 
     let common = json!({
-        "reset_id":"fixture-reset", "evidence_sha256":evidence_digest(&evidence),
+        "reset_id":"fixture-reset",
+        "artifact_sha256":"sha256:0000000000000000000000000000000000000000000000000000000000000000",
+        "evidence_sha256":evidence_digest(&evidence),
         "protected_commit_sha":PROTECTED, "candidate_commit_sha":CANDIDATE,
         "schema_sha256":json_digest(&schema), "policy_sha256":json_digest(&policy),
         "approved_at":"2026-08-01T18:00:00Z", "expires_at":"2026-08-02T17:00:00Z",
@@ -134,9 +136,17 @@ fn positive_fixture() -> (Value, Value, Value, RuntimeAuthority) {
         receipt["role"] = json!(role);
         receipt["approver"] = json!(format!("trusted-{role}"));
         receipt["key_id"] = json!(key_id);
-        approvals.push(sign(receipt, &key));
+        approvals.push(receipt);
     }
     artifact["approvals"] = json!(approvals);
+    let artifact_sha256 = artifact_subject_digest(&artifact).expect("artifact subject digest");
+    for index in 0..artifact["approvals"].as_array().expect("approvals").len() {
+        artifact["approvals"][index]["artifact_sha256"] = json!(artifact_sha256);
+        artifact["approvals"].as_array_mut().unwrap()[index] = sign(
+            artifact["approvals"][index].clone(),
+            &approval_signing_key(index as u8),
+        );
+    }
     (policy, schema, artifact, runtime)
 }
 
@@ -263,6 +273,177 @@ fn dormant_eligibility_path_rejects_evidence_commit_schema_policy_and_signature_
     let mut forged = artifact.clone();
     forged["approvals"][0]["approver"] = json!("candidate");
     assert!(!evaluate(&policy, &schema, &forged, &runtime, NOW).is_empty());
+}
+
+#[test]
+fn approval_receipts_reject_decision_bearing_artifact_tampering() {
+    let (policy, schema, artifact, runtime) = positive_fixture();
+    let mutations: Vec<ArtifactMutation> = vec![
+        (
+            "scope",
+            Box::new(|value| {
+                value["scope"]["accounts"]
+                    .as_array_mut()
+                    .unwrap()
+                    .push(json!("github:unexpected/account"));
+            }),
+        ),
+        (
+            "evidence manifest",
+            Box::new(|value| {
+                value["evidence_manifest"]["uri"] =
+                    json!("https://inventory.example/reviewed/alternate-manifest");
+            }),
+        ),
+        (
+            "source mapping",
+            Box::new(|value| {
+                value["sources"][0]["evidence_uri"] =
+                    json!("protected-runtime:alternate-source-handle");
+            }),
+        ),
+        (
+            "inventory metadata",
+            Box::new(|value| value["inventory"][0]["billing"] = json!("candidate-mutated")),
+        ),
+        (
+            "inventory fingerprint",
+            Box::new(|value| {
+                value["inventory"][0]["unverified_identity_fingerprint"] = json!(
+                    "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+                );
+            }),
+        ),
+        (
+            "recovery",
+            Box::new(|value| value["recovery"]["backup_verified"] = json!(false)),
+        ),
+        (
+            "hard stops",
+            Box::new(|value| {
+                value["hard_stops"] = json!([{
+                    "id":"candidate-stop",
+                    "class":"candidate",
+                    "acceptance_criteria":"review",
+                    "verification_path":"protected review",
+                    "suggested_owner":"platform-operations",
+                    "dependency_notes":"candidate mutation"
+                }]);
+            }),
+        ),
+        (
+            "unknowns",
+            Box::new(|value| {
+                value["unknowns"] = json!([{
+                    "id":"candidate-unknown",
+                    "owner":"platform-operations",
+                    "closure_probe":"review candidate mutation"
+                }]);
+            }),
+        ),
+        (
+            "captured at",
+            Box::new(|value| value["captured_at"] = json!("2026-08-01T18:00:00Z")),
+        ),
+        (
+            "expires at",
+            Box::new(|value| value["expires_at"] = json!("2026-08-02T17:30:00Z")),
+        ),
+        (
+            "decision",
+            Box::new(|value| value["decision"]["eligible"] = json!(true)),
+        ),
+        (
+            "reason codes",
+            Box::new(|value| {
+                value["decision"]["reason_codes"] =
+                    json!(["authorization-disabled", "candidate-reason"]);
+            }),
+        ),
+    ];
+
+    for (name, mutate) in mutations {
+        let mut changed = artifact.clone();
+        mutate(&mut changed);
+        let findings = evaluate(&policy, &schema, &changed, &runtime, NOW);
+        assert!(
+            has_code(&findings, "reset_approval_receipt_invalid"),
+            "{name} mutation did not invalidate approval receipts: {findings:#?}"
+        );
+    }
+}
+
+#[test]
+fn artifact_subject_digest_is_canonical_and_cryptographically_bound() {
+    let (policy, schema, artifact, runtime) = positive_fixture();
+
+    let expected_subject = artifact_subject_digest(&artifact).expect("artifact subject");
+    let mut approval_only_change = artifact.clone();
+    approval_only_change["approvals"][0]["signature"] = json!("candidate-circular-surface");
+    assert_eq!(
+        artifact_subject_digest(&approval_only_change).as_deref(),
+        Some(expected_subject.as_str()),
+        "the embedded approvals array is the sole excluded circular surface"
+    );
+
+    let mut incomplete_receipt = artifact["approvals"][0].clone();
+    incomplete_receipt
+        .as_object_mut()
+        .unwrap()
+        .remove("artifact_sha256");
+    assert!(
+        receipt_payload(&incomplete_receipt).is_none(),
+        "receipt payload construction must fail closed when the artifact subject digest is absent"
+    );
+
+    let reordered: Value =
+        serde_json::from_str(r#"{"z":{"b":2,"a":1},"approvals":[],"a":[{"d":4,"c":3}]}"#)
+            .expect("reordered fixture");
+    let canonical: Value =
+        serde_json::from_str(r#"{"a":[{"c":3,"d":4}],"approvals":[],"z":{"a":1,"b":2}}"#)
+            .expect("canonical fixture");
+    assert_eq!(
+        artifact_subject_digest(&reordered),
+        artifact_subject_digest(&canonical),
+        "subject digest must not depend on JSON object insertion order"
+    );
+
+    let mut restamped_without_signature = artifact.clone();
+    restamped_without_signature["scope"]["accounts"]
+        .as_array_mut()
+        .unwrap()
+        .push(json!("github:reviewed-secondary"));
+    let changed_digest = artifact_subject_digest(&restamped_without_signature)
+        .expect("changed artifact subject digest");
+    for receipt in restamped_without_signature["approvals"]
+        .as_array_mut()
+        .unwrap()
+    {
+        receipt["artifact_sha256"] = json!(changed_digest);
+    }
+    assert!(has_code(
+        &evaluate(
+            &policy,
+            &schema,
+            &restamped_without_signature,
+            &runtime,
+            NOW
+        ),
+        "reset_approval_receipt_invalid"
+    ));
+
+    resign_approvals(&mut restamped_without_signature);
+    assert!(
+        evaluate(
+            &policy,
+            &schema,
+            &restamped_without_signature,
+            &runtime,
+            NOW
+        )
+        .is_empty(),
+        "a semantically valid subject change must require both digest restamping and fresh signatures"
+    );
 }
 
 #[test]
@@ -559,6 +740,34 @@ fn uri_bearing_secrets_are_rejected_while_public_urls_remain_green() {
     }
 
     for secret in [
+        "redacted-local:q9P/2Zd7Wm4+Lx8!Vt3#Kn6@Hs1%Rc5^Bj0&Fy7*Ua2=Ee9?",
+        "protected-runtime:q9P/2Zd7Wm4+Lx8!Vt3#Kn6@Hs1%Rc5^Bj0&Fy7*Ua2=Ee9?",
+        "redacted-local:q9P2Zd7Wm4-Lx8Vt3Kn6Hs1Rc5Bj0Fy7Ua2Ee9Qw4Pi6Zd8Lm",
+        "protected-runtime:q9P2Zd7Wm4-Lx8Vt3Kn6Hs1Rc5Bj0Fy7Ua2Ee9Qw4Pi6Zd8Lm",
+    ] {
+        let mut opaque_secret = artifact.clone();
+        opaque_secret["evidence_manifest"]["uri"] = json!(secret);
+        assert!(has_code(
+            &evaluate(&policy, &schema, &opaque_secret, &runtime, NOW),
+            "reset_secret_value_detected"
+        ));
+    }
+
+    for secret in [
+        "note ghp_1234567890abcdefghijklmnopqrstuv",
+        "-----BEGIN RSA PRIVATE KEY-----\nMIIE...\n-----END RSA PRIVATE KEY-----",
+        "-----BEGIN OPENSSH PRIVATE KEY-----\nb3BlbnNzaC1rZXktdjEAAAAA\n-----END OPENSSH PRIVATE KEY-----",
+        "-----BEGIN EC PRIVATE KEY-----\nMHcCAQEE\n-----END EC PRIVATE KEY-----",
+    ] {
+        let mut embedded_secret = artifact.clone();
+        embedded_secret["inventory"][0]["lifecycle"] = json!(secret);
+        assert!(has_code(
+            &evaluate(&policy, &schema, &embedded_secret, &runtime, NOW),
+            "reset_secret_value_detected"
+        ));
+    }
+
+    for secret in [
         "https://user:q9P/2Zd7Wm4+Lx8!Vt3#Kn6@Hs1%Rc5^Bj0&Fy7*Ua2=Ee9?@inventory.example",
         "https://user:q9P2Zd7Wm4+Lx8!Vt3#Kn6@Hs1%Rc5Bj0&Fy7*Ua2=Ee9?@inventory.example",
         "https://inventory.example/export?X-Amz-Signature=q9P2Zd7Wm4Lx8Vt3Kn6Hs1Rc5Bj0Fy7Ua2Ee9Qw4Pi6Zd8Lm",
@@ -576,9 +785,20 @@ fn uri_bearing_secrets_are_rejected_while_public_urls_remain_green() {
     let mut uri = artifact.clone();
     uri["evidence_manifest"]["uri"] =
         json!("https://inventory.oyatie.example/resources/cluster-primary");
+    let uri_findings = evaluate(&policy, &schema, &uri, &runtime, NOW);
     assert!(
-        evaluate(&policy, &schema, &uri, &runtime, NOW).is_empty(),
+        !has_code(&uri_findings, "reset_secret_value_detected"),
         "a structurally valid URI must remain green"
+    );
+
+    let mut public_metadata_uri = artifact.clone();
+    public_metadata_uri["evidence_manifest"]["uri"] = json!(
+        "https://docs.example.com/guide/setup?language=en-US&version=2026.08&section=deployment"
+    );
+    let public_metadata_findings = evaluate(&policy, &schema, &public_metadata_uri, &runtime, NOW);
+    assert!(
+        !has_code(&public_metadata_findings, "reset_secret_value_detected"),
+        "ordinary public URI metadata must not be entropy-scanned as one opaque value"
     );
 
     assert!(
