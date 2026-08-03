@@ -33,7 +33,7 @@
       "$ref:registry/catalog/oya-intelligence-guardrails-domain.yaml",
       "$ref:registry/catalog/oya-intelligence-guardrails-usecase.yaml",
       "$ref:registry/catalog/oya-intelligence-context-aware-retrieval-kernel.yaml",
-      "$ref:registry/catalog/oya-intelligence-context-aware-retrieval-domain.yaml",
+      "$ref:registry/catalog/intelligence-context-aware-retrieval-domain.yaml",
       "$ref:registry/catalog/oya-intelligence-context-aware-retrieval-usecase.yaml",
       "$ref:registry/catalog/oya-intelligence-context-aware-retrieval-adapter.yaml",
       "$ref:registry/catalog/oya-intelligence-context-aware-retrieval-worker.yaml",
@@ -42,8 +42,8 @@
       "$ref:registry/catalog/oya-intelligence-eval-usecase.yaml",
       "$ref:registry/catalog/oya-intelligence-eval-adapter.yaml",
       "$ref:registry/catalog/oya-intelligence-eval-worker.yaml",
-      "$ref:registry/catalog/oya-intelligence-attribution-kernel.yaml",
-      "$ref:registry/catalog/oya-intelligence-attribution-domain.yaml",
+      "$ref:registry/catalog/intelligence-attribution-kernel.yaml",
+      "$ref:registry/catalog/intelligence-attribution-domain.yaml",
       "$ref:registry/catalog/oya-intelligence-attribution-usecase.yaml",
       "$ref:registry/catalog/oya-intelligence-attribution-adapter.yaml",
       "$ref:registry/catalog/oya-intelligence-attribution-worker.yaml",
@@ -52,7 +52,7 @@
       "$ref:registry/catalog/oya-intelligence-credential-resolver-domain.yaml",
       "$ref:registry/catalog/oya-intelligence-credential-resolver-usecase.yaml",
       "$ref:registry/catalog/oya-intelligence-credential-resolver-adapter.yaml",
-      "$ref:registry/catalog/oya-intelligence-audit-tap-usecase.yaml",
+      "$ref:registry/catalog/intelligence-audit-tap-usecase.yaml",
       "$ref:registry/catalog/oya-intelligence-audit-tap-adapter.yaml",
       "$ref:registry/catalog/oya-intelligence-audit-tap-worker.yaml"
     ],
@@ -80,7 +80,7 @@
       "given": "an Intelligence dispatch, credential, guardrail, or provider event with audit envelope v2 metadata and opaque evidence refs",
       "when": "the audit-tap usecase emits the event through an injected audit-chain emitter port",
       "then": "the usecase validates tenant/trace/HLC/sustainability metadata, rejects raw prompt/output/secret material, preserves idempotency semantics, and accepts only matching Merkle/signature seal refs",
-      "test_ref": "crates/oya-intelligence-audit-tap-usecase/src/lib.rs::tests::emits_metadata_only_audit_tap_record_with_seal_receipt"
+      "test_ref": "cargo nextest -p intelligence-audit-tap-usecase -- tests::emits_metadata_only_audit_tap_record_with_seal_receipt"
     },
     {
       "id": "AC-04",
@@ -101,7 +101,7 @@
       "given": "a context-aware retrieval request with principal, surface, policy decision evidence, retrieval index snapshot evidence, opaque query refs, allowed source kinds, freshness floors, and candidate metadata",
       "when": "the context-aware retrieval domain validates and plans retrieval",
       "then": "the domain rejects invalid metadata, policy tenant/principal drift, unauthorized surfaces/source kinds, excessive item caps, weak freshness floors, and sensitive external context before returning only metadata-only kernel plans or fail-closed denials",
-      "test_ref": "crates/oya-intelligence-context-aware-retrieval-domain/src/lib.rs::tests::authorized_domain_request_delegates_to_kernel_plan"
+      "test_ref": "cargo nextest -p intelligence-context-aware-retrieval-domain -- tests::authorized_domain_request_delegates_to_kernel_plan"
     },
     {
       "id": "AC-07",
@@ -150,14 +150,14 @@
       "given": "an Intelligence attribution request with output, policy, trace, answer segment, source/resource, title, data-class, freshness, and evidence refs",
       "when": "the attribution kernel plans citations for an internal or external audience",
       "then": "the kernel validates metadata-only refs, rejects raw prompt/output/document/secret material, denies missing sources, enforces external-audience public-only citations, honors citation limits, and returns deterministic citation metadata without text rendering or retrieval execution",
-      "test_ref": "crates/oya-intelligence-attribution-kernel/src/lib.rs::tests::plans_metadata_only_citations_for_public_external_answer"
+      "test_ref": "cargo nextest -p intelligence-attribution-kernel -- tests::plans_metadata_only_citations_for_public_external_answer"
     },
     {
       "id": "AC-14",
       "given": "an Intelligence attribution domain request with tenant, principal, surface, policy decision evidence, allowed audiences, allowed source kinds, allowed data classes, citation caps, confidence floors, and metadata-only kernel attribution records",
       "when": "the attribution domain plans citations",
       "then": "the domain rejects invalid metadata, policy tenant/principal/evidence drift, unauthorized surfaces/audiences/source kinds/data classes, weak confidence, and excessive citation caps before returning only metadata-only kernel citation reports or fail-closed denials",
-      "test_ref": "crates/oya-intelligence-attribution-domain/src/lib.rs::tests::authorized_domain_request_delegates_to_kernel_citation_plan"
+      "test_ref": "cargo nextest -p intelligence-attribution-domain -- tests::authorized_domain_request_delegates_to_kernel_citation_plan"
     },
     {
       "id": "AC-15",

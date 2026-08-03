@@ -5220,7 +5220,7 @@
       ]
     },
     {
-      "key": "oya-intelligence-attribution-domain",
+      "key": "intelligence-attribution-domain",
       "context": "intelligence",
       "role": "domain",
       "capability": "attribution-citation-planning",
@@ -5238,7 +5238,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-intelligence-attribution-kernel",
+      "key": "intelligence-attribution-kernel",
       "context": "intelligence",
       "role": "kernel",
       "capability": "attribution-citation-planning",
@@ -5311,7 +5311,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-intelligence-audit-tap-usecase",
+      "key": "intelligence-audit-tap-usecase",
       "context": "intelligence",
       "role": "usecase",
       "capability": "metadata-audit-tap-emission",
@@ -5364,7 +5364,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-intelligence-context-aware-retrieval-domain",
+      "key": "intelligence-context-aware-retrieval-domain",
       "context": "intelligence",
       "role": "domain",
       "capability": "context-aware-retrieval",

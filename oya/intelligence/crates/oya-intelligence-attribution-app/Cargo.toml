@@ -12,12 +12,11 @@ description = "Attribution composition root (usecase layer per ADR-0105). Wires 
 # transport scaffold (mirroring the provider-pool-app composition pattern).
 # No NEW external workspace dependency seam.
 [dependencies]
-oya-intelligence-attribution-kernel = { path = "../oya-intelligence-attribution-kernel" }
-oya-intelligence-attribution-domain = { path = "../oya-intelligence-attribution-domain" }
+intelligence-attribution-kernel = { path = "../../../../intelligence/core/attribution-kernel" }
+intelligence-attribution-domain = { path = "../../../../intelligence/core/attribution-domain" }
 oya-intelligence-attribution-usecase = { path = "../oya-intelligence-attribution-usecase" }
 oya-intelligence-attribution-worker = { path = "../oya-intelligence-attribution-worker" }
 oya-intelligence-attribution-adapter = { path = "../oya-intelligence-attribution-adapter" }
-
 tokio = { version = "1", default-features = false, features = ["rt-multi-thread", "macros", "sync", "time"] }
 futures-util = { version = "0.3", default-features = false }
 bytes = { version = "1", default-features = false }

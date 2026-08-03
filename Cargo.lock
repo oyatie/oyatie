@@ -4465,6 +4465,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "intelligence-account-domain"
+version = "0.1.0"
+dependencies = [
+ "intelligence-account-kernel",
+]
+
+[[package]]
 name = "intelligence-account-kernel"
 version = "0.1.0"
 
@@ -4485,6 +4492,20 @@ version = "0.1.0"
 [[package]]
 name = "intelligence-api-semver-domain"
 version = "0.1.0"
+
+[[package]]
+name = "intelligence-api-sse-kernel"
+version = "0.1.0"
+dependencies = [
+ "intelligence-api-rest-kernel",
+]
+
+[[package]]
+name = "intelligence-api-websocket-kernel"
+version = "0.1.0"
+dependencies = [
+ "intelligence-api-rest-kernel",
+]
 
 [[package]]
 name = "intelligence-app"
@@ -4510,6 +4531,21 @@ name = "intelligence-architecture-map-kernel"
 version = "0.1.0"
 
 [[package]]
+name = "intelligence-attribution-domain"
+version = "0.1.0"
+dependencies = [
+ "intelligence-attribution-kernel",
+]
+
+[[package]]
+name = "intelligence-attribution-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "intelligence-audit-tap-usecase"
+version = "0.1.0"
+
+[[package]]
 name = "intelligence-authz-cedar-adapter"
 version = "0.1.0"
 dependencies = [
@@ -4518,8 +4554,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "intelligence-autonomy-ceiling-domain"
+version = "0.1.0"
+dependencies = [
+ "intelligence-autonomy-ceiling-kernel",
+]
+
+[[package]]
 name = "intelligence-autonomy-ceiling-kernel"
 version = "0.1.0"
+
+[[package]]
+name = "intelligence-bypass-domain"
+version = "0.1.0"
+dependencies = [
+ "intelligence-capability-domain",
+ "oya-data-boundary-kernel",
+]
 
 [[package]]
 name = "intelligence-bypass-ledger-kernel"
@@ -4530,6 +4581,21 @@ name = "intelligence-capability-domain"
 version = "0.1.0"
 dependencies = [
  "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "intelligence-capability-registry-app"
+version = "0.1.0"
+dependencies = [
+ "intelligence-capability-registry-domain",
+ "intelligence-capability-registry-kernel",
+]
+
+[[package]]
+name = "intelligence-capability-registry-domain"
+version = "0.1.0"
+dependencies = [
+ "intelligence-capability-registry-kernel",
 ]
 
 [[package]]
@@ -4564,6 +4630,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "intelligence-cloud-mutation-domain"
+version = "0.1.0"
+dependencies = [
+ "audit-chain-domain",
+ "intelligence-capability-domain",
+ "oya-data-boundary-kernel",
+ "oya-intelligence-policy-domain",
+]
+
+[[package]]
 name = "intelligence-codex-adapter"
 version = "0.1.0"
 dependencies = [
@@ -4587,6 +4663,13 @@ dependencies = [
  "serde_json",
  "tempfile",
  "tokio",
+]
+
+[[package]]
+name = "intelligence-context-aware-retrieval-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-context-aware-retrieval-kernel",
 ]
 
 [[package]]
@@ -5732,6 +5815,7 @@ dependencies = [
  "audit-file-adapter",
  "ci-generated-artifact-freshness",
  "intelligence-api-semver-domain",
+ "intelligence-bypass-domain",
  "intelligence-cargo-prefix-domain",
  "intelligence-catalog-domain",
  "intelligence-mdbook-domain",
@@ -5811,7 +5895,6 @@ dependencies = [
  "oya-governance-banned-primitives-kernel",
  "oya-governance-gate-catalog-domain",
  "oya-intelligence-architecture-map-app",
- "oya-intelligence-bypass-domain",
  "oya-intelligence-evidence-file-adapter",
  "oya-intelligence-run-domain",
  "oya-intelligence-run-file-adapter",
@@ -6646,6 +6729,7 @@ dependencies = [
  "iam-identity-domain",
  "iam-policy-cedar-domain",
  "intelligence-adapter-kernel",
+ "intelligence-bypass-domain",
  "intelligence-capability-domain",
  "intelligence-step-domain",
  "messaging-domain",
@@ -6655,7 +6739,6 @@ dependencies = [
  "oya-check-cost-budget",
  "oya-data-boundary-kernel",
  "oya-governance-eval-domain",
- "oya-intelligence-bypass-domain",
  "oya-intelligence-evidence-domain",
  "oya-intelligence-mcp-gateway-domain",
  "oya-intelligence-policy-domain",
@@ -8026,14 +8109,7 @@ dependencies = [
 name = "oya-intelligence-account-adapter-inmemory"
 version = "0.1.0"
 dependencies = [
- "oya-intelligence-account-domain",
-]
-
-[[package]]
-name = "oya-intelligence-account-domain"
-version = "0.1.0"
-dependencies = [
- "intelligence-account-kernel",
+ "intelligence-account-domain",
 ]
 
 [[package]]
@@ -8055,9 +8131,9 @@ dependencies = [
  "http-body-util",
  "hyper 1.10.0",
  "hyper-util",
+ "intelligence-account-domain",
  "intelligence-account-kernel",
  "oya-http-runtime-hyper-adapter",
- "oya-intelligence-account-domain",
  "oya-intelligence-oauth-subscription-kernel",
  "serde",
  "serde_json",
@@ -8083,8 +8159,8 @@ dependencies = [
  "http-body-util",
  "hyper 1.10.0",
  "hyper-util",
+ "intelligence-account-domain",
  "intelligence-account-kernel",
- "oya-intelligence-account-domain",
  "serde",
  "serde_json",
  "tokio",
@@ -8110,14 +8186,7 @@ name = "oya-intelligence-api-sse-adapter"
 version = "0.1.0"
 dependencies = [
  "intelligence-api-rest-kernel",
- "oya-intelligence-api-sse-kernel",
-]
-
-[[package]]
-name = "oya-intelligence-api-sse-kernel"
-version = "0.1.0"
-dependencies = [
- "intelligence-api-rest-kernel",
+ "intelligence-api-sse-kernel",
 ]
 
 [[package]]
@@ -8125,14 +8194,7 @@ name = "oya-intelligence-api-websocket-adapter"
 version = "0.1.0"
 dependencies = [
  "intelligence-api-rest-kernel",
- "oya-intelligence-api-websocket-kernel",
-]
-
-[[package]]
-name = "oya-intelligence-api-websocket-kernel"
-version = "0.1.0"
-dependencies = [
- "intelligence-api-rest-kernel",
+ "intelligence-api-websocket-kernel",
 ]
 
 [[package]]
@@ -8201,9 +8263,9 @@ version = "0.1.0"
 dependencies = [
  "bytes",
  "futures-util",
+ "intelligence-attribution-domain",
+ "intelligence-attribution-kernel",
  "oya-intelligence-attribution-adapter",
- "oya-intelligence-attribution-domain",
- "oya-intelligence-attribution-kernel",
  "oya-intelligence-attribution-usecase",
  "oya-intelligence-attribution-worker",
  "serde",
@@ -8213,21 +8275,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-intelligence-attribution-domain"
-version = "0.1.0"
-dependencies = [
- "oya-intelligence-attribution-kernel",
-]
-
-[[package]]
-name = "oya-intelligence-attribution-kernel"
-version = "0.1.0"
-
-[[package]]
 name = "oya-intelligence-attribution-usecase"
 version = "0.1.0"
 dependencies = [
- "oya-intelligence-attribution-domain",
+ "intelligence-attribution-domain",
 ]
 
 [[package]]
@@ -8242,12 +8293,8 @@ dependencies = [
 name = "oya-intelligence-audit-tap-adapter"
 version = "0.1.0"
 dependencies = [
- "oya-intelligence-audit-tap-usecase",
+ "intelligence-audit-tap-usecase",
 ]
-
-[[package]]
-name = "oya-intelligence-audit-tap-usecase"
-version = "0.1.0"
 
 [[package]]
 name = "oya-intelligence-audit-tap-worker"
@@ -8260,16 +8307,9 @@ dependencies = [
 name = "oya-intelligence-autonomy-ceiling-app"
 version = "0.1.0"
 dependencies = [
+ "intelligence-autonomy-ceiling-domain",
  "intelligence-autonomy-ceiling-kernel",
  "intelligence-capability-registry-kernel",
- "oya-intelligence-autonomy-ceiling-domain",
-]
-
-[[package]]
-name = "oya-intelligence-autonomy-ceiling-domain"
-version = "0.1.0"
-dependencies = [
- "intelligence-autonomy-ceiling-kernel",
 ]
 
 [[package]]
@@ -8299,52 +8339,19 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-intelligence-bypass-domain"
-version = "0.1.0"
-dependencies = [
- "intelligence-capability-domain",
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-intelligence-capability-registry-app"
-version = "0.1.0"
-dependencies = [
- "intelligence-capability-registry-kernel",
- "oya-intelligence-capability-registry-domain",
-]
-
-[[package]]
-name = "oya-intelligence-capability-registry-domain"
-version = "0.1.0"
-dependencies = [
- "intelligence-capability-registry-kernel",
-]
-
-[[package]]
 name = "oya-intelligence-claude-account-adapter"
 version = "0.1.0"
 dependencies = [
- "oya-intelligence-account-domain",
+ "intelligence-account-domain",
  "oya-intelligence-supervisor-kernel",
  "tokio",
-]
-
-[[package]]
-name = "oya-intelligence-cloud-mutation-domain"
-version = "0.1.0"
-dependencies = [
- "audit-chain-domain",
- "intelligence-capability-domain",
- "oya-data-boundary-kernel",
- "oya-intelligence-policy-domain",
 ]
 
 [[package]]
 name = "oya-intelligence-codex-account-adapter"
 version = "0.1.0"
 dependencies = [
- "oya-intelligence-account-domain",
+ "intelligence-account-domain",
  "oya-intelligence-supervisor-kernel",
  "tokio",
 ]
@@ -8357,13 +8364,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-intelligence-context-aware-retrieval-domain"
-version = "0.1.0"
-dependencies = [
- "oya-intelligence-context-aware-retrieval-kernel",
-]
-
-[[package]]
 name = "oya-intelligence-context-aware-retrieval-kernel"
 version = "0.1.0"
 
@@ -8371,7 +8371,7 @@ version = "0.1.0"
 name = "oya-intelligence-context-aware-retrieval-usecase"
 version = "0.1.0"
 dependencies = [
- "oya-intelligence-context-aware-retrieval-domain",
+ "intelligence-context-aware-retrieval-domain",
 ]
 
 [[package]]
@@ -8413,7 +8413,7 @@ dependencies = [
 name = "oya-intelligence-dashboard-api"
 version = "0.1.0"
 dependencies = [
- "oya-intelligence-account-domain",
+ "intelligence-account-domain",
  "oya-intelligence-dashboard-kernel",
 ]
 
@@ -8421,7 +8421,7 @@ dependencies = [
 name = "oya-intelligence-dashboard-app"
 version = "0.1.0"
 dependencies = [
- "oya-intelligence-account-domain",
+ "intelligence-account-domain",
  "oya-intelligence-dashboard-kernel",
 ]
 
@@ -8429,7 +8429,7 @@ dependencies = [
 name = "oya-intelligence-dashboard-dry-run-kernel"
 version = "0.1.0"
 dependencies = [
- "oya-intelligence-account-domain",
+ "intelligence-account-domain",
  "oya-intelligence-dashboard-kernel",
 ]
 
@@ -8437,7 +8437,7 @@ dependencies = [
 name = "oya-intelligence-dashboard-kernel"
 version = "0.1.0"
 dependencies = [
- "oya-intelligence-account-domain",
+ "intelligence-account-domain",
 ]
 
 [[package]]
@@ -8517,7 +8517,7 @@ dependencies = [
 name = "oya-intelligence-gemini-account-adapter"
 version = "0.1.0"
 dependencies = [
- "oya-intelligence-account-domain",
+ "intelligence-account-domain",
  "oya-intelligence-supervisor-kernel",
  "tokio",
 ]
@@ -8689,7 +8689,7 @@ dependencies = [
 name = "oya-intelligence-route-policy-kernel"
 version = "0.1.0"
 dependencies = [
- "oya-intelligence-account-domain",
+ "intelligence-account-domain",
 ]
 
 [[package]]
@@ -8714,9 +8714,9 @@ name = "oya-intelligence-settings-template-adapter"
 version = "0.1.0"
 dependencies = [
  "blake3",
+ "intelligence-account-domain",
  "intelligence-account-kernel",
  "libc",
- "oya-intelligence-account-domain",
  "oya-intelligence-settings-template-kernel",
 ]
 
@@ -8724,8 +8724,8 @@ dependencies = [
 name = "oya-intelligence-settings-template-kernel"
 version = "0.1.0"
 dependencies = [
+ "intelligence-account-domain",
  "intelligence-account-kernel",
- "oya-intelligence-account-domain",
 ]
 
 [[package]]
@@ -8764,9 +8764,9 @@ dependencies = [
 name = "oya-intelligence-supervisor-app"
 version = "0.1.0"
 dependencies = [
+ "intelligence-account-domain",
+ "intelligence-autonomy-ceiling-domain",
  "oya-intelligence-account-adapter-inmemory",
- "oya-intelligence-account-domain",
- "oya-intelligence-autonomy-ceiling-domain",
  "oya-intelligence-claude-account-adapter",
  "oya-intelligence-codex-account-adapter",
  "oya-intelligence-gemini-account-adapter",
@@ -8785,18 +8785,18 @@ dependencies = [
 name = "oya-intelligence-supervisor-kernel"
 version = "0.1.0"
 dependencies = [
+ "intelligence-account-domain",
  "intelligence-autonomy-ceiling-kernel",
- "oya-intelligence-account-domain",
 ]
 
 [[package]]
 name = "oya-intelligence-supervisor-security-adapter"
 version = "0.1.0"
 dependencies = [
+ "intelligence-account-domain",
+ "intelligence-autonomy-ceiling-domain",
  "intelligence-autonomy-ceiling-kernel",
  "intelligence-capability-registry-kernel",
- "oya-intelligence-account-domain",
- "oya-intelligence-autonomy-ceiling-domain",
  "oya-intelligence-supervisor-kernel",
 ]
 
@@ -8804,7 +8804,7 @@ dependencies = [
 name = "oya-intelligence-usage-window-kernel"
 version = "0.1.0"
 dependencies = [
- "oya-intelligence-account-domain",
+ "intelligence-account-domain",
 ]
 
 [[package]]

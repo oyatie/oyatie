@@ -18,7 +18,7 @@ use hyper::{Request, Response};
 use hyper_util::rt::TokioIo;
 use tokio::net::TcpListener;
 
-use oya_intelligence_account_domain::{
+use intelligence_account_domain::{
     SecretMaterial, SecretReference, SecretStoreError, SecretStorePort,
 };
 use oya_intelligence_adapter_openai_subscription_adapter::{

@@ -6,7 +6,7 @@
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
-pub use oya_intelligence_account_domain::{
+pub use intelligence_account_domain::{
     AccountError, AccountId, AccountState, ProviderAccount, ProviderFamily, RouteExplanation,
     check_silent_switch,
 };
@@ -398,7 +398,7 @@ impl RoutePolicy {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_intelligence_account_domain::ProviderAccount;
+    use intelligence_account_domain::ProviderAccount;
 
     fn aid(s: &str) -> AccountId {
         AccountId(s.to_owned())
