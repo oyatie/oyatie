@@ -4,7 +4,7 @@ use std::path::PathBuf;
 
 use ci_dependency_graph_acyclicity::{
     DEFAULT_POLICY_PATH, GATE_ID, Policy, Report, Verdict, evaluate_with_raw, load_policy,
-    parse_dag,
+    parse_dag, parse_policy,
 };
 use serde_json::{Value, json};
 
@@ -91,6 +91,21 @@ fn graph_mut<'a>(raw: &'a mut Value, kind: &str) -> &'a mut Value {
         .expect("graph kind")
 }
 
+fn push_request_edge(raw: &mut Value, from: &str, to: &str, fixture: &str) {
+    graph_mut(raw, "steady_state_request")["edges"]
+        .as_array_mut()
+        .unwrap()
+        .push(json!({
+            "graph_kind": "steady_state_request",
+            "from": from,
+            "to": to,
+            "dependency_weight": 1.0,
+            "cascade_rule": "FULL",
+            "version_compatibility_range": "^2.0",
+            "cedar_permit_fragment": fixture
+        }));
+}
+
 fn replace_string(value: &mut Value, old: &str, new: &str) {
     match value {
         Value::Array(items) => {
@@ -163,25 +178,41 @@ fn apply_fixture_mutation(raw: &mut Value, mutation: &str) {
                 "graph_kind": "genesis", "from": "unknown.face", "to": "cell.envelope"
             })),
         "cross_kind_contamination" => {
-            graph_mut(raw, "genesis")["edges"][0]["graph_kind"] =
-                json!("steady_state_request");
+            graph_mut(raw, "genesis")["edges"][0]["graph_kind"] = json!("steady_state_request");
         }
-        "graph3_self_loop" => graph_mut(raw, "steady_state_request")["edges"]
-            .as_array_mut()
-            .unwrap()
-            .push(json!({
-                "graph_kind": "steady_state_request", "from": "cell.envelope", "to": "cell.envelope",
-                "dependency_weight": 1.0, "cascade_rule": "FULL",
-                "version_compatibility_range": "^2.0", "cedar_permit_fragment": "fixture-self-loop"
-            })),
-        "graph3_cycle" => graph_mut(raw, "steady_state_request")["edges"]
-            .as_array_mut()
-            .unwrap()
-            .push(json!({
-                "graph_kind": "steady_state_request", "from": "cell.envelope", "to": "iam.local-verifier",
-                "dependency_weight": 1.0, "cascade_rule": "FULL",
-                "version_compatibility_range": "^2.0", "cedar_permit_fragment": "fixture-cycle"
-            })),
+        "graph3_self_loop" => {
+            push_request_edge(raw, "cell.envelope", "cell.envelope", "fixture-self-loop")
+        }
+        "graph3_cycle" => push_request_edge(
+            raw,
+            "cell.envelope",
+            "iam.local-verifier",
+            "fixture-two-node-cycle",
+        ),
+        "graph3_three_node_cycle" => push_request_edge(
+            raw,
+            "cell.envelope",
+            "tenancy.local-context",
+            "fixture-three-node-cycle",
+        ),
+        "graph3_buried_scc_cycle" => push_request_edge(
+            raw,
+            "cell.envelope",
+            "observability.cell-runtime",
+            "fixture-buried-scc-cycle",
+        ),
+        "present_forbidden_edge" => push_request_edge(
+            raw,
+            "cell.envelope",
+            "iam.local-verifier",
+            "fixture-forbidden-edge",
+        ),
+        "invalid_bootstrap_order" => {
+            graph_mut(raw, "steady_state_request")["bootstrap_order"]
+                .as_array_mut()
+                .unwrap()
+                .swap(0, 1);
+        }
         "remove_failure_impact_rule" => {
             graph_mut(raw, "failure_brownout_propagation")["edges"][0]
                 .as_object_mut()
@@ -297,6 +328,89 @@ fn live_policy_and_graph_v2_are_green() {
         "{:?}",
         evaluated.findings
     );
+}
+
+#[test]
+fn policy_rejects_wrong_gate_id_and_repo_path_escapes() {
+    let valid = json!({
+        "gate_id": GATE_ID,
+        "dag_path": "specs/substrate-dependency-dag.json",
+        "schema_path": "specs/substrate-dependency-dag.schema.json",
+        "capability_registry_path": "specs/capability-registry.json"
+    });
+
+    let mut wrong_gate = valid.clone();
+    wrong_gate["gate_id"] = json!("lookalike-substrate-gate");
+    let error = parse_policy(&wrong_gate.to_string()).expect_err("wrong gate id must fail closed");
+    assert!(error.to_string().contains("does not match"), "{error}");
+
+    for (field, escaped) in [
+        ("dag_path", "../outside.json"),
+        ("schema_path", "specs/../outside.schema.json"),
+        ("capability_registry_path", "/tmp/capability-registry.json"),
+    ] {
+        let mut policy = valid.clone();
+        policy[field] = json!(escaped);
+        let error = parse_policy(&policy.to_string())
+            .expect_err("repo path escape must fail closed before any file access");
+        assert!(
+            error.to_string().contains("must not contain `..`")
+                || error.to_string().contains("must be repo-relative"),
+            "unexpected error for `{field}={escaped}`: {error}"
+        );
+    }
+}
+
+#[test]
+fn bootstrap_accepts_valid_nonalphabetical_order_and_kahn_is_deterministic() {
+    let (raw, _) = load_live();
+    let first = report(&raw);
+    let second = report(&raw);
+    assert_eq!(first.verdict, Verdict::Green, "{:?}", first.findings);
+    assert_eq!(
+        first.derived_bootstrap_order,
+        second.derived_bootstrap_order
+    );
+
+    let steady = raw["graphs"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|graph| graph["kind"] == "steady_state_request")
+        .expect("steady-state graph");
+    let declared: Vec<&str> = steady["bootstrap_order"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|unit| unit.as_str().unwrap())
+        .collect();
+    let derived = first
+        .derived_bootstrap_order
+        .expect("an acyclic request graph has a deterministic Kahn order");
+    assert_eq!(
+        derived,
+        [
+            "cell.envelope",
+            "iam.local-verifier",
+            "secrets.cell-issuer",
+            "tenancy.local-context",
+            "policy.local-pdp",
+            "audit.cell-seal",
+            "observability.cell-runtime",
+            "data.ontology-runtime",
+            "intelligence.runtime",
+            "workflow.runtime",
+        ],
+        "BTree tie-breaking keeps the derived dependency-first order stable"
+    );
+    assert_ne!(
+        declared, derived,
+        "a valid declared order need not equal the alphabetical Kahn tie-break"
+    );
+
+    let (mut invalid, _) = load_live();
+    apply_fixture_mutation(&mut invalid, "invalid_bootstrap_order");
+    assert_red_code(&invalid, "dag_bootstrap_drift");
 }
 
 #[test]

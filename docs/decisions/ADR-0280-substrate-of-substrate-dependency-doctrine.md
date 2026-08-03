@@ -121,13 +121,14 @@ enforced_by:
 2026-05-20; ratified to Accepted as part of the WAVE-1 fabric convergence (resolve-every-Proposed
 rule), and **amended by ADR-0520** and **ADR-0562**.
 
-**Amended by ADR-0562 (2026-06-14, capability-first repo organization).** Two linkages: (1) the DAG
-`nodes` use **de-branded capability names** (the `specs/capability-registry.json` slugs), realized
-via the ADR-0532/0533 profile mechanism in a later Phase-0 lane; (2) §D-1's
-`bootstrap_order` is the **canonical** substrate bootstrap ordering source (ADR-0562 §8 Fork 1) —
-`platform-architecture.json`'s `substrate_dag_canonical_ordering` is the derived mirror, amended to
-match §D-1. The acyclicity invariant and the Tier-1 DAG are unchanged. ADR-0562 is the governing
-reorg ADR.
+**Amended by ADR-0562 (2026-06-14, capability-first repo organization), then ADR-0635 (2026-08-01,
+bounded graph v2).** ADR-0562 made capability-registry slugs the ownership vocabulary and made the
+substrate dependency artifact canonical over any duplicate projection. ADR-0635 replaced its flat
+v1 shape with five face-aware graph kinds. The current v2 artifact is a closed W0-C slice of 19
+dependency units spanning 11 of 24 capabilities; it is not the complete §D-13.G placement. The
+`specs/platform-architecture.json` v1 ordering block is therefore historical/stale and MUST NOT
+claim current derived parity. Full coverage is deferred to the no-new-baseline
+`W0-C-TOPOLOGY-COVERAGE` follow-up described below. ADR-0562 remains the governing reorg ADR.
 
 ## Amendment (2026-06-08, WAVE-1 fabric convergence)
 
@@ -162,8 +163,11 @@ enforce it move to BLOCKER status only after:
    metadata (failure-cascade-rule, dependency-weight, version-
    compatibility-range) declared.
 2. The DAG validator `crates/oya-substrate-dependency-dag-validator-*`
-   compiles, exits 0 on a clean checkout, and rejects synthetic
-   cycle-injection fixtures in `tests/fixtures/dag-cycles/`.
+   compiles, exits 0 on a clean checkout, and rejects synthetic cycle injections. ADR-0635
+   replaces the retired standalone v1 `tests/fixtures/dag-cycles/` documents with named mutations
+   against the live graph-v2 authority in `tests/fixtures/graph-v2-cases.json`. The old files remain
+   marked `retired-inert-v1-compatibility-only` solely because the baseline producer replays
+   merge-base tracked paths against the candidate root; no gate loads them.
 3. The CI lane `oya-check-substrate-dependency-dag-acyclicity` is
    registered as a leg of the `.github/workflows/oya-ci-required.yml`
    gate matrix (`crate: dependency-graph-acyclicity`) and runs on every
@@ -219,10 +223,10 @@ silent false-green):
   - `ci/facade/dependency-graph-acyclicity/src/lib.rs`
   - `ci/facade/dependency-graph-acyclicity/src/main.rs`
   - `ci/facade/dependency-graph-acyclicity/tests/acyclicity.rs`
-  - `ci/facade/dependency-graph-acyclicity/tests/fixtures/dag-cycles/simple-two-node.json`
-  - `ci/facade/dependency-graph-acyclicity/tests/fixtures/dag-cycles/three-node.json`
-  - `ci/facade/dependency-graph-acyclicity/tests/fixtures/dag-cycles/self-loop.json`
-  - `ci/facade/dependency-graph-acyclicity/tests/fixtures/dag-cycles/six-node-buried.json`
+  - `ci/facade/dependency-graph-acyclicity/tests/fixtures/graph-v2-cases.json` (ADR-0635
+    successor corpus; mutates the live graph so RED fixtures cannot become a second stale topology)
+  - `ci/facade/dependency-graph-acyclicity/tests/fixtures/dag-cycles/*.json` (retired inert v1
+    compatibility bytes; retained for merge-base path replay only and not loaded by the gate)
 - Prerequisite #3 (the named CI lane): the lane
   `oya-check-substrate-dependency-dag-acyclicity` is registered in the
   canonical `.github/workflows/oya-ci-required.yml` gate matrix as
@@ -276,12 +280,12 @@ category error**: it equates a capability *ownership boundary* with one *deploya
 node*. A bare cell envelope is *below* the services hosted in it; hardware/boot trust is
 *below* the operational secrets service; cell lifecycle is *above* iam/policy; the router is a
 *separate* distributed data plane; and every critical control capability has BOTH a
-global-control face and a cell-local/runtime face. The canonical model is therefore a
+global-control face and a cell-local/runtime face. The target model is therefore a
 **face-aware, sharded, typed DAG across planes** — declared in full in the new **§D-13**. This
 amendment **supersedes the plain "cell-as-leaf total order" framing** of §D-1/§D-2/§D-4 with
-the face-aware typed DAG of §D-13. The §D-1 machine artifact remains valid and unchanged as
-the **C-plane steady-state runtime dependency graph** (one of the five edge-typed graphs of
-§D-13.C), with its `cell` node understood as the `cell.envelope` (B0) runtime face.
+the face-aware typed-DAG target of §D-13. ADR-0635 later replaced the §D-1 v1 machine shape with a
+bounded graph-v2 slice whose `steady_state_request` graph maps the ten legacy nodes to runtime
+faces; that slice is canonical for its declared tuples and edges, not complete target coverage.
 
 **Fork resolution (the load-bearing fix).** Two committed SSOTs disagreed on substrate
 topology: `specs/substrate-dependency-dag.json` (cell-as-leaf flat `bootstrap_order`) and
@@ -290,23 +294,17 @@ map with `cell` at S2 and `audit-chain` / `observability` / `cloud-secrets` as S
 ADR-0562 §8 Fork-1 directive already named `substrate-dependency-dag.json` §D-1 canonical and
 `platform-architecture.json`'s block the "derived mirror, amended to match §D-1", but the
 mirror was never actually corrected — the inverted orientation stayed on disk. This amendment
-**executes that correction**: `specs/substrate-dependency-dag.json` (§D-1) is the sole
-canonical Tier-1 runtime-face DAG; `specs/platform-architecture.json`
-`substrate_dag_canonical_ordering` is rewritten as an explicit **derived projection**
-(`projection_kind: derived-mirror`, `canonical_source: /specs/substrate-dependency-dag.json`)
-that carries §D-1's `bootstrap_order` verbatim, a DAG-consistent dependency-depth
-stratification (`cell` at the S0 leaf; no node placed below a node it depends on), and the
-Tier-2 + meta nodes placed by §D-13 plane and marked forward-declared. The two SSOTs now agree
-by construction.
+**executed the v1 correction**: `specs/substrate-dependency-dag.json` remained canonical and
+`specs/platform-architecture.json` carried a v1-derived ordering projection. ADR-0635 later moved
+the canonical artifact to graph v2 without regenerating that projection. The projection is now
+explicitly marked `stale-v1-not-current-parity`; it is historical compatibility data, not a second
+SSOT or evidence that the bounded v2 slice implements all §D-13 topology.
 
-**Capability-node mapping.** Per the founder policy-extract ruling, `policy` owns its own DAG
-node (extracted from `iam`), giving **24 capabilities ↔ 24 dag_nodes**. The §D-1 machine
-artifact already carries `policy-engine` as a node distinct from `identity`, so the runtime DAG
-needs no change on this point. The closed capability-registry's `iam`-owns-`{identity,
-policy-engine}` grouping is the surface that still expresses policy as a sub-node of `iam`;
-splitting it into a standalone `policy` capability is a **closed-registry membership change**
-that rides its own ADR-0615 / ADR-0562-§7 capability-registry lane (flagged in §D-13.H), not
-this substrate-topology amendment.
+**Capability-node mapping.** The founder policy-extract ruling keeps `policy` as a capability
+distinct from `iam`. The 24-capability-to-topology mapping in §D-13.G is a target placement model,
+not a claim about the current graph-v2 row count. The bounded v2 slice represents 11 capabilities;
+the remaining 13 and missing hosting-chain faces require the separately reviewed
+`W0-C-TOPOLOGY-COVERAGE` follow-up.
 
 See **§D-13** for the full plane model (E0/B0/C0/C1/C2 + G + R), the five edge-typed graphs,
 the per-capability face-splits, the two-kinds-of-roots distinction, and the static-stability
@@ -1709,9 +1707,11 @@ R   distributed routing data plane: network edge + gateway edge + cell.router �
 plane (G) may be large, but **cell runtime must never synchronously depend on it**
 (static-stability invariant — the data plane survives a control-plane outage). The router (R)
 is a data plane, not the control plane, and must itself be cellularized (it is the only layer
-that knows all cells). The C-plane bottom-to-top ordering (B0 → C0 → C1 → C2) is exactly what
-the §D-1 machine artifact encodes as `bootstrap_order`, with the §D-1 `cell` node being the
-`cell.envelope` (B0) face.
+that knows all cells). The C-plane bottom-to-top ordering (B0 → C0 → C1 → C2) is the target
+ordering. ADR-0635's bounded graph-v2 slice encodes the represented runtime path with
+`cell.envelope` as its B0 leaf; it does not yet encode the complete
+`network.bootstrap → compute.bootstrap → storage.bootstrap → k8s.bootstrap → cell.envelope`
+hosting chain.
 
 #### D-13.C. Five distinct edge-typed graphs
 
@@ -1731,9 +1731,9 @@ directions**:
 5. **Failure / brownout propagation graph** — the cascade closure of §D-5, honouring ADR-0176
    brown-out.
 
-The §D-1 acyclicity invariant governs graph (3). Graphs (1), (2), (4), (5) are authored here
-in prose and **flagged for a DAG-schema extension (DAG v2)** rather than forced into the
-v1.0.0 machine artifact (see §D-13.H).
+The §D-1 acyclicity invariant governs graph (3). **Amended by ADR-0635:** graph v2 now gives all
+five graph kinds a closed machine shape for the bounded 19-unit W0-C slice, and derives graph (5)
+from graph (3). This does not imply full §D-13.G coverage; see §D-13.F–H.
 
 #### D-13.D. Per-capability face-splits (the crux)
 
@@ -1776,28 +1776,25 @@ control/data-plane split: the data plane (C-plane runtime + R) survives a full c
 invariant for the C-plane faces; the G-plane no-synchronous-dependency rule is authored here
 and flagged for the DAG v2 face schema.
 
-#### D-13.F. Fork resolution — how the two SSOTs now agree
+#### D-13.F. Fork resolution — sole authority and stale-projection disposition
 
-`specs/substrate-dependency-dag.json` (§D-1) is the **sole canonical** substrate topology
-authority: the steady-state C-plane runtime dependency graph (graph 3 of §D-13.C). Its `cell`
-node is the `cell.envelope` (B0) face. `specs/platform-architecture.json`
-`substrate_dag_canonical_ordering` is a **derived mirror** that:
+`specs/substrate-dependency-dag.json` is the **sole canonical machine topology artifact**.
+ADR-0635 graph v2 makes its `steady_state_request` graph graph 3 of §D-13.C and maps the legacy
+`cell` node to the `cell.envelope` (B0) face. Its current closed set is nevertheless a bounded W0-C
+slice, not the full §D-13 target.
 
-1. carries §D-1's `bootstrap_order` verbatim as `tier1_bootstrap_order`;
-2. adds a DAG-consistent dependency-depth stratification (`tier1_dependency_strata`, S0 leaf =
-   `cell` … S8 = `workflow-engine`) in which no node sits below a node it depends on — the
-   inversion (cell at S2; audit / observability / secrets at S0) is deleted; and
-3. carries the Tier-2 + Tier-S5 meta nodes as `tier2_and_meta_forward_declared`, placed by
-   §D-13 plane and de-branded (`foundry` → `delivery-fabric` per the capability registry).
-
-Neither surface any longer contradicts the other; the mirror is a projection of the canonical
-DAG plus this plane model.
+`specs/platform-architecture.json` `substrate_dag_canonical_ordering` retains a v1 ordering only
+for historical compatibility. It is marked `stale-v1-not-current-parity`, carries
+`current_parity_claim: false`, and MUST NOT be used as a current derived mirror, bootstrap source,
+or proof that all capabilities and hosting roots are represented. A current projection may be
+restored only by the `W0-C-TOPOLOGY-COVERAGE` follow-up after the missing topology is ratified.
 
 #### D-13.G. 24-capability plane placement (summary)
 
-Every one of the 24 registry capabilities maps to exactly one DAG node; each node's faces are
-placed across the planes as follows (E0 = external, B0/C0/C1/C2 = cell planes, G = management,
-R = router; `M` = management-only, never a runtime dependency):
+The following is the **target placement model**, not current graph-v2 coverage. At target state,
+every one of the 24 registry capabilities maps to topology faces across these planes (E0 =
+external, B0/C0/C1/C2 = cell planes, G = management, R = router; `M` = management-only, never a
+runtime dependency):
 
 `cell`[B0 / G / R] · `iam`[G / C0] · `policy`[G / C0] · `tenancy`[G / C0] ·
 `secrets`[E0-backed G / C0] · `audit`[C1 seal + G async aggregation] ·
@@ -1813,13 +1810,26 @@ no shared tenant datastore] · `compliance`[G authoring + C1 enforcement / evide
 `comms`[C2 delivery shard + G templates] · `flags`[G authoring + C0 / C1 last-known-good
 evaluator, no synchronous global lookup].
 
+**Current bounded coverage (ADR-0635/W0-C).** The 19 declared dependency units span only these 11
+capabilities: `network`, `cell`, `iam`, `tenancy`, `policy`, `secrets`, `audit`, `observability`,
+`data`, `intelligence`, and `workflow`. These 13 registry capabilities are omitted from the current
+machine graph: `storage`, `compute`, `k8s`, `gateway`, `messaging`, `ci`, `iac`, `billing`,
+`marketplace`, `console`, `compliance`, `comms`, and `flags`. The current B0 chain contains
+`network.bootstrap` and `cell.envelope` but omits the target `compute.bootstrap`,
+`storage.bootstrap`, and `k8s.bootstrap` faces. No parity or completeness claim is valid across
+those omissions.
+
 **`governance` is NOT one of the 24 capabilities** — it is cross-cutting, implemented via
 `ci` / `iac` / `policy` / `compliance` / `audit`. A standalone `governance` capability would
 make 25; ADR-0615 resolved it decomposes rather than stands alone. The registry's historical
 `iam`-owns-`{identity, policy-engine}` grouping is superseded by the founder policy-extract
-ruling → **24 capabilities ↔ 24 dag_nodes** with `policy` owning its own node. The §D-1
-machine artifact already carries `policy-engine` as a node distinct from `identity`, so the
-runtime DAG is already correct on this point.
+ruling, with `policy` owning its own target topology faces.
+
+**Mandatory completion disposition.** `W0-C-TOPOLOGY-COVERAGE`, tracked by
+[GitHub #1537](https://github.com/jason931225/oyatie/issues/1537), must ratify the exact face tuples
+and typed edges for the 13 omitted capabilities and missing B0 hosting chain before extending the
+closed graph. It must update the derived failure closure and any architecture projection
+atomically, migrate affected consumers, and MUST NOT mint a new frozen baseline.
 
 #### D-13.H. Flagged for schema extension / founder call (not forced in this increment)
 
@@ -1828,21 +1838,15 @@ The following are **deliberately flagged, not forced**, to keep the acyclicity, 
 and cross-artifact-agreement gates green and to avoid a closed-registry membership change
 riding a topology ADR:
 
-1. **DAG v2 face/plane schema.** Encoding the per-node faces (envelope / genesis / lifecycle.cp
-   / router.dp; G-control vs C0-local), the plane tag per node, and graphs (1), (2), (4) of
-   §D-13.C as machine-readable structure needs a `specs/substrate-dependency-dag.json` schema
-   extension (new optional per-node `plane` / `faces` fields and a companion graph set). It is
-   NOT added to the v1.0.0 artifact here — the acyclicity validator's schema-completeness check
-   and the canonical-json determinism gate both govern that file, and a schema change is its own
-   lane.
-2. **Standalone `policy` capability in the closed registry.** Splitting `policy` out of `iam`
-   in `specs/capability-registry.json` (`closed: true`, ADR-0562 membership lint) is a
-   closed-registry change requiring an ADR-0615 / ADR-0562-§7 capability-registry amendment; it
-   is a **founder call**, not encoded here. The runtime DAG and this ADR already treat policy as
-   its own node.
-3. **Tier-2 / Tier-S5 computed strata.** The Tier-2 substrates and the meta-substrate gain
-   computed dependency-depth strata only once their edges land in DAG v1.1.0 (per Appendix B);
-   until then the mirror places them by plane and marks them forward-declared.
+1. **Topology coverage.** ADR-0635 lands the face/plane schema and all five graph kinds for the
+   bounded 19-unit slice. The remaining 13 capabilities plus the missing B0 hosting-chain faces
+   stay deferred to `W0-C-TOPOLOGY-COVERAGE`; their exact tuples and edges are not invented here.
+2. **Module-membership and layer-rank consumers.** They remain separate graph-v2 migrations under
+   `W0-C-MODULE-MEMBERSHIP` and `W0-C-LAYER-RANKS`.
+3. **Current architecture projection.** The v1 projection remains stale until topology coverage is
+   ratified and a deterministic graph-v2 projection can replace it atomically.
+
+All three follow-ups preserve the no-new-baseline rule.
 
 #### D-13.I. Reasoning and precedent
 
@@ -2146,31 +2150,21 @@ oya gate validate substrate-dependency-dag-acyclicity --strict
 
 ### V-3. Cycle-injection test
 
-Synthetic fixtures under `tests/fixtures/dag-cycles/`:
-
-```
-tests/fixtures/dag-cycles/
-├── cycle-simple-two-node.json    ; A→B→A
-├── cycle-three-node.json          ; A→B→C→A
-├── cycle-self-loop.json           ; A→A
-└── cycle-six-node-buried.json     ; Long cycle hidden in DAG
-```
+ADR-0635 retires the standalone v1 DAG copies. The graph-v2 corpus names self-loop, two-node,
+three-node, and buried six-node SCC mutations and applies them to the live canonical document.
 
 ```bash
-for fixture in tests/fixtures/dag-cycles/*.json; do
-  oya gate validate substrate-dependency-dag-acyclicity \
-    --spec "$fixture" \
-    --expect-exit 1
-done
-# Expect each to exit 1 with the cycle path identified.
+buck2 test //ci/facade/dependency-graph-acyclicity:ci-dependency-graph-acyclicity-gate
+# Expect every named RED mutation to fail closed and the live graph to remain GREEN.
 ```
 
-### V-4. Topological-sort-equals-bootstrap verification
+### V-4. Bootstrap-order verification
 
 ```bash
-oya gate validate substrate-bootstrap-order-matches-topological-sort
-# Verifies cloud-iac bootstrap derivation emits the order
-# from the DAG; rejects hard-coded ordering.
+buck2 test //ci/facade/dependency-graph-acyclicity:ci-dependency-graph-acyclicity-gate
+# Verifies the declared order is a valid dependency-first order, an invalid order is RED,
+# and deterministic alphabetical Kahn output remains available without requiring the valid
+# hand-authored order to equal that tie-break.
 ```
 
 ### V-5. SLO composition bound verification
