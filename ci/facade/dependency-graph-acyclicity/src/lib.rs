@@ -276,6 +276,7 @@ pub fn evaluate_with_raw(
 ) -> Report {
     let mut findings = Vec::new();
     check_schema_authority(schema, &mut findings);
+    check_policy_schema_binding(policy, schema, &mut findings);
     check_top_level(raw, policy, &mut findings);
     let capabilities = check_capability_registry(capability_registry, &mut findings);
     let units = check_dependency_units(raw, &capabilities, &mut findings);
@@ -405,6 +406,21 @@ fn check_schema_authority(schema: &Value, findings: &mut Vec<Finding>) {
             format!(
                 "schema must be the reviewed Draft 2020-12 authority with sha256 {}; got {:?}",
                 SCHEMA_CANONICAL_SHA256, digest
+            ),
+        ));
+    }
+}
+
+fn check_policy_schema_binding(policy: &Policy, schema: &Value, findings: &mut Vec<Finding>) {
+    let schema_tracking_issue = schema
+        .pointer("/$defs/follow_up/allOf/0/then/properties/tracking_issue/const")
+        .and_then(Value::as_str);
+    if schema_tracking_issue != Some(policy.topology_coverage_tracking_issue.as_str()) {
+        findings.push(finding(
+            "dag_follow_up_policy_drift",
+            "policy.topology_coverage_tracking_issue",
+            format!(
+                "policy tracking issue must equal the pinned canonical schema const; schema has {schema_tracking_issue:?}"
             ),
         ));
     }
