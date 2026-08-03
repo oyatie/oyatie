@@ -22,9 +22,9 @@ doctest = false
 
 [dependencies]
 oya-ci-webhook-gateway-kernel = { path = "../oya-ci-webhook-gateway-kernel" }
-oya-ci-webhook-gateway-ed25519-adapter = { path = "../oya-ci-webhook-gateway-ed25519-adapter" }
-oya-ci-webhook-gateway-github-adapter = { path = "../oya-ci-webhook-gateway-github-adapter" }
-oya-ci-webhook-gateway-authz-cedar-adapter = { path = "../oya-ci-webhook-gateway-authz-cedar-adapter" }
+ci-webhook-gateway-ed25519-adapter = { path = "../../../../ci/adapters/webhook-gateway-ed25519-adapter" }
+ci-webhook-gateway-github-adapter = { path = "../../../../ci/adapters/webhook-gateway-github-adapter" }
+ci-webhook-gateway-authz-cedar-adapter = { path = "../../../../ci/adapters/webhook-gateway-authz-cedar-adapter" }
 axum = { version = "0.8", default-features = false, features = ["http1", "json", "tokio"] }
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 serde = { workspace = true }

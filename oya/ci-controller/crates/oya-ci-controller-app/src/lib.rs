@@ -46,15 +46,15 @@ use axum::{
     response::{IntoResponse, Response},
     routing::{get, post},
 };
+use ci_controller_k8s_adapter::{
+    ANNOT_CI_BASE_REF, ANNOT_CI_STATUS_POSTED, LABEL_CI_DELIVERY_ID, LABEL_CI_HEAD_SHA,
+    LABEL_CI_PR_NUMBER, observe_job,
+};
 use k8s_openapi::api::{batch::v1::Job, core::v1::Pod};
 use kube::{
     Api, Client, Error as KubeError,
     api::{ListParams, Patch, PatchParams},
     runtime::{Controller, controller::Action, watcher},
-};
-use oya_ci_controller_k8s_adapter::{
-    ANNOT_CI_BASE_REF, ANNOT_CI_STATUS_POSTED, LABEL_CI_DELIVERY_ID, LABEL_CI_HEAD_SHA,
-    LABEL_CI_PR_NUMBER, observe_job,
 };
 use oya_ci_controller_kernel::{
     CommitState, CommitStatusPoster, GATE_CONTEXT, GateRun, GateRunObservabilityPacket,
@@ -396,7 +396,7 @@ pub async fn run_controller(state: ControllerState) {
 
     let job_api: Api<Job> = Api::namespaced(client.clone(), &namespace);
     let watcher_config =
-        watcher::Config::default().labels(oya_ci_controller_k8s_adapter::WATCHER_LABEL_SELECTOR);
+        watcher::Config::default().labels(ci_controller_k8s_adapter::WATCHER_LABEL_SELECTOR);
 
     info!(namespace = %namespace, "starting oya-ci controller");
 
