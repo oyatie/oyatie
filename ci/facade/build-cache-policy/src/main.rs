@@ -11,7 +11,7 @@
 //!   assert-warm --record PATH --build-class C --mode M
 //!   assert-cold --record PATH
 //!   hash-outputs --show-output PATH [--out PATH]
-//!   canary-verdict --cold PATH [--warm PATH] [--out PATH]
+//!   canary-verdict --cold PATH [--warm PATH --warm-record PATH --build-class C --mode M] [--out PATH]
 //!   canary-targets                      (prints the pinned target set, one per line)
 
 use std::fs;
@@ -205,6 +205,45 @@ fn run(args: Vec<String>) -> Result<ExitCode, String> {
                         "canary-verdict: warm reads are LICENSED but no --warm manifest was \
                          supplied — the warm-probe step is missing or failed silently; refusing \
                          to emit INACTIVE while warmth is live (ADR-0556 D2)"
+                            .to_string(),
+                    );
+                }
+            }
+            // PARTICIPATION PROOF, gating the verdict itself: a warm manifest is
+            // scored only once its probe's invocation record proves the cache served
+            // it. Byte-equality is satisfied by a probe that served nothing, so
+            // without this the canary emits GREEN having proven nothing — the one
+            // artifact that licenses warm reads fleet-wide (ADR-0556 D2).
+            if warm.is_some() {
+                let build_class = flag_value(rest, "--build-class").ok_or_else(|| {
+                    "canary-verdict with --warm requires --build-class (the class the probe ran \
+                     as); refusing to score a warm manifest without it"
+                        .to_string()
+                })?;
+                let mode = flag_value(rest, "--mode").ok_or_else(|| {
+                    "canary-verdict with --warm requires --mode (the cache mode the probe dialed); \
+                     refusing to infer it — an unstated mode would skip the hit-count checks"
+                        .to_string()
+                })?;
+                // No --warm-record, or a path buck2 never wrote, both land on `None`
+                // / a hard read error. Neither may pass: see assert_warm_manifest_admissible.
+                let doc = match flag_value(rest, "--warm-record") {
+                    Some(path) => Some(read_json(&path)?),
+                    None => None,
+                };
+                let record = match doc.as_ref() {
+                    Some(doc) => Some(app::invocation_record(doc)?),
+                    None => None,
+                };
+                if let Err(findings) =
+                    app::assert_warm_manifest_admissible(record, &build_class, &mode)
+                {
+                    for finding in findings {
+                        eprintln!("{finding}");
+                    }
+                    return Err(
+                        "canary-verdict: the warm probe did not prove the cache served it — \
+                         refusing to emit a verdict that would license warm reads (ADR-0556 D2)"
                             .to_string(),
                     );
                 }

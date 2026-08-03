@@ -402,6 +402,32 @@ pub fn assert_warm_cache_participation(
     }
 }
 
+/// Admissibility of the canary's WARM side: a warm digest manifest may be scored
+/// against the cold one ONLY if the probe that produced it actually read from the
+/// cache. `record` is that probe's own buck2 invocation record.
+///
+/// `None` — the probe wrote no record, or the flag naming it was dropped — is RED,
+/// never a pass. This is the exact false-green ADR-0556 D2 turns on: a probe whose
+/// cache wiring is inert serves nothing, rebuilds every action locally, and emits
+/// outputs byte-identical to the cold build, so the digest comparison alone returns
+/// GREEN having proven nothing — and that GREEN is what flips
+/// specs/cache-warm-license.json to license warm reads fleet-wide. Absence of
+/// evidence must therefore fail closed, exactly as it does for the cold proof.
+pub fn assert_warm_manifest_admissible(
+    record: Option<&Value>,
+    build_class: &str,
+    mode: &str,
+) -> Result<(), Vec<String>> {
+    match record {
+        Some(record) => assert_warm_cache_participation(record, build_class, mode),
+        None => Err(vec![format!(
+            "canary warm probe for class `{build_class}` in mode `{mode}` produced no invocation \
+             record — refusing to score a warm manifest whose cache participation cannot be \
+             proven (byte-equality alone is also satisfied by a probe that served nothing)"
+        )]),
+    }
+}
+
 /// Assert a build had ZERO cache participation (the canary's from-empty proof):
 /// no action-cache hits, no remote executions, no upload attempts.
 ///
@@ -877,6 +903,42 @@ mod tests {
                 invocation_record(&doc).unwrap(),
                 "gate-fleet-shared-graph",
                 "warm-rw"
+            )
+            .is_ok()
+        );
+    }
+
+    #[test]
+    fn warm_manifest_is_inadmissible_without_a_probe_record() {
+        // The canary false-green in one assertion: no record => no proof => RED.
+        let findings = assert_warm_manifest_admissible(None, "integrity-canary", "warm-ro")
+            .expect_err("a warm manifest with no probe record must never be admissible");
+        assert!(
+            findings.iter().any(|f| f.contains("no invocation record")),
+            "{findings:?}"
+        );
+    }
+
+    #[test]
+    fn warm_manifest_admissibility_tracks_actual_participation() {
+        let served_nothing = record_fixture(0, 0, 0);
+        let findings = assert_warm_manifest_admissible(
+            Some(invocation_record(&served_nothing).unwrap()),
+            "integrity-canary",
+            "warm-ro",
+        )
+        .expect_err("a probe with zero action-cache hits proved nothing about the cache");
+        assert!(
+            findings.iter().any(|f| f.contains("0% hit rate")),
+            "{findings:?}"
+        );
+
+        let served = record_fixture(3, 0, 0);
+        assert!(
+            assert_warm_manifest_admissible(
+                Some(invocation_record(&served).unwrap()),
+                "integrity-canary",
+                "warm-ro"
             )
             .is_ok()
         );
