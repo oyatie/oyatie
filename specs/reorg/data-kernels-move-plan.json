@@ -1,0 +1,30 @@
+{
+  "_comment": "De-brand strangler move: home the three owned data-plane KERNELS from the libs/ junk-drawer into the ratified data capability, under the specs/capability-registry.json 'libs/oya-data-* -> data' mapping (ADR-0562 capability-first placement; the data capability root and its twenty-three crates landed in the sixteenth strangler move). Face = core for all three, on evidence: sql-kernel is the owned SQL surface (ClockSource/HLC + session descriptors + parameterized statements, NO IO), outbox-kernel is the transactional-outbox + ChangeStreamSource surface built on it (NO broker IO, NO polling loops), boundary-kernel is the DataClass/Classified taxonomy; ADR-0570 permits a cutover-stable kernel-tier port in core, and all three are the owned surfaces the ADR-0510 transitional adapters (libs/oya-data-sql-adapter-sqlx, libs/oya-data-outbox-adapter-postgres) are written AGAINST, so core placement is non-inverting and kernel-purity holds (zero transient-denylist deps: serde only). De-brand per ADR-0532/0533 + the naming grammar: cargo name = capability slug + de-branded path tail (data + boundary-kernel -> data-boundary-kernel), matching the landed data/core/ontology-kernel -> data-ontology-kernel precedent; the path tail therefore carries the leaf WITHOUT the capability prefix, and leaf-vs-name agreement is the capability-prefixed form the cargo-prefix gate accepts. boundary-kernel is the highest-fan-in crate in libs/ (128 Cargo path-deps and 128 BUCK label references; the three kernels together carry 132 path-deps across 131 BUCK files), so they move together in ONE change and every referrer is repointed atomically; the two sqlx/postgres adapters stay in libs/ (they carry transient tech and are a later adapters/ move), which is why the libs/oya-data-* registry glob stays live -- libs/oya-data-sql-adapter-sqlx and libs/oya-data-outbox-adapter-postgres still match it. Contract surfaces already satisfied by the sixteenth move and needing NO edit here: (a) the workspace glob data/*/* (root Cargo.toml), (b) the data/observability + data/ops workspace excludes, (c) the acyclicity crate_root_globs data/*/*, (d) the registry/catalog/ and specs/reorg/ reachability prefixes. Co-obligations landed in this change: registry/catalog/oya-data-boundary-kernel.yaml re-keyed to data-boundary-kernel.yaml (content-preserving; the catalog is filename-keyed and carries no internal crate-name field), NEW catalog rows authored for data-sql-kernel and data-outbox-kernel (which carried no row and sat in the crate-catalog-coverage frozen baseline -- their old names are BURNED DOWN from that shrink-only list, never re-added under the new names), the specs/reachability-registry.json exact-path OWNERS registration repointed, and the registry-store key re-keyed.",
+  "capability": "data",
+  "moves": [
+    {
+      "old_path": "libs/oya-data-boundary-kernel",
+      "new_path": "data/core/boundary-kernel",
+      "old_cargo_name": "oya-data-boundary-kernel",
+      "new_cargo_name": "data-boundary-kernel"
+    },
+    {
+      "old_path": "libs/oya-data-sql-kernel",
+      "new_path": "data/core/sql-kernel",
+      "old_cargo_name": "oya-data-sql-kernel",
+      "new_cargo_name": "data-sql-kernel"
+    },
+    {
+      "old_path": "libs/oya-data-outbox-kernel",
+      "new_path": "data/core/outbox-kernel",
+      "old_cargo_name": "oya-data-outbox-kernel",
+      "new_cargo_name": "data-outbox-kernel"
+    }
+  ],
+  "artifacts": [
+    {
+      "old_path": "registry/catalog/oya-data-boundary-kernel.yaml",
+      "new_path": "registry/catalog/data-boundary-kernel.yaml"
+    }
+  ]
+}

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://oyatie.com/specs/microservices/pii-registry.json",
   "title": "Cross-microservice PII registry (ADR-0156)",
-  "description": "Aggregated personal-data classification index per ADR-0156. Source-of-truth is each µservice's manifest.json#data_classes_processed; this file is the by-data-class inverse-index for DSR (Data Subject Request) cascade and GDPR Art. 30 evidence. Per ADR-0008 data-use-boundary the canonical class taxonomy is shared with crates/oya-data-boundary-kernel.",
+  "description": "Aggregated personal-data classification index per ADR-0156. Source-of-truth is each µservice's manifest.json#data_classes_processed; this file is the by-data-class inverse-index for DSR (Data Subject Request) cascade and GDPR Art. 30 evidence. Per ADR-0008 data-use-boundary the canonical class taxonomy is shared with data/core/boundary-kernel.",
   "version": "1.0",
   "authority_adr": "ADR-0156-pii-registry-canonical",
   "data_classes": {

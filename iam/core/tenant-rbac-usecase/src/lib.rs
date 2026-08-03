@@ -8,7 +8,7 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
-use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 use iam_tenant_rbac_domain::{
     AiSuggestionRef, AuditEvidenceRef, CrossServiceWorkflowPlan, DeterministicGate,
     IncidentFirstAction, IncidentId, IncidentPlanStatus, IncidentRemediationRoute,

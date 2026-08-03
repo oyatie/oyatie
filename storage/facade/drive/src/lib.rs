@@ -8,7 +8,7 @@
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
-use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 const DRIVE_OBJECT_SCHEMA_VERSION: u32 = 1;
 const DRIVE_FOLDER_SCHEMA_VERSION: u32 = 1;
@@ -350,7 +350,7 @@ impl DriveSurfaceStaging {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_data_boundary_kernel::{DataClassification, OperationalDataClass};
+    use data_boundary_kernel::{DataClassification, OperationalDataClass};
 
     fn owner_grant() -> PermissionGrant {
         PermissionGrant::new(

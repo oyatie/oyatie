@@ -4,7 +4,7 @@
 
 use std::collections::BTreeMap;
 
-use oya_data_boundary_kernel::{Classified, DataClass};
+use data_boundary_kernel::{Classified, DataClass};
 
 type ScopeKey = (String, String, String);
 type TenantWindowKey = (String, String);

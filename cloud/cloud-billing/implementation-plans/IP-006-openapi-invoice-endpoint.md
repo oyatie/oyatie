@@ -117,7 +117,7 @@ The OpenAPI spec uses `x-oyatie-data-class` to tag each field. Three values appe
 - `PUBLIC`: schema_version, region, data_class indicator.
 - `FINANCIAL_REGULATED_CREDIT`: `tax_registration_id` only (per `oya-cloud-billing-tax-app::CloudBillingInvoiceGenerateRequest.tax_registration_id` field comment).
 
-These tags are read by `oya-data-boundary-kernel` at the API gateway layer to enforce field-level redaction policies (per ADR-0244 tenant scoping + data-boundary kernel).
+These tags are read by `data-boundary-kernel` at the API gateway layer to enforce field-level redaction policies (per ADR-0244 tenant scoping + data-boundary kernel).
 
 ### §C.6 Bearer-token / STS authentication
 

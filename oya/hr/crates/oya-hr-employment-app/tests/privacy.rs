@@ -1,6 +1,6 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
-use oya_data_boundary_kernel::DataClass;
+use data_boundary_kernel::DataClass;
 use oya_hr_employment_app::prepare_sensitive_hr_read_envelope;
 use oya_hr_employment_domain::{
     SensitiveHrDataKind, SensitiveHrReadInput, SensitiveReadDecisionStatus,

@@ -63,6 +63,6 @@ Extend `DmarcVerdict` in `crates/oya-mail-domain/src/governance.rs` to compute D
 ## Constraints
 
 - Operate ONLY in `crates/oya-mail-domain/src/governance.rs` (and this plan + spec doc).
-- No new dependencies; crate depends only on `oya-data-boundary-kernel`.
+- No new dependencies; crate depends only on `data-boundary-kernel`.
 - No root `Cargo.toml` edit.
 - Match existing patterns: `int()` helper, `ne()` guard, `Classified::new(v, DataClass::Audit)` for `evidence_ref`.

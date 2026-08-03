@@ -128,7 +128,7 @@ All tests live in the `#[cfg(test)] mod tests` block at the bottom of `governanc
 ## Boundaries and Constraints
 
 - **No new crate.** This task extends one module in one existing crate.
-- **No root `Cargo.toml` edit.** `oya-mail-domain` depends only on `oya-data-boundary-kernel`.
+- **No root `Cargo.toml` edit.** `oya-mail-domain` depends only on `data-boundary-kernel`.
 - **No new dependency.** All logic is pure domain computation.
 - **Backward compatibility.** `DmarcVerdict::new` signature is preserved; callers do not break.
 - **No adapter/REST/gRPC layer.** This is pure domain logic; no HTTP/proto changes in scope.
