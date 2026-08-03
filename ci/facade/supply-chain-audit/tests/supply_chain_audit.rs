@@ -88,12 +88,43 @@ impl TempRepo {
         );
     }
 
+    fn write_scm_facts(&self, tracked_paths: &[&str]) {
+        let mut tracked_paths = tracked_paths.to_vec();
+        tracked_paths.sort_unstable();
+        tracked_paths.dedup();
+        self.write(
+            "scm-facts.json",
+            &serde_json::to_string(&json!({
+                "schema": "oya-ci/scm-facts/v2",
+                "tracked_paths": tracked_paths,
+            }))
+            .expect("serialize fixture scm-facts"),
+        );
+    }
+
     fn policy(&self, corpus: Value) -> Value {
+        let tracked_paths = corpus
+            .as_array()
+            .expect("fixture corpus array")
+            .iter()
+            .flat_map(|entry| {
+                ["manifest_path", "lockfile_path"]
+                    .into_iter()
+                    .map(|key| entry[key].as_str().expect("fixture corpus path").to_owned())
+            })
+            .collect::<Vec<_>>();
+        let tracked_path_refs = tracked_paths.iter().map(String::as_str).collect::<Vec<_>>();
+        self.policy_with_tracked_paths(corpus, &tracked_path_refs)
+    }
+
+    fn policy_with_tracked_paths(&self, corpus: Value, tracked_paths: &[&str]) -> Value {
         let count = corpus.as_array().expect("fixture corpus array").len();
+        self.write_scm_facts(tracked_paths);
         json!({
             "gate_id": GATE_ID,
             "lockfile_corpus": corpus,
             "min_lockfiles": count,
+            "scm_facts_path": "scm-facts.json",
             "mirror_dir": "mirror",
             "unmaintained_policy": "all",
             "min_advisories": 0,
@@ -188,7 +219,7 @@ fn configured_nested_lockfile_is_scanned_but_unconfigured_filesystem_noise_is_no
     repo.write("Cargo.lock", MINIMAL_LOCK);
     repo.write(
         "nested/Cargo.toml",
-        "[package]\nname = \"nested\"\nversion = \"0.1.0\"\n",
+        "[package]\nname = \"nested\"\nversion = \"0.1.0\"\n\n[workspace]\n",
     );
     repo.write(
         "nested/Cargo.lock",
@@ -260,7 +291,7 @@ fn corpus_order_does_not_change_sorted_deduplicated_observed_packages() {
     repo.write("Cargo.lock", MINIMAL_LOCK);
     repo.write(
         "nested/Cargo.toml",
-        "[package]\nname = \"nested\"\nversion = \"0.1.0\"\n",
+        "[package]\nname = \"nested\"\nversion = \"0.1.0\"\n\n[workspace]\n",
     );
     repo.write("nested/Cargo.lock", MINIMAL_LOCK);
     repo.write_mirror(&[]);
@@ -285,12 +316,183 @@ fn corpus_order_does_not_change_sorted_deduplicated_observed_packages() {
 }
 
 #[test]
+fn newly_tracked_workspace_lockfile_must_be_declared_in_policy() {
+    let repo = TempRepo::new("undeclared-workspace-lockfile");
+    repo.write("Cargo.toml", "[workspace]\n");
+    repo.write("Cargo.lock", MINIMAL_LOCK);
+    repo.write("fifth/Cargo.toml", "[workspace]\n");
+    repo.write("fifth/Cargo.lock", MINIMAL_LOCK);
+    repo.write_mirror(&[]);
+    let policy = repo.policy_with_tracked_paths(
+        json!([
+            { "manifest_path": "Cargo.toml", "lockfile_path": "Cargo.lock" }
+        ]),
+        &[
+            "Cargo.lock",
+            "Cargo.toml",
+            "fifth/Cargo.lock",
+            "fifth/Cargo.toml",
+        ],
+    );
+
+    let error = collect(&repo.root, &policy)
+        .expect_err("a tracked fifth workspace lock must fail until policy declares it");
+    assert!(
+        error.to_string().contains("fifth/Cargo.lock")
+            && error.to_string().contains("undeclared workspace-owned"),
+        "totality error must name the undeclared workspace lock: {error}"
+    );
+}
+
+#[test]
+fn tracked_member_and_orphan_lockfiles_do_not_expand_workspace_corpus() {
+    let repo = TempRepo::new("member-orphan-lockfiles");
+    repo.write("Cargo.toml", "[workspace]\nmembers = [\"member\"]\n");
+    repo.write("Cargo.lock", MINIMAL_LOCK);
+    repo.write(
+        "member/Cargo.toml",
+        "[package]\nname = \"member\"\nversion = \"0.1.0\"\n",
+    );
+    repo.write(
+        "member/Cargo.lock",
+        "version = 4\n\n[[package]]\nname = \"quinn-proto\"\nversion = \"0.11.14\"\n",
+    );
+    repo.write(
+        "orphan/Cargo.lock",
+        "version = 4\n\n[[package]]\nname = \"quinn-proto\"\nversion = \"0.11.14\"\n",
+    );
+    repo.write_mirror(&[quinn_fixture()]);
+    let policy = repo.policy_with_tracked_paths(
+        json!([
+            { "manifest_path": "Cargo.toml", "lockfile_path": "Cargo.lock" }
+        ]),
+        &[
+            "Cargo.lock",
+            "Cargo.toml",
+            "member/Cargo.lock",
+            "member/Cargo.toml",
+            "orphan/Cargo.lock",
+        ],
+    );
+
+    let observed =
+        collect(&repo.root, &policy).expect("member/orphan locks are not workspace roots");
+    assert!(
+        evaluate_keyed(&policy, &observed).is_empty(),
+        "member-local and orphan lockfiles must not silently expand the configured workspace corpus"
+    );
+    assert_eq!(
+        observed["locked"],
+        json!([{"name": "serde", "version": "1.0.0"}])
+    );
+
+    let expanded_policy = repo.policy_with_tracked_paths(
+        json!([
+            { "manifest_path": "Cargo.toml", "lockfile_path": "Cargo.lock" },
+            { "manifest_path": "member/Cargo.toml", "lockfile_path": "member/Cargo.lock" }
+        ]),
+        &[
+            "Cargo.lock",
+            "Cargo.toml",
+            "member/Cargo.lock",
+            "member/Cargo.toml",
+            "orphan/Cargo.lock",
+        ],
+    );
+    let error = collect(&repo.root, &expanded_policy)
+        .expect_err("declaring a member-local lock must not expand the workspace corpus");
+    assert!(
+        error.to_string().contains("member/Cargo.lock")
+            && error
+                .to_string()
+                .contains("declared paths absent from the workspace-owned projection"),
+        "exact projection must reject member-local policy expansion: {error}"
+    );
+}
+
+#[test]
+fn malformed_or_empty_package_rows_fail_collection_without_silent_drop() {
+    let cases = [
+        (
+            "missing-name",
+            "version = 4\n\n[[package]]\nversion = \"1.0.0\"\n",
+        ),
+        (
+            "non-string-name",
+            "version = 4\n\n[[package]]\nname = 7\nversion = \"1.0.0\"\n",
+        ),
+        (
+            "missing-version",
+            "version = 4\n\n[[package]]\nname = \"serde\"\n",
+        ),
+        (
+            "non-string-version",
+            "version = 4\n\n[[package]]\nname = \"serde\"\nversion = 7\n",
+        ),
+        (
+            "empty-name",
+            "version = 4\n\n[[package]]\nname = \"\"\nversion = \"1.0.0\"\n",
+        ),
+        (
+            "empty-version",
+            "version = 4\n\n[[package]]\nname = \"serde\"\nversion = \"\"\n",
+        ),
+        ("non-table-package", "version = 4\npackage = [7]\n"),
+        ("zero-packages", "version = 4\npackage = []\n"),
+    ];
+
+    for (case, lockfile) in cases {
+        let repo = TempRepo::new(case);
+        repo.write("Cargo.toml", "[workspace]\n");
+        repo.write("Cargo.lock", lockfile);
+        repo.write_mirror(&[]);
+        let policy = repo.policy(json!([
+            { "manifest_path": "Cargo.toml", "lockfile_path": "Cargo.lock" }
+        ]));
+
+        let error = collect(&repo.root, &policy)
+            .expect_err("every malformed or empty configured lock must fail closed");
+        assert!(
+            error.to_string().contains("Cargo.lock"),
+            "{case} must identify its lockfile: {error}"
+        );
+    }
+}
+
+#[test]
+fn malformed_vulnerable_nested_package_cannot_disappear_from_scan() {
+    let repo = TempRepo::new("malformed-vulnerable-nested");
+    repo.write("Cargo.toml", "[workspace]\n");
+    repo.write("Cargo.lock", MINIMAL_LOCK);
+    repo.write("nested/Cargo.toml", "[workspace]\n");
+    repo.write(
+        "nested/Cargo.lock",
+        "version = 4\n\n[[package]]\nname = \"safe\"\nversion = \"1.0.0\"\n\n[[package]]\nname = \"quinn-proto\"\n",
+    );
+    repo.write_mirror(&[quinn_fixture()]);
+    let policy = repo.policy(json!([
+        { "manifest_path": "Cargo.toml", "lockfile_path": "Cargo.lock" },
+        { "manifest_path": "nested/Cargo.toml", "lockfile_path": "nested/Cargo.lock" }
+    ]));
+
+    let error = collect(&repo.root, &policy)
+        .expect_err("a malformed vulnerable row must block rather than disappear");
+    assert!(
+        error.to_string().contains("nested/Cargo.lock")
+            && error.to_string().contains("package[1]")
+            && error.to_string().contains("version"),
+        "strict nested-row error must preserve source and row provenance: {error}"
+    );
+}
+
+#[test]
 fn malformed_or_underflowing_lockfile_corpus_fails_closed() {
     let valid = |corpus: Value, floor: Value| {
         json!({
             "gate_id": GATE_ID,
             "lockfile_corpus": corpus,
             "min_lockfiles": floor,
+            "scm_facts_path": "scm-facts.json",
             "mirror_dir": "mirror",
             "unmaintained_policy": "all",
             "min_advisories": 0,
@@ -298,6 +500,18 @@ fn malformed_or_underflowing_lockfile_corpus_fails_closed() {
         })
     };
     let entry = json!({"manifest_path": "Cargo.toml", "lockfile_path": "Cargo.lock"});
+
+    let mut missing_scm_facts = valid(json!([entry.clone()]), json!(1));
+    missing_scm_facts
+        .as_object_mut()
+        .expect("fixture policy object")
+        .remove("scm_facts_path");
+    assert!(
+        configured_lockfiles(&missing_scm_facts)
+            .expect_err("structured corpus requires independent scm-facts totality")
+            .to_string()
+            .contains("scm_facts_path")
+    );
 
     for policy in [
         valid(json!([entry.clone(), entry.clone()]), json!(2)),
