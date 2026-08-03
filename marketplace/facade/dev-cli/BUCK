@@ -552,6 +552,20 @@ rust_test(
 )
 
 rust_test(
+    name = "marketplace-dev-cli-architecture-map-emit-cli",
+    srcs = ["tests/architecture_map_emit_cli.rs"],
+    crate = "marketplace_dev_cli_architecture_map_emit_cli",
+    crate_root = "tests/architecture_map_emit_cli.rs",
+    env = {
+        "CARGO_BIN_EXE_oya": "$(location :oya)",
+    },
+    visibility = ["PUBLIC"],
+    deps = [
+        ":marketplace-dev-cli",
+    ],
+)
+
+rust_test(
     name = "marketplace-dev-cli-cross-tenant-access-cli",
     srcs = ["tests/cross_tenant_access_cli.rs"],
     crate = "marketplace_dev_cli_cross_tenant_access_cli",

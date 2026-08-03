@@ -7,6 +7,9 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
 
+use oya_intelligence_architecture_map_app::{
+    build_artifact, emit_artifact_json, render_artifact_json,
+};
 use oya_workspace_members_kernel::resolve_member_dirs;
 
 mod rust_toolchain_drift;
@@ -35,6 +38,9 @@ const NOT_TRACKED_IN_GIT_MODE: &str = "not-tracked-in-git";
 const MAIN_BRANCH_MATERIALIZED_MODE: &str = "main-branch-materialized";
 const ARCHITECTURE_PRODUCT_GRAPH_FACE: &str = "product-graph.html";
 const ARCHITECTURE_PRODUCT_GRAPH_PATH: &str = "docs/architecture/product-graph.html";
+const ARCHITECTURE_MAP_PATH: &str = "registry/graph/architecture-map.json";
+const ARCHITECTURE_MAP_REMEDIATION_COMMAND: &str =
+    "buck2 run //marketplace/facade/dev-cli:oya -- gate emit architecture-map";
 /// PR-owned / face-settle generated paths. Controller-owned generated artifacts that must be
 /// materialized on protected branches, such as `product-graph.html`, intentionally stay out of
 /// this list so contributor PRs do not acquire a new generated merge surface.
@@ -302,6 +308,47 @@ pub fn evaluate_lock_freshness(
     findings.into_iter().collect()
 }
 
+pub fn evaluate_architecture_map_freshness(committed: &str, regenerated: &str) -> Vec<Finding> {
+    if committed == regenerated {
+        return Vec::new();
+    }
+    vec![Finding::new(
+        FindingCode::GeneratedFaceStale,
+        ARCHITECTURE_MAP_PATH,
+        format!(
+            "architecture map does not match canonical workspace membership, provenance, and coverage; remediation: {ARCHITECTURE_MAP_REMEDIATION_COMMAND}"
+        ),
+    )]
+}
+
+fn check_architecture_map(repo_root: &Path) -> Result<Vec<Finding>, FreshnessError> {
+    let artifact = build_artifact(repo_root).map_err(|error| {
+        FreshnessError::new(format!(
+            "FAIL-CLOSED: regenerate {ARCHITECTURE_MAP_PATH}: {error:?}"
+        ))
+    })?;
+    if artifact.coverage.coverage_ratio_basis_points != 10_000
+        || artifact.coverage.resolved_workspace_crate_count
+            != artifact.coverage.represented_workspace_crate_count
+        || !artifact.coverage.missing_workspace_crate_ids.is_empty()
+        || !artifact.coverage.orphan_crate_ids.is_empty()
+    {
+        return Err(FreshnessError::new(format!(
+            "FAIL-CLOSED: {ARCHITECTURE_MAP_PATH} regeneration has incomplete coverage: resolved={}, represented={}, missing={:?}, orphaned={:?}",
+            artifact.coverage.resolved_workspace_crate_count,
+            artifact.coverage.represented_workspace_crate_count,
+            artifact.coverage.missing_workspace_crate_ids,
+            artifact.coverage.orphan_crate_ids,
+        )));
+    }
+    let committed = read_to_string(&repo_root.join(ARCHITECTURE_MAP_PATH))?;
+    let regenerated = render_artifact_json(&artifact);
+    Ok(evaluate_architecture_map_freshness(
+        &committed,
+        &regenerated,
+    ))
+}
+
 pub fn check_repo(repo_root: &Path) -> Result<CheckReport, FreshnessError> {
     let decommitted = read_decommitted_face_names(repo_root);
     // Determinism canary: for non-PR-owned faces there is no contributor-branch byte copy to
@@ -309,14 +356,18 @@ pub fn check_repo(repo_root: &Path) -> Result<CheckReport, FreshnessError> {
     // byte stability. A nondeterministic producer must hard-fail here rather than silently green.
     // When every face is PR-owned, take the single-pass path so committed-byte parity pays no
     // extra regeneration cost.
-    if decommitted.is_empty() {
+    let mut report = if decommitted.is_empty() {
         let regenerated_faces = regenerate_faces_with_buck2(repo_root)?;
-        return check_repo_with_regenerated_faces(repo_root, regenerated_faces);
-    }
-    let (first_pass, second_pass) = regenerate_faces_twice_with_buck2(repo_root)?;
-    let determinism_findings = evaluate_face_determinism(&first_pass, &second_pass, &decommitted);
-    let mut report = check_repo_with_regenerated_faces(repo_root, first_pass)?;
-    report.findings.extend(determinism_findings);
+        check_repo_with_regenerated_faces(repo_root, regenerated_faces)?
+    } else {
+        let (first_pass, second_pass) = regenerate_faces_twice_with_buck2(repo_root)?;
+        let determinism_findings =
+            evaluate_face_determinism(&first_pass, &second_pass, &decommitted);
+        let mut report = check_repo_with_regenerated_faces(repo_root, first_pass)?;
+        report.findings.extend(determinism_findings);
+        report
+    };
+    report.findings.extend(check_architecture_map(repo_root)?);
     report.findings.sort();
     report.findings.dedup();
     Ok(report)
@@ -375,7 +426,21 @@ fn materialize_generated_faces_with_tools(
     command.current_dir(repo_root);
     run_status(&mut command, "materialize generated accounting faces")?;
     materialize_masterplan_projection(tools, repo_root)?;
-    materialize_architecture_product_graph(tools, repo_root)
+    materialize_architecture_product_graph(tools, repo_root)?;
+    materialize_architecture_map(repo_root)
+}
+
+fn materialize_architecture_map(repo_root: &Path) -> Result<(), FreshnessError> {
+    let artifact = build_artifact(repo_root).map_err(|error| {
+        FreshnessError::new(format!(
+            "FAIL-CLOSED: build {ARCHITECTURE_MAP_PATH}: {error:?}"
+        ))
+    })?;
+    emit_artifact_json(&artifact, &repo_root.join(ARCHITECTURE_MAP_PATH)).map_err(|error| {
+        FreshnessError::new(format!(
+            "FAIL-CLOSED: materialize {ARCHITECTURE_MAP_PATH}: {error:?}"
+        ))
+    })
 }
 
 pub fn parse_materialize_generated_faces_args(
@@ -1972,6 +2037,51 @@ fn required_string(
 mod materialize_generated_faces_tests {
     use super::*;
 
+    #[test]
+    fn architecture_map_freshness_detects_stale_committed_snapshot() {
+        let findings = evaluate_architecture_map_freshness(
+            "{\"nodes\":[{\"id\":\"stale\"}]}",
+            "{\"nodes\":[{\"id\":\"resolved\"}]}",
+        );
+
+        assert_eq!(findings.len(), 1);
+        assert_eq!(findings[0].code, FindingCode::GeneratedFaceStale);
+        assert_eq!(findings[0].key, "registry/graph/architecture-map.json");
+        assert!(
+            findings[0]
+                .detail
+                .contains("canonical workspace membership")
+        );
+    }
+
+    #[test]
+    fn architecture_map_repo_check_regenerates_from_canonical_membership() {
+        let root = temp_root("oya-architecture-map-freshness");
+        std::fs::create_dir_all(root.join("crates/a")).expect("crate dir");
+        std::fs::create_dir_all(root.join("registry/graph")).expect("graph dir");
+        std::fs::write(
+            root.join("Cargo.toml"),
+            "[workspace]\nmembers = [\"crates/*\"]\n",
+        )
+        .expect("workspace manifest");
+        std::fs::write(
+            root.join("crates/a/Cargo.toml"),
+            "[package]\nname = \"a\"\nversion = \"0.1.0\"\n",
+        )
+        .expect("crate manifest");
+        std::fs::write(
+            root.join(ARCHITECTURE_MAP_PATH),
+            "{\"nodes\":[],\"edges\":[]}",
+        )
+        .expect("stale committed map");
+
+        let findings = check_architecture_map(&root).expect("architecture check runs");
+
+        assert_eq!(findings.len(), 1);
+        assert_eq!(findings[0].key, ARCHITECTURE_MAP_PATH);
+        let _ = std::fs::remove_dir_all(root);
+    }
+
     fn temp_root(label: &str) -> PathBuf {
         let nanos = SystemTime::now()
             .duration_since(UNIX_EPOCH)
@@ -2420,6 +2530,9 @@ printf 'generated dashboard\n' > docs/architecture/product-graph.html
             },
         };
 
+        std::fs::write(root.join("Cargo.toml"), "[workspace]\nmembers = []\n")
+            .expect("workspace manifest");
+
         // ADR-0616 PR-1: the frozen-baseline regen cross-check materializes a merge-base worktree,
         // so the fixture root must be a real git repo with a committed HEAD (the fake emitter
         // publishes its sha as the merge-base).
@@ -2468,6 +2581,10 @@ printf 'generated dashboard\n' > docs/architecture/product-graph.html
                 .expect("product graph materialized"),
             "generated dashboard\n"
         );
+        let architecture_map = std::fs::read_to_string(root.join(ARCHITECTURE_MAP_PATH))
+            .expect("architecture map materialized");
+        assert!(architecture_map.contains("\"producer_version\""));
+        assert!(architecture_map.contains("\"coverage_ratio\": 1.0000"));
     }
 
     #[cfg(unix)]

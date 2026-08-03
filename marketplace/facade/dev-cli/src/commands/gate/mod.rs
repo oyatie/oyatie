@@ -115,9 +115,13 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 Ok(args) => match crate::emit_architecture_map_gate(args) {
                     Ok(report) => {
                         println!(
-                            "architecture-map emitted: {} nodes, {} edges, {} orphans, {} ms",
+                            "architecture-map emitted: {} nodes, {} edges, {} workspace crates represented/{}, coverage={}.{:04}, {} orphans, {} ms",
                             report.node_count,
                             report.edge_count,
+                            report.represented_workspace_crate_count,
+                            report.resolved_workspace_crate_count,
+                            report.coverage_ratio_basis_points / 10_000,
+                            report.coverage_ratio_basis_points % 10_000,
                             report.orphan_count,
                             report.duration_ms
                         );

@@ -416,6 +416,37 @@
       ],
       "final_tree_validation": "HAND-CURATED-COMMITTED: the hand/tool-curated known-warnings allowlist (<kind>\\t<token>) the glossary-vocabulary gate treats as accepted legacy warnings. It MUST stay a committed git blob and MUST NOT be recomputed over the candidate tree — a candidate recompute would launder new warnings into the allowlist. Declaring it with any de-commit materialization_mode is RED (hand_curated_ratchet_artifact_must_stay_committed).",
       "public_product_contract": "A human/tool-curated known-warning allowlist is governed by the control plane: it cannot be silently de-committed or recomputed, only reviewed-shrunk."
+    },
+    {
+      "artifact_id": "architecture-map-graph-artifact",
+      "path": "registry/graph/architecture-map.json",
+      "artifact_class": "main-materialized-aggregate",
+      "materialization_mode": "branch-committed-regenerated-until-controller-materialization",
+      "merge_policy": "never-manual-merge-regenerate-from-source-tree",
+      "owner_team": "council-foundry",
+      "source_inputs": [
+        "Cargo.toml",
+        "**/Cargo.toml",
+        "registry/microservices.json",
+        "registry/bounded-contexts.json",
+        "registry/cedar-fragments.json",
+        "contracts/*.openapi.yaml"
+      ],
+      "final_tree_validation": "Canonical cloud-ci materialization runs build_artifact + emit_artifact_json through //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin. The independent required freshness job regenerates in-process from the canonical glob-expanded workspace-members kernel and byte-compares the committed snapshot; missing/orphan crate IDs, coverage below 1.0000, missing provenance, stale source digest, or regeneration failure are fail-closed RED. Safe emission is atomic and refuses a one-step node-count drop below 80% of the committed snapshot.",
+      "public_product_contract": "Architecture maps are deterministic generated projections with producer version, source digest, resolved/represented crate counts, exact coverage ratio, and explicit missing/orphan ID lists; manual merge conflict resolution is never authoritative.",
+      "generator": {
+        "runner": "buck2",
+        "generator_target": "//ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin",
+        "operation_id": "materialize-architecture-map",
+        "parameters": {
+          "artifact": "registry/graph/architecture-map.json"
+        },
+        "input_contract": [
+          "repo-root",
+          "declared-source-inputs"
+        ],
+        "output_mode": "declared-artifact-path-write"
+      }
     }
   ],
   "development_lifecycle_enforcement_layers": [
@@ -489,6 +520,12 @@
       "rule_kind": "path_suffix",
       "pattern": "docs/architecture/product-graph.html",
       "description": "Controller-owned generated architecture dashboard materialized from machine-readable planning and architecture inputs."
+    },
+    {
+      "rule_id": "architecture-map-graph-artifact",
+      "rule_kind": "path_suffix",
+      "pattern": "registry/graph/architecture-map.json",
+      "description": "Branch-committed architecture map projection materialized and freshness-checked by canonical cloud-ci."
     },
     {
       "rule_id": "generated-directory-component",
