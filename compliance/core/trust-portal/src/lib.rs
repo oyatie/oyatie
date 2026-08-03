@@ -11,7 +11,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 use compliance_dsr::{
     DsrAction, DsrAxis, DsrCompletionRecord, DsrRequest, DsrSlaStatus, DsrStoreKind, ErasureProof,
 };

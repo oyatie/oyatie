@@ -398,7 +398,7 @@ mod tests {
     use crate::{
         CredentialRequest, CredentialRequestKind, Principal, issue_credential, issue_token,
     };
-    use oya_data_boundary_kernel::Purpose;
+    use data_boundary_kernel::Purpose;
 
     // ── RevocationReason ────────────────────────────────────────────────────
 

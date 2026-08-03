@@ -14,7 +14,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use billing_domain::{CurrencyCode, Money, RateCardRef};
 use cell_region::RegionCode;
 use compute_resource::{CloudResourceError, ResourceId};
-use oya_data_boundary_kernel::{Classified, DataClass, DataClassMatcher, PrivacyDataClass};
+use data_boundary_kernel::{Classified, DataClass, DataClassMatcher, PrivacyDataClass};
 use billing_metering::{AxisId, MeterEvent, MeterEventId, MeterUnitKind};
 
 const FINOPS_SCHEMA_VERSION: u32 = 1;

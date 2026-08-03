@@ -10,7 +10,7 @@ iam-cloud-domain = { path = "../cloud-domain" }
 iam-policy-cedar-domain = { path = "../policy-cedar-domain" }
 
 [dev-dependencies]
-oya-data-boundary-kernel = { path = "../../../libs/oya-data-boundary-kernel" }
+data-boundary-kernel = { path = "../../../data/core/boundary-kernel" }
 
 [lints]
 workspace = true

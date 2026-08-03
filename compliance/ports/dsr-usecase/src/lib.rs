@@ -8,7 +8,7 @@
 
 use std::collections::BTreeMap;
 
-use oya_data_boundary_kernel::parse_data_class_label;
+use data_boundary_kernel::parse_data_class_label;
 use compliance_dsr::{
     DsrAckReason, DsrAckStatus, DsrAction, DsrAxis, DsrCascadeAck, DsrCascadeAckCreate,
     DsrCompletionRecord, DsrCompletionRecordCreate, DsrDispatch, DsrDispatchCreate, DsrProofMethod,
@@ -995,7 +995,7 @@ fn store_ref_from_target(
 
 fn parse_privacy_data_class_label(
     data_class: &str,
-) -> Result<oya_data_boundary_kernel::PrivacyDataClass, PlatformDsrApiError> {
+) -> Result<data_boundary_kernel::PrivacyDataClass, PlatformDsrApiError> {
     let parsed = parse_data_class_label(data_class).ok_or_else(|| {
         PlatformDsrApiError::InvalidDataClassLabel {
             data_class: data_class.to_string(),

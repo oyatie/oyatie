@@ -11,7 +11,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use cell_routing::{CellBinding, CellBindingCreate, CellError, CellRouter, CellTier};
-use oya_data_boundary_kernel::{Classified, DataClass};
+use data_boundary_kernel::{Classified, DataClass};
 use network_residency::{
     RegionRef, RegionRefCreate, ResidencyClass, ResidencyError, infer_region_jurisdiction_label,
     residency_class_allows_home_region_label,

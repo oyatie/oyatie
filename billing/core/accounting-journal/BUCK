@@ -5,7 +5,7 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//data/core/boundary-kernel:data-boundary-kernel",
     ],
 )
 
@@ -17,7 +17,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":billing-accounting-journal",
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//data/core/boundary-kernel:data-boundary-kernel",
     ],
 )
 
@@ -29,7 +29,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":billing-accounting-journal",
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//data/core/boundary-kernel:data-boundary-kernel",
     ],
 )
 
@@ -44,7 +44,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":billing-accounting-journal",
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//data/core/boundary-kernel:data-boundary-kernel",
     ],
 )
 
@@ -59,7 +59,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":billing-accounting-journal",
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//data/core/boundary-kernel:data-boundary-kernel",
     ],
 )
 
@@ -71,7 +71,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":billing-accounting-journal",
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//data/core/boundary-kernel:data-boundary-kernel",
     ],
 )
 
@@ -83,7 +83,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":billing-accounting-journal",
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//data/core/boundary-kernel:data-boundary-kernel",
     ],
 )
 
@@ -98,6 +98,6 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":billing-accounting-journal",
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//data/core/boundary-kernel:data-boundary-kernel",
     ],
 )

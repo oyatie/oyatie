@@ -18,7 +18,7 @@
 //! The `OwnershipPillar` pillar-isolation invariant mirrors
 //! `PresenceState::CrossPillarPresenceDenied` in `governance.rs`.
 
-use oya_data_boundary_kernel::{DataClass, DataClassification};
+use data_boundary_kernel::{DataClass, DataClassification};
 use comms_messenger_domain::{
     ChatError, OwnershipPillar, ThreadLifecycle, ThreadLifecycleCreate, ThreadState,
     ThreadSubscription, ThreadSubscriptionCreate, ThreadSubscriptionMode,
@@ -395,7 +395,7 @@ fn same_pillar_personal_subscription_is_accepted() {
 /// `participant_ref` is tagged `PII_IDENTIFYING` (mirrors `MessageGovernance`).
 #[test]
 fn subscription_participant_ref_is_tagged_pii_identifying() {
-    use oya_data_boundary_kernel::PrivacyDataClass;
+    use data_boundary_kernel::PrivacyDataClass;
     let sub = work_subscription();
     assert_eq!(
         sub.participant_ref.data_class,

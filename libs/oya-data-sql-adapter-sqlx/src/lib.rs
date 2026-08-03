@@ -1,7 +1,7 @@
 //! SQLx Postgres adapter for the owned `oya-data` SQL port.
 //!
 //! Story G003 sub-slice 2 (ADR-0536 D-10): services link the
-//! `oya-data-sql-kernel` port; this adapter is the ADR-0510 transitional
+//! `data-sql-kernel` port; this adapter is the ADR-0510 transitional
 //! Postgres implementation behind it. It absorbs ALL engine impedance:
 //! tenant sessions run the parameterized RLS `set_config` (reusing
 //! `oya-shared-postgres-command-kernel::SET_LOCAL_TENANT_SQL`) inside the
@@ -23,8 +23,8 @@
 use std::env;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
-use oya_data_sql_kernel::clock::{ClockError, Hlc, HlcTimestamp};
-use oya_data_sql_kernel::{
+use data_sql_kernel::clock::{ClockError, Hlc, HlcTimestamp};
+use data_sql_kernel::{
     CommitReceipt, DataSqlError, DataStore, ReadQuery, RowSet, SessionDescriptor, SessionScope,
     SqlValue, Statement, WriteBatch,
 };
@@ -99,7 +99,7 @@ impl SqlxDataClientConfig {
 }
 
 /// The transitional Postgres implementation of the owned data port.
-/// Async surface mirrors `oya_data_sql_kernel::{DataClient, DataSession}`
+/// Async surface mirrors `data_sql_kernel::{DataClient, DataSession}`
 /// 1:1 (the sync kernel traits stay reserved for IO-free reference impls,
 /// matching the postgres-command kernel/adapter split).
 pub struct SqlxDataClient {
@@ -479,7 +479,7 @@ pub async fn run_live_rls_cross_tenant_probe()
     // Cross-tenant READ: each tenant sees exactly its own rows.
     let read = ReadQuery::new(
         Statement::new("read_rows", LIVE_RLS_SELECT_ROWS_SQL, vec![])?,
-        oya_data_sql_kernel::ReadConsistency::Strong,
+        data_sql_kernel::ReadConsistency::Strong,
     )?;
     let rows_a = session_a.execute_read(&read).await?;
     let rows_b = session_b.execute_read(&read).await?;
@@ -502,7 +502,7 @@ pub async fn run_live_rls_cross_tenant_probe()
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_data_sql_kernel::ReadConsistency;
+    use data_sql_kernel::ReadConsistency;
 
     fn pool_config() -> PostgresPoolConfig {
         PostgresPoolConfig::for_microservice("data-adapter-test", 4).unwrap()

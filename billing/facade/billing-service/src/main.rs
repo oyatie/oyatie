@@ -20,7 +20,7 @@ mod integration_tests {
     use billing_service::invoicing::{
         GenerateInvoiceRequest, InMemoryInvoiceService, InvoiceApplicationError,
     };
-    use oya_data_boundary_kernel::DataClass;
+    use data_boundary_kernel::DataClass;
 
     fn request() -> GenerateInvoiceRequest {
         let account = BillingAccount::new(BillingAccountCreate {

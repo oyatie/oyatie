@@ -12,11 +12,11 @@ use cell_routing::{CellBinding, CellBindingCreate, CellError, CellRouter, CellTi
 use oya_check_cost_budget::{
     BudgetCeiling, BudgetError, BudgetLedger, BudgetScope, BudgetSnapshot, BudgetWarning,
 };
-pub use oya_data_boundary_kernel::{
+pub use data_boundary_kernel::{
     AgeBand, ConsentScope, DataClass, PrivacyDataClass, Purpose, SubjectClass,
     privacy_data_classes_from,
 };
-use oya_data_boundary_kernel::{
+use data_boundary_kernel::{
     Classified, DataClassification, DataUseAttributes, DataUseDenialReason, OperationalDataClass,
     evaluate_data_use,
 };

@@ -19,7 +19,7 @@ use network_lb::{
     LbCreateAuthorizationError, LbCreateAuthorizer, LbCreateResource, VerifiedPrincipal,
     create_cloud_network_load_balancer_from_api,
 };
-use oya_data_boundary_kernel::DataClass;
+use data_boundary_kernel::DataClass;
 use network_residency::ResidencyClass;
 
 const VPC_ID: &str = "oya:cloud:region-home:ten_alpha:vpc:prod";

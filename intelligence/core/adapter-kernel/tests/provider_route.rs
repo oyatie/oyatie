@@ -3,7 +3,7 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use oya_check_cost_budget::{BudgetCeiling as BudgetKernelCeiling, BudgetLedger, BudgetScope};
-use oya_data_boundary_kernel::{
+use data_boundary_kernel::{
     Classified, DataClass, PrivacyDataClass, privacy_data_classes_from,
 };
 use intelligence_adapter_kernel::{

@@ -22,7 +22,7 @@ use billing_domain::{
     CloudBillingError, CloudBillingLedger, CreditNoteCreate, InvoiceGenerate,
     InvoiceLineItemCreate, InvoiceState, Money, TaxInvoiceFormat,
 };
-use oya_data_boundary_kernel::DataClass;
+use data_boundary_kernel::DataClass;
 use billing_metering::{MeterUnit, MeterUnitKind};
 
 // ---------------------------------------------------------------------------

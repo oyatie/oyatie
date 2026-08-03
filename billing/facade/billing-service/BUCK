@@ -19,7 +19,7 @@ rust_test(
     deps = [
         "//billing/core/billing:billing-domain",
         "//billing/core/metering:billing-metering",
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//data/core/boundary-kernel:data-boundary-kernel",
         "third-party//:tokio",
     ],
 )
@@ -34,7 +34,7 @@ rust_test(
         ":billing-service",
         "//billing/core/billing:billing-domain",
         "//billing/core/metering:billing-metering",
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//data/core/boundary-kernel:data-boundary-kernel",
     ],
 )
 
