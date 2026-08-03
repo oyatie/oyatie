@@ -11,18 +11,24 @@
 //! ## Split of concerns (hermetic gate vs network reconciler)
 //! The network/clock half — pinning a fresh advisory-db commit, distilling, opening a GitOps PR,
 //! and `remove_by` expiry SLOs — lives in a SEPARATE owned reconciler (deferred Slice D). THIS gate
-//! only reads committed bytes: the configured `Cargo.lock` files + the vendored `advisory-mirror/{advisories.json,
-//! mirror-manifest.json}` produced by `oya-advisory-mirror-kernel`. That keeps the gate buck2-cacheable
-//! and deterministic.
+//! only reads candidate-tree bytes: the separately materialized SCM tracked-path snapshot, the
+//! configured `Cargo.lock` files, and the vendored
+//! `advisory-mirror/{advisories.json,mirror-manifest.json}` produced by
+//! `oya-advisory-mirror-kernel`. That keeps the gate buck2-cacheable and deterministic.
 //!
 //! ## Lockfile corpus
 //! `policy.lockfile_corpus` is the reviewed authority: each entry pairs one repo-relative
-//! `Cargo.toml` workspace/package root with its sibling `Cargo.lock`. Collection performs no tree
-//! walk, so ignored files, nested worktrees, build products, and directory iteration order cannot
-//! change the scan. Every configured component is checked with `symlink_metadata`; absolute paths,
-//! `..`, symlinks, missing files, non-files, duplicate entries, and manifest/lockfile parent mismatch
-//! fail closed. `policy.min_lockfiles` prevents a policy edit from silently shrinking the corpus.
-//! The legacy single `policy.lockfile_path` form remains accepted as a one-entry corpus.
+//! `Cargo.toml` workspace root with its sibling `Cargo.lock`. Before reading packages, collection
+//! projects every workspace-owned lock from the independently materialized
+//! `policy.scm_facts_path#tracked_paths` universe: a tracked lock is workspace-owned exactly when
+//! its tracked sibling manifest declares `[workspace]`. That projection must equal the policy
+//! corpus. A newly tracked workspace root therefore fails until declared, while orphan locks and
+//! member-local locks cannot expand the scan. Collection performs no tree walk, so ignored files,
+//! nested worktrees, build products, and directory iteration order cannot change the result. Every
+//! configured component is checked with `symlink_metadata`; absolute paths, `..`, symlinks, missing
+//! files, non-files, duplicate entries, and manifest/lockfile parent mismatch fail closed.
+//! `policy.min_lockfiles` remains a defense-in-depth shrink floor. The legacy single
+//! `policy.lockfile_path` form remains accepted as a one-entry corpus without the SCM projection.
 //!
 //! ## Matching
 //! For each advisory whose `package` matches a locked crate `name`, the locked [`semver::Version`] is
@@ -70,6 +76,9 @@ use serde_json::{Value, json};
 
 /// The gate id, matching the buck2 target stem + the policy `gate_id`.
 pub const GATE_ID: &str = "cloud-ci-supply-chain-audit";
+
+/// Stable tracked-tree boundary schema emitted by the out-of-graph SCM facts producer.
+const SCM_FACTS_SCHEMA: &str = "oya-ci/scm-facts/v2";
 
 /// The remediation doctrine pointer findings carry.
 pub const REMEDIATION_DOCTRINE: &str = "upgrade the affected crate to a patched version (bump the workspace pin / transitive dep), or — \
@@ -151,6 +160,7 @@ pub fn configured_lockfiles(policy: &Value) -> Result<Vec<LockfileSource>, Colle
             ));
         }
         minimum_lockfiles(policy, true)?;
+        scm_facts_path(policy)?;
 
         let mut parsed = Vec::with_capacity(entries.len());
         for (index, entry) in entries.iter().enumerate() {
@@ -287,13 +297,18 @@ fn minimum_lockfiles(policy: &Value, structured: bool) -> Result<usize, CollectE
 
 /// Collect the observed graph from the configured lockfile corpus and vendored advisory snapshot.
 ///
-/// The ONLY I/O. Reads the configured lockfiles/manifests (TOML) and
-/// `policy.mirror_dir/{advisories.json,mirror-manifest.json}` (JSON). Emits the backward-compatible
+/// The ONLY I/O. For structured policies, reads `policy.scm_facts_path` (JSON) and the tracked
+/// sibling manifests needed to project workspace ownership. Then reads the configured
+/// lockfiles/manifests (TOML) and `policy.mirror_dir/{advisories.json,mirror-manifest.json}` (JSON).
+/// Emits the backward-compatible
 /// `{ "locked": [ { "name", "version" }, .. ], "advisories": [ <Advisory>, .. ], "manifest": {..} }`.
 /// No directory walk occurs.
 pub fn collect(repo_root: &Path, policy: &Value) -> Result<Value, CollectError> {
     validate_repo_root(repo_root)?;
     let sources = configured_lockfiles(policy)?;
+    if policy.get("lockfile_corpus").is_some() {
+        validate_lockfile_corpus_totality(repo_root, policy, &sources)?;
+    }
     let mirror_dir = policy
         .get("mirror_dir")
         .and_then(Value::as_str)
@@ -326,6 +341,143 @@ pub fn collect(repo_root: &Path, policy: &Value) -> Result<Value, CollectError> 
         "advisories": advisories,
         "manifest": manifest,
     }))
+}
+
+fn scm_facts_path(policy: &Value) -> Result<PathBuf, CollectError> {
+    let raw = policy
+        .get("scm_facts_path")
+        .and_then(Value::as_str)
+        .ok_or_else(|| {
+            CollectError::Parse(
+                "policy.scm_facts_path is required with policy.lockfile_corpus".to_owned(),
+            )
+        })?;
+    validate_relative_file(raw, "policy.scm_facts_path")
+}
+
+fn validate_relative_file(raw: &str, label: &str) -> Result<PathBuf, CollectError> {
+    let path = Path::new(raw);
+    if raw.is_empty() || raw.contains('\\') || normalized_relative(path).as_deref() != Some(raw) {
+        return Err(CollectError::Parse(format!(
+            "{label} `{raw}` must be a normalized repo-relative `/`-separated file path"
+        )));
+    }
+    Ok(path.to_path_buf())
+}
+
+/// Compare the reviewed lockfile corpus with the independently materialized tracked-tree topology.
+///
+/// The SCM facts face supplies the exact tracked path universe without a runtime filesystem walk.
+/// Within that universe, `[workspace]` is the explicit ownership marker for a sibling `Cargo.lock`.
+/// Package-only member locks and locks without a tracked sibling manifest are deliberately excluded.
+fn validate_lockfile_corpus_totality(
+    repo_root: &Path,
+    policy: &Value,
+    declared_sources: &[LockfileSource],
+) -> Result<(), CollectError> {
+    let facts_path = scm_facts_path(policy)?;
+    let facts_text = read_repo_file(repo_root, &facts_path)?;
+    let facts: Value = serde_json::from_str(&facts_text)
+        .map_err(|error| CollectError::Parse(format!("{}: {error}", facts_path.display())))?;
+    let schema = facts.get("schema").and_then(Value::as_str).ok_or_else(|| {
+        CollectError::Parse(format!("{}: missing string schema", facts_path.display()))
+    })?;
+    if schema != SCM_FACTS_SCHEMA {
+        return Err(CollectError::Parse(format!(
+            "{}: unsupported scm-facts schema {schema:?}; expected {SCM_FACTS_SCHEMA}",
+            facts_path.display()
+        )));
+    }
+    let tracked_values = facts
+        .get("tracked_paths")
+        .and_then(Value::as_array)
+        .ok_or_else(|| {
+            CollectError::Parse(format!(
+                "{}: missing tracked_paths array",
+                facts_path.display()
+            ))
+        })?;
+
+    let mut tracked_paths = BTreeSet::new();
+    let mut previous: Option<&str> = None;
+    for (index, value) in tracked_values.iter().enumerate() {
+        let raw = value.as_str().ok_or_else(|| {
+            CollectError::Parse(format!(
+                "{}: tracked_paths[{index}] must be a string",
+                facts_path.display()
+            ))
+        })?;
+        if previous.is_some_and(|prior| prior >= raw) {
+            return Err(CollectError::Parse(format!(
+                "{}: tracked_paths must be strictly sorted and unique; entry {index} is {raw:?}",
+                facts_path.display()
+            )));
+        }
+        previous = Some(raw);
+        tracked_paths.insert(raw.to_owned());
+    }
+
+    let mut projected_sources = BTreeSet::new();
+    for lockfile_path in tracked_paths
+        .iter()
+        .filter(|path| path.as_str() == "Cargo.lock" || path.ends_with("/Cargo.lock"))
+    {
+        let lockfile = validate_relative_path(lockfile_path, "Cargo.lock")?;
+        let manifest_path = lockfile
+            .parent()
+            .unwrap_or_else(|| Path::new(""))
+            .join("Cargo.toml")
+            .to_string_lossy()
+            .replace('\\', "/");
+        if !tracked_paths.contains(&manifest_path) {
+            continue;
+        }
+
+        let manifest_text = read_repo_file(repo_root, Path::new(&manifest_path))?;
+        let manifest: toml::Value = toml::from_str(&manifest_text)
+            .map_err(|error| CollectError::Parse(format!("{manifest_path}: {error}")))?;
+        if !manifest.get("workspace").is_some_and(toml::Value::is_table)
+            && !manifest.get("package").is_some_and(toml::Value::is_table)
+        {
+            return Err(CollectError::Parse(format!(
+                "{manifest_path} must declare [workspace] or [package] to classify its tracked Cargo.lock"
+            )));
+        }
+        match manifest.get("workspace") {
+            Some(value) if value.is_table() => {
+                projected_sources.insert((manifest_path, lockfile_path.clone()));
+            }
+            Some(_) => {
+                return Err(CollectError::Parse(format!(
+                    "{manifest_path}: top-level workspace must be a table"
+                )));
+            }
+            None => {
+                // A tracked package/member-local Cargo.lock is not a workspace-owned lockfile.
+            }
+        }
+    }
+
+    let declared_sources = declared_sources
+        .iter()
+        .map(|source| (source.manifest_path.clone(), source.lockfile_path.clone()))
+        .collect::<BTreeSet<_>>();
+    if projected_sources == declared_sources {
+        return Ok(());
+    }
+
+    let undeclared = projected_sources
+        .difference(&declared_sources)
+        .map(|(_, lockfile)| lockfile.as_str())
+        .collect::<Vec<_>>();
+    let not_workspace_owned = declared_sources
+        .difference(&projected_sources)
+        .map(|(_, lockfile)| lockfile.as_str())
+        .collect::<Vec<_>>();
+    Err(CollectError::Parse(format!(
+        "lockfile corpus totality mismatch against {}: undeclared workspace-owned lockfiles={undeclared:?}; declared paths absent from the workspace-owned projection={not_workspace_owned:?}",
+        facts_path.display()
+    )))
 }
 
 fn validate_relative_directory(raw: &str) -> Result<PathBuf, CollectError> {
@@ -429,14 +581,34 @@ fn parse_locked(lock_text: &str, source: &str) -> Result<Vec<Value>, CollectErro
         .get("package")
         .and_then(toml::Value::as_array)
         .ok_or_else(|| CollectError::Parse(format!("{source} has no [[package]] table")))?;
+    if packages.is_empty() {
+        return Err(CollectError::Parse(format!(
+            "{source} contains zero [[package]] rows"
+        )));
+    }
     let mut locked: Vec<Value> = Vec::with_capacity(packages.len());
-    for pkg in packages {
-        let Some(name) = pkg.get("name").and_then(toml::Value::as_str) else {
-            continue;
-        };
-        let Some(version) = pkg.get("version").and_then(toml::Value::as_str) else {
-            continue;
-        };
+    for (index, pkg) in packages.iter().enumerate() {
+        let package = pkg.as_table().ok_or_else(|| {
+            CollectError::Parse(format!("{source} package[{index}] must be a table"))
+        })?;
+        let name = package
+            .get("name")
+            .and_then(toml::Value::as_str)
+            .filter(|name| !name.is_empty())
+            .ok_or_else(|| {
+                CollectError::Parse(format!(
+                    "{source} package[{index}].name must be a non-empty string"
+                ))
+            })?;
+        let version = package
+            .get("version")
+            .and_then(toml::Value::as_str)
+            .filter(|version| !version.is_empty())
+            .ok_or_else(|| {
+                CollectError::Parse(format!(
+                    "{source} package[{index}].version must be a non-empty string"
+                ))
+            })?;
         locked.push(json!({ "name": name, "version": version }));
     }
     Ok(locked)

@@ -1,5 +1,6 @@
 //! cloud-ci-supply-chain-audit gate binary (owned RustSec advisory scan; replaces reverted #974).
-//! The default invocation matches the policy-declared workspace lockfile corpus against the vendored
+//! The default invocation first proves the policy-declared workspace lockfile corpus exactly against
+//! the materialized SCM tracked-path boundary, then matches strict package rows against the vendored
 //! advisory mirror and reports any affected, un-ignored crate. Paths are repo-relative, validated,
 //! and symlink-free; collection never recursively walks mutable checkout state. The blocking buck2
 //! `rust_test` gate is the backstop.
@@ -23,8 +24,7 @@ use ci_supply_chain_audit::{
 };
 use serde_json::Value;
 
-const DEFAULT_POLICY: &str =
-    "ci/facade/supply-chain-audit/supply-chain-audit-policy.json";
+const DEFAULT_POLICY: &str = "ci/facade/supply-chain-audit/supply-chain-audit-policy.json";
 
 struct Args {
     repo_root: PathBuf,
@@ -76,7 +76,9 @@ fn run(args: &Args) -> Result<ExitCode, String> {
         for id in &dropped {
             println!("  - dropped stale ignore {id}");
         }
-        println!("Review the diff and commit; the gate is now GREEN against the cleaned ignore list.");
+        println!(
+            "Review the diff and commit; the gate is now GREEN against the cleaned ignore list."
+        );
         let policy = load_policy(&args.repo_root, args.policy.as_deref())?;
         return Ok(report(&policy, &observed));
     }
@@ -148,13 +150,17 @@ fn parse_args(args: Vec<String>) -> ParseOutcome {
         match arg.as_str() {
             "--repo-root" => {
                 let Some(value) = iter.next() else {
-                    return ParseOutcome::Error("supply-chain-audit: --repo-root requires a path".to_owned());
+                    return ParseOutcome::Error(
+                        "supply-chain-audit: --repo-root requires a path".to_owned(),
+                    );
                 };
                 repo_root = PathBuf::from(value);
             }
             "--policy" => {
                 let Some(value) = iter.next() else {
-                    return ParseOutcome::Error("supply-chain-audit: --policy requires a path".to_owned());
+                    return ParseOutcome::Error(
+                        "supply-chain-audit: --policy requires a path".to_owned(),
+                    );
                 };
                 policy = Some(PathBuf::from(value));
             }
@@ -168,7 +174,11 @@ fn parse_args(args: Vec<String>) -> ParseOutcome {
             }
         }
     }
-    ParseOutcome::Run(Args { repo_root, policy, write })
+    ParseOutcome::Run(Args {
+        repo_root,
+        policy,
+        write,
+    })
 }
 
 fn usage() -> String {
