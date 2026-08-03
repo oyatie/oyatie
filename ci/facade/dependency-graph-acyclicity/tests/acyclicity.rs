@@ -3,6 +3,7 @@
 use std::path::PathBuf;
 
 use ci_dependency_graph_acyclicity::{
+    CANONICAL_CAPABILITY_REGISTRY_PATH, CANONICAL_DAG_PATH, CANONICAL_SCHEMA_PATH,
     DEFAULT_POLICY_PATH, GATE_ID, Policy, Report, Verdict, evaluate_with_raw, load_policy,
     parse_dag, parse_policy,
 };
@@ -106,6 +107,19 @@ fn push_request_edge(raw: &mut Value, from: &str, to: &str, fixture: &str) {
         }));
 }
 
+fn remove_request_edge(raw: &mut Value, from: &str, to: &str) {
+    let edges = graph_mut(raw, "steady_state_request")["edges"]
+        .as_array_mut()
+        .expect("steady-state edges");
+    let before = edges.len();
+    edges.retain(|edge| edge["from"] != from || edge["to"] != to);
+    assert_eq!(
+        edges.len() + 1,
+        before,
+        "fixture precondition requires exactly one `{from} -> {to}` edge"
+    );
+}
+
 fn follow_up_mut<'a>(raw: &'a mut Value, id: &str) -> &'a mut Value {
     raw["mandatory_follow_ups"]
         .as_array_mut()
@@ -198,18 +212,28 @@ fn apply_fixture_mutation(raw: &mut Value, mutation: &str) {
             "iam.local-verifier",
             "fixture-two-node-cycle",
         ),
-        "graph3_three_node_cycle" => push_request_edge(
-            raw,
-            "cell.envelope",
-            "tenancy.local-context",
-            "fixture-three-node-cycle",
-        ),
-        "graph3_buried_scc_cycle" => push_request_edge(
-            raw,
-            "cell.envelope",
-            "observability.cell-runtime",
-            "fixture-buried-scc-cycle",
-        ),
+        "graph3_three_node_cycle" => {
+            // Remove the transitive shortcut so the added back edge closes exactly the existing
+            // tenancy -> iam -> cell path rather than an already-present direct reverse edge.
+            remove_request_edge(raw, "tenancy.local-context", "cell.envelope");
+            push_request_edge(
+                raw,
+                "cell.envelope",
+                "tenancy.local-context",
+                "fixture-three-node-cycle",
+            );
+        }
+        "graph3_buried_scc_cycle" => {
+            // Preserve the existing workflow -> intelligence -> data -> observability -> audit ->
+            // secrets path, but remove its direct shortcut before adding the reverse edge.
+            remove_request_edge(raw, "workflow.runtime", "secrets.cell-issuer");
+            push_request_edge(
+                raw,
+                "secrets.cell-issuer",
+                "workflow.runtime",
+                "fixture-buried-six-node-scc-cycle",
+            );
+        }
         "present_forbidden_edge" => push_request_edge(
             raw,
             "cell.envelope",
@@ -301,6 +325,21 @@ fn assert_red_code(raw: &Value, code: &str) {
     );
 }
 
+fn assert_cycle_members(evaluated: &Report, expected: &[&str]) {
+    let expected_subject = expected.join(" -> ");
+    let cycles: Vec<&str> = evaluated
+        .findings
+        .iter()
+        .filter(|finding| finding.code == "dag_cycle")
+        .map(|finding| finding.subject.as_str())
+        .collect();
+    assert_eq!(
+        cycles,
+        [expected_subject.as_str()],
+        "cycle fixture must produce exactly the intended SCC membership and cardinality"
+    );
+}
+
 #[test]
 fn live_policy_and_graph_v2_are_green() {
     let (raw, policy) = load_live();
@@ -348,12 +387,12 @@ fn live_policy_and_graph_v2_are_green() {
 }
 
 #[test]
-fn policy_rejects_wrong_gate_id_and_repo_path_escapes() {
+fn policy_rejects_wrong_gate_id_redirects_and_path_escapes() {
     let valid = json!({
         "gate_id": GATE_ID,
-        "dag_path": "specs/substrate-dependency-dag.json",
-        "schema_path": "specs/substrate-dependency-dag.schema.json",
-        "capability_registry_path": "specs/capability-registry.json"
+        "dag_path": CANONICAL_DAG_PATH,
+        "schema_path": CANONICAL_SCHEMA_PATH,
+        "capability_registry_path": CANONICAL_CAPABILITY_REGISTRY_PATH
     });
 
     let mut wrong_gate = valid.clone();
@@ -361,19 +400,33 @@ fn policy_rejects_wrong_gate_id_and_repo_path_escapes() {
     let error = parse_policy(&wrong_gate.to_string()).expect_err("wrong gate id must fail closed");
     assert!(error.to_string().contains("does not match"), "{error}");
 
-    for (field, escaped) in [
+    for (field, redirect) in [
+        ("dag_path", "specs/dag.json"),
+        ("schema_path", "specs/dag.schema.json"),
+        ("capability_registry_path", "specs/capabilities.json"),
+    ] {
+        let mut policy = valid.clone();
+        policy[field] = json!(redirect);
+        let error = parse_policy(&policy.to_string())
+            .expect_err("repo-relative redirect must fail closed before any file access");
+        assert!(
+            error.to_string().contains("must equal canonical path"),
+            "unexpected error for `{field}={redirect}`: {error}"
+        );
+    }
+
+    for (field, escape) in [
         ("dag_path", "../outside.json"),
         ("schema_path", "specs/../outside.schema.json"),
         ("capability_registry_path", "/tmp/capability-registry.json"),
     ] {
         let mut policy = valid.clone();
-        policy[field] = json!(escaped);
+        policy[field] = json!(escape);
         let error = parse_policy(&policy.to_string())
-            .expect_err("repo path escape must fail closed before any file access");
+            .expect_err("path escape must fail closed before any file access");
         assert!(
-            error.to_string().contains("must not contain `..`")
-                || error.to_string().contains("must be repo-relative"),
-            "unexpected error for `{field}={escaped}`: {error}"
+            error.to_string().contains("must equal canonical path"),
+            "unexpected error for `{field}={escape}`: {error}"
         );
     }
 }
@@ -776,6 +829,28 @@ fn fixture_corpus_executes_every_declared_mutation_and_expected_verdict() {
                 "fixture {id}: expected {expected}, got {:?}",
                 evaluated.findings
             );
+            match mutation {
+                "graph3_three_node_cycle" => assert_cycle_members(
+                    &evaluated,
+                    &[
+                        "cell.envelope",
+                        "iam.local-verifier",
+                        "tenancy.local-context",
+                    ],
+                ),
+                "graph3_buried_scc_cycle" => assert_cycle_members(
+                    &evaluated,
+                    &[
+                        "audit.cell-seal",
+                        "data.ontology-runtime",
+                        "intelligence.runtime",
+                        "observability.cell-runtime",
+                        "secrets.cell-issuer",
+                        "workflow.runtime",
+                    ],
+                ),
+                _ => {}
+            }
         }
     }
 }

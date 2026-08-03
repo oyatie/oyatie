@@ -8,7 +8,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
-use std::path::{Component, Path};
+use std::path::Path;
 
 use serde_json::Value;
 use sha2::{Digest, Sha256};
@@ -16,6 +16,9 @@ use sha2::{Digest, Sha256};
 pub const GATE_ID: &str = "cloud-ci-substrate-dependency-dag-acyclicity";
 pub const DEFAULT_POLICY_PATH: &str =
     "ci/facade/dependency-graph-acyclicity/substrate-dependency-dag-policy.json";
+pub const CANONICAL_DAG_PATH: &str = "specs/substrate-dependency-dag.json";
+pub const CANONICAL_SCHEMA_PATH: &str = "specs/substrate-dependency-dag.schema.json";
+pub const CANONICAL_CAPABILITY_REGISTRY_PATH: &str = "specs/capability-registry.json";
 pub const GRAPH_KINDS: [&str; 5] = [
     "genesis",
     "new_cell_provisioning",
@@ -146,9 +149,13 @@ pub fn parse_policy(bytes: &str) -> Result<Policy, DagError> {
     let dag_path = required_string(&value, "dag_path", "policy")?;
     let schema_path = required_string(&value, "schema_path", "policy")?;
     let capability_registry_path = required_string(&value, "capability_registry_path", "policy")?;
-    validate_repo_relative_path("dag_path", dag_path)?;
-    validate_repo_relative_path("schema_path", schema_path)?;
-    validate_repo_relative_path("capability_registry_path", capability_registry_path)?;
+    validate_canonical_policy_path("dag_path", dag_path, CANONICAL_DAG_PATH)?;
+    validate_canonical_policy_path("schema_path", schema_path, CANONICAL_SCHEMA_PATH)?;
+    validate_canonical_policy_path(
+        "capability_registry_path",
+        capability_registry_path,
+        CANONICAL_CAPABILITY_REGISTRY_PATH,
+    )?;
     let allowed: BTreeSet<&str> = [
         "_comment",
         "gate_id",
@@ -180,26 +187,15 @@ fn required_string<'a>(value: &'a Value, key: &str, subject: &str) -> Result<&'a
         .ok_or_else(|| DagError::Parse(format!("{subject} missing string `{key}`")))
 }
 
-fn validate_repo_relative_path(field: &str, path: &str) -> Result<(), DagError> {
-    if path.trim().is_empty() {
+fn validate_canonical_policy_path(
+    field: &str,
+    actual: &str,
+    expected: &str,
+) -> Result<(), DagError> {
+    if actual != expected {
         return Err(DagError::Parse(format!(
-            "policy `{field}` must not be empty"
+            "policy `{field}` must equal canonical path `{expected}`, got `{actual}`"
         )));
-    }
-    for component in Path::new(path).components() {
-        match component {
-            Component::ParentDir => {
-                return Err(DagError::Parse(format!(
-                    "policy `{field}` must not contain `..`: {path}"
-                )));
-            }
-            Component::RootDir | Component::Prefix(_) => {
-                return Err(DagError::Parse(format!(
-                    "policy `{field}` must be repo-relative: {path}"
-                )));
-            }
-            Component::CurDir | Component::Normal(_) => {}
-        }
     }
     Ok(())
 }
@@ -1562,21 +1558,62 @@ mod tests {
     }
 
     #[test]
-    fn policy_requires_all_live_contract_paths() {
+    fn policy_requires_exact_live_contract_paths() {
         let parsed = parse_policy(
             &json!({
                 "gate_id": GATE_ID,
-                "dag_path": "specs/dag.json",
-                "schema_path": "specs/dag.schema.json",
-                "capability_registry_path": "specs/capability-registry.json"
+                "dag_path": CANONICAL_DAG_PATH,
+                "schema_path": CANONICAL_SCHEMA_PATH,
+                "capability_registry_path": CANONICAL_CAPABILITY_REGISTRY_PATH
             })
             .to_string(),
         )
         .unwrap();
-        assert_eq!(parsed.schema_path, "specs/dag.schema.json");
+        assert_eq!(parsed.dag_path, CANONICAL_DAG_PATH);
+        assert_eq!(parsed.schema_path, CANONICAL_SCHEMA_PATH);
         assert_eq!(
             parsed.capability_registry_path,
-            "specs/capability-registry.json"
+            CANONICAL_CAPABILITY_REGISTRY_PATH
         );
+
+        for (field, redirect) in [
+            ("dag_path", "specs/dag.json"),
+            ("schema_path", "specs/dag.schema.json"),
+            ("capability_registry_path", "registry/capabilities.json"),
+        ] {
+            let mut policy = json!({
+                "gate_id": GATE_ID,
+                "dag_path": CANONICAL_DAG_PATH,
+                "schema_path": CANONICAL_SCHEMA_PATH,
+                "capability_registry_path": CANONICAL_CAPABILITY_REGISTRY_PATH
+            });
+            policy[field] = json!(redirect);
+            let error = parse_policy(&policy.to_string())
+                .expect_err("repo-relative redirects must fail closed");
+            assert!(
+                error.to_string().contains("must equal canonical path"),
+                "unexpected error for `{field}={redirect}`: {error}"
+            );
+        }
+
+        for (field, escape) in [
+            ("dag_path", "../outside.json"),
+            ("schema_path", "specs/../outside.schema.json"),
+            ("capability_registry_path", "/tmp/capability-registry.json"),
+        ] {
+            let mut policy = json!({
+                "gate_id": GATE_ID,
+                "dag_path": CANONICAL_DAG_PATH,
+                "schema_path": CANONICAL_SCHEMA_PATH,
+                "capability_registry_path": CANONICAL_CAPABILITY_REGISTRY_PATH
+            });
+            policy[field] = json!(escape);
+            let error = parse_policy(&policy.to_string())
+                .expect_err("path escapes must fail closed under exact canonical binding");
+            assert!(
+                error.to_string().contains("must equal canonical path"),
+                "unexpected error for `{field}={escape}`: {error}"
+            );
+        }
     }
 }
