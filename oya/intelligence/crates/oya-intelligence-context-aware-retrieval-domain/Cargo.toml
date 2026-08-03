@@ -6,4 +6,4 @@ license = "Apache-2.0"
 publish = false
 
 [dependencies]
-oya-intelligence-context-aware-retrieval-kernel = { path = "../oya-intelligence-context-aware-retrieval-kernel" }
+intelligence-context-aware-retrieval-kernel = { path = "../../../../intelligence/core/context-aware-retrieval-kernel" }

@@ -1,0 +1,33 @@
+rust_library(
+    name = "intelligence-model-routing-usecase",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "intelligence_model_routing_usecase",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//intelligence/core/model-routing-domain:intelligence-model-routing-domain",
+    ],
+)
+
+rust_test(
+    name = "intelligence-model-routing-usecase-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "intelligence_model_routing_usecase",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//intelligence/core/model-routing-domain:intelligence-model-routing-domain",
+    ],
+)
+
+rust_test(
+    name = "intelligence-model-routing-usecase-acceptance",
+    srcs = ["tests/acceptance.rs"],
+    crate = "intelligence_model_routing_usecase_acceptance",
+    crate_root = "tests/acceptance.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-model-routing-usecase",
+        "//intelligence/core/model-routing-domain:intelligence-model-routing-domain",
+    ],
+)

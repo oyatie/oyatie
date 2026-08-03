@@ -1,0 +1,8 @@
+[package]
+name = "intelligence-model-routing-usecase"
+version = "0.1.0"
+license = "Apache-2.0"
+edition = "2024"
+
+[dependencies]
+intelligence-model-routing-domain = { path = "../model-routing-domain" }
