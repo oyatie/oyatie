@@ -139,7 +139,8 @@ pub use read_surface_resurrection::{
 // generated ADR-index projection parity.
 pub use adr_index_projection_parity::{
     ADR_INDEX_MD_PATH, ADR_INDEX_PARITY_VALIDATOR, ADR_INDEX_PROJECTION_STALE_CODE,
-    DECISIONS_JSON_PATH, evaluate_adr_index_projection_parity,
+    AdrProjectionEmitError, DECISIONS_JSON_PATH, adr_records_from_decisions_json,
+    evaluate_adr_index_projection_parity, regenerate_adr_index_projection,
 };
 // Re-exported from the producer kernel so the gate test builds the source-of-truth
 // record set with the SAME type the ADR-index producer renders.
