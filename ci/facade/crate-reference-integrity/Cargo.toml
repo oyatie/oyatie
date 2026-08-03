@@ -1,0 +1,31 @@
+[package]
+name = "ci-crate-reference-integrity"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[package.metadata.oya]
+bounded_context = "cloud-ci"
+kind = "shared"
+layer = "app"
+purpose = "Cloud CI gate ensuring a crate reference in a governed artifact names a package that still exists: JSON object keys, graph node labels, seam declarations, runnable `-p` commands, and build-graph labels that no compiler ever reads."
+
+# cloud-ci-crate-reference-integrity (ADR-0630): self-contained, policy-driven gate. The kernel in
+# src/lib.rs is pure (no filesystem, no clock, no environment, no repo-specific literal); the
+# tracked-file boundary and workspace/lockfile census live in tests/. Every structural site type is
+# one object in crate-reference-integrity-policy.json, so adding a site class is a DATA edit.
+
+[lib]
+name = "ci_crate_reference_integrity"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+serde_json = { workspace = true }
+serde_yaml = { workspace = true }
+oya-workspace-members-kernel = { path = "../../../libs/oya-workspace-members-kernel" }
+
+[lints]
+workspace = true
