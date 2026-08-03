@@ -1,9 +1,0 @@
-# Canonical-base: microservices/governance/iac/kustomize/components/{namespace-restricted-profile,pack-overlay-canonical/<pack>} (SWEEP-I Slice 3 per ADR-0064)
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: docs
-  labels:
-    oyatie.dev/microservice: docs
-    istio-injection: enabled
-    oyatie.dev/control-plane: "false"

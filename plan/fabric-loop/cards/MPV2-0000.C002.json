@@ -1,8 +1,0 @@
-{
-  "card_id": "MPV2-0000.C002",
-  "title": "Harvested (proof-run infra): detached-subagent result artifacts are lossy; review card contract must require verdict delivery as a durable operational-plane file, with a gate/test guard on the review lane",
-  "program_id": "P-FABRIC",
-  "depends_on": [],
-  "status": "defined",
-  "evidence_refs": []
-}

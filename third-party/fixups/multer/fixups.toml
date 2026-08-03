@@ -1,3 +1,0 @@
-[buildscript]
-# Pure Rust feature probe that emits only a rustc cfg.
-run = true

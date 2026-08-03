@@ -1,9 +1,0 @@
-export_file(
-    name = "generated-artifact-control-plane.json",
-    visibility = ["PUBLIC"],
-)
-export_file(
-    name = "adr-census-epoch-control-plane.json",
-    src = "adr-census-epoch/control-plane.json",
-    visibility = ["PUBLIC"],
-)

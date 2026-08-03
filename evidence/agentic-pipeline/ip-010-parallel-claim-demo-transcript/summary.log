@@ -1,5 +1,0 @@
-timestamp=2026-05-14T14:01:07Z event=demo_start
-symbol_a=crates/oya-cloud-billing-application/src/lib.rs::CloudBillingEventIngestAppStatus
-symbol_b=crates/oya-cloud-billing-application/src/lib.rs::CloudBillingMeterUnitRecord
-claim_status_a=0 claim_status_b=0
-negative_status_c=1

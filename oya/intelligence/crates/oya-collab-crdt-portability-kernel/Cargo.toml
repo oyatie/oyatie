@@ -1,9 +1,0 @@
-[package]
-name = "oya-collab-crdt-portability-kernel"
-version = "0.1.0"
-edition = "2021"
-publish = false
-description = "ADR-0142 CRDT portability seam trait — vendor-neutral surface for Loro/Yrs/Automerge swap. Kernel-tier per ADR-0083 (zero production deps)."
-license = "Apache-2.0"
-
-[dependencies]

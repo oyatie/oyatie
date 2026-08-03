@@ -1,3 +1,0 @@
-[buildscript]
-# getrandom 0.2.x has build = false (no build.rs). Do NOT run a build script.
-run = false

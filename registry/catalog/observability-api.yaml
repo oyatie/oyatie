@@ -1,9 +1,0 @@
-context: observability
-role: api
-capability: observability
-plane: analytics
-slo: stable-control-plane
-data_classes_owned: [PUBLIC, INTERNAL_ONLY, PII_IDENTIFYING, PII_QUASI_IDENTIFIER, PHI, PCI, FINANCIAL_REGULATED_CREDIT, BEHAVIORAL_TENANT_PRODUCT, BEHAVIORAL_ADS, DECLARED_PREFERENCE, SEARCH_QUERY, SENSITIVE_PIPA_ART23]
-api_stability: preview
-security_review: unreviewed
-supply_chain: source-only

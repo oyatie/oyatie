@@ -1,0 +1,462 @@
+# Oyatie pre-wipe tracked-dirty snapshot manifest
+# created_utc	2026-08-03T12:15:15.126440Z
+# tracked changes are preserved as git-stash-create commit trees; worktrees were not modified
+# untracked contents are NOT uploaded blindly; paths are inventoried below
+# record_type	worktree	branch_or_untracked_path	head	snapshot_commit	tracked_entries	untracked_entries
+dirty	/Users/jasonlee/Developer/oyatie	preserve/hermes-w1-dirty-20260630	c52bdb09ea337de103b05317de0c120f2b7a3e45	ff8346ed6ada10bb8657236263383b810220267b	1399	374
+untracked-path	/Users/jasonlee/Developer/oyatie	--help/build-receipt-v0.2.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	--help/fixed-mutation-plan-v0.2.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	--help/generated-mutation-protocol-v0.2.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	--help/mutation-normalization-oracle-v0.2.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	--help/validator-self-mutants-v0.2.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	.agents/skills/rust-skills/SKILL.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	.claude/skills/rust-skills				
+untracked-path	/Users/jasonlee/Developer/oyatie	.codex/config.toml				
+untracked-path	/Users/jasonlee/Developer/oyatie	.github/CODE_OF_CONDUCT.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	.github/CONTRIBUTING.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	.github/ISSUE_TEMPLATE/blocker-resolution-card.yml				
+untracked-path	/Users/jasonlee/Developer/oyatie	.github/ISSUE_TEMPLATE/bug-report.yml				
+untracked-path	/Users/jasonlee/Developer/oyatie	.github/ISSUE_TEMPLATE/config.yml				
+untracked-path	/Users/jasonlee/Developer/oyatie	.github/ISSUE_TEMPLATE/feature-request.yml				
+untracked-path	/Users/jasonlee/Developer/oyatie	.github/OWNERS				
+untracked-path	/Users/jasonlee/Developer/oyatie	.github/PULL_REQUEST_TEMPLATE.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	.worktrees/g023-pr1523-restack-20260802/				
+untracked-path	/Users/jasonlee/Developer/oyatie	.worktrees/g028-runner-disk-request-20260802/				
+untracked-path	/Users/jasonlee/Developer/oyatie	.worktrees/review-t_ceb89d13-pr1107/				
+untracked-path	/Users/jasonlee/Developer/oyatie	.worktrees/t_03877337-calendar-e2e/				
+untracked-path	/Users/jasonlee/Developer/oyatie	.worktrees/t_09997b9d/				
+untracked-path	/Users/jasonlee/Developer/oyatie	.worktrees/t_0b5f2b75-crm-closeout/				
+untracked-path	/Users/jasonlee/Developer/oyatie	.worktrees/t_1cb9bacc/				
+untracked-path	/Users/jasonlee/Developer/oyatie	.worktrees/t_1e67b1be-regeneration/				
+untracked-path	/Users/jasonlee/Developer/oyatie	.worktrees/t_60e047bd/				
+untracked-path	/Users/jasonlee/Developer/oyatie	.worktrees/t_7b437a23-calendar-build/				
+untracked-path	/Users/jasonlee/Developer/oyatie	.worktrees/t_7d05dc85-regsec-001/				
+untracked-path	/Users/jasonlee/Developer/oyatie	.worktrees/t_b41da6b2-authz-007-runtime-fix/				
+untracked-path	/Users/jasonlee/Developer/oyatie	.worktrees/t_f15d213a-airgap-contract/				
+untracked-path	/Users/jasonlee/Developer/oyatie	.worktrees/t_fc9e8923-idp-002-fix/				
+untracked-path	/Users/jasonlee/Developer/oyatie	.worktrees/workspace-drift-cloud-ci-port-20260701/				
+untracked-path	/Users/jasonlee/Developer/oyatie	.worktrees/workspace-drift-cloud-trust-port-20260701/				
+untracked-path	/Users/jasonlee/Developer/oyatie	.worktrees/workspace-drift-docs-procedure-port-20260701/				
+untracked-path	/Users/jasonlee/Developer/oyatie	.worktrees/workspace-drift-oya-retired-port-20260701/				
+untracked-path	/Users/jasonlee/Developer/oyatie	cloud/cloud-billing/crates/oya-cloud-billing-domain/tests/env_tier_outbound_metadata.rs				
+untracked-path	/Users/jasonlee/Developer/oyatie	cloud/cloud-capacity/manifest.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	cloud/cloud-ci/gates/oya-cloud-ci-license-policy-app/BUCK				
+untracked-path	/Users/jasonlee/Developer/oyatie	cloud/cloud-ci/gates/oya-cloud-ci-license-policy-app/Cargo.toml				
+untracked-path	/Users/jasonlee/Developer/oyatie	cloud/cloud-ci/gates/oya-cloud-ci-license-policy-app/OWNERS				
+untracked-path	/Users/jasonlee/Developer/oyatie	cloud/cloud-ci/gates/oya-cloud-ci-license-policy-app/src/lib.rs				
+untracked-path	/Users/jasonlee/Developer/oyatie	cloud/cloud-ci/gates/oya-cloud-ci-license-policy-app/tests/license_policy.rs				
+untracked-path	/Users/jasonlee/Developer/oyatie	cloud/cloud-ci/gates/oya-cloud-ci-load-balancer-inventory-app/BUCK				
+untracked-path	/Users/jasonlee/Developer/oyatie	cloud/cloud-ci/gates/oya-cloud-ci-load-balancer-inventory-app/Cargo.toml				
+untracked-path	/Users/jasonlee/Developer/oyatie	cloud/cloud-ci/gates/oya-cloud-ci-load-balancer-inventory-app/src/lib.rs				
+untracked-path	/Users/jasonlee/Developer/oyatie	cloud/cloud-ci/gates/oya-cloud-ci-load-balancer-inventory-app/tests/load_balancer_inventory.rs				
+untracked-path	/Users/jasonlee/Developer/oyatie	cloud/cloud-ci/gates/oya-cloud-ci-multi-region-disposition-app/BUCK				
+untracked-path	/Users/jasonlee/Developer/oyatie	cloud/cloud-ci/gates/oya-cloud-ci-multi-region-disposition-app/Cargo.toml				
+untracked-path	/Users/jasonlee/Developer/oyatie	cloud/cloud-ci/gates/oya-cloud-ci-multi-region-disposition-app/src/lib.rs				
+untracked-path	/Users/jasonlee/Developer/oyatie	cloud/cloud-ci/gates/oya-cloud-ci-multi-region-disposition-app/tests/multi_region_disposition.rs				
+untracked-path	/Users/jasonlee/Developer/oyatie	cloud/cloud-ci/gates/oya-cloud-ci-sovereign-tenant-pin-app/BUCK				
+untracked-path	/Users/jasonlee/Developer/oyatie	cloud/cloud-ci/gates/oya-cloud-ci-sovereign-tenant-pin-app/Cargo.toml				
+untracked-path	/Users/jasonlee/Developer/oyatie	cloud/cloud-ci/gates/oya-cloud-ci-sovereign-tenant-pin-app/OWNERS				
+untracked-path	/Users/jasonlee/Developer/oyatie	cloud/cloud-ci/gates/oya-cloud-ci-sovereign-tenant-pin-app/src/lib.rs				
+untracked-path	/Users/jasonlee/Developer/oyatie	cloud/cloud-ci/gates/oya-cloud-ci-sovereign-tenant-pin-app/tests/sovereign_tenant_pin.rs				
+untracked-path	/Users/jasonlee/Developer/oyatie	cloud/cloud-ci/gates/oya-cloud-ci-tenant-environment-tier-app/BUCK				
+untracked-path	/Users/jasonlee/Developer/oyatie	cloud/cloud-ci/gates/oya-cloud-ci-tenant-environment-tier-app/Cargo.toml				
+untracked-path	/Users/jasonlee/Developer/oyatie	cloud/cloud-ci/gates/oya-cloud-ci-tenant-environment-tier-app/src/lib.rs				
+untracked-path	/Users/jasonlee/Developer/oyatie	cloud/cloud-ci/gates/oya-cloud-ci-tenant-environment-tier-app/tests/tenant_environment_tier.rs				
+untracked-path	/Users/jasonlee/Developer/oyatie	cloud/cloud-ci/gates/oya-cloud-ci-zero-static-secrets-app/BUCK				
+untracked-path	/Users/jasonlee/Developer/oyatie	cloud/cloud-ci/gates/oya-cloud-ci-zero-static-secrets-app/Cargo.toml				
+untracked-path	/Users/jasonlee/Developer/oyatie	cloud/cloud-ci/gates/oya-cloud-ci-zero-static-secrets-app/OWNERS				
+untracked-path	/Users/jasonlee/Developer/oyatie	cloud/cloud-ci/gates/oya-cloud-ci-zero-static-secrets-app/src/lib.rs				
+untracked-path	/Users/jasonlee/Developer/oyatie	cloud/cloud-ci/gates/oya-cloud-ci-zero-static-secrets-app/tests/zero_static_secrets.rs				
+untracked-path	/Users/jasonlee/Developer/oyatie	cloud/cloud-ci/gates/oya-cloud-ci-zero-static-secrets-app/zero-static-secrets-policy.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	cloud/cloud-iac/IPs/IP-sustainability-emission-model.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	cloud/cloud-iac/cell-topology/cell-001-contract-snapshot.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	cloud/cloud-intelligence/IPs/IP-sustainability-emission-model.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	cloud/cloud-intelligence/contracts/env-tier-gateway-budget-contract.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	cloud/cloud-network/crates/oya-cloud-network-domain/tests/cloud_network_resource_contract.rs				
+untracked-path	/Users/jasonlee/Developer/oyatie	cloud/cloud-os/crates/oya-cloud-os-trustd-domain/src/persistence.rs				
+untracked-path	/Users/jasonlee/Developer/oyatie	cloud/cloud-secrets/contracts/cloud-secrets-resource-contract.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	cloud/cloud-secrets/contracts/cloud-secrets-resource-contract.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	cloud/cloud-secrets/contracts/secretprovider-rotation-contract.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	cloud/cloud-secrets/crates/oya-secrets-domain/tests/cloud_secrets_resource_contract.rs				
+untracked-path	/Users/jasonlee/Developer/oyatie	cloud/cloud-secrets/runbooks/non-prod-secretprovider-rotation-drill.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	cloud/managed-k8s-cluster-lifecycle/IPs/IP-sustainability-emission-model.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	cloud/managed-k8s-control-plane-host/IPs/IP-sustainability-emission-model.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	cloud/managed-k8s-sla-observability/IPs/IP-sustainability-emission-model.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	cloud/managed-k8s-sla-observability/runbooks/runbooks/sla-observation-store-unavailable.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	cloud/managed-k8s-tenant-quota/IPs/IP-sustainability-emission-model.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	cloud/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-adapter-postgres/BUCK				
+untracked-path	/Users/jasonlee/Developer/oyatie	cloud/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-adapter-postgres/Cargo.toml				
+untracked-path	/Users/jasonlee/Developer/oyatie	cloud/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-adapter-postgres/src/lib.rs				
+untracked-path	/Users/jasonlee/Developer/oyatie	cloud/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-adapter-postgres/tests/rls_guard.rs				
+untracked-path	/Users/jasonlee/Developer/oyatie	cloud/tenancy/IPs/IP-sustainability-emission-model.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	controlplane.yaml				
+untracked-path	/Users/jasonlee/Developer/oyatie	docs/audits/trust-center-security-privacy-docs-review-packet-2026-07-01.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	docs/ideas/ecosystem-as-code.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	docs/ideas/policy-pack-substrate.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	docs/ideas/retire-the-cache-tarball.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	docs/ideas/scan-once-assert-many.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	docs/runbooks/cloud/root-of-trust-ceremony.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	docs/standards/autonomous-kanban-lifecycle.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	evidence/audits/audit-002-retrieval-assumptions-contract-snapshot-2026-07-01.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	evidence/audits/ci-011-shell-cli-retirement-inventory-2026-06-30.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	evidence/audits/ci-011-shell-cli-retirement-inventory-2026-06-30.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	evidence/cell-topology/cell-001-contract-snapshot-20260701.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	evidence/cloud/quality-kits/qk-01-overload-fairness/artifacts/qk01-t_5758c29f-cascading_failure_check.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	evidence/cloud/quality-kits/qk-01-overload-fairness/artifacts/qk01-t_5758c29f-fairness_index.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	evidence/cloud/quality-kits/qk-01-overload-fairness/artifacts/qk01-t_5758c29f-shed_rate_curve.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	evidence/cloud/quality-kits/qk-01-overload-fairness/runs/qk01-t_5758c29f.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	evidence/cloud/quality-kits/qk-03-privacy-data-governance/plan-spec-red.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	evidence/cloud/quality-kits/qk-05-focus-cost-export/plan-spec-red.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	evidence/cloud/quality-kits/qk-06-k8s-pod-security/plan-spec-red.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	evidence/conformance/conf-001-release-candidate-conformance-20260702.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	evidence/conformance/conf-001-release-candidate-conformance-20260702.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	evidence/contract-snapshots/api-001-fixture-contract-snapshot-20260701.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	evidence/contract-snapshots/api-001-fixture-contract-snapshot-20260701.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	evidence/contract-snapshots/edge-001-edge-policy-envelope-route-contract-20260701.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	evidence/contract-snapshots/mail-non-http-protocol-edge-authority-and-gate-plan-20260701.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	evidence/contract-snapshots/network-001-gateway-mesh-boundary-route-contract-20260701.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	evidence/contract-snapshots/network-followup-mail-non-http-loadbalancer-ingress-classification-20260701.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	evidence/contract-snapshots/tls-001-http3-tls-ech-pqc-posture-20260701.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	evidence/devportal/devportal-001a-approved-template-provisioning-evidence-20260701.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	evidence/devportal/devportal-001a-approved-template-provisioning-evidence-20260701.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	evidence/multispectrum/arch-own-ratchet-001-20260701-1782886584.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	evidence/multispectrum/founder-call-own-ops-001-20260702-1782954777.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	evidence/multispectrum/regsec-001-vulnerability-intelligence-sbom-vex-20260701.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	evidence/multispectrum/regvuln-002-vulnerability-contract-integration-decision-20260701.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	evidence/multispectrum/t_3acb7585-qk05-review-fix-1782943388.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	evidence/multispectrum/t_5f5d9a01-shell-004-audit-evidence-timeline-1783612741.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	evidence/multispectrum/t_f60cb75d-finops-high-risk-emission-models-1782944098.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	evidence/multispectrum/t_ff6ecba7-manifest-index-inventory-recon-1782912252.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	evidence/multispectrum/w4-003-virtual-materialization-20260701.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	evidence/observability/obs-002-traceparent-otlp-contract-snapshot-20260701.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	evidence/regulatory/regulatory-hermes-decomposition-preservation-20260701.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	evidence/toolchain-isolation/t_26046c55-t-isolation-0-fanin-evidence.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	evidence/toolchain-isolation/t_26046c55-t-isolation-0-fanin-evidence.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	evidence/toolchain-isolation/t_688c8b9b-identity-secret-audit-fixture-harness-evidence.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	evidence/toolchain-isolation/t_7d6670d5-scm-fixture-harness-evidence.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	evidence/toolchain-isolation/t_feff66eb-cd-fixture-harness-evidence.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	infra/capi/.gitignore				
+untracked-path	/Users/jasonlee/Developer/oyatie	infra/capi/fleet-preflight.sh				
+untracked-path	/Users/jasonlee/Developer/oyatie	libs/oya-ci-config/fixtures/neutral-adopter-oya-ci.toml				
+untracked-path	/Users/jasonlee/Developer/oyatie	libs/oya-ci-gate-contract/BUCK				
+untracked-path	/Users/jasonlee/Developer/oyatie	libs/oya-data-boundary-kernel/fixtures/retention_qk03_dsr_evidence_contract.txt				
+untracked-path	/Users/jasonlee/Developer/oyatie	libs/oya-data-sql-adapter-sqlx/src/envelope.rs				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/api-gateway/iac/k8s/helm/templates/mail-protocol-routes.yaml				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/application/IPs/IP-sustainability-emission-model.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/audit-chain/IPs/IP-sustainability-emission-model.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/calendar/IPs/IP-sustainability-emission-model.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/community/IPs/IP-sustainability-emission-model.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/community/crates/oya-community-anonymous/BUCK				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/community/crates/oya-community-anonymous/Cargo.toml				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/community/crates/oya-community-anonymous/src/lib.rs				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/connector/crates/oya-connector-slack-adapter/tests/env_tier_outbound_metadata.rs				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/developer-sdk/crates/oya-dev-cli/src/terminal_verifier_harness.rs				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/docs/IPs/IP-sustainability-emission-model.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/drive/IPs/IP-sustainability-emission-model.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/finops-portal/contracts/env-tier-outbound-emission-plan.contract.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/finops-portal/contracts/fixtures/env-tier-outbound-emission-plan/red-fixtures.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/forms/IPs/IP-sustainability-emission-model.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/governance/IPs/IP-sustainability-emission-model.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/hr/crates/oya-hr-employment-domain/tests/statutory_filing_manifest.rs				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/hr/crates/oya-hr-employment-storage-adapter-postgres/BUCK				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/hr/crates/oya-hr-employment-storage-adapter-postgres/Cargo.toml				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/hr/crates/oya-hr-employment-storage-adapter-postgres/src/lib.rs				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/hr/crates/oya-hr-employment-storage-adapter-postgres/tests/storage.rs				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/identity/IPs/IP-sustainability-emission-model.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/intelligence/IPs/IP-sustainability-emission-model.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/intelligence/contracts/env-tier-model-budget-contract.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/intelligence/contracts/fixtures/env-tier-model-budget/red-fixtures.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/mail/IPs/IP-sustainability-emission-model.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/mail/iac/helm/templates/_helpers.tpl				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/mail/iac/helm/templates/ciliumnetworkpolicy-mail-edge.yaml				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/meet/IPs/IP-sustainability-emission-model.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/messenger/IPs/IP-sustainability-emission-model.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/notes/IPs/IP-sustainability-emission-model.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/observability/IPs/IP-sustainability-emission-model.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/ontology/IPs/IP-sustainability-emission-model.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/ops-dashboard-control-center/IPs/IP-sustainability-emission-model.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/payments/crates/oya-payments-charge-domain/tests/env_tier_outbound_metadata.rs				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/payroll/crates/oya-payroll-run-api/tests/hr_payroll_boundary.rs				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/payroll/crates/oya-payroll-run-api/tests/statutory_preview.rs				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/payroll/crates/oya-payroll-run-domain/tests/statutory_calculation.rs				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/payroll/crates/oya-payroll-run-domain/tests/statutory_source_pack.rs				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/payroll/crates/oya-payroll-run-domain/tests/year_end_settlement.rs				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/payroll/crates/oya-payroll-run-infrastructure/tests/local_close_replay.rs				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/payroll/crates/oya-payroll-run-infrastructure/tests/statutory_replay.rs				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/payroll/crates/oya-payroll-run-storage-adapter-postgres/BUCK				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/payroll/crates/oya-payroll-run-storage-adapter-postgres/Cargo.toml				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/payroll/crates/oya-payroll-run-storage-adapter-postgres/src/lib.rs				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/payroll/crates/oya-payroll-run-storage-adapter-postgres/tests/storage.rs				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/policy/crates/oya-policy-cedar-domain/src/rebac.rs				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/policy/crates/oya-policy-cedar-domain/tests/rebac_tuple_port.rs				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/quality-management/crates/oya-quality-management-inspection-app/src/adapter/cedar.rs				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/quality-management/crates/oya-quality-management-inspection-app/src/adapter/repository.rs				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/recordings/IPs/IP-sustainability-emission-model.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/sheets/IPs/IP-sustainability-emission-model.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/sites/IPs/IP-sustainability-emission-model.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/slides/IPs/IP-sustainability-emission-model.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/social/IPs/IP-sustainability-emission-model.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/social/crates/oya-social-domain/Cargo.toml				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/social/crates/oya-social-domain/src/lib.rs				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/social/crates/oya-social-domain/tests/social_workplace_slice.rs				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/supply-chain-planning/iac/PROVENANCE-INVENTORY.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/tasks/IPs/IP-sustainability-emission-model.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/translate/IPs/IP-sustainability-emission-model.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/treasury/crates/oya-treasury-cash-domain/tests/env_tier_outbound_metadata.rs				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/trust/crates/oya-trust-center-api/Cargo.toml				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/trust/crates/oya-trust-center-api/src/lib.rs				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/trust/crates/oya-trust-center-api/tests/trust_center_api.rs				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/trust/crates/oya-trust-center-ingest/Cargo.toml				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/trust/crates/oya-trust-center-ingest/src/lib.rs				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/trust/crates/oya-trust-center-ingest/tests/trust_center_ingest.rs				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/workflow-engine/IPs/IP-sustainability-emission-model.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/workflow-engine/contracts/env-tier-run-handoff-contract.yaml				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/workflow-engine/crates/oya-workflow-engine-execution-engine-usecase/tests/hr_labor_compliance_intake.rs				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/workflow-engine/policy/env-tier-run-start.cedar				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/workflow-studio/IPs/IP-sustainability-emission-model.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/workflow-studio/contracts/env-tier-promotion-contract.yaml				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/workflow-studio/policy/env-tier-promotion.cedar				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/workplace-integration/contracts/env-tier-outbound-emission-plan.contract.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/workplace-integration/contracts/fixtures/env-tier-outbound-emission-plan/red-fixtures.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/workplace-integration/crates/oya-workplace-integration-outbound-metadata-domain/BUCK				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/workplace-integration/crates/oya-workplace-integration-outbound-metadata-domain/Cargo.toml				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/workplace-integration/crates/oya-workplace-integration-outbound-metadata-domain/src/lib.rs				
+untracked-path	/Users/jasonlee/Developer/oyatie	oya/workplace-integration/crates/oya-workplace-integration-outbound-metadata-domain/tests/env_tier_outbound_metadata.rs				
+untracked-path	/Users/jasonlee/Developer/oyatie	package-lock.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	plan/cloud-quality-kits/qk-02-shuffle-shard-isolation-plan-spec-red.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	plan/cloud-quality-kits/qk-04-canary-prr-plan-spec-red.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	plan/cloud-quality-kits/qk-07-abuse-fraud-ddos-plan-spec-red.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	plan/community/community-fd001-red-fixture-contract-plan.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	plan/community/community-fd001-service-boundary-plan-spec.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	plan/compliance-selective-cell-placement-architecture.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	plan/tasks/tasks-workplace-backlog-slices.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	plan/tasks/tasks-workplace-source-backed-backlog.md				
+untracked-path	/Users/jasonlee/Developer/oyatie	registry/lts-pins.yaml				
+untracked-path	/Users/jasonlee/Developer/oyatie	scripts/tests/anonymous_prd_red_fixture_contract_check.py				
+untracked-path	/Users/jasonlee/Developer/oyatie	scripts/tests/calendar_prd_red_fixture_contract_check.py				
+untracked-path	/Users/jasonlee/Developer/oyatie	scripts/tests/calendar_user_story_red_fixture_check.py				
+untracked-path	/Users/jasonlee/Developer/oyatie	scripts/tests/community_fd001_red_fixture_contract_check.py				
+untracked-path	/Users/jasonlee/Developer/oyatie	scripts/tests/conf_001_hyperscaler_conformance_check.py				
+untracked-path	/Users/jasonlee/Developer/oyatie	scripts/tests/finops_collab_emission_models_check.py				
+untracked-path	/Users/jasonlee/Developer/oyatie	scripts/tests/global_trade_inventory_authority_check.py				
+untracked-path	/Users/jasonlee/Developer/oyatie	scripts/tests/hr_cloud_deployment_evidence_plan_check.py				
+untracked-path	/Users/jasonlee/Developer/oyatie	scripts/tests/hr_group_ops_scale_plan_check.py				
+untracked-path	/Users/jasonlee/Developer/oyatie	scripts/tests/hr_runtime_audit_event_registry_contract_check.py				
+untracked-path	/Users/jasonlee/Developer/oyatie	scripts/tests/meet_source_map_contract_replay_check.py				
+untracked-path	/Users/jasonlee/Developer/oyatie	scripts/tests/payroll_audit_event_registry_contract_check.py				
+untracked-path	/Users/jasonlee/Developer/oyatie	scripts/tests/qk_01_overload_fairness_future_harness_check.py				
+untracked-path	/Users/jasonlee/Developer/oyatie	scripts/tests/qk_02_shuffle_shard_isolation_future_harness_check.py				
+untracked-path	/Users/jasonlee/Developer/oyatie	scripts/tests/qk_03_privacy_data_governance_future_harness_check.py				
+untracked-path	/Users/jasonlee/Developer/oyatie	scripts/tests/qk_04_canary_prr_future_harness_check.py				
+untracked-path	/Users/jasonlee/Developer/oyatie	scripts/tests/qk_05_focus_cost_export_future_harness_check.py				
+untracked-path	/Users/jasonlee/Developer/oyatie	scripts/tests/qk_06_k8s_pod_security_future_harness_check.py				
+untracked-path	/Users/jasonlee/Developer/oyatie	scripts/tests/qk_07_abuse_fraud_ddos_future_harness_check.py				
+untracked-path	/Users/jasonlee/Developer/oyatie	scripts/tests/recordings_prd_red_fixture_contract_check.py				
+untracked-path	/Users/jasonlee/Developer/oyatie	scripts/tests/sheets_source_map_authority_check.py				
+untracked-path	/Users/jasonlee/Developer/oyatie	scripts/tests/slides_prd_red_fixture_contract_check.py				
+untracked-path	/Users/jasonlee/Developer/oyatie	scripts/tests/social_prd_red_fixture_contract_check.py				
+untracked-path	/Users/jasonlee/Developer/oyatie	scripts/tests/tasks_red_fixture_contract_check.py				
+untracked-path	/Users/jasonlee/Developer/oyatie	scripts/tests/tls_001_ech_runtime_reconciliation_check.py				
+untracked-path	/Users/jasonlee/Developer/oyatie	scripts/tests/translate_source_map_authority_check.py				
+untracked-path	/Users/jasonlee/Developer/oyatie	skills-lock.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/bespoke-scm-virtual-materialization-plan.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/compliance-security-radar-cadence-contract.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/dogfood/bootstrap-tier-data.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/anonymous-prd/red-fixtures.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/anonymous-prd/replay/aggregate/anonymous-hr-aggregate-k-anonymity.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/anonymous-prd/replay/authority/anonymous-authority-source-lock.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/anonymous-prd/replay/authority/anonymous-retired-authority-rejection.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/anonymous-prd/replay/boundary/anonymous-work-personal-context-isolation.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/anonymous-prd/replay/legal/anonymous-legal-hold-four-eyes.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/anonymous-prd/replay/moderation/anonymous-moderator-token-only.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/anonymous-prd/replay/policy/anonymous-build-parentage.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/anonymous-prd/replay/post/anonymous-post-token-only.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/anonymous-prd/replay/privacy/anonymous-identity-fk-leakage-rejection.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/anonymous-prd/replay/privacy/anonymous-verification-vault-isolation.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/anonymous-prd/replay/ux/anonymous-browser-accessibility-evidence.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/calendar-prd/red-fixtures.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/calendar-prd/user-story-red-fixtures.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/community-fd001/red-fixtures.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/crate-adr-design-doc-coverage/tc-CRATEADR-002A-good-governance-check-gates-owner-batch.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/drive/drive_contract_replay_check.py				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/drive/red-fixtures.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/drive/replay/crud/drive-file-folder-crud.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/hr-cloud-deployment/preview-deployment-evidence-plan.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/hr-group-ops-scale/high-volume-group-hr-plan.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/meet/red-fixtures.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/passkey-kyc-policy-context/consent-residency-missing-deny.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/passkey-kyc-policy-context/hardware-bound-aal3-critical.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/passkey-kyc-policy-context/proofing-incomplete-deny.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/passkey-kyc-policy-context/stale-sanctions-pep-deny.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/passkey-kyc-policy-context/syncable-passkey-aal2-ceiling.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/recordings-prd/red-fixtures.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/recordings-prd/replay/ingest/recordings-ingest-contract-replay.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/sheets/source-map/red-fixtures.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/sheets/source-map/rejects-legacy-microservices-manifest.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/sheets/source-map/rejects-runtime-readiness-claim.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/sheets/source-map/replay/asyncapi/sheets-collab-conflict.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/sheets/source-map/replay/asyncapi/sheets-xlsx-import-export.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/sheets/source-map/replay/authority/sheets-inventory-provenance-rejection.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/sheets/source-map/replay/authority/sheets-source-map-authority-lock.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/sheets/source-map/replay/openapi/sheets-cell-range-formula.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/sheets/source-map/replay/openapi/sheets-import-export.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/sheets/source-map/replay/openapi/sheets-workbook-session-open.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/sheets/source-map/replay/policy/sheets-build-parentage.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/sheets/source-map/replay/policy/sheets-retired-ai-intelligence-boundary.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/sheets/source-map/replay/policy/sheets-security-data-policy.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/sheets/source-map/replay/proto/sheets-cell-range-formula.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/sheets/source-map/replay/proto/sheets-open-workbook-session.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/sheets/source-map/replay/proto/sheets-stream-crdt-ops.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/sheets/source-map/replay/ux/sheets-browser-accessibility-evidence.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/sheets/source-map/valid-sheets-source-map.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/slides/red-fixtures.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/slides/rejects-legacy-microservices-manifest.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/slides/rejects-retired-foundry-runtime.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/slides/rejects-runtime-readiness-claim.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/slides/replay/slides_accessibility_reduced_motion_fixture.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/slides/replay/slides_acl_share_version_history_fixture.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/slides/replay/slides_ai_assist_tier_disclosure_fixture.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/slides/replay/slides_browser_user_story_evidence_fixture.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/slides/replay/slides_build_parentage_fixture.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/slides/replay/slides_collaboration_crdt_cursor_conflict_fixture.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/slides/replay/slides_data_retention_audit_fixture.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/slides/replay/slides_deck_crud_open_save_contract_fixture.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/slides/replay/slides_import_export_contract_fixture.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/slides/replay/slides_integration_boundaries_fixture.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/slides/replay/slides_inventory_provenance_rejection_fixture.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/slides/replay/slides_prd_authority_source_lock_fixture.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/slides/replay/slides_present_broadcast_contract_fixture.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/slides/valid-slides-source-authority.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/social/red-fixtures.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/social/replay/ac/social-ac01-personal-post-pillar.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/social/replay/ac/social-ac03-story-ttl-purge.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/social/replay/ac/social-ac04-professional-crosspost-consent.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/social/replay/ac/social-ac05-ar-no-biometric-persistence.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/social/replay/ac/social-ac06-collab-ownership-consent.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/social/replay/asyncapi/social-asyncapi-v1-replay.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/social/replay/authority/social-authority-source-lock.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/social/replay/authority/social-retired-authority-rejection.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/social/replay/contracts/social-produced-contracts.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/social/replay/openapi/social-openapi-v1-replay.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/social/replay/policy/social-build-parentage.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/social/replay/proto/social-proto-v1-replay.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/social/replay/security/social-security-privacy-policy.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/social/replay/ux/social-ac02-context-switch-reconstructs-surfaces.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/social/replay/ux/social-browser-accessibility-evidence.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/tasks/red-fixtures.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/tasks/replay/source-map/source-map-authority-replay.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/tasks/replay/task-store/auth-legal-hold-retention-negative-replay.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/tasks/replay/task-store/create-update-list-archive-contract-replay.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/translate/source-map/red-fixtures.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/translate/source-map/rejects-build-before-review.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/translate/source-map/rejects-legacy-microservices-manifest.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/translate/source-map/rejects-retired-ai-substrate-live-owner.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/translate/source-map/rejects-runtime-readiness-claim.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/fixtures/translate/source-map/valid-translate-source-map.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/microservices/community.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/microservices/drive.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/microservices/forms.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/microservices/meet.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/microservices/recordings.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/microservices/sheets.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/microservices/sites.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/microservices/slides.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/microservices/tasks.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/microservices/translate.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/passkey-kyc-policy-context-contract.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/pci-dss-level-1-readiness-plan.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/platform-vertical-status.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/portfolio-ownership-ratchet.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/regulatory-identity-kyc-policy-evidence-architecture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/regulatory-identity-source-of-truth.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/regulatory-legacy-gate-scanner-normalization-table.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/reorg/billing-move-plan.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/root-of-trust-ceremony-contract.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/security-validation-pipeline-matrix.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/sre-operations-center-contract.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/structural-blockers.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/trust-center-compliance-evidence-portal.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	specs/vulnerability-intelligence-sbom-vex-pipeline.json				
+untracked-path	/Users/jasonlee/Developer/oyatie	worker.yaml				
+dirty	/Users/jasonlee/Developer/oyatie-wt-ci-active-artifact-20260801	dev	b0a42acbabfe82b900d7a64c8af52e6c9a80bfcc	e65e3e9a570aef241e6de03c9d4d4f1a38aee126	12	0
+dirty	/Users/jasonlee/Developer/oyatie-wt-proof-slot-0	lane/action-item-accounting-c2	7092e7fe9a34898fa09f398bd7e4d4b5477802a0	ae7ea5f3d2312b23f97be26f971645cc0a698fe7	1	0
+dirty	/Users/jasonlee/Developer/oyatie/.claude/worktrees/agent-a5fbe8d35684023f8	worktree-agent-a5fbe8d35684023f8	71dcfdff1b6bbc4aa823b396ab1c08d103f1ce5f		0	1
+untracked-path	/Users/jasonlee/Developer/oyatie/.claude/worktrees/agent-a5fbe8d35684023f8	PR-BODY-0612.md				
+dirty	/Users/jasonlee/Developer/oyatie/.claude/worktrees/baseline-race	feat/trusted-baseline-await	4b993de406afb4e2cd2677d553a0469a4de23e1d	67356ac5f89cf10a604a893508484f61159ef402	1	0
+dirty	/Users/jasonlee/Developer/oyatie/.claude/worktrees/ultragoal-resume-20260802	g028-trigger-fix-attempt2	42710c2a45ab70abecb2380cd28a2d8aa059f2af	f25bd38230994d1f33ab7509be51133b0302be90	1	0
+dirty	/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_12a4f4b5-475-2	worktree-wf_12a4f4b5-475-2	1f1c5bf40899247feb8bf6b87613b8f07606256b	061a018e20c4fc9b8d1a6cda240f118d1ec2c5e0	16	0
+dirty	/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_18082e4e-654-2	worktree-wf_18082e4e-654-2	1612db9e979c14e9ddc8754acc22e6d2255f3f45	3a0e28908cab947ed4a377b01e7e261d6772add1	13	0
+dirty	/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_18a9e839-868-1	worktree-wf_18a9e839-868-1	628ffa7091aff5bc940870c40b8e091bc562bf3b		7	0
+dirty	/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_18a9e839-868-3	worktree-wf_18a9e839-868-3	628ffa7091aff5bc940870c40b8e091bc562bf3b	100872d6c556640d04f6acf9c696b2668ec24c06	1	0
+dirty	/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_18a9e839-868-4	worktree-wf_18a9e839-868-4	628ffa7091aff5bc940870c40b8e091bc562bf3b		1	0
+dirty	/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_1903fbe1-ee9-6	worktree-wf_1903fbe1-ee9-6	f205738152c78e754c43f560900d8d8ec708c7e3	3ca7bb981a37799553d984f89a264ed1044df716	4	0
+dirty	/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_1903fbe1-ee9-7	worktree-wf_1903fbe1-ee9-7	f205738152c78e754c43f560900d8d8ec708c7e3	4bf8354b3133bf302263901d9307f4aab02c8d2f	2	0
+dirty	/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_1903fbe1-ee9-8	worktree-wf_1903fbe1-ee9-8	f205738152c78e754c43f560900d8d8ec708c7e3	a0a8e0261a61f1d78e6c492af404693a75323cde	7	0
+dirty	/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_1903fbe1-ee9-9	worktree-wf_1903fbe1-ee9-9	f205738152c78e754c43f560900d8d8ec708c7e3	4ae86701533ca603602c6884aee4258576f58439	2	0
+dirty	/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_445e1ee6-043-1	worktree-wf_445e1ee6-043-1	09c574f864d91a0c6c51aff6e655cfe1ffff9c36	7ef8d072f8988322851148be52990b6f6be655bc	3	0
+dirty	/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_445e1ee6-043-2	worktree-wf_445e1ee6-043-2	09c574f864d91a0c6c51aff6e655cfe1ffff9c36	d7ca6fc45a69659e97da1110c36d465e2854edec	6	2
+untracked-path	/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_445e1ee6-043-2	oya/intelligence/crates/oya-intelligence-architecture-map-app/src/main.rs				
+untracked-path	/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_445e1ee6-043-2	oya/intelligence/crates/oya-intelligence-architecture-map-app/tests/regeneration.rs				
+dirty	/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_445e1ee6-043-3	worktree-wf_445e1ee6-043-3	09c574f864d91a0c6c51aff6e655cfe1ffff9c36		5	0
+dirty	/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_44a5a2d2-59d-2	worktree-wf_44a5a2d2-59d-2	83d045e41500fb3a058baa37026a94f250a13242	0b1b00fb8606ddb1638011ffb8b14d07a8aaad81	11	0
+dirty	/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_9272b462-31a-14	worktree-wf_9272b462-31a-14	1f1c5bf40899247feb8bf6b87613b8f07606256b	91eab64b9364df05883d67160fd907f05d5ff661	20	0
+dirty	/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_9272b462-31a-15	worktree-wf_9272b462-31a-15	1f1c5bf40899247feb8bf6b87613b8f07606256b	f1c9288448d03a33b0fbb8c95a1563818644d1c4	28	0
+dirty	/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_9272b462-31a-19	worktree-wf_9272b462-31a-19	1f1c5bf40899247feb8bf6b87613b8f07606256b	a8b2ba9c2cda07a1672387ed3908d9985ed81886	38	0
+dirty	/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_94b433eb-bc6-1	worktree-wf_94b433eb-bc6-1	0c1014b87f0d881a821faa6a872b309deba0cfbf	b1e5205310942bc1d0121aa2c114b8ede63f3cbe	1	0
+dirty	/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_a6c6939e-488-2	work-headroom-488-2	7fa050225465c0b5230911f62ab0e0a3e8dcf348	cf4bbb116dbafc9c6e71f5be59f97629248e1426	1	0
+dirty	/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_b1c8f273-a59-1	worktree-wf_b1c8f273-a59-1	1f1c5bf40899247feb8bf6b87613b8f07606256b	7f30fc8c5c12bf2fe50665cae23f6af4fcf77fe1	51	0
+dirty	/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_b1c8f273-a59-2	worktree-wf_b1c8f273-a59-2	1f1c5bf40899247feb8bf6b87613b8f07606256b	2341e83791aa64eae35f4a079f1fef5c9619cc0a	15	0
+dirty	/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_b1c8f273-a59-3	worktree-wf_b1c8f273-a59-3	1f1c5bf40899247feb8bf6b87613b8f07606256b	07f9589e02f58e19c17c82a3f27b749f065b8af5	21	0
+dirty	/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_b1c8f273-a59-4	worktree-wf_b1c8f273-a59-4	1f1c5bf40899247feb8bf6b87613b8f07606256b	16e390cabb8678bd2fb6dd9dfb3077c714e67115	499	0
+dirty	/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_b1c8f273-a59-5	worktree-wf_b1c8f273-a59-5	1f1c5bf40899247feb8bf6b87613b8f07606256b	239612c3e50672843f4634278a83d4d70b0782fd	59	0
+dirty	/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_b1c8f273-a59-6	worktree-wf_b1c8f273-a59-6	1f1c5bf40899247feb8bf6b87613b8f07606256b	b5b44687ce69be464c7a4a23939b85c00bd22864	165	0
+dirty	/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_b1c8f273-a59-7	worktree-wf_b1c8f273-a59-7	1f1c5bf40899247feb8bf6b87613b8f07606256b	e10edc95257af18944b988368f9315e88e4e12f8	105	0
+dirty	/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_b8521ce6-76f-5	worktree-wf_b8521ce6-76f-5	f205738152c78e754c43f560900d8d8ec708c7e3	69d2eead03ed4e110b1fe777569740e8385c0fd0	2	0
+dirty	/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_b8521ce6-76f-6	worktree-wf_b8521ce6-76f-6	f205738152c78e754c43f560900d8d8ec708c7e3	c5b67e8919f67b7f2da5d80f05d95d320ae49786	5	0
+dirty	/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_c3c14044-f01-2	worktree-wf_c3c14044-f01-2	1f1c5bf40899247feb8bf6b87613b8f07606256b	aef5586d0af583add172d3d4fbb4eb7eece3ca7f	53	0
+dirty	/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_c3c14044-f01-3	worktree-wf_c3c14044-f01-3	1f1c5bf40899247feb8bf6b87613b8f07606256b	2334ba5d4e874af5a78f234f8b684c968495ac96	14	0
+dirty	/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_c3c14044-f01-4	worktree-wf_c3c14044-f01-4	1f1c5bf40899247feb8bf6b87613b8f07606256b	e9220c921c7b9ba7f84f31b76efc14401748acf4	22	0
+dirty	/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_c3c14044-f01-5	worktree-wf_c3c14044-f01-5	1f1c5bf40899247feb8bf6b87613b8f07606256b	d0273530dd603b2e0dc2374c1b11ff4c9d8d19a3	475	0
+dirty	/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_c3c14044-f01-6	worktree-wf_c3c14044-f01-6	1f1c5bf40899247feb8bf6b87613b8f07606256b	f3ee80bffb9fdc17e0ea4301b57259ea4122ec95	45	0
+dirty	/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_c3c14044-f01-7	worktree-wf_c3c14044-f01-7	1f1c5bf40899247feb8bf6b87613b8f07606256b	8ac4bcebda204f642591de2cbcee432a5aca5f3a	150	0
+dirty	/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_c3c14044-f01-8	worktree-wf_c3c14044-f01-8	1f1c5bf40899247feb8bf6b87613b8f07606256b	2f627fd87ed3df43d5146e7e1e8907e9fb097cd2	102	0
+dirty	/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_c3c14044-f01-9	worktree-wf_c3c14044-f01-9	1f1c5bf40899247feb8bf6b87613b8f07606256b	da6b64b604c688ad756d2f8f264ad8b91f8d44e0	121	0
+dirty	/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_f66bf3ee-51a-1	feat/cloud-intel-g0-billing-canary	3a4a9238bee53bf442b74564941be04f5edbfb7d		0	1
+untracked-path	/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_f66bf3ee-51a-1	intelligence/core/kernel/src/billing_bucket.rs				
+dirty	/Users/jasonlee/Developer/oyatie/.worktrees/t_1cb9bacc	agent/architecture-map-producer-parity	1d21a7fd5fbc29d6853b3863a6d2680e6ac44224	1636aa1e36c0a815d88e3b0403567591c48401b6	13	1
+untracked-path	/Users/jasonlee/Developer/oyatie/.worktrees/t_1cb9bacc	marketplace/facade/dev-cli/tests/architecture_map_emit_cli.rs				
+dirty	/Users/jasonlee/Developer/oyatie/.worktrees/t_7b437a23-calendar-build	work-hermes-t_7b437a23-calendar-build	c52bdb09ea337de103b05317de0c120f2b7a3e45	ba2898862851be622ff72c2e07ef8d465d993f32	15	16
+untracked-path	/Users/jasonlee/Developer/oyatie/.worktrees/t_7b437a23-calendar-build	scripts/tests/calendar_prd_red_fixture_contract_check.py				
+untracked-path	/Users/jasonlee/Developer/oyatie/.worktrees/t_7b437a23-calendar-build	specs/fixtures/calendar-prd/red-fixtures.json				
+untracked-path	/Users/jasonlee/Developer/oyatie/.worktrees/t_7b437a23-calendar-build	specs/fixtures/calendar-prd/replay/ac/calendar-ac01-work-event-org-pillar-audit.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie/.worktrees/t_7b437a23-calendar-build	specs/fixtures/calendar-prd/replay/ac/calendar-ac02-personal-detail-projection.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie/.worktrees/t_7b437a23-calendar-build	specs/fixtures/calendar-prd/replay/ac/calendar-ac03-action-card-workflow-handoff.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie/.worktrees/t_7b437a23-calendar-build	specs/fixtures/calendar-prd/replay/ac/calendar-ac04-legal-hold-preservation.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie/.worktrees/t_7b437a23-calendar-build	specs/fixtures/calendar-prd/replay/ac/calendar-ac05-jurisdiction-retention-ux.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie/.worktrees/t_7b437a23-calendar-build	specs/fixtures/calendar-prd/replay/asyncapi/calendar-asyncapi-v1-replay.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie/.worktrees/t_7b437a23-calendar-build	specs/fixtures/calendar-prd/replay/authority/calendar-inventory-provenance-rejection.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie/.worktrees/t_7b437a23-calendar-build	specs/fixtures/calendar-prd/replay/authority/calendar-prd-authority-source-lock.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie/.worktrees/t_7b437a23-calendar-build	specs/fixtures/calendar-prd/replay/boundary/calendar-personal-work-pillar-boundary.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie/.worktrees/t_7b437a23-calendar-build	specs/fixtures/calendar-prd/replay/contracts/calendar-produced-contracts.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie/.worktrees/t_7b437a23-calendar-build	specs/fixtures/calendar-prd/replay/openapi/calendar-openapi-v1-replay.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie/.worktrees/t_7b437a23-calendar-build	specs/fixtures/calendar-prd/replay/policy/calendar-build-parentage.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie/.worktrees/t_7b437a23-calendar-build	specs/fixtures/calendar-prd/replay/proto/calendar-proto-v1-replay.fixture.json				
+untracked-path	/Users/jasonlee/Developer/oyatie/.worktrees/t_7b437a23-calendar-build	specs/fixtures/calendar-prd/replay/ux/calendar-browser-accessibility-evidence.fixture.json				
+dirty	/Users/jasonlee/Developer/oyatie/.worktrees/t_f15d213a-airgap-contract	work-hermes-t_f15d213a-airgap-contract	66bc192d4c79a624fb6f1f3629c1b3be6400d0b3		0	7
+untracked-path	/Users/jasonlee/Developer/oyatie/.worktrees/t_f15d213a-airgap-contract	specs/fixtures/regulatory-airgap-security-evidence/bad-expired-vex.json				
+untracked-path	/Users/jasonlee/Developer/oyatie/.worktrees/t_f15d213a-airgap-contract	specs/fixtures/regulatory-airgap-security-evidence/bad-kev-emergency.json				
+untracked-path	/Users/jasonlee/Developer/oyatie/.worktrees/t_f15d213a-airgap-contract	specs/fixtures/regulatory-airgap-security-evidence/bad-missing-sbom.json				
+untracked-path	/Users/jasonlee/Developer/oyatie/.worktrees/t_f15d213a-airgap-contract	specs/fixtures/regulatory-airgap-security-evidence/bad-offline-replay.json				
+untracked-path	/Users/jasonlee/Developer/oyatie/.worktrees/t_f15d213a-airgap-contract	specs/fixtures/regulatory-airgap-security-evidence/bad-stale-feed.json				
+untracked-path	/Users/jasonlee/Developer/oyatie/.worktrees/t_f15d213a-airgap-contract	specs/fixtures/regulatory-airgap-security-evidence/good-offline-evidence-packet.json				
+untracked-path	/Users/jasonlee/Developer/oyatie/.worktrees/t_f15d213a-airgap-contract	specs/regulatory-airgap-security-evidence-contract.json				
+dirty	/Users/jasonlee/Developer/oyatie/.worktrees/workspace-drift-cloud-ci-port-20260701	wt/t_f4f0e879	c441bbcb518612936aa67d7fdf3b2df8e78a96f2		1	0
+failure	/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_18a9e839-868-1	stash-create-error:error: Entry 'ci/facade/hook-wiring/src/merge_driver_registration.rs' not uptodate. Cannot merge.
+Cannot save the current worktree state				
+failure	/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_18a9e839-868-4	stash-create-error:error: Entry 'specs/reorg/ci-tide-move-plan.json' not uptodate. Cannot merge.
+Cannot save the current worktree state				
+failure	/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_445e1ee6-043-3	stash-create-error:error: Entry 'ci/facade/crate-registration/tests/born_accounting_liveness.rs' not uptodate. Cannot merge.
+Cannot save the current worktree state				
+failure	/Users/jasonlee/Developer/oyatie/.worktrees/workspace-drift-cloud-ci-port-20260701	stash-create-error:error: Unable to create '/Users/jasonlee/Developer/oyatie/.git/worktrees/workspace-drift-cloud-ci-port-20260701/index.lock': File exists.
+
+Another git process seems to be running in this repository, o				

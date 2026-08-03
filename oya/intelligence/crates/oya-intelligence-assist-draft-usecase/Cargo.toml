@@ -1,9 +1,0 @@
-[package]
-name = "oya-intelligence-assist-draft-usecase"
-version = "0.1.0"
-edition = "2024"
-license = "Apache-2.0"
-publish = false
-
-[dependencies]
-oya-intelligence-assist-draft-domain = { path = "../oya-intelligence-assist-draft-domain" }

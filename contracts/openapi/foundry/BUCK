@@ -1,4 +1,0 @@
-export_file(
-    name = "capability-v1.yaml",
-    visibility = ["PUBLIC"],
-)

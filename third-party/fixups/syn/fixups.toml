@@ -1,3 +1,0 @@
-[buildscript]
-# cfg-only compiler feature detection for both resolved syn versions.
-run = true

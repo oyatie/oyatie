@@ -1,8 +1,0 @@
-name: quota-decision-evaluate
-tier: T3
-description: >
-  Deterministic evaluate() function: checks ProvisionRequest against TenantQuota
-  and TenantUsage, returns QuotaDecision::Allow or QuotaDecision::Deny(reason).
-  O(1), panic-free, no I/O. ADR-0376/0083 Tier-3.
-risk_class: high
-file: microservices/managed/crates/oya-managed-k8s-tenant-quota-kernel/src/lib.rs

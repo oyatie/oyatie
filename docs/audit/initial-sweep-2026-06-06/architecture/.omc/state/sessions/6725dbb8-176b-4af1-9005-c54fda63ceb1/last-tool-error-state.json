@@ -1,7 +1,0 @@
-{
-  "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"cd /tmp && PWMOD=$(find ~/.npm/_npx -maxdepth 4 -name 'index.js' -path '*playwright-core*' 2>/dev/null | head -1) && cat > _render_test.mjs << JSEOF\\nimport pw from '${PWMOD}';\\nconst { ch...",
-  "error": "Exit code 1\nnode:internal/modules/run_main:107\n    triggerUncaughtException(\n    ^\n\npage.waitForFunction: Timeout 30000ms exceeded.\n    at /private/tmp/_render_test.mjs:11:12 {\n  name: 'TimeoutError'\n}\n\nNode.js v24.16.0",
-  "timestamp": "2026-06-07T06:20:54.306Z",
-  "retry_count": 5
-}

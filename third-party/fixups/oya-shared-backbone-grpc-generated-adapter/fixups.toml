@@ -1,3 +1,0 @@
-[buildscript]
-# Generates the gRPC Rust bindings consumed by this workspace package.
-run = true

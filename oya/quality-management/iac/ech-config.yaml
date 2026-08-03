@@ -1,9 +1,0 @@
-apiVersion: oyatie.dev/v1
-kind: EchConfig
-metadata:
-  name: oya-quality-management-ech
-spec:
-  rotationCadenceDays: 90
-  httpsRecord: true
-  gracefulFallback: true
-  auditEventClass: EVT-QUALITY_MANAGEMENT-INSPECTION_PLAN-ECH_ROTATED

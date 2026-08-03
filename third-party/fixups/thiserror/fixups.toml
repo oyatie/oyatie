@@ -1,4 +1,0 @@
-[buildscript]
-# Pure cfg-detection: probes nightly features, writes private module to OUT_DIR.
-# Both thiserror v1 and v2 share this fixup directory.
-run = true
