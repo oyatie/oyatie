@@ -2518,6 +2518,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "data-outbox-adapter-postgres"
+version = "0.1.0"
+dependencies = [
+ "oya-data-outbox-kernel",
+ "oya-data-sql-kernel",
+ "oya-shared-postgres-command-kernel",
+ "sqlx",
+ "tokio",
+]
+
+[[package]]
 name = "data-pipeline-lineage-replay-service"
 version = "0.1.0"
 dependencies = [
@@ -2582,6 +2593,16 @@ version = "0.1.0"
 dependencies = [
  "data-search-query",
  "data-search-rank",
+]
+
+[[package]]
+name = "data-sql-adapter-sqlx"
+version = "0.1.0"
+dependencies = [
+ "oya-data-sql-kernel",
+ "oya-shared-postgres-command-kernel",
+ "sqlx",
+ "tokio",
 ]
 
 [[package]]
@@ -7448,33 +7469,12 @@ name = "oya-data-boundary-kernel"
 version = "0.1.0"
 
 [[package]]
-name = "oya-data-outbox-adapter-postgres"
-version = "0.1.0"
-dependencies = [
- "oya-data-outbox-kernel",
- "oya-data-sql-kernel",
- "oya-shared-postgres-command-kernel",
- "sqlx",
- "tokio",
-]
-
-[[package]]
 name = "oya-data-outbox-kernel"
 version = "0.1.0"
 dependencies = [
  "oya-data-sql-kernel",
  "serde",
  "serde_json",
-]
-
-[[package]]
-name = "oya-data-sql-adapter-sqlx"
-version = "0.1.0"
-dependencies = [
- "oya-data-sql-kernel",
- "oya-shared-postgres-command-kernel",
- "sqlx",
- "tokio",
 ]
 
 [[package]]
