@@ -585,9 +585,9 @@ a known-good it passes + proof it runs in the pipeline and BLOCKS):
   generated artifacts.
 - **Review-admission GitHub adapter ownership and regression registration (2026-07-20):** the
   repo-relative ownership marker
-  `oya/ci-controller/crates/oya-ci-controller-github-adapter/OWNERS` assigns the adapter crate narrowly
+  `ci/adapters/controller-github-adapter/OWNERS` assigns the adapter crate narrowly
   to `cloud-ci-platform`, and
-  `oya/ci-controller/crates/oya-ci-controller-github-adapter/tests/review_admission.rs` is its
+  `ci/adapters/controller-github-adapter/tests/review_admission.rs` is its
   repo-owned regression suite. These paths implement and test only the non-live `oya-pr-review`
   producer contract; they do not deploy the producer, modify branch protection, bypass
   `oya-ci-required`, or claim F-PR5-06 closure.

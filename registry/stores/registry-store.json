@@ -946,7 +946,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-ci-webhook-gateway-authz-cedar-adapter",
+      "key": "ci-webhook-gateway-authz-cedar-adapter",
       "context": "ci-webhook-gateway",
       "role": "adapter",
       "capability": "webhook-authz-cedar-gate",
@@ -970,7 +970,7 @@
       ]
     },
     {
-      "key": "oya-ci-webhook-gateway-ed25519-adapter",
+      "key": "ci-webhook-gateway-ed25519-adapter",
       "context": "ci-webhook-gateway",
       "role": "adapter",
       "capability": "github-webhook-ed25519-signature-verification",
@@ -992,7 +992,7 @@
       ]
     },
     {
-      "key": "oya-ci-webhook-gateway-github-adapter",
+      "key": "ci-webhook-gateway-github-adapter",
       "context": "ci-webhook-gateway",
       "role": "adapter",
       "capability": "github-commit-status-poster",

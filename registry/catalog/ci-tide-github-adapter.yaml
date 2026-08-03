@@ -1,0 +1,17 @@
+context: ci
+role: adapter
+capability: ci-tide
+plane: control
+slo: preview-control-plane
+data_classes_owned: [INTERNAL_ONLY]
+operational_classes_owned: []
+api_stability: preview
+security_review: unreviewed
+supply_chain: source-only
+source_adrs: [ADR-0105, ADR-0515, ADR-0562]
+traceability:
+  changeset: CS-CI-ADAPTERS-CAPABILITY-MOVE-001
+  source_crate: ci/adapters/tide-github-adapter/Cargo.toml
+non_claims:
+  - Implements kernel::ForgeClient against the GitHub REST API via reqwest blocking HTTP
+  - security_review remains unreviewed until a code-backed review ChangeSet upgrades it

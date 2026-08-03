@@ -1,0 +1,17 @@
+# Hermetic embedded-asset mapping (ADR-0545 / FRIC-1781131000-webhook-cedar-buck2):
+# src/lib.rs include_str!("../policy/ci-webhook-gateway.cedar") resolves, relative to the including
+# source file inside the buck2 __srcs tree, to the package-relative path
+# policy/ci-webhook-gateway.cedar. The cedar policy co-moved with this adapter out of the former
+# oya/ci-webhook-gateway/policy/ sibling package, so it is now crate-local and the plain glob below
+# lands it at exactly that include-relative location — no mapped_srcs indirection is needed.
+rust_library(
+    name = "ci-webhook-gateway-authz-cedar-adapter",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "ci_webhook_gateway_authz_cedar_adapter",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-kernel:oya-ci-webhook-gateway-kernel",
+        "third-party//:cedar-policy",
+    ],
+)
