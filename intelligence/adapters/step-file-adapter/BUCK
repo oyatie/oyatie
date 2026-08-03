@@ -1,7 +1,7 @@
 rust_library(
-    name = "oya-intelligence-step-file-adapter",
+    name = "intelligence-step-file-adapter",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
-    crate = "oya_intelligence_step_file_adapter",
+    crate = "intelligence_step_file_adapter",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
@@ -11,13 +11,13 @@ rust_library(
 )
 
 rust_test(
-    name = "oya-intelligence-step-file-adapter-file-step-ledger",
+    name = "intelligence-step-file-adapter-file-step-ledger",
     srcs = ["tests/file_step_ledger.rs"],
-    crate = "oya_intelligence_step_file_adapter_file_step_ledger",
+    crate = "intelligence_step_file_adapter_file_step_ledger",
     crate_root = "tests/file_step_ledger.rs",
     visibility = ["PUBLIC"],
     deps = [
-        ":oya-intelligence-step-file-adapter",
+        ":intelligence-step-file-adapter",
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
         "//intelligence/core/step-domain:intelligence-step-domain",
     ],

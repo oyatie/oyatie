@@ -21,7 +21,7 @@ use tokio::net::TcpListener;
 use oya_intelligence_account_domain::{
     SecretMaterial, SecretReference, SecretStoreError, SecretStorePort,
 };
-use oya_intelligence_adapter_openai_subscription_adapter::{
+use intelligence_openai_subscription_adapter::{
     KeyPool, KeyStatus, OpenAiApiKeyPoolAdapter,
 };
 use intelligence_account_kernel::{AuthError, ProviderAuthPort};

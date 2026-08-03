@@ -1,7 +1,7 @@
 rust_library(
-    name = "oya-intelligence-jsonl-supervisor-adapter",
+    name = "intelligence-jsonl-supervisor-adapter",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
-    crate = "oya_intelligence_jsonl_supervisor_adapter",
+    crate = "intelligence_jsonl_supervisor_adapter",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
@@ -11,9 +11,9 @@ rust_library(
 )
 
 rust_test(
-    name = "oya-intelligence-jsonl-supervisor-adapter-unittest",
+    name = "intelligence-jsonl-supervisor-adapter-unittest",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
-    crate = "oya_intelligence_jsonl_supervisor_adapter",
+    crate = "intelligence_jsonl_supervisor_adapter",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
