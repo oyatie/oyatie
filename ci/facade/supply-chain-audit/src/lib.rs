@@ -202,7 +202,7 @@ pub fn collect(repo_root: &Path, policy: &Value) -> Result<Value, CollectError> 
         let lock_text = read_file(&repo_root.join(lockfile))?;
         locked.extend(parse_locked(&lock_text, lockfile)?);
     }
-    locked.sort_by(|a, b| locked_sort_key(a).cmp(&locked_sort_key(b)));
+    locked.sort_by_key(locked_sort_key);
     locked.dedup();
 
     let advisories_text = read_file(&repo_root.join(mirror_dir).join("advisories.json"))?;
