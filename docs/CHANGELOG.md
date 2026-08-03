@@ -5,6 +5,18 @@ doc_status: published
 
 # Changelog
 
+## 2026-08-03 — Reorg manifest selector authority restored
+
+- **doc.mistakes_ledger** (Tier 2, updated): recorded `MFL-0019` for duplicated
+  caller-side first-sorted move-plan selection that bypassed the reorg codemod's
+  active-versus-landed selector.
+  - The crate-registration and registry-drift callers now omit `--plan` and leave
+    PARKED exclusion, landed-plan filtering, multi-active failure, and zero-active
+    canonical-empty behavior to the authoritative codemod.
+  - Related lanes: `ci-crate-registration`, `ci-inventory-registry-drift`,
+    `oya-reorg-codemod-app`.
+  - Protected admission and post-merge product-completion evidence remain pending.
+
 ## 2026-07-24 — ADR-0624 Accepted immutable ADR census epoch transition
 
 - **doc.adr_index** (Tier 1, added): accepted the four-step protected merge train

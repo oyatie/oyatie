@@ -258,6 +258,7 @@ mod tests {
         // The regenerated manifest + an unrelated json must NOT count as plans.
         let dir = root.join(REORG_PLAN_DIR);
         std::fs::write(dir.join("move-manifest.generated.json"), "{}\n").unwrap();
+        std::fs::write(dir.join("parked-move-plan.PARKED.json"), "{}\n").unwrap();
         std::fs::write(dir.join("notes.json"), "{}\n").unwrap();
         let selected = resolve_committed_move_plan(&root).unwrap().unwrap();
         assert_eq!(selected.file_name().unwrap(), "billing-move-plan.json");
@@ -520,21 +521,28 @@ mod tests {
     /// longer hard-error the materialization of the one genuinely-pending move (the straddle DoS).
     #[test]
     fn landed_plan_excluded_pending_plan_selected() {
-        let pending = PathBuf::from("specs/reorg/ci-move-plan.json");
-        let landed = PathBuf::from("specs/reorg/iam-move-plan.json");
-        // ci is pending (old dir present at merge-base); iam is landed (old dir absent).
+        let root = tmp_root("active-vs-landed");
+        write_plan(&root, "a-landed-move-plan.json");
+        write_plan(&root, "z-pending-move-plan.json");
+        // The alphabetically-first plan is landed; the later plan is pending. A first-match caller
+        // would select the wrong plan, while the authoritative active selector must choose z.
         let load = |p: &Path| -> Result<Vec<String>, CodemodError> {
-            if p.ends_with("ci-move-plan.json") {
+            if p.ends_with("z-pending-move-plan.json") {
                 Ok(vec!["cloud/cloud-ci/gates/oya-cloud-ci-firewall-app".to_owned()])
             } else {
                 Ok(vec!["libs/oya-shared-pdp-adapter-cedar".to_owned()])
             }
         };
-        let old_dir_absent = |d: &str| Ok(d == "libs/oya-shared-pdp-adapter-cedar"); // only iam landed
-        let selected = select_active_move_plan(&[landed.clone(), pending.clone()], load, old_dir_absent)
+        let old_dir_absent = |d: &str| Ok(d == "libs/oya-shared-pdp-adapter-cedar");
+        let selected = resolve_effective_active_move_plan(None, &root, load, old_dir_absent)
             .unwrap()
             .unwrap();
-        assert_eq!(selected, pending, "the stale landed plan must not block the pending one");
+        assert_eq!(
+            selected.file_name().unwrap(),
+            "z-pending-move-plan.json",
+            "the stale landed plan must not block the pending one"
+        );
+        let _ = std::fs::remove_dir_all(&root);
     }
 
     /// Two genuinely-PENDING plans still FAIL-CLOSED (the guard's intent is preserved).

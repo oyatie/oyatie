@@ -1301,6 +1301,32 @@ root//tools/hooks:top-level-hook-scripts buck-out/v2/gen/tools/hooks/__top-level
     assert!(!args.contains(&"/repo/tools/hooks".to_owned()));
 }
 
+#[test]
+fn crate_registration_delegates_move_plan_selection_to_codemod() {
+    let mut command = Command::new("/tmp/codemod");
+    append_manifest_args(
+        &mut command,
+        Path::new("/repo"),
+        Path::new("/repo/specs/reorg/move-manifest.generated.json"),
+    );
+
+    let args: Vec<String> = command
+        .get_args()
+        .map(|arg| arg.to_string_lossy().into_owned())
+        .collect();
+    assert_eq!(
+        args,
+        [
+            "manifest",
+            "--repo-root",
+            "/repo",
+            "--out",
+            "/repo/specs/reorg/move-manifest.generated.json",
+        ]
+    );
+    assert!(!args.iter().any(|arg| arg == "--plan"));
+}
+
 // (3c-6, buck2-gated) The REAL Buck2RegenAdapter against the live checkout. Ignored by default so
 // the std-only unit CI never needs buck2; run explicitly with `--ignored` (buck2 pre-approved).
 //
