@@ -377,12 +377,12 @@
       "frozen_at": "2026-06-18",
       "frozen_from_commit": "30dd46c4dd7d12c085b77332d9ac5035d583edcf",
       "keys_by_file": {
-        ".github/workflows/cache-integrity-canary.yml": 12,
-        ".github/workflows/check-substrates.yml": 5,
+        ".github/workflows/cache-integrity-canary.yml": 11,
+        ".github/workflows/check-substrates.yml": 4,
         ".github/workflows/docs-graph-drift.yml": 1,
-        ".github/workflows/oya-ci-required.yml": 40
+        ".github/workflows/oya-ci-required.yml": 34
       },
-      "keys_total": 58,
+      "keys_total": 50,
       "migration": "v1 positional step-N keys migrated mechanically from exact origin/dev base to required unique named-step keys with measured shell_lines; v2 is exact shrink-accounted."
     },
     "codes": {
@@ -412,10 +412,6 @@
           "shell_lines": 1
         },
         {
-          "key": ".github/workflows/cache-integrity-canary.yml::canary::Pre-provision pinned rust toolchain (serialize rustup before parallel buck2)",
-          "shell_lines": 2
-        },
-        {
           "key": ".github/workflows/cache-integrity-canary.yml::canary::Prove zero cache participation (assert-cold over the record)",
           "shell_lines": 2
         },
@@ -438,10 +434,6 @@
         {
           "key": ".github/workflows/check-substrates.yml::oya-check-substrate-dependency-dag-acyclicity::Install buck2 (digest-pinned prebuilt release)",
           "shell_lines": 1
-        },
-        {
-          "key": ".github/workflows/check-substrates.yml::oya-check-substrate-dependency-dag-acyclicity::Pre-provision pinned Rust toolchain",
-          "shell_lines": 4
         },
         {
           "key": ".github/workflows/check-substrates.yml::oya-check-substrate-dependency-dag-acyclicity::Validate canonical DAG + emit evidence",
@@ -472,10 +464,6 @@
           "shell_lines": 1
         },
         {
-          "key": ".github/workflows/oya-ci-required.yml::buck2::Pre-provision pinned rust toolchain (serialize rustup before parallel buck2)",
-          "shell_lines": 3
-        },
-        {
           "key": ".github/workflows/oya-ci-required.yml::buck2::Reclaim runner disk before warm restore (FRIC-017 preflight)",
           "shell_lines": 2
         },
@@ -504,10 +492,6 @@
           "shell_lines": 53
         },
         {
-          "key": ".github/workflows/oya-ci-required.yml::gate-affected-target-set::Pre-provision pinned rust toolchain and PR metadata preflight",
-          "shell_lines": 3
-        },
-        {
           "key": ".github/workflows/oya-ci-required.yml::gate-affected-target-set::Reclaim runner disk before warm restore (FRIC-017 preflight)",
           "shell_lines": 2
         },
@@ -528,10 +512,6 @@
           "shell_lines": 1
         },
         {
-          "key": ".github/workflows/oya-ci-required.yml::gate-generated-artifact-freshness::Pre-provision pinned Rust toolchain for Buck2 freshness binaries",
-          "shell_lines": 3
-        },
-        {
           "key": ".github/workflows/oya-ci-required.yml::gate-generated-artifact-freshness::Run freshness gate",
           "shell_lines": 3
         },
@@ -541,7 +521,7 @@
         },
         {
           "key": ".github/workflows/oya-ci-required.yml::gate-inventory-registry-drift::Materialize faces then assert byte-parity",
-          "shell_lines": 4
+          "shell_lines": 2
         },
         {
           "key": ".github/workflows/oya-ci-required.yml::gate-live-postgres-adapters::Bootstrap app role + durable schemas/roles (admin, adapters)",
@@ -554,10 +534,6 @@
         {
           "key": ".github/workflows/oya-ci-required.yml::gate-live-postgres-adapters::Install postgresql-client for the bootstrap",
           "shell_lines": 4
-        },
-        {
-          "key": ".github/workflows/oya-ci-required.yml::gate-live-postgres-adapters::Pre-provision pinned Rust toolchain for Buck2 live tests",
-          "shell_lines": 3
         },
         {
           "key": ".github/workflows/oya-ci-required.yml::gate-live-postgres-adapters::buck2 test — durable adapters (admin=superuser, app=app-role)",
@@ -574,10 +550,6 @@
         {
           "key": ".github/workflows/oya-ci-required.yml::gate-live-postgres-facades::Install postgresql-client for the bootstrap",
           "shell_lines": 4
-        },
-        {
-          "key": ".github/workflows/oya-ci-required.yml::gate-live-postgres-facades::Pre-provision pinned Rust toolchain for Buck2 live tests",
-          "shell_lines": 3
         },
         {
           "key": ".github/workflows/oya-ci-required.yml::gate-live-postgres-facades::buck2 test — durable facades (live test = app-role, non-live = in-memory)",
@@ -598,10 +570,6 @@
         {
           "key": ".github/workflows/oya-ci-required.yml::generated-output-diff-policy::Install buck2 (digest-pinned prebuilt release)",
           "shell_lines": 1
-        },
-        {
-          "key": ".github/workflows/oya-ci-required.yml::generated-output-diff-policy::Pre-provision pinned Rust toolchain for Buck2 policy binary",
-          "shell_lines": 3
         },
         {
           "key": ".github/workflows/oya-ci-required.yml::generated-output-diff-policy::Reject non-deletion generated output edits",
