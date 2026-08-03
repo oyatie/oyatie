@@ -13,8 +13,8 @@ description = "Intelligence eval composition root (usecase layer per ADR-0105). 
 # provider-pool-app composes the same backbone). No NEW external workspace
 # dependency seam.
 [dependencies]
-oya-intelligence-eval-kernel = { path = "../oya-intelligence-eval-kernel" }
-oya-intelligence-eval-domain = { path = "../oya-intelligence-eval-domain" }
+intelligence-eval-kernel = { path = "../../../../intelligence/core/eval-kernel" }
+intelligence-eval-domain = { path = "../../../../intelligence/core/eval-domain" }
 oya-intelligence-eval-usecase = { path = "../oya-intelligence-eval-usecase" }
 oya-intelligence-eval-adapter = { path = "../oya-intelligence-eval-adapter" }
 oya-intelligence-eval-worker = { path = "../oya-intelligence-eval-worker" }

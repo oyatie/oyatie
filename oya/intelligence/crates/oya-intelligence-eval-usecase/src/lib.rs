@@ -9,7 +9,7 @@
 
 use std::collections::BTreeMap;
 
-pub use oya_intelligence_eval_domain::{
+pub use intelligence_eval_domain::{
     DomainEvalSetRequest, EvalCaseKind, EvalCaseOutcome, EvalCaseResult, EvalDomainDecision,
     EvalDomainDenialKind, EvalDomainStatus, EvalFailureKind, EvalPolicyDecision, EvalSet,
     EvalSetStatus, EvalSetThresholds, evaluate_domain_eval_set,
@@ -364,7 +364,7 @@ fn receipt_from_domain_decision(
 
 fn receipt_from_domain_denial(
     idempotency_key: &str,
-    denial: &oya_intelligence_eval_domain::EvalDomainDenial,
+    denial: &intelligence_eval_domain::EvalDomainDenial,
     denial_kind: EvalUsecaseDenialKind,
 ) -> EvalUsecaseReceipt {
     EvalUsecaseReceipt {

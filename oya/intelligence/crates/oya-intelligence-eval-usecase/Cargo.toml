@@ -6,4 +6,4 @@ license = "Apache-2.0"
 publish = false
 
 [dependencies]
-oya-intelligence-eval-domain = { path = "../oya-intelligence-eval-domain" }
+intelligence-eval-domain = { path = "../../../../intelligence/core/eval-domain" }
