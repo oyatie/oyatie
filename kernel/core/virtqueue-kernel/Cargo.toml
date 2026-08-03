@@ -1,0 +1,24 @@
+[package]
+name = "kernel-virtqueue-kernel"
+version.workspace = true
+# NOT inherited from kernel/'s [workspace.package]: the bare-metal Frame backends that
+# consume this crate build under cloud-kernel's older pinned nightly, so inheriting
+# kernel/'s host edition/rust-version would raise the floor above those consumers.
+rust-version = "1.85"
+edition = "2021"
+publish = false
+description = "Pure, arch-neutral split-virtqueue ring-index/offset arithmetic (VIRTIO 1.x §2.7): the three rings' byte layout, avail/used index publish + consume, and the intrusive free-descriptor chain."
+
+[package.metadata.oya]
+microservice = "kernel"
+bounded_context = "kernel"
+kind = "shared"
+layer = "kernel"
+owner_team = "axis-cloud-platform"
+purpose = "Cutover-stable, arch-neutral split-virtqueue ring arithmetic shared by every kuberos Frame backend."
+adr_anchors = ["ADR-0512", "ADR-0520", "ADR-0536", "ADR-0562", "ADR-0547"]
+design_non_claim = "scaffold_only_no_module_build_boot_artifact_or_runtime_readiness_claim"
+
+# Zero external dependencies on purpose (core only): the arch Frame backends
+# supply the volatile MMIO reads/writes, DMA translation and barriers.
+[dependencies]

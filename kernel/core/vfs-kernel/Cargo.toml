@@ -1,0 +1,24 @@
+[package]
+name = "kernel-vfs-kernel"
+version.workspace = true
+# NOT inherited from kernel/'s [workspace.package]: the bare-metal Frame backends that
+# consume this crate build under cloud-kernel's older pinned nightly, so inheriting
+# kernel/'s host edition/rust-version would raise the floor above those consumers.
+rust-version = "1.85"
+edition = "2021"
+publish = false
+description = "Pure, arch-neutral in-RAM VFS: an index-slab inode/dentry tree, a multi-component absolute-path walker, an idempotent mkdir -p, and a mount table. Single source of truth shared by every arch Frame backend."
+
+[package.metadata.oya]
+microservice = "kernel"
+bounded_context = "kernel"
+kind = "shared"
+layer = "kernel"
+owner_team = "axis-cloud-platform"
+purpose = "Cutover-stable, arch-neutral in-RAM VFS tree/path-walker/mount-table shared by every kuberos Frame backend."
+adr_anchors = ["ADR-0512", "ADR-0520", "ADR-0536", "ADR-0562", "ADR-0547"]
+design_non_claim = "scaffold_only_no_module_build_boot_artifact_or_runtime_readiness_claim"
+
+# Zero external dependencies on purpose (core + alloc only): the arch Frame
+# backends supply the global allocator and the user-string copy.
+[dependencies]

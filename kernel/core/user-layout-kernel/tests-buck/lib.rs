@@ -6,9 +6,10 @@
 //! `#![no_std]` lives in `src/lib.rs`) — so their `#[cfg(test)]` modules run
 //! on the host with the normal libtest harness (no copy/drift). Co-located in
 //! THIS package because buck2 source globs cannot cross package boundaries the
-//! way the cargo harness's `../../../` include! does.
+//! way the cargo harness's `../../../` include! does — which is why each of the
+//! sibling `kernel/core/{vfs,virtqueue,netlink}-kernel` crates carries its own.
 //!
-//! Run: `buck2 test //cloud/cloud-kernel/crates/oya-cloud-kernel-user-layout-kernel:host-tests`
+//! Run: `buck2 test //kernel/core/user-layout-kernel:host-tests`
 
 #[allow(dead_code)] // the kernel exercises some helpers the tests do not
 mod user_layout {
@@ -23,16 +24,6 @@ mod user_layout_signal {
 #[allow(dead_code)]
 mod user_layout_timekeep {
     include!("../src/timekeep.rs");
-}
-
-#[allow(dead_code)]
-mod user_layout_vfs {
-    include!("../src/vfs.rs");
-}
-
-#[allow(dead_code)]
-mod user_layout_netlink {
-    include!("../src/netlink.rs");
 }
 
 #[allow(dead_code)]
