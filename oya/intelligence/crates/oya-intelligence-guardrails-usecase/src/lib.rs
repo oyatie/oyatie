@@ -9,7 +9,7 @@
 
 use std::collections::BTreeMap;
 
-use oya_intelligence_guardrails_domain::{
+use intelligence_guardrails_domain::{
     DomainGuardrailRequest, GuardrailDecision, GuardrailDeny, decide_domain_guardrail,
 };
 
@@ -607,7 +607,7 @@ fn sorted_unique(mut values: Vec<String>) -> Vec<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_intelligence_guardrails_domain::{
+    use intelligence_guardrails_domain::{
         GuardrailAudience, GuardrailCategory, GuardrailDataClass, GuardrailFinding,
         GuardrailRequest, RiskLevel,
     };

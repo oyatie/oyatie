@@ -330,8 +330,8 @@ All five existing tests in the crate must pass without modification:
 ## Verification Commands
 
 ```sh
-cargo check -p oya-intelligence-model-routing-usecase --all-targets
-cargo nextest run -p oya-intelligence-model-routing-usecase
+cargo check -p intelligence-model-routing-usecase --all-targets
+cargo nextest run -p intelligence-model-routing-usecase
 ```
 
 Both must exit 0. Run from the worktree root

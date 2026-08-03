@@ -6,7 +6,7 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
-        "//oya/intelligence/crates/oya-intelligence-evidence-domain:oya-intelligence-evidence-domain",
+        "//intelligence/core/evidence-domain:intelligence-evidence-domain",
     ],
 )
 
@@ -19,6 +19,6 @@ rust_test(
     deps = [
         ":oya-intelligence-evidence-file-adapter",
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
-        "//oya/intelligence/crates/oya-intelligence-evidence-domain:oya-intelligence-evidence-domain",
+        "//intelligence/core/evidence-domain:intelligence-evidence-domain",
     ],
 )
