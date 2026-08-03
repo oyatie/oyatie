@@ -107,19 +107,36 @@ jobs:
       # allow_cache_uploads=false) in its own isolation dir. The cold build above
       # never touched the cache (assert-cold proved it). The reader mTLS identity
       # arrives via secret-mounted env, never the repo.
+      #
+      # PARTICIPATION PROOF (ADR-0556 D2). Byte-equality is necessary but NOT
+      # sufficient: a probe that served NOTHING and rebuilt everything locally also
+      # produces byte-identical outputs, so digest equality alone emits GREEN having
+      # proven nothing about the cache — and that GREEN is the single artifact that
+      # licenses warm reads fleet-wide. The probe therefore writes its own structured
+      # invocation record, which canary-verdict below scores through the same
+      # counters-based assert-warm kernel the required lane uses (zero action-cache
+      # hits, a 0% hit rate, or an action cache that never started are RED). That is
+      # how a silently-inert overlay is caught instead of ratified.
+      #
+      # The proof rides canary-verdict's OWN flags rather than a fourth shell command:
+      # the rust-first ratchet freezes this workflow's inline-shell footprint against
+      # an immutable merge-base ceiling (growth is born-blocking), and folding the
+      # logic into the owned Rust binary is what that ratchet exists to force. It is
+      # also strictly harder to regress — a future edit cannot delete the check
+      # without deleting the verdict that emits the license.
       - name: Warm-probe fetch (read-only; skipped while unlicensed)
         if: steps.license.outputs.warm_licensed == 'true'
         env:
           OYA_CACHE_TLS_CLIENT_CERT: ${{ secrets.OYA_CACHE_READER_TLS_CLIENT_CERT_PATH }}
         run: |
           set -euo pipefail
-          buck2 --isolation-dir canary-warm-probe build --config-file infra/ci/buckconfig/warm-cache-ro.buckconfig --config "buck2_re_client.tls_client_cert=${OYA_CACHE_TLS_CLIENT_CERT}" @/tmp/canary-targets --show-full-output > /tmp/canary-warm-outputs.txt
+          buck2 --isolation-dir canary-warm-probe build --config-file infra/ci/buckconfig/warm-cache-ro.buckconfig --config "buck2_re_client.tls_client_cert=${OYA_CACHE_TLS_CLIENT_CERT}" @/tmp/canary-targets --unstable-write-invocation-record /tmp/canary-warm-record.json --show-full-output > /tmp/canary-warm-outputs.txt
           buck2 run //ci/facade/build-cache-policy:oya-cloud-ci-cache-wiring-bin -- hash-outputs --show-output /tmp/canary-warm-outputs.txt --out /tmp/canary-warm-manifest.json
       - name: Canary verdict (byte-equality; RED fails the job)
         run: |
           set -euo pipefail
           if [ -f /tmp/canary-warm-manifest.json ]; then
-            buck2 run //ci/facade/build-cache-policy:oya-cloud-ci-cache-wiring-bin -- canary-verdict --cold /tmp/canary-cold-manifest.json --warm /tmp/canary-warm-manifest.json --out /tmp/canary-verdict.json
+            buck2 run //ci/facade/build-cache-policy:oya-cloud-ci-cache-wiring-bin -- canary-verdict --cold /tmp/canary-cold-manifest.json --warm /tmp/canary-warm-manifest.json --warm-record /tmp/canary-warm-record.json --build-class integrity-canary --mode warm-ro --out /tmp/canary-verdict.json
           else
             buck2 run //ci/facade/build-cache-policy:oya-cloud-ci-cache-wiring-bin -- canary-verdict --cold /tmp/canary-cold-manifest.json --out /tmp/canary-verdict.json
           fi
