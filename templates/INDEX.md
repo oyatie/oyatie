@@ -41,7 +41,7 @@ related:
 
 | ID | File | Purpose | Lift target | Owner | Verification path |
 |---|---|---|---|---|---|
-| CHK-DONE | `done-definition-checklist.md` | Extends `docs/AGENTS.md` D1-D18 with per-change-class variants. | `docs/checklists/done-definition.md` | `axis-foundry` + `council-architecture` | `guard-pr-merge-review.mjs` + per-lane CI status |
+| CHK-DONE | `done-definition-checklist.md` | Extends `docs/AGENTS.md` D1-D20 with per-change-class variants. | `docs/checklists/done-definition.md` | `axis-foundry` + `council-architecture` | `guard-pr-merge-review.mjs` + per-lane CI status |
 | CHK-PRE | `pre-flight-checklist.md` | Per-change-class preconditions. | `docs/checklists/pre-flight.md` | `council-architecture` | `oya-governance-pr-shape` |
 | CHK-PHASE | `per-phase-completion-checklist.md` | Phase-internal verification. | `docs/checklists/per-phase-completion.md` | `council-architecture` | `oya-governance-plan-hierarchy` |
 | CHK-IP | `per-implementation-plan-checklist.md` | IP-internal verification. | `docs/checklists/per-implementation-plan.md` | `council-architecture` | `oya-governance-plan-hierarchy` |

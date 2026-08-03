@@ -235,7 +235,7 @@
       "targets": {
         "preview": "0 forbidden dependency edges"
       },
-      "lane_ref": "oya gate validate architecture-boundaries"
+      "lane_ref": "cloud-ci/Rust gate packet: architecture-boundaries"
     }
   ]
 }

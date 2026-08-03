@@ -387,4 +387,82 @@ mod tests {
             );
         }
     }
+
+    const RETENTION_QK03_DSR_CONTRACT: &str =
+        include_str!("../fixtures/retention_qk03_dsr_evidence_contract.txt");
+
+    fn assert_contract_contains(marker: &str) {
+        assert!(
+            RETENTION_QK03_DSR_CONTRACT.contains(marker),
+            "RETENTION-QK03 DSR contract is missing marker: {marker}"
+        );
+    }
+
+    #[test]
+    fn retention_qk03_contract_records_current_policy_defaults() {
+        for (level, expected_days, expected_action) in [
+            (ClassificationLevel::Critical, 30, PurgeAction::CryptoShred),
+            (ClassificationLevel::Sensitive, 90, PurgeAction::SecureErase),
+            (
+                ClassificationLevel::Restricted,
+                365,
+                PurgeAction::LogicalDelete,
+            ),
+            (
+                ClassificationLevel::Unrestricted,
+                730,
+                PurgeAction::LogicalDelete,
+            ),
+        ] {
+            let policy = RetentionPolicy::from_level(level);
+            assert_eq!(policy.level, level);
+            assert_eq!(policy.purge_action, expected_action);
+            assert_eq!(policy.retention_window.as_secs(), expected_days * 24 * 3600);
+            assert_contract_contains(&format!(
+                "retention.default.{}|window_days={expected_days}|purge_action={expected_action:?}",
+                level.label()
+            ));
+        }
+    }
+
+    #[test]
+    fn retention_qk03_contract_names_privacy_governance_evidence_markers() {
+        for marker in [
+            "contract_id=RETENTION-QK03-RED-001",
+            "qk_id=QK-03-privacy-data-governance",
+            "claim_status=blocked_until_future_runtime_evidence",
+            "adr_0536_context=D-8_KMS_and_D-16_Audit_are_planning_context_only",
+            "conflict_boundary=TRUST-005:t_bce85039:crypto_shred_kms_executor",
+            "conflict_boundary=AUDIT-002:t_c157a3ae:retrieval_and_proof_emission",
+            "conflict_boundary=PRIVACY-001:t_2fc04777:dub_cedar_matrix",
+            "conflict_boundary=DATA-003:t_bbe5db45:data_boundary_storage_integration",
+            "conflict_boundary=QK-EVIDENCE:t_cf995f91:quality_kit_evidence_decomposition",
+            "evidence_output=data_flow_map",
+            "evidence_output=retention_expiry_decision",
+            "evidence_output=purge_action_selection",
+            "evidence_output=dsr_delete_export_proof",
+            "evidence_output=audit_proof_emission",
+            "evidence_output=trust_portal_publication_semantics",
+            "evidence_output=telemetry_redaction_check",
+            "forbidden_claim=production_readiness_green",
+            "forbidden_claim=runtime_harness_implemented",
+            "forbidden_claim=measured_dogfood_receipt_exists",
+            "forbidden_claim=trust_portal_publication_live",
+            "forbidden_claim=hyperscaler_production_maturity",
+        ] {
+            assert_contract_contains(marker);
+        }
+
+        for scenario in [
+            "scenario=QK-03-S01-personal-data-inventory|requires=data_flow_map",
+            "scenario=QK-03-S02-residency-enforcement|requires=cedar_residency_constraint",
+            "scenario=QK-03-S03-retention-expiry|requires=retention_expiry_decision",
+            "scenario=QK-03-S04-deletion-erasure|requires=purge_action_selection",
+            "scenario=QK-03-S05-export-portability|requires=dsr_export_receipt",
+            "scenario=QK-03-S06-no-pii-telemetry-redaction|requires=telemetry_redaction_check",
+            "scenario=QK-03-DSR-round-trip-proof|requires=dsr_delete_export_proof+audit_proof_emission+trust_portal_publication_semantics",
+        ] {
+            assert_contract_contains(scenario);
+        }
+    }
 }

@@ -136,7 +136,7 @@ doc_status: published
 ## Mitigation
 1. Hold final invoice: `oya billing invoice hold --tenant $TENANT --period $PERIOD --reason $INCIDENT_ID`.
 2. Mark portal status: `oya billing portal mark-delayed --tenant $TENANT --period $PERIOD --reason $INCIDENT_ID`.
-3. Hold invoice worker deploys: incident hold PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
+3. Hold invoice worker deploys: incident hold PR against `dev` (plain `git`; branch-protected `oya-ci-required` required; legacy `oya gate` output optional local/provenance only).
 4. Isolate blocking job: `oya billing invoice queue isolate --tenant $TENANT --period $PERIOD --reason $INCIDENT_ID`.
 5. Drain priority queue dry-run: `oya billing invoice queue drain --period $PERIOD --tier paid,paid --dry-run`.
 6. Drain priority queue confirmed: `oya billing invoice queue drain --period $PERIOD --tier paid,paid --confirm $INCIDENT_ID`.
@@ -169,7 +169,7 @@ doc_status: published
 11. Run production gate: `cargo run -p oya-dev-cli -- gate validate cloud-billing-invoicing --production-snapshot --period $PERIOD`.
 12. Verify final invoice: `oya billing invoice get --tenant $TENANT --period $PERIOD --expect finalized`.
 13. Release portal delay: `oya billing portal clear-delayed --tenant $TENANT --period $PERIOD --reason resolved-$INCIDENT_ID`.
-14. Release deploy hold: recovery PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
+14. Release deploy hold: recovery PR against `dev` (plain `git`; branch-protected `oya-ci-required` required; legacy `oya gate` output optional local/provenance only).
 15. Seal audit: `oya audit-chain emit --event-class EVT_CLOUD_BILLING_INVOICE_TIMEOUT_INCIDENT --incident $INCIDENT_ID --field resolution=complete`.
 
 ## Verification Checklist

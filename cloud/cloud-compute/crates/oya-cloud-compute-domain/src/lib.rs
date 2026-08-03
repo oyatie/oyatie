@@ -688,16 +688,24 @@ impl ComputeTenantCellGuardrail {
             CellId::new(input.primary_cell_id).map_err(|_| CloudComputeError::InvalidCellId)?;
         validate_cell_region(&primary_cell_id, &region)?;
 
-        let vm_instance_id = resource_id_for_kind_label(
+        let vm_instance_id = resource_id_for(
             &input.vm_instance_id,
             &input.tenant_id,
             &region,
-            "instance",
+            ResourceKind::ComputeInstance(InstanceFlavor::GeneralPurpose),
         )?;
-        let k8s_cluster_id =
-            resource_id_for_kind_label(&input.k8s_cluster_id, &input.tenant_id, &region, "k8s")?;
-        let function_id =
-            resource_id_for_kind_label(&input.function_id, &input.tenant_id, &region, "function")?;
+        let k8s_cluster_id = resource_id_for(
+            &input.k8s_cluster_id,
+            &input.tenant_id,
+            &region,
+            ResourceKind::KubernetesCluster(K8sFlavor::Standard),
+        )?;
+        let function_id = resource_id_for(
+            &input.function_id,
+            &input.tenant_id,
+            &region,
+            ResourceKind::Function(FunctionRuntime::Wasm),
+        )?;
 
         let vm_iam_role = IamRoleId::new(input.vm_iam_role)
             .map_err(|_| CloudComputeError::InvalidWorkloadIdentityPolicy)?;
@@ -1315,32 +1323,13 @@ fn resource_id_for(
     if id.region().map_err(map_resource_error)? != *region {
         return Err(CloudComputeError::ResourceRegionMismatch);
     }
-    if id.kind_label().map_err(map_resource_error)? != kind.type_label() {
+    if !kind.matches_type_label(&id.kind_label().map_err(map_resource_error)?) {
         return Err(CloudComputeError::ResourceKindMismatch);
     }
     Ok(id)
 }
 
 fn resource_ref_for(
-    value: &str,
-    tenant_id: &str,
-    region: &RegionCode,
-    kind_label: &str,
-) -> Result<ResourceId, CloudComputeError> {
-    let id = ResourceId::new(value.to_string()).map_err(map_resource_error)?;
-    if id.tenant_id().map_err(map_resource_error)? != tenant_id {
-        return Err(CloudComputeError::ResourceTenantMismatch);
-    }
-    if id.region().map_err(map_resource_error)? != *region {
-        return Err(CloudComputeError::ResourceRegionMismatch);
-    }
-    if id.kind_label().map_err(map_resource_error)? != kind_label {
-        return Err(CloudComputeError::ResourceKindMismatch);
-    }
-    Ok(id)
-}
-
-fn resource_id_for_kind_label(
     value: &str,
     tenant_id: &str,
     region: &RegionCode,
@@ -1727,6 +1716,31 @@ mod tests {
         }
     }
 
+    fn tenant_cell_guardrail_create() -> ComputeTenantCellGuardrailCreate {
+        ComputeTenantCellGuardrailCreate {
+            tenant_id: "ten_alpha".to_string(),
+            region: "region-alpha".to_string(),
+            primary_cell_id: "cell-region-alpha-001".to_string(),
+            vm_instance_id: "oya:cloud:region-alpha:ten_alpha:instance:app-1".to_string(),
+            vm_iam_role: "role_app".to_string(),
+            vm_runtime_isolation: ComputeWorkloadIsolation::HardwareVirtualizedVm,
+            k8s_cluster_id: "oya:cloud:region-alpha:ten_alpha:k8s:prod".to_string(),
+            k8s_service_account_ref: "ksa/ten_alpha/cell-region-alpha-001/control-plane"
+                .to_string(),
+            k8s_private_control_plane: true,
+            k8s_pod_security_restricted: true,
+            k8s_topology_spread_required: true,
+            k8s_runtime_isolation: ComputeWorkloadIsolation::GvisorSandbox,
+            function_id: "oya:cloud:region-alpha:ten_alpha:function:image-resize".to_string(),
+            function_service_account_ref:
+                "function-sa/ten_alpha/cell-region-alpha-001/image-resize".to_string(),
+            function_runtime_isolation: ComputeWorkloadIsolation::WasmSandbox,
+            audit_evidence_ref: "evidence/compute/audit/guardrail-001".to_string(),
+            scheduling_evidence_ref: "evidence/compute/scheduling/guardrail-001".to_string(),
+            identity_evidence_refs: vec!["evidence/compute/identity/guardrail-001".to_string()],
+        }
+    }
+
     fn invocation(id: &str, data_class: DataClass) -> FunctionInvocationRequest {
         FunctionInvocationRequest {
             invocation_id: id.to_string(),
@@ -1764,6 +1778,85 @@ mod tests {
         assert_eq!(instance.security_groups.value.len(), 1);
         assert!(instance.iam_role.value.is_some());
         assert_eq!(instance.schema_version.value, COMPUTE_SCHEMA_VERSION);
+    }
+
+    #[test]
+    fn compute_surfaces_accept_catalog_orn_resource_ids_without_provider_claims() {
+        let instance = Instance::new(InstanceCreate {
+            resource_id: "orn:oya:region-alpha:ten_alpha:cloud-compute:vm-instance/app-1"
+                .to_string(),
+            ..instance_create()
+        })
+        .expect("VM metadata accepts canonical catalog ORN");
+        assert_eq!(
+            instance.resource_id.value.service_label().unwrap(),
+            "cloud-compute"
+        );
+        assert_eq!(
+            instance.resource_id.value.kind_label().unwrap(),
+            "vm-instance"
+        );
+        assert_eq!(instance.state.value, InstanceState::Pending);
+
+        let cluster = KubernetesCluster::new(KubernetesClusterCreate {
+            resource_id: "orn:oya:region-alpha:ten_alpha:cloud-compute:k8s-cluster/prod"
+                .to_string(),
+            ..k8s_create()
+        })
+        .expect("managed Kubernetes metadata accepts canonical catalog ORN");
+        assert_eq!(
+            cluster.resource_id.value.service_label().unwrap(),
+            "cloud-compute"
+        );
+        assert_eq!(
+            cluster.resource_id.value.kind_label().unwrap(),
+            "k8s-cluster"
+        );
+        assert_eq!(cluster.state.value, KubernetesClusterState::Creating);
+
+        let function = FunctionDeployment::new(FunctionDeploymentCreate {
+            resource_id: "orn:oya:region-alpha:ten_alpha:cloud-compute:function/image-resize"
+                .to_string(),
+            ..function_create()
+        })
+        .expect("function metadata accepts canonical catalog ORN");
+        assert_eq!(
+            function.resource_id.value.service_label().unwrap(),
+            "cloud-compute"
+        );
+        assert_eq!(function.resource_id.value.kind_label().unwrap(), "function");
+        assert_eq!(function.state.value, FunctionDeploymentState::Deploying);
+    }
+
+    #[test]
+    fn tenant_cell_guardrail_accepts_catalog_orn_ids_for_compute_resources() {
+        let guardrail = ComputeTenantCellGuardrail::new(ComputeTenantCellGuardrailCreate {
+            vm_instance_id: "orn:oya:region-alpha:ten_alpha:cloud-compute:vm-instance/app-1"
+                .to_string(),
+            k8s_cluster_id: "orn:oya:region-alpha:ten_alpha:cloud-compute:k8s-cluster/prod"
+                .to_string(),
+            function_id: "orn:oya:region-alpha:ten_alpha:cloud-compute:function/image-resize"
+                .to_string(),
+            ..tenant_cell_guardrail_create()
+        })
+        .expect("tenant cell guardrail keeps accepting canonical catalog ORNs");
+
+        assert_eq!(
+            guardrail.vm_instance_id.value.kind_label().unwrap(),
+            "vm-instance"
+        );
+        assert_eq!(
+            guardrail.k8s_cluster_id.value.kind_label().unwrap(),
+            "k8s-cluster"
+        );
+        assert_eq!(
+            guardrail.function_id.value.kind_label().unwrap(),
+            "function"
+        );
+        assert_eq!(
+            guardrail.vm_instance_id.value.service_label().unwrap(),
+            "cloud-compute"
+        );
     }
 
     #[test]

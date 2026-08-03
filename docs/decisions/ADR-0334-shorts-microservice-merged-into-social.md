@@ -34,7 +34,7 @@ related_sources:
   - microservices/shorts/manifest.json
   - microservices/social/PRD.md
   - microservices/social/ARCHITECTURE.md
-  - microservices/social/manifest.json
+  - "microservices/social/manifest.json (historical ADR-time path; current inventory pointer is oya/social/manifest.json per ADR-0512 and t_df502234)"
 doc_class: Architecture-Decision-Record
 purpose: >
   Retire the standalone shorts microservice and absorb its short-form video
@@ -539,8 +539,9 @@ that cites this ADR.
 S-4. Update `microservices/social/ARCHITECTURE.md` with absorbed sections
 where appropriate.
 
-S-5. Update `microservices/social/manifest.json` to declare the absorbed
-scope.
+S-5. Update the social manifest to declare the absorbed scope. Historical
+ADR-time path: `microservices/social/manifest.json`; current inventory pointer:
+`oya/social/manifest.json` per ADR-0512 and the t_df502234 social source map.
 
 S-6. Update `specs/master-plan-sequencing.json` to remove `shorts` from
 the active µservice roster.
@@ -568,7 +569,9 @@ V-2. `microservices/shorts/` has no live service artifacts after retirement.
 
 V-3. `microservices/social/PRD.md` references this ADR for short-video.
 
-V-4. `microservices/social/manifest.json` declares the absorbed scope.
+V-4. The social manifest declares the absorbed scope. Historical ADR-time path:
+`microservices/social/manifest.json`; current inventory pointer:
+`oya/social/manifest.json`.
 
 V-5. `specs/microservices/manifests-index.json` does not list shorts as an
 active manifest pointer.
@@ -595,7 +598,7 @@ absorbing_microservice: microservices/social/
 retired_marker: microservices/shorts/RETIRED.md
 absorption_map_owner: microservices/social/ARCHITECTURE.md
 prd_owner: microservices/social/PRD.md
-manifest_owner: microservices/social/manifest.json
+manifest_owner: oya/social/manifest.json (legacy ADR-time path: microservices/social/manifest.json)
 precedent_waves: Wave 15K network→community; Wave 15L cell retire
 authority_adrs: ADR-0132 no-grouping policy; ADR-0238 dissolution; ADR-0330 tenant-class entitlement
 commits: none

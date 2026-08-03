@@ -1,7 +1,7 @@
 tier: preview
 owner_team: axis-tenant-rbac
 version: 1.0.0
-sunset: none-before-GA
+sunset: none
 related_adrs:
   - docs/decisions/ADR-0315-erp-coverage-doctrine-sap-parity.md
   - docs/decisions/ADR-0131-flat-microservices-layout.md
@@ -11,3 +11,6 @@ change_notes:
   - id: CS-ENT-SUITE-007
     date: 2026-05-23
     summary: Adds Tenant RBAC runtime adapter crate that dispatches existing preview routes through the repo-native Hyper foundation; deployed listener, auth enforcement, storage, Workflow execution, incident rollback execution, OpenTofu execution, child-service calls, cloud integration, and runtime audit emission remain non-claims.
+  - id: CS-ENT-SUITE-014
+    date: 2026-07-02
+    summary: Reconciles sunset metadata with the api-semver `none` sentinel; the Tenant RBAC contract remains preview/non-deployed with no deployed HTTP runtime, auth enforcement, storage, Workflow execution, incident rollback, OpenTofu, child-service, cloud integration, or runtime audit emission claim and does not claim GA readiness.

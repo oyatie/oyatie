@@ -8,3 +8,15 @@ rust_library(
         "//oya/payments/crates/oya-payments-charge-kernel:oya-payments-charge-kernel",
     ],
 )
+
+rust_test(
+    name = "oya-payments-charge-domain-env-tier-outbound-metadata",
+    srcs = ["tests/env_tier_outbound_metadata.rs"],
+    crate = "oya_payments_charge_domain_env_tier_outbound_metadata",
+    crate_root = "tests/env_tier_outbound_metadata.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-payments-charge-domain",
+        "//oya/payments/crates/oya-payments-charge-kernel:oya-payments-charge-kernel",
+    ],
+)

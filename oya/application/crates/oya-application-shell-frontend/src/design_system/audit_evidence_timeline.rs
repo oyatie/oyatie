@@ -50,8 +50,13 @@ pub enum RowState {
 /// variant to mutate.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum EvidencePath {
-    RepoTracked { path: String },
-    SignedExternal { digest: String, signature_ref: String },
+    RepoTracked {
+        path: String,
+    },
+    SignedExternal {
+        digest: String,
+        signature_ref: String,
+    },
 }
 
 impl EvidencePath {
@@ -192,7 +197,10 @@ mod tests {
 
     #[test]
     fn missing_rows_are_blocking_not_warnings() {
-        assert_eq!(row_severity(&row(RowState::MissingRow, None)), RowSeverity::Blocking);
+        assert_eq!(
+            row_severity(&row(RowState::MissingRow, None)),
+            RowSeverity::Blocking
+        );
         assert_eq!(
             row_severity(&row(RowState::SignatureMissing, None)),
             RowSeverity::Blocking

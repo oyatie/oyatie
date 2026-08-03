@@ -42,6 +42,11 @@ use serde::{Deserialize, Serialize};
 /// are compile-time `include_str!` constants — NOT runtime I/O.
 const BUNDLED_UNIT_CLASS_JSON: &str = include_str!("bundled/unit-class-policy.json");
 const BUNDLED_TTL_JSON: &str = include_str!("bundled/ttl-policy.json");
+pub const OYA_CI_CONFIG_SCHEMA_VERSION: u32 = 1;
+const NEUTRAL_UNIT_CLASS_JSON: &str = r#"{"rules":[]}"#;
+const NEUTRAL_TTL_JSON: &str = r#"{"by_unit_class":{}}"#;
+const NEUTRAL_DISPOSITION_JSON: &str =
+    r#"{"_provenance":{"disposition_schema_version":1},"gates":{}}"#;
 
 /// A config load/validation error. No panics escape the parse path.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -67,35 +72,43 @@ impl std::error::Error for ConfigError {}
 // Top-level config
 // ---------------------------------------------------------------------------
 
-/// The full, validated oya-ci policy. Parsed from `oya-ci.toml`, or materialized from the
-/// bundled default when no file is present.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+/// The named public-boundary profile a config extends (ADR-0533).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum ConfigProfile {
+    /// Policy-free public defaults: no Oyatie prefix, path, vocab, or gate-disposition literals.
+    Neutral,
+    /// Oyatie's self-host policy, preserving the pre-public-boundary bundled defaults verbatim.
+    Oyatie,
+}
+
+/// The full, validated oya-ci policy. Parsed from `oya-ci.toml`, or materialized from a
+/// selected profile plus any closed-schema section overrides.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct OyaCiConfig {
-    #[serde(default)]
+    pub schema_version: u32,
+    pub profile: ConfigProfile,
     pub repo: RepoConfig,
-    #[serde(default)]
     pub naming: NamingConfig,
-    #[serde(default)]
     pub vocab: VocabConfig,
-    #[serde(default)]
     pub manifest: ManifestConfig,
-    #[serde(default)]
     pub reachability: ReachabilityConfig,
-    #[serde(default)]
     pub justification: JustificationConfig,
-    #[serde(default)]
     pub owners: OwnersConfig,
-    #[serde(default)]
     pub enforcement: EnforcementConfig,
-    #[serde(default)]
     pub slo_coverage: SloCoverageConfig,
-    #[serde(default)]
     pub ttl: TtlConfig,
-    #[serde(default)]
     pub unit_class: UnitClassConfig,
-    #[serde(default)]
     pub gates: GatesConfig,
+}
+
+impl<'de> Deserialize<'de> for OyaCiConfig {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        Ok(OyaCiConfigPatch::deserialize(deserializer)?.materialize())
+    }
 }
 
 impl Default for OyaCiConfig {
@@ -108,7 +121,15 @@ impl OyaCiConfig {
     /// Materialize oyatie's CURRENT policy as the bundled default (no file required). This is
     /// the byte-for-byte equivalent of today's hardcoded `const`s + embedded JSON.
     pub fn bundled_default() -> Self {
+        Self::oyatie()
+    }
+
+    /// Materialize Oyatie's self-host policy profile. This preserves the pre-ADR-0533 bundled
+    /// defaults and remains the compatibility default for omitted `profile` in existing configs.
+    pub fn oyatie() -> Self {
         Self {
+            schema_version: OYA_CI_CONFIG_SCHEMA_VERSION,
+            profile: ConfigProfile::Oyatie,
             repo: RepoConfig::default(),
             naming: NamingConfig::default(),
             vocab: VocabConfig::default(),
@@ -124,8 +145,65 @@ impl OyaCiConfig {
         }
     }
 
+    /// Materialize the policy-free public profile. It is intentionally quiet and carries no
+    /// Oyatie path, prefix, forbidden-vocab, governance-lane, or bundled disposition literals;
+    /// adopters add their repo-specific policy as DATA in `oya-ci.toml`.
+    pub fn neutral() -> Self {
+        Self {
+            schema_version: OYA_CI_CONFIG_SCHEMA_VERSION,
+            profile: ConfigProfile::Neutral,
+            repo: RepoConfig {
+                root_markers: vec![".git".to_owned()],
+                path_excludes: Vec::new(),
+            },
+            naming: NamingConfig {
+                required_prefix: String::new(),
+                allowed_roles: Vec::new(),
+                check_family_prefix: String::new(),
+                backend_suffixes: Vec::new(),
+                doctrinal_carve_outs: Vec::new(),
+            },
+            vocab: VocabConfig {
+                forbidden_stems: Vec::new(),
+                carve_outs: Vec::new(),
+            },
+            manifest: ManifestConfig {
+                required_flags: Vec::new(),
+            },
+            reachability: ReachabilityConfig {
+                masterplan: String::new(),
+                root_hub: String::new(),
+                doc_catalog: String::new(),
+            },
+            justification: JustificationConfig {
+                adr_dir: String::new(),
+                roadmap: String::new(),
+            },
+            owners: OwnersConfig {
+                file_name: default_owners_file(),
+            },
+            enforcement: EnforcementConfig {
+                governance_crate_substr: String::new(),
+                governance_lanes: Vec::new(),
+            },
+            slo_coverage: SloCoverageConfig {
+                catalog_record_globs: Vec::new(),
+            },
+            ttl: TtlConfig {
+                inline_json: Some(NEUTRAL_TTL_JSON.to_owned()),
+            },
+            unit_class: UnitClassConfig {
+                inline_json: Some(NEUTRAL_UNIT_CLASS_JSON.to_owned()),
+            },
+            gates: GatesConfig {
+                enabled: Vec::new(),
+                disposition_json: Some(NEUTRAL_DISPOSITION_JSON.to_owned()),
+            },
+        }
+    }
+
     /// Parse + closed-schema-validate an `oya-ci.toml`. Absent sections fall back to the
-    /// bundled default for that section (via each struct's `Default`). Unknown keys error.
+    /// selected profile (`oyatie` when omitted, preserving existing configs). Unknown keys error.
     pub fn from_toml_str(text: &str) -> Result<Self, ConfigError> {
         toml::from_str(text).map_err(|e| ConfigError::Parse(e.to_string()))
     }
@@ -159,6 +237,289 @@ impl OyaCiConfig {
         match &self.ttl.inline_json {
             Some(json) => json.as_str(),
             None => BUNDLED_TTL_JSON,
+        }
+    }
+}
+
+#[derive(Debug, Default, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct OyaCiConfigPatch {
+    schema_version: Option<u32>,
+    profile: Option<ConfigProfile>,
+    repo: Option<RepoConfigPatch>,
+    naming: Option<NamingConfigPatch>,
+    vocab: Option<VocabConfigPatch>,
+    manifest: Option<ManifestConfigPatch>,
+    reachability: Option<ReachabilityConfigPatch>,
+    justification: Option<JustificationConfigPatch>,
+    owners: Option<OwnersConfigPatch>,
+    enforcement: Option<EnforcementConfigPatch>,
+    slo_coverage: Option<SloCoverageConfigPatch>,
+    ttl: Option<TtlConfigPatch>,
+    unit_class: Option<UnitClassConfigPatch>,
+    gates: Option<GatesConfigPatch>,
+}
+
+impl OyaCiConfigPatch {
+    fn materialize(self) -> OyaCiConfig {
+        let profile = self.profile.unwrap_or(ConfigProfile::Oyatie);
+        let mut cfg = match profile {
+            ConfigProfile::Neutral => OyaCiConfig::neutral(),
+            ConfigProfile::Oyatie => OyaCiConfig::oyatie(),
+        };
+
+        if let Some(schema_version) = self.schema_version {
+            cfg.schema_version = schema_version;
+        }
+        cfg.profile = profile;
+        if let Some(repo) = self.repo {
+            repo.apply(&mut cfg.repo);
+        }
+        if let Some(naming) = self.naming {
+            naming.apply(&mut cfg.naming);
+        }
+        if let Some(vocab) = self.vocab {
+            vocab.apply(&mut cfg.vocab);
+        }
+        if let Some(manifest) = self.manifest {
+            manifest.apply(&mut cfg.manifest);
+        }
+        if let Some(reachability) = self.reachability {
+            reachability.apply(&mut cfg.reachability);
+        }
+        if let Some(justification) = self.justification {
+            justification.apply(&mut cfg.justification);
+        }
+        if let Some(owners) = self.owners {
+            owners.apply(&mut cfg.owners);
+        }
+        if let Some(enforcement) = self.enforcement {
+            enforcement.apply(&mut cfg.enforcement);
+        }
+        if let Some(slo_coverage) = self.slo_coverage {
+            slo_coverage.apply(&mut cfg.slo_coverage);
+        }
+        if let Some(ttl) = self.ttl {
+            ttl.apply(&mut cfg.ttl);
+        }
+        if let Some(unit_class) = self.unit_class {
+            unit_class.apply(&mut cfg.unit_class);
+        }
+        if let Some(gates) = self.gates {
+            gates.apply(&mut cfg.gates);
+        }
+        cfg
+    }
+}
+
+#[derive(Debug, Default, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct RepoConfigPatch {
+    root_markers: Option<Vec<String>>,
+    path_excludes: Option<Vec<String>>,
+}
+
+impl RepoConfigPatch {
+    fn apply(self, cfg: &mut RepoConfig) {
+        if let Some(root_markers) = self.root_markers {
+            cfg.root_markers = root_markers;
+        }
+        if let Some(path_excludes) = self.path_excludes {
+            cfg.path_excludes = path_excludes;
+        }
+    }
+}
+
+#[derive(Debug, Default, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct NamingConfigPatch {
+    required_prefix: Option<String>,
+    allowed_roles: Option<Vec<String>>,
+    check_family_prefix: Option<String>,
+    backend_suffixes: Option<Vec<String>>,
+    doctrinal_carve_outs: Option<Vec<String>>,
+}
+
+impl NamingConfigPatch {
+    fn apply(self, cfg: &mut NamingConfig) {
+        if let Some(required_prefix) = self.required_prefix {
+            cfg.required_prefix = required_prefix;
+        }
+        if let Some(allowed_roles) = self.allowed_roles {
+            cfg.allowed_roles = allowed_roles;
+        }
+        if let Some(check_family_prefix) = self.check_family_prefix {
+            cfg.check_family_prefix = check_family_prefix;
+        }
+        if let Some(backend_suffixes) = self.backend_suffixes {
+            cfg.backend_suffixes = backend_suffixes;
+        }
+        if let Some(doctrinal_carve_outs) = self.doctrinal_carve_outs {
+            cfg.doctrinal_carve_outs = doctrinal_carve_outs;
+        }
+    }
+}
+
+#[derive(Debug, Default, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct VocabConfigPatch {
+    forbidden_stems: Option<Vec<ForbiddenStem>>,
+    carve_outs: Option<Vec<VocabCarveOut>>,
+}
+
+impl VocabConfigPatch {
+    fn apply(self, cfg: &mut VocabConfig) {
+        if let Some(forbidden_stems) = self.forbidden_stems {
+            cfg.forbidden_stems = forbidden_stems;
+        }
+        if let Some(carve_outs) = self.carve_outs {
+            cfg.carve_outs = carve_outs;
+        }
+    }
+}
+
+#[derive(Debug, Default, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct ManifestConfigPatch {
+    required_flags: Option<Vec<String>>,
+}
+
+impl ManifestConfigPatch {
+    fn apply(self, cfg: &mut ManifestConfig) {
+        if let Some(required_flags) = self.required_flags {
+            cfg.required_flags = required_flags;
+        }
+    }
+}
+
+#[derive(Debug, Default, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct ReachabilityConfigPatch {
+    masterplan: Option<String>,
+    root_hub: Option<String>,
+    doc_catalog: Option<String>,
+}
+
+impl ReachabilityConfigPatch {
+    fn apply(self, cfg: &mut ReachabilityConfig) {
+        if let Some(masterplan) = self.masterplan {
+            cfg.masterplan = masterplan;
+        }
+        if let Some(root_hub) = self.root_hub {
+            cfg.root_hub = root_hub;
+        }
+        if let Some(doc_catalog) = self.doc_catalog {
+            cfg.doc_catalog = doc_catalog;
+        }
+    }
+}
+
+#[derive(Debug, Default, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct JustificationConfigPatch {
+    adr_dir: Option<String>,
+    roadmap: Option<String>,
+}
+
+impl JustificationConfigPatch {
+    fn apply(self, cfg: &mut JustificationConfig) {
+        if let Some(adr_dir) = self.adr_dir {
+            cfg.adr_dir = adr_dir;
+        }
+        if let Some(roadmap) = self.roadmap {
+            cfg.roadmap = roadmap;
+        }
+    }
+}
+
+#[derive(Debug, Default, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct OwnersConfigPatch {
+    file_name: Option<String>,
+}
+
+impl OwnersConfigPatch {
+    fn apply(self, cfg: &mut OwnersConfig) {
+        if let Some(file_name) = self.file_name {
+            cfg.file_name = file_name;
+        }
+    }
+}
+
+#[derive(Debug, Default, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct EnforcementConfigPatch {
+    governance_crate_substr: Option<String>,
+    governance_lanes: Option<Vec<String>>,
+}
+
+impl EnforcementConfigPatch {
+    fn apply(self, cfg: &mut EnforcementConfig) {
+        if let Some(governance_crate_substr) = self.governance_crate_substr {
+            cfg.governance_crate_substr = governance_crate_substr;
+        }
+        if let Some(governance_lanes) = self.governance_lanes {
+            cfg.governance_lanes = governance_lanes;
+        }
+    }
+}
+
+#[derive(Debug, Default, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct SloCoverageConfigPatch {
+    catalog_record_globs: Option<Vec<String>>,
+}
+
+impl SloCoverageConfigPatch {
+    fn apply(self, cfg: &mut SloCoverageConfig) {
+        if let Some(catalog_record_globs) = self.catalog_record_globs {
+            cfg.catalog_record_globs = catalog_record_globs;
+        }
+    }
+}
+
+#[derive(Debug, Default, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct TtlConfigPatch {
+    inline_json: Option<String>,
+}
+
+impl TtlConfigPatch {
+    fn apply(self, cfg: &mut TtlConfig) {
+        if let Some(inline_json) = self.inline_json {
+            cfg.inline_json = Some(inline_json);
+        }
+    }
+}
+
+#[derive(Debug, Default, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct UnitClassConfigPatch {
+    inline_json: Option<String>,
+}
+
+impl UnitClassConfigPatch {
+    fn apply(self, cfg: &mut UnitClassConfig) {
+        if let Some(inline_json) = self.inline_json {
+            cfg.inline_json = Some(inline_json);
+        }
+    }
+}
+
+#[derive(Debug, Default, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct GatesConfigPatch {
+    enabled: Option<Vec<GateSpec>>,
+    disposition_json: Option<String>,
+}
+
+impl GatesConfigPatch {
+    fn apply(self, cfg: &mut GatesConfig) {
+        if let Some(enabled) = self.enabled {
+            cfg.enabled = enabled;
+        }
+        if let Some(disposition_json) = self.disposition_json {
+            cfg.disposition_json = Some(disposition_json);
         }
     }
 }
@@ -629,6 +990,12 @@ pub enum GateFace {
     ManifestHygiene,
     CargoPrefix,
     SloCoverage,
+    LicensePolicy,
+    ZeroStaticSecrets,
+    LoadBalancerInventory,
+    MultiRegionDisposition,
+    SovereignTenantPin,
+    TenantEnvironmentTier,
     WorkspaceGlobCoverage,
     TargetParity,
     EnforcementLiveness,
@@ -716,6 +1083,36 @@ fn default_enabled_gates() -> Vec<GateSpec> {
             face: Some(GateFace::SloCoverage),
         },
         GateSpec {
+            id: "cloud-ci-license-policy".to_owned(),
+            input_kind: GateInputKind::ProducerFace,
+            face: Some(GateFace::LicensePolicy),
+        },
+        GateSpec {
+            id: "cloud-ci-zero-static-secrets".to_owned(),
+            input_kind: GateInputKind::ProducerFace,
+            face: Some(GateFace::ZeroStaticSecrets),
+        },
+        GateSpec {
+            id: "cloud-ci-load-balancer-inventory".to_owned(),
+            input_kind: GateInputKind::ProducerFace,
+            face: Some(GateFace::LoadBalancerInventory),
+        },
+        GateSpec {
+            id: "cloud-ci-multi-region-disposition".to_owned(),
+            input_kind: GateInputKind::ProducerFace,
+            face: Some(GateFace::MultiRegionDisposition),
+        },
+        GateSpec {
+            id: "cloud-ci-sovereign-tenant-pin".to_owned(),
+            input_kind: GateInputKind::ProducerFace,
+            face: Some(GateFace::SovereignTenantPin),
+        },
+        GateSpec {
+            id: "cloud-ci-tenant-environment-tier".to_owned(),
+            input_kind: GateInputKind::ProducerFace,
+            face: Some(GateFace::TenantEnvironmentTier),
+        },
+        GateSpec {
             id: "cloud-ci-workspace-glob-coverage".to_owned(),
             input_kind: GateInputKind::ProducerFace,
             face: Some(GateFace::WorkspaceGlobCoverage),
@@ -793,11 +1190,12 @@ mod tests {
         // 8 carve-out rules, including the line-level palantir exemption + the oya-ci-config
         // deny-list SSOT path carve-out + the repo-root oya-ci.toml deny-list carve-out.
         assert_eq!(cfg.vocab.carve_outs.len(), 8);
-        assert!(cfg
-            .vocab
-            .carve_outs
-            .iter()
-            .any(|c| c.kind == VocabCarveOutKind::LineContainsCi && c.value == "palantir"));
+        assert!(
+            cfg.vocab
+                .carve_outs
+                .iter()
+                .any(|c| c.kind == VocabCarveOutKind::LineContainsCi && c.value == "palantir")
+        );
     }
 
     #[test]
@@ -807,8 +1205,7 @@ mod tests {
         let uc: serde_json::Value =
             serde_json::from_str(cfg.unit_class_policy_json()).expect("unit-class json");
         assert!(uc.get("rules").and_then(|r| r.as_array()).is_some());
-        let ttl: serde_json::Value =
-            serde_json::from_str(cfg.ttl_policy_json()).expect("ttl json");
+        let ttl: serde_json::Value = serde_json::from_str(cfg.ttl_policy_json()).expect("ttl json");
         assert!(ttl.get("by_unit_class").is_some());
         let disp: serde_json::Value =
             serde_json::from_str(cfg.gates.disposition_json()).expect("disposition json");
@@ -820,9 +1217,9 @@ mod tests {
     }
 
     #[test]
-    fn bundled_default_enables_all_thirteen_gates_with_input_kinds() {
+    fn bundled_default_enables_all_configured_gates_with_input_kinds() {
         let cfg = OyaCiConfig::bundled_default();
-        assert_eq!(cfg.gates.enabled.len(), 13);
+        assert_eq!(cfg.gates.enabled.len(), 19);
         let brand = cfg
             .gates
             .enabled
@@ -855,6 +1252,61 @@ mod tests {
             .expect("slo-coverage gate enabled");
         assert_eq!(slo_coverage.input_kind, GateInputKind::ProducerFace);
         assert_eq!(slo_coverage.face, Some(GateFace::SloCoverage));
+        let license_policy = cfg
+            .gates
+            .enabled
+            .iter()
+            .find(|g| g.id == "cloud-ci-license-policy")
+            .expect("license-policy gate enabled");
+        assert_eq!(license_policy.input_kind, GateInputKind::ProducerFace);
+        assert_eq!(license_policy.face, Some(GateFace::LicensePolicy));
+        let zero_static_secrets = cfg
+            .gates
+            .enabled
+            .iter()
+            .find(|g| g.id == "cloud-ci-zero-static-secrets")
+            .expect("zero-static-secrets gate enabled");
+        assert_eq!(zero_static_secrets.input_kind, GateInputKind::ProducerFace);
+        assert_eq!(zero_static_secrets.face, Some(GateFace::ZeroStaticSecrets));
+        let multi_region_disposition = cfg
+            .gates
+            .enabled
+            .iter()
+            .find(|g| g.id == "cloud-ci-multi-region-disposition")
+            .expect("multi-region-disposition gate enabled");
+        assert_eq!(
+            multi_region_disposition.input_kind,
+            GateInputKind::ProducerFace
+        );
+        assert_eq!(
+            multi_region_disposition.face,
+            Some(GateFace::MultiRegionDisposition)
+        );
+        let sovereign_tenant_pin = cfg
+            .gates
+            .enabled
+            .iter()
+            .find(|g| g.id == "cloud-ci-sovereign-tenant-pin")
+            .expect("sovereign-tenant-pin gate enabled");
+        assert_eq!(sovereign_tenant_pin.input_kind, GateInputKind::ProducerFace);
+        assert_eq!(
+            sovereign_tenant_pin.face,
+            Some(GateFace::SovereignTenantPin)
+        );
+        let tenant_environment_tier = cfg
+            .gates
+            .enabled
+            .iter()
+            .find(|g| g.id == "cloud-ci-tenant-environment-tier")
+            .expect("tenant-environment-tier gate enabled");
+        assert_eq!(
+            tenant_environment_tier.input_kind,
+            GateInputKind::ProducerFace
+        );
+        assert_eq!(
+            tenant_environment_tier.face,
+            Some(GateFace::TenantEnvironmentTier)
+        );
         let workspace_glob_coverage = cfg
             .gates
             .enabled
@@ -883,10 +1335,7 @@ mod tests {
             .iter()
             .find(|g| g.id == "cloud-ci-enforcement-liveness")
             .expect("enforcement-liveness gate enabled");
-        assert_eq!(
-            enforcement_liveness.input_kind,
-            GateInputKind::ProducerFace
-        );
+        assert_eq!(enforcement_liveness.input_kind, GateInputKind::ProducerFace);
         assert_eq!(
             enforcement_liveness.face,
             Some(GateFace::EnforcementLiveness)
@@ -960,6 +1409,69 @@ mod tests {
     }
 
     #[test]
+    fn explicit_oyatie_profile_materializes_the_self_host_policy() {
+        let cfg = OyaCiConfig::from_toml_str(
+            r#"
+schema_version = 1
+profile = "oyatie"
+"#,
+        )
+        .expect("oyatie profile parses");
+
+        assert_eq!(cfg.schema_version, 1);
+        assert_eq!(cfg.profile, ConfigProfile::Oyatie);
+        assert_eq!(cfg, OyaCiConfig::oyatie());
+    }
+
+    #[test]
+    fn neutral_profile_adopter_fixture_has_no_oyatie_path_assumptions() {
+        let cfg =
+            OyaCiConfig::from_toml_str(include_str!("../fixtures/neutral-adopter-oya-ci.toml"))
+                .expect("neutral adopter fixture parses");
+
+        assert_eq!(cfg.schema_version, 1);
+        assert_eq!(cfg.profile, ConfigProfile::Neutral);
+        assert_eq!(cfg.repo.root_markers, vec![".git".to_owned()]);
+        assert_eq!(cfg.repo.path_excludes, vec!["target/".to_owned()]);
+        assert!(cfg.naming.required_prefix.is_empty());
+        assert!(cfg.vocab.forbidden_stems.is_empty());
+        assert!(cfg.vocab.carve_outs.is_empty());
+        assert!(cfg.enforcement.governance_crate_substr.is_empty());
+        assert!(cfg.enforcement.governance_lanes.is_empty());
+        assert_eq!(
+            cfg.slo_coverage.catalog_record_globs,
+            vec!["catalog/*.yaml".to_owned()]
+        );
+        assert_eq!(cfg.gates.enabled.len(), 1);
+        assert_eq!(cfg.gates.enabled[0].id, "cloud-ci-brand-residue");
+        assert_eq!(
+            cfg.gates.enabled[0].input_kind,
+            GateInputKind::RawCorpusCollector
+        );
+        assert!(cfg.gates.enabled[0].face.is_none());
+        serde_json::from_str::<serde_json::Value>(cfg.unit_class_policy_json())
+            .expect("neutral unit-class json parses");
+        serde_json::from_str::<serde_json::Value>(cfg.ttl_policy_json())
+            .expect("neutral ttl json parses");
+        serde_json::from_str::<serde_json::Value>(cfg.gates.disposition_json())
+            .expect("neutral disposition json parses");
+
+        let serialized = toml::to_string(&cfg).expect("neutral serializes");
+        for oyatie_literal in [
+            "oya-",
+            "specs/root-hub-pointers.json",
+            "docs/decisions",
+            "docs/governance-lanes",
+            "registry/catalog",
+        ] {
+            assert!(
+                !serialized.contains(oyatie_literal),
+                "neutral fixture leaked {oyatie_literal}:\n{serialized}"
+            );
+        }
+    }
+
+    #[test]
     fn partial_toml_overrides_only_the_named_section() {
         // Only [naming] is given; every other section falls back to the bundled default.
         let toml = r#"
@@ -1005,11 +1517,12 @@ code = "forbidden_oya-vcs"
         assert_eq!(cfg.vocab.forbidden_stems[0].code, "forbidden_oya-vcs");
         // And it is present in the bundled default verbatim.
         let cfg2 = OyaCiConfig::bundled_default();
-        assert!(cfg2
-            .vocab
-            .forbidden_stems
-            .iter()
-            .any(|s| s.code == "forbidden_oya-vcs"));
+        assert!(
+            cfg2.vocab
+                .forbidden_stems
+                .iter()
+                .any(|s| s.code == "forbidden_oya-vcs")
+        );
     }
 
     #[test]
@@ -1030,10 +1543,7 @@ face = "total_accounting"
             cfg.gates.enabled[0].input_kind,
             GateInputKind::RawCorpusCollector
         );
-        assert_eq!(
-            cfg.gates.enabled[1].input_kind,
-            GateInputKind::ProducerFace
-        );
+        assert_eq!(cfg.gates.enabled[1].input_kind, GateInputKind::ProducerFace);
         assert_eq!(cfg.gates.enabled[1].face, Some(GateFace::TotalAccounting));
     }
 

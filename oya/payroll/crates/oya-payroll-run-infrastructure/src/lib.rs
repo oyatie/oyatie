@@ -21,21 +21,31 @@ use oya_http_runtime_hyper_adapter::{
 };
 use oya_payroll_run_api::{
     ApiErrorEnvelope, HrLeaveImpactIntakeRequest, HrLeaveImpactIntakeResponse,
-    PayrollJournalDraftRequest, PayrollTrialCloseRequest,
+    HrLeaveImpactKindDto, PayrollJournalDraftRequest, PayrollTrialCloseRequest,
+    StatutoryCalculationPreviewRequest, StatutoryCalculationPreviewResponse,
+    YearEndSettlementPreviewRequest, YearEndSettlementPreviewResponse,
 };
 use oya_payroll_run_app::{
     PayrollAppError, close_trial_run, prepare_accounting_dispatch, prepare_hr_leave_impact_intake,
+    prepare_statutory_calculation_preview, prepare_year_end_settlement_preview,
 };
 use serde::Serialize;
 
 pub const PAYROLL_TRIAL_CLOSE_PATH: &str = "/payroll/v1/trial-closes";
 pub const PAYROLL_ACCOUNTING_JOURNAL_DRAFT_PATH: &str = "/payroll/v1/accounting-journal-drafts";
 pub const PAYROLL_HR_LEAVE_IMPACT_INTAKE_PATH: &str = "/payroll/v1/hr-leave-impact-intakes";
+pub const PAYROLL_STATUTORY_CALCULATION_PREVIEW_PATH: &str =
+    "/payroll/v1/statutory-calculation-previews";
+pub const PAYROLL_YEAR_END_SETTLEMENT_PREVIEW_PATH: &str =
+    "/payroll/v1/year-end-settlement-previews";
 pub const PAYROLL_HEALTH_PATH: &str = "/payroll/v1/healthz";
 
 const JSON_CONTENT_TYPE: &str = "application/json";
 const SERVICE_NAME: &str = "payroll";
 const MAX_PAYROLL_BODY_BYTES: usize = 64 * 1024;
+const LIVE_DEPLOYMENT_NA_RATIONALE: &str = "N/A: no deployable listener or cloud target exists for this Payroll runtime adapter card; evidence is local in-process router replay only.";
+const ACCESSIBILITY_NA_RATIONALE: &str =
+    "N/A: backend/router-only replay has no Payroll UI surface or browser workflow in this card.";
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PayrollRuntimeRoute {
@@ -70,24 +80,73 @@ impl std::error::Error for PayrollRuntimeError {}
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PayrollAcceptedResponse {
-    pub accepted: bool,          // data_class: INTERNAL_ONLY
-    pub audit_topic: String,     // data_class: INTERNAL_ONLY
-    pub idempotency_key: String, // data_class: INTERNAL_ONLY
-    pub schema_version: u32,     // data_class: PUBLIC
-    pub service: String,         // data_class: INTERNAL_ONLY
+    pub accepted: bool,             // data_class: INTERNAL_ONLY
+    pub audit_topic: String,        // data_class: INTERNAL_ONLY
+    pub idempotency_key: String,    // data_class: INTERNAL_ONLY
+    pub schema_version: u32,        // data_class: PUBLIC
+    pub service: String,            // data_class: INTERNAL_ONLY
+    pub story_stage: &'static str,  // data_class: PUBLIC
+    pub run_id: String,             // data_class: INTERNAL_ONLY
+    pub tenant_id: String,          // data_class: INTERNAL_ONLY
+    pub legal_entity_id: String,    // data_class: INTERNAL_ONLY
+    pub evidence_refs: Vec<String>, // data_class: INTERNAL_ONLY
+    pub source_digest: String,      // data_class: FINANCIAL
+    pub payload_data_class: String, // data_class: INTERNAL_ONLY
+    #[serde(flatten)]
+    pub non_claims: PayrollReplayNonClaims,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PayrollHrLeaveImpactReplayResponse {
+    pub story_stage: &'static str,         // data_class: PUBLIC
+    pub integration_topic: String,         // data_class: INTERNAL_ONLY
+    pub idempotency_key: String,           // data_class: INTERNAL_ONLY
+    pub payroll_period: String,            // data_class: FINANCIAL
+    pub impact_kind: HrLeaveImpactKindDto, // data_class: FINANCIAL
+    pub source_hr_idempotency_key: String, // data_class: INTERNAL_ONLY
+    pub evidence_refs: Vec<String>,        // data_class: INTERNAL_ONLY + FINANCIAL
+    pub payload_data_class: String,        // data_class: INTERNAL_ONLY
+    pub schema_version: u32,               // data_class: PUBLIC
+    #[serde(flatten)]
+    pub non_claims: PayrollReplayNonClaims,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PayrollReplayNonClaims {
+    pub local_replay_only: bool,                 // data_class: PUBLIC
+    pub deployed_listener: bool,                 // data_class: PUBLIC
+    pub storage_attached: bool,                  // data_class: PUBLIC
+    pub workflow_dispatch: bool,                 // data_class: PUBLIC
+    pub runtime_audit_emission: bool,            // data_class: PUBLIC
+    pub external_hr_call: bool,                  // data_class: PUBLIC
+    pub external_accounting_call: bool,          // data_class: PUBLIC
+    pub statutory_filing_rails: bool,            // data_class: PUBLIC
+    pub disbursement_rails: bool,                // data_class: PUBLIC
+    pub production_close: bool,                  // data_class: PUBLIC
+    pub live_deployment_rationale: &'static str, // data_class: PUBLIC
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PayrollHealthResponse {
-    pub status: String,               // data_class: PUBLIC
-    pub service: String,              // data_class: PUBLIC
-    pub runtime_adapter: String,      // data_class: PUBLIC
-    pub deployed_listener: bool,      // data_class: PUBLIC
-    pub storage_attached: bool,       // data_class: PUBLIC
-    pub workflow_dispatch: bool,      // data_class: PUBLIC
-    pub statutory_filing_rails: bool, // data_class: PUBLIC
-    pub schema_version: u32,          // data_class: PUBLIC
+    pub status: String,                        // data_class: PUBLIC
+    pub service: String,                       // data_class: PUBLIC
+    pub runtime_adapter: String,               // data_class: PUBLIC
+    pub close_health_gate: String,             // data_class: PUBLIC
+    pub rollback_observability: String,        // data_class: PUBLIC
+    pub local_replay_only: bool,               // data_class: PUBLIC
+    pub live_deployment_status: String,        // data_class: PUBLIC
+    pub live_deployment_rationale: String,     // data_class: PUBLIC
+    pub accessibility_evidence_status: String, // data_class: PUBLIC
+    pub production_close_controller: bool,     // data_class: PUBLIC
+    pub deployed_listener: bool,               // data_class: PUBLIC
+    pub storage_attached: bool,                // data_class: PUBLIC
+    pub workflow_dispatch: bool,               // data_class: PUBLIC
+    pub opentofu_ops_convergence: bool,        // data_class: PUBLIC
+    pub statutory_filing_rails: bool,          // data_class: PUBLIC
+    pub schema_version: u32,                   // data_class: PUBLIC
 }
 
 pub fn payroll_runtime_routes() -> Vec<PayrollRuntimeRoute> {
@@ -112,6 +171,20 @@ pub fn payroll_runtime_routes() -> Vec<PayrollRuntimeRoute> {
             operation_id: "intakePayrollHrLeaveImpact",
             request_data_class: "FINANCIAL",
             response_data_class: "FINANCIAL",
+        },
+        PayrollRuntimeRoute {
+            method: "POST",
+            path: PAYROLL_STATUTORY_CALCULATION_PREVIEW_PATH,
+            operation_id: "previewPayrollStatutoryCalculation",
+            request_data_class: "FINANCIAL",
+            response_data_class: "FINANCIAL",
+        },
+        PayrollRuntimeRoute {
+            method: "POST",
+            path: PAYROLL_YEAR_END_SETTLEMENT_PREVIEW_PATH,
+            operation_id: "previewPayrollYearEndSettlement",
+            request_data_class: "PII_IDENTIFYING+FINANCIAL",
+            response_data_class: "PII_IDENTIFYING+FINANCIAL",
         },
         PayrollRuntimeRoute {
             method: "GET",
@@ -152,6 +225,16 @@ pub fn payroll_runtime_router() -> Result<Router<SyncHandler>, PayrollRuntimeErr
         handler_to_sync(HrLeaveImpactIntakeHandler),
     )?;
     router.route(
+        HttpMethod::Post,
+        PAYROLL_STATUTORY_CALCULATION_PREVIEW_PATH,
+        handler_to_sync(StatutoryCalculationPreviewHandler),
+    )?;
+    router.route(
+        HttpMethod::Post,
+        PAYROLL_YEAR_END_SETTLEMENT_PREVIEW_PATH,
+        handler_to_sync(YearEndSettlementPreviewHandler),
+    )?;
+    router.route(
         HttpMethod::Get,
         PAYROLL_HEALTH_PATH,
         handler_to_sync(HealthHandler),
@@ -172,6 +255,8 @@ pub fn dispatch_payroll_request(request: HttpRequest) -> HttpResponse {
 struct TrialCloseHandler;
 struct AccountingJournalDraftHandler;
 struct HrLeaveImpactIntakeHandler;
+struct StatutoryCalculationPreviewHandler;
+struct YearEndSettlementPreviewHandler;
 struct HealthHandler;
 
 impl oya_http_middleware_kernel::Handler for TrialCloseHandler {
@@ -188,6 +273,14 @@ impl oya_http_middleware_kernel::Handler for TrialCloseHandler {
                 idempotency_key: outcome.audit_envelope.idempotency_key.value.clone(),
                 schema_version: outcome.audit_envelope.schema_version.value,
                 service: SERVICE_NAME.to_owned(),
+                story_stage: "payroll_trial_close",
+                run_id: outcome.audit_envelope.run_id.value.value.clone(),
+                tenant_id: outcome.audit_envelope.tenant_id.value.value.clone(),
+                legal_entity_id: outcome.audit_envelope.legal_entity_id.value.value.clone(),
+                evidence_refs: vec![outcome.audit_envelope.evidence_ref.value.value.clone()],
+                source_digest: outcome.audit_envelope.evidence_digest.value.value.clone(),
+                payload_data_class: "FINANCIAL".to_owned(),
+                non_claims: payroll_replay_non_claims(),
             },
         ))
     }
@@ -208,6 +301,37 @@ impl oya_http_middleware_kernel::Handler for AccountingJournalDraftHandler {
                 idempotency_key: outcome.dispatch_envelope.idempotency_key.value.clone(),
                 schema_version: outcome.dispatch_envelope.schema_version.value,
                 service: SERVICE_NAME.to_owned(),
+                story_stage: "accounting_journal_draft",
+                run_id: outcome.dispatch_envelope.run_id.value.value.clone(),
+                tenant_id: outcome.dispatch_envelope.tenant_id.value.value.clone(),
+                legal_entity_id: outcome
+                    .dispatch_envelope
+                    .legal_entity_id
+                    .value
+                    .value
+                    .clone(),
+                evidence_refs: vec![
+                    outcome
+                        .dispatch_envelope
+                        .approval_evidence_ref
+                        .value
+                        .value
+                        .clone(),
+                    outcome
+                        .dispatch_envelope
+                        .reversal_required_ref
+                        .value
+                        .value
+                        .clone(),
+                ],
+                source_digest: outcome
+                    .dispatch_envelope
+                    .source_payroll_digest
+                    .value
+                    .value
+                    .clone(),
+                payload_data_class: "FINANCIAL".to_owned(),
+                non_claims: payroll_replay_non_claims(),
             },
         ))
     }
@@ -220,9 +344,68 @@ impl oya_http_middleware_kernel::Handler for HrLeaveImpactIntakeHandler {
         let request: HrLeaveImpactIntakeRequest = parse_json(&req.body)?;
         let outcome =
             prepare_hr_leave_impact_intake(request.into_domain()).map_err(app_error_response)?;
+        let response = HrLeaveImpactIntakeResponse::from_intake(&outcome.intake);
         Ok(json_response(
             202,
-            &HrLeaveImpactIntakeResponse::from_intake(&outcome.intake),
+            &PayrollHrLeaveImpactReplayResponse {
+                story_stage: "hr_leave_impact_intake",
+                integration_topic: response.integration_topic,
+                idempotency_key: response.idempotency_key,
+                payroll_period: response.payroll_period,
+                impact_kind: response.impact_kind,
+                source_hr_idempotency_key: outcome
+                    .intake_envelope
+                    .source_hr_idempotency_key
+                    .value
+                    .clone(),
+                evidence_refs: vec![
+                    outcome.intake.decision_evidence_ref.value.value.clone(),
+                    outcome.intake.routing_evidence_ref.value.value.clone(),
+                    outcome
+                        .intake
+                        .payroll_impact_evidence_ref
+                        .value
+                        .value
+                        .clone(),
+                    outcome
+                        .intake
+                        .payroll_intake_evidence_ref
+                        .value
+                        .value
+                        .clone(),
+                ],
+                payload_data_class: response.payload_data_class,
+                schema_version: response.schema_version,
+                non_claims: payroll_replay_non_claims(),
+            },
+        ))
+    }
+}
+
+impl oya_http_middleware_kernel::Handler for StatutoryCalculationPreviewHandler {
+    type Error = HttpResponse;
+
+    fn call(&self, req: HttpRequest) -> Result<HttpResponse, Self::Error> {
+        let request: StatutoryCalculationPreviewRequest = parse_json(&req.body)?;
+        let outcome = prepare_statutory_calculation_preview(request.into_domain())
+            .map_err(app_error_response)?;
+        Ok(json_response(
+            202,
+            &StatutoryCalculationPreviewResponse::from_draft(&outcome.draft),
+        ))
+    }
+}
+
+impl oya_http_middleware_kernel::Handler for YearEndSettlementPreviewHandler {
+    type Error = HttpResponse;
+
+    fn call(&self, req: HttpRequest) -> Result<HttpResponse, Self::Error> {
+        let request: YearEndSettlementPreviewRequest = parse_json(&req.body)?;
+        let outcome = prepare_year_end_settlement_preview(request.into_domain())
+            .map_err(app_error_response)?;
+        Ok(json_response(
+            202,
+            &YearEndSettlementPreviewResponse::from_prepared(&outcome.prepared),
         ))
     }
 }
@@ -237,13 +420,37 @@ impl oya_http_middleware_kernel::Handler for HealthHandler {
                 status: "ok".to_owned(),
                 service: SERVICE_NAME.to_owned(),
                 runtime_adapter: "router-ready".to_owned(),
+                close_health_gate: "domain-local-only".to_owned(),
+                rollback_observability: "metadata-only".to_owned(),
+                local_replay_only: true,
+                live_deployment_status: "not-deployed-local-router-only".to_owned(),
+                live_deployment_rationale: LIVE_DEPLOYMENT_NA_RATIONALE.to_owned(),
+                accessibility_evidence_status: ACCESSIBILITY_NA_RATIONALE.to_owned(),
+                production_close_controller: false,
                 deployed_listener: false,
                 storage_attached: false,
                 workflow_dispatch: false,
+                opentofu_ops_convergence: false,
                 statutory_filing_rails: false,
                 schema_version: 1,
             },
         ))
+    }
+}
+
+fn payroll_replay_non_claims() -> PayrollReplayNonClaims {
+    PayrollReplayNonClaims {
+        local_replay_only: true,
+        deployed_listener: false,
+        storage_attached: false,
+        workflow_dispatch: false,
+        runtime_audit_emission: false,
+        external_hr_call: false,
+        external_accounting_call: false,
+        statutory_filing_rails: false,
+        disbursement_rails: false,
+        production_close: false,
+        live_deployment_rationale: LIVE_DEPLOYMENT_NA_RATIONALE,
     }
 }
 

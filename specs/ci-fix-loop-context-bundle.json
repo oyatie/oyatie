@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://docs.oyatie.com/specs/ci-fix-loop-context-bundle.json",
   "title": "CiFixLoopContextBundle",
-  "description": "Agent-task payload posted by oya-vcs-ci-fix-loop-dispatcher-app whenever a PR enters the fix-loop. The dispatcher serves two sources (CI failure + review fix-request); both produce a bundle of this shape so the downstream agent runtime has one parse path.",
+  "description": "Agent-task payload for cloud-ci/agentic fix-loop dispatchers whenever a protected PR enters the fix-loop. The historical oya-vcs dispatcher name is provenance only; CI failure and review fix-request sources both produce this bundle shape so the downstream agent runtime has one parse path.",
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-CI-FIX-LOOP-CONTEXT-BUNDLE",

@@ -94,7 +94,7 @@ Rules:
 4. New crate dependencies require a `cargo-vet` certification row OR an
    ADR-tracked exemption.
 
-Source: [`.omc/scratch/hyperscaler-best-practices-2026-05-12.md`](../../.omc/scratch/hyperscaler-best-practices-2026-05-12.md)
+Source: [`hyperscaler-best-practices.md`](hyperscaler-best-practices.md)
 Domain 4 "Supply-chain: signing + SBOM + provenance".
 
 ## 3. Threat modeling per change class
@@ -127,7 +127,7 @@ Per [`image-discipline.md`](image-discipline.md) and
 4. Cluster-side admission control (Kyverno / policy-controller) verifies
    the signature + provenance before scheduling.
 5. Cosign pin: **≥ v3.0.6** (per
-   [`.omc/scratch/lts-versions-verified-2026-05-12.md`](../../.omc/scratch/lts-versions-verified-2026-05-12.md));
+   [`lts-versions-verified.md`](lts-versions-verified.md));
    the v3 `--bundle` contract is mandatory.
 
 Lane: `oya-governance-supply-chain` validates signed + SBOM-attached +
@@ -209,5 +209,5 @@ When a finding cannot be fixed in the PR:
 - [Sigstore](https://www.sigstore.dev/), [SLSA](https://slsa.dev/),
   [Syft](https://github.com/anchore/syft).
 - [Kyverno](https://kyverno.io/), [policy-controller](https://github.com/sigstore/policy-controller).
-- [`.omc/scratch/hyperscaler-best-practices-2026-05-12.md`](../../.omc/scratch/hyperscaler-best-practices-2026-05-12.md)
+- [`hyperscaler-best-practices.md`](hyperscaler-best-practices.md)
   Domain 4 "Supply-chain".

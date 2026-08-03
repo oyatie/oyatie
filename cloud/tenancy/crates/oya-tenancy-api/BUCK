@@ -7,6 +7,9 @@ rust_library(
     deps = [
         "//cloud/cloud-network/crates/oya-residency-domain:oya-residency-domain",
         "//cloud/tenancy/crates/oya-tenancy-domain:oya-tenancy-domain",
+        "//libs/oya-shared-pdp-kernel:oya-shared-pdp-kernel",
+        "//libs/oya-shared-platform-contracts-kernel:oya-shared-platform-contracts-kernel",
+        "third-party//:serde_json",
     ],
 )
 
@@ -20,5 +23,8 @@ rust_test(
         ":oya-tenancy-api",
         "//cloud/cloud-network/crates/oya-residency-domain:oya-residency-domain",
         "//cloud/tenancy/crates/oya-tenancy-domain:oya-tenancy-domain",
+        "//libs/oya-shared-pdp-kernel:oya-shared-pdp-kernel",
+        "//libs/oya-shared-platform-contracts-kernel:oya-shared-platform-contracts-kernel",
+        "third-party//:serde_json",
     ],
 )

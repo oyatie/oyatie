@@ -2,5 +2,24 @@ openapi: 3.2.0
 info:
   title: managed-k8s-sla-observability
   version: 0.1.0
-  description: Placeholder OpenAPI surface for the managed-k8s-sla-observability microservice; live REST surfaces tracked in ADR-0376 follow-on lanes.
+  description: >-
+    Placeholder OpenAPI surface for the managed-k8s-sla-observability
+    microservice. No live REST API is implemented or claimed by this contract;
+    ADR-0376 follow-on lanes must provide implementation, tests, and review
+    evidence before these planned surfaces become authority.
+x-source-authority: cloud/managed-k8s-sla-observability/contracts/openapi-v1.yaml
+x-claim-ceiling: target-only-placeholder-no-live-rest-surface
+x-planned-rest-surfaces:
+  - name: read-cluster-sla-summary
+    method: GET
+    path: /tenants/{tenant_id}/managed-k8s/clusters/{cluster_name}/sla/summary
+    purpose: Tenant-scoped deterministic SLA summary read.
+  - name: read-cluster-sla-evidence
+    method: GET
+    path: /tenants/{tenant_id}/managed-k8s/clusters/{cluster_name}/sla/evidence
+    purpose: Tenant-scoped evidence/freshness read for a summary window.
+  - name: ingest-control-plane-sla-snapshot
+    method: POST
+    path: /internal/managed-k8s/sla-observations
+    purpose: Internal collector ingestion of normalized ControlPlaneSlaSnapshot records.
 paths: {}

@@ -35,7 +35,7 @@
       "ADR-0338",
       "ADR-0344"
     ],
-    "purpose": "Define the canonical audit-row envelope. Extended at v2 with the five-field sustainability + finops tuple per ADR-0344. Schema version oyatie/log/v1 deprecates one year post-ADR-0344 Acceptance."
+    "purpose": "Define the canonical audit-row envelope. Extended at v2 with the five-field sustainability + finops tuple plus derived carbon_intensity_source methodology provenance per ADR-0344. Schema version oyatie/log/v1 deprecates one year post-ADR-0344 Acceptance."
   },
   "type": "object",
   "additionalProperties": false,
@@ -63,7 +63,7 @@
     "envelope_fields": {
       "type": "array",
       "description": "Mandatory envelope fields inherited by every audit-event class. Per ADR-0263 §D mandatory envelope is extended additively at v2.",
-      "minItems": 16,
+      "minItems": 17,
       "uniqueItems": true,
       "items": {
         "type": "object",
@@ -231,7 +231,7 @@
     },
     "sustainability_finops_fields": {
       "type": "object",
-      "description": "Detailed contract for the five-field sustainability + finops tuple added at envelope v2 per ADR-0344.",
+      "description": "Detailed contract for the five-field sustainability + finops tuple plus derived carbon_intensity_source methodology provenance added at envelope v2 per ADR-0344.",
       "additionalProperties": false,
       "required": [
         "cost_usd_minor_units",
@@ -505,7 +505,7 @@
         },
         "requires_validator_lane": {
           "type": "string",
-          "const": "oya gate validate audit-row-envelope"
+          "const": "cloud-ci/Rust gate packet: audit-row-envelope"
         }
       }
     }

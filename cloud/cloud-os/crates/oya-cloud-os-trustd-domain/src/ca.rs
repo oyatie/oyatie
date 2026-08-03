@@ -173,6 +173,42 @@ impl<S: SigningBackend> CertificateAuthority<S> {
         })
     }
 
+    /// Rehydrate a CA from already-parsed durable state.
+    pub(crate) fn from_persisted_parts(
+        cert: Certificate,
+        keypair: KeyPair,
+        signer: S,
+        policy: IssuancePolicy,
+        next_serial: u64,
+    ) -> Result<Self> {
+        if !cert.is_ca() {
+            return Err(TrustError::invalid("persisted trust anchor is not a CA"));
+        }
+        cert.validate()?;
+        if !keypair.matches_public(&cert.public_key_der) {
+            return Err(TrustError::verification_failed(
+                "persisted CA private key does not match CA certificate public key",
+            ));
+        }
+        if !signer.verify(&cert.tbs_bytes(), &cert.signature) {
+            return Err(TrustError::verification_failed(
+                "persisted CA certificate was not signed by the restored signer",
+            ));
+        }
+        if next_serial <= cert.serial {
+            return Err(TrustError::invalid(
+                "persisted CA serial counter is not ahead of the CA certificate serial",
+            ));
+        }
+        Ok(CertificateAuthority {
+            cert,
+            keypair,
+            signer,
+            policy,
+            next_serial,
+        })
+    }
+
     /// Override the issuance policy.
     pub fn with_policy(mut self, policy: IssuancePolicy) -> Self {
         self.policy = policy;
@@ -269,6 +305,11 @@ impl<S: SigningBackend> CertificateAuthority<S> {
         &self.keypair
     }
 
+    /// The signing backend, exposed only to sealed durable persistence code.
+    pub(crate) fn signing_backend(&self) -> &S {
+        &self.signer
+    }
+
     /// The currently-configured issuance policy.
     pub fn policy(&self) -> &IssuancePolicy {
         &self.policy
@@ -335,7 +376,10 @@ impl<S: SigningBackend> CertificateAuthority<S> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::persistence::StaticKeySealer;
     use crate::signer::InMemorySigner;
+    use std::fs;
+    use std::path::PathBuf;
 
     fn ca() -> CertificateAuthority<InMemorySigner> {
         CertificateAuthority::bootstrap(
@@ -346,6 +390,17 @@ mod tests {
             1_000_000,
         )
         .unwrap()
+    }
+
+    fn temp_ca_state_path(test_name: &str) -> PathBuf {
+        let nonce = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        std::env::temp_dir().join(format!(
+            "oya-trustd-{test_name}-{}-{nonce}.state",
+            std::process::id()
+        ))
     }
 
     #[test]
@@ -510,5 +565,70 @@ mod tests {
         );
         assert_eq!(req.public_key_der, new_key.public_der());
         assert!(req.usage.can_sign());
+    }
+
+    #[test]
+    fn sealed_state_round_trips_without_plaintext_root_key() {
+        let path = temp_ca_state_path("roundtrip");
+        let sealer = StaticKeySealer::new(b"unit-test-kms-root".to_vec()).unwrap();
+        let mut ca = ca();
+        let node_key = KeyPair::from_seed(b"node-persisted");
+        let csr = CertificateSigningRequest::for_node(
+            "node-persisted",
+            &node_key,
+            CertUsage::ClientAuth,
+            3600,
+        );
+        let before_restart = ca.sign_csr(&csr, 2000).unwrap();
+        let next_serial = ca.peek_serial();
+
+        ca.save_sealed_state(&path, &sealer).unwrap();
+        let persisted = fs::read_to_string(&path).unwrap();
+        assert!(persisted.contains("sealed.keypair_private_der="));
+        assert!(persisted.contains("sealed.signer_private_key="));
+        assert!(!persisted.contains("ca-seed"));
+        assert!(!persisted.contains(&crate::x509::hex_encode(ca.keypair().private_der())));
+
+        let mut restored =
+            CertificateAuthority::<InMemorySigner>::load_sealed_state(&path, &sealer).unwrap();
+        assert_eq!(restored.peek_serial(), next_serial);
+        assert!(restored.verify(&before_restart, 2500).is_ok());
+        let after_restart = restored.sign_csr(&csr, 2500).unwrap();
+        assert_eq!(after_restart.serial, next_serial);
+        assert!(restored.verify(&after_restart, 2600).is_ok());
+
+        let _ = fs::remove_file(path);
+    }
+
+    #[test]
+    fn sealed_state_rejects_wrong_sealer_and_tampering() {
+        let path = temp_ca_state_path("tamper");
+        let sealer = StaticKeySealer::new(b"unit-test-kms-root".to_vec()).unwrap();
+        ca().save_sealed_state(&path, &sealer).unwrap();
+
+        let wrong = StaticKeySealer::new(b"wrong-kms-root".to_vec()).unwrap();
+        assert_eq!(
+            CertificateAuthority::<InMemorySigner>::load_sealed_state(&path, &wrong)
+                .err()
+                .unwrap()
+                .kind(),
+            "verification_failed"
+        );
+
+        let tampered = fs::read_to_string(&path).unwrap().replacen(
+            "sealed.signer_private_key=",
+            "sealed.signer_private_key=00",
+            1,
+        );
+        fs::write(&path, tampered).unwrap();
+        assert_eq!(
+            CertificateAuthority::<InMemorySigner>::load_sealed_state(&path, &sealer)
+                .err()
+                .unwrap()
+                .kind(),
+            "verification_failed"
+        );
+
+        let _ = fs::remove_file(path);
     }
 }

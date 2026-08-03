@@ -316,7 +316,7 @@
       },
       {
         "name": "shell-script operational glue",
-        "reason": "deployment and validation authority belongs to OpenTofu, Makefile targets, and Rust oya gates"
+        "reason": "deployment and validation authority belongs to OpenTofu, Makefile targets, and Rust cloud-ci gate packets"
       }
     ]
   },
@@ -348,7 +348,7 @@
         "stable": 100,
         "GA": 100
       },
-      "verification_ref": "oya gate validate calendar-workflow-handoff",
+      "verification_ref": "cloud-ci/Rust gate packet: calendar-workflow-handoff",
       "lane_ref": "audit-chain"
     },
     {
@@ -477,7 +477,7 @@
   "goals": {
     "scalability": {
       "target": "10M active identities, 1M concurrent realtime sessions per region family, 100K tenant workspaces per control plane",
-      "verification": "oya gate validate calendar-scale-model --repo-root ."
+      "verification": "cloud-ci/Rust gate packet: calendar-scale-model --repo-root ."
     },
     "security": {
       "target": "zero cross-pillar access, tenant-DEK professional encryption, personal E2E where declared, immutable audit chain for all privileged disclosure",
@@ -489,11 +489,11 @@
     },
     "efficiency": {
       "target": "per-seat monthly infra cost tracked by message, mailbox, and calendar-event unit economics with no unmetered background fanout",
-      "verification": "oya gate validate calendar-finops-unit-economics"
+      "verification": "cloud-ci/Rust gate packet: calendar-finops-unit-economics"
     },
     "reliability": {
       "target": "99.95% GA availability, RPO <= 5m for professional data, RTO <= 30m for regional cell failover",
-      "verification": "oya gate validate calendar-slo-coverage"
+      "verification": "cloud-ci/Rust gate packet: calendar-slo-coverage"
     }
   },
   "user_experience": {

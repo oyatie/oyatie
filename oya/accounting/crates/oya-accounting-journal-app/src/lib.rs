@@ -11,9 +11,9 @@
 
 use oya_accounting_journal_domain::{
     AccountingDomainError, EvidenceDigest, EvidenceRef, JournalId, JournalPostInput,
-    JournalVoucher, LegalEntityId, PayrollPostingEvidence, PayrollPostingInput, TenantId,
-    VatDeadlineInput, VatReturnId, VatReturnWorkflow, VatWorkflowStep, WorkflowRef,
-    evaluate_vat_deadline, payroll_posting, post_journal,
+    JournalVoucher, LegalEntityId, PayrollPostingEvidence, PayrollPostingInput, PeriodState,
+    TenantId, VatDeadlineInput, VatReturnId, VatReturnWorkflow, VatWorkflowStep, WorkflowRef,
+    evaluate_vat_deadline, payroll_posting, payroll_posting_for_period, post_journal,
 };
 use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
@@ -118,6 +118,18 @@ pub fn record_payroll_posting(
     input: PayrollPostingInput,
 ) -> Result<AccountingPayrollPostingOutcome, AccountingAppError> {
     let evidence = payroll_posting(input)?;
+    let audit_envelope = payroll_posting_audit_envelope(&evidence);
+    Ok(AccountingPayrollPostingOutcome {
+        evidence,
+        audit_envelope,
+    })
+}
+
+pub fn record_payroll_posting_for_period(
+    input: PayrollPostingInput,
+    period_state: PeriodState,
+) -> Result<AccountingPayrollPostingOutcome, AccountingAppError> {
+    let evidence = payroll_posting_for_period(input, period_state)?;
     let audit_envelope = payroll_posting_audit_envelope(&evidence);
     Ok(AccountingPayrollPostingOutcome {
         evidence,

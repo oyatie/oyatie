@@ -14,7 +14,18 @@
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
+use std::time::{SystemTime, UNIX_EPOCH};
 
+use oya_audit_chain_domain::{
+    AuditAppendInput, AuditChain, AuditChainError, Ed25519SigningKey, Ed25519VerificationKeySet,
+    Plane, append as audit_append,
+};
+use oya_audit_chain_file_adapter::FileAuditLedger;
+use oya_data_boundary_kernel::{DataClass, Purpose};
+use oya_shared_pdp_adapter_cedar::{
+    AuditChainCedarPdp, CedarPdp, PDP_DECISION_AUDIT_SURFACE, PdpAuditChainError,
+    PdpDecisionAuditChainLogger,
+};
 use oya_shared_pdp_kernel::{
     EntityRecord, EntitySlice, PdpError, PolicyBundle, PolicyDecisionPoint, TemplateLink,
     TemplateSrc,
@@ -22,7 +33,6 @@ use oya_shared_pdp_kernel::{
 use oya_shared_platform_contracts_kernel::pdp::{
     AuthorizationRequest, Decision, EntityRef, PolicyVersion,
 };
-use oya_shared_pdp_adapter_cedar::CedarPdp;
 use oya_shared_ulid_id_kernel::SeededIdGenerator;
 
 const SCHEMA_SRC: &str = include_str!("../cedar/platform.cedarschema");
@@ -178,6 +188,28 @@ fn pdp(links: Vec<TemplateLink>) -> CedarPdp {
         64,
     )
     .expect("locked seed bundle must load")
+}
+
+fn unique_ledger_path(test_name: &str) -> PathBuf {
+    let now = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .expect("test-side: system clock must be after unix epoch")
+        .as_nanos();
+    std::env::temp_dir().join(format!(
+        "oya-pdp-audit-chain-{test_name}-{}-{now}.ledger",
+        std::process::id()
+    ))
+}
+
+fn audit_input(tenant_id: &str, decision: &str) -> AuditAppendInput {
+    AuditAppendInput {
+        tenant_id: tenant_id.to_owned(),
+        surface: PDP_DECISION_AUDIT_SURFACE.to_owned(),
+        plane: Plane::Control,
+        purpose: Purpose::CoreService,
+        data_classes: vec![DataClass::InternalOnly, DataClass::Audit],
+        decision: decision.to_owned(),
+    }
 }
 
 // ---------------------------------------------------------------- RBAC ----
@@ -447,7 +479,9 @@ fn bundle_swap_revokes_immediately_and_disarms_prior_cache() {
 fn rejected_bundle_never_replaces_a_serving_one() {
     let pdp = pdp(vec![]);
     let mut broken = locked_seed_bundle("psv-000099", vec![]);
-    broken.policies_src = "permit (principal, action, resource) when { principal.nonexistent_attr == \"x\" };".to_owned();
+    broken.policies_src =
+        "permit (principal, action, resource) when { principal.nonexistent_attr == \"x\" };"
+            .to_owned();
     let err = pdp.swap_bundle(&broken).unwrap_err();
     assert!(matches!(err, PdpError::BundleRejected { .. }));
     assert_eq!(
@@ -494,6 +528,234 @@ fn every_decision_yields_an_attributable_audit_record() {
         .unwrap();
     assert_eq!(deny.audit.decision, Decision::Deny);
     assert_ne!(deny.audit.decision_id, allow.audit.decision_id);
+}
+
+#[test]
+fn audited_pdp_persists_signed_audit_chain_event_with_decision_lineage() {
+    let ledger_path = unique_ledger_path("decision-lineage");
+    let signer = Ed25519SigningKey::from_seed_bytes("pdp-audit-test-key", [7_u8; 32]).unwrap();
+    let trusted_keys = Ed25519VerificationKeySet::single(signer.verification_key()).unwrap();
+    let logger = PdpDecisionAuditChainLogger::new(
+        FileAuditLedger::new(ledger_path.clone()),
+        signer,
+        trusted_keys.clone(),
+    )
+    .unwrap();
+    let pdp = AuditChainCedarPdp::load(
+        &locked_seed_bundle("psv-000001", vec![]),
+        Arc::new(SeededIdGenerator::default()),
+        64,
+        logger,
+    )
+    .unwrap();
+
+    let outcome = pdp
+        .authorize(
+            &request(
+                "req-audit-chain-1",
+                "acme",
+                entity_ref("OyaPlatform::Principal", "alice"),
+                "resource.read",
+                entity_ref("OyaPlatform::TenantResource", "acme-doc-1"),
+            ),
+            &entity_slice(),
+        )
+        .unwrap();
+
+    let persisted = FileAuditLedger::new(ledger_path.clone())
+        .load_with_trusted_keys(&trusted_keys)
+        .unwrap();
+    let events = persisted.events();
+    assert_eq!(
+        events.len(),
+        1,
+        "exactly one durable audit-chain event is appended"
+    );
+    let event = &events[0];
+    assert_eq!(event.tenant_id, "acme");
+    assert_eq!(event.surface, PDP_DECISION_AUDIT_SURFACE);
+    assert_eq!(event.plane, Plane::Control);
+    assert_eq!(event.purpose, Purpose::CoreService);
+    assert_eq!(
+        event.data_classes,
+        vec![DataClass::InternalOnly, DataClass::Audit]
+    );
+    assert!(
+        event.ed25519_signature.is_some(),
+        "audit-chain event must be signed"
+    );
+
+    let lineage: serde_json::Value = serde_json::from_str(&event.decision).unwrap();
+    assert_eq!(lineage["decision_id"], outcome.response.decision_id);
+    assert_eq!(lineage["request_id"], "req-audit-chain-1");
+    assert_eq!(lineage["tenant_id"], "acme");
+    assert_eq!(lineage["resource"]["entity_id"], "acme-doc-1");
+    assert_eq!(lineage["action"], "resource.read");
+    assert_eq!(lineage["decision"], "allow");
+    assert_eq!(lineage["policy_version"], "psv-000001");
+
+    std::fs::remove_file(ledger_path).ok();
+}
+
+#[test]
+fn audited_pdp_refuses_unsigned_prior_multi_tenant_ledger_replay() {
+    let ledger_path = unique_ledger_path("unsigned-prior-ledger");
+    let ledger = FileAuditLedger::new(ledger_path.clone());
+    let mut chain = AuditChain::multi_tenant_shards();
+    audit_append(&mut chain, audit_input("acme", "preexisting-acme"), None).unwrap();
+    audit_append(
+        &mut chain,
+        audit_input("globex", "preexisting-globex"),
+        None,
+    )
+    .unwrap();
+    ledger.append_chain(&chain).unwrap();
+
+    let signer = Ed25519SigningKey::from_seed_bytes("pdp-audit-test-key", [7_u8; 32]).unwrap();
+    let trusted_keys = Ed25519VerificationKeySet::single(signer.verification_key()).unwrap();
+    let err = PdpDecisionAuditChainLogger::new(ledger, signer, trusted_keys).unwrap_err();
+
+    assert!(
+        matches!(
+            err,
+            PdpAuditChainError::TrustedSignatureReplay(
+                AuditChainError::MissingEd25519Signature { .. }
+            )
+        ),
+        "unsigned prior ledger must fail closed at startup, got {err:?}"
+    );
+
+    std::fs::remove_file(ledger_path).ok();
+}
+
+#[test]
+fn audited_pdp_refuses_attacker_signed_prior_multi_tenant_ledger_replay() {
+    let ledger_path = unique_ledger_path("attacker-signed-prior-ledger");
+    let ledger = FileAuditLedger::new(ledger_path.clone());
+    let trusted_signer =
+        Ed25519SigningKey::from_seed_bytes("pdp-audit-test-key", [7_u8; 32]).unwrap();
+    let attacker_signer =
+        Ed25519SigningKey::from_seed_bytes("attacker-pdp-audit-key", [9_u8; 32]).unwrap();
+    let mut chain = AuditChain::multi_tenant_shards();
+    audit_append(
+        &mut chain,
+        audit_input("acme", "attacker-signed-acme"),
+        Some(&attacker_signer),
+    )
+    .unwrap();
+    audit_append(
+        &mut chain,
+        audit_input("globex", "attacker-signed-globex"),
+        Some(&attacker_signer),
+    )
+    .unwrap();
+    ledger.append_chain(&chain).unwrap();
+
+    let trusted_keys =
+        Ed25519VerificationKeySet::single(trusted_signer.verification_key()).unwrap();
+    let err = PdpDecisionAuditChainLogger::new(ledger, trusted_signer, trusted_keys).unwrap_err();
+
+    assert!(
+        matches!(
+            err,
+            PdpAuditChainError::TrustedSignatureReplay(
+                AuditChainError::MissingTrustedEd25519Key { .. }
+            )
+        ),
+        "attacker-signed prior ledger must fail closed at startup, got {err:?}"
+    );
+
+    std::fs::remove_file(ledger_path).ok();
+}
+
+#[test]
+fn audited_pdp_refuses_serving_signer_when_trusted_key_material_differs() {
+    let ledger_path = unique_ledger_path("untrusted-serving-signer");
+    let signer = Ed25519SigningKey::from_seed_bytes("pdp-audit-test-key", [7_u8; 32]).unwrap();
+    let key_id_collision =
+        Ed25519SigningKey::from_seed_bytes("pdp-audit-test-key", [9_u8; 32]).unwrap();
+    let trusted_keys =
+        Ed25519VerificationKeySet::single(key_id_collision.verification_key()).unwrap();
+    let err = PdpDecisionAuditChainLogger::new(
+        FileAuditLedger::new(ledger_path.clone()),
+        signer,
+        trusted_keys,
+    )
+    .unwrap_err();
+
+    assert!(
+        matches!(
+            err,
+            PdpAuditChainError::UntrustedSigner(
+                AuditChainError::Ed25519SignatureKeyMismatch { .. }
+            )
+        ),
+        "serving signer must match trusted key material, got {err:?}"
+    );
+
+    std::fs::remove_file(ledger_path).ok();
+}
+
+#[test]
+fn audited_pdp_maps_untrusted_persisted_ledger_to_audit_chain_emission() {
+    let ledger_path = unique_ledger_path("audit-emission-fail-closed");
+    let signer = Ed25519SigningKey::from_seed_bytes("pdp-audit-test-key", [7_u8; 32]).unwrap();
+    let trusted_keys = Ed25519VerificationKeySet::single(signer.verification_key()).unwrap();
+    let logger = PdpDecisionAuditChainLogger::new(
+        FileAuditLedger::new(ledger_path.clone()),
+        signer,
+        trusted_keys,
+    )
+    .unwrap();
+    let pdp = AuditChainCedarPdp::load(
+        &locked_seed_bundle("psv-000001", vec![]),
+        Arc::new(SeededIdGenerator::default()),
+        64,
+        logger,
+    )
+    .unwrap();
+
+    let mut untrusted_chain = AuditChain::multi_tenant_shards();
+    audit_append(
+        &mut untrusted_chain,
+        audit_input("acme", "post-startup-unsigned"),
+        None,
+    )
+    .unwrap();
+    FileAuditLedger::new(ledger_path.clone())
+        .append_chain(&untrusted_chain)
+        .unwrap();
+
+    let err = pdp
+        .authorize(
+            &request(
+                "req-audit-chain-fail-closed",
+                "acme",
+                entity_ref("OyaPlatform::Principal", "alice"),
+                "resource.read",
+                entity_ref("OyaPlatform::TenantResource", "acme-doc-1"),
+            ),
+            &entity_slice(),
+        )
+        .unwrap_err();
+
+    match err {
+        PdpError::AuditChainEmission { detail } => {
+            assert!(
+                detail.contains("trusted signature replay failed"),
+                "audit-chain emission detail must name trusted replay failure, got {detail:?}"
+            );
+            assert!(
+                detail.contains("MissingEd25519Signature"),
+                "audit-chain emission detail must preserve signature cause, got {detail:?}"
+            );
+        }
+        other => {
+            panic!("untrusted persisted ledger must fail closed as audit emission, got {other:?}")
+        }
+    }
+
+    std::fs::remove_file(ledger_path).ok();
 }
 
 #[test]
@@ -596,7 +858,10 @@ fn crate_local_cedar_seeds_match_canonical() {
             .unwrap_or_else(|e| panic!("crate-local cedar seed missing: {local}: {e}"));
         let canonical_path = root.join(canonical);
         let canonical_bytes = std::fs::read(&canonical_path).unwrap_or_else(|e| {
-            panic!("canonical cedar seed missing: {}: {e}", canonical_path.display())
+            panic!(
+                "canonical cedar seed missing: {}: {e}",
+                canonical_path.display()
+            )
         });
         if local_bytes != canonical_bytes {
             mismatches.push(format!("{local} != {canonical}"));

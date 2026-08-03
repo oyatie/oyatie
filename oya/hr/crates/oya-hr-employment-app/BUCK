@@ -7,6 +7,7 @@ rust_library(
     deps = [
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
         "//oya/hr/crates/oya-hr-employment-domain:oya-hr-employment-domain",
+        "//oya/workflow-engine/crates/oya-workflow-engine-execution-engine-usecase:oya-workflow-engine-execution-engine-usecase",
     ],
 )
 
@@ -20,6 +21,7 @@ rust_test(
         ":oya-hr-employment-app",
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
         "//oya/hr/crates/oya-hr-employment-domain:oya-hr-employment-domain",
+        "//oya/workflow-engine/crates/oya-workflow-engine-execution-engine-usecase:oya-workflow-engine-execution-engine-usecase",
     ],
 )
 

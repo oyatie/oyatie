@@ -432,7 +432,8 @@ mod tests {
     use super::*;
     use oya_intelligence_guardrails_domain::{GuardrailCategory, RiskLevel};
     use oya_intelligence_model_routing_domain::{
-        CredentialMode, ModelCapability, ModelProvider, ProviderRouteProfile,
+        CredentialMode, EnvTier, ModelCapability, ModelDefaultClass, ModelProfileTag,
+        ModelProvider, ProviderRouteProfile,
     };
 
     #[derive(Debug, Default)]
@@ -471,6 +472,14 @@ mod tests {
     fn route_request() -> ModelRouteRequest {
         ModelRouteRequest {
             tenant_id: "ten_acme".to_owned(),
+            env_tier: Some(EnvTier::Test),
+            model_default_policy_ref: "policy:intelligence.env-tier.model-default.test.v1"
+                .to_owned(),
+            tier_cost_budget_policy_ref: "policy:intelligence.env-tier.cost-budget.test.v1"
+                .to_owned(),
+            tier_cost_budget_evidence_ref: Some("budget:intelligence:test:dispatch".to_owned()),
+            model_route_registry_snapshot_ref: "route-registry:intelligence:env-tier:test"
+                .to_owned(),
             capability: ModelCapability::ChatCompletion,
             credential_mode: CredentialMode::TenantScoped,
             data_class: IntelligenceDataClass::InternalOnly,
@@ -483,6 +492,12 @@ mod tests {
         ProviderRouteProfile {
             provider: ModelProvider::OpenAi,
             model_id: "gpt-preview".to_owned(),
+            model_default_class: ModelDefaultClass::SmallCheap,
+            profile_tags: BTreeSet::from([
+                ModelProfileTag::CheapOrSmall,
+                ModelProfileTag::SandboxOk,
+                ModelProfileTag::NonProdOnly,
+            ]),
             enabled: true,
             priority: 1,
             capabilities: BTreeSet::from([ModelCapability::ChatCompletion]),

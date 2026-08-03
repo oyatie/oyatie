@@ -104,7 +104,8 @@ The grep is scoped to fence interiors only — banned tokens in the prose
 sections (e.g., "agents should not run `git --no-verify`") are
 intentional documentation and pass.
 
-Source: [MASTERPLAN](../../.omc/plans/MASTERPLAN.md) §2 Directive 12,
+Source: historical MASTERPLAN §2 Directive 12 (former
+`.omc/plans/MASTERPLAN.md`, retired from the tracked tree),
 [`git-workflow.md`](git-workflow.md).
 
 ## 4. Dual-audience requirement
@@ -206,8 +207,8 @@ The following block is a complete, conformant directive:
 
 ## 11. Sources scanned
 
-- [`.omc/plans/MASTERPLAN.md`](../../.omc/plans/MASTERPLAN.md) §2 Directive 12 +
-  §7 dual-audience contract.
+- Historical `.omc/plans/MASTERPLAN.md` §2 Directive 12 + §7
+  dual-audience contract (retired from the tracked tree).
 - [`decision-principles.json`](../../specs/decision-principles.json) DP-04 (dual audience).
 - [`docs/AGENTS.md`](../AGENTS.md) §PR shape, §Per-agent appendices.
 - [`docs/standards/doc-style.md`](doc-style.md) §3 (dual-audience rule).

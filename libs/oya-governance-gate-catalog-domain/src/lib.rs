@@ -1,7 +1,7 @@
-//! Foundry gate-catalog canonical domain — single source of truth for the
-//! `oya gate ...` command catalog that the downstream content-validation
-//! gates (quality-lane, documentation-system, supply-chain) read as their
-//! input data.
+//! Foundry gate-catalog canonical domain — provenance-preserving source for
+//! the legacy local-bridge `oya gate ...` command catalog that downstream
+//! content-validation gates (quality-lane, documentation-system,
+//! supply-chain) still read as input data.
 //!
 //! Naming justification:
 //! - Crate id `oya-governance-gate-catalog-domain` — `oya-` brand prefix
@@ -39,11 +39,11 @@
 use std::collections::BTreeSet;
 use std::fmt;
 
-/// Catalog of `oya gate validate <name>` subcommand names invoked by the
-/// pre-merge gate aggregator (`oya gate run-all`). Each name is invoked
-/// with NO extra arguments (defaults). Mirrors the ~50-line block in the
-/// legacy `scripts/check.sh` whose body the downstream content-validation
-/// gates read as their input data.
+/// Catalog of legacy local-bridge `oya gate validate <name>` subcommand names
+/// rendered for the retired `oya gate run-all` aggregator. Each name is
+/// invoked with NO extra arguments (defaults). Mirrors the ~50-line block in
+/// the legacy `scripts/check.sh` whose body the downstream
+/// content-validation gates read as their input data.
 ///
 /// Order is preserved from the legacy script so a human diff against the
 /// shell version stays readable during the `.sh-removal` chain landing.
@@ -171,7 +171,8 @@ pub const AGGREGATED_VALIDATE_LANES: &[&str] = &[
     // docs proliferation, catalog/manifest drift.
     "doc-axis",
     // M02b/P22 exit-gate quality lanes — check crates and `gate validate`
-    // dispatch arms exist; wired here so `oya gate run-all` dispatches them.
+    // dispatch arms exist; retained here so the legacy local bridge renders
+    // them without implying protected-branch authority.
     // ADR-0231 §"Plane 8 — Statelessness + shardability".
     "statelessness",
     "shardability",
@@ -191,15 +192,17 @@ pub const DEPENDENCY_SEAM_EVIDENCE: &str =
 /// Required non-cargo hosted-status preflight commands that are not pure
 /// `oya gate validate <name>` lanes.
 ///
-/// `oya verify --ci-required` owns the cargo required checks (fmt/check/clippy/
-/// nextest) before invoking `gate run-all`, so this list deliberately contains
-/// only the remaining non-cargo protection proof. That avoids replaying the
-/// expensive workspace cargo mirror twice in one local CI-required run.
+/// The legacy local-bridge `oya verify --ci-required` mirror owns the local
+/// cargo replay (fmt/check/clippy/nextest) before invoking `gate run-all`, so
+/// this list deliberately contains only the remaining non-cargo local proof.
+/// That avoids replaying the expensive workspace cargo mirror twice in one
+/// local CI-required run.
 ///
-/// ADR-0363 retired the oya-vcs admission/provider-execution checks from the
-/// required merge substrate; governance now rides plain git plus oya gate/verify
-/// and the `oya-pr-review` context. Keep this list aligned with the live dev
-/// branch-protection contexts to avoid local CI replaying retired checks.
+/// ADR-0363 retired oya-vcs admission/provider-execution from the required
+/// merge substrate; destination authority now rides plain git + protected PR +
+/// reviewer approval + the single `oya-ci-required` cloud-ci context. Keep this
+/// local-bridge list from replaying retired checks, and do not treat
+/// `oya gate`/`oya verify` output as protected-branch authority.
 pub const CI_REQUIRED_PREFLIGHT_COMMANDS: &[&str] =
     &["bash scripts/github-actions-required-secrets-check.sh"];
 

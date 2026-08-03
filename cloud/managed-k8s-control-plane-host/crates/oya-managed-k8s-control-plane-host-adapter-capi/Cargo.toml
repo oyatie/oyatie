@@ -5,13 +5,13 @@ version.workspace = true
 rust-version.workspace = true
 publish = false
 license = "Apache-2.0"
-description = "kube-rs adapter implementing the ControlPlaneProvisioning port (ADR-0376) against the management cluster's Cluster API control-plane providers: hosted-tier Kamaji TenantControlPlane (controlplane.cluster.x-k8s.io) + the dedicated Talos control-plane reference. The LIVE CRD reconciliation is HONEST-DEFERRED — every port method returns ProvisioningError::Unimplemented(KamajiProviderLiveIntegration) (tracked at registry/placeholder-debt/adr-follow-ups.yaml#kamaji-provider-live-integration); NO fake success. kube-rs/k8s-openapi are isolated to THIS crate per ADR-0092 + ADR-0376."
+description = "kube-rs adapter implementing the ControlPlaneProvisioning port (ADR-0376) against the management cluster's Cluster API control-plane providers: hosted-tier Kamaji TenantControlPlane (kamaji.clastix.io/v1alpha1) via DynamicObject create/read/delete + the dedicated Talos control-plane reference. kube-rs/k8s-openapi are isolated to THIS crate per ADR-0092 + ADR-0376."
 
 # Adapter layer (ADR-0105). The ONLY crate in the workspace that depends on
 # kube-rs / k8s-openapi (ADR-0092 adapter-only seam; ADR-0376 isolation). The
-# live Kamaji/Talos CRD reconciliation is honest-deferred, so kube-rs is
-# referenced for its Client + dynamic GroupVersionKind API surface and the
-# adapter returns a typed Unimplemented before any reconcile.
+# live Kamaji hosted-tier path uses kube-rs DynamicObject create/read/delete;
+# the dedicated Talos path records an opaque CAPI reference without holding
+# tenant kubeconfig material.
 [dependencies]
 oya-managed-k8s-control-plane-host-kernel = { path = "../oya-managed-k8s-control-plane-host-kernel" }
 oya-managed-k8s-control-plane-host-api = { path = "../oya-managed-k8s-control-plane-host-api" }
@@ -19,6 +19,7 @@ oya-managed-k8s-control-plane-host-api = { path = "../oya-managed-k8s-control-pl
 kube = { workspace = true }
 kube-runtime = { workspace = true }
 k8s-openapi = { workspace = true }
+serde_json = { workspace = true }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["rt", "macros"] }

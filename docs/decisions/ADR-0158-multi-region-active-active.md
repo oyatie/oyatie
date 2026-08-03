@@ -36,7 +36,7 @@ Every oyatie µservice declares one of three multi-region dispositions in its `m
 - **`active_passive`** — one primary region; one or more warm-standby regions; failover RPO + RTO declared in the µservice's `multi-region.md`. The canonical use-case.
 - **`single_region`** — pinned to one region; no cross-region presence; failover is intra-region only.
 
-The disposition is a **first-class manifest field**. CI gate `oya gate validate multi-region-disposition` refuses merge if (a) the manifest declares a disposition not matching the µservice's actual deployment shape, or (b) a sovereign tenant routes to a cell outside its allowed-region set.
+The disposition is a **first-class manifest field**. For protected-branch merge authority, cloud-ci Rust gate packets `cloud-ci-multi-region-disposition` and `cloud-ci-sovereign-tenant-pin` are aggregated by `oya-ci-required` and refuse merge if (a) the manifest declares a disposition not matching the µservice's actual deployment shape, or (b) a sovereign tenant routes to a cell outside its allowed-region set. Legacy `oya gate validate ...` wording is historical/local-feedback provenance only.
 
 ### Sovereign-tenant region-pin contract
 
@@ -139,8 +139,8 @@ Each µservice's `multi-region.md` MUST contain the disposition statement, the r
 
 ### Operational
 
-1. CI lane `oya gate validate multi-region-disposition` reads every µservice's `manifest.json#multi_region_disposition` + `multi-region.md` and refuses merge on mismatch.
-2. CI lane `oya gate validate sovereign-tenant-pin` reads the tenant-registry test fixtures and verifies the api-gateway route table rejects mismatched cells.
+1. Protected merge gate `cloud-ci-multi-region-disposition` reads every µservice's `manifest.json#multi_region_disposition` + `multi-region.md` and refuses merge on mismatch via the `oya-ci-required` fan-in.
+2. Protected merge gate `cloud-ci-sovereign-tenant-pin` reads the tenant-registry test fixtures and verifies the api-gateway route-table contract rejects mismatched cells via the `oya-ci-required` fan-in.
 3. Each µservice updates `multi-region.md` with the disposition statement (companion to this ADR).
 4. Global control plane lives in `microservices/tenancy/` (tenant-registry replication) + `microservices/api-gateway/` (routing decision).
 5. RPO + RTO numbers feed the SLO-gated promotion ADR-0139.

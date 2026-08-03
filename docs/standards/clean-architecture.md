@@ -27,7 +27,6 @@ companion_docs:
   - docs/standards/dependency-policy.md
   - docs/audits/convention-audit-2026-05-12.md
   - docs/plans/rename-plan-2026-05-12.md
-  - .omc/governance-lanes/architecture-conventions.md
   - docs/research/hyperscaler-best-practices-2026-05-12.md
 related_adrs:
   - ADR-0015
@@ -38,7 +37,7 @@ related_adrs:
 authority_chain_declaration: |
   /specs/decision-principles.json + /specs/forbidden-operations.json > docs/AGENTS.md > docs/standards/code-style-rust.md
   > docs/standards/crate-naming-convention.md ≡ THIS DOC
-  > .omc/governance-lanes/architecture-conventions.md
+  > planned_enforcement_ref=oya-governance-architecture-conventions
 ---
 
 # Clean Architecture
@@ -187,8 +186,10 @@ The lane uses two mechanisms, layered:
    walks every member manifest, classifies each crate by its
    `[package.metadata.oya].role`, and refuses any cross-layer edge
    forbidden by the table above. The lane is implemented in Rust as a
-   small workspace binary that reads `cargo metadata --no-deps`. See
-   [`.omc/governance-lanes/architecture-conventions.md`](../../.omc/governance-lanes/architecture-conventions.md).
+   small workspace binary that reads `cargo metadata --no-deps`. The
+   historical `.omc/governance-lanes/architecture-conventions.md` lane
+   draft is not tracked; this standard's `planned_enforcement_ref` names
+   the live lane reference.
 
 A single failing edge is a CI blocker. Severity = **BLOCKER**, lane
 position Top-5.

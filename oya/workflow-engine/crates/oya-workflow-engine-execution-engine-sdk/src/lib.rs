@@ -107,6 +107,23 @@ pub struct ExecutionEngineSdkRunDescriptor {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+pub struct PayrollCloseWorkflowEnvelope {
+    pub tenant_id: String,                  // data_class: INTERNAL_ONLY
+    pub legal_entity_id: String,            // data_class: INTERNAL_ONLY
+    pub payroll_run_id: String,             // data_class: INTERNAL_ONLY
+    pub workflow_ref: String,               // data_class: INTERNAL_ONLY
+    pub workflow_version_sha: String,       // data_class: INTERNAL_ONLY
+    pub required_steps: Vec<String>,        // data_class: INTERNAL_ONLY
+    pub input_ref: String,                  // data_class: INTERNAL_ONLY
+    pub evidence_refs: Vec<String>,         // data_class: INTERNAL_ONLY
+    pub idempotency_key: String,            // data_class: INTERNAL_ONLY
+    pub trace_context_ref: String,          // data_class: INTERNAL_ONLY
+    pub authorization_evidence_ref: String, // data_class: INTERNAL_ONLY
+    pub cell_id: String,                    // data_class: INTERNAL_ONLY
+    pub replay_epoch_ref: String,           // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ExecutionEngineSdkStepDescriptor {
     pub step_id: String,                 // data_class: INTERNAL_ONLY
     pub step_index: u32,                 // data_class: INTERNAL_ONLY
@@ -207,6 +224,53 @@ impl ExecutionEngineSdkClient {
             Some(initial_step),
             None,
             None,
+        )
+    }
+
+    pub fn plan_payroll_close_start_run(
+        &self,
+        envelope: PayrollCloseWorkflowEnvelope,
+    ) -> Result<ExecutionEngineSdkCommandPlan, ExecutionEngineSdkError> {
+        validate_payroll_close_envelope(&self.config, &envelope)?;
+
+        let scoped_client = Self::new(ExecutionEngineSdkConfig {
+            authorization_evidence_ref: envelope.authorization_evidence_ref.clone(),
+            default_spec_id: envelope.workflow_ref.clone(),
+            default_version_sha: envelope.workflow_version_sha.clone(),
+            default_cell_id: envelope.cell_id.clone(),
+            replay_epoch_ref: envelope.replay_epoch_ref.clone(),
+            trace_context_ref: envelope.trace_context_ref.clone(),
+            ..self.config.clone()
+        })?;
+        scoped_client.start_run(
+            ExecutionEngineSdkRequestContext {
+                request_id: payroll_close_request_id(&envelope),
+                idempotency_key: envelope.idempotency_key.clone(),
+                trace_context_ref: Some(envelope.trace_context_ref.clone()),
+            },
+            ExecutionEngineSdkRunDescriptor {
+                run_id: payroll_close_workflow_run_id(&envelope),
+                spec_id: Some(envelope.workflow_ref.clone()),
+                version_sha: Some(envelope.workflow_version_sha.clone()),
+                active_cell_id: Some(envelope.cell_id.clone()),
+                current_run_status: "pending".to_owned(),
+                current_run_version: 1,
+                current_step_index: Some(1),
+                input_ref: Some(envelope.input_ref.clone()),
+                evidence_refs: payroll_close_evidence_refs(&envelope),
+            },
+            ExecutionEngineSdkStepDescriptor {
+                step_id: envelope
+                    .required_steps
+                    .first()
+                    .cloned()
+                    .ok_or_else(|| invalid_request("workflow-payroll-close-intake:missing-step"))?,
+                step_index: 1,
+                step_attempt: 1,
+                step_status: "pending".to_owned(),
+                side_effect_ref: None,
+                last_error_ref: None,
+            },
         )
     }
 
@@ -508,6 +572,117 @@ fn validate_shape(
     }
 }
 
+fn validate_payroll_close_envelope(
+    config: &ExecutionEngineSdkConfig,
+    envelope: &PayrollCloseWorkflowEnvelope,
+) -> Result<(), ExecutionEngineSdkError> {
+    if envelope.tenant_id != config.tenant_id {
+        return Err(invalid_request(
+            "workflow-payroll-close-intake:tenant-mismatch",
+        ));
+    }
+    if envelope.workflow_ref != config.default_spec_id
+        || envelope.workflow_version_sha != config.default_version_sha
+        || envelope.cell_id != config.default_cell_id
+    {
+        return Err(invalid_request(
+            "workflow-payroll-close-intake:boundary-mismatch",
+        ));
+    }
+    if envelope.required_steps.is_empty() {
+        return Err(invalid_request(
+            "workflow-payroll-close-intake:missing-step",
+        ));
+    }
+    if !is_safe_tenant(&envelope.tenant_id)
+        || !is_safe_token(&envelope.legal_entity_id)
+        || !is_safe_token(&envelope.payroll_run_id)
+        || !is_safe_ref(&envelope.workflow_ref)
+        || !is_safe_ref(&envelope.workflow_version_sha)
+        || !envelope
+            .required_steps
+            .iter()
+            .all(|value| is_safe_ref(value))
+        || !is_safe_ref(&envelope.input_ref)
+        || !envelope
+            .evidence_refs
+            .iter()
+            .all(|value| is_safe_ref(value))
+        || !is_safe_ref(&envelope.idempotency_key)
+        || !is_safe_ref(&envelope.trace_context_ref)
+        || !is_safe_ref(&envelope.authorization_evidence_ref)
+        || !is_safe_ref(&envelope.cell_id)
+        || !is_safe_ref(&envelope.replay_epoch_ref)
+        || !is_safe_ref(&payroll_close_workflow_run_id(envelope))
+    {
+        return Err(ExecutionEngineSdkError::UnsafeMetadata {
+            evidence_ref: "workflow-payroll-close-intake:unsafe-metadata".to_owned(),
+        });
+    }
+
+    let has_approval_step = envelope
+        .required_steps
+        .iter()
+        .any(|value| contains_ref_fragment(value, "approval"));
+    let has_evidence_gate_step = envelope.required_steps.iter().any(|value| {
+        contains_ref_fragment(value, "evidence-gate") || contains_ref_fragment(value, "canary")
+    });
+    if !has_approval_step || !has_evidence_gate_step {
+        return Err(invalid_request(
+            "workflow-payroll-close-intake:missing-approval-or-evidence-gate",
+        ));
+    }
+
+    let close_gate_failed = envelope
+        .evidence_refs
+        .iter()
+        .any(|value| contains_ref_fragment(value, "failed"));
+    if close_gate_failed {
+        let has_repair_step = envelope.required_steps.iter().any(|value| {
+            contains_ref_fragment(value, "rollback") || contains_ref_fragment(value, "quarantine")
+        });
+        let has_repair_evidence = envelope.evidence_refs.iter().any(|value| {
+            contains_ref_fragment(value, "rollback") || contains_ref_fragment(value, "quarantine")
+        });
+        if !has_repair_step || !has_repair_evidence {
+            return Err(invalid_request(
+                "workflow-payroll-close-intake:missing-rollback-quarantine-evidence",
+            ));
+        }
+    }
+
+    Ok(())
+}
+
+fn payroll_close_request_id(envelope: &PayrollCloseWorkflowEnvelope) -> String {
+    format!(
+        "req:workflow:payroll-close:{}:{}:{}",
+        envelope.tenant_id, envelope.legal_entity_id, envelope.payroll_run_id
+    )
+}
+
+fn payroll_close_workflow_run_id(envelope: &PayrollCloseWorkflowEnvelope) -> String {
+    format!(
+        "run:workflow:payroll-close:{}:{}:{}",
+        envelope.tenant_id, envelope.legal_entity_id, envelope.payroll_run_id
+    )
+}
+
+fn payroll_close_evidence_refs(envelope: &PayrollCloseWorkflowEnvelope) -> Vec<String> {
+    let mut evidence_refs = envelope.evidence_refs.clone();
+    evidence_refs.push(envelope.authorization_evidence_ref.clone());
+    evidence_refs.push(envelope.replay_epoch_ref.clone());
+    sorted_unique(evidence_refs)
+}
+
+fn is_safe_token(value: &str) -> bool {
+    is_safe_metadata(value) && !value.contains(':')
+}
+
+fn contains_ref_fragment(value: &str, fragment: &str) -> bool {
+    value.to_ascii_lowercase().contains(fragment)
+}
+
 fn validate_config(config: &ExecutionEngineSdkConfig) -> Result<(), ExecutionEngineSdkError> {
     if !is_safe_tenant(&config.tenant_id)
         || !is_safe_ref(&config.principal_id)
@@ -765,6 +940,220 @@ mod tests {
             side_effect_ref: Some("effect:workflow-sdk:approval".to_owned()),
             last_error_ref: None,
         }
+    }
+
+    fn payroll_config() -> ExecutionEngineSdkConfig {
+        ExecutionEngineSdkConfig {
+            tenant_id: "ten_acme".to_owned(),
+            principal_id: "principal:workflow-sdk:payroll-close".to_owned(),
+            authorization_decision_id: "authz:workflow:payroll-close:allow".to_owned(),
+            authorization_evidence_ref: "policy:workflow:payroll-close:allow".to_owned(),
+            default_spec_id: "spec:workflow:payroll-close".to_owned(),
+            default_version_sha: "sha:workflow:payroll-close:v1".to_owned(),
+            default_cell_id: "cell:kr:payroll-close".to_owned(),
+            spec_integrity_ref: "integrity:workflow:payroll-close:v1".to_owned(),
+            replay_epoch_ref: "replay:workflow:payroll-close:epoch:001".to_owned(),
+            scheduler_epoch_ref: "scheduler:workflow:payroll-close:epoch:001".to_owned(),
+            trace_context_ref: "trace:workflow:payroll-close:root".to_owned(),
+            oyatie_version: EXECUTION_ENGINE_SDK_DECLARED_VERSION.to_owned(),
+        }
+    }
+
+    fn payroll_envelope() -> PayrollCloseWorkflowEnvelope {
+        PayrollCloseWorkflowEnvelope {
+            tenant_id: "ten_acme".to_owned(),
+            legal_entity_id: "le_kr_001".to_owned(),
+            payroll_run_id: "prun_kr_2026_01".to_owned(),
+            workflow_ref: "spec:workflow:payroll-close".to_owned(),
+            workflow_version_sha: "sha:workflow:payroll-close:v1".to_owned(),
+            required_steps: vec![
+                "step:workflow:payroll-close:approval".to_owned(),
+                "step:workflow:payroll-close:evidence-gate".to_owned(),
+                "step:workflow:payroll-close:rollback-quarantine".to_owned(),
+                "step:workflow:payroll-close:resume-promotion".to_owned(),
+            ],
+            input_ref: "payroll-close-envelope:ten_acme:le_kr_001:prun_kr_2026_01:v1".to_owned(),
+            evidence_refs: vec![
+                "evidence:payroll:close:canary:passed".to_owned(),
+                "evidence:payroll:close:approval:sha1".to_owned(),
+                "evidence:payroll:close:approval:sha1".to_owned(),
+                "evidence:payroll:close:rollback:ready".to_owned(),
+            ],
+            idempotency_key:
+                "workflow-payroll-close:ten_acme:le_kr_001:prun_kr_2026_01:sha_payroll_close_v1"
+                    .to_owned(),
+            trace_context_ref: "trace:workflow:payroll-close:prun_kr_2026_01".to_owned(),
+            authorization_evidence_ref: "evidence:workflow:payroll-close:policy:allow".to_owned(),
+            cell_id: "cell:kr:payroll-close".to_owned(),
+            replay_epoch_ref: "evidence:workflow:payroll-close:replay:epoch:001".to_owned(),
+        }
+    }
+
+    #[test]
+    fn payroll_close_envelope_plans_start_run_with_tenant_idempotency_evidence_and_replay_safety() {
+        let client =
+            ExecutionEngineSdkClient::new(payroll_config()).expect("valid payroll sdk config");
+        let plan = client
+            .plan_payroll_close_start_run(payroll_envelope())
+            .expect("payroll close plan");
+
+        assert_eq!(plan.operation, ExecutionEngineSdkOperation::StartRun);
+        assert_eq!(plan.operation_id, "startRun");
+        assert_eq!(plan.path, "/runs");
+        assert_eq!(plan.route_template, EXECUTION_ENGINE_REST_START_RUN_ROUTE);
+        assert!(!plan.retry_policy.automatic_retries_enabled);
+        assert_eq!(
+            plan.rest_request.body.body.run_id,
+            "run:workflow:payroll-close:ten_acme:le_kr_001:prun_kr_2026_01"
+        );
+        assert_eq!(
+            plan.rest_request.body.body.spec_id,
+            "spec:workflow:payroll-close"
+        );
+        assert_eq!(
+            plan.rest_request.body.body.version_sha,
+            "sha:workflow:payroll-close:v1"
+        );
+        assert_eq!(
+            plan.rest_request.body.body.active_cell_id,
+            "cell:kr:payroll-close"
+        );
+        assert_eq!(plan.rest_request.body.boundary.tenant_id, "ten_acme");
+        assert_eq!(
+            plan.rest_request.body.boundary.idempotency_key,
+            "workflow-payroll-close:ten_acme:le_kr_001:prun_kr_2026_01:sha_payroll_close_v1"
+        );
+        assert_eq!(
+            plan.rest_request.body.boundary.trace_context_ref,
+            "trace:workflow:payroll-close:prun_kr_2026_01"
+        );
+        assert_eq!(
+            plan.rest_request.body.authorization.evidence_ref,
+            "evidence:workflow:payroll-close:policy:allow"
+        );
+        assert_eq!(
+            plan.rest_request.body.body.input_ref.as_deref(),
+            Some("payroll-close-envelope:ten_acme:le_kr_001:prun_kr_2026_01:v1")
+        );
+        assert_eq!(
+            plan.rest_request.body.body.step_id.as_deref(),
+            Some("step:workflow:payroll-close:approval")
+        );
+        assert_eq!(
+            plan.rest_request.body.body.evidence_refs,
+            vec![
+                "evidence:payroll:close:approval:sha1".to_owned(),
+                "evidence:payroll:close:canary:passed".to_owned(),
+                "evidence:payroll:close:rollback:ready".to_owned(),
+                "evidence:workflow:payroll-close:policy:allow".to_owned(),
+                "evidence:workflow:payroll-close:replay:epoch:001".to_owned(),
+                "surface:workflow-engine.execution-engine.sdk".to_owned(),
+                "workflow-execution-sdk:operation:startRun".to_owned(),
+            ]
+        );
+
+        let mut rest = ExecutionEngineRestService::default();
+        let mut store = WorkflowExecutionMemoryAdapter::default();
+        let mut dispatcher = WorkflowExecutionMemoryAdapter::default();
+        let retry_policy = WorkflowExecutionMemoryAdapter::default();
+        let mut timers = WorkflowExecutionMemoryAdapter::default();
+        let first = client
+            .execute_in_process(
+                &mut rest,
+                &mut store,
+                &mut dispatcher,
+                &retry_policy,
+                &mut timers,
+                plan.clone(),
+            )
+            .expect("first payroll close response");
+        assert_eq!(first.status_code, 201);
+        let action_count_after_first = store.recorded_actions().len();
+        let second = client
+            .execute_in_process(
+                &mut rest,
+                &mut store,
+                &mut dispatcher,
+                &retry_policy,
+                &mut timers,
+                plan,
+            )
+            .expect("idempotent payroll close replay");
+        assert_eq!(first, second);
+        assert_eq!(store.run_count(), 1);
+        assert_eq!(store.recorded_actions().len(), action_count_after_first);
+
+        let tenant_error = client
+            .plan_payroll_close_start_run(PayrollCloseWorkflowEnvelope {
+                tenant_id: "ten_other".to_owned(),
+                ..payroll_envelope()
+            })
+            .expect_err("tenant mismatch denied");
+        assert_eq!(
+            tenant_error.primary_evidence_ref(),
+            "workflow-payroll-close-intake:tenant-mismatch"
+        );
+
+        let missing_gate_error = client
+            .plan_payroll_close_start_run(PayrollCloseWorkflowEnvelope {
+                required_steps: vec!["step:workflow:payroll-close:resume-promotion".to_owned()],
+                ..payroll_envelope()
+            })
+            .expect_err("approval/evidence gates required");
+        assert_eq!(
+            missing_gate_error.primary_evidence_ref(),
+            "workflow-payroll-close-intake:missing-approval-or-evidence-gate"
+        );
+
+        let failed_without_repair_error = client
+            .plan_payroll_close_start_run(PayrollCloseWorkflowEnvelope {
+                required_steps: vec![
+                    "step:workflow:payroll-close:approval".to_owned(),
+                    "step:workflow:payroll-close:evidence-gate".to_owned(),
+                ],
+                evidence_refs: vec![
+                    "evidence:payroll:close:approval:sha1".to_owned(),
+                    "evidence:payroll:close:evidence-gate:failed".to_owned(),
+                ],
+                ..payroll_envelope()
+            })
+            .expect_err("failed close gate requires rollback/quarantine evidence");
+        assert_eq!(
+            failed_without_repair_error.primary_evidence_ref(),
+            "workflow-payroll-close-intake:missing-rollback-quarantine-evidence"
+        );
+
+        let unsafe_ref_error = client
+            .plan_payroll_close_start_run(PayrollCloseWorkflowEnvelope {
+                input_ref: "payload:raw-payroll:salary-details".to_owned(),
+                ..payroll_envelope()
+            })
+            .expect_err("raw payload ref denied");
+        assert_eq!(
+            unsafe_ref_error.primary_evidence_ref(),
+            "workflow-payroll-close-intake:unsafe-metadata"
+        );
+
+        let conflict = client
+            .plan_payroll_close_start_run(PayrollCloseWorkflowEnvelope {
+                input_ref: "payroll-close-envelope:ten_acme:le_kr_001:prun_kr_2026_01:v2"
+                    .to_owned(),
+                ..payroll_envelope()
+            })
+            .expect("conflicting replay plan");
+        let conflict = client
+            .execute_in_process(
+                &mut rest,
+                &mut store,
+                &mut dispatcher,
+                &retry_policy,
+                &mut timers,
+                conflict,
+            )
+            .expect("conflicting replay response");
+        assert_eq!(conflict.status_code, 409);
+        assert_eq!(store.run_count(), 1);
+        assert_eq!(store.recorded_actions().len(), action_count_after_first);
     }
 
     #[test]

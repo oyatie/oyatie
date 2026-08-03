@@ -1,7 +1,8 @@
-path "secret/data/{{identity.entity.aliases.auth_kubernetes_*.metadata.service_account_namespace}}/global-trade/*" {
-  capabilities = ["read"]
-}
+# Current authority: specs/microservices/global-trade.json metadata-only PRD; inventory/provenance/planned-only.
+# This file is stale infrastructure provenance only. It declares no deployable resource,
+# provider, module, secret, registry, audit-chain, Kubernetes, Helm, or cloud authority.
 
-path "transit/sign/global-trade-audit" {
-  capabilities = ["update"]
+locals {
+  global_trade_openbao_policy_inventory_status = "inventory/provenance/planned-only"
+  global_trade_openbao_policy_current_authority = "specs/microservices/global-trade.json metadata-only PRD"
 }

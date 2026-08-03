@@ -1,7 +1,7 @@
 ---
 id: ADR-GT-001
 title: sanctions-export-control-and-broker-filing-hold-state-machine
-status: Proposed
+status: inventory-provenance-planned-only
 date: 2026-05-20
 microservice: global-trade
 related_oyatie_adrs:
@@ -14,7 +14,13 @@ related_oyatie_adrs:
   - docs/decisions/ADR-0037-public-api-stability-tiers-and-deprecation.md
   - docs/decisions/ADR-0042-observability-stack-otel-and-in-house-ui.md
 decision_owner: global-trade-platform-architecture
+current_authority: specs/microservices/global-trade.json
+authority_status: metadata-only PRD
+inventory_status: inventory/provenance/planned-only
 ---
+
+> Current authority: specs/microservices/global-trade.json metadata-only PRD; inventory/provenance/planned-only. This document is historical/proposed design provenance only; it is not current implementation, runtime, cloud, API, SLO, dashboard, runbook, filing, broker, Workflow, or audit-chain authority.
+
 
 # ADR-GT-001: Sanctions, Export Control, And Broker Filing Hold State Machine
 

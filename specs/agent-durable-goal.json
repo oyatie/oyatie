@@ -423,7 +423,7 @@
     {
       "id": "OP-03",
       "name": "automate_everything",
-      "rule": "Mechanical work is scripted (oya doc *, oya gate validate *, oya vcs *). Never hand-iterate deterministic work. New repeating pattern → kernel + fitness lane + CI binding.",
+      "rule": "Mechanical work is deterministic and pipeline-owned: use native scripts/tools, Rust gate packets, and cloud-ci bindings. Legacy oya doc/gate/vcs wrappers are local-feedback/provenance only, never authority. New repeating pattern → kernel + fitness lane + CI binding.",
       "references": [
         "feedback_automate_everything",
         "feedback_lifecycle_automation_universal"
@@ -524,7 +524,7 @@
     "description": "Match review intensity to change risk. Trivial PRs <30s; risky PRs unchanged. Tier decided by deterministic blast_radius_score computed from diff signals — not LLM judgment. Per user 2026-05-16: 'multispectrum on every single PR is highly inefficient.'",
     "blast_radius_score": {
       "rule": "Computed mechanically from git diff + change_class. No LLM judgment. Same diff → same score.",
-      "computation_runner": "oya gate validate blast-radius-score (output: integer 0-200; emitted to .omc/state/pr-<N>-blast-radius.json)",
+      "computation_runner": "cloud-ci/Rust gate packet: blast-radius-score (output: integer 0-200; emitted to .omc/state/pr-<N>-blast-radius.json)",
       "signals": [
         {
           "id": "S1",
@@ -676,7 +676,7 @@
     "check_schema": {
       "id": "string — globally unique, stable",
       "facet": "string — F1..F13 / M1..M2 / A1..A7 OR 'pipeline'",
-      "query": "deterministic command — jq filter / regex / cargo nextest -p ... / oya gate validate ...",
+      "query": "deterministic check — jq filter / regex / cargo nextest -p ... / cloud-ci/Rust gate packet ...",
       "pass_criterion": "string — e.g. 'exit 0', 'count==0', 'jq returns true'",
       "score": "integer 0-10 — how much weight this check carries in the facet aggregate",
       "severity_tier": "enum {INFO, MINOR, MAJOR, CRITICAL, BLOCKER}",
@@ -800,7 +800,7 @@
           "cargo-fmt",
           "cargo-clippy",
           "cargo-nextest",
-          "oya-vcs-admission",
+          "oya-ci-required",
           "oya-governance-supply-chain",
           "oya-governance-api-semver",
           "oya-governance-cohesion"
@@ -1541,8 +1541,8 @@
         "check": "per-lane validators for affected domain",
         "must_satisfy": "all SUCCESS",
         "examples": [
-          "oya doc adr-index --write",
-          "oya gate validate <lane>"
+          "docs ADR-index generation packet (legacy oya doc local wrapper is provenance only)",
+          "cloud-ci/Rust gate packet: <lane>"
         ]
       },
       {

@@ -2,8 +2,8 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://docs.oyatie.com/specs/audit-event-class-registry.schema.json",
   "title": "Oyatie Audit Event Class Registry Schema",
-  "description": "Canonical JSON Schema 2020-12 contract and known-class registry for audit-event classes governed by ADR-0263. The registry binds emitted event classes from ADR-0297 abuse defence, ADR-0313 conglomerate tenant hierarchy, and ADR-0319 front/middle/back-office information barrier into one machine-readable surface. Every new doctrine ADR that introduces audit events must extend this registry and keep ADR-0263 reverse references current.",
-  "version": "1.0.0",
+  "description": "Canonical JSON Schema 2020-12 contract and known-class registry for audit-event classes governed by ADR-0263. The v2 registry consumes the oyatie/log/v2 audit envelope from specs/audit-event-schema.json: legacy v1 envelope fields, the ADR-0252 HLC timestamp, and ADR-0344 sustainability/FinOps fields are mandatory for new rows while ADR-0344 remains Proposed/advisory. Every new doctrine ADR that introduces audit events must extend this registry and keep ADR-0263 reverse references current.",
+  "version": "2.0.0",
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-AUDIT-EVENT-CLASS-REGISTRY",
@@ -19,9 +19,11 @@
       "ADR-0263",
       "ADR-0297",
       "ADR-0313",
-      "ADR-0319"
+      "ADR-0319",
+      "ADR-0344"
     ],
-    "purpose": "Define the registry row shape for every approved audit-event class and expose the current known class set from ADR-0263. The validator refuses OpenAPI, AsyncAPI, proto, Cedar, workflow, and observability contracts that emit free-form or unregistered classes."
+    "purpose": "Define the registry row shape for every approved audit-event class and expose the current known class set from ADR-0263 and ADR-0344. The validator refuses OpenAPI, AsyncAPI, proto, Cedar, workflow, observability, and FinOps contracts that emit free-form or unregistered classes.",
+    "v2_envelope_count_reconciliation": "Registry v2 requires 17 mandatory envelope fields: the legacy 10-field class-registry example envelope, plus hlc_timestamp inherited from ADR-0252, plus the six ADR-0344 sustainability/FinOps fields. Older Wave 15Y 10-to-16 wording counted only the ADR-0344 additive fields and omitted HLC; HLC must not be dropped."
   },
   "type": "object",
   "additionalProperties": false,
@@ -51,14 +53,14 @@
     },
     "mandatory_envelope_fields": {
       "type": "array",
-      "description": "ADR-0263 mandatory event envelope fields inherited by every registered class.",
+      "description": "Mandatory event envelope fields inherited by every registered class. For oyatie/log/v2 this is a 17-field envelope: legacy ADR-0263 fields + ADR-0252 hlc_timestamp + ADR-0344 cost/carbon/energy/provider/region/carbon_intensity_source fields.",
       "items": {
         "$ref": "#/definitions/fieldName"
       },
       "contains": {
         "const": "tenant_id"
       },
-      "minItems": 10,
+      "minItems": 17,
       "uniqueItems": true
     },
     "cedar_decision_fields": {
@@ -86,6 +88,7 @@
       "required": [
         "requires_originating_adr",
         "requires_reverse_reference_to_adr_0263",
+        "requires_reverse_reference_to_adr_0344_when_envelope_extended",
         "requires_payload_schema",
         "requires_cardinality_budget",
         "requires_retention_class",
@@ -114,7 +117,12 @@
         },
         "requires_validator_lane": {
           "type": "string",
-          "const": "oya gate validate audit-event-class-registered"
+          "const": "cloud-ci/Rust gate packet: audit-event-class-registered"
+        },
+        "requires_reverse_reference_to_adr_0344_when_envelope_extended": {
+          "type": "boolean",
+          "const": true,
+          "description": "Required when the class relies on oyatie/log/v2 sustainability/FinOps envelope fields from ADR-0344."
         }
       }
     }
@@ -148,7 +156,8 @@
         "ADR-0263",
         "ADR-0297",
         "ADR-0313",
-        "ADR-0319"
+        "ADR-0319",
+        "ADR-0344"
       ]
     },
     "eventClassName": {
@@ -199,8 +208,24 @@
         "AdvisorRelationshipBarrierAttemptEvaluated",
         "OfficePackOverlayActivated",
         "OfficePackOverlayChanged",
-        "OfficePackOverlayRetired"
-      ]
+        "OfficePackOverlayRetired",
+        "HrLifecycleAuditPrepared",
+        "HrSensitiveReadPolicyEvaluated",
+        "HrWorkflowDispatchPlanned",
+        "HrLeavePayrollImpactPlanned",
+        "HrStatutoryFilingManifestPrepared",
+        "PayrollTrialCloseEvidenceCommitted",
+        "PayrollStatutoryExportHashed",
+        "PayrollRollbackQuarantineEvidenceEmitted",
+        "PayrollGlDispatchPrepared",
+        "PayrollHrIntakeAccepted",
+        "PayrollDurableStorageCommitRecorded",
+        "rollup.staleness.exceeded",
+        "carbon.spike.detected",
+        "energy.watt_hours.creep.detected",
+        "audit.schema.v1.deprecated"
+      ],
+      "description": "Canonical audit-event class identifier. Legacy ADR-0297/0313/0319 classes use PascalCase; ADR-0344 FinOps and schema-transition classes preserve the dotted constants named by finops-dimensional-model.json and audit-event-schema.json."
     },
     "severity": {
       "type": "string",
@@ -660,24 +685,121 @@
       "originating_adr": "ADR-0319",
       "category": "information-barrier",
       "summary": "Office pack overlay is retired."
+    },
+    {
+      "event_class": "HrLifecycleAuditPrepared",
+      "originating_adr": "ADR-0003",
+      "category": "hr-runtime-audit",
+      "summary": "HR lifecycle metadata envelope is prepared for later runtime audit-chain emission."
+    },
+    {
+      "event_class": "HrSensitiveReadPolicyEvaluated",
+      "originating_adr": "ADR-0003",
+      "category": "hr-runtime-audit",
+      "summary": "HR sensitive-read policy decision is evaluated for later runtime audit-chain emission."
+    },
+    {
+      "event_class": "HrWorkflowDispatchPlanned",
+      "originating_adr": "ADR-0003",
+      "category": "hr-runtime-audit",
+      "summary": "HR labor-compliance Workflow dispatch metadata is planned for later runtime audit-chain emission."
+    },
+    {
+      "event_class": "HrLeavePayrollImpactPlanned",
+      "originating_adr": "ADR-0003",
+      "category": "hr-runtime-audit",
+      "summary": "HR leave payroll-impact metadata is planned for later runtime audit-chain emission."
+    },
+    {
+      "event_class": "HrStatutoryFilingManifestPrepared",
+      "originating_adr": "ADR-0003",
+      "category": "hr-runtime-audit",
+      "summary": "HR statutory filing manifest metadata is prepared for later runtime audit-chain emission."
+    },
+    {
+      "event_class": "rollup.staleness.exceeded",
+      "originating_adr": "ADR-0344",
+      "category": "finops-rollup",
+      "summary": "finops-portal dimensional rollup p99 freshness exceeds its five-minute tenant/hour budget."
+    },
+    {
+      "event_class": "carbon.spike.detected",
+      "originating_adr": "ADR-0344",
+      "category": "sustainability-finops-anomaly",
+      "summary": "Tenant CO2 emissions exceed the rolling MAD and absolute grams-per-hour carbon spike thresholds."
+    },
+    {
+      "event_class": "energy.watt_hours.creep.detected",
+      "originating_adr": "ADR-0344",
+      "category": "sustainability-finops-anomaly",
+      "summary": "Tenant watt-hours exceed the seven-day baseline by the sustained creep threshold."
+    },
+    {
+      "event_class": "audit.schema.v1.deprecated",
+      "originating_adr": "ADR-0344",
+      "category": "audit-schema-transition",
+      "summary": "Future compatibility lane observes oyatie/log/v1 audit rows during the advisory v1-to-v2 deprecation window."
+    },
+    {
+      "event_class": "PayrollTrialCloseEvidenceCommitted",
+      "originating_adr": "ADR-0003",
+      "category": "payroll-close-evidence",
+      "summary": "Payroll trial close evidence digest and WORM/object-store references are committed for later producer emission."
+    },
+    {
+      "event_class": "PayrollStatutoryExportHashed",
+      "originating_adr": "ADR-0003",
+      "category": "payroll-close-evidence",
+      "summary": "Payroll statutory export hash, receipt or rejection reason, and repair references are captured for evidence closeout."
+    },
+    {
+      "event_class": "PayrollRollbackQuarantineEvidenceEmitted",
+      "originating_adr": "ADR-0003",
+      "category": "payroll-close-evidence",
+      "summary": "Payroll close promotion failure emits rollback and quarantine evidence metadata before future producer promotion."
+    },
+    {
+      "event_class": "PayrollGlDispatchPrepared",
+      "originating_adr": "ADR-0003",
+      "category": "payroll-close-evidence",
+      "summary": "Payroll GL dispatch evidence references bind the source payroll digest to the accounting handoff contract."
+    },
+    {
+      "event_class": "PayrollHrIntakeAccepted",
+      "originating_adr": "ADR-0003",
+      "category": "payroll-close-evidence",
+      "summary": "Payroll HR intake acceptance records source HR idempotency and payroll impact evidence references."
+    },
+    {
+      "event_class": "PayrollDurableStorageCommitRecorded",
+      "originating_adr": "ADR-0003",
+      "category": "payroll-close-evidence",
+      "summary": "Payroll durable storage commit records reservation, idempotency, WORM, and object-store digest references."
     }
   ],
   "examples": [
     {
       "example_name": "abuse defence bot block class",
       "registry_id": "audit-event-class-registry",
-      "version": "1.0.0",
+      "version": "2.0.0",
       "mandatory_envelope_fields": [
         "tenant_id",
-        "sub_scope_path",
-        "event_id",
-        "trace_id",
-        "span_id",
         "audit_id",
         "schema_version",
         "source_microservice",
         "cell_id",
-        "jurisdiction_code"
+        "jurisdiction_code",
+        "trace_id",
+        "span_id",
+        "event_id",
+        "sub_scope_path",
+        "hlc_timestamp",
+        "cost_usd_minor_units",
+        "co2_grams",
+        "watt_hours",
+        "provider",
+        "region",
+        "carbon_intensity_source"
       ],
       "cedar_decision_fields": [
         "cedar_policy_version",
@@ -733,24 +855,32 @@
         "requires_payload_schema": true,
         "requires_cardinality_budget": true,
         "requires_retention_class": true,
-        "requires_validator_lane": "oya gate validate audit-event-class-registered"
+        "requires_validator_lane": "cloud-ci/Rust gate packet: audit-event-class-registered",
+        "requires_reverse_reference_to_adr_0344_when_envelope_extended": true
       }
     },
     {
       "example_name": "conglomerate parent read class",
       "registry_id": "audit-event-class-registry",
-      "version": "1.0.0",
+      "version": "2.0.0",
       "mandatory_envelope_fields": [
         "tenant_id",
-        "sub_scope_path",
-        "event_id",
-        "trace_id",
-        "span_id",
         "audit_id",
         "schema_version",
         "source_microservice",
         "cell_id",
-        "jurisdiction_code"
+        "jurisdiction_code",
+        "trace_id",
+        "span_id",
+        "event_id",
+        "sub_scope_path",
+        "hlc_timestamp",
+        "cost_usd_minor_units",
+        "co2_grams",
+        "watt_hours",
+        "provider",
+        "region",
+        "carbon_intensity_source"
       ],
       "cedar_decision_fields": [
         "cedar_policy_version",
@@ -807,24 +937,32 @@
         "requires_payload_schema": true,
         "requires_cardinality_budget": true,
         "requires_retention_class": true,
-        "requires_validator_lane": "oya gate validate audit-event-class-registered"
+        "requires_validator_lane": "cloud-ci/Rust gate packet: audit-event-class-registered",
+        "requires_reverse_reference_to_adr_0344_when_envelope_extended": true
       }
     },
     {
       "example_name": "information barrier taint class",
       "registry_id": "audit-event-class-registry",
-      "version": "1.0.0",
+      "version": "2.0.0",
       "mandatory_envelope_fields": [
         "tenant_id",
-        "sub_scope_path",
-        "event_id",
-        "trace_id",
-        "span_id",
         "audit_id",
         "schema_version",
         "source_microservice",
         "cell_id",
-        "jurisdiction_code"
+        "jurisdiction_code",
+        "trace_id",
+        "span_id",
+        "event_id",
+        "sub_scope_path",
+        "hlc_timestamp",
+        "cost_usd_minor_units",
+        "co2_grams",
+        "watt_hours",
+        "provider",
+        "region",
+        "carbon_intensity_source"
       ],
       "cedar_decision_fields": [
         "cedar_policy_version",
@@ -881,7 +1019,1436 @@
         "requires_payload_schema": true,
         "requires_cardinality_budget": true,
         "requires_retention_class": true,
-        "requires_validator_lane": "oya gate validate audit-event-class-registered"
+        "requires_validator_lane": "cloud-ci/Rust gate packet: audit-event-class-registered",
+        "requires_reverse_reference_to_adr_0344_when_envelope_extended": true
+      }
+    },
+    {
+      "example_name": "sustainability FinOps v2 audit classes",
+      "registry_id": "audit-event-class-registry",
+      "version": "2.0.0",
+      "mandatory_envelope_fields": [
+        "tenant_id",
+        "audit_id",
+        "schema_version",
+        "source_microservice",
+        "cell_id",
+        "jurisdiction_code",
+        "trace_id",
+        "span_id",
+        "event_id",
+        "sub_scope_path",
+        "hlc_timestamp",
+        "cost_usd_minor_units",
+        "co2_grams",
+        "watt_hours",
+        "provider",
+        "region",
+        "carbon_intensity_source"
+      ],
+      "cedar_decision_fields": [
+        "cedar_policy_version",
+        "policy_fragment_id",
+        "evaluation_id",
+        "action",
+        "resource_ref",
+        "decision"
+      ],
+      "classes": [
+        {
+          "event_class": "rollup.staleness.exceeded",
+          "originating_adr": "ADR-0344",
+          "description": "finops-portal emits this advisory audit class when a dimensional rollup materialized view exceeds the five-minute p99 freshness budget for a tenant/hour or equivalent rollup bucket.",
+          "severity": "WARN",
+          "retention_class": "financial_control",
+          "emission_targets": [
+            "audit-chain",
+            "prometheus-metric",
+            "compliance-evidence-bundle"
+          ],
+          "payload_fields": [
+            {
+              "name": "rollup_view_id",
+              "type": "string",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Bounded identifier for the materialized rollup view that exceeded freshness."
+            },
+            {
+              "name": "grain",
+              "type": "enum",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Rollup grain such as per_minute, per_hour, per_day, or per_month."
+            },
+            {
+              "name": "observed_freshness_seconds",
+              "type": "integer",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Observed p99 freshness in seconds for the affected rollup bucket."
+            },
+            {
+              "name": "freshness_budget_seconds",
+              "type": "integer",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Configured freshness budget in seconds; ADR-0344 currently names 300 seconds."
+            },
+            {
+              "name": "bucket_start_hlc",
+              "type": "string",
+              "required": true,
+              "pii_handling": "none",
+              "description": "HLC timestamp for the start of the affected rollup bucket."
+            },
+            {
+              "name": "last_success_hlc",
+              "type": "string",
+              "required": true,
+              "pii_handling": "none",
+              "description": "HLC timestamp for the last successful rollup refresh."
+            },
+            {
+              "name": "affected_axes",
+              "type": "array",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Bounded list of dimensional axes involved in the stale rollup."
+            }
+          ],
+          "cardinality_budget": {
+            "dimension_keys": [
+              "tenant_id",
+              "source_microservice",
+              "cell_id",
+              "provider",
+              "region",
+              "rollup_view_id"
+            ],
+            "max_distinct_per_cell_per_day": 1000000,
+            "high_cardinality_allowed": false
+          },
+          "cedar_decision_event": false,
+          "schema_version": "2.0.0"
+        },
+        {
+          "event_class": "carbon.spike.detected",
+          "originating_adr": "ADR-0344",
+          "description": "FinOps anomaly detection emits this advisory class when tenant CO2 emissions exceed 3*MAD over the rolling 14-day baseline and the absolute 10000 grams per hour threshold.",
+          "severity": "ERROR",
+          "retention_class": "financial_control",
+          "emission_targets": [
+            "audit-chain",
+            "prometheus-metric",
+            "compliance-evidence-bundle"
+          ],
+          "payload_fields": [
+            {
+              "name": "window_start_hlc",
+              "type": "string",
+              "required": true,
+              "pii_handling": "none",
+              "description": "HLC timestamp for the beginning of the anomaly window."
+            },
+            {
+              "name": "window_end_hlc",
+              "type": "string",
+              "required": true,
+              "pii_handling": "none",
+              "description": "HLC timestamp for the end of the anomaly window."
+            },
+            {
+              "name": "co2_grams_observed",
+              "type": "integer",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Observed tenant CO2-equivalent emissions in grams for the window."
+            },
+            {
+              "name": "co2_grams_baseline_mad",
+              "type": "number",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Median absolute deviation baseline for tenant CO2-equivalent emissions."
+            },
+            {
+              "name": "threshold_grams_per_hour",
+              "type": "integer",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Absolute grams-per-hour threshold that must also be exceeded."
+            },
+            {
+              "name": "baseline_days",
+              "type": "integer",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Number of days in the rolling baseline window."
+            },
+            {
+              "name": "provider",
+              "type": "enum",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Provider dimension used to bound the anomaly cardinality."
+            },
+            {
+              "name": "region",
+              "type": "string",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Provider-canonical region dimension for the anomaly."
+            },
+            {
+              "name": "carbon_intensity_source",
+              "type": "enum",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Methodology provenance for the carbon-intensity factor used in the anomaly."
+            }
+          ],
+          "cardinality_budget": {
+            "dimension_keys": [
+              "tenant_id",
+              "source_microservice",
+              "cell_id",
+              "provider",
+              "region",
+              "carbon_intensity_source"
+            ],
+            "max_distinct_per_cell_per_day": 1000000,
+            "high_cardinality_allowed": false
+          },
+          "cedar_decision_event": false,
+          "schema_version": "2.0.0"
+        },
+        {
+          "event_class": "energy.watt_hours.creep.detected",
+          "originating_adr": "ADR-0344",
+          "description": "FinOps anomaly detection emits this advisory class when tenant watt-hours exceed the seven-day rolling baseline by at least 25 percent for a sustained 24-hour period.",
+          "severity": "WARN",
+          "retention_class": "financial_control",
+          "emission_targets": [
+            "audit-chain",
+            "prometheus-metric",
+            "compliance-evidence-bundle"
+          ],
+          "payload_fields": [
+            {
+              "name": "window_start_hlc",
+              "type": "string",
+              "required": true,
+              "pii_handling": "none",
+              "description": "HLC timestamp for the beginning of the watt-hours creep window."
+            },
+            {
+              "name": "window_end_hlc",
+              "type": "string",
+              "required": true,
+              "pii_handling": "none",
+              "description": "HLC timestamp for the end of the watt-hours creep window."
+            },
+            {
+              "name": "watt_hours_observed",
+              "type": "integer",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Observed tenant energy consumption in whole watt-hours."
+            },
+            {
+              "name": "watt_hours_baseline",
+              "type": "integer",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Seven-day rolling baseline in whole watt-hours."
+            },
+            {
+              "name": "creep_percent",
+              "type": "number",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Observed percent increase above the rolling baseline."
+            },
+            {
+              "name": "sustained_duration_hours",
+              "type": "integer",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Number of hours the watt-hours creep threshold remained exceeded."
+            },
+            {
+              "name": "provider",
+              "type": "enum",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Provider dimension used to bound the energy anomaly."
+            },
+            {
+              "name": "region",
+              "type": "string",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Provider-canonical region dimension for the energy anomaly."
+            }
+          ],
+          "cardinality_budget": {
+            "dimension_keys": [
+              "tenant_id",
+              "source_microservice",
+              "cell_id",
+              "provider",
+              "region"
+            ],
+            "max_distinct_per_cell_per_day": 1000000,
+            "high_cardinality_allowed": false
+          },
+          "cedar_decision_event": false,
+          "schema_version": "2.0.0"
+        },
+        {
+          "event_class": "audit.schema.v1.deprecated",
+          "originating_adr": "ADR-0344",
+          "description": "Future compatibility and migration lanes may emit this advisory class when oyatie/log/v1 audit rows remain during the v1-to-v2 deprecation window; it is not a runtime blocker while ADR-0344 remains Proposed/advisory.",
+          "severity": "WARN",
+          "retention_class": "regulated",
+          "emission_targets": [
+            "audit-chain",
+            "compliance-evidence-bundle"
+          ],
+          "payload_fields": [
+            {
+              "name": "observed_schema_version",
+              "type": "string",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Schema version observed on the audit row being evaluated."
+            },
+            {
+              "name": "current_schema_version",
+              "type": "string",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Current expected schema version label for new audit rows."
+            },
+            {
+              "name": "deprecation_window_days",
+              "type": "integer",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Configured v1 deprecation window in days after ADR-0344 acceptance."
+            },
+            {
+              "name": "blocker_promotion_day",
+              "type": "integer",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Configured day for future blocker promotion after ADR-0344 acceptance or Wave 15Y landing, whichever is later."
+            },
+            {
+              "name": "migration_deadline_hlc",
+              "type": "string",
+              "required": false,
+              "pii_handling": "none",
+              "description": "Optional HLC timestamp representing the advisory migration deadline when known."
+            }
+          ],
+          "cardinality_budget": {
+            "dimension_keys": [
+              "tenant_id",
+              "source_microservice",
+              "schema_version"
+            ],
+            "max_distinct_per_cell_per_day": 1000000,
+            "high_cardinality_allowed": false
+          },
+          "cedar_decision_event": false,
+          "schema_version": "2.0.0"
+        }
+      ],
+      "update_policy": {
+        "requires_originating_adr": true,
+        "requires_reverse_reference_to_adr_0263": true,
+        "requires_reverse_reference_to_adr_0344_when_envelope_extended": true,
+        "requires_payload_schema": true,
+        "requires_cardinality_budget": true,
+        "requires_retention_class": true,
+        "requires_validator_lane": "cloud-ci/Rust gate packet: audit-event-class-registered"
+      }
+    },
+    {
+      "example_name": "HR runtime audit event classes",
+      "registry_id": "audit-event-class-registry",
+      "version": "2.0.0",
+      "mandatory_envelope_fields": [
+        "tenant_id",
+        "audit_id",
+        "schema_version",
+        "source_microservice",
+        "cell_id",
+        "jurisdiction_code",
+        "trace_id",
+        "span_id",
+        "event_id",
+        "sub_scope_path",
+        "hlc_timestamp",
+        "cost_usd_minor_units",
+        "co2_grams",
+        "watt_hours",
+        "provider",
+        "region",
+        "carbon_intensity_source"
+      ],
+      "cedar_decision_fields": [
+        "cedar_policy_version",
+        "policy_fragment_id",
+        "evaluation_id",
+        "action",
+        "resource_ref",
+        "decision"
+      ],
+      "classes": [
+        {
+          "event_class": "HrLifecycleAuditPrepared",
+          "originating_adr": "ADR-0003",
+          "description": "HR emits this class in a future producer only after a lifecycle metadata envelope is accepted for runtime audit-chain append; current HR app and adapters prepare metadata only and do not emit audit-chain rows.",
+          "severity": "INFO",
+          "retention_class": "regulated",
+          "emission_targets": [
+            "audit-chain",
+            "otel-trace",
+            "compliance-evidence-bundle"
+          ],
+          "payload_fields": [
+            {
+              "name": "legal_entity_id",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Legal entity that owns the HR employment lifecycle event."
+            },
+            {
+              "name": "employee_id",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Stable employee identifier referenced by the lifecycle event."
+            },
+            {
+              "name": "lifecycle_kind",
+              "type": "enum",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Bounded lifecycle kind such as onboarding, status change, or termination."
+            },
+            {
+              "name": "aggregate_ref",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Internal aggregate reference for the HR employee record."
+            },
+            {
+              "name": "evidence_ref",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Internal evidence reference attached to the lifecycle decision."
+            },
+            {
+              "name": "idempotency_key",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Idempotency key preserved by the HR lifecycle metadata envelope."
+            },
+            {
+              "name": "payload_data_class",
+              "type": "enum",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Bounded data-class label for the lifecycle payload."
+            }
+          ],
+          "cardinality_budget": {
+            "dimension_keys": [
+              "tenant_id",
+              "source_microservice",
+              "legal_entity_id",
+              "lifecycle_kind"
+            ],
+            "max_distinct_per_cell_per_day": 1000000,
+            "high_cardinality_allowed": false
+          },
+          "cedar_decision_event": false,
+          "schema_version": "2.0.0"
+        },
+        {
+          "event_class": "HrSensitiveReadPolicyEvaluated",
+          "originating_adr": "ADR-0003",
+          "description": "HR emits this class in a future producer only after a sensitive-read policy decision is accepted through an approved envelope API; current HR code prepares metadata-only decisions and does not retrieve sensitive HR data or emit runtime audit-chain rows.",
+          "severity": "WARN",
+          "retention_class": "legal_hold_capable",
+          "emission_targets": [
+            "audit-chain",
+            "otel-trace",
+            "compliance-evidence-bundle"
+          ],
+          "payload_fields": [
+            {
+              "name": "legal_entity_id",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Legal entity whose sensitive HR read policy was evaluated."
+            },
+            {
+              "name": "actor_employee_id",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Stable employee identifier for the actor requesting the sensitive read."
+            },
+            {
+              "name": "subject_employee_id",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Stable employee identifier for the subject of the sensitive read."
+            },
+            {
+              "name": "data_kind",
+              "type": "enum",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Bounded sensitive HR data kind category under the policy."
+            },
+            {
+              "name": "purpose",
+              "type": "enum",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Bounded purpose for the sensitive HR read request."
+            },
+            {
+              "name": "legal_basis",
+              "type": "enum",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Bounded legal basis asserted for the sensitive HR read."
+            },
+            {
+              "name": "policy_ref",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Policy reference used to evaluate the sensitive HR read."
+            },
+            {
+              "name": "basis_evidence_ref",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Evidence reference for the legal basis supporting the read."
+            },
+            {
+              "name": "request_evidence_ref",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Evidence reference for the sensitive read request."
+            },
+            {
+              "name": "read_log_evidence_ref",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Evidence reference for the sensitive read log entry."
+            },
+            {
+              "name": "decision_status",
+              "type": "enum",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Bounded allow or deny status for the sensitive read decision."
+            },
+            {
+              "name": "payload_data_class",
+              "type": "enum",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Bounded data-class label for the sensitive read payload."
+            }
+          ],
+          "cardinality_budget": {
+            "dimension_keys": [
+              "tenant_id",
+              "source_microservice",
+              "legal_entity_id",
+              "data_kind",
+              "decision_status"
+            ],
+            "max_distinct_per_cell_per_day": 1000000,
+            "high_cardinality_allowed": false
+          },
+          "cedar_decision_event": true,
+          "schema_version": "2.0.0"
+        },
+        {
+          "event_class": "HrWorkflowDispatchPlanned",
+          "originating_adr": "ADR-0003",
+          "description": "HR emits this class in a future producer only after labor-compliance Workflow dispatch metadata is accepted for audit-chain append; current HR app prepares dispatch envelopes but does not execute Workflow or emit runtime audit-chain rows.",
+          "severity": "INFO",
+          "retention_class": "regulated",
+          "emission_targets": [
+            "audit-chain",
+            "otel-trace",
+            "compliance-evidence-bundle"
+          ],
+          "payload_fields": [
+            {
+              "name": "legal_entity_id",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Legal entity whose labor-compliance workflow dispatch was planned."
+            },
+            {
+              "name": "workflow_ref",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Workflow reference prepared by the HR metadata envelope."
+            },
+            {
+              "name": "obligation_kind",
+              "type": "enum",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Bounded labor-compliance obligation kind routed to Workflow later."
+            },
+            {
+              "name": "jurisdiction",
+              "type": "string",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Jurisdiction code for the labor-compliance workflow obligation."
+            },
+            {
+              "name": "required_step_count",
+              "type": "integer",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Number of required workflow steps in the metadata dispatch plan."
+            },
+            {
+              "name": "evidence_ref_count",
+              "type": "integer",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Number of evidence references attached to the workflow dispatch plan."
+            },
+            {
+              "name": "idempotency_key",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Idempotency key preserved by the workflow dispatch metadata envelope."
+            }
+          ],
+          "cardinality_budget": {
+            "dimension_keys": [
+              "tenant_id",
+              "source_microservice",
+              "legal_entity_id",
+              "obligation_kind"
+            ],
+            "max_distinct_per_cell_per_day": 1000000,
+            "high_cardinality_allowed": false
+          },
+          "cedar_decision_event": false,
+          "schema_version": "2.0.0"
+        },
+        {
+          "event_class": "HrLeavePayrollImpactPlanned",
+          "originating_adr": "ADR-0003",
+          "description": "HR emits this class in a future producer only after leave payroll-impact metadata is accepted for an approved audit-chain envelope; current HR code prepares metadata only and does not call Payroll or emit runtime audit-chain rows.",
+          "severity": "INFO",
+          "retention_class": "financial_control",
+          "emission_targets": [
+            "audit-chain",
+            "otel-trace",
+            "compliance-evidence-bundle"
+          ],
+          "payload_fields": [
+            {
+              "name": "legal_entity_id",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Legal entity whose leave payroll impact was planned."
+            },
+            {
+              "name": "employee_id",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Stable employee identifier for the leave payroll impact plan."
+            },
+            {
+              "name": "leave_request_id",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Leave request identifier associated with the payroll impact."
+            },
+            {
+              "name": "approver_id",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Stable employee identifier for the approver of the leave decision."
+            },
+            {
+              "name": "decision",
+              "type": "enum",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Bounded leave decision associated with the payroll impact plan."
+            },
+            {
+              "name": "routing_mode",
+              "type": "enum",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Bounded routing mode selected for the leave payroll impact plan."
+            },
+            {
+              "name": "workflow_ref",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Workflow reference associated with the leave approval path."
+            },
+            {
+              "name": "payroll_period",
+              "type": "string",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Payroll period impacted by the leave decision."
+            },
+            {
+              "name": "payroll_impact_kind",
+              "type": "enum",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Bounded payroll impact kind for the leave decision."
+            },
+            {
+              "name": "decision_evidence_ref",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Evidence reference for the leave decision."
+            },
+            {
+              "name": "routing_evidence_ref",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Evidence reference for the selected routing path."
+            },
+            {
+              "name": "payroll_impact_evidence_ref",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Evidence reference for the planned payroll impact."
+            },
+            {
+              "name": "idempotency_key",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Idempotency key preserved across the HR payroll-impact envelope."
+            }
+          ],
+          "cardinality_budget": {
+            "dimension_keys": [
+              "tenant_id",
+              "source_microservice",
+              "legal_entity_id",
+              "payroll_period",
+              "payroll_impact_kind"
+            ],
+            "max_distinct_per_cell_per_day": 1000000,
+            "high_cardinality_allowed": false
+          },
+          "cedar_decision_event": false,
+          "schema_version": "2.0.0"
+        },
+        {
+          "event_class": "HrStatutoryFilingManifestPrepared",
+          "originating_adr": "ADR-0003",
+          "description": "HR emits this class in a future producer only after statutory filing manifest metadata is prepared through an approved envelope API; current HR rulepacks preserve source-versioned provenance only and do not attach filing transport or emit runtime audit-chain rows.",
+          "severity": "INFO",
+          "retention_class": "regulated",
+          "emission_targets": [
+            "audit-chain",
+            "otel-trace",
+            "compliance-evidence-bundle"
+          ],
+          "payload_fields": [
+            {
+              "name": "legal_entity_id",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Legal entity associated with the statutory filing manifest."
+            },
+            {
+              "name": "filing_kind",
+              "type": "enum",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Bounded statutory filing kind represented by the manifest metadata."
+            },
+            {
+              "name": "rulepack_ref",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Rulepack reference used to prepare the statutory filing manifest."
+            },
+            {
+              "name": "rulepack_effective_date",
+              "type": "string",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Effective date for the statutory rulepack referenced by the manifest."
+            },
+            {
+              "name": "source_version",
+              "type": "string",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Source-version label for the statutory rulepack or filing source."
+            },
+            {
+              "name": "approval_evidence_ref",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Approval evidence reference required before statutory filing promotion."
+            },
+            {
+              "name": "filing_evidence_ref",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Evidence reference for the prepared statutory filing manifest."
+            },
+            {
+              "name": "object_store_digest_ref",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Object-store digest reference for the statutory filing manifest evidence."
+            },
+            {
+              "name": "idempotency_key",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Idempotency key preserved by the statutory filing manifest envelope."
+            }
+          ],
+          "cardinality_budget": {
+            "dimension_keys": [
+              "tenant_id",
+              "source_microservice",
+              "legal_entity_id",
+              "filing_kind"
+            ],
+            "max_distinct_per_cell_per_day": 1000000,
+            "high_cardinality_allowed": false
+          },
+          "cedar_decision_event": false,
+          "schema_version": "2.0.0"
+        }
+      ],
+      "update_policy": {
+        "requires_originating_adr": true,
+        "requires_reverse_reference_to_adr_0263": true,
+        "requires_reverse_reference_to_adr_0344_when_envelope_extended": true,
+        "requires_payload_schema": true,
+        "requires_cardinality_budget": true,
+        "requires_retention_class": true,
+        "requires_validator_lane": "cloud-ci/Rust gate packet: audit-event-class-registered"
+      }
+    },
+    {
+      "example_name": "payroll close evidence WORM classes",
+      "registry_id": "audit-event-class-registry",
+      "version": "2.0.0",
+      "mandatory_envelope_fields": [
+        "tenant_id",
+        "audit_id",
+        "schema_version",
+        "source_microservice",
+        "cell_id",
+        "jurisdiction_code",
+        "trace_id",
+        "span_id",
+        "event_id",
+        "sub_scope_path",
+        "hlc_timestamp",
+        "cost_usd_minor_units",
+        "co2_grams",
+        "watt_hours",
+        "provider",
+        "region",
+        "carbon_intensity_source"
+      ],
+      "cedar_decision_fields": [
+        "cedar_policy_version",
+        "policy_fragment_id",
+        "evaluation_id",
+        "action",
+        "resource_ref",
+        "decision"
+      ],
+      "classes": [
+        {
+          "event_class": "PayrollTrialCloseEvidenceCommitted",
+          "originating_adr": "ADR-0003",
+          "description": "Payroll emits this audit-chain class after a trial close evidence digest is accepted for a legal entity/run/period and the WORM plus object-store digest references are known; future payroll producer cards must not claim runtime emission until they use this contract.",
+          "severity": "INFO",
+          "retention_class": "financial_control",
+          "emission_targets": [
+            "audit-chain",
+            "otel-trace",
+            "compliance-evidence-bundle"
+          ],
+          "payload_fields": [
+            {
+              "name": "legal_entity_id",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Legal entity whose payroll trial close evidence was committed."
+            },
+            {
+              "name": "payroll_run_id",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Stable payroll run identifier associated with the trial close."
+            },
+            {
+              "name": "payroll_period",
+              "type": "string",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Payroll period covered by the trial close evidence."
+            },
+            {
+              "name": "evidence_digest",
+              "type": "string",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Cryptographic digest of the payroll close evidence payload."
+            },
+            {
+              "name": "evidence_ref",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Internal evidence reference for the close packet."
+            },
+            {
+              "name": "worm_storage_ref",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "WORM storage locator or receipt for the close evidence row."
+            },
+            {
+              "name": "object_store_digest_ref",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Object-store digest reference associated with the close evidence."
+            },
+            {
+              "name": "rulepack_effective_date",
+              "type": "string",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Rulepack effective date used for the trial close."
+            },
+            {
+              "name": "payee_count",
+              "type": "integer",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Number of payees covered by the trial close evidence."
+            }
+          ],
+          "cardinality_budget": {
+            "dimension_keys": [
+              "tenant_id",
+              "source_microservice",
+              "legal_entity_id",
+              "payroll_run_id",
+              "payroll_period"
+            ],
+            "max_distinct_per_cell_per_day": 1000000,
+            "high_cardinality_allowed": false
+          },
+          "cedar_decision_event": false,
+          "schema_version": "2.0.0"
+        },
+        {
+          "event_class": "PayrollStatutoryExportHashed",
+          "originating_adr": "ADR-0003",
+          "description": "Payroll emits this class when KR statutory export evidence receives hashes and either filing receipts or rejection reasons, with rollback or repair references attached before promotion.",
+          "severity": "INFO",
+          "retention_class": "financial_control",
+          "emission_targets": [
+            "audit-chain",
+            "otel-trace",
+            "compliance-evidence-bundle"
+          ],
+          "payload_fields": [
+            {
+              "name": "legal_entity_id",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Legal entity associated with the statutory export evidence."
+            },
+            {
+              "name": "payroll_run_id",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Payroll run associated with the statutory export evidence."
+            },
+            {
+              "name": "payroll_period",
+              "type": "string",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Payroll period covered by the statutory export."
+            },
+            {
+              "name": "export_kind",
+              "type": "enum",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Bounded statutory export kind such as HomeTax, withholding, or social-insurance."
+            },
+            {
+              "name": "export_hash",
+              "type": "string",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Cryptographic hash of the generated statutory export artifact."
+            },
+            {
+              "name": "receipt_ref",
+              "type": "string",
+              "required": false,
+              "pii_handling": "stable_identifier_only",
+              "description": "Receipt reference when the statutory export is accepted."
+            },
+            {
+              "name": "rejection_reason",
+              "type": "string",
+              "required": false,
+              "pii_handling": "redacted",
+              "description": "Redacted rejection reason when the statutory export is refused."
+            },
+            {
+              "name": "rollback_repair_plan_ref",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Reference to the rollback or repair plan attached before promotion."
+            },
+            {
+              "name": "object_store_digest_ref",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Object-store digest reference for the export evidence artifact."
+            }
+          ],
+          "cardinality_budget": {
+            "dimension_keys": [
+              "tenant_id",
+              "source_microservice",
+              "legal_entity_id",
+              "payroll_run_id",
+              "payroll_period",
+              "export_kind"
+            ],
+            "max_distinct_per_cell_per_day": 1000000,
+            "high_cardinality_allowed": false
+          },
+          "cedar_decision_event": false,
+          "schema_version": "2.0.0"
+        },
+        {
+          "event_class": "PayrollRollbackQuarantineEvidenceEmitted",
+          "originating_adr": "ADR-0003",
+          "description": "Payroll emits this class when a close promotion or canary/evidence gate fails and rollback plus quarantine evidence references are emitted before any repair path continues.",
+          "severity": "WARN",
+          "retention_class": "financial_control",
+          "emission_targets": [
+            "audit-chain",
+            "otel-trace",
+            "compliance-evidence-bundle"
+          ],
+          "payload_fields": [
+            {
+              "name": "legal_entity_id",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Legal entity whose close promotion was stopped."
+            },
+            {
+              "name": "payroll_run_id",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Payroll run stopped by the failed close gate."
+            },
+            {
+              "name": "payroll_period",
+              "type": "string",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Payroll period affected by the rollback or quarantine."
+            },
+            {
+              "name": "failed_gate",
+              "type": "string",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Bounded identifier of the failed canary or evidence gate."
+            },
+            {
+              "name": "rollback_evidence_ref",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Reference to the rollback evidence emitted for the failed close."
+            },
+            {
+              "name": "quarantine_ref",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Reference to the quarantined close packet or artifact set."
+            },
+            {
+              "name": "repair_route_ref",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Reference to the hotfix or ops convergence route for repair."
+            },
+            {
+              "name": "object_store_digest_ref",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Object-store digest reference for the rollback/quarantine evidence."
+            }
+          ],
+          "cardinality_budget": {
+            "dimension_keys": [
+              "tenant_id",
+              "source_microservice",
+              "legal_entity_id",
+              "payroll_run_id",
+              "payroll_period",
+              "failed_gate"
+            ],
+            "max_distinct_per_cell_per_day": 1000000,
+            "high_cardinality_allowed": false
+          },
+          "cedar_decision_event": false,
+          "schema_version": "2.0.0"
+        },
+        {
+          "event_class": "PayrollGlDispatchPrepared",
+          "originating_adr": "ADR-0003",
+          "description": "Payroll emits this class when the payroll-to-accounting bridge prepares GL dispatch evidence binding a balanced journal batch to the source payroll digest and approval evidence.",
+          "severity": "INFO",
+          "retention_class": "financial_control",
+          "emission_targets": [
+            "audit-chain",
+            "otel-trace",
+            "compliance-evidence-bundle"
+          ],
+          "payload_fields": [
+            {
+              "name": "legal_entity_id",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Legal entity whose payroll journal is prepared for GL dispatch."
+            },
+            {
+              "name": "payroll_run_id",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Payroll run used as the source for the GL dispatch."
+            },
+            {
+              "name": "payroll_period",
+              "type": "string",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Payroll period represented by the accounting dispatch."
+            },
+            {
+              "name": "journal_batch_ref",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Reference to the balanced journal batch prepared for accounting."
+            },
+            {
+              "name": "source_payroll_digest",
+              "type": "string",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Digest of the source payroll close packet bound to the journal."
+            },
+            {
+              "name": "approval_evidence_ref",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Approval evidence reference required before accounting dispatch."
+            },
+            {
+              "name": "accounting_dispatch_evidence_ref",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Evidence reference for the accounting dispatch envelope."
+            },
+            {
+              "name": "object_store_digest_ref",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Object-store digest reference for accounting dispatch evidence."
+            }
+          ],
+          "cardinality_budget": {
+            "dimension_keys": [
+              "tenant_id",
+              "source_microservice",
+              "legal_entity_id",
+              "payroll_run_id",
+              "payroll_period"
+            ],
+            "max_distinct_per_cell_per_day": 1000000,
+            "high_cardinality_allowed": false
+          },
+          "cedar_decision_event": false,
+          "schema_version": "2.0.0"
+        },
+        {
+          "event_class": "PayrollHrIntakeAccepted",
+          "originating_adr": "ADR-0003",
+          "description": "Payroll emits this class when an HR leave or attendance payroll-impact intake is accepted with source HR idempotency, payroll period, and intake evidence references preserved.",
+          "severity": "INFO",
+          "retention_class": "financial_control",
+          "emission_targets": [
+            "audit-chain",
+            "otel-trace",
+            "compliance-evidence-bundle"
+          ],
+          "payload_fields": [
+            {
+              "name": "legal_entity_id",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Legal entity receiving the HR payroll-impact intake."
+            },
+            {
+              "name": "payroll_run_id",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Payroll run receiving the HR intake evidence."
+            },
+            {
+              "name": "payroll_period",
+              "type": "string",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Payroll period impacted by the HR intake."
+            },
+            {
+              "name": "hr_source_topic",
+              "type": "string",
+              "required": true,
+              "pii_handling": "none",
+              "description": "HR source topic that produced the payroll-impact metadata envelope."
+            },
+            {
+              "name": "source_hr_idempotency_key",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Source HR idempotency key preserved across the intake boundary."
+            },
+            {
+              "name": "payroll_impact_evidence_ref",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Evidence reference for the HR payroll-impact decision."
+            },
+            {
+              "name": "payroll_intake_evidence_ref",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Evidence reference for Payroll acceptance of the intake."
+            },
+            {
+              "name": "object_store_digest_ref",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Object-store digest reference for HR intake evidence."
+            }
+          ],
+          "cardinality_budget": {
+            "dimension_keys": [
+              "tenant_id",
+              "source_microservice",
+              "legal_entity_id",
+              "payroll_run_id",
+              "payroll_period"
+            ],
+            "max_distinct_per_cell_per_day": 1000000,
+            "high_cardinality_allowed": false
+          },
+          "cedar_decision_event": false,
+          "schema_version": "2.0.0"
+        },
+        {
+          "event_class": "PayrollDurableStorageCommitRecorded",
+          "originating_adr": "ADR-0003",
+          "description": "Payroll emits this class after a durable storage adapter commits payroll close evidence metadata with reservation, idempotency, WORM, and object-store digest references.",
+          "severity": "INFO",
+          "retention_class": "financial_control",
+          "emission_targets": [
+            "audit-chain",
+            "otel-trace",
+            "compliance-evidence-bundle"
+          ],
+          "payload_fields": [
+            {
+              "name": "legal_entity_id",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Legal entity whose payroll close evidence metadata was committed."
+            },
+            {
+              "name": "payroll_run_id",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Payroll run whose durable storage commit was recorded."
+            },
+            {
+              "name": "payroll_period",
+              "type": "string",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Payroll period covered by the durable storage commit."
+            },
+            {
+              "name": "storage_commit_ref",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Reference to the durable storage commit receipt."
+            },
+            {
+              "name": "reservation_ref",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Reference to the idempotency or storage reservation consumed by the commit."
+            },
+            {
+              "name": "idempotency_key",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Idempotency key associated with the durable commit."
+            },
+            {
+              "name": "evidence_ref_count",
+              "type": "integer",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Number of evidence references persisted with the close metadata."
+            },
+            {
+              "name": "worm_storage_ref",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "WORM storage reference for the committed evidence metadata."
+            },
+            {
+              "name": "object_store_digest_ref",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Object-store digest reference for the durable storage commit."
+            }
+          ],
+          "cardinality_budget": {
+            "dimension_keys": [
+              "tenant_id",
+              "source_microservice",
+              "legal_entity_id",
+              "payroll_run_id",
+              "payroll_period"
+            ],
+            "max_distinct_per_cell_per_day": 1000000,
+            "high_cardinality_allowed": false
+          },
+          "cedar_decision_event": false,
+          "schema_version": "2.0.0"
+        }
+      ],
+      "update_policy": {
+        "requires_originating_adr": true,
+        "requires_reverse_reference_to_adr_0263": true,
+        "requires_reverse_reference_to_adr_0344_when_envelope_extended": true,
+        "requires_payload_schema": true,
+        "requires_cardinality_budget": true,
+        "requires_retention_class": true,
+        "requires_validator_lane": "cloud-ci/Rust gate packet: audit-event-class-registered"
       }
     }
   ]

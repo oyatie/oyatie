@@ -1,14 +1,15 @@
-//! Thin CLI wrapper around [`oya_gen_microservice_manifests_app`] kernel.
+//! Retired CLI guard for [`oya_gen_microservice_manifests_app`] provenance.
 //!
-//! Walks `microservices/<ms>/` for the canonical µservices and builds the
-//! source-derived manifest seed in-memory. Existing enriched manifests are
-//! validated for source compatibility instead of overwritten; missing manifests
-//! are seeded, and the aggregate index is refreshed.
+//! The former writer walked `microservices/<ms>/` and refreshed
+//! `specs/microservices/manifests-index.json`. That layout is retired: current
+//! manifest-index authority uses `oya/` and `cloud/` roots, keeps `anonymous` as
+//! a no-standalone community subproduct, and keeps `foundry` as a retired row
+//! absorbed by `intelligence`.
 //!
 //! Flags:
 //!  - `--repo-root <path>` (default `.`)
-//!  - `--check` — recompute source-derived manifest fields and exit non-zero if
-//!    an on-disk enriched manifest is incompatible (no writes).
+//!  - `--check` — validate that the checked-in index still matches the current
+//!    source-authority contract and cannot be rewritten to legacy rows.
 #![allow(clippy::unwrap_used)]
 #![allow(clippy::expect_used)]
 
@@ -18,17 +19,10 @@ use std::process::ExitCode;
 
 use serde_json::Value;
 
-use oya_gen_microservice_manifests_app::{
-    MICROSERVICES, ManifestInputs, SourceFile, build_manifest, build_manifests_index,
-};
+use oya_gen_microservice_manifests_app::{MICROSERVICES, build_manifests_index};
 
 const MANIFESTS_INDEX_GENERATED_AT: &str = "2026-05-19";
-
-// New FD-001 services must prove that their source files still match the
-// enriched manifest rows for facts this generator derives directly. Legacy
-// manifests remain source-compatible on registry/contract identity while their
-// historical enrichment drift is migrated lane-by-lane.
-const STRICT_SOURCE_FIDELITY_SERVICES: &[&str] = &["ops-dashboard-control-center"];
+const RETIRED_WRITER_MESSAGE: &str = "oya-gen-microservice-manifests writer is retired/provenance-only; run with --check to validate the current source-authority index guard. It will not write specs/microservices/manifests-index.json.";
 
 fn main() -> ExitCode {
     let mut repo_root = PathBuf::from(".");
@@ -52,301 +46,211 @@ fn main() -> ExitCode {
         }
     }
 
-    let decisions = match load_docs_decisions(&repo_root) {
-        Ok(d) => d,
-        Err(e) => {
-            eprintln!("{e}");
-            return ExitCode::FAILURE;
-        }
-    };
-
-    let mut differs = 0usize;
-    let mut wrote = 0usize;
-    let mut validated = 0usize;
-    for ms in MICROSERVICES {
-        let inputs = match collect_ms_inputs(&repo_root, ms, &decisions) {
-            Ok(v) => v,
-            Err(msg) => {
-                eprintln!("{msg}");
-                return ExitCode::FAILURE;
-            }
-        };
-        let manifest = build_manifest(&inputs);
-        let mut text = serde_json::to_string_pretty(&manifest).expect("serialize");
-        text.push('\n');
-        let path = repo_root.join(format!("microservices/{ms}/manifest.json"));
-        if check {
-            match fs::read_to_string(&path) {
-                Ok(on_disk) => match serde_json::from_str::<Value>(&on_disk) {
-                    Ok(on_disk_json) => {
-                        let problems = manifest_compatibility_problems(&on_disk_json, &manifest);
-                        if !problems.is_empty() {
-                            differs += 1;
-                            eprintln!("[incompatible] {}", path.display());
-                            for problem in problems {
-                                eprintln!("  - {problem}");
-                            }
-                        }
-                    }
-                    Err(e) => {
-                        differs += 1;
-                        eprintln!("[invalid-json] {}: {e}", path.display());
-                    }
-                },
-                Err(e) => {
-                    differs += 1;
-                    eprintln!("[missing] {}: {e}", path.display());
-                }
-            }
-        } else if path.exists() {
-            match fs::read_to_string(&path) {
-                Ok(on_disk) => match serde_json::from_str::<Value>(&on_disk) {
-                    Ok(on_disk_json) => {
-                        let problems = manifest_compatibility_problems(&on_disk_json, &manifest);
-                        if problems.is_empty() {
-                            validated += 1;
-                            println!("[ok] source-compatible existing {}", path.display());
-                        } else {
-                            eprintln!("[incompatible] {}", path.display());
-                            for problem in problems {
-                                eprintln!("  - {problem}");
-                            }
-                            return ExitCode::FAILURE;
-                        }
-                    }
-                    Err(e) => {
-                        eprintln!("[invalid-json] {}: {e}", path.display());
-                        return ExitCode::FAILURE;
-                    }
-                },
-                Err(e) => {
-                    eprintln!("read {}: {e}", path.display());
-                    return ExitCode::FAILURE;
-                }
-            }
-        } else if let Err(e) = fs::write(&path, &text) {
-            eprintln!("write {}: {e}", path.display());
-            return ExitCode::FAILURE;
-        } else {
-            wrote += 1;
-            println!("[ok] seeded missing {}", path.display());
-        }
+    if !check {
+        eprintln!("{RETIRED_WRITER_MESSAGE}");
+        return ExitCode::from(2);
     }
 
-    let index = build_manifests_index(MANIFESTS_INDEX_GENERATED_AT, MICROSERVICES);
-    if check {
-        let idx_path = repo_root.join("specs/microservices/manifests-index.json");
-        match fs::read_to_string(&idx_path) {
-            Ok(on_disk) => {
-                let mut expected = serde_json::to_string_pretty(&index).expect("serialize");
-                expected.push('\n');
-                if on_disk != expected {
-                    differs += 1;
-                    eprintln!("[diff] {}", idx_path.display());
-                }
-            }
-            Err(e) => {
-                differs += 1;
-                eprintln!("[missing] {}: {e}", idx_path.display());
-            }
-        }
-    } else {
-        let mut idx = serde_json::to_string_pretty(&index).expect("serialize");
-        idx.push('\n');
-        let idx_path = repo_root.join("specs/microservices/manifests-index.json");
-        if let Err(e) = fs::write(&idx_path, &idx) {
-            eprintln!("write {}: {e}", idx_path.display());
-            return ExitCode::FAILURE;
-        }
-        println!(
-            "[ok] aggregate index → {} written={} source_compatible_existing={}",
-            idx_path.display(),
-            wrote,
-            validated
-        );
-    }
-
-    if check {
-        if differs == 0 {
+    let expected = build_manifests_index(MANIFESTS_INDEX_GENERATED_AT, MICROSERVICES);
+    match validate_current_manifest_index(&repo_root, &expected) {
+        Ok(summary) => {
             println!(
-                "manifests --check: all {} source-compatible",
-                MICROSERVICES.len()
+                "manifests --check: retired writer guard passed; rows={} active_manifest_paths_checked={}",
+                summary.rows, summary.active_manifest_paths_checked
             );
             ExitCode::SUCCESS
-        } else {
-            eprintln!("manifests --check: {differs} drift");
+        }
+        Err(problems) => {
+            for problem in &problems {
+                eprintln!("{problem}");
+            }
+            eprintln!(
+                "manifests --check: retired writer guard failed ({} problems)",
+                problems.len()
+            );
             ExitCode::FAILURE
         }
-    } else {
-        ExitCode::SUCCESS
     }
 }
 
-fn manifest_compatibility_problems(on_disk: &Value, generated: &Value) -> Vec<String> {
-    let mut problems = Vec::new();
-    for key in ["schema_version", "microservice", "version"] {
-        if on_disk.get(key) != generated.get(key) {
-            problems.push(format!("{key} mismatch"));
-        }
-    }
-
-    // All manifests must remain registered and point at source-discovered
-    // contract files. FD-001-era manifests additionally opt into strict
-    // source-fidelity checks for capability and SLO facts so check mode cannot
-    // false-green tier/risk/query drift while legacy enrichment debt is migrated
-    // service by service.
-    compare_contract_paths(on_disk, generated, &mut problems);
-    if strict_source_fidelity_required(on_disk) {
-        compare_rows_by_file(
-            "capabilities",
-            &["name", "tier", "eu_ai_act_risk_class"],
-            on_disk,
-            generated,
-            &mut problems,
-        );
-        compare_rows_by_file(
-            "slos",
-            &["name", "target", "sli"],
-            on_disk,
-            generated,
-            &mut problems,
-        );
-    }
-
-    problems
+#[derive(Debug, Eq, PartialEq)]
+struct CheckSummary {
+    rows: usize,
+    active_manifest_paths_checked: usize,
 }
 
-fn strict_source_fidelity_required(on_disk: &Value) -> bool {
-    on_disk
-        .get("microservice")
-        .and_then(Value::as_str)
-        .map(|ms| STRICT_SOURCE_FIDELITY_SERVICES.contains(&ms))
-        .unwrap_or(false)
-}
-
-fn compare_contract_paths(on_disk: &Value, generated: &Value, problems: &mut Vec<String>) {
-    for family in ["openapi", "asyncapi", "proto"] {
-        let expected = string_array(&generated["contracts"][family]);
-        if expected.is_empty() {
-            continue;
-        }
-        let actual = string_array(&on_disk["contracts"][family]);
-        for item in expected {
-            if !actual.contains(&item) {
-                problems.push(format!("contracts.{family} missing {item}"));
-            }
-        }
-    }
-}
-
-fn compare_rows_by_file(
-    section: &str,
-    fields: &[&str],
-    on_disk: &Value,
-    generated: &Value,
-    problems: &mut Vec<String>,
-) {
-    let Some(expected_rows) = generated.get(section).and_then(Value::as_array) else {
-        return;
-    };
-    if expected_rows.is_empty() {
-        return;
-    }
-    let Some(actual_rows) = on_disk.get(section).and_then(Value::as_array) else {
-        problems.push(format!("{section} missing"));
-        return;
-    };
-    for expected in expected_rows {
-        let file = expected
-            .get("file")
-            .and_then(Value::as_str)
-            .unwrap_or_default();
-        if file.is_empty() {
-            continue;
-        }
-        let Some(actual) = actual_rows
-            .iter()
-            .find(|row| row.get("file").and_then(Value::as_str) == Some(file))
-        else {
-            problems.push(format!("{section} missing row for {file}"));
-            continue;
-        };
-        for field in fields {
-            if actual.get(*field) != expected.get(*field) {
-                problems.push(format!("{section}.{file}.{field} mismatch"));
-            }
-        }
-    }
-}
-
-fn string_array(value: &Value) -> Vec<String> {
-    value
-        .as_array()
-        .map(|items| {
-            items
-                .iter()
-                .filter_map(Value::as_str)
-                .map(ToString::to_string)
-                .collect()
-        })
-        .unwrap_or_default()
-}
-
-fn load_docs_decisions(repo_root: &Path) -> Result<Vec<String>, String> {
-    let dir = repo_root.join("docs/decisions");
-    if !dir.is_dir() {
-        return Ok(vec![]);
-    }
-    let mut out = Vec::new();
-    for entry in fs::read_dir(&dir).map_err(|e| format!("read_dir {}: {e}", dir.display()))? {
-        let entry = entry.map_err(|e| e.to_string())?;
-        if entry.file_type().map(|t| t.is_file()).unwrap_or(false)
-            && let Some(name) = entry.file_name().to_str()
-        {
-            out.push(name.to_string());
-        }
-    }
-    Ok(out)
-}
-
-fn collect_ms_inputs(
+fn validate_current_manifest_index(
     repo_root: &Path,
-    ms: &str,
-    decisions: &[String],
-) -> Result<ManifestInputs, String> {
-    let dir = repo_root.join(format!("microservices/{ms}"));
-    let mut files: Vec<SourceFile> = Vec::new();
-    if dir.is_dir() {
-        walk(&dir, repo_root, &mut files)?;
+    expected: &Value,
+) -> Result<CheckSummary, Vec<String>> {
+    let mut problems = Vec::new();
+    let idx_path = repo_root.join("specs/microservices/manifests-index.json");
+    let on_disk_text = match fs::read_to_string(&idx_path) {
+        Ok(text) => text,
+        Err(e) => {
+            return Err(vec![format!("[missing] {}: {e}", idx_path.display())]);
+        }
+    };
+    let on_disk: Value = match serde_json::from_str(&on_disk_text) {
+        Ok(value) => value,
+        Err(e) => {
+            return Err(vec![format!("[invalid-json] {}: {e}", idx_path.display())]);
+        }
+    };
+
+    if &on_disk != expected {
+        problems.push(format!(
+            "[diff] {} differs from embedded current-path manifest-index contract",
+            idx_path.display()
+        ));
     }
-    Ok(ManifestInputs {
-        microservice: ms.to_string(),
-        files,
-        docs_decisions_filenames: decisions.to_vec(),
-    })
+
+    let Some(rows) = on_disk.get("microservices").and_then(Value::as_array) else {
+        problems.push("[invalid] microservices must be an array".to_string());
+        return Err(problems);
+    };
+    let expected_count = rows.len();
+    if on_disk.get("manifest_count").and_then(Value::as_u64) != Some(expected_count as u64) {
+        problems.push(format!(
+            "[invalid] manifest_count must equal microservices length {expected_count}"
+        ));
+    }
+
+    for retired_name in ["cell", "network", "shorts"] {
+        if rows
+            .iter()
+            .any(|row| value_str(row, "name") == Some(retired_name))
+        {
+            problems.push(format!(
+                "[legacy-row] retired `{retired_name}` must not appear in manifests-index"
+            ));
+        }
+    }
+
+    let readiness = &on_disk["readiness_contracts"]["multi_region_disposition"];
+    if !readiness.is_object() {
+        problems.push("[invalid] readiness_contracts.multi_region_disposition missing".to_string());
+    }
+    if value_str(readiness, "manifest_field") != Some("multi_region_disposition") {
+        problems.push(
+            "[invalid] readiness_contracts.multi_region_disposition.manifest_field drifted"
+                .to_string(),
+        );
+    }
+    if !value_str(readiness, "coverage_scope_note")
+        .unwrap_or_default()
+        .contains("current `oya/<service>/manifest.json` and `cloud/<service>/manifest.json` roots")
+    {
+        problems.push(
+            "[invalid] coverage_scope_note must distinguish current oya/cloud roots from legacy microservices roots"
+                .to_string(),
+        );
+    }
+
+    let mut active_manifest_paths_checked = 0usize;
+    for row in rows {
+        let name = value_str(row, "name").unwrap_or("<missing-name>");
+        match name {
+            "anonymous" => {
+                if row.get("manifest").is_some() {
+                    problems.push(
+                        "[invalid] anonymous must not declare a standalone manifest".to_string(),
+                    );
+                }
+                if value_str(row, "parent_inventory") != Some("oya/community/manifest.json") {
+                    problems.push(
+                        "[invalid] anonymous parent_inventory must be oya/community/manifest.json"
+                            .to_string(),
+                    );
+                }
+                if value_str(row, "subproduct_of") != Some("community") {
+                    problems
+                        .push("[invalid] anonymous subproduct_of must be community".to_string());
+                }
+                continue;
+            }
+            "foundry" => {
+                if value_str(row, "status") != Some("retired") {
+                    problems.push("[invalid] foundry row must stay retired".to_string());
+                }
+                if value_str(row, "absorbed_by") != Some("intelligence") {
+                    problems.push("[invalid] foundry absorbed_by must be intelligence".to_string());
+                }
+                if row.get("do_not_treat_as_active").and_then(Value::as_bool) != Some(true) {
+                    problems
+                        .push("[invalid] foundry do_not_treat_as_active must be true".to_string());
+                }
+            }
+            _ => {}
+        }
+
+        let Some(manifest_path) = value_str(row, "manifest") else {
+            problems.push(format!(
+                "[invalid] {name} must declare manifest or explicit no-standalone semantics"
+            ));
+            continue;
+        };
+        if manifest_path.starts_with("microservices/") {
+            problems.push(format!(
+                "[legacy-path] {name} points at retired {manifest_path}; expected current oya/ or cloud/ inventory path"
+            ));
+            continue;
+        }
+        if !(manifest_path.starts_with("oya/") || manifest_path.starts_with("cloud/")) {
+            problems.push(format!(
+                "[invalid] {name} manifest path {manifest_path} must be under oya/ or cloud/"
+            ));
+            continue;
+        }
+
+        if name == "foundry" {
+            // Retired provenance row intentionally points at the absorbing
+            // intelligence manifest; do not require the manifest's own
+            // `microservice` field to pretend foundry is still active.
+            continue;
+        }
+
+        let full_path = repo_root.join(manifest_path);
+        let manifest_text = match fs::read_to_string(&full_path) {
+            Ok(text) => text,
+            Err(e) => {
+                problems.push(format!("[missing] {}: {e}", full_path.display()));
+                continue;
+            }
+        };
+        let manifest: Value = match serde_json::from_str(&manifest_text) {
+            Ok(value) => value,
+            Err(e) => {
+                problems.push(format!("[invalid-json] {}: {e}", full_path.display()));
+                continue;
+            }
+        };
+        if value_str(&manifest, "schema_version") != Some("1.0") {
+            problems.push(format!(
+                "[invalid] {manifest_path} schema_version must be 1.0"
+            ));
+        }
+        if value_str(&manifest, "microservice") != Some(name) {
+            problems.push(format!(
+                "[invalid] {manifest_path} microservice must be {name}"
+            ));
+        }
+        if value_str(&manifest, "version") != Some("0.1.0") {
+            problems.push(format!("[invalid] {manifest_path} version must be 0.1.0"));
+        }
+        active_manifest_paths_checked += 1;
+    }
+
+    if problems.is_empty() {
+        Ok(CheckSummary {
+            rows: expected_count,
+            active_manifest_paths_checked,
+        })
+    } else {
+        Err(problems)
+    }
 }
 
-fn walk(dir: &Path, repo_root: &Path, out: &mut Vec<SourceFile>) -> Result<(), String> {
-    for entry in fs::read_dir(dir).map_err(|e| format!("read_dir {}: {e}", dir.display()))? {
-        let entry = entry.map_err(|e| e.to_string())?;
-        let path = entry.path();
-        if path.is_dir() {
-            walk(&path, repo_root, out)?;
-            continue;
-        }
-        if !path.is_file() {
-            continue;
-        }
-        let Ok(text) = fs::read_to_string(&path) else {
-            continue;
-        };
-        let Ok(rel) = path.strip_prefix(repo_root) else {
-            continue;
-        };
-        out.push(SourceFile {
-            repo_relative_path: rel.to_string_lossy().to_string(),
-            content: text,
-        });
-    }
-    Ok(())
+fn value_str<'a>(value: &'a Value, key: &str) -> Option<&'a str> {
+    value.get(key).and_then(Value::as_str)
 }

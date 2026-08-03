@@ -1,11 +1,15 @@
 tier: preview
 owner_team: axis-enterprise
 version: 1.0.0
-sunset: none-before-GA
+sunset: none
 related_adrs:
   - docs/decisions/ADR-0315-erp-coverage-doctrine-sap-parity.md
   - docs/decisions/ADR-0131-flat-microservices-layout.md
   - docs/decisions/ADR-0132-flat-crate-naming-policy.md
+change_notes:
   - id: CS-ENT-ACCOUNTING-002
     date: 2026-05-23
     summary: Adds accounting runtime adapter crate that dispatches existing preview routes through the repo-native Hyper foundation; deployed listener, ledger storage, Workflow execution, statutory filing rails, payment execution, Payroll calls, and runtime audit emission remain non-claims.
+  - id: CS-ENT-ACCOUNTING-005
+    date: 2026-07-02
+    summary: Reconciles sunset metadata with the api-semver `none` sentinel; the Accounting contract remains preview/non-deployed with no deployed HTTP runtime, ledger storage, Workflow execution, statutory filing, payment execution, Payroll runtime, or runtime audit emission claim and does not claim GA readiness.

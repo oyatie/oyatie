@@ -9,15 +9,16 @@ description: |
   oya-managed-k8s-sla-observability consumes to surface control-plane uptime +
   provisioning latency per cluster.
 
-  design-spec maturity: served by the in-memory adapter today; the live status
-  read is honest-deferred (kamaji-provider-live-integration).
+  live adapter foundation maturity: hosted status reads provider conditions via
+  kube-rs DynamicObject and maps them to kernel statuses without synthesizing
+  endpoints; dedicated status returns the recorded Talos/CAPI reference stage.
 owner_team: council-architecture + ops-platform
 maturity: preview
 created_at: 2026-05-27
 related_adrs: [ADR-0376, ADR-0083, ADR-0105]
 related_artifacts:
-  - microservices/oya-managed-k8s-control-plane-host/PRD.md
-  - microservices/oya-managed-k8s-control-plane-host/slos/provisioning-latency.openslo.yaml
+  - cloud/managed-k8s-control-plane-host/PRD.md
+  - cloud/managed-k8s-control-plane-host/slos/provisioning-latency.openslo.yaml
 autonomy_tier: T1
 # T1 = read-only status; no mutation. Available to platform operators +
 # the cluster-lifecycle / sla-observability services.

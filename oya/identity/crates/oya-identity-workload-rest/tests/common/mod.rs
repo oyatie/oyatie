@@ -9,10 +9,10 @@
 
 use std::sync::Arc;
 
-use base64::Engine as _;
-use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use aws_lc_rs::rand::SystemRandom;
 use aws_lc_rs::signature::{ECDSA_P256_SHA256_FIXED_SIGNING, EcdsaKeyPair, KeyPair};
+use base64::Engine as _;
+use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 
 use oya_identity_workload_app::{
     InMemoryRevocationDenylist, InMemoryWorkloadPrincipalRepository, RepositoryError,
@@ -47,8 +47,7 @@ pub fn mint_token() -> MintedToken {
     let pkcs8 =
         EcdsaKeyPair::generate_pkcs8(&ECDSA_P256_SHA256_FIXED_SIGNING, &rng).expect("pkcs8");
     let key_pair =
-        EcdsaKeyPair::from_pkcs8(&ECDSA_P256_SHA256_FIXED_SIGNING, pkcs8.as_ref())
-            .expect("key");
+        EcdsaKeyPair::from_pkcs8(&ECDSA_P256_SHA256_FIXED_SIGNING, pkcs8.as_ref()).expect("key");
     let public = key_pair.public_key().as_ref();
     let x = &public[1..33];
     let y = &public[33..65];
@@ -96,10 +95,15 @@ pub type TestState = SharedState<
 
 /// Build state with a provisioned+activated `wl_secrets_sync`.
 pub fn provisioned_state(jwk: Jwk) -> TestState {
+    provisioned_state_with_jwks(Jwks::new().add_key(jwk))
+}
+
+/// Build state with a caller-supplied static issuer JWKS and a
+/// provisioned+activated `wl_secrets_sync`.
+pub fn provisioned_state_with_jwks(jwks: Jwks) -> TestState {
     let mut repo = InMemoryWorkloadPrincipalRepository::new();
     provision(&mut repo, "ten_acme", "wl_secrets_sync", "cap.cloud.kms").expect("provision");
     activate(&mut repo, &WorkloadId::new("wl_secrets_sync").unwrap()).expect("activate");
-    let jwks = Jwks::new().add_key(jwk);
     Arc::new(WorkloadAuthzState::with_clock(
         repo,
         InMemoryRevocationDenylist::new(),

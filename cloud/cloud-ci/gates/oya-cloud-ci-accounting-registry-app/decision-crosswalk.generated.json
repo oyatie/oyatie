@@ -2681,7 +2681,7 @@
     },
     {
       "id": "ADR-0363",
-      "in_masterplan": false,
+      "in_masterplan": true,
       "in_roadmap": true,
       "in_spec": true,
       "status": "Accepted",
@@ -3123,7 +3123,7 @@
     },
     {
       "id": "ADR-0515",
-      "in_masterplan": false,
+      "in_masterplan": true,
       "in_roadmap": false,
       "in_spec": true,
       "status": "Accepted",

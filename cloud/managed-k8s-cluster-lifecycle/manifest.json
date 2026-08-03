@@ -16,19 +16,20 @@
   ],
   "layers": ["api", "app", "kernel"],
   "contracts": {
-    "openapi": ["microservices/managed-k8s-cluster-lifecycle/contracts/openapi.yaml"],
-    "asyncapi": ["microservices/managed-k8s-cluster-lifecycle/contracts/asyncapi-v1.yaml"],
-    "proto": ["microservices/managed-k8s-cluster-lifecycle/contracts/managed-k8s-cluster-lifecycle.proto"]
+    "openapi": ["cloud/managed-k8s-cluster-lifecycle/contracts/openapi.yaml"],
+    "asyncapi": ["cloud/managed-k8s-cluster-lifecycle/contracts/asyncapi-v1.yaml"],
+    "proto": ["cloud/managed-k8s-cluster-lifecycle/contracts/managed-k8s-cluster-lifecycle.proto"]
   },
   "capabilities": [
-    {"tier": "T3", "name": "cluster-lifecycle-create", "file": "microservices/managed-k8s-cluster-lifecycle/capabilities/cluster-create.yaml", "risk_class": "high"}
+    {"tier": "T3", "name": "cluster-lifecycle-create", "file": "cloud/managed-k8s-cluster-lifecycle/capabilities/cluster-create.yaml", "risk_class": "high"}
   ],
   "slos": [
-    {"name": "cluster-lifecycle-create-admission-latency", "target": "0.95", "sli": "histogram_quantile(0.95, sum(rate(oya_managed_k8s_cluster_lifecycle_admission_duration_seconds_bucket[5m])) by (le)) < 0.05", "file": "microservices/managed-k8s-cluster-lifecycle/slos/create-admission-latency.openslo.yaml"}
+    {"name": "cluster-lifecycle-create-admission-latency", "target": "0.95", "sli": "histogram_quantile(0.95, sum(rate(oya_managed_k8s_cluster_lifecycle_admission_duration_seconds_bucket[5m])) by (le)) < 0.05", "file": "cloud/managed-k8s-cluster-lifecycle/slos/create-admission-latency.openslo.yaml"}
   ],
   "ips": [
     {"id": "ADR-0376", "title": "Oyatie managed-Kubernetes product surface", "acceptance_status": "accepted", "file": "docs/decisions/ADR-0376-managed-kubernetes-product-surface.md"},
-    {"id": "IP-001-cluster-lifecycle-foundation", "title": "IP-001: cluster-lifecycle kernel + quota/provisioning orchestration + app composition root", "acceptance_status": "ga", "file": "microservices/managed-k8s-cluster-lifecycle/IPs/IP-001-cluster-lifecycle-foundation.md"}
+    {"id": "IP-001-cluster-lifecycle-foundation", "title": "IP-001: cluster-lifecycle kernel + quota/provisioning orchestration + app composition root", "acceptance_status": "implemented-local-foundation", "file": "cloud/managed-k8s-cluster-lifecycle/IPs/IP-001-cluster-lifecycle-foundation.md"},
+    {"id": "IP-sustainability-emission-model", "title": "IP: cluster-lifecycle sustainability emission model planning fixture", "acceptance_status": "advisory-plan-spec", "file": "cloud/managed-k8s-cluster-lifecycle/IPs/IP-sustainability-emission-model.md"}
   ],
   "regulatory_packs": ["kr","eu","us","jp","sg","au","in","br","ae","ksa"],
   "lts_pins": {"rust": "1.83"},
@@ -45,7 +46,8 @@
   "capacity_model": {"baseline_cpu_per_tenant": 0.01, "baseline_ram_per_tenant": 32, "storage_per_tenant": 0, "connections_per_tenant": {"valkey": 0, "postgres": 0, "outbound_http": 0}, "scaling_dimension": "per_request", "cell_placement_class": "Tier-3"},
   "pod_runtime_tier": 3,
   "pod_runtime_tier_justification": "Narrow composition over QuotaDecisionPort + ControlPlaneProvisioning ports; no new storage or external dependency. ADR-0083 Tier-3.",
-  "pod_runtime_tier_surface_evidence": ["microservices/managed-k8s-cluster-lifecycle/crates/oya-managed-k8s-cluster-lifecycle-kernel/src/lib.rs"],
+  "pod_runtime_tier_surface_evidence": ["cloud/managed-k8s-cluster-lifecycle/crates/oya-managed-k8s-cluster-lifecycle-kernel/src/lib.rs"],
+  "sustainability_emission_model": {"pod_runtime_tier_ref": "self.pod_runtime_tier", "power_model": {"cpu_watts_per_vcpu_second": 0.18, "memory_watts_per_gib_second": 0.0007, "storage_watts_per_gib_hour": 0.0, "network_watts_per_gib": 0.028, "tier_overhead_factor": {"tier_0_kata_clh": 1.4, "tier_1_kata_clh": 1.4, "tier_2_runc": 1.0, "tier_3_runc_edge": 1.05}}, "price_model": {"source": "provider_sku_pricing", "binding": "cloud/cloud-billing/README.md:56-75; cloud/cloud-billing/implementation-plans/IP-004-composable-billing-components.md:91-107", "pin_window_hours": 1}, "workload_signal_source": {"signal_family": "per_request", "source_ref": "cloud/managed-k8s-cluster-lifecycle/manifest.json#capabilities.cluster-lifecycle-create + QuotaDecisionPort/ControlPlaneProvisioning admission path"}, "emission_path_tests": ["cloud/managed-k8s-cluster-lifecycle/IPs/IP-sustainability-emission-model.md#admission-fixture", "cloud/managed-k8s-cluster-lifecycle/slos/create-admission-latency.openslo.yaml"], "validation_baseline": {"expected_watt_hours_per_request_p50_mwh": 9, "expected_co2_grams_per_request_p50_at_grid_400gco2_per_kwh": 0.0036, "tolerance_pct": 20}},
   "tenant_version_pinning": {"declared_versions": [], "default_version": null, "supported_window_size": 1, "supported_window_minimum_days": 0, "supports_per_tenant_pinning": false, "deprecation_calendar": [], "public_surface_files": {}},
   "consumes_upstream_oss": ["axum", "tokio"],
   "oss_stewardship_class_overrides": [],

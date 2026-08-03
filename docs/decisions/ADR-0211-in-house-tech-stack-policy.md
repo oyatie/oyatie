@@ -72,7 +72,7 @@ The dependency is a current-best vendor product that we use today behind a thin 
 
 | Vendor (today) | Phase-2 (native) | Trigger |
 | --- | --- | --- |
-| Zitadel (OIDC IdP) | oya-identity-server | ≥50K tenants per pack OR multi-region active-active RTO ≤30s requirement Zitadel can't natively support |
+| Keycloak (human OIDC bridge per ADR-0476/ADR-0482) | oya-identity | OIDC + OAuth 2.0 + WebAuthn + tenant IdP federation + MFA feature parity and `oya-identity` integration suite green; ADR-0187/Zitadel is superseded and is not the live default |
 | Milvus (vector DB) | oya-vector-store-server | ≥1B vectors per cluster OR Foundry/intelligence RAG latency budget breached |
 | ClickHouse (OLAP) | oya-olap-warehouse-server (DataFusion + Arrow + Parquet + custom merge-tree) | ≥100TB per tenant OR cross-tenant isolation breach |
 | SeaweedFS (object store) | oya-object-store-server | ≥1PB cluster OR multi-region active-active write coordination need |
@@ -91,6 +91,8 @@ Each Class B vendor MUST register in `registry/vendor-lockin-phaseout/index.json
 - `replacement_readiness_gate`: the value-anchored trigger (above table column).
 
 The `oya gate validate vendor-lockin-discipline` gate (BLOCKER per ADR-0173) enforces this registry shape.
+
+**Identity disambiguation amendment (2026-07-02).** ADR-0394's IDP is the Internal Developer Platform portal/BFF, not the OIDC identity provider. Human identity is governed by ADR-0476/ADR-0482: Keycloak bridges Phase 1 and `oya-identity` is the founder-accepted bespoke Rust target after feature parity. The older ADR-0187/Zitadel row is historical and must not be used as ownership-ratchet live default or as a hidden ≥50K-tenant trigger in new prose.
 
 ### Class C — In-house mandatory differentiation
 

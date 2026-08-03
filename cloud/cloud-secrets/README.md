@@ -18,6 +18,16 @@ or SDK runtime surfaces, audit-chain persistence, measured SLOs, DR, sharding,
 mesh enforcement, IaC, and capacity telemetry remain explicit non-claims until
 their code and validation evidence land.
 
+## Contract/runbook artifacts
+
+- `contracts/secretprovider-rotation-contract.md` specifies the SECRETS-001
+  SecretProvider rotation contract, OpenBao per-cell shape, KEK/DEK/HSM
+  vocabulary, and non-production drill artifact envelope.
+- `runbooks/non-prod-secretprovider-rotation-drill.md` specifies the first
+  metadata-only non-production rotation drill artifact. It is not production
+  evidence and does not execute OpenBao, HSM, provider, Kubernetes, or
+  audit-chain operations.
+
 This microservice follows the ADR-0330 `tenant_class` model:
 
 - `evaluation_trial`: OCI Always Free default profile with explicit time and usage caps.

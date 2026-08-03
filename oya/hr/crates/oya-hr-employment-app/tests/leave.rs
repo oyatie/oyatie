@@ -47,6 +47,43 @@ fn leave_payroll_impact_envelope_is_metadata_only() {
         DataClass::Financial
     );
     assert_eq!(outcome.payroll_impact_envelope.schema_version.value, 1);
+    assert_eq!(
+        outcome.payroll_impact_envelope.rulepack_ref.value.value,
+        "rulepack/kr-labor-2026"
+    );
+    assert_eq!(
+        outcome
+            .payroll_impact_envelope
+            .rulepack_effective_date
+            .value
+            .value,
+        "2026-01-01"
+    );
+    assert_eq!(
+        outcome
+            .payroll_impact_envelope
+            .decided_at_epoch_seconds
+            .value,
+        1_779_532_800
+    );
+    assert!(
+        !outcome
+            .payroll_impact_envelope
+            .payroll_calculation_attached
+            .value
+    );
+    assert!(!outcome.payroll_impact_envelope.payroll_network_call.value);
+    assert!(!outcome.payroll_impact_envelope.workflow_execution.value);
+    assert!(!outcome.payroll_impact_envelope.storage_attached.value);
+    assert!(!outcome.payroll_impact_envelope.runtime_audit_emission.value);
+    assert_eq!(
+        outcome
+            .payroll_impact_envelope
+            .payroll_calculation_attached
+            .data_class
+            .compatibility_data_class(),
+        DataClass::Public
+    );
 }
 
 fn valid_input() -> LeavePayrollImpactInput {

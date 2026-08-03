@@ -17,11 +17,11 @@ pub use cell_budget::{
 
 pub mod committed_use;
 pub use committed_use::{
-    CommittedUseContract, CommittedUseContractId, CommittedUseError, ReservationTerm,
-    ReservedCapacity, ReservedCapacityError, ReservedCapacityId, SpotPool, SpotPoolError,
-    SpotPoolId, admit_spot_request, amortized_monthly_commit_micros, committed_coverage_bps,
-    effective_discounted_rate, validate_committed_use_contract, validate_reserved_capacity,
-    validate_spot_pool,
+    CapacityResourceContract, CommittedUseContract, CommittedUseContractId, CommittedUseError,
+    ReservationTerm, ReservedCapacity, ReservedCapacityError, ReservedCapacityId, SpotPool,
+    SpotPoolError, SpotPoolId, admit_spot_request, amortized_monthly_commit_micros,
+    committed_coverage_bps, effective_discounted_rate, validate_committed_use_contract,
+    validate_reserved_capacity, validate_spot_pool,
 };
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]

@@ -55,6 +55,20 @@ Envoy Gateway owns:
 
 Envoy Gateway never processes east-west traffic. Internal µservice-to-µservice calls bypass the gateway entirely.
 
+### Non-HTTP protocol edge extension
+
+This ADR also owns public **non-HTTP protocol edge** classification. SMTP MX, SMTP submission, IMAP/IMAPS, and ManageSieve are tenant-facing north-south protocols, but they are not HTTP/gRPC routes under ADR-0157's API contract surface. They MUST therefore enter through an **edge-owned** protocol listener or Gateway API `TCPRoute`/`TLSRoute` surface operated by the api-gateway/edge platform, not through workload-owned public `Service.type=LoadBalancer` resources.
+
+The accepted taxonomy is:
+
+- `api_gateway_http_grpc_load_balancer` — the ADR-0157 api-gateway / Envoy Gateway public HTTP/gRPC edge.
+- `authorized_non_http_protocol_edge` — edge-owned SMTP/submission/IMAP/Sieve protocol listeners with accepted authority references and compensating controls.
+- `unclassified_tenant_facing_load_balancer` — any other tenant-facing `LoadBalancer`; CI/admission gates fail closed.
+
+For mail, the authorized non-HTTP protocol edge covers only these public listener classes: inbound SMTP MX on TCP 25/465, authenticated SMTP submission on TCP 587, IMAP/IMAPS on TCP 143/993, and ManageSieve on TCP 4190. The mail workloads behind those listeners MUST remain `ClusterIP`/mesh-internal and receive traffic over mTLS/SPIFFE with CiliumNetworkPolicy allowlists and OpenTelemetry/audit correlation. Required compensating controls include L4 DDoS/connection-rate limits, STARTTLS/MTA-STS/TLS-RPT posture where applicable, SASL/OIDC or equivalent tenant identity binding for authenticated flows, open-relay refusal, DMARC/SPF/DKIM/ARC/Rspamd processing for mail ingress, per-tenant/IP rate limits, rollback notes, and protocol smoke evidence before runtime promotion.
+
+The existing `oya/mail` Helm `Service.type=LoadBalancer` resources are **not** accepted exceptions by this amendment. They are migration debt until public listener ownership moves to the edge-owned protocol surface or a later accepted ADR explicitly retires/deprecates those protocols.
+
 ### East-west (intra-cluster): Cilium + Istio Ambient (ADR-0148)
 
 The canonical east-west substrate is per ADR-0148 (Cilium L3/L4 + Istio Ambient L7). The mesh never terminates public TLS; public traffic must traverse Envoy Gateway first.

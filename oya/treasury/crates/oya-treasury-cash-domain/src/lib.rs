@@ -21,6 +21,7 @@ const LIQUIDITY_FORECAST_ID_PREFIX: &str = "lfcst_";
 const CASH_TRANSFER_PROPOSAL_ID_PREFIX: &str = "xfer_";
 const SOURCE_REF_PREFIX: &str = "src/";
 const AUDIT_REF_PREFIX: &str = "audit/";
+const DESTINATION_BINDING_REF_PREFIX: &str = "dest/";
 const TREASURY_SCHEMA_VERSION: u32 = 1;
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
@@ -68,6 +69,11 @@ pub struct EvidenceRef {
     pub value: String, // data_class: INTERNAL_ONLY
 }
 
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub struct DestinationBindingRef {
+    pub value: String, // data_class: INTERNAL_ONLY
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct MoneyAmount {
     pub amount_minor: i64, // data_class: FINANCIAL
@@ -92,6 +98,47 @@ pub enum LiquidityForecastState {
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum CashTransferProposalState {
     Proposed,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum TreasuryEnvTier {
+    Test,
+    Staging,
+    Prod,
+}
+
+impl TreasuryEnvTier {
+    pub fn outbound_mode(self) -> TreasuryOutboundMode {
+        match self {
+            Self::Test => TreasuryOutboundMode::Intercept,
+            Self::Staging => TreasuryOutboundMode::TestRecipients,
+            Self::Prod => TreasuryOutboundMode::Live,
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum TreasuryOutboundMode {
+    Intercept,
+    TestRecipients,
+    Live,
+}
+
+impl TreasuryOutboundMode {
+    pub fn as_contract_str(self) -> &'static str {
+        match self {
+            Self::Intercept => "intercept",
+            Self::TestRecipients => "test_recipients",
+            Self::Live => "live",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum TreasuryActionClass {
+    BankNotification,
+    PaymentInstruction,
+    SettlementNotification,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -158,6 +205,10 @@ pub struct CashPositionSnapshot {
     pub payment_execution_attached: Classified<bool>, // data_class: PUBLIC
     pub bank_network_call_attached: Classified<bool>, // data_class: PUBLIC
     pub cloud_deployment_attached: Classified<bool>,  // data_class: PUBLIC
+    pub durable_persistence_attached: Classified<bool>, // data_class: PUBLIC
+    pub workflow_execution_attached: Classified<bool>, // data_class: PUBLIC
+    pub accounting_ledger_mutation_attached: Classified<bool>, // data_class: PUBLIC
+    pub statutory_filing_attached: Classified<bool>,  // data_class: PUBLIC
     pub runtime_audit_chain_emission_attached: Classified<bool>, // data_class: PUBLIC
     pub schema_version: Classified<u32>,              // data_class: PUBLIC
 }
@@ -199,6 +250,11 @@ pub struct LiquidityForecastProjection {
     pub payment_execution_attached: Classified<bool>, // data_class: PUBLIC
     pub bank_network_call_attached: Classified<bool>, // data_class: PUBLIC
     pub cloud_deployment_attached: Classified<bool>,  // data_class: PUBLIC
+    pub durable_persistence_attached: Classified<bool>, // data_class: PUBLIC
+    pub workflow_execution_attached: Classified<bool>, // data_class: PUBLIC
+    pub accounting_ledger_mutation_attached: Classified<bool>, // data_class: PUBLIC
+    pub statutory_filing_attached: Classified<bool>,  // data_class: PUBLIC
+    pub runtime_audit_chain_emission_attached: Classified<bool>, // data_class: PUBLIC
     pub schema_version: Classified<u32>,              // data_class: PUBLIC
 }
 
@@ -217,6 +273,52 @@ pub struct CashTransferProposalInput {
     pub cash_pool_ref: String,               // data_class: INTERNAL_ONLY
     pub approval_policy_evidence_ref: String, // data_class: INTERNAL_ONLY
     pub proposal_evidence_ref: String,       // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct TreasuryOutboundPlanInput {
+    pub tenant_id: String,                 // data_class: INTERNAL_ONLY
+    pub env_tier: Option<TreasuryEnvTier>, // data_class: PUBLIC metadata contract
+    pub caller_supplied_outbound_mode: Option<TreasuryOutboundMode>, // data_class: PUBLIC
+    pub treasury_action_class: TreasuryActionClass, // data_class: PUBLIC
+    pub destination_tenant_id: String,     // data_class: INTERNAL_ONLY
+    pub destination_binding_ref: String,   // data_class: INTERNAL_ONLY
+    pub policy_evidence_ref: String,       // data_class: INTERNAL_ONLY
+    pub destination_ownership_evidence_ref: String, // data_class: INTERNAL_ONLY
+    pub intercept_evidence_ref: Option<String>, // data_class: INTERNAL_ONLY
+    pub financial_acknowledgment_ref: Option<String>, // data_class: INTERNAL_ONLY
+    pub bank_network_call_attached: bool,  // data_class: PUBLIC non-claim flag
+    pub swift_transport_attached: bool,    // data_class: PUBLIC non-claim flag
+    pub host_to_host_transport_attached: bool, // data_class: PUBLIC non-claim flag
+    pub payment_execution_attached: bool,  // data_class: PUBLIC non-claim flag
+    pub ledger_mutation_attached: bool,    // data_class: PUBLIC non-claim flag
+    pub durable_persistence_attached: bool, // data_class: PUBLIC non-claim flag
+    pub runtime_audit_chain_emission_attached: bool, // data_class: PUBLIC non-claim flag
+    pub production_delivery_claimed: bool, // data_class: PUBLIC non-claim flag
+    pub hyperscaler_maturity_claimed: bool, // data_class: PUBLIC non-claim flag
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct TreasuryOutboundPlan {
+    pub tenant_id: Classified<TenantId>, // data_class: INTERNAL_ONLY
+    pub env_tier: Classified<TreasuryEnvTier>, // data_class: PUBLIC
+    pub outbound_mode: Classified<TreasuryOutboundMode>, // data_class: PUBLIC
+    pub treasury_action_class: Classified<TreasuryActionClass>, // data_class: PUBLIC
+    pub destination_binding_ref: Classified<DestinationBindingRef>, // data_class: INTERNAL_ONLY
+    pub policy_evidence_ref: Classified<EvidenceRef>, // data_class: INTERNAL_ONLY
+    pub destination_ownership_evidence_ref: Classified<EvidenceRef>, // data_class: INTERNAL_ONLY
+    pub intercept_evidence_ref: Option<Classified<EvidenceRef>>, // data_class: INTERNAL_ONLY
+    pub financial_acknowledgment_ref: Option<Classified<EvidenceRef>>, // data_class: INTERNAL_ONLY
+    pub bank_network_call_attached: Classified<bool>, // data_class: PUBLIC
+    pub swift_transport_attached: Classified<bool>, // data_class: PUBLIC
+    pub host_to_host_transport_attached: Classified<bool>, // data_class: PUBLIC
+    pub payment_execution_attached: Classified<bool>, // data_class: PUBLIC
+    pub ledger_mutation_attached: Classified<bool>, // data_class: PUBLIC
+    pub durable_persistence_attached: Classified<bool>, // data_class: PUBLIC
+    pub runtime_audit_chain_emission_attached: Classified<bool>, // data_class: PUBLIC
+    pub production_delivery_claimed: Classified<bool>, // data_class: PUBLIC
+    pub hyperscaler_maturity_claimed: Classified<bool>, // data_class: PUBLIC
+    pub schema_version: Classified<u32>, // data_class: PUBLIC
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -241,6 +343,11 @@ pub struct CashTransferProposal {
     pub payment_execution_attached: Classified<bool>,             // data_class: PUBLIC
     pub bank_network_call_attached: Classified<bool>,             // data_class: PUBLIC
     pub cloud_deployment_attached: Classified<bool>,              // data_class: PUBLIC
+    pub durable_persistence_attached: Classified<bool>,           // data_class: PUBLIC
+    pub workflow_execution_attached: Classified<bool>,            // data_class: PUBLIC
+    pub accounting_ledger_mutation_attached: Classified<bool>,    // data_class: PUBLIC
+    pub statutory_filing_attached: Classified<bool>,              // data_class: PUBLIC
+    pub runtime_audit_chain_emission_attached: Classified<bool>,  // data_class: PUBLIC
     pub schema_version: Classified<u32>,                          // data_class: PUBLIC
 }
 
@@ -265,6 +372,16 @@ pub enum TreasuryDomainError {
     SameBankAccountTransfer,
     InsufficientSourceSurplus,
     NoTargetLiquidityNeed,
+    MissingEnvTier,
+    OutboundModeMustBeDerived,
+    InvalidDestinationBindingRef,
+    TestInterceptDestinationRequired,
+    StagingQaDestinationRequired,
+    ProdPolicyEvidenceRequired,
+    ProdFinancialAcknowledgmentRequired,
+    CrossTenantBankDestination,
+    RawCredentialOrSwiftSecret,
+    RuntimeBankOrPaymentClaimDenied,
 }
 
 pub fn approve_bank_account(
@@ -381,6 +498,10 @@ pub fn record_cash_position(
         payment_execution_attached: public(false),
         bank_network_call_attached: public(false),
         cloud_deployment_attached: public(false),
+        durable_persistence_attached: public(false),
+        workflow_execution_attached: public(false),
+        accounting_ledger_mutation_attached: public(false),
+        statutory_filing_attached: public(false),
         runtime_audit_chain_emission_attached: public(false),
         schema_version: public(TREASURY_SCHEMA_VERSION),
     })
@@ -462,6 +583,11 @@ pub fn project_liquidity_forecast(
         payment_execution_attached: public(false),
         bank_network_call_attached: public(false),
         cloud_deployment_attached: public(false),
+        durable_persistence_attached: public(false),
+        workflow_execution_attached: public(false),
+        accounting_ledger_mutation_attached: public(false),
+        statutory_filing_attached: public(false),
+        runtime_audit_chain_emission_attached: public(false),
         schema_version: public(TREASURY_SCHEMA_VERSION),
     })
 }
@@ -558,6 +684,114 @@ pub fn propose_cash_transfer(
         payment_execution_attached: public(false),
         bank_network_call_attached: public(false),
         cloud_deployment_attached: public(false),
+        durable_persistence_attached: public(false),
+        workflow_execution_attached: public(false),
+        accounting_ledger_mutation_attached: public(false),
+        statutory_filing_attached: public(false),
+        runtime_audit_chain_emission_attached: public(false),
+        schema_version: public(TREASURY_SCHEMA_VERSION),
+    })
+}
+
+pub fn plan_treasury_outbound_metadata(
+    input: TreasuryOutboundPlanInput,
+) -> Result<TreasuryOutboundPlan, TreasuryDomainError> {
+    let env_tier = input.env_tier.ok_or(TreasuryDomainError::MissingEnvTier)?;
+    let outbound_mode = env_tier.outbound_mode();
+    if input
+        .caller_supplied_outbound_mode
+        .is_some_and(|caller_supplied| caller_supplied != outbound_mode)
+    {
+        return Err(TreasuryDomainError::OutboundModeMustBeDerived);
+    }
+    validate_tenant_id(&input.tenant_id)?;
+    validate_tenant_id(&input.destination_tenant_id)?;
+    if input.tenant_id != input.destination_tenant_id {
+        return Err(TreasuryDomainError::CrossTenantBankDestination);
+    }
+    validate_destination_binding_ref(&input.destination_binding_ref)?;
+    validate_fixture_ref_has_no_raw_financial_secret(&input.policy_evidence_ref)?;
+    validate_evidence_ref(&input.policy_evidence_ref)?;
+    validate_fixture_ref_has_no_raw_financial_secret(&input.destination_ownership_evidence_ref)?;
+    validate_evidence_ref(&input.destination_ownership_evidence_ref)?;
+    let intercept_evidence_ref = input
+        .intercept_evidence_ref
+        .as_ref()
+        .map(|value| {
+            validate_fixture_ref_has_no_raw_financial_secret(value)?;
+            validate_evidence_ref(value)?;
+            Ok(internal(EvidenceRef {
+                value: value.clone(),
+            }))
+        })
+        .transpose()?;
+    let financial_acknowledgment_ref = input
+        .financial_acknowledgment_ref
+        .as_ref()
+        .map(|value| {
+            validate_fixture_ref_has_no_raw_financial_secret(value)?;
+            validate_evidence_ref(value)?;
+            Ok(internal(EvidenceRef {
+                value: value.clone(),
+            }))
+        })
+        .transpose()?;
+    if has_runtime_bank_or_payment_claim(&input) {
+        return Err(TreasuryDomainError::RuntimeBankOrPaymentClaimDenied);
+    }
+    match env_tier {
+        TreasuryEnvTier::Test => {
+            if intercept_evidence_ref.is_none()
+                || !input.destination_binding_ref.starts_with("dest/intercept/")
+            {
+                return Err(TreasuryDomainError::TestInterceptDestinationRequired);
+            }
+        }
+        TreasuryEnvTier::Staging => {
+            if !is_qa_or_test_destination(&input.destination_binding_ref) {
+                return Err(TreasuryDomainError::StagingQaDestinationRequired);
+            }
+        }
+        TreasuryEnvTier::Prod => {
+            if !has_env_tier_cedar_policy_evidence(&input.policy_evidence_ref) {
+                return Err(TreasuryDomainError::ProdPolicyEvidenceRequired);
+            }
+            if financial_acknowledgment_ref.is_none() {
+                return Err(TreasuryDomainError::ProdFinancialAcknowledgmentRequired);
+            }
+            if !input.destination_binding_ref.starts_with("dest/live/") {
+                return Err(TreasuryDomainError::InvalidDestinationBindingRef);
+            }
+        }
+    }
+
+    Ok(TreasuryOutboundPlan {
+        tenant_id: internal(TenantId {
+            value: input.tenant_id,
+        }),
+        env_tier: public(env_tier),
+        outbound_mode: public(outbound_mode),
+        treasury_action_class: public(input.treasury_action_class),
+        destination_binding_ref: internal(DestinationBindingRef {
+            value: input.destination_binding_ref,
+        }),
+        policy_evidence_ref: internal(EvidenceRef {
+            value: input.policy_evidence_ref,
+        }),
+        destination_ownership_evidence_ref: internal(EvidenceRef {
+            value: input.destination_ownership_evidence_ref,
+        }),
+        intercept_evidence_ref,
+        financial_acknowledgment_ref,
+        bank_network_call_attached: public(false),
+        swift_transport_attached: public(false),
+        host_to_host_transport_attached: public(false),
+        payment_execution_attached: public(false),
+        ledger_mutation_attached: public(false),
+        durable_persistence_attached: public(false),
+        runtime_audit_chain_emission_attached: public(false),
+        production_delivery_claimed: public(false),
+        hyperscaler_maturity_claimed: public(false),
         schema_version: public(TREASURY_SCHEMA_VERSION),
     })
 }
@@ -650,17 +884,79 @@ fn validate_ref(
     {
         return Err(error);
     }
-    let lowered = value.to_ascii_lowercase();
-    if lowered.contains("token")
-        || lowered.contains("secret")
-        || lowered.contains("bearer")
-        || lowered.contains("password")
-        || lowered.contains("api-key")
-        || lowered.contains("apikey")
-    {
+    if has_raw_financial_secret_marker(value) {
         return Err(error);
     }
     Ok(())
+}
+
+fn validate_destination_binding_ref(value: &str) -> Result<(), TreasuryDomainError> {
+    if value == DESTINATION_BINDING_REF_PREFIX
+        || !value.starts_with(DESTINATION_BINDING_REF_PREFIX)
+        || has_unsafe_text(value)
+        || value.contains("..")
+    {
+        return Err(TreasuryDomainError::InvalidDestinationBindingRef);
+    }
+    validate_fixture_ref_has_no_raw_financial_secret(value)
+}
+
+fn validate_fixture_ref_has_no_raw_financial_secret(
+    value: &str,
+) -> Result<(), TreasuryDomainError> {
+    if has_raw_financial_secret_marker(value) {
+        return Err(TreasuryDomainError::RawCredentialOrSwiftSecret);
+    }
+    Ok(())
+}
+
+fn has_raw_financial_secret_marker(value: &str) -> bool {
+    let lowered = value.to_ascii_lowercase();
+    [
+        "secret",
+        "token",
+        "bearer",
+        "password",
+        "api-key",
+        "api_key",
+        "apikey",
+        "access-key",
+        "access_key",
+        "credential",
+        "bank-credential",
+        "private-key",
+        "private_key",
+        "privatekey",
+        "swift-secret",
+        "swift_key",
+        "swift-key",
+    ]
+    .iter()
+    .any(|marker| lowered.contains(marker))
+}
+
+fn has_runtime_bank_or_payment_claim(input: &TreasuryOutboundPlanInput) -> bool {
+    input.bank_network_call_attached
+        || input.swift_transport_attached
+        || input.host_to_host_transport_attached
+        || input.payment_execution_attached
+        || input.ledger_mutation_attached
+        || input.durable_persistence_attached
+        || input.runtime_audit_chain_emission_attached
+        || input.production_delivery_claimed
+        || input.hyperscaler_maturity_claimed
+}
+
+fn is_qa_or_test_destination(destination_binding_ref: &str) -> bool {
+    destination_binding_ref.starts_with("dest/qa/")
+        || destination_binding_ref.starts_with("dest/test/")
+        || destination_binding_ref.contains("/qa/")
+        || destination_binding_ref.contains("/test/")
+}
+
+fn has_env_tier_cedar_policy_evidence(policy_evidence_ref: &str) -> bool {
+    let lowered = policy_evidence_ref.to_ascii_lowercase();
+    lowered.contains("env-tier") && lowered.contains("cedar")
 }
 
 fn validate_evidence_ref(value: &str) -> Result<(), TreasuryDomainError> {

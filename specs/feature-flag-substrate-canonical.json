@@ -61,7 +61,7 @@
         "durable": true
       }
     },
-    "ci_lane": "feature-flag-lifecycle (oya gate validate feature-flag-lifecycle)",
+    "ci_lane": "feature-flag-lifecycle (cloud-ci/Rust gate packet: feature-flag-lifecycle)",
     "violations": [
       "release_toggle past sunset_at by > 0 days",
       "experiment past sunset_at by > 0 days",

@@ -931,7 +931,19 @@ fn cloud_network_status_kind(error: &CloudNetworkError) -> CloudNetworkLbApiStat
         | CloudNetworkError::EvidenceRefMissing
         | CloudNetworkError::EvidenceRefLooksSecretLike
         | CloudNetworkError::InvalidFlowAnomalyId
-        | CloudNetworkError::FlowLogsRequired => CloudNetworkLbApiStatusKind::BadRequest,
+        | CloudNetworkError::FlowLogsRequired
+        | CloudNetworkError::InvalidResourceContractPolicyRef
+        | CloudNetworkError::InvalidResourceContractQuota
+        | CloudNetworkError::InvalidResourceContractBillingMeter
+        | CloudNetworkError::InvalidResourceContractAuditEvent
+        | CloudNetworkError::InvalidResourceContractObservabilityHook
+        | CloudNetworkError::InvalidResourceContractRollbackPlan
+        | CloudNetworkError::InvalidResourceContractReconciliationStatus
+        | CloudNetworkError::InvalidResourceContractScope
+        | CloudNetworkError::ResourceContractRuntimeClaimOutOfScope
+        | CloudNetworkError::ResourceContractMeasuredSloClaimOutOfScope => {
+            CloudNetworkLbApiStatusKind::BadRequest
+        }
     }
 }
 
@@ -1117,6 +1129,36 @@ fn cloud_network_issue(error: &CloudNetworkError) -> &'static str {
         CloudNetworkError::DuplicateDnsZone => "DNS zone resource id is already present",
         CloudNetworkError::DuplicateCdnDistribution => {
             "CDN distribution resource id is already present"
+        }
+        CloudNetworkError::InvalidResourceContractPolicyRef => {
+            "resource contract policy reference is required"
+        }
+        CloudNetworkError::InvalidResourceContractQuota => {
+            "resource contract quota reservation or refusal is required"
+        }
+        CloudNetworkError::InvalidResourceContractBillingMeter => {
+            "resource contract billing meter intent is required"
+        }
+        CloudNetworkError::InvalidResourceContractAuditEvent => {
+            "resource contract audit event envelope is required"
+        }
+        CloudNetworkError::InvalidResourceContractObservabilityHook => {
+            "resource contract observability hook is required"
+        }
+        CloudNetworkError::InvalidResourceContractRollbackPlan => {
+            "resource contract rollback/compensating action is required"
+        }
+        CloudNetworkError::InvalidResourceContractReconciliationStatus => {
+            "resource contract desired-vs-actual reconciliation status is required"
+        }
+        CloudNetworkError::InvalidResourceContractScope => {
+            "resource contract scope must match the resource type boundary"
+        }
+        CloudNetworkError::ResourceContractRuntimeClaimOutOfScope => {
+            "resource contract must not claim live registry, ledger, reconciler, or provider apply"
+        }
+        CloudNetworkError::ResourceContractMeasuredSloClaimOutOfScope => {
+            "resource contract must not claim measured SLO evidence"
         }
     }
 }

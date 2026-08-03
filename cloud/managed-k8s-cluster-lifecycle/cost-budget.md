@@ -1,15 +1,18 @@
-# Managed K8s Tenant Quota — Cost / FinOps
+# Managed K8s Cluster Lifecycle — Cost / FinOps
 
-## Cost Model (ADR-0340 declaration)
+## Cost model (ADR-0340 declaration)
 
-| Dimension | Value |
-|-----------|-------|
-| Baseline CPU per tenant | 0.01 vCPU |
-| Baseline RAM per tenant | 32 MiB |
-| Storage per tenant | 0 (in-memory store; production: shared Postgres) |
-| Scaling dimension | per_request (O(1) evaluate) |
-| Cell placement class | Tier-3 |
+| Dimension | Cluster-lifecycle value |
+|-----------|-------------------------|
+| Admission compute | Request validation plus one quota-decision port call |
+| Backend actuation | One control-plane-host port call only after quota allow |
+| Persistent storage owned here | None in the current deterministic foundation |
+| Scaling dimension | Per cluster lifecycle request |
+| Cell placement class | Dogfood/design foundation; no production placement claim |
 
-The `evaluate()` function is O(1) with no allocations on the allow path.
-No persistent storage is wired in this wave; production Postgres adapter is a
-follow-on (registry/placeholder-debt/adr-follow-ups.yaml#adr-0376-billing-emission).
+Cluster-lifecycle does not own quota-service metering, billing emission, or quota
+storage. Cost references in this service are admission-budget and dependency
+framing only: quota must allow before provisioning, and lifecycle calls must stay
+bounded so follow-on FinOps attribution can connect lifecycle operations to the
+tenant-quota and control-plane-host services without making billing-readiness
+claims here.

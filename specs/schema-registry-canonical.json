@@ -42,7 +42,7 @@
       "graphql.workflow-engine.api.v1.WorkflowQuery",
       "jsonschema.governance.manifest.scorecard-overrides"
     ],
-    "ci_validator": "oya gate validate schema-registry-naming-convention"
+    "ci_validator": "cloud-ci/Rust gate packet: schema-registry-naming-convention"
   },
   "contract_authoring_model": {
     "single_shared_source_of_truth_required": true,
@@ -92,7 +92,7 @@
   },
   "ci_lane_backward_compat": {
     "name": "schema-registry-backward-compat",
-    "command": "oya gate validate schema-registry-backward-compat",
+    "command": "cloud-ci/Rust gate packet: schema-registry-backward-compat",
     "blocking": true,
     "required_status_check_on": [
       "dev",

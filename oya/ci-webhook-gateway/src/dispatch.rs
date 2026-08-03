@@ -3,11 +3,11 @@
 //! Per ADR-0366 (self-enforcing pipeline) + ADR-0367 (trustless gateway), a
 //! routable PR event drives the gated pipeline in this order:
 //!
-//! - Stage 1, admission: repo-entry governance check (`oya-vcs-admission`).
-//! - Stage 2, `oya gate run-all`: the ~50 oyatie governance lanes. Jenkins is
-//!   the TRUSTED RUNNER that re-executes hermetically and signs (ADR-0367 D1).
-//!   The gateway only KICKS the Jenkins lane; it does not itself run gates and
-//!   it never trusts author-reported evidence.
+//! - Stage 1, admission: historical repo-entry bridge check (`oya-vcs-admission`).
+//! - Stage 2, legacy local replay (`oya gate run-all`): the bridge-era
+//!   governance lanes. The gateway only kicks the Jenkins lane; it does not
+//!   define protected-branch authority, which is now the cloud-ci Rust gate
+//!   packet posting `oya-ci-required`.
 //! - Stage 3, reviewer gate: adversarial reviewer, a CI stage powered by the
 //!   Intelligence service (ADR-0367 D2), with a distinct identity from the
 //!   author. NOT yet stood up — the typed `Unimplemented` boundary.
@@ -15,13 +15,13 @@
 //!   ADR-0363 §3 until concurrent-PR volume justifies it. Also the boundary.
 //!
 //! Board snapshot events are deliberately narrower: they return an observable
-//! board-projection receipt and must not kick `oya gate run-all`.
+//! board-projection receipt and must not kick the legacy local replay.
 //!
 //! The gateway's PR job is the FIRST hop: verify + parse + route + dispatch the
 //! pipeline kickoff. Stages 3 and 4 are not yet stood up in the substrate, so
 //! they are expressed as the typed `Unimplemented` boundary (HTTP 501) and
-//! tracked in `registry/placeholder-debt/`. Stages 1 and 2 dispatch by kicking
-//! the Jenkins `oyaCiLane` pipeline (which posts the GitHub commit statuses).
+//! tracked in `registry/placeholder-debt/`. Stages 1 and 2 dispatch only the
+//! historical Jenkins `oyaCiLane` bridge; they are not merge authority.
 
 use std::future::Future;
 use std::pin::Pin;
@@ -35,7 +35,7 @@ use crate::event::{CiEvent, IssueAction};
 pub const DEBT_REVIEWER_GATE: &str = "adr-0374-reviewer-gate-dispatch";
 pub const DEBT_MERGE_QUEUE: &str = "adr-0374-merge-queue-admit";
 
-/// A request to kick the trusted-runner (Jenkins) pipeline for one event.
+/// A request to kick the historical Jenkins bridge pipeline for one event.
 /// This is the payload the Jenkins dispatch endpoint (generic-webhook-trigger
 /// or build-token) consumes to start `oyaCiLane`.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -117,8 +117,8 @@ pub struct DispatchReceipt {
     pub snapshot_id: Option<String>,
     /// The furthest stage the gateway successfully kicked.
     pub kicked_through: PipelineStage,
-    /// The next stage, which is the typed `Unimplemented` boundary (the
-    /// trusted-runner pipeline owns advancing past `kicked_through`).
+    /// The next stage, which is the typed `Unimplemented` boundary (stages
+    /// past the historical bridge replay are outside this gateway).
     pub boundary: Option<PipelineStage>,
 }
 
@@ -143,9 +143,9 @@ impl DispatchSubject {
 /// depends only on this trait (clean-architecture port) so the HTTP receiver
 /// is independent of the concrete Jenkins transport.
 pub trait PipelineDispatcher: Send + Sync {
-    /// Kick admission + the trusted-runner gate pipeline for this event.
-    /// Returns the receipt; downstream stages past the kicked pipeline are the
-    /// trusted runner's responsibility (it posts the GitHub commit statuses).
+    /// Kick the historical admission + local-replay bridge for this event.
+    /// Returns the receipt; downstream stages past the bridge are outside this
+    /// gateway and do not define current protected-branch authority.
     fn dispatch<'a>(
         &'a self,
         event: &'a CiEvent,
@@ -189,8 +189,8 @@ where
                 return Ok(receipt);
             }
 
-            // Stage 1 + 2: the Jenkins `oyaCiLane` pipeline runs admission then
-            // the gate set (the trusted-runner re-execution per ADR-0367).
+            // Stage 1 + 2: the Jenkins `oyaCiLane` bridge replays admission
+            // then the historical gate set for provenance/local feedback.
             let Some(url) = self.dispatch_url.clone() else {
                 return Err(GatewayError::DispatchTransport(
                     "Jenkins dispatch URL not configured (OYA_JENKINS_DISPATCH_URL); \

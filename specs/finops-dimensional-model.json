@@ -801,7 +801,7 @@
         },
         "requires_validator_lane": {
           "type": "string",
-          "const": "oya gate validate finops-dimensional-rollup"
+          "const": "cloud-ci/Rust gate packet: finops-dimensional-rollup"
         }
       }
     }

@@ -1,7 +1,7 @@
 //! Crate-local error type for the trust daemon.
 
-use std::fmt;
 use oya_cloud_os_kernel::Error as CoreError;
+use std::fmt;
 
 /// Errors raised by the trustd PKI subsystem.
 #[derive(Debug, Clone, PartialEq, Eq)]

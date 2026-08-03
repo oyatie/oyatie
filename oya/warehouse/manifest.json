@@ -311,6 +311,39 @@
     "cell_placement_class": "Tier-3",
     "notes": "Inbound, picking, cross-dock, and hazmat flows are event/message heavy."
   },
+  "sustainability_emission_model": {
+    "pod_runtime_tier_ref": "self.pod_runtime_tier",
+    "power_model": {
+      "cpu_watts_per_vcpu_second": 0.43,
+      "memory_watts_per_gib_second": 0.003,
+      "storage_watts_per_gib_hour": 0.00125,
+      "network_watts_per_gib": 0.082,
+      "tier_overhead_factor": {
+        "tier_0_kata_clh": 1.4,
+        "tier_1_kata_clh": 1.4,
+        "tier_2_runc": 1.0,
+        "tier_3_runc_edge": 1.05
+      }
+    },
+    "price_model": {
+      "source": "provider_sku_pricing",
+      "binding": "cloud/cloud-billing/manifest.json#provider-sku-pricing-advisory-binding",
+      "pin_window_hours": 24
+    },
+    "workload_signal_source": {
+      "signal_family": "per_message",
+      "source_ref": "oya/warehouse/manifest.json#audit_chain.seal_events:EVT-WAREHOUSE-INBOUND_DELIVERY-CHANGED+EVT-WAREHOUSE-PICKING_WAVE-CHANGED+EVT-WAREHOUSE-OUTBOUND_DELIVERY-CHANGED"
+    },
+    "emission_path_tests": [
+      "oya/warehouse/crates/oya-warehouse-inventory-domain/tests/inventory.rs",
+      "SPEC-FINOPS-EMISSION-BATCH-ERP-OPS-001 fixture-only: inventory movement and pick/pack/ship assertions must add cost/co2/watt_hours/provider/region before any live FinOps claim"
+    ],
+    "validation_baseline": {
+      "expected_watt_hours_per_request_p50_mwh": 8.7,
+      "expected_co2_grams_per_request_p50_at_grid_400gco2_per_kwh": 0.00348,
+      "tolerance_pct": 20
+    }
+  },
   "sharding_automation": {
     "autosharding": "control_plane_driven",
     "auto_rebalance": {

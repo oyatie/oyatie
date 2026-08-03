@@ -1,15 +1,14 @@
-replicaCount: 3
-image:
-  repository: registry.example/oya-global-trade
-  tag: 0.1.0
-transport:
-  default: HTTP/3
-  fallback: [HTTP/2, HTTP/1.1]
-  ech: true
-  pqcHybrid: X25519MLKEM768
-benchmarks:
-  - "SAP GTS Global Trade Services"
-  - "Oracle Global Trade Management"
-  - "Workday supplier-compliance workflow counterpart"
-  - "NetSuite international tax and trade counterpart"
-  - "Microsoft Dynamics 365 global trade and export-control counterpart"
+# Current authority: specs/microservices/global-trade.json metadata-only PRD; inventory/provenance/planned-only.
+schema_version: "1.0"
+artifact: oya/global-trade/iac/helm-values.yaml
+status: inventory-provenance-planned-only
+current_authority: specs/microservices/global-trade.json
+authority_status: metadata-only PRD
+non_claims:
+  - no Kubernetes workload authority
+  - no Helm release authority
+  - no Terraform or OpenTofu apply authority
+  - no OpenBao/runtime secret authority
+  - no cloud deployment
+  - no runtime audit-chain emission
+future_gate: separate authority-gated RED/test-first implementation lane required before use

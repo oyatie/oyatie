@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://docs.oyatie.com/specs/deployment-ops-contract.json",
   "title": "DeploymentOpsContract",
-  "description": "Machine-readable deployment entrypoint contract: OpenTofu owns the Cloudflare edge, the cluster fleet is provisioned declaratively by Cluster API + Talos (installation-media zero-touch) + per-cell Argo CD, the root Makefile owns operator entry, day-2 changes route through ops, and no manual SSH troubleshooting.",
+  "description": "Machine-readable deployment entrypoint contract: OpenTofu owns the Cloudflare edge, the cluster fleet is provisioned declaratively by Cluster API + Talos installation media + per-cell Argo CD, production worker zero-touch is gated by the node config-serving plane, the root Makefile owns operator entry, day-2 changes route through ops, and no manual SSH troubleshooting.",
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-DEPLOYMENT-OPS-CONTRACT",
@@ -44,10 +44,77 @@
   },
   "cluster_fleet": {
     "model": "Cluster API + Talos + Argo CD (ADR-0375; supersedes ADR-0120/0121)",
-    "node_install": "Talos installation-media zero-touch (infra/talos/installation-media) — control-plane config baked offline, nodes fetch config",
+    "node_install": "Talos installation-media (infra/talos/installation-media): control-plane config is baked offline; node media is generic/no-secret and becomes production zero-touch only when node_config_serving_plane has evidence for MAC/UUID -> machineconfig assignment. Until then, node media is experimental for more than hand-assigned nodes.",
     "cluster_lifecycle": "CAPI (infra/capi): clusterctl init + Talos/OCI/AWS/Metal3 providers; spoke Cluster CRs in infra/capi/clusters/",
     "bootstrap_addons": "CAPI ClusterResourceSet installs Cilium + Argo CD per cluster (infra/capi/crs)",
     "app_delivery": "per-cell Argo CD, Helm-first app-of-apps (infra/gitops)"
+  },
+  "node_config_serving_plane": {
+    "status": "specified_not_implemented",
+    "readiness_claim_boundary": "`gen-media.sh node` only builds a generic no-secret Talos image with `talos.config=$CONFIG_URL`. It does not prove production worker zero-touch until a hub-side config-serving plane or adopted Talos/Sidero metadata server maps attested machine identity to a generated Talos machineconfig and records custody/audit evidence.",
+    "serving_endpoint": {
+      "kernel_arg": "talos.config=$CONFIG_URL",
+      "contract": "CONFIG_URL terminates on a private hub endpoint that returns exactly one Talos machineconfig for the requesting node when, and only when, the request can be bound to an approved assignment registry row.",
+      "live_endpoint_in_repo": false,
+      "fallback_policy": "No generic worker machineconfig fallback is allowed; unknown or ambiguous machines fail closed."
+    },
+    "assignment_identity": {
+      "accepted_keys": [
+        "network_interface_mac",
+        "smbios_system_uuid"
+      ],
+      "trusted_binding_sources": [
+        "BMC/DCIM inventory",
+        "switch-port or DHCP lease inventory",
+        "adopted Talos/Sidero metadata identity with operator-approved registry row"
+      ],
+      "forbidden_binding": "Do not trust a self-asserted MAC/UUID parameter by itself for production config release."
+    },
+    "assignment_registry_minimum_fields": [
+      "assignment_id",
+      "cell_id",
+      "cluster_id",
+      "node_role",
+      "network_interface_mac or smbios_system_uuid",
+      "machineconfig_version",
+      "machineconfig_sha256",
+      "custody_secret_ref",
+      "assignment_status",
+      "valid_from",
+      "valid_until",
+      "revoked_at",
+      "approved_by",
+      "audit_chain_event_id"
+    ],
+    "machineconfig_custody": {
+      "raw_config_storage": "Generated Talos machineconfig is stored only in an approved secret/custody system (for example OpenBao or sealed off-host envelope); the repo and registry store refs and SHA-256 digests only.",
+      "custody_invariants": [
+        "No machineconfig, bootstrap secret, token, or certificate material is committed to git.",
+        "Every generated config has a digest, version, owner, and audit-chain event before it can be served.",
+        "Config reads are audited without logging secret payloads."
+      ]
+    },
+    "authn_authz": {
+      "network_boundary": "Private bootstrap network or equivalent protected ingress; endpoint is not a public unauthenticated internet URL.",
+      "write_authorization": "Assignment registry writes require ops-platform approval and policy/audit evidence.",
+      "read_authorization": "Config reads require an attested machine identity match plus active assignment status; mismatches return no secret-bearing body."
+    },
+    "rotation_revocation": [
+      "Revoking an assignment prevents any future config serve for that MAC/UUID and records revoked_at plus audit_chain_event_id.",
+      "Machineconfig rotation creates a new version/digest and keeps prior versions non-servable unless explicitly rollback-approved.",
+      "Lost or reassigned hardware requires assignment revocation, Talos credential/certificate rotation as applicable, and CAPI reconciliation through the normal fleet path."
+    ],
+    "bootstrap_failure_behavior": [
+      "Unknown, duplicate, expired, or revoked identities fail closed with 403/404 and no machineconfig payload.",
+      "The operator-facing failure record names the assignment reason and remediation path, but never exposes machineconfig secrets.",
+      "Failure does not fall back to SSH troubleshooting; remediation is an assignment registry or generated-config fix followed by normal Talos/CAPI retry."
+    ],
+    "architecture_boundary": "Preserves ADR-0375: CAPI/Talos/Argo CD owns the fleet; OpenTofu remains Cloudflare edge only.",
+    "safe_local_validation": [
+      "Fixture assignment registry rows can validate MAC/UUID uniqueness, required fields, revocation, and digest shape without live hardware.",
+      "Fixture machineconfig files can validate digest/custody refs without containing real secrets.",
+      "`gen-media.sh node --dry-run` remains a no-network command-shape check and does not claim a serving plane exists."
+    ]
   },
   "operator_entrypoints": {
     "makefile": {
@@ -62,9 +129,11 @@
         "tofu-fmt-check",
         "verify",
         "verify-deploy-contract",
-        "ops"
+        "ops",
+        "fleet",
+        "fleet-preflight"
       ],
-      "command_policy": "Make targets may invoke cargo/Rust gates and tofu only (Cloudflare edge). They must not embed ssh troubleshooting, oci compute mutation, or terraform CLI. Cluster-fleet bring-up is git/CAPI-driven (see `make fleet`)."
+      "command_policy": "Make targets may invoke cargo/Rust gates and tofu only (Cloudflare edge). They must not embed ssh troubleshooting, oci compute mutation, or terraform CLI. Cluster-fleet bring-up is git/CAPI-driven (see `make fleet`). `make fleet-preflight` is non-mutating readiness evidence only and must not run clusterctl init, kubectl apply, tofu apply, Talos media builds, or hardware boot steps."
     },
     "allowed_human_commands_after_clone": [
       "make bootstrap",
@@ -72,6 +141,7 @@
       "make plan",
       "make apply",
       "make fleet",
+      "make fleet-preflight",
       "make ops",
       "make verify"
     ],
@@ -98,7 +168,7 @@
   },
   "install_contract": {
     "entrypoint": "make install",
-    "scope_note": "`make install` provisions ONLY the OpenTofu-owned Cloudflare edge (it is `install: apply`). It does NOT provision the cluster fleet — fleet bring-up is hardware-gated (boot Talos installation-media on real nodes) and multi-step, and `make fleet` is informational-only (prints the sequence). Treat fleet bring-up as a separate, manual/hardware-gated procedure until the cloud-ci fleet-bootstrap pipeline lands (registry/placeholder-debt/adr-follow-ups.yaml#adr-0375-fleet-bootstrap-pipeline).",
+    "scope_note": "`make install` provisions ONLY the OpenTofu-owned Cloudflare edge (it is `install: apply`). It does NOT provision the cluster fleet — fleet bring-up is hardware-gated (boot Talos installation-media on real nodes) and multi-step, and `make fleet` is informational-only (prints the sequence). Treat fleet bring-up as a separate, manual/hardware-gated procedure; `make fleet-preflight` is the safe cloud-ci/readiness pipeline entrypoint until a hub kubeconfig exists for live bootstrap evidence (registry/placeholder-debt/adr-follow-ups.yaml#adr-0375-fleet-bootstrap-pipeline).",
     "normal_flow": [
       "run Rust deployment contract gate",
       "run tofu apply for infra/cloudflare (this is the entire `make install`)"
@@ -111,6 +181,44 @@
       "add cells to infra/capi/clusters/values.yaml and helm template | kubectl apply — CAPI reconciles; per-cell Argo CD then owns app delivery"
     ],
     "confirmation_policy": "OpenTofu apply prompts by default; do not use hidden auto-approve in the Makefile."
+  },
+  "fleet_readiness_pipeline": {
+    "entrypoint": "make fleet-preflight",
+    "cloud_ci_entrypoint": "FLEET_PREFLIGHT_STRICT=1 FLEET_PREFLIGHT_OUT=$ARTIFACT_DIR/fleet-preflight make fleet-preflight",
+    "non_mutating": true,
+    "covers": [
+      "Talos installation-media control-plane and node command shapes",
+      "Cluster API provider pins and clusterctl init command shape",
+      "ClusterResourceSet render/template shape through infra/capi/crs/render.sh --dry-run",
+      "spoke-cell Helm render shape for infra/capi/clusters",
+      "per-cell Argo CD app-of-apps Helm render shape for infra/gitops",
+      "hardware-gated cut lines that keep live bootstrap separate from Cloudflare edge install"
+    ],
+    "forbidden_during_preflight": [
+      "clusterctl init",
+      "kubectl apply",
+      "tofu apply",
+      "talosctl gen config",
+      "docker run imager",
+      "dd installation media writes",
+      "hardware boot or cluster state mutation"
+    ],
+    "expected_artifacts": [
+      "report.txt",
+      "hardware-gated-cut-lines.txt",
+      "crs/crs-configmaps.yaml when Helm and kubectl are available",
+      "crs/clusterresourceset.yaml when Helm and kubectl are available",
+      "spokes.yaml when Helm is available",
+      "gitops-apps.yaml when Helm is available"
+    ],
+    "future_live_bootstrap_evidence_once_hub_kubeconfig_exists": [
+      "Talos control-plane ISO checksum and custody/shred evidence, not the ISO itself",
+      "node Image Factory schematic id and checksum",
+      "clusterctl init provider readiness transcript",
+      "CRS apply audit-chain row against the hub",
+      "spoke server-side dry-run/apply transcript",
+      "per-cell Argo CD sync health transcript"
+    ]
   },
   "ops_management_contract": {
     "day_2_surface": "https://ops.oyatie.com",
@@ -157,12 +265,17 @@
     {
       "id": "DEP-OPS-AC-005",
       "rule": "the deployment durable goal no longer routes incidents to page-on-call"
+    },
+    {
+      "id": "DEP-OPS-AC-006",
+      "rule": "worker-node production zero-touch is not claimed until node_config_serving_plane is implemented with assignment-registry, machineconfig-custody, authn/authz, revocation, and fail-closed bootstrap evidence"
     }
   ],
   "verification_commands": [
-    "cargo run -p oya-dev-cli -- gate validate deployment-ops-contract",
+    "cloud-ci/Rust gate packet: deployment-ops-contract",
     "make help",
     "make fleet",
+    "make fleet-preflight",
     "make verify-deploy-contract",
     "TOFU=tofu make tofu-fmt-check"
   ]

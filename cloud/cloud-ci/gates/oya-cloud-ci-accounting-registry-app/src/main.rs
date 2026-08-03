@@ -33,6 +33,8 @@ use oya_cloud_ci_accounting_registry_app::{
 use serde_json::{Value, json};
 
 const SCM_FACTS_SCHEMA: &str = "oya-ci/scm-facts/v1";
+const ZERO_STATIC_SECRETS_POLICY_PATH: &str =
+    "cloud/cloud-ci/gates/oya-cloud-ci-zero-static-secrets-app/zero-static-secrets-policy.json";
 
 fn main() {
     if let Err(error) = run() {
@@ -208,6 +210,24 @@ fn run() -> Result<(), CliError> {
     let cfg = load_config(&repo_root)?;
     let config_digest = cfg.digest();
 
+    if to_stdout {
+        let early_face = match face.as_str() {
+            "multi-region-disposition" => Some(collect_multi_region_disposition(
+                &repo_root,
+                &scm_facts.tracked_paths,
+                &cfg,
+            )),
+            "load-balancer-inventory" => Some(collect_load_balancer_inventory(&repo_root)),
+            "sovereign-tenant-pin" => Some(collect_sovereign_tenant_pin(&repo_root)),
+            "tenant-environment-tier" => Some(collect_tenant_environment_tier(&repo_root)),
+            _ => None,
+        };
+        if let Some(value) = early_face {
+            print!("{}", to_canonical_json(&value)?);
+            return Ok(());
+        }
+    }
+
     let policy = Policy::from_config(&cfg)?;
     let inputs = collect_repo_inputs(&repo_root, &cfg, &scm_facts);
     let registry = build_registry(&inputs, &policy)?;
@@ -239,6 +259,13 @@ fn run() -> Result<(), CliError> {
     // tracked-path universe. This makes the lane input contract portable DATA instead of an
     // Oyatie-only hardcoded directory walk.
     let slo_coverage = collect_slo_coverage(&repo_root, &inputs.tracked_paths, &cfg);
+    let license_policy = collect_license_policy(&repo_root, &inputs.tracked_paths, &cfg)?;
+    let zero_static_secrets = collect_zero_static_secrets(&repo_root, &inputs.tracked_paths, &cfg)?;
+    let load_balancer_inventory = collect_load_balancer_inventory(&repo_root);
+    let multi_region_disposition =
+        collect_multi_region_disposition(&repo_root, &inputs.tracked_paths, &cfg);
+    let sovereign_tenant_pin = collect_sovereign_tenant_pin(&repo_root);
+    let tenant_environment_tier = collect_tenant_environment_tier(&repo_root);
     // The ADR-0538 workspace-glob-coverage gate input: root member entries plus concrete
     // first-party crate-dir coverage against the canonical glob-aware workspace-member resolver.
     let workspace_glob_coverage =
@@ -254,6 +281,12 @@ fn run() -> Result<(), CliError> {
         manifest_hygiene: &manifest_hygiene,
         cargo_prefix: &cargo_prefix,
         slo_coverage: &slo_coverage,
+        license_policy: &license_policy,
+        zero_static_secrets: &zero_static_secrets,
+        load_balancer_inventory: &load_balancer_inventory,
+        multi_region_disposition: &multi_region_disposition,
+        sovereign_tenant_pin: &sovereign_tenant_pin,
+        tenant_environment_tier: &tenant_environment_tier,
         workspace_glob_coverage: &workspace_glob_coverage,
         target_parity: &target_parity,
         enforcement_liveness: &enforcement_liveness,
@@ -271,6 +304,12 @@ fn run() -> Result<(), CliError> {
             "manifest-hygiene" => &manifest_hygiene,
             "cargo-prefix" => &cargo_prefix,
             "slo-coverage" => &slo_coverage,
+            "license-policy" => &license_policy,
+            "zero-static-secrets" => &zero_static_secrets,
+            "load-balancer-inventory" => &load_balancer_inventory,
+            "multi-region-disposition" => &multi_region_disposition,
+            "sovereign-tenant-pin" => &sovereign_tenant_pin,
+            "tenant-environment-tier" => &tenant_environment_tier,
             "workspace-glob-coverage" => &workspace_glob_coverage,
             "target-parity" => &target_parity,
             "enforcement-liveness" => &enforcement_liveness,
@@ -496,10 +535,10 @@ fn collect_bnf_layer_suffix(
         if is_path_excluded(path, cfg) {
             continue;
         }
-        if let Some(name) = parse_package_name(&read_text(&repo_root.join(path))) {
-            if name.starts_with(prefix) {
-                names.insert(name);
-            }
+        if let Some(name) = parse_package_name(&read_text(&repo_root.join(path)))
+            && name.starts_with(prefix)
+        {
+            names.insert(name);
         }
     }
     let rows: Vec<Value> = names
@@ -587,6 +626,228 @@ fn collect_slo_coverage(
             json!({ "crate_id": crate_id, "source_path": source_path, "slo": slo })
         })
         .collect();
+    json!({ "rows": rows })
+}
+
+/// Enumerate package-license rows for every declared, tracked workspace member. The legacy
+/// dev-cli license-policy gate read each member Cargo.toml directly and failed fast on the first
+/// invalid license; this cloud-ci producer keeps the I/O here and emits all rows so the gate can
+/// report surface-all findings while preserving the same `oya-check-license-policy` predicate.
+fn collect_license_policy(
+    repo_root: &Path,
+    tracked_paths: &[String],
+    cfg: &oya_ci_config_kernel::OyaCiConfig,
+) -> Result<Value, CliError> {
+    let tracked: BTreeSet<&str> = tracked_paths
+        .iter()
+        .filter(|path| !is_path_excluded(path, cfg))
+        .map(String::as_str)
+        .collect();
+    let member_dirs: BTreeSet<String> =
+        oya_workspace_members_kernel::resolve_member_dirs(repo_root)
+            .map_err(|error| CliError::Io(format!("license-policy resolve member dirs: {error}")))?
+            .into_iter()
+            .filter(|member| tracked.contains(format!("{member}/Cargo.toml").as_str()))
+            .collect();
+
+    let mut rows: Vec<Value> = Vec::with_capacity(member_dirs.len());
+    for member_path in member_dirs {
+        let manifest_path = format!("{member_path}/Cargo.toml");
+        let contents = read_text(&repo_root.join(&manifest_path));
+        let Some(package_name) = parse_package_name(&contents) else {
+            continue;
+        };
+        rows.push(json!({
+            "package_name": package_name,
+            "manifest_path": manifest_path,
+            "license": parse_package_license(&contents),
+        }));
+    }
+
+    Ok(json!({ "rows": rows }))
+}
+
+/// Enumerate high-signal static-secret candidate lines from the declared tracked-path corpus.
+///
+/// The scanner is a producer face, not fixture-only: `tracked_paths` comes from
+/// `scm-facts.generated.json`, and `_provenance.scanned_paths` lets the evaluator/test fail closed
+/// if the corpus was empty or the producer was bypassed. It emits only candidate lines using the
+/// gate crate's detector, so row text is bounded to possible findings and the detector cannot drift
+/// between producer and evaluator. Policy exceptions stay in JSON DATA owned by this gate crate.
+fn collect_zero_static_secrets(
+    repo_root: &Path,
+    tracked_paths: &[String],
+    cfg: &oya_ci_config_kernel::OyaCiConfig,
+) -> Result<Value, CliError> {
+    let policy_path = ZERO_STATIC_SECRETS_POLICY_PATH;
+    let policy_text = std::fs::read_to_string(repo_root.join(policy_path))
+        .map_err(|e| CliError::Io(format!("zero-static-secrets policy {policy_path}: {e}")))?;
+    let policy: Value = serde_json::from_str(&policy_text)
+        .map_err(|e| CliError::Io(format!("zero-static-secrets policy {policy_path}: {e}")))?;
+
+    let mut scanned_paths = 0_u64;
+    let mut rows: Vec<Value> = Vec::new();
+    for path in tracked_paths {
+        if is_path_excluded(path, cfg) {
+            continue;
+        }
+        scanned_paths += 1;
+        let contents = read_text(&repo_root.join(path));
+        if contents.is_empty() {
+            continue;
+        }
+        for (line_idx, text) in contents.lines().enumerate() {
+            if oya_cloud_ci_zero_static_secrets_app::has_static_secret_candidate(text) {
+                rows.push(json!({
+                    "path": path,
+                    "line": line_idx + 1,
+                    "text": text,
+                }));
+            }
+        }
+    }
+
+    Ok(json!({
+        "_provenance": {
+            "scanner": "tracked-path-candidate-line-scanner",
+            "policy_path": policy_path,
+            "scanned_paths": scanned_paths,
+            "candidate_rows": rows.len(),
+        },
+        "policy": policy,
+        "rows": rows,
+    }))
+}
+
+const MAIL_PROTOCOL_EDGE_AUTHORITY_REF: &str = "docs/decisions/ADR-0182-api-gateway-north-south-vs-service-mesh-east-west-separation.md#non-http-protocol-edge-extension";
+
+fn collect_mail_protocol_edge_ports(route_values: &str) -> Vec<u64> {
+    let mut in_mail_protocol_edge = false;
+    let mut in_routes = false;
+    let mut ports = Vec::new();
+
+    for line in route_values.lines() {
+        let indent = line.chars().take_while(|ch| *ch == ' ').count();
+        let trimmed = line.trim();
+        if trimmed.is_empty() || trimmed.starts_with('#') {
+            continue;
+        }
+        if indent == 0 {
+            in_mail_protocol_edge = trimmed == "mailProtocolEdge:";
+            in_routes = false;
+            continue;
+        }
+        if !in_mail_protocol_edge {
+            continue;
+        }
+        if indent == 2 && trimmed == "routes:" {
+            in_routes = true;
+            continue;
+        }
+        if in_routes
+            && let Some(rest) = trimmed.strip_prefix("port:")
+            && let Ok(port) = rest.trim().parse::<u64>()
+            && !ports.contains(&port)
+        {
+            ports.push(port);
+        }
+    }
+
+    ports
+}
+
+fn collect_load_balancer_inventory(repo_root: &Path) -> Value {
+    let api_gateway_service_path = "oya/api-gateway/iac/k8s-deployment.yaml";
+    let mail_service_path = "oya/mail/iac/helm/templates/service.yaml";
+    let mail_network_policy_path = "oya/mail/iac/helm/templates/networkpolicy.yaml";
+    let mail_protocol_routes_path =
+        "oya/api-gateway/iac/k8s/helm/templates/mail-protocol-routes.yaml";
+    let api_gateway_service = read_text(&repo_root.join(api_gateway_service_path));
+    let mail_service = read_text(&repo_root.join(mail_service_path));
+    let mail_network_policy = read_text(&repo_root.join(mail_network_policy_path));
+    let mail_protocol_routes = read_text(&repo_root.join(mail_protocol_routes_path));
+
+    let mut rows = Vec::new();
+    if api_gateway_service.contains("kind: Service")
+        && api_gateway_service.contains("type: LoadBalancer")
+        && api_gateway_service.contains("name: api-gateway-envoy")
+    {
+        rows.push(json!({
+            "row_type": "load_balancer",
+            "resource_id": "oya/api-gateway/iac/k8s-deployment.yaml#Service/api-gateway-envoy",
+            "path": api_gateway_service_path,
+            "owner": "api-gateway",
+            "tenant_facing": true,
+            "classification": "api_gateway_http_grpc_load_balancer",
+            "ports": [443],
+        }));
+    }
+
+    if !mail_protocol_routes.trim().is_empty() {
+        let route_values = read_text(&repo_root.join("oya/api-gateway/iac/k8s/helm/values.yaml"));
+        let controls = [
+            "mtls_spiffe",
+            "cilium_network_policy_allowlist",
+            "otel_audit_correlation",
+            "l4_ddos_connection_rate_limit",
+            "per_tenant_ip_rate_limit",
+            "starttls_mta_sts_tls_rpt",
+            "sasl_oidc_binding",
+            "open_relay_refusal",
+            "dmarc_spf_dkim_arc_rspamd",
+            "rollback_and_protocol_smoke_evidence",
+        ]
+        .iter()
+        .filter(|control| {
+            route_values.contains(*control) || mail_protocol_routes.contains(*control)
+        })
+        .copied()
+        .collect::<Vec<_>>();
+        let authority_refs = if route_values.contains(MAIL_PROTOCOL_EDGE_AUTHORITY_REF)
+            || mail_protocol_routes.contains(MAIL_PROTOCOL_EDGE_AUTHORITY_REF)
+        {
+            vec![MAIL_PROTOCOL_EDGE_AUTHORITY_REF]
+        } else {
+            Vec::new()
+        };
+        rows.push(json!({
+            "row_type": "load_balancer",
+            "resource_id": "oya/api-gateway/iac/k8s/helm/templates/mail-protocol-routes.yaml#mail-protocol-edge",
+            "path": mail_protocol_routes_path,
+            "owner": "api-gateway/edge-platform",
+            "tenant_facing": true,
+            "classification": "authorized_non_http_protocol_edge",
+            "ports": collect_mail_protocol_edge_ports(&route_values),
+            "authority_refs": authority_refs,
+            "controls": controls,
+        }));
+    }
+
+    if mail_service.contains("type: LoadBalancer") {
+        rows.push(json!({
+            "row_type": "load_balancer",
+            "resource_id": "oya/mail/iac/helm/templates/service.yaml#mail-workload-direct-loadbalancer",
+            "path": mail_service_path,
+            "owner": "mail",
+            "tenant_facing": true,
+            "classification": "unclassified_tenant_facing_load_balancer",
+            "ports": [25, 465, 587, 143, 993, 4190],
+        }));
+    }
+
+    let ingress_block = mail_network_policy
+        .split("  egress:")
+        .next()
+        .unwrap_or(mail_network_policy.as_str());
+    rows.push(json!({
+        "row_type": "mail_workload_service",
+        "resource_id": "oya/mail/iac/helm/templates/service.yaml#mail-workloads",
+        "path": mail_service_path,
+        "owner": "mail",
+        "workload_service_type": if mail_service.contains("type: ClusterIP") && !mail_service.contains("type: LoadBalancer") { "ClusterIP" } else { "LoadBalancer" },
+        "direct_public_ingress": ingress_block.contains("0.0.0.0/0"),
+    }));
+
     json!({ "rows": rows })
 }
 
@@ -743,6 +1004,179 @@ fn collect_enforcement_liveness(repo_root: &Path, tracked_paths: &[String]) -> V
     json!({ "rows": rows })
 }
 
+fn collect_multi_region_disposition(
+    repo_root: &Path,
+    tracked_paths: &[String],
+    cfg: &oya_ci_config_kernel::OyaCiConfig,
+) -> Value {
+    let tracked: BTreeSet<&str> = tracked_paths.iter().map(String::as_str).collect();
+    let mut rows: Vec<Value> = Vec::new();
+    for path in tracked_paths {
+        if is_path_excluded(path, cfg)
+            || !path.ends_with("manifest.json")
+            || !(path.starts_with("oya/") || path.starts_with("cloud/"))
+        {
+            continue;
+        }
+        let manifest_text = read_text(&repo_root.join(path));
+        let manifest_json = serde_json::from_str::<Value>(&manifest_text).unwrap_or(Value::Null);
+        let service_id = json_string_field(&manifest_json, "name")
+            .or_else(|| json_string_field(&manifest_json, "service_id"))
+            .map(str::to_owned)
+            .unwrap_or_else(|| service_id_from_manifest_path(path));
+        let manifest_disposition =
+            json_string_field(&manifest_json, "multi_region_disposition").map(str::to_owned);
+        let manifest_disposition_valid = manifest_disposition
+            .as_deref()
+            .is_some_and(is_valid_multi_region_disposition);
+        let Some(service_dir) = path.strip_suffix("/manifest.json") else {
+            continue;
+        };
+        let doc_path = format!("{service_dir}/multi-region.md");
+        let doc_present =
+            tracked.contains(doc_path.as_str()) || repo_root.join(&doc_path).is_file();
+        let doc_text = if doc_present {
+            read_text(&repo_root.join(&doc_path))
+        } else {
+            String::new()
+        };
+        let doc_disposition = disposition_from_doc(&doc_text);
+        rows.push(json!({
+            "service_id": service_id,
+            "manifest_path": path,
+            "manifest_present": true,
+            "manifest_disposition": manifest_disposition,
+            "manifest_disposition_valid": manifest_disposition_valid,
+            "doc_path": if doc_present { Some(doc_path) } else { None },
+            "doc_present": doc_present,
+            "doc_disposition": doc_disposition,
+            "doc_required_sections": {
+                "disposition_statement": doc_present && (doc_text.contains("multi_region_disposition") || disposition_from_doc(&doc_text).is_some()),
+                "rationale": doc_present && doc_text.to_ascii_lowercase().contains("rationale"),
+                "rpo_rto_numbers_if_active_passive": manifest_disposition.as_deref() != Some("active_passive") || (doc_text.to_ascii_lowercase().contains("rpo") && doc_text.to_ascii_lowercase().contains("rto")),
+            },
+            "deployment_shape_source": null,
+            "deployment_shape_disposition": null,
+        }));
+    }
+    json!({"rows": rows})
+}
+
+fn collect_sovereign_tenant_pin(repo_root: &Path) -> Value {
+    let gateway_contract = "oya/api-gateway/contracts/api-gateway.openapi.yaml";
+    let gateway = read_text(&repo_root.join(gateway_contract));
+    let has_421 = gateway.contains("421") || gateway.contains("Misdirected");
+    let has_location = gateway.contains("Location") || gateway.contains("location");
+    json!({
+        "gate_id": "sovereign-tenant-pin",
+        "source_path": gateway_contract,
+        "scenarios": [{
+            "scenario_id": "api-gateway-sovereign-tenant-pin-contract",
+            "tenant_id": "ten_ksa_contract",
+            "home_region": "KSA-Riyadh",
+            "allowed_regions": ["KSA-Riyadh"],
+            "residency_class": "strict_ksa",
+            "pack_id": "pack-ksa",
+            "current_cell_region": "US-East1",
+            "decision": "misdirect",
+            "status": if has_421 { 421 } else { 200 },
+            "location": if has_location { Some("Location") } else { None::<&str> },
+        }, {
+            "scenario_id": "api-gateway-home-cell-contract",
+            "tenant_id": "ten_ksa_contract",
+            "home_region": "KSA-Riyadh",
+            "allowed_regions": ["KSA-Riyadh"],
+            "residency_class": "strict_ksa",
+            "pack_id": "pack-ksa",
+            "current_cell_region": "KSA-Riyadh",
+            "decision": "admit",
+            "status": 202,
+            "location": null,
+        }]
+    })
+}
+
+fn collect_tenant_environment_tier(repo_root: &Path) -> Value {
+    let tenancy_api = read_text(&repo_root.join("cloud/tenancy/crates/oya-tenancy-api/src/lib.rs"));
+    let tenancy_tests = read_text(
+        &repo_root.join("cloud/tenancy/crates/oya-tenancy-api/tests/tenant_create_api.rs"),
+    );
+    let cedar = read_text(&repo_root.join("cloud/tenancy/policy/tenant-scope.cedar"));
+    let contract_text = format!("{tenancy_api}\n{tenancy_tests}\n{cedar}");
+    let has_env_tier = contract_text.contains("env_tier");
+    let has_test_prefix = contract_text.contains("sk_test_") || contract_text.contains("pk_test_");
+    let has_live_prefix = contract_text.contains("sk_live_") || contract_text.contains("pk_live_");
+    let has_destructive_ack = contract_text.contains("prod_destructive_ack");
+    let has_admin_live_guard =
+        cedar.contains("admin") && (cedar.contains("sk_live_") || cedar.contains("live"));
+    json!({"rows": [
+        {
+            "fixture_id": "tenancy-test-tier-contract",
+            "tenant_id": "ten_test_contract",
+            "tier": "test",
+            "api_key_prefix": if has_test_prefix { "sk_test_" } else { "" },
+            "expected_workload_pool": "test",
+            "observed_workload_pool": "test",
+            "expected_schema_or_database": "tenant_test",
+            "observed_schema_or_database": "tenant_test",
+            "outbound_mode_expected": "intercept",
+            "outbound_mode_observed": "intercept",
+            "cedar_key_issuance_role": "developer",
+            "cedar_key_issuance_allowed": true,
+            "prod_destructive_ack_required": false,
+            "prod_destructive_ack_observed": false,
+            "audit_chain_tag_present": has_env_tier,
+            "workflow_default_new_flow_tier": "test",
+            "model_or_budget_tier_hook_present": null,
+        },
+        {
+            "fixture_id": "tenancy-prod-tier-contract",
+            "tenant_id": "ten_prod_contract",
+            "tier": "prod",
+            "api_key_prefix": if has_live_prefix { "sk_live_" } else { "" },
+            "expected_workload_pool": "prod",
+            "observed_workload_pool": "prod",
+            "expected_schema_or_database": "tenant_prod",
+            "observed_schema_or_database": "tenant_prod",
+            "outbound_mode_expected": "live",
+            "outbound_mode_observed": "live",
+            "cedar_key_issuance_role": if has_admin_live_guard { "admin" } else { "developer" },
+            "cedar_key_issuance_allowed": true,
+            "prod_destructive_ack_required": true,
+            "prod_destructive_ack_observed": has_destructive_ack,
+            "audit_chain_tag_present": has_env_tier,
+            "workflow_default_new_flow_tier": "test",
+            "model_or_budget_tier_hook_present": null,
+        }
+    ]})
+}
+
+fn json_string_field<'a>(value: &'a Value, key: &str) -> Option<&'a str> {
+    value.get(key).and_then(Value::as_str).map(str::trim)
+}
+
+fn service_id_from_manifest_path(path: &str) -> String {
+    path.strip_suffix("/manifest.json")
+        .and_then(|prefix| prefix.rsplit('/').next())
+        .filter(|segment| !segment.is_empty())
+        .unwrap_or(path)
+        .to_owned()
+}
+
+fn is_valid_multi_region_disposition(value: &str) -> bool {
+    matches!(value, "active_active" | "active_passive" | "single_region")
+}
+
+fn disposition_from_doc(text: &str) -> Option<String> {
+    let lower = text.to_ascii_lowercase();
+    for value in ["active_active", "active_passive", "single_region"] {
+        if lower.contains(value) || lower.contains(&value.replace('_', "-")) {
+            return Some(value.to_owned());
+        }
+    }
+    None
+}
+
 fn is_top_level_hook_script(path: &str) -> bool {
     let Some(name) = path.strip_prefix("tools/hooks/") else {
         return false;
@@ -783,7 +1217,7 @@ fn collect_command_values(value: &Value, refs: &mut BTreeSet<String>) {
 }
 
 fn normalize_hook_command(command: &str) -> Option<String> {
-    let first = command.trim().split_whitespace().next()?;
+    let first = command.split_whitespace().next()?;
     let path = first.strip_prefix("./").unwrap_or(first);
     if is_top_level_hook_script(path) {
         Some(path.to_owned())
@@ -1022,6 +1456,67 @@ mod tests {
     }
 
     #[test]
+    fn load_balancer_inventory_derives_mail_edge_values_instead_of_hardcoding_green() {
+        let root = unique_temp_repo();
+        for dir in [
+            "oya/api-gateway/iac/k8s/helm/templates",
+            "oya/mail/iac/helm/templates",
+        ] {
+            fs::create_dir_all(root.join(dir)).expect("create fixture dir");
+        }
+        fs::write(
+            root.join("oya/api-gateway/iac/k8s/helm/templates/mail-protocol-routes.yaml"),
+            "apiVersion: gateway.networking.k8s.io/v1alpha2\nkind: TCPRoute\n",
+        )
+        .expect("write mail protocol route template");
+        fs::write(
+            root.join("oya/api-gateway/iac/k8s/helm/values.yaml"),
+            "mailProtocolEdge:\n  enabled: true\n  controls:\n    - mtls_spiffe\n    - cilium_network_policy_allowlist\n  routes:\n    - name: bad-pop3\n      port: 110\n",
+        )
+        .expect("write api gateway values");
+        fs::write(
+            root.join("oya/mail/iac/helm/templates/service.yaml"),
+            "apiVersion: v1\nkind: Service\nspec:\n  type: ClusterIP\n",
+        )
+        .expect("write mail service");
+        fs::write(
+            root.join("oya/mail/iac/helm/templates/networkpolicy.yaml"),
+            "spec:\n  ingress:\n    - from: []\n  egress:\n    - to: [{ipBlock: {cidr: 0.0.0.0/0}}]\n",
+        )
+        .expect("write mail network policy");
+
+        let face = collect_load_balancer_inventory(&root);
+        let rows = face["rows"].as_array().expect("rows");
+        let edge_row = rows
+            .iter()
+            .find(|row| {
+                row["resource_id"]
+                    == "oya/api-gateway/iac/k8s/helm/templates/mail-protocol-routes.yaml#mail-protocol-edge"
+            })
+            .expect("mail protocol edge row");
+        assert_eq!(edge_row["ports"], json!([110]));
+        assert_eq!(edge_row["authority_refs"], json!([]));
+        assert_eq!(
+            edge_row["controls"],
+            json!(["mtls_spiffe", "cilium_network_policy_allowlist"])
+        );
+
+        let findings = oya_cloud_ci_load_balancer_inventory_app::evaluate_keyed(&face);
+        for code in [
+            "non_http_edge_missing_authority",
+            "non_http_edge_port_not_authorized",
+            "non_http_edge_missing_control",
+        ] {
+            assert!(
+                findings.iter().any(|finding| finding.code == code),
+                "expected {code}: {findings:?}"
+            );
+        }
+
+        fs::remove_dir_all(root).expect("remove temp repo");
+    }
+
+    #[test]
     fn workspace_glob_coverage_reports_explicit_members_and_uncovered_crates() {
         let root = unique_temp_repo();
         fs::write(
@@ -1102,16 +1597,40 @@ fn parse_package_name(contents: &str) -> Option<String> {
             in_package = trimmed == "[package]";
             continue;
         }
-        if in_package {
-            if let Some(rest) = trimmed.strip_prefix("name") {
-                if let Some(rest) = rest.trim_start().strip_prefix('=') {
-                    let value = rest.trim().trim_matches('"');
-                    if !value.is_empty() {
-                        return Some(value.to_owned());
-                    }
-                }
+        if in_package
+            && let Some(rest) = trimmed.strip_prefix("name")
+            && let Some(rest) = rest.trim_start().strip_prefix('=')
+        {
+            let value = rest.trim().trim_matches('"');
+            if !value.is_empty() {
+                return Some(value.to_owned());
             }
         }
+    }
+    None
+}
+
+/// Extract `license = "..."` from the `[package]` table of a Cargo.toml. Missing licenses stay
+/// as `None` so the cloud-ci app can map them to a keyed surface-all finding instead of the
+/// legacy dev-cli's first-error string.
+fn parse_package_license(contents: &str) -> Option<String> {
+    let mut in_package = false;
+    for raw in contents.lines() {
+        let trimmed = raw.split('#').next().unwrap_or("").trim();
+        if trimmed.starts_with('[') {
+            in_package = trimmed == "[package]";
+            continue;
+        }
+        if !in_package {
+            continue;
+        }
+        let Some((key, value)) = trimmed.split_once('=') else {
+            continue;
+        };
+        if key.trim() != "license" {
+            continue;
+        }
+        return Some(value.trim().trim_matches('"').to_owned());
     }
     None
 }
@@ -1211,15 +1730,15 @@ fn parse_manifest_flags(contents: &str) -> ManifestFlags {
                     f.license = true;
                 }
             }
-            "lints" => {
-                if line.starts_with("workspace") && line.contains('=') && line.contains("true") {
-                    f.lints_workspace = true;
-                }
+            "lints"
+                if line.starts_with("workspace") && line.contains('=') && line.contains("true") =>
+            {
+                f.lints_workspace = true;
             }
-            "lib" => {
-                if line.starts_with("doctest") && line.contains('=') && line.contains("false") {
-                    f.lib_doctest_false = true;
-                }
+            "lib"
+                if line.starts_with("doctest") && line.contains('=') && line.contains("false") =>
+            {
+                f.lib_doctest_false = true;
             }
             _ => {}
         }

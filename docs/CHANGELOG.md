@@ -3,6 +3,52 @@ purpose: Oyatie — Canonical Docs Changelog
 doc_status: published
 ---
 
+## 2026-07-01 — Standards catalog broken-link triage
+
+- Retired broken standards-catalog Markdown links that pointed at local `.omc/`
+  provenance files removed from the tracked tree.
+- Marked the missing `standards/capability-authoring.md` standards-catalog row as
+  retired/non-linked instead of restoring a deleted standard without new authority.
+- Retired matching `docs/README.md` links to the missing
+  `standards/capability-authoring.md` target as non-linked provenance text.
+- Triaged remaining `docs/standards/` Markdown links to missing local `.omc/`
+  provenance files: active LTS/hyperscaler references now point at standards docs,
+  and retired MASTERPLAN/governance-lane references are non-linked historical text.
+
+## 2026-07-01 — KANBAN-LIFECYCLE autonomous lifecycle convention
+
+- Added `docs/standards/autonomous-kanban-lifecycle.md` as the concrete Hermes
+  Kanban lifecycle spine and card template for Research through Learning.
+- The convention requires bounded active work, path-conflict classes,
+  Review/fix child-card handoff before implementation closeout, and explicit
+  duplicate/no-action rationale instead of passive review-required blockers.
+
+## 2026-07-01 — DOC-DRIFT-001 authority/procedure reconciliation
+
+- Reconciled agent operating-contract authority around explicit PHASE-5 promotion,
+  the single protected `oya-ci-required` merge context, and legacy `oya`/Prow/Jenkins
+  bridge-evidence boundaries.
+- Updated release closeout wording so release-governance/release-note impact is
+  required, while Release Please applies only when a live repo config/workflow
+  exists.
+
+## 2026-06-30 — DOGFOOD-004 root-of-trust ceremony contract
+
+- Added the ADR-0537 Step 0 root-of-trust ceremony runbook for offline HSM/Shamir,
+  sealed FIDO2 break-glass, and DNS seed ceremony evidence without storing secrets.
+- Added `specs/root-of-trust-ceremony-contract.json` to define the redacted manifest,
+  custody-posture claim ceilings, audit events, and no-secret evidence packet contract.
+
+## 2026-06-30 — DEVFLOW-003 post-merge product-completion gate
+
+- Added post-merge product-completion packet requirements to root agent guidance,
+  the operating contract, done-definition/pre-merge/review checklists, PR templates,
+  and release standards.
+- Product-complete now requires promoted-sha `oya-ci-required`, rollout verification,
+  rollback note, observability check, browser/user-story evidence, and
+  release-governance/release-note impact after squash merge; Release Please applies
+  only when a live repo config/workflow exists.
+
 ## 2026-06-10 — FRIC-012 enforcement-liveness gate added
 
 - Added `cloud-ci-enforcement-liveness` to make tracked hook scripts mechanically live across

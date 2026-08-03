@@ -10,6 +10,9 @@
 
 pub const CLOUD_BILLING_INVOICE_GENERATE_EVIDENCE_SURFACE: &str = "cloud.billing.invoice.generate";
 pub const CLOUD_BILLING_INVOICE_SCHEMA_VERSION: u32 = 1;
+pub const CLOUD_BILLING_TAX_OUTBOUND_MODE_INTERCEPT: &str = "intercept";
+pub const CLOUD_BILLING_TAX_OUTBOUND_MODE_TEST_RECIPIENTS: &str = "test_recipients";
+pub const CLOUD_BILLING_TAX_OUTBOUND_MODE_LIVE: &str = "live";
 
 pub struct CloudBillingTaxInvoiceFormatPolicy;
 
@@ -26,6 +29,221 @@ impl CloudBillingTaxInvoiceFormatPolicy {
             _ => None,
         }
     }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloudBillingTaxEmissionPlanRequest {
+    pub tenant_id: String,                       // data_class: INTERNAL_ONLY
+    pub recipient_tenant_id: String,             // data_class: INTERNAL_ONLY
+    pub env_tier: Option<String>,                // data_class: INTERNAL_ONLY
+    pub regional_pack: String,                   // data_class: INTERNAL_ONLY
+    pub compliance_pack_label: String,           // data_class: INTERNAL_ONLY
+    pub tax_invoice_format_evidence_ref: String, // data_class: AUDIT_EVIDENCE_REF
+    pub destination_binding_ref: Option<String>, // data_class: AUDIT_EVIDENCE_REF
+    pub policy_evidence_ref: Option<String>,     // data_class: AUDIT_EVIDENCE_REF
+    pub requested_runtime_delivery: bool,        // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloudBillingTaxEmissionPlan {
+    pub tenant_id: String,                       // data_class: INTERNAL_ONLY
+    pub env_tier: String,                        // data_class: INTERNAL_ONLY
+    pub outbound_mode: String,                   // data_class: INTERNAL_ONLY
+    pub regional_pack: String,                   // data_class: INTERNAL_ONLY
+    pub compliance_pack_label: String,           // data_class: INTERNAL_ONLY
+    pub tax_invoice_format_evidence_ref: String, // data_class: AUDIT_EVIDENCE_REF
+    pub destination_binding_ref: String,         // data_class: AUDIT_EVIDENCE_REF
+    pub policy_evidence_ref: String,             // data_class: AUDIT_EVIDENCE_REF
+    pub runtime_delivery_authorized: bool,       // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum CloudBillingTaxEmissionPlanValidationError {
+    MissingTenantId,
+    CrossTenantTaxRecipient,
+    MissingEnvTier,
+    UnsupportedEnvTier,
+    MissingRegionalOrCompliancePackLabel,
+    MissingTaxInvoiceFormatEvidence,
+    MissingDestinationBinding,
+    MissingPolicyEvidence,
+    MissingStagingQaTaxEndpoint,
+    MissingProdPolicyEvidence,
+    TestTierRuntimeDeliveryAttempt,
+    SecretLikeFixtureContent,
+}
+
+pub fn validate_cloud_billing_tax_emission_plan(
+    request: CloudBillingTaxEmissionPlanRequest,
+) -> Result<CloudBillingTaxEmissionPlan, CloudBillingTaxEmissionPlanValidationError> {
+    if request.tenant_id.trim().is_empty() || request.recipient_tenant_id.trim().is_empty() {
+        return Err(CloudBillingTaxEmissionPlanValidationError::MissingTenantId);
+    }
+    if request.tenant_id != request.recipient_tenant_id {
+        return Err(CloudBillingTaxEmissionPlanValidationError::CrossTenantTaxRecipient);
+    }
+
+    let env_tier = request
+        .env_tier
+        .as_deref()
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .ok_or(CloudBillingTaxEmissionPlanValidationError::MissingEnvTier)?;
+    let outbound_mode = match env_tier {
+        "test" => CLOUD_BILLING_TAX_OUTBOUND_MODE_INTERCEPT,
+        "staging" => CLOUD_BILLING_TAX_OUTBOUND_MODE_TEST_RECIPIENTS,
+        "prod" => CLOUD_BILLING_TAX_OUTBOUND_MODE_LIVE,
+        _ => return Err(CloudBillingTaxEmissionPlanValidationError::UnsupportedEnvTier),
+    };
+
+    if request.regional_pack.trim().is_empty() || request.compliance_pack_label.trim().is_empty() {
+        return Err(
+            CloudBillingTaxEmissionPlanValidationError::MissingRegionalOrCompliancePackLabel,
+        );
+    }
+    if request.tax_invoice_format_evidence_ref.trim().is_empty() {
+        return Err(CloudBillingTaxEmissionPlanValidationError::MissingTaxInvoiceFormatEvidence);
+    }
+
+    let destination_binding_ref = request
+        .destination_binding_ref
+        .as_deref()
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .ok_or(match env_tier {
+            "staging" => CloudBillingTaxEmissionPlanValidationError::MissingStagingQaTaxEndpoint,
+            _ => CloudBillingTaxEmissionPlanValidationError::MissingDestinationBinding,
+        })?;
+    let policy_evidence_ref = request
+        .policy_evidence_ref
+        .as_deref()
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .ok_or(match env_tier {
+            "prod" => CloudBillingTaxEmissionPlanValidationError::MissingProdPolicyEvidence,
+            _ => CloudBillingTaxEmissionPlanValidationError::MissingPolicyEvidence,
+        })?;
+
+    if contains_secret_like_fixture_content(&[
+        request.regional_pack.as_str(),
+        request.compliance_pack_label.as_str(),
+        request.tax_invoice_format_evidence_ref.as_str(),
+        destination_binding_ref,
+        policy_evidence_ref,
+    ]) {
+        return Err(CloudBillingTaxEmissionPlanValidationError::SecretLikeFixtureContent);
+    }
+
+    match env_tier {
+        "test" => {
+            let allowed_prefixes = ["tax-intercept-log:"];
+            if request.requested_runtime_delivery
+                || !destination_binding_ref_has_allowed_prefix(
+                    destination_binding_ref,
+                    &allowed_prefixes,
+                )
+            {
+                return Err(
+                    CloudBillingTaxEmissionPlanValidationError::TestTierRuntimeDeliveryAttempt,
+                );
+            }
+            if !destination_binding_ref_matches_tenant(
+                destination_binding_ref,
+                &allowed_prefixes,
+                request.tenant_id.as_str(),
+            ) {
+                return Err(CloudBillingTaxEmissionPlanValidationError::CrossTenantTaxRecipient);
+            }
+        }
+        "staging" => {
+            let allowed_prefixes = ["qa-tax-endpoint:", "qa-einvoice-endpoint:"];
+            if !destination_binding_ref_has_allowed_prefix(
+                destination_binding_ref,
+                &allowed_prefixes,
+            ) {
+                return Err(
+                    CloudBillingTaxEmissionPlanValidationError::MissingStagingQaTaxEndpoint,
+                );
+            }
+            if !destination_binding_ref_matches_tenant(
+                destination_binding_ref,
+                &allowed_prefixes,
+                request.tenant_id.as_str(),
+            ) {
+                return Err(CloudBillingTaxEmissionPlanValidationError::CrossTenantTaxRecipient);
+            }
+        }
+        "prod" => {
+            let allowed_prefixes = ["prod-tax-authority-binding:"];
+            if !destination_binding_ref_has_allowed_prefix(
+                destination_binding_ref,
+                &allowed_prefixes,
+            ) {
+                return Err(CloudBillingTaxEmissionPlanValidationError::MissingDestinationBinding);
+            }
+            if !destination_binding_ref_matches_tenant(
+                destination_binding_ref,
+                &allowed_prefixes,
+                request.tenant_id.as_str(),
+            ) {
+                return Err(CloudBillingTaxEmissionPlanValidationError::CrossTenantTaxRecipient);
+            }
+        }
+        _ => {}
+    }
+
+    Ok(CloudBillingTaxEmissionPlan {
+        tenant_id: request.tenant_id,
+        env_tier: env_tier.to_owned(),
+        outbound_mode: outbound_mode.to_owned(),
+        regional_pack: request.regional_pack,
+        compliance_pack_label: request.compliance_pack_label,
+        tax_invoice_format_evidence_ref: request.tax_invoice_format_evidence_ref,
+        destination_binding_ref: destination_binding_ref.to_owned(),
+        policy_evidence_ref: policy_evidence_ref.to_owned(),
+        runtime_delivery_authorized: false,
+    })
+}
+
+fn contains_secret_like_fixture_content(values: &[&str]) -> bool {
+    values.iter().any(|value| {
+        let normalized = value.to_ascii_lowercase();
+        [
+            "secret",
+            "credential",
+            "api_key",
+            "apikey",
+            "bearer ",
+            "token",
+            "private_key",
+            "begin private key",
+            "password",
+            "sk_",
+        ]
+        .iter()
+        .any(|marker| normalized.contains(marker))
+    })
+}
+
+fn destination_binding_ref_has_allowed_prefix(reference: &str, allowed_prefixes: &[&str]) -> bool {
+    allowed_prefixes
+        .iter()
+        .any(|prefix| reference.starts_with(prefix))
+}
+
+fn destination_binding_ref_matches_tenant(
+    reference: &str,
+    allowed_prefixes: &[&str],
+    tenant_id: &str,
+) -> bool {
+    allowed_prefixes.iter().any(|prefix| {
+        reference
+            .strip_prefix(prefix)
+            .and_then(|rest| rest.split_once(':'))
+            .is_some_and(|(binding_tenant_id, binding_target)| {
+                binding_tenant_id == tenant_id && !binding_target.trim().is_empty()
+            })
+    })
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]

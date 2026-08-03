@@ -9,7 +9,7 @@ doc_status: published
 
 # Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `cloud-iac`
 
-Audience: an Oyatie operator or migration owner preparing `cloud-iac` for the Wave 15-ZD doctrine surface before implementation waves author runtime code, manifests, GitHub Actions oya-cifiles, ArgoCD applications, or sharding bodies.
+Audience: an Oyatie operator or migration owner preparing `cloud-iac` for the Wave 15-ZD doctrine surface before implementation waves author runtime code, manifests, owned-runner cutover files, ArgoCD applications, or sharding bodies.
 
 Outcome: `cloud-iac` has a documented migration path for the four doctrine decisions, with no runtime mutation and no manifest mutation.
 
@@ -18,8 +18,8 @@ Scope boundary: this playbook is documentation-only. It records the migration se
 ## Doctrine purpose bindings
 
 1. ADR-0346 is superseded for this surface: branch-protected `oya-ci-required` is the canonical blocking CI authority; retired local Oya CLI verifier output is not production or merge authority.
-2. ADR-0346: The verifier invokes `cargo fmt --all --check`, `cargo check --workspace --all-targets --keep-going`, `cargo clippy --workspace --all-targets --keep-going -- -D warnings`, `cargo nextest run --workspace --no-fail-fast`, `the cloud-ci/oya-ci gate fan-in behind `oya-ci-required``, `oya doc adr-index --write`, and `oya lint adr-shape`.
-3. ADR-0346: The verifier MUST block on exit-0 of EACH step before returning success to the caller.
+2. ADR-0515: GitHub Actions + branch protection run cloud-ci Rust gate packets for live acceptance; legacy `oya gate`/`oya verify` output is optional local/provenance evidence only.
+3. ADR-0346 provenance: legacy verifier exit semantics are local diagnostics only after ADR-0515; `oya-ci-required` is the live acceptance signal.
 4. ADR-0347: Declare that every `oya-governance-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request.
 5. ADR-0347: The rename surface includes workflow names, lane records, catalog records, Rust check-family crates, ADR cross-citations, docs/standards references, .omc/state references, master-plan sub-wave entries, canonical primitives, branch-protection checks, and per-microservice manifest `governance_lanes` arrays.
 6. ADR-0347: Governance is the actual owning team per ADR-0132 + axis-governance, and the bulk rename collapses 34 per-lane migration IPs into one Wave 15-ZB codex-bucket fan-out PR.
@@ -27,9 +27,9 @@ Scope boundary: this playbook is documentation-only. It records the migration se
 8. ADR-0348: AUTOSHARDING computes tenant->cell/shard placement automatically with no human operator picking placement.
 9. ADR-0348: AUTO-REBALANCE migrates tenants from hot cells to cooler cells, honors residency and compliance pack constraints, requires Cedar permits for cross-jurisdiction migration, and remains observable, reversible, and audit-chain-emit per ADR-0263.
 10. ADR-0348: DYNAMIC SHARDING adjusts shard count within a cell by HOT-SPLIT and COLD-MERGE thresholds, and both operations are atomic plus audit-emit.
-11. ADR-0349: Declare GitHub Actions oya-ci (LTS) and ArgoCD as the two canonical self-hostable CI/CD substrates for the Oyatie corpus.
-12. ADR-0349: GitHub Actions oya-ci augments rather than replaces GitHub Actions, and ArgoCD REPLACES manual `kubectl apply` and Helm CLI deploys across all contexts.
-13. ADR-0349: Both substrates are provisioned via OpenTofu modules under `microservices/cloud-iac/modules/<context>/github-actions-oya-ci/` and `/argocd/` per ADR-0339.
+11. ADR-0349 historical note: Jenkins CI wording is provenance after ADR-0515; ArgoCD remains separately authorized CD evidence where applicable.
+12. ADR-0349: GitHub Actions + branch protection remain live CI authority until explicit owned-runner cutover; ArgoCD replaces manual `kubectl apply` and Helm CLI deploys across authorized CD contexts.
+13. ADR-0349: legacy self-hosted CI module references are provenance only; current ArgoCD/CD or owned-runner modules need current ADR-0515/cutover evidence before use as authority.
 
 ## ADR-0346 enforcement lanes
 
@@ -54,12 +54,12 @@ Scope boundary: this playbook is documentation-only. It records the migration se
 - `oya-governance-audit-chain-emit-on-automation-events` - refuses every manifest declaring auto_rebalance.enabled true OR dynamic_sharding.enabled true if audit_chain_emit is omitted on the corresponding sub-block.
 - `oya-governance-tenant-migration-reversibility` - refuses any microservice IP authoring under `microservices/<ms>/IPs/IP-*-auto-rebalance-*.md` that lacks an explicit `rollback_path` section.
 
-## ADR-0349 enforcement lanes
+## ADR-0349 provenance/CD lanes
 
-- `oya-governance-github-actions-oya-ci-required-continuity` - refuses GitHub Actions oya-cifile / .github/workflows drift such that a CI step exists in one surface but not the other across the per-microservice CI-parity contract.
+- `oya-governance-github-actions-oya-ci-required-continuity` - historical ADR-0349 lane name retained as provenance only after ADR-0515; do not extend parallel CI parity as live CI authority.
 - `oya-governance-argocd-application-cosign-verified` - refuses ArgoCD Application CRD sources that reference an image without a cosign-verify policy attached per D-6 + ADR-0181.
 - `oya-governance-argocd-tenant-namespace-isolation` - refuses ArgoCD Application authoring that crosses tenant namespaces without a Cedar policy gate granting cross-tenant access per D-11 + ADR-0243.
-- `oya-governance-github-actions-oya-ci-jcasc-only` - refuses GitHub Actions oya-ci controller state declared via the UI; every GitHub Actions oya-ci controller state file is authored under the declarative JCasC module path.
+- `oya-governance-github-actions-oya-ci-jcasc-only` - historical self-hosted CI lane name retained as provenance only after ADR-0515; owned-runner state needs current cutover authority before becoming live CI evidence.
 - `oya-governance-deploy-audit-chain-emit` - refuses ArgoCD sync transitions that do not emit an audit-chain row per ADR-0263 D.4 deploy-event class.
 
 ## Phase 0 - Inventory
@@ -70,12 +70,12 @@ Scope boundary: this playbook is documentation-only. It records the migration se
 4. Record current references to ADR-0346, ADR-0347, ADR-0348, and ADR-0349. Absence is acceptable at this scaffold stage; downstream artifacts own their own propagation lanes.
 5. Do not mutate runtime manifests or source code in this playbook pass.
 
-## Phase 1 - ADR-0346 verification migration
+## Phase 1 - ADR-0346 local-feedback classification / ADR-0515 CI authority
 
 1. Treat the branch-protected `oya-ci-required` run as the canonical blocking verification for `cloud-iac` changes.
-2. Do not claim this microservice is push-ready unless the full mirror contract can pass or a documented skip flag from the closed allowlist is intentionally used during incremental development.
-3. When `cloud-iac` changes touch Rust, contracts, manifests, generated docs, or governance lanes, run the verifier before handoff.
-4. Preserve the exit-code contract: 0 means all passed, 1 means at least one failed, and 2 means invalid arguments.
+2. Do not claim this microservice is push-ready unless branch-protected `oya-ci-required` acceptance evidence is present; legacy local-verifier output alone is insufficient.
+3. When `cloud-iac` changes touch Rust, contracts, manifests, generated docs, or governance lanes, record branch-protected `oya-ci-required` evidence before handoff; a legacy verifier run may be attached only as local-feedback/provenance.
+4. If the legacy verifier is invoked, preserve its historical exit-code contract as local diagnostics only; it does not replace protected `oya-ci-required` evidence.
 5. Preserve plain git PR submission plus branch-protected `oya-ci-required` as the merge path; retired Oya CLI submit/verify wrappers are not operator interfaces.
 
 ## Phase 2 - ADR-0347 governance lane rename migration
@@ -96,13 +96,13 @@ Scope boundary: this playbook is documentation-only. It records the migration se
 6. Auto-rebalance and dynamic-sharding automation events must set audit-chain emission expectations per ADR-0263.
 7. The implementation IP must document `rollback_path` for automation-event-driven tenant migration.
 
-## Phase 4 - ADR-0349 self-hostable CI/CD migration
+## Phase 4 - ADR-0349 provenance / ADR-0515 owned-runner and CD evidence
 
-1. Treat GitHub Actions oya-ci LTS as the self-hostable CI substrate for `cloud-iac` when GitHub Actions runners are unavailable.
-2. Keep GitHub Actions as the hosted PR review surface; GitHub Actions oya-ci augments rather than replaces it.
+1. Treat legacy self-hosted CI wording as historical for `cloud-iac`; any self-hosted/owned CI cutover must preserve the ADR-0515 `oya-ci-required` contract.
+2. Keep GitHub Actions + branch protection as the live PR CI authority until an explicit owned-runner cutover preserves `oya-ci-required`.
 3. Treat ArgoCD as the GitOps CD orchestrator for this microservice once deployment artifacts exist.
 4. Do not author manual `kubectl apply` or Helm CLI deployment paths as canonical deployment procedure.
-5. Future GitHub Actions oya-cifile parity must mirror the GitHub Actions CI steps for `cloud-iac`.
+5. Future owned-runner parity for `cloud-iac` must preserve the same cloud-ci Rust gate packets and `oya-ci-required` context.
 6. Future ArgoCD Application sources must attach cosign verification policy and preserve tenant namespace isolation.
 7. Every ArgoCD sync transition must emit an audit-chain deploy event.
 
@@ -119,7 +119,7 @@ Scope boundary: this playbook is documentation-only. It records the migration se
 1. Wave 15-ZA owns verifier implementation, not this playbook.
 2. Wave 15-ZB owns lane rename implementation, not this playbook.
 3. Wave 15-ZD owns sharding automation implementation and manifest body work, not this playbook.
-4. Wave 15-ZE owns GitHub Actions oya-ci/ArgoCD substrate rollout, not this playbook.
+4. Wave 15-ZE-era CI substrate wording is provenance; future owned-runner/CD substrate rollout must cite ADR-0515/cutover authority, not this playbook.
 5. This file is the `cloud-iac` migration scaffold that those implementation lanes can cite.
 
 ## Phase 7 - Rollback and reversibility
@@ -127,7 +127,7 @@ Scope boundary: this playbook is documentation-only. It records the migration se
 1. Verification migration rollback: restore prior verifier behavior only through an ADR-backed amendment; do not bypass the full mirror with ad-hoc scripts.
 2. Governance rename rollback: reverse through the rename inventory and branch-protection status checks, preserving lane semantics.
 3. Sharding automation rollback: use the `rollback_path` from the implementation IP and audit-chain trail for tenant movement reversal.
-4. CI/CD rollback: pause ArgoCD sync, preserve signed artifact provenance, and return to the last verified Git revision rather than manual cluster mutation.
+4. CI/CD rollback: preserve branch-protected `oya-ci-required` evidence, pause ArgoCD sync where applicable, preserve signed artifact provenance, and return to the last verified Git revision rather than manual cluster mutation.
 5. Any rollback that changes tenant placement must preserve residency, compliance packs, and Cedar authorization.
 
 ## Phase 8 - Acceptance checks
@@ -144,7 +144,7 @@ Scope boundary: this playbook is documentation-only. It records the migration se
 - Local verifier transcript for `cloud-iac` once Wave 15-ZA lands.
 - Rename inventory diff for `cloud-iac` once Wave 15-ZB lands.
 - `sharding_automation` manifest excerpt and rollback_path IP link once Wave 15-ZD lands.
-- GitHub Actions oya-cifile parity evidence and ArgoCD Application policy evidence once Wave 15-ZE lands.
+- ADR-0515 `oya-ci-required` continuity evidence, explicit owned-runner cutover evidence if applicable, and ArgoCD Application policy evidence once Wave 15-ZE lands.
 - ADR citation gate result proving this playbook resolves ADR IDs against `docs/decisions`.
 
 ## Stop condition

@@ -22,6 +22,7 @@ path = "src/lib.rs"
 doctest = false
 
 [dependencies]
+oya-ci-gate-contract = { path = "../../../../libs/oya-ci-gate-contract" }
 serde_json = { workspace = true }
 
 [lints]

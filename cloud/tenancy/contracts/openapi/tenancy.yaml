@@ -98,6 +98,23 @@ components:
         type: string
         pattern: '^dsr-[A-Z0-9]{26}$'
       description: ULID DSR request id
+    EnvironmentTierParam:
+      in: path
+      name: tier
+      required: true
+      schema: {$ref: '#/components/schemas/EnvironmentTier'}
+      description: 'ADR-0163 tenant environment tier: test, staging, or prod.'
+    ProdDestructiveAckHeader:
+      in: header
+      name: x-oya-prod-destructive-ack
+      required: false
+      schema:
+        type: string
+        enum: ['true']
+      description: >-
+        Required only for prod-tier destructive operations. The API boundary maps this
+        header to Cedar context `prod_destructive_acknowledged: true` and audit-chain
+        seal metadata; non-prod requests MUST NOT use it to bypass tier isolation.
   schemas:
     Tenant:
       type: object
@@ -221,6 +238,89 @@ components:
               dr_region: {type: string, nullable: true}
               activated: {type: boolean}
               supported_jurisdictions: {type: array, items: {type: string}}
+    EnvironmentTier:
+      type: string
+      enum: [test, staging, prod]
+      description: ADR-0163 per-tenant environment tier; distinct from commercial plan_tier.
+    ApiKeyKind:
+      type: string
+      enum: [server, public]
+    ApiKeyIssueRequest:
+      type: object
+      required: [tenant_id, environment_tier, key_kind]
+      properties:
+        tenant_id: {type: string, pattern: '^tenant:[a-f0-9]{16}$'}
+        environment_tier: {$ref: '#/components/schemas/EnvironmentTier'}
+        key_kind: {$ref: '#/components/schemas/ApiKeyKind'}
+        label: {type: string, maxLength: 120}
+      description: >-
+        Readiness contract for POST /v1/tenancy/api-keys. Issuance is Cedar-gated:
+        test requires tenant developer or higher, staging requires tenant maintainer
+        or higher, and prod/live keys require tenant admin only. The response prefix
+        MUST match the requested environment_tier and key_kind.
+    ApiKeyIssueResponse:
+      type: object
+      required: [api_key_id, tenant_id, environment_tier, key_kind, prefix, created_at]
+      properties:
+        api_key_id: {type: string, pattern: '^ak_[A-Za-z0-9_\-]{16,64}$'}
+        tenant_id: {type: string, pattern: '^tenant:[a-f0-9]{16}$'}
+        environment_tier: {$ref: '#/components/schemas/EnvironmentTier'}
+        key_kind: {$ref: '#/components/schemas/ApiKeyKind'}
+        prefix:
+          type: string
+          enum: [sk_test_, pk_test_, sk_stage_, pk_stage_, sk_live_, pk_live_]
+        secret_once:
+          type: string
+          nullable: true
+          description: Present only at creation time for server keys; never persisted or logged.
+        created_at: {type: string, format: date-time}
+    OutboundMode:
+      type: string
+      enum: [intercept, test_recipients, live]
+    OutboundConfig:
+      type: object
+      required: [mode]
+      properties:
+        mode: {$ref: '#/components/schemas/OutboundMode'}
+        test_recipient_allowlist:
+          type: array
+          items: {type: string, format: email}
+        intercept_sink: {type: string}
+      description: >-
+        test mode intercepts/logs outbound effects, staging delivers only to configured
+        test recipients, and prod uses live delivery. Prod outbound mode is not mutable
+        through the readiness PATCH contract.
+    TenantEnvironment:
+      type: object
+      required: [tenant_id, environment_tier, retention, outbound_config, server_key_prefix, public_key_prefix, audit_chain_tag, destructive_op_acknowledgment_required]
+      properties:
+        tenant_id: {type: string, pattern: '^tenant:[a-f0-9]{16}$'}
+        environment_tier: {$ref: '#/components/schemas/EnvironmentTier'}
+        retention: {type: string}
+        outbound_config: {$ref: '#/components/schemas/OutboundConfig'}
+        server_key_prefix: {type: string, enum: [sk_test_, sk_stage_, sk_live_]}
+        public_key_prefix: {type: string, enum: [pk_test_, pk_stage_, pk_live_]}
+        audit_chain_tag: {type: string, enum: [env_tier=test, env_tier=staging, env_tier=prod]}
+        destructive_op_acknowledgment_required: {type: boolean}
+    TenantEnvironmentList:
+      type: object
+      required: [tenant_id, environments]
+      properties:
+        tenant_id: {type: string, pattern: '^tenant:[a-f0-9]{16}$'}
+        environments:
+          type: array
+          minItems: 3
+          maxItems: 3
+          items: {$ref: '#/components/schemas/TenantEnvironment'}
+    OutboundConfigUpdateRequest:
+      type: object
+      required: [outbound_config]
+      properties:
+        outbound_config: {$ref: '#/components/schemas/OutboundConfig'}
+      description: >-
+        Readiness contract for PATCH /v1/tenancy/tenants/{tenant_id}/environments/{tier}/outbound-config.
+        Only test and staging tiers are patchable; prod live outbound config remains immutable
+        and requires a separate reviewed change-control lane.
     Error:
       type: object
       required: [error, message]
@@ -233,6 +333,74 @@ security:
   - OIDC: []
 
 paths:
+  /api-keys:
+    post:
+      summary: Issue a tenant environment-tier API key
+      operationId: issueTenantApiKey
+      x-oyatie-route-alias: POST /v1/tenancy/api-keys
+      description: >-
+        Contract-only readiness surface for ADR-0163 API-key issuance. The service
+        validates the requested environment_tier, maps the returned prefix to the
+        tier/key_kind pair, and requires Cedar approval for the tier-specific role gate.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/ApiKeyIssueRequest'}
+      responses:
+        '201':
+          description: API key issued; server-key secret is shown only once when applicable.
+          content: {application/json: {schema: {$ref: '#/components/schemas/ApiKeyIssueResponse'}}}
+        '400': {description: invalid tier/key-kind/prefix request, content: {application/json: {schema: {$ref: '#/components/schemas/Error'}}}}
+        '401': {description: OIDC missing or invalid, content: {application/json: {schema: {$ref: '#/components/schemas/Error'}}}}
+        '403': {description: Cedar denied issuer role for requested environment tier, content: {application/json: {schema: {$ref: '#/components/schemas/Error'}}}}
+
+  /tenants/{tenant_id}/environments:
+    get:
+      summary: List a tenant's test/staging/prod environment configuration
+      operationId: listTenantEnvironments
+      x-oyatie-route-alias: GET /v1/tenancy/tenants/{tenant_id}/environments
+      description: >-
+        Tenant DPO/operator self-service view of ADR-0163 tier configuration. This is
+        read-only and does not create environments, copy data, route production traffic,
+        or provision cells.
+      parameters:
+        - $ref: '#/components/parameters/TenantIdParam'
+      responses:
+        '200':
+          description: Three environment-tier records for the tenant.
+          content: {application/json: {schema: {$ref: '#/components/schemas/TenantEnvironmentList'}}}
+        '401': {description: OIDC missing or invalid, content: {application/json: {schema: {$ref: '#/components/schemas/Error'}}}}
+        '403': {description: Cedar denied tenant-environment read, content: {application/json: {schema: {$ref: '#/components/schemas/Error'}}}}
+        '404': {description: tenant not found, content: {application/json: {schema: {$ref: '#/components/schemas/Error'}}}}
+
+  /tenants/{tenant_id}/environments/{tier}/outbound-config:
+    patch:
+      summary: Update non-prod outbound effect configuration for a tenant environment tier
+      operationId: updateTenantEnvironmentOutboundConfig
+      x-oyatie-route-alias: PATCH /v1/tenancy/tenants/{tenant_id}/environments/{tier}/outbound-config
+      description: >-
+        Admin-only contract for test/staging outbound configuration. `test` remains
+        intercept/log-only, `staging` may deliver to tenant-configured QA recipients,
+        and `prod` live outbound delivery is intentionally not mutable through this
+        endpoint.
+      parameters:
+        - $ref: '#/components/parameters/TenantIdParam'
+        - $ref: '#/components/parameters/EnvironmentTierParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/OutboundConfigUpdateRequest'}
+      responses:
+        '200':
+          description: Updated outbound configuration.
+          content: {application/json: {schema: {$ref: '#/components/schemas/TenantEnvironment'}}}
+        '400': {description: invalid outbound mode for environment tier, content: {application/json: {schema: {$ref: '#/components/schemas/Error'}}}}
+        '401': {description: OIDC missing or invalid, content: {application/json: {schema: {$ref: '#/components/schemas/Error'}}}}
+        '403': {description: Cedar denied outbound-config mutation, content: {application/json: {schema: {$ref: '#/components/schemas/Error'}}}}
+        '409': {description: prod live outbound config is immutable through this endpoint, content: {application/json: {schema: {$ref: '#/components/schemas/Error'}}}}
+
   /tenants:
     post:
       summary: Create a new tenant (platform-operator only; 2-person rule)
@@ -284,6 +452,8 @@ paths:
     delete:
       summary: Delete a tenant (platform-operator + 2-person rule; triggers DSR cascade)
       operationId: deleteTenant
+      parameters:
+        - $ref: '#/components/parameters/ProdDestructiveAckHeader'
       responses:
         '202':
           description: Deletion initiated; DSR cascade kicked off
@@ -351,6 +521,8 @@ paths:
     post:
       summary: Submit a DSR request (tenant operator or platform-operator+DPO)
       operationId: submitDsrRequest
+      parameters:
+        - $ref: '#/components/parameters/ProdDestructiveAckHeader'
       requestBody:
         required: true
         content:

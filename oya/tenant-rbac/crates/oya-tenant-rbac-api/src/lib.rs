@@ -10,13 +10,15 @@
 #![forbid(unsafe_code)]
 
 use oya_data_boundary_kernel::DataClass;
-use oya_tenant_rbac_usecase::{OpsCommandKind, TenantRbacOpsCommandInput, TenantRbacOpsRoute};
 use oya_tenant_rbac_domain::{
     CloseBoundaryState, CrossServiceWorkflowInput, DeterministicGate, GateClosureAuthority,
     GroupRollupInput, IncidentFirstAction, IncidentRemediationRoute, IncidentRollbackInput,
     IncidentTrigger, Jurisdiction, LegalEntityCloseSnapshot, ObjectGraphRelationshipOwner,
-    ServiceWriteInput, TenantRbacService, TenantRbacWriteKind, WorkflowRoutingOwner,
+    SensitiveHrReadScopeDecision, SensitiveHrReadScopeInput, SensitiveReadLegalBasis,
+    ServiceWriteInput, TenantRbacPolicyDecisionStatus, TenantRbacService, TenantRbacWriteKind,
+    WorkflowRoutingOwner,
 };
+use oya_tenant_rbac_usecase::{OpsCommandKind, TenantRbacOpsCommandInput, TenantRbacOpsRoute};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -71,6 +73,71 @@ impl ServiceWriteAdmissionRequest {
             policy_gateway_ref: self.policy_gateway_ref,
             idempotency_key: self.idempotency_key,
             sequence: self.sequence,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SensitiveHrReadScopeDecisionRequest {
+    pub tenant_id: String,                       // data_class: INTERNAL_ONLY
+    pub entitlement_set_id: String,              // data_class: INTERNAL_ONLY
+    pub role_binding: String,                    // data_class: INTERNAL_ONLY
+    pub policy_scope: String,                    // data_class: INTERNAL_ONLY
+    pub legal_basis: SensitiveReadLegalBasisDto, // data_class: INTERNAL_ONLY
+    pub audit_evidence_refs: Vec<String>,        // data_class: INTERNAL_ONLY
+    pub idempotency_key: String,                 // data_class: INTERNAL_ONLY
+}
+
+impl SensitiveHrReadScopeDecisionRequest {
+    pub fn into_domain(self) -> SensitiveHrReadScopeInput {
+        SensitiveHrReadScopeInput {
+            tenant_id: self.tenant_id,
+            entitlement_set_id: self.entitlement_set_id,
+            role_binding: self.role_binding,
+            policy_scope: self.policy_scope,
+            legal_basis: self.legal_basis.into(),
+            audit_evidence_refs: self.audit_evidence_refs,
+            idempotency_key: self.idempotency_key,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SensitiveHrReadScopeDecisionResponse {
+    pub tenant_id: String,                       // data_class: INTERNAL_ONLY
+    pub entitlement_set_id: String,              // data_class: INTERNAL_ONLY
+    pub role_binding: String,                    // data_class: INTERNAL_ONLY
+    pub policy_scope: String,                    // data_class: INTERNAL_ONLY
+    pub legal_basis: SensitiveReadLegalBasisDto, // data_class: INTERNAL_ONLY
+    pub audit_evidence_refs: Vec<String>,        // data_class: INTERNAL_ONLY
+    pub idempotency_key: String,                 // data_class: INTERNAL_ONLY
+    pub decision_status: ScopeDecisionStatusDto, // data_class: INTERNAL_ONLY
+    pub sensitive_data_fetch: bool,              // data_class: INTERNAL_ONLY
+    pub downstream_service_policy_bypass: bool,  // data_class: INTERNAL_ONLY
+    pub schema_version: u32,                     // data_class: PUBLIC
+}
+
+impl SensitiveHrReadScopeDecisionResponse {
+    pub fn from_decision(decision: &SensitiveHrReadScopeDecision) -> Self {
+        Self {
+            tenant_id: decision.tenant_id.value.value.clone(),
+            entitlement_set_id: decision.entitlement_set_id.value.value.clone(),
+            role_binding: decision.role_binding.value.value.clone(),
+            policy_scope: decision.policy_scope.value.value.clone(),
+            legal_basis: decision.legal_basis.value.into(),
+            audit_evidence_refs: decision
+                .audit_evidence_refs
+                .value
+                .iter()
+                .map(|evidence_ref| evidence_ref.value.clone())
+                .collect(),
+            idempotency_key: decision.idempotency_key.value.clone(),
+            decision_status: decision.decision_status.value.into(),
+            sensitive_data_fetch: decision.sensitive_data_fetch.value,
+            downstream_service_policy_bypass: decision.downstream_service_policy_bypass.value,
+            schema_version: decision.schema_version.value,
         }
     }
 }
@@ -290,6 +357,48 @@ impl From<DataClassDto> for DataClass {
             DataClassDto::InternalOnly => Self::InternalOnly,
             DataClassDto::PiiIdentifying => Self::PiiIdentifying,
             DataClassDto::Financial => Self::Financial,
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum SensitiveReadLegalBasisDto {
+    Consent,
+    EmploymentLawObligation,
+    VitalInterests,
+}
+
+impl From<SensitiveReadLegalBasisDto> for SensitiveReadLegalBasis {
+    fn from(value: SensitiveReadLegalBasisDto) -> Self {
+        match value {
+            SensitiveReadLegalBasisDto::Consent => Self::Consent,
+            SensitiveReadLegalBasisDto::EmploymentLawObligation => Self::EmploymentLawObligation,
+            SensitiveReadLegalBasisDto::VitalInterests => Self::VitalInterests,
+        }
+    }
+}
+
+impl From<SensitiveReadLegalBasis> for SensitiveReadLegalBasisDto {
+    fn from(value: SensitiveReadLegalBasis) -> Self {
+        match value {
+            SensitiveReadLegalBasis::Consent => Self::Consent,
+            SensitiveReadLegalBasis::EmploymentLawObligation => Self::EmploymentLawObligation,
+            SensitiveReadLegalBasis::VitalInterests => Self::VitalInterests,
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum ScopeDecisionStatusDto {
+    Accepted,
+}
+
+impl From<TenantRbacPolicyDecisionStatus> for ScopeDecisionStatusDto {
+    fn from(value: TenantRbacPolicyDecisionStatus) -> Self {
+        match value {
+            TenantRbacPolicyDecisionStatus::Accepted => Self::Accepted,
         }
     }
 }

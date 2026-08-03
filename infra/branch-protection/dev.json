@@ -5,14 +5,14 @@
   "required_status_checks": {
     "strict": false,
     "_strict_rationale": "Set to false per ADR-0124 to break the O(N^2) rebase cascade; the merge bridge enforces required status contexts without GitHub-side up-to-date enforcement.",
-    "_oya_pr_review_note": "oya-pr-review is intentionally absent from Phase-1 required contexts. Its producer (reviewer-agent HTTP endpoint) returns HTTP 501 (not yet shipped); requiring it would deadlock every PR. Returns as required in Phase-2 once the reviewer-agent endpoint is live.",
+    "_oya_pr_review_note": "oya-pr-review is intentionally absent from Phase-1 required contexts. Current reviewer-agent APPROVE evidence is enforced inside the required oya-ci-required context by the pr-reviewer-evidence pull_request lane. The standalone oya-pr-review producer (reviewer-agent HTTP endpoint) returns HTTP 501 (not yet shipped); requiring it would deadlock every PR. It returns as a separate required context only once the reviewer-agent endpoint is live and explicitly classified.",
     "contexts": [
       "oya-ci-required"
     ],
     "_phase0_target_note": "P0.0 target required context is oya-ci-required, posted by oya-ci-controller from trusted controller/trunk state. Legacy cargo/* and oya-verify contexts may remain migration feedback only, not protected-branch merge or Phase-0 exit authority."
   },
   "enforce_admins": true,
-  "_required_pull_request_reviews_rationale": "GitHub human approving reviews are not merge authority for dev. oya-pr-review is future/non-live reviewer evidence only until its producer is live and explicitly required; keep this null so branch-protection re-application cannot recreate the hidden requiresApprovingReviews=true/count=0 blocker that stalls the next queue.",
+  "_required_pull_request_reviews_rationale": "GitHub human approving reviews are not merge authority for dev. Reviewer-agent APPROVE evidence is enforced through the required oya-ci-required context, while oya-pr-review is future/non-live standalone reviewer evidence until its producer is live and explicitly required; keep this null so branch-protection re-application cannot recreate the hidden requiresApprovingReviews=true/count=0 blocker that stalls the next queue.",
   "required_pull_request_reviews": null,
   "required_signatures": true,
   "required_conversation_resolution": true,

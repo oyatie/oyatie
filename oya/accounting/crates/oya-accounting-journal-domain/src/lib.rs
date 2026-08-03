@@ -410,6 +410,13 @@ pub fn post_journal(input: JournalPostInput) -> Result<JournalVoucher, Accountin
 pub fn payroll_posting(
     input: PayrollPostingInput,
 ) -> Result<PayrollPostingEvidence, AccountingDomainError> {
+    payroll_posting_for_period(input, PeriodState::Open)
+}
+
+pub fn payroll_posting_for_period(
+    input: PayrollPostingInput,
+    period_state: PeriodState,
+) -> Result<PayrollPostingEvidence, AccountingDomainError> {
     if input.source_payroll_digest.trim().is_empty() {
         return Err(AccountingDomainError::PayrollDigestRequired);
     }
@@ -441,7 +448,7 @@ pub fn payroll_posting(
         tenant_id: input.tenant_id,
         legal_entity_id: input.legal_entity_id,
         period: input.period,
-        period_state: PeriodState::Open,
+        period_state,
         source_documents: vec!["src/payroll/run".to_owned()],
         approval_evidence_ref: input.approval_evidence_ref,
         lines: input.lines,

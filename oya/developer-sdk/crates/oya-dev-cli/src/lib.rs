@@ -106,6 +106,7 @@ mod scalability_gates;
 mod scalar_parse;
 mod supply_chain_gates;
 mod team_ownership_gates;
+mod terminal_verifier_harness;
 mod tier_a_gates;
 mod typescript_workspace_gates;
 mod workspace_hygiene_gate;
@@ -247,10 +248,6 @@ pub(crate) use honest_claims_gate::{
 pub(crate) use http_stack_gate::{
     HttpStackFindingKind, parse_http_stack_validate_args, validate_http_stack_gate,
 };
-pub(crate) use workspace_topology_gate::{
-    parse_workspace_topology_validate_args, validate_workspace_topology_gate,
-    WorkspaceTopologyRule,
-};
 pub(crate) use hyperscaler_arch_invariants_gate::{
     parse_hyperscaler_arch_invariants_validate_args, validate_hyperscaler_arch_invariants_gate,
 };
@@ -308,8 +305,9 @@ pub(crate) use scalar_parse::{
     parse_u64_field, required_field, required_scalar, scalar_value,
 };
 pub(crate) use supply_chain_gates::{
-    parse_release_evidence_pack_validate_args, parse_release_supply_chain_validate_args,
-    parse_supply_chain_validate_args, release_supply_chain_phase_name,
+    parse_image_promotion_validate_args, parse_release_evidence_pack_validate_args,
+    parse_release_supply_chain_validate_args, parse_supply_chain_validate_args,
+    release_supply_chain_phase_name, validate_image_promotion_gate,
     validate_release_evidence_pack_gate, validate_release_supply_chain_gate,
     validate_supply_chain_gate,
 };
@@ -327,6 +325,9 @@ pub(crate) use workspace_hygiene_gate::{
 pub(crate) use workspace_manifest::{
     read_package_license, read_package_name, read_workspace_member_crate_ids,
     read_workspace_member_paths,
+};
+pub(crate) use workspace_topology_gate::{
+    WorkspaceTopologyRule, parse_workspace_topology_validate_args, validate_workspace_topology_gate,
 };
 pub(crate) use yaml_scan::{clean_yaml_value, parse_yaml_inline_values};
 
@@ -380,7 +381,7 @@ pub fn run_cli_from_env() -> ExitCode {
 }
 
 pub(crate) fn usage() -> String {
-    "Usage: oya demo [--audit-ledger <path>] [--evidence-store <path>] [--run-ledger <path>] [--step-ledger <path>] [--outbox-store <path>] [--secret-store <path>]\n       oya verify [--ci-required] [--include-deferred] [--skip-fmt] [--skip-check] [--skip-clippy] [--skip-nextest] [--skip-gate-run-all]   # canonical local pre-push/pre-PR entry; --ci-required runs the full CI mirror\n       oya submit [--no-verify] [--push-only] [--draft] [--title <text>] [--body <text>]   # verify --ci-required → git push → open/extend PR\n       oya cleanup retired-and-renumber --plan <path> --renumber-map <path> [--apply]\n       oya supply-chain adr0039 [--manifest <registry/release/images.yaml>] [--artifacts-dir <artifacts/supply-chain>] [--dry-run] [--format <text|json>]\n       oya supply-chain install-trivy [--version <0.70.0>] [--install-dir </usr/local/bin>] [--dry-run] [--format <text|json>]\n       oya codex-thread-sweep list [--p1-only] [--pr N] | show <thread-id>\n       oya lint <proto|asyncapi|adr-shape|foundry-phase00-evidence> [lint-specific args]\n       oya check <architecture|bounded-context|supply-chain|semver|documentation|statelessness|shardability|perf-budget|benchmark> [check-specific args]\n       oya doc rustdoc [--target-dir <target/oya-rustdoc-check>] [--rustdoc <path>] [--cargo <path>] [--format <text|json>] [--keep-target-dir]\n       oya doc openapi [--contracts-dir <contracts>] [--spec <docs/SPEC.md>] [--contracts-mirror <docs/machine-readable/contracts.json>] [--runtime-bindings <registry/openapi/runtime-bindings.tsv>] [--schema-bindings <registry/openapi/schema-bindings.tsv>] [--runtime-root <.>] [--format <text|json>]\n       oya doc mdbook [--site-dir <docs/site>] [--format <text|json>]\n       oya doc adr-index [--decisions-dir <docs/decisions>] [--index <docs/ADR-INDEX.md>] [--machine <docs/machine-readable/decisions.json>] [--write] [--format <text|json>]\n       oya doc inventory [--repo-root <.>] [--workspace <Cargo.toml>] [--crate-registry <registry/catalog>] [--doc-catalog <docs/machine-readable/catalog.json>] [--contracts-dir <contracts>] [--products-dir <docs/products>] [--capabilities-dir <registry/capability-templates>] [--out <docs/machine-readable/documentation-inventory.json>] [--write] [--format <text|json>]\n       oya catalog validate [--workspace <Cargo.toml>] [--registry <registry/catalog>]"
+    "Usage: oya demo [--audit-ledger <path>] [--evidence-store <path>] [--run-ledger <path>] [--step-ledger <path>] [--outbox-store <path>] [--secret-store <path>]\n       oya verify [--ci-required] [--include-deferred] [--skip-fmt] [--skip-check] [--skip-clippy] [--skip-nextest] [--skip-gate-run-all]   # canonical local pre-PR entry; --ci-required runs the full CI mirror\n       oya verify --pre-push [--base <ref>]   # local pre-push self-verify: freshness + generated-face settle-check + Buck2 affected-set\n       oya verify --terminal-evidence clean-checkout [--repo-root <path>]   # G013 local bridge: one slice evidence class as machine-readable JSON; never full terminal closure authority\n       oya submit [--no-verify] [--push-only] [--draft] [--title <text>] [--body <text>]   # verify --ci-required → git push → open/extend PR\n       oya cleanup retired-and-renumber --plan <path> --renumber-map <path> [--apply]\n       oya supply-chain adr0039 [--manifest <registry/release/images.yaml>] [--artifacts-dir <artifacts/supply-chain>] [--dry-run] [--format <text|json>]\n       oya supply-chain install-trivy [--version <0.70.0>] [--install-dir </usr/local/bin>] [--dry-run] [--format <text|json>]\n       oya codex-thread-sweep list [--p1-only] [--pr N] | show <thread-id>\n       oya lint <proto|asyncapi|adr-shape|foundry-phase00-evidence> [lint-specific args]\n       oya check <architecture|bounded-context|supply-chain|semver|documentation|statelessness|shardability|perf-budget|benchmark> [check-specific args]\n       oya doc rustdoc [--target-dir <target/oya-rustdoc-check>] [--rustdoc <path>] [--cargo <path>] [--format <text|json>] [--keep-target-dir]\n       oya doc openapi [--contracts-dir <contracts>] [--spec <docs/SPEC.md>] [--contracts-mirror <docs/machine-readable/contracts.json>] [--runtime-bindings <registry/openapi/runtime-bindings.tsv>] [--schema-bindings <registry/openapi/schema-bindings.tsv>] [--runtime-root <.>] [--format <text|json>]\n       oya doc mdbook [--site-dir <docs/site>] [--format <text|json>]\n       oya doc adr-index [--decisions-dir <docs/decisions>] [--index <docs/ADR-INDEX.md>] [--machine <docs/machine-readable/decisions.json>] [--write] [--format <text|json>]\n       oya doc inventory [--repo-root <.>] [--workspace <Cargo.toml>] [--crate-registry <registry/catalog>] [--doc-catalog <docs/machine-readable/catalog.json>] [--contracts-dir <contracts>] [--products-dir <docs/products>] [--capabilities-dir <registry/capability-templates>] [--out <docs/machine-readable/documentation-inventory.json>] [--write] [--format <text|json>]\n       oya catalog validate [--workspace <Cargo.toml>] [--registry <registry/catalog>]"
         .to_string()
         + "\n       oya plan <next|claim|claim/next> [--master-plan <docs/machine-readable/masterplan.generated.json>] [--repo-root <.>] [--remote <origin>] [--deliverable <id>] [--claimant <agent-id>] [--lease-seconds <seconds>] [--recover-stale] [--recovery-reason <text>] [--dry-run] [--format <text|json>]   # ADR-0377 D2: remote git-ref CAS claims under refs/heads/claims/<deliverable-id>"
         + "\n       oya gen board-sync [--master-plan <docs/machine-readable/masterplan.generated.json>] [--snapshot <docs/machine-readable/board-sync.generated.json>] [--claim-ref-snapshot <claims.json>] [--write|--check]   # ADR-0377 D3: masterplan deliverables + claim refs to GitHub issue/label projection"
@@ -400,6 +401,7 @@ pub(crate) fn usage() -> String {
         + "\n       oya gate validate api-semver [--contracts-dir <contracts>]"
         + "\n       oya gate validate supply-chain [--registry <registry/catalog>] [--deny <deny.toml>] [--check-script <scripts/check.sh>] [--adr0039-script <scripts/supply-chain-adr0039.sh>] [--adr0039-rust <crates/oya-dev-cli/src/commands/supply_chain.rs>] [--workflows-dir <.github/workflows>] [--release-images <registry/release/images.yaml>] [--branch-protection <.github/branch-protection.yaml>] [--admission-policy <infra/kyverno/policies/require-signed-images.yaml>] [--require-adr0039-evidence]"
         + "\n       oya gate validate release-supply-chain [--release-images <registry/release/images.yaml>] [--evidence-dir <registry/release/supply-chain>] [--phase <pre-release|release>]"
+        + "\n       oya gate validate image-promotion [--promotion-dir <registry/release/image-promotions>]"
         + "\n       oya gate validate release-evidence-pack [--manifest <registry/release/evidence-packs.tsv>] [--compliance <docs/machine-readable/compliance.json>] [--require-records]"
         + "\n       oya gate validate typescript-workspace --lane <typecheck|test> [--repo-root <.>]"
         + "\n       oya gate validate pr-traceability [--pr-body <docs/templates/pull-request-template.md>] [--require-code-review|--forbid-code-review]"
@@ -474,7 +476,7 @@ pub(crate) fn usage() -> String {
         + "\n       oya gate validate deployment-ops-contract [--repo-root <.>] [--contract <specs/deployment-ops-contract.json>] [--makefile <Makefile>]"
         + "\n       oya gate validate milestone-audit [--repo-root <.>] [--audit <registry/milestone-audit/index.json>]"
         + "\n       oya gate run-all [--include-deferred] [--ci-required]"
-        + "\n       oya verify [--include-deferred] [--ci-required]   # local-developer fold of `gate run-all`; canonical pre-push/pre-PR entry"
+        + "\n       oya verify [--include-deferred] [--ci-required]   # local-developer fold of `gate run-all`; canonical pre-PR full mirror"
 }
 
 pub(crate) fn path_has_component(path: &Path, component: &str) -> bool {

@@ -55,7 +55,7 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_config" "onprem_kr" {
       hostname = "foundry.${var.cloudflare_domain}"
       service  = "http://127.0.0.1:8080"
       origin_request {
-        connect_timeout = "30s"
+        connect_timeout  = "30s"
         http_host_header = "foundry.${var.cloudflare_domain}"
       }
     }

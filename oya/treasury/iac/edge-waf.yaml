@@ -1,7 +1,10 @@
+# Preview planning inventory only; not a live edge/WAF deployment.
 apiVersion: oyatie.dev/v1
 kind: EdgeWafPolicy
 metadata:
   name: oya-treasury-abuse-defence
+  annotations:
+    oyatie.com/authority-scope: preview-planning-non-authoritative
 spec:
   defaultPathLatencyBudgetMs: 2
   emergencyServicesBypass: true

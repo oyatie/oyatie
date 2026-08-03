@@ -6,6 +6,13 @@ option java_package = "dev.oyatie.plant_maintenance.v1";
 
 // SAP PM; benchmarks: SAP PM Plant Maintenance | Oracle Fusion Maintenance | Workday Extend asset-maintenance workflow counterpart | NetSuite Fixed Assets and Field Service counterpart | Microsoft Dynamics 365 Asset Management
 // Transport binding: HTTP/3 default at REST edge, gRPC over mTLS internally, ECH/PQC at ingress where supported.
+// Preview app method metadata fixture only: the scaffolded app adapter remains contract_stub_only.
+// Non-claims: no deployed gRPC runtime, durable persistence, Workflow execution, runtime audit-chain emission, or cloud deployment.
+// x-oyatie-app-method-metadata:
+// - method: SubmitCommand; contract_stub_only: true
+// - method: Reconcile; contract_stub_only: true
+// - method: ApplyGovernanceHold; contract_stub_only: true
+// - method: ExportEvidence; contract_stub_only: true
 
 message EquipmentMasterCommand {
   string tenant_id = 1;

@@ -1,3 +1,4 @@
+{{/* Claim boundary: target/provenance template only; no live Cedar enforcement is claimed. */}}
 {{- if .Values.cedar.enabled }}
 apiVersion: v1
 kind: ConfigMap
@@ -5,6 +6,7 @@ metadata:
   name: {{ .Values.cedar.policyConfigMapName | quote }}
   labels:
     app.kubernetes.io/name: {{ .Values.microservice.id | quote }}
+    oyatie.com/claim-boundary: {{ .Values.claimBoundary.classification | quote }}
     oyatie.com/policy-engine: cedar
     oyatie.com/adr-0246: policy-engine-substrate
 data:

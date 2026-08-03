@@ -3,7 +3,11 @@ doc_class: Checklist
 checklist_id: CHK-DONE
 status: pending approval
 purpose: |
-  Extends `docs/AGENTS.md §Done-Definition checklist` D1-D18 with per-change-class variants. Walked before every PR is declared "ready to merge" and re-walked at the loop-cancellation boundary per `docs/AGENTS.md §Long-running loop rule`.
+  Extends `docs/AGENTS.md §Done-Definition checklist` D1-D20 with
+  per-change-class variants. D1-D18 are walked before every PR is declared
+  "ready to merge"; D19-D20 are walked after squash merge before product-complete.
+  Re-walk at the loop-cancellation boundary per `docs/AGENTS.md §Long-running
+  loop rule`.
 lift_target: oyatie/docs/checklists/done-definition.md
 enforcing_fitness_lane: guard-pr-merge-review.mjs + per-lane CI status
 owner_team: axis-foundry + council-architecture
@@ -16,7 +20,10 @@ related:
 
 # Done-Definition Checklist
 
-> Walk **all** core rows D1-D18 (from `docs/AGENTS.md`). Then walk the **per-change-class** rows that apply. Each row carries a typed verification path: lane name, command, or explicit `(advisory)` marker.
+> Walk core rows D1-D18 before declaring a PR ready to merge. After squash
+> merge, walk D19-D20 before declaring the work product-complete. Then walk the
+> **per-change-class** rows that apply. Each row carries a typed verification
+> path: lane name, command, or explicit `(advisory)` marker.
 
 ## Core (apply to every change class)
 
@@ -31,13 +38,26 @@ related:
 - [ ] **D9** `cargo nextest run --workspace --all-features --no-fail-fast` passes. *Verification:* output in `## Verification`.
 - [ ] **D10** `cargo clippy --workspace --all-features --all-targets -- -D warnings` passes. *Verification:* output.
 - [ ] **D11** `cargo deny check` passes. *Verification:* output.
-- [ ] **D12** `oya verify` passes. *Verification:* output.
+- [ ] **D12** Protected PR status `oya-ci-required` is green before merge. *Verification:* CI/status URL; optional local pre-push or legacy verifier output is shift-left evidence only and never merge authority.
 - [ ] **D13** Performance changes carry benchmark + ≥2 stress scenarios. *Lane:* `oya-governance-perf-evidence`.
 - [ ] **D14** Schema migrations ship up + down + dry-run + per-tenant + per-cell rollback. *Lane:* `oya-governance-schema-migration`.
 - [ ] **D15** PR has 5 canonical H2s; `## Code Review` at merge. *Lane:* `traceability-validator`.
 - [ ] **D16** Audit-chain emission `EVT-*` ID in `## Evidence`. *Lane:* `oya-governance-audit-emission`.
 - [ ] **D17** `docs/MISTAKES-LEDGER.md` row added if mechanical prevention shipped. *Lane:* `oya-governance-mistakes-ledger-cite`.
 - [ ] **D18** `docs/CHANGELOG.md` row added if canonical doc touched. *Lane:* `oya-governance-changelog-row`.
+- [ ] **D19** Post-merge product-completion packet recorded after squash merge:
+  promoted commit `oya-ci-required` status URL, rollout verification, rollback note,
+  observability/golden-signal check, browser UX/user-story evidence, and Release
+  Please/release-note impact. *Verification:* PR comment or release evidence bundle
+  linked from `## Evidence`; see `docs/checklists/pre-merge.md §After merge`.
+- [ ] **D20** Agent observations harvested before closeout: review chat,
+  review-agent output, scratch/workspace notes, PR comments, and Kanban
+  comments; dedupe against active cards; then create/link follow-up, maturity,
+  feature-improvement, or fix cards, or document duplicates/no-action rationale.
+  New/linked cards MUST include: source context, classification,
+  affected card/PR/artifact, acceptance criteria, verification path,
+  suggested owner/profile, and dependencies/conflict notes. *Verification:* Kanban
+  card/comment links or explicit duplicate/no-action note in the completion packet.
 
 ## Per-change-class additions
 

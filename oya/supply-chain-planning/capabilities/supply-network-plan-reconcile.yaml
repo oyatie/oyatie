@@ -4,9 +4,14 @@ microservice: supply-chain-planning
 bounded_context: supply-network-plan
 autonomy_tier: T1
 risk_class: regulated-erp
+status: target-provenance
+inventory_classification: target/provenance
+canonical_prd: specs/microservices/supply-chain-planning.json
+visible_repo_path: oya/supply-chain-planning
+claim_ceiling: metadata-only preview capability inventory; no active implementation, runtime readiness, cloud readiness, SLO/DR readiness, GA readiness, or exhaustive vendor parity claim
 audit_event_class: EVT-SUPPLY_CHAIN_PLANNING-SUPPLY_NETWORK_PLAN-RECONCILE
 policy_fragments:
-  - microservices/supply-chain-planning/policy/supply-network-plan-authorization.cedar
+  - oya/supply-chain-planning/policy/supply-network-plan-authorization.cedar
 benchmarks:
   - "SAP SCM/APO and SAP IBP"
   - "Oracle Supply Chain Planning"

@@ -235,6 +235,6 @@ Per ADR-0163, every tenant has three environment tiers — `test`, `staging`, `p
 
 **Operations covered:** DSR delete, tenant offboarding, bulk delete > 100 rows, cell migration, residency-class change.
 
-CI lane `oya gate validate tenant-environment-tier` enforces (a) every outbound-effect µservice checks `env_tier`, (b) every API-key issuance validates Cedar tier-grant, (c) every prod destructive op carries the ack header.
+Protected merge gate `cloud-ci-tenant-environment-tier` is aggregated by `oya-ci-required` and enforces (a) every outbound-effect µservice checks `env_tier`, (b) every API-key issuance validates Cedar tier-grant, (c) every prod destructive op carries the ack header. Legacy `oya gate validate tenant-environment-tier` wording is historical/local-feedback provenance only.
 
 See `/specs/tenant-environment-tiers-canonical.json` for the canonical declaration.

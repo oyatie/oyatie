@@ -1,6 +1,6 @@
 ---
 id: ADR-0394
-title: "Bespoke-Rust IDP central hub (Leptos portal + ops-BFF; supersedes/reconciles ADR-0170 Backstage)"
+title: "Bespoke-Rust Internal Developer Platform (IDP) central hub (Leptos portal + ops-BFF; supersedes/reconciles ADR-0170 Backstage)"
 status: Proposed
 planning_impact: true
 deciders: founder, council-architecture
@@ -9,7 +9,7 @@ owner: council-architecture
 supersedes: [ADR-0170]
 superseded_by: []
 amends: []
-related: [ADR-0001, ADR-0011, ADR-0067, ADR-0090, ADR-0130, ADR-0131, ADR-0132, ADR-0170, ADR-0203, ADR-0209, ADR-0213, ADR-0372, ADR-0393, ADR-0509]
+related: [ADR-0001, ADR-0011, ADR-0067, ADR-0090, ADR-0130, ADR-0131, ADR-0132, ADR-0170, ADR-0203, ADR-0209, ADR-0213, ADR-0372, ADR-0393, ADR-0476, ADR-0482, ADR-0509]
 related_specs:
   - /specs/http-stack-policy.json
   - /specs/hyperscaler-architecture-invariants.json
@@ -24,11 +24,11 @@ affected_surfaces:
   specs: [/specs/http-stack-policy.json, /specs/hyperscaler-architecture-invariants.json]
 ---
 
-# ADR-0394: Bespoke-Rust IDP central hub (Leptos portal + ops-BFF; supersedes/reconciles ADR-0170)
+# ADR-0394: Bespoke-Rust Internal Developer Platform (IDP) central hub (Leptos portal + ops-BFF; supersedes/reconciles ADR-0170)
 
 ## Status
 
-Proposed — 2026-05-29. DRAFT for founder review; this overturns an Accepted, load-bearing decision (ADR-0170 Backstage-style portal, depended on by ADR-0203/0209/0213) and must NOT auto-merge.
+Proposed — 2026-05-29. DRAFT for founder review; this overturns an Accepted, load-bearing decision (ADR-0170 Backstage-style portal, depended on by ADR-0203/0209/0213) and must NOT auto-merge. In this ADR, **IDP means Internal Developer Platform** (portal/BFF), not the OIDC identity provider.
 
 ## Date
 
@@ -44,13 +44,19 @@ ADR-0170 ("Backstage-style internal developer portal"), in full as a **substrate
 
 ## Related
 
-ADR-0001 (one-product cohesion — the IDP dogfoods the catalog), ADR-0011 (cross-microservice contract registry — API catalog source), ADR-0067 (SurfaceCatalog / VisibilityTier — the shell's surface model), ADR-0090 (hyper canonical HTTP backbone + hyper/axum split — the BFF/SSR host backbone), ADR-0130 (agentic SLO-gated promotion — SLO authoring mandatory before any new IDP µservice promotes past dev), ADR-0131 (per-microservice flat layout), ADR-0132 (no-grouping / single-concern µservices), ADR-0170 (the superseded Backstage substrate), ADR-0203 (docs three-tier — retargeted, see below), ADR-0209 (compliance evidence automation — retargeted), ADR-0213 (Ecosystem-as-a-Service developer-sdk portal — retargeted), ADR-0372 (the prior SolidJS frontend, superseded by ADR-0393), ADR-0393 (Leptos canonical app-shell — the portal-shell stack this hub uses), ADR-0509 (hyperscaler single-crate-per-service decomposition — the BFF/module crate layout).
+ADR-0001 (one-product cohesion — the Internal Developer Platform dogfoods the catalog), ADR-0011 (cross-microservice contract registry — API catalog source), ADR-0067 (SurfaceCatalog / VisibilityTier — the shell's surface model), ADR-0090 (hyper canonical HTTP backbone + hyper/axum split — the BFF/SSR host backbone), ADR-0130 (agentic SLO-gated promotion — SLO authoring mandatory before any new Internal Developer Platform µservice promotes past dev), ADR-0131 (per-microservice flat layout), ADR-0132 (no-grouping / single-concern µservices), ADR-0170 (the superseded Backstage substrate), ADR-0203 (docs three-tier — retargeted, see below), ADR-0209 (compliance evidence automation — retargeted), ADR-0213 (Ecosystem-as-a-Service developer-sdk portal — retargeted), ADR-0372 (the prior SolidJS frontend, superseded by ADR-0393), ADR-0393 (Leptos canonical app-shell — the portal-shell stack this hub uses), ADR-0509 (hyperscaler single-crate-per-service decomposition — the BFF/module crate layout).
 
 ## Owner
 
 council-architecture (with founder as deciding authority — this is a doctrine reversal of an Accepted, load-bearing ADR).
 
 ## Context
+
+### Terminology and identity boundary
+
+ADR-0394 uses **IDP** only in the Internal Developer Platform sense: a portal shell plus ops-BFF that aggregates catalog, docs, CI/CD, observability, agent-fleet, and admin surfaces. It does not select or own the OIDC identity-provider endpoint.
+
+Human identity is governed by ADR-0476 and ADR-0482: Keycloak is the Phase-1 bridge, `oya-identity` is the founder-accepted bespoke Rust target, and cutover is gated on OIDC/OAuth2/WebAuthn/tenant-IdP-federation/MFA feature parity plus integration tests (`docs/decisions/ADR-0476-oya-identity-bespoke-human-identity.md:29-37`, `:66-78`; `docs/decisions/ADR-0482-bespoke-substrate-roadmap.md:52-60`). ADR-0187/Zitadel is superseded historical authority and must not be read as the live default for this portal.
 
 ### What ADR-0170 decided, and why it must be reconciled
 
@@ -79,7 +85,7 @@ ADR-0170's design predates the agentic-development substrate. The IDP central hu
 
 ## Decision
 
-Oyatie's Internal Developer Platform is a **bespoke-Rust central operator hub** — a single-pane-of-glass portal — built as:
+Oyatie's Internal Developer Platform (IDP) is a **bespoke-Rust central operator hub** — a single-pane-of-glass portal — built as:
 
 ### 1. Leptos portal-shell (per ADR-0393)
 A Leptos (Rust/WASM, SSR+hydration) full-stack portal-shell — the production-promoted `crates/oya-application-shell-frontend-prototype`. It mounts every IDP domain as a Cedar-gated **Surface** via the existing `SurfaceCatalog` model (`crates/oya-ops-workspace-shell-kernel`: `Surface{id, canonical_route, VisibilityTier (6-tier), SurfaceState (Live/ReservedComingSoon/Retired), owning_bc_id, cedar_fragments, openapi_contract}`, 14 slots per ADR-0067). SSR data contract = `render_envelope`. Cedar `VisibilityTier` gates which surfaces render per principal.
@@ -94,7 +100,7 @@ The hub is organized as 18 modules, each a Cedar-gated surface fed by the BFF: *
 SCM and CICD are integrated through the BFF's domain-client adapters (cloned from the canonical async-client pattern at `microservices/ci-webhook-gateway/crates/…-jenkins-adapter`/`-github-adapter`), so the shell depends on `/bff/api/v1/scm` and `/bff/api/v1/cicd` — **not** on GitHub or Jenkins directly. This lets the GitHub→bespoke-SCM and Jenkins→Argo cutovers happen behind the BFF contract without touching the shell. (Note: the reference Jenkins adapter is `reqwest::blocking`; all BFF adapters MUST be async so they do not starve the `leptos_axum` runtime.)
 
 ### 5. Authz seam
-Every IDP action routes through identity `/authorize` + `/authorize-with-token` + `/tokens/validate`; RBAC fragments via `oya-policy-cedar-api`; privileged actions (rollback, secret reveal, surface flip) require step-up.
+Every Internal Developer Platform action delegates human authentication and token authority to the current identity substrate from ADR-0476/ADR-0482 (Keycloak bridge during Phase 1, `oya-identity` after feature parity). The portal/BFF routes authorization through identity `/authorize` + `/authorize-with-token` + `/tokens/validate`; RBAC fragments via `oya-policy-cedar-api`; privileged actions (rollback, secret reveal, surface flip) require step-up. This seam does not revive ADR-0187/Zitadel as the OIDC IdP default.
 
 ### 6. Backstage = feature reference only; charts quarantined/retired
 Backstage is retained as a **feature reference** (the surface taxonomy a mature IDP needs) but is **not** a runtime dependency. Node/React/Docker are forbidden per ADR-0393 (Leptos) + the container doctrine. The following are **quarantined and retired** (frozen, removed from any deploy/promotion path; physical removal is an implementation follow-up):
@@ -104,7 +110,7 @@ Backstage is retained as a **feature reference** (the surface taxonomy a mature 
 - Backstage-coupled IPs (`microservices/developer-sdk/implementation-plans/IP-001`, `IP-008`; `microservices/docs/IP-DOCS-005-backstage-techdocs-renderer.md`) are retargeted to the bespoke docs-portal module (implementation follow-up).
 
 ### 7. Design principles
-The hub is **cloud/k8s-optimized** (ArgoCD/kubers-native provisioning, live SLO/rollout panels), **agentic-development-optimized** (agents are first-class API consumers; agent-fleet-management is first-class; `.omc` state gets an API), and **pipeline-optimized** (CI/gate/rollout aggregation is a core surface, not a plugin). ADR-0130 SLO authoring is mandatory before any new IDP µservice promotes past `dev`.
+The hub is **cloud/k8s-optimized** (ArgoCD/kubers-native provisioning, live SLO/rollout panels), **agentic-development-optimized** (agents are first-class API consumers; agent-fleet-management is first-class; `.omc` state gets an API), and **pipeline-optimized** (CI/gate/rollout aggregation is a core surface, not a plugin). ADR-0130 SLO authoring is mandatory before any new Internal Developer Platform µservice promotes past `dev`.
 
 ## Retargeting of load-bearing dependents
 
@@ -137,9 +143,9 @@ Because ADR-0170 is referenced by Accepted/Proposed ADRs, each reference is reta
 - Loses Backstage's 40+ community plugins; each is re-implemented only as needed as a bespoke module. Accepted — the plugin breadth was never the point for an internal-only fleet.
 
 ### Operational
-- ADR-0130: every new IDP µservice (ops-bff, catalog projection, scorecard, scaffolder, omc-state, …) authors `slos/*.openslo.yaml` before promoting past `dev`.
+- ADR-0130: every new Internal Developer Platform µservice (ops-bff, catalog projection, scorecard, scaffolder, omc-state, …) authors `slos/*.openslo.yaml` before promoting past `dev`.
 - The ops-BFF holds all upstream credentials; the WASM shell holds none. Secrets surface is read-only metadata/rotation/lease-TTL only (Cedar + step-up gated), NEVER values.
-- Reconciliation pre-reqs to settle before the corresponding modules bind (tracked, not decided here): OIDC issuer for IDP login (Zitadel ADR-0187 vs bespoke `oya-identity-oidc-issuer-kernel`); canonical FinOps surface (finops-portal + opencost now, oya-cost/meter/billing trio when ADR-0478/0479/0480 land); canonical catalog schema (BFF projects BOTH `registry/catalog/*.yaml` and per-µservice `ServiceCatalog`); the intelligence "foundry"→non-foundry rename before the agent-fleet console binds to those identifiers.
+- Reconciliation pre-reqs to settle before the corresponding modules bind (tracked, not decided here): OIDC issuer for Internal Developer Platform login follows ADR-0476/ADR-0482 (Keycloak bridge → `oya-identity` after feature parity; ADR-0187/Zitadel is historical only); canonical FinOps surface (finops-portal + opencost now, oya-cost/meter/billing trio when ADR-0478/0479/0480 land); canonical catalog schema (BFF projects BOTH `registry/catalog/*.yaml` and per-µservice `ServiceCatalog`); the intelligence "foundry"→non-foundry rename before the agent-fleet console binds to those identifiers.
 
 ## Verification
 

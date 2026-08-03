@@ -5,7 +5,7 @@
   "authoring_adr": "ADR-0358",
   "roadmap_phase": "P-TOOLCHAIN (masterplan.ideal_production_roadmap)",
   "related_adrs": [
-    "ADR-0346 (oya verify CI mirror)",
+    "ADR-0346 (legacy local mirror provenance; oya-ci-required/cloud-ci owns live CI authority)",
     "ADR-0349 (Jenkins+ArgoCD substrate)",
     "ADR-0359 (Jenkins replaces GitHub Actions)",
     "ADR-0111 (merge queue)",
@@ -38,7 +38,7 @@
       "cargo-deny (license+advisory+bans)",
       "cargo fmt/clippy -D warnings"
     ],
-    "local_dev": "bacon for the local watch loop (shift-left); oya verify mirror (ADR-0346) for pre-push parity"
+    "local_dev": "bacon for the local watch loop (shift-left); legacy oya verify mirror (ADR-0346) for local-feedback/provenance only; cloud-ci/oya-ci required context owns live CI authority"
   },
   "oya_overlay": {
     "role": "governance/verify orchestrator; delegates build/test to bazel query/test; runs only the bespoke governance gates",

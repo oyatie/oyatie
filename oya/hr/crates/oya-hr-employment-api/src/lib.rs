@@ -10,6 +10,7 @@
 
 use oya_hr_employment_app::{
     LeavePayrollImpactOutcome, OnboardEmployeeCommand, SensitiveHrReadOutcome,
+    SensitiveHrRuntimeReadBoundaryInput, SensitiveHrRuntimeReadBoundaryOutcome,
 };
 use oya_hr_employment_domain::{
     EmployeeCreate, EmploymentStatus, HrLifecycleKind, Jurisdiction, LeaveDecision,
@@ -163,12 +164,29 @@ impl LeavePayrollImpactRequest {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LeavePayrollImpactResponse {
-    pub integration_topic: String, // data_class: INTERNAL_ONLY
-    pub idempotency_key: String,   // data_class: INTERNAL_ONLY
-    pub payroll_period: String,    // data_class: FINANCIAL
+    pub integration_topic: String,           // data_class: INTERNAL_ONLY
+    pub idempotency_key: String,             // data_class: INTERNAL_ONLY
+    pub source_topic: String,                // data_class: INTERNAL_ONLY
+    pub source_hr_idempotency_key: String,   // data_class: INTERNAL_ONLY
+    pub tenant_id: String,                   // data_class: INTERNAL_ONLY
+    pub legal_entity_id: String,             // data_class: INTERNAL_ONLY
+    pub employee_id: String,                 // data_class: INTERNAL_ONLY
+    pub leave_request_id: String,            // data_class: INTERNAL_ONLY
+    pub decision_evidence_ref: String,       // data_class: INTERNAL_ONLY
+    pub routing_evidence_ref: String,        // data_class: INTERNAL_ONLY
+    pub payroll_impact_evidence_ref: String, // data_class: FINANCIAL
+    pub hr_rulepack_ref: String,             // data_class: INTERNAL_ONLY
+    pub hr_rulepack_effective_date: String,  // data_class: INTERNAL_ONLY
+    pub decided_at_epoch_seconds: u64,       // data_class: INTERNAL_ONLY
+    pub payroll_period: String,              // data_class: FINANCIAL
     pub payroll_impact_kind: PayrollImpactKindDto, // data_class: FINANCIAL
-    pub payload_data_class: String, // data_class: INTERNAL_ONLY
-    pub schema_version: u32,       // data_class: PUBLIC
+    pub payload_data_class: String,          // data_class: INTERNAL_ONLY
+    pub payroll_calculation_attached: bool,  // data_class: PUBLIC
+    pub payroll_network_call: bool,          // data_class: PUBLIC
+    pub workflow_execution: bool,            // data_class: PUBLIC
+    pub storage_attached: bool,              // data_class: PUBLIC
+    pub runtime_audit_emission: bool,        // data_class: PUBLIC
+    pub schema_version: u32,                 // data_class: PUBLIC
 }
 
 impl LeavePayrollImpactResponse {
@@ -180,6 +198,70 @@ impl LeavePayrollImpactResponse {
                 .idempotency_key
                 .value
                 .clone(),
+            source_topic: outcome.payroll_impact_envelope.topic.value.clone(),
+            source_hr_idempotency_key: outcome
+                .payroll_impact_envelope
+                .idempotency_key
+                .value
+                .clone(),
+            tenant_id: outcome
+                .payroll_impact_envelope
+                .tenant_id
+                .value
+                .value
+                .clone(),
+            legal_entity_id: outcome
+                .payroll_impact_envelope
+                .legal_entity_id
+                .value
+                .value
+                .clone(),
+            employee_id: outcome
+                .payroll_impact_envelope
+                .employee_id
+                .value
+                .value
+                .clone(),
+            leave_request_id: outcome
+                .payroll_impact_envelope
+                .leave_request_id
+                .value
+                .value
+                .clone(),
+            decision_evidence_ref: outcome
+                .payroll_impact_envelope
+                .decision_evidence_ref
+                .value
+                .value
+                .clone(),
+            routing_evidence_ref: outcome
+                .payroll_impact_envelope
+                .routing_evidence_ref
+                .value
+                .value
+                .clone(),
+            payroll_impact_evidence_ref: outcome
+                .payroll_impact_envelope
+                .payroll_impact_evidence_ref
+                .value
+                .value
+                .clone(),
+            hr_rulepack_ref: outcome
+                .payroll_impact_envelope
+                .rulepack_ref
+                .value
+                .value
+                .clone(),
+            hr_rulepack_effective_date: outcome
+                .payroll_impact_envelope
+                .rulepack_effective_date
+                .value
+                .value
+                .clone(),
+            decided_at_epoch_seconds: outcome
+                .payroll_impact_envelope
+                .decided_at_epoch_seconds
+                .value,
             payroll_period: outcome.payroll_impact_envelope.payroll_period.value.clone(),
             payroll_impact_kind: outcome
                 .payroll_impact_envelope
@@ -192,6 +274,14 @@ impl LeavePayrollImpactResponse {
                 .value
                 .label()
                 .to_owned(),
+            payroll_calculation_attached: outcome
+                .payroll_impact_envelope
+                .payroll_calculation_attached
+                .value,
+            payroll_network_call: outcome.payroll_impact_envelope.payroll_network_call.value,
+            workflow_execution: outcome.payroll_impact_envelope.workflow_execution.value,
+            storage_attached: outcome.payroll_impact_envelope.storage_attached.value,
+            runtime_audit_emission: outcome.payroll_impact_envelope.runtime_audit_emission.value,
             schema_version: outcome.payroll_impact_envelope.schema_version.value,
         }
     }
@@ -212,25 +302,55 @@ pub struct SensitiveHrReadPolicyRequest {
     pub consent_evidence_ref: Option<String>,    // data_class: INTERNAL_ONLY
     pub request_evidence_ref: String,            // data_class: INTERNAL_ONLY
     pub read_log_evidence_ref: String,           // data_class: INTERNAL_ONLY
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tenant_rbac_scope_evidence_ref: Option<String>, // data_class: INTERNAL_ONLY
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub audit_emission_contract_ref: Option<String>, // data_class: INTERNAL_ONLY
     pub evaluated_at_epoch_seconds: u64,         // data_class: INTERNAL_ONLY
 }
 
 impl SensitiveHrReadPolicyRequest {
     pub fn into_domain_input(self) -> SensitiveHrReadInput {
-        SensitiveHrReadInput {
-            tenant_id: self.tenant_id,
-            legal_entity_id: self.legal_entity_id,
-            actor_employee_id: self.actor_employee_id,
-            subject_employee_id: self.subject_employee_id,
-            data_kind: self.data_kind.into(),
-            purpose: self.purpose.into(),
-            legal_basis: self.legal_basis.into(),
-            policy_ref: self.policy_ref,
-            basis_evidence_ref: self.basis_evidence_ref,
-            consent_evidence_ref: self.consent_evidence_ref,
-            request_evidence_ref: self.request_evidence_ref,
-            read_log_evidence_ref: self.read_log_evidence_ref,
-            evaluated_at_epoch_seconds: self.evaluated_at_epoch_seconds,
+        self.into_runtime_boundary_input().policy_input
+    }
+
+    pub fn into_runtime_boundary_input(self) -> SensitiveHrRuntimeReadBoundaryInput {
+        let SensitiveHrReadPolicyRequest {
+            tenant_id,
+            legal_entity_id,
+            actor_employee_id,
+            subject_employee_id,
+            data_kind,
+            purpose,
+            legal_basis,
+            policy_ref,
+            basis_evidence_ref,
+            consent_evidence_ref,
+            request_evidence_ref,
+            read_log_evidence_ref,
+            tenant_rbac_scope_evidence_ref,
+            audit_emission_contract_ref,
+            evaluated_at_epoch_seconds,
+        } = self;
+
+        SensitiveHrRuntimeReadBoundaryInput {
+            policy_input: SensitiveHrReadInput {
+                tenant_id,
+                legal_entity_id,
+                actor_employee_id,
+                subject_employee_id,
+                data_kind: data_kind.into(),
+                purpose: purpose.into(),
+                legal_basis: legal_basis.into(),
+                policy_ref,
+                basis_evidence_ref,
+                consent_evidence_ref,
+                request_evidence_ref,
+                read_log_evidence_ref,
+                evaluated_at_epoch_seconds,
+            },
+            tenant_rbac_scope_evidence_ref,
+            audit_emission_contract_ref,
         }
     }
 }
@@ -247,6 +367,21 @@ pub struct SensitiveReadPolicyDecisionResponse {
 
 impl SensitiveReadPolicyDecisionResponse {
     pub fn from_outcome(outcome: &SensitiveHrReadOutcome) -> Self {
+        Self {
+            decision_status: outcome.audit_envelope.decision_status.value.into(),
+            audit_topic: outcome.audit_envelope.topic.value.clone(),
+            idempotency_key: outcome.audit_envelope.idempotency_key.value.clone(),
+            payload_data_class: outcome
+                .audit_envelope
+                .payload_data_class
+                .value
+                .label()
+                .to_owned(),
+            schema_version: outcome.audit_envelope.schema_version.value,
+        }
+    }
+
+    pub fn from_runtime_boundary_outcome(outcome: &SensitiveHrRuntimeReadBoundaryOutcome) -> Self {
         Self {
             decision_status: outcome.audit_envelope.decision_status.value.into(),
             audit_topic: outcome.audit_envelope.topic.value.clone(),

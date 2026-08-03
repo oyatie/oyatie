@@ -7,9 +7,9 @@ publish = false
 license = "Apache-2.0"
 
 # :registry-drift (PHASE-0-FIREWALL-PLAN §5.3): re-runs the accounting-registry-producer
-# in a sandbox and byte-diffs the result against the committed
+# in a sandbox and byte-diffs the result against the materialized
 # accounting-registry.generated.json. A hand-edit to any generated face FAILS this test,
-# which makes drift structurally impossible (committed == regenerated). No lib; the
+# which makes drift structurally impossible (materialized == regenerated). No lib; the
 # contract lives entirely in the integration test.
 
 [lib]

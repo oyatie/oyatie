@@ -3,7 +3,7 @@
     "version": "2.0.0",
     "description": "Gate registry for honest hyperscaler-maturity claims across architecture, products, pipeline, toolchain, CI/CD, development cycle, guardrails, safety, UX, and competitor response.",
     "owner_team": "council-architecture + ops-sre-reliability + ops-security + council-design-system + workflow-team",
-    "validation_check": "json-valid + oya gate validate hyperscaler-maturity-claims"
+    "validation_check": "json-valid + cloud-ci/Rust hyperscaler-maturity-claims gate packet; any legacy local oya gate output is bridge evidence only"
   },
   "_metadata": {
     "sidecar_id": "EXE-HYPERSCALER-GATES",
@@ -71,15 +71,15 @@
       "every production-facing reliability and safety claim has operational evidence, not only plans",
       "Workflow Studio, Workflow engine, integration connector catalog, and Foundry pipeline have end-user UX evidence for critical journeys",
       "competitor claims have official-source references, observed strengths, observed weaknesses, adopt/adapt decisions, and improve-beyond-them actions",
-      "ADR-0116 Oya VCS claim/verify/done/promote is the only agent transition authority",
+      "plain git isolated worktree branches, protected PRs, reviewer approval, and the single protected oya-ci-required context are the only agent transition authority",
       "review/fix loop, CI fix loop, conflict avoidance, and merge queue path are automated and controller-owned",
       "CI/CD required checks, branch protection context matching, release evidence packs, and rollback/progressive-delivery gates are green",
       "all planned-only product crates named in the claimed surface are implemented or explicitly excluded from the claim"
     ],
     "current_blockers": [
       "Workflow Studio crates are still planned and cannot prove end-user UX, accessibility, guardrail, or ease-of-use maturity yet",
-      "the Foundry/Oya VCS pipeline still carries a documented Wave-B manual PR-entry seam",
-      "pipeline maturity evidence predates ADR-0116 and must be refreshed against the Oya VCS closure authority",
+      "the agentic delivery pipeline still carries documented manual PR-entry/operator-serialization seams",
+      "pipeline maturity evidence predates ADR-0363/ADR-0515 and must be refreshed against plain-git protected PR plus oya-ci-required closure authority",
       "workspace hygiene now inventories /tmp, user-home Oyatie spillover, repo-root scratch artifacts, build outputs, and ~/oyatie-worktrees, cleans configured temp/build artifacts with explicit cleanup flags, and exempts owned roots only with evidence refs, but strict cleanup evidence is not yet green",
       "some Workflow Studio competitor benchmark deltas were targets rather than measured external facts and have been converted into source-backed adopt/improve requirements",
       "M02/P22 readiness and downstream M03 transition remain separately gated by the master plan"
@@ -98,7 +98,7 @@
       "workflow-engine",
       "integration-connector-catalog",
       "governance-pipeline",
-      "oya-vcs-admission",
+      "oya-ci-required",
       "ci-cd-toolchain",
       "development-cycle",
       "workspace-hygiene",
@@ -449,12 +449,12 @@
     },
     {
       "id": "HG-VCS",
-      "name": "Oya VCS coordination authority",
+      "name": "plain-git/cloud-ci coordination authority",
       "requires": [
-        "oya_vcs_claim_verify_done_promote_used",
-        "oya_vcs_admission_gate_covers_concurrent_safe_paths",
-        "ChangeBundle_to_Promotion_to_ReleaseTrain_is_forward_closure_authority",
-        "manual_PR_entry_is_labeled_temporary_Wave_B_seam",
+        "plain_git_isolated_worktree_and_protected_pr_scope_used",
+        "oya_ci_required_gate_covers_required_context_and_concurrent_safe_paths",
+        "reviewer_APPROVE_plus_oya_ci_required_is_forward_closure_authority",
+        "manual_or_operator_serialization_seams_are_labeled_temporary_and_audited",
         "no_grit_rtk_icm_vox_agent_transition"
       ],
       "evidence_classes": [

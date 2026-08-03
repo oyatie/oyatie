@@ -6,7 +6,9 @@
 use std::collections::BTreeMap;
 
 use oya_cloud_kms_domain::{
-    CloudKmsDirectory, CloudKmsError, KmsDecryptRequest, KmsEncryptRequest, KmsOperation,
+    CloudKmsDirectory, CloudKmsError, CloudKmsEvidenceEvent, CloudKmsEvidenceOperation,
+    CloudKmsEvidenceReceipt, CloudKmsEvidenceStatus, KeyDeletionScheduleReceipt,
+    KeyDeletionScheduleRequest, KmsDecryptRequest, KmsEncryptRequest, KmsKeyState, KmsOperation,
     KmsPurpose, KmsRepo, KmsUseReceipt,
 };
 use oya_cloud_region_domain::{CellId, RegionCode};
@@ -14,6 +16,7 @@ use oya_data_boundary_kernel::parse_data_class_label;
 
 pub const CLOUD_KMS_ENCRYPT_SURFACE: &str = "cloud.kms.encrypt";
 pub const CLOUD_KMS_DECRYPT_SURFACE: &str = "cloud.kms.decrypt";
+pub const CLOUD_KMS_SCHEDULE_KEY_DELETION_SURFACE: &str = "cloud.kms.schedule_key_deletion";
 pub const CLOUD_KMS_PUBLIC_API_VERSION_HEADER: &str = "Oyatie-Version";
 pub const CLOUD_KMS_DEFAULT_PUBLIC_API_VERSION: &str = "2026-05-21";
 pub const CLOUD_KMS_SUPPORTED_PUBLIC_API_VERSIONS: &[&str] =
@@ -154,6 +157,19 @@ pub struct CloudKmsDecryptRequest {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloudKmsScheduleKeyDeletionRequest {
+    pub key_id: String,                           // data_class: INTERNAL_ONLY
+    pub tenant_id: String,                        // data_class: INTERNAL_ONLY
+    pub actor: String,                            // data_class: INTERNAL_ONLY
+    pub schedule_proof_ref: String,               // data_class: INTERNAL_ONLY
+    pub authorization_policy_version: String,     // data_class: INTERNAL_ONLY
+    pub required_approvals: u32,                  // data_class: INTERNAL_ONLY
+    pub approver_principal_ids: Vec<String>,      // data_class: INTERNAL_ONLY
+    pub requested_at_epoch_seconds: u64,          // data_class: INTERNAL_ONLY
+    pub scheduled_deletion_at_epoch_seconds: u64, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CloudKmsEncryptApiRequest {
     pub path_key_id: String,                     // data_class: INTERNAL_ONLY
     pub boundary: CloudKmsApiBoundaryContext,    // data_class: INTERNAL_ONLY
@@ -171,12 +187,36 @@ pub struct CloudKmsDecryptApiRequest {
     pub body: CloudKmsDecryptRequest,            // data_class: INTERNAL_ONLY
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloudKmsScheduleKeyDeletionApiRequest {
+    pub path_key_id: String,                      // data_class: INTERNAL_ONLY
+    pub boundary: CloudKmsApiBoundaryContext,     // data_class: INTERNAL_ONLY
+    pub principal: CloudKmsApiPrincipal,          // data_class: INTERNAL_ONLY
+    pub authorization: CloudKmsApiAuthorization,  // data_class: INTERNAL_ONLY
+    pub body: CloudKmsScheduleKeyDeletionRequest, // data_class: INTERNAL_ONLY
+}
+
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct CloudKmsCryptoIdempotencyLedger {
     entries: BTreeMap<CloudKmsIdempotencyLedgerKey, CloudKmsCryptoIdempotencyLedgerEntry>, // data_class: INTERNAL_ONLY
 }
 
 impl CloudKmsCryptoIdempotencyLedger {
+    pub fn len(&self) -> usize {
+        self.entries.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.entries.is_empty()
+    }
+}
+
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct CloudKmsKeyDeletionIdempotencyLedger {
+    entries: BTreeMap<CloudKmsIdempotencyLedgerKey, CloudKmsKeyDeletionIdempotencyLedgerEntry>, // data_class: INTERNAL_ONLY
+}
+
+impl CloudKmsKeyDeletionIdempotencyLedger {
     pub fn len(&self) -> usize {
         self.entries.len()
     }
@@ -201,11 +241,19 @@ struct CloudKmsCryptoIdempotencyLedgerEntry {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+struct CloudKmsKeyDeletionIdempotencyLedgerEntry {
+    fingerprint: CloudKmsRequestFingerprint, // data_class: INTERNAL_ONLY
+    result: CloudKmsKeyDeletionApiResult,    // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 struct CloudKmsRequestFingerprint {
     canonical: String, // data_class: INTERNAL_ONLY
 }
 
 type CloudKmsCryptoApiResult = Result<CloudKmsCryptoSuccessResponse, CloudKmsApiError>;
+type CloudKmsKeyDeletionApiResult =
+    Result<CloudKmsScheduleKeyDeletionSuccessResponse, CloudKmsApiError>;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CloudKmsCryptoSuccessResponse {
@@ -221,6 +269,31 @@ impl CloudKmsCryptoSuccessResponse {
     ) -> Self {
         Self {
             data,
+            metadata: CloudKmsApiResponseMetadata {
+                request_id: request_id.into(),
+                api_version: api_version.into(),
+            },
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloudKmsScheduleKeyDeletionSuccessResponse {
+    pub data: CloudKmsKeyDeletionScheduleRecord, // data_class: INTERNAL_ONLY
+    pub evidence: CloudKmsEvidenceReceiptRecord, // data_class: INTERNAL_ONLY
+    pub metadata: CloudKmsApiResponseMetadata,   // data_class: INTERNAL_ONLY
+}
+
+impl CloudKmsScheduleKeyDeletionSuccessResponse {
+    pub fn ok(
+        data: CloudKmsKeyDeletionScheduleRecord,
+        evidence: CloudKmsEvidenceReceiptRecord,
+        request_id: impl Into<String>,
+        api_version: impl Into<String>,
+    ) -> Self {
+        Self {
+            data,
+            evidence,
             metadata: CloudKmsApiResponseMetadata {
                 request_id: request_id.into(),
                 api_version: api_version.into(),
@@ -248,6 +321,35 @@ pub struct CloudKmsUseReceiptRecord {
     pub actor: String,                  // data_class: INTERNAL_ONLY
     pub key_version: u32,               // data_class: INTERNAL_ONLY
     pub hsm_partition_ref: String,      // data_class: INTERNAL_ONLY
+    pub occurred_at_epoch_seconds: u64, // data_class: INTERNAL_ONLY
+    pub schema_version: u32,            // data_class: PUBLIC
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloudKmsKeyDeletionScheduleRecord {
+    pub key_id: String,                           // data_class: INTERNAL_ONLY
+    pub tenant_id: String,                        // data_class: INTERNAL_ONLY
+    pub actor: String,                            // data_class: INTERNAL_ONLY
+    pub key_state: String,                        // data_class: PUBLIC
+    pub schedule_proof_ref: String,               // data_class: INTERNAL_ONLY
+    pub authorization_decision_id: String,        // data_class: INTERNAL_ONLY
+    pub authorization_policy_version: String,     // data_class: INTERNAL_ONLY
+    pub required_approvals: u32,                  // data_class: INTERNAL_ONLY
+    pub approver_principal_ids: Vec<String>,      // data_class: INTERNAL_ONLY
+    pub requested_at_epoch_seconds: u64,          // data_class: INTERNAL_ONLY
+    pub scheduled_deletion_at_epoch_seconds: u64, // data_class: INTERNAL_ONLY
+    pub schema_version: u32,                      // data_class: PUBLIC
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloudKmsEvidenceReceiptRecord {
+    pub event_id: String,               // data_class: INTERNAL_ONLY
+    pub tenant_id: String,              // data_class: INTERNAL_ONLY
+    pub key_id: String,                 // data_class: INTERNAL_ONLY
+    pub actor: String,                  // data_class: INTERNAL_ONLY
+    pub operation: String,              // data_class: PUBLIC
+    pub status: String,                 // data_class: PUBLIC
+    pub evidence_ref: String,           // data_class: INTERNAL_ONLY
     pub occurred_at_epoch_seconds: u64, // data_class: INTERNAL_ONLY
     pub schema_version: u32,            // data_class: PUBLIC
 }
@@ -612,6 +714,28 @@ pub fn validate_cloud_kms_decrypt_request(
     )
 }
 
+pub fn validate_cloud_kms_schedule_key_deletion_request(
+    request: &CloudKmsScheduleKeyDeletionApiRequest,
+) -> Result<(), CloudKmsApiError> {
+    validate_boundary(&request.boundary)?;
+    validate_path_key_id(&request.path_key_id, &request.body.key_id)?;
+    validate_tenant_binding(
+        &request.boundary,
+        &request.principal,
+        &request.body.tenant_id,
+    )?;
+    validate_principal_actor(
+        &request.principal,
+        &request.body.tenant_id,
+        &request.body.actor,
+    )?;
+    validate_authorization(
+        &request.principal,
+        &request.authorization,
+        CLOUD_KMS_SCHEDULE_KEY_DELETION_SURFACE,
+    )
+}
+
 pub fn authorize_cloud_kms_encrypt_from_api(
     directory: &mut CloudKmsDirectory,
     idempotency_ledger: &mut CloudKmsCryptoIdempotencyLedger,
@@ -695,6 +819,62 @@ pub fn authorize_cloud_kms_decrypt_from_api(
             result: result.clone(),
         },
     );
+    result
+}
+
+pub fn schedule_cloud_kms_key_deletion_from_api(
+    directory: &mut CloudKmsDirectory,
+    idempotency_ledger: &mut CloudKmsKeyDeletionIdempotencyLedger,
+    request: CloudKmsScheduleKeyDeletionApiRequest,
+) -> Result<CloudKmsScheduleKeyDeletionSuccessResponse, CloudKmsApiError> {
+    validate_cloud_kms_schedule_key_deletion_request(&request)?;
+    validate_key_placement_boundary(directory, &request.path_key_id, &request.boundary)?;
+    let key = idempotency_key_for(
+        &request.boundary,
+        &request.principal,
+        CLOUD_KMS_SCHEDULE_KEY_DELETION_SURFACE,
+    );
+    let fingerprint = schedule_key_deletion_fingerprint_for(&request);
+    if let Some(entry) = idempotency_ledger.entries.get(&key) {
+        if entry.fingerprint == fingerprint {
+            return entry.result.clone();
+        }
+        return Err(CloudKmsApiError::IdempotencyKeyReused {
+            idempotency_key: request.boundary.idempotency_key,
+        });
+    }
+
+    let request_id = request.boundary.request_id.clone();
+    let api_version = request.boundary.oyatie_version.clone();
+    let tenant_id = request.boundary.tenant_id.clone();
+    let result = schedule_key_deletion_input(&request.authorization, request.body)
+        .and_then(|input| {
+            directory
+                .schedule_key_deletion(input)
+                .map_err(CloudKmsApiError::Kms)
+        })
+        .and_then(|receipt| {
+            let data = key_deletion_schedule_record(receipt.clone());
+            let evidence_event =
+                CloudKmsEvidenceEvent::from_key_deletion_schedule_receipt(&tenant_id, receipt)
+                    .map_err(CloudKmsApiError::Kms)?;
+            let evidence = evidence_event_record(evidence_event);
+            Ok(CloudKmsScheduleKeyDeletionSuccessResponse::ok(
+                data,
+                evidence,
+                request_id,
+                api_version,
+            ))
+        });
+    if result.is_ok() {
+        idempotency_ledger.entries.insert(
+            key,
+            CloudKmsKeyDeletionIdempotencyLedgerEntry {
+                fingerprint,
+                result: result.clone(),
+            },
+        );
+    }
     result
 }
 
@@ -1015,6 +1195,84 @@ fn decrypt_fingerprint_for(request: &CloudKmsDecryptApiRequest) -> CloudKmsReque
     }
 }
 
+fn schedule_key_deletion_fingerprint_for(
+    request: &CloudKmsScheduleKeyDeletionApiRequest,
+) -> CloudKmsRequestFingerprint {
+    CloudKmsRequestFingerprint {
+        canonical: [
+            format!("path.key_id={}", request.path_key_id),
+            format!("header.Oyatie-Version={}", request.boundary.oyatie_version),
+            format!("header.tenant_id={}", request.boundary.tenant_id),
+            format!("header.region={}", request.boundary.region),
+            format!("header.cell_id={}", request.boundary.cell_id),
+            format!("principal.tenant_id={}", request.principal.tenant_id),
+            format!("principal.principal_id={}", request.principal.principal_id),
+            format!(
+                "authorization.tenant_id={}",
+                request.authorization.tenant_id
+            ),
+            format!(
+                "authorization.principal_id={}",
+                request.authorization.principal_id
+            ),
+            format!(
+                "authorization.decision_id={}",
+                request.authorization.decision_id
+            ),
+            format!(
+                "authorization.allowed_surfaces={}",
+                request.authorization.allowed_surfaces.join(",")
+            ),
+            format!("body.key_id={}", request.body.key_id),
+            format!("body.tenant_id={}", request.body.tenant_id),
+            format!("body.actor={}", request.body.actor),
+            format!(
+                "body.schedule_proof_ref={}",
+                request.body.schedule_proof_ref
+            ),
+            format!(
+                "body.authorization_policy_version={}",
+                request.body.authorization_policy_version
+            ),
+            format!(
+                "body.required_approvals={}",
+                request.body.required_approvals
+            ),
+            format!(
+                "body.approver_principal_ids={}",
+                request.body.approver_principal_ids.join(",")
+            ),
+            format!(
+                "body.requested_at_epoch_seconds={}",
+                request.body.requested_at_epoch_seconds
+            ),
+            format!(
+                "body.scheduled_deletion_at_epoch_seconds={}",
+                request.body.scheduled_deletion_at_epoch_seconds
+            ),
+        ]
+        .join("|"),
+    }
+}
+
+fn schedule_key_deletion_input(
+    authorization: &CloudKmsApiAuthorization,
+    body: CloudKmsScheduleKeyDeletionRequest,
+) -> Result<KeyDeletionScheduleRequest, CloudKmsApiError> {
+    Ok(KeyDeletionScheduleRequest {
+        key_id: body.key_id,
+        tenant_id: body.tenant_id,
+        actor: body.actor,
+        schedule_proof_ref: body.schedule_proof_ref,
+        authorization_decision_id: authorization.decision_id.clone(),
+        authorization_policy_version: body.authorization_policy_version,
+        required_approvals: body.required_approvals,
+        approver_principal_ids: body.approver_principal_ids,
+        requested_at_epoch_seconds: body.requested_at_epoch_seconds,
+        scheduled_deletion_at_epoch_seconds: body.scheduled_deletion_at_epoch_seconds,
+    })
+}
+
 fn receipt_record(receipt: KmsUseReceipt) -> CloudKmsUseReceiptRecord {
     CloudKmsUseReceiptRecord {
         event_id: receipt.event_id.value.value,
@@ -1030,6 +1288,45 @@ fn receipt_record(receipt: KmsUseReceipt) -> CloudKmsUseReceiptRecord {
         hsm_partition_ref: receipt.hsm_partition_ref.value.value,
         occurred_at_epoch_seconds: receipt.occurred_at_epoch_seconds.value,
         schema_version: receipt.schema_version.value,
+    }
+}
+
+fn key_deletion_schedule_record(
+    receipt: KeyDeletionScheduleReceipt,
+) -> CloudKmsKeyDeletionScheduleRecord {
+    CloudKmsKeyDeletionScheduleRecord {
+        key_id: receipt.key_id.value.value,
+        tenant_id: receipt.tenant_id.value,
+        actor: receipt.actor.value.value,
+        key_state: kms_key_state_label(KmsKeyState::PendingDeletion).to_string(),
+        schedule_proof_ref: receipt.schedule_proof_ref.value.value,
+        authorization_decision_id: receipt.authorization_decision_id.value,
+        authorization_policy_version: receipt.authorization_policy_version.value,
+        required_approvals: receipt.required_approvals.value,
+        approver_principal_ids: receipt
+            .approver_principal_ids
+            .value
+            .into_iter()
+            .map(|approver| approver.value)
+            .collect(),
+        requested_at_epoch_seconds: receipt.requested_at_epoch_seconds.value,
+        scheduled_deletion_at_epoch_seconds: receipt.scheduled_deletion_at_epoch_seconds.value,
+        schema_version: receipt.schema_version.value,
+    }
+}
+
+fn evidence_event_record(event: CloudKmsEvidenceEvent) -> CloudKmsEvidenceReceiptRecord {
+    let receipt: CloudKmsEvidenceReceipt = event.receipt();
+    CloudKmsEvidenceReceiptRecord {
+        event_id: receipt.event_id().to_string(),
+        tenant_id: receipt.tenant_id().to_string(),
+        key_id: receipt.key_id().to_string(),
+        actor: event.actor().to_string(),
+        operation: receipt.operation().label().to_string(),
+        status: evidence_status_label(receipt.status()).to_string(),
+        evidence_ref: receipt.evidence_ref().to_string(),
+        occurred_at_epoch_seconds: receipt.occurred_at_epoch_seconds(),
+        schema_version: receipt.schema_version(),
     }
 }
 
@@ -1051,6 +1348,22 @@ fn kms_purpose_label(purpose: KmsPurpose) -> &'static str {
         KmsPurpose::SecretProvider => "secret_provider",
         KmsPurpose::CrossRegionReplication => "cross_region_replication",
         KmsPurpose::DatabaseBackup => "database_backup",
+    }
+}
+
+fn kms_key_state_label(state: KmsKeyState) -> &'static str {
+    match state {
+        KmsKeyState::PendingImport => "pending_import",
+        KmsKeyState::Enabled => "enabled",
+        KmsKeyState::Disabled => "disabled",
+        KmsKeyState::PendingDeletion => "pending_deletion",
+        KmsKeyState::Destroyed => "destroyed",
+    }
+}
+
+fn evidence_status_label(status: CloudKmsEvidenceStatus) -> &'static str {
+    match status {
+        CloudKmsEvidenceStatus::Succeeded => "succeeded",
     }
 }
 
@@ -1088,9 +1401,16 @@ fn cloud_kms_status_kind(error: &CloudKmsError) -> CloudKmsApiStatusKind {
         | CloudKmsError::InvalidTimeOrder
         | CloudKmsError::DestructionSlaExceeded
         | CloudKmsError::InvalidDestructionProofRef
+        | CloudKmsError::InvalidAuthorizationDecisionId
+        | CloudKmsError::InvalidAuthorizationPolicyVersion
+        | CloudKmsError::InvalidQuorumPolicy
+        | CloudKmsError::DuplicateKeyDeletionApprover
+        | CloudKmsError::KeyDeletionRequesterCannotApprove
+        | CloudKmsError::KeyDeletionWindowTooShort
         | CloudKmsError::ProviderMismatch
         | CloudKmsError::InvalidEvidenceRef
         | CloudKmsError::InvalidEvidenceSchemaVersion => CloudKmsApiStatusKind::BadRequest,
+        CloudKmsError::KeyDeletionQuorumNotReached => CloudKmsApiStatusKind::Forbidden,
     }
 }
 
@@ -1139,6 +1459,27 @@ fn cloud_kms_issue(error: &CloudKmsError) -> &'static str {
         }
         CloudKmsError::InvalidDestructionProofRef => {
             "destruction proof must be a kproof_ reference"
+        }
+        CloudKmsError::InvalidAuthorizationDecisionId => {
+            "authorization decision id must be immutable Cedar evidence metadata"
+        }
+        CloudKmsError::InvalidAuthorizationPolicyVersion => {
+            "authorization policy version must be non-empty immutable metadata"
+        }
+        CloudKmsError::InvalidQuorumPolicy => {
+            "key deletion requires a non-zero Cedar quorum approval policy"
+        }
+        CloudKmsError::KeyDeletionQuorumNotReached => {
+            "key deletion requires enough distinct Cedar quorum approvals"
+        }
+        CloudKmsError::DuplicateKeyDeletionApprover => {
+            "key deletion quorum approvers must be distinct principals"
+        }
+        CloudKmsError::KeyDeletionRequesterCannotApprove => {
+            "key deletion requester cannot approve its own quorum decision"
+        }
+        CloudKmsError::KeyDeletionWindowTooShort => {
+            "scheduled key deletion must wait at least seven days"
         }
         CloudKmsError::ProviderMismatch => "provider receipt must match the requested provider",
         CloudKmsError::InvalidEvidenceRef => {
@@ -1192,8 +1533,8 @@ pub fn negotiate_cloud_kms_api_version(
 #[cfg(test)]
 mod version_negotiation_tests {
     use super::{
-        negotiate_cloud_kms_api_version, CloudKmsApiError, CLOUD_KMS_DEFAULT_PUBLIC_API_VERSION,
-        CLOUD_KMS_SUPPORTED_PUBLIC_API_VERSIONS,
+        CLOUD_KMS_DEFAULT_PUBLIC_API_VERSION, CLOUD_KMS_SUPPORTED_PUBLIC_API_VERSIONS,
+        CloudKmsApiError, negotiate_cloud_kms_api_version,
     };
 
     #[test]

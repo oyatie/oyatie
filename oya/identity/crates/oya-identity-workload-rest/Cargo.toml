@@ -46,6 +46,7 @@ tonic-prost-build.workspace = true
 # E2E: drive the router with tower::ServiceExt::oneshot and mint a real ES256
 # workload JWT with aws-lc-rs (ring-API-compatible; ADR-0506 blessed crypto).
 # Dev-only — NOT a library dependency.
+oya-identity-oidc-issuer-kernel = { path = "../oya-identity-oidc-issuer-kernel" }
 http-body-util = { version = "0.1", default-features = false }
 tower = { version = "0.5", default-features = false, features = ["util"] }
 aws-lc-rs = "1.17.0"

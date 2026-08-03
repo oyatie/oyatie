@@ -4,7 +4,7 @@ doc_status: published
 
 # Checklist: Pre-merge
 
-> **When:** Before `gh pr merge`. After all CI lanes green + reviewer-agent verdict.
+> **When:** Before `gh pr merge`. Autonomous merge is allowed only after reviewer-agent approval, all review threads are resolved, the required `oya-ci-required` context is green, the PR has no merge conflict, and branch protection is satisfied.
 > **Owner:** PR author + reviewer.
 > **Validator:** protected PR status `oya-ci-required` + reviewer-agent verdict. Local hook output is advisory evidence only.
 
@@ -20,7 +20,8 @@ doc_status: published
 4. ☐ `## Traceability` lists flat-crates targets touched + cross-axis contract impact
 5. ☐ `## Evidence` links to CI runs + eval-set output (if governed capability) + audit-chain emission record
 6. ☐ Dogfood tenant invariant evidence is present when a cloud/product boundary changes: tenant identity, tenancy boundary, policy/RBAC, residency/isolation, audit/evidence, and lifecycle remain first-class contract surfaces consumed through APIs/controllers/GitOps/admission/policy/frontends, with no privileged product shortcut into cloud internals.
-7. ☐ Reviewer-agent verdict added as `## Code Review` H2 (lead-only — never as worker)
+7. ☐ Reviewer-agent verdict added as `## Code Review` H2 (lead-only — never as worker); all review threads resolved before merge
+7a. ☐ Mergeability checked: no merge conflict and branch protection satisfied, in addition to `oya-ci-required` green
 8. ☐ Per-blast-radius reviewers approved per [DESIGN §3.0.5.3](../DESIGN.md):
    - cross-axis-contract → all affected axis teams
    - flat-crates-move → merge-queue serialization on root Cargo.toml
@@ -38,10 +39,25 @@ doc_status: published
 
 ## After merge
 
-17. ☐ Post-merge cloud-ci/oya-ci required status remains green on the promoted commit within 5 min
-18. ☐ Audit-chain emits `EVT-PR-MERGED` with PR # + commit SHA
-19. ☐ Per-affected-team Slack ping (auto)
-20. ☐ Per-changelog auto-emit (governed capability `pr.changelog.row`)
+17. ☐ Promoted commit SHA recorded; post-merge `oya-ci-required` remains green on
+    the promoted commit within 5 min, with status URL
+18. ☐ Rollout verification recorded: deployment/canary/flag state, tenant/customer surface, and operator
+19. ☐ Rollback note recorded: exact rollback command/runbook/digest, or `no deployable artifact` with rationale
+20. ☐ Observability check recorded: golden-signal/SLO dashboard, time window, and no active burn-rate block
+21. ☐ Browser UX/user-story evidence recorded for user-visible surfaces:
+    browser/session, story path, and screenshot/video/artifact; if not user-visible,
+    record `not user-visible` with rationale
+22. ☐ Release-governance/release-note impact recorded: release PR/link or
+    generated notes from the configured release system, or `no user-facing
+    release-note impact`; Release Please applies only when a live repo
+    config/workflow exists
+23. ☐ Agent-observation harvest recorded: chat/review notes/scratch/PR/Kanban
+    comments reviewed; duplicates checked; follow-up/maturity/feature/fix cards
+    created or linked with required body fields, or explicit duplicate/no-action
+    rationale recorded
+24. ☐ Audit-chain emits `EVT-PR-MERGED` with PR # + commit SHA
+25. ☐ Per-affected-team Slack ping (auto)
+26. ☐ Per-changelog auto-emit (governed capability `pr.changelog.row`)
 
 ## Anti-patterns
 

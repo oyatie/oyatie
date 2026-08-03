@@ -11,7 +11,7 @@ substance_bar: ">=1500 lines; intern-buildability per docs/standards/documentati
 authority_chain_declaration: |
   system / developer / user instructions
     > /specs/root-hub-pointers.json
-    > docs/AGENTS.md (until /specs/agent-operating-contract.json PHASE-5 promotion)
+    > docs/AGENTS.md (operating contract until explicit /specs/agent-operating-contract.json PHASE-5 promotion evidence)
     > installed agent-runtime skill and role catalog (for Codex: ~/.codex/skills + ~/.codex/agents; project .codex overlays only when intentionally checked in)
     > machine-readable specs and registries under .omc/
     > docs/ authority files during markdown-retirement compatibility
@@ -889,7 +889,7 @@ Related sections: [§0 Operating Map](#section-0-operating-map), [§2 Decisions]
 10. [backup-canonical.md](standards/backup-canonical.md) - Backup Canonical: normative rule shelf for implementation, docs, operations, or governance discipline.
 11. [brand-voice.md](standards/brand-voice.md) - Brand Voice: normative rule shelf for implementation, docs, operations, or governance discipline.
 12. [brownout-degradation-signal.md](standards/brownout-degradation-signal.md) - Brownout Degradation Signal: normative rule shelf for implementation, docs, operations, or governance discipline.
-13. [capability-authoring.md](standards/capability-authoring.md) - Capability Authoring: normative rule shelf for implementation, docs, operations, or governance discipline.
+13. Capability Authoring (`retired: standards/capability-authoring.md`) - retired/non-linked historical Foundry capability conventions; no tracked standard file currently exists.
 14. [capability-tier-matrix.md](standards/capability-tier-matrix.md) - Capability Tier Matrix: normative rule shelf for implementation, docs, operations, or governance discipline.
 15. [cedar-policy-authoring.md](standards/cedar-policy-authoring.md) - Cedar Policy Authoring: normative rule shelf for implementation, docs, operations, or governance discipline.
 16. [cedar-policy-discipline.md](standards/cedar-policy-discipline.md) - Cedar Policy Discipline: normative rule shelf for implementation, docs, operations, or governance discipline.
@@ -1316,7 +1316,7 @@ Capability tiers define capability maturity and autonomy boundaries across produ
 8. [vendor tier mapping](../registry/capability-tiers/vendor-tier-mapping.yaml) - vendor to capability tier mapping.
 9. [ADR-0316](decisions/ADR-0316-capability-tier-over-product-fragmentation.md) - decision making capability tiers primary.
 10. [capability tier matrix](standards/capability-tier-matrix.md) - standard matrix for capability tiers.
-11. [capability authoring](standards/capability-authoring.md) - capability authoring standard.
+11. capability authoring (`retired: standards/capability-authoring.md`) - retired/non-linked historical capability authoring standard; no tracked standard file currently exists.
 12. [autonomy ceiling](standards/autonomy-ceiling.md) - autonomy ceiling standard tied to tier uplift.
 
 ### Related Sections

@@ -6,30 +6,48 @@ required status contexts must be green before a PR can merge.
 
 ## How gating works
 
-1. The oya-ci controller posts GitHub Commit Status API entries for the
-   `oya-ci-required` context (crier pattern; see
-   `oya/ci-controller/crates/oya-ci-controller-app`).
-2. The GitHub branch-protection rule for `dev` requires all contexts in
+1. `.github/workflows/oya-ci-required.yml` fans out the current cloud-ci,
+   Buck2, generated-output, app-shell, and PR reviewer-evidence lanes, then fans
+   them in to the single job named `oya-ci-required`.
+2. The GitHub branch-protection rule for `dev` requires the one context in
    `infra/branch-protection/dev.json` to be green before a PR can merge.
-3. `.github/branch-protection.yaml` is the canonical branch-protection record.
+3. `.github/branch-protection.yaml` is the canonical branch-protection shadow
+   record. It intentionally keeps GitHub Review API approval count at 0/null;
+   reviewer-agent approval is enforced through the required context path, not
+   through GitHub's `reviewDecision` field.
 
-## Phase-1 required status contexts
+## Current required status context
 
 | Context | Producer | Description |
 |---|---|---|
-| `cargo-fmt` | `oyaCiLane` | `cargo fmt --check` |
-| `cargo-check` | `oyaCiLane` | `cargo check --all-targets` |
-| `cargo-clippy` | `oyaCiLane` | `cargo clippy -- -D warnings` |
-| `cargo-nextest` | `oyaCiLane` | nextest test run |
-| `cargo-deny` | `oyaCiLane` | OSI license + advisory + bans gate |
-| `oya-verify` | `oyaCiLane` | Rolled-up `./bin/oya verify --affected` verdict |
+| `oya-ci-required` | GitHub Actions workflow fan-in | Green iff every constituent workflow lane succeeds, including the PR-body reviewer-evidence lane on `pull_request` events. |
+
+## Reviewer evidence enforcement
+
+GitHub human approving reviews are not live merge authority for `dev`, and an
+empty GitHub `reviewDecision` is expected while `required_pull_request_reviews`
+remains null. Merge-ready pull requests still require reviewer-agent evidence:
+the `pr-reviewer-evidence` lane inside `oya-ci-required` extracts
+`pull_request.body` and runs:
+
+```bash
+cargo run --locked -p oya-dev-cli -- gate validate pr-traceability \
+  --pr-body "$PR_BODY_PATH" \
+  --require-code-review
+```
+
+That validator fails closed when `## Code Review` is missing or when the section
+lacks field-style `Reviewer agent`, `Verdict: APPROVE`, `Resolved items`, and
+`Deferred items` evidence. Kanban-only approval is not sufficient for protected
+merge readiness; local hook output is advisory unless the same policy is green
+inside the protected `oya-ci-required` context.
 
 ## Phase-2 (pending)
 
-`oya-pr-review` will be added back as a required context once the reviewer-agent HTTP
-endpoint ships (currently returns HTTP 501). It was removed from the Phase-1 required
-set to avoid deadlocking every PR. See `infra/branch-protection/dev.json` for the
-tracking note.
+`oya-pr-review` may be added back as a separate required context once the
+reviewer-agent HTTP endpoint ships as a trusted producer (currently HTTP 501).
+Until then, reviewer evidence remains enforced by `pr-reviewer-evidence` inside
+`oya-ci-required` to avoid deadlocking every PR on a non-live producer.
 
 ## References
 

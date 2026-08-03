@@ -7,8 +7,11 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
+oya-shared-pdp-kernel = { path = "../../../../libs/oya-shared-pdp-kernel" }
+oya-shared-platform-contracts-kernel = { path = "../../../../libs/oya-shared-platform-contracts-kernel" }
 oya-residency-domain = { path = "../../../cloud-network/crates/oya-residency-domain" }
 oya-tenancy-domain = { path = "../oya-tenancy-domain" }
+serde_json = { workspace = true }
 
 [lib]
 name = "oya_tenancy_api"

@@ -12,7 +12,7 @@
   "closure_scope": {
     "masterplan_path": "/specs/masterplan.json",
     "contract_ref": "/specs/planning-closure-contract.json",
-    "gate_command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure",
+    "gate_command": "cloud-ci/Rust gate packet: planning-closure; legacy oya-dev-cli bridge output is local-feedback/provenance only and not authority",
     "gate_command_authority_note": "bridge-only local feedback per the founder all-CLI-retirement directive of 2026-06-09; merge authority is the cloud-ci gate apps behind the single required context oya-ci-required, and this oya-dev-cli invocation is never merge or exit authority",
     "closed_status_field_count": 177,
     "former_blocking_status_classes": [
@@ -25,24 +25,24 @@
       "change_id": "fd001-control-state-refresh-2026-05-19",
       "authoritative_selection_inputs": [
         "/specs/master-plan-sequencing.json#select_next_ready_item",
-        "Oya VCS claim/admission state",
+        "plain-git isolated worktree/PR scope plus Kanban/path-conflict state",
         "/specs/masterplan.json#implementation_plan_contract.current_tree_count",
-        "oya gate validate honest-claims runtime scan"
+        "cloud-ci/Rust honest-claims gate packet or documented local bridge evidence"
       ],
       "historical_snapshot_rule": "Historical implementation-index snapshots are provenance-only and cannot by themselves create a current FD-001 ChangeSet claim.",
-      "closed_planning_status_rule": "A planning-closed status is claimable only after current source inspection confirms the ChangeSet still owns unfinished work and Oya VCS accepts the claim boundary.",
+      "closed_planning_status_rule": "A planning-closed status is claimable only after current source inspection confirms the work still owns unfinished scope and no protected PR/Kanban/path-conflict lane already owns the same boundary.",
       "fanout_guard": "Shared API/data/policy/evidence/path writes remain serialized until their contract claims and chained-enforcement gates are green."
     }
   },
-  "closure_rule": "A closed planning status means the implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS. It does not mean product code is already implemented or that exit evidence may be claimed without the listed gates.",
+  "closure_rule": "A closed planning status means the implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope. It does not mean product code is already implemented or that exit evidence may be claimed without reviewer approval, oya-ci-required, rollback/observability, and release-governance evidence.",
   "implementation_guardrails": [
     "Every closed planning item remains a ChangeSet-owned execution unit.",
     "Implementation begins only after the planning-closure gate is green.",
     "A status closure must cite this ledger and the planning-closure contract.",
     "No production, hyperscaler-grade, or industry-leading claim is valid until the corresponding implementation evidence, tests, observability, auditability, policy, performance, security, deployment, rollback, and operations gates pass.",
     "Documents that still contain stale planning placeholders must either be updated to current closure evidence or archived under the planning-closure stale-document archive.",
-    "Historical implementation-index snapshots are provenance-only; current ChangeSet selection must use Oya VCS claim state, runtime plan-tree scans, and the master-plan sequencing select-next-ready step.",
-    "A completed compatibility lane must not be re-opened as FD-001 product implementation unless current Oya VCS admission names a fresh ChangeSet boundary."
+    "Historical implementation-index snapshots are provenance-only; current work selection must use runtime plan-tree scans, current source inspection, path-conflict checks, and the master-plan sequencing select-next-ready step.",
+    "A completed compatibility lane must not be re-opened as FD-001 product implementation unless a fresh protected PR/Kanban lane names a current work boundary."
   ],
   "hyperscaler_gap_ip_contracts": [
     {

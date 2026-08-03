@@ -29,7 +29,7 @@ use std::num::NonZeroU32;
 
 use oya_messaging_substrate_kernel::{
     AckToken, Delivery, LossClass, MessageConsumer, MessageEnvelope, MessageId, MessageKey,
-    MessagingAdmin, MessagingError, MessageProducer, MessagingSubstrate, SubscriptionName,
+    MessageProducer, MessagingAdmin, MessagingError, MessagingSubstrate, SubscriptionName,
     TopicName, TopicSpec,
 };
 
@@ -81,8 +81,10 @@ impl ChannelName {
     /// Returns [`BusError::InvalidChannelName`] when the derived topic
     /// name would not be a canonical slug.
     pub fn parse(value: &str) -> Result<Self, BusError> {
-        TopicName::parse(&format!("oya-bus.{value}")).map_err(|_| BusError::InvalidChannelName {
-            value: value.to_owned(),
+        TopicName::parse(&format!("oya-bus.{value}")).map_err(|_| {
+            BusError::InvalidChannelName {
+                value: value.to_owned(),
+            }
         })?;
         Ok(Self(value.to_owned()))
     }
@@ -168,7 +170,8 @@ impl<'a, S: MessagingSubstrate> EventBus<'a, S> {
             SubscriptionName::parse(name).map_err(|_| BusError::InvalidSubscriberGroup {
                 value: name.to_owned(),
             })?;
-        self.substrate.ensure_subscription(&self.topic, &subscription)?;
+        self.substrate
+            .ensure_subscription(&self.topic, &subscription)?;
         Ok(SubscriberGroup {
             substrate: self.substrate,
             topic: self.topic.clone(),
@@ -190,7 +193,9 @@ impl<S: MessagingSubstrate> SubscriberGroup<'_, S> {
     /// # Errors
     /// Propagates substrate receive failures.
     pub fn poll(&self, max: NonZeroU32) -> Result<Vec<Delivery>, BusError> {
-        Ok(self.substrate.receive(&self.topic, &self.subscription, max)?)
+        Ok(self
+            .substrate
+            .receive(&self.topic, &self.subscription, max)?)
     }
 
     /// Settles an event as handled by this group.

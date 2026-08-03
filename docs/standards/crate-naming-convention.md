@@ -22,7 +22,6 @@ companion_docs:
   - docs/standards/doc-style.md
   - docs/audits/convention-audit-2026-05-12.md
   - docs/plans/rename-plan-2026-05-12.md
-  - .omc/governance-lanes/naming-convention.md
   - docs/research/hyperscaler-best-practices-2026-05-12.md
 related_adrs:
   - ADR-0015
@@ -31,7 +30,7 @@ related_adrs:
   - ADR-0054
 authority_chain_declaration: |
   /specs/decision-principles.json + /specs/forbidden-operations.json > docs/AGENTS.md > docs/standards/code-style-rust.md
-  > THIS DOC > .omc/governance-lanes/naming-convention.md
+  > THIS DOC > planned_enforcement_ref=oya-governance-naming-convention
 ---
 
 # Crate Naming Convention
@@ -42,8 +41,8 @@ This standard operates within the [`decision-principles.json`](../../specs/decis
 frame (architecture decision principles, ADR-0015 flat crates, ADR-0017 `oya-` prefix) and
 downstream of [`docs/standards/code-style-rust.md`](code-style-rust.md) §5.
 Every `oya-*` crate path under `crates/` MUST conform to the grammar in §2.
-The lane [`oya-governance-naming-convention`](../../.omc/governance-lanes/naming-convention.md)
-mechanically enforces it. Severity = **BLOCKER**.
+The lane `oya-governance-naming-convention` mechanically enforces it.
+Severity = **BLOCKER**.
 
 This standard ports the convergent hyperscaler practice for crate naming:
 AWS publishes [`aws-sdk-<service>`](https://github.com/awslabs/aws-sdk-rust) for
@@ -360,7 +359,7 @@ The lane fails the workspace if a fixture suffix appears as a normal
 | `aws-smithy-<role>` for framework-internal crates | [aws-smithy-runtime](https://crates.io/crates/aws-smithy-runtime) | The `foundry` context (engineering-platform crates) |
 | `azure_<service>`, one crate per service | [Azure SDK Rust Guidelines](https://azure.github.io/azure-sdk/rust_introduction.html) | The `cloud` context's sub-features (`compute-vm`, `storage-object`, …) |
 | `google-cloud-<service>` | [Google Cloud Rust](https://github.com/googleapis/google-cloud-rust) | The `cloud` context root-feature naming |
-| `cargo-deny` `bans` for crate-name policy | [cargo-deny — bans](https://embarkstudios.github.io/cargo-deny/checks/bans/cfg.html) | Lane mechanism in `.omc/governance-lanes/naming-convention.md` |
+| `cargo-deny` `bans` for crate-name policy | [cargo-deny — bans](https://embarkstudios.github.io/cargo-deny/checks/bans/cfg.html) | Lane mechanism named by `planned_enforcement_ref: oya-governance-naming-convention` |
 | `cargo-semver-checks` on every crate | [cargo-semver-checks](https://crates.io/crates/cargo-semver-checks) | Already in `code-style-rust.md` §8; complements naming lane |
 | Rust API Guidelines — Naming | [API Guidelines](https://rust-lang.github.io/api-guidelines/naming.html) | §10 in-crate identifier rules below |
 

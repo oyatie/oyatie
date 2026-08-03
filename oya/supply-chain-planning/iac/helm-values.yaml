@@ -1,3 +1,8 @@
+# Claim boundary: stale target/provenance sample only; prefer k8s/helm/values.yaml
+# for future chart planning. Do not use as live Helm release values.
+claimBoundary:
+  classification: stale-target-provenance-only
+  noActiveDeployment: true
 replicaCount: 3
 image:
   repository: registry.example/oya-supply-chain-planning

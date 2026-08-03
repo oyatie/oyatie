@@ -11,9 +11,10 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 pub use oya_intelligence_model_routing_domain::{
-    CredentialMode, DomainRouteDecision, IntelligenceDataClass, ModelCapability, ModelProvider,
-    ModelRouteRequest, ProviderRouteProfile, RequestAudience, RouteDecision, RouteDenial,
-    RouteDenialReason, RouteSelection, route_validated_request,
+    CredentialMode, DomainRouteDecision, EnvTier, IntelligenceDataClass, ModelCapability,
+    ModelDefaultClass, ModelProfileTag, ModelProvider, ModelRouteRequest, ProviderRouteProfile,
+    RequestAudience, RouteDecision, RouteDenial, RouteDenialReason, RouteSelection,
+    route_validated_request,
 };
 
 // ---------------------------------------------------------------------------
@@ -48,11 +49,11 @@ pub enum ModelRoutingUsecaseDenialKind {
 /// during the catalog walk. Carries no credential fields or provider secrets.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CandidateDenial {
-    pub provider: ModelProvider,                  // data_class: PUBLIC
-    pub model_id: String,                         // data_class: INTERNAL_ONLY
-    pub priority: u16,                            // data_class: INTERNAL_ONLY
-    pub reasons: BTreeSet<RouteDenialReason>,     // data_class: INTERNAL_ONLY
-    pub evidence_refs: Vec<String>,               // data_class: INTERNAL_ONLY
+    pub provider: ModelProvider,              // data_class: PUBLIC
+    pub model_id: String,                     // data_class: INTERNAL_ONLY
+    pub priority: u16,                        // data_class: INTERNAL_ONLY
+    pub reasons: BTreeSet<RouteDenialReason>, // data_class: INTERNAL_ONLY
+    pub evidence_refs: Vec<String>,           // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -388,6 +389,24 @@ fn validate_request(request: &ModelRouteRequest) -> Result<(), String> {
         &request.request_evidence_ref,
         "validation:model-routing-request-evidence",
     )?;
+    require_opaque(
+        &request.model_default_policy_ref,
+        "validation:model-routing-model-default-policy",
+    )?;
+    require_opaque(
+        &request.tier_cost_budget_policy_ref,
+        "validation:model-routing-tier-budget-policy",
+    )?;
+    if let Some(evidence_ref) = &request.tier_cost_budget_evidence_ref {
+        require_opaque(
+            evidence_ref,
+            "validation:model-routing-tier-budget-evidence",
+        )?;
+    }
+    require_opaque(
+        &request.model_route_registry_snapshot_ref,
+        "validation:model-routing-env-tier-registry-snapshot",
+    )?;
     Ok(())
 }
 
@@ -407,12 +426,19 @@ fn validate_profile(profile: &ProviderRouteProfile) -> Result<(), String> {
 // ---------------------------------------------------------------------------
 
 fn canonical_request_evidence_refs(input: &ModelRoutingUsecaseInput) -> Vec<String> {
-    sorted_unique(vec![
+    let mut refs = vec![
         input.request.request_evidence_ref.clone(),
+        input.request.model_default_policy_ref.clone(),
+        input.request.tier_cost_budget_policy_ref.clone(),
+        input.request.model_route_registry_snapshot_ref.clone(),
         input.trace_context_ref.clone(),
         input.policy_decision_ref.clone(),
         input.route_registry_snapshot_ref.clone(),
-    ])
+    ];
+    if let Some(evidence_ref) = &input.request.tier_cost_budget_evidence_ref {
+        refs.push(evidence_ref.clone());
+    }
+    sorted_unique(refs)
 }
 
 fn canonical_fingerprint(input: &ModelRoutingUsecaseInput) -> String {
@@ -425,6 +451,27 @@ fn canonical_fingerprint(input: &ModelRoutingUsecaseInput) -> String {
             &input.route_registry_snapshot_ref,
         ),
         canonical_entry("tenant_id", &input.request.tenant_id),
+        canonical_entry("env_tier", &format!("{:?}", input.request.env_tier)),
+        canonical_entry(
+            "model_default_policy_ref",
+            &input.request.model_default_policy_ref,
+        ),
+        canonical_entry(
+            "tier_cost_budget_policy_ref",
+            &input.request.tier_cost_budget_policy_ref,
+        ),
+        canonical_entry(
+            "tier_cost_budget_evidence_ref",
+            input
+                .request
+                .tier_cost_budget_evidence_ref
+                .as_deref()
+                .unwrap_or(""),
+        ),
+        canonical_entry(
+            "model_route_registry_snapshot_ref",
+            &input.request.model_route_registry_snapshot_ref,
+        ),
         canonical_entry("capability", &format!("{:?}", input.request.capability)),
         canonical_entry(
             "credential_mode",
@@ -445,6 +492,11 @@ fn canonical_profile(profile: &ProviderRouteProfile) -> String {
     let entries = [
         canonical_entry("provider", &format!("{:?}", profile.provider)),
         canonical_entry("model_id", &profile.model_id),
+        canonical_entry(
+            "model_default_class",
+            &format!("{:?}", profile.model_default_class),
+        ),
+        canonical_entry("profile_tags", &format!("{:?}", profile.profile_tags)),
         canonical_entry("enabled", &profile.enabled.to_string()),
         canonical_entry("priority", &profile.priority.to_string()),
         canonical_entry("capabilities", &format!("{:?}", profile.capabilities)),
@@ -603,9 +655,20 @@ mod tests {
     use super::*;
     use std::collections::BTreeSet;
 
+    const ENV_TIER_RED_FIXTURES: &str =
+        include_str!("../../../contracts/fixtures/env-tier-model-budget/red-fixtures.json");
+
     fn request() -> ModelRouteRequest {
         ModelRouteRequest {
             tenant_id: "ten_a".to_owned(),
+            env_tier: Some(EnvTier::Test),
+            model_default_policy_ref: "policy:intelligence.env-tier.model-default.test.v1"
+                .to_owned(),
+            tier_cost_budget_policy_ref: "policy:intelligence.env-tier.cost-budget.test.v1"
+                .to_owned(),
+            tier_cost_budget_evidence_ref: Some("budget:intelligence:test:unit".to_owned()),
+            model_route_registry_snapshot_ref: "route-registry:intelligence:env-tier:test"
+                .to_owned(),
             capability: ModelCapability::ChatCompletion,
             credential_mode: CredentialMode::TenantScoped,
             data_class: IntelligenceDataClass::InternalOnly,
@@ -618,6 +681,12 @@ mod tests {
         ProviderRouteProfile {
             provider,
             model_id: model_id.to_owned(),
+            model_default_class: ModelDefaultClass::SmallCheap,
+            profile_tags: BTreeSet::from([
+                ModelProfileTag::CheapOrSmall,
+                ModelProfileTag::SandboxOk,
+                ModelProfileTag::NonProdOnly,
+            ]),
             enabled: true,
             priority,
             capabilities: BTreeSet::from([ModelCapability::ChatCompletion]),
@@ -769,6 +838,42 @@ mod tests {
     }
 
     #[test]
+    fn prod_tier_requires_cost_budget_evidence_before_dispatch() {
+        assert!(ENV_TIER_RED_FIXTURES.contains("prod_tier_rejects_missing_cost_budget_evidence"));
+        let mut usecase = IntelligenceModelRoutingUsecase::default();
+        let mut prod = input("idem:model-routing:prod-missing-budget");
+        prod.request.env_tier = Some(EnvTier::Prod);
+        prod.request.model_default_policy_ref =
+            "policy:intelligence.env-tier.model-default.prod.v1".to_owned();
+        prod.request.tier_cost_budget_policy_ref =
+            "policy:intelligence.env-tier.cost-budget.prod.v1".to_owned();
+        prod.request.tier_cost_budget_evidence_ref = None;
+        prod.catalog[0].model_default_class = ModelDefaultClass::ProductionGradeSelection;
+        prod.catalog[0].profile_tags = BTreeSet::from([
+            ModelProfileTag::ProductionGrade,
+            ModelProfileTag::ProdApproved,
+            ModelProfileTag::SloBacked,
+            ModelProfileTag::EvalGatePassed,
+        ]);
+
+        let receipt = usecase.route(prod);
+
+        assert_eq!(receipt.status, ModelRoutingUsecaseStatus::Denied);
+        assert_eq!(
+            receipt.denial_kind,
+            Some(ModelRoutingUsecaseDenialKind::RouteDenied)
+        );
+        assert!(receipt.route_selection.is_none());
+        assert!(receipt.candidate_denials.is_empty());
+        assert!(
+            receipt.evidence_refs.contains(
+                &"env-tier:TIER-BUDGET-EVIDENCE-REQUIRED:missing_per_tier_cost_budget_evidence"
+                    .to_owned()
+            )
+        );
+    }
+
+    #[test]
     fn receipts_and_events_never_contain_raw_prompt_output_or_secret_bytes() {
         let mut usecase = IntelligenceModelRoutingUsecase::default();
 
@@ -808,9 +913,11 @@ mod tests {
         // exactly one candidate was tried and denied before the selected one
         assert_eq!(receipt.candidate_denials.len(), 1);
         assert_eq!(receipt.candidate_denials[0].model_id, "gpt-embedding");
-        assert!(receipt.candidate_denials[0]
-            .reasons
-            .contains(&RouteDenialReason::CapabilityUnavailable));
+        assert!(
+            receipt.candidate_denials[0]
+                .reasons
+                .contains(&RouteDenialReason::CapabilityUnavailable)
+        );
     }
 
     #[test]
@@ -836,9 +943,11 @@ mod tests {
         // Terminal failure: no candidates were accepted, so denial trail has at most 0
         // entries (the first domain call returned Invalid before any Allow/Deny walk)
         assert!(receipt.candidate_denials.is_empty());
-        assert!(receipt
-            .evidence_refs
-            .contains(&"validation:external-sensitive-data".to_owned()));
+        assert!(
+            receipt
+                .evidence_refs
+                .contains(&"validation:external-sensitive-data".to_owned())
+        );
     }
 
     #[test]
@@ -917,15 +1026,21 @@ mod tests {
         assert_eq!(receipt.candidate_denials[1].priority, 2);
         assert_eq!(receipt.candidate_denials[2].priority, 3);
 
-        assert!(receipt.candidate_denials[0]
-            .reasons
-            .contains(&RouteDenialReason::CapabilityUnavailable));
-        assert!(receipt.candidate_denials[1]
-            .reasons
-            .contains(&RouteDenialReason::CredentialModeUnavailable));
-        assert!(receipt.candidate_denials[2]
-            .reasons
-            .contains(&RouteDenialReason::TenantNotAllowed));
+        assert!(
+            receipt.candidate_denials[0]
+                .reasons
+                .contains(&RouteDenialReason::CapabilityUnavailable)
+        );
+        assert!(
+            receipt.candidate_denials[1]
+                .reasons
+                .contains(&RouteDenialReason::CredentialModeUnavailable)
+        );
+        assert!(
+            receipt.candidate_denials[2]
+                .reasons
+                .contains(&RouteDenialReason::TenantNotAllowed)
+        );
 
         // Metadata-only invariant: no secrets or raw content in debug repr
         let debug = format!("{receipt:?}");

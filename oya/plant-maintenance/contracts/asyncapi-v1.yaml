@@ -3,6 +3,33 @@ info:
   title: Plant Maintenance Events
   version: 1.0.0
   description: AsyncAPI 3.1.0 channels for SAP PM parity events.
+  x-oyatie-contract-status: preview-not-deployed
+  x-oyatie-non-claims:
+    - no deployed broker runtime
+    - no producer runtime
+    - no consumer runtime
+    - no durable persistence
+    - no spare-parts inventory mutation
+    - no technician dispatch runtime
+    - no Workflow execution
+    - no runtime audit-chain emission
+    - no cloud deployment
+  x-oyatie-app-channel-metadata:
+    description: >-
+      Metadata-only app handler channel names used by the scaffolded AsyncAPI
+      adapter fixtures. These entries do not claim a live broker, producer,
+      consumer, or runtime audit-chain emitter.
+    channels:
+      - channel: plant-maintenance.command.accepted.v1
+        contract_stub_only: true
+      - channel: plant-maintenance.reconciliation.queued.v1
+        contract_stub_only: true
+      - channel: plant-maintenance.governance.hold-applied.v1
+        contract_stub_only: true
+      - channel: plant-maintenance.equipment.telemetry-changed.v1
+        contract_stub_only: true
+      - channel: plant-maintenance.spare-part.changed.v1
+        contract_stub_only: true
 defaultContentType: application/json
 channels:
   plant-maintenance.equipment-master.events.v1:

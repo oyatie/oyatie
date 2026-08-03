@@ -1,4 +1,6 @@
-replicaCount: 3
+# Preview planning inventory only. These values are not deployment authority
+# and do not claim treasury cloud deployment or production readiness.
+replicaCount: 0
 image:
   repository: registry.example/oya-treasury
   tag: 0.1.0

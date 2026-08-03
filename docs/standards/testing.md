@@ -235,7 +235,7 @@ This standard adds:
 
 ## 12. Sources scanned
 
-- [`.omc/scratch/hyperscaler-best-practices-2026-05-12.md`](../../.omc/scratch/hyperscaler-best-practices-2026-05-12.md)
+- [`hyperscaler-best-practices.md`](hyperscaler-best-practices.md)
   Domain 2 "Testing" + Domain 3 (cargo-nextest, cargo-fuzz, Kani).
 - [Frontiers — Test Pyramid 2.0](https://www.frontiersin.org/journals/artificial-intelligence/articles/10.3389/frai.2025.1695965/full).
 - [nextest book](https://nexte.st/).

@@ -593,7 +593,7 @@
         "stable": 99.9,
         "GA": 99.95
       },
-      "verification_ref": "oya gate validate workflow-availability --window 30d",
+      "verification_ref": "cloud-ci/Rust gate packet: workflow-availability --window 30d",
       "lane_ref": "oya-governance-canary-observability"
     },
     {
@@ -633,7 +633,7 @@
         "stable": 120,
         "GA": 30
       },
-      "verification_ref": "oya gate validate canary-observability-rollback --window 7d",
+      "verification_ref": "cloud-ci/Rust gate packet: canary-observability-rollback --window 7d",
       "lane_ref": "canary-observability-rollback ($ref:docs/decisions/ADR-0114)"
     }
   ],

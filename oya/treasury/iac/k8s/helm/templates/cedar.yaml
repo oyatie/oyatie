@@ -1,10 +1,12 @@
 {{- if .Values.cedar.enabled }}
+# Preview planning inventory only; not runtime policy deployment authority.
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ .Values.cedar.policyConfigMapName | quote }}
   labels:
     app.kubernetes.io/name: {{ .Values.microservice.id | quote }}
+    oyatie.com/authority-scope: preview-planning-non-authoritative
     oyatie.com/policy-engine: cedar
     oyatie.com/adr-0246: policy-engine-substrate
 data:

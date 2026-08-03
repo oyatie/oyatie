@@ -45,6 +45,25 @@ fn main() -> ExitCode {
             );
             return ExitCode::SUCCESS;
         }
+        ("git", [cmd, rev]) if cmd == "rev-parse" && rev == "HEAD" => {
+            println!(
+                "{}",
+                env::var("FAKE_VERIFY_GIT_HEAD")
+                    .unwrap_or_else(|_| "fixture-head-1234567890abcdef".into())
+            );
+            return ExitCode::SUCCESS;
+        }
+        ("git", [cmd, short, untracked])
+            if cmd == "status" && short == "--short" && untracked == "--untracked-files=all" =>
+        {
+            if let Ok(status) = env::var("FAKE_VERIFY_GIT_STATUS") {
+                print!("{status}");
+                if !status.ends_with('\n') {
+                    println!();
+                }
+            }
+            return ExitCode::SUCCESS;
+        }
         ("git", [cmd, name_only, diff_filter, range, sep, pathspec])
             if cmd == "diff"
                 && name_only == "--name-only"

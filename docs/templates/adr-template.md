@@ -16,7 +16,7 @@ related:
 adrs_cited:
   - ADR-0056  # BNF v4.1 + layer enum
   - ADR-0057  # LEAN checks
-  - ADR-0346  # oya verify --ci-required full CI mirror pre-push contract
+  - ADR-0515  # current CI/CD enforcement truth: one protected oya-ci-required context
 doc_status: published
 ---
 
@@ -121,7 +121,7 @@ and cite the integration point in the affected µservice's PRD.
 
 ### Operational
 - CI lane changes (new LEAN check, fitness lane flip from `--report-only` to BLOCKER).
-- ADR-0346 pre-push contract: `./bin/oya verify --ci-required` is the canonical local pre-push verifier; it MUST locally mirror the full CI matrix and block on exit-0 of EACH mandatory step before returning success.
+- ADR-0515 CI contract: protected merge authority is the single `oya-ci-required` context produced by the cloud-ci gate apps; legacy `./bin/oya verify --ci-required` output is optional local feedback/provenance only and never merge authority.
 
 ---
 
@@ -177,6 +177,6 @@ For each alternative:
 - oyatie memory: `feedback_<slug>.md` (override rationale)
 - ADR-0056 BNF v4.1 (naming authority)
 - ADR-0057 LEAN checks (cross-vertical enforcement)
-- ADR-0346 `oya verify --ci-required` full CI mirror pre-push contract
+- ADR-0515 one-canonical-CI / `oya-ci-required` protected-context contract
 - Related oyatie ADRs: list concrete ADR identifiers, or state `-`
 - Issues: `Refs #N`, `Closes #N`

@@ -28,7 +28,50 @@
       "oya-mail-app",
       "oya-mail-rest"
     ],
-    "ops_surface": "managed through OpenTofu-owned infrastructure and root Makefile/oya ops targets; no manual SSH troubleshooting path"
+    "ops_surface": "managed through OpenTofu-owned infrastructure and root Makefile/oya ops targets; no manual SSH troubleshooting path",
+    "edge_authority": {
+      "status": "Accepted protocol-edge target; current workload-owned LoadBalancers remain migration debt",
+      "accepted_authority_refs": [
+        "docs/decisions/ADR-0182-api-gateway-north-south-vs-service-mesh-east-west-separation.md#non-http-protocol-edge-extension",
+        "docs/decisions/ADR-0157-api-gateway-tier.md#operational"
+      ],
+      "authorized_non_http_protocol_edge": [
+        {
+          "surface": "inbound_smtp_mx",
+          "ports": [25, 465],
+          "protocol": "TCP"
+        },
+        {
+          "surface": "smtp_submission",
+          "ports": [587],
+          "protocol": "TCP"
+        },
+        {
+          "surface": "imap_imaps",
+          "ports": [143, 993],
+          "protocol": "TCP"
+        },
+        {
+          "surface": "managesieve",
+          "ports": [4190],
+          "protocol": "TCP"
+        }
+      ],
+      "required_public_listener_owner": "api-gateway/edge platform, not oya/mail workload Services",
+      "required_workload_service_type": "ClusterIP",
+      "required_controls": [
+        "edge-owned Gateway API TCPRoute/TLSRoute or mail-protocol-edge adapter",
+        "mTLS/SPIFFE from edge listener to mail workloads",
+        "CiliumNetworkPolicy allowlists for edge-to-mail traffic only",
+        "L4 DDoS and connection-rate limiting",
+        "STARTTLS/MTA-STS/TLS-RPT posture where protocol-applicable",
+        "SASL/OIDC or equivalent tenant identity binding for authenticated flows",
+        "open-relay refusal",
+        "DMARC/SPF/DKIM/ARC/Rspamd processing for mail ingress",
+        "OpenTelemetry trace and audit correlation",
+        "rollback notes and protocol smoke evidence before runtime promotion"
+      ]
+    }
   },
   "inherits": {
     "bominal_adrs": [
@@ -487,7 +530,7 @@
       },
       {
         "name": "shell-script operational glue",
-        "reason": "deployment and validation authority belongs to OpenTofu, Makefile targets, and Rust oya gates"
+        "reason": "deployment and validation authority belongs to OpenTofu, Makefile targets, and Rust cloud-ci gate packets"
       }
     ]
   },
@@ -509,7 +552,7 @@
         "stable": 100,
         "GA": 100
       },
-      "verification_ref": "oya gate validate mail-ediscovery",
+      "verification_ref": "cloud-ci/Rust gate packet: mail-ediscovery",
       "lane_ref": "audit-chain"
     },
     {
@@ -519,7 +562,7 @@
         "stable": 10,
         "GA": 5
       },
-      "verification_ref": "oya gate validate mail-restore-drill",
+      "verification_ref": "cloud-ci/Rust gate packet: mail-restore-drill",
       "lane_ref": "slo-coverage"
     },
     {
@@ -540,7 +583,7 @@
         "GA": 99.9
       },
       "notes": "Official source-backed bar: Gmail states it blocks 99.9% of spam, malware, and dangerous links; Proton PhishGuard remains an additional qualitative benchmark.",
-      "verification_ref": "oya gate validate mail-spam-phishing",
+      "verification_ref": "cloud-ci/Rust gate packet: mail-spam-phishing",
       "lane_ref": "oya-governance-mail-perimeter"
     },
     {
@@ -551,7 +594,7 @@
         "GA": 100
       },
       "notes": "Every active sending domain must have DMARC policy set; industry standard from Microsoft 365 and Google Workspace",
-      "verification_ref": "oya gate validate mail-domain-auth",
+      "verification_ref": "cloud-ci/Rust gate packet: mail-domain-auth",
       "lane_ref": "oya-governance-mail-perimeter"
     },
     {
@@ -562,7 +605,7 @@
         "GA": 95
       },
       "notes": "Industry baseline: new domains require warmup; reputation monitoring via postmaster APIs",
-      "verification_ref": "oya gate validate mail-deliverability",
+      "verification_ref": "cloud-ci/Rust gate packet: mail-deliverability",
       "lane_ref": "oya-governance-mail-deliverability"
     }
   ],
@@ -1097,7 +1140,7 @@
   "goals": {
     "scalability": {
       "target": "10M active identities, 1M concurrent realtime sessions per region family, 100K tenant workspaces per control plane",
-      "verification": "oya gate validate mail-scale-model --repo-root ."
+      "verification": "cloud-ci/Rust gate packet: mail-scale-model --repo-root ."
     },
     "security": {
       "target": "zero cross-pillar access, tenant-DEK professional encryption, personal E2E where declared, immutable audit chain for all privileged disclosure",
@@ -1109,11 +1152,11 @@
     },
     "efficiency": {
       "target": "per-seat monthly infra cost tracked by message, mailbox, and calendar-event unit economics with no unmetered background fanout",
-      "verification": "oya gate validate mail-finops-unit-economics"
+      "verification": "cloud-ci/Rust gate packet: mail-finops-unit-economics"
     },
     "reliability": {
       "target": "99.95% GA availability, RPO <= 5m for professional data, RTO <= 30m for regional cell failover",
-      "verification": "oya gate validate mail-slo-coverage"
+      "verification": "cloud-ci/Rust gate packet: mail-slo-coverage"
     }
   },
   "user_experience": {

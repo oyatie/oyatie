@@ -380,9 +380,9 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
         (Some("validate"), Some("supply-chain")) => {
             match crate::parse_supply_chain_validate_args(args.collect()) {
                 Ok(args) => match crate::validate_supply_chain_gate(args) {
-                    Ok((records, source_only)) => {
+                    Ok((records, source_only, dependency_records)) => {
                         println!(
-                            "supply chain validation passed: {records} catalog records, {source_only} source-only attestations"
+                            "supply chain validation passed: {records} catalog records, {source_only} source-only attestations, {dependency_records} dependency ledger records"
                         );
                         ExitCode::SUCCESS
                     }
@@ -411,6 +411,30 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                     }
                     Err(message) => {
                         eprintln!("release supply chain validation failed: {message}");
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
+        (Some("validate"), Some("image-promotion")) => {
+            match crate::parse_image_promotion_validate_args(args.collect()) {
+                Ok(args) => match crate::validate_image_promotion_gate(args) {
+                    Ok(report) => {
+                        println!(
+                            "image promotion validation passed: {} artifacts, {} promotion records, {} kubewarden verifier records, {} kyverno verifier records",
+                            report.artifacts,
+                            report.promotion_records,
+                            report.kubewarden_verifier_records,
+                            report.kyverno_verifier_records
+                        );
+                        ExitCode::SUCCESS
+                    }
+                    Err(message) => {
+                        eprintln!("image promotion validation failed: {message}");
                         ExitCode::FAILURE
                     }
                 },

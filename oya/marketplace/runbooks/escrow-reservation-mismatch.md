@@ -127,7 +127,7 @@ Escrow Reservation Mismatch incident decision tree
 4. Enable circuit breaker: `oya ops breaker open marketplace-escrow-reservation-mismatch-circuit-breaker --cell $CELL --tenant $TENANT --ttl 30m --reason $INCIDENT_ID`.
 5. Reduce blast radius: `kubectl -n marketplace scale deploy/marketplace-escrow-reservation-mismatch-worker --replicas=1`.
 6. Protect tenant boundary: `oya tenancy quarantine --tenant $TENANT --reason marketplace-escrow-reservation-mismatch --ttl 60m`.
-7. Pause promotion: incident hold PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
+7. Pause promotion: incident hold PR against `dev` (plain `git`; branch-protected `oya-ci-required` required; legacy `oya gate` output optional local/provenance only).
 8. Drain queue safely: `oya ops marketplace escrow-reservation-mismatch drain --cell $CELL --tenant $TENANT --max-items 500 --dry-run`.
 9. Execute bounded drain: `oya ops marketplace escrow-reservation-mismatch drain --cell $CELL --tenant $TENANT --max-items 500 --confirm $INCIDENT_ID`.
 10. Replay missing audit events: `oya audit-chain replay --event-class EVT_MARKETPLACE_ESCROW_RESERVATION_MISMATCH_INCIDENT --incident $INCIDENT_ID --from evidence/incidents/$INCIDENT_ID.json`.
@@ -177,7 +177,7 @@ Escrow Reservation Mismatch incident decision tree
 14. Watch burn rate: `oya ops watch --metric oya_marketplace_escrow_reservation_mismatch_error_ratio --threshold 0.005 --window 30m --cell $CELL`.
 15. Close circuit breaker: `oya ops breaker close marketplace-escrow-reservation-mismatch-circuit-breaker --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.
 16. Unfreeze automation: `oya flags set oya.marketplace.escrow_reservation_mismatch.incident_hold=false --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.
-17. Resume promotion: recovery PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
+17. Resume promotion: recovery PR against `dev` (plain `git`; branch-protected `oya-ci-required` required; legacy `oya gate` output optional local/provenance only).
 18. Seal resolution audit: `oya audit-chain emit --event-class EVT_MARKETPLACE_ESCROW_RESERVATION_MISMATCH_INCIDENT --incident $INCIDENT_ID --field resolution=complete --field runbook=escrow-reservation-mismatch`.
 19. Verify seal: `oya audit-chain verify --event-class EVT_MARKETPLACE_ESCROW_RESERVATION_MISMATCH_INCIDENT --incident $INCIDENT_ID`.
 20. Attach final evidence: `oya evidence attach --incident $INCIDENT_ID --file evidence/incidents/$INCIDENT_ID.json --kind final-resolution`.

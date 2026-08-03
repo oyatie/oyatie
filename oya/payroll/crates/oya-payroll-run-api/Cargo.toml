@@ -11,6 +11,8 @@ oya-payroll-run-domain = { path = "../oya-payroll-run-domain" }
 serde = { workspace = true, features = ["derive"] }
 
 [dev-dependencies]
+oya-hr-employment-api = { path = "../../../hr/crates/oya-hr-employment-api" }
+oya-hr-employment-app = { path = "../../../hr/crates/oya-hr-employment-app" }
 oya-payroll-run-app = { path = "../oya-payroll-run-app" }
 serde_json = { workspace = true }
 
