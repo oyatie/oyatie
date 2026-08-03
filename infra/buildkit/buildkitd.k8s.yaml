@@ -1,0 +1,90 @@
+# The ONE in-cluster BuildKit daemon (ADR-0631 D3; ADR-0381 D1 chose BuildKit,
+# ADR-0378 retired host docker). Every in-cluster image build drives THIS daemon.
+#
+# WHY THIS FILE EXISTS AT ALL: a second, divergent buildkitd Deployment+Service was
+# already committed at infra/ci-webhook-gateway/buildkit-build.yaml — rootless, in
+# ns oya-ci, with different args and a different probe. It never ran (there is no
+# buildkitd in oya-ci and no reconciler to create one) while this privileged daemon
+# in oya-build served every real build. Two declarations of one thing, one of them
+# fiction, is the drift-by-duplication class; that twin's daemon+Service have been
+# deleted and its Job repointed here. If the rootless posture is wanted, that is a
+# deliberate migration PR (it needs the probe changed too), NOT a second file.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: oya-build
+  labels:
+    # REQUIRED, part of the declaration and not cluster trivia: the daemon below
+    # is privileged, which Pod Security `baseline`/`restricted` reject outright.
+    # This label is what makes the pod admissible.
+    pod-security.kubernetes.io/enforce: privileged
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: buildkitd
+  namespace: oya-build
+  # No object-level labels, deliberately: the live Deployment has none, and adding
+  # `app: buildkitd` / `oya.adr/decided-by` here would make `kubectl diff` non-empty
+  # — i.e. would make this file stop matching reality — to buy a label nothing
+  # selects on. The ADR anchor lives in ADR-0631's artifact-accounting section and
+  # the header above. Add them in a change whose subject is applying them.
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: buildkitd
+  template:
+    metadata:
+      labels:
+        app: buildkitd
+    spec:
+      containers:
+        - name: buildkitd
+          image: moby/buildkit:v0.18.2
+          # PRIVILEGED, and therefore MUST NOT carry
+          # --oci-worker-no-process-sandbox. That flag is ROOTLESS-ONLY; passing it
+          # to a privileged daemon crash-loops it. The retired rootless twin
+          # legitimately carried it, so copying args between the two postures is
+          # the trap — and it is the exact trap that was hit here (the live
+          # object's own last-applied annotation still records the flag being
+          # applied and then patched back out).
+          args: ["--addr", "tcp://0.0.0.0:1234"]
+          ports:
+            - containerPort: 1234
+              name: grpc
+          securityContext:
+            privileged: true
+          readinessProbe:
+            exec:
+              # --addr IS REQUIRED. There is no unix listener (TCP-only above), so
+              # the default `buildctl debug workers` dials a socket that does not
+              # exist and the pod NEVER goes Ready — which reads as a broken daemon
+              # rather than a broken probe.
+              command: ["buildctl", "--addr", "tcp://localhost:1234", "debug", "workers"]
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: "2"
+              memory: 4Gi
+            limits:
+              memory: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: buildkitd
+  namespace: oya-build
+spec:
+  # spec.clusterIP is deliberately NOT pinned (currently 10.104.23.239), unlike
+  # infra/registry's Service. That one is pinned because Talos
+  # machine.registries.mirrors resolves it by IP outside CoreDNS; nothing resolves
+  # buildkitd outside CoreDNS, so pinning would add a collision hazard for no
+  # contract. Stated so the omission reads as a decision, not an oversight.
+  selector:
+    app: buildkitd
+  ports:
+    - name: grpc
+      port: 1234
+      targetPort: 1234

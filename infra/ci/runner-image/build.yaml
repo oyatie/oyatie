@@ -1,0 +1,99 @@
+# Reproducible build of the owned CI runner image (ADR-0630 amendment 2).
+#
+# WHAT THIS REPLACES. The live digest referenced by
+# infra/arc/runner-scale-set-arm64-values.yaml was produced by a one-shot Job whose
+# build context was a hand-made ConfigMap (`oya-build/runner-build-ctx`) holding
+# /tmp copies of Dockerfile + rust-toolchain.toml + install-buck2.sh, built with
+# `buildctl-daemonless.sh` rather than the buildkitd Deployment. Nothing about it
+# was in git, so the image holding merge authority had NO source. This Job is that
+# source: a GIT context at an explicit ref, driving the one declared daemon.
+#
+# THEREFORE THIS DOES NOT MATCH THE COMPLETED LIVE JOB, and is not meant to — a
+# finished Job is an event, not desired state, and its spec is immutable. Before the
+# first declared run, reap the non-reproducible pair:
+#   kubectl -n oya-build delete job/runner-image-build configmap/runner-build-ctx
+#
+# NOT REGISTERED in infra/gitops/values.yaml, deliberately: every app there gets
+# `automated: {prune: true, selfHeal: true}`, and a Job that completes (and is then
+# reaped) would be recreated forever — an infinite rebuild loop on a shared,
+# memory-constrained cluster. So this is the ONE remaining manually-applied object
+# in the CI substrate. That is a defect, not a design: the designed-out path is an
+# owned build controller reconciling image state (and the ADR-0535 owned bump-bot
+# closing the loop back onto the digest in the values file). Recorded here rather
+# than left implicit.
+#
+# NO SHELL. `command` is buildctl itself, not /bin/sh -c: the git credential is
+# passed as a BuildKit build secret (GIT_AUTH_TOKEN, which BuildKit's git source
+# reads natively) instead of being interpolated into the context URL, so it appears
+# in neither this spec nor the pod logs. The resulting image digest is printed by
+# buildctl — `kubectl -n oya-build logs job/runner-image-build` is where you read
+# the value to paste into the values file.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: runner-image-build
+  namespace: oya-build
+  labels:
+    oya.adr/decided-by: ADR-0630
+spec:
+  # 0 retries: a failed toolchain build fails the same way every time, and a retry
+  # loop on a 2-CPU request starves co-tenants for nothing.
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: buildctl
+          # Same image as the daemon (infra/buildkit/buildkitd.k8s.yaml) — it
+          # carries both binaries. Keeping client and server on one pinned version
+          # removes a whole class of gRPC/frontend skew.
+          image: moby/buildkit:v0.18.2
+          command: ["buildctl"]
+          args:
+            # The declared daemon, not buildctl-daemonless.sh: driving the shared
+            # daemon is what gives the build a cache and keeps THIS pod unprivileged.
+            - --addr
+            - tcp://buildkitd.oya-build.svc.cluster.local:1234
+            - build
+            - --frontend
+            - dockerfile.v0
+            # Context = the repo ROOT at an explicit ref, with NO context-sub-path:
+            # the Dockerfile COPYs rust-toolchain.toml (repo root) and
+            # infra/ci/install-buck2.sh, so a sub-path context would break both.
+            - --opt
+            - context=https://github.com/jason931225/oyatie.git#refs/heads/dev
+            - --opt
+            - filename=infra/ci/runner-image/Dockerfile
+            # registry.insecure: the in-cluster registry is plain HTTP, in-cluster
+            # only (infra/registry/registry.k8s.yaml).
+            - --output
+            - type=image,name=registry.oya-registry.svc.cluster.local:5000/oya/runner:arm64,push=true,registry.insecure=true
+            - --secret
+            - id=GIT_AUTH_TOKEN,env=GIT_AUTH_TOKEN
+          env:
+            # BOOTSTRAP DEPENDENCY, stated rather than hidden: credential material
+            # never lives in git. Same convention as `gateway-build-git` in oya-ci.
+            # Needs `contents: read` on this repo only.
+            - name: GIT_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: runner-image-build-git
+                  key: token
+          # PSA-`restricted` clean even though ns oya-build enforces `privileged`
+          # for the daemon's sake. A buildctl CLIENT needs no privilege at all, and
+          # a permissive namespace is not a reason for a pod to be permissive —
+          # otherwise the daemon's exemption silently becomes the namespace default.
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: "2"
+              memory: 4Gi
+            limits:
+              memory: 8Gi
