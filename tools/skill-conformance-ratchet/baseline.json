@@ -1,0 +1,10 @@
+{
+  "corpus_size": 34,
+  "max_failures": {
+    "body_has_example": 3,
+    "body_within_line_budget": 3,
+    "description_min_length": 14,
+    "description_states_trigger": 28,
+    "refs_resolve": 1
+  }
+}
