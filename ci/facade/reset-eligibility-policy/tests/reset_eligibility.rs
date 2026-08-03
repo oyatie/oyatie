@@ -744,6 +744,8 @@ fn uri_bearing_secrets_are_rejected_while_public_urls_remain_green() {
         "protected-runtime:q9P/2Zd7Wm4+Lx8!Vt3#Kn6@Hs1%Rc5^Bj0&Fy7*Ua2=Ee9?",
         "redacted-local:q9P2Zd7Wm4-Lx8Vt3Kn6Hs1Rc5Bj0Fy7Ua2Ee9Qw4Pi6Zd8Lm",
         "protected-runtime:q9P2Zd7Wm4-Lx8Vt3Kn6Hs1Rc5Bj0Fy7Ua2Ee9Qw4Pi6Zd8Lm",
+        "protected-runtime:q9p2zd7wm4lx8vt3kn6hs1rc5bj0fy7ua2ee9qw4pi6zd8lm",
+        "redacted-local:q9p2zd7w-m4lx8vt3-kn6hs1rc-5bj0fy7u-a2ee9qw4-pi6zd8lm",
     ] {
         let mut opaque_secret = artifact.clone();
         opaque_secret["evidence_manifest"]["uri"] = json!(secret);
