@@ -20,7 +20,7 @@ path = "src/lib.rs"
 doctest = false
 
 [dependencies]
-oya-ci-tide-kernel = { path = "../oya-ci-tide-kernel" }
+ci-tide-kernel = { path = "../../../../ci/core/tide-kernel" }
 oya-ci-tide-github-adapter = { path = "../oya-ci-tide-github-adapter" }
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 tracing = { workspace = true }

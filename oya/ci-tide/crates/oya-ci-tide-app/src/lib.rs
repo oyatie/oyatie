@@ -31,7 +31,7 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
-use oya_ci_tide_kernel::{
+use ci_tide_kernel::{
     EligibilityInput, ForgeClient, IneligibleReason, TideConfig, TideError, is_mergeable,
 };
 use std::sync::Arc;
@@ -254,7 +254,7 @@ impl TideRunner {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_ci_tide_kernel::{
+    use ci_tide_kernel::{
         ApprovalPolicy, CommitStatusState, MergeMethod, MergeState, PullRequest, Result, Review,
         ReviewState,
     };

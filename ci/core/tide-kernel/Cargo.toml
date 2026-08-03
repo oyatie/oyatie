@@ -1,5 +1,5 @@
 [package]
-name = "oya-ci-tide-kernel"
+name = "ci-tide-kernel"
 edition.workspace = true
 version.workspace = true
 rust-version.workspace = true
@@ -7,12 +7,12 @@ publish = false
 license = "Apache-2.0"
 
 # oya-ci tide kernel — pure-domain eligibility predicate + types for the
-# tide merge-queue (ADR-0513 Phase 2). No I/O, no async, no network.
+# tide merge-queue (ADR-0515). No I/O, no async, no network.
 # Owns: TideConfig, PullRequest, CommitStatusState, Review, is_mergeable,
 # ForgeClient trait seam.
 
 [lib]
-name = "oya_ci_tide_kernel"
+name = "ci_tide_kernel"
 path = "src/lib.rs"
 doctest = false
 
