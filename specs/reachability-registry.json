@@ -330,7 +330,7 @@
       "prefix": "specs/microservices/BUCK"
     },
     {
-      "anchor": "ADR-0635 D5: closed Draft 2020-12 schema for the canonical substrate graph-v2 contract, loaded through the gate policy and asserted by the dependency-graph-acyclicity live-corpus test.",
+      "anchor": "ADR-0635 D5/D6: closed Draft 2020-12 schema for the canonical bounded W0-C substrate graph-v2 contract, including its no-new-baseline topology-coverage follow-up; loaded through the gate policy and asserted by the dependency-graph-acyclicity live-corpus test.",
       "prefix": "specs/substrate-dependency-dag.schema.json"
     },
     {

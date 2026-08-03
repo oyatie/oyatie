@@ -1,5 +1,7 @@
 {
   "_comment": "RED fixture: a six-node graph with a buried 3-cycle b->c->d->b on an otherwise acyclic spine a->...->f. Catches validators that only check the first/last node. The validator MUST reject it (dag_cycle, SCC {b,c,d}).",
+  "_lifecycle": "retired-inert-v1-compatibility-only",
+  "_successor": "../graph-v2-cases.json",
   "version": "1.0.0",
   "doctrine_adr": "ADR-0280",
   "nodes": [
