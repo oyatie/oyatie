@@ -1,0 +1,162 @@
+# ARC runner scale set `oya-arm64` — gha-runner-scale-set Helm values.
+#
+# Chart: ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-set
+# Version: 0.14.2   Release: `oya-arm64` in namespace `arc-runners`   Revision: 3
+#
+# WHY THIS FILE EXISTS: this scale set is the runner fleet that holds merge
+# authority (ADR-0515 D5 destination), and its only record was three unreviewed
+# Helm release secrets (`sh.helm.release.v1.oya-arm64.v1/v2/v3`). Everything below
+# is the release's USER-SUPPLIED values, plus four corrections, each marked
+# CORRECTION with the measurement that justifies it. A reviewer can diff this file
+# against `helm get values oya-arm64 -n arc-runners` and see exactly four deltas.
+#
+# ARCH IS PER-SCALE-SET, NOT REPO-WIDE. The `arm64` in the release name and the
+# nodeSelector below are properties of THIS scale set, not of the fleet. amd64
+# nodes join the same cluster and get a sibling values file with the same body and
+# `kubernetes.io/arch: amd64`; workflows dispatch by `runs-on: <runnerScaleSetName>`.
+# Nothing outside the nodeSelector encodes an architecture — in particular the
+# runner image is pinned to a multi-arch INDEX digest (see CORRECTION 2), so the
+# same digest is correct on both.
+#
+# NOT A RECONCILER: see the note in controller-values.yaml. There is no Argo CD on
+# this cluster, so nothing continuously reconciles this file against the release.
+
+githubConfigUrl: https://github.com/jason931225/oyatie
+
+# GitHub App credentials (app id / installation id / private key), scoped to this
+# ONE repository. Hand-created secret today — it is NOT ExternalSecret-managed,
+# unlike every secret in `oya-ci` (`kubectl get externalsecrets -A` lists only the
+# three nativelink secrets). Moving it onto the standing ESO/OpenBao path is
+# follow-up work, recorded here rather than left invisible.
+githubConfigSecret: oyatie-arc-app
+
+# Ephemeral runners, scale-to-zero. Retained as-is: min=0 means every job pays a
+# cold start, but raising it warms pods on a SHARED cluster and is a capacity
+# decision, not a correctness one.
+minRunners: 0
+maxRunners: 3
+
+runnerScaleSetName: oya-arm64
+
+template:
+  metadata:
+    labels:
+      # CORRECTION 1 — the runner pods could not reach the CAS at all.
+      #
+      # The live NetworkPolicy `nativelink-cas-ingress` (ns oya-ci, declared in
+      # infra/nativelink/nativelink-cas.k8s.yaml) admits :50051 only from pods
+      # labelled `oya.io/nativelink-cas-writer: "true"` and :50052 only from pods
+      # labelled `oya.io/nativelink-cas-reader: "true"`. Its `from` clause uses
+      # `namespaceSelector: {}`, so a pod in `arc-runners` is admitted purely on
+      # this label. Before this line the CR carried NO pod template metadata at all
+      # (`kubectl get autoscalingrunnerset oya-arm64 -n arc-runners -o
+      # jsonpath='{.spec.template.metadata}'` => empty), so every runner was denied
+      # at L3 — a CAS and the runners sit in the same cluster on the same nodes and
+      # the TCP connection was refused regardless of buck2 configuration.
+      #
+      # READER ONLY, deliberately. AC writes are the cache-poisoning vector
+      # (ADR-0556 D4.4 / ADR-0560: the reader listener serves AC `read_only: true`
+      # at the service boundary). This one scale set serves EVERY job for the repo,
+      # including fork-PR jobs, so a pod-level writer label would hand L3 reach to
+      # the write port to untrusted authors and leave mTLS as the only boundary —
+      # the opposite of the defense-in-depth the NetworkPolicy exists for. A
+      # write-capable lane is a SEPARATE scale set (trust tier = scale set
+      # granularity, which is exactly the ADR-0556 trusted/untrusted split), with
+      # its own values file.
+      #
+      # THIS LABEL GRANTS REACH, NOT WARMTH. buck2 still resolves to `bypass`:
+      # /specs/cache-warm-license.json ships `warm_reads_licensed: false` and the
+      # cache-wiring resolver fails closed. The mTLS client certificate is also not
+      # mounted here on purpose — `nativelink-client-reader` is an ExternalSecret in
+      # ns `oya-ci`, not `arc-runners`, and projecting a credential into a pod that
+      # nothing reads would expose it to fork-PR jobs for zero benefit. Mounting it
+      # is the step that pairs with the license flip, and the license flip is
+      # blocked on the cold integrity-canary emitting a real warm-probe record.
+      oya.io/nativelink-cas-reader: "true"
+  spec:
+    # Arch selection for THIS scale set (see the header note).
+    nodeSelector:
+      kubernetes.io/arch: arm64
+    containers:
+      - name: runner
+        command: ["/home/runner/run.sh"]
+
+        # CORRECTION 2 — `:latest` was a mutable tag in a repo where every `uses:`
+        # in every workflow is commit-pinned.
+        #
+        # Pinned to the OCI INDEX digest, never a child manifest. A digest is
+        # resolved BEFORE the tag, so pinning a child would silently force that
+        # child's architecture and make the tag decorative — the precise mistake
+        # already made and corrected once for nativelink (see the image comment in
+        # infra/nativelink/nativelink-cas.k8s.yaml). Verified against the ghcr
+        # manifest API with an index Accept header on 2026-07-29:
+        #   tag 2.336.0 -> sha256:0cfdcc70…  content-type
+        #     application/vnd.oci.image.index.v1+json, children linux/amd64 +
+        #     linux/arm64
+        #   tag latest  -> the SAME index digest
+        # so this pin changes NOTHING that runs today; it only removes the silent
+        # drift. Shrinks the open ledger item F-SUPPLY-IMAGE-PINS-UNDIGESTED
+        # (registry/fixuptasks.jsonl) by one.
+        image: ghcr.io/actions/actions-runner:2.336.0@sha256:0cfdcc701ce933c6d243c6b0b2da767366dc9f2e99961d4c3754b0b78084cdda
+
+        resources:
+          # CORRECTION 3 — unbounded CPU and unbounded disk on a SHARED cluster.
+          #
+          # Measured node facts (2026-07-29, `kubectl describe node` +
+          # `/stats/summary`), both workers arm64 and identical:
+          #   allocatable  cpu 4950m   memory 30006364Ki (28.6 GiB)
+          #   nodefs       47.79 GiB capacity, 44.76 GiB available
+          #   already requested  worker-1 cpu 1050m  worker-2 cpu 500m
+          #
+          # What was wrong: requests cpu 2 / memory 4Gi, limits memory 12Gi, NO cpu
+          # limit and NO ephemeral-storage at all. maxRunners 3 x 12Gi = 36 GiB
+          # against a 28.6 GiB node, so concurrent runners could OOM or
+          # DiskPressure-evict co-tenants — including nativelink-cas, which is
+          # scheduled on worker-1 on local-path storage.
+          #
+          # cpu request 3 is the lever that fixes the memory arithmetic without
+          # touching the memory limit: worker-1 has 3900m free and worker-2 4450m,
+          # so at most ONE runner is schedulable per worker node. 1 x 12 GiB against
+          # 28.6 GiB is safe with nativelink-cas (4 GiB limit) co-resident, and
+          # 3 x 12 GiB can no longer happen. The third runner of maxRunners 3 simply
+          # stays Pending — correct backpressure, and capacity grows on its own when
+          # amd64 nodes join.
+          #
+          # cpu limit 4 is the measured buck2 core-scaling knee (j=2 87s, j=4 67s,
+          # j=8 71s, j=18 98s): over-parallelism HURTS, so capping at the knee costs
+          # nothing and stops one runner from consuming all 5 cores and starving
+          # nativelink-cas on the same node.
+          #
+          # ephemeral-storage was absent entirely, which is the dangerous one:
+          # without a limit the kubelet has no per-pod bound and enforces at the
+          # NODE level, ranking victims by usage-over-request — and nativelink's own
+          # budget on worker-1 is already 40 GB CAS + 5 GB AC on local-path plus a
+          # 12 GiB emptyDir fast tier against a 47.79 GiB disk. A bounded runner is
+          # evicted alone; an unbounded one takes the cache with it.
+          requests:
+            cpu: "3"
+            memory: 4Gi
+            ephemeral-storage: 8Gi
+          limits:
+            # CORRECTION 4 — the CPU limit is also the only pod-level lever on
+            # buck2's action parallelism, and it is an INCOMPLETE one. Stated
+            # honestly rather than claimed: buck2's `-j/--num-threads` defaults to
+            # "# cores" and buck2 exposes NO environment variable for it. Verified
+            # by enumerating the binary's own strings: the only thread-related
+            # BUCK2_* variables are BUCK2_RUNTIME_THREADS, BUCK2_MAX_BLOCKING_THREADS
+            # and BUCK2_IO_THREADS, all tokio runtime knobs, none of which set
+            # action concurrency; there is no `[build] threads` buckconfig key
+            # either. So a container env var here would be a knob nothing reads.
+            # What the cpu limit DOES do is set the cgroup v2 `cpu.max` quota to 4
+            # cores, which bounds the damage either way: if the process derives its
+            # parallelism from the cgroup quota it lands exactly on the measured
+            # knee, and if it does not it still cannot exceed 4 cores of CFS budget.
+            # A real `--num-threads` cap is a workflow-side change and is NOT
+            # claimed here.
+            cpu: "4"
+            # Unchanged from the live release. The 36 GiB arithmetic is fixed by
+            # the cpu request above, so lowering this would only risk OOM-killing
+            # builds that work today — a change with a regression cost and no
+            # remaining hazard to buy.
+            memory: 12Gi
+            ephemeral-storage: 20Gi
