@@ -2,7 +2,7 @@
 // `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
-use oya_data_boundary_kernel::{AgeBand, DataClass, PrivacyDataClass, SubjectClass};
+use data_boundary_kernel::{AgeBand, DataClass, PrivacyDataClass, SubjectClass};
 use intelligence_capability_domain::{AutonomyTier, Capability, CapabilityAction};
 use oya_intelligence_policy_domain::{
     AutonomyCapReason, AutonomyCapSource, AutonomyCeilingInputs, AutonomyVerdict, TenantPolicy,

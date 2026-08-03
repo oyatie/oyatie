@@ -9,7 +9,7 @@
 
 use std::collections::BTreeSet;
 
-use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 const CLOUD_SURFACE_SCHEMA_VERSION: u32 = 1;
 const SURFACE_ID_PREFIX: &str = "csurf_";

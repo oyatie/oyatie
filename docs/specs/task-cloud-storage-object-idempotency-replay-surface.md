@@ -34,7 +34,7 @@ cloud vertical
 ```
 
 Domain crates (`oya-cloud-storage-domain`, `oya-cloud-kms-domain`,
-`oya-cloud-resource-domain`, `oya-data-boundary-kernel`) are **read-only** from this
+`oya-cloud-resource-domain`, `data-boundary-kernel`) are **read-only** from this
 task's perspective: no changes to their source.
 
 ---
@@ -214,7 +214,7 @@ All 10 existing integration tests must continue to pass unchanged. These cover:
 - No async runtime introduced.
 - No new crate, no edit to root `Cargo.toml`.
 - No changes to `oya-cloud-storage-domain`, `oya-cloud-kms-domain`,
-  `oya-cloud-resource-domain`, or `oya-data-boundary-kernel`.
+  `oya-cloud-resource-domain`, or `data-boundary-kernel`.
 - No HTTP adapter, no gRPC adapter.
 - No persistence layer for the ledger (in-memory BTreeMap only, as before).
 - No change to the signature of `put_cloud_storage_object_from_api`.

@@ -2,7 +2,7 @@
 // `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
-use oya_data_boundary_kernel::DataClass;
+use data_boundary_kernel::DataClass;
 use oya_intelligence_bypass_domain::{
     AutonomyBreakGlassInput, AutonomyTier, BreakGlassQuorum, BypassError, BypassGate, BypassLedger,
     FoundationBypassInput,

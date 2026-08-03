@@ -21,7 +21,7 @@ Extend the `oya-connect-social-domain` crate with a context- and pillar-scoped b
 | Vertical | community |
 | Owning crate | `oya-connect-social-domain` |
 | Lib name | `oya_connect_social_domain` |
-| Dependency | `oya-data-boundary-kernel` (existing) |
+| Dependency | `data-boundary-kernel` (existing) |
 
 ---
 

@@ -9,7 +9,7 @@ pub use cloud_event::{CloudEvent, CloudEventError};
 
 use std::collections::BTreeMap;
 
-use oya_data_boundary_kernel::{Classified, DataClass};
+use data_boundary_kernel::{Classified, DataClass};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct OutboxRecord {

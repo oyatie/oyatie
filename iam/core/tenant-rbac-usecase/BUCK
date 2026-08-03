@@ -5,7 +5,7 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//data/core/boundary-kernel:data-boundary-kernel",
         "//iam/core/tenant-rbac-domain:iam-tenant-rbac-domain",
     ],
 )
@@ -18,7 +18,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":iam-tenant-rbac-usecase",
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//data/core/boundary-kernel:data-boundary-kernel",
         "//iam/core/tenant-rbac-domain:iam-tenant-rbac-domain",
     ],
 )
@@ -31,7 +31,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":iam-tenant-rbac-usecase",
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//data/core/boundary-kernel:data-boundary-kernel",
         "//iam/core/tenant-rbac-domain:iam-tenant-rbac-domain",
     ],
 )
@@ -44,7 +44,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":iam-tenant-rbac-usecase",
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//data/core/boundary-kernel:data-boundary-kernel",
         "//iam/core/tenant-rbac-domain:iam-tenant-rbac-domain",
     ],
 )

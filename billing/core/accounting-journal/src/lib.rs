@@ -9,7 +9,7 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
-use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 const JOURNAL_ID_PREFIX: &str = "jrn_";
 const TENANT_ID_PREFIX: &str = "ten_";

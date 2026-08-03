@@ -19,7 +19,7 @@ oya-intelligence-run-domain = { path = "../../../intelligence/crates/oya-intelli
 intelligence-step-domain = { path = "../../../../intelligence/core/step-domain" }
 audit-chain-domain = { path = "../../../../audit/core/chain-domain" }
 cell-routing = { path = "../../../../cell/core/routing" }
-oya-data-boundary-kernel = { path = "../../../../libs/oya-data-boundary-kernel" }
+data-boundary-kernel = { path = "../../../../data/core/boundary-kernel" }
 iam-identity-domain = { path = "../../../../iam/core/identity-domain" }
 cell-regional-pack = { path = "../../../../cell/core/regional-pack" }
 network-residency = { path = "../../../../network/core/residency" }

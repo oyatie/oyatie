@@ -7,7 +7,7 @@
 
 use std::collections::BTreeMap;
 
-use oya_data_boundary_kernel::parse_data_class_label;
+use data_boundary_kernel::parse_data_class_label;
 use comms_meet_domain::{
     workspace_meet_data_class_from_legacy, MeetError, MeetSession, MeetSessionCreate,
     ParticipantConnectionState, ParticipantRef, ParticipantRole, RecordingConsentMode,

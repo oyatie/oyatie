@@ -6320,7 +6320,7 @@ fn benchmark_gate_passes_clean_crate() {
 fn audit_chain_replay_gate_accepts_clean_shard() {
     use audit_chain_domain::{AuditChain, Plane};
     use audit_file_adapter::FileAuditLedger;
-    use oya_data_boundary_kernel::{DataClass, Purpose};
+    use data_boundary_kernel::{DataClass, Purpose};
 
     let temp = temp_dir("acr-accept");
     fs::create_dir_all(&temp).expect("shards dir created");
@@ -6382,7 +6382,7 @@ fn audit_chain_replay_gate_accepts_clean_shard() {
 fn audit_chain_replay_gate_rejects_tampered_hash() {
     use audit_chain_domain::{AuditChain, Plane};
     use audit_file_adapter::FileAuditLedger;
-    use oya_data_boundary_kernel::{DataClass, Purpose};
+    use data_boundary_kernel::{DataClass, Purpose};
 
     let temp = temp_dir("acr-tamper");
     fs::create_dir_all(&temp).expect("shards dir created");

@@ -26,7 +26,7 @@ and a per-message dedup invariant (`ReactionSet`). No I/O, no REST, no usecase o
 | REST adapter (future) | messenger REST crate (out of scope) |
 | Persistence adapter (future) | `crates/oya-messenger-message-stream-adapter-postgres` (out of scope) |
 
-The reaction kernel is a pure domain module. It imports only `oya-data-boundary-kernel`
+The reaction kernel is a pure domain module. It imports only `data-boundary-kernel`
 (already a declared dependency of `oya-messenger-domain`) and `std`.
 
 ---
@@ -122,7 +122,7 @@ consistent with `validate_bot_principal` in `lib.rs`.
 
 ## Data-Class Tagging
 
-Consistent with existing kernel (ADR-0083, oya-data-boundary-kernel):
+Consistent with existing kernel (ADR-0083, data-boundary-kernel):
 
 | Field | `DataClass` / `PrivacyDataClass` | Helper |
 |-------|----------------------------------|--------|

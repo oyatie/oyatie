@@ -10,7 +10,7 @@ use network_domain::{
     CloudNetworkCatalog, CloudNetworkError, LbKind, LbState, ListenerCreate, LoadBalancer,
     LoadBalancerCreate, MtlsClientPolicy, MtlsConfigCreate, NetworkRepo, TargetGroupCreate,
 };
-use oya_data_boundary_kernel::{DataClass, parse_data_class_label};
+use data_boundary_kernel::{DataClass, parse_data_class_label};
 
 pub mod authz;
 

@@ -11,7 +11,7 @@ pub use surface_kind::WorkspaceSurfaceKind;
 
 use std::collections::BTreeMap;
 
-use oya_data_boundary_kernel::parse_data_class_label;
+use data_boundary_kernel::parse_data_class_label;
 use comms_messenger_domain::{
     AttachmentRef, ChatChannel, ChatChannelCreate, ChatChannelKind, ChatError, ChatMessage,
     ChatMessageCreate, ChatParticipant, ChatParticipantRole, ChatSenderKind,
@@ -919,7 +919,7 @@ fn attachment_from_request(
 
 fn parse_privacy_data_class_label(
     data_class: &str,
-) -> Result<oya_data_boundary_kernel::PrivacyDataClass, WorkspaceChatApiError> {
+) -> Result<data_boundary_kernel::PrivacyDataClass, WorkspaceChatApiError> {
     let parsed = parse_data_class_label(data_class).ok_or_else(|| {
         WorkspaceChatApiError::InvalidDataClassLabel {
             data_class: data_class.to_string(),

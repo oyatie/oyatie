@@ -8,7 +8,7 @@ license = "Apache-2.0"
 
 [dependencies]
 cell-routing = { path = "../routing" }
-oya-data-boundary-kernel = { path = "../../../libs/oya-data-boundary-kernel" }
+data-boundary-kernel = { path = "../../../data/core/boundary-kernel" }
 network-residency = { path = "../../../network/core/residency" }
 
 [lib]

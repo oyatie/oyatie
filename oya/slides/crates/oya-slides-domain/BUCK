@@ -5,7 +5,7 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//data/core/boundary-kernel:data-boundary-kernel",
         "//oya/intelligence/crates/oya-collab-runtime-domain:oya-collab-runtime-domain",
         "//oya/intelligence/crates/oya-document-format-domain:oya-document-format-domain",
     ],
@@ -18,7 +18,7 @@ rust_test(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//data/core/boundary-kernel:data-boundary-kernel",
         "//oya/intelligence/crates/oya-collab-runtime-domain:oya-collab-runtime-domain",
         "//oya/intelligence/crates/oya-document-format-domain:oya-document-format-domain",
     ],

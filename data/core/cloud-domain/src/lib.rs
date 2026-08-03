@@ -13,7 +13,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use secrets_kms_domain::KmsKeyId;
 use cell_region::{AzCode, CellId, RegionCode};
 use compute_resource::{DatabaseEngine, QueueEngine, ResourceId, ResourceKind};
-use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 use network_residency::{ResidencyClass, residency_class_allows_home_region_label};
 
 const CLOUD_DATA_SCHEMA_VERSION: u32 = 1;

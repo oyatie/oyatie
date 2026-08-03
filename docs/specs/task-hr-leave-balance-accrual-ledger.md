@@ -217,7 +217,7 @@ File: `crates/oya-hr-employment-domain/tests/leave_balance.rs`
 Follows the `tests/leave.rs` idiom:
 - `#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]` header
 - `use oya_hr_employment_domain::{...}` imports
-- `use oya_data_boundary_kernel::DataClass;` for financial DataClass assertions
+- `use data_boundary_kernel::DataClass;` for financial DataClass assertions
 - Private `valid_input()` helper returning a known-good `LeaveBalanceAccrualInput`
 
 Test matrix:

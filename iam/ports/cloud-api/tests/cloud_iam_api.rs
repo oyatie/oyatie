@@ -2,6 +2,7 @@
 // `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
+use data_boundary_kernel::DataClass;
 use iam_cloud_api::{
     CLOUD_IAM_DEFAULT_PUBLIC_API_VERSION, CLOUD_IAM_IDENTITY_PROVIDER_CREATE_SURFACE,
     CLOUD_IAM_IDENTITY_PROVIDER_DELETE_SURFACE, CLOUD_IAM_ROLE_CREATE_SURFACE,
@@ -27,7 +28,6 @@ use iam_cloud_domain::{
     CloudIamError, IamDirectory, IamPrincipalCreate, IamPrincipalKind, IamRoleCreate,
     IdentityProviderCreate, IdentityProviderKind, MfaState,
 };
-use oya_data_boundary_kernel::DataClass;
 
 fn boundary_for(request_id: &str, idempotency_key: &str) -> CloudIamApiBoundaryContext {
     CloudIamApiBoundaryContext {
