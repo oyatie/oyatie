@@ -1,9 +1,9 @@
 # `loom` is a custom-cfg model-check dependency (cfg(loom)); it is OFF in the
 # normal build, so the buck2 target carries no third-party deps.
 rust_library(
-    name = "oya-cloud-kernel-ksync-kernel",
+    name = "kernel-ksync-kernel",
     srcs = glob(["src/**/*.rs"]),
-    crate = "oya_cloud_kernel_ksync_kernel",
+    crate = "kernel_ksync_kernel",
     crate_root = "src/lib.rs",
     edition = "2021",
     visibility = ["PUBLIC"],

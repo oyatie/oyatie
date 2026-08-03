@@ -56,7 +56,7 @@ hal = { workspace = true }
 # `(counter_at_base, mono_ns_base)` at init; `clock_gettime` reads a consistent
 # snapshot lock-free. Zero new unsafe in this crate (the SeqLock is itself
 # unsafe-free; its proofs are inherited).
-ksync = { package = "oya-cloud-kernel-ksync-kernel", path = "../oya-cloud-kernel-ksync-kernel" }
+ksync = { package = "kernel-ksync-kernel", path = "../../../../kernel/core/ksync-kernel" }
 # Pure, arch-neutral EL0 user-layout math (initial-stack/auxv builder, VMSAv8
 # descriptor builders, range checks, frame-pool bookkeeping, TLS variant-I,
 # timer-sleep math). Extracted into its own crate so x86_64/riscv64 can share
