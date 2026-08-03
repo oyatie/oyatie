@@ -18,7 +18,6 @@
       "description": "kuberos framekernel source, consolidated from the preserved consolidate/kernel-snapshot-2026-06-08 branch (stack/kernel) per the founder-authoritative HANDOFF §4 destination map (G12 LANE-1). A nested bare-metal cargo workspace (nightly build-std; aarch64-unknown-none-softfloat + x86_64-unknown-none), intentionally not a root-workspace member. This manifest records boundaries; it does not move infra/talos runtime files, alter cloud/cloud-k8s control-plane assets, publish boot artifacts, or claim live node runtime readiness.",
       "crates": [
         "oya-cloud-kernel-app",
-        "oya-cloud-kernel-hal-kernel",
         "oya-cloud-kernel-frame-kernel",
         "oya-cloud-kernel-ksync-kernel",
         "oya-cloud-kernel-user-layout-kernel",
@@ -165,13 +164,6 @@
         "layer": "app",
         "adr_anchors": ["ADR-0512", "ADR-0520", "ADR-0536", "ADR-0562", "ADR-0378", "ADR-0382"],
         "coverage_rationale": "Composition binary for the nested kuberos workspace; additionally carries Talos compatibility verification images through the selected arch backend."
-      },
-      {
-        "crate": "oya-cloud-kernel-hal-kernel",
-        "metadata_file": "cloud/cloud-kernel/crates/oya-cloud-kernel-hal-kernel/Cargo.toml#package.metadata.oya",
-        "layer": "kernel",
-        "adr_anchors": ["ADR-0512", "ADR-0520", "ADR-0536", "ADR-0562", "ADR-0547"],
-        "coverage_rationale": "Cutover-stable architecture HAL seam inside the sanctioned nested/excluded kuberos workspace."
       },
       {
         "crate": "oya-cloud-kernel-frame-kernel",
