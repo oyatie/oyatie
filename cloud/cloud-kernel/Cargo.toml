@@ -15,7 +15,6 @@ members = [
     "crates/oya-cloud-kernel-arch-aarch64-adapter",
     "crates/oya-cloud-kernel-arch-x86-64-adapter",
     "crates/oya-cloud-kernel-frame-kernel",
-    "crates/oya-cloud-kernel-ksync-kernel",
     "crates/oya-cloud-kernel-user-layout-kernel",
 ]
 # The host test harness for the pure EL0 user-layout math is intentionally NOT a
