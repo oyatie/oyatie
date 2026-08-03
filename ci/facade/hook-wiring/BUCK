@@ -23,12 +23,27 @@ rust_test(
 # FRIC-012/G011 enforcement-liveness: live-corpus self-test over the producer-emitted
 # enforcement-liveness face. It proves hook wiring exists in both project hook surfaces,
 # compatibility stubs are explicitly marked, and all wired hook command paths exist.
+#
+# The MERGE_DRIVER_SOURCE_* entries extend that same invariant — declared enforcement must resolve
+# to a live executable — to the merge drivers `.gitattributes` declares. This block is the SINGLE
+# mapping from a declared driver name to its implementation, and the gate asserts it equals what
+# `.gitattributes` declares in BOTH directions, so a `merge=<name>` line with no binary behind it
+# (or a binary nothing declares) is born-blocking rather than a silently unregistered driver.
+#
+# This gate is the reachable home for the check: `buck2 test //ci/...` in the fan-in-joined `buck2`
+# job runs the whole ci tree on every PR, whereas a test under //tools/ only runs when the
+# affected-set cone reaches it — and a `.gitattributes`-only edit cannot reach a target that does
+# not declare it as an input (declaring it would need a root BUCK package, which would repartition
+# the whole corpus).
 rust_test(
     name = "ci-hook-wiring-gate",
     srcs = glob(["tests/**/*.rs"]),
     crate = "ci_hook_wiring_corpus",
     crate_root = "tests/enforcement_liveness.rs",
     run_env = {
+        "MERGE_DRIVER_SOURCE_CARGO_LOCK": "$(location //tools/oya-cargo-lock-merge-driver-app:oya-cargo-lock-merge-driver)",
+        "MERGE_DRIVER_SOURCE_FIXUP_LEDGER": "$(location //tools/fixup-ledger-merge-driver-app:fixup-ledger-merge-driver)",
+        "MERGE_DRIVER_SOURCE_FRICTION_LEDGER": "$(location //tools/oya-friction-ledger-merge-driver-app:oya-friction-ledger-merge-driver)",
         "OYA_CI_ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS": "$(location //.claude:settings-json)",
         "OYA_CI_ENFORCEMENT_LIVENESS_CODEX_HOOKS": "$(location //.codex:hooks-json)",
         "OYA_CI_ENFORCEMENT_LIVENESS_HOOKS_DIR": "$(location //tools/hooks:top-level-hook-scripts)",
