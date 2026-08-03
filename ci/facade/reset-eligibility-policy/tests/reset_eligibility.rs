@@ -725,6 +725,8 @@ fn high_confidence_secret_values_are_rejected_without_flagging_hashes_or_ids() {
 #[test]
 fn uri_bearing_secrets_are_rejected_while_public_urls_remain_green() {
     let (policy, schema, artifact, runtime) = positive_fixture();
+    const LOWERCASE_TOKEN: &str = "q9p2zd7wm4lx8vt3kn6hs1rc5bj0fy7ua2ee9qw4pi6zd8lm";
+    let padded_lowercase_token = format!("protected-runtime:{}{LOWERCASE_TOKEN}", "a".repeat(80));
 
     for secret in [
         "opaque:q9P/2Zd7Wm4+Lx8!Vt3#Kn6@Hs1%Rc5^Bj0&Fy7*Ua2=Ee9?",
@@ -746,6 +748,7 @@ fn uri_bearing_secrets_are_rejected_while_public_urls_remain_green() {
         "protected-runtime:q9P2Zd7Wm4-Lx8Vt3Kn6Hs1Rc5Bj0Fy7Ua2Ee9Qw4Pi6Zd8Lm",
         "protected-runtime:q9p2zd7wm4lx8vt3kn6hs1rc5bj0fy7ua2ee9qw4pi6zd8lm",
         "redacted-local:q9p2zd7w-m4lx8vt3-kn6hs1rc-5bj0fy7u-a2ee9qw4-pi6zd8lm",
+        "protected-runtime:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
     ] {
         let mut opaque_secret = artifact.clone();
         opaque_secret["evidence_manifest"]["uri"] = json!(secret);
@@ -754,6 +757,13 @@ fn uri_bearing_secrets_are_rejected_while_public_urls_remain_green() {
             "reset_secret_value_detected"
         ));
     }
+
+    let mut padded_secret = artifact.clone();
+    padded_secret["evidence_manifest"]["uri"] = json!(padded_lowercase_token);
+    assert!(has_code(
+        &evaluate(&policy, &schema, &padded_secret, &runtime, NOW),
+        "reset_secret_value_detected"
+    ));
 
     for secret in [
         "note ghp_1234567890abcdefghijklmnopqrstuv",
@@ -801,6 +811,16 @@ fn uri_bearing_secrets_are_rejected_while_public_urls_remain_green() {
     assert!(
         !has_code(&public_metadata_findings, "reset_secret_value_detected"),
         "ordinary public URI metadata must not be entropy-scanned as one opaque value"
+    );
+
+    let mut descriptive_handle = artifact.clone();
+    descriptive_handle["evidence_manifest"]["uri"] =
+        json!("protected-runtime:abcdefghijklmnopqrstuvwxyz0123456789documentation");
+    let descriptive_handle_findings =
+        evaluate(&policy, &schema, &descriptive_handle, &runtime, NOW);
+    assert!(
+        !has_code(&descriptive_handle_findings, "reset_secret_value_detected"),
+        "a bounded descriptive opaque handle must remain green"
     );
 
     assert!(
