@@ -29,6 +29,29 @@ const EXCLUDED_PREFIXES: [&str; 12] = [
     "docs/research/",
 ];
 
+/// The hermetic Rust toolchain pin table (ADR-0392 buck2 canonical build graph). Its URLs are the
+/// ONLY place the channel is spelled outside `rust-toolchain.toml`, so this gate is what keeps the
+/// content-addressed compiler pinned to the version SSOT.
+const RUST_PINS_PATH: &str = "toolchains/rust/pins.bzl";
+
+const RUST_DIST_URL_PREFIX: &str = "https://static.rust-lang.org/dist/";
+
+const RUST_DIST_ARCHIVE_SUFFIX: &str = ".tar.xz";
+
+/// A hermetic toolchain needs ALL FOUR components: rustc alone cannot find std, and a composed
+/// tree without the clippy/rustfmt binaries silently loses the lint and format drivers.
+const RUST_PIN_COMPONENTS: [&str; 4] = ["clippy", "rust-std", "rustc", "rustfmt"];
+
+/// Both arm64 and x86_64 stay first-class on both Unix platforms — 4 components x 4 triples = 16
+/// cells. A short table (a prior design supplied 12) must RED: a host with no cell would otherwise
+/// have to fall back to an ambient compiler.
+const RUST_PIN_TRIPLES: [&str; 4] = [
+    "aarch64-apple-darwin",
+    "aarch64-unknown-linux-gnu",
+    "x86_64-apple-darwin",
+    "x86_64-unknown-linux-gnu",
+];
+
 const ACTIVE_TEXT_PATHS: [&str; 8] = [
     "docs/PRD-OYATIE-FROM-SCRATCH-CANONICAL.md",
     "docs/architecture/",
@@ -76,6 +99,9 @@ pub fn evaluate_rust_toolchain_drift(repo_root: &Path) -> Result<Vec<Finding>, F
         } else if rel.starts_with(".github/workflows/") || rel.starts_with("toolchains/") {
             let text = read_to_string(repo_root, &rel)?;
             check_ci_text(&rel, &text, &want, &mut findings);
+            if rel == RUST_PINS_PATH {
+                check_rust_pins(&rel, &text, &want, &mut findings);
+            }
         }
 
         if active_text_path(&rel) {
@@ -345,6 +371,98 @@ fn check_ci_text(rel: &str, text: &str, want: &str, findings: &mut BTreeSet<Find
     }
 }
 
+/// Validate the hermetic toolchain pin table: every archive URL must carry the
+/// `rust-toolchain.toml` channel, and all 16 cells (4 components x 4 triples) must be present with
+/// their own digest. A short table would leave a supported host with no pinned compiler.
+fn check_rust_pins(rel: &str, text: &str, want: &str, findings: &mut BTreeSet<Finding>) {
+    let mut cells: BTreeSet<(&str, &str)> = BTreeSet::new();
+    let mut urls = 0usize;
+
+    for after_prefix in text.split(RUST_DIST_URL_PREFIX).skip(1) {
+        urls += 1;
+        let Some((path, _)) = after_prefix.split_once(RUST_DIST_ARCHIVE_SUFFIX) else {
+            findings.insert(drift_finding(
+                rel,
+                format!("pinned dist URL does not name a {RUST_DIST_ARCHIVE_SUFFIX} archive"),
+            ));
+            continue;
+        };
+        let archive = path.rsplit('/').next().unwrap_or(path);
+        let Some((component, rest)) = RUST_PIN_COMPONENTS.iter().find_map(|component| {
+            archive
+                .strip_prefix(&format!("{component}-"))
+                .map(|rest| (*component, rest))
+        }) else {
+            findings.insert(drift_finding(
+                rel,
+                format!("pinned archive {archive} names no known Rust component"),
+            ));
+            continue;
+        };
+        let Some((version, triple)) = rest.split_once('-') else {
+            findings.insert(drift_finding(
+                rel,
+                format!("pinned archive {archive} is not <component>-<version>-<triple>"),
+            ));
+            continue;
+        };
+        if version != want {
+            findings.insert(drift_finding(
+                rel,
+                format!("pinned archive {archive} pins {version}, want {want}"),
+            ));
+        }
+        let Some(triple) = RUST_PIN_TRIPLES.iter().find(|known| **known == triple) else {
+            findings.insert(drift_finding(
+                rel,
+                format!("pinned archive {archive} targets unsupported triple {triple}"),
+            ));
+            continue;
+        };
+        cells.insert((component, triple));
+    }
+
+    for component in RUST_PIN_COMPONENTS {
+        for triple in RUST_PIN_TRIPLES {
+            if !cells.contains(&(component, triple)) {
+                findings.insert(drift_finding(
+                    rel,
+                    format!("missing hermetic toolchain pin cell {component}/{triple}"),
+                ));
+            }
+        }
+    }
+
+    // Every cell pins distinct bytes, so a duplicated or dropped digest means one cell is either
+    // unverified or pinned to another cell's archive.
+    let digests = distinct_sha256_literals(text);
+    if digests != urls {
+        findings.insert(drift_finding(
+            rel,
+            format!("{urls} pinned archive URLs but {digests} distinct sha256 digests"),
+        ));
+    }
+}
+
+fn distinct_sha256_literals(text: &str) -> usize {
+    let bytes = text.as_bytes();
+    let mut literals = BTreeSet::new();
+    let mut start = 0;
+    for index in 0..=bytes.len() {
+        let hex = index < bytes.len()
+            && bytes[index].is_ascii_hexdigit()
+            && !bytes[index].is_ascii_uppercase();
+        if hex {
+            continue;
+        }
+        if index - start == 64 {
+            literals.insert(&text[start..index]);
+        }
+        start = index + 1;
+    }
+    literals.len()
+}
+
 fn ci_surface_toolchain_value(line: &str) -> Option<String> {
     let value = line.trim_start().strip_prefix("toolchain:")?.trim();
     let value = value.split('#').next().unwrap_or_default().trim();
@@ -414,6 +532,97 @@ fn explicit_rust_versions(text: &str) -> BTreeSet<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// Renders a pin table with one distinct digest per cell, the shape `toolchains/rust/pins.bzl`
+    /// has.
+    fn pins_fixture(version: &str, triples: &[&str]) -> String {
+        let mut text = String::new();
+        let mut digest = 0u32;
+        for component in RUST_PIN_COMPONENTS {
+            for triple in triples {
+                digest += 1;
+                text.push_str(&format!(
+                    "(\"{RUST_DIST_URL_PREFIX}2026-07-16/{component}-{version}-{triple}{RUST_DIST_ARCHIVE_SUFFIX}\", \"{digest:064x}\"),\n"
+                ));
+            }
+        }
+        text
+    }
+
+    #[test]
+    fn rust_pins_accept_all_sixteen_cells_on_the_canonical_channel() {
+        let mut findings = BTreeSet::new();
+        check_rust_pins(
+            RUST_PINS_PATH,
+            &pins_fixture("1.97.1", &RUST_PIN_TRIPLES),
+            "1.97.1",
+            &mut findings,
+        );
+
+        assert!(findings.is_empty(), "{findings:#?}");
+    }
+
+    #[test]
+    fn rust_pins_reject_a_short_table() {
+        let mut findings = BTreeSet::new();
+        check_rust_pins(
+            RUST_PINS_PATH,
+            &pins_fixture(
+                "1.97.1",
+                &[
+                    "aarch64-apple-darwin",
+                    "aarch64-unknown-linux-gnu",
+                    "x86_64-unknown-linux-gnu",
+                ],
+            ),
+            "1.97.1",
+            &mut findings,
+        );
+
+        assert_eq!(findings.len(), 4, "{findings:#?}");
+        assert!(findings.iter().all(|finding| {
+            finding.code == FindingCode::RustToolchainDrift
+                && finding
+                    .detail
+                    .contains("missing hermetic toolchain pin cell")
+                && finding.detail.ends_with("/x86_64-apple-darwin")
+        }));
+    }
+
+    #[test]
+    fn rust_pins_reject_a_channel_that_diverges_from_the_version_ssot() {
+        let mut findings = BTreeSet::new();
+        check_rust_pins(
+            RUST_PINS_PATH,
+            &pins_fixture("1.96.0", &RUST_PIN_TRIPLES),
+            "1.97.1",
+            &mut findings,
+        );
+
+        assert_eq!(findings.len(), 16, "{findings:#?}");
+        assert!(
+            findings
+                .iter()
+                .all(|finding| finding.detail.contains("pins 1.96.0, want 1.97.1"))
+        );
+    }
+
+    #[test]
+    fn rust_pins_reject_a_duplicated_digest() {
+        let table = pins_fixture("1.97.1", &RUST_PIN_TRIPLES);
+        let duplicated = table.replace(&format!("{:064x}", 2), &format!("{:064x}", 1));
+        let mut findings = BTreeSet::new();
+        check_rust_pins(RUST_PINS_PATH, &duplicated, "1.97.1", &mut findings);
+
+        assert_eq!(findings.len(), 1, "{findings:#?}");
+        assert!(
+            findings
+                .iter()
+                .any(|finding| finding
+                    .detail
+                    .contains("16 pinned archive URLs but 15 distinct sha256 digests"))
+        );
+    }
 
     #[test]
     fn ci_text_rejects_floating_stable_and_stale_rustup_pin() {

@@ -1194,6 +1194,68 @@ fn windows_workspace_resolver_registration_rejects_split_or_direct_cargo_mutatio
     );
 }
 
+/// The Rust toolchain must be the digest-pinned hermetic one by default, and the composed sysroot
+/// must stay SELF-SUFFICIENT.
+///
+/// Both halves are structural because neither failure is observable from a build verdict:
+/// `system_rust_toolchain` puts the compiler in the action key by PATH only (a rustup default swap
+/// leaves every action key unchanged), and a symlinked composition or an `explicit_sysroot_deps`
+/// switch hands `buildscript_run`'s `--sysroot`-less `$RUSTC` a std-less compiler, whereupon
+/// `build.rs` cfg probes fail into `/dev/null`, codegen silently changes, and buck2 still reports
+/// BUILD SUCCEEDED. Reintroducing either defect means editing exactly these two files.
+#[test]
+fn rust_toolchain_is_hermetic_by_default_with_a_self_sufficient_sysroot() {
+    let root = repo_root();
+    let toolchains = fs::read_to_string(root.join("toolchains/BUCK"))
+        .expect("read system toolchain declarations");
+    let defs = fs::read_to_string(root.join("toolchains/rust/defs.bzl"))
+        .expect("read hermetic Rust toolchain rule");
+
+    assert!(
+        !toolchains.contains("system_rust_toolchain(\n    name = \"rust\",\n"),
+        "toolchains//:rust must not be the ambient PATH-resolved compiler"
+    );
+    assert!(
+        toolchains.contains("_RUST_TOOLCHAIN_DEFAULT = rust_toolchain_for_mode(\n    read_root_config(\"oya_toolchain\", \"rust\", \"hermetic\"),\n)"),
+        "an absent [oya_toolchain] section must yield the hermetic toolchain, not the ambient one"
+    );
+    assert!(
+        toolchains.contains("\"DEFAULT\": _RUST_TOOLCHAIN_DEFAULT,")
+            && toolchains.contains("\"prelude//os:windows\": \":rust_system\","),
+        "toolchain_alias must route every non-Windows platform through the configured mode"
+    );
+    assert_eq!(
+        toolchains.matches("**RUST_TOOLCHAIN_CONFIG").count(),
+        2,
+        "both Rust toolchain declarations must consume one shared configuration, so there is nothing to keep in parity by hand"
+    );
+    assert!(
+        defs.contains("fail(\"[oya_toolchain] rust must be"),
+        "an unrecognised toolchain mode must fail at parse time rather than degrade to the ambient compiler"
+    );
+
+    assert!(
+        defs.contains("ctx.actions.copied_dir(") && !defs.contains("symlinked_dir"),
+        "the sysroot must be COPIED: rustc derives its sysroot from the canonicalised path of the loaded driver dylib, and dyld resolves symlinks out of the composed tree"
+    );
+    for key in [
+        "\"bin/rustc\":",
+        "\"bin/rustdoc\":",
+        "\"bin/clippy-driver\":",
+        "\"bin/rustfmt\":",
+        "\"lib\":",
+    ] {
+        assert!(
+            defs.contains(key),
+            "the composed sysroot must contain a real {key} entry"
+        );
+    }
+    assert!(
+        defs.contains("sysroot_path = composed,") && !defs.contains("explicit_sysroot_deps ="),
+        "compile and rustdoc actions get --sysroot from sysroot_path; explicit_sysroot_deps would instead point rustc at an empty sysroot"
+    );
+}
+
 #[test]
 fn windows_buck2_toolchain_uses_prelude_msvc_defaults() {
     let root = repo_root();
