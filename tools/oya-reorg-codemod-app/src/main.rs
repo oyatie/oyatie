@@ -32,11 +32,10 @@ use oya_reorg_codemod_app::oracle;
 use oya_reorg_codemod_app::plan::{apply_plan, ApplyOptions};
 use serde_json::{json, Value};
 
-/// The committed move-manifest's canonical repo-relative path (task #64). Per-PR-overwrite,
-/// regenerated each run under `specs/reorg/` (DECIDED). Declared in
-/// `registry/generated-artifact-control-plane.json`; the `.generated.json` suffix makes a
-/// hand-edit a generated-output-diff-policy rejection, and the registry-drift/freshness
-/// committed==regenerated coverage byte-binds it to this deterministic codemod output.
+/// The de-committed move-manifest's canonical repo-relative materialization path (task #64).
+/// Regenerated each run under `specs/reorg/` (DECIDED) and declared `not-tracked-in-git` in
+/// `registry/generated-artifact-control-plane.json`, it is covered by ADR-0614's registry-drift
+/// regenerate-twice byte-determinism canary.
 const DEFAULT_MANIFEST_OUT: &str = "specs/reorg/move-manifest.generated.json";
 
 /// The out-of-band bootstrap ref the landed-plan probe anchors on (the emitter's own base ref).
@@ -71,7 +70,7 @@ fn run() -> Result<ExitCode, String> {
     }
 }
 
-/// `manifest [--plan <plan.json>] [--repo-root <p>] [--out <p>]`: write the committed,
+/// `manifest [--plan <plan.json>] [--repo-root <p>] [--out <p>]`: materialize the de-committed
 /// canonical-JSON move-manifest (schema `oya-ci/reorg-move-manifest/v1`) the rename-aware
 /// path-keyed CI baseline relabel consumes (task #64). It loads the plan (if any), VALIDATES
 /// it, enumerates the candidate tracked tree (`git ls-files` — the emitter's exact universe),
@@ -80,8 +79,8 @@ fn run() -> Result<ExitCode, String> {
 /// already-landed plans; multiple active plans fail closed, while zero active plans write the
 /// canonical EMPTY manifest (`files: []`, `crate_idents: []`) — the strict no-op the emitter reads
 /// as "no renames" (identity relabel), so a no-move PR is gate-green and byte-stable. Determinism:
-/// sorted pairs + canonical JSON => `committed==regenerated` holds byte-for-byte (the
-/// registry-drift binding).
+/// sorted pairs + canonical JSON => two fresh emissions remain byte-identical under ADR-0614's
+/// registry-drift regenerate-twice determinism canary.
 fn cmd_manifest(args: &[String]) -> Result<ExitCode, String> {
     let mut plan_path: Option<PathBuf> = None;
     let mut repo_root = std::env::current_dir().map_err(|e| e.to_string())?;
