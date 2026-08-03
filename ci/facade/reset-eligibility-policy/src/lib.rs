@@ -1287,9 +1287,10 @@ fn contains_high_confidence_secret_marker(value: &str) -> bool {
 }
 
 fn http_uri_contains_secret(value: &str) -> Option<bool> {
-    let rest = value
-        .strip_prefix("https://")
-        .or_else(|| value.strip_prefix("http://"))?;
+    let (scheme, rest) = value.split_once("://")?;
+    if !scheme.eq_ignore_ascii_case("https") && !scheme.eq_ignore_ascii_case("http") {
+        return None;
+    }
     if rest.is_empty() {
         return None;
     }
@@ -1503,6 +1504,23 @@ mod tests {
             "$.evidence_manifest.uri",
             "https://inventory.example/export?documentation"
         ));
+    }
+
+    #[test]
+    fn http_uri_scheme_is_ascii_case_insensitive() {
+        for value in [
+            "HTTPS://user:pass@inventory.example",
+            "hTtP://u:p@inventory.example",
+        ] {
+            assert!(looks_like_secret_value("$.evidence_manifest.uri", value));
+        }
+
+        for value in [
+            "HTTPS://inventory.example/resources/cluster-primary",
+            "hTtP://docs.example/guide?language=en-US",
+        ] {
+            assert!(!looks_like_secret_value("$.evidence_manifest.uri", value));
+        }
     }
 
     #[test]
