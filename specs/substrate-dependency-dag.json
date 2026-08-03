@@ -1,5 +1,5 @@
 {
-  "_comment": "Canonical runtime-face-aware substrate dependency graph v2. ADR-0635 amends ADR-0245, ADR-0280, ADR-0562, and ADR-0615. The five graph kinds are deliberately distinct; only steady_state_request is required to be acyclic. failure_brownout_propagation is derived exactly from steady_state_request by the declared max-min impact composition rule.",
+  "_comment": "Canonical bounded W0-C runtime-face-aware substrate dependency graph v2. ADR-0635 amends ADR-0245, ADR-0280, ADR-0562, and ADR-0615. The closed 19-unit set spans 11 of 24 capabilities and does not claim full ADR-0280 D-13.G or B0-hosting parity. The five graph kinds are deliberately distinct; only steady_state_request is required to be acyclic. failure_brownout_propagation is derived exactly from steady_state_request by the declared max-min impact composition rule.",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "schema": "specs/substrate-dependency-dag.schema.json",
   "version": "2.0.0",
@@ -1174,6 +1174,11 @@
       "id": "W0-C-LAYER-RANKS",
       "status": "required-not-in-this-slice",
       "constraint": "Migrate layer-rank projections after graph-v2 adoption without minting a new baseline."
+    },
+    {
+      "id": "W0-C-TOPOLOGY-COVERAGE",
+      "status": "required-not-in-this-slice",
+      "constraint": "GitHub #1537: ratify and add the 13 omitted capabilities plus compute.bootstrap, storage.bootstrap, and k8s.bootstrap; update typed edges, derived failure closure, consumers, and any current projection atomically without minting a new baseline."
     }
   ]
 }

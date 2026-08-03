@@ -27,7 +27,7 @@ pub const IMPACT_RULES: [&str; 4] = ["INDEPENDENT", "BROWNOUT", "DEGRADED", "FUL
 pub const DEPENDENCY_UNIT_COUNT: usize = 19;
 pub const CAPABILITY_COUNT: usize = 24;
 pub const SCHEMA_CANONICAL_SHA256: &str =
-    "11ff9eddf5974b8f82c06e1bc6fd4ee79cbc3e4364859e187d684e45fae8717a";
+    "bf8707af24fa27154a7bf413ac50d15f4c7c2d4ebd4be740f1f8f73cc94187d2";
 pub const GRAPH_DOCTRINE_ADRS: [&str; 5] =
     ["ADR-0245", "ADR-0280", "ADR-0562", "ADR-0615", "ADR-0635"];
 const DEPENDENCY_UNIT_AUTHORITY: [(&str, &str, &str, &str); DEPENDENCY_UNIT_COUNT] = [
@@ -512,14 +512,18 @@ fn check_top_level(raw: &Value, findings: &mut Vec<Finding>) {
         .flatten()
         .filter_map(|item| item.get("id").and_then(Value::as_str))
         .collect();
-    let expected: BTreeSet<&str> = ["W0-C-MODULE-MEMBERSHIP", "W0-C-LAYER-RANKS"]
-        .into_iter()
-        .collect();
-    if follow_up_items.is_none_or(|items| items.len() != 2) || follow_ups != expected {
+    let expected: BTreeSet<&str> = [
+        "W0-C-MODULE-MEMBERSHIP",
+        "W0-C-LAYER-RANKS",
+        "W0-C-TOPOLOGY-COVERAGE",
+    ]
+    .into_iter()
+    .collect();
+    if follow_up_items.is_none_or(|items| items.len() != 3) || follow_ups != expected {
         findings.push(finding(
             "dag_schema_violation",
             "mandatory_follow_ups",
-            "must carry the module-membership and layer-rank migrations without baselines",
+            "must carry module-membership, layer-rank, and topology-coverage migrations without baselines",
         ));
     }
     let allowed_follow_up: BTreeSet<&str> = ["id", "status", "constraint"].into_iter().collect();
