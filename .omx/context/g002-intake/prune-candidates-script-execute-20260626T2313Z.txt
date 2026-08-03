@@ -1,0 +1,91 @@
+--- /Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/.omx/team/group-c2-opus-xhigh-c-9f982c4a/worktrees/worker-1
+## HEAD (no branch)
+removed: /Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/.omx/team/group-c2-opus-xhigh-c-9f982c4a/worktrees/worker-1
+--- /Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/.omx/team/group-c2-opus-xhigh-c-9f982c4a/worktrees/worker-2
+## HEAD (no branch)
+removed: /Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/.omx/team/group-c2-opus-xhigh-c-9f982c4a/worktrees/worker-2
+--- /Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/.omx/team/group-c2-opus-xhigh-c-9f982c4a/worktrees/worker-3
+## HEAD (no branch)
+removed: /Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/.omx/team/group-c2-opus-xhigh-c-9f982c4a/worktrees/worker-3
+--- /Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/.omx/team/group-c2-opus-xhigh-c-9f982c4a/worktrees/worker-4
+## HEAD (no branch)
+removed: /Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/.omx/team/group-c2-opus-xhigh-c-9f982c4a/worktrees/worker-4
+--- /Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/execute-team-bound-ul-9c35bb10/worktrees/worker-1
+## HEAD (no branch)
+removed: /Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/execute-team-bound-ul-9c35bb10/worktrees/worker-1
+--- /Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/execute-team-bound-ul-9c35bb10/worktrees/worker-3
+## HEAD (no branch)
+removed: /Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/execute-team-bound-ul-9c35bb10/worktrees/worker-3
+--- /Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/execute-team-bound-ul-9c35bb10/worktrees/worker-4
+## HEAD (no branch)
+removed: /Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/execute-team-bound-ul-9c35bb10/worktrees/worker-4
+--- /Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/execute-team-bound-ul-9c35bb10/worktrees/worker-5
+## HEAD (no branch)
+removed: /Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/execute-team-bound-ul-9c35bb10/worktrees/worker-5
+--- /Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/wavea-back-fixed-g015-9c35bb10/worktrees/worker-1
+## HEAD (no branch)
+removed: /Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/wavea-back-fixed-g015-9c35bb10/worktrees/worker-1
+--- /Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/wavea-back-fixed-g015-9c35bb10/worktrees/worker-2
+## HEAD (no branch)
+removed: /Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/wavea-back-fixed-g015-9c35bb10/worktrees/worker-2
+--- /Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/wavea-back-fixed-g015-9c35bb10/worktrees/worker-3
+## HEAD (no branch)
+removed: /Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/wavea-back-fixed-g015-9c35bb10/worktrees/worker-3
+--- /Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/wavea-back-fixed-g015-9c35bb10/worktrees/worker-4
+## HEAD (no branch)
+removed: /Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/wavea-back-fixed-g015-9c35bb10/worktrees/worker-4
+--- /Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/wavea-back-fixed-g015-9c35bb10/worktrees/worker-5
+## HEAD (no branch)
+removed: /Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/wavea-back-fixed-g015-9c35bb10/worktrees/worker-5
+--- /Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/wavea-front-fixed-g01-9c35bb10/worktrees/worker-1
+## HEAD (no branch)
+removed: /Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/wavea-front-fixed-g01-9c35bb10/worktrees/worker-1
+--- /Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/wavea-front-fixed-g01-9c35bb10/worktrees/worker-2
+## HEAD (no branch)
+removed: /Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/wavea-front-fixed-g01-9c35bb10/worktrees/worker-2
+--- /Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/wavea-front-fixed-g01-9c35bb10/worktrees/worker-3
+## HEAD (no branch)
+removed: /Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/wavea-front-fixed-g01-9c35bb10/worktrees/worker-3
+--- /Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/wavea-front-fixed-g01-9c35bb10/worktrees/worker-4
+## HEAD (no branch)
+removed: /Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/wavea-front-fixed-g01-9c35bb10/worktrees/worker-4
+--- /Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/wavea-front-fixed-g01-9c35bb10/worktrees/worker-5
+## HEAD (no branch)
+removed: /Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/wavea-front-fixed-g01-9c35bb10/worktrees/worker-5
+--- /Users/jasonlee/oyatie-worktrees/python-mjs-rust-worker4-anchor-sweep-20260626T112327Z
+## agent/worker-4-anchor-sweep-rust-20260626T112327Z...origin/dev [behind 9]
+removed: /Users/jasonlee/oyatie-worktrees/python-mjs-rust-worker4-anchor-sweep-20260626T112327Z
+--- /Users/jasonlee/oyatie-worktrees/advisory-claude-reviewers-20260625T223854Z
+## agent/advisory-claude-reviewers-20260625T223854Z
+removed: /Users/jasonlee/oyatie-worktrees/advisory-claude-reviewers-20260625T223854Z
+--- /Users/jasonlee/oyatie-worktrees/team-leader-waveb-pr-wip-20260626T023204Z
+## agent/team-leader-waveb-pr-wip-20260626T023204Z...origin/dev [behind 28]
+removed: /Users/jasonlee/oyatie-worktrees/team-leader-waveb-pr-wip-20260626T023204Z
+--- /Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z
+## agent/team-leader-ci12-c2-20260626T045700Z...origin/dev [behind 23]
+removed: /Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z
+--- /Users/jasonlee/oyatie-worktrees/team-leader-ci12-b-20260626T044133Z
+## agent/team-leader-ci12-b-20260626T044133Z...origin/dev [behind 23]
+removed: /Users/jasonlee/oyatie-worktrees/team-leader-ci12-b-20260626T044133Z
+--- /Users/jasonlee/oyatie-worktrees/team-leader-ci12-c-20260626T044133Z
+## agent/team-leader-ci12-c-20260626T044133Z...origin/dev [behind 23]
+removed: /Users/jasonlee/oyatie-worktrees/team-leader-ci12-c-20260626T044133Z
+--- /Users/jasonlee/oyatie-worktrees/waveA-market-billing-20260625173629
+## HEAD (no branch)
+removed: /Users/jasonlee/oyatie-worktrees/waveA-market-billing-20260625173629
+--- /Users/jasonlee/oyatie-worktrees/team-leader-ci12-20260626T044133Z
+## agent/team-leader-ci12-20260626T044133Z...origin/dev [behind 23]
+removed: /Users/jasonlee/oyatie-worktrees/team-leader-ci12-20260626T044133Z
+--- /Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105028Z
+## agent/python-mjs-rust-20260626T105028Z...origin/dev [behind 10]
+removed: /Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105028Z
+--- /Users/jasonlee/oyatie-worktrees/waveA-hr-payroll-20260625173629
+## HEAD (no branch)
+removed: /Users/jasonlee/oyatie-worktrees/waveA-hr-payroll-20260625173629
+--- /Users/jasonlee/oyatie-worktrees/waveA-kernel-os-20260625173629
+## agent/waveB-kernel-os-backlog-20260626...origin/dev [behind 31]
+removed: /Users/jasonlee/oyatie-worktrees/waveA-kernel-os-20260625173629
+--- /Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625
+## agent/team-leader-wave-a-20260625...origin/dev [behind 49]
+removed: /Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625
+summary: removed=30 skipped=0 failed=0 mode=--execute

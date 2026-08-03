@@ -1,0 +1,98 @@
+schema: oyatie.preservation.non-authority-receipt/v1
+receipt_type: NON_AUTHORITY_CODE_SECURITY_REVIEW
+generated_at_utc: "2026-07-23T23:59:00Z"
+
+task_id: /root/pr1364_final_code_security_review
+reviewer_task_id: /root/pr1364_final_code_security_review
+review_scope: exact-head code, specification, and security review
+
+repository_snapshot:
+  worktree: /Users/jasonlee/Developer/oyatie/.omx/worktrees/codex-pr1364-prep-20260723-v2
+  base_commit: 1026a65b707ce57693d9b830de33ee0ce228f16b
+  reviewed_head: c8eed1b0746f747ab269314cabac1791bb43c6ab
+  reviewed_tree: fade011fd1f475f0dcec34ec0ce8d6bb45967ffa
+  head_movement_policy: abort on movement
+  head_and_tree_rechecked_before_receipt: true
+
+verdict: REQUEST_CHANGES
+qualified_stage1_principal: false
+planning_state: HOLD(Planning)
+roadmap_planning_authorized: false
+binding_plan_approval_allowed: false
+implementation_dispatch_allowed: false
+
+findings:
+  - severity: HIGH
+    file: specs/stage1-admission-envelope.schema.json:216
+    title: SCM relationship receipt does not bind the protected-base repository
+    issue: >-
+      The receipt has only repository, which is required by Rust to equal the
+      candidate exact-head repository. The receipt separately binds protected-base
+      commit, tree, and merge base, but has no protected-base repository field to
+      equal protected_parent.repository. Git object IDs alone do not identify the
+      protected repository/server namespace. The fixture explicitly uses different
+      protected and candidate repositories while the receipt identifies only the
+      candidate repository.
+    evidence:
+      - specs/stage1-admission-envelope.schema.json:216-262 closes the SCM receipt without protected_base_repository.
+      - libs/oya-stage1-closure/src/lib.rs:3887-3912 mirrors that field list.
+      - libs/oya-stage1-closure/src/lib.rs:3964-3975 binds repository to exact_head and merge base to protected_parent commit only.
+      - libs/oya-stage1-closure/tests/fixtures/admission-envelope.json:6-8,17-19,41-48 uses distinct protected/candidate repositories and candidate-only SCM repository.
+      - docs/decisions/ADR-0622-mechanism-neutral-pre-roadmap-stage1-evidence-epoch.md:206-210 requires protected facts to bind both protected-base and candidate repositories.
+    fix: >-
+      Add a required protected_base_repository (and, preferably, explicit
+      head_repository) field to the SCM receipt schema, fixture, Rust required
+      and allowed lists, and semantic validation. Require exact equality with
+      protected_parent.repository, then add negative tests for repository mismatch
+      in both envelope and sibling linkage validation.
+  - severity: MEDIUM
+    file: specs/stage1-protected-facts.schema.json:2555
+    title: Protected-facts schema retains a stale alternate admission-envelope contract
+    issue: >-
+      An unreachable $defs.admission_envelope remains in the protected-facts schema
+      even though admission is now a sibling external-controller input. It diverges
+      from the canonical admission schema by omitting pull_request and
+      scm_relationship_receipt. The corresponding source loop still skips an
+      admission_envelope candidate record although that property is deliberately
+      excluded. This leaves a misleading alternate contract and dead bypass branch
+      that future consumers can accidentally reference.
+    evidence:
+      - specs/stage1-protected-facts.schema.json:2555-2631 defines the stale alternate envelope.
+      - specs/stage1-admission-envelope.schema.json:8-26 requires pull_request and scm_relationship_receipt.
+      - libs/oya-stage1-closure/src/lib.rs:3613-3616 skips the obsolete record name.
+      - libs/oya-stage1-closure/tests/stage1_closure.rs:2180-2194 verifies only that candidate_records excludes the property, not that the stale definition and skip are absent.
+    fix: >-
+      Delete the obsolete $defs.admission_envelope and remove the dead skip. Add a
+      regression asserting no protected-facts definition/property can expose an
+      admission envelope; keep the canonical sibling schema as the sole contract.
+  - severity: LOW
+    file: libs/oya-stage1-closure/src/lib.rs:867
+    title: Protected receipt artifact bindings are validated twice
+    issue: >-
+      Two adjacent identical loops validate the same thirteen artifact-binding
+      fields. BTreeSet deduplication hides duplicate findings, but the repetition
+      adds needless work and makes future changes liable to diverge.
+    evidence:
+      - libs/oya-stage1-closure/src/lib.rs:867-908 contains two identical field lists and validation calls.
+    fix: Delete the second loop and retain a single shared field list.
+
+evidence:
+  identity:
+    - git merge-base --is-ancestor base_commit reviewed_head succeeded.
+    - HEAD and tree were read immediately before this receipt and equal reviewed_head/reviewed_tree.
+    - git status --short was empty in the reviewed worktree.
+  stage1_and_security_review:
+    - Reviewed the full base_commit..reviewed_head diff (27 files; 16986 additions and 11 deletions), canonical ADR-0622 authority, schemas, fixtures, evaluator, and regression tests.
+    - Verified QPA oracle/blind-reader digest binding and strict order in libs/oya-stage1-closure/src/lib.rs:3574-3605 and tests:2222-2276.
+    - Verified closed-object checks, fixed false authorization flags, and structural HOLD/no-dispatch behavior in schemas and evaluator paths.
+    - No production unsafe, panic, unwrap, expect, TODO, hard-coded secret, or silent fallback pattern was found in the reviewed Rust source; lib.rs forbids unsafe code.
+  validation:
+    - git diff --check base_commit..reviewed_head succeeded.
+    - jq parsed all four new schemas and the admission-envelope fixture successfully.
+    - rust-analyzer parse --no-dump succeeded for libs/oya-stage1-closure/src/lib.rs and tests/stage1_closure.rs.
+
+limitations:
+  - Buck2 test/build could not start because this environment cannot create its Buck daemon directory under /Users/jasonlee/.buck; Cargo is retired by repository policy.
+  - rust-analyzer diagnostics resolves the monorepo workspace and produced unrelated workspace diagnostics, so a clean modified-file LSP diagnostic result is unavailable; parser checks were used as the narrow local fallback.
+  - This is source review only, not authenticated SCM-server attestation, protected admission, signature/trust-root verification, remote CI, rollout, browser, or authority review.
+  - This non-authority receipt does not promote ADR-0622, alter HOLD(Planning), or grant merge, planning, approval, dispatch, or qualified-principal authority.

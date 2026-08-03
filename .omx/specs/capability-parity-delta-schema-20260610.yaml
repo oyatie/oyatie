@@ -1,0 +1,38 @@
+kind: CapabilityParityDeltaSchema
+schema_version: "0.1"
+purpose: Deterministic delta format for future external-reference/source-repo parity baseline upgrades.
+required_fields:
+  from_baseline:
+    - repo
+    - package_or_reference_name
+    - version
+    - commit
+  to_baseline:
+    - repo
+    - package_or_reference_name
+    - version
+    - commit
+  changes:
+    - added_capabilities
+    - changed_capabilities
+    - removed_or_deprecated_capabilities
+    - renamed_capabilities
+    - required_new_tests
+    - migration_notes
+  verification:
+    - old_baseline_still_green
+    - new_baseline_mapped
+    - reviewer_approval
+capability_change_shape:
+  id: string
+  source_permalink: string
+  old_summary: string
+  new_summary: string
+  impact: enum[api, routing, auth, wire, tool_compat, observability, security, deployment, drift, docs]
+  required_tests: list[string]
+  implementation_status: enum[unmapped, planned, implemented, superseded, approved_out_of_scope]
+rules:
+  - The previous pinned baseline remains immutable.
+  - Removed upstream capabilities remain mapped until explicitly superseded or approved out of scope.
+  - New upstream capabilities must have failing-first tests before production implementation.
+  - CI output must print both from_baseline and to_baseline commit SHAs.

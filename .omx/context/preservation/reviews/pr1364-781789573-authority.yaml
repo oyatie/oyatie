@@ -1,0 +1,93 @@
+schema: oyatie.preservation.non-authority-receipt/v1
+receipt_type: NON_AUTHORITY
+generated_at_utc: "2026-07-23T23:49:07Z"
+
+task_id: /root/pr1364_final_authority_review
+reviewer_task_id: /root/pr1364_final_authority_review
+review_scope: fresh exact-head authority and category audit
+
+repository_snapshot:
+  worktree: /Users/jasonlee/Developer/oyatie/.omx/worktrees/codex-pr1364-prep-20260723-v2
+  base_commit: 1026a65b707ce57693d9b830de33ee0ce228f16b
+  reviewed_head: 781789573560cd95556f2a9764e2262196708140
+  reviewed_tree: 7e5395f2e3463c1c5f5e62d0da13ae4b4778a8ed
+  head_movement_policy: abort on movement
+  head_and_tree_rechecked_before_receipt: true
+
+verdict: NON_AUTHORITY_CONFIRMED
+qualified_stage1_principal: false
+planning_state: HOLD(Planning)
+roadmap_planning_authorized: false
+binding_plan_approval_allowed: false
+implementation_dispatch_allowed: false
+
+definitions:
+  structural_claim: >-
+    A source-local string, binding, digest, or equality constraint that can
+    validate declared shape and correspondence but cannot establish the named
+    external fact.
+  qualified_authority: >-
+    An externally authenticated, scope-appropriate principal possessing the
+    relevant legal/JCR, affected-party, operations, custody, veto, pilot, or
+    planning power; a role label or principal_id is not such authority.
+  protected_admission: >-
+    An externally controlled, post-merge decision over protected SCM and review
+    facts. A schema, fixture, or pure evaluator is not protected admission.
+
+findings:
+  ontology: >-
+    No categorical failure was found. The repaired SCM namespace fields name
+    repository/branch correspondence only; they are explicitly untrusted
+    structural input and do not convert an SCM locator into authenticated SCM
+    observation, admission, or human authority.
+  qualified_authority: >-
+    No source element authenticates a principal, verifies a signature or trust
+    root, establishes qualification or standing, or grants legal/JCR,
+    affected-party, operations, custody, veto, pilot, council, dissent, oracle,
+    blind-reader, or qualified-planning authority. Those names remain constrained
+    receipt roles and externally attested facts.
+  proposed_hold_ceiling: >-
+    ADR-0622 and every Stage-1 schema remain Proposed/dormant. The source state
+    ceiling is PASS_CANDIDATE; planning remains HOLD(Planning), and roadmap
+    planning, binding approval, and implementation dispatch remain false.
+  sibling_controller_separation: >-
+    The repair removes the redundant admission_envelope definition from protected
+    facts/candidate_records and retains admission as a separate sibling input.
+    Linkage checks only declared equality edges and always retain the explicit
+    external-controller HOLD finding.
+  qpa_and_independence: >-
+    QPA must structurally bind completed oracle and blind-reader receipts and
+    outputs in order. C13/C14/C15 principal-separation checks remain structural;
+    none proves actual identity, fresh context, independence, or qualification.
+  scm_namespace_repair: >-
+    The new protected_base_repository and protected_base_branch fields are
+    required to equal the envelope protected parent, complementing the existing
+    merge-base equality check. This is fail-closed correlation, not a new
+    protected admission or SCM-server authority.
+  categorical_counterexamples: []
+
+evidence:
+  identity:
+    - exact HEAD and tree matched the requested values before and immediately before this receipt.
+    - base_commit is an ancestor of reviewed_head.
+    - git diff --check over base_commit..reviewed_head returned no findings.
+  non_authority_guards:
+    - libs/oya-stage1-closure/src/lib.rs:387-388 says pure linkage authenticates neither producer nor trust root and authorizes neither planning nor dispatch.
+    - libs/oya-stage1-closure/src/lib.rs:476-478 blocks source advancement beyond HOLD_EPOCH_OPEN without the unimplemented external authenticated controller and trust-root path.
+    - libs/oya-stage1-closure/src/lib.rs:1409-1410 and 1992-2013 classify admission and sibling linkage as structural only and retain HOLD.
+    - specs/stage1-closure-program.schema.json:8 and specs/stage1-evidence-epoch.schema.json:8 define PASS_CANDIDATE, not effective PASS(Planning), as the source ceiling.
+  namespace_and_sibling_repair:
+    - libs/oya-stage1-closure/src/lib.rs:3954-3978 requires SCM protected-base repository, branch, and merge base to match the protected parent.
+    - specs/stage1-admission-envelope.schema.json:219-257 adds only protected-base namespace fields to the structural SCM relationship receipt.
+    - specs/stage1-protected-facts.schema.json:141-164 enumerates candidate records without admission_envelope; its removed redundant definition preserves post-merge admission as the sibling controller input.
+    - libs/oya-stage1-closure/tests/stage1_closure.rs:1859-1945 locks that an otherwise well-formed admission envelope remains non-authoritative and cannot authorize.
+  qpa_and_independence:
+    - libs/oya-stage1-closure/src/lib.rs:1100-1118 separates C14/C15 principals from protected and council principals.
+    - libs/oya-stage1-closure/src/lib.rs:3556-3583 requires QPA receipt/output bindings and ordering after oracle and blind-reader outputs.
+    - no qualified_stage1_principal identifier or equivalent Stage-1 qualified-principal grant exists in the reviewed crate or Stage-1 schemas.
+
+limitations:
+  - This is a local exact-object/source audit, not a protected admission, live SCM-server observation, branch-protection readback, signature verification, trust-root verification, or human qualification review.
+  - Equality, digest, namespace, principal-separation, and freshness fields cannot prove real identity, authority, standing, independence, custody, or context isolation.
+  - No runtime, browser, rollout, remote CI, or external controller was invoked; none is asserted by this receipt.
+  - This receipt neither promotes ADR-0622 nor changes its Proposed/dormant status, Stage-1 HOLD(Planning), or any merge, roadmap, approval, or dispatch authority.

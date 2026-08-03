@@ -1,0 +1,58 @@
+{
+  "createdAt": "2026-06-28T02:47:05Z",
+  "ultragoalGoal": "G004-m2-universal-cloud-ci-product-substr",
+  "pr": 961,
+  "branch": "agent/g004-producer-fallback-sweep-20260628T0215Z",
+  "commit": "b553572097a07019a268cb40015619b096d008d7",
+  "change": "Fail closed on ambient Cargo/local producer fallback in cloud-ci producer test paths by requiring OYA_CI_PRODUCER_BIN.",
+  "userProductConstraints": [
+    "Pipeline is a universal product, not traditional CI/Jenkins/GitHub-Actions-shaped automation.",
+    "Cloud-native/hyperscaler patterns only; runner adapters are replaceable transport.",
+    "Kernel/no-shell future means no CLI/shell assumptions in authoritative paths.",
+    "Assume humans are bad at maintaining code, docs, dirs, and databases by hand; automate and gate drift.",
+    "Backlog must be a SSOT; avoid scattered backlog drafts."
+  ],
+  "ssotBacklogUpdate": {
+    "file": ".omx/ultragoal/goals.json",
+    "goal": "G004-m2-universal-cloud-ci-product-substr",
+    "method": "omx ultragoal steer revise_pending_wording",
+    "note": "Updated existing G004 rather than adding a new backlog doc."
+  },
+  "patterns": [
+    "Declared action artifacts over ambient local CLIs.",
+    "Hermetic gate inputs/results over shell/Cargo discovery.",
+    "Runner adapters as replaceable transport, not product authority.",
+    "Capability-first hyperscaler monorepo lanes behind contracts.",
+    "Automation/controllers/reconciliation over manual code/docs/dirs/data maintenance."
+  ],
+  "antiPatternsBlocked": [
+    "Hidden local Cargo fallback in universal cloud-ci producer path.",
+    "Repo-specific shell assumptions in product gate paths.",
+    "Generated-output hand edits or committed controller projections.",
+    "Scattered backlog artifacts that drift from the active plan."
+  ],
+  "verification": [
+    "TDD RED: fail-closed test failed while helper still returned cargo.",
+    "rustfmt --check changed Rust files passed.",
+    "git diff --check passed.",
+    "Materializer-backed buck2 test over 12 gate targets passed: Pass 12 Fail 0.",
+    "Generated side effects reverted; generated dirt scan clean.",
+    "Clean-source subset excluding known target-parity generated-baseline drift passed: Pass 11 Fail 0.",
+    "code-reviewer APPROVE; code-simplifier APPROVE; critic GO."
+  ],
+  "changedFiles": [
+    "cloud/cloud-ci/gates/oya-cloud-ci-automation-ratchet-app/tests/automation_ratchet.rs",
+    "cloud/cloud-ci/gates/oya-cloud-ci-bnf-layer-suffix-app/tests/bnf_layer_suffix.rs",
+    "cloud/cloud-ci/gates/oya-cloud-ci-cargo-prefix-app/tests/cargo_prefix.rs",
+    "cloud/cloud-ci/gates/oya-cloud-ci-catalog-liveness-app/tests/catalog_liveness.rs",
+    "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs",
+    "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/tests/firewall.rs",
+    "cloud/cloud-ci/gates/oya-cloud-ci-manifest-hygiene-app/tests/manifest_hygiene.rs",
+    "cloud/cloud-ci/gates/oya-cloud-ci-staleness-reaper-app/tests/staleness_reaper.rs",
+    "cloud/cloud-ci/gates/oya-cloud-ci-target-parity-app/tests/target_parity.rs",
+    "cloud/cloud-ci/gates/oya-cloud-ci-total-accounting-app/tests/total_accounting.rs",
+    "cloud/cloud-ci/gates/oya-cloud-ci-workspace-glob-coverage-app/tests/workspace_glob_coverage.rs",
+    "cloud/cloud-ci/gates/registry-drift/tests/registry_drift.rs"
+  ],
+  "worktreeStatusAfterCommit": ""
+}

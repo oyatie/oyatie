@@ -1,0 +1,65 @@
+schema: oyatie.stage1.raw-evidence-manifest/v1
+status: NON_AUTHORITY
+planning_state: HOLD(Planning)
+roadmap_planning_authorized: false
+binding_plan_approval_allowed: false
+implementation_dispatch_allowed: false
+created_at_utc: "2026-07-24T03:19:53Z"
+
+claim_boundary: >-
+  This manifest preserves exact engineering and signature-verification output
+  bytes that were previously referenced from transient locations. It proves
+  byte identity and local engineering observations only. It does not prove
+  protected admission, reviewer independence, human qualification, authority,
+  Stage-1 satisfaction, PASS(Planning), or dispatch permission.
+
+candidate:
+  commit: cc08cc12be9318a11ae15da47f9ca39002109c73
+  tree: 3ca56efd398a869a5a339a3a3da55ba545eb03bf
+  parent: 85cc6dba57c6ec969b4a6cc8376e09d85d068ae6
+  train_base: 1026a65b707ce57693d9b830de33ee0ce228f16b
+  observed_dev: 30dd46c4dd7d12c085b77332d9ac5035d583edcf
+
+members:
+  - path: pr1364-d43053db-red-buck2-test.txt
+    evidence_class: regression_red
+    sha256: 39d73c3eb2547ca6fec21fd5de1ae0f8f129bad6626b615d2174e857c29152f0
+    size_bytes: 45409
+    lines: 362
+    expected_exit_code: 32
+    expected_result: "unit 1 passed; contract 80 passed and 26 intentionally failed"
+  - path: pr1364-cc08cc12b-green-buck2-test.txt
+    evidence_class: canonical_green
+    sha256: 5834913b0135b485110c312d1005b72543f0425d85503ad126a13b4c6565d088
+    size_bytes: 13258
+    lines: 132
+    expected_exit_code: 0
+    expected_result: "unit 1/1; contract 106/106; Pass 2, Fail 0"
+  - path: pr1364-cc08cc12b-rustc-diagnostic.txt
+    evidence_class: supplemental_rust_diagnostic
+    sha256: 4650ee95de593633b5f2c51a32358336efdc8aa8905371d7fe86ee40831f4a99
+    size_bytes: 9171
+    lines: 126
+    expected_exit_code: 0
+    expected_result: "contract 106/106"
+  - path: pr1364-cc08cc12b-signature-verification.tsv
+    evidence_class: local_git_signature_verification
+    sha256: c5e42c6e4a05ac53d0d266d23c63048eb58d5f9af292220d5fb6595a793d6f63
+    size_bytes: 9472
+    lines: 74
+    expected_result: "74 rows; every signature status equals G"
+    capture_command: >-
+      git log --format=%H%x09%G?%x09%GF%x09%GS
+      30dd46c4dd7d12c085b77332d9ac5035d583edcf..cc08cc12be9318a11ae15da47f9ca39002109c73
+
+durability:
+  packaging_rule: >-
+    All listed members and this manifest are stored together in the adjacent
+    content-addressed raw-evidence tar. The tar checksum sidecar is created only
+    after the archive bytes are final.
+  recovery_bundle: pr1364-final-local-candidate-cc08cc12b-20260723-self-contained.bundle
+  recovery_bundle_sha256: 1dc5d3a642c9c87f540d6a0b2b79393a7bfbea6c137f6d877b23508e65453452
+  qualification: >-
+    The recovery bundle remains adjacent rather than duplicated inside this
+    small raw-output archive. Both artifacts require their exact checksum
+    sidecars.

@@ -1,0 +1,58 @@
+{
+  "changes": [
+    "Malformed firewall baselines now parse through fallible Baseline::from_value(Result) instead of silent advisory fallback",
+    "Rejects malformed gates/code maps/entries, missing or unknown mode, non-array/non-string/duplicate keys, non-bool frozen_empty, and non-string remediation",
+    "FrozenBaseline and signoff-fixer propagation fail closed on malformed embedded baselines",
+    "Downstream scm-facts emitter callsites updated for new Result contract"
+  ],
+  "checks": {
+    "allPass": true,
+    "counts": {
+      "SUCCESS": 41
+    },
+    "requiredContext": "oya-ci-required",
+    "requiredContextState": "SUCCESS",
+    "rollupEvidence": "gh pr checks 957 --json name,state,startedAt,completedAt,workflow,link,bucket",
+    "total": 41
+  },
+  "generatedAt": "2026-06-27T23:24:06Z",
+  "goalId": "G004-m2-universal-cloud-ci-product-substr",
+  "localHeadCommit": "88713e3524f233de6cec9fcfc494640cc0656c9c",
+  "localVerification": [
+    "rustfmt --check cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/src/lib.rs cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/src/main.rs cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/tests/firewall.rs",
+    "git diff --check",
+    "buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-firewall-app:oya-cloud-ci-firewall-app-unittest",
+    "buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-scm-facts-emitter-app:oya-cloud-ci-scm-facts-emitter-app-unittest",
+    "buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-firewall-app:oya-cloud-ci-firewall-signoff-fixer-unittest",
+    "buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .",
+    "buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-firewall-app:oya-cloud-ci-firewall-app-gate",
+    "buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-firewall-app:oya-cloud-ci-firewall-app-gate-registration",
+    "rg -n 'Baseline::from_value' -g '*.rs'"
+  ],
+  "mergeCommit": "521f84997e21742187ab83722aaf807dbe019835",
+  "policyEvidence": {
+    "generatedFaces": "materializer run performed; generated outputs restored before commit; generated-output-diff-policy passed in oya-ci-required",
+    "protectedMerge": "PR #957 squashed into dev after 41/41 check success",
+    "rustBuck2Authority": "evidence uses rustfmt and Buck2 targets; no Cargo final evidence"
+  },
+  "pr": {
+    "baseRefName": "dev",
+    "baseRefOid": "4a605f4ad1c32a704d164da973bd739dd2be38f6",
+    "headRefName": "agent/g004-firewall-baseline-strict-20260627T224532Z",
+    "headRefOid": "88713e3524f233de6cec9fcfc494640cc0656c9c",
+    "mergeCommit": {
+      "oid": "521f84997e21742187ab83722aaf807dbe019835"
+    },
+    "mergedAt": "2026-06-27T23:22:41Z",
+    "number": 957,
+    "state": "MERGED",
+    "title": "Fail closed on malformed firewall baselines",
+    "url": "https://github.com/jason931225/oyatie/pull/957"
+  },
+  "reviewEvidence": {
+    "architect": "initial public API ripple blocker fixed by updating oya-cloud-ci-scm-facts-emitter-app callsites and validating its Buck2 unittest target",
+    "independentCodeReviewer": "019f0b52-e066-7b71-a2c5-73c0bc3729e9 approved 4-file diff with 0 blocking issues after added malformed-shape tests"
+  },
+  "schema": "omx.ultragoal.evidence.v1",
+  "story": "fail_closed_malformed_firewall_baseline"
+}

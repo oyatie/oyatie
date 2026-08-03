@@ -1,0 +1,1770 @@
+## git status --short --branch
+## dev...origin/dev [behind 202]
+ M .codex/hooks.json
+ D goal.json
+ D slice06-backfill-results.log
+ D slice06-backfill-test.log
+ D slice06-buck-test.log
+ D slice06-generator.log
+ D slice06-progress.log
+ D slice06-retest-results.log
+ D slice06-retest.log
+?? cloud/cloud-intelligence/.omc/
+?? specs/capability-registry.json
+
+## git revs
+HEAD d705932d4
+origin/dev 490311b9f
+ahead_behind 0	202
+
+## git worktree list --porcelain
+worktree /Users/jasonlee/Developer/oyatie
+HEAD d705932d4731307b80320125560808be21f8b582
+branch refs/heads/dev
+
+worktree /private/tmp/claude-501/-Users-jasonlee-Developer-oyatie/0eea760e-659a-43a5-a5fa-31225a3931a5/scratchpad/wt-session
+HEAD 3a90fd1e6bc86f989436aef3e1576b452010638b
+branch refs/heads/feat/cloud-intel-session-pinning
+
+worktree /private/tmp/oya-firewall-0f0dPI/worktree
+HEAD bf063080fcc9f65374e496c965372262632aa7f1
+detached
+
+worktree /private/tmp/oya-pr882-probe-90412
+HEAD e17ac9a24b668797796ba60a8619abe701c751b5
+detached
+
+worktree /private/tmp/oyatie-pr881-review.WFwSdx
+HEAD f3ff09b1458a2f65fba8aa619745b5819ed9a180
+detached
+
+worktree /private/tmp/oyatie-pr882-clean-review
+HEAD e829bab48d501d56e908fb31b395e76665009927
+detached
+
+worktree /private/tmp/oyatie-pr882-clean.m9mG55
+HEAD df4f755fb598796ea04810646a85503cfa5e753b
+detached
+
+worktree /private/tmp/oyatie-pr884-review
+HEAD 38eded923375d3d943fa34131b088d63a32a278a
+detached
+
+worktree /private/tmp/oyatie-pr893-wt
+HEAD 6fca8ea580c87c796507a635a716518306cb3086
+detached
+
+worktree /Users/jasonlee/Developer/oyatie-pr883-review
+HEAD 016aa1f35d81007e9d716f1b0c4d75f8cd41bab9
+detached
+
+worktree /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_10e3e92b-3cd-1
+HEAD 47b7a8f0935a555c163d086098c83d41179bad58
+branch refs/heads/feat/cloud-intel-gemini-oauth
+
+worktree /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_10e3e92b-3cd-10
+HEAD 923631b60c801f88eae09dcb070e100d75e1c6a7
+branch refs/heads/feat/cloud-intel-principal-verifier
+
+worktree /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_10e3e92b-3cd-2
+HEAD d5d4e8174335afb2c4cf5af65c94cb92dd5b8672
+branch refs/heads/feat/cloud-intel-codex-class-headers
+
+worktree /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_10e3e92b-3cd-3
+HEAD dd44f147d8184b111452ee0f3222bd4b57e835dc
+branch refs/heads/feat/cloud-intel-overage-guard
+
+worktree /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_10e3e92b-3cd-4
+HEAD 7fa050225465c0b5230911f62ab0e0a3e8dcf348
+branch refs/heads/feat/cloud-intel-headroom-cooldown
+
+worktree /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_10e3e92b-3cd-5
+HEAD 3a90fd1e6bc86f989436aef3e1576b452010638b
+branch refs/heads/feat/cloud-intel-session-pinning
+
+worktree /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_10e3e92b-3cd-6
+HEAD 253926c9aa1e73940d6bcca085d830bed55b25dd
+branch refs/heads/feat/cloud-intel-cost-pricebook
+
+worktree /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_10e3e92b-3cd-7
+HEAD ecbdd644ce1b0ff38020458bf9b6faf3c5950ba7
+branch refs/heads/feat/cloud-intel-retry-fallback
+
+worktree /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_10e3e92b-3cd-8
+HEAD 8b1fe4f20cf8c216c929de24a2ed69f95fe1ef0b
+branch refs/heads/feat/cloud-intel-capability-registry
+
+worktree /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_10e3e92b-3cd-9
+HEAD 6c54cad86da2b596ce6e10ec57460777a5fb367c
+branch refs/heads/feat/cloud-intel-guardrail-port
+
+worktree /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_a6c6939e-488-1
+HEAD ca7ef3e9e6ac1c70fcf4a65b9338eebfa58717ed
+branch refs/heads/work-class-headers
+
+worktree /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_a6c6939e-488-2
+HEAD 7fa050225465c0b5230911f62ab0e0a3e8dcf348
+branch refs/heads/work-headroom-488-2
+
+worktree /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_a6c6939e-488-3
+HEAD 30fbc35150da8b099205b717e2fab39e00396843
+branch refs/heads/work
+
+worktree /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_a6c6939e-488-4
+HEAD 760a97bff88572e5b51087fa9d87531788d02c08
+branch refs/heads/worktree-wf_a6c6939e-488-4
+
+worktree /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_a6c6939e-488-5
+HEAD 6c54cad86da2b596ce6e10ec57460777a5fb367c
+branch refs/heads/worktree-wf_a6c6939e-488-5
+
+worktree /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_a6c6939e-488-6
+HEAD b6b131e2286b12b6ee51c31fc27c596dbac7e055
+branch refs/heads/work-principal-verifier
+
+worktree /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_b306f25c-be3-1
+HEAD 41c592b59ffa0ede64a86b16933f5c0a54436715
+branch refs/heads/feat/cloud-intel-codex-oauth-wiring
+
+worktree /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_c4dfe460-b55-1
+HEAD 902ac1e1d0d8d714ea9781efd34cf661daef0754
+branch refs/heads/feat/cloud-intel-t2a-wire-types
+
+worktree /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_c4dfe460-b55-2
+HEAD 22806d4383e40744fbbefacb150a8f42c4df2913
+branch refs/heads/feat/cloud-intel-t2b-error-class
+
+worktree /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_c4dfe460-b55-3
+HEAD 55e68d819e1b5ec3ccf079ee196eb701bd625f3a
+branch refs/heads/feat/cloud-intel-t1-tls-reachability
+
+worktree /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_c4dfe460-b55-4
+HEAD fc234e2e4484c2a81e440fc234c80b65a8886ee2
+branch refs/heads/feat/cloud-intel-t4-metrics
+
+worktree /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_f66bf3ee-51a-1
+HEAD 3a4a9238bee53bf442b74564941be04f5edbfb7d
+branch refs/heads/feat/cloud-intel-g0-billing-canary
+
+worktree /Users/jasonlee/oyatie-worktrees/advisory-claude-reviewers-20260625T223854Z
+HEAD d705932d4731307b80320125560808be21f8b582
+branch refs/heads/agent/advisory-claude-reviewers-20260625T223854Z
+
+worktree /Users/jasonlee/oyatie-worktrees/ci-pr-cancel-20260626T025326Z
+HEAD b745953530d9a8671f965468504b05ef3e8781d7
+branch refs/heads/agent/ci-pr-cancel-stale-runs-20260626T025326Z
+
+worktree /Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-1
+HEAD 83e6a7066aa280825c8a32dc63928e95b02e8225
+branch refs/heads/mail-mailbox-organize-usecase-slice
+
+worktree /Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-10
+HEAD 83e6a7066aa280825c8a32dc63928e95b02e8225
+branch refs/heads/compliance-control-evidence-usecase-slice
+
+worktree /Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-2
+HEAD 83e6a7066aa280825c8a32dc63928e95b02e8225
+branch refs/heads/comms-messenger-stream-ordering-usecase
+
+worktree /Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-3
+HEAD 83e6a7066aa280825c8a32dc63928e95b02e8225
+branch refs/heads/comms-contact-center-core-slice
+
+worktree /Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-4
+HEAD 83e6a7066aa280825c8a32dc63928e95b02e8225
+branch refs/heads/worktree-wf_5056f9ff-2b6-4
+
+worktree /Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-5
+HEAD 83e6a7066aa280825c8a32dc63928e95b02e8225
+branch refs/heads/wave1/billing-accounting-journal-usecase
+
+worktree /Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-6
+HEAD 83e6a7066aa280825c8a32dc63928e95b02e8225
+branch refs/heads/feat/billing-finops-budget-alert-585
+
+worktree /Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-7
+HEAD 83e6a7066aa280825c8a32dc63928e95b02e8225
+branch refs/heads/data-pipeline-core-ports-slice
+
+worktree /Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-8
+HEAD 83e6a7066aa280825c8a32dc63928e95b02e8225
+branch refs/heads/feat/data-warehouse-table-retention-core-adr0587
+
+worktree /Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-9
+HEAD 83e6a7066aa280825c8a32dc63928e95b02e8225
+branch refs/heads/worktree-wf_5056f9ff-2b6-9
+
+worktree /Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_6e664cf7-e06-2
+HEAD 648c490e488fd25bf8f13067a109871cab3dcb72
+branch refs/heads/wf/milestone-view
+
+worktree /Users/jasonlee/oyatie-worktrees/p3-observability
+HEAD f2cf13a792c6109d37472724bba24915f6fc5510
+branch refs/heads/agent/p3-observability
+
+worktree /Users/jasonlee/oyatie-worktrees/pr-repair-python-mjs-rust/pr907
+HEAD b7a22b72c5eae951ec9dcdf8bd7943629b4acaf7
+detached
+
+worktree /Users/jasonlee/oyatie-worktrees/pr-repair-python-mjs-rust/pr908
+HEAD 370fc47037166836b80452d54cb563fb8c5a3cb5
+detached
+
+worktree /Users/jasonlee/oyatie-worktrees/pr-repair-python-mjs-rust/pr909
+HEAD cc8ba3c8d4f6703d1c50e20da4032900128f058b
+detached
+
+worktree /Users/jasonlee/oyatie-worktrees/pr-repair-python-mjs-rust/pr910
+HEAD cfcad19eb8449e607de44859f506098523b9b329
+detached
+
+worktree /Users/jasonlee/oyatie-worktrees/pr811-catalog-rekey
+HEAD cfdbf1b6e5cbcf1e82501c975642074e52dabde4
+branch refs/heads/pr811-rekey
+
+worktree /Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105028Z
+HEAD 9fd3ac9c28a4bdcf2e6a85d497176a97f24a50bd
+branch refs/heads/agent/python-mjs-rust-20260626T105028Z
+
+worktree /Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105334Z
+HEAD 73bf7214ed2731b7f7f5ace6ef0dd863098504bc
+branch refs/heads/agent/python-mjs-rust-20260626T105334Z
+
+worktree /Users/jasonlee/oyatie-worktrees/python-mjs-rust-worker4-anchor-sweep-20260626T112327Z
+HEAD 859926a971076426c6f4b8392a45dd359558c724
+branch refs/heads/agent/worker-4-anchor-sweep-rust-20260626T112327Z
+
+worktree /Users/jasonlee/oyatie-worktrees/team-leader-ci-velocity-20260626T043322Z
+HEAD 2123b9ee4d13a401416a0089f49498502d4ff128
+branch refs/heads/agent/team-leader-ci-velocity-20260626T043322Z
+
+worktree /Users/jasonlee/oyatie-worktrees/team-leader-ci12-20260626T044133Z
+HEAD a148ac3dce58e232305f14120e41b8c89746be44
+branch refs/heads/agent/team-leader-ci12-20260626T044133Z
+
+worktree /Users/jasonlee/oyatie-worktrees/team-leader-ci12-b-20260626T044133Z
+HEAD a148ac3dce58e232305f14120e41b8c89746be44
+branch refs/heads/agent/team-leader-ci12-b-20260626T044133Z
+
+worktree /Users/jasonlee/oyatie-worktrees/team-leader-ci12-c-20260626T044133Z
+HEAD a148ac3dce58e232305f14120e41b8c89746be44
+branch refs/heads/agent/team-leader-ci12-c-20260626T044133Z
+
+worktree /Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z
+HEAD a148ac3dce58e232305f14120e41b8c89746be44
+branch refs/heads/agent/team-leader-ci12-c2-20260626T045700Z
+
+worktree /Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/.omx/team/group-c2-opus-xhigh-c-9f982c4a/worktrees/worker-1
+HEAD a148ac3dce58e232305f14120e41b8c89746be44
+detached
+
+worktree /Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/.omx/team/group-c2-opus-xhigh-c-9f982c4a/worktrees/worker-2
+HEAD a148ac3dce58e232305f14120e41b8c89746be44
+detached
+
+worktree /Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/.omx/team/group-c2-opus-xhigh-c-9f982c4a/worktrees/worker-3
+HEAD a148ac3dce58e232305f14120e41b8c89746be44
+detached
+
+worktree /Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/.omx/team/group-c2-opus-xhigh-c-9f982c4a/worktrees/worker-4
+HEAD a148ac3dce58e232305f14120e41b8c89746be44
+detached
+
+worktree /Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625
+HEAD d5bdd7bfdd96b4e6089c271f64cc28a7b7a7ab1c
+branch refs/heads/agent/team-leader-wave-a-20260625
+
+worktree /Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/execute-team-bound-ul-9c35bb10/worktrees/worker-1
+HEAD d5bdd7bfdd96b4e6089c271f64cc28a7b7a7ab1c
+detached
+
+worktree /Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/execute-team-bound-ul-9c35bb10/worktrees/worker-2
+HEAD 173ff8c8deb396b571b6978779df38b59ece77ca
+detached
+
+worktree /Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/execute-team-bound-ul-9c35bb10/worktrees/worker-3
+HEAD d5bdd7bfdd96b4e6089c271f64cc28a7b7a7ab1c
+detached
+
+worktree /Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/execute-team-bound-ul-9c35bb10/worktrees/worker-4
+HEAD d5bdd7bfdd96b4e6089c271f64cc28a7b7a7ab1c
+detached
+
+worktree /Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/execute-team-bound-ul-9c35bb10/worktrees/worker-5
+HEAD d5bdd7bfdd96b4e6089c271f64cc28a7b7a7ab1c
+detached
+
+worktree /Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/wavea-back-fixed-g015-9c35bb10/worktrees/worker-1
+HEAD d5bdd7bfdd96b4e6089c271f64cc28a7b7a7ab1c
+detached
+
+worktree /Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/wavea-back-fixed-g015-9c35bb10/worktrees/worker-2
+HEAD d5bdd7bfdd96b4e6089c271f64cc28a7b7a7ab1c
+detached
+
+worktree /Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/wavea-back-fixed-g015-9c35bb10/worktrees/worker-3
+HEAD d5bdd7bfdd96b4e6089c271f64cc28a7b7a7ab1c
+detached
+
+worktree /Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/wavea-back-fixed-g015-9c35bb10/worktrees/worker-4
+HEAD d5bdd7bfdd96b4e6089c271f64cc28a7b7a7ab1c
+detached
+
+worktree /Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/wavea-back-fixed-g015-9c35bb10/worktrees/worker-5
+HEAD d5bdd7bfdd96b4e6089c271f64cc28a7b7a7ab1c
+detached
+
+worktree /Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/wavea-front-fixed-g01-9c35bb10/worktrees/worker-1
+HEAD d5bdd7bfdd96b4e6089c271f64cc28a7b7a7ab1c
+detached
+
+worktree /Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/wavea-front-fixed-g01-9c35bb10/worktrees/worker-2
+HEAD d5bdd7bfdd96b4e6089c271f64cc28a7b7a7ab1c
+detached
+
+worktree /Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/wavea-front-fixed-g01-9c35bb10/worktrees/worker-3
+HEAD d5bdd7bfdd96b4e6089c271f64cc28a7b7a7ab1c
+detached
+
+worktree /Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/wavea-front-fixed-g01-9c35bb10/worktrees/worker-4
+HEAD d5bdd7bfdd96b4e6089c271f64cc28a7b7a7ab1c
+detached
+
+worktree /Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/wavea-front-fixed-g01-9c35bb10/worktrees/worker-5
+HEAD d5bdd7bfdd96b4e6089c271f64cc28a7b7a7ab1c
+detached
+
+worktree /Users/jasonlee/oyatie-worktrees/team-leader-waveb-pr-wip-20260626T023204Z
+HEAD 980af9bf615d781b83db151e8e72207ad9ec4f8e
+branch refs/heads/agent/team-leader-waveb-pr-wip-20260626T023204Z
+
+worktree /Users/jasonlee/oyatie-worktrees/team-python-mjs-rust-leader-20260626T105958Z
+HEAD f93ceb80b89a1d366b5ed582f0d3c9256d561ec1
+branch refs/heads/agent/team-python-mjs-rust-leader-20260626T105958Z
+
+worktree /Users/jasonlee/oyatie-worktrees/ultragoal-wave-a-20260626T203951Z
+HEAD 268e170c35913c54c5d03546d13ab69d5b51b289
+branch refs/heads/agent/ultragoal-wave-a-20260626T203951Z
+
+worktree /Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629
+HEAD 643156e505ca936f79badfdc2f4a21dc9e021fce
+branch refs/heads/agent/waveB-ast-transpiler-followup-202606260000
+
+worktree /Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629
+HEAD e17ac9a24b668797796ba60a8619abe701c751b5
+branch refs/heads/agent/waveB-cloud-ci-873-20260626
+
+worktree /Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629
+HEAD 3b88d0806e6060bc100e1c22abeebe6056014725
+branch refs/heads/agent/waveA-collab-office-issue864-202606260018
+
+worktree /Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629
+HEAD 05a492ca3a8048654fba736d471a9c5024200aa1
+branch refs/heads/agent/waveB-crm-descriptor-metadata-878
+
+worktree /Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629
+HEAD 998819e5cf687b7c9c823d80b2da380db4e1331e
+branch refs/heads/agent/waveA-erp-blockers-20260625
+
+worktree /Users/jasonlee/oyatie-worktrees/waveA-hr-payroll-20260625173629
+HEAD 8ed7c55f16a33772a99c05deb32225ae51e168f1
+detached
+
+worktree /Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629
+HEAD 312debb2910e64c32ee2a791c2e087e85909ec53
+branch refs/heads/agent/waveB-iac-transport-773-20260626
+
+worktree /Users/jasonlee/oyatie-worktrees/waveA-kernel-os-20260625173629
+HEAD 8ed7c55f16a33772a99c05deb32225ae51e168f1
+branch refs/heads/agent/waveB-kernel-os-backlog-20260626
+
+worktree /Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629
+HEAD 0658568895b075ab2436f41299633c6c06711038
+branch refs/heads/agent/waveB-pdp-same-tenant-879
+
+worktree /Users/jasonlee/oyatie-worktrees/waveA-market-billing-20260625173629
+HEAD 8ed7c55f16a33772a99c05deb32225ae51e168f1
+detached
+
+
+## gh pr list --base dev --state open
+[]
+
+## local .omx state team dirs
+
+## session team states
+/Users/jasonlee/.omx-runs/run-20260625044315-3b89/.omx/state/team-leader-nudge.json
+/Users/jasonlee/.omx-runs/run-20260625054603-a69f/.omx/state/team-leader-nudge.json
+/Users/jasonlee/.omx-runs/run-20260625054703-1618/.omx/state/team
+/Users/jasonlee/.omx-runs/run-20260625054703-1618/.omx/state/team-leader-nudge.json
+/Users/jasonlee/.omx-runs/run-20260625054703-1618/.omx/state/team-state.json
+/Users/jasonlee/.omx-runs/run-20260625220921-7af5/.omx/state/team
+/Users/jasonlee/.omx-runs/run-20260625220921-7af5/.omx/state/team-state.json
+/Users/jasonlee/.omx-runs/run-20260625221012-fa4f/.omx/state/team
+/Users/jasonlee/.omx-runs/run-20260625221012-fa4f/.omx/state/team-state.json
+/Users/jasonlee/.omx-runs/run-20260625221012-fa4f/.omx/state/team/g002-continuation-max-4f97d04e
+/Users/jasonlee/.omx-runs/run-20260625221012-fa4f/.omx/state/team/g002-continuation-max-4f97d04e/approvals
+/Users/jasonlee/.omx-runs/run-20260625221012-fa4f/.omx/state/team/g002-continuation-max-4f97d04e/claims
+/Users/jasonlee/.omx-runs/run-20260625221012-fa4f/.omx/state/team/g002-continuation-max-4f97d04e/config.json
+/Users/jasonlee/.omx-runs/run-20260625221012-fa4f/.omx/state/team/g002-continuation-max-4f97d04e/decomposition-report.json
+/Users/jasonlee/.omx-runs/run-20260625221012-fa4f/.omx/state/team/g002-continuation-max-4f97d04e/dispatch
+/Users/jasonlee/.omx-runs/run-20260625221012-fa4f/.omx/state/team/g002-continuation-max-4f97d04e/dispatch/issue-cooldown.json
+/Users/jasonlee/.omx-runs/run-20260625221012-fa4f/.omx/state/team/g002-continuation-max-4f97d04e/dispatch/requests.json
+/Users/jasonlee/.omx-runs/run-20260625221012-fa4f/.omx/state/team/g002-continuation-max-4f97d04e/dispatch/trigger-cooldown.json
+/Users/jasonlee/.omx-runs/run-20260625221012-fa4f/.omx/state/team/g002-continuation-max-4f97d04e/events
+/Users/jasonlee/.omx-runs/run-20260625221012-fa4f/.omx/state/team/g002-continuation-max-4f97d04e/events/events.ndjson
+/Users/jasonlee/.omx-runs/run-20260625221012-fa4f/.omx/state/team/g002-continuation-max-4f97d04e/mailbox
+/Users/jasonlee/.omx-runs/run-20260625221012-fa4f/.omx/state/team/g002-continuation-max-4f97d04e/mailbox/leader-fixed.json
+/Users/jasonlee/.omx-runs/run-20260625221012-fa4f/.omx/state/team/g002-continuation-max-4f97d04e/mailbox/worker-1.json
+/Users/jasonlee/.omx-runs/run-20260625221012-fa4f/.omx/state/team/g002-continuation-max-4f97d04e/mailbox/worker-2.json
+/Users/jasonlee/.omx-runs/run-20260625221012-fa4f/.omx/state/team/g002-continuation-max-4f97d04e/mailbox/worker-3.json
+/Users/jasonlee/.omx-runs/run-20260625221012-fa4f/.omx/state/team/g002-continuation-max-4f97d04e/mailbox/worker-4.json
+/Users/jasonlee/.omx-runs/run-20260625221012-fa4f/.omx/state/team/g002-continuation-max-4f97d04e/manifest.v2.json
+/Users/jasonlee/.omx-runs/run-20260625221012-fa4f/.omx/state/team/g002-continuation-max-4f97d04e/monitor-snapshot.json
+/Users/jasonlee/.omx-runs/run-20260625221012-fa4f/.omx/state/team/g002-continuation-max-4f97d04e/phase.json
+/Users/jasonlee/.omx-runs/run-20260625221012-fa4f/.omx/state/team/g002-continuation-max-4f97d04e/preflight-context.json
+/Users/jasonlee/.omx-runs/run-20260625221012-fa4f/.omx/state/team/g002-continuation-max-4f97d04e/runtime
+/Users/jasonlee/.omx-runs/run-20260625221012-fa4f/.omx/state/team/g002-continuation-max-4f97d04e/runtime/worker-1-startup.sh
+/Users/jasonlee/.omx-runs/run-20260625221012-fa4f/.omx/state/team/g002-continuation-max-4f97d04e/runtime/worker-2-startup.sh
+/Users/jasonlee/.omx-runs/run-20260625221012-fa4f/.omx/state/team/g002-continuation-max-4f97d04e/runtime/worker-3-startup.sh
+/Users/jasonlee/.omx-runs/run-20260625221012-fa4f/.omx/state/team/g002-continuation-max-4f97d04e/runtime/worker-4-startup.sh
+/Users/jasonlee/.omx-runs/run-20260625221012-fa4f/.omx/state/team/g002-continuation-max-4f97d04e/startup-timing.json
+/Users/jasonlee/.omx-runs/run-20260625221012-fa4f/.omx/state/team/g002-continuation-max-4f97d04e/tasks
+/Users/jasonlee/.omx-runs/run-20260625221012-fa4f/.omx/state/team/g002-continuation-max-4f97d04e/tasks/task-1.json
+/Users/jasonlee/.omx-runs/run-20260625221012-fa4f/.omx/state/team/g002-continuation-max-4f97d04e/tasks/task-10.json
+/Users/jasonlee/.omx-runs/run-20260625221012-fa4f/.omx/state/team/g002-continuation-max-4f97d04e/tasks/task-2.json
+/Users/jasonlee/.omx-runs/run-20260625221012-fa4f/.omx/state/team/g002-continuation-max-4f97d04e/tasks/task-3.json
+/Users/jasonlee/.omx-runs/run-20260625221012-fa4f/.omx/state/team/g002-continuation-max-4f97d04e/tasks/task-4.json
+/Users/jasonlee/.omx-runs/run-20260625221012-fa4f/.omx/state/team/g002-continuation-max-4f97d04e/tasks/task-5.json
+/Users/jasonlee/.omx-runs/run-20260625221012-fa4f/.omx/state/team/g002-continuation-max-4f97d04e/tasks/task-6.json
+/Users/jasonlee/.omx-runs/run-20260625221012-fa4f/.omx/state/team/g002-continuation-max-4f97d04e/tasks/task-7.json
+/Users/jasonlee/.omx-runs/run-20260625221012-fa4f/.omx/state/team/g002-continuation-max-4f97d04e/tasks/task-8.json
+/Users/jasonlee/.omx-runs/run-20260625221012-fa4f/.omx/state/team/g002-continuation-max-4f97d04e/tasks/task-9.json
+/Users/jasonlee/.omx-runs/run-20260625221012-fa4f/.omx/state/team/g002-continuation-max-4f97d04e/ultragoal-context.json
+/Users/jasonlee/.omx-runs/run-20260625221012-fa4f/.omx/state/team/g002-continuation-max-4f97d04e/worker-stop-nudge.json
+/Users/jasonlee/.omx-runs/run-20260625221012-fa4f/.omx/state/team/g002-continuation-max-4f97d04e/workers
+/Users/jasonlee/.omx-runs/run-20260625221012-fa4f/.omx/state/team/g002-continuation-max-4f97d04e/workers/worker-1
+/Users/jasonlee/.omx-runs/run-20260625221012-fa4f/.omx/state/team/g002-continuation-max-4f97d04e/workers/worker-2
+/Users/jasonlee/.omx-runs/run-20260625221012-fa4f/.omx/state/team/g002-continuation-max-4f97d04e/workers/worker-3
+/Users/jasonlee/.omx-runs/run-20260625221012-fa4f/.omx/state/team/g002-continuation-max-4f97d04e/workers/worker-4
+/Users/jasonlee/.omx-runs/run-20260626022421-9f40/.omx/state/team
+/Users/jasonlee/.omx-runs/run-20260626022421-9f40/.omx/state/team/group-c2-opus-xhigh-c-9f982c4a
+/Users/jasonlee/.omx-runs/run-20260626022421-9f40/.omx/state/team/group-c2-opus-xhigh-c-9f982c4a/approvals
+/Users/jasonlee/.omx-runs/run-20260626022421-9f40/.omx/state/team/group-c2-opus-xhigh-c-9f982c4a/claims
+/Users/jasonlee/.omx-runs/run-20260626022421-9f40/.omx/state/team/group-c2-opus-xhigh-c-9f982c4a/config.json
+/Users/jasonlee/.omx-runs/run-20260626022421-9f40/.omx/state/team/group-c2-opus-xhigh-c-9f982c4a/decomposition-report.json
+/Users/jasonlee/.omx-runs/run-20260626022421-9f40/.omx/state/team/group-c2-opus-xhigh-c-9f982c4a/dispatch
+/Users/jasonlee/.omx-runs/run-20260626022421-9f40/.omx/state/team/group-c2-opus-xhigh-c-9f982c4a/dispatch/issue-cooldown.json
+/Users/jasonlee/.omx-runs/run-20260626022421-9f40/.omx/state/team/group-c2-opus-xhigh-c-9f982c4a/dispatch/requests.json
+/Users/jasonlee/.omx-runs/run-20260626022421-9f40/.omx/state/team/group-c2-opus-xhigh-c-9f982c4a/dispatch/trigger-cooldown.json
+/Users/jasonlee/.omx-runs/run-20260626022421-9f40/.omx/state/team/group-c2-opus-xhigh-c-9f982c4a/events
+/Users/jasonlee/.omx-runs/run-20260626022421-9f40/.omx/state/team/group-c2-opus-xhigh-c-9f982c4a/events/events.ndjson
+/Users/jasonlee/.omx-runs/run-20260626022421-9f40/.omx/state/team/group-c2-opus-xhigh-c-9f982c4a/integration-report.md
+/Users/jasonlee/.omx-runs/run-20260626022421-9f40/.omx/state/team/group-c2-opus-xhigh-c-9f982c4a/mailbox
+/Users/jasonlee/.omx-runs/run-20260626022421-9f40/.omx/state/team/group-c2-opus-xhigh-c-9f982c4a/mailbox/leader-fixed.json
+/Users/jasonlee/.omx-runs/run-20260626022421-9f40/.omx/state/team/group-c2-opus-xhigh-c-9f982c4a/mailbox/worker-1.json
+/Users/jasonlee/.omx-runs/run-20260626022421-9f40/.omx/state/team/group-c2-opus-xhigh-c-9f982c4a/mailbox/worker-2.json
+/Users/jasonlee/.omx-runs/run-20260626022421-9f40/.omx/state/team/group-c2-opus-xhigh-c-9f982c4a/mailbox/worker-3.json
+/Users/jasonlee/.omx-runs/run-20260626022421-9f40/.omx/state/team/group-c2-opus-xhigh-c-9f982c4a/mailbox/worker-4.json
+/Users/jasonlee/.omx-runs/run-20260626022421-9f40/.omx/state/team/group-c2-opus-xhigh-c-9f982c4a/manifest.v2.json
+/Users/jasonlee/.omx-runs/run-20260626022421-9f40/.omx/state/team/group-c2-opus-xhigh-c-9f982c4a/monitor-snapshot.json
+/Users/jasonlee/.omx-runs/run-20260626022421-9f40/.omx/state/team/group-c2-opus-xhigh-c-9f982c4a/phase.json
+/Users/jasonlee/.omx-runs/run-20260626022421-9f40/.omx/state/team/group-c2-opus-xhigh-c-9f982c4a/preflight-context.json
+/Users/jasonlee/.omx-runs/run-20260626022421-9f40/.omx/state/team/group-c2-opus-xhigh-c-9f982c4a/runtime
+/Users/jasonlee/.omx-runs/run-20260626022421-9f40/.omx/state/team/group-c2-opus-xhigh-c-9f982c4a/runtime/worker-1-startup.sh
+/Users/jasonlee/.omx-runs/run-20260626022421-9f40/.omx/state/team/group-c2-opus-xhigh-c-9f982c4a/runtime/worker-2-startup.sh
+/Users/jasonlee/.omx-runs/run-20260626022421-9f40/.omx/state/team/group-c2-opus-xhigh-c-9f982c4a/runtime/worker-3-startup.sh
+/Users/jasonlee/.omx-runs/run-20260626022421-9f40/.omx/state/team/group-c2-opus-xhigh-c-9f982c4a/runtime/worker-4-startup.sh
+/Users/jasonlee/.omx-runs/run-20260626022421-9f40/.omx/state/team/group-c2-opus-xhigh-c-9f982c4a/startup-timing.json
+/Users/jasonlee/.omx-runs/run-20260626022421-9f40/.omx/state/team/group-c2-opus-xhigh-c-9f982c4a/tasks
+/Users/jasonlee/.omx-runs/run-20260626022421-9f40/.omx/state/team/group-c2-opus-xhigh-c-9f982c4a/tasks/task-1.json
+/Users/jasonlee/.omx-runs/run-20260626022421-9f40/.omx/state/team/group-c2-opus-xhigh-c-9f982c4a/tasks/task-2.json
+/Users/jasonlee/.omx-runs/run-20260626022421-9f40/.omx/state/team/group-c2-opus-xhigh-c-9f982c4a/tasks/task-3.json
+/Users/jasonlee/.omx-runs/run-20260626022421-9f40/.omx/state/team/group-c2-opus-xhigh-c-9f982c4a/tasks/task-4.json
+/Users/jasonlee/.omx-runs/run-20260626022421-9f40/.omx/state/team/group-c2-opus-xhigh-c-9f982c4a/tasks/task-5.json
+/Users/jasonlee/.omx-runs/run-20260626022421-9f40/.omx/state/team/group-c2-opus-xhigh-c-9f982c4a/tasks/task-6.json
+/Users/jasonlee/.omx-runs/run-20260626022421-9f40/.omx/state/team/group-c2-opus-xhigh-c-9f982c4a/tasks/task-7.json
+/Users/jasonlee/.omx-runs/run-20260626022421-9f40/.omx/state/team/group-c2-opus-xhigh-c-9f982c4a/tasks/task-8.json
+/Users/jasonlee/.omx-runs/run-20260626022421-9f40/.omx/state/team/group-c2-opus-xhigh-c-9f982c4a/workers
+/Users/jasonlee/.omx-runs/run-20260626022421-9f40/.omx/state/team/group-c2-opus-xhigh-c-9f982c4a/workers/worker-1
+/Users/jasonlee/.omx-runs/run-20260626022421-9f40/.omx/state/team/group-c2-opus-xhigh-c-9f982c4a/workers/worker-2
+/Users/jasonlee/.omx-runs/run-20260626022421-9f40/.omx/state/team/group-c2-opus-xhigh-c-9f982c4a/workers/worker-3
+/Users/jasonlee/.omx-runs/run-20260626022421-9f40/.omx/state/team/group-c2-opus-xhigh-c-9f982c4a/workers/worker-4
+/Users/jasonlee/.omx-runs/run-20260626104518-646a/.omx/state/team
+/Users/jasonlee/.omx-runs/run-20260626104518-646a/.omx/state/team-state.json
+/Users/jasonlee/.omx-runs/run-20260626173753-6e97/.omx/state/team
+
+## oyatie worktrees
+/Users/jasonlee/oyatie-worktrees
+/Users/jasonlee/oyatie-worktrees/_wip-preserve
+/Users/jasonlee/oyatie-worktrees/_wip-preserve/20260626T022802Z
+/Users/jasonlee/oyatie-worktrees/_wip-preserve/20260626T023342Z
+/Users/jasonlee/oyatie-worktrees/advisory-claude-reviewers-20260625T223854Z
+/Users/jasonlee/oyatie-worktrees/advisory-claude-reviewers-20260625T223854Z/.cargo
+/Users/jasonlee/oyatie-worktrees/advisory-claude-reviewers-20260625T223854Z/.claude
+/Users/jasonlee/oyatie-worktrees/advisory-claude-reviewers-20260625T223854Z/.codex
+/Users/jasonlee/oyatie-worktrees/advisory-claude-reviewers-20260625T223854Z/.config
+/Users/jasonlee/oyatie-worktrees/advisory-claude-reviewers-20260625T223854Z/.github
+/Users/jasonlee/oyatie-worktrees/advisory-claude-reviewers-20260625T223854Z/.omc
+/Users/jasonlee/oyatie-worktrees/advisory-claude-reviewers-20260625T223854Z/.omx
+/Users/jasonlee/oyatie-worktrees/advisory-claude-reviewers-20260625T223854Z/benchmarks
+/Users/jasonlee/oyatie-worktrees/advisory-claude-reviewers-20260625T223854Z/bin
+/Users/jasonlee/oyatie-worktrees/advisory-claude-reviewers-20260625T223854Z/cloud
+/Users/jasonlee/oyatie-worktrees/advisory-claude-reviewers-20260625T223854Z/contracts
+/Users/jasonlee/oyatie-worktrees/advisory-claude-reviewers-20260625T223854Z/docs
+/Users/jasonlee/oyatie-worktrees/advisory-claude-reviewers-20260625T223854Z/evidence
+/Users/jasonlee/oyatie-worktrees/advisory-claude-reviewers-20260625T223854Z/infra
+/Users/jasonlee/oyatie-worktrees/advisory-claude-reviewers-20260625T223854Z/libs
+/Users/jasonlee/oyatie-worktrees/advisory-claude-reviewers-20260625T223854Z/oya
+/Users/jasonlee/oyatie-worktrees/advisory-claude-reviewers-20260625T223854Z/packs
+/Users/jasonlee/oyatie-worktrees/advisory-claude-reviewers-20260625T223854Z/plan
+/Users/jasonlee/oyatie-worktrees/advisory-claude-reviewers-20260625T223854Z/registry
+/Users/jasonlee/oyatie-worktrees/advisory-claude-reviewers-20260625T223854Z/scripts
+/Users/jasonlee/oyatie-worktrees/advisory-claude-reviewers-20260625T223854Z/specs
+/Users/jasonlee/oyatie-worktrees/advisory-claude-reviewers-20260625T223854Z/tasks
+/Users/jasonlee/oyatie-worktrees/advisory-claude-reviewers-20260625T223854Z/templates
+/Users/jasonlee/oyatie-worktrees/advisory-claude-reviewers-20260625T223854Z/third-party
+/Users/jasonlee/oyatie-worktrees/advisory-claude-reviewers-20260625T223854Z/toolchains
+/Users/jasonlee/oyatie-worktrees/advisory-claude-reviewers-20260625T223854Z/tools
+/Users/jasonlee/oyatie-worktrees/ci-pr-cancel-20260626T025326Z
+/Users/jasonlee/oyatie-worktrees/ci-pr-cancel-20260626T025326Z/.cargo
+/Users/jasonlee/oyatie-worktrees/ci-pr-cancel-20260626T025326Z/.claude
+/Users/jasonlee/oyatie-worktrees/ci-pr-cancel-20260626T025326Z/.codex
+/Users/jasonlee/oyatie-worktrees/ci-pr-cancel-20260626T025326Z/.config
+/Users/jasonlee/oyatie-worktrees/ci-pr-cancel-20260626T025326Z/.github
+/Users/jasonlee/oyatie-worktrees/ci-pr-cancel-20260626T025326Z/.omc
+/Users/jasonlee/oyatie-worktrees/ci-pr-cancel-20260626T025326Z/audit
+/Users/jasonlee/oyatie-worktrees/ci-pr-cancel-20260626T025326Z/benchmarks
+/Users/jasonlee/oyatie-worktrees/ci-pr-cancel-20260626T025326Z/billing
+/Users/jasonlee/oyatie-worktrees/ci-pr-cancel-20260626T025326Z/buck-out
+/Users/jasonlee/oyatie-worktrees/ci-pr-cancel-20260626T025326Z/cell
+/Users/jasonlee/oyatie-worktrees/ci-pr-cancel-20260626T025326Z/cloud
+/Users/jasonlee/oyatie-worktrees/ci-pr-cancel-20260626T025326Z/comms
+/Users/jasonlee/oyatie-worktrees/ci-pr-cancel-20260626T025326Z/compliance
+/Users/jasonlee/oyatie-worktrees/ci-pr-cancel-20260626T025326Z/compute
+/Users/jasonlee/oyatie-worktrees/ci-pr-cancel-20260626T025326Z/console
+/Users/jasonlee/oyatie-worktrees/ci-pr-cancel-20260626T025326Z/contracts
+/Users/jasonlee/oyatie-worktrees/ci-pr-cancel-20260626T025326Z/data
+/Users/jasonlee/oyatie-worktrees/ci-pr-cancel-20260626T025326Z/docs
+/Users/jasonlee/oyatie-worktrees/ci-pr-cancel-20260626T025326Z/evidence
+/Users/jasonlee/oyatie-worktrees/ci-pr-cancel-20260626T025326Z/flags
+/Users/jasonlee/oyatie-worktrees/ci-pr-cancel-20260626T025326Z/gateway
+/Users/jasonlee/oyatie-worktrees/ci-pr-cancel-20260626T025326Z/governance
+/Users/jasonlee/oyatie-worktrees/ci-pr-cancel-20260626T025326Z/iac
+/Users/jasonlee/oyatie-worktrees/ci-pr-cancel-20260626T025326Z/iam
+/Users/jasonlee/oyatie-worktrees/ci-pr-cancel-20260626T025326Z/infra
+/Users/jasonlee/oyatie-worktrees/ci-pr-cancel-20260626T025326Z/intelligence
+/Users/jasonlee/oyatie-worktrees/ci-pr-cancel-20260626T025326Z/k8s
+/Users/jasonlee/oyatie-worktrees/ci-pr-cancel-20260626T025326Z/libs
+/Users/jasonlee/oyatie-worktrees/ci-pr-cancel-20260626T025326Z/marketplace
+/Users/jasonlee/oyatie-worktrees/ci-pr-cancel-20260626T025326Z/messaging
+/Users/jasonlee/oyatie-worktrees/ci-pr-cancel-20260626T025326Z/network
+/Users/jasonlee/oyatie-worktrees/ci-pr-cancel-20260626T025326Z/observability
+/Users/jasonlee/oyatie-worktrees/ci-pr-cancel-20260626T025326Z/oya
+/Users/jasonlee/oyatie-worktrees/ci-pr-cancel-20260626T025326Z/packs
+/Users/jasonlee/oyatie-worktrees/ci-pr-cancel-20260626T025326Z/plan
+/Users/jasonlee/oyatie-worktrees/ci-pr-cancel-20260626T025326Z/registry
+/Users/jasonlee/oyatie-worktrees/ci-pr-cancel-20260626T025326Z/scripts
+/Users/jasonlee/oyatie-worktrees/ci-pr-cancel-20260626T025326Z/secrets
+/Users/jasonlee/oyatie-worktrees/ci-pr-cancel-20260626T025326Z/specs
+/Users/jasonlee/oyatie-worktrees/ci-pr-cancel-20260626T025326Z/storage
+/Users/jasonlee/oyatie-worktrees/ci-pr-cancel-20260626T025326Z/tasks
+/Users/jasonlee/oyatie-worktrees/ci-pr-cancel-20260626T025326Z/templates
+/Users/jasonlee/oyatie-worktrees/ci-pr-cancel-20260626T025326Z/tenancy
+/Users/jasonlee/oyatie-worktrees/ci-pr-cancel-20260626T025326Z/third-party
+/Users/jasonlee/oyatie-worktrees/ci-pr-cancel-20260626T025326Z/toolchains
+/Users/jasonlee/oyatie-worktrees/ci-pr-cancel-20260626T025326Z/tools
+/Users/jasonlee/oyatie-worktrees/ci-pr-cancel-20260626T025326Z/workflow
+/Users/jasonlee/oyatie-worktrees/claude-archive-20260625
+/Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-1
+/Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-10
+/Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-2
+/Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-3
+/Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-4
+/Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-5
+/Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-6
+/Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-7
+/Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-8
+/Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-9
+/Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_6e664cf7-e06-2
+/Users/jasonlee/oyatie-worktrees/p3-observability
+/Users/jasonlee/oyatie-worktrees/p3-observability/.cargo
+/Users/jasonlee/oyatie-worktrees/p3-observability/.claude
+/Users/jasonlee/oyatie-worktrees/p3-observability/.codex
+/Users/jasonlee/oyatie-worktrees/p3-observability/.config
+/Users/jasonlee/oyatie-worktrees/p3-observability/.github
+/Users/jasonlee/oyatie-worktrees/p3-observability/.omc
+/Users/jasonlee/oyatie-worktrees/p3-observability/benchmarks
+/Users/jasonlee/oyatie-worktrees/p3-observability/bin
+/Users/jasonlee/oyatie-worktrees/p3-observability/buck-out
+/Users/jasonlee/oyatie-worktrees/p3-observability/cloud
+/Users/jasonlee/oyatie-worktrees/p3-observability/contracts
+/Users/jasonlee/oyatie-worktrees/p3-observability/docs
+/Users/jasonlee/oyatie-worktrees/p3-observability/evidence
+/Users/jasonlee/oyatie-worktrees/p3-observability/iac
+/Users/jasonlee/oyatie-worktrees/p3-observability/infra
+/Users/jasonlee/oyatie-worktrees/p3-observability/libs
+/Users/jasonlee/oyatie-worktrees/p3-observability/messaging
+/Users/jasonlee/oyatie-worktrees/p3-observability/observability
+/Users/jasonlee/oyatie-worktrees/p3-observability/oya
+/Users/jasonlee/oyatie-worktrees/p3-observability/packs
+/Users/jasonlee/oyatie-worktrees/p3-observability/plan
+/Users/jasonlee/oyatie-worktrees/p3-observability/registry
+/Users/jasonlee/oyatie-worktrees/p3-observability/scripts
+/Users/jasonlee/oyatie-worktrees/p3-observability/specs
+/Users/jasonlee/oyatie-worktrees/p3-observability/tasks
+/Users/jasonlee/oyatie-worktrees/p3-observability/templates
+/Users/jasonlee/oyatie-worktrees/p3-observability/third-party
+/Users/jasonlee/oyatie-worktrees/p3-observability/toolchains
+/Users/jasonlee/oyatie-worktrees/p3-observability/tools
+/Users/jasonlee/oyatie-worktrees/pr-repair-python-mjs-rust
+/Users/jasonlee/oyatie-worktrees/pr-repair-python-mjs-rust/pr907
+/Users/jasonlee/oyatie-worktrees/pr-repair-python-mjs-rust/pr908
+/Users/jasonlee/oyatie-worktrees/pr-repair-python-mjs-rust/pr909
+/Users/jasonlee/oyatie-worktrees/pr-repair-python-mjs-rust/pr910
+/Users/jasonlee/oyatie-worktrees/pr811-catalog-rekey
+/Users/jasonlee/oyatie-worktrees/pr811-catalog-rekey/.cargo
+/Users/jasonlee/oyatie-worktrees/pr811-catalog-rekey/.claude
+/Users/jasonlee/oyatie-worktrees/pr811-catalog-rekey/.codex
+/Users/jasonlee/oyatie-worktrees/pr811-catalog-rekey/.config
+/Users/jasonlee/oyatie-worktrees/pr811-catalog-rekey/.github
+/Users/jasonlee/oyatie-worktrees/pr811-catalog-rekey/.omc
+/Users/jasonlee/oyatie-worktrees/pr811-catalog-rekey/audit
+/Users/jasonlee/oyatie-worktrees/pr811-catalog-rekey/benchmarks
+/Users/jasonlee/oyatie-worktrees/pr811-catalog-rekey/billing
+/Users/jasonlee/oyatie-worktrees/pr811-catalog-rekey/bin
+/Users/jasonlee/oyatie-worktrees/pr811-catalog-rekey/buck-out
+/Users/jasonlee/oyatie-worktrees/pr811-catalog-rekey/cell
+/Users/jasonlee/oyatie-worktrees/pr811-catalog-rekey/cloud
+/Users/jasonlee/oyatie-worktrees/pr811-catalog-rekey/comms
+/Users/jasonlee/oyatie-worktrees/pr811-catalog-rekey/compliance
+/Users/jasonlee/oyatie-worktrees/pr811-catalog-rekey/compute
+/Users/jasonlee/oyatie-worktrees/pr811-catalog-rekey/console
+/Users/jasonlee/oyatie-worktrees/pr811-catalog-rekey/contracts
+/Users/jasonlee/oyatie-worktrees/pr811-catalog-rekey/data
+/Users/jasonlee/oyatie-worktrees/pr811-catalog-rekey/docs
+/Users/jasonlee/oyatie-worktrees/pr811-catalog-rekey/evidence
+/Users/jasonlee/oyatie-worktrees/pr811-catalog-rekey/flags
+/Users/jasonlee/oyatie-worktrees/pr811-catalog-rekey/gateway
+/Users/jasonlee/oyatie-worktrees/pr811-catalog-rekey/iac
+/Users/jasonlee/oyatie-worktrees/pr811-catalog-rekey/iam
+/Users/jasonlee/oyatie-worktrees/pr811-catalog-rekey/infra
+/Users/jasonlee/oyatie-worktrees/pr811-catalog-rekey/intelligence
+/Users/jasonlee/oyatie-worktrees/pr811-catalog-rekey/k8s
+/Users/jasonlee/oyatie-worktrees/pr811-catalog-rekey/libs
+/Users/jasonlee/oyatie-worktrees/pr811-catalog-rekey/marketplace
+/Users/jasonlee/oyatie-worktrees/pr811-catalog-rekey/messaging
+/Users/jasonlee/oyatie-worktrees/pr811-catalog-rekey/network
+/Users/jasonlee/oyatie-worktrees/pr811-catalog-rekey/observability
+/Users/jasonlee/oyatie-worktrees/pr811-catalog-rekey/oya
+/Users/jasonlee/oyatie-worktrees/pr811-catalog-rekey/packs
+/Users/jasonlee/oyatie-worktrees/pr811-catalog-rekey/plan
+/Users/jasonlee/oyatie-worktrees/pr811-catalog-rekey/registry
+/Users/jasonlee/oyatie-worktrees/pr811-catalog-rekey/scripts
+/Users/jasonlee/oyatie-worktrees/pr811-catalog-rekey/secrets
+/Users/jasonlee/oyatie-worktrees/pr811-catalog-rekey/specs
+/Users/jasonlee/oyatie-worktrees/pr811-catalog-rekey/storage
+/Users/jasonlee/oyatie-worktrees/pr811-catalog-rekey/tasks
+/Users/jasonlee/oyatie-worktrees/pr811-catalog-rekey/templates
+/Users/jasonlee/oyatie-worktrees/pr811-catalog-rekey/tenancy
+/Users/jasonlee/oyatie-worktrees/pr811-catalog-rekey/third-party
+/Users/jasonlee/oyatie-worktrees/pr811-catalog-rekey/toolchains
+/Users/jasonlee/oyatie-worktrees/pr811-catalog-rekey/tools
+/Users/jasonlee/oyatie-worktrees/pr811-catalog-rekey/workflow
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105028Z
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105028Z/.cargo
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105028Z/.claude
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105028Z/.codex
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105028Z/.config
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105028Z/.github
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105028Z/.omc
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105028Z/audit
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105028Z/benchmarks
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105028Z/billing
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105028Z/cell
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105028Z/cloud
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105028Z/comms
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105028Z/compliance
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105028Z/compute
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105028Z/console
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105028Z/contracts
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105028Z/data
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105028Z/docs
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105028Z/evidence
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105028Z/flags
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105028Z/gateway
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105028Z/governance
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105028Z/iac
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105028Z/iam
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105028Z/infra
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105028Z/intelligence
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105028Z/k8s
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105028Z/libs
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105028Z/marketplace
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105028Z/messaging
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105028Z/network
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105028Z/observability
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105028Z/oya
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105028Z/packs
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105028Z/plan
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105028Z/registry
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105028Z/scripts
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105028Z/secrets
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105028Z/specs
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105028Z/storage
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105028Z/tasks
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105028Z/templates
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105028Z/tenancy
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105028Z/third-party
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105028Z/toolchains
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105028Z/tools
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105028Z/workflow
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105334Z
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105334Z/.cargo
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105334Z/.claude
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105334Z/.codex
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105334Z/.config
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105334Z/.github
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105334Z/.omc
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105334Z/audit
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105334Z/benchmarks
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105334Z/billing
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105334Z/buck-out
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105334Z/cell
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105334Z/cloud
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105334Z/comms
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105334Z/compliance
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105334Z/compute
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105334Z/console
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105334Z/contracts
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105334Z/data
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105334Z/docs
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105334Z/evidence
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105334Z/flags
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105334Z/gateway
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105334Z/governance
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105334Z/iac
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105334Z/iam
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105334Z/infra
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105334Z/intelligence
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105334Z/k8s
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105334Z/libs
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105334Z/marketplace
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105334Z/messaging
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105334Z/network
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105334Z/observability
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105334Z/oya
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105334Z/packs
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105334Z/plan
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105334Z/registry
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105334Z/scripts
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105334Z/secrets
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105334Z/specs
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105334Z/storage
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105334Z/tasks
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105334Z/templates
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105334Z/tenancy
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105334Z/third-party
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105334Z/toolchains
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105334Z/tools
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105334Z/workflow
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-worker4-anchor-sweep-20260626T112327Z
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-worker4-anchor-sweep-20260626T112327Z/.cargo
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-worker4-anchor-sweep-20260626T112327Z/.claude
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-worker4-anchor-sweep-20260626T112327Z/.codex
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-worker4-anchor-sweep-20260626T112327Z/.config
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-worker4-anchor-sweep-20260626T112327Z/.github
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-worker4-anchor-sweep-20260626T112327Z/.omc
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-worker4-anchor-sweep-20260626T112327Z/audit
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-worker4-anchor-sweep-20260626T112327Z/benchmarks
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-worker4-anchor-sweep-20260626T112327Z/billing
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-worker4-anchor-sweep-20260626T112327Z/cell
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-worker4-anchor-sweep-20260626T112327Z/cloud
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-worker4-anchor-sweep-20260626T112327Z/comms
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-worker4-anchor-sweep-20260626T112327Z/compliance
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-worker4-anchor-sweep-20260626T112327Z/compute
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-worker4-anchor-sweep-20260626T112327Z/console
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-worker4-anchor-sweep-20260626T112327Z/contracts
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-worker4-anchor-sweep-20260626T112327Z/data
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-worker4-anchor-sweep-20260626T112327Z/docs
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-worker4-anchor-sweep-20260626T112327Z/evidence
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-worker4-anchor-sweep-20260626T112327Z/flags
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-worker4-anchor-sweep-20260626T112327Z/gateway
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-worker4-anchor-sweep-20260626T112327Z/governance
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-worker4-anchor-sweep-20260626T112327Z/iac
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-worker4-anchor-sweep-20260626T112327Z/iam
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-worker4-anchor-sweep-20260626T112327Z/infra
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-worker4-anchor-sweep-20260626T112327Z/intelligence
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-worker4-anchor-sweep-20260626T112327Z/k8s
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-worker4-anchor-sweep-20260626T112327Z/libs
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-worker4-anchor-sweep-20260626T112327Z/marketplace
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-worker4-anchor-sweep-20260626T112327Z/messaging
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-worker4-anchor-sweep-20260626T112327Z/network
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-worker4-anchor-sweep-20260626T112327Z/observability
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-worker4-anchor-sweep-20260626T112327Z/oya
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-worker4-anchor-sweep-20260626T112327Z/packs
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-worker4-anchor-sweep-20260626T112327Z/plan
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-worker4-anchor-sweep-20260626T112327Z/registry
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-worker4-anchor-sweep-20260626T112327Z/scripts
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-worker4-anchor-sweep-20260626T112327Z/secrets
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-worker4-anchor-sweep-20260626T112327Z/specs
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-worker4-anchor-sweep-20260626T112327Z/storage
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-worker4-anchor-sweep-20260626T112327Z/tasks
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-worker4-anchor-sweep-20260626T112327Z/templates
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-worker4-anchor-sweep-20260626T112327Z/tenancy
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-worker4-anchor-sweep-20260626T112327Z/third-party
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-worker4-anchor-sweep-20260626T112327Z/toolchains
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-worker4-anchor-sweep-20260626T112327Z/tools
+/Users/jasonlee/oyatie-worktrees/python-mjs-rust-worker4-anchor-sweep-20260626T112327Z/workflow
+/Users/jasonlee/oyatie-worktrees/team-leader-ci-velocity-20260626T043322Z
+/Users/jasonlee/oyatie-worktrees/team-leader-ci-velocity-20260626T043322Z/.cargo
+/Users/jasonlee/oyatie-worktrees/team-leader-ci-velocity-20260626T043322Z/.claude
+/Users/jasonlee/oyatie-worktrees/team-leader-ci-velocity-20260626T043322Z/.codex
+/Users/jasonlee/oyatie-worktrees/team-leader-ci-velocity-20260626T043322Z/.config
+/Users/jasonlee/oyatie-worktrees/team-leader-ci-velocity-20260626T043322Z/.github
+/Users/jasonlee/oyatie-worktrees/team-leader-ci-velocity-20260626T043322Z/.omc
+/Users/jasonlee/oyatie-worktrees/team-leader-ci-velocity-20260626T043322Z/.omx
+/Users/jasonlee/oyatie-worktrees/team-leader-ci-velocity-20260626T043322Z/audit
+/Users/jasonlee/oyatie-worktrees/team-leader-ci-velocity-20260626T043322Z/benchmarks
+/Users/jasonlee/oyatie-worktrees/team-leader-ci-velocity-20260626T043322Z/billing
+/Users/jasonlee/oyatie-worktrees/team-leader-ci-velocity-20260626T043322Z/cell
+/Users/jasonlee/oyatie-worktrees/team-leader-ci-velocity-20260626T043322Z/cloud
+/Users/jasonlee/oyatie-worktrees/team-leader-ci-velocity-20260626T043322Z/comms
+/Users/jasonlee/oyatie-worktrees/team-leader-ci-velocity-20260626T043322Z/compliance
+/Users/jasonlee/oyatie-worktrees/team-leader-ci-velocity-20260626T043322Z/compute
+/Users/jasonlee/oyatie-worktrees/team-leader-ci-velocity-20260626T043322Z/console
+/Users/jasonlee/oyatie-worktrees/team-leader-ci-velocity-20260626T043322Z/contracts
+/Users/jasonlee/oyatie-worktrees/team-leader-ci-velocity-20260626T043322Z/data
+/Users/jasonlee/oyatie-worktrees/team-leader-ci-velocity-20260626T043322Z/docs
+/Users/jasonlee/oyatie-worktrees/team-leader-ci-velocity-20260626T043322Z/evidence
+/Users/jasonlee/oyatie-worktrees/team-leader-ci-velocity-20260626T043322Z/flags
+/Users/jasonlee/oyatie-worktrees/team-leader-ci-velocity-20260626T043322Z/gateway
+/Users/jasonlee/oyatie-worktrees/team-leader-ci-velocity-20260626T043322Z/governance
+/Users/jasonlee/oyatie-worktrees/team-leader-ci-velocity-20260626T043322Z/iac
+/Users/jasonlee/oyatie-worktrees/team-leader-ci-velocity-20260626T043322Z/iam
+/Users/jasonlee/oyatie-worktrees/team-leader-ci-velocity-20260626T043322Z/infra
+/Users/jasonlee/oyatie-worktrees/team-leader-ci-velocity-20260626T043322Z/intelligence
+/Users/jasonlee/oyatie-worktrees/team-leader-ci-velocity-20260626T043322Z/k8s
+/Users/jasonlee/oyatie-worktrees/team-leader-ci-velocity-20260626T043322Z/libs
+/Users/jasonlee/oyatie-worktrees/team-leader-ci-velocity-20260626T043322Z/marketplace
+/Users/jasonlee/oyatie-worktrees/team-leader-ci-velocity-20260626T043322Z/messaging
+/Users/jasonlee/oyatie-worktrees/team-leader-ci-velocity-20260626T043322Z/network
+/Users/jasonlee/oyatie-worktrees/team-leader-ci-velocity-20260626T043322Z/observability
+/Users/jasonlee/oyatie-worktrees/team-leader-ci-velocity-20260626T043322Z/oya
+/Users/jasonlee/oyatie-worktrees/team-leader-ci-velocity-20260626T043322Z/packs
+/Users/jasonlee/oyatie-worktrees/team-leader-ci-velocity-20260626T043322Z/plan
+/Users/jasonlee/oyatie-worktrees/team-leader-ci-velocity-20260626T043322Z/registry
+/Users/jasonlee/oyatie-worktrees/team-leader-ci-velocity-20260626T043322Z/scripts
+/Users/jasonlee/oyatie-worktrees/team-leader-ci-velocity-20260626T043322Z/secrets
+/Users/jasonlee/oyatie-worktrees/team-leader-ci-velocity-20260626T043322Z/specs
+/Users/jasonlee/oyatie-worktrees/team-leader-ci-velocity-20260626T043322Z/storage
+/Users/jasonlee/oyatie-worktrees/team-leader-ci-velocity-20260626T043322Z/tasks
+/Users/jasonlee/oyatie-worktrees/team-leader-ci-velocity-20260626T043322Z/templates
+/Users/jasonlee/oyatie-worktrees/team-leader-ci-velocity-20260626T043322Z/tenancy
+/Users/jasonlee/oyatie-worktrees/team-leader-ci-velocity-20260626T043322Z/third-party
+/Users/jasonlee/oyatie-worktrees/team-leader-ci-velocity-20260626T043322Z/toolchains
+/Users/jasonlee/oyatie-worktrees/team-leader-ci-velocity-20260626T043322Z/tools
+/Users/jasonlee/oyatie-worktrees/team-leader-ci-velocity-20260626T043322Z/workflow
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-20260626T044133Z
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-20260626T044133Z/.cargo
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-20260626T044133Z/.claude
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-20260626T044133Z/.codex
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-20260626T044133Z/.config
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-20260626T044133Z/.github
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-20260626T044133Z/.omc
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-20260626T044133Z/.omx
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-20260626T044133Z/audit
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-20260626T044133Z/benchmarks
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-20260626T044133Z/billing
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-20260626T044133Z/cell
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-20260626T044133Z/cloud
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-20260626T044133Z/comms
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-20260626T044133Z/compliance
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-20260626T044133Z/compute
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-20260626T044133Z/console
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-20260626T044133Z/contracts
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-20260626T044133Z/data
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-20260626T044133Z/docs
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-20260626T044133Z/evidence
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-20260626T044133Z/flags
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-20260626T044133Z/gateway
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-20260626T044133Z/governance
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-20260626T044133Z/iac
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-20260626T044133Z/iam
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-20260626T044133Z/infra
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-20260626T044133Z/intelligence
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-20260626T044133Z/k8s
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-20260626T044133Z/libs
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-20260626T044133Z/marketplace
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-20260626T044133Z/messaging
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-20260626T044133Z/network
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-20260626T044133Z/observability
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-20260626T044133Z/oya
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-20260626T044133Z/packs
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-20260626T044133Z/plan
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-20260626T044133Z/registry
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-20260626T044133Z/scripts
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-20260626T044133Z/secrets
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-20260626T044133Z/specs
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-20260626T044133Z/storage
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-20260626T044133Z/tasks
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-20260626T044133Z/templates
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-20260626T044133Z/tenancy
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-20260626T044133Z/third-party
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-20260626T044133Z/toolchains
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-20260626T044133Z/tools
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-20260626T044133Z/workflow
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-b-20260626T044133Z
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-b-20260626T044133Z/.cargo
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-b-20260626T044133Z/.claude
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-b-20260626T044133Z/.codex
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-b-20260626T044133Z/.config
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-b-20260626T044133Z/.github
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-b-20260626T044133Z/.omc
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-b-20260626T044133Z/.omx
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-b-20260626T044133Z/audit
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-b-20260626T044133Z/benchmarks
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-b-20260626T044133Z/billing
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-b-20260626T044133Z/cell
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-b-20260626T044133Z/cloud
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-b-20260626T044133Z/comms
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-b-20260626T044133Z/compliance
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-b-20260626T044133Z/compute
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-b-20260626T044133Z/console
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-b-20260626T044133Z/contracts
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-b-20260626T044133Z/data
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-b-20260626T044133Z/docs
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-b-20260626T044133Z/evidence
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-b-20260626T044133Z/flags
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-b-20260626T044133Z/gateway
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-b-20260626T044133Z/governance
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-b-20260626T044133Z/iac
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-b-20260626T044133Z/iam
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-b-20260626T044133Z/infra
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-b-20260626T044133Z/intelligence
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-b-20260626T044133Z/k8s
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-b-20260626T044133Z/libs
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-b-20260626T044133Z/marketplace
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-b-20260626T044133Z/messaging
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-b-20260626T044133Z/network
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-b-20260626T044133Z/observability
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-b-20260626T044133Z/oya
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-b-20260626T044133Z/packs
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-b-20260626T044133Z/plan
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-b-20260626T044133Z/registry
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-b-20260626T044133Z/scripts
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-b-20260626T044133Z/secrets
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-b-20260626T044133Z/specs
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-b-20260626T044133Z/storage
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-b-20260626T044133Z/tasks
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-b-20260626T044133Z/templates
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-b-20260626T044133Z/tenancy
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-b-20260626T044133Z/third-party
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-b-20260626T044133Z/toolchains
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-b-20260626T044133Z/tools
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-b-20260626T044133Z/workflow
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c-20260626T044133Z
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c-20260626T044133Z/.cargo
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c-20260626T044133Z/.claude
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c-20260626T044133Z/.codex
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c-20260626T044133Z/.config
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c-20260626T044133Z/.github
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c-20260626T044133Z/.omc
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c-20260626T044133Z/.omx
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c-20260626T044133Z/audit
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c-20260626T044133Z/benchmarks
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c-20260626T044133Z/billing
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c-20260626T044133Z/cell
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c-20260626T044133Z/cloud
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c-20260626T044133Z/comms
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c-20260626T044133Z/compliance
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c-20260626T044133Z/compute
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c-20260626T044133Z/console
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c-20260626T044133Z/contracts
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c-20260626T044133Z/data
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c-20260626T044133Z/docs
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c-20260626T044133Z/evidence
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c-20260626T044133Z/flags
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c-20260626T044133Z/gateway
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c-20260626T044133Z/governance
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c-20260626T044133Z/iac
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c-20260626T044133Z/iam
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c-20260626T044133Z/infra
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c-20260626T044133Z/intelligence
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c-20260626T044133Z/k8s
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c-20260626T044133Z/libs
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c-20260626T044133Z/marketplace
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c-20260626T044133Z/messaging
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c-20260626T044133Z/network
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c-20260626T044133Z/observability
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c-20260626T044133Z/oya
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c-20260626T044133Z/packs
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c-20260626T044133Z/plan
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c-20260626T044133Z/registry
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c-20260626T044133Z/scripts
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c-20260626T044133Z/secrets
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c-20260626T044133Z/specs
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c-20260626T044133Z/storage
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c-20260626T044133Z/tasks
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c-20260626T044133Z/templates
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c-20260626T044133Z/tenancy
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c-20260626T044133Z/third-party
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c-20260626T044133Z/toolchains
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c-20260626T044133Z/tools
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c-20260626T044133Z/workflow
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/.cargo
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/.claude
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/.codex
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/.config
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/.github
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/.omc
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/.omx
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/audit
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/benchmarks
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/billing
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/cell
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/cloud
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/comms
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/compliance
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/compute
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/console
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/contracts
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/data
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/docs
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/evidence
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/flags
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/gateway
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/governance
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/iac
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/iam
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/infra
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/intelligence
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/k8s
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/libs
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/marketplace
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/messaging
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/network
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/observability
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/oya
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/packs
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/plan
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/registry
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/scripts
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/secrets
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/specs
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/storage
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/tasks
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/templates
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/tenancy
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/third-party
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/toolchains
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/tools
+/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/workflow
+/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625
+/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.cargo
+/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.claude
+/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.codex
+/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.config
+/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.github
+/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omc
+/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx
+/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/audit
+/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/benchmarks
+/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/billing
+/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/cell
+/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/cloud
+/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/comms
+/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/compliance
+/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/compute
+/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/console
+/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/contracts
+/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/data
+/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/docs
+/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/evidence
+/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/flags
+/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/gateway
+/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/governance
+/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/iac
+/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/iam
+/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/infra
+/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/intelligence
+/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/k8s
+/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/libs
+/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/marketplace
+/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/messaging
+/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/network
+/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/observability
+/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/oya
+/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/packs
+/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/plan
+/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/registry
+/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/scripts
+/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/secrets
+/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/specs
+/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/storage
+/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/tasks
+/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/templates
+/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/tenancy
+/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/third-party
+/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/toolchains
+/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/tools
+/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/workflow
+/Users/jasonlee/oyatie-worktrees/team-leader-waveb-pr-wip-20260626T023204Z
+/Users/jasonlee/oyatie-worktrees/team-leader-waveb-pr-wip-20260626T023204Z/.cargo
+/Users/jasonlee/oyatie-worktrees/team-leader-waveb-pr-wip-20260626T023204Z/.claude
+/Users/jasonlee/oyatie-worktrees/team-leader-waveb-pr-wip-20260626T023204Z/.codex
+/Users/jasonlee/oyatie-worktrees/team-leader-waveb-pr-wip-20260626T023204Z/.config
+/Users/jasonlee/oyatie-worktrees/team-leader-waveb-pr-wip-20260626T023204Z/.github
+/Users/jasonlee/oyatie-worktrees/team-leader-waveb-pr-wip-20260626T023204Z/.omc
+/Users/jasonlee/oyatie-worktrees/team-leader-waveb-pr-wip-20260626T023204Z/.omx
+/Users/jasonlee/oyatie-worktrees/team-leader-waveb-pr-wip-20260626T023204Z/audit
+/Users/jasonlee/oyatie-worktrees/team-leader-waveb-pr-wip-20260626T023204Z/benchmarks
+/Users/jasonlee/oyatie-worktrees/team-leader-waveb-pr-wip-20260626T023204Z/billing
+/Users/jasonlee/oyatie-worktrees/team-leader-waveb-pr-wip-20260626T023204Z/cell
+/Users/jasonlee/oyatie-worktrees/team-leader-waveb-pr-wip-20260626T023204Z/cloud
+/Users/jasonlee/oyatie-worktrees/team-leader-waveb-pr-wip-20260626T023204Z/comms
+/Users/jasonlee/oyatie-worktrees/team-leader-waveb-pr-wip-20260626T023204Z/compliance
+/Users/jasonlee/oyatie-worktrees/team-leader-waveb-pr-wip-20260626T023204Z/compute
+/Users/jasonlee/oyatie-worktrees/team-leader-waveb-pr-wip-20260626T023204Z/console
+/Users/jasonlee/oyatie-worktrees/team-leader-waveb-pr-wip-20260626T023204Z/contracts
+/Users/jasonlee/oyatie-worktrees/team-leader-waveb-pr-wip-20260626T023204Z/data
+/Users/jasonlee/oyatie-worktrees/team-leader-waveb-pr-wip-20260626T023204Z/docs
+/Users/jasonlee/oyatie-worktrees/team-leader-waveb-pr-wip-20260626T023204Z/evidence
+/Users/jasonlee/oyatie-worktrees/team-leader-waveb-pr-wip-20260626T023204Z/flags
+/Users/jasonlee/oyatie-worktrees/team-leader-waveb-pr-wip-20260626T023204Z/gateway
+/Users/jasonlee/oyatie-worktrees/team-leader-waveb-pr-wip-20260626T023204Z/governance
+/Users/jasonlee/oyatie-worktrees/team-leader-waveb-pr-wip-20260626T023204Z/iac
+/Users/jasonlee/oyatie-worktrees/team-leader-waveb-pr-wip-20260626T023204Z/iam
+/Users/jasonlee/oyatie-worktrees/team-leader-waveb-pr-wip-20260626T023204Z/infra
+/Users/jasonlee/oyatie-worktrees/team-leader-waveb-pr-wip-20260626T023204Z/intelligence
+/Users/jasonlee/oyatie-worktrees/team-leader-waveb-pr-wip-20260626T023204Z/k8s
+/Users/jasonlee/oyatie-worktrees/team-leader-waveb-pr-wip-20260626T023204Z/libs
+/Users/jasonlee/oyatie-worktrees/team-leader-waveb-pr-wip-20260626T023204Z/marketplace
+/Users/jasonlee/oyatie-worktrees/team-leader-waveb-pr-wip-20260626T023204Z/messaging
+/Users/jasonlee/oyatie-worktrees/team-leader-waveb-pr-wip-20260626T023204Z/network
+/Users/jasonlee/oyatie-worktrees/team-leader-waveb-pr-wip-20260626T023204Z/observability
+/Users/jasonlee/oyatie-worktrees/team-leader-waveb-pr-wip-20260626T023204Z/oya
+/Users/jasonlee/oyatie-worktrees/team-leader-waveb-pr-wip-20260626T023204Z/packs
+/Users/jasonlee/oyatie-worktrees/team-leader-waveb-pr-wip-20260626T023204Z/plan
+/Users/jasonlee/oyatie-worktrees/team-leader-waveb-pr-wip-20260626T023204Z/registry
+/Users/jasonlee/oyatie-worktrees/team-leader-waveb-pr-wip-20260626T023204Z/scripts
+/Users/jasonlee/oyatie-worktrees/team-leader-waveb-pr-wip-20260626T023204Z/secrets
+/Users/jasonlee/oyatie-worktrees/team-leader-waveb-pr-wip-20260626T023204Z/specs
+/Users/jasonlee/oyatie-worktrees/team-leader-waveb-pr-wip-20260626T023204Z/storage
+/Users/jasonlee/oyatie-worktrees/team-leader-waveb-pr-wip-20260626T023204Z/tasks
+/Users/jasonlee/oyatie-worktrees/team-leader-waveb-pr-wip-20260626T023204Z/templates
+/Users/jasonlee/oyatie-worktrees/team-leader-waveb-pr-wip-20260626T023204Z/tenancy
+/Users/jasonlee/oyatie-worktrees/team-leader-waveb-pr-wip-20260626T023204Z/third-party
+/Users/jasonlee/oyatie-worktrees/team-leader-waveb-pr-wip-20260626T023204Z/toolchains
+/Users/jasonlee/oyatie-worktrees/team-leader-waveb-pr-wip-20260626T023204Z/tools
+/Users/jasonlee/oyatie-worktrees/team-leader-waveb-pr-wip-20260626T023204Z/workflow
+/Users/jasonlee/oyatie-worktrees/team-python-mjs-rust-leader-20260626T105958Z
+/Users/jasonlee/oyatie-worktrees/team-python-mjs-rust-leader-20260626T105958Z/.cargo
+/Users/jasonlee/oyatie-worktrees/team-python-mjs-rust-leader-20260626T105958Z/.claude
+/Users/jasonlee/oyatie-worktrees/team-python-mjs-rust-leader-20260626T105958Z/.codex
+/Users/jasonlee/oyatie-worktrees/team-python-mjs-rust-leader-20260626T105958Z/.config
+/Users/jasonlee/oyatie-worktrees/team-python-mjs-rust-leader-20260626T105958Z/.github
+/Users/jasonlee/oyatie-worktrees/team-python-mjs-rust-leader-20260626T105958Z/.omc
+/Users/jasonlee/oyatie-worktrees/team-python-mjs-rust-leader-20260626T105958Z/.omx
+/Users/jasonlee/oyatie-worktrees/team-python-mjs-rust-leader-20260626T105958Z/audit
+/Users/jasonlee/oyatie-worktrees/team-python-mjs-rust-leader-20260626T105958Z/benchmarks
+/Users/jasonlee/oyatie-worktrees/team-python-mjs-rust-leader-20260626T105958Z/billing
+/Users/jasonlee/oyatie-worktrees/team-python-mjs-rust-leader-20260626T105958Z/cell
+/Users/jasonlee/oyatie-worktrees/team-python-mjs-rust-leader-20260626T105958Z/cloud
+/Users/jasonlee/oyatie-worktrees/team-python-mjs-rust-leader-20260626T105958Z/comms
+/Users/jasonlee/oyatie-worktrees/team-python-mjs-rust-leader-20260626T105958Z/compliance
+/Users/jasonlee/oyatie-worktrees/team-python-mjs-rust-leader-20260626T105958Z/compute
+/Users/jasonlee/oyatie-worktrees/team-python-mjs-rust-leader-20260626T105958Z/console
+/Users/jasonlee/oyatie-worktrees/team-python-mjs-rust-leader-20260626T105958Z/contracts
+/Users/jasonlee/oyatie-worktrees/team-python-mjs-rust-leader-20260626T105958Z/data
+/Users/jasonlee/oyatie-worktrees/team-python-mjs-rust-leader-20260626T105958Z/docs
+/Users/jasonlee/oyatie-worktrees/team-python-mjs-rust-leader-20260626T105958Z/evidence
+/Users/jasonlee/oyatie-worktrees/team-python-mjs-rust-leader-20260626T105958Z/flags
+/Users/jasonlee/oyatie-worktrees/team-python-mjs-rust-leader-20260626T105958Z/gateway
+/Users/jasonlee/oyatie-worktrees/team-python-mjs-rust-leader-20260626T105958Z/governance
+/Users/jasonlee/oyatie-worktrees/team-python-mjs-rust-leader-20260626T105958Z/iac
+/Users/jasonlee/oyatie-worktrees/team-python-mjs-rust-leader-20260626T105958Z/iam
+/Users/jasonlee/oyatie-worktrees/team-python-mjs-rust-leader-20260626T105958Z/infra
+/Users/jasonlee/oyatie-worktrees/team-python-mjs-rust-leader-20260626T105958Z/intelligence
+/Users/jasonlee/oyatie-worktrees/team-python-mjs-rust-leader-20260626T105958Z/k8s
+/Users/jasonlee/oyatie-worktrees/team-python-mjs-rust-leader-20260626T105958Z/libs
+/Users/jasonlee/oyatie-worktrees/team-python-mjs-rust-leader-20260626T105958Z/marketplace
+/Users/jasonlee/oyatie-worktrees/team-python-mjs-rust-leader-20260626T105958Z/messaging
+/Users/jasonlee/oyatie-worktrees/team-python-mjs-rust-leader-20260626T105958Z/network
+/Users/jasonlee/oyatie-worktrees/team-python-mjs-rust-leader-20260626T105958Z/observability
+/Users/jasonlee/oyatie-worktrees/team-python-mjs-rust-leader-20260626T105958Z/oya
+/Users/jasonlee/oyatie-worktrees/team-python-mjs-rust-leader-20260626T105958Z/packs
+/Users/jasonlee/oyatie-worktrees/team-python-mjs-rust-leader-20260626T105958Z/plan
+/Users/jasonlee/oyatie-worktrees/team-python-mjs-rust-leader-20260626T105958Z/registry
+/Users/jasonlee/oyatie-worktrees/team-python-mjs-rust-leader-20260626T105958Z/scripts
+/Users/jasonlee/oyatie-worktrees/team-python-mjs-rust-leader-20260626T105958Z/secrets
+/Users/jasonlee/oyatie-worktrees/team-python-mjs-rust-leader-20260626T105958Z/specs
+/Users/jasonlee/oyatie-worktrees/team-python-mjs-rust-leader-20260626T105958Z/storage
+/Users/jasonlee/oyatie-worktrees/team-python-mjs-rust-leader-20260626T105958Z/tasks
+/Users/jasonlee/oyatie-worktrees/team-python-mjs-rust-leader-20260626T105958Z/templates
+/Users/jasonlee/oyatie-worktrees/team-python-mjs-rust-leader-20260626T105958Z/tenancy
+/Users/jasonlee/oyatie-worktrees/team-python-mjs-rust-leader-20260626T105958Z/third-party
+/Users/jasonlee/oyatie-worktrees/team-python-mjs-rust-leader-20260626T105958Z/toolchains
+/Users/jasonlee/oyatie-worktrees/team-python-mjs-rust-leader-20260626T105958Z/tools
+/Users/jasonlee/oyatie-worktrees/team-python-mjs-rust-leader-20260626T105958Z/workflow
+/Users/jasonlee/oyatie-worktrees/ultragoal-wave-a-20260626T203951Z
+/Users/jasonlee/oyatie-worktrees/ultragoal-wave-a-20260626T203951Z/.cargo
+/Users/jasonlee/oyatie-worktrees/ultragoal-wave-a-20260626T203951Z/.claude
+/Users/jasonlee/oyatie-worktrees/ultragoal-wave-a-20260626T203951Z/.codex
+/Users/jasonlee/oyatie-worktrees/ultragoal-wave-a-20260626T203951Z/.config
+/Users/jasonlee/oyatie-worktrees/ultragoal-wave-a-20260626T203951Z/.github
+/Users/jasonlee/oyatie-worktrees/ultragoal-wave-a-20260626T203951Z/.omc
+/Users/jasonlee/oyatie-worktrees/ultragoal-wave-a-20260626T203951Z/.omx
+/Users/jasonlee/oyatie-worktrees/ultragoal-wave-a-20260626T203951Z/audit
+/Users/jasonlee/oyatie-worktrees/ultragoal-wave-a-20260626T203951Z/benchmarks
+/Users/jasonlee/oyatie-worktrees/ultragoal-wave-a-20260626T203951Z/billing
+/Users/jasonlee/oyatie-worktrees/ultragoal-wave-a-20260626T203951Z/buck-out
+/Users/jasonlee/oyatie-worktrees/ultragoal-wave-a-20260626T203951Z/cell
+/Users/jasonlee/oyatie-worktrees/ultragoal-wave-a-20260626T203951Z/cloud
+/Users/jasonlee/oyatie-worktrees/ultragoal-wave-a-20260626T203951Z/comms
+/Users/jasonlee/oyatie-worktrees/ultragoal-wave-a-20260626T203951Z/compliance
+/Users/jasonlee/oyatie-worktrees/ultragoal-wave-a-20260626T203951Z/compute
+/Users/jasonlee/oyatie-worktrees/ultragoal-wave-a-20260626T203951Z/console
+/Users/jasonlee/oyatie-worktrees/ultragoal-wave-a-20260626T203951Z/contracts
+/Users/jasonlee/oyatie-worktrees/ultragoal-wave-a-20260626T203951Z/data
+/Users/jasonlee/oyatie-worktrees/ultragoal-wave-a-20260626T203951Z/docs
+/Users/jasonlee/oyatie-worktrees/ultragoal-wave-a-20260626T203951Z/evidence
+/Users/jasonlee/oyatie-worktrees/ultragoal-wave-a-20260626T203951Z/flags
+/Users/jasonlee/oyatie-worktrees/ultragoal-wave-a-20260626T203951Z/gateway
+/Users/jasonlee/oyatie-worktrees/ultragoal-wave-a-20260626T203951Z/governance
+/Users/jasonlee/oyatie-worktrees/ultragoal-wave-a-20260626T203951Z/iac
+/Users/jasonlee/oyatie-worktrees/ultragoal-wave-a-20260626T203951Z/iam
+/Users/jasonlee/oyatie-worktrees/ultragoal-wave-a-20260626T203951Z/infra
+/Users/jasonlee/oyatie-worktrees/ultragoal-wave-a-20260626T203951Z/intelligence
+/Users/jasonlee/oyatie-worktrees/ultragoal-wave-a-20260626T203951Z/k8s
+/Users/jasonlee/oyatie-worktrees/ultragoal-wave-a-20260626T203951Z/libs
+/Users/jasonlee/oyatie-worktrees/ultragoal-wave-a-20260626T203951Z/marketplace
+/Users/jasonlee/oyatie-worktrees/ultragoal-wave-a-20260626T203951Z/messaging
+/Users/jasonlee/oyatie-worktrees/ultragoal-wave-a-20260626T203951Z/network
+/Users/jasonlee/oyatie-worktrees/ultragoal-wave-a-20260626T203951Z/observability
+/Users/jasonlee/oyatie-worktrees/ultragoal-wave-a-20260626T203951Z/oya
+/Users/jasonlee/oyatie-worktrees/ultragoal-wave-a-20260626T203951Z/packs
+/Users/jasonlee/oyatie-worktrees/ultragoal-wave-a-20260626T203951Z/plan
+/Users/jasonlee/oyatie-worktrees/ultragoal-wave-a-20260626T203951Z/registry
+/Users/jasonlee/oyatie-worktrees/ultragoal-wave-a-20260626T203951Z/scripts
+/Users/jasonlee/oyatie-worktrees/ultragoal-wave-a-20260626T203951Z/secrets
+/Users/jasonlee/oyatie-worktrees/ultragoal-wave-a-20260626T203951Z/specs
+/Users/jasonlee/oyatie-worktrees/ultragoal-wave-a-20260626T203951Z/storage
+/Users/jasonlee/oyatie-worktrees/ultragoal-wave-a-20260626T203951Z/tasks
+/Users/jasonlee/oyatie-worktrees/ultragoal-wave-a-20260626T203951Z/templates
+/Users/jasonlee/oyatie-worktrees/ultragoal-wave-a-20260626T203951Z/tenancy
+/Users/jasonlee/oyatie-worktrees/ultragoal-wave-a-20260626T203951Z/third-party
+/Users/jasonlee/oyatie-worktrees/ultragoal-wave-a-20260626T203951Z/toolchains
+/Users/jasonlee/oyatie-worktrees/ultragoal-wave-a-20260626T203951Z/tools
+/Users/jasonlee/oyatie-worktrees/ultragoal-wave-a-20260626T203951Z/workflow
+/Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629
+/Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629/.cargo
+/Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629/.claude
+/Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629/.codex
+/Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629/.config
+/Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629/.github
+/Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629/.omc
+/Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629/.omx
+/Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629/audit
+/Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629/benchmarks
+/Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629/billing
+/Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629/buck-out
+/Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629/cell
+/Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629/cloud
+/Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629/comms
+/Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629/compliance
+/Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629/compute
+/Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629/console
+/Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629/contracts
+/Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629/data
+/Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629/docs
+/Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629/evidence
+/Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629/flags
+/Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629/gateway
+/Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629/governance
+/Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629/iac
+/Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629/iam
+/Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629/infra
+/Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629/intelligence
+/Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629/k8s
+/Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629/libs
+/Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629/marketplace
+/Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629/messaging
+/Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629/network
+/Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629/observability
+/Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629/oya
+/Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629/packs
+/Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629/plan
+/Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629/registry
+/Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629/scripts
+/Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629/secrets
+/Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629/specs
+/Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629/storage
+/Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629/target
+/Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629/tasks
+/Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629/templates
+/Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629/tenancy
+/Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629/third-party
+/Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629/toolchains
+/Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629/tools
+/Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629/workflow
+/Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629
+/Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629/.cargo
+/Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629/.claude
+/Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629/.codex
+/Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629/.config
+/Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629/.github
+/Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629/.omc
+/Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629/.omx
+/Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629/audit
+/Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629/benchmarks
+/Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629/billing
+/Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629/buck-out
+/Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629/cell
+/Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629/cloud
+/Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629/comms
+/Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629/compliance
+/Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629/compute
+/Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629/console
+/Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629/contracts
+/Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629/data
+/Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629/docs
+/Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629/evidence
+/Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629/flags
+/Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629/gateway
+/Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629/governance
+/Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629/iac
+/Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629/iam
+/Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629/infra
+/Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629/intelligence
+/Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629/k8s
+/Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629/libs
+/Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629/marketplace
+/Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629/messaging
+/Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629/network
+/Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629/observability
+/Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629/oya
+/Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629/packs
+/Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629/plan
+/Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629/registry
+/Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629/scripts
+/Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629/secrets
+/Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629/specs
+/Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629/storage
+/Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629/target
+/Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629/tasks
+/Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629/templates
+/Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629/tenancy
+/Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629/third-party
+/Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629/toolchains
+/Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629/tools
+/Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629/workflow
+/Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629
+/Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629/.cargo
+/Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629/.claude
+/Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629/.codex
+/Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629/.config
+/Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629/.github
+/Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629/.omc
+/Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629/.omx
+/Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629/audit
+/Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629/benchmarks
+/Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629/billing
+/Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629/buck-out
+/Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629/cell
+/Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629/cloud
+/Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629/comms
+/Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629/compliance
+/Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629/compute
+/Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629/console
+/Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629/contracts
+/Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629/data
+/Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629/docs
+/Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629/evidence
+/Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629/flags
+/Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629/gateway
+/Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629/governance
+/Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629/iac
+/Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629/iam
+/Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629/infra
+/Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629/intelligence
+/Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629/k8s
+/Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629/libs
+/Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629/marketplace
+/Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629/messaging
+/Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629/network
+/Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629/observability
+/Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629/oya
+/Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629/packs
+/Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629/plan
+/Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629/registry
+/Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629/scripts
+/Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629/secrets
+/Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629/specs
+/Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629/storage
+/Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629/target
+/Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629/tasks
+/Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629/templates
+/Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629/tenancy
+/Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629/third-party
+/Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629/toolchains
+/Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629/tools
+/Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629/workflow
+/Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629
+/Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629/.cargo
+/Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629/.claude
+/Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629/.codex
+/Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629/.config
+/Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629/.github
+/Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629/.omc
+/Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629/.omx
+/Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629/audit
+/Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629/benchmarks
+/Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629/billing
+/Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629/buck-out
+/Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629/cell
+/Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629/cloud
+/Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629/comms
+/Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629/compliance
+/Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629/compute
+/Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629/console
+/Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629/contracts
+/Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629/data
+/Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629/docs
+/Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629/evidence
+/Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629/flags
+/Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629/gateway
+/Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629/governance
+/Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629/iac
+/Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629/iam
+/Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629/infra
+/Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629/intelligence
+/Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629/k8s
+/Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629/libs
+/Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629/marketplace
+/Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629/messaging
+/Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629/network
+/Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629/observability
+/Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629/oya
+/Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629/packs
+/Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629/plan
+/Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629/registry
+/Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629/scripts
+/Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629/secrets
+/Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629/specs
+/Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629/storage
+/Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629/target
+/Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629/tasks
+/Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629/templates
+/Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629/tenancy
+/Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629/third-party
+/Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629/toolchains
+/Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629/tools
+/Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629/workflow
+/Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629
+/Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629/.cargo
+/Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629/.claude
+/Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629/.codex
+/Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629/.config
+/Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629/.github
+/Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629/.omc
+/Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629/.omx
+/Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629/audit
+/Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629/benchmarks
+/Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629/billing
+/Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629/buck-out
+/Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629/cell
+/Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629/cloud
+/Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629/comms
+/Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629/compliance
+/Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629/compute
+/Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629/console
+/Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629/contracts
+/Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629/data
+/Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629/docs
+/Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629/evidence
+/Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629/flags
+/Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629/gateway
+/Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629/governance
+/Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629/iac
+/Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629/iam
+/Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629/infra
+/Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629/intelligence
+/Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629/k8s
+/Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629/libs
+/Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629/marketplace
+/Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629/messaging
+/Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629/network
+/Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629/observability
+/Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629/oya
+/Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629/packs
+/Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629/plan
+/Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629/registry
+/Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629/scripts
+/Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629/secrets
+/Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629/specs
+/Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629/storage
+/Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629/target
+/Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629/tasks
+/Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629/templates
+/Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629/tenancy
+/Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629/third-party
+/Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629/toolchains
+/Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629/tools
+/Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629/workflow
+/Users/jasonlee/oyatie-worktrees/waveA-hr-payroll-20260625173629
+/Users/jasonlee/oyatie-worktrees/waveA-hr-payroll-20260625173629/.cargo
+/Users/jasonlee/oyatie-worktrees/waveA-hr-payroll-20260625173629/.claude
+/Users/jasonlee/oyatie-worktrees/waveA-hr-payroll-20260625173629/.codex
+/Users/jasonlee/oyatie-worktrees/waveA-hr-payroll-20260625173629/.config
+/Users/jasonlee/oyatie-worktrees/waveA-hr-payroll-20260625173629/.github
+/Users/jasonlee/oyatie-worktrees/waveA-hr-payroll-20260625173629/.omc
+/Users/jasonlee/oyatie-worktrees/waveA-hr-payroll-20260625173629/.omx
+/Users/jasonlee/oyatie-worktrees/waveA-hr-payroll-20260625173629/audit
+/Users/jasonlee/oyatie-worktrees/waveA-hr-payroll-20260625173629/benchmarks
+/Users/jasonlee/oyatie-worktrees/waveA-hr-payroll-20260625173629/billing
+/Users/jasonlee/oyatie-worktrees/waveA-hr-payroll-20260625173629/buck-out
+/Users/jasonlee/oyatie-worktrees/waveA-hr-payroll-20260625173629/cell
+/Users/jasonlee/oyatie-worktrees/waveA-hr-payroll-20260625173629/cloud
+/Users/jasonlee/oyatie-worktrees/waveA-hr-payroll-20260625173629/comms
+/Users/jasonlee/oyatie-worktrees/waveA-hr-payroll-20260625173629/compliance
+/Users/jasonlee/oyatie-worktrees/waveA-hr-payroll-20260625173629/compute
+/Users/jasonlee/oyatie-worktrees/waveA-hr-payroll-20260625173629/console
+/Users/jasonlee/oyatie-worktrees/waveA-hr-payroll-20260625173629/contracts
+/Users/jasonlee/oyatie-worktrees/waveA-hr-payroll-20260625173629/data
+/Users/jasonlee/oyatie-worktrees/waveA-hr-payroll-20260625173629/docs
+/Users/jasonlee/oyatie-worktrees/waveA-hr-payroll-20260625173629/evidence
+/Users/jasonlee/oyatie-worktrees/waveA-hr-payroll-20260625173629/flags
+/Users/jasonlee/oyatie-worktrees/waveA-hr-payroll-20260625173629/gateway
+/Users/jasonlee/oyatie-worktrees/waveA-hr-payroll-20260625173629/governance
+/Users/jasonlee/oyatie-worktrees/waveA-hr-payroll-20260625173629/iac
+/Users/jasonlee/oyatie-worktrees/waveA-hr-payroll-20260625173629/iam
+/Users/jasonlee/oyatie-worktrees/waveA-hr-payroll-20260625173629/infra
+/Users/jasonlee/oyatie-worktrees/waveA-hr-payroll-20260625173629/intelligence
+/Users/jasonlee/oyatie-worktrees/waveA-hr-payroll-20260625173629/k8s
+/Users/jasonlee/oyatie-worktrees/waveA-hr-payroll-20260625173629/libs
+/Users/jasonlee/oyatie-worktrees/waveA-hr-payroll-20260625173629/marketplace
+/Users/jasonlee/oyatie-worktrees/waveA-hr-payroll-20260625173629/messaging
+/Users/jasonlee/oyatie-worktrees/waveA-hr-payroll-20260625173629/network
+/Users/jasonlee/oyatie-worktrees/waveA-hr-payroll-20260625173629/observability
+/Users/jasonlee/oyatie-worktrees/waveA-hr-payroll-20260625173629/oya
+/Users/jasonlee/oyatie-worktrees/waveA-hr-payroll-20260625173629/packs
+/Users/jasonlee/oyatie-worktrees/waveA-hr-payroll-20260625173629/plan
+/Users/jasonlee/oyatie-worktrees/waveA-hr-payroll-20260625173629/registry
+/Users/jasonlee/oyatie-worktrees/waveA-hr-payroll-20260625173629/scripts
+/Users/jasonlee/oyatie-worktrees/waveA-hr-payroll-20260625173629/secrets
+/Users/jasonlee/oyatie-worktrees/waveA-hr-payroll-20260625173629/specs
+/Users/jasonlee/oyatie-worktrees/waveA-hr-payroll-20260625173629/storage
+/Users/jasonlee/oyatie-worktrees/waveA-hr-payroll-20260625173629/target
+/Users/jasonlee/oyatie-worktrees/waveA-hr-payroll-20260625173629/tasks
+/Users/jasonlee/oyatie-worktrees/waveA-hr-payroll-20260625173629/templates
+/Users/jasonlee/oyatie-worktrees/waveA-hr-payroll-20260625173629/tenancy
+/Users/jasonlee/oyatie-worktrees/waveA-hr-payroll-20260625173629/third-party
+/Users/jasonlee/oyatie-worktrees/waveA-hr-payroll-20260625173629/toolchains
+/Users/jasonlee/oyatie-worktrees/waveA-hr-payroll-20260625173629/tools
+/Users/jasonlee/oyatie-worktrees/waveA-hr-payroll-20260625173629/workflow
+/Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629
+/Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629/.cargo
+/Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629/.claude
+/Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629/.codex
+/Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629/.config
+/Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629/.github
+/Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629/.omc
+/Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629/.omx
+/Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629/audit
+/Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629/benchmarks
+/Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629/billing
+/Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629/buck-out
+/Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629/cell
+/Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629/cloud
+/Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629/comms
+/Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629/compliance
+/Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629/compute
+/Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629/console
+/Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629/contracts
+/Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629/data
+/Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629/docs
+/Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629/evidence
+/Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629/flags
+/Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629/gateway
+/Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629/governance
+/Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629/iac
+/Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629/iam
+/Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629/infra
+/Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629/intelligence
+/Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629/k8s
+/Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629/libs
+/Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629/marketplace
+/Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629/messaging
+/Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629/network
+/Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629/observability
+/Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629/oya
+/Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629/packs
+/Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629/plan
+/Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629/registry
+/Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629/scripts
+/Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629/secrets
+/Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629/specs
+/Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629/storage
+/Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629/target
+/Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629/tasks
+/Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629/templates
+/Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629/tenancy
+/Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629/third-party
+/Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629/toolchains
+/Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629/tools
+/Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629/workflow
+/Users/jasonlee/oyatie-worktrees/waveA-kernel-os-20260625173629
+/Users/jasonlee/oyatie-worktrees/waveA-kernel-os-20260625173629/.cargo
+/Users/jasonlee/oyatie-worktrees/waveA-kernel-os-20260625173629/.claude
+/Users/jasonlee/oyatie-worktrees/waveA-kernel-os-20260625173629/.codex
+/Users/jasonlee/oyatie-worktrees/waveA-kernel-os-20260625173629/.config
+/Users/jasonlee/oyatie-worktrees/waveA-kernel-os-20260625173629/.github
+/Users/jasonlee/oyatie-worktrees/waveA-kernel-os-20260625173629/.omc
+/Users/jasonlee/oyatie-worktrees/waveA-kernel-os-20260625173629/.omx
+/Users/jasonlee/oyatie-worktrees/waveA-kernel-os-20260625173629/audit
+/Users/jasonlee/oyatie-worktrees/waveA-kernel-os-20260625173629/benchmarks
+/Users/jasonlee/oyatie-worktrees/waveA-kernel-os-20260625173629/billing
+/Users/jasonlee/oyatie-worktrees/waveA-kernel-os-20260625173629/buck-out
+/Users/jasonlee/oyatie-worktrees/waveA-kernel-os-20260625173629/cell
+/Users/jasonlee/oyatie-worktrees/waveA-kernel-os-20260625173629/cloud
+/Users/jasonlee/oyatie-worktrees/waveA-kernel-os-20260625173629/comms
+/Users/jasonlee/oyatie-worktrees/waveA-kernel-os-20260625173629/compliance
+/Users/jasonlee/oyatie-worktrees/waveA-kernel-os-20260625173629/compute
+/Users/jasonlee/oyatie-worktrees/waveA-kernel-os-20260625173629/console
+/Users/jasonlee/oyatie-worktrees/waveA-kernel-os-20260625173629/contracts
+/Users/jasonlee/oyatie-worktrees/waveA-kernel-os-20260625173629/data
+/Users/jasonlee/oyatie-worktrees/waveA-kernel-os-20260625173629/docs
+/Users/jasonlee/oyatie-worktrees/waveA-kernel-os-20260625173629/evidence
+/Users/jasonlee/oyatie-worktrees/waveA-kernel-os-20260625173629/flags
+/Users/jasonlee/oyatie-worktrees/waveA-kernel-os-20260625173629/gateway
+/Users/jasonlee/oyatie-worktrees/waveA-kernel-os-20260625173629/governance
+/Users/jasonlee/oyatie-worktrees/waveA-kernel-os-20260625173629/iac
+/Users/jasonlee/oyatie-worktrees/waveA-kernel-os-20260625173629/iam
+/Users/jasonlee/oyatie-worktrees/waveA-kernel-os-20260625173629/infra
+/Users/jasonlee/oyatie-worktrees/waveA-kernel-os-20260625173629/intelligence
+/Users/jasonlee/oyatie-worktrees/waveA-kernel-os-20260625173629/k8s
+/Users/jasonlee/oyatie-worktrees/waveA-kernel-os-20260625173629/libs
+/Users/jasonlee/oyatie-worktrees/waveA-kernel-os-20260625173629/marketplace
+/Users/jasonlee/oyatie-worktrees/waveA-kernel-os-20260625173629/messaging
+/Users/jasonlee/oyatie-worktrees/waveA-kernel-os-20260625173629/network
+/Users/jasonlee/oyatie-worktrees/waveA-kernel-os-20260625173629/observability
+/Users/jasonlee/oyatie-worktrees/waveA-kernel-os-20260625173629/oya
+/Users/jasonlee/oyatie-worktrees/waveA-kernel-os-20260625173629/packs
+/Users/jasonlee/oyatie-worktrees/waveA-kernel-os-20260625173629/plan
+/Users/jasonlee/oyatie-worktrees/waveA-kernel-os-20260625173629/registry
+/Users/jasonlee/oyatie-worktrees/waveA-kernel-os-20260625173629/scripts
+/Users/jasonlee/oyatie-worktrees/waveA-kernel-os-20260625173629/secrets
+/Users/jasonlee/oyatie-worktrees/waveA-kernel-os-20260625173629/specs
+/Users/jasonlee/oyatie-worktrees/waveA-kernel-os-20260625173629/storage
+/Users/jasonlee/oyatie-worktrees/waveA-kernel-os-20260625173629/target
+/Users/jasonlee/oyatie-worktrees/waveA-kernel-os-20260625173629/tasks
+/Users/jasonlee/oyatie-worktrees/waveA-kernel-os-20260625173629/templates
+/Users/jasonlee/oyatie-worktrees/waveA-kernel-os-20260625173629/tenancy
+/Users/jasonlee/oyatie-worktrees/waveA-kernel-os-20260625173629/third-party
+/Users/jasonlee/oyatie-worktrees/waveA-kernel-os-20260625173629/toolchains
+/Users/jasonlee/oyatie-worktrees/waveA-kernel-os-20260625173629/tools
+/Users/jasonlee/oyatie-worktrees/waveA-kernel-os-20260625173629/workflow
+/Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629
+/Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629/.cargo
+/Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629/.claude
+/Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629/.codex
+/Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629/.config
+/Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629/.github
+/Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629/.omc
+/Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629/.omx
+/Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629/audit
+/Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629/benchmarks
+/Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629/billing
+/Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629/buck-out
+/Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629/cell
+/Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629/cloud
+/Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629/comms
+/Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629/compliance
+/Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629/compute
+/Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629/console
+/Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629/contracts
+/Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629/data
+/Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629/docs
+/Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629/evidence
+/Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629/flags
+/Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629/gateway
+/Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629/governance
+/Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629/iac
+/Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629/iam
+/Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629/infra
+/Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629/intelligence
+/Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629/k8s
+/Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629/libs
+/Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629/marketplace
+/Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629/messaging
+/Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629/network
+/Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629/observability
+/Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629/oya
+/Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629/packs
+/Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629/plan
+/Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629/registry
+/Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629/scripts
+/Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629/secrets
+/Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629/specs
+/Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629/storage
+/Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629/target
+/Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629/tasks
+/Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629/templates
+/Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629/tenancy
+/Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629/third-party
+/Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629/toolchains
+/Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629/tools
+/Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629/workflow
+/Users/jasonlee/oyatie-worktrees/waveA-market-billing-20260625173629
+/Users/jasonlee/oyatie-worktrees/waveA-market-billing-20260625173629/.cargo
+/Users/jasonlee/oyatie-worktrees/waveA-market-billing-20260625173629/.claude
+/Users/jasonlee/oyatie-worktrees/waveA-market-billing-20260625173629/.codex
+/Users/jasonlee/oyatie-worktrees/waveA-market-billing-20260625173629/.config
+/Users/jasonlee/oyatie-worktrees/waveA-market-billing-20260625173629/.github
+/Users/jasonlee/oyatie-worktrees/waveA-market-billing-20260625173629/.omc
+/Users/jasonlee/oyatie-worktrees/waveA-market-billing-20260625173629/.omx
+/Users/jasonlee/oyatie-worktrees/waveA-market-billing-20260625173629/audit
+/Users/jasonlee/oyatie-worktrees/waveA-market-billing-20260625173629/benchmarks
+/Users/jasonlee/oyatie-worktrees/waveA-market-billing-20260625173629/billing
+/Users/jasonlee/oyatie-worktrees/waveA-market-billing-20260625173629/buck-out
+/Users/jasonlee/oyatie-worktrees/waveA-market-billing-20260625173629/cell
+/Users/jasonlee/oyatie-worktrees/waveA-market-billing-20260625173629/cloud
+/Users/jasonlee/oyatie-worktrees/waveA-market-billing-20260625173629/comms
+/Users/jasonlee/oyatie-worktrees/waveA-market-billing-20260625173629/compliance
+/Users/jasonlee/oyatie-worktrees/waveA-market-billing-20260625173629/compute
+/Users/jasonlee/oyatie-worktrees/waveA-market-billing-20260625173629/console
+/Users/jasonlee/oyatie-worktrees/waveA-market-billing-20260625173629/contracts
+/Users/jasonlee/oyatie-worktrees/waveA-market-billing-20260625173629/data
+/Users/jasonlee/oyatie-worktrees/waveA-market-billing-20260625173629/docs
+/Users/jasonlee/oyatie-worktrees/waveA-market-billing-20260625173629/evidence
+/Users/jasonlee/oyatie-worktrees/waveA-market-billing-20260625173629/flags
+/Users/jasonlee/oyatie-worktrees/waveA-market-billing-20260625173629/gateway
+/Users/jasonlee/oyatie-worktrees/waveA-market-billing-20260625173629/governance
+/Users/jasonlee/oyatie-worktrees/waveA-market-billing-20260625173629/iac
+/Users/jasonlee/oyatie-worktrees/waveA-market-billing-20260625173629/iam
+/Users/jasonlee/oyatie-worktrees/waveA-market-billing-20260625173629/infra
+/Users/jasonlee/oyatie-worktrees/waveA-market-billing-20260625173629/intelligence
+/Users/jasonlee/oyatie-worktrees/waveA-market-billing-20260625173629/k8s
+/Users/jasonlee/oyatie-worktrees/waveA-market-billing-20260625173629/libs
+/Users/jasonlee/oyatie-worktrees/waveA-market-billing-20260625173629/marketplace
+/Users/jasonlee/oyatie-worktrees/waveA-market-billing-20260625173629/messaging
+/Users/jasonlee/oyatie-worktrees/waveA-market-billing-20260625173629/network
+/Users/jasonlee/oyatie-worktrees/waveA-market-billing-20260625173629/observability
+/Users/jasonlee/oyatie-worktrees/waveA-market-billing-20260625173629/oya
+/Users/jasonlee/oyatie-worktrees/waveA-market-billing-20260625173629/packs
+/Users/jasonlee/oyatie-worktrees/waveA-market-billing-20260625173629/plan
+/Users/jasonlee/oyatie-worktrees/waveA-market-billing-20260625173629/registry
+/Users/jasonlee/oyatie-worktrees/waveA-market-billing-20260625173629/scripts
+/Users/jasonlee/oyatie-worktrees/waveA-market-billing-20260625173629/secrets
+/Users/jasonlee/oyatie-worktrees/waveA-market-billing-20260625173629/specs
+/Users/jasonlee/oyatie-worktrees/waveA-market-billing-20260625173629/storage
+/Users/jasonlee/oyatie-worktrees/waveA-market-billing-20260625173629/target
+/Users/jasonlee/oyatie-worktrees/waveA-market-billing-20260625173629/tasks
+/Users/jasonlee/oyatie-worktrees/waveA-market-billing-20260625173629/templates
+/Users/jasonlee/oyatie-worktrees/waveA-market-billing-20260625173629/tenancy
+/Users/jasonlee/oyatie-worktrees/waveA-market-billing-20260625173629/third-party
+/Users/jasonlee/oyatie-worktrees/waveA-market-billing-20260625173629/toolchains
+/Users/jasonlee/oyatie-worktrees/waveA-market-billing-20260625173629/tools
+/Users/jasonlee/oyatie-worktrees/waveA-market-billing-20260625173629/workflow

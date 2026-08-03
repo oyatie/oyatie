@@ -1,0 +1,91 @@
+{
+  "pm_id": "pm_seed_interview_20260710_070532",
+  "product_name": "Living Monorepo Governance Graph",
+  "goal": "Manage the monorepo and full dev lifecycle as one governed, federated (per-cell), content-addressed graph by extending the existing owned-Rust governance/corpus AST graph, so that every artifact is either a governed node or a compiled projection, and contradiction, sprawl, and staleness become structurally impossible rather than merely detected.",
+  "user_stories": [
+    {
+      "persona": "Platform developer",
+      "action": "create worktrees/branches via raw git without being blocked",
+      "benefit": "agentic tooling (OMC/OMX/workflow) is never blocked at creation while strays are still lifecycle-managed"
+    },
+    {
+      "persona": "Platform developer",
+      "action": "have my unmerged/local-only work preserved before any reap",
+      "benefit": "nothing salvageable is ever lost during cleanup or steady-state sweeps"
+    },
+    {
+      "persona": "Governance operator",
+      "action": "run one continuous background reconciler that harvests then reaps ungoverned strays",
+      "benefit": "the clean baseline stays clean without manual shepherding"
+    },
+    {
+      "persona": "Governance operator",
+      "action": "triage parked durable nodes and promote valuable ones to PRs/ADRs later",
+      "benefit": "abandoned-but-valuable work re-enters the governed flow on demand rather than flooding the merge queue"
+    },
+    {
+      "persona": "Multiple developers each running multiple agents",
+      "action": "commit at extreme velocity against a concurrency-safe graph",
+      "benefit": "high-throughput agentic work does not corrupt truth or serialize on local actions"
+    },
+    {
+      "persona": "External adopter (stranger's repo)",
+      "action": "swap in a different policy pack against the neutral engine",
+      "benefit": "the governance system is portable to any repo without oyatie-specific nuance"
+    }
+  ],
+  "constraints": [
+    "Owned-Rust only; no new python/shell/CLI/dependencies",
+    "Neutral engine + policy-as-data: no oyatie-nuance embedded in the engine",
+    "Git artifacts modeled as ephemeral TTL'd work-nodes inside the ONE graph, not a separate reconciler",
+    "Extend the existing corpus + cross-artifact-agreement evaluator; do not rebuild",
+    "Operator console and gates must be delivered together",
+    "Fail-closed enforcement lands on durable governance invariants (stray past-TTL with no harvest edge), never on blocking creation itself",
+    "Enforcement must remain non-blocking at velocity: gate at the durable/merge boundary + async detector, not a serial lock on every local action",
+    "Ungoverned creation is allowed-but-auto-expired; a sanctioned governed-creation path also exists",
+    "Deterministic invariants gate every state transition; LLM is advisory-only",
+    "Graph must support high-concurrency writes: append-only/idempotent content-addressed nodes, edges declared-from-one-end to avoid write conflicts, federated per-cell sharding",
+    "Graduates to a Design Doc amending the ADR-0516..0535 agentic-delivery-fabric cluster"
+  ],
+  "success_criteria": [
+    "Contradiction, sprawl, and staleness are structurally impossible, not merely detected",
+    "Existing sprawl (369 local worktrees, 550 local branches, 91 remote, plus .omc/.omx/tmp) is harvested and reaped to a clean baseline and prevented thereafter",
+    "Docs, handoffs, roadmaps, dashboards, and SSOT are projections compiled from the graph, never hand-maintained",
+    "Portable to any repo: the stranger's-repo test passes with a swapped policy pack",
+    "Reap-by-default sweep keeps the 900+ backlog cheap and deterministic (no manual salvage review)",
+    "No unmerged or local-only work is ever lost (durable signal = commits unreachable from origin/dev OR explicit harvest/promote marker)",
+    "Newly-created ungoverned sprawl is continuously caught by a detector (no governance node and no harvest edge) and auto-expired on TTL",
+    "Harvest/reap runs as a continuous background reconciler, never a batch job, scaling with devs×agents",
+    "Extreme-velocity merges run through an auto-rebase queue + projected merge-state with zero manual shepherding",
+    "Concurrent conflicting edits surface as explicit conflicts_with edges rather than silent divergence",
+    "Full anti-pattern set is each prevented by a deterministic graph invariant: sprawl (ungoverned-artifact detector + TTL), functional regression (full test ladder + regression gate), quality degradation (quality gates on R0 path), architectural regression/drift (ADR-0280 dependency DAG + capability membership lint + ArchUnit/Axivion/FINOS-CALM-class conformance), silent regressions/failures (fail-closed + no-silent-fallback, every deny/error/degraded path is loud), dead code/docs (reachability/orphan detection + report→archive reap), staleness (anchor_fingerprint_drift: recorded content-address vs live code-AST hash), contradictions (conflicts_with edges + cross-artifact-agreement invariants)"
+  ],
+  "decide_later_items": [
+    "The exact TTL durations per work-node kind (worktree / branch / .omc-.omx marker / tmp scratch) — dependent on policy-pack defaults tuned post-cleanup",
+    "Docs→projection cutover / projection migration path (breadth-keeper track, not yet specified)",
+    "Policy-pack/engine split for the stranger's-repo test (breadth-keeper track, not yet specified)",
+    "Console + gates MVP surface definition (breadth-keeper track, not yet specified)",
+    "Later triage that promotes valuable parked durable nodes to PRs/ADRs"
+  ],
+  "assumptions": [
+    "Because last-touch (commit, checkout, or file write) resets the TTL, the harvest sink only ever receives abandoned strays, so no active-lane special case is needed",
+    "The 900+ item backlog cleanup is simply the first sweep of the same uniform steady-state rule (one sink, one mechanism)",
+    "A one-time cleanup precedes steady-state fail-closed enforcement",
+    "Content-addressed nodes being append-only/idempotent and edges declared-from-one-end is sufficient to avoid write-conflicts by construction under concurrency"
+  ],
+  "interview_id": "interview_20260710_070532",
+  "codebase_context": "### [MAIN] /Users/jasonlee/Developer/oyatie\nTech: Rust, Make-based\n## Tech Stack\n- **Language:** Rust (workspace-based). Dual build: **buck2** (primary/hermetic) + **Cargo** (`cargo build/test/clippy`, release-only exception).\n- **Web:** axum. **Deploy:** OpenTofu (Cloudflare edge only) + Cluster API/Talos + Argo CD GitOps (`infra/`). Orchestrated via `Makefile`.\n- ⚠️ The scanned types live in `buck-out/` — those are **build artifacts, not source**. Real code is under `libs/` and `{oya,cloud}/<service>/`.\n\n## Key Types\nCentered on identity/authz kernels (pure, I/O-free):\n- **OIDC kernel** (`libs/oya-shared-oidc-client-kernel`): `OidcClaims`, `Jwk`/`Jwks`, `JwtHeader`, `VerifyConfig`, `AcrLevel`, `OidcError`; traits `JwsVerifier`, `JwksFetcher`, `OidcClient` (all `Send + Sync`), with `ReferenceOidcVerifier<V>`.\n- **Platform contracts** (`libs/oya-shared-platform-contracts-kernel`): `Principal`/`PrincipalKind`/`PrincipalState`, `Credential`/`CredentialKind`/`CredentialState`, `IdentityDomain`.\n\n## Patterns\n- **Clean architecture / capability-first:** each capability splits `core | ports | adapters | facade`. `*-kernel` crates are pure (zero I/O); infra absorbed in adapters behind traits.\n- **`libs/` = downward shared kernels**; services under `{oya,cloud}/<service>/`. `libs/` must never depend on `cloud-ci/gates/`.\n- **Authz = RBAC+ABAC+PBAC** (Cedar-backed, fail-closed default-deny).\n\n## Conventions (enforced by gates)\n- **Owned-Rust only** — no shell/Python/Node, no new CLI surfaces, no ad-hoc deps. New automation ships as Rust.\n- **Crate naming:** `oya-*` prefix (born-blocking gate).\n- **Globbed workspace membership** — adding a crate needs zero `Cargo.toml` edits; resolve members via `libs/oya-workspace-members-kernel`, never parse the array.\n- **Generated faces are frozen refs** — never regenerate in a PR.\n- **Governance:** read `/specs/root-hub-pointers.json` + `docs/AGENTS.md` first; changes flow through isolated worktree → PR to `dev` → `oya-ci-required` gate.\n\n→ Ignore `buck-out/`; start in `libs/*-kernel` for contracts, add adapters behind existing ports.\n",
+  "brownfield_repos": [
+    {
+      "path": "/Users/jasonlee/.hermes/kanban/boards/oyatie/workspaces/t_5a241375/oyatie",
+      "name": "oyatie",
+      "role": "main"
+    },
+    {
+      "path": "/Users/jasonlee/Developer/oyatie",
+      "name": "oyatie",
+      "role": "main"
+    }
+  ],
+  "created_at": "2026-07-10T07:24:18.982694+00:00"
+}

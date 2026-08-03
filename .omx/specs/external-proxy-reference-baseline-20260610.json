@@ -1,0 +1,22 @@
+{
+  "schema_version": "0.1",
+  "kind": "ExternalProxyReferenceBaseline",
+  "created_at": "2026-06-10T00:00:00-04:00",
+  "source_repo": "https://github.com/askalf/dario",
+  "package_name": "@askalf/dario",
+  "package_version": "4.8.55",
+  "commit_sha": "30fed94b362f5106cc7a4feaf37019fc0ccc007f",
+  "commit_subject": "release: 4.8.55 \u2014 README refresh for the Fable 5 era (publish to npm) (#481)",
+  "commit_date": "2026-06-09T20:45:23-04:00",
+  "pinned_tree_url": "https://github.com/askalf/dario/tree/30fed94b362f5106cc7a4feaf37019fc0ccc007f",
+  "source_checkout": "/tmp/omx-external-proxy-reference-20260610T005915Z",
+  "feature_inventory_artifact": ".omx/specs/external-proxy-reference-capability-inventory-20260610.md",
+  "implementation_plan_artifact": ".omx/plans/external-proxy-reference-superset-cloud-intelligence-rust-k8s-20260610.md",
+  "maintenance_rule": "Treat this external-source baseline as immutable. Future parity work must compare against this exact commit first, then optionally add a new baseline for a newer external-source commit/version with an explicit delta report.",
+  "minimum_parity_gate": [
+    "Every XPROXY-* capability row in the pinned inventory is mapped to implemented, intentionally superseded, or explicitly out-of-scope-with-approval.",
+    "All implemented/superseded mappings have failing-first tests before production code.",
+    "The external reference pinned commit and version are recorded in generated parity reports and CI output."
+  ],
+  "delta_schema_artifact": ".omx/specs/capability-parity-delta-schema-20260610.yaml"
+}

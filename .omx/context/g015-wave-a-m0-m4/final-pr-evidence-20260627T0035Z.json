@@ -1,0 +1,778 @@
+{
+  "captured_at": "2026-06-27T00:41:00Z",
+  "checks": {
+    "917": [
+      {
+        "completedAt": "2026-06-27T00:22:27Z",
+        "conclusion": "SUCCESS",
+        "name": "oya-check-substrate-dependency-dag-acyclicity",
+        "startedAt": "2026-06-27T00:21:38Z",
+        "status": "COMPLETED",
+        "workflowName": "check-substrates"
+      },
+      {
+        "completedAt": "2026-06-27T00:23:31Z",
+        "conclusion": "SUCCESS",
+        "name": "producer-regen (accounting-registry)",
+        "startedAt": "2026-06-27T00:22:04Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:27:45Z",
+        "conclusion": "SUCCESS",
+        "name": "freshness (lock + generated faces, ADR-0539)",
+        "startedAt": "2026-06-27T00:22:04Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:25:38Z",
+        "conclusion": "SUCCESS",
+        "name": "registry-drift (materialized == regenerated)",
+        "startedAt": "2026-06-27T00:22:05Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:24:51Z",
+        "conclusion": "SUCCESS",
+        "name": "cloud-ci-firewall (baseline ratchet + gate-registration meta-test)",
+        "startedAt": "2026-06-27T00:22:04Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:22:53Z",
+        "conclusion": "SUCCESS",
+        "name": "generated-output-diff-policy (no generated merge surfaces)",
+        "startedAt": "2026-06-27T00:22:04Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:31:08Z",
+        "conclusion": "SUCCESS",
+        "name": "buck2 (hermetic build + affected gate tests)",
+        "startedAt": "2026-06-27T00:22:04Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:26:56Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 affected-set (ADR-0554, binding workspace coverage)",
+        "startedAt": "2026-06-27T00:22:04Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:22:25Z",
+        "conclusion": "SUCCESS",
+        "name": "app-shell-codegen (ignored generated clients are reproducible)",
+        "startedAt": "2026-06-27T00:22:04Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:30:30Z",
+        "conclusion": "SUCCESS",
+        "name": "gate-live-postgres (durable cross-tenant-deny / RLS / CDC / SCIM,",
+        "startedAt": "2026-06-27T00:22:06Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:25:15Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 cross-artifact-agreement (GATE-1)",
+        "startedAt": "2026-06-27T00:23:34Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:26:00Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 total-accounting (GATE-2)",
+        "startedAt": "2026-06-27T00:24:23Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:25:15Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 staleness-reaper (GATE-3, born-blocking)",
+        "startedAt": "2026-06-27T00:23:35Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:25:09Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 automation-ratchet (GATE-4, polices gates)",
+        "startedAt": "2026-06-27T00:23:34Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:25:08Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 bnf-layer-suffix (BNF \u00a72.5#4, born-blocking)",
+        "startedAt": "2026-06-27T00:23:34Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:25:48Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 manifest-hygiene (\u00a72.5#7, born-blocking)",
+        "startedAt": "2026-06-27T00:24:16Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:25:08Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 cargo-prefix (ADR-0017)",
+        "startedAt": "2026-06-27T00:23:34Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:25:09Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 slo-coverage (catalog SLO input contract, born-blocking)",
+        "startedAt": "2026-06-27T00:23:33Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:25:18Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 catalog-liveness (PR-C3 founder live-OR-explicitly-marked policy, born-blocking, EMPTY frozen baseline)",
+        "startedAt": "2026-06-27T00:23:33Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:25:09Z",
+        "conclusion": "SUCCESS",
+        "name": "gate: workspace-glob-coverage (ADR-0538)",
+        "startedAt": "2026-06-27T00:23:33Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:25:11Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 target-parity (ADR-0540, test-wiring false-green)",
+        "startedAt": "2026-06-27T00:23:35Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:24:40Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 enforcement-liveness (FRIC-012, hook mirror liveness)",
+        "startedAt": "2026-06-27T00:23:34Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:24:22Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 friction-accounting (ADR-0544, closed-loop friction-ledger accounting)",
+        "startedAt": "2026-06-27T00:23:34Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:24:22Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 canonical-json (ADR-0546, deterministic JSON serialization)",
+        "startedAt": "2026-06-27T00:23:34Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:24:20Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 hyperscaler-parity-taxonomy (cloud hyperscaler parity taxonomy, born-blocking)",
+        "startedAt": "2026-06-27T00:23:33Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:24:24Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 embedded-asset-hermeticity (ADR-0545, include_str!/include_bytes! __srcs-tree mapping)",
+        "startedAt": "2026-06-27T00:23:34Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:24:40Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 kernel-purity (ADR-0547, *-kernel/*-core zero transient-tech deps)",
+        "startedAt": "2026-06-27T00:23:34Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:24:21Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 crypto-backend-purity (ADR-0506, ring forbidden / aws-lc-rs mandated \u2014 zero ring activation)",
+        "startedAt": "2026-06-27T00:23:33Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:25:19Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 no-graphql-without-adr (ADR-0565, zero-GraphQL: no graphql lib / .graphql/.gql/.sdl reintroduction without a reversing ADR \u2014 candidate-tree evaluated, EMPTY frozen baseline)",
+        "startedAt": "2026-06-27T00:24:22Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:24:46Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 authz-coverage (issue #770 / AUTH-005, NEW unauthenticated HTTP control planes blocked vs frozen baseline)",
+        "startedAt": "2026-06-27T00:23:59Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:24:38Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 dto-authz-trust (ADR-0582, the CLASS-FIX for caller-supplied-authz-trust: a NEW fn that trusts a forged *Authorization DTO / x-authorization-* header in place of a server-side PDP decide() is blocked vs the frozen baseline of ~92 known instances; v2: FN-01/02/03/04/05/06 hardened)",
+        "startedAt": "2026-06-27T00:23:50Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:25:17Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 generated-artifact-control-plane (public hermetic CI artifact policy)",
+        "startedAt": "2026-06-27T00:24:22Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:25:17Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 cache-wiring conformance (ADR-0560/ADR-0556, dark-wiring + cold floor + kill-switch)",
+        "startedAt": "2026-06-27T00:24:22Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:24:26Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 substrate-dependency-dag-acyclicity (ADR-0280 \u00a7D-3, Tarjan SCC + Kahn topo-order + forbidden-edge honouring)",
+        "startedAt": "2026-06-27T00:23:34Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:24:28Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 tier-field-coverage (Phase-0 reorg ADR-0562/0536/0245, per-service tier/tier_subtype/dr_tier coverage + enum validity + no type-overload, born-blocking)",
+        "startedAt": "2026-06-27T00:23:35Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:24:22Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 tier-dependency-acyclicity (Phase-0 reorg ADR-0245/0280/0562, cargo+buck crate-graph tier rules + S-rank + Tarjan cycle backstop, born-ADVISORY vs frozen baseline \u2192 enforce-no-regression)",
+        "startedAt": "2026-06-27T00:23:33Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:24:20Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 capability-membership (Phase-0 reorg ADR-0562 \u00a76, the anti-junk-drawer MEMBERSHIP lint: every crate \u2192 exactly one registered capability/meta home, no NEW unmapped crate, no NEW top-level dir, base/-admission; born-advisory + enforce-no-regression vs the frozen unmapped baseline)",
+        "startedAt": "2026-06-27T00:23:33Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:24:20Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 runner-disk-reclaim conformance (FRIC-017 productization, ADR-0548 pipeline-as-product: policy parse + threshold/INFRA-RED discrimination + reclaim plan)",
+        "startedAt": "2026-06-27T00:23:33Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:24:32Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 port-placement (ADR-0570, clean-arch ports-in-core: no storage-port trait DEFINED in an */adapters/* crate \u2014 productizes the #116 defect class; born-advisory + enforce-no-regression vs frozen baseline)",
+        "startedAt": "2026-06-27T00:23:35Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:24:23Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 root-workspace-hygiene (ADR-0600, allowlist-as-DATA default-DENY: every TRACKED repo-root file must match the allowlist + every top-level dir must be a permitted capability/meta home \u2014 makes committed root scratch structurally impossible; complements the scratch DENYLIST)",
+        "startedAt": "2026-06-27T00:23:34Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:25:21Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 dependency-automation (ADR-0535, owned oya-deps.toml Rust bump-bot contract; external bot configs remain absent)",
+        "startedAt": "2026-06-27T00:24:23Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:31:14Z",
+        "conclusion": "SUCCESS",
+        "name": "oya-ci-required",
+        "startedAt": "2026-06-27T00:31:10Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      }
+    ],
+    "918": [
+      {
+        "completedAt": "2026-06-27T00:23:57Z",
+        "conclusion": "SUCCESS",
+        "name": "oya-check-substrate-dependency-dag-acyclicity",
+        "startedAt": "2026-06-27T00:23:06Z",
+        "status": "COMPLETED",
+        "workflowName": "check-substrates"
+      },
+      {
+        "completedAt": "2026-06-27T00:24:56Z",
+        "conclusion": "SUCCESS",
+        "name": "producer-regen (accounting-registry)",
+        "startedAt": "2026-06-27T00:23:28Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:28:00Z",
+        "conclusion": "SUCCESS",
+        "name": "freshness (lock + generated faces, ADR-0539)",
+        "startedAt": "2026-06-27T00:23:28Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:27:08Z",
+        "conclusion": "SUCCESS",
+        "name": "registry-drift (materialized == regenerated)",
+        "startedAt": "2026-06-27T00:23:28Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:26:13Z",
+        "conclusion": "SUCCESS",
+        "name": "cloud-ci-firewall (baseline ratchet + gate-registration meta-test)",
+        "startedAt": "2026-06-27T00:23:28Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:24:14Z",
+        "conclusion": "SUCCESS",
+        "name": "generated-output-diff-policy (no generated merge surfaces)",
+        "startedAt": "2026-06-27T00:23:28Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:34:13Z",
+        "conclusion": "SUCCESS",
+        "name": "buck2 (hermetic build + affected gate tests)",
+        "startedAt": "2026-06-27T00:23:28Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:27:29Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 affected-set (ADR-0554, binding workspace coverage)",
+        "startedAt": "2026-06-27T00:23:28Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:23:48Z",
+        "conclusion": "SUCCESS",
+        "name": "app-shell-codegen (ignored generated clients are reproducible)",
+        "startedAt": "2026-06-27T00:23:28Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:29:38Z",
+        "conclusion": "SUCCESS",
+        "name": "gate-live-postgres (durable cross-tenant-deny / RLS / CDC / SCIM,",
+        "startedAt": "2026-06-27T00:23:28Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:26:33Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 cross-artifact-agreement (GATE-1)",
+        "startedAt": "2026-06-27T00:24:58Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:26:48Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 total-accounting (GATE-2)",
+        "startedAt": "2026-06-27T00:25:11Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:26:45Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 staleness-reaper (GATE-3, born-blocking)",
+        "startedAt": "2026-06-27T00:25:10Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:26:32Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 automation-ratchet (GATE-4, polices gates)",
+        "startedAt": "2026-06-27T00:24:58Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:27:20Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 bnf-layer-suffix (BNF \u00a72.5#4, born-blocking)",
+        "startedAt": "2026-06-27T00:25:47Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:26:34Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 manifest-hygiene (\u00a72.5#7, born-blocking)",
+        "startedAt": "2026-06-27T00:24:58Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:26:30Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 cargo-prefix (ADR-0017)",
+        "startedAt": "2026-06-27T00:24:58Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:26:55Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 slo-coverage (catalog SLO input contract, born-blocking)",
+        "startedAt": "2026-06-27T00:25:23Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:26:45Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 catalog-liveness (PR-C3 founder live-OR-explicitly-marked policy, born-blocking, EMPTY frozen baseline)",
+        "startedAt": "2026-06-27T00:24:58Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:26:30Z",
+        "conclusion": "SUCCESS",
+        "name": "gate: workspace-glob-coverage (ADR-0538)",
+        "startedAt": "2026-06-27T00:24:58Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:26:21Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 target-parity (ADR-0540, test-wiring false-green)",
+        "startedAt": "2026-06-27T00:24:58Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:26:00Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 enforcement-liveness (FRIC-012, hook mirror liveness)",
+        "startedAt": "2026-06-27T00:24:58Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:26:06Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 friction-accounting (ADR-0544, closed-loop friction-ledger accounting)",
+        "startedAt": "2026-06-27T00:25:19Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:26:05Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 canonical-json (ADR-0546, deterministic JSON serialization)",
+        "startedAt": "2026-06-27T00:25:12Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:25:46Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 hyperscaler-parity-taxonomy (cloud hyperscaler parity taxonomy, born-blocking)",
+        "startedAt": "2026-06-27T00:24:58Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:25:45Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 embedded-asset-hermeticity (ADR-0545, include_str!/include_bytes! __srcs-tree mapping)",
+        "startedAt": "2026-06-27T00:24:58Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:26:23Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 kernel-purity (ADR-0547, *-kernel/*-core zero transient-tech deps)",
+        "startedAt": "2026-06-27T00:25:20Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:26:12Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 crypto-backend-purity (ADR-0506, ring forbidden / aws-lc-rs mandated \u2014 zero ring activation)",
+        "startedAt": "2026-06-27T00:25:17Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:26:06Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 no-graphql-without-adr (ADR-0565, zero-GraphQL: no graphql lib / .graphql/.gql/.sdl reintroduction without a reversing ADR \u2014 candidate-tree evaluated, EMPTY frozen baseline)",
+        "startedAt": "2026-06-27T00:25:13Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:26:36Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 authz-coverage (issue #770 / AUTH-005, NEW unauthenticated HTTP control planes blocked vs frozen baseline)",
+        "startedAt": "2026-06-27T00:25:52Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:26:07Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 dto-authz-trust (ADR-0582, the CLASS-FIX for caller-supplied-authz-trust: a NEW fn that trusts a forged *Authorization DTO / x-authorization-* header in place of a server-side PDP decide() is blocked vs the frozen baseline of ~92 known instances; v2: FN-01/02/03/04/05/06 hardened)",
+        "startedAt": "2026-06-27T00:25:18Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:26:36Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 generated-artifact-control-plane (public hermetic CI artifact policy)",
+        "startedAt": "2026-06-27T00:25:49Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:25:55Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 cache-wiring conformance (ADR-0560/ADR-0556, dark-wiring + cold floor + kill-switch)",
+        "startedAt": "2026-06-27T00:24:58Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:25:50Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 substrate-dependency-dag-acyclicity (ADR-0280 \u00a7D-3, Tarjan SCC + Kahn topo-order + forbidden-edge honouring)",
+        "startedAt": "2026-06-27T00:24:58Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:25:52Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 tier-field-coverage (Phase-0 reorg ADR-0562/0536/0245, per-service tier/tier_subtype/dr_tier coverage + enum validity + no type-overload, born-blocking)",
+        "startedAt": "2026-06-27T00:24:59Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:26:40Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 tier-dependency-acyclicity (Phase-0 reorg ADR-0245/0280/0562, cargo+buck crate-graph tier rules + S-rank + Tarjan cycle backstop, born-ADVISORY vs frozen baseline \u2192 enforce-no-regression)",
+        "startedAt": "2026-06-27T00:25:47Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:25:58Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 capability-membership (Phase-0 reorg ADR-0562 \u00a76, the anti-junk-drawer MEMBERSHIP lint: every crate \u2192 exactly one registered capability/meta home, no NEW unmapped crate, no NEW top-level dir, base/-admission; born-advisory + enforce-no-regression vs the frozen unmapped baseline)",
+        "startedAt": "2026-06-27T00:25:10Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:26:06Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 runner-disk-reclaim conformance (FRIC-017 productization, ADR-0548 pipeline-as-product: policy parse + threshold/INFRA-RED discrimination + reclaim plan)",
+        "startedAt": "2026-06-27T00:25:17Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:26:07Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 port-placement (ADR-0570, clean-arch ports-in-core: no storage-port trait DEFINED in an */adapters/* crate \u2014 productizes the #116 defect class; born-advisory + enforce-no-regression vs frozen baseline)",
+        "startedAt": "2026-06-27T00:25:10Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:26:08Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 root-workspace-hygiene (ADR-0600, allowlist-as-DATA default-DENY: every TRACKED repo-root file must match the allowlist + every top-level dir must be a permitted capability/meta home \u2014 makes committed root scratch structurally impossible; complements the scratch DENYLIST)",
+        "startedAt": "2026-06-27T00:25:21Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:26:38Z",
+        "conclusion": "SUCCESS",
+        "name": "gate \u00b7 dependency-automation (ADR-0535, owned oya-deps.toml Rust bump-bot contract; external bot configs remain absent)",
+        "startedAt": "2026-06-27T00:25:40Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      },
+      {
+        "completedAt": "2026-06-27T00:34:19Z",
+        "conclusion": "SUCCESS",
+        "name": "oya-ci-required",
+        "startedAt": "2026-06-27T00:34:16Z",
+        "status": "COMPLETED",
+        "workflowName": "oya-ci-required"
+      }
+    ]
+  },
+  "cleanup": {
+    "deleted_local_branches": [
+      "g015-g005-generated-artifact-paths-20260626T2012Z",
+      "g015-g006-python-validator-fence-20260626T2012Z"
+    ],
+    "preserved_worktrees": [
+      {
+        "path": "/Users/jasonlee/oyatie-worktrees/g015-wave-a-leader-20260626T2328Z",
+        "reason": "clean but divergent with non-empty obsolete/superseded diffs versus origin/dev; preserved to avoid destructive deletion of possibly useful provenance"
+      }
+    ],
+    "removed_worktrees": [
+      "/Users/jasonlee/oyatie-worktrees/g015-g005-generated-paths-20260626T2012Z",
+      "/Users/jasonlee/oyatie-worktrees/g015-g006-python-fence-20260626T2012Z",
+      "/Users/jasonlee/oyatie-worktrees/g015-pr915-semantics-20260626T2348Z"
+    ]
+  },
+  "origin_dev": "a9c24f757880e2290281b6a674ff045a0cd8e62f",
+  "post_merge_dev_run": {
+    "bounded_poll_result": "pending_with_zero_jobs_allocated",
+    "head_sha": "a9c24f757880e2290281b6a674ff045a0cd8e62f",
+    "note": "PR-head oya-ci-required checks were green before merge for #914-#918; post-merge dev run exists but remained queued/pending during bounded poll.",
+    "oya_ci_required_run_id": 28273027942,
+    "state": {
+      "conclusion": "",
+      "createdAt": "2026-06-27T00:35:12Z",
+      "jobs": [],
+      "status": "pending",
+      "updatedAt": "2026-06-27T00:35:13Z",
+      "url": "https://github.com/jason931225/oyatie/actions/runs/28273027942"
+    }
+  },
+  "prs": [
+    {
+      "headRefOid": "8996bfdf64662e753210ddbbd995f217f93f129d",
+      "mergeCommit": "4b18f461d389ce5ddc868cddc318a3869de86d17",
+      "mergedAt": "2026-06-27T00:10:08Z",
+      "number": 914,
+      "state": "MERGED",
+      "title": "task: tighten codex hooks schema",
+      "url": "https://github.com/jason931225/oyatie/pull/914"
+    },
+    {
+      "headRefOid": "ccbafd6e247e655b7de4aa3780e1f542b0011ad5",
+      "mergeCommit": "af6c2e6c701daf45c1ea0c3e527019cdd40ba65e",
+      "mergedAt": "2026-06-27T00:10:14Z",
+      "number": 915,
+      "state": "MERGED",
+      "title": "task: add G012 readiness evidence",
+      "url": "https://github.com/jason931225/oyatie/pull/915"
+    },
+    {
+      "headRefOid": "5b24e8928c25001b422c93497e584465cd2aee59",
+      "mergeCommit": "33127c68477b3da19e35799cb93912e23a810da2",
+      "mergedAt": "2026-06-27T00:10:11Z",
+      "number": 916,
+      "state": "MERGED",
+      "title": "fix(cloud-ci): fail closed on empty affected-set policy classes",
+      "url": "https://github.com/jason931225/oyatie/pull/916"
+    },
+    {
+      "headRefOid": "bc31ef17762ee52a23a665a5e7cea7f6c3ab825e",
+      "mergeCommit": "e3f173d9a8110dddafb7e066d9197d8f5c61c021",
+      "mergedAt": "2026-06-27T00:32:17Z",
+      "number": 917,
+      "state": "MERGED",
+      "title": "fix(cloud-ci): reject unclean generated artifact paths",
+      "url": "https://github.com/jason931225/oyatie/pull/917"
+    },
+    {
+      "headRefOid": "8bceb6bc500d306e0177b9e2a6e9644248ded1b5",
+      "mergeCommit": "a9c24f757880e2290281b6a674ff045a0cd8e62f",
+      "mergedAt": "2026-06-27T00:35:10Z",
+      "number": 918,
+      "state": "MERGED",
+      "title": "task: fence G006 Python validator bridge",
+      "url": "https://github.com/jason931225/oyatie/pull/918"
+    }
+  ],
+  "schema_version": "1.0",
+  "summary": {
+    "all_prs_merged": true,
+    "checks_917_non_success": [],
+    "checks_917_pending": [],
+    "checks_918_non_success": [],
+    "checks_918_pending": [],
+    "cleanup_done_for_merged_followup_worktrees": true,
+    "post_merge_dev_oya_ci_required": "pending_with_zero_jobs_allocated"
+  },
+  "team_name": "g015-wave-a-m0-m4-fou-1fb6d50c",
+  "team_status": {
+    "command": "omx team status",
+    "schema_version": "1.0",
+    "status": "missing",
+    "team_name": "g015-wave-a-m0-m4-fou-1fb6d50c",
+    "timestamp": "2026-06-27T00:36:15.862Z"
+  }
+}

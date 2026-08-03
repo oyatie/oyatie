@@ -1,0 +1,22 @@
+{
+  "capturedAt": "2026-06-27T23:43:00Z",
+  "originDev": "521f84997e21742187ab83722aaf807dbe019835",
+  "rootStatus": [
+    "## dev...origin/dev [behind 242]",
+    " M .codex/hooks.json",
+    " D goal.json",
+    " D slice06-backfill-results.log",
+    " D slice06-backfill-test.log",
+    " D slice06-buck-test.log",
+    " D slice06-generator.log",
+    " D slice06-progress.log",
+    " D slice06-retest-results.log",
+    " D slice06-retest.log",
+    "?? cloud/cloud-intelligence/.omc/",
+    "?? specs/capability-registry.json"
+  ],
+  "openPrs": [],
+  "decision": "hold writer lanes until origin/dev affected-set completes successfully",
+  "nextLanePlanPath": ".omx/plans/next-wave-g003-g004-g005-g006-rank-plan.md",
+  "holdPath": ".omx/context/g004-throughput/next-wave-hold-20260627T2342Z.json"
+}

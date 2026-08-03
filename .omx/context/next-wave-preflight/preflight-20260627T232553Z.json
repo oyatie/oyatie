@@ -1,0 +1,29 @@
+{
+  "constraints": [
+    "write only in fresh isolated worktrees based on origin/dev",
+    "root checkout remains read-only because it is dirty/behind",
+    "one writer per hot file",
+    "never hand-edit *.generated.json",
+    "Rust+Buck2 evidence only; no Cargo authority",
+    "PR to dev, wait oya-ci-required green, squash merge, cleanup"
+  ],
+  "generatedAt": "2026-06-27T23:25:53Z",
+  "openPrsToDev": [],
+  "originDev": "521f84997e21742187ab83722aaf807dbe019835",
+  "root": "/Users/jasonlee/Developer/oyatie",
+  "rootHead": "d705932d4731307b80320125560808be21f8b582",
+  "rootStatusShort": [
+    "## dev...origin/dev [behind 242]",
+    " M .codex/hooks.json",
+    " D goal.json",
+    " D slice06-backfill-results.log",
+    " D slice06-backfill-test.log",
+    " D slice06-buck-test.log",
+    " D slice06-generator.log",
+    " D slice06-progress.log",
+    " D slice06-retest-results.log",
+    " D slice06-retest.log",
+    "?? cloud/cloud-intelligence/.omc/",
+    "?? specs/capability-registry.json"
+  ]
+}

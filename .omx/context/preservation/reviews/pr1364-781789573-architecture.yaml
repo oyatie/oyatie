@@ -1,0 +1,70 @@
+schema: oyatie.preservation.non-authority-receipt/v1
+receipt_type: NON_AUTHORITY
+generated_at_utc: "2026-07-23T23:51:40Z"
+
+task_id: /root/pr1364_final_architecture_review
+reviewer_role: architect
+review_scope: exact-head Stage-1 dependency and boundary architecture
+qualified_stage1_principal: false
+
+materialization:
+  recorded_by: /root
+  source: reviewer-final-message
+  independently_signed_by_reviewer: false
+  limitation: >-
+    The architect role was read-only and returned receipt-ready evidence in its
+    final task message. The leader materialized this NON_AUTHORITY record; it is
+    not an authenticated qualified-human or protected-review receipt.
+
+repository_snapshot:
+  base_commit: 1026a65b707ce57693d9b830de33ee0ce228f16b
+  reviewed_head: 781789573560cd95556f2a9764e2262196708140
+  reviewed_tree: 7e5395f2e3463c1c5f5e62d0da13ae4b4778a8ed
+  base_is_ancestor: true
+  worktree_clean: true
+  head_and_tree_rechecked: true
+
+verdict: APPROVE_SOURCE_QUALITY_ONLY
+architectural_status: CLEAR
+planning_state: HOLD(Planning)
+roadmap_planning_authorized: false
+binding_plan_approval_allowed: false
+implementation_dispatch_allowed: false
+
+closed_findings:
+  - >-
+    Protected facts and admission are sibling inputs. The stale protected-facts
+    admission definition and Rust exception are absent, and regression coverage
+    asserts both candidate_records and $defs absence.
+  - >-
+    SCM protected-base repository, branch, commit, tree, and merge base are
+    exactly bound to the protected parent; head and remaining receipt bindings
+    are exact.
+  - >-
+    C15 binds all four oracle and blind-reader predecessor receipt/output
+    digests and enforces strict oracle before blind-reader before QPA order.
+  - >-
+    Source evaluation remains unable to advance beyond HOLD_EPOCH_OPEN and all
+    planning, approval, and dispatch flags remain false.
+
+evidence:
+  sibling_boundary:
+    source: libs/oya-stage1-closure/src/lib.rs
+    test: libs/oya-stage1-closure/tests/stage1_closure.rs
+  scm_binding:
+    source: libs/oya-stage1-closure/src/lib.rs
+    schema: specs/stage1-admission-envelope.schema.json
+  c15_causality:
+    source: libs/oya-stage1-closure/src/lib.rs
+    schema: specs/stage1-protected-facts.schema.json
+  invalidation:
+    source: docs/decisions/ADR-0622-mechanism-neutral-pre-roadmap-stage1-evidence-epoch.md
+  checks:
+    git_diff_check: PASS
+    changed_json_parse: PASS
+
+findings: []
+claim_boundary: >-
+  This receipt approves only source architecture at the exact local head. It is
+  not a qualified 16-lens receipt, protected admission, Stage-1 PASS, roadmap
+  authorization, binding-plan approval, or implementation dispatch.

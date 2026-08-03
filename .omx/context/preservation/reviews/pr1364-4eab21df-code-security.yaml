@@ -1,0 +1,54 @@
+schema: oyatie.preservation.non-authority-receipt/v1
+receipt_type: NON_AUTHORITY_CODE_SECURITY_REVIEW
+generated_at_utc: "2026-07-24T00:29:16Z"
+
+task_id: /root/pr1364_4eab_code_review
+reviewer_task_id: /root/pr1364_4eab_code_review
+review_scope: fresh exact-head code, specification, and security review
+
+repository_snapshot:
+  worktree: /Users/jasonlee/Developer/oyatie/.omx/worktrees/codex-pr1364-prep-20260723-v2
+  base_commit: 1026a65b707ce57693d9b830de33ee0ce228f16b
+  reviewed_head: 4eab21df0ff8a03f201a07e75998695dd1e9e4c2
+  reviewed_tree: 824b44733fcfcd59e1df2a39f559e8d32b827326
+  head_movement_policy: abort on movement
+  head_and_tree_rechecked_before_receipt: true
+  clean_before_review: true
+  clean_after_review: true
+
+verdict: COMMENT
+qualified_stage1_principal: false
+planning_state: HOLD(Planning)
+roadmap_planning_authorized: false
+binding_plan_approval_allowed: false
+implementation_dispatch_allowed: false
+
+findings: []
+
+evidence:
+  identity:
+    - git merge-base base_commit reviewed_head equals base_commit.
+    - HEAD and tree matched reviewed_head/reviewed_tree before and after review.
+    - git status --short was empty before and after review.
+    - git diff --check base_commit..reviewed_head succeeded.
+  spec_and_fail_closed_coverage:
+    - Reviewed the complete base_commit..reviewed_head diff: 27 files, 17878 additions, 11 deletions; no generated JSON face changed.
+    - The admission envelope rejects parent/head commit and tree collapse at libs/oya-stage1-closure/src/lib.rs:1671-1685, and regression coverage locks both coherent collapse cases at tests/stage1_closure.rs:2291-2335.
+    - C15 treats oracle and blind reader as parallel predecessors, binds both their receipt/output digests into QPA, and requires QPA after both at libs/oya-stage1-closure/src/lib.rs:3715-3766; the regression suite exercises both predecessor orders and every invalid QPA ordering at tests/stage1_closure.rs:2657-2736.
+    - The closed mutation/context policy rejects unknown fields, requires the canonical epoch-opening domain set, and invalidates the complete C13-C15 review join at libs/oya-stage1-closure/src/lib.rs:371-527; parser, fixture, masterplan, and schema parity are exercised in tests/stage1_closure.rs:652-970.
+    - Protected facts and post-merge admission remain separate sibling inputs; the implementation preserves explicit non-authority/HOLD behavior and contains no fallback that converts local structural evidence into qualified authority or planning admission.
+  security_and_quality_coverage:
+    - No hard-coded credentials, network/process/file I/O in production source, unsafe block, panic, unwrap, expect, TODO, FIXME, or silent default/fallback path was found in libs/oya-stage1-closure/src/lib.rs; the crate forbids unsafe code.
+    - The only file I/O scan matches are test harness reads of declared Buck-provided inputs in tests/stage1_closure.rs:83,143,180.
+    - All changed JSON parsed with jq; rustfmt --check passed for the changed Rust source and contract test.
+  validation:
+    - Bounded non-authority rustc contract diagnostic passed: 68 passed; 0 failed; 0 ignored; 0 filtered out.
+    - diagnostic_combined_output_sha256: 1a0edb566517d889a8935f229a4d4cb69f798e38a37556725b31e6309c3ccfe3
+    - reviewed_lib_sha256: c1b2f9036b283bd45ceff271273906919fd4577b50e22da3cccb31e663012085
+    - reviewed_contract_test_sha256: a372fbd0f68aac65d1aacccd278154e903b709f7d2d83043252b6550dc4481c8
+
+limitations:
+  - Canonical Buck2 test/build remains unrun because the managed sandbox cannot create the repository Buck daemon directory under /Users/jasonlee/.buck. Cargo is retired by repository policy; the rustc diagnostic is only a bounded non-authority fallback.
+  - rust-analyzer diagnostics resolves the full monorepo workspace and emitted unrelated workspace diagnostics, so a clean modified-file LSP diagnostic result is unavailable. This receipt is COMMENT rather than APPROVE despite no actionable source/spec/security finding.
+  - This is source review only. It does not authenticate SCM-server facts, trust roots, signatures, qualified people, live CI, branch protection, remote PR state, rollout, browser behavior, or protected admission.
+  - This non-authority receipt neither promotes ADR-0622 nor changes HOLD(Planning), merge readiness, roadmap authorization, binding approval, implementation dispatch, or qualified-principal authority.

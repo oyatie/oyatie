@@ -1,0 +1,72 @@
+receipt_kind: pr_exact_object_combined_review_and_verification
+classification: NON_AUTHORITY
+created_at_utc: "2026-07-23"
+reviewer: codex-independent-code-review
+scope:
+  pull_request: 1363
+  worktree: /Users/jasonlee/Developer/oyatie/.omx/worktrees/pr1363-prep-20260723-v2
+  candidate_head: 1026a65b707ce57693d9b830de33ee0ce228f16b
+  candidate_tree: d20c21163c6ec1ac2f6e1b581031e4431b54f401
+  protected_parent: d69a14831d8eb5f731bd74f60e74db13bb3792e8
+  protected_parent_tree: 7a6abf708fb3751799784fec35a59e9755d25bea
+  bundle: /Users/jasonlee/Developer/oyatie/.omx/context/preservation/pr1363-1026a65b7-20260723.bundle
+  bundle_sha256: 13d76d8159f10a9629403d26179b71ee1ef993e0adbc79bc24ca7479b31b0079
+object_integrity:
+  exact_head_stable_at_seal: true
+  worktree_clean_at_seal: true
+  protected_parent_is_ancestor: true
+  commits_in_candidate_range: 6
+  ssh_signatures:
+    result: PASS
+    allowed_signers_file: /Users/jasonlee/Developer/oyatie/.git/omx-local/allowed_signers
+    verified_commits:
+      - f5fab468a4d584e76e0f8a8db9d09418aff1bc50
+      - 7f65e5ca36667889ca720a9a20bb0f4ada30c029
+      - a8cd172a7c99449c5a56a46efb909cb67e21ad41
+      - 96bb8dd8b9a6449983e9bc92dec31256b0d23837
+      - d37224b8d7babbedfa5b832420cab263ade37c08
+      - 1026a65b707ce57693d9b830de33ee0ce228f16b
+review:
+  source_and_spec: APPROVE
+  security: APPROVE
+  authority_boundary: APPROVE
+  findings: []
+  evidence:
+    - "ADR-0621 is Accepted but explicitly retains planning_impact: false and HOLD(Planning); the implementation does not authorize roadmap dispatch, predecessor population, or qualified-human decisions."
+    - "The durable FixupTask v2 target has an explicit source boundary and consumes candidate registry bytes plus protected SCM facts; the predecessor ledger adapter remains separately named and transitional."
+    - "The candidate contains no hand-edited *.generated.json files."
+    - "git diff --check protected_parent...candidate_head completed without output."
+    - "Review found no root-cause-masking fallback: unreadable/non-regular legacy-ledger inputs fail closed, and the explicit absent-ledger state is constrained to the stated history-only boundary."
+  diff:
+    files_changed: 17
+    insertions: 2525
+    deletions: 76
+    generated_faces_changed: 0
+verification:
+  source_static_checks: PASS
+  canonical_buck_targets:
+    result: NOT_RUN_SANDBOX_BLOCKED
+    command: "buck2 test //ci/facade/action-item-accounting:fixuptask-v2-admission //ci/facade/action-item-accounting:fixuptask-v2-materialized-gate //ci/facade/action-item-accounting:fixuptask-v2-source-boundary //ci/facade/action-item-accounting:legacy-friction-adapter"
+    blocker: "Buck2 could not create its daemon directory under /Users/jasonlee/.buck/buckd (Operation not permitted)."
+  protected_ci:
+    result: NOT_CLAIMED
+    required_context: oya-ci-required
+  bundle_recoverability:
+    bundle_verify: PASS
+    prerequisite_commit: d69a14831d8eb5f731bd74f60e74db13bb3792e8
+    standalone_clone_without_prerequisite: EXPECTED_FAILURE
+    prerequisite_recovery_fetch: PASS
+    recovered_head: 1026a65b707ce57693d9b830de33ee0ce228f16b
+    recovered_tree: d20c21163c6ec1ac2f6e1b581031e4431b54f401
+    fsck_no_dangling_strict: PASS
+    recovery_clone_alternates: ABSENT
+    recovery_clone_shallow: true
+    limitation: "The fresh prerequisite clone inherits shallow history from the available local worktree; this receipt therefore does not claim non-shallow recovery."
+verdict:
+  result: APPROVE_SOURCE_WITH_EXTERNAL_VERIFICATION_GAP
+  merge_authority: NOT_GRANTED
+  planning_authority: NOT_GRANTED
+  notes:
+    - "This receipt is local, exact-object evidence only."
+    - "Merge still requires the protected PR review/admission sequence and a green oya-ci-required context."
+    - "HOLD(Planning) remains binding."

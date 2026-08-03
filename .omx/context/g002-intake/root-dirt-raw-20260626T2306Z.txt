@@ -1,0 +1,145 @@
+## git status --short --branch
+## dev...origin/dev [behind 202]
+ M .codex/hooks.json
+ D goal.json
+ D slice06-backfill-results.log
+ D slice06-backfill-test.log
+ D slice06-buck-test.log
+ D slice06-generator.log
+ D slice06-progress.log
+ D slice06-retest-results.log
+ D slice06-retest.log
+?? cloud/cloud-intelligence/.omc/
+?? specs/capability-registry.json
+
+## git diff --name-status
+M	.codex/hooks.json
+D	goal.json
+D	slice06-backfill-results.log
+D	slice06-backfill-test.log
+D	slice06-buck-test.log
+D	slice06-generator.log
+D	slice06-progress.log
+D	slice06-retest-results.log
+D	slice06-retest.log
+
+## .codex/hooks.json diff stat
+ .codex/hooks.json | 3 ---
+ 1 file changed, 3 deletions(-)
+
+## .codex/hooks.json diff first 200
+diff --git a/.codex/hooks.json b/.codex/hooks.json
+index 9dcac5d08..ccf7bdd17 100644
+--- a/.codex/hooks.json
++++ b/.codex/hooks.json
+@@ -1,7 +1,4 @@
+ {
+-  "_managed_by": "hand-maintained (governance PR review); the tools/hook-bootstrap installer was retired in #634",
+-  "_marker": "oya-bootstrap-v1",
+-  "_note": "Project-scoped Codex hooks. Edit directly and land via the governance pipeline (worktree branch + PR against dev); the install.sh/uninstall.sh generator no longer exists. History: 2026-05-29 security redesign removed exfil-guard + no-secret-leak (bypassable regex hooks — security theater); sandbox OS enforcement is the real gate. Removed 4 dead hooks (microservice-quality-bar, cargo-verify-on-rust-edit, buildability-line-count, vertical-slice-scope-suggester). Recommended Codex config: sandbox_mode=\"workspace-write\", approval_policy=\"on-request\" (see docs/security.md).",
+   "hooks": {
+     "Stop": [
+       {
+
+## deleted tracked file existence
+goal.json tracked=yes exists=no size_in_head=17238
+
+slice06-backfill-results.log tracked=yes exists=no size_in_head=1120
+
+slice06-backfill-test.log tracked=yes exists=no size_in_head=18916
+
+slice06-buck-test.log tracked=yes exists=no size_in_head=81397
+
+slice06-generator.log tracked=yes exists=no size_in_head=31360
+
+slice06-progress.log tracked=yes exists=no size_in_head=9536
+
+slice06-retest-results.log tracked=yes exists=no size_in_head=4154
+
+slice06-retest.log tracked=yes exists=no size_in_head=77134
+
+
+## untracked specs/capability-registry.json
+   27135 specs/capability-registry.json
+{
+  "_comment": "The CLOSED capability registry (ADR-0562). The single machine-readable source of truth for the canonical capability set of the capability-first repo organization. Coarse / Conway-aligned: one capability per two-pizza ownership boundary. Seeded from ADR-0536's sixteen substrate domains + the verified current tree (cloud/ + oya/). A crate maps to EXACTLY ONE registered capability via the ADR-0562 deterministic placement rule; new top-level dirs outside this registry plus base/build/governance/kernel/os/app FAIL the membership lint. De-brand naming is realized via the ADR-0532/0533 profile mechanism; the names here are the de-branded canonical slugs (the flip is a later Phase-0 lane). This file is governance data; its eventual home is governance/capability-registry.json after the reorg, held at specs/ until the governance/ top-level dir is created. DATA, not code: canonical-json governed, reachability-registered, council-architecture owned.",
+  "schema_version": "1.0.0",
+  "doctrine_adr": "ADR-0562",
+  "closed": true,
+  "registry_kind": "capability",
+  "placement_authority": "ADR-0562",
+  "seed_authority": [
+    "ADR-0536",
+    "ADR-0280",
+    "current-tree:cloud/",
+    "current-tree:oya/"
+  ],
+  "meta_directories": [
+    {
+      "dir": "kernel/",
+      "rung": 0,
+      "off_runtime_ladder": false,
+      "charter": "kuberos no_std kernel + sysroot; the recursion floor. Its own excluded/nested workspace per the ADR-0512 kernel carve-out.",
+      "owns_crates": true
+    },
+    {
+      "dir": "os/",
+      "rung": 1,
+      "off_runtime_ladder": false,
+      "charter": "cloud-os node operating system (Talos-class). The node substrate the capability ladder runs on.",
+      "owns_crates": true
+    },
+    {
+      "dir": "base/",
+      "rung": "below-all-capabilities",
+      "off_runtime_ladder": false,
+      "admission_gated": true,
+      "charter": "Irreducible cross-capability primitives (Google //base). Admission rule: a crate enters base/ ONLY if depended-on by >=3 capabilities AND strictly below all of them in the ADR-0280 DAG. NOT a util/ junk-drawer.",
+      "owns_crates": true
+    },
+    {
+      "dir": "governance/",
+      "off_runtime_ladder": true,
+      "charter": "Meta, off the runtime ladder: ADRs, specs, policy-as-data, this capability registry, the dep-lint authority, the masterplan.",
+      "owns_crates": false
+    },
+    {
+      "dir": "build/",
+      "off_runtime_ladder": true,
+      "charter": "Meta, off the runtime ladder: buck2 prelude, toolchains, reindeer, third_party vendoring, CI engines, and the generated sell-catalog (SKU/pricing) VIEW. Owns zero capability crates.",
+      "owns_crates": false
+    },
+    {
+      "dir": "app/",
+      "off_runtime_ladder": false,
+      "charter": "Composition ring: deployable surfaces wiring 2+ capabilities for a tenant (SaaS verticals + the web shell). app/<product>/ composes; it never defines a capability engine.",
+      "owns_crates": true
+    }
+  ],
+  "faces": [
+    {
+      "face": "core",
+      "subfold": "core/",
+      "charter": "The engine we RUN (substrate face)."
+    },
+    {
+      "face": "ports",
+      "subfold": "ports/",
+      "charter": "Capability traits; the stable seam. The lowest ADR-0280 DAG node the crate's public port belongs to is the tie-breaker for placement."
+    },
+    {
+      "face": "adapters",
+      "subfold": "adapters/",
+      "charter": "Transient-infra impls (adapter-aws/-oci/-capi); vanish at owned-stack cutover."
+    },
+    {
+      "face": "facade",
+      "subfold": "facade/",
+      "charter": "The multi-tenant surface we SELL (product face); depends on core/ ONLY through ports."
+    }
+  ],
+  "capabilities": [
+    {
+      "name": "cell",
+
+## untracked cloud/cloud-intelligence/.omc

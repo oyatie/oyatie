@@ -1,0 +1,33 @@
+{
+  "goalSlice": "G004/G005 shared-producer hardening",
+  "status": "merged_post_merge_green",
+  "pr": {"checkCount":41,"headRefName":"agent/g004-scm-facts-strict-20260627T235402Z","headRefOid":"04e6a5d3aa3c7ec118ac81e160450feadb1fb8fb","mergeCommit":"ff86bff8e9984daad3c69ab4946507e51951fe8c","mergedAt":"2026-06-28T00:12:11Z","nonSuccess":[],"number":958,"state":"MERGED","url":"https://github.com/jason931225/oyatie/pull/958"},
+  "localCommit": "04e6a5d3aa3c7ec118ac81e160450feadb1fb8fb",
+  "mergeCommit": "ff86bff8e9984daad3c69ab4946507e51951fe8c",
+  "originDev": "ff86bff8e9984daad3c69ab4946507e51951fe8c",
+  "postMergeNonSuccessCount": 0,
+  "changedFiles": [
+    "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/src/main.rs"
+  ],
+  "generatedJsonDiffCommitted": false,
+  "tddEvidence": {
+    "red": "buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app-bin-unittest failed before production fix: tests::scm_facts_rejects_non_string_tracked_paths_entries panicked because old parser accepted a non-string tracked_paths[1] entry",
+    "green": [
+      "rustfmt --check cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/src/main.rs",
+      "git diff --check",
+      "buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app-bin-unittest -- 19/19 passed",
+      "buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app-unittest -- 13/13 passed",
+      "buck2 build //cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app-bin -- BUILD SUCCEEDED"
+    ]
+  },
+  "reviewEvidence": {
+    "codeReviewer": "019f0b82-da80-7352-9104-d8aa2a7b9798 APPROVE; no findings; no missing verification beyond normal oya-ci-required",
+    "architect": "019f0b83-04f7-7651-b24f-caf466ec9bc1 CLEAR; boundary-hardening is minimal and appropriate for shared producer gate",
+    "simplifier": "019f0b83-2036-70f0-9ea2-7ca48a49687b requested one test-only simplification; applied and reverified"
+  },
+  "postMergeChecksSummary": {
+    "checkRunCount": 41,
+    "nonSuccessCount": 0,
+    "requiredContext": "oya-ci-required green on origin/dev ff86bff8e9984daad3c69ab4946507e51951fe8c"
+  }
+}

@@ -1,0 +1,80 @@
+schema: oyatie.stage1.current-decision-blocker-handoff-index/v1
+status: NON_AUTHORITY
+planning_state: HOLD(Planning)
+authoritative_live_epoch_exists: false
+required_fail_closed_epoch_state: HOLD_EPOCH_OPEN
+current_outcome: TRUTHFUL_DECISION_BLOCKER_PACKET
+roadmap_planning_authorized: false
+binding_plan_approval_allowed: false
+implementation_dispatch_allowed: false
+protected_merge_authorized: false
+created_at_utc: "2026-07-24T03:19:53Z"
+
+claim_boundary: >-
+  This index binds the layered current handoff. It preserves the earlier sealed
+  packet as immutable provenance and supplies a semantic correction, a live
+  admission correction, durable raw outputs, and a non-authority hyperscaler
+  adoption-gate addendum. It is not Stage-1 PASS evidence, qualified authority,
+  protected admission, planning authority, merge authority, or dispatch.
+
+current_semantic_packet:
+  path: STAGE1-CURRENT-DECISION-BLOCKER-SUPPLEMENT-cc08cc12b-20260724.yaml
+  sha256: 091362714fbb650a111160a0af7581816f922e707e26bf97db7b922c8ed3203e
+  sidecar:
+    path: STAGE1-CURRENT-DECISION-BLOCKER-SUPPLEMENT-cc08cc12b-20260724.yaml.sha256
+    sha256: 60c451fc15533c8868ec7368ccf9b358a6394f28ab591bb9df206f628dfb5e7d
+
+embedded_contents:
+  - path: STAGE1-LIVE-ADMISSION-CORRECTION-cc08cc12b-20260724.yaml
+    sha256: a4d46f3702e33a70bd8fcd7ad25ffbea370b7e1782b804e480c7bbf4ee4c568a
+  - path: STAGE1-LIVE-ADMISSION-CORRECTION-cc08cc12b-20260724.yaml.sha256
+    sha256: a4997c76505532bc5fd7b7a3f1b83729a0ffaff95ee1f5e9bc4eddaf30039d86
+  - path: STAGE1-RAW-EVIDENCE-MANIFEST-cc08cc12b-20260724.yaml
+    sha256: 784498f51f1579c5617f772d03b648531f448d5570dfab4ebc939abf7d654559
+  - path: stage1-raw-evidence-784498f51f15-20260724.tar
+    sha256: 53525f8ebb665a422ca16712918fb57a53f9d953a3983cd68fd88d4ec508576b
+  - path: stage1-raw-evidence-784498f51f15-20260724.tar.sha256
+    sha256: e7a170efad83fbf73a2098db5e3ef8172d04b8b94de2d5378d966254ddc4b680
+  - path: buck2-hyperscale-concurrency-adoption-addendum-20260724.md
+    sha256: c0985f5770f12e3ad40ac70f903ce67a4f967446afa9846efe612f374346fdbc
+  - path: buck2-hyperscale-concurrency-adoption-addendum-20260724.md.sha256
+    sha256: 28b2930a6944b518a5127a72bc2389ac18f301fd1810ad0bcb2eb92d2a4ea734
+  - path: stage1-decision-blocker-handoff-00b953d5b2db-20260723.tar
+    sha256: 51c90ed2ab6933279e1f16a2a49477d1577df5ed2a64f0af5aef4d3e2c03e10e
+  - path: stage1-decision-blocker-handoff-00b953d5b2db-20260723.tar.sha256
+    sha256: f192c79e9d0e4c31110ac0c35728cef9e6e569355b6c0b1831809fb8a824ec0b
+  - path: pr1364-final-local-candidate-cc08cc12b-20260723-self-contained.bundle.sha256
+    sha256: 54bff4bb2d3583a3612579aaf7d3a6e987e743b88a51620c9967ac26b52e0cb5
+
+external_recovery_artifact:
+  path: pr1364-final-local-candidate-cc08cc12b-20260723-self-contained.bundle
+  sha256: 1dc5d3a642c9c87f540d6a0b2b79393a7bfbea6c137f6d877b23508e65453452
+  size_bytes: 111449172
+  embedded: false
+  reason: >-
+    The complete Git recovery bundle remains adjacent to avoid duplicating 111
+    MB in every semantic handoff envelope. Its checksum sidecar is embedded.
+
+layering:
+  immutable_predecessor_rule: >-
+    The earlier sealed envelope and packet are preserved byte-for-byte. Current
+    consumers must apply the current semantic packet and live correction; they
+    must not treat the predecessor's narrower terminal label or incomplete
+    status visibility as current truth.
+  raw_output_rule: >-
+    The raw-evidence tar embeds exact RED, GREEN, rust diagnostic, and 74-row
+    signature-verification outputs. Their manifest binds hashes, sizes, lines,
+    candidate identity, and claim ceiling.
+  archive_rule: >-
+    Retired repository authority bytes remain in Git history or a
+    content-addressed bundle, not a readable current-tree archived directory.
+
+terminal:
+  authoritative_live_epoch_exists: false
+  required_fail_closed_epoch_state: HOLD_EPOCH_OPEN
+  planning_state: HOLD(Planning)
+  qualified_stage1_pass: false
+  roadmap_planning_authorized: false
+  binding_plan_approval_allowed: false
+  implementation_dispatch_allowed: false
+  protected_merge_authorized: false

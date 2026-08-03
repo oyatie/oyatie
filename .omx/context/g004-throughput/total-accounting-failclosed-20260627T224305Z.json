@@ -1,0 +1,82 @@
+{
+  "changes": [
+    "cloud/cloud-ci/gates/oya-cloud-ci-total-accounting-app/src/lib.rs now treats missing/non-array/empty rows as fail-closed unaccounted with stable rows sentinel.",
+    "Pathless or blank-path rows now fail closed with stable row sentinel instead of silently omitting accountability.",
+    "Existing registry_drift/unaccounted_paths/tracked_paths fixture semantics preserved; malformed producer data contract documented under unaccounted."
+  ],
+  "ci": {
+    "completed": 41,
+    "failures": [],
+    "pending": [],
+    "rollup_count": 41,
+    "success": 41
+  },
+  "decision": "Use prior worker nudge as stale because leader-fixed mailbox/team state were missing; continue G004 from fresh origin/dev isolated worktree.",
+  "goal": "G004-m2-universal-cloud-ci-product-substr",
+  "local_verification": [
+    {
+      "command": "buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-total-accounting-app:oya-cloud-ci-total-accounting-app-unittest",
+      "phase": "RED before implementation",
+      "result": "failed on newly added malformed rows/pathless row tests"
+    },
+    {
+      "command": "rustfmt --check cloud/cloud-ci/gates/oya-cloud-ci-total-accounting-app/src/lib.rs",
+      "result": "pass"
+    },
+    {
+      "command": "git diff --check",
+      "result": "pass"
+    },
+    {
+      "command": "buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-total-accounting-app:oya-cloud-ci-total-accounting-app-unittest",
+      "result": "pass 8/8"
+    },
+    {
+      "command": "buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .",
+      "result": "pass; generated/materialized side effects restored before commit"
+    },
+    {
+      "command": "buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-total-accounting-app:oya-cloud-ci-total-accounting-app-gate",
+      "result": "pass 2/2"
+    }
+  ],
+  "local_worktree": {
+    "base_origin_dev": "6cb892fa7399d3029e02738b06466728743f95b2",
+    "branch": "agent/g004-total-accounting-failclosed-20260627T221812Z",
+    "cleanup": "worktree removed; local branch deleted; remote feature branch absent after merge",
+    "commit": "68a6f1bd11c9e693aec37ed3d8e180ceecf642d6",
+    "path": "/Users/jasonlee/oyatie-worktrees/g004-total-accounting-failclosed-20260627T221812Z"
+  },
+  "next_candidates": [
+    "accounting-registry producer contract hardening",
+    "SCM facts emitter generated-class filter policy packet",
+    "firewall baseline parser false-green hardening"
+  ],
+  "non_terminal_reason": "G004 remains broader than this merged fail-closed total-accounting slice; G001 aggregate Codex goal remains active.",
+  "pr": {
+    "baseRefName": "dev",
+    "headRefName": "agent/g004-total-accounting-failclosed-20260627T221812Z",
+    "headRefOid": "68a6f1bd11c9e693aec37ed3d8e180ceecf642d6",
+    "mergeCommit": {
+      "oid": "4a605f4ad1c32a704d164da973bd739dd2be38f6"
+    },
+    "mergeStateStatus": "UNKNOWN",
+    "mergedAt": "2026-06-27T22:41:02Z",
+    "number": 956,
+    "state": "MERGED",
+    "url": "https://github.com/jason931225/oyatie/pull/956"
+  },
+  "review": [
+    {
+      "agent": "code-reviewer 019f0b2d-5315-7090-ae58-1f6123e39be8",
+      "verdict": "APPROVE, 0 issues"
+    },
+    {
+      "agent": "architect 019f0b2d-77fa-7783-8736-58f803fdcc1d",
+      "verdict": "CLEAR after explicit contract/comment patch"
+    }
+  ],
+  "slice": "total-accounting-malformed-input-fail-closed",
+  "status": "merged_non_terminal_g004_slice",
+  "ts": "2026-06-27T22:43:05.754995Z"
+}

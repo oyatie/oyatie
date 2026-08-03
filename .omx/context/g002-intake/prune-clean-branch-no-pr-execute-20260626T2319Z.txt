@@ -1,0 +1,129 @@
+--- /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_10e3e92b-3cd-10
+## feat/cloud-intel-principal-verifier...origin/dev [ahead 1, behind 21]
+branch-ref-preserved: refs/heads/feat/cloud-intel-principal-verifier
+removed: /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_10e3e92b-3cd-10
+--- /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_10e3e92b-3cd-1
+## feat/cloud-intel-gemini-oauth...origin/dev [ahead 1, behind 21]
+branch-ref-preserved: refs/heads/feat/cloud-intel-gemini-oauth
+removed: /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_10e3e92b-3cd-1
+--- /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_10e3e92b-3cd-2
+## feat/cloud-intel-codex-class-headers...origin/feat/cloud-intel-codex-oauth-wiring [gone]
+branch-ref-preserved: refs/heads/feat/cloud-intel-codex-class-headers
+removed: /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_10e3e92b-3cd-2
+--- /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_10e3e92b-3cd-3
+## feat/cloud-intel-overage-guard...origin/feat/cloud-intel-overage-guard [gone]
+branch-ref-preserved: refs/heads/feat/cloud-intel-overage-guard
+removed: /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_10e3e92b-3cd-3
+--- /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_10e3e92b-3cd-4
+## feat/cloud-intel-headroom-cooldown...origin/dev [ahead 1, behind 21]
+branch-ref-preserved: refs/heads/feat/cloud-intel-headroom-cooldown
+removed: /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_10e3e92b-3cd-4
+--- /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_10e3e92b-3cd-5
+## feat/cloud-intel-session-pinning...origin/feat/cloud-intel-session-pinning [gone]
+branch-ref-preserved: refs/heads/feat/cloud-intel-session-pinning
+removed: /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_10e3e92b-3cd-5
+--- /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_10e3e92b-3cd-6
+## feat/cloud-intel-cost-pricebook...origin/feat/cloud-intel-cost-pricebook [gone]
+branch-ref-preserved: refs/heads/feat/cloud-intel-cost-pricebook
+removed: /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_10e3e92b-3cd-6
+--- /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_10e3e92b-3cd-7
+## feat/cloud-intel-retry-fallback...origin/dev [ahead 1, behind 21]
+branch-ref-preserved: refs/heads/feat/cloud-intel-retry-fallback
+removed: /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_10e3e92b-3cd-7
+--- /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_10e3e92b-3cd-8
+## feat/cloud-intel-capability-registry...origin/dev [ahead 1, behind 21]
+branch-ref-preserved: refs/heads/feat/cloud-intel-capability-registry
+removed: /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_10e3e92b-3cd-8
+--- /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_10e3e92b-3cd-9
+## feat/cloud-intel-guardrail-port...origin/dev [ahead 1, behind 21]
+branch-ref-preserved: refs/heads/feat/cloud-intel-guardrail-port
+removed: /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_10e3e92b-3cd-9
+--- /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_a6c6939e-488-1
+## work-class-headers
+branch-ref-preserved: refs/heads/work-class-headers
+removed: /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_a6c6939e-488-1
+--- /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_a6c6939e-488-3
+## work
+branch-ref-preserved: refs/heads/work
+removed: /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_a6c6939e-488-3
+--- /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_a6c6939e-488-4
+## worktree-wf_a6c6939e-488-4
+branch-ref-preserved: refs/heads/worktree-wf_a6c6939e-488-4
+removed: /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_a6c6939e-488-4
+--- /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_a6c6939e-488-5
+## worktree-wf_a6c6939e-488-5
+branch-ref-preserved: refs/heads/worktree-wf_a6c6939e-488-5
+removed: /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_a6c6939e-488-5
+--- /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_a6c6939e-488-6
+## work-principal-verifier
+branch-ref-preserved: refs/heads/work-principal-verifier
+removed: /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_a6c6939e-488-6
+--- /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_b306f25c-be3-1
+## feat/cloud-intel-codex-oauth-wiring...origin/feat/cloud-intel-codex-oauth-wiring [gone]
+branch-ref-preserved: refs/heads/feat/cloud-intel-codex-oauth-wiring
+removed: /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_b306f25c-be3-1
+--- /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_c4dfe460-b55-1
+## feat/cloud-intel-t2a-wire-types...origin/dev [ahead 1, behind 21]
+branch-ref-preserved: refs/heads/feat/cloud-intel-t2a-wire-types
+removed: /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_c4dfe460-b55-1
+--- /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_c4dfe460-b55-2
+## feat/cloud-intel-t2b-error-class...origin/dev [ahead 1, behind 21]
+branch-ref-preserved: refs/heads/feat/cloud-intel-t2b-error-class
+removed: /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_c4dfe460-b55-2
+--- /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_c4dfe460-b55-3
+## feat/cloud-intel-t1-tls-reachability...origin/dev [ahead 1, behind 21]
+branch-ref-preserved: refs/heads/feat/cloud-intel-t1-tls-reachability
+removed: /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_c4dfe460-b55-3
+--- /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_c4dfe460-b55-4
+## feat/cloud-intel-t4-metrics...origin/dev [ahead 1, behind 21]
+branch-ref-preserved: refs/heads/feat/cloud-intel-t4-metrics
+removed: /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_c4dfe460-b55-4
+--- /Users/jasonlee/oyatie-worktrees/team-python-mjs-rust-leader-20260626T105958Z
+## agent/team-python-mjs-rust-leader-20260626T105958Z...origin/dev [ahead 23, behind 9]
+branch-ref-preserved: refs/heads/agent/team-python-mjs-rust-leader-20260626T105958Z
+removed: /Users/jasonlee/oyatie-worktrees/team-python-mjs-rust-leader-20260626T105958Z
+--- /Users/jasonlee/oyatie-worktrees/team-leader-ci-velocity-20260626T043322Z
+## agent/team-leader-ci-velocity-20260626T043322Z...origin/dev [ahead 8, behind 23]
+branch-ref-preserved: refs/heads/agent/team-leader-ci-velocity-20260626T043322Z
+removed: /Users/jasonlee/oyatie-worktrees/team-leader-ci-velocity-20260626T043322Z
+--- /Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629
+## agent/waveB-ast-transpiler-followup-202606260000...origin/agent/waveB-ast-transpiler-followup-202606260000 [gone]
+branch-ref-preserved: refs/heads/agent/waveB-ast-transpiler-followup-202606260000
+removed: /Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629
+--- /Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629
+## agent/waveA-collab-office-issue864-202606260018...origin/agent/waveA-collab-office-issue864-202606260018 [gone]
+branch-ref-preserved: refs/heads/agent/waveA-collab-office-issue864-202606260018
+removed: /Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629
+--- /Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629
+## agent/waveB-crm-descriptor-metadata-878...origin/agent/waveB-crm-descriptor-metadata-878 [gone]
+branch-ref-preserved: refs/heads/agent/waveB-crm-descriptor-metadata-878
+removed: /Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629
+--- /Users/jasonlee/oyatie-worktrees/ultragoal-wave-a-20260626T203951Z
+## agent/ultragoal-wave-a-20260626T203951Z...origin/dev [ahead 5, behind 3]
+branch-ref-preserved: refs/heads/agent/ultragoal-wave-a-20260626T203951Z
+removed: /Users/jasonlee/oyatie-worktrees/ultragoal-wave-a-20260626T203951Z
+--- /Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105334Z
+## agent/python-mjs-rust-20260626T105334Z...origin/agent/python-mjs-rust-20260626T105334Z [gone]
+branch-ref-preserved: refs/heads/agent/python-mjs-rust-20260626T105334Z
+removed: /Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105334Z
+--- /Users/jasonlee/oyatie-worktrees/ci-pr-cancel-20260626T025326Z
+## agent/ci-pr-cancel-stale-runs-20260626T025326Z...origin/agent/ci-pr-cancel-stale-runs-20260626T025326Z [gone]
+branch-ref-preserved: refs/heads/agent/ci-pr-cancel-stale-runs-20260626T025326Z
+removed: /Users/jasonlee/oyatie-worktrees/ci-pr-cancel-20260626T025326Z
+--- /Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629
+## agent/waveB-cloud-ci-873-20260626...origin/agent/waveB-cloud-ci-873-20260626 [gone]
+branch-ref-preserved: refs/heads/agent/waveB-cloud-ci-873-20260626
+removed: /Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629
+--- /Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629
+## agent/waveB-iac-transport-773-20260626...origin/agent/waveB-iac-transport-773-20260626 [gone]
+branch-ref-preserved: refs/heads/agent/waveB-iac-transport-773-20260626
+removed: /Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629
+--- /Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629
+## agent/waveB-pdp-same-tenant-879...origin/agent/waveB-pdp-same-tenant-879 [gone]
+branch-ref-preserved: refs/heads/agent/waveB-pdp-same-tenant-879
+removed: /Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629
+--- /Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629
+## agent/waveA-erp-blockers-20260625...origin/agent/waveA-erp-blockers-20260625 [gone]
+branch-ref-preserved: refs/heads/agent/waveA-erp-blockers-20260625
+removed: /Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629
+summary: removed=32 skipped=0 failed=0 mode=--execute

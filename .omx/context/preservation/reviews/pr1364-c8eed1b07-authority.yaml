@@ -1,0 +1,94 @@
+schema: oyatie.preservation.non-authority-receipt/v1
+receipt_type: NON_AUTHORITY
+generated_at_utc: "2026-07-23T23:37:52Z"
+
+task_id: /root/pr1364_final_authority_review
+reviewer_task_id: /root/pr1364_final_authority_review
+review_scope: fresh exact-head authority and category audit
+
+repository_snapshot:
+  worktree: /Users/jasonlee/Developer/oyatie/.omx/worktrees/codex-pr1364-prep-20260723-v2
+  base_commit: 1026a65b707ce57693d9b830de33ee0ce228f16b
+  reviewed_head: c8eed1b0746f747ab269314cabac1791bb43c6ab
+  reviewed_tree: fade011fd1f475f0dcec34ec0ce8d6bb45967ffa
+  head_movement_policy: abort on movement
+  head_and_tree_rechecked_before_receipt: true
+
+verdict: NON_AUTHORITY_CONFIRMED
+qualified_stage1_principal: false
+planning_state: HOLD(Planning)
+roadmap_planning_authorized: false
+binding_plan_approval_allowed: false
+implementation_dispatch_allowed: false
+
+definitions:
+  structural_claim: >-
+    A source-local assertion, binding, digest, or equality check. It can check
+    syntax and correspondence but cannot establish the real-world fact it names.
+  qualified_authority: >-
+    An externally authenticated, scope-appropriate principal with the relevant
+    legal, affected-party, operational, custody, veto, pilot, or planning power.
+  protected_admission: >-
+    An externally controlled post-merge decision over protected SCM and review
+    facts; it is not a source-authored schema, fixture, or pure Rust result.
+
+findings:
+  ontology: >-
+    No category mistake was found in the reviewed source: it consistently
+    distinguishes structural claims from qualified authority and leaves the
+    latter external. The evaluator's labels for legal/JCR, affected-party,
+    operations, custody, veto, pilot, council, dissent, oracle, blind-reader,
+    and planning roles are grammar constraints, not credentials or grants.
+  authority: >-
+    No code, schema, or fixture authenticates a principal, verifies a signature
+    or trust root, establishes a qualification, grants legal/JCR or
+    affected-party standing, or creates operations, custody, veto, pilot, or
+    qualified-planning authority.
+  ceiling: >-
+    Source states remain HOLD or PASS_CANDIDATE only. PASS_CANDIDATE keeps all
+    three planning/approval/dispatch flags false, and the current pure evaluator
+    rejects advancement beyond HOLD_EPOCH_OPEN without the unimplemented external
+    authenticated controller and trust-root path.
+  independence: >-
+    C13 requires exactly sixteen distinct council principals; C14 must differ
+    from council and protected principals; C15 requires three distinct
+    principals separated from C13/C14/protected principals. These are structural
+    non-authoritative checks, not proof of real-world independence or fresh context.
+  qpa_and_admission: >-
+    The qualified-planning-authority record must structurally bind completed
+    oracle and blind-reader receipt/output digests and occur after them. The
+    post-merge admission envelope and protected facts remain sibling external-
+    controller inputs, not nested controller authority; linkage checks equality
+    edges only.
+  successor_change: >-
+    c8eed1b07 adds a fail-closed SCM check requiring merge_base_commit to equal
+    the observed protected-parent commit. It adds no authentication, authority,
+    admission activation, or PASS effect.
+  categorical_counterexamples: []
+
+evidence:
+  identity:
+    - exact HEAD and tree were read before and immediately before this receipt.
+    - base_commit is an ancestor of reviewed_head.
+    - git diff --check over base_commit..reviewed_head returned no findings.
+  authority_ceiling:
+    - libs/oya-stage1-closure/src/lib.rs:476-478 rejects source advancement beyond HOLD_EPOCH_OPEN without an external authenticated controller and trust root.
+    - libs/oya-stage1-closure/src/lib.rs:1994-2009 requires all three authorization flags to be false for admission-envelope shape validation.
+    - specs/stage1-evidence-epoch.schema.json:8 and specs/stage1-closure-program.schema.json:13 declare PASS_CANDIDATE as the source ceiling, not effective PASS.
+  qualified_authority_boundary:
+    - libs/oya-stage1-closure/src/lib.rs:387-388 states that pure linkage authenticates neither producer nor trust root and authorizes neither planning nor dispatch.
+    - libs/oya-stage1-closure/src/lib.rs:1374 and 1430-1431 classify protected facts and admission as structural only and require an external authenticated controller.
+    - no qualified_stage1_principal identifier or equivalent Stage-1 qualified-principal grant exists in the reviewed crate or Stage-1 schemas.
+  independence_and_sibling_separation:
+    - libs/oya-stage1-closure/src/lib.rs:1121-1139 separates C14 and C15 principals from protected and council principals.
+    - libs/oya-stage1-closure/src/lib.rs:2013-2034 defines protected facts and admission as sibling external-controller inputs and returns a HOLD finding.
+    - libs/oya-stage1-closure/src/lib.rs:3574-3604 binds and orders QPA after oracle and blind-reader output without treating the record as authority.
+  scm_merge_base_regression:
+    - libs/oya-stage1-closure/src/lib.rs:3972-3975 rejects a merge base that differs from the protected parent.
+    - libs/oya-stage1-closure/tests/stage1_closure.rs:2315-2324 locks that rejection while retaining the non-authoritative admission HOLD finding.
+
+limitations:
+  - This is a local source and exact-object audit, not a protected admission, SCM-server attestation, live branch-protection observation, signature verification, trust-root verification, or human qualification review.
+  - Structural principal separation and fresh-context fields cannot prove actual independence, identity, standing, custody, legal/JCR status, or authority.
+  - No runtime, browser, rollout, remote CI, or external controller was invoked; none is claimed by this receipt.
+  - This receipt neither promotes ADR-0622 nor changes its Proposed status, Stage-1 HOLD(Planning), or any merge/roadmap/dispatch authority.

@@ -1,0 +1,76 @@
+receipt_kind: pr-consolidated-local-review-and-verification
+receipt_version: 1
+non_authority: true
+qualified_stage1_principal: false
+reviewed_at_utc: "2026-07-24T00:51:44Z"
+review_scope:
+  pull_request: 1361
+  candidate_worktree: "/Users/jasonlee/Developer/oyatie/.omx/worktrees/pr1361-resume-v2"
+  candidate_head: "aadb8c75878fff3c93f0858d5a758707a93f1205"
+  candidate_tree: "fcbe2e60185520bae38d1e2a90ffa02e581c4d78"
+  declared_base: "30dd46c4dd7d12c085b77332d9ac5035d583edcf"
+  observed_merge_base: "30dd46c4dd7d12c085b77332d9ac5035d583edcf"
+  clean_before: true
+  clean_after: true
+verdict: "APPROVE_LOCAL_SOURCE_ONLY"
+merge_ready: false
+findings: []
+spec_and_authority_review:
+  result: PASS
+  verified_properties:
+    - "The source control plane fixes planning_state to HOLD(Planning) and dispatch_authorized to false."
+    - "The materializer rejects a noncanonical output path, requires the output to be ignored and untracked, and never accepts a tracked generated face."
+    - "The materializer requires candidate == HEAD, protected base == candidate first parent, protected-base ancestry, and exact predecessor commit/tree/raw-byte bindings."
+    - "The facts projection uses a closed key set and regression coverage rejects raw retired bodies, PASS/verdict fields, and authority-lookalike fields."
+    - "The generated-artifact consumer requires the exact controller-owned path and fails closed when that materialized face is absent."
+    - "The CI workflow rejects events without an event-bound protected-base SHA before deriving HEAD^1."
+    - "No changed path matches *.generated.json; the newly declared generated face remains ignored and untracked."
+  source_boundaries:
+    - "This candidate is an evidence-preservation/control-plane implementation only; it does not close HOLD(Planning), produce qualified-human authority, authorize roadmap planning, approve a binding plan, or dispatch implementation."
+    - "Retired/superseded bodies are not copied into a readable in-tree archive by this candidate. Git history is provenance only and does not establish confidentiality."
+security_and_quality_review:
+  result: PASS
+  method:
+    - "Reviewed changed Rust materializer, workflow transport, cross-artifact binding, generated-face registration, schemas, and regression coverage."
+    - "Searched the changed implementation surface for secrets, empty catch-like handlers, and masking fallback/best-effort paths; no newly introduced masking fallback or secret was found."
+    - "rustfmt --check passed for all changed Rust implementation/test files."
+  findings: []
+git_integrity:
+  linear_base_ancestry: true
+  commit_count: 8
+  ssh_signed_commits:
+    result: PASS
+    signer: "56489493+jason931225@users.noreply.github.com"
+    key_fingerprint: "SHA256:5grGNUtX9Zgmy1SWne6wF9DR8W1ElUQaF/Z8SYRz8E8"
+  diff_check: PASS
+  generated_faces_hand_edited: false
+  exact_changed_paths: 22
+syntax_and_static_checks:
+  json_parse: PASS
+  json_schema_instance_validation: UNAVAILABLE
+  json_schema_instance_validation_reason: "Python jsonschema module is not installed; JSON parsing passed, but this receipt does not substitute a schema-validation result."
+  rustfmt_check: PASS
+  lsp_diagnostics: UNAVAILABLE
+  lsp_diagnostics_reason: "No LSP diagnostic surface is available in this execution environment."
+test_and_ci_status:
+  canonical_buck2_test: NOT_RUN
+  canonical_buck2_test_reason: "Buck2 requires a sandbox-disallowed ~/.buck/buckd write in this environment; Cargo is retired as admission authority and was not substituted."
+  protected_ci: NOT_RUN
+  protected_ci_reason: "No GitHub protected-context result is available for this exact local-only candidate."
+  local_review_conclusion: "No source, specification, security, or regression-coverage defect was found in the reviewed candidate; unavailable validation is explicitly non-substituted."
+bundle:
+  path: ".omx/context/preservation/pr1361-aadb8c758-20260723.bundle"
+  sha256: "011acffdb17e1789d2a6563a1adbecefac6e47371943628212fe38dd0edffc09"
+  git_bundle_verify: PASS
+  advertised_ref: "refs/heads/codex/pr1361-resume-admission-20260723-v2"
+  advertised_head: "aadb8c75878fff3c93f0858d5a758707a93f1205"
+  required_prerequisite_base: "30dd46c4dd7d12c085b77332d9ac5035d583edcf"
+  recoverability: "PASS_WITH_DECLARED_BASE_PREREQUISITE"
+  standalone_bundle: false
+  limitation: "The bundle is a valid thin PR-range bundle. Recovery requires the exact declared base; it is not a standalone full-history archive."
+limitations:
+  - "This is a local exact-object review and verification receipt, not a GitHub review, protected-branch admission, CI result, merge authorization, rollout verification, or post-merge completion packet."
+  - "It does not authenticate remote SCM facts, server review, required status context, branch protection, qualified principals, trust roots, freshness, independence, legal/JCR findings, affected-party standing, custody, veto, pilot, or oracle/blind-reader evidence."
+  - "It does not satisfy any Stage-1 control or convert HOLD(Planning) into PASS(Planning)."
+  - "PR #1361 cannot be considered merge-ready until its exact pushed head is reviewed and the protected oya-ci-required context is green with all branch-protection requirements satisfied."
+stop_condition: "Invalidate this receipt if candidate head/tree/base, bundle bytes, source review scope, or authority state changes."

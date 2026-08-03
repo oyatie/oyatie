@@ -1,0 +1,113 @@
+schema: oyatie.preservation.non-authority-receipt/v1
+receipt_type: NON_AUTHORITY_PR_SOURCE_REVIEW_AND_VERIFICATION
+non_authority: true
+qualified_stage1_principal: false
+generated_at_utc: "2026-07-24T00:50:23Z"
+
+review_scope:
+  pull_request: 1362
+  candidate_worktree: /Users/jasonlee/Developer/oyatie/.omx/worktrees/pr1362-prep-20260723-v2
+  base_commit: aadb8c75878fff3c93f0858d5a758707a93f1205
+  reviewed_head: d69a14831d8eb5f731bd74f60e74db13bb3792e8
+  reviewed_tree: 7a6abf708fb3751799784fec35a59e9755d25bea
+  exact_object_policy: invalidate this receipt if either reviewed_head or reviewed_tree changes
+
+verdict: PARTIAL
+source_spec_security_verdict: APPROVE_WITHOUT_CANONICAL_EXECUTION
+merge_readiness: NOT_ESTABLISHED
+planning_state: HOLD(Planning)
+roadmap_planning_authorized: false
+binding_plan_approval_allowed: false
+implementation_dispatch_allowed: false
+
+findings:
+  - severity: MEDIUM
+    category: preservation-recoverability
+    evidence: >-
+      The #1362 bundle verifies and has the recorded checksum, but requires base
+      aadb8c75878fff3c93f0858d5a758707a93f1205. The retained #1361 bundle in turn requires
+      dev commit 30dd46c4dd7d12c085b77332d9ac5035d583edcf. A fresh clone from #1361 followed
+      by fetch of #1362 failed because that prerequisite is absent. Therefore the preserved
+      chain is not independently recoverable from the two retained bundles alone.
+    fix: >-
+      Preserve a self-contained bundle, or an explicit complete prerequisite bundle set including
+      the exact dev base, then repeat fresh-clone, fetch, fsck, exact-head/tree, and signature checks.
+
+evidence:
+  exact_identity_and_ancestry:
+    verdict: PASS
+    observed_head: d69a14831d8eb5f731bd74f60e74db13bb3792e8
+    observed_tree: 7a6abf708fb3751799784fec35a59e9755d25bea
+    merge_base: aadb8c75878fff3c93f0858d5a758707a93f1205
+    base_is_ancestor: true
+    clean_before_and_after: true
+    linear_commit_count: 5
+    merge_commit_count: 0
+  commit_signatures:
+    verdict: PASS
+    git_verify_commit_success_count: 5
+    git_verify_commit_failure_count: 0
+    signer: 56489493+jason931225@users.noreply.github.com
+    signing_key_fingerprint: SHA256:5grGNUtX9Zgmy1SWne6wF9DR8W1ElUQaF/Z8SYRz8E8
+  patch_and_generated_faces:
+    verdict: PASS
+    changed_file_count: 17
+    diff_check: pass
+    retained_changed_json_parse: pass
+    changed_generated_json_count: 0
+    generated_faces_modified_by_hand: false
+    retired_legacy_path: registry/graph/active-artifact-contract-edges.json
+    control_plane_registration: >-
+      Exact legacy path is declared not-tracked-in-git with
+      never-manual-merge-regenerate-from-source-tree and has an exact generated-path rule.
+  source_spec_security_review:
+    verdict: PASS
+    reviewed_contract: >-
+      ADR-0620 retires only a deterministic graph projection to Git object history, registers
+      controller-only materialization, rejects direct contributor edits, and explicitly preserves
+      HOLD(Planning).
+    fail_closed_coverage: >-
+      Freshness materializes and validates the graph before consumers run; generated-artifact
+      diff policy excludes de-committed faces from sanctioned relocation; control-plane and
+      producer tests cover direct-edit refusal, graph shape, exact projection bytes, escaping,
+      materializer order, and hermetic-exception baselines.
+    root_cause_guard: pass
+    security_review: >-
+      No secret, unsafe code, silent error suppression, broad fallback, or contributor-path
+      bypass was found in the reviewed delta. Command::new additions are explicit materializer
+      subprocesses with ADR-0620 exception accounting, not fallback execution paths.
+    formatting: rustfmt --check passed for all six changed Rust source/test files.
+  canonical_execution:
+    verdict: UNAVAILABLE_ENVIRONMENT_GAP
+    command: buck2 targets / relevant canonical Buck test targets
+    exact_error: >-
+      Error creating daemon dir under /Users/jasonlee/.buck/buckd/.../pr1362-prep-20260723-v2/v2:
+      Operation not permitted (os error 1).
+    note: >-
+      Cargo test is retired by repository policy and was blocked by the local guard; no Cargo
+      result is used as evidence. This receipt makes no claim that canonical Buck tests or
+      protected CI passed.
+  bundle:
+    candidate_bundle: /Users/jasonlee/Developer/oyatie/.omx/context/preservation/pr1362-d69a14831-20260723.bundle
+    sha256: b2a81acde4480a06b877ef0bf90b3edd1804c21d3f6c42ac96f652117ac21bd0
+    bundle_verify: PASS
+    bundle_head: d69a14831d8eb5f731bd74f60e74db13bb3792e8
+    required_base: aadb8c75878fff3c93f0858d5a758707a93f1205
+    prerequisite_bundle: /Users/jasonlee/Developer/oyatie/.omx/context/preservation/pr1361-aadb8c758-20260723.bundle
+    prerequisite_bundle_sha256: 011acffdb17e1789d2a6563a1adbecefac6e47371943628212fe38dd0edffc09
+    prerequisite_bundle_verify: PASS
+    prerequisite_bundle_required_base: 30dd46c4dd7d12c085b77332d9ac5035d583edcf
+    standalone_chain_recovery: FAIL
+    fresh_clone_fetch_result: >-
+      failed before object recovery: Repository lacks prerequisite commit
+      30dd46c4dd7d12c085b77332d9ac5035d583edcf.
+
+limitations:
+  - This is a local exact-object source review and preservation check, not a GitHub review, merge, or protected-branch admission.
+  - Canonical Buck execution could not start because the managed sandbox blocks Buck daemon-directory creation.
+  - No remote PR state, required oya-ci-required context, branch protection, rollout, or post-merge evidence was verified.
+  - This receipt does not create qualified human authority, satisfy a Stage-1 gate, lift HOLD(Planning), authorize roadmap planning, approve a binding plan, or dispatch implementation.
+
+stop_condition: >-
+  Supersede this receipt after any exact-head/tree change, or replace it after preserving and
+  independently recovering a complete verified bundle prerequisite set.

@@ -1,0 +1,293 @@
+## git worktree list --porcelain
+worktree /Users/jasonlee/Developer/oyatie
+HEAD d705932d4731307b80320125560808be21f8b582
+branch refs/heads/dev
+
+worktree /private/tmp/claude-501/-Users-jasonlee-Developer-oyatie/0eea760e-659a-43a5-a5fa-31225a3931a5/scratchpad/wt-session
+HEAD 3a90fd1e6bc86f989436aef3e1576b452010638b
+branch refs/heads/feat/cloud-intel-session-pinning
+
+worktree /private/tmp/oya-firewall-0f0dPI/worktree
+HEAD bf063080fcc9f65374e496c965372262632aa7f1
+detached
+
+worktree /private/tmp/oya-pr882-probe-90412
+HEAD e17ac9a24b668797796ba60a8619abe701c751b5
+detached
+
+worktree /private/tmp/oyatie-pr881-review.WFwSdx
+HEAD f3ff09b1458a2f65fba8aa619745b5819ed9a180
+detached
+
+worktree /private/tmp/oyatie-pr882-clean-review
+HEAD e829bab48d501d56e908fb31b395e76665009927
+detached
+
+worktree /private/tmp/oyatie-pr882-clean.m9mG55
+HEAD df4f755fb598796ea04810646a85503cfa5e753b
+detached
+
+worktree /private/tmp/oyatie-pr884-review
+HEAD 38eded923375d3d943fa34131b088d63a32a278a
+detached
+
+worktree /private/tmp/oyatie-pr893-wt
+HEAD 6fca8ea580c87c796507a635a716518306cb3086
+detached
+
+worktree /Users/jasonlee/Developer/oyatie-pr883-review
+HEAD 016aa1f35d81007e9d716f1b0c4d75f8cd41bab9
+detached
+
+worktree /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_10e3e92b-3cd-1
+HEAD 47b7a8f0935a555c163d086098c83d41179bad58
+branch refs/heads/feat/cloud-intel-gemini-oauth
+
+worktree /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_10e3e92b-3cd-10
+HEAD 923631b60c801f88eae09dcb070e100d75e1c6a7
+branch refs/heads/feat/cloud-intel-principal-verifier
+
+worktree /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_10e3e92b-3cd-2
+HEAD d5d4e8174335afb2c4cf5af65c94cb92dd5b8672
+branch refs/heads/feat/cloud-intel-codex-class-headers
+
+worktree /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_10e3e92b-3cd-3
+HEAD dd44f147d8184b111452ee0f3222bd4b57e835dc
+branch refs/heads/feat/cloud-intel-overage-guard
+
+worktree /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_10e3e92b-3cd-4
+HEAD 7fa050225465c0b5230911f62ab0e0a3e8dcf348
+branch refs/heads/feat/cloud-intel-headroom-cooldown
+
+worktree /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_10e3e92b-3cd-5
+HEAD 3a90fd1e6bc86f989436aef3e1576b452010638b
+branch refs/heads/feat/cloud-intel-session-pinning
+
+worktree /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_10e3e92b-3cd-6
+HEAD 253926c9aa1e73940d6bcca085d830bed55b25dd
+branch refs/heads/feat/cloud-intel-cost-pricebook
+
+worktree /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_10e3e92b-3cd-7
+HEAD ecbdd644ce1b0ff38020458bf9b6faf3c5950ba7
+branch refs/heads/feat/cloud-intel-retry-fallback
+
+worktree /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_10e3e92b-3cd-8
+HEAD 8b1fe4f20cf8c216c929de24a2ed69f95fe1ef0b
+branch refs/heads/feat/cloud-intel-capability-registry
+
+worktree /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_10e3e92b-3cd-9
+HEAD 6c54cad86da2b596ce6e10ec57460777a5fb367c
+branch refs/heads/feat/cloud-intel-guardrail-port
+
+worktree /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_a6c6939e-488-1
+HEAD ca7ef3e9e6ac1c70fcf4a65b9338eebfa58717ed
+branch refs/heads/work-class-headers
+
+worktree /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_a6c6939e-488-2
+HEAD 7fa050225465c0b5230911f62ab0e0a3e8dcf348
+branch refs/heads/work-headroom-488-2
+
+worktree /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_a6c6939e-488-3
+HEAD 30fbc35150da8b099205b717e2fab39e00396843
+branch refs/heads/work
+
+worktree /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_a6c6939e-488-4
+HEAD 760a97bff88572e5b51087fa9d87531788d02c08
+branch refs/heads/worktree-wf_a6c6939e-488-4
+
+worktree /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_a6c6939e-488-5
+HEAD 6c54cad86da2b596ce6e10ec57460777a5fb367c
+branch refs/heads/worktree-wf_a6c6939e-488-5
+
+worktree /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_a6c6939e-488-6
+HEAD b6b131e2286b12b6ee51c31fc27c596dbac7e055
+branch refs/heads/work-principal-verifier
+
+worktree /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_b306f25c-be3-1
+HEAD 41c592b59ffa0ede64a86b16933f5c0a54436715
+branch refs/heads/feat/cloud-intel-codex-oauth-wiring
+
+worktree /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_c4dfe460-b55-1
+HEAD 902ac1e1d0d8d714ea9781efd34cf661daef0754
+branch refs/heads/feat/cloud-intel-t2a-wire-types
+
+worktree /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_c4dfe460-b55-2
+HEAD 22806d4383e40744fbbefacb150a8f42c4df2913
+branch refs/heads/feat/cloud-intel-t2b-error-class
+
+worktree /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_c4dfe460-b55-3
+HEAD 55e68d819e1b5ec3ccf079ee196eb701bd625f3a
+branch refs/heads/feat/cloud-intel-t1-tls-reachability
+
+worktree /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_c4dfe460-b55-4
+HEAD fc234e2e4484c2a81e440fc234c80b65a8886ee2
+branch refs/heads/feat/cloud-intel-t4-metrics
+
+worktree /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_f66bf3ee-51a-1
+HEAD 3a4a9238bee53bf442b74564941be04f5edbfb7d
+branch refs/heads/feat/cloud-intel-g0-billing-canary
+
+worktree /Users/jasonlee/oyatie-worktrees/ci-pr-cancel-20260626T025326Z
+HEAD b745953530d9a8671f965468504b05ef3e8781d7
+branch refs/heads/agent/ci-pr-cancel-stale-runs-20260626T025326Z
+
+worktree /Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-1
+HEAD 83e6a7066aa280825c8a32dc63928e95b02e8225
+branch refs/heads/mail-mailbox-organize-usecase-slice
+
+worktree /Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-10
+HEAD 83e6a7066aa280825c8a32dc63928e95b02e8225
+branch refs/heads/compliance-control-evidence-usecase-slice
+
+worktree /Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-2
+HEAD 83e6a7066aa280825c8a32dc63928e95b02e8225
+branch refs/heads/comms-messenger-stream-ordering-usecase
+
+worktree /Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-3
+HEAD 83e6a7066aa280825c8a32dc63928e95b02e8225
+branch refs/heads/comms-contact-center-core-slice
+
+worktree /Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-4
+HEAD 83e6a7066aa280825c8a32dc63928e95b02e8225
+branch refs/heads/worktree-wf_5056f9ff-2b6-4
+
+worktree /Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-5
+HEAD 83e6a7066aa280825c8a32dc63928e95b02e8225
+branch refs/heads/wave1/billing-accounting-journal-usecase
+
+worktree /Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-6
+HEAD 83e6a7066aa280825c8a32dc63928e95b02e8225
+branch refs/heads/feat/billing-finops-budget-alert-585
+
+worktree /Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-7
+HEAD 83e6a7066aa280825c8a32dc63928e95b02e8225
+branch refs/heads/data-pipeline-core-ports-slice
+
+worktree /Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-8
+HEAD 83e6a7066aa280825c8a32dc63928e95b02e8225
+branch refs/heads/feat/data-warehouse-table-retention-core-adr0587
+
+worktree /Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-9
+HEAD 83e6a7066aa280825c8a32dc63928e95b02e8225
+branch refs/heads/worktree-wf_5056f9ff-2b6-9
+
+worktree /Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_6e664cf7-e06-2
+HEAD 648c490e488fd25bf8f13067a109871cab3dcb72
+branch refs/heads/wf/milestone-view
+
+worktree /Users/jasonlee/oyatie-worktrees/p3-observability
+HEAD f2cf13a792c6109d37472724bba24915f6fc5510
+branch refs/heads/agent/p3-observability
+
+worktree /Users/jasonlee/oyatie-worktrees/pr-repair-python-mjs-rust/pr907
+HEAD b7a22b72c5eae951ec9dcdf8bd7943629b4acaf7
+detached
+
+worktree /Users/jasonlee/oyatie-worktrees/pr-repair-python-mjs-rust/pr908
+HEAD 370fc47037166836b80452d54cb563fb8c5a3cb5
+detached
+
+worktree /Users/jasonlee/oyatie-worktrees/pr-repair-python-mjs-rust/pr909
+HEAD cc8ba3c8d4f6703d1c50e20da4032900128f058b
+detached
+
+worktree /Users/jasonlee/oyatie-worktrees/pr-repair-python-mjs-rust/pr910
+HEAD cfcad19eb8449e607de44859f506098523b9b329
+detached
+
+worktree /Users/jasonlee/oyatie-worktrees/pr811-catalog-rekey
+HEAD cfdbf1b6e5cbcf1e82501c975642074e52dabde4
+branch refs/heads/pr811-rekey
+
+worktree /Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105334Z
+HEAD 73bf7214ed2731b7f7f5ace6ef0dd863098504bc
+branch refs/heads/agent/python-mjs-rust-20260626T105334Z
+
+worktree /Users/jasonlee/oyatie-worktrees/team-leader-ci-velocity-20260626T043322Z
+HEAD 2123b9ee4d13a401416a0089f49498502d4ff128
+branch refs/heads/agent/team-leader-ci-velocity-20260626T043322Z
+
+worktree /Users/jasonlee/oyatie-worktrees/team-python-mjs-rust-leader-20260626T105958Z
+HEAD f93ceb80b89a1d366b5ed582f0d3c9256d561ec1
+branch refs/heads/agent/team-python-mjs-rust-leader-20260626T105958Z
+
+worktree /Users/jasonlee/oyatie-worktrees/ultragoal-wave-a-20260626T203951Z
+HEAD 268e170c35913c54c5d03546d13ab69d5b51b289
+branch refs/heads/agent/ultragoal-wave-a-20260626T203951Z
+
+worktree /Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629
+HEAD 643156e505ca936f79badfdc2f4a21dc9e021fce
+branch refs/heads/agent/waveB-ast-transpiler-followup-202606260000
+
+worktree /Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629
+HEAD e17ac9a24b668797796ba60a8619abe701c751b5
+branch refs/heads/agent/waveB-cloud-ci-873-20260626
+
+worktree /Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629
+HEAD 3b88d0806e6060bc100e1c22abeebe6056014725
+branch refs/heads/agent/waveA-collab-office-issue864-202606260018
+
+worktree /Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629
+HEAD 05a492ca3a8048654fba736d471a9c5024200aa1
+branch refs/heads/agent/waveB-crm-descriptor-metadata-878
+
+worktree /Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629
+HEAD 998819e5cf687b7c9c823d80b2da380db4e1331e
+branch refs/heads/agent/waveA-erp-blockers-20260625
+
+worktree /Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629
+HEAD 312debb2910e64c32ee2a791c2e087e85909ec53
+branch refs/heads/agent/waveB-iac-transport-773-20260626
+
+worktree /Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629
+HEAD 0658568895b075ab2436f41299633c6c06711038
+branch refs/heads/agent/waveB-pdp-same-tenant-879
+
+
+## worktree count
+61
+
+## git status --short --branch
+## dev...origin/dev [behind 202]
+ M .codex/hooks.json
+ D goal.json
+ D slice06-backfill-results.log
+ D slice06-backfill-test.log
+ D slice06-buck-test.log
+ D slice06-generator.log
+ D slice06-progress.log
+ D slice06-retest-results.log
+ D slice06-retest.log
+?? cloud/cloud-intelligence/.omc/
+?? specs/capability-registry.json
+
+## revs
+HEAD d705932d4
+origin/dev 490311b9f
+ahead_behind 0	202
+
+## root dirt versus origin/dev
+M	.codex/hooks.json
+D	slice06-backfill-results.log
+D	slice06-backfill-test.log
+D	slice06-buck-test.log
+D	slice06-generator.log
+D	slice06-progress.log
+D	slice06-retest-results.log
+D	slice06-retest.log
+A	specs/capability-registry.json
+
+## origin/dev path presence
+.codex/hooks.json origin_dev=present head=present
+goal.json origin_dev=present head=present
+slice06-backfill-results.log origin_dev=absent head=present
+slice06-backfill-test.log origin_dev=absent head=present
+slice06-buck-test.log origin_dev=absent head=present
+slice06-generator.log origin_dev=absent head=present
+slice06-progress.log origin_dev=absent head=present
+slice06-retest-results.log origin_dev=absent head=present
+slice06-retest.log origin_dev=absent head=present
+specs/capability-registry.json origin_dev=present head=absent
+
+## gh open PRs
+[]

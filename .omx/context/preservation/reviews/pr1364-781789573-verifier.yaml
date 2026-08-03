@@ -1,0 +1,134 @@
+schema: oyatie.preservation.non-authority-receipt/v1
+receipt_type: NON_AUTHORITY
+generated_at_utc: "2026-07-23T23:50:46Z"
+
+task_id: /root/pr1364_final_verifier
+reviewer_task_id: /root/pr1364_final_verifier
+review_scope: independent exact-head verification
+
+repository_snapshot:
+  worktree: /Users/jasonlee/Developer/oyatie/.omx/worktrees/codex-pr1364-prep-20260723-v2
+  base_commit: 1026a65b707ce57693d9b830de33ee0ce228f16b
+  base_tree: d20c21163c6ec1ac2f6e1b581031e4431b54f401
+  reviewed_head: 781789573560cd95556f2a9764e2262196708140
+  reviewed_tree: 7e5395f2e3463c1c5f5e62d0da13ae4b4778a8ed
+  head_movement_policy: abort on movement
+  exact_identity_and_clean_status_rechecked_before_receipt: true
+
+verdict: PASS_WITH_DECLARED_BUCK_ENVIRONMENT_GAP
+qualified_stage1_principal: false
+planning_state: HOLD(Planning)
+roadmap_planning_authorized: false
+binding_plan_approval_allowed: false
+implementation_dispatch_allowed: false
+
+evidence:
+  identity_and_ancestry:
+    verdict: PASS
+    commit_count: 43
+    merge_commit_count: 0
+    parent_chain_failures: 0
+    merge_base: 1026a65b707ce57693d9b830de33ee0ce228f16b
+    clean_before_checks: true
+    clean_after_checks: true
+  commit_signatures:
+    verdict: PASS
+    ssh_signature_header_count: 43
+    git_verify_commit_success_count: 43
+    git_verify_commit_failure_count: 0
+    signer: jasonlee@Jasons-MacBook-Pro.local
+    signing_key_fingerprint: SHA256:5grGNUtX9Zgmy1SWne6wF9DR8W1ElUQaF/Z8SYRz8E8
+    captured_output: /private/tmp/pr1364-781789573-signatures.txt
+    captured_output_sha256: 60d5a656a0d740067db1b57cc9a8b0ffd36dbc752b03d5925dcdbb4a1417f691
+  patch_and_artifacts:
+    verdict: PASS
+    diff_check_command: git diff --check 1026a65b707ce57693d9b830de33ee0ce228f16b..781789573560cd95556f2a9764e2262196708140
+    diff_check_findings: 0
+    changed_file_count: 27
+    changed_json_count: 17
+    changed_json_parse_success_count: 17
+    changed_json_parse_failure_count: 0
+    changed_generated_json_count: 0
+    generated_faces_modified_by_hand: false
+  masterplan_program_parity:
+    verdict: PASS
+    masterplan_path: masterplan_v2.planning_entry_contract.stage1_closure_program
+    fixture_path: libs/oya-stage1-closure/tests/fixtures/program.json
+    normalized_masterplan_sha256: 72b168a207e45b1657b4564ae4bfd37a0dcf927d84ce6b0f34ad7afbb3c8a501
+    normalized_fixture_sha256: 72b168a207e45b1657b4564ae4bfd37a0dcf927d84ce6b0f34ad7afbb3c8a501
+    normalized_diff_findings: 0
+  rustfmt:
+    verdict: PASS
+    package_command: cargo fmt --package stage1-closure -- --check
+    direct_command: rustfmt --edition 2024 --check libs/oya-stage1-closure/src/lib.rs libs/oya-stage1-closure/tests/stage1_closure.rs
+    run_started_utc: "2026-07-23T23:49:31Z"
+    run_finished_utc: "2026-07-23T23:49:31Z"
+    exit_code: 0
+  bounded_diagnostic:
+    verdict: PASS
+    script: /Users/jasonlee/Developer/oyatie/.omx/context/preservation/run-stage1-rustc-diagnostic-20260723.sh
+    command: zsh /Users/jasonlee/Developer/oyatie/.omx/context/preservation/run-stage1-rustc-diagnostic-20260723.sh
+    capture_command: zsh /Users/jasonlee/Developer/oyatie/.omx/context/preservation/run-stage1-rustc-diagnostic-20260723.sh >/private/tmp/pr1364-781789573-stage1-diagnostic-final.log 2>&1
+    run_started_utc: "2026-07-23T23:50:12Z"
+    run_finished_utc: "2026-07-23T23:50:16Z"
+    exit_code: 0
+    result: 66 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+    captured_combined_output: /private/tmp/pr1364-781789573-stage1-diagnostic-final.log
+    captured_combined_output_sha256: 6b56ee329057266f3ef920b3469120e99b6ac9d71abe3090f334e0d535e77ab4
+    captured_combined_output_bytes: 5997
+    captured_combined_output_lines: 86
+    exact_identity_stable_after_run: true
+  canonical_buck_attempt:
+    verdict: UNAVAILABLE_ENVIRONMENT_GAP
+    attempted_once: true
+    command: buck2 test //libs/oya-stage1-closure:stage1-closure-contract
+    run_started_utc: "2026-07-23T23:50:30Z"
+    run_finished_utc: "2026-07-23T23:50:30Z"
+    exit_code: 11
+    exact_error: "Error creating daemon dir: /Users/jasonlee/.buck/buckd/Users/jasonlee/Developer/oyatie/.omx/worktrees/codex-pr1364-prep-20260723-v2/v2; create_dir_all failed with Operation not permitted (os error 1)"
+    build_or_test_work_started: false
+    captured_combined_output: /private/tmp/pr1364-781789573-buck2-stage1.log
+    captured_combined_output_sha256: ff9e5accbfe44fa749ed12867cf12adc0b2859d189ac96a4eb9a4024e4ad6d55
+    exact_identity_stable_after_attempt: true
+
+regression_review:
+  verdict: PASS
+  prior_sibling_boundary_blocker:
+    stale_protected_facts_admission_definition_present: false
+    dead_admission_cross_binding_skip_present: false
+    regression_test: protected_facts_exclude_postmerge_admission_envelope
+    regression_line: libs/oya-stage1-closure/tests/stage1_closure.rs:2180
+    proof: The regression now rejects admission_envelope in candidate properties and in protected-facts $defs; direct inspection found neither the stale definition nor the dead implementation skip.
+  sibling_linkage:
+    exercised: true
+    test: sibling_admission_linkage_binds_protected_facts_without_reembedding_envelope
+    regression_line: libs/oya-stage1-closure/tests/stage1_closure.rs:2202
+    proof: The test asserts the non-authority HOLD finding, mutates exact_head.commit, and requires rejection of detached sibling inputs.
+  qpa_causality:
+    exercised: true
+    test: c15_qpa_binds_completed_oracle_and_blind_reader_outputs_in_order
+    regression_line: libs/oya-stage1-closure/tests/stage1_closure.rs:2226
+    proof: The regression mutates oracle and blind-reader receipt/output digests and QPA completion order; the validator requires exact digest bindings and ordered completion.
+  scm_relationship_receipt:
+    exercised: true
+    test: admission_requires_an_authenticated_scm_relationship_receipt
+    regression_line: libs/oya-stage1-closure/tests/stage1_closure.rs:2284
+    proof: The regression mutates candidate repository, protected-base repository, protected-base branch, merge base, ancestry boolean, and freshness. All named checks execute in the 66-test capture.
+  successor_red_green_trace:
+    red_commit: 031365e7af4acb448b79063aa267f6f85d6e0885
+    red_change: Adds the stale-$defs rejection and protected-base repository/branch SCM mutations.
+    green_commit: 781789573560cd95556f2a9764e2262196708140
+    green_change: Removes the stale protected-facts admission definition and dead skip, adds protected-base namespace fields and equality checks, and updates fixtures/schema.
+
+gaps:
+  - The canonical Buck target did not execute because the managed environment denied creation of Buck's daemon directory. This is an environment gap, not a passing Buck result and not a product-code failure.
+  - The diagnostic script lacks executable permission, so the successful bounded command used its declared zsh interpreter explicitly.
+  - A first diagnostic metadata wrapper used zsh's reserved status variable after the script completed and therefore did not produce auditable wrapper metadata. The corrected run above used a fresh capture and is the only diagnostic result cited by this receipt.
+  - Temporary diagnostic, Buck, and signature logs are not tracked authority artifacts. Their SHA-256 values record the exact captured bytes available during this review.
+  - No remote CI, protected branch, SCM server, authenticated external controller, trust root, rollout, browser, or production runtime was verified.
+
+non_claims:
+  - This receipt is not merge authority and does not replace the required oya-ci-required context or reviewer approval.
+  - The local 66-test diagnostic is NON_AUTHORITY evidence and does not authenticate SCM, identity, independence, authority, or planning facts.
+  - No qualified Stage-1 principal was established.
+  - Stage-1 remains HOLD(Planning); this receipt authorizes neither roadmap planning, binding plan approval, nor implementation dispatch.
