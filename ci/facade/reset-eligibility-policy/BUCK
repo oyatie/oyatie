@@ -1,0 +1,56 @@
+export_file(
+    name = "reset-eligibility-policy.json",
+    visibility = ["PUBLIC"],
+)
+
+rust_library(
+    name = "ci-reset-eligibility-policy",
+    srcs = glob(["src/**/*.rs", "**/*.json"]),
+    crate = "ci_reset_eligibility_policy",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:ed25519-dalek",
+        "third-party//:serde_json",
+        "third-party//:sha2",
+    ],
+)
+
+rust_test(
+    name = "ci-reset-eligibility-policy-unittest",
+    srcs = glob(["src/**/*.rs", "**/*.json"]),
+    crate = "ci_reset_eligibility_policy",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:ed25519-dalek",
+        "third-party//:serde_json",
+        "third-party//:sha2",
+    ],
+)
+
+rust_test(
+    name = "ci-reset-eligibility-policy-gate",
+    srcs = glob(["tests/**/*.rs", "**/*.json"]),
+    crate = "ci_reset_eligibility_policy_gate",
+    crate_root = "tests/reset_eligibility.rs",
+    env = {
+        "OYA_RESET_POLICY": "$(location :reset-eligibility-policy.json)",
+        "OYA_RESET_SCHEMA": "$(location //specs:reset-eligibility.schema.json)",
+        "OYA_RESET_ARTIFACT": "$(location //registry:reset-eligibility-w0-d-20260801.json)",
+        "OYA_ROOT_MARKER": "$(location //specs:root-hub-pointers.json)",
+    },
+    resources = [
+        ":reset-eligibility-policy.json",
+        "//specs:reset-eligibility.schema.json",
+        "//registry:reset-eligibility-w0-d-20260801.json",
+        "//specs:root-hub-pointers.json",
+    ],
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-reset-eligibility-policy",
+        "third-party//:ed25519-dalek",
+        "third-party//:serde_json",
+        "third-party//:sha2",
+    ],
+)
