@@ -2,7 +2,7 @@ use oya_intelligence_dispatch_usecase::{
     ProviderDispatchFailure, ProviderDispatchPort, ProviderDispatchRequest,
     ProviderDispatchResponse,
 };
-use oya_intelligence_model_routing_domain::{CredentialMode, ModelProvider};
+use intelligence_model_routing_domain::{CredentialMode, ModelProvider};
 
 use crate::modalities::{OpenAiModality, default_openai_modalities, sorted_modalities};
 use crate::streaming::OpenAiStreamingMode;

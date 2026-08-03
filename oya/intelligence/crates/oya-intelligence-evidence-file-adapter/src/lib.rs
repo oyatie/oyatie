@@ -12,7 +12,7 @@ use oya_data_boundary_kernel::{
     Classified, DataClass, OperationalDataClass, PrivacyDataClass, parse_data_class_pascal_label,
     privacy_data_classes_from,
 };
-use oya_intelligence_evidence_domain::{EvidenceChain, EvidenceKind, EvidenceRecord};
+use intelligence_evidence_domain::{EvidenceChain, EvidenceKind, EvidenceRecord};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct FileEvidenceChainStore {

@@ -28,10 +28,10 @@
 //!
 //! It owns **no** scoring algorithm, **no** policy gating rules, and **no**
 //! envelope-shape of its own — those live inward in the vertical slice:
-//! - [`oya_intelligence_eval_kernel`] — pure deterministic
+//! - [`intelligence_eval_kernel`] — pure deterministic
 //!   `evaluate_eval_set(EvalSet) -> EvalSetReport` scoring with metadata-only
 //!   thresholds, fail-closed redaction, and no I/O.
-//! - [`oya_intelligence_eval_domain`] — tenant/principal/surface allowlist,
+//! - [`intelligence_eval_domain`] — tenant/principal/surface allowlist,
 //!   model/dataset/case-kind allowlists, threshold floors, policy-drift +
 //!   redacted denials.
 //! - [`oya_intelligence_eval_usecase`] — idempotent
@@ -100,11 +100,11 @@ pub use oya_intelligence_eval_adapter::{
     EvalRunnerHttpMethod, EvalRunnerRequestEnvelope, EvalRunnerStatus, EvalRunnerThresholdEnvelope,
     EvalRunnerTransportMode, IntelligenceEvalAdapter,
 };
-pub use oya_intelligence_eval_domain::{
+pub use intelligence_eval_domain::{
     DomainEvalSetRequest, EvalDomainDecision, EvalDomainDenial, EvalDomainDenialKind,
     EvalDomainReport, EvalDomainStatus, EvalPolicyDecision,
 };
-pub use oya_intelligence_eval_kernel::{
+pub use intelligence_eval_kernel::{
     EvalCaseKind, EvalCaseOutcome, EvalCaseResult, EvalFailureKind, EvalKindSummary, EvalSet,
     EvalSetReport, EvalSetStatus, EvalSetThresholds,
 };
