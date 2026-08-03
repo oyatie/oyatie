@@ -86,6 +86,11 @@ ksync = { package = "oya-cloud-kernel-ksync-kernel", path = "../oya-cloud-kernel
 # The single source of truth shared with arch-aarch64; the x86_64 ELF loader +
 # ring-3 stack builder in `user.rs` reuse `build_stack_image`/`user_range_ok`.
 user_layout = { workspace = true }
+# The in-RAM VFS and the netlink wire codec: independent kernel subsystems with
+# no layout relationship, so they are their own crates alongside `user_layout`.
+# Same shape: zero deps, `no_std`, shared with arch-aarch64.
+vfs = { workspace = true }
+netlink = { workspace = true }
 
 # Vetted no_std hardware crates (see ALLOWED_CRATES.md), gated to the x86_64
 # target so a host `cargo check` of this crate never compiles x86-only code.

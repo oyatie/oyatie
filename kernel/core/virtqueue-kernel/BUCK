@@ -1,0 +1,21 @@
+rust_library(
+    name = "kernel-virtqueue-kernel",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "kernel_virtqueue_kernel",
+    crate_root = "src/lib.rs",
+    edition = "2021",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+# The pure split-virtqueue ring tests (byte offsets, avail/used publish +
+# consume, wrap, free-descriptor chain), run on the host via the same
+# include!-the-production-sources pattern as the cargo tests-host harness.
+rust_test(
+    name = "host-tests",
+    srcs = glob(["src/**/*.rs", "tests-buck/**/*.rs"]),
+    crate = "kernel_virtqueue_host_tests",
+    crate_root = "tests-buck/lib.rs",
+    edition = "2021",
+    deps = [],
+)

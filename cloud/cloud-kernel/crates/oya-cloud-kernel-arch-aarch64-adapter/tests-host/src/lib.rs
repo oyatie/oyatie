@@ -10,7 +10,7 @@
 
 #[allow(dead_code)] // the kernel exercises some helpers the tests do not
 mod user_layout {
-    include!("../../../oya-cloud-kernel-user-layout-kernel/src/layout.rs");
+    include!("../../../../../../kernel/core/user-layout-kernel/src/layout.rs");
 }
 
 /// The pure POSIX-signal math (sigset ops, SigAction/SignalState, default-action
@@ -20,7 +20,7 @@ mod user_layout {
 /// normal libtest harness (no copy/drift).
 #[allow(dead_code)]
 mod user_layout_signal {
-    include!("../../../oya-cloud-kernel-user-layout-kernel/src/signal.rs");
+    include!("../../../../../../kernel/core/user-layout-kernel/src/signal.rs");
 }
 
 /// The pure timekeeping math (`calc_mult_shift` / `cycles_to_ns` / the
@@ -31,7 +31,7 @@ mod user_layout_signal {
 /// frequency set and the u128 no-overflow property.
 #[allow(dead_code)]
 mod user_layout_timekeep {
-    include!("../../../oya-cloud-kernel-user-layout-kernel/src/timekeep.rs");
+    include!("../../../../../../kernel/core/user-layout-kernel/src/timekeep.rs");
 }
 
 /// The pure in-RAM VFS (index-slab inode/dentry tree, the multi-component path
@@ -43,7 +43,7 @@ mod user_layout_timekeep {
 /// behaviour the M2 Slice-1 `SYS_MOUNT` shim relies on.
 #[allow(dead_code)]
 mod user_layout_vfs {
-    include!("../../../oya-cloud-kernel-user-layout-kernel/src/vfs.rs");
+    include!("../../../../../../kernel/core/vfs-kernel/src/vfs.rs");
 }
 
 /// The pure `AF_NETLINK`/`RTM_GETLINK` wire logic (request parse + zero-link
@@ -56,7 +56,7 @@ mod user_layout_vfs {
 /// the response as a done-with-zero-links dump (the M2 Network checkpoint).
 #[allow(dead_code)]
 mod user_layout_netlink {
-    include!("../../../oya-cloud-kernel-user-layout-kernel/src/netlink.rs");
+    include!("../../../../../../kernel/core/netlink-kernel/src/netlink.rs");
 }
 
 /// The pure process-info / libc-init layout math (the byte-exact `struct utsname`
@@ -68,5 +68,5 @@ mod user_layout_netlink {
 /// 1-nanosecond `clock_getres` value the WAVE-1 libc-init syscalls return.
 #[allow(dead_code)]
 mod user_layout_procinfo {
-    include!("../../../oya-cloud-kernel-user-layout-kernel/src/procinfo.rs");
+    include!("../../../../../../kernel/core/user-layout-kernel/src/procinfo.rs");
 }

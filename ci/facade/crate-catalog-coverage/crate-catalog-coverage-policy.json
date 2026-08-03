@@ -1,5 +1,6 @@
 {
   "_comment": "FROZEN shrink-only baseline of first-party crates that carry NO registry/catalog/<name>.yaml row today. The catalog is keyed by FILENAME, one file per crate, which makes a missing row invisible to any content search for the crate name. This gate closes the crate->row direction; the existing catalog-liveness / slo-coverage checks close row->crate. Entries here are tolerated pre-existing debt: a NEW crate must ship its row, and a MOVED crate (which has a new package name, absent from this list) must move its row in the SAME change. Removing a name from this list is burn-down and is always allowed; adding one is not, and the stale-entry code fires if a listed crate gains a row or disappears, so slack cannot outlive the debt it was granted for.",
+  "_nested_workspace_note": "kernel/ crates cannot carry a registry/catalog row: catalog-liveness resolves its LIVE universe from the ROOT [workspace] members, and kernel/ is a root `exclude` (ADR-0512 nested-workspace carve-out), so a row for one emits catalog_record_no_live_crate_unmarked (frozen_empty) unless it is falsely marked non-live. Baselining them here is therefore the only admissible accounting, and is the landed precedent (kernel-asterinas-*, oya-cloud-kernel-*). When oya-cloud-kernel-user-layout-kernel was split into kernel/core/{user-layout,vfs,netlink,virtqueue}-kernel its one entry became four for that reason, not as new tolerated debt.",
   "gate_id": "cloud-ci-crate-catalog-coverage",
   "_provenance": {
     "frozen_at": "the first commit of ci/facade/crate-catalog-coverage",
@@ -90,6 +91,10 @@
     "intelligence-worker",
     "kernel-asterinas-boundary",
     "kernel-asterinas-real-boot",
+    "kernel-netlink-kernel",
+    "kernel-user-layout-kernel",
+    "kernel-vfs-kernel",
+    "kernel-virtqueue-kernel",
     "os-apid-domain",
     "os-archiver-domain",
     "os-block-domain",
@@ -153,7 +158,6 @@
     "oya-cloud-kernel-frame-kernel",
     "oya-cloud-kernel-hal-kernel",
     "oya-cloud-kernel-ksync-kernel",
-    "oya-cloud-kernel-user-layout-kernel",
     "oya-crate-registrar-app",
     "oya-crate-registrar-kernel",
     "oya-data-outbox-adapter-postgres",

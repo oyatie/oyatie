@@ -63,6 +63,11 @@ ksync = { package = "oya-cloud-kernel-ksync-kernel", path = "../oya-cloud-kernel
 # the single source of truth; re-exported below via `pub use`. Zero deps and
 # `no_std`, so it builds for both the host and the bare-metal aarch64 target.
 user_layout = { workspace = true }
+# The in-RAM VFS and the netlink wire codec: independent kernel subsystems with
+# no layout relationship, so they are their own crates alongside `user_layout`.
+# Same shape: zero deps, `no_std`, re-exported below via `pub use`.
+vfs = { workspace = true }
+netlink = { workspace = true }
 
 # Vetted no_std hardware crates (see ALLOWED_CRATES.md). They are gated to the
 # aarch64 target so building this crate for the host (e.g. `cargo check` from

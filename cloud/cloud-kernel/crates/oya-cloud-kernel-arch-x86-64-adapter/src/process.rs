@@ -706,7 +706,7 @@ pub enum FileKind {
     /// An `AF_NETLINK`/`NETLINK_ROUTE` socket (M2 network slice): `socket`
     /// allocates one; `bind` validates a `sockaddr_nl`; `sendto` parses an
     /// `RTM_GETLINK` dump request and arms the response; `recvfrom` drains the
-    /// `NLMSG_DONE` dump reply. The wire format lives in `user_layout::netlink`;
+    /// `NLMSG_DONE` dump reply. The wire format lives in `netlink`;
     /// the per-fd response buffer lives on the [`FileDesc`] (`netlink` field).
     Netlink,
 }
@@ -735,7 +735,7 @@ pub struct NetlinkFd {
 /// field can join it without touching the fd-table plumbing.
 pub struct FileDesc {
     pub kind: FileKind,
-    /// The backing `user_layout::vfs` node id, when this fd was opened against a
+    /// The backing `vfs` node id, when this fd was opened against a
     /// regular `File` node (Slice 3: `read` serves `node.data`). `None` for the
     /// Console/Null fast paths (fds 0/1/2 and `/dev/null`), so `FileDesc::new`
     /// and `init_std_fds` are byte-identical to the pre-VFS path and the golden
@@ -782,7 +782,7 @@ impl FileDesc {
         })
     }
 
-    /// A fresh open file description backed by a `user_layout::vfs` `File` node
+    /// A fresh open file description backed by a `vfs` `File` node
     /// `id` (Slice 3 reads route through `node.data`). `kind` is the
     /// Console/Null projection the write/read fast paths still match on; the
     /// read offset starts at 0 (a fresh `open`).
@@ -1484,9 +1484,9 @@ pub fn with_sched<R>(f: impl FnOnce(&mut Scheduler) -> R) -> R {
 /// on first use (`Vfs::new()` pre-populates `/`, `/dev`, `/dev/console`,
 /// `/dev/null`). Like `SCHED` it is accessed only from the single-core trap
 /// path. The `Vfs` type + all its logic (tree, walker, mount table) live in the
-/// 0-unsafe `user_layout::vfs`; only this storage + accessor are `unsafe`, and
+/// 0-unsafe `vfs`; only this storage + accessor are `unsafe`, and
 /// they live here in the Frame (TCB), not the forbid-set.
-static mut VFS: Option<user_layout::vfs::Vfs> = None;
+static mut VFS: Option<vfs::Vfs> = None;
 
 /// Run `f` with `&mut Vfs`, building it on first use.
 ///
@@ -1494,10 +1494,10 @@ static mut VFS: Option<user_layout::vfs::Vfs> = None;
 /// Single-core: the trap path is the only caller and never re-enters while a
 /// borrow is live (IRQs are masked in ring 0 during trap handling) — identical
 /// justification to [`with_sched`].
-pub fn with_vfs<R>(f: impl FnOnce(&mut user_layout::vfs::Vfs) -> R) -> R {
+pub fn with_vfs<R>(f: impl FnOnce(&mut vfs::Vfs) -> R) -> R {
     // SAFETY: single-core, non-reentrant access to the Frame-owned VFS.
-    let vfs = unsafe { &mut *core::ptr::addr_of_mut!(VFS) };
-    f(vfs.get_or_insert_with(user_layout::vfs::Vfs::new))
+    let slot = unsafe { &mut *core::ptr::addr_of_mut!(VFS) };
+    f(slot.get_or_insert_with(vfs::Vfs::new))
 }
 
 // ---- Public scheduler operations the syscall layer / IRQ path call --------

@@ -1607,13 +1607,13 @@ fn copy_user_cstr(addr: u64, buf: &mut [u8; MAXP]) -> Option<usize> {
     Some(n)
 }
 
-/// Map a `user_layout::vfs::NodeKind` to the process-layer [`FileKind`] the
+/// Map a `vfs::NodeKind` to the process-layer [`FileKind`] the
 /// write/read fast paths match on. Console/Null project 1:1 (so the golden is
 /// byte-identical); a regular `File` (Slice 3) projects to `Null` for now (its
 /// bytes are served via `FileDesc.node` once `sys_read` routes File reads) and a
 /// `Dir` is not openable as a stream here, so the caller treats it as a miss.
-fn nodekind_to_filekind(k: user_layout::vfs::NodeKind) -> Option<(FileKind, bool)> {
-    use user_layout::vfs::NodeKind;
+fn nodekind_to_filekind(k: vfs::NodeKind) -> Option<(FileKind, bool)> {
+    use vfs::NodeKind;
     match k {
         NodeKind::Console => Some((FileKind::Console, false)),
         NodeKind::Null => Some((FileKind::Null, false)),
@@ -1728,7 +1728,7 @@ fn sys_close(fd: u64) -> u64 {
 // M2 network slice: AF_NETLINK / RTM_GETLINK link-status dump
 // ---------------------------------------------------------------------------
 
-use user_layout::netlink as nl;
+use netlink as nl;
 
 /// Linux `AF_NETLINK` socket domain.
 const AF_NETLINK: u64 = 16;
@@ -1841,7 +1841,7 @@ unsafe fn sys_sendto(fd: u64, buf: u64, len: u64) -> u64 {
         let src = unsafe { core::slice::from_raw_parts(buf as *const u8, copy_len) };
         staging[..copy_len].copy_from_slice(src);
     }
-    // Parse + build entirely in the pure, host-tested user_layout::netlink.
+    // Parse + build entirely in the pure, host-tested netlink.
     let req = match nl::parse_request(&staging[..copy_len]) {
         Some(r) => r,
         // A request we can't even frame: report it "sent" but arm nothing (the

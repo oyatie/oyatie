@@ -16,7 +16,6 @@ members = [
     "crates/oya-cloud-kernel-arch-x86-64-adapter",
     "crates/oya-cloud-kernel-frame-kernel",
     "crates/oya-cloud-kernel-ksync-kernel",
-    "crates/oya-cloud-kernel-user-layout-kernel",
 ]
 # The host test harness for the pure EL0 user-layout math is intentionally NOT a
 # workspace member: it is a plain `std` crate that must build with libtest's
@@ -71,10 +70,20 @@ hal = { package = "oya-cloud-kernel-hal-kernel", path = "crates/oya-cloud-kernel
 frame = { package = "oya-cloud-kernel-frame-kernel", path = "crates/oya-cloud-kernel-frame-kernel" }
 arch-aarch64 = { package = "oya-cloud-kernel-arch-aarch64-adapter", path = "crates/oya-cloud-kernel-arch-aarch64-adapter" }
 arch-x86_64 = { package = "oya-cloud-kernel-arch-x86-64-adapter", path = "crates/oya-cloud-kernel-arch-x86-64-adapter" }
+# Rung-0 kuberos kernel crates, homed in the `kernel/` meta-dir's own nested
+# workspace (ADR-0512 carve-out / ADR-0562 capability-first). They are pure
+# `no_std` leaves with zero dependencies, so a cross-workspace path dep costs
+# nothing: this workspace's `.cargo/config.toml` still governs the target.
+#
 # Arch-neutral, pure, host-testable EL0 user-layout math (stack/auxv builder,
 # descriptor builders, range checks, frame-pool bookkeeping, TLS variant-I,
-# timer-sleep math). Single source of truth shared by every arch Frame backend.
-user_layout = { package = "oya-cloud-kernel-user-layout-kernel", path = "crates/oya-cloud-kernel-user-layout-kernel" }
+# timer-sleep math, signal math, timekeeping math, procinfo layout). Single
+# source of truth shared by every arch Frame backend.
+user_layout = { package = "kernel-user-layout-kernel", path = "../../kernel/core/user-layout-kernel" }
+# Pure in-RAM VFS (index-slab inode/dentry tree, path walker, mount table).
+vfs = { package = "kernel-vfs-kernel", path = "../../kernel/core/vfs-kernel" }
+# Pure AF_NETLINK/NETLINK_ROUTE wire logic (RTM_GETLINK dump request/response).
+netlink = { package = "kernel-netlink-kernel", path = "../../kernel/core/netlink-kernel" }
 
 # Vetted external no_std crates (vetting policy preserved on the snapshot branch
 # as stack/kernel/ALLOWED_CRATES.md pending its machine-readable migration).
