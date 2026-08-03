@@ -9,6 +9,6 @@ rust_library(
         "//oya/intelligence/crates/oya-intelligence-autonomy-ceiling-domain:oya-intelligence-autonomy-ceiling-domain",
         "//intelligence/core/autonomy-ceiling-kernel:intelligence-autonomy-ceiling-kernel",
         "//intelligence/core/capability-registry-kernel:intelligence-capability-registry-kernel",
-        "//oya/intelligence/crates/oya-intelligence-supervisor-kernel:oya-intelligence-supervisor-kernel",
+        "//intelligence/core/supervisor-kernel:intelligence-supervisor-kernel",
     ],
 )

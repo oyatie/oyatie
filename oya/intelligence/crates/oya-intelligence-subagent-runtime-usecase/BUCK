@@ -5,7 +5,7 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//oya/intelligence/crates/oya-intelligence-subagent-runtime-kernel:oya-intelligence-subagent-runtime-kernel",
+        "//intelligence/core/subagent-runtime-kernel:intelligence-subagent-runtime-kernel",
     ],
 )
 
@@ -16,6 +16,6 @@ rust_test(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//oya/intelligence/crates/oya-intelligence-subagent-runtime-kernel:oya-intelligence-subagent-runtime-kernel",
+        "//intelligence/core/subagent-runtime-kernel:intelligence-subagent-runtime-kernel",
     ],
 )

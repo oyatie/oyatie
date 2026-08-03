@@ -8,7 +8,7 @@ license = "Apache-2.0"
 
 [dependencies]
 intelligence-capability-domain = { path = "../../../../intelligence/core/capability-domain" }
-oya-intelligence-run-domain = { path = "../oya-intelligence-run-domain" }
+intelligence-run-domain = { path = "../../../../intelligence/core/run-domain" }
 oya-data-boundary-kernel = { path = "../../../../libs/oya-data-boundary-kernel" }
 
 [lib]

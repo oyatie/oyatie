@@ -11,7 +11,7 @@ use audit_file_adapter::FileAuditLedger;
 use messaging_domain::Outbox;
 use messaging_file_adapter::FileOutboxStore;
 use oya_intelligence_evidence_file_adapter::FileEvidenceChainStore;
-use oya_intelligence_run_domain::RunLedger;
+use intelligence_run_domain::RunLedger;
 use oya_intelligence_run_file_adapter::FileRunLedgerStore;
 use intelligence_step_domain::StepLedger;
 use oya_intelligence_step_file_adapter::FileStepLedgerStore;

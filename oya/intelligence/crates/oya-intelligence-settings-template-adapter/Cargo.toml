@@ -3,7 +3,7 @@
 #         Justification: per-provider settings renderer — filesystem I/O + per-provider
 #         format dialects (Claude/Codex/Gemini). PRE-1 rename applied: NOT -fs suffix
 #         (ADR-0056 v4.1 BNF conformance; sibling precedent: oya-intelligence-jsonl-supervisor-adapter).
-#         Consumes oya-intelligence-settings-template-kernel value types.
+#         Consumes intelligence-settings-template-kernel value types.
 
 [package]
 name = "oya-intelligence-settings-template-adapter"
@@ -22,7 +22,7 @@ blake3 = "1.8.5"
 libc = "0.2.186"
 oya-intelligence-account-domain = { version = "0.1.0", path = "../oya-intelligence-account-domain" }
 intelligence-account-kernel = { version = "0.1.0", path = "../../../../intelligence/core/account-kernel" }
-oya-intelligence-settings-template-kernel = { path = "../oya-intelligence-settings-template-kernel" }
+intelligence-settings-template-kernel = { path = "../../../../intelligence/core/settings-template-kernel" }
 
 [lints]
 workspace = true

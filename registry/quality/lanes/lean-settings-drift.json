@@ -9,7 +9,7 @@
     "below_threshold_action": "fixture-only"
   },
   "commands": [
-    "cargo test -p oya-intelligence-settings-template-kernel",
+    "cargo test -p intelligence-settings-template-kernel",
     "cargo test -p oya-intelligence-settings-template-adapter"
   ]
 }

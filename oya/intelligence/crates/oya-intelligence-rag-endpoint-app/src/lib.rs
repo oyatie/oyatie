@@ -8,7 +8,7 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use intelligence_capability_registry_kernel::CapabilityId;
-use oya_intelligence_rag_endpoint_domain::{AllowlistError, RagAllowlist};
+use intelligence_rag_endpoint_domain::{AllowlistError, RagAllowlist};
 use oya_intelligence_rag_endpoint_kernel::{RagAnswer, RagQuery};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
