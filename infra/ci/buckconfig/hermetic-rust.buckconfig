@@ -1,0 +1,22 @@
+# Opt-in HERMETIC RUST buck2 overlay — step 2 of retiring the ambient toolchains.
+# Flips `toolchains//:rust` from :rust-system (the rustup shim on PATH) to :rust-hermetic,
+# whose rustc / rust-std / clippy arrive as sha256-pinned static.rust-lang.org tarballs
+# (toolchains//rust:releases.bzl).
+#
+# WHY: a system toolchain contributes rustc's PATH to the action key, never rustc's CONTENT.
+# Change the rustup default or swap the runner image's compiler and every action key stays
+# IDENTICAL — so a shared NativeLink CAS serves artifacts built by a different compiler as
+# current. Under this overlay the component digests are action-key inputs, so the same swap
+# changes the keys. That two-sided property is the measurable business case for making this
+# the default.
+#
+# NEVER merged into the root .buckconfig. Without this file `read_root_config` in
+# toolchains/BUCK returns "system" and the default build path is byte-identical to today;
+# rollback is simply to stop passing `--config-file`. Same dark-wiring contract as the
+# ADR-0560 cache overlays in this directory.
+#
+# Carries NO cache, identity, or execution-platform wiring: it composes with
+# warm-cache-{rw,ro}.buckconfig rather than replacing either of them.
+
+[oya_toolchain]
+  rust = hermetic
