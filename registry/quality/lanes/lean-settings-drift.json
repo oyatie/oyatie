@@ -10,6 +10,6 @@
   },
   "commands": [
     "cargo test -p oya-intelligence-settings-template-kernel",
-    "cargo test -p oya-intelligence-settings-template-adapter"
+    "cargo test -p intelligence-settings-template-adapter"
   ]
 }

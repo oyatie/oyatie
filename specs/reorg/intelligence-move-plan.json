@@ -91,6 +91,42 @@
       "new_path": "intelligence/core/write-gate-kernel",
       "old_cargo_name": "oya-intelligence-write-gate-kernel",
       "new_cargo_name": "intelligence-write-gate-kernel"
+    },
+    {
+      "old_path": "oya/intelligence/crates/oya-intelligence-account-adapter-inmemory",
+      "new_path": "intelligence/adapters/account-adapter-inmemory",
+      "old_cargo_name": "oya-intelligence-account-adapter-inmemory",
+      "new_cargo_name": "intelligence-account-adapter-inmemory"
+    },
+    {
+      "old_path": "oya/intelligence/crates/oya-intelligence-adapter-openai-subscription-adapter",
+      "new_path": "intelligence/adapters/openai-subscription-adapter",
+      "old_cargo_name": "oya-intelligence-adapter-openai-subscription-adapter",
+      "new_cargo_name": "intelligence-openai-subscription-adapter"
+    },
+    {
+      "old_path": "oya/intelligence/crates/oya-intelligence-jsonl-supervisor-adapter",
+      "new_path": "intelligence/adapters/jsonl-supervisor-adapter",
+      "old_cargo_name": "oya-intelligence-jsonl-supervisor-adapter",
+      "new_cargo_name": "intelligence-jsonl-supervisor-adapter"
+    },
+    {
+      "old_path": "oya/intelligence/crates/oya-intelligence-run-file-adapter",
+      "new_path": "intelligence/adapters/run-file-adapter",
+      "old_cargo_name": "oya-intelligence-run-file-adapter",
+      "new_cargo_name": "intelligence-run-file-adapter"
+    },
+    {
+      "old_path": "oya/intelligence/crates/oya-intelligence-settings-template-adapter",
+      "new_path": "intelligence/adapters/settings-template-adapter",
+      "old_cargo_name": "oya-intelligence-settings-template-adapter",
+      "new_cargo_name": "intelligence-settings-template-adapter"
+    },
+    {
+      "old_path": "oya/intelligence/crates/oya-intelligence-step-file-adapter",
+      "new_path": "intelligence/adapters/step-file-adapter",
+      "old_cargo_name": "oya-intelligence-step-file-adapter",
+      "new_cargo_name": "intelligence-step-file-adapter"
     }
   ],
   "artifacts": [
@@ -153,6 +189,30 @@
     {
       "old_path": "registry/catalog/oya-intelligence-write-gate-kernel.yaml",
       "new_path": "registry/catalog/intelligence-write-gate-kernel.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-intelligence-account-adapter-inmemory.yaml",
+      "new_path": "registry/catalog/intelligence-account-adapter-inmemory.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-intelligence-adapter-openai-subscription-adapter.yaml",
+      "new_path": "registry/catalog/intelligence-openai-subscription-adapter.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-intelligence-jsonl-supervisor-adapter.yaml",
+      "new_path": "registry/catalog/intelligence-jsonl-supervisor-adapter.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-intelligence-run-file-adapter.yaml",
+      "new_path": "registry/catalog/intelligence-run-file-adapter.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-intelligence-settings-template-adapter.yaml",
+      "new_path": "registry/catalog/intelligence-settings-template-adapter.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-intelligence-step-file-adapter.yaml",
+      "new_path": "registry/catalog/intelligence-step-file-adapter.yaml"
     }
   ]
 }

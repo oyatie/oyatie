@@ -74,7 +74,7 @@ oya-check-raci-coverage = { path = "../../../libs/oya-check-raci-coverage" }
 oya-check-readme-coverage = { path = "../../../libs/oya-check-readme-coverage" }
 oya-check-release-pack = { path = "../../../libs/oya-check-release-pack" }
 oya-check-retired-vocabulary = { path = "../../../libs/oya-check-retired-vocabulary" }
-oya-intelligence-run-file-adapter = { path = "../../../oya/intelligence/crates/oya-intelligence-run-file-adapter" }
+intelligence-run-file-adapter = { path = "../../../intelligence/adapters/run-file-adapter" }
 oya-check-runbook-freshness = { path = "../../../libs/oya-check-runbook-freshness" }
 oya-check-runbook-index = { path = "../../../libs/oya-check-runbook-index" }
 oya-intelligence-run-domain = { path = "../../../oya/intelligence/crates/oya-intelligence-run-domain" }
@@ -97,7 +97,7 @@ oya-check-id-discipline = { path = "../../../libs/oya-check-id-discipline" }
 oya-check-image-signing-discipline = { path = "../../../libs/oya-check-image-signing-discipline" }
 oya-check-layered-architecture-discipline = { path = "../../../libs/oya-check-layered-architecture-discipline" }
 oya-check-client-stack-discipline = { path = "../../../libs/oya-check-client-stack-discipline" }
-oya-intelligence-step-file-adapter = { path = "../../../oya/intelligence/crates/oya-intelligence-step-file-adapter" }
+intelligence-step-file-adapter = { path = "../../../intelligence/adapters/step-file-adapter" }
 intelligence-step-domain = { path = "../../../intelligence/core/step-domain" }
 audit-chain-domain = { path = "../../../audit/core/chain-domain" }
 audit-file-adapter = { path = "../../../audit/adapters/file" }

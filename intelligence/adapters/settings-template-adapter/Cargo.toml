@@ -6,23 +6,23 @@
 #         Consumes oya-intelligence-settings-template-kernel value types.
 
 [package]
-name = "oya-intelligence-settings-template-adapter"
+name = "intelligence-settings-template-adapter"
 version = "0.1.0"
 edition.workspace = true
 publish = false
 license = "Apache-2.0"
 
 [lib]
-name = "oya_intelligence_settings_template_adapter"
+name = "intelligence_settings_template_adapter"
 path = "src/lib.rs"
 doctest = false
 
 [dependencies]
 blake3 = "1.8.5"
 libc = "0.2.186"
-oya-intelligence-account-domain = { version = "0.1.0", path = "../oya-intelligence-account-domain" }
-intelligence-account-kernel = { version = "0.1.0", path = "../../../../intelligence/core/account-kernel" }
-oya-intelligence-settings-template-kernel = { path = "../oya-intelligence-settings-template-kernel" }
+oya-intelligence-account-domain = { version = "0.1.0", path = "../../../oya/intelligence/crates/oya-intelligence-account-domain" }
+intelligence-account-kernel = { version = "0.1.0", path = "../../core/account-kernel" }
+oya-intelligence-settings-template-kernel = { path = "../../../oya/intelligence/crates/oya-intelligence-settings-template-kernel" }
 
 [lints]
 workspace = true
