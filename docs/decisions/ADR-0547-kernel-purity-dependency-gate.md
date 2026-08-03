@@ -98,7 +98,7 @@ legacy-debt baseline machinery (none is needed; see D5).
 ### D2 — Internal-closure scan, not direct-deps-only
 
 Direct-deps-only has a verified escape: `oya-foo-kernel` → local
-`oya-data-sql-adapter-sqlx` (a `path` dep) → `sqlx` would smuggle transient infra into a kernel
+`data-sql-adapter-sqlx` (a `path` dep) → `sqlx` would smuggle transient infra into a kernel
 while the kernel stays green, because adapter crates by design never join the gated set. So v1
 walks each glob-matched kernel's **workspace-internal dependency closure** (Cargo `path` deps +
 local BUCK deps) and applies the external denylist to **every reached node's direct external

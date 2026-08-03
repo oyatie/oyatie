@@ -2025,9 +2025,9 @@ mod tests {
                         "buck_deps": ["serde"]
                     },
                     {
-                        "name": "oya-data-sql-adapter-sqlx",
-                        "member_path": "crates/oya-data-sql-adapter-sqlx",
-                        "via": ["oya-foo-kernel", "oya-data-sql-adapter-sqlx"],
+                        "name": "data-sql-adapter-sqlx",
+                        "member_path": "crates/data-sql-adapter-sqlx",
+                        "via": ["oya-foo-kernel", "data-sql-adapter-sqlx"],
                         "cargo_deps": ["sqlx"],
                         "buck_deps": ["sqlx"]
                     }
@@ -2037,8 +2037,8 @@ mod tests {
         let findings = evaluate_keyed(&policy(), &obs);
         assert!(findings.iter().any(|f| {
             f.code == "KP-TRANSIENT-DEP-CARGO"
-                && f.key == "oya-foo-kernel:oya-data-sql-adapter-sqlx:sqlx"
-                && f.detail.contains("oya-foo-kernel -> oya-data-sql-adapter-sqlx")
+                && f.key == "oya-foo-kernel:data-sql-adapter-sqlx:sqlx"
+                && f.detail.contains("oya-foo-kernel -> data-sql-adapter-sqlx")
         }), "closure leak must be RED keyed via the chain: {findings:#?}");
         assert_eq!(evaluate(&policy(), &obs).verdict, Verdict::Red);
     }
