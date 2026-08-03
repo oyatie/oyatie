@@ -350,6 +350,10 @@
       "prefix": "infra/nativelink/"
     },
     {
+      "anchor": "ADR-0630 D2: ARC runner-fleet declaration — the reviewed Helm values for the owned in-cluster runners that hold merge authority (ADR-0515 D5 destination), replacing three unreviewed helm release secrets; ownership seed infra/arc/OWNERS (cloud-ci-platform)",
+      "prefix": "infra/arc/"
+    },
+    {
       "anchor": "ADR-0560 D3: opt-in buck2 cache overlays — selected ONLY by the oya-cloud-ci-cache-wiring-app resolver under the specs/cache-warm-license.json kill-switch; conformance-gated (overlay posture + dark-wiring guarantee); ownership seed infra/ci/buckconfig/OWNERS (cloud-ci-platform)",
       "prefix": "infra/ci/buckconfig/"
     },

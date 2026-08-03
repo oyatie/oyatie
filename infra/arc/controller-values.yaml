@@ -1,0 +1,45 @@
+# ARC (Actions Runner Controller) — gha-runner-scale-set-controller Helm values.
+#
+# Chart: ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-set-controller
+# Version: 0.14.2   Release: `arc` in namespace `arc-systems`   Revision: 1
+#
+# WHY THIS FILE EXISTS (the defect it converts):
+# The controller that owns the runner fleet holding merge authority was installed
+# by `helm install` from a shell. Its ONLY record was the release secret
+# `sh.helm.release.v1.arc.v1` — cluster state with no reviewed source. This file is
+# the reviewed source. It carries the release's USER-SUPPLIED values verbatim,
+# nothing more, so that `helm get values arc -n arc-systems` (user-supplied, not
+# `-a`) and this file are the same document.
+#
+# MEASURED CURRENT STATE (2026-07-29):
+#   `helm get values arc -n arc-systems` => USER-SUPPLIED VALUES: null
+# The release was installed with no `-f` and no `--set`: every effective value is a
+# chart default. That is why the body below is empty. An empty values file is the
+# ACCURATE declaration; inlining the chart's computed defaults would fabricate
+# intent the operator never expressed and would silently pin defaults that the
+# chart owns, so a chart bump could no longer move them.
+#
+# NOT A RECONCILER — stated plainly rather than implied (enforcement-layering
+# doctrine: a declaration with no reconciler is flag-only, i.e. incomplete). There
+# is no Argo CD on this cluster (`kubectl get ns argocd` => NotFound), so nothing
+# continuously reconciles this file against the release. Adding a GitOps
+# Application row here would declare a reconciler that does not exist. Until an
+# in-cluster reconciler lands, drift between this file and the release is caught
+# only by re-running `helm get values`, and that gap is the honest state, not a
+# solved problem.
+#
+# OBSERVED, DELIBERATELY NOT CHANGED IN THIS SLICE:
+#   - `resources: {}` (chart default) => the controller pod is BestEffort QoS on a
+#     cluster SHARED with another project, so it is the first pod the kubelet
+#     evicts under node pressure — and it holds merge authority. Correcting it is a
+#     real change to a shared cluster and is NOT one of the four corrections this
+#     slice is scoped to; it is recorded here so the next slice inherits the
+#     finding instead of rediscovering it.
+#   - `image.tag: ""` resolves to the chart appVersion (0.14.2), a version tag, not
+#     a digest. The runner image pin in the sibling scale-set values file does not
+#     apply here; the controller image digest pin travels with a chart bump.
+#
+# ADR anchor is PARTIAL and stated as such: ADR-0515 D5 names owned in-cluster
+# runners as the destination but scopes the cutover out; ADR-0630 records the ARC
+# substrate choice itself, which until now existed only as a shell invocation.
+{}
