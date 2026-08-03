@@ -101,7 +101,7 @@ jobs:
       - name: Install buck2 (digest-pinned prebuilt release)
         run: infra/ci/install-buck2.sh
       - name: Materialize cloud-ci generated faces
-        run: rustup toolchain install && rustc --version && buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . --github-event
+        run: buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . --github-event
       - name: Upload regenerated faces
         # actions/upload-artifact@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
@@ -220,9 +220,12 @@ jobs:
       - name: Install buck2 (digest-pinned prebuilt release)
         shell: bash
         run: infra/ci/install-buck2.sh
-      # Buck2/rustc still use the pinned workspace toolchain + components; provision it before
-      # the test action starts to avoid concurrent rustup writes inside parallel Buck2 actions.
+      # WINDOWS ONLY. Every other platform gets the digest-pinned hermetic toolchain
+      # (toolchains//rust), which needs no ambient compiler. Windows has no pin cell, so
+      # `toolchains//:rust` structurally aliases to `:rust_system` there and this leg — and only
+      # this leg — still needs the rustup-provisioned toolchain on PATH.
       - name: Pre-provision pinned Rust toolchain for Buck2 gate tests
+        if: runner.os == 'Windows'
         shell: bash
         run: |
           set -euo pipefail
@@ -247,22 +250,6 @@ jobs:
           fetch-depth: 0
       - name: Install buck2 (digest-pinned prebuilt release)
         run: infra/ci/install-buck2.sh
-      # Warm the pinned toolchain across runs (ADR-0556 D5 QW-4: the toolchain is a
-      # version-pinned input, not a build output). rustup still resolves/validates the
-      # toolchain on every run; the cache only pre-seeds ~/.rustup so the install is a no-op.
-      - name: Cache pinned Rust toolchain (ADR-0556 D5 QW-4)
-        # actions/cache@v6.1.0 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
-        with:
-          path: |
-            ~/.rustup/toolchains
-            ~/.rustup/update-hashes
-          key: rustup-toolchain-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml') }}
-      - name: Pre-provision pinned Rust toolchain for Buck2 freshness binaries
-        run: |
-          set -euo pipefail
-          rustup toolchain install
-          rustc --version
       - name: Run freshness gate
         run: |
           set -euo pipefail
@@ -295,8 +282,6 @@ jobs:
       # check self-referential. Detectors never consume the thing they attest.
       - name: Materialize faces then assert byte-parity
         run: |
-          rustup toolchain install
-          rustc --version
           buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . --github-event
           buck2 test //ci/facade/inventory-registry-drift:ci-inventory-registry-drift-gate
 
@@ -326,7 +311,7 @@ jobs:
       # This lane therefore KEEPS its own materialization (ADR-0556 D5 cold-must-stay list);
       # it is never converted to artifact reuse.
       - name: Materialize cloud-ci generated faces
-        run: rustup toolchain install && rustc --version && buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . --github-event
+        run: buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . --github-event
       - name: buck2 test cloud-ci-firewall
         run: |
           set -euo pipefail
@@ -353,21 +338,6 @@ jobs:
           fetch-depth: 0
       - name: Install buck2 (digest-pinned prebuilt release)
         run: infra/ci/install-buck2.sh
-      # Warm the pinned toolchain across runs (ADR-0556 D5 QW-4); rustup still resolves and
-      # validates the toolchain on every run.
-      - name: Cache pinned Rust toolchain (ADR-0556 D5 QW-4)
-        # actions/cache@v6.1.0 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
-        with:
-          path: |
-            ~/.rustup/toolchains
-            ~/.rustup/update-hashes
-          key: rustup-toolchain-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml') }}
-      - name: Pre-provision pinned Rust toolchain for Buck2 policy binary
-        run: |
-          set -euo pipefail
-          rustup toolchain install
-          rustc --version
       - name: Reject non-deletion generated output edits
         env:
           BASE_REF: ${{ github.base_ref || 'dev' }}
@@ -434,31 +404,11 @@ jobs:
       # the bytes, and CI verifies the digest before decompression/execution. Bump together.
       - name: Install buck2 (digest-pinned prebuilt release)
         run: infra/ci/install-buck2.sh
-      # Warm the pinned toolchain across runs (ADR-0556 D5 QW-4); rustup still resolves and
-      # validates the toolchain on every run.
-      - name: Cache pinned Rust toolchain (ADR-0556 D5 QW-4)
-        # actions/cache@v6.1.0 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
-        with:
-          path: |
-            ~/.rustup/toolchains
-            ~/.rustup/update-hashes
-          key: rustup-toolchain-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml') }}
-      # Pre-provision the pinned rust toolchain ONCE, serially, before the buck2 build.
-      # The buck2 rust toolchain (toolchains/BUCK: system_rust_toolchain via the rustup shim)
-      # resolves rustc and toolchain components per compile action, and buck2 runs those actions in
-      # PARALLEL. On a cold runner each action's first shim call triggers rustup to install the
-      # rust-toolchain.toml channel (+ rustfmt,clippy) concurrently — the racing rustup
-      # processes collide on the shared `~/.rustup/downloads/*.partial` files and fail with
-      # `rustup::utils::rename ... No such file or directory (os error 2)` (a different component
-      # each run: clippy, then a second toolchain component — proving a concurrency race, not a config defect). rustup
-      # is not concurrency-safe. Installing the toolchain once here makes it ambient so the
-      # parallel actions find it already present (no download).
-      - name: Pre-provision pinned rust toolchain (serialize rustup before parallel buck2)
-        run: |
-          set -euo pipefail
-          rustup toolchain install
-          rustc --version
+      # NO rustup pre-provisioning: the buck2 rust toolchain is the digest-pinned hermetic one
+      # (toolchains//rust), downloaded and composed by buck2 as a normal cached action. That also
+      # retires the rustup concurrency race this lane used to serialize around — the parallel
+      # compile actions no longer call a rustup shim, so there are no racing rustup processes
+      # colliding on `~/.rustup/downloads/*.partial`.
       # Restore buck-out across runs so ephemeral runners start warm (design §3.1 / ADR-0515 D4).
       #
       # WHAT IS WARMED, PRECISELY (ADR-0554 D9, round-5): 100% of buck2 cross-run warmth lives in
@@ -635,18 +585,10 @@ jobs:
           path: .
       - name: Install buck2 (digest-pinned prebuilt release)
         run: infra/ci/install-buck2.sh
-      # Warm the pinned toolchain across runs (ADR-0556 D5 QW-4); rustup still resolves and
-      # validates the toolchain on every run.
-      - name: Cache pinned Rust toolchain (ADR-0556 D5 QW-4)
-        # actions/cache@v6.1.0 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
-        with:
-          path: |
-            ~/.rustup/toolchains
-            ~/.rustup/update-hashes
-          key: rustup-toolchain-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml') }}
-      # Same rustup serialization rationale as the buck2 lane above: parallel buck2 actions
-      # racing a cold rustup install collide on shared download state.
+      # No rustup pre-provisioning and no ~/.rustup cache: the buck2 rust toolchain is the
+      # digest-pinned hermetic one (toolchains//rust). The merge-base baseline build inside the
+      # binding step below KEEPS its `rustup toolchain install` — it builds an arbitrary older
+      # tree whose toolchain may still be the ambient one.
       # PR-body admission was removed here (founder directive 2026-07-26: "stop the entire pr
       # body checks — that is just unnecessary"). It validated that a PR description contained
       # nine string literals — three section markers, a summary bullet, three traceability
@@ -659,16 +601,6 @@ jobs:
       # Review itself is unaffected — it just stops being a CI-blocking string match on prose.
       # The validator (`libs/oya-check-pr-traceability`) is retained and still runs locally and
       # via `--scaffold`; only the merge-blocking invocation is gone.
-      # NOTE: the step name is deliberately unchanged. The rust-first inline-shell baseline is
-      # keyed by step name, and validate_workflow_inline_shell_baseline_ceiling forbids adding a
-      # key absent from the merge-base baseline. So renaming a baselined step is not expressible
-      # in one PR: the new name is born-blocking as `unbaselined`, and the old name is `stale`.
-      # Retiring the admission check is the point of this PR; the rename can follow separately.
-      - name: Pre-provision pinned rust toolchain and PR metadata preflight
-        run: |
-          set -euo pipefail
-          rustup toolchain install
-          rustc --version
       # Restore buck-out read-only (ADR-0554 D9). Same stable per-dependency/toolchain-set key as the buck2
       # lane: warmth is 100% in buck-out/v2/cache + buck-out/v2/art (path-relocatable); ~/.buck2
       # and ~/.buck are daemon pid/endpoint/log scratch and are deliberately NOT cached. dev-push
@@ -804,6 +736,8 @@ jobs:
           trap cleanup_worktree EXIT
           (
             cd "${mb_tree}"
+            # KEPT deliberately: this builds an ARBITRARY older tree, whose toolchain may still be
+            # the ambient `system_rust_toolchain`. Not a migration remnant.
             rustup toolchain install
             # Materialize merge-base faces in the clean historical tree. The historical binary owns
             # epoch dispatch: new capability verifies authority; legacy bare mode must emit no receipt.
@@ -993,19 +927,6 @@ jobs:
           persist-credentials: false
       - name: Install buck2 (digest-pinned prebuilt release)
         run: infra/ci/install-buck2.sh
-      - name: Cache pinned Rust toolchain (ADR-0556 D5 QW-4)
-        # actions/cache@v6.1.0 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
-        with:
-          path: |
-            ~/.rustup/toolchains
-            ~/.rustup/update-hashes
-          key: rustup-toolchain-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml') }}
-      - name: Pre-provision pinned Rust toolchain for Buck2 live tests
-        run: |
-          set -euo pipefail
-          rustup toolchain install
-          rustc --version
       - name: Install postgresql-client for the bootstrap
         run: |
           set -euo pipefail
@@ -1139,19 +1060,6 @@ jobs:
           persist-credentials: false
       - name: Install buck2 (digest-pinned prebuilt release)
         run: infra/ci/install-buck2.sh
-      - name: Cache pinned Rust toolchain (ADR-0556 D5 QW-4)
-        # actions/cache@v6.1.0 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
-        with:
-          path: |
-            ~/.rustup/toolchains
-            ~/.rustup/update-hashes
-          key: rustup-toolchain-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml') }}
-      - name: Pre-provision pinned Rust toolchain for Buck2 live tests
-        run: |
-          set -euo pipefail
-          rustup toolchain install
-          rustc --version
       - name: Install postgresql-client for the bootstrap
         run: |
           set -euo pipefail
