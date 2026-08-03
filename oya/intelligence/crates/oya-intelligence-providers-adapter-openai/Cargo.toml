@@ -8,7 +8,7 @@ license = "Apache-2.0"
 
 [dependencies]
 oya-intelligence-dispatch-usecase = { path = "../oya-intelligence-dispatch-usecase" }
-oya-intelligence-model-routing-domain = { path = "../oya-intelligence-model-routing-domain" }
+intelligence-model-routing-domain = { path = "../../../../intelligence/core/model-routing-domain" }
 
 [lib]
 name = "oya_intelligence_providers_adapter_openai"

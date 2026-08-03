@@ -27,7 +27,7 @@ pub use streaming::{
 mod tests {
     use super::*;
     use oya_intelligence_dispatch_usecase::{ProviderDispatchPort, ProviderDispatchRequest};
-    use oya_intelligence_model_routing_domain::{CredentialMode, ModelProvider, RouteSelection};
+    use intelligence_model_routing_domain::{CredentialMode, ModelProvider, RouteSelection};
 
     fn request(provider: ModelProvider) -> ProviderDispatchRequest {
         ProviderDispatchRequest {

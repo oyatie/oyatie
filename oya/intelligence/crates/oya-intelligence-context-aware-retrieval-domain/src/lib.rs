@@ -7,7 +7,7 @@
 //! runtime is performed here.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
-pub use oya_intelligence_context_aware_retrieval_kernel::{
+pub use intelligence_context_aware_retrieval_kernel::{
     ContextAudience, ContextCandidate, ContextDataClass, ContextRetrievalDecision,
     ContextRetrievalPlan, ContextRetrievalRequest, ContextRetrievalStatus, ContextSourceKind,
     decide_context_retrieval,

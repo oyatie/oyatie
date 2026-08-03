@@ -91,6 +91,78 @@
       "new_path": "intelligence/core/write-gate-kernel",
       "old_cargo_name": "oya-intelligence-write-gate-kernel",
       "new_cargo_name": "intelligence-write-gate-kernel"
+    },
+    {
+      "old_path": "oya/intelligence/crates/oya-intelligence-context-aware-retrieval-kernel",
+      "new_path": "intelligence/core/context-aware-retrieval-kernel",
+      "old_cargo_name": "oya-intelligence-context-aware-retrieval-kernel",
+      "new_cargo_name": "intelligence-context-aware-retrieval-kernel"
+    },
+    {
+      "old_path": "oya/intelligence/crates/oya-intelligence-credential-resolver-domain",
+      "new_path": "intelligence/core/credential-resolver-domain",
+      "old_cargo_name": "oya-intelligence-credential-resolver-domain",
+      "new_cargo_name": "intelligence-credential-resolver-domain"
+    },
+    {
+      "old_path": "oya/intelligence/crates/oya-intelligence-credential-resolver-usecase",
+      "new_path": "intelligence/core/credential-resolver-usecase",
+      "old_cargo_name": "oya-intelligence-credential-resolver-usecase",
+      "new_cargo_name": "intelligence-credential-resolver-usecase"
+    },
+    {
+      "old_path": "oya/intelligence/crates/oya-intelligence-dashboard-app",
+      "new_path": "intelligence/core/dashboard-app",
+      "old_cargo_name": "oya-intelligence-dashboard-app",
+      "new_cargo_name": "intelligence-dashboard-app"
+    },
+    {
+      "old_path": "oya/intelligence/crates/oya-intelligence-eval-domain",
+      "new_path": "intelligence/core/eval-domain",
+      "old_cargo_name": "oya-intelligence-eval-domain",
+      "new_cargo_name": "intelligence-eval-domain"
+    },
+    {
+      "old_path": "oya/intelligence/crates/oya-intelligence-eval-kernel",
+      "new_path": "intelligence/core/eval-kernel",
+      "old_cargo_name": "oya-intelligence-eval-kernel",
+      "new_cargo_name": "intelligence-eval-kernel"
+    },
+    {
+      "old_path": "oya/intelligence/crates/oya-intelligence-evidence-domain",
+      "new_path": "intelligence/core/evidence-domain",
+      "old_cargo_name": "oya-intelligence-evidence-domain",
+      "new_cargo_name": "intelligence-evidence-domain"
+    },
+    {
+      "old_path": "oya/intelligence/crates/oya-intelligence-guardrails-domain",
+      "new_path": "intelligence/core/guardrails-domain",
+      "old_cargo_name": "oya-intelligence-guardrails-domain",
+      "new_cargo_name": "intelligence-guardrails-domain"
+    },
+    {
+      "old_path": "oya/intelligence/crates/oya-intelligence-guardrails-kernel",
+      "new_path": "intelligence/core/guardrails-kernel",
+      "old_cargo_name": "oya-intelligence-guardrails-kernel",
+      "new_cargo_name": "intelligence-guardrails-kernel"
+    },
+    {
+      "old_path": "oya/intelligence/crates/oya-intelligence-mcp-gateway-domain",
+      "new_path": "intelligence/core/mcp-gateway-domain",
+      "old_cargo_name": "oya-intelligence-mcp-gateway-domain",
+      "new_cargo_name": "intelligence-mcp-gateway-domain"
+    },
+    {
+      "old_path": "oya/intelligence/crates/oya-intelligence-model-routing-domain",
+      "new_path": "intelligence/core/model-routing-domain",
+      "old_cargo_name": "oya-intelligence-model-routing-domain",
+      "new_cargo_name": "intelligence-model-routing-domain"
+    },
+    {
+      "old_path": "oya/intelligence/crates/oya-intelligence-model-routing-usecase",
+      "new_path": "intelligence/core/model-routing-usecase",
+      "old_cargo_name": "oya-intelligence-model-routing-usecase",
+      "new_cargo_name": "intelligence-model-routing-usecase"
     }
   ],
   "artifacts": [
@@ -153,6 +225,54 @@
     {
       "old_path": "registry/catalog/oya-intelligence-write-gate-kernel.yaml",
       "new_path": "registry/catalog/intelligence-write-gate-kernel.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-intelligence-context-aware-retrieval-kernel.yaml",
+      "new_path": "registry/catalog/intelligence-context-aware-retrieval-kernel.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-intelligence-credential-resolver-domain.yaml",
+      "new_path": "registry/catalog/intelligence-credential-resolver-domain.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-intelligence-credential-resolver-usecase.yaml",
+      "new_path": "registry/catalog/intelligence-credential-resolver-usecase.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-intelligence-dashboard-app.yaml",
+      "new_path": "registry/catalog/intelligence-dashboard-app.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-intelligence-eval-domain.yaml",
+      "new_path": "registry/catalog/intelligence-eval-domain.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-intelligence-eval-kernel.yaml",
+      "new_path": "registry/catalog/intelligence-eval-kernel.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-intelligence-evidence-domain.yaml",
+      "new_path": "registry/catalog/intelligence-evidence-domain.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-intelligence-guardrails-domain.yaml",
+      "new_path": "registry/catalog/intelligence-guardrails-domain.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-intelligence-guardrails-kernel.yaml",
+      "new_path": "registry/catalog/intelligence-guardrails-kernel.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-intelligence-mcp-gateway-domain.yaml",
+      "new_path": "registry/catalog/intelligence-mcp-gateway-domain.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-intelligence-model-routing-domain.yaml",
+      "new_path": "registry/catalog/intelligence-model-routing-domain.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-intelligence-model-routing-usecase.yaml",
+      "new_path": "registry/catalog/intelligence-model-routing-usecase.yaml"
     }
   ]
 }
