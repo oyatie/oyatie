@@ -93,7 +93,7 @@ pub enum PgScimConnectError {
     /// Note: this guard is necessary but not sufficient for full tenant
     /// isolation. Full isolation additionally requires that `RUNTIME_ROLE`
     /// exists provisioned with NOBYPASSRLS (the deferred
-    /// `0000_runtime_role.sql` follow-up, mirroring oya-data-outbox-adapter-postgres
+    /// `0000_runtime_role.sql` follow-up, mirroring data-outbox-adapter-postgres
     /// and tenant-lifecycle-store-postgres).
     RlsUnenforceable { role: String },
     /// The connected role is neither the RLS policy-subject role
@@ -219,7 +219,7 @@ pub async fn connect_pool(database_url: &str) -> Result<PgPool, PgScimConnectErr
 /// This guard is necessary but not sufficient for full tenant isolation. Full
 /// isolation additionally requires that [`RUNTIME_ROLE`] exists in the database,
 /// provisioned with `NOBYPASSRLS` (the deferred `0000_runtime_role.sql`
-/// follow-up, mirroring oya-data-outbox-adapter-postgres / tenant-lifecycle).
+/// follow-up, mirroring data-outbox-adapter-postgres / tenant-lifecycle).
 ///
 /// # Errors
 /// - [`PgScimConnectError::RlsUnenforceable`] if the current role carries

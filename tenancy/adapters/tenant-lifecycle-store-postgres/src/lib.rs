@@ -105,7 +105,7 @@ pub enum PgStoreConnectError {
     /// Note: this guard is necessary but not sufficient for full tenant
     /// isolation. Full isolation additionally requires that `RUNTIME_ROLE`
     /// exists provisioned with NOBYPASSRLS (the deferred
-    /// `0000_runtime_role.sql` follow-up, mirroring oya-data-outbox-adapter-postgres).
+    /// `0000_runtime_role.sql` follow-up, mirroring data-outbox-adapter-postgres).
     RlsUnenforceable { role: String },
     /// The connected role is neither the RLS policy-subject role
     /// (`RUNTIME_ROLE`) nor a member of it. Under FORCE RLS the tenant-isolation
@@ -268,7 +268,7 @@ impl PgTenantLifecycleStore {
     /// This guard is necessary but not sufficient for full tenant isolation.
     /// Full isolation additionally requires that `RUNTIME_ROLE` exists in the
     /// database, provisioned with `NOBYPASSRLS` (the deferred
-    /// `0000_runtime_role.sql` follow-up, mirroring oya-data-outbox-adapter-postgres).
+    /// `0000_runtime_role.sql` follow-up, mirroring data-outbox-adapter-postgres).
     ///
     /// # Errors
     /// - [`PgStoreConnectError::RlsUnenforceable`] if the current role carries
