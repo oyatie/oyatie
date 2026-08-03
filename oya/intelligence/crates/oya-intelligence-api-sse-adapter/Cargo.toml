@@ -13,7 +13,7 @@ doctest = false
 
 [dependencies]
 intelligence-api-rest-kernel = { path = "../../../../intelligence/core/api-rest-kernel" }
-oya-intelligence-api-sse-kernel = { path = "../oya-intelligence-api-sse-kernel" }
+intelligence-api-sse-kernel = { path = "../../../../intelligence/core/api-sse-kernel" }
 
 [dev-dependencies]
 

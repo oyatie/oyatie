@@ -154,7 +154,7 @@ impl ReadOnlyEndpoint {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_intelligence_account_domain::{
+    use intelligence_account_domain::{
         AccountHealth, AccountId, AccountState, ProviderAccount, ProviderFamily, RouteExplanation,
         UsageWindow, UsageWindowKind,
     };

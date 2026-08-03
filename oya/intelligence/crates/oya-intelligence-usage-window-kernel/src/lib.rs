@@ -5,7 +5,7 @@
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
-pub use oya_intelligence_account_domain::{UsageWindow, UsageWindowError, UsageWindowKind};
+pub use intelligence_account_domain::{UsageWindow, UsageWindowError, UsageWindowKind};
 
 /// Verdict returned by UsageEnforcement::check_limit.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]

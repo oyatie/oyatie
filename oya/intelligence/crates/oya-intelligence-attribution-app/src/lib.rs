@@ -20,10 +20,10 @@
 //!
 //! It owns **no** validation rules, **no** policy semantics, and **no**
 //! renderer-specific code of its own — those live inward:
-//! - [`oya_intelligence_attribution_kernel`] — the pure metadata-only
+//! - [`intelligence_attribution_kernel`] — the pure metadata-only
 //!   citation planner that emits [`AttributionReport`] from
 //!   `(request, sources, claims, audience, max_citations)`. No I/O, no async.
-//! - [`oya_intelligence_attribution_domain`] — tenant/principal policy
+//! - [`intelligence_attribution_domain`] — tenant/principal policy
 //!   binding (audience/surface/data-class/source-kind/confidence floors).
 //! - [`oya_intelligence_attribution_usecase`] — idempotent intent caching +
 //!   audit-event metadata for requested/rendered/denied/conflict paths.
@@ -83,14 +83,14 @@ pub use oya_intelligence_attribution_adapter::{
     AttributionRendererRequestEnvelope, AttributionRendererStatus,
     AttributionRendererTransportMode, IntelligenceAttributionAdapter,
 };
-pub use oya_intelligence_attribution_domain::{
+pub use intelligence_attribution_domain::{
     AttributionAudience, AttributionCitation, AttributionClaim, AttributionDataClass,
     AttributionDenialKind, AttributionDomainDecision, AttributionDomainDenial,
     AttributionDomainDenialKind, AttributionDomainReport, AttributionDomainStatus,
     AttributionPolicyDecision, AttributionReport, AttributionRequest, AttributionSource,
     AttributionSourceKind, AttributionStatus, DomainAttributionRequest, plan_domain_attribution,
 };
-pub use oya_intelligence_attribution_kernel::plan_attribution;
+pub use intelligence_attribution_kernel::plan_attribution;
 pub use oya_intelligence_attribution_usecase::{
     AttributionAuditEvent, AttributionAuditEventKind, AttributionUsecaseDenialKind,
     AttributionUsecaseInput, AttributionUsecaseReceipt, AttributionUsecaseStatus,

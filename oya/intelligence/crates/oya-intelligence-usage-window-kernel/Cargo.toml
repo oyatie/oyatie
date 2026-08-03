@@ -12,7 +12,7 @@ path = "src/lib.rs"
 doctest = false
 
 [dependencies]
-oya-intelligence-account-domain = { path = "../oya-intelligence-account-domain" }
+intelligence-account-domain = { path = "../../../../intelligence/core/account-domain" }
 
 [lints]
 workspace = true

@@ -7,7 +7,7 @@
 //! Read-only invariant: no port in this crate mutates external state.
 //! The `DryRunOnly` marker trait has only a `&self` evaluator.
 
-use oya_intelligence_account_domain::{AccountId, ProviderFamily, RouteExplanation};
+use intelligence_account_domain::{AccountId, ProviderFamily, RouteExplanation};
 use oya_intelligence_dashboard_kernel::RoutingView;
 
 // ── Marker ───────────────────────────────────────────────────────────────────
@@ -145,7 +145,7 @@ impl DryRunOnly for WhatIfPolicyChange {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_intelligence_account_domain::{AccountId, ProviderFamily, RouteExplanation};
+    use intelligence_account_domain::{AccountId, ProviderFamily, RouteExplanation};
 
     fn aid(s: &str) -> AccountId {
         AccountId(s.to_owned())

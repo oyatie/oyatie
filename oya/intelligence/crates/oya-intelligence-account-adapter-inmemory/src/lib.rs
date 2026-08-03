@@ -20,7 +20,7 @@
 
 use std::collections::HashMap;
 
-use oya_intelligence_account_domain::{
+use intelligence_account_domain::{
     SecretMaterial, SecretReference, SecretStoreError, SecretStorePort,
 };
 

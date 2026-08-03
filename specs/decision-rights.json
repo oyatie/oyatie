@@ -58,7 +58,7 @@
       "owner": "capability-owner",
       "escalation": "council-privacy + council-architecture",
       "applies_to": "binding a capability to an autonomy tier; uplift requires policy + runtime gate per FO-10",
-      "related_spec": "see oya-intelligence-autonomy-ceiling-domain for tier semantics"
+      "related_spec": "see intelligence-autonomy-ceiling-domain for tier semantics"
     },
     {
       "id": "DR-07-adr",
