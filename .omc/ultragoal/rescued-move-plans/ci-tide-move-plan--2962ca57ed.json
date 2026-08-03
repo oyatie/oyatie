@@ -1,0 +1,25 @@
+{
+  "_comment": "De-brand strangler MOVE: home the tide merge-queue component into the `ci` capability. `oya/ci-tide` is the paved-road proof case — 10 tracked files, 3 crates, ZERO satellite (only `crates/`), already correctly layered kernel->adapter->app, and NOTHING outside it depends on it (no workflow reference, no deployment, no external BUCK dep), so the blast radius is the three crate dirs and nothing else. The capability registry already absorbs `oya/ci-tide` into `ci` (`boundary_note`: \"ci absorbs cloud-ci + ci-controller + ci-tide + ci-webhook-gateway as sub-modules\"), so this move needs NO registry edit. Root `Cargo.toml` needs no edit either: sources match the legacy `oya/*/crates/oya-*` glob and destinations match the ADR-0538 layer globs `*/{core,ports,adapters,facade}/*`, so membership is glob-covered on both sides and the array stays off the merge surface. FACE ASSIGNMENT: the kernel goes to `ports`, NOT `core`. It owns the `ForgeClient` outbound seam that BOTH the github adapter and the app consume, and ADR-0562's central layering rule (enforced by `ci/facade/facade-core-layering`, code `facade_core_direct_dep`, baseline keyed by cargo package name) makes a facade crate holding a direct `//<cap>/core/...` BUCK dep a NEW un-baselined violation — `ci/facade/tide-app` -> `ci/core/tide-kernel` would be exactly that. `ports` is also the doctrinally correct face (ADR-0570 ports-in-core/ports/kernel) and matches the only existing `ci` port/adapter pair, `ci/ports/path-resolver` + `ci/adapters/path-resolver`. It additionally keeps `ci/core/` non-existent, so this move introduces no new layer directory. NAMING per ADR-0532/0533 + the landed `messaging-substrate-kernel` exemplar: cargo name = capability + de-branded path tail, layer DIR is not repeated in the name (`oya-ci-tide-kernel` -> `ci-tide-kernel`); the trailing `-kernel` / `-adapter` / `-app` segments are PRESERVED because ADR-0107/BNF 2.5#4 requires the trailing dash-segment to be a canonical layer value. ADR-0562 capability-first placement.",
+  "capability": "ci",
+  "moves": [
+    {
+      "old_path": "oya/ci-tide/crates/oya-ci-tide-kernel",
+      "new_path": "ci/ports/tide-kernel",
+      "old_cargo_name": "oya-ci-tide-kernel",
+      "new_cargo_name": "ci-tide-kernel"
+    },
+    {
+      "old_path": "oya/ci-tide/crates/oya-ci-tide-github-adapter",
+      "new_path": "ci/adapters/tide-github-adapter",
+      "old_cargo_name": "oya-ci-tide-github-adapter",
+      "new_cargo_name": "ci-tide-github-adapter"
+    },
+    {
+      "old_path": "oya/ci-tide/crates/oya-ci-tide-app",
+      "new_path": "ci/facade/tide-app",
+      "old_cargo_name": "oya-ci-tide-app",
+      "new_cargo_name": "ci-tide-app"
+    }
+  ],
+  "artifacts": []
+}

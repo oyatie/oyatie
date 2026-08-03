@@ -1,0 +1,13 @@
+{
+  "_comment": "De-brand strangler MOVE: home the tide merge-queue's pure-domain kernel out of oya/ci-tide/crates into the already-established ci capability. Face = core per ADR-0570 (an ADR-0083 kernel: pure types + sync traits, only dependency is serde, zero intra-repo out-edges — a dependency SINK), and this is the ci capability's first core-face leaf. LEAF-FIRST per the ADR-0562 §10.27 precedent: the two consumers (oya-ci-tide-app, oya-ci-tide-github-adapter) are NOT moved here; they stay in oya/ci-tide/crates and get their cargo path-dep, BUCK label, and Rust use-ident rewired into ci/core/tide-kernel. They are deliberately deferred because ci/ already HAS a ports/ layer, so a ci/facade/tide-app leaf carrying a //ci/core/tide-kernel:ci-tide-kernel BUCK edge would emit a NEW facade_core_direct_dep key against the shrink-only ci/facade/facade-core-layering baseline; routing them through a ports seam is a crate-split REFACTOR, out of scope for a placement-only move (the §10.26 SecretProviderStore precedent). De-brand per ADR-0532/0533: cargo name = capability slug + de-branded path tail (oya-ci-tide-kernel -> ci-tide-kernel). ADR-0562 capability-first placement; the ci/*/* member glob and crate_root_glob are already live, so no root workspace or acyclicity policy edit is induced.",
+  "capability": "ci",
+  "moves": [
+    {
+      "old_path": "oya/ci-tide/crates/oya-ci-tide-kernel",
+      "new_path": "ci/core/tide-kernel",
+      "old_cargo_name": "oya-ci-tide-kernel",
+      "new_cargo_name": "ci-tide-kernel"
+    }
+  ],
+  "artifacts": []
+}
