@@ -610,6 +610,7 @@ pub fn collect_observed_gates(repo_root: &Path, policy: &Value) -> Result<Value,
             "has_buck_unittest": buck.contains(&format!("name = \"ci-{name}-unittest\"")),
             "workflow_registered": workflow_registers_gate(&workflow, &name, gates_root_rel),
             "has_autofix": has_autofix_contract(&production_texts),
+            "declared_no_autofix_reason": declared_no_autofix_reason(&production_texts),
             "hermetic_observations": hermetic,
             "policy_literal_observations": policy_literals,
         }));
@@ -733,6 +734,49 @@ fn policy_literal_exception_keys(
     keys
 }
 
+/// The one bar a no-autofix declaration must clear, wherever it is declared.
+///
+/// Extracted so the in-crate shard below is validated by the SAME rule as the fleet-wide policy
+/// map. Sharding a declaration must not become a way to declare it more cheaply.
+fn reason_is_explanatory(reason: &str) -> bool {
+    reason.trim().len() >= 20
+}
+
+/// The gate's own no-autofix declaration, read from its production sources.
+///
+/// This is the SHARD of the fleet-wide `no_autofix_reason` map. A gate that declares
+/// `NO_AUTOFIX_REASON` in its own source needs no entry in the shared policy file, so adding a
+/// detector stops being an edit to one line that every other detector also edits — six parallel
+/// detectors conflict on six separate files instead of one.
+///
+/// Source-derived exactly like `has_autofix_contract`, and for the same reason: both are
+/// properties OF the gate, not carve-outs FOR it, so they belong with the code they describe.
+/// (The carve-outs-are-DATA doctrine governs exemptions — `hermetic_exceptions`,
+/// `policy_literal_exceptions` — which stay in the policy file where a reviewer sees them all.)
+///
+/// The anchor must be a DECLARATION, not a mention, and three things can merely mention the
+/// token — all three are stripped before the search:
+///   - a doc comment describing the convention (`strip_line_comments`);
+///   - a commented-out declaration (`string_literals_with_lines` is itself comment-aware, so it
+///     yields no literal — the same false green this module documents for `--fix`);
+///   - the token appearing INSIDE a string literal, which is not hypothetical: this very gate
+///     scans its own sources, and the matcher below names the token, so without
+///     `strip_string_literals` the gate reads its own search string as a declaration and reports
+///     itself malformed. A real declaration carries the token as bare code.
+fn declared_no_autofix_reason(texts: &[String]) -> Option<String> {
+    texts.iter().find_map(|text| {
+        let declared_at = text.lines().position(|line| {
+            strip_string_literals(strip_line_comments(line)).contains("NO_AUTOFIX_REASON")
+        })? + 1;
+        // The literal may sit on the declaring line or wrap to the next, so take the first
+        // literal at or after it rather than requiring an exact line match.
+        string_literals_with_lines(text)
+            .into_iter()
+            .find(|(line, _)| *line >= declared_at)
+            .map(|(_, literal)| literal)
+    })
+}
+
 fn no_autofix_reasons(
     policy: &Value,
     findings: &mut BTreeSet<Finding>,
@@ -750,7 +794,7 @@ fn no_autofix_reasons(
             ));
             continue;
         };
-        if reason.trim().len() < 20 {
+        if !reason_is_explanatory(reason) {
             findings.insert(Finding::new(
                 "gate_self_conformance_policy_exception_malformed",
                 gate,
@@ -822,11 +866,32 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
                 "gate crate must be wired into the required oya-ci fan-in through Buck2",
             ));
         }
-        if !no_autofix.contains_key(gate_name) && !autofix_contracts.contains(gate_name) {
+        // A gate may declare its no-autofix reason in its OWN source instead of the fleet-wide
+        // policy map (see `declared_no_autofix_reason`). A present-but-thin declaration is
+        // reported as malformed rather than silently ignored — ignoring it would make the
+        // missing-contract finding below name the wrong defect.
+        let declares_in_crate = match string_field(gate, "declared_no_autofix_reason") {
+            Some(reason) if reason_is_explanatory(reason) => true,
+            Some(_) => {
+                findings.insert(Finding::new(
+                    "gate_self_conformance_policy_exception_malformed",
+                    gate_name,
+                    "in-crate NO_AUTOFIX_REASON must explain why an automatic rewrite is unsafe \
+                     or meaningless",
+                ));
+                false
+            }
+            None => false,
+        };
+        if !no_autofix.contains_key(gate_name)
+            && !autofix_contracts.contains(gate_name)
+            && !declares_in_crate
+        {
             findings.insert(Finding::new(
                 "gate_self_conformance_automated_missing_fix_contract",
                 gate_name,
-                "gate must declare a policy autofix_contract or no_autofix_reason",
+                "gate must declare an in-crate NO_AUTOFIX_REASON, or a policy autofix_contract \
+                 or no_autofix_reason",
             ));
         }
 
@@ -914,6 +979,96 @@ mod tests {
         let observed = json!({ "gates": [gate("green-gate")] });
         let report = evaluate(&policy(), &observed);
         assert_eq!(report.verdict, Verdict::Green, "{:#?}", report.findings);
+    }
+
+    /// THE SHARD, stated as a test: a gate that declares its reason in its own source is green
+    /// against a policy that has never heard of it. This is the property that lets N detectors
+    /// land in parallel without N edits to one shared line.
+    #[test]
+    fn in_crate_no_autofix_declaration_needs_no_shared_policy_line() {
+        let mut row = gate("sharded-gate");
+        row["declared_no_autofix_reason"] = json!(
+            "A dead root has three legitimate resolutions and the gate cannot choose between them."
+        );
+        let observed = json!({ "gates": [row] });
+        let report = evaluate(&policy(), &observed);
+        assert_eq!(report.verdict, Verdict::Green, "{:#?}", report.findings);
+    }
+
+    /// Sharding must not be a cheaper way to declare. The in-crate path is held to the same
+    /// explanatory bar as the policy map, and a thin declaration names ITSELF as the defect
+    /// rather than falling through to "no contract declared".
+    #[test]
+    fn in_crate_no_autofix_declaration_must_still_be_explanatory() {
+        let mut row = gate("thin-gate");
+        row["declared_no_autofix_reason"] = json!("no");
+        let observed = json!({ "gates": [row] });
+        let codes = codes(&evaluate_keyed(&policy(), &observed));
+        assert!(codes.contains("gate_self_conformance_policy_exception_malformed"));
+        assert!(codes.contains("gate_self_conformance_automated_missing_fix_contract"));
+    }
+
+    /// A gate with no declaration anywhere is still RED — the shard adds a route, not an escape.
+    #[test]
+    fn a_gate_declaring_no_fix_contract_anywhere_is_still_red() {
+        let observed = json!({ "gates": [gate("undeclared-gate")] });
+        assert!(
+            codes(&evaluate_keyed(&policy(), &observed))
+                .contains("gate_self_conformance_automated_missing_fix_contract")
+        );
+    }
+
+    /// The false green this module already documents for `--fix`, re-proven for the new
+    /// extractor: neither a commented-out declaration nor a doc comment that merely MENTIONS
+    /// `NO_AUTOFIX_REASON` may anchor the search onto an unrelated literal below it.
+    #[test]
+    fn a_commented_out_no_autofix_declaration_does_not_satisfy_the_contract() {
+        assert_eq!(
+            declared_no_autofix_reason(&[
+                "// const NO_AUTOFIX_REASON: &str = \"someday we will explain this properly\";"
+                    .to_owned()
+            ]),
+            None,
+            "a commented-out declaration must not count"
+        );
+        assert_eq!(
+            declared_no_autofix_reason(&["\
+// Gates declare NO_AUTOFIX_REASON when no safe rewrite exists.
+const SCAN_ROOT: &str = \"ci/facade/some/unrelated/path\";"
+                .to_owned()]),
+            None,
+            "a comment mentioning the token must not anchor onto the next unrelated literal"
+        );
+        assert_eq!(
+            declared_no_autofix_reason(&[
+                "pub const NO_AUTOFIX_REASON: &str = \"Choosing the remediation is a design act.\";"
+                    .to_owned()
+            ]),
+            Some("Choosing the remediation is a design act.".to_owned()),
+            "a real production declaration must be extracted"
+        );
+        assert_eq!(
+            declared_no_autofix_reason(&["\
+pub const NO_AUTOFIX_REASON: &str =
+    \"Choosing the remediation is a design act.\";"
+                .to_owned()]),
+            Some("Choosing the remediation is a design act.".to_owned()),
+            "a declaration whose literal wraps to the next line must still be extracted"
+        );
+    }
+
+    /// Regression guard for the self-reference this gate actually hit: a gate whose own source
+    /// names the token inside a string literal (as the extractor's matcher does) must not read
+    /// that as its own declaration and then report ITSELF malformed.
+    #[test]
+    fn the_token_inside_a_string_literal_is_a_mention_not_a_declaration() {
+        assert_eq!(
+            declared_no_autofix_reason(&[
+                "let hit = line.contains(\"NO_AUTOFIX\\u{5f}REASON\");".to_owned()
+            ]),
+            None,
+            "a matcher naming the token in a string literal is a mention, not a declaration"
+        );
     }
 
     #[test]
