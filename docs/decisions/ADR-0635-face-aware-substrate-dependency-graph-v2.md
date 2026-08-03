@@ -2,6 +2,7 @@
 id: ADR-0635
 title: "Face-aware substrate dependency graph v2: five typed graphs and derived failure closure"
 status: Accepted
+doc_status: published
 planning_impact: true
 deciders: founder
 owner: council-architecture
