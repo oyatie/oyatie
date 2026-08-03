@@ -8200,6 +8200,7 @@ name = "oya-intelligence-architecture-map-app"
 version = "0.1.0"
 dependencies = [
  "intelligence-architecture-map-kernel",
+ "oya-workspace-members-kernel",
 ]
 
 [[package]]

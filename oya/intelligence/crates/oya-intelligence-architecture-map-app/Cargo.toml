@@ -8,12 +8,17 @@ license = "Apache-2.0"
 
 [dependencies]
 intelligence-architecture-map-kernel = { path = "../../../../intelligence/core/architecture-map-kernel" }
+oya-workspace-members-kernel = { path = "../../../../libs/oya-workspace-members-kernel" }
 
 
 [lib]
 name = "oya_intelligence_architecture_map_app"
 path = "src/lib.rs"
 doctest = false
+
+[[bin]]
+name = "oya-intelligence-architecture-map"
+path = "src/main.rs"
 
 [lints]
 workspace = true
