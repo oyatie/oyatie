@@ -1,4 +1,4 @@
-//! # oya-ci-tide-kernel
+//! # ci-tide-kernel
 //!
 //! Pure-domain kernel for the oya-ci tide component (Phase 2, ADR-0513).
 //! No I/O, no async, no network. #![forbid(unsafe_code)].
