@@ -182,7 +182,7 @@ fn buck_graph_declares_all_policy_schema_artifact_and_root_inputs() {
 }
 
 #[test]
-fn live_w0d_discovery_is_non_authoritative_and_fail_closed() {
+fn historical_w0d_discovery_is_non_authoritative_and_fail_closed() {
     let (policy, schema, artifact) = live();
     let runtime = RuntimeAuthority::fail_closed(PROTECTED, CANDIDATE);
     let findings = evaluate(&policy, &schema, &artifact, &runtime, NOW);
@@ -542,7 +542,7 @@ fn high_confidence_secret_values_are_rejected_without_flagging_hashes_or_ids() {
 }
 
 #[test]
-fn colon_bearing_secret_is_rejected_while_structured_values_remain_green() {
+fn uri_bearing_secrets_are_rejected_while_public_urls_remain_green() {
     let (policy, schema, artifact, runtime) = positive_fixture();
 
     for secret in [
@@ -561,11 +561,14 @@ fn colon_bearing_secret_is_rejected_while_structured_values_remain_green() {
     for secret in [
         "https://user:q9P/2Zd7Wm4+Lx8!Vt3#Kn6@Hs1%Rc5^Bj0&Fy7*Ua2=Ee9?@inventory.example",
         "https://user:q9P2Zd7Wm4+Lx8!Vt3#Kn6@Hs1%Rc5Bj0&Fy7*Ua2=Ee9?@inventory.example",
+        "https://inventory.example/export?X-Amz-Signature=q9P2Zd7Wm4Lx8Vt3Kn6Hs1Rc5Bj0Fy7Ua2Ee9Qw4Pi6Zd8Lm",
+        "https://inventory.example/export/q9P2Zd7Wm4Lx8Vt3Kn6Hs1Rc5Bj0Fy7Ua2Ee9Qw4Pi6Zd8Lm",
+        "https://inventory.example/export#q9P2Zd7Wm4Lx8Vt3Kn6Hs1Rc5Bj0Fy7Ua2Ee9Qw4Pi6Zd8Lm",
     ] {
-        let mut userinfo_secret = artifact.clone();
-        userinfo_secret["evidence_manifest"]["uri"] = json!(secret);
+        let mut uri_secret = artifact.clone();
+        uri_secret["evidence_manifest"]["uri"] = json!(secret);
         assert!(has_code(
-            &evaluate(&policy, &schema, &userinfo_secret, &runtime, NOW),
+            &evaluate(&policy, &schema, &uri_secret, &runtime, NOW),
             "reset_secret_value_detected"
         ));
     }

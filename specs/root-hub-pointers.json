@@ -1437,9 +1437,11 @@
     },
     "reset_eligibility_current_observation": {
       "current_path": "/registry/reset-eligibility/w0-d-20260801.json",
-      "kind": "registry",
+      "kind": "historical-registry-evidence",
       "migration_phase": "wave-0-d-preservation-migration",
-      "purpose": "Current W0-D read-only, undigested/unverified discovery observation. Verdict is RESET INELIGIBLE; preservation migration is the only represented mode. It is not actuation authority and contains no verified evidence digest.",
+      "observation_status": "historical-expired-non-authorizing",
+      "expired_at": "2026-08-02T17:59:29Z",
+      "purpose": "Historical W0-D read-only, undigested/unverified discovery observation. It expired on 2026-08-02, records RESET INELIGIBLE, and represents preservation migration only. It is not actuation authority, contains no verified evidence digest, and must be recaptured before any future eligibility decision.",
       "target_path_after_md_retirement": "same"
     }
   },

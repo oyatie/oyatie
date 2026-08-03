@@ -1039,25 +1039,11 @@ fn looks_like_secret_value(path: &str, value: &str) -> bool {
 }
 
 fn is_approved_structured_value(path: &str, value: &str) -> bool {
-    is_uri_field(path) && (is_hierarchical_uri(value) || is_approved_opaque_uri(value))
+    is_uri_field(path) && is_approved_opaque_uri(value)
         || path.ends_with(".stable_id") && REQUIRED_INVENTORY_IDS.contains(&value)
         || is_sha256_field(path) && is_sha256(value)
         || is_commit_field(path) && is_hex(value, 40)
         || path.ends_with(".signature") && is_hex(value, 128)
-}
-
-fn is_hierarchical_uri(value: &str) -> bool {
-    let Some((scheme, remainder)) = value.split_once("://") else {
-        return false;
-    };
-    let authority = remainder
-        .split_once(['/', '?', '#'])
-        .map_or(remainder, |(authority, _)| authority);
-    matches!(scheme, "http" | "https")
-        && !remainder.is_empty()
-        && !authority.is_empty()
-        && !remainder.contains('@')
-        && remainder.bytes().all(is_uri_tail_byte)
 }
 
 fn is_approved_opaque_uri(value: &str) -> bool {
@@ -1188,7 +1174,7 @@ mod tests {
         for (path, value) in [
             (
                 "$.evidence_manifest.uri",
-                "https://inventory.oyatie.example/resources/cluster-primary",
+                "redacted-local-manifest:oyatie-reset-discovery-evidence-manifest.txt",
             ),
             (
                 "$.inventory[0].stable_id",
@@ -1213,6 +1199,16 @@ mod tests {
             );
         }
 
+        let public_url = "https://inventory.oyatie.example/resources/cluster-primary";
+        assert!(!is_approved_structured_value(
+            "$.evidence_manifest.uri",
+            public_url
+        ));
+        assert!(!looks_like_secret_value(
+            "$.evidence_manifest.uri",
+            public_url
+        ));
+
         let colon_secret = "opaque:q9P/2Zd7Wm4+Lx8!Vt3#Kn6@Hs1%Rc5^Bj0&Fy7*Ua2=Ee9?";
         assert!(!is_approved_structured_value(
             "$.inventory[0].lifecycle",
@@ -1226,6 +1222,9 @@ mod tests {
         for value in [
             "opaque://q9P2Zd7Wm4+Lx8!Vt3#Kn6@Hs1%Rc5Bj0&Fy7*Ua2=Ee9?",
             "https://user:q9P2Zd7Wm4+Lx8!Vt3#Kn6@Hs1%Rc5Bj0&Fy7*Ua2=Ee9?@host",
+            "https://inventory.example/export?X-Amz-Signature=q9P2Zd7Wm4Lx8Vt3Kn6Hs1Rc5Bj0Fy7Ua2Ee9Qw4Pi6Zd8Lm",
+            "https://inventory.example/export/q9P2Zd7Wm4Lx8Vt3Kn6Hs1Rc5Bj0Fy7Ua2Ee9Qw4Pi6Zd8Lm",
+            "https://inventory.example/export#q9P2Zd7Wm4Lx8Vt3Kn6Hs1Rc5Bj0Fy7Ua2Ee9Qw4Pi6Zd8Lm",
         ] {
             assert!(!is_approved_structured_value(
                 "$.evidence_manifest.uri",
