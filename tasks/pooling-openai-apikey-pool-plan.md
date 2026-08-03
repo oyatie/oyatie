@@ -2,7 +2,7 @@
 
 ## Objective
 
-Replace the in-memory mock in `oya-intelligence-adapter-openai-subscription-adapter` with a
+Replace the in-memory mock in `intelligence-openai-subscription-adapter` with a
 live API-key pooling path for OpenAI. OpenAI API keys do NOT expire (unlike Anthropic OAuth
 tokens) — the pooling concern is blacklist + jittered cooldown + success-restore + correct
 `Authorization: Bearer` header injection.
@@ -62,8 +62,8 @@ Round-robin over Active keys. If all keys are Cooling or Blacklisted: return
 
 ## Acceptance Criteria
 
-- `cargo check -p oya-intelligence-adapter-openai-subscription-adapter --all-targets` passes
-- `cargo nextest run -p oya-intelligence-adapter-openai-subscription-adapter` passes (all green)
+- `cargo check -p intelligence-openai-subscription-adapter --all-targets` passes
+- `cargo nextest run -p intelligence-openai-subscription-adapter` passes (all green)
 - No real OpenAI calls in tests — all use 127.0.0.1:0 local mock server
 - `Authorization: Bearer` header injected (NOT `x-api-key`)
 - Status classification uses HTTP status + structured error type field (NOT substring match)
@@ -71,5 +71,5 @@ Round-robin over Active keys. If all keys are Cooling or Blacklisted: return
 - Jittered cooldown range confirmed in unit tests
 - All keys blacklisted/cooling → `AuthError::NetworkUnavailable` returned
 - Zero `cargo check` warnings
-- Changes confined to `oya-intelligence-adapter-openai-subscription-adapter` crate +
+- Changes confined to `intelligence-openai-subscription-adapter` crate +
   plan/spec docs
