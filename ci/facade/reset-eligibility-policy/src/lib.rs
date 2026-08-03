@@ -1132,10 +1132,53 @@ fn is_opaque_handle_byte(byte: u8) -> bool {
 
 fn opaque_handle_contains_secret(suffix: &str) -> bool {
     contains_high_confidence_secret_marker(suffix)
+        || looks_like_reduced_alphabet_secret(suffix)
         || suffix
             .split(['-', '.', '_', '/'])
             .filter(|component| !component.is_empty())
-            .any(looks_like_secret_fragment)
+            .any(|component| {
+                looks_like_secret_fragment(component)
+                    || looks_like_reduced_alphabet_secret(component)
+            })
+}
+
+fn looks_like_reduced_alphabet_secret(value: &str) -> bool {
+    const MIN_LENGTH: u32 = 40;
+    const MIN_UNIQUE_SYMBOLS: usize = 24;
+    const MIN_ENTROPY_BITS_PER_SYMBOL: f64 = 4.5;
+
+    let mut counts = [0_u32; 36];
+    let mut length = 0_u32;
+    for byte in value.bytes() {
+        let index = match byte {
+            b'a'..=b'z' => usize::from(byte - b'a'),
+            b'0'..=b'9' => 26 + usize::from(byte - b'0'),
+            b'-' | b'.' | b'_' | b'/' => continue,
+            _ => return false,
+        };
+        counts[index] += 1;
+        length += 1;
+    }
+
+    // Base32-style material can be secret-like while using only lowercase letters and digits, so
+    // the general detector's three-character-class threshold is intentionally not used here.
+    // Requiring length, broad alphabet use, and high Shannon entropy keeps descriptive handles
+    // such as the committed discovery names green while rejecting both contiguous and separator-
+    // chunked random-looking material.
+    if length < MIN_LENGTH || counts.iter().filter(|count| **count > 0).count() < MIN_UNIQUE_SYMBOLS
+    {
+        return false;
+    }
+    let length = f64::from(length);
+    let entropy = counts
+        .into_iter()
+        .filter(|count| *count > 0)
+        .map(|count| {
+            let probability = f64::from(count) / length;
+            -probability * probability.log2()
+        })
+        .sum::<f64>();
+    entropy >= MIN_ENTROPY_BITS_PER_SYMBOL
 }
 
 fn is_sha256_field(path: &str) -> bool {
@@ -1416,6 +1459,8 @@ mod tests {
             "protected-runtime:q9P/2Zd7Wm4+Lx8!Vt3#Kn6@Hs1%Rc5^Bj0&Fy7*Ua2=Ee9?",
             "redacted-local:q9P2Zd7Wm4-Lx8Vt3Kn6Hs1Rc5Bj0Fy7Ua2Ee9Qw4Pi6Zd8Lm",
             "protected-runtime:q9P2Zd7Wm4-Lx8Vt3Kn6Hs1Rc5Bj0Fy7Ua2Ee9Qw4Pi6Zd8Lm",
+            "protected-runtime:q9p2zd7wm4lx8vt3kn6hs1rc5bj0fy7ua2ee9qw4pi6zd8lm",
+            "redacted-local:q9p2zd7w-m4lx8vt3-kn6hs1rc-5bj0fy7u-a2ee9qw4-pi6zd8lm",
             "redacted-local:../../candidate-escape",
             "opaque://q9P2Zd7Wm4+Lx8!Vt3#Kn6@Hs1%Rc5Bj0&Fy7*Ua2=Ee9?",
             "https://user:q9P2Zd7Wm4+Lx8!Vt3#Kn6@Hs1%Rc5Bj0&Fy7*Ua2=Ee9?@host",
