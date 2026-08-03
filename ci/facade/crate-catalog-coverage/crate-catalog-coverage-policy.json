@@ -3,7 +3,7 @@
   "gate_id": "cloud-ci-crate-catalog-coverage",
   "_provenance": {
     "frozen_at": "the first commit of ci/facade/crate-catalog-coverage",
-    "uncatalogued_total": 197,
+    "uncatalogued_total": 196,
     "policy": "shrink-only; a new or moved crate must carry its catalog row in the same change"
   },
   "min_expected_crates": 800,
@@ -146,7 +146,6 @@
     "oya-ci-materializer-kernel",
     "oya-ci-tide-app",
     "oya-ci-tide-github-adapter",
-    "oya-ci-tide-kernel",
     "oya-cloud-kernel-app",
     "oya-cloud-kernel-arch-aarch64-adapter",
     "oya-cloud-kernel-arch-x86-64-adapter",
