@@ -34,11 +34,11 @@ use hyper_util::rt::TokioExecutor;
 use serde::Deserialize;
 use tracing::{debug, warn};
 
-pub use oya_intelligence_credential_resolver_usecase::{
+pub use intelligence_credential_resolver_usecase::{
     CredentialHandleIssueFailure, CredentialHandleIssuerPort, CredentialHandleRequest,
 };
 
-use oya_intelligence_credential_resolver_domain::{
+use intelligence_credential_resolver_domain::{
     CredentialHandle, CredentialHandleIssueRequest, MAX_CREDENTIAL_HANDLE_TTL_SECONDS,
 };
 
@@ -397,7 +397,7 @@ mod tests {
     use hyper_util::rt::TokioIo;
     use tokio::net::TcpListener;
 
-    use oya_intelligence_credential_resolver_domain::{
+    use intelligence_credential_resolver_domain::{
         CredentialAudience, CredentialProvider, SecretReference,
     };
 

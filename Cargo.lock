@@ -4590,6 +4590,40 @@ dependencies = [
 ]
 
 [[package]]
+name = "intelligence-context-aware-retrieval-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "intelligence-credential-resolver-domain"
+version = "0.1.0"
+
+[[package]]
+name = "intelligence-credential-resolver-usecase"
+version = "0.1.0"
+dependencies = [
+ "intelligence-credential-resolver-domain",
+]
+
+[[package]]
+name = "intelligence-dashboard-app"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-account-domain",
+ "oya-intelligence-dashboard-kernel",
+]
+
+[[package]]
+name = "intelligence-eval-domain"
+version = "0.1.0"
+dependencies = [
+ "intelligence-eval-kernel",
+]
+
+[[package]]
+name = "intelligence-eval-kernel"
+version = "0.1.0"
+
+[[package]]
 name = "intelligence-eventsink-clickhouse-adapter"
 version = "0.1.0"
 dependencies = [
@@ -4613,6 +4647,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "intelligence-evidence-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
 name = "intelligence-gemini-adapter"
 version = "0.1.0"
 dependencies = [
@@ -4628,6 +4669,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "intelligence-guardrails-domain"
+version = "0.1.0"
+dependencies = [
+ "intelligence-guardrails-kernel",
+]
+
+[[package]]
+name = "intelligence-guardrails-kernel"
+version = "0.1.0"
+
+[[package]]
 name = "intelligence-kernel"
 version = "0.1.0"
 dependencies = [
@@ -4639,12 +4691,34 @@ dependencies = [
 ]
 
 [[package]]
+name = "intelligence-mcp-gateway-domain"
+version = "0.1.0"
+dependencies = [
+ "intelligence-capability-domain",
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
 name = "intelligence-mdbook-domain"
 version = "0.1.0"
 
 [[package]]
 name = "intelligence-mdbook-kernel"
 version = "0.1.0"
+
+[[package]]
+name = "intelligence-model-routing-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-model-routing-kernel",
+]
+
+[[package]]
+name = "intelligence-model-routing-usecase"
+version = "0.1.0"
+dependencies = [
+ "intelligence-model-routing-domain",
+]
 
 [[package]]
 name = "intelligence-openapi-domain"
@@ -6647,6 +6721,8 @@ dependencies = [
  "iam-policy-cedar-domain",
  "intelligence-adapter-kernel",
  "intelligence-capability-domain",
+ "intelligence-evidence-domain",
+ "intelligence-mcp-gateway-domain",
  "intelligence-step-domain",
  "messaging-domain",
  "network-residency",
@@ -6656,8 +6732,6 @@ dependencies = [
  "oya-data-boundary-kernel",
  "oya-governance-eval-domain",
  "oya-intelligence-bypass-domain",
- "oya-intelligence-evidence-domain",
- "oya-intelligence-mcp-gateway-domain",
  "oya-intelligence-policy-domain",
  "oya-intelligence-run-domain",
  "secrets-domain",
@@ -8360,12 +8434,8 @@ dependencies = [
 name = "oya-intelligence-context-aware-retrieval-domain"
 version = "0.1.0"
 dependencies = [
- "oya-intelligence-context-aware-retrieval-kernel",
+ "intelligence-context-aware-retrieval-kernel",
 ]
-
-[[package]]
-name = "oya-intelligence-context-aware-retrieval-kernel"
-version = "0.1.0"
 
 [[package]]
 name = "oya-intelligence-context-aware-retrieval-usecase"
@@ -8390,8 +8460,8 @@ dependencies = [
  "http-body-util",
  "hyper 1.10.0",
  "hyper-util",
- "oya-intelligence-credential-resolver-domain",
- "oya-intelligence-credential-resolver-usecase",
+ "intelligence-credential-resolver-domain",
+ "intelligence-credential-resolver-usecase",
  "serde",
  "serde_json",
  "tokio",
@@ -8399,26 +8469,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-intelligence-credential-resolver-domain"
-version = "0.1.0"
-
-[[package]]
-name = "oya-intelligence-credential-resolver-usecase"
-version = "0.1.0"
-dependencies = [
- "oya-intelligence-credential-resolver-domain",
-]
-
-[[package]]
 name = "oya-intelligence-dashboard-api"
-version = "0.1.0"
-dependencies = [
- "oya-intelligence-account-domain",
- "oya-intelligence-dashboard-kernel",
-]
-
-[[package]]
-name = "oya-intelligence-dashboard-app"
 version = "0.1.0"
 dependencies = [
  "oya-intelligence-account-domain",
@@ -8444,8 +8495,8 @@ dependencies = [
 name = "oya-intelligence-dispatch-usecase"
 version = "0.1.0"
 dependencies = [
- "oya-intelligence-guardrails-domain",
- "oya-intelligence-model-routing-domain",
+ "intelligence-guardrails-domain",
+ "intelligence-model-routing-domain",
 ]
 
 [[package]]
@@ -8461,9 +8512,9 @@ version = "0.1.0"
 dependencies = [
  "bytes",
  "futures-util",
+ "intelligence-eval-domain",
+ "intelligence-eval-kernel",
  "oya-intelligence-eval-adapter",
- "oya-intelligence-eval-domain",
- "oya-intelligence-eval-kernel",
  "oya-intelligence-eval-usecase",
  "oya-intelligence-eval-worker",
  "serde",
@@ -8473,21 +8524,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-intelligence-eval-domain"
-version = "0.1.0"
-dependencies = [
- "oya-intelligence-eval-kernel",
-]
-
-[[package]]
-name = "oya-intelligence-eval-kernel"
-version = "0.1.0"
-
-[[package]]
 name = "oya-intelligence-eval-usecase"
 version = "0.1.0"
 dependencies = [
- "oya-intelligence-eval-domain",
+ "intelligence-eval-domain",
 ]
 
 [[package]]
@@ -8499,18 +8539,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-intelligence-evidence-domain"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
-]
-
-[[package]]
 name = "oya-intelligence-evidence-file-adapter"
 version = "0.1.0"
 dependencies = [
+ "intelligence-evidence-domain",
  "oya-data-boundary-kernel",
- "oya-intelligence-evidence-domain",
 ]
 
 [[package]]
@@ -8523,21 +8556,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-intelligence-guardrails-domain"
-version = "0.1.0"
-dependencies = [
- "oya-intelligence-guardrails-kernel",
-]
-
-[[package]]
-name = "oya-intelligence-guardrails-kernel"
-version = "0.1.0"
-
-[[package]]
 name = "oya-intelligence-guardrails-usecase"
 version = "0.1.0"
 dependencies = [
- "oya-intelligence-guardrails-domain",
+ "intelligence-guardrails-domain",
 ]
 
 [[package]]
@@ -8549,30 +8571,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-intelligence-mcp-gateway-domain"
-version = "0.1.0"
-dependencies = [
- "intelligence-capability-domain",
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-intelligence-model-routing-domain"
-version = "0.1.0"
-dependencies = [
- "oya-intelligence-model-routing-kernel",
-]
-
-[[package]]
 name = "oya-intelligence-model-routing-kernel"
 version = "0.1.0"
-
-[[package]]
-name = "oya-intelligence-model-routing-usecase"
-version = "0.1.0"
-dependencies = [
- "oya-intelligence-model-routing-domain",
-]
 
 [[package]]
 name = "oya-intelligence-oauth-subscription-kernel"
@@ -8642,8 +8642,8 @@ dependencies = [
 name = "oya-intelligence-providers-adapter-openai"
 version = "0.1.0"
 dependencies = [
+ "intelligence-model-routing-domain",
  "oya-intelligence-dispatch-usecase",
- "oya-intelligence-model-routing-domain",
 ]
 
 [[package]]

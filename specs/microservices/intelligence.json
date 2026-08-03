@@ -20,8 +20,8 @@
     "absorbing_manifest": "$ref:microservices/intelligence/manifest.json",
     "crate_refs_current": [
       "$ref:registry/catalog/oya-intelligence-model-routing-kernel.yaml",
-      "$ref:registry/catalog/oya-intelligence-model-routing-domain.yaml",
-      "$ref:registry/catalog/oya-intelligence-model-routing-usecase.yaml",
+      "$ref:registry/catalog/intelligence-model-routing-domain.yaml",
+      "$ref:registry/catalog/intelligence-model-routing-usecase.yaml",
       "$ref:registry/catalog/oya-intelligence-assist-draft-kernel.yaml",
       "$ref:registry/catalog/oya-intelligence-assist-draft-domain.yaml",
       "$ref:registry/catalog/oya-intelligence-assist-draft-usecase.yaml",
@@ -29,16 +29,16 @@
       "$ref:registry/catalog/oya-intelligence-assist-draft-api.yaml",
       "$ref:registry/catalog/oya-intelligence-assist-draft-rest.yaml",
       "$ref:registry/catalog/oya-intelligence-assist-draft-worker.yaml",
-      "$ref:registry/catalog/oya-intelligence-guardrails-kernel.yaml",
-      "$ref:registry/catalog/oya-intelligence-guardrails-domain.yaml",
+      "$ref:registry/catalog/intelligence-guardrails-kernel.yaml",
+      "$ref:registry/catalog/intelligence-guardrails-domain.yaml",
       "$ref:registry/catalog/oya-intelligence-guardrails-usecase.yaml",
-      "$ref:registry/catalog/oya-intelligence-context-aware-retrieval-kernel.yaml",
+      "$ref:registry/catalog/intelligence-context-aware-retrieval-kernel.yaml",
       "$ref:registry/catalog/oya-intelligence-context-aware-retrieval-domain.yaml",
       "$ref:registry/catalog/oya-intelligence-context-aware-retrieval-usecase.yaml",
       "$ref:registry/catalog/oya-intelligence-context-aware-retrieval-adapter.yaml",
       "$ref:registry/catalog/oya-intelligence-context-aware-retrieval-worker.yaml",
-      "$ref:registry/catalog/oya-intelligence-eval-kernel.yaml",
-      "$ref:registry/catalog/oya-intelligence-eval-domain.yaml",
+      "$ref:registry/catalog/intelligence-eval-kernel.yaml",
+      "$ref:registry/catalog/intelligence-eval-domain.yaml",
       "$ref:registry/catalog/oya-intelligence-eval-usecase.yaml",
       "$ref:registry/catalog/oya-intelligence-eval-adapter.yaml",
       "$ref:registry/catalog/oya-intelligence-eval-worker.yaml",
@@ -49,8 +49,8 @@
       "$ref:registry/catalog/oya-intelligence-attribution-worker.yaml",
       "$ref:registry/catalog/oya-intelligence-dispatch-usecase.yaml",
       "$ref:registry/catalog/oya-intelligence-providers-adapter-openai.yaml",
-      "$ref:registry/catalog/oya-intelligence-credential-resolver-domain.yaml",
-      "$ref:registry/catalog/oya-intelligence-credential-resolver-usecase.yaml",
+      "$ref:registry/catalog/intelligence-credential-resolver-domain.yaml",
+      "$ref:registry/catalog/intelligence-credential-resolver-usecase.yaml",
       "$ref:registry/catalog/oya-intelligence-credential-resolver-adapter.yaml",
       "$ref:registry/catalog/oya-intelligence-audit-tap-usecase.yaml",
       "$ref:registry/catalog/oya-intelligence-audit-tap-adapter.yaml",
@@ -73,7 +73,7 @@
       "given": "high-risk or unsafe content categories",
       "when": "the guardrail stack evaluates the request",
       "then": "the stack fails closed with a stable refusal reason and audit-safe category metadata",
-      "test_ref": "crates/oya-intelligence-guardrails-kernel/src/lib.rs::tests::denies_high_risk_and_preserves_refusal_reason"
+      "test_ref": "crates/intelligence-guardrails-kernel/src/lib.rs::tests::denies_high_risk_and_preserves_refusal_reason"
     },
     {
       "id": "AC-03",
@@ -94,7 +94,7 @@
       "given": "opaque query refs, tenant-scoped retrieval candidates, freshness floors, allowed context source kinds, policy evidence, and audience/data-class boundaries",
       "when": "the context-aware retrieval kernel plans context for an Intelligence request",
       "then": "the kernel validates metadata-only refs, filters cross-tenant/stale/unsupported candidates, blocks sensitive context for external audiences, sorts eligible context deterministically, and returns only opaque resource/evidence refs without raw query or document text",
-      "test_ref": "crates/oya-intelligence-context-aware-retrieval-kernel/src/lib.rs::tests::selects_deterministic_tenant_scoped_context_plan"
+      "test_ref": "crates/intelligence-context-aware-retrieval-kernel/src/lib.rs::tests::selects_deterministic_tenant_scoped_context_plan"
     },
     {
       "id": "AC-06",
@@ -115,14 +115,14 @@
       "given": "an Intelligence eval set with golden, adversarial, linguistic, regression, or safety case metadata, opaque dataset/model/evaluator evidence refs, and pass/safety thresholds",
       "when": "the eval kernel scores the eval set",
       "then": "the kernel validates metadata-only refs, requires configured golden/adversarial/linguistic coverage, computes deterministic pass and safety-violation rates, fails closed on threshold or safety violations, and never carries raw prompt/output/secret material",
-      "test_ref": "crates/oya-intelligence-eval-kernel/src/lib.rs::tests::scores_eval_set_with_quality_and_safety_thresholds"
+      "test_ref": "crates/intelligence-eval-kernel/src/lib.rs::tests::scores_eval_set_with_quality_and_safety_thresholds"
     },
     {
       "id": "AC-09",
       "given": "an Intelligence eval set request with tenant, principal, surface, policy decision evidence, allowed model refs, dataset snapshot refs, case kinds, case-count bounds, and threshold floors",
       "when": "the eval domain evaluates the platform request",
       "then": "the domain rejects invalid metadata, policy tenant/principal/evidence drift, unauthorized surfaces/models/datasets/case kinds, weak thresholds, and case-count bound violations before returning only metadata-only eval reports or fail-closed denials",
-      "test_ref": "crates/oya-intelligence-eval-domain/src/lib.rs::tests::authorized_eval_domain_request_scores_kernel_report_with_policy_evidence"
+      "test_ref": "crates/intelligence-eval-domain/src/lib.rs::tests::authorized_eval_domain_request_scores_kernel_report_with_policy_evidence"
     },
     {
       "id": "AC-10",
@@ -262,7 +262,7 @@
       "given": "a model-routing usecase request with tenant-scoped route metadata, principal, trace, policy decision, route registry snapshot evidence, idempotency key, and a provider catalog snapshot",
       "when": "the usecase selects or denies a route for later provider dispatch integration",
       "then": "it validates metadata before cache or audit side effects, preserves in-memory idempotent replay and conflict denial semantics, delegates route selection to the domain/kernel layers, records metadata-only route requested/selected/denied audit events, rejects raw prompt/output/secret-shaped refs without echo, and performs no provider call, credential resolution, network execution, durable idempotency storage, durable audit-chain write, queue processing, or cloud runtime side effect",
-      "test_ref": "crates/oya-intelligence-model-routing-usecase/src/lib.rs::tests::routes_authorized_request_with_metadata_audit_and_idempotency"
+      "test_ref": "crates/intelligence-model-routing-usecase/src/lib.rs::tests::routes_authorized_request_with_metadata_audit_and_idempotency"
     }
   ],
   "implementation_status": {

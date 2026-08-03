@@ -22,8 +22,8 @@ path = "src/lib.rs"
 doctest = false
 
 [dependencies]
-oya-intelligence-credential-resolver-domain = { path = "../oya-intelligence-credential-resolver-domain" }
-oya-intelligence-credential-resolver-usecase = { path = "../oya-intelligence-credential-resolver-usecase" }
+intelligence-credential-resolver-domain = { path = "../../../../intelligence/core/credential-resolver-domain" }
+intelligence-credential-resolver-usecase = { path = "../../../../intelligence/core/credential-resolver-usecase" }
 hyper = { workspace = true }
 hyper-util = { workspace = true }
 http-body-util = { workspace = true }

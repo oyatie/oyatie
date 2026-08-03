@@ -42,5 +42,5 @@ Extend `FpBudget` in `oya-intelligence-guardrails-kernel` with:
 4. Add `remaining_headroom(&self)` to `FpBudget`
 5. Add `merge(&self, other: &FpBudget) -> Result<FpBudget, FpBudgetError>` to `FpBudget`
 6. Write `#[cfg(test)]` unit tests covering all acceptance criteria
-7. `cargo check -p oya-intelligence-guardrails-kernel --all-targets`
-8. `cargo nextest run -p oya-intelligence-guardrails-kernel`
+7. `cargo check -p intelligence-guardrails-kernel --all-targets`
+8. `cargo nextest run -p intelligence-guardrails-kernel`

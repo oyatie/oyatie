@@ -22,11 +22,11 @@ pub use openbao_kv::{
     OpenBaoKvAdapter, OpenBaoKvAdapterConfig, OpenBaoKvConfigError, RedactedToken,
 };
 
-pub use oya_intelligence_credential_resolver_domain::{
+pub use intelligence_credential_resolver_domain::{
     CredentialAudience, CredentialHandle, CredentialHandleIssueRequest, CredentialProvider,
     MAX_CREDENTIAL_HANDLE_TTL_SECONDS, SecretReference, SecretReferenceKind,
 };
-pub use oya_intelligence_credential_resolver_usecase::{
+pub use intelligence_credential_resolver_usecase::{
     CredentialHandleIssueFailure, CredentialHandleIssuerPort, CredentialHandleRequest,
     CredentialResolutionCacheStatus, CredentialResolutionDenialKind, CredentialResolutionInput,
     CredentialResolutionReceipt, CredentialResolutionStatus, CredentialResolverAuditEvent,

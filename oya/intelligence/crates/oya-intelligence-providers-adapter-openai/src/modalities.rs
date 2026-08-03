@@ -1,4 +1,4 @@
-use oya_intelligence_model_routing_domain::ModelCapability;
+use intelligence_model_routing_domain::ModelCapability;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum OpenAiModality {

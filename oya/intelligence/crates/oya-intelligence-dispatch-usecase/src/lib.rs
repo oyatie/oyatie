@@ -9,11 +9,11 @@
 
 use std::collections::BTreeMap;
 
-use oya_intelligence_guardrails_domain::{
+use intelligence_guardrails_domain::{
     DomainGuardrailRequest, GuardrailAudience, GuardrailDataClass, GuardrailDecision,
     GuardrailDeny, GuardrailFinding, GuardrailRequest, decide_domain_guardrail,
 };
-use oya_intelligence_model_routing_domain::{
+use intelligence_model_routing_domain::{
     DomainRouteDecision, IntelligenceDataClass, ModelRouteRequest, ProviderRouteProfile,
     RequestAudience, RouteDecision, RouteDenial, RouteSelection, route_validated_request,
 };
@@ -430,8 +430,8 @@ mod tests {
     use std::collections::BTreeSet;
 
     use super::*;
-    use oya_intelligence_guardrails_domain::{GuardrailCategory, RiskLevel};
-    use oya_intelligence_model_routing_domain::{
+    use intelligence_guardrails_domain::{GuardrailCategory, RiskLevel};
+    use intelligence_model_routing_domain::{
         CredentialMode, ModelCapability, ModelProvider, ProviderRouteProfile,
     };
 
