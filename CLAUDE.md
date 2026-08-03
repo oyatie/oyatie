@@ -21,11 +21,13 @@ Oyatie governance (`docs/AGENTS.md` operating contract + authority chain + gover
 ## Shared root contract — single-sourced in AGENTS.md
 
 Project identity and hard invariants, build & verify commands (buck2-first; cargo is
-supplementary local feedback only), coding & testing standards, and the review lenses /
+supplementary local feedback only), coding & testing standards, and the reasoning lenses /
 hyperscale lenses / engineering bars are single-sourced in [`AGENTS.md`](AGENTS.md)
 (§§ *What Oyatie is*, *Build & verify*, *Coding & testing standards*,
-*Engineering principles & review lenses*). Read that file together with this one before any
-non-trivial decision, design, or merge — none of it is duplicated here.
+*Engineering principles & review lenses*). Read that file together with this one before
+any non-trivial decision, design, or merge — none of it is duplicated here. The canonical
+map→pilot→bounded-fan-out delivery method and evidence-led drafting contract live in
+[`docs/AGENTS.md`](docs/AGENTS.md#reasoning-and-delivery-method).
 
 <!-- agent-instructions:start -->
 coordination_surface: governance_pipeline

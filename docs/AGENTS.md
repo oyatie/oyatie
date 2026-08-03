@@ -1,7 +1,7 @@
 ---
 doc_class: Operating-Contract
 shape: null
-length_cap: 360
+length_cap: 440
 authority_tier: 2
 excludes:
 - path: /specs/root-hub-pointers.json
@@ -124,6 +124,76 @@ For any question, route to its authority. Click the link; do not duplicate inlin
 | Release / incident / on-call | [`RELEASE-MANAGEMENT.md`](RELEASE-MANAGEMENT.md) <!-- forward-reference: wave-1 -->, [`INCIDENT-MANAGEMENT.md`](INCIDENT-MANAGEMENT.md) <!-- forward-reference: wave-1 -->, [`standards/on-call.md`](standards/on-call.md) <!-- forward-reference: wave-1 --> |
 | Glossary (canonical vocabulary) | [`GLOSSARY.md`](GLOSSARY.md) <!-- forward-reference: wave-1 --> |
 | Machine-readable mirrors of the catalog | [`machine-readable/`](machine-readable/) <!-- forward-reference: wave-1 --> |
+
+## Reasoning and delivery method
+
+The 16 general and hyperscale lenses named in root
+[`AGENTS.md`](../AGENTS.md#engineering-principles--review-lenses) are live from
+discovery through Day-2 operations, not a review-only checklist. Select the smallest set that
+exposes the material uncertainty, removal risk, failure mode, blast radius, operating burden,
+opportunity cost, unit cost, trust boundary, consistency tradeoff, and missing telemetry. Record
+consequential assumptions and disconfirming evidence; do not perform ceremonial lens-by-lens
+narration.
+
+For non-trivial or parallelizable work, use this reproducible loop:
+
+1. **Map and prepare.** Inventory authority, behavior, dependencies, ownership, shared paths,
+   tests, rollback seams, and current resource constraints before editing. Define success, failure,
+   invariants, and a premortem with detection, containment, and recovery for the most credible
+   failures. Turn unresolved boundaries into explicit work items rather than optimistic assumptions.
+2. **Run a serial representative pilot.** Exercise the complete author→review→fix→verify path on
+   the smallest useful slice (normally one to three representative items). The pilot validates the
+   method, ownership boundaries, test selection, evidence shape, and integration order; do not
+   infer scale-readiness from a toy path that omits the riskiest behavior.
+3. **Unlock bounded fan-out only from pilot evidence.** Give every lane one isolated worktree, a
+   non-overlapping path or component ownership set, an exact base/head, acceptance criteria, and a
+   fan-in order. Bound concurrency by measured runner queue, CPU, memory, disk space, and I/O
+   pressure; declare high-water and stop thresholds before launch. Treat compiler, gate, and test
+   failures as a recorded work queue. Stop or shrink fan-out when ownership overlaps, evidence goes
+   stale, resource thresholds trip, or the integration queue grows faster than it closes.
+4. **Keep authoring and review separate.** An author MUST NOT approve their own work. A reviewer
+   independently checks intent and execution, inspects the riskiest surface, challenges
+   plausible-but-unproven explanations, and returns `APPROVE` or `REQUEST CHANGES` with concrete
+   evidence. Reviewers do not silently become fixers; remediation is a distinct handoff and the
+   repaired exact head is reviewed again.
+5. **Progress from smoke to full verification.** Run the cheapest check that can falsify the
+   current hypothesis, then targeted build/tests, integration and cross-platform checks, and
+   finally the protected exact-head pipeline. A nominal pass is not green until selected,
+   discovered, executed, skipped, quarantined, and not-run tests are accounted for; inspect skip
+   reasons and self-disabling canaries. Only the protected PR's reviewer approval plus
+   `oya-ci-required` is merge authority.
+6. **Close the learning loop.** After a false start, material surprise, CI-churn episode, near miss,
+   or incident, record a bounded postmortem: what was expected, what happened, what evidence was
+   missing or misleading, containment, and the smallest process or productized guard that prevents
+   recurrence. Harvest observations into existing issues, `MISTAKES-LEDGER.md`, or canonical
+   machine-readable work items; link duplicates instead of creating ledger noise, and tune the
+   shared workflow rather than relying on a one-off hand fix.
+7. **Preserve resumability.** Before a handoff or session exit, commit and push every useful lane
+   and record exact heads, open PR/check/review state, decisions, remaining dependencies, and the
+   next stop condition in GitHub and the canonical planning/evidence surfaces. Gitignored
+   `.omc/ultragoal/`, other `.omc/`, and `.omx/` planning/runtime artifacts are local provenance
+   only: they MAY inform a distilled handoff, but MUST NOT be the sole copy or override
+   `/specs/masterplan.json#masterplan_v2`.
+
+Evidence-led policy, regulatory, and compliance drafting MUST trace each conclusion to: source
+identity and primary/secondary status; publication/access and effective dates or version;
+jurisdiction and applicability thresholds; the obligation or control; its product/control mapping;
+the expected evidence and owner; uncertainty or conflicting sources; and qualified legal-review
+status. Revalidate when effective dates, applicability, product behavior, or primary authority
+changes. External projects are research input, never Oyatie or legal authority; check their
+license, cite rather than copy, and do not import prose, schemas, or conclusions as if reviewed for
+Oyatie.
+
+Method inspiration (non-authoritative):
+
+- [Bun's rewrite account](https://bun.com/blog/bun-in-rust) for preparation, pilots, bounded
+  worktrees, review separation, and progressive verification.
+- [gaebal-gajae's archive](https://blog.gaebal-gajae.dev/archive.html) for operational reflections
+  and reusable pre/postmortem lessons.
+- [jclab-joseph/it-legal](https://github.com/jclab-joseph/it-legal) for source-grounded drafting
+  discipline.
+
+These links justify no product, compliance, or legal claim by themselves.
 
 ## Pre-flight checklist
 
