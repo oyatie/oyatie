@@ -152,7 +152,6 @@
     "oya-cloud-kernel-arch-x86-64-adapter",
     "oya-cloud-kernel-frame-kernel",
     "oya-cloud-kernel-hal-kernel",
-    "oya-cloud-kernel-ksync-kernel",
     "oya-cloud-kernel-user-layout-kernel",
     "oya-crate-registrar-app",
     "oya-crate-registrar-kernel",

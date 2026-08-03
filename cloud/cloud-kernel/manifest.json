@@ -20,7 +20,6 @@
         "oya-cloud-kernel-app",
         "oya-cloud-kernel-hal-kernel",
         "oya-cloud-kernel-frame-kernel",
-        "oya-cloud-kernel-ksync-kernel",
         "oya-cloud-kernel-user-layout-kernel",
         "oya-cloud-kernel-arch-aarch64-adapter",
         "oya-cloud-kernel-arch-x86-64-adapter"
@@ -179,13 +178,6 @@
         "layer": "kernel",
         "adr_anchors": ["ADR-0512", "ADR-0520", "ADR-0536", "ADR-0562", "ADR-0547"],
         "coverage_rationale": "Safe Frame kernel seam over the HAL; explicitly non-runtime-promoting until module build and boot artifacts are separately reviewed."
-      },
-      {
-        "crate": "oya-cloud-kernel-ksync-kernel",
-        "metadata_file": "cloud/cloud-kernel/crates/oya-cloud-kernel-ksync-kernel/Cargo.toml#package.metadata.oya",
-        "layer": "kernel",
-        "adr_anchors": ["ADR-0512", "ADR-0520", "ADR-0536", "ADR-0562", "ADR-0547"],
-        "coverage_rationale": "no_std kernel concurrency primitives bound to the kuberos kernel rung and kernel-purity doctrine."
       },
       {
         "crate": "oya-cloud-kernel-user-layout-kernel",

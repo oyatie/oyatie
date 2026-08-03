@@ -1,17 +1,17 @@
 [package]
-name = "oya-cloud-kernel-ksync-kernel"
+name = "kernel-ksync-kernel"
 version.workspace = true
 rust-version.workspace = true
-edition.workspace = true
-license.workspace = true
-authors.workspace = true
-repository.workspace = true
+# Pinned, NOT `edition.workspace = true`: the kernel/ workspace is edition 2024 and these
+# module sources are the verbatim edition-2021 Phase-2 primitives (unsafe_op_in_unsafe_fn /
+# static_mut_refs are hard errors in 2024). Relocation must not migrate the edition.
+edition = "2021"
 publish = false
 description = "The kernel's concurrency substrate: the 14 loom/Miri-verified Phase-2 no_std primitives, vendored as one crate."
 
 [package.metadata.oya]
-microservice = "cloud-kernel"
-bounded_context = "cloud-kernel"
+microservice = "kernel"
+bounded_context = "kernel"
 kind = "shared"
 layer = "kernel"
 owner_team = "axis-cloud-platform"
@@ -28,5 +28,10 @@ design_non_claim = "scaffold_only_no_module_build_boot_artifact_or_runtime_readi
 [target.'cfg(loom)'.dependencies]
 loom = "0.7"
 
-[lints]
-workspace = true
+# Carried from the cloud-kernel workspace's `[workspace.lints.rust]`, which declared this
+# check-cfg solely for these ksync primitives. `loom` is a custom cfg set via RUSTFLAGS for the
+# concurrency-model-check build; tell rustc it is expected so the production/Miri build does not
+# warn on every `#[cfg(loom)]`. Inline (not `workspace = true`) because kernel/ declares no
+# `[workspace.lints]` and no other kernel/ crate uses `cfg(loom)`.
+[lints.rust]
+unexpected_cfgs = { level = "allow", check-cfg = ['cfg(loom)'] }
