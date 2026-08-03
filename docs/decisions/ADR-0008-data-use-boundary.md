@@ -126,7 +126,7 @@ Any cross-pillar flow that does not match this matrix is a CI failure on the pro
 4. **Architecture fitness gate** — `oya-governance-flat-crates` rejects any new flat crate whose dep graph imports an ads/analytics adapter from outside the approved gate crates.
 5. **Audit-chain emission per decision** — every ad-targeting decision emits an evidence record (ADR-0003) with consenting tenant, user, classes used, audience, ad, and the rules that fired; missing emission = capability-invocation reject.
 6. **Runtime guard** — final guard at the auction boundary re-validates consent vs purpose; blocks if any class drifted.
-The first kernel policy-gate implementation surface for this boundary is `libs/oya-data-boundary-kernel/src/policy_gate.rs`, with ownership recorded through `libs/oya-data-boundary-kernel/OWNERS` under `council-privacy`.
+The first kernel policy-gate implementation surface for this boundary is `data/core/boundary-kernel/src/policy_gate.rs`, with ownership recorded through `data/core/boundary-kernel/OWNERS` under `council-privacy`.
 
 ### 7. Inference boundary (closes the laundering loophole)
 

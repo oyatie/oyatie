@@ -18,7 +18,7 @@ use storage_object_api::{
     CloudStorageObjectReplayOutcome, get_cloud_storage_object_from_api,
     put_cloud_storage_object_from_api,
 };
-use oya_data_boundary_kernel::DataClass;
+use data_boundary_kernel::DataClass;
 use network_residency::ResidencyClass;
 
 const BUCKET_ID: &str = "oya:cloud:region-home:ten_alpha:bucket:tenant-assets";

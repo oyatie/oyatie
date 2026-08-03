@@ -1,21 +1,23 @@
 rust_library(
-    name = "oya-data-sql-kernel",
+    name = "data-outbox-kernel",
     srcs = glob(["src/**/*.rs"]),
-    crate = "oya_data_sql_kernel",
+    crate = "data_outbox_kernel",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
+        "//data/core/sql-kernel:data-sql-kernel",
         "third-party//:serde",
     ],
 )
 
 rust_test(
-    name = "oya-data-sql-kernel-unittest",
+    name = "data-outbox-kernel-unittest",
     srcs = glob(["src/**/*.rs"]),
-    crate = "oya_data_sql_kernel",
+    crate = "data_outbox_kernel",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
+        "//data/core/sql-kernel:data-sql-kernel",
         "third-party//:serde",
         "third-party//:serde_json",
     ],

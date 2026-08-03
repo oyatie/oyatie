@@ -4,8 +4,8 @@
 
 use std::sync::Arc;
 
+use data_boundary_kernel::DataClass;
 use network_residency::ResidencyClass;
-use oya_data_boundary_kernel::DataClass;
 use secrets_kms_api::authz::{
     CallerCredential, ConfiguredBearerPrincipalVerifier, KmsCryptoAuthorizationError,
     KmsCryptoAuthorizer, KmsCryptoAuthzProvider, KmsCryptoResource, PrincipalVerifier,

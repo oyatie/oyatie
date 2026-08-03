@@ -22,7 +22,7 @@ use billing_finops::{
     AxisBudgetCreate, CloudFinopsLedger, CostAllocationCreate, FinopsPeriod, RateCardLineCreate,
     STABLE_GROSS_MARGIN_TARGET_BPS, UnitRate,
 };
-use oya_data_boundary_kernel::DataClass;
+use data_boundary_kernel::DataClass;
 use billing_metering::{
     AxisId, MeterEvent, MeterEventCreate, MeterUnit, MeterUnitKind, PlaneTag,
 };

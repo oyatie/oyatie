@@ -15,7 +15,7 @@ doctest = false
 storage-domain = { path = "../../core/domain" }
 
 [dev-dependencies]
-oya-data-boundary-kernel = { path = "../../../libs/oya-data-boundary-kernel" }
+data-boundary-kernel = { path = "../../../data/core/boundary-kernel" }
 
 [lints]
 workspace = true

@@ -877,9 +877,9 @@
       "label": "oya-data-boundary-engine-kernel"
     },
     {
-      "id": "crates/oya-data-boundary-kernel",
+      "id": "data/core/boundary-kernel",
       "kind": "crate",
-      "label": "oya-data-boundary-kernel"
+      "label": "data-boundary-kernel"
     },
     {
       "id": "crates/oya-dev-cli",

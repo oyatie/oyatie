@@ -14,7 +14,7 @@ use std::collections::BTreeMap;
 use billing_domain::Money;
 use cell_region::{CellId, RegionCode};
 use compute_resource::InstanceFlavor;
-use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 use billing_metering::{
     AxisId, Meter, MeterEvent, MeterEventCreate, MeterUnit, MeteringError, PlaneTag,
 };

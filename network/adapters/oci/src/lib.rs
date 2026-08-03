@@ -742,7 +742,7 @@ mod tests {
         RuleDirection, SecurityGroupCreate, SecurityRule, SubnetCreate, SubnetState,
         TargetGroupCreate, VpcCreate, VpcState,
     };
-    use oya_data_boundary_kernel::DataClass;
+    use data_boundary_kernel::DataClass;
     use network_residency::ResidencyClass;
 
     const COMPARTMENT_REF: &str = "ocid1.compartment.oc1..cloud";

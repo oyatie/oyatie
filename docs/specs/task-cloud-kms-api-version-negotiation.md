@@ -188,7 +188,7 @@ direct equality assertions via `assert_eq!`).
 ## Boundaries
 
 - **In scope**: `crates/oya-cloud-kms-api/src/lib.rs` only
-- **Out of scope**: `oya-cloud-kms-domain`, `oya-cloud-region-domain`, `oya-data-boundary-kernel`; no new crates; no root `Cargo.toml` edits; no async runtime; no new error variants (reuse existing `MissingPublicApiVersion` / `UnsupportedPublicApiVersion`)
+- **Out of scope**: `oya-cloud-kms-domain`, `oya-cloud-region-domain`, `data-boundary-kernel`; no new crates; no root `Cargo.toml` edits; no async runtime; no new error variants (reuse existing `MissingPublicApiVersion` / `UnsupportedPublicApiVersion`)
 - **Signature freeze**: `authorize_cloud_kms_encrypt_from_api` and `authorize_cloud_kms_decrypt_from_api` parameter lists are unchanged
 
 ---

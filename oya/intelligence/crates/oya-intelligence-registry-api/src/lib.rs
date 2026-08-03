@@ -7,7 +7,7 @@
 
 use std::collections::BTreeMap;
 
-use oya_data_boundary_kernel::{PrivacyDataClass, parse_data_class_label};
+use data_boundary_kernel::{PrivacyDataClass, parse_data_class_label};
 use oya_governance_eval_domain::{
     AdversarialKind, EvalCaseInput, EvalError, EvalGate, EvalMetric, EvalRunInput, EvalSetInput,
 };

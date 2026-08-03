@@ -37,7 +37,7 @@ pub use pillar::{OntologyPillar, UnknownPillarLabel};
 
 use std::collections::BTreeMap;
 
-use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum PropertyTier {
@@ -1624,7 +1624,7 @@ mod backbone_tests {
 #[cfg(test)]
 mod schema_evolution_tests {
     use super::*;
-    use oya_data_boundary_kernel::{DataClass, PrivacyDataClass};
+    use data_boundary_kernel::{DataClass, PrivacyDataClass};
 
     fn internal() -> PrivacyDataClass {
         PrivacyDataClass::try_from(DataClass::InternalOnly).unwrap()

@@ -7,7 +7,7 @@ use billing_accounting_journal::{
     JournalLineInput, JournalPostInput, Jurisdiction, PayrollPostingInput, PeriodState,
     VatDeadlineInput, VatWorkflowStep,
 };
-use oya_data_boundary_kernel::DataClass;
+use data_boundary_kernel::DataClass;
 
 #[test]
 fn post_journal_emits_audit_event() {

@@ -37,7 +37,7 @@ pub use sovereign_deployment::{
 };
 
 use network_residency::{ResidencyClass, parse_residency_class_label};
-use oya_data_boundary_kernel::{Classified, DataClass};
+use data_boundary_kernel::{Classified, DataClass};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct RegionalPack {

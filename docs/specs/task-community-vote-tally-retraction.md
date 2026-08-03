@@ -132,7 +132,7 @@ The `let _ = action;` discard is removed. The function branches on `action` and 
 | `Remove` / `Hide`   | `DataClass::Audit`    | Evidence ref is an audit record requiring audit-class tagging |
 | `Allow`             | `DataClass::InternalOnly` | Policy ref is internal metadata, not audit evidence |
 
-Both `DataClass::Audit` and `DataClass::InternalOnly` are existing variants in `oya-data-boundary-kernel`. `DataClass::Audit` converts to `DataClassification::Operational(OperationalDataClass::Audit)` via `DataClassification::from_data_class`.
+Both `DataClass::Audit` and `DataClass::InternalOnly` are existing variants in `data-boundary-kernel`. `DataClass::Audit` converts to `DataClassification::Operational(OperationalDataClass::Audit)` via `DataClassification::from_data_class`.
 
 ---
 

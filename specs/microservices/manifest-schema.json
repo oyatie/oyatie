@@ -722,7 +722,7 @@
       }
     },
     "data_classes_processed": {
-      "description": "ADR-0156 — UNION of per-BC `data_classes_owned`. Aggregated into specs/microservices/pii-registry.json by the DSR cascade. Per ADR-0008 the canonical taxonomy is shared with crates/oya-data-boundary-kernel.",
+      "description": "ADR-0156 — UNION of per-BC `data_classes_owned`. Aggregated into specs/microservices/pii-registry.json by the DSR cascade. Per ADR-0008 the canonical taxonomy is shared with data/core/boundary-kernel.",
       "type": "array",
       "items": {
         "enum": [

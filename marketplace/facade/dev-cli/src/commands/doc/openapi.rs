@@ -3,7 +3,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
-use oya_data_boundary_kernel::parse_data_class_label;
+use data_boundary_kernel::parse_data_class_label;
 use intelligence_api_semver_domain::validate_api_semver;
 use intelligence_openapi_domain::{
     OpenApiContractMirrorLocation, OpenApiContractMirrorReport, OpenApiDocument,

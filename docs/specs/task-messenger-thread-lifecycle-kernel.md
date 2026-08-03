@@ -38,7 +38,7 @@ usecase or adapter dependencies.
 | Persistence (future) | `crates/oya-messenger-message-stream-adapter-postgres` (out of scope) |
 
 The thread-lifecycle kernel is a pure domain module. It imports only
-`oya-data-boundary-kernel` (already a declared `[dependencies]` entry in
+`data-boundary-kernel` (already a declared `[dependencies]` entry in
 `crates/oya-messenger-domain/Cargo.toml`) and `std`. No new workspace member.
 Root `Cargo.toml` is untouched.
 
@@ -183,7 +183,7 @@ consistent with the dual-context isolation policy in
 
 ## Data-Class Tagging
 
-Consistent with existing kernel (`oya-data-boundary-kernel`, ADR-0083):
+Consistent with existing kernel (`data-boundary-kernel`, ADR-0083):
 
 | Field | `DataClass` / `PrivacyDataClass` |
 |-------|----------------------------------|

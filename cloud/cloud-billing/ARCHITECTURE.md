@@ -804,7 +804,7 @@ finops-portal read queries hit the meter-aggregate table (pre-aggregated per hou
 | `BillingAccount.region` | PUBLIC | Region code |
 | `schema_version` | PUBLIC | Version metadata |
 
-The kernel enforces this at the type system via `Classified<T>` from `oya-data-boundary-kernel`.
+The kernel enforces this at the type system via `Classified<T>` from `data-boundary-kernel`.
 
 ## 14. Schema Versioning
 

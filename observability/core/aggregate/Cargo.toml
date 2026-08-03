@@ -11,7 +11,7 @@ iam-cloud-domain = { path = "../../../iam/core/cloud-domain" }
 cell-region = { path = "../../../cell/core/region" }
 compute-resource = { path = "../../../compute/core/resource" }
 audit-chain-domain = { path = "../../../audit/core/chain-domain" }
-oya-data-boundary-kernel = { path = "../../../libs/oya-data-boundary-kernel" }
+data-boundary-kernel = { path = "../../../data/core/boundary-kernel" }
 observability-domain = { path = "../domain" }
 network-residency = { path = "../../../network/core/residency" }
 
