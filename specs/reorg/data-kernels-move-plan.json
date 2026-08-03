@@ -1,0 +1,25 @@
+{
+  "_comment": "De-brand strangler MOVE: home the three owned data-plane primitive kernels from the libs/ junk-drawer into the ratified `data` capability. Placement is not re-derived: specs/capability-registry.json membership_lint_coverage.absorbs_current_crate_globs already maps `libs/oya-data-*` to the `data` capability ('the owned data plane primitives: the data boundary/outbox/SQL kernels + adapters dissolve into the data capability home'), so ADR-0562 §3 rung 6 resolves by table lookup. Face = core, on evidence: none of the three binds a transient technology (each has ZERO or serde-only [dependencies]; the sqlx/postgres implementations behind them are the SEPARATE libs/oya-data-{sql-adapter-sqlx,outbox-adapter-postgres} crates, which stay in libs/ this batch and keep their kernel-purity-relevant transient deps OUT of data/core/), and none is a deployable or a sold multi-tenant surface. ADR-0570 permits a cutover-stable kernel-tier surface in core -- would this interface change at owned-stack cutover? No: data-sql-kernel models the OWNED W5 multi-Raft destination and the transitional CRDB/Postgres-RLS engines are written AGAINST it. This mirrors the landed data/core/{ontology-kernel,cloud-kernel} leaves. De-brand per ADR-0532/0533 + the naming grammar: cargo name = de-branded path tail with the doubled capability slug preserved as the leaf discriminator (oya-data-sql-kernel -> data-sql-kernel), so path tail == package name for all three. Intra-batch edge: outbox-kernel -> sql-kernel shortens from ../oya-data-sql-kernel to ../sql-kernel, adding no cross-capability edge. data-boundary-kernel is the highest-fan-in crate in the tree (128 consumer Cargo.toml + BUCK pairs across 24 roots); every referrer is relative-path-recomputed and every //libs/oya-data-boundary-kernel:oya-data-boundary-kernel buck2 label repointed in this same change, so no dual state exists at any commit. Zero root Cargo.toml edit: `data/*/*` is already a live member glob and data/observability + data/ops are already excluded. Co-obligations carried: registry/catalog/oya-data-boundary-kernel.yaml re-keyed to data-boundary-kernel.yaml as a content-preserving artifact co-move (the catalog is filename-keyed and carries no internal crate-name field); registry/stores/registry-store.json key re-keyed; specs/reachability-registry.json ADR-0008 OWNERS seed repointed to data/core/boundary-kernel/OWNERS; the two crate-catalog-coverage baseline entries re-keyed in place so the pre-existing uncatalogued debt travels with the crate instead of being reset (the baseline neither grows nor goes stale). The `libs/oya-data-*` registry glob is NOT retired: libs/oya-data-{sql-adapter-sqlx,outbox-adapter-postgres,pagination-kernel} still match it.",
+  "capability": "data",
+  "moves": [
+    {
+      "old_path": "libs/oya-data-boundary-kernel",
+      "new_path": "data/core/boundary-kernel",
+      "old_cargo_name": "oya-data-boundary-kernel",
+      "new_cargo_name": "data-boundary-kernel"
+    },
+    {
+      "old_path": "libs/oya-data-outbox-kernel",
+      "new_path": "data/core/outbox-kernel",
+      "old_cargo_name": "oya-data-outbox-kernel",
+      "new_cargo_name": "data-outbox-kernel"
+    },
+    {
+      "old_path": "libs/oya-data-sql-kernel",
+      "new_path": "data/core/sql-kernel",
+      "old_cargo_name": "oya-data-sql-kernel",
+      "new_cargo_name": "data-sql-kernel"
+    }
+  ],
+  "artifacts": []
+}

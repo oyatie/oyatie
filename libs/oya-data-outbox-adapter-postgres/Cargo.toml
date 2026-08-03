@@ -1,6 +1,6 @@
 # Postgres CDC change-stream adapter for the owned oya-data outbox port
 # (ADR-0536 D-10 change streams / D-13 messaging; story G003). The ADR-0510
-# transitional Postgres (via sqlx) implementation of oya-data-outbox-kernel's
+# transitional Postgres (via sqlx) implementation of data-outbox-kernel's
 # ChangeStreamSource port: tenant-scoped, strictly-after-checkpoint,
 # HLC-commit-ordered polling SELECTs over oya_data_outbox.outbox_events behind
 # the W5 changefeed-shaped trait. Applies the parameterized RLS set_config
@@ -28,8 +28,8 @@ path = "src/lib.rs"
 doctest = false
 
 [dependencies]
-oya-data-outbox-kernel = { path = "../oya-data-outbox-kernel" }
-oya-data-sql-kernel = { path = "../oya-data-sql-kernel" }
+data-outbox-kernel = { path = "../../data/core/outbox-kernel" }
+data-sql-kernel = { path = "../../data/core/sql-kernel" }
 oya-shared-postgres-command-kernel = { path = "../oya-shared-postgres-command-kernel" }
 sqlx.workspace = true
 

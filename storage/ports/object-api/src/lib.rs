@@ -13,7 +13,7 @@ use storage_domain::{
     CloudStorageCatalog, CloudStorageError, ObjectCreate, ObjectEncryptionBindingCreate, ObjectKey,
     StorageRepo, StoredObject,
 };
-use oya_data_boundary_kernel::{DataClass, parse_data_class_label};
+use data_boundary_kernel::{DataClass, parse_data_class_label};
 
 pub const CLOUD_STORAGE_OBJECT_PUT_SURFACE: &str = "cloud.storage.object.put";
 pub const CLOUD_STORAGE_OBJECT_GET_SURFACE: &str = "cloud.storage.object.get";
@@ -1250,7 +1250,7 @@ mod tests {
         BucketCreate, BucketState, BucketTier, CloudStorageCatalog, EncryptionMode,
         ObjectLockMode, ObjectLockPolicy, ReplicationPolicyCreate, StorageRepo,
     };
-    use oya_data_boundary_kernel::DataClass;
+    use data_boundary_kernel::DataClass;
 
     use super::{
         CLOUD_STORAGE_OBJECT_PUT_SURFACE, CloudStorageObjectApiAuthorization,

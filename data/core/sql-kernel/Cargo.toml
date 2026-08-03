@@ -9,7 +9,7 @@
 # authoring_adrs: ADR-0510, ADR-0536, ADR-0537
 
 [package]
-name = "oya-data-sql-kernel"
+name = "data-sql-kernel"
 edition.workspace = true
 version.workspace = true
 rust-version.workspace = true
@@ -17,7 +17,7 @@ publish = false
 license = "Apache-2.0"
 
 [lib]
-name = "oya_data_sql_kernel"
+name = "data_sql_kernel"
 path = "src/lib.rs"
 doctest = false
 

@@ -20,7 +20,7 @@ pub use slo::budget::{
 
 use std::fmt;
 
-use oya_data_boundary_kernel::{
+use data_boundary_kernel::{
     DataClass, DataClassification, OperationalDataClass, SubjectDataMarker,
 };
 
@@ -351,7 +351,7 @@ mod tests {
         legacy_telemetry_data_classes_label, log_exposure_for_classification,
         redact_classification_for_telemetry, telemetry_data_classifications_label,
     };
-    use oya_data_boundary_kernel::{
+    use data_boundary_kernel::{
         DataClass, DataClassification, OperationalDataClass, SubjectDataMarker,
     };
 

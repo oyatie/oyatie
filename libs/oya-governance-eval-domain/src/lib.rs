@@ -4,7 +4,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use oya_data_boundary_kernel::{Classified, DataClass, OperationalDataClass};
+use data_boundary_kernel::{Classified, DataClass, OperationalDataClass};
 
 pub const REQUIRED_LINGUISTIC_COHORT_LOCALES: [&str; 3] =
     ["lang-alpha1", "lang-beta1", "lang-gamma1"];

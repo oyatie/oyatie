@@ -6,7 +6,7 @@
 use std::fs;
 use std::path::PathBuf;
 
-use oya_data_boundary_kernel::{
+use data_boundary_kernel::{
     Classified, DataClass, PrivacyDataClass, parse_data_class_pascal_label,
     privacy_data_classes_from,
 };

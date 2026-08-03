@@ -6,7 +6,7 @@ rust-version.workspace = true
 publish = false
 license = "Apache-2.0"
 [dependencies]
-oya-data-boundary-kernel = { path = "../../../../libs/oya-data-boundary-kernel" }
+data-boundary-kernel = { path = "../../../../data/core/boundary-kernel" }
 [lib]
 name = "oya_community_post_store_domain"
 path = "src/lib.rs"

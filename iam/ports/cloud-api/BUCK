@@ -6,7 +6,7 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//iam/core/cloud-domain:iam-cloud-domain",
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//data/core/boundary-kernel:data-boundary-kernel",
     ],
 )
 
@@ -19,6 +19,6 @@ rust_test(
     deps = [
         ":iam-cloud-api",
         "//iam/core/cloud-domain:iam-cloud-domain",
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//data/core/boundary-kernel:data-boundary-kernel",
     ],
 )

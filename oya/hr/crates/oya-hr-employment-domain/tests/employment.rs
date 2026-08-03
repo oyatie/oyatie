@@ -1,6 +1,6 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
-use oya_data_boundary_kernel::{DataClass, PrivacyDataClass};
+use data_boundary_kernel::{DataClass, PrivacyDataClass};
 use oya_hr_employment_domain::{
     Employee, EmployeeCreate, EmploymentStatus, HrDomainError, HrLifecycleKind, TenantTierSnapshot,
 };

@@ -8,7 +8,7 @@
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
-use oya_data_boundary_kernel::{Classified, DataClass, DataClassification, PrivacyDataClass};
+use data_boundary_kernel::{Classified, DataClass, DataClassification, PrivacyDataClass};
 
 const CALENDAR_SCHEMA_VERSION: u32 = 1;
 const EVENT_SCHEMA_VERSION: u32 = 1;
@@ -314,7 +314,7 @@ impl CalendarSurfaceStaging {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_data_boundary_kernel::OperationalDataClass;
+    use data_boundary_kernel::OperationalDataClass;
 
     fn attendee() -> Attendee {
         Attendee::new("user@example.com".into(), "required".into()).unwrap()

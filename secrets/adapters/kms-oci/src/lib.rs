@@ -222,7 +222,7 @@ fn canonical_body(fields: &[(&str, &str)]) -> String {
 mod tests {
     use super::*;
     use secrets_kms_domain::{KmsOperation, KmsPurpose};
-    use oya_data_boundary_kernel::DataClass;
+    use data_boundary_kernel::DataClass;
 
     const VAULT_ID: &str = "ocid1.vault.oc1.ap-chuncheon-1.testvault";
     const KEY_ID: &str = "ocid1.key.oc1.ap-chuncheon-1.testkey";

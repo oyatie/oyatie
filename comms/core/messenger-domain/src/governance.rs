@@ -1,4 +1,4 @@
-use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum MessengerGovernanceError {
