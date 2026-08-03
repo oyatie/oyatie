@@ -1,0 +1,18 @@
+[package]
+name = "intelligence-usage-window-kernel"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[lib]
+name = "intelligence_usage_window_kernel"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+oya-intelligence-account-domain = { path = "../../../oya/intelligence/crates/oya-intelligence-account-domain" }
+
+[lints]
+workspace = true

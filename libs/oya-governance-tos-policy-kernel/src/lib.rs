@@ -15,7 +15,7 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use intelligence_account_kernel::ProviderFamily;
-use oya_intelligence_provider_pool_kernel::{
+use intelligence_provider_pool_kernel::{
     PoolId, PoolRoutingDecision, PoolRoutingReason, ProviderAccountId, TenantId, TosAckId,
 };
 use std::fmt;
@@ -249,7 +249,7 @@ pub fn build_acknowledgment(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_intelligence_provider_pool_kernel::UnixMillis;
+    use intelligence_provider_pool_kernel::UnixMillis;
 
     fn tenant() -> TenantId {
         TenantId("t-1".into())

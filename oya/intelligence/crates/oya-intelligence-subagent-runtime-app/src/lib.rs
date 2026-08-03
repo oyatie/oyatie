@@ -1,7 +1,7 @@
 //! `oya-intelligence-subagent-runtime-app` — binary surface that closes
 //! the `subagent_runtime_pending=true` gap in IP-004 / IP-005 / IP-006.
 //!
-//! The kernel sibling (`oya-intelligence-subagent-runtime-kernel`) defines
+//! The kernel sibling (`intelligence-subagent-runtime-kernel`) defines
 //! the port + value-objects; this crate provides the binary entrypoint
 //! and the two canonical [`SubagentPort`] implementations:
 //!

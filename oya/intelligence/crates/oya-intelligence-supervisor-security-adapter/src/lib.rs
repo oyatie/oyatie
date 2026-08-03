@@ -6,7 +6,7 @@ use oya_intelligence_account_domain::{SecretMaterial, SecretReference, SecretSto
 use oya_intelligence_autonomy_ceiling_domain::{CeilingPolicy, TenantId};
 use intelligence_autonomy_ceiling_kernel::{AutonomyTier as CeilingTier, check_tier};
 use intelligence_capability_registry_kernel::AutonomyTier as CapabilityTier;
-use oya_intelligence_supervisor_kernel::{
+use intelligence_supervisor_kernel::{
     AccountId, AutonomyCeilingPort, AutonomyTier, SupervisorError,
 };
 

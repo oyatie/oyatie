@@ -13,7 +13,7 @@ doctest = false
 
 [dependencies]
 intelligence-account-kernel = { path = "../../intelligence/core/account-kernel" }
-oya-intelligence-provider-pool-kernel = { path = "../../oya/intelligence/crates/oya-intelligence-provider-pool-kernel" }
+intelligence-provider-pool-kernel = { path = "../../intelligence/core/provider-pool-kernel" }
 
 [lints]
 workspace = true

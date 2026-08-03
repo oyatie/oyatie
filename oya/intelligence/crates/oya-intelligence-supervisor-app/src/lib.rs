@@ -11,8 +11,8 @@ use tokio::sync::Semaphore;
 use oya_intelligence_account_domain::check_silent_switch;
 use oya_intelligence_route_policy_kernel::{RouteConstraints, RoutePolicy};
 use oya_intelligence_settings_template_adapter::TemplateStore;
-use oya_intelligence_settings_template_kernel::{DriftState, SettingsRenderer};
-use oya_intelligence_supervisor_kernel::{
+use intelligence_settings_template_kernel::{DriftState, SettingsRenderer};
+use intelligence_supervisor_kernel::{
     AccountId, AccountSnapshotProvider, AuditChainPort, AutonomyCeilingPort, InboxStore,
     OutboxSink, RendererMode, SessionDriver, SessionTicket, SupervisorAccount, SupervisorConfig,
     SupervisorError, SupervisorEvent, TickOutcome, UsageWindowPort, record_spend,
@@ -162,7 +162,7 @@ where
                 self.inbox
                     .release(&message_id, &format!("routing failed: {:?}", e))?;
                 return Err(SupervisorError::NoEligibleAccount {
-                    chosen: oya_intelligence_supervisor_kernel::AccountId(message_id.0.clone()),
+                    chosen: intelligence_supervisor_kernel::AccountId(message_id.0.clone()),
                     snapshot_ids: accounts.iter().map(|a| a.id.clone()).collect(),
                 });
             }
@@ -199,7 +199,7 @@ where
         }
 
         // Step 7-13: Usage & Ceiling
-        let driver_tier = oya_intelligence_supervisor_kernel::AutonomyTier::T3PropAct; // In real impl, read from driver registry
+        let driver_tier = intelligence_supervisor_kernel::AutonomyTier::T3PropAct; // In real impl, read from driver registry
         if let Err(e) = self.ceiling.enforce(&acc.id, driver_tier) {
             self.inbox
                 .release(&message_id, &format!("ceiling block: {:?}", e))?;
@@ -218,7 +218,7 @@ where
             autonomy_tier: driver_tier,
             usage_window_snapshot: usage_snapshot,
             message_id: message_id.clone(),
-            request_id: oya_intelligence_supervisor_kernel::RequestId(format!(
+            request_id: intelligence_supervisor_kernel::RequestId(format!(
                 "req-{}",
                 now_epoch_secs
             )),

@@ -252,7 +252,7 @@ where
 
 /// Invoke the IP-009 subagent runtime inline. Uses the deterministic
 /// mock port (canonical CI/test infrastructure; NOT a stub — see
-/// `crates/oya-intelligence-subagent-runtime-kernel` doc-comment). Writes
+/// `crates/intelligence-subagent-runtime-kernel` doc-comment). Writes
 /// 21 per-facet JSON findings to `<evidence_dir>/<facet_id>.json`.
 fn run_inline_subagent_runtime(options: &Options, evidence_dir: &Path) -> Result<(), String> {
     fs::create_dir_all(evidence_dir)
