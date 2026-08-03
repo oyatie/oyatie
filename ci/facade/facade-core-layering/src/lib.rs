@@ -2,15 +2,19 @@
 //! `core` only through `ports`.
 //!
 //! The rule has been stated since ADR-0562 was accepted and gated by nothing, so 35 facade
-//! packages violate it. This freezes those 35 and makes a NEW one impossible to ship.
+//! packages violated it when this gate was written. This freezes them and makes a NEW one
+//! impossible to ship. `frozen_baseline` is the live count; it is shrink-only.
 //!
 //! Two design choices carry the weight:
 //!
 //! 1. **Detection parses `BUCK`, not `Cargo.toml`.** A manifest scan does not reproduce the
-//!    build graph: `intelligence/facade/worker` carries the edge in `BUCK` with **zero** Cargo
-//!    path-deps, so a manifest-keyed gate is blind to it. The static `BUCK` parse here was
+//!    build graph: `intelligence/facade/worker` carried the edge in `BUCK` with **zero** Cargo
+//!    path-deps, so a manifest-keyed gate was blind to it. The static `BUCK` parse here was
 //!    verified against the authoritative `buck2 uquery` result — 35 packages, identical
-//!    per-capability split — before this gate was written.
+//!    per-capability split — before this gate was written. That witness was repaired on
+//!    2026-08-03 (its `BUCK` dep was dead) and was the only one, so no BUCK-only edge remains
+//!    today. `BUCK` stays the scan input because it is the BINDING build, not because a
+//!    divergent example currently exists — a manifest scan would be correct by luck.
 //!
 //! 2. **Baseline keys are cargo package names, not paths or buck2 target labels.** A buck2 label
 //!    embeds the path (`//intelligence/facade/worker:…`), so a future capability move would

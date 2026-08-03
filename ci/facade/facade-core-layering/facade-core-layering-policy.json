@@ -9,7 +9,7 @@
     "ports": "ports"
   },
   "scan": {
-    "_note": "Capabilities are the top-level dirs that contain a `<cap>/facade/` tree. Detection statically parses `<cap>/facade/*/BUCK` for absolute labels of the form //<cap>/core/<pkg>:<target>. Verified 2026-07-26 to reproduce the authoritative buck2 uquery result exactly: 35 packages, identical per-capability split. A Cargo.toml scan does NOT reproduce it \u2014 intelligence/facade/worker carries the edge in BUCK with zero Cargo path-deps.",
+    "_note": "Capabilities are the top-level dirs that contain a `<cap>/facade/` tree. Detection statically parses `<cap>/facade/*/BUCK` for absolute labels of the form //<cap>/core/<pkg>:<target>. Verified 2026-07-26 to reproduce the authoritative buck2 uquery result exactly: 35 packages, identical per-capability split. A Cargo.toml scan does NOT reproduce it \u2014 intelligence/facade/worker carried the edge in BUCK with zero Cargo path-deps. That witness was the ONLY one and it was REPAIRED 2026-08-03 (the BUCK dep had zero source references and was deleted), so no BUCK-only edge remains today; the BUCK scan stays authoritative because BUCK is the binding build, NOT because a divergent witness currently exists.",
     "buildfile": "BUCK"
   },
   "codes": {
@@ -61,8 +61,7 @@
       "compute-functions-api",
       "compute-k8s-api",
       "compute-vm-api",
-      "intelligence-app",
-      "intelligence-worker"
+      "intelligence-app"
     ]
   },
   "_out_of_scope": {
