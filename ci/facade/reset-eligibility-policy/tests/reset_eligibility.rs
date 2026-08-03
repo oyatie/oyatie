@@ -748,6 +748,7 @@ fn uri_bearing_secrets_are_rejected_while_public_urls_remain_green() {
         "protected-runtime:q9P2Zd7Wm4-Lx8Vt3Kn6Hs1Rc5Bj0Fy7Ua2Ee9Qw4Pi6Zd8Lm",
         "protected-runtime:q9p2zd7wm4lx8vt3kn6hs1rc5bj0fy7ua2ee9qw4pi6zd8lm",
         "redacted-local:q9p2zd7w-m4lx8vt3-kn6hs1rc-5bj0fy7u-a2ee9qw4-pi6zd8lm",
+        "protected-runtime:evidence-q9p2zd7w-m4lx8vt3-kn6hs1rc-5bj0fy7u-a2ee9qw4-pi6zd8lm",
         "protected-runtime:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
     ] {
         let mut opaque_secret = artifact.clone();
@@ -783,6 +784,7 @@ fn uri_bearing_secrets_are_rejected_while_public_urls_remain_green() {
         "https://user:q9P/2Zd7Wm4+Lx8!Vt3#Kn6@Hs1%Rc5^Bj0&Fy7*Ua2=Ee9?@inventory.example",
         "https://user:q9P2Zd7Wm4+Lx8!Vt3#Kn6@Hs1%Rc5Bj0&Fy7*Ua2=Ee9?@inventory.example",
         "https://inventory.example/export?X-Amz-Signature=q9P2Zd7Wm4Lx8Vt3Kn6Hs1Rc5Bj0Fy7Ua2Ee9Qw4Pi6Zd8Lm",
+        "https://inventory.example/export?q9P2Zd7Wm4Lx8Vt3Kn6Hs1Rc5Bj0Fy7Ua2Ee9Qw4Pi6Zd8Lm",
         "https://inventory.example/export/q9P2Zd7Wm4Lx8Vt3Kn6Hs1Rc5Bj0Fy7Ua2Ee9Qw4Pi6Zd8Lm",
         "https://inventory.example/export#q9P2Zd7Wm4Lx8Vt3Kn6Hs1Rc5Bj0Fy7Ua2Ee9Qw4Pi6Zd8Lm",
     ] {
@@ -821,6 +823,37 @@ fn uri_bearing_secrets_are_rejected_while_public_urls_remain_green() {
     assert!(
         !has_code(&descriptive_handle_findings, "reset_secret_value_detected"),
         "a bounded descriptive opaque handle must remain green"
+    );
+
+    let mut prefixed_descriptive_handle = artifact.clone();
+    prefixed_descriptive_handle["evidence_manifest"]["uri"] =
+        json!("protected-runtime:evidence-abcdefghijklmnopqrstuvwxyz0123456789documentation");
+    let prefixed_descriptive_handle_findings = evaluate(
+        &policy,
+        &schema,
+        &prefixed_descriptive_handle,
+        &runtime,
+        NOW,
+    );
+    assert!(
+        !has_code(
+            &prefixed_descriptive_handle_findings,
+            "reset_secret_value_detected"
+        ),
+        "a descriptive handle after a plain-text prefix must remain green"
+    );
+
+    let mut bare_descriptive_query = artifact.clone();
+    bare_descriptive_query["evidence_manifest"]["uri"] =
+        json!("https://inventory.example/export?documentation");
+    let bare_descriptive_query_findings =
+        evaluate(&policy, &schema, &bare_descriptive_query, &runtime, NOW);
+    assert!(
+        !has_code(
+            &bare_descriptive_query_findings,
+            "reset_secret_value_detected"
+        ),
+        "a descriptive bare query item must remain green"
     );
 
     assert!(
