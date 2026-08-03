@@ -1,0 +1,10 @@
+context: shared
+role: kernel
+capability: cloud-ci-crate-reference-integrity
+plane: control
+slo: preview-control-plane
+data_classes_owned: [INTERNAL_ONLY]
+operational_classes_owned: []
+api_stability: preview
+security_review: unreviewed
+supply_chain: source-only
