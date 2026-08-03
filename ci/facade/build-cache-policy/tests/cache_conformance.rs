@@ -15,7 +15,13 @@
 //      their name claims, and carry NO keyed identity material;
 //   5. the root .buckconfig stays clean of any RE/cache section;
 //   6. the canary workflow exists, is scheduled, restores no actions/cache, and
-//      wires the cold proof (assert-cold) + structured record.
+//      wires the cold proof (assert-cold) + structured record;
+//   7. the canary's WARM probe proves participation, not just byte-equality — it
+//      writes its own invocation record and hands it to assert-warm under the class
+//      and mode it ran. Byte-equality alone is satisfied by a probe that served
+//      nothing and rebuilt locally, so without (7) the canary can emit GREEN having
+//      proven nothing — and that GREEN is the single artifact that licenses warm
+//      reads fleet-wide (ADR-0556 D2).
 // ADR-0083 Tier-3: integration tests use unwrap/expect/panic to assert invariants.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
@@ -25,6 +31,9 @@ use ci_build_cache_policy as app;
 use serde_json::{Value, json};
 
 const CANARY_WORKFLOW_PATH: &str = ".github/workflows/cache-integrity-canary.yml";
+/// The warm probe's own invocation record. Pinned so `assert-warm` cannot be pointed
+/// at the COLD record (or any stale file) and still satisfy this gate.
+const WARM_RECORD_PATH: &str = "/tmp/canary-warm-record.json";
 const REQUIRED_WORKFLOW_PATH: &str = ".github/workflows/oya-ci-required.yml";
 const COLD_REQUIRED_FLOOR: [&str; 4] = [
     "release-production-image",
@@ -275,6 +284,160 @@ fn canary_workflow_is_scheduled_cold_and_wires_the_proof() {
         text.contains("canary-verdict"),
         "canary must emit the structured verdict artifact"
     );
+}
+
+/// Slice the body of a named workflow step out of `text`, bounded by the name of the
+/// step that follows it.
+fn workflow_step<'a>(text: &'a str, name: &str, next: &str) -> Option<&'a str> {
+    text.split(name)
+        .nth(1)
+        .and_then(|tail| tail.split(next).next())
+}
+
+/// Pure kernel of the warm-probe participation binding: given the canary workflow
+/// text, return every reason its warm side fails to PROVE the cache served it.
+///
+/// Scoped to the two steps that own the warm path, on purpose. The neighbouring cold
+/// assertions are whole-file `contains` checks and the COLD step already satisfies
+/// every token they look for, so a whole-file check on the warm side would be
+/// satisfied by the cold step and assert exactly nothing. That is the hole this
+/// closes: byte-equality alone is also satisfied by a probe that served nothing and
+/// rebuilt locally, so without a participation proof the canary can emit the GREEN
+/// that licenses warm reads fleet-wide while proving nothing (ADR-0556 D2).
+fn warm_probe_findings(text: &str) -> Vec<String> {
+    let mut findings = Vec::new();
+
+    match workflow_step(text, "- name: Warm-probe fetch", "- name: Canary verdict") {
+        Some(probe) if probe.contains("continue-on-error") => findings.push(
+            "the warm-probe step is non-binding (continue-on-error) — a probe that failed to \
+             fetch must fail the canary"
+                .to_string(),
+        ),
+        Some(probe) => {
+            if !probe.contains(&format!(
+                "--unstable-write-invocation-record {WARM_RECORD_PATH}"
+            )) {
+                findings.push(format!(
+                    "the warm probe writes no structured invocation record at {WARM_RECORD_PATH} \
+                     — with no counters there is nothing to prove participation from"
+                ));
+            }
+        }
+        None => findings.push(
+            "the canary has no warm-probe step bounded by the verdict step — the warm side of \
+             the trust anchor is missing entirely"
+                .to_string(),
+        ),
+    }
+
+    let Some(verdict) = workflow_step(
+        text,
+        "- name: Canary verdict",
+        "- name: Cache-hit telemetry",
+    ) else {
+        findings.push(
+            "the canary has no verdict step bounded by the telemetry step — nothing scores the \
+             warm side"
+                .to_string(),
+        );
+        return findings;
+    };
+    if verdict.contains("continue-on-error") {
+        findings.push(
+            "the verdict step is non-binding (continue-on-error) — a failed participation proof \
+             must fail the canary"
+                .to_string(),
+        );
+    }
+    // Every invocation that scores a warm manifest must carry the full participation
+    // binding on that SAME command line: the probe's own record, the class it ran as,
+    // and the warm mode it dialed. Split across lines or left implicit, the verdict
+    // could be produced without the proof.
+    let scoring: Vec<&str> = verdict
+        .lines()
+        .filter(|line| line.contains("canary-verdict") && line.contains("--warm "))
+        .collect();
+    if scoring.is_empty() {
+        findings.push(
+            "no canary-verdict invocation scores a warm manifest (`--warm `) — the warm side is \
+             never compared at all"
+                .to_string(),
+        );
+    }
+    for line in scoring {
+        if !line.contains(&format!("--warm-record {WARM_RECORD_PATH}")) {
+            findings.push(format!(
+                "a canary-verdict invocation scores a warm manifest without \
+                 `--warm-record {WARM_RECORD_PATH}` — a probe that fetched zero entries would \
+                 still emit GREEN, fabricating the one piece of evidence that licenses warm \
+                 reads fleet-wide (ADR-0556 D2)"
+            ));
+        }
+        if !line.contains("--build-class integrity-canary") || !line.contains("--mode warm-ro") {
+            findings.push(
+                "a canary-verdict invocation scores a warm manifest without \
+                 `--build-class integrity-canary --mode warm-ro` — under a bypass/cold mode the \
+                 participation kernel skips every hit-count check and passes on zero cache \
+                 participation"
+                    .to_string(),
+            );
+        }
+    }
+    findings
+}
+
+#[test]
+fn canary_warm_probe_must_prove_the_cache_served_it() {
+    let root = repo_root();
+    let live = std::fs::read_to_string(root.join(CANARY_WORKFLOW_PATH))
+        .unwrap_or_else(|e| panic!("read {CANARY_WORKFLOW_PATH}: {e}"));
+
+    let findings = warm_probe_findings(&live);
+    assert!(
+        findings.is_empty(),
+        "the live canary warm probe cannot prove the cache served anything: {findings:#?}"
+    );
+
+    // RED fixtures: each is the LIVE workflow with exactly one binding removed. A gate
+    // observed passing is not evidence — these are the standing demonstration that the
+    // assertion above is capable of failing, and they rot loudly if the live steps
+    // drift. Checked AFTER the live corpus so a real regression reports the real
+    // finding rather than fixture rot.
+    for (name, broken) in [
+        (
+            "probe writes no invocation record",
+            live.replace(
+                &format!(" --unstable-write-invocation-record {WARM_RECORD_PATH}"),
+                "",
+            ),
+        ),
+        (
+            "verdict scores the warm manifest without the probe's record",
+            live.replace(&format!(" --warm-record {WARM_RECORD_PATH}"), ""),
+        ),
+        (
+            "mode weakened to bypass (skips every hit-count check)",
+            live.replace("--mode warm-ro", "--mode bypass"),
+        ),
+        (
+            "class weakened away from the canary",
+            live.replace(
+                "--build-class integrity-canary --mode warm-ro",
+                "--build-class gate-fleet-shared-graph --mode warm-ro",
+            ),
+        ),
+        (
+            "warm-probe step removed",
+            live.replace("- name: Warm-probe fetch", "- name: Something else"),
+        ),
+    ] {
+        // `assert!` not `assert_ne!`: the operands are whole workflow files.
+        assert!(broken != live, "RED fixture `{name}` mutated nothing — rot");
+        assert!(
+            !warm_probe_findings(&broken).is_empty(),
+            "RED fixture `{name}` was accepted: this gate cannot fail, so it is not evidence"
+        );
+    }
 }
 
 #[test]
