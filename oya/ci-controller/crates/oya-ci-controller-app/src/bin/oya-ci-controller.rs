@@ -18,13 +18,13 @@
 //! | `OYA_CI_GATE_RUNNER_SA`                | `oya-ci-gate-runner`                                                     | Low-privilege SA for gate runner Pods          |
 //! | `OYA_CI_STATUS_API_BASE_URL`             | unset                                                                    | Optional base URL for `/gate-runs/<run_id>` debug links |
 
+use ci_controller_github_adapter::GitHubCommitStatusPoster;
+use ci_controller_k8s_adapter::K8sJobSpawner;
 use oya_ci_controller_app::{
     AllowVerifiedTriggerAuthz, CiTriggerAuthenticator, CiTriggerAuthz,
     ConfiguredBearerCiTriggerAuthenticator, ControllerState, GateSpecConfig, ServerState,
     StreamExt, build_router, run_controller,
 };
-use oya_ci_controller_github_adapter::GitHubCommitStatusPoster;
-use oya_ci_controller_k8s_adapter::K8sJobSpawner;
 use oya_ci_controller_kernel::CommitStatusPoster;
 use std::sync::Arc;
 use tracing::info;

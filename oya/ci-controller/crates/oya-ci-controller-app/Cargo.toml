@@ -22,8 +22,8 @@ doctest = false
 
 [dependencies]
 oya-ci-controller-kernel = { path = "../oya-ci-controller-kernel" }
-oya-ci-controller-k8s-adapter = { path = "../oya-ci-controller-k8s-adapter" }
-oya-ci-controller-github-adapter = { path = "../oya-ci-controller-github-adapter" }
+ci-controller-k8s-adapter = { path = "../../../../ci/adapters/controller-k8s-adapter" }
+ci-controller-github-adapter = { path = "../../../../ci/adapters/controller-github-adapter" }
 kube = { workspace = true }
 kube-runtime = { workspace = true }
 k8s-openapi = { workspace = true }
