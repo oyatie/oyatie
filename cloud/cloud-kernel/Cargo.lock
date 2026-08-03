@@ -82,6 +82,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "kernel-netlink-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "kernel-user-layout-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "kernel-vfs-kernel"
+version = "0.1.0"
+
+[[package]]
 name = "lazy_static"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -175,10 +187,12 @@ name = "oya-cloud-kernel-arch-aarch64-adapter"
 version = "0.0.1"
 dependencies = [
  "aarch64-cpu",
+ "kernel-netlink-kernel",
+ "kernel-user-layout-kernel",
+ "kernel-vfs-kernel",
  "linked_list_allocator",
  "oya-cloud-kernel-hal-kernel",
  "oya-cloud-kernel-ksync-kernel",
- "oya-cloud-kernel-user-layout-kernel",
  "tock-registers",
 ]
 
@@ -186,10 +200,12 @@ dependencies = [
 name = "oya-cloud-kernel-arch-x86-64-adapter"
 version = "0.0.1"
 dependencies = [
+ "kernel-netlink-kernel",
+ "kernel-user-layout-kernel",
+ "kernel-vfs-kernel",
  "linked_list_allocator",
  "oya-cloud-kernel-hal-kernel",
  "oya-cloud-kernel-ksync-kernel",
- "oya-cloud-kernel-user-layout-kernel",
  "pic8259",
  "spin",
  "uart_16550",
@@ -213,10 +229,6 @@ version = "0.0.1"
 dependencies = [
  "loom",
 ]
-
-[[package]]
-name = "oya-cloud-kernel-user-layout-kernel"
-version = "0.0.1"
 
 [[package]]
 name = "pic8259"

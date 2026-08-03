@@ -634,14 +634,14 @@ mod virtqueue_tests {
             // initial threading for whatever head is now current.
             next = match q.free_head() {
                 Some(h) => VirtQueue::<N>::initial_free_next(h),
-                None => SIZE,
+                None => N,
             };
         }
         assert!(q.is_exhausted());
 
         // Push descriptor 2 back: it becomes the head, count 1.
-        // The Frame first writes desc[2].next = free_next_target() (== SIZE here).
-        assert_eq!(q.free_next_target(), SIZE, "empty chain -> none-sentinel");
+        // The Frame first writes desc[2].next = free_next_target() (== N here).
+        assert_eq!(q.free_next_target(), N, "empty chain -> none-sentinel");
         q.push_free(2);
         assert_eq!(q.free_head(), Some(2));
         assert_eq!(q.free_count(), 1);
@@ -652,9 +652,9 @@ mod virtqueue_tests {
         assert_eq!(q.free_head(), Some(0));
         assert_eq!(q.free_count(), 2);
 
-        // Pop them back in LIFO order: 0 (with next=2), then 2 (with next=SIZE).
+        // Pop them back in LIFO order: 0 (with next=2), then 2 (with next=N).
         assert_eq!(q.pop_free(2), Some(0));
-        assert_eq!(q.pop_free(SIZE), Some(2));
+        assert_eq!(q.pop_free(N), Some(2));
         assert!(q.is_exhausted());
     }
 

@@ -82,6 +82,13 @@ mod user;
 // `tests-host/` `include!`s that crate's source directly to unit-test it.
 #[cfg(target_arch = "aarch64")]
 pub use user_layout;
+// The in-RAM VFS and the netlink wire codec are independent kernel subsystems,
+// each its own crate. Re-aliased the same way so `user.rs`/`process.rs` reach
+// them at `crate::vfs` / `crate::netlink`.
+#[cfg(target_arch = "aarch64")]
+pub use netlink;
+#[cfg(target_arch = "aarch64")]
+pub use vfs;
 
 #[cfg(target_arch = "aarch64")]
 mod arch;

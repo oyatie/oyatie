@@ -425,13 +425,13 @@ fn build_script_is_a_package_sibling_not_a_refusal() {
 #[test]
 fn red_f1_owned_kernel_source_lands_in_its_cone_no_exemption() {
     // F1 (reviewer-reproduced, the bad one): the prior pack out-of-graph-exempted
-    // cloud/cloud-kernel/** — FACTUALLY FALSE (the cited
-    // oya-cloud-kernel-user-layout-kernel/src/lib.rs is owned by two host-buildable Buck2
+    // cloud/cloud-kernel/** — FACTUALLY FALSE (the cited kernel user-layout
+    // src/lib.rs is owned by two host-buildable Buck2
     // targets). The exemption made an OWNED .rs break PASS as NO-GRAPH-TARGETS — the exact
     // cf16525 class, reintroduced by my own pack. The exemption is DELETED: an owned kernel
     // source is an ordinary owner-required file and lands in its cone as a seed.
     let p = policy();
-    let path = "cloud/cloud-kernel/crates/oya-cloud-kernel-user-layout-kernel/src/lib.rs";
+    let path = "kernel/core/user-layout-kernel/src/lib.rs";
     let changes = [Change::Present(path.into())];
     let plan = plan_changes(&changes, &p);
     let decision = resolve(
@@ -439,8 +439,8 @@ fn red_f1_owned_kernel_source_lands_in_its_cone_no_exemption() {
         &owners(&[(
             path,
             &[
-                "root//cloud/cloud-kernel/crates/oya-cloud-kernel-user-layout-kernel:oya-cloud-kernel-user-layout-kernel",
-                "root//cloud/cloud-kernel/crates/oya-cloud-kernel-user-layout-kernel:host-tests",
+                "root//kernel/core/user-layout-kernel:kernel-user-layout-kernel",
+                "root//kernel/core/user-layout-kernel:host-tests",
             ],
         )]),
         &p,
@@ -449,7 +449,7 @@ fn red_f1_owned_kernel_source_lands_in_its_cone_no_exemption() {
         Decision::Affected { seeds } => assert!(
             seeds
                 .iter()
-                .any(|s| s.contains("oya-cloud-kernel-user-layout-kernel")),
+                .any(|s| s.contains("kernel-user-layout-kernel")),
             "owned kernel source must seed its target; got {seeds:?}"
         ),
         other => panic!("owned kernel source must be Affected (not exempted), got {other:?}"),

@@ -11,7 +11,13 @@
 //! arch Frame backend (`arch-aarch64` today, `arch-x86_64` / riscv64 later)
 //! depends on this crate so the math has exactly one home, and a tiny
 //! out-of-workspace host harness `include!`s the same source to unit-test it
-//! with the normal libtest harness (see `crates/arch-aarch64/tests-host/`).
+//! with the normal libtest harness (see
+//! `cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter/tests-host/`).
+//!
+//! The in-RAM VFS, the split-virtqueue arithmetic and the netlink wire codec are
+//! independent kernel subsystems with no layout relationship; they live in their
+//! sibling crates `kernel-vfs-kernel`, `kernel-virtqueue-kernel` and
+//! `kernel-netlink-kernel`.
 //!
 //! The actual math lives in `layout.rs`, which is `include!`d here. That file
 //! carries **no inner attributes** so the host harness can `include!` it inside
@@ -43,40 +49,14 @@ pub mod timekeep {
     include!("timekeep.rs");
 }
 
-/// Pure in-RAM VFS: an index-slab inode/dentry tree (rooted at `/`,
-/// pre-populating `/dev/console` + `/dev/null`), a multi-component absolute-path
-/// walker (`/`, `.`, `..`, trailing slash, empty/double-slash components), an
-/// idempotent `mkdir -p`, and a mount table. Like `layout.rs`/`signal.rs`/
-/// `timekeep.rs` this is `include!`d (no inner attributes) so the same source
-/// unit-tests on the host. Zero `unsafe` — the arch backends supply only the
-/// per-arch `with_vfs` accessor (one `unsafe` block, in the Frame) + the
-/// user-string copy. The M2 tmpfs/`mount(2)` shim (Slice 1) is built on this.
-/// Uses `alloc` (`Vec`/`String`); the kernel registers a global allocator.
-pub mod vfs {
-    include!("vfs.rs");
-}
-
 /// Pure process-info / libc-init layout math: the byte-exact `struct utsname`
 /// serializer (`uname`), the `umask` swap/mask, and the `clock_getres`
 /// resolution value. Every real glibc/musl binary queries these during init;
 /// their on-wire answer is a pure function of the inputs and therefore identical
-/// across arches. Like `layout.rs`/`signal.rs`/`timekeep.rs`/`vfs.rs` this is
+/// across arches. Like `layout.rs`/`signal.rs`/`timekeep.rs` this is
 /// `include!`d (no inner attributes) so the same source unit-tests on the host.
 /// Zero `unsafe` — the arch backends supply only the machine string + the
 /// PAN/SMAP-bracketed user copy. Keeps `check-tcb.sh` green.
 pub mod procinfo {
     include!("procinfo.rs");
-}
-
-/// Pure, arch-neutral `AF_NETLINK`/`NETLINK_ROUTE` wire logic for the M2 network
-/// slice: parse an outbound `RTM_GETLINK` dump request (extracting the
-/// `nlmsg_seq`/`nlmsg_pid` to echo) and build the dump RESPONSE (a single
-/// well-formed `NLMSG_DONE` = the empty link set the real, unmodified talos-init
-/// link-status snapshot converges on). Like `layout.rs`/`signal.rs`/`timekeep.rs`/
-/// `vfs.rs` this is `include!`d (no inner attributes) so the same source
-/// unit-tests on the host. Zero `unsafe` — the arch backends supply only the
-/// per-fd response buffer + the SMAP/PAN-bracketed flat byte copies. Uses
-/// `alloc` (`Vec<u8>`). Keeps `check-tcb.sh` green.
-pub mod netlink {
-    include!("netlink.rs");
 }

@@ -1,0 +1,21 @@
+rust_library(
+    name = "kernel-vfs-kernel",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "kernel_vfs_kernel",
+    crate_root = "src/lib.rs",
+    edition = "2021",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+# The pure in-RAM VFS tests (tree shape, path walker, mkdir -p, mount table),
+# run on the host via the same include!-the-production-sources pattern as the
+# cargo tests-host harness.
+rust_test(
+    name = "host-tests",
+    srcs = glob(["src/**/*.rs", "tests-buck/**/*.rs"]),
+    crate = "kernel_vfs_host_tests",
+    crate_root = "tests-buck/lib.rs",
+    edition = "2021",
+    deps = [],
+)
