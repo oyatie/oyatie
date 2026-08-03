@@ -16,7 +16,7 @@ use std::collections::BTreeMap;
 
 use cell_region::{CellId, RegionCode};
 use compute_resource::{CloudResourceError, ResourceId, ResourceKind};
-use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 use network_residency::{ResidencyClass, residency_class_allows_home_region_label};
 
 const KMS_SCHEMA_VERSION: u32 = 1;

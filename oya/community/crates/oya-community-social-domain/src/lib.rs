@@ -1,5 +1,5 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
-use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 use std::collections::BTreeSet;
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum SocialError {

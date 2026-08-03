@@ -11,7 +11,7 @@ use iam_cloud_app::{
 use iam_cloud_domain::{
     IamDirectory, IamPrincipalCreate, IamPrincipalKind, IamRoleCreate, IamRoleId, MfaState,
 };
-use oya_data_boundary_kernel::DataClass;
+use data_boundary_kernel::DataClass;
 use iam_policy_cedar_domain::{
     AuthorizationQuery, AuthorizationSubject, PolicyEffect, PolicyRuleInput, PolicyScope,
     PolicySet, PolicyVersion,

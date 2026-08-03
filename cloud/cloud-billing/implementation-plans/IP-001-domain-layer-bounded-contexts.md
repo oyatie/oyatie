@@ -22,7 +22,7 @@ tenant_class_scope: both
 
 ## §A Objective
 
-Document the existing `oya-cloud-billing-domain` crate (`crates/oya-cloud-billing-domain/src/lib.rs`, 1,030 lines) as the canonical billing aggregate root. The kernel already encodes nine bounded contexts (BillingAccount, CloudBillingEvent, Invoice, InvoiceLineItem, BillingPeriod, Money, CurrencyCode, TaxRegistrationId, PaymentMethodRef) as value-typed Rust structs whose invariants are enforced at construction time and whose data-class classification is enforced through `oya_data_boundary_kernel::Classified<T>`. This IP closes the kernel-ahead-of-spec gap by formalizing the domain contract so downstream consumers (cloud-iam, finops-portal, payments, cloud-billing-tax-app, audit-chain) can bind to a stable surface.
+Document the existing `oya-cloud-billing-domain` crate (`crates/oya-cloud-billing-domain/src/lib.rs`, 1,030 lines) as the canonical billing aggregate root. The kernel already encodes nine bounded contexts (BillingAccount, CloudBillingEvent, Invoice, InvoiceLineItem, BillingPeriod, Money, CurrencyCode, TaxRegistrationId, PaymentMethodRef) as value-typed Rust structs whose invariants are enforced at construction time and whose data-class classification is enforced through `data_boundary_kernel::Classified<T>`. This IP closes the kernel-ahead-of-spec gap by formalizing the domain contract so downstream consumers (cloud-iam, finops-portal, payments, cloud-billing-tax-app, audit-chain) can bind to a stable surface.
 
 ## §B Scope
 
@@ -58,7 +58,7 @@ Every billing identifier is a prefixed token: `prefix + opaque_body` where `body
 
 ### §C.3 Classified<T> data-class wrapping
 
-Every aggregate field carries a `Classified<T>` wrapper from `oya_data_boundary_kernel`. The Classified envelope binds a value to a DataClass at compile time. Cloud-billing's domain rules:
+Every aggregate field carries a `Classified<T>` wrapper from `data_boundary_kernel`. The Classified envelope binds a value to a DataClass at compile time. Cloud-billing's domain rules:
 
 - `Public`: region, schema_version, CloudBillingEvent.data_class.
 - `InternalOnly`: every identifier, billing period, money amounts, line items.
@@ -138,7 +138,7 @@ Resource attribute schema for the Cedar evaluator (per `policies/tenant-class-bi
 ### §F.1 Source files (real, present in repo)
 
 - `/Users/jasonlee/oyatie/crates/oya-cloud-billing-domain/src/lib.rs` (1,030 lines, 9 aggregate roots, 23 invariants, 8 unit tests).
-- `/Users/jasonlee/oyatie/crates/oya-cloud-billing-domain/Cargo.toml` (workspace member, dependencies on `oya-cloud-region-domain`, `oya-cloud-resource-domain`, `oya-data-boundary-kernel`, `oya-metering-domain`).
+- `/Users/jasonlee/oyatie/crates/oya-cloud-billing-domain/Cargo.toml` (workspace member, dependencies on `oya-cloud-region-domain`, `oya-cloud-resource-domain`, `data-boundary-kernel`, `oya-metering-domain`).
 
 ### §F.2 Tests demonstrating invariants
 

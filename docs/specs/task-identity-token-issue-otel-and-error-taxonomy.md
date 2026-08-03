@@ -39,7 +39,7 @@ tests/
 - SLO: feeds `http_requests_total{service="oya-identity",status=~"2.."}` via outcome label;
   existing `microservices/oya-identity/slos/availability.openslo.yaml` is not modified.
 - AUDIT operational class: `data_class = "AUDIT"` marks every event as operational audit data
-  per the `OperationalDataClass::Audit` label in `oya-data-boundary-kernel`.
+  per the `OperationalDataClass::Audit` label in `data-boundary-kernel`.
 
 ## Observability Module API
 

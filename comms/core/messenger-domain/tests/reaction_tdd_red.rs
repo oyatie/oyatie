@@ -16,7 +16,7 @@
 use comms_messenger_domain::{
     MessageReaction, MessageReactionCreate, ReactionError, ReactionSet, reaction_actor_data_class,
 };
-use oya_data_boundary_kernel::{DataClass, DataClassification};
+use data_boundary_kernel::{DataClass, DataClassification};
 
 // ---------------------------------------------------------------------------
 // Helpers

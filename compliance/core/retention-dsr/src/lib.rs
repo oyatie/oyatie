@@ -11,7 +11,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 use compliance_retention::{
     EraseMethod, RetentionDecision, RetentionDecisionOutcome, RetentionDisposition,
     RetentionHorizon, RetentionLawfulBasis, RetentionPolicy, RetentionPolicyCreate,
@@ -755,7 +755,7 @@ fn internal<T>(value: T) -> Classified<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_data_boundary_kernel::{DataClassification, OperationalDataClass};
+    use data_boundary_kernel::{DataClassification, OperationalDataClass};
     use compliance_retention::{
         RetentionDecisionCreate, RetentionRecordRef, RetentionRecordRefCreate,
     };

@@ -21,7 +21,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use oya_data_sql_kernel::{DataSqlError, SqlValue, Statement, WriteBatch};
+use data_sql_kernel::{DataSqlError, SqlValue, Statement, WriteBatch};
 
 /// Default outbox insert, parameterized only — generic across services
 /// (the messenger-local SQL stays in its transitional crate). `ON CONFLICT

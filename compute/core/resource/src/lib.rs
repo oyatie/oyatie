@@ -10,7 +10,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use cell_region::{AzCode, CellId, RegionCode};
-use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 use network_residency::{ResidencyClass, residency_class_allows_home_region_label};
 
 const RESOURCE_SCHEMA_VERSION: u32 = 1;

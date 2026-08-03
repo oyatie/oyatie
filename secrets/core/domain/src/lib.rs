@@ -16,7 +16,7 @@ pub use zeroizing::{VaultPath, VaultPathError, ZeroizingSecret};
 use std::collections::BTreeMap;
 use std::fmt;
 
-use oya_data_boundary_kernel::{Classified, DataClass, DataClassification, OperationalDataClass};
+use data_boundary_kernel::{Classified, DataClass, DataClassification, OperationalDataClass};
 
 const OPENBAO_SECRET_REFERENCE_PREFIX: &str = "openbao:secret/";
 const CONFIG_SECRET_REFERENCE_PREFIX: &str = "${";

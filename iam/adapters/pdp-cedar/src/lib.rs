@@ -46,7 +46,7 @@ use audit_chain_domain::{
     Ed25519VerificationKeySet, Plane,
 };
 use audit_file_adapter::{FileAuditLedger, FileAuditLedgerError};
-use oya_data_boundary_kernel::{DataClass, Purpose};
+use data_boundary_kernel::{DataClass, Purpose};
 
 use oya_shared_pdp_kernel::{
     CachedDecision, DecisionAuditRecord, DecisionCache, DecisionCacheKey, EntityRecord,

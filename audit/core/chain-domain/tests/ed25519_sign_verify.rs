@@ -6,7 +6,7 @@ use audit_chain_domain::{
     AuditAppendInput, AuditChain, AuditChainError, Ed25519Signature, Ed25519SigningKey,
     Ed25519VerificationKeySet, Plane, verify_chain,
 };
-use oya_data_boundary_kernel::{DataClass, Purpose};
+use data_boundary_kernel::{DataClass, Purpose};
 
 #[test]
 fn ed25519_signature_seals_each_merkle_prefix_and_rejects_drift() {

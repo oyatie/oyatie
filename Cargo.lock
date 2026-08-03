@@ -480,8 +480,8 @@ dependencies = [
 name = "audit-chain-domain"
 version = "0.2.0"
 dependencies = [
+ "data-boundary-kernel",
  "ed25519-dalek",
- "oya-data-boundary-kernel",
  "sha2",
 ]
 
@@ -508,7 +508,7 @@ name = "audit-file-adapter"
 version = "0.1.0"
 dependencies = [
  "audit-chain-domain",
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -565,8 +565,8 @@ name = "audit-usecase"
 version = "0.1.0"
 dependencies = [
  "audit-chain-domain",
+ "data-boundary-kernel",
  "messaging-domain",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -731,7 +731,7 @@ name = "billing-accounting-app"
 version = "0.1.0"
 dependencies = [
  "billing-accounting-journal",
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -751,7 +751,7 @@ dependencies = [
 name = "billing-accounting-journal"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -776,7 +776,7 @@ dependencies = [
  "billing-metering",
  "cell-region",
  "compute-resource",
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -787,7 +787,7 @@ dependencies = [
  "billing-metering",
  "cell-region",
  "compute-resource",
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -797,7 +797,7 @@ dependencies = [
  "billing-domain",
  "billing-finops",
  "billing-metering",
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -819,7 +819,7 @@ dependencies = [
 name = "billing-metering"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -843,7 +843,7 @@ version = "0.1.0"
 dependencies = [
  "billing-domain",
  "billing-metering",
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
  "tokio",
 ]
 
@@ -1075,7 +1075,7 @@ dependencies = [
  "billing-metering",
  "cell-region",
  "compute-resource",
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -1083,8 +1083,8 @@ name = "cell-region"
 version = "0.1.0"
 dependencies = [
  "cell-routing",
+ "data-boundary-kernel",
  "network-residency",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -1099,8 +1099,8 @@ dependencies = [
 name = "cell-regional-pack"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "network-residency",
- "oya-data-boundary-kernel",
  "serde",
  "serde_json",
 ]
@@ -1117,8 +1117,8 @@ dependencies = [
 name = "cell-routing"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "network-residency",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -1727,7 +1727,7 @@ dependencies = [
 name = "comms-calendar-domain"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -1754,7 +1754,7 @@ dependencies = [
 name = "comms-mail-domain"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -1824,7 +1824,7 @@ dependencies = [
 name = "comms-meet-domain"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -1839,7 +1839,7 @@ dependencies = [
 name = "comms-messenger-domain"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -1902,14 +1902,14 @@ dependencies = [
 name = "compliance-dlp"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
 name = "compliance-dsr"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -1917,7 +1917,7 @@ name = "compliance-dsr-usecase"
 version = "0.1.0"
 dependencies = [
  "compliance-dsr",
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -1925,14 +1925,14 @@ name = "compliance-ediscovery"
 version = "0.1.0"
 dependencies = [
  "compliance-retention",
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
 name = "compliance-retention"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -1940,7 +1940,7 @@ name = "compliance-retention-dsr"
 version = "0.1.0"
 dependencies = [
  "compliance-retention",
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -1948,8 +1948,8 @@ name = "compliance-trust-portal"
 version = "0.1.0"
 dependencies = [
  "compliance-dsr",
+ "data-boundary-kernel",
  "network-residency",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -1958,8 +1958,8 @@ version = "0.1.0"
 dependencies = [
  "compute-domain",
  "compute-resource",
+ "data-boundary-kernel",
  "network-residency",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -1967,7 +1967,7 @@ name = "compute-dcops"
 version = "0.1.0"
 dependencies = [
  "cell-region",
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -1976,10 +1976,10 @@ version = "0.1.0"
 dependencies = [
  "cell-region",
  "compute-resource",
+ "data-boundary-kernel",
  "iam-cloud-domain",
  "network-domain",
  "network-residency",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -1988,8 +1988,8 @@ version = "0.1.0"
 dependencies = [
  "compute-domain",
  "compute-resource",
+ "data-boundary-kernel",
  "network-residency",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -1998,8 +1998,8 @@ version = "0.1.0"
 dependencies = [
  "compute-domain",
  "compute-resource",
+ "data-boundary-kernel",
  "network-residency",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -2008,8 +2008,8 @@ version = "0.1.0"
 dependencies = [
  "compute-domain",
  "compute-resource",
+ "data-boundary-kernel",
  "network-residency",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -2017,8 +2017,8 @@ name = "compute-resource"
 version = "0.1.0"
 dependencies = [
  "cell-region",
+ "data-boundary-kernel",
  "network-residency",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -2027,8 +2027,8 @@ version = "0.1.0"
 dependencies = [
  "compute-domain",
  "compute-resource",
+ "data-boundary-kernel",
  "network-residency",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -2061,7 +2061,7 @@ version = "0.1.0"
 name = "connect-address-book-domain"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -2450,13 +2450,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "data-boundary-kernel"
+version = "0.1.0"
+
+[[package]]
 name = "data-cloud-domain"
 version = "0.1.0"
 dependencies = [
  "cell-region",
  "compute-resource",
+ "data-boundary-kernel",
  "network-residency",
- "oya-data-boundary-kernel",
  "secrets-kms-domain",
 ]
 
@@ -2474,8 +2478,8 @@ checksum = "a4ae5f15dda3c708c0ade84bfee31ccab44a3da4f88015ed22f63732abe300c8"
 name = "data-ontology-api"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "data-ontology-domain",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -2489,30 +2493,39 @@ dependencies = [
 name = "data-ontology-kernel"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
 name = "data-ontology-query-engine-domain"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "data-ontology-kernel",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
 name = "data-ontology-query-engine-usecase"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "data-ontology-kernel",
  "data-ontology-query-engine-domain",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
 name = "data-ontology-scorecards-resolver"
 version = "0.1.0"
 dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "data-outbox-kernel"
+version = "0.1.0"
+dependencies = [
+ "data-sql-kernel",
  "serde",
  "serde_json",
 ]
@@ -2582,6 +2595,14 @@ version = "0.1.0"
 dependencies = [
  "data-search-query",
  "data-search-rank",
+]
+
+[[package]]
+name = "data-sql-kernel"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
@@ -3650,17 +3671,17 @@ version = "0.1.0"
 name = "iam-cloud-api"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "iam-cloud-domain",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
 name = "iam-cloud-app"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "iam-cloud-domain",
  "iam-policy-cedar-domain",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -3668,8 +3689,8 @@ name = "iam-cloud-domain"
 version = "0.1.0"
 dependencies = [
  "cell-region",
+ "data-boundary-kernel",
  "iam-identity-domain",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -3762,7 +3783,7 @@ dependencies = [
 name = "iam-identity-domain"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -3800,8 +3821,8 @@ dependencies = [
 name = "iam-identity-usecase"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "iam-identity-domain",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -3933,7 +3954,7 @@ dependencies = [
  "audit-chain-domain",
  "audit-file-adapter",
  "cedar-policy",
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
  "oya-shared-pdp-kernel",
  "oya-shared-platform-contracts-kernel",
  "oya-shared-ulid-id-kernel",
@@ -3966,9 +3987,9 @@ dependencies = [
 name = "iam-tenant-rbac-api"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "iam-tenant-rbac-domain",
  "iam-tenant-rbac-usecase",
- "oya-data-boundary-kernel",
  "serde",
  "serde_json",
 ]
@@ -4067,7 +4088,7 @@ version = "0.1.0"
 name = "iam-tenant-rbac-domain"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -4170,9 +4191,9 @@ version = "0.1.0"
 name = "iam-tenant-rbac-storage-inmemory"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "iam-tenant-rbac-domain",
  "iam-tenant-rbac-usecase",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -4269,8 +4290,8 @@ dependencies = [
 name = "iam-tenant-rbac-usecase"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "iam-tenant-rbac-domain",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -4472,9 +4493,9 @@ version = "0.1.0"
 name = "intelligence-adapter-kernel"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "intelligence-capability-domain",
  "oya-check-cost-budget",
- "oya-data-boundary-kernel",
  "secrets-domain",
 ]
 
@@ -4529,7 +4550,7 @@ version = "0.1.0"
 name = "intelligence-capability-domain"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -4544,7 +4565,7 @@ version = "0.1.0"
 name = "intelligence-catalog-domain"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -4650,7 +4671,7 @@ version = "0.1.0"
 name = "intelligence-openapi-domain"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -4701,7 +4722,7 @@ dependencies = [
 name = "intelligence-step-domain"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -5717,7 +5738,7 @@ dependencies = [
  "billing-domain",
  "billing-metering",
  "cell-region",
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -5731,6 +5752,7 @@ dependencies = [
  "audit-chain-domain",
  "audit-file-adapter",
  "ci-generated-artifact-freshness",
+ "data-boundary-kernel",
  "intelligence-api-semver-domain",
  "intelligence-cargo-prefix-domain",
  "intelligence-catalog-domain",
@@ -5807,7 +5829,6 @@ dependencies = [
  "oya-check-vendor-lockin-discipline",
  "oya-check-vendor-recency",
  "oya-check-wasm-runtime-discipline",
- "oya-data-boundary-kernel",
  "oya-governance-banned-primitives-kernel",
  "oya-governance-gate-catalog-domain",
  "oya-intelligence-architecture-map-app",
@@ -5873,15 +5894,15 @@ dependencies = [
 name = "messaging-domain"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
 name = "messaging-file-adapter"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "messaging-domain",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -5985,9 +6006,9 @@ checksum = "1d87ecb2933e8aeadb3e3a02b828fed80a7528047e68b4f424523a0981a3a084"
 name = "network-dns"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "network-domain",
  "network-residency",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -5996,42 +6017,42 @@ version = "0.1.0"
 dependencies = [
  "cell-region",
  "compute-resource",
+ "data-boundary-kernel",
  "network-residency",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
 name = "network-lb"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "network-domain",
  "network-residency",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
 name = "network-oci"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "network-domain",
  "network-residency",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
 name = "network-residency"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
 name = "network-selfhosted"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "network-domain",
  "network-residency",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -6046,9 +6067,9 @@ dependencies = [
 name = "network-vpc"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "network-domain",
  "network-residency",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -6141,10 +6162,10 @@ dependencies = [
  "audit-chain-domain",
  "cell-region",
  "compute-resource",
+ "data-boundary-kernel",
  "iam-cloud-domain",
  "network-residency",
  "observability-domain",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -6152,16 +6173,16 @@ name = "observability-api"
 version = "0.1.0"
 dependencies = [
  "audit-chain-domain",
+ "data-boundary-kernel",
  "network-residency",
  "observability-aggregate",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
 name = "observability-domain"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -6642,6 +6663,7 @@ dependencies = [
  "audit-chain-domain",
  "cell-regional-pack",
  "cell-routing",
+ "data-boundary-kernel",
  "data-ontology-domain",
  "iam-identity-domain",
  "iam-policy-cedar-domain",
@@ -6653,7 +6675,6 @@ dependencies = [
  "observability-domain",
  "observability-tracing-adapter",
  "oya-check-cost-budget",
- "oya-data-boundary-kernel",
  "oya-governance-eval-domain",
  "oya-intelligence-bypass-domain",
  "oya-intelligence-evidence-domain",
@@ -6829,7 +6850,7 @@ version = "0.1.0"
 name = "oya-check-cost-budget"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -7242,7 +7263,7 @@ dependencies = [
 name = "oya-cloud-surface-domain"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -7266,7 +7287,7 @@ version = "0.1.0"
 name = "oya-collab-runtime-domain"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -7301,7 +7322,7 @@ dependencies = [
 name = "oya-community-post-store-domain"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -7352,7 +7373,7 @@ dependencies = [
 name = "oya-community-social-domain"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -7428,7 +7449,7 @@ version = "0.1.0"
 name = "oya-crm-customer-engagement-domain"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -7444,45 +7465,24 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-data-boundary-kernel"
-version = "0.1.0"
-
-[[package]]
 name = "oya-data-outbox-adapter-postgres"
 version = "0.1.0"
 dependencies = [
- "oya-data-outbox-kernel",
- "oya-data-sql-kernel",
+ "data-outbox-kernel",
+ "data-sql-kernel",
  "oya-shared-postgres-command-kernel",
  "sqlx",
  "tokio",
-]
-
-[[package]]
-name = "oya-data-outbox-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-data-sql-kernel",
- "serde",
- "serde_json",
 ]
 
 [[package]]
 name = "oya-data-sql-adapter-sqlx"
 version = "0.1.0"
 dependencies = [
- "oya-data-sql-kernel",
+ "data-sql-kernel",
  "oya-shared-postgres-command-kernel",
  "sqlx",
  "tokio",
-]
-
-[[package]]
-name = "oya-data-sql-kernel"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
 ]
 
 [[package]]
@@ -7500,15 +7500,15 @@ dependencies = [
 name = "oya-docs-domain"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
 name = "oya-document-format-domain"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "oya-collab-runtime-domain",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -7540,7 +7540,7 @@ dependencies = [
 name = "oya-global-trade-compliance-domain"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -7705,7 +7705,7 @@ version = "0.1.0"
 name = "oya-governance-eval-domain"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -7909,7 +7909,7 @@ dependencies = [
 name = "oya-hr-employment-app"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
  "oya-hr-employment-domain",
 ]
 
@@ -7917,7 +7917,7 @@ dependencies = [
 name = "oya-hr-employment-domain"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -8302,8 +8302,8 @@ dependencies = [
 name = "oya-intelligence-bypass-domain"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "intelligence-capability-domain",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -8335,8 +8335,8 @@ name = "oya-intelligence-cloud-mutation-domain"
 version = "0.1.0"
 dependencies = [
  "audit-chain-domain",
+ "data-boundary-kernel",
  "intelligence-capability-domain",
- "oya-data-boundary-kernel",
  "oya-intelligence-policy-domain",
 ]
 
@@ -8502,14 +8502,14 @@ dependencies = [
 name = "oya-intelligence-evidence-domain"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
 name = "oya-intelligence-evidence-file-adapter"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
  "oya-intelligence-evidence-domain",
 ]
 
@@ -8552,8 +8552,8 @@ dependencies = [
 name = "oya-intelligence-mcp-gateway-domain"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "intelligence-capability-domain",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -8585,8 +8585,8 @@ dependencies = [
 name = "oya-intelligence-policy-api"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "intelligence-capability-domain",
- "oya-data-boundary-kernel",
  "oya-intelligence-policy-domain",
 ]
 
@@ -8594,8 +8594,8 @@ dependencies = [
 name = "oya-intelligence-policy-domain"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "intelligence-capability-domain",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -8650,7 +8650,7 @@ dependencies = [
 name = "oya-intelligence-rag-api"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -8680,8 +8680,8 @@ dependencies = [
 name = "oya-intelligence-registry-api"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "intelligence-capability-domain",
- "oya-data-boundary-kernel",
  "oya-governance-eval-domain",
 ]
 
@@ -8696,16 +8696,16 @@ dependencies = [
 name = "oya-intelligence-run-domain"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "intelligence-capability-domain",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
 name = "oya-intelligence-run-file-adapter"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "intelligence-capability-domain",
- "oya-data-boundary-kernel",
  "oya-intelligence-run-domain",
 ]
 
@@ -8732,8 +8732,8 @@ dependencies = [
 name = "oya-intelligence-step-file-adapter"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "intelligence-step-domain",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -8905,8 +8905,8 @@ dependencies = [
 name = "oya-notes-domain"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "oya-collab-runtime-domain",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -9209,7 +9209,7 @@ dependencies = [
 name = "oya-payroll-run-app"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
  "oya-payroll-run-domain",
 ]
 
@@ -9217,7 +9217,7 @@ dependencies = [
 name = "oya-payroll-run-domain"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -9256,7 +9256,7 @@ dependencies = [
 name = "oya-plant-maintenance-domain"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -9275,14 +9275,14 @@ dependencies = [
 name = "oya-procurement-source-to-pay-domain"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
 name = "oya-production-planning-domain"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -9301,7 +9301,7 @@ dependencies = [
 name = "oya-quality-management-domain"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -9332,7 +9332,7 @@ dependencies = [
 name = "oya-real-estate-portfolio-domain"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -9721,8 +9721,8 @@ version = "0.1.0"
 name = "oya-sheets-domain"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "oya-collab-runtime-domain",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -9733,16 +9733,16 @@ version = "0.1.0"
 name = "oya-sites-domain"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "oya-collab-runtime-domain",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
 name = "oya-slides-domain"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "oya-collab-runtime-domain",
- "oya-data-boundary-kernel",
  "oya-document-format-domain",
 ]
 
@@ -9750,7 +9750,7 @@ dependencies = [
 name = "oya-supply-chain-planning-domain"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -9773,7 +9773,7 @@ version = "0.1.0"
 name = "oya-translate-domain"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -9792,7 +9792,7 @@ dependencies = [
 name = "oya-treasury-cash-domain"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -9811,7 +9811,7 @@ dependencies = [
 name = "oya-warehouse-inventory-domain"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -9835,14 +9835,14 @@ name = "oya-workspace-chat-api"
 version = "0.1.0"
 dependencies = [
  "comms-messenger-domain",
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
 name = "oya-workspace-drive-api"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
  "storage-drive-domain",
 ]
 
@@ -9850,7 +9850,7 @@ dependencies = [
 name = "oya-workspace-forms-api"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
  "workflow-forms-domain",
 ]
 
@@ -9859,7 +9859,7 @@ name = "oya-workspace-meet-api"
 version = "0.1.0"
 dependencies = [
  "comms-meet-domain",
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -11076,7 +11076,7 @@ dependencies = [
 name = "secrets-domain"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
  "oya-shared-platform-contracts-kernel",
  "zeroize",
 ]
@@ -11093,8 +11093,8 @@ name = "secrets-kms-api"
 version = "0.1.0"
 dependencies = [
  "cell-region",
+ "data-boundary-kernel",
  "network-residency",
- "oya-data-boundary-kernel",
  "secrets-kms-domain",
 ]
 
@@ -11104,8 +11104,8 @@ version = "0.1.0"
 dependencies = [
  "cell-region",
  "compute-resource",
+ "data-boundary-kernel",
  "network-residency",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -11122,7 +11122,7 @@ dependencies = [
 name = "secrets-kms-oci"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
  "secrets-kms-domain",
 ]
 
@@ -11131,7 +11131,7 @@ name = "secrets-kms-openbao"
 version = "0.1.0"
 dependencies = [
  "base64 0.22.1",
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
  "secrets-kms-domain",
  "secrets-kms-enclave",
  "zeroize",
@@ -11154,12 +11154,12 @@ dependencies = [
 name = "secrets-kms-operator-k8s"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "futures",
  "k8s-openapi",
  "kube",
  "kube-runtime",
  "network-residency",
- "oya-data-boundary-kernel",
  "secrets-kms-domain",
  "secrets-kms-operator-kernel",
  "serde",
@@ -11763,8 +11763,8 @@ checksum = "a2eb9349b6444b326872e140eb1cf5e7c522154d69e7a0ffb0fb81c06b37543f"
 name = "storage-block-api"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "network-residency",
- "oya-data-boundary-kernel",
  "storage-domain",
 ]
 
@@ -11774,8 +11774,8 @@ version = "0.1.0"
 dependencies = [
  "cell-region",
  "compute-resource",
+ "data-boundary-kernel",
  "network-residency",
- "oya-data-boundary-kernel",
  "secrets-kms-domain",
 ]
 
@@ -11783,7 +11783,7 @@ dependencies = [
 name = "storage-drive-domain"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -11791,8 +11791,8 @@ name = "storage-object-api"
 version = "0.1.0"
 dependencies = [
  "compute-resource",
+ "data-boundary-kernel",
  "network-residency",
- "oya-data-boundary-kernel",
  "secrets-kms-domain",
  "storage-domain",
 ]
@@ -11808,7 +11808,7 @@ dependencies = [
 name = "storage-oci-adapter"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
  "storage-domain",
 ]
 
@@ -11817,14 +11817,14 @@ name = "storage-recordings-domain"
 version = "0.1.0"
 dependencies = [
  "comms-meet-domain",
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
 name = "storage-s3-adapter"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
  "storage-domain",
 ]
 
@@ -11990,8 +11990,8 @@ version = "0.1.0"
 name = "tenancy-domain"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "network-residency",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -13758,7 +13758,7 @@ dependencies = [
 name = "workflow-forms-domain"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -13860,8 +13860,8 @@ dependencies = [
 name = "workflow-tasks-domain"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "intelligence-capability-domain",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]

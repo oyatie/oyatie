@@ -7,7 +7,7 @@ rust_library(
     deps = [
         "//audit/adapters/file:audit-file-adapter",
         "//audit/core/chain-domain:audit-chain-domain",
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//data/core/boundary-kernel:data-boundary-kernel",
         "//libs/oya-shared-pdp-kernel:oya-shared-pdp-kernel",
         "//libs/oya-shared-platform-contracts-kernel:oya-shared-platform-contracts-kernel",
         "//libs/oya-shared-ulid-id-kernel:oya-shared-ulid-id-kernel",
@@ -26,7 +26,7 @@ rust_test(
         ":iam-pdp-cedar",
         "//audit/adapters/file:audit-file-adapter",
         "//audit/core/chain-domain:audit-chain-domain",
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//data/core/boundary-kernel:data-boundary-kernel",
         "//libs/oya-shared-pdp-kernel:oya-shared-pdp-kernel",
         "//libs/oya-shared-platform-contracts-kernel:oya-shared-platform-contracts-kernel",
         "//libs/oya-shared-ulid-id-kernel:oya-shared-ulid-id-kernel",

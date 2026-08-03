@@ -1,5 +1,5 @@
 -- oya-data outbox events: Postgres/RLS durable schema for the CDC
--- change-stream (ADR-0510 transitional impl of the oya-data-outbox-kernel
+-- change-stream (ADR-0510 transitional impl of the data-outbox-kernel
 -- ChangeStreamSource port; ADR-0536 D-10 change streams / D-13 messaging).
 --
 -- This is the table the kernel's INSERT_OUTBOX_EVENT_SQL targets

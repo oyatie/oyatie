@@ -28,7 +28,7 @@ No sub-modules introduced for single-use logic (rule from ADR-0509).
 ## Contracts
 
 - **No I/O** — pure deterministic function, no async, no side-effects.
-- **No new dependencies** — only `oya-data-boundary-kernel` (already declared).
+- **No new dependencies** — only `data-boundary-kernel` (already declared).
 - Field-level classification: all unit fields carry `DataClass::Financial` via
   `Classified<f64>`, consistent with `LeaveBalanceLedgerProjection`.
 - `idempotency_key`: deterministic string `"{tenant_id}:{employee_id}:{period_boundary_date}:{rulepack_ref}"`.

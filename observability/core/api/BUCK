@@ -6,7 +6,7 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//network/core/residency:network-residency",
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//data/core/boundary-kernel:data-boundary-kernel",
         "//audit/core/chain-domain:audit-chain-domain",
         "//observability/core/aggregate:observability-aggregate",
     ],
@@ -21,7 +21,7 @@ rust_test(
     deps = [
         ":observability-api",
         "//network/core/residency:network-residency",
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//data/core/boundary-kernel:data-boundary-kernel",
         "//audit/core/chain-domain:audit-chain-domain",
         "//observability/core/aggregate:observability-aggregate",
     ],

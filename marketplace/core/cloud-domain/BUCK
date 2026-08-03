@@ -8,7 +8,7 @@ rust_library(
         "//billing/core/billing:billing-domain",
         "//billing/core/metering:billing-metering",
         "//cell/core/region:cell-region",
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//data/core/boundary-kernel:data-boundary-kernel",
     ],
 )
 
@@ -22,6 +22,6 @@ rust_test(
         "//billing/core/billing:billing-domain",
         "//billing/core/metering:billing-metering",
         "//cell/core/region:cell-region",
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//data/core/boundary-kernel:data-boundary-kernel",
     ],
 )

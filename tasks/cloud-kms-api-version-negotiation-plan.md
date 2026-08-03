@@ -80,6 +80,6 @@ cargo nextest run -p oya-cloud-kms-api           # green, >=4 new unit tests
 ## Boundaries
 
 - **Only** `crates/oya-cloud-kms-api/src/lib.rs` is modified in production code
-- No changes to `oya-cloud-kms-domain`, `oya-cloud-region-domain`, or `oya-data-boundary-kernel`
+- No changes to `oya-cloud-kms-domain`, `oya-cloud-region-domain`, or `data-boundary-kernel`
 - No new crate added; root `Cargo.toml` untouched
 - No async runtime introduced; pure synchronous boundary logic

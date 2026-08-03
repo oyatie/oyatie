@@ -15,7 +15,7 @@ use audit_chain_domain::{AuditChain, AuditEvent, Plane};
 use iam_cloud_domain::IamRoleId;
 use cell_region::{CellId, RegionCode};
 use compute_resource::{CloudResourceError, ResourceId};
-use oya_data_boundary_kernel::{
+use data_boundary_kernel::{
     Classified, DataClass, DataClassification, OperationalDataClass, PrivacyDataClass, Purpose,
 };
 use observability_domain::{TelemetryLogExposure, log_exposure_for_classification};
@@ -1639,7 +1639,7 @@ fn is_ascii_token_with_slash(value: &str) -> bool {
 #[cfg(test)]
 mod tests {
     use audit_chain_domain::Plane;
-    use oya_data_boundary_kernel::{OperationalDataClass, Purpose};
+    use data_boundary_kernel::{OperationalDataClass, Purpose};
     use network_residency::{
         PerPackResidency, PerPackResidencyCreate, RegulatorOverlay, RegulatorOverlayCreate,
     };

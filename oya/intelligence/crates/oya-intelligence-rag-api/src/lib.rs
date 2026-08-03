@@ -7,7 +7,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use oya_data_boundary_kernel::{
+use data_boundary_kernel::{
     is_hard_denied_classification, parse_data_class_label, parse_purpose_pascal_label,
     ConsentScope, PrivacyDataClass, Purpose,
 };

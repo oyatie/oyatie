@@ -57,7 +57,7 @@ println!("tenant_class={:?}, billing_components={:?}", status.tenant_class, stat
 
 ```rust
 use oya_cloud_billing_domain::{CloudBillingEventCreate, CloudBillingEventKind};
-use oya_data_boundary_kernel::DataClass;
+use data_boundary_kernel::DataClass;
 
 let event = CloudBillingEventCreate {
     id: "cbill_pod_minute_42".to_string(),

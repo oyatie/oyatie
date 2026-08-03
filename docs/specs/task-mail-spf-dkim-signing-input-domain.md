@@ -312,7 +312,7 @@ All tests live in `#[cfg(test)] mod tests` blocks at the bottom of each new modu
 ## Boundaries and Non-Claims
 
 - **No new crate.** All logic extends one existing crate (`oya-mail-domain`).
-- **No root `Cargo.toml` edit.** Crate depends only on `oya-data-boundary-kernel`.
+- **No root `Cargo.toml` edit.** Crate depends only on `data-boundary-kernel`.
 - **No new dependency.** All logic is pure domain computation.
 - **No signing.** `build_dkim_signing_input` returns a string template; the `b=` value is left empty. The adapter passes `canonical_signed_headers` and `canonical_body` to `aws-lc-rs` (ADR-0506).
 - **No DNS lookup.** Alignment evaluation is purely over already-resolved domain strings.

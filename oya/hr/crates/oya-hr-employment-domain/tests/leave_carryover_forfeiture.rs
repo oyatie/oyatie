@@ -1,6 +1,6 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
-use oya_data_boundary_kernel::DataClass;
+use data_boundary_kernel::DataClass;
 use oya_hr_employment_domain::{
     HrDomainError, LeaveCarryoverForfeitureInput, evaluate_leave_carryover_forfeiture,
 };
@@ -278,7 +278,7 @@ fn idempotency_key_format() {
 
 #[test]
 fn schema_version_is_1_and_public() {
-    use oya_data_boundary_kernel::DataClass;
+    use data_boundary_kernel::DataClass;
 
     let proj = evaluate_leave_carryover_forfeiture(valid_input()).expect("projection");
 

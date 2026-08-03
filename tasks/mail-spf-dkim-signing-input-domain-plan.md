@@ -190,7 +190,7 @@ pub fn build_dkim_signing_input(
 ## Constraints
 
 - Operate ONLY in `crates/oya-mail-domain/src/` (new modules `spf_alignment.rs`, `dkim_canonicalization.rs`, `dkim_signing_input.rs`), `lib.rs` (re-export), and this plan + spec doc.
-- No new dependencies; crate depends only on `oya-data-boundary-kernel`.
+- No new dependencies; crate depends only on `data-boundary-kernel`.
 - No root `Cargo.toml` edit.
 - No DNS lookup, no OpenBao read, no crypto signing, no SMTP delivery.
 - Match existing patterns: `int()` / `classified_internal()` helpers, `normalized_domain()` normalization, `NON_CLAIM` constant, `#[cfg_attr(test, allow(...))]` at crate top.

@@ -7,7 +7,7 @@ rust_library(
     deps = [
         "//cell/core/routing:cell-routing",
         "//network/core/residency:network-residency",
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//data/core/boundary-kernel:data-boundary-kernel",
     ],
 )
 
@@ -20,6 +20,6 @@ rust_test(
     deps = [
         "//cell/core/routing:cell-routing",
         "//network/core/residency:network-residency",
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//data/core/boundary-kernel:data-boundary-kernel",
     ],
 )

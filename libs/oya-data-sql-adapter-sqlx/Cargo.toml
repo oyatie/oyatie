@@ -1,5 +1,5 @@
 # SQLx Postgres adapter for the owned oya-data SQL port (ADR-0536 D-10;
-# story G003 sub-slice 2). Binds oya-data-sql-kernel session descriptors,
+# story G003 sub-slice 2). Binds data-sql-kernel session descriptors,
 # statements, and consistency levels onto sqlx::PgPool: tenant sessions run
 # the parameterized RLS set_config before any statement (reusing the shared
 # postgres-command kernel's SET_LOCAL_TENANT_SQL), commits are stamped with
@@ -23,7 +23,7 @@ path = "src/lib.rs"
 doctest = false
 
 [dependencies]
-oya-data-sql-kernel = { path = "../oya-data-sql-kernel" }
+data-sql-kernel = { path = "../../data/core/sql-kernel" }
 oya-shared-postgres-command-kernel = { path = "../oya-shared-postgres-command-kernel" }
 sqlx.workspace = true
 
