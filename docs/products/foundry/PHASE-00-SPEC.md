@@ -206,7 +206,7 @@ Acceptance:
   - 40+ unit tests covering all value types and state invariants
 
 Validation command:
-  cargo test -p oya-intelligence-account-kernel -p oya-intelligence-account-domain -p oya-intelligence-account-app
+  cargo test -p oya-intelligence-account-kernel -p intelligence-account-domain -p oya-intelligence-account-app
 ```
 
 **P00-03: Secret persistence — SecretStorePort adapter with local OpenBao default**

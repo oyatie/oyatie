@@ -8,7 +8,7 @@ license = "Apache-2.0"
 
 [dependencies]
 intelligence-adapter-kernel = { path = "../../../../intelligence/core/adapter-kernel" }
-oya-intelligence-bypass-domain = { path = "../../../intelligence/crates/oya-intelligence-bypass-domain" }
+intelligence-bypass-domain = { path = "../../../../intelligence/core/bypass-domain" }
 intelligence-capability-domain = { path = "../../../../intelligence/core/capability-domain" }
 oya-check-cost-budget = { path = "../../../../libs/oya-check-cost-budget" }
 oya-intelligence-evidence-domain = { path = "../../../intelligence/crates/oya-intelligence-evidence-domain" }

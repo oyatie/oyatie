@@ -9,7 +9,7 @@ use std::process::ExitCode;
 
 const REQUIRED_ACCOUNT_CRATES: &[&str] = &[
     "oya-intelligence-account-kernel",
-    "oya-intelligence-account-domain",
+    "intelligence-account-domain",
     "oya-intelligence-account-app",
     "oya-intelligence-account-adapter-codex-cli",
     "oya-intelligence-account-adapter-claude-code",

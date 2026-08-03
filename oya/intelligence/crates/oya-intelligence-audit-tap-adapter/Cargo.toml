@@ -5,4 +5,4 @@ license = "Apache-2.0"
 edition = "2024"
 
 [dependencies]
-oya-intelligence-audit-tap-usecase = { path = "../oya-intelligence-audit-tap-usecase" }
+intelligence-audit-tap-usecase = { path = "../../../../intelligence/core/audit-tap-usecase" }

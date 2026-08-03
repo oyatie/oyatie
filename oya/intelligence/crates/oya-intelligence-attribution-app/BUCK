@@ -6,8 +6,8 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//oya/intelligence/crates/oya-intelligence-attribution-adapter:oya-intelligence-attribution-adapter",
-        "//oya/intelligence/crates/oya-intelligence-attribution-domain:oya-intelligence-attribution-domain",
-        "//oya/intelligence/crates/oya-intelligence-attribution-kernel:oya-intelligence-attribution-kernel",
+        "//intelligence/core/attribution-domain:intelligence-attribution-domain",
+        "//intelligence/core/attribution-kernel:intelligence-attribution-kernel",
         "//oya/intelligence/crates/oya-intelligence-attribution-usecase:oya-intelligence-attribution-usecase",
         "//oya/intelligence/crates/oya-intelligence-attribution-worker:oya-intelligence-attribution-worker",
         "third-party//:bytes",
@@ -28,8 +28,8 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         "//oya/intelligence/crates/oya-intelligence-attribution-adapter:oya-intelligence-attribution-adapter",
-        "//oya/intelligence/crates/oya-intelligence-attribution-domain:oya-intelligence-attribution-domain",
-        "//oya/intelligence/crates/oya-intelligence-attribution-kernel:oya-intelligence-attribution-kernel",
+        "//intelligence/core/attribution-domain:intelligence-attribution-domain",
+        "//intelligence/core/attribution-kernel:intelligence-attribution-kernel",
         "//oya/intelligence/crates/oya-intelligence-attribution-usecase:oya-intelligence-attribution-usecase",
         "//oya/intelligence/crates/oya-intelligence-attribution-worker:oya-intelligence-attribution-worker",
         "third-party//:bytes",
@@ -51,8 +51,8 @@ rust_test(
     deps = [
         ":oya-intelligence-attribution-app",
         "//oya/intelligence/crates/oya-intelligence-attribution-adapter:oya-intelligence-attribution-adapter",
-        "//oya/intelligence/crates/oya-intelligence-attribution-domain:oya-intelligence-attribution-domain",
-        "//oya/intelligence/crates/oya-intelligence-attribution-kernel:oya-intelligence-attribution-kernel",
+        "//intelligence/core/attribution-domain:intelligence-attribution-domain",
+        "//intelligence/core/attribution-kernel:intelligence-attribution-kernel",
         "//oya/intelligence/crates/oya-intelligence-attribution-usecase:oya-intelligence-attribution-usecase",
         "//oya/intelligence/crates/oya-intelligence-attribution-worker:oya-intelligence-attribution-worker",
         "third-party//:bytes",

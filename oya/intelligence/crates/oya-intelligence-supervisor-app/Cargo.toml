@@ -32,13 +32,13 @@ oya-intelligence-claude-account-adapter = { path = "../oya-intelligence-claude-a
 oya-intelligence-codex-account-adapter = { path = "../oya-intelligence-codex-account-adapter" }
 oya-intelligence-gemini-account-adapter = { path = "../oya-intelligence-gemini-account-adapter" }
 oya-intelligence-route-policy-kernel = { path = "../oya-intelligence-route-policy-kernel" }
-oya-intelligence-account-domain = { path = "../oya-intelligence-account-domain" }
+intelligence-account-domain = { path = "../../../../intelligence/core/account-domain" }
 tokio = { workspace = true, features = ["sync"] }
 tracing.workspace = true
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
 oya-intelligence-settings-template-kernel = { version = "0.1.0", path = "../oya-intelligence-settings-template-kernel" }
 oya-intelligence-settings-template-adapter = { version = "0.1.0", path = "../oya-intelligence-settings-template-adapter" }
-oya-intelligence-autonomy-ceiling-domain = { version = "0.1.0", path = "../oya-intelligence-autonomy-ceiling-domain" }
+intelligence-autonomy-ceiling-domain = { version = "0.1.0", path = "../../../../intelligence/core/autonomy-ceiling-domain" }
 oya-intelligence-supervisor-security-adapter = { version = "0.1.0", path = "../oya-intelligence-supervisor-security-adapter" }
 oya-intelligence-account-adapter-inmemory = { version = "0.1.0", path = "../oya-intelligence-account-adapter-inmemory" }
 

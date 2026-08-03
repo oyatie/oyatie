@@ -8,7 +8,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use tokio::sync::Semaphore;
 
-use oya_intelligence_account_domain::check_silent_switch;
+use intelligence_account_domain::check_silent_switch;
 use oya_intelligence_route_policy_kernel::{RouteConstraints, RoutePolicy};
 use oya_intelligence_settings_template_adapter::TemplateStore;
 use oya_intelligence_settings_template_kernel::{DriftState, SettingsRenderer};
@@ -143,10 +143,10 @@ where
 
         // Step 3-4: RoutePolicy::select
         // ADR-0100 Bridge: RoutePolicy expects ProviderAccount, we have SupervisorAccount.
-        let domain_accounts: Vec<oya_intelligence_account_domain::ProviderAccount> = accounts
+        let domain_accounts: Vec<intelligence_account_domain::ProviderAccount> = accounts
             .iter()
             .map(|a| {
-                let mut acc = oya_intelligence_account_domain::ProviderAccount::new(
+                let mut acc = intelligence_account_domain::ProviderAccount::new(
                     a.id.clone(),
                     a.provider_family,
                 );
@@ -190,7 +190,7 @@ where
                 chosen: acc.id.clone(),
                 snapshot_ids: domain_accounts.iter().map(|a| a.id.clone()).collect(),
             })?;
-        let others: Vec<&oya_intelligence_account_domain::ProviderAccount> =
+        let others: Vec<&intelligence_account_domain::ProviderAccount> =
             domain_accounts.iter().filter(|a| a.id != acc.id).collect();
         if let Err(e) = check_silent_switch(&others, domain_acc) {
             self.inbox
@@ -291,10 +291,8 @@ where
         let root = std::path::Path::new("/home/user"); // Placeholder
 
         // ADR-0100 Bridge: renderer expects ProviderAccount
-        let mut domain_acc = oya_intelligence_account_domain::ProviderAccount::new(
-            acc.id.clone(),
-            acc.provider_family,
-        );
+        let mut domain_acc =
+            intelligence_account_domain::ProviderAccount::new(acc.id.clone(), acc.provider_family);
         domain_acc.state = acc.state.clone();
 
         let report = self

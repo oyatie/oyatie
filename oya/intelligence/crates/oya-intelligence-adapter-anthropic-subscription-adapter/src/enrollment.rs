@@ -18,7 +18,7 @@
 //! caller — kept here so the pure logic stays hermetically testable.
 // data_class: INTERNAL_ONLY throughout this module.
 
-use oya_intelligence_account_domain::ProviderFamily;
+use intelligence_account_domain::ProviderFamily;
 use oya_intelligence_oauth_subscription_kernel::{
     FlowKind, OAuthLoopbackServer, PkceChallenge, PkceVerifier, SubscriptionOAuthFlow,
     SubscriptionTokenCaptureRequest, build_authorization_url, capture_subscription_token,

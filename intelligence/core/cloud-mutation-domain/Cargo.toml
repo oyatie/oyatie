@@ -1,0 +1,21 @@
+[package]
+name = "intelligence-cloud-mutation-domain"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+intelligence-capability-domain = { path = "../capability-domain" }
+oya-intelligence-policy-domain = { path = "../../../oya/intelligence/crates/oya-intelligence-policy-domain" }
+audit-chain-domain = { path = "../../../audit/core/chain-domain" }
+oya-data-boundary-kernel = { path = "../../../libs/oya-data-boundary-kernel" }
+
+[lib]
+name = "intelligence_cloud_mutation_domain"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

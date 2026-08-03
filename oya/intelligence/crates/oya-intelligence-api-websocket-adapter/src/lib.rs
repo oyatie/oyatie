@@ -3,7 +3,7 @@
 use intelligence_api_rest_kernel::{
     AuditEvent, ResponseStatus, fixture_request_payload, fixture_tenant_id, fixture_use_case_id,
 };
-use oya_intelligence_api_websocket_kernel::{WsRequest, WsResponse};
+use intelligence_api_websocket_kernel::{WsRequest, WsResponse};
 
 pub fn handle(req: &WsRequest) -> (WsResponse, AuditEvent) {
     let res = WsResponse {

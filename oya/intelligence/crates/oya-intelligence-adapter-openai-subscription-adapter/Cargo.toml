@@ -12,7 +12,7 @@ path = "src/lib.rs"
 doctest = false
 
 [dependencies]
-oya-intelligence-account-domain = { path = "../oya-intelligence-account-domain" }
+intelligence-account-domain = { path = "../../../../intelligence/core/account-domain" }
 intelligence-account-kernel = { path = "../../../../intelligence/core/account-kernel" }
 
 # Async runtime + HTTP stack (ADR-0090: hyper preferred; ADR-0506: aws-lc-rs).

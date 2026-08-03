@@ -1,7 +1,7 @@
 # Plan: intel-attribution-claim-fanout-cap
 
 ## Crate
-`oya-intelligence-attribution-kernel`
+`intelligence-attribution-kernel`
 
 ## Objective
 Extend `plan_attribution` with deterministic per-claim citation fanout control:

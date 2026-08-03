@@ -1,7 +1,7 @@
 //! Acceptance tests for the attribution composition root, grounded in the
 //! vertical slice's actual behaviors:
-//! - `oya-intelligence-attribution-kernel::plan_attribution`
-//! - `oya-intelligence-attribution-domain::plan_domain_attribution`
+//! - `intelligence-attribution-kernel::plan_attribution`
+//! - `intelligence-attribution-domain::plan_domain_attribution`
 //! - `oya-intelligence-attribution-usecase::IntelligenceAttributionUsecase::plan`
 //! - `oya-intelligence-attribution-adapter::IntelligenceAttributionAdapter::dispatch`
 //!
