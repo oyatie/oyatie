@@ -15,7 +15,7 @@
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
-use oya_intelligence_account_domain::{
+use intelligence_account_domain::{
     AccountHealth, AccountId, ProviderAccount, ProviderFamily, RouteExplanation, UsageWindow,
     UsageWindowKind,
 };
@@ -262,7 +262,7 @@ impl ReadOnlyProjection for RoutingView {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_intelligence_account_domain::{
+    use intelligence_account_domain::{
         AccountHealth, AccountId, ProviderAccount, ProviderFamily, RouteExplanation, UsageWindow,
         UsageWindowKind,
     };
@@ -273,7 +273,7 @@ mod tests {
 
     fn active_account() -> ProviderAccount {
         let mut acc = ProviderAccount::new(aid("acct-1"), ProviderFamily::Claude);
-        acc.state = oya_intelligence_account_domain::AccountState::Active;
+        acc.state = intelligence_account_domain::AccountState::Active;
         acc
     }
 

@@ -5,7 +5,7 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//oya/intelligence/crates/oya-intelligence-account-domain:oya-intelligence-account-domain",
+        "//intelligence/core/account-domain:intelligence-account-domain",
     ],
 )
 
@@ -16,7 +16,7 @@ rust_test(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//oya/intelligence/crates/oya-intelligence-account-domain:oya-intelligence-account-domain",
+        "//intelligence/core/account-domain:intelligence-account-domain",
     ],
 )
 
@@ -28,6 +28,6 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":oya-intelligence-usage-window-kernel",
-        "//oya/intelligence/crates/oya-intelligence-account-domain:oya-intelligence-account-domain",
+        "//intelligence/core/account-domain:intelligence-account-domain",
     ],
 )

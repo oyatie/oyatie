@@ -1766,7 +1766,7 @@ below-all-capabilities `base/`-class direction.)
 
 **External dependents (rewritten):** SIX first-party crates outside the eighteen depend on the moved tree —
 `observability/core/aggregate` + `observability/core/api` (both → `audit-chain-domain`),
-`oya/intelligence/crates/oya-intelligence-cloud-mutation-domain` (→ `audit-chain-domain`),
+`intelligence/core/cloud-mutation-domain` (→ `audit-chain-domain`),
 `oya/application/crates/oya-application-app` (→ `audit-chain-domain`), `marketplace/facade/dev-cli`
 (the dev-cli; → `audit-chain-domain` + `audit-file-adapter`), and
 `oya/tenant-rbac/crates/oya-tenant-rbac-audit-chain-emission` (→ `audit-emission-api` + `audit-emission-kernel`).

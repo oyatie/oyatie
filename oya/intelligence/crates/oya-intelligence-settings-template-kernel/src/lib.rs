@@ -21,7 +21,7 @@ use std::path::{Path, PathBuf};
 
 // ── Re-exports ────────────────────────────────────────────────────────────────
 
-pub use oya_intelligence_account_domain::ProviderAccount;
+pub use intelligence_account_domain::ProviderAccount;
 pub use intelligence_account_kernel::{ProviderFamily, SecretReference};
 
 // ── HookCommandPath newtype ───────────────────────────────────────────────────
