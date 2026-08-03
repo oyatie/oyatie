@@ -1244,6 +1244,31 @@ dependencies = [
 ]
 
 [[package]]
+name = "ci-controller-github-adapter"
+version = "0.1.0"
+dependencies = [
+ "httpmock",
+ "oya-ci-controller-kernel",
+ "reqwest 0.13.4",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "ci-controller-k8s-adapter"
+version = "0.1.0"
+dependencies = [
+ "k8s-openapi",
+ "kube",
+ "kube-runtime",
+ "oya-ci-controller-kernel",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "ci-core-dependency-isolation"
 version = "0.1.0"
 dependencies = [
@@ -1565,9 +1590,47 @@ dependencies = [
 ]
 
 [[package]]
+name = "ci-tide-github-adapter"
+version = "0.1.0"
+dependencies = [
+ "oya-ci-tide-kernel",
+ "reqwest 0.13.4",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "ci-topology-manifest-contract"
 version = "0.1.0"
 dependencies = [
+ "serde_json",
+]
+
+[[package]]
+name = "ci-webhook-gateway-authz-cedar-adapter"
+version = "0.1.0"
+dependencies = [
+ "cedar-policy",
+ "oya-ci-webhook-gateway-kernel",
+]
+
+[[package]]
+name = "ci-webhook-gateway-ed25519-adapter"
+version = "0.1.0"
+dependencies = [
+ "ed25519-dalek",
+ "oya-ci-webhook-gateway-kernel",
+ "rand_core 0.6.4",
+]
+
+[[package]]
+name = "ci-webhook-gateway-github-adapter"
+version = "0.1.0"
+dependencies = [
+ "httpmock",
+ "oya-ci-webhook-gateway-kernel",
+ "reqwest 0.13.4",
+ "serde",
  "serde_json",
 ]
 
@@ -7088,12 +7151,12 @@ name = "oya-ci-controller-app"
 version = "0.1.0"
 dependencies = [
  "axum",
+ "ci-controller-github-adapter",
+ "ci-controller-k8s-adapter",
  "futures",
  "k8s-openapi",
  "kube",
  "kube-runtime",
- "oya-ci-controller-github-adapter",
- "oya-ci-controller-k8s-adapter",
  "oya-ci-controller-kernel",
  "serde",
  "serde_json",
@@ -7101,31 +7164,6 @@ dependencies = [
  "tower 0.5.3",
  "tracing",
  "tracing-subscriber",
-]
-
-[[package]]
-name = "oya-ci-controller-github-adapter"
-version = "0.1.0"
-dependencies = [
- "httpmock",
- "oya-ci-controller-kernel",
- "reqwest 0.13.4",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "oya-ci-controller-k8s-adapter"
-version = "0.1.0"
-dependencies = [
- "k8s-openapi",
- "kube",
- "kube-runtime",
- "oya-ci-controller-kernel",
- "serde",
- "serde_json",
- "tokio",
- "tracing",
 ]
 
 [[package]]
@@ -7157,23 +7195,13 @@ dependencies = [
 name = "oya-ci-tide-app"
 version = "0.1.0"
 dependencies = [
- "oya-ci-tide-github-adapter",
+ "ci-tide-github-adapter",
  "oya-ci-tide-kernel",
  "serde",
  "serde_json",
  "tokio",
  "tracing",
  "tracing-subscriber",
-]
-
-[[package]]
-name = "oya-ci-tide-github-adapter"
-version = "0.1.0"
-dependencies = [
- "oya-ci-tide-kernel",
- "reqwest 0.13.4",
- "serde",
- "serde_json",
 ]
 
 [[package]]
@@ -7189,10 +7217,10 @@ version = "0.1.0"
 dependencies = [
  "axum",
  "bytes",
+ "ci-webhook-gateway-authz-cedar-adapter",
+ "ci-webhook-gateway-ed25519-adapter",
+ "ci-webhook-gateway-github-adapter",
  "ed25519-dalek",
- "oya-ci-webhook-gateway-authz-cedar-adapter",
- "oya-ci-webhook-gateway-ed25519-adapter",
- "oya-ci-webhook-gateway-github-adapter",
  "oya-ci-webhook-gateway-kernel",
  "serde",
  "serde_json",
@@ -7200,34 +7228,6 @@ dependencies = [
  "tower 0.5.3",
  "tracing",
  "tracing-subscriber",
-]
-
-[[package]]
-name = "oya-ci-webhook-gateway-authz-cedar-adapter"
-version = "0.1.0"
-dependencies = [
- "cedar-policy",
- "oya-ci-webhook-gateway-kernel",
-]
-
-[[package]]
-name = "oya-ci-webhook-gateway-ed25519-adapter"
-version = "0.1.0"
-dependencies = [
- "ed25519-dalek",
- "oya-ci-webhook-gateway-kernel",
- "rand_core 0.6.4",
-]
-
-[[package]]
-name = "oya-ci-webhook-gateway-github-adapter"
-version = "0.1.0"
-dependencies = [
- "httpmock",
- "oya-ci-webhook-gateway-kernel",
- "reqwest 0.13.4",
- "serde",
- "serde_json",
 ]
 
 [[package]]

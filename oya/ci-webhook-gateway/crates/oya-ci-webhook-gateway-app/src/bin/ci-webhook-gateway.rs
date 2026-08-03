@@ -13,9 +13,9 @@
 
 use ed25519_dalek::VerifyingKey;
 use oya_ci_webhook_gateway_app::{AppState, build_router, replay::DeliveryGuard};
-use oya_ci_webhook_gateway_authz_cedar_adapter::CedarWebhookGate;
-use oya_ci_webhook_gateway_ed25519_adapter::Ed25519Verifier;
-use oya_ci_webhook_gateway_github_adapter::GitHubStatusPoster;
+use ci_webhook_gateway_authz_cedar_adapter::CedarWebhookGate;
+use ci_webhook_gateway_ed25519_adapter::Ed25519Verifier;
+use ci_webhook_gateway_github_adapter::GitHubStatusPoster;
 use std::sync::{Arc, Mutex};
 use tracing::info;
 
