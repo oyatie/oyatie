@@ -1667,7 +1667,7 @@
     },
     {
       "artifact_id": "foundry-settings-template-drift-adapter",
-      "artifact_path": "oya/intelligence/crates/oya-intelligence-settings-template-adapter/src/lib.rs",
+      "artifact_path": "intelligence/adapters/settings-template-adapter/src/lib.rs",
       "artifact_format": "rust-source",
       "contract_version": "v3.0.0",
       "owner_team": "axis-foundry",
@@ -1683,8 +1683,8 @@
           ]
         },
         "verification": {
-          "checker_crate": "oya/intelligence/crates/oya-intelligence-settings-template-adapter",
-          "command": "cargo test -p oya-intelligence-settings-template-adapter",
+          "checker_crate": "intelligence/adapters/settings-template-adapter",
+          "command": "cargo test -p intelligence-settings-template-adapter",
           "verifies": [
             "exit 0 on no-drift fixture",
             "exit 1 on drift fixture",
@@ -1692,7 +1692,7 @@
           ]
         },
         "validation": {
-          "validator": "cargo clippy -p oya-intelligence-settings-template-adapter",
+          "validator": "cargo clippy -p intelligence-settings-template-adapter",
           "trigger": "pre-commit-hook"
         },
         "autogen": {

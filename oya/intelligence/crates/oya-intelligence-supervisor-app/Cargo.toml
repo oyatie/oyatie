@@ -27,7 +27,7 @@ harness = false
 
 [dependencies]
 oya-intelligence-supervisor-kernel = { path = "../oya-intelligence-supervisor-kernel" }
-oya-intelligence-jsonl-supervisor-adapter = { path = "../oya-intelligence-jsonl-supervisor-adapter" }
+intelligence-jsonl-supervisor-adapter = { path = "../../../../intelligence/adapters/jsonl-supervisor-adapter" }
 oya-intelligence-claude-account-adapter = { path = "../oya-intelligence-claude-account-adapter" }
 oya-intelligence-codex-account-adapter = { path = "../oya-intelligence-codex-account-adapter" }
 oya-intelligence-gemini-account-adapter = { path = "../oya-intelligence-gemini-account-adapter" }
@@ -37,10 +37,10 @@ tokio = { workspace = true, features = ["sync"] }
 tracing.workspace = true
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
 oya-intelligence-settings-template-kernel = { version = "0.1.0", path = "../oya-intelligence-settings-template-kernel" }
-oya-intelligence-settings-template-adapter = { version = "0.1.0", path = "../oya-intelligence-settings-template-adapter" }
+intelligence-settings-template-adapter = { version = "0.1.0", path = "../../../../intelligence/adapters/settings-template-adapter" }
 oya-intelligence-autonomy-ceiling-domain = { version = "0.1.0", path = "../oya-intelligence-autonomy-ceiling-domain" }
 oya-intelligence-supervisor-security-adapter = { version = "0.1.0", path = "../oya-intelligence-supervisor-security-adapter" }
-oya-intelligence-account-adapter-inmemory = { version = "0.1.0", path = "../oya-intelligence-account-adapter-inmemory" }
+intelligence-account-adapter-inmemory = { version = "0.1.0", path = "../../../../intelligence/adapters/account-adapter-inmemory" }
 
 [lints]
 workspace = true

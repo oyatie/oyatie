@@ -8,7 +8,7 @@ doc_status: published
 
 # Settings-Template Adapter — README
 
-**Crate:** `oya-intelligence-settings-template-adapter`  
+**Crate:** `intelligence-settings-template-adapter`  
 **Layer:** Adapter (12-layer-enum L4)  
 **Wave:** 2h (M02-P06, v5 delta)  
 **Renamed:** `oya-intelligence-settings-template-adapter-fs` → `oya-intelligence-settings-template-adapter` (v6 PRE-1)
@@ -160,7 +160,7 @@ async fn verify(&self, template, account, root) -> Result<DriftReport> {
 ## Usage Example
 
 ```rust
-use oya_intelligence_settings_template_adapter::*;
+use intelligence_settings_template_adapter::*;
 use oya_intelligence_settings_template_kernel::*;
 
 let claude = ClaudeRenderer::new();

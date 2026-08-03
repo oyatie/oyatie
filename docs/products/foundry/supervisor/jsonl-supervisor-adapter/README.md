@@ -8,7 +8,7 @@ doc_status: published
 
 # JSONL Supervisor Adapter — README
 
-**Crate:** `oya-intelligence-jsonl-supervisor-adapter`  
+**Crate:** `intelligence-jsonl-supervisor-adapter`  
 **Layer:** Adapter (12-layer-enum L4)  
 **Wave:** 2c (M02-P06)  
 **Key trait:** `InboxStore`, `OutboxSink`
@@ -81,7 +81,7 @@ impl OutboxSink for JsonlOutboxSink {
 ## Usage Example
 
 ```rust
-use oya_intelligence_jsonl_supervisor_adapter::*;
+use intelligence_jsonl_supervisor_adapter::*;
 use oya_intelligence_supervisor_kernel::*;
 
 let inbox = JsonlInboxStore::new("~/.oya/inbox")?;

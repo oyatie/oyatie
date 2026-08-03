@@ -80,10 +80,10 @@ To identify slow operations:
 
 ```bash
 # Sample peek_lock latencies
-cargo bench -p oya-intelligence-jsonl-supervisor-adapter -- peek_lock_latency
+cargo bench -p intelligence-jsonl-supervisor-adapter -- peek_lock_latency
 
 # Profile with flamegraph
-cargo flamegraph -p oya-intelligence-jsonl-supervisor-adapter --bench jsonl_ops
+cargo flamegraph -p intelligence-jsonl-supervisor-adapter --bench jsonl_ops
 ```
 
 ## Storage Characteristics
@@ -137,4 +137,4 @@ Recommend monthly archival (see OPERATIONS).
 ## References
 
 - **v4 Plan § C.13:** Latency budgets
-- **Benchmarks:** `crates/oya-intelligence-jsonl-supervisor-adapter/benches/`
+- **Benchmarks:** `intelligence/adapters/jsonl-supervisor-adapter/benches/`

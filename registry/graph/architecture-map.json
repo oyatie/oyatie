@@ -1112,9 +1112,9 @@
       "label": "oya-intelligence-run-domain"
     },
     {
-      "id": "microservices/intelligence/crates/oya-intelligence-run-file-adapter",
+      "id": "intelligence/adapters/run-file-adapter",
       "kind": "crate",
-      "label": "oya-intelligence-run-file-adapter"
+      "label": "intelligence-run-file-adapter"
     },
     {
       "id": "microservices/intelligence/crates/oya-intelligence-step-domain",
@@ -1122,9 +1122,9 @@
       "label": "oya-intelligence-step-domain"
     },
     {
-      "id": "microservices/intelligence/crates/oya-intelligence-step-file-adapter",
+      "id": "intelligence/adapters/step-file-adapter",
       "kind": "crate",
-      "label": "oya-intelligence-step-file-adapter"
+      "label": "intelligence-step-file-adapter"
     },
     {
       "id": "crates/oya-identity-app",

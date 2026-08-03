@@ -24,12 +24,12 @@ L1: Kernel          ← oya-intelligence-supervisor-kernel (THIS CRATE)
 
 L2-L3: (reserved for future kernel extensions)
 
-L4: Adapter         ← oya-intelligence-jsonl-supervisor-adapter
+L4: Adapter         ← intelligence-jsonl-supervisor-adapter
     ├─ JsonlInboxStore (impl InboxStore)
     ├─ JsonlOutboxSink (impl OutboxSink)
     └─ (dead-letter, peek_lock TTL, fsync)
 
-L4: Adapter         ← oya-intelligence-settings-template-adapter
+L4: Adapter         ← intelligence-settings-template-adapter
     ├─ ClaudeRenderer (impl SettingsRenderer)
     ├─ CodexRenderer (impl SettingsRenderer)
     └─ GeminiRenderer (impl SettingsRenderer)
@@ -47,15 +47,15 @@ L5: Application     ← oya-intelligence-supervisor-app
 oya-intelligence-supervisor-app
   │
   ├─→ oya-intelligence-supervisor-kernel (port trait use)
-  ├─→ oya-intelligence-jsonl-supervisor-adapter (impl InboxStore)
-  ├─→ oya-intelligence-settings-template-adapter (impl SettingsRenderer)
+  ├─→ intelligence-jsonl-supervisor-adapter (impl InboxStore)
+  ├─→ intelligence-settings-template-adapter (impl SettingsRenderer)
   │
   └─→ oya-intelligence-account-adapter-* (SessionDriver impls)
 
-oya-intelligence-jsonl-supervisor-adapter
+intelligence-jsonl-supervisor-adapter
   └─→ oya-intelligence-supervisor-kernel (port trait def)
 
-oya-intelligence-settings-template-adapter
+intelligence-settings-template-adapter
   └─→ oya-intelligence-settings-template-kernel (value types)
 
 oya-intelligence-supervisor-kernel

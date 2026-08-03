@@ -90,7 +90,7 @@ Grouped by use-case subsystem:
 | `settings/` | `oya-intelligence-settings-template-{adapter,kernel}` | 2 |
 | `step/` | `oya-intelligence-step-{domain,file-adapter}` | 2 |
 | `subagent_runtime/` | `oya-intelligence-subagent-runtime-{app,kernel,usecase}` | 3 |
-| `supervisor/` | `oya-intelligence-supervisor-{app,kernel,security-adapter}`, `oya-intelligence-jsonl-supervisor-adapter` | 4 |
+| `supervisor/` | `oya-intelligence-supervisor-{app,kernel,security-adapter}`, `intelligence-jsonl-supervisor-adapter` | 4 |
 | `usage_window/` | `oya-intelligence-usage-window-kernel` | 1 |
 | `write_gate/` | `oya-intelligence-write-gate-kernel` | 1 |
 | `bypass/` | `oya-intelligence-bypass-{domain,ledger-kernel}` | 2 |
@@ -109,7 +109,7 @@ Multiple genuine production backends exist today (Anthropic, OpenAI, Gemini) × 
 | `oya-intelligence-adapter-anthropic-api-adapter` | **KEEP** | Backend #1 (Anthropic API-key auth) |
 | `oya-intelligence-adapter-anthropic-subscription-adapter` | **KEEP** | Backend #2 (Anthropic OAuth/subscription auth) |
 | `oya-intelligence-adapter-openai-api-adapter` | **KEEP** | Backend #3 (OpenAI API-key auth) |
-| `oya-intelligence-adapter-openai-subscription-adapter` | **KEEP** | Backend #4 (OpenAI ChatGPT subscription auth) |
+| `intelligence-openai-subscription-adapter` | **KEEP** | Backend #4 (OpenAI ChatGPT subscription auth) |
 | `oya-intelligence-adapter-gemini-api-adapter` | **KEEP** | Backend #5 (Gemini API-key auth) |
 | `oya-intelligence-adapter-gemini-subscription-adapter` | **KEEP** | Backend #6 (Gemini OAuth/subscription auth) |
 | `oya-intelligence-providers-adapter-openai` | **KEEP (audit)** | Possible duplicate of `openai-api-adapter`; if duplicate → collapse during Phase C |

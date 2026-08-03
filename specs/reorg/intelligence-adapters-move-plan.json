@@ -1,0 +1,68 @@
+{
+  "_comment": "ADR-0562 §10.26 strangler move-22, SUB-BATCH (c): the intelligence capability's ADAPTERS FACE. This is a SEPARATE plan file from specs/reorg/intelligence-move-plan.json, which is SPENT: that plan's own _comment scopes it to '15 dependency-SINK crates ... SINK-FIRST so nothing else must reference a not-yet-moved intelligence crate' and explicitly DEFERS 'the api/usecase/app/worker/adapter/rest/cli crates (facade-vs-adapters face needs per-crate hand-verification)'. Appending adapter rows to a landed sink-only plan would silently invalidate its stated invariant, so this batch carries its own plan and its own rationale. FACE = adapters for all six (destmap §1 row 2 + row 5, hand-verified per crate, the verification the (b) plan deferred): account-adapter-inmemory is a volatile in-process HashMap SecretStorePort impl (a concrete test-double backend, `*-adapter-<backend>` form); jsonl-supervisor-adapter is fsync-aware JSONL file I/O implementing InboxStore/OutboxSink; openai-subscription-adapter wraps the concrete OpenAI ChatGPT subscription HTTP transport (hyper) and an API-key pool; run-file-adapter and step-file-adapter are filesystem-backed RunLedger/StepLedger stores; settings-template-adapter does filesystem I/O plus per-provider Claude/Codex/Gemini format dialects. Every one of the six NAMES OR WRAPS A CONCRETE TRANSIENT TECHNOLOGY (filesystem, in-process memory, vendor HTTP), none is a composition root with [[bin]], and none DEFINES a port trait (ADR-0570 port-placement stays green: each one IMPLEMENTS traits owned by intelligence/core/* or by oya/intelligence/crates/*-domain). De-brand per ADR-0532/0533 + naming grammar: cargo name = intelligence-<leaf>, leaf dir == package-name tail, so cargo_prefix_name_path_mismatch stays clean; the `-adapter` suffix is kept IN THE LEAF DIRECTORY (destmap §2.6) rather than copying the landed */adapters/{file,aws,oci} drift; the openai crate's redundant `adapter-` infix is collapsed (oya-intelligence-adapter-openai-subscription-adapter -> intelligence-openai-subscription-adapter), matching the sibling landed intelligence/adapters/{codex-adapter,gemini-adapter}. TEMPORARY CROSS-ROOT BACK-EDGE — EXPLICITLY AUTHORIZED BY THIS PLAN, unlike sub-batch (b): five of the six retain a path dep into oya/intelligence/crates/ because their port owners are still in the junk-drawer and are NOT sink crates, so they cannot be sink-ordered ahead of the adapters (account-domain, run-domain, supervisor-kernel, settings-template-kernel — all four are in (b)'s DEFERRED set for manifest/microservice-entanglement reasons, not face reasons). This is the FIRST intelligence batch to carry an adapters->oya/intelligence/crates edge; it is direction-safe (adapters -> domain/kernel is DOWNWARD in the ADR-0280 DAG, never core->adapters) and it is transient: each edge collapses to a normal ../../core/<leaf> path when its owner lands. The already-landed owners already collapse this way in this batch (intelligence-account-kernel, intelligence-capability-domain, intelligence-step-domain go from ../../../../intelligence/core/<leaf> to ../../core/<leaf>). CONTRACT SURFACES all pre-satisfied by sub-batch (a): the bare glob `intelligence/*/*` (root Cargo.toml) covers <root>/adapters/<leaf> by construction, intelligence/adapters/ already holds ten landed leaves, and registry absorbs_current_dirs / membership scan_roots / acyclicity crate_root_globs already carry intelligence — ZERO root Cargo.toml edit, ZERO exclude edit (no non-crate depth-2 subtree co-moves). Pre-existing gate-bound registry/catalog/oya-intelligence-<leaf>.yaml records are re-keyed to intelligence-<leaf>.yaml as content-preserving artifact co-moves (the catalog is filename-keyed and carries no internal crate-name field), reached by the existing registry/catalog/ prefix; all six moved crates had a record, all six re-keyed. This plan file itself is reached by the existing specs/reorg/ ADR-0563 reachability prefix. NOT RELOCATED (crate-first strangler mode, phase-2 / task #62): the oya/intelligence SLO subtree, manifest.json, contracts, and the docs/{foundry,products/foundry}/supervisor/** narrative tree all stay at their current paths; only their references to the six RENAMED package names (and the two old crate-dir paths they cite) are repointed, which is the rename half of the move, not a co-move. NOT rewritten (a MOVE changes location and name only): the v4-BNF naming-rationale header comments in the jsonl-supervisor-adapter and settings-template-adapter manifests, the literal `version = \"0.1.0\"` pins those two carry instead of version.workspace, and the settings-template-adapter's inline blake3/libc pins — each is a real follow-up, none is a relocation concern. DELIBERATE OLD-NAME SURVIVORS (records, not references — rewriting a dated record falsifies it): docs/audit/initial-sweep-2026-06-06/** and docs/plans/rename-plan-v4-clean-arch-2026-05-13.md (dated snapshots); registry/fixuptasks.jsonl and the `**Renamed:**` line of docs/products/foundry/supervisor/settings-template-adapter/README.md (both record the historical `-fs` rename EVENT, whose right-hand side was the oya- name at the time); ADR-0096/0097/0098/0102/0104/0105 bodies (immutable decision prose citing the then-current names; none carries a frontmatter `crates:` list or a `verified_by:` command, verified by grep); and the synthetic crate-name fixtures/doc-examples in libs/oya-governance-{adapter-with-no-importer,predictable-naming,provider-coupling}-kernel/src/lib.rs (test data, not a live crate census). Refs #1325.",
+  "capability": "intelligence",
+  "moves": [
+    {
+      "old_path": "oya/intelligence/crates/oya-intelligence-account-adapter-inmemory",
+      "new_path": "intelligence/adapters/account-adapter-inmemory",
+      "old_cargo_name": "oya-intelligence-account-adapter-inmemory",
+      "new_cargo_name": "intelligence-account-adapter-inmemory"
+    },
+    {
+      "old_path": "oya/intelligence/crates/oya-intelligence-adapter-openai-subscription-adapter",
+      "new_path": "intelligence/adapters/openai-subscription-adapter",
+      "old_cargo_name": "oya-intelligence-adapter-openai-subscription-adapter",
+      "new_cargo_name": "intelligence-openai-subscription-adapter"
+    },
+    {
+      "old_path": "oya/intelligence/crates/oya-intelligence-jsonl-supervisor-adapter",
+      "new_path": "intelligence/adapters/jsonl-supervisor-adapter",
+      "old_cargo_name": "oya-intelligence-jsonl-supervisor-adapter",
+      "new_cargo_name": "intelligence-jsonl-supervisor-adapter"
+    },
+    {
+      "old_path": "oya/intelligence/crates/oya-intelligence-run-file-adapter",
+      "new_path": "intelligence/adapters/run-file-adapter",
+      "old_cargo_name": "oya-intelligence-run-file-adapter",
+      "new_cargo_name": "intelligence-run-file-adapter"
+    },
+    {
+      "old_path": "oya/intelligence/crates/oya-intelligence-settings-template-adapter",
+      "new_path": "intelligence/adapters/settings-template-adapter",
+      "old_cargo_name": "oya-intelligence-settings-template-adapter",
+      "new_cargo_name": "intelligence-settings-template-adapter"
+    },
+    {
+      "old_path": "oya/intelligence/crates/oya-intelligence-step-file-adapter",
+      "new_path": "intelligence/adapters/step-file-adapter",
+      "old_cargo_name": "oya-intelligence-step-file-adapter",
+      "new_cargo_name": "intelligence-step-file-adapter"
+    }
+  ],
+  "artifacts": [
+    {
+      "old_path": "registry/catalog/oya-intelligence-account-adapter-inmemory.yaml",
+      "new_path": "registry/catalog/intelligence-account-adapter-inmemory.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-intelligence-adapter-openai-subscription-adapter.yaml",
+      "new_path": "registry/catalog/intelligence-openai-subscription-adapter.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-intelligence-jsonl-supervisor-adapter.yaml",
+      "new_path": "registry/catalog/intelligence-jsonl-supervisor-adapter.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-intelligence-run-file-adapter.yaml",
+      "new_path": "registry/catalog/intelligence-run-file-adapter.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-intelligence-settings-template-adapter.yaml",
+      "new_path": "registry/catalog/intelligence-settings-template-adapter.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-intelligence-step-file-adapter.yaml",
+      "new_path": "registry/catalog/intelligence-step-file-adapter.yaml"
+    }
+  ]
+}
