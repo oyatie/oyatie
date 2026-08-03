@@ -1,0 +1,115 @@
+# Declarative projection of the CNPG-minted Postgres superuser credential from
+# oya-data into arc-runners, replacing a HAND COPY (ADR-0631 D4).
+#
+# The copy was drift by construction: CNPG owns oya-data/oya-pg-superuser
+# (ownerReferences -> Cluster/oya-pg, labels cnpg.io/userType=superuser,
+# cnpg.io/reload=true) and rotates it on its own schedule; the copy could not
+# follow, and its failure mode is an auth error that reads as a Postgres problem
+# rather than a stale-credential problem. The copy also carried the plaintext
+# base64 password inside its kubectl.kubernetes.io/last-applied-configuration
+# annotation, so it leaked to anyone with `get` on object metadata, not just
+# `.data`.
+#
+# MIGRATION, DO NOT SKIP: `creationPolicy: Owner` REFUSES to adopt a Secret ESO
+# does not own — it errors rather than overwriting. Delete the hand copy first:
+#   kubectl -n arc-runners delete secret oya-pg-superuser
+# Safe at any time because the scale set runs minRunners: 0, so no runner pod
+# holds the old value between jobs.
+#
+# Co-located with the Cluster that MINTS the source rather than in
+# infra/external-secrets/ (which holds the OpenBao *store* definitions) — this is
+# a consumer of a store, not a store.
+#
+# ESO reads the source AS THE DEDICATED ServiceAccount BELOW, not as its own. The
+# ESO controller ClusterRole already grants cluster-wide secret get/list/watch, so
+# the lazy version would point `auth.serviceAccount` at
+# external-secrets/external-secrets — rejected: this is a Postgres SUPERUSER, and
+# least privilege here costs three tiny objects.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: eso-oya-pg-superuser-reader
+  namespace: oya-data
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: eso-oya-pg-superuser-reader
+  namespace: oya-data
+rules:
+  - apiGroups: [""]
+    resources: [secrets]
+    resourceNames: [oya-pg-superuser]   # this ONE Secret
+    verbs: [get]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: eso-oya-pg-superuser-reader
+  namespace: oya-data
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: eso-oya-pg-superuser-reader
+subjects:
+  - kind: ServiceAccount
+    name: eso-oya-pg-superuser-reader
+    namespace: oya-data
+---
+# This cluster's own API server, used as a secret BACKEND. Siblings in
+# infra/external-secrets/ use the `vault` provider against OpenBao; the
+# `kubernetes` provider is what makes cross-namespace projection possible with no
+# copy. ESO v2.5.0 is the deployed version and exposes it.
+apiVersion: external-secrets.io/v1
+kind: ClusterSecretStore
+metadata:
+  name: k8s-oya-data
+  labels:
+    app.kubernetes.io/part-of: oya-substrate
+    oya.adr/decided-by: ADR-0631
+spec:
+  provider:
+    kubernetes:
+      remoteNamespace: oya-data
+      server:
+        caProvider:
+          # kube-root-ca.crt is auto-published by kube-controller-manager into
+          # EVERY namespace, so this needs no bootstrap step of its own.
+          type: ConfigMap
+          name: kube-root-ca.crt
+          namespace: oya-data
+          key: ca.crt
+      auth:
+        serviceAccount:
+          name: eso-oya-pg-superuser-reader
+          namespace: oya-data
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: oya-pg-superuser
+  namespace: arc-runners
+  labels:
+    app.kubernetes.io/part-of: oya-substrate
+    oya.adr/decided-by: ADR-0631
+spec:
+  # CNPG rotates the superuser Secret on its own schedule; 1h BOUNDS how long a
+  # rotated password can be stale here. The hand copy's staleness window was
+  # UNBOUNDED — that unbounded window is the defect this object exists to remove,
+  # and the bound is the property worth reviewing, not the interval.
+  refreshInterval: 1h
+  secretStoreRef:
+    name: k8s-oya-data
+    kind: ClusterSecretStore
+  target:
+    name: oya-pg-superuser
+    creationPolicy: Owner
+  # The source carries 11 keys (username, user, password, dbname, host, port,
+  # pgpass, uri, jdbc-uri, fqdn-uri, fqdn-jdbc-uri). The runner needs two, so it
+  # gets two — a connection URI in a CI pod env is a credential in every log line
+  # that echoes the environment.
+  data:
+    - secretKey: username
+      remoteRef: { key: oya-pg-superuser, property: username }
+    - secretKey: password
+      remoteRef: { key: oya-pg-superuser, property: password }

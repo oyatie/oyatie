@@ -12,10 +12,13 @@ githubConfigUrl: https://github.com/jason931225/oyatie
 # git. See ADR-0630 for why an App rather than a PAT.
 githubConfigSecret: oyatie-arc-app
 runnerScaleSetName: oya-arm64
-# Ephemeral runners: minRunners 0 means every job pays pod scheduling + a cold
-# toolchain. That is a KNOWN, DELIBERATE gap at this slice — a warm pool is
-# queued behind the baked runner image, because pre-warming a pod that then
-# spends two minutes installing rustc buys almost nothing.
+# Ephemeral runners: minRunners 0 means every job pays pod scheduling. The cold
+# TOOLCHAIN half of that cost is gone now that the image below is the baked one;
+# a warm pool remains a deliberate gap at this slice.
+#
+# minRunners 0 is also the migration window for the superuser projection: with
+# no runner pod alive between jobs, arc-runners/oya-pg-superuser can be deleted
+# and re-created by ESO without interrupting a job (see infra/oya-pg/).
 maxRunners: 3
 minRunners: 0
 template:
@@ -37,11 +40,44 @@ template:
       kubernetes.io/arch: arm64
     containers:
       - name: runner
-        # KNOWN GAP, tracked in ADR-0630: a mutable tag, in a repo where every
-        # `uses:` in every workflow is commit-pinned. It becomes a digest pin
-        # when the baked toolchain image lands and this reference changes anyway.
-        image: ghcr.io/actions/actions-runner:latest
+        # Baked toolchain image, PINNED BY DIGEST (no mutable tag anywhere in the
+        # merge-authority path). Carries buck2, rustc/cargo from the repo-root
+        # rust-toolchain.toml, and CLANG + LLD — toolchains/BUCK points the buck2
+        # cxx toolchain at the ABSOLUTE path /usr/bin/clang as both compiler and
+        # linker, so a gcc-only image fails every C/C++ action. Built from
+        # infra/ci/runner-image/ (Dockerfile + build.yaml); that pair is the ONLY
+        # thing this digest is reproducible from.
+        #
+        # Pullable because the node registry mirror (Talos
+        # machine.registries.mirrors) is keyed to the registry Service's PINNED
+        # spec.clusterIP 10.107.56.227 (infra/registry/registry.k8s.yaml) — node
+        # containerd resolves via the host resolver, not CoreDNS, so the
+        # in-cluster DNS name below only works because of that IP pin.
+        image: registry.oya-registry.svc.cluster.local:5000/oya/runner:arm64@sha256:ab648efdf2e4a2e10991816172efd83fae80baf41a5bcd1d92ae72abecef6936
         command: ["/home/runner/run.sh"]
+        # The live-Postgres gates need BOTH a superuser and a plain app role: the
+        # RLS tests assert that rolsuper/rolbypassrls cannot bypass row-level
+        # security, so the DISTINCTION is the test. Credential path is
+        # CNPG-minted Secret in oya-data -> ESO projection into arc-runners ->
+        # pod env -> gate. The projection (infra/oya-pg/superuser-projection.yaml)
+        # replaces a hand-copied Secret that could not rotate with its source.
+        #
+        # If the projection is missing these resolve EMPTY rather than failing to
+        # start, so the RLS gates can go green-on-nothing — which is why the
+        # ExternalSecret is declared beside the Cluster that mints the source.
+        env:
+          - name: OYA_CI_PG_HOST
+            value: oya-pg-rw.oya-data.svc.cluster.local
+          - name: OYA_CI_PG_SUPERUSER
+            valueFrom:
+              secretKeyRef:
+                name: oya-pg-superuser
+                key: username
+          - name: OYA_CI_PG_SUPERPASS
+            valueFrom:
+              secretKeyRef:
+                name: oya-pg-superuser
+                key: password
         resources:
           requests:
             # 2 CPU tracks the MEASURED buck2 scaling knee (j=2 87s, j=4 67s,
