@@ -93,7 +93,7 @@
   "edges": [
     {
       "edge_id": "settings-template-kernel__generates__per-account-files",
-      "subject_id": "oya-intelligence-settings-template-kernel",
+      "subject_id": "intelligence-settings-template-kernel",
       "subject_type": "Artifact",
       "predicate": "generates",
       "object_id": "per-account-settings-files",
@@ -106,7 +106,7 @@
     },
     {
       "edge_id": "settings-template-kernel__consumes__registry-accounts-toml",
-      "subject_id": "oya-intelligence-settings-template-kernel",
+      "subject_id": "intelligence-settings-template-kernel",
       "subject_type": "Artifact",
       "predicate": "consumes",
       "object_id": "registry/accounts/*.toml",

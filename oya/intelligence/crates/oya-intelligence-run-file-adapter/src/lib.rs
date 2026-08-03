@@ -11,7 +11,7 @@ use oya_data_boundary_kernel::{
     privacy_data_classes_from,
 };
 use intelligence_capability_domain::AutonomyTier;
-use oya_intelligence_run_domain::{Run, RunDisposition, RunError, RunLedger, RunState};
+use intelligence_run_domain::{Run, RunDisposition, RunError, RunLedger, RunState};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct FileRunLedgerStore {

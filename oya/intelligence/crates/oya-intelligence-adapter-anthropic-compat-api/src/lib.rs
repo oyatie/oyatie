@@ -7,7 +7,7 @@
 //! directive 2026-05-14: NO axum, NO tower-http — we own the stack.
 //!
 //! Provider-specific code is bounded to this crate. The shared rotation kernel
-//! lives in `oya-intelligence-provider-pool-kernel`.
+//! lives in `intelligence-provider-pool-kernel`.
 //!
 //! Linus good-taste: streaming and non-streaming share one code path. Non-
 //! streaming responses are a single chunk on the same stream surface — the
@@ -19,7 +19,7 @@
 use oya_http_router_kernel::{HttpMethod, Router, RouterError};
 use oya_http_sse_kernel::SseEvent;
 use intelligence_account_kernel::ProviderFamily;
-use oya_intelligence_provider_pool_kernel::{
+use intelligence_provider_pool_kernel::{
     AccountHealthMap, PoolError, PoolRoutingDecision, ProviderAccountId, ProviderAccountPool,
     RequestMetadata, UnixMillis, UsageSnapshotMap, pick_account,
 };
@@ -454,7 +454,7 @@ pub fn messages_handler(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_intelligence_provider_pool_kernel::{
+    use intelligence_provider_pool_kernel::{
         DurationMs, PoolId, PoolRoutingStrategy, ProviderTier, TenantId,
     };
     use std::collections::BTreeSet;

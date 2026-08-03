@@ -8,7 +8,7 @@ rust_library(
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
         "//audit/core/chain-domain:audit-chain-domain",
         "//intelligence/core/capability-domain:intelligence-capability-domain",
-        "//oya/intelligence/crates/oya-intelligence-policy-domain:oya-intelligence-policy-domain",
+        "//intelligence/core/policy-domain:intelligence-policy-domain",
     ],
 )
 
@@ -22,6 +22,6 @@ rust_test(
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
         "//audit/core/chain-domain:audit-chain-domain",
         "//intelligence/core/capability-domain:intelligence-capability-domain",
-        "//oya/intelligence/crates/oya-intelligence-policy-domain:oya-intelligence-policy-domain",
+        "//intelligence/core/policy-domain:intelligence-policy-domain",
     ],
 )

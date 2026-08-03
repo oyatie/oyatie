@@ -1,5 +1,5 @@
 //! Acceptance tests for the provider-pool composition root, grounded in the
-//! kernel's actual behaviors (`oya-intelligence-provider-pool-kernel`) +
+//! kernel's actual behaviors (`intelligence-provider-pool-kernel`) +
 //! `microservices/intelligence/PRD.md` (M02-P02 ProviderAccountPool).
 //!
 //! These drive the FULL flow through the REAL kernel — `pick_account` is
@@ -43,7 +43,7 @@ use oya_intelligence_provider_pool_app::{
     UsageSnapshot, UsageSnapshotMap, dispatch_to_pool, dispatch_to_pool_stream,
     parse_retry_after_ms_pub,
 };
-use oya_intelligence_provider_pool_kernel::DurationMs;
+use intelligence_provider_pool_kernel::DurationMs;
 
 fn pid(s: &str) -> ProviderAccountId {
     ProviderAccountId(s.to_owned())

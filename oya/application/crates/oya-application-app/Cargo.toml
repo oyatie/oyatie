@@ -14,8 +14,8 @@ oya-check-cost-budget = { path = "../../../../libs/oya-check-cost-budget" }
 oya-intelligence-evidence-domain = { path = "../../../intelligence/crates/oya-intelligence-evidence-domain" }
 oya-governance-eval-domain = { path = "../../../../libs/oya-governance-eval-domain" }
 oya-intelligence-mcp-gateway-domain = { path = "../../../intelligence/crates/oya-intelligence-mcp-gateway-domain" }
-oya-intelligence-policy-domain = { path = "../../../intelligence/crates/oya-intelligence-policy-domain" }
-oya-intelligence-run-domain = { path = "../../../intelligence/crates/oya-intelligence-run-domain" }
+intelligence-policy-domain = { path = "../../../../intelligence/core/policy-domain" }
+intelligence-run-domain = { path = "../../../../intelligence/core/run-domain" }
 intelligence-step-domain = { path = "../../../../intelligence/core/step-domain" }
 audit-chain-domain = { path = "../../../../audit/core/chain-domain" }
 cell-routing = { path = "../../../../cell/core/routing" }

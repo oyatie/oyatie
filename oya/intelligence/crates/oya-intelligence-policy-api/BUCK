@@ -7,7 +7,7 @@ rust_library(
     deps = [
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
         "//intelligence/core/capability-domain:intelligence-capability-domain",
-        "//oya/intelligence/crates/oya-intelligence-policy-domain:oya-intelligence-policy-domain",
+        "//intelligence/core/policy-domain:intelligence-policy-domain",
     ],
 )
 
@@ -21,6 +21,6 @@ rust_test(
         ":oya-intelligence-policy-api",
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
         "//intelligence/core/capability-domain:intelligence-capability-domain",
-        "//oya/intelligence/crates/oya-intelligence-policy-domain:oya-intelligence-policy-domain",
+        "//intelligence/core/policy-domain:intelligence-policy-domain",
     ],
 )
