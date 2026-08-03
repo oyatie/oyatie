@@ -78,9 +78,15 @@ fn report(raw: &Value) -> Report {
 }
 
 fn report_with_schema(raw: &Value, schema: &Value) -> Report {
+    let root = repo_root();
+    let policy = load_policy(&root, DEFAULT_POLICY_PATH).expect("read live policy");
+    report_with_policy_and_schema(raw, schema, &policy)
+}
+
+fn report_with_policy_and_schema(raw: &Value, schema: &Value, policy: &Policy) -> Report {
     let dag = parse_dag(&serde_json::to_string(raw).expect("serialize graph"))
         .expect("structurally parse graph");
-    evaluate_with_raw(&dag, raw, schema, &capability_registry())
+    evaluate_with_raw(&dag, raw, schema, &capability_registry(), policy)
 }
 
 fn graph_mut<'a>(raw: &'a mut Value, kind: &str) -> &'a mut Value {
@@ -377,7 +383,7 @@ fn live_policy_and_graph_v2_are_green() {
     assert_eq!(kinds, GRAPH_KINDS);
     let dag = parse_dag(&serde_json::to_string(&raw).expect("serialize graph"))
         .expect("structurally parse graph");
-    let evaluated = evaluate_with_raw(&dag, &raw, &schema, &registry);
+    let evaluated = evaluate_with_raw(&dag, &raw, &schema, &registry, &policy);
     assert_eq!(
         evaluated.verdict,
         Verdict::Green,
@@ -392,7 +398,8 @@ fn policy_rejects_wrong_gate_id_redirects_and_path_escapes() {
         "gate_id": GATE_ID,
         "dag_path": CANONICAL_DAG_PATH,
         "schema_path": CANONICAL_SCHEMA_PATH,
-        "capability_registry_path": CANONICAL_CAPABILITY_REGISTRY_PATH
+        "capability_registry_path": CANONICAL_CAPABILITY_REGISTRY_PATH,
+        "topology_coverage_tracking_issue": "https://github.com/example/repository/issues/42"
     });
 
     let mut wrong_gate = valid.clone();
@@ -749,6 +756,18 @@ fn composition_direction_and_required_schema_fields_are_red() {
 
 #[test]
 fn topology_follow_up_tracking_and_baseline_policy_are_fail_closed() {
+    let (live, policy) = load_live();
+    let topology_follow_up = live["mandatory_follow_ups"]
+        .as_array()
+        .expect("mandatory follow-ups")
+        .iter()
+        .find(|item| item["id"] == "W0-C-TOPOLOGY-COVERAGE")
+        .expect("topology follow-up");
+    assert_eq!(
+        topology_follow_up["tracking_issue"],
+        policy.topology_coverage_tracking_issue
+    );
+
     for mutation in [
         "drift_topology_tracking_issue",
         "drift_topology_baseline_policy",
