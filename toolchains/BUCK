@@ -4,12 +4,37 @@ load("@prelude//toolchains:genrule.bzl", "system_genrule_toolchain")
 load("@prelude//toolchains:python.bzl", "system_python_bootstrap_toolchain")
 load("@prelude//toolchains:remote_test_execution.bzl", "remote_test_execution_toolchain")
 load("@prelude//tests:test_toolchain.bzl", "noop_test_toolchain")
+load("//rust:defs.bzl", "download_rust_toolchain")
 
-# Rust 1.97.1 toolchain — pinned to match rust-toolchain.toml
-# rustc is resolved via rustup shim; PATH must include ~/.rustup/toolchains/1.97.1-aarch64-apple-darwin/bin
+# Rust 1.97.1 toolchain — pinned to match rust-toolchain.toml.
+#
+# AMBIENT path (the default): rustc is resolved via the rustup shim; PATH must include
+# ~/.rustup/toolchains/1.97.1-<host-triple>/bin. That PATH — not rustc's CONTENT — is what
+# lands in the action key, so swapping the rustup default leaves every key UNCHANGED. Under a
+# shared CAS that serves artifacts built by a different compiler as current.
 system_rust_toolchain(
-    name = "rust",
+    name = "rust-system",
     default_edition = "2024",
+    visibility = ["PUBLIC"],
+)
+
+# HERMETIC path: rustc/rust-std/clippy arrive as sha256-pinned static.rust-lang.org tarballs
+# whose digests ARE action-key inputs. Same upstream 1.97.1 build rustup installs, so no
+# codegen change is possible; see toolchains//rust:releases.bzl.
+download_rust_toolchain(
+    name = "rust-hermetic",
+    default_edition = "2024",
+    visibility = ["PUBLIC"],
+)
+
+# DARK BY DEFAULT, exactly like toolchains//cache:cache-platform: with no overlay this
+# resolves to :rust-system and is byte-identical to the ambient toolchain this repo has always
+# used. Only infra/ci/buckconfig/hermetic-rust.buckconfig sets [oya_toolchain] rust = hermetic,
+# so the root .buckconfig stays clean and rollback is "stop passing --config-file". An
+# unrecognized value fails loud as an unknown target rather than silently falling back.
+toolchain_alias(
+    name = "rust",
+    actual = ":rust-" + read_root_config("oya_toolchain", "rust", "system"),
     visibility = ["PUBLIC"],
 )
 
