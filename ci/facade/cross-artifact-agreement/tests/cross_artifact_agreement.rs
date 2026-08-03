@@ -12,7 +12,8 @@ use std::process::Command;
 
 use ci_cross_artifact_agreement::{
     AdrDecisionRecord, GateCoverageBaseline, RatchetReport, RawHistoryOnlyRetirementReceipt,
-    Verdict, derive_masterplan_md_projection, evaluate, evaluate_adr_index_projection_parity,
+    Verdict, adr_records_from_decisions_json as adr_records_from_decisions_json_api,
+    derive_masterplan_md_projection, evaluate, evaluate_adr_index_projection_parity,
     evaluate_adr_prose_frontmatter_status,
     evaluate_and_project_history_only_retirement_facts_with_control_plane,
     evaluate_masterplan_plan_evidence_crosscheck, evaluate_masterplan_projection_rederivation,
@@ -2526,40 +2527,8 @@ fn registry_derived_policy_sync_is_advisory_clean_on_live_tree() {
 // --- Check 3/3: generated ADR-index projection parity -----------------------
 
 fn adr_records_from_decisions_json(decisions: &Value) -> Vec<AdrDecisionRecord> {
-    let mut records = Vec::new();
-    for entry in decisions["decisions"].as_array().expect("decisions array") {
-        let str_field = |field: &str| -> String {
-            entry[field]
-                .as_str()
-                .unwrap_or_else(|| panic!("decisions.json entry missing string field {field}"))
-                .to_owned()
-        };
-        let str_list = |field: &str| -> Vec<String> {
-            entry[field]
-                .as_array()
-                .map(|items| {
-                    items
-                        .iter()
-                        .filter_map(Value::as_str)
-                        .map(str::to_owned)
-                        .collect()
-                })
-                .unwrap_or_default()
-        };
-        records.push(AdrDecisionRecord {
-            number: u16::try_from(entry["number"].as_u64().expect("number")).expect("number u16"),
-            id: str_field("adr"),
-            title: str_field("title"),
-            status: str_field("status"),
-            owner: str_field("owner"),
-            date: str_field("date"),
-            path: str_field("path"),
-            supersedes: str_list("supersedes"),
-            superseded_by: str_list("superseded_by"),
-            related: str_list("related"),
-        });
-    }
-    records
+    adr_records_from_decisions_json_api(decisions)
+        .unwrap_or_else(|error| panic!("decode decisions.json records: {error:?}"))
 }
 
 /// Sub-check 3/3 born-advisory over the live tree: docs/ADR-INDEX.md and
@@ -2597,6 +2566,66 @@ fn adr_index_projection_parity_is_advisory_clean_on_live_tree() {
     );
     let report = ratchet(&findings, &gate_coverage_baseline(&root));
     assert_ratchet_clean(&report, "adr_index_projection_stale");
+}
+
+/// ACCEPTANCE: the exposed emitter reproduces BOTH committed projection faces
+/// byte-for-byte from the live `docs/machine-readable/decisions.json` record
+/// array. This is what makes the projection emittable rather than hand-editable:
+/// the nine derived surfaces (Total / Numbering / Next / StatusCounts /
+/// table-rows / next-available / sources-scanned / `_metadata` / gaps) come back
+/// identical to the committed bytes, so an author edits only `decisions[]` and
+/// regenerates the rest. Byte-identity — not normalized equality — is asserted,
+/// because these two paths are committed merge surfaces.
+#[test]
+fn the_adr_index_emitter_reproduces_both_committed_faces_byte_for_byte() {
+    let root = repo_root();
+    let decisions = load_json(&root.join("docs/machine-readable/decisions.json"));
+
+    let regenerated = ci_cross_artifact_agreement::regenerate_adr_index_projection(&decisions)
+        .expect("live decisions.json regenerates both projection faces");
+
+    // Corpus FLOOR: a collector that silently read an empty/partial record set
+    // would otherwise render two tiny faces and "prove" nothing.
+    assert!(
+        regenerated.report.records > 400,
+        "the emitter must render the real corpus, not a subset: {} records",
+        regenerated.report.records
+    );
+
+    for (path, emitted) in [
+        ("docs/ADR-INDEX.md", &regenerated.markdown),
+        (
+            "docs/machine-readable/decisions.json",
+            &regenerated.json,
+        ),
+    ] {
+        let committed = fs::read_to_string(root.join(path))
+            .unwrap_or_else(|error| panic!("read {path}: {error}"));
+        let first_divergence = committed
+            .lines()
+            .zip(emitted.lines())
+            .enumerate()
+            .find(|(_, (committed_line, emitted_line))| committed_line != emitted_line)
+            .map(|(row, (committed_line, emitted_line))| {
+                format!(
+                    "row {}:\n  committed: {committed_line}\n  emitted:   {emitted_line}",
+                    row + 1
+                )
+            })
+            .unwrap_or_else(|| {
+                format!(
+                    "line-count divergence: committed {} vs emitted {}",
+                    committed.lines().count(),
+                    emitted.lines().count()
+                )
+            });
+        assert_eq!(
+            &committed, emitted,
+            "{path} is not byte-identical to its regeneration; regenerate it through \
+             regenerate_adr_index_projection instead of hand-editing. First divergence — \
+             {first_divergence}"
+        );
+    }
 }
 
 /// The frozen baseline must stay well-formed and, at birth, EMPTY — the three
