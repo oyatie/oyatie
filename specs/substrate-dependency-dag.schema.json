@@ -83,11 +83,11 @@
     },
     "mandatory_follow_ups": {
       "type": "array",
-      "minItems": 2,
+      "minItems": 3,
       "items": {
         "$ref": "#/$defs/follow_up"
       },
-      "maxItems": 2,
+      "maxItems": 3,
       "uniqueItems": true
     }
   },
@@ -458,7 +458,8 @@
         "id": {
           "enum": [
             "W0-C-MODULE-MEMBERSHIP",
-            "W0-C-LAYER-RANKS"
+            "W0-C-LAYER-RANKS",
+            "W0-C-TOPOLOGY-COVERAGE"
           ]
         },
         "status": {

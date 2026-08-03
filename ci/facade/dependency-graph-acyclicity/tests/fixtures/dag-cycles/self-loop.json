@@ -1,5 +1,7 @@
 {
   "_comment": "RED fixture: a self-loop a->a (a 1-cycle). The validator MUST reject it (dag_cycle).",
+  "_lifecycle": "retired-inert-v1-compatibility-only",
+  "_successor": "../graph-v2-cases.json",
   "version": "1.0.0",
   "doctrine_adr": "ADR-0280",
   "nodes": [

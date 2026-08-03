@@ -46,13 +46,13 @@ stopped protecting runtime requests.
 
 ### D1 — `dependency_units` are `runtime_face`-qualified
 
-`specs/substrate-dependency-dag.json` v2 declares exactly 19 unique, closed `dependency_units`. A
-unit id combines a canonical capability and its founder-locked `runtime_face`, for example
+`specs/substrate-dependency-dag.json` v2 declares exactly 19 unique, closed `dependency_units` in
+the bounded W0-C topology slice. A unit id combines a canonical capability and its founder-locked `runtime_face`, for example
 `cell.envelope`, `cell.lifecycle.cp`, `iam.local-verifier`, or `policy.authoring.cp`. Every unit
 declares a capability from the closed 24-capability registry, its `runtime_face`, and one of the
 internal planes `B0`, `C0`, `C1`, `C2`, `G`, or `R`.
 
-The validator compares the document to the exact founder-authoritative closed set of 19
+The validator compares the document to the exact founder-authoritative closed W0-C set of 19
 `(id, capability, runtime_face, plane)` tuples. Shape-valid substitutions, renamed faces, and
 consistently rewired replacement units are contract drift and fail closed rather than silently
 creating a nineteenth alternative topology.
@@ -61,6 +61,15 @@ A unit is a topology endpoint, not a new capability and not a repository module.
 24-capability membership from ADR-0562/0615 is unchanged. E0 integrity and genesis roots are
 declared separately as `external_anchors`; they are valid topology endpoints but are not falsely
 classified as capabilities or counted among the 19 dependency units.
+
+The 19 units cover these 11 capabilities only: `network`, `cell`, `iam`, `tenancy`, `policy`,
+`secrets`, `audit`, `observability`, `data`, `intelligence`, and `workflow`. The following 13
+registry capabilities are deliberately not represented in this bounded slice: `storage`,
+`compute`, `k8s`, `gateway`, `messaging`, `ci`, `iac`, `billing`, `marketplace`, `console`,
+`compliance`, `comms`, and `flags`. The B0 hosting chain is likewise incomplete: v2 includes
+`network.bootstrap` and `cell.envelope`, but not `compute.bootstrap`, `storage.bootstrap`, or
+`k8s.bootstrap`. Therefore this artifact is canonical for the tuples and edges it declares, but it
+does **not** claim full 24-capability or complete B0-hosting parity with ADR-0280 §D-13.G.
 
 ### D2 — exactly five graph kinds
 
@@ -117,21 +126,28 @@ ranges, and types all fail closed, including a rejecting `{"not": {}}` replaceme
 The existing `dependency-graph-acyclicity` Buck targets keep their names and reject missing/extra
 graph kinds, 18/20-unit drift, any deviation from the exact 19 tuples, duplicate or unknown units,
 unknown capabilities or endpoints, missing `runtime_face`, cross-kind contamination, graph-3
-self-loops and cycles, request weights outside `(0, 1]`, malformed request or failure metadata, and
-any missing, extra, forward, or incorrectly composed failure closure edge. The gate declares the
-graph, schema, and capability registry as Buck resources. Executable fixture-driven tests prove
-those RED classes and prove reverse directions outside graph 3 plus the exact closure remain GREEN.
+self-loops, two/three-node cycles, and a buried six-node SCC, request weights outside `(0, 1]`,
+present forbidden edges, invalid bootstrap orders, malformed request or failure metadata, policy
+gate-ID/path escapes, and any missing, extra, forward, or incorrectly composed failure closure
+edge. The gate declares the graph, schema, and capability registry as Buck resources. Executable
+fixture-driven tests prove those RED classes, deterministic Kahn ordering, a valid nonalphabetical
+bootstrap order, reverse directions outside graph 3, and the exact closure remain GREEN.
 
 ### D6 — mandatory follow-ups, no new baselines
 
-This slice does **not** migrate module-membership consumers or layer-rank projections. Both are
-recorded in the contract as mandatory follow-ups:
+This slice does **not** migrate module-membership consumers or layer-rank projections and does not
+complete the 24-capability/B0 topology. All three are recorded in the contract as mandatory
+follow-ups:
 
 - `W0-C-MODULE-MEMBERSHIP`
 - `W0-C-LAYER-RANKS`
+- `W0-C-TOPOLOGY-COVERAGE` ([GitHub #1537](https://github.com/jason931225/oyatie/issues/1537))
 
-Neither follow-up may mint a new frozen baseline. Existing debt must be preserved only through the
-current merge-base/controller-derived mechanisms until the consumer migrates.
+No follow-up may mint a new frozen baseline. `W0-C-TOPOLOGY-COVERAGE` must first ratify the exact
+face tuples and typed edges for the 13 omitted capabilities and the missing B0 hosting-chain units,
+then update the graph, its derived failure closure, and any current projection atomically. Existing
+debt must be preserved only through the current merge-base/controller-derived mechanisms until the
+consumer migrates.
 
 ## Consequences
 
@@ -142,6 +158,8 @@ current merge-base/controller-derived mechanisms until the consumer migrates.
 - Existing v1 consumers that read top-level `nodes` or `edges` must migrate to the graph-v2 contract;
   those migrations are follow-up work, not silently bundled here.
 - Capability membership and repository placement remain unchanged.
+- Full 24-capability and B0-hosting parity remains explicitly unclaimed until
+  `W0-C-TOPOLOGY-COVERAGE` lands with reviewed topology and no new baseline.
 
 ## Alternatives considered
 

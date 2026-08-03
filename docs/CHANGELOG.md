@@ -5,6 +5,24 @@ doc_status: published
 
 # Changelog
 
+## 2026-08-03 — ADR-0635 bounded graph-v2 authority repair
+
+- Restored graph-v2 regression coverage for self-loop, two-node, three-node, and buried six-node
+  SCC cycles; present forbidden edges; invalid bootstrap ordering; deterministic Kahn output;
+  valid nonalphabetical topology; wrong gate IDs; and parent/absolute policy-path escapes.
+- Retired the standalone v1 cycle fixtures after adapting their failure classes into the
+  live-document graph-v2 mutation corpus. Their bytes remain explicitly marked inert only for the
+  baseline producer's merge-base path replay; no gate loads them.
+- Dispositioned ADR-0280 §D-13.G as a 24-capability target model rather than current coverage,
+  enumerated the 13 omitted capabilities and missing B0 hosting-chain faces, and bound completion
+  to `W0-C-TOPOLOGY-COVERAGE` ([#1537](https://github.com/jason931225/oyatie/issues/1537))
+  without a new frozen baseline.
+- Marked `specs/platform-architecture.json`'s v1 topology block stale with
+  `current_parity_claim: false`; `/specs/substrate-dependency-dag.json` remains the sole current
+  machine topology authority for its bounded 19-unit/11-capability slice.
+- ADRs cited: ADR-0280, ADR-0562, ADR-0615, ADR-0635.
+- Protected admission and post-merge completion evidence remain pending.
+
 ## 2026-07-24 — ADR-0624 Accepted immutable ADR census epoch transition
 
 - **doc.adr_index** (Tier 1, added): accepted the four-step protected merge train
