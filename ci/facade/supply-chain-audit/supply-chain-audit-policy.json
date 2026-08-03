@@ -1,8 +1,12 @@
 {
-  "_comment": "cloud-ci-supply-chain-audit gate policy (owned RustSec advisory scan; replaces the reverted #974 shell cargo-audit/deny). R0 pack-shaped DATA — the Rust engine is neutral. The gate matches the workspace Cargo.lock against a VENDORED, content-addressed RustSec advisory snapshot (advisory-mirror/{advisories.json,mirror-manifest.json}, produced by libs/oya-advisory-mirror-kernel from a pinned rustsec/advisory-db checkout). A locked crate is affected by an advisory iff its semver Version satisfies NO patched and NO unaffected VersionReq. Security advisories block as SCA-VULN; unmaintained advisories block as SCA-UNMAINTAINED (gated by unmaintained_policy=all). The mirror is integrity-checked (content_hash + count) to fail closed against a truncated/desynced snapshot (SCA-MIRROR-MALFORMED/SCA-MIRROR-UNDERFLOW). No shell, no network, no clock — the network/clock-bearing refresh is a separate owned reconciler (deferred Slice D). The three time-boxed ignores below moved here from the reverted #974 deny.toml [advisories].ignore; the unmaintained=all posture moved from deny.toml [advisories].unmaintained. The ignore list is SHRINK-ONLY (run the gate binary --write to drop stale entries via SCA-STALE-IGNORE); a new affected advisory must be FIXED, never auto-ignored.",
+  "_comment": "cloud-ci-supply-chain-audit gate policy (owned RustSec advisory scan; replaces the reverted #974 shell cargo-audit/deny). R0 pack-shaped DATA — the Rust engine is neutral. The gate matches EVERY workspace Cargo.lock listed in lockfile_path (this repo has three: the root workspace plus the ADR-0512 kernel/ and cloud/cloud-kernel/ carve-outs, which are in the root Cargo.toml `exclude` and therefore have their own locks) against a VENDORED, content-addressed RustSec advisory snapshot (advisory-mirror/{advisories.json,mirror-manifest.json}, produced by libs/oya-advisory-mirror-kernel from a pinned rustsec/advisory-db checkout). A locked crate is affected by an advisory iff its semver Version satisfies NO patched and NO unaffected VersionReq. Security advisories block as SCA-VULN; unmaintained advisories block as SCA-UNMAINTAINED (gated by unmaintained_policy=all). The mirror is integrity-checked (content_hash + count) to fail closed against a truncated/desynced snapshot (SCA-MIRROR-MALFORMED/SCA-MIRROR-UNDERFLOW). No shell, no network, no clock — the network/clock-bearing refresh is a separate owned reconciler (deferred Slice D). The three time-boxed ignores below moved here from the reverted #974 deny.toml [advisories].ignore; the unmaintained=all posture moved from deny.toml [advisories].unmaintained. The ignore list is SHRINK-ONLY (run the gate binary --write to drop stale entries via SCA-STALE-IGNORE); a new affected advisory must be FIXED, never auto-ignored.",
   "gate_id": "cloud-ci-supply-chain-audit",
   "schema_version": "1.0.0",
-  "lockfile_path": "Cargo.lock",
+  "lockfile_path": [
+    "Cargo.lock",
+    "kernel/Cargo.lock",
+    "cloud/cloud-kernel/Cargo.lock"
+  ],
   "mirror_dir": "ci/facade/supply-chain-audit/advisory-mirror",
   "unmaintained_policy": "all",
   "min_advisories": 1000,
@@ -27,8 +31,8 @@
     }
   ],
   "product_contract": {
-    "born_blocking": "Born-blocking: matches the live Cargo.lock against the committed advisory mirror. Green today because quinn-proto is on the patched 0.11.15 and the only other live affected advisories are the three unmaintained ids in ignore[]. Any NEW affected security advisory (or a new unmaintained crate) blocks.",
-    "pack_shaped": "Neutral engine; every repo-specific is DATA in this file + the vendored mirror. A different repo adopts the gate by repointing lockfile_path/mirror_dir and revendoring.",
+    "born_blocking": "Born-blocking: matches the union of all three live Cargo.locks against the committed advisory mirror. Green today because quinn-proto is on the patched 0.11.15, no carve-out-only crate version is affected (verified: aws-lc-sys 0.42.0 in kernel/ satisfies the patched range of RUSTSEC-2026-0044..0048), and the only other live affected advisories are the three unmaintained ids in ignore[]. Any NEW affected security advisory (or a new unmaintained crate) in ANY of the three workspaces blocks.",
+    "pack_shaped": "Neutral engine; every repo-specific is DATA in this file + the vendored mirror. A different repo adopts the gate by repointing lockfile_path/mirror_dir and revendoring; lockfile_path takes EITHER a single path string (a one-workspace repo) or a list (a repo with carve-out workspaces), and the locked corpus is their union with every finding naming its source lockfile.",
     "hermetic": "Pure Rust predicate: serde_json + toml + semver only (no rustsec/git2/libgit2, no shell, no network, no clock). Deterministic + buck2-cacheable. Mirror integrity (content_hash + count + min floor) fails closed against a vacuously-green truncated snapshot.",
     "remediation_doctrine": "Upgrade the affected crate to a patched version, or — for an unmaintained dep with no maintained drop-in — add a time-boxed ignore[] entry with reason/pull_chain/remove_by."
   }
