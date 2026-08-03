@@ -1,0 +1,20 @@
+[package]
+name = "intelligence-run-file-adapter"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+intelligence-capability-domain = { path = "../../core/capability-domain" }
+oya-intelligence-run-domain = { path = "../../../oya/intelligence/crates/oya-intelligence-run-domain" }
+oya-data-boundary-kernel = { path = "../../../libs/oya-data-boundary-kernel" }
+
+[lib]
+name = "intelligence_run_file_adapter"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

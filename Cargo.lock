@@ -4465,6 +4465,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "intelligence-account-adapter-inmemory"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-account-domain",
+]
+
+[[package]]
 name = "intelligence-account-kernel"
 version = "0.1.0"
 
@@ -4628,6 +4635,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "intelligence-jsonl-supervisor-adapter"
+version = "0.1.0"
+dependencies = [
+ "oya-intelligence-supervisor-kernel",
+ "tempfile",
+]
+
+[[package]]
 name = "intelligence-kernel"
 version = "0.1.0"
 dependencies = [
@@ -4645,6 +4660,22 @@ version = "0.1.0"
 [[package]]
 name = "intelligence-mdbook-kernel"
 version = "0.1.0"
+
+[[package]]
+name = "intelligence-openai-subscription-adapter"
+version = "0.1.0"
+dependencies = [
+ "bytes",
+ "http-body-util",
+ "hyper 1.10.0",
+ "hyper-util",
+ "intelligence-account-kernel",
+ "oya-intelligence-account-domain",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+]
 
 [[package]]
 name = "intelligence-openapi-domain"
@@ -4698,9 +4729,37 @@ dependencies = [
 ]
 
 [[package]]
+name = "intelligence-run-file-adapter"
+version = "0.1.0"
+dependencies = [
+ "intelligence-capability-domain",
+ "oya-data-boundary-kernel",
+ "oya-intelligence-run-domain",
+]
+
+[[package]]
+name = "intelligence-settings-template-adapter"
+version = "0.1.0"
+dependencies = [
+ "blake3",
+ "intelligence-account-kernel",
+ "libc",
+ "oya-intelligence-account-domain",
+ "oya-intelligence-settings-template-kernel",
+]
+
+[[package]]
 name = "intelligence-step-domain"
 version = "0.1.0"
 dependencies = [
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "intelligence-step-file-adapter"
+version = "0.1.0"
+dependencies = [
+ "intelligence-step-domain",
  "oya-data-boundary-kernel",
 ]
 
@@ -5736,7 +5795,9 @@ dependencies = [
  "intelligence-catalog-domain",
  "intelligence-mdbook-domain",
  "intelligence-openapi-domain",
+ "intelligence-run-file-adapter",
  "intelligence-step-domain",
+ "intelligence-step-file-adapter",
  "messaging-domain",
  "messaging-file-adapter",
  "oya-application-app",
@@ -5814,8 +5875,6 @@ dependencies = [
  "oya-intelligence-bypass-domain",
  "oya-intelligence-evidence-file-adapter",
  "oya-intelligence-run-domain",
- "oya-intelligence-run-file-adapter",
- "oya-intelligence-step-file-adapter",
  "oya-workspace-members-kernel",
  "secrets-domain",
  "secrets-file",
@@ -8023,13 +8082,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-intelligence-account-adapter-inmemory"
-version = "0.1.0"
-dependencies = [
- "oya-intelligence-account-domain",
-]
-
-[[package]]
 name = "oya-intelligence-account-domain"
 version = "0.1.0"
 dependencies = [
@@ -8073,22 +8125,6 @@ dependencies = [
  "oya-http-router-kernel",
  "oya-http-sse-kernel",
  "oya-intelligence-provider-pool-kernel",
-]
-
-[[package]]
-name = "oya-intelligence-adapter-openai-subscription-adapter"
-version = "0.1.0"
-dependencies = [
- "bytes",
- "http-body-util",
- "hyper 1.10.0",
- "hyper-util",
- "intelligence-account-kernel",
- "oya-intelligence-account-domain",
- "serde",
- "serde_json",
- "tokio",
- "tracing",
 ]
 
 [[package]]
@@ -8541,14 +8577,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-intelligence-jsonl-supervisor-adapter"
-version = "0.1.0"
-dependencies = [
- "oya-intelligence-supervisor-kernel",
- "tempfile",
-]
-
-[[package]]
 name = "oya-intelligence-mcp-gateway-domain"
 version = "0.1.0"
 dependencies = [
@@ -8701,39 +8729,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-intelligence-run-file-adapter"
-version = "0.1.0"
-dependencies = [
- "intelligence-capability-domain",
- "oya-data-boundary-kernel",
- "oya-intelligence-run-domain",
-]
-
-[[package]]
-name = "oya-intelligence-settings-template-adapter"
-version = "0.1.0"
-dependencies = [
- "blake3",
- "intelligence-account-kernel",
- "libc",
- "oya-intelligence-account-domain",
- "oya-intelligence-settings-template-kernel",
-]
-
-[[package]]
 name = "oya-intelligence-settings-template-kernel"
 version = "0.1.0"
 dependencies = [
  "intelligence-account-kernel",
  "oya-intelligence-account-domain",
-]
-
-[[package]]
-name = "oya-intelligence-step-file-adapter"
-version = "0.1.0"
-dependencies = [
- "intelligence-step-domain",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -8764,15 +8764,15 @@ dependencies = [
 name = "oya-intelligence-supervisor-app"
 version = "0.1.0"
 dependencies = [
- "oya-intelligence-account-adapter-inmemory",
+ "intelligence-account-adapter-inmemory",
+ "intelligence-jsonl-supervisor-adapter",
+ "intelligence-settings-template-adapter",
  "oya-intelligence-account-domain",
  "oya-intelligence-autonomy-ceiling-domain",
  "oya-intelligence-claude-account-adapter",
  "oya-intelligence-codex-account-adapter",
  "oya-intelligence-gemini-account-adapter",
- "oya-intelligence-jsonl-supervisor-adapter",
  "oya-intelligence-route-policy-kernel",
- "oya-intelligence-settings-template-adapter",
  "oya-intelligence-settings-template-kernel",
  "oya-intelligence-supervisor-kernel",
  "oya-intelligence-supervisor-security-adapter",

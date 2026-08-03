@@ -15,8 +15,8 @@ L1: Kernel           ← oya-intelligence-supervisor-kernel (port traits)
 
 L2-L3: (reserved)
 
-L4: Adapter          ← oya-intelligence-jsonl-supervisor-adapter (InboxStore, OutboxSink)
-     ← oya-intelligence-settings-template-adapter (SettingsRenderer)
+L4: Adapter          ← intelligence-jsonl-supervisor-adapter (InboxStore, OutboxSink)
+     ← intelligence-settings-template-adapter (SettingsRenderer)
      ← oya-intelligence-account-adapter-{claude,codex,gemini} (SessionDriver)
 
 L5: Application      ← oya-intelligence-supervisor-app (THIS CRATE)

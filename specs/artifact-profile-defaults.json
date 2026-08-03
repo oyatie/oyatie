@@ -1037,7 +1037,7 @@
         "rust-crate"
       ],
       "examples": [
-        "crates/oya-intelligence-settings-template-adapter/src/lib.rs"
+        "intelligence/adapters/settings-template-adapter/src/lib.rs"
       ],
       "default_capabilities": {
         "enforcement": {

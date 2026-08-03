@@ -1,7 +1,7 @@
 rust_library(
-    name = "oya-intelligence-adapter-openai-subscription-adapter",
+    name = "intelligence-openai-subscription-adapter",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
-    crate = "oya_intelligence_adapter_openai_subscription_adapter",
+    crate = "intelligence_openai_subscription_adapter",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
@@ -20,9 +20,9 @@ rust_library(
 )
 
 rust_test(
-    name = "oya-intelligence-adapter-openai-subscription-adapter-unittest",
+    name = "intelligence-openai-subscription-adapter-unittest",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
-    crate = "oya_intelligence_adapter_openai_subscription_adapter",
+    crate = "intelligence_openai_subscription_adapter",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
@@ -41,13 +41,13 @@ rust_test(
 )
 
 rust_test(
-    name = "oya-intelligence-adapter-openai-subscription-adapter-key-pool-integration",
+    name = "intelligence-openai-subscription-adapter-key-pool-integration",
     srcs = ["tests/key_pool_integration.rs"],
-    crate = "oya_intelligence_adapter_openai_subscription_adapter_key_pool_integration",
+    crate = "intelligence_openai_subscription_adapter_key_pool_integration",
     crate_root = "tests/key_pool_integration.rs",
     visibility = ["PUBLIC"],
     deps = [
-        ":oya-intelligence-adapter-openai-subscription-adapter",
+        ":intelligence-openai-subscription-adapter",
         "//oya/intelligence/crates/oya-intelligence-account-domain:oya-intelligence-account-domain",
         "//intelligence/core/account-kernel:intelligence-account-kernel",
         "third-party//:bytes",
