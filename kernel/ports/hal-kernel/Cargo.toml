@@ -1,17 +1,17 @@
 [package]
-name = "oya-cloud-kernel-hal-kernel"
-version.workspace = true
-rust-version.workspace = true
-edition.workspace = true
-license.workspace = true
-authors.workspace = true
-repository.workspace = true
+name = "kernel-hal-kernel"
+# NOT inherited from kernel/'s [workspace.package] (0.1.0 / 2024 / 1.97.1): cloud/cloud-kernel
+# also path-deps this crate and builds it on the pinned nightly-2026-02-28, below that MSRV floor.
+version = "0.0.1"
+edition = "2021"
+rust-version = "1.85"
+license = "MIT OR Apache-2.0"
 publish = false
 description = "Architecture HAL: pure, safe trait definitions implemented by each arch backend."
 
 [package.metadata.oya]
-microservice = "cloud-kernel"
-bounded_context = "cloud-kernel"
+microservice = "kernel"
+bounded_context = "kernel"
 kind = "shared"
 layer = "kernel"
 owner_team = "axis-cloud-platform"
@@ -20,6 +20,3 @@ adr_anchors = ["ADR-0512", "ADR-0520", "ADR-0536", "ADR-0562", "ADR-0547"]
 design_non_claim = "scaffold_only_no_module_build_boot_artifact_or_runtime_readiness_claim"
 
 [dependencies]
-
-[lints]
-workspace = true

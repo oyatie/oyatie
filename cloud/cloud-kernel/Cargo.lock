@@ -82,6 +82,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "kernel-hal-kernel"
+version = "0.0.1"
+
+[[package]]
 name = "lazy_static"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -164,10 +168,10 @@ checksum = "9f7c3e4beb33f85d45ae3e3a1792185706c8e16d043238c593331cc7cd313b50"
 name = "oya-cloud-kernel-app"
 version = "0.0.1"
 dependencies = [
+ "kernel-hal-kernel",
  "oya-cloud-kernel-arch-aarch64-adapter",
  "oya-cloud-kernel-arch-x86-64-adapter",
  "oya-cloud-kernel-frame-kernel",
- "oya-cloud-kernel-hal-kernel",
 ]
 
 [[package]]
@@ -175,8 +179,8 @@ name = "oya-cloud-kernel-arch-aarch64-adapter"
 version = "0.0.1"
 dependencies = [
  "aarch64-cpu",
+ "kernel-hal-kernel",
  "linked_list_allocator",
- "oya-cloud-kernel-hal-kernel",
  "oya-cloud-kernel-ksync-kernel",
  "oya-cloud-kernel-user-layout-kernel",
  "tock-registers",
@@ -186,8 +190,8 @@ dependencies = [
 name = "oya-cloud-kernel-arch-x86-64-adapter"
 version = "0.0.1"
 dependencies = [
+ "kernel-hal-kernel",
  "linked_list_allocator",
- "oya-cloud-kernel-hal-kernel",
  "oya-cloud-kernel-ksync-kernel",
  "oya-cloud-kernel-user-layout-kernel",
  "pic8259",
@@ -200,12 +204,8 @@ dependencies = [
 name = "oya-cloud-kernel-frame-kernel"
 version = "0.0.1"
 dependencies = [
- "oya-cloud-kernel-hal-kernel",
+ "kernel-hal-kernel",
 ]
-
-[[package]]
-name = "oya-cloud-kernel-hal-kernel"
-version = "0.0.1"
 
 [[package]]
 name = "oya-cloud-kernel-ksync-kernel"

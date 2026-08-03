@@ -11,7 +11,6 @@
 resolver = "2"
 members = [
     "crates/oya-cloud-kernel-app",
-    "crates/oya-cloud-kernel-hal-kernel",
     "crates/oya-cloud-kernel-arch-aarch64-adapter",
     "crates/oya-cloud-kernel-arch-x86-64-adapter",
     "crates/oya-cloud-kernel-frame-kernel",
@@ -66,8 +65,10 @@ unexpected_cfgs = { level = "allow", check-cfg = ['cfg(loom)'] }
 # Internal crates (path deps within the workspace). The dependency KEYS keep the
 # kernel's original short crate handles (hal/frame/arch-*/user_layout) so the
 # source tree's `use` paths are untouched by the monorepo rename; `package = `
-# maps each handle onto the conformant oya-cloud-kernel-* package.
-hal = { package = "oya-cloud-kernel-hal-kernel", path = "crates/oya-cloud-kernel-hal-kernel" }
+# maps each handle onto its conformant package name.
+# `hal` is homed at kernel/ports/hal-kernel (ADR-0562) and so belongs to kernel/'s own nested
+# workspace; a cross-workspace path dep still builds here under this workspace's .cargo/config.toml.
+hal = { package = "kernel-hal-kernel", path = "../../kernel/ports/hal-kernel" }
 frame = { package = "oya-cloud-kernel-frame-kernel", path = "crates/oya-cloud-kernel-frame-kernel" }
 arch-aarch64 = { package = "oya-cloud-kernel-arch-aarch64-adapter", path = "crates/oya-cloud-kernel-arch-aarch64-adapter" }
 arch-x86_64 = { package = "oya-cloud-kernel-arch-x86-64-adapter", path = "crates/oya-cloud-kernel-arch-x86-64-adapter" }

@@ -7,6 +7,6 @@ rust_library(
     edition = "2021",
     visibility = ["PUBLIC"],
     named_deps = {
-        "hal": "//cloud/cloud-kernel/crates/oya-cloud-kernel-hal-kernel:oya-cloud-kernel-hal-kernel",
+        "hal": "//kernel/ports/hal-kernel:kernel-hal-kernel",
     },
 )
