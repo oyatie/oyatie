@@ -483,7 +483,7 @@ fn require_non_empty_named(value: &str, error: SqlCommandError) -> Result<(), Sq
 /// apply migration SQL MUST import this function rather than maintain their own
 /// copy (the dollar-blind copies in the original tenancy/SCIM live tests were
 /// the review BLOCKER caught in #801). The outbox adapter
-/// (`oya-data-outbox-adapter-postgres`) now imports this function rather than
+/// (`data-outbox-adapter-postgres`) now imports this function rather than
 /// keeping its own copy (its last divergent copy was deduped in #115), so a
 /// dollar-quote-blind splitter is structurally impossible to reintroduce.
 pub fn split_migration_statements(migration: &str) -> Vec<String> {

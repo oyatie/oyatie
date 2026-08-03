@@ -23,7 +23,7 @@
 //! exercises real Postgres RLS cross-tenant denial against the PRODUCTION
 //! policy set (run AS the `oya_data_outbox_runtime` role, NOT PUBLIC, asserted
 //! NOBYPASSRLS) and stream-position-ordered resumable polling against a
-//! containerized database, mirroring the `oya-data-sql-adapter-sqlx`
+//! containerized database, mirroring the `data-sql-adapter-sqlx`
 //! live-probe pattern.
 // ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
