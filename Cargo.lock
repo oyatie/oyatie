@@ -1279,6 +1279,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "ci-crate-reference-integrity"
+version = "0.1.0"
+dependencies = [
+ "oya-workspace-members-kernel",
+ "serde_json",
+ "serde_yaml",
+]
+
+[[package]]
 name = "ci-crate-registration"
 version = "0.1.0"
 dependencies = [
