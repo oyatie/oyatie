@@ -380,11 +380,17 @@ fn render_integration_stanza(
 ) -> String {
     let mut deps = vec![format!(":{}", library.name)];
     deps.extend(library.deps.iter().cloned());
+    // `srcs` must carry the crate's data files, not just the .rs crate root: an integration
+    // test that `include_str!("../testdata/x.yaml")` fails to COMPILE when the fixture is not
+    // in `srcs` ("couldn't read ...: No such file or directory"). Reusing the library's own
+    // srcs expression is exactly the set the crate already declares, so the stanza inherits
+    // every fixture glob without this generator having to guess fixture directory names.
     format!(
-        "rust_test(\n    name = \"{}-{}\",\n    srcs = [\"{}\"],\n    crate = \"{}\",\n    crate_root = \"{}\",\n    visibility = [\"PUBLIC\"],\n{})\n",
+        "rust_test(\n    name = \"{}-{}\",\n    srcs = [\"{}\"] + {},\n    crate = \"{}\",\n    crate_root = \"{}\",\n    visibility = [\"PUBLIC\"],\n{})\n",
         library.name,
         target_suffix,
         test_path,
+        library.srcs_expr,
         crate_name,
         test_path,
         render_deps(&deps)
