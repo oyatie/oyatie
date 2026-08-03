@@ -1652,8 +1652,9 @@ Exit 1 on missed drill or cascade-set deviation.
 The flat total order was the correct *machine artifact* for one of the platform's dependency
 graphs — the C-plane steady-state runtime graph — but it is not the whole topology. The
 canonical substrate topology is a **face-aware, sharded, typed DAG across planes**. §D-1's
-machine artifact is retained unchanged; this section reframes what it is and adds the planes,
-graphs, face-splits, roots, and invariant that a single `bootstrap_order` list cannot encode.
+former v1 machine shape was replaced by ADR-0635's bounded graph-v2 slice; this section defines
+the target planes, graphs, face-splits, roots, and invariant that the current closed slice does not
+yet cover completely and that a single `bootstrap_order` list cannot encode.
 
 #### D-13.A. Two kinds of roots
 
