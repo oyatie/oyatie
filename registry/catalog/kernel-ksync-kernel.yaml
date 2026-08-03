@@ -1,0 +1,16 @@
+context: kernel
+role: kernel
+capability: kernel-ksync-kernel
+plane: control
+slo: cataloged-no-runtime-claim
+data_classes_owned: [INTERNAL_ONLY]
+operational_classes_owned: []
+api_stability: preview
+security_review: unreviewed
+supply_chain: source-only
+traceability:
+  source_crate: kernel/core/ksync-kernel/Cargo.toml
+non_claims:
+  - catalog row added to carry the ADR-0562 relocation of oya-cloud-kernel-ksync-kernel into kernel/core/ksync-kernel
+  - no new runtime capability implementation, module build, boot artifact or production readiness claim is made by this row
+  - security_review remains unreviewed until a code-backed review upgrades it
