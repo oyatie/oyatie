@@ -10,7 +10,7 @@ license = "Apache-2.0"
 secrets-kms-domain = { path = "../../../secrets/core/kms-domain" }
 cell-region = { path = "../../../cell/core/region" }
 compute-resource = { path = "../../../compute/core/resource" }
-oya-data-boundary-kernel = { path = "../../../libs/oya-data-boundary-kernel" }
+data-boundary-kernel = { path = "../boundary-kernel" }
 network-residency = { path = "../../../network/core/residency" }
 
 [lib]

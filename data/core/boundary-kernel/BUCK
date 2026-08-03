@@ -1,15 +1,15 @@
 rust_library(
-    name = "oya-data-boundary-kernel",
+    name = "data-boundary-kernel",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
-    crate = "oya_data_boundary_kernel",
+    crate = "data_boundary_kernel",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
 )
 
 rust_test(
-    name = "oya-data-boundary-kernel-unittest",
+    name = "data-boundary-kernel-unittest",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
-    crate = "oya_data_boundary_kernel",
+    crate = "data_boundary_kernel",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [],

@@ -2,7 +2,7 @@
 //! outbox port.
 //!
 //! Story G003 sub-slice (ADR-0536 D-10 change streams / D-13 messaging):
-//! services link the `oya-data-outbox-kernel::ChangeStreamSource` port; this
+//! services link the `data-outbox-kernel::ChangeStreamSource` port; this
 //! adapter is the ADR-0510 transitional Postgres implementation behind it.
 //! The port models the W5 engine's native changefeed with an opaque monotone
 //! `StreamPosition` checkpoint (CockroachDB changefeed / Spanner change-stream
@@ -32,8 +32,8 @@
 
 use std::env;
 
-use oya_data_outbox_kernel::{ChangeBatch, ChangeRecord, StreamPosition};
-use oya_data_sql_kernel::DataSqlError;
+use data_outbox_kernel::{ChangeBatch, ChangeRecord, StreamPosition};
+use data_sql_kernel::DataSqlError;
 use oya_shared_postgres_command_kernel::{SET_LOCAL_TENANT_SQL, split_migration_statements};
 use sqlx::pool::PoolConnectionMetadata;
 use sqlx::{PgPool, Postgres, Row, Transaction, postgres::PgPoolOptions, postgres::PgRow};
@@ -63,7 +63,7 @@ pub const LIVE_OUTBOX_POSTGRES_ADMIN_URL_ENV: &str = "OYA_OUTBOX_POSTGRES_ADMIN_
 pub const LIVE_OUTBOX_POSTGRES_APP_URL_ENV: &str = "OYA_OUTBOX_POSTGRES_APP_URL";
 
 /// The transitional Postgres implementation of the owned CDC change-stream
-/// port. Async surface mirrors `oya_data_outbox_kernel::ChangeStreamSource`
+/// port. Async surface mirrors `data_outbox_kernel::ChangeStreamSource`
 /// 1:1 (the sync kernel trait stays reserved for IO-free reference impls,
 /// matching the data SQL kernel/adapter split).
 pub struct SqlxChangeStreamSource {

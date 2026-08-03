@@ -5,7 +5,7 @@
 //! posture evidence; live DNS lookups, OpenBao key reads, cryptographic
 //! signing, and SMTP delivery remain adapter/runtime responsibilities.
 
-use oya_data_boundary_kernel::{Classified, DataClass};
+use data_boundary_kernel::{Classified, DataClass};
 
 pub const DEFAULT_DKIM_ROTATION_AGE_SECONDS: u64 = 365 * 24 * 60 * 60;
 pub const NON_CLAIM: &str = "pure domain admission guard only; no DNS lookup, crypto signing, OpenBao, SMTP, or live deliverability claim";

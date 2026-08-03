@@ -284,7 +284,7 @@ mod tests {
     };
     use compute_resource::InstanceFlavor;
     use network_residency::ResidencyClass;
-    use oya_data_boundary_kernel::DataClass;
+    use data_boundary_kernel::DataClass;
 
     const DIGEST: &str = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
 

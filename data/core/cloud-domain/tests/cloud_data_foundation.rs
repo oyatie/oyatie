@@ -3,7 +3,7 @@ use data_cloud_domain::{
     EngineShape, ManagedDataEngine, ManagedDataState, PostgresExtension, PostgresShape,
     ReplicationMode, SchemaMigrationPolicy,
 };
-use oya_data_boundary_kernel::DataClass;
+use data_boundary_kernel::DataClass;
 use network_residency::{
     PerPackResidency, PerPackResidencyCreate, RegulatorOverlay, RegulatorOverlayCreate,
     ResidencyClass,

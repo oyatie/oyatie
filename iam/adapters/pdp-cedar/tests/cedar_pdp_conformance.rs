@@ -25,7 +25,7 @@ use iam_pdp_cedar::{
     AuditChainCedarPdp, CedarPdp, PDP_DECISION_AUDIT_SURFACE, PdpAuditChainError,
     PdpDecisionAuditChainLogger,
 };
-use oya_data_boundary_kernel::{DataClass, Purpose};
+use data_boundary_kernel::{DataClass, Purpose};
 use oya_shared_pdp_kernel::{
     EntityRecord, EntitySlice, PdpError, PolicyBundle, PolicyDecisionPoint, TemplateLink,
     TemplateSrc,

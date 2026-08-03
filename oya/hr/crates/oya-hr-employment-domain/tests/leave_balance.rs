@@ -1,6 +1,6 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
-use oya_data_boundary_kernel::DataClass;
+use data_boundary_kernel::DataClass;
 use oya_hr_employment_domain::{
     HrDomainError, LeaveBalanceAccrualInput, evaluate_leave_balance_accrual,
 };

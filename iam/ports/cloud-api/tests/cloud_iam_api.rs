@@ -27,7 +27,7 @@ use iam_cloud_domain::{
     CloudIamError, IamDirectory, IamPrincipalCreate, IamPrincipalKind, IamRoleCreate,
     IdentityProviderCreate, IdentityProviderKind, MfaState,
 };
-use oya_data_boundary_kernel::DataClass;
+use data_boundary_kernel::DataClass;
 
 fn boundary_for(request_id: &str, idempotency_key: &str) -> CloudIamApiBoundaryContext {
     CloudIamApiBoundaryContext {

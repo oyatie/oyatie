@@ -5,8 +5,8 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-data-outbox-kernel:oya-data-outbox-kernel",
-        "//libs/oya-data-sql-kernel:oya-data-sql-kernel",
+        "//data/core/outbox-kernel:data-outbox-kernel",
+        "//data/core/sql-kernel:data-sql-kernel",
         "//libs/oya-shared-postgres-command-kernel:oya-shared-postgres-command-kernel",
         "third-party//:sqlx",
     ],
@@ -19,8 +19,8 @@ rust_test(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-data-outbox-kernel:oya-data-outbox-kernel",
-        "//libs/oya-data-sql-kernel:oya-data-sql-kernel",
+        "//data/core/outbox-kernel:data-outbox-kernel",
+        "//data/core/sql-kernel:data-sql-kernel",
         "//libs/oya-shared-postgres-command-kernel:oya-shared-postgres-command-kernel",
         "third-party//:sqlx",
         "third-party//:tokio",

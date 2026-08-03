@@ -2,7 +2,7 @@
 // `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
-use oya_data_boundary_kernel::{DataClass, DataClassification, Purpose};
+use data_boundary_kernel::{DataClass, DataClassification, Purpose};
 use iam_identity_domain::{
     CredentialRequest, CredentialRequestKind, IdentityError, IdpBinding, Principal, User, UserId,
     issue_credential,

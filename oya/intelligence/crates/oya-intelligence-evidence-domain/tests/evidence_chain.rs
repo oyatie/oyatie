@@ -4,7 +4,7 @@
 
 use std::collections::BTreeMap;
 
-use oya_data_boundary_kernel::{DataClass, PrivacyDataClass, privacy_data_classes_from};
+use data_boundary_kernel::{DataClass, PrivacyDataClass, privacy_data_classes_from};
 use oya_intelligence_evidence_domain::{EvidenceChain, EvidenceError, EvidenceKind};
 
 fn privacy_data_classes(data_classes: Vec<DataClass>) -> Vec<PrivacyDataClass> {

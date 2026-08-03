@@ -335,7 +335,7 @@
     },
     {
       "anchor": "ADR-0008 Data Use Boundary policy-gate ownership seed; exact-path registration keeps the non-code OWNERS artifact reachable without broadening all libs.",
-      "prefix": "libs/oya-data-boundary-kernel/OWNERS"
+      "prefix": "data/core/boundary-kernel/OWNERS"
     },
     {
       "anchor": "ADR-0538 workspace-member resolver ownership seed: the exact OWNERS marker registers narrow cloud-ci-platform stewardship for the Cargo-boundary differential fixtures without broadening all libs.",

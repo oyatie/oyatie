@@ -4,7 +4,7 @@
 //! that binds to a regional pack.  The elected vertical for M04 is
 //! `vertical-corporate` (council-resolution 2026-05-17).
 
-use oya_data_boundary_kernel::{Classified, DataClass};
+use data_boundary_kernel::{Classified, DataClass};
 
 /// Semantic version variant for a capability pack.
 ///

@@ -1,7 +1,7 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 pub mod ranking;
 pub use ranking::rank_posts;
-use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 use std::collections::BTreeSet;
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum CommunityError {
@@ -356,7 +356,7 @@ mod tests {
     }
     #[test]
     fn moderation_remove_with_evidence_tagged_audit() {
-        use oya_data_boundary_kernel::{DataClass, DataClassification, OperationalDataClass};
+        use data_boundary_kernel::{DataClass, DataClassification, OperationalDataClass};
         let result = moderation_case(
             &post(),
             ModerationAction::Remove,
@@ -386,7 +386,7 @@ mod tests {
     }
     #[test]
     fn moderation_allow_tagged_internal_only() {
-        use oya_data_boundary_kernel::{DataClass, DataClassification};
+        use data_boundary_kernel::{DataClass, DataClassification};
         let result = moderation_case(
             &post(),
             ModerationAction::Allow,
@@ -413,7 +413,7 @@ mod tests {
             "evidence".into(),
         )
         .unwrap();
-        use oya_data_boundary_kernel::{DataClass, DataClassification};
+        use data_boundary_kernel::{DataClass, DataClassification};
         assert_eq!(
             result.data_class,
             DataClassification::from(DataClass::Audit)
