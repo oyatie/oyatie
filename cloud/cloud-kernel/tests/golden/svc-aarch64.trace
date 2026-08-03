@@ -1,6 +1,0 @@
-[pid 1] syscall 172 -> 1
-[pid 1] syscall 220 -> 2
-[pid 2] syscall 172 -> 2
-[pid 2] syscall 173 -> 1
-[pid 2] syscall 172 -> 2
-[pid 2] syscall 173 -> 1

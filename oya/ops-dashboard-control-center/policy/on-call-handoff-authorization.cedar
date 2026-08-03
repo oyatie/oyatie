@@ -1,1 +1,0 @@
-cedar/on-call-handoff-authorization.cedar

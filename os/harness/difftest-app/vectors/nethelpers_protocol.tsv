@@ -1,9 +1,0 @@
-val	1	icmp
-val	6	tcp
-val	17	udp
-val	58	icmpv6
-parse	icmp	1
-parse	tcp	6
-parse	udp	17
-parse	icmpv6	58
-parse	__nope__	ERR

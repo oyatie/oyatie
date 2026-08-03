@@ -1,8 +1,0 @@
-{
-  "card_id": "MPV2-0000.C006",
-  "title": "Harvested (C004 round-1 review minor): remaining CLI usage paths (--kind, --phase, --reviewer-capacity parse failures) still surface as PlaneError text without the usage-error prefix; reroute to CliError Usage for consistency plus regression test",
-  "program_id": "P-FABRIC",
-  "depends_on": [],
-  "status": "defined",
-  "evidence_refs": []
-}

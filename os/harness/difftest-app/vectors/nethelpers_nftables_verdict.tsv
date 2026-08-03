@@ -1,5 +1,0 @@
-val	0	drop
-val	1	accept
-parse	drop	0
-parse	accept	1
-parse	__nope__	ERR

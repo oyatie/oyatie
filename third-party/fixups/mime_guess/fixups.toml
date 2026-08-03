@@ -1,3 +1,0 @@
-[buildscript]
-# Generates the crate-local MIME lookup Rust source into Buck's declared OUT_DIR.
-run = true

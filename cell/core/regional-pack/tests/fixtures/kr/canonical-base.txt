@@ -1,6 +1,0 @@
-Canonical substrate fixture. ADR-0064 requires the shared base to remain
-jurisdiction-neutral; locale-specific controls are supplied by the bound
-regional pack overlay rather than hard-coded here.
-
-canonical residency intent: tenant data stays inside the residency class
-selected by the bound regional pack.

@@ -1,9 +1,0 @@
-{
-  "subcheck_id": "registry-coverage",
-  "fixture_kind": "failing",
-  "case_id": "registry-coverage-failing-semantic-fixture",
-  "expected_diagnostics": [
-    "REGISTRY_ROW_MISSING"
-  ],
-  "description": "Semantic failing fixture manifest for registry-coverage"
-}

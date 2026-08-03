@@ -1,4 +1,0 @@
-[buildscript]
-# Emits only rerun directives today; keep the generated rule explicit and
-# future-proof if its documented capability probe begins emitting outputs.
-run = true

@@ -1,5 +1,0 @@
-val	0	off
-val	1	on
-parse	off	0
-parse	on	1
-parse	__nope__	ERR

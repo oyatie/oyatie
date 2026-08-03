@@ -1,4 +1,0 @@
-# Release image manifest consumed by ADR-0039 Trivy/Cosign/SBOM tooling.
-# release_state: pre-release
-# empty_scope_rationale: No digest-pinned release artifacts exist before a release candidate.
-images: []

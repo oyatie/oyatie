@@ -1,9 +1,0 @@
-rust_library(
-    name = "oya-cloud-kernel-hal-kernel",
-    srcs = glob(["src/**/*.rs"]),
-    crate = "oya_cloud_kernel_hal_kernel",
-    crate_root = "src/lib.rs",
-    edition = "2021",
-    visibility = ["PUBLIC"],
-    deps = [],
-)

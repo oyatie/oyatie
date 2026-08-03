@@ -1,5 +1,0 @@
-Regional-pack fixture logic: explicit KR-only controls stay in the pack layer.
-
-pack id: kr-seoul
-regulatory controls: PIPA, KISA, CSAP
-pack scope: packs/kr

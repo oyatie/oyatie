@@ -1,5 +1,0 @@
-val	0	slow
-val	1	fast
-parse	slow	0
-parse	fast	1
-parse	__nope__	ERR
