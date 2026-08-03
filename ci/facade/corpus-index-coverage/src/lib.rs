@@ -29,6 +29,10 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
+use std::collections::{BTreeMap, BTreeSet};
+use std::fmt;
+
+use oya_buck_syntax_kernel::{CallExpr, Expr, Stmt, glob_match, parse};
 use serde::{Deserialize, Serialize};
 
 /// The gate's stable identifier.
@@ -56,6 +60,400 @@ pub const CODE_UNPACKAGED_REGRESSION: &str = "corpus_index_unpackaged_regression
 /// The frozen ceiling is higher than the observed uncovered count — the ratchet has slack and
 /// should be lowered so it keeps biting. Advisory.
 pub const CODE_STALE_CEILING: &str = "corpus_index_stale_ceiling";
+
+const CANONICAL_SHARD_MODULE: &str = "//governance/corpus/extract:yaml_facts.bzl";
+const CANONICAL_SHARD_SYMBOL: &str = "corpus_yaml_facts_shards";
+const EXTRACTION_TARGET: &str = "corpus-yaml-facts";
+const MAX_SHARD_SIZE: usize = 512;
+
+/// A package's recognized YAML extraction declaration.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ExtractionDeclaration {
+    /// No extraction declaration is present.
+    None,
+    /// One literal `corpus-yaml-facts` genrule owns the package's YAML corpus.
+    LiteralSingle,
+    /// The canonical fixed-size sharding macro owns the package's YAML corpus.
+    FixedShards { shard_size: usize },
+}
+
+/// One YAML input and its measured source size.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct CorpusInput {
+    pub path: String,
+    pub source_bytes: u64,
+}
+
+/// One source-derived extraction face.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct FaceObservation {
+    pub label: String,
+    pub package: String,
+    pub paths: Vec<String>,
+    pub source_bytes: u64,
+}
+
+/// Per-face limits enforced by the corpus gate.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct FaceLimits {
+    pub max_files: usize,
+    pub max_source_bytes: u64,
+}
+
+/// Frozen Oya YAML corpus expectations and extraction-face limits.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub struct OyaCorpusPolicy {
+    pub expected_yaml_files: usize,
+    pub max_files_per_extraction_face: usize,
+    pub max_source_bytes_per_extraction_face: u64,
+}
+
+impl OyaCorpusPolicy {
+    /// Convert policy data into the generic face-limit evaluator input.
+    #[must_use]
+    pub const fn face_limits(self) -> FaceLimits {
+        FaceLimits {
+            max_files: self.max_files_per_extraction_face,
+            max_source_bytes: self.max_source_bytes_per_extraction_face,
+        }
+    }
+}
+
+/// A fail-closed declaration parsing error.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DeclarationError(String);
+
+impl fmt::Display for DeclarationError {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str(&self.0)
+    }
+}
+
+impl std::error::Error for DeclarationError {}
+
+fn declaration_error(message: impl Into<String>) -> DeclarationError {
+    DeclarationError(message.into())
+}
+
+fn string_arg(call: &CallExpr, index: usize) -> Option<&str> {
+    let arg = call.args.get(index)?;
+    if arg.name.is_some() {
+        return None;
+    }
+    match &arg.value.expr {
+        Expr::Str(value) => Some(value),
+        _ => None,
+    }
+}
+
+fn canonical_glob(call: &CallExpr) -> bool {
+    if call.func != "glob" || call.args.len() != 1 || call.args[0].name.is_some() {
+        return false;
+    }
+    let Expr::List(list) = &call.args[0].value.expr else {
+        return false;
+    };
+    let values: Vec<&str> = list
+        .elements
+        .iter()
+        .filter_map(|element| match &element.value.expr {
+            Expr::Str(value) => Some(value.as_str()),
+            _ => None,
+        })
+        .collect();
+    values == ["**/*.yaml", "**/*.yml"] && values.len() == list.elements.len()
+}
+
+fn canonical_srcs(call: &CallExpr) -> bool {
+    let Some(srcs) = call.kwarg("srcs") else {
+        return false;
+    };
+    match &srcs.value.expr {
+        Expr::Call(glob) => canonical_glob(glob),
+        _ => false,
+    }
+}
+
+fn literal_declaration(package: &str, call: &CallExpr) -> Result<bool, DeclarationError> {
+    if call.func != "genrule" {
+        return Ok(false);
+    }
+    let is_target = call.kwarg("name").is_some_and(
+        |arg| matches!(&arg.value.expr, Expr::Str(value) if value == EXTRACTION_TARGET),
+    );
+    if !is_target {
+        return Ok(false);
+    }
+    let canonical_out = call.kwarg("out").is_some_and(
+        |arg| matches!(&arg.value.expr, Expr::Str(value) if value == "yaml-facts.json"),
+    );
+    let expected_cmd = format!(
+        "$(exe //governance/corpus/extract:yaml-facts) --target root//{package}:{EXTRACTION_TARGET} --prefix {package} --out $OUT $SRCS"
+    );
+    let canonical_cmd = call
+        .kwarg("cmd")
+        .is_some_and(|arg| matches!(&arg.value.expr, Expr::Str(value) if value == &expected_cmd));
+    if call.args.len() != 4
+        || !canonical_srcs(call)
+        || !canonical_out
+        || !canonical_cmd
+        || call.has_opaque()
+    {
+        return Err(declaration_error(
+            "incomplete or unsupported literal corpus extraction genrule",
+        ));
+    }
+    Ok(true)
+}
+
+/// Parse one BUCK document and recognize only the canonical YAML extraction declarations.
+///
+/// # Errors
+/// Returns an error for malformed, conflicting, aliased, computed, or otherwise unsupported
+/// declaration syntax. Comments and strings never count as declarations.
+pub fn extraction_declaration(
+    package: &str,
+    text: &str,
+) -> Result<ExtractionDeclaration, DeclarationError> {
+    let doc =
+        parse(text).map_err(|error| declaration_error(format!("BUCK parse failed: {error}")))?;
+    let mut canonical_loads = 0usize;
+    let mut shard_calls = Vec::new();
+    let mut literal_calls = 0usize;
+    let mut suspicious_shard_call = false;
+
+    for statement in &doc.stmts {
+        match statement {
+            Stmt::Call(call) if call.func == "load" => {
+                if string_arg(call, 0) == Some(CANONICAL_SHARD_MODULE)
+                    && string_arg(call, 1) == Some(CANONICAL_SHARD_SYMBOL)
+                    && call.args.len() == 2
+                {
+                    canonical_loads += 1;
+                } else if call.args.iter().any(|arg| {
+                    matches!(&arg.value.expr, Expr::Str(value) if value == CANONICAL_SHARD_SYMBOL || value == CANONICAL_SHARD_MODULE)
+                }) {
+                    suspicious_shard_call = true;
+                }
+            }
+            Stmt::Call(call) if call.func == CANONICAL_SHARD_SYMBOL => shard_calls.push(call),
+            Stmt::Call(call) => {
+                if literal_declaration(package, call)? {
+                    literal_calls += 1;
+                }
+            }
+            Stmt::Opaque { span } => {
+                let raw = span.slice(text);
+                if raw.contains(CANONICAL_SHARD_SYMBOL) || raw.contains(EXTRACTION_TARGET) {
+                    suspicious_shard_call = true;
+                }
+            }
+            Stmt::Assign { value, .. } | Stmt::IndexAssign { value, .. } => {
+                value.visit_calls(&mut |call| {
+                    if call.func == CANONICAL_SHARD_SYMBOL {
+                        suspicious_shard_call = true;
+                    }
+                });
+            }
+        }
+    }
+
+    if suspicious_shard_call || canonical_loads > 1 || shard_calls.len() > 1 || literal_calls > 1 {
+        return Err(declaration_error(
+            "ambiguous or unsupported corpus extraction declaration",
+        ));
+    }
+    if literal_calls == 1 && (!shard_calls.is_empty() || canonical_loads != 0) {
+        return Err(declaration_error(
+            "literal and sharded extraction declarations conflict",
+        ));
+    }
+    if literal_calls == 1 {
+        return Ok(ExtractionDeclaration::LiteralSingle);
+    }
+    if canonical_loads == 0 && shard_calls.is_empty() {
+        return Ok(ExtractionDeclaration::None);
+    }
+    if canonical_loads != 1 || shard_calls.len() != 1 {
+        return Err(declaration_error(
+            "canonical shard load and call must appear exactly once",
+        ));
+    }
+
+    let call = shard_calls[0];
+    if call.has_opaque() || !canonical_srcs(call) || call.args.len() != 2 {
+        return Err(declaration_error(
+            "canonical shard call requires direct canonical srcs and shard_size",
+        ));
+    }
+    let Some(shard_arg) = call.kwarg("shard_size") else {
+        return Err(declaration_error(
+            "canonical shard call is missing shard_size",
+        ));
+    };
+    let Expr::Int(raw) = &shard_arg.value.expr else {
+        return Err(declaration_error(
+            "shard_size must be a direct integer literal",
+        ));
+    };
+    let shard_size = raw
+        .parse::<usize>()
+        .map_err(|_| declaration_error("shard_size is not a valid integer"))?;
+    if shard_size == 0 || shard_size > MAX_SHARD_SIZE {
+        return Err(declaration_error("shard_size must be between 1 and 512"));
+    }
+    Ok(ExtractionDeclaration::FixedShards { shard_size })
+}
+
+/// Derive deterministic extraction faces from package-owned inputs.
+///
+/// # Errors
+/// Returns an error for empty fixed declarations, invalid shard sizes, duplicate paths, or source
+/// byte overflow.
+pub fn derive_faces(
+    package: &str,
+    owned_paths: &[CorpusInput],
+    declaration: ExtractionDeclaration,
+) -> Result<Vec<FaceObservation>, DeclarationError> {
+    if declaration == ExtractionDeclaration::None {
+        return Ok(Vec::new());
+    }
+    if owned_paths.is_empty() {
+        return Err(declaration_error(
+            "an extraction declaration cannot own an empty corpus",
+        ));
+    }
+    let shard_size = match declaration {
+        ExtractionDeclaration::None => return Ok(Vec::new()),
+        ExtractionDeclaration::LiteralSingle => owned_paths.len(),
+        ExtractionDeclaration::FixedShards { shard_size }
+            if (1..=MAX_SHARD_SIZE).contains(&shard_size) =>
+        {
+            shard_size
+        }
+        ExtractionDeclaration::FixedShards { .. } => {
+            return Err(declaration_error("shard_size must be between 1 and 512"));
+        }
+    };
+    let prefix = format!("{package}/");
+    let mut ordered: Vec<CorpusInput> = owned_paths
+        .iter()
+        .filter(|input| {
+            let package_local = input.path.strip_prefix(&prefix).unwrap_or(&input.path);
+            glob_match("**/*.yaml", package_local) || glob_match("**/*.yml", package_local)
+        })
+        .cloned()
+        .collect();
+    if ordered.is_empty() {
+        return Err(declaration_error(
+            "an extraction declaration has no canonical YAML inputs",
+        ));
+    }
+    ordered.sort_by(|left, right| left.path.as_bytes().cmp(right.path.as_bytes()));
+    if ordered.windows(2).any(|pair| pair[0].path == pair[1].path) {
+        return Err(declaration_error("owned corpus contains duplicate paths"));
+    }
+    let face_count = ordered.len() / shard_size + usize::from(ordered.len() % shard_size != 0);
+    if face_count > 10_000 {
+        return Err(declaration_error(
+            "fixed sharding would exceed the four-digit ordinal grammar",
+        ));
+    }
+
+    ordered
+        .chunks(shard_size)
+        .enumerate()
+        .map(|(ordinal, chunk)| {
+            let name = if ordinal == 0 {
+                EXTRACTION_TARGET.to_owned()
+            } else {
+                format!("{EXTRACTION_TARGET}-shard-{ordinal:04}")
+            };
+            let source_bytes = chunk.iter().try_fold(0u64, |sum, input| {
+                sum.checked_add(input.source_bytes)
+                    .ok_or_else(|| declaration_error("face source byte total overflowed"))
+            })?;
+            Ok(FaceObservation {
+                label: format!("root//{package}:{name}"),
+                package: package.to_owned(),
+                paths: chunk.iter().map(|input| input.path.clone()).collect(),
+                source_bytes,
+            })
+        })
+        .collect()
+}
+
+/// Validate exact face coverage and per-face limits.
+///
+/// # Errors
+/// Returns every observed missing, extra, duplicate, empty, oversized, or inconsistent face error.
+pub fn evaluate_face_coverage(
+    expected_paths: &[CorpusInput],
+    faces: &[FaceObservation],
+    limits: FaceLimits,
+) -> Result<(), Vec<String>> {
+    let expected: BTreeMap<&str, u64> = expected_paths
+        .iter()
+        .map(|input| (input.path.as_str(), input.source_bytes))
+        .collect();
+    let mut observed = BTreeSet::new();
+    let mut errors = Vec::new();
+
+    if expected.len() != expected_paths.len() {
+        errors.push("expected corpus contains duplicate paths".to_owned());
+    }
+    for input in expected_paths {
+        if input.source_bytes > limits.max_source_bytes {
+            errors.push(format!(
+                "input {} exceeds the source-byte limit",
+                input.path
+            ));
+        }
+    }
+    for face in faces {
+        if face.paths.is_empty() {
+            errors.push(format!("face {} is empty", face.label));
+        }
+        if face.paths.len() > limits.max_files {
+            errors.push(format!("face {} exceeds the file-count limit", face.label));
+        }
+        if face.source_bytes > limits.max_source_bytes {
+            errors.push(format!("face {} exceeds the source-byte limit", face.label));
+        }
+        let mut measured = 0u64;
+        for path in &face.paths {
+            if !observed.insert(path.as_str()) {
+                errors.push(format!("path {path} is assigned more than once"));
+            }
+            match expected.get(path.as_str()) {
+                Some(bytes) => match measured.checked_add(*bytes) {
+                    Some(sum) => measured = sum,
+                    None => {
+                        errors.push(format!("face {} source byte total overflowed", face.label))
+                    }
+                },
+                None => errors.push(format!("unexpected path {path}")),
+            }
+        }
+        if measured != face.source_bytes {
+            errors.push(format!(
+                "face {} source byte measurement is inconsistent",
+                face.label
+            ));
+        }
+    }
+    for path in expected.keys() {
+        if !observed.contains(path) {
+            errors.push(format!("expected path {path} is missing"));
+        }
+    }
+
+    if errors.is_empty() {
+        Ok(())
+    } else {
+        Err(errors)
+    }
+}
 
 /// One observed buck2 package that owns at least one YAML file.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
@@ -427,7 +825,12 @@ mod tests {
         assert_eq!(verdict.coverage.package_coverage_bps(), 0);
         assert_eq!(verdict.coverage.file_coverage_bps(), 0);
         assert!(verdict.failed(), "a vacuous scan must not pass");
-        assert!(verdict.blocking().iter().any(|f| f.code == CODE_VACUOUS_SCAN));
+        assert!(
+            verdict
+                .blocking()
+                .iter()
+                .any(|f| f.code == CODE_VACUOUS_SCAN)
+        );
     }
 
     // A collapsed file census would shrink the unpackaged count for the wrong reason, which would
@@ -442,8 +845,16 @@ mod tests {
             min_expected_unpackaged_yaml_files: 0,
         };
         let verdict = evaluate(&[pkg("a", 1, true)], 0, &strict);
-        assert!(verdict.failed(), "a collapsed census must not read as progress");
-        assert!(verdict.blocking().iter().any(|f| f.code == CODE_VACUOUS_SCAN));
+        assert!(
+            verdict.failed(),
+            "a collapsed census must not read as progress"
+        );
+        assert!(
+            verdict
+                .blocking()
+                .iter()
+                .any(|f| f.code == CODE_VACUOUS_SCAN)
+        );
     }
 
     // THE CASE NEITHER CENSUS FLOOR CAN SEE. Every file is attributed to a package, so the total
@@ -477,7 +888,12 @@ mod tests {
             verdict.failed(),
             "unpackaged collapsing to 0 must not read as progress"
         );
-        assert!(verdict.blocking().iter().any(|f| f.code == CODE_VACUOUS_SCAN));
+        assert!(
+            verdict
+                .blocking()
+                .iter()
+                .any(|f| f.code == CODE_VACUOUS_SCAN)
+        );
 
         // GUARD: the same shape at or above the floor is fine, so the floor is not always-on.
         assert!(!evaluate(&observed, 400, &strict).failed());
@@ -488,7 +904,12 @@ mod tests {
         let observed = [pkg("a", 1, true), pkg("b", 1, true)];
         let verdict = evaluate(&observed, 0, &policy(5, 0));
         assert!(!verdict.failed());
-        assert!(verdict.findings.iter().any(|f| f.code == CODE_STALE_CEILING));
+        assert!(
+            verdict
+                .findings
+                .iter()
+                .any(|f| f.code == CODE_STALE_CEILING)
+        );
     }
 
     #[test]
@@ -502,5 +923,393 @@ mod tests {
             .collect();
         assert_eq!(advisory.len(), 2);
         assert!(advisory.iter().all(|f| !f.blocking));
+    }
+
+    fn input(path: &str, source_bytes: u64) -> CorpusInput {
+        CorpusInput {
+            path: path.to_owned(),
+            source_bytes,
+        }
+    }
+
+    fn limits() -> FaceLimits {
+        FaceLimits {
+            max_files: 512,
+            max_source_bytes: 1_048_576,
+        }
+    }
+
+    fn face(paths: &[&str], source_bytes: u64) -> FaceObservation {
+        FaceObservation {
+            label: "root//oya:corpus-yaml-facts".to_owned(),
+            package: "oya".to_owned(),
+            paths: paths.iter().map(|path| (*path).to_owned()).collect(),
+            source_bytes,
+        }
+    }
+
+    #[test]
+    fn missing_path_blocks() {
+        assert!(
+            evaluate_face_coverage(
+                &[input("a.yaml", 1), input("b.yaml", 1)],
+                &[face(&["a.yaml"], 1)],
+                limits()
+            )
+            .is_err()
+        );
+    }
+
+    #[test]
+    fn duplicate_path_blocks() {
+        assert!(
+            evaluate_face_coverage(
+                &[input("a.yaml", 1)],
+                &[face(&["a.yaml", "a.yaml"], 2)],
+                limits()
+            )
+            .is_err()
+        );
+    }
+
+    #[test]
+    fn empty_face_blocks() {
+        assert!(evaluate_face_coverage(&[], &[face(&[], 0)], limits()).is_err());
+    }
+
+    #[test]
+    fn face_with_513_files_blocks() {
+        let inputs: Vec<_> = (0..513).map(|i| input(&format!("{i}.yaml"), 1)).collect();
+        let paths: Vec<_> = inputs.iter().map(|i| i.path.clone()).collect();
+        let observed = FaceObservation {
+            paths,
+            source_bytes: 513,
+            ..face(&[], 0)
+        };
+        assert!(evaluate_face_coverage(&inputs, &[observed], limits()).is_err());
+    }
+
+    #[test]
+    fn face_with_1048577_bytes_blocks() {
+        assert!(
+            evaluate_face_coverage(
+                &[input("a.yaml", 1_048_577)],
+                &[face(&["a.yaml"], 1_048_577)],
+                limits()
+            )
+            .is_err()
+        );
+    }
+
+    #[test]
+    fn single_oversized_input_blocks() {
+        assert!(
+            evaluate_face_coverage(
+                &[input("a.yaml", 1_048_577)],
+                &[face(&["a.yaml"], 1)],
+                limits()
+            )
+            .is_err()
+        );
+    }
+
+    #[test]
+    fn count_boundary_512_passes() {
+        let inputs: Vec<_> = (0..512).map(|i| input(&format!("{i}.yaml"), 1)).collect();
+        let paths: Vec<_> = inputs.iter().map(|i| i.path.clone()).collect();
+        let observed = FaceObservation {
+            paths,
+            source_bytes: 512,
+            ..face(&[], 0)
+        };
+        assert!(evaluate_face_coverage(&inputs, &[observed], limits()).is_ok());
+    }
+
+    #[test]
+    fn byte_boundary_1048576_passes() {
+        assert!(
+            evaluate_face_coverage(
+                &[input("a.yaml", 1_048_576)],
+                &[face(&["a.yaml"], 1_048_576)],
+                limits()
+            )
+            .is_ok()
+        );
+    }
+
+    #[test]
+    fn zero_shard_size_blocks() {
+        assert!(
+            derive_faces(
+                "oya",
+                &[input("a.yaml", 1)],
+                ExtractionDeclaration::FixedShards { shard_size: 0 }
+            )
+            .is_err()
+        );
+    }
+
+    #[test]
+    fn shard_size_513_blocks() {
+        assert!(
+            derive_faces(
+                "oya",
+                &[input("a.yaml", 1)],
+                ExtractionDeclaration::FixedShards { shard_size: 513 }
+            )
+            .is_err()
+        );
+    }
+
+    #[test]
+    fn shuffled_inputs_derive_identical_shards() {
+        let a = [input("b.yaml", 1), input("a.yaml", 1), input("c.yaml", 1)];
+        let b = [input("c.yaml", 1), input("b.yaml", 1), input("a.yaml", 1)];
+        assert_eq!(
+            derive_faces(
+                "oya",
+                &a,
+                ExtractionDeclaration::FixedShards { shard_size: 2 }
+            ),
+            derive_faces(
+                "oya",
+                &b,
+                ExtractionDeclaration::FixedShards { shard_size: 2 }
+            )
+        );
+    }
+
+    #[test]
+    fn package_local_globs_exclude_non_yaml_candidates() {
+        let faces = derive_faces(
+            "oya/example",
+            &[
+                input("oya/example/a.yaml", 1),
+                input("oya/example/b.yml", 1),
+                input("oya/example/notes.txt", 1),
+            ],
+            ExtractionDeclaration::FixedShards { shard_size: 256 },
+        )
+        .unwrap();
+        assert_eq!(faces[0].paths, ["oya/example/a.yaml", "oya/example/b.yml"]);
+    }
+
+    #[test]
+    fn ordinal_zero_is_unsuffixed_and_no_0000_exists() {
+        let faces = derive_faces(
+            "oya",
+            &[input("a.yaml", 1), input("b.yaml", 1)],
+            ExtractionDeclaration::FixedShards { shard_size: 1 },
+        )
+        .unwrap();
+        assert_eq!(faces[0].label, "root//oya:corpus-yaml-facts");
+        assert!(faces.iter().all(|face| !face.label.ends_with("-0000")));
+        assert!(faces[1].label.ends_with("-0001"));
+    }
+
+    #[test]
+    fn root_4082_derives_15x256_plus242() {
+        let inputs: Vec<_> = (0..4_082)
+            .map(|i| input(&format!("{i:04}.yaml"), 1))
+            .collect();
+        let faces = derive_faces(
+            "oya",
+            &inputs,
+            ExtractionDeclaration::FixedShards { shard_size: 256 },
+        )
+        .unwrap();
+        assert_eq!(faces.len(), 16);
+        assert!(faces[..15].iter().all(|face| face.paths.len() == 256));
+        assert_eq!(faces[15].paths.len(), 242);
+    }
+
+    fn declaration(text: &str) -> Result<ExtractionDeclaration, DeclarationError> {
+        extraction_declaration("oya/ci-webhook-gateway", text)
+    }
+
+    const CANONICAL: &str = r#"
+load("//governance/corpus/extract:yaml_facts.bzl", "corpus_yaml_facts_shards")
+corpus_yaml_facts_shards(
+    srcs = glob(["**/*.yaml", "**/*.yml"]),
+    shard_size = 256,
+)
+"#;
+
+    #[test]
+    fn canonical_load_and_macro_call_passes() {
+        assert_eq!(
+            declaration(CANONICAL).unwrap(),
+            ExtractionDeclaration::FixedShards { shard_size: 256 }
+        );
+    }
+
+    #[test]
+    fn harmless_formatting_and_comments_preserve_ast() {
+        let text = CANONICAL.replace("load(", "# harmless\nload( ");
+        assert_eq!(
+            declaration(&text).unwrap(),
+            ExtractionDeclaration::FixedShards { shard_size: 256 }
+        );
+    }
+
+    const CANONICAL_LITERAL_CMD: &str = "$(exe //governance/corpus/extract:yaml-facts) --target root//oya/ci-webhook-gateway:corpus-yaml-facts --prefix oya/ci-webhook-gateway --out $OUT $SRCS";
+
+    fn literal(cmd: &str, out: &str) -> String {
+        format!(
+            "genrule(name = \"corpus-yaml-facts\", srcs = glob([\"**/*.yaml\", \"**/*.yml\"]), out = \"{out}\", cmd = \"{cmd}\")"
+        )
+    }
+
+    #[test]
+    fn canonical_ci_webhook_literal_passes() {
+        assert_eq!(
+            declaration(&literal(CANONICAL_LITERAL_CMD, "yaml-facts.json")).unwrap(),
+            ExtractionDeclaration::LiteralSingle
+        );
+    }
+
+    #[test]
+    fn literal_touch_command_spoof_blocks() {
+        assert!(declaration(&literal("touch $OUT", "yaml-facts.json")).is_err());
+    }
+
+    #[test]
+    fn literal_wrong_output_blocks() {
+        assert!(declaration(&literal(CANONICAL_LITERAL_CMD, "other.json")).is_err());
+    }
+
+    #[test]
+    fn literal_wrong_target_blocks() {
+        assert!(
+            declaration(&literal(
+                &CANONICAL_LITERAL_CMD.replace(
+                    "root//oya/ci-webhook-gateway:corpus-yaml-facts",
+                    "root//oya/wrong:corpus-yaml-facts"
+                ),
+                "yaml-facts.json"
+            ))
+            .is_err()
+        );
+    }
+
+    #[test]
+    fn literal_wrong_prefix_blocks() {
+        assert!(
+            declaration(&literal(
+                &CANONICAL_LITERAL_CMD
+                    .replace("--prefix oya/ci-webhook-gateway", "--prefix oya/wrong"),
+                "yaml-facts.json"
+            ))
+            .is_err()
+        );
+    }
+
+    #[test]
+    fn literal_wrong_extractor_blocks() {
+        assert!(
+            declaration(&literal(
+                &CANONICAL_LITERAL_CMD.replace(
+                    "//governance/corpus/extract:yaml-facts",
+                    "//wrong:yaml-facts"
+                ),
+                "yaml-facts.json"
+            ))
+            .is_err()
+        );
+    }
+
+    #[test]
+    fn literal_and_macro_declarations_conflict() {
+        assert!(declaration(&format!("{CANONICAL}\ngenrule(name = \"corpus-yaml-facts\", srcs = glob([\"**/*.yaml\", \"**/*.yml\"]), out = \"yaml-facts.json\", cmd = \"extract\")")).is_err());
+    }
+
+    #[test]
+    fn load_without_macro_call_blocks() {
+        assert!(
+            declaration(
+                "load(\"//governance/corpus/extract:yaml_facts.bzl\", \"corpus_yaml_facts_shards\")"
+            )
+            .is_err()
+        );
+    }
+
+    #[test]
+    fn macro_text_in_comment_or_string_blocks() {
+        assert_eq!(
+            declaration("# corpus_yaml_facts_shards(srcs = glob([\"**/*.yaml\", \"**/*.yml\"]), shard_size = 256)\nX = \"corpus_yaml_facts_shards\"").unwrap(),
+            ExtractionDeclaration::None
+        );
+    }
+
+    #[test]
+    fn wrong_load_source_blocks() {
+        assert!(
+            declaration(&CANONICAL.replace(
+                "//governance/corpus/extract:yaml_facts.bzl",
+                "//wrong:yaml_facts.bzl"
+            ))
+            .is_err()
+        );
+    }
+
+    #[test]
+    fn imported_alias_blocks() {
+        assert!(
+            declaration(&CANONICAL.replace(
+                "\"corpus_yaml_facts_shards\")",
+                "corpus_yaml_facts_shards = \"alias\")"
+            ))
+            .is_err()
+        );
+    }
+
+    #[test]
+    fn partial_glob_blocks() {
+        assert!(declaration(&CANONICAL.replace(", \"**/*.yml\"", "")).is_err());
+    }
+
+    #[test]
+    fn glob_excludes_block() {
+        assert!(
+            declaration(&CANONICAL.replace(
+                "glob([\"**/*.yaml\", \"**/*.yml\"])",
+                "glob([\"**/*.yaml\", \"**/*.yml\"], exclude = [\"x.yaml\"])"
+            ))
+            .is_err()
+        );
+    }
+
+    #[test]
+    fn selected_or_concatenated_srcs_block() {
+        assert!(
+            declaration(&CANONICAL.replace(
+                "glob([\"**/*.yaml\", \"**/*.yml\"])",
+                "glob([\"**/*.yaml\"]) + glob([\"**/*.yml\"])"
+            ))
+            .is_err()
+        );
+        assert!(
+            declaration(&CANONICAL.replace(
+                "glob([\"**/*.yaml\", \"**/*.yml\"])",
+                "select({\"DEFAULT\": []})"
+            ))
+            .is_err()
+        );
+    }
+
+    #[test]
+    fn duplicate_macro_calls_block() {
+        assert!(declaration(&format!("{CANONICAL}{CANONICAL}")).is_err());
+    }
+
+    #[test]
+    fn opaque_or_nonliteral_shard_size_blocks() {
+        assert!(declaration(&CANONICAL.replace("256", "SIZE")).is_err());
+        assert!(declaration(&CANONICAL.replace("256", "select({\"DEFAULT\": 256})")).is_err());
+    }
+
+    #[test]
+    fn incomplete_literal_genrule_blocks() {
+        assert!(declaration("genrule(name = \"corpus-yaml-facts\")").is_err());
     }
 }
