@@ -4,13 +4,22 @@
 # labelled oya.io/bootstrap=true at provision time.
 #
 # Needs: helm, kubectl, KUBECONFIG=<control-plane>. Run once on the control plane (or in CI) after `clusterctl init`.
+# Non-mutating readiness check: `infra/capi/crs/render.sh --dry-run` renders the
+# ConfigMaps + CRS into _out without applying them to a cluster.
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 REPO="$(cd "$HERE/../../.." && pwd)"
-OUT="$HERE/_out"; mkdir -p "$OUT"
+OUT="${CRS_RENDER_OUT:-$HERE/_out}"; mkdir -p "$OUT"
 NS="${NS:-default}"
 CILIUM_VERSION="${CILIUM_VERSION:-1.19.4}"
 ARGOCD_VERSION="${ARGOCD_VERSION:-9.5.15}"   # argo/argo-cd chart (current)
+APPLY="${CRS_RENDER_APPLY:-1}"
+
+case "${1:-}" in
+  "") ;;
+  --dry-run|--no-apply) APPLY=0 ;;
+  *) echo "usage: $0 [--dry-run|--no-apply]" >&2; exit 2 ;;
+esac
 
 command -v helm    >/dev/null || { echo "helm required" >&2; exit 1; }
 command -v kubectl >/dev/null || { echo "kubectl required" >&2; exit 1; }
@@ -72,7 +81,11 @@ echo "   argo-cd CRD URLs match chart appVersion $ARGOCD_APP_VERSION"
 mk_cm() { kubectl create configmap "$1" -n "$NS" --from-file="$2=$3" \
             --dry-run=client -o yaml; }
 
-echo ">> build + apply bootstrap ConfigMaps + CRS to the control plane"
+if [ "$APPLY" = "1" ]; then
+  echo ">> build + apply bootstrap ConfigMaps + CRS to the control plane"
+else
+  echo ">> dry-run render bootstrap ConfigMaps + CRS (no kubectl apply)"
+fi
 {
   mk_cm cilium-bootstrap cilium.yaml  "$OUT/cilium.yaml";  echo '---'
   mk_cm argocd-bootstrap argocd.yaml  "$OUT/argocd.yaml";  echo '---'
@@ -82,9 +95,14 @@ echo ">> build + apply bootstrap ConfigMaps + CRS to the control plane"
 sed -E "s/^([[:space:]]*)namespace: default$/\\1namespace: ${NS}/" \
   "$HERE/clusterresourceset.yaml" > "$OUT/clusterresourceset.yaml"
 
-kubectl apply -f "$OUT/crs-configmaps.yaml"
-kubectl apply -f "$OUT/clusterresourceset.yaml"
-echo "DONE — label spoke Clusters with oya.io/bootstrap=true to receive the bootstrap."
-echo "     Ordering: cilium + argocd install land via the ApplyOnce CRS; the root"
-echo "     Application lands via the Reconcile CRS, which retries until Argo CD's"
-echo "     Application CRD is established (no CR-before-CRD race)."
+if [ "$APPLY" = "1" ]; then
+  kubectl apply -f "$OUT/crs-configmaps.yaml"
+  kubectl apply -f "$OUT/clusterresourceset.yaml"
+  echo "DONE — label spoke Clusters with oya.io/bootstrap=true to receive the bootstrap."
+  echo "     Ordering: Cilium + Argo CD controllers land via the ApplyOnce CRS; Argo CD"
+  echo "     CRDs arrive via Talos extraManifests; the root Application lands via the"
+  echo "     Reconcile CRS, which retries until Argo CD's Application CRD is established"
+  echo "     (no CR-before-CRD race)."
+else
+  echo "DRY-RUN — wrote $OUT/crs-configmaps.yaml and $OUT/clusterresourceset.yaml; no cluster mutation performed."
+fi

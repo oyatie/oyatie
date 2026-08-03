@@ -137,7 +137,7 @@ doc_status: published
 ## Mitigation
 1. Hold invoices for affected tenant: `oya billing invoice hold --tenant $TENANT --period $PERIOD --reason $INCIDENT_ID`.
 2. Hold FOCUS export: `oya billing focus export hold --tenant $TENANT --period $PERIOD --reason $INCIDENT_ID`.
-3. Hold attribution deploys: incident hold PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
+3. Hold attribution deploys: incident hold PR against `dev` (plain `git`; branch-protected `oya-ci-required` required; legacy `oya gate` output optional local/provenance only).
 4. Stop suspect emitter: `oya billing metering emitter pause --tenant $TENANT --source <source> --reason $INCIDENT_ID`.
 5. Freeze ledger snapshot: `oya billing ledger snapshot --tenant $TENANT --period $PERIOD --output evidence/incidents/$INCIDENT_ID-ledger.json`.
 6. Stage replay dry-run: `oya billing attribution replay --tenant $TENANT --period $PERIOD --from trusted-source --dry-run`.

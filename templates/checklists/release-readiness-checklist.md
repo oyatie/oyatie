@@ -57,14 +57,14 @@ related:
 - [ ] **RR23** Regulator notification matrix dry-run executed (per region). *(advisory)*
 - [ ] **RR24** DSR cascade dry-run completed. *Lane:* `oya-governance-dsr`.
 
-## Capability / Foundry
+## Capability / intelligence automation
 
-- [ ] **RR25** Every Foundry capability shipping in this wave has: record + eval-set ≥ min-pass-rate + autonomy tier + audit topic + Cosign. *Lane:* `oya-governance-capability-publish`.
+- [ ] **RR25** Every capability/intelligence automation surface shipping in this wave has: record + eval-set ≥ min-pass-rate + autonomy tier + audit topic + Cosign. *Lane:* `oya-governance-capability-publish`.
 - [ ] **RR26** Capability deprecation announcements (if any) follow `12 months announce + 6 months EOL`. *Lane:* `oya-governance-capability-sunset`.
 
 ## Communications
 
-- [ ] **RR27** Release notes drafted (customer-facing).
+- [ ] **RR27** Release notes drafted (customer-facing), or release-governance / no-user-facing-change no-op recorded. Release Please applies only when a live repo config/workflow exists.
 - [ ] **RR28** Trust-portal page prepared (for surfaces with regulatory disclosure).
 - [ ] **RR29** Internal Slack `#oyatie-masterplan-status` notified.
 - [ ] **RR30** Founder + Council-Architecture sign-off recorded.
@@ -74,5 +74,11 @@ related:
 - [ ] **RR31** `EVT-WAVE-GATE-PASSED` emitted with milestone ID + gate name + sign-off list. *Lane:* `oya-governance-audit-emission`.
 - [ ] **RR32** `docs/CHANGELOG.md` "wave-gate-passed" row appended.
 - [ ] **RR33** Next milestone phases unblocked: their `gates_on:` rows mark this milestone `merged`.
+- [ ] **RR34** Every release-bound merged PR has a post-merge product-completion
+  packet: promoted SHA `oya-ci-required`, rollout verification, rollback note,
+  observability check, browser UX/user-story evidence, and release-governance /
+  release-note impact (Release Please applies only when a live repo config/workflow exists), plus
+  agent-observation harvest outcome (cards created/linked or duplicates/no-action
+  rationale recorded).
 
 If any row is unchecked, the wave-gate is not passed. Loop back; do not declare release readiness.

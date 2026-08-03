@@ -1,15 +1,19 @@
+{{/* Claim boundary: target/provenance template only; no live ConfigMap or runtime audit-chain emission is claimed. */}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ printf "%s-config" .Values.microservice.id | quote }}
   labels:
     app.kubernetes.io/name: {{ .Values.microservice.id | quote }}
+    oyatie.com/claim-boundary: {{ .Values.claimBoundary.classification | quote }}
     oyatie.com/adr-0181: signed-image-promotion-required
-    oyatie.com/adr-0349: argocd-managed
+    oyatie.com/adr-0349: argocd-target-provenance
 data:
   microservice: {{ .Values.microservice.id | quote }}
   cargo_package: {{ .Values.microservice.cargoPackage | quote }}
   environment: {{ .Values.config.environment | quote }}
-  audit_chain_enabled: {{ .Values.config.auditChainEnabled | quote }}
+  audit_chain_runtime_emission: {{ .Values.config.auditChainRuntimeEmission | quote }}
+  audit_chain_target_class: {{ .Values.config.auditChainTargetClass | quote }}
+  claim_boundary: {{ .Values.claimBoundary.classification | quote }}
   image_signature_policy: {{ .Values.config.imagePromotionPolicy | quote }}
   cosign_required: {{ .Values.image.cosign.required | quote }}

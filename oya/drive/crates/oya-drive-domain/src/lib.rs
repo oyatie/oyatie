@@ -300,6 +300,250 @@ fn internal<T>(value: T) -> Classified<T> {
 }
 
 // ---------------------------------------------------------------------------
+// DRIVE-BUILD-001 — source-locked file/folder CRUD replay slice.
+//
+// This intentionally covers only the first RED-backed Drive fixture:
+// `drive_file_folder_crud_contract_fixture`. Upload/download, share-link,
+// permissions, preview/search, scan engines, sync, immutability workflows, and
+// ontology projection stay deferred to follow-up Build cards.
+// ---------------------------------------------------------------------------
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum DriveContextKind {
+    Personal,
+    Work,
+    AdminAudit,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum DriveScanState {
+    Pending,
+    Clean,
+    Flagged,
+    Quarantined,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum DriveFileLifecycleState {
+    Active,
+    SoftDeleted,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum DriveFileDeleteOutcome {
+    SoftDeleted,
+    LegalHoldDenied,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct DriveSourceLockedFolderCreate {
+    pub folder_id: String,                   // data_class: INTERNAL_ONLY
+    pub parent_folder_id: Option<String>,    // data_class: INTERNAL_ONLY
+    pub tenant_or_person_scope: String,      // data_class: INTERNAL_ONLY
+    pub context_kind: DriveContextKind,      // data_class: INTERNAL_ONLY
+    pub path: String,                        // data_class: PII_QUASI_IDENTIFIER
+    pub permission_inheritance_mode: String, // data_class: INTERNAL_ONLY
+    pub retention_policy_id: String,         // data_class: INTERNAL_ONLY
+    pub created_at_epoch_seconds: u64,       // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct DriveSourceLockedFileCreate {
+    pub file_id: String,                      // data_class: INTERNAL_ONLY
+    pub folder_id: String,                    // data_class: INTERNAL_ONLY
+    pub tenant_or_person_scope: String,       // data_class: INTERNAL_ONLY
+    pub context_kind: DriveContextKind,       // data_class: INTERNAL_ONLY
+    pub path: String,                         // data_class: PII_QUASI_IDENTIFIER
+    pub object_version_ref: String,           // data_class: INTERNAL_ONLY
+    pub content_hash: String,                 // data_class: INTERNAL_ONLY
+    pub mime_type: String,                    // data_class: INTERNAL_ONLY
+    pub size_bytes: u64,                      // data_class: INTERNAL_ONLY
+    pub retention_policy_id: String,          // data_class: INTERNAL_ONLY
+    pub scan_state: DriveScanState,           // data_class: INTERNAL_ONLY
+    pub data_class: Option<PrivacyDataClass>, // data_class: INTERNAL_ONLY
+    pub created_by: String,                   // data_class: PII_IDENTIFYING
+    pub created_at_epoch_seconds: u64,        // data_class: INTERNAL_ONLY
+    pub audit_event_id: String,               // data_class: AUDIT
+    pub legal_hold_open: bool,                // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct DriveSourceLockedFolder {
+    pub folder_id: Classified<String>, // data_class: INTERNAL_ONLY
+    pub parent_folder_id: Classified<Option<String>>, // data_class: INTERNAL_ONLY
+    pub tenant_or_person_scope: Classified<String>, // data_class: INTERNAL_ONLY
+    pub context_kind: Classified<DriveContextKind>, // data_class: INTERNAL_ONLY
+    pub path: Classified<String>,      // data_class: PII_QUASI_IDENTIFIER
+    pub permission_inheritance_mode: Classified<String>, // data_class: INTERNAL_ONLY
+    pub retention_policy_id: Classified<String>, // data_class: INTERNAL_ONLY
+    pub created_at_epoch_seconds: Classified<u64>, // data_class: INTERNAL_ONLY
+    pub schema_version: Classified<u32>, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct DriveSourceLockedFile {
+    pub file_id: Classified<String>,   // data_class: INTERNAL_ONLY
+    pub folder_id: Classified<String>, // data_class: INTERNAL_ONLY
+    pub tenant_or_person_scope: Classified<String>, // data_class: INTERNAL_ONLY
+    pub context_kind: Classified<DriveContextKind>, // data_class: INTERNAL_ONLY
+    pub path: Classified<String>,      // data_class: PII_QUASI_IDENTIFIER
+    pub object_version_ref: Classified<String>, // data_class: INTERNAL_ONLY
+    pub content_hash: Classified<String>, // data_class: INTERNAL_ONLY
+    pub mime_type: Classified<String>, // data_class: INTERNAL_ONLY
+    pub size_bytes: Classified<u64>,   // data_class: INTERNAL_ONLY
+    pub retention_policy_id: Classified<String>, // data_class: INTERNAL_ONLY
+    pub scan_state: Classified<DriveScanState>, // data_class: INTERNAL_ONLY
+    pub data_class: Classified<PrivacyDataClass>, // data_class: INTERNAL_ONLY
+    pub created_by: Classified<String>, // data_class: PII_IDENTIFYING
+    pub created_at_epoch_seconds: Classified<u64>, // data_class: INTERNAL_ONLY
+    pub created_audit_event_id: Classified<String>, // data_class: AUDIT
+    pub legal_hold_open: Classified<bool>, // data_class: INTERNAL_ONLY
+    pub lifecycle_state: Classified<DriveFileLifecycleState>, // data_class: INTERNAL_ONLY
+    pub last_mutation_audit_event_id: Classified<Option<String>>, // data_class: AUDIT
+    pub schema_version: Classified<u32>, // data_class: INTERNAL_ONLY
+}
+
+impl DriveSourceLockedFolder {
+    pub fn new(input: DriveSourceLockedFolderCreate) -> Result<Self, DriveError> {
+        validate_non_empty(&input.folder_id, DriveError::InvalidFolderId)?;
+        if let Some(parent_folder_id) = input.parent_folder_id.as_deref() {
+            validate_non_empty(parent_folder_id, DriveError::InvalidFolderId)?;
+        }
+        validate_non_empty(&input.tenant_or_person_scope, DriveError::InvalidTenantId)?;
+        validate_drive_path(&input.path, true)?;
+        validate_non_empty(
+            &input.permission_inheritance_mode,
+            DriveError::InvalidPermissionSubject,
+        )?;
+        validate_non_empty(
+            &input.retention_policy_id,
+            DriveError::InvalidObjectStorageKey,
+        )?;
+
+        Ok(Self {
+            folder_id: internal(input.folder_id),
+            parent_folder_id: internal(input.parent_folder_id),
+            tenant_or_person_scope: internal(input.tenant_or_person_scope),
+            context_kind: internal(input.context_kind),
+            path: Classified::new(input.path, path_data_class()),
+            permission_inheritance_mode: internal(input.permission_inheritance_mode),
+            retention_policy_id: internal(input.retention_policy_id),
+            created_at_epoch_seconds: internal(input.created_at_epoch_seconds),
+            schema_version: internal(DRIVE_FOLDER_SCHEMA_VERSION),
+        })
+    }
+}
+
+impl DriveSourceLockedFile {
+    pub fn new(input: DriveSourceLockedFileCreate) -> Result<Self, DriveError> {
+        let data_class = input
+            .data_class
+            .unwrap_or(default_workspace_drive_data_class());
+        validate_non_empty(&input.file_id, DriveError::InvalidObjectId)?;
+        validate_non_empty(&input.folder_id, DriveError::InvalidFolderId)?;
+        validate_non_empty(&input.tenant_or_person_scope, DriveError::InvalidTenantId)?;
+        validate_drive_path(&input.path, false)?;
+        validate_object_version_ref(&input.object_version_ref)?;
+        validate_content_hash(&input.content_hash)?;
+        validate_non_empty(&input.mime_type, DriveError::InvalidMimeType)?;
+        validate_non_empty(
+            &input.retention_policy_id,
+            DriveError::InvalidObjectStorageKey,
+        )?;
+        validate_non_empty(&input.created_by, DriveError::InvalidPermissionSubject)?;
+        validate_audit_event_id(&input.audit_event_id)?;
+
+        Ok(Self {
+            file_id: internal(input.file_id),
+            folder_id: internal(input.folder_id),
+            tenant_or_person_scope: internal(input.tenant_or_person_scope),
+            context_kind: internal(input.context_kind),
+            path: Classified::new(input.path, path_data_class()),
+            object_version_ref: internal(input.object_version_ref),
+            content_hash: internal(input.content_hash),
+            mime_type: internal(input.mime_type),
+            size_bytes: internal(input.size_bytes),
+            retention_policy_id: internal(input.retention_policy_id),
+            scan_state: internal(input.scan_state),
+            data_class: internal(data_class),
+            created_by: Classified::new(input.created_by, permission_data_class()),
+            created_at_epoch_seconds: internal(input.created_at_epoch_seconds),
+            created_audit_event_id: Classified::new(input.audit_event_id, DataClass::Audit),
+            legal_hold_open: internal(input.legal_hold_open),
+            lifecycle_state: internal(DriveFileLifecycleState::Active),
+            last_mutation_audit_event_id: Classified::new(None, DataClass::Audit),
+            schema_version: internal(DRIVE_OBJECT_SCHEMA_VERSION),
+        })
+    }
+
+    pub fn is_visible_to_readers(&self) -> bool {
+        self.lifecycle_state.value == DriveFileLifecycleState::Active
+            && self.scan_state.value == DriveScanState::Clean
+            && !self.created_audit_event_id.value.trim().is_empty()
+            && matches!(
+                self.last_mutation_audit_event_id.value.as_deref(),
+                Some(audit_event_id) if audit_event_id.starts_with("audit:drive:")
+            )
+    }
+
+    pub fn record_scan_verdict(
+        &mut self,
+        scan_state: DriveScanState,
+        audit_event_id: String,
+    ) -> Result<(), DriveError> {
+        validate_audit_event_id(&audit_event_id)?;
+        self.scan_state = internal(scan_state);
+        self.last_mutation_audit_event_id = Classified::new(Some(audit_event_id), DataClass::Audit);
+        Ok(())
+    }
+
+    pub fn soft_delete(
+        &mut self,
+        audit_event_id: String,
+    ) -> Result<DriveFileDeleteOutcome, DriveError> {
+        validate_audit_event_id(&audit_event_id)?;
+        if self.legal_hold_open.value {
+            self.last_mutation_audit_event_id =
+                Classified::new(Some(audit_event_id), DataClass::Audit);
+            return Ok(DriveFileDeleteOutcome::LegalHoldDenied);
+        }
+        self.lifecycle_state = internal(DriveFileLifecycleState::SoftDeleted);
+        self.last_mutation_audit_event_id = Classified::new(Some(audit_event_id), DataClass::Audit);
+        Ok(DriveFileDeleteOutcome::SoftDeleted)
+    }
+}
+
+fn validate_object_version_ref(value: &str) -> Result<(), DriveError> {
+    validate_non_empty(value, DriveError::InvalidObjectStorageKey)?;
+    if value.starts_with("object-version:drive:") {
+        Ok(())
+    } else {
+        Err(DriveError::InvalidObjectStorageKey)
+    }
+}
+
+fn validate_content_hash(value: &str) -> Result<(), DriveError> {
+    validate_non_empty(value, DriveError::InvalidObjectStorageKey)?;
+    let digest = value
+        .strip_prefix("sha256:")
+        .ok_or(DriveError::InvalidObjectStorageKey)?;
+    if digest.len() == 64 && digest.chars().all(|ch| ch.is_ascii_hexdigit()) {
+        Ok(())
+    } else {
+        Err(DriveError::InvalidObjectStorageKey)
+    }
+}
+
+fn validate_audit_event_id(value: &str) -> Result<(), DriveError> {
+    validate_non_empty(value, DriveError::InvalidObjectStorageKey)?;
+    if value.starts_with("audit:drive:") {
+        Ok(())
+    } else {
+        Err(DriveError::InvalidObjectStorageKey)
+    }
+}
+
+// ---------------------------------------------------------------------------
 // M03-P06-IP-003 — workspace.drive.{put,get} STAGING surface (per-object
 // KMS-shred reference + per-tenant cell routing + per-permission ACL).
 // ---------------------------------------------------------------------------
@@ -513,6 +757,129 @@ mod tests {
         assert_eq!(
             DataClassification::from(OperationalDataClass::Audit).privacy_data_class(),
             None
+        );
+    }
+
+    #[test]
+    fn drive_file_folder_crud_contract_fixture_records_source_locked_metadata_and_audit_visibility()
+    {
+        let folder = DriveSourceLockedFolder::new(DriveSourceLockedFolderCreate {
+            folder_id: "folder-source-lock-1".into(),
+            parent_folder_id: None,
+            tenant_or_person_scope: "tenant:workspace-alpha".into(),
+            context_kind: DriveContextKind::Work,
+            path: "/team".into(),
+            permission_inheritance_mode: "explicit".into(),
+            retention_policy_id: "retention-standard".into(),
+            created_at_epoch_seconds: 1_700_000_000,
+        })
+        .unwrap();
+
+        assert_eq!(
+            folder.tenant_or_person_scope.value,
+            "tenant:workspace-alpha"
+        );
+        assert_eq!(folder.context_kind.value, DriveContextKind::Work);
+        assert_eq!(folder.path.value, "/team");
+
+        let pending = DriveSourceLockedFile::new(DriveSourceLockedFileCreate {
+            file_id: "file-source-lock-1".into(),
+            folder_id: folder.folder_id.value.clone(),
+            tenant_or_person_scope: folder.tenant_or_person_scope.value.clone(),
+            context_kind: DriveContextKind::Work,
+            path: "/team/source-map.md".into(),
+            object_version_ref: "object-version:drive:file-source-lock-1:v1".into(),
+            content_hash: "sha256:6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d"
+                .into(),
+            mime_type: "text/markdown".into(),
+            size_bytes: 2048,
+            retention_policy_id: "retention-standard".into(),
+            scan_state: DriveScanState::Pending,
+            data_class: None,
+            created_by: "user:owner@example.com".into(),
+            created_at_epoch_seconds: 1_700_000_010,
+            audit_event_id: "audit:drive:file-created:001".into(),
+            legal_hold_open: false,
+        })
+        .unwrap();
+
+        assert_eq!(
+            pending.tenant_or_person_scope.value,
+            "tenant:workspace-alpha"
+        );
+        assert_eq!(pending.context_kind.value, DriveContextKind::Work);
+        assert_eq!(
+            pending.content_hash.value,
+            "sha256:6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d"
+        );
+        assert_eq!(
+            pending.object_version_ref.value,
+            "object-version:drive:file-source-lock-1:v1"
+        );
+        assert_eq!(
+            pending.created_audit_event_id.value,
+            "audit:drive:file-created:001"
+        );
+        assert!(!pending.is_visible_to_readers());
+
+        let mut clean_without_scan_audit = pending.clone();
+        clean_without_scan_audit.scan_state = internal(DriveScanState::Clean);
+        assert!(!clean_without_scan_audit.is_visible_to_readers());
+
+        let mut clean = pending.clone();
+        clean
+            .record_scan_verdict(DriveScanState::Clean, "audit:drive:scan-clean:001".into())
+            .unwrap();
+        assert!(clean.is_visible_to_readers());
+    }
+
+    #[test]
+    fn drive_file_folder_crud_contract_fixture_denies_legal_hold_delete_and_soft_deletes_without_bypass()
+     {
+        let mut held = DriveSourceLockedFile::new(DriveSourceLockedFileCreate {
+            file_id: "file-held".into(),
+            folder_id: "folder-source-lock-1".into(),
+            tenant_or_person_scope: "tenant:workspace-alpha".into(),
+            context_kind: DriveContextKind::Work,
+            path: "/team/held.pdf".into(),
+            object_version_ref: "object-version:drive:file-held:v1".into(),
+            content_hash: "sha256:2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
+                .into(),
+            mime_type: "application/pdf".into(),
+            size_bytes: 4096,
+            retention_policy_id: "retention-legal".into(),
+            scan_state: DriveScanState::Clean,
+            data_class: None,
+            created_by: "user:owner@example.com".into(),
+            created_at_epoch_seconds: 1_700_000_020,
+            audit_event_id: "audit:drive:file-created:held".into(),
+            legal_hold_open: true,
+        })
+        .unwrap();
+
+        assert_eq!(
+            held.soft_delete("audit:drive:file-delete:held".into()),
+            Ok(DriveFileDeleteOutcome::LegalHoldDenied)
+        );
+        assert_eq!(held.lifecycle_state.value, DriveFileLifecycleState::Active);
+        assert_eq!(
+            held.last_mutation_audit_event_id.value,
+            Some("audit:drive:file-delete:held".to_string())
+        );
+
+        let mut deletable = held.clone();
+        deletable.legal_hold_open = internal(false);
+        assert_eq!(
+            deletable.soft_delete("audit:drive:file-delete:ok".into()),
+            Ok(DriveFileDeleteOutcome::SoftDeleted)
+        );
+        assert_eq!(
+            deletable.lifecycle_state.value,
+            DriveFileLifecycleState::SoftDeleted
+        );
+        assert_eq!(
+            deletable.last_mutation_audit_event_id.value,
+            Some("audit:drive:file-delete:ok".to_string())
         );
     }
 }

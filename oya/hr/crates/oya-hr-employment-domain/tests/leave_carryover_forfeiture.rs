@@ -36,8 +36,14 @@ fn balance_at_or_below_cap_zero_forfeiture() {
 
     assert_eq!(proj.closing_balance_units.value, 6.0);
     assert_eq!(proj.carry_over_cap_units.value, 10.0);
-    assert_eq!(proj.carried_over_units.value, 6.0, "carried_over must equal balance when <= cap");
-    assert_eq!(proj.forfeited_units.value, 0.0, "forfeited must be zero when balance <= cap");
+    assert_eq!(
+        proj.carried_over_units.value, 6.0,
+        "carried_over must equal balance when <= cap"
+    );
+    assert_eq!(
+        proj.forfeited_units.value, 0.0,
+        "forfeited must be zero when balance <= cap"
+    );
 }
 
 #[test]
@@ -67,7 +73,10 @@ fn balance_above_cap_splits_correctly() {
     })
     .expect("balance=12, cap=10 → should succeed");
 
-    assert_eq!(proj.carried_over_units.value, 10.0, "carried_over must be capped at cap");
+    assert_eq!(
+        proj.carried_over_units.value, 10.0,
+        "carried_over must be capped at cap"
+    );
     assert_eq!(proj.forfeited_units.value, 2.0, "forfeited = balance - cap");
 }
 
@@ -104,7 +113,10 @@ fn balance_below_floor_floor_granted() {
         proj.carried_over_units.value, 5.0,
         "statutory minimum floor must be granted even when balance < floor"
     );
-    assert_eq!(proj.forfeited_units.value, 0.0, "no forfeiture when below floor");
+    assert_eq!(
+        proj.forfeited_units.value, 0.0,
+        "no forfeiture when below floor"
+    );
 }
 
 #[test]
@@ -234,26 +246,38 @@ fn financial_class_on_all_unit_fields() {
     for (name, dc) in [
         (
             "closing_balance_units",
-            proj.closing_balance_units.data_class.compatibility_data_class(),
+            proj.closing_balance_units
+                .data_class
+                .compatibility_data_class(),
         ),
         (
             "statutory_min_floor_units",
-            proj.statutory_min_floor_units.data_class.compatibility_data_class(),
+            proj.statutory_min_floor_units
+                .data_class
+                .compatibility_data_class(),
         ),
         (
             "carry_over_cap_units",
-            proj.carry_over_cap_units.data_class.compatibility_data_class(),
+            proj.carry_over_cap_units
+                .data_class
+                .compatibility_data_class(),
         ),
         (
             "carried_over_units",
-            proj.carried_over_units.data_class.compatibility_data_class(),
+            proj.carried_over_units
+                .data_class
+                .compatibility_data_class(),
         ),
         (
             "forfeited_units",
             proj.forfeited_units.data_class.compatibility_data_class(),
         ),
     ] {
-        assert_eq!(dc, DataClass::Financial, "field {name} must carry FINANCIAL data class");
+        assert_eq!(
+            dc,
+            DataClass::Financial,
+            "field {name} must carry FINANCIAL data class"
+        );
     }
 }
 
@@ -266,8 +290,7 @@ fn idempotency_key_format() {
     let proj = evaluate_leave_carryover_forfeiture(valid_input()).expect("projection");
 
     assert_eq!(
-        proj.idempotency_key.value,
-        "ten_acme:emp_001:2026-12-31:rulepack/kr-labor-2026",
+        proj.idempotency_key.value, "ten_acme:emp_001:2026-12-31:rulepack/kr-labor-2026",
         "idempotency_key must be tenant:emp:date:rulepack"
     );
 }

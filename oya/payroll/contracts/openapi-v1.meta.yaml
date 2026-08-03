@@ -1,7 +1,7 @@
 tier: preview
 owner_team: axis-enterprise
 version: 1.0.0
-sunset: none-before-GA
+sunset: none
 related_adrs:
   - docs/decisions/ADR-0315-erp-coverage-doctrine-sap-parity.md
   - docs/decisions/ADR-0131-flat-microservices-layout.md
@@ -13,3 +13,9 @@ change_notes:
   - id: CS-ENT-PAYROLL-003
     date: 2026-05-23
     summary: Adds payroll runtime adapter crate that dispatches existing preview routes through the repo-native Hyper foundation; deployed listener, storage, Workflow dispatch, statutory filing rails, and payroll calculation remain non-claims.
+  - id: CS-ENT-PAYROLL-004
+    date: 2026-07-01
+    summary: Adds local-only statutory calculation and year-end settlement preview replay contracts; deployed listener, durable storage, Workflow dispatch, statutory agency submission, filing/disbursement rails, HR/accounting runtime calls, cloud deployment, and production close remain non-claims.
+  - id: CS-ENT-PAYROLL-005
+    date: 2026-07-02
+    summary: Adds local close API replay response evidence refs and explicit health/live-deployment/accessibility N/A rationale; deployed listener, durable storage, Workflow dispatch, runtime audit emission, statutory filing/disbursement rails, external HR/accounting calls, cloud rollout, and production close remain non-claims.

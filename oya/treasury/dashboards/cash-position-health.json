@@ -1,5 +1,10 @@
 {
   "title": "Treasury health",
+  "authority": {
+    "prd_ref": "specs/microservices/treasury.json",
+    "scope": "preview planning inventory only",
+    "non_claim": "dashboard panels are not evidence of live metrics, runtime audit-chain emission, cloud deployment, measured SLO, GA, or production readiness"
+  },
   "tags": [
     "erp",
     "treasury",

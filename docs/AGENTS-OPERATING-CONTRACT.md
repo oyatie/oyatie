@@ -16,7 +16,7 @@ Authority: [docs/AGENTS.md](AGENTS.md) remains the live agent operating contract
 
 ## ADR-0346
 
-[ADR-0346](decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md) declares that `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix. It invokes cargo fmt, cargo check, cargo clippy, cargo nextest, `oya gate run-all --ci-required`, advisory `oya doc adr-index --write`, and ADR-shape linting, and MUST block on exit-0 of each mandatory step before returning success.
+[ADR-0346](decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md) declares that `./bin/oya verify --ci-required` is legacy/local-feedback provenance only after ADR-0515; protected merge authority is `oya-ci-required`. It invokes cargo fmt, cargo check, cargo clippy, cargo nextest, `oya gate run-all --ci-required`, advisory `oya doc adr-index --write`, and ADR-shape linting, and MUST block on exit-0 of each mandatory step before returning success.
 
 Enforced by: `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, `oya-governance-oya-verify-exit-code-contract`.
 
@@ -34,6 +34,6 @@ Enforced by: `oya-governance-sharding-automation-coverage`, `oya-governance-auto
 
 ## ADR-0349
 
-[ADR-0349](decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md) declares Jenkins (LTS) and ArgoCD as the two canonical self-hostable CI/CD substrates for the Oyatie corpus. Jenkins augments GitHub Actions for self-hostable CI contexts, while ArgoCD is the canonical GitOps CD orchestrator and replaces manual `kubectl apply` plus Helm CLI deploys across all contexts.
+[ADR-0349](decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md) declares Jenkins CI wording is historical/provenance after ADR-0515; GitHub Actions produces `oya-ci-required` until explicit owned-runner cutover, and ArgoCD remains separately authorized CD evidence where applicable.
 
 Enforced by: `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, `oya-governance-deploy-audit-chain-emit`.

@@ -29,10 +29,121 @@ pub const PROBE_METHOD: &str = "GET";
 
 pub const MESSENGER_REST_MICROSERVICE: &str = "messenger";
 pub const POST_MESSAGE_OPERATION_ID: &str = "messenger.post_message";
+pub const MESSENGER_OTLP_EXPORTER_ENV: &str = "OYA_OTEL_ENDPOINT";
+pub const MESSENGER_DEFAULT_OTLP_ENDPOINT: &str =
+    "http://otel-collector.observability.svc.cluster.local:4317";
+pub const MESSENGER_TRACEPARENT_HEADER: &str = "traceparent";
+pub const MESSENGER_TRACEPARENT_CANARY: &str =
+    "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01";
 
 pub fn telemetry_binding() -> Result<RequestTelemetryBinding, MetricsError> {
     let context = MetricsContext::new(MESSENGER_REST_MICROSERVICE)?;
     RequestTelemetryBinding::new(&context, POST_MESSAGE_OPERATION_ID)
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct MessengerOtlpTraceExportPlan {
+    pub service_name: &'static str, // data_class: INTERNAL_ONLY
+    pub exporter_env: &'static str, // data_class: INTERNAL_ONLY
+    pub endpoint: String,           // data_class: INTERNAL_ONLY
+    pub header_name: &'static str,  // data_class: INTERNAL_ONLY
+    pub traceparent: String,        // data_class: INTERNAL_ONLY
+    pub protocol: &'static str,     // data_class: INTERNAL_ONLY
+}
+
+impl MessengerOtlpTraceExportPlan {
+    pub fn trace_context_header(&self) -> (&'static str, &str) {
+        (self.header_name, &self.traceparent)
+    }
+
+    pub fn otlp_exporter_env_binding(&self) -> (&'static str, &str) {
+        (self.exporter_env, &self.endpoint)
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum MessengerOtlpTraceExportError {
+    MissingEndpoint,
+    InvalidOtlpEndpoint,
+    InvalidTraceparent,
+}
+
+pub fn default_messenger_otlp_trace_export_plan()
+-> Result<MessengerOtlpTraceExportPlan, MessengerOtlpTraceExportError> {
+    messenger_otlp_trace_export_plan(
+        MESSENGER_DEFAULT_OTLP_ENDPOINT,
+        MESSENGER_TRACEPARENT_CANARY,
+    )
+}
+
+pub fn messenger_otlp_trace_export_plan(
+    endpoint: &str,
+    traceparent: &str,
+) -> Result<MessengerOtlpTraceExportPlan, MessengerOtlpTraceExportError> {
+    let endpoint = endpoint.trim();
+    if endpoint.is_empty() {
+        return Err(MessengerOtlpTraceExportError::MissingEndpoint);
+    }
+    if !is_otlp_collector_endpoint(endpoint) {
+        return Err(MessengerOtlpTraceExportError::InvalidOtlpEndpoint);
+    }
+
+    if !is_valid_traceparent(traceparent) {
+        return Err(MessengerOtlpTraceExportError::InvalidTraceparent);
+    }
+
+    Ok(MessengerOtlpTraceExportPlan {
+        service_name: MESSENGER_REST_MICROSERVICE,
+        exporter_env: MESSENGER_OTLP_EXPORTER_ENV,
+        endpoint: endpoint.to_string(),
+        header_name: MESSENGER_TRACEPARENT_HEADER,
+        traceparent: traceparent.to_string(),
+        protocol: "otlp/grpc",
+    })
+}
+
+fn is_otlp_collector_endpoint(endpoint: &str) -> bool {
+    let lower = endpoint.to_ascii_lowercase();
+    (lower.starts_with("http://") || lower.starts_with("https://"))
+        && (lower.contains("otel-collector") || lower.contains("alloy.observability"))
+        && (lower.ends_with(":4317") || lower.contains(":4317/") || lower.contains("/v1/traces"))
+}
+
+fn is_valid_traceparent(traceparent: &str) -> bool {
+    let mut parts = traceparent.split('-');
+    let Some(version) = parts.next() else {
+        return false;
+    };
+    let Some(trace_id) = parts.next() else {
+        return false;
+    };
+    let Some(parent_id) = parts.next() else {
+        return false;
+    };
+    let Some(flags) = parts.next() else {
+        return false;
+    };
+    if parts.next().is_some() {
+        return false;
+    }
+
+    version == "00"
+        && trace_id.len() == 32
+        && parent_id.len() == 16
+        && flags.len() == 2
+        && is_lowercase_hex(trace_id)
+        && is_lowercase_hex(parent_id)
+        && is_lowercase_hex(flags)
+        && !trace_id.bytes().all(|byte| byte == b'0')
+        && !parent_id.bytes().all(|byte| byte == b'0')
+        && u8::from_str_radix(flags, 16).is_ok()
+}
+
+fn is_lowercase_hex(value: &str) -> bool {
+    !value.is_empty()
+        && value
+            .bytes()
+            .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -742,6 +853,54 @@ mod tests {
         assert_eq!(
             binding.responses_429_metric,
             "oya_messenger_responses_429_total"
+        );
+    }
+
+    #[test]
+    fn messenger_otlp_trace_export_plan_emits_valid_traceparent_and_collector_endpoint() {
+        let plan = default_messenger_otlp_trace_export_plan().unwrap();
+
+        assert_eq!(plan.service_name, MESSENGER_REST_MICROSERVICE);
+        assert_eq!(plan.exporter_env, MESSENGER_OTLP_EXPORTER_ENV);
+        assert_eq!(plan.endpoint, MESSENGER_DEFAULT_OTLP_ENDPOINT);
+        assert_eq!(plan.traceparent, MESSENGER_TRACEPARENT_CANARY);
+        assert_eq!(plan.header_name, MESSENGER_TRACEPARENT_HEADER);
+        assert_eq!(plan.protocol, "otlp/grpc");
+        assert_eq!(
+            plan.trace_context_header(),
+            (MESSENGER_TRACEPARENT_HEADER, MESSENGER_TRACEPARENT_CANARY)
+        );
+        assert_eq!(
+            plan.otlp_exporter_env_binding(),
+            (MESSENGER_OTLP_EXPORTER_ENV, MESSENGER_DEFAULT_OTLP_ENDPOINT)
+        );
+        assert!(plan.endpoint.contains("otel-collector"));
+        assert!(plan.endpoint.ends_with(":4317"));
+    }
+
+    #[test]
+    fn messenger_otlp_trace_export_plan_rejects_all_zero_noop_traceparent() {
+        let result = messenger_otlp_trace_export_plan(
+            MESSENGER_DEFAULT_OTLP_ENDPOINT,
+            "00-00000000000000000000000000000000-0000000000000000-00",
+        );
+
+        assert_eq!(
+            result,
+            Err(MessengerOtlpTraceExportError::InvalidTraceparent)
+        );
+    }
+
+    #[test]
+    fn messenger_otlp_trace_export_plan_rejects_non_otlp_endpoint() {
+        let result = messenger_otlp_trace_export_plan(
+            "http://example.invalid:8080",
+            MESSENGER_TRACEPARENT_CANARY,
+        );
+
+        assert_eq!(
+            result,
+            Err(MessengerOtlpTraceExportError::InvalidOtlpEndpoint)
         );
     }
 

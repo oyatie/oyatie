@@ -48,7 +48,7 @@ Every `oya-*` service binary emits telemetry via the **OpenTelemetry SDK**
 `opentelemetry_sdk`). OTLP (gRPC or HTTP) is the wire format.
 
 - **Collector**: `opentelemetry-collector-releases` ≥ **v0.151.0** per
-  [`.omc/scratch/lts-versions-verified-2026-05-12.md`](../../.omc/scratch/lts-versions-verified-2026-05-12.md).
+  [`lts-versions-verified.md`](lts-versions-verified.md).
 - **Deployment pattern**: agent (per-host or per-pod sidecar) + gateway
   (centralized aggregator). Hierarchical is acceptable for high-volume
   axes; pure-gateway is forbidden because per-host fan-in becomes a SPOF.

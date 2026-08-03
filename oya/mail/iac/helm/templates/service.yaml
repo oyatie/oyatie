@@ -7,6 +7,7 @@ metadata:
     oyatie/microservice: mail
     oyatie/bc: {{ .Values.bc }}
     oyatie/layer: {{ .Values.layer }}
+    oyatie.com/public-listener-owner: edge-platform
 spec:
   type: ClusterIP
   selector:
@@ -23,52 +24,13 @@ spec:
       port: 9090
       targetPort: 9090
 {{- if eq .Values.bc "inbound-smtp" }}
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: {{ include "oya-mail.fullname" . }}-inbound-smtp-mx
-  namespace: {{ .Release.Namespace }}
-spec:
-  type: LoadBalancer
-  externalTrafficPolicy: Local        # preserve client IP for RBL / per-IP rate-limit
-  selector:
-    oyatie/bc: inbound-smtp
-    oyatie/layer: worker
-  ports:
     - {name: smtp,  port: 25,  targetPort: 25,  protocol: TCP}
     - {name: smtps, port: 465, targetPort: 465, protocol: TCP}
 {{- end }}
 {{- if eq .Values.bc "outbound-smtp" }}
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: {{ include "oya-mail.fullname" . }}-outbound-submission
-  namespace: {{ .Release.Namespace }}
-spec:
-  type: LoadBalancer
-  externalTrafficPolicy: Local
-  selector:
-    oyatie/bc: outbound-smtp
-    oyatie/layer: worker
-  ports:
     - {name: submission, port: 587, targetPort: 587, protocol: TCP}
 {{- end }}
 {{- if eq .Values.bc "imap-frontend" }}
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: {{ include "oya-mail.fullname" . }}-imap
-  namespace: {{ .Release.Namespace }}
-spec:
-  type: LoadBalancer
-  externalTrafficPolicy: Local
-  selector:
-    oyatie/bc: imap-frontend
-    oyatie/layer: worker
-  ports:
     - {name: imap,  port: 143, targetPort: 143, protocol: TCP}
     - {name: imaps, port: 993, targetPort: 993, protocol: TCP}
     - {name: sieve, port: 4190, targetPort: 4190, protocol: TCP}

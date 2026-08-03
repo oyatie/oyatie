@@ -1559,8 +1559,8 @@
       "GitHub (interim)",
       "self-hosted Kubernetes",
       "Buck2",
-      "oya-gate",
-      "oya-verify"
+      "cloud-ci-rust-gate-packet",
+      "legacy-oya-verify-local-feedback-only"
     ]
   },
   "pure_dogfood_constraints": {

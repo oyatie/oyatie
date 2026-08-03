@@ -49,6 +49,19 @@ oya-cloud-ci-cargo-prefix-app = { path = "../oya-cloud-ci-cargo-prefix-app" }
 # cloud-ci-slo-coverage: the producer expands the config-declared catalog globs into
 # {crate_id,slo} rows; the gate reuses the existing oya-check-slo-coverage kernel.
 oya-cloud-ci-slo-coverage-app = { path = "../oya-cloud-ci-slo-coverage-app" }
+# cloud-ci-license-policy: the producer resolves workspace members and emits package-license rows;
+# the gate reuses the existing oya-check-license-policy kernel.
+oya-cloud-ci-license-policy-app = { path = "../oya-cloud-ci-license-policy-app" }
+# cloud-ci-zero-static-secrets: the producer scans the tracked corpus for credential-shaped
+# candidate lines and feeds policy DATA + redacted row facts to the pure evaluator.
+oya-cloud-ci-zero-static-secrets-app = { path = "../oya-cloud-ci-zero-static-secrets-app" }
+# cloud-ci-load-balancer-inventory: classifies tenant-facing LoadBalancer inventory as
+# api-gateway HTTP/gRPC edge, authorized ADR-0182 non-HTTP protocol edge, or fail-closed debt.
+oya-cloud-ci-load-balancer-inventory-app = { path = "../oya-cloud-ci-load-balancer-inventory-app" }
+# Region/env-tier gate packet faces consume prerequisite readiness surfaces and stay pure.
+oya-cloud-ci-multi-region-disposition-app = { path = "../oya-cloud-ci-multi-region-disposition-app" }
+oya-cloud-ci-sovereign-tenant-pin-app = { path = "../oya-cloud-ci-sovereign-tenant-pin-app" }
+oya-cloud-ci-tenant-environment-tier-app = { path = "../oya-cloud-ci-tenant-environment-tier-app" }
 # cloud-ci-workspace-glob-coverage (ADR-0538): the producer emits raw member-entry rows and
 # concrete crate-dir coverage rows; the gate is pure policy over those booleans.
 oya-cloud-ci-workspace-glob-coverage-app = { path = "../oya-cloud-ci-workspace-glob-coverage-app" }

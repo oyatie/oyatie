@@ -98,6 +98,12 @@ jobs:
           - { crate: oya-cloud-ci-manifest-hygiene-app,         label: "gate · manifest-hygiene (§2.5#7, born-blocking)" }
           - { crate: oya-cloud-ci-cargo-prefix-app,            label: "gate · cargo-prefix (ADR-0017)" }
           - { crate: oya-cloud-ci-slo-coverage-app,            label: "gate · slo-coverage (catalog SLO input contract, born-blocking)" }
+          - { crate: oya-cloud-ci-license-policy-app,          label: "gate · license-policy (ADR-0013, born-blocking)" }
+          - { crate: oya-cloud-ci-zero-static-secrets-app,     label: "gate · zero-static-secrets (tracked corpus secret hygiene, born-blocking)" }
+          - { crate: oya-cloud-ci-load-balancer-inventory-app, label: "gate · load-balancer-inventory (tenant-facing edge taxonomy)" }
+          - { crate: oya-cloud-ci-multi-region-disposition-app, label: "gate · multi-region-disposition (manifest/doc readiness)" }
+          - { crate: oya-cloud-ci-sovereign-tenant-pin-app,    label: "gate · sovereign-tenant-pin (multi-region 421+Location readiness)" }
+          - { crate: oya-cloud-ci-tenant-environment-tier-app, label: "gate · tenant-environment-tier (env-tier isolation readiness)" }
           - { crate: oya-cloud-ci-workspace-glob-coverage-app, label: "gate: workspace-glob-coverage (ADR-0538)" }
           - { crate: oya-cloud-ci-target-parity-app,           label: "gate · target-parity (ADR-0540, test-wiring false-green)" }
           - { crate: oya-cloud-ci-enforcement-liveness-app,    label: "gate · enforcement-liveness (FRIC-012, hook mirror liveness)" }
@@ -354,6 +360,50 @@ jobs:
           pnpm --dir oya/app-shell-frontend codegen:check
           pnpm --dir oya/app-shell-frontend typecheck
 
+  # ── PR REVIEWER EVIDENCE LANE. Branch protection intentionally requires only the
+  #    single `oya-ci-required` context, while GitHub Review API approvals are not merge
+  #    authority until `oya-pr-review` has a live trusted producer. This lane closes the
+  #    guardrail gap by validating the pull-request body itself on pull_request events:
+  #    merge-ready PRs must carry lead-owned `## Code Review` reviewer-agent evidence
+  #    with an APPROVE verdict, or the fan-in stays red. Non-PR events do not have a PR
+  #    body and pass through; the protected PR path is enforced before merge.
+  pr-reviewer-evidence:
+    name: pr-reviewer-evidence (PR body reviewer-agent APPROVE)
+    runs-on: ubuntu-latest
+    steps:
+      # actions/checkout@v6.0.3 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          persist-credentials: false
+      - name: Validate pull-request reviewer evidence
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BODY_PATH: ${{ runner.temp }}/pr-body.md
+        run: |
+          set -euo pipefail
+          if [ "${EVENT_NAME}" != "pull_request" ]; then
+            echo "pr-reviewer-evidence: ${EVENT_NAME} event has no PR body; pull_request path owns reviewer evidence enforcement."
+            exit 0
+          fi
+
+          python3 - <<'PY' > "${PR_BODY_PATH}"
+          import json
+          import os
+          import pathlib
+          import sys
+
+          event = json.loads(pathlib.Path(os.environ["GITHUB_EVENT_PATH"]).read_text())
+          body = event.get("pull_request", {}).get("body")
+          if not body:
+              sys.stderr.write("pr-reviewer-evidence: pull_request.body is empty; reviewer-agent evidence missing\n")
+              sys.exit(1)
+          sys.stdout.write(body)
+          PY
+
+          cargo run --locked -p oya-dev-cli -- gate validate pr-traceability \
+            --pr-body "${PR_BODY_PATH}" \
+            --require-code-review
+
   # ── THE FAN-IN. This is the single required context branch protection keys on. It has NO
   #    command of its own (Principle 1 — it NEVER re-runs a narrower subset): it is green IFF
   #    every gate lane above is green. `needs:` lists EVERY gate job; the gate-registration
@@ -370,6 +420,7 @@ jobs:
       - generated-output-diff-policy # generated outputs are never PR merge surfaces
       - buck2                   # hermetic buck2 build + affected gate tests (alongside cargo)
       - app-shell-codegen       # ignored generated app-shell clients regenerate from canonical contracts
+      - pr-reviewer-evidence    # PR body carries reviewer-agent APPROVE evidence inside the required context
     steps:
       - name: Fan-in verdict (green IFF every gate lane is green)
         run: |
@@ -381,6 +432,7 @@ jobs:
           echo "  generated-diff    = ${{ needs.generated-output-diff-policy.result }}"
           echo "  buck2             = ${{ needs.buck2.result }}"
           echo "  app-shell-codegen = ${{ needs.app-shell-codegen.result }}"
+          echo "  reviewer-evidence = ${{ needs.pr-reviewer-evidence.result }}"
           # A matrix job's aggregate `.result` is success IFF ALL legs succeeded, failure if any
           # leg failed, skipped if it never ran — so one check covers every gate in the matrix.
           if [ "${{ needs.gate.result }}" = "success" ] \
@@ -389,7 +441,8 @@ jobs:
             && [ "${{ needs.gate-cloud-ci-firewall.result }}" = "success" ] \
             && [ "${{ needs.generated-output-diff-policy.result }}" = "success" ] \
             && [ "${{ needs.buck2.result }}" = "success" ] \
-            && [ "${{ needs.app-shell-codegen.result }}" = "success" ]; then
+            && [ "${{ needs.app-shell-codegen.result }}" = "success" ] \
+            && [ "${{ needs.pr-reviewer-evidence.result }}" = "success" ]; then
             echo "oya-ci-required: GREEN — every constituent gate lane passed."
             exit 0
           fi

@@ -112,6 +112,12 @@
   ],
   "ips": [
     {
+      "id": "IP-sustainability-emission-model",
+      "title": "IP: sustainability emission model Plan/Spec declaration",
+      "acceptance_status": "plan-spec-only",
+      "file": "oya/slides/IPs/IP-sustainability-emission-model.md"
+    },
+    {
       "id": "IP-001-layer-a-cdn-postgres-valkey-s3-ws-gateway-iac",
       "title": "IP-001: Layer-A IaC \u2014 CDN, WAF, Postgres, Valkey, S3, WS gateway, gVisor export pool",
       "acceptance_status": "ga",
@@ -406,6 +412,39 @@
     "scaling_dimension": "per_user",
     "cell_placement_class": "Tier-3",
     "notes": "Editing sessions, presenter/audience fan-out, deck rendering, and export workers scale with active users and broadcast participation."
+  },
+  "sustainability_emission_model": {
+    "pod_runtime_tier_ref": "self.pod_runtime_tier",
+    "power_model": {
+      "cpu_watts_per_vcpu_second": 0.56,
+      "memory_watts_per_gib_second": 0.003,
+      "storage_watts_per_gib_hour": 0.0011,
+      "network_watts_per_gib": 0.074,
+      "tier_overhead_factor": {
+        "tier_0_kata_clh": 1.4,
+        "tier_1_kata_clh": 1.4,
+        "tier_2_runc": 1.0,
+        "tier_3_runc_edge": 1.05
+      }
+    },
+    "price_model": {
+      "source": "provider_sku_pricing",
+      "binding": "oya/slides/IPs/IP-sustainability-emission-model.md#provider-sku-price-binding-plan-only",
+      "pin_window_hours": 1
+    },
+    "workload_signal_source": {
+      "signal_family": "per_request",
+      "source_ref": "oya/slides/IPs/IP-sustainability-emission-model.md#workload-signal-source"
+    },
+    "emission_path_tests": [
+      "scripts/tests/finops_collab_emission_models_check.py::slides",
+      "oya/slides/IPs/IP-sustainability-emission-model.md#red-fixture-contract"
+    ],
+    "validation_baseline": {
+      "expected_watt_hours_per_request_p50_mwh": 8.8,
+      "expected_co2_grams_per_request_p50_at_grid_400gco2_per_kwh": 0.0035,
+      "tolerance_pct": 20
+    }
   },
   "sharding_automation": {
     "autosharding": "control_plane_driven",

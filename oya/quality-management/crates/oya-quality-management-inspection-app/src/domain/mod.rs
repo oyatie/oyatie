@@ -20,6 +20,7 @@ pub const LAYERS: &[Layer] = &[
 pub const CAPABILITIES: &[Capability] = &[
     Capability::InspectionPlan,
     Capability::InspectionLot,
+    Capability::QualityNotification,
     Capability::QualityHold,
     Capability::CertificateAnalysis,
     Capability::AuditEvidence,
@@ -48,6 +49,7 @@ pub enum Layer {
 pub enum BoundedContext {
     InspectionPlan,
     InspectionLot,
+    QualityNotification,
     QualityHold,
     CertificateAnalysis,
     AuditEvidence,
@@ -58,6 +60,7 @@ pub enum BoundedContext {
 pub enum Capability {
     InspectionPlan,
     InspectionLot,
+    QualityNotification,
     QualityHold,
     CertificateAnalysis,
     AuditEvidence,
@@ -93,6 +96,10 @@ impl TenantId {
         }
         Ok(Self(trimmed.to_string()))
     }
+
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -116,6 +123,10 @@ impl IdempotencyKey {
         }
         Ok(Self(trimmed.to_string()))
     }
+
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -124,6 +135,10 @@ pub struct PrincipalId(String);
 impl PrincipalId {
     pub fn new(value: impl Into<String>) -> Result<Self> {
         bounded_identifier("principal_id", value.into()).map(Self)
+    }
+
+    pub fn as_str(&self) -> &str {
+        &self.0
     }
 }
 
@@ -134,6 +149,10 @@ impl RequestId {
     pub fn new(value: impl Into<String>) -> Result<Self> {
         bounded_identifier("request_id", value.into()).map(Self)
     }
+
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -142,6 +161,10 @@ pub struct ResourceId(String);
 impl ResourceId {
     pub fn new(value: impl Into<String>) -> Result<Self> {
         bounded_identifier("resource_id", value.into()).map(Self)
+    }
+
+    pub fn as_str(&self) -> &str {
+        &self.0
     }
 }
 
@@ -201,6 +224,15 @@ impl ServiceCommand {
             | Self::ExportEvidence { capability, .. } => *capability,
         }
     }
+
+    pub fn resource_id(&self) -> &ResourceId {
+        match self {
+            Self::Submit { resource_id, .. }
+            | Self::Reconcile { resource_id, .. }
+            | Self::ApplyGovernanceHold { resource_id, .. }
+            | Self::ExportEvidence { resource_id, .. } => resource_id,
+        }
+    }
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -248,9 +280,20 @@ impl CapabilityDescriptor {
             .copied()
             .map(|capability| Self {
                 capability,
-                bounded_context: BoundedContext::InspectionPlan,
+                bounded_context: bounded_context_for(capability),
                 invariant: ServiceInvariant::TenantScoped,
             })
             .collect()
+    }
+}
+
+fn bounded_context_for(capability: Capability) -> BoundedContext {
+    match capability {
+        Capability::InspectionPlan => BoundedContext::InspectionPlan,
+        Capability::InspectionLot => BoundedContext::InspectionLot,
+        Capability::QualityNotification => BoundedContext::QualityNotification,
+        Capability::QualityHold => BoundedContext::QualityHold,
+        Capability::CertificateAnalysis => BoundedContext::CertificateAnalysis,
+        Capability::AuditEvidence => BoundedContext::AuditEvidence,
     }
 }

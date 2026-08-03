@@ -15,11 +15,12 @@ use serde_json::Value;
 use crate::slash_path;
 
 const DEFAULT_REPO_ROOT: &str = ".";
-const DEFAULT_MANIFEST: &str = "microservices/cloud-iac/manifest.json";
-const DEFAULT_TOPOLOGY: &str = "microservices/cloud-iac/cell-topology/foundation.json";
-const DEFAULT_CATALOG: &str = "microservices/cloud-iac/tofu/modules/catalog.json";
+const DEFAULT_MANIFEST: &str = "cloud/cloud-iac/manifest.json";
+const DEFAULT_TOPOLOGY: &str = "cloud/cloud-iac/cell-topology/foundation.json";
+const DEFAULT_CATALOG: &str = "cloud/cloud-iac/tofu/modules/catalog.json";
+const DEFAULT_TEMPLATES_ROOT: &str = "cloud/cloud-iac/iac";
 const GATE_NAME: &str = "cloud-iac-cell-topology";
-const GATE_FILE: &str = "crates/oya-dev-cli/src/cloud_iac_cell_topology_gate.rs";
+const GATE_FILE: &str = "cloud/cloud-ci/gates/cloud-iac-cell-topology-gate/src/main.rs";
 const RUNTIME_MODE: &str = "local-filesystem-json-cell-topology-gate";
 const CHANGESET_ID: &str = "CS-CLOUD-IAC-CELL-TOPOLOGY-GATE-001";
 
@@ -38,6 +39,7 @@ pub(crate) struct CloudIacCellTopologyReport {
     pub(crate) catalog_path: String,
     pub(crate) contexts_checked: usize,
     pub(crate) cells_checked: usize,
+    pub(crate) service_tenant_fixtures_checked: usize,
     pub(crate) module_refs_checked: usize,
     pub(crate) files_checked: usize,
 }
@@ -91,6 +93,28 @@ struct CellRow {
     module_refs: Vec<CellModuleRef>,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct ServiceTenantTopologyFixture {
+    microservice: String,
+    tenant_id: String,
+    cell_id: String,
+    cell_tier: String,
+    residency_class: String,
+    region_disposition: String,
+    storage_class: String,
+    quarterly_isolation_evidence: QuarterlyIsolationEvidence,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct QuarterlyIsolationEvidence {
+    quarter: String,
+    network: String,
+    storage: String,
+    crypto: String,
+    compute: String,
+    audit: String,
+}
+
 pub(crate) fn parse_cloud_iac_cell_topology_validate_args(
     args: Vec<String>,
 ) -> Result<CloudIacCellTopologyValidateArgs, String> {
@@ -113,9 +137,9 @@ pub(crate) fn parse_cloud_iac_cell_topology_validate_args(
                     "cloud-iac-cell-topology: unknown flag {other:?}; usage: \
                      oya gate validate cloud-iac-cell-topology \
                      [--repo-root <.>] \
-                     [--manifest <microservices/cloud-iac/manifest.json>] \
-                     [--topology <microservices/cloud-iac/cell-topology/foundation.json>] \
-                     [--catalog <microservices/cloud-iac/tofu/modules/catalog.json>]"
+                     [--manifest <cloud/cloud-iac/manifest.json>] \
+                     [--topology <cloud/cloud-iac/cell-topology/foundation.json>] \
+                     [--catalog <cloud/cloud-iac/tofu/modules/catalog.json>]"
                 ));
             }
         }
@@ -176,7 +200,7 @@ pub(crate) fn validate_cloud_iac_cell_topology_gate(
         "/cell_topology_scope/gitops_templates_root",
         &mut diagnostics,
     )
-    .unwrap_or_else(|| "microservices/cloud-iac/iac".to_string());
+    .unwrap_or_else(|| DEFAULT_TEMPLATES_ROOT.to_string());
 
     let manifest_contexts =
         required_string_array(&manifest, "/cell_topology_scope/contexts", &mut diagnostics)
@@ -207,6 +231,7 @@ pub(crate) fn validate_cloud_iac_cell_topology_gate(
         &mut diagnostics,
     );
     let cells = parse_topology_cells(&topology, &mut diagnostics);
+    let service_tenant_fixtures = parse_service_tenant_fixtures(&topology, &mut diagnostics);
     let module_refs_checked = validate_cells(
         &args.repo_root,
         &templates_root,
@@ -215,15 +240,26 @@ pub(crate) fn validate_cloud_iac_cell_topology_gate(
         &cells,
         &mut diagnostics,
     );
+    let service_tenant_fixtures_checked = validate_service_tenant_fixtures(
+        &cells,
+        &service_tenant_fixtures,
+        &mut diagnostics,
+    );
     validate_topology_summary(
         &topology,
         &manifest_contexts,
         &manifest_regions,
         &catalog_rel,
         &cells,
+        &service_tenant_fixtures,
         &mut diagnostics,
     );
     validate_manifest_topology_counts(&manifest, &cells, &mut diagnostics);
+    validate_manifest_service_tenant_fixture_count(
+        &manifest,
+        &service_tenant_fixtures,
+        &mut diagnostics,
+    );
 
     if diagnostics.is_empty() {
         Ok(CloudIacCellTopologyReport {
@@ -232,8 +268,9 @@ pub(crate) fn validate_cloud_iac_cell_topology_gate(
             catalog_path: catalog_rel,
             contexts_checked: manifest_contexts.len(),
             cells_checked: cells.len(),
+            service_tenant_fixtures_checked,
             module_refs_checked,
-            files_checked: cells.len() + 3,
+            files_checked: cells.len() + service_tenant_fixtures_checked + 3,
         })
     } else {
         Err(format!(
@@ -511,6 +548,24 @@ fn validate_manifest_topology_counts(
     }
 }
 
+fn validate_manifest_service_tenant_fixture_count(
+    manifest: &Value,
+    fixtures: &[ServiceTenantTopologyFixture],
+    diagnostics: &mut Vec<String>,
+) {
+    if let Some(count) = required_u64(
+        manifest,
+        "/cell_topology_scope/service_tenant_fixture_count",
+        diagnostics,
+    ) && count != fixtures.len() as u64
+    {
+        diagnostics.push(format!(
+            "manifest /cell_topology_scope/service_tenant_fixture_count must equal topology service_tenant_fixtures count {}; found {count}",
+            fixtures.len()
+        ));
+    }
+}
+
 fn validate_manifest_modeled_fields(manifest: &Value, diagnostics: &mut Vec<String>) {
     let Some(modeled_fields) = required_string_array(
         manifest,
@@ -534,6 +589,19 @@ fn validate_manifest_modeled_fields(manifest: &Value, diagnostics: &mut Vec<Stri
         "cells.module_refs",
         "cells.gitops_template",
         "cells.evidence_ref",
+        "service_tenant_fixtures.microservice",
+        "service_tenant_fixtures.tenant_id",
+        "service_tenant_fixtures.cell_id",
+        "service_tenant_fixtures.cell_tier",
+        "service_tenant_fixtures.residency_class",
+        "service_tenant_fixtures.region_disposition",
+        "service_tenant_fixtures.storage_class",
+        "service_tenant_fixtures.quarterly_isolation_evidence.quarter",
+        "service_tenant_fixtures.quarterly_isolation_evidence.network",
+        "service_tenant_fixtures.quarterly_isolation_evidence.storage",
+        "service_tenant_fixtures.quarterly_isolation_evidence.crypto",
+        "service_tenant_fixtures.quarterly_isolation_evidence.compute",
+        "service_tenant_fixtures.quarterly_isolation_evidence.audit",
     ] {
         if !modeled_fields.iter().any(|field| field == required) {
             diagnostics.push(format!(
@@ -793,6 +861,104 @@ fn parse_cell_module_refs(
     refs
 }
 
+fn parse_service_tenant_fixtures(
+    topology: &Value,
+    diagnostics: &mut Vec<String>,
+) -> Vec<ServiceTenantTopologyFixture> {
+    let Some(fixtures) = topology
+        .pointer("/service_tenant_fixtures")
+        .and_then(Value::as_array)
+    else {
+        diagnostics.push("topology /service_tenant_fixtures must be a non-empty array".to_string());
+        return Vec::new();
+    };
+    if fixtures.is_empty() {
+        diagnostics.push("topology /service_tenant_fixtures must be a non-empty array".to_string());
+        return Vec::new();
+    }
+
+    let mut rows = Vec::with_capacity(fixtures.len());
+    for (idx, fixture) in fixtures.iter().enumerate() {
+        let prefix = format!("/service_tenant_fixtures/{idx}");
+        let microservice = required_string(fixture, "/microservice", diagnostics);
+        let tenant_id = required_string(fixture, "/tenant_id", diagnostics);
+        let cell_id = required_string(fixture, "/cell_id", diagnostics);
+        let cell_tier = required_string(fixture, "/cell_tier", diagnostics);
+        let residency_class = required_string(fixture, "/residency_class", diagnostics);
+        let region_disposition = required_string(fixture, "/region_disposition", diagnostics);
+        let storage_class = required_string(fixture, "/storage_class", diagnostics);
+        let quarterly_isolation_evidence =
+            parse_quarterly_isolation_evidence(fixture, &prefix, diagnostics);
+
+        if let (
+            Some(microservice),
+            Some(tenant_id),
+            Some(cell_id),
+            Some(cell_tier),
+            Some(residency_class),
+            Some(region_disposition),
+            Some(storage_class),
+            Some(quarterly_isolation_evidence),
+        ) = (
+            microservice,
+            tenant_id,
+            cell_id,
+            cell_tier,
+            residency_class,
+            region_disposition,
+            storage_class,
+            quarterly_isolation_evidence,
+        ) {
+            rows.push(ServiceTenantTopologyFixture {
+                microservice,
+                tenant_id,
+                cell_id,
+                cell_tier,
+                residency_class,
+                region_disposition,
+                storage_class,
+                quarterly_isolation_evidence,
+            });
+        }
+    }
+    rows
+}
+
+fn parse_quarterly_isolation_evidence(
+    fixture: &Value,
+    prefix: &str,
+    diagnostics: &mut Vec<String>,
+) -> Option<QuarterlyIsolationEvidence> {
+    let Some(evidence) = fixture.pointer("/quarterly_isolation_evidence") else {
+        diagnostics.push(format!(
+            "{prefix}/quarterly_isolation_evidence must be an object"
+        ));
+        return None;
+    };
+
+    let quarter = required_string(evidence, "/quarter", diagnostics);
+    let network = required_string(evidence, "/network", diagnostics);
+    let storage = required_string(evidence, "/storage", diagnostics);
+    let crypto = required_string(evidence, "/crypto", diagnostics);
+    let compute = required_string(evidence, "/compute", diagnostics);
+    let audit = required_string(evidence, "/audit", diagnostics);
+
+    if let (Some(quarter), Some(network), Some(storage), Some(crypto), Some(compute), Some(audit)) =
+        (quarter, network, storage, crypto, compute, audit)
+    {
+        Some(QuarterlyIsolationEvidence {
+            quarter,
+            network,
+            storage,
+            crypto,
+            compute,
+            audit,
+        })
+    } else {
+        None
+    }
+}
+
 fn validate_cells(
     repo_root: &Path,
     templates_root: &str,
@@ -936,6 +1102,134 @@ fn validate_cells(
     module_refs_checked
 }
 
+fn validate_service_tenant_fixtures(
+    cells: &[CellRow],
+    fixtures: &[ServiceTenantTopologyFixture],
+    diagnostics: &mut Vec<String>,
+) -> usize {
+    let mut seen = BTreeSet::new();
+    for (idx, fixture) in fixtures.iter().enumerate() {
+        let prefix = format!("/service_tenant_fixtures/{idx}");
+        if !seen.insert((
+            fixture.microservice.clone(),
+            fixture.tenant_id.clone(),
+            fixture.cell_id.clone(),
+        )) {
+            diagnostics.push(format!(
+                "{prefix} duplicates a microservice/tenant_id/cell_id contract fixture"
+            ));
+        }
+        if !is_slug(&fixture.microservice) {
+            diagnostics.push(format!("{prefix}/microservice must be lowercase/digit/hyphen"));
+        }
+        if !is_tenant_id(&fixture.tenant_id) {
+            diagnostics.push(format!(
+                "{prefix}/tenant_id must be lowercase/digit/hyphen/underscore"
+            ));
+        }
+        if !is_slug(&fixture.cell_id) {
+            diagnostics.push(format!("{prefix}/cell_id must be lowercase/digit/hyphen"));
+        }
+        let matched_cell = cells
+            .iter()
+            .find(|cell| cell.tenant_id == fixture.tenant_id && cell.cell_id == fixture.cell_id);
+        if matched_cell.is_none() {
+            diagnostics.push(format!(
+                "{prefix} must reference an existing topology cell by tenant_id {:?} and cell_id {:?}",
+                fixture.tenant_id, fixture.cell_id
+            ));
+        }
+        if !is_cell_tier(&fixture.cell_tier) {
+            diagnostics.push(format!(
+                "{prefix}/cell_tier {:?} is not one of dedicated/shared-small/shared-medium/shared-large/foundry-runtime/public-corpus",
+                fixture.cell_tier
+            ));
+        }
+        if !is_residency_class(&fixture.residency_class) {
+            diagnostics.push(format!(
+                "{prefix}/residency_class {:?} is not a canonical ADR-0049 residency class",
+                fixture.residency_class
+            ));
+        }
+        if !is_region_disposition(&fixture.region_disposition) {
+            diagnostics.push(format!(
+                "{prefix}/region_disposition {:?} is not one of active_active/active_passive/single_region",
+                fixture.region_disposition
+            ));
+        }
+        if !is_storage_class(&fixture.storage_class) {
+            diagnostics.push(format!(
+                "{prefix}/storage_class {:?} must follow oya-<pg|s3|redis|object>-<hot|warm|cold>",
+                fixture.storage_class
+            ));
+        }
+        validate_quarterly_isolation_evidence(
+            &prefix,
+            &fixture.quarterly_isolation_evidence,
+            matched_cell,
+            diagnostics,
+        );
+    }
+    fixtures.len()
+}
+
+fn validate_quarterly_isolation_evidence(
+    prefix: &str,
+    evidence: &QuarterlyIsolationEvidence,
+    matched_cell: Option<&CellRow>,
+    diagnostics: &mut Vec<String>,
+) {
+    if !is_quarter_slug(&evidence.quarter) {
+        diagnostics.push(format!(
+            "{prefix}/quarterly_isolation_evidence/quarter {:?} must use yyyynq form such as 2026q2",
+            evidence.quarter
+        ));
+    }
+
+    let expected_cell_prefix = matched_cell.map(|cell| {
+        format!(
+            "evidence://cloud-iac/cell-topology/{}/{}/{}",
+            cell.context, cell.region, cell.cell_id
+        )
+    });
+    for (field, value) in [
+        ("network", &evidence.network),
+        ("storage", &evidence.storage),
+        ("crypto", &evidence.crypto),
+        ("compute", &evidence.compute),
+        ("audit", &evidence.audit),
+    ] {
+        if !value.starts_with("evidence://") {
+            diagnostics.push(format!(
+                "{prefix}/quarterly_isolation_evidence/{field} must be an evidence:// reference"
+            ));
+        }
+        if !value.contains("/quarterly-isolation/") {
+            diagnostics.push(format!(
+                "{prefix}/quarterly_isolation_evidence/{field} must reference quarterly-isolation evidence"
+            ));
+        }
+        if !value.contains(&evidence.quarter) {
+            diagnostics.push(format!(
+                "{prefix}/quarterly_isolation_evidence/{field} must include quarter {:?}",
+                evidence.quarter
+            ));
+        }
+        if let Some(expected_cell_prefix) = expected_cell_prefix.as_deref()
+            && !value.starts_with(expected_cell_prefix)
+        {
+            diagnostics.push(format!(
+                "{prefix}/quarterly_isolation_evidence/{field} must start with {expected_cell_prefix:?}"
+            ));
+        }
+        if contains_secret_like_marker(value) {
+            diagnostics.push(format!(
+                "{prefix}/quarterly_isolation_evidence/{field} contains secret-like material marker"
+            ));
+        }
+    }
+}
+
 fn validate_gitops_template_cell_identity(
     repo_root: &Path,
     prefix: &str,
@@ -990,6 +1284,7 @@ fn validate_topology_summary(
     manifest_regions: &[String],
     catalog_rel: &str,
     cells: &[CellRow],
+    service_tenant_fixtures: &[ServiceTenantTopologyFixture],
     diagnostics: &mut Vec<String>,
 ) {
     if let Some(count) = required_u64(topology, "/summary/context_count", diagnostics)
@@ -1006,6 +1301,17 @@ fn validate_topology_summary(
         diagnostics.push(format!(
             "topology /summary/cell_count must equal cells length {}; found {count}",
             cells.len()
+        ));
+    }
+    if let Some(count) = required_u64(
+        topology,
+        "/summary/service_tenant_fixture_count",
+        diagnostics,
+    ) && count != service_tenant_fixtures.len() as u64
+    {
+        diagnostics.push(format!(
+            "topology /summary/service_tenant_fixture_count must equal service_tenant_fixtures length {}; found {count}",
+            service_tenant_fixtures.len()
         ));
     }
 
@@ -1106,6 +1412,47 @@ fn is_isolation_tier(value: &str) -> bool {
         value,
         "foundation" | "substrate" | "capability" | "application" | "edge"
     )
+}
+
+fn is_cell_tier(value: &str) -> bool {
+    matches!(
+        value,
+        "dedicated"
+            | "shared-small"
+            | "shared-medium"
+            | "shared-large"
+            | "foundry-runtime"
+            | "public-corpus"
+    )
+}
+
+fn is_residency_class(value: &str) -> bool {
+    matches!(value, "strict_kr" | "kr_with_us_failover" | "global")
+        || value
+            .strip_prefix("per_pack_")
+            .is_some_and(|suffix| is_tenant_id(suffix) && suffix.contains('_'))
+}
+
+fn is_region_disposition(value: &str) -> bool {
+    matches!(value, "active_active" | "active_passive" | "single_region")
+}
+
+fn is_storage_class(value: &str) -> bool {
+    let Some(rest) = value.strip_prefix("oya-") else {
+        return false;
+    };
+    let parts = rest.split('-').collect::<Vec<_>>();
+    parts.len() == 2
+        && matches!(parts[0], "pg" | "s3" | "redis" | "object")
+        && matches!(parts[1], "hot" | "warm" | "cold")
+}
+
+fn is_quarter_slug(value: &str) -> bool {
+    let mut chars = value.chars();
+    chars.by_ref().take(4).all(|ch| ch.is_ascii_digit())
+        && chars.next() == Some('q')
+        && matches!(chars.next(), Some('1' | '2' | '3' | '4'))
+        && chars.next().is_none()
 }
 
 fn is_exact_semver(version: &str) -> bool {
@@ -1223,6 +1570,17 @@ mod tests {
         assert!(error.contains("cell_id"));
     }
 
+    #[test]
+    fn cloud_iac_cell_topology_gate_rejects_missing_service_tenant_contract_fixture() {
+        let temp = TempRepo::new("cloud-iac-cell-topology-service-tenant-fixture");
+        write_fixture(temp.path(), FixtureDrift::MissingServiceTenantFixture);
+
+        let error = validate_cloud_iac_cell_topology_gate(fixture_args(temp.path()))
+            .expect_err("missing service/tenant topology contract fixture fails");
+
+        assert!(error.contains("service_tenant_fixtures"));
+    }
+
     fn fixture_args(root: &Path) -> CloudIacCellTopologyValidateArgs {
         CloudIacCellTopologyValidateArgs {
             repo_root: root.to_path_buf(),
@@ -1240,6 +1598,7 @@ mod tests {
         ManifestContextDrift,
         SecretMarker,
         GitOpsTemplateIdentityDrift,
+        MissingServiceTenantFixture,
     }
 
     fn write_fixture(root: &Path, drift: FixtureDrift) {
@@ -1249,21 +1608,21 @@ mod tests {
             vec!["aws-guest", "oci-guest"]
         };
         let regions = vec!["us-ashburn-1", "us-east-1"];
-        fs::create_dir_all(root.join("microservices/cloud-iac/cell-topology"))
+        fs::create_dir_all(root.join("cloud/cloud-iac/cell-topology"))
             .expect("topology dir");
-        fs::create_dir_all(root.join("microservices/cloud-iac/tofu/modules/dns")).expect("dns dir");
-        fs::create_dir_all(root.join("microservices/cloud-iac/tofu/modules/vpc")).expect("vpc dir");
+        fs::create_dir_all(root.join("cloud/cloud-iac/tofu/modules/dns")).expect("dns dir");
+        fs::create_dir_all(root.join("cloud/cloud-iac/tofu/modules/vpc")).expect("vpc dir");
         for (context, region, cell_id) in [
             ("aws-guest", "us-east-1", "aws-guest-us-east-1-a-001"),
             ("oci-guest", "us-ashburn-1", "oci-guest-us-ashburn-1-a-001"),
         ] {
             fs::create_dir_all(
-                root.join(format!("microservices/cloud-iac/iac/{context}/argocd/apps")),
+                root.join(format!("cloud/cloud-iac/iac/{context}/argocd/apps")),
             )
             .expect("argocd app dir");
             fs::write(
                 root.join(format!(
-                    "microservices/cloud-iac/iac/{context}/argocd/apps/template.yaml"
+                    "cloud/cloud-iac/iac/{context}/argocd/apps/template.yaml"
                 )),
                 fixture_template(context, region, cell_id, drift),
             )
@@ -1272,7 +1631,7 @@ mod tests {
         for name in ["dns", "vpc"] {
             fs::write(
                 root.join(format!(
-                    "microservices/cloud-iac/tofu/modules/{name}/main.tofu"
+                    "cloud/cloud-iac/tofu/modules/{name}/main.tofu"
                 )),
                 "# local foundation skeleton\n",
             )
@@ -1314,10 +1673,11 @@ mod tests {
             "cell_topology_scope": {
                 "topology": DEFAULT_TOPOLOGY,
                 "module_catalog": DEFAULT_CATALOG,
-                "gitops_templates_root": "microservices/cloud-iac/iac",
+                "gitops_templates_root": DEFAULT_TEMPLATES_ROOT,
                 "runtime_mode": RUNTIME_MODE,
                 "context_count": contexts.len(),
                 "cell_count": 2,
+                "service_tenant_fixture_count": 1,
                 "contexts": contexts,
                 "regions": regions,
                 "topology_fields_modeled": [
@@ -1333,7 +1693,20 @@ mod tests {
                     "cells.default_cross_cell_traffic_allowed",
                     "cells.module_refs",
                     "cells.gitops_template",
-                    "cells.evidence_ref"
+                    "cells.evidence_ref",
+                    "service_tenant_fixtures.microservice",
+                    "service_tenant_fixtures.tenant_id",
+                    "service_tenant_fixtures.cell_id",
+                    "service_tenant_fixtures.cell_tier",
+                    "service_tenant_fixtures.residency_class",
+                    "service_tenant_fixtures.region_disposition",
+                    "service_tenant_fixtures.storage_class",
+                    "service_tenant_fixtures.quarterly_isolation_evidence.quarter",
+                    "service_tenant_fixtures.quarterly_isolation_evidence.network",
+                    "service_tenant_fixtures.quarterly_isolation_evidence.storage",
+                    "service_tenant_fixtures.quarterly_isolation_evidence.crypto",
+                    "service_tenant_fixtures.quarterly_isolation_evidence.compute",
+                    "service_tenant_fixtures.quarterly_isolation_evidence.audit"
                 ],
                 "non_claims": [
                     "no autosharding runtime",
@@ -1365,7 +1738,7 @@ mod tests {
             "name": name,
             "system": "opentofu",
             "version": "0.1.0",
-            "source_path": format!("microservices/cloud-iac/tofu/modules/{name}")
+            "source_path": format!("cloud/cloud-iac/tofu/modules/{name}")
         })
     }
 
@@ -1380,7 +1753,7 @@ mod tests {
             "authority": {
                 "manifest": DEFAULT_MANIFEST,
                 "module_catalog": DEFAULT_CATALOG,
-                "gitops_templates_root": "microservices/cloud-iac/iac",
+                "gitops_templates_root": DEFAULT_TEMPLATES_ROOT,
                 "non_claims": [
                     "no autosharding runtime",
                     "no ArgoCD API integration",
@@ -1391,6 +1764,7 @@ mod tests {
             "summary": {
                 "context_count": 2,
                 "cell_count": 2,
+                "service_tenant_fixture_count": if drift == FixtureDrift::MissingServiceTenantFixture { 0 } else { 1 },
                 "contexts": ["aws-guest", "oci-guest"],
                 "regions": ["us-ashburn-1", "us-east-1"],
                 "module_catalog": DEFAULT_CATALOG
@@ -1413,12 +1787,45 @@ mod tests {
                     false
                 )
             ],
+            "service_tenant_fixtures": if drift == FixtureDrift::MissingServiceTenantFixture {
+                Vec::<Value>::new()
+            } else {
+                vec![fixture_service_tenant_fixture(
+                    "aws-guest",
+                    "us-east-1",
+                    "aws-guest-us-east-1-a-001"
+                )]
+            },
             "non_claims": [
                 "no autosharding runtime",
                 "no ArgoCD API integration",
                 "no OpenTofu CLI execution",
                 "no provider API integration"
             ]
+        })
+    }
+
+    fn fixture_service_tenant_fixture(context: &str, region: &str, cell_id: &str) -> Value {
+        let tenant_id = format!("ten_cloud_iac_{}", context.replace('-', "_"));
+        let evidence_prefix = format!(
+            "evidence://cloud-iac/cell-topology/{context}/{region}/{cell_id}/quarterly-isolation/2026q2"
+        );
+        serde_json::json!({
+            "microservice": "cloud-iac",
+            "tenant_id": tenant_id,
+            "cell_id": cell_id,
+            "cell_tier": "shared-small",
+            "residency_class": "global",
+            "region_disposition": "active_active",
+            "storage_class": "oya-pg-hot",
+            "quarterly_isolation_evidence": {
+                "quarter": "2026q2",
+                "network": format!("{evidence_prefix}/network"),
+                "storage": format!("{evidence_prefix}/storage"),
+                "crypto": format!("{evidence_prefix}/crypto"),
+                "compute": format!("{evidence_prefix}/compute"),
+                "audit": format!("{evidence_prefix}/audit")
+            }
         })
     }
 
@@ -1445,7 +1852,7 @@ mod tests {
             "tenant_id": format!("ten_cloud_iac_{}", context.replace('-', "_")),
             "isolation_tier": "foundation",
             "default_cross_cell_traffic_allowed": cross_cell_traffic,
-            "gitops_template": format!("microservices/cloud-iac/iac/{context}/argocd/apps/template.yaml"),
+            "gitops_template": format!("cloud/cloud-iac/iac/{context}/argocd/apps/template.yaml"),
             "evidence_ref": evidence_ref,
             "module_refs": [
                 fixture_module_ref("dns"),

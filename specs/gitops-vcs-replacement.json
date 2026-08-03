@@ -2,12 +2,12 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://docs.oyatie.com/specs/gitops-vcs-replacement.json",
   "title": "GitOpsVcsReplacement",
-  "description": "Early masterplan prerequisite for an Oyatie-owned VCS replacement that preserves grit-style agentic-development advantages and upgrades closeout from local merges to GitOps CI/CD promotion.",
+  "description": "Historical masterplan prerequisite for an Oyatie-owned VCS replacement. ADR-0363 and ADR-0515 supersede this as live coordination/merge authority; retained content is provenance and reusable design input for cloud-scm/cloud-ci/cloud-cd and the agentic delivery fabric.",
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-GITOPS-VCS-REPLACEMENT",
     "version": "1.7.0",
-    "status": "Accepted-for-masterplan-P00",
+    "status": "HistoricalSupersededByADR0363ADR0515",
     "owner_team": "axis-foundry + ops-sre-reliability + council-architecture",
     "created_at": "2026-05-14T07:16:07Z",
     "updated_at": "2026-05-15T14:35:00Z",
@@ -33,9 +33,10 @@
       "01KRJMZ2KY3V7PRDRYMH9BS9KZ",
       "01KRJN9MX6W8BD8TE87NC5GA37"
     ],
-    "design_posture": "Provider-neutral Oya VCS core first; GitHub/GitHub Actions, Trivy, Argo CD, GitLab, and future in-house systems are replaceable first-class adapters. Agents never call git or gh directly.",
-    "product_name": "Oya VCS",
-    "purpose": "Early masterplan prerequisite and current closure-authority contract for an Oyatie-owned VCS replacement that preserves useful agentic-development advantages while upgrading closeout from local merges to Oya VCS ChangeBundle/GitOps CI/CD promotion.",
+    "design_posture": "Historical provider-neutral Oya VCS core first. Superseded live posture: agents use plain git isolated worktree branches and protected PRs; cloud-ci gate apps produce oya-ci-required; GitHub/GitHub Actions, Trivy, Argo CD, GitLab, and future in-house systems are adapters or bridge/reference substrates, never replacement merge authority by themselves.",
+    "product_name": "Historical Oya VCS",
+    "purpose": "Historical masterplan prerequisite and provenance record for useful agentic-development semantics. It is not a current closure-authority contract: live closeout is plain git protected PR -> reviewer approval -> oya-ci-required -> release-governance/product-completion evidence.",
+    "supersession_boundary": "ADR-0363 retires the bespoke Oya VCS/oya git ratchet; ADR-0515 makes cloud-ci gate apps behind the single protected oya-ci-required context the live CI/merge authority. Surviving Oya VCS and oya-vcs strings in this file are historical/provenance unless explicitly marked as migrated semantics.",
     "user_directives_2026_05_15": [
       "grit, icm, rtk, vox, omx, and omc are being phased out; Oya VCS is set to replace them and must work seamlessly with the Foundry agentic pipeline."
     ]
@@ -43,14 +44,14 @@
   "moved_earlier_in_masterplan": {
     "milestone": "M01-foundation",
     "phase": "P00-gitops-vcs-replacement",
-    "ordering_rule": "Runs before M01-P08 refresh and before broad M01/M02/M03 fan-out. P00 core is complete; Oya VCS admission is the forward closure authority, while grit/icm-era surfaces remain compatibility/provenance only.",
+    "ordering_rule": "Historical P00 ordering record. P00 core design work is complete as provenance; forward closure authority is now plain git protected PRs plus reviewer approval and oya-ci-required, while Oya VCS/grit/icm-era surfaces remain compatibility/provenance only.",
     "blocks": [
       "M01-P08-agentic-pipeline-cutover",
       "M01 shard fan-out beyond already-landed bootstrap work",
       "M02 multi-agent substrate waves",
       "M03 first-tenant parallel waves"
     ],
-    "rationale": "The conflict-avoidance primitive must be production/GitOps-capable before dozens of agents start landing product slices. Local merge serialization is not sufficient for Oyatie CI/CD; Oya VCS owns review/fix loops, rebase, merge queue enrollment, promotion, and multispectrum evidence closure."
+    "rationale": "The conflict-avoidance primitive must remain production/GitOps-capable before broad agent fan-out. Local merge serialization is not sufficient for Oyatie CI/CD; current ownership is plain git protected PR scope, reviewer approval, oya-ci-required, and cloud-ci/agentic-delivery-fabric semantics rather than the retired Oya VCS ratchet."
   },
   "grit_capabilities_to_preserve": [
     {
@@ -186,7 +187,7 @@
       },
       {
         "name": "IssueTrackerPort",
-        "purpose": "Normalize issues, labels, assignees, comments, milestones, dependencies, and status transitions into Oya VCS work intents."
+        "purpose": "Historical design: normalize issues, labels, assignees, comments, milestones, dependencies, and status transitions into Oya VCS work intents."
       },
       {
         "name": "PullRequestViewPort",
@@ -336,7 +337,7 @@
       },
       {
         "id": "cli-command-surface",
-        "rule": "The blessed Oya VCS CLI surface must accept claim, work, verify, done, and promote commands and return machine-readable ratchet decisions."
+        "rule": "Retired by ADR-0363/ADR-0515: do not require or bless an Oya VCS CLI claim/work/verify/done/promote surface as live authority. Any remaining local wrapper is migration/provenance evidence only; gate semantics must live in cloud-ci/Rust packets behind oya-ci-required."
       },
       {
         "id": "provider-evidence-slots",
@@ -717,7 +718,7 @@
     "merge_queue_policy": "Single controller serializes protected-branch publication. Agents can observe queue state but cannot reorder, force, or bypass it."
   },
   "test_standard_enforcement": {
-    "status": "established-and-required-for-P00-exit-and-current-oya-vcs-admission",
+    "status": "historical-established-for-P00-exit; live admission is oya-ci-required",
     "objective": "Unit, integration, and e2e test standards are established, documented, machine-readable, and enforced by the VCS/GitOps admission path before broad agent fan-out.",
     "documentation_artifacts": [
       {
@@ -818,10 +819,10 @@
     "test_set_registry_ref": "/registry/test-set-registry.json"
   },
   "product_definition": {
-    "name": "Oya VCS",
-    "one_liner": "Agent-native semantic VCS/CI/CD coordination layer that queues ChangeSets, not just branches or PRs.",
-    "core_thesis": "Oya VCS preserves grit-style AST/symbol conflict avoidance, then adds provider-neutral ChangeSets, virtual merge stacks, queue-aware locks, review/CI fix loops, and dev→staging→production promotion.",
-    "not_a_git_replacement": "Oya VCS orchestrates Git-compatible storage, CI, review, security scanning, merge queues, and GitOps environments through ports/adapters; the semantic state machine remains provider-neutral.",
+    "name": "Historical Oya VCS",
+    "one_liner": "Historical agent-native semantic VCS/CI/CD coordination design that queued ChangeSets, not just branches or PRs.",
+    "core_thesis": "Historical Oya VCS design preserved grit-style AST/symbol conflict avoidance, then added provider-neutral ChangeSets, virtual merge stacks, queue-aware locks, review/CI fix loops, and dev→staging→production promotion.",
+    "not_a_git_replacement": "Historical Oya VCS design orchestrated Git-compatible storage, CI, review, security scanning, merge queues, and GitOps environments through ports/adapters; the useful semantic state machine concepts are provenance for current cloud-scm/cloud-ci/cloud-cd work.",
     "must_work_without_github": true,
     "must_provide_same_features_without_provider_adapters": [
       "ChangeSet lifecycle",
@@ -919,7 +920,7 @@
     }
   },
   "native_and_adapter_boundary": {
-    "principle": "All product semantics live in Oya VCS kernel/application ports. Providers are adapters that may accelerate or externalize execution but cannot define the feature set.",
+    "principle": "Historical design principle: product semantics lived in Oya VCS kernel/application ports. Current live authority is plain git protected PRs plus cloud-ci/oya-ci; reusable provider-adapter semantics may migrate into cloud-scm/cloud-ci/cloud-cd.",
     "native_mode_required": true,
     "native_mode": {
       "queue_backend": "Local/provider-neutral queue store with durable JSON/event-log or embedded database implementation; remote backends plug in through QueueStorePort.",
@@ -929,7 +930,7 @@
       "gitops_backend": "Native/in-house reconciler adapter can satisfy GitOpsReconcilerPort when Argo CD is absent.",
       "merge_queue_backend": "Native semantic queue can construct virtual heads and release locks even when provider merge queues are unavailable."
     },
-    "adapter_parity_rule": "Every first-class adapter must map provider concepts into Oya VCS ChangeSet/VirtualHead/FixupTask/ReleaseTrain states and must not remove native capabilities."
+    "adapter_parity_rule": "Historical parity rule: every first-class adapter mapped provider concepts into Oya VCS ChangeSet/VirtualHead/FixupTask/ReleaseTrain states and could not remove native capabilities."
   },
   "first_class_adapters": [
     {
@@ -1055,14 +1056,14 @@
       "hybrid-native-with-provider-mirror"
     ],
     "commands": [
-      "oya vcs queue status",
-      "oya vcs queue add",
-      "oya vcs queue remove",
-      "oya vcs queue promote",
-      "oya vcs queue rebase",
-      "oya vcs queue explain",
-      "oya vcs queue repair",
-      "oya vcs queue graph"
+      "historical only: oya vcs queue status",
+      "historical only: oya vcs queue add",
+      "historical only: oya vcs queue remove",
+      "historical only: oya vcs queue promote",
+      "historical only: oya vcs queue rebase",
+      "historical only: oya vcs queue explain",
+      "historical only: oya vcs queue repair",
+      "historical only: oya vcs queue graph"
     ],
     "virtual_merge_stack": {
       "description": "Build ordered projections H0 + C1 = H1, H1 + C2 = H2, etc. Required checks run against virtual heads. A failed ChangeSet invalidates only dependent later ChangeSets when semantic fingerprints prove independence.",
@@ -1157,10 +1158,10 @@
       "Speculative sibling batching: independent ChangeSets can share a virtual head/full build when semantic dependency fingerprints are disjoint and batching does not delay hotfixes.",
       "Rust compile doctor: map compiler/test failures to crate/symbol/test, create FixupTask, and keep unrelated queue items moving."
     ],
-    "long_compile_failure_policy": "A long-running full Rust gate cannot hold unrelated independent ChangeSets indefinitely; Oya VCS must either split the queue, reuse safe artifacts, or demote the slow item to fixup/quarantine when policy permits."
+    "long_compile_failure_policy": "Historical design rule: a long-running full Rust gate could not hold unrelated independent ChangeSets indefinitely; the retired Oya VCS plan would split the queue, reuse safe artifacts, or demote the slow item to fixup/quarantine when policy permitted. Current work should express this through cloud-ci/agentic-delivery-fabric scheduling semantics."
   },
   "failure_mode_synthesis": {
-    "purpose": "What can go wrong, how Oya VCS detects it, what fixes are automated, and when escalation is required.",
+    "purpose": "Historical failure-mode synthesis: what could go wrong, how Oya VCS would detect it, what fixes were automated, and when escalation was required. Retained as provenance for current cloud-ci/agentic-delivery-fabric semantics.",
     "classes": [
       {
         "id": "stale-symbol-index",
@@ -1207,7 +1208,7 @@
       {
         "id": "provider-adapter-outage",
         "detect": "GitHub/Actions/Trivy/Argo adapter unavailable or rate-limited",
-        "automated_fix": "fall back to native mode if policy allows; keep queue state in Oya VCS; retry with backoff",
+        "automated_fix": "historical design: fall back to native mode if policy allows, keep queue state in Oya VCS, and retry with backoff; current cloud-ci/agentic-delivery-fabric implementations must not revive retired CLI authority",
         "escalate_when": "provider-backed branch protection requires unavailable provider status"
       },
       {
@@ -1333,7 +1334,7 @@
     "close_policy": "Configurable per repo: close on dev merge, staging acceptance, production publish, or manual/human acceptance. Production-impacting issues should not auto-close at dev unless policy says dev is the acceptance environment.",
     "many_prs_per_hour_policy": {
       "no_comment_storm": true,
-      "status_marker_comment": "Update one Oya VCS marker comment per issue/ChangeSet group when possible.",
+      "status_marker_comment": "Historical design: update one Oya VCS marker comment per issue/ChangeSet group when possible.",
       "digest_rollup": "Batch queue/review/CI state changes into issue digests during bursts.",
       "idempotency": "Webhook deliveries and comment updates keyed by provider event id + OyaWorkItem id + ChangeSet id.",
       "dedupe": "Duplicate issue comments/events do not create duplicate FixupTasks."
@@ -1350,12 +1351,12 @@
     "adapter_boundary": "GitHub Issues is a first-class adapter; native tracker and future in-house tracker must expose the same IssueTrackerPort behavior."
   },
   "foundry_agentic_pipeline_integration_plan": {
-    "status": "active-remediation-plan",
-    "closure_authority": "Oya VCS ChangeBundle -> Promotion -> ReleaseTrain",
+    "status": "historical-superseded-remediation-plan",
+    "closure_authority": "plain git protected PR -> reviewer approval -> oya-ci-required -> release-governance/product-completion packet",
     "principles": [
-      "Oya VCS is the forward state-transition and promotion authority; legacy grit/icm/rtk/vox/omx/omc are compatibility/provenance only.",
-      "Every Foundry agentic changeset is a ChangeSet with claim coverage, multispectrum evidence, test-standard evidence, and controller-owned promotion.",
-      "CI and branch protection must expose Oya VCS admission as a required status before broad fan-out.",
+      "Historical Oya VCS state-transition and promotion authority is retired; reusable semantics are provenance/migration input only, and legacy grit/icm/rtk/vox/omx/omc are compatibility/provenance only.",
+      "Every agentic changeset must carry scoped protected-PR ownership, multispectrum evidence, test-standard evidence, and review/CI closeout evidence.",
+      "CI and branch protection must expose oya-ci-required as the single required status before broad fan-out.",
       "Provider adapters are replaceable; core invariants remain provider-neutral and testable locally."
     ],
     "decision_drivers": [
@@ -1367,12 +1368,12 @@
       {
         "id": "authority-cutover",
         "status": "patched-in-current-specs",
-        "acceptance": "root hub, master sequencing, multispectrum, and phase index name Oya VCS as closure authority and demote legacy primitives to compatibility/provenance"
+        "acceptance": "root hub, master sequencing, multispectrum, and phase index name plain git protected PRs plus oya-ci-required as closure authority and demote Oya VCS/legacy primitives to compatibility/provenance"
       },
       {
         "id": "ci-admission-lane",
         "status": "patched-in-current-repo",
-        "acceptance": "cargo run -q -p oya-vcs-admission-gate-app runs authority checks and targeted VCS package tests; pr-tests exposes oya-vcs-admission; branch protection requires it"
+        "acceptance": "cloud-ci/Rust gate packets run authority checks; branch protection requires the single oya-ci-required context"
       },
       {
         "id": "multispectrum-evidence-closure",
@@ -1382,7 +1383,7 @@
       {
         "id": "cli-command-surface",
         "status": "patched-in-current-repo",
-        "acceptance": "oya-dev-cli exposes Oya VCS claim/work/verify/done/promote ratchet commands with JSON output and targeted tests"
+        "acceptance": "retired local CLI ratchet is not live authority; any retained local wrapper is bridge/provenance only while semantics migrate to cloud-ci/Rust gate packets"
       },
       {
         "id": "provider-adapter-proof",
@@ -1391,20 +1392,18 @@
       }
     ],
     "verification": [
-      "cargo run -q -p oya-vcs-admission-gate-app",
+      "oya-ci-required green on protected PR",
       "cargo run -q -p oya-dev-cli -- gate audit master-plan-completion --check",
       "cargo run -q -p oya-dev-cli -- doc render master-plan-ledger --check",
-      "cargo test -p oya-dev-cli vcs",
-      "cargo run -q -p oya-dev-cli -- vcs --format json claim ...",
-      "cargo run -q -p oya-dev-cli -- vcs --format json done ...",
-      "cargo run -q -p oya-dev-cli -- vcs --format json promote ...",
-      "cargo run -q -p oya-dev-cli -- vcs --format json verify ..."
+      "cloud-ci/Rust gate packets for migrated semantics green; any legacy oya-dev-cli local output is bridge evidence only, never branch-protection authority"
     ]
   },
   "current_ci_admission_lane": {
-    "script": "cargo run -q -p oya-vcs-admission-gate-app",
-    "workflow_job": "oya-vcs-admission",
-    "branch_protection_status": "oya-vcs-admission",
+    "status": "retired-historical-snapshot-not-live-required-context",
+    "authority_note": "Superseded by ADR-0515; live branch-protection authority is the oya-ci-required context produced by cloud-ci gate apps.",
+    "script": "retired historical local evidence: cargo run -q -p oya-vcs-admission-gate-app",
+    "workflow_job": "retired historical oya-vcs-admission",
+    "branch_protection_status": "oya-ci-required",
     "package_tests": [
       "oya-vcs-kernel",
       "oya-vcs-ast-index-kernel",
@@ -1418,20 +1417,20 @@
     ],
     "blocks_when": [
       "authority metadata regresses to legacy grit/icm closure authority",
-      "Oya VCS workspace packages are absent",
-      "targeted Oya VCS tests fail",
-      "branch protection or PR workflow stops exposing oya-vcs-admission",
-      "oya-dev-cli stops exposing the Oya VCS claim/work/verify/done/promote command surface",
+      "historical Oya VCS workspace package snapshot is absent when auditing this retired spec",
+      "historical targeted Oya VCS tests fail when replaying this retired spec as provenance",
+      "branch protection or PR workflow stops exposing oya-ci-required",
+      "live docs/specs regress by treating the retired Oya VCS claim/work/verify/done/promote command surface as authority",
       "provider evidence slots for CI, GitHub Actions, Trivy, or Argo GitOps are missing or not passed",
       "multispectrum evidence files are missing audit-chain coverage rows",
       "provider execution proof script is absent or fails credential-safe CI/GitHub Actions, Trivy, or Argo desired-state checks",
       "provider evidence regresses to contract-fixture-only proof for Trivy or Argo GitOps"
     ],
     "command_surface_smoke": [
-      "oya vcs --format json claim --agent <agent> --intent <slice> <symbol>",
-      "oya vcs --format json verify --agent <agent> --evidence <evidence>",
-      "oya vcs --format json done --agent <agent> --evidence <evidence>",
-      "oya vcs --format json promote --agent <agent> --bundle <bundle-id> --environment <target> --evidence <evidence>"
+      "historical only: oya vcs --format json claim --agent <agent> --intent <slice> <symbol>",
+      "historical only: oya vcs --format json verify --agent <agent> --evidence <evidence>",
+      "historical only: oya vcs --format json done --agent <agent> --evidence <evidence>",
+      "historical only: oya vcs --format json promote --agent <agent> --bundle <bundle-id> --environment <target> --evidence <evidence>"
     ],
     "provider_evidence_ref": "evidence/gitops-vcs/oya-vcs-admission-cutover-2026-05-15.json#provider_evidence",
     "provider_evidence_required": [

@@ -1,14 +1,23 @@
-# Managed K8s Tenant Quota — Audit Evidence Emission
+# Managed K8s Cluster Lifecycle — Audit Evidence Emission
 
-## Status: Unimplemented (wave follow-on)
+## Current evidence ceiling
 
-Audit chain emission on quota check and quota set operations is tracked as:
-`registry/placeholder-debt/adr-follow-ups.yaml#adr-0376-audit-chain-emission`
+Cluster-lifecycle currently documents the deterministic create-admission foundation:
+gateway tenant principal validation, quota-before-provisioning, fail-closed
+admission, and control-plane-host invocation only after quota allow. It does not
+claim sealed audit-chain emission, operation-ledger persistence, production
+readiness, public SLA evidence, billing readiness, or measured SLO compliance.
 
-The `oya-managed-k8s-tenant-quota-app` crate exposes a typed
-`Unimplemented::AuditChainEmission` placeholder. No stubbed `Ok(())` is used.
+## Dependency boundary
 
-## When Implemented
+Quota decisions are delegated to `managed-k8s-tenant-quota` through the
+`QuotaDecisionPort` dependency. Audit evidence for quota-service decision or quota
+administration events belongs to that service's authority; cluster-lifecycle may
+reference the dependency result only as an admission input.
 
-Each `POST /tenants/{id}/quota/check` decision and each `PUT /tenants/{id}/quota`
-change will emit a sealed audit event per ADR-0376 and the audit-chain substrate.
+## Follow-on target
+
+A future cluster-lifecycle operation-ledger/audit build may emit lifecycle-scoped
+events such as create-admission requested, quota denied, quota unavailable,
+provisioning invoked, and provisioning failed. Until that build exists, these are
+design targets only and must not be described as live audit-chain behavior.

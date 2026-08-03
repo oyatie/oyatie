@@ -553,7 +553,7 @@ Operations covered: DSR delete; tenant offboarding; bulk delete > 100 rows; cell
 
 ### CI lane (new)
 
-`oya gate validate tenant-environment-tier` enforces (a) every outbound-effect µservice checks `env_tier` before dispatch, (b) every API-key issuance validates Cedar tier-grant, (c) every prod destructive op carries the ack header.
+Protected merge gate `cloud-ci-tenant-environment-tier` is aggregated by `oya-ci-required` and enforces (a) every outbound-effect µservice checks `env_tier` before dispatch, (b) every API-key issuance validates Cedar tier-grant, (c) every prod destructive op carries the ack header. Legacy `oya gate validate tenant-environment-tier` wording is historical/local-feedback provenance only.
 
 ### New endpoints (tenancy µservice)
 
@@ -571,10 +571,10 @@ See `multi-region.md` for the full disposition statement and `/specs/multi-regio
 
 ## Doctrine refs (ADR-0346..0349)
 
-- ADR-0346 — `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix, invoking `cargo fmt --all --check`, `cargo check --workspace --all-targets --keep-going`, `cargo clippy --workspace --all-targets --keep-going -- -D warnings`, `cargo nextest run --workspace --no-fail-fast`, and `oya gate run-all --ci-required`; enforced by `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, and `oya-governance-oya-verify-exit-code-contract`.
+- ADR-0346 — `./bin/oya verify --ci-required` is legacy/local-feedback provenance only after ADR-0515; protected merge authority is `oya-ci-required`.
 - ADR-0347 — every `oya-governance-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request (Wave 15-ZB); enforced by `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
 - ADR-0348 — cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; every µservice `manifest.json` gains a `sharding_automation` block declaring per-automation-mode configuration, with residency, threshold, audit-chain, and rollback coverage enforced by `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, and `oya-governance-tenant-migration-reversibility`.
-- ADR-0349 — Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates; Jenkins augments GitHub Actions for self-hostable contexts and ArgoCD replaces manual `kubectl apply` and Helm CLI deploys, with parity, cosign, tenant namespace, JCasC, and audit-chain enforcement by `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit`.
+- ADR-0349 — Jenkins CI wording is historical/provenance after ADR-0515; GitHub Actions produces `oya-ci-required` until explicit owned-runner cutover, while ArgoCD remains separately authorized CD evidence with cosign, tenant namespace, and audit-chain controls.
 
 ## ADR-0339 adoption
 - Lifecycle: PROPOSED for `tenancy` until service wrappers invoke signed shared OpenTofu modules and implementation evidence lands.

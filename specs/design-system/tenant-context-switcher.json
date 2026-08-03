@@ -46,7 +46,7 @@
     "$ref:specs/microservices/calendar.json"
   ],
   "verification_commands": [
-    "target/debug/oya gate validate product-prd-json",
+    "cloud-ci/Rust gate packet: product-prd-json",
     "cargo test -p oya-dev-cli product_prd_json -- --nocapture"
   ],
   "sources_scanned": [

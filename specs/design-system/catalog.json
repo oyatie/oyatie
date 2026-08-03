@@ -73,10 +73,10 @@
     ]
   },
   "verification_commands": [
-    "target/debug/oya gate validate product-prd-json",
+    "cloud-ci/Rust gate packet: product-prd-json",
     "python3 -m json.tool specs/design-system/catalog.json",
-    "target/debug/oya gate validate active-artifact-contract",
-    "target/debug/oya gate validate retired-vocabulary"
+    "cloud-ci/Rust gate packet: active-artifact-contract",
+    "cloud-ci/Rust gate packet: retired-vocabulary"
   ],
   "sources_scanned": [
     "$ref:docs/products/_TEMPLATE.md#11f-user-experience",

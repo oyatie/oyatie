@@ -505,6 +505,7 @@ pub fn register_lease_contract(
     validate_date_range(input.commencement_yyyymmdd, input.expiration_yyyymmdd)?;
     validate_term(input.term_months)?;
     validate_positive_amount(input.monthly_base_rent_cents)?;
+    validate_positive_amount(input.security_deposit_cents)?;
     validate_source_ref(&input.contract_source_ref)?;
     validate_evidence_ref(&input.contract_evidence_ref)?;
     let total_nominal_rent_cents = input

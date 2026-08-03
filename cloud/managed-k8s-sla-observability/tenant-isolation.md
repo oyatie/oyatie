@@ -1,18 +1,20 @@
-# Managed K8s Tenant Quota — Tenant Isolation
+# Managed K8s SLA Observability — Tenant Isolation
 
 ## Isolation Guarantees (ADR-0376 / ADR-0007)
 
-1. **Quota record isolation**: Each `TenantQuota` is keyed by `TenantId`. No API
-   returns quota data for a tenant other than the one in the authenticated request.
+1. **Tenant-cluster keying**: Every snapshot, summary, and evidence handle is
+   scoped by `(tenant_id, cluster_name)` before it is loaded or aggregated.
 
-2. **Cedar default-deny**: All RBAC policies require the principal's `tenant_id`
-   scope to match the target resource. A principal without a matching scope is denied.
+2. **Default-deny read scope**: Tenant summary and evidence reads require an
+   authenticated tenant/account/project scope matching the requested tenant and
+   cluster. A principal without a matching scope is denied before summary lookup.
 
-3. **evaluate() cross-tenant guard**: The kernel function short-circuits with
-   `Deny(TenantMismatch)` if `quota.tenant_id != request.tenant_id`.
+3. **No cross-tenant rollup leakage**: Fleet, region, and cell summaries aggregate
+   only records already authorized for the same tenant context.
 
-4. **HTTP path/body consistency**: `PUT /tenants/{id}/quota` rejects requests where
-   `path.id != body.tenant_id` with HTTP 400.
+4. **No secret-bearing evidence**: Evidence handles may reference collector runs,
+   trace IDs, and OpenSLO records, but must not expose raw kubeconfigs, provider
+   credentials, bearer tokens, or other tenant secrets.
 
-5. **No shared mutable state**: Each tenant's quota and usage records are stored
-   under separate keys; no cross-tenant aggregation is performed.
+5. **Tenant-zero parity**: Dogfood/tenant-zero traffic follows the same read and
+   evidence rules as any customer tenant; no internal bypass is authoritative.

@@ -26,3 +26,33 @@ rust_test(
         "third-party//:serde_json",
     ],
 )
+
+rust_test(
+    name = "oya-payroll-run-api-hr-payroll-boundary",
+    srcs = ["tests/hr_payroll_boundary.rs"],
+    crate = "oya_payroll_run_api_hr_payroll_boundary",
+    crate_root = "tests/hr_payroll_boundary.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-payroll-run-api",
+        "//oya/hr/crates/oya-hr-employment-api:oya-hr-employment-api",
+        "//oya/hr/crates/oya-hr-employment-app:oya-hr-employment-app",
+        "//oya/payroll/crates/oya-payroll-run-app:oya-payroll-run-app",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "oya-payroll-run-api-statutory-preview",
+    srcs = ["tests/statutory_preview.rs"],
+    crate = "oya_payroll_run_api_statutory_preview",
+    crate_root = "tests/statutory_preview.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-payroll-run-api",
+        "//oya/payroll/crates/oya-payroll-run-app:oya-payroll-run-app",
+        "//oya/payroll/crates/oya-payroll-run-domain:oya-payroll-run-domain",
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)

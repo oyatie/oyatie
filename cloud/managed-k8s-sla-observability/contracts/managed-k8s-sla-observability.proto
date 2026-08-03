@@ -2,4 +2,13 @@ syntax = "proto3";
 
 package oya.managed.k8s.sla.observability;
 
-// Placeholder proto3 surface for the managed-k8s-sla-observability microservice; live gRPC surfaces tracked in ADR-0376 follow-on lanes.
+// Placeholder proto3 surface for the managed-k8s-sla-observability microservice.
+// No live gRPC service is implemented or claimed by this contract.
+//
+// Planned follow-on surfaces, pending implementation, tests, and independent
+// review:
+// - SlaSummaryRead: tenant-scoped deterministic summary read.
+// - SlaEvidenceRead: tenant-scoped evidence and freshness read.
+// - SlaSnapshotIngest: internal normalized ControlPlaneSlaSnapshot ingestion.
+// - BurnRateVerdictEvent: kernel-derived page/ticket/none alert verdict.
+// - EvidenceHeldEvent: stale, missing, or disagreeing evidence hold.

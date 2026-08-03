@@ -82,5 +82,5 @@
     "prod_tier_model_default": "production-grade selection",
     "cost_budget_per_tier": "enforced in foundry µservice cost-budget.md"
   },
-  "ci_lane": "tenant-environment-tier (oya gate validate tenant-environment-tier)"
+  "ci_lane": "tenant-environment-tier (cloud-ci/Rust gate packet: tenant-environment-tier)"
 }

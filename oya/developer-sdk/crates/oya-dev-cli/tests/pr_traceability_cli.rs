@@ -93,6 +93,34 @@ fn pr_traceability_gate_enforces_merge_time_code_review_policy() {
     fs::remove_dir_all(temp).ok();
 }
 
+#[test]
+fn pr_traceability_gate_rejects_code_review_without_reviewer_agent_approve_evidence() {
+    let temp = temp_dir("pr-traceability-missing-reviewer-evidence");
+    let body = write_pr_body(
+        &temp,
+        valid_pr_body()
+            .replace(
+                "- Reviewer agent: architect 136-IdentityBridgeReReview\n",
+                "",
+            )
+            .as_str(),
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(pr_traceability_args(&body, &["--require-code-review"]))
+        .output()
+        .expect("PR traceability gate runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("MissingCodeReviewField"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
 fn pr_traceability_args(path: &Path, policy_flags: &[&str]) -> Vec<String> {
     let mut args = vec![
         "gate".into(),
@@ -113,7 +141,7 @@ fn write_pr_body(root: &Path, contents: &str) -> std::path::PathBuf {
 }
 
 fn valid_pr_body() -> &'static str {
-    "## Issue\nCloses #123\n\n## Summary\n- Implemented the thing.\n\n## Verification\n- pass: oya dev check\n\n## Traceability\n- Catalog records touched: oya-intelligence-capability-kernel\n- Cross-axis contracts touched: none\n- ADRs cited: ADR-0001\n\n## Evidence\n- Audit-chain emission: EVT-1\n- Foundation-bypass referenced (if any): none\n- Per-pack regulator-watch impact (if any): none\n\n## Code Review\nreviewer-agent: APPROVE\n"
+    "## Issue\nCloses #123\n\n## Summary\n- Implemented the thing.\n\n## Verification\n- pass: oya dev check\n\n## Traceability\n- Catalog records touched: oya-intelligence-capability-kernel\n- Cross-axis contracts touched: none\n- ADRs cited: ADR-0001\n\n## Evidence\n- Audit-chain emission: EVT-1\n- Foundation-bypass referenced (if any): none\n- Per-pack regulator-watch impact (if any): none\n\n## Code Review\n- Reviewer agent: architect 136-IdentityBridgeReReview\n- Verdict: APPROVE\n- Resolved items: none\n- Deferred items: none\n"
 }
 
 fn temp_dir(label: &str) -> std::path::PathBuf {

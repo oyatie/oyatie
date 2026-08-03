@@ -9,7 +9,7 @@
     "status": "Draft",
     "owner_team": "communications-service-council",
     "created_at": "2026-05-17T10:20:00Z",
-    "purpose": "Community Anonymous microservice PRD: verified-anonymous professional discussion product combining Blind/TeamBlind patterns — work-email-verified anonymity, company-scoped private channels, public cross-industry boards, salary and compensation data sharing, polls, AMAs, career advice — with planned anonymity-preserving architecture, strict work-context-only policy, and Workflow/Ontology/Foundry ecosystem integration. Real identity is never linked to anonymous posts in any queryable store."
+    "purpose": "Community Anonymous microservice PRD: verified-anonymous professional discussion product combining Blind/TeamBlind patterns — work-email-verified anonymity, company-scoped private channels, public cross-industry boards, salary and compensation data sharing, polls, AMAs, career advice — with planned anonymity-preserving architecture, strict work-context-only policy, and Workflow/Ontology/intelligence integration. Real identity is never linked to anonymous posts in any queryable store."
   },
   "identity": {
     "product_id": "anonymous",
@@ -112,7 +112,91 @@
         "enforcement_status": "planning_contract_until_crate_scaffold"
       }
     ],
-    "naming_justification": "All planned community-anonymous crates parse as oya-community-anonymous-<layer>; ADR-0056 supplies the BNF discipline and ADR-0105 supplies the canonical layer enum."
+    "naming_justification": "All planned community-anonymous crate names are Draft PRD provenance only until reconciled by the implementation_source_lock below; ADR-0512 requires crate=bounded-context rather than layer-per-crate."
+  },
+  "implementation_source_lock": {
+    "status": "implementation_ready_for_red_fixture_planning_only",
+    "source_authority": {
+      "prd": "specs/microservices/anonymous.json",
+      "prd_status": "Draft",
+      "manifest_index_row": "specs/microservices/manifests-index.json#microservices[name=anonymous]",
+      "parent_inventory": "oya/community/manifest.json",
+      "boundary": "anonymous is a community subproduct with PRD source authority only; there is no standalone oya/anonymous or microservices/anonymous manifest and this PRD makes no runtime/product-readiness claim."
+    },
+    "allowed_build_home": "Any future runtime work must stay under oya/community/** unless a later accepted service-split decision authorizes oya/anonymous/**; microservices/anonymous/** remains forbidden legacy/provenance space.",
+    "crate_shape_decision": {
+      "adr": "ADR-0512",
+      "decision": "Use one bounded-context crate for the anonymous bounded context by default, with clean-architecture concerns as modules. Do not scaffold the Draft PRD's older kernel/domain/app/rest layer-per-crate list without a new accepted exception.",
+      "default_crate_candidate": "oya-community-anonymous",
+      "red_fixture_precondition": "RED fixtures may refer to package names as expected-future labels only; Build must lock the actual crate path/name before product code is scaffolded."
+    },
+    "retired_authority_mapping": {
+      "foundry": {
+        "status": "retired_historical_term",
+        "absorbed_by": "intelligence",
+        "rule": "Do not create active Foundry or AI-substrate backlog from this PRD. Agentic moderation/model analysis references route through current intelligence plus Workflow/Ontology contracts, or remain historical/provenance."
+      }
+    },
+    "red_fixture_list": [
+      "anonymous post persists anonymous_author_token and excludes user_id/identity FK/search-index identity fields",
+      "verification vault tokens are one-time-use, expire after 24h, and never share FK with anonymous posts",
+      "employer/HR admin individual-attribution query returns 403 and aggregate dashboards enforce k>=10 cohort thresholds",
+      "moderator queue exposes anonymous_author_token only and never real identity",
+      "legal identity reveal requires two compliance officers, court-order evidence, HSM/vault access, sealed audit package, and immutable audit-chain event",
+      "work/personal context isolation refuses personal anonymous boards and feed/search/suggestion leakage",
+      "retired Foundry/AI-substrate wording is rejected as active authority by fixtures/guard checks"
+    ],
+    "api_contract_evidence_matrix": [
+      {
+        "path": "post_store_read",
+        "required_evidence": "contract replay for community.anonymous.post.v1 create/read showing anonymous_author_token only and no identity join"
+      },
+      {
+        "path": "salary_benchmark",
+        "required_evidence": "contract replay for community.anonymous.salary_benchmark.v1 aggregate peer ranges with individual entry denial"
+      },
+      {
+        "path": "topic_trend",
+        "required_evidence": "contract replay for community.anonymous.topic_trend.v1 aggregate-only trend output through Workflow/Ontology/intelligence mediation"
+      },
+      {
+        "path": "legal_hold_identity_reveal",
+        "required_evidence": "positive four-eyes/court-order/HSM replay plus negative single-approver and missing-evidence denials"
+      },
+      {
+        "path": "audit_policy",
+        "required_evidence": "audit.community.anonymous.policy.v1 emission for moderation, aggregate access, and legal reveal decisions"
+      }
+    ],
+    "user_story_browser_accessibility_matrix": [
+      {
+        "persona": "verified_employee",
+        "story": "verify work affiliation, compose anonymous post/salary entry, and confirm anonymity/policy state remains visible",
+        "evidence": "browser path plus keyboard, screen-reader label, reduced-motion, high-contrast, and mobile/desktop breakpoint checks"
+      },
+      {
+        "persona": "moderator",
+        "story": "review and action an anonymous post using anonymous_author_token without seeing real identity",
+        "evidence": "browser path plus token-only assertion and WCAG 2.2 AA checks"
+      },
+      {
+        "persona": "enterprise_hr_admin",
+        "story": "open aggregate dashboard and observe individual-attribution denial/small-cohort suppression",
+        "evidence": "browser path plus k-anonymity disclosure, 403 denial, and accessibility checks"
+      },
+      {
+        "persona": "compliance_officer",
+        "story": "complete legal-hold identity reveal only with court-order evidence and second-officer approval",
+        "evidence": "browser path plus denial cases for missing evidence/single approval and audit-package visibility checks"
+      }
+    ],
+    "build_preconditions": [
+      "RED fixtures fail for the expected privacy/contract reasons before product code is added",
+      "actual crate path/name is source-locked under oya/community/** using ADR-0512 crate=bounded-context guidance",
+      "no generated JSON is hand edited",
+      "retired_authority_guard passes for downstream cards and no active Foundry/AI-substrate scope remains",
+      "API/contract replay and browser/accessibility evidence requirements are carried into Build and Review/fix cards"
+    ]
   },
   "inherits": {
     "bominal_adrs": [
@@ -222,12 +306,12 @@
         "job referral board (verified company, anonymous referrer)",
         "content moderation with anonymity-preserving moderator view",
         "HR aggregate dashboard (no individual attribution)",
-        "Foundry topic trend analysis (aggregate, anonymized)"
+        "intelligence-mediated topic trend analysis (aggregate, anonymized)"
       ],
       "GA": [
         "legal hold four-eyes identity reveal (court order only)",
         "cross-company peer compensation benchmarks",
-        "Foundry agentic topic moderation (content policy enforcement without identity reveal)",
+        "intelligence-mediated agentic topic moderation (content policy enforcement without identity reveal)",
         "Workflow salary-benchmark triggers for HR analytics pipeline",
         "regional packs: KR, US, EU",
         "anti-harassment detection (pattern-based, not identity-based)"
@@ -321,11 +405,11 @@
       "boundary_contract": "All cross-product reads/writes are mediated by Workflow and Ontology contracts; PR #130 ships the contract text only.",
       "enforcement_status": "advisory_until_community_expansion_gates"
     },
-    "foundry": {
+    "intelligence": {
       "contracts": [
-        "AnonTopicModerationAgent — Foundry agent enforces content policy on anonymous posts without identity reveal",
-        "AnonSentimentTrendModel — Foundry model produces aggregate company sentiment trends from anonymous posts",
-        "AnonSalaryBenchmarkModel — Foundry model aggregates compensation data into peer benchmarks"
+        "AnonTopicModerationAgent — intelligence agent enforces content policy on anonymous posts without identity reveal through Workflow/Ontology mediation",
+        "AnonSentimentTrendModel — intelligence model produces aggregate company sentiment trends from anonymous posts",
+        "AnonSalaryBenchmarkModel — intelligence model aggregates compensation data into peer benchmarks"
       ]
     },
     "workspace": "CommunityAnonymous HR aggregate dashboard integrates with Workspace admin console via Workflow; individual attribution is never provided to Workspace admin",
@@ -349,7 +433,7 @@
         "planned HSM-backed pseudonymous token architecture (BLAKE3 keyed hash target; not shipped in PR #130)",
         "four-eyes legal hold procedure for court-order identity reveal, bounded as a planned design contract",
         "Ontology-backed aggregate topic analysis without individual attribution",
-        "Foundry agentic content moderation without identity reveal",
+        "intelligence-mediated agentic content moderation without identity reveal",
         "Workflow HR analytics integration (aggregate only)",
         "enterprise-grade audit chain for moderation decisions",
         "regional packs: PIPA (KR), CCPA (US), GDPR (EU) compliance"
@@ -478,7 +562,7 @@
     {
       "dimension": "unit_cost_target",
       "target": "planning target: <= USD 0.35 per 1,000 anonymous feed reads and <= USD 1.00 per 1,000 post writes",
-      "planned_verification_ref": "oya gate validate community-anonymous-cost-envelope",
+      "planned_verification_ref": "cloud-ci/Rust gate packet: community-anonymous-cost-envelope",
       "enforcement_status": "advisory_until_community_expansion_gates",
       "claim_boundary": "FinOps target only; no cost gate ships in PR #130."
     }
@@ -516,7 +600,7 @@
     },
     {
       "gate": "doc-coverage",
-      "check": "oya gate validate community-anonymous-doc-coverage",
+      "check": "cloud-ci/Rust gate packet: community-anonymous-doc-coverage",
       "must_pass": true
     }
   ],
@@ -771,7 +855,7 @@
       "id": "R-ANON-04",
       "severity": "medium",
       "risk": "harassment via anonymous channel without effective moderation",
-      "mitigation": "Foundry AnonTopicModerationAgent enforces content policy pattern-based without identity reveal; repeat violators identified by anonymous_author_token behavioral patterns; legal reveal as last resort",
+      "mitigation": "intelligence-mediated AnonTopicModerationAgent enforces content policy pattern-based without identity reveal through Workflow/Ontology mediation; repeat violators identified by anonymous_author_token behavioral patterns; legal reveal as last resort",
       "owner": "communications-service-council"
     }
   ],
@@ -857,7 +941,7 @@
       },
       {
         "name": "manual ops runbooks as deployment authority",
-        "reason": "OpenTofu, root Makefile targets, and Rust oya gates own deployment and validation"
+        "reason": "OpenTofu, root Makefile targets, and Rust cloud-ci gate packets own deployment and validation"
       }
     ]
   },
@@ -931,31 +1015,31 @@
     "scalability": {
       "target": "10M verified professionals, tenant-scoped anonymous channels, and public boards without identity joins",
       "enforcement_status": "advisory_until_community_expansion_gates",
-      "planned_verification_ref": "oya gate validate product-prd-json --product specs/microservices/anonymous.json",
+      "planned_verification_ref": "cloud-ci/Rust gate packet: product-prd-json --product specs/microservices/anonymous.json",
       "claim_boundary": "Advisory target until validators and implementation crates land."
     },
     "security": {
       "target": "real identity never co-resides with anonymous posts; legal reveal is HSM-gated four-eyes only",
       "enforcement_status": "advisory_until_community_expansion_gates",
-      "planned_verification_ref": "oya gate validate product-prd-json --product specs/microservices/anonymous.json",
+      "planned_verification_ref": "cloud-ci/Rust gate packet: product-prd-json --product specs/microservices/anonymous.json",
       "claim_boundary": "Advisory target until validators and implementation crates land."
     },
     "performance": {
       "target": "anonymous post and feed hot paths stay under 150ms p95 in-region",
       "enforcement_status": "advisory_until_community_expansion_gates",
-      "planned_verification_ref": "oya gate validate product-prd-json --product specs/microservices/anonymous.json",
+      "planned_verification_ref": "cloud-ci/Rust gate packet: product-prd-json --product specs/microservices/anonymous.json",
       "claim_boundary": "Advisory target until validators and implementation crates land."
     },
     "efficiency": {
       "target": "anonymous feed, salary benchmark, and moderation workloads are metered per tenant and board",
       "enforcement_status": "advisory_until_community_expansion_gates",
-      "planned_verification_ref": "oya gate validate product-prd-json --product specs/microservices/anonymous.json",
+      "planned_verification_ref": "cloud-ci/Rust gate packet: product-prd-json --product specs/microservices/anonymous.json",
       "claim_boundary": "Advisory target until validators and implementation crates land."
     },
     "reliability": {
       "target": "99.95% GA availability with immutable audit-chain evidence for legal hold and moderation events",
       "enforcement_status": "advisory_until_community_expansion_gates",
-      "planned_verification_ref": "oya gate validate product-prd-json --product specs/microservices/anonymous.json",
+      "planned_verification_ref": "cloud-ci/Rust gate packet: product-prd-json --product specs/microservices/anonymous.json",
       "claim_boundary": "Advisory target until validators and implementation crates land."
     },
     "enforcement_status": "advisory_until_community_expansion_gates",
@@ -1106,7 +1190,7 @@
       "cargo nextest -p oya-community-anonymous-domain -- threat_model",
       "cargo nextest -p oya-community-anonymous-domain -- legal_hold_four_eyes",
       "cargo nextest -p oya-community-anonymous-domain -- aggregate_k_anonymity",
-      "oya gate validate community-anonymous-threat-model"
+      "cloud-ci/Rust gate packet: community-anonymous-threat-model"
     ]
   }
 }

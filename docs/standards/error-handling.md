@@ -250,7 +250,7 @@ Source: [Markaicode — Rust Error Handling 2025](https://markaicode.com/rust-er
 - [Markaicode — Rust Error Handling 2025](https://markaicode.com/rust-error-handling-2025-guide/).
 - [eyre](https://github.com/eyre-rs/eyre).
 - [Momori — thiserror, anyhow](https://momori.dev/posts/rust-error-handling-thiserror-anyhow/).
-- [`.omc/scratch/hyperscaler-best-practices-2026-05-12.md`](../../.omc/scratch/hyperscaler-best-practices-2026-05-12.md)
+- [`hyperscaler-best-practices.md`](hyperscaler-best-practices.md)
   Domain 3 "Error handling".
 - [`docs/AGENTS.md`](../AGENTS.md) §Per-change-class reviewer agents
   (`silent-failure-hunter`).

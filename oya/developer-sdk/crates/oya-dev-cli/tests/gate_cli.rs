@@ -1350,6 +1350,53 @@ fn release_supply_chain_gate_accepts_complete_release_attestation_evidence() {
 }
 
 #[test]
+fn image_promotion_gate_accepts_signed_dev_staging_prod_ladder_with_admission_and_kill_switch() {
+    let temp = temp_dir("image-promotion-valid");
+    write_image_promotion_fixture(&temp, None);
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(image_promotion_args(&temp))
+        .output()
+        .expect("image promotion gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        String::from_utf8_lossy(&output.stdout).contains(
+            "image promotion validation passed: 1 artifacts, 3 promotion records, 2 kubewarden verifier records, 1 kyverno verifier records"
+        ),
+        "stdout={}",
+        String::from_utf8_lossy(&output.stdout)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn image_promotion_gate_rejects_missing_staging_promotion_record() {
+    let temp = temp_dir("image-promotion-missing-staging");
+    write_image_promotion_fixture(&temp, Some("staging"));
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(image_promotion_args(&temp))
+        .output()
+        .expect("image promotion gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("MissingTierPromotion"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
 fn release_supply_chain_gate_rejects_missing_rekor_inclusion() {
     let temp = temp_dir("release-supply-chain-missing-rekor");
     write_release_supply_chain_fixture(&temp, "0", "0", "true");
@@ -1614,6 +1661,70 @@ fn supply_chain_gate_accepts_full_adr0039_static_wiring() {
         String::from_utf8_lossy(&output.stdout).contains(
             "supply chain validation passed: 1 catalog records, 1 source-only attestations"
         )
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn supply_chain_gate_accepts_dependency_ledger_metadata_fixture() {
+    let temp = temp_dir("supply-chain-dependency-ledger-valid");
+    write_supply_chain_fixture(
+        &temp,
+        "source-only",
+        "cargo audit\ncargo deny check\n",
+        Some(
+            "name: supply-chain\njobs:\n  adr0039:\n    steps:\n      - run: scripts/supply-chain-adr0039.sh\n",
+        ),
+        true,
+    );
+    fs::write(
+        temp.join("registry/catalog/oya-intelligence-capability-kernel.yaml"),
+        r#"context: foundry
+role: kernel
+capability: capability
+plane: control
+data_classes_owned: [INTERNAL_ONLY]
+api_stability: preview
+security_review: unreviewed
+supply_chain: source-only
+external_deps:
+  - name: trivy
+    license: Apache-2.0
+    license_tier: tier1
+    maturity: production-ready
+    isolation: tooling-only
+    replacement_plan: replace-with-owned-scanner-if-trivy-license-or-maintenance-drifts
+    owning_team: ops-security
+    sbom_spdx_ref: artifact://supply-chain/trivy.spdx.json
+    sbom_cyclonedx_ref: artifact://supply-chain/trivy.cyclonedx.json
+    cosign_attestation_ref: rekor://log/123/trivy-cosign-attestation
+    trivy_scan_ref: artifact://supply-chain/trivy-dependency.sarif
+    signed_commit_ref: 0123456789abcdef0123456789abcdef01234567
+"#,
+    )
+    .expect("dependency ledger catalog record written");
+    write_supply_chain_adr0039_script(&temp);
+    write_supply_chain_branch_protection(&temp);
+    write_supply_chain_admission_policy(&temp);
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(supply_chain_full_args(&temp))
+        .output()
+        .expect("supply chain gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        String::from_utf8_lossy(&output.stdout).contains(
+            "supply chain validation passed: 1 catalog records, 1 source-only attestations, 1 dependency ledger records"
+        ),
+        "stdout={}",
+        String::from_utf8_lossy(&output.stdout)
     );
 
     fs::remove_dir_all(temp).ok();
@@ -4399,6 +4510,51 @@ fn release_supply_chain_args_with_phase(root: &Path, phase: &str) -> Vec<String>
     let mut args = release_supply_chain_args(root);
     args.extend(["--phase".into(), phase.into()]);
     args
+}
+
+fn write_image_promotion_fixture(root: &Path, missing_tier: Option<&str>) {
+    let digest = "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+    fs::create_dir_all(root.join("registry/release/image-promotions"))
+        .expect("image promotion dir created");
+    for (tier, verifier) in [
+        ("dev", "kubewarden"),
+        ("staging", "kubewarden"),
+        ("prod", "kyverno"),
+    ] {
+        if missing_tier == Some(tier) {
+            continue;
+        }
+        fs::write(
+            root.join(format!("registry/release/image-promotions/oya-dev-cli-{tier}.yaml")),
+            format!(
+                r#"artifact_ref: ghcr.io/oyatie/oya-dev-cli:0123456789abcdef0123456789abcdef01234567-{tier}@{digest}
+artifact_digest: {digest}
+tier: {tier}
+cosign_identity: https://token.actions.githubusercontent.com/oyatie/image-promotion-{tier}-oidc
+verifier: {verifier}
+verifier_ref: infra/{verifier}/policies/require-signed-images.yaml
+provenance_attestation_ref: artifact://release/0.1.0/oya-dev-cli-provenance.intoto.jsonl
+runner_kill_switch_ref: artifact://fixtures/bootstrap-runner-kill-switch.cedar
+audit_event_type: oya.audit.image_promotion
+signed: true
+"#
+            ),
+        )
+        .expect("image promotion record written");
+    }
+}
+
+fn image_promotion_args(root: &Path) -> Vec<String> {
+    vec![
+        "gate".into(),
+        "validate".into(),
+        "image-promotion".into(),
+        "--promotion-dir".into(),
+        root.join("registry/release/image-promotions")
+            .to_str()
+            .expect("utf8 image promotion dir")
+            .into(),
+    ]
 }
 
 fn write_pre_release_image_manifest(root: &Path) {

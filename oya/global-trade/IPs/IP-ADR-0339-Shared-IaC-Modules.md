@@ -2,7 +2,7 @@
 doc_class: Implementation-Plan
 doc_id: IP-ADR-0339-Shared-IaC-Modules
 microservice: global-trade
-status: PROPOSED
+status: inventory-provenance-planned-only
 date: 2026-05-21
 owner_team: axis-unknown
 bounded_context: global-trade
@@ -10,7 +10,13 @@ implementation_phase: documentation-and-contracts-only
 rust_code_status: not-authored-in-this-wave
 source_adrs: ADR-0339, ADR-0322, ADR-0181, ADR-0248, ADR-0215, ADR-0218, ADR-0244, ADR-0251, ADR-0338, ADR-0340, ADR-0343, ADR-0344
 lifecycle_rule: PROPOSED until the microservice wrappers invoke signed shared OpenTofu modules; ACCEPTED only after implementation evidence lands
+current_authority: specs/microservices/global-trade.json
+authority_status: metadata-only PRD
+inventory_status: inventory/provenance/planned-only
 ---
+
+> Current authority: specs/microservices/global-trade.json metadata-only PRD; inventory/provenance/planned-only. This document is historical/proposed design provenance only; it is not current implementation, runtime, cloud, API, SLO, dashboard, runbook, filing, broker, Workflow, or audit-chain authority.
+
 # IP-ADR-0339-Shared-IaC-Modules: Global Trade Shared OpenTofu Module Adoption
 
 ## 1. Lifecycle, Boundary, And Stop Condition

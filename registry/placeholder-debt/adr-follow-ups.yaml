@@ -95,13 +95,18 @@ follow_ups:
       The `node` installation-media preset boots with `talos.config=$CONFIG_URL`
       and fetches its role/cluster config from a hub config endpoint
       (`gen-media.sh` node path + `presets.yaml`), but no config-serving plane
-      (MAC/UUID→machineconfig assignment service) is deployed in this PR. Until
-      that serving plane lands, node zero-touch is EXPERIMENTAL — bare-metal
-      worker nodes must be assigned config manually. Implement (or adopt) the
-      hub-side config endpoint (Talos `siderolink`/`metadata` server or a small
-      Rust service) + the MAC-or-UUID assignment registry.
+      (MAC/UUID→machineconfig assignment service) is deployed in this PR. The
+      contract is now specified in
+      `specs/deployment-ops-contract.json#node_config_serving_plane` and
+      `infra/talos/installation-media/README.md`, but until the serving plane
+      lands, node zero-touch is EXPERIMENTAL — bare-metal worker nodes must be
+      assigned config manually. Implement (or adopt) the hub-side config endpoint
+      (Talos `siderolink`/`metadata` server or a small Rust service) + the
+      MAC-or-UUID assignment registry.
     driver_docs:
+      - specs/deployment-ops-contract.json
       - infra/talos/installation-media/gen-media.sh
+      - infra/talos/installation-media/README.md
       - infra/talos/installation-media/presets.yaml
     owner: axis-platform + ops-sre-reliability
     trigger: First bare-metal cell with more than a hand-assigned node count.
@@ -1037,10 +1042,10 @@ follow_ups:
       fallback control-plane provider is k0smotron (ADR-0376 Door).
     driver_docs:
       - docs/decisions/ADR-0376-managed-kubernetes-product-surface.md
-      - microservices/managed-k8s-control-plane-host/PRD.md
-      - microservices/managed-k8s-control-plane-host/threat-model.md
-      - crates/oya-managed-k8s-control-plane-host-adapter-capi/src/lib.rs
-      - crates/oya-managed-k8s-control-plane-host-api/src/lib.rs
+      - cloud/managed-k8s-control-plane-host/PRD.md
+      - cloud/managed-k8s-control-plane-host/threat-model.md
+      - cloud/managed-k8s-control-plane-host/crates/oya-managed-k8s-control-plane-host-adapter-capi/src/lib.rs
+      - cloud/managed-k8s-control-plane-host/crates/oya-managed-k8s-control-plane-host-api/src/lib.rs
     owner: council-architecture + ops-platform
     trigger: |
       The dogfood tenant-zero milestone where Oyatie provisions its OWN clusters

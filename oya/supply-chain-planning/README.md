@@ -1,17 +1,28 @@
 ---
 doc_class: MicroserviceREADME
 microservice: supply-chain-planning
-status: Accepted
+status: preview-inventory
 date: 2026-05-21
 owner_team: axis-supply-chain-planning + axis-erp-parity
 related_adrs: [ADR-0105, ADR-0131, ADR-0132, ADR-0244, ADR-0253, ADR-0297, ADR-0314, ADR-0315]
 planned_enforcement_ref: oya-governance-supply-chain-planning-doc-set
+canonical_prd: specs/microservices/supply-chain-planning.json
+visible_repo_path: oya/supply-chain-planning
+authority_ceiling: metadata-only preview; no runtime, persistence, workflow, runtime-audit, cloud, GA, or exhaustive vendor-parity claim
+current_ci_authority: ADR-0363 plain git + protected PR; ADR-0515 GitHub Actions and oya-ci-required
 ---
 
 # Supply Chain Planning
 
 ## Purpose
-Supply Chain Planning is the SAP SCM/APO parity microservice for Demand Planning, Supply Network Planning, Production Planning/Detailed Scheduling, Global ATP, Transportation Planning. It keeps a flat per-microservice layout, avoids ERP platform ownership, and composes with workflow-engine, ontology, policy, marketplace, observability, and regional-pack services.
+Supply Chain Planning is a reserved inventory/preview surface for the metadata-only PRD at `specs/microservices/supply-chain-planning.json`. It records target SAP SCM/APO-class planning bounded contexts, but it does not claim live planning parity, optimizer/runtime execution, durable persistence, Workflow execution, runtime audit-chain emission, cloud deployment, SLO/DR readiness, IAC activation, GA readiness, or exhaustive vendor parity. The visible checkout path for current inventory is `oya/supply-chain-planning`; older `microservices/supply-chain-planning/...` strings are stale aliases unless a later migration/index card proves activation.
+
+## Authority and claim ceiling
+- Root-hub authority: `specs/root-hub-pointers.json` entry `prd_supply_chain_planning` points to `specs/microservices/supply-chain-planning.json` as a wave-3 metadata-only PRD foundation with explicit non-claims.
+- PRD authority: `_meta.status=preview`, `spec_id=PRD-MICROSERVICE-SUPPLY-CHAIN-PLANNING`, and AC-01..AC-05 cover metadata contracts only.
+- Inventory posture: this `oya/supply-chain-planning` tree is reserved target/provenance inventory. Its contracts, policies, SLOs, runbooks, dashboards, catalog rows, and IAC files do not activate runtime, persistence, audit, cloud, SLO/DR, or vendor-parity claims until a downstream source-authority/plan card proves promotion.
+- Manifest index posture: `specs/microservices/manifests-index.json` intentionally remains without `supply-chain-planning` for this source-authority pass; indexing requires separate activation evidence.
+- Current delivery authority: ADR-0363 retires `oya vcs`/`oya git` and CLI merge authority in favor of plain git + protected PR, and ADR-0515 makes GitHub Actions plus the single protected `oya-ci-required` context the current CI authority. Older ADR-0346 local-verifier and ADR-0349 Jenkins/Argo wording in this inventory is provenance only when it conflicts with ADR-0515.
 
 ## Bounded contexts
 - demand-plan: tenant-scoped command, query, event, replay, and audit surface.
@@ -27,8 +38,8 @@ Supply Chain Planning is the SAP SCM/APO parity microservice for Demand Planning
 - gRPC: contracts/supply-chain-planning-v1.proto, proto3.
 - Naming: BNF v4.1 and ADR-0105 layers api, rest, application, usecase, domain, kernel, adapter, worker, governance.
 
-## Operating posture
-HTTP/3 is the default edge transport, ECH is advertised on tenant ingress, PQC hybrid negotiation is offered where peers support it, and fallback order is HTTP/3, HTTP/2, then HTTP/1.1. Marketplace settles tenant deals per ADR-0314.
+## Target operating posture inventory
+The rows below are target/provenance inventory only under the preview PRD ceiling. They are not live evidence of runtime transport, audit-chain emission, SLO/dashboard readiness, runbook recovery, IAC activation, or GA/vendor parity.
 - README evidence row 001: Supply Chain Planning.demand-plan links SAP SCM/APO, SAP SCM/APO and SAP IBP | Oracle Supply Chain Planning | Workday Adaptive Planning supply-chain scenario counterpart | NetSuite Demand Planning | Microsoft Dynamics 365 Master Planning, Cedar default deny, OpenBao secret reference, SLO evidence, dashboard evidence, and runbook recovery path.
 - README evidence row 002: Supply Chain Planning.supply-network-plan links SAP SCM/APO, SAP SCM/APO and SAP IBP | Oracle Supply Chain Planning | Workday Adaptive Planning supply-chain scenario counterpart | NetSuite Demand Planning | Microsoft Dynamics 365 Master Planning, Cedar default deny, OpenBao secret reference, SLO evidence, dashboard evidence, and runbook recovery path.
 - README evidence row 003: Supply Chain Planning.available-to-promise links SAP SCM/APO, SAP SCM/APO and SAP IBP | Oracle Supply Chain Planning | Workday Adaptive Planning supply-chain scenario counterpart | NetSuite Demand Planning | Microsoft Dynamics 365 Master Planning, Cedar default deny, OpenBao secret reference, SLO evidence, dashboard evidence, and runbook recovery path.
@@ -201,7 +212,9 @@ HTTP/3 is the default edge transport, ECH is advertised on tenant ingress, PQC h
 
 ## Doctrine references
 
-- [ADR-0346](../../docs/decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md): `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix, blocking on exit-0 of each mandatory step before returning success. Enforced by `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, and `oya-governance-oya-verify-exit-code-contract`.
+- [ADR-0363](../../docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md): plain `git` plus protected PR is the coordination substrate; `oya vcs`, `oya git`, `oya gate`, and `oya verify` are not protected-branch merge authority.
+- [ADR-0515](../../docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md): GitHub Actions is the live CI runner, the single protected `oya-ci-required` context is the current blocking merge gate, and governance runs as cloud-ci Rust gate packets rather than CLI/shell/Jenkins authority.
+- [ADR-0346](../../docs/decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md): provenance for the older local-verifier completeness doctrine only. Under ADR-0515, local verifier output is optional local feedback and must not be represented as protected-branch merge authority.
 - [ADR-0347](../../docs/decisions/ADR-0347-governance-fitness-bulk-rename.md): Every `oya-governance-*` CI lane prefix RENAMES to `oya-governance-*` in one Wave 15-ZB bulk-rename pull request rather than 34 per-lane migration IPs. Enforced by `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
 - [ADR-0348](../../docs/decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md): Cellular topology MUST support control-plane-driven AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING, with manifest-declared configuration, residency/compliance constraints, audit-chain emission, and reversibility. Enforced by `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, and `oya-governance-tenant-migration-reversibility`.
-- [ADR-0349](../../docs/decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md): Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates; Jenkins augments GitHub Actions for self-hostable contexts, and ArgoCD is the canonical GitOps CD orchestrator that replaces manual `kubectl apply` and Helm CLI deploys. Enforced by `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit`.
+- [ADR-0349](../../docs/decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md): superseded by ADR-0515 for CI authority. Any Jenkins/Argo wording in this inventory is historical/provenance or separately authorized CD-bridge planning, not a live CI merge gate or cloud-deployment activation claim.

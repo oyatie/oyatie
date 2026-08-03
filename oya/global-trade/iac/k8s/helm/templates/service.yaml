@@ -1,17 +1,14 @@
-apiVersion: v1
-kind: Service
-metadata:
-  name: {{ .Values.microservice.id | quote }}
-  labels:
-    app.kubernetes.io/name: {{ .Values.microservice.id | quote }}
-    app.kubernetes.io/part-of: oyatie-microservices
-    oyatie.com/adr-0349: argocd-managed
-spec:
-  type: {{ .Values.service.type | quote }}
-  selector:
-    app.kubernetes.io/name: {{ .Values.microservice.id | quote }}
-  ports:
-    - name: http
-      port: {{ .Values.service.port }}
-      targetPort: http
-      protocol: TCP
+# Current authority: specs/microservices/global-trade.json metadata-only PRD; inventory/provenance/planned-only.
+schema_version: "1.0"
+artifact: oya/global-trade/iac/k8s/helm/templates/service.yaml
+status: inventory-provenance-planned-only
+current_authority: specs/microservices/global-trade.json
+authority_status: metadata-only PRD
+non_claims:
+  - no Kubernetes workload authority
+  - no Helm release authority
+  - no Terraform or OpenTofu apply authority
+  - no OpenBao/runtime secret authority
+  - no cloud deployment
+  - no runtime audit-chain emission
+future_gate: separate authority-gated RED/test-first implementation lane required before use

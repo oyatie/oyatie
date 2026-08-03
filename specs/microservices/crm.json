@@ -16,7 +16,7 @@
     "microservice": "crm",
     "bounded_context": "customer-engagement",
     "crate_prefix": "oya-crm",
-    "primary_crate": "microservices/crm/crates/oya-crm-customer-engagement-domain",
+    "primary_crate": "oya/crm/crates/oya-crm-customer-engagement-domain",
     "product_id": "crm",
     "owning_axis": "axis-enterprise"
   },
@@ -53,49 +53,49 @@
       "given": "a customer account has tenant, legal entity, market, customer profile, primary contact, relationship tier, lifecycle score, consent basis, source refs, and registration evidence",
       "when": "the CRM domain registers the customer account metadata",
       "then": "account, tenant, legal entity, market, customer profile, contact, relationship tier, lifecycle score, consent, source, evidence, idempotency key, state, schema version, and false durable-customer-master/CDP/cloud flags are present",
-      "test_ref": "microservices/crm/crates/oya-crm-customer-engagement-domain/tests/customer_engagement.rs::account_drives_opportunity_quote_service_case_and_loyalty_activity"
+      "test_ref": "oya/crm/crates/oya-crm-customer-engagement-domain/tests/customer_engagement.rs::account_drives_opportunity_quote_service_case_and_loyalty_activity"
     },
     {
       "id": "AC-02",
       "given": "a registered account has a lead ready to qualify into an opportunity with stage, estimated revenue, probability, close date, source refs, and evidence",
       "when": "opportunity qualification metadata is prepared",
       "then": "opportunity, lead, account, tenant, legal entity, market, stage, estimated revenue, probability, weighted revenue, close date, source, evidence, idempotency key, state, and false CPQ/forecast/Workflow/cloud flags are present",
-      "test_ref": "microservices/crm/crates/oya-crm-customer-engagement-domain/tests/customer_engagement.rs::{account_drives_opportunity_quote_service_case_and_loyalty_activity,crm_refuses_unregistered_or_unqualified_flow}"
+      "test_ref": "oya/crm/crates/oya-crm-customer-engagement-domain/tests/customer_engagement.rs::{account_drives_opportunity_quote_service_case_and_loyalty_activity,crm_refuses_unregistered_or_unqualified_flow}"
     },
     {
       "id": "AC-03",
       "given": "a qualified opportunity has quote amount, discount, margin guardrail, valid-until date, source refs, and approval evidence",
       "when": "quote preparation metadata is prepared",
       "then": "quote, opportunity, account, tenant, legal entity, market, quote amount, discount, discount amount, net quote amount, margin guardrail, validity date, source, evidence, idempotency key, state, and false CPQ/order-management/ERP-price-sync/cloud flags are present",
-      "test_ref": "microservices/crm/crates/oya-crm-customer-engagement-domain/tests/customer_engagement.rs::{account_drives_opportunity_quote_service_case_and_loyalty_activity,crm_refuses_unregistered_or_unqualified_flow,crm_validates_refs_dates_scores_amounts_and_discounts}"
+      "test_ref": "oya/crm/crates/oya-crm-customer-engagement-domain/tests/customer_engagement.rs::{account_drives_opportunity_quote_service_case_and_loyalty_activity,crm_refuses_unregistered_or_unqualified_flow,crm_validates_refs_dates_scores_amounts_and_discounts}"
     },
     {
       "id": "AC-04",
       "given": "a registered account opens a service case with product, priority, severity, open date, SLA due date, source refs, and case evidence",
       "when": "service-case opening metadata is prepared",
       "then": "case, account, tenant, legal entity, market, product ref, priority, severity, open/SLA dates, escalation flag, source, evidence, idempotency key, state, and false routing/knowledge-base/Workflow/cloud flags are present",
-      "test_ref": "microservices/crm/crates/oya-crm-customer-engagement-domain/tests/customer_engagement.rs::{account_drives_opportunity_quote_service_case_and_loyalty_activity,crm_refuses_unregistered_or_unqualified_flow,crm_validates_refs_dates_scores_amounts_and_discounts}"
+      "test_ref": "oya/crm/crates/oya-crm-customer-engagement-domain/tests/customer_engagement.rs::{account_drives_opportunity_quote_service_case_and_loyalty_activity,crm_refuses_unregistered_or_unqualified_flow,crm_validates_refs_dates_scores_amounts_and_discounts}"
     },
     {
       "id": "AC-05",
       "given": "a marketing campaign has tenant, legal entity, market, segment, channel mix, consent basis, planned dates, budget, source refs, and evidence",
       "when": "campaign plan metadata is prepared",
       "then": "campaign, tenant, legal entity, market, segment, channel mix, consent, planned dates, budget, source, evidence, idempotency key, state, and false journey/message-delivery/CDP/cloud flags are present",
-      "test_ref": "microservices/crm/crates/oya-crm-customer-engagement-domain/tests/customer_engagement.rs::{account_drives_opportunity_quote_service_case_and_loyalty_activity,crm_validates_refs_dates_scores_amounts_and_discounts}"
+      "test_ref": "oya/crm/crates/oya-crm-customer-engagement-domain/tests/customer_engagement.rs::{account_drives_opportunity_quote_service_case_and_loyalty_activity,crm_validates_refs_dates_scores_amounts_and_discounts}"
     },
     {
       "id": "AC-06",
       "given": "a registered account has loyalty activity with points delta, monetary value, activity date, source refs, and evidence",
       "when": "loyalty activity metadata is recorded",
       "then": "loyalty activity, account, tenant, legal entity, market, points delta, earned/redeemed point split, monetary value, activity date, source, evidence, idempotency key, state, and false loyalty-wallet/reward-settlement/marketing-journey/cloud flags are present",
-      "test_ref": "microservices/crm/crates/oya-crm-customer-engagement-domain/tests/customer_engagement.rs::{account_drives_opportunity_quote_service_case_and_loyalty_activity,crm_records_loyalty_redemption_without_wallet_or_settlement_claim}"
+      "test_ref": "oya/crm/crates/oya-crm-customer-engagement-domain/tests/customer_engagement.rs::{account_drives_opportunity_quote_service_case_and_loyalty_activity,crm_records_loyalty_redemption_without_wallet_or_settlement_claim}"
     },
     {
       "id": "AC-07",
       "given": "untrusted identifiers, policy/source/evidence refs, dates, scores, amounts, probabilities, discounts, campaign dates, loyalty points, or overclaim paths enter the CRM domain",
       "when": "domain validation runs",
       "then": "prefix-only identifiers, path traversal, whitespace/control characters, credential-shaped refs, invalid dates, invalid lifecycle scores, zero amounts, invalid probabilities, discount guardrail violations, missing account registration, missing opportunity qualification, and zero loyalty points are refused",
-      "test_ref": "microservices/crm/crates/oya-crm-customer-engagement-domain/tests/customer_engagement.rs::{crm_refuses_unregistered_or_unqualified_flow,crm_validates_refs_dates_scores_amounts_and_discounts,crm_records_loyalty_redemption_without_wallet_or_settlement_claim}"
+      "test_ref": "oya/crm/crates/oya-crm-customer-engagement-domain/tests/customer_engagement.rs::{crm_refuses_unregistered_or_unqualified_flow,crm_validates_refs_dates_scores_amounts_and_discounts,crm_records_loyalty_redemption_without_wallet_or_settlement_claim}"
     }
   ],
   "decision_log": [
@@ -103,6 +103,11 @@
       "id": "D-01",
       "decision": "CRM enters the enterprise microservice set as a flat customer-engagement domain crate rather than a monolithic ERP/CRM platform; SAP CRM/CX parity is represented through Tenant RBAC composition while live SFA, CPQ, service routing, marketing journeys, CDP, loyalty wallet settlement, Workflow execution, runtime audit emission, and cloud deployment remain explicit non-claims.",
       "date": "2026-05-24"
+    },
+    {
+      "id": "D-02",
+      "decision": "Root-hub authority remains the preview PRD at specs/microservices/crm.json. Visible inventory and verified crate/test files in this checkout live under oya/crm; microservices/crm path strings are historical/provenance aliases. The oya inventory remains metadata-only/provenance and does not promote any live CRM runtime, cloud deployment, GA, vendor-parity, durable persistence, Workflow execution, or runtime audit-chain claim.",
+      "date": "2026-07-02"
     }
   ],
   "inherits": {
@@ -139,7 +144,7 @@
     ]
   },
   "data_model": {
-    "primary_crate_ref": "microservices/crm/crates/oya-crm-customer-engagement-domain",
+    "primary_crate_ref": "oya/crm/crates/oya-crm-customer-engagement-domain",
     "entities_ref": [
       {
         "entity": "Customer",
@@ -253,7 +258,7 @@
       "targets": {
         "preview": "0 forbidden dependency edges"
       },
-      "lane_ref": "oya gate validate architecture-boundaries"
+      "lane_ref": "cloud-ci/Rust gate packet: architecture-boundaries"
     }
   ]
 }

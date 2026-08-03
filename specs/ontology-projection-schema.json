@@ -929,22 +929,22 @@
       "promotion_gates": [
         {
           "gate_id": "ontology-projection-schema-pins",
-          "command": "oya gate validate ontology-projection-schema-pins",
+          "command": "cloud-ci/Rust gate packet: ontology-projection-schema-pins",
           "evidence_ref": "evidence://ontology/sales/schema-pins"
         },
         {
           "gate_id": "ontology-projection-field-visibility",
-          "command": "oya gate validate ontology-projection-field-visibility",
+          "command": "cloud-ci/Rust gate packet: ontology-projection-field-visibility",
           "evidence_ref": "evidence://ontology/sales/fields"
         },
         {
           "gate_id": "ontology-projection-cache-partition",
-          "command": "oya gate validate ontology-projection-cache-partition",
+          "command": "cloud-ci/Rust gate packet: ontology-projection-cache-partition",
           "evidence_ref": "evidence://ontology/sales/cache"
         },
         {
           "gate_id": "ontology-projection-replay-tests",
-          "command": "oya gate validate ontology-projection-replay-tests",
+          "command": "cloud-ci/Rust gate packet: ontology-projection-replay-tests",
           "evidence_ref": "evidence://ontology/sales/replay"
         }
       ]
@@ -1119,22 +1119,22 @@
       "promotion_gates": [
         {
           "gate_id": "ontology-projection-schema-pins",
-          "command": "oya gate validate ontology-projection-schema-pins",
+          "command": "cloud-ci/Rust gate packet: ontology-projection-schema-pins",
           "evidence_ref": "evidence://ontology/health/schema-pins"
         },
         {
           "gate_id": "ontology-projection-pack-filters",
-          "command": "oya gate validate ontology-projection-pack-filters",
+          "command": "cloud-ci/Rust gate packet: ontology-projection-pack-filters",
           "evidence_ref": "evidence://ontology/health/pack"
         },
         {
           "gate_id": "ontology-projection-cache-partition",
-          "command": "oya gate validate ontology-projection-cache-partition",
+          "command": "cloud-ci/Rust gate packet: ontology-projection-cache-partition",
           "evidence_ref": "evidence://ontology/health/cache"
         },
         {
           "gate_id": "ontology-projection-replay-tests",
-          "command": "oya gate validate ontology-projection-replay-tests",
+          "command": "cloud-ci/Rust gate packet: ontology-projection-replay-tests",
           "evidence_ref": "evidence://ontology/health/replay"
         }
       ]
@@ -1310,22 +1310,22 @@
       "promotion_gates": [
         {
           "gate_id": "ontology-projection-schema-pins",
-          "command": "oya gate validate ontology-projection-schema-pins",
+          "command": "cloud-ci/Rust gate packet: ontology-projection-schema-pins",
           "evidence_ref": "evidence://ontology/sovereign/schema-pins"
         },
         {
           "gate_id": "ontology-projection-jurisdiction-filters",
-          "command": "oya gate validate ontology-projection-jurisdiction-filters",
+          "command": "cloud-ci/Rust gate packet: ontology-projection-jurisdiction-filters",
           "evidence_ref": "evidence://ontology/sovereign/jurisdiction"
         },
         {
           "gate_id": "ontology-projection-cache-partition",
-          "command": "oya gate validate ontology-projection-cache-partition",
+          "command": "cloud-ci/Rust gate packet: ontology-projection-cache-partition",
           "evidence_ref": "evidence://ontology/sovereign/cache"
         },
         {
           "gate_id": "ontology-projection-replay-tests",
-          "command": "oya gate validate ontology-projection-replay-tests",
+          "command": "cloud-ci/Rust gate packet: ontology-projection-replay-tests",
           "evidence_ref": "evidence://ontology/sovereign/replay"
         }
       ]

@@ -2,10 +2,51 @@ openapi: 3.2.0
 info:
   title: Supply Chain Planning API
   version: 1.0.0
-  summary: SAP SCM/APO parity API with marketplace settlement boundaries
+  summary: Preview metadata-only Supply Chain Planning API contract
+  description: >-
+    Preview-only command metadata contract aligned to the canonical PRD at
+    specs/microservices/supply-chain-planning.json. This artifact records REST
+    command envelope shapes for contract and fixture review only; it does not
+    claim a deployed endpoint, accepted live runtime writes, durable
+    persistence, signed/runtime audit emission, Workflow execution, cloud
+    deployment, GA readiness, measured SLO/DR readiness, or exhaustive SAP,
+    Oracle, Microsoft, Workday, or NetSuite parity.
+  x-oyatie-contract-status: preview-not-deployed
+  x-oyatie-preview-authority:
+    prd_ref: specs/microservices/supply-chain-planning.json
+    root_hub_pointer: specs/root-hub-pointers.json#/entry_points/prd_supply_chain_planning
+    produced_contract_family: enterprise.enterprise_supply_chain_planning.v1
+    proto_package_rationale: >-
+      The gRPC proto keeps package oya.supply_chain_planning.v1 as the visible
+      repository/wire namespace for this preview inventory. It is a documented
+      namespace alias for the PRD produced contract family
+      enterprise.enterprise_supply_chain_planning.v1, not a second activation
+      claim; any package rename requires separate compatibility evidence.
+    non_claims:
+      - no deployed HTTP runtime or accepted live write
+      - no durable persistence or Workflow execution
+      - no signed/runtime audit-chain emission
+      - no cloud deployment, GA readiness, measured SLO readiness, or DR readiness
+      - no exhaustive vendor parity or live optimizer/scheduler/ATP/replenishment runtime
+    prd_ac_alignment:
+      AC-01: DemandPlanCommand covers demand-plan metadata and validation evidence only.
+      AC-02: SupplyNetworkPlanCommand covers supply-network proposal metadata and shortage evidence only.
+      AC-03: AvailableToPromiseCommand covers ATP response metadata only; no order-management or warehouse mutation.
+      AC-04: TransportationPlanCommand is retained as the distribution-lane metadata envelope; no carrier booking or transportation execution.
+      AC-05: All command envelopes carry tenant, principal, idempotency, compliance, and payload metadata for validation-shape review only.
+      preview_extensions: ReplenishmentPlanCommand and PlanningScenarioCommand are reserved manifest bounded-context envelopes, not additional runtime activation claims.
+    network_scaffold_route_shape:
+      classification: no-action-in-this-contract-card
+      rationale: >-
+        The read-only network app scaffold currently exposes five action-style
+        routes (/demand-plans:publish, /supply-network-plans:reconcile,
+        /replenishment-plans:approve, /available-to-promise:reserve, and
+        /planning-scenarios:simulate) and omits the transportation/distribution
+        route. This contract card records the mismatch and preserves the
+        canonical preview contract paths; t_d2b84fb7 owns any scaffold fix.
 servers:
   - url: https://api.oyatie.example/supply-chain-planning
-    description: HTTP/3 default, ECH advertised, PQC hybrid offered when supported
+    description: Example contract endpoint only; no live edge transport or cloud deployment is claimed
 x-enterprise-benchmarks:
   - "SAP SCM/APO and SAP IBP"
   - "Oracle Supply Chain Planning"
@@ -15,13 +56,11 @@ x-enterprise-benchmarks:
 paths:
   /v1/supply-chain-planning/demand-plan:
     post:
-      summary: Create or amend Supply Chain Planning demand-plan
+      summary: Accept Supply Chain Planning demand-plan metadata for preview validation
       operationId: supply_chain_planning_demand_plan_mutate
-      x-transport:
-        default: HTTP/3
-        fallback: [HTTP/2, HTTP/1.1]
-        ech: advertised
-        pqc: X25519MLKEM768-when-supported
+      x-transport-preview:
+        status: target-provenance-only
+        note: No deployed HTTP/3, ECH, PQC, or live edge runtime is claimed by this preview contract.
       x-bnf-version: "BNF v4.1"
       requestBody:
         required: true
@@ -31,16 +70,14 @@ paths:
               $ref: "#/components/schemas/DemandPlanCommand"
       responses:
         "202":
-          description: Accepted with signed audit event
+          description: Metadata-only preview receipt; no live write, signed audit event, durable persistence, cloud deployment, SLO/DR, or GA readiness is claimed.
   /v1/supply-chain-planning/supply-network-plan:
     post:
-      summary: Create or amend Supply Chain Planning supply-network-plan
+      summary: Accept Supply Chain Planning supply-network-plan metadata for preview validation
       operationId: supply_chain_planning_supply_network_plan_mutate
-      x-transport:
-        default: HTTP/3
-        fallback: [HTTP/2, HTTP/1.1]
-        ech: advertised
-        pqc: X25519MLKEM768-when-supported
+      x-transport-preview:
+        status: target-provenance-only
+        note: No deployed HTTP/3, ECH, PQC, or live edge runtime is claimed by this preview contract.
       x-bnf-version: "BNF v4.1"
       requestBody:
         required: true
@@ -50,16 +87,14 @@ paths:
               $ref: "#/components/schemas/SupplyNetworkPlanCommand"
       responses:
         "202":
-          description: Accepted with signed audit event
+          description: Metadata-only preview receipt; no live write, signed audit event, durable persistence, cloud deployment, SLO/DR, or GA readiness is claimed.
   /v1/supply-chain-planning/available-to-promise:
     post:
-      summary: Create or amend Supply Chain Planning available-to-promise
+      summary: Accept Supply Chain Planning available-to-promise metadata for preview validation
       operationId: supply_chain_planning_available_to_promise_mutate
-      x-transport:
-        default: HTTP/3
-        fallback: [HTTP/2, HTTP/1.1]
-        ech: advertised
-        pqc: X25519MLKEM768-when-supported
+      x-transport-preview:
+        status: target-provenance-only
+        note: No deployed HTTP/3, ECH, PQC, or live edge runtime is claimed by this preview contract.
       x-bnf-version: "BNF v4.1"
       requestBody:
         required: true
@@ -69,16 +104,14 @@ paths:
               $ref: "#/components/schemas/AvailableToPromiseCommand"
       responses:
         "202":
-          description: Accepted with signed audit event
+          description: Metadata-only preview receipt; no live write, signed audit event, durable persistence, cloud deployment, SLO/DR, or GA readiness is claimed.
   /v1/supply-chain-planning/replenishment-plan:
     post:
-      summary: Create or amend Supply Chain Planning replenishment-plan
+      summary: Accept reserved Supply Chain Planning replenishment-plan metadata for preview validation
       operationId: supply_chain_planning_replenishment_plan_mutate
-      x-transport:
-        default: HTTP/3
-        fallback: [HTTP/2, HTTP/1.1]
-        ech: advertised
-        pqc: X25519MLKEM768-when-supported
+      x-transport-preview:
+        status: target-provenance-only
+        note: No deployed HTTP/3, ECH, PQC, or live edge runtime is claimed by this preview contract.
       x-bnf-version: "BNF v4.1"
       requestBody:
         required: true
@@ -88,16 +121,14 @@ paths:
               $ref: "#/components/schemas/ReplenishmentPlanCommand"
       responses:
         "202":
-          description: Accepted with signed audit event
+          description: Metadata-only preview receipt; no live write, signed audit event, durable persistence, cloud deployment, SLO/DR, or GA readiness is claimed.
   /v1/supply-chain-planning/transportation-plan:
     post:
-      summary: Create or amend Supply Chain Planning transportation-plan
+      summary: Accept distribution-lane/transportation-plan metadata for preview validation
       operationId: supply_chain_planning_transportation_plan_mutate
-      x-transport:
-        default: HTTP/3
-        fallback: [HTTP/2, HTTP/1.1]
-        ech: advertised
-        pqc: X25519MLKEM768-when-supported
+      x-transport-preview:
+        status: target-provenance-only
+        note: No deployed HTTP/3, ECH, PQC, or live edge runtime is claimed by this preview contract.
       x-bnf-version: "BNF v4.1"
       requestBody:
         required: true
@@ -107,16 +138,14 @@ paths:
               $ref: "#/components/schemas/TransportationPlanCommand"
       responses:
         "202":
-          description: Accepted with signed audit event
+          description: Metadata-only preview receipt; no live write, signed audit event, durable persistence, cloud deployment, SLO/DR, or GA readiness is claimed.
   /v1/supply-chain-planning/planning-scenario:
     post:
-      summary: Create or amend Supply Chain Planning planning-scenario
+      summary: Accept reserved Supply Chain Planning planning-scenario metadata for preview validation
       operationId: supply_chain_planning_planning_scenario_mutate
-      x-transport:
-        default: HTTP/3
-        fallback: [HTTP/2, HTTP/1.1]
-        ech: advertised
-        pqc: X25519MLKEM768-when-supported
+      x-transport-preview:
+        status: target-provenance-only
+        note: No deployed HTTP/3, ECH, PQC, or live edge runtime is claimed by this preview contract.
       x-bnf-version: "BNF v4.1"
       requestBody:
         required: true
@@ -126,18 +155,24 @@ paths:
               $ref: "#/components/schemas/PlanningScenarioCommand"
       responses:
         "202":
-          description: Accepted with signed audit event
+          description: Metadata-only preview receipt; no live write, signed audit event, durable persistence, cloud deployment, SLO/DR, or GA readiness is claimed.
 components:
   x-oyatie-sharding-automation-event-surface:
     microservice: supply-chain-planning
     wave: 15-ZF-13
     artifact_type: contracts
-    scope: OpenAPI components metadata for the sharding_automation event surface.
+    scope: >-
+      Provenance-only OpenAPI components metadata for the sharding_automation
+      event surface. Retained for historical review context; it is not evidence
+      of a live control plane, deployed CI/CD substrate, runtime audit-chain
+      emission, or cloud deployment.
     wire_shape: Extension-only annotation; no paths, operations, schemas, requestBodies, responses, headers, securitySchemes, or examples are added.
     doctrine_refs:
       ADR-0346:
         purpose: >-
-          Establish that ./bin/oya verify --ci-required is the canonical local pre-push verifier and MUST locally mirror the full CI matrix and MUST block on exit-0 of EACH step before returning success to the caller.
+          Provenance-only legacy local-verifier completeness doctrine. ADR-0515
+          supersedes it for live CI/merge authority with the single protected
+          oya-ci-required context; local verifier output is bridge feedback only.
         enforced_by:
           - oya-governance-oya-verify-ci-mirror-coverage
           - oya-governance-oya-verify-ci-step-exit-semantics
@@ -153,7 +188,9 @@ components:
           - oya-governance-rename-inventory-presence
       ADR-0348:
         purpose: >-
-          Declare that cellular topology MUST support three control-plane-driven automation modes: AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING.
+          Provenance-only cellular topology automation doctrine. This preview
+          contract preserves target vocabulary but does not claim live control
+          plane automation or runtime audit-chain emission.
         enforced_by:
           - oya-governance-sharding-automation-coverage
           - oya-governance-autosharding-manual-mode-refusal
@@ -162,13 +199,15 @@ components:
           - oya-governance-audit-chain-emit-on-automation-events
           - oya-governance-tenant-migration-reversibility
         event_surface:
-          autosharding: tenant_to_cell_shard_placement is computed by the control plane automatically.
-          auto_rebalance: tenant migration honors residency and compliance pack constraints and is observable, reversible, and audit-chain-emit per ADR-0263.
-          dynamic_sharding: HOT-SPLIT and COLD-MERGE shard-count operations are atomic and audit-emit.
-          manifest_block: sharding_automation declares autosharding, auto_rebalance, and dynamic_sharding sub-blocks.
+          autosharding: target/provenance vocabulary only; no live placement computation is claimed.
+          auto_rebalance: target/provenance vocabulary only; no live tenant migration, observability, reversibility, or audit-chain emission is claimed.
+          dynamic_sharding: target/provenance vocabulary only; no atomic shard-count operation or runtime audit emission is claimed.
+          manifest_block: sharding_automation declares target vocabulary for future activation review only.
       ADR-0349:
         purpose: >-
-          Declare Jenkins (LTS) and ArgoCD as the two canonical self-hostable CI/CD substrates for the Oyatie corpus.
+          Provenance-only historical Jenkins/Argo CI/CD substrate doctrine.
+          ADR-0515 supersedes it for live CI authority; retained references do
+          not activate Jenkins, Argo, deployment, or cloud readiness claims.
         enforced_by:
           - oya-governance-jenkins-github-actions-parity
           - oya-governance-argocd-application-cosign-verified
@@ -177,10 +216,12 @@ components:
           - oya-governance-deploy-audit-chain-emit
     consumer_guidance:
       generators: Ignore this x-extension for SDK and server wire generation.
-      governance: Use this x-extension as doctrine metadata for sharding_automation event-surface review only.
+      governance: Use this x-extension as provenance metadata for sharding_automation event-surface review only; ADR-0515 controls live CI authority.
   schemas:
     DemandPlanCommand:
       type: object
+      description: Preview metadata command envelope for PRD AC-01 and validation-shape AC-05.
+      x-prd-acceptance-criteria: [AC-01, AC-05]
       required: [tenant_id, principal_id, idempotency_key, payload, compliance_packs]
       properties:
         tenant_id:
@@ -197,8 +238,11 @@ components:
           type: string
         payload:
           type: object
+          description: Demand-plan metadata shape including tenant, legal entity, planning area, item, location, forecast/order/adjustment quantities, horizon, effective date, source refs, consensus evidence, state, schema version, and explicit false ML/collaboration/cloud flags.
     SupplyNetworkPlanCommand:
       type: object
+      description: Preview metadata command envelope for PRD AC-02 and validation-shape AC-05.
+      x-prd-acceptance-criteria: [AC-02, AC-05]
       required: [tenant_id, principal_id, idempotency_key, payload, compliance_packs]
       properties:
         tenant_id:
@@ -215,8 +259,11 @@ components:
           type: string
         payload:
           type: object
+          description: Supply-network proposal metadata shape including demand-plan reference, source/demand locations, demand and supply quantities, net requirement, rounded planned supply, constrained shortage, feasibility flag, evidence, state, and explicit false production/procurement/inventory/cloud flags.
     AvailableToPromiseCommand:
       type: object
+      description: Preview metadata command envelope for PRD AC-03 and validation-shape AC-05.
+      x-prd-acceptance-criteria: [AC-03, AC-05]
       required: [tenant_id, principal_id, idempotency_key, payload, compliance_packs]
       properties:
         tenant_id:
@@ -233,8 +280,12 @@ components:
           type: string
         payload:
           type: object
+          description: Available-to-promise response metadata shape including supply-plan reference, request location, requested/available/promised/backorder quantities, priority, requested ship date, evidence, state, backorder flag, and explicit false order-management/warehouse/cloud flags.
     ReplenishmentPlanCommand:
       type: object
+      description: Reserved preview metadata extension envelope; not covered as a runtime by PRD AC-01..AC-04 and not a replenishment execution claim. Validation-shape AC-05 still applies.
+      x-prd-acceptance-criteria: [AC-05]
+      x-oyatie-preview-extension-only: true
       required: [tenant_id, principal_id, idempotency_key, payload, compliance_packs]
       properties:
         tenant_id:
@@ -251,8 +302,11 @@ components:
           type: string
         payload:
           type: object
+          description: Reserved replenishment metadata shape for fixture review only; no replenishment runtime, purchase requisition, inventory mutation, or cloud activation is claimed.
     TransportationPlanCommand:
       type: object
+      description: Preview metadata command envelope retained for PRD AC-04 distribution-lane planning metadata and validation-shape AC-05; no transportation execution or carrier booking is claimed.
+      x-prd-acceptance-criteria: [AC-04, AC-05]
       required: [tenant_id, principal_id, idempotency_key, payload, compliance_packs]
       properties:
         tenant_id:
@@ -269,8 +323,12 @@ components:
           type: string
         payload:
           type: object
+          description: Distribution-lane planning metadata shape including supply-plan reference, source/destination locations, transfer quantity, lane capacity, remaining capacity, lead time, freight cost, evidence, state, and lane sufficiency flag.
     PlanningScenarioCommand:
       type: object
+      description: Reserved preview metadata extension envelope; not a live optimizer, scheduler, or scenario execution claim. Validation-shape AC-05 still applies.
+      x-prd-acceptance-criteria: [AC-05]
+      x-oyatie-preview-extension-only: true
       required: [tenant_id, principal_id, idempotency_key, payload, compliance_packs]
       properties:
         tenant_id:
@@ -287,3 +345,4 @@ components:
           type: string
         payload:
           type: object
+          description: Reserved planning-scenario metadata shape for fixture review only; no optimizer, simulation runtime, Workflow execution, or cloud activation is claimed.

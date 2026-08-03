@@ -11,12 +11,12 @@
     "specs/hyperscaler-gates.json"
   ],
   "gate": {
-    "command": "oya gate validate workspace-hygiene",
+    "command": "cloud-ci/Rust gate packet: workspace-hygiene",
     "default_mode": "audit",
     "strict_mode": "release_or_hyperscaler_claim",
     "cleanup_commands": [
-      "oya gate validate workspace-hygiene --clean-build-artifacts",
-      "oya gate validate workspace-hygiene --clean-temp-artifacts"
+      "cloud-ci/Rust gate packet: workspace-hygiene --clean-build-artifacts",
+      "cloud-ci/Rust gate packet: workspace-hygiene --clean-temp-artifacts"
     ],
     "side_effect_policy": "inventory_by_default_cleanup_requires_explicit_flag",
     "evidence_path_template": "evidence/workspace-hygiene/{change_id}.json"

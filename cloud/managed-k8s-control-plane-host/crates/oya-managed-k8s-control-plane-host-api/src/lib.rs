@@ -176,18 +176,15 @@ impl ControlPlaneStatusReport {
 // Errors
 // =====================================================================
 
-/// Typed enumeration of downstream paths an adapter CLAIMS but does NOT yet
-/// implement end-to-end. Each variant is tracked in
-/// `registry/placeholder-debt/adr-follow-ups.yaml` so the honest-claims gate
-/// can verify there are no silent stubs. The kube-rs/Kamaji adapter returns
-/// [`ProvisioningError::Unimplemented`] carrying one of these rather than a
-/// fake `Ok(...)`.
+/// Typed enumeration of downstream paths an adapter may explicitly defer rather
+/// than fake. Retained for compatibility with older/development adapters and
+/// honest-claims checks; the live CAPI adapter no longer uses this for its
+/// hosted happy path.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Ord, PartialOrd, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Unimplemented {
-    /// Live reconciliation of a Kamaji `TenantControlPlane` (or the dedicated
-    /// Talos control-plane reference) against the management cluster's CAPI
-    /// control-plane providers. The CRD wiring is owned by a follow-on ADR.
+    /// Historical live-reconciliation placeholder for a Kamaji
+    /// `TenantControlPlane` / dedicated Talos control-plane reference.
     KamajiProviderLiveIntegration,
 }
 
@@ -240,8 +237,8 @@ pub enum ProvisioningError {
         /// Human-facing detail for logs.
         detail: String, // data_class: INTERNAL_ONLY
     },
-    /// The path is honest-deferred: the adapter surfaces a typed boundary rather
-    /// than a fake success (the live Kamaji CRD wiring; see [`Unimplemented`]).
+    /// The path is explicitly deferred: adapters surface a typed boundary rather
+    /// than a fake success (see [`Unimplemented`]).
     Unimplemented(Unimplemented),
 }
 
@@ -266,7 +263,7 @@ impl fmt::Display for ProvisioningError {
             Self::Backend { detail } => write!(f, "control-plane-host backend error: {detail}"),
             Self::Unimplemented(boundary) => write!(
                 f,
-                "{boundary} — honest-deferred; see registry/placeholder-debt/adr-follow-ups.yaml#{}",
+                "{boundary} — explicitly deferred; see registry/placeholder-debt/adr-follow-ups.yaml#{}",
                 boundary.placeholder_debt_id()
             ),
         }
@@ -286,7 +283,7 @@ impl From<IllegalTransition> for ProvisioningError {
 // =====================================================================
 
 /// The shared control-plane provisioning port (ADR-0376). Implemented by the
-/// kube-rs/Kamaji adapter (live, honest-deferred) and the in-memory fake;
+/// kube-rs/Kamaji adapter (live) and the in-memory fake;
 /// consumed by the control-plane-host app today and by the cluster-lifecycle +
 /// sla-observability microservices in their own lanes.
 ///
@@ -302,7 +299,7 @@ pub trait ControlPlaneProvisioning: Send + Sync {
     /// # Errors
     /// Returns [`ProvisioningError::InvalidClusterRef`] for a malformed ref,
     /// [`ProvisioningError::Backend`] for a backend failure, or
-    /// [`ProvisioningError::Unimplemented`] when the live CRD path is deferred.
+    /// [`ProvisioningError::Unimplemented`] when an adapter explicitly defers.
     fn provision<'a>(
         &'a self,
         request: &'a ProvisionRequest,
@@ -314,7 +311,7 @@ pub trait ControlPlaneProvisioning: Send + Sync {
     /// # Errors
     /// Returns [`ProvisioningError::NotFound`] if no control plane is known for
     /// the handle, [`ProvisioningError::Backend`] for a backend failure, or
-    /// [`ProvisioningError::Unimplemented`] when the live CRD path is deferred.
+    /// [`ProvisioningError::Unimplemented`] when an adapter explicitly defers.
     fn status<'a>(
         &'a self,
         control_plane_ref: &'a ControlPlaneRef,
@@ -327,7 +324,7 @@ pub trait ControlPlaneProvisioning: Send + Sync {
     /// # Errors
     /// Returns [`ProvisioningError::NotFound`] if no control plane is known for
     /// the handle, [`ProvisioningError::Backend`] for a backend failure, or
-    /// [`ProvisioningError::Unimplemented`] when the live CRD path is deferred.
+    /// [`ProvisioningError::Unimplemented`] when an adapter explicitly defers.
     fn teardown<'a>(
         &'a self,
         control_plane_ref: &'a ControlPlaneRef,

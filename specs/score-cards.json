@@ -5,12 +5,12 @@
   "version": "1.0.0",
   "status": "active",
   "owner_team": "axis-foundry",
-  "purpose": "Concrete deterministic score-card inventory consumed by oya gate validate loop-recovery-patterns and the canonical oya verify pre-push path. LLM judgment is forbidden in pass/fail.",
+  "purpose": "Concrete deterministic score-card inventory consumed by the cloud-ci/Rust loop-recovery-patterns gate packet. Legacy local oya verify pre-push output is local-feedback/provenance only, never merge authority. LLM judgment is forbidden in pass/fail.",
   "checks": [
     {
       "id": "score-card:pre-push:github-action-sha",
       "facet": "pipeline",
-      "query": "oya gate validate supply-chain --require-adr0039-evidence",
+      "query": "cloud-ci/Rust gate packet: supply-chain --require-adr0039-evidence",
       "pass_criterion": "exit 0; every pinned GitHub Action SHA resolves and release supply-chain evidence is present",
       "score": 10,
       "severity_tier": "BLOCKER",
@@ -37,7 +37,7 @@
     {
       "id": "score-card:pre-push:loop-recovery-patterns",
       "facet": "pipeline",
-      "query": "oya gate validate loop-recovery-patterns",
+      "query": "cloud-ci/Rust gate packet: loop-recovery-patterns",
       "pass_criterion": "exit 0; active repeat-loop patterns are linked to deterministic score cards and mistakes-ledger rows",
       "score": 10,
       "severity_tier": "BLOCKER",
@@ -46,7 +46,7 @@
     {
       "id": "score-card:industry-pattern:foundry-pr126",
       "facet": "industry-pattern-audit",
-      "query": "oya gate validate industry-pattern-score-card --source-pr 126",
+      "query": "cloud-ci/Rust gate packet: industry-pattern-score-card --source-pr 126",
       "pass_criterion": "exit 0 only after the Foundry industry-pattern validator exists, has fixture coverage, and is branch-protected",
       "score": 9,
       "severity_tier": "CRITICAL",
@@ -64,7 +64,7 @@
     {
       "id": "score-card:industry-pattern:workflow-studio-pr127",
       "facet": "industry-pattern-audit",
-      "query": "oya gate validate industry-pattern-score-card --source-pr 127",
+      "query": "cloud-ci/Rust gate packet: industry-pattern-score-card --source-pr 127",
       "pass_criterion": "exit 0 only after Workflow Studio golden-signal UX and safety checks have a validator, fixture coverage, and branch protection",
       "score": 9,
       "severity_tier": "CRITICAL",
@@ -82,7 +82,7 @@
     {
       "id": "score-card:industry-pattern:cloud-pr128",
       "facet": "industry-pattern-audit",
-      "query": "oya gate validate industry-pattern-score-card --source-pr 128",
+      "query": "cloud-ci/Rust gate packet: industry-pattern-score-card --source-pr 128",
       "pass_criterion": "exit 0 only after the Cloud industry-pattern validator exists, has fixture coverage, and is branch-protected",
       "score": 8,
       "severity_tier": "CRITICAL",
@@ -100,7 +100,7 @@
     {
       "id": "score-card:industry-pattern:enterprise-pr129",
       "facet": "industry-pattern-audit",
-      "query": "oya gate validate industry-pattern-score-card --source-pr 129",
+      "query": "cloud-ci/Rust gate packet: industry-pattern-score-card --source-pr 129",
       "pass_criterion": "exit 0 only after the Enterprise industry-pattern validator exists, has fixture coverage, and is branch-protected",
       "score": 8,
       "severity_tier": "CRITICAL",
@@ -118,7 +118,7 @@
     {
       "id": "score-card:industry-pattern:connect-pr130-131",
       "facet": "industry-pattern-audit",
-      "query": "oya gate validate industry-pattern-score-card --source-pr 131",
+      "query": "cloud-ci/Rust gate packet: industry-pattern-score-card --source-pr 131",
       "pass_criterion": "exit 0 only after the industry-pattern validator exists, has fixture coverage, and is branch-protected",
       "score": 8,
       "severity_tier": "CRITICAL",
@@ -136,7 +136,7 @@
     {
       "id": "score-card:hyperscaler:capability-circuit-breaker",
       "facet": "hyperscaler-pattern",
-      "query": "oya gate validate hyperscaler-score-card --pattern capability-circuit-breaker",
+      "query": "cloud-ci/Rust gate packet: hyperscaler-score-card --pattern capability-circuit-breaker",
       "pass_criterion": "exit 0 only after the capability circuit-breaker validator proves bounded retries and circuit state across affected products",
       "score": 10,
       "severity_tier": "BLOCKER",
@@ -159,7 +159,7 @@
     {
       "id": "score-card:hyperscaler:per-tenant-rate-limit",
       "facet": "hyperscaler-pattern",
-      "query": "oya gate validate hyperscaler-score-card --pattern per-tenant-rate-limit",
+      "query": "cloud-ci/Rust gate packet: hyperscaler-score-card --pattern per-tenant-rate-limit",
       "pass_criterion": "exit 0 only after per-tenant admission-control checks exist for public capability, editor, and action surfaces",
       "score": 9,
       "severity_tier": "CRITICAL",
@@ -182,7 +182,7 @@
     {
       "id": "score-card:hyperscaler:provider-degraded-shed",
       "facet": "hyperscaler-pattern",
-      "query": "oya gate validate hyperscaler-score-card --pattern provider-degraded-shed",
+      "query": "cloud-ci/Rust gate packet: hyperscaler-score-card --pattern provider-degraded-shed",
       "pass_criterion": "exit 0 only after provider-degraded shed behavior is validated for bounded failure handling",
       "score": 9,
       "severity_tier": "CRITICAL",
@@ -203,7 +203,7 @@
     {
       "id": "score-card:hyperscaler:golden-signals-workflow-studio",
       "facet": "hyperscaler-pattern",
-      "query": "oya gate validate hyperscaler-score-card --pattern golden-signals-workflow-studio",
+      "query": "cloud-ci/Rust gate packet: hyperscaler-score-card --pattern golden-signals-workflow-studio",
       "pass_criterion": "exit 0 only after Workflow Studio exposes latency, traffic, errors, and saturation evidence through a validator",
       "score": 9,
       "severity_tier": "CRITICAL",
@@ -224,7 +224,7 @@
     {
       "id": "score-card:hyperscaler:error-budget-burn-rate",
       "facet": "hyperscaler-pattern",
-      "query": "oya gate validate hyperscaler-score-card --pattern error-budget-burn-rate",
+      "query": "cloud-ci/Rust gate packet: hyperscaler-score-card --pattern error-budget-burn-rate",
       "pass_criterion": "exit 0 only after product SLOs define burn-rate thresholds, notification targets, and rollback behavior with validator coverage",
       "score": 8,
       "severity_tier": "CRITICAL",

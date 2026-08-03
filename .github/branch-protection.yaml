@@ -39,8 +39,10 @@ branches:
     require_signed_commits: true
     require_signed_tags: true
     # Reviews are agent-run and fully automated. GitHub human approving
-    # reviews are not merge authority; `oya-pr-review` is future reviewer
-    # evidence only until its producer is live and explicitly required.
+    # reviews are not merge authority. Reviewer-agent APPROVE evidence is
+    # enforced inside the required `oya-ci-required` context by the
+    # `pr-reviewer-evidence` pull_request lane until `oya-pr-review` has a
+    # live trusted producer and is explicitly required.
     required_approving_reviews: 0
     # P0.0 local target: one required context posted by trusted
     # cloud-ci/oya-ci control state. This file is not a live-enforcement
@@ -48,6 +50,7 @@ branches:
     # candidate-SHA status. Legacy cargo/* and oya-verify lanes are feedback
     # only, not protected-branch merge or Phase-0 exit authority.
     # NOTE: oya-pr-review is intentionally ABSENT from required checks.
+    # Current reviewer evidence enforcement lives in `oya-ci-required`.
     # Its producer (reviewer-agent HTTP endpoint) returns HTTP 501 (not yet
     # shipped); requiring it would deadlock every PR. It can return only after
     # the reviewer-agent endpoint is live and explicitly classified.

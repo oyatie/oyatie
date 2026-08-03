@@ -335,7 +335,7 @@
         "stable": 99.9,
         "GA": 99.95
       },
-      "verification_ref": "oya gate validate workflow-studio-availability --window 30d",
+      "verification_ref": "cloud-ci/Rust gate packet: workflow-studio-availability --window 30d",
       "lane_ref": "oya-governance-canary-observability"
     }
   ],
@@ -394,7 +394,7 @@
       "improve_beyond_them": [
         "make every sensitive node show data-class and policy impact before save",
         "round-trip every visual edit through workflow_spec.v1.json",
-        "tie editor save, execution, audit, and Oya VCS promotion into one evidence chain"
+        "tie editor save, execution, audit, protected PR review, and oya-ci-required promotion evidence into one evidence chain"
       ],
       "claim_boundary": "No availability, latency, connector breadth, or superiority claim until measured by Oyatie gates and backed by source evidence."
     },
@@ -504,7 +504,7 @@
       ],
       "improve_beyond_them": [
         "provide visual authoring, spec diff, guardrails, and policy preview over reusable pipeline blocks",
-        "make Oya VCS promotion and evidence collection visible in Workflow Studio"
+        "make protected PR promotion and oya-ci-required evidence collection visible in Workflow Studio"
       ],
       "claim_boundary": "May adopt reusable-workflow discipline; must not imply GitHub Actions parity until CI/CD gates prove it."
     },
@@ -531,7 +531,7 @@
       ],
       "improve_beyond_them": [
         "make connector auth scopes, data classes, and policy consequences inspectable before execution",
-        "tie reusable recipes to canonical specs, Oya VCS review, and audit evidence"
+        "tie reusable recipes to canonical specs, protected PR review, oya-ci-required evidence, and audit evidence"
       ],
       "claim_boundary": "No connector-count or enterprise parity claim until the Oyatie connector registry is implemented and verified."
     },
@@ -610,7 +610,7 @@
         "run history and actionable error remediation"
       ],
       "improve_beyond_them": [
-        "reduce environment and connector ambiguity through canonical spec, Oya VCS review, and policy previews",
+        "reduce environment and connector ambiguity through canonical spec, protected PR review, oya-ci-required evidence, and policy previews",
         "make jurisdiction overlays and evidence export native to vertical packs"
       ],
       "claim_boundary": "No ecosystem parity claim until vertical packs and governance surfaces have implementation and operational evidence."
@@ -902,7 +902,7 @@
       "requirement": "availability_99_95_pct_with_mttr_60s",
       "rationale": "Stripe-grade SLA: editor availability 99.95% equates to <26 minutes downtime/month; auto-rollback canary must trigger within 60s of regression detection",
       "target": "editor_availability_slo_pct = 99.95% at GA; MTTR <60s via auto-rollback canary (ADR-0114)",
-      "verification": "oya gate validate workflow-studio-availability --window 30d; canary-observability-rollback lane",
+      "verification": "cloud-ci/Rust gate packet: workflow-studio-availability --window 30d; canary-observability-rollback lane",
       "lane_ref": "oya-governance-canary-observability"
     }
   ],

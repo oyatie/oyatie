@@ -22,6 +22,7 @@ const LEGAL_ENTITY_ID_PREFIX: &str = "le_";
 const PERSON_REF_PREFIX: &str = "person/";
 const AUDIT_EVIDENCE_PREFIX: &str = "audit/";
 const RULEPACK_REF_PREFIX: &str = "rulepack/";
+const HR_RULEPACK_EVIDENCE_REF_PREFIX: &str = "audit/hr-rulepack/";
 const HR_EVENT_ID_PREFIX: &str = "hrev_";
 const WORKFLOW_REF_PREFIX: &str = "workflow/";
 const LABOR_OBLIGATION_ID_PREFIX: &str = "hrobl_";
@@ -32,9 +33,12 @@ const LEAVE_PAYROLL_IMPACT_SCHEMA_VERSION: u32 = 1;
 const HR_POLICY_REF_PREFIX: &str = "policy/hr/sensitive-read/";
 const SENSITIVE_HR_READ_SCHEMA_VERSION: u32 = 1;
 const HR_STATUTORY_RULEPACK_SCHEMA_VERSION: u32 = 1;
+const HR_STATUTORY_FILING_MANIFEST_SCHEMA_VERSION: u32 = 1;
 const LEAVE_BALANCE_LEDGER_SCHEMA_VERSION: u32 = 1;
 const LEAVE_CARRYOVER_FORFEITURE_SCHEMA_VERSION: u32 = 1;
 const ONBOARDING_READINESS_SCHEMA_VERSION: u32 = 1;
+const WORKFLOW_RUN_REF_PREFIX: &str = "workflow-run/";
+const FILING_AUTHORITY_REF_PREFIX: &str = "filing-authority/";
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub struct EmployeeId {
@@ -73,6 +77,16 @@ pub struct RulepackRef {
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub struct WorkflowRef {
+    pub value: String, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub struct WorkflowRunRef {
+    pub value: String, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub struct FilingAuthorityRef {
     pub value: String, // data_class: INTERNAL_ONLY
 }
 
@@ -140,6 +154,27 @@ pub enum HrRulepackSourceKind {
     LeaveAndHolidayStandards,
     WageHourRecordkeeping,
     EqualEmployment,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum HrStatutoryFilingKind {
+    KoreaRulesOfEmploymentReport,
+    KoreaLaborManagementCouncilMinutes,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum HrStatutoryFilingAuditEventClass {
+    ManifestPrepared,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum HrStatutoryFilingEvidenceReceiptStatus {
+    AcceptedForReview,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum HrStatutoryFilingRollbackAction {
+    QuarantinePreparedManifest,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
@@ -429,43 +464,104 @@ pub struct HrStatutoryRulepackManifest {
     pub schema_version: Classified<u32>,       // data_class: PUBLIC
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct HrStatutoryFilingManifestInput {
+    pub tenant_id: String,                   // data_class: INTERNAL_ONLY
+    pub legal_entity_id: String,             // data_class: INTERNAL_ONLY
+    pub jurisdiction: Jurisdiction,          // data_class: INTERNAL_ONLY
+    pub filing_kind: HrStatutoryFilingKind,  // data_class: INTERNAL_ONLY
+    pub workflow_ref: String,                // data_class: INTERNAL_ONLY
+    pub workflow_run_ref: String,            // data_class: INTERNAL_ONLY
+    pub rulepack_ref: String,                // data_class: INTERNAL_ONLY
+    pub rulepack_effective_date: String,     // data_class: INTERNAL_ONLY
+    pub source_manifest_digest: String,      // data_class: INTERNAL_ONLY
+    pub source_evidence_refs: Vec<String>,   // data_class: INTERNAL_ONLY
+    pub workflow_evidence_refs: Vec<String>, // data_class: INTERNAL_ONLY
+    pub filing_authority_ref: String,        // data_class: INTERNAL_ONLY
+    pub audit_event_class: HrStatutoryFilingAuditEventClass, // data_class: INTERNAL_ONLY
+    pub rollback_evidence_ref: String,       // data_class: INTERNAL_ONLY
+    pub filing_window_start_date: String,    // data_class: INTERNAL_ONLY
+    pub filing_window_end_date: String,      // data_class: INTERNAL_ONLY
+    pub prepared_at_epoch_seconds: u64,      // data_class: INTERNAL_ONLY
+    pub production_filing_transport_attached: bool, // data_class: PUBLIC
+    pub government_submission_attached: bool, // data_class: PUBLIC
+    pub legal_certification_claimed: bool,   // data_class: PUBLIC
+    pub payroll_calculation_attached: bool,  // data_class: PUBLIC
+    pub runtime_audit_emission_attached: bool, // data_class: PUBLIC
+    pub cloud_deployment_attached: bool,     // data_class: PUBLIC
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct HrStatutoryFilingManifest {
+    pub tenant_id: Classified<TenantId>, // data_class: INTERNAL_ONLY
+    pub legal_entity_id: Classified<LegalEntityId>, // data_class: INTERNAL_ONLY
+    pub jurisdiction: Classified<Jurisdiction>, // data_class: INTERNAL_ONLY
+    pub filing_kind: Classified<HrStatutoryFilingKind>, // data_class: INTERNAL_ONLY
+    pub workflow_ref: Classified<WorkflowRef>, // data_class: INTERNAL_ONLY
+    pub workflow_run_ref: Classified<WorkflowRunRef>, // data_class: INTERNAL_ONLY
+    pub rulepack_ref: Classified<RulepackRef>, // data_class: INTERNAL_ONLY
+    pub rulepack_effective_date: Classified<RulepackEffectiveDate>, // data_class: INTERNAL_ONLY
+    pub source_manifest_digest: Classified<RulepackSourceDigest>, // data_class: INTERNAL_ONLY
+    pub source_evidence_refs: Classified<Vec<AuditEvidenceRef>>, // data_class: INTERNAL_ONLY
+    pub source_evidence_count: Classified<usize>, // data_class: PUBLIC
+    pub workflow_evidence_refs: Classified<Vec<AuditEvidenceRef>>, // data_class: INTERNAL_ONLY
+    pub workflow_evidence_count: Classified<usize>, // data_class: PUBLIC
+    pub filing_authority_ref: Classified<FilingAuthorityRef>, // data_class: INTERNAL_ONLY
+    pub evidence_receipt_status: Classified<HrStatutoryFilingEvidenceReceiptStatus>, // data_class: INTERNAL_ONLY
+    pub audit_event_class: Classified<HrStatutoryFilingAuditEventClass>, // data_class: INTERNAL_ONLY
+    pub audit_event_class_name: Classified<String>,                      // data_class: PUBLIC
+    pub rollback_action: Classified<HrStatutoryFilingRollbackAction>, // data_class: INTERNAL_ONLY
+    pub rollback_evidence_ref: Classified<AuditEvidenceRef>,          // data_class: INTERNAL_ONLY
+    pub filing_window_start_date: Classified<String>,                 // data_class: INTERNAL_ONLY
+    pub filing_window_end_date: Classified<String>,                   // data_class: INTERNAL_ONLY
+    pub idempotency_key: Classified<String>,                          // data_class: INTERNAL_ONLY
+    pub prepared_at_epoch_seconds: Classified<u64>,                   // data_class: INTERNAL_ONLY
+    pub production_filing_transport_attached: Classified<bool>,       // data_class: PUBLIC
+    pub government_submission_attached: Classified<bool>,             // data_class: PUBLIC
+    pub legal_certification_claimed: Classified<bool>,                // data_class: PUBLIC
+    pub payroll_calculation_attached: Classified<bool>,               // data_class: PUBLIC
+    pub runtime_audit_emission_attached: Classified<bool>,            // data_class: PUBLIC
+    pub cloud_deployment_attached: Classified<bool>,                  // data_class: PUBLIC
+    pub schema_version: Classified<u32>,                              // data_class: PUBLIC
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct LeaveBalanceAccrualInput {
-    pub tenant_id: String,                    // data_class: INTERNAL_ONLY
-    pub legal_entity_id: String,              // data_class: INTERNAL_ONLY
-    pub employee_id: String,                  // data_class: INTERNAL_ONLY
-    pub payroll_period: String,               // data_class: FINANCIAL
-    pub prior_accrued_units: f64,             // data_class: FINANCIAL
-    pub accrual_units: f64,                   // data_class: FINANCIAL
-    pub deduction_units: f64,                 // data_class: FINANCIAL
-    pub carry_over_cap_units: f64,            // data_class: FINANCIAL
-    pub rulepack_ref: String,                 // data_class: INTERNAL_ONLY
-    pub rulepack_effective_date: String,      // data_class: INTERNAL_ONLY
-    pub accrual_evidence_ref: String,         // data_class: INTERNAL_ONLY
-    pub deduction_evidence_ref: String,       // data_class: INTERNAL_ONLY
-    pub decided_at_epoch_seconds: u64,        // data_class: INTERNAL_ONLY
+    pub tenant_id: String,               // data_class: INTERNAL_ONLY
+    pub legal_entity_id: String,         // data_class: INTERNAL_ONLY
+    pub employee_id: String,             // data_class: INTERNAL_ONLY
+    pub payroll_period: String,          // data_class: FINANCIAL
+    pub prior_accrued_units: f64,        // data_class: FINANCIAL
+    pub accrual_units: f64,              // data_class: FINANCIAL
+    pub deduction_units: f64,            // data_class: FINANCIAL
+    pub carry_over_cap_units: f64,       // data_class: FINANCIAL
+    pub rulepack_ref: String,            // data_class: INTERNAL_ONLY
+    pub rulepack_effective_date: String, // data_class: INTERNAL_ONLY
+    pub accrual_evidence_ref: String,    // data_class: INTERNAL_ONLY
+    pub deduction_evidence_ref: String,  // data_class: INTERNAL_ONLY
+    pub decided_at_epoch_seconds: u64,   // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct LeaveBalanceLedgerProjection {
-    pub tenant_id: Classified<TenantId>,                             // data_class: INTERNAL_ONLY
-    pub legal_entity_id: Classified<LegalEntityId>,                  // data_class: INTERNAL_ONLY
-    pub employee_id: Classified<EmployeeId>,                         // data_class: INTERNAL_ONLY
-    pub payroll_period: Classified<String>,                          // data_class: FINANCIAL
-    pub prior_accrued_units: Classified<f64>,                        // data_class: FINANCIAL
-    pub accrual_units: Classified<f64>,                              // data_class: FINANCIAL
-    pub deduction_units: Classified<f64>,                            // data_class: FINANCIAL
-    pub resulting_balance_units: Classified<f64>,                    // data_class: FINANCIAL
-    pub carried_over_units: Classified<f64>,                         // data_class: FINANCIAL
-    pub forfeited_units: Classified<f64>,                            // data_class: FINANCIAL
-    pub carry_over_cap_units: Classified<f64>,                       // data_class: FINANCIAL
-    pub rulepack_ref: Classified<RulepackRef>,                       // data_class: INTERNAL_ONLY
-    pub rulepack_effective_date: Classified<RulepackEffectiveDate>,  // data_class: INTERNAL_ONLY
-    pub accrual_evidence_ref: Classified<AuditEvidenceRef>,          // data_class: INTERNAL_ONLY
-    pub deduction_evidence_ref: Classified<AuditEvidenceRef>,        // data_class: INTERNAL_ONLY
-    pub idempotency_key: Classified<String>,                         // data_class: INTERNAL_ONLY
-    pub decided_at_epoch_seconds: Classified<u64>,                   // data_class: INTERNAL_ONLY
-    pub schema_version: Classified<u32>,                             // data_class: PUBLIC
+    pub tenant_id: Classified<TenantId>, // data_class: INTERNAL_ONLY
+    pub legal_entity_id: Classified<LegalEntityId>, // data_class: INTERNAL_ONLY
+    pub employee_id: Classified<EmployeeId>, // data_class: INTERNAL_ONLY
+    pub payroll_period: Classified<String>, // data_class: FINANCIAL
+    pub prior_accrued_units: Classified<f64>, // data_class: FINANCIAL
+    pub accrual_units: Classified<f64>,  // data_class: FINANCIAL
+    pub deduction_units: Classified<f64>, // data_class: FINANCIAL
+    pub resulting_balance_units: Classified<f64>, // data_class: FINANCIAL
+    pub carried_over_units: Classified<f64>, // data_class: FINANCIAL
+    pub forfeited_units: Classified<f64>, // data_class: FINANCIAL
+    pub carry_over_cap_units: Classified<f64>, // data_class: FINANCIAL
+    pub rulepack_ref: Classified<RulepackRef>, // data_class: INTERNAL_ONLY
+    pub rulepack_effective_date: Classified<RulepackEffectiveDate>, // data_class: INTERNAL_ONLY
+    pub accrual_evidence_ref: Classified<AuditEvidenceRef>, // data_class: INTERNAL_ONLY
+    pub deduction_evidence_ref: Classified<AuditEvidenceRef>, // data_class: INTERNAL_ONLY
+    pub idempotency_key: Classified<String>, // data_class: INTERNAL_ONLY
+    pub decided_at_epoch_seconds: Classified<u64>, // data_class: INTERNAL_ONLY
+    pub schema_version: Classified<u32>, // data_class: PUBLIC
 }
 
 /// Input to the leave carry-over / forfeiture period-boundary evaluator.
@@ -490,21 +586,21 @@ pub struct LeaveCarryoverForfeitureInput {
 /// Projection produced by `evaluate_leave_carryover_forfeiture`.
 #[derive(Clone, Debug, PartialEq)]
 pub struct LeaveCarryoverForfeitureProjection {
-    pub tenant_id: Classified<TenantId>,                           // data_class: INTERNAL_ONLY
-    pub legal_entity_id: Classified<LegalEntityId>,                // data_class: INTERNAL_ONLY
-    pub employee_id: Classified<EmployeeId>,                       // data_class: INTERNAL_ONLY
-    pub period_boundary_date: Classified<String>,                  // data_class: INTERNAL_ONLY
-    pub closing_balance_units: Classified<f64>,                    // data_class: FINANCIAL
-    pub statutory_min_floor_units: Classified<f64>,                // data_class: FINANCIAL
-    pub carry_over_cap_units: Classified<f64>,                     // data_class: FINANCIAL
-    pub carried_over_units: Classified<f64>,                       // data_class: FINANCIAL
-    pub forfeited_units: Classified<f64>,                          // data_class: FINANCIAL
-    pub rulepack_ref: Classified<RulepackRef>,                     // data_class: INTERNAL_ONLY
+    pub tenant_id: Classified<TenantId>, // data_class: INTERNAL_ONLY
+    pub legal_entity_id: Classified<LegalEntityId>, // data_class: INTERNAL_ONLY
+    pub employee_id: Classified<EmployeeId>, // data_class: INTERNAL_ONLY
+    pub period_boundary_date: Classified<String>, // data_class: INTERNAL_ONLY
+    pub closing_balance_units: Classified<f64>, // data_class: FINANCIAL
+    pub statutory_min_floor_units: Classified<f64>, // data_class: FINANCIAL
+    pub carry_over_cap_units: Classified<f64>, // data_class: FINANCIAL
+    pub carried_over_units: Classified<f64>, // data_class: FINANCIAL
+    pub forfeited_units: Classified<f64>, // data_class: FINANCIAL
+    pub rulepack_ref: Classified<RulepackRef>, // data_class: INTERNAL_ONLY
     pub rulepack_effective_date: Classified<RulepackEffectiveDate>, // data_class: INTERNAL_ONLY
-    pub evidence_ref: Classified<AuditEvidenceRef>,                // data_class: INTERNAL_ONLY
-    pub idempotency_key: Classified<String>,                       // data_class: INTERNAL_ONLY
-    pub evaluated_at_epoch_seconds: Classified<u64>,               // data_class: INTERNAL_ONLY
-    pub schema_version: Classified<u32>,                           // data_class: PUBLIC
+    pub evidence_ref: Classified<AuditEvidenceRef>, // data_class: INTERNAL_ONLY
+    pub idempotency_key: Classified<String>, // data_class: INTERNAL_ONLY
+    pub evaluated_at_epoch_seconds: Classified<u64>, // data_class: INTERNAL_ONLY
+    pub schema_version: Classified<u32>, // data_class: PUBLIC
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -539,6 +635,11 @@ pub enum HrDomainError {
     MissingConsentEvidence,
     RulepackSourcesRequired,
     UnsupportedRulepackCapabilityClaim,
+    FilingEvidenceRequired,
+    UnsupportedStatutoryFilingCapabilityClaim,
+    InvalidWorkflowRunRef,
+    InvalidFilingAuthorityRef,
+    InvalidFilingWindow,
     InvalidAccrualUnits,
     NegativeLeaveBalance,
     CarryOverCapExceeded,
@@ -608,8 +709,9 @@ pub fn evaluate_leave_carryover_forfeiture(
         return Err(HrDomainError::CarryOverCapBelowFloor);
     }
 
-    let carried_over_units =
-        input.closing_balance_units.clamp(input.statutory_min_floor_units, input.carry_over_cap_units);
+    let carried_over_units = input
+        .closing_balance_units
+        .clamp(input.statutory_min_floor_units, input.carry_over_cap_units);
     let forfeited_units = (input.closing_balance_units - input.carry_over_cap_units).max(0.0);
 
     let idempotency_key = format!(
@@ -629,7 +731,10 @@ pub fn evaluate_leave_carryover_forfeiture(
         }),
         period_boundary_date: internal(input.period_boundary_date),
         closing_balance_units: Classified::new(input.closing_balance_units, DataClass::Financial),
-        statutory_min_floor_units: Classified::new(input.statutory_min_floor_units, DataClass::Financial),
+        statutory_min_floor_units: Classified::new(
+            input.statutory_min_floor_units,
+            DataClass::Financial,
+        ),
         carry_over_cap_units: Classified::new(input.carry_over_cap_units, DataClass::Financial),
         carried_over_units: Classified::new(carried_over_units, DataClass::Financial),
         forfeited_units: Classified::new(forfeited_units, DataClass::Financial),
@@ -665,10 +770,10 @@ pub enum OnboardingChecklistItemKind {
 /// A single item on the onboarding checklist.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct OnboardingChecklistItem {
-    pub kind: OnboardingChecklistItemKind,       // data_class: INTERNAL_ONLY
-    pub is_mandatory: bool,                      // data_class: INTERNAL_ONLY
-    pub is_cleared: bool,                        // data_class: INTERNAL_ONLY
-    pub evidence_ref: Option<AuditEvidenceRef>,  // data_class: INTERNAL_ONLY
+    pub kind: OnboardingChecklistItemKind, // data_class: INTERNAL_ONLY
+    pub is_mandatory: bool,                // data_class: INTERNAL_ONLY
+    pub is_cleared: bool,                  // data_class: INTERNAL_ONLY
+    pub evidence_ref: Option<AuditEvidenceRef>, // data_class: INTERNAL_ONLY
 }
 
 /// Input to the onboarding readiness evaluator.
@@ -691,12 +796,12 @@ pub enum OnboardingDecision {
 /// Decision output from `evaluate_onboarding_readiness`.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct OnboardingReadinessDecision {
-    pub employee_id: Classified<EmployeeId>,                              // data_class: INTERNAL_ONLY
-    pub tenant_id: Classified<TenantId>,                                  // data_class: INTERNAL_ONLY
-    pub legal_entity_id: Classified<LegalEntityId>,                       // data_class: INTERNAL_ONLY
-    pub decision: Classified<OnboardingDecision>,                         // data_class: INTERNAL_ONLY
-    pub outstanding_items: Classified<Vec<OnboardingChecklistItemKind>>,  // data_class: INTERNAL_ONLY
-    pub schema_version: Classified<u32>,                                  // data_class: PUBLIC
+    pub employee_id: Classified<EmployeeId>, // data_class: INTERNAL_ONLY
+    pub tenant_id: Classified<TenantId>,     // data_class: INTERNAL_ONLY
+    pub legal_entity_id: Classified<LegalEntityId>, // data_class: INTERNAL_ONLY
+    pub decision: Classified<OnboardingDecision>, // data_class: INTERNAL_ONLY
+    pub outstanding_items: Classified<Vec<OnboardingChecklistItemKind>>, // data_class: INTERNAL_ONLY
+    pub schema_version: Classified<u32>,                                 // data_class: PUBLIC
 }
 
 /// Pure evaluator: validates identifiers, rejects empty/duplicate checklists,
@@ -785,8 +890,7 @@ pub fn evaluate_onboarding_readiness(
         }
     }
 
-    let mut outstanding: Vec<OnboardingChecklistItemKind> =
-        outstanding_set.into_iter().collect();
+    let mut outstanding: Vec<OnboardingChecklistItemKind> = outstanding_set.into_iter().collect();
     outstanding.sort();
 
     let decision = if outstanding.is_empty() {
@@ -1167,6 +1271,7 @@ pub fn build_hr_statutory_rulepack_manifest(
     for source in input.sources {
         sources.push(build_hr_rulepack_source(source)?);
     }
+    validate_required_rulepack_sources(input.jurisdiction, &sources)?;
 
     Ok(HrStatutoryRulepackManifest {
         rulepack_ref: internal(RulepackRef {
@@ -1187,6 +1292,130 @@ pub fn build_hr_statutory_rulepack_manifest(
         filing_rail_attached: public(false),
         cloud_deployment_attached: public(false),
         schema_version: public(HR_STATUTORY_RULEPACK_SCHEMA_VERSION),
+    })
+}
+
+pub fn prepare_hr_statutory_filing_manifest(
+    input: HrStatutoryFilingManifestInput,
+) -> Result<HrStatutoryFilingManifest, HrDomainError> {
+    validate_identifier(
+        &input.tenant_id,
+        TENANT_ID_PREFIX,
+        HrDomainError::InvalidTenantId,
+    )?;
+    validate_identifier(
+        &input.legal_entity_id,
+        LEGAL_ENTITY_ID_PREFIX,
+        HrDomainError::InvalidLegalEntityId,
+    )?;
+    validate_ref(
+        &input.workflow_ref,
+        WORKFLOW_REF_PREFIX,
+        HrDomainError::InvalidWorkflowRef,
+    )?;
+    validate_ref(
+        &input.workflow_run_ref,
+        WORKFLOW_RUN_REF_PREFIX,
+        HrDomainError::InvalidWorkflowRunRef,
+    )?;
+    validate_ref(
+        &input.rulepack_ref,
+        RULEPACK_REF_PREFIX,
+        HrDomainError::InvalidRulepackRef,
+    )?;
+    validate_iso_date(&input.rulepack_effective_date)?;
+    validate_source_digest(&input.source_manifest_digest)?;
+    let source_evidence_refs = build_source_evidence_refs(&input.source_evidence_refs)?;
+    let workflow_evidence_refs = build_evidence_refs(&input.workflow_evidence_refs)?;
+    validate_ref(
+        &input.filing_authority_ref,
+        FILING_AUTHORITY_REF_PREFIX,
+        HrDomainError::InvalidFilingAuthorityRef,
+    )?;
+    validate_filing_jurisdiction_kind(input.jurisdiction, input.filing_kind)?;
+    validate_filing_authority_kind(input.filing_kind, &input.filing_authority_ref)?;
+    validate_evidence_ref(&input.rollback_evidence_ref)?;
+    validate_filing_window(
+        &input.filing_window_start_date,
+        &input.filing_window_end_date,
+    )?;
+    if input.prepared_at_epoch_seconds == 0 {
+        return Err(HrDomainError::InvalidEvaluatedAt);
+    }
+    if input.production_filing_transport_attached
+        || input.government_submission_attached
+        || input.legal_certification_claimed
+        || input.payroll_calculation_attached
+        || input.runtime_audit_emission_attached
+        || input.cloud_deployment_attached
+    {
+        return Err(HrDomainError::UnsupportedStatutoryFilingCapabilityClaim);
+    }
+
+    let source_evidence_count = source_evidence_refs.len();
+    let workflow_evidence_count = workflow_evidence_refs.len();
+    let idempotency_key = format!(
+        "{}:{}:{:?}:{}:{}",
+        input.tenant_id,
+        input.legal_entity_id,
+        input.filing_kind,
+        input.rulepack_ref,
+        input.rulepack_effective_date
+    );
+
+    Ok(HrStatutoryFilingManifest {
+        tenant_id: internal(TenantId {
+            value: input.tenant_id,
+        }),
+        legal_entity_id: internal(LegalEntityId {
+            value: input.legal_entity_id,
+        }),
+        jurisdiction: internal(input.jurisdiction),
+        filing_kind: internal(input.filing_kind),
+        workflow_ref: internal(WorkflowRef {
+            value: input.workflow_ref,
+        }),
+        workflow_run_ref: internal(WorkflowRunRef {
+            value: input.workflow_run_ref,
+        }),
+        rulepack_ref: internal(RulepackRef {
+            value: input.rulepack_ref,
+        }),
+        rulepack_effective_date: internal(RulepackEffectiveDate {
+            value: input.rulepack_effective_date,
+        }),
+        source_manifest_digest: internal(RulepackSourceDigest {
+            value: input.source_manifest_digest,
+        }),
+        source_evidence_refs: internal(source_evidence_refs),
+        source_evidence_count: public(source_evidence_count),
+        workflow_evidence_refs: internal(workflow_evidence_refs),
+        workflow_evidence_count: public(workflow_evidence_count),
+        filing_authority_ref: internal(FilingAuthorityRef {
+            value: input.filing_authority_ref,
+        }),
+        evidence_receipt_status: internal(
+            HrStatutoryFilingEvidenceReceiptStatus::AcceptedForReview,
+        ),
+        audit_event_class: internal(input.audit_event_class),
+        audit_event_class_name: public(
+            statutory_filing_audit_event_class_name(input.audit_event_class).to_owned(),
+        ),
+        rollback_action: internal(HrStatutoryFilingRollbackAction::QuarantinePreparedManifest),
+        rollback_evidence_ref: internal(AuditEvidenceRef {
+            value: input.rollback_evidence_ref,
+        }),
+        filing_window_start_date: internal(input.filing_window_start_date),
+        filing_window_end_date: internal(input.filing_window_end_date),
+        idempotency_key: internal(idempotency_key),
+        prepared_at_epoch_seconds: internal(input.prepared_at_epoch_seconds),
+        production_filing_transport_attached: public(false),
+        government_submission_attached: public(false),
+        legal_certification_claimed: public(false),
+        payroll_calculation_attached: public(false),
+        runtime_audit_emission_attached: public(false),
+        cloud_deployment_attached: public(false),
+        schema_version: public(HR_STATUTORY_FILING_MANIFEST_SCHEMA_VERSION),
     })
 }
 
@@ -1318,6 +1547,69 @@ fn build_hr_rulepack_source(
             value: source.digest,
         }),
     })
+}
+
+fn validate_required_rulepack_sources(
+    jurisdiction: Jurisdiction,
+    sources: &[HrRulepackSource],
+) -> Result<(), HrDomainError> {
+    let required: &[(HrRulepackSourceKind, &[&str])] = match jurisdiction {
+        Jurisdiction::Korea => &[
+            (
+                HrRulepackSourceKind::LaborStandards,
+                &["https://law.go.kr/", "https://www.law.go.kr/"],
+            ),
+            (
+                HrRulepackSourceKind::RulesOfEmployment,
+                &["https://www.moel.go.kr/", "https://moel.go.kr/"],
+            ),
+            (
+                HrRulepackSourceKind::LaborManagementCouncil,
+                &["https://www.moel.go.kr/", "https://moel.go.kr/"],
+            ),
+        ],
+        Jurisdiction::UnitedStates => &[
+            (
+                HrRulepackSourceKind::WageHourRecordkeeping,
+                &["https://www.dol.gov/"],
+            ),
+            (
+                HrRulepackSourceKind::EqualEmployment,
+                &["https://www.eeoc.gov/"],
+            ),
+        ],
+        Jurisdiction::EuropeanUnion => &[(
+            HrRulepackSourceKind::LeaveAndHolidayStandards,
+            &["https://eur-lex.europa.eu/"],
+        )],
+    };
+
+    let source_matches_jurisdiction = |source: &HrRulepackSource| {
+        required.iter().any(|(required_kind, url_prefixes)| {
+            source.source_kind.value == *required_kind
+                && url_prefixes
+                    .iter()
+                    .any(|prefix| source.official_url.value.as_str().starts_with(prefix))
+        })
+    };
+
+    if !sources.iter().all(source_matches_jurisdiction) {
+        return Err(HrDomainError::InvalidRulepackSourceUrl);
+    }
+
+    let has_required_sources = required.iter().all(|(required_kind, url_prefixes)| {
+        sources.iter().any(|source| {
+            source.source_kind.value == *required_kind
+                && url_prefixes
+                    .iter()
+                    .any(|prefix| source.official_url.value.as_str().starts_with(prefix))
+        })
+    });
+
+    if !has_required_sources {
+        return Err(HrDomainError::RulepackSourcesRequired);
+    }
+    Ok(())
 }
 
 fn build_obligation(
@@ -1507,6 +1799,7 @@ fn validate_official_source_url(value: &str) -> Result<(), HrDomainError> {
         "https://www.law.go.kr/",
         "https://www.dol.gov/",
         "https://www.eeoc.gov/",
+        "https://eur-lex.europa.eu/",
     ];
     if !allowed.iter().any(|prefix| value.starts_with(prefix)) {
         return Err(HrDomainError::InvalidRulepackSourceUrl);
@@ -1525,6 +1818,75 @@ fn validate_source_digest(value: &str) -> Result<(), HrDomainError> {
         return Err(HrDomainError::InvalidRulepackSourceDigest);
     }
     Ok(())
+}
+
+fn build_evidence_refs(values: &[String]) -> Result<Vec<AuditEvidenceRef>, HrDomainError> {
+    if values.is_empty() {
+        return Err(HrDomainError::FilingEvidenceRequired);
+    }
+    let mut refs = Vec::with_capacity(values.len());
+    for value in values {
+        validate_evidence_ref(value)?;
+        refs.push(AuditEvidenceRef {
+            value: value.to_owned(),
+        });
+    }
+    Ok(refs)
+}
+
+fn build_source_evidence_refs(values: &[String]) -> Result<Vec<AuditEvidenceRef>, HrDomainError> {
+    let refs = build_evidence_refs(values)?;
+    if !refs.iter().all(|evidence_ref| {
+        evidence_ref
+            .value
+            .starts_with(HR_RULEPACK_EVIDENCE_REF_PREFIX)
+    }) {
+        return Err(HrDomainError::FilingEvidenceRequired);
+    }
+    Ok(refs)
+}
+
+fn validate_filing_authority_kind(
+    filing_kind: HrStatutoryFilingKind,
+    filing_authority_ref: &str,
+) -> Result<(), HrDomainError> {
+    let required_suffix = match filing_kind {
+        HrStatutoryFilingKind::KoreaRulesOfEmploymentReport => "/rules-of-employment",
+        HrStatutoryFilingKind::KoreaLaborManagementCouncilMinutes => "/labor-management-council",
+    };
+    if !filing_authority_ref.ends_with(required_suffix) {
+        return Err(HrDomainError::InvalidFilingAuthorityRef);
+    }
+    Ok(())
+}
+
+fn validate_filing_jurisdiction_kind(
+    jurisdiction: Jurisdiction,
+    filing_kind: HrStatutoryFilingKind,
+) -> Result<(), HrDomainError> {
+    match (jurisdiction, filing_kind) {
+        (
+            Jurisdiction::Korea,
+            HrStatutoryFilingKind::KoreaRulesOfEmploymentReport
+            | HrStatutoryFilingKind::KoreaLaborManagementCouncilMinutes,
+        ) => Ok(()),
+        _ => Err(HrDomainError::InvalidFilingAuthorityRef),
+    }
+}
+
+fn validate_filing_window(start_date: &str, end_date: &str) -> Result<(), HrDomainError> {
+    if !is_valid_iso_date(start_date) || !is_valid_iso_date(end_date) || start_date > end_date {
+        return Err(HrDomainError::InvalidFilingWindow);
+    }
+    Ok(())
+}
+
+fn statutory_filing_audit_event_class_name(
+    event_class: HrStatutoryFilingAuditEventClass,
+) -> &'static str {
+    match event_class {
+        HrStatutoryFilingAuditEventClass::ManifestPrepared => "HrStatutoryFilingManifestPrepared",
+    }
 }
 
 fn validate_leave_dates(start_date: &str, end_date: &str) -> Result<(), HrDomainError> {

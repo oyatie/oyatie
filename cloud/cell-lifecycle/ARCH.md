@@ -643,10 +643,10 @@ ARCH detail 640: all adapters are outside the Cell aggregate; the aggregate acce
 
 This architecture artifact carries doctrine propagation for ADR-0346, ADR-0347, ADR-0348, and ADR-0349 only. It does not implement Wave 15-ZA, Wave 15-ZB, Wave 15-ZD, or Wave 15-ZE bodies.
 
-### ADR-0346 Local CI Mirror
-- `oya verify --ci-required` is the canonical local pre-push verifier for this microservice's future architecture changes.
-- The verifier MUST locally mirror the full CI matrix and MUST block on exit-0 of EACH mandatory mirror step before success: cargo fmt, cargo check, cargo clippy, cargo nextest, and `oya gate run-all --ci-required`.
-- Architecture changes that add generated docs, manifests, contracts, runbooks, or CI surfaces must assume the `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, and `oya-governance-oya-submit-calls-verify` lanes protect the local-to-CI contract.
+### ADR-0346 legacy local feedback (amended by ADR-0515)
+- Legacy `oya verify --ci-required` is optional local-feedback/provenance only; it is not the protected-branch merge authority for this microservice.
+- Live CI acceptance is GitHub Actions + branch protection producing `oya-ci-required` from cloud-ci Rust gate packets; do not extend `oya gate` / `oya verify` as canonical authority.
+- Architecture changes that add generated docs, manifests, contracts, runbooks, or CI surfaces must assume the `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, and `oya-governance-oya-submit-calls-verify` lane names are historical provenance unless reintroduced by current cloud-ci gates; `oya-ci-required` protects live acceptance.
 
 ### ADR-0347 Governance Lane Prefix
 - Governance-owned fitness lanes for this microservice use the `oya-governance-*` prefix. The canonical vocabulary is enforced by `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
@@ -660,8 +660,8 @@ This architecture artifact carries doctrine propagation for ADR-0346, ADR-0347, 
 - Relevant admission lanes are `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, and `oya-governance-audit-chain-emit-on-automation-events`.
 
 ### ADR-0349 Jenkins And ArgoCD CI/CD Context
-- Jenkins LTS and ArgoCD are the canonical self-hostable CI/CD substrates for this microservice across air-gap, on-prem, colo, and Oyatie-as-provider deployment contexts.
-- GitHub Actions remains the hosted PR CI surface; Jenkins augments it in self-hosted contexts with JCasC plus Jenkinsfile parity enforced by `oya-governance-jenkins-github-actions-parity`.
+- ADR-0349 Jenkins CI wording is historical/provenance after ADR-0515 for this microservice; GitHub Actions produces `oya-ci-required` until explicit owned-runner cutover, and ArgoCD remains separately authorized CD evidence where applicable.
+- GitHub Actions + branch protection remain the live CI authority; any owned-runner cutover must preserve the same `oya-ci-required` context and cite current cloud-ci gate evidence rather than Jenkins parity.
 - ArgoCD is the GitOps CD orchestrator. Application syncs verify cosign signatures per ADR-0181, emit audit-chain rows per ADR-0263, and preserve tenant namespace isolation through Cedar per ADR-0243.
 - CI/CD architecture references must preserve `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit` as acceptance context.
 

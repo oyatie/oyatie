@@ -2246,6 +2246,144 @@
       }
     },
     {
+      "artifact_id": "bespoke-scm-virtual-materialization-plan",
+      "artifact_path": "/specs/bespoke-scm-virtual-materialization-plan.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "platform-scm + platform-toolchain",
+      "purpose_short": "W4-003 metadata-only design spike/prototype for mapping content-addressed WorkAreaTree records to reversible materialized file views for ADR-0518 ISOLATE/AUTHOR.",
+      "artifact_profile": "schema",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "bespoke-scm-virtual-materialization-plan"
+        },
+        "verification": {
+          "checker_crate": "planned: platform bespoke SCM virtual materialization gate",
+          "command": "python3 -m json.tool specs/bespoke-scm-virtual-materialization-plan.json >/dev/null"
+        },
+        "validation": {
+          "validator": "JSON syntax plus structural fixture assertions until the Rust virtual materialization gate lands"
+        },
+        "autogen": {
+          "generator": "not-applicable; source-authored W4 design spike/prototype"
+        },
+        "selfheal": {
+          "healer": "manual-with-suggestion until virtual materialization remediation rules land"
+        },
+        "telemetry": {
+          "metrics": [
+            {
+              "id": "platform_bespoke_scm_virtual_materialization_roundtrip_total",
+              "kind": "counter",
+              "unit": "1",
+              "labels": [
+                "fixture",
+                "verdict"
+              ],
+              "cardinality_budget": 100
+            }
+          ]
+        },
+        "provenance": {
+          "current_author": "hermes-agent",
+          "current_reviewed_by": "Hermes review/fix t_7f8418f0 APPROVE after VMAT fixture required-field fix",
+          "last_modified_at": "2026-07-01T14:20:23Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "security-validation-pipeline-matrix",
+      "artifact_path": "/specs/security-validation-pipeline-matrix.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "platform-security + platform-toolchain + ops-sre-reliability",
+      "purpose_short": "Runner-neutral security validation matrix for SAST, DAST, IAST, SCA, secrets, IaC, container, fuzzing, API fuzzing, BAS, security-chaos, automated pen-test, and continuous-control evidence lanes.",
+      "artifact_profile": "schema",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "cloud-ci-security-validation-matrix-shape"
+        },
+        "verification": {
+          "checker_crate": "planned: cloud-ci security-validation matrix gate",
+          "command": "python3 -m json.tool specs/security-validation-pipeline-matrix.json >/dev/null"
+        },
+        "validation": {
+          "validator": "JSON syntax plus planned Rust matrix-shape gate"
+        },
+        "autogen": {
+          "generator": "not-applicable; source-authored security validation contract"
+        },
+        "selfheal": {
+          "healer": "manual-with-suggestion until security-validation matrix gate lands"
+        },
+        "telemetry": {
+          "metrics": [
+            {
+              "id": "oya_security_validation_lane_coverage_total",
+              "kind": "gauge",
+              "unit": "1",
+              "labels": [
+                "lane_id",
+                "result"
+              ],
+              "cardinality_budget": 100
+            }
+          ]
+        },
+        "provenance": {
+          "current_author": "hermes-agent",
+          "current_reviewed_by": "pending code-review",
+          "last_modified_at": "2026-06-30T00:00:00Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "vulnerability-intelligence-sbom-vex-pipeline",
+      "artifact_path": "/specs/vulnerability-intelligence-sbom-vex-pipeline.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "council-security + ops-supply-chain + platform-toolchain + platform-cd",
+      "purpose_short": "Planning-only vulnerability intelligence, SBOM, VEX, advisory normalization, prioritization, exception, evidence, and admission decision contract; JSON is canonical product/control-plane contract, scanner CLI authority is forbidden, and Rust supply-chain kernel is validator/bridge input only.",
+      "artifact_profile": "schema",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "regvuln-002-vulnerability-contract-integration-decision"
+        },
+        "verification": {
+          "checker_crate": "libs/oya-check-supply-chain",
+          "command": "python3 -m json.tool specs/vulnerability-intelligence-sbom-vex-pipeline.json >/dev/null && cargo test -p oya-check-supply-chain --lib vulnerability_intelligence"
+        },
+        "validation": {
+          "validator": "JSON syntax plus Rust vulnerability-intelligence contract fixture until a dedicated cloud-ci gate lands"
+        },
+        "autogen": {
+          "generator": "not-applicable; source-authored planning/spec contract"
+        },
+        "selfheal": {
+          "healer": "manual-with-suggestion until vulnerability-intelligence spec/validator drift gate lands"
+        },
+        "telemetry": {
+          "metrics": [
+            {
+              "id": "oya_vulnerability_decision_contract_coverage_total",
+              "kind": "gauge",
+              "unit": "1",
+              "labels": [
+                "contract_section",
+                "validation_state"
+              ],
+              "cardinality_budget": 100
+            }
+          ]
+        },
+        "provenance": {
+          "current_author": "hermes-agent",
+          "current_reviewed_by": "pending security/architecture review",
+          "last_modified_at": "2026-07-01T13:28:43Z"
+        }
+      }
+    },
+    {
       "artifact_id": "generated-artifact-control-plane-schema",
       "artifact_path": "/specs/generated-artifact-control-plane.schema.json",
       "artifact_format": "json",
@@ -2317,6 +2455,514 @@
           "current_author": "codex",
           "current_reviewed_by": "pending code-review",
           "last_modified_at": "2026-06-09T00:00:00Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "pci-dss-level-1-readiness-plan",
+      "artifact_path": "/specs/pci-dss-level-1-readiness-plan.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "ops-compliance + council-security + axis-identity + axis-policy-engine + axis-audit-chain + axis-cloud-kms",
+      "purpose_short": "Planning-only PCI DSS Level 1 readiness and regulated-data control-pack contract for CDE scope, tokenization, card-data prohibitions, QSA/ROC/AOC evidence, ASV scans, segmentation, KMS/PDP/audit bindings, retention, incident response, and tenant activation gates.",
+      "artifact_profile": "schema",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "regid-003-pci-dss-l1-readiness"
+        },
+        "verification": {
+          "checker_crate": "planned: cloud-ci PCI DSS Level 1 readiness gate",
+          "command": "python3 -m json.tool specs/pci-dss-level-1-readiness-plan.json >/dev/null"
+        },
+        "validation": {
+          "validator": "JSON syntax validation until PCI readiness schema/gate lands"
+        },
+        "autogen": {
+          "generator": "not-applicable; source-authored planning/spec control pack"
+        },
+        "selfheal": {
+          "healer": "manual-with-suggestion until PCI readiness validator lands"
+        },
+        "telemetry": {
+          "metrics": [
+            {
+              "id": "oya_pci_readiness_control_coverage_total",
+              "kind": "gauge",
+              "unit": "1",
+              "labels": [
+                "control_id",
+                "evidence_state"
+              ],
+              "cardinality_budget": 200
+            }
+          ]
+        },
+        "provenance": {
+          "current_author": "hermes-agent",
+          "current_reviewed_by": "pending code-review",
+          "last_modified_at": "2026-07-01T00:03:40Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "regulatory-identity-kyc-policy-evidence-architecture",
+      "artifact_path": "/specs/regulatory-identity-kyc-policy-evidence-architecture.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "axis-identity + ops-compliance + axis-policy-engine + axis-audit-chain + axis-tenancy",
+      "purpose_short": "REGID-002 design-only contract map for passkey-first KYC/CDD/EDD policy decisions, evidence packets, tenant state, compliance packs, retention, consent, and residency.",
+      "artifact_profile": "schema",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "regulatory-identity-architecture"
+        },
+        "verification": {
+          "checker_crate": "not-applicable-design-plan",
+          "command": "python3 -m json.tool specs/regulatory-identity-kyc-policy-evidence-architecture.json >/dev/null"
+        },
+        "validation": {
+          "validator": "JSON parse plus independent architecture/compliance review before implementation slices"
+        },
+        "autogen": {
+          "generator": "not-applicable; source-authored design plan"
+        },
+        "selfheal": {
+          "healer": "manual review; REGID-001 source row extraction must drive future row-level self-healing"
+        },
+        "telemetry": {
+          "metrics": [
+            {
+              "id": "oya_regulatory_identity_architecture_open_gaps_total",
+              "kind": "gauge",
+              "unit": "1",
+              "labels": [
+                "gap_id",
+                "blocked_slice"
+              ],
+              "cardinality_budget": 100
+            }
+          ]
+        },
+        "provenance": {
+          "current_author": "hermes-agent",
+          "current_reviewed_by": "pending architecture/compliance review",
+          "last_modified_at": "2026-07-01T00:04:19Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "passkey-kyc-policy-context-contract",
+      "artifact_path": "/specs/passkey-kyc-policy-context-contract.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "axis-identity + axis-policy-engine + ops-compliance + council-privacy + axis-audit-chain",
+      "purpose_short": "REGID-004 planning-only policy-context contract for passkey auth state, authenticator assurance, syncable-passkey AAL ceiling, proofing/CDD/EDD, screening freshness, consent, residency, retention, purpose, risk, and PDP/audit obligations without claiming WebAuthn itself satisfies KYC.",
+      "artifact_profile": "schema",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "regulatory-identity-policy-context"
+        },
+        "verification": {
+          "checker_crate": "planned: oya-check-passkey-kyc-policy-context-contract",
+          "command": "python3 - <<'PY'\nimport json, pathlib\nroot=pathlib.Path('specs')\ncontract=json.load(open(root/'passkey-kyc-policy-context-contract.json'))\nassert contract['_meta']['kanban_task']=='t_0d6973c9'\nrequired=set(contract['context_schema']['required'])\nnested_required={k:set(v.get('required', [])) for k,v in contract['context_schema']['properties'].items()}\nfor rel in contract['representative_fixtures']:\n    fx=json.load(open(rel))\n    ctx=fx['context']\n    assert required <= set(ctx), (rel, sorted(required-set(ctx)))\n    for key, req in nested_required.items():\n        if req:\n            assert req <= set(ctx[key]), (rel, key, sorted(req-set(ctx[key])))\n    assert set(fx['expected_obligations']) == set(ctx['pdp_audit_state']['obligations_required']), rel\n    auth=ctx['auth_state']\n    assert auth['webauthn_level_floor']=='WebAuthn-Level-3'\n    assert not (auth['credential_type']=='syncable_passkey' and auth['syncable_passkey_aal_ceiling']!='AAL2')\n    approval=auth['critical_operation_approval']\n    if auth['acr']=='critical' or ctx['action_slug']=='compliance.accreditation-packet.publish':\n        assert auth['authenticator_assurance']['device_binding']=='hardware_bound', rel\n        assert auth['authenticator_assurance']['fido_mds_level'] in {'L2','L3'}, rel\n        assert approval['required'] and approval['approval_ref'] and approval['approval_window_state']=='approved_in_window', rel\n    else:\n        assert approval['approval_window_state'] in {'not_required','missing','expired','denied','approved_in_window'}, rel\n    assert not (fx['expected_decision']=='allow' and ctx['screening_state']['freshness_state']!='fresh')\nPY"
+        },
+        "validation": {
+          "validator": "JSON syntax plus representative fixture required-field, expected-obligation, syncable-AAL, and critical-approval invariant checks until a dedicated policy-context schema gate lands"
+        },
+        "autogen": {
+          "generator": "not-applicable; source-authored planning/policy-context contract"
+        },
+        "selfheal": {
+          "healer": "manual-with-suggestion; source-row extraction and independent policy/compliance review must drive future revisions"
+        },
+        "telemetry": {
+          "metrics": [
+            {
+              "id": "oya_regulatory_identity_policy_context_fixture_total",
+              "kind": "gauge",
+              "unit": "1",
+              "labels": [
+                "fixture_id",
+                "expected_decision"
+              ],
+              "cardinality_budget": 50
+            }
+          ]
+        },
+        "provenance": {
+          "current_author": "hermes-agent",
+          "current_reviewed_by": "default review/fix t_49ada1de APPROVE after focused fixes",
+          "last_modified_at": "2026-07-01T13:42:08Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "regulatory-identity-source-of-truth",
+      "artifact_path": "/specs/regulatory-identity-source-of-truth.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "ops-compliance + axis-identity + council-security + council-privacy + legal-review",
+      "purpose_short": "REGID-001 official source-index and control backlog for KR/global identity, KYC, passkey, PCI, NIST, EU, US and PQC floors.",
+      "artifact_profile": "registry",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "regulatory-identity-source-of-truth"
+        },
+        "verification": {
+          "checker_crate": "planned: oya-check-regulatory-identity-source-of-truth",
+          "command": "python3 - <<'PY'\nimport json\nd=json.load(open('specs/regulatory-identity-source-of-truth.json'))\nassert d['source_index'] and d['control_backlog']\nfor row in d['source_index'] + d['control_backlog']:\n    assert isinstance(row.get('unknowns'), list)\nPY"
+        },
+        "validation": {
+          "validator": "JSON syntax plus REGID-001 required-field invariant check"
+        },
+        "autogen": {
+          "generator": "not-applicable; official-source index is curated and child OCR extracts are separate artifacts"
+        },
+        "selfheal": {
+          "healer": "manual-with-suggestion until regulatory source refresh automation exists"
+        },
+        "telemetry": {
+          "metrics": [
+            {
+              "id": "oya_regulatory_identity_source_rows_total",
+              "kind": "gauge",
+              "unit": "1",
+              "labels": [
+                "section",
+                "retrieval_status"
+              ],
+              "cardinality_budget": 100
+            }
+          ]
+        },
+        "provenance": {
+          "current_author": "hermes-agent",
+          "current_reviewed_by": "pending legal/architect review",
+          "last_modified_at": "2026-07-01T00:05:43Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "regulatory-legacy-gate-scanner-normalization-table",
+      "artifact_path": "/specs/regulatory-legacy-gate-scanner-normalization-table.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "platform-toolchain + council-security + developer-experience + platform-governance",
+      "purpose_short": "REGNORM-001 planning-only table mapping legacy oya gate/verify commands, scanner outputs, hosted dashboards, CI runner bridges, advisory feeds, SBOM/signing attestations, and admission examples to product adapters, typed evidence, cloud-ci Rust gate packets, and dashboard/trust-portal query surfaces.",
+      "artifact_profile": "registry",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "regulatory-legacy-gate-scanner-normalization"
+        },
+        "verification": {
+          "checker_crate": "planned: oya-check-regulatory-legacy-gate-scanner-normalization",
+          "command": "python3 - <<'PY'\nimport json\nd=json.load(open('specs/regulatory-legacy-gate-scanner-normalization-table.json'))\nrequired=set(d['contract']['required_row_fields'])\nfor row in d['normalization_rows']:\n    missing=required-set(row)\n    assert not missing, (row.get('row_id'), sorted(missing))\nPY"
+        },
+        "validation": {
+          "validator": "JSON syntax plus REGNORM-001 required-row-field completeness and no-CLI-authority text inspection"
+        },
+        "autogen": {
+          "generator": "not-applicable; planning/spec normalization table is curated until a scanner/gate-reference inventory generator exists"
+        },
+        "selfheal": {
+          "healer": "manual-with-suggestion; unmapped legacy references become blocker rows or follow-up cards"
+        },
+        "telemetry": {
+          "metrics": [
+            {
+              "id": "oya_regulatory_legacy_gate_scanner_normalization_rows_total",
+              "kind": "gauge",
+              "unit": "1",
+              "labels": [
+                "current_role"
+              ],
+              "cardinality_budget": 50
+            }
+          ]
+        },
+        "provenance": {
+          "current_author": "hermes-agent",
+          "current_reviewed_by": "pending architecture/security review",
+          "last_modified_at": "2026-07-01T09:34:00Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "portfolio-ownership-ratchet",
+      "artifact_path": "/specs/portfolio-ownership-ratchet.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "council-architecture + platform-governance + founder",
+      "purpose_short": "Portfolio own-when-proven/day-0 ownership budget contract with disposition map and cloud-ci gate proposal for unsupported OWN_DAY0 claims.",
+      "artifact_profile": "schema",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "portfolio-ownership-ratchet"
+        },
+        "verification": {
+          "checker_crate": "planned: oya-check-portfolio-ownership-ratchet cloud-ci gate",
+          "command": "python3 -m json.tool specs/portfolio-ownership-ratchet.json >/dev/null"
+        },
+        "validation": {
+          "validator": "JSON syntax plus planned ownership-ratchet required-field and fixture gate"
+        },
+        "autogen": {
+          "generator": "not-applicable; source-authored architecture-governance contract"
+        },
+        "selfheal": {
+          "healer": "manual-with-suggestion until the portfolio ownership ratchet gate lands"
+        },
+        "telemetry": {
+          "metrics": [
+            {
+              "id": "oya_portfolio_ownership_claims_total",
+              "kind": "gauge",
+              "unit": "1",
+              "labels": [
+                "bucket",
+                "disposition",
+                "founder_call_required"
+              ],
+              "cardinality_budget": 100
+            }
+          ]
+        },
+        "provenance": {
+          "current_author": "hermes-agent",
+          "current_reviewed_by": "pending architecture-governance review",
+          "last_modified_at": "2026-07-01T00:00:00Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "compliance-security-radar-cadence-contract",
+      "artifact_path": "/specs/compliance-security-radar-cadence-contract.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "ops-compliance + council-security + platform-governance",
+      "purpose_short": "Compliance/security radar cadence contract mapping source classes to owners, freshness cadences, claim ceilings, dedupe cards, and Kanban output rules.",
+      "artifact_profile": "registry",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "sec-reg-radar-cadence"
+        },
+        "verification": {
+          "checker_crate": "not-applicable-planning-procedure-contract",
+          "command": "python3 -m json.tool specs/compliance-security-radar-cadence-contract.json >/dev/null"
+        },
+        "validation": {
+          "validator": "JSON syntax plus required source_class/dedupe target/card mapping invariant"
+        },
+        "autogen": {
+          "generator": "not-applicable; source-authored radar cadence contract"
+        },
+        "selfheal": {
+          "healer": "manual-with-suggestion until compliance/security radar automation exists"
+        },
+        "telemetry": {
+          "metrics": [
+            {
+              "id": "oya_compliance_security_radar_source_classes_total",
+              "kind": "gauge",
+              "unit": "1",
+              "labels": [
+                "source_class",
+                "dedupe_target"
+              ],
+              "cardinality_budget": 100
+            }
+          ]
+        },
+        "provenance": {
+          "current_author": "hermes-agent",
+          "current_reviewed_by": "pending independent review",
+          "last_modified_at": "2026-07-01T06:15:57Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "sre-operations-center-contract",
+      "artifact_path": "/specs/sre-operations-center-contract.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "platform-sre + council-architecture + platform-security + support-ops",
+      "purpose_short": "Target/spec SRE Operations Center contract for service health, on-call, incident command, status communication, error-budget decisions, and postmortem evidence.",
+      "artifact_profile": "schema",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "sreops-001-operations-center-contract"
+        },
+        "verification": {
+          "checker_crate": "planned: oya-check-sre-operations-center-contract",
+          "command": "python3 -m json.tool specs/sre-operations-center-contract.json >/dev/null"
+        },
+        "validation": {
+          "validator": "JSON syntax plus planned SRE operations record/state-machine invariant gate"
+        },
+        "autogen": {
+          "generator": "not-applicable; source-authored product/control-plane contract"
+        },
+        "selfheal": {
+          "healer": "manual-with-suggestion until SRE operations-center validator lands"
+        },
+        "telemetry": {
+          "metrics": [
+            {
+              "id": "oya_sreops_contract_required_records_total",
+              "kind": "gauge",
+              "unit": "1",
+              "labels": [
+                "record",
+                "claim_state"
+              ],
+              "cardinality_budget": 100
+            }
+          ]
+        },
+        "provenance": {
+          "current_author": "hermes-agent",
+          "current_reviewed_by": "pending architecture/sre/security review",
+          "last_modified_at": "2026-07-01T06:15:50Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "trust-center-compliance-evidence-portal",
+      "artifact_path": "/specs/trust-center-compliance-evidence-portal.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "product-architecture + ops-compliance + platform-security + ops-sre-reliability + platform-toolchain + council-privacy",
+      "purpose_short": "Tenant-scoped Trust Center contract for evidence index, SBOM/VEX, control freshness, compliance packs, status/SLO/DR, exports, and access audit.",
+      "artifact_profile": "schema",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "trust-center-compliance-evidence-portal"
+        },
+        "verification": {
+          "checker_crate": "planned: trust-center compliance evidence portal contract gate",
+          "command": "python3 -m json.tool specs/trust-center-compliance-evidence-portal.json >/dev/null"
+        },
+        "validation": {
+          "validator": "JSON syntax plus planned Trust Center required-field and tenant-scope invariant gate"
+        },
+        "autogen": {
+          "generator": "not-applicable; source-authored product-surface contract"
+        },
+        "selfheal": {
+          "healer": "manual-with-suggestion until Trust Center contract validator lands"
+        },
+        "telemetry": {
+          "metrics": [
+            {
+              "id": "oya_trust_center_evidence_items_total",
+              "kind": "gauge",
+              "unit": "1",
+              "labels": [
+                "evidence_class",
+                "freshness_state",
+                "publishability_state",
+                "claim_tier"
+              ],
+              "cardinality_budget": 500
+            }
+          ]
+        },
+        "provenance": {
+          "current_author": "hermes-agent",
+          "current_reviewed_by": "pending product/security/privacy review",
+          "last_modified_at": "2026-07-01T06:16:11Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "cloud-production-quality-kit-evidence-backlog",
+      "artifact_path": "/specs/cloud-production-quality-kit-evidence-backlog.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "council-architecture + platform-sre + ops-quality + platform-toolchain",
+      "purpose_short": "Machine-checkable cloud production-quality kit backlog and evidence-record schema with strict nonclaim boundaries; does not assert dogfood execution, green runtime evidence, production readiness, tenant workload readiness, public SLA/SLO, or hyperscaler maturity.",
+      "artifact_profile": "schema",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "cloud-production-quality-kit-evidence-backlog"
+        },
+        "verification": {
+          "checker_crate": "scripts/tests/cloud_production_quality_kit_evidence_backlog_check.py",
+          "command": "python3 scripts/tests/cloud_production_quality_kit_evidence_backlog_check.py"
+        },
+        "validation": {
+          "validator": "JSON syntax plus cloud production-quality kit evidence backlog invariant gate"
+        },
+        "autogen": {
+          "generator": "not-applicable; source-authored evidence backlog and schema contract"
+        },
+        "selfheal": {
+          "healer": "manual-with-suggestion until cloud production-quality evidence automation exists"
+        },
+        "telemetry": {
+          "metrics": [
+            {
+              "id": "oya_cloud_quality_kit_evidence_backlog_rows_total",
+              "kind": "gauge",
+              "unit": "1",
+              "labels": [
+                "kit_id",
+                "evidence_status"
+              ],
+              "cardinality_budget": 50
+            }
+          ]
+        },
+        "provenance": {
+          "current_author": "hermes-agent",
+          "current_reviewed_by": "pending independent review",
+          "last_modified_at": "2026-07-01T09:11:46Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "cloud-observability-slo-evidence-contract",
+      "artifact_path": "/specs/cloud-observability-slo-evidence-contract.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "council-architecture + platform-sre + axis-observability + platform-toolchain",
+      "purpose_short": "Machine-checkable cloud observability and SLO evidence contract for resource parity gates with strict nonclaim boundaries; does not assert measured SLOs, a runtime observability engine, production readiness, tenant workload readiness, public SLA/SLO, or hyperscaler maturity.",
+      "artifact_profile": "schema",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "cloud-observability-slo-evidence-contract"
+        },
+        "verification": {
+          "checker_crate": "scripts/tests/cloud_observability_slo_evidence_check.py",
+          "command": "python3 scripts/tests/cloud_observability_slo_evidence_check.py"
+        },
+        "validation": {
+          "validator": "JSON syntax plus cloud observability SLO evidence invariant gate"
+        },
+        "autogen": {
+          "generator": "not-applicable; source-authored observability and SLO evidence contract"
+        },
+        "selfheal": {
+          "healer": "manual-with-suggestion until cloud observability/SLO evidence automation exists"
+        },
+        "telemetry": {
+          "metrics": [
+            {
+              "id": "oya_cloud_observability_slo_evidence_rows_total",
+              "kind": "gauge",
+              "unit": "1",
+              "labels": [
+                "resource_category",
+                "evidence_status"
+              ],
+              "cardinality_budget": 100
+            }
+          ]
+        },
+        "provenance": {
+          "current_author": "hermes-agent",
+          "current_reviewed_by": "pending independent review",
+          "last_modified_at": "2026-07-01T09:11:46Z"
         }
       }
     }

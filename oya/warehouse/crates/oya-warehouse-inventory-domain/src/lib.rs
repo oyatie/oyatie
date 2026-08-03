@@ -635,6 +635,8 @@ pub fn perform_cycle_count(
     validate_warehouse_id(&input.warehouse_id)?;
     validate_bin_id(&input.bin_id)?;
     validate_item_id(&input.item_id)?;
+    validate_positive_quantity(input.book_quantity)?;
+    validate_positive_quantity(input.counted_quantity)?;
     validate_evidence_ref(&input.count_evidence_ref)?;
     let variance_quantity = input.book_quantity.abs_diff(input.counted_quantity);
     if variance_quantity > input.tolerance_quantity {

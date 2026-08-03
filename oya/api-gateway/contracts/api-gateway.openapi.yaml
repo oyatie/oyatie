@@ -7,6 +7,491 @@ paths:
     post:
       operationId: admitEdgeRequest
       summary: Validate north-south request admission before workload routing.
+      description: >-
+        NETWORK-001 boundary slice for the public api-gateway admission route.
+        This route terminates at the north-south API gateway, then hands admitted
+        traffic to the internal east-west mesh through mTLS/SPIFFE and Cedar
+        authorization boundaries; it is not a workload-local public ingress.
+      x-oyatie-gateway-mesh-boundary:
+        source_task: t_9e4e1495
+        route_id: edge.admission.v1
+        claim_ceiling: >-
+          Contract/spec encoding only; no runtime gateway, mesh, collector,
+          LoadBalancer migration, live trace/audit emission, SLO, or
+          production-readiness claim.
+        authority:
+          accepted:
+            - docs/decisions/ADR-0145-inter-microservice-communication-reform.md
+            - docs/decisions/ADR-0148-service-mesh-cilium-ambient-layered.md
+            - docs/decisions/ADR-0157-api-gateway-tier.md
+            - docs/decisions/ADR-0182-api-gateway-north-south-vs-service-mesh-east-west-separation.md
+          contextual_not_binding:
+            - docs/decisions/ADR-0044-service-mesh-istio-ambient-and-envoy-gateway.md
+        classification:
+          ingress_direction: north_south_public
+          public_gateway_owner: api-gateway
+          internal_handoff_direction: east_west_mesh
+          public_gateway_class: envoy-gateway
+          workload_upstream_exposure: cluster_internal_only
+          domain_logic_allowed_in_gateway: false
+        load_balancer_boundary:
+          tenant_facing_load_balancer_must_be_gateway_only: true
+          inventory_taxonomy:
+            api_gateway_http_grpc_load_balancer:
+              owner: api-gateway
+              authority:
+                - docs/decisions/ADR-0157-api-gateway-tier.md
+                - docs/decisions/ADR-0182-api-gateway-north-south-vs-service-mesh-east-west-separation.md
+            authorized_non_http_protocol_edge:
+              owner: api-gateway/edge-platform
+              authority:
+                - docs/decisions/ADR-0182-api-gateway-north-south-vs-service-mesh-east-west-separation.md#non-http-protocol-edge-extension
+              allowed_mail_surfaces:
+                inbound_smtp_mx: [25, 465]
+                smtp_submission: [587]
+                imap_imaps: [143, 993]
+                managesieve: [4190]
+              required_workload_service_type: ClusterIP
+              direct_mail_workload_load_balancer_allowed: false
+            unclassified_tenant_facing_load_balancer:
+              gate_disposition: fail_closed
+          public_gateway_load_balancer_allowlist:
+            - oya/api-gateway/iac/k8s-deployment.yaml#Service/api-gateway-envoy
+            - cloud/cloud-k8s/iac/helm/envoy-gateway/values.yaml#gateway.service
+          forbidden_for_workload_upstreams:
+            - Service.type=LoadBalancer
+            - Service.type=NodePort
+            - direct public ingress that bypasses api-gateway
+          required_workload_service_type: ClusterIP
+        mesh_boundary:
+          cilium_l4_identity_required: true
+          istio_ambient_ztunnel_required: true
+          mtls_required: true
+          gateway_spiffe_id_template: spiffe://oyatie.cell-${CELL_ID}/api-gateway/envoy
+          upstream_spiffe_id_required: true
+          cedar_ext_authz_required_before_workload_handoff: true
+          ext_authz_failure_mode_allow: false
+        route_schema:
+          request_schema_ref: '#/components/schemas/EdgeAdmissionRequest'
+          header_contract_refs:
+            - '#/components/parameters/TraceparentHeader'
+            - '#/components/parameters/TracestateHeader'
+            - '#/components/parameters/OyaTenantIdHeader'
+            - '#/components/parameters/OyaCellIdHeader'
+            - '#/components/parameters/OyaRequestIdHeader'
+            - '#/components/parameters/OyaAuditCorrelationIdHeader'
+          schema_validation_position: gateway_edge_before_workload_routing
+          reject_on_schema_mismatch: true
+        trace_audit_requirements:
+          traceparent: required
+          tracestate: preserve_when_present
+          otel_semconv_fields:
+            - http.method
+            - http.route
+            - http.status_code
+            - http.client_ip
+            - service.name
+            - oyatie.tenant.id
+            - oyatie.cell.id
+          audit_event_class: api_gateway.edge_admission.decision
+          audit_correlation_fields:
+            - request_id
+            - traceparent
+            - tenant_id
+            - cell_id
+            - route_id
+            - gateway_spiffe_id
+            - upstream_spiffe_id
+            - cedar_decision_id
+            - policy_fragment_ref
+      x-oyatie-transport-security-posture:
+        source_task: t_994be41f
+        route_id: edge.admission.v1
+        claim_ceiling: >-
+          Contract/spec encoding only; no runtime Cloudflare, Envoy, rustls,
+          cert-manager, DNS, ECH key rotation, PQC certificate issuance,
+          aws-lc-rs provider installation, live handshake, rollout, or
+          production-readiness claim.
+        authority:
+          accepted:
+            - docs/decisions/ADR-0506-aws-lc-rs-canonical-crypto-provider.md
+          contextual_not_binding:
+            - docs/decisions/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md
+          proposed_adr_guardrail: >-
+            ADR-0354 is Proposed and is used here only to encode a bounded
+            transport-posture target for this route. Runtime/product/cloud
+            mutation or enforcement promotion requires accepted ADR/root-pointer
+            authority or an explicit follow-up Kanban elevation.
+        endpoint_coverage:
+          endpoint_class: api-gateway-external-tenant-api-surface
+          route_external_reachability: north_south_public
+          hostnames:
+            public: api.oyatie.com
+            ech_outer_sni_target: api.oyatie.com
+          ech_required: true
+          pqc_hybrid_required: true
+          legacy_tls12_grace_eligible: false
+        http3_fallback:
+          preferred_protocol: h3
+          fallback_chain: [h3, h2, http/1.1]
+          quic_handshake_budget_ms: 2000
+          alt_svc_discovery_budget_ms: 500
+          http2_connection_budget_ms: 5000
+          http11_connection_budget_ms: 5000
+          total_fallback_budget_ms_max: 12500
+          alt_svc_header: 'h3=":443"; ma=86400, h3-29=":443"; ma=86400'
+          downgrade_log_event: protocol_fallback
+        strict_tls13:
+          tls_min_version: TLSv1_3
+          tls_max_version: TLSv1_3
+          permitted_cipher_suites:
+            - TLS_AES_256_GCM_SHA384
+            - TLS_CHACHA20_POLY1305_SHA256
+            - TLS_AES_128_GCM_SHA256
+          forbidden_protocols:
+            - TLSv1_2
+            - TLSv1_1
+            - TLSv1_0
+          zero_rtt_early_data_allowed: false
+          renegotiation_allowed: false
+        ech:
+          enabled: true
+          key_rotation_hours_max: 24
+          overlap_window_hours: 48
+          hpke_kem: X25519
+          hpke_kdf: HKDF-SHA256
+          hpke_aead: AES-128-GCM
+          config_distribution: DNS HTTPS/SVCB record
+          dns_ttl_seconds_max: 3600
+          grease_retry_configs_required: true
+          plaintext_sni_fallback_log_event: ech_plaintext_sni_fallback
+        pqc_hybrid:
+          supported_groups_order:
+            - x25519mlkem768
+            - x25519
+            - secp256r1
+            - secp384r1
+          hybrid_kem: x25519mlkem768
+          classical_fallback_kem: x25519
+          certificate_verify_signature: ed25519+ml_dsa_65
+          hybrid_kem_negotiated_metric: pqc_hybrid_kem_negotiated_total
+          classical_fallback_metric: pqc_classical_fallback_total
+        crypto_provider_alignment:
+          rust_crypto_provider: aws-lc-rs
+          provider_authority: ADR-0506
+          ring_allowed_in_prod_code: false
+          future_destination: oya-crypto Tier-4, after ADR-0506 cutover gates
+        current_state_inventory_read_only:
+          - path: oya/api-gateway/iac/envoy-config.yaml
+            observed: TLSv1_3 min/max, TLS_AES_* and CHACHA20 suites, X25519MLKEM768 preference, HTTP/3 listener stub
+          - path: oya/api-gateway/iac/ech-config.yaml
+            observed: ECH DNS HTTPS/SVCB inventory exists; runtime rotation currently documents 90 days and must be reconciled before live ECH compliance is claimed
+          - path: oya/api-gateway/iac/pqc-cert.yaml
+            observed: ed25519+ml_dsa_65 certificate/signature inventory exists for api.oyatie.com
+          - path: Cargo.toml
+            observed: workspace aws-lc-rs dependency and hyper-rustls aws-lc-rs feature are present
+        runtime_reconciliation_guard:
+          status: runtime_design_only_until_accepted_authority_elevates_ech_rotation
+          mismatch_class: target_stricter_than_runtime_inventory
+          runtime_inventory_path: oya/api-gateway/iac/ech-config.yaml
+          runtime_inventory_rotation_days: 90
+          target_rotation_hours_max: 24
+          accepted_runtime_authority_present: false
+          runtime_promotion_blocked: true
+          no_live_ech_compliance_claim: true
+          accepted_authority:
+            - docs/decisions/ADR-0506-aws-lc-rs-canonical-crypto-provider.md
+          contextual_authority:
+            - docs/decisions/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md
+          required_before_runtime_promotion:
+            - accepted ADR or root-pointer authority elevates or replaces the ECH rotation cadence
+            - runtime ConfigMap/IaC rotation inventory is changed under that authority
+            - rollout plan records propagation window, DNS HTTPS/SVCB publication, and client compatibility expectations
+            - rollback note documents restoring the previous ECHConfigList and disabling the new rotation job safely
+            - observability check covers key-rotation job success, DNS propagation, retry_configs rate, and plaintext-SNI fallback events
+      x-oyatie-edge-policy-envelope:
+        source_task: t_751d2107
+        route_id: edge.admission.v1
+        claim_ceiling: >-
+          Contract/spec encoding only; no runtime Cloudflare, Envoy, Coraza,
+          rate-limit, Cedar, emergency-services, disaster-mode, live audit,
+          rollout, or production-readiness claim.
+        authority:
+          accepted:
+            - docs/decisions/ADR-0177-internal-external-api-surface-separation.md
+            - docs/decisions/ADR-0178-layered-throttling-tiers.md
+            - docs/decisions/ADR-0182-api-gateway-north-south-vs-service-mesh-east-west-separation.md
+            - docs/decisions/ADR-0191-edge-authz-tier-vs-origin-cedar-pdp.md
+          contextual_not_binding:
+            - docs/decisions/ADR-0253-network-topology-edge-service-mesh.md
+            - docs/decisions/ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape.md
+            - docs/decisions/ADR-0298-emergency-services-bypass-life-safety.md
+            - docs/decisions/ADR-0306-disaster-mode-cell-resilience.md
+          proposed_adr_guardrail: >-
+            Proposed ADR fields are an audit-envelope and future-runtime context
+            only until a root pointer, accepted ADR, or follow-up Kanban card
+            explicitly elevates them.
+        public_internal_classification:
+          api_surface: public
+          public_hostname: api.oyatie.com
+          public_stability_tier: Public-Preview
+          sdk_generation_scope: public_sdk
+          customer_visible: true
+          internal_route_misroute_response: 404
+          workload_upstream_exposure: cluster_internal_only
+          mesh_handoff_required: true
+        layered_throttling:
+          evaluation_order:
+            - per_ip
+            - per_api_key
+            - per_user
+            - per_tenant
+          deny_short_circuits_subsequent_layers: true
+          retry_after_required_on_429: true
+          throttle_class_header: oya-throttle-class
+          headroom_headers:
+            - oya-throttle-ip-headroom
+            - oya-throttle-key-headroom
+            - oya-throttle-user-headroom
+            - oya-throttle-tenant-headroom
+          per_layer_defaults:
+            per_ip:
+              counter_store: mesh-edge-cache
+              window: rolling_1_minute
+              budget_public: 100_req_per_minute
+              burst_capacity: 20_tokens
+              denial_class: ip-abuse
+            per_api_key:
+              counter_store: envoy-ratelimit-service
+              windows:
+                - rolling_1_minute
+                - rolling_1_hour
+              budgets:
+                per_minute: 1000_req_per_minute
+                per_hour: 50000_req_per_hour
+              burst_capacity: 200_tokens
+              denial_class: api-key
+            per_user:
+              counter_store: tenant-scope-cache-per-cell
+              window: rolling_1_minute
+              budget: 600_req_per_minute
+              burst_capacity: 60_tokens
+              denial_class: user
+            per_tenant:
+              counter_store: cell-level-postgres-plus-redis-lookaside
+              windows:
+                - rolling_1_minute
+                - rolling_1_day
+              budget_source: tenant_tier
+              burst_capacity_ratio: 0.2
+              denial_class: tenant
+          internal_surface_exception: not_applicable_public_route
+          observability:
+            metrics:
+              - per_layer_denial_rate
+              - per_layer_headroom_p50_p95_p99
+            page_when_sustained_denial_rate_gt_percent: 1
+        edge_vs_origin_authz:
+          duplicate_concern_enforcement_forbidden: true
+          edge_tier:
+            owner: api-gateway-envoy-gateway
+            allowed_concerns:
+              - ip_geo_deny
+              - ip_asn_deny
+              - per_ip_rate_limit
+              - pre_auth_tenant_rate_limit
+              - endpoint_rate_limit
+              - bot_detection
+              - waf_owasp_crs
+              - ddos_shape
+              - tls_termination
+            audit_event_class: EdgeDeny
+            audit_reason_enum:
+              - geo
+              - asn
+              - rate
+              - waf
+              - bot
+              - ddos
+            pii_minimization: truncated_user_agent_and_ip_prefix_only
+          origin_tier:
+            owner: istio-ambient-waypoint-cedar-pdp
+            allowed_concerns:
+              - oidc_bearer_verification
+              - principal_action_resource
+              - tenant_scope
+              - residency
+              - business_hours
+              - acr_step_up
+              - data_class
+              - purpose_binding
+              - idempotency_replay
+            audit_event_class: OriginDeny
+            ext_authz_failure_mode_allow: false
+        abuse_defence_controls:
+          authority_status: proposed_context_plus_accepted_edge_controls
+          no_single_signal_default_block: true
+          default_path_captcha: false
+          control_families:
+            anti_bot:
+              edge_signals:
+                - ja4_fingerprint
+                - waf_bot_rules
+                - bot_score
+                - adaptive_challenge_when_suspicious
+              per_service_signals:
+                - bot_score_forwarding
+                - per_route_quota
+                - honeypot_routes
+              cedar_policy_signal: bot_score_threshold_composition
+            anti_spoof:
+              edge_signals:
+                - request_smuggling_shape
+                - tls_strict
+                - workload_identity
+              per_service_signals:
+                - mtls_verification
+                - session_token_replay_check
+                - webhook_hmac_check
+              cedar_policy_signal: caller_svid_approved_set
+            anti_scrape:
+              edge_signals:
+                - route_rate_limit
+                - robots_authority
+                - paid_api_tier
+              per_service_signals:
+                - pattern_anomaly_detection
+                - watermarking
+                - honeypot_response
+              cedar_policy_signal: scrape_pattern_detected_unless_partner
+          audit_event_classes:
+            - AbuseDefenceBotBlocked
+            - AbuseDefenceSpoofDetected
+            - AbuseDefenceScrapeBlocked
+            - AbuseDefenceChallengeIssued
+            - AbuseDefenceChallengeSolved
+            - AbuseDefenceChallengeFailed
+          inventory_refs_read_only:
+            - oya/api-gateway/iac/edge-waf.yaml
+            - oya/api-gateway/iac/cloudflare-config.yaml
+          inventory_claim_ceiling: >-
+            Existing edge WAF and Cloudflare files were read as current-state
+            inventory only; this task does not validate, apply, or mutate runtime
+            edge configuration.
+        emergency_services_bypass_audit_envelope:
+          authority_status: proposed_context_only
+          attestation_headers:
+            - x-oya-emergency-attestation
+            - x-oya-emergency-pack
+          applies_before_controls:
+            - layered_throttling
+            - abuse_defence
+            - disaster_mode_load_shed
+          no_rate_limit_when_attested: true
+          abuse_controls_deferred_not_ignored: true
+          audit_event_classes:
+            - EmergencyServiceBypassGranted
+            - AbuseDefenceEmergencyServiceBypass
+            - EmergencyServiceForgeryDetected
+            - EmergencyServiceRateLimitElevation
+          audit_correlation_fields:
+            - request_id
+            - traceparent
+            - tenant_id
+            - cell_id
+            - route_id
+            - emergency_attestation_hash
+            - emergency_pack
+            - principal_namespace
+            - attestation_source
+            - revocation_list_version
+            - deferred_abuse_controls
+            - rate_limit_elevation_class
+          latency_budget:
+            edge_to_dispatch_p99_ms: 200
+            scope: emergency_services_path_only
+          revocation_window_seconds: 60
+          disaster_mode_invariant:
+            emergency_services_available_all_load_shed_tiers: true
+            non_emergency_load_shed_denial_status: 503
+            load_shed_tier_header: X-Oya-Load-Shed-Tier
+      x-oyatie-sovereign-tenant-pin-routing:
+        source_task: t_2648db54
+        gate_packet: sovereign-tenant-pin
+        claim_ceiling: >-
+          Contract/readiness evidence only; no runtime route-table mutation,
+          gateway deployment, region/cell provisioning, tenant movement, live
+          failover, or production routing claim.
+        authority:
+          accepted:
+            - specs/multi-region-disposition-canonical.json#sovereign_tenant_pin_overlay
+            - specs/multi-region-disposition-canonical.json#global_control_plane
+            - specs/root-hub-pointers.json#entry_points.spec_multi_region_disposition_canonical
+          parent_evidence_cards:
+            - t_9e9a32a5
+            - t_90f6a9d8
+        tenant_registry_field_reconciliation:
+          tenant_id:
+            request_header_ref: '#/components/parameters/OyaTenantIdHeader'
+            request_body_ref: '#/components/schemas/EdgeAdmissionRequest/properties/tenant_id'
+            tenant_contract_ref: contracts/openapi/platform/platform-tenant-v1.yaml#/components/schemas/TenantRecord/properties/tenant_id
+            cell_binding_ref: contracts/openapi/cloud/cloud-cell-bind-v1.yaml#/components/schemas/CloudCellBindingRecord/properties/tenant_id
+          home_region:
+            tenant_contract_ref: contracts/openapi/platform/platform-tenant-v1.yaml#/components/schemas/TenantRecord/properties/home_region
+            cell_binding_ref: contracts/openapi/cloud/cloud-cell-bind-v1.yaml#/components/schemas/CloudCellBindRequest/properties/home_region_code
+            residency_kernel_ref: cloud/cloud-network/crates/oya-residency-domain/src/lib.rs#TenantResidencyBinding.primary_region
+          allowed_regions:
+            accepted_spec_ref: specs/multi-region-disposition-canonical.json#/global_control_plane/tenant_registry/fields/allowed_regions
+            gate_input_field: allowed_regions
+            readiness_note: >-
+              Current gateway OpenAPI carries the selected cell, not a live
+              tenant-registry replica. The sovereign-tenant-pin gate packet must
+              receive producer-emitted allowed_regions rows before this can be
+              treated as admission evidence.
+          residency_class:
+            tenant_contract_ref: contracts/openapi/platform/platform-tenant-v1.yaml#/components/schemas/TenantRecord/properties/residency_class
+            cell_binding_ref: contracts/openapi/cloud/cloud-cell-bind-v1.yaml#/components/schemas/CloudCellBindingRecord/properties/residency_class
+            residency_kernel_ref: cloud/cloud-network/crates/oya-residency-domain/src/lib.rs#ResidencyClass
+          pack_id:
+            accepted_spec_ref: specs/multi-region-disposition-canonical.json#/global_control_plane/tenant_registry/fields/pack_id
+            current_contract_aliases:
+              - contracts/openapi/platform/platform-tenant-v1.yaml#/components/schemas/TenantCreateRequest/properties/regulatory_packs
+              - cloud/cloud-network/crates/oya-residency-domain/src/lib.rs#TenantResidencyBinding.regional_pack_id
+            gate_input_field: pack_id
+            readiness_note: >-
+              The gate packet normalizes pack_id from current pack/regulatory-pack
+              contracts; this annotation is not a live tenant-registry schema change.
+        fail_closed_contract:
+          allowed_current_cell:
+            decision: admit
+            response_status: 202
+          mismatched_current_cell:
+            decision: misdirect
+            response_status: 421
+            response_phrase: Misdirected Request
+            required_headers:
+              - Location
+            location_semantics: >-
+              Location points at the tenant's allowed/home-cell API endpoint so
+              clients retry against an authorized sovereign cell.
+        serialization:
+          single_writer_required_for:
+            - api-gateway route logic and route-table evidence
+            - tenancy tenant-registry contracts
+            - cloud-cell and cloud-network routing kernels
+            - OpenAPI tenant/cell contracts
+            - cloud-ci gate packets and oya-ci-required aggregation
+            - root-hub/masterplan shared roots
+            - generated outputs produced by materializers only
+      parameters:
+        - $ref: '#/components/parameters/TraceparentHeader'
+        - $ref: '#/components/parameters/TracestateHeader'
+        - $ref: '#/components/parameters/OyaTenantIdHeader'
+        - $ref: '#/components/parameters/OyaCellIdHeader'
+        - $ref: '#/components/parameters/OyaRequestIdHeader'
+        - $ref: '#/components/parameters/OyaAuditCorrelationIdHeader'
+        - $ref: '#/components/parameters/OyaEmergencyAttestationHeader'
+        - $ref: '#/components/parameters/OyaEmergencyPackHeader'
       requestBody:
         required: true
         content:
@@ -20,9 +505,147 @@ paths:
           description: Authentication failed.
         '403':
           description: Tenant, cell, or policy scope denied.
+        '421':
+          description: Sovereign tenant pin mismatch; retry against the Location home-cell endpoint.
+          headers:
+            Location:
+              $ref: '#/components/headers/MisdirectedLocationHeader'
         '429':
           description: Rate limit denied.
+          headers:
+            Retry-After:
+              $ref: '#/components/headers/RetryAfterHeader'
+            oya-throttle-class:
+              $ref: '#/components/headers/OyaThrottleClassHeader'
+            oya-throttle-ip-headroom:
+              $ref: '#/components/headers/OyaThrottleIpHeadroomHeader'
+            oya-throttle-key-headroom:
+              $ref: '#/components/headers/OyaThrottleKeyHeadroomHeader'
+            oya-throttle-user-headroom:
+              $ref: '#/components/headers/OyaThrottleUserHeadroomHeader'
+            oya-throttle-tenant-headroom:
+              $ref: '#/components/headers/OyaThrottleTenantHeadroomHeader'
+        '503':
+          description: Disaster/load-shed denial for non-emergency traffic.
+          headers:
+            Retry-After:
+              $ref: '#/components/headers/RetryAfterHeader'
+            X-Oya-Load-Shed-Tier:
+              $ref: '#/components/headers/OyaLoadShedTierHeader'
 components:
+  parameters:
+    TraceparentHeader:
+      name: traceparent
+      in: header
+      required: true
+      description: W3C Trace Context header propagated through gateway and mesh.
+      schema:
+        type: string
+        pattern: '^00-[0-9a-f]{32}-[0-9a-f]{16}-[0-9a-f]{2}$'
+    TracestateHeader:
+      name: tracestate
+      in: header
+      required: false
+      description: Optional W3C vendor trace state; preserve when present.
+      schema:
+        type: string
+        maxLength: 512
+    OyaTenantIdHeader:
+      name: x-oya-tenant-id
+      in: header
+      required: true
+      description: Tenant scope asserted at the gateway before mesh handoff.
+      schema:
+        type: string
+        minLength: 1
+    OyaCellIdHeader:
+      name: x-oya-cell-id
+      in: header
+      required: true
+      description: Cell scope used to reject cross-cell ingress before workloads.
+      schema:
+        type: string
+        minLength: 1
+    OyaRequestIdHeader:
+      name: x-oya-request-id
+      in: header
+      required: true
+      description: Idempotent gateway request correlation id.
+      schema:
+        type: string
+        minLength: 1
+    OyaAuditCorrelationIdHeader:
+      name: x-oya-audit-correlation-id
+      in: header
+      required: true
+      description: Audit-chain correlation id linking gateway decision to mesh/workload evidence.
+      schema:
+        type: string
+        minLength: 1
+    OyaEmergencyAttestationHeader:
+      name: x-oya-emergency-attestation
+      in: header
+      required: false
+      description: Optional emergency-services attestation envelope for life-safety bypass audit correlation.
+      schema:
+        type: string
+        minLength: 1
+    OyaEmergencyPackHeader:
+      name: x-oya-emergency-pack
+      in: header
+      required: false
+      description: Optional compliance pack id for an attested emergency-services principal.
+      schema:
+        type: string
+        minLength: 1
+  headers:
+    RetryAfterHeader:
+      description: RFC 6585 retry hint for throttle or load-shed denials.
+      schema:
+        type: string
+        minLength: 1
+    MisdirectedLocationHeader:
+      description: >-
+        Home-cell API endpoint for a sovereign-tenant-pin mismatch. Readiness
+        contract only; this OpenAPI entry does not mutate live routing.
+      schema:
+        type: string
+        format: uri
+        minLength: 1
+    OyaThrottleClassHeader:
+      description: Throttling layer that denied the request.
+      schema:
+        type: string
+        enum: [ip-abuse, api-key, user, tenant]
+    OyaThrottleIpHeadroomHeader:
+      description: Remaining per-IP throttle headroom from 0.0 to 1.0.
+      schema:
+        type: number
+        minimum: 0
+        maximum: 1
+    OyaThrottleKeyHeadroomHeader:
+      description: Remaining per-API-key throttle headroom from 0.0 to 1.0.
+      schema:
+        type: number
+        minimum: 0
+        maximum: 1
+    OyaThrottleUserHeadroomHeader:
+      description: Remaining per-user throttle headroom from 0.0 to 1.0.
+      schema:
+        type: number
+        minimum: 0
+        maximum: 1
+    OyaThrottleTenantHeadroomHeader:
+      description: Remaining per-tenant throttle headroom from 0.0 to 1.0.
+      schema:
+        type: number
+        minimum: 0
+        maximum: 1
+    OyaLoadShedTierHeader:
+      description: Active disaster-mode load-shed tier for non-emergency denial.
+      schema:
+        type: string
+        enum: [tier-0, tier-1, tier-2, tier-3, tier-4]
   x-oyatie-sharding-automation-event-surface:
     microservice: api-gateway
     wave: 15-ZF-13
@@ -77,12 +700,38 @@ components:
     EdgeAdmissionRequest:
       type: object
       required: [tenant_id, cell_id, route_id, request_id]
+      additionalProperties: false
       properties:
         tenant_id:
           type: string
+          minLength: 1
+          description: Tenant resolved from the authenticated public principal.
         cell_id:
           type: string
+          minLength: 1
+          description: Destination cell selected by the north-south gateway tier.
         route_id:
           type: string
+          const: edge.admission.v1
+          description: NETWORK-001 one-route contract identifier.
         request_id:
           type: string
+          minLength: 1
+          description: Request correlation id mirrored into logs, trace, and audit evidence.
+        gateway_spiffe_id:
+          type: string
+          pattern: '^spiffe://oyatie\.cell-[A-Za-z0-9-]+/api-gateway/envoy$'
+          description: SPIFFE identity the gateway uses when re-originating into the mesh.
+        upstream_spiffe_id:
+          type: string
+          pattern: '^spiffe://oyatie\.cell-[A-Za-z0-9-]+/[a-z0-9-]+/[a-z0-9-]+$'
+          description: SPIFFE identity expected for the selected internal workload target.
+        cedar_decision_id:
+          type: string
+          description: Gateway/mesh Cedar decision evidence id for the route admission.
+        policy_fragment_ref:
+          type: string
+          description: Cedar policy or fragment reference that contributed to the decision.
+        audit_correlation_id:
+          type: string
+          description: Audit-chain correlation id matching x-oya-audit-correlation-id.

@@ -12,7 +12,7 @@
   },
   "implementation_start_rule": {
     "claim_status": "blocked_until_planning_closure_gate_green",
-    "gate_command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure",
+    "gate_command": "cloud-ci/Rust gate packet: planning-closure; legacy oya-dev-cli bridge output is local-feedback/provenance only and not authority",
     "gate_command_authority_note": "bridge-only local feedback per the founder all-CLI-retirement directive of 2026-06-09; merge authority is the cloud-ci gate apps behind the single required context oya-ci-required, and this oya-dev-cli invocation is never merge or exit authority",
     "allowed_claim_after_green": "The planning phase is closed enough to begin implementation without implementation-time product, architecture, sequencing, or acceptance-criteria invention.",
     "forbidden_claims_before_green": [

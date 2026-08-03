@@ -36,6 +36,7 @@ use axum::Router;
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
 use axum::routing::{get, post, put};
+use oya_managed_k8s_tenant_quota_adapter_inmemory::InMemoryQuotaStore;
 use serde::{Deserialize, Serialize};
 
 pub use oya_managed_k8s_tenant_quota_api::{
@@ -107,6 +108,11 @@ pub struct CheckRequestBody {
 pub struct ErrorBody {
     pub error: String,
 }
+
+/// Durable quota store DSN expected by production boot.
+pub const QUOTA_DATABASE_URL_ENV: &str = "OYA_MANAGED_K8S_TENANT_QUOTA_DATABASE_URL";
+/// Explicit local/dev escape hatch for the fake in-memory quota store.
+pub const ALLOW_IN_MEMORY_QUOTA_STORE_ENV: &str = "OYA_MANAGED_K8S_TENANT_QUOTA_ALLOW_IN_MEMORY";
 
 // ============================================================
 // Handlers
@@ -303,6 +309,8 @@ where
 /// Boot errors.
 #[derive(Debug)]
 pub enum BootError {
+    /// Production boot did not receive a durable quota store adapter.
+    ProductionAdapterUnavailable,
     /// TCP listener bind failure.
     Bind { address: String, error: String },
     /// Axum serve loop exited with an error.
@@ -312,6 +320,11 @@ pub enum BootError {
 impl fmt::Display for BootError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            Self::ProductionAdapterUnavailable => write!(
+                f,
+                "durable quota store adapter is required; refusing implicit in-memory fallback \
+                 (set {ALLOW_IN_MEMORY_QUOTA_STORE_ENV}=true only for local/dev tests)"
+            ),
             Self::Bind { address, error } => write!(f, "bind {address}: {error}"),
             Self::Serve(e) => write!(f, "serve error: {e}"),
         }
@@ -319,6 +332,48 @@ impl fmt::Display for BootError {
 }
 
 impl std::error::Error for BootError {}
+
+/// Build the quota store from process environment.
+///
+/// The in-memory adapter is a test/dev fake, so production boot fails closed
+/// unless callers explicitly opt in with
+/// [`ALLOW_IN_MEMORY_QUOTA_STORE_ENV`]. A configured durable DSN never silently
+/// falls back to the fake store.
+///
+/// # Errors
+/// Returns [`BootError::ProductionAdapterUnavailable`] when no explicit dev
+/// in-memory opt-in is present or when a durable DSN is configured but this
+/// app slice cannot safely compose a fake fallback.
+pub fn build_state_from_env() -> Result<InMemoryQuotaStore, BootError> {
+    let database_url = std::env::var(QUOTA_DATABASE_URL_ENV).ok();
+    let allow_in_memory = std::env::var(ALLOW_IN_MEMORY_QUOTA_STORE_ENV).ok();
+    build_state_from_env_values(database_url.as_deref(), allow_in_memory.as_deref())
+}
+
+/// Deterministic companion to [`build_state_from_env`] for boot-policy tests.
+///
+/// # Errors
+/// Returns [`BootError::ProductionAdapterUnavailable`] unless the durable DSN
+/// is absent and `allow_in_memory` is an explicit truthy dev opt-in.
+pub fn build_state_from_env_values(
+    database_url: Option<&str>,
+    allow_in_memory: Option<&str>,
+) -> Result<InMemoryQuotaStore, BootError> {
+    if database_url.is_some_and(|value| !value.trim().is_empty()) {
+        return Err(BootError::ProductionAdapterUnavailable);
+    }
+    if env_value_is_truthy(allow_in_memory) {
+        return Ok(InMemoryQuotaStore::new());
+    }
+    Err(BootError::ProductionAdapterUnavailable)
+}
+
+fn env_value_is_truthy(value: Option<&str>) -> bool {
+    matches!(
+        value.map(str::trim).map(str::to_ascii_lowercase).as_deref(),
+        Some("true" | "1" | "yes")
+    )
+}
 
 /// Bind and serve the quota service.
 ///
@@ -355,5 +410,30 @@ mod tests {
             Unimplemented::AuditChainEmission.type_slug(),
             "quota_unimplemented_audit_chain_emission"
         );
+    }
+
+    #[test]
+    fn production_boot_without_durable_quota_store_config_fails_closed() {
+        assert!(matches!(
+            build_state_from_env_values(None, None),
+            Err(BootError::ProductionAdapterUnavailable)
+        ));
+        assert!(matches!(
+            build_state_from_env_values(None, Some("false")),
+            Err(BootError::ProductionAdapterUnavailable)
+        ));
+    }
+
+    #[test]
+    fn in_memory_quota_store_requires_explicit_dev_opt_in() {
+        assert!(build_state_from_env_values(None, Some("true")).is_ok());
+    }
+
+    #[test]
+    fn durable_store_config_never_falls_back_to_in_memory() {
+        assert!(matches!(
+            build_state_from_env_values(Some("postgres://quota-store"), Some("true")),
+            Err(BootError::ProductionAdapterUnavailable)
+        ));
     }
 }

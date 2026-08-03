@@ -1,18 +1,14 @@
-apiVersion: oyatie.dev/v1
-kind: EdgeWafPolicy
-metadata:
-  name: oya-global-trade-abuse-defence
-spec:
-  defaultPathLatencyBudgetMs: 2
-  emergencyServicesBypass: true
-  antiBot:
-    tokenBucket: true
-    ja4Fingerprint: true
-    passiveMlScore: true
-  antiSpoof:
-    strictTls13: true
-    hstsPreload: true
-    signedPayloads: true
-  antiScrape:
-    adaptiveChallenge: suspicion-only
-    friendlyCrawlerPartnerBypass: true
+# Current authority: specs/microservices/global-trade.json metadata-only PRD; inventory/provenance/planned-only.
+schema_version: "1.0"
+artifact: oya/global-trade/iac/edge-waf.yaml
+status: inventory-provenance-planned-only
+current_authority: specs/microservices/global-trade.json
+authority_status: metadata-only PRD
+non_claims:
+  - no Kubernetes workload authority
+  - no Helm release authority
+  - no Terraform or OpenTofu apply authority
+  - no OpenBao/runtime secret authority
+  - no cloud deployment
+  - no runtime audit-chain emission
+future_gate: separate authority-gated RED/test-first implementation lane required before use

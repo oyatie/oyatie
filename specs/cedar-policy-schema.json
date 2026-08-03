@@ -901,19 +901,19 @@
       ],
       "validation": {
         "parser": {
-          "command": "oya gate validate cedar-schema-parse",
+          "command": "cloud-ci/Rust gate packet: cedar-schema-parse",
           "required": true
         },
         "formatter": {
-          "command": "oya gate validate cedar-format",
+          "command": "cloud-ci/Rust gate packet: cedar-format",
           "required": true
         },
         "coverage_checker": {
-          "command": "oya gate validate cedar-coverage",
+          "command": "cloud-ci/Rust gate packet: cedar-coverage",
           "required": true
         },
         "fixture_runner": {
-          "command": "oya gate validate cedar-fixtures",
+          "command": "cloud-ci/Rust gate packet: cedar-fixtures",
           "required": true
         },
         "forbidden_pattern_checks": [
@@ -1095,19 +1095,19 @@
       ],
       "validation": {
         "parser": {
-          "command": "oya gate validate cedar-schema-parse",
+          "command": "cloud-ci/Rust gate packet: cedar-schema-parse",
           "required": true
         },
         "formatter": {
-          "command": "oya gate validate cedar-format",
+          "command": "cloud-ci/Rust gate packet: cedar-format",
           "required": true
         },
         "coverage_checker": {
-          "command": "oya gate validate capability-tier-cedar-coverage",
+          "command": "cloud-ci/Rust gate packet: capability-tier-cedar-coverage",
           "required": true
         },
         "fixture_runner": {
-          "command": "oya gate validate cedar-fixtures",
+          "command": "cloud-ci/Rust gate packet: cedar-fixtures",
           "required": true
         },
         "forbidden_pattern_checks": [
@@ -1292,19 +1292,19 @@
       ],
       "validation": {
         "parser": {
-          "command": "oya gate validate cedar-schema-parse",
+          "command": "cloud-ci/Rust gate packet: cedar-schema-parse",
           "required": true
         },
         "formatter": {
-          "command": "oya gate validate cedar-format",
+          "command": "cloud-ci/Rust gate packet: cedar-format",
           "required": true
         },
         "coverage_checker": {
-          "command": "oya gate validate compliance-pack-cedar-coverage",
+          "command": "cloud-ci/Rust gate packet: compliance-pack-cedar-coverage",
           "required": true
         },
         "fixture_runner": {
-          "command": "oya gate validate cedar-fixtures",
+          "command": "cloud-ci/Rust gate packet: cedar-fixtures",
           "required": true
         },
         "forbidden_pattern_checks": [

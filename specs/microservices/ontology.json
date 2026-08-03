@@ -412,7 +412,7 @@
         "stable": 0,
         "GA": 0
       },
-      "verification_ref": "oya gate validate ontology-tier-enforcement --window 30d",
+      "verification_ref": "cloud-ci/Rust gate packet: ontology-tier-enforcement --window 30d",
       "lane_ref": "oya-governance-ontology-tier-enforcement"
     },
     {
@@ -442,7 +442,7 @@
         "stable": 99.9,
         "GA": 99.95
       },
-      "verification_ref": "oya gate validate ontology-type-registry-availability --window 30d",
+      "verification_ref": "cloud-ci/Rust gate packet: ontology-type-registry-availability --window 30d",
       "lane_ref": "oya-governance-canary-observability"
     }
   ],
@@ -1243,7 +1243,7 @@
         "id_pattern": "^lane-satisfaction:[a-z0-9-]+:[a-z0-9][a-z0-9.:-]*$",
         "examples": [
           "lane-satisfaction:oya-governance-supply-chain:control:soc2-cc6.1",
-          "lane-satisfaction:oya-vcs-admission:control:isms-p-2.10.1"
+          "lane-satisfaction:oya-ci-required:control:isms-p-2.10.1"
         ],
         "contributing_registries": [
           "registry/quality/lanes.yaml",
@@ -1342,7 +1342,7 @@
         "id_pattern": "^ci-run:[a-z0-9_.:/#-]+$",
         "examples": [
           "ci-run:github/pr-42/cargo-nextest",
-          "ci-run:github/pr-42/oya-vcs-admission"
+          "ci-run:github/pr-42/oya-ci-required"
         ],
         "contributing_registries": [
           "GitHub Actions check runs",
@@ -1350,7 +1350,7 @@
         ]
       },
       "ChangeSet": {
-        "purpose": "Oya VCS or PR-local change bundle with evidence, scope, and promotion lifecycle.",
+        "purpose": "PR-local/cloud-scm change bundle with evidence, scope, and protected-PR promotion lifecycle; historical Oya VCS bundles are provenance only.",
         "id_pattern": "^changeset:[a-z0-9][a-z0-9_.:-]*$",
         "examples": [
           "changeset:kg-acceptance-ci-1778951867",
@@ -1359,7 +1359,7 @@
         "contributing_registries": [
           "evidence/multispectrum/*.json",
           "evidence/audit-chain.jsonl",
-          "Oya VCS bundle metadata"
+          "plain-git protected-PR/change-bundle provenance metadata"
         ]
       },
       "AuditChainRow": {
@@ -1697,7 +1697,7 @@
           "PullRequest"
         ],
         "cardinality": "many-to-many",
-        "semantics": "change bundle or Oya VCS changeset was reviewed/merged as a GitHub pull request."
+        "semantics": "change bundle or protected-PR changeset was reviewed/merged as a GitHub pull request. Historical Oya VCS changesets are provenance-only aliases."
       },
       "emitted_audit_row": {
         "direction": "directed",
@@ -1999,7 +1999,7 @@
       },
       {
         "name": "trace_changeset_pr_audit_row",
-        "description": "Returns Oya VCS changesets with their merged PR and append-only audit-chain row provenance.",
+        "description": "Returns protected-PR changesets with their merged PR and append-only audit-chain row provenance; historical Oya VCS changesets are provenance-only aliases.",
         "query_sketch": "SELECT changeset.id AS changeset_id, pr.id AS pull_request_id, pr.merge_commit, audit_row.id AS audit_chain_row_id, audit_row.event_type, audit_row.evidence_path, audit_row.timestamp_unix FROM changesets changeset JOIN merged_as_pr_edges mapr ON mapr.source = changeset.id JOIN pull_requests pr ON pr.id = mapr.target JOIN emitted_audit_row_edges ear ON ear.source = pr.id JOIN audit_chain_rows audit_row ON audit_row.id = ear.target WHERE changeset.status IN ('promoted','merged') ORDER BY audit_row.timestamp_unix DESC, changeset.id"
       },
       {

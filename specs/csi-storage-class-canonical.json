@@ -174,5 +174,5 @@
     "per_pack_binding_path": "microservices/<ms>/iac/kustomize/components/pack-{name}/",
     "no_csi_knowledge_at_workload": "workload µservices NEVER reference cloud-provider-specific volume types directly"
   },
-  "ci_lane": "storage-class-canonical (oya gate validate storage-class-canonical)"
+  "ci_lane": "storage-class-canonical (cloud-ci/Rust gate packet: storage-class-canonical)"
 }

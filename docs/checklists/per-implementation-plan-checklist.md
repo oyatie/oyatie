@@ -27,7 +27,7 @@ doc_status: published
 ## Acceptance + verification
 
 - [ ] **IP5** Every command from IP `§Acceptance test commands` produced its expected pass token; outputs pasted in PR `## Verification`. *Verification:* command outputs.
-- [ ] **IP6** Done-definition checklist (`docs/checklists/done-definition-checklist.md`) D1-D18 walked. *Lane:* per-row.
+- [ ] **IP6** Done-definition checklist (`docs/checklists/done-definition-checklist.md`) D1-D20 walked. *Lane:* per-row.
 - [ ] **IP7** Linus good-taste row in IP `§Decision log` is non-empty (or explicitly `"none — no candidates"`). *Lane:* `oya-governance-plan-hierarchy`.
 
 ## Dependency + supply chain

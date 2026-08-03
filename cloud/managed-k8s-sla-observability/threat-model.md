@@ -1,19 +1,29 @@
-# Managed K8s Tenant Quota — Threat Model
+# Managed K8s SLA Observability — Threat Model
 
 ## ADR-0376 Threat Model
 
-### Quota Bypass
-**Risk**: A tenant requests more clusters/nodes/vCPU/RAM than their quota allows.
-**Mitigation**: `evaluate()` in the kernel checks all dimensions; deny-by-default
-when no quota record exists (`QuotaPortError::NotFound` → HTTP 404, not allow).
+### False Green SLA Evidence
+**Risk**: Missing, stale, or disagreeing observations are interpreted as healthy
+control-plane availability.
+**Mitigation**: Snapshot windows carry explicit sample counts and freshness; the
+lower-claim/higher-risk state wins when sources disagree; missing samples do not
+count as healthy.
 
-### RBAC Escalation
-**Risk**: A principal grants themselves a higher role (TenantAdmin → PlatformOperator).
-**Mitigation**: Cedar default-deny; roles are assigned by the platform, not self-served.
-No `permit` exists for self-role-grant. Forbid-wins semantics prevent escalation.
+### Cross-Tenant Evidence Read
+**Risk**: A tenant reads another tenant's cluster summaries, evidence handles, or
+burn-rate verdicts.
+**Mitigation**: Authorize `(tenant_id, cluster_name)` before loading summaries;
+fleet and regional rollups aggregate only same-tenant records.
 
-### Cross-Tenant Limit Read
-**Risk**: A tenant reads or alters another tenant's quota or usage records.
-**Mitigation**: Cedar `tenant_id` condition on all read/write policies. The kernel's
-`evaluate()` short-circuits with `Deny(TenantMismatch)` if tenant IDs differ.
-HTTP handlers validate `path.tenant_id == body.tenant_id`.
+### Secret or High-Cardinality Evidence Leakage
+**Risk**: Evidence records expose kubeconfigs, provider credentials, bearer tokens,
+raw pod names, or tenant-identifying high-cardinality labels.
+**Mitigation**: Evidence handles reference collector run IDs, trace IDs, source
+types, timestamps, and OpenSLO records only; raw secrets and provider payloads are
+never emitted.
+
+### Premature Public SLA Claim
+**Risk**: Placeholder contracts or target OpenSLO files are mistaken for measured
+production SLO evidence.
+**Mitigation**: Contracts and SLO files retain target-only claim ceilings until live
+collector proof, independent review, protected CI, and rollout evidence exist.

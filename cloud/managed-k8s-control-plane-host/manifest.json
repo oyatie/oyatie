@@ -19,27 +19,27 @@
   ],
   "layers": ["kernel", "api", "adapter", "app"],
   "contracts": {
-    "openapi": ["microservices/oya-managed-k8s-control-plane-host/contracts/openapi.yaml"],
-    "asyncapi": ["microservices/oya-managed-k8s-control-plane-host/contracts/asyncapi.yaml"],
-    "proto": ["microservices/oya-managed-k8s-control-plane-host/contracts/control_plane_host.proto"]
+    "openapi": ["cloud/managed-k8s-control-plane-host/contracts/openapi.yaml"],
+    "asyncapi": ["cloud/managed-k8s-control-plane-host/contracts/asyncapi.yaml"],
+    "proto": ["cloud/managed-k8s-control-plane-host/contracts/control_plane_host.proto"]
   },
   "capabilities": [
     {
       "tier": "T3",
       "name": "control-plane-provision",
-      "file": "microservices/oya-managed-k8s-control-plane-host/capabilities/control-plane-provision.yaml",
+      "file": "cloud/managed-k8s-control-plane-host/capabilities/control-plane-provision.yaml",
       "risk_class": "high"
     },
     {
       "tier": "T3",
       "name": "control-plane-teardown",
-      "file": "microservices/oya-managed-k8s-control-plane-host/capabilities/control-plane-teardown.yaml",
+      "file": "cloud/managed-k8s-control-plane-host/capabilities/control-plane-teardown.yaml",
       "risk_class": "high"
     },
     {
       "tier": "T1",
       "name": "control-plane-status",
-      "file": "microservices/oya-managed-k8s-control-plane-host/capabilities/control-plane-status.yaml",
+      "file": "cloud/managed-k8s-control-plane-host/capabilities/control-plane-status.yaml",
       "risk_class": "minimal"
     }
   ],
@@ -48,13 +48,13 @@
       "name": "control-plane-provisioning-latency",
       "target": "0.95",
       "sli": "histogram_quantile(0.95, sum(rate(oya_managed_k8s_control_plane_provision_duration_seconds_bucket[5m])) by (le))",
-      "file": "microservices/oya-managed-k8s-control-plane-host/slos/provisioning-latency.openslo.yaml"
+      "file": "cloud/managed-k8s-control-plane-host/slos/provisioning-latency.openslo.yaml"
     },
     {
       "name": "control-plane-availability",
       "target": "0.999",
       "sli": "sum(rate(oya_managed_k8s_control_plane_status_requests_total{status!~\"5..\"}[5m]))",
-      "file": "microservices/oya-managed-k8s-control-plane-host/slos/availability.openslo.yaml"
+      "file": "cloud/managed-k8s-control-plane-host/slos/availability.openslo.yaml"
     }
   ],
   "ips": [
@@ -62,14 +62,15 @@
       "id": "IP-001-control-plane-host-kernel-api-adapters-app",
       "title": "IP-001: control-plane-host kernel + ControlPlaneProvisioning port + CAPI/in-memory adapters + composition root",
       "acceptance_status": "ga",
-      "file": "microservices/oya-managed-k8s-control-plane-host/IPs/IP-001-control-plane-host-foundation.md"
+      "file": "cloud/managed-k8s-control-plane-host/IPs/IP-001-control-plane-host-foundation.md"
     }
   ],
   "regulatory_packs": ["kr", "eu", "us", "jp", "sg", "au", "in", "br", "ae", "ksa"],
   "lts_pins": {
     "rust": "1.95.0",
-    "kube": "3.1 (pin lands in registry/lts-pins.yaml when kamaji-provider-live-integration wires the live reconcile per ADR-0376)",
-    "kamaji": "version-agnostic at ADR-0376; concrete pin deferred to the live-integration follow-on ADR"
+    "registry": "registry/lts-pins.yaml#pins.managed-k8s-control-plane-host",
+    "kube": "3.1",
+    "kamaji_crd": "kamaji.clastix.io/v1alpha1 TenantControlPlane"
   },
   "adrs": [
     {
@@ -141,5 +142,5 @@
   "no_grouping_authority": "ADR-0132",
   "layer": "app",
   "data_classification": "INTERNAL_ONLY, AUDIT; tenant-scoped control-plane identity (tenant_id, cluster_name, opaque handle) — no tenant workload data",
-  "maturity_non_claim": "design-spec maturity (ADR-0376 lane): the kernel + ControlPlaneProvisioning port + in-memory adapter + composition root are BUILT and tested; the kube-rs CAPI adapter's LIVE Kamaji/Talos CRD reconciliation is honest-deferred (registry/placeholder-debt/adr-follow-ups.yaml#kamaji-provider-live-integration). Billing, public SLA, DPIA, and external multi-tenant GA are deferred to oya-managed-k8s-commercial-ga per ADR-0376. All aspirational fields below describe design intent, not runtime behavior."
+  "maturity_non_claim": "live adapter foundation maturity (ADR-0376 lane): the kernel + ControlPlaneProvisioning port + in-memory adapter + composition root are BUILT and tested; the kube-rs CAPI adapter builds the LTS-pinned Kamaji DynamicObject, maps provider status, guards owned teardown, supports a rollback switch, and records the dedicated Talos reference path. Billing, public SLA, DPIA, external multi-tenant GA, and any real sandbox/live management-cluster action are deferred to explicit follow-on gates."
 }

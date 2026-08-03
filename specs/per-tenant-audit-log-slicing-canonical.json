@@ -90,5 +90,5 @@
       "pack-us-gov": true
     }
   },
-  "ci_lane": "audit-chain-per-tenant-slicing (oya gate validate audit-chain-per-tenant-slicing)"
+  "ci_lane": "audit-chain-per-tenant-slicing (cloud-ci/Rust gate packet: audit-chain-per-tenant-slicing)"
 }

@@ -21,3 +21,15 @@ rust_test(
         "third-party//:serde_json",
     ],
 )
+
+rust_test(
+    name = "oya-policy-cedar-domain-rebac-tuple-port",
+    srcs = ["tests/rebac_tuple_port.rs"],
+    crate = "oya_policy_cedar_domain_rebac_tuple_port",
+    crate_root = "tests/rebac_tuple_port.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-policy-cedar-domain",
+        "third-party//:serde_json",
+    ],
+)

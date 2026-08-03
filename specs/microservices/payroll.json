@@ -140,21 +140,21 @@
       "given": "a future HTTP adapter needs payroll wire contracts",
       "when": "contract validation runs",
       "then": "OpenAPI v1 describes trial-close and accounting-journal-draft request/response shapes with semver metadata and explicit non-deployed status",
-      "test_ref": "microservices/payroll/contracts/openapi-v1.yaml + microservices/payroll/contracts/openapi-v1.meta.yaml; validated by oya gate validate api-semver --contracts-dir microservices/payroll/contracts"
+      "test_ref": "microservices/payroll/contracts/openapi-v1.yaml + microservices/payroll/contracts/openapi-v1.meta.yaml; validated by cloud-ci/Rust gate packet: api-semver --contracts-dir microservices/payroll/contracts"
     },
     {
       "id": "AC-09",
       "given": "payroll run changes are proposed for review",
       "when": "the self-hostable CI quality gate runs",
-      "then": "Jenkins LTS runs fmt, check, clippy, nextest, OpenAPI semver, Oya VCS admission, and Wave 15-ZE evidence emission across payroll domain/app/API packages before promotion",
-      "test_ref": "microservices/payroll/ci/Jenkinsfile; static Jenkins lane scan; cargo fmt/test/clippy for oya-payroll-run-domain, oya-payroll-run-app, oya-payroll-run-api; oya gate validate api-semver --contracts-dir microservices/payroll/contracts"
+      "then": "cloud-ci/oya-ci runs fmt, check, clippy, nextest, OpenAPI semver, protected oya-ci-required admission, and Wave 15-ZE evidence emission across payroll domain/app/API packages before promotion",
+      "test_ref": "microservices/payroll/ci/Jenkinsfile; static Jenkins lane scan; cargo fmt/test/clippy for oya-payroll-run-domain, oya-payroll-run-app, oya-payroll-run-api; cloud-ci/Rust gate packet: api-semver --contracts-dir microservices/payroll/contracts"
     },
     {
       "id": "AC-10",
       "given": "HR emits an approved leave or attendance payroll-impact metadata envelope",
       "when": "payroll accepts the intake for a payroll run and payee",
       "then": "source topic, HR idempotency key, payroll period, payee/employee/leave ids, rulepack basis, and decision/routing/payroll/intake evidence refs are validated without calculating payroll",
-      "test_ref": "microservices/payroll/crates/oya-payroll-run-domain/tests/hr_leave.rs::test_hr_leave_impact_intake_requires_source_evidence and microservices/payroll/crates/oya-payroll-run-app/tests/hr_leave.rs::hr_leave_impact_intake_envelope_is_metadata_only and microservices/payroll/crates/oya-payroll-run-api/tests/contracts.rs::hr_leave_impact_request_converts_to_domain_input; microservices/payroll/contracts/openapi-v1.yaml#/paths/~1payroll~1v1~1hr-leave-impact-intakes; validated by oya gate validate api-semver --contracts-dir microservices/payroll/contracts"
+      "test_ref": "microservices/payroll/crates/oya-payroll-run-domain/tests/hr_leave.rs::test_hr_leave_impact_intake_requires_source_evidence and microservices/payroll/crates/oya-payroll-run-app/tests/hr_leave.rs::hr_leave_impact_intake_envelope_is_metadata_only and microservices/payroll/crates/oya-payroll-run-api/tests/contracts.rs::hr_leave_impact_request_converts_to_domain_input; microservices/payroll/contracts/openapi-v1.yaml#/paths/~1payroll~1v1~1hr-leave-impact-intakes; validated by cloud-ci/Rust gate packet: api-semver --contracts-dir microservices/payroll/contracts"
     },
     {
       "id": "AC-11",
@@ -380,7 +380,7 @@
       },
       {
         "name": "manual shell/SSH operational glue",
-        "reason": "deployment and day-2 authority belongs to OpenTofu, Makefile targets, Rust oya gates, and ops-managed controllers"
+        "reason": "deployment and day-2 authority belongs to OpenTofu, Makefile targets, Rust cloud-ci gate packets, and ops-managed controllers"
       },
       {
         "name": "AI-only compliance or close decisions",
@@ -406,7 +406,7 @@
         "stable": 100,
         "GA": 100
       },
-      "verification_ref": "oya gate validate payroll-statutory-export",
+      "verification_ref": "cloud-ci/Rust gate packet: payroll-statutory-export",
       "lane_ref": "audit-chain"
     },
     {
@@ -426,7 +426,7 @@
         "stable": 0,
         "GA": 0
       },
-      "verification_ref": "oya gate validate payroll-group-close",
+      "verification_ref": "cloud-ci/Rust gate packet: payroll-group-close",
       "lane_ref": "compliance"
     }
   ],
@@ -512,7 +512,7 @@
   "goals": {
     "scalability": {
       "target": "EnterprisePayroll supports SME self-serve through conglomerate legal-entity groups without forked code paths",
-      "verification": "oya gate validate enterprisepayroll-scale-model"
+      "verification": "cloud-ci/Rust gate packet: enterprisepayroll-scale-model"
     },
     "security": {
       "target": "tenant, legal-entity, payroll, accounting, and evidence data remain RLS/policy isolated; privileged disclosure is audit chained",
@@ -524,11 +524,11 @@
     },
     "efficiency": {
       "target": "unit economics tracked per employee, pay run, journal posting, evidence item, and workflow action",
-      "verification": "oya gate validate finops-unit-economics"
+      "verification": "cloud-ci/Rust gate packet: finops-unit-economics"
     },
     "reliability": {
       "target": "GA availability 99.95%; RPO <= 5m for professional data; rollback evidence emitted before root-cause analysis",
-      "verification": "oya gate validate slo-coverage"
+      "verification": "cloud-ci/Rust gate packet: slo-coverage"
     }
   },
   "user_experience": {
@@ -579,6 +579,23 @@
       ]
     }
   ],
+  "sustainability_emission_model_authority": {
+    "status": "deferred_current_manifest_authority_gap",
+    "adr": "ADR-0344",
+    "manifest_declaration": "not_authored",
+    "reason": "Payroll has accepted PRD/test authority for payroll runs, statutory source packs, year-end settlement, HR leave intake, and accounting bridge metadata, but this checkout has no current oya/payroll/manifest.json carrying capacity_model and pod_runtime_tier authority to bind a sustainability_emission_model block.",
+    "workload_signal_candidate": "per_workflow_run payroll close, payslip, statutory evidence, and accounting-bridge dispatch",
+    "required_before_manifest_declaration": [
+      "create or reconcile a current payroll manifest path",
+      "declare capacity_model and pod_runtime_tier in that manifest",
+      "bind payroll run/statutory evidence emission-path fixture assertions for cost, co2, watt_hours, provider, and region",
+      "preserve no calculation correctness, filing rail, disbursement rail, Workflow execution, durable storage, cloud deployment, or runtime audit-chain emission claim until those adapters land"
+    ],
+    "non_claims": [
+      "No sustainability_emission_model coefficients are declared for payroll in this slice.",
+      "No invoice, chargeback, tax filing, payment, billing, live provider, regulator export, or runtime audit-chain mutation is introduced."
+    ]
+  },
   "decision_log": [
     {
       "id": "D-01",

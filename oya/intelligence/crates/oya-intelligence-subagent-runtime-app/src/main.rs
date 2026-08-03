@@ -33,9 +33,9 @@
 //! The fix-loop invokes the subagent with the bundle's content as the
 //! user message (failing-job log + PR diff + last N commits + mistakes-
 //! ledger candidates + IP-003 preflight hints) and emits the agent's
-//! response to `<output-dir>/<attempt>-agent-response.json`. The fix is
-//! then claimed by the agent via `oya verify` (the canonical pre-merge
-//! gate) BEFORE push.
+//! response to `<output-dir>/<attempt>-agent-response.json`. The agent can
+//! run `oya verify` as local bridge feedback before push; protected-branch
+//! authority remains reviewer approval plus the `oya-ci-required` context.
 
 // ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
@@ -411,7 +411,7 @@ fn run_fix_loop(options: FixLoopOptions) -> Result<String, String> {
         .join(format!("{}-agent-response.json", options.attempt));
     fs::write(&output_path, json).map_err(|e| format!("write {}: {e}", output_path.display()))?;
     Ok(format!(
-        "fix-loop complete: attempt={attempt} output={output} mode={mode} subagent_runtime_pending=false next_step='oya verify' then commit+push",
+        "fix-loop complete: attempt={attempt} output={output} mode={mode} subagent_runtime_pending=false next_step='local oya verify feedback, then commit+push; merge authority remains oya-ci-required'",
         attempt = options.attempt,
         output = output_path.display(),
         mode = match options.mode {
@@ -431,7 +431,7 @@ fn build_fix_loop_template() -> Result<FacetPromptTemplate, String> {
         "diagnose failing CI / review findings + produce a single patch that lands green".to_owned(),
         "APPROVE iff you produce a complete patch; CHANGES_REQUESTED iff you cannot diagnose; REJECT iff the bundle indicates a genuine product bug not fixable by patch".to_owned(),
         "You will receive an IP-005 ContextBundle containing failing-job logs, PR diff vs base, last N=5 commits, and mistakes-ledger candidates.\n\
-         Produce a single unified-diff patch that, when applied + run through `oya verify`, makes the failing surface green.\n\
+         Produce a single unified-diff patch that, when applied + run through local `oya verify` feedback, makes the failing surface green; merge authority remains `oya-ci-required`.\n\
          Do not invent files. Do not silently change public contracts.\n\
          Cite any mistakes-ledger row your fix addresses.\n".to_owned(),
     )

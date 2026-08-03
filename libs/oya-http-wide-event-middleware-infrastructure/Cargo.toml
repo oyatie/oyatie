@@ -28,7 +28,12 @@ tower = { workspace = true }
 futures-util = { version = "0.3", default-features = false, features = ["alloc"] }
 serde = { workspace = true }
 serde_json = { workspace = true }
+oya-http-middleware-kernel = { path = "../oya-http-middleware-kernel" }
 oya-shared-hyperscaler-metrics-kernel = { path = "../oya-shared-hyperscaler-metrics-kernel" }
+oya-tenancy-kernel = { path = "../../cloud/tenancy/crates/oya-tenancy-kernel" }
+
+[dev-dependencies]
+oya-http-router-kernel = { path = "../oya-http-router-kernel" }
 
 [lints]
 workspace = true

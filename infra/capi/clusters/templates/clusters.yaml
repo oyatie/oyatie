@@ -15,7 +15,7 @@ metadata:
   labels:
     oya.io/cell: {{ .name | quote }}
     oya.io/substrate: {{ .substrate | quote }}
-    oya.io/bootstrap: "true"            # triggers the CRS (Cilium + Argo CD)
+    oya.io/bootstrap: "true"            # triggers CRS (Cilium + Argo CD controllers; CRDs via Talos extraManifests)
 spec:
   clusterNetwork:
     pods: { cidrBlocks: {{ $d.clusterNetwork.pods | toJson }} }

@@ -7,9 +7,9 @@ rust_library(
     deps = [],
 )
 
-# :registry-drift-gate — re-runs the producer in a sandbox and byte-diffs against the committed
+# :registry-drift-gate — re-runs the producer in a sandbox and byte-diffs against the materialized
 # accounting faces (PHASE-0-FIREWALL-PLAN §5.3; OYA-CI-HERMETIC-EXECUTION-DESIGN §1).
-# A hand-edit to any committed accounting face fails this target.
+# A hand-edit to any materialized accounting face fails this target.
 # HERMETIC: the producer binary is passed via `$(exe ...)` (buck2 builds it and substitutes its
 # path into the env), so the test execs a pre-built binary — no `env!("CARGO")`, no `cargo run`.
 # The producer reads the committed scm-facts face (a declared input via the accounting lib's

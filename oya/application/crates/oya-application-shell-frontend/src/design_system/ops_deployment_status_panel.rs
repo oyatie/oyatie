@@ -13,6 +13,7 @@
 //! 3. the secret-blocked state names the missing secret CLASS, never a value.
 
 use leptos::prelude::*;
+use serde::Deserialize;
 
 /// Spec `variants`.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -46,6 +47,7 @@ pub enum PanelState {
     Applying,
     FailedWithCommand,
     RollbackRunning,
+    CellHealthWarning,
     ManualSshForbidden,
 }
 
@@ -57,9 +59,88 @@ impl PanelState {
             Self::Applying => "Apply in progress",
             Self::FailedWithCommand => "Deployment failed; the failing step is shown",
             Self::RollbackRunning => "Rollback in progress",
+            Self::CellHealthWarning => "Cluster health warning; inspect non-mutating panel status",
             Self::ManualSshForbidden => {
                 "Manual SSH remediation is forbidden; use a declarative route"
             }
+        }
+    }
+}
+
+/// Typed view of `GET /ops/v1/clusters/{cluster_id}/health` from
+/// `oya/ops-dashboard-control-center/contracts/openapi/ops-dashboard-control-center.yaml`.
+/// It is a read-only adapter for console status; it never shells out to CLIs or
+/// encodes provider mutation.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum ClusterHealthLevel {
+    Green,
+    Yellow,
+    Red,
+}
+
+impl ClusterHealthLevel {
+    const fn label(self) -> &'static str {
+        match self {
+            Self::Green => "green",
+            Self::Yellow => "yellow",
+            Self::Red => "red",
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ClusterHealthStatus {
+    cluster_id: String,
+    observed_at: String,
+    health: ClusterHealthLevel,
+    signals: Vec<String>,
+}
+
+impl ClusterHealthStatus {
+    pub fn from_json(value: &str) -> Result<Self, serde_json::Error> {
+        serde_json::from_str(value)
+    }
+
+    pub const fn endpoint(&self) -> &'static str {
+        "GET /ops/v1/clusters/{cluster_id}/health"
+    }
+
+    pub fn cluster_id(&self) -> &str {
+        &self.cluster_id
+    }
+
+    pub const fn health(&self) -> ClusterHealthLevel {
+        self.health
+    }
+
+    pub fn to_deployment_status(&self) -> DeploymentStatus {
+        let current_step = if self.signals.is_empty() {
+            "no cluster health signal".to_owned()
+        } else {
+            self.signals.join(" · ")
+        };
+
+        DeploymentStatus {
+            variant: PanelVariant::DriftDetected,
+            state: match self.health {
+                ClusterHealthLevel::Green => PanelState::Ready,
+                ClusterHealthLevel::Yellow | ClusterHealthLevel::Red => {
+                    PanelState::CellHealthWarning
+                }
+            },
+            target_environment: self.cluster_id.clone(),
+            current_step,
+            drift_status: format!(
+                "{} · observed {} · typed ops API",
+                self.health.label(),
+                self.observed_at
+            ),
+            remediation: Some(RemediationRoute::GitOpsReconcile {
+                resource_ref: self.cluster_id.clone(),
+            }),
+            destructive_apply: None,
         }
     }
 }
@@ -142,8 +223,8 @@ pub struct DeploymentStatus {
 #[component]
 pub fn OpsDeploymentStatusPanel(status: DeploymentStatus) -> impl IntoView {
     let announcement = status.state.announcement();
-    let rollback_available = status.destructive_apply.is_some()
-        || matches!(status.variant, PanelVariant::Rollback);
+    let rollback_available =
+        status.destructive_apply.is_some() || matches!(status.variant, PanelVariant::Rollback);
     view! {
         <section
             class="ds-ops-deployment-status-panel"
@@ -234,5 +315,55 @@ mod tests {
         // The API takes only the class; there is no value to leak. Guard the
         // copy shape anyway.
         assert!(message.starts_with("Deployment blocked: missing secret of class"));
+    }
+
+    #[test]
+    fn ops_cluster_health_fixture_maps_to_non_mutating_panel_status() {
+        let fixture = r#"{
+            "cluster_id": "cell-us-east-2",
+            "observed_at": "2026-07-01T05:00:00Z",
+            "health": "yellow",
+            "signals": [
+                "argocd-app-health degraded",
+                "cosign verify ok",
+                "traceparent fixture only"
+            ]
+        }"#;
+
+        let api_status =
+            ClusterHealthStatus::from_json(fixture).expect("typed cluster health JSON");
+        let panel = api_status.to_deployment_status();
+
+        assert_eq!(
+            api_status.endpoint(),
+            "GET /ops/v1/clusters/{cluster_id}/health"
+        );
+        assert_eq!(api_status.cluster_id(), "cell-us-east-2");
+        assert_eq!(api_status.health(), ClusterHealthLevel::Yellow);
+        assert_eq!(panel.variant, PanelVariant::DriftDetected);
+        assert_eq!(panel.state, PanelState::CellHealthWarning);
+        assert_eq!(panel.target_environment, "cell-us-east-2");
+        assert_eq!(
+            panel.current_step,
+            "argocd-app-health degraded · cosign verify ok · traceparent fixture only"
+        );
+        assert_eq!(
+            panel.drift_status,
+            "yellow · observed 2026-07-01T05:00:00Z · typed ops API"
+        );
+        assert!(panel.destructive_apply.is_none());
+    }
+
+    #[test]
+    fn ops_cluster_health_rejects_unknown_contract_fields() {
+        let fixture = r#"{
+            "cluster_id": "cell-us-east-2",
+            "observed_at": "2026-07-01T05:00:00Z",
+            "health": "yellow",
+            "signals": ["argocd-app-health degraded"],
+            "provider_mutation_hint": "ssh into the node"
+        }"#;
+
+        assert!(ClusterHealthStatus::from_json(fixture).is_err());
     }
 }

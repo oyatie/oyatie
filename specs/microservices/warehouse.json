@@ -16,7 +16,7 @@
     "microservice": "warehouse",
     "bounded_context": "inventory-and-warehouse-execution",
     "crate_prefix": "oya-warehouse-inventory",
-    "primary_crate": "microservices/warehouse/crates/oya-warehouse-inventory-domain",
+    "primary_crate": "oya/warehouse/crates/oya-warehouse-inventory-domain",
     "product_id": "warehouse",
     "owning_axis": "axis-enterprise"
   },
@@ -39,48 +39,62 @@
     "https://docs.oracle.com/en/cloud/saas/warehouse-management/26a/owmol/overview.html",
     "https://learn.microsoft.com/en-us/dynamics365/supply-chain/warehousing/warehouse-management-overview"
   ],
+  "source_reconciliation": {
+    "id": "WAREHOUSE-SPEC-001",
+    "date": "2026-07-01",
+    "root_authority": "specs/root-hub-pointers.json entry prd_warehouse -> specs/microservices/warehouse.json",
+    "current_path_inventory": [
+      "oya/warehouse/manifest.json",
+      "oya/warehouse/crates/oya-warehouse-inventory-domain",
+      "registry/catalog/oya-warehouse-inventory-domain.yaml"
+    ],
+    "selected_red_build_destination": "oya/warehouse/crates/oya-warehouse-inventory-domain",
+    "path_inventory_boundary": "The oya/warehouse inventory-domain crate is the current repository path inventory for AC-01..AC-06 RED/GREEN work; this PRD remains preview metadata-only authority and this mapping does not promote runtime, GA, cloud, WMS, durable persistence, audit-chain emission, or hyperscaler readiness claims.",
+    "fulfillment_app_boundary": "oya/warehouse/crates/oya-warehouse-fulfillment-app and oya/warehouse/contracts are fulfillment/scaffold surfaces and are not the AC-01..AC-06 inventory-domain RED/GREEN target unless a later source-authority card promotes contract-binding work.",
+    "non_overlap": "oya/data-warehouse and ICEBERG/data-warehouse work remain Apache Iceberg/OLAP write-path scope, not Warehouse Inventory vertical scope."
+  },
   "acceptance_criteria": [
     {
       "id": "AC-01",
       "given": "a procurement purchase order arrives at a warehouse receiving dock",
       "when": "the warehouse inventory domain records goods receipt",
       "then": "tenant, legal entity, warehouse, item, PO, inbound load, expected quantity, received quantity, quantity variance, unit of measure, PO source ref, receiving evidence, timestamp, idempotency key, state, and explicit false procurement/accounting/durable-write flags are present",
-      "test_ref": "microservices/warehouse/crates/oya-warehouse-inventory-domain/tests/inventory.rs::goods_receipt_putaway_reservation_pick_and_cycle_count_flow"
+      "test_ref": "oya/warehouse/crates/oya-warehouse-inventory-domain/tests/inventory.rs::goods_receipt_putaway_reservation_pick_and_cycle_count_flow"
     },
     {
       "id": "AC-02",
       "given": "a goods receipt has been recorded",
       "when": "putaway is recorded into a storage bin",
       "then": "receipt, source location, target bin, item, quantity, remaining capacity, location directive, putaway evidence, stock position identity, and false robotics/durable/cloud flags are present",
-      "test_ref": "microservices/warehouse/crates/oya-warehouse-inventory-domain/tests/inventory.rs::{goods_receipt_putaway_reservation_pick_and_cycle_count_flow,warehouse_refuses_missing_receipt_and_inactive_reservation,warehouse_refuses_capacity_shortage_and_over_reservation}"
+      "test_ref": "oya/warehouse/crates/oya-warehouse-inventory-domain/tests/inventory.rs::{goods_receipt_putaway_reservation_pick_and_cycle_count_flow,warehouse_refuses_missing_receipt_and_inactive_reservation,warehouse_refuses_capacity_shortage_and_over_reservation}"
     },
     {
       "id": "AC-03",
       "given": "available stock exists for an outbound order",
       "when": "inventory reservation is created",
       "then": "stock position, outbound order, allocation policy, reservation evidence, reserved quantity, available-after-reservation, pick-release flag, and false carrier/cloud flags are present while over-reservation is refused",
-      "test_ref": "microservices/warehouse/crates/oya-warehouse-inventory-domain/tests/inventory.rs::warehouse_refuses_capacity_shortage_and_over_reservation"
+      "test_ref": "oya/warehouse/crates/oya-warehouse-inventory-domain/tests/inventory.rs::warehouse_refuses_capacity_shortage_and_over_reservation"
     },
     {
       "id": "AC-04",
       "given": "a reservation is active",
       "when": "inventory pick confirmation is recorded",
       "then": "pick task, reservation, outbound order, bin, item, picked quantity, pick evidence, shipment-release flag, and false carrier-call/shipping-label/cloud flags are present; inactive reservation and picked/reserved quantity mismatch are refused",
-      "test_ref": "microservices/warehouse/crates/oya-warehouse-inventory-domain/tests/inventory.rs::{goods_receipt_putaway_reservation_pick_and_cycle_count_flow,warehouse_validates_refs_quantities_and_pick_counts}"
+      "test_ref": "oya/warehouse/crates/oya-warehouse-inventory-domain/tests/inventory.rs::{goods_receipt_putaway_reservation_pick_and_cycle_count_flow,warehouse_validates_refs_quantities_and_pick_counts}"
     },
     {
       "id": "AC-05",
       "given": "cycle counting compares book and counted inventory",
       "when": "cycle count reconciliation runs",
       "then": "variance, tolerance, within-tolerance flag, count evidence, and false accounting-adjustment/durable-write/cloud flags are present; variance outside tolerance is refused",
-      "test_ref": "microservices/warehouse/crates/oya-warehouse-inventory-domain/tests/inventory.rs::warehouse_validates_refs_quantities_and_pick_counts"
+      "test_ref": "oya/warehouse/crates/oya-warehouse-inventory-domain/tests/inventory.rs::warehouse_validates_refs_quantities_and_pick_counts"
     },
     {
       "id": "AC-06",
       "given": "untrusted identifiers, source refs, evidence refs, units, or quantities enter the warehouse domain",
       "when": "domain validation runs",
       "then": "prefix-only, traversal, whitespace/control, credential-shaped refs, zero operational quantities, invalid units of measure, capacity shortage, over-reservation, and pick mismatch are refused",
-      "test_ref": "microservices/warehouse/crates/oya-warehouse-inventory-domain/tests/inventory.rs::warehouse_validates_refs_quantities_and_pick_counts"
+      "test_ref": "oya/warehouse/crates/oya-warehouse-inventory-domain/tests/inventory.rs::{warehouse_validates_refs_quantities_and_pick_counts,warehouse_refuses_capacity_shortage_and_over_reservation,warehouse_refuses_prefix_only_and_unsafe_identifier_text,warehouse_refuses_invalid_units_and_zero_operational_quantities}"
     }
   ],
   "decision_log": [
@@ -88,6 +102,11 @@
       "id": "D-01",
       "decision": "Warehouse enters the enterprise microservice set as a flat inventory domain crate rather than a monolithic ERP/EWM module; SAP MM/EWM and WMS-like coverage is mapped through Tenant RBAC parity composition while persistence, WMS runtime task execution, robotics/scanner I/O, carrier networks, accounting mutation, Workflow execution, runtime audit emission, and cloud deployment remain explicit non-claims.",
       "date": "2026-05-23"
+    },
+    {
+      "id": "D-02",
+      "decision": "WAREHOUSE-SPEC-001 reconciles stale microservices/warehouse crate and test references to the current oya/warehouse/crates/oya-warehouse-inventory-domain path inventory for metadata-only RED/GREEN domain work. This is a path-reference clarification only; it does not promote oya/warehouse manifests, contracts, IAC, dashboards, SLOs, catalog records, or fulfillment scaffold surfaces to runtime readiness and does not overlap oya/data-warehouse ICEBERG/OLAP scope.",
+      "date": "2026-07-01"
     }
   ],
   "inherits": {
@@ -124,7 +143,7 @@
     ]
   },
   "data_model": {
-    "primary_crate_ref": "microservices/warehouse/crates/oya-warehouse-inventory-domain",
+    "primary_crate_ref": "oya/warehouse/crates/oya-warehouse-inventory-domain",
     "entities_ref": [
       {
         "entity": "Inventory",
@@ -231,14 +250,14 @@
         "preview": "RED/GREEN domain tests pass",
         "stable": "clippy -D warnings + nextest green"
       },
-      "lane_ref": "cargo nextest run"
+      "lane_ref": "cargo test --manifest-path oya/warehouse/crates/oya-warehouse-inventory-domain/Cargo.toml --test inventory"
     },
     {
       "name": "architecture-boundary-conformance",
       "targets": {
         "preview": "0 forbidden dependency edges"
       },
-      "lane_ref": "oya gate validate architecture-boundaries"
+      "lane_ref": "cloud-ci/Rust gate packet: architecture-boundaries"
     }
   ]
 }

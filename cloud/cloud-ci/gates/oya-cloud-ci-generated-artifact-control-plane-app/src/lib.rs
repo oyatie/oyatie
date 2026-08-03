@@ -202,6 +202,16 @@ struct DeclaredArtifact {
     merge_policy: String,
 }
 
+impl DeclaredArtifact {
+    fn is_untracked_ci_artifact(&self) -> bool {
+        self.materialization_mode == "ci-artifact-only" && self.merge_policy == "not-tracked-in-git"
+    }
+
+    fn requires_tracked_path(&self) -> bool {
+        !self.is_untracked_ci_artifact()
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct GeneratedPathRule {
     rule_id: String,
@@ -1002,6 +1012,11 @@ pub fn evaluate_keyed(manifest: &Value, scm_facts: &Value) -> BTreeSet<Finding> 
         .iter()
         .map(|artifact| artifact.path.clone())
         .collect();
+    let tracked_required_paths: BTreeSet<String> = declared
+        .iter()
+        .filter(|artifact| artifact.requires_tracked_path())
+        .map(|artifact| artifact.path.clone())
+        .collect();
     let tracked_generated = tracked_generated_artifact_paths(scm_facts, &generated_path_rules);
 
     for path in tracked_generated.difference(&declared_paths) {
@@ -1010,7 +1025,7 @@ pub fn evaluate_keyed(manifest: &Value, scm_facts: &Value) -> BTreeSet<Finding> 
             path,
         ));
     }
-    for path in declared_paths.difference(&tracked_generated) {
+    for path in tracked_required_paths.difference(&tracked_generated) {
         findings.insert(Finding::new(
             "generated_artifact_declared_path_not_tracked",
             path,
@@ -1024,6 +1039,28 @@ pub fn evaluate_keyed(manifest: &Value, scm_facts: &Value) -> BTreeSet<Finding> 
             findings.insert(Finding::new(
                 "generated_artifact_generated_output_uses_normal_source_merge",
                 &artifact.artifact_id,
+            ));
+        }
+        if artifact.materialization_mode == "ci-artifact-only"
+            && artifact.merge_policy != "not-tracked-in-git"
+        {
+            findings.insert(Finding::new(
+                "generated_artifact_ci_artifact_only_requires_not_tracked_policy",
+                &artifact.artifact_id,
+            ));
+        }
+        if artifact.merge_policy == "not-tracked-in-git"
+            && artifact.materialization_mode != "ci-artifact-only"
+        {
+            findings.insert(Finding::new(
+                "generated_artifact_not_tracked_policy_requires_ci_artifact_only",
+                &artifact.artifact_id,
+            ));
+        }
+        if artifact.is_untracked_ci_artifact() && tracked_generated.contains(&artifact.path) {
+            findings.insert(Finding::new(
+                "generated_artifact_ci_artifact_only_path_tracked",
+                &artifact.path,
             ));
         }
         if artifact.artifact_class == "main-materialized-aggregate"
@@ -1166,6 +1203,54 @@ mod tests {
         let manifest = manifest(vec![artifact("example-face", "out/example.generated.json")]);
         let scm_facts = scm(&["out/example.generated.json"]);
         assert_eq!(evaluate(&manifest, &scm_facts).verdict, Verdict::Green);
+    }
+
+    #[test]
+    fn ci_artifact_only_generated_artifacts_may_be_declared_without_tracked_path() {
+        let mut face = artifact("example-face", "out/example.generated.json");
+        face["materialization_mode"] = json!("ci-artifact-only");
+        face["merge_policy"] = json!("not-tracked-in-git");
+        let manifest = manifest(vec![face]);
+        let scm_facts = scm(&[]);
+
+        assert_eq!(evaluate(&manifest, &scm_facts).verdict, Verdict::Green);
+    }
+
+    #[test]
+    fn ci_artifact_only_generated_artifacts_must_not_remain_tracked() {
+        let mut face = artifact("example-face", "out/example.generated.json");
+        face["materialization_mode"] = json!("ci-artifact-only");
+        face["merge_policy"] = json!("not-tracked-in-git");
+        let manifest = manifest(vec![face]);
+        let scm_facts = scm(&["out/example.generated.json"]);
+
+        let findings = evaluate_keyed(&manifest, &scm_facts);
+
+        assert!(findings.iter().any(|finding| {
+            finding.code == "generated_artifact_ci_artifact_only_path_tracked"
+                && finding.key == "out/example.generated.json"
+        }));
+    }
+
+    #[test]
+    fn ci_artifact_only_mode_and_not_tracked_policy_must_be_paired() {
+        let mut ci_without_policy = artifact("ci-without-policy", "out/ci.generated.json");
+        ci_without_policy["materialization_mode"] = json!("ci-artifact-only");
+        let mut policy_without_ci = artifact("policy-without-ci", "out/policy.generated.json");
+        policy_without_ci["merge_policy"] = json!("not-tracked-in-git");
+        let manifest = manifest(vec![ci_without_policy, policy_without_ci]);
+        let scm_facts = scm(&[]);
+
+        let findings = evaluate_keyed(&manifest, &scm_facts);
+
+        assert!(findings.iter().any(|finding| {
+            finding.code == "generated_artifact_ci_artifact_only_requires_not_tracked_policy"
+                && finding.key == "ci-without-policy"
+        }));
+        assert!(findings.iter().any(|finding| {
+            finding.code == "generated_artifact_not_tracked_policy_requires_ci_artifact_only"
+                && finding.key == "policy-without-ci"
+        }));
     }
 
     #[test]

@@ -48,6 +48,11 @@ impl InMemorySigner {
         }
     }
 
+    /// Raw private key material for the sealed CA persistence boundary.
+    pub(crate) fn private_key_material(&self) -> &[u8] {
+        &self.private_key
+    }
+
     fn mac(&self, tbs: &[u8]) -> [u8; 8] {
         let mut hash: u64 = 0xcbf2_9ce4_8422_2325;
         for &b in self

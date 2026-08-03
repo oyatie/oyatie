@@ -20,3 +20,15 @@ rust_test(
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
     ],
 )
+
+rust_test(
+    name = "oya-treasury-cash-domain-env-tier-outbound-metadata",
+    srcs = ["tests/env_tier_outbound_metadata.rs"],
+    crate = "oya_treasury_cash_domain_env_tier_outbound_metadata",
+    crate_root = "tests/env_tier_outbound_metadata.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-treasury-cash-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)

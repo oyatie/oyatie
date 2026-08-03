@@ -4,10 +4,11 @@
     "title": "HR Employment API",
     "version": "0.1.0",
     "summary": "Employee onboarding, Korea labor-compliance planning, leave payroll-impact, and sensitive-read policy contracts.",
-    "description": "Preview contract surface aligned to transport-neutral Rust DTO crates. This artifact defines wire shape for later runtime adapters; it does not claim a deployed endpoint.",
+    "description": "Preview contract surface aligned to transport-neutral Rust DTO crates. This artifact defines wire shape for the bounded HR listener/transport seam; it does not claim a production-deployed endpoint.",
     "x-oyatie-contract-status": "preview-not-deployed",
     "x-oyatie-non-claims": [
-      "no deployed HTTP runtime",
+      "no production-deployed HTTP runtime",
+      "bounded prebound listener harness only",
       "no authentication enforcement runtime",
       "no storage adapter",
       "no Workflow dispatch execution",
@@ -155,6 +156,25 @@
           }
         }
       }
+    },
+    "/hr/v1/healthz": {
+      "get": {
+        "operationId": "hrRuntimeHealth",
+        "summary": "Report HR listener-boundary health and explicit runtime non-claims.",
+        "x-oyatie-app-function": "oya_hr_employment_infrastructure::dispatch_hr_request",
+        "responses": {
+          "200": {
+            "description": "Health report for the bounded HR listener/transport boundary; not production deployment evidence.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HrHealth"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -228,6 +248,76 @@
             "const": "hr"
           }
         }
+      },
+      "HrHealth": {
+        "type": "object",
+        "required": [
+          "status",
+          "service",
+          "runtimeAdapter",
+          "listenerBoundary",
+          "deployedListener",
+          "storageAttached",
+          "workflowExecution",
+          "payrollNetworkCall",
+          "sensitiveDataFetch",
+          "runtimeAuditEmission",
+          "cloudDeployment",
+          "schemaVersion"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "ok"
+          },
+          "service": {
+            "type": "string",
+            "const": "hr"
+          },
+          "runtimeAdapter": {
+            "type": "string",
+            "const": "listener-boundary-ready"
+          },
+          "listenerBoundary": {
+            "type": "string",
+            "const": "prebound-std-tcp-listener"
+          },
+          "deployedListener": {
+            "type": "boolean",
+            "const": false
+          },
+          "storageAttached": {
+            "type": "boolean",
+            "const": false
+          },
+          "workflowExecution": {
+            "type": "boolean",
+            "const": false
+          },
+          "payrollNetworkCall": {
+            "type": "boolean",
+            "const": false
+          },
+          "sensitiveDataFetch": {
+            "type": "boolean",
+            "const": false
+          },
+          "runtimeAuditEmission": {
+            "type": "boolean",
+            "const": false
+          },
+          "cloudDeployment": {
+            "type": "boolean",
+            "const": false
+          },
+          "schemaVersion": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "x-oyatie-non-claims": [
+          "Health proves only the bounded prebound listener/transport seam; no production-deployed listener, durable storage, Workflow execution, Payroll call, sensitive-data retrieval, runtime audit-chain emission, or cloud deployment is claimed."
+        ]
       },
       "OnboardEmployeeRequest": {
         "type": "object",
@@ -423,6 +513,8 @@
           "basisEvidenceRef",
           "requestEvidenceRef",
           "readLogEvidenceRef",
+          "tenantRbacScopeEvidenceRef",
+          "auditEmissionContractRef",
           "evaluatedAtEpochSeconds"
         ],
         "properties": {
@@ -506,6 +598,21 @@
             "pattern": "^audit/.+",
             "x-data-class": "INTERNAL_ONLY"
           },
+          "tenantRbacScopeEvidenceRef": {
+            "type": "string",
+            "pattern": "^audit/tenant-rbac/hr-sensitive-read/[A-Za-z0-9_-][A-Za-z0-9_.-]*(?:/[A-Za-z0-9_-][A-Za-z0-9_.-]*)*$",
+            "description": "Tenant/RBAC scope evidence reference required by the bounded sensitive-read runtime boundary; metadata-only and not a sensitive HR data payload.",
+            "x-data-class": "INTERNAL_ONLY",
+            "x-oyatie-runtime-boundary-required": true
+          },
+          "auditEmissionContractRef": {
+            "type": "string",
+            "const": "audit-event-class/HrSensitiveReadPolicyEvaluated",
+            "pattern": "^audit-event-class/HrSensitiveReadPolicyEvaluated$",
+            "description": "Audit event-class contract reference required before runtime-boundary decision metadata is prepared; this is not a runtime audit-chain emission claim.",
+            "x-data-class": "INTERNAL_ONLY",
+            "x-oyatie-runtime-boundary-required": true
+          },
           "evaluatedAtEpochSeconds": {
             "type": "integer",
             "minimum": 1,
@@ -513,8 +620,24 @@
           }
         },
         "x-oyatie-non-claims": [
-          "OpenAPI shape only; runtime authorization, sensitive data retrieval, storage, and audit-chain emission are not deployed by this contract."
-        ]
+          "OpenAPI shape only; sensitive data retrieval, storage, Workflow execution, Payroll calls, runtime audit-chain emission, and production deployment are not claimed by this contract.",
+          "tenantRbacScopeEvidenceRef and auditEmissionContractRef are metadata-only runtime-boundary prerequisites; the DTO is compatibility-tolerant, but the bounded runtime handler fail-closes if either is omitted."
+        ],
+        "x-oyatie-runtime-boundary": {
+          "status": "preview-not-deployed",
+          "requires": [
+            "tenantRbacScopeEvidenceRef",
+            "auditEmissionContractRef"
+          ],
+          "non_claims": [
+            "no sensitive HR data retrieval",
+            "no raw sensitive data echo",
+            "no storage persistence",
+            "no Workflow execution",
+            "no Payroll call",
+            "no runtime audit-chain emission"
+          ]
+        }
       },
       "SensitiveReadPolicyDecisionResponse": {
         "type": "object",
@@ -694,9 +817,26 @@
         "required": [
           "integrationTopic",
           "idempotencyKey",
+          "sourceTopic",
+          "sourceHrIdempotencyKey",
+          "tenantId",
+          "legalEntityId",
+          "employeeId",
+          "leaveRequestId",
+          "decisionEvidenceRef",
+          "routingEvidenceRef",
+          "payrollImpactEvidenceRef",
+          "hrRulepackRef",
+          "hrRulepackEffectiveDate",
+          "decidedAtEpochSeconds",
           "payrollPeriod",
           "payrollImpactKind",
           "payloadDataClass",
+          "payrollCalculationAttached",
+          "payrollNetworkCall",
+          "workflowExecution",
+          "storageAttached",
+          "runtimeAuditEmission",
           "schemaVersion"
         ],
         "properties": {
@@ -707,6 +847,65 @@
           },
           "idempotencyKey": {
             "type": "string",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "sourceTopic": {
+            "type": "string",
+            "const": "integration.hr.payroll.leave-impact",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "sourceHrIdempotencyKey": {
+            "type": "string",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "tenantId": {
+            "type": "string",
+            "pattern": "^ten_[A-Za-z0-9_-]+$",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "legalEntityId": {
+            "type": "string",
+            "pattern": "^le_[A-Za-z0-9_-]+$",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "employeeId": {
+            "type": "string",
+            "pattern": "^emp_[A-Za-z0-9_-]+$",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "leaveRequestId": {
+            "type": "string",
+            "pattern": "^leave_[A-Za-z0-9_-]+$",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "decisionEvidenceRef": {
+            "type": "string",
+            "pattern": "^audit/.+",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "routingEvidenceRef": {
+            "type": "string",
+            "pattern": "^audit/.+",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "payrollImpactEvidenceRef": {
+            "type": "string",
+            "pattern": "^audit/.+",
+            "x-data-class": "FINANCIAL"
+          },
+          "hrRulepackRef": {
+            "type": "string",
+            "pattern": "^rulepack/.+",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "hrRulepackEffectiveDate": {
+            "type": "string",
+            "format": "date",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "decidedAtEpochSeconds": {
+            "type": "integer",
+            "minimum": 1,
             "x-data-class": "INTERNAL_ONLY"
           },
           "payrollPeriod": {
@@ -729,12 +928,40 @@
             "const": "FINANCIAL",
             "x-data-class": "INTERNAL_ONLY"
           },
+          "payrollCalculationAttached": {
+            "type": "boolean",
+            "const": false,
+            "x-data-class": "PUBLIC"
+          },
+          "payrollNetworkCall": {
+            "type": "boolean",
+            "const": false,
+            "x-data-class": "PUBLIC"
+          },
+          "workflowExecution": {
+            "type": "boolean",
+            "const": false,
+            "x-data-class": "PUBLIC"
+          },
+          "storageAttached": {
+            "type": "boolean",
+            "const": false,
+            "x-data-class": "PUBLIC"
+          },
+          "runtimeAuditEmission": {
+            "type": "boolean",
+            "const": false,
+            "x-data-class": "PUBLIC"
+          },
           "schemaVersion": {
             "type": "integer",
             "minimum": 1,
             "x-data-class": "PUBLIC"
           }
-        }
+        },
+        "x-oyatie-non-claims": [
+          "HR emits only a metadata handoff payload for Payroll-owned intake; it does not calculate payroll, call Payroll, execute Workflow, persist storage, or emit runtime audit-chain records."
+        ]
       }
     },
     "responses": {

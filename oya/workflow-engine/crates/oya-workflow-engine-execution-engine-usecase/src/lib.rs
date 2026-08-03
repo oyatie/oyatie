@@ -113,6 +113,113 @@ pub struct ExecutionUsecaseReceipt {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+pub struct HrLaborComplianceWorkflowIntake {
+    pub tenant_id: String,            // data_class: INTERNAL_ONLY
+    pub legal_entity_id: String,      // data_class: INTERNAL_ONLY
+    pub workflow_ref: String,         // data_class: INTERNAL_ONLY
+    pub obligation_kind: String,      // data_class: INTERNAL_ONLY
+    pub required_steps: Vec<String>,  // data_class: INTERNAL_ONLY
+    pub evidence_refs: Vec<String>,   // data_class: INTERNAL_ONLY
+    pub idempotency_key: String,      // data_class: INTERNAL_ONLY
+    pub audit_refs: Vec<String>,      // data_class: INTERNAL_ONLY
+    pub cell_id: String,              // data_class: INTERNAL_ONLY
+    pub workflow_version_ref: String, // data_class: INTERNAL_ONLY
+    pub policy_evidence_ref: String,  // data_class: INTERNAL_ONLY
+    pub spec_integrity_ref: String,   // data_class: INTERNAL_ONLY
+    pub replay_epoch_ref: String,     // data_class: INTERNAL_ONLY
+    pub scheduler_epoch_ref: String,  // data_class: INTERNAL_ONLY
+    pub trace_ref: String,            // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum HrWorkflowIntakeError {
+    MissingAuditRefs,
+    MissingEvidenceRefs,
+    MissingRequiredSteps,
+    UnsafeMetadata,
+}
+
+/// Plan the Workflow-owned start-run input for an HR labor-compliance dispatch envelope.
+///
+/// This is the source-level Workflow intake contract for HR metadata envelopes. It preserves
+/// tenant/legal-entity/workflow/evidence/idempotency/audit metadata while mapping the envelope
+/// into the existing execution-engine usecase shape. It performs no storage, network, audit-chain,
+/// queue, clock, random, Cedar, Workflow runtime, or HR-side I/O.
+pub fn plan_hr_labor_compliance_workflow_start(
+    intake: HrLaborComplianceWorkflowIntake,
+) -> Result<ExecutionEngineUsecaseInput, HrWorkflowIntakeError> {
+    if intake.required_steps.is_empty() {
+        return Err(HrWorkflowIntakeError::MissingRequiredSteps);
+    }
+    if intake.evidence_refs.is_empty() {
+        return Err(HrWorkflowIntakeError::MissingEvidenceRefs);
+    }
+    if intake.audit_refs.is_empty() {
+        return Err(HrWorkflowIntakeError::MissingAuditRefs);
+    }
+    if !is_safe_hr_labor_compliance_intake(&intake) {
+        return Err(HrWorkflowIntakeError::UnsafeMetadata);
+    }
+
+    let workflow_spec_id = workflow_spec_id(&intake.workflow_ref);
+    let run_id = format!(
+        "hr-workflow-run:{}:{}:{}",
+        intake.tenant_id, intake.legal_entity_id, intake.obligation_kind
+    );
+    let request_id = format!(
+        "req:hr-compliance:{}:{}:{}",
+        intake.tenant_id, intake.legal_entity_id, intake.obligation_kind
+    );
+    let first_step_key = metadata_slug(&intake.required_steps[0]);
+    let first_step_id = format!("hr-workflow-step:{first_step_key}");
+    let first_step_idempotency_key = format!("{}:step:{first_step_key}", intake.idempotency_key);
+
+    let run = WorkflowRun::new(
+        &intake.tenant_id,
+        &run_id,
+        &workflow_spec_id,
+        &intake.workflow_version_ref,
+        &intake.cell_id,
+        hr_labor_compliance_run_evidence_refs(&intake),
+    )
+    .map_err(|_| HrWorkflowIntakeError::UnsafeMetadata)?;
+    let step = StepExecution::new(
+        &intake.tenant_id,
+        &run_id,
+        &first_step_id,
+        0,
+        1,
+        &first_step_idempotency_key,
+        hr_labor_compliance_step_evidence_refs(&intake, &first_step_key),
+    )
+    .map_err(|_| HrWorkflowIntakeError::UnsafeMetadata)?;
+
+    Ok(ExecutionEngineUsecaseInput {
+        request_id,
+        idempotency_key: intake.idempotency_key.clone(),
+        trace_ref: intake.trace_ref.clone(),
+        expected_run_version: 1,
+        domain_request: ExecutionEngineDomainRequest {
+            run,
+            step: Some(step),
+            retry_attempt: None,
+            sla_timer: None,
+            expected_tenant_id: intake.tenant_id,
+            expected_spec_id: workflow_spec_id,
+            expected_version_sha: intake.workflow_version_ref,
+            expected_cell_id: intake.cell_id,
+            policy_evidence_ref: intake.policy_evidence_ref,
+            spec_integrity_ref: intake.spec_integrity_ref,
+            replay_epoch_ref: intake.replay_epoch_ref,
+            scheduler_epoch_ref: intake.scheduler_epoch_ref,
+            sla_reference_epoch_seconds: 0,
+            command: ExecutionDomainCommandKind::StartRun,
+            origin: ExecutionDomainOrigin::ApiCommand,
+        },
+    })
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 struct ExecutionUsecaseIntent {
     fingerprint: String,
 }
@@ -857,6 +964,146 @@ fn sorted_unique(mut values: Vec<String>) -> Vec<String> {
     values.sort();
     values.dedup();
     values
+}
+
+fn is_safe_hr_labor_compliance_intake(intake: &HrLaborComplianceWorkflowIntake) -> bool {
+    is_safe_tenant(&intake.tenant_id)
+        && is_safe_legal_entity_id(&intake.legal_entity_id)
+        && is_safe_hr_source_ref(&intake.workflow_ref)
+        && is_safe_hr_metadata(&intake.obligation_kind)
+        && intake
+            .required_steps
+            .iter()
+            .all(|value| is_safe_hr_metadata(value))
+        && intake
+            .evidence_refs
+            .iter()
+            .all(|value| is_safe_hr_source_ref(value))
+        && is_safe_hr_ref(&intake.idempotency_key)
+        && intake.audit_refs.iter().all(|value| is_safe_hr_ref(value))
+        && is_safe_hr_ref(&intake.cell_id)
+        && is_safe_hr_ref(&intake.workflow_version_ref)
+        && is_safe_hr_ref(&intake.policy_evidence_ref)
+        && is_safe_hr_ref(&intake.spec_integrity_ref)
+        && is_safe_hr_ref(&intake.replay_epoch_ref)
+        && is_safe_hr_ref(&intake.scheduler_epoch_ref)
+        && is_safe_hr_ref(&intake.trace_ref)
+        && is_safe_hr_ref(&workflow_spec_id(&intake.workflow_ref))
+        && !metadata_slug(&intake.required_steps[0]).is_empty()
+}
+
+fn is_safe_legal_entity_id(value: &str) -> bool {
+    let trimmed = value.trim();
+    trimmed.starts_with("le_") && value == trimmed && is_safe_hr_metadata(value)
+}
+
+fn is_safe_hr_ref(value: &str) -> bool {
+    is_safe_ref(value) && is_safe_hr_metadata(value)
+}
+
+fn is_safe_hr_source_ref(value: &str) -> bool {
+    is_safe_hr_metadata(value)
+        && value
+            .split('/')
+            .all(|segment| !segment.is_empty() && segment != ".")
+}
+
+fn is_safe_hr_metadata(value: &str) -> bool {
+    is_safe_metadata(value)
+        && !value.contains('\\')
+        && !value.contains("..")
+        && !contains_hr_credential_marker(value)
+}
+
+fn contains_hr_credential_marker(value: &str) -> bool {
+    let lower = value.to_ascii_lowercase();
+    lower.contains("token")
+        || lower.contains("secret")
+        || lower.contains("password")
+        || lower.contains("access_key")
+        || lower.contains("access-key")
+        || lower.contains("private_key")
+        || lower.contains("private-key")
+}
+
+fn workflow_spec_id(workflow_ref: &str) -> String {
+    if is_safe_ref(workflow_ref) {
+        workflow_ref.to_owned()
+    } else {
+        format!("workflow-ref:{workflow_ref}")
+    }
+}
+
+fn hr_labor_compliance_run_evidence_refs(intake: &HrLaborComplianceWorkflowIntake) -> Vec<String> {
+    let mut refs = intake.audit_refs.clone();
+    refs.push(format!(
+        "workflow-execution-hr-intake:legal-entity:{}",
+        intake.legal_entity_id
+    ));
+    refs.push(format!(
+        "workflow-execution-hr-intake:workflow-ref:{}",
+        intake.workflow_ref
+    ));
+    refs.push(format!(
+        "workflow-execution-hr-intake:obligation:{}",
+        intake.obligation_kind
+    ));
+    refs.extend(intake.required_steps.iter().map(|step| {
+        format!(
+            "workflow-execution-hr-intake:required-step:{}",
+            metadata_slug(step)
+        )
+    }));
+    refs.extend(
+        intake
+            .evidence_refs
+            .iter()
+            .map(|evidence_ref| format!("workflow-execution-hr-intake:evidence:{evidence_ref}")),
+    );
+    sorted_unique(refs)
+}
+
+fn hr_labor_compliance_step_evidence_refs(
+    intake: &HrLaborComplianceWorkflowIntake,
+    first_step_key: &str,
+) -> Vec<String> {
+    let mut refs = intake.audit_refs.clone();
+    refs.push(format!(
+        "workflow-execution-hr-intake:required-step:{first_step_key}"
+    ));
+    refs.extend(
+        intake
+            .evidence_refs
+            .iter()
+            .map(|evidence_ref| format!("workflow-execution-hr-intake:evidence:{evidence_ref}")),
+    );
+    sorted_unique(refs)
+}
+
+fn metadata_slug(value: &str) -> String {
+    let mut slug = String::new();
+    let mut previous_was_separator = true;
+
+    for (index, character) in value.chars().enumerate() {
+        if character.is_ascii_uppercase() {
+            if index > 0 && !previous_was_separator {
+                slug.push('-');
+            }
+            slug.push(character.to_ascii_lowercase());
+            previous_was_separator = false;
+        } else if character.is_ascii_alphanumeric() {
+            slug.push(character.to_ascii_lowercase());
+            previous_was_separator = false;
+        } else if !previous_was_separator {
+            slug.push('-');
+            previous_was_separator = true;
+        }
+    }
+
+    while slug.ends_with('-') {
+        slug.pop();
+    }
+    slug
 }
 
 // ── Signal/await durable-wait slice ─────────────────────────────────────────
@@ -1813,7 +2060,7 @@ fn await_fingerprint(input: &SignalAwaitInput) -> String {
 }
 
 fn deliver_fingerprint(input: &SignalDeliverInput) -> String {
-    vec![
+    [
         canonical_entry("request_id", &input.request_id),
         canonical_entry("trace_ref", &input.trace_ref),
         canonical_entry("tenant_id", &input.tenant_id),
@@ -1824,7 +2071,7 @@ fn deliver_fingerprint(input: &SignalDeliverInput) -> String {
 }
 
 fn timeout_fingerprint(input: &SignalTimeoutInput) -> String {
-    vec![
+    [
         canonical_entry("request_id", &input.request_id),
         canonical_entry("trace_ref", &input.trace_ref),
         canonical_entry("tenant_id", &input.tenant_id),
