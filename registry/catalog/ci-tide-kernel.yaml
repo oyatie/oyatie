@@ -1,0 +1,13 @@
+context: ci-tide
+role: kernel
+capability: ci
+plane: control
+slo: cataloged-no-runtime-claim
+data_classes_owned: [INTERNAL_ONLY]
+operational_classes_owned: []
+api_stability: preview
+security_review: unreviewed
+supply_chain: source-only
+source_adrs: [ADR-0105, ADR-0111, ADR-0515, ADR-0562]
+traceability:
+  source_crate: ci/core/tide-kernel/Cargo.toml

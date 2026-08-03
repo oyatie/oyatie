@@ -17,7 +17,7 @@
 
 use oya_ci_tide_app::TideRunner;
 use oya_ci_tide_github_adapter::GitHubHttpClient;
-use oya_ci_tide_kernel::{ENV_GITHUB_TOKEN, TideConfig};
+use ci_tide_kernel::{ENV_GITHUB_TOKEN, TideConfig};
 use std::sync::Arc;
 use tracing::info;
 
