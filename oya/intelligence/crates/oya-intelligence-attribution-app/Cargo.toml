@@ -5,15 +5,15 @@ version.workspace = true
 rust-version.workspace = true
 publish = false
 license = "Apache-2.0"
-description = "Attribution composition root (usecase layer per ADR-0105). Wires the pure `oya-intelligence-attribution-kernel::plan_attribution` metadata-only citation planner through the `-domain` policy-binding layer, the `-usecase` idempotent + audit-event layer, the `-worker` job lifecycle layer, and the `-adapter` citation-renderer envelope adapter into an end-to-end `dispatch_attribution` use-case. Owns the ports the runtime must satisfy: `AttributionRepository` (idempotency persistence), `AttributionPolicyStore` (tenant policy decisions), `AttributionAuditSink` (audit-event tap), `CitationRendererTransport` (async renderer invocation), plus in-memory reference adapters for tests / single-node bring-up. Surfaces typed `Unimplemented::*` honest boundaries for the OpenBao credential resolution + Bedrock-shape audit-chain emission downstreams. Path-deps on the 5 sibling attribution crates only; no NEW external workspace dependency seam (mirrors `oya-intelligence-provider-pool-app` composition pattern; ADR-0083 Tier-3 panic-free; default-deny on error)."
+description = "Attribution composition root (usecase layer per ADR-0105). Wires the pure `intelligence-attribution-kernel::plan_attribution` metadata-only citation planner through the `-domain` policy-binding layer, the `-usecase` idempotent + audit-event layer, the `-worker` job lifecycle layer, and the `-adapter` citation-renderer envelope adapter into an end-to-end `dispatch_attribution` use-case. Owns the ports the runtime must satisfy: `AttributionRepository` (idempotency persistence), `AttributionPolicyStore` (tenant policy decisions), `AttributionAuditSink` (audit-event tap), `CitationRendererTransport` (async renderer invocation), plus in-memory reference adapters for tests / single-node bring-up. Surfaces typed `Unimplemented::*` honest boundaries for the OpenBao credential resolution + Bedrock-shape audit-chain emission downstreams. Path-deps on the 5 sibling attribution crates only; no NEW external workspace dependency seam (mirrors `oya-intelligence-provider-pool-app` composition pattern; ADR-0083 Tier-3 panic-free; default-deny on error)."
 
 # INVARIANT: path-deps on the 5 sibling attribution crates only. The composition
 # layer adds tokio/futures-util/bytes/tracing/serde/serde_json for the production
 # transport scaffold (mirroring the provider-pool-app composition pattern).
 # No NEW external workspace dependency seam.
 [dependencies]
-oya-intelligence-attribution-kernel = { path = "../oya-intelligence-attribution-kernel" }
-oya-intelligence-attribution-domain = { path = "../oya-intelligence-attribution-domain" }
+intelligence-attribution-kernel = { path = "../../../../intelligence/core/attribution-kernel" }
+intelligence-attribution-domain = { path = "../../../../intelligence/core/attribution-domain" }
 oya-intelligence-attribution-usecase = { path = "../oya-intelligence-attribution-usecase" }
 oya-intelligence-attribution-worker = { path = "../oya-intelligence-attribution-worker" }
 oya-intelligence-attribution-adapter = { path = "../oya-intelligence-attribution-adapter" }

@@ -142,7 +142,7 @@
         "mode": "mechanical",
         "enforced_by": [
           "intelligence-autonomy-ceiling-kernel",
-          "oya-intelligence-autonomy-ceiling-domain",
+          "intelligence-autonomy-ceiling-domain",
           "oya-intelligence-autonomy-ceiling-app"
         ],
         "planned_enforcement_refs": [

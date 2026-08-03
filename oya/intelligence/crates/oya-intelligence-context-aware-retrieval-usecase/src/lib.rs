@@ -10,7 +10,7 @@
 
 use std::collections::BTreeMap;
 
-pub use oya_intelligence_context_aware_retrieval_domain::{
+pub use intelligence_context_aware_retrieval_domain::{
     ContextAudience, ContextCandidate, ContextDataClass, ContextRetrievalDomainDecision,
     ContextRetrievalDomainDenialKind, ContextRetrievalPolicyDecision, ContextRetrievalRequest,
     ContextRetrievalStatus, ContextSourceKind, DomainContextRetrievalRequest,
