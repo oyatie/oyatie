@@ -10,7 +10,7 @@
 # authoring_adrs: ADR-0510, ADR-0536, ADR-0537
 
 [package]
-name = "oya-data-sql-adapter-sqlx"
+name = "data-sql-adapter-sqlx"
 edition.workspace = true
 version.workspace = true
 rust-version.workspace = true
@@ -18,13 +18,13 @@ publish = false
 license = "Apache-2.0"
 
 [lib]
-name = "oya_data_sql_adapter_sqlx"
+name = "data_sql_adapter_sqlx"
 path = "src/lib.rs"
 doctest = false
 
 [dependencies]
-oya-data-sql-kernel = { path = "../oya-data-sql-kernel" }
-oya-shared-postgres-command-kernel = { path = "../oya-shared-postgres-command-kernel" }
+oya-data-sql-kernel = { path = "../../../libs/oya-data-sql-kernel" }
+oya-shared-postgres-command-kernel = { path = "../../../libs/oya-shared-postgres-command-kernel" }
 sqlx.workspace = true
 
 [dev-dependencies]

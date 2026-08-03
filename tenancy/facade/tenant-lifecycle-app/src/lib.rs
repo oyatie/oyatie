@@ -1253,7 +1253,7 @@ pub fn build_inmemory_router_with_authorizer_and_tenant_bound_operator_tokens(
 ///   Note: the guard is necessary but not sufficient for full tenant isolation;
 ///   full isolation additionally requires that `tenancy_lifecycle_runtime`
 ///   exists provisioned with NOBYPASSRLS (deferred `0000_runtime_role.sql`,
-///   mirroring oya-data-outbox-adapter-postgres).
+///   mirroring data-outbox-adapter-postgres).
 /// - [`BootError::Authz`] if the embedded tenancy authz bundle fails to compile
 ///   or strict-validate (no default-allow).
 pub async fn build_postgres_router(
