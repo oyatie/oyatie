@@ -106,6 +106,15 @@ fn push_request_edge(raw: &mut Value, from: &str, to: &str, fixture: &str) {
         }));
 }
 
+fn follow_up_mut<'a>(raw: &'a mut Value, id: &str) -> &'a mut Value {
+    raw["mandatory_follow_ups"]
+        .as_array_mut()
+        .expect("mandatory follow-ups")
+        .iter_mut()
+        .find(|follow_up| follow_up["id"] == id)
+        .expect("mandatory follow-up id")
+}
+
 fn replace_string(value: &mut Value, old: &str, new: &str) {
     match value {
         Value::Array(items) => {
@@ -266,6 +275,14 @@ fn apply_fixture_mutation(raw: &mut Value, mutation: &str) {
                 .as_object_mut()
                 .unwrap()
                 .remove("reason");
+        }
+        "drift_topology_tracking_issue" => {
+            follow_up_mut(raw, "W0-C-TOPOLOGY-COVERAGE")["tracking_issue"] =
+                json!("https://github.com/jason931225/oyatie/issues/1536");
+        }
+        "drift_topology_baseline_policy" => {
+            follow_up_mut(raw, "W0-C-TOPOLOGY-COVERAGE")["baseline_policy"] =
+                json!("mint-new-frozen-baseline");
         }
         other => panic!("unknown executable fixture mutation {other}"),
     }
@@ -675,6 +692,18 @@ fn composition_direction_and_required_schema_fields_are_red() {
     let (mut wrong_const, _) = load_live();
     wrong_const["version"] = json!("2.x");
     assert_red_code(&wrong_const, "dag_schema_violation");
+}
+
+#[test]
+fn topology_follow_up_tracking_and_baseline_policy_are_fail_closed() {
+    for mutation in [
+        "drift_topology_tracking_issue",
+        "drift_topology_baseline_policy",
+    ] {
+        let (mut raw, _) = load_live();
+        apply_fixture_mutation(&mut raw, mutation);
+        assert_red_code(&raw, "dag_follow_up_policy_drift");
+    }
 }
 
 #[test]

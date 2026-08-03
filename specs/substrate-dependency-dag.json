@@ -1178,6 +1178,8 @@
     {
       "id": "W0-C-TOPOLOGY-COVERAGE",
       "status": "required-not-in-this-slice",
+      "tracking_issue": "https://github.com/jason931225/oyatie/issues/1537",
+      "baseline_policy": "no-new-frozen-baseline",
       "constraint": "GitHub #1537: ratify and add the 13 omitted capabilities plus compute.bootstrap, storage.bootstrap, and k8s.bootstrap; update typed edges, derived failure closure, consumers, and any current projection atomically without minting a new baseline."
     }
   ]
