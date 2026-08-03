@@ -96,7 +96,7 @@ fn main() -> ExitCode {
         }
     };
 
-    let report = evaluate_with_raw(&dag, &raw, &schema, &capability_registry);
+    let report = evaluate_with_raw(&dag, &raw, &schema, &capability_registry, &policy);
     println!("{}", render_findings(&report.findings));
     if let Some(order) = &report.derived_bootstrap_order {
         println!(

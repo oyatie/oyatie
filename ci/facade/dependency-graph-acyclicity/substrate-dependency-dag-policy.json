@@ -3,5 +3,6 @@
   "gate_id": "cloud-ci-substrate-dependency-dag-acyclicity",
   "dag_path": "specs/substrate-dependency-dag.json",
   "schema_path": "specs/substrate-dependency-dag.schema.json",
-  "capability_registry_path": "specs/capability-registry.json"
+  "capability_registry_path": "specs/capability-registry.json",
+  "topology_coverage_tracking_issue": "https://github.com/jason931225/oyatie/issues/1537"
 }

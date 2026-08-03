@@ -69,7 +69,6 @@ const MULTI_PATH_RULE: &str = "maximum severity across all paths from impacted_u
 const CLOSURE_DIRECTION: &str =
     "reverse_transitive_closure: request dependency A -> B yields failure propagation B -> A";
 const TOPOLOGY_FOLLOW_UP_ID: &str = "W0-C-TOPOLOGY-COVERAGE";
-const TOPOLOGY_TRACKING_ISSUE: &str = "https://github.com/jason931225/oyatie/issues/1537";
 const NO_NEW_BASELINE_POLICY: &str = "no-new-frozen-baseline";
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -78,6 +77,7 @@ pub struct Policy {
     pub dag_path: String,
     pub schema_path: String,
     pub capability_registry_path: String,
+    pub topology_coverage_tracking_issue: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -149,6 +149,8 @@ pub fn parse_policy(bytes: &str) -> Result<Policy, DagError> {
     let dag_path = required_string(&value, "dag_path", "policy")?;
     let schema_path = required_string(&value, "schema_path", "policy")?;
     let capability_registry_path = required_string(&value, "capability_registry_path", "policy")?;
+    let topology_coverage_tracking_issue =
+        required_string(&value, "topology_coverage_tracking_issue", "policy")?;
     validate_canonical_policy_path("dag_path", dag_path, CANONICAL_DAG_PATH)?;
     validate_canonical_policy_path("schema_path", schema_path, CANONICAL_SCHEMA_PATH)?;
     validate_canonical_policy_path(
@@ -156,12 +158,14 @@ pub fn parse_policy(bytes: &str) -> Result<Policy, DagError> {
         capability_registry_path,
         CANONICAL_CAPABILITY_REGISTRY_PATH,
     )?;
+    validate_tracking_issue(topology_coverage_tracking_issue)?;
     let allowed: BTreeSet<&str> = [
         "_comment",
         "gate_id",
         "dag_path",
         "schema_path",
         "capability_registry_path",
+        "topology_coverage_tracking_issue",
     ]
     .into_iter()
     .collect();
@@ -177,6 +181,7 @@ pub fn parse_policy(bytes: &str) -> Result<Policy, DagError> {
         dag_path: dag_path.to_owned(),
         schema_path: schema_path.to_owned(),
         capability_registry_path: capability_registry_path.to_owned(),
+        topology_coverage_tracking_issue: topology_coverage_tracking_issue.to_owned(),
     })
 }
 
@@ -196,6 +201,32 @@ fn validate_canonical_policy_path(
         return Err(DagError::Parse(format!(
             "policy `{field}` must equal canonical path `{expected}`, got `{actual}`"
         )));
+    }
+    Ok(())
+}
+
+fn validate_tracking_issue(actual: &str) -> Result<(), DagError> {
+    let Some(path) = actual.strip_prefix("https://github.com/") else {
+        return Err(DagError::Parse(
+            "policy `topology_coverage_tracking_issue` must be a canonical HTTPS GitHub issue URL"
+                .to_owned(),
+        ));
+    };
+    let mut segments = path.split('/');
+    let owner = segments.next().unwrap_or_default();
+    let repository = segments.next().unwrap_or_default();
+    let issue_segment = segments.next().unwrap_or_default();
+    let issue_number = segments.next().unwrap_or_default();
+    let canonical = !owner.is_empty()
+        && !repository.is_empty()
+        && issue_segment == "issues"
+        && issue_number.parse::<u64>().is_ok_and(|number| number > 0)
+        && segments.next().is_none();
+    if !canonical {
+        return Err(DagError::Parse(
+            "policy `topology_coverage_tracking_issue` must be a canonical HTTPS GitHub issue URL"
+                .to_owned(),
+        ));
     }
     Ok(())
 }
@@ -232,8 +263,8 @@ pub fn parse_dag(bytes: &str) -> Result<Dag, DagError> {
     Ok(Dag { raw })
 }
 
-pub fn evaluate(dag: &Dag, schema: &Value, capability_registry: &Value) -> Report {
-    evaluate_with_raw(dag, &dag.raw, schema, capability_registry)
+pub fn evaluate(dag: &Dag, schema: &Value, capability_registry: &Value, policy: &Policy) -> Report {
+    evaluate_with_raw(dag, &dag.raw, schema, capability_registry, policy)
 }
 
 pub fn evaluate_with_raw(
@@ -241,10 +272,11 @@ pub fn evaluate_with_raw(
     raw: &Value,
     schema: &Value,
     capability_registry: &Value,
+    policy: &Policy,
 ) -> Report {
     let mut findings = Vec::new();
     check_schema_authority(schema, &mut findings);
-    check_top_level(raw, &mut findings);
+    check_top_level(raw, policy, &mut findings);
     let capabilities = check_capability_registry(capability_registry, &mut findings);
     let units = check_dependency_units(raw, &capabilities, &mut findings);
     let external_anchors = check_external_anchors(raw, &mut findings);
@@ -378,7 +410,7 @@ fn check_schema_authority(schema: &Value, findings: &mut Vec<Finding>) {
     }
 }
 
-fn check_top_level(raw: &Value, findings: &mut Vec<Finding>) {
+fn check_top_level(raw: &Value, policy: &Policy, findings: &mut Vec<Finding>) {
     let allowed: BTreeSet<&str> = [
         "_comment",
         "$schema",
@@ -567,7 +599,8 @@ fn check_top_level(raw: &Value, findings: &mut Vec<Finding>) {
                 "dag_follow_up_policy_drift",
                 findings,
             );
-            if item.get("tracking_issue").and_then(Value::as_str) != Some(TOPOLOGY_TRACKING_ISSUE)
+            if item.get("tracking_issue").and_then(Value::as_str)
+                != Some(policy.topology_coverage_tracking_issue.as_str())
                 || item.get("baseline_policy").and_then(Value::as_str)
                     != Some(NO_NEW_BASELINE_POLICY)
             {
@@ -575,7 +608,8 @@ fn check_top_level(raw: &Value, findings: &mut Vec<Finding>) {
                     "dag_follow_up_policy_drift",
                     &subject,
                     format!(
-                        "topology coverage must remain tracked by `{TOPOLOGY_TRACKING_ISSUE}` with `{NO_NEW_BASELINE_POLICY}`"
+                        "topology coverage must remain tracked by `{}` with `{NO_NEW_BASELINE_POLICY}`",
+                        policy.topology_coverage_tracking_issue
                     ),
                 ));
             }
@@ -1541,6 +1575,16 @@ mod tests {
         }
     }
 
+    fn policy_value() -> Value {
+        json!({
+            "gate_id": GATE_ID,
+            "dag_path": CANONICAL_DAG_PATH,
+            "schema_path": CANONICAL_SCHEMA_PATH,
+            "capability_registry_path": CANONICAL_CAPABILITY_REGISTRY_PATH,
+            "topology_coverage_tracking_issue": "https://github.com/example/repository/issues/42"
+        })
+    }
+
     #[test]
     fn max_min_closure_weakest_edge_bounds_path_and_strongest_path_wins() {
         let edges = [
@@ -1559,21 +1603,16 @@ mod tests {
 
     #[test]
     fn policy_requires_exact_live_contract_paths() {
-        let parsed = parse_policy(
-            &json!({
-                "gate_id": GATE_ID,
-                "dag_path": CANONICAL_DAG_PATH,
-                "schema_path": CANONICAL_SCHEMA_PATH,
-                "capability_registry_path": CANONICAL_CAPABILITY_REGISTRY_PATH
-            })
-            .to_string(),
-        )
-        .unwrap();
+        let parsed = parse_policy(&policy_value().to_string()).unwrap();
         assert_eq!(parsed.dag_path, CANONICAL_DAG_PATH);
         assert_eq!(parsed.schema_path, CANONICAL_SCHEMA_PATH);
         assert_eq!(
             parsed.capability_registry_path,
             CANONICAL_CAPABILITY_REGISTRY_PATH
+        );
+        assert_eq!(
+            parsed.topology_coverage_tracking_issue,
+            "https://github.com/example/repository/issues/42"
         );
 
         for (field, redirect) in [
@@ -1581,12 +1620,7 @@ mod tests {
             ("schema_path", "specs/dag.schema.json"),
             ("capability_registry_path", "registry/capabilities.json"),
         ] {
-            let mut policy = json!({
-                "gate_id": GATE_ID,
-                "dag_path": CANONICAL_DAG_PATH,
-                "schema_path": CANONICAL_SCHEMA_PATH,
-                "capability_registry_path": CANONICAL_CAPABILITY_REGISTRY_PATH
-            });
+            let mut policy = policy_value();
             policy[field] = json!(redirect);
             let error = parse_policy(&policy.to_string())
                 .expect_err("repo-relative redirects must fail closed");
@@ -1601,12 +1635,7 @@ mod tests {
             ("schema_path", "specs/../outside.schema.json"),
             ("capability_registry_path", "/tmp/capability-registry.json"),
         ] {
-            let mut policy = json!({
-                "gate_id": GATE_ID,
-                "dag_path": CANONICAL_DAG_PATH,
-                "schema_path": CANONICAL_SCHEMA_PATH,
-                "capability_registry_path": CANONICAL_CAPABILITY_REGISTRY_PATH
-            });
+            let mut policy = policy_value();
             policy[field] = json!(escape);
             let error = parse_policy(&policy.to_string())
                 .expect_err("path escapes must fail closed under exact canonical binding");
@@ -1615,5 +1644,64 @@ mod tests {
                 "unexpected error for `{field}={escape}`: {error}"
             );
         }
+    }
+
+    #[test]
+    fn policy_tracking_issue_is_required_well_formed_and_closed() {
+        let mut missing = policy_value();
+        missing
+            .as_object_mut()
+            .unwrap()
+            .remove("topology_coverage_tracking_issue");
+        let error = parse_policy(&missing.to_string()).expect_err("tracking issue is required");
+        assert!(
+            error
+                .to_string()
+                .contains("missing string `topology_coverage_tracking_issue`"),
+            "{error}"
+        );
+
+        let mut wrong_type = policy_value();
+        wrong_type["topology_coverage_tracking_issue"] = json!(1537);
+        let error =
+            parse_policy(&wrong_type.to_string()).expect_err("tracking issue must be a string");
+        assert!(
+            error
+                .to_string()
+                .contains("missing string `topology_coverage_tracking_issue`"),
+            "{error}"
+        );
+
+        for malformed in [
+            "",
+            "http://github.com/example/repository/issues/1",
+            "https://github.com/example/repository/pull/1",
+            "https://github.com/example/repository/issues/0",
+            "https://github.com/example/repository/issues/not-a-number",
+            "https://github.com/example/repository/issues/1/extra",
+        ] {
+            let mut policy = policy_value();
+            policy["topology_coverage_tracking_issue"] = json!(malformed);
+            let error = parse_policy(&policy.to_string())
+                .expect_err("malformed tracking issue must fail closed");
+            assert!(
+                error
+                    .to_string()
+                    .contains("must be a canonical HTTPS GitHub issue URL"),
+                "unexpected error for `{malformed}`: {error}"
+            );
+        }
+
+        let mut unknown = policy_value();
+        unknown["tracking_issue_override"] =
+            json!("https://github.com/example/repository/issues/2");
+        let error =
+            parse_policy(&unknown.to_string()).expect_err("unknown fields must fail closed");
+        assert!(
+            error
+                .to_string()
+                .contains("closed schema rejects property `tracking_issue_override`"),
+            "{error}"
+        );
     }
 }
