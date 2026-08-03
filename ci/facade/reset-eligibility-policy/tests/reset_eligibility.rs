@@ -781,6 +781,8 @@ fn uri_bearing_secrets_are_rejected_while_public_urls_remain_green() {
     }
 
     for secret in [
+        "HTTPS://user:pass@inventory.example",
+        "hTtP://u:p@inventory.example",
         "https://user:q9P/2Zd7Wm4+Lx8!Vt3#Kn6@Hs1%Rc5^Bj0&Fy7*Ua2=Ee9?@inventory.example",
         "https://user:q9P2Zd7Wm4+Lx8!Vt3#Kn6@Hs1%Rc5Bj0&Fy7*Ua2=Ee9?@inventory.example",
         "https://inventory.example/export?X-Amz-Signature=q9P2Zd7Wm4Lx8Vt3Kn6Hs1Rc5Bj0Fy7Ua2Ee9Qw4Pi6Zd8Lm",
@@ -814,6 +816,27 @@ fn uri_bearing_secrets_are_rejected_while_public_urls_remain_green() {
         !has_code(&public_metadata_findings, "reset_secret_value_detected"),
         "ordinary public URI metadata must not be entropy-scanned as one opaque value"
     );
+
+    for public_uri in [
+        "HTTPS://inventory.oyatie.example/resources/cluster-primary",
+        "hTtP://docs.example/guide?language=en-US",
+    ] {
+        let mut case_insensitive_public_uri = artifact.clone();
+        case_insensitive_public_uri["evidence_manifest"]["uri"] = json!(public_uri);
+        assert!(
+            !has_code(
+                &evaluate(
+                    &policy,
+                    &schema,
+                    &case_insensitive_public_uri,
+                    &runtime,
+                    NOW,
+                ),
+                "reset_secret_value_detected"
+            ),
+            "case-insensitive public HTTP(S) URI must remain green: {public_uri}"
+        );
+    }
 
     let mut descriptive_handle = artifact.clone();
     descriptive_handle["evidence_manifest"]["uri"] =
