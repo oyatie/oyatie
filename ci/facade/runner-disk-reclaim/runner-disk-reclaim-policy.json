@@ -12,6 +12,11 @@
         "/opt/hostedtoolcache/CodeQL"
       ],
       "min_free_gib_after": 20
+    },
+    "owned-arc-arm64": {
+      "_comment": "Owned ARC container runner (ADR-0515 D5 owned-runner readiness). ARCH IS SCALE-SET METADATA, NOT ENGINE LOGIC: the profile id names the AutoscalingRunnerSet (`oya-arm64` in ns arc-runners, whose pod template pins nodeSelector kubernetes.io/arch=arm64); an amd64 scale set adds a SIBLING DATA ROW here with zero code change — the preflight has no arch branch. reclaim_dirs is EMPTY BY CONSTRUCTION: the ghcr.io/actions/actions-runner image carries none of the GitHub vendor preinstall trees (dotnet/android/ghc/ghcup/CodeQL), so there is nothing to reclaim and copying the github-hosted list here would be a no-op that lies about what the preflight did. THE FLOOR IS MEASURED AGAINST THE POD'S DECLARED EPHEMERAL-STORAGE, NOT GUESSED: statvfs inside a container runner reports the NODE's shared filesystem, so the only defensible floor is the per-runner ephemeral-storage budget the fleet can actually honor — measured 2026-07-29: node allocatable ephemeral-storage 45909593217 B (42 GiB, uniform across the 3 Talos nodes) / maxRunners 3 = 14 GiB per runner. 3 x 14 GiB = 42 GiB fits one node in the worst case where all runners co-schedule (the pod template declares no anti-affinity). Below the floor the node cannot honor the declaration and the preflight emits INFRA-RED, which is correct: it is a capacity fact, not a code failure. THE GITHUB-HOSTED 20 GiB FLOOR IS WRONG HERE and asserting it against this fleet INFRA-REDs every job. INERT UNTIL PAIRED: this profile has no consumer until the runner pod template declares matching `resources.requests/limits.ephemeral-storage: 14Gi` (it declares NONE today, so the pod is guaranteed nothing) and a job is actually routed to the owned scale set. The conformance gate pins floor <= allocatable/maxRunners so a copy-paste of the github-hosted number REDs.",
+      "reclaim_dirs": [],
+      "min_free_gib_after": 14
     }
   }
 }
