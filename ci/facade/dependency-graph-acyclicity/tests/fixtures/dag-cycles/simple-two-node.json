@@ -1,5 +1,7 @@
 {
   "_comment": "RED fixture (ADR-0280 §status prerequisite #2): a two-node cycle a<->b. The validator MUST reject it (dag_cycle). Schema-shaped so it parses, then fails Tarjan.",
+  "_lifecycle": "retired-inert-v1-compatibility-only",
+  "_successor": "../graph-v2-cases.json",
   "version": "1.0.0",
   "doctrine_adr": "ADR-0280",
   "nodes": [

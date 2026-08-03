@@ -1,24 +1,22 @@
-// ADR-0280 §D-3 substrate-dependency-dag acyclicity lane: the live-corpus + RED-fixture gate.
-//
-// 1. LIVE: load the REAL policy-declared substrate dependency DAG and assert it is GREEN —
-//    acyclic (Tarjan), forbidden edges honoured, bootstrap_order == Kahn topo-sort, §D-1 schema
-//    complete. This is the born-blocking proof that the populated §D-1 DAG is sound.
-// 2. RED FIXTURES: load each tests/fixtures/dag-cycles/*.json and assert the validator FAILS it
-//    (simple-two-node, three-node, self-loop, six-node-buried). A validator that passes a cycle is
-//    a false-green; these fixtures fail closed.
-// 3. CONTRACT: the live DAG carries exactly the ADR-0280 §D-1 ten-node / 42-edge / 21-forbidden /
-//    10-step-bootstrap shape (verbatim), and the DERIVED bootstrap order equals §D-1's list.
-//
-// ADR-0083 Tier-3: integration tests use unwrap/expect/panic to assert invariants.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use std::path::PathBuf;
 
 use ci_dependency_graph_acyclicity::{
-    DEFAULT_POLICY_PATH, GATE_ID, Policy, Verdict, evaluate_with_raw, load_policy, parse_dag,
+    CANONICAL_CAPABILITY_REGISTRY_PATH, CANONICAL_DAG_PATH, CANONICAL_SCHEMA_PATH,
+    DEFAULT_POLICY_PATH, GATE_ID, Policy, Report, Verdict, evaluate_with_raw, load_policy,
+    parse_dag, parse_policy,
 };
+use serde_json::{Value, json};
 
-/// Walk up from the test's working directory to the repo root (the dir holding the gate policy).
+const GRAPH_KINDS: [&str; 5] = [
+    "genesis",
+    "new_cell_provisioning",
+    "steady_state_request",
+    "control_data_publication",
+    "failure_brownout_propagation",
+];
+
 fn repo_root() -> PathBuf {
     let mut dir = std::env::current_dir().expect("current_dir");
     for _ in 0..16 {
@@ -29,216 +27,876 @@ fn repo_root() -> PathBuf {
             break;
         }
     }
-    panic!(
-        "failed to locate repo root (the dir holding {DEFAULT_POLICY_PATH}) from the test current_dir"
-    );
+    panic!("failed to locate repo root from test current_dir");
 }
 
-/// Locate the on-disk cycle-fixtures directory. Under cargo the fixtures sit at
-/// `$CARGO_MANIFEST_DIR/tests/fixtures/dag-cycles`; under buck2 the globbed srcs land relative to
-/// the sandboxed test cwd, so fall back to a walk-up search for the same suffix.
-fn fixtures_dir() -> PathBuf {
-    if let Some(manifest) = std::env::var_os("CARGO_MANIFEST_DIR") {
-        let p = PathBuf::from(manifest).join("tests/fixtures/dag-cycles");
-        if p.is_dir() {
-            return p;
-        }
-    }
-    let mut dir = std::env::current_dir().expect("current_dir");
-    for _ in 0..16 {
-        let candidate = dir.join("tests/fixtures/dag-cycles");
-        if candidate.is_dir() {
-            return candidate;
-        }
-        let nested = dir.join(
-            "ci/facade/dependency-graph-acyclicity/tests/fixtures/dag-cycles",
-        );
-        if nested.is_dir() {
-            return nested;
-        }
-        if !dir.pop() {
-            break;
-        }
-    }
-    panic!("failed to locate the cycle-fixtures directory");
-}
-
-fn load_live_dag() -> (
-    ci_dependency_graph_acyclicity::Dag,
-    serde_json::Value,
-    Policy,
-) {
+fn load_live() -> (Value, Policy) {
     let root = repo_root();
-    let policy = load_policy(&root, DEFAULT_POLICY_PATH).expect("read live DAG policy");
-    let bytes = std::fs::read_to_string(root.join(&policy.dag_path)).expect("read live DAG");
-    let dag = parse_dag(&bytes).expect("parse live DAG");
-    let raw: serde_json::Value = serde_json::from_str(&bytes).expect("re-parse live DAG value");
-    (dag, raw, policy)
+    let policy = load_policy(&root, DEFAULT_POLICY_PATH).expect("read live policy");
+    assert!(root.join(&policy.dag_path).is_file());
+    assert!(root.join(&policy.schema_path).is_file());
+    assert!(root.join(&policy.capability_registry_path).is_file());
+    let raw = serde_json::from_str(
+        &std::fs::read_to_string(root.join(&policy.dag_path)).expect("read live graph"),
+    )
+    .expect("parse live graph JSON");
+    (raw, policy)
 }
 
-#[test]
-fn live_policy_points_at_existing_dag_data_pack() {
+fn capability_registry() -> Value {
     let root = repo_root();
-    let policy = load_policy(&root, DEFAULT_POLICY_PATH).expect("read live DAG policy");
-    assert_eq!(policy.gate_id, GATE_ID);
-    assert!(
-        root.join(&policy.dag_path).is_file(),
-        "policy dag_path must point at an existing repo-relative DAG document: {}",
-        policy.dag_path
-    );
+    let policy = load_policy(&root, DEFAULT_POLICY_PATH).expect("read live policy");
+    serde_json::from_str(
+        &std::fs::read_to_string(root.join(policy.capability_registry_path))
+            .expect("read capability registry"),
+    )
+    .expect("parse capability registry")
 }
 
-#[test]
-fn live_canonical_dag_is_green() {
-    let (dag, raw, policy) = load_live_dag();
-    let report = evaluate_with_raw(&dag, &raw);
+fn live_schema() -> Value {
+    let root = repo_root();
+    let policy = load_policy(&root, DEFAULT_POLICY_PATH).expect("read live policy");
+    serde_json::from_str(
+        &std::fs::read_to_string(root.join(policy.schema_path)).expect("read live schema"),
+    )
+    .expect("parse live schema")
+}
+
+fn fixture_cases() -> Value {
+    let root = repo_root();
+    serde_json::from_str(
+        &std::fs::read_to_string(
+            root.join("ci/facade/dependency-graph-acyclicity/tests/fixtures/graph-v2-cases.json"),
+        )
+        .expect("read graph-v2 fixture corpus"),
+    )
+    .expect("parse graph-v2 fixture corpus")
+}
+
+fn report(raw: &Value) -> Report {
+    report_with_schema(raw, &live_schema())
+}
+
+fn report_with_schema(raw: &Value, schema: &Value) -> Report {
+    let root = repo_root();
+    let policy = load_policy(&root, DEFAULT_POLICY_PATH).expect("read live policy");
+    report_with_policy_and_schema(raw, schema, &policy)
+}
+
+fn report_with_policy_and_schema(raw: &Value, schema: &Value, policy: &Policy) -> Report {
+    let dag = parse_dag(&serde_json::to_string(raw).expect("serialize graph"))
+        .expect("structurally parse graph");
+    evaluate_with_raw(&dag, raw, schema, &capability_registry(), policy)
+}
+
+fn graph_mut<'a>(raw: &'a mut Value, kind: &str) -> &'a mut Value {
+    raw["graphs"]
+        .as_array_mut()
+        .expect("graphs")
+        .iter_mut()
+        .find(|graph| graph["kind"] == kind)
+        .expect("graph kind")
+}
+
+fn push_request_edge(raw: &mut Value, from: &str, to: &str, fixture: &str) {
+    graph_mut(raw, "steady_state_request")["edges"]
+        .as_array_mut()
+        .unwrap()
+        .push(json!({
+            "graph_kind": "steady_state_request",
+            "from": from,
+            "to": to,
+            "dependency_weight": 1.0,
+            "cascade_rule": "FULL",
+            "version_compatibility_range": "^2.0",
+            "cedar_permit_fragment": fixture
+        }));
+}
+
+fn remove_request_edge(raw: &mut Value, from: &str, to: &str) {
+    let edges = graph_mut(raw, "steady_state_request")["edges"]
+        .as_array_mut()
+        .expect("steady-state edges");
+    let before = edges.len();
+    edges.retain(|edge| edge["from"] != from || edge["to"] != to);
     assert_eq!(
-        report.verdict,
-        Verdict::Green,
-        "the policy-declared DAG {} must be GREEN; findings:\n{}",
-        policy.dag_path,
-        report
+        edges.len() + 1,
+        before,
+        "fixture precondition requires exactly one `{from} -> {to}` edge"
+    );
+}
+
+fn follow_up_mut<'a>(raw: &'a mut Value, id: &str) -> &'a mut Value {
+    raw["mandatory_follow_ups"]
+        .as_array_mut()
+        .expect("mandatory follow-ups")
+        .iter_mut()
+        .find(|follow_up| follow_up["id"] == id)
+        .expect("mandatory follow-up id")
+}
+
+fn replace_string(value: &mut Value, old: &str, new: &str) {
+    match value {
+        Value::Array(items) => {
+            for item in items {
+                replace_string(item, old, new);
+            }
+        }
+        Value::Object(object) => {
+            for item in object.values_mut() {
+                replace_string(item, old, new);
+            }
+        }
+        Value::String(current) if current == old => *current = new.to_owned(),
+        _ => {}
+    }
+}
+
+fn apply_fixture_mutation(raw: &mut Value, mutation: &str) {
+    match mutation {
+        "none" => {}
+        "remove_graph_kind" => {
+            raw["graphs"].as_array_mut().unwrap().pop();
+        }
+        "append_unknown_graph_kind" => raw["graphs"].as_array_mut().unwrap().push(json!({
+            "kind": "sixth_graph", "edge_semantics": "invalid", "edges": []
+        })),
+        "duplicate_dependency_unit" => {
+            let first = raw["dependency_units"][0].clone();
+            raw["dependency_units"].as_array_mut().unwrap().push(first);
+        }
+        "remove_dependency_unit" => {
+            raw["dependency_units"].as_array_mut().unwrap().pop();
+        }
+        "append_twentieth_dependency_unit" => {
+            raw["dependency_units"].as_array_mut().unwrap().push(json!({
+                "id": "network.fixture-twentieth",
+                "capability": "network",
+                "runtime_face": "fixture-twentieth",
+                "plane": "B0",
+                "purpose": "executable mutation fixture"
+            }));
+        }
+        "unknown_capability" => {
+            raw["dependency_units"][0]["capability"] = json!("not-a-capability");
+        }
+        "remove_runtime_face" => {
+            raw["dependency_units"][0]
+                .as_object_mut()
+                .unwrap()
+                .remove("runtime_face");
+        }
+        "unknown_runtime_face" => {
+            raw["dependency_units"][0]["runtime_face"] = json!("unknown-bootstrap");
+        }
+        "id_face_mismatch" => {
+            raw["dependency_units"][1]["runtime_face"] = json!("genesis");
+        }
+        "capability_id_mismatch" => {
+            raw["dependency_units"][1]["capability"] = json!("network");
+        }
+        "consistent_unit_replacement" => {
+            raw["dependency_units"][0]["id"] = json!("network.fabric-bootstrap");
+            raw["dependency_units"][0]["runtime_face"] = json!("fabric-bootstrap");
+            replace_string(raw, "network.bootstrap", "network.fabric-bootstrap");
+        }
+        "unknown_endpoint" => graph_mut(raw, "genesis")["edges"]
+            .as_array_mut()
+            .unwrap()
+            .push(json!({
+                "graph_kind": "genesis", "from": "unknown.face", "to": "cell.envelope"
+            })),
+        "cross_kind_contamination" => {
+            graph_mut(raw, "genesis")["edges"][0]["graph_kind"] = json!("steady_state_request");
+        }
+        "graph3_self_loop" => {
+            push_request_edge(raw, "cell.envelope", "cell.envelope", "fixture-self-loop")
+        }
+        "graph3_cycle" => push_request_edge(
+            raw,
+            "cell.envelope",
+            "iam.local-verifier",
+            "fixture-two-node-cycle",
+        ),
+        "graph3_three_node_cycle" => {
+            // Remove the transitive shortcut so the added back edge closes exactly the existing
+            // tenancy -> iam -> cell path rather than an already-present direct reverse edge.
+            remove_request_edge(raw, "tenancy.local-context", "cell.envelope");
+            push_request_edge(
+                raw,
+                "cell.envelope",
+                "tenancy.local-context",
+                "fixture-three-node-cycle",
+            );
+        }
+        "graph3_buried_scc_cycle" => {
+            // Preserve the existing workflow -> intelligence -> data -> observability -> audit ->
+            // secrets path, but remove its direct shortcut before adding the reverse edge.
+            remove_request_edge(raw, "workflow.runtime", "secrets.cell-issuer");
+            push_request_edge(
+                raw,
+                "secrets.cell-issuer",
+                "workflow.runtime",
+                "fixture-buried-six-node-scc-cycle",
+            );
+        }
+        "present_forbidden_edge" => push_request_edge(
+            raw,
+            "cell.envelope",
+            "iam.local-verifier",
+            "fixture-forbidden-edge",
+        ),
+        "invalid_bootstrap_order" => {
+            graph_mut(raw, "steady_state_request")["bootstrap_order"]
+                .as_array_mut()
+                .unwrap()
+                .swap(0, 1);
+        }
+        "remove_failure_impact_rule" => {
+            graph_mut(raw, "failure_brownout_propagation")["edges"][0]
+                .as_object_mut()
+                .unwrap()
+                .remove("impact_rule");
+        }
+        "remove_failure_closure_edge" => {
+            graph_mut(raw, "failure_brownout_propagation")["edges"]
+                .as_array_mut()
+                .unwrap()
+                .pop();
+        }
+        "change_failure_impact" => {
+            graph_mut(raw, "failure_brownout_propagation")["edges"][0]["impact_rule"] =
+                json!("INDEPENDENT");
+        }
+        "reverse_direction_outside_graph3" => graph_mut(raw, "genesis")["edges"]
+            .as_array_mut()
+            .unwrap()
+            .push(json!({
+                "graph_kind": "genesis", "from": "cell.genesis", "to": "network.bootstrap"
+            })),
+        "composition_sum" => {
+            graph_mut(raw, "failure_brownout_propagation")["composition"] = json!("sum");
+        }
+        "forward_closure_direction" => {
+            raw["failure_impact_composition"]["closure_direction"] =
+                json!("forward_transitive_closure");
+        }
+        "remove_doctrine_adrs" => {
+            raw.as_object_mut().unwrap().remove("doctrine_adrs");
+        }
+        "remove_path_rule" => {
+            raw["failure_impact_composition"]
+                .as_object_mut()
+                .unwrap()
+                .remove("path_rule");
+        }
+        "request_weight_wrong_type" => {
+            graph_mut(raw, "steady_state_request")["edges"][0]["dependency_weight"] =
+                json!("heavy");
+        }
+        "request_weight_out_of_range" => {
+            graph_mut(raw, "steady_state_request")["edges"][0]["dependency_weight"] = json!(1.1);
+        }
+        "request_weight_zero" => {
+            graph_mut(raw, "steady_state_request")["edges"][0]["dependency_weight"] = json!(0);
+        }
+        "remove_forbidden_reason" => {
+            graph_mut(raw, "steady_state_request")["forbidden_edges_assertion"][0]
+                .as_object_mut()
+                .unwrap()
+                .remove("reason");
+        }
+        "drift_topology_tracking_issue" => {
+            follow_up_mut(raw, "W0-C-TOPOLOGY-COVERAGE")["tracking_issue"] =
+                json!("https://github.com/jason931225/oyatie/issues/1536");
+        }
+        "drift_topology_baseline_policy" => {
+            follow_up_mut(raw, "W0-C-TOPOLOGY-COVERAGE")["baseline_policy"] =
+                json!("mint-new-frozen-baseline");
+        }
+        other => panic!("unknown executable fixture mutation {other}"),
+    }
+}
+
+fn assert_red_code(raw: &Value, code: &str) {
+    let evaluated = report(raw);
+    assert_eq!(evaluated.verdict, Verdict::Red, "expected RED: {code}");
+    assert!(
+        evaluated
             .findings
             .iter()
-            .map(|f| format!("  [{}] {}: {}", f.code, f.subject, f.detail))
-            .collect::<Vec<_>>()
-            .join("\n")
-    );
-    eprintln!(
-        "{GATE_ID} live corpus: GREEN (acyclic, forbidden-edges honoured, bootstrap coherent)"
+            .any(|finding| finding.code == code),
+        "expected finding {code}, got {:?}",
+        evaluated.findings
     );
 }
 
-#[test]
-fn live_dag_matches_adr_0280_d1_shape() {
-    let (dag, raw, _policy) = load_live_dag();
-    assert_eq!(
-        dag.nodes.len(),
-        10,
-        "ADR-0280 §D-1 Tier-1 has exactly 10 nodes"
-    );
-    assert_eq!(
-        dag.edges.len(),
-        42,
-        "ADR-0280 §D-1 has exactly 42 positive edges"
-    );
-    assert_eq!(
-        dag.forbidden_edges.len(),
-        21,
-        "ADR-0280 §D-1 has exactly 21 forbidden-edge assertions"
-    );
-    assert_eq!(
-        dag.bootstrap_order.len(),
-        10,
-        "ADR-0280 §D-1 bootstrap_order has 10 steps"
-    );
-    assert_eq!(raw["version"].as_str(), Some("1.0.0"));
-    assert_eq!(raw["doctrine_adr"].as_str(), Some("ADR-0280"));
-
-    // The §D-1 leaf-first bootstrap order, verbatim.
-    let expected = [
-        "cell",
-        "identity",
-        "tenancy",
-        "policy-engine",
-        "cloud-secrets",
-        "audit-chain",
-        "observability",
-        "ontology",
-        "intelligence",
-        "workflow-engine",
-    ];
-    assert_eq!(
-        dag.bootstrap_order, expected,
-        "bootstrap_order == ADR-0280 §D-1 list"
-    );
-}
-
-#[test]
-fn live_dag_bootstrap_order_is_a_valid_topological_order() {
-    // The bootstrap order is DERIVED/validated by querying the DAG (Kahn topo-sort), never
-    // hard-coded. The §D-1 declared order need NOT equal a pure alphabetical-tie-break sort — it
-    // encodes the ADR-0280 R-5 cloud-secrets bootstrap-seam subtlety (cloud-secrets depends only
-    // on cell at runtime, so alphabetically it would sort 2nd, but §D-1 places it at step 5 because
-    // it is provisioned after identity via the Shamir-genesis bootstrap-only seam). The invariant
-    // is that the declared order is *a* VALID topological order; the gate proves that and surfaces
-    // the alphabetical Kahn sort as the canonical suggestion.
-    let (dag, raw, _policy) = load_live_dag();
-    let report = evaluate_with_raw(&dag, &raw);
-    assert!(
-        !report
-            .findings
-            .iter()
-            .any(|f| f.code == "dag_bootstrap_drift"),
-        "the declared bootstrap_order must be a valid topological order of the DAG; findings: {:?}",
-        report.findings
-    );
-    // An acyclic DAG always yields a derivable alphabetical topo-sort (may differ from declared).
-    let derived = report
-        .derived_bootstrap_order
-        .expect("an acyclic DAG yields a topological sort");
-    assert_eq!(derived.len(), dag.nodes.len());
-
-    // Document the EXPECTED divergence (the verified bootstrap-seam finding): the alphabetical Kahn
-    // sort places cloud-secrets before identity, whereas §D-1 declares identity before cloud-secrets.
-    // This is the ADR-0280 R-5 inversion, not a defect; it is why the gate validates valid-topo-order
-    // rather than equality.
-    let declared = &dag.bootstrap_order;
-    assert_ne!(
-        &derived, declared,
-        "expected the alphabetical Kahn sort to diverge from §D-1 at the cloud-secrets seam"
-    );
-}
-
-#[test]
-fn red_cycle_fixtures_each_fail_the_validator() {
-    let dir = fixtures_dir();
-    let expected = [
-        "simple-two-node.json",
-        "three-node.json",
-        "self-loop.json",
-        "six-node-buried.json",
-    ];
-    for name in expected {
-        let path = dir.join(name);
-        assert!(path.is_file(), "missing RED fixture {}", path.display());
-        let bytes = std::fs::read_to_string(&path).expect("read fixture");
-        let dag = parse_dag(&bytes).unwrap_or_else(|e| panic!("fixture {name} must parse: {e}"));
-        let raw: serde_json::Value = serde_json::from_str(&bytes).expect("fixture value");
-        let report = evaluate_with_raw(&dag, &raw);
-        assert_eq!(
-            report.verdict,
-            Verdict::Red,
-            "RED fixture {name} MUST fail the validator (a cycle that passes is a false-green)"
-        );
-        assert!(
-            report.findings.iter().any(|f| f.code == "dag_cycle"),
-            "RED fixture {name} must produce a dag_cycle finding; got {:?}",
-            report.findings
-        );
-    }
-}
-
-#[test]
-fn fixtures_directory_holds_only_the_four_red_classes() {
-    // Guard against a stray non-cycle fixture sneaking into the RED set.
-    let dir = fixtures_dir();
-    let mut found: Vec<String> = std::fs::read_dir(&dir)
-        .expect("read fixtures dir")
-        .filter_map(|e| e.ok())
-        .map(|e| e.file_name().to_string_lossy().into_owned())
-        .filter(|n| n.ends_with(".json"))
+fn assert_cycle_members(evaluated: &Report, expected: &[&str]) {
+    let expected_subject = expected.join(" -> ");
+    let cycles: Vec<&str> = evaluated
+        .findings
+        .iter()
+        .filter(|finding| finding.code == "dag_cycle")
+        .map(|finding| finding.subject.as_str())
         .collect();
-    found.sort();
-    let mut expected = vec![
-        "self-loop.json".to_string(),
-        "simple-two-node.json".to_string(),
-        "six-node-buried.json".to_string(),
-        "three-node.json".to_string(),
-    ];
-    expected.sort();
     assert_eq!(
-        found, expected,
-        "exactly the four named RED cycle fixtures must exist"
+        cycles,
+        [expected_subject.as_str()],
+        "cycle fixture must produce exactly the intended SCC membership and cardinality"
     );
+}
+
+#[test]
+fn live_policy_and_graph_v2_are_green() {
+    let (raw, policy) = load_live();
+    let root = repo_root();
+    let schema: Value = serde_json::from_str(
+        &std::fs::read_to_string(root.join(&policy.schema_path)).expect("read live schema"),
+    )
+    .expect("parse live schema JSON");
+    let registry = capability_registry();
+    assert_eq!(policy.gate_id, GATE_ID);
+    assert_eq!(
+        schema["$schema"],
+        "https://json-schema.org/draft/2020-12/schema"
+    );
+    assert_eq!(registry["closed"], true);
+    assert_eq!(registry["registry_kind"], "capability");
+    assert_eq!(registry["capabilities"].as_array().unwrap().len(), 24);
+    assert_eq!(raw["version"], "2.0.0");
+    assert_eq!(raw["schema"], "specs/substrate-dependency-dag.schema.json");
+    assert_eq!(raw["dependency_units"].as_array().unwrap().len(), 19);
+    assert!(
+        raw["dependency_units"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|unit| unit.get("runtime_face").is_some_and(Value::is_string))
+    );
+    assert_eq!(raw["external_anchors"].as_array().unwrap().len(), 1);
+    let kinds: Vec<&str> = raw["graphs"]
+        .as_array()
+        .expect("graphs")
+        .iter()
+        .map(|graph| graph["kind"].as_str().expect("kind"))
+        .collect();
+    assert_eq!(kinds, GRAPH_KINDS);
+    let dag = parse_dag(&serde_json::to_string(&raw).expect("serialize graph"))
+        .expect("structurally parse graph");
+    let evaluated = evaluate_with_raw(&dag, &raw, &schema, &registry, &policy);
+    assert_eq!(
+        evaluated.verdict,
+        Verdict::Green,
+        "{:?}",
+        evaluated.findings
+    );
+}
+
+#[test]
+fn policy_rejects_wrong_gate_id_redirects_and_path_escapes() {
+    let valid = json!({
+        "gate_id": GATE_ID,
+        "dag_path": CANONICAL_DAG_PATH,
+        "schema_path": CANONICAL_SCHEMA_PATH,
+        "capability_registry_path": CANONICAL_CAPABILITY_REGISTRY_PATH,
+        "topology_coverage_tracking_issue": "https://github.com/example/repository/issues/42"
+    });
+
+    let mut wrong_gate = valid.clone();
+    wrong_gate["gate_id"] = json!("lookalike-substrate-gate");
+    let error = parse_policy(&wrong_gate.to_string()).expect_err("wrong gate id must fail closed");
+    assert!(error.to_string().contains("does not match"), "{error}");
+
+    for (field, redirect) in [
+        ("dag_path", "specs/dag.json"),
+        ("schema_path", "specs/dag.schema.json"),
+        ("capability_registry_path", "specs/capabilities.json"),
+    ] {
+        let mut policy = valid.clone();
+        policy[field] = json!(redirect);
+        let error = parse_policy(&policy.to_string())
+            .expect_err("repo-relative redirect must fail closed before any file access");
+        assert!(
+            error.to_string().contains("must equal canonical path"),
+            "unexpected error for `{field}={redirect}`: {error}"
+        );
+    }
+
+    for (field, escape) in [
+        ("dag_path", "../outside.json"),
+        ("schema_path", "specs/../outside.schema.json"),
+        ("capability_registry_path", "/tmp/capability-registry.json"),
+    ] {
+        let mut policy = valid.clone();
+        policy[field] = json!(escape);
+        let error = parse_policy(&policy.to_string())
+            .expect_err("path escape must fail closed before any file access");
+        assert!(
+            error.to_string().contains("must equal canonical path"),
+            "unexpected error for `{field}={escape}`: {error}"
+        );
+    }
+}
+
+#[test]
+fn bootstrap_accepts_valid_nonalphabetical_order_and_kahn_is_deterministic() {
+    let (raw, _) = load_live();
+    let first = report(&raw);
+    let second = report(&raw);
+    assert_eq!(first.verdict, Verdict::Green, "{:?}", first.findings);
+    assert_eq!(
+        first.derived_bootstrap_order,
+        second.derived_bootstrap_order
+    );
+
+    let steady = raw["graphs"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|graph| graph["kind"] == "steady_state_request")
+        .expect("steady-state graph");
+    let declared: Vec<&str> = steady["bootstrap_order"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|unit| unit.as_str().unwrap())
+        .collect();
+    let derived = first
+        .derived_bootstrap_order
+        .expect("an acyclic request graph has a deterministic Kahn order");
+    assert_eq!(
+        derived,
+        [
+            "cell.envelope",
+            "iam.local-verifier",
+            "secrets.cell-issuer",
+            "tenancy.local-context",
+            "policy.local-pdp",
+            "audit.cell-seal",
+            "observability.cell-runtime",
+            "data.ontology-runtime",
+            "intelligence.runtime",
+            "workflow.runtime",
+        ],
+        "BTree tie-breaking keeps the derived dependency-first order stable"
+    );
+    assert_ne!(
+        declared, derived,
+        "a valid declared order need not equal the alphabetical Kahn tie-break"
+    );
+
+    let (mut invalid, _) = load_live();
+    apply_fixture_mutation(&mut invalid, "invalid_bootstrap_order");
+    assert_red_code(&invalid, "dag_bootstrap_drift");
+}
+
+#[test]
+fn missing_and_extra_graph_kinds_are_red() {
+    let (mut missing, _) = load_live();
+    missing["graphs"].as_array_mut().unwrap().pop();
+    assert_red_code(&missing, "dag_graph_kind_set");
+
+    let (mut extra, _) = load_live();
+    extra["graphs"].as_array_mut().unwrap().push(json!({
+        "kind": "sixth_graph",
+        "edge_semantics": "invalid",
+        "edges": []
+    }));
+    assert_red_code(&extra, "dag_graph_kind_set");
+
+    let (mut reordered, _) = load_live();
+    reordered["graphs"].as_array_mut().unwrap().swap(0, 1);
+    assert_red_code(&reordered, "dag_graph_kind_set");
+}
+
+#[test]
+fn duplicate_unknown_and_cross_kind_edges_are_red() {
+    let (mut duplicate, _) = load_live();
+    let first = duplicate["dependency_units"][0].clone();
+    duplicate["dependency_units"]
+        .as_array_mut()
+        .unwrap()
+        .push(first);
+    assert_red_code(&duplicate, "dag_duplicate_unit");
+
+    let (mut unknown, _) = load_live();
+    graph_mut(&mut unknown, "genesis")["edges"]
+        .as_array_mut()
+        .unwrap()
+        .push(json!({
+            "graph_kind": "genesis", "from": "unknown.face", "to": "cell.envelope"
+        }));
+    assert_red_code(&unknown, "dag_edge_unknown_unit");
+
+    let (mut contaminated, _) = load_live();
+    graph_mut(&mut contaminated, "genesis")["edges"][0]["graph_kind"] =
+        json!("steady_state_request");
+    assert_red_code(&contaminated, "dag_cross_kind_edge");
+}
+
+#[test]
+fn dependency_unit_count_capabilities_and_runtime_faces_are_closed() {
+    let (mut eighteen, _) = load_live();
+    eighteen["dependency_units"].as_array_mut().unwrap().pop();
+    assert_red_code(&eighteen, "dag_dependency_unit_set");
+
+    let (mut twenty, _) = load_live();
+    twenty["dependency_units"]
+        .as_array_mut()
+        .unwrap()
+        .push(json!({
+            "id": "network.bootstrap",
+            "capability": "network",
+            "runtime_face": "bootstrap",
+            "plane": "B0",
+            "purpose": "fixture-only twentieth unit"
+        }));
+    assert_red_code(&twenty, "dag_dependency_unit_set");
+
+    let (mut unknown_capability, _) = load_live();
+    unknown_capability["dependency_units"][1]["capability"] = json!("not-a-capability");
+    assert_red_code(&unknown_capability, "dag_unknown_capability");
+
+    let (mut missing_runtime_face, _) = load_live();
+    missing_runtime_face["dependency_units"][1]
+        .as_object_mut()
+        .unwrap()
+        .remove("runtime_face");
+    assert_red_code(&missing_runtime_face, "dag_schema_violation");
+
+    let (mut unknown_face, _) = load_live();
+    unknown_face["dependency_units"][0]["runtime_face"] = json!("unknown-bootstrap");
+    assert_red_code(&unknown_face, "dag_dependency_unit_authority_mismatch");
+
+    let (mut id_face_mismatch, _) = load_live();
+    id_face_mismatch["dependency_units"][1]["runtime_face"] = json!("genesis");
+    assert_red_code(&id_face_mismatch, "dag_dependency_unit_authority_mismatch");
+
+    let (mut capability_id_mismatch, _) = load_live();
+    capability_id_mismatch["dependency_units"][1]["capability"] = json!("network");
+    assert_red_code(
+        &capability_id_mismatch,
+        "dag_dependency_unit_authority_mismatch",
+    );
+
+    let (mut replacement, _) = load_live();
+    replacement["dependency_units"][0]["id"] = json!("network.fabric-bootstrap");
+    replacement["dependency_units"][0]["runtime_face"] = json!("fabric-bootstrap");
+    replace_string(
+        &mut replacement,
+        "network.bootstrap",
+        "network.fabric-bootstrap",
+    );
+    assert_red_code(&replacement, "dag_dependency_unit_authority_mismatch");
+}
+
+#[test]
+fn canonical_schema_authority_cannot_be_replaced_or_weakened() {
+    let (raw, _) = load_live();
+    let canonical = live_schema();
+    let mut mutations = Vec::new();
+
+    mutations.push((
+        "rejecting replacement",
+        json!({"$schema": "https://json-schema.org/draft/2020-12/schema", "not": {}}),
+    ));
+
+    let mut prefix_items = canonical.clone();
+    prefix_items["properties"]["graphs"]
+        .as_object_mut()
+        .unwrap()
+        .remove("prefixItems");
+    mutations.push(("prefixItems", prefix_items));
+
+    let mut items_false = canonical.clone();
+    items_false["properties"]["graphs"]["items"] = json!(true);
+    mutations.push(("items:false", items_false));
+
+    let mut required = canonical.clone();
+    required["required"].as_array_mut().unwrap().pop();
+    mutations.push(("required", required));
+
+    let mut additional_properties = canonical.clone();
+    additional_properties["additionalProperties"] = json!(true);
+    mutations.push(("additionalProperties", additional_properties));
+
+    let mut const_keyword = canonical.clone();
+    const_keyword["properties"]["version"]["const"] = json!("2.x");
+    mutations.push(("const", const_keyword));
+
+    let mut range = canonical.clone();
+    range["$defs"]["request_edge"]["properties"]["dependency_weight"]["exclusiveMinimum"] =
+        json!(-1);
+    mutations.push(("range", range));
+
+    let mut value_type = canonical;
+    value_type["$defs"]["request_edge"]["properties"]["dependency_weight"]["type"] =
+        json!("string");
+    mutations.push(("type", value_type));
+
+    for (name, schema) in mutations {
+        let evaluated = report_with_schema(&raw, &schema);
+        assert_eq!(evaluated.verdict, Verdict::Red, "schema mutation {name}");
+        assert!(
+            evaluated
+                .findings
+                .iter()
+                .any(|finding| finding.code == "dag_schema_authority_mismatch"),
+            "schema mutation {name}: {:?}",
+            evaluated.findings
+        );
+    }
+}
+
+#[test]
+fn only_steady_state_request_must_be_acyclic() {
+    let (mut self_loop, _) = load_live();
+    graph_mut(&mut self_loop, "steady_state_request")["edges"]
+        .as_array_mut()
+        .unwrap()
+        .push(json!({
+            "graph_kind": "steady_state_request",
+            "from": "cell.envelope",
+            "to": "cell.envelope",
+            "dependency_weight": 1.0,
+            "cascade_rule": "FULL",
+            "version_compatibility_range": "^2.0",
+            "cedar_permit_fragment": "fixture-self-loop"
+        }));
+    assert_red_code(&self_loop, "dag_cycle");
+
+    let (mut cycle, _) = load_live();
+    graph_mut(&mut cycle, "steady_state_request")["edges"]
+        .as_array_mut()
+        .unwrap()
+        .push(json!({
+            "graph_kind": "steady_state_request",
+            "from": "cell.envelope",
+            "to": "iam.local-verifier",
+            "dependency_weight": 1.0,
+            "cascade_rule": "FULL",
+            "version_compatibility_range": "^2.0",
+            "cedar_permit_fragment": "fixture-cycle"
+        }));
+    assert_red_code(&cycle, "dag_cycle");
+
+    let (mut reverse_outside_graph3, _) = load_live();
+    graph_mut(&mut reverse_outside_graph3, "genesis")["edges"]
+        .as_array_mut()
+        .unwrap()
+        .push(json!({
+            "graph_kind": "genesis", "from": "cell.genesis", "to": "external.genesis-roots"
+        }));
+    assert_eq!(
+        report(&reverse_outside_graph3).verdict,
+        Verdict::Green,
+        "cycles/reverse directions outside graph 3 are allowed"
+    );
+}
+
+#[test]
+fn malformed_or_mismatched_failure_closure_is_red() {
+    let (mut malformed, _) = load_live();
+    graph_mut(&mut malformed, "failure_brownout_propagation")["edges"][0]
+        .as_object_mut()
+        .unwrap()
+        .remove("impact_rule");
+    assert_red_code(&malformed, "dag_failure_edge_malformed");
+
+    let (mut missing, _) = load_live();
+    graph_mut(&mut missing, "failure_brownout_propagation")["edges"]
+        .as_array_mut()
+        .unwrap()
+        .pop();
+    assert_red_code(&missing, "dag_failure_closure_mismatch");
+
+    let (mut wrong_impact, _) = load_live();
+    graph_mut(&mut wrong_impact, "failure_brownout_propagation")["edges"][0]["impact_rule"] =
+        json!("INDEPENDENT");
+    assert_red_code(&wrong_impact, "dag_failure_closure_mismatch");
+}
+
+#[test]
+fn composition_direction_and_required_schema_fields_are_red() {
+    let (mut sum, _) = load_live();
+    graph_mut(&mut sum, "failure_brownout_propagation")["composition"] = json!("sum");
+    assert_red_code(&sum, "dag_schema_violation");
+
+    let (mut forward, _) = load_live();
+    forward["failure_impact_composition"]["closure_direction"] =
+        json!("forward_transitive_closure");
+    assert_red_code(&forward, "dag_schema_violation");
+
+    let (mut missing_doctrine, _) = load_live();
+    missing_doctrine
+        .as_object_mut()
+        .unwrap()
+        .remove("doctrine_adrs");
+    assert_red_code(&missing_doctrine, "dag_schema_violation");
+
+    let (mut stale_graph_adr, _) = load_live();
+    stale_graph_adr["doctrine_adrs"][4] = json!("ADR-0631");
+    assert_red_code(&stale_graph_adr, "dag_schema_violation");
+
+    let (mut missing_path_rule, _) = load_live();
+    missing_path_rule["failure_impact_composition"]
+        .as_object_mut()
+        .unwrap()
+        .remove("path_rule");
+    assert_red_code(&missing_path_rule, "dag_schema_violation");
+
+    let (mut extra_property, _) = load_live();
+    extra_property["schema_escape_hatch"] = json!(true);
+    assert_red_code(&extra_property, "dag_schema_violation");
+
+    let (mut wrong_const, _) = load_live();
+    wrong_const["version"] = json!("2.x");
+    assert_red_code(&wrong_const, "dag_schema_violation");
+}
+
+#[test]
+fn topology_follow_up_tracking_and_baseline_policy_are_fail_closed() {
+    let (live, policy) = load_live();
+    let topology_follow_up = live["mandatory_follow_ups"]
+        .as_array()
+        .expect("mandatory follow-ups")
+        .iter()
+        .find(|item| item["id"] == "W0-C-TOPOLOGY-COVERAGE")
+        .expect("topology follow-up");
+    assert_eq!(
+        topology_follow_up["tracking_issue"],
+        policy.topology_coverage_tracking_issue
+    );
+
+    for mutation in [
+        "drift_topology_tracking_issue",
+        "drift_topology_baseline_policy",
+    ] {
+        let (mut raw, _) = load_live();
+        apply_fixture_mutation(&mut raw, mutation);
+        assert_red_code(&raw, "dag_follow_up_policy_drift");
+    }
+}
+
+#[test]
+fn policy_and_graph_cannot_jointly_drift_from_the_pinned_schema_tracking_issue() {
+    let (mut raw, mut policy) = load_live();
+    let schema = live_schema();
+    let joint_drift = "https://github.com/example/repository/issues/42";
+    follow_up_mut(&mut raw, "W0-C-TOPOLOGY-COVERAGE")["tracking_issue"] = json!(joint_drift);
+    policy.topology_coverage_tracking_issue = joint_drift.to_owned();
+
+    let evaluated = report_with_policy_and_schema(&raw, &schema, &policy);
+    assert_eq!(evaluated.verdict, Verdict::Red, "{:#?}", evaluated.findings);
+    assert!(
+        evaluated.findings.iter().any(|finding| {
+            finding.code == "dag_follow_up_policy_drift"
+                && finding.subject == "policy.topology_coverage_tracking_issue"
+        }),
+        "joint policy and graph drift must remain RED: {:?}",
+        evaluated.findings
+    );
+    assert!(
+        evaluated
+            .findings
+            .iter()
+            .all(|finding| finding.code != "dag_schema_authority_mismatch"),
+        "the unchanged canonical schema must retain its independent digest authority"
+    );
+}
+
+#[test]
+fn request_metadata_types_ranges_and_forbidden_assertions_are_red() {
+    for invalid_weight in [json!("heavy"), json!(-0.1), json!(0), json!(1.1)] {
+        let (mut raw, _) = load_live();
+        graph_mut(&mut raw, "steady_state_request")["edges"][0]["dependency_weight"] =
+            invalid_weight;
+        assert_red_code(&raw, "dag_edge_malformed");
+    }
+
+    let (mut numeric_version, _) = load_live();
+    graph_mut(&mut numeric_version, "steady_state_request")["edges"][0]["version_compatibility_range"] =
+        json!(2);
+    assert_red_code(&numeric_version, "dag_edge_malformed");
+
+    let (mut empty_cedar, _) = load_live();
+    graph_mut(&mut empty_cedar, "steady_state_request")["edges"][0]["cedar_permit_fragment"] =
+        json!("");
+    assert_red_code(&empty_cedar, "dag_edge_malformed");
+
+    let (mut missing_reason, _) = load_live();
+    graph_mut(&mut missing_reason, "steady_state_request")["forbidden_edges_assertion"][0]
+        .as_object_mut()
+        .unwrap()
+        .remove("reason");
+    assert_red_code(&missing_reason, "dag_schema_violation");
+
+    let (mut numeric_reason, _) = load_live();
+    graph_mut(&mut numeric_reason, "steady_state_request")["forbidden_edges_assertion"][0]["reason"] =
+        json!(7);
+    assert_red_code(&numeric_reason, "dag_schema_violation");
+}
+
+#[test]
+fn failure_graph_is_the_exact_reverse_transitive_closure() {
+    let (raw, _) = load_live();
+    let evaluated = report(&raw);
+    assert!(
+        !evaluated
+            .findings
+            .iter()
+            .any(|finding| finding.code == "dag_failure_closure_mismatch"),
+        "failure graph must equal the computed max-min reverse closure: {:?}",
+        evaluated.findings
+    );
+}
+
+#[test]
+fn fixture_corpus_executes_every_declared_mutation_and_expected_verdict() {
+    let cases = fixture_cases();
+    let cases = cases["cases"].as_array().expect("fixture cases");
+    assert!(!cases.is_empty(), "fixture corpus must not be decorative");
+    for case in cases {
+        let id = case["id"].as_str().expect("fixture id");
+        let mutation = case["mutation"].as_str().expect("fixture mutation");
+        let expected = case["expected"].as_str().expect("fixture expected");
+        let (mut raw, _) = load_live();
+        apply_fixture_mutation(&mut raw, mutation);
+        let evaluated = report(&raw);
+        if expected == "GREEN" {
+            assert_eq!(evaluated.verdict, Verdict::Green, "fixture {id}");
+        } else {
+            assert_eq!(evaluated.verdict, Verdict::Red, "fixture {id}");
+            assert!(
+                evaluated
+                    .findings
+                    .iter()
+                    .any(|finding| finding.code == expected),
+                "fixture {id}: expected {expected}, got {:?}",
+                evaluated.findings
+            );
+            match mutation {
+                "graph3_three_node_cycle" => assert_cycle_members(
+                    &evaluated,
+                    &[
+                        "cell.envelope",
+                        "iam.local-verifier",
+                        "tenancy.local-context",
+                    ],
+                ),
+                "graph3_buried_scc_cycle" => assert_cycle_members(
+                    &evaluated,
+                    &[
+                        "audit.cell-seal",
+                        "data.ontology-runtime",
+                        "intelligence.runtime",
+                        "observability.cell-runtime",
+                        "secrets.cell-issuer",
+                        "workflow.runtime",
+                    ],
+                ),
+                _ => {}
+            }
+        }
+    }
 }

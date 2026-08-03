@@ -9,7 +9,7 @@ door: one-way
 owner: founder
 supersedes: [ADR-0550]
 superseded_by: []
-amended_by: [ADR-0615]
+amended_by: [ADR-0615, ADR-0635]
 depends_on: [ADR-0280, ADR-0512]
 amends:
   - ADR-0536-hyperscaler-grounded-substrate-decision-matrix.md (its sixteen domains seed the closed capability registry; its enforcement gains face-direction + membership checks)

@@ -138,7 +138,7 @@
       "prefix": "specs/capability-registry.json"
     },
     {
-      "anchor": "ADR-0280 §D-1: the canonical substrate-of-substrate dependency DAG policy-as-data (the Tier-1 v1.0.0 worked example, populated verbatim; de-branded node names per ADR-0562). Its named consumer is the oya-cloud-ci-substrate-dependency-dag-acyclicity-app gate (ADR-0280 §D-3, Tarjan/Kahn validator) + ADR-0280 related_specs; every derived surface (manifests, bootstrap, SLO composition, Cedar permits) derives from it",
+      "anchor": "ADR-0635 D1/D5/D6 + ADR-0280 D-13.F/H: the sole canonical machine topology for the bounded graph-v2 W0-C slice (19 units across 11 of 24 capabilities), enforced by the dependency-graph-acyclicity gate. The platform-architecture v1 projection and remaining v1 consumers are stale or deferred, not current parity. Full topology is tracked by GitHub #1537 and must preserve baseline_policy=no-new-frozen-baseline while graph, derived failure closure, affected consumers, and any current projection update atomically.",
       "prefix": "specs/substrate-dependency-dag.json"
     },
     {
@@ -328,6 +328,14 @@
     {
       "anchor": "ADR-0632 hermetic input declaration: exact microservice-schema BUCK file exporting the closed public/internal contract schema to the product-protocol gate.",
       "prefix": "specs/microservices/BUCK"
+    },
+    {
+      "anchor": "ADR-0635 D5/D6: closed Draft 2020-12 schema for the canonical bounded W0-C substrate graph-v2 contract, including its no-new-baseline topology-coverage follow-up; loaded through the gate policy and asserted by the dependency-graph-acyclicity live-corpus test.",
+      "prefix": "specs/substrate-dependency-dag.schema.json"
+    },
+    {
+      "anchor": "ADR-0635 D5: named RED/GREEN mutation corpus consumed directly by the dependency-graph-acyclicity Buck gate test.",
+      "prefix": "ci/facade/dependency-graph-acyclicity/tests/fixtures/graph-v2-cases.json"
     }
   ]
 }
