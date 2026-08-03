@@ -91,6 +91,15 @@
           "disposition_ref": "/specs/masterplan.json#masterplan_v2.accepted_decision_propagation_dispositions",
           "hold_state": "HOLD(Planning)",
           "note": "Immutable ADR-census epoch-transition lifecycle propagation only. This marker adds no plan work, approves no roadmap, dispatches no implementation, and preserves P2 active plus P3 dormant under HOLD(Planning)."
+        },
+        {
+          "id": "ADR-0635",
+          "lifecycle_state": "Accepted",
+          "planning_impact": true,
+          "sequencing_effect": "none",
+          "disposition_ref": "/specs/masterplan.json#planning_authority.bound_adrs",
+          "hold_state": "HOLD(Planning)",
+          "note": "Accepted W0-C face-aware substrate graph-v2 propagation. It binds the existing W0-C consolidation into P-REORG planning authority without minting a new work item, dispatching a wave, or creating a baseline carveout."
         }
       ],
       "evidence": "/evidence/consolidation/preplanning-authority-closure-20260713.json"
