@@ -1,6 +1,0 @@
-# Owner of the canonical Leptos app-shell frontend (ADR-0393) and its native Axum SSR host.
-# Scoped to this crate rather than all of oya/application/ so ownership is claimed only where
-# this lane actually maintains the code; sibling application crates register their own OWNERS.
-# ADR-0562 capability-registry: oya/application is the sanctioned pre-move home for the
-# product-developer-application-shell composition member (post-move: app/application).
-axis-cloud-platform

@@ -1,9 +1,0 @@
-context: ontology
-role: kernel
-capability: ontology
-plane: data
-slo: preview-data-plane
-data_classes_owned: [INTERNAL_ONLY, PII_IDENTIFYING, FINANCIAL_REGULATED_CREDIT, PHI, PCI, SENSITIVE_PIPA_ART23]
-api_stability: preview
-security_review: unreviewed
-supply_chain: source-only

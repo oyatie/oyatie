@@ -1,7 +1,0 @@
-val	0	off
-val	1	talos-addr
-val	2	stable
-parse	off	0
-parse	talos-addr	1
-parse	stable	2
-parse	__nope__	ERR

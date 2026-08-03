@@ -1,7 +1,0 @@
-tier: preview
-owner_team: axis-cloud
-version: 1.0.0
-sunset: none
-related_adrs:
-  - ADR-0028
-  - ADR-0037

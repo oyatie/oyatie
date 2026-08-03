@@ -1,9 +1,0 @@
-context: cell
-role: api
-capability: cell-regional-pack
-plane: control
-slo: stable-control-plane
-data_classes_owned: [INTERNAL_ONLY]
-api_stability: preview
-security_review: unreviewed
-supply_chain: source-only

@@ -1,7 +1,0 @@
-{
-  "subcheck_id": "cargo-audit-shell",
-  "fixture_kind": "passing",
-  "case_id": "cargo-audit-shell-passing-semantic-fixture",
-  "expected_diagnostics": [],
-  "description": "Semantic passing fixture manifest for cargo-audit-shell"
-}

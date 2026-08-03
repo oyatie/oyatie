@@ -1,3 +1,0 @@
-Claim: current origin/dev has no mechanical detector that distinguishes a dead headless Codex lane from a slow lane before PR-open.
-Verification: git ls-tree on origin/dev for tools/oya-lane-supervisor-app and .omc/ultragoal returned no tracked supervisor or lane-ledger surfaces.
-Invalidator: a tracked cloud-ci/oya-ci lane-state gate on origin/dev already recording dead/stalled local workers and failing oya-ci-required would make this bridge unnecessary.

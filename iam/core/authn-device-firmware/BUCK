@@ -1,7 +1,0 @@
-rust_library(
-    name = "iam-authn-device-firmware",
-    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
-    crate = "iam_authn_device_firmware",
-    crate_root = "src/lib.rs",
-    visibility = ["PUBLIC"],
-)
