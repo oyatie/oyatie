@@ -38,10 +38,37 @@
 //!   underlying vuln was fixed / the dep dropped / the crate left the tree). The `--write` mode
 //!   removes these (shrink-only); it NEVER adds an ignore (a new vuln must be fixed, not baselined).
 //!
+//! ## Lockfile COVERAGE (the scan is only as good as the corpus it names)
+//! The gate scans exactly the lockfiles `policy.lockfile_paths` names. That declaration used to be a
+//! single `lockfile_path` string — "scan THE lockfile" — while the obligation is "scan EVERY
+//! lockfile". A repository holds more than one `Cargo.lock` the moment it carries a nested workspace
+//! (the ADR-0512 `kernel` / `cloud/cloud-kernel` carve-outs) or a stranded lockfile with no manifest
+//! above it. Every crate pinned only in an unnamed lockfile was invisible: a `cargo update` there
+//! could introduce an affected version and this gate would stay green, because it never looked.
+//!
+//! The fix that STAYS fixed is not a longer declaration — it is an assertion that the declaration
+//! equals reality. [`discover_lockfiles`] DERIVES the corpus by walking the tree (a `Cargo.lock`
+//! either exists on disk or it does not), and [`evaluate_keyed`] asserts set equality against
+//! `policy.lockfile_paths` in BOTH directions. A workspace added tomorrow is `SCA-LOCKFILE-UNCOVERED`
+//! until it is declared; a declaration whose file is gone is `SCA-LOCKFILE-ABSENT` until it is
+//! dropped. The declaration therefore cannot silently drift out of agreement with the repository.
+//!
+//! Two rejected derivation sources, and why:
+//! - **Root `Cargo.toml` `exclude`** — it answers "what is NOT a root-workspace member", not "where
+//!   is a lockfile". MEASURED on this tree: `exclude` names 3 entries (2 of them workspaces) while 18
+//!   `Cargo.lock` files are tracked; it under-reports the corpus by 16. It is also itself hand-kept,
+//!   i.e. the exact defect being fixed one level up.
+//! - **The git-tracked file set** — accurate, but obtaining it means spawning `git`, which this
+//!   gate's no-shell/hermetic/buck2-cacheable contract forbids (see the module header above).
+//!
 //! ## Violation codes (the contract — literal strings the gate emits)
 //! - `SCA-VULN` — a security advisory affects a locked crate and is not ignored.
 //! - `SCA-UNMAINTAINED` — an unmaintained advisory affects a locked crate (policy=all) and is not ignored.
 //! - `SCA-STALE-IGNORE` — an ignore id matches no live affected advisory (shrink-only self-clean).
+//! - `SCA-LOCKFILE-UNCOVERED` — a `Cargo.lock` exists in the tree that `policy.lockfile_paths` does
+//!   not name, so its pins are never scanned (the coverage defect).
+//! - `SCA-LOCKFILE-ABSENT` — `policy.lockfile_paths` names a path with no file behind it (a stale
+//!   declaration, or a derivation that under-reported — both fail closed).
 //! - `SCA-MIRROR-MALFORMED` — the vendored mirror is corrupt / desynced (fail-closed).
 //! - `SCA-MIRROR-UNDERFLOW` — the mirror has too few advisories (fail-closed against a false-green).
 //! - `SCA-POLICY-GATE-ID-MISMATCH` — the policy `gate_id` is not [`GATE_ID`] (fail-closed).
@@ -51,7 +78,7 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeSet, VecDeque};
 use std::path::Path;
 
 use oya_advisory_mirror_kernel::{Advisory, canonical_hash};
@@ -68,10 +95,12 @@ pub const REMEDIATION_DOCTRINE: &str =
      a reason, pull_chain, and remove_by date";
 
 /// The blocking + structural violation codes, in canonical order.
-pub const VIOLATION_CODES: [&str; 7] = [
+pub const VIOLATION_CODES: [&str; 9] = [
     "SCA-VULN",
     "SCA-UNMAINTAINED",
     "SCA-STALE-IGNORE",
+    "SCA-LOCKFILE-UNCOVERED",
+    "SCA-LOCKFILE-ABSENT",
     "SCA-MIRROR-MALFORMED",
     "SCA-MIRROR-UNDERFLOW",
     "SCA-POLICY-GATE-ID-MISMATCH",
@@ -105,23 +134,120 @@ impl std::fmt::Display for CollectError {
 
 impl std::error::Error for CollectError {}
 
-/// Collect the observed graph: the locked crates from `Cargo.lock` + the vendored advisory snapshot.
+/// Directory names the lockfile derivation never descends into: VCS metadata, build/dependency
+/// output roots, and `.claude` — which is tracked but hosts the per-lane isolated worktrees the
+/// operating contract mandates, i.e. full nested copies of this repository whose lockfiles belong to
+/// a different checkout. Same list, same reason, as the affected-set gate's `CONSUMER_SCAN_SKIP_DIRS`.
 ///
-/// The ONLY I/O. Reads `policy.lockfile_path` (TOML) and `policy.mirror_dir/{advisories.json,
-/// mirror-manifest.json}` (JSON). Emits
-/// `{ "locked": [ { "name", "version" }, .. ], "advisories": [ <Advisory>, .. ], "manifest": {..} }`.
+/// Deliberately a CODE constant and not policy DATA: a policy-editable skip list would be a one-line
+/// way to silence the coverage assertion, which is precisely the class of defect the assertion
+/// exists to prevent. Any other directory that grows a `Cargo.lock` surfaces as
+/// `SCA-LOCKFILE-UNCOVERED` — noisy, but the fail-closed direction.
+const UNWALKED_DIRS: [&str; 5] = [".git", ".claude", "buck-out", "target", "node_modules"];
+
+/// DERIVE the repository's actual lockfile corpus by walking the tree from `repo_root`.
+///
+/// This is the source the coverage assertion compares `policy.lockfile_paths` against, and it was
+/// chosen because it cannot drift from reality: a `Cargo.lock` is either on disk or it is not. It
+/// needs no registry, no manifest parsing, and no second hand-kept list. Returns repo-root-relative,
+/// `/`-separated paths, sorted and deduped.
+pub fn discover_lockfiles(repo_root: &Path) -> Result<Vec<String>, CollectError> {
+    let mut found: Vec<String> = Vec::new();
+    let mut queue = VecDeque::from([repo_root.to_path_buf()]);
+    while let Some(dir) = queue.pop_front() {
+        let entries = std::fs::read_dir(&dir)
+            .map_err(|e| CollectError::Io(format!("read_dir {}: {e}", dir.display())))?;
+        for entry in entries {
+            let entry = entry.map_err(|e| {
+                CollectError::Io(format!("read_dir entry under {}: {e}", dir.display()))
+            })?;
+            let path = entry.path();
+            // `DirEntry::file_type` does not follow symlinks, so a symlinked directory is neither
+            // dir nor file here and is not descended into: the walk cannot cycle, and it cannot
+            // escape the repository. That is also the correct corpus answer — a lockfile "inside" a
+            // symlinked directory really lives at the link target, which is either elsewhere in this
+            // tree (and derived on its own) or outside it (and not this repository's to scan).
+            let file_type = entry
+                .file_type()
+                .map_err(|e| CollectError::Io(format!("file_type {}: {e}", path.display())))?;
+            let name = path.file_name().and_then(|n| n.to_str());
+            if file_type.is_dir() {
+                if !name.is_some_and(|n| UNWALKED_DIRS.contains(&n)) {
+                    queue.push_back(path);
+                }
+            } else if name == Some(LOCKFILE_NAME)
+                && let Some(rel) = repo_relative(repo_root, &path)
+            {
+                found.push(rel);
+            }
+        }
+    }
+    found.sort();
+    found.dedup();
+    Ok(found)
+}
+
+/// The file name that defines the corpus. A repository's lockfile set is exactly its `Cargo.lock`s.
+const LOCKFILE_NAME: &str = "Cargo.lock";
+
+fn repo_relative(repo_root: &Path, path: &Path) -> Option<String> {
+    let rel = path.strip_prefix(repo_root).ok()?;
+    let parts: Vec<&str> = rel.components().filter_map(|c| c.as_os_str().to_str()).collect();
+    if parts.len() != rel.components().count() {
+        return None; // non-UTF-8 component: cannot be compared against a JSON declaration.
+    }
+    Some(parts.join("/"))
+}
+
+/// The DECLARED lockfile corpus (`policy.lockfile_paths`), sorted and deduped. `None` when the field
+/// is missing or is not an array of strings — a structurally invalid declaration fails closed rather
+/// than silently degrading to "scan nothing" or "scan the root only".
+pub fn configured_lockfiles(policy: &Value) -> Option<Vec<String>> {
+    let arr = policy.get("lockfile_paths").and_then(Value::as_array)?;
+    let mut out = Vec::with_capacity(arr.len());
+    for entry in arr {
+        out.push(entry.as_str()?.to_owned());
+    }
+    out.sort();
+    out.dedup();
+    Some(out)
+}
+
+/// Collect the observed graph: the locked crates from EVERY declared `Cargo.lock`, the DERIVED
+/// lockfile corpus, and the vendored advisory snapshot.
+///
+/// The ONLY I/O. Reads each `policy.lockfile_paths` entry (TOML), walks the tree for the derived
+/// corpus, and reads `policy.mirror_dir/{advisories.json,mirror-manifest.json}` (JSON). Emits
+/// `{ "locked": [ { "name", "version" }, .. ], "configured_lockfiles": [..],
+/// "discovered_lockfiles": [..], "advisories": [ <Advisory>, .. ], "manifest": {..} }`.
+///
+/// A declared path with no file behind it is NOT a hard error here: it is reported by the pure
+/// evaluator as `SCA-LOCKFILE-ABSENT`, so the operator sees the named path instead of an opaque
+/// exit-2 abort. A declared path that EXISTS but cannot be read or parsed stays fail-closed.
 pub fn collect(repo_root: &Path, policy: &Value) -> Result<Value, CollectError> {
-    let lockfile_path = policy
-        .get("lockfile_path")
-        .and_then(Value::as_str)
-        .unwrap_or("Cargo.lock");
+    let configured = configured_lockfiles(policy).ok_or_else(|| {
+        CollectError::Parse(
+            "policy.lockfile_paths must be an array of repo-root-relative Cargo.lock path strings"
+                .to_owned(),
+        )
+    })?;
     let mirror_dir = policy
         .get("mirror_dir")
         .and_then(Value::as_str)
         .ok_or_else(|| CollectError::Parse("policy.mirror_dir is required".to_owned()))?;
 
-    let lock_text = read_file(&repo_root.join(lockfile_path))?;
-    let locked = parse_locked(&lock_text)?;
+    let mut locked: Vec<Value> = Vec::new();
+    for rel in &configured {
+        let path = repo_root.join(rel);
+        if !path.is_file() {
+            continue; // reported as SCA-LOCKFILE-ABSENT by the pure evaluator.
+        }
+        locked.extend(parse_locked(&read_file(&path)?, rel)?);
+    }
+    locked.sort_by(|a, b| locked_sort_key(a).cmp(&locked_sort_key(b)));
+    locked.dedup();
+
+    let discovered = discover_lockfiles(repo_root)?;
 
     let advisories_text = read_file(&repo_root.join(mirror_dir).join("advisories.json"))?;
     let advisories: Value = serde_json::from_str(&advisories_text)
@@ -133,6 +259,8 @@ pub fn collect(repo_root: &Path, policy: &Value) -> Result<Value, CollectError> 
 
     Ok(json!({
         "locked": locked,
+        "configured_lockfiles": configured,
+        "discovered_lockfiles": discovered,
         "advisories": advisories,
         "manifest": manifest,
     }))
@@ -143,14 +271,16 @@ fn read_file(path: &Path) -> Result<String, CollectError> {
         .map_err(|e| CollectError::Io(format!("read {}: {e}", path.display())))
 }
 
-/// Parse the `[[package]]` table of a `Cargo.lock` into `[{ "name", "version" }]` (sorted, deduped).
-fn parse_locked(lock_text: &str) -> Result<Vec<Value>, CollectError> {
+/// Parse the `[[package]]` table of ONE `Cargo.lock` into `[{ "name", "version" }]`. `origin` is the
+/// repo-root-relative path, carried only so a parse failure names WHICH lockfile broke — with a
+/// multi-lockfile corpus, "Cargo.lock: expected ..." is not a diagnosable message.
+fn parse_locked(lock_text: &str, origin: &str) -> Result<Vec<Value>, CollectError> {
     let doc: toml::Value =
-        toml::from_str(lock_text).map_err(|e| CollectError::Parse(format!("Cargo.lock: {e}")))?;
+        toml::from_str(lock_text).map_err(|e| CollectError::Parse(format!("{origin}: {e}")))?;
     let packages = doc
         .get("package")
         .and_then(toml::Value::as_array)
-        .ok_or_else(|| CollectError::Parse("Cargo.lock has no [[package]] table".to_owned()))?;
+        .ok_or_else(|| CollectError::Parse(format!("{origin} has no [[package]] table")))?;
     let mut locked: Vec<Value> = Vec::with_capacity(packages.len());
     for pkg in packages {
         let Some(name) = pkg.get("name").and_then(toml::Value::as_str) else {
@@ -161,8 +291,6 @@ fn parse_locked(lock_text: &str) -> Result<Vec<Value>, CollectError> {
         };
         locked.push(json!({ "name": name, "version": version }));
     }
-    locked.sort_by(|a, b| locked_sort_key(a).cmp(&locked_sort_key(b)));
-    locked.dedup();
     Ok(locked)
 }
 
@@ -264,6 +392,55 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
             POLICY_KEY,
             format!("policy gate_id must be {GATE_ID}"),
         ));
+    }
+
+    // --- Lockfile COVERAGE: the DECLARED corpus must equal the DERIVED one. ---
+    //
+    // Runs BEFORE every early return below, because a coverage hole is exactly the failure that
+    // must not be masked by an unrelated policy/mirror fault. The gate scans only what
+    // `policy.lockfile_paths` names, so a `Cargo.lock` the declaration omits is a workspace whose
+    // pins are never checked — a later `cargo update` there can introduce an affected version with
+    // this gate still green. `observed.discovered_lockfiles` is DERIVED by walking the tree
+    // (`discover_lockfiles`), never read from a second hand-kept list: a hand-kept mirror of the
+    // declaration would reproduce the very defect this assertion closes.
+    //
+    // A missing/non-array `discovered_lockfiles` degrades to the EMPTY derived set, which turns
+    // every declared path into `SCA-LOCKFILE-ABSENT` — RED. That is the intended fail-closed
+    // direction: an observation that lost the derivation must never read as "coverage is fine".
+    match configured_lockfiles(policy) {
+        None => {
+            findings.insert(Finding::new(
+                "SCA-POLICY-MALFORMED",
+                POLICY_KEY,
+                "policy `lockfile_paths` must be an array of repo-root-relative `Cargo.lock` path strings naming EVERY lockfile in the repository; a single-path declaration cannot express the corpus and leaves nested workspaces unscanned",
+            ));
+        }
+        Some(configured) => {
+            let derived: BTreeSet<&str> = observed
+                .get("discovered_lockfiles")
+                .and_then(Value::as_array)
+                .map(|arr| arr.iter().filter_map(Value::as_str).collect())
+                .unwrap_or_default();
+            let declared: BTreeSet<&str> = configured.iter().map(String::as_str).collect();
+            for path in derived.difference(&declared) {
+                findings.insert(Finding::new(
+                    "SCA-LOCKFILE-UNCOVERED",
+                    path,
+                    format!(
+                        "`{path}` is a Cargo.lock in this repository that policy.lockfile_paths does not name, so none of its pinned crates are matched against the advisory mirror — a `cargo update` in that workspace can introduce an affected version while this gate stays green. Add `{path}` to policy.lockfile_paths (or delete the lockfile if it is stranded); the declared set is asserted equal to the set derived from the tree, so it cannot be left out silently."
+                    ),
+                ));
+            }
+            for path in declared.difference(&derived) {
+                findings.insert(Finding::new(
+                    "SCA-LOCKFILE-ABSENT",
+                    path,
+                    format!(
+                        "policy.lockfile_paths names `{path}`, but no such file was derived from the tree — either the lockfile was removed and the declaration was not shrunk with it, or the derivation under-reported (a walk that finds nothing must not read as full coverage). Remove the entry in the same change that removed the file."
+                    ),
+                ));
+            }
+        }
     }
 
     // Fail CLOSED on a structurally invalid policy: a missing/non-array `ignore`, or an entry
@@ -445,7 +622,7 @@ pub fn shrink_only_ignore(policy: &Value, observed: &Value) -> (Vec<String>, Vec
 /// Human-readable render of the findings. Never a bare FAIL — every finding prints its detail.
 pub fn render_findings(findings: &BTreeSet<Finding>) -> String {
     if findings.is_empty() {
-        return "supply-chain-audit gate passed: no locked crate is affected by an un-ignored RustSec advisory; the vendored mirror is intact".to_owned();
+        return "supply-chain-audit gate passed: every Cargo.lock in the tree is declared in policy.lockfile_paths, no locked crate in any of them is affected by an un-ignored RustSec advisory, and the vendored mirror is intact".to_owned();
     }
     let mut out = String::from("supply-chain-audit gate failed (owned RustSec advisory scan):\n");
     for finding in findings {
@@ -458,10 +635,13 @@ pub fn render_findings(findings: &BTreeSet<Finding>) -> String {
 mod tests {
     use super::*;
 
+    /// An EMPTY declared corpus, paired with the empty derived corpus [`observed`] reports, so the
+    /// coverage assertion is neutral and these cases isolate the advisory-matching logic. The
+    /// coverage assertion has its own cases below.
     fn policy() -> Value {
         json!({
             "gate_id": GATE_ID,
-            "lockfile_path": "Cargo.lock",
+            "lockfile_paths": [],
             "mirror_dir": "x",
             "unmaintained_policy": "all",
             "min_advisories": 0,
@@ -472,10 +652,19 @@ mod tests {
     /// Build an observed graph from synthetic locked crates + advisories, with a CONSISTENT manifest
     /// (correct content_hash + count) so the integrity checks pass and the matching logic is isolated.
     fn observed(locked: &[(&str, &str)], advisories: Vec<Advisory>) -> Value {
+        observed_with_lockfiles(locked, advisories, &[])
+    }
+
+    fn observed_with_lockfiles(
+        locked: &[(&str, &str)],
+        advisories: Vec<Advisory>,
+        discovered: &[&str],
+    ) -> Value {
         let hash = canonical_hash(&advisories);
         let count = advisories.len();
         json!({
             "locked": locked.iter().map(|(n, v)| json!({"name": n, "version": v})).collect::<Vec<_>>(),
+            "discovered_lockfiles": discovered,
             "advisories": serde_json::to_value(&advisories).unwrap(),
             "manifest": { "content_hash": hash, "advisory_count": count },
         })
@@ -616,6 +805,113 @@ mod tests {
         let obs = observed(&[("weird", "not-a-version")], vec![adv]);
         let findings = evaluate_keyed(&policy(), &obs);
         assert!(findings.iter().any(|f| f.code == "SCA-VULN"));
+    }
+
+    #[test]
+    fn a_lockfile_the_declaration_omits_is_uncovered() {
+        // The defect this assertion closes: a nested workspace exists in the tree, the declaration
+        // names only the root, and every crate pinned ONLY in the nested lock is unscanned.
+        let mut p = policy();
+        p["lockfile_paths"] = json!(["Cargo.lock"]);
+        let obs = observed_with_lockfiles(
+            &[],
+            vec![],
+            &["Cargo.lock", "kernel/Cargo.lock", "fourth/Cargo.lock"],
+        );
+        let findings = evaluate_keyed(&p, &obs);
+        let uncovered: Vec<&str> = findings
+            .iter()
+            .filter(|f| f.code == "SCA-LOCKFILE-UNCOVERED")
+            .map(|f| f.key.as_str())
+            .collect();
+        assert_eq!(
+            uncovered,
+            vec!["fourth/Cargo.lock", "kernel/Cargo.lock"],
+            "every derived lockfile the declaration omits must be SCA-LOCKFILE-UNCOVERED, keyed to \
+             its path; got {:?}",
+            codes(&findings)
+        );
+    }
+
+    #[test]
+    fn a_declaration_matching_the_derived_corpus_is_clean() {
+        let mut p = policy();
+        p["lockfile_paths"] = json!(["kernel/Cargo.lock", "Cargo.lock"]); // order must not matter
+        let obs = observed_with_lockfiles(&[], vec![], &["Cargo.lock", "kernel/Cargo.lock"]);
+        assert!(
+            evaluate_keyed(&p, &obs).is_empty(),
+            "a declaration equal to the derived corpus must be clean"
+        );
+    }
+
+    #[test]
+    fn a_declared_path_with_no_file_is_absent() {
+        let mut p = policy();
+        p["lockfile_paths"] = json!(["Cargo.lock", "deleted/Cargo.lock"]);
+        let obs = observed_with_lockfiles(&[], vec![], &["Cargo.lock"]);
+        let findings = evaluate_keyed(&p, &obs);
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.code == "SCA-LOCKFILE-ABSENT" && f.key == "deleted/Cargo.lock"),
+            "a declared path with no derived file must be SCA-LOCKFILE-ABSENT; got {:?}",
+            codes(&findings)
+        );
+    }
+
+    #[test]
+    fn a_lost_derivation_fails_closed_rather_than_reading_as_covered() {
+        // If the walk is absent from the observation, the derived set is empty. It must NOT read as
+        // "the declaration is fine" — every declared path REDs as absent.
+        let mut p = policy();
+        p["lockfile_paths"] = json!(["Cargo.lock"]);
+        let obs = json!({ "locked": [], "advisories": [], "manifest": {} });
+        let findings = evaluate_keyed(&p, &obs);
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.code == "SCA-LOCKFILE-ABSENT" && f.key == "Cargo.lock"),
+            "a missing derivation must fail closed; got {:?}",
+            codes(&findings)
+        );
+    }
+
+    #[test]
+    fn a_single_string_lockfile_path_is_policy_malformed() {
+        // The pre-fix shape (`"lockfile_path": "Cargo.lock"`) cannot express a corpus. It must be
+        // rejected outright, not silently honoured as a one-element set.
+        let mut p = policy();
+        p.as_object_mut().unwrap().remove("lockfile_paths");
+        p["lockfile_path"] = json!("Cargo.lock");
+        let findings = evaluate_keyed(&p, &observed(&[], vec![]));
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.code == "SCA-POLICY-MALFORMED" && f.key == POLICY_KEY),
+            "a single-string lockfile declaration must be SCA-POLICY-MALFORMED; got {:?}",
+            codes(&findings)
+        );
+    }
+
+    #[test]
+    fn coverage_is_reported_even_when_the_mirror_is_malformed() {
+        // A coverage hole must not be masked by an unrelated fault that early-returns.
+        let mut p = policy();
+        p["lockfile_paths"] = json!([]);
+        let obs = json!({
+            "locked": [],
+            "discovered_lockfiles": ["kernel/Cargo.lock"],
+            "advisories": "not-an-array",
+            "manifest": {},
+        });
+        let findings = evaluate_keyed(&p, &obs);
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.code == "SCA-LOCKFILE-UNCOVERED" && f.key == "kernel/Cargo.lock"),
+            "coverage must be evaluated before the mirror early-return; got {:?}",
+            codes(&findings)
+        );
     }
 
     #[test]

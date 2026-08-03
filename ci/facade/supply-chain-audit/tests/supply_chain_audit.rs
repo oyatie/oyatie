@@ -1,6 +1,12 @@
 //! cloud-ci-supply-chain-audit live-corpus self-test (owned RustSec advisory scan).
 //!
 //! Legs:
+//!   0. LIVE COVERAGE: DERIVE the tree's `Cargo.lock` corpus by walking it and assert
+//!      `policy.lockfile_paths` equals it. The gate scans exactly what that array names, so the array
+//!      is the coverage boundary; asserting it against a derivation (rather than trusting review) is
+//!      what stops a newly added workspace from being silently unscanned. Paired with a synthetic
+//!      RED/GREEN leg over a temp repo, and a leg proving a vulnerable pin present ONLY in a
+//!      non-root declared lockfile is actually scanned.
 //!   1. LIVE: parse the real Cargo.lock + the committed advisory mirror under the committed policy
 //!      and assert the gate is born-blocking GREEN (quinn-proto on the patched 0.11.15; the only
 //!      other live affected advisories are the three unmaintained ids in policy.ignore). This is the
@@ -16,7 +22,9 @@
 use std::path::{Path, PathBuf};
 
 use oya_advisory_mirror_kernel::{Advisory, canonical_hash};
-use ci_supply_chain_audit::{GATE_ID, collect, evaluate_keyed, render_findings};
+use ci_supply_chain_audit::{
+    GATE_ID, collect, configured_lockfiles, discover_lockfiles, evaluate_keyed, render_findings,
+};
 use serde_json::{Value, json};
 
 /// Walk up from the test's working directory to the repo root (the dir holding the canonical
@@ -63,6 +71,188 @@ fn live_corpus_is_born_blocking_green() {
          the 3 unmaintained ids in policy.ignore). Live findings:\n{}",
         render_findings(&findings)
     );
+}
+
+/// LIVE COVERAGE: the declared lockfile corpus must equal the one DERIVED from this tree.
+///
+/// This is the leg that makes the multi-lockfile fix stay fixed. The gate scans exactly
+/// `policy.lockfile_paths`, so that array is the coverage boundary; a `Cargo.lock` missing from it is
+/// a workspace whose pins are never matched against the advisory mirror. Rather than trusting review
+/// to keep the array current, the corpus is derived by walking the tree and asserted equal here — a
+/// fourth workspace added tomorrow REDs until it is declared.
+#[test]
+fn live_lockfile_corpus_is_derived_and_fully_declared() {
+    let root = repo_root();
+    let policy = load_policy(&root);
+
+    let declared = configured_lockfiles(&policy)
+        .expect("committed policy must declare lockfile_paths as an array of strings");
+    let derived = discover_lockfiles(&root).expect("walk the tree for Cargo.lock files");
+
+    assert!(
+        !derived.is_empty(),
+        "the derivation found NO Cargo.lock in {}; a walk that reports nothing must never be read \
+         as full coverage",
+        root.display()
+    );
+    assert_eq!(
+        declared,
+        derived,
+        "policy.lockfile_paths must equal the lockfile corpus derived from the tree.\n  \
+         undeclared (present on disk, UNSCANNED): {:?}\n  \
+         stale (declared, no file behind it): {:?}",
+        derived.iter().filter(|p| !declared.contains(p)).collect::<Vec<_>>(),
+        declared.iter().filter(|p| !derived.contains(p)).collect::<Vec<_>>(),
+    );
+
+    // And the same thing through the gate's own predicate, so the assertion is what BLOCKS — not
+    // just what this test compares.
+    let observed = collect(&root, &policy).expect("collect live corpus");
+    let coverage: Vec<String> = evaluate_keyed(&policy, &observed)
+        .iter()
+        .filter(|f| f.code.starts_with("SCA-LOCKFILE-"))
+        .map(|f| format!("{} {}", f.code, f.key))
+        .collect();
+    assert!(coverage.is_empty(), "live coverage findings: {coverage:?}");
+}
+
+/// RED PROOF on a violating input: a lockfile that exists in the tree but is not declared.
+///
+/// Runs the REAL walk over a synthetic repo, so it also pins the walk itself — if a future skip-list
+/// edit stopped descending into ordinary directories, the derivation would silently under-report and
+/// this leg fails.
+#[test]
+fn an_undeclared_lockfile_in_the_tree_is_uncovered_then_green_once_declared() {
+    let repo = TempRepo::new("lockfile-coverage");
+    repo.write("Cargo.lock", MINIMAL_LOCK);
+    repo.write("mirror/advisories.json", "[]");
+    repo.write(
+        "mirror/mirror-manifest.json",
+        &format!(
+            "{{\"content_hash\":\"{}\",\"advisory_count\":0}}",
+            canonical_hash(&[])
+        ),
+    );
+    let base = json!({
+        "gate_id": GATE_ID,
+        "mirror_dir": "mirror",
+        "unmaintained_policy": "all",
+        "min_advisories": 0,
+        "ignore": [],
+    });
+
+    // Declaring only the root while a nested workspace exists is the exact pre-fix state.
+    repo.write("fourth-workspace/Cargo.lock", MINIMAL_LOCK);
+    let mut narrow = base.clone();
+    narrow["lockfile_paths"] = json!(["Cargo.lock"]);
+    let observed = collect(&repo.root, &narrow).expect("collect synthetic repo");
+    let findings = evaluate_keyed(&narrow, &observed);
+    assert!(
+        findings
+            .iter()
+            .any(|f| f.code == "SCA-LOCKFILE-UNCOVERED" && f.key == "fourth-workspace/Cargo.lock"),
+        "an undeclared lockfile must be SCA-LOCKFILE-UNCOVERED; got {}",
+        render_findings(&findings)
+    );
+
+    // Declaring it closes the hole.
+    let mut full = base.clone();
+    full["lockfile_paths"] = json!(["Cargo.lock", "fourth-workspace/Cargo.lock"]);
+    let observed = collect(&repo.root, &full).expect("collect synthetic repo");
+    assert!(
+        evaluate_keyed(&full, &observed).is_empty(),
+        "a declaration equal to the derived corpus must be GREEN"
+    );
+
+    // Removing the file without shrinking the declaration is the other direction.
+    std::fs::remove_file(repo.root.join("fourth-workspace/Cargo.lock")).expect("remove lockfile");
+    let observed = collect(&repo.root, &full).expect("collect synthetic repo");
+    let findings = evaluate_keyed(&full, &observed);
+    assert!(
+        findings
+            .iter()
+            .any(|f| f.code == "SCA-LOCKFILE-ABSENT" && f.key == "fourth-workspace/Cargo.lock"),
+        "a declared-but-missing lockfile must be SCA-LOCKFILE-ABSENT; got {}",
+        render_findings(&findings)
+    );
+}
+
+/// The declared corpus is scanned in FULL: a vulnerable pin that exists only in a non-root lockfile
+/// must still be found. Without this, "declare every lockfile" could be satisfied while the scan
+/// still only read the first one.
+#[test]
+fn a_vulnerable_pin_in_a_non_root_lockfile_is_scanned() {
+    let repo = TempRepo::new("nonroot-scan");
+    repo.write("Cargo.lock", MINIMAL_LOCK);
+    repo.write(
+        "nested/Cargo.lock",
+        "version = 4\n\n[[package]]\nname = \"quinn-proto\"\nversion = \"0.11.14\"\n",
+    );
+    let advisories = vec![quinn_fixture()];
+    repo.write(
+        "mirror/advisories.json",
+        &serde_json::to_string(&advisories).unwrap(),
+    );
+    repo.write(
+        "mirror/mirror-manifest.json",
+        &format!(
+            "{{\"content_hash\":\"{}\",\"advisory_count\":1}}",
+            canonical_hash(&advisories)
+        ),
+    );
+    let policy = json!({
+        "gate_id": GATE_ID,
+        "lockfile_paths": ["Cargo.lock", "nested/Cargo.lock"],
+        "mirror_dir": "mirror",
+        "unmaintained_policy": "all",
+        "min_advisories": 0,
+        "ignore": [],
+    });
+    let observed = collect(&repo.root, &policy).expect("collect synthetic repo");
+    let findings = evaluate_keyed(&policy, &observed);
+    assert!(
+        findings
+            .iter()
+            .any(|f| f.code == "SCA-VULN" && f.key == "RUSTSEC-2026-0185"),
+        "a vulnerable pin present ONLY in a non-root declared lockfile must be scanned; got {}",
+        render_findings(&findings)
+    );
+}
+
+/// A `[[package]]`-free lockfile the gate is asked to scan. Nothing in the workspace should hold one,
+/// but the corpus is now derived from the tree, so the parse path must name WHICH file broke rather
+/// than fail with an unattributable "Cargo.lock: ..." message.
+const MINIMAL_LOCK: &str = "version = 4\n\n[[package]]\nname = \"serde\"\nversion = \"1.0.0\"\n";
+
+struct TempRepo {
+    root: PathBuf,
+}
+
+impl TempRepo {
+    fn new(name: &str) -> Self {
+        let nanos = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .expect("clock")
+            .as_nanos();
+        let root = std::env::temp_dir()
+            .join(format!("oya-sca-{name}-{}-{nanos}", std::process::id()));
+        std::fs::create_dir_all(&root).expect("create temp repo");
+        Self { root }
+    }
+
+    fn write(&self, rel: &str, contents: &str) {
+        let path = self.root.join(rel);
+        if let Some(parent) = path.parent() {
+            std::fs::create_dir_all(parent).expect("create parent");
+        }
+        std::fs::write(path, contents).expect("write fixture");
+    }
+}
+
+impl Drop for TempRepo {
+    fn drop(&mut self) {
+        let _ = std::fs::remove_dir_all(&self.root);
+    }
 }
 
 #[test]
@@ -185,12 +375,15 @@ fn active_admission_wires_signature_provenance_sbom_and_vet_posture() {
 }
 
 /// The committed policy with the live-corpus DATA neutralized: empty ignore (so a synthetic 1-record
-/// observation does not go stale), and a zero floor (so synthetic observations do not trip underflow).
+/// observation does not go stale), a zero floor (so synthetic observations do not trip underflow),
+/// and an empty declared lockfile corpus paired with the empty derived corpus [`observed`] reports
+/// (so the coverage assertion is neutral here — it has its own live + synthetic legs below).
 /// The gate_id + unmaintained_policy are the REAL committed ones.
 fn synthetic_policy(root: &Path) -> Value {
     let mut p = load_policy(root);
     p["ignore"] = json!([]);
     p["min_advisories"] = json!(0);
+    p["lockfile_paths"] = json!([]);
     p
 }
 
@@ -199,6 +392,7 @@ fn observed(locked: &[(&str, &str)], advisories: Vec<Advisory>) -> Value {
     let count = advisories.len();
     json!({
         "locked": locked.iter().map(|(n, v)| json!({"name": n, "version": v})).collect::<Vec<_>>(),
+        "discovered_lockfiles": [],
         "advisories": serde_json::to_value(&advisories).unwrap(),
         "manifest": { "content_hash": hash, "advisory_count": count },
     })
