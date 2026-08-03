@@ -8,6 +8,8 @@ license = "Apache-2.0"
 
 [dependencies]
 oya-intelligence-architecture-map-kernel = { path = "../oya-intelligence-architecture-map-kernel" }
+oya-workspace-members-kernel = { path = "../../../../libs/oya-workspace-members-kernel" }
+sha2 = { workspace = true }
 
 
 [lib]

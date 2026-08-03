@@ -5,6 +5,7 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
+        "//oya/intelligence/crates/oya-intelligence-architecture-map-app:oya-intelligence-architecture-map-app",
         "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel",
         "third-party//:serde_json",
         "third-party//:toml",
@@ -48,6 +49,7 @@ rust_test(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
+        "//oya/intelligence/crates/oya-intelligence-architecture-map-app:oya-intelligence-architecture-map-app",
         "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel",
         "third-party//:serde_json",
         "third-party//:toml",

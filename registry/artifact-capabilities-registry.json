@@ -681,18 +681,18 @@
       "artifact_id": "architecture-map-graph-artifact",
       "artifact_path": "/registry/graph/architecture-map.json",
       "artifact_format": "json",
-      "contract_version": "v3.0.0",
+      "contract_version": "v4.0.0",
       "owner_team": "council-foundry",
-      "purpose_short": "Emitted architecture map JSON. Sources: workspace Cargo.toml + /registry/microservices.json + bounded-contexts.json + cedar-fragments.json + contracts/*.openapi.yaml. Refreshed via `canonical cloud-ci materialization: architecture-map`.",
+      "purpose_short": "Canonical cloud-ci architecture map projection over glob-expanded resolved workspace members plus microservice, bounded-context, Cedar, and OpenAPI inputs; emits producer/source provenance and exact crate coverage evidence.",
       "artifact_profile": "registry",
       "capability_overrides": {
         "verification": {
-          "checker_crate": "libs/oya-check-active-artifact-contract",
-          "command": "oya-ci-required/cloud-ci evidence: active-artifact-contract"
+          "checker_crate": "ci/facade/generated-artifact-freshness",
+          "command": "buck2 test //ci/facade/generated-artifact-freshness:ci-generated-artifact-freshness-unittest && oya-ci-required/freshness"
         },
         "provenance": {
-          "current_author": "claude-opus-4-7 + jason931225",
-          "last_modified_at": "2026-05-14T00:00:00Z"
+          "current_author": "Hermes prod-rust-engineer + jason931225",
+          "last_modified_at": "2026-07-12T00:00:00Z"
         }
       }
     },

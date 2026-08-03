@@ -30,6 +30,7 @@ name = "oya-cloud-ci-materialize-generated-faces"
 path = "src/bin/oya-cloud-ci-materialize-generated-faces.rs"
 
 [dependencies]
+oya-intelligence-architecture-map-app = { path = "../../../oya/intelligence/crates/oya-intelligence-architecture-map-app" }
 oya-workspace-members-kernel = { path = "../../../libs/oya-workspace-members-kernel" }
 serde_json = { workspace = true }
 toml = { workspace = true }

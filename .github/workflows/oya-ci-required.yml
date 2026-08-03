@@ -211,11 +211,11 @@ jobs:
             //ci/facade/${{ matrix.crate }}:ci-${{ matrix.crate }}-unittest \
             //ci/facade/${{ matrix.crate }}:ci-${{ matrix.crate }}-gate
 
-  # ── freshness: first-diagnosis gate for the two stale-output failures from PR #662.
-  #    Runs as its own fast job with no needs edge so stale Cargo.lock and stale generated faces
-  #    surface together before the broader Buck2 lanes spend a full matrix round-trip.
+  # ── freshness: first-diagnosis gate for stale Cargo.lock, generated faces, and the canonical
+  #    architecture map (resolved workspace coverage + provenance + byte parity). Runs as its own
+  #    fail-closed job with no needs edge so stale outputs surface before the broader Buck2 lanes.
   gate-generated-artifact-freshness:
-    name: freshness (lock + generated faces, ADR-0539)
+    name: freshness (lock + generated faces + architecture-map, ADR-0539)
     runs-on: ubuntu-latest
     steps:
       # actions/checkout@v6.0.3 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
