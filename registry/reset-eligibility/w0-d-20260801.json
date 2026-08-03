@@ -1,0 +1,262 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/reset-eligibility.schema.json",
+  "schema_version": 1,
+  "reset_id": "w0-d-infrastructure-reset-20260801",
+  "captured_at": "2026-08-01T17:59:29Z",
+  "expires_at": "2026-08-02T17:59:29Z",
+  "repository": {
+    "binding_source": "ci-runtime-authority"
+  },
+  "collector": {
+    "id": "inventory-drift-timeout",
+    "method": "read-only",
+    "secret_values_excluded": true
+  },
+  "scope": {
+    "providers": [
+      "cloudflare",
+      "external-saas",
+      "github",
+      "kubernetes",
+      "talos"
+    ],
+    "accounts": [
+      "cloudflare:configured-account",
+      "external-saas:unknown",
+      "github:jason931225/oyatie",
+      "kubernetes:current-context",
+      "talos:current-context"
+    ],
+    "regions": [
+      "configured-regions:unknown"
+    ],
+    "clusters": [
+      "external-clusters:unknown",
+      "talos-current:three-node"
+    ]
+  },
+  "evidence_manifest": {
+    "uri": "redacted-local-manifest:oyatie-reset-discovery-evidence-manifest-20260801.txt",
+    "status": "unverified-discovery"
+  },
+  "sources": [
+    {
+      "source_id": "github-and-protected-ci",
+      "result": "unknown",
+      "redaction": "secret-values-excluded",
+      "evidence_uri": "redacted-local:oyatie-reset-discovery-github-summary-20260801.txt"
+    },
+    {
+      "source_id": "kubernetes-inventory",
+      "result": "unknown",
+      "redaction": "secret-values-excluded",
+      "evidence_uri": "redacted-local:oyatie-reset-discovery-kubernetes-20260801.txt"
+    },
+    {
+      "source_id": "stateful-workloads",
+      "result": "unknown",
+      "redaction": "secret-values-excluded",
+      "evidence_uri": "redacted-local:oyatie-reset-discovery-stateful-20260801.txt"
+    },
+    {
+      "source_id": "openbao-and-registry",
+      "result": "unknown",
+      "redaction": "secret-values-excluded",
+      "evidence_uri": "redacted-local:oyatie-reset-discovery-openbao-registry-20260801.txt"
+    },
+    {
+      "source_id": "backup-jobs",
+      "result": "unknown",
+      "redaction": "secret-values-excluded",
+      "evidence_uri": "redacted-local:oyatie-reset-discovery-jobs-backups-20260801.txt"
+    },
+    {
+      "source_id": "dns-and-edge",
+      "result": "unknown",
+      "redaction": "secret-values-excluded",
+      "evidence_uri": "redacted-local:oyatie-reset-discovery-dns-20260801.txt"
+    },
+    {
+      "source_id": "provider-billing-and-global-inventory",
+      "result": "unknown",
+      "redaction": "secret-values-excluded",
+      "evidence_uri": "redacted-local:permission-and-coverage-probes"
+    },
+    {
+      "source_id": "external-backups-and-saas-callbacks",
+      "result": "unknown",
+      "redaction": "secret-values-excluded",
+      "evidence_uri": "redacted-local:coverage-gap"
+    }
+  ],
+  "inventory": [
+    {
+      "stable_id": "talos-current:cluster",
+      "lifecycle": "live-three-node-cluster",
+      "data_class": "internal-platform-state",
+      "retention": "unknown",
+      "billing": "unknown",
+      "deletion_semantics": "unverified",
+      "unverified_identity_fingerprint": "sha256:5e62accab417f7501ceca86b390f13394c70f652398adc2de170e082d59e5ca5",
+      "verification_status": "unverified-discovery"
+    },
+    {
+      "stable_id": "kubernetes-current:persistent-volumes",
+      "lifecycle": "six-bound-delete-policy-pvs-87-gib",
+      "data_class": "persistent-service-data",
+      "retention": "unknown",
+      "billing": "active-capacity",
+      "deletion_semantics": "delete-policy-data-loss",
+      "unverified_identity_fingerprint": "sha256:3ac7fff3ebde49382c4073a71665dc0982779f9e68d516c97b9eb06d9a9f32a7",
+      "verification_status": "unverified-discovery"
+    },
+    {
+      "stable_id": "kubernetes-current:postgres",
+      "lifecycle": "healthy-three-instance-postgres-18.4",
+      "data_class": "database-data",
+      "retention": "unknown",
+      "billing": "shared-cluster",
+      "deletion_semantics": "backup-and-restore-point-unverified",
+      "unverified_identity_fingerprint": "sha256:dcc744e11561573d44a59a8a62d2bbd296960d0c970e6d1de9e9e3e3dbc8900b",
+      "verification_status": "unverified-discovery"
+    },
+    {
+      "stable_id": "kubernetes-current:openbao",
+      "lifecycle": "initialized-unsealed-live-eso-integration",
+      "data_class": "cryptographic-and-secret-metadata",
+      "retention": "unknown",
+      "billing": "shared-cluster",
+      "deletion_semantics": "pki-and-recovery-unverified",
+      "unverified_identity_fingerprint": "sha256:4acaeadd9147b60220fc3e852e9568f6747109e61318327a95ba5174caff710b",
+      "verification_status": "unverified-discovery"
+    },
+    {
+      "stable_id": "kubernetes-current:oci-registry",
+      "lifecycle": "live-two-repositories-five-tags",
+      "data_class": "build-and-release-artifacts",
+      "retention": "unknown",
+      "billing": "active-20-gib-pv",
+      "deletion_semantics": "delete-policy-data-loss",
+      "unverified_identity_fingerprint": "sha256:df67d52d9af143d6e83e7417e10ad3bea63cbab5e9c2aff5ddf7075a54a5c3f9",
+      "verification_status": "unverified-discovery"
+    },
+    {
+      "stable_id": "github:jason931225/oyatie:arc-runners",
+      "lifecycle": "active-protected-ci-substrate",
+      "data_class": "ci-execution-state",
+      "retention": "branch-protection-dependent",
+      "billing": "unknown",
+      "deletion_semantics": "would-break-required-ci",
+      "unverified_identity_fingerprint": "sha256:8a6465b8bd0653e824e2f0bb438561bd9c426483f7e10809af5c6ca2957d23f5",
+      "verification_status": "unverified-discovery"
+    },
+    {
+      "stable_id": "cloudflare-configured:active-edge",
+      "lifecycle": "active-four-public-edge-names",
+      "data_class": "public-routing-metadata",
+      "retention": "service-continuity",
+      "billing": "unknown",
+      "deletion_semantics": "would-disrupt-public-edge",
+      "unverified_identity_fingerprint": "sha256:7a7ed98dd7fd1f53d5b6b4eaf19aa8ba5ca3ea4fc228493281cdabbe874158b4",
+      "verification_status": "unverified-discovery"
+    }
+  ],
+  "recovery": {
+    "backup_verified": false,
+    "immutable_backup_location_verified": false,
+    "rpo_verified": false,
+    "restore_drill_verified": false,
+    "key_recovery_verified": false
+  },
+  "hard_stops": [
+    {
+      "id": "live-delete-policy-persistent-data",
+      "class": "irreversible-data-loss",
+      "acceptance_criteria": "Every stateful volume has a verified retained or immutable backup and an approved retention disposition.",
+      "verification_path": "Inventory PV/PVC lineage, backup objects, retention policy, and restore evidence.",
+      "suggested_owner": "platform-operations + data-protection",
+      "dependency_notes": "Six bound Delete-policy PVs total 87 GiB."
+    },
+    {
+      "id": "postgres-without-verified-recovery-point",
+      "class": "database-recovery",
+      "acceptance_criteria": "A current immutable backup, declared RPO, and successful restore drill cover the live Postgres cluster.",
+      "verification_path": "Verify backup object/location without secret values and execute a non-production restore drill.",
+      "suggested_owner": "database-operations",
+      "dependency_notes": "Healthy three-instance Postgres 18.4 has no verified backup or restore point."
+    },
+    {
+      "id": "openbao-pki-and-recovery-unknown",
+      "class": "identity-and-key-recovery",
+      "acceptance_criteria": "OpenBao PKI, recovery material custody, ESO dependencies, and restore procedure are inventoried and independently verified.",
+      "verification_path": "Metadata-only PKI inventory plus sealed recovery drill under authorized custody.",
+      "suggested_owner": "security-platform",
+      "dependency_notes": "Initialized and unsealed OpenBao has live ESO integrations and a Delete-policy PV."
+    },
+    {
+      "id": "live-registry-with-delete-policy-storage",
+      "class": "release-supply-chain",
+      "acceptance_criteria": "OCI content needed for rollback is replicated, digest-inventoried, and restore-tested.",
+      "verification_path": "Verify repository/tag digest inventory and restoration from retained storage.",
+      "suggested_owner": "release-engineering",
+      "dependency_notes": "Live registry contains two repositories and five tags on a 20 GiB Delete-policy PV."
+    },
+    {
+      "id": "protected-ci-depends-on-live-arc",
+      "class": "governance-admission",
+      "acceptance_criteria": "The single required oya-ci-required context remains producible before, during, and after any migration.",
+      "verification_path": "Run an exact-SHA protected-branch admission rehearsal on preserved or replacement runners.",
+      "suggested_owner": "cloud-ci-platform",
+      "dependency_notes": "Active ARC runners are the protected CI substrate."
+    },
+    {
+      "id": "active-public-edge",
+      "class": "service-continuity",
+      "acceptance_criteria": "DNS and edge routes have an approved cutover and rollback with observed service continuity.",
+      "verification_path": "Capture redacted DNS/edge inventory and execute a reversible cutover rehearsal.",
+      "suggested_owner": "network-platform",
+      "dependency_notes": "Four redacted public edge names are active."
+    }
+  ],
+  "unknowns": [
+    {
+      "id": "provider-account-region-and-global-cluster-inventory",
+      "owner": "platform-operations",
+      "closure_probe": "Enumerate every authorized provider account, region, cluster, resource identifier, lifecycle, billing owner, and deletion semantic."
+    },
+    {
+      "id": "pki-kms-and-recovery-custody",
+      "owner": "security-platform",
+      "closure_probe": "Inventory issuers, KMS bindings, recovery custody, rotation state, and restore procedure without exporting key material."
+    },
+    {
+      "id": "legal-holds-retention-and-tenant-data",
+      "owner": "data-protection",
+      "closure_probe": "Obtain legal-hold, retention, tenant-data, and deletion-authority attestations for every in-scope data store."
+    },
+    {
+      "id": "external-backups-and-saas-callbacks",
+      "owner": "platform-operations",
+      "closure_probe": "Inventory external backup destinations, webhooks, callbacks, environments, and service dependencies using metadata-only provider APIs."
+    },
+    {
+      "id": "provider-billing-commitments",
+      "owner": "finance-operations",
+      "closure_probe": "Verify active commitments, reserved capacity, minimum terms, and termination consequences for each provider account."
+    }
+  ],
+  "approvals": [],
+  "decision": {
+    "eligible": false,
+    "mode": "preservation-migration",
+    "default_if_unknown": "ineligible",
+    "reason_codes": [
+      "approvals-incomplete",
+      "authorization-disabled",
+      "hard-stops-present",
+      "recovery-incomplete",
+      "sources-incomplete",
+      "unknowns-present"
+    ]
+  }
+}

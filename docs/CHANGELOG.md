@@ -5,6 +5,27 @@ doc_status: published
 
 # Changelog
 
+## 2026-08-03 — W0-D non-authorizing reset-eligibility gate
+
+- Added the W0-D eligibility-only schema, historical discovery observation, and
+  fail-closed Rust policy gate under acceptance authority issue #1535.
+- Reset authorization remains unconditionally disabled: the candidate records
+  hard stops, unknowns, recovery gaps, approval failures, and stale evidence but
+  exposes no destructive API, controller, nonce, or actuation path.
+- Approval signatures now bind a deterministic digest of the complete declared
+  artifact subject (all fields except the circular approvals array), so scope,
+  evidence mapping, inventory, recovery, blockers, unknowns, timestamps, and the
+  decision cannot change under an existing receipt.
+- Removed syntactic HTTP(S) URIs from the secret-scanner exemption. The scanner
+  examines credential-bearing URI components instead of entropy-scanning an
+  entire public URL, strictly bounds opaque/redacted handles, scans their suffix
+  components, and detects embedded token markers and private-key headers before
+  whitespace handling.
+- The committed 2026-08-01 discovery artifact expired on 2026-08-02 and is
+  historical, unverified, and non-authorizing; any future decision requires a
+  fresh reviewed capture. Protected admission and post-merge evidence remain
+  pending in PR #1524.
+
 ## 2026-08-03 — ADR-0635 bounded graph-v2 authority repair
 
 - Restored graph-v2 regression coverage for self-loop, two-node, three-node, and buried six-node
