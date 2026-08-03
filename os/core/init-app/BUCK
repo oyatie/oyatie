@@ -18,6 +18,33 @@ rust_library(
     ],
 )
 
+# The PID-1 adapter's own tests. `src/main.rs` is a SECOND crate root: the
+# `-unittest` target below compiles `src/lib.rs`, so none of the `#[test]` fns
+# inside `src/main.rs` were compiled by any target until this stanza existed.
+# `oya-buck-test-wiring` does not cover this case — it collapses "member has
+# in-crate tests" onto the rust_library's single crate_root — so this target is
+# hand-written rather than generated.
+rust_test(
+    name = "os-init-app-init-bin-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "os_init_app_init_bin",
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":os-init-app",
+        "//os/core/block-domain:os-block-domain",
+        "//os/core/controllers-domain:os-controllers-domain",
+        "//os/core/cosi-domain:os-cosi-domain",
+        "//os/core/kernel:os-kernel",
+        "//os/core/machine-config-domain:os-machine-config-domain",
+        "//os/core/machined-domain:os-machined-domain",
+        "//os/core/network-domain:os-network-domain",
+        "//os/core/platform-domain:os-platform-domain",
+        "//os/core/runtime-cri-domain:os-runtime-cri-domain",
+        "third-party//:libc",
+    ],
+)
+
 rust_binary(
     name = "oya-cloud-os-init-app-init-bin",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
@@ -65,6 +92,27 @@ rust_test(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
+        "//os/core/block-domain:os-block-domain",
+        "//os/core/controllers-domain:os-controllers-domain",
+        "//os/core/cosi-domain:os-cosi-domain",
+        "//os/core/kernel:os-kernel",
+        "//os/core/machine-config-domain:os-machine-config-domain",
+        "//os/core/machined-domain:os-machined-domain",
+        "//os/core/network-domain:os-network-domain",
+        "//os/core/platform-domain:os-platform-domain",
+        "//os/core/runtime-cri-domain:os-runtime-cri-domain",
+        "third-party//:libc",
+    ],
+)
+
+rust_test(
+    name = "os-init-app-boot-config-address",
+    srcs = ["tests/boot_config_address.rs"] + glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "os_init_app_boot_config_address",
+    crate_root = "tests/boot_config_address.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":os-init-app",
         "//os/core/block-domain:os-block-domain",
         "//os/core/controllers-domain:os-controllers-domain",
         "//os/core/cosi-domain:os-cosi-domain",
