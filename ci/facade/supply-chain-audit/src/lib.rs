@@ -15,6 +15,14 @@
 //! mirror-manifest.json}` produced by `oya-advisory-mirror-kernel`. That keeps the gate buck2-cacheable
 //! and deterministic.
 //!
+//! ## Which lockfiles are scanned
+//! `policy.lockfile_path` is EITHER one path or a LIST of paths, and the locked corpus is their
+//! UNION with each entry tagged by its source lockfile. This repo has three workspaces (the root
+//! plus the ADR-0512 `kernel/` and `cloud/cloud-kernel/` carve-outs, both in the root `Cargo.toml`
+//! `exclude`); scanning only the root lock left ~66 (name,version) pairs — including crypto crates
+//! like `aws-lc-sys` — permanently unscanned, so a `cargo update` in a carve-out could introduce an
+//! affected version with the gate staying green. Every finding names the lockfile it came from.
+//!
 //! ## Matching
 //! For each advisory whose `package` matches a locked crate `name`, the locked [`semver::Version`] is
 //! AFFECTED iff it satisfies NO `patched` and NO `unaffected` [`semver::VersionReq`]. Fail-closed: an
@@ -105,23 +113,64 @@ impl std::fmt::Display for CollectError {
 
 impl std::error::Error for CollectError {}
 
-/// Collect the observed graph: the locked crates from `Cargo.lock` + the vendored advisory snapshot.
+/// Resolve `policy.lockfile_path` to the list of lockfiles to scan. Accepts EITHER a single string
+/// (back-compatible; the pack-shaped single-workspace repo) or an array of strings (a repo with
+/// carve-out workspaces, each with its OWN `Cargo.lock` — this repo has three per ADR-0512). A list
+/// on the existing key rather than a second key keeps the policy surface neutral: one knob still
+/// answers "which locks does this repo have", and a single-workspace adopter keeps the string form.
 ///
-/// The ONLY I/O. Reads `policy.lockfile_path` (TOML) and `policy.mirror_dir/{advisories.json,
+/// FAIL-CLOSED: a non-string / non-array value, a non-string element, or an EMPTY array is a policy
+/// error — never a silently-empty scan (that would be a vacuous green, the exact defect this fixes).
+pub fn lockfile_paths(policy: &Value) -> Result<Vec<String>, CollectError> {
+    match policy.get("lockfile_path") {
+        None => Ok(vec!["Cargo.lock".to_owned()]),
+        Some(Value::String(one)) => Ok(vec![one.clone()]),
+        Some(Value::Array(items)) => {
+            let mut out = Vec::with_capacity(items.len());
+            for item in items {
+                let Some(path) = item.as_str() else {
+                    return Err(CollectError::Parse(format!(
+                        "policy.lockfile_path array element {item} is not a string"
+                    )));
+                };
+                out.push(path.to_owned());
+            }
+            if out.is_empty() {
+                return Err(CollectError::Parse(
+                    "policy.lockfile_path is an EMPTY array; a gate that scans no lockfile is vacuously green (fail-closed)".to_owned(),
+                ));
+            }
+            Ok(out)
+        }
+        Some(other) => Err(CollectError::Parse(format!(
+            "policy.lockfile_path must be a string or an array of strings; got {other}"
+        ))),
+    }
+}
+
+/// Collect the observed graph: the locked crates from EVERY configured `Cargo.lock` + the vendored
+/// advisory snapshot.
+///
+/// The ONLY I/O. Reads each [`lockfile_paths`] entry (TOML) and `policy.mirror_dir/{advisories.json,
 /// mirror-manifest.json}` (JSON). Emits
-/// `{ "locked": [ { "name", "version" }, .. ], "advisories": [ <Advisory>, .. ], "manifest": {..} }`.
+/// `{ "locked": [ { "name", "version", "lockfile" }, .. ], "advisories": [ <Advisory>, .. ], "manifest": {..} }`.
+/// The locked set is the UNION across lockfiles, each entry TAGGED with the lockfile it came from so
+/// a finding can name the workspace (a finding that says only "aws-lc-sys is affected" is unactionable
+/// in a multi-workspace repo). An unreadable configured lockfile is a hard error, not a skipped scan.
 pub fn collect(repo_root: &Path, policy: &Value) -> Result<Value, CollectError> {
-    let lockfile_path = policy
-        .get("lockfile_path")
-        .and_then(Value::as_str)
-        .unwrap_or("Cargo.lock");
+    let lockfiles = lockfile_paths(policy)?;
     let mirror_dir = policy
         .get("mirror_dir")
         .and_then(Value::as_str)
         .ok_or_else(|| CollectError::Parse("policy.mirror_dir is required".to_owned()))?;
 
-    let lock_text = read_file(&repo_root.join(lockfile_path))?;
-    let locked = parse_locked(&lock_text)?;
+    let mut locked: Vec<Value> = Vec::new();
+    for lockfile in &lockfiles {
+        let lock_text = read_file(&repo_root.join(lockfile))?;
+        locked.extend(parse_locked(&lock_text, lockfile)?);
+    }
+    locked.sort_by(|a, b| locked_sort_key(a).cmp(&locked_sort_key(b)));
+    locked.dedup();
 
     let advisories_text = read_file(&repo_root.join(mirror_dir).join("advisories.json"))?;
     let advisories: Value = serde_json::from_str(&advisories_text)
@@ -143,14 +192,15 @@ fn read_file(path: &Path) -> Result<String, CollectError> {
         .map_err(|e| CollectError::Io(format!("read {}: {e}", path.display())))
 }
 
-/// Parse the `[[package]]` table of a `Cargo.lock` into `[{ "name", "version" }]` (sorted, deduped).
-fn parse_locked(lock_text: &str) -> Result<Vec<Value>, CollectError> {
+/// Parse the `[[package]]` table of one `Cargo.lock` into `[{ "name", "version", "lockfile" }]`.
+/// `lockfile` is the repo-relative path the entry came from — the provenance a finding names.
+fn parse_locked(lock_text: &str, lockfile: &str) -> Result<Vec<Value>, CollectError> {
     let doc: toml::Value =
-        toml::from_str(lock_text).map_err(|e| CollectError::Parse(format!("Cargo.lock: {e}")))?;
+        toml::from_str(lock_text).map_err(|e| CollectError::Parse(format!("{lockfile}: {e}")))?;
     let packages = doc
         .get("package")
         .and_then(toml::Value::as_array)
-        .ok_or_else(|| CollectError::Parse("Cargo.lock has no [[package]] table".to_owned()))?;
+        .ok_or_else(|| CollectError::Parse(format!("{lockfile} has no [[package]] table")))?;
     let mut locked: Vec<Value> = Vec::with_capacity(packages.len());
     for pkg in packages {
         let Some(name) = pkg.get("name").and_then(toml::Value::as_str) else {
@@ -159,18 +209,14 @@ fn parse_locked(lock_text: &str) -> Result<Vec<Value>, CollectError> {
         let Some(version) = pkg.get("version").and_then(toml::Value::as_str) else {
             continue;
         };
-        locked.push(json!({ "name": name, "version": version }));
+        locked.push(json!({ "name": name, "version": version, "lockfile": lockfile }));
     }
-    locked.sort_by(|a, b| locked_sort_key(a).cmp(&locked_sort_key(b)));
-    locked.dedup();
     Ok(locked)
 }
 
-fn locked_sort_key(v: &Value) -> (String, String) {
-    (
-        v.get("name").and_then(Value::as_str).unwrap_or("").to_owned(),
-        v.get("version").and_then(Value::as_str).unwrap_or("").to_owned(),
-    )
+fn locked_sort_key(v: &Value) -> (String, String, String) {
+    let field = |k: &str| v.get(k).and_then(Value::as_str).unwrap_or("").to_owned();
+    (field("name"), field("version"), field("lockfile"))
 }
 
 // ---------------------------------------------------------------------------
@@ -251,6 +297,30 @@ fn version_affected(version_str: &str, advisory: &Advisory) -> bool {
             Err(_) => false, // fail-closed: an unparseable req does NOT prove the version safe.
         });
     !safe
+}
+
+/// Every locked site AFFECTED by `advisory`, rendered as `` `<lockfile>` <version> `` and deduped.
+/// Empty ⇒ the advisory does not apply. Naming the lockfile is load-bearing in a multi-workspace
+/// repo: "aws-lc-sys is affected" without the workspace is not an actionable finding.
+fn affected_sites(locked: &[Value], advisory: &Advisory) -> Vec<String> {
+    let mut sites: BTreeSet<String> = BTreeSet::new();
+    for pkg in locked {
+        if pkg.get("name").and_then(Value::as_str) != Some(advisory.package.as_str()) {
+            continue;
+        }
+        let Some(version) = pkg.get("version").and_then(Value::as_str) else {
+            continue;
+        };
+        if !version_affected(version, advisory) {
+            continue;
+        }
+        let lockfile = pkg
+            .get("lockfile")
+            .and_then(Value::as_str)
+            .unwrap_or("<unknown lockfile>");
+        sites.insert(format!("`{lockfile}` {version}"));
+    }
+    sites.into_iter().collect()
 }
 
 /// Pure evaluator. `policy` is DATA (`supply-chain-audit-policy.json`); `observed` is the graph
@@ -344,16 +414,11 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
     let mut live_affected_ids: BTreeSet<String> = BTreeSet::new();
 
     for advisory in &advisories {
-        let affected = locked.iter().any(|pkg| {
-            pkg.get("name").and_then(Value::as_str) == Some(advisory.package.as_str())
-                && pkg
-                    .get("version")
-                    .and_then(Value::as_str)
-                    .is_some_and(|v| version_affected(v, advisory))
-        });
-        if !affected {
+        let sites = affected_sites(&locked, advisory);
+        if sites.is_empty() {
             continue;
         }
+        let sites = sites.join(", ");
 
         match advisory.informational.as_deref() {
             None => {
@@ -364,8 +429,8 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
                         "SCA-VULN",
                         &advisory.id,
                         format!(
-                            "security advisory {} affects locked crate `{}` (no installed version satisfies patched {:?} / unaffected {:?}). {REMEDIATION_DOCTRINE}.",
-                            advisory.id, advisory.package, advisory.patched, advisory.unaffected
+                            "security advisory {} affects locked crate `{}` at {} (no installed version satisfies patched {:?} / unaffected {:?}). {REMEDIATION_DOCTRINE}.",
+                            advisory.id, advisory.package, sites, advisory.patched, advisory.unaffected
                         ),
                     ));
                 }
@@ -378,8 +443,8 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
                             "SCA-UNMAINTAINED",
                             &advisory.id,
                             format!(
-                                "unmaintained advisory {} affects locked crate `{}` (unmaintained_policy=all). Migrate off the crate, or {REMEDIATION_DOCTRINE}.",
-                                advisory.id, advisory.package
+                                "unmaintained advisory {} affects locked crate `{}` at {} (unmaintained_policy=all). Migrate off the crate, or {REMEDIATION_DOCTRINE}.",
+                                advisory.id, advisory.package, sites
                             ),
                         ));
                     }
@@ -472,10 +537,17 @@ mod tests {
     /// Build an observed graph from synthetic locked crates + advisories, with a CONSISTENT manifest
     /// (correct content_hash + count) so the integrity checks pass and the matching logic is isolated.
     fn observed(locked: &[(&str, &str)], advisories: Vec<Advisory>) -> Value {
+        let tagged: Vec<(&str, &str, &str)> =
+            locked.iter().map(|(n, v)| (*n, *v, "Cargo.lock")).collect();
+        observed_multi(&tagged, advisories)
+    }
+
+    /// As [`observed`], but each locked entry carries its own source lockfile (the multi-workspace shape).
+    fn observed_multi(locked: &[(&str, &str, &str)], advisories: Vec<Advisory>) -> Value {
         let hash = canonical_hash(&advisories);
         let count = advisories.len();
         json!({
-            "locked": locked.iter().map(|(n, v)| json!({"name": n, "version": v})).collect::<Vec<_>>(),
+            "locked": locked.iter().map(|(n, v, l)| json!({"name": n, "version": v, "lockfile": l})).collect::<Vec<_>>(),
             "advisories": serde_json::to_value(&advisories).unwrap(),
             "manifest": { "content_hash": hash, "advisory_count": count },
         })
@@ -616,6 +688,53 @@ mod tests {
         let obs = observed(&[("weird", "not-a-version")], vec![adv]);
         let findings = evaluate_keyed(&policy(), &obs);
         assert!(findings.iter().any(|f| f.code == "SCA-VULN"));
+    }
+
+    /// THE multi-lockfile regression: a crate SAFE in the root lock but AFFECTED in a carve-out lock
+    /// must be flagged, and the finding must name the carve-out lock (and NOT the root lock).
+    /// This is the exact shape of the blindness this gate had while `lockfile_path` was one string.
+    #[test]
+    fn affected_only_in_a_nested_lock_is_flagged_and_names_that_lockfile() {
+        let adv = vuln("RUSTSEC-2026-0044", "aws-lc-sys", &[">= 0.39.0"]);
+        let obs = observed_multi(
+            &[
+                ("aws-lc-sys", "0.41.0", "Cargo.lock"),
+                ("aws-lc-sys", "0.37.0", "kernel/Cargo.lock"),
+            ],
+            vec![adv],
+        );
+        let findings = evaluate_keyed(&policy(), &obs);
+        let vuln_finding = findings
+            .iter()
+            .find(|f| f.code == "SCA-VULN" && f.key == "RUSTSEC-2026-0044")
+            .unwrap_or_else(|| panic!("nested-lock vuln must be flagged; got {:?}", codes(&findings)));
+        assert!(
+            vuln_finding.detail.contains("`kernel/Cargo.lock` 0.37.0"),
+            "the finding must name the offending lockfile + version; got {}",
+            vuln_finding.detail
+        );
+        assert!(
+            !vuln_finding.detail.contains("`Cargo.lock` 0.41.0"),
+            "the patched root-lock version is NOT an affected site; got {}",
+            vuln_finding.detail
+        );
+    }
+
+    #[test]
+    fn lockfile_path_accepts_string_list_or_absent_and_fails_closed_otherwise() {
+        assert_eq!(
+            lockfile_paths(&json!({ "lockfile_path": "Cargo.lock" })).unwrap(),
+            vec!["Cargo.lock".to_owned()]
+        );
+        assert_eq!(
+            lockfile_paths(&json!({ "lockfile_path": ["a/Cargo.lock", "b/Cargo.lock"] })).unwrap(),
+            vec!["a/Cargo.lock".to_owned(), "b/Cargo.lock".to_owned()]
+        );
+        assert_eq!(lockfile_paths(&json!({})).unwrap(), vec!["Cargo.lock".to_owned()]);
+        // Fail-closed: an empty list would scan nothing and be vacuously green.
+        assert!(lockfile_paths(&json!({ "lockfile_path": [] })).is_err());
+        assert!(lockfile_paths(&json!({ "lockfile_path": [7] })).is_err());
+        assert!(lockfile_paths(&json!({ "lockfile_path": 7 })).is_err());
     }
 
     #[test]
