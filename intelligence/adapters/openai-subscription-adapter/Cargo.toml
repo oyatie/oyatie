@@ -1,5 +1,5 @@
 [package]
-name = "oya-intelligence-adapter-openai-subscription-adapter"
+name = "intelligence-openai-subscription-adapter"
 edition.workspace = true
 version.workspace = true
 rust-version.workspace = true
@@ -7,13 +7,13 @@ publish = false
 license = "Apache-2.0"
 
 [lib]
-name = "oya_intelligence_adapter_openai_subscription_adapter"
+name = "intelligence_openai_subscription_adapter"
 path = "src/lib.rs"
 doctest = false
 
 [dependencies]
-oya-intelligence-account-domain = { path = "../oya-intelligence-account-domain" }
-intelligence-account-kernel = { path = "../../../../intelligence/core/account-kernel" }
+oya-intelligence-account-domain = { path = "../../../oya/intelligence/crates/oya-intelligence-account-domain" }
+intelligence-account-kernel = { path = "../../core/account-kernel" }
 
 # Async runtime + HTTP stack (ADR-0090: hyper preferred; ADR-0506: aws-lc-rs).
 tokio = { workspace = true, features = ["sync", "time", "net"] }
