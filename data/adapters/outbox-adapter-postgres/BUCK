@@ -1,10 +1,11 @@
 rust_library(
-    name = "oya-data-sql-adapter-sqlx",
-    srcs = glob(["src/**/*.rs"]),
-    crate = "oya_data_sql_adapter_sqlx",
+    name = "data-outbox-adapter-postgres",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql"]),
+    crate = "data_outbox_adapter_postgres",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
+        "//libs/oya-data-outbox-kernel:oya-data-outbox-kernel",
         "//libs/oya-data-sql-kernel:oya-data-sql-kernel",
         "//libs/oya-shared-postgres-command-kernel:oya-shared-postgres-command-kernel",
         "third-party//:sqlx",
@@ -12,12 +13,13 @@ rust_library(
 )
 
 rust_test(
-    name = "oya-data-sql-adapter-sqlx-unittest",
-    srcs = glob(["src/**/*.rs"]),
-    crate = "oya_data_sql_adapter_sqlx",
+    name = "data-outbox-adapter-postgres-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql"]),
+    crate = "data_outbox_adapter_postgres",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
+        "//libs/oya-data-outbox-kernel:oya-data-outbox-kernel",
         "//libs/oya-data-sql-kernel:oya-data-sql-kernel",
         "//libs/oya-shared-postgres-command-kernel:oya-shared-postgres-command-kernel",
         "third-party//:sqlx",
