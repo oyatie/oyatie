@@ -70,7 +70,7 @@ pub use intelligence_kernel::{
     AgentId, AuthzAction, AuthzDecision, AuthzGate, AuthzRequest, CredentialMode, EventSink,
     EventStatus, LlmGatewayEvent, OAuthSubscription, Provider, SeatId, SeatLease, SeatOutcome,
     SelectionStrategy, SubscriptionId, SubscriptionPool, SubscriptionPoolError, SubscriptionState,
-    TenantId, is_secret_handle_reference, looks_like_jwt,
+    TenantId, UnifiedRateLimitUtilization, is_secret_handle_reference, looks_like_jwt,
 };
 
 // ---------------------------------------------------------------------------
@@ -1607,16 +1607,64 @@ fn unsupported_translation_response(
     )
 }
 
-fn seat_outcome_for_upstream_status(status: u16) -> SeatOutcome {
-    if status == 429 {
-        SeatOutcome::RateLimited429
-    } else if status >= 400 {
-        // The kernel currently exposes one non-rate-limit upstream failure
-        // bucket. Treat every upstream HTTP error as non-success so provider
-        // failures never falsely reset failure counts as SeatOutcome::Ok.
-        SeatOutcome::ServerError5xx
-    } else {
-        SeatOutcome::Ok
+/// Map an upstream HTTP status (plus an optional OAuth/provider `error_code`
+/// lifted from the response body) to the kernel seat outcome.
+///
+/// Delegates to [`SeatOutcome::from_upstream`] so the auth-vs-rate-limit split
+/// is decided once, in the kernel, rather than re-derived per adapter. This is
+/// the fix for premortem P-dead-seat: a 401/403 (or an OAuth auth error code
+/// such as `invalid_grant`) routes to [`SeatOutcome::AuthFailure`] — the
+/// permanent-leaning auth cooldown ladder — NOT the generic 5xx bucket. Auth
+/// failures carry no `anthropic-ratelimit-unified-*` headers, so leaving them on
+/// the generic path would let the MaxHeadroom selector keep scoring a dead seat
+/// as healthy.
+fn seat_outcome_for_upstream_status(status: u16, error_code: Option<&str>) -> SeatOutcome {
+    SeatOutcome::from_upstream(status, error_code)
+}
+
+/// Best-effort extract of a provider/OAuth `error` code from a JSON error body
+/// so a non-2xx response that names a known auth failure (e.g. a 400 carrying
+/// `{"error":"invalid_grant"}`) is still routed down the auth ladder by
+/// [`SeatOutcome::from_upstream`]. Handles both the OAuth shape
+/// (`{"error":"invalid_grant"}`) and the Anthropic Messages shape
+/// (`{"error":{"type":"authentication_error"}}`). Returns `None` for a success
+/// body or any shape without an error code — the bare HTTP status then drives
+/// the classification.
+fn provider_error_code_from_body(body: &[u8]) -> Option<String> {
+    let payload = serde_json::from_slice::<serde_json::Value>(body).ok()?;
+    let error = payload.get("error")?;
+    match error {
+        // OAuth token-endpoint shape: `{"error":"invalid_grant"}`.
+        serde_json::Value::String(code) => Some(code.clone()),
+        // Anthropic Messages shape: `{"error":{"type":"...","code":"..."}}`.
+        serde_json::Value::Object(_) => error
+            .get("code")
+            .or_else(|| error.get("type"))
+            .and_then(serde_json::Value::as_str)
+            .map(str::to_string),
+        _ => None,
+    }
+}
+
+/// Parse `anthropic-ratelimit-unified-*-utilization` response headers and record
+/// the seat's REAL utilization into `pool` so [`SelectionStrategy::MaxHeadroom`]
+/// scores on reported pressure rather than a stale default. No-op when the
+/// response carried no unified utilization header
+/// ([`UnifiedRateLimitUtilization::from_headers`] returns `None`) — leaving the
+/// seat's prior utilization untouched rather than zeroing it. Must be called in
+/// its own lock scope, before the seat lease is completed.
+fn record_reported_utilization_from_headers(
+    pool: &Arc<Mutex<SubscriptionPool>>,
+    seat_id: &SeatId,
+    headers: &BTreeMap<String, String>,
+) {
+    let Some(utilization) = UnifiedRateLimitUtilization::from_headers(
+        headers.iter().map(|(k, v)| (k.as_str(), v.as_str())),
+    ) else {
+        return;
+    };
+    if let Ok(mut pool) = pool.lock() {
+        pool.record_reported_utilization(seat_id, utilization);
     }
 }
 
@@ -1845,10 +1893,13 @@ async fn handle_proxy(
             Ok((upstream_status, byte_stream)) => {
                 // Wrap the stream with the lease so the seat is held until the
                 // response body is fully consumed (or client disconnects).
+                // No response body to parse before the stream starts, but a
+                // 401/403 status still routes to the auth ladder via the kernel
+                // seam (error_code is body-only and unavailable here).
                 let lease_stream = SseStreamWithLease::new_with_clean_outcome(
                     byte_stream,
                     lease,
-                    seat_outcome_for_upstream_status(upstream_status),
+                    seat_outcome_for_upstream_status(upstream_status, None),
                 );
                 let body = Body::from_stream(lease_stream);
                 axum::response::Response::builder()
@@ -1897,8 +1948,21 @@ async fn handle_proxy(
         match result {
             Ok(resp) => {
                 let upstream_status = resp.status;
+
+                // Feed MaxHeadroom on REAL utilization: if this response carried
+                // `anthropic-ratelimit-unified-*-utilization` headers, record them
+                // against the seat BEFORE completing the lease (the lease locks the
+                // same pool, so this must be its own scope). `from_headers` returns
+                // None when no unified header is present — an auth failure carries
+                // none, so a dead seat is never refreshed to look healthy.
+                record_reported_utilization_from_headers(&state.pool, &seat_id, &resp.headers);
+
+                // P-dead-seat: route 401/403 (or an OAuth/provider auth error code
+                // in the body) down the kernel's auth cooldown ladder, not the
+                // generic 5xx bucket.
+                let error_code = provider_error_code_from_body(&resp.body);
                 let _ = lease.complete(
-                    seat_outcome_for_upstream_status(upstream_status),
+                    seat_outcome_for_upstream_status(upstream_status, error_code.as_deref()),
                     Instant::now(),
                 );
 
@@ -2368,7 +2432,7 @@ async fn handle_openai_compatible_proxy(
                 let lease_stream = SseStreamWithLease::new_with_clean_outcome(
                     mapped,
                     lease_context.lease,
-                    seat_outcome_for_upstream_status(upstream_status),
+                    seat_outcome_for_upstream_status(upstream_status, None),
                 );
                 let mut builder = axum::response::Response::builder().status(upstream_status);
                 for (k, v) in &upstream_headers {
@@ -2400,8 +2464,9 @@ async fn handle_openai_compatible_proxy(
     {
         Ok(resp) => {
             let upstream_status = resp.status;
+            let error_code = provider_error_code_from_body(&resp.body);
             let _ = lease_context.lease.complete(
-                seat_outcome_for_upstream_status(upstream_status),
+                seat_outcome_for_upstream_status(upstream_status, error_code.as_deref()),
                 Instant::now(),
             );
             let now_ms = SystemTime::now()
@@ -2581,8 +2646,9 @@ async fn handle_gemini_adapter_proxy(
     match result {
         Ok(resp) => {
             let upstream_status = resp.status;
+            let error_code = provider_error_code_from_body(&resp.body);
             let _ = lease_context.lease.complete(
-                seat_outcome_for_upstream_status(upstream_status),
+                seat_outcome_for_upstream_status(upstream_status, error_code.as_deref()),
                 Instant::now(),
             );
             let now_ms = SystemTime::now()
