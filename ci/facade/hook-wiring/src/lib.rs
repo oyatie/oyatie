@@ -20,6 +20,11 @@ use std::collections::BTreeSet;
 
 use serde_json::Value;
 
+/// The same "declared enforcement must resolve to a live executable" invariant, for the merge
+/// drivers `.gitattributes` declares. Kept out of the face rows above because merge drivers are
+/// bound by per-clone git config rather than by a producer-emitted face.
+pub mod merge_drivers;
+
 pub const GATE_ID: &str = "cloud-ci-enforcement-liveness";
 
 pub const VIOLATION_CODES: [&str; 5] = [

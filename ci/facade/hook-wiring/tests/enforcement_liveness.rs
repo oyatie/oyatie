@@ -8,6 +8,7 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
 
+use ci_hook_wiring::merge_drivers::{drivers_requiring_registration, source_env_var};
 use ci_hook_wiring::{Verdict, evaluate, evaluate_keyed};
 use serde_json::{Value, json};
 
@@ -581,4 +582,77 @@ fn enforcement_liveness_face_reports_current_tree_green() {
     );
     assert!(evaluate_keyed(&face).is_empty());
     assert_eq!(evaluate(&face).verdict, Verdict::Green);
+}
+
+/// Same invariant as `wired_hook_missing_file`, one wiring surface over: a merge driver DECLARED
+/// in `.gitattributes` must have a real executable behind it.
+///
+/// This is not a stylistic check. Git does not re-run its own text merge when a driver command
+/// fails — it takes whatever the command left in `%A` as the conflicted working tree, and a
+/// command that never ran leaves `ours` there unmarked, with the other side's content absent. The
+/// file then reads as clean and complete, so a reflexive `git add` commits the loss. Both driver
+/// READMEs document that from real incidents. A declaration with nothing behind it is therefore
+/// strictly worse than no declaration at all, and it is exactly what drift produces: on the clone
+/// this check was written from, one of three declared drivers was registered and its command
+/// pointed into the `buck-out` of a worktree that had been deleted.
+///
+/// The `$(location …)` env in this target's BUCK is the SINGLE mapping from a declared name to its
+/// implementation, shared with the installer target. This test pins the two sets equal in BOTH
+/// directions, so neither a declaration without a binary nor a binary without a declaration can
+/// land.
+#[test]
+fn every_declared_merge_driver_resolves_to_a_built_executable() {
+    let root = repo_root();
+    let gitattributes_path = root.join(".gitattributes");
+    let gitattributes = std::fs::read_to_string(&gitattributes_path)
+        .unwrap_or_else(|e| panic!("read {}: {e}", gitattributes_path.display()));
+
+    let declared = drivers_requiring_registration(&gitattributes);
+    // Vacuity guard: this repo declares drivers today, so an empty set means the parse broke and
+    // every assertion below became trivially true.
+    assert!(
+        !declared.is_empty(),
+        ".gitattributes declares merge drivers; parsing it yielded none"
+    );
+
+    // Both directions in one comparison: declared-without-implementation AND
+    // implementation-without-declaration.
+    let expected_vars: BTreeSet<String> = declared.iter().map(|name| source_env_var(name)).collect();
+    let supplied_vars: BTreeSet<String> = std::env::vars()
+        .map(|(key, _)| key)
+        .filter(|key| key.starts_with("MERGE_DRIVER_SOURCE_"))
+        .collect();
+    assert_eq!(
+        supplied_vars, expected_vars,
+        "the merge drivers declared in .gitattributes and the driver binaries wired into this \
+         gate's BUCK must be the same set"
+    );
+
+    for name in &declared {
+        let var = source_env_var(name);
+        let raw = std::env::var(&var).unwrap_or_else(|e| panic!("{var}: {e}"));
+        let path = if Path::new(&raw).is_absolute() {
+            PathBuf::from(&raw)
+        } else {
+            // `$(location …)` is project-root relative.
+            root.join(&raw)
+        };
+        let meta = std::fs::metadata(&path)
+            .unwrap_or_else(|e| panic!("merge driver `{name}` -> {}: {e}", path.display()));
+        assert!(
+            meta.is_file(),
+            "merge driver `{name}` -> {} is not a file",
+            path.display()
+        );
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            assert!(
+                meta.permissions().mode() & 0o111 != 0,
+                "merge driver `{name}` -> {} is not executable",
+                path.display()
+            );
+        }
+        eprintln!("MERGE-DRIVER live corpus: {name} -> {}", path.display());
+    }
 }
