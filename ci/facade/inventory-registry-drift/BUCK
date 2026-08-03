@@ -15,12 +15,19 @@ rust_library(
 # The producer reads the committed scm-facts face (a declared input via the accounting lib's
 # srcs); no buck2 action calls git.
 #
-# The scm-facts face itself is byte-validated by the SAME test file's
-# `committed_scm_facts_equal_regenerated`, but that check execs the scm-facts EMITTER (the single
-# out-of-graph git boundary, §1.5) — git must NOT run inside a hermetic buck2 action (an RBE
-# worker has no `.git`). So the emitter is NOT passed here: under buck2 that check SKIPS (git is
-# out of the action graph), and it runs at the git boundary instead — the cargo dev lane and the
-# CI `scm-facts-regen` pre-step (which sets OYA_CI_SCM_FACTS_REGEN=1). Same logic, every runner.
+# The de-commit-class faces (scm-facts, move-manifest) are validated by the SAME test file's regen
+# canaries, which exec the scm-facts EMITTER and the reorg CODEMOD — both read git, and git must
+# NOT run inside a hermetic buck2 action (an RBE worker has no `.git`). What keeps git out of the
+# action graph is `git_boundary()` in tests/registry_drift.rs, which those checks gate themselves
+# on; the env below only makes the binaries available.
+#
+# That gate used to be "CARGO is set, or the CI `scm-facts-regen` pre-step set
+# OYA_CI_SCM_FACTS_REGEN=1", and the emitter was withheld from this env to enforce it. There is no
+# such pre-step — nothing in this repository sets that variable, and buck2 does not set CARGO — so
+# under `buck2 test` every de-commit-class canary skipped on every runner, and withholding the
+# emitter withheld the check rather than the git call. `git_boundary()` now asks whether `.git` is
+# reachable, which it is here (rust_test CWD is the project root), so those checks run. Same
+# logic, every runner.
 # (Named -gate to avoid a buck2 in-package collision with the rust_library above; the
 # package //ci/facade/inventory-registry-drift carries the §5.3 :ci-inventory-registry-drift identity.)
 rust_test(
@@ -29,10 +36,13 @@ rust_test(
     crate = "ci_inventory_registry_drift_corpus",
     crate_root = "tests/registry_drift.rs",
     env = {
-        # The reorg move-manifest regen check (task #64) execs the codemod; like the scm-facts
-        # emitter it reads `git ls-files`, so it runs only at the git boundary (cargo dev / CI
-        # regen pre-step) and SKIPS inside a hermetic buck2 action.
+        # The reorg move-manifest checks (task #64) exec the codemod; it reads `git ls-files`, so
+        # they run only at the git boundary and SKIP where `.git` is unreachable.
         "OYA_CI_CODEMOD_BIN": "$(exe //tools/oya-reorg-codemod-app:oya-reorg-codemod)",
+        # Same shape as OYA_CI_CODEMOD_BIN. The `cargo run` fallback this replaces named the
+        # emitter's [[bin]] (`oya-cloud-ci-scm-facts-emitter-app`) as a `-p` PACKAGE, which cargo
+        # rejects — so the scm-facts canary had no working execution path on any runner.
+        "OYA_CI_EMITTER_BIN": "$(exe //ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot)",
         "OYA_CI_PRODUCER_BIN": "$(exe //ci/facade/artifact-inventory-registry:oya-cloud-ci-accounting-registry-app-bin)",
         "OYA_CI_ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS": "$(location //.claude:settings-json)",
         "OYA_CI_ENFORCEMENT_LIVENESS_CODEX_HOOKS": "$(location //.codex:hooks-json)",
