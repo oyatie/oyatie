@@ -12,9 +12,15 @@ doc_status: published
 - Reset authorization remains unconditionally disabled: the candidate records
   hard stops, unknowns, recovery gaps, approval failures, and stale evidence but
   exposes no destructive API, controller, nonce, or actuation path.
-- Removed syntactic HTTP(S) URIs from the secret-scanner exemption. Public URLs
-  can still pass ordinary entropy analysis, while secret-like userinfo, query,
-  fragment, and path values are rejected by red/green regression coverage.
+- Approval signatures now bind a deterministic digest of the complete declared
+  artifact subject (all fields except the circular approvals array), so scope,
+  evidence mapping, inventory, recovery, blockers, unknowns, timestamps, and the
+  decision cannot change under an existing receipt.
+- Removed syntactic HTTP(S) URIs from the secret-scanner exemption. The scanner
+  examines credential-bearing URI components instead of entropy-scanning an
+  entire public URL, strictly bounds opaque/redacted handles, scans their suffix
+  components, and detects embedded token markers and private-key headers before
+  whitespace handling.
 - The committed 2026-08-01 discovery artifact expired on 2026-08-02 and is
   historical, unverified, and non-authorizing; any future decision requires a
   fresh reviewed capture. Protected admission and post-merge evidence remain

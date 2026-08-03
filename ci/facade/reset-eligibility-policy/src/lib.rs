@@ -82,7 +82,39 @@ pub fn sha256(bytes: &[u8]) -> String {
 }
 
 pub fn json_digest(value: &Value) -> String {
-    sha256(&serde_json::to_vec(value).expect("serializing a serde_json::Value cannot fail"))
+    sha256(
+        &serde_json::to_vec(&canonicalize_json(value))
+            .expect("serializing a serde_json::Value cannot fail"),
+    )
+}
+
+/// Digest every declared artifact field except the embedded approvals array.
+///
+/// Approvals are excluded as the sole circular surface: each receipt carries this digest and its
+/// signature. The resulting subject still includes the evidence manifest and source mapping,
+/// inventory, recovery posture, hard stops, unknowns, timestamps, scope, and decision. Canonical
+/// bytes are compact UTF-8 JSON with recursively lexicographically sorted object keys and retained
+/// array order.
+pub fn artifact_subject_digest(artifact: &Value) -> Option<String> {
+    let mut subject = artifact.clone();
+    subject.get_mut("approvals")?.as_array_mut()?.clear();
+    Some(json_digest(&subject))
+}
+
+fn canonicalize_json(value: &Value) -> Value {
+    match value {
+        Value::Array(values) => Value::Array(values.iter().map(canonicalize_json).collect()),
+        Value::Object(object) => {
+            let mut keys = object.keys().collect::<Vec<_>>();
+            keys.sort_unstable();
+            let mut canonical = serde_json::Map::new();
+            for key in keys {
+                canonical.insert(key.clone(), canonicalize_json(&object[key]));
+            }
+            Value::Object(canonical)
+        }
+        _ => value.clone(),
+    }
 }
 
 pub fn evidence_digest(evidence: &BTreeMap<String, Vec<u8>>) -> String {
@@ -502,7 +534,7 @@ fn validate_approval_receipts(
         if valid {
             approved.insert(role.to_owned());
         } else {
-            findings.insert(Finding::new("reset_approval_receipt_invalid", format!("approvals[{index}]"), "approval must use a unique principal and key bound by runtime authority to exactly one allowed role, and its signature must bind reset/evidence/commits/policy/schema"));
+            findings.insert(Finding::new("reset_approval_receipt_invalid", format!("approvals[{index}]"), "approval must use a unique principal and key bound by runtime authority to exactly one allowed role, and its signature must bind the canonical artifact subject plus reset/evidence/commits/policy/schema"));
         }
     }
     runtime.required_approval_roles.is_subset(&approved)
@@ -517,6 +549,9 @@ fn receipt_binding_valid(
     schema: &Value,
     now: i64,
 ) -> bool {
+    let Some(artifact_subject) = artifact_subject_digest(artifact) else {
+        return false;
+    };
     let artifact_captured = artifact
         .get("captured_at")
         .and_then(Value::as_str)
@@ -534,6 +569,7 @@ fn receipt_binding_valid(
         .and_then(Value::as_str)
         .and_then(parse_rfc3339_utc);
     receipt.get("reset_id") == artifact.get("reset_id")
+        && receipt.get("artifact_sha256").and_then(Value::as_str) == Some(artifact_subject.as_str())
         && receipt.get("evidence_sha256").and_then(Value::as_str) == Some(evidence)
         && receipt.get("protected_commit_sha").and_then(Value::as_str)
             == Some(runtime.protected_commit_sha.as_str())
@@ -560,6 +596,7 @@ pub fn receipt_payload(receipt: &Value) -> Option<Vec<u8>> {
         "role",
         "approver",
         "reset_id",
+        "artifact_sha256",
         "evidence_sha256",
         "protected_commit_sha",
         "candidate_commit_sha",
@@ -569,16 +606,12 @@ pub fn receipt_payload(receipt: &Value) -> Option<Vec<u8>> {
         "expires_at",
         "key_id",
     ];
-    let mut payload = String::new();
+    let mut payload = serde_json::Map::new();
     for field in fields {
-        if let Some(value) = receipt.get(field).and_then(Value::as_str) {
-            payload.push_str(field);
-            payload.push('=');
-            payload.push_str(value);
-            payload.push('\n');
-        }
+        let value = receipt.get(field).and_then(Value::as_str)?;
+        payload.insert(field.to_owned(), Value::String(value.to_owned()));
     }
-    (!payload.is_empty()).then(|| payload.into_bytes())
+    serde_json::to_vec(&canonicalize_json(&Value::Object(payload))).ok()
 }
 
 fn verify_receipt(receipt: &Value, key: Option<&[u8; 32]>) -> bool {
@@ -992,21 +1025,39 @@ fn scan_forbidden_secrets(
 }
 
 fn looks_like_secret_value(path: &str, value: &str) -> bool {
-    if value.contains("-----BEGIN PRIVATE KEY-----")
-        || value.starts_with("ghp_")
-        || value.starts_with("github_pat_")
-        || value.starts_with("sk_live_")
-        || value.starts_with("xoxb-")
-    {
+    if contains_high_confidence_secret_marker(value) {
         return true;
     }
     if looks_like_jwt(value) {
         return true;
     }
-    if value.len() < 40
-        || value.bytes().any(|byte| byte.is_ascii_whitespace())
-        || is_approved_structured_value(path, value)
-    {
+    if is_uri_field(path) {
+        if value
+            .split_once(':')
+            .is_some_and(|(scheme, _)| is_approved_opaque_scheme(scheme))
+        {
+            return approved_opaque_handle_suffix(value).is_none_or(opaque_handle_contains_secret);
+        }
+        if let Some(contains_secret) = http_uri_contains_secret(value) {
+            return contains_secret;
+        }
+    }
+    if is_approved_structured_value(path, value) {
+        return false;
+    }
+    looks_like_secret_fragment(value)
+}
+
+fn looks_like_secret_fragment(value: &str) -> bool {
+    if contains_high_confidence_secret_marker(value) || looks_like_jwt(value) {
+        return true;
+    }
+    if value.bytes().any(|byte| byte.is_ascii_whitespace()) {
+        return value
+            .split_ascii_whitespace()
+            .any(looks_like_secret_fragment);
+    }
+    if value.len() < 40 {
         return false;
     }
     let mut classes = [false; 4];
@@ -1039,55 +1090,52 @@ fn looks_like_secret_value(path: &str, value: &str) -> bool {
 }
 
 fn is_approved_structured_value(path: &str, value: &str) -> bool {
-    is_uri_field(path) && is_approved_opaque_uri(value)
+    is_uri_field(path)
+        && approved_opaque_handle_suffix(value)
+            .is_some_and(|suffix| !opaque_handle_contains_secret(suffix))
         || path.ends_with(".stable_id") && REQUIRED_INVENTORY_IDS.contains(&value)
         || is_sha256_field(path) && is_sha256(value)
         || is_commit_field(path) && is_hex(value, 40)
         || path.ends_with(".signature") && is_hex(value, 128)
 }
 
-fn is_approved_opaque_uri(value: &str) -> bool {
-    let Some((scheme, suffix)) = value.split_once(':') else {
-        return false;
-    };
+fn approved_opaque_handle_suffix(value: &str) -> Option<&str> {
+    let (scheme, suffix) = value.split_once(':')?;
+    if !is_approved_opaque_scheme(scheme)
+        || suffix.is_empty()
+        || suffix.len() > 160
+        || suffix.starts_with(['-', '.', '_', '/'])
+        || suffix.ends_with(['-', '.', '_', '/'])
+        || suffix.contains("..")
+        || suffix.contains("//")
+        || !suffix.bytes().all(is_opaque_handle_byte)
+    {
+        return None;
+    }
+    Some(suffix)
+}
+
+fn is_approved_opaque_scheme(scheme: &str) -> bool {
     matches!(
         scheme,
         "protected-runtime" | "redacted-local" | "redacted-local-manifest"
-    ) && !suffix.is_empty()
-        && suffix.bytes().all(is_uri_tail_byte)
+    )
 }
 
 fn is_uri_field(path: &str) -> bool {
     path.ends_with(".uri") || path.ends_with(".evidence_uri")
 }
 
-fn is_uri_tail_byte(byte: u8) -> bool {
-    byte.is_ascii_alphanumeric()
-        || matches!(
-            byte,
-            b'-' | b'.'
-                | b'_'
-                | b'~'
-                | b':'
-                | b'/'
-                | b'?'
-                | b'#'
-                | b'['
-                | b']'
-                | b'@'
-                | b'!'
-                | b'$'
-                | b'&'
-                | b'\''
-                | b'('
-                | b')'
-                | b'*'
-                | b'+'
-                | b','
-                | b';'
-                | b'='
-                | b'%'
-        )
+fn is_opaque_handle_byte(byte: u8) -> bool {
+    byte.is_ascii_lowercase() || byte.is_ascii_digit() || matches!(byte, b'-' | b'.' | b'_' | b'/')
+}
+
+fn opaque_handle_contains_secret(suffix: &str) -> bool {
+    contains_high_confidence_secret_marker(suffix)
+        || suffix
+            .split(['-', '.', '_', '/'])
+            .filter(|component| !component.is_empty())
+            .any(looks_like_secret_fragment)
 }
 
 fn is_sha256_field(path: &str) -> bool {
@@ -1095,6 +1143,140 @@ fn is_sha256_field(path: &str) -> bool {
         || path.ends_with(".evidence_sha256")
         || path.ends_with(".schema_sha256")
         || path.ends_with(".policy_sha256")
+        || path.ends_with(".artifact_sha256")
+}
+
+fn contains_high_confidence_secret_marker(value: &str) -> bool {
+    ["ghp_", "github_pat_", "sk_live_", "xoxb-"]
+        .into_iter()
+        .any(|marker| value.contains(marker))
+        || [
+            "BEGIN PRIVATE KEY",
+            "BEGIN RSA PRIVATE KEY",
+            "BEGIN OPENSSH PRIVATE KEY",
+            "BEGIN EC PRIVATE KEY",
+            "BEGIN DSA PRIVATE KEY",
+            "BEGIN ENCRYPTED PRIVATE KEY",
+        ]
+        .into_iter()
+        .any(|marker| value.contains(marker))
+}
+
+fn http_uri_contains_secret(value: &str) -> Option<bool> {
+    let rest = value
+        .strip_prefix("https://")
+        .or_else(|| value.strip_prefix("http://"))?;
+    if rest.is_empty() {
+        return None;
+    }
+
+    let authority_end = rest.find(['/', '?', '#']).unwrap_or(rest.len());
+    if authority_end == 0 {
+        return None;
+    }
+
+    // Detect userinfo even in a malformed URI that embeds reserved delimiters in a password.
+    let authority_candidate_end = rest.find('/').unwrap_or(rest.len());
+    let authority_candidate = &rest[..authority_candidate_end];
+    if let Some(at_index) = authority_candidate.rfind('@') {
+        let userinfo = &authority_candidate[..at_index];
+        let decoded = percent_decode(userinfo);
+        if (at_index < authority_end
+            && decoded
+                .split_once(':')
+                .is_some_and(|(_, password)| !password.is_empty()))
+            || looks_like_secret_fragment(&decoded)
+        {
+            return Some(true);
+        }
+    }
+
+    let remainder = &rest[authority_end..];
+    let (without_fragment, fragment) = remainder
+        .split_once('#')
+        .map_or((remainder, None), |(head, tail)| (head, Some(tail)));
+    let (path, query) = without_fragment
+        .split_once('?')
+        .map_or((without_fragment, None), |(head, tail)| (head, Some(tail)));
+
+    if path
+        .split('/')
+        .filter(|segment| !segment.is_empty())
+        .map(percent_decode)
+        .any(|segment| looks_like_secret_fragment(&segment))
+    {
+        return Some(true);
+    }
+    if let Some(query) = query {
+        for item in query.split(['&', ';']) {
+            let (key, value) = item.split_once('=').unwrap_or((item, ""));
+            let key = percent_decode(key);
+            let value = percent_decode(value.replace('+', " ").as_str());
+            if (!value.is_empty() && is_credential_query_key(&key))
+                || looks_like_secret_fragment(&value)
+            {
+                return Some(true);
+            }
+        }
+    }
+    if fragment
+        .map(percent_decode)
+        .is_some_and(|fragment| looks_like_secret_fragment(&fragment))
+    {
+        return Some(true);
+    }
+    Some(false)
+}
+
+fn is_credential_query_key(value: &str) -> bool {
+    let normalized = value
+        .bytes()
+        .filter(|byte| byte.is_ascii_alphanumeric())
+        .map(|byte| byte.to_ascii_lowercase())
+        .collect::<Vec<_>>();
+    let normalized = String::from_utf8(normalized).unwrap_or_default();
+    [
+        "token",
+        "secret",
+        "password",
+        "passwd",
+        "signature",
+        "credential",
+        "authorization",
+        "apikey",
+        "accesskey",
+    ]
+    .into_iter()
+    .any(|marker| normalized.contains(marker))
+}
+
+fn percent_decode(value: impl AsRef<str>) -> String {
+    let bytes = value.as_ref().as_bytes();
+    let mut decoded = Vec::with_capacity(bytes.len());
+    let mut index = 0;
+    while index < bytes.len() {
+        if bytes[index] == b'%'
+            && index + 2 < bytes.len()
+            && let (Some(high), Some(low)) =
+                (hex_nibble(bytes[index + 1]), hex_nibble(bytes[index + 2]))
+        {
+            decoded.push((high << 4) | low);
+            index += 3;
+        } else {
+            decoded.push(bytes[index]);
+            index += 1;
+        }
+    }
+    String::from_utf8_lossy(&decoded).into_owned()
+}
+
+fn hex_nibble(byte: u8) -> Option<u8> {
+    match byte {
+        b'0'..=b'9' => Some(byte - b'0'),
+        b'a'..=b'f' => Some(byte - b'a' + 10),
+        b'A'..=b'F' => Some(byte - b'A' + 10),
+        _ => None,
+    }
 }
 
 fn is_commit_field(path: &str) -> bool {
@@ -1209,6 +1391,16 @@ mod tests {
             public_url
         ));
 
+        let public_metadata_url = "https://docs.example.com/guide/setup?language=en-US&version=2026.08&section=deployment";
+        assert!(!looks_like_secret_value(
+            "$.evidence_manifest.uri",
+            public_metadata_url
+        ));
+        assert!(!looks_like_secret_value(
+            "$.evidence_manifest.uri",
+            "https://docs.example.com:443?email=user@example.com"
+        ));
+
         let colon_secret = "opaque:q9P/2Zd7Wm4+Lx8!Vt3#Kn6@Hs1%Rc5^Bj0&Fy7*Ua2=Ee9?";
         assert!(!is_approved_structured_value(
             "$.inventory[0].lifecycle",
@@ -1220,6 +1412,11 @@ mod tests {
         ));
 
         for value in [
+            "redacted-local:q9P/2Zd7Wm4+Lx8!Vt3#Kn6@Hs1%Rc5^Bj0&Fy7*Ua2=Ee9?",
+            "protected-runtime:q9P/2Zd7Wm4+Lx8!Vt3#Kn6@Hs1%Rc5^Bj0&Fy7*Ua2=Ee9?",
+            "redacted-local:q9P2Zd7Wm4-Lx8Vt3Kn6Hs1Rc5Bj0Fy7Ua2Ee9Qw4Pi6Zd8Lm",
+            "protected-runtime:q9P2Zd7Wm4-Lx8Vt3Kn6Hs1Rc5Bj0Fy7Ua2Ee9Qw4Pi6Zd8Lm",
+            "redacted-local:../../candidate-escape",
             "opaque://q9P2Zd7Wm4+Lx8!Vt3#Kn6@Hs1%Rc5Bj0&Fy7*Ua2=Ee9?",
             "https://user:q9P2Zd7Wm4+Lx8!Vt3#Kn6@Hs1%Rc5Bj0&Fy7*Ua2=Ee9?@host",
             "https://inventory.example/export?X-Amz-Signature=q9P2Zd7Wm4Lx8Vt3Kn6Hs1Rc5Bj0Fy7Ua2Ee9Qw4Pi6Zd8Lm",
@@ -1231,6 +1428,15 @@ mod tests {
                 value
             ));
             assert!(looks_like_secret_value("$.evidence_manifest.uri", value));
+        }
+
+        for value in [
+            "note ghp_1234567890abcdefghijklmnopqrstuv",
+            "-----BEGIN RSA PRIVATE KEY-----\nMIIE...\n-----END RSA PRIVATE KEY-----",
+            "-----BEGIN OPENSSH PRIVATE KEY-----\nb3BlbnNzaC1rZXktdjEAAAAA\n-----END OPENSSH PRIVATE KEY-----",
+            "-----BEGIN EC PRIVATE KEY-----\nMHcCAQEE\n-----END EC PRIVATE KEY-----",
+        ] {
+            assert!(looks_like_secret_value("$.inventory[0].lifecycle", value));
         }
     }
 }
