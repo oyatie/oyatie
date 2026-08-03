@@ -5,7 +5,7 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//oya/ci-tide/crates/oya-ci-tide-kernel:oya-ci-tide-kernel",
+        "//ci/core/tide-kernel:ci-tide-kernel",
         "//oya/ci-tide/crates/oya-ci-tide-github-adapter:oya-ci-tide-github-adapter",
         "third-party//:serde",
         "third-party//:serde_json",
@@ -22,7 +22,7 @@ rust_test(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//oya/ci-tide/crates/oya-ci-tide-kernel:oya-ci-tide-kernel",
+        "//ci/core/tide-kernel:ci-tide-kernel",
         "//oya/ci-tide/crates/oya-ci-tide-github-adapter:oya-ci-tide-github-adapter",
         "third-party//:serde",
         "third-party//:serde_json",
@@ -39,7 +39,7 @@ rust_binary(
     visibility = ["PUBLIC"],
     deps = [
         ":oya-ci-tide-app",
-        "//oya/ci-tide/crates/oya-ci-tide-kernel:oya-ci-tide-kernel",
+        "//ci/core/tide-kernel:ci-tide-kernel",
         "//oya/ci-tide/crates/oya-ci-tide-github-adapter:oya-ci-tide-github-adapter",
         "third-party//:serde",
         "third-party//:serde_json",

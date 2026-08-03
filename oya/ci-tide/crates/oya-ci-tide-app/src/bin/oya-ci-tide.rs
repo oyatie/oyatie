@@ -15,9 +15,9 @@
 //! `dry_run` defaults to `true`; the service merges nothing unless
 //! `OYA_TIDE_DRY_RUN=false` is explicitly set.
 
+use ci_tide_kernel::{ENV_GITHUB_TOKEN, TideConfig};
 use oya_ci_tide_app::TideRunner;
 use oya_ci_tide_github_adapter::GitHubHttpClient;
-use oya_ci_tide_kernel::{ENV_GITHUB_TOKEN, TideConfig};
 use std::sync::Arc;
 use tracing::info;
 
