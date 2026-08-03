@@ -5,7 +5,7 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//oya/ci-tide/crates/oya-ci-tide-kernel:oya-ci-tide-kernel",
+        "//ci/core/tide-kernel:ci-tide-kernel",
         "third-party//:reqwest",
         "third-party//:serde",
         "third-party//:serde_json",
