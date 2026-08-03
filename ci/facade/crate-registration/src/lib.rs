@@ -94,10 +94,6 @@ const ENFORCEMENT_LIVENESS_HOOKS_DIR: &str = "tools/hooks";
 /// consumes (materialize.sh step 1 → step 2). A pure function of (committed plan + candidate tree).
 const MOVE_MANIFEST_PATH: &str = "specs/reorg/move-manifest.generated.json";
 
-/// The reorg move-plan glob a MOVE PR commits; the codemod's `--plan` input (first match only, per
-/// materialize.sh — exactly one plan is expected per move PR). A no-move run passes no `--plan`.
-const MOVE_PLAN_DIR: &str = "specs/reorg";
-
 /// The buck2 targets the [`Buck2RegenAdapter`] builds (mirroring materialize.sh's single
 /// `buck2 build … --show-output`). Target-name match (`parse_show_output_path`) maps each to its
 /// built-binary path — the same shape the freshness gate's `build_face_tools` uses.
@@ -693,19 +689,15 @@ impl RegenPort for Buck2RegenAdapter {
     fn regenerate(&self, repo_root: &Path) -> Result<Vec<String>, RegisterError> {
         let tools = build_face_tools(repo_root)?;
 
-        // 1. codemod(manifest): regenerate the committed move-manifest from the committed plan (if
-        //    any) + the candidate tree, so the emitter consumes a FRESH copy. ORDER is load-bearing
-        //    (materialize.sh step 1). A no-move run passes NO --plan (canonical empty manifest).
+        // 1. codemod(manifest): regenerate the committed move-manifest from the candidate tree, so
+        //    the emitter consumes a FRESH copy. The codemod is the authoritative selector: it
+        //    excludes landed/PARKED plans, fails closed on multiple active plans, and emits the
+        //    canonical empty manifest when none is active. ORDER is load-bearing (materialize.sh
+        //    step 1).
         let manifest_out = repo_root.join(MOVE_MANIFEST_PATH);
         let mut codemod = Command::new(&tools.codemod);
-        codemod.arg("manifest").args(["--repo-root"]).arg(repo_root);
-        if let Some(plan) = first_move_plan(repo_root)? {
-            codemod.args(["--plan"]).arg(plan);
-        }
-        codemod
-            .args(["--out"])
-            .arg(&manifest_out)
-            .current_dir(repo_root);
+        append_manifest_args(&mut codemod, repo_root, &manifest_out);
+        codemod.current_dir(repo_root);
         run_settle_status(&mut codemod, "codemod manifest")?;
 
         // 2. emitter: write the REAL scm-facts snapshot (+ the frozen gate-baseline snapshot the
@@ -912,40 +904,13 @@ fn buck_filegroup_file(output: std::path::PathBuf, file_name: &str) -> std::path
     }
 }
 
-/// The first reorg move-plan under `specs/reorg/*-move-plan.json` (sorted), or `None` for a no-move
-/// run (the canonical empty-manifest path). Exactly one plan is expected per move PR (materialize.sh
-/// uses the first match; a multi-plan tree is a contributor error a move PR must avoid).
-///
-/// # Errors
-/// [`RegisterError::RegenFailed`] if the `specs/reorg` dir exists but is unreadable.
-fn first_move_plan(repo_root: &Path) -> Result<Option<std::path::PathBuf>, RegisterError> {
-    let dir = repo_root.join(MOVE_PLAN_DIR);
-    let entries = match std::fs::read_dir(&dir) {
-        Ok(entries) => entries,
-        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(None),
-        Err(e) => {
-            return Err(RegisterError::RegenFailed(format!(
-                "read {}: {e}",
-                dir.display()
-            )));
-        }
-    };
-    let mut plans: Vec<std::path::PathBuf> = Vec::new();
-    for entry in entries {
-        let entry = entry.map_err(|e| {
-            RegisterError::RegenFailed(format!("read entry in {}: {e}", dir.display()))
-        })?;
-        let path = entry.path();
-        let is_plan = path
-            .file_name()
-            .and_then(|n| n.to_str())
-            .is_some_and(|n| n.ends_with("-move-plan.json"));
-        if is_plan {
-            plans.push(path);
-        }
-    }
-    plans.sort();
-    Ok(plans.into_iter().next())
+fn append_manifest_args(command: &mut Command, repo_root: &Path, out: &Path) {
+    command
+        .arg("manifest")
+        .arg("--repo-root")
+        .arg(repo_root)
+        .arg("--out")
+        .arg(out);
 }
 
 /// Run the Cargo.lock refresh subprocess (`cargo metadata`) for its exit status. This is the

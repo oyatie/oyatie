@@ -199,80 +199,67 @@ fn append_enforcement_liveness_corpus_paths(
         .arg(hooks_dir);
 }
 
-/// The committed per-PR move plan (task #64), if any: a MOVE PR commits exactly one
-/// `specs/reorg/<capability>-move-plan.json`. The codemod's `manifest` subcommand derives the
-/// move-manifest from (this plan + the candidate tracked tree), so the regen here MUST pass the
-/// same `--plan` the materialize pipeline does, or `committed != regenerated` would falsely RED a
-/// real move PR (and falsely GREEN-empty a forged manifest). With no plan (a no-move PR) the
-/// manifest is the canonical EMPTY identity manifest. The glob is sorted for determinism; the
-/// first match is used (exactly one plan per move PR).
-fn committed_move_plan(root: &Path) -> Option<PathBuf> {
-    let dir = root.join("specs/reorg");
-    let mut plans: Vec<PathBuf> = fs::read_dir(&dir)
-        .into_iter()
-        .flatten()
-        .flatten()
-        .map(|e| e.path())
-        .filter(|p| {
-            p.file_name()
-                .and_then(|n| n.to_str())
-                .is_some_and(|n| n.ends_with("-move-plan.json"))
-        })
-        .collect();
-    plans.sort();
-    plans.into_iter().next()
+fn append_manifest_args(command: &mut Command, root: &Path, out: &Path) {
+    command
+        .args(["manifest", "--repo-root"])
+        .arg(root)
+        .arg("--out")
+        .arg(out);
 }
 
 /// Run the reorg codemod `manifest` subcommand to regenerate the move-manifest face to a temp
 /// path, returning its bytes (task #64). Prefers the buck2-provided binary
-/// (`OYA_CI_CODEMOD_BIN`), else `cargo run -p`. Passes the committed move plan via `--plan` (same
-/// as the materialize pipeline) so the regeneration matches the materialize pipeline exactly; with
-/// no plan it emits the canonical EMPTY manifest. Reads `git ls-files`, so this is a git-boundary
-/// regen (the caller gates it to the boundary context, identical to scm-facts). `pass`
-/// discriminates the temp output path so the determinism canary can regenerate twice in one process
-/// without the two passes colliding on the same temp file.
+/// (`OYA_CI_CODEMOD_BIN`), else `cargo run -p`. The codemod owns active-plan selection; callers do
+/// not pass `--plan`, so landed and PARKED plans cannot override its single-active fail-closed
+/// policy. Reads `git ls-files`, so this is a git-boundary regen (the caller gates it to the
+/// boundary context, identical to scm-facts). `pass` discriminates the temp output path so the
+/// determinism canary can regenerate twice in one process without the two passes colliding on the
+/// same temp file.
 fn regenerate_move_manifest(root: &Path, pass: u32) -> String {
     let out = std::env::temp_dir().join(format!(
         "oya-ci-move-manifest-regen-{}-{pass}.json",
         std::process::id()
     ));
-    let plan = committed_move_plan(root);
     let status = if let Ok(bin) = std::env::var("OYA_CI_CODEMOD_BIN") {
         let mut cmd = Command::new(resolve_bin(root, &bin));
-        cmd.args(["manifest", "--repo-root"]).arg(root);
-        if let Some(plan) = &plan {
-            cmd.args(["--plan"]).arg(plan);
-        }
-        cmd.args(["--out"])
-            .arg(&out)
-            .current_dir(root)
-            .status()
-            .expect("run codemod binary")
+        append_manifest_args(&mut cmd, root, &out);
+        cmd.current_dir(root).status().expect("run codemod binary")
     } else {
         let mut cmd = Command::new(cargo());
-        cmd.args([
-            "run",
-            "--quiet",
-            "-p",
-            "oya-reorg-codemod-app",
-            "--",
-            "manifest",
-            "--repo-root",
-        ])
-        .arg(root);
-        if let Some(plan) = &plan {
-            cmd.args(["--plan"]).arg(plan);
-        }
-        cmd.args(["--out"])
-            .arg(&out)
-            .current_dir(root)
-            .status()
-            .expect("cargo run codemod")
+        cmd.args(["run", "--quiet", "-p", "oya-reorg-codemod-app", "--"]);
+        append_manifest_args(&mut cmd, root, &out);
+        cmd.current_dir(root).status().expect("cargo run codemod")
     };
     assert!(status.success(), "reorg codemod manifest failed");
     let bytes = fs::read_to_string(&out).expect("read regenerated move-manifest");
     let _ = fs::remove_file(&out);
     bytes
+}
+
+#[test]
+fn registry_drift_delegates_move_plan_selection_to_codemod() {
+    let mut command = Command::new("codemod");
+    append_manifest_args(
+        &mut command,
+        Path::new("/repo"),
+        Path::new("/tmp/move-manifest.json"),
+    );
+
+    let args: Vec<String> = command
+        .get_args()
+        .map(|arg| arg.to_string_lossy().into_owned())
+        .collect();
+    assert_eq!(
+        args,
+        [
+            "manifest",
+            "--repo-root",
+            "/repo",
+            "--out",
+            "/tmp/move-manifest.json",
+        ]
+    );
+    assert!(!args.iter().any(|arg| arg == "--plan"));
 }
 
 /// Run the scm-facts emitter to regenerate the scm-facts face to a temp path, returning its
