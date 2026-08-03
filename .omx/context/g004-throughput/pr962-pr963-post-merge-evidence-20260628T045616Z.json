@@ -1,0 +1,81 @@
+{
+  "backlog_rows_added_in_pr963": [
+    "F-CLOUDCI-BACKLOG-SSOT-ADMISSION",
+    "F-CLOUDCI-PIPELINE-PRODUCT-SURFACE",
+    "F-CLOUDCI-CLI-RETIREMENT-CANON-GATE",
+    "F-CLOUDCI-CANON-DRIFT-AUTOGEN-GATE",
+    "F-CLOUDCI-HYPERSCALER-LENS-PROJECTION-GATE"
+  ],
+  "cleanup": {
+    "remaining_target_branches": "",
+    "remaining_target_worktree_entries": "none",
+    "removed_worktrees": [
+      "/Users/jasonlee/oyatie-worktrees/g004-review-authority-20260628T033257Z",
+      "/Users/jasonlee/oyatie-worktrees/g004-pipeline-backlog-20260628T0415Z"
+    ]
+  },
+  "created_at": "2026-06-28T04:56:18.541615Z",
+  "dev_run_details_summary": [
+    {
+      "conclusion": "",
+      "databaseId": 28311680632,
+      "failed_jobs": [],
+      "jobs": 0,
+      "name": "oya-ci-required",
+      "pending_jobs": [],
+      "status": "pending"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 28311680635,
+      "failed_jobs": [],
+      "jobs": 1,
+      "name": "check-substrates",
+      "pending_jobs": [],
+      "status": "completed"
+    }
+  ],
+  "dev_runs": [
+    {
+      "conclusion": "",
+      "createdAt": "2026-06-28T04:45:54Z",
+      "databaseId": 28311680632,
+      "headSha": "a455ae25c425e18a41fc723f427b8e75a73bd624",
+      "name": "oya-ci-required",
+      "status": "pending",
+      "updatedAt": "2026-06-28T04:45:55Z",
+      "url": "https://github.com/jason931225/oyatie/actions/runs/28311680632"
+    },
+    {
+      "conclusion": "success",
+      "createdAt": "2026-06-28T04:45:54Z",
+      "databaseId": 28311680635,
+      "headSha": "a455ae25c425e18a41fc723f427b8e75a73bd624",
+      "name": "check-substrates",
+      "status": "completed",
+      "updatedAt": "2026-06-28T04:46:49Z",
+      "url": "https://github.com/jason931225/oyatie/actions/runs/28311680635"
+    }
+  ],
+  "origin_dev": "a455ae25c425e18a41fc723f427b8e75a73bd624",
+  "post_merge_caveat": "For latest dev a455ae25, check-substrates completed success; oya-ci-required run 28311680632 remained pending with zero allocated jobs after bounded polling, so this is recorded as a scheduler/allocation caveat rather than a red gate. PR-head gates for #963 were 41/41 successful before merge.",
+  "prs": {
+    "962": {
+      "head_checks": "41/41 successful before merge, no failures",
+      "mergeCommit": "2b9d55c33d89550bf7e610a766cded9ef34951e8",
+      "mergedAt": "2026-06-28T04:28:04Z",
+      "review_evidence": "agent architect PASS + code-review APPROVE comments recorded; GitHub reviewDecision empty because author==viewer, no self-approval fabricated",
+      "state": "MERGED",
+      "url": "https://github.com/jason931225/oyatie/pull/962"
+    },
+    "963": {
+      "head_checks": "41/41 successful before merge, no failures",
+      "mergeCommit": "a455ae25c425e18a41fc723f427b8e75a73bd624",
+      "mergedAt": "2026-06-28T04:45:51Z",
+      "review_evidence": "fresh agent code-review APPROVE comment recorded for head b66ad6bcb; official-source context comment recorded",
+      "state": "MERGED",
+      "url": "https://github.com/jason931225/oyatie/pull/963"
+    }
+  },
+  "scope": "G004 universal cloud-ci product substrate slice: review authority fail-closed gate plus backlog SSOT/productized hyperscaler pipeline rows"
+}

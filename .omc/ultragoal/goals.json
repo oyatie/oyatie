@@ -1,0 +1,161 @@
+{
+  "version": 1,
+  "createdAt": "2026-06-10T00:07:21.206Z",
+  "updatedAt": "2026-06-10T04:13:20.737Z",
+  "briefPath": ".omc/ultragoal/brief.md",
+  "goalsPath": ".omc/ultragoal/goals.json",
+  "ledgerPath": ".omc/ultragoal/ledger.jsonl",
+  "claudeGoalMode": "aggregate",
+  "goals": [
+    {
+      "id": "G001-g01-contract-lock-authority-reconcil",
+      "title": "G01 Contract Lock + Authority Reconciliation",
+      "objective": "Serialized fan-out unlock. Fix the 15 verified stale authority surfaces (archive root goal.json with live_replacement pointer; rewrite root AGENTS.md off Jenkins/Foundry/oya-gate; CLAUDE.md to ADR-0515 + cloud/cloud-observability path; masterplan duplicated Tenant-RBAC-view string artifact + owner_team founder rename; refresh phase0-ci spec to live green oya-ci-required reality; ADR-0187 to ADR-0476 doc chains; annotate every CLI authority pointer with its cloud-ci gate successor). Author the hyperscaler decision-matrix ADRs binding the 16-domain research (every decision cites precedent) incl. dogfood bootstrap order + Rust-owned-stack amendment (kuberos kernel, cloud-os, cloud-k8s destinations). Lock shared contracts: typed Rust contract crates (Smithy-architecture SSOT seed) for identity/PDP/tenancy/shell-BFF, Cedar schema, uniform resource-provider contract-test crate, OpenSLO skeletons. PR to dev, oya-ci-required green.",
+      "status": "complete",
+      "attempt": 1,
+      "createdAt": "2026-06-10T00:07:21.206Z",
+      "updatedAt": "2026-06-10T02:37:06.317Z",
+      "startedAt": "2026-06-10T00:07:26.676Z",
+      "completedAt": "2026-06-10T02:37:06.317Z",
+      "evidence": "PR #642 MERGED to dev as 70736321b (2026-06-10T02:34:38Z). 4 SSH-signed commits; oya-ci-required GREEN on rebased head; mergeStateStatus CLEAN. Adversarial critic APPROVE + orchestrator Torvalds delta-review (proto crate-locality byte-verified vs specs/proto + drift-guard test). 15 stale authority surfaces reconciled (goal.json archived; AGENTS.md/CLAUDE.md/masterplan/phase0 refreshed; ADR-0187->0476; CLI bridge-only annotations). ADR-0536/0537 Proposed awaiting founder door:one-way. Contract-lock seeds: typed contract crates, resource-provider test harness, Cedar RBAC+ABAC+PBAC suites vs real cedar-policy 4.11, OpenSLO skeletons; buck2 build SUCCEEDED + buck2 test 37/37; cargo 141/141. Frictions FRIC-001..014 logged w/ enforcement fixes queued G011. Plan claudeObjective synced to founder-amended live /goal (superset adding pipeline-productization/universality/ports clauses)."
+    },
+    {
+      "id": "G002-g02-trust-substrate-kms-secrets-work",
+      "title": "G02 Trust Substrate KMS+Secrets+Workload Identity",
+      "objective": "Parallel lane. oya-kms per AWS domain model behind owned Rust interface (OpenBao+PKCS11 transitional per ADR-0510): per-cell sealing roots, versioned per-tenant KEKs persisted only as wrapped tokens, crypto-enclave process (mlock+zeroize, type-system one-way door), decrypt-only key-version rotation, bounded-TTL DEK caching for static stability. Internal CA mints SPIFFE-style mTLS workload certs at pod admission (fetch-fail=deploy-fail). cloud-secrets dynamic leasing; zero static secrets anywhere. Cedar-gated quorum ScheduleKeyDeletion crypto-shred. K8s operator + GitOps + slos/*.openslo.yaml.",
+      "status": "in_progress",
+      "attempt": 1,
+      "createdAt": "2026-06-10T00:07:21.206Z",
+      "updatedAt": "2026-06-10T04:13:20.737Z",
+      "startedAt": "2026-06-10T04:13:20.737Z"
+    },
+    {
+      "id": "G003-g03-persistence-substrate-oya-data",
+      "title": "G03 Persistence Substrate oya-data",
+      "objective": "Parallel lane. Owned Rust SQL interface with PROVEN CRDB-class transitional impl (ADR-0510 cutover-gated to W5 bespoke multi-Raft leader-per-range; HLC behind TrueTime-shaped ClockSource trait). Real sqlx adapters replace ALL in-memory stores; RLS tenant isolation with cross-tenant-deny integration tests against containerized DB; envelope encryption via G02; transactional outbox + CDC change-streams; separate single-Raft bootstrap metastore breaking self-hosting recursion; K8s operator; slos/.",
+      "status": "pending",
+      "attempt": 0,
+      "createdAt": "2026-06-10T00:07:21.206Z",
+      "updatedAt": "2026-06-10T00:07:21.206Z"
+    },
+    {
+      "id": "G004-g04-cedar-pdp-policy-store",
+      "title": "G04 Cedar PDP + Policy Store",
+      "objective": "Parallel lane. Embedded in-process cedar-policy PDP crate for every axum service + central policy-store control plane that validates/versions/signs and pushes content-addressed policy bundles via the delivery fabric. Full-spectrum RBAC+ABAC+PBAC test suites per tenant (role-, attribute-, and policy-based decisions). Structural forbid tenant-isolation invariant. Decision caching keyed on (request-hash, policy-version) with zookie-style freshness tokens; sub-60s revocation SLO. RETIRE the hand-rolled oya-policy-cedar evaluator (ADR-0243 violation; two decision algorithms must never coexist). Audit record per decision.",
+      "status": "pending",
+      "attempt": 0,
+      "createdAt": "2026-06-10T00:07:21.206Z",
+      "updatedAt": "2026-06-10T00:07:21.206Z"
+    },
+    {
+      "id": "G005-g05-idp-to-production-oya-identity",
+      "title": "G05 IdP to Production oya-identity",
+      "objective": "Parallel lane. Promote workload-identity libs into a runnable K8s-operated service: binary wrapping build_router REST + tonic gRPC; durable principal store on G03; OIDC issuer (RFC8414/9068) with signing keys in G02 KMS; passkeys/WebAuthn; Oracle-style identity domains with primordial operator domain + at least 2 sealed offline FIDO2 break-glass credentials; offline JWKS validation everywhere (no synchronous introspection); CAEP-style revocation events + Cedar issue-time cutoff; SCIM-native user/group API. E2E: mint ES256 JWT then validate=200; denied principal=403 fail-closed never 404.",
+      "status": "in_progress",
+      "attempt": 0,
+      "createdAt": "2026-06-10T00:07:21.206Z",
+      "updatedAt": "2026-06-10T00:07:21.206Z",
+      "session_note_2026_06_12": "Slice 1 merged (PR #651, ADR-0553, dev bacd3849f): runnable workload-identity service, plane-3 doctrine-verified (consumes cloud IdP trust root), independent Fable APPROVE, 24/24 CI. Remaining for story acceptance: production IdP scope per acceptance criteria (further slices); follow-up task #27 (SCIM audit-sink)."
+    },
+    {
+      "id": "G006-g06-tenancy-rbac-core-vertical-fd-00",
+      "title": "G06 Tenancy+RBAC Core Vertical FD-001",
+      "objective": "Parallel lane integrating G03/G04/G05 as they land. Tenant lifecycle control plane (create/suspend/retire, isolation posture) implemented as uniform resource-provider with AIP-151 operation ledger + client-UUID idempotency; consolidate cloud/tenancy vs cloud-cloud-tenancy duplication to one canonical dir; packaging-axis E2E: provision tenant, issue workload credential, Cedar-scoped authorize, cross-tenant request fails closed over RLS, one audit record per operation. K8s reconciler actuation. Full depth: quotas, backpressure, golden signals, console-actionable runbooks, threat model, slos/.",
+      "status": "pending",
+      "attempt": 0,
+      "createdAt": "2026-06-10T00:07:21.206Z",
+      "updatedAt": "2026-06-10T00:07:21.206Z"
+    },
+    {
+      "id": "G007-g07-unified-shell-production-leptos",
+      "title": "G07 Unified Shell production Leptos",
+      "objective": "Parallel lane. Rename oya-application-shell-frontend-prototype to the production shell crate; kill the mock catalog, live data only from G01 locked contracts; build-time composition of module bundles from buck2 (no iframes, no module federation); sole token brokerage (OIDC via G05); ADR-0061 capability registry; design-system components per specs/design-system (tenant-context-switcher with no-cache-leak test, audit-evidence-timeline, ops-deployment-status-panel, policy-disclosure-banner); WCAG 2.2 AA; SSR+hydration; ADR-0393 supersession lint added to client-stack-discipline; the console is the operator surface replacing retired CLIs.",
+      "status": "pending",
+      "attempt": 0,
+      "createdAt": "2026-06-10T00:07:21.206Z",
+      "updatedAt": "2026-06-10T00:07:21.206Z"
+    },
+    {
+      "id": "G008-g08-observability-audit-substrate",
+      "title": "G08 Observability + Audit Substrate",
+      "objective": "Parallel lane. cloud-observability collector binary (K8s-operated); OpenSLO files as the single codegen source producing multiwindow multi-burn-rate alerts AND automatic rollback triggers; one structured wide-event per unit of work via tower middleware deriving RED metrics; cardinality gate enforced. slos/*.openslo.yaml for every FD-001 surface. Audit: libs audit-event crate (CloudEvents envelope + AuditLog-shaped payload) emitted from middleware; admin stream always-on with no-kill-switch CI lint; evidence/audit-chain.jsonl hardened into signed digest chain; verification ships as gate app + console surface, never CLI.",
+      "status": "pending",
+      "attempt": 0,
+      "createdAt": "2026-06-10T00:07:21.206Z",
+      "updatedAt": "2026-06-10T00:07:21.206Z"
+    },
+    {
+      "id": "G009-g09-messaging-metering-billing",
+      "title": "G09 Messaging + Metering + Billing",
+      "objective": "Parallel lane. Pulsar behind thin owned Rust client (transitional per ADR-0510); oya-queue/oya-stream/oya-bus as three single-concern surfaces over ONE substrate; transactional outbox = effectively-once. Metering pipeline: axum batch ingest, Pulsar never-lose class, idempotent sink keyed (tenant,resource,dimension,usage_hour) in G03; FOCUS 1.2 internal schema with tenant_id+cell_id first-class; versioned immutable price book; append-only identified line items with restatement-then-freeze close; double-entry subledger with transactional debits=credits invariant; KR-VAT native + tax adapter slot; internal dogfood chargeback for every oya/cloud service.",
+      "status": "pending",
+      "attempt": 0,
+      "createdAt": "2026-06-10T00:07:21.206Z",
+      "updatedAt": "2026-06-10T00:07:21.206Z"
+    },
+    {
+      "id": "G010-g10-dogfood-integration-k8s-bring-up",
+      "title": "G10 Dogfood Integration + K8s Bring-up",
+      "objective": "Fan-in after parallel lanes. Shell authenticates real operators via G05 OIDC round-trip; operator actions Cedar-authorized with audit records visible in the shell timeline; platform telemetry self-ingested with SLO dashboards; one-command reproducible bring-up (Cluster API + Talos transitional + per-cell Argo CD GitOps + OpenTofu edge per ADR-0375); K8s operators manage all stateful substrates; multi-arch distroless OCI + SBOM/provenance; bootstrap evidence report; smoke E2E green on a clean cluster.",
+      "status": "pending",
+      "attempt": 0,
+      "createdAt": "2026-06-10T00:07:21.206Z",
+      "updatedAt": "2026-06-10T00:07:21.206Z"
+    },
+    {
+      "id": "G011-g11-pipeline-as-product-ratchet",
+      "title": "G11 Pipeline-as-Product Ratchet",
+      "objective": "Continuous lane. Close the Buck-only gate-registration blind spot (fail-closed gate enumeration). Migrate oya-check-* and oya-dev-cli gate logic into oya-cloud-ci-discipline-app crates and retire ALL CLIs with retirement packets (Task 26 broadened per founder all-CLI directive). buck2 tier-dependency lint: no Tier-N service links a live client of Tier greater than N. Cedar-native deploy admission policies (bake-time-satisfied, alarm-state-clear, wave-ordering). Every friction encountered in G01-G10 is logged and converted to a gate/automation. Shadow then warn then enforce for each new gate.",
+      "status": "in_progress",
+      "attempt": 0,
+      "createdAt": "2026-06-10T00:07:21.206Z",
+      "updatedAt": "2026-06-10T00:07:21.206Z",
+      "session_note_2026_06_12": "Continuous story, major session advance 2026-06-11/12: 11 merges — gates canonical-json (ADR-0546), embedded-asset (ADR-0545), kernel-purity (ADR-0547), firewall merge-base ratchet (ADR-0551); doctrine ADR-0548 pipeline-as-product + ADR-0549 syntax-kernel/fixer-harness + ADR-0550 layout; face-settle --verify automation (#696). In flight: ADR-0552 dev-settle, ADR-0554 binding-CI scope, ADR-0555 structural accounting, firewall hardening, friction sweep. Story is continuous-ratchet; not markable complete."
+    },
+    {
+      "id": "G012-g12-sibling-kernel-consolidation",
+      "title": "G12 Sibling + Kernel Consolidation",
+      "objective": "Parallel lane, owned-stack foundation. Per HANDOFF founder map + office-pilot conformance pattern: kernel snapshot to cloud/cloud-kernel, OS to cloud/cloud-os (Rust-owned-stack destinations under the cloud-k8s substrate vision), office deltas to oya/office (oyaoffice- to oya-office- rename + delta reconcile), claude + codex snapshots to oya/intelligence as SDK adapters. FIRST migrate session-local plans off the transient kernel-snapshot branch into dev. Surface oyago/oyapy destination proposal to founder. Conform, workspace, cargo+buck2 green, floor gates, signed PRs.",
+      "status": "pending",
+      "attempt": 0,
+      "createdAt": "2026-06-10T00:07:21.206Z",
+      "updatedAt": "2026-06-10T00:07:21.206Z"
+    },
+    {
+      "id": "G013-g13-final-quality-gate",
+      "title": "G13 Final Quality Gate",
+      "objective": "Serialized fan-in. ai-slop-cleaner pass over the full slice; independent verifier on a clean checkout proves dogfood E2E + smoke + all cloud-ci gates green with evidence captured under evidence/; code-review APPROVE recorded on the final PR; zero TODO-stub/mock paths inside accepted scope (grep returns 0); no *.generated.json add/modify in any diff; all commits SSH-signed; oya-ci-required green on dev; checkpoint with quality-gate-json carrying aiSlopCleaner + verification + codeReview evidence.",
+      "status": "pending",
+      "attempt": 0,
+      "createdAt": "2026-06-10T00:07:21.206Z",
+      "updatedAt": "2026-06-21T00:00:00.000Z",
+      "acceptance": {
+        "slice": "register_crate scaffold (G011 born-accounting productization)",
+        "merged_prs": [
+          786,
+          787,
+          788,
+          789,
+          790,
+          791,
+          792
+        ],
+        "dev_head": "4c9e71f799d82749f9a8936f6773dd23731165ef",
+        "aiSlopCleaner": "CLEAN (0 material findings; 3 trivial 2-4 line helper dups behind layer/privacy boundaries)",
+        "verification": "PASS (buck2: 82 tests pass / 0 fail / 1 ignored[live-tree]; build 206 actions cold exit 0; NO husks; all 3 crates born-accounted in committed face)",
+        "codeReview": "APPROVE (0 blockers, 0 majors)",
+        "workflow_run": "wf_4b5c2c15-0fa (g013-final-quality-gate; agent-skills code-simplifier+verifier+code-reviewer)",
+        "closed_loop_gate": "total-accounting live (#687)",
+        "evidence_date": "2026-06-21"
+      },
+      "session_note_2026_06_11": "A session-slice final-quality-gate pass DID run and PASS over the four lanes merged 2026-06-10/11 (#685 checkout-guard, #686 cloud-kms operator, #644 XPROXY, #687 closed-loop friction-accounting gate): ai-slop-cleaner CLEAN, independent verifier buck2 Pass 75/Fail 0 incl. all cloud-ci gates, per-lane code-review APPROVE, production TODO=0, quality-gate checkpoint at evidence/quality-gate/ (landed via #688). But G013 STORY acceptance is the terminal fan-in over the COMPLETE G01-G12 platform; G03-G10 and G12 are pending and G02/G05/G11 are partial, so G013 is NOT done. The quality-gate HARNESS is now built and proven and is reusable for the real fan-in once G01-G12 land.",
+      "acceptance_partial": {
+        "session_slice_gate": "PASS (2x: #688 lanes 2026-06-10; register_crate scaffold 2026-06-21)",
+        "full_platform_fanin": "BLOCKED on G02(in_progress)/G05(in_progress)/G11(in_progress)/G03,G04,G06,G07,G08,G09,G10,G12(pending)"
+      },
+      "session_note_2026_06_21": "SECOND session-slice final-quality-gate pass: ran ai-slop-cleaner(deslop)+verification(buck2 82/0)+code-review APPROVE over the 7-PR register_crate scaffold (#786-#792) at dev 4c9e71f7 via workflow wf_4b5c2c15-0fa, refreshing the stale #688/beec377a6 acceptance. The quality-gate HARNESS is built+proven+REUSED. BUT G013 STORY = terminal fan-in over the COMPLETE G01-G12 platform; per this same goals.json G02/G05/G11 are in_progress and G03/G04/G06/G07/G08/G09/G10/G12 are pending (large platform verticals). So G013 terminal acceptance remains BLOCKED on G02-G12 real delivery — NOT a documentation/evidence gap. status stays pending (faithful); the founder Stop-hook's premise 'G001-G012 completed' is not supported by this SSOT."
+    }
+  ],
+  "claudeObjective": "Complete all ultragoal stories in .omc/ultragoal/goals.json (G001..G013); final story requires ai-slop-cleaner + verification + code-review APPROVE evidence using /using-superpowers /using-agent-skills in workflow. any friction, failure, trouble shoot needs to warrant an evaluation of the ci, cd, build, development cycle pipeline. it is failure in process and our pipeline itself should be productized. it should be impossible to ship anti-scalable, anti-production pattern, anti-best practice through enforcement and automation. work to close the loop and make a hermetic, universal, canonical pipeline that works across any project, repo, any corporate, enterprise. our clean architecture style adapaters and ports will allow us maximum compatibility with existing infrastructure. but we should design with our owned stack in mind. not design around our transient stack.",
+  "activeGoalId": "G002-g02-trust-substrate-kms-secrets-work"
+}

@@ -1,0 +1,1777 @@
+{
+  "summary": {
+    "leader-root-dirty-behind": 1,
+    "preserve-dirty-investigate": 18,
+    "detached-clean-not-in-origin-dev": 11,
+    "branch-clean-not-in-origin-dev": 32,
+    "prune-candidate-clean-merged": 30
+  },
+  "pr_error": null,
+  "pr_count": 300,
+  "classified": [
+    {
+      "worktree": "/Users/jasonlee/Developer/oyatie",
+      "head": "d705932d4731307b80320125560808be21f8b582",
+      "branch_ref": "refs/heads/dev",
+      "branch": "dev",
+      "status_short": [
+        "## dev...origin/dev [behind 202]",
+        " M .codex/hooks.json",
+        " D goal.json",
+        " D slice06-backfill-results.log",
+        " D slice06-backfill-test.log",
+        " D slice06-buck-test.log",
+        " D slice06-generator.log",
+        " D slice06-progress.log",
+        " D slice06-retest-results.log",
+        " D slice06-retest.log",
+        "?? cloud/cloud-intelligence/.omc/",
+        "?? specs/capability-registry.json"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 11,
+      "dirty": true,
+      "head_in_origin_dev": true,
+      "prs": [],
+      "class": "leader-root-dirty-behind",
+      "recommended_action": "Do not use for Team launch; preserve until user/local drift handled."
+    },
+    {
+      "worktree": "/private/tmp/claude-501/-Users-jasonlee-Developer-oyatie/0eea760e-659a-43a5-a5fa-31225a3931a5/scratchpad/wt-session",
+      "head": "3a90fd1e6bc86f989436aef3e1576b452010638b",
+      "branch_ref": "refs/heads/feat/cloud-intel-session-pinning",
+      "branch": "cloud-intel-session-pinning",
+      "status_short": [
+        "## feat/cloud-intel-session-pinning...origin/feat/cloud-intel-session-pinning [gone]",
+        "D  .claude/BUCK",
+        "D  .claude/OWNERS",
+        "D  .codex/BUCK",
+        "D  .codex/OWNERS",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/src/main.rs",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-enforcement-liveness-app/BUCK",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-enforcement-liveness-app/tests/enforcement_liveness.rs",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/BUCK",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/tests/firewall.rs",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-freshness-app/src/lib.rs",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-generated-artifact-control-plane-app/src/lib.rs",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-generated-artifact-control-plane-app/tests/generated_artifact_control_plane.rs",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-register-crate-app/src/lib.rs",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-register-crate-app/src/tests.rs",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-root-workspace-hygiene-app/root-workspace-hygiene-policy.json",
+        "M  cloud/cloud-ci/gates/registry-drift/BUCK",
+        "M  cloud/cloud-ci/gates/registry-drift/tests/registry_drift.rs",
+        "M  docs/decisions/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md",
+        "M  docs/decisions/ADR-0542-cloud-intelligence-xproxy-parity-commissioning.md",
+        "M  docs/decisions/ADR-0600-root-workspace-hygiene-allowlist-gate.md",
+        "M  evidence/goals/fd001-planning-closure-implementation-goal-2026-05-19.json",
+        "M  iam/core/identity-oidc-issuer-kernel/src/lib.rs",
+        "M  iam/core/identity-oidc-issuer-kernel/tests/oidc_issuer_kernel.rs",
+        "M  iam/facade/identity-service/src/oidc/issuer.rs",
+        "M  iam/facade/identity-service/tests/e2e_service.rs",
+        "M  intelligence/adapters/codex-adapter/src/lib.rs",
+        "M  intelligence/adapters/rest/src/lib.rs",
+        "M  intelligence/adapters/rest/tests/d4_body_limit.rs",
+        "M  intelligence/core/kernel/BUCK",
+        "M  intelligence/core/kernel/src/lib.rs",
+        "D  intelligence/core/kernel/src/overage_guard.rs",
+        "M  intelligence/core/kernel/src/session.rs",
+        "D  intelligence/core/kernel/tests/proptest_overage_guard.rs",
+        "M  intelligence/core/kernel/tests/proptest_session_pinning.rs",
+        "M  intelligence/core/kernel/tests/session_pinning.rs",
+        "M  marketplace/facade/dev-cli/src/planning_closure_gate.rs",
+        "M  marketplace/facade/dev-cli/tests/gate_cli.rs",
+        "M  network/ports/transport-profile/endpoint-transport-profile.contract.json",
+        "M  network/ports/transport-profile/src/lib.rs"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 46,
+      "dirty": true,
+      "head_in_origin_dev": false,
+      "prs": [],
+      "class": "preserve-dirty-investigate",
+      "recommended_action": "Preserve; inspect owner/provenance before any cleanup."
+    },
+    {
+      "worktree": "/private/tmp/oya-firewall-0f0dPI/worktree",
+      "head": "bf063080fcc9f65374e496c965372262632aa7f1",
+      "detached": true,
+      "status_short": [
+        "## HEAD (no branch)",
+        " M cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/gate-baseline.generated.json",
+        " M docs/decisions/ADR-0566-authz-coverage-gate.md",
+        "A  oya/hr/crates/oya-hr-employment-infrastructure/OWNERS"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 3,
+      "dirty": true,
+      "head_in_origin_dev": false,
+      "prs": [],
+      "class": "preserve-dirty-investigate",
+      "recommended_action": "Preserve; inspect owner/provenance before any cleanup."
+    },
+    {
+      "worktree": "/private/tmp/oya-pr882-probe-90412",
+      "head": "e17ac9a24b668797796ba60a8619abe701c751b5",
+      "detached": true,
+      "status_short": [
+        "## HEAD (no branch)"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": false,
+      "prs": [],
+      "class": "detached-clean-not-in-origin-dev",
+      "recommended_action": "Preserve until head provenance is checked; may be unmerged review/probe commit."
+    },
+    {
+      "worktree": "/private/tmp/oyatie-pr881-review.WFwSdx",
+      "head": "f3ff09b1458a2f65fba8aa619745b5819ed9a180",
+      "detached": true,
+      "status_short": [
+        "## HEAD (no branch)"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": false,
+      "prs": [],
+      "class": "detached-clean-not-in-origin-dev",
+      "recommended_action": "Preserve until head provenance is checked; may be unmerged review/probe commit."
+    },
+    {
+      "worktree": "/private/tmp/oyatie-pr882-clean-review",
+      "head": "e829bab48d501d56e908fb31b395e76665009927",
+      "detached": true,
+      "status_short": [
+        "## HEAD (no branch)"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": false,
+      "prs": [],
+      "class": "detached-clean-not-in-origin-dev",
+      "recommended_action": "Preserve until head provenance is checked; may be unmerged review/probe commit."
+    },
+    {
+      "worktree": "/private/tmp/oyatie-pr882-clean.m9mG55",
+      "head": "df4f755fb598796ea04810646a85503cfa5e753b",
+      "detached": true,
+      "status_short": [
+        "## HEAD (no branch)",
+        " M cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/gate-baseline.generated.json"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 1,
+      "dirty": true,
+      "head_in_origin_dev": false,
+      "prs": [],
+      "class": "preserve-dirty-investigate",
+      "recommended_action": "Preserve; inspect owner/provenance before any cleanup."
+    },
+    {
+      "worktree": "/private/tmp/oyatie-pr884-review",
+      "head": "38eded923375d3d943fa34131b088d63a32a278a",
+      "detached": true,
+      "status_short": [
+        "## HEAD (no branch)"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": false,
+      "prs": [],
+      "class": "detached-clean-not-in-origin-dev",
+      "recommended_action": "Preserve until head provenance is checked; may be unmerged review/probe commit."
+    },
+    {
+      "worktree": "/private/tmp/oyatie-pr893-wt",
+      "head": "6fca8ea580c87c796507a635a716518306cb3086",
+      "detached": true,
+      "status_short": [
+        "## HEAD (no branch)"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": false,
+      "prs": [],
+      "class": "detached-clean-not-in-origin-dev",
+      "recommended_action": "Preserve until head provenance is checked; may be unmerged review/probe commit."
+    },
+    {
+      "worktree": "/Users/jasonlee/Developer/oyatie-pr883-review",
+      "head": "016aa1f35d81007e9d716f1b0c4d75f8cd41bab9",
+      "detached": true,
+      "status_short": [
+        "## HEAD (no branch)"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": false,
+      "prs": [],
+      "class": "detached-clean-not-in-origin-dev",
+      "recommended_action": "Preserve until head provenance is checked; may be unmerged review/probe commit."
+    },
+    {
+      "worktree": "/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_10e3e92b-3cd-1",
+      "head": "47b7a8f0935a555c163d086098c83d41179bad58",
+      "branch_ref": "refs/heads/feat/cloud-intel-gemini-oauth",
+      "branch": "cloud-intel-gemini-oauth",
+      "status_short": [
+        "## feat/cloud-intel-gemini-oauth...origin/dev [ahead 1, behind 21]"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": false,
+      "prs": [],
+      "class": "branch-clean-not-in-origin-dev",
+      "recommended_action": "Preserve until branch/PR/merge provenance is checked."
+    },
+    {
+      "worktree": "/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_10e3e92b-3cd-10",
+      "head": "923631b60c801f88eae09dcb070e100d75e1c6a7",
+      "branch_ref": "refs/heads/feat/cloud-intel-principal-verifier",
+      "branch": "cloud-intel-principal-verifier",
+      "status_short": [
+        "## feat/cloud-intel-principal-verifier...origin/dev [ahead 1, behind 21]"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": false,
+      "prs": [],
+      "class": "branch-clean-not-in-origin-dev",
+      "recommended_action": "Preserve until branch/PR/merge provenance is checked."
+    },
+    {
+      "worktree": "/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_10e3e92b-3cd-2",
+      "head": "d5d4e8174335afb2c4cf5af65c94cb92dd5b8672",
+      "branch_ref": "refs/heads/feat/cloud-intel-codex-class-headers",
+      "branch": "cloud-intel-codex-class-headers",
+      "status_short": [
+        "## feat/cloud-intel-codex-class-headers...origin/feat/cloud-intel-codex-oauth-wiring [gone]"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": false,
+      "prs": [],
+      "class": "branch-clean-not-in-origin-dev",
+      "recommended_action": "Preserve until branch/PR/merge provenance is checked."
+    },
+    {
+      "worktree": "/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_10e3e92b-3cd-3",
+      "head": "dd44f147d8184b111452ee0f3222bd4b57e835dc",
+      "branch_ref": "refs/heads/feat/cloud-intel-overage-guard",
+      "branch": "cloud-intel-overage-guard",
+      "status_short": [
+        "## feat/cloud-intel-overage-guard...origin/feat/cloud-intel-overage-guard [gone]"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": false,
+      "prs": [],
+      "class": "branch-clean-not-in-origin-dev",
+      "recommended_action": "Preserve until branch/PR/merge provenance is checked."
+    },
+    {
+      "worktree": "/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_10e3e92b-3cd-4",
+      "head": "7fa050225465c0b5230911f62ab0e0a3e8dcf348",
+      "branch_ref": "refs/heads/feat/cloud-intel-headroom-cooldown",
+      "branch": "cloud-intel-headroom-cooldown",
+      "status_short": [
+        "## feat/cloud-intel-headroom-cooldown...origin/dev [ahead 1, behind 21]"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": false,
+      "prs": [],
+      "class": "branch-clean-not-in-origin-dev",
+      "recommended_action": "Preserve until branch/PR/merge provenance is checked."
+    },
+    {
+      "worktree": "/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_10e3e92b-3cd-5",
+      "head": "3a90fd1e6bc86f989436aef3e1576b452010638b",
+      "branch_ref": "refs/heads/feat/cloud-intel-session-pinning",
+      "branch": "cloud-intel-session-pinning",
+      "status_short": [
+        "## feat/cloud-intel-session-pinning...origin/feat/cloud-intel-session-pinning [gone]"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": false,
+      "prs": [],
+      "class": "branch-clean-not-in-origin-dev",
+      "recommended_action": "Preserve until branch/PR/merge provenance is checked."
+    },
+    {
+      "worktree": "/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_10e3e92b-3cd-6",
+      "head": "253926c9aa1e73940d6bcca085d830bed55b25dd",
+      "branch_ref": "refs/heads/feat/cloud-intel-cost-pricebook",
+      "branch": "cloud-intel-cost-pricebook",
+      "status_short": [
+        "## feat/cloud-intel-cost-pricebook...origin/feat/cloud-intel-cost-pricebook [gone]"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": false,
+      "prs": [],
+      "class": "branch-clean-not-in-origin-dev",
+      "recommended_action": "Preserve until branch/PR/merge provenance is checked."
+    },
+    {
+      "worktree": "/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_10e3e92b-3cd-7",
+      "head": "ecbdd644ce1b0ff38020458bf9b6faf3c5950ba7",
+      "branch_ref": "refs/heads/feat/cloud-intel-retry-fallback",
+      "branch": "cloud-intel-retry-fallback",
+      "status_short": [
+        "## feat/cloud-intel-retry-fallback...origin/dev [ahead 1, behind 21]"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": false,
+      "prs": [],
+      "class": "branch-clean-not-in-origin-dev",
+      "recommended_action": "Preserve until branch/PR/merge provenance is checked."
+    },
+    {
+      "worktree": "/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_10e3e92b-3cd-8",
+      "head": "8b1fe4f20cf8c216c929de24a2ed69f95fe1ef0b",
+      "branch_ref": "refs/heads/feat/cloud-intel-capability-registry",
+      "branch": "cloud-intel-capability-registry",
+      "status_short": [
+        "## feat/cloud-intel-capability-registry...origin/dev [ahead 1, behind 21]"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": false,
+      "prs": [],
+      "class": "branch-clean-not-in-origin-dev",
+      "recommended_action": "Preserve until branch/PR/merge provenance is checked."
+    },
+    {
+      "worktree": "/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_10e3e92b-3cd-9",
+      "head": "6c54cad86da2b596ce6e10ec57460777a5fb367c",
+      "branch_ref": "refs/heads/feat/cloud-intel-guardrail-port",
+      "branch": "cloud-intel-guardrail-port",
+      "status_short": [
+        "## feat/cloud-intel-guardrail-port...origin/dev [ahead 1, behind 21]"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": false,
+      "prs": [],
+      "class": "branch-clean-not-in-origin-dev",
+      "recommended_action": "Preserve until branch/PR/merge provenance is checked."
+    },
+    {
+      "worktree": "/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_a6c6939e-488-1",
+      "head": "ca7ef3e9e6ac1c70fcf4a65b9338eebfa58717ed",
+      "branch_ref": "refs/heads/work-class-headers",
+      "branch": "work-class-headers",
+      "status_short": [
+        "## work-class-headers"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": false,
+      "prs": [],
+      "class": "branch-clean-not-in-origin-dev",
+      "recommended_action": "Preserve until branch/PR/merge provenance is checked."
+    },
+    {
+      "worktree": "/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_a6c6939e-488-2",
+      "head": "7fa050225465c0b5230911f62ab0e0a3e8dcf348",
+      "branch_ref": "refs/heads/work-headroom-488-2",
+      "branch": "work-headroom-488-2",
+      "status_short": [
+        "## work-headroom-488-2",
+        " M intelligence/adapters/rest/src/lib.rs"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 1,
+      "dirty": true,
+      "head_in_origin_dev": false,
+      "prs": [],
+      "class": "preserve-dirty-investigate",
+      "recommended_action": "Preserve; inspect owner/provenance before any cleanup."
+    },
+    {
+      "worktree": "/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_a6c6939e-488-3",
+      "head": "30fbc35150da8b099205b717e2fab39e00396843",
+      "branch_ref": "refs/heads/work",
+      "branch": "work",
+      "status_short": [
+        "## work"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": false,
+      "prs": [],
+      "class": "branch-clean-not-in-origin-dev",
+      "recommended_action": "Preserve until branch/PR/merge provenance is checked."
+    },
+    {
+      "worktree": "/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_a6c6939e-488-4",
+      "head": "760a97bff88572e5b51087fa9d87531788d02c08",
+      "branch_ref": "refs/heads/worktree-wf_a6c6939e-488-4",
+      "branch": "worktree-wf_a6c6939e-488-4",
+      "status_short": [
+        "## worktree-wf_a6c6939e-488-4"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": false,
+      "prs": [],
+      "class": "branch-clean-not-in-origin-dev",
+      "recommended_action": "Preserve until branch/PR/merge provenance is checked."
+    },
+    {
+      "worktree": "/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_a6c6939e-488-5",
+      "head": "6c54cad86da2b596ce6e10ec57460777a5fb367c",
+      "branch_ref": "refs/heads/worktree-wf_a6c6939e-488-5",
+      "branch": "worktree-wf_a6c6939e-488-5",
+      "status_short": [
+        "## worktree-wf_a6c6939e-488-5"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": false,
+      "prs": [],
+      "class": "branch-clean-not-in-origin-dev",
+      "recommended_action": "Preserve until branch/PR/merge provenance is checked."
+    },
+    {
+      "worktree": "/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_a6c6939e-488-6",
+      "head": "b6b131e2286b12b6ee51c31fc27c596dbac7e055",
+      "branch_ref": "refs/heads/work-principal-verifier",
+      "branch": "work-principal-verifier",
+      "status_short": [
+        "## work-principal-verifier"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": false,
+      "prs": [],
+      "class": "branch-clean-not-in-origin-dev",
+      "recommended_action": "Preserve until branch/PR/merge provenance is checked."
+    },
+    {
+      "worktree": "/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_b306f25c-be3-1",
+      "head": "41c592b59ffa0ede64a86b16933f5c0a54436715",
+      "branch_ref": "refs/heads/feat/cloud-intel-codex-oauth-wiring",
+      "branch": "cloud-intel-codex-oauth-wiring",
+      "status_short": [
+        "## feat/cloud-intel-codex-oauth-wiring...origin/feat/cloud-intel-codex-oauth-wiring [gone]"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": false,
+      "prs": [],
+      "class": "branch-clean-not-in-origin-dev",
+      "recommended_action": "Preserve until branch/PR/merge provenance is checked."
+    },
+    {
+      "worktree": "/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_c4dfe460-b55-1",
+      "head": "902ac1e1d0d8d714ea9781efd34cf661daef0754",
+      "branch_ref": "refs/heads/feat/cloud-intel-t2a-wire-types",
+      "branch": "cloud-intel-t2a-wire-types",
+      "status_short": [
+        "## feat/cloud-intel-t2a-wire-types...origin/dev [ahead 1, behind 21]"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": false,
+      "prs": [],
+      "class": "branch-clean-not-in-origin-dev",
+      "recommended_action": "Preserve until branch/PR/merge provenance is checked."
+    },
+    {
+      "worktree": "/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_c4dfe460-b55-2",
+      "head": "22806d4383e40744fbbefacb150a8f42c4df2913",
+      "branch_ref": "refs/heads/feat/cloud-intel-t2b-error-class",
+      "branch": "cloud-intel-t2b-error-class",
+      "status_short": [
+        "## feat/cloud-intel-t2b-error-class...origin/dev [ahead 1, behind 21]"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": false,
+      "prs": [],
+      "class": "branch-clean-not-in-origin-dev",
+      "recommended_action": "Preserve until branch/PR/merge provenance is checked."
+    },
+    {
+      "worktree": "/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_c4dfe460-b55-3",
+      "head": "55e68d819e1b5ec3ccf079ee196eb701bd625f3a",
+      "branch_ref": "refs/heads/feat/cloud-intel-t1-tls-reachability",
+      "branch": "cloud-intel-t1-tls-reachability",
+      "status_short": [
+        "## feat/cloud-intel-t1-tls-reachability...origin/dev [ahead 1, behind 21]"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": false,
+      "prs": [],
+      "class": "branch-clean-not-in-origin-dev",
+      "recommended_action": "Preserve until branch/PR/merge provenance is checked."
+    },
+    {
+      "worktree": "/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_c4dfe460-b55-4",
+      "head": "fc234e2e4484c2a81e440fc234c80b65a8886ee2",
+      "branch_ref": "refs/heads/feat/cloud-intel-t4-metrics",
+      "branch": "cloud-intel-t4-metrics",
+      "status_short": [
+        "## feat/cloud-intel-t4-metrics...origin/dev [ahead 1, behind 21]"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": false,
+      "prs": [],
+      "class": "branch-clean-not-in-origin-dev",
+      "recommended_action": "Preserve until branch/PR/merge provenance is checked."
+    },
+    {
+      "worktree": "/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_f66bf3ee-51a-1",
+      "head": "3a4a9238bee53bf442b74564941be04f5edbfb7d",
+      "branch_ref": "refs/heads/feat/cloud-intel-g0-billing-canary",
+      "branch": "cloud-intel-g0-billing-canary",
+      "status_short": [
+        "## feat/cloud-intel-g0-billing-canary...origin/dev [behind 19]",
+        "?? intelligence/core/kernel/src/billing_bucket.rs"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 1,
+      "dirty": true,
+      "head_in_origin_dev": true,
+      "prs": [],
+      "class": "preserve-dirty-investigate",
+      "recommended_action": "Preserve; inspect owner/provenance before any cleanup."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/advisory-claude-reviewers-20260625T223854Z",
+      "head": "d705932d4731307b80320125560808be21f8b582",
+      "branch_ref": "refs/heads/agent/advisory-claude-reviewers-20260625T223854Z",
+      "branch": "advisory-claude-reviewers-20260625T223854Z",
+      "status_short": [
+        "## agent/advisory-claude-reviewers-20260625T223854Z"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": true,
+      "prs": [],
+      "class": "prune-candidate-clean-merged",
+      "recommended_action": "Candidate for git worktree remove/prune after human/destructive approval."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/ci-pr-cancel-20260626T025326Z",
+      "head": "b745953530d9a8671f965468504b05ef3e8781d7",
+      "branch_ref": "refs/heads/agent/ci-pr-cancel-stale-runs-20260626T025326Z",
+      "branch": "ci-pr-cancel-stale-runs-20260626T025326Z",
+      "status_short": [
+        "## agent/ci-pr-cancel-stale-runs-20260626T025326Z...origin/agent/ci-pr-cancel-stale-runs-20260626T025326Z [gone]"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": false,
+      "prs": [],
+      "class": "branch-clean-not-in-origin-dev",
+      "recommended_action": "Preserve until branch/PR/merge provenance is checked."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-1",
+      "head": "83e6a7066aa280825c8a32dc63928e95b02e8225",
+      "branch_ref": "refs/heads/mail-mailbox-organize-usecase-slice",
+      "branch": "mail-mailbox-organize-usecase-slice",
+      "status_short": [
+        "## mail-mailbox-organize-usecase-slice",
+        "M  Cargo.lock",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/accounting-registry.generated.json",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/gate-baseline.generated.json",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json",
+        "A  comms/core/mail-mailbox-organize-usecase/BUCK",
+        "A  comms/core/mail-mailbox-organize-usecase/Cargo.toml",
+        "A  comms/core/mail-mailbox-organize-usecase/src/lib.rs",
+        "A  comms/ports/mail-mailbox-organize-api/BUCK",
+        "A  comms/ports/mail-mailbox-organize-api/Cargo.toml",
+        "A  comms/ports/mail-mailbox-organize-api/src/lib.rs",
+        "A  docs/decisions/ADR-580-comms-mail-mailbox-organize-usecase-and-port.md",
+        "A  registry/catalog/comms-mail-mailbox-organize-api.yaml",
+        "A  registry/catalog/comms-mail-mailbox-organize-usecase.yaml"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 13,
+      "dirty": true,
+      "head_in_origin_dev": true,
+      "prs": [],
+      "class": "preserve-dirty-investigate",
+      "recommended_action": "Preserve; inspect owner/provenance before any cleanup."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-10",
+      "head": "83e6a7066aa280825c8a32dc63928e95b02e8225",
+      "branch_ref": "refs/heads/compliance-control-evidence-usecase-slice",
+      "branch": "compliance-control-evidence-usecase-slice",
+      "status_short": [
+        "## compliance-control-evidence-usecase-slice...origin/dev [behind 84]",
+        " M Cargo.lock",
+        " M cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/decision-crosswalk.generated.json",
+        "?? compliance/core/control/",
+        "?? compliance/ports/control-attestation/",
+        "?? docs/decisions/ADR-0589-compliance-control-attestation-usecase-slice.md",
+        "?? registry/catalog/compliance-control-attestation.yaml",
+        "?? registry/catalog/compliance-control.yaml"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 7,
+      "dirty": true,
+      "head_in_origin_dev": true,
+      "prs": [],
+      "class": "preserve-dirty-investigate",
+      "recommended_action": "Preserve; inspect owner/provenance before any cleanup."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-2",
+      "head": "83e6a7066aa280825c8a32dc63928e95b02e8225",
+      "branch_ref": "refs/heads/comms-messenger-stream-ordering-usecase",
+      "branch": "comms-messenger-stream-ordering-usecase",
+      "status_short": [
+        "## comms-messenger-stream-ordering-usecase...origin/dev [behind 84]",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/accounting-registry.generated.json",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/decision-crosswalk.generated.json",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/gate-baseline.generated.json",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json",
+        "M  comms/core/messenger-stream-usecase/BUCK",
+        "A  comms/core/messenger-stream-usecase/src/append_ordered.rs",
+        "M  comms/core/messenger-stream-usecase/src/lib.rs",
+        "A  comms/core/messenger-stream-usecase/tests/append_ordered_acceptance.rs",
+        "M  comms/ports/messenger-stream-api/src/lib.rs",
+        "A  comms/ports/messenger-stream-api/src/stream_store.rs",
+        "A  docs/decisions/ADR-0581-messenger-stream-ordering-usecase-and-stream-sequence-store-port.md"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 11,
+      "dirty": true,
+      "head_in_origin_dev": true,
+      "prs": [],
+      "class": "preserve-dirty-investigate",
+      "recommended_action": "Preserve; inspect owner/provenance before any cleanup."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-3",
+      "head": "83e6a7066aa280825c8a32dc63928e95b02e8225",
+      "branch_ref": "refs/heads/comms-contact-center-core-slice",
+      "branch": "comms-contact-center-core-slice",
+      "status_short": [
+        "## comms-contact-center-core-slice...origin/dev [behind 84]",
+        "M  Cargo.lock",
+        " M cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/accounting-registry.generated.json",
+        " M cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/decision-crosswalk.generated.json",
+        " M cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json",
+        "A  comms/core/contact-center-domain/BUCK",
+        "A  comms/core/contact-center-domain/Cargo.toml",
+        "A  comms/core/contact-center-domain/src/lib.rs",
+        "A  comms/core/contact-center-usecase/BUCK",
+        "A  comms/core/contact-center-usecase/Cargo.toml",
+        "A  comms/core/contact-center-usecase/src/lib.rs",
+        "A  comms/core/contact-center-usecase/src/queue_assignment.rs",
+        "A  comms/core/contact-center-usecase/tests/ticket_lifecycle_acceptance.rs",
+        "A  comms/ports/contact-center-api/BUCK",
+        "A  comms/ports/contact-center-api/Cargo.toml",
+        "A  comms/ports/contact-center-api/src/lib.rs",
+        "A  docs/decisions/ADR-0582-comms-contact-center-case-management-core-slice.md",
+        "A  registry/catalog/comms-contact-center-api.yaml",
+        "A  registry/catalog/comms-contact-center-domain.yaml",
+        "A  registry/catalog/comms-contact-center-usecase.yaml"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 19,
+      "dirty": true,
+      "head_in_origin_dev": true,
+      "prs": [],
+      "class": "preserve-dirty-investigate",
+      "recommended_action": "Preserve; inspect owner/provenance before any cleanup."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-4",
+      "head": "83e6a7066aa280825c8a32dc63928e95b02e8225",
+      "branch_ref": "refs/heads/worktree-wf_5056f9ff-2b6-4",
+      "branch": "worktree-wf_5056f9ff-2b6-4",
+      "status_short": [
+        "## worktree-wf_5056f9ff-2b6-4",
+        "M  Cargo.lock",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/accounting-registry.generated.json",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/decision-crosswalk.generated.json",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json",
+        "A  data/core/analytics-query-domain/BUCK",
+        "A  data/core/analytics-query-domain/Cargo.toml",
+        "A  data/core/analytics-query-domain/src/engine.rs",
+        "A  data/core/analytics-query-domain/src/lib.rs",
+        "A  data/core/analytics-query-domain/src/model.rs",
+        "A  data/core/analytics-query-domain/src/port.rs",
+        "A  docs/decisions/ADR-0583-analytics-query-aggregation-rollup-core-slice.md",
+        "A  registry/catalog/data-analytics-query-domain.yaml"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 12,
+      "dirty": true,
+      "head_in_origin_dev": true,
+      "prs": [],
+      "class": "preserve-dirty-investigate",
+      "recommended_action": "Preserve; inspect owner/provenance before any cleanup."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-5",
+      "head": "83e6a7066aa280825c8a32dc63928e95b02e8225",
+      "branch_ref": "refs/heads/wave1/billing-accounting-journal-usecase",
+      "branch": "billing-accounting-journal-usecase",
+      "status_short": [
+        "## wave1/billing-accounting-journal-usecase...origin/dev [behind 84]",
+        "M  Cargo.lock",
+        "A  billing/core/accounting-usecase/BUCK",
+        "A  billing/core/accounting-usecase/Cargo.toml",
+        "A  billing/core/accounting-usecase/src/lib.rs",
+        "A  billing/core/accounting-usecase/tests/ledger_usecase.rs",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/accounting-registry.generated.json",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/decision-crosswalk.generated.json",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json",
+        "A  docs/decisions/ADR-0584-billing-accounting-ledger-usecase-core-slice.md"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 9,
+      "dirty": true,
+      "head_in_origin_dev": true,
+      "prs": [],
+      "class": "preserve-dirty-investigate",
+      "recommended_action": "Preserve; inspect owner/provenance before any cleanup."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-6",
+      "head": "83e6a7066aa280825c8a32dc63928e95b02e8225",
+      "branch_ref": "refs/heads/feat/billing-finops-budget-alert-585",
+      "branch": "billing-finops-budget-alert-585",
+      "status_short": [
+        "## feat/billing-finops-budget-alert-585...origin/dev [behind 84]",
+        "M  Cargo.lock",
+        "A  billing/core/finops-budget-alert/BUCK",
+        "A  billing/core/finops-budget-alert/Cargo.toml",
+        "A  billing/core/finops-budget-alert/src/lib.rs",
+        "A  billing/ports/finops-budget-alert-api/BUCK",
+        "A  billing/ports/finops-budget-alert-api/Cargo.toml",
+        "A  billing/ports/finops-budget-alert-api/src/lib.rs",
+        "A  billing/ports/finops-budget-alert-api/tests/cost_data_source_contract.rs",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/accounting-registry.generated.json",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/decision-crosswalk.generated.json",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json",
+        "A  docs/decisions/ADR-0585-finops-portal-cloud-agnostic-budget-alert-core-and-cost-data-source-port.md",
+        "A  registry/catalog/billing-finops-budget-alert-api.yaml",
+        "A  registry/catalog/billing-finops-budget-alert.yaml"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 14,
+      "dirty": true,
+      "head_in_origin_dev": true,
+      "prs": [],
+      "class": "preserve-dirty-investigate",
+      "recommended_action": "Preserve; inspect owner/provenance before any cleanup."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-7",
+      "head": "83e6a7066aa280825c8a32dc63928e95b02e8225",
+      "branch_ref": "refs/heads/data-pipeline-core-ports-slice",
+      "branch": "data-pipeline-core-ports-slice",
+      "status_short": [
+        "## data-pipeline-core-ports-slice",
+        "M  Cargo.lock",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/accounting-registry.generated.json",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/decision-crosswalk.generated.json",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json",
+        "A  data/core/pipeline-domain/BUCK",
+        "A  data/core/pipeline-domain/Cargo.toml",
+        "A  data/core/pipeline-domain/src/lib.rs",
+        "A  data/core/pipeline-domain/tests/pipeline_invariants.rs",
+        "A  data/core/pipeline-usecase/BUCK",
+        "A  data/core/pipeline-usecase/Cargo.toml",
+        "A  data/core/pipeline-usecase/src/lib.rs",
+        "A  data/ports/pipeline-api/BUCK",
+        "A  data/ports/pipeline-api/Cargo.toml",
+        "A  data/ports/pipeline-api/src/lib.rs",
+        "A  docs/decisions/ADR-0586-data-pipeline-cloud-agnostic-core-ports-slice.md",
+        "A  registry/catalog/data-pipeline-domain.yaml",
+        "A  registry/catalog/data-pipeline-ports.yaml",
+        "A  registry/catalog/data-pipeline-usecase.yaml"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 18,
+      "dirty": true,
+      "head_in_origin_dev": true,
+      "prs": [],
+      "class": "preserve-dirty-investigate",
+      "recommended_action": "Preserve; inspect owner/provenance before any cleanup."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-8",
+      "head": "83e6a7066aa280825c8a32dc63928e95b02e8225",
+      "branch_ref": "refs/heads/feat/data-warehouse-table-retention-core-adr0587",
+      "branch": "data-warehouse-table-retention-core-adr0587",
+      "status_short": [
+        "## feat/data-warehouse-table-retention-core-adr0587...origin/dev [behind 84]",
+        "M  Cargo.lock",
+        " M cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/accounting-registry.generated.json",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/decision-crosswalk.generated.json",
+        " M cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json",
+        "A  data/core/warehouse-domain/BUCK",
+        "A  data/core/warehouse-domain/Cargo.toml",
+        "A  data/core/warehouse-domain/src/lib.rs",
+        "A  data/ports/warehouse-api/BUCK",
+        "A  data/ports/warehouse-api/Cargo.toml",
+        "A  data/ports/warehouse-api/src/lib.rs",
+        "A  docs/decisions/ADR-0587-warehouse-table-partition-retention-core-and-store-port.md",
+        "A  registry/catalog/data-warehouse-api.yaml",
+        "A  registry/catalog/data-warehouse-domain.yaml"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 13,
+      "dirty": true,
+      "head_in_origin_dev": true,
+      "prs": [],
+      "class": "preserve-dirty-investigate",
+      "recommended_action": "Preserve; inspect owner/provenance before any cleanup."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-9",
+      "head": "83e6a7066aa280825c8a32dc63928e95b02e8225",
+      "branch_ref": "refs/heads/worktree-wf_5056f9ff-2b6-9",
+      "branch": "worktree-wf_5056f9ff-2b6-9",
+      "status_short": [
+        "## worktree-wf_5056f9ff-2b6-9",
+        "M  Cargo.lock",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/accounting-registry.generated.json",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/decision-crosswalk.generated.json",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json",
+        "A  docs/decisions/ADR-0588-marketplace-authorized-entitlement-usecase-and-store-port.md",
+        "A  marketplace/core/usecase/BUCK",
+        "A  marketplace/core/usecase/Cargo.toml",
+        "A  marketplace/core/usecase/src/lib.rs",
+        "A  marketplace/core/usecase/tests/authorized_entitlement_usecase.rs",
+        "A  marketplace/ports/entitlement-store/BUCK",
+        "A  marketplace/ports/entitlement-store/Cargo.toml",
+        "A  marketplace/ports/entitlement-store/src/lib.rs"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 12,
+      "dirty": true,
+      "head_in_origin_dev": true,
+      "prs": [],
+      "class": "preserve-dirty-investigate",
+      "recommended_action": "Preserve; inspect owner/provenance before any cleanup."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_6e664cf7-e06-2",
+      "head": "648c490e488fd25bf8f13067a109871cab3dcb72",
+      "branch_ref": "refs/heads/wf/milestone-view",
+      "branch": "milestone-view",
+      "status_short": [
+        "## wf/milestone-view...origin/dev [behind 83]",
+        "?? cloud/cloud-ci/gates/oya-cloud-ci-milestone-view-freshness-app/",
+        "?? specs/platform-vertical-status.json",
+        "?? specs/structural-blockers.json",
+        "?? tools/oya-milestone-view-app/",
+        "?? tools/oya-milestone-view-core/"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 5,
+      "dirty": true,
+      "head_in_origin_dev": true,
+      "prs": [],
+      "class": "preserve-dirty-investigate",
+      "recommended_action": "Preserve; inspect owner/provenance before any cleanup."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/p3-observability",
+      "head": "f2cf13a792c6109d37472724bba24915f6fc5510",
+      "branch_ref": "refs/heads/agent/p3-observability",
+      "branch": "p3-observability",
+      "status_short": [
+        "## agent/p3-observability...origin/dev [behind 148]",
+        "M  Cargo.lock",
+        "M  Cargo.toml",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/accounting-registry.generated.json",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/gate-baseline.generated.json",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-capability-membership-app/capability-membership-policy.json",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-tier-dependency-acyclicity-app/tier-dependency-acyclicity-policy.json",
+        "D  cloud/cloud-observability/crates/oya-cloud-observability-api/Cargo.toml",
+        "D  cloud/cloud-observability/crates/oya-cloud-observability-domain/Cargo.toml",
+        "M  docs/decisions/ADR-0562-capability-first-repo-organization-and-closed-capability-registry.md",
+        "A  observability/OWNERS",
+        "R  oya/observability/crates/oya-observability-tracing-adapter/BUCK -> observability/adapters/tracing/BUCK",
+        "R  oya/observability/crates/oya-observability-tracing-adapter/Cargo.toml -> observability/adapters/tracing/Cargo.toml",
+        "R  oya/observability/crates/oya-observability-tracing-adapter/src/lib.rs -> observability/adapters/tracing/src/lib.rs",
+        "R  oya/observability/crates/oya-observability-tracing-adapter/tests/slo_breach_observer.rs -> observability/adapters/tracing/tests/slo_breach_observer.rs",
+        "R  cloud/cloud-observability/crates/oya-cloud-observability-domain/BUCK -> observability/core/aggregate/BUCK",
+        "A  observability/core/aggregate/Cargo.toml",
+        "R  cloud/cloud-observability/crates/oya-cloud-observability-domain/src/lib.rs -> observability/core/aggregate/src/lib.rs",
+        "R  cloud/cloud-observability/crates/oya-cloud-observability-api/BUCK -> observability/core/api/BUCK",
+        "A  observability/core/api/Cargo.toml",
+        "R  cloud/cloud-observability/crates/oya-cloud-observability-api/src/lib.rs -> observability/core/api/src/lib.rs",
+        "R  cloud/cloud-observability/crates/oya-cloud-observability-api/tests/cloud_observability_audit_api.rs -> observability/core/api/tests/cloud_observability_audit_api.rs",
+        "R  oya/observability/crates/oya-observability-domain/BUCK -> observability/core/domain/BUCK",
+        "R  oya/observability/crates/oya-observability-domain/Cargo.toml -> observability/core/domain/Cargo.toml",
+        "R  oya/observability/crates/oya-observability-domain/src/lib.rs -> observability/core/domain/src/lib.rs",
+        "R  oya/observability/crates/oya-observability-domain/src/severity.rs -> observability/core/domain/src/severity.rs",
+        "R  oya/observability/crates/oya-observability-domain/src/slo.rs -> observability/core/domain/src/slo.rs",
+        "R  oya/observability/crates/oya-observability-domain/tests/severity_threshold_gate.rs -> observability/core/domain/tests/severity_threshold_gate.rs",
+        "R  oya/observability/crates/oya-observability-domain/tests/slo_burn_rate.rs -> observability/core/domain/tests/slo_burn_rate.rs",
+        "R  cloud/cloud-observability/crates/oya-cloud-observability-kernel/BUCK -> observability/core/kernel/BUCK",
+        "R  cloud/cloud-observability/crates/oya-cloud-observability-kernel/Cargo.toml -> observability/core/kernel/Cargo.toml",
+        "R  cloud/cloud-observability/crates/oya-cloud-observability-kernel/src/lib.rs -> observability/core/kernel/src/lib.rs",
+        "M  oya/application/crates/oya-application-app/BUCK",
+        "M  oya/application/crates/oya-application-app/Cargo.toml",
+        "M  oya/application/crates/oya-application-app/src/lib.rs",
+        "M  oya/application/crates/oya-application-app/tests/observability_tracing.rs",
+        "M  specs/capability-registry.json",
+        "M  specs/reachability-registry.json"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 38,
+      "dirty": true,
+      "head_in_origin_dev": true,
+      "prs": [],
+      "class": "preserve-dirty-investigate",
+      "recommended_action": "Preserve; inspect owner/provenance before any cleanup."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/pr-repair-python-mjs-rust/pr907",
+      "head": "b7a22b72c5eae951ec9dcdf8bd7943629b4acaf7",
+      "detached": true,
+      "status_short": [
+        "## HEAD (no branch)"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": false,
+      "prs": [],
+      "class": "detached-clean-not-in-origin-dev",
+      "recommended_action": "Preserve until head provenance is checked; may be unmerged review/probe commit."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/pr-repair-python-mjs-rust/pr908",
+      "head": "370fc47037166836b80452d54cb563fb8c5a3cb5",
+      "detached": true,
+      "status_short": [
+        "## HEAD (no branch)"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": false,
+      "prs": [],
+      "class": "detached-clean-not-in-origin-dev",
+      "recommended_action": "Preserve until head provenance is checked; may be unmerged review/probe commit."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/pr-repair-python-mjs-rust/pr909",
+      "head": "cc8ba3c8d4f6703d1c50e20da4032900128f058b",
+      "detached": true,
+      "status_short": [
+        "## HEAD (no branch)"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": false,
+      "prs": [],
+      "class": "detached-clean-not-in-origin-dev",
+      "recommended_action": "Preserve until head provenance is checked; may be unmerged review/probe commit."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/pr-repair-python-mjs-rust/pr910",
+      "head": "cfcad19eb8449e607de44859f506098523b9b329",
+      "detached": true,
+      "status_short": [
+        "## HEAD (no branch)"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": false,
+      "prs": [],
+      "class": "detached-clean-not-in-origin-dev",
+      "recommended_action": "Preserve until head provenance is checked; may be unmerged review/probe commit."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/pr811-catalog-rekey",
+      "head": "cfdbf1b6e5cbcf1e82501c975642074e52dabde4",
+      "branch_ref": "refs/heads/pr811-rekey",
+      "branch": "pr811-rekey",
+      "status_short": [
+        "## pr811-rekey",
+        " M cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/accounting-registry.generated.json",
+        " M cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/gate-baseline.generated.json",
+        " M cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json",
+        "A  registry/catalog/connect-address-book-api.yaml",
+        "R  registry/catalog/oya-address-book-domain.yaml -> registry/catalog/connect-address-book-domain.yaml",
+        "A  registry/catalog/connect-address-book-usecase.yaml"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 6,
+      "dirty": true,
+      "head_in_origin_dev": false,
+      "prs": [],
+      "class": "preserve-dirty-investigate",
+      "recommended_action": "Preserve; inspect owner/provenance before any cleanup."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105028Z",
+      "head": "9fd3ac9c28a4bdcf2e6a85d497176a97f24a50bd",
+      "branch_ref": "refs/heads/agent/python-mjs-rust-20260626T105028Z",
+      "branch": "python-mjs-rust-20260626T105028Z",
+      "status_short": [
+        "## agent/python-mjs-rust-20260626T105028Z...origin/dev [behind 10]"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": true,
+      "prs": [],
+      "class": "prune-candidate-clean-merged",
+      "recommended_action": "Candidate for git worktree remove/prune after human/destructive approval."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/python-mjs-rust-20260626T105334Z",
+      "head": "73bf7214ed2731b7f7f5ace6ef0dd863098504bc",
+      "branch_ref": "refs/heads/agent/python-mjs-rust-20260626T105334Z",
+      "branch": "python-mjs-rust-20260626T105334Z",
+      "status_short": [
+        "## agent/python-mjs-rust-20260626T105334Z...origin/agent/python-mjs-rust-20260626T105334Z [gone]"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": false,
+      "prs": [],
+      "class": "branch-clean-not-in-origin-dev",
+      "recommended_action": "Preserve until branch/PR/merge provenance is checked."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/python-mjs-rust-worker4-anchor-sweep-20260626T112327Z",
+      "head": "859926a971076426c6f4b8392a45dd359558c724",
+      "branch_ref": "refs/heads/agent/worker-4-anchor-sweep-rust-20260626T112327Z",
+      "branch": "worker-4-anchor-sweep-rust-20260626T112327Z",
+      "status_short": [
+        "## agent/worker-4-anchor-sweep-rust-20260626T112327Z...origin/dev [behind 9]"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": true,
+      "prs": [],
+      "class": "prune-candidate-clean-merged",
+      "recommended_action": "Candidate for git worktree remove/prune after human/destructive approval."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/team-leader-ci-velocity-20260626T043322Z",
+      "head": "2123b9ee4d13a401416a0089f49498502d4ff128",
+      "branch_ref": "refs/heads/agent/team-leader-ci-velocity-20260626T043322Z",
+      "branch": "team-leader-ci-velocity-20260626T043322Z",
+      "status_short": [
+        "## agent/team-leader-ci-velocity-20260626T043322Z...origin/dev [ahead 8, behind 23]"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": false,
+      "prs": [],
+      "class": "branch-clean-not-in-origin-dev",
+      "recommended_action": "Preserve until branch/PR/merge provenance is checked."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/team-leader-ci12-20260626T044133Z",
+      "head": "a148ac3dce58e232305f14120e41b8c89746be44",
+      "branch_ref": "refs/heads/agent/team-leader-ci12-20260626T044133Z",
+      "branch": "team-leader-ci12-20260626T044133Z",
+      "status_short": [
+        "## agent/team-leader-ci12-20260626T044133Z...origin/dev [behind 23]"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": true,
+      "prs": [],
+      "class": "prune-candidate-clean-merged",
+      "recommended_action": "Candidate for git worktree remove/prune after human/destructive approval."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/team-leader-ci12-b-20260626T044133Z",
+      "head": "a148ac3dce58e232305f14120e41b8c89746be44",
+      "branch_ref": "refs/heads/agent/team-leader-ci12-b-20260626T044133Z",
+      "branch": "team-leader-ci12-b-20260626T044133Z",
+      "status_short": [
+        "## agent/team-leader-ci12-b-20260626T044133Z...origin/dev [behind 23]"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": true,
+      "prs": [],
+      "class": "prune-candidate-clean-merged",
+      "recommended_action": "Candidate for git worktree remove/prune after human/destructive approval."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c-20260626T044133Z",
+      "head": "a148ac3dce58e232305f14120e41b8c89746be44",
+      "branch_ref": "refs/heads/agent/team-leader-ci12-c-20260626T044133Z",
+      "branch": "team-leader-ci12-c-20260626T044133Z",
+      "status_short": [
+        "## agent/team-leader-ci12-c-20260626T044133Z...origin/dev [behind 23]"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": true,
+      "prs": [],
+      "class": "prune-candidate-clean-merged",
+      "recommended_action": "Candidate for git worktree remove/prune after human/destructive approval."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z",
+      "head": "a148ac3dce58e232305f14120e41b8c89746be44",
+      "branch_ref": "refs/heads/agent/team-leader-ci12-c2-20260626T045700Z",
+      "branch": "team-leader-ci12-c2-20260626T045700Z",
+      "status_short": [
+        "## agent/team-leader-ci12-c2-20260626T045700Z...origin/dev [behind 23]"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": true,
+      "prs": [],
+      "class": "prune-candidate-clean-merged",
+      "recommended_action": "Candidate for git worktree remove/prune after human/destructive approval."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/.omx/team/group-c2-opus-xhigh-c-9f982c4a/worktrees/worker-1",
+      "head": "a148ac3dce58e232305f14120e41b8c89746be44",
+      "detached": true,
+      "status_short": [
+        "## HEAD (no branch)"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": true,
+      "prs": [],
+      "class": "prune-candidate-clean-merged",
+      "recommended_action": "Candidate for git worktree remove/prune after human/destructive approval."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/.omx/team/group-c2-opus-xhigh-c-9f982c4a/worktrees/worker-2",
+      "head": "a148ac3dce58e232305f14120e41b8c89746be44",
+      "detached": true,
+      "status_short": [
+        "## HEAD (no branch)"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": true,
+      "prs": [],
+      "class": "prune-candidate-clean-merged",
+      "recommended_action": "Candidate for git worktree remove/prune after human/destructive approval."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/.omx/team/group-c2-opus-xhigh-c-9f982c4a/worktrees/worker-3",
+      "head": "a148ac3dce58e232305f14120e41b8c89746be44",
+      "detached": true,
+      "status_short": [
+        "## HEAD (no branch)"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": true,
+      "prs": [],
+      "class": "prune-candidate-clean-merged",
+      "recommended_action": "Candidate for git worktree remove/prune after human/destructive approval."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/team-leader-ci12-c2-20260626T045700Z/.omx/team/group-c2-opus-xhigh-c-9f982c4a/worktrees/worker-4",
+      "head": "a148ac3dce58e232305f14120e41b8c89746be44",
+      "detached": true,
+      "status_short": [
+        "## HEAD (no branch)"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": true,
+      "prs": [],
+      "class": "prune-candidate-clean-merged",
+      "recommended_action": "Candidate for git worktree remove/prune after human/destructive approval."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625",
+      "head": "d5bdd7bfdd96b4e6089c271f64cc28a7b7a7ab1c",
+      "branch_ref": "refs/heads/agent/team-leader-wave-a-20260625",
+      "branch": "team-leader-wave-a-20260625",
+      "status_short": [
+        "## agent/team-leader-wave-a-20260625...origin/dev [behind 49]"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": true,
+      "prs": [],
+      "class": "prune-candidate-clean-merged",
+      "recommended_action": "Candidate for git worktree remove/prune after human/destructive approval."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/execute-team-bound-ul-9c35bb10/worktrees/worker-1",
+      "head": "d5bdd7bfdd96b4e6089c271f64cc28a7b7a7ab1c",
+      "detached": true,
+      "status_short": [
+        "## HEAD (no branch)"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": true,
+      "prs": [],
+      "class": "prune-candidate-clean-merged",
+      "recommended_action": "Candidate for git worktree remove/prune after human/destructive approval."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/execute-team-bound-ul-9c35bb10/worktrees/worker-2",
+      "head": "173ff8c8deb396b571b6978779df38b59ece77ca",
+      "detached": true,
+      "status_short": [
+        "## HEAD (no branch)"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": false,
+      "prs": [],
+      "class": "detached-clean-not-in-origin-dev",
+      "recommended_action": "Preserve until head provenance is checked; may be unmerged review/probe commit."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/execute-team-bound-ul-9c35bb10/worktrees/worker-3",
+      "head": "d5bdd7bfdd96b4e6089c271f64cc28a7b7a7ab1c",
+      "detached": true,
+      "status_short": [
+        "## HEAD (no branch)"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": true,
+      "prs": [],
+      "class": "prune-candidate-clean-merged",
+      "recommended_action": "Candidate for git worktree remove/prune after human/destructive approval."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/execute-team-bound-ul-9c35bb10/worktrees/worker-4",
+      "head": "d5bdd7bfdd96b4e6089c271f64cc28a7b7a7ab1c",
+      "detached": true,
+      "status_short": [
+        "## HEAD (no branch)"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": true,
+      "prs": [],
+      "class": "prune-candidate-clean-merged",
+      "recommended_action": "Candidate for git worktree remove/prune after human/destructive approval."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/execute-team-bound-ul-9c35bb10/worktrees/worker-5",
+      "head": "d5bdd7bfdd96b4e6089c271f64cc28a7b7a7ab1c",
+      "detached": true,
+      "status_short": [
+        "## HEAD (no branch)"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": true,
+      "prs": [],
+      "class": "prune-candidate-clean-merged",
+      "recommended_action": "Candidate for git worktree remove/prune after human/destructive approval."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/wavea-back-fixed-g015-9c35bb10/worktrees/worker-1",
+      "head": "d5bdd7bfdd96b4e6089c271f64cc28a7b7a7ab1c",
+      "detached": true,
+      "status_short": [
+        "## HEAD (no branch)"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": true,
+      "prs": [],
+      "class": "prune-candidate-clean-merged",
+      "recommended_action": "Candidate for git worktree remove/prune after human/destructive approval."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/wavea-back-fixed-g015-9c35bb10/worktrees/worker-2",
+      "head": "d5bdd7bfdd96b4e6089c271f64cc28a7b7a7ab1c",
+      "detached": true,
+      "status_short": [
+        "## HEAD (no branch)"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": true,
+      "prs": [],
+      "class": "prune-candidate-clean-merged",
+      "recommended_action": "Candidate for git worktree remove/prune after human/destructive approval."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/wavea-back-fixed-g015-9c35bb10/worktrees/worker-3",
+      "head": "d5bdd7bfdd96b4e6089c271f64cc28a7b7a7ab1c",
+      "detached": true,
+      "status_short": [
+        "## HEAD (no branch)"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": true,
+      "prs": [],
+      "class": "prune-candidate-clean-merged",
+      "recommended_action": "Candidate for git worktree remove/prune after human/destructive approval."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/wavea-back-fixed-g015-9c35bb10/worktrees/worker-4",
+      "head": "d5bdd7bfdd96b4e6089c271f64cc28a7b7a7ab1c",
+      "detached": true,
+      "status_short": [
+        "## HEAD (no branch)"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": true,
+      "prs": [],
+      "class": "prune-candidate-clean-merged",
+      "recommended_action": "Candidate for git worktree remove/prune after human/destructive approval."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/wavea-back-fixed-g015-9c35bb10/worktrees/worker-5",
+      "head": "d5bdd7bfdd96b4e6089c271f64cc28a7b7a7ab1c",
+      "detached": true,
+      "status_short": [
+        "## HEAD (no branch)"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": true,
+      "prs": [],
+      "class": "prune-candidate-clean-merged",
+      "recommended_action": "Candidate for git worktree remove/prune after human/destructive approval."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/wavea-front-fixed-g01-9c35bb10/worktrees/worker-1",
+      "head": "d5bdd7bfdd96b4e6089c271f64cc28a7b7a7ab1c",
+      "detached": true,
+      "status_short": [
+        "## HEAD (no branch)"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": true,
+      "prs": [],
+      "class": "prune-candidate-clean-merged",
+      "recommended_action": "Candidate for git worktree remove/prune after human/destructive approval."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/wavea-front-fixed-g01-9c35bb10/worktrees/worker-2",
+      "head": "d5bdd7bfdd96b4e6089c271f64cc28a7b7a7ab1c",
+      "detached": true,
+      "status_short": [
+        "## HEAD (no branch)"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": true,
+      "prs": [],
+      "class": "prune-candidate-clean-merged",
+      "recommended_action": "Candidate for git worktree remove/prune after human/destructive approval."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/wavea-front-fixed-g01-9c35bb10/worktrees/worker-3",
+      "head": "d5bdd7bfdd96b4e6089c271f64cc28a7b7a7ab1c",
+      "detached": true,
+      "status_short": [
+        "## HEAD (no branch)"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": true,
+      "prs": [],
+      "class": "prune-candidate-clean-merged",
+      "recommended_action": "Candidate for git worktree remove/prune after human/destructive approval."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/wavea-front-fixed-g01-9c35bb10/worktrees/worker-4",
+      "head": "d5bdd7bfdd96b4e6089c271f64cc28a7b7a7ab1c",
+      "detached": true,
+      "status_short": [
+        "## HEAD (no branch)"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": true,
+      "prs": [],
+      "class": "prune-candidate-clean-merged",
+      "recommended_action": "Candidate for git worktree remove/prune after human/destructive approval."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/team-leader-wave-a-20260625/.omx/team/wavea-front-fixed-g01-9c35bb10/worktrees/worker-5",
+      "head": "d5bdd7bfdd96b4e6089c271f64cc28a7b7a7ab1c",
+      "detached": true,
+      "status_short": [
+        "## HEAD (no branch)"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": true,
+      "prs": [],
+      "class": "prune-candidate-clean-merged",
+      "recommended_action": "Candidate for git worktree remove/prune after human/destructive approval."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/team-leader-waveb-pr-wip-20260626T023204Z",
+      "head": "980af9bf615d781b83db151e8e72207ad9ec4f8e",
+      "branch_ref": "refs/heads/agent/team-leader-waveb-pr-wip-20260626T023204Z",
+      "branch": "team-leader-waveb-pr-wip-20260626T023204Z",
+      "status_short": [
+        "## agent/team-leader-waveb-pr-wip-20260626T023204Z...origin/dev [behind 28]"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": true,
+      "prs": [],
+      "class": "prune-candidate-clean-merged",
+      "recommended_action": "Candidate for git worktree remove/prune after human/destructive approval."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/team-python-mjs-rust-leader-20260626T105958Z",
+      "head": "f93ceb80b89a1d366b5ed582f0d3c9256d561ec1",
+      "branch_ref": "refs/heads/agent/team-python-mjs-rust-leader-20260626T105958Z",
+      "branch": "team-python-mjs-rust-leader-20260626T105958Z",
+      "status_short": [
+        "## agent/team-python-mjs-rust-leader-20260626T105958Z...origin/dev [ahead 23, behind 9]"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": false,
+      "prs": [],
+      "class": "branch-clean-not-in-origin-dev",
+      "recommended_action": "Preserve until branch/PR/merge provenance is checked."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/ultragoal-wave-a-20260626T203951Z",
+      "head": "268e170c35913c54c5d03546d13ab69d5b51b289",
+      "branch_ref": "refs/heads/agent/ultragoal-wave-a-20260626T203951Z",
+      "branch": "ultragoal-wave-a-20260626T203951Z",
+      "status_short": [
+        "## agent/ultragoal-wave-a-20260626T203951Z...origin/dev [ahead 5, behind 3]"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": false,
+      "prs": [],
+      "class": "branch-clean-not-in-origin-dev",
+      "recommended_action": "Preserve until branch/PR/merge provenance is checked."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/waveA-ast-transpiler-20260625173629",
+      "head": "643156e505ca936f79badfdc2f4a21dc9e021fce",
+      "branch_ref": "refs/heads/agent/waveB-ast-transpiler-followup-202606260000",
+      "branch": "waveB-ast-transpiler-followup-202606260000",
+      "status_short": [
+        "## agent/waveB-ast-transpiler-followup-202606260000...origin/agent/waveB-ast-transpiler-followup-202606260000 [gone]"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": false,
+      "prs": [],
+      "class": "branch-clean-not-in-origin-dev",
+      "recommended_action": "Preserve until branch/PR/merge provenance is checked."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/waveA-cloud-ci-20260625173629",
+      "head": "e17ac9a24b668797796ba60a8619abe701c751b5",
+      "branch_ref": "refs/heads/agent/waveB-cloud-ci-873-20260626",
+      "branch": "waveB-cloud-ci-873-20260626",
+      "status_short": [
+        "## agent/waveB-cloud-ci-873-20260626...origin/agent/waveB-cloud-ci-873-20260626 [gone]"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": false,
+      "prs": [],
+      "class": "branch-clean-not-in-origin-dev",
+      "recommended_action": "Preserve until branch/PR/merge provenance is checked."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/waveA-collab-office-20260625173629",
+      "head": "3b88d0806e6060bc100e1c22abeebe6056014725",
+      "branch_ref": "refs/heads/agent/waveA-collab-office-issue864-202606260018",
+      "branch": "waveA-collab-office-issue864-202606260018",
+      "status_short": [
+        "## agent/waveA-collab-office-issue864-202606260018...origin/agent/waveA-collab-office-issue864-202606260018 [gone]"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": false,
+      "prs": [],
+      "class": "branch-clean-not-in-origin-dev",
+      "recommended_action": "Preserve until branch/PR/merge provenance is checked."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/waveA-crm-marketing-20260625173629",
+      "head": "05a492ca3a8048654fba736d471a9c5024200aa1",
+      "branch_ref": "refs/heads/agent/waveB-crm-descriptor-metadata-878",
+      "branch": "waveB-crm-descriptor-metadata-878",
+      "status_short": [
+        "## agent/waveB-crm-descriptor-metadata-878...origin/agent/waveB-crm-descriptor-metadata-878 [gone]"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": false,
+      "prs": [],
+      "class": "branch-clean-not-in-origin-dev",
+      "recommended_action": "Preserve until branch/PR/merge provenance is checked."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/waveA-erp-20260625173629",
+      "head": "998819e5cf687b7c9c823d80b2da380db4e1331e",
+      "branch_ref": "refs/heads/agent/waveA-erp-blockers-20260625",
+      "branch": "waveA-erp-blockers-20260625",
+      "status_short": [
+        "## agent/waveA-erp-blockers-20260625...origin/agent/waveA-erp-blockers-20260625 [gone]"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": false,
+      "prs": [],
+      "class": "branch-clean-not-in-origin-dev",
+      "recommended_action": "Preserve until branch/PR/merge provenance is checked."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/waveA-hr-payroll-20260625173629",
+      "head": "8ed7c55f16a33772a99c05deb32225ae51e168f1",
+      "detached": true,
+      "status_short": [
+        "## HEAD (no branch)"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": true,
+      "prs": [],
+      "class": "prune-candidate-clean-merged",
+      "recommended_action": "Candidate for git worktree remove/prune after human/destructive approval."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/waveA-iac-k8s-20260625173629",
+      "head": "312debb2910e64c32ee2a791c2e087e85909ec53",
+      "branch_ref": "refs/heads/agent/waveB-iac-transport-773-20260626",
+      "branch": "waveB-iac-transport-773-20260626",
+      "status_short": [
+        "## agent/waveB-iac-transport-773-20260626...origin/agent/waveB-iac-transport-773-20260626 [gone]"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": false,
+      "prs": [],
+      "class": "branch-clean-not-in-origin-dev",
+      "recommended_action": "Preserve until branch/PR/merge provenance is checked."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/waveA-kernel-os-20260625173629",
+      "head": "8ed7c55f16a33772a99c05deb32225ae51e168f1",
+      "branch_ref": "refs/heads/agent/waveB-kernel-os-backlog-20260626",
+      "branch": "waveB-kernel-os-backlog-20260626",
+      "status_short": [
+        "## agent/waveB-kernel-os-backlog-20260626...origin/dev [behind 31]"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": true,
+      "prs": [],
+      "class": "prune-candidate-clean-merged",
+      "recommended_action": "Candidate for git worktree remove/prune after human/destructive approval."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/waveA-kms-iam-20260625173629",
+      "head": "0658568895b075ab2436f41299633c6c06711038",
+      "branch_ref": "refs/heads/agent/waveB-pdp-same-tenant-879",
+      "branch": "waveB-pdp-same-tenant-879",
+      "status_short": [
+        "## agent/waveB-pdp-same-tenant-879...origin/agent/waveB-pdp-same-tenant-879 [gone]"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": false,
+      "prs": [],
+      "class": "branch-clean-not-in-origin-dev",
+      "recommended_action": "Preserve until branch/PR/merge provenance is checked."
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/waveA-market-billing-20260625173629",
+      "head": "8ed7c55f16a33772a99c05deb32225ae51e168f1",
+      "detached": true,
+      "status_short": [
+        "## HEAD (no branch)"
+      ],
+      "status_rc": 0,
+      "status_stderr": "",
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": true,
+      "prs": [],
+      "class": "prune-candidate-clean-merged",
+      "recommended_action": "Candidate for git worktree remove/prune after human/destructive approval."
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+schema: oyatie.preservation.non-authority-receipt/v1
+receipt_type: NON_AUTHORITY_RUST_TEST_LAYOUT_AUDIT
+generated_at_utc: "2026-07-24T01:13:04Z"
+
+review_provenance:
+  reviewer_task_id: /root/pr1364_rust_test_layout_audit
+  materialized_by: /root
+  materialization_note: "Leader-materialized from the read-only reviewer's final message; not independently signed by the reviewer."
+
+repository_snapshot:
+  worktree: /Users/jasonlee/Developer/oyatie/.omx/worktrees/codex-pr1364-prep-20260723-v2
+  base_commit: 1026a65b707ce57693d9b830de33ee0ce228f16b
+  reviewed_head: e4af2f1d4ec91773ffc0f6b18520dfd5abd42bb7
+  reviewed_tree: 6cfb6cfc1be16d08d1991abc6a66bedb292c923b
+  clean_before_review: true
+  clean_after_review: true
+  head_movement_policy: "Invalidate on exact head or tree movement."
+
+verdict: APPROVE_SOURCE_QUALITY_ONLY
+source_head_movement_required: false
+qualified_stage1_principal: false
+planning_state: HOLD(Planning)
+roadmap_planning_authorized: false
+binding_plan_approval_allowed: false
+implementation_dispatch_allowed: false
+
+evidence:
+  unit_target:
+    buck_target: //libs/oya-stage1-closure:stage1-closure-unittest
+    crate_root: libs/oya-stage1-closure/src/lib.rs
+    test_count_observed_in_source: 1
+    private_compilation_context: true
+  integration_target:
+    buck_target: //libs/oya-stage1-closure:stage1-closure-contract
+    crate_root: libs/oya-stage1-closure/tests/stage1_closure.rs
+    test_count_from_last_stable_diagnostic: 80
+    public_api_only: true
+    exported_functions_exercised: 13
+    private_reach_in_detected: false
+  cargo_boundary:
+    autotests: false
+    rationale: "Prevents fixture-free Cargo autodiscovery; Buck declares the hermetic repository inputs."
+  determinism:
+    wall_clock_reads: 0
+    randomness: 0
+    sleeps: 0
+    network_access: 0
+    temporary_state_dependencies: 0
+  rust_quality:
+    unsafe_code_forbidden: true
+    rustfmt_edition_2024: PASS
+    mechanical_test_reorganization_required: false
+
+limitations:
+  - "This audit establishes source layout and test-boundary quality only."
+  - "It is not a Buck result, protected oya-ci-required result, GitHub review, merge authority, Stage-1 control receipt, or planning authority."
+  - "Future private helpers should receive direct unit tests only when their semantics cannot be proven through the public contract."

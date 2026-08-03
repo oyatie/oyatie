@@ -1,0 +1,41 @@
+schema: oyatie.stage1.decision-blocker-handoff-index/v1
+status: NON_AUTHORITY
+planning_state: HOLD(Planning)
+roadmap_planning_authorized: false
+binding_plan_approval_allowed: false
+implementation_dispatch_allowed: false
+created_at_utc: 2026-07-23T23:55:41Z
+
+claim_boundary: >-
+  This index identifies the exact bytes preserved in the decision/blocker
+  handoff envelope. It is not a qualified-human disposition, Stage-1 control
+  receipt, protected admission result, planning authorization, binding plan
+  approval, or implementation dispatch.
+
+packet:
+  path: STAGE1-DECISION-BLOCKER-PACKET-20260723.yaml
+  sha256: 21d05b4d3a1dafa568ce14ecba7af812d9e7620c80a14aa62e570a1f8e1a5b29
+
+contents:
+  - path: STAGE1-DECISION-BLOCKER-PACKET-20260723.yaml.sha256
+    sha256: 45b27ea0e7d070ab7f9b71c1385ea8ef3daa1c6bbab3dc5a6efe50007c8a16ff
+  - path: reviews/pr1364-781789573-architecture.yaml
+    sha256: eb4e53afb8eadf0ded04ea5d8f6d85f0187aeb88f0b75a7a84942163d746538b
+  - path: reviews/pr1364-781789573-code-security.yaml
+    sha256: f1aa891ebc85904d155e7f2c60389a505ed5b863d238ab3b846b69b029b4da71
+  - path: reviews/pr1364-781789573-authority.yaml
+    sha256: 4540fb201f07c9562d81eaca3c5260f8cc46683d002dcd9f590388c0abe537b9
+  - path: reviews/pr1364-781789573-verifier.yaml
+    sha256: 6a73ac7a726f6e0d6b22e381b0f9dba3b0aa84897fe50b1e5fafef4a54d128dc
+  - path: pr1364-final-local-candidate-781789573-20260723-self-contained.bundle.sha256
+    sha256: 978ae464f1aab0e43e4b87af8dfb8968d2efcadad38391de6d407530d5bdebb1
+
+external_recovery_artifact:
+  path: pr1364-final-local-candidate-781789573-20260723-self-contained.bundle
+  sha256: 8adb152d504c1725e7d1e4ed35f24bd1dd96c83b12bcd3b74308ae5903f14b0e
+  size_bytes: 111651963
+  embedded_in_handoff_envelope: false
+  reason: >-
+    The self-contained 111 MB recovery bundle is kept adjacent to the envelope.
+    Its exact checksum sidecar is embedded so a recovery consumer can verify the
+    separately preserved artifact without duplicating it inside the handoff.

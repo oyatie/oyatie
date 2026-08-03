@@ -1,0 +1,765 @@
+{
+  "source": "/tmp/prc2_classification.json (worklist) + workflow w2s006mrt (0 reclassify on DELETE bucket)",
+  "policy": "live-OR-explicitly-marked; delete only silently-stale (no live crate AND no marker AND successor live+cataloged)",
+  "delete_count": 105,
+  "needs_status_count": 33,
+  "flag_count": 10,
+  "deletes": [
+    {
+      "stem": "oya-adapter-substitution-test",
+      "successor": "oya-adapter-substitution-test-app",
+      "reason": "renamed to ...-test-app (LIVE+CAT); bare-name row superseded"
+    },
+    {
+      "stem": "oya-audit-chain-application",
+      "successor": "oya-audit-chain-domain",
+      "reason": "old application/runtime role-variant; audit-chain cap fully cataloged; successor oya-audit-chain-domain LIVE+CAT"
+    },
+    {
+      "stem": "oya-cloud-iam-kernel",
+      "successor": "oya-cloud-iam-domain",
+      "reason": "iam cap cataloged under oya-cloud-iam-* (domain/api/app); kernel-role row never had a crate"
+    },
+    {
+      "stem": "oya-cloud-kms-kernel",
+      "successor": "oya-cloud-kms-domain",
+      "reason": "kms cap cataloged under oya-cloud-kms-* (domain/enclave-kernel/operator-kernel); bare -kernel row superseded"
+    },
+    {
+      "stem": "oya-cloud-network-kernel",
+      "successor": "oya-cloud-network-domain",
+      "reason": "network cap cataloged under oya-cloud-network-* (domain/apis/adapters); bare -kernel row superseded"
+    },
+    {
+      "stem": "oya-cloud-surface-kernel",
+      "successor": "oya-cloud-surface-domain",
+      "reason": "surface cap cataloged via oya-cloud-surface-domain (LIVE+CAT); -kernel role variant superseded"
+    },
+    {
+      "stem": "oya-dsr-application",
+      "successor": "oya-dsr-domain",
+      "reason": "old application/runtime role-variant; dsr cap cataloged under oya-dsr-*; successor oya-dsr-domain LIVE+CAT"
+    },
+    {
+      "stem": "oya-governance-adr-citation-kernel",
+      "successor": "oya-check-adr-citation",
+      "reason": "old governance/ fitness-kernel name; live fitness crate oya-check-adr-citation LIVE+CAT"
+    },
+    {
+      "stem": "oya-governance-adr-index-kernel",
+      "successor": "oya-check-adr-index",
+      "reason": "old governance/ fitness-kernel name; live fitness crate oya-check-adr-index LIVE+CAT"
+    },
+    {
+      "stem": "oya-governance-authority-cohesion-kernel",
+      "successor": "oya-check-authority-cohesion",
+      "reason": "old governance/ fitness-kernel name; live fitness crate oya-check-authority-cohesion LIVE+CAT"
+    },
+    {
+      "stem": "oya-governance-brand-residue-kernel",
+      "successor": "oya-check-brand-residue",
+      "reason": "old governance/ fitness-kernel name; live fitness crate oya-check-brand-residue LIVE+CAT"
+    },
+    {
+      "stem": "oya-governance-cohesion-fitness-kernel",
+      "successor": "oya-check-cohesion",
+      "reason": "old governance/ fitness-kernel name; live fitness crate oya-check-cohesion LIVE+CAT"
+    },
+    {
+      "stem": "oya-governance-data-class-fitness-kernel",
+      "successor": "oya-check-data-class",
+      "reason": "old governance/ fitness-kernel name; live fitness crate oya-check-data-class LIVE+CAT"
+    },
+    {
+      "stem": "oya-governance-doc-catalog-kernel",
+      "successor": "oya-check-doc-catalog",
+      "reason": "old governance/ fitness-kernel name; live fitness crate oya-check-doc-catalog LIVE+CAT"
+    },
+    {
+      "stem": "oya-governance-documentation-system-kernel",
+      "successor": "oya-check-documentation-system",
+      "reason": "old governance/ fitness-kernel name; live fitness crate oya-check-documentation-system LIVE+CAT"
+    },
+    {
+      "stem": "oya-governance-fitness-adr-shape",
+      "successor": "oya-governance-adr-shape-kernel",
+      "reason": "old governance fitness-* test row; live oya-governance-adr-shape-kernel LIVE+CAT"
+    },
+    {
+      "stem": "oya-governance-fitness-authoritative-tracked",
+      "successor": "oya-governance-authoritative-tracked-kernel",
+      "reason": "old governance fitness-* test row; live oya-governance-authoritative-tracked-kernel LIVE+CAT"
+    },
+    {
+      "stem": "oya-governance-fitness-banned-primitives",
+      "successor": "oya-governance-banned-primitives-kernel",
+      "reason": "old governance fitness-* test row; live oya-governance-banned-primitives-kernel LIVE+CAT"
+    },
+    {
+      "stem": "oya-governance-fitness-portfolio-citation",
+      "successor": "oya-governance-portfolio-citation-kernel",
+      "reason": "old governance fitness-* test row; live oya-governance-portfolio-citation-kernel LIVE+CAT"
+    },
+    {
+      "stem": "oya-governance-fitness-predictable-naming",
+      "successor": "oya-governance-predictable-naming-kernel",
+      "reason": "old governance fitness-* test row; live oya-governance-predictable-naming-kernel LIVE+CAT"
+    },
+    {
+      "stem": "oya-governance-fitness-purpose-audit",
+      "successor": "oya-governance-purpose-audit-app",
+      "reason": "old governance fitness-* test row; live oya-governance-purpose-audit-app LIVE+CAT"
+    },
+    {
+      "stem": "oya-governance-glossary-coverage-kernel",
+      "successor": "oya-check-glossary-coverage",
+      "reason": "old governance/ fitness-kernel name; live fitness crate oya-check-glossary-coverage LIVE+CAT"
+    },
+    {
+      "stem": "oya-governance-glossary-vocabulary-kernel",
+      "successor": "oya-check-glossary-vocabulary",
+      "reason": "old governance/ fitness-kernel name; live fitness crate oya-check-glossary-vocabulary LIVE+CAT"
+    },
+    {
+      "stem": "oya-governance-placeholder-debt-kernel",
+      "successor": "oya-check-placeholder-debt",
+      "reason": "old governance/ fitness-kernel name; live fitness crate oya-check-placeholder-debt LIVE+CAT"
+    },
+    {
+      "stem": "oya-governance-raci-team-coverage-kernel",
+      "successor": "oya-check-raci-coverage",
+      "reason": "old governance/ fitness-kernel name; live fitness crate oya-check-raci-coverage LIVE+CAT"
+    },
+    {
+      "stem": "oya-governance-readme-doc-coverage-kernel",
+      "successor": "oya-check-readme-coverage",
+      "reason": "old governance/ fitness-kernel name; live fitness crate oya-check-readme-coverage LIVE+CAT"
+    },
+    {
+      "stem": "oya-governance-runbook-freshness-kernel",
+      "successor": "oya-check-runbook-freshness",
+      "reason": "old governance/ fitness-kernel name; live fitness crate oya-check-runbook-freshness LIVE+CAT"
+    },
+    {
+      "stem": "oya-governance-runbook-index-kernel",
+      "successor": "oya-check-runbook-index",
+      "reason": "old governance/ fitness-kernel name; live fitness crate oya-check-runbook-index LIVE+CAT"
+    },
+    {
+      "stem": "oya-governance-slo-coverage-kernel",
+      "successor": "oya-check-slo-coverage",
+      "reason": "old governance/ fitness-kernel name; live fitness crate oya-check-slo-coverage LIVE+CAT"
+    },
+    {
+      "stem": "oya-governance-typescript-workspace-kernel",
+      "successor": "oya-check-typescript-workspace",
+      "reason": "old governance/ fitness-kernel name; live fitness crate oya-check-typescript-workspace LIVE+CAT"
+    },
+    {
+      "stem": "oya-governance-vendor-contract-recency-kernel",
+      "successor": "oya-check-vendor-recency",
+      "reason": "old governance/ fitness-kernel name; live fitness crate oya-check-vendor-recency LIVE+CAT"
+    },
+    {
+      "stem": "oya-http-sse-domain",
+      "successor": "oya-http-sse-kernel",
+      "reason": "sse cap cataloged via oya-http-sse-kernel (LIVE+CAT); domain-role variant never existed"
+    },
+    {
+      "stem": "oya-http-telemetry-middleware-domain",
+      "successor": "oya-http-telemetry-middleware-infrastructure",
+      "reason": "telemetry-middleware cataloged via -infrastructure (LIVE+CAT); domain variant superseded"
+    },
+    {
+      "stem": "oya-http-tenant-middleware-domain",
+      "successor": "oya-http-tenant-middleware-infrastructure",
+      "reason": "tenant-middleware cataloged via -infrastructure (LIVE+CAT); domain variant superseded"
+    },
+    {
+      "stem": "oya-identity-application",
+      "successor": "oya-identity-domain",
+      "reason": "old application/runtime role-variant; identity cap fully cataloged under oya-identity-*; successor oya-identity-domain LIVE+CAT"
+    },
+    {
+      "stem": "oya-intelligence-account-adapter-claude-code",
+      "successor": "oya-intelligence-claude-account-adapter",
+      "reason": "account-adapter renamed to <provider>-account-adapter; successor oya-intelligence-claude-account-adapter LIVE+CAT"
+    },
+    {
+      "stem": "oya-intelligence-account-adapter-codex-cli",
+      "successor": "oya-intelligence-codex-account-adapter",
+      "reason": "account-adapter renamed to <provider>-account-adapter; successor oya-intelligence-codex-account-adapter LIVE+CAT"
+    },
+    {
+      "stem": "oya-intelligence-account-adapter-gemini-cli",
+      "successor": "oya-intelligence-gemini-account-adapter",
+      "reason": "account-adapter renamed to <provider>-account-adapter; successor oya-intelligence-gemini-account-adapter LIVE+CAT"
+    },
+    {
+      "stem": "oya-intelligence-account-adapter-openbao",
+      "successor": "oya-intelligence-account-adapter-inmemory",
+      "reason": "account-adapter renamed to <provider>-account-adapter; successor oya-intelligence-account-adapter-inmemory LIVE+CAT"
+    },
+    {
+      "stem": "oya-intelligence-account-app",
+      "successor": "oya-intelligence-account-domain",
+      "reason": "account stack cataloged; successor oya-intelligence-account-domain LIVE+CAT"
+    },
+    {
+      "stem": "oya-intelligence-account-runtime",
+      "successor": "oya-intelligence-account-domain",
+      "reason": "account stack cataloged; successor oya-intelligence-account-domain LIVE+CAT"
+    },
+    {
+      "stem": "oya-intelligence-adapter-kernel",
+      "successor": "oya-intelligence-adapter-domain",
+      "reason": "kernel\u2192domain rename done; successor oya-intelligence-adapter-domain LIVE+CATALOGED"
+    },
+    {
+      "stem": "oya-intelligence-bypass-kernel",
+      "successor": "oya-intelligence-bypass-domain",
+      "reason": "kernel\u2192domain rename done; successor oya-intelligence-bypass-domain LIVE+CATALOGED"
+    },
+    {
+      "stem": "oya-intelligence-capability-kernel",
+      "successor": "oya-intelligence-capability-domain",
+      "reason": "kernel\u2192domain rename done; successor oya-intelligence-capability-domain LIVE+CATALOGED"
+    },
+    {
+      "stem": "oya-intelligence-catalog-kernel",
+      "successor": "oya-intelligence-catalog-domain",
+      "reason": "kernel\u2192domain rename done; successor oya-intelligence-catalog-domain LIVE+CATALOGED"
+    },
+    {
+      "stem": "oya-intelligence-cloud-mutation-kernel",
+      "successor": "oya-intelligence-cloud-mutation-domain",
+      "reason": "kernel\u2192domain rename done; successor oya-intelligence-cloud-mutation-domain LIVE+CATALOGED"
+    },
+    {
+      "stem": "oya-intelligence-eval-application",
+      "successor": "oya-intelligence-eval-app",
+      "reason": "foundry-eval; eval cap fully cataloged (oya-intelligence-eval-{domain,app,kernel,usecase,adapter,worker} all LIVE+CATALOGED); -application role-variant superseded"
+    },
+    {
+      "stem": "oya-intelligence-evidence-adapter-file",
+      "successor": "oya-intelligence-evidence-file-adapter",
+      "reason": "superseded duplicate; successor oya-intelligence-evidence-file-adapter is LIVE+CATALOGED (LIVE+CAT)"
+    },
+    {
+      "stem": "oya-intelligence-evidence-kernel",
+      "successor": "oya-intelligence-evidence-domain",
+      "reason": "kernel\u2192domain rename done; successor oya-intelligence-evidence-domain LIVE+CATALOGED"
+    },
+    {
+      "stem": "oya-intelligence-mcp-gateway-kernel",
+      "successor": "oya-intelligence-mcp-gateway-domain",
+      "reason": "kernel\u2192domain rename done; successor oya-intelligence-mcp-gateway-domain LIVE+CATALOGED"
+    },
+    {
+      "stem": "oya-intelligence-openapi-kernel",
+      "successor": "oya-intelligence-openapi-domain",
+      "reason": "kernel\u2192domain rename done; successor oya-intelligence-openapi-domain LIVE+CATALOGED"
+    },
+    {
+      "stem": "oya-intelligence-policy-kernel",
+      "successor": "oya-intelligence-policy-domain",
+      "reason": "kernel\u2192domain rename done; successor oya-intelligence-policy-domain LIVE+CATALOGED"
+    },
+    {
+      "stem": "oya-intelligence-run-adapter-file",
+      "successor": "oya-intelligence-run-file-adapter",
+      "reason": "superseded duplicate; successor oya-intelligence-run-file-adapter is LIVE+CATALOGED (LIVE+CAT)"
+    },
+    {
+      "stem": "oya-intelligence-run-kernel",
+      "successor": "oya-intelligence-run-domain",
+      "reason": "kernel\u2192domain rename done; successor oya-intelligence-run-domain LIVE+CATALOGED"
+    },
+    {
+      "stem": "oya-intelligence-step-adapter-file",
+      "successor": "oya-intelligence-step-file-adapter",
+      "reason": "superseded duplicate; successor oya-intelligence-step-file-adapter is LIVE+CATALOGED (LIVE+CAT)"
+    },
+    {
+      "stem": "oya-intelligence-step-kernel",
+      "successor": "oya-intelligence-step-domain",
+      "reason": "kernel\u2192domain rename done; successor oya-intelligence-step-domain LIVE+CATALOGED"
+    },
+    {
+      "stem": "oya-ops-docs-portal-application",
+      "successor": "oya-ops-docs-portal-usecase",
+      "reason": "old application/runtime role-variant; ops-docs-portal cap fully cataloged (kernel/usecase/adapter/rest); successor oya-ops-docs-portal-usecase LIVE+CAT"
+    },
+    {
+      "stem": "oya-ops-workspace-shell-application",
+      "successor": "oya-ops-workspace-shell-usecase",
+      "reason": "old application/runtime role-variant; ops-workspace-shell cap fully cataloged; successor oya-ops-workspace-shell-usecase LIVE+CAT"
+    },
+    {
+      "stem": "oya-ops-workspace-shell-runtime",
+      "successor": "oya-ops-workspace-shell-app",
+      "reason": "old application/runtime role-variant; ops-workspace-shell cap fully cataloged; successor oya-ops-workspace-shell-app LIVE+CAT"
+    },
+    {
+      "stem": "oya-platform-audit-chain-adapter-file",
+      "successor": "oya-audit-chain-file-adapter",
+      "reason": "superseded duplicate; successor oya-audit-chain-file-adapter is LIVE+CATALOGED (LIVE+CAT)"
+    },
+    {
+      "stem": "oya-platform-audit-chain-app",
+      "successor": "oya-audit-chain-domain",
+      "reason": "old platform/ scheme; audit-chain capability fully cataloged under oya-audit-chain-*; successor oya-audit-chain-domain LIVE+CAT"
+    },
+    {
+      "stem": "oya-platform-audit-chain-kernel",
+      "successor": "oya-audit-chain-domain",
+      "reason": "old platform/ scheme; audit-chain capability fully cataloged; successor oya-audit-chain-domain LIVE+CAT"
+    },
+    {
+      "stem": "oya-platform-data-boundary-kernel",
+      "successor": "oya-data-boundary-kernel",
+      "reason": "superseded duplicate; successor oya-data-boundary-kernel is LIVE+CATALOGED (LIVE+CAT)"
+    },
+    {
+      "stem": "oya-platform-dsr-app",
+      "successor": "oya-dsr-domain",
+      "reason": "old platform/ scheme; dsr capability cataloged under oya-dsr-*; successor oya-dsr-domain LIVE+CAT"
+    },
+    {
+      "stem": "oya-platform-dsr-kernel",
+      "successor": "oya-dsr-domain",
+      "reason": "old platform/ scheme; dsr capability cataloged; successor oya-dsr-domain LIVE+CAT"
+    },
+    {
+      "stem": "oya-platform-eventing-adapter-file",
+      "successor": "messaging-file-adapter",
+      "reason": "old platform/ scheme; eventing\u2192messaging cap moved+cataloged (messaging-file-adapter); successor messaging-file-adapter LIVE+CAT"
+    },
+    {
+      "stem": "oya-platform-eventing-app",
+      "successor": "messaging-domain",
+      "reason": "old platform/ scheme; eventing\u2192messaging cap moved+cataloged; successor messaging-domain LIVE+CAT"
+    },
+    {
+      "stem": "oya-platform-eventing-kernel",
+      "successor": "messaging-domain",
+      "reason": "old platform/ scheme; eventing\u2192messaging cap moved+cataloged; successor messaging-domain LIVE+CAT"
+    },
+    {
+      "stem": "oya-platform-identity-app",
+      "successor": "oya-identity",
+      "reason": "old platform/ scheme; identity cap cataloged under oya-identity-*; successor oya-identity LIVE+CAT"
+    },
+    {
+      "stem": "oya-platform-identity-kernel",
+      "successor": "oya-identity-domain",
+      "reason": "old platform/ scheme; identity cap cataloged; successor oya-identity-domain LIVE+CAT"
+    },
+    {
+      "stem": "oya-platform-observability-adapter-tracing",
+      "successor": "observability-tracing-adapter",
+      "reason": "superseded duplicate; successor observability-tracing-adapter is LIVE+CATALOGED (LIVE+CAT)"
+    },
+    {
+      "stem": "oya-platform-observability-kernel",
+      "successor": "observability-kernel",
+      "reason": "superseded duplicate; successor observability-kernel is LIVE+CATALOGED (LIVE+CAT)"
+    },
+    {
+      "stem": "oya-platform-policy-cedar-kernel",
+      "successor": "oya-policy-cedar-domain",
+      "reason": "old platform/ scheme; policy-cedar cataloged under oya-policy-cedar-*; successor oya-policy-cedar-domain LIVE+CAT"
+    },
+    {
+      "stem": "oya-platform-regional-pack-kernel",
+      "successor": "cell-regional-pack",
+      "reason": "old platform/ scheme; regional-pack\u2192cell cap moved+cataloged (cell-regional-pack); successor cell-regional-pack LIVE+CAT"
+    },
+    {
+      "stem": "oya-platform-residency-kernel",
+      "successor": "oya-residency-domain",
+      "reason": "old platform/ scheme; residency cataloged under oya-residency-domain; successor oya-residency-domain LIVE+CAT"
+    },
+    {
+      "stem": "oya-platform-secrets-adapter-file",
+      "successor": "oya-secrets-file-adapter",
+      "reason": "superseded duplicate; successor oya-secrets-file-adapter is LIVE+CATALOGED (LIVE+CAT)"
+    },
+    {
+      "stem": "oya-platform-secrets-kernel",
+      "successor": "oya-secrets-domain",
+      "reason": "old platform/ scheme; secrets cataloged under oya-secrets-*; successor oya-secrets-domain LIVE+CAT"
+    },
+    {
+      "stem": "oya-platform-tenant-kernel",
+      "successor": "oya-tenancy-kernel",
+      "reason": "old platform/ scheme; tenant\u2192tenancy cap cataloged under oya-tenancy-*; successor oya-tenancy-kernel LIVE+CAT"
+    },
+    {
+      "stem": "oya-social-app",
+      "successor": "oya-community-social-app",
+      "reason": "old social/ context name; successor oya-community-social-app LIVE+CATALOGED"
+    },
+    {
+      "stem": "oya-social-post-composition-adapter-postgres",
+      "successor": "oya-community-social-post-composition-adapter-postgres",
+      "reason": "old social/ context name; successor oya-community-social-post-composition-adapter-postgres LIVE+CATALOGED"
+    },
+    {
+      "stem": "oya-social-post-composition-api",
+      "successor": "oya-community-social-post-composition-api",
+      "reason": "old social/ context name; successor oya-community-social-post-composition-api LIVE+CATALOGED"
+    },
+    {
+      "stem": "oya-social-post-composition-grpc",
+      "successor": "oya-community-social-post-composition-grpc",
+      "reason": "old social/ context name; successor oya-community-social-post-composition-grpc LIVE+CATALOGED"
+    },
+    {
+      "stem": "oya-social-post-composition-rest",
+      "successor": "oya-community-social-post-composition-rest",
+      "reason": "old social/ context name; successor oya-community-social-post-composition-rest LIVE+CATALOGED"
+    },
+    {
+      "stem": "oya-social-post-composition-usecase",
+      "successor": "oya-community-social-post-composition-usecase",
+      "reason": "old social/ context name; successor oya-community-social-post-composition-usecase LIVE+CATALOGED"
+    },
+    {
+      "stem": "oya-workspace-address-book-kernel",
+      "successor": "oya-address-book-domain",
+      "reason": "old workspace/<app>/kernel name; live product crate oya-address-book-domain LIVE+CATALOGED"
+    },
+    {
+      "stem": "oya-workspace-calendar-kernel",
+      "successor": "oya-calendar-domain",
+      "reason": "old workspace/<app>/kernel name; live product crate oya-calendar-domain LIVE+CATALOGED"
+    },
+    {
+      "stem": "oya-workspace-collab-runtime-kernel",
+      "successor": "oya-collab-runtime-domain",
+      "reason": "old workspace/<app>/kernel name; live product crate oya-collab-runtime-domain LIVE+CATALOGED"
+    },
+    {
+      "stem": "oya-workspace-dlp-kernel",
+      "successor": "oya-dlp-domain",
+      "reason": "old workspace/<app>/kernel name; live product crate oya-dlp-domain LIVE+CATALOGED"
+    },
+    {
+      "stem": "oya-workspace-docs-kernel",
+      "successor": "oya-docs-domain",
+      "reason": "old workspace/<app>/kernel name; live product crate oya-docs-domain LIVE+CATALOGED"
+    },
+    {
+      "stem": "oya-workspace-document-format-kernel",
+      "successor": "oya-document-format-domain",
+      "reason": "old workspace/<app>/kernel name; live product crate oya-document-format-domain LIVE+CATALOGED"
+    },
+    {
+      "stem": "oya-workspace-drive-kernel",
+      "successor": "storage-drive-domain",
+      "reason": "old workspace/<app>/kernel name; live product crate storage-drive-domain LIVE+CATALOGED"
+    },
+    {
+      "stem": "oya-workspace-dsr-kernel",
+      "successor": "oya-dsr-domain",
+      "reason": "old workspace/<app>/kernel name; live product crate oya-dsr-domain LIVE+CATALOGED"
+    },
+    {
+      "stem": "oya-workspace-ediscovery-kernel",
+      "successor": "oya-ediscovery-domain",
+      "reason": "old workspace/<app>/kernel name; live product crate oya-ediscovery-domain LIVE+CATALOGED"
+    },
+    {
+      "stem": "oya-workspace-forms-kernel",
+      "successor": "oya-forms-domain",
+      "reason": "old workspace/<app>/kernel name; live product crate oya-forms-domain LIVE+CATALOGED"
+    },
+    {
+      "stem": "oya-workspace-mail-kernel",
+      "successor": "oya-mail-domain",
+      "reason": "old workspace/<app>/kernel name; live product crate oya-mail-domain LIVE+CATALOGED"
+    },
+    {
+      "stem": "oya-workspace-meet-kernel",
+      "successor": "oya-meet-domain",
+      "reason": "old workspace/<app>/kernel name; live product crate oya-meet-domain LIVE+CATALOGED"
+    },
+    {
+      "stem": "oya-workspace-notes-kernel",
+      "successor": "oya-notes-domain",
+      "reason": "old workspace/<app>/kernel name; live product crate oya-notes-domain LIVE+CATALOGED"
+    },
+    {
+      "stem": "oya-workspace-recordings-kernel",
+      "successor": "storage-recordings-domain",
+      "reason": "old workspace/<app>/kernel name; live product crate storage-recordings-domain LIVE+CATALOGED"
+    },
+    {
+      "stem": "oya-workspace-retention-kernel",
+      "successor": "oya-retention-domain",
+      "reason": "old workspace/<app>/kernel name; live product crate oya-retention-domain LIVE+CATALOGED"
+    },
+    {
+      "stem": "oya-workspace-sheets-kernel",
+      "successor": "oya-sheets-domain",
+      "reason": "old workspace/<app>/kernel name; live product crate oya-sheets-domain LIVE+CATALOGED"
+    },
+    {
+      "stem": "oya-workspace-sites-kernel",
+      "successor": "oya-sites-domain",
+      "reason": "old workspace/<app>/kernel name; live product crate oya-sites-domain LIVE+CATALOGED"
+    },
+    {
+      "stem": "oya-workspace-slides-kernel",
+      "successor": "oya-slides-domain",
+      "reason": "old workspace/<app>/kernel name; live product crate oya-slides-domain LIVE+CATALOGED"
+    },
+    {
+      "stem": "oya-workspace-tasks-kernel",
+      "successor": "oya-tasks-domain",
+      "reason": "old workspace/<app>/kernel name; live product crate oya-tasks-domain LIVE+CATALOGED"
+    },
+    {
+      "stem": "oya-workspace-translate-kernel",
+      "successor": "oya-translate-domain",
+      "reason": "old workspace/<app>/kernel name; live product crate oya-translate-domain LIVE+CATALOGED"
+    },
+    {
+      "stem": "oya-workspace-trust-portal-kernel",
+      "successor": "oya-trust-portal-domain",
+      "reason": "old workspace/<app>/kernel name; live product crate oya-trust-portal-domain LIVE+CATALOGED"
+    }
+  ],
+  "needs_status": [
+    {
+      "stem": "oya-cloud-data-adapter-fake",
+      "suggested_status": "designed-ahead-row-no-crate",
+      "reason": "data-fake adapter; no live oya-cloud-data-adapter-* crate; designed-ahead test adapter \u2014 needs status"
+    },
+    {
+      "stem": "oya-cloud-data-adapter-oci",
+      "suggested_status": "designed-ahead-row-no-crate",
+      "reason": "data-oci adapter; no live oya-cloud-data-adapter-oci; designed-ahead provider adapter \u2014 needs status"
+    },
+    {
+      "stem": "oya-community-social-audio-track-library-adapter-meilisearch",
+      "suggested_status": "designed-ahead-row-no-crate",
+      "reason": "designed-ahead social-platform capability; no live crate (community-social live set = domain/app/post-composition only) \u2014 roadmap, needs status marker"
+    },
+    {
+      "stem": "oya-community-social-content-moderation-adapter-clamav",
+      "suggested_status": "designed-ahead-row-no-crate",
+      "reason": "designed-ahead social-platform capability; no live crate (community-social live set = domain/app/post-composition only) \u2014 roadmap, needs status marker"
+    },
+    {
+      "stem": "oya-community-social-content-moderation-adapter-opswat",
+      "suggested_status": "designed-ahead-row-no-crate",
+      "reason": "designed-ahead social-platform capability; no live crate (community-social live set = domain/app/post-composition only) \u2014 roadmap, needs status marker"
+    },
+    {
+      "stem": "oya-community-social-content-moderation-kernel",
+      "suggested_status": "designed-ahead-row-no-crate",
+      "reason": "designed-ahead social-platform capability; no live crate (community-social live set = domain/app/post-composition only) \u2014 roadmap, needs status marker"
+    },
+    {
+      "stem": "oya-community-social-copyright-claim-adapter-postgres",
+      "suggested_status": "designed-ahead-row-no-crate",
+      "reason": "designed-ahead social-platform capability; no live crate (community-social live set = domain/app/post-composition only) \u2014 roadmap, needs status marker"
+    },
+    {
+      "stem": "oya-community-social-copyright-claim-kernel",
+      "suggested_status": "designed-ahead-row-no-crate",
+      "reason": "designed-ahead social-platform capability; no live crate (community-social live set = domain/app/post-composition only) \u2014 roadmap, needs status marker"
+    },
+    {
+      "stem": "oya-community-social-drm-adapter-fairplay",
+      "suggested_status": "designed-ahead-row-no-crate",
+      "reason": "designed-ahead social-platform capability; no live crate (community-social live set = domain/app/post-composition only) \u2014 roadmap, needs status marker"
+    },
+    {
+      "stem": "oya-community-social-drm-adapter-playready",
+      "suggested_status": "designed-ahead-row-no-crate",
+      "reason": "designed-ahead social-platform capability; no live crate (community-social live set = domain/app/post-composition only) \u2014 roadmap, needs status marker"
+    },
+    {
+      "stem": "oya-community-social-drm-adapter-widevine",
+      "suggested_status": "designed-ahead-row-no-crate",
+      "reason": "designed-ahead social-platform capability; no live crate (community-social live set = domain/app/post-composition only) \u2014 roadmap, needs status marker"
+    },
+    {
+      "stem": "oya-community-social-federation-gateway-adapter-activitypub",
+      "suggested_status": "designed-ahead-row-no-crate",
+      "reason": "designed-ahead social-platform capability; no live crate (community-social live set = domain/app/post-composition only) \u2014 roadmap, needs status marker"
+    },
+    {
+      "stem": "oya-community-social-feed-timeline-adapter-valkey",
+      "suggested_status": "designed-ahead-row-no-crate",
+      "reason": "designed-ahead social-platform capability; no live crate (community-social live set = domain/app/post-composition only) \u2014 roadmap, needs status marker"
+    },
+    {
+      "stem": "oya-community-social-feed-timeline-kernel",
+      "suggested_status": "designed-ahead-row-no-crate",
+      "reason": "designed-ahead social-platform capability; no live crate (community-social live set = domain/app/post-composition only) \u2014 roadmap, needs status marker"
+    },
+    {
+      "stem": "oya-community-social-follow-graph-adapter-postgres",
+      "suggested_status": "designed-ahead-row-no-crate",
+      "reason": "designed-ahead social-platform capability; no live crate (community-social live set = domain/app/post-composition only) \u2014 roadmap, needs status marker"
+    },
+    {
+      "stem": "oya-community-social-follow-graph-kernel",
+      "suggested_status": "designed-ahead-row-no-crate",
+      "reason": "designed-ahead social-platform capability; no live crate (community-social live set = domain/app/post-composition only) \u2014 roadmap, needs status marker"
+    },
+    {
+      "stem": "oya-community-social-post-composition-adapter-ffmpeg",
+      "suggested_status": "designed-ahead-row-no-crate",
+      "reason": "designed-ahead social-platform capability; no live crate (community-social live set = domain/app/post-composition only) \u2014 roadmap, needs status marker"
+    },
+    {
+      "stem": "oya-community-social-post-composition-adapter-imagemagick",
+      "suggested_status": "designed-ahead-row-no-crate",
+      "reason": "designed-ahead social-platform capability; no live crate (community-social live set = domain/app/post-composition only) \u2014 roadmap, needs status marker"
+    },
+    {
+      "stem": "oya-community-social-post-composition-adapter-s3",
+      "suggested_status": "designed-ahead-row-no-crate",
+      "reason": "designed-ahead social-platform capability; no live crate (community-social live set = domain/app/post-composition only) \u2014 roadmap, needs status marker"
+    },
+    {
+      "stem": "oya-community-social-post-composition-kernel",
+      "suggested_status": "designed-ahead-row-no-crate",
+      "reason": "designed-ahead social-platform capability; no live crate (community-social live set = domain/app/post-composition only) \u2014 roadmap, needs status marker"
+    },
+    {
+      "stem": "oya-community-social-search-adapter-meilisearch",
+      "suggested_status": "designed-ahead-row-no-crate",
+      "reason": "designed-ahead social-platform capability; no live crate (community-social live set = domain/app/post-composition only) \u2014 roadmap, needs status marker"
+    },
+    {
+      "stem": "oya-community-social-short-video-storage-adapter-cloudfront",
+      "suggested_status": "designed-ahead-row-no-crate",
+      "reason": "designed-ahead social-platform capability; no live crate (community-social live set = domain/app/post-composition only) \u2014 roadmap, needs status marker"
+    },
+    {
+      "stem": "oya-community-social-short-video-storage-adapter-s3",
+      "suggested_status": "designed-ahead-row-no-crate",
+      "reason": "designed-ahead social-platform capability; no live crate (community-social live set = domain/app/post-composition only) \u2014 roadmap, needs status marker"
+    },
+    {
+      "stem": "oya-community-social-short-video-transcode-adapter-ffmpeg",
+      "suggested_status": "designed-ahead-row-no-crate",
+      "reason": "designed-ahead social-platform capability; no live crate (community-social live set = domain/app/post-composition only) \u2014 roadmap, needs status marker"
+    },
+    {
+      "stem": "oya-community-social-short-video-transcode-kernel",
+      "suggested_status": "designed-ahead-row-no-crate",
+      "reason": "designed-ahead social-platform capability; no live crate (community-social live set = domain/app/post-composition only) \u2014 roadmap, needs status marker"
+    },
+    {
+      "stem": "oya-community-social-short-video-upload-kernel",
+      "suggested_status": "designed-ahead-row-no-crate",
+      "reason": "designed-ahead social-platform capability; no live crate (community-social live set = domain/app/post-composition only) \u2014 roadmap, needs status marker"
+    },
+    {
+      "stem": "oya-community-social-user-profile-adapter-postgres",
+      "suggested_status": "designed-ahead-row-no-crate",
+      "reason": "designed-ahead social-platform capability; no live crate (community-social live set = domain/app/post-composition only) \u2014 roadmap, needs status marker"
+    },
+    {
+      "stem": "oya-community-social-user-profile-domain",
+      "suggested_status": "designed-ahead-row-no-crate",
+      "reason": "designed-ahead social-platform capability; no live crate (community-social live set = domain/app/post-composition only) \u2014 roadmap, needs status marker"
+    },
+    {
+      "stem": "oya-community-social-user-profile-kernel",
+      "suggested_status": "designed-ahead-row-no-crate",
+      "reason": "designed-ahead social-platform capability; no live crate (community-social live set = domain/app/post-composition only) \u2014 roadmap, needs status marker"
+    },
+    {
+      "stem": "oya-community-social-user-profile-rest",
+      "suggested_status": "designed-ahead-row-no-crate",
+      "reason": "designed-ahead social-platform capability; no live crate (community-social live set = domain/app/post-composition only) \u2014 roadmap, needs status marker"
+    },
+    {
+      "stem": "oya-intelligence-cost-budget-kernel",
+      "suggested_status": "designed-ahead-row-no-crate",
+      "reason": "no live cost-budget crate anywhere in intelligence; designed-ahead cost-governance capability \u2014 roadmap, needs status marker"
+    },
+    {
+      "stem": "oya-intelligence-mobile-native-kernel",
+      "suggested_status": "designed-ahead-row-no-crate",
+      "reason": "no live mobile-native crate; aspirational mobile surface \u2014 needs status marker"
+    },
+    {
+      "stem": "oya-intelligence-release-evidence-pack-kernel",
+      "suggested_status": "designed-ahead-row-no-crate",
+      "reason": "no live release-evidence-pack crate; aspirational \u2014 needs status marker"
+    }
+  ],
+  "flags": [
+    {
+      "stem": "oya-check-constitution-cite",
+      "candidate": null,
+      "reason": "cataloged-but-DEAD check crate; constitution-cite fitness has no live crate \u2014 pairs with oya-governance-constitution-cite-kernel; confirm delete-both vs needs-status"
+    },
+    {
+      "stem": "oya-cloud-resource-domain",
+      "candidate": "oya-cloud-os-resources-domain",
+      "reason": "closest live = oya-cloud-os-resources-domain (LIVE-nocat, different cap/context); cloud-resource cap has no cataloged live crate \u2014 confirm rekey vs delete vs needs-status"
+    },
+    {
+      "stem": "oya-cloud-resource-kernel",
+      "candidate": "oya-shared-resource-provider-contract-kernel",
+      "reason": "no oya-cloud-resource-kernel crate; closest = oya-shared-resource-provider-contract-kernel (LIVE-nocat) \u2014 confirm rekey vs delete"
+    },
+    {
+      "stem": "oya-foundation-app",
+      "candidate": null,
+      "reason": "foundation-orchestration; no live foundation crate; abandoned bootstrap orchestrator \u2014 confirm delete vs needs-status"
+    },
+    {
+      "stem": "oya-governance-api-semver-kernel",
+      "candidate": "oya-intelligence-api-semver-domain",
+      "reason": "no oya-check-api-semver; fitness moved into intelligence (oya-intelligence-api-semver-domain LIVE+CAT) \u2014 confirm rekey vs delete"
+    },
+    {
+      "stem": "oya-governance-cargo-prefix-kernel",
+      "candidate": "oya-intelligence-cargo-prefix-domain",
+      "reason": "no oya-check-cargo-prefix; live realizations: oya-intelligence-cargo-prefix-domain (LIVE+CAT) + oya-cloud-ci-cargo-prefix-app gate \u2014 confirm rekey-target vs delete"
+    },
+    {
+      "stem": "oya-governance-constitution-cite-kernel",
+      "candidate": "oya-check-constitution-cite",
+      "reason": "successor oya-check-constitution-cite is itself DEAD(cataloged-not-live); whole constitution-cite fitness appears retired \u2014 confirm delete-both vs needs-status"
+    },
+    {
+      "stem": "oya-http-deadline-middleware-domain",
+      "candidate": "oya-http-latency-budget-middleware-infrastructure",
+      "reason": "no http-deadline crate; closest live = latency-budget-middleware-infrastructure \u2014 confirm same concept rekey vs delete"
+    },
+    {
+      "stem": "oya-tooling-cli-dev-runtime",
+      "candidate": "marketplace-dev-cli",
+      "reason": "dev-cli moved to marketplace/facade/dev-cli (marketplace-dev-cli LIVE+CAT); BUT tooling/cli-dev-runtime is a distinct runtime-role row \u2014 confirm rekey-to-marketplace-dev-cli vs delete"
+    },
+    {
+      "stem": "oya-workspace-chat-kernel",
+      "candidate": null,
+      "reason": "workspace/chat: only live form is oya-workspace-chat-api (BFF); no product-domain crate \u2014 confirm needs-status vs rekey-to-api"
+    }
+  ],
+  "leader_flag_guidance": {
+    "oya-check-constitution-cite": "DELETE (dead, fitness retired; pair with governance-constitution-cite-kernel)",
+    "oya-governance-constitution-cite-kernel": "DELETE (dead pair; successor itself dead)",
+    "oya-governance-api-semver-kernel": "DELETE (successor oya-intelligence-api-semver-domain live+cataloged)",
+    "oya-governance-cargo-prefix-kernel": "DELETE (successor oya-intelligence-cargo-prefix-domain live+cataloged)",
+    "oya-http-deadline-middleware-domain": "DELETE if concept represented/dead (successor live+cataloged); confirm not a distinct live capability",
+    "oya-tooling-cli-dev-runtime": "DELETE (superseded by marketplace-dev-cli live+cataloged)",
+    "oya-foundation-app": "DELETE if genuinely abandoned bootstrap orchestrator; NEEDS-STATUS only if designed-ahead",
+    "oya-workspace-chat-kernel": "NEEDS-STATUS (only chat-api BFF live; kernel designed-ahead) unless evidence of true death",
+    "oya-cloud-resource-domain": "INVESTIGATE: candidate oya-cloud-os-resources-domain is LIVE-but-UNCATALOGED. If genuine successor (same resource-domain capability moved to cloud-os) -> REKEY via ArtifactMove; if distinct/dead -> DELETE. PR-C1-trap: do NOT delete if it is the live successor.",
+    "oya-cloud-resource-kernel": "INVESTIGATE: candidate oya-shared-resource-provider-contract-kernel is LIVE-but-UNCATALOGED but likely a DIFFERENT concept (shared contract kernel, token overlap only). If genuinely different -> DELETE (cloud-resource-kernel dead); if true successor -> REKEY."
+  }
+}

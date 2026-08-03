@@ -1,0 +1,22 @@
+{
+  "status": "hold",
+  "reason": "origin/dev post-merge oya-ci-required still has affected-set in_progress after bounded wait; critic rejected write fanout before trunk green",
+  "originDev": "521f84997e21742187ab83722aaf807dbe019835",
+  "heldCheck": "gate · affected-set (ADR-0554, binding workspace coverage)",
+  "plannedNextSerialLane": {
+    "goal": "G004/G005 shared-producer hardening",
+    "ownedPath": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/src/main.rs",
+    "issue": "load_scm_facts silently drops non-string tracked_paths entries via filter_map(Value::as_str)",
+    "testPlan": "add scm_facts_rejects_non_string_tracked_paths_entries in src/main.rs tests; RED with oya-cloud-ci-accounting-registry-app-bin-unittest; GREEN after fallible per-entry parse",
+    "commands": [
+      "buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app-bin-unittest",
+      "buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app-unittest",
+      "buck2 build //cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app-bin"
+    ]
+  },
+  "forbiddenUntilGreen": [
+    "writer branch/source edits",
+    "generated JSON edits",
+    ".github/workflows, oya-ci.toml, root specs, .omx/ultragoal changes"
+  ]
+}

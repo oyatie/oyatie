@@ -1,0 +1,176 @@
+{
+  "schema_version": "1.0",
+  "document_class": "upstream-evidence-manifest",
+  "status": "NON_AUTHORITY",
+  "planning_state": "HOLD(Planning)",
+  "dispatch_state": "NO_DISPATCH",
+  "decision_state": "PREPARATORY_EVIDENCE_ONLY",
+  "scope": "Reproducible primary-source evidence for the adjacent Buck2 hyperscale unified CI/CD optimization packet. This manifest does not authorize implementation, a CI/CD change, a selective-admission cutover, or ML/AI decision-making. ML/AI remains advisory-only inside the one unified CI/CD process and canonical oya-ci-required result.",
+  "capture_method": {
+    "captured_at_utc": "2026-07-24T02:13:23Z",
+    "local_capture_directory": "/tmp/buck2-upstream-evidence-curl-jrycOF",
+    "source_capture": "curl --fail --location --silent --show-error --retry 2 <source_url> -o <local_capture_file>",
+    "hash_command": "shasum -a 256 <local_capture_file>",
+    "reverify_command_template": "curl --fail --location --silent --show-error --retry 2 <source_url> | shasum -a 256",
+    "integrity_boundary": "The SHA-256 values bind the locally captured response bytes at the stated retrieval time. A matching digest re-establishes byte equality only for the retrieved response; it does not establish release provenance, deployment, project-local behavior, authority, or admission readiness."
+  },
+  "evidence": [
+    {
+      "id": "buck2-key-concepts",
+      "technology": "Buck2",
+      "kind": "official-documentation-source",
+      "claim_supported": "Buck2 packages are bounded by BUCK files; cells are configured directory trees and the project configuration specifies participating cells.",
+      "source_ref": "facebook/buck2@4306d17035cdff1ccb65f84f6d6f9cf1f909d6a3:docs/concepts/key_concepts.md",
+      "source_url": "https://raw.githubusercontent.com/facebook/buck2/4306d17035cdff1ccb65f84f6d6f9cf1f909d6a3/docs/concepts/key_concepts.md",
+      "retrieved_at_utc": "2026-07-24T02:13:21Z",
+      "captured_file": "buck2-key-concepts.md",
+      "sha256": "522f62d219cd9d3d478904f8b761f12c3019c79b60943120339d5a1edbd7d0b8",
+      "immutability": "full Git commit SHA pinned"
+    },
+    {
+      "id": "buck2-buckconfig",
+      "technology": "Buck2",
+      "kind": "official-documentation-source",
+      "claim_supported": "The [cells] section lists project cells and [repositories] is a deprecated alternative name.",
+      "source_ref": "facebook/buck2@4306d17035cdff1ccb65f84f6d6f9cf1f909d6a3:docs/concepts/buckconfig.md",
+      "source_url": "https://raw.githubusercontent.com/facebook/buck2/4306d17035cdff1ccb65f84f6d6f9cf1f909d6a3/docs/concepts/buckconfig.md",
+      "retrieved_at_utc": "2026-07-24T02:13:21Z",
+      "captured_file": "buck2-buckconfig.md",
+      "sha256": "7e1553f235c31b73a6e8317a3f893c56074af50f58a0955f3ac46788b0380f13",
+      "immutability": "full Git commit SHA pinned"
+    },
+    {
+      "id": "buck2-query-language",
+      "technology": "Buck2",
+      "kind": "official-documentation-source",
+      "claim_supported": "Buck query operators accept target expressions, and owner() accepts filenames; this grounds the packet's description of owner-query mechanics, not correctness of the local selector.",
+      "source_ref": "facebook/buck2@4306d17035cdff1ccb65f84f6d6f9cf1f909d6a3:docs/concepts/buck_query_language.md",
+      "source_url": "https://raw.githubusercontent.com/facebook/buck2/4306d17035cdff1ccb65f84f6d6f9cf1f909d6a3/docs/concepts/buck_query_language.md",
+      "retrieved_at_utc": "2026-07-24T02:13:21Z",
+      "captured_file": "buck2-query.md",
+      "sha256": "1e063e848e302a02e83a43a67ca2f5d3a504910edd4b423677738a5e4359b9ec",
+      "immutability": "full Git commit SHA pinned"
+    },
+    {
+      "id": "buck2-remote-execution",
+      "technology": "Buck2",
+      "kind": "official-documentation-source",
+      "claim_supported": "Buck2 remote execution uses services exposing the Bazel remote-execution API and its configuration is under [buck2_re_client]; upstream documentation does not establish an Oyatie deployment.",
+      "source_ref": "facebook/buck2@4306d17035cdff1ccb65f84f6d6f9cf1f909d6a3:docs/users/remote_execution.md",
+      "source_url": "https://raw.githubusercontent.com/facebook/buck2/4306d17035cdff1ccb65f84f6d6f9cf1f909d6a3/docs/users/remote_execution.md",
+      "retrieved_at_utc": "2026-07-24T02:13:21Z",
+      "captured_file": "buck2-remote-execution.md",
+      "sha256": "e510fa97fd5cd515eee33bdb6dab9857093eff0041dca75e6b5f2a54e2e0db5b",
+      "immutability": "full Git commit SHA pinned"
+    },
+    {
+      "id": "buck2-release-list",
+      "technology": "Buck2",
+      "kind": "official-release-api-snapshot",
+      "claim_supported": "At retrieval, the release list includes dated prereleases through 2026-07-15; version selection must use an explicit source or artifact pin.",
+      "source_url": "https://api.github.com/repos/facebook/buck2/releases",
+      "observed_release": {
+        "tag_name": "2026-07-15",
+        "target_commit_sha": "1560aca2002865cd73d7cafb22c705cfb640b2bc",
+        "published_at_utc": "2026-07-15T00:06:17Z",
+        "prerelease": true
+      },
+      "retrieved_at_utc": "2026-07-24T02:13:22Z",
+      "captured_file": "buck2-releases.json",
+      "sha256": "c0103ec8369e359c78153314a8b1f8dd3a175e1cba39b352165b4617f1c5c691",
+      "immutability": "mutable API snapshot; no immutable release-list SHA is asserted"
+    },
+    {
+      "id": "btd-root-readme",
+      "technology": "Buck2 Change Detector",
+      "kind": "upstream-repository-source",
+      "claim_supported": "The project determines potentially impacted Buck targets from changed files and has separate targets, btd, and supertd binaries; the caller performs the build/test step.",
+      "source_ref": "facebookincubator/buck2-change-detector@7a632871f376cb04bc007829c8dd7d536078ae4a:README.md",
+      "source_url": "https://raw.githubusercontent.com/facebookincubator/buck2-change-detector/7a632871f376cb04bc007829c8dd7d536078ae4a/README.md",
+      "retrieved_at_utc": "2026-07-24T02:13:22Z",
+      "captured_file": "btd-root-readme.md",
+      "sha256": "4dda0f3f2469e2c9a206e8f49ba5c5cad3b595fbbe6ed4e1ae415ec5bd7bbe7c",
+      "immutability": "full Git commit SHA pinned"
+    },
+    {
+      "id": "btd-readme",
+      "technology": "Buck2 Change Detector",
+      "kind": "upstream-repository-source",
+      "claim_supported": "BTD requires changed-file input plus before/after target information; at this pin its Git mode uses git diff --name-status and conservatively expands rename/copy paths.",
+      "source_ref": "facebookincubator/buck2-change-detector@7a632871f376cb04bc007829c8dd7d536078ae4a:btd/README.md",
+      "source_url": "https://raw.githubusercontent.com/facebookincubator/buck2-change-detector/7a632871f376cb04bc007829c8dd7d536078ae4a/btd/README.md",
+      "retrieved_at_utc": "2026-07-24T02:13:22Z",
+      "captured_file": "btd-readme.md",
+      "sha256": "9bd9cf82b675d7b8a9744ebf746a6ed9be15b05abf246d030a101a8d21dc57a3",
+      "immutability": "full Git commit SHA pinned"
+    },
+    {
+      "id": "btd-evaluated-commit",
+      "technology": "Buck2 Change Detector",
+      "kind": "upstream-commit-api-snapshot",
+      "claim_supported": "The evaluated full commit is 7a632871f376cb04bc007829c8dd7d536078ae4a, dated 2026-07-20T22:53:57Z, and its commit message describes Git --vcs support.",
+      "source_url": "https://api.github.com/repos/facebookincubator/buck2-change-detector/commits/7a632871f376cb04bc007829c8dd7d536078ae4a",
+      "retrieved_at_utc": "2026-07-24T02:13:22Z",
+      "captured_file": "btd-commit.json",
+      "sha256": "a659e1ef0b5b62d3b495f68031f3f59d1bf1befc53cb40c4aeb6bbbb3e0442fc",
+      "immutability": "commit identifier is a full SHA; API response presentation is a mutable snapshot"
+    },
+    {
+      "id": "btd-release-workflow",
+      "technology": "Buck2 Change Detector",
+      "kind": "upstream-repository-source",
+      "claim_supported": "The upstream workflow builds BTD release artifacts and emits SHA-256 checksum files; downstream adoption still requires an independent source/artifact/provenance review.",
+      "source_ref": "facebookincubator/buck2-change-detector@7a632871f376cb04bc007829c8dd7d536078ae4a:.github/workflows/release_btd.yml",
+      "source_url": "https://raw.githubusercontent.com/facebookincubator/buck2-change-detector/7a632871f376cb04bc007829c8dd7d536078ae4a/.github/workflows/release_btd.yml",
+      "retrieved_at_utc": "2026-07-24T02:13:22Z",
+      "captured_file": "btd-release-workflow.yml",
+      "sha256": "62c587c0f2ba78e307dfd82353c8e93870efc6a3f97af838ae55e00bb2b445e4",
+      "immutability": "full Git commit SHA pinned"
+    },
+    {
+      "id": "btd-latest-release",
+      "technology": "Buck2 Change Detector",
+      "kind": "upstream-release-api-snapshot",
+      "claim_supported": "At retrieval, the moving latest prerelease targets e8de756abbb2d2b1713d0a86556b8b4cf03e1eff, not the evaluated Git-support commit; it cannot be treated as that commit without fresh verification.",
+      "source_url": "https://api.github.com/repos/facebookincubator/buck2-change-detector/releases/tags/latest",
+      "observed_release": {
+        "tag_name": "latest",
+        "target_commit_sha": "e8de756abbb2d2b1713d0a86556b8b4cf03e1eff",
+        "published_at_utc": "2026-07-20T18:21:08Z",
+        "prerelease": true
+      },
+      "retrieved_at_utc": "2026-07-24T02:13:22Z",
+      "captured_file": "btd-latest-release.json",
+      "sha256": "2b1816fb627163c0356807174c87d620c3cad2a3df39b28c9de7c42bd206c614",
+      "immutability": "mutable moving-tag API snapshot; no immutable release SHA is asserted"
+    },
+    {
+      "id": "btd-issue-12",
+      "technology": "Buck2 Change Detector",
+      "kind": "upstream-issue-api-snapshot",
+      "claim_supported": "Open issue 12 reports missing toolchain-related and PACKAGE-file changes; this is an upstream report, not a resolved defect classification or an Oyatie behavior finding.",
+      "source_url": "https://api.github.com/repos/facebookincubator/buck2-change-detector/issues/12",
+      "retrieved_at_utc": "2026-07-24T02:13:23Z",
+      "captured_file": "btd-issue-12.json",
+      "sha256": "4f8fe2ef04860f6a91cd895f1c24c1deba7aa3e2ba2e95318170530aa53c27f3",
+      "immutability": "mutable issue snapshot; no immutable issue-state SHA is asserted"
+    },
+    {
+      "id": "btd-issue-9",
+      "technology": "Buck2 Change Detector",
+      "kind": "upstream-issue-api-snapshot",
+      "claim_supported": "Open issue 9 reports that changes to a symlinked file are not picked up; this is an upstream report, not a resolved defect classification or an Oyatie behavior finding.",
+      "source_url": "https://api.github.com/repos/facebookincubator/buck2-change-detector/issues/9",
+      "retrieved_at_utc": "2026-07-24T02:13:23Z",
+      "captured_file": "btd-issue-9.json",
+      "sha256": "0cf015195b0a5dc0e725d0f8cb16c344d096853f0eb781ac076ad90810766b50",
+      "immutability": "mutable issue snapshot; no immutable issue-state SHA is asserted"
+    }
+  ],
+  "limitations": [
+    "The local capture directory is an ephemeral acquisition record; this tracked manifest contains the reproduction inputs and capture hashes, not copies of upstream source bytes.",
+    "No mutable endpoint is cited as immutable proof. Re-run the documented capture before relying on release or issue state.",
+    "These upstream facts do not prove the current local graph, a .claire/worktrees package, selector correctness, cache/RBE deployment, protected-branch state, or CI admission readiness.",
+    "The adjacent packet remains NON_AUTHORITY, HOLD(Planning), NO_DISPATCH, unified CI/CD, and ML/AI advisory-only."
+  ]
+}

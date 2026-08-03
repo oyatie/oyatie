@@ -1,0 +1,276 @@
+schema: oyatie.stage1.current-decision-blocker-supplement/v1
+status: NON_AUTHORITY
+created_at_utc: "2026-07-24T03:19:53Z"
+
+current_outcome: TRUTHFUL_DECISION_BLOCKER_PACKET
+authoritative_live_epoch_exists: false
+required_fail_closed_epoch_state: HOLD_EPOCH_OPEN
+planning_state: HOLD(Planning)
+qualified_stage1_pass: false
+roadmap_planning_authorized: false
+binding_plan_approval_allowed: false
+implementation_dispatch_allowed: false
+protected_merge_authorized: false
+all_stage1_controls_independently_satisfied: false
+
+claim_boundary: >-
+  This supplement is the current semantic interpretation of the preserved
+  Stage-1 evidence. It does not rewrite sealed provenance. It corrects the
+  earlier terminal classification: the present state cannot truthfully be
+  reduced to only BLOCKED_QUALIFIED_HUMAN_INPUT because machine, activation,
+  protected-admission, external-authority, and epistemic gates remain open.
+  It is not an Accepted ADR, Stage-1 control receipt, protected admission
+  result, qualified-human disposition, PASS(Planning), roadmap, binding plan,
+  merge instruction, or implementation dispatch.
+
+supersession:
+  immutable_predecessor:
+    path: STAGE1-DECISION-BLOCKER-PACKET-cc08cc12b-20260723.yaml
+    sha256: 00b953d5b2db7de2a68b0f4ba65be5c66401ef6e455f824ca8c3a1be791ff7f2
+    mutation_policy: preserve_unchanged
+  superseded_interpretation_only:
+    - terminal_verdict BLOCKED_QUALIFIED_HUMAN_INPUT
+    - assertion that the remaining boundary is only qualified-human input
+    - implicit semantic completeness without an A-G mapping
+    - self-contained wording for transient raw test and signature outputs
+  preserved_predecessor_facts:
+    - exact candidate identity and source manifest
+    - regression-first chronology
+    - exact review-receipt hashes
+    - recovery-bundle identity and validation
+    - HOLD(Planning) and every false authorization flag
+    - absence of a qualified Stage-1 PASS
+
+bound_evidence:
+  live_admission_correction:
+    path: STAGE1-LIVE-ADMISSION-CORRECTION-cc08cc12b-20260724.yaml
+    sha256: a4d46f3702e33a70bd8fcd7ad25ffbea370b7e1782b804e480c7bbf4ee4c568a
+  raw_evidence_manifest:
+    path: STAGE1-RAW-EVIDENCE-MANIFEST-cc08cc12b-20260724.yaml
+    sha256: 784498f51f1579c5617f772d03b648531f448d5570dfab4ebc939abf7d654559
+  raw_evidence_archive:
+    path: stage1-raw-evidence-784498f51f15-20260724.tar
+    sha256: 53525f8ebb665a422ca16712918fb57a53f9d953a3983cd68fd88d4ec508576b
+  recovery_bundle:
+    path: pr1364-final-local-candidate-cc08cc12b-20260723-self-contained.bundle
+    sha256: 1dc5d3a642c9c87f540d6a0b2b79393a7bfbea6c137f6d877b23508e65453452
+    size_bytes: 111449172
+  durability_boundary: >-
+    The current handoff is a content-addressed artifact set, not one file.
+    Recovery requires this supplement, its sidecar, the bound correction and
+    raw-evidence artifacts with their sidecars, and the adjacent recovery
+    bundle with its sidecar. A filename alone is never a receipt.
+
+authority_chronology:
+  observed_dev_commit: 30dd46c4dd7d12c085b77332d9ac5035d583edcf
+  observed_dev_tree: a073d9a2da0968eeec7511b9dd5326b2510aecbd
+  observed_dev_result:
+    - ADR-0619 is Accepted and its retirement chain remains effective
+    - ADR-0621 and ADR-0622 are absent from the observed dev tree
+    - no authenticated Stage-1 producer, materializer, trust-root verifier,
+      controller, live epoch, or protected admission envelope exists
+  candidate_only_non_authority:
+    - ADR-0621 first appears in unmerged local commit
+      f5fab468a4d584e76e0f8a8db9d09418aff1bc50 and records Accepted with
+      planning_impact false; it cannot alter protected-dev authority before
+      admission
+    - ADR-0622 exists only in the unmerged local candidate, remains Proposed
+      and dormant, and has no accepted protected-dev supersession or amendment
+      edge granting authority
+  consequence: >-
+    The cc08 candidate implements and tests a dormant structural contract. It
+    cannot activate itself, authenticate its own evidence, or promote planning.
+
+candidate:
+  commit: cc08cc12be9318a11ae15da47f9ca39002109c73
+  tree: 3ca56efd398a869a5a339a3a3da55ba545eb03bf
+  parent: 85cc6dba57c6ec969b4a6cc8376e09d85d068ae6
+  train_base: 1026a65b707ce57693d9b830de33ee0ce228f16b
+  clean: true
+  ssh_signed: true
+  signing_key_sha256: "SHA256:5grGNUtX9Zgmy1SWne6wF9DR8W1ElUQaF/Z8SYRz8E8"
+  generated_faces_changed: 0
+  local_engineering_verification:
+    buck2_unit: "1/1"
+    buck2_contract: "106/106"
+    generated_artifact_policy: "72/72"
+    changed_json_syntax: PASS
+    git_diff_check: PASS
+  claim_ceiling: >-
+    These are source-quality and dormant-contract facts only. They do not
+    establish current authority, protected admission, human qualification,
+    independence, fresh context, custody, or planning exit.
+
+program_A_through_G:
+  status: proposed_dormant_closure_model
+  scheduler_or_dispatch_effect: none
+  canonical_group_order: [A, B, C, D, E, F, G]
+  presentation_order: dependency-oriented_noncanonical
+  groups:
+    - group_id: A
+      name: control-plane repair
+      owned_controls: [C01, C02, C03]
+      requires_controls: []
+      gap_class: MACHINE_AND_ACTIVATION_GAPS
+      evidence: >-
+        Structural slots and tests exist, but there is no current reciprocal
+        lifecycle/supersession resolver, complete authenticated parser/IR
+        population proof, or complete current corpus/archive/freshness producer.
+    - group_id: B
+      name: decision population
+      owned_controls: [C04]
+      requires_controls: [C01, C02, C03]
+      gap_class: MACHINE_AND_ACTIVATION_GAPS
+      evidence: >-
+        A supplied population can be validated, but no authenticated current
+        population producer or protected discovery receipt exists.
+    - group_id: D
+      name: comparator and qualified evidence
+      owned_controls: [C05, C06, C07, C08, C09]
+      requires_controls: [C04]
+      gap_class: MIXED_MACHINE_AND_EXTERNAL_GAPS
+      evidence: >-
+        Comparator structure is locally testable, but protected comparator
+        collection and trusted-time or revocation evidence remain absent. C06
+        legal/JCR, C07 affected-party, C08 operations, and C09 custody require
+        authenticated qualified external dispositions.
+    - group_id: C
+      name: pilot and abstention contract
+      owned_controls: [C10, C11]
+      requires_controls: [C04, C05, C06, C07, C08, C09]
+      gap_class: MIXED_MACHINE_AND_EXTERNAL_GAPS
+      evidence: >-
+        C10 authorized-veto evidence is absent. C11 is explicitly mixed:
+        protected machine-pilot evidence and qualified-human pilot disposition
+        are both unsatisfied.
+    - group_id: E
+      name: qualified authority closure join
+      owned_controls: []
+      requires_controls: [C04, C05, C06, C07, C08, C09, C10, C11]
+      gap_class: UNSATISFIED_JOIN
+      evidence: >-
+        E owns no duplicate control and cannot join because its machine,
+        protected, and qualified predecessors are unsatisfied.
+    - group_id: F
+      name: freeze and challenge
+      owned_controls: [C12, C13, C14]
+      requires_controls: [C04, C05, C06, C07, C08, C09, C10, C11]
+      gap_class: MIXED_MACHINE_AND_EXTERNAL_GAPS
+      evidence: >-
+        A locally recoverable cc08 bundle exists, but no admitted protected C12
+        successor receipt or independently operated durable materializer exists.
+        Sixteen authenticated, independently qualified C13 lens receipts and an
+        authenticated independent fresh-context C14 dissent do not exist.
+    - group_id: G
+      name: context-free exit and admission
+      owned_controls: [C15]
+      requires_controls: [C12, C13, C14]
+      gap_class: MIXED_MACHINE_AND_EXTERNAL_GAPS
+      evidence: >-
+        No authenticated oracle, blind-reader, qualified-planning-authority, or
+        protected admission envelope exists. Remote PR admission was not ready
+        at the observed snapshot.
+        The dormant blocker vocabulary also cannot yet represent a refusing or
+        unavailable C15 qualified planning authority truthfully.
+
+control_classification:
+  machine_or_protected_work:
+    - C01 current controlling chronology and reciprocal lifecycle resolution
+    - C02 current parser and IR completeness proof
+    - C03 complete corpus, history-only archive, and freshness inventory
+    - C04 authenticated current decision-population production
+    - C05 protected comparator collection, trusted time, and revocation checks
+    - C11 machine-pilot execution and reproduction
+    - C12 admitted immutable-successor materialization and protected receipt
+    - C15 independent oracle and blind-reader output production and protected binding
+    - authenticated Stage-1 producer, materializer, trust-root verifier, and controller
+    - exact-object push, restack, protected required-context evaluation, review,
+      merge, and post-merge product-completion receipts
+  irreducible_qualified_or_external_facts:
+    - lifecycle acceptance of ADR-0622 or a valid accepted successor mechanism
+    - authenticated C06 legal/JCR authority and disposition
+    - authenticated C07 affected-party standing and disposition
+    - authenticated C08 operations authority and disposition
+    - authenticated C09 custody authority and disposition
+    - authenticated C10 authorized-veto standing and disposition
+    - authenticated qualified-human half of C11 pilot authorization
+    - C13 reviewer identity, qualification, independence, and fresh-context facts
+    - C14 independent dissenter identity, qualification, isolation, and actual dissent
+    - C15 qualified planning authority plus oracle and blind-reader independence
+      and cold-context facts
+    - protected forge and trust-root facts not reproducible from local labels,
+      hashes, tests, engineering signatures, or agent messages
+  cannot_be_invented_from:
+    - local files or fixtures
+    - principal labels or self-asserted booleans
+    - content hashes, blob OIDs, or engineering-candidate signatures
+    - reviewer-agent messages
+    - green local tests or recovery-bundle completeness
+    - assumed authorization that is not an authenticated role-specific receipt
+
+semantic_repairs_required_before_activation:
+  - separate roadmap-planning authorization from later binding-plan approval
+    and implementation dispatch in the controlling masterplan
+  - define a truthful terminal representation for irreducible C13-C15 external
+    refusal or unavailability, especially C15 qualified planning authority
+  - keep ADR-0622 Proposed and dormant until those repairs and protected-parent
+    activation prerequisites are independently admitted
+
+live_admission:
+  observed_at_utc: "2026-07-24T03:19:53Z"
+  dev_commit: 30dd46c4dd7d12c085b77332d9ac5035d583edcf
+  branch_protected: true
+  required_context: oya-ci-required
+  required_context_strict: false
+  required_pull_request_reviews_configured: false
+  administrator_enforcement: false
+  active_repository_rulesets: []
+  pull_requests:
+    - {pr: 1361, draft: true, mergeable: CONFLICTING, oya_ci_required: failure}
+    - {pr: 1362, draft: true, mergeable: CONFLICTING, oya_ci_required: failure}
+    - {pr: 1363, draft: true, mergeable: CONFLICTING, oya_ci_required: absent}
+    - {pr: 1364, draft: true, mergeable: CONFLICTING, oya_ci_required: failure}
+  submitted_exact_head_reviews: 0
+  remote_heads_equal_exact_signed_local_candidates: false
+  merge_queue_enrollment_observed: false
+  admission_ready: false
+
+archive_disposition:
+  current_authority_rule: git-history-or-content-addressed-bundle-only
+  readable_current_tree_archive_allowed: false
+  archived_directory_allowed: false
+  confidentiality_claim: false
+  qualification: >-
+    Retired authority bytes are not restored to an active checkout archive.
+    Git history and the content-addressed recovery bundle remain deliberately
+    recoverable and are not confidential. Stronger inaccessible retention
+    requires an external qualified custodian outside repository and agent
+    credentials.
+
+hyperscaler_preparation:
+  packet:
+    path: buck2-hyperscale-unified-ci-optimization-20260723.md
+    sha256: 88da35392efec3f7fc7810463253b562b10f16b41022ac62ce8ef02f8f98267c
+  evidence_manifest:
+    path: buck2-hyperscale-unified-ci-optimization-20260723.upstream-evidence.json
+    sha256: c54c683a2c692ba89d598eb8128b88d07e40acf1d2804193ca5666ff327d0531
+  concurrency_adoption_addendum:
+    path: buck2-hyperscale-concurrency-adoption-addendum-20260724.md
+    sha256: c0985f5770f12e3ad40ac70f903ce67a4f967446afa9846efe612f374346fdbc
+  status: PREPARATORY_EVIDENCE_ONLY
+  dispatch_effect: none
+
+stop_rule:
+  result: >-
+    No authoritative live epoch exists. Preserve HOLD_EPOCH_OPEN as the
+    required fail-closed epoch ceiling and preserve HOLD(Planning). Do not
+    authorize roadmap planning, approve a binding plan, dispatch
+    implementation, push a reconstructed non-identical candidate, or merge any
+    current remote PR head.
+  qualified_pass_requires: >-
+    Accepted controlling authority; one authenticated live epoch; exact
+    C01-C15 receipt multiplicities, joins, roles, and dependency order; one
+    frozen immutable subject; authenticated qualified and independent external
+    dispositions; protected-parent evaluation under an accepted controller and
+    trust root; and a post-merge protected admission envelope, all bound to the
+    same current generation.

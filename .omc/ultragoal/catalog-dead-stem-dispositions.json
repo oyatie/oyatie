@@ -1,0 +1,1585 @@
+{
+  "summary": "Categorize the ~223 dead catalog stems into per-record dispositions (re-key/delete/keep-justify) for the full-cleanup PR-C",
+  "agentCount": 10,
+  "logs": [],
+  "result": {
+    "tip": "124ad5601f4b6f4e8f52bf942aa1261dbc59b8c9",
+    "clusters": [
+      {
+        "group": "reorg-caused dead catalog records: observability + iac capabilities (prefixes oya-cloud-observability-*, oya-observability-*, oya-diagnostics-*, oya-cloud-iac-*, oya-iac-*)",
+        "dead_count": 12,
+        "dispositions": [
+          {
+            "stem": "oya-cloud-iac-api",
+            "action": "rekey",
+            "target_crate_id": "iac-api",
+            "confidence": "high",
+            "evidence": "Live crate name=\"iac-api\" at iac/core/api/Cargo.toml. Old cloud/cloud-iac/ has no remaining Cargo.toml (crates moved to iac/); move-manifest.generated.json shows cloud/cloud-iac -> iac path moves. Catalog role=api matches iac/core/api."
+          },
+          {
+            "stem": "oya-cloud-iac-app",
+            "action": "rekey",
+            "target_crate_id": "iac-app",
+            "confidence": "high",
+            "evidence": "Live crate name=\"iac-app\" at iac/facade/app/Cargo.toml. cloud/cloud-iac crates gone; de-branded app crate is the lone iac app/runtime crate. Catalog role=runtime / capability cloud-iac-module-registry-app-object-pinning corresponds to iac/facade/app."
+          },
+          {
+            "stem": "oya-cloud-iac-domain",
+            "action": "rekey",
+            "target_crate_id": "iac-domain",
+            "confidence": "high",
+            "evidence": "Live crate name=\"iac-domain\" at iac/core/domain/Cargo.toml. Catalog role=domain / capability cloud-iac-foundation-domain maps to iac/core/domain after de-brand."
+          },
+          {
+            "stem": "oya-cloud-iac-infrastructure",
+            "action": "rekey",
+            "target_crate_id": "iac-infrastructure",
+            "confidence": "high",
+            "evidence": "Live crate name=\"iac-infrastructure\" at iac/adapters/infrastructure/Cargo.toml. Catalog role=infrastructure maps to the iac infrastructure adapter."
+          },
+          {
+            "stem": "oya-cloud-iac-rest",
+            "action": "rekey",
+            "target_crate_id": "iac-rest",
+            "confidence": "high",
+            "evidence": "Live crate name=\"iac-rest\" at iac/ports/rest/Cargo.toml. Catalog role=rest / capability cloud-iac-module-registry-rest-router maps to iac/ports/rest."
+          },
+          {
+            "stem": "oya-cloud-observability-api",
+            "action": "rekey",
+            "target_crate_id": "observability-api",
+            "confidence": "high",
+            "evidence": "Live crate name=\"observability-api\" at observability/core/api/Cargo.toml. Old cloud/cloud-observability/ tree fully removed at tip. Catalog role=api maps to observability/core/api. (Content edit later: capability observability-audit -> observability.)"
+          },
+          {
+            "stem": "oya-cloud-observability-kernel",
+            "action": "rekey",
+            "target_crate_id": "observability-kernel",
+            "confidence": "high",
+            "evidence": "Live crate name=\"observability-kernel\" at observability/core/kernel/Cargo.toml. cloud/cloud-observability gone. Catalog role=kernel maps to observability/core/kernel."
+          },
+          {
+            "stem": "oya-observability-domain",
+            "action": "rekey",
+            "target_crate_id": "observability-domain",
+            "confidence": "high",
+            "evidence": "Live crate name=\"observability-domain\" at observability/core/domain/Cargo.toml. This dead record's identity (context: observability, capability: observability) matches the live crate's de-branded identity exactly, so it is the correct survivor of the two domain records that both target this single crate."
+          },
+          {
+            "stem": "oya-observability-tracing-adapter",
+            "action": "rekey",
+            "target_crate_id": "observability-tracing-adapter",
+            "confidence": "high",
+            "evidence": "Live crate name=\"observability-tracing-adapter\" at observability/adapters/tracing/Cargo.toml (the only surviving observability adapter). Catalog context=observability, role=adapter, capability=observability-tracing matches exactly."
+          },
+          {
+            "stem": "oya-cloud-observability-domain",
+            "action": "delete",
+            "target_crate_id": "",
+            "confidence": "high",
+            "evidence": "Duplicate of oya-observability-domain — both records were added in the same commit (#3) and both can only map to the single live crate observability-domain. The de-branded live crate uses context/capability = observability, matching the non-cloud variant; this cloud-context record is the redundant pre-reorg duplicate, so it is removed (oya-observability-domain is rekeyed instead). No second observability domain crate exists."
+          },
+          {
+            "stem": "oya-cloud-observability-adapter-fake",
+            "action": "delete",
+            "target_crate_id": "",
+            "confidence": "high",
+            "evidence": "No live crate named observability-*-fake (or any fake observability adapter) exists anywhere — grep over all Cargo.toml for name patterns observ.*fake / fake.*observ returns NONE. observability/adapters/ contains only tracing/. Adapter dropped in reorg; aspirational record with no crate -> delete under empty-baseline."
+          },
+          {
+            "stem": "oya-cloud-observability-adapter-oci",
+            "action": "delete",
+            "target_crate_id": "",
+            "confidence": "high",
+            "evidence": "No live crate named observability-*-oci (or any oci observability adapter) exists — grep over all Cargo.toml for observ.*oci / oci.*observ returns NONE. observability/adapters/ contains only tracing/. Adapter dropped in reorg; record with no crate -> delete under empty-baseline."
+          }
+        ],
+        "notes": "All 12 stems confirmed dead (no Cargo.toml package name == stem at tip). Live de-branded targets verified by listing every Cargo.toml under observability/ and iac/: observability-{aggregate,api,domain,kernel} + observability-tracing-adapter; iac-{api,app,domain,infrastructure,rest}. No de-branded catalog record (e.g. observability-domain.yaml) exists yet, so all 9 rekey targets are collision-free EXCEPT the domain pair: oya-cloud-observability-domain + oya-observability-domain both map to the single live observability-domain crate. Resolution: rekey oya-observability-domain (identity matches de-branded crate), delete oya-cloud-observability-domain (pre-reorg dup). HUMAN-CHECK item: this domain rekey-vs-delete pick is a judgment call — if catalog convention prefers retaining the cloud-context record's richer fields, swap which one is kept (the action pair, not the net outcome, would flip). SEPARATE GAP (outside delete/rekey scope, FYI for catalog-backfill owner): live crate observability-aggregate (observability/core/aggregate/) has NO catalog record at all and no matching dead stem in this cluster — under empty-baseline it needs a record created. No oya-diagnostics-* or oya-iac-* catalog files exist in registry/catalog/ (zero matches for those two prefixes)."
+      },
+      {
+        "group": "reorg-caused dead catalog records — storage capability (oya-cloud-storage-*, oya-drive-*, oya-imaging-*, oya-recordings-*)",
+        "dead_count": 8,
+        "dispositions": [
+          {
+            "stem": "oya-cloud-storage-domain",
+            "action": "rekey",
+            "target_crate_id": "storage-domain",
+            "confidence": "high",
+            "evidence": "Live crate `storage-domain` at storage/core/domain/Cargo.toml (package name == \"storage-domain\"). Reorg moved cloud/cloud-storage -> storage/ (move-manifest: old_path cloud/cloud-storage/slos/* -> new_path storage/observability/slos/cloud-storage-*). De-branded oya-cloud-storage-domain -> storage-domain. No catalog file exists yet for storage-domain (no collision). Record content capability:cloud-storage role:domain."
+          },
+          {
+            "stem": "oya-cloud-storage-block-api",
+            "action": "rekey",
+            "target_crate_id": "storage-block-api",
+            "confidence": "high",
+            "evidence": "Live crate `storage-block-api` at storage/ports/block-api/Cargo.toml. De-branded oya-cloud-storage-block-api -> storage-block-api; record content capability:storage-block role:api matches the ports/block-api crate. No existing catalog file for storage-block-api (no collision)."
+          },
+          {
+            "stem": "oya-cloud-storage-object-api",
+            "action": "rekey",
+            "target_crate_id": "storage-object-api",
+            "confidence": "high",
+            "evidence": "Live crate `storage-object-api` at storage/ports/object-api/Cargo.toml. De-branded oya-cloud-storage-object-api -> storage-object-api; record content capability:storage-object role:api matches ports/object-api. No existing catalog file for storage-object-api (no collision)."
+          },
+          {
+            "stem": "oya-cloud-storage-adapter-s3",
+            "action": "rekey",
+            "target_crate_id": "storage-s3-adapter",
+            "confidence": "high",
+            "evidence": "Live crate `storage-s3-adapter` at storage/adapters/s3/Cargo.toml. De-brand + word-reorder oya-cloud-storage-adapter-s3 -> storage-s3-adapter (the live crate-id places the provider before the role-suffix). Record content role:adapter capability:storage-s3-command-shape; non_claims reference AWS SDK — matches the s3 adapter. No existing catalog file for storage-s3-adapter (no collision)."
+          },
+          {
+            "stem": "oya-cloud-storage-adapter-oci",
+            "action": "rekey",
+            "target_crate_id": "storage-oci-adapter",
+            "confidence": "high",
+            "evidence": "Live crate `storage-oci-adapter` at storage/adapters/oci/Cargo.toml. De-brand + word-reorder oya-cloud-storage-adapter-oci -> storage-oci-adapter. Record content role:adapter capability:storage-oci-command-shape; non_claims reference OCI SDK — matches the oci adapter. No existing catalog file for storage-oci-adapter (no collision)."
+          },
+          {
+            "stem": "oya-drive-domain",
+            "action": "rekey",
+            "target_crate_id": "storage-drive-domain",
+            "confidence": "high",
+            "evidence": "Live crate `storage-drive-domain` at storage/facade/drive/Cargo.toml (package name == \"storage-drive-domain\"). Reorg folded oya/drive into storage/ as a facade (move-manifest: old_path oya/drive/slos/* -> new_path storage/observability/slos/drive-* and storage/observability/slos/*). De-branded oya-drive-domain -> storage-drive-domain. No existing catalog file for storage-drive-domain (no collision)."
+          },
+          {
+            "stem": "oya-recordings-domain",
+            "action": "rekey",
+            "target_crate_id": "storage-recordings-domain",
+            "confidence": "high",
+            "evidence": "Live crate `storage-recordings-domain` at storage/facade/recordings/Cargo.toml (package name == \"storage-recordings-domain\"). Reorg folded oya/recordings into storage/ as a facade (move-manifest: old_path oya/recordings/slos/* -> new_path storage/observability/slos/recordings-*). De-branded oya-recordings-domain -> storage-recordings-domain. No existing catalog file for storage-recordings-domain (no collision)."
+          },
+          {
+            "stem": "oya-cloud-storage-kernel",
+            "action": "delete",
+            "target_crate_id": "",
+            "confidence": "high",
+            "evidence": "Genuinely dead — no live crate. git grep finds no Cargo.toml with name == \"oya-cloud-storage-kernel\" and no storage-kernel / storage-*kernel crate anywhere. The record self-documents this: capability:storage-kernel-retired, slo:not-applicable-no-crate, non_claims: \"no oya-cloud-storage-kernel crate exists in this workspace\", \"storage foundation is implemented in domain api and adapter crates only\", \"retained as compatibility catalog metadata until retired by a dedicated cleanup ChangeSet\". This is the empty-baseline cleanup that retires it. No plausible rename target (the live crates are domain/ports/adapters; kernel was never built)."
+          }
+        ],
+        "notes": "No oya-imaging-* catalog files exist (none in registry/catalog/), so nothing to dispose for the imaging prefix even though oya/imaging SLOs were folded into storage/observability/ by the reorg and there is NO imaging crate anywhere — if an imaging catalog record surfaces in another cluster it should be deleted (no correspondent crate).\n\nAll 7 rekey targets are unoccupied: none of storage-domain, storage-block-api, storage-object-api, storage-s3-adapter, storage-oci-adapter, storage-drive-domain, storage-recordings-domain currently has a registry/catalog/<id>.yaml file, so the renames are collision-free.\n\nTwo rekeys involve a word-order swap, not just a prefix drop: oya-cloud-storage-adapter-s3 -> storage-s3-adapter and oya-cloud-storage-adapter-oci -> storage-oci-adapter (live crate-ids put the provider token before \\\"adapter\\\"). Confidence high — corroborated by the adapter directory names (storage/adapters/{s3,oci}) and provider-specific non_claims in each record.\n\nContent-edit follow-ups (out of scope for the rekey/delete decision, flagged per the prompt): after rename, the capability/identity fields will need updating to de-branded values, e.g. oya-cloud-storage-domain's `capability: cloud-storage` -> `storage` / `storage-domain`; the two adapter records' `capability: storage-{oci,s3}-command-shape`; and drive/recordings `context:` fields (currently context:drive / context:recordings vs the storage capability home).\n\nNo keep-justify cases. The only delete (oya-cloud-storage-kernel) is unambiguous and self-attesting."
+      },
+      {
+        "group": "reorg-caused dead catalog records — marketplace capability",
+        "dead_count": 9,
+        "dispositions": [
+          {
+            "stem": "oya-cloud-marketplace-domain",
+            "action": "rekey",
+            "target_crate_id": "marketplace-cloud-domain",
+            "confidence": "high",
+            "evidence": "Live crate marketplace/core/cloud-domain/Cargo.toml has package name=\"marketplace-cloud-domain\" (matches members glob marketplace/*/*, not excluded). Old record context:cloud role:domain capability:cloud-marketplace de-brands to capability=cloud-domain under marketplace/core/. Direct 1:1 de-brand rename."
+          },
+          {
+            "stem": "oya-cloud-marketplace-kernel",
+            "action": "rekey",
+            "target_crate_id": "marketplace-cloud-kernel",
+            "confidence": "high",
+            "evidence": "Live crate marketplace/core/cloud-kernel/Cargo.toml has package name=\"marketplace-cloud-kernel\"; its src/lib.rs header reads 'Cloud marketplace kernel (M03-P03-IP-005 minimum viable kernel)'. Old record context:cloud role:kernel capability:cloud-marketplace. Direct 1:1 de-brand rename."
+          },
+          {
+            "stem": "oya-dev-cli",
+            "action": "rekey",
+            "target_crate_id": "marketplace-dev-cli",
+            "confidence": "high",
+            "evidence": "Live crate marketplace/facade/dev-cli/Cargo.toml has package name=\"marketplace-dev-cli\", default-run=\"oya\", and [package.metadata.oya] bounded_context=\"marketplace-dev-cli\" purpose='Gate-runner CLI homed to marketplace/facade; retirement-marked per founder CLI-retirement directive'. Old record capability:dev role:runtime context:tooling is the gate-runner CLI now homed to marketplace/facade. 1:1 rename."
+          },
+          {
+            "stem": "oya-marketplace-doc-set-scaffold",
+            "action": "rekey",
+            "target_crate_id": "marketplace-doc-set-scaffold",
+            "confidence": "high",
+            "evidence": "Live crate marketplace/core/doc-set-scaffold/Cargo.toml has package name=\"marketplace-doc-set-scaffold\" description='Marketplace documentation-set scaffold crate'. Old record context:marketplace role:app capability:doc-set-scaffold. Direct 1:1 de-brand rename (drop oya- prefix)."
+          },
+          {
+            "stem": "oya-saas-plugin-marketplace-kernel",
+            "action": "rekey",
+            "target_crate_id": "marketplace-plugin-kernel",
+            "confidence": "high",
+            "evidence": "Live crate marketplace/core/plugin-kernel/Cargo.toml package name=\"marketplace-plugin-kernel\"; its src/lib.rs header reads 'SaaS plugin marketplace — manifest registry + trust-tier listing + ads auction kernel. Owns the public marketplace contracts'. Old record context:saas role:kernel capability:saas-plugin-marketplace maps to this kernel (the SaaS plugin-marketplace kernel, de-branded + rehomed to marketplace/core/plugin-kernel). The live oya-saas-plugin-app crate depends on marketplace-plugin-kernel, confirming the lineage."
+          },
+          {
+            "stem": "oya-cloud-marketplace-adapter-fake",
+            "action": "delete",
+            "target_crate_id": "",
+            "confidence": "high",
+            "evidence": "Record self-declares status:retired-compatibility-row-no-crate with non_claims 'no matching crate exists in this checkout' and 'no runtime adapter ... is implemented'. No marketplace/adapters/ directory exists at the tip and no crate name matching *marketplace*adapter* exists in any Cargo.toml. successor_catalogs point to cloud-marketplace-domain/kernel (folded in). Genuinely dead — delete under empty-baseline; re-add if a fake adapter crate ever lands."
+          },
+          {
+            "stem": "oya-cloud-marketplace-adapter-oci",
+            "action": "delete",
+            "target_crate_id": "",
+            "confidence": "high",
+            "evidence": "Record self-declares status:retired-compatibility-row-no-crate, non_claims 'no matching crate exists in this checkout'. No marketplace/adapters/ dir and no *marketplace*adapter* Cargo.toml package name anywhere at the tip. successor_catalogs point to domain/kernel (folded). Genuinely dead — delete."
+          },
+          {
+            "stem": "oya-saas-plugin-marketplace",
+            "action": "delete",
+            "target_crate_id": "",
+            "confidence": "high",
+            "evidence": "Old record role:domain capability:saas-plugin-marketplace. Only the KERNEL of this SaaS plugin marketplace survived (as marketplace-plugin-kernel); no separate domain crate exists. grep for package name in {saas-plugin-marketplace, marketplace-plugin-domain, plugin-marketplace-domain} returns nothing across all Cargo.toml at the tip. Aspirational domain-layer record with no live crate — delete under empty-baseline."
+          },
+          {
+            "stem": "oya-saas-plugin-runtime",
+            "action": "delete",
+            "target_crate_id": "",
+            "confidence": "high",
+            "evidence": "Old record role:runtime plane:data capability:saas-plugin-runtime. No live crate named saas-plugin-runtime / marketplace-plugin-runtime / plugin-runtime in any Cargo.toml at the tip (grep exit 1). The plugin runtime/data-plane was never built as its own crate. Aspirational record with no crate — delete under empty-baseline."
+          }
+        ],
+        "notes": "EXCLUDED from dead set: registry/catalog/oya-saas-plugin-app.yaml is NOT dead — oya-saas-plugin-app IS a live workspace crate at oya/application/crates/oya-saas-plugin-app/Cargo.toml (package name=\\\"oya-saas-plugin-app\\\", matches members glob oya/*/crates/oya-* and is not in the workspace exclude list). It maps to its own same-named record, so it stays as-is. The prompt's hint listed it among possible deletes, but it is genuinely live; do NOT delete or rekey it.\n\nNo catalog files exist for the prefixes oya-cloud-marketplace-* beyond the four above, nor for oya-plugin-app-store-* or oya-developer-sdk-* (those capabilities only appear as SLO yaml moves in specs/reorg/move-manifest.generated.json: oya/plugin-app-store/slos/* -> marketplace/observability/slos/*, never as crates/catalog rows). So nothing to action there.\n\nProvenance method note: specs/reorg/move-manifest.generated.json contains only file-level (SLO yaml) moves for marketplace, NO crate-directory moves — the live marketplace crates were authored fresh under the capability-first layout (ADR-0562) rather than git-moved, so rekey lineage was established via (a) exact de-brand name correspondence and (b) src/lib.rs module-header self-description matching each old record's context/role/capability. All five rekeys are high-confidence on that combined evidence.\n\nMany-to-fewer collapse confirmed: the old SaaS-plugin-marketplace trio (kernel/domain/runtime) collapsed to a single live crate (marketplace-plugin-kernel ← kernel); domain+runtime had no surviving crate -> delete. The two cloud-marketplace adapter compat-rows (fake/oci) were folded into cloud-marketplace domain+kernel per their own successor_catalogs -> delete.\n\nNo keep-justify cases: every dead record either rekeys to a live crate or is an aspirational/compat row with no crate, which the empty-baseline policy says to delete (re-addable when a crate lands). No human delete-vs-keep call is required for this cluster."
+      },
+      {
+        "group": "reorg-caused dead catalog records: compute, cell, gateway, flags, messaging",
+        "dead_count": 33,
+        "dispositions": [
+          {
+            "stem": "oya-connector-adp-adapter",
+            "action": "rekey",
+            "target_crate_id": "gateway-adp-connector",
+            "confidence": "high",
+            "evidence": "Live crate gateway/adapters/adp-connector/Cargo.toml package name = \"gateway-adp-connector\"; record role=adapter capability=connector-adp. De-branded reorg rename connector-<vendor>-adapter -> gateway-<vendor>-connector."
+          },
+          {
+            "stem": "oya-connector-epic-fhir-adapter",
+            "action": "rekey",
+            "target_crate_id": "gateway-epic-fhir-connector",
+            "confidence": "high",
+            "evidence": "Live crate gateway/adapters/epic-fhir-connector/Cargo.toml name = \"gateway-epic-fhir-connector\"."
+          },
+          {
+            "stem": "oya-connector-gusto-adapter",
+            "action": "rekey",
+            "target_crate_id": "gateway-gusto-connector",
+            "confidence": "high",
+            "evidence": "Live crate gateway/adapters/gusto-connector/Cargo.toml name = \"gateway-gusto-connector\"."
+          },
+          {
+            "stem": "oya-connector-netsuite-adapter",
+            "action": "rekey",
+            "target_crate_id": "gateway-netsuite-connector",
+            "confidence": "high",
+            "evidence": "Live crate gateway/adapters/netsuite-connector/Cargo.toml name = \"gateway-netsuite-connector\"."
+          },
+          {
+            "stem": "oya-connector-quickbooks-adapter",
+            "action": "rekey",
+            "target_crate_id": "gateway-quickbooks-connector",
+            "confidence": "high",
+            "evidence": "Live crate gateway/adapters/quickbooks-connector/Cargo.toml name = \"gateway-quickbooks-connector\"."
+          },
+          {
+            "stem": "oya-connector-rippling-adapter",
+            "action": "rekey",
+            "target_crate_id": "gateway-rippling-connector",
+            "confidence": "high",
+            "evidence": "Live crate gateway/adapters/rippling-connector/Cargo.toml name = \"gateway-rippling-connector\"."
+          },
+          {
+            "stem": "oya-connector-salesforce-adapter",
+            "action": "rekey",
+            "target_crate_id": "gateway-salesforce-connector",
+            "confidence": "high",
+            "evidence": "Live crate gateway/adapters/salesforce-connector/Cargo.toml name = \"gateway-salesforce-connector\"."
+          },
+          {
+            "stem": "oya-connector-slack-adapter",
+            "action": "rekey",
+            "target_crate_id": "gateway-slack-connector",
+            "confidence": "high",
+            "evidence": "Live crate gateway/adapters/slack-connector/Cargo.toml name = \"gateway-slack-connector\"; record role=adapter capability=connector-slack."
+          },
+          {
+            "stem": "oya-connector-teams-adapter",
+            "action": "rekey",
+            "target_crate_id": "gateway-teams-connector",
+            "confidence": "high",
+            "evidence": "Live crate gateway/adapters/teams-connector/Cargo.toml name = \"gateway-teams-connector\"."
+          },
+          {
+            "stem": "oya-connector-workday-adapter",
+            "action": "rekey",
+            "target_crate_id": "gateway-workday-connector",
+            "confidence": "high",
+            "evidence": "Live crate gateway/adapters/workday-connector/Cargo.toml name = \"gateway-workday-connector\"."
+          },
+          {
+            "stem": "oya-cloud-compute-domain",
+            "action": "rekey",
+            "target_crate_id": "compute-domain",
+            "confidence": "high",
+            "evidence": "Live crate compute/core/domain/Cargo.toml name = \"compute-domain\"; record role=domain capability=cloud-compute. De-brand oya-cloud-compute-* -> compute-*."
+          },
+          {
+            "stem": "oya-cloud-compute-adapter-aws",
+            "action": "rekey",
+            "target_crate_id": "compute-aws-adapter",
+            "confidence": "high",
+            "evidence": "Live crate compute/adapters/aws/Cargo.toml name = \"compute-aws-adapter\"; record role=adapter capability=compute-aws-ec2."
+          },
+          {
+            "stem": "oya-cloud-compute-adapter-oci",
+            "action": "rekey",
+            "target_crate_id": "compute-oci-adapter",
+            "confidence": "high",
+            "evidence": "Live crate compute/adapters/oci/Cargo.toml name = \"compute-oci-adapter\"; record role=adapter capability=compute-oci."
+          },
+          {
+            "stem": "oya-cloud-compute-functions-api",
+            "action": "rekey",
+            "target_crate_id": "compute-functions-api",
+            "confidence": "high",
+            "evidence": "Live crate compute/facade/functions/Cargo.toml name = \"compute-functions-api\" (same tail; de-brand drops oya-cloud- prefix). Record role=api capability=compute-functions."
+          },
+          {
+            "stem": "oya-cloud-compute-k8s-api",
+            "action": "rekey",
+            "target_crate_id": "compute-k8s-api",
+            "confidence": "high",
+            "evidence": "Live crate compute/facade/k8s/Cargo.toml name = \"compute-k8s-api\"; record role=api capability=compute-k8s."
+          },
+          {
+            "stem": "oya-cloud-compute-vm-api",
+            "action": "rekey",
+            "target_crate_id": "compute-vm-api",
+            "confidence": "high",
+            "evidence": "Live crate compute/facade/vm/Cargo.toml name = \"compute-vm-api\"; record role=api capability=compute-vm."
+          },
+          {
+            "stem": "oya-cloud-compute-kernel",
+            "action": "delete",
+            "target_crate_id": "",
+            "confidence": "high",
+            "evidence": "Record self-declares status: retired-compatibility-row-no-crate, non_claims: 'no oya-cloud-compute-kernel crate exists in this checkout'. No live *-kernel crate under compute/ (only core/domain, core/dcops, core/resource, adapters, facade). Its successor_catalogs are the domain/api crates (already rekeyed). Empty-baseline: delete no-crate compatibility row."
+          },
+          {
+            "stem": "oya-cloud-capacity-domain",
+            "action": "rekey",
+            "target_crate_id": "cell-capacity",
+            "confidence": "medium",
+            "evidence": "Record role=domain capability=cloud-capacity. Capacity moved into cell/: live crate cell/core/capacity/Cargo.toml name = \"cell-capacity\" is the sole capacity core/domain crate. No compute/capacity crate exists. Confidence medium: capability label is cloud-capacity vs live cell-capacity; mapping inferred from directory consolidation (capacity now lives under cell/)."
+          },
+          {
+            "stem": "oya-cloud-capacity-kernel",
+            "action": "delete",
+            "target_crate_id": "",
+            "confidence": "high",
+            "evidence": "Record role=kernel capability=cloud-capacity. No live *-kernel capacity crate; only one live capacity crate exists (cell-capacity) which the capacity-domain record already takes. non_claims confirm no live capacity runtime/db. Empty-baseline: redundant kernel record with no crate -> delete."
+          },
+          {
+            "stem": "oya-cloud-capacity-adapter-aws",
+            "action": "delete",
+            "target_crate_id": "",
+            "confidence": "high",
+            "evidence": "Record self-declares status: retired-compatibility-row-no-crate, non_claims: 'no matching crate exists in this checkout'. No capacity AWS adapter crate anywhere (no cell-capacity-aws / capacity-aws). Delete."
+          },
+          {
+            "stem": "oya-cloud-capacity-adapter-fake",
+            "action": "delete",
+            "target_crate_id": "",
+            "confidence": "high",
+            "evidence": "Record self-declares status: retired-compatibility-row-no-crate, non_claims: 'no matching crate exists'. No fake capacity adapter crate exists. Delete."
+          },
+          {
+            "stem": "oya-cloud-region-domain",
+            "action": "rekey",
+            "target_crate_id": "cell-region",
+            "confidence": "high",
+            "evidence": "Record role=domain capability=cloud-region. Region moved under cell/: live crate cell/core/region/Cargo.toml name = \"cell-region\" is the region core/domain crate."
+          },
+          {
+            "stem": "oya-cloud-region-api",
+            "action": "rekey",
+            "target_crate_id": "cell-region-api",
+            "confidence": "high",
+            "evidence": "Record role=api capability=region. Live crate cell/ports/region/Cargo.toml name = \"cell-region-api\" is the region ports/api crate."
+          },
+          {
+            "stem": "oya-cloud-region-kernel",
+            "action": "delete",
+            "target_crate_id": "",
+            "confidence": "high",
+            "evidence": "Record role=kernel capability=region. No live region *-kernel crate; region is covered by cell-region (core) + cell-region-api (ports), both already rekeyed. Empty-baseline: no-crate kernel row -> delete."
+          },
+          {
+            "stem": "oya-regional-pack-domain",
+            "action": "rekey",
+            "target_crate_id": "cell-regional-pack",
+            "confidence": "high",
+            "evidence": "Record role=domain capability=regional-pack. Live crate cell/core/regional-pack/Cargo.toml name = \"cell-regional-pack\" is the regional-pack core/domain crate."
+          },
+          {
+            "stem": "oya-regional-pack-api",
+            "action": "rekey",
+            "target_crate_id": "cell-regional-pack-api",
+            "confidence": "medium",
+            "evidence": "Record role=api, capability=regulatory-pack-bind. Live crate cell/ports/regional-pack/Cargo.toml name = \"cell-regional-pack-api\" is the regional-pack ports/api crate. Confidence medium: catalog capability label is 'regulatory-pack-bind' (paired with the domain record's 'regional-pack'); the ports crate is the only regional-pack api crate so it is the rekey target, but the capability/identity field will need a content edit on rekey."
+          },
+          {
+            "stem": "oya-cloud-cell-app",
+            "action": "rekey",
+            "target_crate_id": "cell-bind-api",
+            "confidence": "medium",
+            "evidence": "Record role=app capability=cloud-cell-bind. Live crate cell/ports/cell-bind/Cargo.toml name = \"cell-bind-api\"; its lib.rs is 'Cloud cell binding API application surface', references contracts/openapi/cloud/cloud-cell-bind-v1.yaml and owns cell-lifecycle command/state + CLOUD_CELL_BINDING_SCHEMA_VERSION. Best match for the cloud-cell-bind app surface. Confidence medium: cell-bind-api also subsumes the oya-cell-domain record (see notes); only one of the two dead cell records can rekey to this single live crate."
+          },
+          {
+            "stem": "oya-cell-domain",
+            "action": "delete",
+            "target_crate_id": "",
+            "confidence": "low",
+            "evidence": "Record role=domain capability=cell-binding. No live cell-domain core crate exists; the cell binding domain logic is folded into cell/ports/cell-bind (cell-bind-api), which is already the rekey target for oya-cloud-cell-app. Under empty-baseline a single live crate may hold only one catalog record, so this duplicate cell-binding record is deleted. LOW confidence / needs human call: see notes -- the alternative is to rekey THIS to cell-bind-api and delete oya-cloud-cell-app instead."
+          },
+          {
+            "stem": "oya-cloud-cell-application",
+            "action": "delete",
+            "target_crate_id": "",
+            "confidence": "high",
+            "evidence": "Record self-declares status: retired-compatibility-row-no-crate, non_claims: 'no matching crate exists in this checkout'; successor_catalogs = oya-cloud-cell-app + oya-cell-domain. No cell application/app crate exists (no cell/facade or cell/app dir). Delete."
+          },
+          {
+            "stem": "oya-eventing-domain",
+            "action": "rekey",
+            "target_crate_id": "messaging-domain",
+            "confidence": "high",
+            "evidence": "Record role=domain capability=eventing. Eventing renamed to messaging in reorg: live crate messaging/core/domain/Cargo.toml name = \"messaging-domain\" (src has cloud_event.rs). No eventing-* crate exists anywhere."
+          },
+          {
+            "stem": "oya-eventing-file-adapter",
+            "action": "rekey",
+            "target_crate_id": "messaging-file-adapter",
+            "confidence": "high",
+            "evidence": "Record role=adapter capability=eventing. Live crate messaging/adapters/file/Cargo.toml name = \"messaging-file-adapter\" (tests/file_outbox.rs). De-brand eventing-* -> messaging-*."
+          },
+          {
+            "stem": "oya-eventing-application",
+            "action": "delete",
+            "target_crate_id": "",
+            "confidence": "high",
+            "evidence": "Record role=application capability=eventing. messaging/ contains only core/domain + adapters/file; no messaging-application/app crate exists. No eventing app crate anywhere. Empty-baseline: no live crate -> delete (re-add when an app crate lands)."
+          },
+          {
+            "stem": "oya-flags",
+            "action": "rekey",
+            "target_crate_id": "flags-server",
+            "confidence": "high",
+            "evidence": "Catalog stem oya-flags is NOT a package name. flags/core/server/Cargo.toml has package name = \"flags-server\" (line 2); 'oya-flags' appears only as the [[bin]] target name (line 9) and BUCK bin target. The live package corresponding to this record is flags-server, so the catalog file must be rekeyed oya-flags.yaml -> flags-server.yaml."
+          }
+        ],
+        "notes": "33 dead stems; 23 rekey, 10 delete, 0 keep-justify. All work verified against tip 124ad5601f4b6f4e8f52bf942aa1261dbc59b8c9.\n\nHUMAN CALL NEEDED -- two dead cell records collapse onto one live crate (cell-bind-api): oya-cloud-cell-app (capability cloud-cell-bind, role app) and oya-cell-domain (capability cell-binding, role domain). The live crate cell/ports/cell-bind (package cell-bind-api) implements BOTH the cell-binding domain (cell_lifecycle command/state, CLOUD_CELL_BINDING_SCHEMA_VERSION) AND the cloud-cell-bind API surface (cloud-cell-bind-v1.yaml). Only one catalog record can rekey to it under empty-baseline. I chose rekey oya-cloud-cell-app -> cell-bind-api (it is role=app/api matching a ports crate, and the lib doc says 'Cloud cell binding API application surface') and DELETE oya-cell-domain. The reverse choice (rekey oya-cell-domain, delete oya-cloud-cell-app) is defensible since the crate also carries the domain logic. Flagging because both my picks here are not high-confidence.\n\nMEDIUM-confidence rekeys whose capability/identity fields will need a content edit after the file rename (the rename target crate is solid, but the capability label differs from the old record):\n - oya-cloud-capacity-domain -> cell-capacity (capability label cloud-capacity vs cell crate; capacity consolidated under cell/).\n - oya-regional-pack-api -> cell-regional-pack-api (old capability 'regulatory-pack-bind').\n - oya-cloud-cell-app -> cell-bind-api (old capability cloud-cell-bind; role app->api/ports).\n\noya-flags is a TRAP: the stem matches a [[bin]] target name, not a package name. Naive `git grep name = \"oya-flags\"` falsely reports it LIVE. The actual live package is flags-server. Rekey, do not keep.\n\nMove manifest (specs/reorg/move-manifest.generated.json) is SLO-backfill focused with empty crate_idents/crate_dirs lists, so it does NOT carry crate-rename history. All rekey targets were derived from live directory layout + Cargo.toml package names + catalog role/capability fields, not the manifest.\n\nOUT-OF-SCOPE GAPS observed (not dead records, so not in dispositions, but worth noting for the empty-baseline pass): live crates cell-routing (cell/core/routing), cell-capacity-commercial (cell/core/capacity-commercial), cell-bind-api (if oya-cloud-cell-app is the one rekeyed, cell-routing/capacity-commercial still have NO catalog record at all). These are missing-record gaps, opposite problem from this cluster's dead-record cleanup.\n\nThe four 'retired-compatibility-row-no-crate' self-labeled records (oya-cloud-compute-kernel, oya-cloud-capacity-adapter-aws, oya-cloud-capacity-adapter-fake, oya-cloud-cell-application) are unambiguous deletes -- they explicitly state no crate exists and were only retained for markdown-retirement compatibility."
+      },
+      {
+        "group": "community-social* / community-* (pre-existing dead catalog records)",
+        "dead_count": 28,
+        "notes": "Catalog file-stems carry the `oya-` prefix (registry/catalog/oya-community-*.yaml); the cluster's \"community-social*\"/\"community-*\" maps to these. Of 42 oya-community-* records, 14 are LIVE (exactly the 14 crates under oya/community/crates/: the 7 oya-community-post-store-* crates, oya-community-social-app, oya-community-social-domain, and the 5 oya-community-social-post-composition-{adapter-postgres,api,grpc,rest,usecase}) and 28 are DEAD.\n\nALL 28 dead stems resolve to DELETE. They are aspirational planning records (sampled content shows api_stability: preview, security_review: unreviewed, context: community-social) whose crates were never built; they predate the reorg (introduced in #3/#181/#289, never produced a Cargo.toml). Verified rigorously: no Cargo.toml with package name == stem exists anywhere (checked both hyphen and underscore forms); the only community crates in the tree are the 14 live ones under oya/community/crates/.\n\nREKEY was considered and REJECTED for all: there is a conceptual successor lineage — the social capability was re-homed from the `community-social` context to a standalone `social` context (ADR-0334 retired shorts µservice and absorbed short-video into social; ADR-0238/0334 social expansion). 19 of the 28 dead stems have a name-parallel record at oya/social/catalog/oya-social-<rest>.yaml (e.g. oya-community-social-content-moderation-kernel ~ oya-social-content-moderation-kernel). HOWEVER those oya-social-* records are NOT live crates either — there are ZERO Cargo.toml files under oya/social/ — they are a SEPARATE aspirational catalog tree (oya/social/catalog/, plus 6 oya-social-* records in registry/catalog/ that are also not live crates and belong to the separate `social-*` cluster). Rekey requires a LIVE target crate-id; none exists. Rekeying a registry/catalog record to an oya-social-* name would create a duplicate aspirational record, not map to a live crate, so it is invalid under empty-baseline. The move-manifest (specs/reorg/move-manifest.generated.json) contains NO community entries, confirming these were never migrated to live crates.\n\n9 dead stems have NO parallel social catalog at all (audio-track-library-adapter-meilisearch, copyright-claim-{adapter-postgres,kernel}, drm-adapter-{fairplay,playready,widevine}, short-video-storage-adapter-{cloudfront,s3}, short-video-transcode-{adapter-ffmpeg,kernel}, short-video-upload-kernel) — purely aspirational, genuinely gone.\n\nNO human escalation needed: empty-baseline policy is unambiguous here — every dead stem lacks a live crate and lacks a live rekey target, so delete is correct for all 28. If/when the social product crates are actually built, the catalog records should be (re)created under their then-canonical crate-ids (likely social-* / de-branded), not these community-social-* stems.",
+        "dispositions": [
+          {
+            "stem": "oya-community-social-audio-track-library-adapter-meilisearch",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No Cargo.toml with this package name (hyphen or underscore) anywhere at tip; only 14 live community crates exist under oya/community/crates/ and this is not one. No parallel oya-social-* catalog record (oya-social-audio-track-library-adapter-meilisearch absent). Aspirational record, crate never built; predates reorg."
+          },
+          {
+            "stem": "oya-community-social-content-moderation-adapter-clamav",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate of this name anywhere. Conceptual successor oya-social-content-moderation-adapter-clamav exists ONLY as aspirational catalog at oya/social/catalog/ (no Cargo.toml under oya/social/), so not a valid rekey target. Aspirational record under empty-baseline -> delete."
+          },
+          {
+            "stem": "oya-community-social-content-moderation-adapter-opswat",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate. Successor oya-social-content-moderation-adapter-opswat is catalog-only at oya/social/catalog/ with no backing crate; not a live rekey target. Aspirational -> delete."
+          },
+          {
+            "stem": "oya-community-social-content-moderation-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate; record content shows api_stability: preview, security_review: unreviewed (aspirational). Successor oya-social-content-moderation-kernel is catalog-only (no Cargo.toml under oya/social/); not a live rekey target. Delete."
+          },
+          {
+            "stem": "oya-community-social-copyright-claim-adapter-postgres",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate anywhere; no parallel oya-social-copyright-claim-adapter-postgres catalog either. Purely aspirational, crate never built. Delete."
+          },
+          {
+            "stem": "oya-community-social-copyright-claim-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate anywhere; no parallel social catalog record. Purely aspirational. Delete."
+          },
+          {
+            "stem": "oya-community-social-drm-adapter-fairplay",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate; no parallel oya-social-drm-* catalog record. DRM adapter never built; aspirational. Delete."
+          },
+          {
+            "stem": "oya-community-social-drm-adapter-playready",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate; no parallel social catalog record. DRM adapter never built; aspirational. Delete."
+          },
+          {
+            "stem": "oya-community-social-drm-adapter-widevine",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate; no parallel social catalog record. DRM adapter never built; aspirational. Delete."
+          },
+          {
+            "stem": "oya-community-social-federation-gateway-adapter-activitypub",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate. Successor oya-social-federation-gateway-adapter-activitypub is catalog-only at oya/social/catalog/ (no backing Cargo.toml); not a live rekey target. Aspirational -> delete."
+          },
+          {
+            "stem": "oya-community-social-feed-timeline-adapter-valkey",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate. Successor oya-social-feed-timeline-adapter-valkey is catalog-only (no crate under oya/social/); not a live rekey target. Delete."
+          },
+          {
+            "stem": "oya-community-social-feed-timeline-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate. Successor oya-social-feed-timeline-kernel is catalog-only (no Cargo.toml under oya/social/); not a live rekey target. Delete."
+          },
+          {
+            "stem": "oya-community-social-follow-graph-adapter-postgres",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate. Successor oya-social-follow-graph-adapter-postgres is catalog-only; not a live rekey target. Delete."
+          },
+          {
+            "stem": "oya-community-social-follow-graph-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate. Successor oya-social-follow-graph-kernel is catalog-only (no backing crate); not a live rekey target. Delete."
+          },
+          {
+            "stem": "oya-community-social-post-composition-adapter-ffmpeg",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate (note: only oya-community-social-post-composition-adapter-postgres among post-composition adapters is live; this ffmpeg one is not). Successor oya-social-post-composition-adapter-ffmpeg is catalog-only; not a live rekey target. Delete."
+          },
+          {
+            "stem": "oya-community-social-post-composition-adapter-imagemagick",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate. Successor oya-social-post-composition-adapter-imagemagick is catalog-only; not a live rekey target. Delete."
+          },
+          {
+            "stem": "oya-community-social-post-composition-adapter-s3",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate. Successor oya-social-post-composition-adapter-s3 is catalog-only; not a live rekey target. Delete."
+          },
+          {
+            "stem": "oya-community-social-post-composition-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate (the live post-composition crates are api/grpc/rest/usecase/adapter-postgres; no kernel crate). Successor oya-social-post-composition-kernel is catalog-only; not a live rekey target. Delete."
+          },
+          {
+            "stem": "oya-community-social-search-adapter-meilisearch",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate. Successor oya-social-search-adapter-meilisearch is catalog-only; not a live rekey target. Delete."
+          },
+          {
+            "stem": "oya-community-social-short-video-storage-adapter-cloudfront",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate; no parallel oya-social-short-video-* catalog record. Short-video capability (ADR-0334 absorbed shorts into social) never produced this crate. Aspirational. Delete."
+          },
+          {
+            "stem": "oya-community-social-short-video-storage-adapter-s3",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate; no parallel social catalog record. Aspirational short-video adapter, never built. Delete."
+          },
+          {
+            "stem": "oya-community-social-short-video-transcode-adapter-ffmpeg",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate; no parallel social catalog record. Aspirational short-video adapter, never built. Delete."
+          },
+          {
+            "stem": "oya-community-social-short-video-transcode-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate; no parallel social catalog record. Aspirational short-video kernel, never built. Delete."
+          },
+          {
+            "stem": "oya-community-social-short-video-upload-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate; no parallel social catalog record. Aspirational short-video kernel, never built. Delete."
+          },
+          {
+            "stem": "oya-community-social-user-profile-adapter-postgres",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate. Successor oya-social-user-profile-adapter-postgres is catalog-only at oya/social/catalog/ (no backing crate); not a live rekey target. Delete."
+          },
+          {
+            "stem": "oya-community-social-user-profile-domain",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate (the live community-social *-domain crate is oya-community-social-domain, a different stem; this user-profile-domain has no crate). Successor oya-social-user-profile-domain is catalog-only; not a live rekey target. Delete."
+          },
+          {
+            "stem": "oya-community-social-user-profile-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate. Successor oya-social-user-profile-kernel is catalog-only; not a live rekey target. Delete."
+          },
+          {
+            "stem": "oya-community-social-user-profile-rest",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate. Successor oya-social-user-profile-rest is catalog-only (no Cargo.toml under oya/social/); not a live rekey target. Delete."
+          }
+        ]
+      },
+      {
+        "group": "pre-existing dead catalog records, prefix governance* / oya-governance-*",
+        "dead_count": 27,
+        "dispositions": [
+          {
+            "stem": "oya-governance-adr-citation-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No Cargo.toml package named oya-governance-adr-citation-kernel at tip; never existed in git history. Live functional impl is oya-check-adr-citation (libs/, live + already cataloged as registry/catalog/oya-check-adr-citation.yaml). Aspirational governance-kernel duplicate; rekey would collide with existing record -> delete under empty-baseline.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-governance-adr-index-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No package by this name; never existed. Live impl oya-check-adr-index is live and already cataloged (oya-check-adr-index.yaml). Superseded aspirational record -> delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-governance-api-semver-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No package by this name; never existed. capability 'api-semver' is implemented by live oya-intelligence-api-semver-domain (already cataloged) plus event-schema/api-stability checks. Successor cataloged; rekey would collide -> delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-governance-authority-cohesion-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No package by this name; never existed. Live impl oya-check-authority-cohesion (libs/oya-check-authority-cohesion) is live and already has registry/catalog/oya-check-authority-cohesion.yaml. Aspirational duplicate -> delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-governance-brand-residue-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No package by this name; never existed. Live impl oya-check-brand-residue is live + already cataloged. Superseded -> delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-governance-cargo-prefix-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No package by this name; never existed. capability 'cargo-prefix' implemented by live oya-intelligence-cargo-prefix-domain (already cataloged) and oya-cloud-ci-cargo-prefix-app. Successor cataloged; no live crate of this stem -> delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-governance-cohesion-fitness-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "Existed once but renamed in #184 (fitness->governance standardization). Successor is live oya-governance-cohesion-kernel (capability foundry-fitness-cohesion-fitness, already cataloged as oya-governance-cohesion-kernel.yaml) and live oya-check-cohesion (cataloged). Rekey target already has a record -> delete the stale duplicate.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-governance-constitution-cite-kernel",
+            "action": "delete",
+            "confidence": "medium",
+            "evidence": "No package by this name; never existed. No live crate named constitution-cite-kernel. Closest functional impl is live oya-check-adr-citation (constitution citation == ADR/authority citation), already cataloged. A separate stale oya-check-constitution-cite.yaml exists with no crate (out of my prefix scope). For this governance stem: no live crate -> delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-governance-data-class-fitness-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No package by this name; never existed. Live impl oya-check-data-class is live + already cataloged. Aspirational fitness-naming duplicate -> delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-governance-doc-catalog-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No package by this name; never existed. Live impl oya-check-doc-catalog is live + already cataloged. Superseded -> delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-governance-documentation-system-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No package by this name; never existed. Live impl oya-check-documentation-system is live + already cataloged. Superseded -> delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-governance-fitness-adr-shape",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No package; never existed. Catalog content byte-identical to live oya-governance-adr-shape-kernel.yaml (both capability foundry-fitness-adr-shape). Successor oya-governance-adr-shape-kernel/-app are live + cataloged. Old fitness-name duplicate; rekey would collide -> delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-governance-fitness-authoritative-tracked",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No package; never existed. Successor oya-governance-authoritative-tracked-kernel/-app are live + already cataloged (same capability foundry-fitness-authoritative-tracked). Old fitness-name duplicate -> delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-governance-fitness-banned-primitives",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No package; never existed. Successor oya-governance-banned-primitives-kernel/-app are live + already cataloged (same capability). Old fitness-name duplicate -> delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-governance-fitness-portfolio-citation",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No package; never existed. Successor oya-governance-portfolio-citation-kernel/-app are live + already cataloged (same capability). Old fitness-name duplicate -> delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-governance-fitness-predictable-naming",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No package; never existed (role: test, capability fitness-predictable-naming). Successor oya-governance-predictable-naming-kernel/-app are live + already cataloged. Stale fitness-name record -> delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-governance-fitness-purpose-audit",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No package; never existed (role: test, capability fitness-purpose-audit). Successor oya-governance-purpose-audit-app is live + already cataloged. Stale fitness-name record -> delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-governance-glossary-coverage-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No package by this name; never existed. Live impl oya-check-glossary-coverage is live + already cataloged. Superseded -> delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-governance-glossary-vocabulary-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No package by this name; never existed. Live impl oya-check-glossary-vocabulary is live + already cataloged. Superseded -> delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-governance-placeholder-debt-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No package by this name; never existed. Live impl oya-check-placeholder-debt is live + already cataloged. Superseded -> delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-governance-raci-team-coverage-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No package by this name; never existed. Live impl oya-check-raci-coverage is live + already cataloged. Superseded -> delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-governance-readme-doc-coverage-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No package by this name; never existed. Live impl oya-check-readme-coverage is live + already cataloged. Superseded -> delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-governance-runbook-freshness-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No package by this name; never existed. Live impl oya-check-runbook-freshness is live + already cataloged. Superseded -> delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-governance-runbook-index-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No package by this name; never existed. Live impl oya-check-runbook-index is live + already cataloged. Superseded -> delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-governance-slo-coverage-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No package by this name; never existed. Live impl oya-check-slo-coverage is live + already cataloged. Superseded -> delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-governance-typescript-workspace-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No package by this name; never existed. Live impl oya-check-typescript-workspace is live + already cataloged. Superseded -> delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-governance-vendor-contract-recency-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No package by this name; never existed. Live impl oya-check-vendor-recency is live + already cataloged. Superseded -> delete.",
+            "target_crate_id": ""
+          }
+        ],
+        "notes": "Method (read-only at tip 124ad5601f4b6f4e8f52bf942aa1261dbc59b8c9): enumerated 83 governance* catalog stems via ls-tree; built live package-name set from all *Cargo.toml `name = \"...\"` (note: hyphenated form = [package] name = catalog stem; underscored form = [lib] name). 27 stems have NO matching [package] name and were precisely re-verified via `git grep -l name=\"<stem>\"` -> all DEAD.\n\nUnified finding: ALL 27 are leftover aspirational/superseded `oya-governance-*` records from before the fitness->governance->check/intelligence reorg. Every dead stem's live functional counterpart already exists AND already carries its own canonical catalog record:\n - fitness-* (6): successor oya-governance-<x>-kernel/-app (live + cataloged, often byte-identical content/capability).\n - *-kernel (19) + cohesion-fitness/data-class-fitness: successor live oya-check-<x> (libs/, each with its own oya-check-<x>.yaml), and/or oya-intelligence-<x>-domain (cataloged), and/or oya-cloud-ci-<x>-app.\nBecause every rekey target ALREADY HAS a catalog record, rekey would collide -> uniform action = DELETE under the founder's full-cleanup empty-baseline (catalog = live crates only; a record can be re-added if/when an actual `governance-*-kernel` crate is ever built).\n\nGit history: only oya-governance-cohesion-fitness-kernel ever existed as a package (renamed in #184 fitness->governance standardization, now superseded by live oya-governance-cohesion-kernel). The other 26 never had a Cargo package.\n\nHuman-call / low-confidence flags:\n - oya-governance-constitution-cite-kernel (medium): no exact live crate; mapped conceptually to live oya-check-adr-citation. Separately, a stale registry/catalog/oya-check-constitution-cite.yaml exists with NO live crate (oya-check-constitution-cite is not a package) — that record is in the oya-check-* cluster, OUT of this governance prefix scope, but worth a human delete pass.\n - oya-governance-api-semver-kernel / oya-governance-cargo-prefix-kernel: capability lives in oya-intelligence-*-domain crates (cataloged) rather than oya-check-*; DELETE still correct since no governance-kernel crate exists and the successor is cataloged.\nNo rekey actions emitted: every candidate target already owns its canonical record (collision), so rekey is never the right move here."
+      },
+      {
+        "group": "pre-existing dead catalog records, prefix intelligence* / oya-intelligence*",
+        "dead_count": 24,
+        "dispositions": [
+          {
+            "stem": "oya-intelligence-account-adapter-claude-code",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate named oya-intelligence-account-adapter-claude-code (no Cargo.toml, no crate dir under oya/intelligence/crates/). It was renamed to oya-intelligence-claude-account-adapter, which is LIVE (Cargo.toml present) AND already has its own catalog record registry/catalog/oya-intelligence-claude-account-adapter.yaml. The dead record is a stale duplicate of an already-cataloged live crate, so it is deleted rather than rekeyed (rekey would collide).",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-intelligence-account-adapter-codex-cli",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate of this name. Renamed to live oya-intelligence-codex-account-adapter (CRATE present) which already has its own catalog record registry/catalog/oya-intelligence-codex-account-adapter.yaml. Stale duplicate -> delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-intelligence-account-adapter-gemini-cli",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate of this name. Renamed to live oya-intelligence-gemini-account-adapter (CRATE present) which already has its own catalog record. Stale duplicate -> delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-intelligence-account-adapter-openbao",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live oya-intelligence account openbao crate anywhere (only unrelated cloud crates oya-cloud-intelligence-openbao-adapter and oya-cloud-kms-adapter-openbao exist, which are different cloud-context crates, not foundry account adapters). The only live account adapter is oya-intelligence-account-adapter-inmemory. Genuinely gone / aspirational -> delete; re-add when a crate lands.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-intelligence-account-app",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "role: application, capability: foundry-account. No live crate named oya-intelligence-account-app and no plausible rename: the only live account crates are oya-intelligence-account-domain, -account-kernel, -account-adapter-inmemory. Catalog file was created by the oya-foundry-*->oya-intelligence-* vocab rename batch (3c3cdec63) but no backing crate ever materialized at this name. Genuinely gone/aspirational -> delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-intelligence-account-runtime",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "role: runtime, capability: foundry-account. No live crate of this name and no plausible live rename among account crates (only -domain/-kernel/-adapter-inmemory live). Aspirational record with no crate -> delete under empty-baseline.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-intelligence-adapter-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "role: kernel, capability: provider-adapter. No live crate or dir for oya-intelligence-adapter-kernel. The provider-adapter kernel was consolidated into oya-intelligence-adapter-domain, which is LIVE and already has its own catalog record registry/catalog/oya-intelligence-adapter-domain.yaml. Stale duplicate of an already-cataloged crate -> delete (rekey to -adapter-domain would collide with the existing record).",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-intelligence-bypass-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "role: kernel, capability: bypass. No live -bypass-kernel crate. Live siblings: oya-intelligence-bypass-domain (capability foundry-bypass) and oya-intelligence-bypass-ledger-kernel — both already cataloged. The bypass kernel was consolidated into the live -bypass-domain record. Stale duplicate -> delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-intelligence-capability-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "role: kernel, capability: capability. No live -capability-kernel crate. Live oya-intelligence-capability-domain (foundry-capability) exists with its own catalog record (plus capability-registry-{kernel,domain,app}). kernel->domain consolidation; the live -capability-domain record already exists. Stale duplicate -> delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-intelligence-catalog-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "role: kernel, capability: catalog. No live -catalog-kernel crate. Live oya-intelligence-catalog-domain (foundry-catalog) exists and is already cataloged. kernel->domain consolidation; live -catalog-domain record already exists. Stale duplicate -> delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-intelligence-cloud-mutation-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "role: kernel, capability: cloud-mutation. No live -cloud-mutation-kernel crate. Live oya-intelligence-cloud-mutation-domain (foundry-cloud-mutation) exists and is already cataloged. Stale duplicate of consolidated domain crate -> delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-intelligence-cost-budget-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "role: kernel, capability: cost-budget. No live crate of this name and NO live intelligence sibling at all on the cost-budget base (only the unrelated oya-check-cost-budget crate exists). Capability genuinely gone / never built as a crate -> delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-intelligence-eval-application",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "role: application, capability: foundry-eval. No live crate of this name. Renamed/consolidated to oya-intelligence-eval-app (role: app, capability: eval-composition-root) which is LIVE (oya/intelligence/crates/oya-intelligence-eval-app/Cargo.toml) and already has its own catalog record. Stale duplicate -> delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-intelligence-evidence-adapter-file",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "role: adapter, capability: evidence-file. No live crate of this name. Renamed via word-order swap to oya-intelligence-evidence-file-adapter, which is LIVE (CRATE) and already has its own catalog record registry/catalog/oya-intelligence-evidence-file-adapter.yaml. Stale duplicate -> delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-intelligence-evidence-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "role: kernel, capability: evidence. No live -evidence-kernel crate. Live siblings oya-intelligence-evidence-domain (foundry-evidence) and -evidence-file-adapter exist and are cataloged. kernel consolidated into the live -evidence-domain record. Stale duplicate -> delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-intelligence-mcp-gateway-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "role: kernel, capability: mcp-gateway. No live -mcp-gateway-kernel crate. Live oya-intelligence-mcp-gateway-domain (foundry-mcp-gateway) exists and is already cataloged. kernel->domain consolidation; live domain record already exists. Stale duplicate -> delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-intelligence-mobile-native-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "role: kernel, capability: mobile-native. No live crate of this name and NO live intelligence sibling on the mobile-native base (only unrelated oya-check-mobile-native exists). Capability genuinely gone / never built as a crate -> delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-intelligence-openapi-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "role: kernel, capability: openapi. No live -openapi-kernel crate. Live oya-intelligence-openapi-domain (foundry-openapi) exists and is already cataloged. kernel->domain consolidation; live domain record already exists. Stale duplicate -> delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-intelligence-policy-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "role: kernel, capability: policy. No live -policy-kernel crate. Live oya-intelligence-policy-domain (foundry-policy) and -policy-api exist and are cataloged. kernel consolidated into live -policy-domain record. Stale duplicate -> delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-intelligence-release-evidence-pack-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "role: kernel, capability: release-evidence-pack. No live crate of this name and NO live sibling anywhere on the release-evidence-pack base (grep returns nothing). Capability genuinely gone / aspirational-only -> delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-intelligence-run-adapter-file",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "role: adapter, capability: run-file. No live crate of this name. Renamed via word-order swap to oya-intelligence-run-file-adapter, which is LIVE (CRATE) and already has its own catalog record. Stale duplicate -> delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-intelligence-run-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "role: kernel, capability: run. No live -run-kernel crate. Live oya-intelligence-run-domain (foundry-run, oya/intelligence/crates/oya-intelligence-run-domain) and -run-file-adapter exist and are cataloged. kernel consolidated into the live -run-domain record. Stale duplicate -> delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-intelligence-step-adapter-file",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "role: adapter, capability: step-file. No live crate of this name. Renamed via word-order swap to oya-intelligence-step-file-adapter, which is LIVE (CRATE) and already has its own catalog record. Stale duplicate -> delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-intelligence-step-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "role: kernel, capability: step. No live -step-kernel crate. Live oya-intelligence-step-domain (foundry-step) and -step-file-adapter exist and are cataloged. kernel consolidated into the live -step-domain record. Stale duplicate -> delete.",
+            "target_crate_id": ""
+          }
+        ],
+        "notes": "All 24 dead stems resolve to DELETE; there are zero valid rekeys in this cluster. Reason: rekey applies only when the renamed live crate has NO catalog record (so the old record is relocated onto the new id). Here every renamed/consolidated live target ALREADY has its own up-to-date catalog record (verified REC/CRATE for each: -claude/-codex/-gemini-account-adapter, the three *-file-adapter swaps, eval-app, and -adapter/-bypass/-capability/-catalog/-cloud-mutation/-mcp-gateway/-openapi/-policy/-run/-step/-evidence-domain). So the dead records are redundant stale duplicates, not orphaned records, and deleting them loses nothing.\n\nTwo sub-patterns observed:\n1) Word-order / vocab renames whose new name is already cataloged: account-adapter-{claude-code,codex-cli,gemini-cli} -> {claude,codex,gemini}-account-adapter; {evidence,run,step}-adapter-file -> {evidence,run,step}-file-adapter; eval-application -> eval-app. Many dead records were authored by the oya-foundry-*->oya-intelligence-* vocab batch (commit 3c3cdec63) but never got a backing crate, while the canonical record already existed.\n2) kernel->domain consolidation where the live -<base>-domain (capability foundry-<base>) already exists and is cataloged: adapter, bypass, capability, catalog, cloud-mutation, mcp-gateway, openapi, policy, run, step, evidence. NOTE: the repo legitimately has MANY live *-kernel crates (33 under oya/intelligence/crates), so \"kernel\" is a real role — only these 11 specific kernel records lost their crate to a domain consolidation.\n\nGenuinely-gone (no live crate AND no live sibling at all, not duplicates): cost-budget-kernel (only unrelated oya-check-cost-budget), mobile-native-kernel (only unrelated oya-check-mobile-native), release-evidence-pack-kernel (nothing), account-app, account-runtime, account-adapter-openbao (only unrelated cloud openbao crates). These can be re-added to the catalog when/if their crates land.\n\nNo human delete-vs-keep call needed: empty-baseline policy says catalog holds live crates only, and none of the 24 corresponds to a live crate. No keep-justify candidates found. Confidence high across the board (verified absence of Cargo.toml package name and crate directory under oya/intelligence/crates/ at the tip for every dead stem). Note: intelligence has NOT been reorg-moved, so live crates remain oya-intelligence-* under oya/intelligence/crates/ — none of the 24 names a live crate."
+      },
+      {
+        "group": "pre-existing-dead-catalog-records: workspace* + platform*",
+        "dead_count": 44,
+        "dispositions": [
+          {
+            "stem": "oya-workspace-address-book-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate named oya-workspace-address-book-kernel (git grep name=\"...\" over **/Cargo.toml at tip = 0 hits). De-branded live successor oya-address-book-domain (oya/connect/crates/oya-address-book-domain/Cargo.toml) already has its own catalog record registry/catalog/oya-address-book-domain.yaml, so rekey would collide. Stale pre-de-brand record under empty-baseline.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-workspace-calendar-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate of this name. Successor oya-calendar-domain (oya/calendar/crates/oya-calendar-domain/) is LIVE and already cataloged (oya-calendar-domain.yaml exists). Rekey would duplicate; delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-workspace-chat-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate of this name. The live workspace chat crate is oya-workspace-chat-api (oya/application/crates/oya-workspace-chat-api/) which is already cataloged separately; no oya-chat-kernel/-domain successor needs this record. Stale kernel record; delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-workspace-collab-runtime-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate of this name. Successor oya-collab-runtime-domain (oya/intelligence/crates/oya-collab-runtime-domain/) is LIVE and already cataloged (oya-collab-runtime-domain.yaml exists). Delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-workspace-dlp-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate of this name. Successor oya-dlp-domain (oya/compliance/crates/oya-dlp-domain/) is LIVE and already cataloged (oya-dlp-domain.yaml exists). Delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-workspace-docs-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate of this name. Successor oya-docs-domain (oya/docs/crates/oya-docs-domain/) is LIVE and already cataloged (oya-docs-domain.yaml exists). Delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-workspace-document-format-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate of this name. Successor oya-document-format-domain (oya/intelligence/crates/oya-document-format-domain/) is LIVE and already cataloged (oya-document-format-domain.yaml exists). Delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-workspace-drive-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate of this name. Live drive crates are oya-workspace-drive-api (cataloged) and the oya-office-drive-* family (oya/office/oya-office-drive-domain/ etc.); the catalog stem oya-drive-domain is itself NOT live (separate cluster's concern). This kernel record has no live crate of its own and any successor is otherwise represented; delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-workspace-dsr-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate of this name. Successor oya-dsr-domain (oya/compliance/crates/oya-dsr-domain/) is LIVE and already cataloged (oya-dsr-domain.yaml exists; also oya-dsr-usecase live). Delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-workspace-ediscovery-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate of this name. Successor oya-ediscovery-domain (oya/compliance/crates/oya-ediscovery-domain/) is LIVE and already cataloged (oya-ediscovery-domain.yaml exists). Delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-workspace-forms-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate of this name. Live forms crates are oya-workspace-forms-api (cataloged) and oya-forms-domain (oya/forms/crates/oya-forms-domain/, cataloged as oya-forms-domain.yaml). Kernel record stale; delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-workspace-mail-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate of this name. Successor oya-mail-domain (oya/mail/crates/oya-mail-domain/) is LIVE and already cataloged (oya-mail-domain.yaml exists). Delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-workspace-meet-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate of this name. Live meet crates are oya-workspace-meet-api (cataloged) and oya-meet-domain (oya/meet/crates/oya-meet-domain/, cataloged as oya-meet-domain.yaml). Kernel record stale; delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-workspace-notes-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate of this name. Successor oya-notes-domain (oya/notes/crates/oya-notes-domain/) is LIVE and already cataloged (oya-notes-domain.yaml exists). Delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-workspace-recordings-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate of this name. No oya-recordings-domain crate is live (catalog stem oya-recordings-domain exists but is NOT a live crate). The only live recordings crate is storage-recordings-domain (storage/facade/recordings/) in a different naming family/cluster. This kernel record is aspirational with no corresponding live crate; delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-workspace-retention-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate of this name. Successor oya-retention-domain (oya/compliance/crates/oya-retention-domain/) is LIVE and already cataloged (oya-retention-domain.yaml exists). Delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-workspace-sheets-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate of this name. Successor oya-sheets-domain (oya/sheets/crates/oya-sheets-domain/) is LIVE and already cataloged (oya-sheets-domain.yaml exists). Delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-workspace-sites-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate of this name. Successor oya-sites-domain (oya/sites/crates/oya-sites-domain/) is LIVE and already cataloged (oya-sites-domain.yaml exists). Delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-workspace-slides-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate of this name. Successor oya-slides-domain (oya/slides/crates/oya-slides-domain/) is LIVE and already cataloged (oya-slides-domain.yaml exists). Delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-workspace-tasks-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate of this name. Successor oya-tasks-domain (oya/tasks/crates/oya-tasks-domain/) is LIVE and already cataloged (oya-tasks-domain.yaml exists). Delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-workspace-translate-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate of this name. Successor oya-translate-domain (oya/translate/crates/oya-translate-domain/) is LIVE and already cataloged (oya-translate-domain.yaml exists). Delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-workspace-trust-portal-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate of this name. Successor oya-trust-portal-domain (oya/compliance/crates/oya-trust-portal-domain/) is LIVE and already cataloged (oya-trust-portal-domain.yaml exists). Delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-platform-audit-chain-adapter-file",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate of this name. De-branded successor oya-audit-chain-file-adapter is LIVE and already cataloged (oya-audit-chain-file-adapter.yaml exists). Rekey would collide; stale pre-de-brand platform-prefixed record; delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-platform-audit-chain-app",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate of this name. Audit-chain capability is represented by the live, already-cataloged oya-audit-chain-* family (oya-audit-chain-domain LIVE+cataloged, oya-audit-chain-emission-kernel LIVE+cataloged, etc.). No uncataloged live successor needs this record; delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-platform-audit-chain-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate of this name. Successor oya-audit-chain-domain (LIVE) is already cataloged as oya-audit-chain-domain.yaml; the broader oya-audit-chain-*-kernel family is also live and cataloged. Delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-platform-cell-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate of this name. Cell capability is de-branded into the cell-* family (cell/core/... e.g. cell-region, cell-capacity, cell-routing) and oya-tenancy-cell-assignment-kernel (LIVE+cataloged). The platform-prefixed kernel record has no live crate of its own; delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-platform-data-boundary-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate of this name. De-branded successor oya-data-boundary-kernel is LIVE and already cataloged (oya-data-boundary-kernel.yaml exists). Rekey would collide; delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-platform-dsr-app",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate of this name. DSR capability de-branded to oya-dsr-domain (LIVE+cataloged) and oya-dsr-usecase (LIVE+cataloged); the catalog stem oya-dsr-application exists but is itself dead (a separate cluster's concern). No uncataloged live successor for this record; delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-platform-dsr-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate of this name. Successor oya-dsr-domain (oya/compliance/crates/oya-dsr-domain/) is LIVE and already cataloged. Delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-platform-eventing-adapter-file",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate of this name. The catalog stem oya-eventing-file-adapter exists but is itself NOT live; no live eventing-file-adapter crate exists (event bus is Pulsar/Oxia transient per project doctrine). This platform-prefixed adapter record is aspirational with no live crate; delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-platform-eventing-app",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate of this name. Catalog stems oya-eventing-application/oya-eventing-domain exist but are themselves dead (no live eventing crate). No live successor; aspirational record; delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-platform-eventing-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate of this name. No live eventing-domain/-kernel crate exists (oya-eventing-domain catalog stem is itself dead). Aspirational; delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-platform-identity-app",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate of this name. Identity capability is de-branded into the live, already-cataloged oya-identity-* family (oya-identity, oya-identity-api, oya-identity-domain, oya-identity-usecase, oya-identity-workload-* all LIVE). No uncataloged live successor for the platform-prefixed app record; delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-platform-identity-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate of this name. Successor oya-identity-domain is LIVE and already cataloged (oya-identity-domain.yaml exists). Rekey would collide; delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-platform-metering-app",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate of this name. Metering de-branded to oya-metering-domain (LIVE+cataloged); catalog stem oya-metering-application exists but is itself dead. No uncataloged live successor; delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-platform-metering-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate of this name. Successor oya-metering-domain is LIVE and already cataloged (oya-metering-domain.yaml exists); oya-metering-pipeline-kernel is also live. Delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-platform-observability-adapter-tracing",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate of this name. No live observability tracing-adapter crate matches; observability is served by the managed-k8s-sla-observability-* family and cloud-observability substrate, none named to receive this record. Aspirational platform-prefixed adapter; delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-platform-observability-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate of this name. Closest live oya-managed-k8s-sla-observability-kernel is a different capability and already cataloged. No uncataloged successor for this generic platform observability kernel; delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-platform-policy-cedar-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate of this name. De-branded successors oya-policy-cedar-domain and oya-policy-cedar-api are LIVE and already cataloged (oya-policy-cedar-domain.yaml / oya-policy-cedar-api.yaml exist). Rekey would collide; delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-platform-regional-pack-kernel",
+            "action": "delete",
+            "confidence": "medium",
+            "evidence": "No live crate of this name. The de-branded catalog stems oya-regional-pack-domain/-api exist (a separate cluster's concern; the -domain stem is itself dead). A LIVE crate cell-regional-pack (cell/core/regional-pack/) and cell-regional-pack-api exist but are uncataloged and belong to the cell-* naming family/cluster, not this platform record. Under empty-baseline this stale platform-prefixed record has no own live crate; delete. NOTE: cell-regional-pack/-api are LIVE-but-uncataloged (cell-cluster backfill gap), not a rename target of THIS record.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-platform-residency-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate of this name. Successor oya-residency-domain (LIVE) is already cataloged (oya-residency-domain.yaml exists); also oya-tenancy-data-residency-enforcer-adapter live. Delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-platform-secrets-adapter-file",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate of this name. De-branded successor oya-secrets-file-adapter is LIVE and already cataloged (oya-secrets-file-adapter.yaml exists). Rekey would collide; delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-platform-secrets-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate of this name. Successor oya-secrets-domain (LIVE) is already cataloged (oya-secrets-domain.yaml exists); also oya-cloud-os-secrets-domain live. Delete.",
+            "target_crate_id": ""
+          },
+          {
+            "stem": "oya-platform-tenant-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "evidence": "No live crate of this name. Tenant/tenancy de-branded to the live, already-cataloged oya-tenancy-domain and oya-tenancy-* family (oya-tenancy-cell-assignment-kernel LIVE+cataloged, oya-tenancy-tenant-lifecycle-domain LIVE). No uncataloged successor for this generic platform tenant kernel; delete.",
+            "target_crate_id": ""
+          }
+        ],
+        "notes": "Cluster total: 48 catalog stems matching oya-workspace* (26) + oya-platform* (22). 4 are LIVE and correctly excluded (kept, not in dead set): oya-workspace-chat-api, oya-workspace-drive-api, oya-workspace-forms-api, oya-workspace-meet-api (all under oya/application/crates/, present in **/Cargo.toml at tip). The remaining 44 are DEAD.\n\nUniform disposition = DELETE for all 44. Rationale: these are the retired pre-de-brand naming family (oya-platform-* and oya-workspace-*-kernel). For every dead capability, the de-branded live successor already carries its own catalog record under a DIFFERENT stem in a different prefix family (e.g. oya-workspace-mail-kernel -> oya-mail-domain.yaml [LIVE]; oya-platform-identity-kernel -> oya-identity-domain.yaml [LIVE]; oya-platform-secrets-adapter-file -> oya-secrets-file-adapter.yaml [LIVE]). Because the target stem already exists in the catalog, a rekey would collide / double-catalog the same live crate; under \"full cleanup -> empty-baseline\" the correct action is to DELETE the stale duplicate record. The successor records themselves are out of my prefix scope (mail*/identity*/secrets*/etc.) and untouched.\n\nZERO rekeys. No dead stem in this cluster has a LIVE de-branded successor that lacks a catalog record (which is the only condition that would justify rekey). I verified the move-manifest (specs/reorg/move-manifest.generated.json) is scoped to slo-catalog-backfill only and contains NO workspace/platform crate-rename entries, so no reorg-driven rekey is implied either.\n\nItems flagged for a human / cross-cluster awareness (still DELETE here, but note):\n1. oya-platform-regional-pack-kernel (confidence medium): a LIVE de-branded crate exists as cell-regional-pack (cell/core/regional-pack/) + cell-regional-pack-api, but it is UNCATALOGED and lives in the cell-* family. It is NOT a rename of this platform record; rather it is a cell-cluster catalog-backfill gap. Whoever owns the cell* prefix should ADD cell-regional-pack(.yaml)/cell-regional-pack-api(.yaml) records. Do not rekey this platform record onto it.\n2. Three eventing records (oya-platform-eventing-adapter-file/-app/-kernel) are purely aspirational: NO live eventing crate of any de-branded name exists (the oya-eventing-domain/-application/-file-adapter catalog stems are themselves dead). Consistent with project doctrine that the event bus is Pulsar/Oxia transient with the owned Rust messaging stack still planned. Delete; re-add when the eventing crates actually land.\n3. oya-workspace-recordings-kernel: only live recordings crate is storage-recordings-domain (storage/facade/recordings/), a different naming family/cluster; oya-recordings-domain catalog stem is itself dead. Delete; recordings catalog record belongs to the storage cluster if at all.\n4. Several already-cataloged \"successor\" stems referenced in evidence (oya-eventing-domain, oya-metering-application, oya-regional-pack-domain, oya-audit-chain-application, oya-dsr-application) are THEMSELVES dead catalog records but fall under OTHER agents' prefixes (eventing*/metering*/regional-pack*/audit-chain*/dsr*) — out of scope for this workspace*/platform* cluster, flagged so they are not double-counted.\n\nAlso out of scope (different prefixes, NOT counted): oya-ops-workspace-shell-* (ops* prefix; note: live crates exist), oya-check-typescript-workspace (check*), oya-governance-typescript-workspace-kernel (governance*), oya-cloud-ci-workspace-glob-coverage-app (cloud-ci*). The live oya-workspace-members-kernel crate has NO catalog record (catalog-backfill gap for the workspace owner to add) — noted but not a deletion item."
+      },
+      {
+        "group": "pre-existing dead catalog records, prefix cloud-* (unmoved capabilities: billing, finops, data, iam, kms, network, surface)",
+        "dead_count": 13,
+        "dispositions": [
+          {
+            "stem": "oya-cloud-billing-adapter-aws",
+            "action": "delete",
+            "confidence": "high",
+            "target_crate_id": "",
+            "evidence": "Record self-declares status: retired-compatibility-row-no-crate with non_claims 'no matching crate exists in this checkout'. No Cargo.toml package named oya-cloud-billing-adapter-aws exists at tip 124ad560 (git grep name=\"...\" empty) nor in any history. No live billing adapter crate exists anywhere (git grep 'name = \"oya-cloud-billing-adapter' -> NONE). Successor_catalogs (domain/kernel/tax-app/metering-domain) are separate already-live catalogued crates; not a rename. Empty-baseline -> delete."
+          },
+          {
+            "stem": "oya-cloud-billing-adapter-fake",
+            "action": "delete",
+            "confidence": "high",
+            "target_crate_id": "",
+            "evidence": "status: retired-compatibility-row-no-crate, non_claims 'no matching crate exists'. No package of this name at tip or in history; no live oya-cloud-billing-adapter-* crate. Successors already catalogued separately. Delete under empty-baseline."
+          },
+          {
+            "stem": "oya-cloud-billing-app",
+            "action": "delete",
+            "confidence": "high",
+            "target_crate_id": "",
+            "evidence": "status: retired-compatibility-row-no-crate. Crate dir crates/oya-cloud-billing-app existed historically; in 55058f6c5 (M01-P02 BNF v4.1 rename) src/lib.rs R100 renamed to oya-cloud-billing-application, which was then DELETED entirely in 27fe67055 (ADR-0083 DENY). No live crate at tip. Live billing crates are oya-billing/oya-cloud-billing-domain/-kernel/oya-meter/oya-metering-domain/oya-saas-bench-app, each separately catalogued (oya-billing.yaml exists). No surviving rename target -> delete."
+          },
+          {
+            "stem": "oya-cloud-billing-application",
+            "action": "delete",
+            "confidence": "high",
+            "target_crate_id": "",
+            "evidence": "status: retired-compatibility-row-no-crate, non_claims 'no matching crate exists'. Crate crates/oya-cloud-billing-application/Cargo.toml was DELETED in 27fe67055 (ADR-0083 DENY + CLI canonicalization). No package of this name at tip. No surviving rename successor (the app/application crate was removed, not relocated). Delete."
+          },
+          {
+            "stem": "oya-cloud-billing-tax-application",
+            "action": "delete",
+            "confidence": "high",
+            "target_crate_id": "",
+            "evidence": "status: retired-compatibility-row-no-crate. The final live successor is oya-cloud-billing-tax-app (LIVE at cloud/cloud-billing-tax/crates/oya-cloud-billing-tax-app/Cargo.toml) which ALREADY has its own catalog record oya-cloud-billing-tax-app.yaml. crates/oya-cloud-billing-tax-application/Cargo.toml was deleted in 27fe67055. Rekey would collide with the existing live tax-app record, so the stale -application duplicate is delete."
+          },
+          {
+            "stem": "oya-cloud-finops-adapter-aws",
+            "action": "delete",
+            "confidence": "high",
+            "target_crate_id": "",
+            "evidence": "status: retired-compatibility-row-no-crate, non_claims 'no matching crate exists' + 'no runtime adapter ... is implemented'. Never existed as a Cargo.toml crate in any history; no live oya-cloud-finops-adapter-* crate (git grep -> NONE). Live finops crates oya-cloud-finops-{api,domain,kernel} + oya-cost are separately catalogued. Aspirational-only -> delete."
+          },
+          {
+            "stem": "oya-cloud-finops-adapter-fake",
+            "action": "delete",
+            "confidence": "high",
+            "target_crate_id": "",
+            "evidence": "status: retired-compatibility-row-no-crate, non_claims 'no matching crate exists'. Never a crate in any history; no live finops adapter crate. Successors (finops domain/kernel/api) already catalogued and live. Delete under empty-baseline."
+          },
+          {
+            "stem": "oya-cloud-data-adapter-fake",
+            "action": "delete",
+            "confidence": "high",
+            "target_crate_id": "",
+            "evidence": "Aspirational record (context: cloud, capability: data-fake). Never existed as a Cargo.toml package in ANY history (git log --all -- '**/oya-cloud-data-adapter-fake/Cargo.toml' empty; -S name= empty). No live data adapter crate anywhere (git grep 'name = \"oya-cloud-data-adapter' -> NONE). cloud/cloud-data only ships oya-cloud-data-domain + oya-cloud-data-kernel. No rename target -> delete; re-add when the crate lands."
+          },
+          {
+            "stem": "oya-cloud-data-adapter-oci",
+            "action": "delete",
+            "confidence": "high",
+            "target_crate_id": "",
+            "evidence": "Aspirational record (capability: data-oci). Never a Cargo.toml package in any history; no live data adapter crate. cloud/cloud-data ships only domain+kernel. No rename successor -> delete under empty-baseline."
+          },
+          {
+            "stem": "oya-cloud-iam-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "target_crate_id": "",
+            "evidence": "Crate crates/oya-cloud-iam-kernel was RENAMED to oya-cloud-iam-domain in 55058f6c5 (M01-P02 BNF v4.1: R100 crates/oya-cloud-iam-kernel/src/lib.rs -> crates/oya-cloud-iam-domain/src/lib.rs, old Cargo.toml deleted). The rename target oya-cloud-iam-domain is LIVE (cloud/cloud-iam/crates/oya-cloud-iam-domain) AND already has its own catalog record oya-cloud-iam-domain.yaml. Rekey would collide with the existing live -domain record, so the stale -kernel record is delete (not rekey). Note: cloud-iam additionally has oya-cloud-iam-pdp-kernel, a separate live crate, not this one."
+          },
+          {
+            "stem": "oya-cloud-kms-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "target_crate_id": "",
+            "evidence": "Renamed to oya-cloud-kms-domain in 55058f6c5 (R100 crates/oya-cloud-kms-kernel/src/lib.rs -> crates/oya-cloud-kms-domain/src/lib.rs). Target oya-cloud-kms-domain is LIVE (cloud/cloud-kms/crates/oya-cloud-kms-domain) and already catalogued (oya-cloud-kms-domain.yaml exists). Rekey would collide -> delete stale duplicate. cloud-kms's live kernels are the distinct oya-cloud-kms-enclave-kernel / -operator-kernel, not a plain kms-kernel."
+          },
+          {
+            "stem": "oya-cloud-network-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "target_crate_id": "",
+            "evidence": "Renamed to oya-cloud-network-domain in 55058f6c5 (R100 crates/oya-cloud-network-kernel/src/lib.rs -> crates/oya-cloud-network-domain/src/lib.rs). Target oya-cloud-network-domain is LIVE (cloud/cloud-network/crates/oya-cloud-network-domain) and already catalogued (oya-cloud-network-domain.yaml exists). Rekey would collide with the live -domain record -> delete stale duplicate."
+          },
+          {
+            "stem": "oya-cloud-surface-kernel",
+            "action": "delete",
+            "confidence": "high",
+            "target_crate_id": "",
+            "evidence": "Renamed to oya-cloud-surface-domain in 55058f6c5 (R100 crates/oya-cloud-surface-kernel/src/lib.rs -> crates/oya-cloud-surface-domain/src/lib.rs; old Cargo.toml R054 template-reused into oya-connect-collab-runtime-domain). Target oya-cloud-surface-domain is LIVE (now relocated to oya/application/crates/oya-cloud-surface-domain) and already catalogued (oya-cloud-surface-domain.yaml exists). Rekey would collide -> delete stale duplicate."
+          }
+        ],
+        "notes": "All 13 dead stems resolve to delete; none should be rekeyed and none warrant keep-justify under the founder's empty-baseline policy.\n\nTwo distinct dead classes: (a) 9 are aspirational/retired compatibility rows with no surviving crate (7 self-marked status: retired-compatibility-row-no-crate with non_claims 'no matching crate exists in this checkout': all billing app/application/tax-application + billing adapter-aws/fake + finops adapter-aws/fake; plus 2 data adapters fake/oci that never existed as crates in any history). (b) 4 (iam/kms/network/surface -kernel) ARE genuine BNF-v4.1 renames (kernel->domain, R100 src/lib.rs in commit 55058f6c5).\n\nImportant nuance for the human reviewer on the 4 kernels: although they are real renames (which would normally suggest rekey), the rename TARGETS (oya-cloud-<x>-domain) are already LIVE crates AND already have their own catalog records. So rekeying the -kernel.yaml to -domain.yaml would COLLIDE with the pre-existing live -domain record. The correct action is to delete the stale -kernel duplicate, leaving the already-correct live -domain record in place. If the gate tooling does a literal 'git mv old -> new', it must be told NOT to overwrite the existing -domain.yaml; plain deletion of the -kernel.yaml is safe and lossless because the domain record already carries the live identity.\n\nCapabilities are unmoved (still oya-cloud-<x>-* under cloud/<x>/crates), so still-live unmoved crates were NOT flagged: billing-domain/-kernel/tax-app, data-domain/-kernel, finops-api/-domain/-kernel, all iam crates incl pdp-*, all kms crates incl enclave/operator kernels, all network crates, surface-domain (relocated to oya/application but live). Note data is the one capability that KEPT a plain -kernel (oya-cloud-data-kernel live), unlike iam/kms/network/surface where kernel->domain.\n\nNo keep-justify candidates: every dead record's live successor (where one exists) is independently catalogued, so deletion loses no live-crate coverage."
+      },
+      {
+        "group": "pre-existing dead catalog records: social*/http*/ops* + 8 singletons",
+        "dead_count": 22,
+        "dispositions": [
+          {
+            "stem": "oya-http-deadline-middleware-domain",
+            "action": "delete",
+            "confidence": "high",
+            "target_crate_id": "",
+            "evidence": "No live crate named oya-http-deadline-middleware-domain (git grep name=\"...\" over **/Cargo.toml at tip returns nothing). The ENTIRE http-deadline-middleware capability is absent from the workspace: no -kernel, no -infrastructure, no -domain crate or catalog sibling (only catalog record for this capability is this one file). Genuinely aspirational/never-built domain-layer record. Empty-baseline -> delete; re-add when the crate lands."
+          },
+          {
+            "stem": "oya-http-sse-domain",
+            "action": "delete",
+            "confidence": "high",
+            "target_crate_id": "",
+            "evidence": "No live crate of this name. The live sibling for the http-sse capability is oya-http-sse-kernel (libs/oya-http-sse-kernel/Cargo.toml), which ALREADY owns its own catalog record registry/catalog/oya-http-sse-kernel.yaml. The -domain record is a stale aspirational domain-layer entry (role:domain) distinct from the live kernel role; rekey to -kernel would collide with the existing live record. Delete loses nothing."
+          },
+          {
+            "stem": "oya-http-telemetry-middleware-domain",
+            "action": "delete",
+            "confidence": "high",
+            "target_crate_id": "",
+            "evidence": "No live crate of this name. Live sibling oya-http-telemetry-middleware-infrastructure (libs/.../Cargo.toml) already has its own catalog record. The dead -domain record (role:domain) is a different role from the live -infrastructure crate and would collide on rekey. Aspirational domain layer never built -> delete."
+          },
+          {
+            "stem": "oya-http-tenant-middleware-domain",
+            "action": "delete",
+            "confidence": "high",
+            "target_crate_id": "",
+            "evidence": "No live crate of this name. Live sibling oya-http-tenant-middleware-infrastructure already has its own catalog record. Dead -domain record is a distinct role from the live -infrastructure crate; rekey would collide. Aspirational domain layer -> delete."
+          },
+          {
+            "stem": "oya-ops-docs-portal-application",
+            "action": "delete",
+            "confidence": "high",
+            "target_crate_id": "",
+            "evidence": "No live crate of this name; workspace has ZERO crates ending in -application (the -application role was renamed to -usecase/-app repo-wide; grep confirms 0 live -application crates, 37 -usecase, 127 -app). The ops-docs-portal capability's live use-case crate is oya-ops-docs-portal-usecase, which already owns registry/catalog/oya-ops-docs-portal-usecase.yaml. Rekey to -usecase would collide with the existing live record -> delete."
+          },
+          {
+            "stem": "oya-ops-workspace-shell-application",
+            "action": "delete",
+            "confidence": "high",
+            "target_crate_id": "",
+            "evidence": "No live crate of this name (0 live -application crates anywhere). The ops-workspace-shell capability has BOTH a live oya-ops-workspace-shell-app and oya-ops-workspace-shell-usecase, each already owning its own catalog record. The dead -application record is the superseded old role; rekey would collide -> delete."
+          },
+          {
+            "stem": "oya-ops-workspace-shell-runtime",
+            "action": "delete",
+            "confidence": "high",
+            "target_crate_id": "",
+            "evidence": "No live crate of this name; workspace has ZERO crates ending in -runtime (grep). Live ops-workspace-shell crates are adapter/app/kernel/rest/usecase, all with their own catalog records. Aspirational/removed runtime-layer record with no live counterpart -> delete."
+          },
+          {
+            "stem": "oya-social-app",
+            "action": "delete",
+            "confidence": "high",
+            "target_crate_id": "",
+            "evidence": "Renamed pre-existing: the social capability moved to the oya-community-social-* prefix. The rename target oya-community-social-app is LIVE (oya/community/crates/oya-community-social-app/Cargo.toml) and ALREADY owns registry/catalog/oya-community-social-app.yaml. Rekey would collide with the live record. The bare oya-social-app.yaml is the stale leftover from before the community- prefix -> delete."
+          },
+          {
+            "stem": "oya-social-post-composition-adapter-postgres",
+            "action": "delete",
+            "confidence": "high",
+            "target_crate_id": "",
+            "evidence": "Renamed to oya-community-social-post-composition-adapter-postgres (LIVE: oya/community/crates/.../Cargo.toml), which already owns its own catalog record. Stale pre-community-prefix leftover; rekey would collide -> delete."
+          },
+          {
+            "stem": "oya-social-post-composition-api",
+            "action": "delete",
+            "confidence": "high",
+            "target_crate_id": "",
+            "evidence": "Renamed to oya-community-social-post-composition-api (LIVE), which already owns registry/catalog/oya-community-social-post-composition-api.yaml. Stale leftover; rekey would collide -> delete."
+          },
+          {
+            "stem": "oya-social-post-composition-grpc",
+            "action": "delete",
+            "confidence": "high",
+            "target_crate_id": "",
+            "evidence": "Renamed to oya-community-social-post-composition-grpc (LIVE), which already owns its own catalog record. Stale leftover; rekey would collide -> delete."
+          },
+          {
+            "stem": "oya-social-post-composition-rest",
+            "action": "delete",
+            "confidence": "high",
+            "target_crate_id": "",
+            "evidence": "Renamed to oya-community-social-post-composition-rest (LIVE), which already owns its own catalog record. Stale leftover; rekey would collide -> delete."
+          },
+          {
+            "stem": "oya-social-post-composition-usecase",
+            "action": "delete",
+            "confidence": "high",
+            "target_crate_id": "",
+            "evidence": "Renamed to oya-community-social-post-composition-usecase (LIVE), which already owns its own catalog record. Stale leftover; rekey would collide -> delete."
+          },
+          {
+            "stem": "oya-adapter-substitution-test",
+            "action": "delete",
+            "confidence": "high",
+            "target_crate_id": "",
+            "evidence": "No live crate of this exact name. The live crate is oya-adapter-substitution-test-app (tools/oya-adapter-substitution-test-app/Cargo.toml), which ALREADY owns registry/catalog/oya-adapter-substitution-test-app.yaml. The bare-name -test record is the stale leftover from before the -app suffix; rekey to -app would collide with the existing live record -> delete."
+          },
+          {
+            "stem": "oya-audit-chain-application",
+            "action": "delete",
+            "confidence": "high",
+            "target_crate_id": "",
+            "evidence": "No live crate of this name (0 live -application crates anywhere). The audit-chain application/use-case layer is live as oya-audit-chain-usecase (oya/audit-chain/crates/.../Cargo.toml), which already owns its catalog record; oya-platform-audit-chain-app.yaml also exists. The superseded -application record would collide on rekey -> delete."
+          },
+          {
+            "stem": "oya-check-constitution-cite",
+            "action": "delete",
+            "confidence": "high",
+            "target_crate_id": "",
+            "evidence": "No live crate of this name. The whole constitution-cite capability has NO live crate (grep 'constitution' over package names returns nothing; even oya-governance-constitution-cite-kernel, which has a catalog record, has no Cargo.toml and is itself dead). Aspirational foundry check-worker never built -> delete."
+          },
+          {
+            "stem": "oya-dsr-application",
+            "action": "delete",
+            "confidence": "high",
+            "target_crate_id": "",
+            "evidence": "No live crate of this name (0 live -application crates). The DSR use-case layer is live as oya-dsr-usecase (oya/compliance/crates/oya-dsr-usecase/Cargo.toml), which already owns its catalog record; oya-platform-dsr-app.yaml also exists. Superseded -application record; rekey to -usecase would collide -> delete."
+          },
+          {
+            "stem": "oya-foundation-app",
+            "action": "delete",
+            "confidence": "high",
+            "target_crate_id": "",
+            "evidence": "No live crate named oya-foundation-app and NO crate path containing 'foundation' anywhere in the workspace (git ls-tree **/Cargo.toml | grep foundation = empty). Capability 'foundation-orchestration' has no live counterpart (the only live orchestrators are oya-workflow-engine-trigger-orchestrator-*, an unrelated capability). Aspirational/removed -> delete."
+          },
+          {
+            "stem": "oya-identity-application",
+            "action": "delete",
+            "confidence": "high",
+            "target_crate_id": "",
+            "evidence": "No live crate of this name (0 live -application crates). The identity use-case layer is live as oya-identity-usecase (oya/identity/crates/oya-identity-usecase/Cargo.toml), which already owns its catalog record; oya-platform-identity-app.yaml also exists. Superseded -application record; rekey to -usecase would collide -> delete."
+          },
+          {
+            "stem": "oya-metering-application",
+            "action": "delete",
+            "confidence": "medium",
+            "target_crate_id": "",
+            "evidence": "Self-declared compatibility shim: the record carries status: retired-compatibility-row-no-crate and non_claims 'no matching crate exists in this checkout', with successor_catalogs pointing to oya-cloud-billing-domain/-kernel/-tax-app and oya-metering-domain (all separate live records). Under the founder's chosen empty-baseline ('catalog holds live crates only'), a deliberately-crateless compatibility row must be removed; its successors already have records. Medium confidence ONLY because it was authored on purpose as a shim -> flagged below as a human delete-vs-keep call."
+          },
+          {
+            "stem": "oya-tooling-cli-dev-runtime",
+            "action": "delete",
+            "confidence": "high",
+            "target_crate_id": "",
+            "evidence": "No live crate of this name; 0 live -runtime crates anywhere. No live oya-tooling-cli-* or generic dev-cli runtime crate (the only dev-cli is marketplace-dev-cli at marketplace/facade/dev-cli, a different capability). Additionally ALL CLI surfaces are retirement-marked per founder directive (root CLAUDE.md cli_surface_policy). Aspirational/removed runtime CLI record -> delete."
+          }
+        ],
+        "notes": "All 22 dead stems resolve to DELETE; zero rekeys. The decisive pattern: in every case where a live crate could be a rename target, that live crate ALREADY owns its own catalog record, so a rekey would collide (effectively a no-op duplicate) rather than fill a gap; and where no live crate exists, the record is genuinely aspirational/removed. Empty-baseline is therefore satisfied by deletion.\n\nCross-cutting evidence verified at tip 124ad5601f4b6f4e8f52bf942aa1261dbc59b8c9:\n- 0 live crates end in -application (renamed to -usecase/-app); 0 live crates end in -runtime. This kills oya-{audit-chain,dsr,identity,ops-docs-portal,ops-workspace-shell}-application and oya-ops-workspace-shell-runtime + oya-tooling-cli-dev-runtime as rekey candidates.\n- social* was renamed with a community- prefix; all 6 live oya-community-social-* successors already have catalog records, so the 6 bare oya-social-* records are pure stale leftovers.\n- For http: the dead *-domain records are a planned domain layer never built; the live functionality lives under -kernel/-infrastructure siblings that already have records (different clean-arch role, so not a rename of the dead -domain record). oya-http-deadline-middleware-* has NO live crate of ANY role.\n\nHUMAN delete-vs-keep CALL (the one item worth a human glance): oya-metering-application is the only record explicitly authored as a compatibility shim (status: retired-compatibility-row-no-crate, with successor_catalogs + non_claims). I recommend DELETE per the founder's explicit empty-baseline choice ('EVERY catalog file must map to a LIVE crate, else removed' and 'default to delete over keep-justify'), since its named successors already have live records. If the catalog-liveness gate is intended to honor an explicit status:retired-compatibility-row-no-crate exemption marker, this single record would instead be keep-justify; that policy hook does not appear to exist under the chosen full-cleanup posture, so I scored it delete (medium confidence). No other record carried any such exemption marker.\n\nScope note: oya-governance-constitution-cite-kernel.yaml is also dead (its crate has no Cargo.toml) and is the would-be rekey target for oya-check-constitution-cite, but it is itself out of my assigned prefix cluster (governance*) — flagging it so the governance cluster owner removes it too; it does not change my disposition (oya-check-constitution-cite -> delete regardless)."
+      }
+    ]
+  }
+}

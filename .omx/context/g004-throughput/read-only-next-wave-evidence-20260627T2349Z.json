@@ -1,0 +1,25 @@
+{
+  "capturedAt": "2026-06-27T23:49:00Z",
+  "mode": "read-only evidence classification while origin/dev affected-set is still in_progress",
+  "g003": {
+    "result": "no writer lane selected",
+    "evidence": [
+      "oya/intelligence/crates/oya-intelligence-api-graphql-kernel missing in scan worktree",
+      "oya/intelligence/crates/oya-intelligence-api-graphql-adapter missing in scan worktree",
+      "git ls-files oya/intelligence/** contains no graphql/gql/sdl matches",
+      "cloud-ci-no-graphql-without-adr gate exists and is candidate-tree enforced"
+    ],
+    "next": "no-op unless future scan finds active GraphQL runtime or stale GraphQL build input"
+  },
+  "g006": {
+    "result": "no writer lane selected yet",
+    "evidence": [
+      "scripts/tests/cloud_observability_slo_evidence_check.py is a live Python validator",
+      "scripts/tests/cloud_production_quality_kit_evidence_backlog_check.py is a live Python validator",
+      "specs/language-discipline-registry.json references both as language-discipline items",
+      "production-quality validator asserts retirement action includes Rust/Buck2 port-and-delete path"
+    ],
+    "next": "tiny leaf Rust/Buck2 replacement only after proving callers and registry ownership; no broad rewrite"
+  },
+  "writeGate": "held until origin/dev affected-set completes successfully"
+}

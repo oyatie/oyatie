@@ -1,0 +1,509 @@
+schema: oyatie.stage1.decision-blocker-packet/v1
+status: NON_AUTHORITY
+generated_at_utc: 2026-07-23T23:55:41Z
+
+terminal_verdict: BLOCKED_QUALIFIED_HUMAN_INPUT
+planning_state: HOLD(Planning)
+roadmap_planning_authorized: false
+binding_plan_approval_allowed: false
+implementation_dispatch_allowed: false
+
+claim_boundary: >-
+  This packet is a context-free preservation and handoff record. It is not an
+  Accepted ADR, protected admission receipt, qualified-human disposition,
+  Stage-1 control receipt, PASS(Planning), roadmap, or dispatch instruction.
+  A future Stage-1 PASS may authorize entry into roadmap planning only; it may
+  not approve a binding plan or dispatch implementation.
+
+sealing:
+  digest_algorithm: sha256
+  packet_sidecar: .omx/context/preservation/STAGE1-DECISION-BLOCKER-PACKET-20260723.yaml.sha256
+  handoff_envelope_policy: >-
+    The immutable handoff envelope contains this exact packet, its checksum
+    sidecar, the four exact-head NON_AUTHORITY review/verification receipts,
+    and the frozen candidate bundle checksum sidecar. The envelope does not
+    contain or depend on the mutable one-way PR-train manifest.
+  manifest_relation: >-
+    The manifest may index the sealed packet and envelope after their hashes
+    exist. This packet does not embed a manifest digest, preventing a circular
+    receipt dependency.
+
+repository_snapshot:
+  repository: jason931225/oyatie
+  target_branch_from_accepted_contract: dev
+  live_branch_protection_configuration_observed: false
+  live_required_context_configuration_observed: false
+  configuration_evidence_gap: >-
+    The available GitHub connector proves the current dev ref and per-commit
+    statuses but does not expose the live branch-protection/ruleset
+    configuration. `dev` and `oya-ci-required` remain requirements of the
+    Accepted repository contract, not locally asserted live configuration.
+  protected_dev_commit: 30dd46c4dd7d12c085b77332d9ac5035d583edcf
+  protected_dev_tree: a073d9a2da0968eeec7511b9dd5326b2510aecbd
+  dev_freshness_probe:
+    method: github-compare
+    observed_at_utc: 2026-07-23T23:55:22Z
+    result: identical
+    reference_commit: 30dd46c4dd7d12c085b77332d9ac5035d583edcf
+  authority_snapshot_rule: >-
+    Accepted/live authority is evaluated only at the protected dev snapshot.
+    Proposed ADR-0622 and its dormant contract are evaluated only at the exact
+    local candidate snapshot. A path without its commit, blob OID, and content
+    digest is not an authority identity.
+
+authority_snapshots:
+  accepted_live:
+    commit: 30dd46c4dd7d12c085b77332d9ac5035d583edcf
+    tree: a073d9a2da0968eeec7511b9dd5326b2510aecbd
+    sources:
+      - path: specs/root-hub-pointers.json
+        blob_oid: fc1e5fdd2003d4a4560522fb4602006b97212d2e
+        sha256: 6da2131f56bf93ef765f65da94d7d1b6d438a94e720dba1579770d6448afae7c
+      - path: docs/AGENTS.md
+        blob_oid: b57b582d38dd6773a72418ea9d0a1e6b20f81f1e
+        sha256: edd633e2c4a10e54b6cf1f5cc81299d68754e99145746b8c59246fce1f5ecc4d
+      - path: specs/masterplan.json
+        blob_oid: fad3a7962a8c3c734e136c9b7019339a1e202182
+        sha256: 076b9ed64869fe8a3854274ba866d8dcaf90bf809da5fadf9dd6a432d33212b3
+      - path: specs/master-plan-sequencing.json
+        role: provenance-and-compatibility-only
+        blob_oid: bedc9ff20c5412392550d05244d1c2b7ef1d07d4
+        sha256: fb8c0e08aa68fccca428d19df13458f37e1f14ada808c4223b7531281521124e
+      - path: specs/markdown-retirement-policy.json
+        blob_oid: 03ba6054bccf133b3927d1b9a87011ed27c13543
+        sha256: e844e423b5fa692ac66edf1d5d4f00ecbf52b71aec3b2b9714d6b5b2ebca9be6
+      - path: specs/decision-rights.json
+        blob_oid: b933ad5f3725cdaf4f88d38802f30aad3afcd6e8
+        sha256: a60b12d60902a8d9660bdd842c49b8bbd7ddcb72ab838c969151a8bfcd9d2a4b
+      - path: docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md
+        blob_oid: f84e71df674443f961a1c4701bdeb448ceaf2a99
+        sha256: 90e44bc4823a42d724c59212dd6fa44597ea91b92410d535c06a361c8a6bde06
+      - path: docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md
+        blob_oid: 84322088f758bb619726963662f6046faeae044f
+        sha256: 3bc6a1f8d6208d681cfdbc006dfb7335b59c8394252b3fc1de43693737386a33
+  proposed_nonbinding:
+    commit: 781789573560cd95556f2a9764e2262196708140
+    tree: 7e5395f2e3463c1c5f5e62d0da13ae4b4778a8ed
+    recovery_bundle: .omx/context/preservation/pr1364-final-local-candidate-781789573-20260723-self-contained.bundle
+    recovery_bundle_sha256: 8adb152d504c1725e7d1e4ed35f24bd1dd96c83b12bcd3b74308ae5903f14b0e
+    supersedes_local_candidate: 455ca5577a3013d3ffbea2c55a651f67aae75534
+    sources:
+      - path: docs/decisions/ADR-0622-mechanism-neutral-pre-roadmap-stage1-evidence-epoch.md
+        status: Proposed
+        blob_oid: 2070f6037e34e47f1fe1874bdfe69492ab001dd1
+        sha256: a0ae726f12705e5e41571abb12417e0fab68867228e73297802dce57acbf49d6
+      - path: specs/root-hub-pointers.json
+        status: Proposed
+        blob_oid: e158ee8b8b74ebc3a58d7fb7db815ef61b1e9686
+        sha256: b1703ec76e64f555ea8db58eb7ffdb63eb4156225ca7ce22dbf2e946efae147d
+      - path: specs/masterplan.json
+        status: Proposed
+        blob_oid: 94ec81328c84e4d39fe6386419ce3fb156c661b2
+        sha256: 6d21704953c0b9271384fe6791cf1169e1831986745bcec6f503c8438f14fd27
+      - path: specs/stage1-admission-envelope.schema.json
+        status: Proposed
+        blob_oid: f28240a7936bead4fbb5dad6852ef5ff688c57db
+        sha256: 741447ced1db5912b959d083e627f624755ddb01db6f1620fb329f0ee7054cde
+      - path: specs/stage1-closure-program.schema.json
+        status: Proposed
+        blob_oid: e7ff923e4f5038ca17ea0c7bf70fba30fd60d82c
+        sha256: 3a0efa29cea895dfcc46a678b938d460bc144d618ed24188ffd03799552224d9
+      - path: specs/stage1-evidence-epoch.schema.json
+        status: Proposed
+        blob_oid: ff07863bee3f8691d1665f907ad07ff8402df31f
+        sha256: 3f775d9eb76000e72bb35e75641abe3ca29162181be01ce60965a7f1b57c69fb
+      - path: specs/stage1-protected-facts.schema.json
+        status: Proposed
+        blob_oid: 53f4f722e936828e1a00a6894bb0715ec49173a0
+        sha256: 63dfd8c3112a1ecc2eba6c78881541487e8e0d0fed4e3a6b55148204f0a8d90a
+      - path: libs/oya-stage1-closure/src/lib.rs
+        status: Proposed
+        blob_oid: 88aa8b67ff09e4de88bf4d3faa4ba86c8beac0dc
+        sha256: 0ed97e3cc922cc02cdb6414adadc37a7ca0ad1a211b9275eab560afa502621f9
+      - path: libs/oya-stage1-closure/tests/fixtures/admission-envelope.json
+        status: Proposed
+        blob_oid: 95c533d888433cb5ce4b047bf1ee6e2451643ed6
+        sha256: f1b7370d9b99bcb8a67606dd6ace9c5626cb143afafecee0b76dcd3b1a497fb1
+      - path: libs/oya-stage1-closure/tests/fixtures/program.json
+        status: Proposed
+        blob_oid: 3598a4e94cdf25a91388f5c2d834313c011ebfe7
+        sha256: 51427f5cff74388da34f67087fc1e0899f9708d89a8108d8798cd4e806f038d8
+      - path: libs/oya-stage1-closure/tests/stage1_closure.rs
+        status: Proposed
+        blob_oid: a14900904ccebee8ab7aa853334e611cb0004ce4
+        sha256: 239560325721c1aa9584304fdf68036c38ce33a06c9a173d748b7f39ffc097d9
+      - path: registry/artifact-capabilities-registry.json
+        status: Proposed
+        blob_oid: 0b336b8dc13aa13ca96d7e4dd772e25a1f1f05d9
+        sha256: 0a20fe53c97dbf05b7f236529dd6079603f95110544f4a151d8036d7c72348a0
+
+resolved_direction:
+  admission:
+    mechanism: plain-git-protected-pr
+    required_context: oya-ci-required
+    protected_order:
+      - 1361
+      - 1362
+      - 1363
+      - 1364
+    reason: >-
+      Each successor was repaired against the exact local predecessor. A squash
+      promotion changes the protected parent, so restack freshness, exact-head
+      review, required CI, merge, and post-merge proof serialize at admission.
+  archive:
+    current_rule: git-object-history-only
+    readable_current_tree_archive_allowed: false
+    confidentiality_claim: false
+    qualification: >-
+      Removing a body from the current tree prevents ordinary checkout/search
+      discovery and authority confusion. It does not make reachable Git history
+      confidential or unreadable to a deliberate history search.
+    stronger_retention_requirement: >-
+      Future-agent-inaccessible retention requires a qualified external
+      custodian outside repository objects, refs, forge access, bundles, and
+      agent credentials. Public history rewrite or no-rewrite disposition
+      requires explicit founder/admin/custodian authority and independent
+      verification.
+  execution_graph:
+    prepare_plane: >-
+      Schemas, fixtures, protocol drafts, source inventory, worktree repair,
+      bounded diagnostics, and non-authoritative review may run concurrently.
+    satisfy_plane: >-
+      C01, C02, and C03 may converge independently; their join permits C04.
+      C04 permits C06; C06 then permits C05 collection, analysis, citation, and
+      satisfaction. C07, C08, and C09 also depend on C04. C10 and C11 are
+      siblings after the C04-C09 join. C12 freezes the joined successor. C13's
+      sixteen lens reviews and C14 dissent may then run concurrently against
+      that same immutable successor. C15 oracle and blind-reader reproduction
+      follow the C13-C14 join, then the qualified planning authority decides
+      planning-entry scope. Protected admission remains external.
+    forbidden_in_proposed_source:
+      - scheduler
+      - queue
+      - lease
+      - retry-controller
+      - work-in-progress-controller
+      - roadmap-dispatch
+
+local_pr_train:
+  manifest:
+    path: .omx/context/preservation/PR-TRAIN-MANIFEST-20260723.md
+    role: one-way-index-updated-after-packet-seal
+  candidates:
+    - pr: 1361
+      head: aadb8c75878fff3c93f0858d5a758707a93f1205
+      tree: fcbe2e60185520bae38d1e2a90ffa02e581c4d78
+      bundle: .omx/context/preservation/pr1361-aadb8c758-20260723.bundle
+      bundle_sha256: 011acffdb17e1789d2a6563a1adbecefac6e47371943628212fe38dd0edffc09
+      non_authoritative_local_review_summary: APPROVE
+      object_bound_review_receipt_present: false
+    - pr: 1362
+      head: d69a14831d8eb5f731bd74f60e74db13bb3792e8
+      tree: 7a6abf708fb3751799784fec35a59e9755d25bea
+      base: aadb8c75878fff3c93f0858d5a758707a93f1205
+      bundle: .omx/context/preservation/pr1362-d69a14831-20260723.bundle
+      bundle_sha256: b2a81acde4480a06b877ef0bf90b3edd1804c21d3f6c42ac96f652117ac21bd0
+      non_authoritative_local_review_summary: APPROVE
+      non_authoritative_verifier_summary: PARTIAL_BUCK_SANDBOX_ONLY
+      object_bound_review_receipt_present: false
+      object_bound_verifier_receipt_present: false
+    - pr: 1363
+      head: 1026a65b707ce57693d9b830de33ee0ce228f16b
+      tree: d20c21163c6ec1ac2f6e1b581031e4431b54f401
+      base: d69a14831d8eb5f731bd74f60e74db13bb3792e8
+      bundle: .omx/context/preservation/pr1363-1026a65b7-20260723.bundle
+      bundle_sha256: 13d76d8159f10a9629403d26179b71ee1ef993e0adbc79bc24ca7479b31b0079
+      non_authoritative_local_review_summary: APPROVE
+      non_authoritative_verifier_summary: PARTIAL_BUCK_SANDBOX_ONLY
+      object_bound_review_receipt_present: false
+      object_bound_verifier_receipt_present: false
+    - pr: 1364
+      head: 781789573560cd95556f2a9764e2262196708140
+      tree: 7e5395f2e3463c1c5f5e62d0da13ae4b4778a8ed
+      base: 1026a65b707ce57693d9b830de33ee0ce228f16b
+      bundle: .omx/context/preservation/pr1364-final-local-candidate-781789573-20260723-self-contained.bundle
+      bundle_sha256: 8adb152d504c1725e7d1e4ed35f24bd1dd96c83b12bcd3b74308ae5903f14b0e
+      bundle_size_bytes: 111651963
+      signed_commits_verified: 43
+      bounded_diagnostic_summary: 66/66
+      bounded_diagnostic_capture_sha256: 6b56ee329057266f3ef920b3469120e99b6ac9d71abe3090f334e0d535e77ab4
+      diagnostic_head: 781789573560cd95556f2a9764e2262196708140
+      object_bound_diagnostic_receipt_present: true
+      generated_faces_changed: 0
+      non_authoritative_architecture_summary: APPROVE_SOURCE_QUALITY_ONLY
+      non_authoritative_code_security_summary: COMMENT_NO_FINDINGS_ENVIRONMENT_GAP
+      non_authoritative_authority_summary: NON_AUTHORITY_CONFIRMED
+      non_authoritative_verifier_summary: PASS_WITH_DECLARED_BUCK_ENVIRONMENT_GAP
+      object_bound_review_receipt_present: true
+      object_bound_verifier_receipt_present: true
+      qualified_stage1_principal_established: false
+      receipts:
+        - path: .omx/context/preservation/reviews/pr1364-781789573-architecture.yaml
+          sha256: eb4e53afb8eadf0ded04ea5d8f6d85f0187aeb88f0b75a7a84942163d746538b
+          independently_signed_by_reviewer: false
+        - path: .omx/context/preservation/reviews/pr1364-781789573-code-security.yaml
+          sha256: f1aa891ebc85904d155e7f2c60389a505ed5b863d238ab3b846b69b029b4da71
+        - path: .omx/context/preservation/reviews/pr1364-781789573-authority.yaml
+          sha256: 4540fb201f07c9562d81eaca3c5260f8cc46683d002dcd9f590388c0abe537b9
+        - path: .omx/context/preservation/reviews/pr1364-781789573-verifier.yaml
+          sha256: 6a73ac7a726f6e0d6b22e381b0f9dba3b0aa84897fe50b1e5fafef4a54d128dc
+
+remote_pr_snapshot:
+  observed_at_utc: 2026-07-23T23:55:22Z
+  facts:
+    - pr: 1361
+      remote_head: 7915baa3d95ae3ea6a4d35c0a1fc750ee303c51c
+      draft: true
+      mergeable: false
+      statuses:
+        CodeRabbit: success
+      oya_ci_required_present: false
+      review_thread_count: 0
+    - pr: 1362
+      remote_head: f5ebd909391a4a697394ae60d4a2af7a25f8b7e8
+      draft: true
+      mergeable: false
+      statuses:
+        CodeRabbit: success
+      oya_ci_required_present: false
+      review_thread_count: 0
+    - pr: 1363
+      remote_head: d422aa41ece01a4d84395ced47251e52e697057e
+      draft: true
+      mergeable: false
+      statuses:
+        CodeRabbit: success
+      oya_ci_required_present: false
+      review_thread_count: 0
+    - pr: 1364
+      remote_head: 6c149e8b822223decebc71ef923bece4e54f2ed4
+      draft: true
+      mergeable: false
+      statuses:
+        CodeRabbit: success
+      oya_ci_required_present: false
+      review_thread_count: 0
+  exact_local_objects_known_by_github: false
+  proof: >-
+    GitHub compare returned NOT_FOUND for each exact local candidate SHA.
+  shell_transport:
+    result: BLOCKED
+    exact_stderr: >-
+      fatal: unable to access 'https://github.com/jason931225/oyatie.git/':
+      Could not resolve host: github.com
+  prohibited_substitute: >-
+    The GitHub content/commit API cannot recreate the exact local SSH-signed
+    commit objects. Synthesizing replacement commits would invalidate the
+    exact-head reviews, signatures, receipts, and downstream bases.
+
+remaining_autonomous_or_external_system_work:
+  - id: PR-ADMISSION
+    state: BLOCKED_EXTERNAL_TRANSPORT_AND_CI
+    required_next_action: >-
+      Push #1361's exact signed candidate through ordinary Git, obtain
+      oya-ci-required and independent exact-head review, resolve all threads,
+      prove branch protection and conflict-free state, squash merge, record
+      the post-merge packet, then restack and repeat for #1362, #1363, and
+      #1364.
+  - id: BUCK-AUTHORITY
+    state: BLOCKED_SANDBOX
+    required_next_action: >-
+      Run the canonical Buck target in an environment permitted to create the
+      Buck daemon directory. Direct rustc diagnostics are bounded fallback
+      evidence only.
+  - id: C02-PARSER-IR
+    state: UNSATISFIED
+    existing_direction:
+      owned_ast: ADR-0517
+      deferred_scm_pipeline: ADR-0518
+      parser: governance/corpus/doc-parser
+      adapter: libs/oya-check-adr-index
+    missing_proof:
+      - complete-corpus selection and materialization
+      - occurrence identity
+      - tenant authorization and cache isolation
+      - migration semantics
+      - consumer cutover
+      - IR-generated-face materializer
+      - fresh protected post-merge receipt
+  - id: C03-CORPUS-ARCHIVE-FRESHNESS
+    state: UNSATISFIED
+    fixed_policy: git-object-history-only
+    missing_proof:
+      - protected current-tree deletion/cutover receipt
+      - complete readable-reference and copied-prose scan
+      - exact prior object IDs, byte counts, and content digests
+      - freshness and no-reintroduction proof
+  - id: C04-DECISION-POPULATION
+    state: UNSATISFIED
+    missing_proof:
+      - externally authenticated cutoff and decision-universe census
+      - included/excluded occurrence-complete population
+      - affected-artifact map
+      - exact immutable population and scope digests
+  - id: C05-COMPARATOR
+    state: PREPARATION_ONLY
+    hard_dependency: C06
+    rule: >-
+      Source inventory and protocol metadata may be prepared early. Collection,
+      analysis, citation, and satisfaction may not begin until exact C06 scope
+      and authorization are valid and C04 is frozen.
+
+irreducible_qualified_human_inputs:
+  - id: ADR-0622-ACTIVATION
+    required_principals:
+      - authenticated-founder
+      - council-architecture-ratifier
+    required_decision: >-
+      Accept, amend, or reject the exact proposed Stage-1 epoch contract.
+    invalidates_on_change: program-epoch-and-all-downstream-receipts
+  - id: C01-C04-CONTROLLING-ADR-DISPOSITIONS
+    required_principals:
+      - authenticated-founder
+      - council-lifecycle-ratifier
+    required_choices:
+      - ADR-0170-versus-ADR-0394
+      - ADR-0565-zero-GraphQL
+      - ADR-0614-move-manifest-decommit
+      - ADR-0616-frozen-baseline-decommit-versus-ADR-0613-and-ADR-0596
+    minimum_receipt: >-
+      Exact ADR identities and lifecycle statuses, selected alternatives,
+      rationale, affected-artifact map, propagation result, decision digest,
+      principal bindings, signatures, trusted time, expiry, and revocation.
+  - id: C06-LEGAL-JCR
+    required_principal: qualified-legal-jcr-authority
+    minimum_receipt: >-
+      Identity, qualification, jurisdiction and action scope, authorized
+      comparator protocol/scope digest, issue/expiry/revocation/conflict facts,
+      signature, verifier, and trust-root binding.
+  - id: C07-AFFECTED-PARTY
+    required_principal: representative-with-actual-standing-and-recourse
+    minimum_receipt: >-
+      Affected-set digest, represented population, harms, consultation method,
+      decision, unresolved dissent, recourse, independence, trusted time, and
+      signature.
+  - id: C08-OPERATIONS
+    required_principal: accountable-operations-owner
+    minimum_receipt: >-
+      Environment, SLO/load assumptions, staffing/capacity, on-call and
+      rollout/rollback authority, decision, validity, and signature.
+  - id: C09-CUSTODY
+    required_principal: qualified-security-evidence-custodian
+    minimum_receipt: >-
+      Actual custody domain, key hierarchy, access policy, retention, audit
+      log, revocation, denied-access evidence, validity, and signature.
+  - id: C10-VETO
+    required_principal: authorized-veto-holder
+    minimum_receipt: >-
+      Authority source, exact veto scope, close/veto/abstain decision,
+      unresolved conditions, expiry, revocation, and signature.
+  - id: C11-PILOT
+    required_principals:
+      - machine-pilot-producer
+      - separately-qualified-accountable-pilot-authority
+    minimum_receipt: >-
+      Prior authorization, bounded environment and scope, start/end, outcomes,
+      negative evidence, abort/rollback, telemetry, acceptance decision,
+      principal separation, and signature.
+  - id: C13-SIXTEEN-LENS-COUNCIL
+    required_principals: exactly-16-independent-lens-qualified-humans
+    minimum_receipt: >-
+      One object-bound receipt for each exact lens, all bound to the same C12
+      immutable successor and program/epoch/snapshot, with authenticated
+      identities, qualification, independence/conflict evidence, findings,
+      decision, validity, and signature.
+  - id: C14-FRESH-DISSENT
+    required_principal: qualified-independent-dissent-reviewer
+    minimum_receipt: >-
+      Same C12 successor, fresh-context isolation, no council/prior-context
+      exposure, findings, dissent, resolution or carried disposition, access
+      log, validity, and signature.
+  - id: C15-CONTEXT-FREE-EXIT
+    required_principals:
+      - independent-deterministic-oracle
+      - independent-blind-reader
+      - qualified-planning-authority
+    minimum_receipt: >-
+      Immutable allowed-input manifest, independently emitted output digests,
+      reproduced verdict equality, deterministic execution and access logs,
+      authenticated QPA delegation, planning-entry-only decision scope,
+      validity, revocation, and signatures.
+  - id: PROTECTED-ADMISSION
+    required_external_authorities:
+      - independent-server-reviewer
+      - trusted-GitHub-branch-protection-controller
+      - trusted-oya-ci-required-gate-app
+    minimum_receipt: >-
+      Exact repository/base/head/tree, required context and run identity,
+      review decision and resolved threads, protection state, conflict state,
+      promoted squash commit/tree, plus rollout, rollback, observability,
+      browser/user-story, release-governance, and observation-harvest evidence.
+    open_fixuptask: F-PR5-06
+
+principal_boundary:
+  statement: >-
+    "Assume qualified authorization" authorizes autonomous in-scope
+    preparation and execution. It does not authenticate founder/council
+    identity, create professional qualification or affected-party standing,
+    prove operations capacity or custody control, delegate veto or pilot
+    accountability, manufacture independent humans through agent aliases,
+    prove fresh-context isolation, establish trust roots, or create
+    server-side protected admission.
+  forbidden_inference: >-
+    Repository authors, local agents, subagents, process aliases, source
+    schemas, booleans, principal_id strings, or self-issued signatures must not
+    be relabeled as any irreducible qualified principal above.
+
+invalidation_rules:
+  - >-
+    Any program, controlling authority, evidence contract, parser/IR,
+    producer/evaluator/materializer, policy, subject, or subject-scope mutation
+    opens a new epoch and invalidates every receipt derived from the prior
+    epoch unless the controlling contract explicitly proves a narrower
+    dependency boundary.
+  - Any C04 population or C06 comparator-scope mutation invalidates C05 onward.
+  - Any custody key, policy, or trust-root mutation invalidates dependent evidence.
+  - Any C12 successor mutation invalidates all C13, C14, and C15 receipts.
+  - Any candidate head movement invalidates exact-head review and CI evidence.
+  - Any protected-parent promotion requires successor restack and fresh admission.
+  - >-
+    Context exposure invalidates every affected C13 reviewer receipt and every
+    affected C14 or C15 oracle, blind-reader, or QPA receipt. Exposure of the
+    shared cold-review packet or isolation mechanism invalidates the complete
+    C13-C15 review join.
+
+resume_sequence:
+  - >-
+    Re-probe ordinary Git transport. Never use the GitHub contents/commit API
+    to synthesize substitutes for locally reviewed signed commits.
+  - Admit #1361 through protected Git/PR/CI/review and post-merge proof.
+  - >-
+    After each protected squash, create fresh Git-authored and SSH-signed
+    successor restack commits, then regenerate exact-head evidence, re-review,
+    and admit #1362, #1363, and #1364 in order.
+  - Re-anchor Stage-1 to the promoted protected commit/tree.
+  - Obtain explicit ADR-0622 and controlling-ADR dispositions.
+  - Complete C01-C04 and freeze the authenticated decision population.
+  - Obtain C06 before any C05 collection, analysis, citation, or satisfaction.
+  - Complete C05-C11 and freeze the immutable C12 successor.
+  - Collect exactly sixteen C13 reviews and one independent fresh C14 dissent.
+  - Run independent C15 oracle and blind-reader reproduction.
+  - Obtain QPA planning-entry-only decision and protected admission envelope.
+  - Emit PASS(Planning) only if every exact receipt validates; otherwise emit a
+    refreshed blocker packet and retain HOLD(Planning).
+
+evidence_receipts:
+  - path: .omx/context/preservation/bun-derived-non-regression-pipeline-20260723.md
+    sha256: 0b21b63c5b1c83068c43bd7c110b03c26e0abb723c4a78f516f528b46b3ec8a1
+  - path: .omx/context/preservation/pr1364-final-local-candidate-781789573-20260723-self-contained.bundle
+    sha256: 8adb152d504c1725e7d1e4ed35f24bd1dd96c83b12bcd3b74308ae5903f14b0e
+  - path: .omx/context/preservation/pr1364-final-local-candidate-781789573-20260723-self-contained.bundle.sha256
+    sha256: 978ae464f1aab0e43e4b87af8dfb8968d2efcadad38391de6d407530d5bdebb1
+  - path: .omx/context/preservation/reviews/pr1364-781789573-architecture.yaml
+    sha256: eb4e53afb8eadf0ded04ea5d8f6d85f0187aeb88f0b75a7a84942163d746538b
+  - path: .omx/context/preservation/reviews/pr1364-781789573-code-security.yaml
+    sha256: f1aa891ebc85904d155e7f2c60389a505ed5b863d238ab3b846b69b029b4da71
+  - path: .omx/context/preservation/reviews/pr1364-781789573-authority.yaml
+    sha256: 4540fb201f07c9562d81eaca3c5260f8cc46683d002dcd9f590388c0abe537b9
+  - path: .omx/context/preservation/reviews/pr1364-781789573-verifier.yaml
+    sha256: 6a73ac7a726f6e0d6b22e381b0f9dba3b0aa84897fe50b1e5fafef4a54d128dc

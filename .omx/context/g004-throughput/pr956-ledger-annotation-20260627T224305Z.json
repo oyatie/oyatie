@@ -1,0 +1,288 @@
+{
+  "ok": true,
+  "accepted": true,
+  "rejectedReasons": [],
+  "deduped": false,
+  "audit": {
+    "kind": "annotate_ledger",
+    "source": "cli",
+    "targetGoalId": "G004-m2-universal-cloud-ci-product-substr",
+    "targetGoalIds": [
+      "G004-m2-universal-cloud-ci-product-substr"
+    ],
+    "evidence": "G004 total-accounting malformed-input fail-closed slice merged: PR #956 https://github.com/jason931225/oyatie/pull/956 merged 2026-06-27T22:41:02Z to dev at 4a605f4ad1c32a704d164da973bd739dd2be38f6; PR head 68a6f1bd11c9e693aec37ed3d8e180ceecf642d6 had 41/41 status rollup SUCCESS including oya-ci-required; local evidence includes RED/green Buck2 unit test, rustfmt, git diff --check, generated-face materialize with side effects restored, and total-accounting gate 2/2; evidence file .omx/context/g004-throughput/total-accounting-failclosed-20260627T224305Z.json; active Codex goal snapshot .omx/ultragoal/checkpoints/get-goal-active-pr956-20260627T224305Z.json; worktree/branches cleaned. This is non-terminal for broader G004/G001.",
+    "rationale": "Record a completed small merge-safe G004 slice without falsely marking broader G004 or aggregate G001 complete.",
+    "idempotencyKey": "g004-total-accounting-failclosed-pr956-20260627T224305Z",
+    "accepted": true,
+    "rejectedReasons": [],
+    "deduped": false
+  },
+  "summary": {
+    "total": 18,
+    "pending": 13,
+    "inProgress": 1,
+    "complete": 4,
+    "failed": 0,
+    "reviewBlocked": 0,
+    "historicalReviewBlocked": 0,
+    "needsUserDecision": 0,
+    "superseded": 0,
+    "steeringBlocked": 0,
+    "aggregateComplete": false,
+    "artifactComplete": false,
+    "activeGoalId": "G001-complete-oyatie-through-small-merge"
+  },
+  "planSummary": {
+    "total": 18,
+    "pending": 13,
+    "inProgress": 1,
+    "complete": 4,
+    "failed": 0,
+    "reviewBlocked": 0,
+    "historicalReviewBlocked": 0,
+    "needsUserDecision": 0,
+    "superseded": 0,
+    "steeringBlocked": 0,
+    "aggregateComplete": false,
+    "artifactComplete": false,
+    "activeGoalId": "G001-complete-oyatie-through-small-merge"
+  },
+  "plan": {
+    "version": 1,
+    "createdAt": "2026-06-25T21:17:03.638Z",
+    "updatedAt": "2026-06-27T05:01:02.428Z",
+    "briefPath": ".omx/ultragoal/brief.md",
+    "goalsPath": ".omx/ultragoal/goals.json",
+    "ledgerPath": ".omx/ultragoal/ledger.jsonl",
+    "codexGoalMode": "aggregate",
+    "goals": [
+      {
+        "id": "G001-complete-oyatie-through-small-merge",
+        "title": "Complete Oyatie through small, merge-safe waves. Hard constraints: us...",
+        "objective": "Complete Oyatie through small, merge-safe waves. Hard constraints: use isolated worktree branches from fresh origin/dev; one writer per hot file; never hand-edit *.generated.json; Rust + Buck2 are authoritative; no Cargo-based verification authority; retire shell/Python/CLI authority; cloud-ci must be universal, productized, hermetic, comprehensive, cloud-native, Kubernetes-native, and API-driven; GitHub Actions is a transitional adapter only; repo-specific behavior belongs in policy data packs, not universal engines; remove active GraphQL residue without rewriting historical/vendor truth; after each wave review, fix, verify, open PR, wait for oya-ci-required green, merge, and clean up. Prefer disjoint lanes that cannot create merge conflicts. Next focus: advance cloud-ci toward universal API-driven product boundaries without touching hot workflow files unless it is the sole lane.",
+        "status": "in_progress",
+        "attempt": 1,
+        "createdAt": "2026-06-25T21:17:03.638Z",
+        "updatedAt": "2026-06-25T21:21:30.227Z",
+        "startedAt": "2026-06-25T21:21:30.227Z"
+      },
+      {
+        "id": "G002-m0-trunk-and-active-pr-intake",
+        "title": "M0 trunk and active PR intake",
+        "objective": "Keep dev green and merge-safe: finish or retire active PR/worktree lanes, verify oya-ci-required, clean stale branches/worktrees, and maintain a current backlog view before opening new broad waves.",
+        "status": "complete",
+        "attempt": 0,
+        "createdAt": "2026-06-25T21:18:53.172Z",
+        "updatedAt": "2026-06-26T23:03:32.978Z",
+        "evidence": "G002-m0-trunk-and-active-pr-intake complete for intake/fanout gating: no open PRs targeting dev; origin/dev 490311b9fd9cd3e65e139073d8a40e579f8e49b2 has oya-ci-required success at 2026-06-26T22:40:05Z; current collision map is .omx/team-ledgers/g002-intake-collision-map.md; post-prune summary is .omx/team-ledgers/g002-post-prune-summary.md; 30 clean/merged worktrees removed and 32 clean branch no-PR checkouts removed with branch refs preserved; final classification .omx/context/g002-intake/final-worktree-classification-20260626T2322Z.json shows 29 intentionally preserved worktrees: leader root dirty/behind, 18 dirty investigate, 10 detached not in origin/dev. G015 must launch only from fresh origin/dev worktrees and must not use preserved dirty/detached worktrees.",
+        "completedAt": "2026-06-26T23:03:32.978Z"
+      },
+      {
+        "id": "G003-m1-repo-hygiene-and-runtime-state-bo",
+        "title": "M1 repo hygiene and runtime-state boundaries",
+        "objective": "Remove or fence root scratch artifacts, runtime-state directory drift, piled worktrees, invalid hook output, and active GraphQL residue while preserving generated files, historical ADR truth, and local runtime state boundaries.",
+        "status": "pending",
+        "attempt": 0,
+        "createdAt": "2026-06-25T21:18:53.280Z",
+        "updatedAt": "2026-06-25T21:18:53.280Z",
+        "evidence": "Prior plan and handoff identify root hygiene, .claude/.codex/.omc/.omx drift, SessionStart JSON, and GraphQL residue as parallel-safe hygiene lanes."
+      },
+      {
+        "id": "G004-m2-universal-cloud-ci-product-substr",
+        "title": "M2 universal cloud-ci product substrate",
+        "objective": "Move CI from repo-specific bridge scripts toward universal Rust cloud-ci APIs: policy data packs in, hermetic gate/result packets out, GitHub Actions as adapter only, Buck2 authoritative, no shell/Python authority.",
+        "status": "pending",
+        "attempt": 0,
+        "createdAt": "2026-06-25T21:18:53.382Z",
+        "updatedAt": "2026-06-25T21:18:53.382Z",
+        "evidence": "Latest user directive: cloud native, API driven; CI must be universal, productized, hermetic, comprehensive, not Oyatie-specific."
+      },
+      {
+        "id": "G005-m3-generated-artifact-conflict-elimi",
+        "title": "M3 generated-artifact conflict elimination",
+        "objective": "Remove generated artifact merge surfaces by using Rust materializers/controllers, de-committed pure derivations, drift compare gates, and controller-owned repair PRs; never hand-edit generated JSON.",
+        "status": "pending",
+        "attempt": 0,
+        "createdAt": "2026-06-25T21:18:53.482Z",
+        "updatedAt": "2026-06-25T21:18:53.482Z",
+        "evidence": "User called generated slices causing merge conflict an anti-pattern and requested a more elegant solution or removal."
+      },
+      {
+        "id": "G006-m4-rust-purity-and-toolchain-drift-a",
+        "title": "M4 Rust purity and Python/MJS authority retirement",
+        "objective": "Align Rust latest-stable policy, Buck2 toolchain, dependency automation, shell/Python/MJS retirement, and no local CLI authority under reusable Rust apps and APIs. Replace Python and MJS only where they still provide valid, worth-preserving live authority; delete, fence, or leave historical/vendor-only scripts instead of rewriting dead code.",
+        "status": "pending",
+        "attempt": 0,
+        "createdAt": "2026-06-25T21:18:53.586Z",
+        "updatedAt": "2026-06-26T10:50:50.172Z",
+        "evidence": "User requested Rust 2024 latest stable everywhere, own/dependabot-like updating, shell/Python retirement, and API-based no-CLI operation.",
+        "steeringEvidence": "User requested starting Python and MJS replacement to Rust, clarified only if still valid and worth preserving, and invoked ponytail minimalism.",
+        "steeringRationale": "This is a narrower wording update to existing G006, preserving the aggregate objective while preventing speculative rewrites."
+      },
+      {
+        "id": "G007-m5-phase-0-shared-cloud-infrastructu",
+        "title": "M5 Phase 0 shared cloud infrastructure",
+        "objective": "Build shared cloud infrastructure services in parallel after contracts freeze: IAM, KMS, secrets, IaC, network, data, storage, compute, billing, capacity, cell, marketplace, FSH, with Rust kernels, APIs, Cedar, persistence, audit, OTel, quota/billing, K8s deploy paths, and Buck2 gates.",
+        "status": "complete",
+        "attempt": 0,
+        "createdAt": "2026-06-25T21:18:53.689Z",
+        "updatedAt": "2026-06-27T04:57:00.994Z",
+        "evidence": "G007-m5-phase-0-shared-cloud-infrastructu complete: .omx/ultragoal/goals.json and .omx/ultragoal/ledger.jsonl audited; team g007-wave-c2a-phase-0-1fb6d50c terminal 8/8 completed; merged PRs #930 #931 #932 #933 #935 #934 to dev head 5d84f4a1a6fb9a1758dc610358c980d7697e2a44; protected dev oya-ci-required run 28278207483 success 41/41; final local materialize + six C2 gates Pass 6 Fail 0; diagnostic PR #936 closed because generated-output-diff-policy correctly rejected controller-owned generated baseline as PR merge surface; evidence .omx/context/wave-c2-phase0/final-evidence-20260627T0456Z.json.",
+        "completedAt": "2026-06-27T04:57:00.994Z"
+      },
+      {
+        "id": "G008-m6-phase-1-platform-substrate",
+        "title": "M6 Phase 1 platform substrate",
+        "objective": "Deliver identity, tenancy, audit-chain, governance, compliance, observability, payments, finops portal, API gateway, application, developer SDK, network, and cell services after Phase 0 dependency gates.",
+        "status": "pending",
+        "attempt": 0,
+        "createdAt": "2026-06-25T21:18:53.795Z",
+        "updatedAt": "2026-06-25T21:18:53.795Z",
+        "evidence": "Backlog wave plan enumerates Phase 1 substrate with IAM/tenancy/audit/observability dependencies."
+      },
+      {
+        "id": "G009-m7-phase-2-core-capability-substrate",
+        "title": "M7 Phase 2 core capability substrate",
+        "objective": "Deliver intelligence, ontology, workflow engine/studio, consent graph, and detection with agent/runtime contracts, execution, projection, consent-policy joins, and evidence loops.",
+        "status": "pending",
+        "attempt": 0,
+        "createdAt": "2026-06-25T21:18:53.900Z",
+        "updatedAt": "2026-06-25T21:18:53.900Z",
+        "evidence": "Backlog wave plan enumerates Phase 2 core capability substrate."
+      },
+      {
+        "id": "G010-m8-phase-3-communication-and-collabo",
+        "title": "M8 Phase 3 communication and collaboration products",
+        "objective": "Deliver messenger, mail, drive, calendar, meet, recordings, notes, docs, sheets, slides, forms, connector, comms-email, community, analytics, tasks, translate, and search using Phase 0-2 substrates.",
+        "status": "pending",
+        "attempt": 0,
+        "createdAt": "2026-06-25T21:18:53.997Z",
+        "updatedAt": "2026-06-25T21:18:53.997Z",
+        "evidence": "Backlog wave plan enumerates Phase 3 collaboration and dependencies on identity, tenancy, storage, search, and connector policy."
+      },
+      {
+        "id": "G011-m9-phase-4-distribution-and-enterpri",
+        "title": "M9 Phase 4 distribution and enterprise SaaS",
+        "objective": "Deliver distribution substrate and enterprise families across marketplace, plugin/app store, workplace integration, feature flags, ops dashboard, brand/sites, HR, ERP, CRM, and ITSM, absorbing comparable product families into canonical Oyatie services.",
+        "status": "pending",
+        "attempt": 0,
+        "createdAt": "2026-06-25T21:18:54.102Z",
+        "updatedAt": "2026-06-25T21:18:54.102Z",
+        "evidence": "Backlog wave plan enumerates Phase 4 distribution plus enterprise SaaS families."
+      },
+      {
+        "id": "G012-m10-cross-cutting-production-bar",
+        "title": "M10 cross-cutting production bar",
+        "objective": "Enforce API contract consistency, default-deny authz, data classification/residency, privacy/DSR, billing/quota/metering, SLOs, runbooks, DR, SBOM/signing/attestation, multi-arch OCI, distroless images, load/chaos/failover, security, FinOps, accessibility, and observability across all services.",
+        "status": "pending",
+        "attempt": 0,
+        "createdAt": "2026-06-25T21:18:54.208Z",
+        "updatedAt": "2026-06-25T21:18:54.208Z",
+        "evidence": "Backlog wave plan enumerates cross-cutting production criteria."
+      },
+      {
+        "id": "G013-m11-strangler-migration",
+        "title": "M11 strangler migration",
+        "objective": "Migrate existing/legacy paths through facades, shadowing, selective dual-read/write, one-service cutovers, old-path removal, and rollback evidence; no big-bang migrations.",
+        "status": "pending",
+        "attempt": 0,
+        "createdAt": "2026-06-25T21:18:54.313Z",
+        "updatedAt": "2026-06-25T21:18:54.313Z",
+        "evidence": "Backlog wave plan includes strangler migration requirements."
+      },
+      {
+        "id": "G014-m12-launch-readiness",
+        "title": "M12 launch readiness",
+        "objective": "Complete final release gates: full cloud-ci green, evidence bundle, multi-region K8s deployment, tenant isolation proof, dashboards, incident runbooks, backup/restore proof, security/performance reviews, release checklist, onboarding docs, and adversarial audit.",
+        "status": "pending",
+        "attempt": 0,
+        "createdAt": "2026-06-25T21:18:54.410Z",
+        "updatedAt": "2026-06-25T21:18:54.410Z",
+        "evidence": "Backlog wave plan enumerates launch readiness gates."
+      },
+      {
+        "id": "G015-wave-a-m0-m4-team-foundation",
+        "title": "Wave A M0-M4 Team foundation execution",
+        "objective": "Run the first Team wave across disjoint M0-M4 foundation slices end-to-end: intake, repo hygiene, GraphQL/hook cleanup, universal cloud-ci boundary, generated-artifact conflict controls, Rust/toolchain drift, and shell/Python retirement inventory. Each worker owns a non-overlapping slice, opens PRs only when justified, and reports verification/merge readiness.",
+        "status": "complete",
+        "attempt": 1,
+        "createdAt": "2026-06-25T21:22:00Z",
+        "updatedAt": "2026-06-27T00:41:18.846Z",
+        "evidence": "G015-wave-a-m0-m4-team-foundation complete: team g015-wave-a-m0-m4-fou-1fb6d50c is shut down (status missing after shutdown); PRs #914, #915, #916, #917, #918 are MERGED into origin/dev a9c24f757880e2290281b6a674ff045a0cd8e62f; PR-head oya-ci-required/status rollups for #917/#918 show no pending/failing checks and #914-#916 were already merged with green required checks; independent code-reviewer/architect reviews are recorded in PR bodies; cleanup removed merged follow-up worktrees/branches for #917/#918 and temp #915. Evidence file: .omx/context/g015-wave-a-m0-m4/final-pr-evidence-20260627T0035Z.json. Fresh active Codex aggregate snapshot: .omx/ultragoal/checkpoints/get-goal-active-20260627T0037Z.json. Note: post-merge dev oya-ci-required run 28273027942 for a9c24f757880e2290281b6a674ff045a0cd8e62f remained queued/pending with zero jobs allocated during bounded poll; this is recorded as a non-red queue caveat, not a failed gate.",
+        "completedAt": "2026-06-27T00:41:18.846Z"
+      },
+      {
+        "id": "G016-m13-rust-kernel-and-os-substrate",
+        "title": "M13 Rust kernel and operating-system substrate",
+        "objective": "Design and implement the Linux/Talos-inspired Rust kernel and operating-system substrate: minimal secure host OS, immutable/node-image posture, API-driven operations, Kubernetes-native bootstrap, supply-chain verified system components, and owned runtime boundaries without new third-party dependency sprawl.",
+        "status": "pending",
+        "attempt": 0,
+        "createdAt": "2026-06-25T21:25:37Z",
+        "updatedAt": "2026-06-25T21:25:37Z",
+        "evidence": "User requested Linux/Talos inspired Rust kernel/operating-system work be included in the full ultragoal backlog."
+      },
+      {
+        "id": "G017-m14-ast-transpiler-and-program-analysis-substrate",
+        "title": "M14 AST, transpiler, and program-analysis substrate",
+        "objective": "Design and implement owned AST, parser, transpiler, codemod, static-analysis, policy-rewrite, and language-interop substrate for Oyatie: Rust-first kernels, explicit IR contracts, deterministic transforms, verification fixtures, and no speculative dependency adoption.",
+        "status": "pending",
+        "attempt": 0,
+        "createdAt": "2026-06-25T21:25:37Z",
+        "updatedAt": "2026-06-25T21:25:37Z",
+        "evidence": "User requested AST-based, transpiler, and other various work be included in the full ultragoal backlog."
+      },
+      {
+        "id": "G018-m15-hyperscaler-procedure-and-closed-loop-review",
+        "title": "M15 Hyperscaler process and closed-loop review",
+        "objective": "For every wave, assess parallelizable work, friction/process failures, merge-conflict risk, verification gaps, enterprise/hyperscaler readiness, security/performance posture, and plan quality; feed fixes back into the next wave before launching it.",
+        "status": "complete",
+        "attempt": 0,
+        "createdAt": "2026-06-25T21:25:37Z",
+        "updatedAt": "2026-06-27T01:11:34.186Z",
+        "evidence": "G018-m15-hyperscaler-procedure-and-closed-loop-review complete: closed-loop review synthesized critic/verifier/planner/architect lanes in .omx/context/g018-closed-loop-review/synthesis-20260627T0054Z.md; post-merge dev oya-ci-required run 28273027942 for G015 commit a9c24f757880e2290281b6a674ff045a0cd8e62f completed success with 41/41 jobs, failures [], evidence .omx/context/g018-closed-loop-review/dev-run-28273027942-final-20260627T0110Z.json; G015 team g015-wave-a-m0-m4-fou-1fb6d50c is shut down/status missing by design and G015 evidence remains .omx/context/g015-wave-a-m0-m4/final-pr-evidence-20260627T0035Z.json; next write wave may launch only from fresh origin/dev worktrees; G001 aggregate Codex goal remains active/in-progress.",
+        "completedAt": "2026-06-27T01:11:34.186Z"
+      }
+    ],
+    "codexObjective": "Complete the durable ultragoal plan in .omx/ultragoal/goals.json, including later accepted/appended stories, under the original brief constraints; use .omx/ultragoal/ledger.jsonl as the audit trail.",
+    "executionPolicy": {
+      "teamExecutionPolicy": {
+        "scope": "every milestone wave",
+        "leaderOwns": [
+          "ultragoal ledger",
+          "wave plan",
+          "merge queue",
+          "final review",
+          "checkpoint evidence"
+        ],
+        "teamOwns": [
+          "parallel disjoint lane execution",
+          "read-only audits",
+          "bounded implementation slices",
+          "verification slices"
+        ],
+        "launchRule": "Before each wave, run a team preflight snapshot, launch team workers only on disjoint file/path ownership, and do not advance to the next wave until all wave PRs are reviewed, fixed, green, merged, and cleaned up.",
+        "conflictPolicy": "One writer per hot file. Shared workflow files, oya-ci.toml, root hub specs, generated-artifact policies, and generated files are single-writer serial lanes. Friction or merge conflict is process failure.",
+        "workerCountTarget": 10,
+        "modelPolicy": "Use gpt-5.5 with high reasoning for build/planning/review/team execution where runtime supports explicit launch args; do not use spark for planning/review/build work.",
+        "verification": [
+          "targeted Buck2 tests/builds",
+          "generated-face materialization checks when relevant",
+          "code review",
+          "ultraqa/adversarial checks before launch milestones",
+          "oya-ci-required green before merge"
+        ],
+        "workerCountLayout": "1|5|5 tmux windows where possible: leader + two five-worker teams for disjoint wave halves",
+        "reviewPosture": "Torvalds-strict critic for process/code slop; hyperscaler architect for APIs, tenancy, security, operations, scalability, and production readiness",
+        "closedLoopAssessment": [
+          "parallelization suitability",
+          "frictions/conflicts/process failure",
+          "procedure/process improvements",
+          "hyperscaler enterprise-readiness",
+          "no-new-dependency compliance",
+          "security/performance/operability evidence"
+        ]
+      }
+    },
+    "activeGoalId": "G001-complete-oyatie-through-small-merge"
+  }
+}

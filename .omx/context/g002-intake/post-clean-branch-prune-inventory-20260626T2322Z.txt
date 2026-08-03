@@ -1,0 +1,137 @@
+## git worktree count
+29
+
+## git worktree list --porcelain
+worktree /Users/jasonlee/Developer/oyatie
+HEAD d705932d4731307b80320125560808be21f8b582
+branch refs/heads/dev
+
+worktree /private/tmp/claude-501/-Users-jasonlee-Developer-oyatie/0eea760e-659a-43a5-a5fa-31225a3931a5/scratchpad/wt-session
+HEAD 3a90fd1e6bc86f989436aef3e1576b452010638b
+branch refs/heads/feat/cloud-intel-session-pinning
+
+worktree /private/tmp/oya-firewall-0f0dPI/worktree
+HEAD bf063080fcc9f65374e496c965372262632aa7f1
+detached
+
+worktree /private/tmp/oya-pr882-probe-90412
+HEAD e17ac9a24b668797796ba60a8619abe701c751b5
+detached
+
+worktree /private/tmp/oyatie-pr881-review.WFwSdx
+HEAD f3ff09b1458a2f65fba8aa619745b5819ed9a180
+detached
+
+worktree /private/tmp/oyatie-pr882-clean-review
+HEAD e829bab48d501d56e908fb31b395e76665009927
+detached
+
+worktree /private/tmp/oyatie-pr882-clean.m9mG55
+HEAD df4f755fb598796ea04810646a85503cfa5e753b
+detached
+
+worktree /private/tmp/oyatie-pr884-review
+HEAD 38eded923375d3d943fa34131b088d63a32a278a
+detached
+
+worktree /private/tmp/oyatie-pr893-wt
+HEAD 6fca8ea580c87c796507a635a716518306cb3086
+detached
+
+worktree /Users/jasonlee/Developer/oyatie-pr883-review
+HEAD 016aa1f35d81007e9d716f1b0c4d75f8cd41bab9
+detached
+
+worktree /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_a6c6939e-488-2
+HEAD 7fa050225465c0b5230911f62ab0e0a3e8dcf348
+branch refs/heads/work-headroom-488-2
+
+worktree /Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_f66bf3ee-51a-1
+HEAD 3a4a9238bee53bf442b74564941be04f5edbfb7d
+branch refs/heads/feat/cloud-intel-g0-billing-canary
+
+worktree /Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-1
+HEAD 83e6a7066aa280825c8a32dc63928e95b02e8225
+branch refs/heads/mail-mailbox-organize-usecase-slice
+
+worktree /Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-10
+HEAD 83e6a7066aa280825c8a32dc63928e95b02e8225
+branch refs/heads/compliance-control-evidence-usecase-slice
+
+worktree /Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-2
+HEAD 83e6a7066aa280825c8a32dc63928e95b02e8225
+branch refs/heads/comms-messenger-stream-ordering-usecase
+
+worktree /Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-3
+HEAD 83e6a7066aa280825c8a32dc63928e95b02e8225
+branch refs/heads/comms-contact-center-core-slice
+
+worktree /Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-4
+HEAD 83e6a7066aa280825c8a32dc63928e95b02e8225
+branch refs/heads/worktree-wf_5056f9ff-2b6-4
+
+worktree /Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-5
+HEAD 83e6a7066aa280825c8a32dc63928e95b02e8225
+branch refs/heads/wave1/billing-accounting-journal-usecase
+
+worktree /Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-6
+HEAD 83e6a7066aa280825c8a32dc63928e95b02e8225
+branch refs/heads/feat/billing-finops-budget-alert-585
+
+worktree /Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-7
+HEAD 83e6a7066aa280825c8a32dc63928e95b02e8225
+branch refs/heads/data-pipeline-core-ports-slice
+
+worktree /Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-8
+HEAD 83e6a7066aa280825c8a32dc63928e95b02e8225
+branch refs/heads/feat/data-warehouse-table-retention-core-adr0587
+
+worktree /Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-9
+HEAD 83e6a7066aa280825c8a32dc63928e95b02e8225
+branch refs/heads/worktree-wf_5056f9ff-2b6-9
+
+worktree /Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_6e664cf7-e06-2
+HEAD 648c490e488fd25bf8f13067a109871cab3dcb72
+branch refs/heads/wf/milestone-view
+
+worktree /Users/jasonlee/oyatie-worktrees/p3-observability
+HEAD f2cf13a792c6109d37472724bba24915f6fc5510
+branch refs/heads/agent/p3-observability
+
+worktree /Users/jasonlee/oyatie-worktrees/pr-repair-python-mjs-rust/pr907
+HEAD b7a22b72c5eae951ec9dcdf8bd7943629b4acaf7
+detached
+
+worktree /Users/jasonlee/oyatie-worktrees/pr-repair-python-mjs-rust/pr908
+HEAD 370fc47037166836b80452d54cb563fb8c5a3cb5
+detached
+
+worktree /Users/jasonlee/oyatie-worktrees/pr-repair-python-mjs-rust/pr909
+HEAD cc8ba3c8d4f6703d1c50e20da4032900128f058b
+detached
+
+worktree /Users/jasonlee/oyatie-worktrees/pr-repair-python-mjs-rust/pr910
+HEAD cfcad19eb8449e607de44859f506098523b9b329
+detached
+
+worktree /Users/jasonlee/oyatie-worktrees/pr811-catalog-rekey
+HEAD cfdbf1b6e5cbcf1e82501c975642074e52dabde4
+branch refs/heads/pr811-rekey
+
+
+## git status --short --branch
+## dev...origin/dev [behind 202]
+ M .codex/hooks.json
+ D goal.json
+ D slice06-backfill-results.log
+ D slice06-backfill-test.log
+ D slice06-buck-test.log
+ D slice06-generator.log
+ D slice06-progress.log
+ D slice06-retest-results.log
+ D slice06-retest.log
+?? cloud/cloud-intelligence/.omc/
+?? specs/capability-registry.json
+
+## open PRs
+[]

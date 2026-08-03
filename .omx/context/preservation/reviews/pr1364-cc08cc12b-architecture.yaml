@@ -1,0 +1,62 @@
+schema: oyatie.preservation.non-authority-receipt/v1
+receipt_type: NON_AUTHORITY
+generated_at_utc: "2026-07-24T02:44:42Z"
+
+task_id: /root/pr1364_85cc_architecture
+reviewer_role: architect
+review_scope: exact-head Stage-1 dependency, boundary, and C14 record semantics
+qualified_stage1_principal: false
+
+materialization:
+  recorded_by: /root
+  source: reviewer-final-message
+  independently_signed_by_reviewer: false
+  limitation: >-
+    The reviewer was read-only and returned receipt-ready evidence in its final
+    task message. The leader materialized this NON_AUTHORITY record; it is not
+    an authenticated qualified-human or protected-review receipt.
+
+repository_snapshot:
+  train_base_commit: 1026a65b707ce57693d9b830de33ee0ce228f16b
+  regression_base_commit: d43053db4ebe473275ba3071003a9694e6469b01
+  reviewed_parent: 85cc6dba57c6ec969b4a6cc8376e09d85d068ae6
+  reviewed_head: cc08cc12be9318a11ae15da47f9ca39002109c73
+  reviewed_tree: 3ca56efd398a869a5a339a3a3da55ba545eb03bf
+  head_signature_valid: true
+  signing_key_sha256: "SHA256:5grGNUtX9Zgmy1SWne6wF9DR8W1ElUQaF/Z8SYRz8E8"
+  worktree_clean: true
+  head_and_tree_rechecked: true
+  sole_successor_delta:
+    path: docs/decisions/ADR-0622-mechanism-neutral-pre-roadmap-stage1-evidence-epoch.md
+    insertions: 4
+    deletions: 3
+
+verdict: APPROVE_SOURCE_QUALITY_ONLY
+architectural_status: CLEAR
+planning_state: HOLD(Planning)
+roadmap_planning_authorized: false
+binding_plan_approval_allowed: false
+implementation_dispatch_allowed: false
+
+resolved_finding: >-
+  The ADR now matches the executable asymmetric C14 contract: source and
+  candidate records bind the same context attestation and assert no prior
+  context; both cross-bind the protected receipt; the protected receipt binds
+  the same attestation and records decision=dissent.
+
+evidence:
+  canonical_buck_receipt:
+    path: /private/tmp/pr1364-cc08-final-green.2EGabg/buck2-test.txt
+    sha256: 5834913b0135b485110c312d1005b72543f0425d85503ad126a13b4c6565d088
+    build_id: dfb56242-24a4-4eb6-9ebc-2666df733f11
+    unit_tests: "1/1"
+    contract_tests: "106/106"
+    terminal: "Pass 2, Fail 0"
+  git_diff_check: PASS
+  generated_faces_changed: 0
+
+findings: []
+claim_boundary: >-
+  This receipt approves only source architecture at the exact local head. It is
+  not a qualified 16-lens receipt, protected admission, Stage-1 PASS, roadmap
+  authorization, binding-plan approval, or implementation dispatch.

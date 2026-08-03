@@ -1,0 +1,114 @@
+{
+  "aggregateGoalId": "G001-complete-oyatie-through-small-merge",
+  "claim": "Two disjoint G004 cloud-ci fail-closed false-green hardening slices were implemented, reviewed, verified, merged, and protected-dev CI passed; broader G004/G001 remain active.",
+  "cleanup": {
+    "deletedLocalBranches": [
+      "agent/g004-staleness-failclosed-20260627T210528Z",
+      "agent/g004-target-parity-failclosed-20260627T210528Z",
+      "agent/next-wave-scan-20260627T210121Z"
+    ],
+    "removedWorktrees": [
+      "/Users/jasonlee/oyatie-worktrees/g004-staleness-failclosed-20260627T210528Z",
+      "/Users/jasonlee/oyatie-worktrees/g004-target-parity-failclosed-20260627T210528Z",
+      "/Users/jasonlee/oyatie-worktrees/next-wave-scan-20260627T210121Z"
+    ]
+  },
+  "codeReview": [
+    {
+      "blockers": 0,
+      "lane": "staleness",
+      "reviewerRole": "code-reviewer",
+      "verdict": "APPROVE"
+    },
+    {
+      "blockers": 0,
+      "lane": "target-parity",
+      "reviewerRole": "code-reviewer",
+      "verdict": "APPROVE after fixing malformed bool and whitespace-path concerns"
+    }
+  ],
+  "codexGoalSnapshotPath": ".omx/ultragoal/checkpoints/get-goal-active-20260627T2211Z.json",
+  "createdAt": "2026-06-27T22:11:12.561213Z",
+  "finalDev": {
+    "expectedHeadSha": "6cb892fa7399d3029e02738b06466728743f95b2",
+    "originDevSha": "6cb892fa7399d3029e02738b06466728743f95b2",
+    "oyaCiRequiredRun": {
+      "conclusion": "success",
+      "createdAt": "2026-06-27T21:29:03Z",
+      "databaseId": 28302328877,
+      "event": "push",
+      "headBranch": "dev",
+      "headSha": "6cb892fa7399d3029e02738b06466728743f95b2",
+      "status": "completed",
+      "updatedAt": "2026-06-27T22:05:38Z",
+      "url": "https://github.com/jason931225/oyatie/actions/runs/28302328877",
+      "workflowName": "oya-ci-required"
+    }
+  },
+  "generatedArtifactPolicy": {
+    "cleanup": "local materializer side effects restored/removed before commit; PR checks include generated-output-diff-policy success",
+    "committedGeneratedFiles": false,
+    "materializedGeneratedFacesOnlyForLocalGateFixtures": true
+  },
+  "goalId": "G004-m2-universal-cloud-ci-product-substr",
+  "intermediateRuns": [
+    {
+      "reason": "stale non-head dev run after PR #955 advanced origin/dev; final run 28302328877 is authoritative for 6cb892fa7399d3029e02738b06466728743f95b2",
+      "runId": 28302313778,
+      "status": "cancelled"
+    }
+  ],
+  "localValidation": [
+    "staleness: rustfmt --check cloud/cloud-ci/gates/oya-cloud-ci-staleness-reaper-app/src/lib.rs",
+    "staleness: git diff --check",
+    "staleness: buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-staleness-reaper-app:oya-cloud-ci-staleness-reaper-app-unittest (8 tests)",
+    "staleness: materialize generated faces locally, then buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-staleness-reaper-app:oya-cloud-ci-staleness-reaper-app-gate (2 tests)",
+    "target-parity: rustfmt --check cloud/cloud-ci/gates/oya-cloud-ci-target-parity-app/src/lib.rs",
+    "target-parity: git diff --check",
+    "target-parity: buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-target-parity-app:oya-cloud-ci-target-parity-app-unittest (7 tests)",
+    "target-parity: materialize generated faces locally, then buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-target-parity-app:oya-cloud-ci-target-parity-app-gate (1 test)"
+  ],
+  "notes": [
+    "Root checkout had pre-existing dirty/behind state and was not used for source edits.",
+    "This artifact and the Codex goal snapshot are local OMX evidence; source changes landed via isolated worktree PRs against dev."
+  ],
+  "prs": [
+    {
+      "baseRefName": "dev",
+      "headRefName": "agent/g004-staleness-failclosed-20260627T210528Z",
+      "mergeCommit": "19566b7a6c27a13c9fe79a05a327d8c70d782a39",
+      "mergedAt": "2026-06-27T21:28:23Z",
+      "number": 954,
+      "state": "MERGED",
+      "statusChecks": {
+        "failuresOrNonSuccess": [],
+        "pending": 0,
+        "requiredContextObserved": true,
+        "successful": 41,
+        "total": 41
+      },
+      "title": "fix: fail closed on malformed staleness rows",
+      "url": "https://github.com/jason931225/oyatie/pull/954"
+    },
+    {
+      "baseRefName": "dev",
+      "headRefName": "agent/g004-target-parity-failclosed-20260627T210528Z",
+      "mergeCommit": "6cb892fa7399d3029e02738b06466728743f95b2",
+      "mergedAt": "2026-06-27T21:29:00Z",
+      "number": 955,
+      "state": "MERGED",
+      "statusChecks": {
+        "failuresOrNonSuccess": [],
+        "pending": 0,
+        "requiredContextObserved": true,
+        "successful": 41,
+        "total": 41
+      },
+      "title": "fix: fail closed on malformed target parity rows",
+      "url": "https://github.com/jason931225/oyatie/pull/955"
+    }
+  ],
+  "rootCheckoutStatusAfterEvidenceWrite": "## dev...origin/dev [behind 240]\n M .codex/hooks.json\n D goal.json\n D slice06-backfill-results.log\n D slice06-backfill-test.log\n D slice06-buck-test.log\n D slice06-generator.log\n D slice06-progress.log\n D slice06-retest-results.log\n D slice06-retest.log\n?? cloud/cloud-intelligence/.omc/\n?? specs/capability-registry.json\n",
+  "schema": "oyatie.omx.g004-throughput-evidence.v1",
+  "status": "non_terminal_progress_recorded"
+}

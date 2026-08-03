@@ -1,0 +1,10 @@
+{
+  "schema_version": "1.0",
+  "captured_at": "2026-06-27T00:32:00Z",
+  "scope": "G015 follow-up PR reconciliation after team shutdown",
+  "notes": [
+    "PR #917 merged at 2026-06-27T00:32:17Z after oya-ci-required passed; local branch deletion failed only because the worktree remained checked out.",
+    "PR #918 review lanes are clean; waiting on final Buck2 check before merge.",
+    "G001 aggregate Codex goal remains active and must not be completed from this intermediate story reconciliation."
+  ]
+}

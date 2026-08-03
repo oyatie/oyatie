@@ -1,0 +1,174 @@
+schema: oyatie.stage1.live-admission-correction/v1
+status: NON_AUTHORITY
+planning_state: HOLD(Planning)
+roadmap_planning_authorized: false
+binding_plan_approval_allowed: false
+implementation_dispatch_allowed: false
+protected_merge_authorized: false
+observed_at_utc: "2026-07-24T03:19:53Z"
+
+claim_boundary: >-
+  This adjacent supplement corrects and extends only the live GitHub admission
+  snapshot in the sealed Stage-1 blocker packet. It is not a qualified-human
+  disposition, a Stage-1 PASS, an accepted ADR, a protected admission result,
+  planning authority, merge authority, or implementation dispatch.
+
+sealed_packet:
+  path: STAGE1-DECISION-BLOCKER-PACKET-cc08cc12b-20260723.yaml
+  sha256: 00b953d5b2db7de2a68b0f4ba65be5c66401ef6e455f824ca8c3a1be791ff7f2
+  mutation_policy: immutable
+
+correction:
+  reason: >-
+    The sealed packet's combined-status connector view did not expose GitHub
+    Checks API runs. Read-only Checks API queries now prove that
+    oya-ci-required existed and failed on PRs 1361, 1362, and 1364 before the
+    packet was sealed. PR 1363 has no oya-ci-required run on its observed head.
+    This is pre-seal snapshot visibility incompleteness, not later drift.
+  superseded_fields_only:
+    - remote_pr_snapshot.facts[pr=1361].oya_ci_required_present
+    - remote_pr_snapshot.facts[pr=1361].statuses
+    - remote_pr_snapshot.facts[pr=1362].oya_ci_required_present
+    - remote_pr_snapshot.facts[pr=1362].statuses
+    - remote_pr_snapshot.facts[pr=1364].oya_ci_required_present
+    - remote_pr_snapshot.facts[pr=1364].statuses
+    - protected_admission_blockers entry claiming absence on every observed head
+  unaffected_packet_claims:
+    - all four remote heads differ from their exact signed local candidates
+    - all four pull requests remain drafts and are not mergeable
+    - exact-head submitted reviews are absent
+    - protected admission is not ready
+    - merge is not authorized
+    - HOLD(Planning) remains mandatory
+
+repository_snapshot:
+  repository: jason931225/oyatie
+  protected_branch: dev
+  branch_commit: 30dd46c4dd7d12c085b77332d9ac5035d583edcf
+  branch_tree: a073d9a2da0968eeec7511b9dd5326b2510aecbd
+  protection:
+    required_status_checks:
+      strict: false
+      checks:
+        - context: oya-ci-required
+          app_id: 15368
+    required_pull_request_reviews: null
+    enforce_admins: false
+    required_linear_history: true
+    required_conversation_resolution: true
+    allow_force_pushes: false
+    allow_deletions: false
+  active_repository_rulesets: []
+  qualification: >-
+    This is a read-only forge snapshot. Required-review enforcement is not
+    configured and administrator enforcement is disabled; the repository's
+    prose review requirements therefore remain an additional unsatisfied
+    evidence/admission obligation, not a fact supplied by branch protection.
+
+pull_requests:
+  - pr: 1361
+    state: OPEN
+    draft: true
+    mergeable: CONFLICTING
+    merge_state_status: DIRTY
+    base_sha: 30dd46c4dd7d12c085b77332d9ac5035d583edcf
+    remote_head: 7915baa3d95ae3ea6a4d35c0a1fc750ee303c51c
+    exact_signed_local_candidate: aadb8c75878fff3c93f0858d5a758707a93f1205
+    submitted_review_count: 0
+    review_request_count: 0
+    oya_ci_required:
+      present: true
+      status: completed
+      conclusion: failure
+      started_at_utc: "2026-07-23T01:29:55Z"
+      completed_at_utc: "2026-07-23T01:29:58Z"
+      app_id: 15368
+      job_url: https://github.com/jason931225/oyatie/actions/runs/29971821239/job/89095624927
+  - pr: 1362
+    state: OPEN
+    draft: true
+    mergeable: CONFLICTING
+    merge_state_status: DIRTY
+    base_sha: afff4dade737b1833153c4f45d8defdfa2b328a8
+    remote_head: f5ebd909391a4a697394ae60d4a2af7a25f8b7e8
+    exact_signed_local_candidate: d69a14831d8eb5f731bd74f60e74db13bb3792e8
+    submitted_review_count: 0
+    review_request_count: 0
+    oya_ci_required:
+      present: true
+      status: completed
+      conclusion: failure
+      started_at_utc: "2026-07-23T01:36:39Z"
+      completed_at_utc: "2026-07-23T01:36:42Z"
+      app_id: 15368
+      job_url: https://github.com/jason931225/oyatie/actions/runs/29972203820/job/89096523596
+  - pr: 1363
+    state: OPEN
+    draft: true
+    mergeable: CONFLICTING
+    merge_state_status: DIRTY
+    base_sha: a2b326eebd418ae970847b5e1bca3782c61c52ab
+    remote_head: d422aa41ece01a4d84395ced47251e52e697057e
+    exact_signed_local_candidate: 1026a65b707ce57693d9b830de33ee0ce228f16b
+    submitted_review_count: 0
+    review_request_count: 0
+    oya_ci_required:
+      present: false
+      status: absent
+      conclusion: null
+  - pr: 1364
+    state: OPEN
+    draft: true
+    mergeable: CONFLICTING
+    merge_state_status: DIRTY
+    base_sha: a2b326eebd418ae970847b5e1bca3782c61c52ab
+    remote_head: 6c149e8b822223decebc71ef923bece4e54f2ed4
+    exact_signed_local_candidate: cc08cc12be9318a11ae15da47f9ca39002109c73
+    submitted_review_count: 0
+    review_request_count: 0
+    oya_ci_required:
+      present: true
+      status: completed
+      conclusion: failure
+      started_at_utc: "2026-07-23T01:09:35Z"
+      completed_at_utc: "2026-07-23T01:09:37Z"
+      app_id: 15368
+      job_url: https://github.com/jason931225/oyatie/actions/runs/29970683552/job/89093004865
+
+capture:
+  mode: read_only
+  tools:
+    - GitHub REST branch-protection endpoint
+    - GitHub REST Checks API
+    - GitHub pull-request GraphQL view
+    - local git object verification
+  query_scope:
+    - repos/jason931225/oyatie/branches/dev/protection
+    - repos/jason931225/oyatie/rulesets
+    - exact remote-head check runs for PRs 1361 through 1364
+    - pull-request state, draft, mergeability, heads, bases, reviews, and review requests
+  remote_mutations: []
+
+current_admission_blockers:
+  - exact signed local candidate heads are not the remote pull-request heads
+  - all four pull requests are drafts, conflicting, and DIRTY
+  - submitted exact-head reviews and review requests are absent
+  - oya-ci-required failed on PRs 1361, 1362, and 1364
+  - oya-ci-required is absent on PR 1363
+  - required pull-request review enforcement is not configured
+  - administrator enforcement is disabled
+  - no active repository ruleset or merge-queue enrollment was observed
+  - sequential restack freshness is required after each protected promotion
+  - post-merge rollout, rollback, observability, browser or user-story,
+    release-governance, and observation-harvest receipts are absent
+
+terminal:
+  current_outcome: TRUTHFUL_DECISION_BLOCKER_PACKET
+  authoritative_live_epoch_exists: false
+  required_fail_closed_epoch_state: HOLD_EPOCH_OPEN
+  planning_state: HOLD(Planning)
+  qualified_stage1_pass: false
+  roadmap_planning_authorized: false
+  binding_plan_approval_allowed: false
+  implementation_dispatch_allowed: false
+  protected_merge_authorized: false

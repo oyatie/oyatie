@@ -1,0 +1,63 @@
+schema: oyatie.stage1.decision-blocker-handoff-index/v1
+status: NON_AUTHORITY
+planning_state: HOLD(Planning)
+roadmap_planning_authorized: false
+binding_plan_approval_allowed: false
+implementation_dispatch_allowed: false
+created_at_utc: "2026-07-24T02:58:33Z"
+
+claim_boundary: >-
+  This index identifies the exact bytes preserved in the decision/blocker
+  handoff envelope. It is not a qualified-human disposition, Stage-1 control
+  receipt, protected admission result, planning authorization, binding plan
+  approval, merge instruction, or implementation dispatch.
+
+packet:
+  path: STAGE1-DECISION-BLOCKER-PACKET-cc08cc12b-20260723.yaml
+  sha256: 00b953d5b2db7de2a68b0f4ba65be5c66401ef6e455f824ca8c3a1be791ff7f2
+
+contents:
+  - path: STAGE1-DECISION-BLOCKER-PACKET-cc08cc12b-20260723.yaml.sha256
+    sha256: d74923122d28c45b10b2ae2d6efda80183b0ab0d9cfe1dc648b97b09dfbb67cc
+  - path: reviews/pr1364-cc08cc12b-architecture.yaml
+    sha256: 0d0b7e367ae27385d3e93e21cdfa8b294dbbf4289f5e05101e5134e3e348a242
+  - path: reviews/pr1364-cc08cc12b-code-security.yaml
+    sha256: dee21f05c20efc3fc5cbf180568045f968d92a0986796a43245e53dd5c307bef
+  - path: reviews/pr1364-cc08cc12b-authority.yaml
+    sha256: e2406219a968dd299564cb8e04e5bbb9f66500e0a56b52d7f41ae1d6c8768d4f
+  - path: reviews/pr1364-cc08cc12b-verifier.yaml
+    sha256: 93a532155001d656c1646c5b4cafed27b528c50222a8bd20e33c4498170410a8
+  - path: pr1364-final-local-candidate-cc08cc12b-20260723-self-contained.bundle.sha256
+    sha256: 54bff4bb2d3583a3612579aaf7d3a6e987e743b88a51620c9967ac26b52e0cb5
+
+external_recovery_artifact:
+  path: pr1364-final-local-candidate-cc08cc12b-20260723-self-contained.bundle
+  sha256: 1dc5d3a642c9c87f540d6a0b2b79393a7bfbea6c137f6d877b23508e65453452
+  size_bytes: 111449172
+  embedded_in_handoff_envelope: false
+  reason: >-
+    The self-contained recovery bundle is kept adjacent to the envelope. Its
+    exact checksum sidecar is embedded so a recovery consumer can verify the
+    separately preserved artifact without duplicating it inside the handoff.
+
+handoff_envelope:
+  path: stage1-decision-blocker-handoff-00b953d5b2db-20260723.tar
+  checksum_sidecar: stage1-decision-blocker-handoff-00b953d5b2db-20260723.tar.sha256
+  embedded_checksum_omitted: true
+  reason: >-
+    This index is itself embedded in the handoff envelope. Embedding the final
+    envelope or sidecar digest here would create a circular self-hash
+    dependency. The adjacent checksum sidecar records the final envelope digest
+    after these indexed bytes are frozen.
+
+supersession:
+  supersedes_packet:
+    path: STAGE1-DECISION-BLOCKER-PACKET-20260723.yaml
+    status: immutable_provenance_only
+  supersedes_candidate_bundle:
+    path: pr1364-final-local-candidate-85cc6dba5-20260723-self-contained.bundle
+    status: immutable_provenance_only
+  rule: >-
+    Older sealed artifacts remain unmodified provenance. This NON_AUTHORITY
+    index records content-addressed references to the exact cc08cc12b successor
+    and its current evidence; it confers no authority.

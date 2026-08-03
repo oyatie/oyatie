@@ -1,0 +1,52 @@
+receipt_kind: pr-source-authority-category-audit
+receipt_version: 1
+non_authority: true
+qualified_stage1_principal: false
+reviewed_at_utc: "2026-07-24T00:27:27Z"
+review_scope:
+  pull_request: 1364
+  candidate_worktree: "/Users/jasonlee/Developer/oyatie/.omx/worktrees/codex-pr1364-prep-20260723-v2"
+  candidate_head: "4eab21df0ff8a03f201a07e75998695dd1e9e4c2"
+  candidate_tree: "824b44733fcfcd59e1df2a39f559e8d32b827326"
+  declared_base: "1026a65b707ce57693d9b830de33ee0ce228f16b"
+  observed_merge_base: "1026a65b707ce57693d9b830de33ee0ce228f16b"
+  clean_before: true
+  clean_after: true
+verdict: "NON_AUTHORITY_CONFIRMED"
+findings: []
+established_structural_properties:
+  adr_0622:
+    status: Proposed
+    dormant: true
+    effect: "Does not amend Accepted authority, close HOLD(Planning), issue qualified-human decisions, or authorize roadmap or implementation dispatch."
+  source_ceiling:
+    terminal_candidate: PASS_CANDIDATE
+    effective_pass: "Requires a future independently operated post-merge admission envelope; the candidate contains no activated producer, signature verifier, trust-root verifier, or controller."
+    roadmap_planning_authorized: false
+    binding_plan_approval_allowed: false
+    implementation_dispatch_allowed: false
+  authority_separation:
+    authenticated_scm: "Source and protected fields are structural claims/bindings only; no source claim authenticates SCM, server review, required context, signature, trust root, or protected admission."
+    qualified_authority: "C06-C11 qualifications, C13 independence, C14 fresh dissent, and C15 oracle/blind-reader/qualified-planning-authority claims are validated as externally supplied evidence and are not invented by the evaluator."
+    freshness_and_independence: "Local booleans, labels, digests, and bindings do not establish identity, fresh context, independence, trusted time, revocation, receipt signature, or qualification."
+  exact_control_boundary:
+    machine_and_external_split: "C04 remains HOLD without an authenticated population producer and trust-root proof; C06-C11 remain irreducibly qualified/external; C13-C15 require independent external actors and externally held receipts."
+    protected_admission: "Admission is an external immutable post-merge envelope for a promoted commit distinct from the PR head; it cannot mutate source state or turn missing qualified authority into PASS."
+  archive_boundary:
+    disposition: "Retired or superseded bytes remain only in authorized Git object history; readable in-tree archive/tombstone copies are refused."
+    confidentiality_claim: false
+  invalidation_boundary:
+    mutation_domains: "All enumerated program/evidence mutations open a new epoch; no narrower dependency boundary is accepted without explicit controlling-contract proof."
+    context_exposure: "Exposure invalidates affected C13-C15 receipts, and shared cold-packet/isolation exposure invalidates the entire C13-C15 review join."
+    controller_created: false
+review_method:
+  - "Verified exact HEAD, tree, merge-base, and clean worktree before review."
+  - "Read ADR-0622 Proposed/dormant authority boundary and relevant candidate schemas, fixtures, and pure evaluator semantics."
+  - "Examined the final two regression-first commits, including invalidation-join hardening."
+  - "Re-verified exact HEAD, tree, merge-base, and clean worktree after review."
+limitations:
+  - "This is a local source review, not a GitHub review, protected-branch admission, CI result, or merge authorization."
+  - "This receipt does not authenticate SCM facts, principals, signatures, trust roots, qualifications, independence, freshness, server review, required context, or post-merge outcomes."
+  - "This receipt does not activate ADR-0622, satisfy any Stage-1 control, convert PASS_CANDIDATE into PASS(Planning), approve a plan, or dispatch implementation."
+  - "Git-history-only preservation prevents ordinary in-tree authority confusion; it does not provide confidentiality."
+stop_condition: "Invalidate this receipt if the exact candidate head or tree changes."

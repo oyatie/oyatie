@@ -1,0 +1,77 @@
+schema: oyatie.preservation.non-authority-receipt/v1
+receipt_type: NON_AUTHORITY
+generated_at_utc: "2026-07-24T02:44:42Z"
+
+task_id: /root/pr1364_85cc_authority
+reviewer_role: authority-and-scholastic-reviewer
+review_scope: exact-head authority categories, claim ceiling, and irreducible input boundary
+qualified_stage1_principal: false
+
+materialization:
+  recorded_by: /root
+  source: reviewer-final-message
+  independently_signed_by_reviewer: false
+  limitation: >-
+    This record is leader-materialized from a read-only review result. Neither
+    reviewer identity nor any asserted external capacity is authenticated by
+    this file.
+
+repository_snapshot:
+  train_base_commit: 1026a65b707ce57693d9b830de33ee0ce228f16b
+  regression_base_commit: d43053db4ebe473275ba3071003a9694e6469b01
+  reviewed_parent: 85cc6dba57c6ec969b4a6cc8376e09d85d068ae6
+  reviewed_head: cc08cc12be9318a11ae15da47f9ca39002109c73
+  reviewed_tree: 3ca56efd398a869a5a339a3a3da55ba545eb03bf
+  head_signature_valid: true
+  worktree_clean: true
+
+verdict: NON_AUTHORITY_CONFIRMED
+planning_state: HOLD(Planning)
+roadmap_planning_authorized: false
+binding_plan_approval_allowed: false
+implementation_dispatch_allowed: false
+
+authority_analysis:
+  local_structural_repairs_complete: true
+  adr_status: Proposed
+  exact_claim_ceiling: >-
+    HOLD only; no roadmap planning, binding plan approval, or implementation
+    dispatch is authorized.
+  structural_records_do_not_prove:
+    - personhood
+    - qualification
+    - standing
+    - independence
+    - legal_or_jcr_capacity
+    - affected_party_capacity
+    - operations_capacity
+    - custody_capacity
+    - veto_authority
+    - pilot_authority
+    - fresh_context
+    - planning_authority
+  irreducible_external_inputs:
+    - C06 authenticated legal/JCR disposition
+    - C07 authenticated affected-party disposition
+    - C08 authenticated operations disposition
+    - C09 authenticated custody disposition
+    - C10 authenticated authorized-veto disposition
+    - C11 authenticated qualified-pilot disposition
+    - C13 authenticated 16-lens independence and fresh-context evidence
+    - C14 authenticated independent fresh-dissent evidence
+    - C15 authenticated qualified planning-authority and oracle evidence
+    - external trust-root and protected-admission evidence
+
+evidence:
+  independent_buck_receipt:
+    path: /private/tmp/pr1364-cc08-authority.eaYowp/buck2-test.txt
+    sha256: 44cd8e81f3b9ac850b7a69899847a03c50085ec8a2ff312c998c5641e22fa3dc
+    unit_tests: "1/1"
+    contract_tests: "106/106"
+  git_diff_check: PASS
+
+findings: []
+claim_boundary: >-
+  This receipt confirms only that the local source fails closed and does not
+  manufacture authority. It supplies none of the irreducible external inputs
+  and cannot authorize roadmap planning, binding approval, or dispatch.

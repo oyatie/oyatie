@@ -1,0 +1,51 @@
+{
+  "goal_id": "G004-m2-universal-cloud-ci-product-substr",
+  "aggregate_goal_status": "active",
+  "wave": "g004-manifest-crossart-20260627",
+  "prs": [
+    {
+      "number": 952,
+      "url": "https://github.com/jason931225/oyatie/pull/952",
+      "title": "fix: fail closed on malformed manifest hygiene rows",
+      "head_sha": "1049544b24434570bf696fd5dcfb83d142443922",
+      "merge_commit": "b251c4e05ab2d55d2fbd93ad64ac92df2df95255",
+      "checks": "41/41 pass",
+      "merged_at": "2026-06-27T20:11:55Z"
+    },
+    {
+      "number": 953,
+      "url": "https://github.com/jason931225/oyatie/pull/953",
+      "title": "fix: fail closed on malformed cross-artifact payloads",
+      "head_sha": "b9136ecd54aefa7da775d0e6f45bb23a09808b20",
+      "merge_commit": "d4e3bb2d55af5d018ea9fdf14472bc12e929677f",
+      "checks": "41/41 pass",
+      "merged_at": "2026-06-27T20:12:16Z"
+    }
+  ],
+  "post_merge_dev": {
+    "origin_dev": "d4e3bb2d55af5d018ea9fdf14472bc12e929677f",
+    "required_workflow_run": "28300492016",
+    "required_workflow": "oya-ci-required",
+    "result": "success",
+    "jobs": "40/40 success",
+    "note": "stale non-head dev run 28299295236 was cancelled after one hung affected-set job to unblock the current head; current head then completed green"
+  },
+  "cleanup": {
+    "removed_worktrees": [
+      "/Users/jasonlee/oyatie-worktrees/g004-manifest-hygiene-20260627T193755Z",
+      "/Users/jasonlee/oyatie-worktrees/g004-cross-artifact-20260627T193755Z",
+      "/Users/jasonlee/oyatie-worktrees/g004-manifest-crossart-team-20260627T193600Z"
+    ],
+    "removed_local_branches": [
+      "agent/g004-manifest-hygiene-20260627T193755Z",
+      "agent/g004-cross-artifact-20260627T193755Z",
+      "agent/g004-manifest-crossart-team-20260627T193600Z"
+    ],
+    "remote_branches": "already absent"
+  },
+  "local_verification_summary": [
+    "manifest lane: rustfmt --check; buck2 unit test 13 tests pass; buck2 build pass; materialized gate pass; git diff --check; no generated JSON diff",
+    "cross-artifact lane: rustfmt --check; buck2 unit test 13 tests pass; buck2 build pass; materialized gate pass; git diff --check; no generated JSON diff",
+    "independent code-reviewer re-reviews reported no blockers for both lanes"
+  ]
+}

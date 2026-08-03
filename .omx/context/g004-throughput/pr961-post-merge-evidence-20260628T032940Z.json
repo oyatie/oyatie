@@ -1,0 +1,57 @@
+{
+  "branchProtectionObserved": {
+    "enforceAdmins": false,
+    "requiredConversationResolution": true,
+    "requiredPullRequestReviewsPresent": false,
+    "requiredStatusContexts": [
+      "oya-ci-required"
+    ]
+  },
+  "codexGoalSnapshot": {
+    "createdAt": 1782577147,
+    "objective": "Complete the durable ultragoal plan in .omx/ultragoal/goals.json, including later accepted/appended stories, under the original brief constraints; use .omx/ultragoal/ledger.jsonl as the audit trail.",
+    "status": "active",
+    "threadId": "019f05f4-5804-7583-a799-8eae34146ad4",
+    "timeUsedSeconds": 40194,
+    "tokensUsed": 8880680,
+    "updatedAt": 1782617342
+  },
+  "goal": "G004-m2-universal-cloud-ci-product-substr",
+  "localCleanup": {
+    "localBranchDeleted": "agent/g004-producer-fallback-sweep-20260628T0215Z",
+    "remoteTrackingPruned": true,
+    "worktreeRemoved": "/Users/jasonlee/oyatie-worktrees/g004-producer-fallback-sweep-20260628T0215Z"
+  },
+  "notes": [
+    "PR #961 had local/agent review evidence before merge but no formal GitHub PR reviews; this gap was folded into G004 SSOT backlog wording before this evidence record.",
+    "Post-merge dev oya-ci-required completed success on merge commit 4d849ea02ea90b771e5f67817f6ef9d22e3345a1."
+  ],
+  "postMergeDevRun": {
+    "conclusion": "success",
+    "createdAt": "2026-06-28T02:57:50Z",
+    "databaseId": 28309428574,
+    "headBranch": "dev",
+    "headSha": "4d849ea02ea90b771e5f67817f6ef9d22e3345a1",
+    "jobCounts": {
+      "success": 40
+    },
+    "status": "completed",
+    "updatedAt": "2026-06-28T03:28:47Z",
+    "url": "https://github.com/jason931225/oyatie/actions/runs/28309428574"
+  },
+  "pr": {
+    "baseRefName": "dev",
+    "headRefName": "agent/g004-producer-fallback-sweep-20260628T0215Z",
+    "mergeCommit": "4d849ea02ea90b771e5f67817f6ef9d22e3345a1",
+    "mergedAt": "2026-06-28T02:57:48Z",
+    "number": 961,
+    "prHeadCheckCounts": {
+      "SUCCESS": 41
+    },
+    "reviewCount": 0,
+    "reviewDecision": "",
+    "state": "MERGED",
+    "url": "https://github.com/jason931225/oyatie/pull/961"
+  },
+  "recordedAt": "2026-06-28T03:29:42.606363Z"
+}

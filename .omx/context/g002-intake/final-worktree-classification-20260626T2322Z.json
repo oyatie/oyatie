@@ -1,0 +1,589 @@
+{
+  "total_worktrees": 29,
+  "summary": {
+    "leader-root-dirty-behind": 1,
+    "preserve-dirty-investigate": 18,
+    "detached-clean-not-in-origin-dev": 10
+  },
+  "classified": [
+    {
+      "worktree": "/Users/jasonlee/Developer/oyatie",
+      "head": "d705932d4731307b80320125560808be21f8b582",
+      "branch_ref": "refs/heads/dev",
+      "branch": "dev",
+      "status_short": [
+        "## dev...origin/dev [behind 202]",
+        " M .codex/hooks.json",
+        " D goal.json",
+        " D slice06-backfill-results.log",
+        " D slice06-backfill-test.log",
+        " D slice06-buck-test.log",
+        " D slice06-generator.log",
+        " D slice06-progress.log",
+        " D slice06-retest-results.log",
+        " D slice06-retest.log",
+        "?? cloud/cloud-intelligence/.omc/",
+        "?? specs/capability-registry.json"
+      ],
+      "dirty_count": 11,
+      "dirty": true,
+      "head_in_origin_dev": true,
+      "class": "leader-root-dirty-behind"
+    },
+    {
+      "worktree": "/private/tmp/claude-501/-Users-jasonlee-Developer-oyatie/0eea760e-659a-43a5-a5fa-31225a3931a5/scratchpad/wt-session",
+      "head": "3a90fd1e6bc86f989436aef3e1576b452010638b",
+      "branch_ref": "refs/heads/feat/cloud-intel-session-pinning",
+      "branch": "cloud-intel-session-pinning",
+      "status_short": [
+        "## feat/cloud-intel-session-pinning...origin/feat/cloud-intel-session-pinning [gone]",
+        "D  .claude/BUCK",
+        "D  .claude/OWNERS",
+        "D  .codex/BUCK",
+        "D  .codex/OWNERS",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/src/main.rs",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-enforcement-liveness-app/BUCK",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-enforcement-liveness-app/tests/enforcement_liveness.rs",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/BUCK",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/tests/firewall.rs",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-freshness-app/src/lib.rs",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-generated-artifact-control-plane-app/src/lib.rs",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-generated-artifact-control-plane-app/tests/generated_artifact_control_plane.rs",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-register-crate-app/src/lib.rs",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-register-crate-app/src/tests.rs",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-root-workspace-hygiene-app/root-workspace-hygiene-policy.json",
+        "M  cloud/cloud-ci/gates/registry-drift/BUCK",
+        "M  cloud/cloud-ci/gates/registry-drift/tests/registry_drift.rs",
+        "M  docs/decisions/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md",
+        "M  docs/decisions/ADR-0542-cloud-intelligence-xproxy-parity-commissioning.md",
+        "M  docs/decisions/ADR-0600-root-workspace-hygiene-allowlist-gate.md",
+        "M  evidence/goals/fd001-planning-closure-implementation-goal-2026-05-19.json",
+        "M  iam/core/identity-oidc-issuer-kernel/src/lib.rs",
+        "M  iam/core/identity-oidc-issuer-kernel/tests/oidc_issuer_kernel.rs",
+        "M  iam/facade/identity-service/src/oidc/issuer.rs",
+        "M  iam/facade/identity-service/tests/e2e_service.rs",
+        "M  intelligence/adapters/codex-adapter/src/lib.rs",
+        "M  intelligence/adapters/rest/src/lib.rs",
+        "M  intelligence/adapters/rest/tests/d4_body_limit.rs",
+        "M  intelligence/core/kernel/BUCK"
+      ],
+      "dirty_count": 46,
+      "dirty": true,
+      "head_in_origin_dev": false,
+      "class": "preserve-dirty-investigate"
+    },
+    {
+      "worktree": "/private/tmp/oya-firewall-0f0dPI/worktree",
+      "head": "bf063080fcc9f65374e496c965372262632aa7f1",
+      "detached": true,
+      "status_short": [
+        "## HEAD (no branch)",
+        " M cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/gate-baseline.generated.json",
+        " M docs/decisions/ADR-0566-authz-coverage-gate.md",
+        "A  oya/hr/crates/oya-hr-employment-infrastructure/OWNERS"
+      ],
+      "dirty_count": 3,
+      "dirty": true,
+      "head_in_origin_dev": false,
+      "class": "preserve-dirty-investigate"
+    },
+    {
+      "worktree": "/private/tmp/oya-pr882-probe-90412",
+      "head": "e17ac9a24b668797796ba60a8619abe701c751b5",
+      "detached": true,
+      "status_short": [
+        "## HEAD (no branch)"
+      ],
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": false,
+      "class": "detached-clean-not-in-origin-dev"
+    },
+    {
+      "worktree": "/private/tmp/oyatie-pr881-review.WFwSdx",
+      "head": "f3ff09b1458a2f65fba8aa619745b5819ed9a180",
+      "detached": true,
+      "status_short": [
+        "## HEAD (no branch)"
+      ],
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": false,
+      "class": "detached-clean-not-in-origin-dev"
+    },
+    {
+      "worktree": "/private/tmp/oyatie-pr882-clean-review",
+      "head": "e829bab48d501d56e908fb31b395e76665009927",
+      "detached": true,
+      "status_short": [
+        "## HEAD (no branch)"
+      ],
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": false,
+      "class": "detached-clean-not-in-origin-dev"
+    },
+    {
+      "worktree": "/private/tmp/oyatie-pr882-clean.m9mG55",
+      "head": "df4f755fb598796ea04810646a85503cfa5e753b",
+      "detached": true,
+      "status_short": [
+        "## HEAD (no branch)",
+        " M cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/gate-baseline.generated.json"
+      ],
+      "dirty_count": 1,
+      "dirty": true,
+      "head_in_origin_dev": false,
+      "class": "preserve-dirty-investigate"
+    },
+    {
+      "worktree": "/private/tmp/oyatie-pr884-review",
+      "head": "38eded923375d3d943fa34131b088d63a32a278a",
+      "detached": true,
+      "status_short": [
+        "## HEAD (no branch)"
+      ],
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": false,
+      "class": "detached-clean-not-in-origin-dev"
+    },
+    {
+      "worktree": "/private/tmp/oyatie-pr893-wt",
+      "head": "6fca8ea580c87c796507a635a716518306cb3086",
+      "detached": true,
+      "status_short": [
+        "## HEAD (no branch)"
+      ],
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": false,
+      "class": "detached-clean-not-in-origin-dev"
+    },
+    {
+      "worktree": "/Users/jasonlee/Developer/oyatie-pr883-review",
+      "head": "016aa1f35d81007e9d716f1b0c4d75f8cd41bab9",
+      "detached": true,
+      "status_short": [
+        "## HEAD (no branch)"
+      ],
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": false,
+      "class": "detached-clean-not-in-origin-dev"
+    },
+    {
+      "worktree": "/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_a6c6939e-488-2",
+      "head": "7fa050225465c0b5230911f62ab0e0a3e8dcf348",
+      "branch_ref": "refs/heads/work-headroom-488-2",
+      "branch": "work-headroom-488-2",
+      "status_short": [
+        "## work-headroom-488-2",
+        " M intelligence/adapters/rest/src/lib.rs"
+      ],
+      "dirty_count": 1,
+      "dirty": true,
+      "head_in_origin_dev": false,
+      "class": "preserve-dirty-investigate"
+    },
+    {
+      "worktree": "/Users/jasonlee/Developer/oyatie/.claude/worktrees/wf_f66bf3ee-51a-1",
+      "head": "3a4a9238bee53bf442b74564941be04f5edbfb7d",
+      "branch_ref": "refs/heads/feat/cloud-intel-g0-billing-canary",
+      "branch": "cloud-intel-g0-billing-canary",
+      "status_short": [
+        "## feat/cloud-intel-g0-billing-canary...origin/dev [behind 19]",
+        "?? intelligence/core/kernel/src/billing_bucket.rs"
+      ],
+      "dirty_count": 1,
+      "dirty": true,
+      "head_in_origin_dev": true,
+      "class": "preserve-dirty-investigate"
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-1",
+      "head": "83e6a7066aa280825c8a32dc63928e95b02e8225",
+      "branch_ref": "refs/heads/mail-mailbox-organize-usecase-slice",
+      "branch": "mail-mailbox-organize-usecase-slice",
+      "status_short": [
+        "## mail-mailbox-organize-usecase-slice",
+        "M  Cargo.lock",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/accounting-registry.generated.json",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/gate-baseline.generated.json",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json",
+        "A  comms/core/mail-mailbox-organize-usecase/BUCK",
+        "A  comms/core/mail-mailbox-organize-usecase/Cargo.toml",
+        "A  comms/core/mail-mailbox-organize-usecase/src/lib.rs",
+        "A  comms/ports/mail-mailbox-organize-api/BUCK",
+        "A  comms/ports/mail-mailbox-organize-api/Cargo.toml",
+        "A  comms/ports/mail-mailbox-organize-api/src/lib.rs",
+        "A  docs/decisions/ADR-580-comms-mail-mailbox-organize-usecase-and-port.md",
+        "A  registry/catalog/comms-mail-mailbox-organize-api.yaml",
+        "A  registry/catalog/comms-mail-mailbox-organize-usecase.yaml"
+      ],
+      "dirty_count": 13,
+      "dirty": true,
+      "head_in_origin_dev": true,
+      "class": "preserve-dirty-investigate"
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-10",
+      "head": "83e6a7066aa280825c8a32dc63928e95b02e8225",
+      "branch_ref": "refs/heads/compliance-control-evidence-usecase-slice",
+      "branch": "compliance-control-evidence-usecase-slice",
+      "status_short": [
+        "## compliance-control-evidence-usecase-slice...origin/dev [behind 84]",
+        " M Cargo.lock",
+        " M cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/decision-crosswalk.generated.json",
+        "?? compliance/core/control/",
+        "?? compliance/ports/control-attestation/",
+        "?? docs/decisions/ADR-0589-compliance-control-attestation-usecase-slice.md",
+        "?? registry/catalog/compliance-control-attestation.yaml",
+        "?? registry/catalog/compliance-control.yaml"
+      ],
+      "dirty_count": 7,
+      "dirty": true,
+      "head_in_origin_dev": true,
+      "class": "preserve-dirty-investigate"
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-2",
+      "head": "83e6a7066aa280825c8a32dc63928e95b02e8225",
+      "branch_ref": "refs/heads/comms-messenger-stream-ordering-usecase",
+      "branch": "comms-messenger-stream-ordering-usecase",
+      "status_short": [
+        "## comms-messenger-stream-ordering-usecase...origin/dev [behind 84]",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/accounting-registry.generated.json",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/decision-crosswalk.generated.json",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/gate-baseline.generated.json",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json",
+        "M  comms/core/messenger-stream-usecase/BUCK",
+        "A  comms/core/messenger-stream-usecase/src/append_ordered.rs",
+        "M  comms/core/messenger-stream-usecase/src/lib.rs",
+        "A  comms/core/messenger-stream-usecase/tests/append_ordered_acceptance.rs",
+        "M  comms/ports/messenger-stream-api/src/lib.rs",
+        "A  comms/ports/messenger-stream-api/src/stream_store.rs",
+        "A  docs/decisions/ADR-0581-messenger-stream-ordering-usecase-and-stream-sequence-store-port.md"
+      ],
+      "dirty_count": 11,
+      "dirty": true,
+      "head_in_origin_dev": true,
+      "class": "preserve-dirty-investigate"
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-3",
+      "head": "83e6a7066aa280825c8a32dc63928e95b02e8225",
+      "branch_ref": "refs/heads/comms-contact-center-core-slice",
+      "branch": "comms-contact-center-core-slice",
+      "status_short": [
+        "## comms-contact-center-core-slice...origin/dev [behind 84]",
+        "M  Cargo.lock",
+        " M cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/accounting-registry.generated.json",
+        " M cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/decision-crosswalk.generated.json",
+        " M cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json",
+        "A  comms/core/contact-center-domain/BUCK",
+        "A  comms/core/contact-center-domain/Cargo.toml",
+        "A  comms/core/contact-center-domain/src/lib.rs",
+        "A  comms/core/contact-center-usecase/BUCK",
+        "A  comms/core/contact-center-usecase/Cargo.toml",
+        "A  comms/core/contact-center-usecase/src/lib.rs",
+        "A  comms/core/contact-center-usecase/src/queue_assignment.rs",
+        "A  comms/core/contact-center-usecase/tests/ticket_lifecycle_acceptance.rs",
+        "A  comms/ports/contact-center-api/BUCK",
+        "A  comms/ports/contact-center-api/Cargo.toml",
+        "A  comms/ports/contact-center-api/src/lib.rs",
+        "A  docs/decisions/ADR-0582-comms-contact-center-case-management-core-slice.md",
+        "A  registry/catalog/comms-contact-center-api.yaml",
+        "A  registry/catalog/comms-contact-center-domain.yaml",
+        "A  registry/catalog/comms-contact-center-usecase.yaml"
+      ],
+      "dirty_count": 19,
+      "dirty": true,
+      "head_in_origin_dev": true,
+      "class": "preserve-dirty-investigate"
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-4",
+      "head": "83e6a7066aa280825c8a32dc63928e95b02e8225",
+      "branch_ref": "refs/heads/worktree-wf_5056f9ff-2b6-4",
+      "branch": "worktree-wf_5056f9ff-2b6-4",
+      "status_short": [
+        "## worktree-wf_5056f9ff-2b6-4",
+        "M  Cargo.lock",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/accounting-registry.generated.json",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/decision-crosswalk.generated.json",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json",
+        "A  data/core/analytics-query-domain/BUCK",
+        "A  data/core/analytics-query-domain/Cargo.toml",
+        "A  data/core/analytics-query-domain/src/engine.rs",
+        "A  data/core/analytics-query-domain/src/lib.rs",
+        "A  data/core/analytics-query-domain/src/model.rs",
+        "A  data/core/analytics-query-domain/src/port.rs",
+        "A  docs/decisions/ADR-0583-analytics-query-aggregation-rollup-core-slice.md",
+        "A  registry/catalog/data-analytics-query-domain.yaml"
+      ],
+      "dirty_count": 12,
+      "dirty": true,
+      "head_in_origin_dev": true,
+      "class": "preserve-dirty-investigate"
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-5",
+      "head": "83e6a7066aa280825c8a32dc63928e95b02e8225",
+      "branch_ref": "refs/heads/wave1/billing-accounting-journal-usecase",
+      "branch": "billing-accounting-journal-usecase",
+      "status_short": [
+        "## wave1/billing-accounting-journal-usecase...origin/dev [behind 84]",
+        "M  Cargo.lock",
+        "A  billing/core/accounting-usecase/BUCK",
+        "A  billing/core/accounting-usecase/Cargo.toml",
+        "A  billing/core/accounting-usecase/src/lib.rs",
+        "A  billing/core/accounting-usecase/tests/ledger_usecase.rs",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/accounting-registry.generated.json",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/decision-crosswalk.generated.json",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json",
+        "A  docs/decisions/ADR-0584-billing-accounting-ledger-usecase-core-slice.md"
+      ],
+      "dirty_count": 9,
+      "dirty": true,
+      "head_in_origin_dev": true,
+      "class": "preserve-dirty-investigate"
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-6",
+      "head": "83e6a7066aa280825c8a32dc63928e95b02e8225",
+      "branch_ref": "refs/heads/feat/billing-finops-budget-alert-585",
+      "branch": "billing-finops-budget-alert-585",
+      "status_short": [
+        "## feat/billing-finops-budget-alert-585...origin/dev [behind 84]",
+        "M  Cargo.lock",
+        "A  billing/core/finops-budget-alert/BUCK",
+        "A  billing/core/finops-budget-alert/Cargo.toml",
+        "A  billing/core/finops-budget-alert/src/lib.rs",
+        "A  billing/ports/finops-budget-alert-api/BUCK",
+        "A  billing/ports/finops-budget-alert-api/Cargo.toml",
+        "A  billing/ports/finops-budget-alert-api/src/lib.rs",
+        "A  billing/ports/finops-budget-alert-api/tests/cost_data_source_contract.rs",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/accounting-registry.generated.json",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/decision-crosswalk.generated.json",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json",
+        "A  docs/decisions/ADR-0585-finops-portal-cloud-agnostic-budget-alert-core-and-cost-data-source-port.md",
+        "A  registry/catalog/billing-finops-budget-alert-api.yaml",
+        "A  registry/catalog/billing-finops-budget-alert.yaml"
+      ],
+      "dirty_count": 14,
+      "dirty": true,
+      "head_in_origin_dev": true,
+      "class": "preserve-dirty-investigate"
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-7",
+      "head": "83e6a7066aa280825c8a32dc63928e95b02e8225",
+      "branch_ref": "refs/heads/data-pipeline-core-ports-slice",
+      "branch": "data-pipeline-core-ports-slice",
+      "status_short": [
+        "## data-pipeline-core-ports-slice",
+        "M  Cargo.lock",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/accounting-registry.generated.json",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/decision-crosswalk.generated.json",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json",
+        "A  data/core/pipeline-domain/BUCK",
+        "A  data/core/pipeline-domain/Cargo.toml",
+        "A  data/core/pipeline-domain/src/lib.rs",
+        "A  data/core/pipeline-domain/tests/pipeline_invariants.rs",
+        "A  data/core/pipeline-usecase/BUCK",
+        "A  data/core/pipeline-usecase/Cargo.toml",
+        "A  data/core/pipeline-usecase/src/lib.rs",
+        "A  data/ports/pipeline-api/BUCK",
+        "A  data/ports/pipeline-api/Cargo.toml",
+        "A  data/ports/pipeline-api/src/lib.rs",
+        "A  docs/decisions/ADR-0586-data-pipeline-cloud-agnostic-core-ports-slice.md",
+        "A  registry/catalog/data-pipeline-domain.yaml",
+        "A  registry/catalog/data-pipeline-ports.yaml",
+        "A  registry/catalog/data-pipeline-usecase.yaml"
+      ],
+      "dirty_count": 18,
+      "dirty": true,
+      "head_in_origin_dev": true,
+      "class": "preserve-dirty-investigate"
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-8",
+      "head": "83e6a7066aa280825c8a32dc63928e95b02e8225",
+      "branch_ref": "refs/heads/feat/data-warehouse-table-retention-core-adr0587",
+      "branch": "data-warehouse-table-retention-core-adr0587",
+      "status_short": [
+        "## feat/data-warehouse-table-retention-core-adr0587...origin/dev [behind 84]",
+        "M  Cargo.lock",
+        " M cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/accounting-registry.generated.json",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/decision-crosswalk.generated.json",
+        " M cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json",
+        "A  data/core/warehouse-domain/BUCK",
+        "A  data/core/warehouse-domain/Cargo.toml",
+        "A  data/core/warehouse-domain/src/lib.rs",
+        "A  data/ports/warehouse-api/BUCK",
+        "A  data/ports/warehouse-api/Cargo.toml",
+        "A  data/ports/warehouse-api/src/lib.rs",
+        "A  docs/decisions/ADR-0587-warehouse-table-partition-retention-core-and-store-port.md",
+        "A  registry/catalog/data-warehouse-api.yaml",
+        "A  registry/catalog/data-warehouse-domain.yaml"
+      ],
+      "dirty_count": 13,
+      "dirty": true,
+      "head_in_origin_dev": true,
+      "class": "preserve-dirty-investigate"
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-9",
+      "head": "83e6a7066aa280825c8a32dc63928e95b02e8225",
+      "branch_ref": "refs/heads/worktree-wf_5056f9ff-2b6-9",
+      "branch": "worktree-wf_5056f9ff-2b6-9",
+      "status_short": [
+        "## worktree-wf_5056f9ff-2b6-9",
+        "M  Cargo.lock",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/accounting-registry.generated.json",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/decision-crosswalk.generated.json",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json",
+        "A  docs/decisions/ADR-0588-marketplace-authorized-entitlement-usecase-and-store-port.md",
+        "A  marketplace/core/usecase/BUCK",
+        "A  marketplace/core/usecase/Cargo.toml",
+        "A  marketplace/core/usecase/src/lib.rs",
+        "A  marketplace/core/usecase/tests/authorized_entitlement_usecase.rs",
+        "A  marketplace/ports/entitlement-store/BUCK",
+        "A  marketplace/ports/entitlement-store/Cargo.toml",
+        "A  marketplace/ports/entitlement-store/src/lib.rs"
+      ],
+      "dirty_count": 12,
+      "dirty": true,
+      "head_in_origin_dev": true,
+      "class": "preserve-dirty-investigate"
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_6e664cf7-e06-2",
+      "head": "648c490e488fd25bf8f13067a109871cab3dcb72",
+      "branch_ref": "refs/heads/wf/milestone-view",
+      "branch": "milestone-view",
+      "status_short": [
+        "## wf/milestone-view...origin/dev [behind 83]",
+        "?? cloud/cloud-ci/gates/oya-cloud-ci-milestone-view-freshness-app/",
+        "?? specs/platform-vertical-status.json",
+        "?? specs/structural-blockers.json",
+        "?? tools/oya-milestone-view-app/",
+        "?? tools/oya-milestone-view-core/"
+      ],
+      "dirty_count": 5,
+      "dirty": true,
+      "head_in_origin_dev": true,
+      "class": "preserve-dirty-investigate"
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/p3-observability",
+      "head": "f2cf13a792c6109d37472724bba24915f6fc5510",
+      "branch_ref": "refs/heads/agent/p3-observability",
+      "branch": "p3-observability",
+      "status_short": [
+        "## agent/p3-observability...origin/dev [behind 148]",
+        "M  Cargo.lock",
+        "M  Cargo.toml",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/accounting-registry.generated.json",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/gate-baseline.generated.json",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-capability-membership-app/capability-membership-policy.json",
+        "M  cloud/cloud-ci/gates/oya-cloud-ci-tier-dependency-acyclicity-app/tier-dependency-acyclicity-policy.json",
+        "D  cloud/cloud-observability/crates/oya-cloud-observability-api/Cargo.toml",
+        "D  cloud/cloud-observability/crates/oya-cloud-observability-domain/Cargo.toml",
+        "M  docs/decisions/ADR-0562-capability-first-repo-organization-and-closed-capability-registry.md",
+        "A  observability/OWNERS",
+        "R  oya/observability/crates/oya-observability-tracing-adapter/BUCK -> observability/adapters/tracing/BUCK",
+        "R  oya/observability/crates/oya-observability-tracing-adapter/Cargo.toml -> observability/adapters/tracing/Cargo.toml",
+        "R  oya/observability/crates/oya-observability-tracing-adapter/src/lib.rs -> observability/adapters/tracing/src/lib.rs",
+        "R  oya/observability/crates/oya-observability-tracing-adapter/tests/slo_breach_observer.rs -> observability/adapters/tracing/tests/slo_breach_observer.rs",
+        "R  cloud/cloud-observability/crates/oya-cloud-observability-domain/BUCK -> observability/core/aggregate/BUCK",
+        "A  observability/core/aggregate/Cargo.toml",
+        "R  cloud/cloud-observability/crates/oya-cloud-observability-domain/src/lib.rs -> observability/core/aggregate/src/lib.rs",
+        "R  cloud/cloud-observability/crates/oya-cloud-observability-api/BUCK -> observability/core/api/BUCK",
+        "A  observability/core/api/Cargo.toml",
+        "R  cloud/cloud-observability/crates/oya-cloud-observability-api/src/lib.rs -> observability/core/api/src/lib.rs",
+        "R  cloud/cloud-observability/crates/oya-cloud-observability-api/tests/cloud_observability_audit_api.rs -> observability/core/api/tests/cloud_observability_audit_api.rs",
+        "R  oya/observability/crates/oya-observability-domain/BUCK -> observability/core/domain/BUCK",
+        "R  oya/observability/crates/oya-observability-domain/Cargo.toml -> observability/core/domain/Cargo.toml",
+        "R  oya/observability/crates/oya-observability-domain/src/lib.rs -> observability/core/domain/src/lib.rs",
+        "R  oya/observability/crates/oya-observability-domain/src/severity.rs -> observability/core/domain/src/severity.rs",
+        "R  oya/observability/crates/oya-observability-domain/src/slo.rs -> observability/core/domain/src/slo.rs",
+        "R  oya/observability/crates/oya-observability-domain/tests/severity_threshold_gate.rs -> observability/core/domain/tests/severity_threshold_gate.rs",
+        "R  oya/observability/crates/oya-observability-domain/tests/slo_burn_rate.rs -> observability/core/domain/tests/slo_burn_rate.rs"
+      ],
+      "dirty_count": 38,
+      "dirty": true,
+      "head_in_origin_dev": true,
+      "class": "preserve-dirty-investigate"
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/pr-repair-python-mjs-rust/pr907",
+      "head": "b7a22b72c5eae951ec9dcdf8bd7943629b4acaf7",
+      "detached": true,
+      "status_short": [
+        "## HEAD (no branch)"
+      ],
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": false,
+      "class": "detached-clean-not-in-origin-dev"
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/pr-repair-python-mjs-rust/pr908",
+      "head": "370fc47037166836b80452d54cb563fb8c5a3cb5",
+      "detached": true,
+      "status_short": [
+        "## HEAD (no branch)"
+      ],
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": false,
+      "class": "detached-clean-not-in-origin-dev"
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/pr-repair-python-mjs-rust/pr909",
+      "head": "cc8ba3c8d4f6703d1c50e20da4032900128f058b",
+      "detached": true,
+      "status_short": [
+        "## HEAD (no branch)"
+      ],
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": false,
+      "class": "detached-clean-not-in-origin-dev"
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/pr-repair-python-mjs-rust/pr910",
+      "head": "cfcad19eb8449e607de44859f506098523b9b329",
+      "detached": true,
+      "status_short": [
+        "## HEAD (no branch)"
+      ],
+      "dirty_count": 0,
+      "dirty": false,
+      "head_in_origin_dev": false,
+      "class": "detached-clean-not-in-origin-dev"
+    },
+    {
+      "worktree": "/Users/jasonlee/oyatie-worktrees/pr811-catalog-rekey",
+      "head": "cfdbf1b6e5cbcf1e82501c975642074e52dabde4",
+      "branch_ref": "refs/heads/pr811-rekey",
+      "branch": "pr811-rekey",
+      "status_short": [
+        "## pr811-rekey",
+        " M cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/accounting-registry.generated.json",
+        " M cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/gate-baseline.generated.json",
+        " M cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json",
+        "A  registry/catalog/connect-address-book-api.yaml",
+        "R  registry/catalog/oya-address-book-domain.yaml -> registry/catalog/connect-address-book-domain.yaml",
+        "A  registry/catalog/connect-address-book-usecase.yaml"
+      ],
+      "dirty_count": 6,
+      "dirty": true,
+      "head_in_origin_dev": false,
+      "class": "preserve-dirty-investigate"
+    }
+  ]
+}

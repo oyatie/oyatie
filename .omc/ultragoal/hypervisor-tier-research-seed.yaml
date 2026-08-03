@@ -1,0 +1,104 @@
+goal: >-
+  Research and recommend the owned hypervisor / virtualization tier for the oyatie owned stack
+  (kuberos/Asterinas kernel -> cloud-os -> cloud-k8s -> compute). compute/ is chartered "VM +
+  k8s-on-compute + functions/serverless" but no VMM or host-side virtualization exists (the kernel
+  has guest-side virtio only). Deliver a QA-grade, Proposed-ADR-ready design covering: the VMM
+  approach, the KVM-class host-kernel requirement, the container->confidential-VM isolation spectrum,
+  confidential computing, Nitro-style offload, tier placement, and a staged transitional rollout.
+
+task_type: research
+
+brownfield_context:
+  project_type: brownfield
+  context_references:
+    - path: cloud/cloud-kernel/crates/oya-cloud-kernel-hal-kernel/src/virtio.rs
+      role: primary
+      summary: Guest-side virtio device support in the kuberos kernel (kernel runs AS a guest); there is NO host-side virtualization or VMM anywhere in the tree.
+    - path: specs/capability-registry.json
+      role: primary
+      summary: compute capability charter = "ONE compute engine, VM + k8s-on-compute + functions/serverless" — the VM surface it promises has no hypervisor to run it.
+    - path: docs/decisions/ADR-0023-intelligence-sandbox-wasmtime-firecracker.md
+      role: reference
+      summary: Firecracker referenced ONLY as the intelligence sandbox, not as a compute hypervisor.
+    - path: docs/decisions/ADR-0510-scm-bespoke-hyperscaler-destination-cutover-trigger.md
+      role: reference
+      summary: Transitional upstream posture — transient infra (Linux-KVM host) is adapter-absorbed behind stable owned interfaces until owned-stack cutover.
+  existing_patterns:
+    - owned-stack ladder kernel/ (Asterinas) -> os/ (Talos-class) -> k8s/ (owned control plane) -> compute/ engine
+    - transient-stack bar: adopt best-in-class methodology, reimplement owned-Rust behind an owned port
+    - capability-first repo shape (ADR-0562) + substrate-dependency DAG (ADR-0280)
+
+constraints:
+  - Owned stack in Rust; transient infra (Linux-KVM host, KVM ioctls) is adapter-absorbed behind an owned port per the transient-stack bar — never a permanent dependency.
+  - No new adhoc dependencies. Cloud Hypervisor, Firecracker, gVisor, AWS Nitro, SEV-SNP/TDX are REFERENCES + methodology to reimplement owned, not adopted wholesale.
+  - No new shell/python/CLI surfaces in any owned deliverable.
+  - Confidential computing must be standards-aligned (AMD SEV-SNP / Intel TDX) with remote attestation.
+  - Must reconcile with ADR-0562 (capability-registry placement), ADR-0280 (DAG ordering), ADR-0510 (transitional), ADR-0023 (Firecracker sandbox), and the owned-K8s conformance bar.
+  - Hyperscaler bar: would AWS Nitro / GCP / Azure ship this?
+  - Every "ready" claim carries the 5-element proof (standards-aligned impl, security/attestation validation, interop, validation path, migration tooling).
+
+acceptance_criteria:
+  - "Capability-gap analysis: document that compute/ charters VM but no VMM/host-virtualization exists, and that the kernel carries guest-side virtio only — with the exact missing pieces (VT-x/AMD-V, EPT/NPT, IOMMU, VMM device models, boot protocol)."
+  - "VMM decision: benchmark an owned-Rust VMM against Cloud Hypervisor and Firecracker (both Rust references) on attack surface, boot latency, device model, memory, live-migration; default-adopt-or-reimplement verdict + rationale."
+  - "KVM-class primitive: determine whether the Asterinas host can expose KVM-class virtualization or requires a transitional Linux-KVM host (ADR-0510); the exact host-virt gap in Asterinas + the path to owned host-virt."
+  - "Isolation spectrum: a decision matrix across container(k8s) -> gVisor/userspace-kernel -> microVM(Firecracker) -> full VM(Cloud Hypervisor) -> confidential VM(SEV-SNP/TDX), mapping each to compute/ workloads (functions/serverless, k8s-on-compute, tenant VMs) with the isolation/perf/cost tradeoff."
+  - "Confidential computing: an SEV-SNP/TDX encrypted-VM + remote-attestation design and its integration with secrets/ (KMS/SVID) and the P6 security battery."
+  - "Nitro-style offload: a recommendation on the minimal-hypervisor + I/O/security-offload pattern (Nitro-card analog) vs a monolithic VMM, on attack-surface + multi-tenant isolation grounds."
+  - "Tier placement: compute/core/vmm vs a dedicated hypervisor/ meta-tier between os/ and k8s/, resolved against the ADR-0562 closed capability registry + the ADR-0280 DAG, with the concrete registry/DAG edits."
+  - "Staged transitional rollout: transitional Linux-KVM host -> owned Rust VMM -> owned Asterinas host-virt, each stage release-grade-gated with explicit exit criteria."
+  - "Proposed-ADR-ready output: a single design doc that an ADR can adopt verbatim, plus the 5-element owned-stack readiness proof for each committed position."
+  - "Portability/neutral-engine check: the design keeps transient infra behind owned ports whose trait shapes model the owned-stack destination (would-this-trait-change-at-cutover review)."
+
+ontology_schema:
+  name: HypervisorTierDesign
+  description: Domain model for the owned hypervisor/virtualization tier decision across the owned-stack ladder.
+  fields:
+    - name: concern
+      field_type: string
+      description: virtualization-primitive | vmm | isolation-tier | confidential-computing | offload | placement | rollout-stage
+    - name: tier
+      field_type: string
+      description: kernel | os | hypervisor | compute
+    - name: reference_target
+      field_type: string
+      description: the best-in-class reference (Cloud Hypervisor / Firecracker / gVisor / Nitro / SEV-SNP / TDX)
+    - name: owned_destination
+      field_type: string
+      description: the owned-Rust destination + the port that absorbs the transient infra
+    - name: transitional_path
+      field_type: string
+      description: the transitional adapter (e.g. Linux-KVM host) and the cutover trigger
+    - name: standards_alignment
+      field_type: string
+      description: the standard/spec the design aligns to (KVM API, virtio, SEV-SNP, TDX, UEFI boot)
+    - name: decision
+      field_type: string
+      description: the recommended decision
+    - name: rationale
+      field_type: string
+      description: hyperscaler-grounded rationale + the 5-element proof status
+
+evaluation_principles:
+  - name: hyperscaler-fidelity
+    description: Does the design match or beat AWS Nitro / Firecracker / Cloud Hypervisor at the hyperscaler bar?
+    weight: 0.25
+  - name: owned-stack-purity
+    description: Owned-Rust destination, transient infra behind owned ports, no adhoc deps, no shell/python/CLI.
+    weight: 0.2
+  - name: isolation-and-confidential-rigor
+    description: Completeness of the isolation spectrum + standards-aligned confidential computing + attestation.
+    weight: 0.25
+  - name: migration-safety
+    description: Staged, release-gated, reversible rollout with explicit exit criteria; reconciles with ADR-0562/0280/0510.
+    weight: 0.2
+  - name: portability
+    description: Neutral-engine ports whose shapes model the W5 destination; would-this-trait-change-at-cutover holds.
+    weight: 0.1
+
+exit_conditions:
+  - name: adr-ready-design
+    description: A single Proposed-ADR-ready design doc satisfies every acceptance criterion.
+    evaluation_criteria: All ACs green + the 5-element proof present for each committed position.
+
+metadata:
+  ambiguity_score: 0.15

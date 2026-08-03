@@ -1,0 +1,55 @@
+schema: oyatie.preservation.non-authority-receipt/v1
+receipt_type: NON_AUTHORITY_CODE_SECURITY_REVIEW
+generated_at_utc: "2026-07-23T23:50:18Z"
+timestamp_basis: initial-file-mtime-utc
+timestamp_correction:
+  corrected_by: /root
+  reason: >-
+    The reviewer-recorded minute was in the future relative to materialization.
+    This value records the initial file modification time in UTC instead of
+    preserving an impossible future timestamp.
+
+task_id: /root/pr1364_final_code_security_review
+reviewer_task_id: /root/pr1364_final_code_security_review
+review_scope: restarted exact-head code, specification, and security review
+
+repository_snapshot:
+  worktree: /Users/jasonlee/Developer/oyatie/.omx/worktrees/codex-pr1364-prep-20260723-v2
+  base_commit: 1026a65b707ce57693d9b830de33ee0ce228f16b
+  reviewed_head: 781789573560cd95556f2a9764e2262196708140
+  reviewed_tree: 7e5395f2e3463c1c5f5e62d0da13ae4b4778a8ed
+  head_movement_policy: abort on movement
+  head_and_tree_rechecked_before_receipt: true
+
+verdict: COMMENT
+qualified_stage1_principal: false
+planning_state: HOLD(Planning)
+roadmap_planning_authorized: false
+binding_plan_approval_allowed: false
+implementation_dispatch_allowed: false
+
+findings: []
+
+evidence:
+  identity:
+    - git merge-base --is-ancestor base_commit reviewed_head succeeded.
+    - HEAD and tree were read immediately before this receipt and equal reviewed_head/reviewed_tree.
+    - git status --short was empty in the reviewed worktree.
+  prior_findings_closed:
+    - HIGH SCM namespace finding is closed: specs/stage1-admission-envelope.schema.json:219-253 requires protected_base_repository and protected_base_branch; libs/oya-stage1-closure/src/lib.rs:3957-3972 binds both to protected_parent; tests/stage1_closure.rs:2322-2331 lock mismatch rejection.
+    - MEDIUM stale alternate schema/dead skip is closed: tests/stage1_closure.rs:2180-2198 asserts protected facts expose no admission property or $defs grammar; no admission_envelope reference remains in the protected-facts schema or candidate-record loop.
+    - LOW duplicate receipt-binding validation is closed: libs/oya-stage1-closure/src/lib.rs:867-887 contains one validation loop only.
+  review_coverage:
+    - Reviewed the complete base_commit..reviewed_head diff (27 files; 16931 additions and 11 deletions), ADR-0622, source evaluator, schemas, fixtures, and regression suite.
+    - Rechecked QPA causal digest binding/order, closed object checks, principal separation, SCM receipt equality edges, canonical time/freshness checks, HOLD/no-dispatch behavior, and structural non-authority boundaries.
+    - No new source/spec/security finding was identified. No production unsafe, panic, unwrap, expect, TODO, hard-coded secret, or masking fallback path was found in the reviewed Rust source; lib.rs forbids unsafe code.
+  validation:
+    - git diff --check base_commit..reviewed_head succeeded.
+    - jq parsed all four Stage-1 schemas and all three primary fixtures successfully.
+    - rust-analyzer parse --no-dump succeeded for libs/oya-stage1-closure/src/lib.rs and tests/stage1_closure.rs.
+
+limitations:
+  - Buck2 test/build could not start because this environment cannot create its Buck daemon directory under /Users/jasonlee/.buck; Cargo is retired by repository policy.
+  - rust-analyzer diagnostics resolved the full monorepo workspace (2489 crates) and produced unrelated workspace diagnostics, so a clean modified-file LSP diagnostic result is unavailable. This review therefore does not issue APPROVE despite no actionable source finding.
+  - This is source review only, not authenticated SCM-server attestation, protected admission, signature/trust-root verification, remote CI, rollout, browser, or authority review.
+  - This non-authority receipt does not promote ADR-0622, alter HOLD(Planning), or grant merge, planning, approval, dispatch, or qualified-principal authority.
