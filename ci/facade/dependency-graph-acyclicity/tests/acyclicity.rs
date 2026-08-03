@@ -779,6 +779,33 @@ fn topology_follow_up_tracking_and_baseline_policy_are_fail_closed() {
 }
 
 #[test]
+fn policy_and_graph_cannot_jointly_drift_from_the_pinned_schema_tracking_issue() {
+    let (mut raw, mut policy) = load_live();
+    let schema = live_schema();
+    let joint_drift = "https://github.com/example/repository/issues/42";
+    follow_up_mut(&mut raw, "W0-C-TOPOLOGY-COVERAGE")["tracking_issue"] = json!(joint_drift);
+    policy.topology_coverage_tracking_issue = joint_drift.to_owned();
+
+    let evaluated = report_with_policy_and_schema(&raw, &schema, &policy);
+    assert_eq!(evaluated.verdict, Verdict::Red, "{:#?}", evaluated.findings);
+    assert!(
+        evaluated.findings.iter().any(|finding| {
+            finding.code == "dag_follow_up_policy_drift"
+                && finding.subject == "policy.topology_coverage_tracking_issue"
+        }),
+        "joint policy and graph drift must remain RED: {:?}",
+        evaluated.findings
+    );
+    assert!(
+        evaluated
+            .findings
+            .iter()
+            .all(|finding| finding.code != "dag_schema_authority_mismatch"),
+        "the unchanged canonical schema must retain its independent digest authority"
+    );
+}
+
+#[test]
 fn request_metadata_types_ranges_and_forbidden_assertions_are_red() {
     for invalid_weight in [json!("heavy"), json!(-0.1), json!(0), json!(1.1)] {
         let (mut raw, _) = load_live();
