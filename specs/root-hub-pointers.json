@@ -1288,8 +1288,8 @@
     "spec_platform_architecture": {
       "current_path": "/specs/platform-architecture.json",
       "kind": "spec",
-      "migration_phase": "root-hub-covered-2026-05-20",
-      "purpose": "Consolidated machine-readable source-of-truth for the oyatie platform architecture, derived from the 14 foundational keystone ADRs (ADR-0242 through ADR-0255). Every CI lane, manifest validator, scaffolder, and downstream spec resolves architectural questions against this document. Authoritative for: tenancy doctrine, policy gate doctrine, substrate-vs-product layering, cellular topology, compliance packs, deployment models, intelligence substrate, time + consistency primitives, network..."
+      "migration_phase": "root-hub-covered-topology-projection-stale-w0c",
+      "purpose": "Consolidated machine-readable platform-architecture spec derived from the foundational keystone ADRs. Its substrate_dag_canonical_ordering block is explicitly stale v1 compatibility data with current_parity_claim=false after ADR-0635; /specs/substrate-dependency-dag.json is the sole current machine topology authority, and W0-C-TOPOLOGY-COVERAGE owns a no-new-baseline replacement projection."
     },
     "spec_saga_shape": {
       "current_path": "/specs/saga-shape.json",
@@ -1418,6 +1418,15 @@
       "kind": "spec",
       "migration_phase": "regid-003-planning-spec",
       "purpose": "Planning-only PCI DSS Level 1 readiness and regulated-data control-pack contract for CDE scope, tokenization, PAN/CVV/track-data prohibitions, QSA/ROC/AOC evidence, ASV scans, segmentation, KMS/PDP/audit bindings, retention, incident response, and tenant pack activation gates."
+    },
+    "substrate_dependency_graph_v2": {
+      "current_path": "/specs/substrate-dependency-dag.json",
+      "kind": "spec",
+      "migration_phase": "W0-C-bounded-graph-v2-topology-coverage-required",
+      "purpose": "ADR-0635 bounded face-aware substrate topology authority: a closed 19-unit slice spanning 11 of 24 capabilities plus exactly five typed graphs; only steady_state_request is acyclic and failure_brownout_propagation is its derived max-min reverse transitive closure. Full ADR-0280 D-13.G and B0-hosting parity is unclaimed pending no-new-baseline W0-C-TOPOLOGY-COVERAGE.",
+      "topology_coverage_follow_up": "https://github.com/jason931225/oyatie/issues/1537",
+      "schema_path": "/specs/substrate-dependency-dag.schema.json",
+      "target_path_after_md_retirement": "same"
     }
   },
   "specs_directory_audit_2026_05_20": {

@@ -2779,6 +2779,62 @@
         "autogen": {"generator": "not-applicable; source-authored product contract"},
         "provenance": {"current_author": "codex", "current_reviewed_by": "pending code-review", "last_modified_at": "2026-08-01T00:00:00Z"}
       }
+    },
+    {
+      "artifact_id": "substrate-dependency-dag-v2",
+      "artifact_path": "/specs/substrate-dependency-dag.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "council-architecture + cloud-ci-platform",
+      "purpose_short": "Canonical bounded W0-C substrate-topology slice with 19 face-aware units, exactly five typed graphs, and a derived failure closure; full 24-capability/B0 parity remains a mandatory follow-up.",
+      "artifact_profile": "registry",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "cloud-ci-substrate-dependency-dag-acyclicity"
+        },
+        "verification": {
+          "command": "buck2 test //ci/facade/dependency-graph-acyclicity:ci-dependency-graph-acyclicity-gate"
+        },
+        "validation": {
+          "validator": "specs/substrate-dependency-dag.schema.json plus the dependency-graph-acyclicity Rust gate"
+        },
+        "autogen": {
+          "generator": "not-applicable; source-authored topology, with failure closure verified as derived"
+        },
+        "provenance": {
+          "current_author": "codex",
+          "current_reviewed_by": "pending code-review",
+          "last_modified_at": "2026-08-01T00:00:00Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "substrate-dependency-dag-schema",
+      "artifact_path": "/specs/substrate-dependency-dag.schema.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "council-architecture + cloud-ci-platform",
+      "purpose_short": "Closed Draft 2020-12 schema for the ADR-0635 bounded face-aware substrate graph-v2 contract.",
+      "artifact_profile": "schema",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "cloud-ci-substrate-dependency-dag-acyclicity"
+        },
+        "verification": {
+          "command": "buck2 test //ci/facade/dependency-graph-acyclicity:ci-dependency-graph-acyclicity-gate"
+        },
+        "validation": {
+          "validator": "JSON Schema Draft 2020-12 plus the dependency-graph-acyclicity Rust gate"
+        },
+        "autogen": {
+          "generator": "not-applicable; schema is source-authored"
+        },
+        "provenance": {
+          "current_author": "codex",
+          "current_reviewed_by": "pending code-review",
+          "last_modified_at": "2026-08-01T00:00:00Z"
+        }
+      }
     }
   ],
   "purpose": "Auto-backfilled purpose for artifact-capabilities-registry.json"

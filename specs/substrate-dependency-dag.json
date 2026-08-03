@@ -1,586 +1,1186 @@
 {
-  "_comment": "Canonical substrate-of-substrate dependency DAG (ADR-0280 §D-1, the v1.0.0 Tier-1 worked example populated VERBATIM). Single source of truth for substrate dependency direction, bootstrap ordering (Kahn topo-sort), failure-cascade rules (ADR-0176 brown-out), SLO composition, and build-time client-crate validation; every derived surface (per-microservice manifests, bootstrap scripts, SLO compositions, Cedar permit catalogs) derives from this file. Acyclicity is the invariant (Tarjan SCC; the validator also proves bootstrap_order is a VALID topological order via Kahn — every dependency precedes its dependent). DATA, not code: canonical-json governed, reachability-registered, council-architecture owned. BOOTSTRAP-ORDER FINDING (verified): the §D-1 bootstrap_order is a hand-authored VALID topological order but it is NOT the pure alphabetical-tie-break Kahn sort that ADR-0280 §D-4 prose calls 'unique' — cloud-secrets depends only on cell at runtime (so alphabetically it would sort 2nd, before identity), yet §D-1 places it at step 5 because it is provisioned AFTER identity via the Shamir-genesis bootstrap-only seam (R-5). The alphabetical Kahn sort derived from this DAG is cell->cloud-secrets->identity->tenancy->policy-engine->audit-chain->observability->ontology->intelligence->workflow-engine, which diverges from the declared order at the cloud-secrets/identity positions. This is an internal tension in ADR-0280 between §D-1's verbatim order and §D-4's alphabetical-tie-break claim; the acyclicity lane therefore validates VALID-TOPO-ORDER (the load-bearing invariant, accommodating the R-5 seam), not equality to the alphabetical sort, and surfaces the alphabetical sort as a derived suggestion. Reported, not forced. NODE NAMING (ADR-0562 amendment): nodes use de-branded capability slugs; the §D-1 ten Tier-1 node names ARE the de-branded names and align with specs/capability-registry.json dag_node/dag_nodes: cell->cell, identity->iam(identity), tenancy->tenancy, policy-engine->policy(policy-engine) (ADR-0615 policy-extraction amendment: policy-engine is owned by the standalone policy capability, not iam), cloud-secrets->secrets(cloud-secrets), audit-chain->audit, observability->observability, ontology->data(ontology), intelligence->intelligence, workflow-engine->workflow(workflow-engine). RECONCILIATION of the capability-registry flagged_boundaries note (intelligence/workflow/iac/tenancy 'proposed' dag-nodes): tenancy, intelligence, and workflow-engine are ALREADY present in ADR-0280 §D-1's Tier-1 ten and are hereby RESOLVED (the registry flag predated reading §D-1, which already carries them). The fourth, iac (registry dag_node 'iac'; ADR-0280 Appendix C names it 'cloud-iac', tier_subtype substrate-iac), is a TIER-2 substrate (consumed at deploy time, not on the bootstrap critical path) and is therefore FORWARD-DECLARED per ADR-0280 Appendix C — it lands in DAG v1.1.0, NOT this v1.0.0 Tier-1 file, exactly as the ADR mandates (adding it here would diverge from the verbatim §D-1 ten-node Tier-1 example). All Tier-2 (cloud-iac, cloud-k8s, network, api-gateway, comms-email, consent-graph, compliance, governance, marketplace-catalog) and Tier-S5 substrate-meta (the self-hosting meta-substrate; de-branded node delivery-fabric per the ci capability) nodes are forward-declared per Appendix C and absent from v1.0.0 by design. TELEMETRY/AUDIT RECURSION-BREAK: observability sits in the bootstrap order below ontology/intelligence/workflow-engine, but its cascade weight on those higher substrates is BROWNOUT (edges *->observability carry cascade_rule=BROWNOUT, dependency_weight<=0.3, ADR-0176 brown-out) — telemetry loss is recoverable, never hot-path. observability and audit-chain are kept OFF policy-engine's hot-path (see forbidden_edges_assertion policy-engine->observability and policy-engine->audit-chain). The named bring-up breaks are encoded as forbidden_edges_assertion {from,to,reason} entries whose reason text records the bootstrap-only-seam rationale: cloud-secrets->identity (KMS owns its own Raft / Shamir-shared genesis is a bootstrap-only seam, NOT a runtime edge) and the cell-leaf assertions (single-Raft bootstrap-metastore floor: cell is the leaf, nothing higher may be its dependency). No new schema field is introduced (the §D-1 schema's forbidden_edges_assertion items are EXACTLY {from,to,reason}; the prose 'bootstrap_seam' field mentioned in ADR-0280 R-2 is NOT a schema property and is deliberately NOT emitted). TOPOLOGY FORK (ADR-0562 §8 Fork 1) RESOLVED 2026-07-10 (ADR-0280 §D-13 substrate plane-topology amendment): ADR-0280 §D-1 (this file) is the sole canonical substrate topology authority — the C-plane steady-state runtime dependency graph, with the 'cell' node understood as the cell.envelope (B0) runtime face per the §D-13 plane model. specs/platform-architecture.json substrate_dag_canonical_ordering previously encoded an INCOMPATIBLE inverted orientation (cell at stratum S2 with audit-chain/observability/cloud-secrets as S0 leaves); it has been rewritten as an explicit derived mirror (projection_kind=derived-mirror, canonical_source=/specs/substrate-dependency-dag.json) that carries this file's bootstrap_order verbatim, a DAG-consistent dependency-depth stratification (cell at S0 leaf; no node below a node it depends on), and the Tier-2 + Tier-S5 meta nodes placed by §D-13 plane and marked forward-declared (they gain computed strata positions when their edges land in DAG v1.1.0). The two SSOTs now agree by construction. This file's nodes/edges/bootstrap_order are UNCHANGED by the resolution (acyclicity + valid-topological-order invariants preserved). The plane/face-split model (E0/B0/C0/C1/C2 + G + R, the five edge-typed graphs, and the per-capability face-splits) is authored in ADR-0280 §D-13 and FLAGGED there for a DAG-schema extension (per-node plane/face fields, a genesis/provisioning/publication/failure graph set) in DAG v2 rather than forced into this v1.0.0 artifact; policy already owns its own node here (policy-engine, distinct from identity), consistent with the founder policy-extract ruling (24 capabilities <-> 24 dag_nodes). Authority: ADR-0280 (doctrine) as amended by ADR-0520 + ADR-0562; ADR-0176 (brown-out); specs/capability-registry.json (de-branded names).",
-  "version": "1.0.0",
-  "doctrine_adr": "ADR-0280",
-  "nodes": [
+  "_comment": "Canonical bounded W0-C runtime-face-aware substrate dependency graph v2. ADR-0635 amends ADR-0245, ADR-0280, ADR-0562, and ADR-0615. The closed 19-unit set spans 11 of 24 capabilities and does not claim full ADR-0280 D-13.G or B0-hosting parity. The five graph kinds are deliberately distinct; only steady_state_request is required to be acyclic. failure_brownout_propagation is derived exactly from steady_state_request by the declared max-min impact composition rule.",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schema": "specs/substrate-dependency-dag.schema.json",
+  "version": "2.0.0",
+  "doctrine_adrs": [
+    "ADR-0245",
+    "ADR-0280",
+    "ADR-0562",
+    "ADR-0615",
+    "ADR-0635"
+  ],
+  "external_anchors": [
     {
-      "name": "cell",
-      "tier_subtype": "substrate-infra",
-      "dr_tier": "T1",
-      "slo_floor": 0.9999,
-      "brownout_protocol_version": "ADR-0176/v1",
-      "chaos_drill_cadence_days": 14
-    },
-    {
-      "name": "identity",
-      "tier_subtype": "substrate-identity",
-      "dr_tier": "T1",
-      "slo_floor": 0.9999,
-      "brownout_protocol_version": "ADR-0176/v1",
-      "chaos_drill_cadence_days": 14
-    },
-    {
-      "name": "tenancy",
-      "tier_subtype": "substrate-tenancy",
-      "dr_tier": "T1",
-      "slo_floor": 0.9999,
-      "brownout_protocol_version": "ADR-0176/v1",
-      "chaos_drill_cadence_days": 14
-    },
-    {
-      "name": "policy-engine",
-      "tier_subtype": "substrate-policy",
-      "dr_tier": "T1",
-      "slo_floor": 0.99995,
-      "brownout_protocol_version": "ADR-0176/v1",
-      "chaos_drill_cadence_days": 7
-    },
-    {
-      "name": "cloud-secrets",
-      "tier_subtype": "substrate-secrets",
-      "dr_tier": "T0",
-      "slo_floor": 0.99995,
-      "brownout_protocol_version": "ADR-0176/v1",
-      "chaos_drill_cadence_days": 7
-    },
-    {
-      "name": "audit-chain",
-      "tier_subtype": "substrate-audit",
-      "dr_tier": "T1",
-      "slo_floor": 0.9999,
-      "brownout_protocol_version": "ADR-0176/v1",
-      "chaos_drill_cadence_days": 14
-    },
-    {
-      "name": "observability",
-      "tier_subtype": "substrate-observability",
-      "dr_tier": "T2",
-      "slo_floor": 0.999,
-      "brownout_protocol_version": "ADR-0176/v1",
-      "chaos_drill_cadence_days": 30
-    },
-    {
-      "name": "ontology",
-      "tier_subtype": "substrate-data",
-      "dr_tier": "T2",
-      "slo_floor": 0.9999,
-      "brownout_protocol_version": "ADR-0176/v1",
-      "chaos_drill_cadence_days": 21
-    },
-    {
-      "name": "intelligence",
-      "tier_subtype": "substrate-ai",
-      "dr_tier": "T2",
-      "slo_floor": 0.999,
-      "brownout_protocol_version": "ADR-0176/v1",
-      "chaos_drill_cadence_days": 30
-    },
-    {
-      "name": "workflow-engine",
-      "tier_subtype": "substrate-orchestration",
-      "dr_tier": "T1",
-      "slo_floor": 0.9999,
-      "brownout_protocol_version": "ADR-0176/v1",
-      "chaos_drill_cadence_days": 14
+      "id": "external.genesis-roots",
+      "plane": "E0",
+      "purpose": "Hardware trust, signed bootstrap artifacts, organisation quorum, and bootstrap facts."
     }
   ],
-  "edges": [
+  "dependency_units": [
     {
-      "from": "identity",
-      "to": "cell",
-      "dependency_weight": 1.0,
-      "cascade_rule": "FULL",
-      "version_compatibility_range": "^1.0",
-      "cedar_permit_fragment": "permit-identity-call-cell-v1",
-      "rationale": "Identity issuance requires cell-local Postgres + KMS slot resolution."
+      "id": "network.bootstrap",
+      "capability": "network",
+      "runtime_face": "bootstrap",
+      "plane": "B0",
+      "purpose": "Bootstrap network, DNS, and time substrate beneath the empty cell envelope."
     },
     {
-      "from": "tenancy",
-      "to": "cell",
-      "dependency_weight": 1.0,
-      "cascade_rule": "FULL",
-      "version_compatibility_range": "^1.0",
-      "cedar_permit_fragment": "permit-tenancy-call-cell-v1",
-      "rationale": "Tenancy resolves home_cell on every tenant lookup."
+      "id": "cell.envelope",
+      "capability": "cell",
+      "plane": "B0",
+      "purpose": "Empty cell hosting and liveness envelope.",
+      "runtime_face": "envelope"
     },
     {
-      "from": "tenancy",
-      "to": "identity",
-      "dependency_weight": 1.0,
-      "cascade_rule": "FULL",
-      "version_compatibility_range": "^1.0",
-      "cedar_permit_fragment": "permit-tenancy-call-identity-v1",
-      "rationale": "Tenant admission verifies admin principals against identity."
+      "id": "cell.genesis",
+      "capability": "cell",
+      "plane": "G",
+      "purpose": "First-management-cell break-glass face.",
+      "runtime_face": "genesis"
     },
     {
-      "from": "policy-engine",
-      "to": "cell",
-      "dependency_weight": 0.5,
-      "cascade_rule": "BROWNOUT",
-      "version_compatibility_range": "^1.0",
-      "cedar_permit_fragment": "permit-policy-engine-call-cell-v1",
-      "rationale": "Cell-local Postgres + Valkey shared by fragment registry."
+      "id": "cell.lifecycle.cp",
+      "capability": "cell",
+      "plane": "G",
+      "purpose": "Cell identity, placement, and lifecycle control face.",
+      "runtime_face": "lifecycle.cp"
     },
     {
-      "from": "policy-engine",
-      "to": "identity",
-      "dependency_weight": 1.0,
-      "cascade_rule": "FULL",
-      "version_compatibility_range": "^1.0",
-      "cedar_permit_fragment": "permit-policy-engine-call-identity-v1",
-      "rationale": "Fragment publishers' principals resolved via identity."
+      "id": "cell.router.dp",
+      "capability": "cell",
+      "plane": "R",
+      "purpose": "Cellularized routing data plane using signed cached snapshots.",
+      "runtime_face": "router.dp"
     },
     {
-      "from": "policy-engine",
-      "to": "tenancy",
-      "dependency_weight": 1.0,
-      "cascade_rule": "FULL",
-      "version_compatibility_range": "^1.0",
-      "cedar_permit_fragment": "permit-policy-engine-call-tenancy-v1",
-      "rationale": "Tenant context required for tenant-overlay evaluation."
+      "id": "iam.admin.cp",
+      "capability": "iam",
+      "plane": "G",
+      "purpose": "Identity administration and publication face.",
+      "runtime_face": "admin.cp"
     },
     {
-      "from": "cloud-secrets",
-      "to": "cell",
-      "dependency_weight": 1.0,
-      "cascade_rule": "FULL",
-      "version_compatibility_range": "^1.0",
-      "cedar_permit_fragment": "permit-cloud-secrets-call-cell-v1",
-      "rationale": "KMS slot lives in cell-local HSM partition."
+      "id": "iam.local-verifier",
+      "capability": "iam",
+      "plane": "C0",
+      "purpose": "Cell-local token, SVID, and JWK validation face.",
+      "runtime_face": "local-verifier"
     },
     {
-      "from": "audit-chain",
-      "to": "cell",
-      "dependency_weight": 1.0,
-      "cascade_rule": "FULL",
-      "version_compatibility_range": "^1.0",
-      "cedar_permit_fragment": "permit-audit-chain-call-cell-v1",
-      "rationale": "Audit Merkle log persisted to cell-local object store."
+      "id": "tenancy.directory.cp",
+      "capability": "tenancy",
+      "plane": "G",
+      "purpose": "Tenant lifecycle and home-cell directory authority.",
+      "runtime_face": "directory.cp"
     },
     {
-      "from": "audit-chain",
-      "to": "identity",
-      "dependency_weight": 1.0,
-      "cascade_rule": "FULL",
-      "version_compatibility_range": "^1.0",
-      "cedar_permit_fragment": "permit-audit-chain-call-identity-v1",
-      "rationale": "Audit entries seal the emitting principal's identity."
+      "id": "tenancy.local-context",
+      "capability": "tenancy",
+      "plane": "C0",
+      "purpose": "Signed cached tenant and routing context.",
+      "runtime_face": "local-context"
     },
     {
-      "from": "audit-chain",
-      "to": "tenancy",
-      "dependency_weight": 0.5,
-      "cascade_rule": "DEGRADED",
-      "version_compatibility_range": "^1.0",
-      "cedar_permit_fragment": "permit-audit-chain-call-tenancy-v1",
-      "rationale": "Tenant scope tagged on each Merkle leaf; falls back to 'unscoped' on tenancy brown-out."
+      "id": "policy.authoring.cp",
+      "capability": "policy",
+      "plane": "G",
+      "purpose": "Policy authoring, signing, and distribution face.",
+      "runtime_face": "authoring.cp"
     },
     {
-      "from": "audit-chain",
-      "to": "policy-engine",
-      "dependency_weight": 1.0,
-      "cascade_rule": "FULL",
-      "version_compatibility_range": "^1.0",
-      "cedar_permit_fragment": "permit-audit-chain-call-policy-engine-v1",
-      "rationale": "Audit-chain admission gated by Cedar (per ADR-0243 §D-1)."
+      "id": "policy.local-pdp",
+      "capability": "policy",
+      "plane": "C0",
+      "purpose": "Cell-local PDP and versioned tenant policy store.",
+      "runtime_face": "local-pdp"
     },
     {
-      "from": "audit-chain",
-      "to": "cloud-secrets",
-      "dependency_weight": 1.0,
-      "cascade_rule": "FULL",
-      "version_compatibility_range": "^1.0",
-      "cedar_permit_fragment": "permit-audit-chain-call-cloud-secrets-v1",
-      "rationale": "Audit Merkle root sealed with Ed25519 key from KMS."
+      "id": "secrets.root-control",
+      "capability": "secrets",
+      "plane": "G",
+      "purpose": "External-root-backed root and intermediate management service.",
+      "runtime_face": "root-control"
     },
     {
-      "from": "observability",
-      "to": "cell",
-      "dependency_weight": 0.5,
-      "cascade_rule": "DEGRADED",
-      "version_compatibility_range": "^1.0",
-      "cedar_permit_fragment": "permit-observability-call-cell-v1",
-      "rationale": "Per-cell Mimir/Loki/Tempo storage."
+      "id": "secrets.cell-issuer",
+      "capability": "secrets",
+      "plane": "C0",
+      "purpose": "Cell key partition and downstream workload issuer.",
+      "runtime_face": "cell-issuer"
     },
     {
-      "from": "observability",
-      "to": "identity",
-      "dependency_weight": 0.5,
-      "cascade_rule": "DEGRADED",
-      "version_compatibility_range": "^1.0",
-      "cedar_permit_fragment": "permit-observability-call-identity-v1",
-      "rationale": "Per-principal metric attribution; degrades to 'unknown' on identity brown-out."
+      "id": "audit.control-aggregation",
+      "capability": "audit",
+      "plane": "G",
+      "purpose": "Asynchronous fleet audit aggregation face.",
+      "runtime_face": "control-aggregation"
     },
     {
-      "from": "observability",
-      "to": "tenancy",
-      "dependency_weight": 0.5,
-      "cascade_rule": "DEGRADED",
-      "version_compatibility_range": "^1.0",
-      "cedar_permit_fragment": "permit-observability-call-tenancy-v1",
-      "rationale": "Per-tenant rollups; degrades to 'unscoped' on tenancy brown-out."
+      "id": "audit.cell-seal",
+      "capability": "audit",
+      "plane": "C1",
+      "purpose": "Cell-local append and seal face.",
+      "runtime_face": "cell-seal"
     },
     {
-      "from": "observability",
-      "to": "policy-engine",
-      "dependency_weight": 1.0,
-      "cascade_rule": "FULL",
-      "version_compatibility_range": "^1.0",
-      "cedar_permit_fragment": "permit-observability-call-policy-engine-v1",
-      "rationale": "Query authorization through Cedar."
+      "id": "observability.cell-runtime",
+      "capability": "observability",
+      "plane": "C1",
+      "purpose": "Cell-local telemetry collection and runtime visibility.",
+      "runtime_face": "cell-runtime"
     },
     {
-      "from": "observability",
-      "to": "cloud-secrets",
-      "dependency_weight": 0.5,
-      "cascade_rule": "DEGRADED",
-      "version_compatibility_range": "^1.0",
-      "cedar_permit_fragment": "permit-observability-call-cloud-secrets-v1",
-      "rationale": "TLS certs + storage encryption keys."
+      "id": "data.ontology-runtime",
+      "capability": "data",
+      "plane": "C1",
+      "purpose": "Cell-local ontology and projection runtime.",
+      "runtime_face": "ontology-runtime"
     },
     {
-      "from": "observability",
-      "to": "audit-chain",
-      "dependency_weight": 0.3,
-      "cascade_rule": "BROWNOUT",
-      "version_compatibility_range": "^1.0",
-      "cedar_permit_fragment": "permit-observability-call-audit-chain-v1",
-      "rationale": "Observability emits its own audit on configuration changes; tolerates degraded audit."
+      "id": "intelligence.runtime",
+      "capability": "intelligence",
+      "plane": "C2",
+      "purpose": "Cell workload intelligence runtime.",
+      "runtime_face": "runtime"
     },
     {
-      "from": "ontology",
-      "to": "cell",
-      "dependency_weight": 1.0,
-      "cascade_rule": "FULL",
-      "version_compatibility_range": "^1.0",
-      "cedar_permit_fragment": "permit-ontology-call-cell-v1",
-      "rationale": "Per-cell Postgres + Valkey for projections."
-    },
-    {
-      "from": "ontology",
-      "to": "identity",
-      "dependency_weight": 1.0,
-      "cascade_rule": "FULL",
-      "version_compatibility_range": "^1.0",
-      "cedar_permit_fragment": "permit-ontology-call-identity-v1",
-      "rationale": "Caller identity required for projection authorization."
-    },
-    {
-      "from": "ontology",
-      "to": "tenancy",
-      "dependency_weight": 1.0,
-      "cascade_rule": "FULL",
-      "version_compatibility_range": "^1.0",
-      "cedar_permit_fragment": "permit-ontology-call-tenancy-v1",
-      "rationale": "Tenant scope determines projection shard."
-    },
-    {
-      "from": "ontology",
-      "to": "policy-engine",
-      "dependency_weight": 1.0,
-      "cascade_rule": "FULL",
-      "version_compatibility_range": "^1.0",
-      "cedar_permit_fragment": "permit-ontology-call-policy-engine-v1",
-      "rationale": "Every projection read/write gated by Cedar."
-    },
-    {
-      "from": "ontology",
-      "to": "cloud-secrets",
-      "dependency_weight": 0.5,
-      "cascade_rule": "DEGRADED",
-      "version_compatibility_range": "^1.0",
-      "cedar_permit_fragment": "permit-ontology-call-cloud-secrets-v1",
-      "rationale": "Per-tenant field-level encryption keys."
-    },
-    {
-      "from": "ontology",
-      "to": "audit-chain",
-      "dependency_weight": 1.0,
-      "cascade_rule": "FULL",
-      "version_compatibility_range": "^1.0",
-      "cedar_permit_fragment": "permit-ontology-call-audit-chain-v1",
-      "rationale": "Every state-changing projection emits an audit seal."
-    },
-    {
-      "from": "ontology",
-      "to": "observability",
-      "dependency_weight": 0.3,
-      "cascade_rule": "BROWNOUT",
-      "version_compatibility_range": "^1.0",
-      "cedar_permit_fragment": "permit-ontology-call-observability-v1",
-      "rationale": "Metric emission tolerates dropped samples."
-    },
-    {
-      "from": "intelligence",
-      "to": "cell",
-      "dependency_weight": 1.0,
-      "cascade_rule": "FULL",
-      "version_compatibility_range": "^1.0",
-      "cedar_permit_fragment": "permit-intelligence-call-cell-v1",
-      "rationale": "GPU/CPU compute allocated per-cell."
-    },
-    {
-      "from": "intelligence",
-      "to": "identity",
-      "dependency_weight": 1.0,
-      "cascade_rule": "FULL",
-      "version_compatibility_range": "^1.0",
-      "cedar_permit_fragment": "permit-intelligence-call-identity-v1",
-      "rationale": "Caller identity required for inference authorization + cost attribution."
-    },
-    {
-      "from": "intelligence",
-      "to": "tenancy",
-      "dependency_weight": 1.0,
-      "cascade_rule": "FULL",
-      "version_compatibility_range": "^1.0",
-      "cedar_permit_fragment": "permit-intelligence-call-tenancy-v1",
-      "rationale": "Tenant scope determines model selection + quota."
-    },
-    {
-      "from": "intelligence",
-      "to": "policy-engine",
-      "dependency_weight": 1.0,
-      "cascade_rule": "FULL",
-      "version_compatibility_range": "^1.0",
-      "cedar_permit_fragment": "permit-intelligence-call-policy-engine-v1",
-      "rationale": "Data-class → provider routing (per ADR-0243 §D-1.1)."
-    },
-    {
-      "from": "intelligence",
-      "to": "cloud-secrets",
-      "dependency_weight": 1.0,
-      "cascade_rule": "FULL",
-      "version_compatibility_range": "^1.0",
-      "cedar_permit_fragment": "permit-intelligence-call-cloud-secrets-v1",
-      "rationale": "provider-BYOK API keys + encryption-BYOK envelope keys."
-    },
-    {
-      "from": "intelligence",
-      "to": "audit-chain",
-      "dependency_weight": 1.0,
-      "cascade_rule": "FULL",
-      "version_compatibility_range": "^1.0",
-      "cedar_permit_fragment": "permit-intelligence-call-audit-chain-v1",
-      "rationale": "Every inference emits an audit seal with provider + cost attribution."
-    },
-    {
-      "from": "intelligence",
-      "to": "ontology",
-      "dependency_weight": 0.7,
-      "cascade_rule": "DEGRADED",
-      "version_compatibility_range": "^1.0",
-      "cedar_permit_fragment": "permit-intelligence-call-ontology-v1",
-      "rationale": "RAG retrieval reads from Ontology projections."
-    },
-    {
-      "from": "intelligence",
-      "to": "observability",
-      "dependency_weight": 0.3,
-      "cascade_rule": "BROWNOUT",
-      "version_compatibility_range": "^1.0",
-      "cedar_permit_fragment": "permit-intelligence-call-observability-v1",
-      "rationale": "Per-inference latency metrics tolerate drops."
-    },
-    {
-      "from": "workflow-engine",
-      "to": "cell",
-      "dependency_weight": 1.0,
-      "cascade_rule": "FULL",
-      "version_compatibility_range": "^1.0",
-      "cedar_permit_fragment": "permit-workflow-engine-call-cell-v1",
-      "rationale": "Per-cell durable execution state."
-    },
-    {
-      "from": "workflow-engine",
-      "to": "identity",
-      "dependency_weight": 1.0,
-      "cascade_rule": "FULL",
-      "version_compatibility_range": "^1.0",
-      "cedar_permit_fragment": "permit-workflow-engine-call-identity-v1",
-      "rationale": "Workflow initiator identity required for step authorization."
-    },
-    {
-      "from": "workflow-engine",
-      "to": "tenancy",
-      "dependency_weight": 1.0,
-      "cascade_rule": "FULL",
-      "version_compatibility_range": "^1.0",
-      "cedar_permit_fragment": "permit-workflow-engine-call-tenancy-v1",
-      "rationale": "Per-tenant workflow isolation."
-    },
-    {
-      "from": "workflow-engine",
-      "to": "policy-engine",
-      "dependency_weight": 1.0,
-      "cascade_rule": "FULL",
-      "version_compatibility_range": "^1.0",
-      "cedar_permit_fragment": "permit-workflow-engine-call-policy-engine-v1",
-      "rationale": "Every step gated by Cedar."
-    },
-    {
-      "from": "workflow-engine",
-      "to": "cloud-secrets",
-      "dependency_weight": 0.5,
-      "cascade_rule": "DEGRADED",
-      "version_compatibility_range": "^1.0",
-      "cedar_permit_fragment": "permit-workflow-engine-call-cloud-secrets-v1",
-      "rationale": "Step encryption keys + outbound webhook secrets."
-    },
-    {
-      "from": "workflow-engine",
-      "to": "audit-chain",
-      "dependency_weight": 1.0,
-      "cascade_rule": "FULL",
-      "version_compatibility_range": "^1.0",
-      "cedar_permit_fragment": "permit-workflow-engine-call-audit-chain-v1",
-      "rationale": "Every step transition emits an audit seal."
-    },
-    {
-      "from": "workflow-engine",
-      "to": "ontology",
-      "dependency_weight": 0.7,
-      "cascade_rule": "DEGRADED",
-      "version_compatibility_range": "^1.0",
-      "cedar_permit_fragment": "permit-workflow-engine-call-ontology-v1",
-      "rationale": "Workflows read/write Object Type instances."
-    },
-    {
-      "from": "workflow-engine",
-      "to": "observability",
-      "dependency_weight": 0.3,
-      "cascade_rule": "BROWNOUT",
-      "version_compatibility_range": "^1.0",
-      "cedar_permit_fragment": "permit-workflow-engine-call-observability-v1",
-      "rationale": "Per-step metrics tolerate drops."
-    },
-    {
-      "from": "workflow-engine",
-      "to": "intelligence",
-      "dependency_weight": 0.5,
-      "cascade_rule": "DEGRADED",
-      "version_compatibility_range": "^1.0",
-      "cedar_permit_fragment": "permit-workflow-engine-call-intelligence-v1",
-      "rationale": "AI-step nodes call intelligence; non-AI workflows tolerate intelligence outage."
+      "id": "workflow.runtime",
+      "capability": "workflow",
+      "plane": "C2",
+      "purpose": "Cell workload orchestration runtime.",
+      "runtime_face": "runtime"
     }
   ],
-  "bootstrap_order": [
-    "cell",
-    "identity",
-    "tenancy",
-    "policy-engine",
-    "cloud-secrets",
-    "audit-chain",
-    "observability",
-    "ontology",
-    "intelligence",
-    "workflow-engine"
+  "failure_impact_composition": {
+    "path_rule": "minimum severity across every steady_state_request edge on a path; a weak propagation edge bounds that path",
+    "multi_path_rule": "maximum severity across all paths from impacted_unit to failed_unit; the strongest propagation path wins",
+    "severity_order": [
+      "INDEPENDENT",
+      "BROWNOUT",
+      "DEGRADED",
+      "FULL"
+    ],
+    "closure_direction": "reverse_transitive_closure: request dependency A -> B yields failure propagation B -> A"
+  },
+  "graphs": [
+    {
+      "kind": "genesis",
+      "edge_semantics": "from precedes and enables to during first-ever bring-up; cycles are not evaluated by the graph-3 acyclicity invariant",
+      "edges": [
+        {
+          "graph_kind": "genesis",
+          "from": "external.genesis-roots",
+          "to": "network.bootstrap",
+          "rationale": "External integrity and liveness facts establish the bootstrap network, DNS, and time substrate."
+        },
+        {
+          "graph_kind": "genesis",
+          "from": "network.bootstrap",
+          "to": "cell.envelope",
+          "rationale": "The bootstrap network anchors the empty cell hosting envelope."
+        },
+        {
+          "graph_kind": "genesis",
+          "from": "cell.envelope",
+          "to": "cell.genesis",
+          "rationale": "The empty envelope hosts the first break-glass management cell."
+        },
+        {
+          "graph_kind": "genesis",
+          "from": "cell.genesis",
+          "to": "secrets.root-control",
+          "rationale": "Break-glass genesis activates external-root-backed secrets control."
+        },
+        {
+          "graph_kind": "genesis",
+          "from": "secrets.root-control",
+          "to": "iam.admin.cp",
+          "rationale": "Root-backed identity administration follows secrets genesis."
+        }
+      ]
+    },
+    {
+      "kind": "new_cell_provisioning",
+      "edge_semantics": "from must be available or complete before to in the reviewed new-cell workflow; this is not a request dependency graph",
+      "edges": [
+        {
+          "graph_kind": "new_cell_provisioning",
+          "from": "iam.admin.cp",
+          "to": "cell.lifecycle.cp"
+        },
+        {
+          "graph_kind": "new_cell_provisioning",
+          "from": "tenancy.directory.cp",
+          "to": "cell.lifecycle.cp"
+        },
+        {
+          "graph_kind": "new_cell_provisioning",
+          "from": "policy.authoring.cp",
+          "to": "cell.lifecycle.cp"
+        },
+        {
+          "graph_kind": "new_cell_provisioning",
+          "from": "audit.control-aggregation",
+          "to": "cell.lifecycle.cp"
+        },
+        {
+          "graph_kind": "new_cell_provisioning",
+          "from": "cell.lifecycle.cp",
+          "to": "cell.envelope"
+        },
+        {
+          "graph_kind": "new_cell_provisioning",
+          "from": "cell.envelope",
+          "to": "secrets.cell-issuer"
+        },
+        {
+          "graph_kind": "new_cell_provisioning",
+          "from": "secrets.cell-issuer",
+          "to": "iam.local-verifier"
+        },
+        {
+          "graph_kind": "new_cell_provisioning",
+          "from": "iam.local-verifier",
+          "to": "tenancy.local-context"
+        },
+        {
+          "graph_kind": "new_cell_provisioning",
+          "from": "tenancy.local-context",
+          "to": "policy.local-pdp"
+        },
+        {
+          "graph_kind": "new_cell_provisioning",
+          "from": "policy.local-pdp",
+          "to": "audit.cell-seal"
+        },
+        {
+          "graph_kind": "new_cell_provisioning",
+          "from": "audit.cell-seal",
+          "to": "observability.cell-runtime"
+        },
+        {
+          "graph_kind": "new_cell_provisioning",
+          "from": "observability.cell-runtime",
+          "to": "data.ontology-runtime"
+        },
+        {
+          "graph_kind": "new_cell_provisioning",
+          "from": "data.ontology-runtime",
+          "to": "intelligence.runtime"
+        },
+        {
+          "graph_kind": "new_cell_provisioning",
+          "from": "intelligence.runtime",
+          "to": "workflow.runtime"
+        }
+      ]
+    },
+    {
+      "kind": "steady_state_request",
+      "edge_semantics": "from synchronously depends on to; this graph alone must be acyclic and bootstrap_order must be a valid dependency-first topological order",
+      "bootstrap_order": [
+        "cell.envelope",
+        "iam.local-verifier",
+        "tenancy.local-context",
+        "policy.local-pdp",
+        "secrets.cell-issuer",
+        "audit.cell-seal",
+        "observability.cell-runtime",
+        "data.ontology-runtime",
+        "intelligence.runtime",
+        "workflow.runtime"
+      ],
+      "forbidden_edges_assertion": [
+        {
+          "from": "cell.envelope",
+          "to": "iam.local-verifier",
+          "reason": "cell is the leaf substrate; nothing higher may be its dependency."
+        },
+        {
+          "from": "cell.envelope",
+          "to": "tenancy.local-context",
+          "reason": "same"
+        },
+        {
+          "from": "cell.envelope",
+          "to": "policy.local-pdp",
+          "reason": "same"
+        },
+        {
+          "from": "cell.envelope",
+          "to": "secrets.cell-issuer",
+          "reason": "same"
+        },
+        {
+          "from": "cell.envelope",
+          "to": "audit.cell-seal",
+          "reason": "same"
+        },
+        {
+          "from": "cell.envelope",
+          "to": "observability.cell-runtime",
+          "reason": "same"
+        },
+        {
+          "from": "cell.envelope",
+          "to": "data.ontology-runtime",
+          "reason": "same"
+        },
+        {
+          "from": "cell.envelope",
+          "to": "intelligence.runtime",
+          "reason": "same"
+        },
+        {
+          "from": "cell.envelope",
+          "to": "workflow.runtime",
+          "reason": "same"
+        },
+        {
+          "from": "iam.local-verifier",
+          "to": "tenancy.local-context",
+          "reason": "identity precedes tenancy in bootstrap; reverse edge would cycle."
+        },
+        {
+          "from": "iam.local-verifier",
+          "to": "policy.local-pdp",
+          "reason": "identity must bootstrap before Cedar can gate calls."
+        },
+        {
+          "from": "policy.local-pdp",
+          "to": "audit.cell-seal",
+          "reason": "audit-chain depends on policy-engine, not the reverse; cycle forbidden."
+        },
+        {
+          "from": "policy.local-pdp",
+          "to": "observability.cell-runtime",
+          "reason": "observability emits to its own audit-chain; policy-engine MUST NOT depend on observability for hot-path evaluation."
+        },
+        {
+          "from": "policy.local-pdp",
+          "to": "data.ontology-runtime",
+          "reason": "policy-engine MUST NOT depend on ontology — Ontology depends on policy-engine for authorization (the historical inversion this ADR explicitly closes)."
+        },
+        {
+          "from": "secrets.cell-issuer",
+          "to": "iam.local-verifier",
+          "reason": "cloud-secrets is bootstrap-step-3; identity is bootstrap-step-2. Cloud-secrets has a bootstrap-only seam to identity (Shamir-shared genesis) but no runtime dependency."
+        },
+        {
+          "from": "audit.cell-seal",
+          "to": "data.ontology-runtime",
+          "reason": "audit-chain MUST NOT depend on ontology; Merkle log is self-contained."
+        },
+        {
+          "from": "audit.cell-seal",
+          "to": "intelligence.runtime",
+          "reason": "audit-chain MUST NOT depend on intelligence — the audit substrate is the simplest possible."
+        },
+        {
+          "from": "audit.cell-seal",
+          "to": "workflow.runtime",
+          "reason": "audit-chain MUST NOT depend on workflow-engine; audit emission is synchronous per-call."
+        },
+        {
+          "from": "data.ontology-runtime",
+          "to": "intelligence.runtime",
+          "reason": "RAG reads flow Intelligence → Ontology, not the reverse."
+        },
+        {
+          "from": "data.ontology-runtime",
+          "to": "workflow.runtime",
+          "reason": "Workflows read/write Ontology; Ontology MUST NOT depend on workflows."
+        },
+        {
+          "from": "intelligence.runtime",
+          "to": "workflow.runtime",
+          "reason": "Workflows compose intelligence steps; intelligence MUST NOT depend on workflows."
+        }
+      ],
+      "edges": [
+        {
+          "from": "iam.local-verifier",
+          "to": "cell.envelope",
+          "dependency_weight": 1.0,
+          "cascade_rule": "FULL",
+          "version_compatibility_range": "^1.0",
+          "cedar_permit_fragment": "permit-identity-call-cell-v1",
+          "rationale": "Identity issuance requires cell-local Postgres + KMS slot resolution.",
+          "graph_kind": "steady_state_request"
+        },
+        {
+          "from": "tenancy.local-context",
+          "to": "cell.envelope",
+          "dependency_weight": 1.0,
+          "cascade_rule": "FULL",
+          "version_compatibility_range": "^1.0",
+          "cedar_permit_fragment": "permit-tenancy-call-cell-v1",
+          "rationale": "Tenancy resolves home_cell on every tenant lookup.",
+          "graph_kind": "steady_state_request"
+        },
+        {
+          "from": "tenancy.local-context",
+          "to": "iam.local-verifier",
+          "dependency_weight": 1.0,
+          "cascade_rule": "FULL",
+          "version_compatibility_range": "^1.0",
+          "cedar_permit_fragment": "permit-tenancy-call-identity-v1",
+          "rationale": "Tenant admission verifies admin principals against identity.",
+          "graph_kind": "steady_state_request"
+        },
+        {
+          "from": "policy.local-pdp",
+          "to": "cell.envelope",
+          "dependency_weight": 0.5,
+          "cascade_rule": "BROWNOUT",
+          "version_compatibility_range": "^1.0",
+          "cedar_permit_fragment": "permit-policy-engine-call-cell-v1",
+          "rationale": "Cell-local Postgres + Valkey shared by fragment registry.",
+          "graph_kind": "steady_state_request"
+        },
+        {
+          "from": "policy.local-pdp",
+          "to": "iam.local-verifier",
+          "dependency_weight": 1.0,
+          "cascade_rule": "FULL",
+          "version_compatibility_range": "^1.0",
+          "cedar_permit_fragment": "permit-policy-engine-call-identity-v1",
+          "rationale": "Fragment publishers' principals resolved via identity.",
+          "graph_kind": "steady_state_request"
+        },
+        {
+          "from": "policy.local-pdp",
+          "to": "tenancy.local-context",
+          "dependency_weight": 1.0,
+          "cascade_rule": "FULL",
+          "version_compatibility_range": "^1.0",
+          "cedar_permit_fragment": "permit-policy-engine-call-tenancy-v1",
+          "rationale": "Tenant context required for tenant-overlay evaluation.",
+          "graph_kind": "steady_state_request"
+        },
+        {
+          "from": "secrets.cell-issuer",
+          "to": "cell.envelope",
+          "dependency_weight": 1.0,
+          "cascade_rule": "FULL",
+          "version_compatibility_range": "^1.0",
+          "cedar_permit_fragment": "permit-cloud-secrets-call-cell-v1",
+          "rationale": "KMS slot lives in cell-local HSM partition.",
+          "graph_kind": "steady_state_request"
+        },
+        {
+          "from": "audit.cell-seal",
+          "to": "cell.envelope",
+          "dependency_weight": 1.0,
+          "cascade_rule": "FULL",
+          "version_compatibility_range": "^1.0",
+          "cedar_permit_fragment": "permit-audit-chain-call-cell-v1",
+          "rationale": "Audit Merkle log persisted to cell-local object store.",
+          "graph_kind": "steady_state_request"
+        },
+        {
+          "from": "audit.cell-seal",
+          "to": "iam.local-verifier",
+          "dependency_weight": 1.0,
+          "cascade_rule": "FULL",
+          "version_compatibility_range": "^1.0",
+          "cedar_permit_fragment": "permit-audit-chain-call-identity-v1",
+          "rationale": "Audit entries seal the emitting principal's identity.",
+          "graph_kind": "steady_state_request"
+        },
+        {
+          "from": "audit.cell-seal",
+          "to": "tenancy.local-context",
+          "dependency_weight": 0.5,
+          "cascade_rule": "DEGRADED",
+          "version_compatibility_range": "^1.0",
+          "cedar_permit_fragment": "permit-audit-chain-call-tenancy-v1",
+          "rationale": "Tenant scope tagged on each Merkle leaf; falls back to 'unscoped' on tenancy brown-out.",
+          "graph_kind": "steady_state_request"
+        },
+        {
+          "from": "audit.cell-seal",
+          "to": "policy.local-pdp",
+          "dependency_weight": 1.0,
+          "cascade_rule": "FULL",
+          "version_compatibility_range": "^1.0",
+          "cedar_permit_fragment": "permit-audit-chain-call-policy-engine-v1",
+          "rationale": "Audit-chain admission gated by Cedar (per ADR-0243 §D-1).",
+          "graph_kind": "steady_state_request"
+        },
+        {
+          "from": "audit.cell-seal",
+          "to": "secrets.cell-issuer",
+          "dependency_weight": 1.0,
+          "cascade_rule": "FULL",
+          "version_compatibility_range": "^1.0",
+          "cedar_permit_fragment": "permit-audit-chain-call-cloud-secrets-v1",
+          "rationale": "Audit Merkle root sealed with Ed25519 key from KMS.",
+          "graph_kind": "steady_state_request"
+        },
+        {
+          "from": "observability.cell-runtime",
+          "to": "cell.envelope",
+          "dependency_weight": 0.5,
+          "cascade_rule": "DEGRADED",
+          "version_compatibility_range": "^1.0",
+          "cedar_permit_fragment": "permit-observability-call-cell-v1",
+          "rationale": "Per-cell Mimir/Loki/Tempo storage.",
+          "graph_kind": "steady_state_request"
+        },
+        {
+          "from": "observability.cell-runtime",
+          "to": "iam.local-verifier",
+          "dependency_weight": 0.5,
+          "cascade_rule": "DEGRADED",
+          "version_compatibility_range": "^1.0",
+          "cedar_permit_fragment": "permit-observability-call-identity-v1",
+          "rationale": "Per-principal metric attribution; degrades to 'unknown' on identity brown-out.",
+          "graph_kind": "steady_state_request"
+        },
+        {
+          "from": "observability.cell-runtime",
+          "to": "tenancy.local-context",
+          "dependency_weight": 0.5,
+          "cascade_rule": "DEGRADED",
+          "version_compatibility_range": "^1.0",
+          "cedar_permit_fragment": "permit-observability-call-tenancy-v1",
+          "rationale": "Per-tenant rollups; degrades to 'unscoped' on tenancy brown-out.",
+          "graph_kind": "steady_state_request"
+        },
+        {
+          "from": "observability.cell-runtime",
+          "to": "policy.local-pdp",
+          "dependency_weight": 1.0,
+          "cascade_rule": "FULL",
+          "version_compatibility_range": "^1.0",
+          "cedar_permit_fragment": "permit-observability-call-policy-engine-v1",
+          "rationale": "Query authorization through Cedar.",
+          "graph_kind": "steady_state_request"
+        },
+        {
+          "from": "observability.cell-runtime",
+          "to": "secrets.cell-issuer",
+          "dependency_weight": 0.5,
+          "cascade_rule": "DEGRADED",
+          "version_compatibility_range": "^1.0",
+          "cedar_permit_fragment": "permit-observability-call-cloud-secrets-v1",
+          "rationale": "TLS certs + storage encryption keys.",
+          "graph_kind": "steady_state_request"
+        },
+        {
+          "from": "observability.cell-runtime",
+          "to": "audit.cell-seal",
+          "dependency_weight": 0.3,
+          "cascade_rule": "BROWNOUT",
+          "version_compatibility_range": "^1.0",
+          "cedar_permit_fragment": "permit-observability-call-audit-chain-v1",
+          "rationale": "Observability emits its own audit on configuration changes; tolerates degraded audit.",
+          "graph_kind": "steady_state_request"
+        },
+        {
+          "from": "data.ontology-runtime",
+          "to": "cell.envelope",
+          "dependency_weight": 1.0,
+          "cascade_rule": "FULL",
+          "version_compatibility_range": "^1.0",
+          "cedar_permit_fragment": "permit-ontology-call-cell-v1",
+          "rationale": "Per-cell Postgres + Valkey for projections.",
+          "graph_kind": "steady_state_request"
+        },
+        {
+          "from": "data.ontology-runtime",
+          "to": "iam.local-verifier",
+          "dependency_weight": 1.0,
+          "cascade_rule": "FULL",
+          "version_compatibility_range": "^1.0",
+          "cedar_permit_fragment": "permit-ontology-call-identity-v1",
+          "rationale": "Caller identity required for projection authorization.",
+          "graph_kind": "steady_state_request"
+        },
+        {
+          "from": "data.ontology-runtime",
+          "to": "tenancy.local-context",
+          "dependency_weight": 1.0,
+          "cascade_rule": "FULL",
+          "version_compatibility_range": "^1.0",
+          "cedar_permit_fragment": "permit-ontology-call-tenancy-v1",
+          "rationale": "Tenant scope determines projection shard.",
+          "graph_kind": "steady_state_request"
+        },
+        {
+          "from": "data.ontology-runtime",
+          "to": "policy.local-pdp",
+          "dependency_weight": 1.0,
+          "cascade_rule": "FULL",
+          "version_compatibility_range": "^1.0",
+          "cedar_permit_fragment": "permit-ontology-call-policy-engine-v1",
+          "rationale": "Every projection read/write gated by Cedar.",
+          "graph_kind": "steady_state_request"
+        },
+        {
+          "from": "data.ontology-runtime",
+          "to": "secrets.cell-issuer",
+          "dependency_weight": 0.5,
+          "cascade_rule": "DEGRADED",
+          "version_compatibility_range": "^1.0",
+          "cedar_permit_fragment": "permit-ontology-call-cloud-secrets-v1",
+          "rationale": "Per-tenant field-level encryption keys.",
+          "graph_kind": "steady_state_request"
+        },
+        {
+          "from": "data.ontology-runtime",
+          "to": "audit.cell-seal",
+          "dependency_weight": 1.0,
+          "cascade_rule": "FULL",
+          "version_compatibility_range": "^1.0",
+          "cedar_permit_fragment": "permit-ontology-call-audit-chain-v1",
+          "rationale": "Every state-changing projection emits an audit seal.",
+          "graph_kind": "steady_state_request"
+        },
+        {
+          "from": "data.ontology-runtime",
+          "to": "observability.cell-runtime",
+          "dependency_weight": 0.3,
+          "cascade_rule": "BROWNOUT",
+          "version_compatibility_range": "^1.0",
+          "cedar_permit_fragment": "permit-ontology-call-observability-v1",
+          "rationale": "Metric emission tolerates dropped samples.",
+          "graph_kind": "steady_state_request"
+        },
+        {
+          "from": "intelligence.runtime",
+          "to": "cell.envelope",
+          "dependency_weight": 1.0,
+          "cascade_rule": "FULL",
+          "version_compatibility_range": "^1.0",
+          "cedar_permit_fragment": "permit-intelligence-call-cell-v1",
+          "rationale": "GPU/CPU compute allocated per-cell.",
+          "graph_kind": "steady_state_request"
+        },
+        {
+          "from": "intelligence.runtime",
+          "to": "iam.local-verifier",
+          "dependency_weight": 1.0,
+          "cascade_rule": "FULL",
+          "version_compatibility_range": "^1.0",
+          "cedar_permit_fragment": "permit-intelligence-call-identity-v1",
+          "rationale": "Caller identity required for inference authorization + cost attribution.",
+          "graph_kind": "steady_state_request"
+        },
+        {
+          "from": "intelligence.runtime",
+          "to": "tenancy.local-context",
+          "dependency_weight": 1.0,
+          "cascade_rule": "FULL",
+          "version_compatibility_range": "^1.0",
+          "cedar_permit_fragment": "permit-intelligence-call-tenancy-v1",
+          "rationale": "Tenant scope determines model selection + quota.",
+          "graph_kind": "steady_state_request"
+        },
+        {
+          "from": "intelligence.runtime",
+          "to": "policy.local-pdp",
+          "dependency_weight": 1.0,
+          "cascade_rule": "FULL",
+          "version_compatibility_range": "^1.0",
+          "cedar_permit_fragment": "permit-intelligence-call-policy-engine-v1",
+          "rationale": "Data-class → provider routing (per ADR-0243 §D-1.1).",
+          "graph_kind": "steady_state_request"
+        },
+        {
+          "from": "intelligence.runtime",
+          "to": "secrets.cell-issuer",
+          "dependency_weight": 1.0,
+          "cascade_rule": "FULL",
+          "version_compatibility_range": "^1.0",
+          "cedar_permit_fragment": "permit-intelligence-call-cloud-secrets-v1",
+          "rationale": "provider-BYOK API keys + encryption-BYOK envelope keys.",
+          "graph_kind": "steady_state_request"
+        },
+        {
+          "from": "intelligence.runtime",
+          "to": "audit.cell-seal",
+          "dependency_weight": 1.0,
+          "cascade_rule": "FULL",
+          "version_compatibility_range": "^1.0",
+          "cedar_permit_fragment": "permit-intelligence-call-audit-chain-v1",
+          "rationale": "Every inference emits an audit seal with provider + cost attribution.",
+          "graph_kind": "steady_state_request"
+        },
+        {
+          "from": "intelligence.runtime",
+          "to": "data.ontology-runtime",
+          "dependency_weight": 0.7,
+          "cascade_rule": "DEGRADED",
+          "version_compatibility_range": "^1.0",
+          "cedar_permit_fragment": "permit-intelligence-call-ontology-v1",
+          "rationale": "RAG retrieval reads from Ontology projections.",
+          "graph_kind": "steady_state_request"
+        },
+        {
+          "from": "intelligence.runtime",
+          "to": "observability.cell-runtime",
+          "dependency_weight": 0.3,
+          "cascade_rule": "BROWNOUT",
+          "version_compatibility_range": "^1.0",
+          "cedar_permit_fragment": "permit-intelligence-call-observability-v1",
+          "rationale": "Per-inference latency metrics tolerate drops.",
+          "graph_kind": "steady_state_request"
+        },
+        {
+          "from": "workflow.runtime",
+          "to": "cell.envelope",
+          "dependency_weight": 1.0,
+          "cascade_rule": "FULL",
+          "version_compatibility_range": "^1.0",
+          "cedar_permit_fragment": "permit-workflow-engine-call-cell-v1",
+          "rationale": "Per-cell durable execution state.",
+          "graph_kind": "steady_state_request"
+        },
+        {
+          "from": "workflow.runtime",
+          "to": "iam.local-verifier",
+          "dependency_weight": 1.0,
+          "cascade_rule": "FULL",
+          "version_compatibility_range": "^1.0",
+          "cedar_permit_fragment": "permit-workflow-engine-call-identity-v1",
+          "rationale": "Workflow initiator identity required for step authorization.",
+          "graph_kind": "steady_state_request"
+        },
+        {
+          "from": "workflow.runtime",
+          "to": "tenancy.local-context",
+          "dependency_weight": 1.0,
+          "cascade_rule": "FULL",
+          "version_compatibility_range": "^1.0",
+          "cedar_permit_fragment": "permit-workflow-engine-call-tenancy-v1",
+          "rationale": "Per-tenant workflow isolation.",
+          "graph_kind": "steady_state_request"
+        },
+        {
+          "from": "workflow.runtime",
+          "to": "policy.local-pdp",
+          "dependency_weight": 1.0,
+          "cascade_rule": "FULL",
+          "version_compatibility_range": "^1.0",
+          "cedar_permit_fragment": "permit-workflow-engine-call-policy-engine-v1",
+          "rationale": "Every step gated by Cedar.",
+          "graph_kind": "steady_state_request"
+        },
+        {
+          "from": "workflow.runtime",
+          "to": "secrets.cell-issuer",
+          "dependency_weight": 0.5,
+          "cascade_rule": "DEGRADED",
+          "version_compatibility_range": "^1.0",
+          "cedar_permit_fragment": "permit-workflow-engine-call-cloud-secrets-v1",
+          "rationale": "Step encryption keys + outbound webhook secrets.",
+          "graph_kind": "steady_state_request"
+        },
+        {
+          "from": "workflow.runtime",
+          "to": "audit.cell-seal",
+          "dependency_weight": 1.0,
+          "cascade_rule": "FULL",
+          "version_compatibility_range": "^1.0",
+          "cedar_permit_fragment": "permit-workflow-engine-call-audit-chain-v1",
+          "rationale": "Every step transition emits an audit seal.",
+          "graph_kind": "steady_state_request"
+        },
+        {
+          "from": "workflow.runtime",
+          "to": "data.ontology-runtime",
+          "dependency_weight": 0.7,
+          "cascade_rule": "DEGRADED",
+          "version_compatibility_range": "^1.0",
+          "cedar_permit_fragment": "permit-workflow-engine-call-ontology-v1",
+          "rationale": "Workflows read/write Object Type instances.",
+          "graph_kind": "steady_state_request"
+        },
+        {
+          "from": "workflow.runtime",
+          "to": "observability.cell-runtime",
+          "dependency_weight": 0.3,
+          "cascade_rule": "BROWNOUT",
+          "version_compatibility_range": "^1.0",
+          "cedar_permit_fragment": "permit-workflow-engine-call-observability-v1",
+          "rationale": "Per-step metrics tolerate drops.",
+          "graph_kind": "steady_state_request"
+        },
+        {
+          "from": "workflow.runtime",
+          "to": "intelligence.runtime",
+          "dependency_weight": 0.5,
+          "cascade_rule": "DEGRADED",
+          "version_compatibility_range": "^1.0",
+          "cedar_permit_fragment": "permit-workflow-engine-call-intelligence-v1",
+          "rationale": "AI-step nodes call intelligence; non-AI workflows tolerate intelligence outage.",
+          "graph_kind": "steady_state_request"
+        }
+      ]
+    },
+    {
+      "kind": "control_data_publication",
+      "edge_semantics": "from asynchronously publishes signed versioned cached state to to; no edge represents a synchronous runtime lookup",
+      "edges": [
+        {
+          "graph_kind": "control_data_publication",
+          "from": "iam.admin.cp",
+          "to": "iam.local-verifier"
+        },
+        {
+          "graph_kind": "control_data_publication",
+          "from": "tenancy.directory.cp",
+          "to": "tenancy.local-context"
+        },
+        {
+          "graph_kind": "control_data_publication",
+          "from": "tenancy.directory.cp",
+          "to": "cell.router.dp"
+        },
+        {
+          "graph_kind": "control_data_publication",
+          "from": "policy.authoring.cp",
+          "to": "policy.local-pdp"
+        },
+        {
+          "graph_kind": "control_data_publication",
+          "from": "policy.authoring.cp",
+          "to": "cell.router.dp"
+        },
+        {
+          "graph_kind": "control_data_publication",
+          "from": "cell.lifecycle.cp",
+          "to": "cell.router.dp"
+        },
+        {
+          "graph_kind": "control_data_publication",
+          "from": "secrets.root-control",
+          "to": "secrets.cell-issuer"
+        }
+      ]
+    },
+    {
+      "kind": "failure_brownout_propagation",
+      "edge_semantics": "failed_unit impacts impacted_unit; this graph must equal the deterministic reverse transitive closure of steady_state_request",
+      "composition": "max_min",
+      "edges": [
+        {
+          "graph_kind": "failure_brownout_propagation",
+          "failed_unit": "audit.cell-seal",
+          "impacted_unit": "data.ontology-runtime",
+          "impact_rule": "FULL",
+          "derivation": "max_min_reverse_transitive_closure"
+        },
+        {
+          "graph_kind": "failure_brownout_propagation",
+          "failed_unit": "audit.cell-seal",
+          "impacted_unit": "intelligence.runtime",
+          "impact_rule": "FULL",
+          "derivation": "max_min_reverse_transitive_closure"
+        },
+        {
+          "graph_kind": "failure_brownout_propagation",
+          "failed_unit": "audit.cell-seal",
+          "impacted_unit": "observability.cell-runtime",
+          "impact_rule": "BROWNOUT",
+          "derivation": "max_min_reverse_transitive_closure"
+        },
+        {
+          "graph_kind": "failure_brownout_propagation",
+          "failed_unit": "audit.cell-seal",
+          "impacted_unit": "workflow.runtime",
+          "impact_rule": "FULL",
+          "derivation": "max_min_reverse_transitive_closure"
+        },
+        {
+          "graph_kind": "failure_brownout_propagation",
+          "failed_unit": "cell.envelope",
+          "impacted_unit": "audit.cell-seal",
+          "impact_rule": "FULL",
+          "derivation": "max_min_reverse_transitive_closure"
+        },
+        {
+          "graph_kind": "failure_brownout_propagation",
+          "failed_unit": "cell.envelope",
+          "impacted_unit": "data.ontology-runtime",
+          "impact_rule": "FULL",
+          "derivation": "max_min_reverse_transitive_closure"
+        },
+        {
+          "graph_kind": "failure_brownout_propagation",
+          "failed_unit": "cell.envelope",
+          "impacted_unit": "iam.local-verifier",
+          "impact_rule": "FULL",
+          "derivation": "max_min_reverse_transitive_closure"
+        },
+        {
+          "graph_kind": "failure_brownout_propagation",
+          "failed_unit": "cell.envelope",
+          "impacted_unit": "intelligence.runtime",
+          "impact_rule": "FULL",
+          "derivation": "max_min_reverse_transitive_closure"
+        },
+        {
+          "graph_kind": "failure_brownout_propagation",
+          "failed_unit": "cell.envelope",
+          "impacted_unit": "observability.cell-runtime",
+          "impact_rule": "FULL",
+          "derivation": "max_min_reverse_transitive_closure"
+        },
+        {
+          "graph_kind": "failure_brownout_propagation",
+          "failed_unit": "cell.envelope",
+          "impacted_unit": "policy.local-pdp",
+          "impact_rule": "FULL",
+          "derivation": "max_min_reverse_transitive_closure"
+        },
+        {
+          "graph_kind": "failure_brownout_propagation",
+          "failed_unit": "cell.envelope",
+          "impacted_unit": "secrets.cell-issuer",
+          "impact_rule": "FULL",
+          "derivation": "max_min_reverse_transitive_closure"
+        },
+        {
+          "graph_kind": "failure_brownout_propagation",
+          "failed_unit": "cell.envelope",
+          "impacted_unit": "tenancy.local-context",
+          "impact_rule": "FULL",
+          "derivation": "max_min_reverse_transitive_closure"
+        },
+        {
+          "graph_kind": "failure_brownout_propagation",
+          "failed_unit": "cell.envelope",
+          "impacted_unit": "workflow.runtime",
+          "impact_rule": "FULL",
+          "derivation": "max_min_reverse_transitive_closure"
+        },
+        {
+          "graph_kind": "failure_brownout_propagation",
+          "failed_unit": "data.ontology-runtime",
+          "impacted_unit": "intelligence.runtime",
+          "impact_rule": "DEGRADED",
+          "derivation": "max_min_reverse_transitive_closure"
+        },
+        {
+          "graph_kind": "failure_brownout_propagation",
+          "failed_unit": "data.ontology-runtime",
+          "impacted_unit": "workflow.runtime",
+          "impact_rule": "DEGRADED",
+          "derivation": "max_min_reverse_transitive_closure"
+        },
+        {
+          "graph_kind": "failure_brownout_propagation",
+          "failed_unit": "iam.local-verifier",
+          "impacted_unit": "audit.cell-seal",
+          "impact_rule": "FULL",
+          "derivation": "max_min_reverse_transitive_closure"
+        },
+        {
+          "graph_kind": "failure_brownout_propagation",
+          "failed_unit": "iam.local-verifier",
+          "impacted_unit": "data.ontology-runtime",
+          "impact_rule": "FULL",
+          "derivation": "max_min_reverse_transitive_closure"
+        },
+        {
+          "graph_kind": "failure_brownout_propagation",
+          "failed_unit": "iam.local-verifier",
+          "impacted_unit": "intelligence.runtime",
+          "impact_rule": "FULL",
+          "derivation": "max_min_reverse_transitive_closure"
+        },
+        {
+          "graph_kind": "failure_brownout_propagation",
+          "failed_unit": "iam.local-verifier",
+          "impacted_unit": "observability.cell-runtime",
+          "impact_rule": "FULL",
+          "derivation": "max_min_reverse_transitive_closure"
+        },
+        {
+          "graph_kind": "failure_brownout_propagation",
+          "failed_unit": "iam.local-verifier",
+          "impacted_unit": "policy.local-pdp",
+          "impact_rule": "FULL",
+          "derivation": "max_min_reverse_transitive_closure"
+        },
+        {
+          "graph_kind": "failure_brownout_propagation",
+          "failed_unit": "iam.local-verifier",
+          "impacted_unit": "tenancy.local-context",
+          "impact_rule": "FULL",
+          "derivation": "max_min_reverse_transitive_closure"
+        },
+        {
+          "graph_kind": "failure_brownout_propagation",
+          "failed_unit": "iam.local-verifier",
+          "impacted_unit": "workflow.runtime",
+          "impact_rule": "FULL",
+          "derivation": "max_min_reverse_transitive_closure"
+        },
+        {
+          "graph_kind": "failure_brownout_propagation",
+          "failed_unit": "intelligence.runtime",
+          "impacted_unit": "workflow.runtime",
+          "impact_rule": "DEGRADED",
+          "derivation": "max_min_reverse_transitive_closure"
+        },
+        {
+          "graph_kind": "failure_brownout_propagation",
+          "failed_unit": "observability.cell-runtime",
+          "impacted_unit": "data.ontology-runtime",
+          "impact_rule": "BROWNOUT",
+          "derivation": "max_min_reverse_transitive_closure"
+        },
+        {
+          "graph_kind": "failure_brownout_propagation",
+          "failed_unit": "observability.cell-runtime",
+          "impacted_unit": "intelligence.runtime",
+          "impact_rule": "BROWNOUT",
+          "derivation": "max_min_reverse_transitive_closure"
+        },
+        {
+          "graph_kind": "failure_brownout_propagation",
+          "failed_unit": "observability.cell-runtime",
+          "impacted_unit": "workflow.runtime",
+          "impact_rule": "BROWNOUT",
+          "derivation": "max_min_reverse_transitive_closure"
+        },
+        {
+          "graph_kind": "failure_brownout_propagation",
+          "failed_unit": "policy.local-pdp",
+          "impacted_unit": "audit.cell-seal",
+          "impact_rule": "FULL",
+          "derivation": "max_min_reverse_transitive_closure"
+        },
+        {
+          "graph_kind": "failure_brownout_propagation",
+          "failed_unit": "policy.local-pdp",
+          "impacted_unit": "data.ontology-runtime",
+          "impact_rule": "FULL",
+          "derivation": "max_min_reverse_transitive_closure"
+        },
+        {
+          "graph_kind": "failure_brownout_propagation",
+          "failed_unit": "policy.local-pdp",
+          "impacted_unit": "intelligence.runtime",
+          "impact_rule": "FULL",
+          "derivation": "max_min_reverse_transitive_closure"
+        },
+        {
+          "graph_kind": "failure_brownout_propagation",
+          "failed_unit": "policy.local-pdp",
+          "impacted_unit": "observability.cell-runtime",
+          "impact_rule": "FULL",
+          "derivation": "max_min_reverse_transitive_closure"
+        },
+        {
+          "graph_kind": "failure_brownout_propagation",
+          "failed_unit": "policy.local-pdp",
+          "impacted_unit": "workflow.runtime",
+          "impact_rule": "FULL",
+          "derivation": "max_min_reverse_transitive_closure"
+        },
+        {
+          "graph_kind": "failure_brownout_propagation",
+          "failed_unit": "secrets.cell-issuer",
+          "impacted_unit": "audit.cell-seal",
+          "impact_rule": "FULL",
+          "derivation": "max_min_reverse_transitive_closure"
+        },
+        {
+          "graph_kind": "failure_brownout_propagation",
+          "failed_unit": "secrets.cell-issuer",
+          "impacted_unit": "data.ontology-runtime",
+          "impact_rule": "FULL",
+          "derivation": "max_min_reverse_transitive_closure"
+        },
+        {
+          "graph_kind": "failure_brownout_propagation",
+          "failed_unit": "secrets.cell-issuer",
+          "impacted_unit": "intelligence.runtime",
+          "impact_rule": "FULL",
+          "derivation": "max_min_reverse_transitive_closure"
+        },
+        {
+          "graph_kind": "failure_brownout_propagation",
+          "failed_unit": "secrets.cell-issuer",
+          "impacted_unit": "observability.cell-runtime",
+          "impact_rule": "DEGRADED",
+          "derivation": "max_min_reverse_transitive_closure"
+        },
+        {
+          "graph_kind": "failure_brownout_propagation",
+          "failed_unit": "secrets.cell-issuer",
+          "impacted_unit": "workflow.runtime",
+          "impact_rule": "FULL",
+          "derivation": "max_min_reverse_transitive_closure"
+        },
+        {
+          "graph_kind": "failure_brownout_propagation",
+          "failed_unit": "tenancy.local-context",
+          "impacted_unit": "audit.cell-seal",
+          "impact_rule": "FULL",
+          "derivation": "max_min_reverse_transitive_closure"
+        },
+        {
+          "graph_kind": "failure_brownout_propagation",
+          "failed_unit": "tenancy.local-context",
+          "impacted_unit": "data.ontology-runtime",
+          "impact_rule": "FULL",
+          "derivation": "max_min_reverse_transitive_closure"
+        },
+        {
+          "graph_kind": "failure_brownout_propagation",
+          "failed_unit": "tenancy.local-context",
+          "impacted_unit": "intelligence.runtime",
+          "impact_rule": "FULL",
+          "derivation": "max_min_reverse_transitive_closure"
+        },
+        {
+          "graph_kind": "failure_brownout_propagation",
+          "failed_unit": "tenancy.local-context",
+          "impacted_unit": "observability.cell-runtime",
+          "impact_rule": "FULL",
+          "derivation": "max_min_reverse_transitive_closure"
+        },
+        {
+          "graph_kind": "failure_brownout_propagation",
+          "failed_unit": "tenancy.local-context",
+          "impacted_unit": "policy.local-pdp",
+          "impact_rule": "FULL",
+          "derivation": "max_min_reverse_transitive_closure"
+        },
+        {
+          "graph_kind": "failure_brownout_propagation",
+          "failed_unit": "tenancy.local-context",
+          "impacted_unit": "workflow.runtime",
+          "impact_rule": "FULL",
+          "derivation": "max_min_reverse_transitive_closure"
+        }
+      ]
+    }
   ],
-  "forbidden_edges_assertion": [
+  "mandatory_follow_ups": [
     {
-      "from": "cell",
-      "to": "identity",
-      "reason": "cell is the leaf substrate; nothing higher may be its dependency."
+      "id": "W0-C-MODULE-MEMBERSHIP",
+      "status": "required-not-in-this-slice",
+      "constraint": "Migrate module-membership consumers to dependency_units without minting a new baseline."
     },
     {
-      "from": "cell",
-      "to": "tenancy",
-      "reason": "same"
+      "id": "W0-C-LAYER-RANKS",
+      "status": "required-not-in-this-slice",
+      "constraint": "Migrate layer-rank projections after graph-v2 adoption without minting a new baseline."
     },
     {
-      "from": "cell",
-      "to": "policy-engine",
-      "reason": "same"
-    },
-    {
-      "from": "cell",
-      "to": "cloud-secrets",
-      "reason": "same"
-    },
-    {
-      "from": "cell",
-      "to": "audit-chain",
-      "reason": "same"
-    },
-    {
-      "from": "cell",
-      "to": "observability",
-      "reason": "same"
-    },
-    {
-      "from": "cell",
-      "to": "ontology",
-      "reason": "same"
-    },
-    {
-      "from": "cell",
-      "to": "intelligence",
-      "reason": "same"
-    },
-    {
-      "from": "cell",
-      "to": "workflow-engine",
-      "reason": "same"
-    },
-    {
-      "from": "identity",
-      "to": "tenancy",
-      "reason": "identity precedes tenancy in bootstrap; reverse edge would cycle."
-    },
-    {
-      "from": "identity",
-      "to": "policy-engine",
-      "reason": "identity must bootstrap before Cedar can gate calls."
-    },
-    {
-      "from": "policy-engine",
-      "to": "audit-chain",
-      "reason": "audit-chain depends on policy-engine, not the reverse; cycle forbidden."
-    },
-    {
-      "from": "policy-engine",
-      "to": "observability",
-      "reason": "observability emits to its own audit-chain; policy-engine MUST NOT depend on observability for hot-path evaluation."
-    },
-    {
-      "from": "policy-engine",
-      "to": "ontology",
-      "reason": "policy-engine MUST NOT depend on ontology — Ontology depends on policy-engine for authorization (the historical inversion this ADR explicitly closes)."
-    },
-    {
-      "from": "cloud-secrets",
-      "to": "identity",
-      "reason": "cloud-secrets is bootstrap-step-3; identity is bootstrap-step-2. Cloud-secrets has a bootstrap-only seam to identity (Shamir-shared genesis) but no runtime dependency."
-    },
-    {
-      "from": "audit-chain",
-      "to": "ontology",
-      "reason": "audit-chain MUST NOT depend on ontology; Merkle log is self-contained."
-    },
-    {
-      "from": "audit-chain",
-      "to": "intelligence",
-      "reason": "audit-chain MUST NOT depend on intelligence — the audit substrate is the simplest possible."
-    },
-    {
-      "from": "audit-chain",
-      "to": "workflow-engine",
-      "reason": "audit-chain MUST NOT depend on workflow-engine; audit emission is synchronous per-call."
-    },
-    {
-      "from": "ontology",
-      "to": "intelligence",
-      "reason": "RAG reads flow Intelligence → Ontology, not the reverse."
-    },
-    {
-      "from": "ontology",
-      "to": "workflow-engine",
-      "reason": "Workflows read/write Ontology; Ontology MUST NOT depend on workflows."
-    },
-    {
-      "from": "intelligence",
-      "to": "workflow-engine",
-      "reason": "Workflows compose intelligence steps; intelligence MUST NOT depend on workflows."
+      "id": "W0-C-TOPOLOGY-COVERAGE",
+      "status": "required-not-in-this-slice",
+      "tracking_issue": "https://github.com/jason931225/oyatie/issues/1537",
+      "baseline_policy": "no-new-frozen-baseline",
+      "constraint": "GitHub #1537: ratify and add the 13 omitted capabilities plus compute.bootstrap, storage.bootstrap, and k8s.bootstrap; update typed edges, derived failure closure, consumers, and any current projection atomically without minting a new baseline."
     }
   ]
 }

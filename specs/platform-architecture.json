@@ -11,7 +11,7 @@
     "ratified_at": "2026-05-20",
     "ratified_by": "council-architecture",
     "primary_consumer": "agentic_flow",
-    "purpose": "Consolidated machine-readable source-of-truth for the oyatie platform architecture, derived from the 14 foundational keystone ADRs (ADR-0242 through ADR-0255). Every CI lane, manifest validator, scaffolder, and downstream spec resolves architectural questions against this document. Authoritative for: tenancy doctrine, policy gate doctrine, substrate-vs-product layering, cellular topology, compliance packs, deployment models, intelligence substrate, time + consistency primitives, network topology, marketplace, self-modification, certification gates."
+    "purpose": "Consolidated machine-readable source for the oyatie target platform architecture, derived from the 14 foundational keystone ADRs (ADR-0242 through ADR-0255). Current substrate topology resolves to /specs/substrate-dependency-dag.json; this document's substrate_dag_canonical_ordering block is stale v1 compatibility data with current_parity_claim=false until W0-C-TOPOLOGY-COVERAGE replaces it. Other domains cover tenancy doctrine, policy gates, substrate-vs-product layering, compliance packs, deployment models, intelligence, time and consistency, network topology, marketplace, self-modification, and certification gates."
   },
   "version": "1.0.0",
   "ratified_at": "2026-05-20",
@@ -448,10 +448,16 @@
         "reserved MAY declare planned_dependencies only; no live deps until promotion"
       ],
       "substrate_dag_canonical_ordering": {
-        "_comment": "DERIVED MIRROR of the canonical substrate DAG — NOT an independent SSOT. TOPOLOGY FORK (ADR-0562 §8 Fork 1) RESOLVED 2026-07-10 by the ADR-0280 §D-13 substrate plane-topology amendment. The sole canonical substrate topology authority is specs/substrate-dependency-dag.json (ADR-0280 §D-1: the C-plane steady-state runtime dependency graph), with its 'cell' node understood as the cell.envelope (B0) runtime face per §D-13. This block previously encoded an INVERTED, incompatible orientation (cell at stratum S2 with audit-chain/observability/cloud-secrets as S0 leaves), contradicting §D-1; it is replaced by a projection consistent with §D-1 by construction. tier1_bootstrap_order is §D-1's bootstrap_order verbatim (cell is the B0 leaf). tier1_dependency_strata is the DAG-derived dependency-depth stratification: S0 = leaf; every node sits at or above every node it depends on (no inversion). tier2_and_meta_forward_declared carries the ADR-0280 Appendix C Tier-2 substrates + the Tier-S5 meta-substrate (de-branded node delivery-fabric per specs/capability-registry.json; legacy alias 'foundry'), placed by §D-13 PLANE rather than by computed depth because their edges are not yet in the §D-1 v1.0.0 Tier-1 artifact — they gain computed strata positions in DAG v1.1.0. Authority: ADR-0280 §D-1/§D-13 as amended by ADR-0520 + ADR-0562 + ADR-0615; specs/substrate-dependency-dag.json (canonical machine artifact).",
+        "_comment": "STALE HISTORICAL V1 PROJECTION — NOT CURRENT PARITY AND NOT AN INDEPENDENT SSOT. ADR-0635 replaced the flat v1 source shape with a bounded graph-v2 slice of 19 face-qualified units spanning 11 of 24 capabilities. The legacy tier1_bootstrap_order, tier1_dependency_strata, and tier2_and_meta_forward_declared values below are retained only for compatibility/provenance; they are not derived from graph v2 and must not drive bootstrap, coverage, or completion claims. The sole current machine authority is specs/substrate-dependency-dag.json. W0-C-TOPOLOGY-COVERAGE must ratify the 13 omitted capabilities and missing compute/storage/k8s B0 hosting faces, update typed edges and derived failure closure, then replace this projection atomically without minting a new baseline.",
         "canonical_source": "/specs/substrate-dependency-dag.json",
         "doctrine_adr": "ADR-0280",
-        "projection_kind": "derived-mirror",
+        "projection_kind": "historical-v1-derived-mirror",
+        "projection_status": "stale-v1-not-current-parity",
+        "current_parity_claim": false,
+        "last_matching_source_version": "1.0.0",
+        "current_source_version": "2.0.0-bounded-w0c",
+        "mandatory_follow_up": "W0-C-TOPOLOGY-COVERAGE",
+        "mandatory_follow_up_issue": "https://github.com/jason931225/oyatie/issues/1537",
         "tier1_bootstrap_order": [
           "cell",
           "identity",
@@ -495,7 +501,7 @@
           ]
         },
         "tier2_and_meta_forward_declared": {
-          "_comment": "Forward-declared per ADR-0280 Appendix C; placed by ADR-0280 §D-13 plane (B0 bootstrap infrastructure / C0 cell-local trust / C1-C2 cell platform + workloads / R router-data-plane / G logically-global management plane / meta), NOT by computed §D-1 depth. Computed strata positions are assigned when each node's edges land in specs/substrate-dependency-dag.json v1.1.0. governance is cross-cutting (implemented via ci/iac/policy/compliance/audit per §D-13.G), retained here to mirror ADR-0280 Appendix C.",
+          "_comment": "Historical v1 forward declarations retained for compatibility only. Names and placements here are not current graph-v2 coverage, current capability-registry parity, or a completion claim. W0-C-TOPOLOGY-COVERAGE must ratify exact face tuples and typed edges before a replacement projection is generated; governance remains cross-cutting rather than a 25th capability.",
           "B0_bootstrap_infrastructure": [
             "cloud-k8s",
             "network"
