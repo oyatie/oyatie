@@ -1504,6 +1504,7 @@ dependencies = [
 name = "ci-corpus-index-coverage"
 version = "0.1.0"
 dependencies = [
+ "oya-buck-syntax-kernel",
  "serde",
  "serde_json",
 ]
