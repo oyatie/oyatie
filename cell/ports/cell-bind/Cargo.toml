@@ -1,8 +1,0 @@
-[package]
-name = "cell-bind-api"
-edition.workspace = true
-version.workspace = true
-rust-version.workspace = true
-license = "Apache-2.0"
-
-[dependencies]

@@ -1,9 +1,0 @@
-context: foundry
-role: api
-capability: capability-invoke
-plane: data
-slo: preview-control-plane
-data_classes_owned: [INTERNAL_ONLY]
-api_stability: preview
-security_review: unreviewed
-supply_chain: source-only

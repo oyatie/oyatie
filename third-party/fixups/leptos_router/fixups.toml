@@ -1,3 +1,0 @@
-[buildscript]
-# Pure Rust channel probe; no native compilation or environment-dependent output.
-run = true

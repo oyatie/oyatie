@@ -1,7 +1,0 @@
-rust_library(
-    name = "tenancy-dr-pairing",
-    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
-    crate = "tenancy_dr_pairing",
-    crate_root = "src/lib.rs",
-    visibility = ["PUBLIC"],
-)

@@ -1,4 +1,0 @@
-[buildscript]
-# Build script only runs prost codegen when feature="protobufs" is active.
-# That feature is not enabled in third-party/BUCK, so the build script is a noop.
-run = true

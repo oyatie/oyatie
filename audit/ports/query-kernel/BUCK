@@ -1,7 +1,0 @@
-rust_library(
-    name = "audit-query-kernel",
-    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
-    crate = "audit_query_kernel",
-    crate_root = "src/lib.rs",
-    visibility = ["PUBLIC"],
-)

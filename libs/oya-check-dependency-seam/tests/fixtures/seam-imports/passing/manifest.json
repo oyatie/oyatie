@@ -1,7 +1,0 @@
-{
-  "subcheck_id": "seam-imports",
-  "fixture_kind": "passing",
-  "case_id": "seam-imports-passing-semantic-fixture",
-  "expected_diagnostics": [],
-  "description": "Semantic passing fixture manifest for seam-imports"
-}
