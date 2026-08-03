@@ -150,6 +150,18 @@ registry/graph/active-artifact-contract-edges.json
 # buck2 build output
 /buck-out/
 
+# Local buck2 config overlay. MEASURED: buck2 reads [buck2_re_client] into
+# DaemonStartupConfig from PROJECT CONFIG FILES ONLY (`--config` / `--config-file` are
+# inert for that section), so materializing .buckconfig.local is the SOLE mechanism that
+# can ever wire the NativeLink CAS (ADR-0560). A committed warm-cache overlay would make
+# every build in the repo remote-cache-enabled with allow_cache_uploads=true — bypassing
+# the ADR-0556 resolve()/license kill-switch entirely and poisoning the integrity canary,
+# whose cold proof depends on running with NO overlay at all. Ignored at any depth (each
+# buck2 cell root can carry one). The blocking backstop is the ADR-0560 conformance gate
+# (ci/facade/build-cache-policy `buckconfig_local_overlay_stays_ignored_and_untracked`),
+# which .gitignore alone cannot be: `git add -f` and already-tracked files bypass it.
+.buckconfig.local
+
 # Repo-root build/test SCRATCH artifacts (prevention layer; the cloud-ci-root-workspace-hygiene
 # allowlist gate (ADR-0600) + the cloud-ci-total-accounting `scratch_artifact` frozen_empty code
 # are the blocking backstops per enforcement-layering: automation default + blocking backstop).
