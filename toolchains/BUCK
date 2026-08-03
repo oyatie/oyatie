@@ -4,12 +4,60 @@ load("@prelude//toolchains:genrule.bzl", "system_genrule_toolchain")
 load("@prelude//toolchains:python.bzl", "system_python_bootstrap_toolchain")
 load("@prelude//toolchains:remote_test_execution.bzl", "remote_test_execution_toolchain")
 load("@prelude//tests:test_toolchain.bzl", "noop_test_toolchain")
+load(
+    "//rust:defs.bzl",
+    "hermetic_rust_toolchain",
+    "rust_toolchain_archive_select",
+    "rust_toolchain_for_mode",
+)
 
-# Rust 1.97.1 toolchain — pinned to match rust-toolchain.toml
-# rustc is resolved via rustup shim; PATH must include ~/.rustup/toolchains/1.97.1-aarch64-apple-darwin/bin
+# Rust 1.97.1 toolchain — pinned to match rust-toolchain.toml.
+#
+# HERMETIC BY DEFAULT (toolchains/rust/**): the compiler is a digest-pinned archive composed into
+# one rustup-shaped sysroot, so the compiler CONTENT — not just its PATH — is in every action key.
+# Under the old `system_rust_toolchain` a rustup default swap left action keys unchanged, which
+# would let a shared CAS serve foreign-compiler artifacts as current.
+#
+# `:rust_system` survives for exactly two reasons, NEITHER of which is a migration phase:
+#   1. Windows has no pin cell (the one required windows-latest lane), so `:rust` aliases to it
+#      structurally there.
+#   2. It is the operator ROLLBACK LEVER: `buck2 ... -c oya_toolchain.rust=system`.
+# There is no overlay and no opt-in: an ABSENT [oya_toolchain] section yields hermetic, and an
+# unrecognised value FAILS AT PARSE TIME rather than degrading to the ambient compiler.
+_RUST_TOOLCHAIN_DEFAULT = rust_toolchain_for_mode(
+    read_root_config("oya_toolchain", "rust", "hermetic"),
+)
+
+# ONE definition of the repo's Rust toolchain configuration, consumed by both declarations, so
+# there is nothing to keep "in parity" by hand.
+RUST_TOOLCHAIN_CONFIG = {
+    "default_edition": "2024",
+}
+
 system_rust_toolchain(
+    name = "rust_system",
+    visibility = ["PUBLIC"],
+    **RUST_TOOLCHAIN_CONFIG
+)
+
+hermetic_rust_toolchain(
+    name = "rust_hermetic",
+    clippy = rust_toolchain_archive_select("clippy"),
+    rust_std = rust_toolchain_archive_select("rust-std"),
+    rustc = rust_toolchain_archive_select("rustc"),
+    rustfmt = rust_toolchain_archive_select("rustfmt"),
+    visibility = ["PUBLIC"],
+    **RUST_TOOLCHAIN_CONFIG
+)
+
+# `toolchain_alias` (NOT plain `alias`) — it is itself a toolchain rule, so `toolchain_dep`
+# resolution from prelude//decls:toolchains_common succeeds through it.
+toolchain_alias(
     name = "rust",
-    default_edition = "2024",
+    actual = select({
+        "DEFAULT": _RUST_TOOLCHAIN_DEFAULT,
+        "prelude//os:windows": ":rust_system",
+    }),
     visibility = ["PUBLIC"],
 )
 

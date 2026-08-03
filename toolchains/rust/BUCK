@@ -1,0 +1,7 @@
+# Digest-pinned Rust component archives — 16 cells (rustc, rust-std, clippy, rustfmt x 4
+# triples). The pin table lives in pins.bzl; the composition and the toolchain rule live in
+# defs.bzl; the toolchain declarations and the hermetic/system selector live in toolchains/BUCK.
+
+load(":defs.bzl", "rust_toolchain_archives")
+
+rust_toolchain_archives()

@@ -55,14 +55,8 @@ jobs:
           fetch-depth: 0
       - name: Install buck2 (digest-pinned prebuilt release)
         run: infra/ci/install-buck2.sh
-      # Same rustup serialization rationale as the oya-ci-required buck2 lane:
-      # parallel buck2 actions racing a cold rustup install collide on shared
-      # download state. NOTE: deliberately NO actions/cache step anywhere in this
-      # workflow — toolchain download cost is part of the canary's from-empty price.
-      - name: Pre-provision pinned rust toolchain (serialize rustup before parallel buck2)
-        run: |
-          set -euo pipefail
-          rustup toolchain install
+      # NOTE: deliberately NO actions/cache step anywhere in this workflow — the
+      # digest-pinned hermetic toolchain download is part of the canary's from-empty price.
       - name: Materialize cloud-ci generated faces (out-of-graph boundary)
         run: buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .
       # The pinned target set is policy DATA (canary-policy.json), resolved by the
