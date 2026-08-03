@@ -27,7 +27,7 @@ pub const IMPACT_RULES: [&str; 4] = ["INDEPENDENT", "BROWNOUT", "DEGRADED", "FUL
 pub const DEPENDENCY_UNIT_COUNT: usize = 19;
 pub const CAPABILITY_COUNT: usize = 24;
 pub const SCHEMA_CANONICAL_SHA256: &str =
-    "bf8707af24fa27154a7bf413ac50d15f4c7c2d4ebd4be740f1f8f73cc94187d2";
+    "b0a826504fac2718e264dd9c307b425e82211675cfb06d180bb9fbd8bc086ce4";
 pub const GRAPH_DOCTRINE_ADRS: [&str; 5] =
     ["ADR-0245", "ADR-0280", "ADR-0562", "ADR-0615", "ADR-0635"];
 const DEPENDENCY_UNIT_AUTHORITY: [(&str, &str, &str, &str); DEPENDENCY_UNIT_COUNT] = [
@@ -65,6 +65,9 @@ const PATH_RULE: &str = "minimum severity across every steady_state_request edge
 const MULTI_PATH_RULE: &str = "maximum severity across all paths from impacted_unit to failed_unit; the strongest propagation path wins";
 const CLOSURE_DIRECTION: &str =
     "reverse_transitive_closure: request dependency A -> B yields failure propagation B -> A";
+const TOPOLOGY_FOLLOW_UP_ID: &str = "W0-C-TOPOLOGY-COVERAGE";
+const TOPOLOGY_TRACKING_ISSUE: &str = "https://github.com/jason931225/oyatie/issues/1537";
+const NO_NEW_BASELINE_POLICY: &str = "no-new-frozen-baseline";
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Policy {
@@ -526,7 +529,15 @@ fn check_top_level(raw: &Value, findings: &mut Vec<Finding>) {
             "must carry module-membership, layer-rank, and topology-coverage migrations without baselines",
         ));
     }
-    let allowed_follow_up: BTreeSet<&str> = ["id", "status", "constraint"].into_iter().collect();
+    let allowed_follow_up: BTreeSet<&str> = [
+        "id",
+        "status",
+        "tracking_issue",
+        "baseline_policy",
+        "constraint",
+    ]
+    .into_iter()
+    .collect();
     for (index, item) in follow_up_items.into_iter().flatten().enumerate() {
         let subject = format!("mandatory_follow_ups[{index}]");
         check_closed_object(
@@ -548,8 +559,35 @@ fn check_top_level(raw: &Value, findings: &mut Vec<Finding>) {
         {
             findings.push(finding(
                 "dag_schema_violation",
-                subject,
+                &subject,
                 "follow-up requires locked status and non-empty constraint",
+            ));
+        }
+        if item.get("id").and_then(Value::as_str) == Some(TOPOLOGY_FOLLOW_UP_ID) {
+            check_required_properties(
+                &subject,
+                item,
+                &["tracking_issue", "baseline_policy"],
+                "dag_follow_up_policy_drift",
+                findings,
+            );
+            if item.get("tracking_issue").and_then(Value::as_str) != Some(TOPOLOGY_TRACKING_ISSUE)
+                || item.get("baseline_policy").and_then(Value::as_str)
+                    != Some(NO_NEW_BASELINE_POLICY)
+            {
+                findings.push(finding(
+                    "dag_follow_up_policy_drift",
+                    &subject,
+                    format!(
+                        "topology coverage must remain tracked by `{TOPOLOGY_TRACKING_ISSUE}` with `{NO_NEW_BASELINE_POLICY}`"
+                    ),
+                ));
+            }
+        } else if item.get("tracking_issue").is_some() || item.get("baseline_policy").is_some() {
+            findings.push(finding(
+                "dag_follow_up_policy_drift",
+                &subject,
+                "topology tracking and baseline policy fields belong only to W0-C-TOPOLOGY-COVERAGE",
             ));
         }
     }

@@ -32,6 +32,8 @@
     { "id": "red-request-weight-range", "mutation": "request_weight_out_of_range", "expected": "dag_edge_malformed" },
     { "id": "red-request-weight-zero", "mutation": "request_weight_zero", "expected": "dag_edge_malformed" },
     { "id": "red-forbidden-reason", "mutation": "remove_forbidden_reason", "expected": "dag_schema_violation" },
+    { "id": "red-topology-tracking-issue-drift", "mutation": "drift_topology_tracking_issue", "expected": "dag_follow_up_policy_drift" },
+    { "id": "red-topology-baseline-policy-drift", "mutation": "drift_topology_baseline_policy", "expected": "dag_follow_up_policy_drift" },
     { "id": "green-reverse-direction-outside-graph3", "mutation": "reverse_direction_outside_graph3", "expected": "GREEN" },
     { "id": "green-exact-failure-closure", "mutation": "none", "expected": "GREEN" }
   ]

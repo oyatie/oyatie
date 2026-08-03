@@ -465,11 +465,62 @@
         "status": {
           "const": "required-not-in-this-slice"
         },
+        "tracking_issue": {
+          "type": "string",
+          "minLength": 1
+        },
+        "baseline_policy": {
+          "const": "no-new-frozen-baseline"
+        },
         "constraint": {
           "type": "string",
           "minLength": 1
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "id": {
+                "const": "W0-C-TOPOLOGY-COVERAGE"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "then": {
+            "required": [
+              "tracking_issue",
+              "baseline_policy"
+            ],
+            "properties": {
+              "tracking_issue": {
+                "const": "https://github.com/jason931225/oyatie/issues/1537"
+              },
+              "baseline_policy": {
+                "const": "no-new-frozen-baseline"
+              }
+            }
+          },
+          "else": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "tracking_issue"
+                  ]
+                },
+                {
+                  "required": [
+                    "baseline_policy"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ]
     },
     "external_anchor": {
       "type": "object",

@@ -26,8 +26,11 @@ milestone: W0-C
 
 **Accepted — 2026-08-01.** The founder authorized autonomous execution of the capability-first
 reorganization and required ambiguity below five percent before implementation. This amendment
-closes ADR-0280 §D-13.H item 1 without changing capability membership, module membership, or
-layer-rank baselines.
+closes only the schema and typed-graph portion of ADR-0280 §D-13.H item 1 for the bounded W0-C
+slice. It does not close that item's full-topology obligation: the 13 omitted capabilities and
+missing B0 hosting-chain faces remain deferred to `W0-C-TOPOLOGY-COVERAGE` in
+[GitHub #1537](https://github.com/jason931225/oyatie/issues/1537), without changing capability
+membership, module membership, or layer-rank baselines.
 
 ## Context
 
@@ -127,11 +130,12 @@ The existing `dependency-graph-acyclicity` Buck targets keep their names and rej
 graph kinds, 18/20-unit drift, any deviation from the exact 19 tuples, duplicate or unknown units,
 unknown capabilities or endpoints, missing `runtime_face`, cross-kind contamination, graph-3
 self-loops, two/three-node cycles, and a buried six-node SCC, request weights outside `(0, 1]`,
-present forbidden edges, invalid bootstrap orders, malformed request or failure metadata, policy
-gate-ID/path escapes, and any missing, extra, forward, or incorrectly composed failure closure
-edge. The gate declares the graph, schema, and capability registry as Buck resources. Executable
-fixture-driven tests prove those RED classes, deterministic Kahn ordering, a valid nonalphabetical
-bootstrap order, reverse directions outside graph 3, and the exact closure remain GREEN.
+present forbidden edges, invalid bootstrap orders, malformed request or failure metadata, mandatory
+follow-up tracking or baseline-policy drift, policy gate-ID/path escapes, and any missing, extra,
+forward, or incorrectly composed failure closure edge. The gate declares the graph, schema, and
+capability registry as Buck resources. Executable fixture-driven tests prove those RED classes,
+deterministic Kahn ordering, a valid nonalphabetical bootstrap order, reverse directions outside
+graph 3, and the exact closure remain GREEN.
 
 ### D6 — mandatory follow-ups, no new baselines
 
@@ -147,7 +151,8 @@ No follow-up may mint a new frozen baseline. `W0-C-TOPOLOGY-COVERAGE` must first
 face tuples and typed edges for the 13 omitted capabilities and the missing B0 hosting-chain units,
 then update the graph, its derived failure closure, and any current projection atomically. Existing
 debt must be preserved only through the current merge-base/controller-derived mechanisms until the
-consumer migrates.
+consumer migrates. Its machine row carries the exact `tracking_issue` URL and
+`baseline_policy: "no-new-frozen-baseline"`; the schema and evaluator reject drift in either value.
 
 ## Consequences
 
