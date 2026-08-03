@@ -11,7 +11,7 @@
 
 use std::collections::BTreeSet;
 
-use oya_data_boundary_kernel::{Classified, DataClass, DataClassMatcher, PrivacyDataClass};
+use data_boundary_kernel::{Classified, DataClass, DataClassMatcher, PrivacyDataClass};
 
 const RETENTION_POLICY_SCHEMA_VERSION: u32 = 1;
 const RETENTION_RECORD_SCHEMA_VERSION: u32 = 1;
@@ -682,7 +682,7 @@ fn internal<T>(value: T) -> Classified<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_data_boundary_kernel::{DataClassification, OperationalDataClass};
+    use data_boundary_kernel::{DataClassification, OperationalDataClass};
 
     fn privacy(data_class: DataClass) -> PrivacyDataClass {
         PrivacyDataClass::new(data_class).unwrap()

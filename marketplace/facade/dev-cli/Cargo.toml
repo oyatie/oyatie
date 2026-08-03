@@ -101,7 +101,7 @@ oya-intelligence-step-file-adapter = { path = "../../../oya/intelligence/crates/
 intelligence-step-domain = { path = "../../../intelligence/core/step-domain" }
 audit-chain-domain = { path = "../../../audit/core/chain-domain" }
 audit-file-adapter = { path = "../../../audit/adapters/file" }
-oya-data-boundary-kernel = { path = "../../../libs/oya-data-boundary-kernel" }
+data-boundary-kernel = { path = "../../../data/core/boundary-kernel" }
 messaging-file-adapter = { path = "../../../messaging/adapters/file" }
 messaging-domain = { path = "../../../messaging/core/domain" }
 secrets-file = { path = "../../../secrets/adapters/file" }

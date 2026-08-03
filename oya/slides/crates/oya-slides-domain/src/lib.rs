@@ -11,7 +11,7 @@
 use std::collections::BTreeSet;
 
 use oya_collab_runtime_domain::{CollabRuntime, CollabSurface};
-use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 use oya_document_format_domain::{DocumentKind, ExportFormat};
 
 const SLIDE_DECK_SCHEMA_VERSION: u32 = 1;
@@ -486,7 +486,7 @@ fn internal<T>(value: T) -> Classified<T> {
 mod tests {
     use super::*;
     use oya_collab_runtime_domain::{CollabRuntimeCreate, CollabSnapshotRef, CollabStateVectorRef};
-    use oya_data_boundary_kernel::{DataClassification, OperationalDataClass};
+    use data_boundary_kernel::{DataClassification, OperationalDataClass};
 
     fn runtime(surface: CollabSurface) -> CollabRuntime {
         CollabRuntime::new(CollabRuntimeCreate {

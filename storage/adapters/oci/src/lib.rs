@@ -441,7 +441,7 @@ mod tests {
         CloudStorageError, ResidencyClass, StorageProviderBlockCreateVolumeRequest,
         VolumePerformance,
     };
-    use oya_data_boundary_kernel::DataClass;
+    use data_boundary_kernel::DataClass;
 
     const NAMESPACE: &str = "axdotp9iv3ua";
     const BUCKET: &str = "oyatie-audit-cold-backup";

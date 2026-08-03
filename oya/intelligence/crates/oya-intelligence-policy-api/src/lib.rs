@@ -8,7 +8,7 @@
 
 use std::collections::BTreeMap;
 
-use oya_data_boundary_kernel::{
+use data_boundary_kernel::{
     AgeBand, DataClass, PrivacyDataClass, SubjectClass, parse_data_class_label,
 };
 use intelligence_capability_domain::{AutonomyTier, Capability, CapabilityAction, CapabilityError};

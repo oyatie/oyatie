@@ -22,7 +22,7 @@
 //! `OntologyEngine::action_type` query accessors that do not yet exist on the
 //! public API, ensuring they fail (RED) until the accessor methods are added.
 
-use oya_data_boundary_kernel::{DataClass, PrivacyDataClass};
+use data_boundary_kernel::{DataClass, PrivacyDataClass};
 use data_ontology_kernel::{
     ActionTypeDefinition, ActionTypeId, AutonomyTier, EntityTypeDefinition, EntityTypeId,
     EntityTypePropertyDefinition, LinkCardinality, LinkTypeDefinition, LinkTypeId, OntologyEngine,

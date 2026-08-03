@@ -19,7 +19,7 @@ use compute_functions_api::{
 };
 use compute_resource::FunctionRuntime;
 use network_residency::ResidencyClass;
-use oya_data_boundary_kernel::DataClass;
+use data_boundary_kernel::DataClass;
 
 const FUNCTION_ID: &str = "oya:cloud:region-home:ten_alpha:function:image-resize";
 const DIGEST: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";

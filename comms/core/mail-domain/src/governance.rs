@@ -1,4 +1,4 @@
-use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum MailGovernanceError {
     Invalid,
@@ -584,7 +584,7 @@ mod tests {
 
     #[test]
     fn dmarc_evidence_ref_is_audit_class() {
-        use oya_data_boundary_kernel::DataClassification;
+        use data_boundary_kernel::DataClassification;
         let v = DmarcVerdict::new_aligned(
             "example.com".into(),
             false,
@@ -595,7 +595,7 @@ mod tests {
         .unwrap();
         assert_eq!(
             v.evidence_ref.data_class,
-            DataClassification::Operational(oya_data_boundary_kernel::OperationalDataClass::Audit)
+            DataClassification::Operational(data_boundary_kernel::OperationalDataClass::Audit)
         );
     }
 

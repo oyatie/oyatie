@@ -11,7 +11,7 @@ pub use kr_acceptance::AcceptanceTestKind;
 
 use std::collections::BTreeMap;
 
-use oya_data_boundary_kernel::{
+use data_boundary_kernel::{
     Classified, DataClass, OperationalDataClass, PrivacyDataClass,
     data_classes_from_privacy_data_classes, most_restrictive_privacy_data_class,
     privacy_data_classes_from,

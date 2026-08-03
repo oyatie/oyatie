@@ -9,7 +9,7 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
-use oya_data_boundary_kernel::DataClass;
+use data_boundary_kernel::DataClass;
 use iam_tenant_rbac_usecase::{OpsCommandKind, TenantRbacOpsCommandInput, TenantRbacOpsRoute};
 use iam_tenant_rbac_domain::{
     CloseBoundaryState, CrossServiceWorkflowInput, DeterministicGate, GateClosureAuthority,

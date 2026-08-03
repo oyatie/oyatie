@@ -11,7 +11,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use cell_region::RegionCode;
 use compute_resource::ResourceId;
-use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 use billing_metering::{
     AxisId, Meter, MeterEvent, MeterEventCreate, MeterUnit, MeteringError, PlaneTag,
 };

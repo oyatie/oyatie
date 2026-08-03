@@ -4045,7 +4045,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-data-boundary-kernel",
+      "key": "data-boundary-kernel",
       "context": "data",
       "role": "kernel",
       "capability": "data-boundary",

@@ -10,7 +10,7 @@ license = "Apache-2.0"
 intelligence-capability-domain = { path = "../../../../intelligence/core/capability-domain" }
 oya-intelligence-policy-domain = { path = "../oya-intelligence-policy-domain" }
 audit-chain-domain = { path = "../../../../audit/core/chain-domain" }
-oya-data-boundary-kernel = { path = "../../../../libs/oya-data-boundary-kernel" }
+data-boundary-kernel = { path = "../../../../data/core/boundary-kernel" }
 
 [lib]
 name = "oya_intelligence_cloud_mutation_domain"

@@ -11,7 +11,7 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
-use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 const EQUIPMENT_ID_PREFIX: &str = "equip_";
 const MAINTENANCE_PLAN_ID_PREFIX: &str = "mplan_";

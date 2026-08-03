@@ -10,7 +10,7 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use oya_collab_runtime_domain::CollabRuntime;
-use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 const DOCUMENT_EXPORT_REQUEST_SCHEMA_VERSION: u32 = 1;
 const DOCUMENT_EXPORT_PAYLOAD_SCHEMA_VERSION: u32 = 1;
@@ -348,7 +348,7 @@ mod tests {
     use oya_collab_runtime_domain::{
         CollabRuntimeCreate, CollabSnapshotRef, CollabStateVectorRef, CollabSurface,
     };
-    use oya_data_boundary_kernel::{DataClassification, OperationalDataClass};
+    use data_boundary_kernel::{DataClassification, OperationalDataClass};
 
     fn runtime() -> CollabRuntime {
         CollabRuntime::new(CollabRuntimeCreate {

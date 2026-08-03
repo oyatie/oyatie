@@ -28,7 +28,7 @@ pub use spf_alignment::{evaluate_spf_alignment, SpfAlignmentMode, SpfAlignmentVe
 pub use thread_grouping::{group_into_thread, ThreadAssignment, ThreadTransitionError, transition_thread_status};
 pub use thread_state::{MailboxKind, ThreadStatus};
 
-use oya_data_boundary_kernel::{Classified, DataClass, DataClassification, PrivacyDataClass};
+use data_boundary_kernel::{Classified, DataClass, DataClassification, PrivacyDataClass};
 
 const MAILBOX_SCHEMA_VERSION: u32 = 1;
 const MESSAGE_SCHEMA_VERSION: u32 = 1;
@@ -420,7 +420,7 @@ impl MailSurfaceStaging {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_data_boundary_kernel::OperationalDataClass;
+    use data_boundary_kernel::OperationalDataClass;
 
     fn valid_mailbox_input() -> MailboxCreate {
         MailboxCreate {

@@ -286,7 +286,7 @@ impl PrivacyDataClass {
     /// production code without `#[allow]` shortcuts.
     ///
     /// Naming justification (v4 BNF + 12-layer-enum):
-    /// `oya-data-boundary-kernel` is the canonical `kernel` layer that owns
+    /// `data-boundary-kernel` is the canonical `kernel` layer that owns
     /// the `PrivacyDataClass` value type; an infallible constructor belongs
     /// here (not in a `domain` or `usecase` layer) because every caller in
     /// `*-domain` crates depends on the kernel for the type itself. The
