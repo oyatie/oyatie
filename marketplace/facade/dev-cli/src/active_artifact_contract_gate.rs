@@ -838,12 +838,12 @@ mod tests {
     #[test]
     fn directory_artifact_paths_are_covered_by_tracked_children() {
         let tracked = BTreeSet::from([
-            "crates/oya-intelligence-settings-template-kernel/Cargo.toml".to_string(),
-            "crates/oya-intelligence-settings-template-kernel/src/lib.rs".to_string(),
+            "crates/intelligence-settings-template-kernel/Cargo.toml".to_string(),
+            "crates/intelligence-settings-template-kernel/src/lib.rs".to_string(),
         ]);
 
         assert!(is_head_tracked_artifact_path(
-            "crates/oya-intelligence-settings-template-kernel",
+            "crates/intelligence-settings-template-kernel",
             &tracked
         ));
         assert!(!is_head_tracked_artifact_path(

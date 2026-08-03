@@ -6,7 +6,7 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//oya/intelligence/crates/oya-intelligence-account-domain:oya-intelligence-account-domain",
-        "//oya/intelligence/crates/oya-intelligence-supervisor-kernel:oya-intelligence-supervisor-kernel",
+        "//intelligence/core/supervisor-kernel:intelligence-supervisor-kernel",
         "third-party//:tokio",
     ],
 )

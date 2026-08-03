@@ -7,7 +7,7 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use oya_intelligence_account_domain::ProviderAccount;
 use intelligence_account_kernel::ProviderFamily;
-use oya_intelligence_settings_template_kernel::{
+use intelligence_settings_template_kernel::{
     DriftEntry, DriftReport, DriftState, RenderManifest, RenderedFile, SettingsRenderer,
     SettingsRendererError, SettingsTemplate,
 };

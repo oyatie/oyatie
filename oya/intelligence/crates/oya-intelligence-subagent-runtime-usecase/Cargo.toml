@@ -26,7 +26,7 @@ lifecycle.stage = "scaffolded"
 introducing_ip = "M01-P17-IP-009"
 
 [dependencies]
-oya-intelligence-subagent-runtime-kernel = { path = "../oya-intelligence-subagent-runtime-kernel" }
+intelligence-subagent-runtime-kernel = { path = "../../../../intelligence/core/subagent-runtime-kernel" }
 
 [lib]
 name = "oya_intelligence_subagent_runtime_usecase"

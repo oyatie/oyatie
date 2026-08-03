@@ -1180,7 +1180,7 @@
           ]
         },
         "verification": {
-          "checker_crate": "oya/intelligence/crates/oya-intelligence-settings-template-kernel",
+          "checker_crate": "intelligence/core/settings-template-kernel",
           "command": "oya-ci-required/cloud-ci evidence: settings-drift --template templates/foundry-supervisor/claude.toml --accounts registry/accounts/claude*.toml",
           "verifies": [
             "template instances valid per schema.json",
@@ -1188,11 +1188,11 @@
           ]
         },
         "validation": {
-          "validator": "oya/intelligence/crates/oya-intelligence-settings-template-kernel::SettingsRenderer::verify",
+          "validator": "intelligence/core/settings-template-kernel::SettingsRenderer::verify",
           "trigger": "pre-commit-hook"
         },
         "autogen": {
-          "generator": "oya/intelligence/crates/oya-intelligence-settings-template-kernel::SettingsRenderer::render",
+          "generator": "intelligence/core/settings-template-kernel::SettingsRenderer::render",
           "inputs": [
             "registry/accounts/claude*.toml",
             "templates/foundry-supervisor/claude.toml"
@@ -1200,7 +1200,7 @@
           "idempotency_class": "content-addressed-blake3"
         },
         "selfheal": {
-          "healer": "oya/intelligence/crates/oya-intelligence-settings-template-kernel::SettingsRenderer::reconcile",
+          "healer": "intelligence/core/settings-template-kernel::SettingsRenderer::reconcile",
           "heals_what": [
             "drift between template and rendered per-account files"
           ],
@@ -1263,7 +1263,7 @@
           ]
         },
         "verification": {
-          "checker_crate": "oya/intelligence/crates/oya-intelligence-settings-template-kernel",
+          "checker_crate": "intelligence/core/settings-template-kernel",
           "command": "oya-ci-required/cloud-ci evidence: settings-drift --template templates/foundry-supervisor/codex.toml --accounts registry/accounts/codex*.toml",
           "verifies": [
             "template instances valid per schema.json",
@@ -1271,11 +1271,11 @@
           ]
         },
         "validation": {
-          "validator": "oya/intelligence/crates/oya-intelligence-settings-template-kernel::SettingsRenderer::verify",
+          "validator": "intelligence/core/settings-template-kernel::SettingsRenderer::verify",
           "trigger": "pre-commit-hook"
         },
         "autogen": {
-          "generator": "oya/intelligence/crates/oya-intelligence-settings-template-kernel::SettingsRenderer::render",
+          "generator": "intelligence/core/settings-template-kernel::SettingsRenderer::render",
           "inputs": [
             "registry/accounts/codex*.toml",
             "templates/foundry-supervisor/codex.toml"
@@ -1283,7 +1283,7 @@
           "idempotency_class": "content-addressed-blake3"
         },
         "selfheal": {
-          "healer": "oya/intelligence/crates/oya-intelligence-settings-template-kernel::SettingsRenderer::reconcile",
+          "healer": "intelligence/core/settings-template-kernel::SettingsRenderer::reconcile",
           "heals_what": [
             "drift between template and rendered per-account files"
           ],
@@ -1346,7 +1346,7 @@
           ]
         },
         "verification": {
-          "checker_crate": "oya/intelligence/crates/oya-intelligence-settings-template-kernel",
+          "checker_crate": "intelligence/core/settings-template-kernel",
           "command": "oya-ci-required/cloud-ci evidence: settings-drift --template templates/foundry-supervisor/gemini.toml --accounts registry/accounts/gemini*.toml",
           "verifies": [
             "template instances valid per schema.json",
@@ -1354,11 +1354,11 @@
           ]
         },
         "validation": {
-          "validator": "oya/intelligence/crates/oya-intelligence-settings-template-kernel::SettingsRenderer::verify",
+          "validator": "intelligence/core/settings-template-kernel::SettingsRenderer::verify",
           "trigger": "pre-commit-hook"
         },
         "autogen": {
-          "generator": "oya/intelligence/crates/oya-intelligence-settings-template-kernel::SettingsRenderer::render",
+          "generator": "intelligence/core/settings-template-kernel::SettingsRenderer::render",
           "inputs": [
             "registry/accounts/gemini*.toml",
             "templates/foundry-supervisor/gemini.toml"
@@ -1366,7 +1366,7 @@
           "idempotency_class": "content-addressed-blake3"
         },
         "selfheal": {
-          "healer": "oya/intelligence/crates/oya-intelligence-settings-template-kernel::SettingsRenderer::reconcile",
+          "healer": "intelligence/core/settings-template-kernel::SettingsRenderer::reconcile",
           "heals_what": [
             "drift between template and rendered per-account files"
           ],
@@ -1412,7 +1412,7 @@
     },
     {
       "artifact_id": "foundry-supervisor-kernel",
-      "artifact_path": "oya/intelligence/crates/oya-intelligence-supervisor-kernel/Cargo.toml",
+      "artifact_path": "intelligence/core/supervisor-kernel/Cargo.toml",
       "artifact_format": "rust-crate",
       "contract_version": "v3.0.0",
       "owner_team": "axis-foundry",
@@ -1430,7 +1430,7 @@
         },
         "verification": {
           "checker_crate": "libs/oya-check-dependency-seam",
-          "command": "cargo check -p oya-intelligence-supervisor-kernel",
+          "command": "cargo check -p intelligence-supervisor-kernel",
           "verifies": [
             "zero external non-std dependencies in kernel",
             "all port traits sealed",
@@ -1501,7 +1501,7 @@
     },
     {
       "artifact_id": "foundry-settings-template-kernel",
-      "artifact_path": "oya/intelligence/crates/oya-intelligence-settings-template-kernel/Cargo.toml",
+      "artifact_path": "intelligence/core/settings-template-kernel/Cargo.toml",
       "artifact_format": "rust-crate",
       "contract_version": "v3.0.0",
       "owner_team": "axis-foundry",
@@ -1518,7 +1518,7 @@
         },
         "verification": {
           "checker_crate": "libs/oya-check-dependency-seam",
-          "command": "cargo check -p oya-intelligence-settings-template-kernel",
+          "command": "cargo check -p intelligence-settings-template-kernel",
           "verifies": [
             "zero external non-std dependencies in kernel",
             "SettingsRenderer::verify idempotent",
@@ -1604,7 +1604,7 @@
           ]
         },
         "verification": {
-          "checker_crate": "oya/intelligence/crates/oya-intelligence-settings-template-kernel",
+          "checker_crate": "intelligence/core/settings-template-kernel",
           "command": "oya-ci-required/cloud-ci evidence: settings-drift --workspace",
           "verifies": [
             "all rendered per-account files match their template blake3",
@@ -1621,7 +1621,7 @@
           "idempotency_class": "deterministic"
         },
         "selfheal": {
-          "healer": "oya/intelligence/crates/oya-intelligence-settings-template-kernel::SettingsRenderer::reconcile (VerifyOnly mode)",
+          "healer": "intelligence/core/settings-template-kernel::SettingsRenderer::reconcile (VerifyOnly mode)",
           "safe_unattended": [
             "re-render drifted files"
           ],

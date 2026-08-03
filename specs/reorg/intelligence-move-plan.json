@@ -1,5 +1,5 @@
 {
-  "_comment": "ADR-0562 §10.26 twenty-second strangler move, SUB-BATCH (b): home the intelligence capability's MANIFEST-CLEAN PURE KERNEL/DOMAIN FLOOR from the oya/intelligence junk-drawer into the ratified bare-root `intelligence/` capability (sub-batch (a) already established intelligence/ from cloud/cloud-intelligence per specs/reachability-registry.json §10.26(a); this is the first of the b-g sub-batches homing the 124 oya/intelligence crates). This batch moves 15 dependency-SINK crates: 8 ADR-0083 kernels (pure-types + sync-traits, EMPTY [dependencies]) + capability-domain + 6 domains (each either EMPTY deps or a single DOWN edge to libs/oya-data-boundary-kernel; ZERO intra-intelligence out-edges). SINK-FIRST so nothing else must reference a not-yet-moved intelligence crate. FACE = core for all 15 (ADR-0570: a cutover-stable kernel-tier port is PERMITTED in core; mirrors existing intelligence/core/{kernel,tool-compat-kernel,translation-kernel,wire-kernel} + messaging/core/domain). The acyclicity gate's owning_service() is STRUCTURALLY BLIND to intelligence/* (unclassified_root), so face direction is hand-verified: every moved crate is a sink (ZERO ../../{adapters,facade} edges possible), core placement non-inverting. De-brand per ADR-0532/0533 + naming grammar: cargo name = intelligence-<leaf> (strip oya-intelligence-, prepend intelligence-), matching every existing intelligence/ destination crate. Pre-existing gate-bound registry/catalog/oya-intelligence-<leaf>.yaml records re-keyed to intelligence-<leaf>.yaml as content-preserving artifact co-moves (catalog is filename-keyed, carries no internal crate-name field), reached by the existing registry/catalog/ prefix. Contract surfaces (a) workspace glob intelligence/*/*, (b) registry absorbs_current_dirs {intelligence, oya/intelligence}, (c) membership scan_roots+allowed_top_level_dirs intelligence, (d) acyclicity crate_root_globs intelligence/*/* + unclassified_roots intelligence are ALL pre-satisfied by sub-batch (a). DEFERRED (not guessed) to a later sub-batch that CO-HOMES their non-crate service-manifest records: the 6 microservice-entangled kernels (model-routing/assist-draft/guardrails/context-aware-retrieval/eval/attribution) referenced by specs/microservices/intelligence.json ($ref+test_ref) + oya/intelligence/manifest.json, plus credential-resolver-domain (2 manifest refs) and evidence-domain (specs/microservices/ontology.json ref) — a crate-first move would strand their GREEN service-manifest refs (the crate-first doctrine's already-orphaned safety does not hold for these), so they wait until the batch that also re-keys those manifest surfaces. Also DEFERRED: the api/usecase/app/worker/adapter/rest/cli crates (facade-vs-adapters face needs per-crate hand-verification) and the misfiled cross-capability crates (oya-collab-*, oya-shuffle-sharding, oya-codeview-cli). Non-crate artifacts (oya/intelligence/slos capability SLOs, manifest.json, docs, contracts) stay for phase-2 (task #62) per crate-first strangler mode. Refs #1325.",
+  "_comment": "ADR-0562 §10.26 twenty-second strangler move, SUB-BATCH (b): home the intelligence capability's MANIFEST-CLEAN PURE KERNEL/DOMAIN FLOOR from the oya/intelligence junk-drawer into the ratified bare-root `intelligence/` capability (sub-batch (a) already established intelligence/ from cloud/cloud-intelligence per specs/reachability-registry.json §10.26(a); this is the first of the b-g sub-batches homing the 124 oya/intelligence crates). This batch moves 15 dependency-SINK crates: 8 ADR-0083 kernels (pure-types + sync-traits, EMPTY [dependencies]) + capability-domain + 6 domains (each either EMPTY deps or a single DOWN edge to libs/oya-data-boundary-kernel; ZERO intra-intelligence out-edges). SINK-FIRST so nothing else must reference a not-yet-moved intelligence crate. FACE = core for all 15 (ADR-0570: a cutover-stable kernel-tier port is PERMITTED in core; mirrors existing intelligence/core/{kernel,tool-compat-kernel,translation-kernel,wire-kernel} + messaging/core/domain). The acyclicity gate's owning_service() is STRUCTURALLY BLIND to intelligence/* (unclassified_root), so face direction is hand-verified: every moved crate is a sink (ZERO ../../{adapters,facade} edges possible), core placement non-inverting. De-brand per ADR-0532/0533 + naming grammar: cargo name = intelligence-<leaf> (strip oya-intelligence-, prepend intelligence-), matching every existing intelligence/ destination crate. Pre-existing gate-bound registry/catalog/oya-intelligence-<leaf>.yaml records re-keyed to intelligence-<leaf>.yaml as content-preserving artifact co-moves (catalog is filename-keyed, carries no internal crate-name field), reached by the existing registry/catalog/ prefix. Contract surfaces (a) workspace glob intelligence/*/*, (b) registry absorbs_current_dirs {intelligence, oya/intelligence}, (c) membership scan_roots+allowed_top_level_dirs intelligence, (d) acyclicity crate_root_globs intelligence/*/* + unclassified_roots intelligence are ALL pre-satisfied by sub-batch (a). DEFERRED (not guessed) to a later sub-batch that CO-HOMES their non-crate service-manifest records: the 6 microservice-entangled kernels (model-routing/assist-draft/guardrails/context-aware-retrieval/eval/attribution) referenced by specs/microservices/intelligence.json ($ref+test_ref) + oya/intelligence/manifest.json, plus credential-resolver-domain (2 manifest refs) and evidence-domain (specs/microservices/ontology.json ref) — a crate-first move would strand their GREEN service-manifest refs (the crate-first doctrine's already-orphaned safety does not hold for these), so they wait until the batch that also re-keys those manifest surfaces. Also DEFERRED: the api/usecase/app/worker/adapter/rest/cli crates (facade-vs-adapters face needs per-crate hand-verification) and the misfiled cross-capability crates (oya-collab-*, oya-shuffle-sharding, oya-codeview-cli). Non-crate artifacts (oya/intelligence/slos capability SLOs, manifest.json, docs, contracts) stay for phase-2 (task #62) per crate-first strangler mode. Refs #1325. SUB-BATCH (c): appends 9 further oya/intelligence kernel/domain crates (oauth-subscription-kernel, policy-domain, provider-pool-kernel, rag-endpoint-domain, run-domain, settings-template-kernel, subagent-runtime-kernel, supervisor-kernel, usage-window-kernel) to intelligence/core under the same face=core rationale and the same live `intelligence/*/*` glob. Unlike (b) these are not all pure sinks: three (settings-template-kernel, supervisor-kernel, usage-window-kernel) retain a path dep on the still-legacy oya-intelligence-account-domain, which is re-pointed to ../../../oya/intelligence/crates/ and remains a temporary intelligence/->oya/ edge until account-domain is homed. Catalog rows re-keyed filename-only, contents preserved, per (b).",
   "capability": "intelligence",
   "moves": [
     {
@@ -91,6 +91,60 @@
       "new_path": "intelligence/core/write-gate-kernel",
       "old_cargo_name": "oya-intelligence-write-gate-kernel",
       "new_cargo_name": "intelligence-write-gate-kernel"
+    },
+    {
+      "old_path": "oya/intelligence/crates/oya-intelligence-oauth-subscription-kernel",
+      "new_path": "intelligence/core/oauth-subscription-kernel",
+      "old_cargo_name": "oya-intelligence-oauth-subscription-kernel",
+      "new_cargo_name": "intelligence-oauth-subscription-kernel"
+    },
+    {
+      "old_path": "oya/intelligence/crates/oya-intelligence-policy-domain",
+      "new_path": "intelligence/core/policy-domain",
+      "old_cargo_name": "oya-intelligence-policy-domain",
+      "new_cargo_name": "intelligence-policy-domain"
+    },
+    {
+      "old_path": "oya/intelligence/crates/oya-intelligence-provider-pool-kernel",
+      "new_path": "intelligence/core/provider-pool-kernel",
+      "old_cargo_name": "oya-intelligence-provider-pool-kernel",
+      "new_cargo_name": "intelligence-provider-pool-kernel"
+    },
+    {
+      "old_path": "oya/intelligence/crates/oya-intelligence-rag-endpoint-domain",
+      "new_path": "intelligence/core/rag-endpoint-domain",
+      "old_cargo_name": "oya-intelligence-rag-endpoint-domain",
+      "new_cargo_name": "intelligence-rag-endpoint-domain"
+    },
+    {
+      "old_path": "oya/intelligence/crates/oya-intelligence-run-domain",
+      "new_path": "intelligence/core/run-domain",
+      "old_cargo_name": "oya-intelligence-run-domain",
+      "new_cargo_name": "intelligence-run-domain"
+    },
+    {
+      "old_path": "oya/intelligence/crates/oya-intelligence-settings-template-kernel",
+      "new_path": "intelligence/core/settings-template-kernel",
+      "old_cargo_name": "oya-intelligence-settings-template-kernel",
+      "new_cargo_name": "intelligence-settings-template-kernel"
+    },
+    {
+      "old_path": "oya/intelligence/crates/oya-intelligence-subagent-runtime-kernel",
+      "new_path": "intelligence/core/subagent-runtime-kernel",
+      "old_cargo_name": "oya-intelligence-subagent-runtime-kernel",
+      "new_cargo_name": "intelligence-subagent-runtime-kernel"
+    },
+    {
+      "old_path": "oya/intelligence/crates/oya-intelligence-supervisor-kernel",
+      "new_path": "intelligence/core/supervisor-kernel",
+      "old_cargo_name": "oya-intelligence-supervisor-kernel",
+      "new_cargo_name": "intelligence-supervisor-kernel"
+    },
+    {
+      "old_path": "oya/intelligence/crates/oya-intelligence-usage-window-kernel",
+      "new_path": "intelligence/core/usage-window-kernel",
+      "old_cargo_name": "oya-intelligence-usage-window-kernel",
+      "new_cargo_name": "intelligence-usage-window-kernel"
     }
   ],
   "artifacts": [
@@ -153,6 +207,42 @@
     {
       "old_path": "registry/catalog/oya-intelligence-write-gate-kernel.yaml",
       "new_path": "registry/catalog/intelligence-write-gate-kernel.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-intelligence-oauth-subscription-kernel.yaml",
+      "new_path": "registry/catalog/intelligence-oauth-subscription-kernel.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-intelligence-policy-domain.yaml",
+      "new_path": "registry/catalog/intelligence-policy-domain.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-intelligence-provider-pool-kernel.yaml",
+      "new_path": "registry/catalog/intelligence-provider-pool-kernel.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-intelligence-rag-endpoint-domain.yaml",
+      "new_path": "registry/catalog/intelligence-rag-endpoint-domain.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-intelligence-run-domain.yaml",
+      "new_path": "registry/catalog/intelligence-run-domain.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-intelligence-settings-template-kernel.yaml",
+      "new_path": "registry/catalog/intelligence-settings-template-kernel.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-intelligence-subagent-runtime-kernel.yaml",
+      "new_path": "registry/catalog/intelligence-subagent-runtime-kernel.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-intelligence-supervisor-kernel.yaml",
+      "new_path": "registry/catalog/intelligence-supervisor-kernel.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-intelligence-usage-window-kernel.yaml",
+      "new_path": "registry/catalog/intelligence-usage-window-kernel.yaml"
     }
   ]
 }

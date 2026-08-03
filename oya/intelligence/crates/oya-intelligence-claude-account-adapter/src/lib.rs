@@ -7,7 +7,7 @@ use std::process::Stdio;
 use tokio::process::Command;
 
 use oya_intelligence_account_domain::SecretStorePort;
-use oya_intelligence_supervisor_kernel::{
+use intelligence_supervisor_kernel::{
     DriverHealth, ProviderFamily, SessionDriver, SessionTicket, SpawnedSession, SupervisorError,
 };
 

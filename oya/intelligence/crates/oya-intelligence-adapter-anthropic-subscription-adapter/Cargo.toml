@@ -14,7 +14,7 @@ doctest = false
 [dependencies]
 oya-intelligence-account-domain = { path = "../oya-intelligence-account-domain" }
 intelligence-account-kernel = { path = "../../../../intelligence/core/account-kernel" }
-oya-intelligence-oauth-subscription-kernel = { path = "../oya-intelligence-oauth-subscription-kernel" }
+intelligence-oauth-subscription-kernel = { path = "../../../../intelligence/core/oauth-subscription-kernel" }
 
 oya-http-runtime-hyper-adapter = { path = "../../../../libs/oya-http-runtime-hyper-adapter" }
 # Async runtime + HTTP stack (ADR-0090: hyper preferred; ADR-0506/PQC: TLS policy

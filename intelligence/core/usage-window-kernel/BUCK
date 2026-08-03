@@ -1,0 +1,33 @@
+rust_library(
+    name = "intelligence-usage-window-kernel",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "intelligence_usage_window_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/intelligence/crates/oya-intelligence-account-domain:oya-intelligence-account-domain",
+    ],
+)
+
+rust_test(
+    name = "intelligence-usage-window-kernel-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "intelligence_usage_window_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/intelligence/crates/oya-intelligence-account-domain:oya-intelligence-account-domain",
+    ],
+)
+
+rust_test(
+    name = "intelligence-usage-window-kernel-multi-window-aggregation",
+    srcs = ["tests/multi_window_aggregation.rs"],
+    crate = "intelligence_usage_window_kernel_multi_window_aggregation",
+    crate_root = "tests/multi_window_aggregation.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-usage-window-kernel",
+        "//oya/intelligence/crates/oya-intelligence-account-domain:oya-intelligence-account-domain",
+    ],
+)

@@ -1,6 +1,6 @@
 //! Seat enrollment via PKCE OAuth flow.
 //!
-//! Wires the pure `oya-intelligence-oauth-subscription-kernel` PKCE primitives
+//! Wires the pure `intelligence-oauth-subscription-kernel` PKCE primitives
 //! into a runtime path. Two variants:
 //!
 //!   - `EnrollmentPath::LocalhostCallback` — binds a Tokio TCP listener on the
@@ -19,7 +19,7 @@
 // data_class: INTERNAL_ONLY throughout this module.
 
 use oya_intelligence_account_domain::ProviderFamily;
-use oya_intelligence_oauth_subscription_kernel::{
+use intelligence_oauth_subscription_kernel::{
     FlowKind, OAuthLoopbackServer, PkceChallenge, PkceVerifier, SubscriptionOAuthFlow,
     SubscriptionTokenCaptureRequest, build_authorization_url, capture_subscription_token,
 };
@@ -31,7 +31,7 @@ use crate::token_state::SeatTokenState;
 /// Error types for enrollment.
 #[derive(Debug)]
 pub enum EnrollmentError {
-    PkceError(oya_intelligence_oauth_subscription_kernel::OAuthError),
+    PkceError(intelligence_oauth_subscription_kernel::OAuthError),
     OAuthClientError(crate::oauth_client::OAuthClientError),
     CredentialStoreError(String),
     CallbackParseError(String),
