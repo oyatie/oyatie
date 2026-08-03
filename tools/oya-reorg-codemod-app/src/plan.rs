@@ -124,6 +124,10 @@ pub fn apply_plan(
     // already edited files: that could prune unrelated globs and leave a partial move.
     validate_root_workspace_members(repo_root)?;
 
+    // Fail-closed: the move may not carry a crate across cargo workspaces, nor land it where
+    // no workspace claims it. Must precede every write.
+    validate_workspace_ownership(repo_root, plan)?;
+
     // resolve_target: OLD repo-relative crate dir -> NEW dir (identity if unmoved).
     let resolve_target = |old: &str| -> Option<String> {
         by_old_path.get(old).map(|cm| cm.new_path.clone())
@@ -150,6 +154,10 @@ pub fn apply_plan(
     // --- Steps 3-5: walk every first-party file and rewrite in place. ---
     let all_files = walk_repo_files(repo_root)?;
 
+    // Fail-closed on Rust path literals a move would silently invalidate (still before any
+    // write, so a refusal leaves the tree untouched).
+    validate_no_escaping_path_literals(repo_root, plan, &all_files)?;
+
     for rel in &all_files {
         let abs = repo_root.join(rel);
         let file_name = Path::new(rel).file_name().and_then(|s| s.to_str());
@@ -173,14 +181,12 @@ pub fn apply_plan(
     // --- Step 5b: rewrite ADR doc-anchor path citations. ---
     rewrite_doc_anchors(repo_root, plan, &mut outcome)?;
 
-    // --- Step 6: root workspace members/exclude. ---
-    rewrite_root_workspace(repo_root, plan, &mut outcome)?;
-
-    // --- Step 6b: relocate the moved crates' Cargo.lock package entries (rename + re-canonicalize)
-    // via the owned pure transform — byte-identically, WITHOUT invoking cargo. Keyed on the SAME
-    // name map the crate moves carry, so it needs no parallel config; a no-op when the tree has no
-    // root Cargo.lock (fixtures / sub-workspaces). ---
-    rewrite_cargo_lock(repo_root, plan, &mut outcome)?;
+    // --- Steps 6 + 6b: members/exclude and Cargo.lock, applied to the workspace that OWNS each
+    // moved crate rather than unconditionally to the ROOT. A crate inside an ADR-0512 nested
+    // carve-out (`kernel`, `cloud/cloud-kernel`) is excluded from the root workspace, so editing
+    // the root manifest for it both missed the real manifest AND hoisted the crate into a
+    // workspace that explicitly excludes its tree. ---
+    rewrite_owning_workspaces(repo_root, plan, &mut outcome)?;
 
     // --- Step 7: the directory moves (longest old_path first so nested dirs move safely). ---
     let mut ordered: Vec<&CrateMove> = plan.moves.iter().collect();
@@ -310,7 +316,42 @@ fn rewrite_one_rust(
     Ok(())
 }
 
-fn rewrite_root_workspace(
+/// Group the plan's moves by the workspace that OWNS them and rewrite each owning workspace's
+/// `members`/`exclude` + `Cargo.lock`, with every path re-expressed relative to that workspace
+/// root. When all moves live in the root workspace this is byte-identical to the previous
+/// root-only behaviour; it diverges only for the nested carve-outs, which is the whole point.
+fn rewrite_owning_workspaces(
+    repo_root: &Path,
+    plan: &MovePlan,
+    outcome: &mut ApplyOutcome,
+) -> Result<(), CodemodError> {
+    let mut by_workspace: BTreeMap<String, Vec<CrateMove>> = BTreeMap::new();
+    for m in &plan.moves {
+        let workspace = owning_workspace_root(repo_root, &m.old_path)?.unwrap_or_default();
+        by_workspace.entry(workspace).or_default().push(m.clone());
+    }
+    for (workspace, moves) in by_workspace {
+        let workspace_abs = repo_root.join(&workspace);
+        let rebased = MovePlan {
+            capability: plan.capability.clone(),
+            moves: moves
+                .iter()
+                .map(|m| CrateMove {
+                    old_path: rebase_under(&workspace, &m.old_path),
+                    new_path: rebase_under(&workspace, &m.new_path),
+                    old_cargo_name: m.old_cargo_name.clone(),
+                    new_cargo_name: m.new_cargo_name.clone(),
+                })
+                .collect(),
+            artifacts: Vec::new(),
+        };
+        rewrite_workspace_manifest(&workspace_abs, &rebased, outcome)?;
+        rewrite_cargo_lock(&workspace_abs, &rebased, outcome)?;
+    }
+    Ok(())
+}
+
+fn rewrite_workspace_manifest(
     repo_root: &Path,
     plan: &MovePlan,
     outcome: &mut ApplyOutcome,
@@ -465,6 +506,120 @@ fn compute_globs_to_prune(
     prune.sort();
     prune.dedup();
     Ok(prune)
+}
+
+/// The repo-relative root of the cargo WORKSPACE that owns `rel` — the nearest ancestor
+/// (inclusive) holding a `Cargo.toml` that declares `[workspace]`. `""` means the repo root.
+///
+/// This is the fix for the structural blind spot: the tool used to validate the ROOT workspace
+/// unconditionally, but the root `Cargo.toml` EXCLUDES the ADR-0512 nested carve-outs
+/// (`kernel`, `cloud/cloud-kernel`), so `cargo metadata` at the root cannot see crates moving
+/// inside them and reports green over an arbitrarily broken tree.
+///
+/// `rel` need not exist yet (a move TARGET does not), so this walks path components rather than
+/// the filesystem below the first existing ancestor. Returns `None` when no ancestor — not even
+/// the repo root — declares a workspace (a fixture tree without one).
+pub fn owning_workspace_root(repo_root: &Path, rel: &str) -> Result<Option<String>, CodemodError> {
+    let mut segments: Vec<&str> = rel.split('/').filter(|s| !s.is_empty()).collect();
+    loop {
+        let candidate = segments.join("/");
+        let manifest_rel = if candidate.is_empty() {
+            "Cargo.toml".to_string()
+        } else {
+            format!("{candidate}/Cargo.toml")
+        };
+        let manifest_abs = repo_root.join(&manifest_rel);
+        if manifest_abs.is_file() {
+            let text = read(&manifest_abs, &manifest_rel)?;
+            if cargo::manifest_declares_workspace(&text, &manifest_rel)? {
+                return Ok(Some(candidate));
+            }
+        }
+        if segments.pop().is_none() {
+            return Ok(None);
+        }
+    }
+}
+
+/// Fail-closed preflight: a move may not carry a crate ACROSS cargo workspaces, and may not
+/// land it where no workspace claims it. Runs before any write.
+fn validate_workspace_ownership(repo_root: &Path, plan: &MovePlan) -> Result<(), CodemodError> {
+    for m in &plan.moves {
+        let (Some(old_ws), Some(new_ws)) = (
+            owning_workspace_root(repo_root, &m.old_path)?,
+            owning_workspace_root(repo_root, &m.new_path)?,
+        ) else {
+            continue; // no workspace anywhere (fixture tree) — nothing to span
+        };
+        if old_ws != new_ws {
+            return Err(CodemodError::WorkspaceSpan {
+                old_path: m.old_path.clone(),
+                old_workspace: old_ws,
+                new_path: m.new_path.clone(),
+                new_workspace: new_ws,
+            });
+        }
+        // The owning workspace must not EXCLUDE the destination, or nothing resolves it.
+        let manifest_rel = workspace_manifest_rel(&new_ws);
+        let text = read(&repo_root.join(&manifest_rel), &manifest_rel)?;
+        let rebased = rebase_under(&new_ws, &m.new_path);
+        if cargo::workspace_excludes(&text, &manifest_rel)?
+            .iter()
+            .any(|e| rebased == *e || rebased.starts_with(&format!("{e}/")))
+        {
+            return Err(CodemodError::WorkspaceOrphan {
+                path: m.new_path.clone(),
+                workspace: new_ws,
+            });
+        }
+    }
+    Ok(())
+}
+
+/// Fail-closed preflight for the Rust path-literal class (`include!`, `include_bytes!`,
+/// `include_str!`, `#[path]`). See [`crate::rust_src`] for why this REFUSES rather than
+/// rewrites. Only literals escaping their own moving crate are collected.
+fn validate_no_escaping_path_literals(
+    repo_root: &Path,
+    plan: &MovePlan,
+    all_files: &[String],
+) -> Result<(), CodemodError> {
+    let mut literals = Vec::new();
+    for m in &plan.moves {
+        let prefix = format!("{}/", m.old_path);
+        for rel in all_files.iter().filter(|r| r.starts_with(&prefix)) {
+            if !rel.ends_with(".rs") {
+                continue;
+            }
+            let text = read(&repo_root.join(rel), rel)?;
+            literals.extend(rust_src::scan_escaping_path_literals(
+                &text,
+                rel,
+                &m.old_path,
+            ));
+        }
+    }
+    if literals.is_empty() {
+        return Ok(());
+    }
+    Err(CodemodError::UnrewritablePathLiteral { literals })
+}
+
+/// `<workspace_root>/Cargo.toml`, or `Cargo.toml` at the repo root.
+fn workspace_manifest_rel(workspace_root: &str) -> String {
+    if workspace_root.is_empty() {
+        "Cargo.toml".to_string()
+    } else {
+        format!("{workspace_root}/Cargo.toml")
+    }
+}
+
+/// Re-express repo-relative `path` relative to `base` (`base` must be a prefix of `path`).
+fn rebase_under(base: &str, path: &str) -> String {
+    if base.is_empty() {
+        return path.to_string();
+    }
+    path.strip_prefix(&format!("{base}/")).unwrap_or(path).to_string()
 }
 
 /// Validate root workspace membership before the codemod performs any writes.
@@ -1066,6 +1221,186 @@ members = ["libs/oya-*", "cloud/*/crates/oya-*", "iam/*/*"]
         let p = root.join(rel);
         std::fs::create_dir_all(p.parent().unwrap()).unwrap();
         std::fs::write(p, content).unwrap();
+    }
+
+    /// The ADR-0512 geometry: root EXCLUDES `cloud/cloud-kernel`, which is its own workspace.
+    fn write_nested_carveout(root: &Path) {
+        wf(
+            root,
+            "Cargo.toml",
+            "[workspace]\nmembers = [\"libs/*\"]\nexclude = [\"cloud/cloud-kernel\", \"kernel\"]\nresolver = \"2\"\n",
+        );
+        wf(
+            root,
+            "libs/keep/Cargo.toml",
+            "[package]\nname = \"keep\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
+        );
+        wf(root, "libs/keep/src/lib.rs", "pub fn keep() {}\n");
+        wf(
+            root,
+            "cloud/cloud-kernel/Cargo.toml",
+            "[workspace]\nmembers = [\"crates/*\"]\nresolver = \"2\"\n\n[workspace.dependencies]\nhal = { package = \"oya-cloud-kernel-hal-kernel\", path = \"crates/oya-cloud-kernel-hal-kernel\" }\n",
+        );
+        wf(
+            root,
+            "cloud/cloud-kernel/crates/oya-cloud-kernel-hal-kernel/Cargo.toml",
+            "[package]\nname = \"oya-cloud-kernel-hal-kernel\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
+        );
+        wf(
+            root,
+            "cloud/cloud-kernel/crates/oya-cloud-kernel-hal-kernel/src/lib.rs",
+            "pub fn hal() {}\n",
+        );
+        // The `kernel` carve-out, also excluded from root, carrying the crate the intra-workspace
+        // test moves. Its internal edge is declared the way cloud-kernel declares its five:
+        // in `[workspace.dependencies]`, under a short alias, with `package = `.
+        wf(
+            root,
+            "kernel/Cargo.toml",
+            "[workspace]\nmembers = [\"core/*\"]\nresolver = \"2\"\n\n[workspace.dependencies]\nhal = { package = \"oya-kernel-hal\", path = \"core/oya-kernel-hal\" }\n",
+        );
+        wf(
+            root,
+            "kernel/core/oya-kernel-hal/Cargo.toml",
+            "[package]\nname = \"oya-kernel-hal\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
+        );
+        wf(root, "kernel/core/oya-kernel-hal/src/lib.rs", "pub fn hal() {}\n");
+    }
+
+    /// D1: `cloud/cloud-kernel/crates/X` -> `kernel/adapters/X` crosses from the cloud-kernel
+    /// workspace into the `kernel` workspace. Which workspace owns a crate decides its lockfile
+    /// and its `[workspace.dependencies]` inheritance, so this must be REFUSED, not silently
+    /// applied. This is the exact move the sibling lane attempted.
+    #[test]
+    fn apply_refuses_a_move_that_spans_cargo_workspaces() {
+        let root = artifact_tmp_root("workspace-span");
+        write_nested_carveout(&root);
+        let plan = MovePlan {
+            capability: "kernel".to_string(),
+            moves: vec![CrateMove {
+                old_path: "cloud/cloud-kernel/crates/oya-cloud-kernel-hal-kernel".to_string(),
+                new_path: "kernel/adapters/hal".to_string(),
+                old_cargo_name: "oya-cloud-kernel-hal-kernel".to_string(),
+                new_cargo_name: "kernel-hal".to_string(),
+            }],
+            artifacts: vec![],
+        };
+        let error = apply_plan(&root, &plan, &ApplyOptions { use_git_mv: false })
+            .expect_err("a cross-workspace move must be refused");
+        match error {
+            CodemodError::WorkspaceSpan {
+                old_workspace,
+                new_workspace,
+                ..
+            } => {
+                assert_eq!(old_workspace, "cloud/cloud-kernel");
+                assert_eq!(new_workspace, "kernel");
+            }
+            other => panic!("expected WorkspaceSpan, got {other:?}"),
+        }
+        // Fail-closed BEFORE any mutation.
+        assert!(
+            root.join("cloud/cloud-kernel/crates/oya-cloud-kernel-hal-kernel/Cargo.toml").is_file(),
+            "source must be untouched"
+        );
+        assert!(!root.join("kernel/adapters/hal").exists(), "no partial move");
+        let _ = std::fs::remove_dir_all(&root);
+    }
+
+    /// D1 + D2 together: an INTRA-workspace move inside the excluded carve-out must edit the
+    /// NESTED workspace manifest (members + `[workspace.dependencies]`) and must NOT hoist the
+    /// crate into the ROOT workspace, which explicitly excludes that whole tree.
+    #[test]
+    fn nested_workspace_move_edits_the_nested_manifest_not_the_root() {
+        let root = artifact_tmp_root("nested-manifest");
+        write_nested_carveout(&root);
+        let plan = MovePlan {
+            capability: "kernel".to_string(),
+            moves: vec![CrateMove {
+                old_path: "kernel/core/oya-kernel-hal".to_string(),
+                new_path: "kernel/adapters/hal".to_string(),
+                old_cargo_name: "oya-kernel-hal".to_string(),
+                new_cargo_name: "kernel-hal".to_string(),
+            }],
+            artifacts: vec![],
+        };
+        apply_plan(&root, &plan, &ApplyOptions { use_git_mv: false }).unwrap();
+
+        let nested = std::fs::read_to_string(root.join("kernel/Cargo.toml")).unwrap();
+        assert!(
+            nested.contains("\"adapters/hal\""),
+            "nested members updated: {nested}"
+        );
+        assert!(
+            nested.contains(r#"path = "adapters/hal""#),
+            "D2: [workspace.dependencies] path recomputed off the emptied core/ dir: {nested}"
+        );
+        assert!(
+            nested.contains(r#"package = "kernel-hal""#),
+            "D2: [workspace.dependencies] package renamed: {nested}"
+        );
+        assert!(nested.contains("hal = {"), "alias key preserved: {nested}");
+
+        let root_manifest = std::fs::read_to_string(root.join("Cargo.toml")).unwrap();
+        assert!(
+            !root_manifest.contains("adapters/hal"),
+            "the ROOT workspace excludes this tree and must NOT absorb the moved crate: {root_manifest}"
+        );
+        assert!(
+            root.join("kernel/adapters/hal/Cargo.toml").is_file(),
+            "the crate actually moved"
+        );
+        let _ = std::fs::remove_dir_all(&root);
+    }
+
+    /// D3: a moving crate carrying an `include_bytes!` that escapes its own directory is
+    /// REFUSED (see `rust_src` for why refusal beats rewriting), and the tree is left untouched.
+    #[test]
+    fn apply_refuses_a_move_whose_rust_source_escapes_the_crate_via_a_path_literal() {
+        let root = artifact_tmp_root("escaping-literal");
+        wf(
+            &root,
+            "Cargo.toml",
+            "[workspace]\nmembers = [\"crates/*\"]\nresolver = \"2\"\n",
+        );
+        wf(
+            &root,
+            "crates/oya-a/Cargo.toml",
+            "[package]\nname = \"oya-a\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
+        );
+        wf(
+            &root,
+            "crates/oya-a/src/lib.rs",
+            "pub static BLOB: &[u8] = include_bytes!(\"../../../out/svc.elf\");\n",
+        );
+        let plan = MovePlan {
+            capability: "demo".to_string(),
+            moves: vec![CrateMove {
+                old_path: "crates/oya-a".to_string(),
+                new_path: "demo/core/a".to_string(),
+                old_cargo_name: "oya-a".to_string(),
+                new_cargo_name: "demo-a".to_string(),
+            }],
+            artifacts: vec![],
+        };
+        let error = apply_plan(&root, &plan, &ApplyOptions { use_git_mv: false })
+            .expect_err("an escaping path literal must refuse the move");
+        match error {
+            CodemodError::UnrewritablePathLiteral { ref literals } => {
+                assert_eq!(literals.len(), 1, "{literals:?}");
+                assert_eq!(literals[0].file, "crates/oya-a/src/lib.rs");
+                assert_eq!(literals[0].literal, "../../../out/svc.elf");
+                // The message must name the file:line so a human can act on it.
+                assert!(
+                    error.to_string().contains("crates/oya-a/src/lib.rs:1"),
+                    "actionable message: {error}"
+                );
+            }
+            other => panic!("expected UnrewritablePathLiteral, got {other:?}"),
+        }
+        assert!(root.join("crates/oya-a/src/lib.rs").is_file(), "source untouched");
+        assert!(!root.join("demo/core/a").exists(), "no partial move");
+        let _ = std::fs::remove_dir_all(&root);
     }
 
     #[test]

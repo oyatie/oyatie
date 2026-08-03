@@ -114,6 +114,28 @@ fn rewrite_dep_tables_recursive(
             )?;
         }
     }
+    // Recurse into `[workspace.dependencies]` (and its dev/build siblings). These are REAL
+    // path deps — in the ADR-0512 kernel carve-out 5 of 7 internal edges are declared here —
+    // and they are relative to the WORKSPACE ROOT manifest's own dir, which is this manifest's
+    // dir, so the same old_dir/new_dir base applies unchanged. Skipping them left every such
+    // edge pointing at the emptied source dir after a move.
+    if !inside_target
+        && let Some(workspace) = table.get_mut("workspace").and_then(Item::as_table_mut)
+    {
+        for key in DEP_TABLES {
+            if let Some(dep_table) = workspace.get_mut(key).and_then(Item::as_table_mut) {
+                rewrite_one_dep_table(
+                    dep_table,
+                    manifest_rel_path,
+                    old_dir,
+                    new_dir,
+                    name_to_move,
+                    resolve_target,
+                    changed,
+                )?;
+            }
+        }
+    }
     // Recurse into `[target.<cfg>]` sub-tables (which themselves hold dep tables). Avoid
     // recursing into the dep tables we just handled or into `[package]`/`[workspace]` etc.
     if !inside_target
@@ -198,26 +220,64 @@ fn rewrite_one_dep_table(
         }
     }
 
+    // Phase 1b: an ALIASED dep (`hal = { package = "oya-hal", path = ... }`) names its real
+    // crate in `package`, and its KEY is the identifier the source binds (`use hal::`). So the
+    // rename must land on the `package` VALUE and the key must be left alone — renaming the key
+    // would silently rebind every `use` of it. Phase 2 below therefore skips aliased entries.
+    for dep_key in &dep_keys {
+        let Some(item) = dep_table.get_mut(dep_key) else {
+            continue;
+        };
+        let Some(package) = dep_package_field(item) else {
+            continue;
+        };
+        if let Some(cm) = name_to_move.get(package.as_str())
+            && cm.new_cargo_name != package
+        {
+            set_dep_package(item, &cm.new_cargo_name);
+            *changed = true;
+        }
+    }
+
     // Phase 2: rename dependency keys whose crate moved (and got a new cargo name). A naive
     // remove+insert APPENDS (toml_edit has no in-place rekey), which would reorder the table
     // and break byte-identity on a forward/inverse round-trip. To preserve DECLARATION ORDER
     // we rebuild the table: walk the existing keys in order, re-inserting each (renamed where
     // it moved) so the relative order is unchanged. Only done when a rename is actually needed.
+    //
+    // An entry carrying an explicit `package` is EXCLUDED: Phase 1b already renamed its real
+    // crate name, and its key is a binding identifier rather than a crate name.
+    let is_aliased = |k: &str| {
+        dep_table
+            .get(k)
+            .and_then(dep_package_field_ref)
+            .is_some()
+    };
     let needs_rename = dep_keys.iter().any(|k| {
-        name_to_move
-            .get(k.as_str())
-            .is_some_and(|cm| cm.new_cargo_name != *k)
+        !is_aliased(k)
+            && name_to_move
+                .get(k.as_str())
+                .is_some_and(|cm| cm.new_cargo_name != *k)
     });
+    let aliased: std::collections::BTreeSet<String> = dep_keys
+        .iter()
+        .filter(|k| is_aliased(k))
+        .cloned()
+        .collect();
     if needs_rename {
         // Drain every dep entry (preserving its value/decor) in declaration order.
         let mut drained: Vec<(String, Item)> = Vec::with_capacity(dep_keys.len());
         for k in &dep_keys {
             if let Some(item) = dep_table.remove(k) {
-                let new_key = name_to_move
-                    .get(k.as_str())
-                    .filter(|cm| cm.new_cargo_name != *k)
-                    .map(|cm| cm.new_cargo_name.clone())
-                    .unwrap_or_else(|| k.clone());
+                let new_key = if aliased.contains(k) {
+                    k.clone()
+                } else {
+                    name_to_move
+                        .get(k.as_str())
+                        .filter(|cm| cm.new_cargo_name != *k)
+                        .map(|cm| cm.new_cargo_name.clone())
+                        .unwrap_or_else(|| k.clone())
+                };
                 drained.push((new_key, item));
             }
         }
@@ -228,6 +288,39 @@ fn rewrite_one_dep_table(
         *changed = true;
     }
     Ok(())
+}
+
+/// The explicit `package = "..."` of a dependency entry, when present. Its presence means the
+/// entry's KEY is a binding alias rather than the crate name.
+fn dep_package_field(item: &Item) -> Option<String> {
+    dep_package_field_ref(item)
+}
+
+fn dep_package_field_ref(item: &Item) -> Option<String> {
+    item.as_table_like()
+        .and_then(|t| t.get("package"))
+        .and_then(Item::as_str)
+        .map(str::to_string)
+        .or_else(|| {
+            item.as_value()
+                .and_then(Value::as_inline_table)
+                .and_then(|t| t.get("package"))
+                .and_then(Value::as_str)
+                .map(str::to_string)
+        })
+}
+
+/// Set the `package` field of a dependency item (inline-table or table), preserving the rest.
+fn set_dep_package(item: &mut Item, new_package: &str) {
+    if let Some(value) = item.as_value_mut()
+        && let Some(inline) = value.as_inline_table_mut()
+    {
+        inline.insert("package", new_package.into());
+        return;
+    }
+    if let Some(table) = item.as_table_like_mut() {
+        table.insert("package", Item::Value(Value::from(new_package.to_string())));
+    }
 }
 
 /// Set the `path` field of a dependency item (inline-table or table), preserving the rest.
@@ -317,6 +410,31 @@ pub fn rewrite_root_workspace_members(
         }
     }
     Ok((doc.to_string(), changed))
+}
+
+/// True if this manifest declares a cargo WORKSPACE ROOT. Any `[workspace...]` table counts:
+/// a manifest carrying only `[workspace.package]` or `[workspace.dependencies]` is still a
+/// workspace root as far as cargo's upward search is concerned. Member crates instead carry
+/// `workspace = true` INSIDE `[package]`/`[dependencies]` entries, which never creates a
+/// top-level `workspace` table — so this does not mistake a member for a root.
+pub fn manifest_declares_workspace(manifest_text: &str, rel_path: &str) -> Result<bool, CodemodError> {
+    Ok(parse(manifest_text, rel_path)?.get("workspace").is_some())
+}
+
+/// The `exclude` entries of a workspace manifest (empty when it declares none).
+pub fn workspace_excludes(manifest_text: &str, rel_path: &str) -> Result<Vec<String>, CodemodError> {
+    let doc = parse(manifest_text, rel_path)?;
+    Ok(doc
+        .get("workspace")
+        .and_then(Item::as_table)
+        .and_then(|w| w.get("exclude"))
+        .and_then(Item::as_array)
+        .map(|a| {
+            a.iter()
+                .filter_map(|v| v.as_str().map(str::to_string))
+                .collect()
+        })
+        .unwrap_or_default())
 }
 
 fn parse(text: &str, rel_path: &str) -> Result<DocumentMut, CodemodError> {
@@ -492,6 +610,96 @@ oya-domain = { path = "../oya-domain" }
         .unwrap();
         assert!(changed, "cfg-target dep path must be recomputed");
         assert!(out.contains("../../cloud/cloud-iam/crates/oya-domain"));
+    }
+
+    /// D2 (RED before `[workspace.dependencies]` was walked): the EXACT shape carried by
+    /// `cloud/cloud-kernel/Cargo.toml`, where 5 of 7 internal edges are path deps declared in
+    /// `[workspace.dependencies]` under a SHORT ALIAS key with `package = ` naming the real
+    /// crate. The old walker skipped `[workspace]` entirely, so every one of these survived a
+    /// move still pointing at the emptied `crates/` dir.
+    #[test]
+    fn workspace_dependencies_path_and_package_alias_are_rewritten() {
+        let text = r#"[workspace]
+members = ["crates/*"]
+
+[workspace.dependencies]
+hal = { package = "oya-cloud-kernel-hal-kernel", path = "crates/oya-cloud-kernel-hal-kernel" }
+tock-registers = "0.8"
+"#;
+        let hal = cm(
+            "cloud/cloud-kernel/crates/oya-cloud-kernel-hal-kernel",
+            "cloud/cloud-kernel/core/hal",
+            "oya-cloud-kernel-hal-kernel",
+            "kernel-hal",
+        );
+        let mut name_to_move: BTreeMap<&str, &CrateMove> = BTreeMap::new();
+        name_to_move.insert("oya-cloud-kernel-hal-kernel", &hal);
+        let (out, changed) = rewrite_dependencies_in_manifest(
+            text,
+            "cloud/cloud-kernel/Cargo.toml",
+            "cloud/cloud-kernel",
+            None, // the workspace ROOT manifest is not itself a moved crate
+            &name_to_move,
+            &|old| {
+                (old == "cloud/cloud-kernel/crates/oya-cloud-kernel-hal-kernel")
+                    .then(|| "cloud/cloud-kernel/core/hal".to_string())
+            },
+        )
+        .unwrap();
+        assert!(changed, "[workspace.dependencies] must be rewritten");
+        assert!(
+            out.contains(r#"path = "core/hal""#),
+            "path must be recomputed off the emptied crates/ dir: {out}"
+        );
+        assert!(
+            out.contains(r#"package = "kernel-hal""#),
+            "the `package = ` rename must follow the crate: {out}"
+        );
+        assert!(
+            out.contains("hal = {"),
+            "the ALIAS key is what `use hal::` binds; it must be PRESERVED: {out}"
+        );
+        assert!(
+            out.contains(r#"tock-registers = "0.8""#),
+            "registry deps untouched: {out}"
+        );
+    }
+
+    /// A dependency declared under an alias (`foo = {{ package = "real-name" }}`) must have its
+    /// `package` value renamed and its KEY left alone — renaming the key would silently rebind
+    /// every `use foo::` in the source. Applies to ordinary `[dependencies]`, not just
+    /// `[workspace.dependencies]`.
+    #[test]
+    fn aliased_dependency_renames_package_field_not_the_key() {
+        let text = r#"[package]
+name = "oya-consumer"
+
+[dependencies]
+hal = { package = "oya-hal", path = "../oya-hal" }
+"#;
+        let hal = cm("libs/oya-hal", "kernel/core/hal", "oya-hal", "kernel-hal");
+        let mut name_to_move: BTreeMap<&str, &CrateMove> = BTreeMap::new();
+        name_to_move.insert("oya-hal", &hal);
+        let (out, changed) = rewrite_dependencies_in_manifest(
+            text,
+            "libs/oya-consumer/Cargo.toml",
+            "libs/oya-consumer",
+            None,
+            &name_to_move,
+            &|old| (old == "libs/oya-hal").then(|| "kernel/core/hal".to_string()),
+        )
+        .unwrap();
+        assert!(changed);
+        assert!(out.contains(r#"package = "kernel-hal""#), "package renamed: {out}");
+        assert!(out.contains("hal = {"), "alias key preserved: {out}");
+        assert!(
+            !out.contains("kernel-hal = {"),
+            "the alias key must NOT be rewritten to the new crate name: {out}"
+        );
+        assert!(
+            out.contains(r#"path = "../../kernel/core/hal""#),
+            "path recomputed: {out}"
+        );
     }
 
     #[test]
