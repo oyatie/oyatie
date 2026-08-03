@@ -14,9 +14,12 @@ work items, status evidence, and the dependency DAG — see
 [`docs/decisions/`](docs/decisions/) (ADRs); the apex vision is the **Agentic Delivery Fabric**
 (ADR-0516…0535).
 
-How we build and review — the review lenses (Cartesian doubt, Red Team, blast-radius, opportunity
-cost…), the hyperscale architecture lenses, and the bars every change clears — is in
-[`AGENTS.md`](AGENTS.md#engineering-principles--review-lenses).
+How we reason, build, and review — the 16 general and hyperscale lenses (Cartesian doubt, Red Team,
+blast radius, opportunity cost…), and the bars every change clears — is in
+[`AGENTS.md`](AGENTS.md#engineering-principles--review-lenses). The reproducible
+map→pilot→bounded-fan-out loop, review separation, verification progression, learning loop, and
+evidence-led drafting contract are in
+[`docs/AGENTS.md`](docs/AGENTS.md#reasoning-and-delivery-method).
 
 ## Build & verify
 

@@ -59,15 +59,17 @@ handler logic.
 
 ## Engineering principles & review lenses
 
-Apply before any non-trivial decision, design, deployment, operation, or merge. Authoring and
-review are separate passes — never self-approve; hold ideas loosely (cognitive defusion). **Review
-discipline (Torvalds-style, battle-tested on complex projects):** hostile inspection, verify intent
-AND execution separately, never approve on narration, inspect the riskiest surface by hand, run
+These are live reasoning lenses, not review-only prompts. Route discovery, diagnosis, planning,
+decision-making, design, implementation, deployment, operation, and review through a
+task-appropriate, proportionate set; do not apply them mechanically. Authoring and review are
+separate passes — never self-approve; hold ideas loosely (cognitive defusion). **Review discipline
+(Torvalds-style, battle-tested on complex projects):** hostile inspection, verify intent AND
+execution separately, never approve on narration, inspect the riskiest surface by hand, and run
 multiple independent lenses. Refine ideas (divergent → convergent) before committing.
 Detail: `docs/standards/anti-patterns.md`, `docs/standards/hyperscaler-best-practices.md`,
 `specs/decision-principles.json`; bars: ADR-0516…0535 (delivery fabric), ADR-0548 (pipeline-as-product).
 
-**Review lenses** — *Deconstruct:* Cartesian doubt (know vs assume), Essentialism/YAGNI
+**General reasoning lenses** — *Deconstruct:* Cartesian doubt (know vs assume), Essentialism/YAGNI
 (irreducible core), Chesterton's Fence (know why before removing — trailblaze deliberately).
 *Challenge:* contrarian + outside-the-box, Socratic (the question behind the question),
 pragmatism (what changes behavior, not on paper). *Protect & scale:* Red Team (how is this
@@ -82,6 +84,9 @@ spend is an engineering metric; Protobuf over JSON, minimize cross-AZ); (5) tele
 (metrics/logs/traces + correlation IDs first-class; per-service `slos/*.openslo.yaml` gates
 promotion); (6) zero-trust / defense-in-depth (assume the internal network is compromised; mTLS,
 fail-closed authz via cloud-iam PDP, least privilege, secret rotation).
+
+The reproducible delivery loop and evidence-led drafting contract are in
+[`docs/AGENTS.md`](docs/AGENTS.md#reasoning-and-delivery-method).
 
 **Engineering bars (every gate/capability/change clears these):** universal · productized ·
 hermetic · automated (ships its own fix) · cloud-native (CRD/operator, not CLI) · owned-stack-first
