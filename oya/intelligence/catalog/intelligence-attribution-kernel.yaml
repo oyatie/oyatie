@@ -1,0 +1,19 @@
+# Canonical-base: specs/catalog/canonical-crate-record-schema.json (ADR-0064 + ADR-0105)
+name: intelligence-attribution-kernel
+role: kernel
+context: intelligence
+plane: control
+slo: substrate-tier3
+contracts_consumed: []
+contracts_exposed: []
+regulatory_packs_consumed:
+  - oya-pack-eu
+  - oya-pack-us
+lifecycle: {state: incubating, preview_since: 2026-05-20}
+traceability:
+  source_adrs: [ADR-0255, ADR-0105]
+allowed_dependency_edges: []
+data_classes_owned: [INTERNAL_ONLY]
+operational_classes_owned: [CITATION_RECORD]
+autonomy_tier_required: T3
+naming_justification: "attribution-kernel = CitationRecord + AttributionPort; ADR-0105 layer-1"

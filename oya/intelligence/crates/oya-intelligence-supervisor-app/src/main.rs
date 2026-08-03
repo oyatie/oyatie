@@ -3,8 +3,8 @@
 use std::fs;
 use std::time::{SystemTime, UNIX_EPOCH};
 
+use intelligence_autonomy_ceiling_domain::CeilingPolicy;
 use oya_intelligence_account_adapter_inmemory::InMemorySecretStoreAdapter;
-use oya_intelligence_autonomy_ceiling_domain::CeilingPolicy;
 use oya_intelligence_claude_account_adapter::ClaudeDriver;
 use oya_intelligence_codex_account_adapter::CodexDriver;
 use oya_intelligence_gemini_account_adapter::GeminiDriver;
@@ -160,7 +160,7 @@ impl AccountSnapshotProvider for FileAccountSnapshotProvider {
                     // malformed input, skip the entry rather than `.unwrap()`-
                     // panicking the entire snapshot. Logged to stderr so the
                     // entry visibly drops out of the snapshot.
-                    let secret_ref = match oya_intelligence_account_domain::SecretReference::new(
+                    let secret_ref = match intelligence_account_domain::SecretReference::new(
                         sref_str.to_string(),
                     ) {
                         Ok(secret_ref) => secret_ref,
@@ -175,7 +175,7 @@ impl AccountSnapshotProvider for FileAccountSnapshotProvider {
                     accounts.push(SupervisorAccount {
                         id: AccountId(id.to_string()),
                         provider_family: family,
-                        state: oya_intelligence_account_domain::AccountState::Active,
+                        state: intelligence_account_domain::AccountState::Active,
                         secret_ref,
                     });
                 }

@@ -9,7 +9,7 @@
 //! queue, or cloud-runtime work.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
-pub use oya_intelligence_audit_tap_usecase::{
+pub use intelligence_audit_tap_usecase::{
     AuditTapEmissionFailure, AuditTapEmitterPort, AuditTapRecordRequest, AuditTapSealReceipt,
     CarbonIntensitySource, InfrastructureProvider, IntelligenceAuditEventClass,
     IntelligenceAuditTapDenialKind, IntelligenceAuditTapInput, IntelligenceAuditTapReceipt,

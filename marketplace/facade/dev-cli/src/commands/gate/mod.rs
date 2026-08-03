@@ -39,7 +39,7 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
         // An explicitly present ledger with zero records means no exception
         // exists.
         // Tested by oya-dev-cli::gate_cli and
-        // oya-intelligence-bypass-domain::foundation_bypass.
+        // intelligence-bypass-domain::foundation_bypass.
         // active-artifact-contract: ADR-0069 v3.0.0 vertical enforcement loop.
         // Validates that every row in registry/artifact-capabilities-registry.json
         // satisfies R01-R07: tracked path, unique artifact_id, all 9

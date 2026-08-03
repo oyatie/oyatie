@@ -1017,9 +1017,9 @@
       "label": "oya-intelligence-architecture-map-kernel"
     },
     {
-      "id": "microservices/intelligence/crates/oya-intelligence-bypass-domain",
+      "id": "intelligence/core/bypass-domain",
       "kind": "crate",
-      "label": "oya-intelligence-bypass-domain"
+      "label": "intelligence-bypass-domain"
     },
     {
       "id": "microservices/intelligence/crates/oya-intelligence-capability-domain",
@@ -1037,9 +1037,9 @@
       "label": "oya-intelligence-catalog-domain"
     },
     {
-      "id": "microservices/intelligence/crates/oya-intelligence-cloud-mutation-domain",
+      "id": "intelligence/core/cloud-mutation-domain",
       "kind": "crate",
-      "label": "oya-intelligence-cloud-mutation-domain"
+      "label": "intelligence-cloud-mutation-domain"
     },
     {
       "id": "crates/oya-intelligence-eval-application",

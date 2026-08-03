@@ -1,0 +1,24 @@
+rust_library(
+    name = "intelligence-bypass-domain",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "intelligence_bypass_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//intelligence/core/capability-domain:intelligence-capability-domain",
+    ],
+)
+
+rust_test(
+    name = "intelligence-bypass-domain-foundation-bypass",
+    srcs = ["tests/foundation_bypass.rs"],
+    crate = "intelligence_bypass_domain_foundation_bypass",
+    crate_root = "tests/foundation_bypass.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-bypass-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//intelligence/core/capability-domain:intelligence-capability-domain",
+    ],
+)

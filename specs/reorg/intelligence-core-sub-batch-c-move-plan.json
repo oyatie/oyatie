@@ -1,0 +1,78 @@
+{
+  "_comment": "ADR-0562 §10.26 twenty-second strangler move, SUB-BATCH (c): the successor to the SPENT sub-batch (b) plan (specs/reorg/intelligence-move-plan.json, already applied — a spent plan is never re-opened; a new destination block gets its own plan file, per the landed messaging precedent of two plans under one capability). Homes twelve more oya/intelligence crates to intelligence/core/<leaf>, de-branded cargo name intelligence-<leaf> (ADR-0532/0533 + naming grammar: strip oya-intelligence-, prepend intelligence-; leaf dir == cargo-name tail). This batch closes TWO of sub-batch (b)'s explicit deferrals and adds the consumer-tier core floor. (1) MANIFEST-ENTANGLED (b) deferred these until a batch could CO-HOME their non-crate service-manifest records; this batch does exactly that: attribution-kernel, attribution-domain, context-aware-retrieval-domain and audit-tap-usecase carry specs/microservices/intelligence.json $ref + PATH-ENCODED test_ref entries and oya/intelligence/manifest.json bounded_contexts[].crates[] rows, all re-keyed here, plus the four cargo-test verified_by command lines in oya/intelligence + oya/ontology + oya/workflow-engine + oya/workflow-studio manifest.json. (2) CONSUMER-TIER core: account-domain, api-sse-kernel, api-websocket-kernel, autonomy-ceiling-domain, bypass-domain, capability-registry-app, capability-registry-domain, cloud-mutation-domain. FACE = core for all twelve, hand-verified PER CRATE by enumeration (the acyclicity gate's owning_service() is STRUCTURALLY BLIND to intelligence/*, so the face is not gate-decided and must be argued): destmap row 1 (harness) N/A — none is an integration-test-only crate under kernel/ or os/; row 2 (adapters) N/A — enumerated every [dependencies] table: no crate names or wraps a concrete transient technology (no aws/oci/gcp/azure/postgres/sqlx/redis/valkey/clickhouse/kube/cedar/openbao/s3/oidc/vendor-SDK/HTTP-transport dep, no *-adapter-<backend> shape); row 3 (facade) N/A — enumerated: ZERO [[bin]] stanzas, ZERO src/main.rs, ZERO ../../adapters/ and ZERO ../../facade/ path-deps, so none is a composition root and none is a sold multi-tenant surface; row 4 (ports) N/A — none is trait/DTO-ONLY (account-domain does export the SecretStorePort seam consumed by the claude/codex/gemini adapter crates, but it also owns the ProviderAccount state machine, check_silent_switch and the SecretReference value object, so it fails the trait/DTO-only precondition; intelligence additionally has NO ports/ face today and intelligence/facade/{app,worker} sit in the facade-core-layering frozen baseline under facade_core_no_ports_layer, so introducing one is out of scope for a placement move); therefore row 5 (else) => core for all twelve. Explicit per-crate note on the two non-kernel/-domain layer suffixes, which sub-batch (b) deferred as 'facade-vs-adapters face needs per-crate hand-verification' — that verification is discharged here, not assumed: capability-registry-app carries the ADR-0105 `-app` APPLICATION-LAYER suffix, which is a layer claim and NOT a deployability claim; its only deps are intelligence-capability-registry-kernel and intelligence-capability-registry-domain (both core), it has no [[bin]] and wires no adapter, so it satisfies none of the destmap facade tests and is core (its `CapabilityRegistry` is the intelligence agent-capability registry, unrelated to specs/capability-registry.json). audit-tap-usecase carries `-usecase` and has an EMPTY [dependencies] table — a pure sink — so it likewise satisfies none of the facade tests and is core. Contract surfaces (a) workspace glob intelligence/*/*, (b) registry absorbs_current_dirs {intelligence, oya/intelligence}, (c) membership scan_roots + allowed_top_level_dirs intelligence, (d) acyclicity crate_root_globs intelligence/*/* are ALL pre-satisfied by sub-batch (a): ZERO root Cargo.toml edit, ZERO capability-registry edit. Co-obligations landed in this same change: the twelve gate-bound registry/catalog/oya-intelligence-<leaf>.yaml records re-keyed to intelligence-<leaf>.yaml as content-preserving co-moves (the catalog is FILENAME-keyed and carries no internal crate-name field, per the sub-batch (b) precedent); the two SERVICE-LOCAL oya/intelligence/catalog/ records for attribution-kernel and audit-tap-usecase re-keyed in place — filename AND their internal `name:` field, a surface no prior sub-batch touched because no (b) crate had a row there; the path-keyed cloud-ci-dto-authz-trust frozen baseline relabelled old->new and re-sorted (four keys; the FNV body hashes are unchanged because no body changed); registry/stores/registry-store.json keys, registry/dependency-rationales.json allowed_crates, registry/graph/architecture-map.json node id AND label (the ids additionally carried a dead microservices/ root, repointed to the live path), specs/decision-rights.json, specs/forbidden-operations.json, and the runnable `cargo test -p` command in docs/products/foundry/PHASE-00-SPEC.md. This plan changes LOCATION and NAME only: no manifest-hygiene repair, no comment rewrite, no ADR-citation edit rides along. KNOWN DRIFT LEFT IN PLACE FOR A FOLLOW-UP (deliberately NOT repaired here, so the diff stays reviewable as 'only paths and names changed'): attribution-kernel, attribution-domain and context-aware-retrieval-domain pin `version = \"0.1.0\"` / `edition = \"2024\"` literally instead of version.workspace/edition.workspace, omit rust-version.workspace, omit the [lib] stanza their intelligence siblings carry, and omit [lints] workspace = true. Non-crate artifacts (oya/intelligence SLOs, manifest.json, docs, contracts) stay for phase-2 (task #62) per crate-first strangler mode. Refs #1325.",
+  "capability": "intelligence",
+  "moves": [
+    {
+      "old_path": "oya/intelligence/crates/oya-intelligence-account-domain",
+      "new_path": "intelligence/core/account-domain",
+      "old_cargo_name": "oya-intelligence-account-domain",
+      "new_cargo_name": "intelligence-account-domain"
+    },
+    {
+      "old_path": "oya/intelligence/crates/oya-intelligence-api-sse-kernel",
+      "new_path": "intelligence/core/api-sse-kernel",
+      "old_cargo_name": "oya-intelligence-api-sse-kernel",
+      "new_cargo_name": "intelligence-api-sse-kernel"
+    },
+    {
+      "old_path": "oya/intelligence/crates/oya-intelligence-api-websocket-kernel",
+      "new_path": "intelligence/core/api-websocket-kernel",
+      "old_cargo_name": "oya-intelligence-api-websocket-kernel",
+      "new_cargo_name": "intelligence-api-websocket-kernel"
+    },
+    {
+      "old_path": "oya/intelligence/crates/oya-intelligence-attribution-domain",
+      "new_path": "intelligence/core/attribution-domain",
+      "old_cargo_name": "oya-intelligence-attribution-domain",
+      "new_cargo_name": "intelligence-attribution-domain"
+    },
+    {
+      "old_path": "oya/intelligence/crates/oya-intelligence-attribution-kernel",
+      "new_path": "intelligence/core/attribution-kernel",
+      "old_cargo_name": "oya-intelligence-attribution-kernel",
+      "new_cargo_name": "intelligence-attribution-kernel"
+    },
+    {
+      "old_path": "oya/intelligence/crates/oya-intelligence-audit-tap-usecase",
+      "new_path": "intelligence/core/audit-tap-usecase",
+      "old_cargo_name": "oya-intelligence-audit-tap-usecase",
+      "new_cargo_name": "intelligence-audit-tap-usecase"
+    },
+    {
+      "old_path": "oya/intelligence/crates/oya-intelligence-autonomy-ceiling-domain",
+      "new_path": "intelligence/core/autonomy-ceiling-domain",
+      "old_cargo_name": "oya-intelligence-autonomy-ceiling-domain",
+      "new_cargo_name": "intelligence-autonomy-ceiling-domain"
+    },
+    {
+      "old_path": "oya/intelligence/crates/oya-intelligence-bypass-domain",
+      "new_path": "intelligence/core/bypass-domain",
+      "old_cargo_name": "oya-intelligence-bypass-domain",
+      "new_cargo_name": "intelligence-bypass-domain"
+    },
+    {
+      "old_path": "oya/intelligence/crates/oya-intelligence-capability-registry-app",
+      "new_path": "intelligence/core/capability-registry-app",
+      "old_cargo_name": "oya-intelligence-capability-registry-app",
+      "new_cargo_name": "intelligence-capability-registry-app"
+    },
+    {
+      "old_path": "oya/intelligence/crates/oya-intelligence-capability-registry-domain",
+      "new_path": "intelligence/core/capability-registry-domain",
+      "old_cargo_name": "oya-intelligence-capability-registry-domain",
+      "new_cargo_name": "intelligence-capability-registry-domain"
+    },
+    {
+      "old_path": "oya/intelligence/crates/oya-intelligence-cloud-mutation-domain",
+      "new_path": "intelligence/core/cloud-mutation-domain",
+      "old_cargo_name": "oya-intelligence-cloud-mutation-domain",
+      "new_cargo_name": "intelligence-cloud-mutation-domain"
+    },
+    {
+      "old_path": "oya/intelligence/crates/oya-intelligence-context-aware-retrieval-domain",
+      "new_path": "intelligence/core/context-aware-retrieval-domain",
+      "old_cargo_name": "oya-intelligence-context-aware-retrieval-domain",
+      "new_cargo_name": "intelligence-context-aware-retrieval-domain"
+    }
+  ]
+}

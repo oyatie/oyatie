@@ -1,11 +1,11 @@
 //! M02-P01-IP-004 — Usage-window enforcement kernel.
-//! Re-exports UsageWindow + UsageWindowKind from oya-intelligence-account-domain
+//! Re-exports UsageWindow + UsageWindowKind from intelligence-account-domain
 //! and adds the enforcement port that route-policy consumes.
 // ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
-pub use oya_intelligence_account_domain::{UsageWindow, UsageWindowError, UsageWindowKind};
+pub use intelligence_account_domain::{UsageWindow, UsageWindowError, UsageWindowKind};
 
 /// Verdict returned by UsageEnforcement::check_limit.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]

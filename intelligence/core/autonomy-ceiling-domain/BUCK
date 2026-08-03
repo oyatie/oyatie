@@ -1,0 +1,21 @@
+rust_library(
+    name = "intelligence-autonomy-ceiling-domain",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "intelligence_autonomy_ceiling_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//intelligence/core/autonomy-ceiling-kernel:intelligence-autonomy-ceiling-kernel",
+    ],
+)
+
+rust_test(
+    name = "intelligence-autonomy-ceiling-domain-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "intelligence_autonomy_ceiling_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//intelligence/core/autonomy-ceiling-kernel:intelligence-autonomy-ceiling-kernel",
+    ],
+)

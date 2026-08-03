@@ -9,7 +9,7 @@
 
 use std::collections::BTreeMap;
 
-pub use oya_intelligence_attribution_domain::{
+pub use intelligence_attribution_domain::{
     AttributionAudience, AttributionCitation, AttributionClaim, AttributionDataClass,
     AttributionDenialKind, AttributionDomainDecision, AttributionDomainDenialKind,
     AttributionDomainStatus, AttributionPolicyDecision, AttributionReport, AttributionRequest,
@@ -392,7 +392,7 @@ fn receipt_from_domain_decision(
 
 fn receipt_from_domain_denial(
     idempotency_key: &str,
-    denial: &oya_intelligence_attribution_domain::AttributionDomainDenial,
+    denial: &intelligence_attribution_domain::AttributionDomainDenial,
     usecase_denial_kind: AttributionUsecaseDenialKind,
 ) -> AttributionUsecaseReceipt {
     AttributionUsecaseReceipt {

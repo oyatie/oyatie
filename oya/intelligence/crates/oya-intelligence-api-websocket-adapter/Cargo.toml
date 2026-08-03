@@ -13,7 +13,7 @@ doctest = false
 
 [dependencies]
 intelligence-api-rest-kernel = { path = "../../../../intelligence/core/api-rest-kernel" }
-oya-intelligence-api-websocket-kernel = { path = "../oya-intelligence-api-websocket-kernel" }
+intelligence-api-websocket-kernel = { path = "../../../../intelligence/core/api-websocket-kernel" }
 
 [dev-dependencies]
 

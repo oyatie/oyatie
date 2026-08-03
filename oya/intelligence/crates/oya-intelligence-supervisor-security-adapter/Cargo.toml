@@ -7,10 +7,10 @@ license = "Apache-2.0"
 
 [dependencies]
 oya-intelligence-supervisor-kernel = { path = "../oya-intelligence-supervisor-kernel" }
-oya-intelligence-autonomy-ceiling-domain = { path = "../oya-intelligence-autonomy-ceiling-domain" }
+intelligence-autonomy-ceiling-domain = { path = "../../../../intelligence/core/autonomy-ceiling-domain" }
 intelligence-autonomy-ceiling-kernel = { path = "../../../../intelligence/core/autonomy-ceiling-kernel" }
 intelligence-capability-registry-kernel = { path = "../../../../intelligence/core/capability-registry-kernel" }
-oya-intelligence-account-domain = { path = "../oya-intelligence-account-domain" }
+intelligence-account-domain = { path = "../../../../intelligence/core/account-domain" }
 
 [lints]
 workspace = true

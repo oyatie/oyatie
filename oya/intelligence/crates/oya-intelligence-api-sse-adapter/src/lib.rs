@@ -3,7 +3,7 @@
 use intelligence_api_rest_kernel::{
     AuditEvent, ResponseStatus, fixture_request_payload, fixture_tenant_id, fixture_use_case_id,
 };
-use oya_intelligence_api_sse_kernel::{SseRequest, SseResponse};
+use intelligence_api_sse_kernel::{SseRequest, SseResponse};
 
 pub fn handle(req: &SseRequest) -> (SseResponse, AuditEvent) {
     let res = SseResponse {
