@@ -5,7 +5,7 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//oya/intelligence/crates/oya-intelligence-account-domain:oya-intelligence-account-domain",
+        "//intelligence/core/account-domain:intelligence-account-domain",
         "//intelligence/core/account-kernel:intelligence-account-kernel",
         "third-party//:bytes",
         "third-party//:http-body-util",
@@ -26,7 +26,7 @@ rust_test(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//oya/intelligence/crates/oya-intelligence-account-domain:oya-intelligence-account-domain",
+        "//intelligence/core/account-domain:intelligence-account-domain",
         "//intelligence/core/account-kernel:intelligence-account-kernel",
         "third-party//:bytes",
         "third-party//:http-body-util",
@@ -48,7 +48,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":oya-intelligence-adapter-openai-subscription-adapter",
-        "//oya/intelligence/crates/oya-intelligence-account-domain:oya-intelligence-account-domain",
+        "//intelligence/core/account-domain:intelligence-account-domain",
         "//intelligence/core/account-kernel:intelligence-account-kernel",
         "third-party//:bytes",
         "third-party//:http-body-util",

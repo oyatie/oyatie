@@ -32,8 +32,8 @@ use intelligence_adapter_kernel::{
     ProviderMode, ProviderProfile, ProviderRoute, ProviderRoutePreference, ProviderRouteRequest,
     SubscriptionBindingRegistry, resolve_route,
 };
-pub use oya_intelligence_bypass_domain::{AutonomyBreakGlass, AutonomyBreakGlassInput};
-use oya_intelligence_bypass_domain::{BypassError, BypassLedger, BypassLedgerRecord};
+pub use intelligence_bypass_domain::{AutonomyBreakGlass, AutonomyBreakGlassInput};
+use intelligence_bypass_domain::{BypassError, BypassLedger, BypassLedgerRecord};
 use intelligence_capability_domain::CapabilityError;
 pub use intelligence_capability_domain::{
     AutonomyTier, Capability, CapabilityAction, CapabilityCostProfile, CapabilityMcpContract,

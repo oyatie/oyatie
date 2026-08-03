@@ -6,7 +6,7 @@ use audit_file_adapter::FileAuditLedger;
 use oya_check_pr_traceability::{
     PrTraceabilityDocument, PrTraceabilityPolicy, validate_pr_traceability,
 };
-use oya_intelligence_bypass_domain::{
+use intelligence_bypass_domain::{
     AutonomyBreakGlassInput, AutonomyTier, BypassLedger, BypassLedgerRecord, FoundationBypassInput,
 };
 

@@ -10,7 +10,7 @@
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 // ── Identity types (live in kernel; re-exported here for back-compat) ──────
-pub use oya_intelligence_account_domain::{
+pub use intelligence_account_domain::{
     AccountId, AccountState, ProviderAccount, ProviderFamily, SecretReference,
 };
 pub use intelligence_autonomy_ceiling_kernel::{AutonomyTier, CeilingVerdict};

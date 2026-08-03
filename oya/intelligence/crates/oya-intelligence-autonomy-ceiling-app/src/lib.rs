@@ -6,7 +6,7 @@
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
-use oya_intelligence_autonomy_ceiling_domain::{CeilingPolicy, TenantId};
+use intelligence_autonomy_ceiling_domain::{CeilingPolicy, TenantId};
 use intelligence_autonomy_ceiling_kernel::{
     AutonomyTier as CeilingTier, CeilingVerdict, check_tier,
 };
