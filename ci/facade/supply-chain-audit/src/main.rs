@@ -1,6 +1,8 @@
 //! cloud-ci-supply-chain-audit gate binary (owned RustSec advisory scan; replaces reverted #974).
-//! The default invocation matches the workspace `Cargo.lock` against the vendored advisory mirror
-//! and reports any affected, un-ignored crate. The blocking buck2 `rust_test` gate is the backstop.
+//! The default invocation matches the policy-declared workspace lockfile corpus against the vendored
+//! advisory mirror and reports any affected, un-ignored crate. Paths are repo-relative, validated,
+//! and symlink-free; collection never recursively walks mutable checkout state. The blocking buck2
+//! `rust_test` gate is the backstop.
 //!
 //! `--write` rewrites the policy's `ignore[]` SHRINK-ONLY: it drops entries that suppress no live
 //! affected advisory (`SCA-STALE-IGNORE`) and never adds one (a new vuln must be fixed, not

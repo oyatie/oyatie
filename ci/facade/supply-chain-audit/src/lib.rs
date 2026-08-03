@@ -3,7 +3,7 @@
 //! PR #974 added a born-blocking supply-chain gate by shelling out to `cargo-audit` / `cargo-deny`
 //! — shell + a network-fetching advisory index, both forbidden by the no-shell + hermetic-gate +
 //! rust-purity doctrine. #977 reverted it (keeping the quinn-proto CVE fix). This gate is the owned
-//! replacement: a PURE, hermetic predicate that matches the workspace `Cargo.lock` against a
+//! replacement: a PURE, hermetic predicate that matches the authoritative lockfile corpus against a
 //! VENDORED, content-addressed RustSec advisory snapshot. No shell, no network, no clock, no
 //! `rustsec`/`git2`/`libgit2` crates — only `serde_json` + `toml` + `semver` (the last promoted to a
 //! direct workspace dep via one reindeer buckify, adding ZERO new crate to `Cargo.lock`).
@@ -11,26 +11,18 @@
 //! ## Split of concerns (hermetic gate vs network reconciler)
 //! The network/clock half — pinning a fresh advisory-db commit, distilling, opening a GitOps PR,
 //! and `remove_by` expiry SLOs — lives in a SEPARATE owned reconciler (deferred Slice D). THIS gate
-//! only reads committed bytes: the `Cargo.lock` + the vendored `advisory-mirror/{advisories.json,
+//! only reads committed bytes: the configured `Cargo.lock` files + the vendored `advisory-mirror/{advisories.json,
 //! mirror-manifest.json}` produced by `oya-advisory-mirror-kernel`. That keeps the gate buck2-cacheable
 //! and deterministic.
 //!
-//! ## Lockfile coverage (DERIVED, never hand-listed)
-//! The repo has MORE THAN ONE cargo workspace: the root plus the ADR-0512 carve-outs under `kernel/`
-//! and `cloud/cloud-kernel/`. The policy used to name ONE `lockfile_path` string, so every crate
-//! pinned only by a nested lockfile was never scanned — a silent COVERAGE hole, not an incident.
-//! The set is now DERIVED by [`discover_lockfiles`]: every committed `Cargo.lock` whose sibling
-//! `Cargo.toml` declares a `[workspace]` table (i.e. one a workspace ROOT owns) is scanned. A
-//! hand-listed array would rot exactly the way the single string did — a new carve-out would be
-//! invisible until somebody remembered to append it. Derivation makes a new workspace covered
-//! BY CONSTRUCTION. A workspace root with no committed lockfile pins nothing and contributes
-//! nothing; a `Cargo.lock` with NO workspace-declaring sibling is an orphan cargo itself ignores
-//! (only a workspace root's lock is authoritative) and is deliberately NOT scanned — flagging dead
-//! bytes would be a false positive against a dependency set nothing builds.
-//! `policy.min_lockfiles` is the fail-closed FLOOR (same shape as `min_advisories`): if discovery
-//! ever returns fewer owned lockfiles than the floor — a pruned directory, a deleted carve-out lock,
-//! a regressed walk — the gate goes RED with `SCA-LOCKFILE-UNDERFLOW` instead of scanning less and
-//! staying green. A floor is not a list: adding a workspace never edits it, losing one always trips it.
+//! ## Lockfile corpus
+//! `policy.lockfile_corpus` is the reviewed authority: each entry pairs one repo-relative
+//! `Cargo.toml` workspace/package root with its sibling `Cargo.lock`. Collection performs no tree
+//! walk, so ignored files, nested worktrees, build products, and directory iteration order cannot
+//! change the scan. Every configured component is checked with `symlink_metadata`; absolute paths,
+//! `..`, symlinks, missing files, non-files, duplicate entries, and manifest/lockfile parent mismatch
+//! fail closed. `policy.min_lockfiles` prevents a policy edit from silently shrinking the corpus.
+//! The legacy single `policy.lockfile_path` form remains accepted as a one-entry corpus.
 //!
 //! ## Matching
 //! For each advisory whose `package` matches a locked crate `name`, the locked [`semver::Version`] is
@@ -59,10 +51,9 @@
 //! - `SCA-VULN` — a security advisory affects a locked crate and is not ignored.
 //! - `SCA-UNMAINTAINED` — an unmaintained advisory affects a locked crate (policy=all) and is not ignored.
 //! - `SCA-STALE-IGNORE` — an ignore id matches no live affected advisory (shrink-only self-clean).
+//! - `SCA-LOCKFILE-UNDERFLOW` — the configured corpus is smaller than `policy.min_lockfiles`.
 //! - `SCA-MIRROR-MALFORMED` — the vendored mirror is corrupt / desynced (fail-closed).
 //! - `SCA-MIRROR-UNDERFLOW` — the mirror has too few advisories (fail-closed against a false-green).
-//! - `SCA-LOCKFILE-UNDERFLOW` — fewer workspace-owned lockfiles were discovered than
-//!   `policy.min_lockfiles` (fail-closed against a silently narrowed scan).
 //! - `SCA-POLICY-GATE-ID-MISMATCH` — the policy `gate_id` is not [`GATE_ID`] (fail-closed).
 //! - `SCA-POLICY-MALFORMED` — the policy is structurally invalid (fail-closed).
 //!
@@ -71,7 +62,7 @@
 #![forbid(unsafe_code)]
 
 use std::collections::BTreeSet;
-use std::path::Path;
+use std::path::{Component, Path, PathBuf};
 
 use oya_advisory_mirror_kernel::{Advisory, canonical_hash};
 use semver::{Version, VersionReq};
@@ -81,8 +72,7 @@ use serde_json::{Value, json};
 pub const GATE_ID: &str = "cloud-ci-supply-chain-audit";
 
 /// The remediation doctrine pointer findings carry.
-pub const REMEDIATION_DOCTRINE: &str =
-    "upgrade the affected crate to a patched version (bump the workspace pin / transitive dep), or — \
+pub const REMEDIATION_DOCTRINE: &str = "upgrade the affected crate to a patched version (bump the workspace pin / transitive dep), or — \
      for an unmaintained dep with no maintained drop-in — add a time-boxed policy.ignore[] entry with \
      a reason, pull_chain, and remove_by date";
 
@@ -91,9 +81,9 @@ pub const VIOLATION_CODES: [&str; 8] = [
     "SCA-VULN",
     "SCA-UNMAINTAINED",
     "SCA-STALE-IGNORE",
+    "SCA-LOCKFILE-UNDERFLOW",
     "SCA-MIRROR-MALFORMED",
     "SCA-MIRROR-UNDERFLOW",
-    "SCA-LOCKFILE-UNDERFLOW",
     "SCA-POLICY-GATE-ID-MISMATCH",
     "SCA-POLICY-MALFORMED",
 ];
@@ -125,116 +115,320 @@ impl std::fmt::Display for CollectError {
 
 impl std::error::Error for CollectError {}
 
-/// Directory names discovery never descends into: VCS metadata, build outputs, vendored node trees.
-/// None of them can hold a cargo workspace root of THIS repo, and buck-out/target hold generated
-/// copies whose presence would make the scan depend on whether a build had run (non-deterministic).
-const PRUNED_DIRS: [&str; 4] = [".git", "buck-out", "target", "node_modules"];
+/// One authoritative workspace/package manifest and its sibling lockfile.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct LockfileSource {
+    /// Repo-relative `Cargo.toml` that declares `[workspace]` or `[package]`.
+    pub manifest_path: String,
+    /// Repo-relative sibling `Cargo.lock` scanned for advisory matches.
+    pub lockfile_path: String,
+}
 
-/// Discover every `Cargo.lock` a cargo WORKSPACE ROOT owns, as repo-relative paths, sorted.
+/// Parse and validate the policy's deterministic lockfile corpus.
 ///
-/// A lockfile is OWNED iff its sibling `Cargo.toml` declares a `workspace` table — that is exactly
-/// cargo's own rule for which lock is authoritative. A lock next to a plain `[package]` member (or
-/// next to no manifest at all) is an orphan cargo ignores, and so does this gate.
+/// The structured `lockfile_corpus` form is authoritative for multi-workspace repositories. The
+/// legacy `lockfile_path` string remains supported as a one-entry corpus and defaults to
+/// `Cargo.lock`, preserving the original policy behavior.
 ///
-/// DERIVED, not declared: a new nested workspace is covered the moment it is committed, with no
-/// policy edit. That is the whole point — the single `lockfile_path` string it replaces went stale
-/// the moment the second workspace appeared, and a hand-listed array would go stale the same way.
-pub fn discover_lockfiles(repo_root: &Path) -> Result<Vec<String>, CollectError> {
-    let mut found = Vec::new();
-    let mut stack = vec![repo_root.to_path_buf()];
-    while let Some(dir) = stack.pop() {
-        let entries = std::fs::read_dir(&dir)
-            .map_err(|e| CollectError::Io(format!("read_dir {}: {e}", dir.display())))?;
-        for entry in entries {
-            let entry =
-                entry.map_err(|e| CollectError::Io(format!("dir entry in {}: {e}", dir.display())))?;
-            let path = entry.path();
-            let Some(name) = path.file_name().and_then(|n| n.to_str()) else {
-                continue;
-            };
-            // `is_dir()` follows symlinks; a symlinked directory could re-enter the tree and loop.
-            let Ok(kind) = entry.file_type() else { continue };
-            if kind.is_dir() {
-                if !PRUNED_DIRS.contains(&name) {
-                    stack.push(path);
-                }
-            } else if name == "Cargo.lock" && manifest_declares_workspace(&dir)? {
-                let rel = path.strip_prefix(repo_root).unwrap_or(&path);
-                found.push(rel.to_string_lossy().replace('\\', "/"));
+/// # Errors
+///
+/// Returns [`CollectError::Parse`] for malformed, ambiguous, duplicate, non-relative, non-canonical,
+/// or non-sibling manifest/lockfile declarations.
+pub fn configured_lockfiles(policy: &Value) -> Result<Vec<LockfileSource>, CollectError> {
+    let mut sources = if let Some(corpus) = policy.get("lockfile_corpus") {
+        if policy.get("lockfile_path").is_some() {
+            return Err(CollectError::Parse(
+                "policy must use either lockfile_corpus or legacy lockfile_path, not both"
+                    .to_owned(),
+            ));
+        }
+        let entries = corpus.as_array().ok_or_else(|| {
+            CollectError::Parse("policy.lockfile_corpus must be a non-empty array".to_owned())
+        })?;
+        if entries.is_empty() {
+            return Err(CollectError::Parse(
+                "policy.lockfile_corpus must not be empty".to_owned(),
+            ));
+        }
+        minimum_lockfiles(policy, true)?;
+
+        let mut parsed = Vec::with_capacity(entries.len());
+        for (index, entry) in entries.iter().enumerate() {
+            let object = entry.as_object().ok_or_else(|| {
+                CollectError::Parse(format!("policy.lockfile_corpus[{index}] must be an object"))
+            })?;
+            if object.len() != 2 {
+                return Err(CollectError::Parse(format!(
+                    "policy.lockfile_corpus[{index}] must contain exactly manifest_path and lockfile_path"
+                )));
             }
+            let manifest_path = object
+                .get("manifest_path")
+                .and_then(Value::as_str)
+                .ok_or_else(|| {
+                    CollectError::Parse(format!(
+                        "policy.lockfile_corpus[{index}].manifest_path must be a string"
+                    ))
+                })?;
+            let lockfile_path = object
+                .get("lockfile_path")
+                .and_then(Value::as_str)
+                .ok_or_else(|| {
+                    CollectError::Parse(format!(
+                        "policy.lockfile_corpus[{index}].lockfile_path must be a string"
+                    ))
+                })?;
+            parsed.push(validate_source(manifest_path, lockfile_path)?);
+        }
+        parsed
+    } else {
+        let lockfile_path = policy
+            .get("lockfile_path")
+            .map(|value| {
+                value.as_str().ok_or_else(|| {
+                    CollectError::Parse("policy.lockfile_path must be a string".to_owned())
+                })
+            })
+            .transpose()?
+            .unwrap_or("Cargo.lock");
+        let lock_path = validate_relative_path(lockfile_path, "Cargo.lock")?;
+        let manifest_path = lock_path
+            .parent()
+            .unwrap_or_else(|| Path::new(""))
+            .join("Cargo.toml")
+            .to_string_lossy()
+            .replace('\\', "/");
+        vec![validate_source(&manifest_path, lockfile_path)?]
+    };
+
+    let mut manifests = BTreeSet::new();
+    let mut lockfiles = BTreeSet::new();
+    for source in &sources {
+        if !manifests.insert(source.manifest_path.as_str()) {
+            return Err(CollectError::Parse(format!(
+                "duplicate manifest_path `{}` in policy lockfile corpus",
+                source.manifest_path
+            )));
+        }
+        if !lockfiles.insert(source.lockfile_path.as_str()) {
+            return Err(CollectError::Parse(format!(
+                "duplicate lockfile_path `{}` in policy lockfile corpus",
+                source.lockfile_path
+            )));
         }
     }
-    found.sort();
-    found.dedup();
-    Ok(found)
+    sources.sort_by(|a, b| {
+        a.lockfile_path
+            .cmp(&b.lockfile_path)
+            .then_with(|| a.manifest_path.cmp(&b.manifest_path))
+    });
+    Ok(sources)
 }
 
-/// Whether `dir/Cargo.toml` exists and declares a `workspace` table (bare `[workspace]`,
-/// `[workspace.package]`, `[workspace.dependencies]` — any of them makes the dir a workspace root).
-fn manifest_declares_workspace(dir: &Path) -> Result<bool, CollectError> {
-    let manifest = dir.join("Cargo.toml");
-    if !manifest.is_file() {
-        return Ok(false);
+fn validate_source(
+    manifest_path: &str,
+    lockfile_path: &str,
+) -> Result<LockfileSource, CollectError> {
+    let manifest = validate_relative_path(manifest_path, "Cargo.toml")?;
+    let lockfile = validate_relative_path(lockfile_path, "Cargo.lock")?;
+    if manifest.parent() != lockfile.parent() {
+        return Err(CollectError::Parse(format!(
+            "manifest `{manifest_path}` and lockfile `{lockfile_path}` must be siblings"
+        )));
     }
-    let text = read_file(&manifest)?;
-    let doc: toml::Value = toml::from_str(&text)
-        .map_err(|e| CollectError::Parse(format!("{}: {e}", manifest.display())))?;
-    Ok(doc.get("workspace").is_some())
+    Ok(LockfileSource {
+        manifest_path: manifest_path.to_owned(),
+        lockfile_path: lockfile_path.to_owned(),
+    })
 }
 
-/// Collect the observed graph: the locked crates from EVERY workspace-owned `Cargo.lock` + the
-/// vendored advisory snapshot.
+fn validate_relative_path(raw: &str, expected_file_name: &str) -> Result<PathBuf, CollectError> {
+    if raw.is_empty() || raw.contains('\\') {
+        return Err(CollectError::Parse(format!(
+            "path `{raw}` must be a non-empty repo-relative `/`-separated path"
+        )));
+    }
+    let path = Path::new(raw);
+    if path.file_name().and_then(|name| name.to_str()) != Some(expected_file_name)
+        || normalized_relative(path).as_deref() != Some(raw)
+    {
+        return Err(CollectError::Parse(format!(
+            "path `{raw}` must be a normalized repo-relative path ending in {expected_file_name}"
+        )));
+    }
+    Ok(path.to_path_buf())
+}
+
+fn minimum_lockfiles(policy: &Value, structured: bool) -> Result<usize, CollectError> {
+    match policy.get("min_lockfiles") {
+        Some(value) => {
+            let floor = value.as_u64().ok_or_else(|| {
+                CollectError::Parse(
+                    "policy.min_lockfiles must be a non-negative integer".to_owned(),
+                )
+            })?;
+            let floor = usize::try_from(floor).map_err(|_| {
+                CollectError::Parse("policy.min_lockfiles exceeds platform capacity".to_owned())
+            })?;
+            if structured && floor == 0 {
+                return Err(CollectError::Parse(
+                    "policy.min_lockfiles must be at least 1 with policy.lockfile_corpus"
+                        .to_owned(),
+                ));
+            }
+            Ok(floor)
+        }
+        None if structured => Err(CollectError::Parse(
+            "policy.min_lockfiles is required with policy.lockfile_corpus".to_owned(),
+        )),
+        None => Ok(1),
+    }
+}
+
+/// Collect the observed graph from the configured lockfile corpus and vendored advisory snapshot.
 ///
-/// The ONLY I/O. Discovers lockfiles via [`discover_lockfiles`] (TOML) and reads
-/// `policy.mirror_dir/{advisories.json,mirror-manifest.json}` (JSON). Emits
-/// `{ "lockfiles": [ "<rel path>", .. ], "locked": [ { "name", "version", "lockfile" }, .. ],
-/// "advisories": [ <Advisory>, .. ], "manifest": {..} }`. Each locked crate carries the lockfile it
-/// came from so a finding can NAME its source instead of pointing at an unqualified crate name.
+/// The ONLY I/O. Reads the configured lockfiles/manifests (TOML) and
+/// `policy.mirror_dir/{advisories.json,mirror-manifest.json}` (JSON). Emits the backward-compatible
+/// `{ "locked": [ { "name", "version" }, .. ], "advisories": [ <Advisory>, .. ], "manifest": {..} }`.
+/// No directory walk occurs.
 pub fn collect(repo_root: &Path, policy: &Value) -> Result<Value, CollectError> {
+    validate_repo_root(repo_root)?;
+    let sources = configured_lockfiles(policy)?;
     let mirror_dir = policy
         .get("mirror_dir")
         .and_then(Value::as_str)
         .ok_or_else(|| CollectError::Parse("policy.mirror_dir is required".to_owned()))?;
+    let mirror_dir = validate_relative_directory(mirror_dir)?;
 
-    let lockfiles = discover_lockfiles(repo_root)?;
-    let mut locked: Vec<Value> = Vec::new();
-    for lockfile in &lockfiles {
-        let lock_text = read_file(&repo_root.join(lockfile))?;
-        locked.extend(parse_locked(&lock_text, lockfile)?);
+    let mut locked = Vec::new();
+    for source in &sources {
+        let manifest_path = Path::new(&source.manifest_path);
+        let manifest_text = read_repo_file(repo_root, manifest_path)?;
+        validate_workspace_manifest(&manifest_text, &source.manifest_path)?;
+        let lock_text = read_repo_file(repo_root, Path::new(&source.lockfile_path))?;
+        locked.extend(parse_locked(&lock_text, &source.lockfile_path)?);
     }
-    locked.sort_by(|a, b| locked_sort_key(a).cmp(&locked_sort_key(b)));
+    locked.sort_by_key(locked_sort_key);
     locked.dedup();
 
-    let advisories_text = read_file(&repo_root.join(mirror_dir).join("advisories.json"))?;
+    let advisories_path = mirror_dir.join("advisories.json");
+    let advisories_text = read_repo_file(repo_root, &advisories_path)?;
     let advisories: Value = serde_json::from_str(&advisories_text)
-        .map_err(|e| CollectError::Parse(format!("advisories.json: {e}")))?;
+        .map_err(|e| CollectError::Parse(format!("{}: {e}", advisories_path.display())))?;
 
-    let manifest_text = read_file(&repo_root.join(mirror_dir).join("mirror-manifest.json"))?;
+    let mirror_manifest_path = mirror_dir.join("mirror-manifest.json");
+    let manifest_text = read_repo_file(repo_root, &mirror_manifest_path)?;
     let manifest: Value = serde_json::from_str(&manifest_text)
-        .map_err(|e| CollectError::Parse(format!("mirror-manifest.json: {e}")))?;
+        .map_err(|e| CollectError::Parse(format!("{}: {e}", mirror_manifest_path.display())))?;
 
     Ok(json!({
-        "lockfiles": lockfiles,
         "locked": locked,
         "advisories": advisories,
         "manifest": manifest,
     }))
 }
 
-fn read_file(path: &Path) -> Result<String, CollectError> {
-    std::fs::read_to_string(path)
-        .map_err(|e| CollectError::Io(format!("read {}: {e}", path.display())))
+fn validate_relative_directory(raw: &str) -> Result<PathBuf, CollectError> {
+    let path = Path::new(raw);
+    if raw.is_empty() || raw.contains('\\') || normalized_relative(path).as_deref() != Some(raw) {
+        return Err(CollectError::Parse(format!(
+            "directory `{raw}` must be a normalized repo-relative `/`-separated path"
+        )));
+    }
+    Ok(path.to_path_buf())
 }
 
-/// Parse the `[[package]]` table of one `Cargo.lock` into `[{ "name", "version", "lockfile" }]`.
-/// `lockfile` is the repo-relative path, carried so findings name their source.
-fn parse_locked(lock_text: &str, lockfile: &str) -> Result<Vec<Value>, CollectError> {
+fn normalized_relative(path: &Path) -> Option<String> {
+    let mut parts = Vec::new();
+    for component in path.components() {
+        let Component::Normal(component) = component else {
+            return None;
+        };
+        parts.push(component.to_str()?);
+    }
+    if parts.is_empty() {
+        return None;
+    }
+    Some(parts.join("/"))
+}
+
+fn validate_repo_root(repo_root: &Path) -> Result<(), CollectError> {
+    let metadata = std::fs::symlink_metadata(repo_root)
+        .map_err(|e| CollectError::Io(format!("metadata {}: {e}", repo_root.display())))?;
+    if metadata.file_type().is_symlink() {
+        return Err(CollectError::Parse(format!(
+            "repo root {} must not be a symlink",
+            repo_root.display()
+        )));
+    }
+    if !metadata.is_dir() {
+        return Err(CollectError::Io(format!(
+            "repo root {} is not a directory",
+            repo_root.display()
+        )));
+    }
+    Ok(())
+}
+
+fn read_repo_file(repo_root: &Path, relative: &Path) -> Result<String, CollectError> {
+    let mut current = repo_root.to_path_buf();
+    let component_count = relative.components().count();
+    for (index, component) in relative.components().enumerate() {
+        let Component::Normal(component) = component else {
+            return Err(CollectError::Parse(format!(
+                "path {} is not normalized and repo-relative",
+                relative.display()
+            )));
+        };
+        current.push(component);
+        let metadata = std::fs::symlink_metadata(&current)
+            .map_err(|e| CollectError::Io(format!("metadata {}: {e}", current.display())))?;
+        if metadata.file_type().is_symlink() {
+            return Err(CollectError::Parse(format!(
+                "configured path {} contains symlink {}",
+                relative.display(),
+                current.display()
+            )));
+        }
+        let is_last = index + 1 == component_count;
+        if is_last && !metadata.is_file() {
+            return Err(CollectError::Io(format!(
+                "configured path {} is not a regular file",
+                current.display()
+            )));
+        }
+        if !is_last && !metadata.is_dir() {
+            return Err(CollectError::Io(format!(
+                "configured path component {} is not a directory",
+                current.display()
+            )));
+        }
+    }
+    std::fs::read_to_string(&current)
+        .map_err(|e| CollectError::Io(format!("read {}: {e}", current.display())))
+}
+
+fn validate_workspace_manifest(text: &str, source: &str) -> Result<(), CollectError> {
     let doc: toml::Value =
-        toml::from_str(lock_text).map_err(|e| CollectError::Parse(format!("{lockfile}: {e}")))?;
+        toml::from_str(text).map_err(|e| CollectError::Parse(format!("{source}: {e}")))?;
+    if !doc.get("workspace").is_some_and(toml::Value::is_table)
+        && !doc.get("package").is_some_and(toml::Value::is_table)
+    {
+        return Err(CollectError::Parse(format!(
+            "{source} must declare [workspace] or [package] to own a Cargo.lock"
+        )));
+    }
+    Ok(())
+}
+
+/// Parse one `Cargo.lock`'s `[[package]]` tables; [`collect`] sorts and deduplicates the union.
+fn parse_locked(lock_text: &str, source: &str) -> Result<Vec<Value>, CollectError> {
+    let doc: toml::Value =
+        toml::from_str(lock_text).map_err(|e| CollectError::Parse(format!("{source}: {e}")))?;
     let packages = doc
         .get("package")
         .and_then(toml::Value::as_array)
-        .ok_or_else(|| CollectError::Parse(format!("{lockfile} has no [[package]] table")))?;
+        .ok_or_else(|| CollectError::Parse(format!("{source} has no [[package]] table")))?;
     let mut locked: Vec<Value> = Vec::with_capacity(packages.len());
     for pkg in packages {
         let Some(name) = pkg.get("name").and_then(toml::Value::as_str) else {
@@ -243,14 +437,22 @@ fn parse_locked(lock_text: &str, lockfile: &str) -> Result<Vec<Value>, CollectEr
         let Some(version) = pkg.get("version").and_then(toml::Value::as_str) else {
             continue;
         };
-        locked.push(json!({ "name": name, "version": version, "lockfile": lockfile }));
+        locked.push(json!({ "name": name, "version": version }));
     }
     Ok(locked)
 }
 
-fn locked_sort_key(v: &Value) -> (String, String, String) {
-    let field = |k: &str| v.get(k).and_then(Value::as_str).unwrap_or("").to_owned();
-    (field("name"), field("version"), field("lockfile"))
+fn locked_sort_key(v: &Value) -> (String, String) {
+    (
+        v.get("name")
+            .and_then(Value::as_str)
+            .unwrap_or("")
+            .to_owned(),
+        v.get("version")
+            .and_then(Value::as_str)
+            .unwrap_or("")
+            .to_owned(),
+    )
 }
 
 // ---------------------------------------------------------------------------
@@ -288,7 +490,10 @@ pub struct Report {
 
 impl Report {
     fn from_findings(findings: &BTreeSet<Finding>) -> Self {
-        let violations = findings.iter().map(|f| f.code.clone()).collect::<BTreeSet<_>>();
+        let violations = findings
+            .iter()
+            .map(|f| f.code.clone())
+            .collect::<BTreeSet<_>>();
         Self {
             verdict: if violations.is_empty() {
                 Verdict::Green
@@ -333,6 +538,39 @@ fn version_affected(version_str: &str, advisory: &Advisory) -> bool {
     !safe
 }
 
+fn lockfile_policy_finding(policy: &Value) -> Option<Finding> {
+    let sources = match configured_lockfiles(policy) {
+        Ok(sources) => sources,
+        Err(error) => {
+            return Some(Finding::new(
+                "SCA-POLICY-MALFORMED",
+                POLICY_KEY,
+                error.to_string(),
+            ));
+        }
+    };
+    let floor = match minimum_lockfiles(policy, policy.get("lockfile_corpus").is_some()) {
+        Ok(floor) => floor,
+        Err(error) => {
+            return Some(Finding::new(
+                "SCA-POLICY-MALFORMED",
+                POLICY_KEY,
+                error.to_string(),
+            ));
+        }
+    };
+    (sources.len() < floor).then(|| {
+        Finding::new(
+            "SCA-LOCKFILE-UNDERFLOW",
+            POLICY_KEY,
+            format!(
+                "configured lockfile corpus has {} entries, below policy.min_lockfiles={floor}; restore the removed workspace lockfile declaration",
+                sources.len()
+            ),
+        )
+    })
+}
+
 /// Pure evaluator. `policy` is DATA (`supply-chain-audit-policy.json`); `observed` is the graph
 /// shaped by [`collect`]. Unit-testable without a filesystem.
 pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
@@ -344,6 +582,10 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
             POLICY_KEY,
             format!("policy gate_id must be {GATE_ID}"),
         ));
+    }
+
+    if let Some(finding) = lockfile_policy_finding(policy) {
+        findings.insert(finding);
     }
 
     // Fail CLOSED on a structurally invalid policy: a missing/non-array `ignore`, or an entry
@@ -383,7 +625,10 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
     // Mirror integrity: recomputed content hash + count consistency.
     let manifest = observed.get("manifest").cloned().unwrap_or(Value::Null);
     let recomputed = canonical_hash(&advisories);
-    let declared_hash = manifest.get("content_hash").and_then(Value::as_str).unwrap_or("");
+    let declared_hash = manifest
+        .get("content_hash")
+        .and_then(Value::as_str)
+        .unwrap_or("");
     if declared_hash != recomputed {
         findings.insert(Finding::new(
             "SCA-MIRROR-MALFORMED",
@@ -404,7 +649,10 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
             ),
         ));
     }
-    let min_advisories = policy.get("min_advisories").and_then(Value::as_u64).unwrap_or(0);
+    let min_advisories = policy
+        .get("min_advisories")
+        .and_then(Value::as_u64)
+        .unwrap_or(0);
     if actual_count < min_advisories {
         findings.insert(Finding::new(
             "SCA-MIRROR-UNDERFLOW",
@@ -416,9 +664,12 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
     }
 
     // The locked crate (name -> versions) corpus.
-    let locked = observed.get("locked").and_then(Value::as_array).cloned().unwrap_or_default();
-    let unmaintained_all =
-        policy.get("unmaintained_policy").and_then(Value::as_str) == Some("all");
+    let locked = observed
+        .get("locked")
+        .and_then(Value::as_array)
+        .cloned()
+        .unwrap_or_default();
+    let unmaintained_all = policy.get("unmaintained_policy").and_then(Value::as_str) == Some("all");
 
     // The set of ignore ids that actually suppressed a LIVE affected advisory (for stale detection).
     let mut live_affected_ids: BTreeSet<String> = BTreeSet::new();
@@ -529,7 +780,10 @@ pub fn render_findings(findings: &BTreeSet<Finding>) -> String {
     }
     let mut out = String::from("supply-chain-audit gate failed (owned RustSec advisory scan):\n");
     for finding in findings {
-        out.push_str(&format!("    - {} {}\n        {}\n", finding.code, finding.key, finding.detail));
+        out.push_str(&format!(
+            "    - {} {}\n        {}\n",
+            finding.code, finding.key, finding.detail
+        ));
     }
     out
 }
@@ -582,7 +836,10 @@ mod tests {
     }
 
     fn codes(findings: &BTreeSet<Finding>) -> Vec<String> {
-        findings.iter().map(|f| format!("{} {}", f.code, f.key)).collect()
+        findings
+            .iter()
+            .map(|f| format!("{} {}", f.code, f.key))
+            .collect()
     }
 
     #[test]
@@ -619,7 +876,9 @@ mod tests {
         // Absent from ignore → SCA-UNMAINTAINED.
         let findings = evaluate_keyed(&policy(), &obs);
         assert!(
-            findings.iter().any(|f| f.code == "SCA-UNMAINTAINED" && f.key == "RUSTSEC-2024-0436"),
+            findings
+                .iter()
+                .any(|f| f.code == "SCA-UNMAINTAINED" && f.key == "RUSTSEC-2024-0436"),
             "unmaintained crate absent from ignore must be flagged; got {:?}",
             codes(&findings)
         );
@@ -650,10 +909,13 @@ mod tests {
         let adv = vuln("RUSTSEC-2099-0001", "absent-crate", &[">= 9.9.9"]);
         let obs = observed(&[("present-crate", "1.0.0")], vec![adv]);
         let mut p = policy();
-        p["ignore"] = json!([{ "id": "RUSTSEC-2099-0001", "reason": "x", "remove_by": "2026-12-31" }]);
+        p["ignore"] =
+            json!([{ "id": "RUSTSEC-2099-0001", "reason": "x", "remove_by": "2026-12-31" }]);
         let findings = evaluate_keyed(&p, &obs);
         assert!(
-            findings.iter().any(|f| f.code == "SCA-STALE-IGNORE" && f.key == "RUSTSEC-2099-0001"),
+            findings
+                .iter()
+                .any(|f| f.code == "SCA-STALE-IGNORE" && f.key == "RUSTSEC-2099-0001"),
             "a non-suppressing ignore must be SCA-STALE-IGNORE; got {:?}",
             codes(&findings)
         );
@@ -678,7 +940,10 @@ mod tests {
 
     #[test]
     fn underflow_is_flagged() {
-        let obs = observed(&[("x", "1.0.0")], vec![vuln("RUSTSEC-2099-0001", "y", &[">= 1.0.0"])]);
+        let obs = observed(
+            &[("x", "1.0.0")],
+            vec![vuln("RUSTSEC-2099-0001", "y", &[">= 1.0.0"])],
+        );
         let mut p = policy();
         p["min_advisories"] = json!(1000);
         let findings = evaluate_keyed(&p, &obs);

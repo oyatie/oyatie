@@ -5,6 +5,11 @@ doc_status: published
 
 # Changelog
 
+## 2026-08-03 — Supply-chain audit covers authoritative nested lockfiles
+
+- Replaced the single-lockfile supply-chain collector with a policy-declared root and nested-workspace corpus, preserving the legacy policy and observed JSON contracts while scanning dependencies pinned outside the root workspace.
+- Added fail-closed corpus floors, normalized sibling-path validation, symlink and filesystem-type rejection, deterministic deduplication, and regression tests proving nested-only vulnerability detection without recursive traversal of local worktrees or build artifacts.
+
 ## 2026-07-24 — ADR-0624 Accepted immutable ADR census epoch transition
 
 - **doc.adr_index** (Tier 1, added): accepted the four-step protected merge train
