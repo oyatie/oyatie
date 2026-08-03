@@ -11,7 +11,7 @@ supersedes: []
 superseded_by: []
 depends_on: [ADR-0515, ADR-0560, ADR-0556]
 amends: []
-related: [ADR-0131, ADR-0523, ADR-0535, ADR-0612, ADR-0554]
+related: [ADR-0131, ADR-0523, ADR-0535, ADR-0612, ADR-0554, ADR-0631]
 milestone: W3
 ---
 
@@ -167,8 +167,104 @@ have shared a namespace — previously the blocker that made warm-cache work unm
 - Single-node durability: `local-path` RWO PVCs and a one-replica CAS on a permanent substrate
   that is one laptop.
 
+## Amendment 1 (2026-07-30) — D6's zero-drift claim was FALSE, and the mechanism was a typo
+
+D6 asserts the declaration was *"verified field-for-field against the live CR at zero drift"* and
+lists the fields checked. **That claim did not hold**, and correcting it here rather than in a new
+ADR is deliberate: the claim's whole argument is "the declaration records reality", so the
+correction belongs where the claim lives.
+
+**Measured drift** between `infra/arc/runner-scale-set-arm64-values.yaml` at merge-base `1612db9e9`
+and live `AutoscalingRunnerSet/oya-arm64` (generation 8, helm revision 11):
+
+| field | declared | live |
+| --- | --- | --- |
+| `template.spec.containers[runner].image` | `ghcr.io/actions/actions-runner:latest` | `registry.oya-registry.svc.cluster.local:5000/oya/runner:arm64@sha256:ab648efd…` |
+| `template.spec.containers[runner].env` | absent | `OYA_CI_PG_HOST`, `OYA_CI_PG_SUPERUSER`, `OYA_CI_PG_SUPERPASS` |
+
+Every field D6 actually enumerated (maxRunners, minRunners, nodeSelector, both CAS labels, memory
+limit, ephemeral-storage limit, cpu request, githubConfigSecret) still matched. The drift is in the
+two fields D6 did **not** enumerate — which is the real lesson: a field-for-field check against a
+hand-written field list cannot detect a field nobody thought to list. The replacement check is
+mechanical and total: render the chart with the committed values and `kubectl diff` the result.
+
+**MECHANISM — the committed values files were wired to NOTHING.** `infra/gitops/values.yaml`
+registered both ARC entries with `valuesFile:` (singular string); `infra/gitops/templates/applications.yaml`
+reads `.valueFiles` (plural list). Rendered proof at merge-base: both Applications emitted a
+single-source, chart-only `source:` with no `helm:` block and therefore no `githubConfigUrl` — so an
+Argo CD install would have deployed **chart defaults** or gone permanently Degraded, taking the
+merge-authority fleet down. Because the committed file fed nothing, the only copy that ever reached
+the cluster was a scratchpad copy that `helm upgrade` was run from. Drift by duplication, with the
+duplicate as the *only* live path.
+
+That is not a values-content bug and fixing the values alone would have been decoration. Three
+things change together:
+
+1. `valuesFile:` → `valueFiles: [...]` on both ARC entries.
+2. `templates/applications.yaml` now `fail`s the render on `valuesFile`, with the message naming
+   the correct key. A render error is the cheapest possible detector: it fires wherever the chart is
+   rendered — bootstrap, Argo CD repo-server, or a human running `helm template` — needs no gate
+   crate, and cannot be laundered by a stale baseline. Verified: the guarded render exits non-zero.
+3. The values file is resynced to live, and the resync is proven by `kubectl diff`, not by reading.
+
+**Standing premise correction, recorded because it changes what any of this means today:** there is
+**no reconciler on this cluster**. `kubectl get ns argocd` → NotFound; no `argoproj.io` CRDs; no
+Flux. Every `infra/**` file in the repo is currently inert IaC and the whole substrate was
+hand-applied. D6's "drift-checked" is therefore aspirational until Argo CD lands — the drift check
+that exists right now is the `kubectl diff` in a reviewer's hands, and that is what this amendment
+uses.
+
+## Amendment 2 (2026-07-30) — the baked toolchain image landed; its source is now in the repo
+
+The first and second "known gaps" in *Consequences* (mutable tag; no toolchain) are closed. The
+image is `…/oya/runner:arm64@sha256:ab648efd…`, digest-pinned, carrying buck2, the
+`rust-toolchain.toml` toolchain, and **clang + lld** — `toolchains/BUCK` points the buck2 cxx
+toolchain at the absolute path `/usr/bin/clang` as both compiler and linker, so a gcc-only image
+fails every C/C++ action. An earlier build shipped gcc-only and passed a `cc --version` check
+because `cc` resolves to gcc: the check verified a proxy, not the requirement.
+
+**The image was unreproducible when this amendment was written, and that was the single most
+fragile thing in the CI substrate.** Its Dockerfile existed only in a `/tmp` scratchpad, and the
+live build Job read its context from a hand-made ConfigMap (`oya-build/runner-build-ctx`) holding
+copies of `rust-toolchain.toml` and `infra/ci/install-buck2.sh`. The registry is one `local-path`
+PVC on `Delete` reclaim: if that PVC went, the digest became unpullable with **no source to rebuild
+from**, and merge authority stopped at `ImagePullBackOff` with no recovery path.
+
+So `infra/ci/runner-image/Dockerfile` and `infra/ci/runner-image/build.yaml` are now the source.
+Only the Dockerfile was committed: the scratchpad's `install-buck2.sh` and `rust-toolchain.toml`
+were byte-identical (`diff` exit 0) to `infra/ci/install-buck2.sh` and the repo-root
+`rust-toolchain.toml`, so committing them would have re-created the duplication. The build context
+is the **repo root** and the two `COPY`s read the real files — which is also why `build.yaml` passes
+no `context-sub-path`.
+
+Facts in the Dockerfile comments that were each learned from a failed build, kept verbatim:
+`rustup default` must be re-derived from `rustup show active-toolchain` or `rustc` works only inside
+a directory holding a `rust-toolchain.toml`; `install-buck2.sh` must be run with **bash** (it uses
+`local`); the buck2 binary lands under a `sha256-<digest>` directory whose name differs per
+architecture, so the `/usr/local/bin/buck2` entry must be a `find`-discovered symlink.
+
+`build.yaml` carries no shell at all — `command: ["buildctl"]` — and passes the git credential as a
+BuildKit build secret (`GIT_AUTH_TOKEN`) rather than interpolating it into the context URL, so it
+appears in neither the spec nor the pod logs. It is **not** registered in `infra/gitops/values.yaml`:
+every app there gets `automated: {prune: true, selfHeal: true}`, and a Job that completes and is
+reaped would be recreated forever. That leaves applying it the one remaining imperative step in the
+CI substrate — a defect, recorded as such, whose designed-out path is an owned build controller plus
+the ADR-0535 bump-bot closing the loop back onto the digest in the values file.
+
+## Amendment 3 (2026-07-30) — D4's stated failure mode cannot occur on this cluster today
+
+D4 calls the CAS client labels *"the mechanical precondition for the CAS ever being reachable"*.
+On this cluster that is **false**: the CNI is `kube-flannel`, not Cilium, and Flannel ships no
+NetworkPolicy controller — so `nativelink-cas-ingress` and `oya-kms/openbao-ingress` enforce
+nothing and the labels are **inert**, not load-bearing. The labels are still correct to keep: they
+become load-bearing the moment the registered `cilium` app lands (ADR-0148). But the L3-refusal-
+presenting-as-timeout failure mode D4 warns about cannot currently happen, and a reader debugging a
+CAS timeout today should not be sent to look at pod labels.
+
 ## Artifact accounting (ADR-0555)
 
 This decision is the justification anchor for `infra/arc/OWNERS`,
-`infra/arc/controller-values.yaml`, `infra/arc/runner-scale-set-arm64-values.yaml`, and the two
-`infra/gitops/values.yaml` chart registrations.
+`infra/arc/controller-values.yaml`, `infra/arc/runner-scale-set-arm64-values.yaml`,
+`infra/ci/runner-image/Dockerfile`, `infra/ci/runner-image/build.yaml`, the two
+`infra/gitops/values.yaml` ARC chart registrations, and the `valuesFile` render guard in
+`infra/gitops/templates/applications.yaml`.

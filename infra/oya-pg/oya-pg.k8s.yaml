@@ -1,0 +1,61 @@
+# Postgres for the CI live-database gates, per ADR-0339 D-4 (`pg-cluster` shared
+# IaC module = CloudNativePG) and ADR-0631. The operator is registered separately
+# and is SHARED with the console project — see infra/gitops/values.yaml `cnpg`.
+#
+# Every field below was authored; every operator-DEFAULTED field (affinity,
+# bootstrap.initdb, enablePDB, logLevel, postgresGID/UID, ~20 postgresql.parameters,
+# probes, replicationSlots, primaryUpdate*, smartShutdownTimeout, start/stop/
+# switchoverDelay, failoverDelay, storage.resizeInUseVolumes) is deliberately
+# absent: the CNPG mutating webhook injects those, so writing them down here would
+# make this file a snapshot of the operator version rather than a declaration of
+# intent, and every operator bump would read as drift.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: oya-data
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: oya-pg
+  namespace: oya-data
+spec:
+  # 3 instances = the decided HA contract (syncReplicas 1 + streamingReplicas 2),
+  # with exactly ONE synchronous standby (min==max==1 below).
+  instances: 3
+  # 18.4 is the newest PUBLISHED CNPG postgres image; 18.5+ return 404 from ghcr.
+  # Pinned by tag rather than digest because CNPG's major-version upgrade path is
+  # driven by this field and it must stay human-legible against .status.pgDataImageInfo;
+  # the tag is immutable in practice for a released patch and the operator records the
+  # resolved image in status.
+  imageName: ghcr.io/cloudnative-pg/postgresql:18.4
+  minSyncReplicas: 1
+  maxSyncReplicas: 1
+  # LOAD-BEARING, and it was PATCHED ON after creation rather than authored — the
+  # exact class of change that only survives if it lives in this file. The RLS gates
+  # assert that rolsuper/rolbypassrls CANNOT bypass row-level security, so the gate
+  # needs a real superuser AND a plain app role; the DISTINCTION is the test.
+  # Without this CNPG mints no superuser Secret, so there is nothing for
+  # superuser-projection.yaml to project, the runner env vars resolve EMPTY, and the
+  # RLS gates go green-on-nothing. Deleting this line disarms a gate, it does not
+  # merely weaken it.
+  enableSuperuserAccess: true
+  postgresql:
+    parameters:
+      max_connections: "200"
+  storage:
+    size: 5Gi
+    # The only StorageClass on this cluster, and it is Delete reclaim +
+    # WaitForFirstConsumer: recreating this Cluster loses all three PVCs and
+    # re-bootstraps EMPTY. Gate data must therefore be reconstructible from the
+    # gate itself, never stored here.
+    storageClass: local-path
+  # Modest on purpose: the cluster is shared with the console project and the host
+  # is memory-constrained. No CPU limit, so a busy Postgres is never throttled into
+  # presenting as a slow query.
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "512Mi"
+    limits:
+      memory: "2Gi"

@@ -105,6 +105,72 @@ apps:
     values: { installCRDs: true }
     syncWave: "1"
 
+  # CloudNativePG operator — the UPSTREAM RELEASE MANIFEST, pinned to the exact
+  # commit the v1.30.0 tag points at, NOT vendored and NOT the helm chart.
+  #
+  # Not the chart (cnpg/cloudnative-pg 0.29.0, same appVersion 1.30.0): the chart
+  # renames the Deployment to `cnpg-cloudnative-pg` and the SA likewise, drops
+  # `--secret-name=cnpg-controller-manager-config`, and empties resources. Since
+  # the NAMES differ it would stand up a SECOND operator beside the running one —
+  # two controllers reconciling the same Cluster CRs — and prune would not remove
+  # the original, which was never tracked. The release manifest is a verified
+  # no-op instead (`kubectl diff --server-side` → empty, exit 0).
+  #
+  # Not vendored into infra/: a 20,846-line copy of an upstream file IS a second
+  # copy, and drift-by-duplication is the defect this whole registration exists to
+  # remove. Pinning the upstream commit gives the same bytes with no copy to rot.
+  # Verified: the file at 4b5e244a7d031f67e025c83c1555e7726ecbbfa1 is byte-identical
+  # (sha256 f8bede43fe4ee0d478c2355b204a36876b2ae4faac60f2a9452280b293da3b88) to the
+  # release-1.30 branch copy, and the live operator reports
+  # cloudNativePGCommitHash: 4b5e244a7 — the running binary was built from this commit.
+  #
+  # SHARED SUBSTRATE, NOT EXCLUSIVELY OWNED: the console project also creates
+  # Cluster CRs against this operator (ns console-rehearsal, recreated on demand).
+  # This entry is a version FLOOR, never a ceiling — a downgrade broke console once
+  # (2026-07-30). Bumps are deliberate PRs that re-run `kubectl diff --server-side`
+  # against the new release manifest FIRST.
+  #
+  # Requires ServerSideApply, which templates/applications.yaml sets globally: the
+  # 1.2 MB manifest blows past the 256 KB client-side last-applied-config limit.
+  - name: cnpg
+    type: path
+    repoURL: https://github.com/cloudnative-pg/cloudnative-pg
+    targetRevision: 4b5e244a7d031f67e025c83c1555e7726ecbbfa1   # == tag v1.30.0, immutable
+    path: releases
+    include: cnpg-1.30.0.yaml
+    namespace: cnpg-system
+    syncWave: "1"
+
+  # Postgres for the CI live-database gates (ADR-0339 D-4 `pg-cluster` = CNPG).
+  # syncWave 2: the operator's CRDs + webhooks must exist first.
+  - name: oya-pg
+    type: path
+    path: infra/oya-pg
+    include: oya-pg.k8s.yaml
+    namespace: oya-data
+    syncWave: "2"
+
+  # Superuser credential projection into arc-runners, replacing a hand copy.
+  # syncWave 3, SEPARATE from oya-pg on purpose: CNPG only mints
+  # oya-data/oya-pg-superuser once the Cluster reaches Ready, so the source of the
+  # projection does not exist until wave 2 settles.
+  - name: oya-pg-superuser-projection
+    type: path
+    path: infra/oya-pg
+    include: superuser-projection.yaml
+    namespace: arc-runners
+    syncWave: "3"
+
+  # BuildKit daemon — the ONE in-cluster image builder (ADR-0381 D1; host docker
+  # retired by ADR-0378). Privileged variant; see the manifest for why it must NOT
+  # carry the rootless flag its retired twin did.
+  - name: buildkit
+    type: path
+    path: infra/buildkit
+    include: buildkitd.k8s.yaml
+    namespace: oya-build
+    syncWave: "1"
+
   # ARC controller — reconciles AutoscalingRunnerSet CRs into ephemeral runner
   # pods. Holds no GitHub credential itself; each scale set references its own
   # githubConfigSecret. ADR-0630.
@@ -114,7 +180,15 @@ apps:
     chart: gha-runner-scale-set-controller
     targetRevision: 0.14.2
     namespace: arc-systems
-    valuesFile: infra/arc/controller-values.yaml
+    # `valueFiles` (plural LIST) is the key templates/applications.yaml reads. It
+    # was `valuesFile:` (singular string) here and on oya-arm64 below, which the
+    # template silently ignores: both Applications rendered as chart-only, with no
+    # helm: block and no githubConfigUrl, so they would have deployed CHART
+    # DEFAULTS or gone permanently Degraded. That is why infra/arc/*.yaml drifted
+    # from live — the committed files fed NOTHING, so the only working copy was a
+    # scratchpad one that `helm upgrade` was run from. templates/applications.yaml
+    # now `fail`s the render on the misspelling instead of ignoring it.
+    valueFiles: [infra/arc/controller-values.yaml]
     syncWave: "1"
 
   # Owned CI runner fleet, ONE SCALE SET PER ARCHITECTURE (ADR-0630 D2). An
@@ -126,7 +200,7 @@ apps:
     chart: gha-runner-scale-set
     targetRevision: 0.14.2
     namespace: arc-runners
-    valuesFile: infra/arc/runner-scale-set-arm64-values.yaml
+    valueFiles: [infra/arc/runner-scale-set-arm64-values.yaml]   # plural LIST — see the `arc` entry
     syncWave: "2"
 
   # In-cluster OCI registry (registry:2) — image target for in-cluster builds
