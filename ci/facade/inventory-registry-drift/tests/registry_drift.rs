@@ -40,6 +40,34 @@ fn faces_dir(root: &Path) -> PathBuf {
     root.join("ci/facade/artifact-inventory-registry")
 }
 
+/// Is a git-bearing checkout reachable from `root`?
+///
+/// The scm-facts emitter and the reorg codemod both read git, so the de-commit-class checks below
+/// can only run where git can. That is a CAPABILITY, and this asks it directly.
+///
+/// It used to be asked indirectly: `CARGO` is set, or `OYA_CI_SCM_FACTS_REGEN=1` is set by "the CI
+/// scm-facts-regen pre-step". That pre-step does not exist. Nothing in this repository — no
+/// workflow, no BUCK `env`, no script — ever sets `OYA_CI_SCM_FACTS_REGEN`, and buck2 `rust_test`
+/// does not set `CARGO`. So under `buck2 test` both disjuncts were false and EVERY de-commit-class
+/// canary here skipped, on every runner, on every PR. The only fail-closed test standing behind the
+/// de-committed scm-facts and move-manifest faces ran nowhere in required CI; it was reachable only
+/// from a developer's `cargo test`.
+///
+/// `.git` presence is the real precondition and it holds wherever these checks can actually run:
+/// `rust_test` executes with the project root as CWD, so `repo_root()` resolves to the real
+/// checkout, `.git` is there (a worktree's `.git` is a file, hence `exists()` not `is_dir()`), and
+/// the checks run. The env var is retained as an explicit force.
+///
+/// ponytail: a git-less executor (RBE worker, `.git`-stripped image) still skips rather than fails
+/// — turning that into a hard failure needs an executor-context declaration this test cannot
+/// observe, and asserting it from here would wedge any future remote execution. Close it by
+/// declaring the hermetic context explicitly, not by widening this predicate.
+fn git_boundary(root: &Path) -> bool {
+    root.join(".git").exists()
+        || std::env::var_os("CARGO").is_some()
+        || std::env::var("OYA_CI_SCM_FACTS_REGEN").as_deref() == Ok("1")
+}
+
 /// The PR-owned committed generated faces and the `--face` name that regenerates each.
 /// registry-drift byte-parity extends across the registry + ttl-policy + the GATE-1
 /// decision-crosswalk + the GATE-4 enforcement-inventory/enforcement-liveness faces.
@@ -66,6 +94,11 @@ const BYTE_PARITY_FACES: [(&str, &str); 5] = [
 const CONTROLLER_OWNED_FACES: [(&str, &str); 1] = [("gate-baseline.generated.json", "baseline")];
 
 const SCM_FACTS_FACE: &str = "scm-facts.generated.json";
+/// Repo-relative path of the de-committed reorg move-manifest (ADR-0614). The materializer writes
+/// it here as step 1 and the scm-facts rename-aware relabel reads it from here.
+const MOVE_MANIFEST_FACE: &str = "specs/reorg/move-manifest.generated.json";
+/// Buck target behind `OYA_CI_EMITTER_BIN`; named only so the fail-closed message points somewhere.
+const EMITTER_TARGET: &str = "//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot";
 const ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS_ENV: &str =
     "OYA_CI_ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS";
 const ENFORCEMENT_LIVENESS_CODEX_HOOKS_ENV: &str = "OYA_CI_ENFORCEMENT_LIVENESS_CODEX_HOOKS";
@@ -199,71 +232,51 @@ fn append_enforcement_liveness_corpus_paths(
         .arg(hooks_dir);
 }
 
-/// The committed per-PR move plan (task #64), if any: a MOVE PR commits exactly one
-/// `specs/reorg/<capability>-move-plan.json`. The codemod's `manifest` subcommand derives the
-/// move-manifest from (this plan + the candidate tracked tree), so the regen here MUST pass the
-/// same `--plan` the materialize pipeline does, or `committed != regenerated` would falsely RED a
-/// real move PR (and falsely GREEN-empty a forged manifest). With no plan (a no-move PR) the
-/// manifest is the canonical EMPTY identity manifest. The glob is sorted for determinism; the
-/// first match is used (exactly one plan per move PR).
-fn committed_move_plan(root: &Path) -> Option<PathBuf> {
-    let dir = root.join("specs/reorg");
-    let mut plans: Vec<PathBuf> = fs::read_dir(&dir)
-        .into_iter()
-        .flatten()
-        .flatten()
-        .map(|e| e.path())
-        .filter(|p| {
-            p.file_name()
-                .and_then(|n| n.to_str())
-                .is_some_and(|n| n.ends_with("-move-plan.json"))
-        })
-        .collect();
-    plans.sort();
-    plans.into_iter().next()
-}
-
 /// Run the reorg codemod `manifest` subcommand to regenerate the move-manifest face to a temp
 /// path, returning its bytes (task #64). Prefers the buck2-provided binary
-/// (`OYA_CI_CODEMOD_BIN`), else `cargo run -p`. Passes the committed move plan via `--plan` (same
-/// as the materialize pipeline) so the regeneration matches the materialize pipeline exactly; with
-/// no plan it emits the canonical EMPTY manifest. Reads `git ls-files`, so this is a git-boundary
-/// regen (the caller gates it to the boundary context, identical to scm-facts). `pass`
-/// discriminates the temp output path so the determinism canary can regenerate twice in one process
-/// without the two passes colliding on the same temp file.
+/// (`OYA_CI_CODEMOD_BIN`), else `cargo run -p`.
+///
+/// Invoked with NO `--plan`, byte-for-byte the way `materialize_move_manifest` invokes it, so what
+/// is validated here is what CI actually materializes. `--plan` is deliberately absent: the
+/// codemod's own `resolve_effective_active_move_plan` SELECTS the single active committed plan
+/// (excluding already-landed ones) and fails closed on an ambiguous tree. Passing a plan from the
+/// test side re-implemented that selection as "first sorted `specs/reorg/*-move-plan.json`", which
+/// is a DIFFERENT function — with ten plans committed it forces `ci-move-plan.json` whether or not
+/// the codemod would consider it active — so the leg under test emitted a different manifest from
+/// the leg the scm-facts relabel consumes. The generator is the authority; the test does not get
+/// its own opinion about which plan is live.
+///
+/// Reads `git ls-files` and `git merge-base`, so this is a git-boundary regen (callers gate it via
+/// [`git_boundary`], identical to scm-facts). `pass` discriminates the temp output path so the
+/// determinism canary can regenerate twice in one process without the two passes colliding on the
+/// same temp file.
 fn regenerate_move_manifest(root: &Path, pass: u32) -> String {
     let out = std::env::temp_dir().join(format!(
         "oya-ci-move-manifest-regen-{}-{pass}.json",
         std::process::id()
     ));
-    let plan = committed_move_plan(root);
     let status = if let Ok(bin) = std::env::var("OYA_CI_CODEMOD_BIN") {
-        let mut cmd = Command::new(resolve_bin(root, &bin));
-        cmd.args(["manifest", "--repo-root"]).arg(root);
-        if let Some(plan) = &plan {
-            cmd.args(["--plan"]).arg(plan);
-        }
-        cmd.args(["--out"])
+        Command::new(resolve_bin(root, &bin))
+            .args(["manifest", "--repo-root"])
+            .arg(root)
+            .args(["--out"])
             .arg(&out)
             .current_dir(root)
             .status()
             .expect("run codemod binary")
     } else {
-        let mut cmd = Command::new(cargo());
-        cmd.args([
-            "run",
-            "--quiet",
-            "-p",
-            "oya-reorg-codemod-app",
-            "--",
-            "manifest",
-            "--repo-root",
-        ])
-        .arg(root);
-        if let Some(plan) = &plan {
-            cmd.args(["--plan"]).arg(plan);
-        }
-        cmd.args(["--out"])
+        Command::new(cargo())
+            .args([
+                "run",
+                "--quiet",
+                "-p",
+                "oya-reorg-codemod-app",
+                "--",
+                "manifest",
+                "--repo-root",
+            ])
+            .arg(root)
+            .args(["--out"])
             .arg(&out)
             .current_dir(root)
             .status()
@@ -276,7 +289,17 @@ fn regenerate_move_manifest(root: &Path, pass: u32) -> String {
 }
 
 /// Run the scm-facts emitter to regenerate the scm-facts face to a temp path, returning its
-/// bytes. Prefers the buck2-provided binary (`OYA_CI_EMITTER_BIN`), else `cargo run -p`.
+/// bytes. The emitter binary comes from `OYA_CI_EMITTER_BIN`, which the BUCK `env` supplies via
+/// `$(exe //ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot)`; a missing env fails closed,
+/// matching [`producer_binary`].
+///
+/// The `cargo run` fallback this replaced was `cargo run -p oya-cloud-ci-scm-facts-emitter-app`,
+/// and that name is the emitter's `[[bin]]`, not its package (`ci-scm-facts-snapshot`) — so cargo
+/// answered `package(s) not found in workspace` and the emitter never ran. Between that and the
+/// skip guard, this canary was RED under `cargo test` and SKIPPED under `buck2 test`: it had no
+/// execution path left at all. Resolving the binary the way the producer already does removes the
+/// fallback rather than repairing it.
+///
 /// `pass` discriminates the temp output path so the determinism canary can regenerate twice in
 /// one process without the two passes colliding on the same temp file.
 fn regenerate_scm_facts(root: &Path, pass: u32) -> String {
@@ -291,36 +314,18 @@ fn regenerate_scm_facts(root: &Path, pass: u32) -> String {
         "oya-ci-scm-volatile-facts-regen-{}-{pass}.json",
         std::process::id()
     ));
-    let status = if let Ok(bin) = std::env::var("OYA_CI_EMITTER_BIN") {
-        Command::new(resolve_bin(root, &bin))
-            .args(["--repo-root"])
-            .arg(root)
-            .args(["--out"])
-            .arg(&out)
-            .args(["--volatile-out"])
-            .arg(&volatile_out)
-            .current_dir(root)
-            .status()
-            .expect("run emitter binary")
-    } else {
-        Command::new(cargo())
-            .args([
-                "run",
-                "--quiet",
-                "-p",
-                "oya-cloud-ci-scm-facts-emitter-app",
-                "--",
-                "--repo-root",
-            ])
-            .arg(root)
-            .args(["--out"])
-            .arg(&out)
-            .args(["--volatile-out"])
-            .arg(&volatile_out)
-            .current_dir(root)
-            .status()
-            .expect("cargo run emitter")
-    };
+    let bin = std::env::var("OYA_CI_EMITTER_BIN")
+        .unwrap_or_else(|_| panic!("FAIL-CLOSED: missing OYA_CI_EMITTER_BIN ({EMITTER_TARGET})"));
+    let status = Command::new(resolve_bin(root, &bin))
+        .args(["--repo-root"])
+        .arg(root)
+        .args(["--out"])
+        .arg(&out)
+        .args(["--volatile-out"])
+        .arg(&volatile_out)
+        .current_dir(root)
+        .status()
+        .expect("run emitter binary");
     assert!(status.success(), "scm-facts emitter failed");
     let bytes = fs::read_to_string(&out).expect("read regenerated scm-facts");
     let _ = fs::remove_file(&out);
@@ -470,25 +475,23 @@ fn scm_facts_regenerates_deterministically() {
     // DESIGN §1.5): git is allowed to run in the CI scm-facts-regen pre-step and in local cargo
     // dev, but NEVER inside a hermetic buck2 action (no ambient git in the action graph — an RBE
     // worker has no `.git`, and a shallow checkout collapses history non-deterministically, PM1).
-    // So this regen-validation runs ONLY from a git-bearing boundary context:
-    //   - under cargo (the `CARGO` env var is set by cargo for integration tests), and
-    //   - in the CI scm-facts-regen pre-step (which sets `OYA_CI_SCM_FACTS_REGEN=1`).
-    // When run as a sandboxed buck2 action (neither set), it SKIPS — git is intentionally out of
-    // the action graph; the producer-faces drift check above stays fully hermetic. This is the
-    // boundary doctrine, not a `local_only` / cargo-fallback escape: the SAME logic runs at the
-    // out-of-graph boundary on every runner.
-    let regen_boundary = std::env::var_os("CARGO").is_some()
-        || std::env::var("OYA_CI_SCM_FACTS_REGEN").as_deref() == Ok("1");
-    if !regen_boundary {
+    // So this regen-validation runs ONLY from a git-bearing boundary context — see
+    // [`git_boundary`], which asks whether git is reachable instead of asking whether an env var
+    // nobody sets is set. When git genuinely is not reachable (a sandboxed buck2 action on a
+    // worker with no `.git`) it SKIPS: git is intentionally out of the action graph and the
+    // hermetic producer-faces drift check above still ran. This is the boundary doctrine, not a
+    // `local_only` / cargo-fallback escape — the SAME logic runs at the out-of-graph boundary on
+    // every runner.
+    let root = repo_root();
+    if !git_boundary(&root) {
         eprintln!(
-            "scm-facts regen-validation SKIPPED: not a git boundary context (run via cargo or \
-             the CI scm-facts-regen pre-step with OYA_CI_SCM_FACTS_REGEN=1). The hermetic \
-             producer-faces drift check ran; git stays out of the buck2 action graph."
+            "scm-facts regen-validation SKIPPED: no git-bearing checkout at {}. The hermetic \
+             producer-faces drift check ran; git stays out of the buck2 action graph.",
+            root.display()
         );
         return;
     }
 
-    let root = repo_root();
     let first = regenerate_scm_facts(&root, 1);
     let second = regenerate_scm_facts(&root, 2);
 
@@ -513,18 +516,16 @@ fn scm_facts_regenerates_deterministically() {
 /// and SKIPS inside a hermetic buck2 action (no `.git` on an RBE worker).
 #[test]
 fn move_manifest_regenerates_deterministically() {
-    let regen_boundary = std::env::var_os("CARGO").is_some()
-        || std::env::var("OYA_CI_SCM_FACTS_REGEN").as_deref() == Ok("1");
-    if !regen_boundary {
+    let root = repo_root();
+    if !git_boundary(&root) {
         eprintln!(
-            "move-manifest regen-validation SKIPPED: not a git boundary context (run via cargo \
-             or the CI regen pre-step with OYA_CI_SCM_FACTS_REGEN=1). git stays out of the buck2 \
-             action graph."
+            "move-manifest regen-validation SKIPPED: no git-bearing checkout at {}. git stays out \
+             of the buck2 action graph.",
+            root.display()
         );
         return;
     }
 
-    let root = repo_root();
     let first = regenerate_move_manifest(&root, 1);
     let second = regenerate_move_manifest(&root, 2);
 
@@ -535,5 +536,62 @@ fn move_manifest_regenerates_deterministically() {
          determinism is the integrity canary. The codemod must be a pure function of the committed \
          move plan(s) x candidate tracked tree. A non-deterministic generator is a hard failure. \
          Re-run //tools/oya-reorg-codemod-app:oya-reorg-codemod manifest to reproduce."
+    );
+}
+
+/// FRESHNESS, not determinism: the materialized move-manifest sitting on disk — the copy the
+/// scm-facts rename-aware relabel actually reads — must byte-equal a fresh regeneration.
+///
+/// Regenerate-twice proves the generator is a pure function; it says nothing about the bytes
+/// downstream gates consume. A stale face left by an earlier materialization, a partial write, a
+/// post-materialization mutation, or a materialize leg that invokes the generator differently from
+/// the validating leg all survive a determinism canary untouched. This is the Bazel `diff_test`
+/// contract restored with the roles the de-commit left standing: the generator is truth, the
+/// materialized file is a cache, and the cache is only legitimate while a fail-closed check proves
+/// it still equals truth.
+///
+/// Fail-closed both ways: bytes differ => RED; the face is missing => RED (the materializer is a
+/// required predecessor, exactly as `committed_faces_equal_regenerated` above requires it for the
+/// accounting faces — `gate-inventory-registry-drift` runs
+/// `oya-cloud-ci-materialize-generated-faces-bin` before this target for that reason). It never
+/// writes the face itself; a check that materializes what it is checking attests nothing.
+///
+/// ponytail: move-manifest only. The other de-committed faces need the same diff_test, but
+/// scm-facts' materialize leg passes retirement/merge-base/census-identity arguments this test
+/// cannot reconstruct, so diffing it here would RED on argument skew rather than on staleness.
+/// Extend face by face as each one's materialize invocation becomes reproducible from the test.
+#[test]
+fn materialized_move_manifest_equals_regenerated() {
+    let root = repo_root();
+    if !git_boundary(&root) {
+        eprintln!(
+            "move-manifest freshness check SKIPPED: no git-bearing checkout at {}. git stays out \
+             of the buck2 action graph.",
+            root.display()
+        );
+        return;
+    }
+
+    let materialized_path = root.join(MOVE_MANIFEST_FACE);
+    let materialized = fs::read_to_string(&materialized_path).unwrap_or_else(|e| {
+        panic!(
+            "MOVE-MANIFEST NOT MATERIALIZED at {} ({e}). This face is de-committed (ADR-0614), so \
+             the materializer is a required predecessor of this gate: run `buck2 run \
+             //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin \
+             -- --repo-root .` first. A missing consumed face fails closed — the scm-facts relabel \
+             would otherwise read nothing and silently relabel nothing.",
+            materialized_path.display()
+        )
+    });
+
+    let regenerated = regenerate_move_manifest(&root, 3);
+
+    assert_eq!(
+        materialized, regenerated,
+        "MOVE-MANIFEST STALE: the materialized {MOVE_MANIFEST_FACE} the scm-facts relabel consumes \
+         differs from a fresh codemod `manifest` emission. The generator is truth and this file is \
+         only a cache of it. Causes: a face left over from an earlier materialization, a partial or \
+         interrupted write, a hand-edit, or a materialize leg invoking the codemod differently from \
+         this validating leg. Re-run the materializer to reproduce."
     );
 }
