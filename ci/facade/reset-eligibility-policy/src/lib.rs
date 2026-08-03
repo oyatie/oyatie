@@ -1161,7 +1161,12 @@ fn contains_chunked_encoded_opaque_token(suffix: &str) -> bool {
             || !bytes.iter().any(u8::is_ascii_lowercase)
             || !bytes.iter().any(u8::is_ascii_digit)
         {
-            return false;
+            if component_count >= 2 && contains_encoded_opaque_token(&joined) {
+                return true;
+            }
+            joined.clear();
+            component_count = 0;
+            continue;
         }
         component_count += 1;
         joined.extend_from_slice(bytes);
@@ -1328,13 +1333,19 @@ fn http_uri_contains_secret(value: &str) -> Option<bool> {
     }
     if let Some(query) = query {
         for item in query.split(['&', ';']) {
-            let (key, value) = item.split_once('=').unwrap_or((item, ""));
-            let key = percent_decode(key);
-            let value = percent_decode(value.replace('+', " ").as_str());
-            if (!value.is_empty() && is_credential_query_key(&key))
-                || looks_like_secret_fragment(&value)
-            {
-                return Some(true);
+            if let Some((key, value)) = item.split_once('=') {
+                let key = percent_decode(key);
+                let value = percent_decode(value.replace('+', " ").as_str());
+                if (!value.is_empty() && is_credential_query_key(&key))
+                    || looks_like_secret_fragment(&value)
+                {
+                    return Some(true);
+                }
+            } else {
+                let value = percent_decode(item.replace('+', " ").as_str());
+                if looks_like_secret_fragment(&value) {
+                    return Some(true);
+                }
             }
         }
     }
@@ -1469,6 +1480,30 @@ fn parse_rfc3339_utc(value: &str) -> Option<i64> {
 #[cfg(test)]
 mod tests {
     use super::{is_approved_structured_value, looks_like_secret_value};
+
+    #[test]
+    fn prefixed_chunked_opaque_tokens_are_rejected_without_flagging_descriptive_handles() {
+        assert!(looks_like_secret_value(
+            "$.evidence_manifest.uri",
+            "protected-runtime:evidence-q9p2zd7w-m4lx8vt3-kn6hs1rc-5bj0fy7u-a2ee9qw4-pi6zd8lm"
+        ));
+        assert!(!looks_like_secret_value(
+            "$.evidence_manifest.uri",
+            "protected-runtime:evidence-abcdefghijklmnopqrstuvwxyz0123456789documentation"
+        ));
+    }
+
+    #[test]
+    fn bare_http_query_items_are_scanned_without_flagging_descriptive_queries() {
+        assert!(looks_like_secret_value(
+            "$.evidence_manifest.uri",
+            "https://inventory.example/export?q9P2Zd7Wm4Lx8Vt3Kn6Hs1Rc5Bj0Fy7Ua2Ee9Qw4Pi6Zd8Lm"
+        ));
+        assert!(!looks_like_secret_value(
+            "$.evidence_manifest.uri",
+            "https://inventory.example/export?documentation"
+        ));
+    }
 
     #[test]
     fn structured_secret_scanner_exclusions_are_exact() {
