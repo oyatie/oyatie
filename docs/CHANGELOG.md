@@ -5,6 +5,21 @@ doc_status: published
 
 # Changelog
 
+## 2026-08-03 — W0-D non-authorizing reset-eligibility gate
+
+- Added the W0-D eligibility-only schema, historical discovery observation, and
+  fail-closed Rust policy gate under acceptance authority issue #1535.
+- Reset authorization remains unconditionally disabled: the candidate records
+  hard stops, unknowns, recovery gaps, approval failures, and stale evidence but
+  exposes no destructive API, controller, nonce, or actuation path.
+- Removed syntactic HTTP(S) URIs from the secret-scanner exemption. Public URLs
+  can still pass ordinary entropy analysis, while secret-like userinfo, query,
+  fragment, and path values are rejected by red/green regression coverage.
+- The committed 2026-08-01 discovery artifact expired on 2026-08-02 and is
+  historical, unverified, and non-authorizing; any future decision requires a
+  fresh reviewed capture. Protected admission and post-merge evidence remain
+  pending in PR #1524.
+
 ## 2026-07-24 — ADR-0624 Accepted immutable ADR census epoch transition
 
 - **doc.adr_index** (Tier 1, added): accepted the four-step protected merge train
