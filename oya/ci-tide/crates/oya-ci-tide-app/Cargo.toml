@@ -21,7 +21,7 @@ doctest = false
 
 [dependencies]
 oya-ci-tide-kernel = { path = "../oya-ci-tide-kernel" }
-oya-ci-tide-github-adapter = { path = "../oya-ci-tide-github-adapter" }
+ci-tide-github-adapter = { path = "../../../../ci/adapters/tide-github-adapter" }
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true, features = ["env-filter", "json"] }

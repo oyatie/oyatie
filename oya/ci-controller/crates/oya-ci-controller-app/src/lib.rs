@@ -52,7 +52,7 @@ use kube::{
     api::{ListParams, Patch, PatchParams},
     runtime::{Controller, controller::Action, watcher},
 };
-use oya_ci_controller_k8s_adapter::{
+use ci_controller_k8s_adapter::{
     ANNOT_CI_BASE_REF, ANNOT_CI_STATUS_POSTED, LABEL_CI_DELIVERY_ID, LABEL_CI_HEAD_SHA,
     LABEL_CI_PR_NUMBER, observe_job,
 };
@@ -396,7 +396,7 @@ pub async fn run_controller(state: ControllerState) {
 
     let job_api: Api<Job> = Api::namespaced(client.clone(), &namespace);
     let watcher_config =
-        watcher::Config::default().labels(oya_ci_controller_k8s_adapter::WATCHER_LABEL_SELECTOR);
+        watcher::Config::default().labels(ci_controller_k8s_adapter::WATCHER_LABEL_SELECTOR);
 
     info!(namespace = %namespace, "starting oya-ci controller");
 

@@ -1,0 +1,15 @@
+rust_library(
+    name = "ci-webhook-gateway-github-adapter",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "ci_webhook_gateway_github_adapter",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-kernel:oya-ci-webhook-gateway-kernel",
+        "third-party//:reqwest",
+        "third-party//:serde",
+        "third-party//:serde_json",
+        "third-party//:serde_json",
+        # UNRESOLVED: httpmock ^0.7
+    ],
+)

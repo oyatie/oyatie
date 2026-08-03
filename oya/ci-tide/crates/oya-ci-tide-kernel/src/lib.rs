@@ -541,7 +541,7 @@ fn review_is_later(candidate: &Review, current: &Review) -> bool {
 // ForgeClient trait seam — I/O boundary
 // ---------------------------------------------------------------------------
 
-/// Forge API client seam. Implemented by `oya-ci-tide-github-adapter`.
+/// Forge API client seam. Implemented by `ci-tide-github-adapter`.
 /// All methods are synchronous (adapter wraps reqwest blocking or spawns
 /// via `tokio::task::spawn_blocking`).
 pub trait ForgeClient: Send + Sync {

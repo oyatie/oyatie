@@ -1,0 +1,25 @@
+[package]
+name = "ci-tide-github-adapter"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# GitHub API client adapter for the oya-ci tide component.
+# Implements kernel::ForgeClient via reqwest blocking HTTP.
+# Forge of record = GitHub (D-FORGE; ADR-0513 Phase 2).
+
+[lib]
+name = "ci_tide_github_adapter"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+oya-ci-tide-kernel = { path = "../../../oya/ci-tide/crates/oya-ci-tide-kernel" }
+reqwest = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[lints]
+workspace = true

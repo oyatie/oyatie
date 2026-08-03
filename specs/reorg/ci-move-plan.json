@@ -277,12 +277,52 @@
       "new_path": "ci/facade/topology-manifest-contract",
       "old_cargo_name": "oya-cloud-ci-cell-topology-manifest-contract-app",
       "new_cargo_name": "ci-topology-manifest-contract"
+    },
+    {
+      "old_path": "oya/ci-controller/crates/oya-ci-controller-github-adapter",
+      "new_path": "ci/adapters/controller-github-adapter",
+      "old_cargo_name": "oya-ci-controller-github-adapter",
+      "new_cargo_name": "ci-controller-github-adapter"
+    },
+    {
+      "old_path": "oya/ci-controller/crates/oya-ci-controller-k8s-adapter",
+      "new_path": "ci/adapters/controller-k8s-adapter",
+      "old_cargo_name": "oya-ci-controller-k8s-adapter",
+      "new_cargo_name": "ci-controller-k8s-adapter"
+    },
+    {
+      "old_path": "oya/ci-tide/crates/oya-ci-tide-github-adapter",
+      "new_path": "ci/adapters/tide-github-adapter",
+      "old_cargo_name": "oya-ci-tide-github-adapter",
+      "new_cargo_name": "ci-tide-github-adapter"
+    },
+    {
+      "old_path": "oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-authz-cedar-adapter",
+      "new_path": "ci/adapters/webhook-gateway-authz-cedar-adapter",
+      "old_cargo_name": "oya-ci-webhook-gateway-authz-cedar-adapter",
+      "new_cargo_name": "ci-webhook-gateway-authz-cedar-adapter"
+    },
+    {
+      "old_path": "oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-ed25519-adapter",
+      "new_path": "ci/adapters/webhook-gateway-ed25519-adapter",
+      "old_cargo_name": "oya-ci-webhook-gateway-ed25519-adapter",
+      "new_cargo_name": "ci-webhook-gateway-ed25519-adapter"
+    },
+    {
+      "old_path": "oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-github-adapter",
+      "new_path": "ci/adapters/webhook-gateway-github-adapter",
+      "old_cargo_name": "oya-ci-webhook-gateway-github-adapter",
+      "new_cargo_name": "ci-webhook-gateway-github-adapter"
     }
   ],
   "artifacts": [
     {
       "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-rust-first-automation-hygiene-app",
       "new_path": "ci/facade/automation-language-policy"
+    },
+    {
+      "old_path": "oya/ci-webhook-gateway/policy/ci-webhook-gateway.cedar",
+      "new_path": "ci/adapters/webhook-gateway-authz-cedar-adapter/policy/ci-webhook-gateway.cedar"
     }
   ]
 }
