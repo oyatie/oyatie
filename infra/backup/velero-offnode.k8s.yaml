@@ -1,0 +1,133 @@
+# Off-node backup of the substrate's NON-REPRODUCIBLE state (ADR-0197, amended).
+#
+# ══════════════════════════════════════════════════════════════════════════════
+#  DO NOT APPLY. Nothing here has been applied to any cluster. See README.md in
+#  this directory for the design, the cost, and the approval checklist a human
+#  must clear first. This file is fail-closed three ways by construction:
+#    1. Every Schedule carries `paused: true`.
+#    2. The BackupStorageLocation references Secret `velero-offnode-s3`, which
+#       does not exist and cannot be projected from OpenBao (see README §3).
+#    3. Velero itself is not installed on any cell — no CRDs, so this file does
+#       not even parse into the API server today.
+#  Removing any one of those three is a separate, reviewed decision.
+# ══════════════════════════════════════════════════════════════════════════════
+#
+# WHY NOT the three PVCs the backlog names (nativelink-cas, seaweedfs, registry):
+# all three hold DERIVED state. nativelink-cas is a content-addressed build cache
+# (ADR-0560), seaweedfs holds BuildKit cache + sccache + artifact overlay, and
+# registry holds images BuildKit rebuilds from this repo. Node loss costs a cold
+# rebuild, not data. Backing up a cache is spend with no recovery value.
+#
+# What IS one node-loss from gone, and is not reproducible from anything:
+#   - oya-kms/openbao-data   — every secret the platform holds (2Gi claim).
+#   - oya-forge/github-data  — the in-cluster forge's own state (5Gi claim).
+# Neither declares a storageClassName, so both land on the cell default, which on
+# the lab cell is the same node-local local-path provisioner as the caches.
+#
+# ADR-0197 D-2 sends every prong to SeaweedFS. On this cell SeaweedFS is
+# oya-storage/seaweedfs-data, storageClassName: local-path — the SAME node as its
+# sources. A backup co-located with the thing it protects does not protect it.
+# That is the amendment this file implements: target must be OFF the cell.
+
+---
+# Off-node object store. OCI Object Storage via its S3-compatibility API, so
+# velero-plugin-for-aws works unchanged (`provider: aws` is the plugin's name,
+# not a statement about the substrate — same posture as the SeaweedFS BSL).
+# One-line swap to Cloudflare R2 (infra/cloudflare/ already carries the tofu):
+# change s3Url + region only.
+apiVersion: velero.io/v1
+kind: BackupStorageLocation
+metadata:
+  name: offnode
+  namespace: velero
+  labels:
+    oya.io/adr: ADR-0197
+    oya.io/amends: ADR-0197-D2
+spec:
+  provider: aws
+  default: false
+  objectStorage:
+    bucket: oya-backup-lab-offnode
+  credential:
+    name: velero-offnode-s3   # hand-created; MUST NOT come from OpenBao (README §3)
+    key: cloud
+  config:
+    region: ap-seoul-1
+    # REPLACE <ns> with the OCI tenancy object-storage namespace before apply.
+    # Left unresolved deliberately: a malformed endpoint leaves the BSL
+    # Unavailable, which is the fail-closed state we want until a human decides.
+    s3Url: https://<ns>.compat.objectstorage.ap-seoul-1.oraclecloud.com
+    s3ForcePathStyle: "true"
+    # Non-AWS S3 implementations reject the AWS SDK's default CRC32 trailer.
+    # Without this, backups report success and write unreadable objects — a false
+    # green on the one path where a false green is unrecoverable.
+    checksumAlgorithm: ""
+
+---
+# OpenBao. Hourly, PVC content only — Secrets are excluded ON PURPOSE.
+#
+# The `file` physical backend is barrier-encrypted at rest (infra/kms/openbao.k8s.yaml
+# L5), so the PVC bytes in the bucket are already useless without the unseal keys.
+# The unseal keys live in a k8s Secret in etcd on this same node. Copying them into
+# the same bucket as the ciphertext would put lock and key in one place and would
+# also require the age layer ADR-0197 D-3 mandates but which does not exist (there
+# is no age sidecar in cloud/cloud-iac/iac/helm/velero/). Excluding Secrets makes
+# the barrier the at-rest encryption and removes the age dependency entirely.
+#
+# Consequence, and it is the point: restore REQUIRES the founder-custodied Shamir
+# shares. Those must be off this machine before this schedule is ever unpaused.
+# That is approval item 1 in README §4 — the Shamir shares exist to be distributed.
+#
+# LIMIT — read before trusting this: fs-backup of a LIVE `file`-backend OpenBao is
+# a best-effort copy, not a consistent snapshot. The backend has no snapshot API
+# and writes one file per entry, so a backup taken mid-write can tear across
+# entries. ADR-0197 rejects exactly this shape for Postgres (Alternative (a)) and
+# the same objection applies here. The consistent answer is the raft migration
+# already required by F-SEC-OPENBAO-FILE-BACKEND (file backend is REMOVED at
+# OpenBao 2.7.0), after which `bao operator raft snapshot save` is atomic. This
+# schedule is the interim that closes the total-loss cliff; it is not the design.
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: kms-hourly
+  namespace: velero
+  labels:
+    oya.io/adr: ADR-0197
+    oya.io/backup-tier: regulatory
+spec:
+  paused: true
+  schedule: "0 * * * *"
+  template:
+    storageLocation: offnode
+    ttl: "168h"                      # 7 days hourly, per ADR-0197 D-5
+    includedNamespaces: [oya-kms]
+    excludedResources: [secrets]     # see the note above — deliberate, not an oversight
+    defaultVolumesToFsBackup: true
+    snapshotVolumes: false           # local-path has no CSI snapshotter
+
+---
+# In-cluster forge. Daily, and second priority: the git objects are a mirror of
+# github.com/jason931225/oyatie (ADR-0363 makes GitHub the substrate), so what is
+# actually at risk here is only the instance's own state — users, webhooks, PR
+# records — in the sqlite db on the PVC.
+#
+# Unlike OpenBao this payload is NOT encrypted at rest by the app, and the sqlite
+# db holds webhook secrets. Bucket-level SSE with an OCI Vault key is therefore a
+# precondition for unpausing this one, not an option (README §4 item 3).
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: forge-daily
+  namespace: velero
+  labels:
+    oya.io/adr: ADR-0197
+    oya.io/backup-tier: app
+spec:
+  paused: true
+  schedule: "0 3 * * *"
+  template:
+    storageLocation: offnode
+    ttl: "720h"                      # 30 days daily, per ADR-0197 D-5
+    includedNamespaces: [oya-forge]
+    defaultVolumesToFsBackup: true
+    snapshotVolumes: false
