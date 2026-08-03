@@ -13,7 +13,9 @@
 //      between bypass and their classified modes, and never the cold ones;
 //   4. the overlays parse, select the cache execution platform, set the posture
 //      their name claims, and carry NO keyed identity material;
-//   5. the root .buckconfig stays clean of any RE/cache section;
+//   5. the root .buckconfig stays clean of any RE/cache section, and its sibling
+//      .buckconfig.local is gitignored and untracked (the same dark-wiring hole
+//      in the OTHER project config file buck2 reads RE settings from);
 //   6. the canary workflow exists, is scheduled, restores no actions/cache, and
 //      wires the cold proof (assert-cold) + structured record.
 // ADR-0083 Tier-3: integration tests use unwrap/expect/panic to assert invariants.
@@ -25,6 +27,11 @@ use ci_build_cache_policy as app;
 use serde_json::{Value, json};
 
 const CANARY_WORKFLOW_PATH: &str = ".github/workflows/cache-integrity-canary.yml";
+/// Basename of the local buck2 config overlay — the ONLY mechanism that can wire the CAS.
+const LOCAL_OVERLAY: &str = ".buckconfig.local";
+/// Producer-materialized `git ls-files` snapshot (ADR-0604 de-commit class): the hermetic
+/// DATA carrier of tracked-ness. Same input the root-workspace-hygiene gate consumes.
+const SCM_FACTS_PATH: &str = "ci/facade/artifact-inventory-registry/scm-facts.generated.json";
 const REQUIRED_WORKFLOW_PATH: &str = ".github/workflows/oya-ci-required.yml";
 const COLD_REQUIRED_FLOOR: [&str; 4] = [
     "release-production-image",
@@ -239,6 +246,104 @@ fn root_buckconfig_stays_dark() {
         cfg["build"]["execution_platforms"], "prelude//platforms:default",
         "the default execution platform must stay the prelude default"
     );
+}
+
+/// True when `.gitignore` carries a rule that ignores `.buckconfig.local`. Bare and
+/// `**/`-prefixed forms match at any depth (every buck2 cell root can carry an overlay);
+/// the `/`-anchored form matches the root cell only, which is where `DaemonStartupConfig`
+/// is read from. Pure over the file text — no `git`, no shell.
+fn gitignore_ignores_local_overlay(gitignore: &str) -> bool {
+    gitignore.lines().map(str::trim).any(|line| {
+        line == LOCAL_OVERLAY || line == "/.buckconfig.local" || line == "**/.buckconfig.local"
+    })
+}
+
+/// Every tracked path whose basename is `.buckconfig.local`, in any cell.
+fn tracked_local_overlays<'a>(paths: impl Iterator<Item = &'a str>) -> Vec<&'a str> {
+    paths
+        .filter(|p| p.trim_matches('"').rsplit('/').next() == Some(LOCAL_OVERLAY))
+        .collect()
+}
+
+/// Sibling of `root_buckconfig_stays_dark`, closing the identical hole in the OTHER file.
+///
+/// MEASURED: buck2 reads `[buck2_re_client]` into `DaemonStartupConfig` from PROJECT CONFIG
+/// FILES ONLY — `--config` / `--config-file` are inert for that section — so materializing
+/// `.buckconfig.local` is the SOLE mechanism that can ever wire the NativeLink CAS. Guarding
+/// only `.buckconfig` therefore guards the file that CANNOT be the vector while leaving the
+/// one that CAN unguarded: a committed warm-cache-rw overlay would make every build in the
+/// repo remote-cache-enabled with `allow_cache_uploads=true`, bypassing `resolve()` and the
+/// ADR-0556 license kill-switch entirely, and would silently poison the integrity canary,
+/// whose cold proof depends on running with NO overlay at all (ADR-0556 D5 cold-must-stay).
+///
+/// Two layers per enforcement-layering: `.gitignore` is the automation default, this gate is
+/// the blocking backstop (`.gitignore` alone cannot catch `git add -f` or an already-tracked
+/// file). NOTE: `ci/facade/repo-root-hygiene/root-workspace-hygiene-policy.json` still
+/// ALLOWLISTS the whole `.buckconfig` family (`kind: prefix_dot`); tightening that rule to
+/// `exact` is a separate reviewed DATA edit and is not required for this backstop to hold.
+#[test]
+fn buckconfig_local_overlay_stays_ignored_and_untracked() {
+    let root = repo_root();
+    let gitignore =
+        std::fs::read_to_string(root.join(".gitignore")).expect("read root .gitignore");
+    assert!(
+        gitignore_ignores_local_overlay(&gitignore),
+        "root .gitignore carries no rule ignoring `{LOCAL_OVERLAY}` — the only buck2 config \
+         file that can wire the CAS is one `git add -A` away from being committed \
+         (ADR-0560 dark-wiring invariant)"
+    );
+
+    let text = std::fs::read_to_string(root.join(SCM_FACTS_PATH)).unwrap_or_else(|e| {
+        panic!(
+            "read {SCM_FACTS_PATH}: {e} — materialize the producer face first \
+             (buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .)"
+        )
+    });
+    let facts: Value = serde_json::from_str(&text).expect("parse scm-facts snapshot");
+    let paths = facts["tracked_paths"]
+        .as_array()
+        .expect("scm-facts.generated.json must carry a tracked_paths array");
+    let tracked = tracked_local_overlays(paths.iter().filter_map(Value::as_str));
+    assert!(
+        tracked.is_empty(),
+        "TRACKED CACHE-WIRING OVERLAY: {tracked:?} — a committed `{LOCAL_OVERLAY}` wires \
+         [buck2_re_client] into every buck2 daemon in the repo, bypassing the ADR-0556 \
+         warm-license kill-switch and invalidating the cold integrity canary"
+    );
+}
+
+/// RED fixture for the guard above: both halves must be capable of FAILING. A gate observed
+/// passing on the live corpus is not evidence that it can fail.
+#[test]
+fn buckconfig_local_guard_is_non_inert() {
+    // RED: a .gitignore that only MENTIONS the overlay (comment / near-miss rule) is not a rule.
+    assert!(!gitignore_ignores_local_overlay(
+        "/target/\n# .buckconfig.local is local-only\nnotes.buckconfig.local\n.buckconfig\n"
+    ));
+    // GREEN: each accepted rule form.
+    for rule in [".buckconfig.local", "  /.buckconfig.local  ", "**/.buckconfig.local"] {
+        assert!(
+            gitignore_ignores_local_overlay(&format!("/target/\n{rule}\n")),
+            "rule form `{rule}` must be recognized"
+        );
+    }
+
+    // RED: a tracked overlay at the root cell OR any nested cell is caught; siblings are not.
+    assert_eq!(
+        tracked_local_overlays(
+            [
+                ".buckconfig",
+                "infra/ci/buckconfig/warm-cache-rw.buckconfig",
+                "notes.buckconfig.local",
+                ".buckconfig.local",
+                "third-party/.buckconfig.local",
+            ]
+            .into_iter()
+        ),
+        vec![".buckconfig.local", "third-party/.buckconfig.local"]
+    );
+    // GREEN: today's real shape — no overlay tracked anywhere.
+    assert!(tracked_local_overlays([".buckconfig", "Cargo.toml"].into_iter()).is_empty());
 }
 
 #[test]
