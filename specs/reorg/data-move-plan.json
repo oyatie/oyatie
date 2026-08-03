@@ -1,0 +1,18 @@
+{
+  "_comment": "De-brand strangler MOVE: home the two libs/oya-data-* sqlx/Postgres adapter crates into the `data` capability's adapters face (ADR-0562 §3 rung 6 + §4 face rule; ADR-0615). Face on evidence: both crates bind a CONCRETE TRANSIENT TECHNOLOGY (sqlx -> Postgres) and would be DELETED at the ADR-0510 owned-stack cutover, which is the adapters test, and both merely IMPLEMENT ports defined elsewhere (oya-data-outbox-kernel::ChangeStreamSource, oya-data-sql-kernel session/statement descriptors) rather than defining any -- so port-placement (ADR-0570) is satisfied and core-dependency-isolation (ADR-0547) would have made `core` impossible for either, since sqlx is on the kernel-purity denylist. Leaf dirs keep the `-adapter-<backend>` tail so leaf == package-name tail (ADR-0512 R7), repairing the destination-map §2.6 drift class where `-adapter` was kept in the name but dropped from the directory. De-brand per ADR-0532/0533: oya-data-<tail> -> data-<tail>; the doubled `data` slug is collapsed, not repeated. ZERO root Cargo.toml edit: `data/*/*` is already a live bare member glob (root Cargo.toml line 248) and `data/adapters` is a new depth-2 subtree containing ONLY crate dirs, so no new `exclude` entry is owed either (`data/observability` and `data/ops` were already excluded and are untouched). CATALOG CONSEQUENCE, the load-bearing part of this move: `data/**` is one of the sixteen catalog_liveness.workspace_member_globs roots (libs/oya-ci-config default_catalog_liveness_workspace_member_globs) while `libs/**` is NOT, so relocating these crates moves them INTO the `catalog_live_crate_without_row` contract (frozen_empty, zero slack) that never reached them under libs/. Neither crate had a registry/catalog row to git mv (0 of 776), so both rows are AUTHORED here, and both old package names are REMOVED from the crate-catalog-coverage frozen baseline -- required in the same change, because that gate's stale-entry code fires when a listed crate `is no longer a live crate`, and re-adding the new names is explicitly disallowed (`adding one is not [allowed]`). KNOWN-INERT PLAN, flagged for the reviewer rather than hidden: ci/facade/crate-registration::first_move_plan sorts specs/reorg/*-move-plan.json and takes ONLY the first, so the active plan for the move-manifest bijection (ADR-0563/0614) is and stays `ci-move-plan.json`; this file therefore does NOT feed the rename-aware path-keyed baseline relabel. That is harmless for THIS move and was verified, not assumed: a whole-tree grep for both old package names and both old crate paths returns zero hits in any gate baseline or policy key other than the crate-catalog-coverage entries removed here, so there is no path-keyed baseline key needing bijective substitution. The 6 pre-existing plans are in the same inert state; the single-active-plan design vs. an accumulating plan directory is a standing pipeline defect, not something this move introduces or can fix mechanically.",
+  "capability": "data",
+  "moves": [
+    {
+      "old_path": "libs/oya-data-outbox-adapter-postgres",
+      "new_path": "data/adapters/outbox-adapter-postgres",
+      "old_cargo_name": "oya-data-outbox-adapter-postgres",
+      "new_cargo_name": "data-outbox-adapter-postgres"
+    },
+    {
+      "old_path": "libs/oya-data-sql-adapter-sqlx",
+      "new_path": "data/adapters/sql-adapter-sqlx",
+      "old_cargo_name": "oya-data-sql-adapter-sqlx",
+      "new_cargo_name": "data-sql-adapter-sqlx"
+    }
+  ]
+}

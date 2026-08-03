@@ -1,0 +1,10 @@
+context: data
+role: adapter
+capability: outbox-cdc-change-stream-postgres
+plane: data
+slo: preview-data-plane
+data_classes_owned: [INTERNAL_ONLY]
+operational_classes_owned: [AUDIT]
+api_stability: preview
+security_review: unreviewed
+supply_chain: source-only

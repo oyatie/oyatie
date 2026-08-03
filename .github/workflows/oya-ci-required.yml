@@ -1086,8 +1086,8 @@ jobs:
             --env OYA_BACKBONE_POSTGRES_URL="${OYA_BACKBONE_POSTGRES_URL}"
             --env OYA_BACKBONE_POSTGRES_APP_URL="${OYA_BACKBONE_POSTGRES_APP_URL}"
           )
-          buck2 test --local-only --num-threads 1 //libs/oya-data-sql-adapter-sqlx:oya-data-sql-adapter-sqlx-unittest -- "${LIVE_ENV[@]}"
-          buck2 test --local-only --num-threads 1 //libs/oya-data-outbox-adapter-postgres:oya-data-outbox-adapter-postgres-unittest -- "${LIVE_ENV[@]}"
+          buck2 test --local-only --num-threads 1 //data/adapters/sql-adapter-sqlx:data-sql-adapter-sqlx-unittest -- "${LIVE_ENV[@]}"
+          buck2 test --local-only --num-threads 1 //data/adapters/outbox-adapter-postgres:data-outbox-adapter-postgres-unittest -- "${LIVE_ENV[@]}"
           buck2 test --local-only --num-threads 1 //tenancy/adapters/tenant-lifecycle-store-postgres:tenancy-tenant-lifecycle-store-postgres-unittest -- "${LIVE_ENV[@]}"
           buck2 test --local-only --num-threads 1 //tenancy/adapters/tenant-lifecycle-store-postgres:tenancy-tenant-lifecycle-store-postgres-live -- "${LIVE_ENV[@]}"
           buck2 test --local-only --num-threads 1 //iam/adapters/identity-scim-store-postgres:identity-scim-store-postgres-unittest -- "${LIVE_ENV[@]}"

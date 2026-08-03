@@ -1,6 +1,6 @@
 ---
 id: ADR-0569
-title: "Commission the oya-data outbox CDC change-stream Postgres adapter (oya-data-outbox-adapter-postgres) behind the ChangeStreamSource port"
+title: "Commission the oya-data outbox CDC change-stream Postgres adapter (data-outbox-adapter-postgres) behind the ChangeStreamSource port"
 status: Proposed
 planning_impact: false
 deciders: founder
@@ -28,7 +28,7 @@ remains the sole face generator).**
 ## Context
 
 Story G003 (the owned `oya-data` persistence substrate; ADR-0536 D-10 change streams / D-13
-messaging) has its SQL WRITE side commissioned: `libs/oya-data-sql-adapter-sqlx` is the ADR-0510
+messaging) has its SQL WRITE side commissioned: `data/adapters/sql-adapter-sqlx` is the ADR-0510
 transitional Postgres implementation of the SQL port, and `libs/oya-data-outbox-kernel` defines
 the transactional-outbox shapes plus the CDC `ChangeStreamSource` port. The open seam is the CDC
 READ/relay side: `oya-data-outbox-kernel::ChangeStreamSource` ships ONLY a `RecordingChangeStream`
@@ -42,7 +42,7 @@ no production migration anywhere — this ADR commissions both the adapter and t
 
 ## Decision
 
-Commission **`libs/oya-data-outbox-adapter-postgres`** — the ADR-0510 transitional Postgres (via
+Commission **`data/adapters/outbox-adapter-postgres`** — the ADR-0510 transitional Postgres (via
 sqlx) realization of `oya-data-outbox-kernel::ChangeStreamSource`. It absorbs ALL engine impedance
 behind the unchanged port; only this adapter is replaced by the engine-native changefeed at W5.
 
@@ -111,28 +111,31 @@ defense-in-depth.
 - **buck2 primary build** (founder directive): `rust_library` + `rust_test`, `migrations/**/*.sql`
   in the srcs glob.
 - **Naming** (ADR-0105 §Adopted Patterns): the backend qualifier is `postgres` — the external
-  SYSTEM — not `sqlx`, which is the in-process driver/toolkit; `oya-data-outbox-adapter-postgres`
+  SYSTEM — not `sqlx`, which is the in-process driver/toolkit; `data-outbox-adapter-postgres`
   is a recognized backend-qualified adapter whose effective role is `adapter`.
 
 ### D5 — Ownership + justification manifest (ADR-0555 D2)
 
-Owner: `libs/oya-data-outbox-adapter-postgres/OWNERS` = `axis-cloud-platform` — the `data`
+Owner: `data/adapters/outbox-adapter-postgres/OWNERS` = `axis-cloud-platform` — the `data`
 capability owner (ADR-0562 capability-registry: `libs/oya-data-*` maps to the `data` capability,
 the owned data-plane substrate, the same team that owns the iam/ + tenancy/ persistence-substrate
-trees). The crate's `.rs` sources are reachable via the `libs/oya-*` cargo-members glob (ADR-0538);
+trees). The crate's `.rs` sources are reachable via the `data/*/*` cargo-members glob (ADR-0538);
 the non-crate `migrations/0001_outbox_events.sql` is reachable via that SAME member-dir prefix (the
-cargo-members reachability covers the whole member directory, not only Rust files). No catalog
-record is minted: the direct adapter peer `oya-data-sql-adapter-sqlx` carries none (the gate-tool
-default). The runtime-role contract migration `0000_runtime_role.sql` is reachable via the SAME
+cargo-members reachability covers the whole member directory, not only Rust files). A catalog
+record IS minted (`registry/catalog/data-outbox-adapter-postgres.yaml`), as is one for the direct
+adapter peer `data-sql-adapter-sqlx`: `data/**` is one of the `catalog_liveness.workspace_member_globs`
+roots while `libs/**` is not, so homing these crates under `data/` brings them inside the
+`catalog_live_crate_without_row` contract (`frozen_empty`, zero slack) that did not reach them under
+`libs/`. The runtime-role contract migration `0000_runtime_role.sql` is reachable via the SAME
 member-dir prefix and justified by this decision (security-audit amendment, see D3). Files
 commissioned by this decision:
 
-`libs/oya-data-outbox-adapter-postgres/BUCK`,
-`libs/oya-data-outbox-adapter-postgres/Cargo.toml`,
-`libs/oya-data-outbox-adapter-postgres/OWNERS`,
-`libs/oya-data-outbox-adapter-postgres/migrations/0000_runtime_role.sql`,
-`libs/oya-data-outbox-adapter-postgres/migrations/0001_outbox_events.sql`,
-`libs/oya-data-outbox-adapter-postgres/src/lib.rs`.
+`data/adapters/outbox-adapter-postgres/BUCK`,
+`data/adapters/outbox-adapter-postgres/Cargo.toml`,
+`data/adapters/outbox-adapter-postgres/OWNERS`,
+`data/adapters/outbox-adapter-postgres/migrations/0000_runtime_role.sql`,
+`data/adapters/outbox-adapter-postgres/migrations/0001_outbox_events.sql`,
+`data/adapters/outbox-adapter-postgres/src/lib.rs`.
 
 ## Precedent
 
