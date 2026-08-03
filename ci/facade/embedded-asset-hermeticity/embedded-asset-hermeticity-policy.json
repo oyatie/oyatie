@@ -9,6 +9,7 @@
     "tools",
     "infra",
     "marketplace",
+    "ci",
     "iam",
     "intelligence",
     "os"

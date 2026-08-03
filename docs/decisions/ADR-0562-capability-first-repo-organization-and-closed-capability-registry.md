@@ -2716,6 +2716,74 @@ Two `Command::new("python3")` test bridges were also found under `os/` (`os/core
 
 That path is spelled byte-exactly and unbraced, because the total-accounting producer keeps only path-like tokens that EQUAL a tracked path; §10.28 originally brace-expanded its new paths and registered none of them.
 
+#### §10.30 De-brand strangler MOVE-4: the `ci/adapters/` block (oya/ci-controller + oya/ci-tide + oya/ci-webhook-gateway adapter crates → ci/adapters/) — six crates, adapters face only
+
+**Scope.** Six adapter crates leave three `oya/ci-*` service dirs for `ci/adapters/<leaf>`:
+`controller-github-adapter`, `controller-k8s-adapter`, `tide-github-adapter`,
+`webhook-gateway-authz-cedar-adapter`, `webhook-gateway-ed25519-adapter`,
+`webhook-gateway-github-adapter`. Each de-brands to `ci-<leaf>` per §2 (drop `oya-`, collapse the
+doubled `ci-` capability slug), so path tail and package name agree.
+
+**Face on evidence (§1 row 2, not row 5).** Every one of the six names or wraps a concrete transient
+technology — GitHub HTTP via `reqwest`, `kube`/`kube-runtime`/`k8s-openapi`, `cedar-policy`,
+`ed25519-dalek`. None is a candidate for `core/`, and each would fail `core-dependency-isolation` if
+called one. The three kernels (`oya-ci-controller-kernel`, `oya-ci-tide-kernel`,
+`oya-ci-webhook-gateway-kernel`) and the three composition-root apps STAY PUT in `oya/` this move, so
+this PR creates no `ci/facade/` crate and therefore no NEW `facade-core-layering`
+`facade_core_direct_dep` finding, and no `ci/ports/` hop is required yet. The surviving edges are
+`ci/adapters → oya/<svc>/crates/<kernel>`, declared in both `Cargo.toml` and `BUCK`.
+
+**Zero root-manifest work.** `ci/*/*` is already a live member glob and `ci` is already a
+`crate_root_glob` — both seeded by the §10.14 keystone move — so the six land as workspace members by
+construction (`cargo metadata`: 6/6 present, 896 members).
+
+**The §10.29 scan-scope lesson applied.** `ci` is already in `caller-supplied-authorization`,
+`endpoint-authorization-coverage`, `module-membership`, `layer-dependency-acyclicity`,
+`automation-language-policy` and `repo-root-hygiene`; it was NOT in
+`ci/facade/embedded-asset-hermeticity/embedded-asset-hermeticity-policy.json` `scan_roots`. That gate
+is the one whose motivating instance (ADR-0545 / FRIC-1781131000) is precisely the cedar adapter this
+move relocates, so moving it from the scanned `oya` root to an unscanned `ci` root would have removed
+the site from the corpus and turned the gate GREEN by measurement loss rather than by hermeticity.
+This move therefore adds `ci` to that policy's `scan_roots`, and the gate was RUN against the moved
+tree to prove the addition is not itself a regression: `buck2 test
+//ci/facade/embedded-asset-hermeticity:ci-embedded-asset-hermeticity-gate` → 5/5 pass, including
+`live_corpus_is_hermetic_and_skips_match_baseline`, so every pre-existing `ci/` include site (the
+`artifact-inventory-registry`, `build-cache-policy`, `cross-artifact-agreement`, `facade-core-layering`
+and `planning-projection` policy/fixture assets) resolves inside its owning target and the baselined
+skip set is unchanged. The reviewed ADR-0545 `mapped_srcs` comprehension, the ROOT-prefixed
+`crate_root`, the `srcs = []` form, and the cross-package mapped VALUE
+`oya/ci-webhook-gateway/policy/ci-webhook-gateway.cedar` are preserved verbatim. What changes in that
+BUCK is only relocation and rename: `ADAPTER_ROOT`, the target `name`/`crate` identifiers, and the
+header comment's quoted paths — plus, in `src/lib.rs`, the include literal re-derived from the crate's
+new depth (`../../../policy/…` → `../../../../oya/ci-webhook-gateway/policy/…`) to the SAME unmoved
+file. `oya/ci-webhook-gateway/policy/{BUCK,ci-webhook-gateway.cedar}` is neither moved nor deleted.
+
+**Catalog.** Three of the six carry a `registry/catalog/*.yaml` row (the webhook trio), `git mv`'d to
+their new package names with `traceability.source_crate` repointed. The other three were already
+entries in the `ci/facade/crate-catalog-coverage` shrink-only `uncatalogued` ratchet and are re-keyed
+there in place, so `_provenance.uncatalogued_total` stays 197 and the ratchet neither grows nor is
+silently burned down.
+
+**Deliberate non-edits, each a follow-up rather than an in-flight edit.** The pre-existing dead
+`microservices/ci-webhook-gateway/policy/...` doc-comment path in the cedar adapter and in
+`oya-ci-webhook-gateway-kernel`; the superseded ADR-0513 citation in `ci/adapters/tide-github-adapter`;
+the bare `httpmock = "0.7"` dev-deps; and `oya/ci-webhook-gateway/Dockerfile`, whose `cargo build` was
+already inoperable at the merge base (that build context carries no `Cargo.toml`). Dated records are
+left verbatim as records: `docs/audit/initial-sweep-2026-06-06/**`,
+`.omc/ultragoal/friction-ledger.jsonl`, the read-only 2026-06-07 survey
+`registry/stores/registry-store.json`, and the captured build-failure transcript under ADR-0545's
+`## Empirical evidence` (its LIVE anchors — the files-touched table row and the Verification buck2
+command — ARE repointed).
+
+**The only tracked artifact this move CREATES** is the committed move-plan:
+
+- `specs/reorg/ci-adapters-move-plan.json`
+
+It is a SEPARATE plan from the spent keystone `specs/reorg/ci-move-plan.json`, which
+`ci/facade/baseline-ratchet/tests/gate_registration.rs` reads BY NAME as the ci keystone-rename SSOT
+and which must therefore not be re-opened; the §10.28 carve-out that keeps that plan on `dev` applies
+unchanged.
+
 ## Consequences
 
 **Positive.** One home per capability (path = namespace = buck2 label root); the run/sell seam is a

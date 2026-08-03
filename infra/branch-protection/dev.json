@@ -10,7 +10,7 @@
       "status_context": "oya-pr-review",
       "merge_authority_context": "oya-ci-required",
       "integration": "constituent_input_to_single_required_context",
-      "producer": "oya-ci-controller-github-adapter",
+      "producer": "ci-controller-github-adapter",
       "decision_inputs": [
         "pr_number",
         "head_sha",

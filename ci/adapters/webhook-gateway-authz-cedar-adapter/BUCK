@@ -1,0 +1,26 @@
+# Hermetic embedded-asset mapping (ADR-0545 / FRIC-1781131000-webhook-cedar-buck2):
+# src/lib.rs include_str!("../../../../oya/ci-webhook-gateway/policy/ci-webhook-gateway.cedar")
+# resolves, relative to the including source file inside the buck2 __srcs tree, to
+# ADAPTER_ROOT/../../../../oya/ci-webhook-gateway/policy/... ==
+# oya/ci-webhook-gateway/policy/ci-webhook-gateway.cedar. The shared cedar policy lives in a sibling
+# package, so it MUST be mapped into the sandbox at exactly that include-relative location — not the
+# crate-local "policy/..." path the previous (cargo-only "fixed", never buck2-built) mapping used.
+# This is the cloud-intelligence cedar-adapter pattern (the proven fix for the same defect class).
+# The include literal tracks the crate's own location only: the mapped VALUE below is unchanged.
+ADAPTER_ROOT = "ci/adapters/webhook-gateway-authz-cedar-adapter"
+ADAPTER_SRCS = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"])
+ADAPTER_MAPPED_SRCS = {src: ADAPTER_ROOT + "/" + src for src in ADAPTER_SRCS}
+ADAPTER_MAPPED_SRCS["//oya/ci-webhook-gateway/policy:ci-webhook-gateway.cedar"] = "oya/ci-webhook-gateway/policy/ci-webhook-gateway.cedar"
+
+rust_library(
+    name = "ci-webhook-gateway-authz-cedar-adapter",
+    srcs = [],
+    crate = "ci_webhook_gateway_authz_cedar_adapter",
+    crate_root = ADAPTER_ROOT + "/src/lib.rs",
+    visibility = ["PUBLIC"],
+    mapped_srcs = ADAPTER_MAPPED_SRCS,
+    deps = [
+        "//oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-kernel:oya-ci-webhook-gateway-kernel",
+        "third-party//:cedar-policy",
+    ],
+)
