@@ -1,12 +1,26 @@
+_DEPS = [
+    "//intelligence/core/architecture-map-kernel:intelligence-architecture-map-kernel",
+    "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel",
+]
+
 rust_library(
     name = "oya-intelligence-architecture-map-app",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
     crate = "oya_intelligence_architecture_map_app",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
-    deps = [
-        "//intelligence/core/architecture-map-kernel:intelligence-architecture-map-kernel",
-    ],
+    deps = _DEPS,
+)
+
+# Runnable producer for registry/graph/architecture-map.json. Invoked by the
+# generated-face materializer, not typed by a human (cli_surface_policy).
+rust_binary(
+    name = "oya-intelligence-architecture-map",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate_root = "src/main.rs",
+    env = {"CARGO_PKG_NAME": "oya-intelligence-architecture-map-app", "CARGO_PKG_VERSION": "0.1.0"},
+    visibility = ["PUBLIC"],
+    deps = _DEPS + [":oya-intelligence-architecture-map-app"],
 )
 
 rust_test(
@@ -15,7 +29,14 @@ rust_test(
     crate = "oya_intelligence_architecture_map_app",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
-    deps = [
-        "//intelligence/core/architecture-map-kernel:intelligence-architecture-map-kernel",
-    ],
+    deps = _DEPS,
+)
+
+rust_test(
+    name = "oya-intelligence-architecture-map-regeneration-test",
+    srcs = ["tests/regeneration.rs"],
+    crate = "oya_intelligence_architecture_map_regeneration_test",
+    crate_root = "tests/regeneration.rs",
+    visibility = ["PUBLIC"],
+    deps = _DEPS + [":oya-intelligence-architecture-map-app"],
 )

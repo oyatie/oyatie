@@ -73,6 +73,9 @@ fn format_build_error(error: MapBuildError) -> String {
             )
         }
         MapBuildError::Map(error) => format!("architecture-map build failed: {error:?}"),
+        MapBuildError::WorkspaceMembers(detail) => {
+            format!("architecture-map workspace-member resolution failed: {detail}")
+        }
     }
 }
 

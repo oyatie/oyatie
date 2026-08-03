@@ -3,7 +3,11 @@
 //! `registry/graph/architecture-map.json` (or any path).
 //!
 //! Sources walked:
-//!   - root Cargo.toml `members = [...]` → Crate nodes
+//!   - workspace members → Crate nodes. Resolved through the canonical
+//!     `oya-workspace-members-kernel`, NEVER by parsing the root
+//!     `[workspace].members` array: since ADR-0538 that array holds globs
+//!     (`libs/oya-*`, `oya/*/crates/oya-*`, …), so a line-based parse yields
+//!     the glob patterns themselves instead of the ~430 real crate dirs.
 //!   - registry/microservices.json → Microservice nodes
 //!   - registry/bounded-contexts.json → BoundedContext nodes
 //!     (+ `Contains` edges from owning microservice)
@@ -12,8 +16,8 @@
 //!   - registry/cedar-fragments.json → CedarFragment nodes
 //!     (+ `Governs` edges to OpenAPI contracts they protect)
 //!
-//! Pure std-only: parses each input via small line-based extractors.
-//! No serde, no toml-rs, no yaml-rs deps. Aligns with the
+//! The registry/contract inputs are still parsed with small line-based
+//! extractors (no serde, no yaml-rs) per the
 //! "support-everything-ourselves with 0-to-minimal-dependency" policy.
 // ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
@@ -27,10 +31,32 @@ use intelligence_architecture_map_kernel::{
     ArchitectureMap, Edge, EdgeKind, MapError, Node, NodeId, NodeKind,
 };
 
+/// Repo-relative path of the committed architecture-map face.
+pub const DEFAULT_OUTPUT: &str = "registry/graph/architecture-map.json";
+
 #[derive(Debug)]
 pub enum MapBuildError {
     Io { path: PathBuf, source: String },
     Map(MapError),
+    WorkspaceMembers(String),
+}
+
+impl std::fmt::Display for MapBuildError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Io { path, source } => write!(f, "{}: {source}", path.display()),
+            Self::Map(error) => write!(f, "{error:?}"),
+            Self::WorkspaceMembers(detail) => write!(f, "workspace members: {detail}"),
+        }
+    }
+}
+
+/// Result of a producer run.
+#[derive(Debug, Eq, PartialEq)]
+pub enum RunOutcome {
+    Wrote,
+    Clean,
+    Drifted { committed_path: String },
 }
 
 impl From<MapError> for MapBuildError {
@@ -43,10 +69,10 @@ impl From<MapError> for MapBuildError {
 pub fn build_map(root: &Path) -> Result<ArchitectureMap, MapBuildError> {
     let mut map = ArchitectureMap::new();
 
-    // Crates from root Cargo.toml `members = [...]`.
-    let cargo_toml = root.join("Cargo.toml");
-    let cargo_text = read(&cargo_toml)?;
-    for crate_path in parse_cargo_members(&cargo_text) {
+    // Crates from the canonical workspace-member resolver (ADR-0538 globs).
+    let members = oya_workspace_members_kernel::resolve_member_dirs(root)
+        .map_err(|error| MapBuildError::WorkspaceMembers(format!("{error:?}")))?;
+    for crate_path in members {
         let id = NodeId(crate_path.clone());
         let label = crate_path
             .rsplit('/')
@@ -167,20 +193,26 @@ pub fn emit_json(map: &ArchitectureMap, out_path: &Path) -> Result<(), MapBuildE
     })
 }
 
-fn render_json(map: &ArchitectureMap) -> String {
+/// Render `map` in the committed face's exact formatting (2-space indent,
+/// one field per line). Deterministic: node order is the kernel's `BTreeMap`
+/// key order, edge order is insertion order over sorted inputs.
+pub fn render_json(map: &ArchitectureMap) -> String {
     let mut out = String::new();
     out.push_str("{\n");
-    out.push_str("  \"$schema_ref\": \"specs/knowledge-graph-schema.json\",\n");
+    out.push_str("  \"$schema_ref\": \"/specs/knowledge-graph-schema.json\",\n");
     out.push_str("  \"_artifact_id\": \"architecture-map\",\n");
+    out.push_str("  \"_meta\": {\n");
+    out.push_str("    \"emitter\": \"oya-intelligence-architecture-map-app::build_map\",\n");
     out.push_str(
-        "  \"_meta\": { \"emitter\": \"oya-intelligence-architecture-map-app::build_map\", \"purpose\": \"Generated architecture graph of crates, contracts, registries, and ownership edges for repository navigation and drift checks.\" },\n",
+        "    \"purpose\": \"Generated architecture graph of crates, contracts, registries, and ownership edges for repository navigation and drift checks.\"\n",
     );
+    out.push_str("  },\n");
     out.push_str("  \"nodes\": [\n");
     let nodes: Vec<&Node> = map.nodes().collect();
     for (i, node) in nodes.iter().enumerate() {
         let trailing = if i + 1 == nodes.len() { "" } else { "," };
         out.push_str(&format!(
-            "    {{ \"id\": \"{}\", \"kind\": \"{}\", \"label\": \"{}\" }}{}\n",
+            "    {{\n      \"id\": \"{}\",\n      \"kind\": \"{}\",\n      \"label\": \"{}\"\n    }}{}\n",
             escape_json(&node.id.0),
             node.kind.name(),
             escape_json(&node.label),
@@ -193,7 +225,7 @@ fn render_json(map: &ArchitectureMap) -> String {
     for (i, edge) in edges.iter().enumerate() {
         let trailing = if i + 1 == edges.len() { "" } else { "," };
         out.push_str(&format!(
-            "    {{ \"source\": \"{}\", \"target\": \"{}\", \"kind\": \"{}\" }}{}\n",
+            "    {{\n      \"source\": \"{}\",\n      \"target\": \"{}\",\n      \"kind\": \"{}\"\n    }}{}\n",
             escape_json(&edge.source.0),
             escape_json(&edge.target.0),
             edge.kind.name(),
@@ -203,6 +235,37 @@ fn render_json(map: &ArchitectureMap) -> String {
     out.push_str("  ]\n");
     out.push_str("}\n");
     out
+}
+
+/// Runnable producer entrypoint: derive the map from the live workspace at
+/// `repo_root` and either write `out_path` (`check = false`) or byte-compare
+/// against it (`check = true`).
+pub fn run(repo_root: &Path, out_path: &Path, check: bool) -> Result<RunOutcome, MapBuildError> {
+    let rendered = render_json(&build_map(repo_root)?);
+    if check {
+        let committed = fs::read_to_string(out_path).map_err(|error| MapBuildError::Io {
+            path: out_path.to_path_buf(),
+            source: error.to_string(),
+        })?;
+        return Ok(if committed == rendered {
+            RunOutcome::Clean
+        } else {
+            RunOutcome::Drifted {
+                committed_path: out_path.display().to_string(),
+            }
+        });
+    }
+    if let Some(parent) = out_path.parent() {
+        fs::create_dir_all(parent).map_err(|error| MapBuildError::Io {
+            path: parent.to_path_buf(),
+            source: error.to_string(),
+        })?;
+    }
+    fs::write(out_path, rendered).map_err(|error| MapBuildError::Io {
+        path: out_path.to_path_buf(),
+        source: error.to_string(),
+    })?;
+    Ok(RunOutcome::Wrote)
 }
 
 fn read(path: &Path) -> Result<String, MapBuildError> {
@@ -218,49 +281,6 @@ fn relativize(root: &Path, full: &Path) -> String {
         .and_then(|p| p.to_str())
         .map(|s| s.to_string())
         .unwrap_or_else(|| full.display().to_string())
-}
-
-/// Parse the `members = [...]` array out of root Cargo.toml.
-/// Std-only TOML scan: find `[workspace]` table, then the `members` key, then
-/// collect each quoted string until the closing `]`.
-fn parse_cargo_members(text: &str) -> Vec<String> {
-    let mut out = Vec::new();
-    let mut in_workspace = false;
-    let mut in_members = false;
-    for line in text.lines() {
-        let trimmed = line.trim();
-        if trimmed == "[workspace]" {
-            in_workspace = true;
-            continue;
-        }
-        if in_workspace && trimmed.starts_with('[') && trimmed != "[workspace]" {
-            in_workspace = false;
-            in_members = false;
-            continue;
-        }
-        if !in_workspace {
-            continue;
-        }
-        if trimmed.starts_with("members") && trimmed.contains('[') {
-            in_members = true;
-            continue;
-        }
-        if !in_members {
-            continue;
-        }
-        if trimmed.starts_with(']') {
-            in_members = false;
-            continue;
-        }
-        // Match `"path",` or `'path',`.
-        let inner = trimmed.trim_end_matches(',').trim_end_matches('"');
-        if let Some(stripped) = inner.strip_prefix('"') {
-            out.push(stripped.to_string());
-        } else if let Some(stripped) = inner.strip_prefix('\'') {
-            out.push(stripped.trim_end_matches('\'').to_string());
-        }
-    }
-    out
 }
 
 /// Parse a JSON document and collect every value of `field_name` that appears
@@ -365,29 +385,6 @@ fn escape_json(value: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn parse_cargo_members_basic() {
-        let toml = r#"[workspace]
-resolver = "2"
-members = [
-  "crates/a",
-  "crates/b",
-  "crates/c-d-e"
-]
-
-[workspace.dependencies]
-serde = "1"
-"#;
-        let members = parse_cargo_members(toml);
-        assert_eq!(members, vec!["crates/a", "crates/b", "crates/c-d-e"]);
-    }
-
-    #[test]
-    fn parse_cargo_members_empty() {
-        assert!(parse_cargo_members("").is_empty());
-        assert!(parse_cargo_members("[package]\nname = \"foo\"\n").is_empty());
-    }
 
     #[test]
     fn parse_json_string_array_values_extracts_field() {
@@ -503,20 +500,31 @@ serde = "1"
         let _ = fs::remove_dir_all(&tmpdir);
     }
 
+    /// RED fixture for the ADR-0538 glob-membership defect: a line-based parse
+    /// of `[workspace].members` emits ONE node whose id is the literal glob
+    /// `crates/*`. Only resolution through the canonical member kernel yields
+    /// the two real crate dirs.
     #[test]
-    fn build_map_populates_crate_nodes() {
+    fn build_map_expands_globbed_workspace_members() {
         let tmpdir =
             std::env::temp_dir().join(format!("oya-arch-map-test-crates-{}", std::process::id()));
         let _ = fs::remove_dir_all(&tmpdir);
-        fs::create_dir_all(&tmpdir).unwrap();
+        fs::create_dir_all(tmpdir.join("crates/foo")).unwrap();
+        fs::create_dir_all(tmpdir.join("crates/bar")).unwrap();
+        fs::write(tmpdir.join("crates/foo/Cargo.toml"), "[package]\nname='foo'\n").unwrap();
+        fs::write(tmpdir.join("crates/bar/Cargo.toml"), "[package]\nname='bar'\n").unwrap();
         fs::write(
             tmpdir.join("Cargo.toml"),
-            "[workspace]\nmembers = [\n  \"crates/foo\",\n  \"crates/bar\"\n]\n",
+            "[workspace]\nmembers = [\n  \"crates/*\",\n]\n",
         )
         .unwrap();
         let map = build_map(&tmpdir).unwrap();
-        let crates: Vec<&Node> = map.nodes_of_kind(NodeKind::Crate).collect();
-        assert_eq!(crates.len(), 2);
+        let mut crates: Vec<&str> = map
+            .nodes_of_kind(NodeKind::Crate)
+            .map(|node| node.id.0.as_str())
+            .collect();
+        crates.sort_unstable();
+        assert_eq!(crates, ["crates/bar", "crates/foo"]);
         let _ = fs::remove_dir_all(&tmpdir);
     }
 
