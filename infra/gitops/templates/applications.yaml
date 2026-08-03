@@ -1,5 +1,21 @@
 {{- /* One Argo CD Application per entry in .Values.apps. Helm-first app-of-apps. */ -}}
 {{- range .Values.apps }}
+{{- /*
+  FAIL LOUD on the one key whose misspelling is SILENT. `valuesFile:` (singular
+  string) is not read anywhere below, so an entry carrying it rendered a
+  chart-only Application with no helm: block — chart defaults, or a permanently
+  Degraded app, with the committed values file wired to nothing. Both ARC entries
+  shipped that way in #1445 and that is the mechanical cause of the arm64 values
+  drift: the only copy that reached the cluster was a scratchpad one. A render
+  error is the cheapest possible detector — it fires wherever the chart is
+  rendered (bootstrap, Argo CD repo-server, or a human running `helm template`),
+  needs no gate crate, and cannot be bypassed by a stale baseline.
+  ponytail: guards only this measured key, not every possible typo; generalize to
+  an unknown-key sweep if a second silent key ever costs a day.
+*/ -}}
+{{- if .valuesFile }}
+  {{- fail (printf "infra/gitops/values.yaml app %q: `valuesFile` is not a recognised key and is silently ignored — use `valueFiles: [path, ...]` (plural list)" .name) }}
+{{- end }}
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -41,9 +57,15 @@ spec:
     {{- end }}
     {{- end }}
   {{- else }}
+  {{- /*
+    Per-app repoURL/targetRevision override, defaulting to this repo. Lets an
+    UPSTREAM release manifest be reconciled straight from its own git tree, pinned
+    to an immutable commit, instead of being vendored into infra/ as a second copy
+    that can drift from upstream (see the `cnpg` entry in values.yaml).
+  */}}
   source:
-    repoURL: {{ $.Values.repoURL }}
-    targetRevision: {{ $.Values.targetRevision }}
+    repoURL: {{ .repoURL | default $.Values.repoURL }}
+    targetRevision: {{ .targetRevision | default $.Values.targetRevision }}
     path: {{ .path }}
     {{- if .helmPath }}
     helm: {}

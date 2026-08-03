@@ -2,12 +2,23 @@
 # BuildKit (Moby, Apache 2) is what Docker itself uses for `docker buildx`; rootless mode
 # is PSA-baseline-compatible (no CAP_SYS_ADMIN, no privileged container).
 #
-# Two K8s objects:
-#   1. buildkitd Deployment + Service — long-lived daemon (one replica; scale later when
-#      ADR-0381 D2 lands the CI specialty node pool).
-#   2. ci-webhook-gateway-build Job — buildctl client that drives the daemon to build
-#      microservices/ci-webhook-gateway from the git context and push to the in-cluster
-#      registry.
+# ONE K8s object: the ci-webhook-gateway-build Job — a buildctl client that drives the
+# daemon to build microservices/ci-webhook-gateway from the git context and push to the
+# in-cluster registry.
+#
+# THE DAEMON USED TO LIVE HERE AND NO LONGER DOES (ADR-0631 D3). This file declared a
+# SECOND buildkitd Deployment+Service, in ns oya-ci, rootless, with different args and a
+# different probe, while a privileged daemon in ns oya-build served every real build. The
+# oya-ci pair never existed on the cluster and never could — nothing reconciles this
+# directory. Two declarations of one daemon, one of them fiction, is exactly the
+# drift-by-duplication class, so the daemon is now declared once, at
+# infra/buildkit/buildkitd.k8s.yaml, and this Job targets it.
+#
+# The rootless posture this file argued for (PSA-baseline, no CAP_SYS_ADMIN) is NOT
+# retracted and is NOT what runs: the surviving daemon is privileged. Making it rootless
+# is a deliberate migration PR — it also needs the readiness probe changed, because the
+# rootless daemon listens on a unix socket the privileged one does not — not a second
+# Deployment kept alongside as aspiration.
 #
 # Cache backend: BuildKit's bucket-API cache backend (Moby's library names it
 # `type=s3` — that's the wire-protocol identifier, not a brand) is wired to
@@ -28,97 +39,8 @@
 # Re-run a build: delete + re-apply the Job (or bump the image tag in `--output`).
 # Git creds: secret `gateway-build-git` (gh token), same as the retired Kaniko Job.
 ---
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: buildkitd
-  namespace: oya-ci
-  labels:
-    app: buildkitd
-    oya.adr/decided-by: ADR-0381
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: buildkitd
-  template:
-    metadata:
-      labels:
-        app: buildkitd
-      annotations:
-        # Rootless BuildKit requires unconfined seccomp + apparmor in the pod
-        # namespace (the container itself runs as non-root via user namespaces).
-        container.apparmor.security.beta.kubernetes.io/buildkitd: unconfined
-    spec:
-      # ADR-0381 D2 cell affinity: prefer the CI specialty pool when it exists.
-      # Soft preference (preferred… not required…) so single-node Talos still
-      # schedules buildkitd. Toleration is no-op until the CI pool's NoSchedule
-      # taint lands (see infra/talos/local/patches/cell-ci.yaml).
-      affinity:
-        nodeAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-            - weight: 100
-              preference:
-                matchExpressions:
-                  - key: oya.cell/ci
-                    operator: In
-                    values: ["true"]
-      tolerations:
-        - key: dedicated
-          operator: Equal
-          value: ci
-          effect: NoSchedule
-      containers:
-        - name: buildkitd
-          image: moby/buildkit:v0.31.2-rootless
-          args:
-            - --addr=tcp://0.0.0.0:1234
-            - --addr=unix:///run/user/1000/buildkit/buildkitd.sock
-            - --oci-worker-no-process-sandbox
-          ports:
-            - containerPort: 1234
-              name: grpc
-          securityContext:
-            runAsUser: 1000
-            runAsGroup: 1000
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
-            seccompProfile:
-              type: Unconfined
-            capabilities:
-              drop: [ALL]
-          readinessProbe:
-            exec:
-              command: ["buildctl", "debug", "workers"]
-            initialDelaySeconds: 5
-            periodSeconds: 30
-          livenessProbe:
-            exec:
-              command: ["buildctl", "debug", "workers"]
-            initialDelaySeconds: 30
-            periodSeconds: 60
-          resources:
-            requests:
-              cpu: "500m"
-              memory: 1Gi
-            limits:
-              memory: 4Gi
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: buildkitd
-  namespace: oya-ci
-spec:
-  selector:
-    app: buildkitd
-  ports:
-    - name: grpc
-      port: 1234
-      targetPort: 1234
----
-# ci-webhook-gateway-build Job — buildctl client connects to buildkitd Service and
-# drives the build from the git context. Replaces the retired Kaniko Job.
+# ci-webhook-gateway-build Job — buildctl client connects to the buildkitd Service in
+# oya-build and drives the build from the git context. Replaces the retired Kaniko Job.
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -132,8 +54,9 @@ spec:
   template:
     spec:
       restartPolicy: Never
-      # ADR-0381 D2 cell affinity: prefer the CI specialty pool (mirrors the
-      # buildkitd Deployment above so the client lands near its server).
+      # ADR-0381 D2 cell affinity: prefer the CI specialty pool. NOTE this no longer
+      # co-locates the client with its server — the daemon now lives in oya-build and
+      # carries no such affinity, so this is a preference for the pool, not for the pod.
       affinity:
         nodeAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -157,7 +80,11 @@ spec:
                 path: cosign-key
       containers:
         - name: buildctl
-          # Same image as buildkitd — contains both daemon + client binaries.
+          # CLIENT ONLY. This is deliberately NOT pinned to the daemon's version
+          # (moby/buildkit:v0.18.2, infra/buildkit/buildkitd.k8s.yaml): buildctl and
+          # buildkitd negotiate, and this client stays rootless because nothing about a
+          # client needs privilege. Version skew between the two is the thing to watch
+          # if a frontend option is ever rejected.
           image: moby/buildkit:v0.31.2-rootless
           workingDir: /workspace
           command: ["/bin/sh", "-c"]
@@ -166,7 +93,7 @@ spec:
               set -euo pipefail
               CONTEXT_URL="https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/jason931225/oyatie.git#refs/heads/dev"
               CACHE_PARAMS="type=s3,region=oya-local,bucket=oya-ci-buildkit-cache,endpoint_url=http://seaweedfs-bucket-api.oya-storage.svc.cluster.local:8333,access_key_id=oya-ci-anon,secret_access_key=oya-ci-anon,use_path_style=true"
-              buildctl --addr "tcp://buildkitd.oya-ci.svc.cluster.local:1234" \
+              buildctl --addr "tcp://buildkitd.oya-build.svc.cluster.local:1234" \
                 build \
                 --frontend dockerfile.v0 \
                 --opt "context=${CONTEXT_URL}" \
