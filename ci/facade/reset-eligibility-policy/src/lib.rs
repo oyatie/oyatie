@@ -1100,10 +1100,12 @@ fn is_approved_structured_value(path: &str, value: &str) -> bool {
 }
 
 fn approved_opaque_handle_suffix(value: &str) -> Option<&str> {
+    const MAX_OPAQUE_HANDLE_LENGTH: usize = 160;
+
     let (scheme, suffix) = value.split_once(':')?;
     if !is_approved_opaque_scheme(scheme)
         || suffix.is_empty()
-        || suffix.len() > 160
+        || suffix.len() > MAX_OPAQUE_HANDLE_LENGTH
         || suffix.starts_with(['-', '.', '_', '/'])
         || suffix.ends_with(['-', '.', '_', '/'])
         || suffix.contains("..")
@@ -1132,53 +1134,127 @@ fn is_opaque_handle_byte(byte: u8) -> bool {
 
 fn opaque_handle_contains_secret(suffix: &str) -> bool {
     contains_high_confidence_secret_marker(suffix)
-        || looks_like_reduced_alphabet_secret(suffix)
         || suffix
             .split(['-', '.', '_', '/'])
             .filter(|component| !component.is_empty())
             .any(|component| {
                 looks_like_secret_fragment(component)
-                    || looks_like_reduced_alphabet_secret(component)
+                    || contains_encoded_opaque_token(component.as_bytes())
             })
+        || contains_chunked_encoded_opaque_token(suffix)
 }
 
-fn looks_like_reduced_alphabet_secret(value: &str) -> bool {
-    const MIN_LENGTH: u32 = 40;
-    const MIN_UNIQUE_SYMBOLS: usize = 24;
-    const MIN_ENTROPY_BITS_PER_SYMBOL: f64 = 4.5;
+fn contains_chunked_encoded_opaque_token(suffix: &str) -> bool {
+    const MIN_ENCODED_CHUNK_LENGTH: usize = 4;
 
-    let mut counts = [0_u32; 36];
-    let mut length = 0_u32;
-    for byte in value.bytes() {
-        let index = match byte {
-            b'a'..=b'z' => usize::from(byte - b'a'),
-            b'0'..=b'9' => 26 + usize::from(byte - b'0'),
-            b'-' | b'.' | b'_' | b'/' => continue,
-            _ => return false,
-        };
-        counts[index] += 1;
-        length += 1;
-    }
-
-    // Base32-style material can be secret-like while using only lowercase letters and digits, so
-    // the general detector's three-character-class threshold is intentionally not used here.
-    // Requiring length, broad alphabet use, and high Shannon entropy keeps descriptive handles
-    // such as the committed discovery names green while rejecting both contiguous and separator-
-    // chunked random-looking material.
-    if length < MIN_LENGTH || counts.iter().filter(|count| **count > 0).count() < MIN_UNIQUE_SYMBOLS
+    let mut joined = Vec::with_capacity(suffix.len());
+    let mut component_count = 0;
+    for component in suffix
+        .split(['-', '.', '_', '/'])
+        .filter(|component| !component.is_empty())
     {
+        let bytes = component.as_bytes();
+        // Descriptive handles normally separate words and numeric labels. Only join chunks that
+        // are themselves mixed-alphanumeric, as encoded material commonly is, so a handle such as
+        // `release-2026-region-03` is not reclassified as one synthetic token.
+        if bytes.len() < MIN_ENCODED_CHUNK_LENGTH
+            || !bytes.iter().any(u8::is_ascii_lowercase)
+            || !bytes.iter().any(u8::is_ascii_digit)
+        {
+            return false;
+        }
+        component_count += 1;
+        joined.extend_from_slice(bytes);
+    }
+    component_count >= 2 && contains_encoded_opaque_token(&joined)
+}
+
+fn contains_encoded_opaque_token(value: &[u8]) -> bool {
+    const HEX_CREDENTIAL_WINDOW_LENGTH: usize = 32;
+    const MIN_ENCODED_TOKEN_LENGTH: usize = 40;
+    const MAX_ENCODED_TOKEN_LENGTH: usize = 64;
+
+    if value
+        .windows(HEX_CREDENTIAL_WINDOW_LENGTH)
+        .any(looks_like_hex_credential_window)
+    {
+        return true;
+    }
+    if value.len() < MIN_ENCODED_TOKEN_LENGTH {
         return false;
     }
-    let length = f64::from(length);
-    let entropy = counts
-        .into_iter()
-        .filter(|count| *count > 0)
-        .map(|count| {
-            let probability = f64::from(count) / length;
-            -probability * probability.log2()
-        })
-        .sum::<f64>();
-    entropy >= MIN_ENTROPY_BITS_PER_SYMBOL
+
+    for window_length in MIN_ENCODED_TOKEN_LENGTH..=MAX_ENCODED_TOKEN_LENGTH.min(value.len()) {
+        if value.windows(window_length).any(|window| {
+            looks_like_base32_credential_window(window)
+                || looks_like_lowercase_base64_credential_window(window)
+        }) {
+            return true;
+        }
+    }
+    false
+}
+
+fn looks_like_hex_credential_window(window: &[u8]) -> bool {
+    window.iter().all(u8::is_ascii_hexdigit)
+        && window.iter().any(u8::is_ascii_digit)
+        && window.iter().any(|byte| matches!(byte, b'a'..=b'f'))
+}
+
+fn looks_like_base32_credential_window(window: &[u8]) -> bool {
+    matches!(window.len() % 8, 0 | 2 | 4 | 5 | 7)
+        && window
+            .iter()
+            .all(|byte| byte.is_ascii_lowercase() || matches!(byte, b'2'..=b'7'))
+        && has_encoded_token_shape(window)
+}
+
+fn looks_like_lowercase_base64_credential_window(window: &[u8]) -> bool {
+    matches!(window.len() % 4, 0 | 2 | 3)
+        && window
+            .iter()
+            .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit())
+        && has_encoded_token_shape(window)
+}
+
+fn has_encoded_token_shape(window: &[u8]) -> bool {
+    const MIN_DIGITS: usize = 6;
+    const MIN_LETTERS: usize = 16;
+    const MIN_DIGIT_RUNS: usize = 4;
+    const MIN_CLASS_TRANSITIONS: usize = 8;
+
+    let mut digits = 0;
+    let mut letters = 0;
+    let mut digit_runs = 0;
+    let mut class_transitions = 0;
+    let mut first_digit = None;
+    let mut last_digit = None;
+    let mut previous_was_digit = None;
+
+    for (index, byte) in window.iter().enumerate() {
+        let is_digit = byte.is_ascii_digit();
+        if is_digit {
+            digits += 1;
+            first_digit.get_or_insert(index);
+            last_digit = Some(index);
+            if previous_was_digit != Some(true) {
+                digit_runs += 1;
+            }
+        } else {
+            letters += 1;
+        }
+        if previous_was_digit.is_some_and(|previous| previous != is_digit) {
+            class_transitions += 1;
+        }
+        previous_was_digit = Some(is_digit);
+    }
+
+    digits >= MIN_DIGITS
+        && letters >= MIN_LETTERS
+        && digit_runs >= MIN_DIGIT_RUNS
+        && class_transitions >= MIN_CLASS_TRANSITIONS
+        && first_digit.is_some_and(|index| index < window.len() / 3)
+        && last_digit.is_some_and(|index| index >= window.len() * 2 / 3)
 }
 
 fn is_sha256_field(path: &str) -> bool {
@@ -1396,6 +1472,10 @@ mod tests {
 
     #[test]
     fn structured_secret_scanner_exclusions_are_exact() {
+        const LOWERCASE_TOKEN: &str = "q9p2zd7wm4lx8vt3kn6hs1rc5bj0fy7ua2ee9qw4pi6zd8lm";
+        let padded_lowercase_token =
+            format!("protected-runtime:{}{LOWERCASE_TOKEN}", "a".repeat(80));
+
         for (path, value) in [
             (
                 "$.evidence_manifest.uri",
@@ -1461,6 +1541,7 @@ mod tests {
             "protected-runtime:q9P2Zd7Wm4-Lx8Vt3Kn6Hs1Rc5Bj0Fy7Ua2Ee9Qw4Pi6Zd8Lm",
             "protected-runtime:q9p2zd7wm4lx8vt3kn6hs1rc5bj0fy7ua2ee9qw4pi6zd8lm",
             "redacted-local:q9p2zd7w-m4lx8vt3-kn6hs1rc-5bj0fy7u-a2ee9qw4-pi6zd8lm",
+            "protected-runtime:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
             "redacted-local:../../candidate-escape",
             "opaque://q9P2Zd7Wm4+Lx8!Vt3#Kn6@Hs1%Rc5Bj0&Fy7*Ua2=Ee9?",
             "https://user:q9P2Zd7Wm4+Lx8!Vt3#Kn6@Hs1%Rc5Bj0&Fy7*Ua2=Ee9?@host",
@@ -1474,6 +1555,22 @@ mod tests {
             ));
             assert!(looks_like_secret_value("$.evidence_manifest.uri", value));
         }
+
+        assert!(looks_like_secret_value(
+            "$.evidence_manifest.uri",
+            &padded_lowercase_token
+        ));
+
+        let descriptive_handle =
+            "protected-runtime:abcdefghijklmnopqrstuvwxyz0123456789documentation";
+        assert!(is_approved_structured_value(
+            "$.evidence_manifest.uri",
+            descriptive_handle
+        ));
+        assert!(!looks_like_secret_value(
+            "$.evidence_manifest.uri",
+            descriptive_handle
+        ));
 
         for value in [
             "note ghp_1234567890abcdefghijklmnopqrstuv",
