@@ -22,11 +22,25 @@
 # still looks healthy.
 
 [buck2_re_client]
-  engine_address = grpc://127.0.0.1:50051
-  cas_address = grpc://127.0.0.1:50051
-  action_cache_address = grpc://127.0.0.1:50051
+  # NO scheme. buck2 rejects both grpc:// and grpcs:// here ("Invalid URI
+  # scheme ... you should omit it"); TLS is selected by the `tls` flag below,
+  # not by the address. Host must be `localhost`, not 127.0.0.1, to match the
+  # server certificate's CN/SAN.
+  engine_address = localhost:50051
+  cas_address = localhost:50051
+  action_cache_address = localhost:50051
   instance_name = main
-  tls = false
+  tls = true
+  # The server pins a private CA, so the client must trust it explicitly.
+  tls_ca_certs = /Users/jasonlee/.nativelink/tls/ca.crt
+  # The CLIENT identity. This is what makes it MUTUAL — without it the server
+  # rejects the handshake, which is the whole point of client_ca_file.
+  # ONE combined PEM: cert THEN key. buck2 looks for the private key inside the
+  # file named by tls_client_cert; a separate tls_client_key is not read, and
+  # pointing this at a cert-only file yields the misleading
+  # "no RSA or PKCS8-encoded keys found" (the key is fine — it was never looked
+  # at).
+  tls_client_cert = /Users/jasonlee/.nativelink/tls/client-combined.pem
 
 [oya_cache]
   remote_cache_enabled = true
