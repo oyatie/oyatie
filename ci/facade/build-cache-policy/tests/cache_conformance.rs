@@ -15,7 +15,10 @@
 //      their name claims, and carry NO keyed identity material;
 //   5. the root .buckconfig stays clean of any RE/cache section;
 //   6. the canary workflow exists, is scheduled, restores no actions/cache, and
-//      wires the cold proof (assert-cold) + structured record.
+//      wires the cold proof (assert-cold) + structured record;
+//   7. the TOOLCHAIN INTERLOCK — clause (c) of the ADR-0556 D2 warm IFF: a licensed
+//      warm read/write requires both overlays to declare content-addressed rust AND
+//      cxx toolchains, because an ambient toolchain keys on PATH, not content.
 // ADR-0083 Tier-3: integration tests use unwrap/expect/panic to assert invariants.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
@@ -23,6 +26,16 @@ use std::path::PathBuf;
 
 use ci_build_cache_policy as app;
 use serde_json::{Value, json};
+
+/// buckconfig section a warm overlay uses to declare the provenance of the rust /
+/// cxx toolchains its actions will be keyed against. DECLARATION, not wiring: the
+/// wiring lives in `toolchains/BUCK`; this is the assertion the overlay makes about
+/// it, and the interlock below refuses to license warm without it.
+const TOOLCHAIN_SECTION: &str = "oya_toolchain";
+/// The only value that satisfies clause (c): the toolchain is fetched by digest and
+/// therefore contributes its CONTENT to every action key.
+const CONTENT_ADDRESSED: &str = "hermetic";
+const INTERLOCKED_LANGUAGES: [&str; 2] = ["rust", "cxx"];
 
 const CANARY_WORKFLOW_PATH: &str = ".github/workflows/cache-integrity-canary.yml";
 const REQUIRED_WORKFLOW_PATH: &str = ".github/workflows/oya-ci-required.yml";
@@ -219,6 +232,119 @@ fn overlays_parse_select_the_cache_platform_and_carry_no_identity() {
             "{path}: secret material in a checked-in overlay"
         );
     }
+}
+
+/// ADR-0556 D2 clause (c) — CONTENT-ADDRESSED TOOLCHAIN INTERLOCK.
+///
+/// A `system_*_toolchain` contributes the compiler's PATH to the action key, never
+/// the compiler's CONTENT. Swap `/usr/bin/clang` 18 -> 19, or move the rustup
+/// default, and every action key is UNCHANGED — a shared CAS then serves artifacts
+/// built by a different compiler as current. `toolchains/BUCK` wires exactly that
+/// today (`system_rust_toolchain` + an absolute-path `system_cxx_toolchain`), so the
+/// sound response is to refuse to SHARE, not to pretend the key covers the compiler.
+///
+/// Mechanised as an implication so it costs nothing until warm is real:
+///   `warm_reads_licensed == true` => BOTH warm overlays declare
+///   `[oya_toolchain] rust = hermetic` AND `cxx = hermetic`.
+/// Unlicensed (today) it is vacuous; the day the license flips without hermetic
+/// toolchains, this gate is RED and the flip cannot land.
+fn toolchain_interlock_findings(licensed: bool, overlays: &[(&str, String)]) -> Vec<String> {
+    if !licensed {
+        return Vec::new();
+    }
+    let mut findings = Vec::new();
+    for (path, text) in overlays {
+        let cfg = app::parse_buckconfig(text);
+        let Some(section) = cfg.get(TOOLCHAIN_SECTION) else {
+            findings.push(format!(
+                "{path}: warm is LICENSED but the overlay declares no [{TOOLCHAIN_SECTION}] \
+                 section — no lane may read or write a shared CAS while the rust/cxx toolchains \
+                 are ambient (keyed by PATH, not by content): ADR-0556 D2 clause (c)"
+            ));
+            continue;
+        };
+        for lang in INTERLOCKED_LANGUAGES {
+            let declared = section.get(lang).map(String::as_str);
+            if declared != Some(CONTENT_ADDRESSED) {
+                findings.push(format!(
+                    "{path}: [{TOOLCHAIN_SECTION}] {lang} = {} — must be `{CONTENT_ADDRESSED}` \
+                     before warm is licensed; an ambient {lang} toolchain contributes its PATH to \
+                     the action key, not its content, so the CAS cannot tell two compilers apart",
+                    declared.unwrap_or("<missing>")
+                ));
+            }
+        }
+    }
+    findings
+}
+
+#[test]
+fn warm_license_requires_content_addressed_toolchains() {
+    let root = repo_root();
+    let overlays: Vec<(&str, String)> = [app::OVERLAY_RW_PATH, app::OVERLAY_RO_PATH]
+        .into_iter()
+        .map(|p| {
+            let text = std::fs::read_to_string(root.join(p))
+                .unwrap_or_else(|e| panic!("read {p}: {e}"));
+            (p, text)
+        })
+        .collect();
+    let license = app::load_license(&root).expect("license");
+    let licensed = license["warm_reads_licensed"].as_bool().unwrap();
+
+    // (1) LIVE CORPUS: the real license against the real overlays. Vacuously green
+    // while warm_reads_licensed=false; binding the moment it is true.
+    let findings = toolchain_interlock_findings(licensed, &overlays);
+    assert!(
+        findings.is_empty(),
+        "ADR-0556 D2 clause (c) VIOLATED — warm is licensed over ambient toolchains: {findings:#?}"
+    );
+
+    // (2) NEGATIVE BRANCH over the live overlays (the `kill_switch_*` fixture-mutation
+    // pattern): mutate the parsed license to true and downgrade whatever hermetic
+    // declaration the overlays carry. Permanently RED — today because neither overlay
+    // declares [oya_toolchain] at all, and after the hermetic toolchains land because
+    // the declaration is downgraded. Without this, (1) is a tautology that can never
+    // fail while the license ships false.
+    let mut forced = license.clone();
+    forced["warm_reads_licensed"] = json!(true);
+    let downgraded: Vec<(&str, String)> = overlays
+        .iter()
+        .map(|(p, t)| (*p, t.replace(CONTENT_ADDRESSED, "ambient")))
+        .collect();
+    let red =
+        toolchain_interlock_findings(forced["warm_reads_licensed"].as_bool().unwrap(), &downgraded);
+    for path in [app::OVERLAY_RW_PATH, app::OVERLAY_RO_PATH] {
+        assert!(
+            red.iter().any(|f| f.starts_with(path)),
+            "interlock must go RED for `{path}` under a forced license with non-hermetic \
+             toolchains — a guard that cannot fail is not a guard: {red:#?}"
+        );
+    }
+
+    // (3) POSITIVE BRANCH: and it must be satisfiable, or (2) only proves the checker
+    // is a constant. A licensed overlay that declares both languages content-addressed
+    // is GREEN; the same declaration is not required while unlicensed.
+    let compliant = [(
+        "fixture://hermetic",
+        format!(
+            "[{TOOLCHAIN_SECTION}]\n  rust = {CONTENT_ADDRESSED}\n  cxx = {CONTENT_ADDRESSED}\n"
+        ),
+    )];
+    assert!(
+        toolchain_interlock_findings(true, &compliant).is_empty(),
+        "a licensed overlay declaring hermetic rust+cxx must satisfy clause (c)"
+    );
+    let ambient = [("fixture://ambient", "[oya_cache]\n  x = y\n".to_string())];
+    assert!(
+        toolchain_interlock_findings(false, &ambient).is_empty(),
+        "clause (c) is an implication: unlicensed lanes keep their ambient toolchains"
+    );
+    assert_eq!(
+        toolchain_interlock_findings(true, &ambient).len(),
+        1,
+        "a licensed overlay with no [{TOOLCHAIN_SECTION}] section is one finding"
+    );
 }
 
 #[test]
