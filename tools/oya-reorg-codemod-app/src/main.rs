@@ -34,8 +34,9 @@ use serde_json::{json, Value};
 
 /// The de-committed move-manifest's canonical repo-relative materialization path (task #64).
 /// Regenerated each run under `specs/reorg/` (DECIDED) and declared `not-tracked-in-git` in
-/// `registry/generated-artifact-control-plane.json`, it is covered by ADR-0614's registry-drift
-/// regenerate-twice byte-determinism canary.
+/// `registry/generated-artifact-control-plane.json`. ADR-0614's regenerate-twice canary checks
+/// it only at a git-bearing Cargo or CI regeneration boundary; hermetic Buck actions skip that
+/// source canary by design because they have no `.git` directory.
 const DEFAULT_MANIFEST_OUT: &str = "specs/reorg/move-manifest.generated.json";
 
 /// The out-of-band bootstrap ref the landed-plan probe anchors on (the emitter's own base ref).
@@ -79,8 +80,9 @@ fn run() -> Result<ExitCode, String> {
 /// already-landed plans; multiple active plans fail closed, while zero active plans write the
 /// canonical EMPTY manifest (`files: []`, `crate_idents: []`) — the strict no-op the emitter reads
 /// as "no renames" (identity relabel), so a no-move PR is gate-green and byte-stable. Determinism:
-/// sorted pairs + canonical JSON => two fresh emissions remain byte-identical under ADR-0614's
-/// registry-drift regenerate-twice determinism canary.
+/// sorted pairs + canonical JSON keep emissions byte-stable. ADR-0614's regenerate-twice source
+/// canary verifies that property only at a git-bearing Cargo or CI regeneration boundary; hermetic
+/// Buck actions skip it by design.
 fn cmd_manifest(args: &[String]) -> Result<ExitCode, String> {
     let mut plan_path: Option<PathBuf> = None;
     let mut repo_root = std::env::current_dir().map_err(|e| e.to_string())?;
