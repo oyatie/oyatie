@@ -1,7 +1,7 @@
 ---
 doc_class: Operating-Contract
 shape: null
-length_cap: 360
+length_cap: 420
 authority_tier: 2
 excludes:
 - path: /specs/root-hub-pointers.json
@@ -124,6 +124,35 @@ For any question, route to its authority. Click the link; do not duplicate inlin
 | Release / incident / on-call | [`RELEASE-MANAGEMENT.md`](RELEASE-MANAGEMENT.md) <!-- forward-reference: wave-1 -->, [`INCIDENT-MANAGEMENT.md`](INCIDENT-MANAGEMENT.md) <!-- forward-reference: wave-1 -->, [`standards/on-call.md`](standards/on-call.md) <!-- forward-reference: wave-1 --> |
 | Glossary (canonical vocabulary) | [`GLOSSARY.md`](GLOSSARY.md) <!-- forward-reference: wave-1 --> |
 | Machine-readable mirrors of the catalog | [`machine-readable/`](machine-readable/) <!-- forward-reference: wave-1 --> |
+
+## Bounded delivery and preservation
+
+Parallel work starts only after preparation. Pin the authority and base SHA, assign each lane one
+isolated worktree and non-overlapping ownership, name its reviewer and integration order, select
+the checks that prove the lane, and record CPU, memory, disk, and IOPS limits. Run one
+representative lane through authoring, review, repair, and verification before wider fan-out; a red
+or incomplete pilot blocks expansion.
+
+Preservation is lane-first and chronological. Record every lane's base/head, ownership, commands,
+test and review results, dependencies, and terminal state. Record empty, no-op, interrupted, and
+unknown outcomes explicitly; absence of findings is not evidence of success. Before cleanup,
+re-query live Git/GitHub state, prove each remote archive commit and tree are readable, and retain
+terminal anchors for every useful lane. GitHub issues remain the work-item source of truth and
+[`HANDOFF.md`](../HANDOFF.md) remains a thin redirect.
+
+Only durable useful work belongs in signed remote Git history. Secrets, credential-bearing
+machine configuration, raw `.omx`/`.omc` runtime state, caches, and generated build output MUST NOT
+be preserved as source. Distill useful local planning into its owning issue or canonical artifact;
+archive refs are recovery inputs, never integration bases or current authority.
+
+Evidence-grounded policy, regulatory, and compliance claims identify the exact source and whether
+it is primary, its immutable version or retrieval date, effective date, jurisdiction and
+applicability, missing or conflicting authority, and the resulting claim ceiling. Revalidate when
+the source, date, applicability, or product behavior changes. This method paraphrases operational
+lessons reviewed from [Bun's Rust rewrite account](https://bun.com/blog/bun-in-rust),
+[gaebal-gajae's archive](https://blog.gaebal-gajae.dev/archive.html), and
+[`it-legal` at `5624ff1`](https://github.com/jclab-joseph/it-legal/tree/5624ff14e673863ec3b5645155742691a74ef152);
+none is Oyatie, legal, or product authority.
 
 ## Pre-flight checklist
 
