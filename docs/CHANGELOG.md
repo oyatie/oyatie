@@ -5,6 +5,13 @@ doc_status: published
 
 # Changelog
 
+## 2026-08-04 — Bounded cross-run affected-baseline provenance correction
+
+- Accepted ADR-0636 as the narrow interim authority for the already-promoted cross-run baseline consumer without closing #1504.
+- Scoped Actions read permission to the affected-set job and bound reusable artifacts to run, attempt, head, producer, immutable artifact IDs, and SHA-256 digests.
+- Made duplicate/malformed provenance a refusal and retained the clean cold build/test fallback when any binding or durable outcome telemetry is unavailable.
+- Added workflow conformance coverage; typed cloud-ci retrieval or licensed remote AC/CAS remains the mandatory deletion trigger.
+
 ## 2026-08-04 — Dedicated ephemeral ARC PostgreSQL test cell
 
 - Moved both required live-PostgreSQL jobs from hosted service containers to the
