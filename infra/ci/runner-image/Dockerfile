@@ -46,10 +46,9 @@ RUN apt-get update \
 
 # PowerShell is a HARD requirement of the merge-authority lane, not a convenience:
 # .github/workflows/oya-ci-required.yml runs the gate matrix's main step under
-# `shell: pwsh` (one script that branches on $IsWindows so the same body serves the Linux
-# legs and the one windows-latest leg). The stock actions-runner image has no pwsh — probed
+# `shell: pwsh` for its self-hosted Linux gate leg. The stock actions-runner image has no pwsh — probed
 # in a pod from the pulled image, all of pwsh/powershell/pwsh-preview absent and no
-# /opt/microsoft install dir — so without this layer all 45 gate legs fail on this fleet
+# /opt/microsoft install dir — so without this layer the gate job fails on this fleet
 # with a missing-shell error, which looks like a gate failure and is not one.
 #
 # GitHub-HOSTED ubuntu images ship pwsh preinstalled, which is exactly why this dependency
