@@ -1,0 +1,24 @@
+{
+  "artifact": "preplanning_founder_decision_ledger",
+  "repository": "oyatie",
+  "evidence_baseline": "73fea9ffc3d48f331f7cb6f086657a9d7b4a096b",
+  "authority": "interactive founder decisions in this session; nonbinding until admitted through the future authority protocol",
+  "decisions": [
+    {
+      "id": "B0-D01-LEGAL-EFFECT",
+      "state": "founder_selected",
+      "selection": "A_ONE_SUBSTANTIVE_RATIFICATION",
+      "meaning": [
+        "Competent ratifiers sign the digest of the exact canonical ReleasePayload.",
+        "Signatures alone produce a nonbinding ratified_pending_admission candidate.",
+        "Admission is deterministic and nondiscretionary under predecessor-trusted rules.",
+        "Successful admission emits a separate signed AdmissionAttestation with payload digest, monotonic admission sequence, and trusted admission time.",
+        "Accepted/Effective arises atomically on admission and valid-time applicability.",
+        "R0 requires a separately frozen bootstrap policy authorized under the pre-genesis governance regime.",
+        "Bitemporal authority begins prospectively at genesis; pre-genesis dates remain historical evidence."
+      ],
+      "rejected": "B_TWO_DISCRETIONARY_AUTHORITY_DECISIONS",
+      "founder_response": "A"
+    }
+  ]
+}

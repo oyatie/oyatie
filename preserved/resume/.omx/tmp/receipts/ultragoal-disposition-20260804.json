@@ -1,0 +1,4650 @@
+{
+  "schema_version": "1.0.0",
+  "receipt_id": "ultragoal-disposition-20260804",
+  "generated_at": "2026-08-04T02:54:13Z",
+  "read_only": true,
+  "source_context": "/Users/jasonlee/Developer/oyatie-team-resume-20260804/.omx/context/prewipe-consolidation-resume-20260804T024330Z.md",
+  "bindings": {
+    "current_dev": {
+      "ref": "refs/heads/dev",
+      "sha": "ee389362f76681a2ab45a2f531f09180a1993460"
+    },
+    "preserved_archive": {
+      "ref": "refs/heads/archive/prewipe-20260803/curated-ignored-context",
+      "sha": "df06206aacbcfb8128a82e2054dfe5b78ffb857a"
+    },
+    "sole_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+  },
+  "invariants": {
+    "restore_archive_directly": false,
+    "merge_archive_directly": false,
+    "ultragoal_mints_live_work_ids": false,
+    "tracked_files_modified": false
+  },
+  "inventory": {
+    "current": {
+      "omc_ultragoal_count": 4,
+      "omx_ultragoal_count": 0,
+      "paths": [
+        {
+          "path": ".omc/ultragoal/OWNERS",
+          "blob_sha": "4d5523fa27a5b0043f6f7cdc32513d65340b071e"
+        },
+        {
+          "path": ".omc/ultragoal/TEAMMATE-PREAMBLE.md",
+          "blob_sha": "c11ba8dd23591a9c1b6d08ae0da26f176c479f87"
+        },
+        {
+          "path": ".omc/ultragoal/friction-ledger.jsonl",
+          "blob_sha": "d666617e98c001d5a5b06f44767aa9c948856029"
+        },
+        {
+          "path": ".omc/ultragoal/premise.txt",
+          "blob_sha": "f8e6b72c4ca9685844b89c8b15f4a1891569ad86"
+        }
+      ]
+    },
+    "archive": {
+      "omc_ultragoal_count": 218,
+      "omx_ultragoal_count": 0,
+      "total_count": 218,
+      "empty_sets": [
+        ".omx/ultragoal/**"
+      ]
+    },
+    "relation_counts": {
+      "same": 2,
+      "diverged": 2,
+      "archive_only": 214
+    },
+    "disposition_counts": {
+      "discard": 20,
+      "handoff": 21,
+      "implementation/test evidence": 75,
+      "issue": 7,
+      "masterplan": 95
+    },
+    "unique_blob_count": 218,
+    "total_bytes": 3991403
+  },
+  "paths": [
+    {
+      "path": ".omc/ultragoal/101-live-postgres-ci-lane-slice.md",
+      "blob_sha": "c1f9953b63b49e88ba8799211c4464e750e174f3",
+      "bytes": 6309,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/112-shared-rls-guard-slice.md",
+      "blob_sha": "a88109f6dcb47bb8727c1c1b6af0a81a5cb17454",
+      "bytes": 7181,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/113-runtime-role-provisioning-slice.md",
+      "blob_sha": "96ca80736cac63430681e201f5b8f05376e2905c",
+      "bytes": 5751,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/117-port-placement-gate-slice.md",
+      "blob_sha": "5a6be6737d8822aae6529ae6e6beedaf6447caa6",
+      "bytes": 5677,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/125-faces-merge-driver-design.md",
+      "blob_sha": "9c741a93971b4b9b70c8d39bebefa626d601b891",
+      "bytes": 34742,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/780-review-ground-truth.md",
+      "blob_sha": "5cf3bcce16436c01a604da9284811a153eece168",
+      "bytes": 4996,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/BRIEF-g002-kms-operator-slice2.md",
+      "blob_sha": "e4c5519fadfd6f0b5aa2bf1666f49e21331343b9",
+      "bytes": 4328,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "handoff-provenance",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "handoff",
+        "target": "remote-handoff-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as historical handoff/provenance only; newer authority and live state win"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/BRIEF-g011-checkout-guard-RECOVERY.md",
+      "blob_sha": "3befc2f40e080def08f4ba436c34aa5898e3f3cb",
+      "bytes": 2738,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "handoff-provenance",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "handoff",
+        "target": "remote-handoff-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as historical handoff/provenance only; newer authority and live state win"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/BRIEF-g011-enforcement-liveness-worker.md",
+      "blob_sha": "c54cc1582bcf8118374a57cce54c2d8c13c7dc19",
+      "bytes": 3743,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "handoff-provenance",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "handoff",
+        "target": "remote-handoff-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as historical handoff/provenance only; newer authority and live state win"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/BRIEF-g011-freshness-worker.md",
+      "blob_sha": "8ecdcdff5ddc9ee5c05c58382850f377ab49ec40",
+      "bytes": 2562,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "handoff-provenance",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "handoff",
+        "target": "remote-handoff-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as historical handoff/provenance only; newer authority and live state win"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/BRIEF-g011-lane-supervisor.md",
+      "blob_sha": "b6ba59b9183728d297bd1e8ed0171178c2eea88c",
+      "bytes": 3854,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "handoff-provenance",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "handoff",
+        "target": "remote-handoff-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as historical handoff/provenance only; newer authority and live state win"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/BRIEF-g011-main-checkout-guard.md",
+      "blob_sha": "981b4ecabc52e9f0053b377c2dbb86a8f8cf69b1",
+      "bytes": 4284,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "handoff-provenance",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "handoff",
+        "target": "remote-handoff-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as historical handoff/provenance only; newer authority and live state win"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/BRIEF-g011-rust-test-wiring-generator.md",
+      "blob_sha": "5f2e727ae13bdaec992f006cc2623a951fbc4818",
+      "bytes": 3516,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "handoff-provenance",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "handoff",
+        "target": "remote-handoff-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as historical handoff/provenance only; newer authority and live state win"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/BRIEF-g011-settle-automation-worker.md",
+      "blob_sha": "d1ffa74e3f66e094bce81347505a8f36d65d3ab3",
+      "bytes": 3450,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "handoff-provenance",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "handoff",
+        "target": "remote-handoff-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as historical handoff/provenance only; newer authority and live state win"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/BRIEF-g011-target-parity-worker.md",
+      "blob_sha": "23d57628aeb79485c645d198c53c9424539fbe9b",
+      "bytes": 1458,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "handoff-provenance",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "handoff",
+        "target": "remote-handoff-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as historical handoff/provenance only; newer authority and live state win"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/CHECKPOINT-2026-06-10.md",
+      "blob_sha": "e0ace26002847b5332f0c415b76cdbca376f4fce",
+      "bytes": 8977,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "handoff-provenance",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "handoff",
+        "target": "remote-handoff-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as historical handoff/provenance only; newer authority and live state win"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/DELETION-PLAN-cloud-kernel.md",
+      "blob_sha": "3395c0a620f0459a2948fa76968037ae023293be",
+      "bytes": 11201,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/DOCTRINE-cohesive-owned-substrates.md",
+      "blob_sha": "f81f44b3dab62fc3f785e566ed254aae8024d006",
+      "bytes": 4403,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/FRESH-SESSION-START-HERE-2026-08-03.md",
+      "blob_sha": "53c713e38743c689186b1fd59cc0dd50c0065130",
+      "bytes": 2765,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "issue-linked-observation",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "issue",
+        "target": "github-issue:1532",
+        "discard_rationale": null,
+        "rationale": "actionable observation already routed to the named live GitHub issue"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/G023-CLOUD-KERNEL-LIVE-TREE-CENSUS-2026-08-02.md",
+      "blob_sha": "9284dc1204d3940abc80162967b7b4eb959f3665",
+      "bytes": 4612,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/G025-CHECK-LIKE-DESTINATION-AUDIT-2026-08-02.md",
+      "blob_sha": "6a62dde6bc009bbc770b2975c369a7675fc80d99",
+      "bytes": 3167,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/G025-LICENSE-SLO-KERNEL-FACADE-AUDIT-2026-08-02.md",
+      "blob_sha": "bdc78a2faf5222f0439919b0e5e0edbb746c92b3",
+      "bytes": 4580,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/G026-APPLICATION-CONE-OWNER-SPLIT-2026-08-02.md",
+      "blob_sha": "0840cc164389285b0b46c5f50672b518d8a726a7",
+      "bytes": 9319,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/G026-APPLICATION-UNRESOLVED-OWNER-PACKET-2026-08-02.md",
+      "blob_sha": "a19fdc3c12e44991aa5781f385c569749866d2a5",
+      "bytes": 4684,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/G026-CI-PRODUCT-DESTINATION-FACE-PROOF-2026-08-02.md",
+      "blob_sha": "18674e28008e045364015ff356f29055cd1a108e",
+      "bytes": 5415,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/G026-CI-RUNTIME-FACE-BIRTH-DESIGN-2026-08-02.md",
+      "blob_sha": "d8a3933bd0e2003bcd53998c50a8ca7181b7397f",
+      "bytes": 9345,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/G026-CONSOLE-SHELL-MARKETPLACE-PLUGIN-PLACEMENT-PROOF-2026-08-02.md",
+      "blob_sha": "fed4bd8631b40abe46e0a0f0d9fd17549b60dc5d",
+      "bytes": 6011,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/G026-OYA-PRODUCT-TAIL-CENSUS-2026-08-02.md",
+      "blob_sha": "35d310eeed279c9b3aab6d3f99e8fdb38893dec9",
+      "bytes": 7172,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/G026-PRODUCT-APP-FACE-BIRTH-DESIGN-2026-08-02.md",
+      "blob_sha": "07bd98cc07da874f3ac4ea15abf93a72c731c888",
+      "bytes": 14655,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/G026-WORKSPACE-API-FACADE-COLLISION-PROOF-2026-08-02.md",
+      "blob_sha": "4d626a942858f38dde8ac29afe879469470c4065",
+      "bytes": 6728,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/G028-ARC-ADOPTION-REPOSITORY-FACTS-2026-08-02.md",
+      "blob_sha": "0ce75bdaf4a61584b4a1315a0ac95a98c8e8b26b",
+      "bytes": 3954,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/G028-BOOTSTRAP-REPOSITORY-FACTS-2026-08-02.md",
+      "blob_sha": "2e2ebb7bb8f1ba252df1742f2f522d92c1fb34e6",
+      "bytes": 4612,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/G028-CLASS-B-INDEPENDENT-REVIEW-2026-08-02.md",
+      "blob_sha": "950b892aeddef6445afe7d22d5225405fba38b7d",
+      "bytes": 5425,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/G028-CLASS-B-PERMANENT-LAB-GITOPS-DESIGN-2026-08-02.md",
+      "blob_sha": "536e021e3f5d3c6cacdd631c2d665ddcef2012ce",
+      "bytes": 13484,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/G028-CLASS-B-V2-STAGED-ARC-ADOPTION-DESIGN-2026-08-02.md",
+      "blob_sha": "57506fa4af87a1fae4d60013ee90008203058c85",
+      "bytes": 12131,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/G028-GITOPS-BOOTSTRAP-GAP-2026-08-02.md",
+      "blob_sha": "22623314224139035783ceda6df664dd07ca1fa2",
+      "bytes": 11287,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/G028-PR-PACKAGE-2026-08-02.md",
+      "blob_sha": "e9e7ee474b8154a3a06e017a18c4a5ce544ac225",
+      "bytes": 3598,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/G028-TIP-FULL-CORPUS-YAML-FACTS-FORENSICS-2026-08-02.md",
+      "blob_sha": "989094e5232b6cd5a047997c9bca858fe0a0881d",
+      "bytes": 5478,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/G030-B-UNIT-CLASS-HISTOGRAM-2026-08-02.md",
+      "blob_sha": "61a61fc8085826ed8b5a4d4ae78248ace58bc62c",
+      "bytes": 8735,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/G030-C-ROOT-SSOT-CITATION-AUDIT-2026-08-02.md",
+      "blob_sha": "42c9708e9c81d6b37c0417b77fe6edfe0ec26957",
+      "bytes": 8633,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/G030-D-EPHEMERAL-DUAL-PROOF-2026-08-02.md",
+      "blob_sha": "179e41bad2156e392eae9411eb2503f8e299dfe1",
+      "bytes": 5726,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/G030-E-SPECS-REGISTRY-SEMANTIC-CONSUMER-CENSUS-2026-08-02.md",
+      "blob_sha": "f69f6aa4aced555708695501ef4748f11ffceafa",
+      "bytes": 10025,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/G030-F-FIXTURE-CONTRACT-EXPANSION-2026-08-02.md",
+      "blob_sha": "88def6796f710637bd6d81e5a675c0b214cf87cf",
+      "bytes": 7933,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/G030-G-RECONCILED-SEMANTIC-CENSUS-2026-08-02.md",
+      "blob_sha": "dcf1a20e0053c9ee2195e861442beae268b16acf",
+      "bytes": 5971,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/G030-H-REORG-PLAN-CONSUMER-LANDED-RETENTION-PROOF-2026-08-02.md",
+      "blob_sha": "377de58919f4d3b24adc4470cbf2cc6fad41ac6d",
+      "bytes": 8855,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/G030-I-LOOP-RECOVERY-PATTERN-EMPIRICAL-CONSUMER-PROOF-2026-08-02.md",
+      "blob_sha": "816ffa5dabadd95cc3724db353aee86d0e61e8fb",
+      "bytes": 7143,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/G030-J-ACCOUNTS-REGISTRY-CONSUMER-CONTRACT-DIVERGENCE-PROOF-2026-08-02.md",
+      "blob_sha": "c1b0777878cef5102b3130a6ebc33da9728f87f5",
+      "bytes": 6987,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/G030-K-DESIGN-SYSTEM-RESIDUAL-CONSUMER-CATALOG-GAP-PROOF-2026-08-02.md",
+      "blob_sha": "0642642cfc3d5c3f00b2cda81ba80b95a786bc34",
+      "bytes": 8683,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/G030-L-VCS-REGISTRY-LIVE-READER-FROZEN-COMPANION-PROOF-2026-08-02.md",
+      "blob_sha": "1e64c75816b8f0c1d83b7233bd0024fc299ae16a",
+      "bytes": 7842,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/G030-M-FOUNDATION-BYPASS-AND-CAPABILITY-TEMPLATE-CONSUMER-PROOF-2026-08-02.md",
+      "blob_sha": "1210c664e3f1351340521478cf4e9765d5377523",
+      "bytes": 9023,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/G030-N-CAPABILITIES-AND-RELEASE-REGISTRY-CONSUMER-PROOF-2026-08-02.md",
+      "blob_sha": "0cf741e6d0da7f7f6efa557c5a05af49e63f4267",
+      "bytes": 8948,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/G030-NONCODE-CORPUS-BASELINE-2026-08-02.md",
+      "blob_sha": "f2adb41975b1601bc27c5bb75d6ae9c1272839cd",
+      "bytes": 8417,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/G030-O-CHECK-EMPIRICAL-EVIDENCE-EXISTENCE-CONTRACT-PROOF-2026-08-02.md",
+      "blob_sha": "e3313ccd203ef19e17f1bc3191d5043fbd1df77e",
+      "bytes": 6218,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/G030-P-SINGLETON-REGISTRY-RESIDUAL-CONSUMER-PROOF-2026-08-02.md",
+      "blob_sha": "e7e0eb31c2418503ddbce579b2c0acf6b72104fb",
+      "bytes": 10259,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/G030-Q-LIFECYCLE-CONFIG-ALL-CONSUMER-PROOF-2026-08-02.md",
+      "blob_sha": "730d2880156bf0c956ea6d56405eb1ad42a9b2f4",
+      "bytes": 6611,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/G030-R-RESIDUAL28-CONSUMER-PROOF-2026-08-02.md",
+      "blob_sha": "4a5ff97012c433dff6bded9ea59a60abef521537",
+      "bytes": 6899,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/G030-S-EARLIER-RETAINED-SPECS-JSON-CANONICAL-GATE-CORRECTION-2026-08-02.md",
+      "blob_sha": "fecdf285d99a390224bee16fef224be8c49d4466",
+      "bytes": 4250,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/G030-T-REMAINING-PROTECTED-QUEUE-INVENTORY-2026-08-02.md",
+      "blob_sha": "9004eb7777e6093895e8062ddcd0e27d58fb8cea",
+      "bytes": 5070,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/G030-U-EXACT-RESIDUAL-FIXTURE-INVENTORY-2026-08-02.md",
+      "blob_sha": "355dbe39da7504d54b54005697e32a2e45eedffe",
+      "bytes": 5164,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/G030-V-RESIDUAL13-OWNER-RULING-QUEUE-2026-08-02.md",
+      "blob_sha": "a2588ca8b0599a23fed549736f2bc835411fa152",
+      "bytes": 7553,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/G036-EXACT-48-KERNEL-PROTECTED-CONTEXT-GAP-2026-08-02.md",
+      "blob_sha": "feafde400ed214225541f3aa55b474ccd3610f76",
+      "bytes": 6065,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/G036-MULTI-ROOT-SELF-CONFORMANCE-DESIGN-2026-08-02.md",
+      "blob_sha": "9201f88c0cdb5b6fb4c3b0c5293947078aec264b",
+      "bytes": 11135,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/G037-B-HATCH-OWNER-DISPOSITION-PACKET-2026-08-02.md",
+      "blob_sha": "40270b831d370fc9d1434711f28fe0aeefc57573",
+      "bytes": 7191,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/HANDOFF-2026-08-02-FRESH-AGENT.md",
+      "blob_sha": "8411b60ba1e8d1cfed38ffc506b2363c6055fda6",
+      "bytes": 56794,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "issue-linked-observation",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "issue",
+        "target": "github-issue:1520",
+        "discard_rationale": null,
+        "rationale": "actionable observation already routed to the named live GitHub issue"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/HANDOFF-2026-08-03-SESSION.md",
+      "blob_sha": "d4149697161e3a3e782a432fbdbc527639031d64",
+      "bytes": 13589,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "handoff-provenance",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "handoff",
+        "target": "remote-handoff-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as historical handoff/provenance only; newer authority and live state win"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/INDEX.md",
+      "blob_sha": "e5b48f694212c9f6487e67c4aeac2b7d8f15e7c4",
+      "bytes": 5991,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "handoff-provenance",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "handoff",
+        "target": "remote-handoff-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as historical handoff/provenance only; newer authority and live state win"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/OWNER-DECISION-G028-ABC-LIVE-22GI-2026-08-02.md",
+      "blob_sha": "a235854f5fb747f6e6a56916892d7e64f89700b7",
+      "bytes": 4915,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/OWNERS",
+      "blob_sha": "4d5523fa27a5b0043f6f7cdc32513d65340b071e",
+      "bytes": 18,
+      "current_state_relation": {
+        "kind": "same",
+        "current_blob_sha": "4d5523fa27a5b0043f6f7cdc32513d65340b071e"
+      },
+      "artifact_class": "handoff-provenance",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "handoff",
+        "target": "current-tracked:.omc/ultragoal/OWNERS@same-blob",
+        "discard_rationale": null,
+        "rationale": "retain as historical handoff/provenance only; newer authority and live state win"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/PRODUCT-pipeline-paved-road.md",
+      "blob_sha": "041786730da4882dd0291c3ee57f861e21cbe155",
+      "bytes": 5208,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/RECOMMENDATION-corpus-liveness-graph.md",
+      "blob_sha": "98581f62cc453403da1e95aea090ed4e6a2592e3",
+      "bytes": 7001,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/REORG-PROGRAM-2026-07-30.md",
+      "blob_sha": "1559cd58a31c3d130ef23cc877d0b4dc015840aa",
+      "bytes": 75563,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/RESUME-PROMPT.md",
+      "blob_sha": "066f19c1f9d74a8f73751300a8cc2b8374418db5",
+      "bytes": 5759,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "handoff-provenance",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "handoff",
+        "target": "remote-handoff-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as historical handoff/provenance only; newer authority and live state win"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/RUBRIC-torvalds-review.md",
+      "blob_sha": "41e463b23ec00b1acbf81667856b694252f3e6ca",
+      "bytes": 5071,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "handoff-provenance",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "handoff",
+        "target": "remote-handoff-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as historical handoff/provenance only; newer authority and live state win"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/SESSION-HANDOFF-2026-06-29.md",
+      "blob_sha": "4f952c0a4071c01f4ecedf21751f90575ded4866",
+      "bytes": 35544,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "issue-linked-observation",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "issue",
+        "target": "github-issue:899",
+        "discard_rationale": null,
+        "rationale": "actionable observation already routed to the named live GitHub issue"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/SESSION-HANDOFF-2026-07-10.md",
+      "blob_sha": "212d65bc52d8d5629034cec34a44e0dc2952812c",
+      "bytes": 17012,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "issue-linked-observation",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "issue",
+        "target": "github-issue:1318",
+        "discard_rationale": null,
+        "rationale": "actionable observation already routed to the named live GitHub issue"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/SESSION-HANDOFF-2026-08-01.md",
+      "blob_sha": "bbcae89eff9f3d4e55f01f102c81d9f7a2e895ec",
+      "bytes": 26489,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "handoff-provenance",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "handoff",
+        "target": "remote-handoff-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as historical handoff/provenance only; newer authority and live state win"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/SHARED-KERNEL-CANDIDATES.md",
+      "blob_sha": "d2524ab049341aa62a5c592e2a3492079a1c03fb",
+      "bytes": 2509,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/SPEC-G011-freshness-gate.md",
+      "blob_sha": "64f672b9d4b7ae6d4e6606d7bca3063b40f3d3bf",
+      "bytes": 6779,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/SPEC-G011-glob-members.md",
+      "blob_sha": "80e881142e9aa2e67799fc48afb42ea2f7a731a2",
+      "bytes": 12262,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/SPEC-G011-target-parity-gate.md",
+      "blob_sha": "4d00d086fdd92272b98a612fac1605b6bd170e58",
+      "bytes": 4212,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/STATUS-2026-08-02-RESUME.md",
+      "blob_sha": "33bf142f0177e70f722415de46d24e1825e04725",
+      "bytes": 31452,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "handoff-provenance",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "handoff",
+        "target": "remote-handoff-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as historical handoff/provenance only; newer authority and live state win"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/TEAMMATE-PREAMBLE.md",
+      "blob_sha": "28b5617428b75056c2ad8bd5a477f07d039a7674",
+      "bytes": 9971,
+      "current_state_relation": {
+        "kind": "diverged",
+        "current_blob_sha": "c11ba8dd23591a9c1b6d08ae0da26f176c479f87"
+      },
+      "artifact_class": "operational-scratch-or-superseded",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "discard",
+        "target": null,
+        "discard_rationale": "discard archived variant from active restoration because the current tracked successor supersedes it",
+        "rationale": "discard archived variant from active restoration because the current tracked successor supersedes it"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/auth-onboarding-e2e-audit-findings.md",
+      "blob_sha": "2876cd4f0e043f6a7bf4361a29baa0b005499c64",
+      "bytes": 5907,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/auth005-wave3-launch-plan-2026-06-24.md",
+      "blob_sha": "ee23d5018f878e060728322b19e1217691b75fb2",
+      "bytes": 4670,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/backlog-parallelization-plan.md",
+      "blob_sha": "099c70f341817aae60642bd6a2d2468577b30eda",
+      "bytes": 4771,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/born-account-design.md",
+      "blob_sha": "cc796a9ad47bcd57b9858f05c5ef7d57c318f8e7",
+      "bytes": 15267,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/brief.md",
+      "blob_sha": "2ccee8192bebc96668f9c8bbcb543526ad5caa84",
+      "bytes": 24318,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "handoff-provenance",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "handoff",
+        "target": "remote-handoff-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as historical handoff/provenance only; newer authority and live state win"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/burndown/BRIEF-burndown-worker.md",
+      "blob_sha": "6f227ba6efa581f90f320b433b686c16e22f486e",
+      "bytes": 3200,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "operational-scratch-or-superseded",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "discard",
+        "target": null,
+        "discard_rationale": "discard from active restoration as retired operational scratch; preserve only at the archive commit",
+        "rationale": "discard from active restoration as retired operational scratch; preserve only at the archive commit"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/burndown/all-candidates.txt",
+      "blob_sha": "b3787b4e08a90bc3c7b0389f580fbf473bff5d17",
+      "bytes": 31965,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "operational-scratch-or-superseded",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "discard",
+        "target": null,
+        "discard_rationale": "discard from active restoration as retired operational scratch; preserve only at the archive commit",
+        "rationale": "discard from active restoration as retired operational scratch; preserve only at the archive commit"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/burndown/slice-01.txt",
+      "blob_sha": "e3f0940bf84294cde03518556717abf1ffb95d9d",
+      "bytes": 2697,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "operational-scratch-or-superseded",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "discard",
+        "target": null,
+        "discard_rationale": "discard from active restoration as retired operational scratch; preserve only at the archive commit",
+        "rationale": "discard from active restoration as retired operational scratch; preserve only at the archive commit"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/burndown/slice-02.txt",
+      "blob_sha": "ba467fb8bb12a19529046e8fb31d263996b9c9fc",
+      "bytes": 2743,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "operational-scratch-or-superseded",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "discard",
+        "target": null,
+        "discard_rationale": "discard from active restoration as retired operational scratch; preserve only at the archive commit",
+        "rationale": "discard from active restoration as retired operational scratch; preserve only at the archive commit"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/burndown/slice-03.txt",
+      "blob_sha": "0999e971e08d2f0c160eb968ee49a633ddea7faf",
+      "bytes": 1873,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "operational-scratch-or-superseded",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "discard",
+        "target": null,
+        "discard_rationale": "discard from active restoration as retired operational scratch; preserve only at the archive commit",
+        "rationale": "discard from active restoration as retired operational scratch; preserve only at the archive commit"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/burndown/slice-04.txt",
+      "blob_sha": "412d227eae071b66f97222aa54244a592c40adfe",
+      "bytes": 2046,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "operational-scratch-or-superseded",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "discard",
+        "target": null,
+        "discard_rationale": "discard from active restoration as retired operational scratch; preserve only at the archive commit",
+        "rationale": "discard from active restoration as retired operational scratch; preserve only at the archive commit"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/burndown/slice-05.txt",
+      "blob_sha": "700d47f5e72551f90206732b4b26d0b8f4a156fa",
+      "bytes": 2506,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "operational-scratch-or-superseded",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "discard",
+        "target": null,
+        "discard_rationale": "discard from active restoration as retired operational scratch; preserve only at the archive commit",
+        "rationale": "discard from active restoration as retired operational scratch; preserve only at the archive commit"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/burndown/slice-06.txt",
+      "blob_sha": "83e47a4b1128c37949f86c83ad096539f1af0804",
+      "bytes": 2561,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "operational-scratch-or-superseded",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "discard",
+        "target": null,
+        "discard_rationale": "discard from active restoration as retired operational scratch; preserve only at the archive commit",
+        "rationale": "discard from active restoration as retired operational scratch; preserve only at the archive commit"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/burndown/slice-07.txt",
+      "blob_sha": "3147ad1a2736a75a056e0bcd53ed18e429b0c75a",
+      "bytes": 3195,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "operational-scratch-or-superseded",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "discard",
+        "target": null,
+        "discard_rationale": "discard from active restoration as retired operational scratch; preserve only at the archive commit",
+        "rationale": "discard from active restoration as retired operational scratch; preserve only at the archive commit"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/burndown/slice-08.txt",
+      "blob_sha": "4d406035080d1d10f3b801311b2fd29f73af7264",
+      "bytes": 3128,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "operational-scratch-or-superseded",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "discard",
+        "target": null,
+        "discard_rationale": "discard from active restoration as retired operational scratch; preserve only at the archive commit",
+        "rationale": "discard from active restoration as retired operational scratch; preserve only at the archive commit"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/burndown/slice-09.txt",
+      "blob_sha": "a056e791c4becdad0617f7a91b51eb2624e6d828",
+      "bytes": 2622,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "operational-scratch-or-superseded",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "discard",
+        "target": null,
+        "discard_rationale": "discard from active restoration as retired operational scratch; preserve only at the archive commit",
+        "rationale": "discard from active restoration as retired operational scratch; preserve only at the archive commit"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/burndown/slice-10.txt",
+      "blob_sha": "a8bf4dbb6697c136bc0642965a80c4f438cd0a48",
+      "bytes": 2279,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "operational-scratch-or-superseded",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "discard",
+        "target": null,
+        "discard_rationale": "discard from active restoration as retired operational scratch; preserve only at the archive commit",
+        "rationale": "discard from active restoration as retired operational scratch; preserve only at the archive commit"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/burndown/slice-11.txt",
+      "blob_sha": "1c8bf227a6cf3aefd4ef6394c68ad5f2c0b04af6",
+      "bytes": 2966,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "operational-scratch-or-superseded",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "discard",
+        "target": null,
+        "discard_rationale": "discard from active restoration as retired operational scratch; preserve only at the archive commit",
+        "rationale": "discard from active restoration as retired operational scratch; preserve only at the archive commit"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/burndown/slice-12.txt",
+      "blob_sha": "bfea79f87e5b473a58b0eac2d2cf7ac6968a77cf",
+      "bytes": 3349,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "operational-scratch-or-superseded",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "discard",
+        "target": null,
+        "discard_rationale": "discard from active restoration as retired operational scratch; preserve only at the archive commit",
+        "rationale": "discard from active restoration as retired operational scratch; preserve only at the archive commit"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/c6-sealing-root-custody-design-2026-06-24.md",
+      "blob_sha": "60dcc1acc76aab9f9f2a10f8bd9dc1cf761775c2",
+      "bytes": 4575,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/catalog-dead-stem-dispositions.json",
+      "blob_sha": "54903b8700de81a91de67e62ff19bf4ec86336b0",
+      "bytes": 124519,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/cell-move-mapping.md",
+      "blob_sha": "bc4f00b3824071872f5e42601449faa516c17fc7",
+      "bytes": 4064,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/ci-gate-fleet-audit-2026-07-28.md",
+      "blob_sha": "491aa0f1baf1c7af95d49b563b908a94a8ae576b",
+      "bytes": 5982,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/ci-optimization-plan.md",
+      "blob_sha": "45b394ebdd05452e78d78c41aedcc79f72027144",
+      "bytes": 25244,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/ci-optimization-ultraqa.md",
+      "blob_sha": "c11add7bc6e6fbeb33cf63bafc0fe105abb173c6",
+      "bytes": 987619,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "issue-linked-observation",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "issue",
+        "target": "github-issue:899",
+        "discard_rationale": null,
+        "rationale": "actionable observation already routed to the named live GitHub issue"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/contract-slice-dsl-enrichment-spec.md",
+      "blob_sha": "ec7d77b2e7a11bf20bf54ecfc3da2c153ee3015a",
+      "bytes": 7045,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/corpus-phase0-launch-plan-2026-06-24.md",
+      "blob_sha": "7382f72a12b87d8f3fe41410d8bdf1d4bb7b9551",
+      "bytes": 5265,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/dispatch-ledger.jsonl",
+      "blob_sha": "f5cf967c497dc665ca75314a6f492fadd423694d",
+      "bytes": 108407,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "handoff-provenance",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "handoff",
+        "target": "remote-handoff-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as historical handoff/provenance only; newer authority and live state win"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/findings-d0-docs-exploration.json",
+      "blob_sha": "d03454eb293f82c41f994174803c7ae9f8baa8db",
+      "bytes": 81030,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/findings-documentation-adrs-skill-design.json",
+      "blob_sha": "cc1e0a27d0db6c705c2a7c509c0c92ab8c2093b7",
+      "bytes": 52504,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/findings-phase1-openpr-triage.json",
+      "blob_sha": "f954d129cd3dbc89cad397fc2793c218c4424593",
+      "bytes": 87956,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "issue-linked-observation",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "issue",
+        "target": "github-issue:1208",
+        "discard_rationale": null,
+        "rationale": "actionable observation already routed to the named live GitHub issue"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/findings-phase2a-rebase-drain.json",
+      "blob_sha": "3b5459ac4279568c31995f810c856dfdf36ca4fe",
+      "bytes": 23863,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "issue-linked-observation",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "issue",
+        "target": "github-issue:1208",
+        "discard_rationale": null,
+        "rationale": "actionable observation already routed to the named live GitHub issue"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/fric-017-disk-preflight-fix.md",
+      "blob_sha": "57edac825848a76dcffc8a2fc4f1bb36db6d332d",
+      "bytes": 4487,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/friction-ledger.jsonl",
+      "blob_sha": "ef7841dc723eab591d81cd113828e1278aa508fa",
+      "bytes": 76756,
+      "current_state_relation": {
+        "kind": "diverged",
+        "current_blob_sha": "d666617e98c001d5a5b06f44767aa9c948856029"
+      },
+      "artifact_class": "operational-scratch-or-superseded",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "discard",
+        "target": null,
+        "discard_rationale": "discard archived variant from active restoration because the current tracked successor supersedes it",
+        "rationale": "discard archived variant from active restoration because the current tracked successor supersedes it"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/frozen-ref-decommit-B-design.md",
+      "blob_sha": "6aa908e82297ca1ce90ef9b893a43430bf991dcb",
+      "bytes": 9826,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/frozen-ref-decommit-decision.md",
+      "blob_sha": "e817cb0ad3f385f062db6e153eedd24a59f4a8f0",
+      "bytes": 12673,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/g001-g013-status-assessment-2026-06-23.md",
+      "blob_sha": "e4e52505290de0a80929f62e0f9b5cf9a548747a",
+      "bytes": 5638,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/g002-svid-operator-slice.md",
+      "blob_sha": "ca5aeeea74712ab77e49c83bf7bd49466890daf4",
+      "bytes": 5115,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/g003-outbox-cdc-adapter-slice.md",
+      "blob_sha": "f0f4ab3a35a9136c6f9625cbf8f1c95800702cb7",
+      "bytes": 5097,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/g004-bundle-signing-slice.md",
+      "blob_sha": "0ef5918383e62f1a986ecf29a75997292ddb45a7",
+      "bytes": 6962,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/g004-tenant-overlay-slice.md",
+      "blob_sha": "8e1e73f7d48fa209b80eee63a3cb0f3f27264778",
+      "bytes": 5521,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/g005-scim-durable-slice.md",
+      "blob_sha": "9471fd7e27c3309c957ca8cfb1d17770190287a7",
+      "bytes": 7596,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/g006-tenancy-durable-slice.md",
+      "blob_sha": "ca60f169cc5ca06f8b0ffe1adf89da0410f117c5",
+      "bytes": 9275,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/g013-aislop-report.md",
+      "blob_sha": "45464b49a5d684e587cb27e877092aea4085cf1a",
+      "bytes": 8191,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "evidence/quality-gate/g013-aislop-report.md@same-blob",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/g013-verification-report.md",
+      "blob_sha": "6e0a492dfcc0e38b73e98d8a3a00357223861fb8",
+      "bytes": 7821,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "evidence/quality-gate/g013-verification-report.md@same-blob",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/gateway-move-mapping.md",
+      "blob_sha": "82c155c7b9f449ae8d72bc1b659380bfb7a2e58a",
+      "bytes": 4857,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/generated-artifact-policy-determination.md",
+      "blob_sha": "5069a97688de41985e56a5c328a060bf5961f5f5",
+      "bytes": 26448,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/goals.json",
+      "blob_sha": "4681477042ce799b87844aeed2af98945fa3ef29",
+      "bytes": 17498,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/hyperscaler-antipattern-findings-2026-07-27.md",
+      "blob_sha": "49507dd75439732885f73088d5f13bf8d8c34575",
+      "bytes": 7718,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/hypervisor-tier-research-seed.yaml",
+      "blob_sha": "75c54e3b7b6b25bdd77e8ff2455670b7894dba0e",
+      "bytes": 7409,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/ideas/derivation-resolution-not-artifact-transport.md",
+      "blob_sha": "c2b0b7446ad064f6145fedf727a23d401a25ff5f",
+      "bytes": 7412,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/ideas/pipeline-friction-derived-seeds-and-productized-guards.md",
+      "blob_sha": "5cab02f70bd8e7bfead95ae72478ed2203c6f9dd",
+      "bytes": 8094,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/lane-verify-design.md",
+      "blob_sha": "ee5d8dc4a6a0b3c7e43490802f3c0aada1048748",
+      "bytes": 5141,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/language-retirement-disposition-2026-07-27.md",
+      "blob_sha": "cfad58cddd3243f47b532eba4f10fe1556838595",
+      "bytes": 7265,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/ledger.jsonl",
+      "blob_sha": "ee1f7c2013a1f091ddeaf88bcda534cc1bb80b2f",
+      "bytes": 35108,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "handoff-provenance",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "handoff",
+        "target": "remote-handoff-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as historical handoff/provenance only; newer authority and live state win"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/living-monorepo-graph-pattern.md",
+      "blob_sha": "58b00e2042baf1d6408ca63647629c5c79662a21",
+      "bytes": 5908,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/living-monorepo-pm-2026-07-10.md",
+      "blob_sha": "dd995273249f9cca441fcd4b129265a8d7714cf5",
+      "bytes": 6189,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/living-monorepo-pm-seed.json",
+      "blob_sha": "d5f57252d8c71f61c261cfa4e448b89e19fb844e",
+      "bytes": 8728,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/merge-train.md",
+      "blob_sha": "3587649253ebd9a25cecf45291954c6ddd576072",
+      "bytes": 4514,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "operational-scratch-or-superseded",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "discard",
+        "target": null,
+        "discard_rationale": "discard from active restoration as retired operational scratch; preserve only at the archive commit",
+        "rationale": "discard from active restoration as retired operational scratch; preserve only at the archive commit"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/milestone-view-build-artifact-design.md",
+      "blob_sha": "ed9bbb177151aece4accafb8457f1cedba043ded",
+      "bytes": 31890,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/monorepo-reimagining.md",
+      "blob_sha": "9657ea94bf4352a37421b37405177f4f1b498949",
+      "bytes": 11425,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/open-pr-fix-batch-plan.md",
+      "blob_sha": "62d0360483fe239db35d206320ba95b1f4d0af42",
+      "bytes": 6602,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "operational-scratch-or-superseded",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "discard",
+        "target": null,
+        "discard_rationale": "discard from active restoration as retired operational scratch; preserve only at the archive commit",
+        "rationale": "discard from active restoration as retired operational scratch; preserve only at the archive commit"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/parallel-development-plan.md",
+      "blob_sha": "7ae8936193b28ff6093e4ec8ec7815d9af30b28c",
+      "bytes": 6796,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/pipeline-product-program-plan-2026-06-24.md",
+      "blob_sha": "d4ce4a6c916556dc809a9c1b8de5317f8fd6af36",
+      "bytes": 20798,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/prc2-apply-spec.json",
+      "blob_sha": "1c969578bed1620b5b0d731785343212ae4abe8d",
+      "bytes": 38231,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "operational-scratch-or-superseded",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "discard",
+        "target": null,
+        "discard_rationale": "discard from active restoration as retired operational scratch; preserve only at the archive commit",
+        "rationale": "discard from active restoration as retired operational scratch; preserve only at the archive commit"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/prc3-brief.md",
+      "blob_sha": "ed2b2f6d2002ad3c4c62aa7a2eb111e120ab9e89",
+      "bytes": 5332,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "operational-scratch-or-superseded",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "discard",
+        "target": null,
+        "discard_rationale": "discard from active restoration as retired operational scratch; preserve only at the archive commit",
+        "rationale": "discard from active restoration as retired operational scratch; preserve only at the archive commit"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/premise.txt",
+      "blob_sha": "f8e6b72c4ca9685844b89c8b15f4a1891569ad86",
+      "bytes": 459,
+      "current_state_relation": {
+        "kind": "same",
+        "current_blob_sha": "f8e6b72c4ca9685844b89c8b15f4a1891569ad86"
+      },
+      "artifact_class": "handoff-provenance",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "handoff",
+        "target": "current-tracked:.omc/ultragoal/premise.txt@same-blob",
+        "discard_rationale": null,
+        "rationale": "retain as historical handoff/provenance only; newer authority and live state win"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/reconciliation-audit-register.md",
+      "blob_sha": "8eb17993fd7f273f9a05ff5a27eeb3ee92abb179",
+      "bytes": 21358,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/remaining-capabilities-move-mappings.md",
+      "blob_sha": "7d4dcc9a1319cf7eb14ec076d7cd6d1662161bae",
+      "bytes": 33129,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/rename-aware-baseline-spec.md",
+      "blob_sha": "7d15a388628769df9455c88c55282e737c0f946a",
+      "bytes": 21984,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/reorg-disposition-61-crates-2026-07-27.md",
+      "blob_sha": "c3a6a2ff8803834c7664051b69c25dcaf9a9b2ef",
+      "bytes": 5476,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/reorg-openpr-pipeline-plan-2026-07-10.md",
+      "blob_sha": "1a155e1a5541a1d46cdab47fa66cd2d28348b410",
+      "bytes": 35077,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/rescued-move-plans/README.md",
+      "blob_sha": "66489530563764ffaa3b49dcb3c972b6b22c78ca",
+      "bytes": 1429,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/rescued-move-plans/billing-move-plan--e8d0c48b00.json",
+      "blob_sha": "c5e7bd3e179bd1903495af400f26c6442885d9c7",
+      "bytes": 1169,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/rescued-move-plans/calendar-move-plan--3483f2317d.json",
+      "blob_sha": "dfa7220f3ce8e7ff48cf97b9ef9b09dda4d17875",
+      "bytes": 2761,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/rescued-move-plans/ci-adapters-move-plan--44a552eff3.json",
+      "blob_sha": "fbbe950f6b0a8084333503cc0eea43a76580233c",
+      "bytes": 6653,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/rescued-move-plans/ci-move-plan--38673aae1d.json",
+      "blob_sha": "a31eaa4ec9e5a09253f9a0de6e89dc991c6432bc",
+      "bytes": 12620,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/rescued-move-plans/ci-move-plan--e2a0436eaf.json",
+      "blob_sha": "a412d6a55a1ca567bfb5be50114a9845b0967768",
+      "bytes": 14262,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/rescued-move-plans/ci-tide-kernel-move-plan--6619a5e968.json",
+      "blob_sha": "0fef22d80342e3bd83d6f07fb9fba518a7def57b",
+      "bytes": 1569,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/rescued-move-plans/ci-tide-move-plan--2962ca57ed.json",
+      "blob_sha": "b917d9d07924efe219590dbc0485272f2bd40341",
+      "bytes": 2739,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/rescued-move-plans/data-kernels-move-plan--2b00f7a6f4.json",
+      "blob_sha": "af085a3f1ad51f04671fb2264e199ecd0eb7e147",
+      "bytes": 3413,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/rescued-move-plans/data-kernels-move-plan--2defb5a620.json",
+      "blob_sha": "cc99a539608c190a51bd9c9f2c14c3ea0567270e",
+      "bytes": 3600,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/rescued-move-plans/data-move-plan--d4a9312fa2.json",
+      "blob_sha": "800ef236ee4c85a7d130349b4c3e0116a503e76e",
+      "bytes": 3482,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/rescued-move-plans/governance-check-remainder-move-plan--135e476c5b.json",
+      "blob_sha": "b29ac12f332ed9df0c14ca9bf1153396e29bc992",
+      "bytes": 6961,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/rescued-move-plans/intelligence-adapters-move-plan--3259485d23.json",
+      "blob_sha": "245b310ec50ad725e8c6928bffb75db2c6d082f2",
+      "bytes": 8488,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/rescued-move-plans/intelligence-core-sub-batch-c-move-plan--45ebb7be37.json",
+      "blob_sha": "ffbf59158e9bf91156f35b6cde7d4fec77835e30",
+      "bytes": 9130,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/rescued-move-plans/intelligence-move-plan--29430ef125.json",
+      "blob_sha": "8ca4f159309589b438fabab46d1dd9b07ee43172",
+      "bytes": 12455,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/rescued-move-plans/intelligence-move-plan--85f1c6664e.json",
+      "blob_sha": "1ad0e15b284edcc2d227b0f6096f589287bdcc09",
+      "bytes": 14951,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/rescued-move-plans/intelligence-move-plan--a9d35ea211.json",
+      "blob_sha": "4e936a65fd42152ed90fc7e51fbed8f324c28321",
+      "bytes": 16950,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/rescued-move-plans/intelligence-move-plan--e0b58358c0.json",
+      "blob_sha": "5c135426964bdad662c629e059c2ef1837d89105",
+      "bytes": 14369,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/review-pr644-xproxy.md",
+      "blob_sha": "ec146e4cfd3125daa0d8698a63315cfa602989b4",
+      "bytes": 8672,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/review-pr670-r1.md",
+      "blob_sha": "0e214625bcb614f585d2829198acb8d14dfe3941",
+      "bytes": 7352,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/review-pr670-r2.md",
+      "blob_sha": "98193067e4b60809ac82921277ba09b8dc695550",
+      "bytes": 4538,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/review-pr670-r3.md",
+      "blob_sha": "5186413252712d17470cd868dd9935fae6b31ae5",
+      "bytes": 9404,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/review-pr676-codex.md",
+      "blob_sha": "6355fbb86b116d2c2b4784a32cbf0b7c9fa35423",
+      "bytes": 3693,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/review-pr676-fable.md",
+      "blob_sha": "4c5ea2b9c036e8a1e547627f9f416da459f602d1",
+      "bytes": 8800,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/review-pr684-fable.md",
+      "blob_sha": "4827ba900de0b26a3b7deb8eec888c7b4dba7ae1",
+      "bytes": 8159,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/review-pr685-fable.md",
+      "blob_sha": "6988ddc0a63b96d9a314869c66f31b870da52dd1",
+      "bytes": 9868,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/review-pr685-r10.md",
+      "blob_sha": "81c53ea78e5473f803fe3e80365853d7033bc6f4",
+      "bytes": 22281,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/review-pr685-r11.md",
+      "blob_sha": "2860c3c5ed5316524a27cd7ea596c02d35802718",
+      "bytes": 23925,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/review-pr685-r12.md",
+      "blob_sha": "a2feb404d0bbe9693aedd0b7829a1affb11c7358",
+      "bytes": 25758,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/review-pr685-r13.md",
+      "blob_sha": "72b7d2bbd29bc1685188ff5d8e43fe0bd9e328a8",
+      "bytes": 26299,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/review-pr685-r14.md",
+      "blob_sha": "3b941f36a5c8322aee0c76f12ff0b308be6b15d4",
+      "bytes": 25951,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/review-pr685-r15.md",
+      "blob_sha": "d2b8c6e914fd41bc1c732c0c65ff2f464a28b246",
+      "bytes": 27734,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/review-pr685-r16.md",
+      "blob_sha": "f1da62ea44ff82e1cb4202463151dbff7e3fc0a7",
+      "bytes": 29082,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/review-pr685-r17.md",
+      "blob_sha": "6ff80b342f2592fd569d73105022c7be837ba1b0",
+      "bytes": 28798,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/review-pr685-r18.md",
+      "blob_sha": "a85fb205cc4b98e9cc8014b87b7f72414d178459",
+      "bytes": 28418,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/review-pr685-r19.md",
+      "blob_sha": "a16897f0736973243ce5efc5f4ac27a12a9e4e5c",
+      "bytes": 10431,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/review-pr685-r2.md",
+      "blob_sha": "b19bcaa6450703a2cd02f5d09f5d5c9db4502d3f",
+      "bytes": 14179,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/review-pr685-r20.md",
+      "blob_sha": "04701381c3035e2b2588b2fc07dca266a989c52f",
+      "bytes": 6215,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/review-pr685-r3.md",
+      "blob_sha": "b07be33d078638c2864324019a37f3205fdf885d",
+      "bytes": 18514,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/review-pr685-r4.md",
+      "blob_sha": "22764332be85ef1775cef9485e2b9c310ba13980",
+      "bytes": 20374,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/review-pr685-r5.md",
+      "blob_sha": "dc6d34d2de3b5eafb51f7e742ab6e89a53ff4e8e",
+      "bytes": 19207,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/review-pr685-r6.md",
+      "blob_sha": "aa67cddb9f33799154dc9e653ea063b90941675a",
+      "bytes": 15640,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/review-pr685-r7.md",
+      "blob_sha": "a03607d8f9dfba5d526bcb7f02e450422cc31c7f",
+      "bytes": 16560,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/review-pr685-r8.md",
+      "blob_sha": "2dd0a6e3d8a5aaa7422c7d608e88740e6c542bfb",
+      "bytes": 19999,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/review-pr685-r9.md",
+      "blob_sha": "dec97b57a3da49f4721e1e27279e2531cdfdbccc",
+      "bytes": 21012,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/review-pr686-fable.md",
+      "blob_sha": "d0aebc80278ea8fc33f4efe0c339068829bdc861",
+      "bytes": 15243,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/review-pr686-kms.md",
+      "blob_sha": "83544e2344d039cdbe6ed1803e95d404271ebd83",
+      "bytes": 12477,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/review-pr687-fricgate.md",
+      "blob_sha": "63d34d23fa8927b16a87ca556bbbcb740450bba7",
+      "bytes": 9552,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/review-pr688-g013.md",
+      "blob_sha": "c7e9a225acaa0f31958297e141a253629c3fc033",
+      "bytes": 8166,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/reviews/shell-uiux-uniformity-audit-2026-06-23.md",
+      "blob_sha": "d8de42e7774cd289415c880df0cca29141183e52",
+      "bytes": 44884,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/reviews/w2-authz-nonblocking-followups-2026-06-23.md",
+      "blob_sha": "54e79df1f32f46f6ed533cdbd31ee35ab09e9adb",
+      "bytes": 4983,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/reviews/wave-2b-plan-2026-06-23.md",
+      "blob_sha": "3901fea3bfbeded3817fa2330efa32a20eb7f350",
+      "bytes": 3044,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/reviews/whole-repo-codex-review-2026-06-23-gapfill.md",
+      "blob_sha": "ad82d52095c04e6a4f8e4a1f27e02b3dd5b889d7",
+      "bytes": 45490,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/reviews/whole-repo-codex-review-2026-06-23.md",
+      "blob_sha": "0f577575d9fb830a12b0d27254d6436b172b3e5e",
+      "bytes": 77873,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/reviews/whole-repo-codex-sweep2-2026-06-23.md",
+      "blob_sha": "7ad3813b72cb0600b55038c14ccacf67c8895c39",
+      "bytes": 52836,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/security-remediation-campaign-plan.md",
+      "blob_sha": "1af374fe46028ab1959e95846c8abc7059e2dc1d",
+      "bytes": 5614,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/slice-3c-design.md",
+      "blob_sha": "b8485072c878a00d399c773cd9fc86a11bf12839",
+      "bytes": 10481,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/slo-catalog-comove-design.md",
+      "blob_sha": "b5a374f0b7d42e82eaa198b0c2b658d8df0e2f1f",
+      "bytes": 9118,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/storage-move-mapping.md",
+      "blob_sha": "89f55f9e32180bd3b5046c0fc3c68ef1fb1ce05c",
+      "bytes": 3538,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/strangler-move-playbook.md",
+      "blob_sha": "41525503f6e9f7362871b9db73551824af1c79ea",
+      "bytes": 13319,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/substrate-topology-canonical.md",
+      "blob_sha": "f76668153d079527a2be8ab237337e786f9e5f88",
+      "bytes": 6974,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/unified-routing-engine-design-v1.md",
+      "blob_sha": "059f4fe510112354b422b90eb60b282d34d8e8bd",
+      "bytes": 23419,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/unified-routing-engine-design-v2.md",
+      "blob_sha": "372464cd390afdeccb85b1e398552dd8dbc4f187",
+      "bytes": 24637,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "planning-input",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "masterplan",
+        "target": "/specs/masterplan.json#masterplan_v2.surface_dispositions[.omc/**]",
+        "discard_rationale": null,
+        "rationale": "route through masterplan_v2 only; archived file cannot mint live work IDs"
+      }
+    },
+    {
+      "path": ".omc/ultragoal/universal-generated-artifact-lifecycle-determination.md",
+      "blob_sha": "6f2df655d893be490c1a6dc568d646a61ccd6622",
+      "bytes": 52884,
+      "current_state_relation": {
+        "kind": "archive-only",
+        "current_blob_sha": null
+      },
+      "artifact_class": "implementation-test-evidence",
+      "authority": {
+        "is_live_authority": false,
+        "authority_class": "forensic-provenance-only",
+        "canonical_work_status_authority": "/specs/masterplan.json#masterplan_v2"
+      },
+      "disposition": {
+        "kind": "implementation/test evidence",
+        "target": "remote-evidence-provenance:df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "discard_rationale": null,
+        "rationale": "retain as provenance/evidence only; it makes no current status or authority claim"
+      }
+    }
+  ]
+}

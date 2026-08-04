@@ -1,0 +1,70 @@
+{
+  "blockers": [
+    "no durable off-host decrypt recipient",
+    "no OpenBao/CNPG/Talos restore proof",
+    "iCloud quota/upload/fresh-device decrypt unproved"
+  ],
+  "claim_ceiling": "Local permission hardening reduces accidental disclosure only; it is not credential rotation, backup, restore proof, or wipe authorization.",
+  "cluster_mutated": false,
+  "content_mutated": false,
+  "entries": [
+    {
+      "mode": "0600",
+      "path": "~/.bash_history",
+      "status": "hardened"
+    },
+    {
+      "mode": "0600",
+      "path": "~/.zsh_history",
+      "status": "already-hardened"
+    },
+    {
+      "mode": "0600",
+      "path": "~/.talos/config",
+      "status": "already-hardened"
+    },
+    {
+      "mode": "0600",
+      "path": "~/.kube/config",
+      "status": "already-hardened"
+    },
+    {
+      "mode": "0600",
+      "path": "~/.config/talos-mnt/secrets.yaml",
+      "status": "already-hardened"
+    },
+    {
+      "mode": "0600",
+      "path": "~/.config/talos-mnt/_talos/talosconfig",
+      "status": "hardened"
+    },
+    {
+      "mode": "0600",
+      "path": "repo/controlplane.yaml",
+      "status": "hardened-not-git-preserved"
+    },
+    {
+      "mode": "0600",
+      "path": "repo/worker.yaml",
+      "status": "hardened-not-git-preserved"
+    },
+    {
+      "mode": "0700",
+      "path": "~/.talos",
+      "status": "hardened"
+    },
+    {
+      "mode": "0755",
+      "path": "~/.talos/clusters",
+      "status": "root-owned-parent-0700-prevents-traversal"
+    },
+    {
+      "mode": "0700",
+      "path": "iCloud/talos",
+      "status": "empty-no-secret-copy"
+    }
+  ],
+  "record_class": "prewipe-local-permission-hardening",
+  "recorded_at": "2026-08-04T03:42:42.794310Z",
+  "wipe_readiness": "blocked"
+}

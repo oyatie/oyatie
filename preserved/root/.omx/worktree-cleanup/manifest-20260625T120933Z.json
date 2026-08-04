@@ -1,0 +1,680 @@
+{
+  "canonical_status_short": [
+    "## dev...origin/dev [behind 143]",
+    " M .codex/hooks.json",
+    " D goal.json",
+    " D slice06-backfill-results.log",
+    " D slice06-backfill-test.log",
+    " D slice06-buck-test.log",
+    " D slice06-generator.log",
+    " D slice06-progress.log",
+    " D slice06-retest-results.log",
+    " D slice06-retest.log",
+    "DU specs/capability-registry.json"
+  ],
+  "created_utc": "2026-06-25T12:09:52Z",
+  "local_branch_count": 80,
+  "local_branches": [
+    {
+      "branch": "agent/auth-005-cedar-publish-authz",
+      "head": "3b2736832c4007ba2f1b0e4cdf99916655036fe3"
+    },
+    {
+      "branch": "agent/auth-durable-stores",
+      "head": "29ffe15234e7cda30ebdffd28680dc29294a5515"
+    },
+    {
+      "branch": "agent/authz-coverage-gate-rebase",
+      "head": "2d92e9c47803ea67872cdc6d09ac19949a37b29b"
+    },
+    {
+      "branch": "agent/build-health-baseline-d7",
+      "head": "761d6ee53aae30e6a6146fd8b922b284dff04a53"
+    },
+    {
+      "branch": "agent/cloud-intelligence-agent-canary-20260610",
+      "head": "4fa3836ce2cb3f7ed98aef987a16bc28b210ce23"
+    },
+    {
+      "branch": "agent/dev-buildhealth-ci-controller",
+      "head": "395f9076a2716c01768ec13752a2f774aae3cb7f"
+    },
+    {
+      "branch": "agent/dev-buildhealth-fixes",
+      "head": "77a3b390f43a7a761620735cc4e28273213fb037"
+    },
+    {
+      "branch": "agent/dev-buildhealth-grpc-generated",
+      "head": "50c5ca00fbf393203e5ad55eefc4e820ac56c087"
+    },
+    {
+      "branch": "agent/g013-final-quality-gate",
+      "head": "d91351eb0974f39976868bdc44d600e7a1667641"
+    },
+    {
+      "branch": "agent/g02-trustd-real-x509",
+      "head": "6452939d2a9d01efefe771d941e1d22ae9f70ddd"
+    },
+    {
+      "branch": "agent/office-euro-reference",
+      "head": "162c6a811d764e434e37d581f36c3bb2684af4da"
+    },
+    {
+      "branch": "agent/p125-faces-merge-driver",
+      "head": "39d94208168d7a096c609db57f5387cac4d03aa2"
+    },
+    {
+      "branch": "agent/p3-observability",
+      "head": "f2cf13a792c6109d37472724bba24915f6fc5510"
+    },
+    {
+      "branch": "auth005-crm-rebase-wt",
+      "head": "c792fa1aea54ef0b03dcbf760e5cc4646f5e7ea2"
+    },
+    {
+      "branch": "auth005-crm-revenue-authz",
+      "head": "32b85c130ce7678522425763c0e0323347fa1bb0"
+    },
+    {
+      "branch": "chore/decommit-generated-faces",
+      "head": "e2d65a341814bbcf6830c9fe668e1ab1e2501116"
+    },
+    {
+      "branch": "codex/pr651-address-review-20260610113704",
+      "head": "cf16525158301ba27eb72c2d5399e0c9e4b826ed"
+    },
+    {
+      "branch": "comms-contact-center-core-slice",
+      "head": "83e6a7066aa280825c8a32dc63928e95b02e8225"
+    },
+    {
+      "branch": "comms-messenger-stream-ordering-usecase",
+      "head": "83e6a7066aa280825c8a32dc63928e95b02e8225"
+    },
+    {
+      "branch": "compliance-control-evidence-usecase-slice",
+      "head": "83e6a7066aa280825c8a32dc63928e95b02e8225"
+    },
+    {
+      "branch": "corpus-extractor-spike",
+      "head": "e8324f56ef04b46717ff1f8e07397fbb772e6548"
+    },
+    {
+      "branch": "data-pipeline-core-ports-slice",
+      "head": "83e6a7066aa280825c8a32dc63928e95b02e8225"
+    },
+    {
+      "branch": "dev",
+      "head": "d705932d4731307b80320125560808be21f8b582"
+    },
+    {
+      "branch": "docs/zero-graphql-residue",
+      "head": "2f43cd380a7ec3d4a2a28cffe97dbf9c443cdf13"
+    },
+    {
+      "branch": "feat/billing-finops-budget-alert-585",
+      "head": "83e6a7066aa280825c8a32dc63928e95b02e8225"
+    },
+    {
+      "branch": "feat/data-warehouse-table-retention-core-adr0587",
+      "head": "83e6a7066aa280825c8a32dc63928e95b02e8225"
+    },
+    {
+      "branch": "feat/oya-ci-materializer-e1",
+      "head": "cfced74d62ee2ec2ac210dda4661983e279c161a"
+    },
+    {
+      "branch": "feat/root-workspace-hygiene-gate",
+      "head": "fffecd520fd47c415773601a69b0ca2dba454d77"
+    },
+    {
+      "branch": "fix/shell-uiux-uniformity-a11y",
+      "head": "13f5ac7cf446a7ca492401769028705eb02cda4e"
+    },
+    {
+      "branch": "fix/shell-uiux-uniformity-a11y-work",
+      "head": "13f5ac7cf446a7ca492401769028705eb02cda4e"
+    },
+    {
+      "branch": "forbid-decommit-frozen-reference",
+      "head": "2444160aa016c0e3258fd666a3415a46b40cac85"
+    },
+    {
+      "branch": "g004-fix",
+      "head": "dfc5b5d4910172003766d4ea66b19d1cbe6c2059"
+    },
+    {
+      "branch": "g004-gate-dto-authz-classfix",
+      "head": "14ae183f74a08fc2a62c927275ea81c564e1a490"
+    },
+    {
+      "branch": "g004-gate-dto-authz-classfix-work",
+      "head": "14ae183f74a08fc2a62c927275ea81c564e1a490"
+    },
+    {
+      "branch": "hotfix/gate-baseline-restore",
+      "head": "0d4f1e70d27ee920b0f8e1dbd7d81eaa321705b6"
+    },
+    {
+      "branch": "lane-backup-066e524",
+      "head": "066e52498620849d52d0fad37e7d09278404c60e"
+    },
+    {
+      "branch": "mail-mailbox-organize-usecase-slice",
+      "head": "83e6a7066aa280825c8a32dc63928e95b02e8225"
+    },
+    {
+      "branch": "p810-blockerfix-local",
+      "head": "3292050a0775015ae99f455651f79de4932e5032"
+    },
+    {
+      "branch": "p810-fix-local",
+      "head": "66fe54b1cc04a753ddc855983c412ecd4e1ec5df"
+    },
+    {
+      "branch": "pr651-arch",
+      "head": "d23f1e0ae8d4566d8f16bbe6057c7b333d00ab92"
+    },
+    {
+      "branch": "pr717-review",
+      "head": "a295ffdf3be1dda831913a7e2c56c17b9ffee1c8"
+    },
+    {
+      "branch": "pr809-review",
+      "head": "573ab42d8f0be6bb45cbf0487688982c0de6eb16"
+    },
+    {
+      "branch": "pr811-rekey",
+      "head": "cfdbf1b6e5cbcf1e82501c975642074e52dabde4"
+    },
+    {
+      "branch": "pr812-review",
+      "head": "1f0700bb8afad628bfffc701852d45a1436258ab"
+    },
+    {
+      "branch": "rebase-810",
+      "head": "fef6f52c72b542f10cff6e496ab99908d12ff670"
+    },
+    {
+      "branch": "sec-w2-finops-authz",
+      "head": "c30342afea0d2d831c5a32fb202db97521880a45"
+    },
+    {
+      "branch": "sec/authz-w2-final-integration",
+      "head": "a0306d794c9e14ea22698b98331829b44d50e296"
+    },
+    {
+      "branch": "sec/w2-audit-event-emit-authz",
+      "head": "af4f70d0cc37658578b75759f7c7f61fd654286d"
+    },
+    {
+      "branch": "sec/w2-authz-integration",
+      "head": "a6cf714e3153f5e8f86e18cbf17c5f13f1e0ecdb"
+    },
+    {
+      "branch": "sec/w2-observability-audit-authz",
+      "head": "e70835cb8674b65d14584478f3dc74330a58d549"
+    },
+    {
+      "branch": "security/w2-dsr-erasure-authz-adr0589",
+      "head": "7f7d72956d294b17b1e70c289e43ea3ff681692d"
+    },
+    {
+      "branch": "security/w2-network-authz-adr0587",
+      "head": "bc04b9a83f0bb635e0a8d9b4f3bf39cf0f68a1fd"
+    },
+    {
+      "branch": "shell-retirement-delete-28",
+      "head": "0fe9867224027e2b39c27a36961cb6351935f60c"
+    },
+    {
+      "branch": "w2-tenancy-authz-fix",
+      "head": "8ce276432f209969b3920dcd81eb28403935dfe4"
+    },
+    {
+      "branch": "wave1-calendar-capability-first",
+      "head": "2b1ffb07d12d0c140cf69b5b8ef78f59dad7743d"
+    },
+    {
+      "branch": "wave1-connect-capability-first-cloud-agnostic-core",
+      "head": "e3f84f7e8c19794c1631b70ac989c63e0059c32f"
+    },
+    {
+      "branch": "wave1-flags-capability-first",
+      "head": "384654ba91d41d98d52ce6850a5d0178c416d53d"
+    },
+    {
+      "branch": "wave1-meet-capability-first-cloud-agnostic-core",
+      "head": "6c0aa58a3a76106db8ca2ffc3b0d0b11289efdf6"
+    },
+    {
+      "branch": "wave1-meet-capability-first-cloud-agnostic-core-renum",
+      "head": "d4ce043a9ad3031eb371b01b5af422e4da713944"
+    },
+    {
+      "branch": "wave1/billing-accounting-journal-usecase",
+      "head": "83e6a7066aa280825c8a32dc63928e95b02e8225"
+    },
+    {
+      "branch": "wf/milestone-view",
+      "head": "648c490e488fd25bf8f13067a109871cab3dcb72"
+    },
+    {
+      "branch": "worktree-wf_168e50c0-04a-10",
+      "head": "6bcfb27ffd328670a8ecbe39c66043c389cf8a3e"
+    },
+    {
+      "branch": "worktree-wf_168e50c0-04a-7",
+      "head": "6bcfb27ffd328670a8ecbe39c66043c389cf8a3e"
+    },
+    {
+      "branch": "worktree-wf_168e50c0-04a-8",
+      "head": "6bcfb27ffd328670a8ecbe39c66043c389cf8a3e"
+    },
+    {
+      "branch": "worktree-wf_168e50c0-04a-9",
+      "head": "6bcfb27ffd328670a8ecbe39c66043c389cf8a3e"
+    },
+    {
+      "branch": "worktree-wf_5056f9ff-2b6-1",
+      "head": "83e6a7066aa280825c8a32dc63928e95b02e8225"
+    },
+    {
+      "branch": "worktree-wf_5056f9ff-2b6-10",
+      "head": "83e6a7066aa280825c8a32dc63928e95b02e8225"
+    },
+    {
+      "branch": "worktree-wf_5056f9ff-2b6-2",
+      "head": "83e6a7066aa280825c8a32dc63928e95b02e8225"
+    },
+    {
+      "branch": "worktree-wf_5056f9ff-2b6-3",
+      "head": "83e6a7066aa280825c8a32dc63928e95b02e8225"
+    },
+    {
+      "branch": "worktree-wf_5056f9ff-2b6-4",
+      "head": "83e6a7066aa280825c8a32dc63928e95b02e8225"
+    },
+    {
+      "branch": "worktree-wf_5056f9ff-2b6-5",
+      "head": "83e6a7066aa280825c8a32dc63928e95b02e8225"
+    },
+    {
+      "branch": "worktree-wf_5056f9ff-2b6-6",
+      "head": "83e6a7066aa280825c8a32dc63928e95b02e8225"
+    },
+    {
+      "branch": "worktree-wf_5056f9ff-2b6-7",
+      "head": "83e6a7066aa280825c8a32dc63928e95b02e8225"
+    },
+    {
+      "branch": "worktree-wf_5056f9ff-2b6-8",
+      "head": "83e6a7066aa280825c8a32dc63928e95b02e8225"
+    },
+    {
+      "branch": "worktree-wf_5056f9ff-2b6-9",
+      "head": "83e6a7066aa280825c8a32dc63928e95b02e8225"
+    },
+    {
+      "branch": "worktree-wf_6e664cf7-e06-2",
+      "head": "648c490e488fd25bf8f13067a109871cab3dcb72"
+    },
+    {
+      "branch": "wt-hygiene-rebase-local",
+      "head": "1ea2171956eb3a1958ca124d4604416e68261680"
+    },
+    {
+      "branch": "wt-meet-rebase810",
+      "head": "9c1d588622b42a74b3fb8885eec4a7a1c3a8850c"
+    },
+    {
+      "branch": "wt-pr810-rebase",
+      "head": "6c0aa58a3a76106db8ca2ffc3b0d0b11289efdf6"
+    },
+    {
+      "branch": "wt810-renum-0597-to-0598",
+      "head": "329c694160c5525cd0c59f0a5e0cf91f296a2d73"
+    }
+  ],
+  "origin_dev": "f755bdf07b1169a7f795c2ce4e61a3a44e59c53c",
+  "repo": "/Users/jasonlee/Developer/oyatie",
+  "worktree_count": 24,
+  "worktrees": [
+    {
+      "branch": "dev",
+      "branch_in_origin_dev": true,
+      "detected_pr_headRefOid": null,
+      "detected_pr_head_matches": null,
+      "detected_pr_number": null,
+      "detected_pr_state": null,
+      "dirty_entries": 10,
+      "exists": true,
+      "head": "d705932d4731307b80320125560808be21f8b582",
+      "head_in_origin_dev": true,
+      "ignored_entries": 162,
+      "path": "/Users/jasonlee/Developer/oyatie"
+    },
+    {
+      "branch": "g004-gate-dto-authz-classfix",
+      "branch_in_origin_dev": false,
+      "detected_pr_headRefOid": null,
+      "detected_pr_head_matches": null,
+      "detected_pr_number": null,
+      "detected_pr_state": null,
+      "dirty_entries": 6,
+      "exists": true,
+      "head": "14ae183f74a08fc2a62c927275ea81c564e1a490",
+      "head_in_origin_dev": false,
+      "ignored_entries": 3,
+      "path": "/private/tmp/wt-gate-dtoauthz"
+    },
+    {
+      "branch": "sec-w2-finops-authz",
+      "branch_in_origin_dev": false,
+      "detected_pr_headRefOid": null,
+      "detected_pr_head_matches": null,
+      "detected_pr_number": null,
+      "detected_pr_state": null,
+      "dirty_entries": 1,
+      "exists": true,
+      "head": "c30342afea0d2d831c5a32fb202db97521880a45",
+      "head_in_origin_dev": false,
+      "ignored_entries": 3,
+      "path": "/private/tmp/wt-w2-finops-authz"
+    },
+    {
+      "branch": "docs/zero-graphql-residue",
+      "branch_in_origin_dev": true,
+      "detected_pr_headRefOid": null,
+      "detected_pr_head_matches": null,
+      "detected_pr_number": null,
+      "detected_pr_state": null,
+      "dirty_entries": 1029,
+      "exists": true,
+      "head": "2f43cd380a7ec3d4a2a28cffe97dbf9c443cdf13",
+      "head_in_origin_dev": true,
+      "ignored_entries": 3,
+      "path": "/private/tmp/wt-zero-graphql-residue"
+    },
+    {
+      "branch": "mail-mailbox-organize-usecase-slice",
+      "branch_in_origin_dev": true,
+      "detected_pr_headRefOid": null,
+      "detected_pr_head_matches": null,
+      "detected_pr_number": null,
+      "detected_pr_state": null,
+      "dirty_entries": 13,
+      "exists": true,
+      "head": "83e6a7066aa280825c8a32dc63928e95b02e8225",
+      "head_in_origin_dev": true,
+      "ignored_entries": 4,
+      "path": "/Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-1"
+    },
+    {
+      "branch": "compliance-control-evidence-usecase-slice",
+      "branch_in_origin_dev": true,
+      "detected_pr_headRefOid": null,
+      "detected_pr_head_matches": null,
+      "detected_pr_number": null,
+      "detected_pr_state": null,
+      "dirty_entries": 7,
+      "exists": true,
+      "head": "83e6a7066aa280825c8a32dc63928e95b02e8225",
+      "head_in_origin_dev": true,
+      "ignored_entries": 5,
+      "path": "/Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-10"
+    },
+    {
+      "branch": "comms-messenger-stream-ordering-usecase",
+      "branch_in_origin_dev": true,
+      "detected_pr_headRefOid": null,
+      "detected_pr_head_matches": null,
+      "detected_pr_number": null,
+      "detected_pr_state": null,
+      "dirty_entries": 11,
+      "exists": true,
+      "head": "83e6a7066aa280825c8a32dc63928e95b02e8225",
+      "head_in_origin_dev": true,
+      "ignored_entries": 4,
+      "path": "/Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-2"
+    },
+    {
+      "branch": "comms-contact-center-core-slice",
+      "branch_in_origin_dev": true,
+      "detected_pr_headRefOid": null,
+      "detected_pr_head_matches": null,
+      "detected_pr_number": null,
+      "detected_pr_state": null,
+      "dirty_entries": 19,
+      "exists": true,
+      "head": "83e6a7066aa280825c8a32dc63928e95b02e8225",
+      "head_in_origin_dev": true,
+      "ignored_entries": 4,
+      "path": "/Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-3"
+    },
+    {
+      "branch": "worktree-wf_5056f9ff-2b6-4",
+      "branch_in_origin_dev": true,
+      "detected_pr_headRefOid": null,
+      "detected_pr_head_matches": null,
+      "detected_pr_number": null,
+      "detected_pr_state": null,
+      "dirty_entries": 12,
+      "exists": true,
+      "head": "83e6a7066aa280825c8a32dc63928e95b02e8225",
+      "head_in_origin_dev": true,
+      "ignored_entries": 4,
+      "path": "/Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-4"
+    },
+    {
+      "branch": "wave1/billing-accounting-journal-usecase",
+      "branch_in_origin_dev": true,
+      "detected_pr_headRefOid": null,
+      "detected_pr_head_matches": null,
+      "detected_pr_number": null,
+      "detected_pr_state": null,
+      "dirty_entries": 9,
+      "exists": true,
+      "head": "83e6a7066aa280825c8a32dc63928e95b02e8225",
+      "head_in_origin_dev": true,
+      "ignored_entries": 4,
+      "path": "/Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-5"
+    },
+    {
+      "branch": "feat/billing-finops-budget-alert-585",
+      "branch_in_origin_dev": true,
+      "detected_pr_headRefOid": null,
+      "detected_pr_head_matches": null,
+      "detected_pr_number": null,
+      "detected_pr_state": null,
+      "dirty_entries": 14,
+      "exists": true,
+      "head": "83e6a7066aa280825c8a32dc63928e95b02e8225",
+      "head_in_origin_dev": true,
+      "ignored_entries": 4,
+      "path": "/Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-6"
+    },
+    {
+      "branch": "data-pipeline-core-ports-slice",
+      "branch_in_origin_dev": true,
+      "detected_pr_headRefOid": null,
+      "detected_pr_head_matches": null,
+      "detected_pr_number": null,
+      "detected_pr_state": null,
+      "dirty_entries": 18,
+      "exists": true,
+      "head": "83e6a7066aa280825c8a32dc63928e95b02e8225",
+      "head_in_origin_dev": true,
+      "ignored_entries": 4,
+      "path": "/Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-7"
+    },
+    {
+      "branch": "feat/data-warehouse-table-retention-core-adr0587",
+      "branch_in_origin_dev": true,
+      "detected_pr_headRefOid": null,
+      "detected_pr_head_matches": null,
+      "detected_pr_number": null,
+      "detected_pr_state": null,
+      "dirty_entries": 13,
+      "exists": true,
+      "head": "83e6a7066aa280825c8a32dc63928e95b02e8225",
+      "head_in_origin_dev": true,
+      "ignored_entries": 4,
+      "path": "/Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-8"
+    },
+    {
+      "branch": "worktree-wf_5056f9ff-2b6-9",
+      "branch_in_origin_dev": true,
+      "detected_pr_headRefOid": null,
+      "detected_pr_head_matches": null,
+      "detected_pr_number": null,
+      "detected_pr_state": null,
+      "dirty_entries": 12,
+      "exists": true,
+      "head": "83e6a7066aa280825c8a32dc63928e95b02e8225",
+      "head_in_origin_dev": true,
+      "ignored_entries": 4,
+      "path": "/Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_5056f9ff-2b6-9"
+    },
+    {
+      "branch": "wf/milestone-view",
+      "branch_in_origin_dev": true,
+      "detected_pr_headRefOid": null,
+      "detected_pr_head_matches": null,
+      "detected_pr_number": null,
+      "detected_pr_state": null,
+      "dirty_entries": 5,
+      "exists": true,
+      "head": "648c490e488fd25bf8f13067a109871cab3dcb72",
+      "head_in_origin_dev": true,
+      "ignored_entries": 2,
+      "path": "/Users/jasonlee/oyatie-worktrees/claude-archive-20260625/wf_6e664cf7-e06-2"
+    },
+    {
+      "branch": "agent/p3-observability",
+      "branch_in_origin_dev": true,
+      "detected_pr_headRefOid": null,
+      "detected_pr_head_matches": null,
+      "detected_pr_number": null,
+      "detected_pr_state": null,
+      "dirty_entries": 38,
+      "exists": true,
+      "head": "f2cf13a792c6109d37472724bba24915f6fc5510",
+      "head_in_origin_dev": true,
+      "ignored_entries": 3,
+      "path": "/Users/jasonlee/oyatie-worktrees/p3-observability"
+    },
+    {
+      "branch": "pr811-rekey",
+      "branch_in_origin_dev": false,
+      "detected_pr_headRefOid": null,
+      "detected_pr_head_matches": null,
+      "detected_pr_number": null,
+      "detected_pr_state": null,
+      "dirty_entries": 6,
+      "exists": true,
+      "head": "cfdbf1b6e5cbcf1e82501c975642074e52dabde4",
+      "head_in_origin_dev": false,
+      "ignored_entries": 3,
+      "path": "/Users/jasonlee/oyatie-worktrees/pr811-catalog-rekey"
+    },
+    {
+      "branch_in_origin_dev": null,
+      "detached": true,
+      "detected_pr_headRefOid": null,
+      "detected_pr_head_matches": null,
+      "detected_pr_number": null,
+      "detected_pr_state": null,
+      "dirty_entries": 0,
+      "exists": true,
+      "head": "e1f985fe80499709bf9cecad2d76f06100cc8aca",
+      "head_in_origin_dev": false,
+      "ignored_entries": 3,
+      "path": "/Users/jasonlee/oyatie-worktrees/review-706"
+    },
+    {
+      "branch_in_origin_dev": null,
+      "detached": true,
+      "detected_pr_headRefOid": null,
+      "detected_pr_head_matches": null,
+      "detected_pr_number": null,
+      "detected_pr_state": null,
+      "dirty_entries": 0,
+      "exists": true,
+      "head": "45aae687400d2625d62908359da77065cd40fe40",
+      "head_in_origin_dev": false,
+      "ignored_entries": 3,
+      "path": "/Users/jasonlee/oyatie-worktrees/review-707"
+    },
+    {
+      "branch_in_origin_dev": null,
+      "detached": true,
+      "detected_pr_headRefOid": null,
+      "detected_pr_head_matches": null,
+      "detected_pr_number": null,
+      "detected_pr_state": null,
+      "dirty_entries": 0,
+      "exists": true,
+      "head": "3f710ab140a7d4c3932c77a9f61bcc6e6f5fede6",
+      "head_in_origin_dev": false,
+      "ignored_entries": 3,
+      "path": "/Users/jasonlee/oyatie-worktrees/review-708"
+    },
+    {
+      "branch_in_origin_dev": null,
+      "detached": true,
+      "detected_pr_headRefOid": null,
+      "detected_pr_head_matches": null,
+      "detected_pr_number": null,
+      "detected_pr_state": null,
+      "dirty_entries": 0,
+      "exists": true,
+      "head": "fda2be780df70afdee5c00854b28ce40f456d2b8",
+      "head_in_origin_dev": false,
+      "ignored_entries": 3,
+      "path": "/Users/jasonlee/oyatie-worktrees/review-709"
+    },
+    {
+      "branch_in_origin_dev": null,
+      "detached": true,
+      "detected_pr_headRefOid": null,
+      "detected_pr_head_matches": null,
+      "detected_pr_number": null,
+      "detected_pr_state": null,
+      "dirty_entries": 0,
+      "exists": true,
+      "head": "f8b73cebcfda52d080ded59f07525f7428e7433c",
+      "head_in_origin_dev": false,
+      "ignored_entries": 3,
+      "path": "/Users/jasonlee/oyatie-worktrees/review-715"
+    },
+    {
+      "branch_in_origin_dev": null,
+      "detached": true,
+      "detected_pr_headRefOid": null,
+      "detected_pr_head_matches": null,
+      "detected_pr_number": null,
+      "detected_pr_state": null,
+      "dirty_entries": 0,
+      "exists": true,
+      "head": "003ababbfacdfcbf940ec9c29d55b53b2e3754c0",
+      "head_in_origin_dev": false,
+      "ignored_entries": 3,
+      "path": "/Users/jasonlee/oyatie-worktrees/review-716"
+    },
+    {
+      "branch_in_origin_dev": null,
+      "detached": true,
+      "detected_pr_headRefOid": null,
+      "detected_pr_head_matches": null,
+      "detected_pr_number": null,
+      "detected_pr_state": null,
+      "dirty_entries": 0,
+      "exists": true,
+      "head": "3f710ab140a7d4c3932c77a9f61bcc6e6f5fede6",
+      "head_in_origin_dev": false,
+      "ignored_entries": 1,
+      "path": "/Users/jasonlee/oyatie-worktrees/review-scratch"
+    }
+  ]
+}

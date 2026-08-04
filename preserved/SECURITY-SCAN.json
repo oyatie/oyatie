@@ -1,0 +1,27 @@
+{
+  "excluded_finding_file_count": 2,
+  "excluded_findings": [
+    {
+      "categories": [
+        "exposed_commit_short"
+      ],
+      "path": ".omx/context/prewipe-consolidation-20260804T022812Z.md",
+      "scope": "root"
+    },
+    {
+      "categories": [
+        "exposed_commit_short"
+      ],
+      "path": ".omx/context/prewipe-consolidation-resume-20260804T024330Z.md",
+      "scope": "resume"
+    }
+  ],
+  "exposed_commit_literal_count": 2,
+  "forbidden_generated_json_count": 0,
+  "forbidden_sensitive_talos_files_count": 0,
+  "included_file_count": 271,
+  "included_total_bytes": 2047397,
+  "record_class": "prewipe-curated-agent-context-security-scan",
+  "recorded_at": "2026-08-04T03:38:59.479621Z",
+  "secret_values_emitted": false
+}
