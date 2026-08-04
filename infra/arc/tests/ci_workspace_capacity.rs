@@ -775,14 +775,59 @@ fn openbao_tls_and_github_identity_migration_is_exact_and_secret_free() {
     assert!(identity_text.contains("pki_cas_reader/issue/cas-reader"));
     assert!(!identity_text.contains("pki_int/issue"));
     let nativelink = read(&root, "infra/nativelink/nativelink-cas.k8s.yaml");
+    let nativelink_documents = yaml_documents(&root, "infra/nativelink/nativelink-cas.k8s.yaml");
+    let nativelink_deployment = nativelink_documents
+        .iter()
+        .find(|document| {
+            is_kind(document, "Deployment")
+                && string_at(document, &["metadata", "name"]) == "nativelink-cas"
+        })
+        .expect("NativeLink Deployment");
+    assert_eq!(
+        string_at(nativelink_deployment, &["spec", "strategy", "type"]),
+        "Recreate"
+    );
     assert_eq!(nativelink.matches("/tls/ca-writer.crt").count(), 1);
     assert_eq!(nativelink.matches("/tls/ca-reader.crt").count(), 1);
     assert!(nativelink.contains(r#""socket_address": "0.0.0.0:50051""#));
     assert!(nativelink.contains(r#""socket_address": "0.0.0.0:50052""#));
+    assert!(nativelink.contains("NativeLink v1.6.2 constructs its TlsAcceptor"));
+    assert!(nativelink.contains("requires a deliberate Deployment rollout"));
+    assert!(!nativelink.contains("propagates without redeploying"));
 
     let runbook = read(&root, "infra/external-secrets/RUNBOOK.md");
     assert!(runbook.contains("There is no bootstrap controller in this slice"));
-    assert!(runbook.contains("reader leaf against `:50051` fails"));
+    let patch = runbook
+        .find("bao kv patch secret/oya/ci/nativelink-cas-tls")
+        .expect("public client CA write");
+    let refresh = runbook
+        .find("annotate externalsecret nativelink-cas-tls")
+        .expect("forced ExternalSecret refresh");
+    let restart = runbook
+        .find("rollout restart deployment/nativelink-cas")
+        .expect("NativeLink rollout restart");
+    let secret_readback = runbook
+        .find(r#"[ "$after_secret_rv" != "$before_secret_rv" ]"#)
+        .expect("advanced Secret resourceVersion readback");
+    let ready = runbook
+        .find("--for=condition=Available deployment/nativelink-cas")
+        .expect("NativeLink availability readback");
+    let proof = runbook
+        .find("issue #1551")
+        .expect("typed negative proof boundary");
+    assert!(
+        patch < refresh
+            && refresh < secret_readback
+            && secret_readback < restart
+            && restart < ready
+            && ready < proof
+    );
+    assert!(runbook.contains("`openssl s_client` is diagnostic"));
+    assert!(runbook.contains("only: a generic failure"));
+    assert!(runbook.contains("does **not** prove reader-to-writer isolation"));
+    assert!(runbook.contains("typed mTLS rejection of the reader"));
+    assert!(runbook.contains("leaf on `:50051`"));
+    assert!(runbook.contains("positive writer control on `:50051`"));
     assert!(runbook.contains("OYA_NATIVELINK_SERVER_CA_CERT"));
     assert!(runbook.contains("Do not apply the empty public-CA scaffold directly"));
     assert!(!runbook.contains("kubectl apply -f infra/kms/openbao-public-ca.k8s.yaml"));

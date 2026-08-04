@@ -120,6 +120,40 @@ done
 bao kv patch secret/oya/ci/nativelink-cas-tls \
   writer-client-ca=@"$tmp/writer-client-ca.crt" \
   reader-client-ca=@"$tmp/reader-client-ca.crt" >/dev/null
+# NativeLink v1.6.2 reads its TLS acceptors/client roots at process start. Force
+# ESO to refresh the public client-CA Secret, confirm Ready plus advanced
+# refreshTime/resourceVersion metadata without printing Secret data, then restart
+# NativeLink and wait for the replacement pod to become Available. Identity proof
+# MUST NOT begin before this rollout completes.
+before_refresh="$(kubectl -n oya-ci get externalsecret nativelink-cas-tls \
+  -o jsonpath='{.status.refreshTime}' 2>/dev/null || true)"
+before_secret_rv="$(kubectl -n oya-ci get secret nativelink-cas-tls \
+  -o jsonpath='{.metadata.resourceVersion}' 2>/dev/null || true)"
+kubectl -n oya-ci annotate externalsecret nativelink-cas-tls \
+  force-sync="$(date +%s)" --overwrite >/dev/null
+kubectl -n oya-ci wait --for=condition=Ready externalsecret/nativelink-cas-tls \
+  --timeout=5m >/dev/null
+after_refresh="$before_refresh"
+attempt=0
+while [ -z "$after_refresh" ] || [ "$after_refresh" = "$before_refresh" ]; do
+  attempt=$((attempt + 1))
+  [ "$attempt" -le 60 ] || { echo "NativeLink TLS Secret did not refresh" >&2; exit 1; }
+  sleep 5
+  after_refresh="$(kubectl -n oya-ci get externalsecret nativelink-cas-tls \
+    -o jsonpath='{.status.refreshTime}' 2>/dev/null || true)"
+done
+kubectl -n oya-ci wait --for=condition=Ready externalsecret/nativelink-cas-tls \
+  --timeout=5m >/dev/null
+after_secret_rv="$(kubectl -n oya-ci get secret nativelink-cas-tls \
+  -o jsonpath='{.metadata.resourceVersion}')"
+[ -n "$after_secret_rv" ] && [ "$after_secret_rv" != "$before_secret_rv" ] || {
+  echo "NativeLink TLS Secret resourceVersion did not advance" >&2
+  exit 1
+}
+kubectl -n oya-ci rollout restart deployment/nativelink-cas >/dev/null
+kubectl -n oya-ci rollout status deployment/nativelink-cas --timeout=10m >/dev/null
+kubectl -n oya-ci wait --for=condition=Available deployment/nativelink-cas \
+  --timeout=10m >/dev/null
 kubectl -n arc-runners create configmap nativelink-server-ca \
   --from-file=ca.crt="$OYA_NATIVELINK_SERVER_CA_CERT" \
   --dry-run=client -o yaml | kubectl apply -f - >/dev/null
@@ -127,12 +161,16 @@ kubectl -n arc-runners create configmap nativelink-server-ca \
 
 Read back names and metadata only: both PKI mounts must exist with different CA
 serials, both JWT roles must report five-minute maximum TTLs, both policies must
-name only their matching mount, and the NativeLink ExternalSecret must be Ready.
-After enabling the repository variable, capture live proof from fresh runner pods:
-writer succeeds on `:50051`, reader succeeds on `:50052`, and an `openssl
-s_client` handshake using the reader leaf against `:50051` fails. A successful
-reader-to-writer handshake is a hard stop: unset the variable and rotate both
-client roots before proceeding.
+name only their matching mount, the NativeLink ExternalSecret must be Ready with
+an advanced refresh time and a present Secret resourceVersion, and the deliberate
+NativeLink rollout above must be Available. `openssl s_client` is diagnostic
+only: a generic failure can be DNS, outage, timeout, or server-CA failure and
+does **not** prove reader-to-writer isolation. Activation remains blocked by
+issue #1551 until a fresh runner records a typed mTLS rejection of the reader
+leaf on `:50051` plus a
+positive writer control on `:50051`; the reader must also succeed on `:50052`.
+A successful reader-to-writer handshake is a hard stop: unset the variable and
+rotate both client roots before proceeding.
 
 ## The auth-delegator / `disable_local_ca_jwt` invariant (read this first)
 
