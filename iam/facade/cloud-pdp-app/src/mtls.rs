@@ -134,6 +134,9 @@ pub enum CallerAuthRejection {
         /// The cell authority the PDP expects (its own).
         expected_cell: String,
     },
+    /// A platform-delegation route was called by a valid SVID other than its
+    /// single configured PEP identity.
+    UnexpectedPlatformPep { actual: String, expected: String },
 }
 
 impl CallerAuthRejection {
@@ -162,6 +165,9 @@ impl CallerAuthRejection {
             Self::TenantMismatch { .. }
             | Self::PlatformSvidCannotActAsTenant
             | Self::ForeignCell { .. } => "caller is not authorized for the requested tenant",
+            Self::UnexpectedPlatformPep { .. } => {
+                "caller is not authorized for the requested platform route"
+            }
             Self::MalformedRequestTenant => "requested tenant id is malformed",
         }
     }
@@ -191,6 +197,10 @@ impl std::fmt::Display for CallerAuthRejection {
             } => write!(
                 f,
                 "caller SVID cell '{svid_cell}' does not match the PDP cell '{expected_cell}'"
+            ),
+            Self::UnexpectedPlatformPep { actual, expected } => write!(
+                f,
+                "platform delegation caller '{actual}' does not match required PEP '{expected}'"
             ),
         }
     }
@@ -320,6 +330,46 @@ impl<'a, S: SigningBackend> SpiffeCallerAuth<'a, S> {
                 requested_tenant,
             },
         })
+    }
+
+    /// Authenticate one exact platform PEP SVID for delegated authorization.
+    /// The delegated principal never participates in this transport check.
+    pub fn authenticate_platform_pep(
+        &self,
+        peer_leaf: Option<&[u8]>,
+        expected_spiffe_id: &str,
+        now: u64,
+    ) -> Result<String, CallerAuthRejection> {
+        let leaf = peer_leaf.ok_or(CallerAuthRejection::NoClientCert)?;
+        let svid = self
+            .verifier
+            .verify_peer(leaf, now)
+            .map_err(|err| match err {
+                VerifyError::Expired => CallerAuthRejection::ExpiredSvid,
+                VerifyError::NoSpiffeUriSan
+                | VerifyError::AmbiguousUriSan
+                | VerifyError::MalformedSpiffeId(_) => CallerAuthRejection::MalformedSvid {
+                    detail: err.to_string(),
+                },
+                VerifyError::UntrustedIssuer { detail } => {
+                    CallerAuthRejection::UntrustedSvid { detail }
+                }
+            })?;
+        if let Some(expected_cell) = &self.expected_cell_authority
+            && svid.trust_domain_authority() != expected_cell
+        {
+            return Err(CallerAuthRejection::ForeignCell {
+                svid_cell: svid.trust_domain_authority().to_owned(),
+                expected_cell: expected_cell.clone(),
+            });
+        }
+        if svid.as_uri() != expected_spiffe_id {
+            return Err(CallerAuthRejection::UnexpectedPlatformPep {
+                actual: svid.as_uri().to_owned(),
+                expected: expected_spiffe_id.to_owned(),
+            });
+        }
+        Ok(svid.as_uri().to_owned())
     }
 }
 
@@ -489,6 +539,34 @@ mod tests {
             }
         );
         assert_eq!(rej.to_grpc_status().code(), Code::PermissionDenied);
+    }
+
+    #[test]
+    fn delegated_platform_route_accepts_only_exact_pep_svid() {
+        let (mut svc, ca_signer) = service();
+        let exact = issue_leaf(
+            &mut svc,
+            &ca_signer,
+            "spiffe://oyatie.cell-7/platform/nativelink-edge",
+        );
+        let sibling = issue_leaf(
+            &mut svc,
+            &ca_signer,
+            "spiffe://oyatie.cell-7/platform/nativelink-worker",
+        );
+        let bundle = trusted_bundle(&svc, &ca_signer);
+        let pep = SpiffeCallerAuth::with_cell_pin(&bundle, "oyatie.cell-7").unwrap();
+        let expected = "spiffe://oyatie.cell-7/platform/nativelink-edge";
+
+        assert_eq!(
+            pep.authenticate_platform_pep(Some(&exact), expected, 2_500)
+                .unwrap(),
+            expected
+        );
+        assert!(matches!(
+            pep.authenticate_platform_pep(Some(&sibling), expected, 2_500),
+            Err(CallerAuthRejection::UnexpectedPlatformPep { .. })
+        ));
     }
 
     // RED-fixture: cell-authority pinning (G002/G004 #109). A correctly-signed,

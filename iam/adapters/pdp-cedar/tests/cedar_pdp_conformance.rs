@@ -62,7 +62,42 @@ fn action_map() -> BTreeMap<String, String> {
             "tenant.administer".to_owned(),
             r#"OyaPlatform::Action::"AdministerTenant""#.to_owned(),
         ),
+        (
+            "re_capabilities".to_owned(),
+            r#"OyaPlatform::Action::"ReCapabilities""#.to_owned(),
+        ),
+        (
+            "re_execute".to_owned(),
+            r#"OyaPlatform::Action::"ReExecute""#.to_owned(),
+        ),
     ])
+}
+
+fn string_attrs(pairs: &[(&str, &str)]) -> BTreeMap<String, serde_json::Value> {
+    pairs
+        .iter()
+        .map(|(key, value)| ((*key).to_owned(), serde_json::json!(value)))
+        .collect()
+}
+
+fn re_entity_slice(principal: &str, build_class: &str) -> EntitySlice {
+    EntitySlice {
+        entities: vec![
+            EntityRecord {
+                uid: entity_ref("OyaPlatform::PlatformPrincipal", principal),
+                attributes: string_attrs(&[("spiffe_id", principal)]),
+                parents: vec![],
+            },
+            EntityRecord {
+                uid: entity_ref("OyaPlatform::RemoteExecutionCell", "cell-build"),
+                attributes: string_attrs(&[
+                    ("resource_kind", "remote_execution_cell"),
+                    ("build_class", build_class),
+                ]),
+                parents: vec![],
+            },
+        ],
+    }
 }
 
 fn locked_seed_bundle(version: &str, template_links: Vec<TemplateLink>) -> PolicyBundle {
@@ -250,6 +285,55 @@ fn audit_input(tenant_id: &str, decision: &str) -> AuditAppendInput {
 }
 
 // ---------------------------------------------------------------- RBAC ----
+
+#[test]
+fn re_execute_allows_only_the_trusted_input_role_and_build_class() {
+    let pdp = pdp(vec![]);
+    let principal = "spiffe://oyatie.cell-build/platform/ci-re-input-client";
+    let allowed = pdp
+        .authorize(
+            &request(
+                "req-re-allow",
+                "platform",
+                entity_ref("OyaPlatform::PlatformPrincipal", principal),
+                "re_execute",
+                entity_ref("OyaPlatform::RemoteExecutionCell", "cell-build"),
+            ),
+            &re_entity_slice(principal, "trusted-dev"),
+        )
+        .unwrap();
+    assert_eq!(allowed.response.decision, Decision::Allow);
+    assert_eq!(
+        allowed.response.determining_policy_ids,
+        vec!["re-execute-trusted-input-client".to_owned()]
+    );
+
+    for (hostile_principal, hostile_class) in [
+        (
+            "spiffe://oyatie.cell-build/platform/ci-cache-reader",
+            "trusted-dev",
+        ),
+        (
+            "spiffe://oyatie.cell-build/platform/nativelink-worker",
+            "trusted-dev",
+        ),
+        (principal, "untrusted-author-presubmit"),
+    ] {
+        let denied = pdp
+            .authorize(
+                &request(
+                    "req-re-deny",
+                    "platform",
+                    entity_ref("OyaPlatform::PlatformPrincipal", hostile_principal),
+                    "re_execute",
+                    entity_ref("OyaPlatform::RemoteExecutionCell", "cell-build"),
+                ),
+                &re_entity_slice(hostile_principal, hostile_class),
+            )
+            .unwrap();
+        assert_eq!(denied.response.decision, Decision::Deny);
+    }
+}
 
 #[test]
 fn rbac_group_grant_allows_tenant_admin_within_tenant() {

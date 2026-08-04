@@ -111,6 +111,111 @@ pub struct AuthorizationRequest {
     pub min_policy_version: Option<PolicyVersion>, // data_class: INTERNAL_ONLY
 }
 
+/// Platform authorization request carried from a trusted PEP to the PDP.
+///
+/// `delegated_principal` is intentionally distinct from the transport peer:
+/// the PDP accepts this shape only from the exact platform PEP SVID, while the
+/// delegated identity is the principal Cedar evaluates and audits.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct PlatformAuthorizeRequest {
+    pub request_id: String,
+    pub delegated_principal: String,
+    pub action: PlatformAction,
+    pub resource_kind: PlatformResourceKind,
+    pub resource_id: String,
+    pub build_class: String,
+    pub min_policy_version: Option<PolicyVersion>,
+}
+
+impl PlatformAuthorizeRequest {
+    /// Validate the closed platform authorization shape before Cedar mapping.
+    pub fn validate(&self) -> Result<(), Vec<ContractViolation>> {
+        let mut out = Vec::new();
+        check_opaque_token("platform_authorize.request_id", &self.request_id, &mut out);
+        check_spiffe_id(
+            "platform_authorize.delegated_principal",
+            &self.delegated_principal,
+            &mut out,
+        );
+        check_slug(
+            "platform_authorize.resource_id",
+            &self.resource_id,
+            MAX_ID_LEN,
+            &mut out,
+        );
+        check_slug(
+            "platform_authorize.build_class",
+            &self.build_class,
+            MAX_ID_LEN,
+            &mut out,
+        );
+        if out.is_empty() { Ok(()) } else { Err(out) }
+    }
+}
+
+/// Cedar actions available on the platform remote-execution boundary.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum PlatformAction {
+    ReCapabilities,
+    ReExecute,
+}
+
+impl PlatformAction {
+    #[must_use]
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::ReCapabilities => "re_capabilities",
+            Self::ReExecute => "re_execute",
+        }
+    }
+}
+
+/// Platform resource kinds are closed so a PEP cannot smuggle an unmodelled
+/// resource into a permit intended for the remote-execution cell.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum PlatformResourceKind {
+    RemoteExecutionCell,
+}
+
+impl PlatformResourceKind {
+    #[must_use]
+    pub fn cedar_type(self) -> &'static str {
+        match self {
+            Self::RemoteExecutionCell => "OyaPlatform::RemoteExecutionCell",
+        }
+    }
+}
+
+fn check_spiffe_id(field: &'static str, value: &str, out: &mut Vec<ContractViolation>) {
+    let Some(rest) = value.strip_prefix("spiffe://oyatie.cell-") else {
+        out.push(ContractViolation::InvalidShape {
+            field,
+            detail: "expected a cell-rooted SPIFFE URI".to_owned(),
+        });
+        return;
+    };
+    let Some((cell, path)) = rest.split_once('/') else {
+        out.push(ContractViolation::InvalidShape {
+            field,
+            detail: "expected a workload path".to_owned(),
+        });
+        return;
+    };
+    let segments: Vec<&str> = path.split('/').collect();
+    let path_ok = matches!(segments.as_slice(), ["platform", service] if !service.is_empty())
+        || matches!(segments.as_slice(), ["tenant", tenant, workload]
+            if tenant.starts_with("ten_") && tenant.len() > 4 && !workload.is_empty());
+    if cell.is_empty() || !path_ok || value.chars().any(|c| c.is_whitespace() || c.is_control()) {
+        out.push(ContractViolation::InvalidShape {
+            field,
+            detail: "expected one sanitized SPIFFE URI SAN identity".to_owned(),
+        });
+    }
+}
+
 impl AuthorizationRequest {
     /// Surface-all invariant check.
     pub fn validate(&self) -> Result<(), Vec<ContractViolation>> {
@@ -321,5 +426,29 @@ mod tests {
     fn policy_version_serializes_transparently() {
         let v = PolicyVersion::new("psv-000042").unwrap();
         assert_eq!(serde_json::to_string(&v).unwrap(), "\"psv-000042\"");
+    }
+
+    #[test]
+    fn platform_authorize_is_closed_and_rejects_unsanitized_identity() {
+        let request = PlatformAuthorizeRequest {
+            request_id: "req-re-1".to_owned(),
+            delegated_principal: "spiffe://oyatie.cell-build/platform/ci-re-input-client"
+                .to_owned(),
+            action: PlatformAction::ReExecute,
+            resource_kind: PlatformResourceKind::RemoteExecutionCell,
+            resource_id: "cell-build".to_owned(),
+            build_class: "trusted-dev".to_owned(),
+            min_policy_version: Some(PolicyVersion::new("psv-000042").unwrap()),
+        };
+        request.validate().unwrap();
+
+        let mut hostile = request.clone();
+        hostile.delegated_principal =
+            "spiffe://oyatie.cell-build/platform/runner,spiffe://evil/platform/root".to_owned();
+        assert!(hostile.validate().is_err());
+
+        let mut json = serde_json::to_value(request).unwrap();
+        json["caller_supplied_pep"] = serde_json::json!("forged");
+        assert!(serde_json::from_value::<PlatformAuthorizeRequest>(json).is_err());
     }
 }

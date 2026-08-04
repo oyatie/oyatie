@@ -23,9 +23,9 @@
 # wiring ships dark in slice 1.
 
 [buck2_re_client]
-  engine_address = grpc://nativelink-cas-writer.oya-ci.svc.cluster.local:50051
-  cas_address = grpc://nativelink-cas-writer.oya-ci.svc.cluster.local:50051
-  action_cache_address = grpc://nativelink-cas-writer.oya-ci.svc.cluster.local:50051
+  engine_address = grpc://nativelink-edge.oya-ci.svc.cluster.local:50052
+  cas_address = grpc://nativelink-edge.oya-ci.svc.cluster.local:50052
+  action_cache_address = grpc://nativelink-edge.oya-ci.svc.cluster.local:50052
   instance_name = main
   tls = true
 

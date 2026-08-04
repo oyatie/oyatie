@@ -5,6 +5,10 @@
 //!   entity slice. `200` carries an [`AuthorizationResponse`] (allow OR
 //!   deny — a deny is a decision, not an error). ANY non-200 is a refusal
 //!   with a machine `error_code`; PEPs MUST treat it as deny (fail-closed).
+//! - `POST /v1/platform/authorize/<grpc-service>/<method>` — Envoy HTTP
+//!   `ext_authz` adapter for NativeLink. Only the exact `nativelink-edge`
+//!   transport SVID may delegate the sanitized caller SVID; attributable,
+//!   current allows map to 200 and every other result maps to 403.
 //! - `GET /healthz` — liveness.
 //! - `GET /readyz` — readiness: serving implies a strict-validated bundle is
 //!   loaded (boot refuses otherwise), echoed as `policy_version`.
@@ -26,8 +30,8 @@
 
 use std::sync::Arc;
 
-use axum::extract::{Extension, State};
-use axum::http::StatusCode;
+use axum::extract::{Extension, Path, State};
+use axum::http::{HeaderMap, StatusCode};
 use axum::response::{IntoResponse, Response};
 use axum::routing::{get, post};
 use axum::{Json, Router};
@@ -36,7 +40,10 @@ use serde::Deserialize;
 use os_trustd_domain::TrustBundle;
 use os_trustd_domain::signer::EcdsaP256Signer;
 use oya_shared_pdp_kernel::{EntityRecord, EntitySlice, PdpError};
-use oya_shared_platform_contracts_kernel::pdp::AuthorizationRequest;
+use oya_shared_platform_contracts_kernel::pdp::{
+    AuthorizationRequest, AuthorizationResponse, Decision, EntityRef, PlatformAction,
+    PlatformAuthorizeRequest, PlatformResourceKind, PolicyVersion,
+};
 
 use crate::PdpState;
 use crate::mtls::SpiffeCallerAuth;
@@ -96,6 +103,139 @@ type CallerAuthBundle = Arc<TrustBundle<EcdsaP256Signer>>;
 /// server leaf carries no SPIFFE id (legacy node-style cert ⇒ no cell pin).
 #[derive(Clone)]
 struct CallerAuthCell(Option<String>);
+
+const PLATFORM_EDGE_SERVICE: &str = "nativelink-edge";
+
+fn header(headers: &HeaderMap, name: &'static str) -> Result<String, Response> {
+    headers
+        .get(name)
+        .and_then(|value| value.to_str().ok())
+        .filter(|value| !value.is_empty())
+        .map(str::to_owned)
+        .ok_or_else(|| caller_auth_refusal("platform authorization request is malformed"))
+}
+
+fn platform_action(grpc_path: &str) -> Option<PlatformAction> {
+    match grpc_path {
+        "build.bazel.remote.execution.v2.Capabilities/GetCapabilities" => {
+            Some(PlatformAction::ReCapabilities)
+        }
+        "build.bazel.remote.execution.v2.Execution/Execute"
+        | "build.bazel.remote.execution.v2.Execution/WaitExecution"
+        | "build.bazel.remote.execution.v2.ContentAddressableStorage/FindMissingBlobs"
+        | "build.bazel.remote.execution.v2.ContentAddressableStorage/BatchUpdateBlobs"
+        | "build.bazel.remote.execution.v2.ContentAddressableStorage/BatchReadBlobs"
+        | "build.bazel.remote.execution.v2.ContentAddressableStorage/GetTree"
+        | "build.bazel.remote.execution.v2.ActionCache/GetActionResult"
+        | "google.bytestream.ByteStream/Read"
+        | "google.bytestream.ByteStream/Write"
+        | "google.bytestream.ByteStream/QueryWriteStatus" => Some(PlatformAction::ReExecute),
+        _ => None,
+    }
+}
+
+fn platform_request(
+    headers: &HeaderMap,
+    grpc_path: &str,
+) -> Result<PlatformAuthorizeRequest, Response> {
+    if header(headers, "x-oya-edge-role")? != "re-input-client" {
+        return Err(caller_auth_refusal(
+            "platform authorization request is malformed",
+        ));
+    }
+    let action = platform_action(grpc_path)
+        .ok_or_else(|| caller_auth_refusal("platform authorization request is malformed"))?;
+    let min_policy_version = match headers
+        .get("x-oya-min-policy-version")
+        .and_then(|value| value.to_str().ok())
+        .filter(|value| !value.is_empty())
+    {
+        Some(value) => Some(
+            PolicyVersion::new(value)
+                .map_err(|_| caller_auth_refusal("platform authorization request is malformed"))?,
+        ),
+        None => None,
+    };
+    let request = PlatformAuthorizeRequest {
+        request_id: header(headers, "x-request-id")?,
+        delegated_principal: header(headers, "x-oya-delegated-spiffe-principal")?,
+        action,
+        resource_kind: PlatformResourceKind::RemoteExecutionCell,
+        resource_id: header(headers, "x-oya-resource-id")?,
+        build_class: header(headers, "x-oya-build-class")?,
+        min_policy_version,
+    };
+    request
+        .validate()
+        .map_err(|_| caller_auth_refusal("platform authorization request is malformed"))?;
+    Ok(request)
+}
+
+fn platform_parc(request: &PlatformAuthorizeRequest) -> (AuthorizationRequest, EntitySlice) {
+    let principal = EntityRef {
+        entity_type: "OyaPlatform::PlatformPrincipal".to_owned(),
+        entity_id: request.delegated_principal.clone(),
+    };
+    let resource = EntityRef {
+        entity_type: request.resource_kind.cedar_type().to_owned(),
+        entity_id: request.resource_id.clone(),
+    };
+    let entities = EntitySlice {
+        entities: vec![
+            EntityRecord {
+                uid: principal.clone(),
+                attributes: std::collections::BTreeMap::from([(
+                    "spiffe_id".to_owned(),
+                    serde_json::Value::String(request.delegated_principal.clone()),
+                )]),
+                parents: vec![],
+            },
+            EntityRecord {
+                uid: resource.clone(),
+                attributes: std::collections::BTreeMap::from([
+                    (
+                        "resource_kind".to_owned(),
+                        serde_json::Value::String("remote_execution_cell".to_owned()),
+                    ),
+                    (
+                        "build_class".to_owned(),
+                        serde_json::Value::String(request.build_class.clone()),
+                    ),
+                ]),
+                parents: vec![],
+            },
+        ],
+    };
+    (
+        AuthorizationRequest {
+            request_id: request.request_id.clone(),
+            tenant_id: "platform".to_owned(),
+            principal,
+            action: request.action.as_str().to_owned(),
+            resource,
+            context: std::collections::BTreeMap::new(),
+            min_policy_version: request.min_policy_version.clone(),
+        },
+        entities,
+    )
+}
+
+fn platform_ext_authz_status(
+    result: Result<&AuthorizationResponse, &PdpError>,
+    required_version: Option<&PolicyVersion>,
+) -> StatusCode {
+    match result {
+        Ok(response)
+            if response.decision == Decision::Allow
+                && !response.determining_policy_ids.is_empty()
+                && required_version
+                    .is_none_or(|version| response.satisfies_exact_version(version)) =>
+        {
+            StatusCode::OK
+        }
+        Ok(_) | Err(_) => StatusCode::FORBIDDEN,
+    }
+}
 
 /// Current wall-clock as epoch seconds (clock-before-epoch ⇒ `0` ⇒ every SVID
 /// expired ⇒ fail-closed DENY, never a spurious accept).
@@ -162,6 +302,82 @@ async fn authorize(
     }
 }
 
+async fn platform_authorize(
+    State(state): State<Arc<PdpState>>,
+    bundle: Option<Extension<CallerAuthBundle>>,
+    cell: Option<Extension<CallerAuthCell>>,
+    peer: Option<Extension<PeerCertInfo>>,
+    Path(grpc_path): Path<String>,
+    headers: HeaderMap,
+) -> Response {
+    let Some(Extension(bundle)) = bundle else {
+        return caller_auth_refusal("platform PEP mTLS identity required");
+    };
+    let Some(expected_cell) = cell.and_then(|Extension(cell)| cell.0) else {
+        return caller_auth_refusal("platform PEP mTLS identity required");
+    };
+    let expected_pep = format!("spiffe://{expected_cell}/platform/{PLATFORM_EDGE_SERVICE}");
+    let peer_leaf = peer
+        .as_ref()
+        .and_then(|Extension(info)| info.leaf_der.as_deref());
+    let pep = match SpiffeCallerAuth::with_cell_pin(&bundle, &expected_cell) {
+        Ok(pep) => pep,
+        Err(error) => return caller_auth_refusal(&error.to_string()),
+    };
+    let transport_principal =
+        match pep.authenticate_platform_pep(peer_leaf, &expected_pep, now_secs()) {
+            Ok(principal) => principal,
+            Err(error) => return caller_auth_refusal(error.public_message()),
+        };
+    let request = match platform_request(&headers, grpc_path.trim_start_matches('/')) {
+        Ok(request) => request,
+        Err(response) => return response,
+    };
+    let (parc, entities) = platform_parc(&request);
+    match state.decide(&parc, &entities) {
+        Ok(response)
+            if platform_ext_authz_status(Ok(&response), request.min_policy_version.as_ref())
+                == StatusCode::OK =>
+        {
+            tracing::info!(
+                target: "oya_cloud_iam_pdp::platform_decision",
+                request_id = %request.request_id,
+                decision_id = %response.decision_id,
+                transport_principal = %transport_principal,
+                delegated_principal = %request.delegated_principal,
+                decision = "allow",
+                "platform authorization decision"
+            );
+            StatusCode::OK.into_response()
+        }
+        Ok(response) => {
+            tracing::info!(
+                target: "oya_cloud_iam_pdp::platform_decision",
+                request_id = %request.request_id,
+                decision_id = %response.decision_id,
+                transport_principal = %transport_principal,
+                delegated_principal = %request.delegated_principal,
+                decision = "deny",
+                "platform authorization decision"
+            );
+            StatusCode::FORBIDDEN.into_response()
+        }
+        Err(error) => {
+            PdpState::log_refusal(&request.request_id, &error);
+            tracing::warn!(
+                target: "oya_cloud_iam_pdp::platform_decision",
+                request_id = %request.request_id,
+                transport_principal = %transport_principal,
+                delegated_principal = %request.delegated_principal,
+                decision = "refused",
+                error = %error,
+                "platform authorization refusal"
+            );
+            StatusCode::FORBIDDEN.into_response()
+        }
+    }
+}
+
 async fn healthz() -> Response {
     (StatusCode::OK, Json(serde_json::json!({"status": "ok"}))).into_response()
 }
@@ -195,6 +411,10 @@ async fn unknown_route() -> Response {
 pub fn build_router(state: Arc<PdpState>) -> Router {
     Router::new()
         .route("/v1/authorize", post(authorize))
+        .route(
+            "/v1/platform/authorize/{*grpc_path}",
+            post(platform_authorize),
+        )
         .route("/healthz", get(healthz))
         .route("/readyz", get(readyz))
         .fallback(unknown_route)
@@ -243,6 +463,85 @@ mod tests {
                 consecutive_failures: 3,
             }),
             (StatusCode::SERVICE_UNAVAILABLE, "circuit_open")
+        );
+    }
+
+    #[test]
+    fn purpose_adapter_rejects_unknown_rpc_role_and_unsanitized_identity() {
+        let mut headers = HeaderMap::new();
+        headers.insert("x-request-id", "req-re-1".parse().unwrap());
+        headers.insert("x-oya-edge-role", "re-input-client".parse().unwrap());
+        headers.insert(
+            "x-oya-delegated-spiffe-principal",
+            "spiffe://oyatie.cell-build/platform/ci-re-input-client"
+                .parse()
+                .unwrap(),
+        );
+        headers.insert("x-oya-resource-id", "cell-build".parse().unwrap());
+        headers.insert("x-oya-build-class", "trusted-dev".parse().unwrap());
+
+        let request = platform_request(
+            &headers,
+            "build.bazel.remote.execution.v2.Execution/Execute",
+        )
+        .unwrap();
+        assert_eq!(request.action, PlatformAction::ReExecute);
+
+        headers.insert("x-oya-edge-role", "worker-writer".parse().unwrap());
+        assert_eq!(
+            platform_request(
+                &headers,
+                "build.bazel.remote.execution.v2.Execution/Execute"
+            )
+            .unwrap_err()
+            .status(),
+            StatusCode::FORBIDDEN
+        );
+        headers.insert("x-oya-edge-role", "re-input-client".parse().unwrap());
+        headers.insert(
+            "x-oya-delegated-spiffe-principal",
+            "spiffe://oyatie.cell-build/platform/a,spiffe://evil/platform/b"
+                .parse()
+                .unwrap(),
+        );
+        assert!(
+            platform_request(
+                &headers,
+                "build.bazel.remote.execution.v2.Execution/Execute"
+            )
+            .is_err()
+        );
+        assert!(platform_request(&headers, "unknown.Service/Method").is_err());
+    }
+
+    #[test]
+    fn purpose_adapter_maps_only_attributable_current_allow_to_200() {
+        let current = PolicyVersion::new("psv-current").unwrap();
+        let stale = PolicyVersion::new("psv-stale").unwrap();
+        let mut response = AuthorizationResponse {
+            decision_id: "dec-re-1".to_owned(),
+            request_id: "req-re-1".to_owned(),
+            decision: Decision::Allow,
+            policy_version: current.clone(),
+            determining_policy_ids: vec!["re-execute-trusted-input-client".to_owned()],
+            obligations: vec![],
+        };
+        assert_eq!(
+            platform_ext_authz_status(Ok(&response), Some(&current)),
+            StatusCode::OK
+        );
+        assert_eq!(
+            platform_ext_authz_status(Ok(&response), Some(&stale)),
+            StatusCode::FORBIDDEN
+        );
+        response.decision = Decision::Deny;
+        assert_eq!(
+            platform_ext_authz_status(Ok(&response), None),
+            StatusCode::FORBIDDEN
+        );
+        assert_eq!(
+            platform_ext_authz_status(Err(&PdpError::RuntimeTimeout { deadline_ms: 250 }), None),
+            StatusCode::FORBIDDEN
         );
     }
 }

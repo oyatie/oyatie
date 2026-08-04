@@ -1,0 +1,311 @@
+# Envoy is the only runner-facing NativeLink endpoint. Each mTLS listener pins
+# one SPIFFE URI SAN and exposes an exact gRPC-method allowlist; all unmatched
+# methods return 403 before NativeLink. The delegated identity headers are
+# overwritten with constants derived from the listener's exact SAN match.
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nativelink-edge-config
+  namespace: oya-ci
+  labels: { app: nativelink-edge, oya.io/adr: ADR-0612 }
+data:
+  envoy.yaml: |
+    static_resources:
+      listeners:
+        - name: reader
+          address: { socket_address: { address: 0.0.0.0, port_value: 50051 } }
+          filter_chains:
+            - transport_socket:
+                name: envoy.transport_sockets.tls
+                typed_config:
+                  "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.DownstreamTlsContext
+                  require_client_certificate: true
+                  common_tls_context:
+                    tls_certificates: [{ certificate_chain: { filename: /tls/server.crt }, private_key: { filename: /tls/server.key } }]
+                    validation_context:
+                      trusted_ca: { filename: /tls/client-ca.crt }
+                      match_typed_subject_alt_names:
+                        - { san_type: URI, matcher: { exact: "spiffe://oyatie.cell-build/platform/ci-cache-reader" } }
+              filters:
+                - name: envoy.filters.network.http_connection_manager
+                  typed_config:
+                    "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+                    stat_prefix: reader
+                    codec_type: AUTO
+                    route_config:
+                      name: reader
+                      virtual_hosts:
+                        - name: reader
+                          domains: ["*"]
+                          request_headers_to_remove: [x-oya-delegated-spiffe-principal, x-oya-edge-role]
+                          request_headers_to_add:
+                            - { header: { key: x-oya-delegated-spiffe-principal, value: "spiffe://oyatie.cell-build/platform/ci-cache-reader" }, append_action: OVERWRITE_IF_EXISTS_OR_ADD }
+                            - { header: { key: x-oya-edge-role, value: reader }, append_action: OVERWRITE_IF_EXISTS_OR_ADD }
+                          routes:
+                            - { match: { path: "/build.bazel.remote.execution.v2.Capabilities/GetCapabilities" }, route: { cluster: cas_reader } }
+                            - { match: { path: "/build.bazel.remote.execution.v2.ContentAddressableStorage/FindMissingBlobs" }, route: { cluster: cas_reader } }
+                            - { match: { path: "/build.bazel.remote.execution.v2.ContentAddressableStorage/BatchReadBlobs" }, route: { cluster: cas_reader } }
+                            - { match: { path: "/build.bazel.remote.execution.v2.ContentAddressableStorage/GetTree" }, route: { cluster: cas_reader } }
+                            - { match: { path: "/build.bazel.remote.execution.v2.ActionCache/GetActionResult" }, route: { cluster: cas_reader } }
+                            - { match: { path: "/google.bytestream.ByteStream/Read" }, route: { cluster: cas_reader } }
+                            - { match: { prefix: "/" }, direct_response: { status: 403 } }
+                    http_filters: [{ name: envoy.filters.http.router, typed_config: { "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router } }]
+        - name: trusted_dev_writer
+          address: { socket_address: { address: 0.0.0.0, port_value: 50052 } }
+          filter_chains:
+            - transport_socket:
+                name: envoy.transport_sockets.tls
+                typed_config:
+                  "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.DownstreamTlsContext
+                  require_client_certificate: true
+                  common_tls_context:
+                    tls_certificates: [{ certificate_chain: { filename: /tls/server.crt }, private_key: { filename: /tls/server.key } }]
+                    validation_context:
+                      trusted_ca: { filename: /tls/client-ca.crt }
+                      match_typed_subject_alt_names:
+                        - { san_type: URI, matcher: { exact: "spiffe://oyatie.cell-build/platform/trusted-dev-writer" } }
+              filters:
+                - name: envoy.filters.network.http_connection_manager
+                  typed_config:
+                    "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+                    stat_prefix: trusted_dev_writer
+                    codec_type: AUTO
+                    route_config:
+                      name: trusted_dev_writer
+                      virtual_hosts:
+                        - name: trusted_dev_writer
+                          domains: ["*"]
+                          request_headers_to_remove: [x-oya-delegated-spiffe-principal, x-oya-edge-role]
+                          request_headers_to_add:
+                            - { header: { key: x-oya-delegated-spiffe-principal, value: "spiffe://oyatie.cell-build/platform/trusted-dev-writer" }, append_action: OVERWRITE_IF_EXISTS_OR_ADD }
+                            - { header: { key: x-oya-edge-role, value: trusted-dev-writer }, append_action: OVERWRITE_IF_EXISTS_OR_ADD }
+                          routes:
+                            - { match: { path: "/build.bazel.remote.execution.v2.Capabilities/GetCapabilities" }, route: { cluster: cas_writer } }
+                            - { match: { path: "/build.bazel.remote.execution.v2.ContentAddressableStorage/FindMissingBlobs" }, route: { cluster: cas_writer } }
+                            - { match: { path: "/build.bazel.remote.execution.v2.ContentAddressableStorage/BatchReadBlobs" }, route: { cluster: cas_writer } }
+                            - { match: { path: "/build.bazel.remote.execution.v2.ContentAddressableStorage/BatchUpdateBlobs" }, route: { cluster: cas_writer } }
+                            - { match: { path: "/build.bazel.remote.execution.v2.ContentAddressableStorage/GetTree" }, route: { cluster: cas_writer } }
+                            - { match: { path: "/build.bazel.remote.execution.v2.ActionCache/GetActionResult" }, route: { cluster: cas_writer } }
+                            - { match: { path: "/build.bazel.remote.execution.v2.ActionCache/UpdateActionResult" }, route: { cluster: cas_writer } }
+                            - { match: { path: "/google.bytestream.ByteStream/Read" }, route: { cluster: cas_writer } }
+                            - { match: { path: "/google.bytestream.ByteStream/Write" }, route: { cluster: cas_writer } }
+                            - { match: { path: "/google.bytestream.ByteStream/QueryWriteStatus" }, route: { cluster: cas_writer } }
+                            - { match: { prefix: "/" }, direct_response: { status: 403 } }
+                    http_filters: [{ name: envoy.filters.http.router, typed_config: { "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router } }]
+        - name: worker_writer
+          address: { socket_address: { address: 0.0.0.0, port_value: 50053 } }
+          filter_chains:
+            - transport_socket:
+                name: envoy.transport_sockets.tls
+                typed_config:
+                  "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.DownstreamTlsContext
+                  require_client_certificate: true
+                  common_tls_context:
+                    tls_certificates: [{ certificate_chain: { filename: /tls/server.crt }, private_key: { filename: /tls/server.key } }]
+                    validation_context:
+                      trusted_ca: { filename: /tls/client-ca.crt }
+                      match_typed_subject_alt_names:
+                        - { san_type: URI, matcher: { exact: "spiffe://oyatie.cell-build/platform/nativelink-worker" } }
+              filters:
+                - name: envoy.filters.network.http_connection_manager
+                  typed_config:
+                    "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+                    stat_prefix: worker_writer
+                    codec_type: AUTO
+                    route_config:
+                      name: worker_writer
+                      virtual_hosts:
+                        - name: worker_writer
+                          domains: ["*"]
+                          request_headers_to_remove: [x-oya-delegated-spiffe-principal, x-oya-edge-role]
+                          request_headers_to_add:
+                            - { header: { key: x-oya-delegated-spiffe-principal, value: "spiffe://oyatie.cell-build/platform/nativelink-worker" }, append_action: OVERWRITE_IF_EXISTS_OR_ADD }
+                            - { header: { key: x-oya-edge-role, value: worker-writer }, append_action: OVERWRITE_IF_EXISTS_OR_ADD }
+                          routes:
+                            - { match: { path: "/build.bazel.remote.execution.v2.ContentAddressableStorage/FindMissingBlobs" }, route: { cluster: cas_writer } }
+                            - { match: { path: "/build.bazel.remote.execution.v2.ContentAddressableStorage/BatchReadBlobs" }, route: { cluster: cas_writer } }
+                            - { match: { path: "/build.bazel.remote.execution.v2.ContentAddressableStorage/BatchUpdateBlobs" }, route: { cluster: cas_writer } }
+                            - { match: { path: "/build.bazel.remote.execution.v2.ActionCache/UpdateActionResult" }, route: { cluster: cas_writer } }
+                            - { match: { path: "/google.bytestream.ByteStream/Read" }, route: { cluster: cas_writer } }
+                            - { match: { path: "/google.bytestream.ByteStream/Write" }, route: { cluster: cas_writer } }
+                            - { match: { path: "/google.bytestream.ByteStream/QueryWriteStatus" }, route: { cluster: cas_writer } }
+                            - { match: { prefix: "/" }, direct_response: { status: 403 } }
+                    http_filters: [{ name: envoy.filters.http.router, typed_config: { "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router } }]
+        - name: re_input_client
+          address: { socket_address: { address: 0.0.0.0, port_value: 50054 } }
+          filter_chains:
+            - transport_socket:
+                name: envoy.transport_sockets.tls
+                typed_config:
+                  "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.DownstreamTlsContext
+                  require_client_certificate: true
+                  common_tls_context:
+                    tls_certificates: [{ certificate_chain: { filename: /tls/server.crt }, private_key: { filename: /tls/server.key } }]
+                    validation_context:
+                      trusted_ca: { filename: /tls/client-ca.crt }
+                      match_typed_subject_alt_names:
+                        - { san_type: URI, matcher: { exact: "spiffe://oyatie.cell-build/platform/ci-re-input-client" } }
+              filters:
+                - name: envoy.filters.network.http_connection_manager
+                  typed_config:
+                    "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+                    stat_prefix: re_input_client
+                    codec_type: AUTO
+                    route_config:
+                      name: re_input_client
+                      virtual_hosts:
+                        - name: re_input_client
+                          domains: ["*"]
+                          request_headers_to_remove: [x-oya-delegated-spiffe-principal, x-oya-edge-role, x-oya-resource-id]
+                          request_headers_to_add:
+                            - { header: { key: x-oya-delegated-spiffe-principal, value: "spiffe://oyatie.cell-build/platform/ci-re-input-client" }, append_action: OVERWRITE_IF_EXISTS_OR_ADD }
+                            - { header: { key: x-oya-edge-role, value: re-input-client }, append_action: OVERWRITE_IF_EXISTS_OR_ADD }
+                            - { header: { key: x-oya-resource-id, value: cell-build }, append_action: OVERWRITE_IF_EXISTS_OR_ADD }
+                          routes:
+                            - { match: { path: "/build.bazel.remote.execution.v2.Capabilities/GetCapabilities" }, route: { cluster: scheduler } }
+                            - { match: { path: "/build.bazel.remote.execution.v2.Execution/Execute" }, route: { cluster: scheduler } }
+                            - { match: { path: "/build.bazel.remote.execution.v2.Execution/WaitExecution" }, route: { cluster: scheduler } }
+                            - { match: { path: "/build.bazel.remote.execution.v2.ContentAddressableStorage/FindMissingBlobs" }, route: { cluster: cas_writer } }
+                            - { match: { path: "/build.bazel.remote.execution.v2.ContentAddressableStorage/BatchReadBlobs" }, route: { cluster: cas_writer } }
+                            - { match: { path: "/build.bazel.remote.execution.v2.ContentAddressableStorage/BatchUpdateBlobs" }, route: { cluster: cas_writer } }
+                            - { match: { path: "/build.bazel.remote.execution.v2.ContentAddressableStorage/GetTree" }, route: { cluster: cas_writer } }
+                            - { match: { path: "/build.bazel.remote.execution.v2.ActionCache/GetActionResult" }, route: { cluster: cas_writer } }
+                            - { match: { path: "/google.bytestream.ByteStream/Read" }, route: { cluster: cas_writer } }
+                            - { match: { path: "/google.bytestream.ByteStream/Write" }, route: { cluster: cas_writer } }
+                            - { match: { path: "/google.bytestream.ByteStream/QueryWriteStatus" }, route: { cluster: cas_writer } }
+                            - { match: { prefix: "/" }, direct_response: { status: 403 } }
+                    http_filters:
+                      - name: envoy.filters.http.ext_authz
+                        typed_config:
+                          "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
+                          failure_mode_allow: false
+                          status_on_error: { code: Forbidden }
+                          allowed_headers:
+                            patterns:
+                              - { exact: x-request-id }
+                              - { exact: x-oya-delegated-spiffe-principal }
+                              - { exact: x-oya-edge-role }
+                              - { exact: x-oya-resource-id }
+                              - { exact: x-oya-build-class }
+                              - { exact: x-oya-min-policy-version }
+                          http_service:
+                            server_uri: { uri: "https://cloud-iam-pdp.oya-iam.svc.cluster.local:8080", cluster: platform_pdp, timeout: 0.25s }
+                            path_prefix: /v1/platform/authorize
+                      - { name: envoy.filters.http.router, typed_config: { "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router } }
+      clusters:
+        - name: cas_reader
+          type: STRICT_DNS
+          connect_timeout: 0.25s
+          typed_extension_protocol_options:
+            envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+              "@type": type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+              explicit_http_config: { http2_protocol_options: {} }
+          load_assignment: { cluster_name: cas_reader, endpoints: [{ lb_endpoints: [{ endpoint: { address: { socket_address: { address: nativelink-cas-reader.oya-ci.svc.cluster.local, port_value: 50052 } } } }] }] }
+          transport_socket:
+            name: envoy.transport_sockets.tls
+            typed_config: { "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext, common_tls_context: { tls_certificates: [{ certificate_chain: { filename: /tls/cas-reader.crt }, private_key: { filename: /tls/cas-reader.key } }], validation_context: { trusted_ca: { filename: /tls/cas-ca.crt } } } }
+        - name: cas_writer
+          type: STRICT_DNS
+          connect_timeout: 0.25s
+          typed_extension_protocol_options:
+            envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+              "@type": type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+              explicit_http_config: { http2_protocol_options: {} }
+          load_assignment: { cluster_name: cas_writer, endpoints: [{ lb_endpoints: [{ endpoint: { address: { socket_address: { address: nativelink-cas-writer.oya-ci.svc.cluster.local, port_value: 50051 } } } }] }] }
+          transport_socket:
+            name: envoy.transport_sockets.tls
+            typed_config: { "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext, common_tls_context: { tls_certificates: [{ certificate_chain: { filename: /tls/cas-writer.crt }, private_key: { filename: /tls/cas-writer.key } }], validation_context: { trusted_ca: { filename: /tls/cas-ca.crt } } } }
+        - name: scheduler
+          type: STRICT_DNS
+          connect_timeout: 0.25s
+          typed_extension_protocol_options:
+            envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+              "@type": type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+              explicit_http_config: { http2_protocol_options: {} }
+          load_assignment: { cluster_name: scheduler, endpoints: [{ lb_endpoints: [{ endpoint: { address: { socket_address: { address: nativelink-scheduler.oya-ci.svc.cluster.local, port_value: 51052 } } } }] }] }
+          transport_socket:
+            name: envoy.transport_sockets.tls
+            typed_config: { "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext, common_tls_context: { tls_certificates: [{ certificate_chain: { filename: /tls/scheduler-client.crt }, private_key: { filename: /tls/scheduler-client.key } }], validation_context: { trusted_ca: { filename: /tls/scheduler-ca.crt } } } }
+        - name: platform_pdp
+          type: STRICT_DNS
+          connect_timeout: 0.25s
+          load_assignment: { cluster_name: platform_pdp, endpoints: [{ lb_endpoints: [{ endpoint: { address: { socket_address: { address: cloud-iam-pdp.oya-iam.svc.cluster.local, port_value: 8080 } } } }] }] }
+          transport_socket:
+            name: envoy.transport_sockets.tls
+            typed_config: { "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext, common_tls_context: { tls_certificates: [{ certificate_chain: { filename: /tls/pdp-client.crt }, private_key: { filename: /tls/pdp-client.key } }], validation_context: { trusted_ca: { filename: /tls/pdp-ca.crt } } } }
+    admin: { address: { socket_address: { address: 0.0.0.0, port_value: 9901 } } }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: nativelink-edge, namespace: oya-ci, labels: { app: nativelink-edge, oya.io/adr: ADR-0612 } }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: nativelink-edge } }
+  template:
+    metadata: { labels: { app: nativelink-edge } }
+    spec:
+      automountServiceAccountToken: false
+      securityContext: { runAsNonRoot: true, runAsUser: 65532, runAsGroup: 65532, seccompProfile: { type: RuntimeDefault } }
+      containers:
+        - name: envoy
+          image: envoyproxy/envoy:v1.37.1@sha256:29496a88fba9c4c9cdef4afe8fec70f536c5ba111b1c2bddbc5436b091ceca33
+          args: ["-c", "/etc/envoy/envoy.yaml", "--mode", "serve"]
+          ports:
+            - { name: reader, containerPort: 50051 }
+            - { name: trusted-writer, containerPort: 50052 }
+            - { name: worker-writer, containerPort: 50053 }
+            - { name: re-input, containerPort: 50054 }
+            - { name: admin, containerPort: 9901 }
+          volumeMounts:
+            - { name: config, mountPath: /etc/envoy, readOnly: true }
+            - { name: identity, mountPath: /tls, readOnly: true }
+          securityContext: { allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: { drop: [ALL] } }
+          resources: { requests: { cpu: 100m, memory: 128Mi }, limits: { memory: 512Mi } }
+          readinessProbe: { httpGet: { path: /ready, port: admin }, periodSeconds: 10 }
+          livenessProbe: { httpGet: { path: /server_info, port: admin }, periodSeconds: 30 }
+      volumes:
+        - { name: config, configMap: { name: nativelink-edge-config } }
+        - { name: identity, secret: { secretName: nativelink-edge-svid } }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: nativelink-edge, namespace: oya-ci }
+spec:
+  selector: { app: nativelink-edge }
+  ports:
+    - { name: reader, port: 50051, targetPort: 50051 }
+    - { name: trusted-writer, port: 50052, targetPort: 50052 }
+    - { name: worker-writer, port: 50053, targetPort: 50053 }
+    - { name: re-input, port: 50054, targetPort: 50054 }
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: { name: nativelink-edge-ingress, namespace: oya-ci }
+spec:
+  podSelector: { matchLabels: { app: nativelink-edge } }
+  policyTypes: [Ingress, Egress]
+  ingress:
+    - from: [{ namespaceSelector: {}, podSelector: { matchLabels: { oya.io/nativelink-role: reader } } }]
+      ports: [{ protocol: TCP, port: 50051 }]
+    - from: [{ namespaceSelector: {}, podSelector: { matchLabels: { oya.io/nativelink-role: trusted-dev-writer } } }]
+      ports: [{ protocol: TCP, port: 50052 }]
+    - from: [{ namespaceSelector: {}, podSelector: { matchLabels: { oya.io/nativelink-role: worker-writer } } }]
+      ports: [{ protocol: TCP, port: 50053 }]
+    - from: [{ namespaceSelector: {}, podSelector: { matchLabels: { oya.io/nativelink-role: re-input-client } } }]
+      ports: [{ protocol: TCP, port: 50054 }]
+    - from: [{ podSelector: {} }]
+      ports: [{ protocol: TCP, port: 9901 }]
+  egress:
+    - to: [{ podSelector: { matchLabels: { app: nativelink-cas } } }]
+      ports: [{ protocol: TCP, port: 50051 }, { protocol: TCP, port: 50052 }]
+    - to: [{ podSelector: { matchLabels: { app: nativelink-scheduler } } }]
+      ports: [{ protocol: TCP, port: 51052 }]
+    - to:
+        - namespaceSelector: { matchLabels: { kubernetes.io/metadata.name: oya-iam } }
+          podSelector: { matchLabels: { app: cloud-iam-pdp } }
+      ports: [{ protocol: TCP, port: 8080 }]
+    - to:
+        - namespaceSelector: { matchLabels: { kubernetes.io/metadata.name: kube-system } }
+          podSelector: { matchLabels: { k8s-app: kube-dns } }
+      ports: [{ protocol: UDP, port: 53 }, { protocol: TCP, port: 53 }]

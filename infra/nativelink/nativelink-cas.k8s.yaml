@@ -370,9 +370,9 @@ spec:
     app: nativelink-cas
   ports: [{ name: grpc-reader, port: 50052, targetPort: 50052 }]
 ---
-# Defense in depth UNDER the mTLS boundary: only pods labeled as CAS clients may
-# even reach the gRPC ports; the ops listener stays namespace-local (probes are
-# kubelet traffic and bypass NetworkPolicy).
+# Defense in depth UNDER the mTLS boundary: runners never reach NativeLink
+# directly. Envoy is the sole client edge; the scheduler/worker identities may
+# reach the writer port only for their internal RE legs.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -385,17 +385,12 @@ spec:
   policyTypes: [Ingress]
   ingress:
     - from:
-        - namespaceSelector: {}
-          podSelector:
-            matchLabels:
-              oya.io/nativelink-cas-writer: "true"
+        - podSelector: { matchLabels: { app: nativelink-edge } }
+        - podSelector: { matchLabels: { app: nativelink-scheduler } }
       ports:
         - { protocol: TCP, port: 50051 }
     - from:
-        - namespaceSelector: {}
-          podSelector:
-            matchLabels:
-              oya.io/nativelink-cas-reader: "true"
+        - podSelector: { matchLabels: { app: nativelink-edge } }
       ports:
         - { protocol: TCP, port: 50052 }
     - from:
