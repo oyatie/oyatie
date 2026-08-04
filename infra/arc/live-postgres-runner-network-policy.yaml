@@ -69,3 +69,25 @@ spec:
               - 198.18.0.0/15
               - 224.0.0.0/4
               - 240.0.0.0/4
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: general-ci-runner-openbao-egress
+  namespace: arc-runners
+  labels:
+    app.kubernetes.io/part-of: oya-cloud-ci
+spec:
+  podSelector:
+    matchLabels:
+      oya.io/ci-cell: general
+  policyTypes: [Egress]
+  egress:
+    # TLS-only OpenBao migration listener for short-lived CI identity. The
+    # live-Postgres cell never issues cache identities and receives no path.
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: oya-kms
+      ports:
+        - { protocol: TCP, port: 8202 }

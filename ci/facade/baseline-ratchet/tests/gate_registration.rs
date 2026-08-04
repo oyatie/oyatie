@@ -328,7 +328,7 @@ fn workspace_resolver_differential_is_self_hosted_and_binding(workflow: &str) ->
         .iter()
         .flat_map(|step| executable_lines(step))
         .any(|line| {
-            line.starts_with("buck2 test ")
+            line.contains("buck2 test ")
                 && line.contains(WINDOWS_RESOLVER_DIFFERENTIAL_TARGET)
                 && line.contains("-- --env \"RUSTUP_HOME=${RUSTUP_HOME}\"")
         });
@@ -433,22 +433,44 @@ fn live_postgres_arc_cell_is_ephemeral_and_isolated(values: &str) -> bool {
 }
 
 fn live_postgres_network_policy_denies_cross_pod_ingress(policy: &str) -> bool {
-    policy.matches("kind: NetworkPolicy").count() == 2
+    let documents: Vec<_> = policy.split("\n---\n").collect();
+    let named = |name: &str| {
+        documents
+            .iter()
+            .copied()
+            .find(|document| document.contains(&format!("name: {name}")))
+    };
+    let (Some(ingress), Some(shared_egress), Some(openbao_egress)) = (
+        named("live-postgres-runner-ingress-deny"),
+        named("ci-runners-egress-allowlist"),
+        named("general-ci-runner-openbao-egress"),
+    ) else {
+        return false;
+    };
+
+    documents.len() == 3
+        && documents
+            .iter()
+            .all(|document| document.matches("kind: NetworkPolicy").count() == 1)
         && !policy.contains("kind: CiliumNetworkPolicy")
-        && policy.contains("name: live-postgres-runner-ingress-deny")
-        && policy.contains("oya.io/ci-cell: live-postgres")
-        && policy.contains("policyTypes:")
-        && policy.contains("- Ingress")
-        && policy.lines().any(|line| line.trim() == "ingress: []")
-        && policy.contains("name: ci-runners-egress-allowlist")
-        && policy.contains("values: [general, live-postgres]")
-        && policy.contains("policyTypes: [Egress]")
-        && policy.contains("kubernetes.io/metadata.name: oya-ci")
-        && policy.contains("kubernetes.io/metadata.name: oya-registry")
-        && policy.contains("cidr: 0.0.0.0/0")
-        && policy.contains("- 10.0.0.0/8")
-        && policy.contains("- 172.16.0.0/12")
-        && policy.contains("- 192.168.0.0/16")
+        && ingress.contains("oya.io/ci-cell: live-postgres")
+        && ingress.contains("policyTypes:")
+        && ingress.contains("- Ingress")
+        && ingress.lines().any(|line| line.trim() == "ingress: []")
+        && shared_egress.contains("values: [general, live-postgres]")
+        && shared_egress.contains("policyTypes: [Egress]")
+        && shared_egress.contains("kubernetes.io/metadata.name: oya-ci")
+        && shared_egress.contains("kubernetes.io/metadata.name: oya-registry")
+        && shared_egress.contains("cidr: 0.0.0.0/0")
+        && shared_egress.contains("- 10.0.0.0/8")
+        && shared_egress.contains("- 172.16.0.0/12")
+        && shared_egress.contains("- 192.168.0.0/16")
+        && !shared_egress.contains("kubernetes.io/metadata.name: oya-kms")
+        && openbao_egress.contains("oya.io/ci-cell: general")
+        && openbao_egress.contains("policyTypes: [Egress]")
+        && openbao_egress.contains("kubernetes.io/metadata.name: oya-kms")
+        && openbao_egress.contains("port: 8202")
+        && !openbao_egress.contains("oya.io/ci-cell: live-postgres")
         && !policy.contains("kubernetes.io/metadata.name: oya-data")
 }
 
@@ -1529,7 +1551,15 @@ fn live_postgres_lanes_use_a_dedicated_ephemeral_arc_sidecar_cell() {
         .unwrap_or_else(|e| panic!("read {}: {e}", policy_path.display()));
     assert!(
         live_postgres_network_policy_denies_cross_pod_ingress(&policy),
-        "the dedicated cell must deny cross-pod ingress, and both candidate-runner cells must deny shared-data egress"
+        "the dedicated cell must deny cross-pod ingress and OpenBao, shared egress must stay fail-closed, and only the general cell may reach OpenBao TLS"
+    );
+    let live_postgres_openbao = policy.replace(
+        "oya.io/ci-cell: general\n  policyTypes: [Egress]",
+        "oya.io/ci-cell: live-postgres\n  policyTypes: [Egress]",
+    );
+    assert!(
+        !live_postgres_network_policy_denies_cross_pod_ingress(&live_postgres_openbao),
+        "granting the live-Postgres cell an OpenBao path must fail registration"
     );
 
     let gitops_path = gitops_values_path(&root);

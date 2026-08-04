@@ -8,9 +8,9 @@
 # existence.
 #
 # Same dark-wiring + keyed-identity contract as warm-cache-rw.buckconfig: selected
-# only by the resolver under warm_reads_licensed=true, reader mTLS identity supplied
-# via `--config buck2_re_client.tls_client_cert=...` from secret-mounted env, never
-# from this file. allow_cache_uploads=false and the READER endpoint's Action Cache
+# only by the controller under warm_reads_licensed=true; reader mTLS identity is
+# materialized into private `.buckconfig.local` from secret-mounted env, never
+# this file. allow_cache_uploads=false and the READER endpoint's Action Cache
 # is served read_only=true at the service boundary, so even a misconfigured client
 # cannot write through this path.
 

@@ -163,7 +163,10 @@ reconciler successor per ADR-0556 D4.3 when it lands.
 
 ### D4 — The cold integrity-canary ships in this same change (ADR-0556 D2: no canary, no warm)
 
-`.github/workflows/cache-integrity-canary.yml`: a scheduled (cron + dispatch), declarative,
+`.github/workflows/cache-integrity-canary-schedule.yml` is the cron/dispatch orchestrator.
+Its cold call has only `contents: read`; the separate reader-identity call does not exist
+unless activation, `dev`, and licensed/manual-prelicense predicates all pass.
+`.github/workflows/cache-integrity-canary.yml` is the reusable declarative executor for the
 **from-empty** build of the pinned target set (policy DATA in the wiring app's
 `canary-policy.json`) on a clean ephemeral runner — **no buckconfig overlay, no
 `actions/cache` step anywhere in the workflow** (ADR-0556 D5 cold-must-stay). The job then:
@@ -210,8 +213,8 @@ under a licensed fixture (pinned as a ratchet — removing one from the policy D
 and requires superseding ADR-0556); the overlays parse, select the cache platform, claim
 the posture their names promise, and contain no identity material; the root `.buckconfig`
 carries no `[buck2_re_client]`/`[oya_cache]` section and keeps the prelude default
-platform; the canary workflow exists, is scheduled, restores no cache, and wires the cold
-proof. No lane passes an overlay today, so no behavior changes today.
+platform; the scheduler exists, the reusable executor restores no cache, and the cold call
+cannot request OIDC. No lane passes an overlay today, so no behavior changes today.
 
 ## Alternatives considered
 
@@ -274,8 +277,9 @@ This decision is the justification anchor for every artifact the slice introduce
   `ci/facade/build-cache-policy/src/main.rs`,
   `ci/facade/build-cache-policy/src/canary-policy.json`,
   `ci/facade/build-cache-policy/tests/cache_conformance.rs`.
-- Canary: `.github/workflows/cache-integrity-canary.yml`, with the workflows tree's
-  ownership seed `.github/workflows/OWNERS` added so workflow files are born owned.
+- Canary scheduler/executor: `.github/workflows/cache-integrity-canary-schedule.yml` and
+  `.github/workflows/cache-integrity-canary.yml`, with the workflows tree's ownership seed
+  `.github/workflows/OWNERS` so workflow files are born owned.
 
 ## Verification
 

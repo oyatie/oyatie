@@ -1,0 +1,28 @@
+# Schema/reachability scaffold only: do not apply this file to an activated
+# cluster. The no-echo bootstrap in infra/external-secrets/RUNBOOK.md generates
+# and applies populated ConfigMaps directly so a rerun cannot blank live trust.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: openbao-offline-root-ca
+  namespace: external-secrets
+data:
+  ca.crt: ""
+---
+# NativeLink's server CA is an independent trust anchor. It validates the CAS
+# server only; it neither authenticates OpenBao nor authorizes CAS clients.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nativelink-server-ca
+  namespace: arc-runners
+data:
+  ca.crt: ""
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: openbao-offline-root-ca
+  namespace: arc-runners
+data:
+  ca.crt: ""

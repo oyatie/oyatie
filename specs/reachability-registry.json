@@ -186,6 +186,14 @@
       "prefix": "infra/ci/runner-image/"
     },
     {
+      "anchor": "ADR-0560 / PR #1553: exact Buck package marker that exposes the reviewed OpenBao TLS, workload-identity, and public-CA manifests to the repository corpus graph; the package adds indexing only and does not activate or apply the manifests.",
+      "prefix": "infra/kms/BUCK"
+    },
+    {
+      "anchor": "ADR-0560 / PR #1553: exact Buck package marker that exposes the reviewed OpenBao TLS-migration ExternalSecret stores to the repository corpus graph; the package adds indexing only and does not activate or apply the manifests.",
+      "prefix": "infra/external-secrets/BUCK"
+    },
+    {
       "anchor": "ADR-0630 D7 + infra/gitops/values.yaml oya-live-postgres-network-policy Application: exact network-policy artifact consumed by GitOps before the wave-2 live PostgreSQL ARC runner Pods; it denies runner-cell ingress and denies shared-data egress for the dedicated and general ARC cell labels. breadth: exact path only",
       "prefix": "infra/arc/live-postgres-runner-network-policy.yaml"
     },
@@ -198,7 +206,7 @@
       "prefix": "infra/arc/live-postgres-admission-bootstrap.json"
     },
     {
-      "anchor": "ADR-0560 D1: NativeLink CAS deployable artifacts — the warm-substrate manifests consumed at cluster bring-up (GitOps apply); keyed mTLS boundary + SeaweedFS S3 backing per the ADR; ownership seed infra/nativelink/OWNERS (cloud-ci-platform)",
+      "anchor": "ADR-0560 D1: dark NativeLink CAS/AC declaration with keyed mTLS and a bounded filesystem tier; activation requires a later reviewed GitOps Application plus #1551/#1534 live proof, so this reachability row grants no deployment claim; ownership seed infra/nativelink/OWNERS (cloud-ci-platform)",
       "prefix": "infra/nativelink/"
     },
     {
@@ -216,6 +224,10 @@
     {
       "anchor": "ADR-0560 D4 (executing ADR-0556 D2 'no canary, no warm'): the scheduled cold integrity-canary workflow — from-empty pinned build + assert-cold + digest manifests + verdict artifact; shape pinned by the oya-cloud-ci-cache-wiring-app conformance gate",
       "prefix": ".github/workflows/cache-integrity-canary.yml"
+    },
+    {
+      "anchor": "ADR-0560 D4 (executing ADR-0556 D2 'no canary, no warm'): privilege-separated schedule/dispatch orchestrator for the reusable integrity-canary executor; the cold call has no OIDC permission and identity calls remain explicit activation-gated",
+      "prefix": ".github/workflows/cache-integrity-canary-schedule.yml"
     },
     {
       "anchor": "ADR-0537 step-0 root ceremony port: draft operator-facing runbook for redacted offline root-of-trust evidence packets and custody posture checks.",
@@ -392,6 +404,22 @@
     {
       "anchor": "ADR-0630 D5/D9 / issue #1504: exact source-contract test locking bounded Talos selection, separate provisioner identity, both runner workspace mounts, concurrency, and telemetry declarations.",
       "prefix": "infra/arc/tests/ci_workspace_capacity.rs"
+    },
+    {
+      "anchor": "ADR-0560 keyed CAS boundary: exact OpenBao GitHub OIDC roles, separate writer/reader PKI roots, and least-privilege issuance policies.",
+      "prefix": "infra/kms/openbao-ci-identity.k8s.yaml"
+    },
+    {
+      "anchor": "ADR-0560 keyed CAS boundary: public-only OpenBao and NativeLink server trust-anchor projections for ephemeral ARC clients.",
+      "prefix": "infra/kms/openbao-public-ca.k8s.yaml"
+    },
+    {
+      "anchor": "ADR-0560 keyed CAS boundary: dual-listener OpenBao TLS migration declaration used before workload-identity activation.",
+      "prefix": "infra/kms/openbao-tls-migration.k8s.yaml"
+    },
+    {
+      "anchor": "ADR-0560 keyed CAS boundary: TLS-migration-only ExternalSecret stores preserve the existing plaintext rollback path during staged cutover.",
+      "prefix": "infra/external-secrets/clustersecretstore-openbao-oya-tls-migration.yaml"
     }
   ]
 }
