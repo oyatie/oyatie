@@ -186,16 +186,7 @@ jobs:
         run: |
           set -euo pipefail
           buck2 run //ci/facade/build-cache-policy:oya-cloud-ci-cache-wiring-bin -- run --workflow-mode "${{ inputs.writer_seed && 'writer' || 'reader' }}" --prelicense-probe "${{ inputs.prelicense_probe || false }}" --mode-out /tmp/canary-cache-mode -- buck2 --isolation-dir canary-warm-probe build @/tmp/canary-targets --unstable-write-invocation-record /tmp/canary-warm-record.json --show-full-output > /tmp/canary-warm-outputs.txt
-          buck2 run //ci/facade/build-cache-policy:oya-cloud-ci-cache-wiring-bin -- hash-outputs --show-output /tmp/canary-warm-outputs.txt --out /tmp/canary-warm-manifest.json
-      - name: Normalize validated reader proof
-        if: ${{ inputs.reader_probe }}
-        run: buck2 run //ci/facade/build-cache-policy:oya-cloud-ci-cache-wiring-bin -- report --record /tmp/canary-warm-record.json --build-class integrity-canary-warm-probe --mode warm-ro --out /tmp/canary-reader-report.json
-      - name: Normalize validated writer proof
-        if: ${{ inputs.writer_seed }}
-        run: |
-          set -euo pipefail
-          buck2 run //ci/facade/build-cache-policy:oya-cloud-ci-cache-wiring-bin -- report --record /tmp/canary-warm-record.json --build-class postmerge-dev-trunk-prelicense-seed --mode warm-rw --out /tmp/canary-writer-report.json
-          buck2 run //ci/facade/build-cache-policy:oya-cloud-ci-cache-wiring-bin -- writer-receipt --record /tmp/canary-warm-record.json --manifest /tmp/canary-warm-manifest.json --outputs /tmp/canary-warm-outputs.txt --out /tmp/canary-writer-receipt.json
+          buck2 run //ci/facade/build-cache-policy:oya-cloud-ci-cache-wiring-bin -- warm-proof --role "${{ inputs.writer_seed && 'writer' || 'reader' }}" --record /tmp/canary-warm-record.json --outputs /tmp/canary-warm-outputs.txt --manifest-out /tmp/canary-warm-manifest.json --report-out "${{ inputs.writer_seed && '/tmp/canary-writer-report.json' || '/tmp/canary-reader-report.json' }}" --receipt-out /tmp/canary-writer-receipt.json
       - name: Upload validated writer proof
         if: ${{ inputs.writer_seed }}
         # actions/upload-artifact@v7.0.1 — Node 24 runtime; pinned to immutable release commit.
@@ -215,17 +206,7 @@ jobs:
         env:
           PRELICENSE_PROBE: ${{ inputs.prelicense_probe }}
           WRITER_RUN_ID: ${{ inputs.writer_run_id }}
-        run: |
-          set -euo pipefail
-          if [ -f /tmp/canary-warm-manifest.json ]; then
-            writer_args=()
-            if [ "$PRELICENSE_PROBE" = "true" ]; then
-              writer_args=(--writer-receipt /tmp/writer-proof/canary-writer-receipt.json --writer-manifest /tmp/writer-proof/canary-warm-manifest.json --writer-run-id "$WRITER_RUN_ID")
-            fi
-            buck2 run //ci/facade/build-cache-policy:oya-cloud-ci-cache-wiring-bin -- canary-verdict --cold /tmp/canary-cold-manifest.json --warm /tmp/canary-warm-manifest.json --warm-record /tmp/canary-warm-record.json "${writer_args[@]}" --out /tmp/canary-verdict.json
-          else
-            buck2 run //ci/facade/build-cache-policy:oya-cloud-ci-cache-wiring-bin -- canary-verdict --cold /tmp/canary-cold-manifest.json --out /tmp/canary-verdict.json
-          fi
+        run: buck2 run //ci/facade/build-cache-policy:oya-cloud-ci-cache-wiring-bin -- canary-verdict --workflow-mode "${{ inputs.reader_probe && 'reader' || 'cold' }}" --prelicense-probe "$PRELICENSE_PROBE" --cold /tmp/canary-cold-manifest.json --warm /tmp/canary-warm-manifest.json --warm-record /tmp/canary-warm-record.json --writer-receipt /tmp/writer-proof/canary-writer-receipt.json --writer-manifest /tmp/writer-proof/canary-warm-manifest.json --writer-run-id "$WRITER_RUN_ID" --out /tmp/canary-verdict.json
       - name: Cache-hit telemetry for the canary lane (must be 0%)
         if: ${{ always() && !inputs.writer_seed && !inputs.reader_probe }}
         run: |

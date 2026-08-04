@@ -1128,11 +1128,10 @@ fn workflows_exchange_oidc_only_for_trusted_jobs_and_never_use_static_cert_secre
     assert!(canary.contains("github-token: ${{ github.token }}"));
     assert!(canary.contains("repository: ${{ github.repository }}"));
     assert!(canary.contains("run-id: ${{ inputs.writer_run_id }}"));
-    assert!(canary.contains("writer-receipt --record"));
+    assert!(canary.contains("warm-proof --role"));
     assert!(canary.contains("/tmp/canary-writer-report.json"));
     assert!(canary.contains("/tmp/canary-writer-receipt.json"));
-    assert!(canary.contains("--build-class integrity-canary-warm-probe --mode warm-ro"));
-    assert!(canary.contains("--out /tmp/canary-reader-report.json"));
+    assert!(canary.contains("--report-out \"${{ inputs.writer_seed && '/tmp/canary-writer-report.json' || '/tmp/canary-reader-report.json' }}\""));
     assert!(canary.contains("/tmp/canary-warm-record.json"));
     assert!(canary.contains("--writer-manifest"));
     assert!(canary.contains("--writer-run-id \"$WRITER_RUN_ID\""));

@@ -420,6 +420,10 @@
     {
       "anchor": "ADR-0560 keyed CAS boundary: TLS-migration-only ExternalSecret stores preserve the existing plaintext rollback path during staged cutover.",
       "prefix": "infra/external-secrets/clustersecretstore-openbao-oya-tls-migration.yaml"
+    },
+    {
+      "anchor": "ADR-0556 D2 + ADR-0560 / issues #1551 and #1534: exact suspended, zero-replica commissioning manifest for the CAS writer/reader network and workload-identity proof. It is repository-side evidence only until explicit activation after Cilium/Hubble and secret recovery; it grants no live apply, warm-read, or remote-execution authority.",
+      "prefix": "infra/arc/cas-network-proof.k8s.yaml"
     }
   ]
 }

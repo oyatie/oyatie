@@ -13,6 +13,8 @@
 //!   assert-warm --record PATH --build-class C --mode M
 //!   assert-cold --record PATH
 //!   hash-outputs --show-output PATH [--out PATH]
+//!   warm-proof --role reader|writer --record PATH --outputs PATH
+//!       --manifest-out PATH --report-out PATH [--receipt-out PATH]
 //!   writer-receipt --record PATH --manifest PATH --outputs PATH [--out PATH]
 //!   canary-verdict --cold PATH [--warm PATH --warm-record PATH] [--out PATH]
 //!   canary-targets                      (prints the pinned target set, one per line)
@@ -375,10 +377,20 @@ fn required_value(name: &str, env: &impl Fn(&str) -> Option<String>) -> Result<S
         .ok_or_else(|| format!("writer receipt requires non-empty {name}"))
 }
 
+fn trusted_writer_field<'a>(policy: &'a Value, key: &str) -> Result<&'a str, String> {
+    policy
+        .get("trusted_writer")
+        .and_then(|writer| writer.get(key))
+        .and_then(Value::as_str)
+        .filter(|value| !value.is_empty())
+        .ok_or_else(|| format!("canary policy trusted_writer.{key} missing or non-string"))
+}
+
 fn writer_receipt_from(
     record: &Value,
     manifest: &Value,
     outputs: &str,
+    policy: &Value,
     env: impl Fn(&str) -> Option<String>,
 ) -> Result<Value, String> {
     app::assert_writer_seed_record(record).map_err(|findings| {
@@ -400,10 +412,10 @@ fn writer_receipt_from(
     let git_ref = required("GITHUB_REF")?;
     let workflow_ref = required("GITHUB_WORKFLOW_REF")?;
     if env("GITHUB_ACTIONS").as_deref() != Some("true")
-        || repository != "jason931225/oyatie"
-        || event != "push"
-        || git_ref != "refs/heads/dev"
-        || workflow_ref != "jason931225/oyatie/.github/workflows/oya-ci-required.yml@refs/heads/dev"
+        || repository != trusted_writer_field(policy, "repository")?
+        || event != trusted_writer_field(policy, "event_name")?
+        || git_ref != trusted_writer_field(policy, "git_ref")?
+        || workflow_ref != trusted_writer_field(policy, "workflow_ref")?
     {
         return Err(
             "writer receipt requires the trusted dev-push oya-ci-required workflow".to_string(),
@@ -460,6 +472,7 @@ fn validate_writer_receipt_from(
     cold: &std::collections::BTreeMap<String, String>,
     warm: &std::collections::BTreeMap<String, String>,
     expected_run_id: &str,
+    policy: &Value,
     env: impl Fn(&str) -> Option<String>,
 ) -> Result<Value, String> {
     if expected_run_id.is_empty() || !expected_run_id.bytes().all(|byte| byte.is_ascii_digit()) {
@@ -471,14 +484,20 @@ fn validate_writer_receipt_from(
     let required = |name| required_value(name, &env);
     let current_sha = required("GITHUB_SHA")?;
     for (key, expected) in [
-        ("github_repository", "jason931225/oyatie"),
+        (
+            "github_repository",
+            trusted_writer_field(policy, "repository")?,
+        ),
         ("github_sha", current_sha.as_str()),
         ("github_run_id", expected_run_id),
-        ("github_event_name", "push"),
-        ("github_ref", "refs/heads/dev"),
+        (
+            "github_event_name",
+            trusted_writer_field(policy, "event_name")?,
+        ),
+        ("github_ref", trusted_writer_field(policy, "git_ref")?),
         (
             "github_workflow_ref",
-            "jason931225/oyatie/.github/workflows/oya-ci-required.yml@refs/heads/dev",
+            trusted_writer_field(policy, "workflow_ref")?,
         ),
     ] {
         if receipt_string(receipt, key)? != expected {
@@ -532,6 +551,44 @@ fn validate_writer_receipt_from(
         "runner_pod_uid": receipt_string(receipt, "runner_pod_uid")?,
         "runner_node_name": receipt_string(receipt, "runner_node_name")?,
     }))
+}
+
+fn warm_proof_from(
+    role: &str,
+    record: &Value,
+    outputs: &str,
+    policy: &Value,
+    env: impl Fn(&str) -> Option<String>,
+) -> Result<(Value, Value, Option<Value>), String> {
+    let manifest = app::manifest_to_json(&app::digest_manifest_from_show_output(outputs)?);
+    let (build_class, mode, receipt) = match role {
+        "reader" => {
+            app::assert_complete_warm_cache_coverage(record).map_err(|findings| {
+                format!(
+                    "reader proof did not show complete action-cache coverage: {}",
+                    findings.join("; ")
+                )
+            })?;
+            ("integrity-canary-warm-probe", "warm-ro", None)
+        }
+        "writer" => (
+            "postmerge-dev-trunk-prelicense-seed",
+            "warm-rw",
+            Some(writer_receipt_from(
+                record, &manifest, outputs, policy, env,
+            )?),
+        ),
+        other => {
+            return Err(format!(
+                "warm-proof role must be `reader` or `writer`, got `{other}`"
+            ));
+        }
+    };
+    Ok((
+        manifest,
+        app::cache_hit_report(record, build_class, mode),
+        receipt,
+    ))
 }
 
 fn grpc_status(headers: &str) -> Result<u16, String> {
@@ -968,7 +1025,8 @@ fn run(args: Vec<String>) -> Result<ExitCode, String> {
     let Some(command) = args.first().cloned() else {
         return Err(
             "missing subcommand (resolve | run | issue-identity | license-state | report | \
-                    assert-warm | assert-cold | hash-outputs | writer-receipt | canary-verdict | canary-targets)"
+                    assert-warm | assert-cold | hash-outputs | warm-proof | writer-receipt | \
+                    canary-verdict | canary-targets)"
                 .to_string(),
         );
     };
@@ -1181,6 +1239,48 @@ fn run(args: Vec<String>) -> Result<ExitCode, String> {
             write_out(flag_value(rest, "--out"), &payload)?;
             Ok(ExitCode::SUCCESS)
         }
+        "warm-proof" => {
+            let role = flag_value(rest, "--role")
+                .ok_or_else(|| "warm-proof requires --role".to_string())?;
+            let record_path = flag_value(rest, "--record")
+                .ok_or_else(|| "warm-proof requires --record".to_string())?;
+            let outputs_path = flag_value(rest, "--outputs")
+                .ok_or_else(|| "warm-proof requires --outputs".to_string())?;
+            let manifest_out = flag_value(rest, "--manifest-out")
+                .ok_or_else(|| "warm-proof requires --manifest-out".to_string())?;
+            let report_out = flag_value(rest, "--report-out")
+                .ok_or_else(|| "warm-proof requires --report-out".to_string())?;
+            let document = read_json(&record_path)?;
+            let record = app::invocation_record(&document)?;
+            let outputs = fs::read_to_string(&outputs_path)
+                .map_err(|error| format!("read {outputs_path}: {error}"))?;
+            let policy = app::canary_policy()?;
+            let (manifest, report, receipt) =
+                warm_proof_from(&role, record, &outputs, &policy, |name| {
+                    std::env::var(name).ok()
+                })?;
+            write_out(
+                Some(manifest_out),
+                &serde_json::to_string_pretty(&manifest)
+                    .map_err(|error| format!("serialize warm manifest: {error}"))?,
+            )?;
+            write_out(
+                Some(report_out),
+                &serde_json::to_string_pretty(&report)
+                    .map_err(|error| format!("serialize warm report: {error}"))?,
+            )?;
+            if let Some(receipt) = receipt {
+                let receipt_out = flag_value(rest, "--receipt-out")
+                    .filter(|path| !path.is_empty())
+                    .ok_or_else(|| "writer warm-proof requires --receipt-out".to_string())?;
+                write_out(
+                    Some(receipt_out),
+                    &serde_json::to_string_pretty(&receipt)
+                        .map_err(|error| format!("serialize writer receipt: {error}"))?,
+                )?;
+            }
+            Ok(ExitCode::SUCCESS)
+        }
         "writer-receipt" => {
             let record_path = flag_value(rest, "--record")
                 .ok_or_else(|| "writer-receipt requires --record".to_string())?;
@@ -1193,8 +1293,10 @@ fn run(args: Vec<String>) -> Result<ExitCode, String> {
             let manifest = read_json(&manifest_path)?;
             let outputs = fs::read_to_string(&outputs_path)
                 .map_err(|error| format!("read {outputs_path}: {error}"))?;
-            let receipt =
-                writer_receipt_from(record, &manifest, &outputs, |name| std::env::var(name).ok())?;
+            let policy = app::canary_policy()?;
+            let receipt = writer_receipt_from(record, &manifest, &outputs, &policy, |name| {
+                std::env::var(name).ok()
+            })?;
             let payload = serde_json::to_string_pretty(&receipt)
                 .map_err(|error| format!("serialize writer receipt: {error}"))?;
             write_out(flag_value(rest, "--out"), &payload)?;
@@ -1204,9 +1306,31 @@ fn run(args: Vec<String>) -> Result<ExitCode, String> {
             let cold_path = flag_value(rest, "--cold")
                 .ok_or_else(|| "canary-verdict requires --cold".to_string())?;
             let cold = app::manifest_from_json(&read_json(&cold_path)?)?;
-            let warm = match flag_value(rest, "--warm") {
-                Some(path) => Some(app::manifest_from_json(&read_json(&path)?)?),
-                None => None,
+            let workflow_mode = flag_value(rest, "--workflow-mode");
+            let prelicense_probe = bool_flag_value(rest, "--prelicense-probe")?;
+            let warm = match workflow_mode.as_deref() {
+                Some("cold") if prelicense_probe => {
+                    return Err(
+                        "canary-verdict cold workflow mode cannot request pre-license proof"
+                            .to_string(),
+                    );
+                }
+                Some("cold") => None,
+                Some("reader") => {
+                    let path = flag_value(rest, "--warm").ok_or_else(|| {
+                        "canary-verdict reader workflow mode requires --warm".to_string()
+                    })?;
+                    Some(app::manifest_from_json(&read_json(&path)?)?)
+                }
+                Some(other) => {
+                    return Err(format!(
+                        "canary-verdict workflow mode must be `cold` or `reader`, got `{other}`"
+                    ));
+                }
+                None => match flag_value(rest, "--warm") {
+                    Some(path) => Some(app::manifest_from_json(&read_json(&path)?)?),
+                    None => None,
+                },
             };
             // FAIL-CLOSED coupling to the kill-switch: while warm reads are
             // LICENSED, a verdict without a warm manifest is a misconfigured
@@ -1264,7 +1388,11 @@ fn run(args: Vec<String>) -> Result<ExitCode, String> {
                 flag_value(rest, "--writer-manifest"),
                 flag_value(rest, "--writer-run-id"),
             ];
-            let writer_provenance = if writer_flags.iter().any(Option::is_some) {
+            let writer_proof_required =
+                workflow_mode.as_deref() == Some("reader") && prelicense_probe;
+            let writer_proof_requested = writer_proof_required
+                || (workflow_mode.is_none() && writer_flags.iter().any(Option::is_some));
+            let writer_provenance = if writer_proof_requested {
                 let [Some(receipt_path), Some(manifest_path), Some(run_id)] = writer_flags else {
                     return Err(
                         "canary-verdict requires --writer-receipt, --writer-manifest, and --writer-run-id together"
@@ -1274,12 +1402,14 @@ fn run(args: Vec<String>) -> Result<ExitCode, String> {
                 let warm = warm.as_ref().ok_or_else(|| {
                     "writer commissioning proof requires a reader warm manifest".to_string()
                 })?;
+                let policy = app::canary_policy()?;
                 Some(validate_writer_receipt_from(
                     &read_json(&receipt_path)?,
                     &read_json(&manifest_path)?,
                     &cold,
                     warm,
                     &run_id,
+                    &policy,
                     |name| std::env::var(name).ok(),
                 )?)
             } else {
@@ -1646,13 +1776,36 @@ mod tests {
         let output_binding = format!("//canary:target {}\n", output.display());
         let manifest =
             app::manifest_to_json(&app::digest_manifest_from_show_output(&output_binding).unwrap());
+        let policy = app::canary_policy().unwrap();
         let receipt = writer_receipt_from(
             &writer_record_fixture(),
             &manifest,
             &output_binding,
+            &policy,
             proof_env,
         )
         .unwrap();
+        let (proof_manifest, proof_report, proof_receipt) = warm_proof_from(
+            "writer",
+            &writer_record_fixture(),
+            &output_binding,
+            &policy,
+            proof_env,
+        )
+        .unwrap();
+        assert_eq!(proof_manifest, manifest);
+        assert_eq!(proof_report["mode"], "warm-rw");
+        assert_eq!(proof_receipt.unwrap()["github_run_id"], "42");
+        assert!(
+            warm_proof_from(
+                "other",
+                &writer_record_fixture(),
+                &output_binding,
+                &policy,
+                proof_env,
+            )
+            .is_err()
+        );
         let mismatched_manifest = json!({
             "schema": app::DIGEST_MANIFEST_SCHEMA,
             "entries": {"//canary:target": "sha256:not-the-output"}
@@ -1662,14 +1815,16 @@ mod tests {
                 &writer_record_fixture(),
                 &mismatched_manifest,
                 &output_binding,
+                &policy,
                 proof_env,
             )
             .is_err()
         );
         let entries = app::manifest_from_json(&manifest).unwrap();
-        let provenance =
-            validate_writer_receipt_from(&receipt, &manifest, &entries, &entries, "42", reader_env)
-                .unwrap();
+        let provenance = validate_writer_receipt_from(
+            &receipt, &manifest, &entries, &entries, "42", &policy, reader_env,
+        )
+        .unwrap();
         assert_eq!(provenance["github_run_id"], "42");
         assert_eq!(provenance["runner_pod_uid"], "writer-uid");
 
@@ -1687,7 +1842,7 @@ mod tests {
             invalid[key] = value;
             assert!(
                 validate_writer_receipt_from(
-                    &invalid, &manifest, &entries, &entries, "42", reader_env,
+                    &invalid, &manifest, &entries, &entries, "42", &policy, reader_env,
                 )
                 .is_err(),
                 "accepted invalid writer receipt field {key}"
@@ -1704,6 +1859,7 @@ mod tests {
                 &entries,
                 &entries,
                 "42",
+                &policy,
                 reader_env,
             )
             .is_err()
@@ -1711,7 +1867,7 @@ mod tests {
         let different = app::manifest_from_json(&other_manifest).unwrap();
         assert!(
             validate_writer_receipt_from(
-                &receipt, &manifest, &different, &entries, "42", reader_env,
+                &receipt, &manifest, &different, &entries, "42", &policy, reader_env,
             )
             .is_err()
         );
@@ -1722,6 +1878,7 @@ mod tests {
                 &entries,
                 &entries,
                 "not-digits",
+                &policy,
                 reader_env,
             )
             .is_err()
@@ -1784,8 +1941,12 @@ mod tests {
         )
         .unwrap();
 
-        let result = run(vec![
+        let mut args = vec![
             "canary-verdict".into(),
+            "--workflow-mode".into(),
+            "reader".into(),
+            "--prelicense-probe".into(),
+            "false".into(),
             "--cold".into(),
             cold.display().to_string(),
             "--warm".into(),
@@ -1794,10 +1955,17 @@ mod tests {
             record.display().to_string(),
             "--out".into(),
             out.display().to_string(),
-        ]);
+        ];
+        let result = run(args.clone());
 
         assert_eq!(result.unwrap(), ExitCode::SUCCESS);
         assert_eq!(read_json(out.to_str().unwrap()).unwrap()["status"], "GREEN");
+        args[4] = "true".into();
+        assert!(
+            run(args)
+                .unwrap_err()
+                .contains("--writer-receipt, --writer-manifest, and --writer-run-id together")
+        );
         fs::remove_dir_all(root).unwrap();
     }
 }
