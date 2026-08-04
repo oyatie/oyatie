@@ -30,6 +30,20 @@
 //! `policy.min_lockfiles` remains a defense-in-depth shrink floor. The legacy single
 //! `policy.lockfile_path` form remains accepted as a one-entry corpus without the SCM projection.
 //!
+//! ## Lockfile corpus
+//! `policy.lockfile_corpus` is the reviewed authority: each entry pairs one repo-relative
+//! `Cargo.toml` workspace root with its sibling `Cargo.lock`. Before reading packages, collection
+//! projects every workspace-owned lock from the independently materialized
+//! `policy.scm_facts_path#tracked_paths` universe: a tracked lock is workspace-owned exactly when
+//! its tracked sibling manifest declares `[workspace]`. That projection must equal the policy
+//! corpus. A newly tracked workspace root therefore fails until declared, while orphan locks and
+//! member-local locks cannot expand the scan. Collection performs no tree walk, so ignored files,
+//! nested worktrees, build products, and directory iteration order cannot change the result. Every
+//! configured component is checked with `symlink_metadata`; absolute paths, `..`, symlinks, missing
+//! files, non-files, duplicate entries, and manifest/lockfile parent mismatch fail closed.
+//! `policy.min_lockfiles` remains a defense-in-depth shrink floor. The legacy single
+//! `policy.lockfile_path` form remains accepted as a one-entry corpus without the SCM projection.
+//!
 =======
 //! only reads candidate-tree bytes: the separately materialized SCM tracked-path snapshot, the
 //! configured `Cargo.lock` files, and the vendored
