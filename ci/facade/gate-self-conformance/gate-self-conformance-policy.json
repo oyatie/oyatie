@@ -63,6 +63,34 @@
       ]
     },
     {
+      "gate": "build-cache-policy",
+      "class": "cache_controller_process_boundary",
+      "reason": "The cache-wiring binary is a controller adapter, not the cache-policy predicate: it starts the caller-selected Buck2 command and explicitly kills the matching isolated daemon before installing and after removing the mode-0600 cache overlay. The two exact Command::new sites are the generic child spawn and the fixed Buck2 daemon kill. Verdicts remain in the pure library functions exercised by the gate; subprocess status is propagated without reinterpretation. The exact count is closed so another process edge cannot appear without review.",
+      "cutover_note": "Retire both subprocess sites when the typed cloud-ci runner/reconciler API owns Buck2 daemon lifecycle and command execution; the pure cache-policy library remains unchanged.",
+      "fixuptask_id": "GH-1549-CUTOVER-CACHE-CONTROLLER-TYPED-RUNNER",
+      "allowed_paths": [
+        "ci/facade/build-cache-policy/src/main.rs"
+      ],
+      "max_occurrences": 2,
+      "tokens": [
+        "Command::new"
+      ]
+    },
+    {
+      "gate": "build-cache-policy",
+      "class": "cas_workload_identity_exchange_boundary",
+      "reason": "The cache-wiring binary performs the narrow GitHub-OIDC-to-OpenBao exchange needed to mint an ephemeral writer or reader mTLS leaf. This network adapter is constrained in code to two exact role/mount/PKI-role/SPIFFE tuples, HTTPS OpenBao, a pinned public CA, sensitive token headers, three-hour leaves, and mode-0600 no-clobber output. It does not decide cache admission or licensing; pure policy and canary predicates retain those verdicts. Nine is the exact reqwest token count in this single source path (imports/type construction plus the three response decode chains), leaving no slack for an unreviewed network expansion.",
+      "cutover_note": "Retire this boundary when the owned workload-identity broker/controller issues the scoped CAS SVID and mounts it into ephemeral runners; then delete reqwest from build-cache-policy and keep only the pure cache-mode/canary logic.",
+      "fixuptask_id": "GH-1549-CUTOVER-CAS-IDENTITY-BROKER",
+      "allowed_paths": [
+        "ci/facade/build-cache-policy/src/main.rs"
+      ],
+      "max_occurrences": 9,
+      "tokens": [
+        "reqwest"
+      ]
+    },
+    {
       "gate": "affected-target-set",
       "class": "operator_phase_elapsed_telemetry_boundary",
       "reason": "The affected-set gate uses wall-clock instants only to emit live operator phase elapsed-seconds telemetry while Buck2 or the wrapped child command runs; pass/fail verdicts still come from child exit status and Buck2 reports.",

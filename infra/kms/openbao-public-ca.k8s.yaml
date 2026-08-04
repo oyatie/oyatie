@@ -1,5 +1,6 @@
-# Apply before the trusted bootstrap writes the public certificate into ca.crt.
-# Empty placeholders contain no key material and make both consumers explicit.
+# Schema/reachability scaffold only: do not apply this file to an activated
+# cluster. The no-echo bootstrap in infra/external-secrets/RUNBOOK.md generates
+# and applies populated ConfigMaps directly so a rerun cannot blank live trust.
 apiVersion: v1
 kind: ConfigMap
 metadata:

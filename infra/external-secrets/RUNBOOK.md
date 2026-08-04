@@ -27,8 +27,8 @@ Run these stages in order; never put a CA private key, JWT, OpenBao token, serve
 private key, or issued leaf in git or captured output.
 
 1. **Preflight.** Confirm the base Deployment is Available and its Service has
-   only `8200/8201`. Apply `infra/kms/openbao-public-ca.k8s.yaml` once, then have
-   the trusted bootstrap replace both empty `ca.crt` placeholders with the
+   only `8200/8201`. Do not apply the empty public-CA scaffold directly. Have
+   the trusted bootstrap generate and apply populated ConfigMaps from the
    offline root's **public certificate only**. Bootstrap Secret
    `oya-kms/openbao-server-tls` with keys `tls.crt` and `tls.key`. Confirm the
    populated ConfigMap `openbao-offline-root-ca` exists in both
@@ -81,7 +81,6 @@ umask 077
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 kubectl apply -f infra/kms/openbao-ci-identity.k8s.yaml >/dev/null
-kubectl apply -f infra/kms/openbao-public-ca.k8s.yaml >/dev/null
 for namespace in external-secrets arc-runners; do
   kubectl -n "$namespace" create configmap openbao-offline-root-ca \
     --from-file=ca.crt="$OYA_OPENBAO_CA_CERT" \
