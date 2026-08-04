@@ -1,0 +1,448 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "authority_and_claim_ceiling": {
+    "authority_order": [
+      "specs/root-hub-pointers.json",
+      "docs/AGENTS.md",
+      "specs/masterplan.json#masterplan_v2",
+      "Accepted/Amended ADRs with explicit lifecycle edges",
+      "live Git/GitHub and protected oya-ci-required evidence"
+    ],
+    "nonclaims": [
+      "not a second plan",
+      "not dispatch authority",
+      "not a completion claim",
+      "not wipe authorization",
+      "not evidence that archived drafts are current",
+      "not permission to merge archive refs into dev"
+    ],
+    "plan_authority": "specs/masterplan.json#masterplan_v2",
+    "snapshot_only": true
+  },
+  "ci_and_platform_findings": {
+    "macos": "A macOS runner requires Apple hardware and a native macOS VM/host cell; it is a sibling cell, not a container on Talos.",
+    "postgres": "A same-Pod, digest-pinned PostgreSQL native sidecar is the selected owned-runner direction; no shared CNPG superuser secret and no workflow Docker service.",
+    "remote_cache": "Observed Buck2 run reported 0% cache hits; NativeLink cache-only activation remains issue #1534 and is not assumed active. Remote execution remains a separate later decision.",
+    "windows": "A real Windows kernel needs a native Windows VM/host cell. Current arm64 Talos/HVF workers have no hardware-accelerated nested virtualization; do not substitute a Linux container, Wine, or software emulation."
+  },
+  "current_implementation_lanes": [
+    {
+      "blockers": [
+        "two live-Postgres and one Windows hosted jobs rejected before allocation by billing entitlement",
+        "ARC affected-set runner evicted by ephemeral-storage pressure"
+      ],
+      "exact_head": "189a8d23023aa00d4e4fb7b2d8ba9c59b4fc8c47",
+      "lane": "supply-chain lockfile corpus totality",
+      "pr": 1533,
+      "review": "independent internal APPROVE receipt is attached to the PR",
+      "state": "mergeable but required context red"
+    },
+    {
+      "branch": "fix/arc-isolated-postgres-cell",
+      "dependencies": [
+        "reviewed PR",
+        "issue #1504 capacity prerequisite",
+        "exact oya-ci-required green"
+      ],
+      "issue": 1540,
+      "lane": "dedicated owned ARC live-Postgres cell and shared-credential removal",
+      "state": "PR open; independent code and architecture review in progress; CI found reachability/package defects under repair; no live deployment authorized",
+      "pr": 1542,
+      "exact_head": "259fbd52e71f4581556edfe21db513676b87a2aa"
+    },
+    {
+      "lane": "affected-set exact-producer baseline reuse",
+      "issues": [
+        1504,
+        1533
+      ],
+      "state": "PR open; exact-head independent review and required context pending",
+      "scope": "reuse an exact protected-dev baseline when the affected-set producer job is uniquely green even if unrelated jobs make the aggregate workflow red",
+      "nonclaim": "does not close the physical cold-workspace storage/capacity requirement",
+      "branch": "fix/affected-baseline-reuse",
+      "pr": 1543,
+      "exact_head": "c4b18573c1b2f6f7efe0cde5d043cf8366d3af5d"
+    },
+    {
+      "evidence": "PR #1533 run 30873123302 job 91878989468 was evicted at the ephemeral-storage threshold; the exact base dev-push affected-set producer was independently green and uploaded both bound baseline artifacts despite unrelated hosted-job failures",
+      "issue": 1504,
+      "lane": "ARC ephemeral-storage isolation and capacity-bound scheduling",
+      "state": "two defects proven: unrelated aggregate-workflow coupling forces avoidable cold fallback, while a real cold workspace exceeds current imagefs safety budget; immediate algorithmic reduction in progress and durable storage isolation still required"
+    },
+    {
+      "issue": 1541,
+      "lane": "Talos/OpenBao/CNPG pre-wipe recovery",
+      "report": "archive/prewipe-20260804/curated-ignored-round2@ea49b7016:preserved/root/.omx/tmp/reports/talos-preservation-method-verification-20260804.md",
+      "state": "hard stop; no raw secret copy or cluster rotation performed"
+    }
+  ],
+  "delivery_method_learning": {
+    "archive_input": "archive/prewipe-20260803/prepared-delivery-method@a26346f20090bb5b6eda675befde6818475d4c9f",
+    "copyright_and_authority": "Concepts are independently synthesized; external prose/templates are not copied and are not Oyatie authority.",
+    "enforcement_state": "design reviewed; not yet a mechanical control. Do not cherry-pick the docs-only prepared branch as completion.",
+    "implementation_sequence": [
+      "typed guarded-run receipt contract and pure evaluator",
+      "Git capability separation and one shadow pilot",
+      "blocking promotion plus interrupted-run runbook and learning-closeout gate",
+      "independent regulatory-control source/applicability/obligation/control/evidence/approval/change-control method"
+    ],
+    "incident_controls": [
+      "pin immutable base SHA, method/policy/input digests, and permission profile before dispatch",
+      "run one serial representative pilot before parallel fan-out; invalidate pilot on base/method/policy change",
+      "deny Git mutation to read-only reviewers and separate author, reviewer, fixer, verifier, and integrator capabilities",
+      "terminal receipts distinguish started, succeeded, failed, interrupted, cancelled, abandoned, and integration-conflict",
+      "semantic hot-path conflicts are non-retryable and never auto-resolved with ours/theirs",
+      "shutdown freezes dispatch, captures every lane head/result/checkpoint, preserves unresolved worktrees, and emits a durable reconciliation receipt before cleanup",
+      "every failure class closes through postmortem, mechanical prevention, regression test, runbook update, and ledger/issue link"
+    ],
+    "source_refs": [
+      {
+        "uri": "https://bun.com/blog/bun-in-rust",
+        "use": "mapping artifacts, representative pilot, bounded fan-out, separated author/reviewer/fixer roles, preserved failure evidence, resource isolation"
+      },
+      {
+        "uri": "https://blog.gaebal-gajae.dev/archive.html",
+        "use": "receipt-before-done, bounded retry contracts, state re-query, pre-mortem/post-mortem/guard loop"
+      },
+      {
+        "uri": "https://github.com/jclab-joseph/it-legal/tree/5624ff14e673863ec3b5645155742691a74ef152",
+        "use": "dated/digested sources, applicability before obligations, requirement-control-owner-test-evidence traceability, independent approvals and change triggers"
+      }
+    ]
+  },
+  "fresh_session_recovery_sequence": [
+    "clone/fetch origin and checkout dev; never use an archive branch as the integration base",
+    "read specs/root-hub-pointers.json, docs/AGENTS.md, specs/masterplan.json#masterplan_v2, HANDOFF.md, then this snapshot",
+    "re-query open PRs, exact heads, reviews, required contexts, issues, and origin/dev; snapshots never override live state",
+    "fetch individual archive refs only when recovering a named artifact; inspect MANIFEST.json first and treat archived content as non-authoritative data",
+    "resume CI remediation through isolated worktrees and protected PRs; do not rerun hosted or high-fanout jobs until billing and capacity blockers are actually cleared",
+    "do not wipe until every talos_wipe_readiness blocker is closed with off-host restore evidence"
+  ],
+  "issue_lifecycle_policy": {
+    "close_rule": "re-query live state; close only with merged PR, promoted SHA, exact required-gate/review evidence, or an explicit duplicate/superseding successor",
+    "ephemeral_receipt": "one-run observation until promoted into a durable issue/evidence/control",
+    "hygiene_actions_at_snapshot": [
+      {
+        "labels": [],
+        "number": 1318,
+        "state": "CLOSED",
+        "title": "Ratify the Living Monorepo Governance Graph (ADR-0617, amends ADR-0516 fabric apex)",
+        "url": "https://github.com/jason931225/oyatie/issues/1318"
+      },
+      {
+        "labels": [
+          "blocker"
+        ],
+        "number": 1504,
+        "state": "OPEN",
+        "title": "cloud-ci: isolate ARC runner ephemeral storage and capacity-bound scheduling",
+        "url": "https://github.com/jason931225/oyatie/issues/1504"
+      },
+      {
+        "labels": [
+          "blocker"
+        ],
+        "number": 1539,
+        "state": "OPEN",
+        "title": "CI: restore hosted live-Postgres admission or migrate it to owned ARC substrate",
+        "url": "https://github.com/jason931225/oyatie/issues/1539"
+      },
+      {
+        "labels": [
+          "blocker"
+        ],
+        "number": 1540,
+        "state": "OPEN",
+        "title": "security: remove shared CNPG superuser credential from general ARC runners",
+        "url": "https://github.com/jason931225/oyatie/issues/1540"
+      },
+      {
+        "labels": [
+          "blocker"
+        ],
+        "number": 1541,
+        "state": "OPEN",
+        "title": "security incident: revoke exposed Talos machine-config credentials and purge dangling object",
+        "url": "https://github.com/jason931225/oyatie/issues/1541"
+      }
+    ],
+    "incident_rule": "never close a blocker/security incident before containment and acceptance evidence",
+    "issue": "durable, independently actionable work",
+    "label_rule": "apply the smallest existing taxonomy; do not invent categories during triage",
+    "masterplan_v2": "portfolio, dependency, sequencing, and status source of truth",
+    "upstream_learning": {
+      "source": "https://github.com/Yeachan-Heo/oh-my-codex/issues",
+      "examples": [
+        {
+          "issue": 3418,
+          "lesson": "close delivered work with squash SHA and post-merge verification"
+        },
+        {
+          "issue": 3287,
+          "lesson": "close a duplicate only after naming the canonical issue and proving no independent action remains"
+        },
+        {
+          "issue": 3198,
+          "lesson": "close an underspecified request with the missing product contract rather than inventing policy"
+        },
+        {
+          "issue": 3367,
+          "lesson": "close an answered support question only when no backlog action remains"
+        },
+        {
+          "issue": 3282,
+          "lesson": "close an explicitly rejected or out-of-scope proposal instead of preserving speculative backlog"
+        }
+      ],
+      "age_rule": "never mass-close for age; revalidate against current dev"
+    },
+    "closure_receipt_fields": [
+      "canonical issue or explicit successor/duplicate",
+      "exact merged/promoted SHA",
+      "independent review verdict",
+      "exact oya-ci-required evidence",
+      "immutable completion/rollout/rollback/observability receipt"
+    ],
+    "audited_persist_open": [
+      {
+        "number": 1247,
+        "reason": "current dev retains three duplicated move-manifest literals"
+      },
+      {
+        "number": 1283,
+        "reason": "ADR-0613 lacks the reciprocal amended_by edge for ADR-0614"
+      },
+      {
+        "number": 1432,
+        "reason": "named masterplan work remains claimed-done-unverified with empty evidence_refs"
+      },
+      {
+        "number": 1534,
+        "reason": "cache-only activation remains distinct from later remote-execution work"
+      },
+      {
+        "number": 1427,
+        "reason": "future supersession candidate only after the owned same-Pod PostgreSQL migration is merged and live Docker service usage is absent"
+      }
+    ]
+  },
+  "north_star": {
+    "planning_entry": "specs/masterplan.json#masterplan_v2.planning_entry_contract",
+    "planning_state_at_snapshot": "open / HOLD(Planning); no execution-wave dispatch authority",
+    "program_anchors": {
+      "fabric": "specs/masterplan.json#masterplan_v2.programs[id=P-FABRIC]",
+      "reorg": "specs/masterplan.json#masterplan_v2.programs[id=P-REORG]"
+    },
+    "source": "specs/masterplan.json#vision",
+    "summary": "Oyatie is one cohesive ecosystem-as-a-service, expressed as a flat catalog of independent microservices integrated through Workflow and Ontology."
+  },
+  "record_class": "prewipe-session-continuity-snapshot",
+  "record_id": "prewipe-session-continuity-20260804",
+  "recorded_at": "2026-08-04T04:11:01.561456Z",
+  "remote_preservation": {
+    "archive_refs": [
+      {
+        "ref": "archive/prewipe-20260803/curated-ignored-context",
+        "sha": "df06206aacbcfb8128a82e2054dfe5b78ffb857a"
+      },
+      {
+        "ref": "archive/prewipe-20260803/dirty-tracked-manifest",
+        "sha": "53af621f99707ee1b4b94d1b73bd36f752e811fa"
+      },
+      {
+        "ref": "archive/prewipe-20260803/fix/reorg-plan-selection-and-park",
+        "sha": "dd94c38b7ecfc47a64a078b1f071650b8471c5ef"
+      },
+      {
+        "ref": "archive/prewipe-20260803/local-ref-manifest",
+        "sha": "18e0bbb9a5d47fc36b4d6ba1988f88b73b8db04b"
+      },
+      {
+        "ref": "archive/prewipe-20260803/prepared-delivery-method",
+        "sha": "a26346f20090bb5b6eda675befde6818475d4c9f"
+      },
+      {
+        "ref": "archive/prewipe-20260803/prepared-pr1524",
+        "sha": "5a85159ffd4c0a57f6fd0a26ad265022c37d143f"
+      },
+      {
+        "ref": "archive/prewipe-20260803/prepared-pr1530",
+        "sha": "1d92e63dd929821205d1bac413ab7e1c0d09dc39"
+      },
+      {
+        "ref": "archive/prewipe-20260803/prepared-pr1533",
+        "sha": "6d564e888583b444b40b1d63aea2c08a6c5b242c"
+      },
+      {
+        "ref": "archive/prewipe-20260804/curated-ignored-round2",
+        "sha": "ea49b7016cb28c34f14748a831ea1b521da413ad"
+      },
+      {
+        "ref": "archive/prewipe-20260804/current/team-control",
+        "sha": "db9375a75a5ce225399f1c6b9bb7fb1592cce9d6"
+      },
+      {
+        "ref": "archive/prewipe-20260804/current/team-resume",
+        "sha": "3957c65522434e3ca49b0df9c39929914ceeda85"
+      },
+      {
+        "ref": "archive/prewipe-20260804/current/worker1-pr1533",
+        "sha": "cfe5cf596bc05784d520ca9d709d4fa80802d3a1"
+      },
+      {
+        "ref": "archive/prewipe-20260804/local-only/codex-restart/archive-e7-reviewed-20260722",
+        "sha": "0e0ebc336f5383b098fb40be05ad931d9b3c8af4"
+      },
+      {
+        "ref": "archive/prewipe-20260804/local-only/codex-restart/archive-e7-working-20260722",
+        "sha": "a942abb32542993b4e47e56e76b7ffc55afc9d0f"
+      },
+      {
+        "ref": "archive/prewipe-20260804/local-only/codex-restart/archive-history-only-cutover-working-20260722",
+        "sha": "684a021b15e423623fba59fade9dcb083723df08"
+      },
+      {
+        "ref": "archive/prewipe-20260804/local-only/codex-restart/pipeline-decision-crosswalk-fastpath-working-20260722",
+        "sha": "c96c85491f59f32d19ab9380a89f4378ce460400"
+      },
+      {
+        "ref": "archive/prewipe-20260804/local-only/codex-restart/pr1356-ci-repair-20260722",
+        "sha": "3cf39133da9a861181d0bba7804118307569a516"
+      },
+      {
+        "ref": "archive/prewipe-20260804/local-only/codex-restart/stage1-all-work-anchor-20260722",
+        "sha": "276a867cadff2db088ef4751f6d94d91cdece1b9"
+      },
+      {
+        "ref": "archive/prewipe-20260804/local-only/prepared-pr1524-alt",
+        "sha": "f2125b0b43782090fc2566d321c906a29c35fdc7"
+      },
+      {
+        "ref": "archive/prewipe-20260804/local-only/prepared-pr1530-alt",
+        "sha": "ca168ac6e5287d0ed42d8cd4bbc4f5b941c84df3"
+      },
+      {
+        "ref": "archive/prewipe-20260804/local-only/rehearsal-w0d-w0c",
+        "sha": "b1c4664d0570f26fcf492dcd48499a7c21db5470"
+      },
+      {
+        "ref": "archive/prewipe-20260804/local-only/rehearse-w0c-w0b",
+        "sha": "3f5c4b8a014a3a0a54d99871baef7334c41bf85d"
+      },
+      {
+        "ref": "archive/prewipe-20260804/local-only/restack-w0c",
+        "sha": "6c93682cea75436e2881febabc1d48499b133ec2"
+      },
+      {
+        "ref": "archive/prewipe-20260804/local-only/stash",
+        "sha": "9c255c71537d9b03ca306d7e4b18ce182b7aac19"
+      },
+      {
+        "ref": "archive/prewipe-20260804/nested-dot-worktree-unique",
+        "sha": "81de3305cb521c338d4868b36cc1430572799a64"
+      },
+      {
+        "ref": "archive/prewipe-20260804/untracked-content-sanitized",
+        "sha": "9f8e7b8ae29eaafb0df9247da955d1050fe38a36"
+      }
+    ],
+    "curated_context": {
+      "commit": "ea49b7016cb28c34f14748a831ea1b521da413ad",
+      "explicit_exclusions": [
+        "runtime state/sessions/logs/caches",
+        "large old bundles/tars",
+        "build outputs",
+        "generated JSON",
+        "Talos machine configs and installation-media secrets",
+        "files matching strong secret signatures or incident-literal quarantine"
+      ],
+      "file_count": 279,
+      "github_signature_verified": true,
+      "manifest_path": "preserved/MANIFEST.json",
+      "manifest_sha256": "a03a969d63c1f2b4a0292a17cd628e30b544f7ab813e35150738aabeb7c54015",
+      "ref": "archive/prewipe-20260804/curated-ignored-round2",
+      "security_scan_path": "preserved/SECURITY-SCAN.json",
+      "security_scan_sha256": "3b577acda344b3c1ac29fc0aa26a401bcf1e0443bc88512efecf26e9c976e93e",
+      "selection": "research/design/plans/specs/wiki, selected ultragoal/team-ledger artifacts, current team hygiene/disposition receipts, sanitized Talos preservation report, and eight durable design/prototype artifacts",
+      "source_bytes": 2342181,
+      "independent_review": "PASS on exact remote head ea49b7016cb28c34f14748a831ea1b521da413ad: signature/ancestry, 279 manifest hashes and sizes, eight design artifacts, bounded secret/incident scan, forbidden paths, syntax, and modes independently verified with no findings"
+    },
+    "local_ref_preservation_map_sha256": "2c091df3b0ce69f8fb7e7d068041e957b264551c8ad4554278b3a825dc17e550",
+    "sensitive_incident": "Issue #1541 remains the sanitized incident authority; the compromised local-only object/ref is deliberately absent from every preservation ref."
+  },
+  "reorg_and_adr_snapshot": {
+    "adr_audit_candidates": [
+      "Accepted ADR-0370 versus Accepted ADR-0378 substrate contradiction",
+      "ADR-0374/ADR-0380 pre-cloud-ci orchestrator-era staleness",
+      "superseded ADR-0349 citations",
+      "Proposed ADR-0630 versus live ARC behavior",
+      "ADR-0379 Kubewarden versus surviving Kyverno bridge"
+    ],
+    "infra_disposition_rule": "Quarantine or retire infra that lacks a live owner, consumer, reproducible rebuild, rollback, observability, and security proof; do not bulk-delete without Chesterton-fence and dependency evidence.",
+    "lifecycle_rule": "Only Accepted/Amended ADRs with explicit reciprocal lifecycle edges bind; higher number, shipped code, or narration alone does not supersede.",
+    "reorg": "Tracked non-parked move plans describe already-landed moves; do not rerun them. Keep PARKED/BLOCKED plans parked. Reconcile stale move-plan inventory through P-REORG rather than another ledger."
+  },
+  "repository_snapshot": {
+    "open_pull_requests": [
+      {
+        "baseRefName": "dev",
+        "headRefName": "fix/supply-chain-multi-lockfile",
+        "headRefOid": "189a8d23023aa00d4e4fb7b2d8ba9c59b4fc8c47",
+        "isDraft": false,
+        "mergeStateStatus": "BLOCKED",
+        "mergeable": "MERGEABLE",
+        "number": 1533,
+        "title": "fix(supply-chain): prove lockfile corpus totality",
+        "url": "https://github.com/jason931225/oyatie/pull/1533"
+      },
+      {
+        "baseRefName": "dev",
+        "headRefName": "fix/arc-isolated-postgres-cell",
+        "headRefOid": "259fbd52e71f4581556edfe21db513676b87a2aa",
+        "isDraft": false,
+        "mergeStateStatus": "BLOCKED",
+        "mergeable": "MERGEABLE",
+        "number": 1542,
+        "title": "fix(ci): isolate live Postgres ARC runners",
+        "url": "https://github.com/jason931225/oyatie/pull/1542"
+      },
+      {
+        "baseRefName": "dev",
+        "headRefName": "fix/affected-baseline-reuse",
+        "headRefOid": "c4b18573c1b2f6f7efe0cde5d043cf8366d3af5d",
+        "isDraft": false,
+        "mergeStateStatus": "BLOCKED",
+        "mergeable": "MERGEABLE",
+        "number": 1543,
+        "title": "fix(ci): reuse green affected-set baselines from red runs",
+        "url": "https://github.com/jason931225/oyatie/pull/1543"
+      }
+    ],
+    "origin_dev": "ee389362f76681a2ab45a2f531f09180a1993460",
+    "required_context_policy": "fail closed; independent review, resolved threads, conflict-free head, exact required context green, squash merge to dev",
+    "required_status_context": "oya-ci-required"
+  },
+  "stop_conditions": {
+    "current_state": "not complete; wipe remains blocked",
+    "session_consolidation_complete_when": [
+      "all useful refs/artifacts are remote and independently reviewed",
+      "all open PRs are reviewed, exact-required-context green, merged to dev, and post-merge evidence recorded",
+      "origin/dev is freshly verified",
+      "Talos wipe readiness is true or the founder explicitly records disposable-rebuild acceptance after recovery evidence"
+    ]
+  },
+  "talos_wipe_readiness": {
+    "archive_method": "sparse-aware bsdtar plus zstd was locally roundtrip-proven; ditto is rejected because it expands sparse disks",
+    "blockers": [
+      "establish at least two durable off-host encryption recipients and prove fresh-device decrypt",
+      "capture and restore-test Talos etcd with matching secrets/encryption material",
+      "capture and restore-test OpenBao file backend and recover 1-of-1 custody before rekey/rotation",
+      "create and restore-test CNPG backups",
+      "export or prove deterministic rebuild of registry images and live-only workloads",
+      "prove iCloud quota, complete upload, ciphertext authentication, and off-host restore"
+    ],
+    "icloud_target": "created owner-only but intentionally empty",
+    "local_permission_hardening": "shell histories and known local configs reduced to owner-only modes; parent ~/.talos is owner-only",
+    "wipe_safe": false
+  }
+}
