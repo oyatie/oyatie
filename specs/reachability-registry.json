@@ -360,6 +360,30 @@
     {
       "anchor": "W0-D founder decision 2026-08-01: protected cloud-ci enforcement for reset eligibility and preservation migration.",
       "prefix": "ci/facade/reset-eligibility-policy/"
+    },
+    {
+      "anchor": "ADR-0630 D9 / issue #1504: exact GitOps manifest for the separate fail-closed ARC workspace provisioner and two path-bound StorageClasses rooted only on distinct fixed Talos workspace volumes.",
+      "prefix": "infra/arc/ci-workspace-storage.yaml"
+    },
+    {
+      "anchor": "ADR-0630 D9 / issue #1504: exact PrometheusRule surface for runner node pressure, workspace capacity, writable-layer growth, eviction, cleanup latency, and queue-delay guardrails.",
+      "prefix": "infra/arc/ci-workspace-alerts.yaml"
+    },
+    {
+      "anchor": "ADR-0630 D5/D9 / issue #1504: exact Talos worker-2 machine patch selecting the blank non-system 150GiB vdb and provisioning two physically separate fixed 48GiB CI workspace user volumes.",
+      "prefix": "infra/talos/local/patches/ci-workspace-worker-2.yaml"
+    },
+    {
+      "anchor": "ADR-0630 D6/D9: exact ARC Buck package declaration indexing the deployment YAML corpus and registering the repository-side workspace capacity contract test.",
+      "prefix": "infra/arc/BUCK"
+    },
+    {
+      "anchor": "ADR-0630 D9 / issue #1504: exact operator runbook for fail-closed pre-apply readback, post-apply evidence, and non-destructive workspace rollback.",
+      "prefix": "infra/arc/README.md"
+    },
+    {
+      "anchor": "ADR-0630 D5/D9 / issue #1504: exact source-contract test locking bounded Talos selection, separate provisioner identity, both runner workspace mounts, concurrency, and telemetry declarations.",
+      "prefix": "infra/arc/tests/ci_workspace_capacity.rs"
     }
   ]
 }

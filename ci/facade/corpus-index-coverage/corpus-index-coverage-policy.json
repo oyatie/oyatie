@@ -3,7 +3,7 @@
   "gate_id": "cloud-ci-corpus-index-coverage",
   "schema_version": "1.0.0",
   "baseline_uncovered_packages": 18,
-  "baseline_unpackaged_yaml_files": 456,
+  "baseline_unpackaged_yaml_files": 457,
   "min_expected_yaml_packages": 20,
   "min_expected_yaml_files": 4000,
   "min_expected_unpackaged_yaml_files": 400,
@@ -18,12 +18,12 @@
     "yaml_packages_indexed": 12,
     "yaml_files_total": 5853,
     "yaml_files_indexed": 5343,
-    "yaml_files_unpackaged": 458,
+    "yaml_files_unpackaged": 457,
     "package_coverage_bps": 4000,
     "file_coverage_bps": 9128
   },
   "product_contract": {
-    "born_advisory": "Born ADVISORY over today's debt and BLOCKING on regression. 18 YAML-owning packages declare no extraction target and 458 YAML files sit outside every buck2 package; both are reported as advisory findings and frozen as ceilings. A NEW uncovered package, or NEW YAML outside the build graph, exceeds its ceiling and fails closed.",
+    "born_advisory": "Born ADVISORY over today's debt and BLOCKING on regression. 18 YAML-owning packages declare no extraction target and 457 YAML files sit outside every buck2 package; both are reported as advisory findings and frozen as ceilings. A NEW uncovered package, or NEW YAML outside the build graph, exceeds its ceiling and fails closed.",
     "shrink_only": "Both ceilings are lowered as extraction targets and service-root packages land. The gate emits a corpus_index_stale_ceiling advisory whenever a ceiling sits above the measured number, so slack cannot silently accumulate and absorb the next regression.",
     "pack_shaped": "The Rust kernel hardcodes no oyatie path. Package census, file census, and both ceilings are DATA.",
     "anti_vacuity": "min_expected_yaml_packages, min_expected_yaml_files and min_expected_unpackaged_yaml_files fail the gate closed when the walk collapses. Without them a broken walk reports zero uncovered packages, which is indistinguishable from full coverage. The first two guard the CENSUS; the third guards the ATTRIBUTION, and it is not redundant with them. Re-anchoring the census floor onto packaged+unpackaged (#1514) correctly stopped package adoption from tripping the guard, but that total is invariant under mis-attribution: if every file were wrongly assigned to some package, packaged rises by exactly what unpackaged loses, the package count is unchanged, and the total floor still holds while the unpackaged term — the one the northstar ratchet rides on — reads zero and looks like the debt being paid off. Only a floor on that term catches it.",
