@@ -75,7 +75,8 @@ subjects:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: oya-ci-workspace-local-path
+  # local-path-provisioner discovers helperPod.yaml through this canonical name.
+  name: local-path-config
   namespace: oya-ci-workspace-storage
 data:
   config.json: |-
@@ -160,7 +161,7 @@ spec:
       volumes:
         - name: config
           configMap:
-            name: oya-ci-workspace-local-path
+            name: local-path-config
 ---
 apiVersion: storage.k8s.io/v1
 kind: StorageClass

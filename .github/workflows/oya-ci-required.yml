@@ -186,7 +186,8 @@ jobs:
   # ── RESIDUAL GATE LANES. This job USED to fan out one leg per homogeneous gate crate. It no
   #    longer does — see the COLLAPSED note on `strategy.matrix` below. The gate fleet is executed
   #    ONCE, by `buck2 test //ci/...` in the `buck2` lane, which is a strict SUPERSET of what the
-  #    matrix ran. Only the two legs whose work falls OUTSIDE `//ci/...` survive here.
+  #    matrix ran. Only the scm-facts receipt leg survives here; the portable workspace resolver
+  #    differential now runs in the self-hosted `buck2` lane beside `//ci/...`.
   #
   #    ADDING A GATE IS NOW ZERO WORKFLOW LINES: drop the crate under `ci/facade/<crate>/` with a
   #    BUCK `rust_test` target and the recursive pattern picks it up. The `gate_registration`
@@ -194,7 +195,7 @@ jobs:
   #    must be covered by a target pattern that some FAN-IN-REACHABLE job actually executes, AND
   #    the crate must declare a test rule for that pattern to match. It no longer greps for a
   #    matrix line. It also still enforces bundled disposition DATA and fan-in membership.
-  #    `fail-fast: false` = surface-all (both surviving legs run even if a sibling fails).
+  #    `fail-fast: false` remains the matrix's surface-all policy.
   #    (Deliberately a matrix, NOT a `workflow_call` reusable workflow: a called workflow would
   #    rename the published check-runs [`<caller> / <job>`], breaking the `oya-ci-required`
   #    branch-protection context. A future owned oya-ci runner can reuse this matrix verbatim —
@@ -234,12 +235,12 @@ jobs:
     # "gate · <discipline>", not a bare "gate (crate)". Adding a gate = one `include` line
     # (crate + label); the gate_registration meta-test enforces every gate crate is listed.
     name: ${{ matrix.label }}
-    runs-on: ${{ matrix.os || 'oya-arm64' }}
+    runs-on: oya-arm64
     strategy:
       fail-fast: false
       matrix:
         include:
-        # ── COLLAPSED (2026-08-01): 48 legs -> 2. The 46 removed legs were PURE REDUNDANCY.
+        # ── COLLAPSED (2026-08-04): 48 legs -> 1. The removed gate legs were redundant.
         #    Each expanded to `//ci/facade/<crate>:{ci-<crate>-unittest,ci-<crate>-gate}`, and the
         #    `buck2` lane below ALREADY runs `buck2 test //ci/...` — the whole tree — as a binding
         #    fan-in constituent. Proven by mechanical set-diff on the candidate tree, not by eye:
@@ -261,16 +262,15 @@ jobs:
         #    against named run IDs rather than baked in here, because it is a measurement of a
         #    fleet that changes size, not a property of this file.
         #
-        #    THE TWO SURVIVORS ARE NOT REDUNDANT — both verified to fall OUTSIDE `//ci/...`:
-        #    1. scm-facts-snapshot: its leg runs an extra `buck2 run
+        #    THE SURVIVOR IS NOT REDUNDANT: scm-facts-snapshot runs an extra `buck2 run
         #       //ci/facade/scm-facts-snapshot:adr-census-epoch-receipt-gate-bin -- --repo-root .
         #       --github-event` AFTER its tests. That target is a `rust_binary` (uquery-confirmed
         #       `buck.type: rust_binary`), so `buck2 test //ci/...` never executes it, and its
         #       `rust_test` twin only compiles the source under the test harness — `main()` never
-        #       runs there. Dropping this leg would create a dark gate.
-        #    2. The Windows resolver differential: `//libs/...` is not under `//ci/...` (confirmed
-        #       absent from the 118-target enumeration) AND it is the only Windows coverage in the
-        #       workflow. Kept VERBATIM. `windows-latest` is hosted, so it costs the fleet zero.
+        #       runs there. Dropping this leg would create a dark gate. The workspace resolver
+        #       differential is portable on Unix and now runs beside `//ci/...` in the owned
+        #       `buck2` lane; its cfg(windows) Win32-1921 fixture remains dormant until real Windows
+        #       capacity exists. Talos is Linux, so a Windows VM solely for this invariant is YAGNI.
         #
         #    DELIBERATELY NOT TORN DOWN FURTHER: the job name `gate`, the test step's NAME (left
         #    byte-identical below), the `needs: producer-regen` edge and the faces download all
@@ -279,7 +279,6 @@ jobs:
         #    born-blocking `unbaselined` by design. producer-regen is NOT orphaned by this change:
         #    the surviving scm-facts-snapshot leg still consumes its artifact.
           - { crate: scm-facts-snapshot, label: "gate · ADR census epoch receipt (P2 active; P3 dormant)" }
-          - { targets: "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel-cargo-differential", os: windows-latest, label: "gate · Windows workspace resolver differential (ERROR_CANT_RESOLVE_FILENAME)" }
     steps:
       # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -324,7 +323,7 @@ jobs:
       - name: buck2 test ${{ matrix.crate }}
         shell: pwsh
         # Default matrix legs expand to //ci/facade/${{ matrix.crate }}:ci-${{ matrix.crate }}-gate.
-        run: '$targets = "${{ matrix.targets || format(''//ci/facade/{0}:ci-{0}-unittest //ci/facade/{0}:ci-{0}-gate {1}'', matrix.crate, matrix.crate == ''scm-facts-snapshot'' && ''//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot-integration'' || '''') }}"; if ([string]::IsNullOrWhiteSpace($targets)) { exit 1 }; if ($IsWindows) { $vswhere = Join-Path ${env:ProgramFiles(x86)} ''Microsoft Visual Studio\Installer\vswhere.exe''; if (-not (Test-Path -LiteralPath $vswhere -PathType Leaf)) { Write-Error "vswhere is missing: $vswhere"; exit 1 }; $vsInstallCandidates = @(& $vswhere -latest -products ''*'' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath); $vswhereExitCode = $LASTEXITCODE; if ($vswhereExitCode -ne 0) { exit $vswhereExitCode }; $vsInstall = $vsInstallCandidates | Select-Object -First 1; if ([string]::IsNullOrWhiteSpace($vsInstall)) { Write-Error ''No Visual Studio instance with the MSVC x64/x86 tool component was found''; exit 1 }; $vsDevCmd = Join-Path $vsInstall ''Common7\Tools\VsDevCmd.bat''; if (-not (Test-Path -LiteralPath $vsDevCmd -PathType Leaf)) { Write-Error "VsDevCmd.bat is missing: $vsDevCmd"; exit 1 }; Write-Host "Visual Studio developer command: $vsDevCmd"; $windowsBuckCommand = "call `"$vsDevCmd`" -arch=amd64 -host_arch=amd64 >nul && buck2 test $targets"; $windowsBuckReceipt = Join-Path $env:RUNNER_TEMP ''buck2-windows-receipt.log''; & cmd.exe /d /s /c $windowsBuckCommand 2>&1 | Tee-Object -FilePath $windowsBuckReceipt; $windowsBuckExitCode = $LASTEXITCODE; Write-Host "Windows Buck2 cmd exit code: $windowsBuckExitCode"; Get-Content -Path $windowsBuckReceipt; $windowsBuckReceiptText = Get-Content -Path $windowsBuckReceipt -Raw; if ($windowsBuckExitCode -ne 0) { exit $windowsBuckExitCode }; $windowsBuckPassed = $windowsBuckReceiptText -match ''(?m)^Tests finished:\s*(?:\x1b\[[0-9;]*m)?Pass\s+[1-9][0-9]*\b''; if (-not ($windowsBuckReceiptText.Contains(''Build ID:'') -and $windowsBuckPassed)) { Write-Error ''Windows Buck2 execution receipt is missing Build ID or a positive passing test summary''; exit 1 } } else { $targetArgs = $targets -split ''\s+'' | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }; & buck2 test @targetArgs; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; if ("${{ matrix.crate }}" -eq "scm-facts-snapshot") { & buck2 run //ci/facade/scm-facts-snapshot:adr-census-epoch-receipt-gate-bin -- --repo-root . --github-event; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE } } }'
+        run: '$targets = "${{ format(''//ci/facade/{0}:ci-{0}-unittest //ci/facade/{0}:ci-{0}-gate {1}'', matrix.crate, matrix.crate == ''scm-facts-snapshot'' && ''//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot-integration'' || '''') }}"; $targetArgs = $targets -split ''\s+'' | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }; & buck2 test @targetArgs; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; if ("${{ matrix.crate }}" -eq "scm-facts-snapshot") { & buck2 run //ci/facade/scm-facts-snapshot:adr-census-epoch-receipt-gate-bin -- --repo-root . --github-event; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE } }'
 
   # ── freshness: first-diagnosis gate for the two stale-output failures from PR #662.
   #    Runs as its own fast job with no needs edge so stale Cargo.lock and stale generated faces
@@ -348,8 +347,8 @@ jobs:
       # save and restore a path that does not exist on this fleet. It was a no-op that presented
       # as a green cache step. It is also redundant: the image BAKES the pinned toolchain, so the
       # `rustup toolchain install` below is already a no-op.
-      # The two gate-live-postgres-* jobs KEEP their cache blocks: they still run on
-      # ubuntu-latest, where RUSTUP_HOME is unset and ~/.rustup is the real path.
+      # The two gate-live-postgres-* jobs still carry legacy cache blocks, but they also run on
+      # the baked ARC image; removing those no-op blocks is a separate shrink-only policy change.
       - name: Pre-provision pinned Rust toolchain for Buck2 freshness binaries
         run: |
           set -euo pipefail
@@ -547,7 +546,7 @@ jobs:
       - name: Pre-provision pinned rust toolchain (serialize rustup before parallel buck2)
         run: |
           set -euo pipefail
-          rustup toolchain install
+          rustup toolchain install && rustup default "$(rustup show active-toolchain | awk '{print $1}')"
           rustc --version
       # Buck2 runner state is deliberately cold and ephemeral (ADR-0554 D10). The 2026-08-01
       # incident proved a 6.37 GB whole-tree actions/cache archive can cross the owned node's
@@ -582,7 +581,10 @@ jobs:
           # --unstable-write-invocation-record is additive observability only: it
           # writes buck2's structured run record (cache_hit_rate, run_* counters)
           # for the telemetry step below and changes nothing about the build.
-          buck2 test //ci/... --unstable-write-invocation-record /tmp/buck2-lane-invocation-record.json
+          buck2 test //ci/... \
+            //libs/oya-workspace-members-kernel:oya-workspace-members-kernel-cargo-differential \
+            --unstable-write-invocation-record /tmp/buck2-lane-invocation-record.json \
+            -- --env "RUSTUP_HOME=${RUSTUP_HOME}"
       # Per-lane cache-hit telemetry + warm-mode guard (ADR-0560; the audit's missing-SLO item):
       # structured counters from buck2's invocation record — never log-grep — labeled with this
       # lane's ADR-0556 build class. The report is now binding for record-shape / warm-mode

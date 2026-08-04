@@ -97,7 +97,7 @@ invocation, and no duplicated glob expansion.
 | `ci/facade/workspace-member-coverage/` | create gate crate | `oya-cloud-ci-workspace-glob-coverage-app` | app |
 | `ci/facade/artifact-inventory-registry/` | emit producer face and baseline keys | `oya-cloud-ci-accounting-registry-app` | app |
 | `libs/oya-ci-config/` and `oya-ci.toml` | register gate face and disposition data | `oya-ci-config-kernel` | kernel |
-| `.github/workflows/oya-ci-required.yml` | add one gate matrix line | - | - |
+| `.github/workflows/oya-ci-required.yml` | bind the Cargo differential in the self-hosted Buck2 lane | - | - |
 
 ### Integration via Workflow + Ontology
 
@@ -124,9 +124,10 @@ not introduce new Workflow events or Ontology writes.
 - Buck2 remains the primary local verification surface for the changed crates and gate targets.
 - `cargo metadata --format-version 1 --no-deps` is permitted only for the required member-set
   equivalence proof and lock refresh.
-- The Buck-owned Cargo differential accepts the Windows
-  `ERROR_CANT_RESOLVE_FILENAME` (`Win32 1921`) cyclic-symlink inspection result while proving that
-  Cargo metadata still resolves the workspace.
+- The Buck-owned Cargo differential runs as a binding target in the self-hosted Linux/ARM64 Buck2
+  lane. Its portable Unix fixtures prove Cargo parity today; the cfg(windows)
+  `ERROR_CANT_RESOLVE_FILENAME` (`Win32 1921`) fixture remains dormant until real Windows capacity
+  exists. Talos is Linux, so this invariant does not justify a hosted runner or emulated Windows VM.
 - The gate is born-blocking through `gate-baseline.generated.json`; the current clean root glob
   corpus freezes empty for `workspace_member_explicit_path` and reports any future explicit member
   entry as new debt.

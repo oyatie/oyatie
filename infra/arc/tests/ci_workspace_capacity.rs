@@ -199,6 +199,11 @@ fn two_scale_sets_are_structurally_bound_to_distinct_physical_filesystems() {
         .iter()
         .find(|document| is_kind(document, "ConfigMap"))
         .expect("workspace provisioner ConfigMap");
+    assert_eq!(
+        string_at(config_map, &["metadata", "name"]),
+        "local-path-config",
+        "local-path-provisioner discovers helperPod.yaml through this canonical ConfigMap name"
+    );
     let config: serde_json::Value =
         serde_json::from_str(&string_at(config_map, &["data", "config.json"]))
             .expect("parse local-path config.json");
@@ -246,6 +251,14 @@ fn two_scale_sets_are_structurally_bound_to_distinct_physical_filesystems() {
         .iter()
         .find(|document| is_kind(document, "Deployment"))
         .expect("workspace provisioner deployment");
+    let config_volume = named(
+        at(provisioner, &["spec", "template", "spec", "volumes"]),
+        "config",
+    );
+    assert_eq!(
+        string_at(config_volume, &["configMap", "name"]),
+        "local-path-config"
+    );
     let provisioner_args = serde_json::to_string(provisioner).expect("serialize provisioner");
     assert!(provisioner_args.contains("oyatie.io/ci-workspace-local-path"));
     assert!(
