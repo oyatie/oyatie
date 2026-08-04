@@ -983,64 +983,53 @@ pub const REQUIRED_CONTEXT_WORKFLOW_PATH: &str = ".github/workflows/oya-ci-requi
 pub const AFFECTED_SET_PRODUCER_JOB_NAME: &str =
     "gate · affected-set (ADR-0554, binding workspace coverage)";
 
+/// Provenance of the unique canonical workflow run selected for one merge base.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TrustedWorkflowRun {
+    pub id: u64,
+    pub attempt: u64,
+    pub head_sha: String,
+}
+
 /// Provenance of the unique trusted baseline producer job.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TrustedProducerJob {
-    /// GitHub Actions job id from the run's paginated jobs endpoint.
     pub id: u64,
-    /// Terminal GitHub conclusion. Currently only `success` can construct this value.
+    pub run_id: u64,
+    pub head_sha: String,
     pub conclusion: String,
+}
+
+/// Immutable artifact identity returned by the GitHub Actions API.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TrustedBaselineArtifact {
+    pub id: u64,
+    pub name: String,
+    pub digest: String,
+    pub size_in_bytes: u64,
+    pub workflow_run_id: u64,
+    pub head_sha: String,
 }
 
 /// Sidecar the trusted-baseline consumer writes beside a reused baseline pair.
 ///
-/// WHY IT EXISTS: the FULL tier's grandfathering set depends on WHICH baseline it got. A reused
-/// baseline comes from a dev tip that passed admission, so its failure set is empty and nothing is
-/// grandfathered; a cold rebuild can observe env-dependent merge-base failures and grandfather
-/// them. The same PR at the same merge-base can therefore be green or red across two runs with no
-/// code change, purely on whether the artifact still exists. The direction is safe (a reused
-/// baseline is never laxer — see [`build_health_verdict`], a set difference in which a smaller
-/// baseline can only ADD regressions), but it must be a recorded DECISION, not an inheritance.
-/// Presence of this file means "trusted-artifact"; absence means "cold-rebuild".
+/// Presence means "trusted-artifact"; absence means "cold-rebuild". The sidecar records the
+/// jointly bound workflow run, attempt, exact producer job, immutable artifact ids, and digests.
 pub const BASELINE_PROVENANCE_FILENAME: &str = "baseline-provenance.json";
 
 /// Sidecar recording WHY the trusted-baseline fast path did or did not run — written on EVERY
-/// outcome, unlike [`BASELINE_PROVENANCE_FILENAME`] which exists only on success.
-///
-/// WHY A SECOND FILE: the provenance sidecar's contract is "present == reused", and the consumer
-/// deletes it on any failure so a partial download can never be mistaken for a reuse. That makes it
-/// structurally unable to carry a degrade reason. This one always exists, so "the fast path did not
-/// run, and here is the typed reason" is a recorded fact rather than an inference from wall-clock.
+/// outcome. Failure to persist this file refuses reuse and runs the cold fallback.
 pub const BASELINE_REUSE_OUTCOME_FILENAME: &str = "baseline-reuse-outcome.json";
 
-/// The typed outcome of the trusted-baseline fast path (GH #1323/#899, ADR-0554 D8).
-///
-/// THE DEFECT THIS TYPE CLOSES: the consumer previously had two failure shapes, `Unavailable` and
-/// `Refused`, and folded "the tool/transport does not work here" into `Refused`. `gh` is absent
-/// from the owned arm64 runner image, so EVERY run on that fleet took `Refused` and fell back to
-/// the cold merge-base rebuild — measured at 11m12s..17m48s per FULL-tier run — while reporting
-/// nothing an operator or a query could distinguish from the healthy "no baseline published yet"
-/// case. A capability probe that degrades silently to a slower path is indistinguishable from one
-/// that works; the fix is to make the degrade a state with a name, not a missing log line.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BaselineReuseState {
-    /// A provenance-validated merge-base baseline pair was downloaded; the cold rebuild is skipped.
     Reused,
-    /// The API answered, and the answer is that no reusable baseline exists for this merge-base
-    /// (first push, expired retention, red dev tip). EXPECTED — the cold rebuild is correct here.
     Unavailable,
-    /// A candidate baseline existed but failed a provenance or payload check. Fail-closed by
-    /// design; the cold rebuild is correct here too, but a sustained rate means the publisher and
-    /// the consumer disagree about artifact shape.
     Refused,
-    /// The runner could NOT ASK: a required executable is missing, no token is present, or the API
-    /// was unreachable/unauthenticated. This is an INFRASTRUCTURE DEFECT, not an answer — the
-    /// fast path is dark until someone fixes the environment.
     CapabilityFault,
 }
 
 impl BaselineReuseState {
-    /// Stable machine token for the sidecar, the operator artifact, and log greps.
     pub const fn as_str(self) -> &'static str {
         match self {
             Self::Reused => "reused",
@@ -1050,18 +1039,10 @@ impl BaselineReuseState {
         }
     }
 
-    /// Does this state mean the ENVIRONMENT is broken, as opposed to a legitimate answer?
-    ///
-    /// Only this predicate escalates reporting loudness. It must stay false for `Unavailable` and
-    /// `Refused`: crying wolf on the normal path is how the real signal got ignored in the first
-    /// place.
     pub const fn is_capability_fault(self) -> bool {
         matches!(self, Self::CapabilityFault)
     }
 
-    /// Process exit code. Distinct per state so the workflow — and a human reading `$?` — can tell
-    /// a dead capability from a healthy miss. Every non-`Reused` code is non-zero, preserving the
-    /// existing fail-closed contract: anything short of a validated pair runs the cold rebuild.
     pub const fn exit_code(self) -> u8 {
         match self {
             Self::Reused => 0,
@@ -1072,16 +1053,6 @@ impl BaselineReuseState {
     }
 }
 
-/// PURE: which degrade state (if any) a GitHub REST status code implies for the fast path.
-///
-/// `None` means "continue". The split is the whole point of [`BaselineReuseState`]:
-///   - 404/410 are ANSWERS from a working API — the run or artifact is genuinely not there;
-///   - 401/403/429 and 5xx mean we never got an answer (bad/absent token, rate limit, outage),
-///     which is an environment fault an operator must fix, not a property of this PR;
-///   - anything else is unexpected enough to refuse rather than guess.
-///
-/// 403 is deliberately a fault and not a refusal: GitHub returns it for BOTH rate limiting and
-/// missing `actions: read`, and neither is a statement about the baseline.
 pub const fn classify_api_status(status: u16) -> Option<BaselineReuseState> {
     match status {
         200..=299 => None,
@@ -1091,21 +1062,13 @@ pub const fn classify_api_status(status: u16) -> Option<BaselineReuseState> {
     }
 }
 
-/// Which merge-base health baseline an artifact carries (GH #1323/#899, ADR-0554 D8).
-///
-/// A FULL-tier PR needs BOTH: a target that BUILDS can still FAIL its tests, and buck2's
-/// `--build-report` records BUILD status only — so the two baselines are distinct artifacts with
-/// distinct names, produced by the same trusted push-to-dev run.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BaselineKind {
-    /// `buck2 build //... --keep-going --build-report` results.
     Build,
-    /// `buck2 test //...` per-target verdicts, normalized to the build-report shape.
     Test,
 }
 
 impl BaselineKind {
-    /// The artifact-name discriminator: `build-health-baseline-<sha>` / `test-health-baseline-<sha>`.
     pub const fn prefix(self) -> &'static str {
         match self {
             Self::Build => "build",
@@ -1113,22 +1076,17 @@ impl BaselineKind {
         }
     }
 
-    /// Parse the CLI spelling. Unknown values fail closed (no silent default kind).
     pub fn parse(raw: &str) -> Result<Self, String> {
         match raw {
             "build" => Ok(Self::Build),
             "test" => Ok(Self::Test),
-            other => Err(format!("baseline kind must be `build` or `test`, got `{other}`")),
+            other => Err(format!(
+                "baseline kind must be `build` or `test`, got `{other}`"
+            )),
         }
     }
 }
 
-/// Reject anything that is not a full 40-char hex object id (fail-closed: an abbreviated or
-/// symbolic ref could resolve differently across runs, so it must never name a baseline).
-///
-/// Public because the consumer must run this BEFORE interpolating a merge-base into any API
-/// route, not merely before comparing it — the shape check is what keeps a caller-supplied value
-/// from smuggling extra path or query segments.
 pub fn validated_merge_base_sha(merge_base_sha: &str) -> Result<&str, String> {
     let sha = merge_base_sha.trim();
     if sha.len() != 40 || !sha.as_bytes().iter().all(u8::is_ascii_hexdigit) {
@@ -1139,38 +1097,31 @@ pub fn validated_merge_base_sha(merge_base_sha: &str) -> Result<&str, String> {
     Ok(sha)
 }
 
-/// Expected trusted dev-push artifact name for a `kind` baseline produced at `merge_base_sha`.
-///
-/// The consumer workflow still validates GitHub Actions provenance (push-to-dev, successful
-/// `oya-ci-required` run, exact `head_sha`) before download. This pure helper pins the artifact name
-/// and SHA shape so stale/wrong artifacts cannot be confused with an exact merge-base baseline.
+/// Exact immutable name. The attempt and canonical producer key prevent artifacts from an older
+/// rerun attempt or another job from entering the selected pair.
 pub fn baseline_artifact_name(
     kind: BaselineKind,
     merge_base_sha: &str,
+    run_id: u64,
+    run_attempt: u64,
 ) -> Result<String, String> {
     let sha = validated_merge_base_sha(merge_base_sha)?;
-    Ok(format!("{}-health-baseline-{sha}", kind.prefix()))
+    if run_id == 0 || run_attempt == 0 {
+        return Err("artifact run id and attempt must both be positive".to_owned());
+    }
+    Ok(format!(
+        "{}-health-baseline-{sha}-{run_id}-{run_attempt}-gate-affected-target-set",
+        kind.prefix()
+    ))
 }
 
-/// Select the completed push-to-dev workflow run whose head SHA is the exact merge-base.
-///
-/// ANTI-LAUNDERING: every accepted property comes from GitHub Actions PROVENANCE, never from
-/// anything a candidate PR controls — the run must be a terminal `event=push` on
-/// `head_branch=dev`, its `head_sha` must be the EXACT merge-base, and its `path` must be the
-/// canonical required-context workflow file. The aggregate conclusion is deliberately not a
-/// selector: [`trusted_affected_set_producer_job`] separately requires the unique artifact
-/// producer to have completed successfully, so an unrelated lane cannot erase reusable output.
-///
-/// The `path` bind is DEFENCE IN DEPTH, not the closing of a live hole: the consumer already
-/// queries the per-workflow runs route and then reads artifacts per-run, so a foreign workflow's
-/// artifacts were never reachable in the first place. It is asserted here anyway so the guarantee
-/// survives a future caller that widens the route to the repo-wide `/actions/runs` list, where
-/// selecting on name alone WOULD be reachable.
-pub fn trusted_dev_push_run_id(
+/// Select exactly one completed canonical push-to-dev run at the merge base. Duplicate matching
+/// records and incomplete numeric bindings are malformed provenance and therefore errors.
+pub fn trusted_dev_push_run(
     runs_json: &str,
     merge_base_sha: &str,
     expected_workflow_path: &str,
-) -> Result<Option<u64>, String> {
+) -> Result<Option<TrustedWorkflowRun>, String> {
     let sha = validated_merge_base_sha(merge_base_sha)?;
     let payload: Value = serde_json::from_str(runs_json)
         .map_err(|e| format!("workflow-runs payload is not valid JSON: {e}"))?;
@@ -1178,34 +1129,58 @@ pub fn trusted_dev_push_run_id(
         .get("workflow_runs")
         .and_then(Value::as_array)
         .ok_or("workflow-runs payload has no `workflow_runs` array")?;
-
-    for run in runs {
-        if run.get("head_sha").and_then(Value::as_str) == Some(sha)
-            && run.get("event").and_then(Value::as_str) == Some("push")
-            && run.get("head_branch").and_then(Value::as_str) == Some("dev")
-            && run.get("status").and_then(Value::as_str) == Some("completed")
-            && run.get("path").and_then(Value::as_str) == Some(expected_workflow_path)
-        {
-            return run
-                .get("id")
-                .and_then(Value::as_u64)
-                .map(Some)
-                .ok_or("matching trusted workflow run has no numeric `id`".to_owned());
-        }
-    }
-
-    Ok(None)
+    let matching = runs
+        .iter()
+        .filter(|run| {
+            run.get("head_sha").and_then(Value::as_str) == Some(sha)
+                && run.get("event").and_then(Value::as_str) == Some("push")
+                && run.get("head_branch").and_then(Value::as_str) == Some("dev")
+                && run.get("status").and_then(Value::as_str) == Some("completed")
+                && run.get("path").and_then(Value::as_str) == Some(expected_workflow_path)
+        })
+        .collect::<Vec<_>>();
+    let [run] = matching.as_slice() else {
+        return if matching.is_empty() {
+            Ok(None)
+        } else {
+            Err(format!(
+                "found {} matching trusted workflow runs; expected exactly one",
+                matching.len()
+            ))
+        };
+    };
+    let id = run
+        .get("id")
+        .and_then(Value::as_u64)
+        .ok_or("matching trusted workflow run has no numeric `id`")?;
+    let attempt = run
+        .get("run_attempt")
+        .and_then(Value::as_u64)
+        .filter(|attempt| *attempt > 0)
+        .ok_or("matching trusted workflow run has no positive numeric `run_attempt`")?;
+    Ok(Some(TrustedWorkflowRun {
+        id,
+        attempt,
+        head_sha: sha.to_owned(),
+    }))
 }
 
-/// Select the unique exact affected-set producer job from a fully paginated jobs payload.
-///
-/// Fail closed to `None` unless there is exactly one exact-name job and it is terminal green.
-/// Failed, cancelled, missing, in-progress, or duplicate producers all make the baseline
-/// unavailable and force the untouched cold rebuild. This function never accepts a substring or
-/// a caller-supplied job name.
+pub fn trusted_dev_push_run_id(
+    runs_json: &str,
+    merge_base_sha: &str,
+    expected_workflow_path: &str,
+) -> Result<Option<u64>, String> {
+    trusted_dev_push_run(runs_json, merge_base_sha, expected_workflow_path)
+        .map(|run| run.map(|run| run.id))
+}
+
+/// Select the unique exact producer returned by the selected run-attempt endpoint.
 pub fn trusted_affected_set_producer_job(
     jobs_json: &str,
+    expected_run_id: u64,
+    expected_head_sha: &str,
 ) -> Result<Option<TrustedProducerJob>, String> {
+    let expected_head_sha = validated_merge_base_sha(expected_head_sha)?;
     let payload: Value = serde_json::from_str(jobs_json)
         .map_err(|e| format!("workflow-jobs payload is not valid JSON: {e}"))?;
     let jobs = payload
@@ -1219,52 +1194,123 @@ pub fn trusted_affected_set_producer_job(
         })
         .collect::<Vec<_>>();
     let [job] = matching.as_slice() else {
-        return Ok(None);
+        return if matching.is_empty() {
+            Ok(None)
+        } else {
+            Err(format!(
+                "found {} exact affected-set producer jobs; expected exactly one",
+                matching.len()
+            ))
+        };
     };
     if job.get("status").and_then(Value::as_str) != Some("completed")
         || job.get("conclusion").and_then(Value::as_str) != Some("success")
     {
         return Ok(None);
     }
-    let Some(id) = job.get("id").and_then(Value::as_u64) else {
-        return Ok(None);
-    };
+    let id = job
+        .get("id")
+        .and_then(Value::as_u64)
+        .ok_or("trusted producer job has no numeric `id`")?;
+    let run_id = job
+        .get("run_id")
+        .and_then(Value::as_u64)
+        .ok_or("trusted producer job has no numeric `run_id`")?;
+    let head_sha = job
+        .get("head_sha")
+        .and_then(Value::as_str)
+        .ok_or("trusted producer job has no string `head_sha`")?;
+    if run_id != expected_run_id || head_sha != expected_head_sha {
+        return Err(format!(
+            "trusted producer binding mismatch: run_id={run_id}, head_sha={head_sha}"
+        ));
+    }
     Ok(Some(TrustedProducerJob {
         id,
+        run_id,
+        head_sha: head_sha.to_owned(),
         conclusion: "success".to_owned(),
     }))
 }
 
-/// Select the unexpired exact-name health baseline artifact from a trusted run.
-pub fn trusted_baseline_artifact_id(
+/// Select one immutable, unexpired, exact-name artifact bound to the selected run and head.
+pub fn trusted_baseline_artifact(
     artifacts_json: &str,
     artifact_name: &str,
-) -> Result<Option<u64>, String> {
+    expected_run_id: u64,
+    expected_head_sha: &str,
+) -> Result<Option<TrustedBaselineArtifact>, String> {
+    let expected_head_sha = validated_merge_base_sha(expected_head_sha)?;
     let payload: Value = serde_json::from_str(artifacts_json)
         .map_err(|e| format!("workflow-artifacts payload is not valid JSON: {e}"))?;
     let artifacts = payload
         .get("artifacts")
         .and_then(Value::as_array)
         .ok_or("workflow-artifacts payload has no `artifacts` array")?;
-
-    for artifact in artifacts {
-        if artifact.get("name").and_then(Value::as_str) == Some(artifact_name) {
-            if artifact
-                .get("expired")
-                .and_then(Value::as_bool)
-                .unwrap_or(true)
-            {
-                return Ok(None);
-            }
-            return artifact
-                .get("id")
-                .and_then(Value::as_u64)
-                .map(Some)
-                .ok_or("matching trusted artifact has no numeric `id`".to_owned());
-        }
+    let matching = artifacts
+        .iter()
+        .filter(|artifact| artifact.get("name").and_then(Value::as_str) == Some(artifact_name))
+        .collect::<Vec<_>>();
+    let [artifact] = matching.as_slice() else {
+        return if matching.is_empty() {
+            Ok(None)
+        } else {
+            Err(format!(
+                "found {} artifacts named `{artifact_name}`; expected exactly one",
+                matching.len()
+            ))
+        };
+    };
+    if artifact
+        .get("expired")
+        .and_then(Value::as_bool)
+        .unwrap_or(true)
+    {
+        return Ok(None);
     }
-
-    Ok(None)
+    let id = artifact
+        .get("id")
+        .and_then(Value::as_u64)
+        .ok_or("matching trusted artifact has no numeric `id`")?;
+    let digest = artifact
+        .get("digest")
+        .and_then(Value::as_str)
+        .filter(|digest| {
+            digest.strip_prefix("sha256:").is_some_and(|hex| {
+                hex.len() == 64 && hex.as_bytes().iter().all(u8::is_ascii_hexdigit)
+            })
+        })
+        .ok_or("matching trusted artifact has no valid `sha256:<64-hex>` digest")?;
+    let size_in_bytes = artifact
+        .get("size_in_bytes")
+        .and_then(Value::as_u64)
+        .filter(|size| *size > 0)
+        .ok_or("matching trusted artifact has no positive numeric `size_in_bytes`")?;
+    let workflow_run = artifact
+        .get("workflow_run")
+        .and_then(Value::as_object)
+        .ok_or("matching trusted artifact has no `workflow_run` provenance")?;
+    let workflow_run_id = workflow_run
+        .get("id")
+        .and_then(Value::as_u64)
+        .ok_or("matching trusted artifact workflow_run has no numeric `id`")?;
+    let head_sha = workflow_run
+        .get("head_sha")
+        .and_then(Value::as_str)
+        .ok_or("matching trusted artifact workflow_run has no string `head_sha`")?;
+    if workflow_run_id != expected_run_id || head_sha != expected_head_sha {
+        return Err(format!(
+            "artifact `{artifact_name}` binding mismatch: workflow_run_id={workflow_run_id}, head_sha={head_sha}"
+        ));
+    }
+    Ok(Some(TrustedBaselineArtifact {
+        id,
+        name: artifact_name.to_owned(),
+        digest: digest.to_owned(),
+        size_in_bytes,
+        workflow_run_id,
+        head_sha: head_sha.to_owned(),
+    }))
 }
 
 /// Validate a trusted health baseline artifact payload after provenance selection.
@@ -1279,9 +1325,11 @@ pub fn validate_trusted_baseline_artifact(
     kind: BaselineKind,
     artifact_name: &str,
     merge_base_sha: &str,
+    run_id: u64,
+    run_attempt: u64,
     report_json: &str,
 ) -> Result<usize, String> {
-    let expected = baseline_artifact_name(kind, merge_base_sha)?;
+    let expected = baseline_artifact_name(kind, merge_base_sha, run_id, run_attempt)?;
     if artifact_name != expected {
         return Err(format!(
             "{}-health baseline artifact name `{artifact_name}` does not match expected `{expected}`",
@@ -1310,8 +1358,7 @@ pub const PARTIAL_NEGATIVE_SOURCE: &str = "trusted-negative-receipt";
 pub const PARTIAL_NEGATIVE_COMPLETENESS: &str = "observed-failure-lower-bound";
 pub const PARTIAL_NEGATIVE_TEST_POLICY: &str = "hard-no-grandfathering";
 
-const PARTIAL_NEGATIVE_BLOCK_PREFIX: &str =
-    "affected-set: RED — admission FULL build failed on ";
+const PARTIAL_NEGATIVE_BLOCK_PREFIX: &str = "affected-set: RED — admission FULL build failed on ";
 const PARTIAL_NEGATIVE_FAILURE_PREFIX: &str = "affected-set:   BUILD-FAIL ";
 const PARTIAL_NEGATIVE_BLOCK_TERMINATOR: &str = "affected-set: REPRODUCE:";
 
@@ -1391,7 +1438,11 @@ impl PartialNegativeReceipt {
             return Err("partial-negative receipt has invalid job/step binding".to_owned());
         }
         if self.build_action.label.trim().is_empty()
-            || self.build_action.configured_platform_token.trim().is_empty()
+            || self
+                .build_action
+                .configured_platform_token
+                .trim()
+                .is_empty()
             || self.build_action.rule.trim().is_empty()
         {
             return Err("partial-negative receipt has incomplete build-action binding".to_owned());
@@ -1399,7 +1450,9 @@ impl PartialNegativeReceipt {
         if self.observed_failures.is_empty()
             || self.observed_failures.len() > PARTIAL_NEGATIVE_MAX_FAILURES
         {
-            return Err("partial-negative receipt needs a bounded non-empty failure set".to_owned());
+            return Err(
+                "partial-negative receipt needs a bounded non-empty failure set".to_owned(),
+            );
         }
         if !self.observed_failures.contains(&self.build_action.label) {
             return Err("bound failed action is absent from observed failures".to_owned());
@@ -1455,9 +1508,9 @@ pub fn parse_partial_negative_failures(job_log: &str) -> Result<PartialNegativeF
         .ok_or("canonical FULL-build failure header disappeared")?;
     let count_suffix = header
         .strip_prefix(PARTIAL_NEGATIVE_BLOCK_PREFIX)
-        .and_then(|suffix| suffix.strip_suffix(
-            " target(s) (integration tip must be green, no grandfathering):",
-        ))
+        .and_then(|suffix| {
+            suffix.strip_suffix(" target(s) (integration tip must be green, no grandfathering):")
+        })
         .ok_or("canonical FULL-build failure header is malformed")?;
     let declared: usize = count_suffix
         .parse()
@@ -1883,8 +1936,7 @@ fn collect_path_literal_files(
     needle: &str,
     hits: &mut BTreeMap<String, String>,
 ) -> Result<(), String> {
-    let entries =
-        fs::read_dir(dir).map_err(|e| format!("read_dir {}: {e}", dir.display()))?;
+    let entries = fs::read_dir(dir).map_err(|e| format!("read_dir {}: {e}", dir.display()))?;
     for entry in entries {
         let entry = entry.map_err(|e| format!("dir entry under {}: {e}", dir.display()))?;
         let path = entry.path();
@@ -2140,240 +2192,271 @@ mod tests {
         assert_eq!(report.get("root//c:c"), Some(&TargetBuildStatus::Fail));
         assert_eq!(failing_targets(&report), set(&["root//b:b", "root//c:c"]));
     }
+    const TRUST_SHA: &str = "0123456789abcdef0123456789abcdef01234567";
+    const TRUST_RUN: u64 = 11;
+    const TRUST_ATTEMPT: u64 = 2;
+    const TRUST_DIGEST: &str =
+        "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+
     #[test]
-    fn trusted_baseline_artifact_names_are_kind_scoped() {
-        let sha = "0123456789abcdef0123456789abcdef01234567";
+    fn trusted_baseline_artifact_names_are_jointly_bound() {
         assert_eq!(
-            baseline_artifact_name(BaselineKind::Build, sha).unwrap(),
-            format!("build-health-baseline-{sha}")
+            baseline_artifact_name(BaselineKind::Build, TRUST_SHA, TRUST_RUN, TRUST_ATTEMPT)
+                .unwrap(),
+            format!(
+                "build-health-baseline-{TRUST_SHA}-{TRUST_RUN}-{TRUST_ATTEMPT}-gate-affected-target-set"
+            )
         );
-        assert_eq!(
-            baseline_artifact_name(BaselineKind::Test, sha).unwrap(),
-            format!("test-health-baseline-{sha}")
-        );
-        // The two kinds must never collide — a test baseline can never be served as a build one.
         assert_ne!(
-            baseline_artifact_name(BaselineKind::Build, sha).unwrap(),
-            baseline_artifact_name(BaselineKind::Test, sha).unwrap()
+            baseline_artifact_name(BaselineKind::Build, TRUST_SHA, TRUST_RUN, TRUST_ATTEMPT)
+                .unwrap(),
+            baseline_artifact_name(BaselineKind::Test, TRUST_SHA, TRUST_RUN, TRUST_ATTEMPT)
+                .unwrap()
         );
         assert!(BaselineKind::parse("build").is_ok());
         assert!(BaselineKind::parse("test").is_ok());
         assert!(BaselineKind::parse("Build").is_err());
-        assert!(BaselineKind::parse("").is_err());
+        assert!(baseline_artifact_name(BaselineKind::Build, TRUST_SHA, 0, 1).is_err());
     }
 
     #[test]
-    fn trusted_build_health_artifact_accepts_exact_non_empty_baseline() {
-        let sha = "0123456789abcdef0123456789abcdef01234567";
-        let name = baseline_artifact_name(BaselineKind::Build, sha).unwrap();
+    fn trusted_health_artifacts_accept_exact_non_empty_kind_scoped_reports() {
+        let build_name =
+            baseline_artifact_name(BaselineKind::Build, TRUST_SHA, TRUST_RUN, TRUST_ATTEMPT)
+                .unwrap();
+        let test_name =
+            baseline_artifact_name(BaselineKind::Test, TRUST_SHA, TRUST_RUN, TRUST_ATTEMPT)
+                .unwrap();
         let json = r#"{"results":{"root//a:a":{"success":"SUCCESS"}}}"#;
         assert_eq!(
-            validate_trusted_baseline_artifact(BaselineKind::Build, &name, sha, json),
+            validate_trusted_baseline_artifact(
+                BaselineKind::Build,
+                &build_name,
+                TRUST_SHA,
+                TRUST_RUN,
+                TRUST_ATTEMPT,
+                json,
+            ),
+            Ok(1)
+        );
+        assert!(
+            validate_trusted_baseline_artifact(
+                BaselineKind::Test,
+                &build_name,
+                TRUST_SHA,
+                TRUST_RUN,
+                TRUST_ATTEMPT,
+                json,
+            )
+            .is_err()
+        );
+        assert_eq!(
+            validate_trusted_baseline_artifact(
+                BaselineKind::Test,
+                &test_name,
+                TRUST_SHA,
+                TRUST_RUN,
+                TRUST_ATTEMPT,
+                json,
+            ),
             Ok(1)
         );
     }
 
     #[test]
-    fn trusted_test_health_artifact_accepts_exact_non_empty_baseline() {
-        let sha = "0123456789abcdef0123456789abcdef01234567";
-        let name = baseline_artifact_name(BaselineKind::Test, sha).unwrap();
-        // The test baseline is the normalizer's build-report-shaped output.
-        let json = r#"{"results":{"root//a:a-unittest":{"success":"SUCCESS"},"root//b:b-unittest":{"success":"FAIL"}}}"#;
-        assert_eq!(
-            validate_trusted_baseline_artifact(BaselineKind::Test, &name, sha, json),
-            Ok(2)
-        );
-        // A build-named artifact must NOT validate as the test baseline (kind confusion).
-        let build_name = baseline_artifact_name(BaselineKind::Build, sha).unwrap();
-        let err = validate_trusted_baseline_artifact(BaselineKind::Test, &build_name, sha, json)
-            .unwrap_err();
-        assert!(err.contains("does not match expected"), "{err}");
-    }
-
-    #[test]
-    fn trusted_build_health_artifact_rejects_stale_name() {
-        let sha = "0123456789abcdef0123456789abcdef01234567";
-        let stale = "build-health-baseline-89abcdef0123456789abcdef0123456789abcdef";
-        let json = r#"{"results":{"root//a:a":{"success":"SUCCESS"}}}"#;
-        let err = validate_trusted_baseline_artifact(BaselineKind::Build, stale, sha, json)
-            .unwrap_err();
-        assert!(err.contains("does not match expected"), "{err}");
-    }
-
-    #[test]
-    fn trusted_build_health_artifact_rejects_invalid_or_empty_report() {
-        let sha = "0123456789abcdef0123456789abcdef01234567";
-        let name = baseline_artifact_name(BaselineKind::Build, sha).unwrap();
-
-        let invalid =
-            validate_trusted_baseline_artifact(BaselineKind::Build, &name, sha, "not json")
-                .unwrap_err();
-        assert!(invalid.contains("not valid JSON"), "{invalid}");
-
-        let empty = validate_trusted_baseline_artifact(
-            BaselineKind::Build,
-            &name,
-            sha,
-            r#"{"results":{}}"#,
-        )
-        .unwrap_err();
-        assert!(empty.contains("empty `results`"), "{empty}");
-
-        // A truncated/garbage download with no `results` object at all is refused too.
-        let shapeless =
-            validate_trusted_baseline_artifact(BaselineKind::Build, &name, sha, r#"{"ok":true}"#)
-                .unwrap_err();
-        assert!(shapeless.contains("no `results` object"), "{shapeless}");
-    }
-
-    #[test]
-    fn trusted_build_health_artifact_rejects_bad_sha_shape() {
-        let err = baseline_artifact_name(BaselineKind::Build, "dev").unwrap_err();
-        assert!(err.contains("40-character hex"), "{err}");
-        // An abbreviated SHA is rejected as well — it could resolve differently across runs.
-        let abbrev = baseline_artifact_name(BaselineKind::Test, "0123456").unwrap_err();
-        assert!(abbrev.contains("40-character hex"), "{abbrev}");
-    }
-
-    #[test]
-    fn trusted_push_run_selection_accepts_exact_completed_dev_push_even_when_aggregate_failed() {
-        let sha = "0123456789abcdef0123456789abcdef01234567";
-        let runs = r#"{
-            "workflow_runs": [
-                {"id": 11, "head_sha": "fedcba9876543210fedcba9876543210fedcba98", "event": "push", "head_branch": "dev", "status": "completed", "conclusion": "success", "path": ".github/workflows/oya-ci-required.yml"},
-                {"id": 12, "head_sha": "0123456789abcdef0123456789abcdef01234567", "event": "pull_request", "head_branch": "dev", "status": "completed", "conclusion": "success", "path": ".github/workflows/oya-ci-required.yml"},
-                {"id": 13, "head_sha": "0123456789abcdef0123456789abcdef01234567", "event": "push", "head_branch": "dev", "status": "completed", "conclusion": "failure", "path": ".github/workflows/oya-ci-required.yml"}
-            ]
-        }"#;
-        assert_eq!(
-            trusted_dev_push_run_id(runs, sha, REQUIRED_CONTEXT_WORKFLOW_PATH),
-            Ok(Some(13))
+    fn trusted_health_artifacts_refuse_bad_identity_or_payload() {
+        let name = baseline_artifact_name(BaselineKind::Build, TRUST_SHA, TRUST_RUN, TRUST_ATTEMPT)
+            .unwrap();
+        for payload in ["not json", r#"{"ok":true}"#, r#"{"results":{}}"#] {
+            assert!(
+                validate_trusted_baseline_artifact(
+                    BaselineKind::Build,
+                    &name,
+                    TRUST_SHA,
+                    TRUST_RUN,
+                    TRUST_ATTEMPT,
+                    payload,
+                )
+                .is_err()
+            );
+        }
+        assert!(baseline_artifact_name(BaselineKind::Build, "dev", TRUST_RUN, 1).is_err());
+        assert!(
+            validate_trusted_baseline_artifact(
+                BaselineKind::Build,
+                "build-health-baseline-stale",
+                TRUST_SHA,
+                TRUST_RUN,
+                TRUST_ATTEMPT,
+                r#"{"results":{"root//a:a":{"success":"SUCCESS"}}}"#,
+            )
+            .is_err()
         );
     }
 
     #[test]
-    fn trusted_push_run_selection_falls_back_on_missing_or_untrusted() {
-        let sha = "0123456789abcdef0123456789abcdef01234567";
-        let runs = r#"{
-            "workflow_runs": [
-                {"id": 12, "head_sha": "0123456789abcdef0123456789abcdef01234567", "event": "push", "head_branch": "feature", "status": "completed", "conclusion": "success", "path": ".github/workflows/oya-ci-required.yml"},
-                {"id": 13, "head_sha": "0123456789abcdef0123456789abcdef01234567", "event": "push", "head_branch": "dev", "status": "in_progress", "conclusion": null, "path": ".github/workflows/oya-ci-required.yml"}
-            ]
-        }"#;
-        assert_eq!(
-            trusted_dev_push_run_id(runs, sha, REQUIRED_CONTEXT_WORKFLOW_PATH),
-            Ok(None)
+    fn trusted_push_run_selection_accepts_one_completed_dev_push_even_when_aggregate_failed() {
+        let runs = format!(
+            r#"{{"workflow_runs":[
+            {{"id":{TRUST_RUN},"run_attempt":{TRUST_ATTEMPT},"head_sha":"{TRUST_SHA}","event":"push","head_branch":"dev","status":"completed","conclusion":"failure","path":"{REQUIRED_CONTEXT_WORKFLOW_PATH}"}}
+        ]}}"#
         );
-    }
-
-    #[test]
-    fn trusted_producer_job_requires_one_exact_completed_success() {
-        let jobs = r#"{
-            "jobs": [
-                {"id": 40, "name": "unrelated", "status": "completed", "conclusion": "success"},
-                {"id": 41, "name": "gate · affected-set (ADR-0554, binding workspace coverage)", "status": "completed", "conclusion": "success"}
-            ]
-        }"#;
         assert_eq!(
-            trusted_affected_set_producer_job(jobs),
-            Ok(Some(TrustedProducerJob {
-                id: 41,
-                conclusion: "success".to_owned(),
+            trusted_dev_push_run(&runs, TRUST_SHA, REQUIRED_CONTEXT_WORKFLOW_PATH),
+            Ok(Some(TrustedWorkflowRun {
+                id: TRUST_RUN,
+                attempt: TRUST_ATTEMPT,
+                head_sha: TRUST_SHA.to_owned(),
             }))
         );
     }
 
     #[test]
-    fn failed_cancelled_missing_or_duplicate_producer_is_unavailable() {
+    fn duplicate_or_malformed_exact_run_provenance_is_refused() {
+        let duplicate = format!(
+            r#"{{"workflow_runs":[
+            {{"id":11,"run_attempt":1,"head_sha":"{TRUST_SHA}","event":"push","head_branch":"dev","status":"completed","conclusion":"failure","path":"{REQUIRED_CONTEXT_WORKFLOW_PATH}"}},
+            {{"id":12,"run_attempt":1,"head_sha":"{TRUST_SHA}","event":"push","head_branch":"dev","status":"completed","conclusion":"success","path":"{REQUIRED_CONTEXT_WORKFLOW_PATH}"}}
+        ]}}"#
+        );
+        assert!(
+            trusted_dev_push_run(&duplicate, TRUST_SHA, REQUIRED_CONTEXT_WORKFLOW_PATH).is_err()
+        );
+        let malformed = format!(
+            r#"{{"workflow_runs":[{{"id":11,"head_sha":"{TRUST_SHA}","event":"push","head_branch":"dev","status":"completed","conclusion":"success","path":"{REQUIRED_CONTEXT_WORKFLOW_PATH}"}}]}}"#
+        );
+        assert!(
+            trusted_dev_push_run(&malformed, TRUST_SHA, REQUIRED_CONTEXT_WORKFLOW_PATH).is_err()
+        );
+    }
+
+    #[test]
+    fn foreign_workflow_and_nonterminal_runs_are_unavailable() {
+        let runs = format!(
+            r#"{{"workflow_runs":[
+            {{"id":14,"run_attempt":1,"head_sha":"{TRUST_SHA}","event":"push","head_branch":"dev","status":"completed","conclusion":"success","path":".github/workflows/attacker-lane.yml"}},
+            {{"id":15,"run_attempt":1,"head_sha":"{TRUST_SHA}","event":"push","head_branch":"dev","status":"in_progress","conclusion":null,"path":"{REQUIRED_CONTEXT_WORKFLOW_PATH}"}}
+        ]}}"#
+        );
+        assert_eq!(
+            trusted_dev_push_run(&runs, TRUST_SHA, REQUIRED_CONTEXT_WORKFLOW_PATH),
+            Ok(None)
+        );
+    }
+
+    #[test]
+    fn trusted_run_parser_refuses_malformed_payloads() {
+        assert!(
+            trusted_dev_push_run("not json", TRUST_SHA, REQUIRED_CONTEXT_WORKFLOW_PATH).is_err()
+        );
+        assert!(
+            trusted_dev_push_run(r#"{"ok":true}"#, TRUST_SHA, REQUIRED_CONTEXT_WORKFLOW_PATH)
+                .is_err()
+        );
+        assert!(
+            trusted_dev_push_run(
+                r#"{"workflow_runs":[]}"#,
+                "HEAD",
+                REQUIRED_CONTEXT_WORKFLOW_PATH
+            )
+            .is_err()
+        );
+    }
+
+    #[test]
+    fn trusted_producer_requires_unique_terminal_green_run_and_head_binding() {
+        let jobs = format!(
+            r#"{{"jobs":[
+            {{"id":40,"name":"unrelated","status":"completed","conclusion":"success"}},
+            {{"id":41,"run_id":{TRUST_RUN},"head_sha":"{TRUST_SHA}","name":"{AFFECTED_SET_PRODUCER_JOB_NAME}","status":"completed","conclusion":"success"}}
+        ]}}"#
+        );
+        assert_eq!(
+            trusted_affected_set_producer_job(&jobs, TRUST_RUN, TRUST_SHA),
+            Ok(Some(TrustedProducerJob {
+                id: 41,
+                run_id: TRUST_RUN,
+                head_sha: TRUST_SHA.to_owned(),
+                conclusion: "success".to_owned(),
+            }))
+        );
         for conclusion in ["failure", "cancelled"] {
             let jobs = format!(
-                r#"{{"jobs":[{{"id":41,"name":"{AFFECTED_SET_PRODUCER_JOB_NAME}","status":"completed","conclusion":"{conclusion}"}}]}}"#
+                r#"{{"jobs":[{{"id":41,"run_id":{TRUST_RUN},"head_sha":"{TRUST_SHA}","name":"{AFFECTED_SET_PRODUCER_JOB_NAME}","status":"completed","conclusion":"{conclusion}"}}]}}"#
             );
-            assert_eq!(trusted_affected_set_producer_job(&jobs), Ok(None));
+            assert_eq!(
+                trusted_affected_set_producer_job(&jobs, TRUST_RUN, TRUST_SHA),
+                Ok(None)
+            );
         }
-        assert_eq!(trusted_affected_set_producer_job(r#"{"jobs":[]}"#), Ok(None));
         let duplicate = format!(
             r#"{{"jobs":[
-                {{"id":41,"name":"{AFFECTED_SET_PRODUCER_JOB_NAME}","status":"completed","conclusion":"success"}},
-                {{"id":42,"name":"{AFFECTED_SET_PRODUCER_JOB_NAME}","status":"completed","conclusion":"success"}}
-            ]}}"#
+            {{"id":41,"run_id":{TRUST_RUN},"head_sha":"{TRUST_SHA}","name":"{AFFECTED_SET_PRODUCER_JOB_NAME}","status":"completed","conclusion":"success"}},
+            {{"id":42,"run_id":{TRUST_RUN},"head_sha":"{TRUST_SHA}","name":"{AFFECTED_SET_PRODUCER_JOB_NAME}","status":"completed","conclusion":"success"}}
+        ]}}"#
         );
-        assert_eq!(trusted_affected_set_producer_job(&duplicate), Ok(None));
+        assert!(trusted_affected_set_producer_job(&duplicate, TRUST_RUN, TRUST_SHA).is_err());
+        let mismatched = format!(
+            r#"{{"jobs":[{{"id":41,"run_id":99,"head_sha":"{TRUST_SHA}","name":"{AFFECTED_SET_PRODUCER_JOB_NAME}","status":"completed","conclusion":"success"}}]}}"#
+        );
+        assert!(trusted_affected_set_producer_job(&mismatched, TRUST_RUN, TRUST_SHA).is_err());
+    }
+
+    fn artifact_fixture(name: &str, expired: bool) -> String {
+        format!(
+            r#"{{"artifacts":[{{
+            "id":22,"name":"{name}","expired":{expired},"digest":"{TRUST_DIGEST}",
+            "size_in_bytes":42,"workflow_run":{{"id":{TRUST_RUN},"head_sha":"{TRUST_SHA}"}}
+        }}]}}"#
+        )
     }
 
     #[test]
-    fn trusted_push_run_selection_rejects_a_different_workflow_on_the_same_sha() {
-        // DEFENCE IN DEPTH: the live consumer queries the per-workflow runs route, so a foreign
-        // workflow's run is not reachable there today. This pins the bind so it still holds if a
-        // caller ever widens the query to the repo-wide `/actions/runs` list.
-        let sha = "0123456789abcdef0123456789abcdef01234567";
-        let runs = r#"{
-            "workflow_runs": [
-                {"id": 14, "head_sha": "0123456789abcdef0123456789abcdef01234567", "event": "push", "head_branch": "dev", "conclusion": "success", "path": ".github/workflows/attacker-lane.yml"},
-                {"id": 15, "head_sha": "0123456789abcdef0123456789abcdef01234567", "event": "push", "head_branch": "dev", "conclusion": "success"}
-            ]
-        }"#;
+    fn trusted_artifact_selection_accepts_one_exact_bound_immutable_artifact() {
+        let name = baseline_artifact_name(BaselineKind::Build, TRUST_SHA, TRUST_RUN, TRUST_ATTEMPT)
+            .unwrap();
         assert_eq!(
-            trusted_dev_push_run_id(runs, sha, REQUIRED_CONTEXT_WORKFLOW_PATH),
+            trusted_baseline_artifact(&artifact_fixture(&name, false), &name, TRUST_RUN, TRUST_SHA),
+            Ok(Some(TrustedBaselineArtifact {
+                id: 22,
+                name,
+                digest: TRUST_DIGEST.to_owned(),
+                size_in_bytes: 42,
+                workflow_run_id: TRUST_RUN,
+                head_sha: TRUST_SHA.to_owned(),
+            }))
+        );
+    }
+
+    #[test]
+    fn missing_or_expired_artifact_is_unavailable() {
+        let name = baseline_artifact_name(BaselineKind::Build, TRUST_SHA, TRUST_RUN, TRUST_ATTEMPT)
+            .unwrap();
+        assert_eq!(
+            trusted_baseline_artifact(r#"{"artifacts":[]}"#, &name, TRUST_RUN, TRUST_SHA),
+            Ok(None)
+        );
+        assert_eq!(
+            trusted_baseline_artifact(&artifact_fixture(&name, true), &name, TRUST_RUN, TRUST_SHA),
             Ok(None)
         );
     }
 
     #[test]
-    fn trusted_push_run_selection_refuses_malformed_input_fail_closed() {
-        let sha = "0123456789abcdef0123456789abcdef01234567";
-        assert!(
-            trusted_dev_push_run_id("not json", sha, REQUIRED_CONTEXT_WORKFLOW_PATH).is_err()
+    fn duplicate_malformed_or_unbound_artifacts_are_refused() {
+        let name = baseline_artifact_name(BaselineKind::Build, TRUST_SHA, TRUST_RUN, TRUST_ATTEMPT)
+            .unwrap();
+        let one = artifact_fixture(&name, false);
+        let artifact = serde_json::from_str::<Value>(&one).unwrap()["artifacts"][0].clone();
+        let duplicate = json!({"artifacts": [artifact.clone(), artifact]}).to_string();
+        assert!(trusted_baseline_artifact(&duplicate, &name, TRUST_RUN, TRUST_SHA).is_err());
+        let missing_digest = format!(
+            r#"{{"artifacts":[{{"id":21,"name":"{name}","expired":false,"size_in_bytes":42,"workflow_run":{{"id":{TRUST_RUN},"head_sha":"{TRUST_SHA}"}}}}]}}"#
         );
-        assert!(
-            trusted_dev_push_run_id(r#"{"ok":true}"#, sha, REQUIRED_CONTEXT_WORKFLOW_PATH)
-                .is_err()
-        );
-        assert!(
-            trusted_dev_push_run_id(r#"{"workflow_runs":[]}"#, "HEAD", REQUIRED_CONTEXT_WORKFLOW_PATH)
-                .is_err()
-        );
-    }
-
-    #[test]
-    fn trusted_baseline_artifact_selection_accepts_unexpired_exact_match() {
-        let artifacts = r#"{
-            "artifacts": [
-                {"id": 21, "name": "build-health-baseline-fedcba9876543210fedcba9876543210fedcba98", "expired": false},
-                {"id": 22, "name": "build-health-baseline-0123456789abcdef0123456789abcdef01234567", "expired": false},
-                {"id": 23, "name": "test-health-baseline-0123456789abcdef0123456789abcdef01234567", "expired": false}
-            ]
-        }"#;
-        assert_eq!(
-            trusted_baseline_artifact_id(
-                artifacts,
-                "build-health-baseline-0123456789abcdef0123456789abcdef01234567",
-            ),
-            Ok(Some(22))
-        );
-        assert_eq!(
-            trusted_baseline_artifact_id(
-                artifacts,
-                "test-health-baseline-0123456789abcdef0123456789abcdef01234567",
-            ),
-            Ok(Some(23))
-        );
-    }
-
-    #[test]
-    fn trusted_baseline_artifact_selection_falls_back_on_missing_or_stale() {
-        let artifact_name = "build-health-baseline-0123456789abcdef0123456789abcdef01234567";
-        assert_eq!(
-            trusted_baseline_artifact_id(r#"{"artifacts":[]}"#, artifact_name),
-            Ok(None)
-        );
-        assert_eq!(
-            trusted_baseline_artifact_id(
-                r#"{"artifacts":[{"id":22,"name":"build-health-baseline-0123456789abcdef0123456789abcdef01234567","expired":true}]}"#,
-                artifact_name,
-            ),
-            Ok(None)
-        );
+        assert!(trusted_baseline_artifact(&missing_digest, &name, TRUST_RUN, TRUST_SHA).is_err());
+        let wrong_run =
+            artifact_fixture(&name, false).replace(&format!(r#""id":{TRUST_RUN}"#), r#""id":99"#);
+        assert!(trusted_baseline_artifact(&wrong_run, &name, TRUST_RUN, TRUST_SHA).is_err());
     }
     fn trusted_partial_negative_fixture() -> PartialNegativeReceipt {
         PartialNegativeReceipt {
@@ -2424,7 +2507,9 @@ mod tests {
             "2026-08-01T00:00:01Z affected-set: REPRODUCE: buck2 build //...\n",
         );
         assert_eq!(
-            parse_partial_negative_failures(log).unwrap().observed_failures,
+            parse_partial_negative_failures(log)
+                .unwrap()
+                .observed_failures,
             set(&["root//oya:corpus-yaml-facts"])
         );
     }
@@ -2433,12 +2518,21 @@ mod tests {
     fn partial_negative_parser_refuses_non_literal_or_incomplete_evidence() {
         let header = "affected-set: RED — admission FULL build failed on 1 target(s) (integration tip must be green, no grandfathering):\n";
         for log in [
-            format!("{header}affected-set:   SKIPPED root//oya:not-failed\naffected-set: REPRODUCE:"),
-            format!("{header}affected-set:   BUILD-FAIL root//oya:one\naffected-set:   BUILD-FAIL root//oya:two\naffected-set: REPRODUCE:"),
+            format!(
+                "{header}affected-set:   SKIPPED root//oya:not-failed\naffected-set: REPRODUCE:"
+            ),
+            format!(
+                "{header}affected-set:   BUILD-FAIL root//oya:one\naffected-set:   BUILD-FAIL root//oya:two\naffected-set: REPRODUCE:"
+            ),
             format!("{header}affected-set:   BUILD-FAIL root//oya:one"),
-            format!("{header}affected-set:   BUILD-FAIL root//oya:one extra\naffected-set: REPRODUCE:"),
+            format!(
+                "{header}affected-set:   BUILD-FAIL root//oya:one extra\naffected-set: REPRODUCE:"
+            ),
         ] {
-            assert!(parse_partial_negative_failures(&log).is_err(), "accepted `{log}`");
+            assert!(
+                parse_partial_negative_failures(&log).is_err(),
+                "accepted `{log}`"
+            );
         }
     }
 
