@@ -1131,6 +1131,9 @@ fn workflows_exchange_oidc_only_for_trusted_jobs_and_never_use_static_cert_secre
     assert!(canary.contains("writer-receipt --record"));
     assert!(canary.contains("/tmp/canary-writer-report.json"));
     assert!(canary.contains("/tmp/canary-writer-receipt.json"));
+    assert!(canary.contains("--build-class integrity-canary-warm-probe --mode warm-ro"));
+    assert!(canary.contains("--out /tmp/canary-reader-report.json"));
+    assert!(canary.contains("/tmp/canary-warm-record.json"));
     assert!(canary.contains("--writer-manifest"));
     assert!(canary.contains("--writer-run-id \"$WRITER_RUN_ID\""));
     assert!(canary.contains("/tmp/writer-proof/canary-writer-receipt.json"));
@@ -1140,6 +1143,12 @@ fn workflows_exchange_oidc_only_for_trusted_jobs_and_never_use_static_cert_secre
         .and_then(|tail| tail.split("      - name: Canary verdict").next())
         .expect("writer proof upload step");
     assert!(!writer_upload.contains("always()"));
+    let reader_upload = canary
+        .split("      - name: Upload canary artifacts")
+        .nth(1)
+        .expect("reader/canary artifact upload step");
+    assert!(reader_upload.contains("/tmp/canary-warm-record.json"));
+    assert!(reader_upload.contains("/tmp/canary-reader-report.json"));
     assert!(schedule.contains("writer_run_id:"));
     assert!(schedule.contains("default: \"\""));
     assert!(

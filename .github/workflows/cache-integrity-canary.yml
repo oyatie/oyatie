@@ -187,6 +187,9 @@ jobs:
           set -euo pipefail
           buck2 run //ci/facade/build-cache-policy:oya-cloud-ci-cache-wiring-bin -- run --workflow-mode "${{ inputs.writer_seed && 'writer' || 'reader' }}" --prelicense-probe "${{ inputs.prelicense_probe || false }}" --mode-out /tmp/canary-cache-mode -- buck2 --isolation-dir canary-warm-probe build @/tmp/canary-targets --unstable-write-invocation-record /tmp/canary-warm-record.json --show-full-output > /tmp/canary-warm-outputs.txt
           buck2 run //ci/facade/build-cache-policy:oya-cloud-ci-cache-wiring-bin -- hash-outputs --show-output /tmp/canary-warm-outputs.txt --out /tmp/canary-warm-manifest.json
+      - name: Normalize validated reader proof
+        if: ${{ inputs.reader_probe }}
+        run: buck2 run //ci/facade/build-cache-policy:oya-cloud-ci-cache-wiring-bin -- report --record /tmp/canary-warm-record.json --build-class integrity-canary-warm-probe --mode warm-ro --out /tmp/canary-reader-report.json
       - name: Normalize validated writer proof
         if: ${{ inputs.writer_seed }}
         run: |
@@ -239,7 +242,9 @@ jobs:
             /tmp/canary-cold-record.json
             /tmp/canary-cold-outputs.txt
             /tmp/canary-cold-manifest.json
+            /tmp/canary-warm-record.json
             /tmp/canary-warm-manifest.json
+            /tmp/canary-reader-report.json
             /tmp/canary-cache-hit-report.json
             /tmp/writer-proof/canary-writer-receipt.json
           # Bounded: same shared-quota accrual as every other upload in this repo. The
