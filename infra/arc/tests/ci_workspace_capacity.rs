@@ -569,6 +569,109 @@ fn runner_network_policy_is_kubernetes_native_and_fail_closed() {
 }
 
 #[test]
+fn cas_network_proof_is_dark_credential_free_and_narrow() {
+    let root = repo_root();
+    let documents = yaml_documents(&root, "infra/arc/cas-network-proof.k8s.yaml");
+    assert_eq!(documents.len(), 2);
+    assert_eq!(
+        at(
+            object(&documents, "ServiceAccount", "cas-network-proof-probe"),
+            &["automountServiceAccountToken"]
+        )
+        .as_bool(),
+        Some(false)
+    );
+    assert!(!documents.iter().any(|document| matches!(
+        string_at(document, &["kind"]).as_str(),
+        "Role" | "RoleBinding" | "ClusterRole" | "ClusterRoleBinding"
+    )));
+
+    let job = object(&documents, "Job", "cas-network-proof-probe");
+    assert_eq!(at(job, &["spec", "suspend"]).as_bool(), Some(true));
+    assert_eq!(u64_at(job, &["spec", "backoffLimit"]), 0);
+    assert_eq!(
+        string_at(job, &["spec", "template", "spec", "serviceAccountName"]),
+        "cas-network-proof-probe"
+    );
+    assert_eq!(
+        at(
+            job,
+            &["spec", "template", "spec", "automountServiceAccountToken"]
+        )
+        .as_bool(),
+        Some(false)
+    );
+
+    let runner = yaml(&root, GENERAL_VALUES);
+    assert_eq!(
+        at(job, &["spec", "template", "metadata", "labels"]),
+        at(&runner, &["template", "metadata", "labels"]),
+        "the proof source must exercise the exact general ARC policy identity"
+    );
+    let probe = named(
+        at(job, &["spec", "template", "spec", "containers"]),
+        "probe",
+    );
+    let runner_container = named(at(&runner, &["template", "spec", "containers"]), "runner");
+    assert_eq!(
+        string_at(probe, &["image"]),
+        string_at(runner_container, &["image"]),
+        "reuse the reviewed runner image rather than adding a probe dependency"
+    );
+    let script = at(probe, &["args"])
+        .as_sequence()
+        .expect("probe args")
+        .first()
+        .and_then(Value::as_str)
+        .expect("probe script");
+    for required in [
+        "http://${target}:8200/v1/sys/health",
+        "https://${target}:8202/v1/sys/health",
+        "plaintext_8200=connection_failed",
+        "tls_8202_health=success",
+        "--cacert /etc/openbao/ca/ca.crt",
+    ] {
+        assert!(script.contains(required), "missing proof step {required}");
+    }
+    assert!(!script.contains("plaintext_8200=denied"));
+    let serialized_job = serde_json::to_string(job).expect("serialize proof Job");
+    assert!(!serialized_job.contains("secretKeyRef"));
+    assert!(!serialized_job.contains("projected"));
+    assert!(!serialized_job.contains("client-key"));
+    let manifest = read(&root, "infra/arc/cas-network-proof.k8s.yaml");
+    assert!(!manifest.contains("cas-network-proof-verifier"));
+    assert!(!manifest.contains("pods/log"));
+    assert!(!read(&root, "infra/gitops/values.yaml").contains("cas-network-proof.k8s.yaml"));
+
+    let cilium = yaml(&root, "infra/talos/cilium-values.yaml");
+    assert_eq!(string_at(&cilium, &["policyEnforcementMode"]), "default");
+    let runbook = read(&root, "infra/external-secrets/RUNBOOK.md");
+    for required in [
+        "If Flannel is live",
+        "rebuild/reprovision the disposable cell",
+        "conditions.ready",
+        "conditions.serving",
+        "conditions.terminating",
+        "verdict == \"DROPPED\"",
+        "drop_reason_desc == \"POLICY_DENIED\"",
+        "must have both",
+        "destination TCP port `8200`",
+        "destination IP must equal an address from",
+        "healthy OpenBao EndpointSlice validated in step 2",
+        "plaintext_8200=connection_failed",
+        "tls_8202_health=success",
+        "no reviewed,",
+        "digest-pinned Hubble CLI image",
+        "adds no verifier ServiceAccount, RBAC, `pods/log`",
+    ] {
+        assert!(
+            runbook.contains(required),
+            "missing runbook invariant {required}"
+        );
+    }
+}
+
+#[test]
 fn openbao_tls_and_github_identity_migration_is_exact_and_secret_free() {
     let root = repo_root();
     let base = read(&root, "infra/kms/openbao.k8s.yaml");
