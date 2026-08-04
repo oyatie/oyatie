@@ -13,6 +13,7 @@
 //!   assert-warm --record PATH --build-class C --mode M
 //!   assert-cold --record PATH
 //!   hash-outputs --show-output PATH [--out PATH]
+//!   writer-receipt --record PATH --manifest PATH --outputs PATH [--out PATH]
 //!   canary-verdict --cold PATH [--warm PATH --warm-record PATH] [--out PATH]
 //!   canary-targets                      (prints the pinned target set, one per line)
 //!   issue-identity --role R --pki-mount M --pki-role R --uri-san URI
@@ -29,6 +30,8 @@ use prost::Message;
 use reqwest::blocking::Client;
 use reqwest::header::{AUTHORIZATION, HeaderValue};
 use serde_json::Value;
+
+const WRITER_RECEIPT_SCHEMA: &str = "oya-ci/cas-writer-receipt/v1";
 
 fn fail(message: &str) -> ExitCode {
     eprintln!("oya-cloud-ci-cache-wiring: {message}");
@@ -364,6 +367,171 @@ fn bind_github_green_provenance(
         verdict["provenance"] = provenance;
     }
     Ok(())
+}
+
+fn required_value(name: &str, env: &impl Fn(&str) -> Option<String>) -> Result<String, String> {
+    env(name)
+        .filter(|value| !value.trim().is_empty())
+        .ok_or_else(|| format!("writer receipt requires non-empty {name}"))
+}
+
+fn writer_receipt_from(
+    record: &Value,
+    manifest: &Value,
+    outputs: &str,
+    env: impl Fn(&str) -> Option<String>,
+) -> Result<Value, String> {
+    app::assert_writer_seed_record(record).map_err(|findings| {
+        format!(
+            "writer receipt refused an invalid seed record: {}",
+            findings.join("; ")
+        )
+    })?;
+    let supplied_manifest = app::manifest_from_json(manifest)?;
+    let recomputed_manifest = app::digest_manifest_from_show_output(outputs)?;
+    if supplied_manifest != recomputed_manifest {
+        return Err(
+            "writer receipt manifest differs from freshly hashed Buck output bindings".to_string(),
+        );
+    }
+    let required = |name| required_value(name, &env);
+    let repository = required("GITHUB_REPOSITORY")?;
+    let event = required("GITHUB_EVENT_NAME")?;
+    let git_ref = required("GITHUB_REF")?;
+    let workflow_ref = required("GITHUB_WORKFLOW_REF")?;
+    if env("GITHUB_ACTIONS").as_deref() != Some("true")
+        || repository != "jason931225/oyatie"
+        || event != "push"
+        || git_ref != "refs/heads/dev"
+        || workflow_ref != "jason931225/oyatie/.github/workflows/oya-ci-required.yml@refs/heads/dev"
+    {
+        return Err(
+            "writer receipt requires the trusted dev-push oya-ci-required workflow".to_string(),
+        );
+    }
+    let run_id = required("GITHUB_RUN_ID")?;
+    if !run_id.bytes().all(|byte| byte.is_ascii_digit()) {
+        return Err("writer receipt GITHUB_RUN_ID must contain only digits".to_string());
+    }
+    let output_lines = outputs
+        .lines()
+        .map(str::trim)
+        .filter(|line| !line.is_empty())
+        .map(str::to_owned)
+        .collect::<Vec<_>>();
+    if output_lines.is_empty() {
+        return Err("writer receipt requires non-empty Buck output bindings".to_string());
+    }
+    Ok(serde_json::json!({
+        "schema": WRITER_RECEIPT_SCHEMA,
+        "github_repository": repository,
+        "github_sha": required("GITHUB_SHA")?,
+        "github_run_id": run_id,
+        "github_job": required("GITHUB_JOB")?,
+        "github_run_attempt": required("GITHUB_RUN_ATTEMPT")?,
+        "github_workflow_ref": workflow_ref,
+        "github_event_name": event,
+        "github_ref": git_ref,
+        "runner_name": required("RUNNER_NAME")?,
+        "runner_pod_name": required("OYA_RUNNER_POD_NAME")?,
+        "runner_pod_uid": required("OYA_RUNNER_POD_UID")?,
+        "runner_node_name": required("OYA_RUNNER_NODE_NAME")?,
+        "outputs": output_lines,
+        "manifest": manifest,
+        "cache_report": app::cache_hit_report(
+            record,
+            "postmerge-dev-trunk-prelicense-seed",
+            "warm-rw"
+        ),
+    }))
+}
+
+fn receipt_string<'a>(receipt: &'a Value, key: &str) -> Result<&'a str, String> {
+    receipt
+        .get(key)
+        .and_then(Value::as_str)
+        .filter(|value| !value.is_empty())
+        .ok_or_else(|| format!("writer receipt field {key} missing or non-string"))
+}
+
+fn validate_writer_receipt_from(
+    receipt: &Value,
+    writer_manifest: &Value,
+    cold: &std::collections::BTreeMap<String, String>,
+    warm: &std::collections::BTreeMap<String, String>,
+    expected_run_id: &str,
+    env: impl Fn(&str) -> Option<String>,
+) -> Result<Value, String> {
+    if expected_run_id.is_empty() || !expected_run_id.bytes().all(|byte| byte.is_ascii_digit()) {
+        return Err("writer run id must contain only digits".to_string());
+    }
+    if receipt.get("schema").and_then(Value::as_str) != Some(WRITER_RECEIPT_SCHEMA) {
+        return Err("writer receipt schema mismatch".to_string());
+    }
+    let required = |name| required_value(name, &env);
+    let current_sha = required("GITHUB_SHA")?;
+    for (key, expected) in [
+        ("github_repository", "jason931225/oyatie"),
+        ("github_sha", current_sha.as_str()),
+        ("github_run_id", expected_run_id),
+        ("github_event_name", "push"),
+        ("github_ref", "refs/heads/dev"),
+        (
+            "github_workflow_ref",
+            "jason931225/oyatie/.github/workflows/oya-ci-required.yml@refs/heads/dev",
+        ),
+    ] {
+        if receipt_string(receipt, key)? != expected {
+            return Err(format!("writer receipt {key} did not match {expected:?}"));
+        }
+    }
+    if receipt.get("manifest") != Some(writer_manifest) {
+        return Err("writer receipt embedded manifest differs from artifact manifest".to_string());
+    }
+    for key in ["github_job", "runner_pod_name", "runner_node_name"] {
+        receipt_string(receipt, key)?;
+    }
+    let attempt = receipt_string(receipt, "github_run_attempt")?;
+    if !attempt.bytes().all(|byte| byte.is_ascii_digit()) {
+        return Err("writer receipt github_run_attempt must contain only digits".to_string());
+    }
+    let _outputs = receipt
+        .get("outputs")
+        .and_then(Value::as_array)
+        .filter(|outputs| {
+            !outputs.is_empty()
+                && outputs
+                    .iter()
+                    .all(|output| output.as_str().is_some_and(|value| !value.is_empty()))
+        })
+        .ok_or_else(|| "writer receipt outputs missing or malformed".to_string())?;
+    if receipt
+        .pointer("/cache_report/schema")
+        .and_then(Value::as_str)
+        != Some(app::CACHE_HIT_REPORT_SCHEMA)
+    {
+        return Err("writer receipt cache_report schema mismatch".to_string());
+    }
+    if receipt_string(receipt, "runner_name")? == required("RUNNER_NAME")? {
+        return Err("writer and reader used the same GitHub runner".to_string());
+    }
+    if receipt_string(receipt, "runner_pod_uid")? == required("OYA_RUNNER_POD_UID")? {
+        return Err("writer and reader used the same ARC pod UID".to_string());
+    }
+    let writer = app::manifest_from_json(writer_manifest)?;
+    if &writer != cold || &writer != warm {
+        return Err("writer/cold/reader manifest parity gap".to_string());
+    }
+    Ok(serde_json::json!({
+        "github_repository": receipt_string(receipt, "github_repository")?,
+        "github_sha": receipt_string(receipt, "github_sha")?,
+        "github_run_id": receipt_string(receipt, "github_run_id")?,
+        "github_job": receipt_string(receipt, "github_job")?,
+        "github_run_attempt": receipt_string(receipt, "github_run_attempt")?,
+        "runner_name": receipt_string(receipt, "runner_name")?,
+        "runner_pod_uid": receipt_string(receipt, "runner_pod_uid")?,
+        "runner_node_name": receipt_string(receipt, "runner_node_name")?,
+    }))
 }
 
 fn grpc_status(headers: &str) -> Result<u16, String> {
@@ -800,7 +968,7 @@ fn run(args: Vec<String>) -> Result<ExitCode, String> {
     let Some(command) = args.first().cloned() else {
         return Err(
             "missing subcommand (resolve | run | issue-identity | license-state | report | \
-                    assert-warm | assert-cold | hash-outputs | canary-verdict | canary-targets)"
+                    assert-warm | assert-cold | hash-outputs | writer-receipt | canary-verdict | canary-targets)"
                 .to_string(),
         );
     };
@@ -1013,6 +1181,25 @@ fn run(args: Vec<String>) -> Result<ExitCode, String> {
             write_out(flag_value(rest, "--out"), &payload)?;
             Ok(ExitCode::SUCCESS)
         }
+        "writer-receipt" => {
+            let record_path = flag_value(rest, "--record")
+                .ok_or_else(|| "writer-receipt requires --record".to_string())?;
+            let manifest_path = flag_value(rest, "--manifest")
+                .ok_or_else(|| "writer-receipt requires --manifest".to_string())?;
+            let outputs_path = flag_value(rest, "--outputs")
+                .ok_or_else(|| "writer-receipt requires --outputs".to_string())?;
+            let document = read_json(&record_path)?;
+            let record = app::invocation_record(&document)?;
+            let manifest = read_json(&manifest_path)?;
+            let outputs = fs::read_to_string(&outputs_path)
+                .map_err(|error| format!("read {outputs_path}: {error}"))?;
+            let receipt =
+                writer_receipt_from(record, &manifest, &outputs, |name| std::env::var(name).ok())?;
+            let payload = serde_json::to_string_pretty(&receipt)
+                .map_err(|error| format!("serialize writer receipt: {error}"))?;
+            write_out(flag_value(rest, "--out"), &payload)?;
+            Ok(ExitCode::SUCCESS)
+        }
         "canary-verdict" => {
             let cold_path = flag_value(rest, "--cold")
                 .ok_or_else(|| "canary-verdict requires --cold".to_string())?;
@@ -1072,8 +1259,39 @@ fn run(args: Vec<String>) -> Result<ExitCode, String> {
                     ));
                 }
             }
+            let writer_flags = [
+                flag_value(rest, "--writer-receipt"),
+                flag_value(rest, "--writer-manifest"),
+                flag_value(rest, "--writer-run-id"),
+            ];
+            let writer_provenance = if writer_flags.iter().any(Option::is_some) {
+                let [Some(receipt_path), Some(manifest_path), Some(run_id)] = writer_flags else {
+                    return Err(
+                        "canary-verdict requires --writer-receipt, --writer-manifest, and --writer-run-id together"
+                            .to_string(),
+                    );
+                };
+                let warm = warm.as_ref().ok_or_else(|| {
+                    "writer commissioning proof requires a reader warm manifest".to_string()
+                })?;
+                Some(validate_writer_receipt_from(
+                    &read_json(&receipt_path)?,
+                    &read_json(&manifest_path)?,
+                    &cold,
+                    warm,
+                    &run_id,
+                    |name| std::env::var(name).ok(),
+                )?)
+            } else {
+                None
+            };
             let (status, mut verdict) = app::canary_verdict(&cold, warm.as_ref());
             bind_github_green_provenance(status, &mut verdict)?;
+            if status == app::CanaryStatus::Green
+                && let Some(provenance) = writer_provenance
+            {
+                verdict["writer_provenance"] = provenance;
+            }
             let payload = serde_json::to_string_pretty(&verdict)
                 .map_err(|e| format!("serialize verdict: {e}"))?;
             write_out(flag_value(rest, "--out"), &payload)?;
@@ -1354,6 +1572,169 @@ mod tests {
         );
     }
 
+    fn writer_record_fixture() -> Value {
+        json!({
+            "cache_hit_rate": 0.0,
+            "run_action_cache_count": 0,
+            "run_local_count": 2,
+            "run_remote_count": 0,
+            "cache_upload_attempt_count": 2,
+            "cache_upload_count": 2,
+            "re_upload_bytes": 1024,
+            "re_download_bytes": 0,
+            "exit_result_name": "SUCCESS",
+            "run_command_failure_count": 0,
+            "errors": [],
+            "daemon_connection_failure": false,
+            "last_snapshot": {
+                "re_action_cache_started": 0,
+                "re_action_cache_finished_successfully": 0,
+                "re_action_cache_finished_with_error": 0,
+                "re_upload_bytes": 1024,
+                "re_uploads_started": 2,
+                "re_uploads_finished_successfully": 2,
+                "re_uploads_finished_with_error": 0,
+                "re_downloads_finished_with_error": 0,
+                "re_executes_started": 0,
+                "re_executes_finished_successfully": 0,
+                "re_executes_finished_with_error": 0,
+                "re_write_action_results_started": 2,
+                "re_write_action_results_finished_successfully": 2,
+                "re_write_action_results_finished_with_error": 0
+            }
+        })
+    }
+
+    fn proof_env(name: &str) -> Option<String> {
+        match name {
+            "GITHUB_ACTIONS" => Some("true".into()),
+            "GITHUB_REPOSITORY" => Some("jason931225/oyatie".into()),
+            "GITHUB_SHA" => Some("abc123".into()),
+            "GITHUB_RUN_ID" => Some("42".into()),
+            "GITHUB_JOB" => Some("cache-writer-identity".into()),
+            "GITHUB_RUN_ATTEMPT" => Some("1".into()),
+            "GITHUB_WORKFLOW_REF" => Some(
+                "jason931225/oyatie/.github/workflows/oya-ci-required.yml@refs/heads/dev".into(),
+            ),
+            "GITHUB_EVENT_NAME" => Some("push".into()),
+            "GITHUB_REF" => Some("refs/heads/dev".into()),
+            "RUNNER_NAME" => Some("writer-runner".into()),
+            "OYA_RUNNER_POD_NAME" => Some("writer-pod".into()),
+            "OYA_RUNNER_POD_UID" => Some("writer-uid".into()),
+            "OYA_RUNNER_NODE_NAME" => Some("worker-1".into()),
+            _ => None,
+        }
+    }
+
+    fn reader_env(name: &str) -> Option<String> {
+        match name {
+            "GITHUB_SHA" => Some("abc123".into()),
+            "RUNNER_NAME" => Some("reader-runner".into()),
+            "OYA_RUNNER_POD_UID" => Some("reader-uid".into()),
+            _ => None,
+        }
+    }
+
+    #[test]
+    fn writer_receipt_binds_trusted_run_distinct_pods_and_three_way_parity() {
+        let root =
+            std::env::temp_dir().join(format!("oya-cache-writer-receipt-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&root);
+        fs::create_dir_all(&root).unwrap();
+        let output = root.join("output");
+        fs::write(&output, b"writer-output").unwrap();
+        let output_binding = format!("//canary:target {}\n", output.display());
+        let manifest =
+            app::manifest_to_json(&app::digest_manifest_from_show_output(&output_binding).unwrap());
+        let receipt = writer_receipt_from(
+            &writer_record_fixture(),
+            &manifest,
+            &output_binding,
+            proof_env,
+        )
+        .unwrap();
+        let mismatched_manifest = json!({
+            "schema": app::DIGEST_MANIFEST_SCHEMA,
+            "entries": {"//canary:target": "sha256:not-the-output"}
+        });
+        assert!(
+            writer_receipt_from(
+                &writer_record_fixture(),
+                &mismatched_manifest,
+                &output_binding,
+                proof_env,
+            )
+            .is_err()
+        );
+        let entries = app::manifest_from_json(&manifest).unwrap();
+        let provenance = validate_writer_receipt_from(
+            &receipt,
+            &manifest,
+            &entries,
+            &entries,
+            "42",
+            reader_env,
+        )
+        .unwrap();
+        assert_eq!(provenance["github_run_id"], "42");
+        assert_eq!(provenance["runner_pod_uid"], "writer-uid");
+
+        for (key, value) in [
+            ("github_repository", json!("other/repo")),
+            ("github_sha", json!("wrong")),
+            ("github_run_id", json!("41")),
+            ("github_event_name", json!("workflow_dispatch")),
+            ("github_ref", json!("refs/heads/other")),
+            ("github_workflow_ref", json!("other")),
+            ("runner_name", json!("reader-runner")),
+            ("runner_pod_uid", json!("reader-uid")),
+        ] {
+            let mut invalid = receipt.clone();
+            invalid[key] = value;
+            assert!(
+                validate_writer_receipt_from(
+                    &invalid, &manifest, &entries, &entries, "42", reader_env,
+                )
+                .is_err(),
+                "accepted invalid writer receipt field {key}"
+            );
+        }
+        let other_manifest = json!({
+            "schema": app::DIGEST_MANIFEST_SCHEMA,
+            "entries": {"//canary:target": "sha256:other"}
+        });
+        assert!(
+            validate_writer_receipt_from(
+                &receipt,
+                &other_manifest,
+                &entries,
+                &entries,
+                "42",
+                reader_env,
+            )
+            .is_err()
+        );
+        let different = app::manifest_from_json(&other_manifest).unwrap();
+        assert!(
+            validate_writer_receipt_from(
+                &receipt, &manifest, &different, &entries, "42", reader_env,
+            )
+            .is_err()
+        );
+        assert!(
+            validate_writer_receipt_from(
+                &receipt,
+                &manifest,
+                &entries,
+                &entries,
+                "not-digits",
+                reader_env,
+            )
+            .is_err()
+        );
+        fs::remove_dir_all(root).unwrap();
+    }
+
     #[test]
     fn canary_verdict_accepts_wrapped_warm_invocation_record() {
         let root =
@@ -1378,17 +1759,30 @@ mod tests {
                     "run_skipped_count": 0,
                     "cache_upload_attempt_count": 0,
                     "cache_upload_count": 0,
+                    "re_upload_bytes": 0,
+                    "re_download_bytes": 1024,
                     "exit_result_name": "SUCCESS",
+                    "run_command_failure_count": 0,
+                    "errors": [],
+                    "daemon_connection_failure": false,
                     "last_snapshot": {
                         "re_action_cache_started": 1,
+                        "re_action_cache_finished_successfully": 1,
                         "re_action_cache_finished_with_error": 0,
                         "re_upload_bytes": 0,
                         "re_uploads_started": 0,
                         "re_uploads_finished_successfully": 0,
                         "re_uploads_finished_with_error": 0,
                         "re_download_bytes": 1024,
+                        "re_downloads_started": 1,
                         "re_downloads_finished_successfully": 1,
-                        "re_downloads_finished_with_error": 0
+                        "re_downloads_finished_with_error": 0,
+                        "re_executes_started": 0,
+                        "re_executes_finished_successfully": 0,
+                        "re_executes_finished_with_error": 0,
+                        "re_write_action_results_started": 0,
+                        "re_write_action_results_finished_successfully": 0,
+                        "re_write_action_results_finished_with_error": 0
                     }
                 }}}}
             }))

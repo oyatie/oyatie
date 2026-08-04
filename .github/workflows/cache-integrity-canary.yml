@@ -56,6 +56,11 @@ on:
         required: false
         type: boolean
         default: false
+      writer_run_id:
+        description: Trusted dev-push writer run carrying the same-SHA seed receipt
+        required: false
+        type: string
+        default: ""
     outputs:
       warm_licensed:
         description: Declarative warm-license state read by the contents-only cold invocation
@@ -159,6 +164,16 @@ jobs:
         with:
           name: cache-integrity-cold
           path: /tmp
+      - name: Download exact writer proof for pre-license commissioning
+        if: ${{ inputs.reader_probe && inputs.prelicense_probe }}
+        # actions/download-artifact@v8.0.1 — Node 24 runtime; pinned to immutable release commit.
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: cache-writer-${{ github.sha }}
+          path: /tmp/writer-proof
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ inputs.writer_run_id }}
       # WARM PROBE — activates at CAS bring-up (license flips true after the first
       # GREEN run is reviewed in). This is the canary CONTROLLER's retrieval of the
       # warm substrate's entries (ADR-0556 D2), not a build class: it dials the
@@ -172,12 +187,39 @@ jobs:
           set -euo pipefail
           buck2 run //ci/facade/build-cache-policy:oya-cloud-ci-cache-wiring-bin -- run --workflow-mode "${{ inputs.writer_seed && 'writer' || 'reader' }}" --prelicense-probe "${{ inputs.prelicense_probe || false }}" --mode-out /tmp/canary-cache-mode -- buck2 --isolation-dir canary-warm-probe build @/tmp/canary-targets --unstable-write-invocation-record /tmp/canary-warm-record.json --show-full-output > /tmp/canary-warm-outputs.txt
           buck2 run //ci/facade/build-cache-policy:oya-cloud-ci-cache-wiring-bin -- hash-outputs --show-output /tmp/canary-warm-outputs.txt --out /tmp/canary-warm-manifest.json
+      - name: Normalize validated writer proof
+        if: ${{ inputs.writer_seed }}
+        run: |
+          set -euo pipefail
+          buck2 run //ci/facade/build-cache-policy:oya-cloud-ci-cache-wiring-bin -- report --record /tmp/canary-warm-record.json --build-class postmerge-dev-trunk-prelicense-seed --mode warm-rw --out /tmp/canary-writer-report.json
+          buck2 run //ci/facade/build-cache-policy:oya-cloud-ci-cache-wiring-bin -- writer-receipt --record /tmp/canary-warm-record.json --manifest /tmp/canary-warm-manifest.json --outputs /tmp/canary-warm-outputs.txt --out /tmp/canary-writer-receipt.json
+      - name: Upload validated writer proof
+        if: ${{ inputs.writer_seed }}
+        # actions/upload-artifact@v7.0.1 — Node 24 runtime; pinned to immutable release commit.
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: cache-writer-${{ github.sha }}
+          path: |
+            /tmp/canary-warm-record.json
+            /tmp/canary-warm-outputs.txt
+            /tmp/canary-warm-manifest.json
+            /tmp/canary-writer-report.json
+            /tmp/canary-writer-receipt.json
+          retention-days: 30
+          if-no-files-found: error
       - name: Canary verdict (byte-equality; RED fails the job)
         if: ${{ inputs.reader_probe || (!inputs.writer_seed && !inputs.reader_probe && (vars.OYA_CAS_IDENTITY_PROOF_ENABLED != 'true' || github.ref != 'refs/heads/dev' || (steps.license.outputs.warm_licensed != 'true' && !(github.event_name == 'workflow_dispatch' && inputs.prelicense_probe)))) }}
+        env:
+          PRELICENSE_PROBE: ${{ inputs.prelicense_probe }}
+          WRITER_RUN_ID: ${{ inputs.writer_run_id }}
         run: |
           set -euo pipefail
           if [ -f /tmp/canary-warm-manifest.json ]; then
-            buck2 run //ci/facade/build-cache-policy:oya-cloud-ci-cache-wiring-bin -- canary-verdict --cold /tmp/canary-cold-manifest.json --warm /tmp/canary-warm-manifest.json --warm-record /tmp/canary-warm-record.json --out /tmp/canary-verdict.json
+            writer_args=()
+            if [ "$PRELICENSE_PROBE" = "true" ]; then
+              writer_args=(--writer-receipt /tmp/writer-proof/canary-writer-receipt.json --writer-manifest /tmp/writer-proof/canary-warm-manifest.json --writer-run-id "$WRITER_RUN_ID")
+            fi
+            buck2 run //ci/facade/build-cache-policy:oya-cloud-ci-cache-wiring-bin -- canary-verdict --cold /tmp/canary-cold-manifest.json --warm /tmp/canary-warm-manifest.json --warm-record /tmp/canary-warm-record.json "${writer_args[@]}" --out /tmp/canary-verdict.json
           else
             buck2 run //ci/facade/build-cache-policy:oya-cloud-ci-cache-wiring-bin -- canary-verdict --cold /tmp/canary-cold-manifest.json --out /tmp/canary-verdict.json
           fi
@@ -199,6 +241,7 @@ jobs:
             /tmp/canary-cold-manifest.json
             /tmp/canary-warm-manifest.json
             /tmp/canary-cache-hit-report.json
+            /tmp/writer-proof/canary-writer-receipt.json
           # Bounded: same shared-quota accrual as every other upload in this repo. The
           # canary runs daily, so 30 days keeps a full month of cold-vs-warm verdicts.
           retention-days: 30
