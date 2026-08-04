@@ -17,6 +17,9 @@ For every fresh session, read current truth in this order:
    reciprocal lifecycle edge; Proposed or implementation-landed decisions remain nonbinding.
 5. Live Git/GitHub state — derive the current baseline, PR state, review state, and
    `oya-ci-required` result; never copy them from this file.
+6. [`evidence/consolidation/prewipe-session-continuity-20260804.json`](evidence/consolidation/prewipe-session-continuity-20260804.json)
+   — immutable pre-wipe continuity snapshot and remote-artifact recovery index. Re-query every
+   live state before acting; this snapshot is historical context, not plan or dispatch authority.
 
 Current nonclaims entering planning are recorded inside `masterplan_v2`; no execution wave is
 authorized merely because it appears in a handoff or because CI is green. Protected-PR admission,

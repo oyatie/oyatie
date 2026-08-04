@@ -95,6 +95,34 @@ fixes); (2) **automation** — the gate ships its own auto-fix wherever it makes
 progression); (3) **CI enforcement** — a blocking backstop in `oya-ci-required`. Each ships as a neutral
 engine + policy-as-data so any repo/team can adopt it (pipeline-as-product): our pain is everyone's pain.
 
+## Agentic delivery, learning, and issue lifecycle
+
+- **Prepare before fan-out.** Freeze the exact base, inputs, invariants, policy, permissions, ownership map,
+  and resource budget; produce mapping artifacts; then run one representative serial pilot. Parallelize only
+  after the pilot proves the method, invalidate it when an input changes, and cap concurrency by the scarcest
+  resource. Separate implementer, adversarial reviewer, fixer, verifier, and integrator capabilities.
+- **Preserve terminal truth.** Every lane records started/succeeded/failed/interrupted/cancelled/conflicted
+  state plus its exact head and evidence before cleanup. A retry is bounded and keyed by failure class; a
+  repeated semantic conflict becomes durable work rather than another automatic retry. Never use
+  `ours`/`theirs` to resolve semantic hot paths.
+- **Turn incidents into controls.** Close the loop as pre-mortem -> observed failure -> post-mortem ->
+  mechanical prevention -> regression/failure-injection test -> runbook and mistakes-ledger link. Fix the
+  producing workflow, not just one generated defect; verified empty scans are recorded so agents do not
+  invent work or repeat the same census.
+- **Draft regulatory controls methodically.** Bind dated/digested primary sources to applicability first,
+  then obligation, control, owner, test, evidence, independent approval, and explicit change triggers.
+  Legal/compliance research is a traceable input, never a readiness or certification claim by itself.
+- **Keep one work ledger.** `masterplan_v2` owns portfolio/dependency/status truth; a GitHub issue owns one
+  bounded actionable defect or incident; PR receipts own implementation truth. Re-query current state before
+  updates. Close only with an exact promoted SHA plus review/required-gate evidence, an explicit duplicate or
+  successor, an answered support question with no remaining action, or a documented scope rejection. Never
+  mass-close for age, and never close a security/blocker issue before containment and acceptance evidence.
+
+Method inputs (informational, not Oyatie authority): [Bun's Rust rewrite](https://bun.com/blog/bun-in-rust),
+[gaebal-gajae's operating archive](https://blog.gaebal-gajae.dev/archive.html),
+[jclab-joseph/it-legal's source-to-requirement drafting](https://github.com/jclab-joseph/it-legal/tree/5624ff14e673863ec3b5645155742691a74ef152),
+and [oh-my-codex issue lifecycle examples](https://github.com/Yeachan-Heo/oh-my-codex/issues).
+
 <!-- agent-instructions:start -->
 sanctioned_primitives:
   - git
