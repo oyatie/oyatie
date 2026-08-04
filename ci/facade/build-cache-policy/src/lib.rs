@@ -35,6 +35,10 @@ pub const OVERLAY_RO_PATH: &str = "infra/ci/buckconfig/warm-cache-ro.buckconfig"
 pub const CLIENT_CERT_ENV: &str = "OYA_CACHE_TLS_CLIENT_CERT";
 /// Env var carrying the path of the CA bundle that signed the CAS server cert.
 pub const TLS_CA_CERTS_ENV: &str = "OYA_CACHE_TLS_CA_CERTS";
+/// Env var carrying the trusted OpenBao HTTPS endpoint.
+pub const OPENBAO_ADDR_ENV: &str = "OYA_OPENBAO_ADDR";
+/// Env var carrying the public CA path used to authenticate OpenBao.
+pub const OPENBAO_CA_ENV: &str = "OYA_OPENBAO_CA_CERT";
 /// Schema id of the structured per-lane cache-hit report artifact.
 pub const CACHE_HIT_REPORT_SCHEMA: &str = "oya-ci/cache-hit-report/v1";
 /// Schema id of the canary digest manifest artifact.
@@ -286,6 +290,29 @@ pub fn install_local_buckconfig(root: &Path, contents: &str) -> Result<PathBuf, 
 
 pub fn remove_local_buckconfig(path: &Path) -> Result<(), String> {
     fs::remove_file(path).map_err(|error| format!("remove {}: {error}", path.display()))
+}
+
+/// Create a credential file without ever exposing group/other permissions.
+pub fn write_private_file(path: &Path, contents: &str) -> Result<(), String> {
+    let mut options = OpenOptions::new();
+    options.write(true).create_new(true);
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::OpenOptionsExt;
+        options.mode(0o600);
+    }
+    #[cfg(not(unix))]
+    return Err("cache identity requires Unix mode-0600 file semantics".to_string());
+
+    #[cfg(unix)]
+    {
+        let mut file = options
+            .open(path)
+            .map_err(|error| format!("create {} without clobbering: {error}", path.display()))?;
+        file.write_all(contents.as_bytes())
+            .and_then(|()| file.sync_all())
+            .map_err(|error| format!("write {}: {error}", path.display()))
+    }
 }
 
 /// Locate the InvocationRecord payload inside a buck2
@@ -883,6 +910,17 @@ mod tests {
         }
         remove_local_buckconfig(&path).unwrap();
         assert!(!path.exists());
+        let identity = root.join("client.pem");
+        write_private_file(&identity, "certificate\nprivate-key\n").unwrap();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            assert_eq!(
+                fs::metadata(&identity).unwrap().permissions().mode() & 0o777,
+                0o600
+            );
+        }
+        assert!(write_private_file(&identity, "replacement").is_err());
         fs::remove_dir_all(root).unwrap();
     }
 

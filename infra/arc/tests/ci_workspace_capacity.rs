@@ -181,7 +181,7 @@ fn runner_cells_are_capacity_bounded_without_rootfs_fallback() {
     for runner in &runners {
         assert_eq!(runner.mount_path, "/home/runner/_work");
     }
-    assert_eq!(runners[0].max_runners, 2);
+    assert_eq!(runners[0].max_runners, 1);
     assert_eq!(
         runners[0].node, None,
         "general set must span admitted ARM nodes"
@@ -429,7 +429,11 @@ fn runner_network_policy_is_kubernetes_native_and_fail_closed() {
 #[test]
 fn openbao_tls_and_github_identity_migration_is_exact_and_secret_free() {
     let root = repo_root();
-    let documents = yaml_documents(&root, "infra/kms/openbao.k8s.yaml");
+    let base = read(&root, "infra/kms/openbao.k8s.yaml");
+    assert!(!base.contains("8202"));
+    assert!(!base.contains("openbao-server-tls"));
+
+    let documents = yaml_documents(&root, "infra/kms/openbao-tls-migration.k8s.yaml");
     let deployment = documents
         .iter()
         .find(|document| is_kind(document, "Deployment"))
@@ -463,8 +467,14 @@ fn openbao_tls_and_github_identity_migration_is_exact_and_secret_free() {
             "missing TLS migration declaration {required}"
         );
     }
+    let deployment_text = serde_json::to_string(deployment).expect("serialize deployment");
+    assert!(deployment_text.contains("openbao-server-tls"));
+    assert!(deployment_text.contains("/openbao/tls"));
+    assert!(deployment_text.contains("containerPort\":8202"));
+    assert!(deployment_text.contains("containerPort\":8203"));
 
-    let identity = documents
+    let identity_documents = yaml_documents(&root, "infra/kms/openbao-ci-identity.k8s.yaml");
+    let identity = identity_documents
         .iter()
         .find(|document| {
             is_kind(document, "ConfigMap")
@@ -472,6 +482,22 @@ fn openbao_tls_and_github_identity_migration_is_exact_and_secret_free() {
         })
         .expect("CI identity contract");
     let data = at(identity, &["data"]);
+    for key in [
+        "pki-cas-writer.json",
+        "pki-cas-reader.json",
+        "ci-cas-writer.hcl",
+        "ci-cas-reader.hcl",
+    ] {
+        assert!(
+            data.get(key).and_then(Value::as_str).is_some(),
+            "missing {key}"
+        );
+    }
+    assert!(
+        !serde_json::to_string(identity)
+            .unwrap()
+            .contains("re-client")
+    );
     for (role, workflow, policy) in [
         (
             "github-cas-writer-dev-push.json",
@@ -483,11 +509,6 @@ fn openbao_tls_and_github_identity_migration_is_exact_and_secret_free() {
             "jason931225/oyatie/.github/workflows/cache-integrity-canary.yml@refs/heads/dev",
             "ci-cas-reader",
         ),
-        (
-            "github-re-client-integrity-canary.json",
-            "jason931225/oyatie/.github/workflows/cache-integrity-canary.yml@refs/heads/dev",
-            "ci-re-client",
-        ),
     ] {
         let payload: serde_json::Value = serde_json::from_str(
             data.get(role)
@@ -496,11 +517,21 @@ fn openbao_tls_and_github_identity_migration_is_exact_and_secret_free() {
         )
         .expect("role JSON");
         assert_eq!(payload["bound_audiences"][0], "oya-openbao");
-        assert_eq!(payload["bound_claims"]["job_workflow_ref"], workflow);
+        assert_eq!(payload["user_claim"], "workflow_ref");
+        assert_eq!(payload["bound_claims"]["workflow_ref"], workflow);
         assert_eq!(payload["bound_claims"]["repository_id"], "1236575706");
         assert_eq!(payload["bound_claims"]["repository_owner_id"], "56489493");
         assert_eq!(payload["bound_claims"]["repository_visibility"], "private");
         assert_eq!(payload["bound_claims"]["runner_environment"], "self-hosted");
+        assert_eq!(
+            payload["bound_claims"]["sub"],
+            "repo:jason931225/oyatie:ref:refs/heads/dev"
+        );
+        assert!(
+            payload["bound_claims"]
+                .get("repository_owner_type")
+                .is_none()
+        );
         assert_eq!(payload["token_policies"][0], policy);
         assert_eq!(payload["token_max_ttl"], "5m");
         if role == "github-cas-writer-dev-push.json" {
@@ -515,11 +546,7 @@ fn openbao_tls_and_github_identity_migration_is_exact_and_secret_free() {
             );
         }
     }
-    for role in [
-        "pki-cas-writer.json",
-        "pki-cas-reader.json",
-        "pki-re-client.json",
-    ] {
+    for role in ["pki-cas-writer.json", "pki-cas-reader.json"] {
         let payload: serde_json::Value = serde_json::from_str(
             data.get(role)
                 .and_then(Value::as_str)
@@ -527,6 +554,12 @@ fn openbao_tls_and_github_identity_migration_is_exact_and_secret_free() {
         )
         .expect("PKI role JSON");
         assert_eq!(payload["max_ttl"], "3h");
+        assert_eq!(payload["ttl"], "3h");
+        assert_eq!(payload["require_cn"], false);
+        assert_eq!(payload["allow_ip_sans"], false);
+        assert_eq!(payload["allow_localhost"], false);
+        assert_eq!(payload["allowed_domains"].as_array().unwrap().len(), 0);
+        assert_eq!(payload["allowed_uri_sans"].as_array().unwrap().len(), 1);
         assert_eq!(payload["client_flag"], true);
         assert_eq!(payload["server_flag"], false);
     }
@@ -538,11 +571,21 @@ fn openbao_tls_and_github_identity_migration_is_exact_and_secret_free() {
 
     let stores = yaml_documents(
         &root,
-        "infra/external-secrets/clustersecretstore-openbao-oya.yaml",
+        "infra/external-secrets/clustersecretstore-openbao-oya-tls-migration.yaml",
+    );
+    assert!(
+        !read(
+            &root,
+            "infra/external-secrets/clustersecretstore-openbao-oya.yaml"
+        )
+        .contains("8202")
     );
     let migration_stores: Vec<&Value> = stores
         .iter()
-        .filter(|store| string_at(store, &["metadata", "name"]).ends_with("tls-migration"))
+        .filter(|store| {
+            is_kind(store, "ClusterSecretStore")
+                && string_at(store, &["metadata", "name"]).ends_with("tls-migration")
+        })
         .collect();
     assert_eq!(migration_stores.len(), 3);
     for store in migration_stores {
@@ -555,4 +598,28 @@ fn openbao_tls_and_github_identity_migration_is_exact_and_secret_free() {
             "openbao-offline-root-ca"
         );
     }
+
+    let runner = yaml(&root, GENERAL_VALUES);
+    let runner_text = serde_json::to_string(&runner).expect("serialize runner values");
+    assert!(runner_text.contains("openbao-offline-root-ca"));
+    assert!(runner_text.contains("/etc/openbao/ca"));
+    assert!(!runner_text.contains("tls.key"));
+
+    let public_ca = yaml_documents(&root, "infra/kms/openbao-public-ca.k8s.yaml");
+    let namespaces: BTreeSet<String> = public_ca
+        .iter()
+        .map(|config_map| {
+            assert!(is_kind(config_map, "ConfigMap"));
+            assert_eq!(
+                string_at(config_map, &["metadata", "name"]),
+                "openbao-offline-root-ca"
+            );
+            assert_eq!(string_at(config_map, &["data", "ca.crt"]), "");
+            string_at(config_map, &["metadata", "namespace"])
+        })
+        .collect();
+    assert_eq!(
+        namespaces,
+        BTreeSet::from(["arc-runners".to_owned(), "external-secrets".to_owned()])
+    );
 }

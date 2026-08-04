@@ -14,12 +14,15 @@
 //!   hash-outputs --show-output PATH [--out PATH]
 //!   canary-verdict --cold PATH [--warm PATH --warm-record PATH] [--out PATH]
 //!   canary-targets                      (prints the pinned target set, one per line)
+//!   issue-identity --role R --pki-role R --uri-san URI
 
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::{Command, ExitCode, ExitStatus};
 
 use ci_build_cache_policy as app;
+use reqwest::blocking::Client;
+use reqwest::header::{AUTHORIZATION, HeaderValue};
 use serde_json::Value;
 
 fn fail(message: &str) -> ExitCode {
@@ -166,22 +169,119 @@ fn controlled_child(
     let child = run_child(root, &child_command);
     let stop = kill_buck2(root, &isolation);
     let remove = app::remove_local_buckconfig(&path);
-    stop?;
-    remove?;
+    match (stop, remove) {
+        (Err(stop), Err(remove)) => {
+            return Err(format!(
+                "{stop}; additionally failed cache config cleanup: {remove}"
+            ));
+        }
+        (Err(error), Ok(())) | (Ok(()), Err(error)) => return Err(error),
+        (Ok(()), Ok(())) => {}
+    }
     child.map(child_exit)
+}
+
+fn required_env(name: &str) -> Result<String, String> {
+    std::env::var(name).map_err(|_| format!("required environment variable {name} is missing"))
+}
+
+fn issue_identity(options: &[String]) -> Result<(), String> {
+    let role = flag_value(options, "--role")
+        .ok_or_else(|| "issue-identity requires --role".to_string())?;
+    let pki_role = flag_value(options, "--pki-role")
+        .ok_or_else(|| "issue-identity requires --pki-role".to_string())?;
+    let uri_san = flag_value(options, "--uri-san")
+        .ok_or_else(|| "issue-identity requires --uri-san".to_string())?;
+    let request_url = required_env("ACTIONS_ID_TOKEN_REQUEST_URL")?;
+    let request_token = required_env("ACTIONS_ID_TOKEN_REQUEST_TOKEN")?;
+    let bao_addr = required_env(app::OPENBAO_ADDR_ENV)?;
+    let bao_ca = required_env(app::OPENBAO_CA_ENV)?;
+    let client_pem = PathBuf::from(required_env(app::CLIENT_CERT_ENV)?);
+    let ca_pem = PathBuf::from(required_env(app::TLS_CA_CERTS_ENV)?);
+    if !bao_addr.starts_with("https://") || !uri_san.starts_with("spiffe://oyatie.dev/ci/") {
+        return Err(
+            "identity issuance requires HTTPS OpenBao and an Oyatie CI SPIFFE URI".to_string(),
+        );
+    }
+
+    let ca = reqwest::Certificate::from_pem(
+        &fs::read(&bao_ca).map_err(|error| format!("read {bao_ca}: {error}"))?,
+    )
+    .map_err(|error| format!("parse OpenBao public CA: {error}"))?;
+    let client = Client::builder()
+        .add_root_certificate(ca)
+        .build()
+        .map_err(|error| format!("build HTTPS client: {error}"))?;
+    let oidc_url = format!(
+        "{request_url}{}audience=oya-openbao",
+        if request_url.contains('?') { "&" } else { "?" }
+    );
+    let oidc: Value = client
+        .get(oidc_url)
+        .header(AUTHORIZATION, format!("Bearer {request_token}"))
+        .send()
+        .and_then(reqwest::blocking::Response::error_for_status)
+        .and_then(reqwest::blocking::Response::json)
+        .map_err(|error| format!("request GitHub OIDC token: {error}"))?;
+    let jwt = oidc["value"]
+        .as_str()
+        .ok_or_else(|| "GitHub OIDC response missing value".to_string())?;
+    let login: Value = client
+        .post(format!(
+            "{}/v1/auth/jwt/login",
+            bao_addr.trim_end_matches('/')
+        ))
+        .json(&serde_json::json!({"role": role, "jwt": jwt}))
+        .send()
+        .and_then(reqwest::blocking::Response::error_for_status)
+        .and_then(reqwest::blocking::Response::json)
+        .map_err(|error| format!("OpenBao JWT login: {error}"))?;
+    let token = login["auth"]["client_token"]
+        .as_str()
+        .ok_or_else(|| "OpenBao login response missing auth.client_token".to_string())?;
+    let mut token_header = HeaderValue::from_str(token)
+        .map_err(|error| format!("invalid OpenBao token header: {error}"))?;
+    token_header.set_sensitive(true);
+    let leaf: Value = client
+        .post(format!(
+            "{}/v1/pki_int/issue/{pki_role}",
+            bao_addr.trim_end_matches('/')
+        ))
+        .header("X-Vault-Token", token_header)
+        .json(&serde_json::json!({"uri_sans": uri_san, "ttl": "3h"}))
+        .send()
+        .and_then(reqwest::blocking::Response::error_for_status)
+        .and_then(reqwest::blocking::Response::json)
+        .map_err(|error| format!("OpenBao PKI issue: {error}"))?;
+    let certificate = leaf["data"]["certificate"]
+        .as_str()
+        .ok_or_else(|| "OpenBao PKI response missing certificate".to_string())?;
+    let private_key = leaf["data"]["private_key"]
+        .as_str()
+        .ok_or_else(|| "OpenBao PKI response missing private_key".to_string())?;
+    app::write_private_file(&client_pem, &format!("{certificate}\n{private_key}\n"))?;
+    app::write_private_file(
+        &ca_pem,
+        &fs::read_to_string(&bao_ca).map_err(|error| format!("read {bao_ca}: {error}"))?,
+    )?;
+    Ok(())
 }
 
 fn run(args: Vec<String>) -> Result<ExitCode, String> {
     let Some(command) = args.first().cloned() else {
         return Err(
-            "missing subcommand (resolve | run | license-state | report | assert-warm | \
-                    assert-cold | hash-outputs | canary-verdict | canary-targets)"
+            "missing subcommand (resolve | run | issue-identity | license-state | report | \
+                    assert-warm | assert-cold | hash-outputs | canary-verdict | canary-targets)"
                 .to_string(),
         );
     };
     let rest = &args[1..];
 
     match command.as_str() {
+        "issue-identity" => {
+            issue_identity(rest)?;
+            Ok(ExitCode::SUCCESS)
+        }
         "resolve" => {
             let build_class = flag_value(rest, "--build-class")
                 .ok_or_else(|| "resolve requires --build-class".to_string())?;
@@ -213,11 +313,14 @@ fn run(args: Vec<String>) -> Result<ExitCode, String> {
             let policy = app::load_policy(&root)?;
             let license = app::load_license(&root)?;
             let resolution = if has_flag(options, "--warm-probe") {
-                if !license
+                let licensed = license
                     .get("warm_reads_licensed")
                     .and_then(Value::as_bool)
-                    .unwrap_or(false)
-                {
+                    .unwrap_or(false);
+                let prelicense = has_flag(options, "--prelicense-probe")
+                    && std::env::var("GITHUB_EVENT_NAME").as_deref() == Ok("workflow_dispatch")
+                    && std::env::var("GITHUB_REF").as_deref() == Ok("refs/heads/dev");
+                if !licensed && !prelicense {
                     return Err("warm probe requires warm_reads_licensed=true".to_string());
                 }
                 app::Resolution {
@@ -228,7 +331,11 @@ fn run(args: Vec<String>) -> Result<ExitCode, String> {
                         })?
                     ),
                     mode: app::CacheMode::WarmReadOnly,
-                    reasons: vec!["licensed integrity-canary retrieval probe".to_string()],
+                    reasons: vec![if licensed {
+                        "licensed integrity-canary retrieval probe".to_string()
+                    } else {
+                        "explicit dev workflow_dispatch pre-license proof".to_string()
+                    }],
                 }
             } else {
                 let build_class = flag_value(options, "--build-class")

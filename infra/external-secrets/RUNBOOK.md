@@ -22,24 +22,45 @@ directory, then run the OpenBao steps below.
 
 ## TLS migration (8200/8201 -> 8202/8203)
 
-The live listener remains HTTP API `8200` / cluster `8201` during bootstrap.
-`infra/kms/openbao.k8s.yaml` declares the parallel TLS API `8202` / cluster
-`8203` config and exact GitHub OIDC/PKI roles without activating them early.
+The base `infra/kms/openbao.k8s.yaml` exposes only live plaintext `8200/8201`.
+Run these stages in order; never put a CA private key, JWT, OpenBao token, server
+private key, or issued leaf in git or captured output.
 
-1. Install the offline root's **public certificate only** as ConfigMap
-   `external-secrets/openbao-offline-root-ca` key `ca.crt`, and install the
-   separately protected server TLS Secret in `oya-kms`. Never put the CA private
-   key, JWT, OpenBao token, or issued leaf in git or captured output.
-2. Apply the dual-listener config, then verify both legacy and TLS health.
-3. Verify all three `*-tls-migration` ClusterSecretStores are Ready, restart ESO,
-   and prove they remain Ready and can refresh their existing prefixes.
-4. In a later reviewed change, point the three canonical stores at HTTPS 8202.
-   Only after consumer readback may HTTP 8200/8201 be removed; TLS 8202/8203 is
-   the permanent pair.
+1. **Preflight.** Confirm the base Deployment is Available and its Service has
+   only `8200/8201`. Apply `infra/kms/openbao-public-ca.k8s.yaml` once, then have
+   the trusted bootstrap replace both empty `ca.crt` placeholders with the
+   offline root's **public certificate only**. Bootstrap Secret
+   `oya-kms/openbao-server-tls` with keys `tls.crt` and `tls.key`. Confirm the
+   populated ConfigMap `openbao-offline-root-ca` exists in both
+   `external-secrets` and `arc-runners`, the certificate covers
+   `openbao.oya-kms.svc` and the Secret/ConfigMaps exist without printing data.
+2. Apply `infra/kms/openbao-ci-identity.k8s.yaml`, reconcile its JWT auth roles,
+   PKI roles, and policies through the authenticated bootstrap controller, then
+   apply `infra/kms/openbao-tls-migration.k8s.yaml`.
+3. **Wait/readback.** Wait for Deployment `oya-kms/openbao` rollout completion;
+   verify the mounted config and Secret references, Service ports `8200..8203`,
+   and successful authenticated TLS health on `8202`. Verify plaintext `8200`
+   still answers during this dual-listener phase.
+4. Only after step 3 succeeds, apply
+   `infra/external-secrets/clustersecretstore-openbao-oya-tls-migration.yaml`.
+   Wait until all three `*-tls-migration` stores report Ready, restart ESO, wait
+   for readiness again, and prove each existing consumer prefix refreshes.
+5. A later reviewed cutover may point canonical stores to `8202`; remove
+   `8200/8201` only after consumer readback.
+
+Before `warm_reads_licensed` is true, run the cache canary manually on `dev` with
+`prelicense_probe=true`. That explicit path performs the real read-only warm
+probe without changing the license; only its reviewed GREEN evidence may support
+the later license flip. Scheduled runs remain fail-closed while unlicensed.
+
+**Rollback:** delete the three `*-tls-migration` ClusterSecretStores, re-apply
+`infra/kms/openbao.k8s.yaml`, wait for the base Deployment rollout, and verify
+the three canonical stores are Ready on `8200`. Preserve the bootstrap TLS
+Secret for diagnosis/forward repair; do not print or export it.
 
 The OIDC role payloads in `openbao-ci-identity-contract` bind audience
 `oya-openbao`, immutable repository/owner IDs, private visibility,
-self-hosted runners, exact workflow refs, and exact event/ref claims. JWTs are
+self-hosted runners, exact `sub`/`workflow_ref`, and exact event/ref claims. JWTs are
 bounded to five minutes; issued client leaves are bounded to three hours.
 
 ## The auth-delegator / `disable_local_ca_jwt` invariant (read this first)
