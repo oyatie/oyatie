@@ -25,7 +25,7 @@ controllerServiceAccount:
 # Local-path does not enforce the advertised 44 Gi request, so required hostname
 # anti-affinity below permits at most one general runner per physical filesystem.
 # Rollout is fail-closed and evidence-gated: 0 -> 1 -> 2, never directly to 2.
-maxRunners: 2
+maxRunners: 1
 minRunners: 0
 listenerTemplate:
   metadata:
@@ -103,6 +103,9 @@ template:
         volumeMounts:
           - name: workspace
             mountPath: /home/runner/_work
+          - name: openbao-ca
+            mountPath: /etc/openbao/ca
+            readOnly: true
         # General-purpose candidate runners receive no database administrative
         # credential. Live PostgreSQL coverage runs in the dedicated per-job
         # sidecar cell declared by runner-scale-set-live-postgres-arm64-values.yaml.
@@ -129,6 +132,11 @@ template:
         # NOTE: no CPU limit, deliberately. A throttled compile presents as a
         # flaky slow test, which is worse than a noisy neighbour we can see.
     volumes:
+      # Public trust anchor only. Client keys are issued per trusted job into
+      # RUNNER_TEMP and are never projected from a Kubernetes Secret.
+      - name: openbao-ca
+        configMap:
+          name: openbao-offline-root-ca
       - name: workspace
         ephemeral:
           volumeClaimTemplate:

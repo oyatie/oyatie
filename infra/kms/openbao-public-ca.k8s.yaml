@@ -1,0 +1,17 @@
+# Apply before the trusted bootstrap writes the public certificate into ca.crt.
+# Empty placeholders contain no key material and make both consumers explicit.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: openbao-offline-root-ca
+  namespace: external-secrets
+data:
+  ca.crt: ""
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: openbao-offline-root-ca
+  namespace: arc-runners
+data:
+  ca.crt: ""

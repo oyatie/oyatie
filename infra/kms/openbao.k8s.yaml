@@ -34,68 +34,6 @@ data:
     default_lease_ttl = "768h"
     max_lease_ttl     = "8760h"
 ---
-# Staged TLS migration declaration. It is intentionally not mounted by the
-# Deployment until the offline root's PUBLIC certificate and the server TLS
-# Secret have been installed through the trusted bootstrap path. Legacy HTTP
-# 8200/8201 stays live during ESO Ready/restart proof; a later reviewed cutover
-# mounts this config and eventually removes the legacy listener.
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: openbao-tls-migration-config
-  namespace: oya-kms
-data:
-  openbao.hcl: |
-    storage "file" { path = "/openbao/data" }
-    listener "tcp" {
-      address         = "0.0.0.0:8200"
-      cluster_address = "0.0.0.0:8201"
-      tls_disable     = true
-    }
-    listener "tcp" {
-      address         = "0.0.0.0:8202"
-      cluster_address = "0.0.0.0:8203"
-      tls_cert_file   = "/openbao/tls/tls.crt"
-      tls_key_file    = "/openbao/tls/tls.key"
-      tls_min_version = "tls13"
-    }
-    api_addr     = "https://openbao.oya-kms.svc.cluster.local:8202"
-    cluster_addr = "https://openbao.oya-kms.svc.cluster.local:8203"
-    ui = true
-    log_level = "info"
-    default_lease_ttl = "768h"
-    max_lease_ttl = "8760h"
----
-# Exact GitHub OIDC -> short-lived client-PKI desired state. These are role and
-# policy payloads for the authenticated bootstrap reconciler; no token, key, CA
-# private material, or issued certificate is stored here.
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: openbao-ci-identity-contract
-  namespace: oya-kms
-data:
-  jwt-config.json: |
-    {"oidc_discovery_url":"https://token.actions.githubusercontent.com","bound_issuer":"https://token.actions.githubusercontent.com","default_role":""}
-  github-cas-writer-dev-push.json: |
-    {"role_type":"jwt","user_claim":"job_workflow_ref","bound_audiences":["oya-openbao"],"bound_claims_type":"string","bound_claims":{"job_workflow_ref":"jason931225/oyatie/.github/workflows/oya-ci-required.yml@refs/heads/dev","ref":"refs/heads/dev","event_name":"push","repository_id":"1236575706","repository_owner_id":"56489493","repository_owner_type":"User","repository_visibility":"private","runner_environment":"self-hosted"},"token_policies":["ci-cas-writer"],"token_ttl":"5m","token_max_ttl":"5m"}
-  github-cas-reader-integrity-canary.json: |
-    {"role_type":"jwt","user_claim":"job_workflow_ref","bound_audiences":["oya-openbao"],"bound_claims_type":"string","bound_claims":{"job_workflow_ref":"jason931225/oyatie/.github/workflows/cache-integrity-canary.yml@refs/heads/dev","ref":"refs/heads/dev","event_name":["schedule","workflow_dispatch"],"repository_id":"1236575706","repository_owner_id":"56489493","repository_owner_type":"User","repository_visibility":"private","runner_environment":"self-hosted"},"token_policies":["ci-cas-reader"],"token_ttl":"5m","token_max_ttl":"5m"}
-  github-re-client-integrity-canary.json: |
-    {"role_type":"jwt","user_claim":"job_workflow_ref","bound_audiences":["oya-openbao"],"bound_claims_type":"string","bound_claims":{"job_workflow_ref":"jason931225/oyatie/.github/workflows/cache-integrity-canary.yml@refs/heads/dev","ref":"refs/heads/dev","event_name":["schedule","workflow_dispatch"],"repository_id":"1236575706","repository_owner_id":"56489493","repository_owner_type":"User","repository_visibility":"private","runner_environment":"self-hosted"},"token_policies":["ci-re-client"],"token_ttl":"5m","token_max_ttl":"5m"}
-  pki-cas-writer.json: |
-    {"allowed_uri_sans":["spiffe://oyatie.dev/ci/cas-writer"],"allow_any_name":false,"server_flag":false,"client_flag":true,"key_type":"ec","key_bits":256,"ttl":"3h","max_ttl":"3h"}
-  pki-cas-reader.json: |
-    {"allowed_uri_sans":["spiffe://oyatie.dev/ci/cas-reader"],"allow_any_name":false,"server_flag":false,"client_flag":true,"key_type":"ec","key_bits":256,"ttl":"3h","max_ttl":"3h"}
-  pki-re-client.json: |
-    {"allowed_uri_sans":["spiffe://oyatie.dev/ci/re-client"],"allow_any_name":false,"server_flag":false,"client_flag":true,"key_type":"ec","key_bits":256,"ttl":"3h","max_ttl":"3h"}
-  ci-cas-writer.hcl: |
-    path "pki_int/issue/cas-writer" { capabilities = ["update"] }
-  ci-cas-reader.hcl: |
-    path "pki_int/issue/cas-reader" { capabilities = ["update"] }
-  ci-re-client.hcl: |
-    path "pki_int/issue/re-client" { capabilities = ["update"] }
----
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -173,10 +111,6 @@ spec:
   ports:
     - { name: http, port: 8200, targetPort: http }
     - { name: cluster, port: 8201, targetPort: cluster }
-    # Reserved migration endpoints; they become Ready only after the staged TLS
-    # config and bootstrap-provisioned server certificate are activated.
-    - { name: https-migration, port: 8202, targetPort: 8202 }
-    - { name: cluster-tls-migration, port: 8203, targetPort: 8203 }
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -199,17 +133,9 @@ spec:
               kubernetes.io/metadata.name: external-secrets
       ports:
         - { protocol: TCP, port: 8200 }
-        - { protocol: TCP, port: 8202 }
-    - from:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: arc-runners
-      ports:
-        - { protocol: TCP, port: 8202 }
     - from:
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: oya-kms
       ports:
         - { protocol: TCP, port: 8201 }
-        - { protocol: TCP, port: 8203 }

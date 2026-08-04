@@ -962,9 +962,75 @@ fn workflows_use_the_local_config_controller_and_keep_the_cold_canary_absent() {
         .expect("cold canary step");
     assert!(!cold.contains("run --warm-probe"));
     assert!(!cold.contains(".buckconfig.local"));
-    assert!(canary.contains(" -- run --warm-probe --mode-out /tmp/canary-cache-mode -- buck2"));
+    assert!(canary.contains(" -- run --warm-probe"));
+    assert!(canary.contains("--mode-out /tmp/canary-cache-mode -- buck2"));
     assert!(!canary.contains("--config-file infra/ci/buckconfig"));
     assert!(!canary.contains("--config \"buck2_re_client"));
+}
+
+#[test]
+fn workflows_exchange_oidc_only_for_trusted_jobs_and_never_use_static_cert_secrets() {
+    let root = repo_root();
+    let controller =
+        std::fs::read_to_string(root.join("ci/facade/build-cache-policy/src/main.rs")).unwrap();
+    for binding in [
+        "ACTIONS_ID_TOKEN_REQUEST_URL",
+        "/v1/auth/jwt/login",
+        "/v1/pki_int/issue/{pki_role}",
+        "write_private_file",
+    ] {
+        assert!(
+            controller.contains(binding),
+            "missing identity exchange binding {binding}"
+        );
+    }
+    let stop = controller.find("let stop = kill_buck2").unwrap();
+    let remove = controller
+        .find("let remove = app::remove_local_buckconfig")
+        .unwrap();
+    let combine = controller.find("match (stop, remove)").unwrap();
+    assert!(
+        stop < remove && remove < combine,
+        "cache config removal must be attempted before cleanup errors propagate"
+    );
+    let required = std::fs::read_to_string(root.join(REQUIRED_WORKFLOW_PATH)).unwrap();
+    let writer = required
+        .split("  cache-writer-identity:")
+        .nth(1)
+        .and_then(|tail| tail.split("  gate-affected-target-set:").next())
+        .expect("trusted writer identity job");
+    assert!(writer.contains("github.event_name == 'push'") && writer.contains("refs/heads/dev"));
+    assert!(writer.contains("id-token: write"));
+    assert!(writer.contains(" issue-identity \\"));
+    assert!(writer.contains("--role github-cas-writer-dev-push"));
+    assert!(writer.contains("if: always()") && writer.contains("rm -f"));
+    let fan_in = required
+        .split("  oya-ci-required:")
+        .nth(1)
+        .expect("required fan-in");
+    assert!(!fan_in.contains("needs.cache-writer-identity"));
+    assert!(!fan_in.contains("- cache-writer-identity"));
+
+    let untrusted = required
+        .split("  buck2:")
+        .nth(1)
+        .and_then(|tail| tail.split("  cache-writer-identity:").next())
+        .expect("untrusted buck2 job");
+    assert!(untrusted.contains("CACHE_BUILD_CLASS: untrusted-author-presubmit"));
+    assert!(!untrusted.contains("id-token: write"));
+    assert!(!untrusted.contains("issue-identity"));
+
+    let canary = std::fs::read_to_string(root.join(CANARY_WORKFLOW_PATH)).unwrap();
+    assert!(canary.contains("id-token: write"));
+    assert!(canary.contains("--role github-cas-reader-integrity-canary"));
+    assert!(canary.contains("prelicense_probe:"));
+    assert!(canary.contains("--prelicense-probe"));
+    assert!(canary.contains("OYA_CACHE_TLS_CLIENT_CERT=${RUNNER_TEMP}/oya-cache-reader.pem"));
+    for workflow in [&required, &canary] {
+        assert!(!workflow.contains("OYA_CACHE_WRITER_TLS_CLIENT_CERT_PATH"));
+        assert!(!workflow.contains("OYA_CACHE_READER_TLS_CLIENT_CERT_PATH"));
+        assert!(!workflow.contains("OYA_CACHE_TLS_CA_CERTS_PATH"));
+    }
 }
 
 #[test]

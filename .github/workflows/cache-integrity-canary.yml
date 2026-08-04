@@ -43,6 +43,11 @@ on:
     # trunk keys minted between runs is at most one period.
     - cron: "23 5 * * *"
   workflow_dispatch:
+    inputs:
+      prelicense_probe:
+        description: Run the explicit manual warm proof before licensing reads
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -54,6 +59,12 @@ concurrency:
 jobs:
   canary:
     name: "integrity-canary (cold, from-empty — ADR-0556 D2 / ADR-0560)"
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      OYA_OPENBAO_ADDR: https://openbao.oya-kms.svc:8202
+      OYA_OPENBAO_CA_CERT: /etc/openbao/ca/ca.crt
     # OWNED FLEET. This canary has NEVER been green — and not because the cold build fails.
     # Every scheduled run terminates with steps=0: the job never entered its body, so it failed
     # ADMISSION, not verification. Probed 30523904142 / 30433843967 / 30340384915 / 30251411018 /
@@ -73,6 +84,10 @@ jobs:
     # NativeLink CAS is actually reachable, which is a precondition for it ever covering RE.
     runs-on: oya-arm64
     steps:
+      - name: Bind short-lived identity paths to RUNNER_TEMP
+        run: |
+          echo "OYA_CACHE_TLS_CLIENT_CERT=${RUNNER_TEMP}/oya-cache-reader.pem" >> "${GITHUB_ENV}"
+          echo "OYA_CACHE_TLS_CA_CERTS=${RUNNER_TEMP}/oya-cache-ca.pem" >> "${GITHUB_ENV}"
       # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -127,6 +142,14 @@ jobs:
         run: |
           set -euo pipefail
           buck2 run //ci/facade/build-cache-policy:oya-cloud-ci-cache-wiring-bin -- license-state >> "$GITHUB_OUTPUT"
+      - name: Exchange GitHub OIDC for short-lived CAS reader identity
+        if: steps.license.outputs.warm_licensed == 'true' || (github.event_name == 'workflow_dispatch' && inputs.prelicense_probe)
+        run: |
+          set -euo pipefail
+          buck2 run //ci/facade/build-cache-policy:oya-cloud-ci-cache-wiring-bin -- issue-identity \
+            --role github-cas-reader-integrity-canary \
+            --pki-role cas-reader \
+            --uri-san spiffe://oyatie.dev/ci/cas-reader
       # WARM PROBE — activates at CAS bring-up (license flips true after the first
       # GREEN run is reviewed in). This is the canary CONTROLLER's retrieval of the
       # warm substrate's entries (ADR-0556 D2), not a build class: it dials the
@@ -135,13 +158,12 @@ jobs:
       # never touched the cache (assert-cold proved it). The reader mTLS identity
       # arrives via secret-mounted env, never the repo.
       - name: Warm-probe fetch (read-only; skipped while unlicensed)
-        if: steps.license.outputs.warm_licensed == 'true'
-        env:
-          OYA_CACHE_TLS_CLIENT_CERT: ${{ secrets.OYA_CACHE_READER_TLS_CLIENT_CERT_PATH }}
-          OYA_CACHE_TLS_CA_CERTS: ${{ secrets.OYA_CACHE_TLS_CA_CERTS_PATH }}
+        if: steps.license.outputs.warm_licensed == 'true' || (github.event_name == 'workflow_dispatch' && inputs.prelicense_probe)
         run: |
           set -euo pipefail
-          buck2 run //ci/facade/build-cache-policy:oya-cloud-ci-cache-wiring-bin -- run --warm-probe --mode-out /tmp/canary-cache-mode -- buck2 --isolation-dir canary-warm-probe build @/tmp/canary-targets --unstable-write-invocation-record /tmp/canary-warm-record.json --show-full-output > /tmp/canary-warm-outputs.txt
+          PRELICENSE_ARG=()
+          if [ "${{ inputs.prelicense_probe || false }}" = "true" ]; then PRELICENSE_ARG=(--prelicense-probe); fi
+          buck2 run //ci/facade/build-cache-policy:oya-cloud-ci-cache-wiring-bin -- run --warm-probe "${PRELICENSE_ARG[@]}" --mode-out /tmp/canary-cache-mode -- buck2 --isolation-dir canary-warm-probe build @/tmp/canary-targets --unstable-write-invocation-record /tmp/canary-warm-record.json --show-full-output > /tmp/canary-warm-outputs.txt
           buck2 run //ci/facade/build-cache-policy:oya-cloud-ci-cache-wiring-bin -- hash-outputs --show-output /tmp/canary-warm-outputs.txt --out /tmp/canary-warm-manifest.json
       - name: Canary verdict (byte-equality; RED fails the job)
         run: |
@@ -156,6 +178,9 @@ jobs:
         run: |
           set -euo pipefail
           buck2 run //ci/facade/build-cache-policy:oya-cloud-ci-cache-wiring-bin -- report --record /tmp/canary-cold-record.json --build-class integrity-canary --mode bypass --out /tmp/canary-cache-hit-report.json
+      - name: Remove short-lived cache identity
+        if: always()
+        run: rm -f "${OYA_CACHE_TLS_CLIENT_CERT}" "${OYA_CACHE_TLS_CA_CERTS}"
       - name: Upload canary artifacts (verdict + manifests + telemetry)
         if: always()
         # actions/upload-artifact@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
