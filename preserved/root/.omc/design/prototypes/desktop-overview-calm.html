@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>oyatie Cloud Console — Overview</title>
+<style>
+  /* ============================================================
+     CALM PRO — token system
+     One accent (indigo/violet), warm-neutral gray ramp.
+     No raw hex used in rules below; everything references a token.
+     ============================================================ */
+  :root {
+    /* warm-neutral gray ramp (slightly warm: a touch of red/yellow) */
+    --gray-0:  #ffffff;
+    --gray-25: #fcfbfa;
+    --gray-50: #f7f6f4;
+    --gray-75: #f1efec;
+    --gray-100:#e9e6e2;
+    --gray-150:#ddd9d3;
+    --gray-200:#cfcac3;
+    --gray-300:#b4aea6;
+    --gray-400:#938d84;
+    --gray-500:#736e66;
+    --gray-600:#57534c;
+    --gray-700:#403d37;
+    --gray-800:#2b2925;
+    --gray-900:#1b1a17;
+
+    /* one accent — refined indigo/violet */
+    --accent-50:  #f1f0fe;
+    --accent-100: #e3e1fd;
+    --accent-200: #c7c3fb;
+    --accent-300: #a39cf6;
+    --accent-400: #8278ef;
+    --accent-500: #6457e3;
+    --accent-600: #5546cf;
+    --accent-700: #4538ac;
+    --accent-800: #382e87;
+    --accent-on:  #ffffff;
+
+    /* status — reserved for state only */
+    --success-fg:#1f7a4d; --success-bg:#e7f4ec; --success-bd:#bfe3cd; --success-dot:#22965c;
+    --warn-fg:   #97600a; --warn-bg:   #fcf2e0; --warn-bd:   #f0dcae; --warn-dot:   #cf8b14;
+    --error-fg:  #b03038; --error-bg:  #fcecec; --error-bd:  #f3c9cb; --error-dot:  #d24149;
+    --info-fg:   #2a5fb8; --info-bg:   #e9f0fc; --info-bd:   #c7d8f3; --info-dot:   #3c75d4;
+    --neutral-fg:var(--gray-600); --neutral-bg:var(--gray-75); --neutral-bd:var(--gray-150); --neutral-dot:var(--gray-400);
+    --pending-fg:#6b4ec4; --pending-bg:#efeafb; --pending-bd:#dccdf3; --pending-dot:#8466d6;
+
+    /* semantic surfaces */
+    --bg-app:      var(--gray-50);
+    --bg-surface:  var(--gray-0);
+    --bg-raised:   var(--gray-0);
+    --bg-sunken:   var(--gray-25);
+    --bg-rail:     var(--gray-25);
+    --bg-bar:      var(--gray-0);
+
+    --text-strong: var(--gray-900);
+    --text:        var(--gray-800);
+    --text-muted:  var(--gray-500);
+    --text-faint:  var(--gray-400);
+
+    --line:        var(--gray-100);
+    --line-strong: var(--gray-150);
+
+    --focus: var(--accent-400);
+
+    /* the single shadow budget — spent only on the Cmd-K overlay + popovers */
+    --shadow-overlay: 0 24px 64px -16px rgba(27,26,23,0.30), 0 8px 24px -12px rgba(27,26,23,0.18);
+    --shadow-pop: 0 8px 24px -10px rgba(27,26,23,0.22);
+
+    /* spacing scale (4px) */
+    --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:20px; --s6:24px; --s7:32px; --s8:40px; --s9:48px;
+    --r: 6px;
+    --r-lg: 10px;
+
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, "Helvetica Neue", sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin:0; padding:0; height:100%; }
+  body {
+    background: var(--bg-app);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: 13px;
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  .num { font-variant-numeric: tabular-nums; }
+  .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+  a { color: inherit; text-decoration: none; }
+
+  /* focus ring — visible on every interactive */
+  a:focus-visible, button:focus-visible, input:focus-visible, [tabindex]:focus-visible, .row-clickable:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+    border-radius: var(--r);
+  }
+
+  button { font-family: inherit; cursor: pointer; }
+
+  /* ================= APP GRID (inverted-L, flush to edges) ============ */
+  .app {
+    display: grid;
+    grid-template-columns: 248px 1fr;
+    grid-template-rows: 56px 1fr;
+    grid-template-areas:
+      "bar bar"
+      "rail main";
+    height: 100vh;
+  }
+
+  /* ===================== TOP COMMAND BAR ============================== */
+  .bar {
+    grid-area: bar;
+    position: sticky; top: 0; z-index: 30;
+    display: grid;
+    grid-template-columns: 248px 1fr auto;
+    align-items: center;
+    background: var(--bg-bar);
+    border-bottom: 1px solid var(--line-strong);
+  }
+  .bar-left {
+    display: flex; align-items: center; gap: var(--s3);
+    padding: 0 var(--s4);
+    height: 100%;
+    border-right: 1px solid var(--line);
+  }
+  .brand { display:flex; align-items:center; gap: var(--s2); }
+  .brand-mark {
+    width: 26px; height: 26px; border-radius: 7px;
+    background: linear-gradient(150deg, var(--accent-400), var(--accent-600));
+    display:flex; align-items:center; justify-content:center;
+    color: var(--accent-on); font-weight: 700; font-size: 14px;
+    flex: 0 0 auto;
+  }
+  .brand-name { font-weight: 650; letter-spacing: -0.01em; color: var(--text-strong); font-size: 14px; }
+
+  .bar-center {
+    display:flex; align-items:center; gap: var(--s4);
+    padding: 0 var(--s5);
+    min-width: 0;
+  }
+  .breadcrumb {
+    display:flex; align-items:center; gap: var(--s2);
+    color: var(--text-muted);
+    font-size: 12.5px;
+    white-space: nowrap;
+    min-width: 0;
+  }
+  .breadcrumb .crumb { padding: 3px 6px; border-radius: var(--r); }
+  .breadcrumb .crumb:hover { background: var(--gray-75); color: var(--text); }
+  .breadcrumb .crumb.lead { color: var(--text); font-weight: 550; }
+  .breadcrumb .sep { color: var(--text-faint); }
+  .breadcrumb .chev { margin-left: 1px; color: var(--text-faint); }
+
+  .cmdk-trigger {
+    margin-left: auto; margin-right: auto;
+    display:flex; align-items:center; gap: var(--s3);
+    width: min(440px, 38vw);
+    height: 34px;
+    padding: 0 var(--s2) 0 var(--s3);
+    background: var(--bg-sunken);
+    border: 1px solid var(--line-strong);
+    border-radius: 8px;
+    color: var(--text-muted);
+    font-size: 12.5px;
+    transition: border-color 120ms ease, background 120ms ease;
+  }
+  .cmdk-trigger:hover { border-color: var(--gray-200); background: var(--gray-0); }
+  .cmdk-trigger .ph { flex:1; text-align:left; }
+  .kbd {
+    font-family: var(--font-mono); font-size: 11px;
+    display:inline-flex; align-items:center; gap:2px;
+    padding: 2px 6px; border-radius: 5px;
+    background: var(--gray-0);
+    border: 1px solid var(--line-strong);
+    border-bottom-width: 2px;
+    color: var(--text-muted);
+    line-height: 1;
+  }
+
+  .bar-right {
+    display:flex; align-items:center; gap: var(--s2);
+    padding: 0 var(--s4);
+    height: 100%;
+    border-left: 1px solid var(--line);
+  }
+  .tenant-chip {
+    display:flex; align-items:center; gap: var(--s2);
+    height: 34px; padding: 0 var(--s3);
+    background: var(--accent-50);
+    border: 1px solid var(--accent-200);
+    border-radius: 8px;
+    color: var(--accent-700);
+    font-size: 12.5px; font-weight: 550;
+    white-space: nowrap;
+  }
+  .tenant-chip .t-dot {
+    width: 7px; height:7px; border-radius: 50%;
+    background: var(--accent-500);
+    flex:0 0 auto;
+  }
+  .tenant-chip .t-env {
+    font-family: var(--font-mono); font-size: 11px;
+    color: var(--accent-600);
+    background: var(--accent-100);
+    padding: 1px 6px; border-radius: 4px;
+  }
+  .icon-btn {
+    position: relative;
+    width: 34px; height: 34px;
+    display:flex; align-items:center; justify-content:center;
+    background: transparent; border: 1px solid transparent;
+    border-radius: 8px;
+    color: var(--text-muted);
+  }
+  .icon-btn:hover { background: var(--gray-75); color: var(--text); }
+  .badge {
+    position:absolute; top:-3px; right:-3px;
+    min-width: 16px; height: 16px; padding: 0 4px;
+    border-radius: 999px;
+    background: var(--error-dot); color: var(--gray-0);
+    font-size: 10px; font-weight: 700; line-height: 16px;
+    text-align:center;
+    border: 1.5px solid var(--bg-bar);
+    font-variant-numeric: tabular-nums;
+  }
+  .avatar {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: linear-gradient(150deg, var(--accent-300), var(--accent-600));
+    color: var(--accent-on); font-weight: 650; font-size: 12px;
+    display:flex; align-items:center; justify-content:center;
+    margin-left: var(--s1);
+    border: 1px solid var(--accent-200);
+  }
+
+  /* ========================= LEFT RAIL =============================== */
+  .rail {
+    grid-area: rail;
+    background: var(--bg-rail);
+    border-right: 1px solid var(--line-strong);
+    display:flex; flex-direction: column;
+    min-height: 0;
+  }
+  .rail-scroll { flex:1; overflow-y:auto; padding: var(--s4) var(--s3) var(--s3); }
+  .nav-group { margin-bottom: var(--s5); }
+  .nav-group-label {
+    font-size: 10.5px; font-weight: 650; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--text-faint);
+    padding: 0 var(--s3); margin-bottom: var(--s2);
+  }
+  .nav-item {
+    display:flex; align-items:center; gap: var(--s3);
+    height: 32px; padding: 0 var(--s3);
+    border-radius: var(--r);
+    color: var(--text); font-size: 13px;
+    margin-bottom: 1px;
+  }
+  .nav-item .ico { color: var(--text-faint); flex:0 0 auto; display:flex; }
+  .nav-item:hover { background: var(--gray-75); }
+  .nav-item:hover .ico { color: var(--text-muted); }
+  .nav-item.active {
+    background: var(--accent-50);
+    color: var(--accent-700);
+    font-weight: 600;
+    box-shadow: inset 2px 0 0 var(--accent-500);
+  }
+  .nav-item.active .ico { color: var(--accent-600); }
+  .nav-item .count {
+    margin-left:auto; font-size: 11px; color: var(--text-faint);
+    font-variant-numeric: tabular-nums;
+  }
+  .rail-link {
+    display:flex; align-items:center; gap: var(--s2);
+    padding: var(--s2) var(--s3); color: var(--accent-700);
+    font-size: 12.5px; font-weight: 550;
+  }
+  .rail-link:hover { text-decoration: underline; }
+
+  .rail-foot {
+    border-top: 1px solid var(--line);
+    padding: var(--s3);
+    background: var(--gray-50);
+  }
+  .ws-switch {
+    display:flex; align-items:center; gap: var(--s3);
+    width: 100%;
+    padding: var(--s2) var(--s3);
+    background: var(--bg-surface);
+    border: 1px solid var(--line-strong);
+    border-radius: 8px;
+    text-align:left;
+  }
+  .ws-switch:hover { border-color: var(--gray-200); }
+  .ws-ava {
+    width: 28px; height:28px; border-radius: 7px; flex:0 0 auto;
+    background: linear-gradient(150deg, var(--gray-300), var(--gray-500));
+    color: var(--gray-0); font-weight: 650; font-size: 12px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .ws-meta { min-width:0; flex:1; }
+  .ws-name { font-size: 12.5px; font-weight: 600; color: var(--text-strong); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .ws-sub { font-size: 11px; color: var(--text-muted); }
+
+  /* =========================== MAIN ================================= */
+  .main { grid-area: main; overflow-y: auto; min-height: 0; }
+  .main-inner { max-width: 1240px; margin: 0 auto; padding: var(--s7) var(--s8) var(--s9); }
+
+  /* page header */
+  .page-head {
+    display:flex; align-items:flex-start; gap: var(--s4);
+    margin-bottom: var(--s7);
+  }
+  .page-head .ph-left { flex:1; min-width:0; }
+  .page-title {
+    font-size: 24px; font-weight: 680; letter-spacing: -0.02em;
+    color: var(--text-strong); margin: 0 0 var(--s2);
+  }
+  .scope-chip {
+    display:inline-flex; align-items:center; gap: var(--s2);
+    height: 24px; padding: 0 var(--s3);
+    background: var(--bg-surface);
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    font-size: 12px; color: var(--text-muted);
+  }
+  .scope-chip .mono { font-size: 11px; color: var(--text); }
+  .page-actions { display:flex; gap: var(--s3); flex:0 0 auto; }
+  .btn {
+    display:inline-flex; align-items:center; gap: var(--s2);
+    height: 36px; padding: 0 var(--s4);
+    border-radius: 8px; font-size: 13px; font-weight: 600;
+    border: 1px solid var(--line-strong);
+    background: var(--bg-surface); color: var(--text);
+    transition: background 120ms ease, border-color 120ms ease;
+  }
+  .btn:hover { background: var(--gray-50); border-color: var(--gray-200); }
+  .btn-primary {
+    background: var(--accent-600); border-color: var(--accent-700);
+    color: var(--accent-on);
+  }
+  .btn-primary:hover { background: var(--accent-700); }
+
+  /* section scaffolding */
+  .section { margin-bottom: var(--s7); }
+  .section-head {
+    display:flex; align-items:baseline; justify-content:space-between;
+    margin-bottom: var(--s4);
+  }
+  .section-title {
+    font-size: 13px; font-weight: 650; color: var(--text-strong);
+    letter-spacing: -0.005em;
+  }
+  .section-sub { font-size: 12px; color: var(--text-muted); }
+  .pivot {
+    font-size: 12.5px; font-weight: 600; color: var(--accent-700);
+    display:inline-flex; align-items:center; gap: 4px;
+  }
+  .pivot:hover { text-decoration: underline; }
+
+  /* card primitive — depth from rule + surface step, no shadow */
+  .card {
+    background: var(--bg-surface);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-lg);
+  }
+
+  /* KPI strip */
+  .kpi-grid { display:grid; grid-template-columns: repeat(4, 1fr); gap: var(--s4); }
+  .kpi { padding: var(--s5); display:flex; flex-direction:column; gap: var(--s3); }
+  .kpi-label { font-size: 12px; color: var(--text-muted); font-weight: 550; }
+  .kpi-value {
+    font-size: 28px; font-weight: 680; letter-spacing: -0.02em;
+    color: var(--text-strong); line-height: 1;
+  }
+  .kpi-value .unit { font-size: 14px; font-weight: 600; color: var(--text-muted); margin-left: 3px; }
+  .kpi-foot { display:flex; align-items:center; justify-content:space-between; gap: var(--s3); margin-top: 2px; }
+  .delta { display:inline-flex; align-items:center; gap: 4px; font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums;}
+  .delta.up { color: var(--success-fg); }
+  .delta.down { color: var(--error-fg); }
+  .delta.flat { color: var(--text-muted); }
+  .delta .vs { color: var(--text-faint); font-weight: 500; }
+
+  /* SLO row */
+  .slo-grid { display:grid; grid-template-columns: repeat(3, 1fr); gap: var(--s4); }
+  .slo { padding: var(--s5); display:flex; flex-direction:column; gap: var(--s3); }
+  .slo-top { display:flex; align-items:flex-start; justify-content:space-between; gap: var(--s3); }
+  .slo-name { font-size: 12.5px; font-weight: 600; color: var(--text-strong); }
+  .slo-value { font-size: 24px; font-weight: 680; letter-spacing:-0.02em; color: var(--text-strong); line-height:1; }
+  .slo-meta-row { display:flex; gap: var(--s5); font-size: 12px; }
+  .slo-meta .k { color: var(--text-faint); }
+  .slo-meta .v { color: var(--text); font-variant-numeric: tabular-nums; font-weight:600; }
+  .slo-desc { font-size: 12px; color: var(--text-muted); }
+  .slo-foot { display:flex; align-items:center; justify-content:space-between; border-top:1px solid var(--line); padding-top: var(--s3); margin-top: auto;}
+
+  /* two-column composite */
+  .two-col { display:grid; grid-template-columns: 1.15fr 1fr; gap: var(--s4); }
+
+  /* topology */
+  .topo-body { padding: var(--s5); }
+  .topo-caption { display:flex; align-items:center; gap: var(--s4); margin-top: var(--s4); font-size: 12px; color: var(--text-muted); }
+  .legend { display:flex; align-items:center; gap: var(--s4); flex-wrap: wrap; }
+  .legend span { display:inline-flex; align-items:center; gap: 6px; }
+  .legend .lg-dot { width: 9px; height:9px; }
+  .lg-ok { color: var(--success-fg); }
+  .lg-warn { color: var(--warn-fg); }
+  .lg-err { color: var(--error-fg); }
+
+  /* deploy / ops */
+  .ops-body { padding: var(--s5); display:flex; flex-direction:column; gap: var(--s5); }
+  .deploy-head { display:flex; align-items:center; gap: var(--s3); justify-content:space-between; }
+  .deploy-title { display:flex; align-items:center; gap: var(--s2); font-weight:600; color: var(--text-strong); }
+  .deploy-title .mono { font-size: 12.5px; }
+  .eta { font-size: 12px; color: var(--text-muted); }
+  .eta .mono { color: var(--text); }
+  .steps { display:flex; align-items:center; gap: 0; margin-top: var(--s2); }
+  .step { display:flex; align-items:center; gap: var(--s2); }
+  .step-node {
+    width: 22px; height:22px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center; flex:0 0 auto;
+    border: 1.5px solid var(--line-strong); background: var(--bg-surface);
+    color: var(--text-faint);
+  }
+  .step.done .step-node { background: var(--success-bg); border-color: var(--success-bd); color: var(--success-fg); }
+  .step.active .step-node { background: var(--pending-bg); border-color: var(--pending-bd); color: var(--pending-fg); }
+  .step-label { font-size: 12px; color: var(--text-muted); white-space:nowrap; }
+  .step.done .step-label { color: var(--text); }
+  .step.active .step-label { color: var(--pending-fg); font-weight:600; }
+  .step-bar { width: 28px; height: 2px; background: var(--line-strong); margin: 0 var(--s2); flex:0 0 auto; border-radius:1px;}
+  .step-bar.filled { background: var(--success-dot); }
+
+  .divider { height:1px; background: var(--line); }
+
+  .agent-row { display:flex; align-items:center; gap: var(--s3); justify-content:space-between; }
+  .agent-id { display:flex; align-items:center; gap: var(--s2); }
+  .agent-id .mono { font-size: 12.5px; color: var(--text-strong); }
+  .mini-timeline { display:flex; align-items:center; gap: 4px; }
+  .tl-seg { width: 26px; height: 5px; border-radius: 3px; background: var(--line-strong); }
+  .tl-seg.done { background: var(--accent-500); }
+  .tl-seg.active { background: var(--accent-300); }
+
+  /* activity table */
+  .tbl-wrap { overflow:hidden; }
+  table.activity { width:100%; border-collapse: collapse; font-size: 12.5px; }
+  table.activity thead th {
+    text-align:left; font-size: 10.5px; font-weight: 650; letter-spacing: 0.05em;
+    text-transform: uppercase; color: var(--text-faint);
+    padding: var(--s3) var(--s4);
+    border-bottom: 1px solid var(--line-strong);
+    background: var(--bg-sunken);
+    white-space:nowrap;
+  }
+  table.activity thead th.sortable { cursor: pointer; }
+  table.activity thead th.sortable:hover { color: var(--text-muted); }
+  table.activity thead th .sort-ind { color: var(--text-faint); margin-left:3px; }
+  table.activity thead th.num, table.activity tbody td.num { text-align:right; }
+  table.activity tbody td {
+    padding: var(--s3) var(--s4);
+    border-bottom: 1px solid var(--line);
+    color: var(--text);
+    vertical-align: middle;
+  }
+  table.activity tbody tr:last-child td { border-bottom: none; }
+  table.activity tbody tr:hover { background: var(--bg-sunken); }
+  .actor { display:flex; align-items:center; gap: var(--s2); }
+  .actor .a-ava {
+    width: 22px; height:22px; border-radius:50%; flex:0 0 auto;
+    display:flex; align-items:center; justify-content:center;
+    font-size: 10px; font-weight:650; color: var(--gray-0);
+  }
+  .actor.svc .a-ava { background: var(--gray-500); border-radius: 5px; }
+  .actor .a-name { font-weight: 550; color: var(--text-strong); }
+  .actor .a-sub { font-size: 11px; color: var(--text-faint); }
+  td .mono { font-size: 12px; color: var(--text-muted); }
+  .t-time { color: var(--text-muted); font-variant-numeric: tabular-nums; }
+
+  /* status chip — dot/icon + text + color */
+  .chip {
+    display:inline-flex; align-items:center; gap: 6px;
+    height: 22px; padding: 0 8px 0 7px;
+    border-radius: 999px; font-size: 11.5px; font-weight: 600;
+    border: 1px solid;
+  }
+  .chip .cdot { width: 7px; height:7px; border-radius:50%; flex:0 0 auto; }
+  .chip svg { flex:0 0 auto; }
+  .chip.success { color: var(--success-fg); background: var(--success-bg); border-color: var(--success-bd); }
+  .chip.success .cdot { background: var(--success-dot); }
+  .chip.warn { color: var(--warn-fg); background: var(--warn-bg); border-color: var(--warn-bd); }
+  .chip.warn .cdot { background: var(--warn-dot); }
+  .chip.error { color: var(--error-fg); background: var(--error-bg); border-color: var(--error-bd); }
+  .chip.error .cdot { background: var(--error-dot); }
+  .chip.pending { color: var(--pending-fg); background: var(--pending-bg); border-color: var(--pending-bd); }
+  .chip.pending .cdot { background: var(--pending-dot); }
+  .chip.info { color: var(--info-fg); background: var(--info-bg); border-color: var(--info-bd); }
+  .chip.info .cdot { background: var(--info-dot); }
+  .chip.neutral { color: var(--neutral-fg); background: var(--neutral-bg); border-color: var(--neutral-bd); }
+  .chip.neutral .cdot { background: var(--neutral-dot); }
+
+  /* ===================== CMD-K OVERLAY ============================== */
+  .scrim {
+    position: fixed; inset: 0; z-index: 100;
+    background: rgba(27,26,23,0.34);
+    display:flex; align-items:flex-start; justify-content:center;
+    padding-top: 12vh;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .scrim { animation: fade 140ms ease both; }
+    .palette { animation: pop 160ms cubic-bezier(.2,.7,.3,1) both; }
+    @keyframes fade { from { opacity:0; } to { opacity:1; } }
+    @keyframes pop { from { opacity:0; transform: translateY(-8px) scale(.985); } to { opacity:1; transform:none; } }
+  }
+  .palette {
+    width: min(640px, 92vw);
+    background: var(--bg-raised);
+    border: 1px solid var(--line-strong);
+    border-radius: 14px;
+    box-shadow: var(--shadow-overlay);
+    overflow: hidden;
+  }
+  .pal-input-row {
+    display:flex; align-items:center; gap: var(--s3);
+    padding: var(--s4) var(--s5);
+    border-bottom: 1px solid var(--line);
+  }
+  .pal-input-row .search-ico { color: var(--text-faint); flex:0 0 auto; }
+  .pal-input {
+    flex:1; border:none; outline:none; background:transparent;
+    font-size: 16px; color: var(--text-strong);
+    font-family: inherit;
+  }
+  .pal-input::placeholder { color: var(--text-faint); }
+  .pal-caret { width:1.5px; height:18px; background: var(--accent-500); display:inline-block; }
+  @media (prefers-reduced-motion: no-preference) {
+    .pal-caret { animation: blink 1s step-end infinite; }
+    @keyframes blink { 50% { opacity:0; } }
+  }
+  .pal-esc { font-size:11px; }
+
+  .pal-body { max-height: 52vh; overflow-y:auto; padding: var(--s2) 0 var(--s2); }
+  .pal-group-label {
+    font-size: 10.5px; font-weight: 650; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--text-faint);
+    padding: var(--s3) var(--s5) var(--s1);
+  }
+  .pal-item {
+    display:flex; align-items:center; gap: var(--s3);
+    padding: var(--s2) var(--s5);
+    margin: 0 var(--s2);
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .pal-item:hover { background: var(--gray-50); }
+  .pal-item .pi-ico {
+    width: 30px; height:30px; border-radius: 7px; flex:0 0 auto;
+    display:flex; align-items:center; justify-content:center;
+    background: var(--gray-75); color: var(--text-muted);
+    border: 1px solid var(--line);
+  }
+  .pal-item .pi-main { flex:1; min-width:0; }
+  .pal-item .pi-title { font-size: 13.5px; color: var(--text-strong); font-weight: 550; display:flex; align-items:center; gap:6px;}
+  .pal-item .pi-title .crumbtxt { color: var(--text-muted); font-weight:500; }
+  .pal-item .pi-sub { font-size: 11.5px; color: var(--text-faint); }
+  .pal-item .pi-kbd { display:flex; align-items:center; gap: 4px; flex:0 0 auto; }
+  .pal-tag {
+    font-size: 10px; font-weight: 650; letter-spacing:0.04em; text-transform:uppercase;
+    padding: 2px 6px; border-radius: 4px;
+  }
+  .pal-tag.nav { color: var(--info-fg); background: var(--info-bg); }
+  .pal-tag.action { color: var(--accent-700); background: var(--accent-50); }
+  .pal-item.active {
+    background: var(--accent-50);
+    box-shadow: inset 0 0 0 1px var(--accent-200);
+  }
+  .pal-item.active .pi-ico { background: var(--accent-100); color: var(--accent-700); border-color: var(--accent-200); }
+  .pal-item.active .pi-title { color: var(--accent-800); }
+
+  .pal-foot {
+    display:flex; align-items:center; gap: var(--s4);
+    padding: var(--s3) var(--s5);
+    border-top: 1px solid var(--line);
+    background: var(--bg-sunken);
+    font-size: 11.5px; color: var(--text-muted);
+  }
+  .pal-foot .ft { display:flex; align-items:center; gap: 6px; }
+  .pal-foot .spacer { flex:1; }
+
+  /* sparkline helpers */
+  svg.spark { display:block; }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ===================== TOP COMMAND BAR ===================== -->
+  <header class="bar">
+    <div class="bar-left">
+      <a class="brand" href="#" aria-label="oyatie home">
+        <span class="brand-mark" aria-hidden="true">o</span>
+        <span class="brand-name">oyatie</span>
+      </a>
+    </div>
+
+    <div class="bar-center">
+      <nav class="breadcrumb" aria-label="Scope">
+        <a class="crumb lead" href="#">Northwind Robotics</a>
+        <span class="sep">›</span>
+        <a class="crumb mono" href="#">prod</a>
+        <span class="sep">›</span>
+        <a class="crumb mono" href="#">cell-eu-west</a>
+        <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </nav>
+
+      <button class="cmdk-trigger" aria-label="Search resources or run a command" aria-keyshortcuts="Meta+K">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M20 20l-3.2-3.2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <span class="ph">Search resources or run a command</span>
+        <span class="kbd">⌘K</span>
+      </button>
+    </div>
+
+    <div class="bar-right">
+      <div class="tenant-chip" title="Active tenant">
+        <span class="t-dot" aria-hidden="true"></span>
+        Northwind Robotics
+        <span class="t-env mono">prod</span>
+      </div>
+
+      <button class="icon-btn" aria-label="Notifications, 3 unread">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9a6 6 0 1112 0c0 4 1.5 5.5 2 6.2.4.5 0 1.3-.6 1.3H4.6c-.7 0-1-.8-.6-1.3.5-.7 2-2.2 2-6.2z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M9.5 19a2.5 2.5 0 005 0" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        <span class="badge num" aria-hidden="true">3</span>
+      </button>
+
+      <button class="icon-btn" aria-label="Help and resources">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7"/><path d="M9.6 9.2a2.4 2.4 0 014.4 1.3c0 1.6-2 1.9-2 3.3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg>
+      </button>
+
+      <button class="avatar" aria-label="Account: Priya Anand">PA</button>
+    </div>
+  </header>
+
+  <!-- ========================= LEFT RAIL ========================= -->
+  <aside class="rail">
+    <div class="rail-scroll">
+
+      <div class="nav-group">
+        <div class="nav-group-label">Pinned</div>
+        <a class="nav-item active" href="#" aria-current="page">
+          <span class="ico" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M4 13h7V4H4v9zM13 20h7v-9h-7v9zM13 4v5h7V4h-7zM4 20h7v-5H4v5z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></span>
+          Overview
+        </a>
+        <a class="nav-item" href="#">
+          <span class="ico" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></span>
+          Deployments
+          <span class="count num">5</span>
+        </a>
+        <a class="nav-item" href="#">
+          <span class="ico" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M12 3l7 3v6c0 5-3.5 7.5-7 9-3.5-1.5-7-4-7-9V6l7-3z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></span>
+          Policies
+        </a>
+        <a class="nav-item" href="#">
+          <span class="ico" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M8 4h8l2 3v13H6V7l2-3z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M9 11h6M9 15h6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span>
+          Audit
+        </a>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-group-label">Compute &amp; K8s</div>
+        <a class="nav-item" href="#"><span class="ico" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="6" rx="1.5" stroke="currentColor" stroke-width="1.7"/><rect x="3" y="14" width="18" height="6" rx="1.5" stroke="currentColor" stroke-width="1.7"/><circle cx="7" cy="7" r="1" fill="currentColor"/><circle cx="7" cy="17" r="1" fill="currentColor"/></svg></span>Clusters &amp; cells</a>
+        <a class="nav-item" href="#"><span class="ico" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="7" height="7" rx="1.3" stroke="currentColor" stroke-width="1.7"/><rect x="13" y="4" width="7" height="7" rx="1.3" stroke="currentColor" stroke-width="1.7"/><rect x="4" y="13" width="7" height="7" rx="1.3" stroke="currentColor" stroke-width="1.7"/><rect x="13" y="13" width="7" height="7" rx="1.3" stroke="currentColor" stroke-width="1.7"/></svg></span>Workloads</a>
+        <a class="nav-item" href="#"><span class="ico" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M5 12h4l2-5 2 10 2-5h4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Networking</a>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-group-label">Identity &amp; Policy</div>
+        <a class="nav-item" href="#"><span class="ico" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.5" stroke="currentColor" stroke-width="1.7"/><path d="M5 20a7 7 0 0114 0" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span>Identities</a>
+        <a class="nav-item" href="#"><span class="ico" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><rect x="5" y="10" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M8 10V8a4 4 0 018 0v2" stroke="currentColor" stroke-width="1.7"/></svg></span>Access &amp; PDP</a>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-group-label">Observability</div>
+        <a class="nav-item" href="#"><span class="ico" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M4 19V5M4 19h16M8 16l3-4 3 2 4-6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Metrics &amp; SLOs</a>
+        <a class="nav-item" href="#"><span class="ico" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M6 4h12v16l-3-2-3 2-3-2-3 2V4z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></span>Logs &amp; traces</a>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-group-label">Agents / Foundry</div>
+        <a class="nav-item" href="#"><span class="ico" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><rect x="5" y="7" width="14" height="11" rx="2.5" stroke="currentColor" stroke-width="1.7"/><path d="M12 4v3M9 12h.01M15 12h.01" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span>Agent runs</a>
+        <a class="nav-item" href="#"><span class="ico" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M12 3l2.2 4.6 5 .7-3.6 3.5.9 5-4.5-2.4L7.5 19l.9-5L4.8 8.3l5-.7L12 3z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></span>Foundry catalog</a>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-group-label">Data</div>
+        <a class="nav-item" href="#"><span class="ico" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><ellipse cx="12" cy="6" rx="7" ry="3" stroke="currentColor" stroke-width="1.7"/><path d="M5 6v12c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3" stroke="currentColor" stroke-width="1.7"/></svg></span>Datastores</a>
+        <a class="nav-item" href="#"><span class="ico" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M4 7h16M4 12h16M4 17h10" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span>Streams</a>
+      </div>
+
+      <a class="rail-link" href="#">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="5" cy="6" r="1.6" fill="currentColor"/><circle cx="5" cy="12" r="1.6" fill="currentColor"/><circle cx="5" cy="18" r="1.6" fill="currentColor"/><path d="M10 6h10M10 12h10M10 18h10" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        All capabilities
+      </a>
+    </div>
+
+    <div class="rail-foot">
+      <button class="ws-switch" aria-label="Switch tenant or workspace. Current: Northwind Robotics, prod">
+        <span class="ws-ava" aria-hidden="true">N</span>
+        <span class="ws-meta">
+          <span class="ws-name">Northwind Robotics</span>
+          <span class="ws-sub num">prod · 6 workspaces</span>
+        </span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="color:var(--text-faint)"><path d="M8 9l4-4 4 4M8 15l4 4 4-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </aside>
+
+  <!-- =========================== MAIN =========================== -->
+  <main class="main">
+    <div class="main-inner">
+
+      <!-- page header -->
+      <div class="page-head">
+        <div class="ph-left">
+          <h1 class="page-title">Overview</h1>
+          <span class="scope-chip">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="color:var(--accent-500)"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+            Scope <span class="mono">prod / cell-eu-west</span>
+          </span>
+        </div>
+        <div class="page-actions">
+          <button class="btn">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="5" y="7" width="14" height="11" rx="2.5" stroke="currentColor" stroke-width="1.7"/><path d="M12 4v3M9 12h.01M15 12h.01" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+            Run agent
+          </button>
+          <button class="btn btn-primary">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            New deployment
+          </button>
+        </div>
+      </div>
+
+      <!-- KPI strip -->
+      <section class="section" aria-label="Key metrics">
+        <div class="kpi-grid">
+
+          <div class="card kpi">
+            <div class="kpi-label">Healthy cells</div>
+            <div class="kpi-value num">142<span class="unit">/146</span></div>
+            <div class="kpi-foot">
+              <span class="delta up"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>+3 <span class="vs">vs 24h</span></span>
+              <svg class="spark" width="76" height="26" viewBox="0 0 76 26" aria-hidden="true">
+                <polyline points="0,18 11,17 22,19 33,14 44,15 55,11 66,9 76,7" fill="none" stroke="var(--success-dot)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="76" cy="7" r="2.2" fill="var(--success-dot)"/>
+              </svg>
+            </div>
+          </div>
+
+          <div class="card kpi">
+            <div class="kpi-label">Ingress</div>
+            <div class="kpi-value num">18.4k<span class="unit">req/s</span></div>
+            <div class="kpi-foot">
+              <span class="delta up"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>+8.1% <span class="vs">vs 1h</span></span>
+              <svg class="spark" width="76" height="26" viewBox="0 0 76 26" aria-hidden="true">
+                <polyline points="0,20 11,16 22,18 33,12 44,14 55,9 66,12 76,6" fill="none" stroke="var(--accent-500)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="76" cy="6" r="2.2" fill="var(--accent-500)"/>
+              </svg>
+            </div>
+          </div>
+
+          <div class="card kpi">
+            <div class="kpi-label">p99 latency</div>
+            <div class="kpi-value num">84<span class="unit">ms</span></div>
+            <div class="kpi-foot">
+              <span class="delta down"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>+11 ms <span class="vs">vs 1h</span></span>
+              <svg class="spark" width="76" height="26" viewBox="0 0 76 26" aria-hidden="true">
+                <polyline points="0,16 11,15 22,13 33,16 44,12 55,14 66,9 76,8" fill="none" stroke="var(--error-dot)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="76" cy="8" r="2.2" fill="var(--error-dot)"/>
+              </svg>
+            </div>
+          </div>
+
+          <div class="card kpi">
+            <div class="kpi-label">Error budget</div>
+            <div class="kpi-value num">92<span class="unit">%</span></div>
+            <div class="kpi-foot">
+              <span class="delta flat"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>−0.3 pt <span class="vs">vs 7d</span></span>
+              <svg class="spark" width="76" height="26" viewBox="0 0 76 26" aria-hidden="true">
+                <polyline points="0,8 11,8 22,9 33,9 44,10 55,10 66,11 76,11" fill="none" stroke="var(--gray-400)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="76" cy="11" r="2.2" fill="var(--gray-400)"/>
+              </svg>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- SLO / governance row -->
+      <section class="section" aria-label="Governance and SLO health">
+        <div class="section-head">
+          <span class="section-title">Governance &amp; SLO health</span>
+          <span class="section-sub num">Window: last 30 days · cell-eu-west</span>
+        </div>
+        <div class="slo-grid">
+
+          <div class="card slo">
+            <div class="slo-top">
+              <div>
+                <div class="slo-name">API availability</div>
+                <div class="slo-value num">99.95<span style="font-size:14px;color:var(--text-muted)">%</span></div>
+              </div>
+              <span class="chip success"><span class="cdot" aria-hidden="true"></span>Meeting</span>
+            </div>
+            <div class="slo-meta-row">
+              <span class="slo-meta"><span class="k">Target</span> <span class="v">99.90%</span></span>
+              <span class="slo-meta"><span class="k">Burn</span> <span class="v">0.4×</span></span>
+            </div>
+            <svg class="spark" width="100%" height="32" viewBox="0 0 240 32" preserveAspectRatio="none" aria-hidden="true">
+              <polyline points="0,14 24,12 48,16 72,11 96,13 120,9 144,12 168,8 192,10 216,7 240,8" fill="none" stroke="var(--success-dot)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <div class="slo-desc">Edge + control-plane availability across 4 regions.</div>
+            <div class="slo-foot">
+              <span class="section-sub">Healthy headroom</span>
+              <a class="pivot" href="#">View evidence <span aria-hidden="true">→</span></a>
+            </div>
+          </div>
+
+          <div class="card slo">
+            <div class="slo-top">
+              <div>
+                <div class="slo-name">Policy compliance</div>
+                <div class="slo-value num">98.2<span style="font-size:14px;color:var(--text-muted)">%</span></div>
+              </div>
+              <span class="chip warn"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 4l9 16H3L12 4z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 10v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg>Below target</span>
+            </div>
+            <div class="slo-meta-row">
+              <span class="slo-meta"><span class="k">Target</span> <span class="v">100%</span></span>
+              <span class="slo-meta"><span class="k">Drift</span> <span class="v">1.8 pt</span></span>
+            </div>
+            <svg class="spark" width="100%" height="32" viewBox="0 0 240 32" preserveAspectRatio="none" aria-hidden="true">
+              <polyline points="0,9 24,8 48,10 72,9 96,12 120,11 144,14 168,13 192,15 216,14 240,16" fill="none" stroke="var(--warn-dot)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <div class="slo-desc">12 resources drifted from Cedar baseline policy.</div>
+            <div class="slo-foot">
+              <span class="section-sub">Remediation queued</span>
+              <a class="pivot" href="#">View evidence <span aria-hidden="true">→</span></a>
+            </div>
+          </div>
+
+          <div class="card slo">
+            <div class="slo-top">
+              <div>
+                <div class="slo-name">Open audit findings</div>
+                <div class="slo-value num">3</div>
+              </div>
+              <span class="chip error"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M12 8v5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="16" r="1" fill="currentColor"/></svg>Action needed</span>
+            </div>
+            <div class="slo-meta-row">
+              <span class="slo-meta"><span class="k">Target</span> <span class="v">0</span></span>
+              <span class="slo-meta"><span class="k">Sev</span> <span class="v">1 high · 2 med</span></span>
+            </div>
+            <svg class="spark" width="100%" height="32" viewBox="0 0 240 32" preserveAspectRatio="none" aria-hidden="true">
+              <polyline points="0,20 24,18 48,19 72,14 96,16 120,12 144,13 168,10 192,12 216,9 240,10" fill="none" stroke="var(--error-dot)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <div class="slo-desc">1 IAM over-grant, 2 unencrypted-at-rest volumes.</div>
+            <div class="slo-foot">
+              <span class="section-sub">SLA: 2 within 48h</span>
+              <a class="pivot" href="#">View evidence <span aria-hidden="true">→</span></a>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- topology + ops -->
+      <section class="section two-col">
+
+        <!-- topology -->
+        <div class="card">
+          <div class="section-head" style="padding: var(--s5) var(--s5) 0; margin-bottom:0;">
+            <span class="section-title">Cell topology</span>
+            <a class="pivot" href="#">Open topology <span aria-hidden="true">→</span></a>
+          </div>
+          <div class="topo-body" style="padding-top: var(--s4);">
+            <svg width="100%" height="190" viewBox="0 0 520 190" role="img" aria-label="Cell topology map: 146 cells, 2 degraded, 1 unreachable">
+              <!-- hairline links -->
+              <g stroke="var(--line-strong)" stroke-width="1.2" fill="none">
+                <path d="M70,46 L160,46 M160,46 L250,46 M250,46 L340,46 M340,46 L430,46"/>
+                <path d="M70,95 L160,95 M160,95 L250,95 M250,95 L340,95 M340,95 L430,95"/>
+                <path d="M70,144 L160,144 M160,144 L250,144 M250,144 L340,144 M340,144 L430,144"/>
+                <path d="M70,46 L70,95 M70,95 L70,144"/>
+                <path d="M250,46 L250,95 M250,95 L250,144"/>
+                <path d="M430,46 L430,95 M430,95 L430,144"/>
+                <path d="M160,46 L250,95 M340,95 L430,144" stroke-dasharray="3 3"/>
+              </g>
+
+              <!-- nodes: healthy = rounded rect; warning = diamond; error = circle (shape + color, not color alone) -->
+              <!-- row 1 -->
+              <g>
+                <rect x="56" y="34" width="28" height="24" rx="6" fill="var(--gray-0)" stroke="var(--gray-300)" stroke-width="1.3"/>
+                <rect x="146" y="34" width="28" height="24" rx="6" fill="var(--success-bg)" stroke="var(--success-dot)" stroke-width="1.3"/>
+                <rect x="236" y="34" width="28" height="24" rx="6" fill="var(--success-bg)" stroke="var(--success-dot)" stroke-width="1.3"/>
+                <rect x="326" y="34" width="28" height="24" rx="6" fill="var(--success-bg)" stroke="var(--success-dot)" stroke-width="1.3"/>
+                <rect x="416" y="34" width="28" height="24" rx="6" fill="var(--gray-0)" stroke="var(--gray-300)" stroke-width="1.3"/>
+              </g>
+              <!-- row 2 -->
+              <g>
+                <rect x="56" y="83" width="28" height="24" rx="6" fill="var(--success-bg)" stroke="var(--success-dot)" stroke-width="1.3"/>
+                <!-- warning: diamond -->
+                <path d="M160,79 l16,16 l-16,16 l-16,-16 z" fill="var(--warn-bg)" stroke="var(--warn-dot)" stroke-width="1.4"/>
+                <path d="M160,89 v8 M160,100 v0.5" stroke="var(--warn-fg)" stroke-width="1.6" stroke-linecap="round"/>
+                <rect x="236" y="83" width="28" height="24" rx="6" fill="var(--success-bg)" stroke="var(--success-dot)" stroke-width="1.3"/>
+                <rect x="326" y="83" width="28" height="24" rx="6" fill="var(--gray-0)" stroke="var(--gray-300)" stroke-width="1.3"/>
+                <rect x="416" y="83" width="28" height="24" rx="6" fill="var(--success-bg)" stroke="var(--success-dot)" stroke-width="1.3"/>
+              </g>
+              <!-- row 3 -->
+              <g>
+                <rect x="56" y="132" width="28" height="24" rx="6" fill="var(--gray-0)" stroke="var(--gray-300)" stroke-width="1.3"/>
+                <rect x="146" y="132" width="28" height="24" rx="6" fill="var(--success-bg)" stroke="var(--success-dot)" stroke-width="1.3"/>
+                <!-- warning: diamond -->
+                <path d="M250,128 l16,16 l-16,16 l-16,-16 z" fill="var(--warn-bg)" stroke="var(--warn-dot)" stroke-width="1.4"/>
+                <path d="M250,138 v8 M250,149 v0.5" stroke="var(--warn-fg)" stroke-width="1.6" stroke-linecap="round"/>
+                <!-- error: circle with X -->
+                <circle cx="340" cy="144" r="14" fill="var(--error-bg)" stroke="var(--error-dot)" stroke-width="1.5"/>
+                <path d="M335,139 l10,10 M345,139 l-10,10" stroke="var(--error-fg)" stroke-width="1.6" stroke-linecap="round"/>
+                <rect x="416" y="132" width="28" height="24" rx="6" fill="var(--success-bg)" stroke="var(--success-dot)" stroke-width="1.3"/>
+              </g>
+            </svg>
+
+            <div class="topo-caption">
+              <span class="num" style="color:var(--text);font-weight:600;">146 cells</span>
+              <span class="legend">
+                <span class="lg-ok"><svg class="lg-dot" width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><rect x="0.5" y="0.5" width="9" height="9" rx="2.5" fill="var(--success-bg)" stroke="var(--success-dot)"/></svg> healthy</span>
+                <span class="lg-warn"><svg class="lg-dot" width="11" height="11" viewBox="0 0 12 12" aria-hidden="true"><path d="M6 1 l5 5 l-5 5 l-5 -5 z" fill="var(--warn-bg)" stroke="var(--warn-dot)"/></svg> 2 degraded</span>
+                <span class="lg-err"><svg class="lg-dot" width="10" height="10" viewBox="0 0 12 12" aria-hidden="true"><circle cx="6" cy="6" r="5" fill="var(--error-bg)" stroke="var(--error-dot)"/></svg> 1 unreachable</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- deploy / ops -->
+        <div class="card">
+          <div class="section-head" style="padding: var(--s5) var(--s5) 0; margin-bottom:0;">
+            <span class="section-title">Deployments &amp; ops</span>
+            <a class="pivot" href="#">All activity <span aria-hidden="true">→</span></a>
+          </div>
+          <div class="ops-body">
+
+            <div>
+              <div class="deploy-head">
+                <span class="deploy-title">
+                  <span class="chip info"><span class="cdot" aria-hidden="true"></span>Deploying</span>
+                  <span class="mono">payments-api → prod</span>
+                </span>
+                <span class="eta">ETA <span class="mono">~4 min</span></span>
+              </div>
+              <div class="steps" role="list" aria-label="Deployment steps">
+                <div class="step done" role="listitem">
+                  <span class="step-node" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                  <span class="step-label">Build</span>
+                </div>
+                <span class="step-bar filled" aria-hidden="true"></span>
+                <div class="step done" role="listitem">
+                  <span class="step-node" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                  <span class="step-label">Test</span>
+                </div>
+                <span class="step-bar" aria-hidden="true"></span>
+                <div class="step active" role="listitem">
+                  <span class="step-node" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 3a9 9 0 109 9" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></span>
+                  <span class="step-label">Canary · in progress</span>
+                </div>
+                <span class="step-bar" aria-hidden="true"></span>
+                <div class="step" role="listitem">
+                  <span class="step-node" aria-hidden="true"><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="7" stroke="currentColor" stroke-width="2.2"/></svg></span>
+                  <span class="step-label">Prod · pending</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="divider" aria-hidden="true"></div>
+
+            <div class="agent-row">
+              <span class="agent-id">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="color:var(--accent-600)"><rect x="5" y="7" width="14" height="11" rx="2.5" stroke="currentColor" stroke-width="1.7"/><path d="M12 4v3M9 12h.01M15 12h.01" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+                <span class="mono">agent: rotate-credentials</span>
+                <span class="chip pending"><span class="cdot" aria-hidden="true"></span>Running</span>
+              </span>
+              <span class="eta num">step 3/5</span>
+            </div>
+            <div class="mini-timeline" aria-label="Agent run timeline: step 3 of 5">
+              <span class="tl-seg done"></span>
+              <span class="tl-seg done"></span>
+              <span class="tl-seg active"></span>
+              <span class="tl-seg"></span>
+              <span class="tl-seg"></span>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- activity table -->
+      <section class="section" aria-label="Recent activity">
+        <div class="section-head">
+          <span class="section-title">Recent activity &amp; audit evidence</span>
+          <a class="pivot" href="#">Open audit log <span aria-hidden="true">→</span></a>
+        </div>
+        <div class="card tbl-wrap">
+          <table class="activity">
+            <thead>
+              <tr>
+                <th class="sortable">Actor <span class="sort-ind" aria-hidden="true">↕</span></th>
+                <th class="sortable">Action <span class="sort-ind" aria-hidden="true">↕</span></th>
+                <th class="sortable">Target <span class="sort-ind" aria-hidden="true">↕</span></th>
+                <th class="sortable num" aria-sort="descending">Time <span class="sort-ind" aria-hidden="true">↓</span></th>
+                <th class="sortable">Outcome <span class="sort-ind" aria-hidden="true">↕</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <span class="actor"><span class="a-ava" aria-hidden="true" style="background:linear-gradient(150deg,var(--accent-300),var(--accent-600))">PA</span>
+                  <span><span class="a-name">Priya Anand</span><br><span class="a-sub">platform-operator</span></span></span>
+                </td>
+                <td>Promoted canary</td>
+                <td><span class="mono">payments-api</span> <span style="color:var(--text-faint)">·</span> <span class="mono">v412</span></td>
+                <td class="num t-time">09:42:18</td>
+                <td><span class="chip success"><span class="cdot" aria-hidden="true"></span>Success</span></td>
+              </tr>
+              <tr>
+                <td>
+                  <span class="actor svc"><span class="a-ava" aria-hidden="true">AG</span>
+                  <span><span class="a-name">rotate-credentials</span><br><span class="a-sub mono">agent · run-7f3a</span></span></span>
+                </td>
+                <td>Rotated KMS key</td>
+                <td><span class="mono">kms/prod-signing</span></td>
+                <td class="num t-time">09:39:55</td>
+                <td><span class="chip pending"><span class="cdot" aria-hidden="true"></span>In progress</span></td>
+              </tr>
+              <tr>
+                <td>
+                  <span class="actor"><span class="a-ava" aria-hidden="true" style="background:linear-gradient(150deg,var(--gray-400),var(--gray-600))">LK</span>
+                  <span><span class="a-name">Liang Koh</span><br><span class="a-sub">sre</span></span></span>
+                </td>
+                <td>Scaled node pool</td>
+                <td><span class="mono">cell-eu-west / pool-b</span></td>
+                <td class="num t-time">09:31:07</td>
+                <td><span class="chip warn"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 4l9 16H3L12 4z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>Partial</span></td>
+              </tr>
+              <tr>
+                <td>
+                  <span class="actor svc"><span class="a-ava" aria-hidden="true" style="background:var(--gray-600)">CI</span>
+                  <span><span class="a-name">oya-ci</span><br><span class="a-sub mono">service · tide</span></span></span>
+                </td>
+                <td>Denied merge</td>
+                <td><span class="mono">policy-svc</span> <span style="color:var(--text-faint)">·</span> <span class="mono">#684</span></td>
+                <td class="num t-time">09:25:43</td>
+                <td><span class="chip error"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M9 9l6 6M15 9l-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Denied</span></td>
+              </tr>
+              <tr>
+                <td>
+                  <span class="actor"><span class="a-ava" aria-hidden="true" style="background:linear-gradient(150deg,var(--gray-300),var(--gray-500))">MO</span>
+                  <span><span class="a-name">Mara Olsen</span><br><span class="a-sub">security-admin</span></span></span>
+                </td>
+                <td>Updated Cedar policy</td>
+                <td><span class="mono">iam/baseline-rbac</span></td>
+                <td class="num t-time">09:18:22</td>
+                <td><span class="chip success"><span class="cdot" aria-hidden="true"></span>Success</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<!-- ===================== CMD-K COMMAND PALETTE (open) ===================== -->
+<div class="scrim" role="presentation">
+  <div class="palette" role="dialog" aria-modal="true" aria-label="Command palette">
+    <div class="pal-input-row">
+      <span class="search-ico" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M20 20l-3.2-3.2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
+      <input class="pal-input" type="text" value="rollback pay" aria-label="Search resources or run a command" autofocus />
+      <span class="pal-caret" aria-hidden="true"></span>
+      <span class="kbd pal-esc">esc</span>
+    </div>
+
+    <div class="pal-body">
+
+      <div class="pal-group-label">Recent</div>
+      <div class="pal-item">
+        <span class="pi-ico" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M12 8v5l3 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/></svg></span>
+        <span class="pi-main">
+          <span class="pi-title">Deployments <span class="crumbtxt">› payments-api</span></span>
+          <span class="pi-sub">Opened 4 min ago</span>
+        </span>
+        <span class="pal-tag nav">Nav</span>
+        <span class="pi-kbd"><span class="kbd">↵</span></span>
+      </div>
+
+      <div class="pal-group-label">Actions</div>
+
+      <div class="pal-item active" aria-selected="true">
+        <span class="pi-ico" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M9 7L4 12l5 5M4 12h11a5 5 0 010 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 12h12a4 4 0 014 4v0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <span class="pi-main">
+          <span class="pi-title">Rollback <span class="mono" style="font-size:12.5px">payments-api</span> to <span class="mono" style="font-size:12.5px">v412</span>…</span>
+          <span class="pi-sub">Revert prod / cell-eu-west to the last healthy release</span>
+        </span>
+        <span class="pal-tag action">Action</span>
+        <span class="pi-kbd"><span class="kbd">⌘</span><span class="kbd">⌫</span></span>
+      </div>
+
+      <div class="pal-item">
+        <span class="pi-ico" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M12 3l7 3v6c0 5-3.5 7.5-7 9-3.5-1.5-7-4-7-9V6l7-3z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <span class="pi-main">
+          <span class="pi-title">Preview policy change…</span>
+          <span class="pi-sub">Dry-run Cedar diff against current baseline</span>
+        </span>
+        <span class="pal-tag action">Action</span>
+        <span class="pi-kbd"><span class="kbd">⌘</span><span class="kbd">P</span></span>
+      </div>
+
+      <div class="pal-item">
+        <span class="pi-ico" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M8 9l-4 3 4 3M16 9l4 3-4 3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M13 5l-2 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+        <span class="pi-main">
+          <span class="pi-title">Switch tenant…</span>
+          <span class="pi-sub">Jump to another tenant or workspace</span>
+        </span>
+        <span class="pal-tag action">Action</span>
+        <span class="pi-kbd"><span class="kbd">⌘</span><span class="kbd">T</span></span>
+      </div>
+
+      <div class="pal-item">
+        <span class="pi-ico" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M9.6 9.2a2.4 2.4 0 014.4 1.3c0 1.6-2 1.9-2 3.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg></span>
+        <span class="pi-main">
+          <span class="pi-title">Why was deploy denied?</span>
+          <span class="pi-sub">Explain the last <span class="mono" style="font-size:12.5px">oya-ci</span> admission decision</span>
+        </span>
+        <span class="pal-tag action">Action</span>
+        <span class="pi-kbd"><span class="kbd">⌘</span><span class="kbd">?</span></span>
+      </div>
+
+      <div class="pal-group-label">Navigation</div>
+      <div class="pal-item">
+        <span class="pi-ico" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M8 4h8l2 3v13H6V7l2-3z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M9 11h6M9 15h6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span>
+        <span class="pi-main">
+          <span class="pi-title">Audit <span class="crumbtxt">› payments-api evidence</span></span>
+          <span class="pi-sub">Open signed deployment + rollback history</span>
+        </span>
+        <span class="pal-tag nav">Nav</span>
+        <span class="pi-kbd"><span class="kbd">↵</span></span>
+      </div>
+
+    </div>
+
+    <div class="pal-foot">
+      <span class="ft"><span class="kbd">↑</span><span class="kbd">↓</span> navigate</span>
+      <span class="ft"><span class="kbd">↵</span> select</span>
+      <span class="ft"><span class="kbd">⌘</span><span class="kbd">↵</span> run in new tab</span>
+      <span class="spacer"></span>
+      <span class="ft">7 results</span>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
