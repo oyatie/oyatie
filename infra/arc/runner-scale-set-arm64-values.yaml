@@ -86,6 +86,19 @@ template:
         # exists to prevent.
         image: registry.oya-registry.svc.cluster.local:5000/oya/runner:arm64-pwsh@sha256:c679cbd7cd00b6b51a18eb3124869971a92b083cceedeecf3bbd68299cf7422d
         command: ["/home/runner/run.sh"]
+        env:
+          - name: OYA_RUNNER_POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: OYA_RUNNER_POD_UID
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.uid
+          - name: OYA_RUNNER_NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
         volumeMounts:
           - name: workspace
             mountPath: /home/runner/_work

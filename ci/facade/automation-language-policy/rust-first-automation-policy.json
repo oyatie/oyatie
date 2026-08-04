@@ -343,7 +343,7 @@
         },
         {
           "key": ".github/workflows/cache-integrity-canary.yml::canary::Canary verdict (byte-equality; RED fails the job)",
-          "shell_lines": 6
+          "shell_lines": 1
         },
         {
           "key": ".github/workflows/cache-integrity-canary.yml::canary::Cold from-empty build of the pinned target set",
