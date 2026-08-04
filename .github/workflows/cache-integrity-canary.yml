@@ -72,7 +72,6 @@ jobs:
       OYA_CACHE_TLS_SERVER_CA_CERT: /etc/nativelink/ca/ca.crt
       OYA_CACHE_TLS_CLIENT_CERT: /tmp/oya-cache-client.pem
       OYA_CACHE_TLS_CA_CERTS: /tmp/oya-cache-server-ca.pem
-      OYA_CAS_BOUNDARY_PROOF_OUT: /tmp/cas-identity-boundary-proof.json
       OYA_CAS_IDENTITY_PROOF_ENABLED: ${{ vars.OYA_CAS_IDENTITY_PROOF_ENABLED }}
     # OWNED FLEET. This canary has NEVER been green — and not because the cold build fails.
     # Every scheduled run terminates with steps=0: the job never entered its body, so it failed
@@ -204,11 +203,3 @@ jobs:
           # canary runs daily, so 30 days keeps a full month of cold-vs-warm verdicts.
           retention-days: 30
           if-no-files-found: warn
-      - name: Upload typed CAS identity boundary proof
-        if: ${{ always() && (inputs.writer_seed || inputs.reader_probe) }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
-        with:
-          name: ${{ inputs.writer_seed && 'cas-identity-boundary-writer' || 'cas-identity-boundary-reader' }}
-          path: /tmp/cas-identity-boundary-proof.json
-          retention-days: 30
-          if-no-files-found: error
