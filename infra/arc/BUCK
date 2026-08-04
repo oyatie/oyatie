@@ -1,8 +1,15 @@
 load("//governance/corpus/extract:yaml_facts.bzl", "corpus_yaml_facts_shards")
 
-# Corpus graph extraction (ADR-0541). ARC controller, runner-scale-set, and runner-cell policy
-# values are deployment inputs owned by this package; fixed shards keep them in the Buck2 graph.
+# Corpus graph extraction (ADR-0541). ARC controller, runner-scale-set, runner-cell, and workspace
+# declarations are deployment inputs owned by this package; fixed shards keep them in the graph.
 corpus_yaml_facts_shards(
     srcs = glob(["**/*.yaml", "**/*.yml"]),
     shard_size = 256,
+)
+
+rust_test(
+    name = "ci-workspace-capacity-test",
+    srcs = ["tests/ci_workspace_capacity.rs"],
+    crate_root = "tests/ci_workspace_capacity.rs",
+    edition = "2021",
 )

@@ -11,9 +11,8 @@ runnerScaleSetName: oya-live-postgres-arm64
 controllerServiceAccount:
   namespace: arc-systems
   name: arc-gha-rs-controller
-# Fail closed to one disk-heavy integration job until #1504 adds verified runner
-# capacity. The current worker has already evicted a ~30 GiB gate workspace under
-# DiskPressure; this declaration must not schedule two such Pods concurrently.
+# Fail closed to one disk-heavy integration job. Together with the general
+# scale-set cap this bounds aggregate workspace claims at 2 x 44 Gi.
 maxRunners: 1
 minRunners: 0
 template:
@@ -23,6 +22,8 @@ template:
   spec:
     nodeSelector:
       kubernetes.io/arch: arm64
+      kubernetes.io/hostname: oya-talos-worker-2
+      oya.io/ci-workspace: "true"
     securityContext:
       fsGroup: 2000
       fsGroupChangePolicy: OnRootMismatch
@@ -105,20 +106,18 @@ template:
           requests:
             cpu: "2"
             memory: 4Gi
-            # #1504 measured 31,347,796 Ki in a gate workspace. Request above
-            # that observed peak so scheduling accounts for the real footprint;
-            # current DiskPressure remains a deployment blocker, not a reason to
-            # understate the request.
-            ephemeral-storage: 32Gi
+            # The build tree is on the dedicated generic-ephemeral workspace;
+            # root storage accounts only for image and writable-layer pressure.
+            ephemeral-storage: 4Gi
           limits:
             memory: 8Gi
-            # Bound growth close to the observed peak. The live cluster must
-            # gain/clear capacity before rollout rather than evict co-tenants.
-            ephemeral-storage: 34Gi
+            ephemeral-storage: 8Gi
         volumeMounts:
           - name: postgres-credentials
             mountPath: /run/oya-ci-postgres
             readOnly: true
+          - name: workspace
+            mountPath: /home/runner/_work
 
     volumes:
       - name: postgres-credentials
@@ -131,3 +130,15 @@ template:
           # Keep tmpfs data below the PostgreSQL container's 2Gi memory limit;
           # tmpfs pages count against that limit alongside the server process.
           sizeLimit: 1Gi
+      - name: workspace
+        ephemeral:
+          volumeClaimTemplate:
+            metadata:
+              labels:
+                oya.io/lifecycle: disposable-ci-workspace
+            spec:
+              accessModes: ["ReadWriteOnce"]
+              storageClassName: oya-ci-workspace
+              resources:
+                requests:
+                  storage: 44Gi

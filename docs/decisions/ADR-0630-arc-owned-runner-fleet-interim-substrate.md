@@ -105,20 +105,22 @@ cell deliberately carries neither label.
 
 ### D5 — Resource bounds derived by arithmetic, on a shared cluster
 
-`requests: cpu 2 / memory 4Gi / ephemeral-storage 22Gi`;
-`limits: memory 8Gi / ephemeral-storage 60Gi`; **no CPU limit**.
+The general scale set requests `cpu 2 / memory 4Gi / root ephemeral-storage 4Gi /
+workspace PVC 44Gi`, limits `memory 8Gi / root ephemeral-storage 8Gi`, and carries **no CPU
+limit**. It is temporarily capped at `maxRunners: 1`.
 
 - `cpu 2` tracks the MEASURED buck2 scaling knee (j=2 87.19s, j=4 67.06s, j=8 71.29s,
   j=18 98.09s) — over-parallelism degrades, so a wider request buys nothing and crowds
   co-tenants.
-- `memory 8Gi` is arithmetic, not taste: node allocatable is 28.6Gi, and the 4Gi **request**
-  lets all `maxRunners=3` land on ONE node. At a 12Gi limit they could grow to 36Gi and OOM
-  it, evicting co-tenants — `nativelink-cas` holds `local-path` PVCs on these same nodes, and
-  the console project shares the cluster. 3 × 8Gi = 24Gi leaves ~4.6Gi headroom. **A 12Gi
-  limit was briefly live and is the defect this clause exists to prevent recurring.**
-- `ephemeral-storage` is bounded because buck2 build trees are disk-heavy and FRIC-017 was
-  literally "No space left on device"; a runaway build is evicted rather than filling the node
-  for every tenant.
+- `memory 8Gi` plus concurrency one leaves more than 20Gi of the current 28.6Gi allocatable
+  worker for co-tenants.
+- The build tree is a generic ephemeral PVC mounted at `/home/runner/_work`, not a writable
+  layer on Talos `EPHEMERAL`. Each scale set's 44Gi request comes from a dedicated StorageClass
+  backed only by a 96Gi Talos user-volume filesystem on worker-2's otherwise blank `/dev/vdb`.
+  The local-path provisioner does not enforce advertised claim size, so the physical filesystem
+  and the two one-runner caps are the aggregate bounds: 2 × 44Gi leaves 8Gi headroom.
+- Root `ephemeral-storage` remains bounded at 4Gi/8Gi for image, tool installer, and writable
+  layer pressure. A runaway installer is evicted rather than filling the Talos system filesystem.
 - **No CPU limit deliberately**: a throttled compile presents as a flaky slow test, which is
   harder to diagnose than a noisy neighbour we can observe.
 
@@ -127,10 +129,9 @@ cell deliberately carries neither label.
 The fleet ships as values files under `infra/arc/` and is registered in
 `infra/gitops/values.yaml` beside `external-secrets` and `registry`, the pattern those charts
 already follow. The values are reviewed **desired state**. Live readback is separate evidence:
-the general set currently differs from the desired 22Gi ephemeral-storage request until its
-GitOps reconcile completes, and the dedicated set does not exist until the D8 bootstrap protocol
-runs after #1504 capacity is verified. Do not describe desired-versus-live differences as zero
-drift or rollout evidence.
+the general set, workspace provisioner, Talos user volume, and dedicated PostgreSQL set are not
+live merely because their declarations render. Do not describe desired-versus-live differences
+as zero drift or rollout evidence.
 
 ### D7 — Live-PostgreSQL tests use a dedicated ephemeral same-Pod cell
 
@@ -152,12 +153,12 @@ no NativeLink reader/writer labels because every live test invocation is `--loca
 an unused CAS network capability would widen its blast radius without changing execution. This is
 test-fixture isolation, not a production data-plane dependency.
 
-The dedicated set is capped at `maxRunners: 1` and requests 32Gi ephemeral storage, above the
-31,347,796Ki observed workspace that triggered a current-node DiskPressure eviction. A 34Gi limit
-bounds further growth. The cap also serializes the adapter and facade jobs even though the workflow
-keeps them as separate required lanes. This declaration is not rollout readiness: issue #1504 must
-supply and verify sufficient node capacity before the GitOps application is independently reviewed
-and deployed.
+The dedicated set is capped at `maxRunners: 1`, mounts the same 44Gi generic-ephemeral workspace
+class as the general set, and limits root ephemeral storage to 8Gi. Its cap serializes the adapter
+and facade jobs even though the workflow keeps them as separate required lanes. Combined with the
+general set's cap, at most two 44Gi claims can consume the 96Gi workspace filesystem. This
+declaration is not rollout readiness: issue #1504 must verify the exact-head cold-concurrency
+envelope before closure.
 
 ### D8 — Candidate admission uses a bounded exact-head GitOps bootstrap
 
@@ -179,7 +180,35 @@ failure, supersession, or expiry, the operator applies the paired rollback patch
 to `dev`, remove the candidate values override and bootstrap annotations, then record readback that
 the root is on `dev` and candidate-only children were pruned. After merge, restoring `dev` retains
 the children because `dev` then owns them. This is an explicitly credential-gated bootstrap, not a
-CI shell step or an assertion of live rollout. No bootstrap may begin while #1504 is open.
+CI shell step or an assertion of live rollout. Bootstrap may begin only after the repository-side
+#1504 capacity declaration is independently reviewed and pre-apply readback proves `/dev/vdb`
+remains blank; issue #1504 stays open during the bounded bootstrap so that cold-concurrency,
+cleanup, and rollback evidence can be recorded without a circular closure prerequisite.
+
+### D9 — Runner workspaces use a separate fail-closed local provisioner
+
+The existing default `local-path` StorageClass and `rancher.io/local-path` controller continue to
+own CNPG, registry, NativeLink, OpenBao, and other stateful data. CI workspaces use a
+second provisioner identity, `oyatie.io/ci-workspace-local-path`, and StorageClass
+`oya-ci-workspace`. Its node-path map names only `oya-talos-worker-2` and
+`/var/mnt/ci-workspace`; there is no default path for unlisted nodes. The runner also selects the
+worker hostname and the `oya.io/ci-workspace=true` Talos machine label, so absent machine
+configuration fails closed instead of spilling builds onto stateful storage.
+
+The repository declares alerts for DiskPressure, workspace free space, root writable-layer
+growth, eviction, lingering ephemeral PVC cleanup, and ARC startup/queue delay. The local cluster
+currently has no Prometheus Operator CRDs or observability namespace, so the `PrometheusRule` is
+deliberately not wired into Argo in this slice: a custom resource with no owning CRD would break
+reconciliation. Observability-substrate admission, live scrape/readback, and alert routing remain
+rollout evidence.
+
+Rollback first sets both scale sets to `maxRunners: 0` through GitOps and waits for their Pods and
+ephemeral PVCs to disappear. Only then may the workspace storage Application be reverted and,
+after mount readback is empty, the Talos user volume removed. Rollback never repoints the existing
+stateful StorageClass, wipes the disk, or restores the unsafe three-runner root-filesystem layout.
+Issue #1504 remains open until exact-head cold maximum-concurrency evidence measures p50/p95/p99
+and proves no DiskPressure or eviction. Worker-2 remains a mixed compute node; a dedicated disk is
+not a dedicated CI cell.
 
 ## Alternatives considered
 
@@ -230,11 +259,14 @@ have shared a namespace — previously the blocker that made warm-cache work unm
 
 ## Artifact accounting (ADR-0555)
 
-This decision is the justification anchor for `infra/arc/OWNERS`,
-`infra/arc/controller-values.yaml`, `infra/arc/runner-scale-set-arm64-values.yaml`,
+This decision is the justification anchor for `infra/arc/OWNERS`, `infra/arc/BUCK`,
+`infra/arc/README.md`, `infra/arc/controller-values.yaml`,
+`infra/arc/runner-scale-set-arm64-values.yaml`,
 `infra/arc/runner-scale-set-live-postgres-arm64-values.yaml`,
 `infra/arc/live-postgres-runner-network-policy.yaml`,
-`infra/arc/live-postgres-admission-bootstrap.json`, and the ARC registrations in
+`infra/arc/live-postgres-admission-bootstrap.json`, `infra/arc/ci-workspace-storage.yaml`,
+`infra/arc/ci-workspace-alerts.yaml`, `infra/arc/tests/ci_workspace_capacity.rs`,
+`infra/talos/local/patches/ci-workspace-worker-2.yaml`, and the ARC registrations in
 `infra/gitops/values.yaml`.
 
 It is also the justification anchor for the baked runner image this fleet runs. One path per

@@ -1,0 +1,29 @@
+# #1504 repository-side Talos declaration for the currently blank 150 GiB vdb on
+# oya-talos-worker-2. This file is NOT rollout evidence and MUST be applied only
+# after independent review and a readback confirming that /dev/vdb remains blank.
+#
+# Apply (credential-gated, outside CI):
+#   talosctl --nodes <worker-2-ip> patch mc --patch @infra/talos/local/patches/ci-workspace-worker-2.yaml
+#
+# The exact path + size predicate fails closed if the VM disk topology changes.
+machine:
+  kubelet:
+    nodeLabels:
+      # Storage-placement label only. Worker 2 remains a mixed node until a
+      # genuinely dedicated CI worker exists; do not misrepresent it as a cell.
+      oya.io/ci-workspace: "true"
+---
+apiVersion: v1alpha1
+kind: UserVolumeConfig
+name: ci-workspace
+provisioning:
+  diskSelector:
+    match: "!system_disk && disk.dev_path == '/dev/vdb' && disk.size == 150u * GiB"
+  # The two scale sets are capped at one runner each. Two 44 Gi claims fit in
+  # this 96 Gi filesystem with 8 Gi metadata/headroom. The physical filesystem,
+  # not local-path's advertised PVC size, is the aggregate capacity boundary.
+  minSize: 96GiB
+  maxSize: 96GiB
+filesystem:
+  type: xfs
+  projectQuotaSupport: true

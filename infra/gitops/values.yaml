@@ -150,6 +150,17 @@ apps:
     # wave-2 runner scale set can create newly labelled Pods.
     syncWave: "1"
 
+  # Disposable ARC workspace storage. This is a distinct provisioner and class
+  # rooted on the Talos ci-workspace user volume; it never repoints the default
+  # local-path class used by stateful services. The provisioner precedes the
+  # general runner scale set through wave ordering.
+  - name: oya-ci-workspace-storage
+    type: path
+    path: infra/arc
+    include: ci-workspace-storage.yaml
+    namespace: oya-ci-workspace-storage
+    syncWave: "1"
+
   # In-cluster OCI registry (registry:2) — image target for in-cluster builds
   # (gateway + future microservice images); host docker is retired (ADR-0378).
   - name: registry
