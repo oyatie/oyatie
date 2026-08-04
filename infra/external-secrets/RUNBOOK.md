@@ -116,6 +116,14 @@ for path in "$OYA_OPENBAO_CA_CERT" "$OYA_NATIVELINK_SERVER_CERT" \
   "$OYA_NATIVELINK_SERVER_KEY" "$OYA_NATIVELINK_SERVER_CA_CERT"; do
   [ -s "$path" ] || { echo "required PKI input is absent or empty" >&2; exit 1; }
 done
+ca_begin_count="$(grep -c '^-----BEGIN ' "$OYA_NATIVELINK_SERVER_CA_CERT" || true)"
+ca_end_count="$(grep -c '^-----END ' "$OYA_NATIVELINK_SERVER_CA_CERT" || true)"
+if [ "$ca_begin_count" -ne 1 ] || [ "$ca_end_count" -ne 1 ] || \
+  ! grep -qx -- '-----BEGIN CERTIFICATE-----' "$OYA_NATIVELINK_SERVER_CA_CERT" || \
+  ! grep -qx -- '-----END CERTIFICATE-----' "$OYA_NATIVELINK_SERVER_CA_CERT"; then
+  echo "NativeLink server CA must contain exactly one PEM certificate" >&2
+  exit 1
+fi
 openssl verify -purpose sslserver -CAfile "$OYA_NATIVELINK_SERVER_CA_CERT" \
   "$OYA_NATIVELINK_SERVER_CERT" >/dev/null
 openssl x509 -in "$OYA_NATIVELINK_SERVER_CERT" -noout \
@@ -219,6 +227,14 @@ trap 'rm -rf "$tmp"' EXIT
 : "${BAO_TOKEN:?BAO_TOKEN is required}"
 : "${OYA_NATIVELINK_SERVER_CERT:?OYA_NATIVELINK_SERVER_CERT is required}"
 : "${OYA_NATIVELINK_SERVER_CA_CERT:?OYA_NATIVELINK_SERVER_CA_CERT is required}"
+ca_begin_count="$(grep -c '^-----BEGIN ' "$OYA_NATIVELINK_SERVER_CA_CERT" || true)"
+ca_end_count="$(grep -c '^-----END ' "$OYA_NATIVELINK_SERVER_CA_CERT" || true)"
+if [ "$ca_begin_count" -ne 1 ] || [ "$ca_end_count" -ne 1 ] || \
+  ! grep -qx -- '-----BEGIN CERTIFICATE-----' "$OYA_NATIVELINK_SERVER_CA_CERT" || \
+  ! grep -qx -- '-----END CERTIFICATE-----' "$OYA_NATIVELINK_SERVER_CA_CERT"; then
+  echo "NativeLink server CA must contain exactly one PEM certificate" >&2
+  exit 1
+fi
 bao kv get -mount=secret -field=server-cert \
   oya/ci/nativelink-cas-tls >"$tmp/stored-server.crt"
 openssl x509 -in "$tmp/stored-server.crt" -outform DER \
@@ -236,11 +252,7 @@ kubectl -n arc-runners create configmap nativelink-server-ca \
   --dry-run=client -o yaml | kubectl apply -f - >/dev/null
 kubectl -n arc-runners get configmap nativelink-server-ca \
   -o jsonpath='{.data.ca\.crt}' >"$tmp/projected-ca.crt"
-openssl x509 -in "$tmp/projected-ca.crt" -outform DER \
-  >"$tmp/projected-ca.der"
-openssl x509 -in "$OYA_NATIVELINK_SERVER_CA_CERT" -outform DER \
-  >"$tmp/ceremony-ca.der"
-cmp -s "$tmp/projected-ca.der" "$tmp/ceremony-ca.der" || {
+cmp -s "$tmp/projected-ca.crt" "$OYA_NATIVELINK_SERVER_CA_CERT" || {
   echo "projected NativeLink server CA differs from the ceremony" >&2
   exit 1
 }

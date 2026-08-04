@@ -956,6 +956,16 @@ fn openbao_tls_and_github_identity_migration_is_exact_and_secret_free() {
     assert!(runbook.contains("stored NativeLink server certificate differs"));
     assert_eq!(
         runbook
+            .matches("NativeLink server CA must contain exactly one PEM certificate")
+            .count(),
+        2
+    );
+    assert_eq!(runbook.matches("grep -c '^-----BEGIN '").count(), 2);
+    assert_eq!(runbook.matches("grep -c '^-----END '").count(), 2);
+    assert!(runbook.contains(r#"cmp -s "$tmp/projected-ca.crt" "$OYA_NATIVELINK_SERVER_CA_CERT""#));
+    assert!(!runbook.contains("projected-ca.der"));
+    assert_eq!(
+        runbook
             .matches("create configmap nativelink-server-ca")
             .count(),
         1
