@@ -22,7 +22,7 @@
   "ci_and_platform_findings": {
     "macos": "A macOS runner requires Apple hardware and a native macOS VM/host cell; it is a sibling cell, not a container on Talos.",
     "postgres": "A same-Pod, digest-pinned PostgreSQL native sidecar is the selected owned-runner direction; no shared CNPG superuser secret and no workflow Docker service.",
-    "remote_cache": "Observed Buck2 run reported 0% cache hits; NativeLink cache-only activation remains issue #1534 and is not assumed active. Remote execution remains a separate later decision.",
+    "remote_cache": "Fresh PR #1542 cloud-ci run 30878231349 again reported Buck2 Cache hits: 0%, remote: 0 and Network Up: 0B. NativeLink remote cache/RE are not active; #1534 remains open and this must not be inferred from deployment inventory.",
     "windows": "A real Windows kernel needs a native Windows VM/host cell. Current arm64 Talos/HVF workers have no hardware-accelerated nested virtualization; do not substitute a Linux container, Wine, or software emulation."
   },
   "current_implementation_lanes": [
@@ -39,29 +39,31 @@
     },
     {
       "branch": "fix/arc-isolated-postgres-cell",
+      "ci": "run 30878231349: cloud-ci-firewall failed because infra/arc/BUCK is unjustified and unreachable; dedicated live-Postgres jobs remain queued on the not-yet-deployed label",
       "dependencies": [
         "reviewed PR",
         "issue #1504 capacity prerequisite",
         "exact oya-ci-required green"
       ],
+      "exact_head": "3877fa8c7623b94bf917217f36dcbcc69f94c96e",
       "issue": 1540,
       "lane": "dedicated owned ARC live-Postgres cell and shared-credential removal",
-      "state": "PR open; independent code and architecture review in progress; CI found reachability/package defects under repair; no live deployment authorized",
       "pr": 1542,
-      "exact_head": "259fbd52e71f4581556edfe21db513676b87a2aa"
+      "review": "new immutable head requires two-lane rereview after mechanical CI repair and mandatory infrastructure/workflow split",
+      "state": "PR open; signed repair remotely preserved; old-head code review REQUEST CHANGES and architecture BLOCK remain applicable because the producer/consumer bootstrap split is unresolved; fresh CI found infra/arc/BUCK reachability/justification debt; no live deployment authorized"
     },
     {
-      "lane": "affected-set exact-producer baseline reuse",
+      "branch": "fix/affected-baseline-reuse",
+      "exact_head": "c4b18573c1b2f6f7efe0cde5d043cf8366d3af5d",
       "issues": [
         1504,
         1533
       ],
-      "state": "PR open; exact-head independent review and required context pending",
-      "scope": "reuse an exact protected-dev baseline when the affected-set producer job is uniquely green even if unrelated jobs make the aggregate workflow red",
+      "lane": "affected-set exact-producer baseline reuse",
       "nonclaim": "does not close the physical cold-workspace storage/capacity requirement",
-      "branch": "fix/affected-baseline-reuse",
       "pr": 1543,
-      "exact_head": "c4b18573c1b2f6f7efe0cde5d043cf8366d3af5d"
+      "scope": "reuse an exact protected-dev baseline when the affected-set producer job is uniquely green even if unrelated jobs make the aggregate workflow red",
+      "state": "PR open; immutable-head code review in progress; all repository/self-hosted gates green but two hosted PostgreSQL jobs and Windows were rejected before allocation by account billing entitlement, so oya-ci-required is red"
     },
     {
       "evidence": "PR #1533 run 30873123302 job 91878989468 was evicted at the ephemeral-storage threshold; the exact base dev-push affected-set producer was independently green and uploaded both bound baseline artifacts despite unrelated hosted-job failures",
@@ -119,7 +121,36 @@
     "do not wipe until every talos_wipe_readiness blocker is closed with off-host restore evidence"
   ],
   "issue_lifecycle_policy": {
+    "audited_persist_open": [
+      {
+        "number": 1247,
+        "reason": "current dev retains three duplicated move-manifest literals"
+      },
+      {
+        "number": 1283,
+        "reason": "ADR-0613 lacks the reciprocal amended_by edge for ADR-0614"
+      },
+      {
+        "number": 1432,
+        "reason": "named masterplan work remains claimed-done-unverified with empty evidence_refs"
+      },
+      {
+        "number": 1534,
+        "reason": "cache-only activation remains distinct from later remote-execution work"
+      },
+      {
+        "number": 1427,
+        "reason": "future supersession candidate only after the owned same-Pod PostgreSQL migration is merged and live Docker service usage is absent"
+      }
+    ],
     "close_rule": "re-query live state; close only with merged PR, promoted SHA, exact required-gate/review evidence, or an explicit duplicate/superseding successor",
+    "closure_receipt_fields": [
+      "canonical issue or explicit successor/duplicate",
+      "exact merged/promoted SHA",
+      "independent review verdict",
+      "exact oya-ci-required evidence",
+      "immutable completion/rollout/rollback/observability receipt"
+    ],
     "ephemeral_receipt": "one-run observation until promoted into a durable issue/evidence/control",
     "hygiene_actions_at_snapshot": [
       {
@@ -169,9 +200,77 @@
     "incident_rule": "never close a blocker/security incident before containment and acceptance evidence",
     "issue": "durable, independently actionable work",
     "label_rule": "apply the smallest existing taxonomy; do not invent categories during triage",
+    "live_hygiene_pass_2026_08_04": {
+      "audited_open_before": 78,
+      "closed": [
+        {
+          "evidence_comment": "https://github.com/jason931225/oyatie/issues/1191#issuecomment-5174593590",
+          "labels": [
+            "wontfix"
+          ],
+          "number": 1191,
+          "reason": "the issue explicitly assigned execution to a retired external coordination surface; current Oyatie authority retires that path and no independent repo action remained",
+          "state_reason": "NOT_PLANNED"
+        }
+      ],
+      "dependency_receipt": {
+        "comment": "https://github.com/jason931225/oyatie/issues/1427#issuecomment-5174593457",
+        "labels": [
+          "bug",
+          "blocker"
+        ],
+        "number": 1427
+      },
+      "label_updates": {
+        "blocker": [
+          1432,
+          1427
+        ],
+        "bug": [
+          1538,
+          1536,
+          1432,
+          1431,
+          1427,
+          1417,
+          1411,
+          1409,
+          1408,
+          1401,
+          1368,
+          1365,
+          1201,
+          1199,
+          1198
+        ],
+        "documentation": [
+          1310
+        ],
+        "enhancement": [
+          1537,
+          1503,
+          1421,
+          1419,
+          1369,
+          1334,
+          1321,
+          1314,
+          1208,
+          1200,
+          1192,
+          778
+        ]
+      },
+      "nonactions": [
+        "no age-based mass closure",
+        "no speculative duplicate closure",
+        "issue #1541 left open without secret-bearing detail"
+      ],
+      "open_after": 77
+    },
     "masterplan_v2": "portfolio, dependency, sequencing, and status source of truth",
     "upstream_learning": {
-      "source": "https://github.com/Yeachan-Heo/oh-my-codex/issues",
+      "age_rule": "never mass-close for age; revalidate against current dev",
       "examples": [
         {
           "issue": 3418,
@@ -194,37 +293,8 @@
           "lesson": "close an explicitly rejected or out-of-scope proposal instead of preserving speculative backlog"
         }
       ],
-      "age_rule": "never mass-close for age; revalidate against current dev"
-    },
-    "closure_receipt_fields": [
-      "canonical issue or explicit successor/duplicate",
-      "exact merged/promoted SHA",
-      "independent review verdict",
-      "exact oya-ci-required evidence",
-      "immutable completion/rollout/rollback/observability receipt"
-    ],
-    "audited_persist_open": [
-      {
-        "number": 1247,
-        "reason": "current dev retains three duplicated move-manifest literals"
-      },
-      {
-        "number": 1283,
-        "reason": "ADR-0613 lacks the reciprocal amended_by edge for ADR-0614"
-      },
-      {
-        "number": 1432,
-        "reason": "named masterplan work remains claimed-done-unverified with empty evidence_refs"
-      },
-      {
-        "number": 1534,
-        "reason": "cache-only activation remains distinct from later remote-execution work"
-      },
-      {
-        "number": 1427,
-        "reason": "future supersession candidate only after the owned same-Pod PostgreSQL migration is merged and live Docker service usage is absent"
-      }
-    ]
+      "source": "https://github.com/Yeachan-Heo/oh-my-codex/issues"
+    }
   },
   "north_star": {
     "planning_entry": "specs/masterplan.json#masterplan_v2.planning_entry_contract",
@@ -238,7 +308,7 @@
   },
   "record_class": "prewipe-session-continuity-snapshot",
   "record_id": "prewipe-session-continuity-20260804",
-  "recorded_at": "2026-08-04T04:11:01.561456Z",
+  "recorded_at": "2026-08-04T04:46:14.015194Z",
   "remote_preservation": {
     "archive_refs": [
       {
@@ -346,6 +416,19 @@
         "sha": "9f8e7b8ae29eaafb0df9247da955d1050fe38a36"
       }
     ],
+    "completeness_verdict": {
+      "active_pr1542_remote_head": "3877fa8c7623b94bf917217f36dcbcc69f94c96e",
+      "active_pr1542_worktree_clean": true,
+      "exceptions": [],
+      "excluded_sensitive_paths": [
+        "controlplane.yaml",
+        "worker.yaml"
+      ],
+      "local_branches_without_remote_exact_tip": 0,
+      "reason": "all useful dirty, untracked, and curated-ignored content is remotely covered; credential-bearing Talos machine configs remain intentionally local for rotation/rebuild and must never enter Git",
+      "state": "COMPLETE",
+      "verified_at": "2026-08-04"
+    },
     "curated_context": {
       "commit": "ea49b7016cb28c34f14748a831ea1b521da413ad",
       "explicit_exclusions": [
@@ -358,14 +441,20 @@
       ],
       "file_count": 279,
       "github_signature_verified": true,
+      "independent_review": "PASS on exact remote head ea49b7016cb28c34f14748a831ea1b521da413ad: signature/ancestry, 279 manifest hashes and sizes, eight design artifacts, bounded secret/incident scan, forbidden paths, syntax, and modes independently verified with no findings",
       "manifest_path": "preserved/MANIFEST.json",
       "manifest_sha256": "a03a969d63c1f2b4a0292a17cd628e30b544f7ab813e35150738aabeb7c54015",
       "ref": "archive/prewipe-20260804/curated-ignored-round2",
       "security_scan_path": "preserved/SECURITY-SCAN.json",
       "security_scan_sha256": "3b577acda344b3c1ac29fc0aa26a401bcf1e0443bc88512efecf26e9c976e93e",
       "selection": "research/design/plans/specs/wiki, selected ultragoal/team-ledger artifacts, current team hygiene/disposition receipts, sanitized Talos preservation report, and eight durable design/prototype artifacts",
-      "source_bytes": 2342181,
-      "independent_review": "PASS on exact remote head ea49b7016cb28c34f14748a831ea1b521da413ad: signature/ancestry, 279 manifest hashes and sizes, eight design artifacts, bounded secret/incident scan, forbidden paths, syntax, and modes independently verified with no findings"
+      "source_bytes": 2342181
+    },
+    "current_session_remote_checkpoint": {
+      "github_signature_verified": true,
+      "note": "prior immutable checkpoint; later refresh commits on the same preservation ref supersede its live-state fields",
+      "ref": "archive/prewipe-20260804/current-session-handoff",
+      "sha": "4b9813337398f90eb778ba6ab05dd7c3a3dd1202"
     },
     "local_ref_preservation_map_sha256": "2c091df3b0ce69f8fb7e7d068041e957b264551c8ad4554278b3a825dc17e550",
     "sensitive_incident": "Issue #1541 remains the sanitized incident authority; the compromised local-only object/ref is deliberately absent from every preservation ref."
@@ -383,6 +472,12 @@
     "reorg": "Tracked non-parked move plans describe already-landed moves; do not rerun them. Keep PARKED/BLOCKED plans parked. Reconcile stale move-plan inventory through P-REORG rather than another ledger."
   },
   "repository_snapshot": {
+    "external_admission_blocker": {
+      "class": "GitHub personal-account billing entitlement",
+      "evidence": "hosted Ubuntu PostgreSQL and genuine Windows jobs were rejected before allocation with the payment/spending-limit annotation",
+      "forbidden_workaround": "do not remove required fan-in, relabel Linux as Windows, or call a repository-only substitute equivalent",
+      "readback": "current gh token lacks the user/Plan billing permission; no authenticated account-side readback is available from this session"
+    },
     "open_pull_requests": [
       {
         "baseRefName": "dev",
@@ -398,7 +493,7 @@
       {
         "baseRefName": "dev",
         "headRefName": "fix/arc-isolated-postgres-cell",
-        "headRefOid": "259fbd52e71f4581556edfe21db513676b87a2aa",
+        "headRefOid": "3877fa8c7623b94bf917217f36dcbcc69f94c96e",
         "isDraft": false,
         "mergeStateStatus": "BLOCKED",
         "mergeable": "MERGEABLE",
@@ -423,7 +518,7 @@
     "required_status_context": "oya-ci-required"
   },
   "stop_conditions": {
-    "current_state": "not complete; wipe remains blocked",
+    "current_state": "repository preservation complete; PR admission, Talos encrypted recovery/rotation, and off-host restore remain incomplete; wipe remains blocked",
     "session_consolidation_complete_when": [
       "all useful refs/artifacts are remote and independently reviewed",
       "all open PRs are reviewed, exact-required-context green, merged to dev, and post-merge evidence recorded",
@@ -439,8 +534,36 @@
       "capture and restore-test OpenBao file backend and recover 1-of-1 custody before rekey/rotation",
       "create and restore-test CNPG backups",
       "export or prove deterministic rebuild of registry images and live-only workloads",
-      "prove iCloud quota, complete upload, ciphertext authentication, and off-host restore"
+      "prove iCloud quota, complete upload, ciphertext authentication, and off-host restore",
+      "complete #1541 preventive-code PR and independently review it",
+      "GitHub Support must purge the dangling sensitive object after rotation/rebuild containment"
     ],
+    "capacity_readback": {
+      "current_local_path": "/opt/local-path-provisioner",
+      "decision": "do not repoint the stateful local-path class; design a separate CI-only UserVolumeConfig/provisioner/StorageClass and generic ephemeral workspace PVC",
+      "nodes": [
+        "controlplane arm64",
+        "worker1 arm64",
+        "worker2 arm64"
+      ],
+      "nonclaim": "DiskPressure=false at one readback and sparse blank vdb presence do not prove cold-run p99 capacity or restoreability",
+      "talos_version": "1.13.7",
+      "worker_allocatable_ephemeral_bytes_each": 45909593217,
+      "worker_blank_vdb_virtual_bytes_each": 161061273600
+    },
+    "icloud_quota_remaining_bytes": 140474476375,
+    "icloud_sanitized_staging": {
+      "content_class": "sanitized non-secret guidance only",
+      "files": [
+        "README.md",
+        "PREWIPE-RECOVERY-METHOD-2026-08-04.md",
+        "SANITIZED-DOCUMENTS.sha256"
+      ],
+      "local_hash_check": "PASS",
+      "path": "/Users/jasonlee/Library/Mobile Documents/com~apple~CloudDocs/talos",
+      "plaintext_secret_files": 0,
+      "provider_status": "CloudDocs caught-up at readback; this proves only the small sanitized files, not a ciphertext backup or fresh-device restore"
+    },
     "icloud_target": "created owner-only but intentionally empty",
     "local_permission_hardening": "shell histories and known local configs reduced to owner-only modes; parent ~/.talos is owner-only",
     "wipe_safe": false
