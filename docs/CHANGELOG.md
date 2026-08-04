@@ -27,6 +27,13 @@ doc_status: published
 - Amended ADR-0630 D2/D7 to bound workload-isolated same-architecture scale sets. Issues #1539
   and #1540; protected admission and live GitOps rollout verification remain pending.
 
+## 2026-08-03 — Supply-chain audit covers authoritative nested lockfiles
+
+- Replaced the single-lockfile supply-chain collector with a policy-declared root and nested-workspace corpus, preserving the legacy policy and observed JSON contracts while scanning dependencies pinned outside the root workspace.
+- Added fail-closed corpus floors, normalized sibling-path validation, symlink and filesystem-type rejection, deterministic deduplication, and regression tests proving nested-only vulnerability detection without recursive traversal of local worktrees or build artifacts.
+- Closed the corpus-totality gap by comparing policy exactly with the workspace-owned lock projection from materialized SCM facts; newly tracked workspace locks now block until declared, while tracked member-local and orphan locks remain outside the scan.
+- Made `Cargo.lock` parsing row-strict: zero-package locks and any `[[package]]` row with a missing, non-string, or empty name/version now fail collection instead of silently disappearing from advisory matching.
+
 ## 2026-08-03 — W0-D non-authorizing reset-eligibility gate
 
 - Added the W0-D eligibility-only schema, historical discovery observation, and
