@@ -60,6 +60,15 @@ fn is_kind(value: &Value, expected: &str) -> bool {
         == Some(expected)
 }
 
+fn object<'a>(documents: &'a [Value], kind: &str, name: &str) -> &'a Value {
+    documents
+        .iter()
+        .find(|document| {
+            is_kind(document, kind) && string_at(document, &["metadata", "name"]) == name
+        })
+        .unwrap_or_else(|| panic!("missing {kind}/{name}"))
+}
+
 fn u64_at(value: &Value, keys: &[&str]) -> u64 {
     at(value, keys)
         .as_u64()
@@ -567,6 +576,61 @@ fn openbao_tls_and_github_identity_migration_is_exact_and_secret_free() {
     assert!(!base.contains("openbao-server-tls"));
 
     let documents = yaml_documents(&root, "infra/kms/openbao-tls-migration.k8s.yaml");
+    let base_documents = yaml_documents(&root, "infra/kms/openbao.k8s.yaml");
+    let document_identities: Vec<(String, String)> = documents
+        .iter()
+        .map(|document| {
+            (
+                string_at(document, &["kind"]),
+                string_at(document, &["metadata", "name"]),
+            )
+        })
+        .collect();
+    let identities: BTreeSet<(String, String)> = document_identities.iter().cloned().collect();
+    assert_eq!(
+        document_identities.len(),
+        identities.len(),
+        "the migration file must not duplicate a resource identity"
+    );
+    let mut expected_identities: BTreeSet<(String, String)> = base_documents
+        .iter()
+        .map(|document| {
+            (
+                string_at(document, &["kind"]),
+                string_at(document, &["metadata", "name"]),
+            )
+        })
+        .collect();
+    assert!(expected_identities.remove(&("ConfigMap".to_owned(), "openbao-config".to_owned())));
+    expected_identities.insert((
+        "ConfigMap".to_owned(),
+        "openbao-tls-migration-config".to_owned(),
+    ));
+    assert_eq!(
+        identities, expected_identities,
+        "the migration file must remain a complete Argo replacement"
+    );
+    for (kind, name) in [
+        ("Namespace", "oya-kms"),
+        ("PersistentVolumeClaim", "openbao-data"),
+    ] {
+        assert_eq!(
+            object(&documents, kind, name),
+            object(&base_documents, kind, name),
+            "the GitOps source switch must not prune or mutate {kind}/{name}"
+        );
+    }
+    for (kind, name) in [
+        ("Deployment", "openbao"),
+        ("Service", "openbao"),
+        ("NetworkPolicy", "openbao-ingress"),
+    ] {
+        assert_eq!(
+            at(object(&documents, kind, name), &["metadata"]),
+            at(object(&base_documents, kind, name), &["metadata"]),
+            "the migration must retain {kind}/{name} identity metadata"
+        );
+    }
     let deployment = documents
         .iter()
         .find(|document| is_kind(document, "Deployment"))
@@ -796,11 +860,33 @@ fn openbao_tls_and_github_identity_migration_is_exact_and_secret_free() {
     assert!(!nativelink.contains("propagates without redeploying"));
 
     let runbook = read(&root, "infra/external-secrets/RUNBOOK.md");
+    let application_template = read(&root, "infra/gitops/templates/applications.yaml");
+    let finalizer_guard = application_template
+        .find("{{ if .cascadeDelete }}")
+        .expect("opt-in cascading-delete guard");
+    let finalizer = application_template
+        .find("resources-finalizer.argocd.argoproj.io")
+        .expect("Argo resources finalizer");
+    let finalizer_end = application_template[finalizer..]
+        .find("{{ end }}")
+        .map(|offset| finalizer + offset)
+        .expect("cascading-delete guard end");
+    assert!(finalizer_guard < finalizer && finalizer < finalizer_end);
+    assert_eq!(
+        application_template
+            .matches("resources-finalizer.argocd.argoproj.io")
+            .count(),
+        1
+    );
+    assert!(!read(&root, "infra/gitops/values.yaml").contains("cascadeDelete:"));
     assert!(runbook.contains("There is no bootstrap controller in this slice"));
     assert!(runbook.contains("reviewed PR against"));
     assert!(runbook.contains("openbao-tls-migration.k8s.yaml"));
     assert!(runbook.contains("infra/kms/openbao-ci-identity.k8s.yaml"));
-    assert!(runbook.contains("require both Argo Applications to be Synced and Healthy"));
+    assert!(runbook.contains("both Argo Applications"));
+    assert!(runbook.contains("Synced and Healthy"));
+    assert!(runbook.contains("both with `cascadeDelete: true`"));
+    assert!(runbook.contains("UIDs match the pre-promotion receipt"));
     assert!(!runbook.contains("kubectl apply -f infra/kms/openbao-tls-migration.k8s.yaml"));
     assert!(!runbook.contains("re-apply\n`infra/kms/openbao.k8s.yaml`"));
     for hostname in [
@@ -810,18 +896,34 @@ fn openbao_tls_and_github_identity_migration_is_exact_and_secret_free() {
         assert!(runbook.contains(hostname), "missing server SAN {hostname}");
     }
     let server_import = runbook
-        .find("bao kv put secret/oya/ci/nativelink-cas-tls")
+        .find("bao kv put -mount=secret -cas=0 oya/ci/nativelink-cas-tls")
         .expect("fail-closed NativeLink server identity import");
+    assert!(
+        !runbook[..server_import].contains("bao kv get"),
+        "create-only CAS must avoid a pre-write TOCTOU read"
+    );
+    let post_deployment = runbook
+        .find("### Post-deployment NativeLink projection and rollout")
+        .expect("separate post-deployment lifecycle stage");
+    let ca_projection = runbook
+        .find("### Retryable NativeLink public-CA projection")
+        .expect("retryable public-CA projection stage");
+    let stored_server_readback = runbook
+        .find("-field=server-cert")
+        .expect("stored server certificate readback");
+    let ca_apply = runbook
+        .find("create configmap nativelink-server-ca")
+        .expect("NativeLink public-CA projection");
     assert!(!runbook.contains("bao kv patch secret/oya/ci/nativelink-cas-tls"));
-    let refresh = runbook
-        .find("annotate externalsecret nativelink-cas-tls")
-        .expect("forced ExternalSecret refresh");
+    let projection = runbook
+        .find("--for=condition=Ready externalsecret/nativelink-cas-tls")
+        .expect("initial ExternalSecret projection readback");
     let restart = runbook
         .find("rollout restart deployment/nativelink-cas")
         .expect("NativeLink rollout restart");
     let secret_readback = runbook
-        .find(r#"[ "$after_secret_rv" != "$before_secret_rv" ]"#)
-        .expect("advanced Secret resourceVersion readback");
+        .find(r#"[ -n "$refresh_time" ] && [ -n "$secret_rv" ]"#)
+        .expect("present projection metadata readback");
     let ready = runbook
         .find("--for=condition=Available deployment/nativelink-cas")
         .expect("NativeLink availability readback");
@@ -829,8 +931,12 @@ fn openbao_tls_and_github_identity_migration_is_exact_and_secret_free() {
         .find("issue #1551")
         .expect("typed negative proof boundary");
     assert!(
-        server_import < refresh
-            && refresh < secret_readback
+        server_import < ca_projection
+            && ca_projection < stored_server_readback
+            && stored_server_readback < ca_apply
+            && ca_apply < post_deployment
+            && post_deployment < projection
+            && projection < secret_readback
             && secret_readback < restart
             && restart < ready
             && ready < proof
@@ -838,15 +944,38 @@ fn openbao_tls_and_github_identity_migration_is_exact_and_secret_free() {
     assert!(runbook.contains("`openssl s_client` is diagnostic"));
     assert!(runbook.contains("only: a generic failure"));
     assert!(runbook.contains("does **not** prove reader-to-writer isolation"));
-    assert!(runbook.contains("typed mTLS rejection of the reader"));
+    assert!(runbook.contains("mTLS rejection"));
+    assert!(runbook.contains("reader leaf"));
     assert!(runbook.contains("leaf on `:50051`"));
-    assert!(runbook.contains("positive writer control on `:50051`"));
+    assert!(runbook.contains("positive writer control"));
     assert!(runbook.contains("OYA_NATIVELINK_SERVER_CA_CERT"));
     assert!(runbook.contains("OYA_NATIVELINK_SERVER_CERT"));
     assert!(runbook.contains("OYA_NATIVELINK_SERVER_KEY"));
-    assert!(runbook.contains("NativeLink TLS record already exists; refusing overwrite"));
-    assert!(runbook.contains("openssl verify -CAfile"));
-    assert!(runbook.contains("-checkhost \"$hostname\""));
+    assert!(runbook.contains("NativeLink TLS record is not new; refusing overwrite"));
+    assert!(runbook.contains("a rejected CAS write cannot mutate runner trust"));
+    assert!(runbook.contains("stored NativeLink server certificate differs"));
+    assert_eq!(
+        runbook
+            .matches("create configmap nativelink-server-ca")
+            .count(),
+        1
+    );
+    assert!(runbook.contains("kubectl -n oya-ci get externalsecret nativelink-cas-tls"));
+    assert!(runbook.contains("kubectl -n oya-ci get deployment nativelink-cas"));
+    assert!(runbook.contains("openssl verify -purpose sslserver -CAfile"));
+    assert!(runbook.contains("-ext subjectAltName"));
+    assert!(runbook.contains("server-sans.actual"));
+    assert!(runbook.contains("server-sans.expected"));
+    assert!(runbook.contains("SANs are not the exact two service DNS names"));
+    assert!(!runbook.contains("-checkhost \"$hostname\""));
+    assert!(runbook.contains("-ext extendedKeyUsage"));
+    assert!(runbook.contains("TLS Web Server Authentication"));
+    assert!(runbook.contains("must not carry the client-auth EKU"));
+    assert!(runbook.contains("initial same-data projection"));
+    assert!(runbook.contains("A later rotation must capture both values"));
+    assert!(runbook.contains("force-sync ESO"));
+    assert!(runbook.contains("require both values to advance"));
+    assert!(!runbook.contains("resourceVersion did not advance"));
     assert!(runbook.contains("server certificate and key do not match"));
     assert!(runbook.contains("Do not apply the empty public-CA scaffold directly"));
     assert!(!runbook.contains("kubectl apply -f infra/kms/openbao-public-ca.k8s.yaml"));

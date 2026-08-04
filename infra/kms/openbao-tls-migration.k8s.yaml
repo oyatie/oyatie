@@ -1,4 +1,13 @@
-# Apply only after the bootstrap has created Secret oya-kms/openbao-server-tls.
+# Complete GitOps replacement for openbao.k8s.yaml. Promote only after the
+# bootstrap has created Secret oya-kms/openbao-server-tls. Namespace and PVC are
+# repeated byte-for-byte so Argo prune/self-heal cannot delete the KMS namespace
+# or its barrier-encrypted data during the reviewed source switch.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: oya-kms
+  labels: { app.kubernetes.io/part-of: oya-substrate, oya.io/adr: ADR-0043 }
+---
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -25,6 +34,15 @@ data:
     log_level = "info"
     default_lease_ttl = "768h"
     max_lease_ttl = "8760h"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: openbao-data
+  namespace: oya-kms
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources: { requests: { storage: 2Gi } }
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -96,6 +114,10 @@ kind: NetworkPolicy
 metadata:
   name: openbao-ingress
   namespace: oya-kms
+  labels:
+    app.kubernetes.io/name: openbao
+    app.kubernetes.io/part-of: oya-substrate
+    oya.io/adr: ADR-0043
 spec:
   podSelector:
     matchLabels: { app.kubernetes.io/name: openbao }

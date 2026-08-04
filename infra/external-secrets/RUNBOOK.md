@@ -35,15 +35,19 @@ private key, or issued leaf in git or captured output.
    `external-secrets` and `arc-runners`, the certificate covers
    `openbao.oya-kms.svc` and the Secret/ConfigMaps exist without printing data.
 2. Apply `infra/kms/openbao-ci-identity.k8s.yaml`, then use the authenticated,
-   no-echo bootstrap below. There is no bootstrap controller in this slice.
+   no-echo **initial** bootstrap below. Its readback covers OpenBao state and
+   the create-only KV record only; it does not touch the not-yet-deployed
+   NativeLink ExternalSecret or Deployment. There is no bootstrap controller in this slice.
    Do **not** apply the TLS migration manifest directly: Argo owns the same
    Deployment, Service, and NetworkPolicy with prune/self-heal enabled.
 3. After the bootstrap readback passes, promote TLS through a reviewed PR against
    `dev` that changes the `openbao` Application include in
    `infra/gitops/values.yaml` from `openbao.k8s.yaml` to
    `openbao-tls-migration.k8s.yaml` and adds an exact-path Application for
-   `infra/kms/openbao-ci-identity.k8s.yaml`. Merge only after `oya-ci-required`
-   and review; then require both Argo Applications to be Synced and Healthy.
+   `infra/kms/openbao-ci-identity.k8s.yaml` with `cascadeDelete: true`. Merge only
+   after `oya-ci-required` and review; then require both Argo Applications to be
+   Synced and Healthy. Record the Namespace and `openbao-data` PVC UIDs before
+   and after reconciliation; both must remain identical.
 4. **Wait/readback.** Wait for Deployment `oya-kms/openbao` rollout completion;
    verify the mounted config and Secret references, Service ports `8200..8203`,
    and successful authenticated TLS health on `8202`. Verify plaintext `8200`
@@ -51,10 +55,13 @@ private key, or issued leaf in git or captured output.
 5. Only after step 4 succeeds, use a second reviewed PR to add exact-path GitOps
    Applications for
    `infra/external-secrets/clustersecretstore-openbao-oya-tls-migration.yaml` and
-   `infra/nativelink/nativelink-cas.k8s.yaml`; do not deploy either by raw apply.
+   `infra/nativelink/nativelink-cas.k8s.yaml`, both with `cascadeDelete: true`;
+   do not deploy either by raw apply. That value adds Argo's foreground resources
+   finalizer so a later reviewed Application removal cannot orphan live objects.
    Wait until all three `*-tls-migration` stores report Ready, restart ESO, wait
-   for readiness again, and prove each existing consumer prefix refreshes before
-   the NativeLink Application may become Healthy.
+   for readiness again, and prove each existing consumer prefix refreshes. Once
+   both new Applications are Synced and Healthy, run the post-deployment
+   NativeLink projection/rollout procedure below.
 6. A later reviewed cutover may point canonical stores to `8202`; remove
    `8200/8201` only after consumer readback.
 
@@ -66,11 +73,16 @@ through the reader PKI without changing the license. Leave the variable absent
 until every prerequisite below exists. Scheduled runs remain fail-closed while
 unlicensed.
 
-**Rollback:** revert the reviewed GitOps promotion commits, require the affected
-Argo Applications to become Synced and Healthy, wait for the base OpenBao
-Deployment rollout, and verify the three canonical stores are Ready on `8200`.
-Never raw-apply the base manifest against Argo self-heal. Preserve the bootstrap
-TLS Secret for diagnosis/forward repair; do not print or export it.
+**Rollback is ordered.** First set `OYA_CAS_IDENTITY_PROOF_ENABLED=false`, keep
+`warm_reads_licensed=false`, and wait for all cache identity jobs/clients to
+quiesce. Revert the second promotion commit and wait for its two
+`cascadeDelete: true` Applications plus NativeLink/migration-store resources to
+disappear. Then revert the first promotion commit, wait for base OpenBao to be
+Synced, Healthy, and Available, and prove the Namespace and `openbao-data` PVC
+UIDs match the pre-promotion receipt. Finally verify the three canonical stores
+are Ready on `8200`. Never raw-apply the base manifest against Argo self-heal.
+Preserve the bootstrap TLS Secret for diagnosis/forward repair; do not print or
+export it.
 
 The OIDC role payloads in `openbao-ci-identity-contract` bind audience
 `oya-openbao`, immutable repository/owner IDs, private visibility,
@@ -86,7 +98,9 @@ ceremony-issued NativeLink server leaf, key, and independent public CA in
 `OYA_NATIVELINK_SERVER_CA_CERT`. Run from the repository root with `bao`,
 `kubectl`, and OpenSSL; the commands redirect PKI material to a mode-0700
 temporary directory and print no token, private key, certificate, or ConfigMap
-body. The import refuses to overwrite an existing NativeLink TLS record.
+body. The KV-v2 `cas=0` write is create-only, so an existing, soft-deleted, or
+concurrently created NativeLink TLS record fails closed instead of being overwritten
+([OpenBao `kv put`](https://openbao.org/docs/commands/kv/put/)).
 
 ```sh
 set -eu
@@ -102,14 +116,31 @@ for path in "$OYA_OPENBAO_CA_CERT" "$OYA_NATIVELINK_SERVER_CERT" \
   "$OYA_NATIVELINK_SERVER_KEY" "$OYA_NATIVELINK_SERVER_CA_CERT"; do
   [ -s "$path" ] || { echo "required PKI input is absent or empty" >&2; exit 1; }
 done
-openssl verify -CAfile "$OYA_NATIVELINK_SERVER_CA_CERT" \
+openssl verify -purpose sslserver -CAfile "$OYA_NATIVELINK_SERVER_CA_CERT" \
   "$OYA_NATIVELINK_SERVER_CERT" >/dev/null
-for hostname in \
-  nativelink-cas-writer.oya-ci.svc.cluster.local \
-  nativelink-cas-reader.oya-ci.svc.cluster.local; do
-  openssl x509 -in "$OYA_NATIVELINK_SERVER_CERT" -noout \
-    -checkhost "$hostname" >/dev/null
-done
+openssl x509 -in "$OYA_NATIVELINK_SERVER_CERT" -noout \
+  -ext subjectAltName >"$tmp/server-sans.txt"
+tr ',' '\n' <"$tmp/server-sans.txt" | \
+  sed 's/^[[:space:]]*//; /^$/d; /X509v3 Subject Alternative Name:/d' | \
+  LC_ALL=C sort -u >"$tmp/server-sans.actual"
+cat >"$tmp/server-sans.expected" <<'EOF'
+DNS:nativelink-cas-reader.oya-ci.svc.cluster.local
+DNS:nativelink-cas-writer.oya-ci.svc.cluster.local
+EOF
+cmp -s "$tmp/server-sans.actual" "$tmp/server-sans.expected" || {
+  echo "NativeLink server certificate SANs are not the exact two service DNS names" >&2
+  exit 1
+}
+openssl x509 -in "$OYA_NATIVELINK_SERVER_CERT" -noout \
+  -ext extendedKeyUsage >"$tmp/server-eku.txt"
+grep -Fq "TLS Web Server Authentication" "$tmp/server-eku.txt" || {
+  echo "NativeLink server certificate lacks the server-auth EKU" >&2
+  exit 1
+}
+if grep -Fq "TLS Web Client Authentication" "$tmp/server-eku.txt"; then
+  echo "NativeLink server certificate must not carry the client-auth EKU" >&2
+  exit 1
+fi
 openssl x509 -in "$OYA_NATIVELINK_SERVER_CERT" -pubkey -noout \
   >"$tmp/server-cert.pub"
 openssl pkey -in "$OYA_NATIVELINK_SERVER_KEY" -pubout \
@@ -154,68 +185,114 @@ for binding in github-cas-writer-dev-push github-cas-reader-integrity-canary; do
   bao write "auth/jwt/role/$binding" @"$tmp/jwt-role.json" >/dev/null
 done
 
-# Create the four-field record atomically; never patch a missing fresh-cluster path
-# or overwrite a live record during bootstrap.
-if bao kv get -format=json secret/oya/ci/nativelink-cas-tls >/dev/null 2>&1; then
-  echo "NativeLink TLS record already exists; refusing overwrite" >&2
-  exit 1
-fi
-bao kv put secret/oya/ci/nativelink-cas-tls \
+# Create the four-field record atomically. KV-v2 cas=0 is a server-side
+# create-only precondition, so it closes the get/put race and refuses existing
+# or soft-deleted keys as well as concurrent creators.
+bao kv put -mount=secret -cas=0 oya/ci/nativelink-cas-tls \
   server-cert=@"$OYA_NATIVELINK_SERVER_CERT" \
   server-key=@"$OYA_NATIVELINK_SERVER_KEY" \
   writer-client-ca=@"$tmp/writer-client-ca.crt" \
-  reader-client-ca=@"$tmp/reader-client-ca.crt" >/dev/null
-# NativeLink v1.6.2 reads its TLS acceptors/client roots at process start. Force
-# ESO to refresh the public client-CA Secret, confirm Ready plus advanced
-# refreshTime/resourceVersion metadata without printing Secret data, then restart
+  reader-client-ca=@"$tmp/reader-client-ca.crt" >/dev/null || {
+  echo "NativeLink TLS record is not new; refusing overwrite" >&2
+  exit 1
+}
+```
+
+Read back names and metadata only: both PKI mounts must exist with different CA
+serials, both JWT roles must report five-minute maximum TTLs, both policies must
+name only their matching mount, and the NativeLink KV-v2 record must be at
+version one.
+
+### Retryable NativeLink public-CA projection
+
+Run this only after the create-only write above succeeded. It is a separate,
+retryable stage so a rejected CAS write cannot mutate runner trust. A retry first
+proves that the stored server certificate is the ceremony certificate and that
+the supplied public CA validates it; a different or deleted record fails before
+Kubernetes is changed.
+
+```sh
+set -eu
+umask 077
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp"' EXIT
+: "${BAO_TOKEN:?BAO_TOKEN is required}"
+: "${OYA_NATIVELINK_SERVER_CERT:?OYA_NATIVELINK_SERVER_CERT is required}"
+: "${OYA_NATIVELINK_SERVER_CA_CERT:?OYA_NATIVELINK_SERVER_CA_CERT is required}"
+bao kv get -mount=secret -field=server-cert \
+  oya/ci/nativelink-cas-tls >"$tmp/stored-server.crt"
+openssl x509 -in "$tmp/stored-server.crt" -outform DER \
+  >"$tmp/stored-server.der"
+openssl x509 -in "$OYA_NATIVELINK_SERVER_CERT" -outform DER \
+  >"$tmp/ceremony-server.der"
+cmp -s "$tmp/stored-server.der" "$tmp/ceremony-server.der" || {
+  echo "stored NativeLink server certificate differs from the ceremony" >&2
+  exit 1
+}
+openssl verify -purpose sslserver -CAfile "$OYA_NATIVELINK_SERVER_CA_CERT" \
+  "$tmp/stored-server.crt" >/dev/null
+kubectl -n arc-runners create configmap nativelink-server-ca \
+  --from-file=ca.crt="$OYA_NATIVELINK_SERVER_CA_CERT" \
+  --dry-run=client -o yaml | kubectl apply -f - >/dev/null
+kubectl -n arc-runners get configmap nativelink-server-ca \
+  -o jsonpath='{.data.ca\.crt}' >"$tmp/projected-ca.crt"
+openssl x509 -in "$tmp/projected-ca.crt" -outform DER \
+  >"$tmp/projected-ca.der"
+openssl x509 -in "$OYA_NATIVELINK_SERVER_CA_CERT" -outform DER \
+  >"$tmp/ceremony-ca.der"
+cmp -s "$tmp/projected-ca.der" "$tmp/ceremony-ca.der" || {
+  echo "projected NativeLink server CA differs from the ceremony" >&2
+  exit 1
+}
+```
+
+The public CA ConfigMap must now exist without printing its data.
+
+### Post-deployment NativeLink projection and rollout
+
+Run this procedure only after step 5 has reconciled the NativeLink ExternalSecret
+and Deployment. It fails immediately when either object is absent; the initial
+bootstrap above never calls it.
+
+```sh
+set -eu
+# NativeLink v1.6.2 reads its TLS acceptors/client roots at process start. Confirm
+# ESO has projected the initial Secret without printing data, then restart
 # NativeLink and wait for the replacement pod to become Available. Identity proof
 # MUST NOT begin before this rollout completes.
-before_refresh="$(kubectl -n oya-ci get externalsecret nativelink-cas-tls \
-  -o jsonpath='{.status.refreshTime}' 2>/dev/null || true)"
-before_secret_rv="$(kubectl -n oya-ci get secret nativelink-cas-tls \
-  -o jsonpath='{.metadata.resourceVersion}' 2>/dev/null || true)"
-kubectl -n oya-ci annotate externalsecret nativelink-cas-tls \
-  force-sync="$(date +%s)" --overwrite >/dev/null
+kubectl -n oya-ci get externalsecret nativelink-cas-tls >/dev/null
+kubectl -n oya-ci get deployment nativelink-cas >/dev/null
 kubectl -n oya-ci wait --for=condition=Ready externalsecret/nativelink-cas-tls \
   --timeout=5m >/dev/null
-after_refresh="$before_refresh"
-attempt=0
-while [ -z "$after_refresh" ] || [ "$after_refresh" = "$before_refresh" ]; do
-  attempt=$((attempt + 1))
-  [ "$attempt" -le 60 ] || { echo "NativeLink TLS Secret did not refresh" >&2; exit 1; }
-  sleep 5
-  after_refresh="$(kubectl -n oya-ci get externalsecret nativelink-cas-tls \
-    -o jsonpath='{.status.refreshTime}' 2>/dev/null || true)"
-done
-kubectl -n oya-ci wait --for=condition=Ready externalsecret/nativelink-cas-tls \
-  --timeout=5m >/dev/null
-after_secret_rv="$(kubectl -n oya-ci get secret nativelink-cas-tls \
+refresh_time="$(kubectl -n oya-ci get externalsecret nativelink-cas-tls \
+  -o jsonpath='{.status.refreshTime}')"
+secret_rv="$(kubectl -n oya-ci get secret nativelink-cas-tls \
   -o jsonpath='{.metadata.resourceVersion}')"
-[ -n "$after_secret_rv" ] && [ "$after_secret_rv" != "$before_secret_rv" ] || {
-  echo "NativeLink TLS Secret resourceVersion did not advance" >&2
+[ -n "$refresh_time" ] && [ -n "$secret_rv" ] || {
+  echo "NativeLink TLS Secret projection metadata is incomplete" >&2
   exit 1
 }
 kubectl -n oya-ci rollout restart deployment/nativelink-cas >/dev/null
 kubectl -n oya-ci rollout status deployment/nativelink-cas --timeout=10m >/dev/null
 kubectl -n oya-ci wait --for=condition=Available deployment/nativelink-cas \
   --timeout=10m >/dev/null
-kubectl -n arc-runners create configmap nativelink-server-ca \
-  --from-file=ca.crt="$OYA_NATIVELINK_SERVER_CA_CERT" \
-  --dry-run=client -o yaml | kubectl apply -f - >/dev/null
 ```
 
-Read back names and metadata only: both PKI mounts must exist with different CA
-serials, both JWT roles must report five-minute maximum TTLs, both policies must
-name only their matching mount, the NativeLink ExternalSecret must be Ready with
-an advanced refresh time and a present Secret resourceVersion, and the deliberate
-NativeLink rollout above must be Available. `openssl s_client` is diagnostic
-only: a generic failure can be DNS, outage, timeout, or server-CA failure and
-does **not** prove reader-to-writer isolation. Activation remains blocked by
-issue #1551 until a fresh runner records a typed mTLS rejection of the reader
-leaf on `:50051` plus a
-positive writer control on `:50051`; the reader must also succeed on `:50052`.
-A successful reader-to-writer handshake is a hard stop: unset the variable and
-rotate both client roots before proceeding.
+Read back names and metadata only: the NativeLink ExternalSecret must be Ready
+with a present refresh time and Secret resourceVersion, and the deliberate
+NativeLink rollout above must be Available. Do not require a resourceVersion
+change for this initial same-data projection: ESO may correctly leave an
+unchanged Secret untouched. A later rotation must capture both values before
+changing the OpenBao record, force-sync ESO, and require both values to advance
+before restarting NativeLink.
+
+`openssl s_client` is diagnostic only: a generic failure can be DNS, outage,
+timeout, or server-CA failure and does **not** prove reader-to-writer isolation.
+Activation remains blocked by issue #1551 until a fresh runner records a typed
+mTLS rejection of the reader leaf on `:50051` plus a positive writer control on
+`:50051`; the reader must also succeed on `:50052`. A successful
+reader-to-writer handshake is a hard stop: unset the variable and rotate both
+client roots before proceeding.
 
 ## The auth-delegator / `disable_local_ca_jwt` invariant (read this first)
 
