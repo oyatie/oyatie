@@ -626,45 +626,12 @@ jobs:
   cache-writer-identity:
     name: cache-writer identity (trusted dev push only)
     if: ${{ vars.OYA_CAS_IDENTITY_PROOF_ENABLED == 'true' && github.event_name == 'push' && github.ref == 'refs/heads/dev' }}
-    runs-on: oya-arm64
-    timeout-minutes: 120
+    uses: ./.github/workflows/cache-integrity-canary.yml
     permissions:
       contents: read
       id-token: write
-    env:
-      OYA_OPENBAO_ADDR: https://openbao.oya-kms.svc:8202
-      OYA_OPENBAO_CA_CERT: /etc/openbao/ca/ca.crt
-      OYA_CACHE_TLS_SERVER_CA_CERT: /etc/nativelink/ca/ca.crt
-      OYA_CAS_IDENTITY_PROOF_ENABLED: ${{ vars.OYA_CAS_IDENTITY_PROOF_ENABLED }}
-    steps:
-      - name: Bind short-lived identity paths to RUNNER_TEMP
-        run: |
-          echo "OYA_CACHE_TLS_CLIENT_CERT=${RUNNER_TEMP}/oya-cache-writer.pem" >> "${GITHUB_ENV}"
-          echo "OYA_CACHE_TLS_CA_CERTS=${RUNNER_TEMP}/oya-cache-server-ca.pem" >> "${GITHUB_ENV}"
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          persist-credentials: false
-      - name: Install buck2 (digest-pinned prebuilt release)
-        run: infra/ci/install-buck2.sh
-      - name: Exchange GitHub OIDC for short-lived CAS writer identity
-        run: |
-          set -euo pipefail
-          rustup toolchain install
-          buck2 run //ci/facade/build-cache-policy:oya-cloud-ci-cache-wiring-bin -- issue-identity \
-            --role github-cas-writer-dev-push \
-            --pki-mount pki_cas_writer \
-            --pki-role cas-writer \
-            --uri-san spiffe://oyatie.dev/ci/cas-writer
-      - name: Seed the complete pinned canary target set
-        run: |
-          set -euo pipefail
-          buck2 run //ci/facade/build-cache-policy:oya-cloud-ci-cache-wiring-bin -- canary-targets > "${RUNNER_TEMP}/canary-targets"
-          buck2 run //ci/facade/build-cache-policy:oya-cloud-ci-cache-wiring-bin -- run \
-            --build-class postmerge-dev-trunk --prelicense-seed --mode-out "${RUNNER_TEMP}/cache-mode" -- \
-            buck2 --isolation-dir canary-writer build @"${RUNNER_TEMP}/canary-targets"
-      - name: Remove short-lived cache identity
-        if: always()
-        run: rm -f "${OYA_CACHE_TLS_CLIENT_CERT}" "${OYA_CACHE_TLS_CA_CERTS}"
+    with:
+      writer_seed: true
   # ── BINDING WORKSPACE COVERAGE (ADR-0554, FRIC-1781310000). Closes the largest false-green
   #    channel: the buck2 lane above is scoped to //ci/..., so code anywhere else
   #    (oya/*, libs/*, cloud/* services) could merge broken — proven live by PR #651 head

@@ -6,7 +6,8 @@
 //!
 //! Subcommands:
 //!   resolve --build-class C [--require-bypass]
-//!   run (--build-class C | --warm-probe) [--prelicense-seed] [--mode-out PATH] -- COMMAND [ARG...]
+//!   run (--build-class C | --warm-probe | --workflow-mode reader|writer)
+//!       [--prelicense-seed] [--prelicense-probe true|false] [--mode-out PATH] -- COMMAND [ARG...]
 //!   license-state                       (prints `warm_licensed=<bool>` for $GITHUB_OUTPUT)
 //!   report --record PATH --build-class C [--mode M] [--out PATH]
 //!   assert-warm --record PATH --build-class C --mode M
@@ -46,6 +47,19 @@ fn flag_value(args: &[String], flag: &str) -> Option<String> {
 
 fn has_flag(args: &[String], flag: &str) -> bool {
     args.iter().any(|a| a == flag)
+}
+
+fn bool_flag_value(args: &[String], flag: &str) -> Result<bool, String> {
+    let Some(index) = args.iter().position(|argument| argument == flag) else {
+        return Ok(false);
+    };
+    match args.get(index + 1).map(String::as_str) {
+        Some("true") => Ok(true),
+        Some("false") => Ok(false),
+        Some(value) if value.starts_with("--") => Ok(true),
+        None => Ok(true),
+        Some(value) => Err(format!("{flag} must be `true` or `false`, got `{value}`")),
+    }
 }
 
 fn read_json(path: &str) -> Result<Value, String> {
@@ -302,6 +316,58 @@ fn issue_identity(options: &[String]) -> Result<(), String> {
     Ok(())
 }
 
+fn fixed_identity_options(mode: &str) -> Result<Vec<String>, String> {
+    let values = match mode {
+        "reader" => [
+            "github-cas-reader-integrity-canary",
+            "pki_cas_reader",
+            "cas-reader",
+            "spiffe://oyatie.dev/ci/cas-reader",
+        ],
+        "writer" => [
+            "github-cas-writer-dev-push",
+            "pki_cas_writer",
+            "cas-writer",
+            "spiffe://oyatie.dev/ci/cas-writer",
+        ],
+        other => {
+            return Err(format!(
+                "--workflow-mode must be `reader` or `writer`, got `{other}`"
+            ));
+        }
+    };
+    Ok([
+        "--role",
+        values[0],
+        "--pki-mount",
+        values[1],
+        "--pki-role",
+        values[2],
+        "--uri-san",
+        values[3],
+    ]
+    .into_iter()
+    .map(str::to_string)
+    .collect())
+}
+
+fn remove_identity_files() -> Result<(), String> {
+    let mut failures = Vec::new();
+    for name in [app::CLIENT_CERT_ENV, app::TLS_CA_CERTS_ENV] {
+        let path = PathBuf::from(required_env(name)?);
+        if let Err(error) = fs::remove_file(&path)
+            && error.kind() != std::io::ErrorKind::NotFound
+        {
+            failures.push(format!("remove {}: {error}", path.display()));
+        }
+    }
+    if failures.is_empty() {
+        Ok(())
+    } else {
+        Err(failures.join("; "))
+    }
+}
+
 fn run(args: Vec<String>) -> Result<ExitCode, String> {
     let Some(command) = args.first().cloned() else {
         return Err(
@@ -347,7 +413,14 @@ fn run(args: Vec<String>) -> Result<ExitCode, String> {
             let root = repo_root()?;
             let policy = app::load_policy(&root)?;
             let license = app::load_license(&root)?;
-            let resolution = if has_flag(options, "--prelicense-seed") {
+            let workflow_mode = flag_value(options, "--workflow-mode");
+            let workflow_identity = workflow_mode
+                .as_deref()
+                .map(fixed_identity_options)
+                .transpose()?;
+            let resolution = if workflow_mode.as_deref() == Some("writer")
+                || has_flag(options, "--prelicense-seed")
+            {
                 let trusted_seed = std::env::var("GITHUB_EVENT_NAME").as_deref() == Ok("push")
                     && std::env::var("GITHUB_REF").as_deref() == Ok("refs/heads/dev")
                     && std::env::var("OYA_CAS_IDENTITY_PROOF_ENABLED").as_deref() == Ok("true");
@@ -365,12 +438,15 @@ fn run(args: Vec<String>) -> Result<ExitCode, String> {
                             .to_string(),
                     ],
                 }
-            } else if has_flag(options, "--warm-probe") {
+            } else if workflow_mode.as_deref() == Some("reader")
+                || has_flag(options, "--warm-probe")
+            {
                 let licensed = license
                     .get("warm_reads_licensed")
                     .and_then(Value::as_bool)
                     .unwrap_or(false);
-                let prelicense = has_flag(options, "--prelicense-probe")
+                let prelicense_requested = bool_flag_value(options, "--prelicense-probe")?;
+                let prelicense = prelicense_requested
                     && std::env::var("GITHUB_EVENT_NAME").as_deref() == Ok("workflow_dispatch")
                     && std::env::var("GITHUB_REF").as_deref() == Ok("refs/heads/dev");
                 if !licensed && !prelicense {
@@ -399,7 +475,25 @@ fn run(args: Vec<String>) -> Result<ExitCode, String> {
                 fs::write(&path, format!("{}\n", resolution.mode))
                     .map_err(|error| format!("write {path}: {error}"))?;
             }
-            controlled_child(&root, &resolution, child)
+            let Some(identity) = workflow_identity else {
+                return controlled_child(&root, &resolution, child);
+            };
+            if let Err(error) = issue_identity(&identity) {
+                let cleanup = remove_identity_files();
+                return Err(match cleanup {
+                    Ok(()) => error,
+                    Err(cleanup) => format!("{error}; identity cleanup also failed: {cleanup}"),
+                });
+            }
+            let child_result = controlled_child(&root, &resolution, child);
+            let cleanup = remove_identity_files();
+            match (child_result, cleanup) {
+                (Ok(code), Ok(())) => Ok(code),
+                (Err(error), Ok(())) | (Ok(_), Err(error)) => Err(error),
+                (Err(error), Err(cleanup)) => {
+                    Err(format!("{error}; identity cleanup also failed: {cleanup}"))
+                }
+            }
         }
         "license-state" => {
             let root = repo_root()?;
@@ -575,6 +669,36 @@ fn main() -> ExitCode {
 mod tests {
     use super::*;
     use serde_json::json;
+
+    #[test]
+    fn workflow_boolean_flags_are_explicit_and_fail_closed() {
+        let true_value = vec!["--prelicense-probe".into(), "true".into()];
+        let false_value = vec!["--prelicense-probe".into(), "false".into()];
+        let valueless = vec!["--prelicense-probe".into(), "--mode-out".into()];
+        let invalid_value = vec!["--prelicense-probe".into(), "yes".into()];
+
+        assert!(bool_flag_value(&true_value, "--prelicense-probe").unwrap());
+        assert!(!bool_flag_value(&false_value, "--prelicense-probe").unwrap());
+        assert!(bool_flag_value(&valueless, "--prelicense-probe").unwrap());
+        assert!(!bool_flag_value(&[], "--prelicense-probe").unwrap());
+        assert!(bool_flag_value(&invalid_value, "--prelicense-probe").is_err());
+    }
+
+    #[test]
+    fn workflow_modes_select_only_the_fixed_reader_and_writer_identities() {
+        let reader = fixed_identity_options("reader").unwrap();
+        let writer = fixed_identity_options("writer").unwrap();
+
+        assert_eq!(reader[1], "github-cas-reader-integrity-canary");
+        assert_eq!(reader[3], "pki_cas_reader");
+        assert_eq!(reader[5], "cas-reader");
+        assert_eq!(reader[7], "spiffe://oyatie.dev/ci/cas-reader");
+        assert_eq!(writer[1], "github-cas-writer-dev-push");
+        assert_eq!(writer[3], "pki_cas_writer");
+        assert_eq!(writer[5], "cas-writer");
+        assert_eq!(writer[7], "spiffe://oyatie.dev/ci/cas-writer");
+        assert!(fixed_identity_options("other").is_err());
+    }
 
     #[test]
     fn canary_verdict_accepts_wrapped_warm_invocation_record() {
