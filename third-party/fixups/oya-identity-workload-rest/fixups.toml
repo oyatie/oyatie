@@ -1,4 +1,0 @@
-[buildscript]
-# Compiles workload.proto using tonic_prost_build; protoc sourced from protoc-bin-vendored.
-# run=true required.
-run = true

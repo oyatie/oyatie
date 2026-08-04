@@ -1,2 +1,0 @@
-[pid 1] syscall 161 -> -38
-[pid 1] syscall 198 -> -38

@@ -1,9 +1,0 @@
-rust_binary(
-    name = "oya-governance-dependency-status-lifecycle-app",
-    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
-    crate_root = "src/main.rs",
-    visibility = ["PUBLIC"],
-    deps = [
-        "//libs/oya-governance-lifecycle-kernel:oya-governance-lifecycle-kernel",
-    ],
-)

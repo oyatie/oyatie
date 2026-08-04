@@ -1,7 +1,0 @@
-microservice: "observability"
-postgresHost: "observability-postgres-primary.observability.svc.cluster.local"
-postgresPort: 5432
-postgresDatabase: "observability"
-postgresUserSecret: "observability-postgres-admin"
-extensionVersion: "2.26.4"
-hypertables: []

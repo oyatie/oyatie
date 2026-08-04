@@ -1,8 +1,0 @@
-node_modules/
-dist/
-.vinxi/
-.output/
-*.local
-generated/*
-!generated/.gitkeep
-app.config.timestamp_*.js

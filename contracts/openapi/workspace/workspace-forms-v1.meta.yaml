@@ -1,7 +1,0 @@
-tier: preview
-owner_team: axis-workspace
-version: 1.0.0
-sunset: none
-related_adrs:
-  - ADR-0029
-  - ADR-0037

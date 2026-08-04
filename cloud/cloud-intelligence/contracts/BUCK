@@ -1,8 +1,0 @@
-rust_test(
-    name = "xproxy-contract-parity-test",
-    srcs = glob(["tests/**/*.rs", "*.yaml", "*.proto"]),
-    crate = "cloud_intelligence_xproxy_contract_parity_test",
-    crate_root = "tests/xproxy_contract_parity.rs",
-    visibility = ["PUBLIC"],
-    deps = [],
-)

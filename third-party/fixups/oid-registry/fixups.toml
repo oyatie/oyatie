@@ -1,4 +1,0 @@
-[buildscript]
-# Generates oid_db.rs from assets/oid_db.txt using include!()'d helper in src/load.rs.
-# Output .rs file is written to OUT_DIR/oid_db.rs. run=true required.
-run = true

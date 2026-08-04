@@ -1,7 +1,0 @@
-tier: preview
-owner_team: platform-metering
-version: 1.0.0
-sunset: none
-related_adrs:
-  - ADR-0005 eventing backbone outbox pattern
-  - ADR-0011 cross-axis contract registry

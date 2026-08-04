@@ -1,9 +1,0 @@
-# rustix selects its backend (libc vs linux_raw) and OS family cfgs via its build script.
-# On macOS aarch64 it needs: libc, apple, bsd cfgs (+ nightly feature probes).
-# Run the build script with the required CARGO_CFG_TARGET_* env vars so all cfgs
-# are emitted correctly.
-
-[buildscript.run]
-# CARGO_CFG_TARGET_* vars needed by rustix build.rs to detect backend + OS family.
-# buildscript_run provides TARGET but not the decomposed CARGO_CFG_TARGET_* vars.
-env = { CARGO_CFG_TARGET_OS = "macos", CARGO_CFG_TARGET_ARCH = "aarch64", CARGO_CFG_TARGET_ENV = "", CARGO_CFG_TARGET_ABI = "", CARGO_CFG_TARGET_ENDIAN = "little", CARGO_CFG_TARGET_POINTER_WIDTH = "64" }

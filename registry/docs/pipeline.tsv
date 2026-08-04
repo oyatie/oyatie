@@ -1,7 +1,0 @@
-step_id	documented_command	state	check_command	scope_path	rationale
-rustdoc	oya doc rustdoc	active	cargo run -p oya-dev-cli -- doc rustdoc	crates	active bootstrap rustdoc parity
-openapi	oya doc openapi	active	cargo run -p oya-dev-cli -- doc openapi	contracts	active contract source/runtime/schema parity
-mdbook	oya doc mdbook	active	cargo run -p oya-dev-cli -- doc mdbook	docs/site	active committed site source validation
-adr-index	oya doc adr-index	active	cargo run -p oya-dev-cli -- doc adr-index	docs/decisions	active ADR index mirror validation
-catalog	oya doc catalog	active	cargo run -p oya-dev-cli -- catalog validate	registry/catalog	active catalog registry validation
-lint	oya doc lint	active	cargo run -p oya-dev-cli -- gate validate doc-catalog	docs	active doc catalog source coverage

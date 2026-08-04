@@ -1,4 +1,0 @@
-[buildscript]
-# Compiles a C file only on Windows targets; immediately returns on macOS/Linux.
-# run=true is safe — on aarch64-apple-darwin the build script is a noop.
-run = true

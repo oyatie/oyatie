@@ -1,6 +1,0 @@
-rust_binary(
-    name = "oya-adapter-substitution-test-app",
-    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
-    crate_root = "src/main.rs",
-    visibility = ["PUBLIC"],
-)

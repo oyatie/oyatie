@@ -1,7 +1,0 @@
-rust_library(
-    name = "tenancy-sub-scope-registry",
-    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
-    crate = "tenancy_sub_scope_registry",
-    crate_root = "src/lib.rs",
-    visibility = ["PUBLIC"],
-)
