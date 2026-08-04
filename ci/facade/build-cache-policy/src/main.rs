@@ -1667,15 +1667,9 @@ mod tests {
             .is_err()
         );
         let entries = app::manifest_from_json(&manifest).unwrap();
-        let provenance = validate_writer_receipt_from(
-            &receipt,
-            &manifest,
-            &entries,
-            &entries,
-            "42",
-            reader_env,
-        )
-        .unwrap();
+        let provenance =
+            validate_writer_receipt_from(&receipt, &manifest, &entries, &entries, "42", reader_env)
+                .unwrap();
         assert_eq!(provenance["github_run_id"], "42");
         assert_eq!(provenance["runner_pod_uid"], "writer-uid");
 
