@@ -306,6 +306,50 @@ mTLS rejection of the reader leaf on `:50051` plus a positive writer control on
 reader-to-writer handshake is a hard stop: unset the variable and rotate both
 client roots before proceeding.
 
+### DARK ARC-to-OpenBao network proof
+
+`infra/arc/cas-network-proof.k8s.yaml` is deliberately unregistered in GitOps
+and its Job is suspended. It reuses the exact general ARC policy labels and
+public OpenBao CA, but carries no Kubernetes token, OpenBao token, Secret read,
+or client key. Activation remains off until a later reviewed change supplies a
+trusted Hubble Relay observation path; this repository does not add an unpinned
+Hubble client image merely to make the declaration look executable.
+
+Before an authorized activation, prove all of these conditions in one bounded
+receipt or fail closed:
+
+1. Talos declares `cluster.network.cni.name=none`, Cilium is Ready on every node,
+   and the live Cilium ConfigMap reports `enable-policy=default`, never `never`.
+   If Flannel is live, stop and rebuild/reprovision the disposable cell from the
+   canonical Talos+Cilium declarations. Do not claim or attempt an in-place
+   Flannel migration.
+2. Service `oya-kms/openbao` has an EndpointSlice with at least one endpoint
+   whose `conditions.ready` and `conditions.serving` are both `true`, whose
+   `conditions.terminating` is `false` or absent, and whose ports include `8200`
+   and `8202`. A connection timeout without this readback is not network-policy
+   proof.
+3. Unsuspend exactly Job `arc-runners/cas-network-proof-probe`. Its Pod must have
+   `automountServiceAccountToken:false` and the exact three labels from the
+   general ARC scale set. Preserve its start time, Pod name, logs, and finish
+   time; do not exec into it.
+4. The same Pod log must contain both `plaintext_8200=connection_failed` and
+   `tls_8202_health=success`. The first value is a neutral observation, never a
+   denial verdict: DNS, routing, outage, or timeout can all produce it.
+5. Within that Pod's recorded time window, the exact raw Hubble JSON flow record
+   must have both `verdict == "DROPPED"` and
+   `drop_reason_desc == "POLICY_DENIED"`, correlated to the exact source Pod and
+   destination TCP port `8200`; its destination IP must equal an address from
+   the healthy OpenBao EndpointSlice validated in step 2. An aggregate, either
+   field alone, a different destination IP, a flow from another Pod, a different
+   port, or a record outside the time window is not evidence.
+
+This DARK slice adds no verifier ServiceAccount, RBAC, `pods/log`, exec, proxy,
+or port-forward authority. The current repository has no reviewed,
+digest-pinned Hubble CLI image, so a trusted operator must provide an existing
+read-only connection to `hubble-relay` before activation. Delete the completed
+Job after the receipt is captured. This network proof does not license CAS warm
+reads or remote execution.
+
 ## The auth-delegator / `disable_local_ca_jwt` invariant (read this first)
 
 The whole binding hinges on **one** OpenBao config flag:
