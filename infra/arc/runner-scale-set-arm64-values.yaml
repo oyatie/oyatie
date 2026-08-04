@@ -106,6 +106,9 @@ template:
           - name: openbao-ca
             mountPath: /etc/openbao/ca
             readOnly: true
+          - name: nativelink-server-ca
+            mountPath: /etc/nativelink/ca
+            readOnly: true
         # General-purpose candidate runners receive no database administrative
         # credential. Live PostgreSQL coverage runs in the dedicated per-job
         # sidecar cell declared by runner-scale-set-live-postgres-arm64-values.yaml.
@@ -137,6 +140,11 @@ template:
       - name: openbao-ca
         configMap:
           name: openbao-offline-root-ca
+          optional: true
+      - name: nativelink-server-ca
+        configMap:
+          name: nativelink-server-ca
+          optional: true
       - name: workspace
         ephemeral:
           volumeClaimTemplate:

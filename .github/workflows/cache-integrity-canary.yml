@@ -65,6 +65,7 @@ jobs:
     env:
       OYA_OPENBAO_ADDR: https://openbao.oya-kms.svc:8202
       OYA_OPENBAO_CA_CERT: /etc/openbao/ca/ca.crt
+      OYA_CACHE_TLS_SERVER_CA_CERT: /etc/nativelink/ca/ca.crt
     # OWNED FLEET. This canary has NEVER been green — and not because the cold build fails.
     # Every scheduled run terminates with steps=0: the job never entered its body, so it failed
     # ADMISSION, not verification. Probed 30523904142 / 30433843967 / 30340384915 / 30251411018 /
@@ -87,7 +88,7 @@ jobs:
       - name: Bind short-lived identity paths to RUNNER_TEMP
         run: |
           echo "OYA_CACHE_TLS_CLIENT_CERT=${RUNNER_TEMP}/oya-cache-reader.pem" >> "${GITHUB_ENV}"
-          echo "OYA_CACHE_TLS_CA_CERTS=${RUNNER_TEMP}/oya-cache-ca.pem" >> "${GITHUB_ENV}"
+          echo "OYA_CACHE_TLS_CA_CERTS=${RUNNER_TEMP}/oya-cache-server-ca.pem" >> "${GITHUB_ENV}"
       # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -143,11 +144,12 @@ jobs:
           set -euo pipefail
           buck2 run //ci/facade/build-cache-policy:oya-cloud-ci-cache-wiring-bin -- license-state >> "$GITHUB_OUTPUT"
       - name: Exchange GitHub OIDC for short-lived CAS reader identity
-        if: steps.license.outputs.warm_licensed == 'true' || (github.event_name == 'workflow_dispatch' && inputs.prelicense_probe)
+        if: vars.OYA_CAS_IDENTITY_PROOF_ENABLED == 'true' && (steps.license.outputs.warm_licensed == 'true' || (github.event_name == 'workflow_dispatch' && inputs.prelicense_probe))
         run: |
           set -euo pipefail
           buck2 run //ci/facade/build-cache-policy:oya-cloud-ci-cache-wiring-bin -- issue-identity \
             --role github-cas-reader-integrity-canary \
+            --pki-mount pki_cas_reader \
             --pki-role cas-reader \
             --uri-san spiffe://oyatie.dev/ci/cas-reader
       # WARM PROBE — activates at CAS bring-up (license flips true after the first
@@ -158,7 +160,7 @@ jobs:
       # never touched the cache (assert-cold proved it). The reader mTLS identity
       # arrives via secret-mounted env, never the repo.
       - name: Warm-probe fetch (read-only; skipped while unlicensed)
-        if: steps.license.outputs.warm_licensed == 'true' || (github.event_name == 'workflow_dispatch' && inputs.prelicense_probe)
+        if: vars.OYA_CAS_IDENTITY_PROOF_ENABLED == 'true' && (steps.license.outputs.warm_licensed == 'true' || (github.event_name == 'workflow_dispatch' && inputs.prelicense_probe))
         run: |
           set -euo pipefail
           PRELICENSE_ARG=()

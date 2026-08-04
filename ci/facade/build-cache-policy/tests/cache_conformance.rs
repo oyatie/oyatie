@@ -976,7 +976,9 @@ fn workflows_exchange_oidc_only_for_trusted_jobs_and_never_use_static_cert_secre
     for binding in [
         "ACTIONS_ID_TOKEN_REQUEST_URL",
         "/v1/auth/jwt/login",
-        "/v1/pki_int/issue/{pki_role}",
+        "/v1/{pki_mount}/issue/{pki_role}",
+        "identity role, PKI mount, PKI role, and URI SAN do not match a trusted tuple",
+        "CACHE_SERVER_CA_ENV",
         "write_private_file",
     ] {
         assert!(
@@ -1000,9 +1002,13 @@ fn workflows_exchange_oidc_only_for_trusted_jobs_and_never_use_static_cert_secre
         .and_then(|tail| tail.split("  gate-affected-target-set:").next())
         .expect("trusted writer identity job");
     assert!(writer.contains("github.event_name == 'push'") && writer.contains("refs/heads/dev"));
+    assert!(writer.contains("vars.OYA_CAS_IDENTITY_PROOF_ENABLED == 'true'"));
     assert!(writer.contains("id-token: write"));
     assert!(writer.contains(" issue-identity \\"));
     assert!(writer.contains("--role github-cas-writer-dev-push"));
+    assert!(writer.contains("--pki-mount pki_cas_writer"));
+    assert!(writer.contains("--prelicense-seed"));
+    assert!(writer.contains("OYA_CACHE_TLS_SERVER_CA_CERT: /etc/nativelink/ca/ca.crt"));
     assert!(writer.contains("if: always()") && writer.contains("rm -f"));
     let fan_in = required
         .split("  oya-ci-required:")
@@ -1023,6 +1029,9 @@ fn workflows_exchange_oidc_only_for_trusted_jobs_and_never_use_static_cert_secre
     let canary = std::fs::read_to_string(root.join(CANARY_WORKFLOW_PATH)).unwrap();
     assert!(canary.contains("id-token: write"));
     assert!(canary.contains("--role github-cas-reader-integrity-canary"));
+    assert!(canary.contains("--pki-mount pki_cas_reader"));
+    assert!(canary.contains("vars.OYA_CAS_IDENTITY_PROOF_ENABLED == 'true'"));
+    assert!(canary.contains("OYA_CACHE_TLS_SERVER_CA_CERT: /etc/nativelink/ca/ca.crt"));
     assert!(canary.contains("prelicense_probe:"));
     assert!(canary.contains("--prelicense-probe"));
     assert!(canary.contains("OYA_CACHE_TLS_CLIENT_CERT=${RUNNER_TEMP}/oya-cache-reader.pem"));

@@ -8,6 +8,16 @@ metadata:
 data:
   ca.crt: ""
 ---
+# NativeLink's server CA is an independent trust anchor. It validates the CAS
+# server only; it neither authenticates OpenBao nor authorizes CAS clients.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nativelink-server-ca
+  namespace: arc-runners
+data:
+  ca.crt: ""
+---
 apiVersion: v1
 kind: ConfigMap
 metadata:
