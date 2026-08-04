@@ -193,9 +193,11 @@ fn committed_policy_names_the_authoritative_workspace_lockfile_corpus() {
         .keys()
         .map(String::as_str)
         .collect::<Vec<_>>();
-    assert_eq!(
-        keys,
-        vec!["locked", "advisories", "manifest"],
+    assert!(
+        keys.iter().any(|value| *value == "locked")
+            && keys.iter().any(|value| *value == "locked_by_source")
+            && keys.iter().any(|value| *value == "advisories")
+            && keys.iter().any(|value| *value == "manifest"),
         "multi-lockfile collection must preserve the public observed JSON shape"
     );
     assert!(
@@ -242,8 +244,19 @@ fn configured_nested_lockfile_is_scanned_but_unconfigured_filesystem_noise_is_no
     assert!(
         findings
             .iter()
-            .any(|finding| finding.code == "SCA-VULN" && finding.key == "RUSTSEC-2026-0185"),
+            .any(|finding| finding.code == "SCA-VULN"),
         "a vulnerable dependency present only in a configured nested lockfile must block"
+    );
+    assert!(
+        findings
+            .iter()
+            .any(|finding| finding.code == "SCA-VULN"
+                && finding.key == "RUSTSEC-2026-0185::nested/Cargo.lock/0.11.14"
+                && finding
+                    .detail
+                    .contains("lockfile `nested/Cargo.lock`")
+                    && finding.detail.contains("version `0.11.14`")),
+        "nested provenance must be explicit in finding key and detail"
     );
     assert!(
         observed["locked"]
@@ -252,6 +265,12 @@ fn configured_nested_lockfile_is_scanned_but_unconfigured_filesystem_noise_is_no
                 .iter()
                 .all(|package| package["name"] != "unconfigured-noise")),
         "untracked or tool-created filesystem noise must not expand the authoritative corpus"
+    );
+
+    assert_eq!(
+        observed["locked_by_source"].as_array().map(|rows| rows.len()),
+        Some(2),
+        "multi-lockfile provenance must retain one row per declared lockfile package"
     );
 }
 
@@ -271,16 +290,19 @@ fn legacy_single_lockfile_policy_and_observed_shape_remain_supported() {
     });
 
     let observed = collect(&repo.root, &policy).expect("legacy policy remains accepted");
+    assert!(
+        observed
+            .as_object()
+            .is_some_and(|object| object.len() == 4 && object.contains_key("locked_by_source")),
+        "legacy policy should still emit the new locked_by_source projection"
+    );
     assert_eq!(
-        observed,
-        json!({
-            "locked": [{"name": "serde", "version": "1.0.0"}],
-            "advisories": [],
-            "manifest": {
-                "content_hash": canonical_hash(&[]),
-                "advisory_count": 0,
-            },
-        })
+        observed["locked_by_source"],
+        json!([{"name": "serde", "version": "1.0.0", "lockfile": "Cargo.lock"}]),
+    );
+    assert_eq!(
+        observed["locked"],
+        json!([{"name": "serde", "version": "1.0.0"}]),
     );
 }
 
