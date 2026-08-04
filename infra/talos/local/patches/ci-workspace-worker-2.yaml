@@ -12,10 +12,9 @@ name: ci-workspace-general
 provisioning:
   diskSelector:
     match: "!system_disk && disk.dev_path == '/dev/vdb' && disk.size == 150u * GiB"
-  # Local Path Provisioner does not enforce PVC byte requests. A dedicated
-  # filesystem plus maxRunners=1 is therefore the enforceable blast-radius
-  # boundary: this scale set can fill at most this 48 GiB filesystem and cannot
-  # consume the other scale set's workspace.
+  # Unadmitted rollback reserve. The provisioner's fail-closed nodePathMap does
+  # not expose this path while the general runner is placed on worker 1. Keep it
+  # until the dual-worker rollout is proven; removal is a separate destructive act.
   minSize: 48GiB
   maxSize: 48GiB
 filesystem:

@@ -136,7 +136,8 @@ fn runner_workspace(values: &Value) -> RunnerWorkspace {
 fn validate_capacity_contract(
     runners: &[RunnerWorkspace],
     storage_paths: &BTreeMap<String, String>,
-    filesystems_gib: &BTreeMap<String, u64>,
+    path_nodes: &BTreeMap<String, String>,
+    filesystems_gib: &BTreeMap<(String, String), u64>,
 ) -> Result<(), String> {
     let mut claimed_paths = BTreeSet::new();
     for runner in runners {
@@ -155,12 +156,21 @@ fn validate_capacity_contract(
         if !claimed_paths.insert(path.clone()) {
             return Err(format!("workspace path {path} is shared across scale sets"));
         }
+        let node = path_nodes
+            .get(path)
+            .ok_or_else(|| format!("workspace path {path} is not admitted"))?;
+        if node != &runner.node {
+            return Err(format!(
+                "{} runs on {} but {path} is admitted on {node}",
+                runner.storage_class, runner.node
+            ));
+        }
         let volume_name = path
             .strip_prefix("/var/mnt/")
             .ok_or_else(|| format!("workspace path {path} is outside Talos user volumes"))?;
         let physical_gib = filesystems_gib
-            .get(volume_name)
-            .ok_or_else(|| format!("{path} has no Talos user volume"))?;
+            .get(&(node.clone(), volume_name.to_owned()))
+            .ok_or_else(|| format!("{path} has no Talos user volume on {node}"))?;
         if *physical_gib != 48 {
             return Err(format!("{volume_name} must be physically capped at 48GiB"));
         }
@@ -175,10 +185,23 @@ fn two_scale_sets_are_structurally_bound_to_distinct_physical_filesystems() {
         runner_workspace(&yaml(&root, GENERAL_VALUES)),
         runner_workspace(&yaml(&root, LIVE_POSTGRES_VALUES)),
     ];
+    assert_eq!(
+        runners
+            .iter()
+            .map(|runner| runner.node.as_str())
+            .collect::<BTreeSet<_>>(),
+        BTreeSet::from(["oya-talos-worker-1", "oya-talos-worker-2"]),
+        "the two disk-heavy cells must use distinct workers"
+    );
     for runner in &runners {
-        assert_eq!(runner.node, "oya-talos-worker-2");
         assert_eq!(runner.mount_path, "/home/runner/_work");
     }
+    assert!(
+        yaml(&root, GENERAL_VALUES)
+            .get(Value::String("listenerTemplate".to_owned()))
+            .is_none(),
+        "ARC 0.14.2 rejects a metadata-only listenerTemplate"
+    );
 
     let storage_documents = yaml_documents(&root, "infra/arc/ci-workspace-storage.yaml");
     let storage_paths: BTreeMap<String, String> = storage_documents
@@ -207,44 +230,108 @@ fn two_scale_sets_are_structurally_bound_to_distinct_physical_filesystems() {
     let config: serde_json::Value =
         serde_json::from_str(&string_at(config_map, &["data", "config.json"]))
             .expect("parse local-path config.json");
-    let configured_paths: BTreeSet<String> = config["nodePathMap"][0]["paths"]
+    let path_nodes: BTreeMap<String, String> = config["nodePathMap"]
         .as_array()
-        .expect("nodePathMap paths")
+        .expect("nodePathMap")
         .iter()
-        .map(|path| path.as_str().expect("node path string").to_owned())
-        .collect();
-    assert_eq!(
-        configured_paths,
-        storage_paths.values().cloned().collect(),
-        "every StorageClass path must be admitted by the fail-closed provisioner map"
-    );
-
-    let talos_documents = yaml_documents(
-        &root,
-        "infra/talos/local/patches/ci-workspace-worker-2.yaml",
-    );
-    let filesystems_gib: BTreeMap<String, u64> = talos_documents
-        .iter()
-        .filter(|document| is_kind(document, "UserVolumeConfig"))
-        .map(|document| {
-            assert_eq!(
-                string_at(document, &["provisioning", "diskSelector", "match"]),
-                "!system_disk && disk.dev_path == '/dev/vdb' && disk.size == 150u * GiB"
-            );
-            let min = string_at(document, &["provisioning", "minSize"]);
-            let max = string_at(document, &["provisioning", "maxSize"]);
-            assert_eq!(min, max, "Talos workspace volume must have a fixed size");
-            (
-                string_at(document, &["name"]),
-                min.strip_suffix("GiB")
-                    .expect("Talos size must be GiB")
-                    .parse()
-                    .expect("Talos GiB size must be numeric"),
-            )
+        .flat_map(|mapping| {
+            let node = mapping["node"].as_str().expect("node string").to_owned();
+            mapping["paths"]
+                .as_array()
+                .expect("node paths")
+                .iter()
+                .map(move |path| {
+                    (
+                        path.as_str().expect("node path string").to_owned(),
+                        node.clone(),
+                    )
+                })
         })
         .collect();
+    assert_eq!(
+        path_nodes,
+        BTreeMap::from([
+            (
+                "/var/mnt/ci-workspace-general".to_owned(),
+                "oya-talos-worker-1".to_owned(),
+            ),
+            (
+                "/var/mnt/ci-workspace-live-postgres".to_owned(),
+                "oya-talos-worker-2".to_owned(),
+            ),
+        ]),
+        "every StorageClass path must be admitted by the fail-closed provisioner map"
+    );
+    assert_eq!(
+        path_nodes.keys().cloned().collect::<BTreeSet<_>>(),
+        storage_paths.values().cloned().collect(),
+        "the provisioner map and StorageClasses must admit the same paths"
+    );
 
-    validate_capacity_contract(&runners, &storage_paths, &filesystems_gib)
+    let filesystems_gib: BTreeMap<(String, String), u64> = [
+        (
+            "oya-talos-worker-1",
+            "infra/talos/local/patches/ci-workspace-worker-1.yaml",
+        ),
+        (
+            "oya-talos-worker-2",
+            "infra/talos/local/patches/ci-workspace-worker-2.yaml",
+        ),
+    ]
+    .into_iter()
+    .flat_map(|(node, path)| {
+        yaml_documents(&root, path)
+            .into_iter()
+            .filter_map(move |document| {
+                is_kind(&document, "UserVolumeConfig").then(|| {
+                    assert_eq!(
+                        string_at(&document, &["provisioning", "diskSelector", "match"]),
+                        "!system_disk && disk.dev_path == '/dev/vdb' && disk.size == 150u * GiB"
+                    );
+                    assert_eq!(string_at(&document, &["filesystem", "type"]), "xfs");
+                    let min = string_at(&document, &["provisioning", "minSize"]);
+                    let max = string_at(&document, &["provisioning", "maxSize"]);
+                    assert_eq!(min, max, "Talos workspace volume must have a fixed size");
+                    (
+                        (node.to_owned(), string_at(&document, &["name"])),
+                        min.strip_suffix("GiB")
+                            .expect("Talos size must be GiB")
+                            .parse()
+                            .expect("Talos GiB size must be numeric"),
+                    )
+                })
+            })
+    })
+    .collect();
+    assert_eq!(
+        filesystems_gib,
+        BTreeMap::from([
+            (
+                (
+                    "oya-talos-worker-1".to_owned(),
+                    "ci-workspace-general".to_owned(),
+                ),
+                48,
+            ),
+            (
+                (
+                    "oya-talos-worker-2".to_owned(),
+                    "ci-workspace-general".to_owned(),
+                ),
+                48,
+            ),
+            (
+                (
+                    "oya-talos-worker-2".to_owned(),
+                    "ci-workspace-live-postgres".to_owned(),
+                ),
+                48,
+            ),
+        ]),
+        "worker-2 general volume remains as an unadmitted rollback reserve"
+    );
+
+    validate_capacity_contract(&runners, &storage_paths, &path_nodes, &filesystems_gib)
         .expect("live capacity declaration must be physically isolated");
 
     let provisioner = storage_documents
@@ -271,14 +358,31 @@ fn two_scale_sets_are_structurally_bound_to_distinct_physical_filesystems() {
 fn capacity_evaluator_rejects_overcommit_shared_paths_and_missing_physical_bounds() {
     let runner = |class: &str, max_runners| RunnerWorkspace {
         max_runners,
-        node: "oya-talos-worker-2".to_owned(),
+        node: if class == "general" {
+            "oya-talos-worker-1"
+        } else {
+            "oya-talos-worker-2"
+        }
+        .to_owned(),
         mount_path: "/home/runner/_work".to_owned(),
         storage_class: class.to_owned(),
         requested_gib: 44,
     };
     let filesystems = BTreeMap::from([
-        ("ci-workspace-general".to_owned(), 48),
-        ("ci-workspace-live-postgres".to_owned(), 48),
+        (
+            (
+                "oya-talos-worker-1".to_owned(),
+                "ci-workspace-general".to_owned(),
+            ),
+            48,
+        ),
+        (
+            (
+                "oya-talos-worker-2".to_owned(),
+                "ci-workspace-live-postgres".to_owned(),
+            ),
+            48,
+        ),
     ]);
     let distinct_paths = BTreeMap::from([
         (
@@ -290,10 +394,21 @@ fn capacity_evaluator_rejects_overcommit_shared_paths_and_missing_physical_bound
             "/var/mnt/ci-workspace-live-postgres".to_owned(),
         ),
     ]);
+    let distinct_nodes = BTreeMap::from([
+        (
+            "/var/mnt/ci-workspace-general".to_owned(),
+            "oya-talos-worker-1".to_owned(),
+        ),
+        (
+            "/var/mnt/ci-workspace-live-postgres".to_owned(),
+            "oya-talos-worker-2".to_owned(),
+        ),
+    ]);
     assert!(
         validate_capacity_contract(
             &[runner("general", 2), runner("live", 1)],
             &distinct_paths,
+            &distinct_nodes,
             &filesystems
         )
         .is_err()
@@ -313,17 +428,45 @@ fn capacity_evaluator_rejects_overcommit_shared_paths_and_missing_physical_bound
         validate_capacity_contract(
             &[runner("general", 1), runner("live", 1)],
             &shared_path,
+            &distinct_nodes,
             &filesystems
         )
         .is_err()
     );
 
-    let missing_volume = BTreeMap::from([("ci-workspace-general".to_owned(), 48)]);
+    let missing_volume = BTreeMap::from([(
+        (
+            "oya-talos-worker-1".to_owned(),
+            "ci-workspace-general".to_owned(),
+        ),
+        48,
+    )]);
     assert!(
         validate_capacity_contract(
             &[runner("general", 1), runner("live", 1)],
             &distinct_paths,
+            &distinct_nodes,
             &missing_volume
+        )
+        .is_err()
+    );
+
+    let both_on_worker_2 = BTreeMap::from([
+        (
+            "/var/mnt/ci-workspace-general".to_owned(),
+            "oya-talos-worker-2".to_owned(),
+        ),
+        (
+            "/var/mnt/ci-workspace-live-postgres".to_owned(),
+            "oya-talos-worker-2".to_owned(),
+        ),
+    ]);
+    assert!(
+        validate_capacity_contract(
+            &[runner("general", 1), runner("live", 1)],
+            &distinct_paths,
+            &both_on_worker_2,
+            &filesystems
         )
         .is_err()
     );
@@ -337,11 +480,20 @@ fn cleanup_stalled(now: u64, deletion_timestamp: Option<u64>) -> bool {
 fn cleanup_alert_uses_deletion_delay_not_healthy_job_age() {
     let root = repo_root();
     let rules = yaml(&root, "infra/arc/ci-workspace-alerts.yaml");
-    let cleanup = at(&rules, &["spec", "groups"])
+    let alerts = at(&rules, &["spec", "groups"])
         .as_sequence()
         .expect("rule groups")
         .iter()
         .flat_map(|group| at(group, &["rules"]).as_sequence().expect("rules"))
+        .collect::<Vec<_>>();
+    let node_pressure = alerts
+        .iter()
+        .find(|rule| string_at(rule, &["alert"]) == "OyaCiWorkspaceNodeDiskPressure")
+        .expect("node pressure alert");
+    assert!(string_at(node_pressure, &["expr"]).contains("oya-talos-worker-(1|2)"));
+
+    let cleanup = alerts
+        .iter()
         .find(|rule| string_at(rule, &["alert"]) == "OyaCiWorkspaceCleanupStalled")
         .expect("cleanup alert");
     let expression = string_at(cleanup, &["expr"]);

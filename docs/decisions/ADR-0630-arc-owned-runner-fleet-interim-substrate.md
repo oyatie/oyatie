@@ -116,11 +116,13 @@ limit**. It is temporarily capped at `maxRunners: 1`.
   worker for co-tenants.
 - The build tree is a generic ephemeral PVC mounted at `/home/runner/_work`, not a writable
   layer on Talos `EPHEMERAL`. Each scale set's 44Gi request uses its own StorageClass, path, and
-  fixed 48Gi Talos user-volume filesystem carved from worker-2's otherwise blank `/dev/vdb`.
+  fixed 48Gi Talos user-volume filesystem: general on worker 1 and live PostgreSQL on worker 2,
+  each selected from that worker's exact blank 150Gi `/dev/vdb`.
   Local Path Provisioner does not enforce the advertised claim size, so **no 4Gi reserve is
   claimed**. The enforceable boundary is one runner per scale set plus one separate 48Gi
-  filesystem per set: either runner can fill its own filesystem, but cannot consume the other's
-  workspace or the Talos system filesystem.
+  filesystem per set on distinct nodes: either runner can fill its own filesystem, but cannot
+  consume the other's workspace or the Talos system filesystem. Worker 2's earlier general
+  filesystem remains on disk as an unadmitted rollback reserve and is not a capacity claim.
 - Root `ephemeral-storage` remains bounded at 4Gi/8Gi for image, tool installer, and writable
   layer pressure. A runaway installer is evicted rather than filling the Talos system filesystem.
 - **No CPU limit deliberately**: a throttled compile presents as a flaky slow test, which is
@@ -158,10 +160,11 @@ an unused CAS network capability would widen its blast radius without changing e
 test-fixture isolation, not a production data-plane dependency.
 
 The dedicated set is capped at `maxRunners: 1`, mounts a 44Gi generic-ephemeral workspace from
-its own StorageClass and 48Gi filesystem, and limits root ephemeral storage to 8Gi. Its cap
-serializes the adapter
-and facade jobs even though the workflow keeps them as separate required lanes. Combined with the
-general set's cap, at most one claim can consume each physically separate 48Gi workspace. This
+its own StorageClass and 48Gi filesystem on worker 2, and limits root ephemeral storage to 8Gi.
+Its cap serializes the adapter and facade jobs even though the workflow keeps them as separate
+required lanes. Combined with the
+general set's cap on worker 1, at most one claim can consume each physically and node-separated
+48Gi workspace. This
 declaration is not rollout readiness: issue #1504 must verify the exact-head cold-concurrency
 envelope before closure.
 
@@ -196,10 +199,13 @@ The existing default `local-path` StorageClass and `rancher.io/local-path` contr
 own CNPG, registry, NativeLink, OpenBao, and other stateful data. CI workspaces use a
 second provisioner identity, `oyatie.io/ci-workspace-local-path`, and two StorageClasses,
 `oya-ci-workspace-general` and `oya-ci-workspace-live-postgres`. Its node-path map names only
-`oya-talos-worker-2` and the two distinct Talos mount paths; there is no default path for unlisted
-nodes. Each StorageClass selects exactly one mount path. Both runners select the exact worker
-hostname; `WaitForFirstConsumer` plus the provisioner's no-default node map makes an absent volume
-or wrong-node placement fail closed instead of spilling builds onto stateful storage.
+`oya-talos-worker-1` with `/var/mnt/ci-workspace-general` and `oya-talos-worker-2` with
+`/var/mnt/ci-workspace-live-postgres`; there is no default path for unlisted nodes. Each
+StorageClass selects exactly one mount path, and each runner selects the matching exact worker
+hostname. `WaitForFirstConsumer` plus the provisioner's no-default node map makes an absent volume
+or wrong-node placement fail closed instead of spilling builds onto stateful storage. Worker 2's
+pre-existing `ci-workspace-general` user volume remains an unadmitted rollback reserve: it is not
+listed in `nodePathMap`, may not receive a PVC, and is not deleted or wiped by this change.
 
 The repository declares alerts for DiskPressure, workspace free space, root writable-layer
 growth, eviction, lingering ephemeral PVC cleanup, and ARC startup/queue delay. The local cluster
@@ -210,11 +216,13 @@ rollout evidence.
 
 Rollback first sets both scale sets to `maxRunners: 0` through GitOps and waits for their Pods and
 ephemeral PVCs to disappear. Only then may the workspace storage Application be reverted and,
-after mount readback is empty, the two Talos user volumes removed. Rollback never repoints the existing
-stateful StorageClass, wipes the disk, or restores the unsafe three-runner root-filesystem layout.
+after mount readback is empty, an admitted Talos user volume removed. Worker 2's unadmitted general
+volume remains the non-destructive rollback reserve unless a later reviewed change explicitly
+retires it. Rollback never repoints the existing stateful StorageClass, wipes a disk, or restores
+the unsafe three-runner root-filesystem layout.
 Issue #1504 remains open until exact-head cold maximum-concurrency evidence measures p50/p95/p99
-and proves no DiskPressure or eviction. Worker-2 remains a mixed compute node; a dedicated disk is
-not a dedicated CI cell.
+and proves no DiskPressure or eviction. Both workers remain mixed compute nodes; a dedicated disk
+is not a dedicated CI cell.
 
 ## Alternatives considered
 
@@ -272,6 +280,8 @@ This decision is the justification anchor for `infra/arc/OWNERS`, `infra/arc/BUC
 `infra/arc/live-postgres-runner-network-policy.yaml`,
 `infra/arc/live-postgres-admission-bootstrap.json`, `infra/arc/ci-workspace-storage.yaml`,
 `infra/arc/ci-workspace-alerts.yaml`, `infra/arc/tests/ci_workspace_capacity.rs`,
+`infra/talos/local/patches/BUCK`,
+`infra/talos/local/patches/ci-workspace-worker-1.yaml`,
 `infra/talos/local/patches/ci-workspace-worker-2.yaml`, and the ARC registrations in
 `infra/gitops/values.yaml`.
 
