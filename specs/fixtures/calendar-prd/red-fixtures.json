@@ -10,7 +10,8 @@
   "source_authority_refs": [
     "specs/microservices/calendar.json",
     "specs/microservices/manifests-index.json#microservices[name=calendar]",
-    "oya/calendar/manifest.json"
+    "oya/calendar/manifest.json",
+    "kanban:t_9aca64a9#calendar-source-map-and-backlog"
   ],
   "inventory_context_not_live_authority": [
     "oya/calendar/manifest.json",

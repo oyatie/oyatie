@@ -1,0 +1,424 @@
+{
+  "fixture_plan_id": "HR-GROUP-OPS-SCALE-PLAN-RED-001",
+  "kanban_task": "t_8d0ae2f3",
+  "service": "hr",
+  "status": "high_volume_group_hr_scale_red",
+  "claim_boundary": "Plan/Spec/RED only: no production load test, no GA readiness, no live traffic, and no UI/native implementation are claimed by this high-volume group HR fixture.",
+  "source_authority_refs": [
+    "specs/microservices/hr.json#scope.in_scope_per_wave.GA[high-volume group HR operations]",
+    "specs/microservices/hr.json#acceptance_criteria[AC-01]",
+    "specs/microservices/hr.json#acceptance_criteria[AC-02]",
+    "specs/microservices/hr.json#acceptance_criteria[AC-03]",
+    "specs/microservices/hr.json#acceptance_criteria[AC-04]",
+    "specs/microservices/hr.json#acceptance_criteria[AC-05]",
+    "specs/microservices/hr.json#acceptance_criteria[AC-09]",
+    "specs/microservices/hr.json#acceptance_criteria[AC-12]",
+    "specs/microservices/hr.json#acceptance_criteria[AC-13]",
+    "specs/microservices/hr.json#metrics.employee_lifecycle_policy_bypass_count",
+    "specs/microservices/hr.json#metrics.kr_obligation_trigger_coverage_pct",
+    "specs/microservices/hr.json#metrics.attendance_to_payroll_derivation_accuracy_pct",
+    "specs/microservices/hr.json#metrics.sensitive_hr_read_audit_coverage_pct",
+    "specs/microservices/hr.json#risks[R-01]",
+    "specs/microservices/hr.json#risks[R-02]",
+    "specs/microservices/hr.json#risks[R-03]",
+    "oya/hr/crates/oya-hr-employment-domain/src/lib.rs#EmployeeCreate",
+    "oya/hr/crates/oya-hr-employment-domain/src/lib.rs#LegalEntityWorkforceSnapshot",
+    "oya/hr/crates/oya-hr-employment-domain/src/lib.rs#LeavePayrollImpactInput",
+    "oya/hr/crates/oya-hr-employment-domain/src/lib.rs#SensitiveHrReadInput",
+    "oya/hr/crates/oya-hr-employment-storage-adapter-postgres/tests/storage.rs#postgres_contract_declares_rls_and_rollback_without_runtime_overclaims",
+    "specs/fixtures/hr-cloud-deployment/preview-deployment-evidence-plan.json#rollback_observability_slo",
+    "kanban:t_9daca2db#durable-storage-rls-seam",
+    "kanban:t_53c075b7#preview-cloud-evidence-topology",
+    "kanban:t_c506abc9#hr-user-story-e2e-evidence-plan",
+    "kanban:t_8d0ae2f3#high-volume-group-hr-plan-red"
+  ],
+  "runtime_claims": {
+    "productionLoadTestClaimed": false,
+    "liveTrafficClaimed": false,
+    "gaClaimed": false,
+    "hyperscalerClaimed": false,
+    "uiNativeImplementationClaimed": false,
+    "deployedListenerAttached": false,
+    "runtimeDatabaseAttached": false,
+    "workflowExecutionAttached": false,
+    "payrollCalculationAttached": false,
+    "sensitiveDataFetchAttached": false,
+    "runtimeAuditEmissionAttached": false,
+    "cloudDeploymentEvidenceAttached": false,
+    "generatedJsonHandEdited": false,
+    "releasePleaseAssumed": false
+  },
+  "policy_determinism": {
+    "repeated_replay_required": true,
+    "wall_clock_randomness_allowed": false,
+    "policy": "The same input must produce the same output across repeated high-volume replay runs. Every employee lifecycle, leave/attendance, sensitive-read, and compliance-threshold decision carries an idempotency key, stable ordering, and decision hash so concurrency does not hide policy drift.",
+    "must_reject": [
+      "wall-clock randomness in policy decisions",
+      "unordered batch aggregation that changes decision hash output",
+      "idempotency key collisions across tenants or legal entities"
+    ]
+  },
+  "tenant_legal_entity_isolation": {
+    "cross_tenant_default": "fail_closed",
+    "policy": "Every scenario must preserve tenant_id and legal_entity_id through domain, app, storage/RLS, PDP, and audit evidence. Negative replay must prove cross-tenant and cross-legal-entity requests fail closed with no aggregate leakage.",
+    "must_assert": [
+      "tenant_id is present in every workload item and evidence record",
+      "legal_entity_id is present in lifecycle, leave/attendance, sensitive-read, storage, and audit evidence",
+      "Postgres/RLS and idempotency proof constrains tenant_id plus legal_entity_id",
+      "Tenant/RBAC PDP evidence is required before sensitive-read runtime access",
+      "negative replay rejects cross-tenant and cross-legal-entity records",
+      "no aggregate leakage appears in counters, histograms, logs, traces, or error envelopes"
+    ]
+  },
+  "scale_scenarios": [
+    {
+      "scenario_id": "multi_entity_employee_lifecycle_burst",
+      "scenario_kind": "employee_lifecycle_concurrency_red",
+      "source_authority_refs": [
+        "kanban:t_8d0ae2f3#high-volume-group-hr-plan-red",
+        "specs/microservices/hr.json#acceptance_criteria[AC-01]",
+        "oya/hr/crates/oya-hr-employment-domain/src/lib.rs#EmployeeCreate"
+      ],
+      "load_profile": {
+        "tenants": 3,
+        "legal_entities_per_tenant": 4,
+        "employees_per_legal_entity": 500,
+        "operations": 6000,
+        "production_load": false,
+        "shape": "synthetic burst of create/update/lifecycle-event plans across managers and legal entities"
+      },
+      "must_assert": [
+        "employee lifecycle records keep tenant_id, legal_entity_id, manager, data class, and audit evidence",
+        "idempotency keys remain unique under concurrent employee lifecycle events",
+        "manager reassignment does not cross legal_entity_id boundaries without explicit policy evidence",
+        "audit evidence refs are attached for every lifecycle decision"
+      ],
+      "must_reject": [
+        "employee lifecycle policy bypass count greater than zero",
+        "manager reference from another tenant or legal entity",
+        "missing audit evidence under burst concurrency"
+      ],
+      "future_evidence_refs": [
+        "evidence/performance/hr-group-ops-scale/multi-entity-lifecycle-burst.json"
+      ],
+      "expected_red_status": "RED_UNTIL_PERFORMANCE_BUILD_EVIDENCE_ATTACHED"
+    },
+    {
+      "scenario_id": "leave_attendance_payroll_bridge_load",
+      "scenario_kind": "leave_attendance_payroll_bridge_red",
+      "source_authority_refs": [
+        "kanban:t_8d0ae2f3#high-volume-group-hr-plan-red",
+        "specs/microservices/hr.json#acceptance_criteria[AC-04]",
+        "specs/microservices/hr.json#metrics.attendance_to_payroll_derivation_accuracy_pct"
+      ],
+      "load_profile": {
+        "tenants": 3,
+        "legal_entities_per_tenant": 4,
+        "employees_per_legal_entity": 500,
+        "operations": 4000,
+        "production_load": false,
+        "shape": "synthetic leave, attendance correction, manager routing, and payroll-impact metadata replay"
+      },
+      "must_assert": [
+        "leave and attendance decisions preserve manager approval routing evidence",
+        "payroll-impact envelopes remain metadata-only and carry payroll accuracy evidence refs",
+        "payroll accuracy sampling can replay approved attendance segments without payroll calculation attached",
+        "rulepack and workflow refs stay source-versioned and idempotent"
+      ],
+      "must_reject": [
+        "payroll calculation or network call in this HR scale fixture",
+        "attendance segment accepted without manager decision evidence",
+        "payroll accuracy sample without rulepack or routing evidence"
+      ],
+      "future_evidence_refs": [
+        "evidence/performance/hr-group-ops-scale/leave-attendance-payroll-bridge-load.json"
+      ],
+      "expected_red_status": "RED_UNTIL_PERFORMANCE_BUILD_EVIDENCE_ATTACHED"
+    },
+    {
+      "scenario_id": "sensitive_read_policy_storm",
+      "scenario_kind": "sensitive_read_privacy_concurrency_red",
+      "source_authority_refs": [
+        "kanban:t_8d0ae2f3#high-volume-group-hr-plan-red",
+        "specs/microservices/hr.json#acceptance_criteria[AC-05]",
+        "specs/microservices/hr.json#metrics.sensitive_hr_read_audit_coverage_pct"
+      ],
+      "load_profile": {
+        "tenants": 3,
+        "legal_entities_per_tenant": 4,
+        "employees_per_legal_entity": 500,
+        "operations": 5000,
+        "production_load": false,
+        "shape": "synthetic sensitive-read policy storm for medical/disability/accommodation data classes"
+      },
+      "must_assert": [
+        "sensitive-read decisions require purpose and legal basis before allow",
+        "tenant/RBAC PDP and audit evidence are prerequisites before runtime boundary access",
+        "sensitive-read audit coverage remains 100 percent under concurrency",
+        "no sensitive data fetch or raw sensitive data echo appears in outputs"
+      ],
+      "must_reject": [
+        "sensitive-read allow without purpose or legal basis",
+        "missing read-log audit evidence",
+        "raw sensitive data echo in traces, logs, or error bodies"
+      ],
+      "future_evidence_refs": [
+        "evidence/performance/hr-group-ops-scale/sensitive-read-policy-storm.json"
+      ],
+      "expected_red_status": "RED_UNTIL_PERFORMANCE_BUILD_EVIDENCE_ATTACHED"
+    },
+    {
+      "scenario_id": "compliance_threshold_crossing_batch",
+      "scenario_kind": "kr_threshold_obligation_batch_red",
+      "source_authority_refs": [
+        "kanban:t_8d0ae2f3#high-volume-group-hr-plan-red",
+        "specs/microservices/hr.json#acceptance_criteria[AC-02]",
+        "specs/microservices/hr.json#acceptance_criteria[AC-03]",
+        "specs/microservices/hr.json#metrics.kr_obligation_trigger_coverage_pct"
+      ],
+      "load_profile": {
+        "tenants": 3,
+        "legal_entities_per_tenant": 4,
+        "employees_per_legal_entity": 500,
+        "operations": 3000,
+        "production_load": false,
+        "shape": "synthetic KR legal entities crossing 10 and 30 employee thresholds in batch replay"
+      },
+      "must_assert": [
+        "10 employee threshold opens Rules of Employment Workflow evidence path",
+        "30 employee threshold opens labor-management council roster, meeting cadence, and minutes evidence",
+        "Workflow refs, rulepack refs, and KR evidence refs are stable under batch replay",
+        "KR threshold coverage target remains 100 percent for GA without claiming Workflow execution"
+      ],
+      "must_reject": [
+        "labor-law threshold obligation silently missed",
+        "Workflow execution claim in this RED fixture",
+        "rulepack ref missing from threshold evidence"
+      ],
+      "future_evidence_refs": [
+        "evidence/performance/hr-group-ops-scale/compliance-threshold-crossing-batch.json"
+      ],
+      "expected_red_status": "RED_UNTIL_PERFORMANCE_BUILD_EVIDENCE_ATTACHED"
+    },
+    {
+      "scenario_id": "cross_tenant_negative_replay_load",
+      "scenario_kind": "tenant_legal_entity_negative_replay_red",
+      "source_authority_refs": [
+        "kanban:t_8d0ae2f3#high-volume-group-hr-plan-red",
+        "kanban:t_9daca2db#durable-storage-rls-seam",
+        "oya/hr/crates/oya-hr-employment-storage-adapter-postgres/tests/storage.rs#postgres_reservation_plan_and_commit_refuse_cross_tenant_or_unsafe_keys"
+      ],
+      "load_profile": {
+        "tenants": 3,
+        "legal_entities_per_tenant": 4,
+        "employees_per_legal_entity": 500,
+        "operations": 2000,
+        "production_load": false,
+        "shape": "negative replay that mixes tenant_id, legal_entity_id, idempotency keys, and PDP scope evidence across records"
+      },
+      "must_assert": [
+        "cross-tenant replay must fail closed through RLS and PDP evidence checks",
+        "legal_entity_id mismatch is rejected before persistence or aggregation",
+        "idempotency reservation proof scopes tenant_id plus legal_entity_id",
+        "aggregate counters, SLO slices, and error envelopes show no aggregate leakage"
+      ],
+      "must_reject": [
+        "cross-tenant record accepted",
+        "cross-legal-entity idempotency collision accepted",
+        "tenant or legal entity identifiers omitted from evidence"
+      ],
+      "future_evidence_refs": [
+        "evidence/performance/hr-group-ops-scale/cross-tenant-negative-replay-load.json"
+      ],
+      "expected_red_status": "RED_UNTIL_PERFORMANCE_BUILD_EVIDENCE_ATTACHED"
+    },
+    {
+      "scenario_id": "rollback_observability_slo_saturation_drill",
+      "scenario_kind": "sre_slo_saturation_red",
+      "source_authority_refs": [
+        "kanban:t_8d0ae2f3#high-volume-group-hr-plan-red",
+        "kanban:t_53c075b7#preview-cloud-evidence-topology",
+        "specs/fixtures/hr-cloud-deployment/preview-deployment-evidence-plan.json#rollback_observability_slo"
+      ],
+      "load_profile": {
+        "tenants": 3,
+        "legal_entities_per_tenant": 4,
+        "employees_per_legal_entity": 500,
+        "operations": 2500,
+        "production_load": false,
+        "shape": "synthetic saturation replay defining SLO, rollback, OpenTelemetry, abort, and backpressure evidence expectations"
+      },
+      "must_assert": [
+        "SLO latency and throughput budgets are named before any load success claim",
+        "rollback and abort criteria are explicit before saturation testing",
+        "OpenTelemetry traces, metrics, logs, tenant labels, and legal_entity_id labels are evidence requirements",
+        "saturation drill remains N/A until live deployment evidence exists"
+      ],
+      "must_reject": [
+        "SLO success from green CI alone",
+        "rollback plan missing",
+        "live saturation or production traffic claim"
+      ],
+      "future_evidence_refs": [
+        "evidence/performance/hr-group-ops-scale/rollback-observability-slo-saturation-drill.json"
+      ],
+      "expected_red_status": "RED_UNTIL_PERFORMANCE_BUILD_EVIDENCE_ATTACHED"
+    }
+  ],
+  "evidence_requirements": [
+    {
+      "requirement_id": "synthetic-workload-manifest",
+      "status": "red_until_build_evidence_attached",
+      "expected_evidence_ref": "evidence/performance/hr-group-ops-scale/synthetic-workload-manifest.json",
+      "runtime_evidence_attached": false
+    },
+    {
+      "requirement_id": "fixture-data-provenance",
+      "status": "red_until_build_evidence_attached",
+      "expected_evidence_ref": "evidence/performance/hr-group-ops-scale/fixture-data-provenance.json",
+      "runtime_evidence_attached": false
+    },
+    {
+      "requirement_id": "deterministic-policy-replay",
+      "status": "red_until_build_evidence_attached",
+      "expected_evidence_ref": "evidence/performance/hr-group-ops-scale/deterministic-policy-replay.json",
+      "runtime_evidence_attached": false
+    },
+    {
+      "requirement_id": "tenant-legal-entity-isolation-negative-replay",
+      "status": "red_until_build_evidence_attached",
+      "expected_evidence_ref": "evidence/performance/hr-group-ops-scale/tenant-legal-entity-isolation-negative-replay.json",
+      "runtime_evidence_attached": false
+    },
+    {
+      "requirement_id": "rls-plan-and-idempotency-proof",
+      "status": "red_until_build_evidence_attached",
+      "expected_evidence_ref": "evidence/performance/hr-group-ops-scale/rls-plan-and-idempotency-proof.json",
+      "runtime_evidence_attached": false
+    },
+    {
+      "requirement_id": "sensitive-read-audit-coverage",
+      "status": "red_until_build_evidence_attached",
+      "expected_evidence_ref": "evidence/performance/hr-group-ops-scale/sensitive-read-audit-coverage.json",
+      "runtime_evidence_attached": false
+    },
+    {
+      "requirement_id": "payroll-accuracy-sample",
+      "status": "red_until_build_evidence_attached",
+      "expected_evidence_ref": "evidence/performance/hr-group-ops-scale/payroll-accuracy-sample.json",
+      "runtime_evidence_attached": false
+    },
+    {
+      "requirement_id": "compliance-threshold-coverage",
+      "status": "red_until_build_evidence_attached",
+      "expected_evidence_ref": "evidence/performance/hr-group-ops-scale/compliance-threshold-coverage.json",
+      "runtime_evidence_attached": false
+    },
+    {
+      "requirement_id": "concurrency-conflict-retry-profile",
+      "status": "red_until_build_evidence_attached",
+      "expected_evidence_ref": "evidence/performance/hr-group-ops-scale/concurrency-conflict-retry-profile.json",
+      "runtime_evidence_attached": false
+    },
+    {
+      "requirement_id": "slo-latency-throughput-budget",
+      "status": "red_until_build_evidence_attached",
+      "expected_evidence_ref": "evidence/performance/hr-group-ops-scale/slo-latency-throughput-budget.json",
+      "runtime_evidence_attached": false
+    },
+    {
+      "requirement_id": "saturation-backpressure-profile",
+      "status": "red_until_build_evidence_attached",
+      "expected_evidence_ref": "evidence/performance/hr-group-ops-scale/saturation-backpressure-profile.json",
+      "runtime_evidence_attached": false
+    },
+    {
+      "requirement_id": "rollback-plan-and-abort-criteria",
+      "status": "red_until_build_evidence_attached",
+      "expected_evidence_ref": "evidence/performance/hr-group-ops-scale/rollback-plan-and-abort-criteria.json",
+      "runtime_evidence_attached": false
+    },
+    {
+      "requirement_id": "observability-trace-metric-log-correlation",
+      "status": "red_until_build_evidence_attached",
+      "expected_evidence_ref": "evidence/performance/hr-group-ops-scale/observability-trace-metric-log-correlation.json",
+      "runtime_evidence_attached": false
+    },
+    {
+      "requirement_id": "no-live-production-load-confirmation",
+      "status": "red_until_build_evidence_attached",
+      "expected_evidence_ref": "evidence/performance/hr-group-ops-scale/no-live-production-load-confirmation.json",
+      "runtime_evidence_attached": false
+    }
+  ],
+  "rollout_rollback_observability": {
+    "production_rollout_required": false,
+    "production_rollout_na_rationale": "N/A until live deployment and reviewed performance Build evidence exist; this fixture defines local/synthetic proof only and no production load test.",
+    "slo_policy": "Define SLO latency, p95/p99, throughput, error-rate, saturation, and burn-rate rollback thresholds before any high-volume success claim.",
+    "observability_policy": "OpenTelemetry metrics, traces, logs, service.name=hr, tenant_id, legal_entity_id, scenario_id, and decision hash are required in future evidence.",
+    "rollback_policy": "Rollback and abort criteria must be attached before saturation or load evidence can go green; rollback remains N/A until live deployment exists.",
+    "must_reject": [
+      "green CI alone as performance success",
+      "SLO claim without dashboard and burn-rate evidence",
+      "rollout claim without rollback and abort criteria"
+    ]
+  },
+  "future_build_splits": [
+    {
+      "title": "Build: HR domain/app deterministic group-ops concurrency fixtures",
+      "conflict_class": "product-vertical:erp/hr performance domain-app",
+      "allowed_paths": [
+        "oya/hr/crates/oya-hr-employment-domain/tests/group_ops_scale.rs",
+        "oya/hr/crates/oya-hr-employment-app/tests/group_ops_scale.rs"
+      ],
+      "acceptance": "Add RED/GREEN deterministic replay tests for employee lifecycle, KR threshold, leave/attendance payroll-impact, and sensitive-read policy decisions under synthetic high-volume batches without runtime I/O claims.",
+      "verification": "Run focused Cargo tests for the new HR domain/app group_ops_scale tests, prove repeat replays produce stable decision hashes, and keep sensitive data fetch/payroll calculation/runtime audit emission false.",
+      "review_lenses": ["performance", "privacy", "data-integrity", "architecture"]
+    },
+    {
+      "title": "Build: HR Postgres/RLS idempotency and tenant-isolation load fixtures",
+      "conflict_class": "product-vertical:erp/hr performance storage-rls",
+      "allowed_paths": [
+        "oya/hr/crates/oya-hr-employment-storage-adapter-postgres/tests/group_ops_scale.rs",
+        "evidence/performance/hr-group-ops-scale/storage-rls-replay.json"
+      ],
+      "acceptance": "Exercise storage commit/reservation plans for high-volume HR metadata envelopes, cross-tenant/legal-entity negative replay, RLS SQL shape, and idempotency conflicts without opening a live database connection.",
+      "verification": "Run focused Postgres adapter Cargo tests and this fixture validator; evidence remains synthetic/local with runtimeDatabaseAttached=false and no generated JSON hand edits.",
+      "review_lenses": ["performance", "privacy", "data-integrity", "SRE"]
+    },
+    {
+      "title": "Build: HR runtime/API bounded load replay and SLO non-claim harness",
+      "conflict_class": "product-vertical:erp/hr performance runtime-api",
+      "allowed_paths": [
+        "oya/hr/crates/oya-hr-employment-infrastructure/tests/group_ops_scale.rs",
+        "oya/hr/crates/oya-hr-employment-api/tests/group_ops_scale.rs",
+        "evidence/performance/hr-group-ops-scale/runtime-api-replay.json"
+      ],
+      "acceptance": "Define bounded-body, validation-error, forbidden-sensitive-purpose, and health/SLO replay evidence over current HR API/runtime contracts without deployed listener or live traffic claims.",
+      "verification": "Run focused HR API/runtime tests, json-tool evidence validation, no-overclaim scan, and confirm deployedListenerAttached=false/liveTrafficClaimed=false.",
+      "review_lenses": ["performance", "privacy", "SRE", "API contract"]
+    },
+    {
+      "title": "Integrator: HR group-ops scale evidence registration after review",
+      "conflict_class": "serialized-integrator:shared specs/registry/evidence HR performance",
+      "allowed_paths": [
+        "specs/fixtures/hr-group-ops-scale/replay/**",
+        "registry/catalog/oya-hr-group-ops-scale-*.yaml",
+        "evidence/performance/hr-group-ops-scale/**"
+      ],
+      "acceptance": "Only after review approval, register source-backed scale evidence/catalog rows and replay fixtures with parser-visible conflict metadata, no generated-face edits, no live production load claim, and no Release Please assumption.",
+      "verification": "Run scripts/tests/hr_group_ops_scale_plan_check.py, JSON validation, relevant catalog/schema validators if rows are added, dispatcher dry-run warning scan, and independent review/fix before any rollout or GA claim.",
+      "review_lenses": ["performance", "privacy", "data-integrity", "SRE", "governance"]
+    }
+  ],
+  "review_handoff": {
+    "required_lenses": ["performance", "privacy", "data-integrity", "SRE"],
+    "local_verification": [
+      "python3 scripts/tests/hr_group_ops_scale_plan_check.py",
+      "python3 scripts/tests/hr_group_ops_scale_plan_check.py --self-test",
+      "python3 -m json.tool specs/fixtures/hr-group-ops-scale/high-volume-group-hr-plan.json"
+    ],
+    "production_rollout": "N/A: no live load test, no production traffic, no deployment, no GA, and no UI/native client implementation are performed or claimed by this Plan/Spec/RED fixture.",
+    "route_ui_native_parity_to": "kanban:t_c506abc9 descendants own persona/browser/native evidence; this card covers scale/performance semantics only."
+  }
+}

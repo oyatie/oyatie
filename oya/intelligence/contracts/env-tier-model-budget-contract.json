@@ -1,0 +1,213 @@
+{
+  "schema_version": "1.0",
+  "contract_id": "intelligence-env-tier-model-budget-v1",
+  "status": "plan_spec_red",
+  "doc_class": "Machine-Readable-Contract",
+  "task_refs": [
+    "t_a14a4135",
+    "t_86da510f",
+    "t_732855bf",
+    "t_90f6a9d8",
+    "t_9e9a32a5",
+    "t_e39353e8"
+  ],
+  "source_authority": {
+    "accepted_spec": "specs/tenant-environment-tiers-canonical.json#foundry_integration",
+    "retirement_authority": [
+      "specs/microservices/manifests-index.json#readiness_contracts.multi_region_disposition.foundry_retirement_authority",
+      "specs/microservices/manifests-index.json#microservices[name=foundry]",
+      "specs/microservices/foundry.json",
+      "specs/microservices/intelligence.json#identity.absorbs",
+      "oya/intelligence/manifest.json#absorbed_microservices"
+    ],
+    "tenancy_dependency": "t_732855bf tenancy env-tier API/Cedar contract and its follow-up runtime endpoint lane"
+  },
+  "foundry_integration_redirect": {
+    "accepted_spec_terms": {
+      "test_tier_model_default": "small / cheap",
+      "prod_tier_model_default": "production-grade selection",
+      "cost_budget_per_tier": "enforced in foundry microservice cost-budget.md"
+    },
+    "redirected_owner": "intelligence/cloud-intelligence",
+    "redirect_resolution": "The accepted foundry_integration requirement is preserved as an intelligence metadata contract. It does not revive foundry as a live microservice; ADR-0335-retired foundry responsibilities map to intelligence model-routing, provider-pool, credential-resolver, eval, guardrails, audit-tap, and to the cloud-intelligence gateway for provider ingress budget evidence where applicable.",
+    "forbidden_resurrections": [
+      "new foundry runtime/service/crate",
+      "specs/microservices/foundry.json as live implementation authority",
+      "foundry-owned cost-budget.md as current owner",
+      "oyatie.foundry.* Cedar principal namespace as proof of a live foundry microservice"
+    ],
+    "preserved_namespace_only": "oyatie.foundry.* may remain only as the ADR-0247 Cedar principal namespace recorded in retirement authority."
+  },
+  "claim_ceiling": [
+    "metadata-only contract shape",
+    "no runtime enforcement claim",
+    "no production readiness claim",
+    "no provider call",
+    "no production model traffic",
+    "no hyperscaler maturity claim",
+    "no budget ledger write",
+    "no cloud runtime deployment"
+  ],
+  "owner_surfaces": [
+    {
+      "surface": "intelligence.model-routing",
+      "responsibility": "consume env_tier and choose only model profiles whose default class is allowed for that tier"
+    },
+    {
+      "surface": "intelligence.provider-pool",
+      "responsibility": "expose metadata tags used by model-routing: cheap_or_small, staging_approved, production_grade, non_prod_only, prod_approved"
+    },
+    {
+      "surface": "intelligence.credential-resolver",
+      "responsibility": "resolve credential handles only after env_tier and cost-budget evidence has been validated by upstream domain/usecase layers"
+    },
+    {
+      "surface": "intelligence.eval",
+      "responsibility": "provide eval evidence refs proving prod-tier defaults meet production-grade policy before promotion"
+    },
+    {
+      "surface": "intelligence.guardrails",
+      "responsibility": "fail closed when env_tier, model-default, budget, or policy evidence is missing or mismatched"
+    },
+    {
+      "surface": "cloud-intelligence.gateway",
+      "responsibility": "enforce ingress budget-admission evidence and emit usage/budget metadata without accepting missing or cross-tier evidence"
+    }
+  ],
+  "request_metadata_contract": {
+    "required_fields": [
+      "tenant_id",
+      "env_tier",
+      "model_default_policy_ref",
+      "model_route_registry_snapshot_ref",
+      "tier_cost_budget_policy_ref",
+      "tier_cost_budget_evidence_ref",
+      "policy_decision_ref",
+      "trace_context_ref"
+    ],
+    "env_tier_enum": [
+      "test",
+      "staging",
+      "prod"
+    ],
+    "metadata_only_refs": [
+      "model_default_policy_ref",
+      "model_route_registry_snapshot_ref",
+      "tier_cost_budget_policy_ref",
+      "tier_cost_budget_evidence_ref",
+      "policy_decision_ref",
+      "trace_context_ref"
+    ],
+    "raw_material_forbidden": [
+      "raw prompt",
+      "raw model output",
+      "provider credential bytes",
+      "API keys",
+      "Authorization headers",
+      "unredacted customer content"
+    ],
+    "fail_closed_on_missing_metadata": true
+  },
+  "tier_defaults": {
+    "test": {
+      "env_tier": "test",
+      "model_default_class": "small_cheap",
+      "required_profile_tags": [
+        "cheap_or_small",
+        "sandbox_ok",
+        "non_prod_only"
+      ],
+      "forbidden_profile_tags": [
+        "production_grade_only",
+        "prod_only"
+      ],
+      "budget_policy_ref": "policy:intelligence.env-tier.cost-budget.test.v1",
+      "budget_evidence_required": true,
+      "provider_call_allowed_when_contract_invalid": false,
+      "production_model_traffic_allowed": false,
+      "selection_note": "The accepted small/cheap test-tier default maps to a non-production model profile selected by metadata; it is not permission to send test traffic to production-grade models."
+    },
+    "staging": {
+      "env_tier": "staging",
+      "model_default_class": "promotion_candidate",
+      "required_profile_tags": [
+        "staging_approved",
+        "eval_snapshot_bound"
+      ],
+      "forbidden_profile_tags": [
+        "prod_only_without_promotion_evidence"
+      ],
+      "budget_policy_ref": "policy:intelligence.env-tier.cost-budget.staging.v1",
+      "budget_evidence_required": true,
+      "provider_call_allowed_when_contract_invalid": false,
+      "production_model_traffic_allowed": false,
+      "selection_note": "Staging may evaluate production-candidate profiles only with explicit eval and budget evidence; it does not imply live customer production traffic."
+    },
+    "prod": {
+      "env_tier": "prod",
+      "model_default_class": "production_grade_selection",
+      "required_profile_tags": [
+        "production_grade",
+        "prod_approved",
+        "slo_backed",
+        "eval_gate_passed"
+      ],
+      "forbidden_profile_tags": [
+        "cheap_or_small_only",
+        "sandbox_only",
+        "non_prod_only"
+      ],
+      "budget_policy_ref": "policy:intelligence.env-tier.cost-budget.prod.v1",
+      "budget_evidence_required": true,
+      "provider_call_allowed_when_contract_invalid": false,
+      "production_model_traffic_allowed": true,
+      "selection_note": "Production-grade selection requires policy/eval/budget evidence and remains a contract target until runtime implementation and review gates exist."
+    }
+  },
+  "fail_closed_validation_rules": [
+    {
+      "rule_id": "ENV-TIER-REQUIRED",
+      "denial_reason": "missing_env_tier",
+      "must_block_before": "model-routing candidate selection, credential resolution, gateway provider dispatch"
+    },
+    {
+      "rule_id": "TIER-MODEL-DEFAULT-MATCH",
+      "denial_reason": "wrong_model_default_for_tier",
+      "must_block_before": "provider route selection"
+    },
+    {
+      "rule_id": "TIER-BUDGET-EVIDENCE-REQUIRED",
+      "denial_reason": "missing_per_tier_cost_budget_evidence",
+      "must_block_before": "credential handle issuance and cloud-intelligence ingress dispatch"
+    },
+    {
+      "rule_id": "FOUNDRY-LIVE-AUTHORITY-FORBIDDEN",
+      "denial_reason": "foundry_live_authority_resurrection",
+      "must_block_before": "using retired foundry manifests, crates, or cost-budget docs as live authority"
+    }
+  ],
+  "red_fixture_contract": {
+    "fixture_file": "oya/intelligence/contracts/fixtures/env-tier-model-budget/red-fixtures.json",
+    "required_negative_cases": [
+      "missing_env_tier",
+      "wrong_model_default_by_tier",
+      "missing_per_tier_cost_budget_evidence",
+      "accidental_foundry_live_authority_resurrection"
+    ],
+    "future_green_owner": "a later Build card should convert these fixture cases into Rust/domain or schema tests after this Plan/Spec/RED lane is independently reviewed"
+  },
+  "serialization_requirements": [
+    "intelligence/foundry-retirement docs and manifests serialize with ADR-0335 cleanup lanes",
+    "cloud-intelligence contracts/manifests serialize with gateway budget/provider-routing work",
+    "tenancy API/Cedar env-tier runtime dependency remains upstream of runtime enforcement",
+    "cloud-ci tenant-environment-tier packet is a separate serialized owner",
+    "root-hub/masterplan shared roots are not mutated by this lane",
+    "generated *.generated.json remains producer/materializer-owned and must not be hand edited"
+  ],
+  "verification_plan": [
+    "json-parse this contract and red-fixtures.json",
+    "search scoped intelligence/cloud-intelligence paths for env_tier/test_tier/prod_tier/model_default/cost_budget hooks before and after",
+    "verify foundry references in this contract are redirect/retirement-only and do not claim a live foundry service",
+    "run touched manifest/contract JSON parsing; defer runtime Rust enforcement tests to future Build card"
+  ]
+}

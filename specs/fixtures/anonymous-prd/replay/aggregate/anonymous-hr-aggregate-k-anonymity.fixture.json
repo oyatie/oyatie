@@ -1,0 +1,64 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/anonymous-prd-replay-fixture.schema.json",
+  "allowed_successors": [],
+  "assertions_satisfied": [
+    "employer HR admin gets aggregate-only stats",
+    "k>=10 cohort threshold is enforced",
+    "individual-attribution query returns 403",
+    "no individual attribution is available",
+    "aggregate output omits anonymous_author_token lists",
+    "small-cohort salary benchmark is suppressed",
+    "anonymous crate lives under oya/community/**",
+    "source authority remains specs/microservices/anonymous.json plus PLAN/SPEC and RED parents"
+  ],
+  "build_task": "t_956bcd9c",
+  "claim_boundary": "Build-slice contract replay and pure domain crate only; no standalone anonymous service root, no microservices/anonymous restoration, no generated JSON hand edits, no UI runtime, no deployment, no live SLO, no GA, and no production readiness claim.",
+  "fixture_id": "anonymous_prd_hr_aggregate_k_anonymity_fixture",
+  "fixture_kind": "aggregate_only_contract",
+  "implementation_evidence": {
+    "crate": "oya-community-anonymous",
+    "library": "oya_community_anonymous",
+    "source": "oya/community/crates/oya-community-anonymous/src/lib.rs",
+    "tests": [
+      "hr_admin_gets_aggregates_only_and_small_cohorts_are_suppressed"
+    ],
+    "verification_commands": [
+      "rustc --edition=2024 --test oya/community/crates/oya-community-anonymous/src/lib.rs -o /tmp/oya-community-anonymous-test && /tmp/oya-community-anonymous-test --nocapture",
+      "python3 scripts/tests/anonymous_prd_red_fixture_contract_check.py"
+    ]
+  },
+  "implementation_home": "oya/community/crates/oya-community-anonymous",
+  "negative_cases": [
+    "employer individual-attribution query succeeds",
+    "aggregate dashboard renders cohort smaller than k>=10",
+    "salary benchmark exposes individual entry",
+    "HR dashboard contains anonymous_author_token list",
+    "standalone oya/anonymous service root remains absent",
+    "microservices/anonymous manifest restoration remains absent",
+    "generated JSON hand edits remain absent"
+  ],
+  "parent_plan_spec_task": "t_8da1d130",
+  "parent_red_task": "t_fe98ab0a",
+  "privacy_invariants": [
+    "anonymous posts and salary entries expose anonymous_author_token only",
+    "identity/user_id/employee_id/identity_fk inputs are rejected before persistence",
+    "verification vault token has no post foreign key and is one-time/24h bounded",
+    "HR/employer access returns aggregates only with k>=10, individual attribution denied, and aggregate DTO exposes no anonymous_author_token list",
+    "moderators receive anonymous_author_token only; legal reveal is four-eyes/court-order/HSM/audit gated",
+    "work context is isolated from personal feeds/search/suggestions through Workflow/Ontology mediation"
+  ],
+  "replay_status": "green_after_build_slice_contract_replay",
+  "source_authority_refs": [
+    "specs/microservices/anonymous.json",
+    "specs/microservices/anonymous.json#implementation_source_lock",
+    "specs/microservices/manifests-index.json#microservices[name=anonymous]",
+    "oya/community/manifest.json",
+    "kanban:t_8da1d130#PLAN/SPEC-ANON-001",
+    "oya/community/crates/oya-community-anonymous/src/lib.rs",
+    "oya/community/crates/oya-community-anonymous/Cargo.toml",
+    "kanban:t_956bcd9c#BUILD-ANON-001",
+    "specs/microservices/anonymous.json#acceptance_criteria[AC-ANON-02]",
+    "specs/microservices/anonymous.json#acceptance_criteria[AC-ANON-05]",
+    "specs/microservices/anonymous.json#threat_model.attacker_models.employer_admin"
+  ]
+}

@@ -6,7 +6,7 @@
     "title": "CI-011: shell + CLI retirement inventory",
     "generated_at": "2026-06-30T23:12:39Z",
     "workspace": "/Users/jasonlee/Developer/oyatie",
-    "branch_at_scan": "retired-source-branch-redacted",
+    "branch_at_scan": "preserve/hermes-w1-dirty-20260630",
     "scope": "Executable source surfaces and runner operations in the current worktree. Prose-only documentation mentions and generated JSON faces are counted as references but are not executable operations; nested .worktrees, .git, target, and buck-out are excluded.",
     "authorities": [
       "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
@@ -983,7 +983,7 @@
       "command": "oya-lane-supervisor",
       "surface_family": "local_agent_bridge_cli",
       "classification": "migrate_to_console_api",
-      "retirement_target": "Retired external work-source lane-state controller; remove local JSONL bridge authority.",
+      "retirement_target": "Hermes Kanban / cloud-ci lane-state controller; remove local .omc JSONL bridge authority.",
       "rationale": "Local lane supervisor says merge authority remains cloud-ci; keep only as transitional bridge."
     },
     {

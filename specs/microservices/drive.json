@@ -1,0 +1,1256 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/schemas/microservices/drive.schema.json",
+  "title": "MicroservicePrd:Drive",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "PRD-DRIVE",
+    "version": "1.0.0",
+    "status": "Draft",
+    "owner_team": "axis-drive",
+    "created_at": "2026-07-01T00:00:00Z",
+    "purpose": "Drive workplace app PRD/source-authority map: tenant-scoped files, folders, uploads/downloads, sharing, permissions, sync, search, preview, DLP/virus scanning, immutability/legal hold, Workflow handoff, Ontology projections, regional/compliance packs, and planning-only SLO targets."
+  },
+  "source_authority": {
+    "status": "source_lock_reviewed_for_red_fixture_fanout",
+    "canonical_prd_path": "specs/microservices/drive.json",
+    "canonical_service_root": "oya/drive/",
+    "inventory_provenance_path": "oya/drive/manifest.json",
+    "manifest_index_row": "specs/microservices/manifests-index.json#microservices[name=drive]",
+    "authority_boundary": "This file is the machine-readable PRD/source-authority map for drive Plan/Spec and downstream RED fixture design. oya/drive/manifest.json remains service inventory/provenance only and must not be used as runtime/product-readiness evidence. Stale microservices/drive/... paths found inside the inventory manifest are historical evidence only until repaired or source-mapped under oya/drive/ through explicit follow-up gates.",
+    "claim_boundary": "Planning/source-lock artifact only. It does not ship runtime code, API handlers, generated JSON/faces, measured SLOs, production readiness, Release Please metadata, or implementation fanout by itself.",
+    "required_review_gate": "t_3425d88d",
+    "source_findings_preserved": [
+      "specs/microservices/manifests-index.json records drive fd001_material=false and previously had no prd pointer for drive",
+      "ADR-0131 amended by ADR-0512 makes {oya,cloud}/<service>/ the canonical service root; microservices/ is legacy/removal-candidate",
+      "oya/drive/manifest.json provides bounded-context, contract, SLO, regulatory, ontology, and dependency hints but is inventory/provenance only"
+    ]
+  },
+  "identity": {
+    "product_id": "drive",
+    "owning_axis": "workspace-files",
+    "product_class": "service",
+    "user_facing_surface": true,
+    "context_model": [
+      "personal",
+      "work",
+      "admin-audit"
+    ],
+    "canonical_service_root": "oya/drive/",
+    "crate_refs_planned": [
+      "oya-drive-file-store",
+      "oya-drive-folder-hierarchy",
+      "oya-drive-upload",
+      "oya-drive-download",
+      "oya-drive-sync",
+      "oya-drive-share-link",
+      "oya-drive-permissions",
+      "oya-drive-search-index",
+      "oya-drive-preview",
+      "oya-drive-dlp-virus-scan",
+      "oya-drive-immutability-tier"
+    ],
+    "ops_surface": "managed through OpenTofu-owned infrastructure and root Makefile/oya ops targets; no manual SSH troubleshooting path",
+    "naming_justification": "Drive is a BNF v4.1 kebab-case service slug. Future bounded-context crates live under oya/drive/crates/<crate>/ per ADR-0131 as amended by ADR-0512; legacy microservices/drive paths are not destination paths."
+  },
+  "inherits": {
+    "oyatie_adrs": [
+      "$ref:docs/decisions/ADR-0131-per-microservice-flat-layout.md",
+      "$ref:docs/decisions/ADR-0512-canonical-monorepo-pattern.md",
+      "$ref:docs/decisions/ADR-0139-agentic-slo-gated-promotion.md"
+    ],
+    "oyatie_specs": [
+      "$ref:specs/microservices/workflow.json",
+      "$ref:specs/microservices/ontology.json",
+      "$ref:specs/deployment-ops-contract.json",
+      "$ref:specs/microservices/manifests-index.json",
+      "$ref:specs/ontology-projection-schema.json"
+    ],
+    "provenance_sources": [
+      "$ref:oya/drive/manifest.json",
+      "$ref:/Users/jasonlee/.hermes/kanban/boards/oyatie/workspaces/t_ae08d222/workplace-app-source-authority-disposition.md",
+      "$ref:/Users/jasonlee/.hermes/kanban/boards/oyatie/workspaces/t_75108b6e/workplace-app-plan-spec-decomposition.md",
+      "$ref:/Users/jasonlee/.hermes/kanban/boards/oyatie/workspaces/t_06257cc3/drive-source-map-plan-spec-backlog.md"
+    ],
+    "user_decisions": [
+      "2026-05-16:D-15 canonical PRD form is JSON-with-pointers at specs/microservices/<id>.json",
+      "2026-07-01:DRIVE-SOURCE-LOCK-001 must author/lock drive PRD/source map before RED or Build fanout"
+    ]
+  },
+  "north_star_ref": "$ref:specs/oyatie-doctrine.json#principles + workspace file collaboration with strict tenant, context, policy, and audit boundaries",
+  "target_users": [
+    {
+      "persona": "employee_end_user",
+      "interface": "Drive file browser, upload/download, search, preview, share, sync status",
+      "billing": "workspace seat"
+    },
+    {
+      "persona": "personal_user",
+      "interface": "personal files, folders, share links, device sync",
+      "billing": "personal storage tier"
+    },
+    {
+      "persona": "workspace_admin",
+      "interface": "tenant storage policy console, DLP policy, retention, eDiscovery, sharing controls",
+      "billing": "admin entitlement and storage units"
+    },
+    {
+      "persona": "compliance_officer",
+      "interface": "legal hold, WORM immutability, audit export, chain-of-custody review",
+      "billing": "compliance entitlement"
+    },
+    {
+      "persona": "developer_or_integrator",
+      "interface": "Drive APIs, Workflow triggers, Ontology projections, webhooks/events",
+      "billing": "API and workflow execution units"
+    }
+  ],
+  "user_stories": [
+    {
+      "id": "US-DRIVE-01",
+      "persona": "employee_end_user",
+      "story": "As an employee, I upload a file to a work folder and see scan, sync, retention, and sharing status before colleagues can access it.",
+      "acceptance_refs": [
+        "AC-DRIVE-01",
+        "AC-DRIVE-02",
+        "AC-DRIVE-05"
+      ]
+    },
+    {
+      "id": "US-DRIVE-02",
+      "persona": "workspace_admin",
+      "story": "As an admin, I enforce tenant and regional sharing policy so public links, external recipients, and DLP exceptions are denied or audited deterministically.",
+      "acceptance_refs": [
+        "AC-DRIVE-03",
+        "AC-DRIVE-06"
+      ]
+    },
+    {
+      "id": "US-DRIVE-03",
+      "persona": "compliance_officer",
+      "story": "As a compliance officer, I place files or folders under legal hold and export immutable evidence without relying on manual operator access.",
+      "acceptance_refs": [
+        "AC-DRIVE-04"
+      ]
+    },
+    {
+      "id": "US-DRIVE-04",
+      "persona": "developer_or_integrator",
+      "story": "As an integrator, I react to Drive file lifecycle events through Workflow and Ontology contracts instead of direct cross-product database calls.",
+      "acceptance_refs": [
+        "AC-DRIVE-07"
+      ]
+    }
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-DRIVE-01",
+      "given": "a user uploads a file into a tenant workspace folder",
+      "when": "the upload commit completes",
+      "then": "the file is stored with tenant/context metadata, immutable content hash, object-store version, retention class, and audit-chain event before it becomes visible",
+      "planned_verification_ref": "cargo nextest -p oya-drive-upload -- upload_commit_records_metadata_and_audit"
+    },
+    {
+      "id": "AC-DRIVE-02",
+      "given": "a file requires virus scan or DLP evaluation",
+      "when": "a viewer, search indexer, preview renderer, or share link attempts access before the scan verdict is clean or policy-approved",
+      "then": "access is denied or quarantined with a policy-safe explanation and audit event",
+      "planned_verification_ref": "cargo nextest -p oya-drive-dlp-virus-scan -- quarantine_blocks_access_until_verdict"
+    },
+    {
+      "id": "AC-DRIVE-03",
+      "given": "a user creates a share link or grants a permission",
+      "when": "the requested recipient, TTL, geography, or data class violates tenant/regional policy",
+      "then": "Cedar-backed authorization denies the grant, records the denial, and never emits a usable link token",
+      "planned_verification_ref": "cargo nextest -p oya-drive-share-link -- policy_denied_link_never_minted"
+    },
+    {
+      "id": "AC-DRIVE-04",
+      "given": "a file or folder is under legal hold or WORM compliance mode",
+      "when": "a delete, retention-expiry, overwrite, or folder move attempts to remove protected evidence",
+      "then": "the mutation is blocked, the hold relationship remains intact, and an immutable audit event references the protected object version",
+      "planned_verification_ref": "cargo nextest -p oya-drive-immutability-tier -- legal_hold_blocks_mutation"
+    },
+    {
+      "id": "AC-DRIVE-05",
+      "given": "a user syncs Drive changes across devices",
+      "when": "two devices modify the same file or folder path concurrently",
+      "then": "sync produces deterministic conflict artifacts, preserves both contents, and emits a conflict-resolution event without data loss",
+      "planned_verification_ref": "cargo nextest -p oya-drive-sync -- deterministic_conflict_preserves_versions"
+    },
+    {
+      "id": "AC-DRIVE-06",
+      "given": "a search or preview request targets a file the principal cannot read",
+      "when": "index rows or rendered previews are queried",
+      "then": "the response reveals neither content, snippets, metadata, nor thumbnail side channels beyond allowed minimum disclosure",
+      "planned_verification_ref": "cargo nextest -p oya-drive-search-index -- unauthorized_search_reveals_nothing"
+    },
+    {
+      "id": "AC-DRIVE-07",
+      "given": "a Drive file lifecycle event is produced",
+      "when": "Workflow, Ontology, or downstream workplace apps need to react",
+      "then": "the handoff uses typed contracts/events and never requires a direct cross-product database read",
+      "planned_verification_ref": "cloud-ci/Rust gate packet: drive-workflow-ontology-contracts"
+    }
+  ],
+  "scope": {
+    "in_scope_per_wave": {
+      "preview": [
+        "file and folder metadata model",
+        "multipart upload commit contract",
+        "download and range-read contract",
+        "tenant/context-scoped permissions",
+        "share-link mint/deny contract",
+        "quarantine state for scan-pending files",
+        "basic search metadata index",
+        "source-authority validation for this PRD"
+      ],
+      "stable": [
+        "delta sync with deterministic conflicts",
+        "preview rendering for images, PDFs, and office files",
+        "DLP policy hooks",
+        "virus-scan verdict workflow",
+        "Workflow file lifecycle triggers",
+        "Ontology projections for File, Folder, ShareLink, Permission, ImmutabilityRecord, and LegalHold"
+      ],
+      "GA": [
+        "legal hold and WORM compliance mode",
+        "multi-region active-active storage planning targets",
+        "cross-region object version recovery",
+        "tenant storage quotas and FinOps unit accounting",
+        "full regional/compliance pack enforcement",
+        "mobile/desktop sync parity"
+      ]
+    },
+    "out_of_scope": [
+      {
+        "item": "treating oya/drive/manifest.json as product readiness",
+        "why": "the manifest is inventory/provenance only until source-lock review, RED fixtures, Build, and Review gates land"
+      },
+      {
+        "item": "creating or restoring microservices/drive/** as canonical runtime paths",
+        "why": "ADR-0131 is amended by ADR-0512; service-owned artifacts belong under oya/drive/ or this central PRD source map until migrated"
+      },
+      {
+        "item": "runtime implementation or generated faces in the source-lock slice",
+        "why": "DRIVE-SOURCE-LOCK-001 is Plan/Spec only and must not fan out implementation before independent review"
+      },
+      {
+        "item": "third-party file storage as source of truth",
+        "why": "external providers may be import/export or migration adapters only; Oyatie Drive owns native source-of-record semantics"
+      }
+    ]
+  },
+  "bounded_contexts": [
+    {
+      "name": "file-store",
+      "plane": "data",
+      "responsibility": "content-addressed object metadata, object version references, retention class, and durable file source-of-record invariants"
+    },
+    {
+      "name": "folder-hierarchy",
+      "plane": "data",
+      "responsibility": "folder tree, path uniqueness, move/copy semantics, and permission inheritance boundaries"
+    },
+    {
+      "name": "upload",
+      "plane": "data",
+      "responsibility": "multipart/resumable upload sessions, commit idempotency, hash verification, and scan-pending state"
+    },
+    {
+      "name": "download",
+      "plane": "data",
+      "responsibility": "authorized downloads, range reads, signed URL mediation, CDN steering, and object-version disclosure"
+    },
+    {
+      "name": "sync",
+      "plane": "data",
+      "responsibility": "delta sync, device cursors, deterministic conflict artifacts, and offline reconciliation"
+    },
+    {
+      "name": "share-link",
+      "plane": "data",
+      "responsibility": "time-bound link minting, revocation cascade, recipient policy, and no-token-on-deny guarantees"
+    },
+    {
+      "name": "permissions",
+      "plane": "control",
+      "responsibility": "file/folder ACLs, inheritance, override, ownership transfer, tenant/RBAC/Cedar enforcement"
+    },
+    {
+      "name": "search-index",
+      "plane": "data",
+      "responsibility": "metadata/full-text indexing with authorization trimming and no side-channel snippets"
+    },
+    {
+      "name": "preview",
+      "plane": "data",
+      "responsibility": "policy-gated preview rendering for allowed file types in sandboxed workers"
+    },
+    {
+      "name": "dlp-virus-scan",
+      "plane": "data",
+      "responsibility": "scan orchestration, quarantine state, verdict evidence, and policy exception workflow"
+    },
+    {
+      "name": "immutability-tier",
+      "plane": "control",
+      "responsibility": "WORM compliance mode, legal hold, two-person release rules, and periodic integrity evidence"
+    }
+  ],
+  "contracts": {
+    "consumes": [
+      "tenant_rbac.context.v1",
+      "identity.principal.v1",
+      "regional.retention_policy.v1",
+      "workflow.handoff.v1",
+      "ontology.File",
+      "audit_chain.event.v1",
+      "storage.object_version.v1"
+    ],
+    "produces": [
+      "drive.file.v1",
+      "drive.folder.v1",
+      "drive.upload_session.v1",
+      "drive.share_link.v1",
+      "drive.permission.v1",
+      "drive.scan_verdict.v1",
+      "drive.sync_delta.v1",
+      "drive.preview.v1",
+      "drive.immutability_record.v1",
+      "audit.drive.policy.v1"
+    ],
+    "api_surfaces": [
+      {
+        "surface": "REST/OpenAPI",
+        "planned_path": "oya/drive/contracts/openapi/drive.yaml",
+        "legacy_manifest_hint": "microservices/drive/contracts/openapi/drive.yaml",
+        "status": "planned_until_contract_migration"
+      },
+      {
+        "surface": "AsyncAPI/events",
+        "planned_path": "oya/drive/contracts/asyncapi/drive-events.yaml",
+        "legacy_manifest_hint": "microservices/drive/contracts/asyncapi/drive-events.yaml",
+        "status": "planned_until_contract_migration"
+      },
+      {
+        "surface": "gRPC/proto",
+        "planned_path": "oya/drive/contracts/proto/drive.proto",
+        "legacy_manifest_hint": "microservices/drive/contracts/proto/drive.proto",
+        "status": "planned_until_contract_migration"
+      }
+    ],
+    "route_through_workflow_ontology": true,
+    "cross_product_routing_policy": {
+      "direct_cross_product_calls_allowed": false,
+      "required_mediators": [
+        "Workflow",
+        "Ontology",
+        "AuditChain"
+      ],
+      "policy_ref": "ADR-0131/ADR-0512 source-root authority plus workflow/ontology contracts",
+      "enforcement_status": "planning_contract_until_drive_red_build_gates"
+    }
+  },
+  "data_model": {
+    "data_classes": [
+      "INTERNAL_ONLY",
+      "AUDIT",
+      "PII_QUASI",
+      "CUSTOMER_CONTENT",
+      "CONFIDENTIAL_WORK_PRODUCT",
+      "LEGAL_HOLD",
+      "REGULATED_HEALTHCARE_OPTIONAL"
+    ],
+    "entities_ref": [
+      {
+        "entity": "DriveFile",
+        "fields": [
+          "file_id",
+          "tenant_or_person_scope",
+          "context_kind",
+          "folder_id",
+          "object_version_ref",
+          "content_hash",
+          "mime_type",
+          "size_bytes",
+          "retention_policy_id",
+          "scan_state",
+          "data_class",
+          "created_by",
+          "created_at"
+        ],
+        "invariants": [
+          "tenant_or_person_scope immutable",
+          "content_hash immutable per object version",
+          "file not visible outside policy before required scan verdict"
+        ]
+      },
+      {
+        "entity": "DriveFolder",
+        "fields": [
+          "folder_id",
+          "parent_folder_id",
+          "tenant_or_person_scope",
+          "context_kind",
+          "name_ciphertext",
+          "permission_inheritance_mode",
+          "retention_policy_id"
+        ],
+        "invariants": [
+          "tree cycles forbidden",
+          "move cannot bypass legal hold or tenant boundary"
+        ]
+      },
+      {
+        "entity": "ShareLink",
+        "fields": [
+          "share_link_id",
+          "resource_ref",
+          "recipient_scope",
+          "ttl_expires_at",
+          "view_cap",
+          "revoked_at",
+          "policy_hash"
+        ],
+        "invariants": [
+          "no link token is materialized on policy deny",
+          "revocation cascades to derived preview/download tokens"
+        ]
+      },
+      {
+        "entity": "PermissionGrant",
+        "fields": [
+          "grant_id",
+          "resource_ref",
+          "principal_ref",
+          "role",
+          "inheritance_source",
+          "policy_basis",
+          "created_at"
+        ],
+        "invariants": [
+          "grant evaluation is deny-by-default",
+          "cross-context grant requires explicit Workflow/policy basis"
+        ]
+      },
+      {
+        "entity": "ImmutabilityRecord",
+        "fields": [
+          "immutability_record_id",
+          "resource_ref",
+          "mode",
+          "legal_hold_ids",
+          "retention_until",
+          "audit_ref"
+        ],
+        "invariants": [
+          "protected object versions cannot be overwritten or deleted",
+          "release requires configured two-person or legal process"
+        ]
+      }
+    ],
+    "events_emitted": [
+      {
+        "event": "DriveFileUploaded",
+        "topic": "drive.file.uploaded",
+        "idempotency_key": "upload_session_id+object_version_ref"
+      },
+      {
+        "event": "DriveScanVerdictRecorded",
+        "topic": "drive.scan.verdict",
+        "idempotency_key": "file_id+object_version_ref+scanner_verdict_id"
+      },
+      {
+        "event": "DrivePermissionChanged",
+        "topic": "drive.permission.changed",
+        "idempotency_key": "grant_id+version"
+      },
+      {
+        "event": "DriveShareLinkRevoked",
+        "topic": "drive.share_link.revoked",
+        "idempotency_key": "share_link_id+revoked_at"
+      },
+      {
+        "event": "DriveLegalHoldApplied",
+        "topic": "audit.drive.legal_hold",
+        "idempotency_key": "resource_ref+legal_hold_id"
+      },
+      {
+        "event": "DrivePolicyDenied",
+        "topic": "audit.drive.policy_denied",
+        "idempotency_key": "principal+resource+policy_hash"
+      }
+    ],
+    "persistence": [
+      {
+        "aggregate": "DriveFile",
+        "store": "Postgres/RLS metadata + versioned object storage",
+        "sharding_key": "tenant_or_person_scope+folder_id",
+        "retention": "per jurisdiction, legal hold, and object version policy"
+      },
+      {
+        "aggregate": "DriveSearchIndex",
+        "store": "search index with authorization-trimmed documents",
+        "sharding_key": "tenant_or_person_scope+data_class",
+        "retention": "follows source file; purge or tombstone on delete/hold release"
+      },
+      {
+        "aggregate": "DriveSyncCursor",
+        "store": "Postgres/RLS or Valkey-backed cursor cache",
+        "sharding_key": "principal_ref+device_id",
+        "retention": "bounded device/session lifetime with audit-safe reset"
+      }
+    ],
+    "audit_chain_emission_rule_ref": "$ref:specs/agent-durable-goal.json#score_cards + Drive legal-hold/share/scan events"
+  },
+  "privacy_and_threat_boundaries": {
+    "status": "planning_contract_until_drive_threat_model_gate",
+    "default_policy": "deny-by-default for cross-tenant, cross-context, scan-pending, legal-hold, public-link, and regional-transfer-sensitive reads",
+    "attacker_models": [
+      {
+        "actor": "external_link_holder",
+        "goal": "reuse, guess, or extend share-link access after revocation or TTL expiry",
+        "controls": [
+          "high-entropy scoped tokens",
+          "strict TTL",
+          "revocation cascade",
+          "no token materialization on policy deny"
+        ]
+      },
+      {
+        "actor": "malicious_tenant_user",
+        "goal": "exfiltrate regulated files through preview, search snippet, or sync side channel",
+        "controls": [
+          "authorization-trimmed index",
+          "preview/download policy checks",
+          "DLP quarantine",
+          "audit-chain policy-denied events"
+        ]
+      },
+      {
+        "actor": "operator_or_admin",
+        "goal": "delete or alter held evidence outside legal process",
+        "controls": [
+          "WORM object version retention",
+          "two-person legal-hold release",
+          "immutable audit references",
+          "no manual SSH remediation path"
+        ]
+      },
+      {
+        "actor": "compromised_scanner_or_preview_worker",
+        "goal": "read arbitrary tenant data or emit unsafe artifacts",
+        "controls": [
+          "sandboxed workers",
+          "least-privilege object tokens",
+          "content-type allowlists",
+          "verdict/evidence signing"
+        ]
+      }
+    ],
+    "stride": {
+      "spoofing": "upload, share, and permission mutations require authenticated principal/context and idempotency keys",
+      "tampering": "content hashes and object version refs make file mutation append-only at the evidence layer",
+      "repudiation": "share, scan, hold, denial, and permission events emit audit-chain evidence",
+      "information_disclosure": "search, preview, sync, and share-link reads are authorization-trimmed and scan-aware",
+      "denial_of_service": "multipart upload, preview, scan, and sync queues need per-tenant quotas and backpressure",
+      "elevation_of_privilege": "permission inheritance and ownership transfer are Cedar/RBAC checked and deny by default"
+    },
+    "privacy_boundaries": [
+      "personal files never become employer-visible without explicit user action and policy basis",
+      "work files remain tenant-scoped and subject to retention, legal hold, and admin policy",
+      "search snippets, thumbnails, and preview derivatives inherit source-file authorization and retention",
+      "DLP/virus scan evidence stores minimum necessary verdict metadata; raw sensitive content is not copied into audit logs"
+    ]
+  },
+  "ontology_projections": [
+    {
+      "entity_name": "File",
+      "projection_target_table": "ontology_files",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60,
+      "source": "DriveFile"
+    },
+    {
+      "entity_name": "Folder",
+      "projection_target_table": "ontology_folders",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60,
+      "source": "DriveFolder"
+    },
+    {
+      "entity_name": "ShareLink",
+      "projection_target_table": "ontology_drive_share_links",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60,
+      "source": "ShareLink"
+    },
+    {
+      "entity_name": "Permission",
+      "projection_target_table": "ontology_drive_permissions",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60,
+      "source": "PermissionGrant"
+    },
+    {
+      "entity_name": "ImmutabilityRecord",
+      "projection_target_table": "ontology_drive_immutability_records",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60,
+      "source": "ImmutabilityRecord"
+    },
+    {
+      "entity_name": "LegalHold",
+      "projection_target_table": "ontology_drive_legal_holds",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60,
+      "source": "LegalHold"
+    }
+  ],
+  "regional_packs": {
+    "region_policy_ref": "$ref:specs/compliance-pack-schema.json + $ref:specs/pack-overlay-schema.json",
+    "packs": [
+      {
+        "pack": "KR",
+        "required": true,
+        "notes": "PIPA storage, access logging, Korea-first UX and residency-sensitive enterprise file policy"
+      },
+      {
+        "pack": "EU",
+        "required": true,
+        "notes": "GDPR storage limitation, lawful basis disclosure, DSR/erasure path, cross-border transfer controls"
+      },
+      {
+        "pack": "US",
+        "required": true,
+        "notes": "employment discovery, GLBA/HIPAA overlays where tenant data classes require them, CCPA/CPRA deletion/export"
+      },
+      {
+        "pack": "US-Healthcare",
+        "required": false,
+        "notes": "HIPAA/BAA overlays when Drive stores PHI-bearing healthcare tenant files"
+      },
+      {
+        "pack": "JP",
+        "required": true,
+        "notes": "APPI file-retention, transfer, and audit evidence overlays"
+      },
+      {
+        "pack": "SG",
+        "required": true,
+        "notes": "PDPA data-transfer and breach-notification overlays"
+      },
+      {
+        "pack": "AU",
+        "required": true,
+        "notes": "Privacy Act and Notifiable Data Breaches evidence export overlays"
+      },
+      {
+        "pack": "IN",
+        "required": true,
+        "notes": "DPDP consent, storage, and transfer overlays"
+      },
+      {
+        "pack": "BR",
+        "required": true,
+        "notes": "LGPD storage limitation and DSR overlays"
+      },
+      {
+        "pack": "AE",
+        "required": true,
+        "notes": "UAE PDPL and regulated-sector residency overlays"
+      },
+      {
+        "pack": "KSA",
+        "required": true,
+        "notes": "PDPL, sectoral residency, and evidence export constraints"
+      }
+    ],
+    "validation_lane_ref": "cloud-ci/Rust gate packet: drive-regional-pack-contracts"
+  },
+  "compliance_packs": [
+    {
+      "pack": "gdpr",
+      "applies_to": [
+        "CUSTOMER_CONTENT",
+        "PII_QUASI"
+      ],
+      "planning_requirement": "DSR export/delete, storage limitation, lawful basis, and cross-border transfer evidence"
+    },
+    {
+      "pack": "hipaa",
+      "applies_to": [
+        "REGULATED_HEALTHCARE_OPTIONAL"
+      ],
+      "planning_requirement": "PHI access control, audit, encryption, BAA, and minimum necessary disclosure when tenant enables healthcare pack"
+    },
+    {
+      "pack": "soc2-type2",
+      "applies_to": [
+        "AUDIT",
+        "CUSTOMER_CONTENT"
+      ],
+      "planning_requirement": "access review, change evidence, incident response, and retention controls"
+    },
+    {
+      "pack": "iso27001",
+      "applies_to": [
+        "CUSTOMER_CONTENT",
+        "CONFIDENTIAL_WORK_PRODUCT"
+      ],
+      "planning_requirement": "ISMS control mapping for file confidentiality, integrity, and availability"
+    },
+    {
+      "pack": "fedramp",
+      "applies_to": [
+        "CUSTOMER_CONTENT",
+        "AUDIT"
+      ],
+      "planning_requirement": "moderate/high control inheritance assessment before public-sector deployment claims"
+    }
+  ],
+  "slo_targets": [
+    {
+      "name": "drive_file_list_latency_p99_ms",
+      "target": 200,
+      "sli": "p99 file-list latency for <=1k visible entries inside a tenant/cell",
+      "planned_verification_ref": "cloud-ci/Rust gate packet: drive-file-list-latency",
+      "claim_boundary": "planning target only until OpenSLO and measured evidence land"
+    },
+    {
+      "name": "drive_upload_multipart_throughput_p99",
+      "target": "1GB upload commit usable at p99 without data loss under per-tenant quota",
+      "sli": "multipart upload session completion latency and integrity failure rate",
+      "planned_verification_ref": "cloud-ci/Rust gate packet: drive-upload-multipart-throughput",
+      "claim_boundary": "planning target only"
+    },
+    {
+      "name": "drive_download_first_byte_p99_ms",
+      "target": 250,
+      "sli": "p99 time to first byte for authorized warm-cache download",
+      "planned_verification_ref": "cloud-ci/Rust gate packet: drive-download-first-byte-latency",
+      "claim_boundary": "planning target only"
+    },
+    {
+      "name": "drive_search_query_latency_p99_ms",
+      "target": 300,
+      "sli": "p99 authorized search latency for 1M-file tenant corpus",
+      "planned_verification_ref": "cloud-ci/Rust gate packet: drive-search-latency",
+      "claim_boundary": "planning target only"
+    },
+    {
+      "name": "drive_preview_render_latency_p99_ms",
+      "target": 1000,
+      "sli": "p99 preview render latency for image/pdf/office files with sandboxed workers",
+      "planned_verification_ref": "cloud-ci/Rust gate packet: drive-preview-render-latency",
+      "claim_boundary": "planning target only"
+    },
+    {
+      "name": "drive_dlp_scan_correctness_pct",
+      "target": 100,
+      "sli": "known-malware/DLP fixture verdict correctness before visibility",
+      "planned_verification_ref": "cargo nextest -p oya-drive-dlp-virus-scan -- verdict_fixtures",
+      "claim_boundary": "planning target only"
+    },
+    {
+      "name": "drive_immutability_tier_correctness_pct",
+      "target": 100,
+      "sli": "legal-hold/WORM mutation-denial correctness across protected operations",
+      "planned_verification_ref": "cargo nextest -p oya-drive-immutability-tier -- protected_mutation_denials",
+      "claim_boundary": "planning target only"
+    },
+    {
+      "name": "drive_sync_delta_latency_p99_ms",
+      "target": 500,
+      "sli": "p99 latency from committed change to authorized sync delta availability",
+      "planned_verification_ref": "cloud-ci/Rust gate packet: drive-sync-delta-latency",
+      "claim_boundary": "planning target only"
+    }
+  ],
+  "dependencies": {
+    "depends_on_microservices": [
+      "identity",
+      "tenant-rbac",
+      "tenancy",
+      "workflow-engine",
+      "ontology",
+      "audit-chain",
+      "observability",
+      "governance",
+      "mail",
+      "messenger",
+      "calendar",
+      "sheets",
+      "slides",
+      "docs",
+      "tasks",
+      "intelligence",
+      "cloud-iac",
+      "cloud-kms",
+      "cloud-secrets",
+      "cloud-storage",
+      "cloud-network"
+    ],
+    "external_adopted": [
+      {
+        "name": "tokio",
+        "maturity_tier": "kernel-grade",
+        "license": "MIT",
+        "decision": "runtime primitive only"
+      },
+      {
+        "name": "serde",
+        "maturity_tier": "kernel-grade",
+        "license": "MIT OR Apache-2.0",
+        "decision": "wire-format primitive only"
+      },
+      {
+        "name": "rustls",
+        "maturity_tier": "kernel-grade",
+        "license": "Apache-2.0 OR ISC OR MIT",
+        "decision": "TLS primitive only"
+      },
+      {
+        "name": "opentelemetry",
+        "maturity_tier": "platform-grade",
+        "license": "Apache-2.0",
+        "decision": "telemetry primitive"
+      },
+      {
+        "name": "cedar",
+        "maturity_tier": "policy-grade",
+        "license": "Apache-2.0",
+        "decision": "authorization policy primitive"
+      }
+    ],
+    "external_rejected": [
+      {
+        "name": "Google Drive/OneDrive/Dropbox as source of truth",
+        "reason": "third-party drives are import/export/coexistence adapters only; Oyatie Drive owns tenant source-of-record semantics"
+      },
+      {
+        "name": "manual shell or SSH remediation for storage operations",
+        "reason": "deployment and operations authority belongs to OpenTofu, root Makefile targets, and cloud-ci/Rust gate evidence"
+      },
+      {
+        "name": "retired foundry substrate as active dependency",
+        "reason": "foundry is retired/absorbed by intelligence; future automation/model handoffs must use intelligence/workflow authority"
+      }
+    ]
+  },
+  "optimization_practices": [
+    {
+      "practice": "content-addressed object versions",
+      "implementation": "every upload commit records a content hash and immutable object version before mutable metadata points at it"
+    },
+    {
+      "practice": "authorization-trimmed indexing",
+      "implementation": "search and preview derivatives inherit source-file policy and never expose unauthorized snippets or thumbnails"
+    },
+    {
+      "practice": "idempotent mutations",
+      "implementation": "upload commit, permission change, share-link mint/revoke, and legal-hold mutations carry idempotency keys and emit replayable events"
+    },
+    {
+      "practice": "backpressure and quotas",
+      "implementation": "upload, preview, scan, and sync queues expose retry_after and per-tenant quota class"
+    },
+    {
+      "practice": "deterministic sync conflict artifacts",
+      "implementation": "conflicting writes preserve both object versions and use stable tie-break labels for user-visible resolution"
+    }
+  ],
+  "risks": [
+    {
+      "id": "R-DRIVE-01",
+      "severity": "critical",
+      "risk": "share link exposes regulated or tenant-confidential file outside policy",
+      "mitigation": "Cedar-backed deny-by-default share-link minting, strict TTL, recipient scope, revocation cascade, and no-token-on-deny invariant",
+      "owner": "axis-drive"
+    },
+    {
+      "id": "R-DRIVE-02",
+      "severity": "critical",
+      "risk": "DLP or malware scan is bypassed by preview, search, sync, or direct download path",
+      "mitigation": "scan-pending quarantine state is checked by every read/derivative surface before visibility",
+      "owner": "axis-drive"
+    },
+    {
+      "id": "R-DRIVE-03",
+      "severity": "high",
+      "risk": "legal-hold or WORM evidence is deleted through object overwrite, folder move, or retention expiry",
+      "mitigation": "immutability-tier blocks protected mutations and anchors object-version refs in audit-chain evidence",
+      "owner": "axis-drive"
+    },
+    {
+      "id": "R-DRIVE-04",
+      "severity": "high",
+      "risk": "search snippet, thumbnail, or sync metadata leaks file content to unauthorized principals",
+      "mitigation": "authorization-trimmed indexes, preview policy checks, minimum-disclosure errors, and side-channel tests",
+      "owner": "axis-drive"
+    },
+    {
+      "id": "R-DRIVE-05",
+      "severity": "medium",
+      "risk": "large uploads, previews, or scan queues create noisy-neighbor saturation",
+      "mitigation": "per-tenant quotas, backpressure, admission control, and capacity SLO burn alerts",
+      "owner": "axis-drive"
+    }
+  ],
+  "competitive": [
+    {
+      "competitor": "Google Drive",
+      "observed_strengths": [
+        "ubiquitous collaboration",
+        "search and preview quality",
+        "sharing model"
+      ],
+      "we_beat_on": [
+        "policy-visible share denials",
+        "Workflow/Ontology-native file lifecycle handoffs",
+        "legal-hold and tenant audit chain as first-class product contract"
+      ],
+      "measurable_target": "unauthorized search/preview disclosure count = 0; policy-denied link minted count = 0"
+    },
+    {
+      "competitor": "Microsoft OneDrive/SharePoint",
+      "observed_strengths": [
+        "enterprise governance",
+        "office file collaboration",
+        "DLP integration"
+      ],
+      "we_beat_on": [
+        "deterministic source-authority and RED-gate lifecycle before implementation",
+        "context-aware personal/work/admin-audit surfaces",
+        "immutable audit evidence tied to Workflow and Ontology contracts"
+      ],
+      "measurable_target": "legal-hold mutation denial correctness = 100%; scan-pending bypass count = 0"
+    },
+    {
+      "competitor": "Dropbox Business",
+      "observed_strengths": [
+        "sync reliability",
+        "simple sharing UX",
+        "device coverage"
+      ],
+      "we_beat_on": [
+        "tenant/regional policy by construction",
+        "deterministic conflict artifacts",
+        "compliance-pack-aware sharing and retention"
+      ],
+      "measurable_target": "sync conflict data-loss count = 0; p99 sync delta <= 500ms planning target"
+    }
+  ],
+  "best_practices": [
+    {
+      "id": "BP-DRIVE-01",
+      "rule": "share links are never minted when policy denies the requested scope, TTL, geography, data class, or recipient",
+      "planned_enforcement_ref": "oya-governance-drive-share-link-policy"
+    },
+    {
+      "id": "BP-DRIVE-02",
+      "rule": "scan-pending or quarantined files are invisible to download, preview, search, and sync except to authorized remediation workflows",
+      "planned_enforcement_ref": "oya-governance-drive-scan-quarantine"
+    },
+    {
+      "id": "BP-DRIVE-03",
+      "rule": "legal-hold/WORM object versions cannot be overwritten, deleted, or retention-expired outside the approved release flow",
+      "planned_enforcement_ref": "oya-governance-drive-immutability-tier"
+    },
+    {
+      "id": "BP-DRIVE-04",
+      "rule": "Workflow/Ontology integration uses typed events and projections, never direct cross-product database reads",
+      "planned_enforcement_ref": "oya-governance-drive-workflow-ontology-boundary"
+    }
+  ],
+  "patterns": [
+    {
+      "pattern": "scan_pending_quarantine",
+      "when_to_use": "files whose DLP/virus verdict is absent, inconclusive, or policy-exception pending",
+      "reference": "AC-DRIVE-02"
+    },
+    {
+      "pattern": "policy_gated_share_link",
+      "when_to_use": "every external or link-based file/folder access grant",
+      "reference": "AC-DRIVE-03"
+    },
+    {
+      "pattern": "immutability_record_anchor",
+      "when_to_use": "legal hold, WORM retention, and compliance evidence preservation",
+      "reference": "AC-DRIVE-04"
+    },
+    {
+      "pattern": "authorization_trimmed_derivative",
+      "when_to_use": "search snippets, thumbnails, previews, OCR text, and sync metadata derived from a source file",
+      "reference": "AC-DRIVE-06"
+    },
+    {
+      "pattern": "typed_file_lifecycle_event",
+      "when_to_use": "Workflow/Ontology/app integrations reacting to upload, scan, permission, share, hold, delete, or move events",
+      "reference": "AC-DRIVE-07"
+    }
+  ],
+  "anti_patterns": [
+    {
+      "anti_pattern": "manifest_as_runtime_readiness",
+      "why_forbidden": "inventory/provenance rows and stale legacy paths do not prove runtime implementation, tests, or user-visible readiness",
+      "detection_lane": "drive-source-authority-review"
+    },
+    {
+      "anti_pattern": "legacy_microservices_drive_restoration",
+      "why_forbidden": "ADR-0131/ADR-0512 set oya/drive as canonical service root; microservices/drive is legacy/removal-candidate",
+      "detection_lane": "retired_authority_guard"
+    },
+    {
+      "anti_pattern": "public_link_without_policy_basis",
+      "why_forbidden": "external sharing is the highest-risk file disclosure path and must be deny-by-default",
+      "detection_lane": "oya-governance-drive-share-link-policy"
+    },
+    {
+      "anti_pattern": "search_or_preview_before_scan_verdict",
+      "why_forbidden": "derivative surfaces can leak malicious or sensitive content before quarantine policy runs",
+      "detection_lane": "oya-governance-drive-scan-quarantine"
+    },
+    {
+      "anti_pattern": "direct_cross_product_file_reads",
+      "why_forbidden": "bypasses Workflow/Ontology policy, audit, and privacy boundaries",
+      "detection_lane": "oya-governance-drive-workflow-ontology-boundary"
+    }
+  ],
+  "production_readiness_gates": [
+    {
+      "gate": "source-authority-review",
+      "check": "independent Review/fix t_3425d88d approves specs/microservices/drive.json before RED fixture/contract fanout; Build remains gated on RED and later implementation review evidence",
+      "must_pass": true,
+      "status": "satisfied_for_red_fixture_fanout"
+    },
+    {
+      "gate": "product-prd-json",
+      "check": "python3 -m json.tool specs/microservices/drive.json",
+      "must_pass": true,
+      "status": "satisfied_for_syntax_only"
+    },
+    {
+      "gate": "share-link-policy",
+      "check": "cargo nextest -p oya-drive-share-link -- policy_denied_link_never_minted",
+      "must_pass": true,
+      "status": "planned_until_drive_red_build_gates"
+    },
+    {
+      "gate": "scan-quarantine",
+      "check": "cargo nextest -p oya-drive-dlp-virus-scan -- quarantine_blocks_access_until_verdict",
+      "must_pass": true,
+      "status": "planned_until_drive_red_build_gates"
+    },
+    {
+      "gate": "immutability-tier",
+      "check": "cargo nextest -p oya-drive-immutability-tier -- legal_hold_blocks_mutation",
+      "must_pass": true,
+      "status": "planned_until_drive_red_build_gates"
+    },
+    {
+      "gate": "workflow-ontology-boundary",
+      "check": "cloud-ci/Rust gate packet: drive-workflow-ontology-contracts",
+      "must_pass": true,
+      "status": "planned_until_drive_red_build_gates"
+    }
+  ],
+  "goals": {
+    "scalability": {
+      "target": "planning target: 100K tenant workspaces per control plane, 10M active file principals, 1M files per large tenant corpus, and multi-region active-active storage planning without claiming measured production readiness",
+      "planned_verification_ref": "cloud-ci/Rust gate packet: drive-scale-model",
+      "claim_boundary": "advisory until validators, OpenSLO manifests, and implementation crates land"
+    },
+    "security": {
+      "target": "zero unauthorized file, snippet, preview, share-link, or sync metadata disclosure; scan-pending bypass count = 0; legal-hold mutation bypass count = 0",
+      "planned_verification_ref": "cargo nextest -p oya-drive-domain -- security_boundary",
+      "claim_boundary": "planning target until RED/Build gates"
+    },
+    "performance": {
+      "target": "interactive file list/search/download-preview paths stay within p99 planning targets under per-tenant quota",
+      "planned_verification_ref": "cloud-ci/Rust gate packet: drive-performance-budget",
+      "claim_boundary": "planning target until measured evidence"
+    },
+    "efficiency": {
+      "target": "storage, preview, scan, search, and sync workloads are metered per tenant, object version, and derivative artifact",
+      "planned_verification_ref": "cloud-ci/Rust gate packet: drive-finops-unit-economics",
+      "claim_boundary": "planning target until FinOps evidence"
+    },
+    "reliability": {
+      "target": "99.95% GA availability planning target, RPO <= 60s for metadata and object-version manifests, RTO <= 15m for regional file metadata failover",
+      "planned_verification_ref": "cloud-ci/Rust gate packet: drive-slo-coverage",
+      "claim_boundary": "planning target until OpenSLO and measured failover evidence"
+    }
+  },
+  "user_experience": {
+    "ux_personas_ref": "$ref:specs/microservices/drive.json#target_users",
+    "accessibility_coverage": "WCAG 2.2 AA minimum; keyboard traversal and screen-reader status are required for file browser, upload queue, preview, share dialog, search results, legal-hold banners, and conflict resolution flows",
+    "responsive_breakpoints": [
+      "mobile-portrait",
+      "mobile-landscape",
+      "tablet",
+      "desktop",
+      "wide-desktop"
+    ],
+    "internationalization_scope": "KR and en-US launch coverage with EU/JP/SG/AU/IN/BR/AE/KSA regional-pack readiness",
+    "design_system_components_used": "$ref:specs/microservices/drive.json#frontend_components",
+    "journey_critical_paths": [
+      {
+        "persona": "employee_end_user",
+        "journeys": [
+          "upload file",
+          "share with teammate",
+          "search and preview authorized file",
+          "resolve sync conflict"
+        ],
+        "time_to_success_target": "< 2 minutes for upload/share/search path with scan and policy state visible"
+      },
+      {
+        "persona": "workspace_admin",
+        "journeys": [
+          "configure tenant share policy",
+          "review DLP exception",
+          "inspect storage and scan health"
+        ],
+        "time_to_success_target": "< 5 minutes with policy consequences visible"
+      },
+      {
+        "persona": "compliance_officer",
+        "journeys": [
+          "place legal hold",
+          "verify object-version chain-of-custody",
+          "export audit packet"
+        ],
+        "time_to_success_target": "< 10 minutes for scoped evidence packet"
+      }
+    ],
+    "error_state_coverage": {
+      "policy_denied": "inline explanation plus audit-safe denial reference",
+      "scan_pending": "clear quarantine/processing badge and blocked derivative surfaces",
+      "legal_hold_conflict": "blocking modal requiring authorized release flow",
+      "sync_conflict": "preserve both versions and expose deterministic conflict resolution actions",
+      "quota_exceeded": "tenant/user quota state plus retry or admin escalation path"
+    },
+    "offline_behavior": "read cached non-sensitive metadata only when policy token permits; queue user-owned uploads and edits locally; never expose unwrapped professional plaintext offline without session-bound policy token",
+    "keyboard_navigation_coverage_pct": 100,
+    "loading_state_coverage": "skeleton file lists, progressive preview rendering, resumable upload progress, no spinner-only critical paths"
+  },
+  "frontend_components": [
+    {
+      "component": "DriveFileBrowser",
+      "source": "planned design-system primitive",
+      "design_system_ref": "$ref:specs/design-system/drive-file-browser.json",
+      "variants": [
+        "list",
+        "grid",
+        "admin-audit"
+      ],
+      "tested_at_breakpoints": [
+        "mobile-portrait",
+        "tablet",
+        "desktop",
+        "wide-desktop"
+      ]
+    },
+    {
+      "component": "UploadProgressQueue",
+      "source": "planned design-system primitive",
+      "design_system_ref": "$ref:specs/design-system/upload-progress-queue.json",
+      "variants": [
+        "multipart",
+        "scan-pending",
+        "failed-retry"
+      ],
+      "tested_at_breakpoints": [
+        "mobile-portrait",
+        "tablet",
+        "desktop"
+      ]
+    },
+    {
+      "component": "SharePolicyDialog",
+      "source": "planned design-system primitive",
+      "design_system_ref": "$ref:specs/design-system/share-policy-dialog.json",
+      "variants": [
+        "internal",
+        "external",
+        "public-link-denied"
+      ],
+      "tested_at_breakpoints": [
+        "mobile-portrait",
+        "desktop"
+      ]
+    },
+    {
+      "component": "PolicyDisclosureBanner",
+      "source": "shared platform primitive",
+      "design_system_ref": "$ref:specs/design-system/policy-disclosure-banner.json",
+      "variants": [
+        "scan-pending",
+        "legal-hold",
+        "retention",
+        "policy-denied"
+      ],
+      "tested_at_breakpoints": [
+        "mobile-portrait",
+        "desktop"
+      ]
+    },
+    {
+      "component": "TenantContextSwitcher",
+      "source": "shared platform primitive",
+      "design_system_ref": "$ref:specs/design-system/tenant-context-switcher.json",
+      "variants": [
+        "personal",
+        "work",
+        "admin-audit"
+      ],
+      "tested_at_breakpoints": [
+        "mobile-portrait",
+        "tablet",
+        "desktop",
+        "wide-desktop"
+      ]
+    }
+  ],
+  "decision_log": [
+    {
+      "date": "2026-07-01",
+      "decision": "Author specs/microservices/drive.json as the drive PRD/source-authority map before downstream RED or Build fanout.",
+      "drivers": [
+        "DRIVE-SOURCE-LOCK-001 Kanban card",
+        "t_06257cc3 source-map handoff",
+        "t_ae08d222 workplace app source-authority disposition",
+        "t_75108b6e Plan/Spec decomposition"
+      ]
+    },
+    {
+      "date": "2026-07-01",
+      "decision": "Keep oya/drive/manifest.json as inventory/provenance only; do not repair shared manifests-index or legacy microservices/drive paths in this source-lock slice.",
+      "drivers": [
+        "Allowed paths restrict this task to specs/microservices/drive.json",
+        "ADR-0131/ADR-0512 root authority",
+        "independent review required before implementation fanout"
+      ]
+    }
+  ],
+  "sources_scanned": [
+    "specs/root-hub-pointers.json",
+    "specs/microservices/manifests-index.json",
+    "oya/drive/manifest.json",
+    "docs/decisions/ADR-0131-per-microservice-flat-layout.md",
+    "docs/decisions/ADR-0512-canonical-monorepo-pattern.md",
+    "/Users/jasonlee/.hermes/kanban/boards/oyatie/workspaces/t_ae08d222/workplace-app-source-authority-disposition.md",
+    "/Users/jasonlee/.hermes/kanban/boards/oyatie/workspaces/t_75108b6e/workplace-app-plan-spec-decomposition.md",
+    "/Users/jasonlee/.hermes/kanban/boards/oyatie/workspaces/t_06257cc3/drive-downstream-candidates.json"
+  ],
+  "enforcement_status": {
+    "source_authority": "reviewed_for_red_fixture_fanout",
+    "industry_patterns_adopted": "advisory_until_drive_red_build_gates",
+    "anti_patterns_avoided": "advisory_until_drive_red_build_gates",
+    "slo_targets": "planning_only_until_openslo_and_measured_evidence",
+    "production_readiness_gates": "planned_until_drive_red_build_gates",
+    "validator_gap": "This source-lock adds machine-readable PRD/design contracts only; dedicated Drive validators, fixtures, API contracts, crates, and generated artifacts are downstream work after this Review/fix gate. Review approval here unblocks RED fixture/contract design only and does not claim Build, runtime, production, generated-face, or measured-SLO readiness."
+  }
+}

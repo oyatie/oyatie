@@ -1,0 +1,117 @@
+{
+  "fixture_id": "REGID-004-FX-005",
+  "title": "Missing/revoked consent, residency, retention, and purpose binding deny",
+  "expected_decision": "deny",
+  "expected_obligations": [
+    "emit-audit-event",
+    "require-consent-ref",
+    "enforce-residency-target",
+    "apply-retention-rule"
+  ],
+  "covered_invariants": [
+    "REGID-004-I05-CONSENT-RESIDENCY-RETENTION",
+    "REGID-004-I06-AUDIT-OBLIGATIONS"
+  ],
+  "context": {
+    "tenant_id": "tenant-regid004-demo",
+    "subject_ref": "subject-ref:demo-123",
+    "action_slug": "identity-proofing.decision.approve",
+    "requested_capability": "regulated-identity-proofing",
+    "auth_state": {
+      "passkey_auth_state": "authenticated",
+      "acr": "sensitive",
+      "acr_event_at": "2026-07-01T09:30:00Z",
+      "credential_type": "device_bound_passkey",
+      "webauthn_level_floor": "WebAuthn-Level-3",
+      "authenticator_assurance": {
+        "attestation_level": "direct",
+        "fido_mds_level": "L1",
+        "aaguid_ref": "aaguid:device-bound-demo",
+        "backup_eligible": false,
+        "backup_state": false,
+        "device_binding": "device_bound",
+        "phishing_resistant": true
+      },
+      "syncable_passkey_aal_ceiling": "not_applicable",
+      "critical_operation_approval": {
+        "required": false,
+        "approval_ref": null,
+        "approval_window_state": "not_required",
+        "approved_at": null
+      }
+    },
+    "proofing_state": {
+      "tenant_kyc_status": "verified",
+      "proofing_status": "approved",
+      "proofing_tier": "standard_cdd",
+      "evidence_refs": [
+        "evidence:proofing-case:demo"
+      ],
+      "source_control_row_ids": [
+        "REGID-CB-008",
+        "REGID-CB-009"
+      ],
+      "freshness_state": "fresh"
+    },
+    "due_diligence_state": {
+      "cdd_state": "satisfied",
+      "edd_state": "not_required",
+      "manual_review_required": false
+    },
+    "screening_state": {
+      "sanctions_result": "clear",
+      "pep_result": "clear",
+      "adverse_media_result": "clear",
+      "freshness_state": "fresh",
+      "last_screened_at": "2026-07-01T09:20:00Z",
+      "expires_at": "2026-10-01T09:20:00Z"
+    },
+    "consent_state": {
+      "consent_refs": [],
+      "lawful_basis_refs": [],
+      "purpose_refs": [],
+      "revoked": true
+    },
+    "residency_state": {
+      "jurisdiction_primary": "US",
+      "data_residency_target": "unapproved-region",
+      "allowed_regions": [
+        "eu-compliance"
+      ],
+      "egress_permitted": false
+    },
+    "retention_state": {
+      "retention_rule_ids": [],
+      "expires_at_or_review_due_at": "2031-07-01T00:00:00Z",
+      "deletion_hold": false
+    },
+    "purpose_state": {
+      "purpose": "proofing_decision",
+      "purpose_bound": false,
+      "data_classes": [
+        "KYC_IDENTITY_CORE",
+        "KYC_SCREENING_RESULT"
+      ]
+    },
+    "risk_state": {
+      "risk_score": 32,
+      "risk_band": "medium",
+      "risk_model_ref": "risk-model:regid004-demo:v1",
+      "risk_freshness_state": "fresh"
+    },
+    "pdp_audit_state": {
+      "decision_id": null,
+      "policy_bundle_version": "policy-bundle:regid004:v0.1.0",
+      "determining_policy_ids": [
+        "REGID-004-I01-PASSKEY-NOT-KYC"
+      ],
+      "obligations_required": [
+        "emit-audit-event",
+        "require-consent-ref",
+        "enforce-residency-target",
+        "apply-retention-rule"
+      ],
+      "audit_chain_required": true
+    }
+  }
+}

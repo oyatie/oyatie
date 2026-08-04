@@ -1,0 +1,72 @@
+{
+  "schema_version": "1.0",
+  "task_id": "t_f60cb75d",
+  "service": "workflow-engine",
+  "claim_ceiling": "ADR-0344 Proposed/advisory manifest declaration only; no runtime instrumentation, measured emissions, live billing, OpenCost/FOCUS export, generated JSON, or production FinOps readiness claim.",
+  "manifest": "oya/workflow-engine/manifest.json",
+  "included_by_inventory_gate": "specs/microservices/manifests-index.json#workflow-engine",
+  "source_refs": [
+    "oya/workflow-engine/manifest.json#capacity_model",
+    "oya/workflow-engine/manifest.json#slos.oya-workflow-engine-workflow-step-execute-latency",
+    "oya/workflow-engine/manifest.json#audit_chain.seal_events.oya.workflow-engine.workflow-execute",
+    "docs/decisions/ADR-0344-sustainability-finops-dimensional-model.md#D-2"
+  ],
+  "workload_signal_source": {
+    "signal_family": "per_workflow_run",
+    "source_ref": "active workflow execution, step execution, replay, timer, and worker dispatch paths",
+    "audit_event_refs": [
+      "oya.workflow-engine.workflow-execute",
+      "oya.workflow-engine.workflow-replay"
+    ],
+    "slo_refs": [
+      "oya-workflow-engine-workflow-start-latency",
+      "oya-workflow-engine-workflow-step-execute-latency",
+      "oya-workflow-engine-replay-determinism-correctness"
+    ]
+  },
+  "resource_accounting_fixture": {
+    "cpu_seconds": 14.4,
+    "memory_gib_seconds": 6.0,
+    "storage_gib_hours": 0.009,
+    "network_gib": 0.018,
+    "provider": "provider_sku_pricing",
+    "region": "fixture-region",
+    "carbon_intensity_source": "fixture_grid_400gco2_per_kwh"
+  },
+  "power_model": {
+    "cpu_watts_per_vcpu_second": 0.64,
+    "memory_watts_per_gib_second": 0.0031,
+    "storage_watts_per_gib_hour": 0.0012,
+    "network_watts_per_gib": 0.095,
+    "tier_overhead_factor_applied": 1.4,
+    "derivation_note": "Values are fixture coefficients selected from workflow-engine's Tier-0 per_workflow_run capacity model, 12 GiB storage baseline, high outbound worker/event-bus surface, and workflow-step latency SLO; they are not ADR example coefficients and not measured production calibration."
+  },
+  "price_model": {
+    "source": "provider_sku_pricing",
+    "binding": "cloud/cloud-billing/README.md#per-usage-meter:workflow-engine.per_workflow_run",
+    "pin_window_hours": 1,
+    "non_claim": "Fixture binds to provider SKU pricing authority only; no invoice, chargeback, or live cost allocation mutation is performed."
+  },
+  "validation_baseline": {
+    "formula_ref": "docs/decisions/ADR-0344-sustainability-finops-dimensional-model.md#D-6.4",
+    "expected_watt_hours_per_request_p50_mwh": 3.591903,
+    "expected_co2_grams_per_request_p50_at_grid_400gco2_per_kwh": 0.001436761,
+    "tolerance_pct": 20
+  },
+  "review_notes": {
+    "no_carbon_deferral": "Tier 0 workflow execution and tenant-authored plugin surfaces are explicitly ineligible for carbon-aware deferral under ADR-0344 B2/D-9.",
+    "security_tenant_data_plane": "Tenant-authored workflow/custom-node execution keeps this in the strongest isolation lane.",
+    "audit_chain": "Emission attribution follows workflow-execute/replay seal events; failure to populate the five ADR-0344 audit-row fields must fail the future emission-path gate."
+  },
+  "failure_cases": [
+    "workflow run audit row missing provider/region/cost/co2/watt_hours",
+    "pod_runtime_tier not equal to self.pod_runtime_tier=0",
+    "per_request signal substituted for per_workflow_run",
+    "billing mutation attempted during fixture replay"
+  ],
+  "recalibration": {
+    "cadence": "quarterly",
+    "owner_team": "axis-workflow-engine",
+    "evidence_floor": "representative workflow-step resource-accounting sample plus independent power-model validation before any measured claim"
+  }
+}

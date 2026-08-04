@@ -1,0 +1,23 @@
+[package]
+name = "oya-cloud-ci-multi-region-disposition-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# multi-region-disposition: pure readiness gate packet for accepted manifest/doc disposition evidence.
+
+[lib]
+name = "oya_cloud_ci_multi_region_disposition_app"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+serde_json = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }
+
+[lints]
+workspace = true

@@ -1,0 +1,126 @@
+{
+  "fixture_id": "REGID-004-FX-001",
+  "title": "Syncable passkey remains phishing-resistant auth but is capped at AAL2-equivalent assurance",
+  "expected_decision": "allow",
+  "expected_obligations": [
+    "emit-audit-event",
+    "attach-evidence-ref",
+    "apply-retention-rule",
+    "enforce-residency-target"
+  ],
+  "covered_invariants": [
+    "REGID-004-I01-PASSKEY-NOT-KYC",
+    "REGID-004-I02-SYNCABLE-AAL-CEILING"
+  ],
+  "context": {
+    "tenant_id": "tenant-regid004-demo",
+    "subject_ref": "subject-ref:demo-123",
+    "action_slug": "identity-proofing.case.start",
+    "requested_capability": "regulated-identity-proofing",
+    "auth_state": {
+      "passkey_auth_state": "authenticated",
+      "acr": "elevated",
+      "acr_event_at": "2026-07-01T09:30:00Z",
+      "credential_type": "syncable_passkey",
+      "webauthn_level_floor": "WebAuthn-Level-3",
+      "authenticator_assurance": {
+        "attestation_level": "indirect",
+        "fido_mds_level": "L1",
+        "aaguid_ref": "aaguid:syncable-demo",
+        "backup_eligible": true,
+        "backup_state": true,
+        "device_binding": "syncable_multi_device",
+        "phishing_resistant": true
+      },
+      "syncable_passkey_aal_ceiling": "AAL2",
+      "critical_operation_approval": {
+        "required": false,
+        "approval_ref": null,
+        "approval_window_state": "not_required",
+        "approved_at": null
+      }
+    },
+    "proofing_state": {
+      "tenant_kyc_status": "verified",
+      "proofing_status": "approved",
+      "proofing_tier": "standard_cdd",
+      "evidence_refs": [
+        "evidence:proofing-case:demo"
+      ],
+      "source_control_row_ids": [
+        "REGID-CB-008",
+        "REGID-CB-009"
+      ],
+      "freshness_state": "fresh"
+    },
+    "due_diligence_state": {
+      "cdd_state": "satisfied",
+      "edd_state": "not_required",
+      "manual_review_required": false
+    },
+    "screening_state": {
+      "sanctions_result": "clear",
+      "pep_result": "clear",
+      "adverse_media_result": "clear",
+      "freshness_state": "fresh",
+      "last_screened_at": "2026-07-01T09:20:00Z",
+      "expires_at": "2026-10-01T09:20:00Z"
+    },
+    "consent_state": {
+      "consent_refs": [
+        "consent:kyc:demo"
+      ],
+      "lawful_basis_refs": [
+        "lawful-basis:contract:demo"
+      ],
+      "purpose_refs": [
+        "purpose:proofing-decision"
+      ],
+      "revoked": false
+    },
+    "residency_state": {
+      "jurisdiction_primary": "US",
+      "data_residency_target": "us-east-compliance",
+      "allowed_regions": [
+        "us-east-compliance",
+        "us-west-compliance"
+      ],
+      "egress_permitted": true
+    },
+    "retention_state": {
+      "retention_rule_ids": [
+        "retention:kyc-standard-cdd"
+      ],
+      "expires_at_or_review_due_at": "2031-07-01T00:00:00Z",
+      "deletion_hold": false
+    },
+    "purpose_state": {
+      "purpose": "proofing_case_start",
+      "purpose_bound": true,
+      "data_classes": [
+        "KYC_IDENTITY_CORE",
+        "KYC_SCREENING_RESULT"
+      ]
+    },
+    "risk_state": {
+      "risk_score": 32,
+      "risk_band": "medium",
+      "risk_model_ref": "risk-model:regid004-demo:v1",
+      "risk_freshness_state": "fresh"
+    },
+    "pdp_audit_state": {
+      "decision_id": "decision:regid004:demo",
+      "policy_bundle_version": "policy-bundle:regid004:v0.1.0",
+      "determining_policy_ids": [
+        "REGID-004-I01-PASSKEY-NOT-KYC"
+      ],
+      "obligations_required": [
+        "emit-audit-event",
+        "attach-evidence-ref",
+        "apply-retention-rule",
+        "enforce-residency-target"
+      ],
+      "audit_chain_required": true
+    }
+  }
+}

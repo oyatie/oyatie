@@ -1,0 +1,550 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/slides-prd-red-fixture-contract-plan.schema.json",
+  "fixture_plan_id": "SLIDES-PRD-RED-FIXTURE-CONTRACT-PLAN-001",
+  "kanban_task": "t_7e63e03d",
+  "parent_plan_spec_task": "t_228dc16e",
+  "review_fix_parent_task": "t_62dcb74a",
+  "claim_boundary": "RED fixture/contract metadata only; no runtime handlers, product readiness, GA, production, live SLO, hyperscaler maturity, or green-CI-alone readiness claim.",
+  "source_authority_refs": [
+    "kanban:t_228dc16e#slides-prd-source-authority",
+    "kanban:t_62dcb74a#review-fix-slides-source-authority-approved",
+    "kanban:t_7e63e03d#red-fixture-contract",
+    "oya/slides/manifest.json",
+    "specs/microservices/manifests-index.json#microservices[name=slides]",
+    "specs/microservices/slides.json"
+  ],
+  "inventory_context_not_live_authority": [
+    "legacy microservices/slides/** provenance only",
+    "microservices/slides/PRD.md",
+    "microservices/slides/contracts/*",
+    "microservices/slides/manifest.json",
+    "oya/slides/IPs/*",
+    "oya/slides/capabilities/*",
+    "oya/slides/contracts/*",
+    "oya/slides/crates/*",
+    "oya/slides/manifest.json"
+  ],
+  "required_fixture_family_ids": [
+    "FIX-SLIDES-001",
+    "FIX-SLIDES-002",
+    "FIX-SLIDES-003",
+    "FIX-SLIDES-004",
+    "FIX-SLIDES-005",
+    "FIX-SLIDES-006",
+    "FIX-SLIDES-007",
+    "FIX-SLIDES-008",
+    "FIX-SLIDES-009",
+    "FIX-SLIDES-010"
+  ],
+  "contract_replay_expectations": {
+    "openapi": {
+      "source_path": "oya/slides/contracts/openapi/slides.yaml",
+      "legacy_manifest_pointer": "microservices/slides/contracts/openapi/slides.yaml",
+      "must_assert": [
+        "deck CRUD/list/open/save/delete",
+        "slide insert/update/delete",
+        "ACL/Cedar preview",
+        "import/export jobs",
+        "broadcast sessions",
+        "AI suggestion requests"
+      ]
+    },
+    "asyncapi": {
+      "source_path": "oya/slides/contracts/asyncapi/slides-events.yaml",
+      "legacy_manifest_pointer": "microservices/slides/contracts/asyncapi/slides-events.yaml",
+      "must_assert": [
+        "collab-stream CRDT ops",
+        "cursor presence",
+        "present-mode navigation",
+        "broadcast LiveKit signaling",
+        "workflow-bus sibling service events",
+        "duplicate/out-of-order replay"
+      ]
+    },
+    "proto": {
+      "source_path": "oya/slides/contracts/proto/slides.proto",
+      "legacy_manifest_pointer": "microservices/slides/contracts/proto/slides.proto",
+      "must_assert": [
+        "Deck/Slide/ACL messages",
+        "ImportJob/ExportJob messages",
+        "BroadcastSession messages",
+        "AI/ChartBinding messages",
+        "SlidesService RPC shape",
+        "StreamCollabOps backpressure/cancellation"
+      ]
+    }
+  },
+  "future_replay_root": "specs/fixtures/slides/replay/",
+  "browser_user_story_accessibility_evidence_requirements": [
+    {
+      "journey_id": "slides-create-share-coworker",
+      "user_story_ref": "US-SLIDES-001",
+      "fixture_refs": [
+        "slides_deck_crud_open_save_contract_fixture"
+      ],
+      "required_evidence": [
+        "Chromium browser trace",
+        "Firefox browser trace",
+        "WebKit browser trace",
+        "keyboard navigation",
+        "screen-reader labels",
+        "WCAG 2.2 AA"
+      ]
+    },
+    {
+      "journey_id": "slides-coedit-conflict-no-silent-loss",
+      "user_story_ref": "US-SLIDES-003",
+      "fixture_refs": [
+        "slides_collaboration_crdt_cursor_conflict_fixture"
+      ],
+      "required_evidence": [
+        "two-user browser session",
+        "cursor presence",
+        "conflict surfaced",
+        "no silent loss invariant"
+      ]
+    },
+    {
+      "journey_id": "slides-present-broadcast-degraded",
+      "user_story_ref": "US-SLIDES-004",
+      "fixture_refs": [
+        "slides_present_broadcast_contract_fixture"
+      ],
+      "required_evidence": [
+        "present controls keyboard path",
+        "reduced-motion mode",
+        "LiveKit degradation banner",
+        "audience reconnect evidence"
+      ]
+    },
+    {
+      "journey_id": "slides-import-export-policy-gated",
+      "user_story_ref": "US-SLIDES-005",
+      "fixture_refs": [
+        "slides_import_export_contract_fixture"
+      ],
+      "required_evidence": [
+        "import PPTX warning review",
+        "export PDF/PPTX/MP4 job trace",
+        "malware/sandbox denial",
+        "egress policy denial"
+      ]
+    },
+    {
+      "journey_id": "slides-per-slide-acl-preview",
+      "user_story_ref": "US-SLIDES-007",
+      "fixture_refs": [
+        "slides_acl_share_version_history_fixture"
+      ],
+      "required_evidence": [
+        "Cedar preview UI",
+        "per-slide ACL keyboard path",
+        "public-link denied state",
+        "audit event assertion"
+      ]
+    },
+    {
+      "journey_id": "slides-ai-alt-text-provenance",
+      "user_story_ref": "US-SLIDES-009",
+      "fixture_refs": [
+        "slides_ai_assist_tier_disclosure_fixture",
+        "slides_accessibility_reduced_motion_fixture"
+      ],
+      "required_evidence": [
+        "T1 alt-text suggestion diff",
+        "human acceptance",
+        "provenance/watermark retained",
+        "screen-reader reading-order evidence"
+      ]
+    }
+  ],
+  "integration_boundary_expectations": [
+    {
+      "service": "sheets",
+      "boundary": "chart live-link and cell range embeds",
+      "must_assert": [
+        "unavailable",
+        "ACL-revoked",
+        "policy",
+        "no readiness evidence"
+      ]
+    },
+    {
+      "service": "drive",
+      "boundary": "media/assets and exported artifact storage",
+      "must_assert": [
+        "unavailable",
+        "ACL",
+        "policy",
+        "no readiness evidence"
+      ]
+    },
+    {
+      "service": "messenger",
+      "boundary": "broadcast LiveKit signaling",
+      "must_assert": [
+        "unavailable",
+        "room terminated",
+        "policy",
+        "no readiness evidence"
+      ]
+    },
+    {
+      "service": "social/community",
+      "boundary": "embed/publishing/feed share outside native deck comments",
+      "must_assert": [
+        "disabled",
+        "ACL",
+        "policy",
+        "no readiness evidence"
+      ]
+    },
+    {
+      "service": "mail",
+      "boundary": "share/export/eDiscovery notifications",
+      "must_assert": [
+        "unavailable",
+        "ACL",
+        "policy",
+        "no readiness evidence"
+      ]
+    },
+    {
+      "service": "identity",
+      "boundary": "OIDC subject, tenant authn/authz, Cedar principals",
+      "must_assert": [
+        "missing principal",
+        "role denied",
+        "policy",
+        "no readiness evidence"
+      ]
+    },
+    {
+      "service": "intelligence",
+      "boundary": "AI design/content/accessibility assistance",
+      "must_assert": [
+        "unavailable",
+        "high-risk refusal",
+        "policy",
+        "no readiness evidence"
+      ]
+    }
+  ],
+  "global_non_claims": [
+    "green CI alone is insufficient",
+    "no microservices/slides/manifest.json restoration",
+    "no Foundry runtime revival"
+  ],
+  "fixtures": [
+    {
+      "fixture_id": "slides_prd_authority_source_lock_fixture",
+      "fixture_kind": "source_authority_red_contract_fixture",
+      "source_authority_refs": [
+        "specs/microservices/slides.json"
+      ],
+      "future_replay_artifacts": [
+        "specs/fixtures/slides/replay/slides_prd_authority_source_lock_fixture.fixture.json"
+      ],
+      "must_assert": [
+        "PRD-SLIDES",
+        "t_228dc16e",
+        "t_62dcb74a",
+        "oya/slides",
+        "specs/microservices/slides.json remains source authority"
+      ],
+      "must_reject": [
+        "runtime readiness from inventory"
+      ],
+      "expected_red_status": "RED_UNTIL_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "slides_deck_crud_open_save_contract_fixture",
+      "fixture_kind": "source_authority_red_contract_fixture",
+      "source_authority_refs": [
+        "specs/microservices/slides.json",
+        "oya/slides/contracts/openapi/slides.yaml",
+        "oya/slides/contracts/proto/slides.proto"
+      ],
+      "future_replay_artifacts": [
+        "specs/fixtures/slides/replay/slides_deck_crud_open_save_contract_fixture.fixture.json"
+      ],
+      "must_assert": [
+        "deck CRUD",
+        "open",
+        "save",
+        "version",
+        "audit",
+        "soft-delete retention"
+      ],
+      "must_reject": [
+        "unversioned save",
+        "tenant leak"
+      ],
+      "expected_red_status": "RED_UNTIL_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "slides_collaboration_crdt_cursor_conflict_fixture",
+      "fixture_kind": "source_authority_red_contract_fixture",
+      "source_authority_refs": [
+        "specs/microservices/slides.json",
+        "oya/slides/contracts/asyncapi/slides-events.yaml",
+        "oya/slides/contracts/proto/slides.proto"
+      ],
+      "future_replay_artifacts": [
+        "specs/fixtures/slides/replay/slides_collaboration_crdt_cursor_conflict_fixture.fixture.json"
+      ],
+      "must_assert": [
+        "CRDT",
+        "cursor",
+        "conflict surfaced",
+        "no silent loss",
+        "duplicate op",
+        "out-of-order op replay"
+      ],
+      "must_reject": [
+        "silent overwrite",
+        "unauthenticated op"
+      ],
+      "expected_red_status": "RED_UNTIL_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "slides_present_broadcast_contract_fixture",
+      "fixture_kind": "source_authority_red_contract_fixture",
+      "source_authority_refs": [
+        "specs/microservices/slides.json",
+        "oya/slides/contracts/openapi/slides.yaml",
+        "oya/slides/contracts/asyncapi/slides-events.yaml"
+      ],
+      "future_replay_artifacts": [
+        "specs/fixtures/slides/replay/slides_present_broadcast_contract_fixture.fixture.json"
+      ],
+      "must_assert": [
+        "present mode",
+        "broadcast",
+        "LiveKit",
+        "degradation",
+        "audience",
+        "messenger unavailable"
+      ],
+      "must_reject": [
+        "silent broadcast failure",
+        "tenant data leak"
+      ],
+      "expected_red_status": "RED_UNTIL_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "slides_import_export_contract_fixture",
+      "fixture_kind": "source_authority_red_contract_fixture",
+      "source_authority_refs": [
+        "specs/microservices/slides.json",
+        "oya/slides/contracts/openapi/slides.yaml",
+        "oya/slides/contracts/asyncapi/slides-events.yaml",
+        "oya/slides/contracts/proto/slides.proto"
+      ],
+      "future_replay_artifacts": [
+        "specs/fixtures/slides/replay/slides_import_export_contract_fixture.fixture.json"
+      ],
+      "must_assert": [
+        "PDF",
+        "PPTX",
+        "MP4",
+        "sandbox",
+        "malware",
+        "egress",
+        "PDF-A"
+      ],
+      "must_reject": [
+        "unsandboxed conversion",
+        "policy-forbidden export"
+      ],
+      "expected_red_status": "RED_UNTIL_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "slides_acl_share_version_history_fixture",
+      "fixture_kind": "source_authority_red_contract_fixture",
+      "source_authority_refs": [
+        "specs/microservices/slides.json"
+      ],
+      "future_replay_artifacts": [
+        "specs/fixtures/slides/replay/slides_acl_share_version_history_fixture.fixture.json"
+      ],
+      "must_assert": [
+        "Cedar",
+        "share",
+        "per-slide ACL",
+        "version history",
+        "legal hold",
+        "public-link disabled"
+      ],
+      "must_reject": [
+        "public link bypass",
+        "auditor edit escalation"
+      ],
+      "expected_red_status": "RED_UNTIL_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "slides_accessibility_reduced_motion_fixture",
+      "fixture_kind": "source_authority_red_contract_fixture",
+      "source_authority_refs": [
+        "specs/microservices/slides.json"
+      ],
+      "future_replay_artifacts": [
+        "specs/fixtures/slides/replay/slides_accessibility_reduced_motion_fixture.fixture.json"
+      ],
+      "must_assert": [
+        "WCAG 2.2 AA",
+        "keyboard",
+        "screen-reader",
+        "reading order",
+        "reduced-motion",
+        "Canvas/WebGL accessibility bridge"
+      ],
+      "must_reject": [
+        "canvas-only semantics",
+        "motion without reduced-motion fallback"
+      ],
+      "expected_red_status": "RED_UNTIL_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "slides_ai_assist_tier_disclosure_fixture",
+      "fixture_kind": "source_authority_red_contract_fixture",
+      "source_authority_refs": [
+        "specs/microservices/slides.json"
+      ],
+      "future_replay_artifacts": [
+        "specs/fixtures/slides/replay/slides_ai_assist_tier_disclosure_fixture.fixture.json"
+      ],
+      "must_assert": [
+        "T0",
+        "T1",
+        "T2",
+        "intelligence",
+        "human-review",
+        "watermark",
+        "risk-class"
+      ],
+      "must_reject": [
+        "Foundry runtime",
+        "autonomous mutation without human-review"
+      ],
+      "expected_red_status": "RED_UNTIL_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "slides_data_retention_audit_fixture",
+      "fixture_kind": "source_authority_red_contract_fixture",
+      "source_authority_refs": [
+        "specs/microservices/slides.json"
+      ],
+      "future_replay_artifacts": [
+        "specs/fixtures/slides/replay/slides_data_retention_audit_fixture.fixture.json"
+      ],
+      "must_assert": [
+        "data-class",
+        "retention",
+        "legal hold",
+        "audit-chain",
+        "no tenant payload",
+        "ExportJobCompleted",
+        "ImportJobCompleted"
+      ],
+      "must_reject": [
+        "tenant payload copied into governance evidence"
+      ],
+      "expected_red_status": "RED_UNTIL_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "slides_integration_boundaries_fixture",
+      "fixture_kind": "source_authority_red_contract_fixture",
+      "source_authority_refs": [
+        "specs/microservices/slides.json"
+      ],
+      "future_replay_artifacts": [
+        "specs/fixtures/slides/replay/slides_integration_boundaries_fixture.fixture.json"
+      ],
+      "must_assert": [
+        "sheets",
+        "drive",
+        "messenger",
+        "social/community",
+        "mail",
+        "identity",
+        "intelligence",
+        "sibling-unready",
+        "ACL-revoked"
+      ],
+      "must_reject": [
+        "sibling inventory as readiness evidence"
+      ],
+      "expected_red_status": "RED_UNTIL_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "slides_browser_user_story_evidence_fixture",
+      "fixture_kind": "source_authority_red_contract_fixture",
+      "source_authority_refs": [
+        "specs/microservices/slides.json"
+      ],
+      "future_replay_artifacts": [
+        "specs/fixtures/slides/replay/slides_browser_user_story_evidence_fixture.fixture.json"
+      ],
+      "must_assert": [
+        "create deck",
+        "co-edit",
+        "present",
+        "import PPTX",
+        "per-slide ACL",
+        "alt-text",
+        "browser",
+        "Chromium",
+        "Firefox",
+        "WebKit"
+      ],
+      "must_reject": [
+        "green CI alone",
+        "no accessibility evidence"
+      ],
+      "expected_red_status": "RED_UNTIL_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "slides_inventory_provenance_rejection_fixture",
+      "fixture_kind": "source_authority_red_contract_fixture",
+      "source_authority_refs": [
+        "specs/microservices/slides.json"
+      ],
+      "future_replay_artifacts": [
+        "specs/fixtures/slides/replay/slides_inventory_provenance_rejection_fixture.fixture.json"
+      ],
+      "must_assert": [
+        "inventory/provenance boundary"
+      ],
+      "must_reject": [
+        "oya/slides/manifest.json",
+        "microservices/slides/manifest.json",
+        "legacy microservices/slides",
+        "microservices/slides/manifest.json restoration"
+      ],
+      "expected_red_status": "RED_UNTIL_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "slides_build_parentage_fixture",
+      "fixture_kind": "source_authority_red_contract_fixture",
+      "source_authority_refs": [
+        "specs/microservices/slides.json"
+      ],
+      "future_replay_artifacts": [
+        "specs/fixtures/slides/replay/slides_build_parentage_fixture.fixture.json"
+      ],
+      "must_assert": [
+        "t_228dc16e",
+        "t_62dcb74a",
+        "t_7e63e03d",
+        "allowed path",
+        "no product runtime code"
+      ],
+      "must_reject": [
+        "Build before RED",
+        "runtime code in RED lane"
+      ],
+      "expected_red_status": "RED_UNTIL_REPLAY_ARTIFACT_EXISTS"
+    }
+  ]
+}

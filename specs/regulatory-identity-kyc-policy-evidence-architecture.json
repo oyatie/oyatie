@@ -31,7 +31,7 @@
       "specs/compliance-pack-schema.json",
       "libs/oya-shared-platform-contracts-kernel/src/pdp.rs",
       "libs/oya-shared-pdp-kernel/src/lib.rs",
-      "iam/adapters/pdp-cedar/src/lib.rs",
+      "libs/oya-shared-pdp-adapter-cedar/src/lib.rs",
       "cloud/tenancy/IP-018-kyb-kyc-verifier-domain.md",
       "cloud/tenancy/IP-024-kyb-kyc-rest-and-async.md",
       "cloud/tenancy/capabilities/kyb-kyc-complete.yaml"
@@ -41,9 +41,7 @@
     {
       "id": "REGID-001",
       "status": "in_progress_at_authoring",
-      "source_path": "specs/regulatory-identity-source-of-truth.json",
-      "current_evidence_ref": "specs/regulatory-identity-source-of-truth.json",
-      "durable_review_ref": "https://github.com/jason931225/oyatie/pull/1098",
+      "current_evidence_ref": ".gjc/_session-019f1aef-0840-7000-aa2e-35836dfa25f8/plans/ralplan/019f1aef-0840-7000-aa2e-35836dfa25f8/stage-01-planner.md",
       "usable_findings": [
         "KISA/KMCC/KCC identity-verification designation has 87 review items and requires official PDF table extraction before row-level implementation.",
         "ISMS-P requires at least two months of operated management-system evidence before application, has three-year validity, annual surveillance, renewal lead time, and remediation windows.",
@@ -63,17 +61,6 @@
       ]
     },
     {
-      "id": "WEBAUTHN-L4-FPWD-MILESTONE",
-      "status": "non_normative_tracking_horizon",
-      "source_url": "https://github.com/w3c/webauthn/milestone/27",
-      "source_observed_at": "2026-07-01T04:35:00Z",
-      "usable_findings": [
-        "W3C WebAuthn milestone 27 is titled L4 (First Published Working Draft), with the first-public-working-draft direction still open at authoring time.",
-        "Open Level 4 milestone work at authoring includes immediate mediation UI, alternative error codes, sign extensions, CTAP2.3 virtual-authenticator version strings, and ML-DSA test vectors.",
-        "REGID-002 may design extension points conscious of Level 4 direction, but blocker-grade policy, KYC evidence, readiness, and certification claims must remain grounded in WebAuthn Level 3 and implemented client/authenticator support until Level 4 stabilizes."
-      ]
-    },
-    {
       "id": "ADR-0189",
       "source_path": "docs/decisions/ADR-0189-step-up-authentication-acr-classes.md",
       "usable_findings": [
@@ -87,7 +74,7 @@
       "source_paths": [
         "libs/oya-shared-platform-contracts-kernel/src/pdp.rs",
         "libs/oya-shared-pdp-kernel/src/lib.rs",
-        "iam/adapters/pdp-cedar/src/lib.rs"
+        "libs/oya-shared-pdp-adapter-cedar/src/lib.rs"
       ],
       "usable_findings": [
         "AuthorizationRequest carries request_id, tenant_id, principal, action, resource, context, and min_policy_version.",
@@ -958,15 +945,13 @@
     "This artifact must remain valid JSON.",
     "No product source code, generated JSON, CLI docs, or service implementation should be changed by REGID-002.",
     "Future schema/API slices must add targeted tests for their own artifacts; this architecture plan itself is validated by JSON parse and independent review.",
-    "Every blocker-grade policy or pack row must trace to REGID-001 or successor source rows with URL/version/hash before implementation.",
-    "WebAuthn Level 4 working-draft direction may inform extension points only; no Level 4-dependent requirement is blocker-grade until the relevant feature is standardized and available in supported clients/authenticators."
+    "Every blocker-grade policy or pack row must trace to REGID-001 or successor source rows with URL/version/hash before implementation."
   ],
   "non_goals": [
     "Do not implement a KYC service in this task.",
     "Do not add a CLI for proofing, evidence upload, or accreditation packet export.",
     "Do not hand-transcribe Korean PDF table rows as authoritative source rows.",
     "Do not weaken passkey-first authentication to copy regional legacy verification UX.",
-    "Do not claim WebAuthn Level 4 readiness or make Level 4 draft features mandatory in REGID-002.",
     "Do not store raw proofing documents in PDP context, logs, metrics, or tenant rows."
   ]
 }

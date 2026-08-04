@@ -1,0 +1,50 @@
+{
+  "schema_version": "2.4.0-advisory-local",
+  "change_id": "t_5f5d9a01-shell-004-audit-evidence-timeline",
+  "change_class_id": "CC-3_frontend_ui_evidence_contract",
+  "created_at": "2026-07-09T15:59:01Z",
+  "agent_id": "hermes-default-kanban",
+  "task_id": "t_5f5d9a01",
+  "branch": "preserve/hermes-w1-dirty-20260630",
+  "scope": {
+    "summary": "SHELL-004 shell frontend audit evidence timeline renders one Cloud IAM policy operation class from the durable Cloud Observability audit read source, with explicit G007/AUTHZ-006 authority anchors and a non-mutating boundary marker.",
+    "files_touched": [
+      "oya/application/crates/oya-application-shell-frontend/src/app.rs",
+      "evidence/multispectrum/t_5f5d9a01-shell-004-audit-evidence-timeline-1783612741.json"
+    ],
+    "explicit_non_claims": [
+      "No provider mutation, cloud control-plane write, live tenant data import, credential exposure, or production persistence is introduced.",
+      "The audit timeline is a read-only UI/static rendering slice over the durable Cloud Observability audit read API fixture and does not claim a full provider-backed audit console.",
+      "Pre-existing dirty workspace changes outside the SHELL-004 app.rs and this evidence packet were not reviewed or modified for this card."
+    ]
+  },
+  "facets": {
+    "F1_traceability": [
+      "t_5f5d9a01",
+      "SHELL-004",
+      "G007 goals.json",
+      "AUTHZ-006",
+      "contracts/openapi/cloud/cloud-observability-audit-v1.yaml#readCloudObservabilityAudit",
+      "registry/openapi/runtime-bindings.tsv:19",
+      "specs/root-hub-pointers.json",
+      "specs/design-system/audit-evidence-timeline.json",
+      "oya/application/crates/oya-application-shell-frontend/src/app.rs"
+    ],
+    "F2_correctness": "The shell frontend parses the Cloud Observability audit read response shape with deny_unknown_fields, filters the timeline to cloud_iam_policy, carries signed digest-chain fields into design-system rows, and asserts static SSR markers for endpoint, authz surface, operation class, authority refs, complete chain state, high watermark, signed export, and idempotency key.",
+    "F3_security": "The panel is explicitly read-only and analysis-only/non-mutating; it exposes no credentials and does not introduce provider write paths or live secret handling.",
+    "F4_data_boundary": "Rendered values are scoped to the durable audit response fixture and preserve INTERNAL_ONLY/AUDIT labels as evidence text; no external tenant data source or cross-tenant query is wired.",
+    "F5_testing": "cargo fmt --check -p oya-application-shell-frontend; CARGO_TARGET_DIR=/tmp/oyatie-t_5f5d9a01-target cargo test -p oya-application-shell-frontend audit_evidence_timeline_uses_durable_cloud_observability_source --lib --features ssr -- --nocapture; git diff --check -- oya/application/crates/oya-application-shell-frontend/src/app.rs.",
+    "F6_rollback": "Revert the SHELL-004 app.rs hunks and remove this evidence packet if the cloud audit UI source authority changes or the shell timeline is superseded.",
+    "F7_operability": "Operators can identify durable source endpoint, authz surface, G007/AUTHZ-006 authority anchors, chain completeness, high-watermark sequence, request, tenant, region, and cursor in the static shell timeline section.",
+    "F8_performance": "The slice renders a bounded fixture-backed timeline row list with no network call or provider mutation on the shell render path.",
+    "F9_compliance": "The UI preserves audit-chain, data-class, signed-export, and non-mutating boundary language instead of downgrading evidence to local fixture-only or mock claims.",
+    "F10_reversibility": "Changes are additive to the shell frontend timeline and evidence metadata, with no generated JSON, schema migration, or persistent cloud state mutation.",
+    "F11_observability": "Kanban heartbeats, focused test output, and this multispectrum packet record the validation path and source-authority markers.",
+    "F13_migration": "The implementation keeps the current docs/AGENTS/root-hub operating-contract compatibility path and avoids relying on retired CLI merge authority."
+  },
+  "verification_plan": [
+    "cargo fmt --check -p oya-application-shell-frontend",
+    "CARGO_TARGET_DIR=/tmp/oyatie-t_5f5d9a01-target cargo test -p oya-application-shell-frontend audit_evidence_timeline_uses_durable_cloud_observability_source --lib --features ssr -- --nocapture",
+    "git diff --check -- oya/application/crates/oya-application-shell-frontend/src/app.rs"
+  ]
+}

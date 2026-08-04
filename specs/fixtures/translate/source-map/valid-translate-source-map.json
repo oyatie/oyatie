@@ -1,0 +1,26 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/translate-source-map-red-case.schema.json",
+  "fixture_id": "valid_translate_source_map_metadata_fixture",
+  "fixture_kind": "source_map_positive_control",
+  "source_map_ref": "specs/microservices/translate.json",
+  "kanban_task": "t_a966bab0",
+  "expected_checker_decision": "METADATA_VALID_REPLAY_STILL_RED",
+  "must_assert": [
+    "PRD-TRANSLATE-SOURCE-MAP status Accepted",
+    "current authority is specs/microservices/translate.json",
+    "canonical service home is oya/translate/",
+    "oya/translate/manifest.json remains inventory/provenance only",
+    "single/batch/bulk translation, detection, TM, QE, document, real-time caption, glossary, and termbase domains are present",
+    "OpenAPI/AsyncAPI/proto replay expectations are present",
+    "browser/user-story/accessibility expectations are present",
+    "provider-routing/residency/data-policy expectations are present"
+  ],
+  "must_not_claim": [
+    "runtime readiness",
+    "product readiness",
+    "FD-001 materiality",
+    "GA/customer availability",
+    "hyperscaler maturity",
+    "green CI alone is sufficient"
+  ]
+}

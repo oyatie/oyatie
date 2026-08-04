@@ -40,8 +40,6 @@ This plan is a planning/spec artifact. It does not mutate product code, does not
 - `specs/compliance-pack-schema.json`: packs declare `cell_eligibility.requires_certification`, `forbidden_cells`, BYOK requirements, data-class extensions, retention, consent, cross-tenant rules, jurisdiction overlays, and regulator references.
 - `specs/compliance-pack-floors.json`: effective DR posture is tightened by applicable compliance-pack floors.
 
-Authority boundary: ADR-0248 and ADR-0251 are Proposed/planning-impact context at the time of this artifact. This plan therefore remains exploratory/design-only and non-mutating; it does not elevate those ADRs into binding merge authority, does not authorize product/cloud implementation, and stays subordinate to accepted ADRs, root-hub pointers, and later approved machine-readable placement contracts.
-
 Non-goals:
 
 - Do not claim any cell is certified unless a pack/cell evidence packet proves it.

@@ -1,0 +1,20 @@
+[package]
+name = "oya-managed-k8s-tenant-quota-adapter-postgres"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "Postgres/RLS adapter for managed-K8s tenant quota via the owned oya-data SQL port."
+
+[dependencies]
+oya-data-sql-kernel = { path = "../../../../libs/oya-data-sql-kernel" }
+oya-managed-k8s-tenant-quota-api = { path = "../oya-managed-k8s-tenant-quota-api" }
+
+[lib]
+name = "oya_managed_k8s_tenant_quota_adapter_postgres"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

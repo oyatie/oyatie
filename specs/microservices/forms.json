@@ -1,0 +1,440 @@
+{
+  "schema_version": "0.1.0",
+  "doc_class": "Machine-Readable-Spec",
+  "spec_id": "MS-FORMS-PRD-SOURCE-MAP",
+  "service_identity": {
+    "name": "forms",
+    "category": "workplace-app",
+    "canonical_service_home": "oya/forms",
+    "owner_team": "axis-forms",
+    "bounded_context": "form-lifecycle",
+    "source_map_task": "t_f10e6606"
+  },
+  "status": {
+    "state": "draft-source-lock",
+    "review_gate": "required-before-red-build-fanout",
+    "runtime_claim": "none",
+    "product_readiness_claim": "none",
+    "notes": [
+      "This file is the machine-readable PRD/source map for forms planning and source-lock review.",
+      "It does not claim that forms is runtime-complete, production-ready, GA, externally available, or implementation-ready.",
+      "Downstream RED, Build, implementation, rollout, or product-readiness cards remain gated behind this source lock plus independent review."
+    ]
+  },
+  "authority_boundary": {
+    "current_authority": [
+      {
+        "path": "specs/microservices/forms.json",
+        "role": "machine-readable PRD/source map and RED fanout gate for the workplace forms app",
+        "status": "draft source lock pending review"
+      },
+      {
+        "path": "specs/microservices/manifests-index.json#microservices[name=forms]",
+        "role": "index row declaring oya/forms/manifest.json inventory/provenance only and fd001_material=false",
+        "status": "existing index authority boundary; not edited by this source-lock task",
+        "source_map_reconciliation": "The row's older no-PRD wording is stale provenance for this review target. Until a serialized manifests-index update is authorized, use the row only to prove oya/forms/manifest.json inventory/provenance and fd001_material=false, not absence of this source map."
+      },
+      {
+        "path": "docs/decisions/ADR-0131-per-microservice-flat-layout.md",
+        "role": "service colocation principle; amended so historical microservices/<service> references are legacy examples",
+        "status": "Accepted"
+      },
+      {
+        "path": "docs/decisions/ADR-0512-canonical-monorepo-pattern.md",
+        "role": "canonical {oya,cloud}/<service>/ service home and one-workspace pattern",
+        "status": "Accepted"
+      }
+    ],
+    "inventory_and_provenance_only": [
+      {
+        "path": "oya/forms/manifest.json",
+        "role": "tracked forms inventory/provenance; includes stale legacy microservices/forms path strings",
+        "must_not_be_used_as": "live implementation-readiness, runtime-readiness, product-readiness, or GA evidence"
+      },
+      {
+        "path": "oya/forms/README.md",
+        "role": "human summary/provenance for forms scope and doctrine references",
+        "must_not_be_used_as": "machine-readable PRD source lock by itself"
+      },
+      {
+        "path": "oya/forms/**",
+        "role": "current service-root inventory to select future RED fixtures and source evidence from",
+        "must_not_be_used_as": "unreviewed promotion evidence"
+      }
+    ],
+    "retired_or_stale_authority": [
+      {
+        "path": "microservices/forms/manifest.json",
+        "status": "absent and must not be restored",
+        "reason": "ADR-0131 amended by ADR-0512 moved service homes to {oya,cloud}/<service>; prior cards settled that microservices/forms/manifest.json is not canonical."
+      },
+      {
+        "path_prefix": "microservices/forms/",
+        "status": "legacy path strings only when encountered in migrated inventory",
+        "reason": "Use current oya/forms evidence where present; otherwise record as stale provenance or cleanup debt."
+      }
+    ]
+  },
+  "accepted_scope": {
+    "product_summary": "Forms covers workplace form authoring, form rendering, response collection, validation, export, distribution, anonymous/public submission where explicitly allowed, and bounded AI-assisted form build suggestions/drafts.",
+    "personas": [
+      {
+        "id": "tenant-form-builder",
+        "description": "Tenant operator or workplace admin creates, edits, publishes, distributes, and archives forms.",
+        "needs": [
+          "draft and publish forms with policy-preview acknowledgement",
+          "configure fields, validation, branching, accessibility, data-class labels, and respondent audience",
+          "see warnings before publishing high-risk, inaccessible, or policy-denied forms"
+        ]
+      },
+      {
+        "id": "respondent",
+        "description": "Authenticated or explicitly anonymous submitter responds to a published form.",
+        "needs": [
+          "submit responses through tenant/pack-scoped endpoints",
+          "receive clear unavailable/expired/rate-limit/captcha states",
+          "avoid hidden or unauthorized field persistence"
+        ]
+      },
+      {
+        "id": "tenant-data-admin",
+        "description": "Tenant administrator exports, searches, audits, and deletes/handles response data under policy and compliance constraints.",
+        "needs": [
+          "entitlement-gated response listing and export",
+          "PII redaction controls",
+          "DSR execution and audit-chain evidence"
+        ]
+      },
+      {
+        "id": "compliance-auditor",
+        "description": "Auditor or compliance principal reviews forms evidence without raw answer leakage.",
+        "needs": [
+          "audit-chain seals and replayable evidence references",
+          "policy/permit decision traceability",
+          "residency, DPIA, accessibility, and data minimization proof"
+        ]
+      },
+      {
+        "id": "forms-operator",
+        "description": "SRE or service operator keeps the response, export, webhook, captcha, and AI-build paths observable and safe.",
+        "needs": [
+          "SLOs, dashboards, runbooks, fail-closed controls, and rollback paths",
+          "alerting for submission, export, captcha, replay, and policy drift failures"
+        ]
+      }
+    ],
+    "user_stories": [
+      {
+        "id": "FORMS-US-001",
+        "persona": "tenant-form-builder",
+        "story": "As a tenant form builder, I can create a form draft with typed fields and validation so that the published form has an auditable schema.",
+        "acceptance_evidence_plan": [
+          "RED fixture for CreateForm/FormDraft with required title, fields, data-class labels, and invalid-field rejection",
+          "domain/kernel tests for duplicate fields, required answers, field kind validation, and data-class defaults"
+        ]
+      },
+      {
+        "id": "FORMS-US-002",
+        "persona": "tenant-form-builder",
+        "story": "As a tenant form builder, I can preview policy, accessibility, and data-class warnings before publish so that unsafe forms fail closed.",
+        "acceptance_evidence_plan": [
+          "contract fixture for publish requiring policy_preview_acknowledged and auto_decision_screening",
+          "capability fixture proving T0 suggestions never write state or reveal raw PII"
+        ]
+      },
+      {
+        "id": "FORMS-US-003",
+        "persona": "respondent",
+        "story": "As a respondent, I can submit a response to an accepting published form through a scoped token and captcha gate so that abuse and unauthorized persistence are rejected.",
+        "acceptance_evidence_plan": [
+          "OpenAPI fixture for /public/forms/{form_runtime_token}:submit success and captcha/rate-limit/expired failures",
+          "server-authoritative branch/permit replay fixture before response persistence"
+        ]
+      },
+      {
+        "id": "FORMS-US-004",
+        "persona": "tenant-data-admin",
+        "story": "As a data admin, I can list and export responses only through entitlement-gated, redacted, auditable paths.",
+        "acceptance_evidence_plan": [
+          "RED fixture for pii_unredacted=false default and Cedar-denied pii_unredacted=true without entitlement",
+          "export job fixture for csv/xlsx/json/sheets-bridge queueing without synchronous raw-data leakage"
+        ]
+      },
+      {
+        "id": "FORMS-US-005",
+        "persona": "compliance-auditor",
+        "story": "As an auditor, I can inspect evidence for form publish, submit, DSR, webhook, and AI-build decisions without seeing raw response values.",
+        "acceptance_evidence_plan": [
+          "AsyncAPI fixture for audit-chain seal fields on form and response events",
+          "logic replay fixture storing hashes and permit ids instead of raw answer values"
+        ]
+      },
+      {
+        "id": "FORMS-US-006",
+        "persona": "forms-operator",
+        "story": "As an operator, I can detect and mitigate response pipeline, captcha, export, and replay failures using documented SLO/runbook evidence.",
+        "acceptance_evidence_plan": [
+          "SLO fixture selection for submission latency, PII encryption correctness, WCAG correctness, and export latency",
+          "runbook evidence plan for captcha degradation, export failure, response-store corruption, spam flood, and PII leak incident handling"
+        ]
+      }
+    ],
+    "capability_boundaries": [
+      {
+        "capability": "form authoring and publish",
+        "accepted": true,
+        "evidence_seed": [
+          "oya/forms/README.md",
+          "oya/forms/contracts/openapi/forms.openapi.yaml",
+          "oya/forms/crates/oya-forms-domain/src/lib.rs"
+        ]
+      },
+      {
+        "capability": "response collection and export",
+        "accepted": true,
+        "evidence_seed": [
+          "oya/forms/contracts/openapi/forms.openapi.yaml",
+          "oya/forms/contracts/asyncapi/forms.asyncapi.yaml",
+          "oya/forms/crates/oya-forms-domain/src/lib.rs"
+        ]
+      },
+      {
+        "capability": "conditional logic plus per-question Cedar permit",
+        "accepted": true,
+        "evidence_seed": [
+          "oya/forms/decisions/ADR-FRM-001-logic-jump-evaluator-with-conditional-cedar-permit-per-question.md"
+        ],
+        "status_note": "ADR-FRM-001 is Proposed; downstream RED cards must prove the intended contract before implementation."
+      },
+      {
+        "capability": "AI-assisted form build",
+        "accepted": true,
+        "evidence_seed": [
+          "oya/forms/capabilities/T0-suggest.yaml",
+          "oya/forms/capabilities/T1-assist.yaml",
+          "oya/forms/capabilities/T2-auto.yaml",
+          "oya/forms/contracts/openapi/forms.openapi.yaml#/paths/~1ai-build:draft"
+        ],
+        "status_note": "Treat capability files as planning inventory until reviewed against current autonomy and risk gates."
+      }
+    ]
+  },
+  "inventory_provenance_map": {
+    "current_inventory_files_read": [
+      "oya/forms/manifest.json",
+      "oya/forms/README.md",
+      "oya/forms/contracts/openapi/forms.openapi.yaml",
+      "oya/forms/contracts/asyncapi/forms.asyncapi.yaml",
+      "oya/forms/contracts/proto/forms.proto",
+      "oya/forms/crates/oya-forms-domain/src/lib.rs",
+      "oya/forms/dpia/dpia.md",
+      "oya/forms/capabilities/T0-suggest.yaml",
+      "oya/forms/decisions/ADR-FRM-001-logic-jump-evaluator-with-conditional-cedar-permit-per-question.md"
+    ],
+    "stale_legacy_reference_policy": {
+      "rule": "A legacy microservices/forms reference is never live source authority by itself. If a byte-identical/current artifact exists under oya/forms, use the oya/forms path as inventory/provenance seed. If no current oya/forms artifact exists, record the legacy reference as cleanup/provenance debt only.",
+      "implementation_readiness": "not inferred from either stale legacy references or oya/forms inventory without RED/Build/Review gates"
+    },
+    "legacy_to_current_examples": [
+      {
+        "legacy": "microservices/forms/contracts/openapi/forms.openapi.yaml",
+        "current": "oya/forms/contracts/openapi/forms.openapi.yaml",
+        "use_as": "contract inventory seed; requires RED contract assertions before implementation"
+      },
+      {
+        "legacy": "microservices/forms/contracts/asyncapi/forms.asyncapi.yaml",
+        "current": "oya/forms/contracts/asyncapi/forms.asyncapi.yaml",
+        "use_as": "event contract inventory seed; requires RED event fixtures before implementation"
+      },
+      {
+        "legacy": "microservices/forms/contracts/proto/forms.proto",
+        "current": "oya/forms/contracts/proto/forms.proto",
+        "use_as": "internal SDK contract inventory seed; requires proto compatibility and codegen checks before implementation"
+      },
+      {
+        "legacy": "microservices/forms/capabilities/T0-suggest.yaml",
+        "current": "oya/forms/capabilities/T0-suggest.yaml",
+        "use_as": "autonomy/risk planning seed; related_artifacts inside the file still contain stale microservices/forms references"
+      },
+      {
+        "legacy": "microservices/forms/slos/*.openslo.yaml",
+        "current": "oya/forms/slos/*.openslo.yaml",
+        "use_as": "SLO planning seed; measured SLO evidence not claimed"
+      },
+      {
+        "legacy": "microservices/forms/catalog/*.yaml",
+        "current": "oya/forms/catalog/*.yaml",
+        "use_as": "component inventory seed; generated/registry readiness not claimed"
+      },
+      {
+        "legacy": "microservices/forms/IP-00*.md and microservices/forms/PRD.md",
+        "current": "no matching current PRD/IP files confirmed during this source-lock pass",
+        "use_as": "stale provenance/follow-up cleanup only; do not treat manifest acceptance_status=ga as current implementation evidence"
+      }
+    ],
+    "follow_up_cleanup_candidates_not_in_scope": [
+      "Rewrite oya/forms/manifest.json stale microservices/forms paths to current oya/forms paths under a serialized integrator, if authorized.",
+      "Decide whether oya/forms/README.md companion_docs should be updated away from microservices/forms paths under a README cleanup card.",
+      "Reconcile stale IP/PRD/path claims from oya/forms/manifest.json with actual current oya/forms inventory before any product-readiness claim."
+    ]
+  },
+  "api_contract_evidence_plan": {
+    "rest": {
+      "source_inventory": "oya/forms/contracts/openapi/forms.openapi.yaml",
+      "seeded_surfaces": [
+        "GET /forms",
+        "POST /forms",
+        "GET/PATCH /forms/{form_id}",
+        "POST /forms/{form_id}:publish",
+        "GET /forms/{form_id}/responses",
+        "POST /forms/{form_id}/responses:export",
+        "POST /forms/{form_id}/distribute",
+        "POST /forms/{form_id}/webhooks",
+        "POST /forms/{form_id}/webhooks/{webhook_id}:dlq-replay",
+        "POST /ai-build:draft",
+        "POST /public/forms/{form_runtime_token}:submit"
+      ],
+      "required_red_assertions": [
+        "tenant-scoped authenticated endpoints require OIDC bearer unless explicitly public",
+        "public submission requires runtime token plus captcha and fails closed when captcha is unavailable",
+        "publish requires policy preview acknowledgement and auto-decision screening attestation",
+        "response listing/export defaults to redacted PII and requires entitlement for unredacted access",
+        "contract examples cover validation, conflict, forbidden, not found, rate-limit, expired, and fail-closed responses"
+      ]
+    },
+    "async": {
+      "source_inventory": "oya/forms/contracts/asyncapi/forms.asyncapi.yaml",
+      "seeded_channels": [
+        "oya.forms.published",
+        "oya.forms.response.submitted",
+        "oya.forms.response.submit_failed",
+        "oya.forms.ai_build.requested",
+        "oya.forms.ai_build.completed",
+        "oya.forms.dsr.executed",
+        "oya.forms.webhook.delivery",
+        "oya.forms.bulk_distribute.completed"
+      ],
+      "required_red_assertions": [
+        "events include tenant/pack scope and audit-chain seal metadata",
+        "payloads do not carry raw answer values where hash/reference evidence is sufficient",
+        "failure events distinguish validation, captcha, schema, policy, upload, rate-limit, and internal errors"
+      ]
+    },
+    "proto": {
+      "source_inventory": "oya/forms/contracts/proto/forms.proto",
+      "seeded_service": "oyatie.forms.v1.FormsService",
+      "required_red_assertions": [
+        "Form, Field, Response, and AiBuild messages carry data-class, pack, audit, and version fields needed by REST/AsyncAPI parity",
+        "server authoritative submit/publish methods preserve policy-preview, captcha, and audit-chain invariants"
+      ]
+    }
+  },
+  "fixture_and_test_plan": {
+    "red_first_fixture_sets": [
+      {
+        "id": "forms-draft-contract-fixtures",
+        "purpose": "Draft/create/edit form schema with data-class labels, validation, duplicate-field rejection, and schema hash/version behavior."
+      },
+      {
+        "id": "forms-publish-policy-accessibility-fixtures",
+        "purpose": "Publish gate requires policy preview acknowledgement, WCAG 2.2 AA checks, auto-decision screening attestation, and fail-closed policy behavior."
+      },
+      {
+        "id": "forms-builder-renderer-browser-accessibility-fixtures",
+        "purpose": "Browser/user-story evidence for the form builder and renderer: keyboard-only authoring, screen-reader labels/errors/help text, focus order, branching preview, plain-HTML fallback rendering, mobile/desktop responsive submit flow, and WCAG 2.2 AA regression capture before Build."
+      },
+      {
+        "id": "forms-submit-captcha-token-fixtures",
+        "purpose": "Public submit endpoint validates runtime token, captcha, required answers, hidden/denied answers, expiration, tampering, and rate limits."
+      },
+      {
+        "id": "forms-response-export-entitlement-fixtures",
+        "purpose": "Response listing/export is redacted by default, entitlement-gated when unredacted, and emits export job/audit evidence."
+      },
+      {
+        "id": "forms-logic-permit-replay-fixtures",
+        "purpose": "CEL branch result and Cedar permit decisions produce replayable visible-path evidence and reject hidden PII persistence."
+      },
+      {
+        "id": "forms-ai-build-risk-fixtures",
+        "purpose": "AI-form-build T0/T1/T2 paths remain bounded, labeled, policy-checked, and non-load-bearing until accepted by a tenant operator."
+      },
+      {
+        "id": "forms-ops-runbook-slo-fixtures",
+        "purpose": "Submission latency, PII encryption correctness, form render, field validation, export latency, AI build, WCAG correctness, and runbook failure-mode fixtures are selected before build."
+      }
+    ],
+    "mechanical_checks_before_build": [
+      "python3 -m json.tool specs/microservices/forms.json",
+      "OpenAPI parser/linter for oya/forms/contracts/openapi/forms.openapi.yaml once a RED card owns contract validation",
+      "AsyncAPI parser/linter for oya/forms/contracts/asyncapi/forms.asyncapi.yaml once a RED card owns event validation",
+      "protoc or buf validation for oya/forms/contracts/proto/forms.proto once a RED card owns proto validation",
+      "Browser/user-story accessibility replay for form builder and renderer once a RED card owns UX validation",
+      "domain/kernel tests for oya/forms/crates/oya-forms-domain before adapter/runtime work"
+    ],
+    "review_gate": "Create or use a Review/fix child card before RED or Build fanout; no implementation card may cite this file as reviewed until that child approves it."
+  },
+  "data_security_compliance_accessibility_expectations": {
+    "data_classes": [
+      "PII_IDENTIFYING",
+      "PII_QUASI_IDENTIFIER",
+      "INTERNAL_ONLY",
+      "AUDIT",
+      "PHI when pack/use case requires healthcare handling",
+      "FINANCIAL only when a payment field is explicitly selected and gated"
+    ],
+    "security_controls": [
+      "OIDC bearer for authenticated tenant operations",
+      "HMAC-signed runtime tokens plus captcha for public submission",
+      "Cedar policy preview before publish and per-question permit before answer persistence",
+      "column/envelope encryption for PII response data",
+      "default-deny/fail-closed behavior for unavailable captcha, Cedar, policy bundle, or evaluator mismatch",
+      "raw answer values excluded from audit events when hashes or references satisfy evidence needs"
+    ],
+    "compliance_controls": [
+      "pack-aware residency and compliance constraints for kr, eu, us, us-healthcare, jp, sg, au, in, br, ae, and ksa",
+      "DPIA prompts for high-risk auto-decision screening and regulated forms",
+      "DSR event and deletion/export evidence without copying payloads into automation evidence",
+      "audit-chain seals on publish, submit, AI-build, DSR, webhook, and distribution events"
+    ],
+    "accessibility_controls": [
+      "WCAG 2.2 AA diagnostics before publish",
+      "plain-HTML or degraded rendering path must preserve form semantics and labels",
+      "accessibility correctness fixtures selected before renderer build",
+      "browser evidence must exercise builder and renderer user stories with keyboard navigation, screen-reader labels/errors, focus order, responsive layout, and visible unavailable/expired/rate-limit states"
+    ],
+    "observability_controls": [
+      "submission latency, field validation latency, render latency, export latency, bulk distribution latency, AI-build latency, PII encryption correctness, and WCAG correctness SLO candidates",
+      "dashboards/runbooks are inventory seeds only until verified by RED/Build/Review evidence"
+    ]
+  },
+  "non_goals": [
+    "No runtime product code is changed by this source map.",
+    "No oya/forms inventory, README, manifest, contract, catalog, SLO, runbook, policy, IaC, dashboard, or crate file is edited by this task.",
+    "No cloud/runtime surface is introduced or claimed.",
+    "No generated JSON or generated face is edited by hand.",
+    "No specs/microservices/manifests-index.json row is edited by this task.",
+    "No microservices/forms/manifest.json or retired microservices/forms canonical path is restored.",
+    "No Release Please metadata or release-governance outcome is created by this source map.",
+    "No manifest acceptance_status=ga entry is promoted into live readiness evidence."
+  ],
+  "red_build_backlog_gate": {
+    "state": "gated",
+    "gate_requirements": [
+      "independent Review/fix approval for specs/microservices/forms.json",
+      "RED fixture cards must cite this source map and select current oya/forms evidence, not stale microservices/forms paths",
+      "Build cards must depend on RED fixture proof and must not mutate generated JSON by hand",
+      "Any cleanup of stale oya/forms manifest/README/index references must be a separately serialized integrator card"
+    ],
+    "card_creation_policy": "Do not create RED/Build/implementation fanout from this task; use/reuse the existing review gate first."
+  },
+  "verification_notes": {
+    "expected_local_checks": [
+      "python3 -m json.tool specs/microservices/forms.json",
+      "assert specs/microservices/manifests-index.json forms row remains fd001_material=false and has no prd field edited by this task",
+      "assert microservices/forms/manifest.json remains absent",
+      "duplicate search before further downstream cards"
+    ],
+    "claim_ceiling": "This source map is planning/source-authority scaffolding only and makes no runtime, product-readiness, measured-SLO, cloud, rollout, merge, or Release Please claim."
+  }
+}

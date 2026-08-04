@@ -1,0 +1,84 @@
+schema_version: 1.0
+doc_class: Plan/Spec/RED contract
+contract_id: PLAN-SPEC-ENV-TIER-WORKFLOW-ENGINE-001
+task_id: t_37183522
+status: readiness-only
+owner: axis-workflow-engine
+authority:
+  accepted_spec: /specs/tenant-environment-tiers-canonical.json#workflow_studio_integration
+  upstream_tenancy_contract_card: t_732855bf
+  readiness_parent: t_86da510f
+non_claim_boundary:
+  - This contract is metadata-only Plan/Spec/RED evidence.
+  - It does not start runs, promote specs, create tenant environments, or deliver outbound effects.
+  - It does not enable prod traffic, destructive operations, or hyperscaler-readiness claims.
+  - It does not authorize hand edits to generated *.generated.json outputs.
+env_tier_contract:
+  field: env_tier
+  allowed_values: [test, staging, prod]
+  deprecated_aliases:
+    sandbox: test
+    production: prod
+  no_default_to_prod: true
+  required_on_spec_store_submit: true
+  required_on_run_start: true
+  audit_chain_tag_format: env_tier=<test|staging|prod>
+spec_store_handoff:
+  required_submit_fields:
+    - spec_id
+    - version_sha
+    - body
+    - signature
+    - signer_identity
+    - tenant_id server-stamped from authenticated scope
+    - env_tier
+    - tenancy_env_tier_policy_ref
+    - audit_chain_tag
+  validation_rules:
+    - Reject missing env_tier with 422.
+    - Reject env_tier outside test/staging/prod with 422.
+    - Reject caller-supplied tenant_id that disagrees with authenticated tenant scope with 403.
+    - Reject tenancy_env_tier_policy_ref whose tenant_id or env_tier disagrees with the submitted spec.
+    - Preserve env_tier and audit_chain_tag on every stored WorkflowSpec version.
+run_start_contract:
+  required_start_fields:
+    - spec_id
+    - version_sha
+    - env_tier
+    - tenancy_env_tier_policy_ref
+    - input_class_metadata
+    - idempotency_key
+  validation_rules:
+    - Reject missing env_tier with 422.
+    - Reject run-start env_tier that does not equal stored spec env_tier with 409.
+    - Reject cross-tenant tier mismatch among authenticated tenant, stored spec tenant, and tenancy_env_tier_policy_ref with 403.
+    - Reject prod run start unless changeset_approval_ref, live_policy_evidence_ref, and audit_chain_tag=env_tier=prod are present.
+    - Reject prod run start with destructive or outbound-producing steps unless prod_destructive_acknowledged=true or outbound_acknowledged=true respectively.
+    - For test runs, enforce outbound_mode=intercept semantics in metadata and never deliver external side effects.
+    - For staging runs, require test_recipient_policy_ref before any outbound-capable step can be scheduled.
+promotion_ladder_semantics:
+  ordered_ladder: [test, staging, prod]
+  allowed_forward_edges: [test->staging, staging->prod]
+  forbidden_edges: [test->prod, staging->test, prod->staging, prod->test]
+  changeset_style_gate: >-
+    Any transition above test must reference a ChangeSet-style approval/evidence row.
+    Engine consumes that evidence as metadata only in this lane; no live promotion is executed.
+event_handoff:
+  workflow_started_payload_must_include:
+    - env_tier
+    - audit_chain_tag
+    - outbound_mode
+    - promotion_evidence_ref when env_tier is staging or prod
+  subscriber_rule: >-
+    Subscribers MUST treat replayed=true or env_tier=test as no-external-side-effect metadata
+    unless a later outbound-effect service lane explicitly implements intercepted delivery.
+red_fixture_contract:
+  metadata_fixture: /Users/jasonlee/.hermes/kanban/boards/oyatie/workspaces/t_37183522/workflow-env-tier-red-fixtures.json
+  required_red_cases:
+    - missing env_tier on spec submit
+    - invalid promotion/demotion
+    - cross-tenant tier mismatch
+    - prod action without evidence
+serialization_requirements:
+  - Serialize edits to oya/workflow-engine/contracts/**, oya/workflow-engine/policy/**, and oya/workflow-engine/manifest.json.
+  - Runtime endpoint implementation, API gateway routing, tenancy API/Cedar runtime, cloud-ci packets, and generated outputs require separate lanes.
