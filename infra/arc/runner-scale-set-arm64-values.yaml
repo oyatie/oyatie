@@ -21,6 +21,9 @@ minRunners: 0
 template:
   metadata:
     labels:
+      # Selects the Cilium egress-deny that prevents candidate code from
+      # reaching the shared oya-data namespace even without its credentials.
+      oya.io/ci-cell: general
       # REQUIRED for the CAS to be reachable AT ALL. infra/nativelink's
       # NetworkPolicy `nativelink-cas-ingress` admits :50051 only from pods
       # labelled writer=true and :50052 only from reader=true, matching the
@@ -55,20 +58,9 @@ template:
         # exists to prevent.
         image: registry.oya-registry.svc.cluster.local:5000/oya/runner:arm64-pwsh@sha256:c679cbd7cd00b6b51a18eb3124869971a92b083cceedeecf3bbd68299cf7422d
         command: ["/home/runner/run.sh"]
-        # The live-Postgres gates need BOTH a superuser and a non-superuser app role:
-        # the RLS tests assert that rolsuper/rolbypassrls cannot be bypassed, so the
-        # distinction IS the assertion under test. Credentials flow
-        # k8s Secret -> pod env -> gate; the Secret is projected from the CNPG cluster
-        # in oya-data, never copied into git.
-        env:
-          - name: OYA_CI_PG_HOST
-            value: oya-pg-rw.oya-data.svc.cluster.local
-          - name: OYA_CI_PG_SUPERUSER
-            valueFrom:
-              secretKeyRef: { name: oya-pg-superuser, key: username }
-          - name: OYA_CI_PG_SUPERPASS
-            valueFrom:
-              secretKeyRef: { name: oya-pg-superuser, key: password }
+        # General-purpose candidate runners receive no database administrative
+        # credential. Live PostgreSQL coverage runs in the dedicated per-job
+        # sidecar cell declared by runner-scale-set-live-postgres-arm64-values.yaml.
         resources:
           requests:
             # 2 CPU tracks the MEASURED buck2 scaling knee (j=2 87s, j=4 67s,
