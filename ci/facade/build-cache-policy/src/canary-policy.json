@@ -6,6 +6,6 @@
   "pinned_targets": [
     "//ci/..."
   ],
-  "comparison": "byte-equality of output digests (sha-256 manifest) for overlapping action keys — the registry-drift bar; tolerance widening is NOT permitted (ADR-0556 D2.4)",
+  "comparison": "complete coverage and byte-equality of output digests (sha-256 manifest) for every cold output key, with zero local or remote warm-probe actions — the registry-drift bar; partial overlap or tolerance widening is NOT permitted (ADR-0556 D2.4)",
   "red_response": "fail the canary job RED + flip specs/cache-warm-license.json warm_reads_licensed to false (suspend-all-warm); divergent-key eviction rides the canary reconciler successor (ADR-0556 D4.3), tracked as follow-up"
 }

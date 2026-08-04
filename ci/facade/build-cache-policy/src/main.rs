@@ -19,6 +19,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::{Command, ExitCode, ExitStatus};
+use std::time::Duration;
 
 use ci_build_cache_policy as app;
 use reqwest::blocking::Client;
@@ -238,15 +239,20 @@ fn issue_identity(options: &[String]) -> Result<(), String> {
     .map_err(|error| format!("parse OpenBao public CA: {error}"))?;
     let client = Client::builder()
         .add_root_certificate(ca)
+        .connect_timeout(Duration::from_secs(10))
+        .timeout(Duration::from_secs(30))
         .build()
         .map_err(|error| format!("build HTTPS client: {error}"))?;
     let oidc_url = format!(
         "{request_url}{}audience=oya-openbao",
         if request_url.contains('?') { "&" } else { "?" }
     );
+    let mut oidc_authorization = HeaderValue::from_str(&format!("Bearer {request_token}"))
+        .map_err(|error| format!("invalid GitHub OIDC authorization header: {error}"))?;
+    oidc_authorization.set_sensitive(true);
     let oidc: Value = client
         .get(oidc_url)
-        .header(AUTHORIZATION, format!("Bearer {request_token}"))
+        .header(AUTHORIZATION, oidc_authorization)
         .send()
         .and_then(reqwest::blocking::Response::error_for_status)
         .and_then(reqwest::blocking::Response::json)
@@ -520,12 +526,10 @@ fn run(args: Vec<String>) -> Result<ExitCode, String> {
                 })?;
                 let doc = read_json(&record_path)?;
                 let record = app::invocation_record(&doc)?;
-                if let Err(findings) =
-                    app::assert_warm_cache_participation(record, "integrity-canary", "warm-ro")
-                {
+                if let Err(findings) = app::assert_complete_warm_cache_coverage(record) {
                     return Err(format!(
-                        "canary-verdict: the warm probe did NOT participate in the cache, so its \
-                         manifest is a local rebuild rather than evidence — refusing to compare \
+                        "canary-verdict: the warm probe was NOT fully served by the cache, so its \
+                         manifest includes local/remote rebuilds rather than complete evidence — refusing to compare \
                          it (ADR-0556 D2). Findings: {}",
                         findings.join("; ")
                     ));

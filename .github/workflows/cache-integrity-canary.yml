@@ -84,6 +84,7 @@ jobs:
     # the STEPS, which are unchanged. Running in-cluster additionally puts the canary where the
     # NativeLink CAS is actually reachable, which is a precondition for it ever covering RE.
     runs-on: oya-arm64
+    timeout-minutes: 120
     steps:
       - name: Bind short-lived identity paths to RUNNER_TEMP
         run: |
