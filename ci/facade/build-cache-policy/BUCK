@@ -49,6 +49,7 @@ rust_test(
     deps = [
         ":ci-build-cache-policy",
         "third-party//:prost",
+        "third-party//:rcgen",
         "third-party//:reqwest",
         "third-party//:rustls",
         "third-party//:serde_json",
