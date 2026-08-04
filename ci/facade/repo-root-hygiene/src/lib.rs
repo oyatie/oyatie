@@ -32,7 +32,7 @@ use serde_json::Value;
 pub const GATE_ID: &str = "cloud-ci-root-workspace-hygiene";
 
 /// The blocking violation codes (stable slugs).
-pub const VIOLATION_CODES: [&str; 5] = [
+pub const VIOLATION_CODES: [&str; 6] = [
     // The policy `gate_id` does not match GATE_ID (config integrity).
     "root_workspace_gate_id_mismatch",
     // A tracked file at the repo ROOT matches no allowlist rule — born-blocking root scratch.
@@ -43,6 +43,8 @@ pub const VIOLATION_CODES: [&str; 5] = [
     "root_workspace_restricted_dir_unallowlisted_path",
     // An allowlist rule is malformed (missing/blank id, kind, or value).
     "root_workspace_policy_malformed_rule",
+    // A tracked YAML document has the key topology of a generated Talos machine config.
+    "credential_bearing_talos_machine_config",
 ];
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -353,6 +355,98 @@ pub fn evaluate(policy: &Value, observed: &Value) -> Report {
     Report::from_findings(&evaluate_keyed(policy, observed))
 }
 
+/// Extract YAML mapping key paths without retaining or inspecting scalar values.
+///
+/// Generated Talos machine configurations are YAML mappings whose credential-bearing topology is
+/// stable even when an operator renames the file. This deliberately small parser considers only
+/// plain mapping keys and indentation. Text after the first `:` is discarded immediately, so a
+/// finding can never echo a token, certificate, private key, or other scalar value. Reviewed Talos
+/// patches/templates remain below the fingerprint because they do not contain the complete
+/// generated credential topology.
+fn yaml_plain_mapping_key_paths(document: &str) -> BTreeSet<String> {
+    let mut paths = BTreeSet::new();
+    let mut parents: Vec<(usize, String)> = Vec::new();
+
+    for line in document.lines() {
+        let indent = line.bytes().take_while(|byte| *byte == b' ').count();
+        let trimmed = line.trim_start();
+        if trimmed.is_empty()
+            || trimmed.starts_with('#')
+            || trimmed.starts_with("---")
+            || trimmed.starts_with("...")
+            || trimmed.starts_with('-')
+        {
+            continue;
+        }
+
+        let Some((raw_key, _discarded_scalar)) = trimmed.split_once(':') else {
+            continue;
+        };
+        let key = raw_key.trim();
+        if key.is_empty()
+            || !key
+                .bytes()
+                .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'_' | b'-'))
+        {
+            continue;
+        }
+
+        while parents.last().is_some_and(|(depth, _)| *depth >= indent) {
+            parents.pop();
+        }
+
+        let path = parents
+            .iter()
+            .map(|(_, parent)| parent.as_str())
+            .chain(std::iter::once(key))
+            .collect::<Vec<_>>()
+            .join(".");
+        paths.insert(path);
+        parents.push((indent, key.to_owned()));
+    }
+
+    paths
+}
+
+fn has_generated_talos_machine_config_topology(document: &str) -> bool {
+    let paths = yaml_plain_mapping_key_paths(document);
+    [
+        "machine.token",
+        "machine.ca.crt",
+        "machine.ca.key",
+        "cluster.id",
+        "cluster.secret",
+        "cluster.token",
+        "cluster.secretboxEncryptionSecret",
+        "cluster.ca.crt",
+        "cluster.ca.key",
+    ]
+    .into_iter()
+    .all(|required| paths.contains(required))
+}
+
+/// Reject tracked YAML documents that structurally match a credential-bearing generated Talos
+/// machine configuration. Findings intentionally contain only the repository-relative path and a
+/// fixed remediation; document contents and scalar values are never included.
+pub fn evaluate_talos_machine_config_documents<'a>(
+    documents: impl IntoIterator<Item = (&'a str, &'a str)>,
+) -> BTreeSet<Finding> {
+    documents
+        .into_iter()
+        .filter_map(|(path, document)| {
+            has_generated_talos_machine_config_topology(document).then(|| {
+                Finding::new(
+                    "credential_bearing_talos_machine_config",
+                    path,
+                    format!(
+                        "tracked YAML `{path}` matches generated Talos machine-config credential topology. AUTO-FIX: remove it from git and regenerate outside the repository; retain only reviewed value-free patches/templates. Diagnostic output is value-redacted."
+                    ),
+                )
+            })
+        })
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -379,6 +473,72 @@ mod tests {
 
     fn observed(paths: &[&str]) -> Value {
         json!({ "rows": paths.iter().map(|p| json!({ "path": p })).collect::<Vec<_>>() })
+    }
+
+    #[test]
+    fn generated_talos_machine_config_structure_is_redacted_and_red() {
+        let document = r#"
+version: v1alpha1
+machine:
+  type: controlplane
+  token: DO_NOT_ECHO_MACHINE_TOKEN
+  ca:
+    crt: DO_NOT_ECHO_MACHINE_CERT
+    key: DO_NOT_ECHO_MACHINE_KEY
+cluster:
+  id: DO_NOT_ECHO_CLUSTER_ID
+  secret: DO_NOT_ECHO_CLUSTER_SECRET
+  token: DO_NOT_ECHO_CLUSTER_TOKEN
+  secretboxEncryptionSecret: DO_NOT_ECHO_SECRETBOX_KEY
+  ca:
+    crt: DO_NOT_ECHO_CLUSTER_CERT
+    key: DO_NOT_ECHO_CLUSTER_KEY
+"#;
+
+        let findings = evaluate_talos_machine_config_documents([(
+            "recovery/renamed-machine-config.yaml",
+            document,
+        )]);
+        let finding = findings
+            .iter()
+            .find(|finding| finding.code == "credential_bearing_talos_machine_config")
+            .expect("credential-bearing Talos machine-config structure must be rejected");
+
+        assert_eq!(finding.key, "recovery/renamed-machine-config.yaml");
+        assert!(
+            !format!("{finding:?}").contains("DO_NOT_ECHO"),
+            "the finding must contain path and remediation only, never document scalar values"
+        );
+    }
+
+    #[test]
+    fn talos_patches_and_capi_templates_without_generated_credentials_are_green() {
+        let patch = r#"
+machine:
+  install:
+    disk: /dev/vda
+cluster:
+  network:
+    cni:
+      name: none
+"#;
+        let capi_template = r#"
+apiVersion: bootstrap.cluster.x-k8s.io/v1alpha3
+kind: TalosConfigTemplate
+spec:
+  template:
+    spec:
+      generateType: join
+"#;
+
+        assert!(
+            evaluate_talos_machine_config_documents([
+                ("infra/talos/controlplane.patch.yaml", patch),
+                ("infra/capi/clusters/templates/clusters.yaml", capi_template),
+            ])
+            .is_empty(),
+            "reviewable patches/templates without generated credential topology must remain allowed"
+        );
     }
 
     #[test]
@@ -644,10 +804,28 @@ mod tests {
             "restricted_tracked_roots": [".claude"],
             "allowed_tracked_paths": []
         });
-        let findings = evaluate_keyed(
+        let mut findings = evaluate_keyed(
             &bad,
             &observed(&["foo.log", "sandbox/x.rs", ".claude/worktrees/x"]),
         );
+        findings.extend(evaluate_talos_machine_config_documents([(
+            "renamed.yaml",
+            r#"
+machine:
+  token: redacted
+  ca:
+    crt: redacted
+    key: redacted
+cluster:
+  id: redacted
+  secret: redacted
+  token: redacted
+  secretboxEncryptionSecret: redacted
+  ca:
+    crt: redacted
+    key: redacted
+"#,
+        )]));
         for f in &findings {
             assert!(
                 declared.contains(f.code.as_str()),
@@ -655,7 +833,7 @@ mod tests {
                 f.code
             );
         }
-        // All four codes are exercised by this single fixture.
+        // All six codes are exercised by the path-policy and Talos-structure fixtures.
         let emitted: BTreeSet<String> = findings.iter().map(|f| f.code.clone()).collect();
         assert_eq!(emitted, declared.iter().map(|s| s.to_string()).collect());
     }

@@ -16,7 +16,9 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use ci_repo_root_hygiene::{Verdict, evaluate, evaluate_keyed};
+use ci_repo_root_hygiene::{
+    Verdict, evaluate, evaluate_keyed, evaluate_talos_machine_config_documents,
+};
 use serde_json::{Value, json};
 
 /// Walk up from the test's working directory to the repo root (the dir holding the canonical
@@ -45,6 +47,51 @@ fn load_json(path: &Path) -> Value {
 
 fn load_policy(root: &Path) -> Value {
     load_json(&gate_dir(root).join("root-workspace-hygiene-policy.json"))
+}
+
+#[test]
+fn generated_talos_root_outputs_are_ignored_by_exact_root_anchored_rules() {
+    let root = repo_root();
+    let gitignore = fs::read_to_string(root.join(".gitignore")).expect("read root .gitignore");
+    for exact_rule in [
+        "/controlplane.yaml",
+        "/worker.yaml",
+        "/talosconfig",
+        "/secrets.yaml",
+    ] {
+        assert!(
+            gitignore.lines().any(|line| line == exact_rule),
+            "missing exact root-anchored Talos generated-output ignore rule: {exact_rule}"
+        );
+    }
+}
+
+#[test]
+fn live_tracked_yaml_corpus_has_no_generated_talos_machine_config() {
+    let root = repo_root();
+    let observed = observed_from_scm_facts(&root);
+    let mut documents = Vec::new();
+    for row in observed["rows"].as_array().expect("rows") {
+        let Some(path) = row["path"].as_str() else {
+            continue;
+        };
+        if !(path.ends_with(".yaml") || path.ends_with(".yml")) {
+            continue;
+        }
+        let text = fs::read_to_string(root.join(path))
+            .unwrap_or_else(|error| panic!("read tracked YAML path {path}: {error}"));
+        documents.push((path.to_owned(), text));
+    }
+    let borrowed = documents
+        .iter()
+        .map(|(path, text)| (path.as_str(), text.as_str()))
+        .collect::<Vec<_>>();
+
+    let findings = evaluate_talos_machine_config_documents(borrowed);
+    assert!(
+        findings.is_empty(),
+        "tracked YAML must not contain generated Talos machine-config credential topology; findings are value-redacted: {findings:#?}"
+    );
 }
 
 const SYNTHETIC_RUNTIME_STATE_PATHS: [&str; 5] = [

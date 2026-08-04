@@ -27,6 +27,15 @@ doc_status: published
 - Amended ADR-0630 D2/D7 to bound workload-isolated same-architecture scale sets. Issues #1539
   and #1540; protected admission and live GitOps rollout verification remain pending.
 
+## 2026-08-04 — Talos generated-credential recurrence prevention
+
+- Prevent generated Talos machine configurations from re-entering preservation or product
+  branches: exact root-anchored ignores cover the standard bootstrap outputs, while the existing
+  repo-root-hygiene admission lane now recognizes the credential-bearing Talos key topology across
+  renamed tracked YAML and emits path-only, value-redacted findings ([#1541](https://github.com/jason931225/oyatie/issues/1541)).
+- Rotation, live-cluster mutation, dangling-object purge, and incident closeout remain explicitly
+  outside this preventive-code slice.
+
 ## 2026-08-03 — W0-D non-authorizing reset-eligibility gate
 
 - Added the W0-D eligibility-only schema, historical discovery observation, and
