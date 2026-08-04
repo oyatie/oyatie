@@ -30,11 +30,14 @@ name = "oya-cloud-ci-cache-wiring"
 path = "src/main.rs"
 
 [dependencies]
+prost = { workspace = true }
 reqwest = { workspace = true }
+rustls = { workspace = true }
 serde_json = { workspace = true }
 sha2 = { workspace = true }
 
 [dev-dependencies]
+rcgen = { workspace = true }
 serde_yaml = { workspace = true }
 
 [lints]

@@ -65,15 +65,29 @@
     {
       "gate": "build-cache-policy",
       "class": "cache_controller_process_boundary",
-      "reason": "The cache-wiring binary is a controller adapter, not the cache-policy predicate: it starts the caller-selected Buck2 command and explicitly kills the matching isolated daemon before installing and after removing the mode-0600 cache overlay. The two exact Command::new sites are the generic child spawn and the fixed Buck2 daemon kill. Verdicts remain in the pure library functions exercised by the gate; subprocess status is propagated without reinterpretation. The exact count is closed so another process edge cannot appear without review.",
-      "cutover_note": "Retire both subprocess sites when the typed cloud-ci runner/reconciler API owns Buck2 daemon lifecycle and command execution; the pure cache-policy library remains unchanged.",
+      "reason": "The cache-wiring binary is a controller adapter, not the cache-policy predicate: it starts the caller-selected Buck2 command, explicitly kills the matching isolated daemon before installing and after removing the mode-0600 cache overlay, and invokes the fixed curl client for the typed TLS 1.3 + HTTP/2 REAPI GetCapabilities probe. The three exact Command::new sites are the generic child spawn, the fixed Buck2 daemon kill, and the fixed cache-only capabilities probe. Verdicts remain in pure parsing and policy functions exercised by the gate; subprocess status and typed response validation fail closed. The exact count is closed so another process edge cannot appear without review.",
+      "cutover_note": "Retire the Buck2 subprocess sites when the typed cloud-ci runner/reconciler API owns daemon lifecycle and command execution; retire curl when the owned Rust HTTP/2 client can issue the REAPI probe without widening dependencies. The pure cache-policy library remains unchanged.",
       "fixuptask_id": "GH-1549-CUTOVER-CACHE-CONTROLLER-TYPED-RUNNER",
       "allowed_paths": [
         "ci/facade/build-cache-policy/src/main.rs"
       ],
-      "max_occurrences": 2,
+      "max_occurrences": 3,
       "tokens": [
         "Command::new"
+      ]
+    },
+    {
+      "gate": "build-cache-policy",
+      "class": "cas_reader_to_writer_denial_boundary",
+      "reason": "The commissioning controller opens one direct TCP socket to the fixed in-cluster writer endpoint and completes a TLS 1.3 handshake with the reader identity. It accepts only a typed peer client-auth rejection alert after client-flight I/O; DNS failure, timeout, EOF, server trust failure, or unrelated protocol alerts remain RED. This is negative authorization evidence, not a cache-admission verdict, and the exact one-line std::net import leaves no expansion slack.",
+      "cutover_note": "Retire this direct socket boundary when Cilium/Hubble identity telemetry or the owned workload-identity controller exposes the same reader-to-writer denial as a typed attested API receipt.",
+      "fixuptask_id": "GH-1551-CUTOVER-CAS-NETWORK-PROOF-API",
+      "allowed_paths": [
+        "ci/facade/build-cache-policy/src/main.rs"
+      ],
+      "max_occurrences": 1,
+      "tokens": [
+        "std::net"
       ]
     },
     {

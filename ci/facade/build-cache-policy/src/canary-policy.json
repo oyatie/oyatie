@@ -3,6 +3,12 @@
   "schema_version": "1.0.0",
   "adr": "ADR-0560",
   "build_class": "integrity-canary",
+  "trusted_writer": {
+    "repository": "jason931225/oyatie",
+    "event_name": "push",
+    "git_ref": "refs/heads/dev",
+    "workflow_ref": "jason931225/oyatie/.github/workflows/oya-ci-required.yml@refs/heads/dev"
+  },
   "pinned_targets": [
     "//ci/..."
   ],

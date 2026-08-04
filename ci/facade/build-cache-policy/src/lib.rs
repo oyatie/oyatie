@@ -360,10 +360,93 @@ fn required_last_snapshot_u64(
     }
 }
 
+fn expect_record_u64(
+    record: &Value,
+    key: &str,
+    expected: u64,
+    proof: &str,
+    findings: &mut Vec<String>,
+) {
+    match required_u64(record, key, findings) {
+        Some(value) if value == expected => {}
+        Some(value) => findings.push(format!(
+            "{proof} violation: {key}={value} (expected {expected})"
+        )),
+        None => {}
+    }
+}
+
+fn expect_snapshot_u64(
+    record: &Value,
+    key: &str,
+    expected: u64,
+    proof: &str,
+    findings: &mut Vec<String>,
+) {
+    match required_last_snapshot_u64(record, key, findings) {
+        Some(value) if value == expected => {}
+        Some(value) => findings.push(format!(
+            "{proof} violation: last_snapshot.{key}={value} (expected {expected})"
+        )),
+        None => {}
+    }
+}
+
+fn assert_record_success(record: &Value, proof: &str, findings: &mut Vec<String>) {
+    match record.get("exit_result_name").and_then(Value::as_str) {
+        Some("SUCCESS") => {}
+        Some(value) => findings.push(format!(
+            "{proof} violation: non-success exit_result_name={value:?} (expected SUCCESS)"
+        )),
+        None => findings.push(
+            "record-shape violation: exit_result_name missing or non-string (fail closed)"
+                .to_string(),
+        ),
+    }
+    expect_record_u64(record, "run_command_failure_count", 0, proof, findings);
+    match record.get("errors").and_then(Value::as_array) {
+        Some(errors) if errors.is_empty() => {}
+        Some(errors) => findings.push(format!(
+            "{proof} violation: errors contains {} entry/entries (expected empty)",
+            errors.len()
+        )),
+        None => findings
+            .push("record-shape violation: errors missing or non-array (fail closed)".to_string()),
+    }
+    match record.get("daemon_connection_failure").and_then(Value::as_bool) {
+        Some(false) => {}
+        Some(true) => findings.push(format!(
+            "{proof} violation: daemon_connection_failure=true (expected false)"
+        )),
+        None => findings.push(
+            "record-shape violation: daemon_connection_failure missing or non-boolean (fail closed)"
+                .to_string(),
+        ),
+    }
+}
+
+fn assert_no_remote_execution(record: &Value, proof: &str, findings: &mut Vec<String>) {
+    for key in [
+        "re_executes_started",
+        "re_executes_finished_successfully",
+        "re_executes_finished_with_error",
+    ] {
+        expect_snapshot_u64(record, key, 0, proof, findings);
+    }
+}
+
 /// Build the structured per-lane cache-hit report (the audit's missing-SLO item):
 /// action-cache hits, local/remote executions, upload counts, and buck2's own
 /// cache_hit_rate, labeled with the lane's build class + resolved mode.
 pub fn cache_hit_report(record: &Value, build_class: &str, mode: &str) -> Value {
+    let field = |key: &str| record.get(key).cloned().unwrap_or(Value::Null);
+    let snapshot = |key: &str| {
+        record
+            .get("last_snapshot")
+            .and_then(|value| value.get(key))
+            .cloned()
+            .unwrap_or(Value::Null)
+    };
     json!({
         "schema": CACHE_HIT_REPORT_SCHEMA,
         "adr": "ADR-0560",
@@ -377,6 +460,28 @@ pub fn cache_hit_report(record: &Value, build_class: &str, mode: &str) -> Value 
         "cache_upload_attempt_count": record_u64(record, "cache_upload_attempt_count"),
         "cache_upload_count": record_u64(record, "cache_upload_count"),
         "exit_result_name": record.get("exit_result_name").and_then(Value::as_str).unwrap_or(""),
+        "run_command_failure_count": field("run_command_failure_count"),
+        "daemon_connection_failure": field("daemon_connection_failure"),
+        "errors": field("errors"),
+        "re_upload_bytes": field("re_upload_bytes"),
+        "re_download_bytes": field("re_download_bytes"),
+        "command_duration_us": field("command_duration_us"),
+        "client_walltime_us": field("client_walltime_us"),
+        "critical_path_duration_us": field("critical_path_duration_us"),
+        "time_to_first_action_execution_ms": field("time_to_first_action_execution_ms"),
+        "buck2_revision": record.pointer("/metadata/strings/buck2_revision").cloned().unwrap_or(Value::Null),
+        "last_snapshot": {
+            "re_action_cache_finished_successfully": snapshot("re_action_cache_finished_successfully"),
+            "re_action_cache_finished_with_error": snapshot("re_action_cache_finished_with_error"),
+            "re_uploads_finished_successfully": snapshot("re_uploads_finished_successfully"),
+            "re_uploads_finished_with_error": snapshot("re_uploads_finished_with_error"),
+            "re_downloads_finished_successfully": snapshot("re_downloads_finished_successfully"),
+            "re_downloads_finished_with_error": snapshot("re_downloads_finished_with_error"),
+            "re_executes_finished_successfully": snapshot("re_executes_finished_successfully"),
+            "re_executes_finished_with_error": snapshot("re_executes_finished_with_error"),
+            "re_write_action_results_finished_successfully": snapshot("re_write_action_results_finished_successfully"),
+            "re_write_action_results_finished_with_error": snapshot("re_write_action_results_finished_with_error"),
+        },
     })
 }
 
@@ -400,24 +505,12 @@ pub fn assert_warm_cache_participation(
         "warm-ro" | "warm-rw" | "warm-read-only" | "warm-read-write"
     );
     let mut findings = Vec::new();
+    assert_record_success(record, "warm cache guard", &mut findings);
     if !bypass_mode && !warm_mode {
         findings.push(format!(
             "cache mode `{mode}` for class `{build_class}` is not recognized — refusing to \
              infer warm-cache correctness from an unknown mode (fail closed)"
         ));
-    }
-
-    match record.get("exit_result_name").and_then(Value::as_str) {
-        Some("SUCCESS") => {}
-        Some(result) => findings.push(format!(
-            "warm cache guard saw non-success buck2 exit_result_name={result:?} for \
-             class `{build_class}` — refusing false-green telemetry"
-        )),
-        None => findings.push(
-            "record-shape violation: exit_result_name missing from the invocation record — \
-             cannot prove the guarded build succeeded (fail closed)"
-                .to_string(),
-        ),
     }
 
     let cache_hit_rate = match record.get("cache_hit_rate").and_then(Value::as_f64) {
@@ -480,6 +573,8 @@ pub fn assert_complete_warm_cache_coverage(record: &Value) -> Result<(), Vec<Str
         .err()
         .unwrap_or_default();
 
+    assert_no_remote_execution(record, "reader warm proof", &mut findings);
+
     match record.get("cache_hit_rate").and_then(Value::as_f64) {
         Some(1.0) => {}
         Some(rate) if rate.is_finite() && rate >= 0.0 => findings.push(format!(
@@ -496,7 +591,170 @@ pub fn assert_complete_warm_cache_coverage(record: &Value) -> Result<(), Vec<Str
             None => {}
         }
     }
+    for key in ["cache_upload_attempt_count", "cache_upload_count"] {
+        match record.get(key).and_then(Value::as_u64) {
+            Some(0) => {}
+            Some(value) => findings.push(format!(
+                "read-only warm probe violation: {key}={value} (expected 0)"
+            )),
+            None => findings.push(format!(
+                "record-shape violation: counter `{key}` missing from the invocation record (fail closed)"
+            )),
+        }
+    }
+    for key in [
+        "re_uploads_started",
+        "re_uploads_finished_successfully",
+        "re_uploads_finished_with_error",
+        "re_downloads_finished_with_error",
+        "re_action_cache_finished_with_error",
+        "re_write_action_results_started",
+        "re_write_action_results_finished_successfully",
+        "re_write_action_results_finished_with_error",
+    ] {
+        match record
+            .get("last_snapshot")
+            .and_then(|snapshot| snapshot.get(key))
+            .and_then(Value::as_u64)
+        {
+            Some(0) => {}
+            Some(value) => findings.push(format!(
+                "read-only warm probe violation: last_snapshot.{key}={value} (expected 0)"
+            )),
+            None => findings.push(format!(
+                "record-shape violation: last_snapshot.{key} missing (fail closed)"
+            )),
+        }
+    }
+    match required_last_snapshot_u64(
+        record,
+        "re_action_cache_finished_successfully",
+        &mut findings,
+    ) {
+        Some(value) if value > 0 => {}
+        Some(value) => findings.push(format!(
+            "warm probe did not complete an action-cache lookup: last_snapshot.re_action_cache_finished_successfully={value} (expected >0)"
+        )),
+        None => {}
+    }
+    expect_record_u64(
+        record,
+        "re_upload_bytes",
+        0,
+        "reader warm proof",
+        &mut findings,
+    );
+    match required_u64(record, "re_download_bytes", &mut findings) {
+        Some(value) if value > 0 => {}
+        Some(value) => findings.push(format!(
+            "warm probe did not download from CAS: re_download_bytes={value} (expected >0)"
+        )),
+        None => {}
+    }
+    for key in ["re_downloads_finished_successfully"] {
+        match record
+            .get("last_snapshot")
+            .and_then(|snapshot| snapshot.get(key))
+            .and_then(Value::as_u64)
+        {
+            Some(value) if value > 0 => {}
+            Some(value) => findings.push(format!(
+                "warm probe did not download from CAS: last_snapshot.{key}={value} (expected >0)"
+            )),
+            None => findings.push(format!(
+                "record-shape violation: last_snapshot.{key} missing (fail closed)"
+            )),
+        }
+    }
 
+    if findings.is_empty() {
+        Ok(())
+    } else {
+        Err(findings)
+    }
+}
+
+/// Require the seed build to execute locally and successfully upload its outputs
+/// without remote execution or cache transport errors.
+pub fn assert_writer_seed_record(record: &Value) -> Result<(), Vec<String>> {
+    let mut findings = Vec::new();
+    assert_record_success(record, "writer seed", &mut findings);
+    assert_no_remote_execution(record, "writer seed", &mut findings);
+    match record.get("cache_hit_rate").and_then(Value::as_f64) {
+        Some(0.0) => {}
+        Some(value) => findings.push(format!(
+            "writer seed violation: cache_hit_rate={value} (expected 0.0)"
+        )),
+        None => findings.push(
+            "record-shape violation: cache_hit_rate missing or non-number (fail closed)"
+                .to_string(),
+        ),
+    }
+    for (key, expected_positive) in [
+        ("run_action_cache_count", false),
+        ("run_local_count", true),
+        ("run_remote_count", false),
+        ("cache_upload_attempt_count", true),
+        ("cache_upload_count", true),
+    ] {
+        match record.get(key).and_then(Value::as_u64) {
+            Some(value) if expected_positive && value > 0 => {}
+            Some(0) if !expected_positive => {}
+            Some(value) => findings.push(format!(
+                "writer seed counter {key}={value} (expected {})",
+                if expected_positive { ">0" } else { "0" }
+            )),
+            None => findings.push(format!(
+                "record-shape violation: counter `{key}` missing from the invocation record (fail closed)"
+            )),
+        }
+    }
+    for (key, expected_positive) in [
+        ("re_uploads_started", true),
+        ("re_uploads_finished_successfully", true),
+        ("re_uploads_finished_with_error", false),
+        ("re_downloads_finished_with_error", false),
+        ("re_action_cache_finished_with_error", false),
+    ] {
+        match record
+            .get("last_snapshot")
+            .and_then(|snapshot| snapshot.get(key))
+            .and_then(Value::as_u64)
+        {
+            Some(value) if expected_positive && value > 0 => {}
+            Some(0) if !expected_positive => {}
+            Some(value) => findings.push(format!(
+                "writer seed counter last_snapshot.{key}={value} (expected {})",
+                if expected_positive { ">0" } else { "0" }
+            )),
+            None => findings.push(format!(
+                "record-shape violation: last_snapshot.{key} missing (fail closed)"
+            )),
+        }
+    }
+    match required_u64(record, "re_upload_bytes", &mut findings) {
+        Some(value) if value > 0 => {}
+        Some(value) => findings.push(format!(
+            "writer seed counter re_upload_bytes={value} (expected >0)"
+        )),
+        None => {}
+    }
+    expect_record_u64(record, "re_download_bytes", 0, "writer seed", &mut findings);
+    for (key, expected_positive) in [
+        ("re_write_action_results_started", true),
+        ("re_write_action_results_finished_successfully", true),
+        ("re_write_action_results_finished_with_error", false),
+    ] {
+        match required_last_snapshot_u64(record, key, &mut findings) {
+            Some(value) if expected_positive && value > 0 => {}
+            Some(0) if !expected_positive => {}
+            Some(value) => findings.push(format!(
+                "writer seed counter last_snapshot.{key}={value} (expected {})",
+                if expected_positive { ">0" } else { "0" }
+            )),
+            None => {}
+        }
+    }
     if findings.is_empty() {
         Ok(())
     } else {
@@ -513,10 +771,33 @@ pub fn assert_complete_warm_cache_coverage(record: &Value) -> Result<(), Vec<Str
 /// nothing).
 pub fn assert_cold(record: &Value) -> Result<(), Vec<String>> {
     let mut findings = Vec::new();
+    assert_record_success(record, "cold proof", &mut findings);
+    assert_no_remote_execution(record, "cold proof", &mut findings);
+    match record.get("cache_hit_rate").and_then(Value::as_f64) {
+        Some(0.0) => {}
+        Some(value) => findings.push(format!(
+            "cold violation: cache_hit_rate={value} (expected 0.0)"
+        )),
+        None => findings.push(
+            "record-shape violation: cache_hit_rate missing or non-number (fail closed)"
+                .to_string(),
+        ),
+    }
+    match required_u64(record, "run_local_count", &mut findings) {
+        Some(value) if value > 0 => {}
+        Some(value) => findings.push(format!(
+            "cold violation: run_local_count={value} (expected >0)"
+        )),
+        None => {}
+    }
     for key in [
         "run_action_cache_count",
         "run_remote_count",
+        "run_remote_dep_file_cache_count",
         "cache_upload_attempt_count",
+        "cache_upload_count",
+        "dep_file_upload_attempt_count",
+        "dep_file_upload_count",
     ] {
         match record.get(key).and_then(Value::as_u64) {
             Some(0) => {}
@@ -529,20 +810,30 @@ pub fn assert_cold(record: &Value) -> Result<(), Vec<String>> {
             )),
         }
     }
-    match record
-        .pointer("/last_snapshot/re_action_cache_started")
-        .and_then(Value::as_u64)
-    {
-        Some(0) => {}
-        Some(started) => findings.push(format!(
-            "cold violation: last_snapshot.re_action_cache_started={started} (expected 0)"
-        )),
-        None => findings.push(
-            "record-shape violation: last_snapshot.re_action_cache_started missing — \
-             cannot prove coldness from an unrecognized record shape (fail closed)"
-                .to_string(),
-        ),
+    for key in [
+        "re_action_cache_started",
+        "re_action_cache_finished_successfully",
+        "re_action_cache_finished_with_error",
+        "re_uploads_started",
+        "re_uploads_finished_successfully",
+        "re_uploads_finished_with_error",
+        "re_downloads_started",
+        "re_downloads_finished_successfully",
+        "re_downloads_finished_with_error",
+        "re_write_action_results_started",
+        "re_write_action_results_finished_successfully",
+        "re_write_action_results_finished_with_error",
+        "re_get_digest_expirations_started",
+        "re_get_digest_expirations_finished_successfully",
+        "re_get_digest_expirations_finished_with_error",
+        "re_materializes_started",
+        "re_materializes_finished_successfully",
+        "re_materializes_finished_with_error",
+    ] {
+        expect_snapshot_u64(record, key, 0, "cold proof", &mut findings);
     }
+    expect_record_u64(record, "re_upload_bytes", 0, "cold proof", &mut findings);
+    expect_record_u64(record, "re_download_bytes", 0, "cold proof", &mut findings);
     if findings.is_empty() {
         Ok(())
     } else {
@@ -966,8 +1257,36 @@ mod tests {
 
     fn record_fixture(action_cache: u64, remote: u64, uploads: u64) -> Value {
         let cache_hit_rate = if action_cache == 0 { 0.0 } else { 0.5 };
-        json!({
-            "data": { "Record": { "data": { "InvocationRecord": {
+        let mut snapshot = json!({
+            "re_action_cache_started": action_cache,
+            "re_action_cache_finished_successfully": action_cache,
+            "re_action_cache_finished_with_error": 0,
+            "re_upload_bytes": if uploads > 0 { 1024 } else { 0 },
+            "re_uploads_started": uploads,
+            "re_uploads_finished_successfully": uploads,
+            "re_uploads_finished_with_error": 0,
+            "re_download_bytes": if action_cache > 0 { 1024 } else { 0 },
+            "re_downloads_started": action_cache,
+            "re_downloads_finished_successfully": action_cache,
+            "re_downloads_finished_with_error": 0,
+            "re_executes_started": 0,
+            "re_executes_finished_successfully": 0,
+            "re_executes_finished_with_error": 0,
+            "re_write_action_results_started": uploads,
+            "re_write_action_results_finished_successfully": uploads,
+            "re_write_action_results_finished_with_error": 0
+        });
+        for key in [
+            "re_get_digest_expirations_started",
+            "re_get_digest_expirations_finished_successfully",
+            "re_get_digest_expirations_finished_with_error",
+            "re_materializes_started",
+            "re_materializes_finished_successfully",
+            "re_materializes_finished_with_error",
+        ] {
+            snapshot[key] = json!(0);
+        }
+        let record = json!({
                 "cache_hit_rate": cache_hit_rate,
                 "run_action_cache_count": action_cache,
                 "run_local_count": 7,
@@ -975,10 +1294,23 @@ mod tests {
                 "run_skipped_count": 1,
                 "cache_upload_attempt_count": uploads,
                 "cache_upload_count": uploads,
+                "dep_file_upload_attempt_count": 0,
+                "dep_file_upload_count": 0,
+                "run_remote_dep_file_cache_count": 0,
+                "re_upload_bytes": if uploads > 0 { 1024 } else { 0 },
+                "re_download_bytes": if action_cache > 0 { 1024 } else { 0 },
                 "exit_result_name": "SUCCESS",
-                "last_snapshot": { "re_action_cache_started": action_cache }
-            } } } }
-        })
+                "run_command_failure_count": 0,
+                "errors": [],
+                "daemon_connection_failure": false,
+                "command_duration_us": 2000,
+                "client_walltime_us": 3000,
+                "critical_path_duration_us": 1000,
+                "time_to_first_action_execution_ms": 4,
+                "metadata": {"strings": {"buck2_revision": "fixture-revision"}},
+                "last_snapshot": snapshot
+        });
+        json!({"data": {"Record": {"data": {"InvocationRecord": record}}}})
     }
 
     #[test]
@@ -990,6 +1322,223 @@ mod tests {
         assert_eq!(report["run_action_cache_count"], 3);
         assert_eq!(report["cache_upload_count"], 2);
         assert_eq!(report["build_class"], "dev-agentic-iteration");
+        assert_eq!(report["re_upload_bytes"], 1024);
+        assert_eq!(report["re_download_bytes"], 1024);
+        assert_eq!(report["run_command_failure_count"], 0);
+        assert_eq!(report["daemon_connection_failure"], false);
+        assert_eq!(report["errors"], json!([]));
+        assert_eq!(report["command_duration_us"], 2000);
+        assert_eq!(report["client_walltime_us"], 3000);
+        assert_eq!(report["critical_path_duration_us"], 1000);
+        assert_eq!(report["time_to_first_action_execution_ms"], 4);
+        assert_eq!(report["buck2_revision"], "fixture-revision");
+        assert_eq!(
+            report["last_snapshot"]["re_action_cache_finished_successfully"],
+            3
+        );
+        assert_eq!(
+            report["last_snapshot"]["re_uploads_finished_successfully"],
+            2
+        );
+        assert_eq!(
+            report["last_snapshot"]["re_executes_finished_with_error"],
+            0
+        );
+    }
+
+    #[test]
+    fn writer_seed_requires_local_execution_and_successful_uploads() {
+        let document = record_fixture(0, 0, 2);
+        let record = invocation_record(&document).unwrap();
+        assert!(assert_writer_seed_record(record).is_ok());
+
+        let mut no_bytes = record.clone();
+        no_bytes["re_upload_bytes"] = json!(0);
+        let findings = assert_writer_seed_record(&no_bytes).unwrap_err();
+        assert!(
+            findings
+                .iter()
+                .any(|finding| finding.contains("re_upload_bytes=0"))
+        );
+    }
+
+    fn reject_each_mutation(
+        base: &Value,
+        predicate: fn(&Value) -> Result<(), Vec<String>>,
+        mutations: &[(&str, Value)],
+    ) {
+        for (pointer, value) in mutations {
+            let mut record = base.clone();
+            *record
+                .pointer_mut(pointer)
+                .unwrap_or_else(|| panic!("fixture missing {pointer}")) = value.clone();
+            assert!(
+                predicate(&record).is_err(),
+                "predicate accepted prohibited {pointer}={value}"
+            );
+        }
+    }
+
+    #[test]
+    fn commissioning_predicates_reject_every_prohibited_error_and_counter() {
+        let writer = invocation_record(&record_fixture(0, 0, 2)).unwrap().clone();
+        reject_each_mutation(
+            &writer,
+            assert_writer_seed_record,
+            &[
+                ("/run_command_failure_count", json!(1)),
+                ("/errors", json!(["failure"])),
+                ("/daemon_connection_failure", json!(true)),
+                ("/run_action_cache_count", json!(1)),
+                ("/run_remote_count", json!(1)),
+                ("/re_download_bytes", json!(1)),
+                ("/last_snapshot/re_executes_started", json!(1)),
+                ("/last_snapshot/re_executes_finished_successfully", json!(1)),
+                ("/last_snapshot/re_executes_finished_with_error", json!(1)),
+                ("/last_snapshot/re_uploads_finished_with_error", json!(1)),
+                ("/last_snapshot/re_downloads_finished_with_error", json!(1)),
+                (
+                    "/last_snapshot/re_action_cache_finished_with_error",
+                    json!(1),
+                ),
+                (
+                    "/last_snapshot/re_write_action_results_finished_with_error",
+                    json!(1),
+                ),
+            ],
+        );
+
+        let mut reader = invocation_record(&record_fixture(4, 0, 0)).unwrap().clone();
+        reader["cache_hit_rate"] = json!(1.0);
+        reader["run_local_count"] = json!(0);
+        reject_each_mutation(
+            &reader,
+            assert_complete_warm_cache_coverage,
+            &[
+                ("/run_command_failure_count", json!(1)),
+                ("/errors", json!(["failure"])),
+                ("/daemon_connection_failure", json!(true)),
+                ("/run_local_count", json!(1)),
+                ("/run_remote_count", json!(1)),
+                ("/cache_upload_attempt_count", json!(1)),
+                ("/cache_upload_count", json!(1)),
+                ("/re_upload_bytes", json!(1)),
+                ("/last_snapshot/re_executes_started", json!(1)),
+                ("/last_snapshot/re_executes_finished_successfully", json!(1)),
+                ("/last_snapshot/re_executes_finished_with_error", json!(1)),
+                ("/last_snapshot/re_uploads_finished_with_error", json!(1)),
+                ("/last_snapshot/re_downloads_finished_with_error", json!(1)),
+                (
+                    "/last_snapshot/re_action_cache_finished_with_error",
+                    json!(1),
+                ),
+                ("/last_snapshot/re_write_action_results_started", json!(1)),
+                (
+                    "/last_snapshot/re_write_action_results_finished_successfully",
+                    json!(1),
+                ),
+                (
+                    "/last_snapshot/re_write_action_results_finished_with_error",
+                    json!(1),
+                ),
+            ],
+        );
+
+        let cold = invocation_record(&record_fixture(0, 0, 0)).unwrap().clone();
+        reject_each_mutation(
+            &cold,
+            assert_cold,
+            &[
+                ("/run_command_failure_count", json!(1)),
+                ("/errors", json!(["failure"])),
+                ("/daemon_connection_failure", json!(true)),
+                ("/run_action_cache_count", json!(1)),
+                ("/run_remote_count", json!(1)),
+                ("/run_remote_dep_file_cache_count", json!(1)),
+                ("/cache_upload_attempt_count", json!(1)),
+                ("/cache_upload_count", json!(1)),
+                ("/dep_file_upload_attempt_count", json!(1)),
+                ("/dep_file_upload_count", json!(1)),
+                ("/last_snapshot/re_action_cache_started", json!(1)),
+                (
+                    "/last_snapshot/re_action_cache_finished_successfully",
+                    json!(1),
+                ),
+                (
+                    "/last_snapshot/re_action_cache_finished_with_error",
+                    json!(1),
+                ),
+                ("/re_upload_bytes", json!(1)),
+                ("/last_snapshot/re_uploads_started", json!(1)),
+                ("/last_snapshot/re_uploads_finished_successfully", json!(1)),
+                ("/last_snapshot/re_uploads_finished_with_error", json!(1)),
+                ("/re_download_bytes", json!(1)),
+                ("/last_snapshot/re_downloads_started", json!(1)),
+                (
+                    "/last_snapshot/re_downloads_finished_successfully",
+                    json!(1),
+                ),
+                ("/last_snapshot/re_downloads_finished_with_error", json!(1)),
+                ("/last_snapshot/re_executes_started", json!(1)),
+                ("/last_snapshot/re_executes_finished_successfully", json!(1)),
+                ("/last_snapshot/re_executes_finished_with_error", json!(1)),
+                ("/last_snapshot/re_write_action_results_started", json!(1)),
+                (
+                    "/last_snapshot/re_write_action_results_finished_successfully",
+                    json!(1),
+                ),
+                (
+                    "/last_snapshot/re_write_action_results_finished_with_error",
+                    json!(1),
+                ),
+                ("/last_snapshot/re_get_digest_expirations_started", json!(1)),
+                (
+                    "/last_snapshot/re_get_digest_expirations_finished_successfully",
+                    json!(1),
+                ),
+                (
+                    "/last_snapshot/re_get_digest_expirations_finished_with_error",
+                    json!(1),
+                ),
+                ("/last_snapshot/re_materializes_started", json!(1)),
+                (
+                    "/last_snapshot/re_materializes_finished_successfully",
+                    json!(1),
+                ),
+                (
+                    "/last_snapshot/re_materializes_finished_with_error",
+                    json!(1),
+                ),
+            ],
+        );
+    }
+
+    #[test]
+    fn commissioning_predicates_fail_closed_on_current_schema_type_drift() {
+        let writer = invocation_record(&record_fixture(0, 0, 2)).unwrap().clone();
+        let mut reader = invocation_record(&record_fixture(4, 0, 0)).unwrap().clone();
+        reader["cache_hit_rate"] = json!(1.0);
+        reader["run_local_count"] = json!(0);
+        let cold = invocation_record(&record_fixture(0, 0, 0)).unwrap().clone();
+        for (record, predicate) in [
+            (
+                &writer,
+                assert_writer_seed_record as fn(&Value) -> Result<(), Vec<String>>,
+            ),
+            (&reader, assert_complete_warm_cache_coverage),
+            (&cold, assert_cold),
+        ] {
+            reject_each_mutation(
+                record,
+                predicate,
+                &[
+                    ("/run_command_failure_count", json!("0")),
+                    ("/errors", json!({})),
+                    ("/daemon_connection_failure", json!(0)),
+                    ("/last_snapshot/re_executes_started", json!("0")),
+                ],
+            );
+        }
     }
 
     #[test]
