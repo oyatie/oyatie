@@ -31,7 +31,7 @@ tracing.workspace = true
 bytes.workspace = true
 axum = { version = "0.8", default-features = false, features = ["http1", "json", "tokio"] }
 reqwest = { version = "0.13", default-features = false, features = ["json", "rustls", "stream"] }
-tokio = { workspace = true, features = ["sync"] }
+tokio = { workspace = true, features = ["sync", "time"] }
 futures = { version = "0.3", default-features = false, features = ["alloc"] }
 
 [dev-dependencies]

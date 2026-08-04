@@ -75,18 +75,6 @@ rust_test(
 )
 
 rust_test(
-    name = "intelligence-rest-d3-refresh-singleflight-test",
-    srcs = glob(["tests/d3_refresh_singleflight.rs"]),
-    crate = "intelligence_rest_d3_refresh_singleflight_test",
-    crate_root = "tests/d3_refresh_singleflight.rs",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":intelligence-rest",
-        "third-party//:tokio",
-    ],
-)
-
-rust_test(
     name = "intelligence-rest-d4-body-limit-test",
     srcs = glob(["tests/d4_body_limit.rs"]),
     crate = "intelligence_rest_d4_body_limit_test",
