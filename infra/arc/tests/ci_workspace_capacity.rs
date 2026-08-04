@@ -911,6 +911,23 @@ fn openbao_tls_and_github_identity_migration_is_exact_and_secret_free() {
     assert!(runner_text.contains("/etc/nativelink/ca"));
     assert_eq!(runner_text.matches("optional\":true").count(), 2);
     assert!(!runner_text.contains("tls.key"));
+    let runner_container = named(
+        at(&runner, &["template", "spec", "containers"]),
+        "runner",
+    );
+    let runner_env = at(runner_container, &["env"]);
+    for (name, field_path) in [
+        ("OYA_RUNNER_POD_NAME", "metadata.name"),
+        ("OYA_RUNNER_POD_UID", "metadata.uid"),
+        ("OYA_RUNNER_NODE_NAME", "spec.nodeName"),
+    ] {
+        let entry = named(runner_env, name);
+        assert_eq!(
+            string_at(entry, &["valueFrom", "fieldRef", "fieldPath"]),
+            field_path
+        );
+        assert!(entry.get("value").is_none());
+    }
 
     let public_ca = yaml_documents(&root, "infra/kms/openbao-public-ca.k8s.yaml");
     let openbao_namespaces: BTreeSet<String> = public_ca
