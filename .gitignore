@@ -28,6 +28,15 @@
 *.pfx
 *.kubeconfig
 
+# Generated Talos bootstrap outputs contain cluster CA private keys and API credentials.
+# Keep only reviewed patches/templates in git. Exact root anchors prevent generated recovery
+# artifacts from being swept into preservation branches while leaving nested declarative files
+# (for example infra/talos/controlplane.patch.yaml) reviewable.
+/controlplane.yaml
+/worker.yaml
+/talosconfig
+/secrets.yaml
+
 .grit
 /bominal/
 
