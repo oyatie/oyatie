@@ -114,7 +114,11 @@ After totality is proven, `collect` parses every declared `Cargo.lock` (TOML) an
 `advisory-mirror/{advisories.json,mirror-manifest.json}` (JSON) — never shells out, walks the runtime
 filesystem, or touches the network/clock/git. Every configured lock must contain at least one
 `[[package]]` row, and every row must be a table with non-empty string `name` and `version`; malformed
-rows fail collection rather than disappearing from the advisory scan. The mirror is
+rows fail collection rather than disappearing from the advisory scan. To preserve legacy consumers,
+the gate still emits a compact `{name, version}` `locked` projection, and adds a deterministic
+`locked_by_source` projection (`{name, version, lockfile}`) so every finding can be attributed to the
+exact workspace lockfile and version.
+The mirror is
 integrity-checked against a vacuously-green truncated snapshot:
 `SCA-MIRROR-MALFORMED` fires when the manifest `content_hash` ≠ the recomputed `canonical_hash` of
 `advisories.json`, OR the manifest `advisory_count` ≠ the actual record count, OR the payload is
