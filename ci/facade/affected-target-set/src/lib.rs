@@ -976,6 +976,22 @@ pub fn failing_targets(report: &BTreeMap<String, TargetBuildStatus>) -> BTreeSet
 /// single required context). Bound into run selection so the artifact NAME alone is never enough.
 pub const REQUIRED_CONTEXT_WORKFLOW_PATH: &str = ".github/workflows/oya-ci-required.yml";
 
+/// The only job allowed to publish the build/test pair consumed by the trusted-baseline fast
+/// path. A workflow run is an aggregate: an unrelated hosted lane may fail after this owned,
+/// isolated producer completed successfully. Binding reuse to this exact job preserves the
+/// producer verdict without laundering the aggregate run's other failures.
+pub const AFFECTED_SET_PRODUCER_JOB_NAME: &str =
+    "gate · affected-set (ADR-0554, binding workspace coverage)";
+
+/// Provenance of the unique trusted baseline producer job.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TrustedProducerJob {
+    /// GitHub Actions job id from the run's paginated jobs endpoint.
+    pub id: u64,
+    /// Terminal GitHub conclusion. Currently only `success` can construct this value.
+    pub conclusion: String,
+}
+
 /// Sidecar the trusted-baseline consumer writes beside a reused baseline pair.
 ///
 /// WHY IT EXISTS: the FULL tier's grandfathering set depends on WHICH baseline it got. A reused
@@ -1136,12 +1152,14 @@ pub fn baseline_artifact_name(
     Ok(format!("{}-health-baseline-{sha}", kind.prefix()))
 }
 
-/// Select the trusted push-to-dev workflow run whose head SHA is the exact merge-base.
+/// Select the completed push-to-dev workflow run whose head SHA is the exact merge-base.
 ///
 /// ANTI-LAUNDERING: every accepted property comes from GitHub Actions PROVENANCE, never from
-/// anything a candidate PR controls — the run must be an `event=push` on `head_branch=dev` that
-/// `conclusion=success`ed, its `head_sha` must be the EXACT merge-base, and its `path` must be the
-/// canonical required-context workflow file.
+/// anything a candidate PR controls — the run must be a terminal `event=push` on
+/// `head_branch=dev`, its `head_sha` must be the EXACT merge-base, and its `path` must be the
+/// canonical required-context workflow file. The aggregate conclusion is deliberately not a
+/// selector: [`trusted_affected_set_producer_job`] separately requires the unique artifact
+/// producer to have completed successfully, so an unrelated lane cannot erase reusable output.
 ///
 /// The `path` bind is DEFENCE IN DEPTH, not the closing of a live hole: the consumer already
 /// queries the per-workflow runs route and then reads artifacts per-run, so a foreign workflow's
@@ -1165,7 +1183,7 @@ pub fn trusted_dev_push_run_id(
         if run.get("head_sha").and_then(Value::as_str) == Some(sha)
             && run.get("event").and_then(Value::as_str) == Some("push")
             && run.get("head_branch").and_then(Value::as_str) == Some("dev")
-            && run.get("conclusion").and_then(Value::as_str) == Some("success")
+            && run.get("status").and_then(Value::as_str) == Some("completed")
             && run.get("path").and_then(Value::as_str) == Some(expected_workflow_path)
         {
             return run
@@ -1177,6 +1195,44 @@ pub fn trusted_dev_push_run_id(
     }
 
     Ok(None)
+}
+
+/// Select the unique exact affected-set producer job from a fully paginated jobs payload.
+///
+/// Fail closed to `None` unless there is exactly one exact-name job and it is terminal green.
+/// Failed, cancelled, missing, in-progress, or duplicate producers all make the baseline
+/// unavailable and force the untouched cold rebuild. This function never accepts a substring or
+/// a caller-supplied job name.
+pub fn trusted_affected_set_producer_job(
+    jobs_json: &str,
+) -> Result<Option<TrustedProducerJob>, String> {
+    let payload: Value = serde_json::from_str(jobs_json)
+        .map_err(|e| format!("workflow-jobs payload is not valid JSON: {e}"))?;
+    let jobs = payload
+        .get("jobs")
+        .and_then(Value::as_array)
+        .ok_or("workflow-jobs payload has no `jobs` array")?;
+    let matching = jobs
+        .iter()
+        .filter(|job| {
+            job.get("name").and_then(Value::as_str) == Some(AFFECTED_SET_PRODUCER_JOB_NAME)
+        })
+        .collect::<Vec<_>>();
+    let [job] = matching.as_slice() else {
+        return Ok(None);
+    };
+    if job.get("status").and_then(Value::as_str) != Some("completed")
+        || job.get("conclusion").and_then(Value::as_str) != Some("success")
+    {
+        return Ok(None);
+    }
+    let Some(id) = job.get("id").and_then(Value::as_u64) else {
+        return Ok(None);
+    };
+    Ok(Some(TrustedProducerJob {
+        id,
+        conclusion: "success".to_owned(),
+    }))
 }
 
 /// Select the unexpired exact-name health baseline artifact from a trusted run.
@@ -2180,13 +2236,13 @@ mod tests {
     }
 
     #[test]
-    fn trusted_push_run_selection_accepts_exact_successful_dev_push() {
+    fn trusted_push_run_selection_accepts_exact_completed_dev_push_even_when_aggregate_failed() {
         let sha = "0123456789abcdef0123456789abcdef01234567";
         let runs = r#"{
             "workflow_runs": [
-                {"id": 11, "head_sha": "fedcba9876543210fedcba9876543210fedcba98", "event": "push", "head_branch": "dev", "conclusion": "success", "path": ".github/workflows/oya-ci-required.yml"},
-                {"id": 12, "head_sha": "0123456789abcdef0123456789abcdef01234567", "event": "pull_request", "head_branch": "dev", "conclusion": "success", "path": ".github/workflows/oya-ci-required.yml"},
-                {"id": 13, "head_sha": "0123456789abcdef0123456789abcdef01234567", "event": "push", "head_branch": "dev", "conclusion": "success", "path": ".github/workflows/oya-ci-required.yml"}
+                {"id": 11, "head_sha": "fedcba9876543210fedcba9876543210fedcba98", "event": "push", "head_branch": "dev", "status": "completed", "conclusion": "success", "path": ".github/workflows/oya-ci-required.yml"},
+                {"id": 12, "head_sha": "0123456789abcdef0123456789abcdef01234567", "event": "pull_request", "head_branch": "dev", "status": "completed", "conclusion": "success", "path": ".github/workflows/oya-ci-required.yml"},
+                {"id": 13, "head_sha": "0123456789abcdef0123456789abcdef01234567", "event": "push", "head_branch": "dev", "status": "completed", "conclusion": "failure", "path": ".github/workflows/oya-ci-required.yml"}
             ]
         }"#;
         assert_eq!(
@@ -2200,14 +2256,49 @@ mod tests {
         let sha = "0123456789abcdef0123456789abcdef01234567";
         let runs = r#"{
             "workflow_runs": [
-                {"id": 12, "head_sha": "0123456789abcdef0123456789abcdef01234567", "event": "push", "head_branch": "feature", "conclusion": "success", "path": ".github/workflows/oya-ci-required.yml"},
-                {"id": 13, "head_sha": "0123456789abcdef0123456789abcdef01234567", "event": "push", "head_branch": "dev", "conclusion": "failure", "path": ".github/workflows/oya-ci-required.yml"}
+                {"id": 12, "head_sha": "0123456789abcdef0123456789abcdef01234567", "event": "push", "head_branch": "feature", "status": "completed", "conclusion": "success", "path": ".github/workflows/oya-ci-required.yml"},
+                {"id": 13, "head_sha": "0123456789abcdef0123456789abcdef01234567", "event": "push", "head_branch": "dev", "status": "in_progress", "conclusion": null, "path": ".github/workflows/oya-ci-required.yml"}
             ]
         }"#;
         assert_eq!(
             trusted_dev_push_run_id(runs, sha, REQUIRED_CONTEXT_WORKFLOW_PATH),
             Ok(None)
         );
+    }
+
+    #[test]
+    fn trusted_producer_job_requires_one_exact_completed_success() {
+        let jobs = r#"{
+            "jobs": [
+                {"id": 40, "name": "unrelated", "status": "completed", "conclusion": "success"},
+                {"id": 41, "name": "gate · affected-set (ADR-0554, binding workspace coverage)", "status": "completed", "conclusion": "success"}
+            ]
+        }"#;
+        assert_eq!(
+            trusted_affected_set_producer_job(jobs),
+            Ok(Some(TrustedProducerJob {
+                id: 41,
+                conclusion: "success".to_owned(),
+            }))
+        );
+    }
+
+    #[test]
+    fn failed_cancelled_missing_or_duplicate_producer_is_unavailable() {
+        for conclusion in ["failure", "cancelled"] {
+            let jobs = format!(
+                r#"{{"jobs":[{{"id":41,"name":"{AFFECTED_SET_PRODUCER_JOB_NAME}","status":"completed","conclusion":"{conclusion}"}}]}}"#
+            );
+            assert_eq!(trusted_affected_set_producer_job(&jobs), Ok(None));
+        }
+        assert_eq!(trusted_affected_set_producer_job(r#"{"jobs":[]}"#), Ok(None));
+        let duplicate = format!(
+            r#"{{"jobs":[
+                {{"id":41,"name":"{AFFECTED_SET_PRODUCER_JOB_NAME}","status":"completed","conclusion":"success"}},
+                {{"id":42,"name":"{AFFECTED_SET_PRODUCER_JOB_NAME}","status":"completed","conclusion":"success"}}
+            ]}}"#
+        );
+        assert_eq!(trusted_affected_set_producer_job(&duplicate), Ok(None));
     }
 
     #[test]
