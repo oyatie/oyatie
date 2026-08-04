@@ -20,8 +20,6 @@ template:
   metadata:
     labels:
       oya.io/ci-cell: live-postgres
-      oya.io/nativelink-cas-reader: "true"
-      oya.io/nativelink-cas-writer: "true"
   spec:
     nodeSelector:
       kubernetes.io/arch: arm64
@@ -78,7 +76,7 @@ template:
             protocol: TCP
         startupProbe:
           exec:
-            command: ["/bin/sh", "-ec", "pg_isready -U postgres -d oyatie"]
+            command: ["/bin/sh", "-ec", "pg_isready -h 127.0.0.1 -U postgres -d oyatie"]
           periodSeconds: 2
           timeoutSeconds: 2
           failureThreshold: 60

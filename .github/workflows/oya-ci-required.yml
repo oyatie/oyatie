@@ -995,11 +995,12 @@ jobs:
   #    CONTAINERIZED Postgres and GATES merge. Both adapter and facade groups block
   #    the single required `oya-ci-required` context.
   #
-  #    SPLIT SAFETY (#901): adapter and facade groups run in parallel only because
-  #    each job owns an independent same-Pod PostgreSQL native sidecar and repeats the
-  #    deterministic bootstrap. Inside each group, `--num-threads 1` and sequential
-  #    target invocations remain because the harnesses in that group still share a
-  #    local database.
+  #    SPLIT SAFETY (#901): adapter and facade groups remain separate required jobs, and
+  #    each job owns an independent same-Pod PostgreSQL native sidecar plus deterministic
+  #    bootstrap. The dedicated scale set is capped at maxRunners=1, so the two jobs queue
+  #    and execute serially rather than competing for the disk-constrained runner cell.
+  #    Inside each group, `--num-threads 1` and sequential target invocations remain because
+  #    the harnesses in that group still share a local database.
   gate-live-postgres-adapters:
     name: "gate-live-postgres-adapters (durable adapters: RLS / CDC / SCIM, #901)"
     # Dedicated ARC cell: one ephemeral runner Pod + one localhost-only PostgreSQL

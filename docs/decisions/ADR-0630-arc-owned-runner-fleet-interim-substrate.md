@@ -96,15 +96,16 @@ necessary but not sufficient, and image publication must run as a workflow.
 
 `infra/nativelink`'s NetworkPolicy `nativelink-cas-ingress` admits `:50051` only from pods
 labelled `oya.io/nativelink-cas-writer: "true"` and `:50052` only from
-`oya.io/nativelink-cas-reader: "true"`, matching the **source** pod in any namespace. Runner
-pods therefore carry both. Without them the connection is refused at **L3** and presents as a
-**timeout, not a TLS error** — a failure mode that reads as a certificate problem and is not
-one. This is the mechanical precondition for the CAS ever being reachable; the buck2-side
-wiring is separate and still blocked (see Consequences).
+`oya.io/nativelink-cas-reader: "true"`, matching the **source** pod in any namespace. The
+general-purpose runner Pods therefore carry both. Without them the connection is refused at
+**L3** and presents as a **timeout, not a TLS error** — a failure mode that reads as a certificate
+problem and is not one. This is the mechanical precondition for the CAS ever being reachable;
+the buck2-side wiring is separate and still blocked (see Consequences). The D7 `--local-only`
+cell deliberately carries neither label.
 
 ### D5 — Resource bounds derived by arithmetic, on a shared cluster
 
-`requests: cpu 2 / memory 4Gi / ephemeral-storage 20Gi`;
+`requests: cpu 2 / memory 4Gi / ephemeral-storage 22Gi`;
 `limits: memory 8Gi / ephemeral-storage 60Gi`; **no CPU limit**.
 
 - `cpu 2` tracks the MEASURED buck2 scaling knee (j=2 87.19s, j=4 67.06s, j=8 71.29s,
@@ -125,10 +126,11 @@ wiring is separate and still blocked (see Consequences).
 
 The fleet ships as values files under `infra/arc/` and is registered in
 `infra/gitops/values.yaml` beside `external-secrets` and `registry`, the pattern those charts
-already follow. The declaration was verified **field-for-field against the live CR at zero
-drift** (maxRunners, minRunners, nodeSelector, both CAS labels, memory limit,
-ephemeral-storage limit, cpu request, githubConfigSecret) — it records reality rather than
-aspiration, which is the whole point of declaring it after an imperative bring-up.
+already follow. The values are reviewed **desired state**. Live readback is separate evidence:
+the general set currently differs from the desired 22Gi ephemeral-storage request until its
+GitOps reconcile completes, and the dedicated set does not exist until the D8 bootstrap protocol
+runs after #1504 capacity is verified. Do not describe desired-versus-live differences as zero
+drift or rollout evidence.
 
 ### D7 — Live-PostgreSQL tests use a dedicated ephemeral same-Pod cell
 
@@ -145,14 +147,39 @@ general-purpose runner receives no database admin environment, and the dedicated
 Service. A namespace NetworkPolicy selects only the dedicated cell label and denies cross-Pod
 ingress; the tests reach PostgreSQL only over same-Pod localhost. A Cilium egress-deny selects
 both `general` and `live-postgres` runner-cell labels and blocks the shared `oya-data` namespace
-without default-denying the GitHub, CAS, and package egress those jobs require. This is
+without default-denying the GitHub and package egress those jobs require. The dedicated cell has
+no NativeLink reader/writer labels because every live test invocation is `--local-only`; granting
+an unused CAS network capability would widen its blast radius without changing execution. This is
 test-fixture isolation, not a production data-plane dependency.
 
 The dedicated set is capped at `maxRunners: 1` and requests 32Gi ephemeral storage, above the
 31,347,796Ki observed workspace that triggered a current-node DiskPressure eviction. A 34Gi limit
-bounds further growth. This declaration is not rollout readiness: issue #1504 must supply and
-verify sufficient node capacity before the GitOps application is independently reviewed and
-deployed.
+bounds further growth. The cap also serializes the adapter and facade jobs even though the workflow
+keeps them as separate required lanes. This declaration is not rollout readiness: issue #1504 must
+supply and verify sufficient node capacity before the GitOps application is independently reviewed
+and deployed.
+
+### D8 — Candidate admission uses a bounded exact-head GitOps bootstrap
+
+The dedicated label creates a bootstrap dependency: Argo normally follows `dev`, while a pull
+request needs the dedicated scale set before it can earn protected admission into `dev`. The
+candidate therefore MUST NOT claim that committing `infra/gitops/values.yaml` alone makes its own
+runner available. After #1504 capacity is verified, an authorized operator uses the Argo/Kubernetes
+API or console to apply the reviewed JSON Patch template in
+`infra/arc/live-postgres-admission-bootstrap.json` to the `argocd/root` Application. Both the root
+chart revision and its `valuesObject.targetRevision` are set to the same SSH-signed PR head; the
+latter is required so the generated child Applications read candidate values and policy from that
+exact commit rather than from `dev`.
+
+The bootstrap is limited to two hours and records PR, exact head, expiry, operator, and evidence
+packet annotations. Admission evidence requires API readback that the root and the two child
+Applications resolved the exact head, the network policy synced before the scale set, and the
+dedicated label accepted the two exact-head jobs. The PATCH is not evidence; readback is. On
+failure, supersession, or expiry, the operator applies the paired rollback patch: restore the root
+to `dev`, remove the candidate values override and bootstrap annotations, then record readback that
+the root is on `dev` and candidate-only children were pruned. After merge, restoring `dev` retains
+the children because `dev` then owns them. This is an explicitly credential-gated bootstrap, not a
+CI shell step or an assertion of live rollout. No bootstrap may begin while #1504 is open.
 
 ## Alternatives considered
 
@@ -194,6 +221,10 @@ have shared a namespace — previously the blocker that made warm-cache work unm
 - The CAS is reachable at L3 (D4) but **not yet wired**: buck2 resolves `[buck2_re_client]`
   into `DaemonStartupConfig` from project config files only, and the resolver emits
   `--config-file`, which is measured-inert for that section.
+- The shared baked runner image does not yet include `psql`; the live jobs install the distro
+  client at runtime. Baking it requires publishing and verifying a new signed runner image and
+  updating the image digest, which is a separate image-supply-chain change rather than an
+  unreviewed expansion of this credential-containment slice.
 - Single-node durability: `local-path` RWO PVCs and a one-replica CAS on a permanent substrate
   that is one laptop.
 
@@ -202,7 +233,8 @@ have shared a namespace — previously the blocker that made warm-cache work unm
 This decision is the justification anchor for `infra/arc/OWNERS`,
 `infra/arc/controller-values.yaml`, `infra/arc/runner-scale-set-arm64-values.yaml`,
 `infra/arc/runner-scale-set-live-postgres-arm64-values.yaml`,
-`infra/arc/live-postgres-runner-network-policy.yaml`, and the ARC registrations in
+`infra/arc/live-postgres-runner-network-policy.yaml`,
+`infra/arc/live-postgres-admission-bootstrap.json`, and the ARC registrations in
 `infra/gitops/values.yaml`.
 
 It is also the justification anchor for the baked runner image this fleet runs. One path per
