@@ -101,9 +101,25 @@ legs (a verdict assertion), not the binary with `--write`, so no automation can 
 
 ### D5 — Mirror integrity, fail-closed
 
-`collect` is read-only: it parses the workspace `Cargo.lock` (TOML) and the vendored
-`advisory-mirror/{advisories.json,mirror-manifest.json}` (JSON) — never shells out, never touches the
-network/clock/git. The mirror is integrity-checked against a vacuously-green truncated snapshot:
+`collect` is read-only and no-walk. For the structured multi-lock policy it first consumes the
+materialized `oya-ci/scm-facts/v2` tracked-path snapshot (the pipeline's single out-of-graph SCM
+boundary) and independently projects every workspace-owned lock: a tracked `Cargo.lock` is owned
+exactly when its tracked sibling `Cargo.toml` declares top-level `[workspace]`. The sorted projection
+must equal `policy.lockfile_corpus`. A newly tracked fifth workspace lock therefore fails until the
+policy explicitly declares it; tracked package/member-local locks and orphan locks without a
+tracked sibling manifest do not expand the scan. The legacy one-lock `lockfile_path` form remains
+supported without this multi-workspace projection.
+
+After totality is proven, `collect` parses every declared `Cargo.lock` (TOML) and the vendored
+`advisory-mirror/{advisories.json,mirror-manifest.json}` (JSON) — never shells out, walks the runtime
+filesystem, or touches the network/clock/git. Every configured lock must contain at least one
+`[[package]]` row, and every row must be a table with non-empty string `name` and `version`; malformed
+rows fail collection rather than disappearing from the advisory scan. To preserve legacy consumers,
+the gate still emits a compact `{name, version}` `locked` projection, and adds a deterministic
+`locked_by_source` projection (`{name, version, lockfile}`) so every finding can be attributed to the
+exact workspace lockfile and version.
+The mirror is
+integrity-checked against a vacuously-green truncated snapshot:
 `SCA-MIRROR-MALFORMED` fires when the manifest `content_hash` ≠ the recomputed `canonical_hash` of
 `advisories.json`, OR the manifest `advisory_count` ≠ the actual record count, OR the payload is
 missing/non-array; `SCA-MIRROR-UNDERFLOW` fires below the `min_advisories` floor. Fail-closed
@@ -149,8 +165,10 @@ All are owned by `cloud-ci-platform` (OWNERS files in each crate root) and reach
   born-blocking GREEN today: quinn-proto is on the patched `0.11.15`, and the only other live
   affected advisories are the three unmaintained ids in `policy.ignore[]`.
 - The gate is hermetic: `serde_json` + `toml` + `semver` only, no `rustsec`/`git2`/`libgit2`, no
-  shell/network/clock. The only `Cargo.lock` additions are the two new owned crates plus the
-  zero-cost `semver` promotion.
+  shell/network/clock or runtime tree walk. The materialized SCM-facts snapshot supplies the
+  deterministic tracked-file boundary; exact workspace-lock projection and strict package-row
+  parsing prevent corpus omission and silent dependency disappearance. The only `Cargo.lock`
+  additions are the two new owned crates plus the zero-cost `semver` promotion.
 - A truncated or desynced mirror cannot make the gate vacuously green (integrity + floor fail closed).
 - The advisory snapshot must be periodically revendored; until the Slice-D reconciler ships, that is
   a manual producer run against a freshly-pinned advisory-db commit (the `remove_by` dates bound the
