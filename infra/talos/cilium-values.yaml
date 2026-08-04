@@ -8,6 +8,12 @@ ipam:
 kubeProxyReplacement: true
 k8sServiceHost: localhost        # KubePrism in-cluster apiserver endpoint on every Talos node
 k8sServicePort: 7445
+# Keep policy enforcement explicit. `default` makes every selected endpoint
+# default-deny in the selected direction while avoiding an unsafe cluster-wide
+# deny before each system workload has an audited allow policy. `never` is not a
+# valid migration state for this cell: ARC/OpenBao/CAS isolation depends on the
+# Kubernetes NetworkPolicies committed with those workloads.
+policyEnforcementMode: default
 operator:
   replicas: 1                      # single-node local cluster (ADR-0378): the default 2 replicas
                                    # cannot satisfy pod anti-affinity on one node (one stays Pending)

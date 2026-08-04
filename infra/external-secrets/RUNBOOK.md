@@ -134,6 +134,21 @@ s_client` handshake using the reader leaf against `:50051` fails. A successful
 reader-to-writer handshake is a hard stop: unset the variable and rotate both
 client roots before proceeding.
 
+The repository-side proof is embedded in the same Rust controller that owns the
+short-lived identity. Before it writes a successful non-secret receipt, it must
+observe plaintext OpenBao `:8200` denied, exchange the workflow OIDC token over
+TLS `:8202`, reject the reader leaf at writer `:50051`, and complete the declared
+Buck2 reader/writer operation. A missing or failed check leaves no successful
+receipt. Roll back by unsetting `OYA_CAS_IDENTITY_PROOF_ENABLED`; do not enable
+`warm_reads_licensed` from this proof alone.
+
+Before enabling that variable, read back that Talos was generated with
+`cluster.network.cni.name=none`, the Cilium DaemonSet is Ready on every node,
+the Cilium ConfigMap reports `enable-policy=default` (never `never`), and the ARC,
+OpenBao, and NativeLink NetworkPolicies are present. A live Flannel interface or
+missing Cilium endpoint is a hard stop: rebuild/reprovision the cell from the
+canonical Talos+Cilium declarations rather than temporarily disabling policy.
+
 ## The auth-delegator / `disable_local_ca_jwt` invariant (read this first)
 
 The whole binding hinges on **one** OpenBao config flag:

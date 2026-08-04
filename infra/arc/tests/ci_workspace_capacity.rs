@@ -560,6 +560,29 @@ fn runner_network_policy_is_kubernetes_native_and_fail_closed() {
 }
 
 #[test]
+fn talos_uses_cilium_as_an_enforcing_network_policy_substrate() {
+    let root = repo_root();
+    let control_plane = yaml(&root, "infra/talos/controlplane.patch.yaml");
+    assert_eq!(
+        string_at(&control_plane, &["cluster", "network", "cni", "name"]),
+        "none"
+    );
+    assert_eq!(
+        at(&control_plane, &["cluster", "proxy", "disabled"]).as_bool(),
+        Some(true)
+    );
+
+    let cilium = yaml(&root, "infra/talos/cilium-values.yaml");
+    assert_eq!(string_at(&cilium, &["policyEnforcementMode"]), "default");
+    assert_ne!(string_at(&cilium, &["policyEnforcementMode"]), "never");
+
+    let gitops = read(&root, "infra/gitops/values.yaml");
+    assert!(gitops.contains("name: cilium"));
+    assert!(gitops.contains("targetRevision: 1.19.4"));
+    assert!(gitops.contains("valueFiles: [infra/talos/cilium-values.yaml]"));
+}
+
+#[test]
 fn openbao_tls_and_github_identity_migration_is_exact_and_secret_free() {
     let root = repo_root();
     let base = read(&root, "infra/kms/openbao.k8s.yaml");
